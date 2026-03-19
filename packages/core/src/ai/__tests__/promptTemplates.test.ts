@@ -6,11 +6,14 @@ import {
   buildChartInsightPrompt,
   buildCoScoutSystemPrompt,
   buildCoScoutMessages,
+  buildCoScoutInput,
+  buildCoScoutTools,
   formatKnowledgeContext,
   buildReportSystemPrompt,
   buildReportPrompt,
   buildLocaleHint,
 } from '../promptTemplates';
+import { narrationResponseSchema, chartInsightResponseSchema } from '../schemas';
 import type { AIContext, CoScoutMessage } from '../types';
 import type { Finding, Hypothesis } from '../../findings';
 
@@ -1043,5 +1046,92 @@ describe('locale wiring in system prompts', () => {
     };
     const messages = buildCoScoutMessages(ctx, [], 'Hello');
     expect(messages[0].content).not.toContain('LANGUAGE:');
+  });
+});
+
+describe('buildCoScoutTools', () => {
+  it('returns tool definitions with strict schemas', () => {
+    const tools = buildCoScoutTools();
+    expect(tools.length).toBe(3);
+    expect(tools.every(t => t.type === 'function')).toBe(true);
+    expect(tools.every(t => t.parameters.strict === true)).toBe(true);
+    expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
+  });
+
+  it('includes get_chart_data tool', () => {
+    const tools = buildCoScoutTools();
+    const chartTool = tools.find(t => t.name === 'get_chart_data');
+    expect(chartTool).toBeDefined();
+    expect(chartTool!.parameters.required).toContain('chart');
+  });
+
+  it('includes get_statistical_summary tool', () => {
+    const tools = buildCoScoutTools();
+    const statsTool = tools.find(t => t.name === 'get_statistical_summary');
+    expect(statsTool).toBeDefined();
+  });
+
+  it('includes suggest_knowledge_search tool', () => {
+    const tools = buildCoScoutTools();
+    const kbTool = tools.find(t => t.name === 'suggest_knowledge_search');
+    expect(kbTool).toBeDefined();
+    expect(kbTool!.description).toContain('Knowledge Base');
+    expect(kbTool!.parameters.required).toContain('query');
+  });
+});
+
+describe('buildCoScoutInput', () => {
+  const baseCtx: AIContext = {
+    process: { description: 'Fill weight analysis' },
+    filters: [],
+    stats: { mean: 10.5, stdDev: 0.5, samples: 100 },
+  };
+
+  it('returns instructions and input array', () => {
+    const result = buildCoScoutInput(baseCtx, [], 'What does this Cpk mean?');
+    expect(result.instructions).toContain('CoScout');
+    expect(result.input.length).toBeGreaterThanOrEqual(2); // context + user
+    expect(result.input[result.input.length - 1].content).toBe('What does this Cpk mean?');
+    expect(result.input[result.input.length - 1].role).toBe('user');
+  });
+
+  it('includes context summary in input', () => {
+    const result = buildCoScoutInput(baseCtx, [], 'question');
+    const contextMsg = result.input[0];
+    expect(contextMsg.content).toContain('Mean=10.50');
+  });
+
+  it('includes conversation history in input', () => {
+    const history: CoScoutMessage[] = [
+      { id: '1', role: 'user', content: 'Hello', timestamp: 1 },
+      { id: '2', role: 'assistant', content: 'Hi there', timestamp: 2 },
+    ];
+    const result = buildCoScoutInput(baseCtx, history, 'Follow-up');
+    // context + 2 history + user = 4
+    expect(result.input.length).toBe(4);
+  });
+
+  it('includes knowledge context when available', () => {
+    const ctx: AIContext = {
+      ...baseCtx,
+      knowledgeDocuments: [{ title: 'SOP', snippet: 'Clean nozzles.', source: 'SharePoint' }],
+    };
+    const result = buildCoScoutInput(ctx, [], 'Question');
+    const kbMsg = result.input.find(m => m.content.includes('Knowledge Base'));
+    expect(kbMsg).toBeDefined();
+  });
+});
+
+describe('structured output schemas', () => {
+  it('narrationResponseSchema has required fields', () => {
+    expect(narrationResponseSchema.required).toContain('text');
+    expect(narrationResponseSchema.required).toContain('confidence');
+    expect(narrationResponseSchema.additionalProperties).toBe(false);
+    expect(narrationResponseSchema.properties.confidence.enum).toEqual(['low', 'moderate', 'high']);
+  });
+
+  it('chartInsightResponseSchema has required text field', () => {
+    expect(chartInsightResponseSchema.required).toContain('text');
+    expect(chartInsightResponseSchema.additionalProperties).toBe(false);
   });
 });

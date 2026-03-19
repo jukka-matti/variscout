@@ -248,32 +248,32 @@ buildAIContext()            -- structured AIContext with glossary, investigation
 prompts/                    -- modular prompt construction (shared, narration, coScout, chartInsights, reports)
   |
   v
-aiService                   -- provider detection, auth, fetch, caching
+aiService                   -- auth, fetch, caching (single path via responsesApi.ts)
   |
   v
-Azure AI Foundry            -- OpenAI or Anthropic (auto-detected from endpoint URL)
+Azure AI Foundry            -- Azure OpenAI only (ADR-028; Responses API)
 ```
 
 ## 10. Module Map
 
-| File                                         | Package                | Responsibility                                                                                       |
-| -------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------- |
-| `packages/core/src/ai/types.ts`              | `@variscout/core`      | `AIContext`, `CoScoutMessage`, `ProcessContext`, `InvestigationPhase` type definitions               |
-| `packages/core/src/ai/buildAIContext.ts`     | `@variscout/core`      | `buildAIContext()` assembly + `detectInvestigationPhase()`                                           |
-| `packages/core/src/ai/prompts/`              | `@variscout/core`      | Modular prompt builders: `shared.ts`, `narration.ts`, `coScout.ts`, `chartInsights.ts`, `reports.ts` |
-| `packages/core/src/ai/promptTemplates.ts`    | `@variscout/core`      | Thin re-export barrel for backward compatibility                                                     |
-| `packages/core/src/ai/responsesApi.ts`       | `@variscout/core`      | Azure AI Foundry Responses API client                                                                |
-| `packages/core/src/ai/tracing.ts`            | `@variscout/core`      | AI observability: `traceAICall` wrapper, `getTraceStats`                                             |
-| `packages/core/src/ai/chartInsights.ts`      | `@variscout/core`      | Deterministic insight builders per chart type                                                        |
-| `packages/core/src/ai/suggestedQuestions.ts` | `@variscout/core`      | `buildSuggestedQuestions()` — context-aware question generation                                      |
-| `packages/core/src/ai/hash.ts`               | `@variscout/core`      | `djb2Hash()` — shared hash for cache keys and dedup                                                  |
-| `packages/hooks/src/useAIContext.ts`         | `@variscout/hooks`     | React hook wrapping `buildAIContext()` with `useMemo`                                                |
-| `packages/hooks/src/useNarration.ts`         | `@variscout/hooks`     | Narration lifecycle: debounce, rate limit, cache, abort                                              |
-| `packages/hooks/src/useChartInsights.ts`     | `@variscout/hooks`     | Per-chart deterministic + optional AI enhancement                                                    |
-| `packages/hooks/src/useAICoScout.ts`         | `@variscout/hooks`     | CoScout conversation state, streaming, retry, abort                                                  |
-| `apps/azure/src/hooks/useAIDerivedState.ts`  | `@variscout/azure-app` | Violations, variation contributions, selected finding, team, staged                                  |
-| `apps/azure/src/hooks/useEditorAI.ts`        | `@variscout/azure-app` | Top-level AI orchestration — composes all AI hooks                                                   |
-| `apps/azure/src/services/aiService.ts`       | `@variscout/azure-app` | HTTP transport: provider detection, auth, retry, localStorage cache                                  |
+| File                                         | Package                | Responsibility                                                                                                                                                                                    |
+| -------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/core/src/ai/types.ts`              | `@variscout/core`      | `AIContext`, `CoScoutMessage`, `ProcessContext`, `InvestigationPhase` type definitions                                                                                                            |
+| `packages/core/src/ai/buildAIContext.ts`     | `@variscout/core`      | `buildAIContext()` assembly + `detectInvestigationPhase()`                                                                                                                                        |
+| `packages/core/src/ai/prompts/`              | `@variscout/core`      | Modular prompt builders: `shared.ts`, `narration.ts`, `coScout.ts`, `chartInsights.ts`, `reports.ts`                                                                                              |
+| `packages/core/src/ai/promptTemplates.ts`    | `@variscout/core`      | Thin re-export barrel for backward compatibility                                                                                                                                                  |
+| `packages/core/src/ai/responsesApi.ts`       | `@variscout/core`      | Sole API client — Azure AI Foundry Responses API. `sendResponsesTurn()` (structured outputs) and `streamResponsesWithToolLoop()` (streaming + tool loop). Chat Completions API removed (ADR-028). |
+| `packages/core/src/ai/tracing.ts`            | `@variscout/core`      | AI observability: `traceAICall` wrapper, `getTraceStats`                                                                                                                                          |
+| `packages/core/src/ai/chartInsights.ts`      | `@variscout/core`      | Deterministic insight builders per chart type                                                                                                                                                     |
+| `packages/core/src/ai/suggestedQuestions.ts` | `@variscout/core`      | `buildSuggestedQuestions()` — context-aware question generation                                                                                                                                   |
+| `packages/core/src/ai/hash.ts`               | `@variscout/core`      | `djb2Hash()` — shared hash for cache keys and dedup                                                                                                                                               |
+| `packages/hooks/src/useAIContext.ts`         | `@variscout/hooks`     | React hook wrapping `buildAIContext()` with `useMemo`                                                                                                                                             |
+| `packages/hooks/src/useNarration.ts`         | `@variscout/hooks`     | Narration lifecycle: debounce, rate limit, cache, abort                                                                                                                                           |
+| `packages/hooks/src/useChartInsights.ts`     | `@variscout/hooks`     | Per-chart deterministic + optional AI enhancement                                                                                                                                                 |
+| `packages/hooks/src/useAICoScout.ts`         | `@variscout/hooks`     | CoScout conversation state, streaming, retry, abort                                                                                                                                               |
+| `apps/azure/src/hooks/useAIDerivedState.ts`  | `@variscout/azure-app` | Violations, variation contributions, selected finding, team, staged                                                                                                                               |
+| `apps/azure/src/hooks/useEditorAI.ts`        | `@variscout/azure-app` | Top-level AI orchestration — composes all AI hooks                                                                                                                                                |
+| `apps/azure/src/services/aiService.ts`       | `@variscout/azure-app` | HTTP transport: auth, retry, localStorage cache. Provider detection removed (ADR-028); delegates to `responsesApi.ts`.                                                                            |
 
 ## 11. Key Function Signatures
 

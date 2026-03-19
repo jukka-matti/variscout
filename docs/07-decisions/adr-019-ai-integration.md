@@ -210,3 +210,14 @@ Key design decisions:
 - [AI Journey Integration](../05-technical/architecture/ai-journey-integration.md)
 - [AI Architecture](../05-technical/architecture/ai-architecture.md)
 - [AI Components](../06-design-system/components/ai-components.md)
+
+## Implementation Update (ADR-028, 2026-03-19)
+
+The AI integration has been simplified per ADR-028:
+
+- **Anthropic provider removed** — only Azure OpenAI is supported
+- **Chat Completions API removed** — Responses API is the single API path
+- **Structured outputs** added for narration and chart insights (guaranteed JSON schemas)
+- **Function calling** added for Knowledge Base intent detection (`suggest_knowledge_search`)
+- Provider detection (`detectProvider`, `ModelProvider`) and dual-format parsing removed from `aiService.ts`
+- `VITE_USE_RESPONSES_API` feature flag removed — always on

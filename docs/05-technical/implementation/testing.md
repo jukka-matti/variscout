@@ -267,6 +267,8 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `storage`               | ✅     | Offline-first storage, IndexedDB operations                                    |
 | `PresentationView`      | ✅     | Full-screen chart grid, focused chart navigation                               |
 | `SyncToast`             | ✅     | Toast notifications, auto-dismiss, action buttons                              |
+| `aiService`             | ✅     | Structured output parsing, Responses API endpoint format (mocked)              |
+| `useAICoScout`          | ✅     | `streamResponsesWithToolLoop` with tool handler injection, tool dispatch       |
 
 ---
 
@@ -796,7 +798,14 @@ All AI-related E2E tests use **recorded fixtures** (mock AI responses), not live
 - **Streaming simulation:** CoScout fixtures include chunked responses to test streaming UI states
 - **Error fixtures:** Dedicated fixtures for API errors, content filter blocks, rate limits, and timeouts
 
-See [AI Architecture — Testing Strategy](../architecture/ai-architecture.md#testing-strategy) for unit and component test approach.
+**AI Unit Test Approach (Responses API):**
+
+Unit tests for the AI layer use **Responses API mocks** (not Chat Completions). Provider-specific fixtures (Anthropic etc.) have been removed in favour of the Responses API endpoint format.
+
+- **`aiService.test.ts`** — Tests structured output parsing and Responses API endpoint format. Mocks the fetch call to return Responses API-shaped payloads (including tool calls and streamed events).
+- **`useAICoScout.test.ts`** — Tests `streamResponsesWithToolLoop` with **tool handler injection**: each registered tool handler (e.g., `suggest_knowledge_search`) is passed as a dependency, allowing tests to assert that the loop correctly dispatches tool calls and feeds results back into the stream.
+
+See [AI Architecture — Testing Strategy](../architecture/ai-architecture.md#testing-strategy) for additional unit and component test approach details.
 
 ### 13. Theme Switching (Azure) Verification
 

@@ -1,5 +1,6 @@
 /**
  * useAICoScout - Session-only conversational AI state management.
+ * Uses the Responses API exclusively with automatic tool call loop (ADR-028).
  * Manages message history, send/retry/clear, streaming, and abort control.
  */
 
@@ -10,38 +11,24 @@ import type {
   CoScoutError,
   AIErrorType,
   ResponsesApiConfig,
+  ToolHandlerMap,
 } from '@variscout/core';
 import {
-  buildCoScoutMessages,
-  buildCoScoutSystemPrompt,
+  buildCoScoutInput,
   buildCoScoutTools,
-  streamResponsesTurn,
+  streamResponsesWithToolLoop,
   traceAICall,
 } from '@variscout/core';
 
 export interface UseAICoScoutOptions {
   /** Current analysis context */
   context: AIContext | null;
-  /** Injected fetch function (from aiService.ts) */
-  fetchResponse?: (
-    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>
-  ) => Promise<string>;
-  /** Injected streaming fetch function */
-  fetchStreamingResponse?: (
-    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
-    onChunk: (delta: string) => void,
-    signal: AbortSignal
-  ) => Promise<void>;
   /** Seed the conversation with the current narration */
   initialNarrative?: string | null;
-  /** Called before building API messages — allows enriching context (e.g., Knowledge Base) */
-  onBeforeSend?: (text: string, context: AIContext) => Promise<void>;
-  /**
-   * Optional Responses API config. When provided, uses the v1 Responses API
-   * with stateful multi-turn via `previous_response_id` instead of the
-   * injected fetch functions. Feature-flagged migration path.
-   */
+  /** Responses API config — required for sending messages */
   responsesApiConfig?: ResponsesApiConfig;
+  /** Tool handlers for function calling (get_chart_data, get_statistical_summary, suggest_knowledge_search) */
+  toolHandlers?: ToolHandlerMap;
 }
 
 export interface UseAICoScoutReturn {
@@ -76,14 +63,7 @@ function classifyErrorToCoScoutError(err: unknown): CoScoutError {
 }
 
 export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
-  const {
-    context,
-    fetchResponse,
-    fetchStreamingResponse,
-    initialNarrative,
-    onBeforeSend,
-    responsesApiConfig,
-  } = options;
+  const { context, initialNarrative, responsesApiConfig, toolHandlers } = options;
 
   const [messages, setMessages] = useState<CoScoutMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -118,8 +98,7 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
 
   const send = useCallback(
     async (text: string) => {
-      const hasLegacyFetch = fetchResponse || fetchStreamingResponse;
-      if (!context || (!hasLegacyFetch && !responsesApiConfig) || !text.trim()) return;
+      if (!context || !responsesApiConfig || !text.trim()) return;
 
       // Abort previous request
       abortRef.current?.abort();
@@ -138,134 +117,62 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
       setError(null);
 
       try {
-        // Allow enriching context before building messages (e.g., Knowledge Base search)
-        if (onBeforeSend && context) {
-          await onBeforeSend(text.trim(), context);
-        }
+        // Build Responses API input
+        const { instructions, input } = buildCoScoutInput(
+          context,
+          messagesRef.current,
+          text.trim()
+        );
+        const tools = buildCoScoutTools();
 
-        // Use ref for current history; buildCoScoutMessages appends the user message
-        const apiMessages = buildCoScoutMessages(context, messagesRef.current, text.trim());
+        const placeholderId = generateId();
+        const placeholder: CoScoutMessage = {
+          id: placeholderId,
+          role: 'assistant',
+          content: '',
+          timestamp: Date.now(),
+        };
+        setMessages(prev => [...prev, placeholder]);
+        setIsStreaming(true);
+        streamingContentRef.current = '';
 
-        // ── Responses API path (when configured) ──────────────────────────
-        if (responsesApiConfig) {
-          const instructions = buildCoScoutSystemPrompt(context);
-          const tools = buildCoScoutTools();
-          const placeholderId = generateId();
-          const placeholder: CoScoutMessage = {
-            id: placeholderId,
-            role: 'assistant',
-            content: '',
-            timestamp: Date.now(),
+        const { result: response } = await traceAICall({ feature: 'coscout' }, async () => {
+          const resp = await streamResponsesWithToolLoop(
+            responsesApiConfig,
+            {
+              input,
+              instructions,
+              tools,
+              previous_response_id: previousResponseIdRef.current,
+              store: true,
+            },
+            toolHandlers || {},
+            (delta: string) => {
+              streamingContentRef.current += delta;
+              const content = streamingContentRef.current;
+              setMessages(prev => prev.map(m => (m.id === placeholderId ? { ...m, content } : m)));
+            },
+            controller.signal
+          );
+          return {
+            result: resp,
+            tokens: resp.usage
+              ? {
+                  inputTokens: resp.usage.input_tokens,
+                  outputTokens: resp.usage.output_tokens,
+                  totalTokens: resp.usage.total_tokens,
+                }
+              : undefined,
           };
-          setMessages(prev => [...prev, placeholder]);
-          setIsStreaming(true);
-          streamingContentRef.current = '';
+        });
 
-          const { result: response } = await traceAICall({ feature: 'coscout' }, async () => {
-            const resp = await streamResponsesTurn(
-              responsesApiConfig,
-              {
-                input: text.trim(),
-                instructions,
-                tools,
-                previous_response_id: previousResponseIdRef.current,
-              },
-              (delta: string) => {
-                streamingContentRef.current += delta;
-                const content = streamingContentRef.current;
-                setMessages(prev =>
-                  prev.map(m => (m.id === placeholderId ? { ...m, content } : m))
-                );
-              },
-              controller.signal
-            );
-            return {
-              result: resp,
-              tokens: resp.usage
-                ? {
-                    inputTokens: resp.usage.input_tokens,
-                    outputTokens: resp.usage.output_tokens,
-                    totalTokens: resp.usage.total_tokens,
-                  }
-                : undefined,
-            };
-          });
+        if (controller.signal.aborted) return;
 
-          if (controller.signal.aborted) return;
-
-          // Store response ID for multi-turn chaining
-          previousResponseIdRef.current = response.id;
-          setIsStreaming(false);
-          setIsLoading(false);
-          setError(null);
-          return;
-        }
-
-        // ── Legacy Chat Completions path ───────────────────────────────────
-        if (fetchStreamingResponse) {
-          const placeholderId = generateId();
-          const placeholder: CoScoutMessage = {
-            id: placeholderId,
-            role: 'assistant',
-            content: '',
-            timestamp: Date.now(),
-          };
-          setMessages(prev => [...prev, placeholder]);
-          setIsStreaming(true);
-          streamingContentRef.current = '';
-
-          try {
-            await traceAICall({ feature: 'coscout' }, async () => {
-              await fetchStreamingResponse(
-                apiMessages,
-                (delta: string) => {
-                  streamingContentRef.current += delta;
-                  const content = streamingContentRef.current;
-                  setMessages(prev =>
-                    prev.map(m => (m.id === placeholderId ? { ...m, content } : m))
-                  );
-                },
-                controller.signal
-              );
-              return { result: undefined };
-            });
-            if (controller.signal.aborted) return;
-            setIsStreaming(false);
-            setIsLoading(false);
-            setError(null);
-            return;
-          } catch (streamErr) {
-            if (controller.signal.aborted) return;
-            // If streaming had partial content, keep it
-            if (streamingContentRef.current) {
-              setIsStreaming(false);
-              setIsLoading(false);
-              return;
-            }
-            // Remove the empty placeholder and fall through to non-streaming
-            setMessages(prev => prev.filter(m => m.id !== placeholderId));
-            setIsStreaming(false);
-            // Fall through to non-streaming if available
-            if (!fetchResponse) throw streamErr;
-          }
-        }
-
-        // Non-streaming path
-        if (fetchResponse) {
-          const { result } = await traceAICall({ feature: 'coscout' }, async () => ({
-            result: await fetchResponse(apiMessages),
-          }));
-          if (controller.signal.aborted) return;
-
-          const assistantMessage: CoScoutMessage = {
-            id: generateId(),
-            role: 'assistant',
-            content: result,
-            timestamp: Date.now(),
-          };
-          setMessages(prev => [...prev, assistantMessage]);
-          setError(null);
-        }
+        // Store response ID for multi-turn chaining
+        previousResponseIdRef.current = response.id;
+        setIsStreaming(false);
+        setIsLoading(false);
+        setError(null);
       } catch (err) {
         if (controller.signal.aborted) return;
         const coscoutError = classifyErrorToCoScoutError(err);
@@ -285,7 +192,7 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
         }
       }
     },
-    [context, fetchResponse, fetchStreamingResponse, onBeforeSend, responsesApiConfig]
+    [context, responsesApiConfig, toolHandlers]
   );
 
   const stopStreaming = useCallback(() => {

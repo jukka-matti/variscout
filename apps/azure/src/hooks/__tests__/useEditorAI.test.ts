@@ -43,11 +43,8 @@ vi.mock('@variscout/hooks', async () => {
 vi.mock('../../services/aiService', () => ({
   fetchNarration: vi.fn(),
   fetchChartInsight: mockFetchChartInsight,
-  fetchCoScoutResponse: vi.fn(),
-  fetchCoScoutStreamingResponse: vi.fn(),
   isAIAvailable: mockIsAIAvailable,
-  getAIProviderLabel: vi.fn(() => null),
-  isResponsesApiEnabled: vi.fn(() => false),
+  getAIProviderLabel: vi.fn(() => 'Azure OpenAI'),
   getResponsesApiConfig: vi.fn(async () => undefined),
 }));
 

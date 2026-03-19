@@ -74,28 +74,16 @@ Terminology rules are codified in the `TERMINOLOGY_INSTRUCTION` constant in `pac
 
 #### Model Selection
 
-| Tier      | Models                     | Used By                        | Priority         |
-| --------- | -------------------------- | ------------------------------ | ---------------- |
-| Fast      | GPT-4o-mini / Claude Haiku | NarrativeBar, ChartInsightChip | Latency, cost    |
-| Reasoning | GPT-4o / Claude Sonnet     | CoScout, Reports               | Quality, context |
+| Tier      | Models      | Used By                        | Priority         |
+| --------- | ----------- | ------------------------------ | ---------------- |
+| Fast      | GPT-4o-mini | NarrativeBar, ChartInsightChip | Latency, cost    |
+| Reasoning | GPT-4o      | CoScout, Reports               | Quality, context |
 
-Customer configures model during ARM deployment. Provider auto-detected from endpoint URL pattern.
+Customer configures model during ARM deployment. Only Azure OpenAI is supported (ADR-028).
 
-#### Provider Detection
+#### Provider (ADR-028)
 
-`detectProvider()` in `packages/core/src/ai/` inspects the configured endpoint URL and returns the provider enum:
-
-| URL Pattern               | Detected Provider | Example                                    |
-| ------------------------- | ----------------- | ------------------------------------------ |
-| `*.openai.azure.com`      | OpenAI            | `https://myorg.openai.azure.com/...`       |
-| `*/anthropic`             | Anthropic         | `https://gateway.example.com/v1/anthropic` |
-| `*.services.ai.azure.com` | Anthropic         | `https://myorg.services.ai.azure.com/...`  |
-| _(fallback)_              | OpenAI            | Any other URL defaults to OpenAI           |
-
-`getAIProviderLabel()` maps the detected provider to a user-facing string for CoScout header transparency (via the `providerLabel` prop on `CoScoutPanelBase`):
-
-- OpenAI provider returns **"Azure OpenAI"**
-- Anthropic provider returns **"Claude"**
+Only **Azure OpenAI** is supported. Provider detection (`detectProvider`, `ModelProvider`) and the Anthropic API path have been removed. `getAIProviderLabel()` always returns **"Azure OpenAI"** and is used by `CoScoutPanelBase` (`providerLabel` prop) for CoScout header transparency.
 
 #### Prompt Change Process
 

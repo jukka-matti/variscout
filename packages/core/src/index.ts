@@ -316,11 +316,14 @@ export {
   buildSummaryPrompt,
   buildCoScoutSystemPrompt,
   buildCoScoutMessages,
+  buildCoScoutInput,
   formatKnowledgeContext,
   buildReportSystemPrompt,
   buildReportPrompt,
   buildLocaleHint,
   djb2Hash,
+  narrationResponseSchema,
+  chartInsightResponseSchema,
 } from './ai';
 
 // AI (Phase 2 — Chart Insights)
@@ -355,6 +358,9 @@ export type {
   ResponsesApiResponse,
   ResponseOutput,
   ToolDefinition,
+  TextFormat,
+  FunctionCallOutput,
+  ToolHandlerMap,
 } from './ai';
 export {
   traceAICall,
@@ -363,6 +369,7 @@ export {
   getTraceStats,
   sendResponsesTurn,
   streamResponsesTurn,
+  streamResponsesWithToolLoop,
   extractResponseText,
   buildCoScoutTools,
 } from './ai';

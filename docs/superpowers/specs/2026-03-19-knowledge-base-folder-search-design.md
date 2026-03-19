@@ -136,18 +136,26 @@ No new scopes needed.
 
 ### Intent Detection Refinement (Built)
 
-Simple keyword heuristic in `CoScoutMessages`: checks last user message for intent keywords (root cause, SOP, procedure, happened before, previous, historical, fault tree, 8D, FMEA, control plan, work instruction, similar, last time, past report, corrective action). Parent can override via `knowledgeIntentDetected` prop.
+Intent detection is now **primarily LLM-driven** via the `suggest_knowledge_search` function call (ADR-028). When CoScout determines that a user query warrants a knowledge base lookup, the model emits this tool call and the client executes the search automatically — no keyword scanning required.
+
+Tool definition:
+
+```json
+{ "name": "suggest_knowledge_search", "parameters": { "query": "string" } }
+```
+
+The **keyword heuristic in `CoScoutMessages`** remains as a **UI fallback**: if no tool call arrives (e.g., AI endpoint unavailable, or model didn't emit the tool), the component checks the last user message for intent keywords (root cause, SOP, procedure, happened before, previous, historical, fault tree, 8D, FMEA, control plan, work instruction, similar, last time, past report, corrective action) and shows a "Search Knowledge Base?" prompt. Parent can also override via the `knowledgeIntentDetected` prop.
 
 Show "Search Knowledge Base?" when:
 
 - Last message is assistant response
 - Knowledge Base is available AND enabled
 - No knowledge docs already shown for this exchange
-- User's last message contains a knowledge-intent keyword (or parent overrides)
+- `suggest_knowledge_search` tool call received from model, OR user's last message contains a knowledge-intent keyword (fallback), OR parent overrides via `knowledgeIntentDetected`
 
 Don't show when:
 
-- Question is purely about current data (no intent keywords detected)
+- Question is purely about current data (model didn't emit tool call, no intent keywords detected)
 - User is asking CoScout to explain/summarize
 - Knowledge docs already displayed
 
@@ -161,20 +169,20 @@ Don't show when:
 
 ## Component Changes
 
-| Component                     | Change                                                                               |
-| ----------------------------- | ------------------------------------------------------------------------------------ |
-| `AnalysisState` (hooks types) | Added `knowledgeSearchFolder?: string`                                               |
-| `DataContext` (Azure)         | Added `knowledgeSearchFolder` state + setter                                         |
-| `useKnowledgeSearch` (hooks)  | Added `folderScope` option, passes to search function                                |
-| `useEditorAI` (Azure)         | Accepts + passes `knowledgeSearchFolder`; auto-resolves channel folder               |
-| `channelDrive.ts` (Azure)     | Added `folderWebUrl` to `ChannelDriveInfo`; captures from Graph API                  |
-| `Editor.tsx` (Azure)          | Reads `knowledgeSearchFolder` from DataContext, passes to AI hook                    |
-| `SettingsPanel` (Azure)       | Search scope radio + folder path input + "Open in SharePoint" link                   |
-| `AdminKnowledgeSetup` (Azure) | Consent requirement, search scope info, "Open channel folder" link                   |
-| `CoScoutMessages` (UI)        | Intent keyword detection; "Found N documents" header; `knowledgeIntentDetected` prop |
-| `searchService.ts` (Azure)    | Already accepts `folderScope` — now wired end-to-end                                 |
-| ADR-026                       | Updated format decision (Markdown interim), intent detection + SP links              |
-| `knowledge-base-search.md`    | Added "Search Scope" section; fixed format references                                |
+| Component                     | Change                                                                                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AnalysisState` (hooks types) | Added `knowledgeSearchFolder?: string`                                                                                                                    |
+| `DataContext` (Azure)         | Added `knowledgeSearchFolder` state + setter                                                                                                              |
+| `useKnowledgeSearch` (hooks)  | Added `folderScope` option, passes to search function                                                                                                     |
+| `useEditorAI` (Azure)         | Accepts + passes `knowledgeSearchFolder`; auto-resolves channel folder                                                                                    |
+| `channelDrive.ts` (Azure)     | Added `folderWebUrl` to `ChannelDriveInfo`; captures from Graph API                                                                                       |
+| `Editor.tsx` (Azure)          | Reads `knowledgeSearchFolder` from DataContext, passes to AI hook                                                                                         |
+| `SettingsPanel` (Azure)       | Search scope radio + folder path input + "Open in SharePoint" link                                                                                        |
+| `AdminKnowledgeSetup` (Azure) | Consent requirement, search scope info, "Open channel folder" link                                                                                        |
+| `CoScoutMessages` (UI)        | `suggest_knowledge_search` tool call triggers search (primary); keyword heuristic as fallback; "Found N documents" header; `knowledgeIntentDetected` prop |
+| `searchService.ts` (Azure)    | Already accepts `folderScope` — now wired end-to-end                                                                                                      |
+| ADR-026                       | Updated format decision (Markdown interim), intent detection + SP links                                                                                   |
+| `knowledge-base-search.md`    | Added "Search Scope" section; fixed format references                                                                                                     |
 
 ---
 

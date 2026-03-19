@@ -28,12 +28,12 @@ export interface ToolDefinition {
   /** Human-readable description of what the tool does */
   description: string;
   /** JSON Schema describing the function parameters */
-  parameters: Record<string, unknown>;
+  parameters: Record<string, unknown> & { strict?: boolean };
 }
 
 export interface ResponsesApiRequest {
   /** User input — text string or structured messages */
-  input: string | Array<{ role: string; content: string }>;
+  input: string | Array<{ role: string; content: string } | FunctionCallOutput>;
   /** System prompt / instructions */
   instructions?: string;
   /** Previous response ID for multi-turn continuity */
@@ -44,7 +44,31 @@ export interface ResponsesApiRequest {
   stream?: boolean;
   /** Model deployment (passed as 'model' in the body) */
   model: string;
+  /** Enable server-side conversation storage for prompt caching */
+  store?: boolean;
+  /** Tool choice: 'auto' | 'none' | 'required' | { type: 'function', name: string } */
+  tool_choice?: string | { type: 'function'; name: string };
+  /** Structured output format for text responses */
+  text?: { format: TextFormat };
 }
+
+/** Structured output format — JSON Schema */
+export interface TextFormat {
+  type: 'json_schema';
+  name: string;
+  schema: Record<string, unknown>;
+  strict?: boolean;
+}
+
+/** Function call output sent back to the model after executing a tool */
+export interface FunctionCallOutput {
+  type: 'function_call_output';
+  call_id: string;
+  output: string;
+}
+
+/** Map of tool name → handler function for the tool call loop */
+export type ToolHandlerMap = Record<string, (args: Record<string, unknown>) => Promise<string>>;
 
 export interface ResponseOutput {
   type: 'message' | 'function_call';
@@ -122,9 +146,17 @@ export async function sendResponsesTurn(
   return res.json() as Promise<ResponsesApiResponse>;
 }
 
+/** Internal result from a single streaming turn — may be text or function calls */
+interface StreamTurnResult {
+  response: ResponsesApiResponse;
+  /** Pending function calls that need execution before continuing */
+  functionCalls: Array<{ name: string; arguments: string; call_id: string }>;
+}
+
 /**
- * Stream a CoScout conversation turn via the Responses API (SSE).
+ * Stream a single Responses API turn via SSE.
  * Calls `onChunk` with each text delta as it arrives.
+ * Returns both the response and any pending function calls.
  */
 export async function streamResponsesTurn(
   config: ResponsesApiConfig,
@@ -132,6 +164,16 @@ export async function streamResponsesTurn(
   onChunk: (delta: string) => void,
   signal: AbortSignal
 ): Promise<ResponsesApiResponse> {
+  const result = await streamSingleTurn(config, request, onChunk, signal);
+  return result.response;
+}
+
+async function streamSingleTurn(
+  config: ResponsesApiConfig,
+  request: Omit<ResponsesApiRequest, 'model' | 'stream'>,
+  onChunk: (delta: string) => void,
+  signal: AbortSignal
+): Promise<StreamTurnResult> {
   const url = buildUrl(config);
 
   const body: ResponsesApiRequest = {
@@ -159,6 +201,9 @@ export async function streamResponsesTurn(
   let responseId = '';
   let fullText = '';
   const usage = { input_tokens: 0, output_tokens: 0, total_tokens: 0 };
+  const functionCalls: Array<{ name: string; arguments: string; call_id: string }> = [];
+  // Track in-progress function call argument assembly
+  const pendingArgs: Record<string, string> = {};
 
   try {
     while (true) {
@@ -183,6 +228,36 @@ export async function streamResponsesTurn(
             onChunk(data.delta);
           }
 
+          // Function call argument deltas
+          if (data.type === 'response.function_call_arguments.delta' && data.delta) {
+            const itemId = data.item_id || 'default';
+            pendingArgs[itemId] = (pendingArgs[itemId] || '') + data.delta;
+          }
+
+          // Function call completed
+          if (data.type === 'response.function_call_arguments.done') {
+            const itemId = data.item_id || 'default';
+            functionCalls.push({
+              name: data.name || '',
+              arguments: pendingArgs[itemId] || data.arguments || '',
+              call_id: data.call_id || '',
+            });
+            delete pendingArgs[itemId];
+          }
+
+          // Also capture function calls from response.output_item.done
+          if (data.type === 'response.output_item.done' && data.item?.type === 'function_call') {
+            const item = data.item;
+            // Only add if not already captured via arguments.done
+            if (!functionCalls.some(fc => fc.call_id === item.call_id)) {
+              functionCalls.push({
+                name: item.name || '',
+                arguments: item.arguments || '',
+                call_id: item.call_id || '',
+              });
+            }
+          }
+
           // Capture usage from completed event
           if (data.type === 'response.completed' && data.response?.usage) {
             Object.assign(usage, data.response.usage);
@@ -197,11 +272,93 @@ export async function streamResponsesTurn(
     reader.releaseLock();
   }
 
+  const output: ResponseOutput[] = [];
+  if (fullText) {
+    output.push({ type: 'message', content: [{ type: 'text', text: fullText }] });
+  }
+  for (const fc of functionCalls) {
+    output.push({
+      type: 'function_call',
+      name: fc.name,
+      arguments: fc.arguments,
+      call_id: fc.call_id,
+    });
+  }
+  if (output.length === 0) {
+    output.push({ type: 'message', content: [{ type: 'text', text: fullText }] });
+  }
+
   return {
-    id: responseId,
-    output: [{ type: 'message', content: [{ type: 'text', text: fullText }] }],
-    usage,
+    response: { id: responseId, output, usage },
+    functionCalls,
   };
+}
+
+/**
+ * Stream a Responses API conversation with automatic tool call loop.
+ *
+ * Streams the first turn, and if the model calls functions, executes them
+ * via the provided handlers and sends the results back. Continues until
+ * the model produces a text response (no more function calls).
+ *
+ * Max 5 tool call rounds to prevent infinite loops.
+ */
+export async function streamResponsesWithToolLoop(
+  config: ResponsesApiConfig,
+  request: Omit<ResponsesApiRequest, 'model' | 'stream'>,
+  toolHandlers: ToolHandlerMap,
+  onChunk: (delta: string) => void,
+  signal: AbortSignal
+): Promise<ResponsesApiResponse> {
+  const MAX_ROUNDS = 5;
+  let currentRequest = { ...request };
+  let lastResponse: ResponsesApiResponse | undefined;
+
+  for (let round = 0; round < MAX_ROUNDS; round++) {
+    if (signal.aborted) break;
+
+    const turnResult = await streamSingleTurn(config, currentRequest, onChunk, signal);
+    lastResponse = turnResult.response;
+
+    // No function calls — we have a text response, done
+    if (turnResult.functionCalls.length === 0) {
+      return lastResponse;
+    }
+
+    // Execute function calls and build output for next turn
+    const functionOutputs: FunctionCallOutput[] = [];
+    for (const fc of turnResult.functionCalls) {
+      const handler = toolHandlers[fc.name];
+      let output: string;
+      if (handler) {
+        try {
+          const args = JSON.parse(fc.arguments || '{}') as Record<string, unknown>;
+          output = await handler(args);
+        } catch (err) {
+          output = JSON.stringify({ error: err instanceof Error ? err.message : String(err) });
+        }
+      } else {
+        output = JSON.stringify({ error: `Unknown tool: ${fc.name}` });
+      }
+      functionOutputs.push({ type: 'function_call_output', call_id: fc.call_id, output });
+    }
+
+    // Send function outputs as the next turn input, chained via previous_response_id
+    currentRequest = {
+      ...request,
+      input: functionOutputs,
+      previous_response_id: lastResponse.id,
+    };
+  }
+
+  // Exhausted rounds — return whatever we have
+  return (
+    lastResponse || {
+      id: '',
+      output: [],
+      usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+    }
+  );
 }
 
 /**

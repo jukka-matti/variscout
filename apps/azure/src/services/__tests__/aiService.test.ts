@@ -11,9 +11,8 @@ import {
   isAIAvailable,
   fetchChartInsight,
   fetchNarration,
-  fetchCoScoutResponse,
-  fetchCoScoutStreamingResponse,
   fetchFindingsReport,
+  getAIProviderLabel,
 } from '../aiService';
 
 // ---------------------------------------------------------------------------
@@ -21,7 +20,6 @@ import {
 // ---------------------------------------------------------------------------
 
 const OPENAI_ENDPOINT = 'https://test.openai.azure.com/openai/deployments/gpt-4o/chat/completions';
-const ANTHROPIC_ENDPOINT = 'https://test.services.ai.azure.com';
 
 /** Minimal valid AIContext for fetchNarration. */
 function makeAIContext(overrides?: Record<string, unknown>) {
@@ -40,15 +38,12 @@ function mockEndpoint(endpoint: string) {
   });
 }
 
-function openAIResponse(text: string) {
+/** Responses API response shape */
+function responsesApiResponse(text: string) {
   return {
-    choices: [{ message: { content: text } }],
-  };
-}
-
-function anthropicResponse(text: string) {
-  return {
-    content: [{ type: 'text', text }],
+    id: 'resp_001',
+    output: [{ type: 'message', content: [{ type: 'text', text }] }],
+    usage: { input_tokens: 10, output_tokens: 5, total_tokens: 15 },
   };
 }
 
@@ -67,22 +62,8 @@ function buildFetchMock(
   }) as unknown as typeof globalThis.fetch;
 }
 
-function createMockStream(chunks: string[]): ReadableStream<Uint8Array> {
-  const encoder = new TextEncoder();
-  let index = 0;
-  return new ReadableStream({
-    pull(controller) {
-      if (index < chunks.length) {
-        controller.enqueue(encoder.encode(chunks[index++]));
-      } else {
-        controller.close();
-      }
-    },
-  });
-}
-
 // ---------------------------------------------------------------------------
-// Existing tests
+// Tests
 // ---------------------------------------------------------------------------
 
 describe('classifyError', () => {
@@ -141,15 +122,24 @@ describe('isAIAvailable', () => {
   });
 });
 
-describe('fetchChartInsight', () => {
-  it('throws when AI endpoint not configured', async () => {
-    await expect(fetchChartInsight('test prompt')).rejects.toThrow('AI endpoint not configured');
+describe('getAIProviderLabel', () => {
+  it('returns null when no endpoint configured', () => {
+    (getRuntimeConfig as ReturnType<typeof vi.fn>).mockReturnValue(null);
+    expect(getAIProviderLabel()).toBeNull();
+  });
+
+  it('always returns Azure OpenAI when endpoint is configured', () => {
+    mockEndpoint(OPENAI_ENDPOINT);
+    expect(getAIProviderLabel()).toBe('Azure OpenAI');
   });
 });
 
-// ---------------------------------------------------------------------------
-// New comprehensive tests
-// ---------------------------------------------------------------------------
+describe('fetchChartInsight', () => {
+  it('throws when AI endpoint not configured', async () => {
+    (getRuntimeConfig as ReturnType<typeof vi.fn>).mockReturnValue(null);
+    await expect(fetchChartInsight('test prompt')).rejects.toThrow('AI endpoint not configured');
+  });
+});
 
 describe('fetchNarration', () => {
   const originalFetch = globalThis.fetch;
@@ -173,9 +163,10 @@ describe('fetchNarration', () => {
   });
 
   it('returns cached response on cache hit', async () => {
-    // Pre-populate cache — the key is hash-based so we call once to populate, then verify second call skips fetch
+    // Narration uses structured output — respond with JSON
+    const jsonResponse = JSON.stringify({ text: 'Narration text', confidence: 'high' });
     globalThis.fetch = buildFetchMock(
-      () => new Response(JSON.stringify(openAIResponse('Narration text')), { status: 200 })
+      () => new Response(JSON.stringify(responsesApiResponse(jsonResponse)), { status: 200 })
     );
 
     const context = makeAIContext({ glossaryFragment: 'gloss' });
@@ -188,18 +179,19 @@ describe('fetchNarration', () => {
 
     const second = await fetchNarration(context);
     expect(second).toBe('Narration text');
-    // Only /.auth/me would be called if fetch were used, but cache prevents any call
+    // Cache hit returns before any fetch calls (no auth or AI request needed)
     expect(failFetch).not.toHaveBeenCalled();
   });
 
   it('retries on 429 and succeeds on second attempt', async () => {
     let callCount = 0;
+    const jsonResponse = JSON.stringify({ text: 'Success after retry', confidence: 'moderate' });
     globalThis.fetch = buildFetchMock(() => {
       callCount++;
       if (callCount === 1) {
-        return new Response('Too Many Requests', { status: 429 });
+        return new Response('Responses API error 429: Too Many Requests', { status: 429 });
       }
-      return new Response(JSON.stringify(openAIResponse('Success after retry')), {
+      return new Response(JSON.stringify(responsesApiResponse(jsonResponse)), {
         status: 200,
       });
     });
@@ -214,27 +206,19 @@ describe('fetchNarration', () => {
     globalThis.fetch = buildFetchMock(() => new Response('error', { status: 500 }));
 
     const context = makeAIContext();
-    await expect(fetchNarration(context)).rejects.toThrow('AI request failed (server): 500');
+    await expect(fetchNarration(context)).rejects.toThrow('Responses API error 500');
   }, 15_000);
-
-  it('uses Anthropic response format when endpoint is Anthropic', async () => {
-    mockEndpoint(ANTHROPIC_ENDPOINT);
-    globalThis.fetch = buildFetchMock(
-      () =>
-        new Response(JSON.stringify(anthropicResponse('Anthropic narration')), {
-          status: 200,
-        })
-    );
-
-    const context = makeAIContext();
-    const result = await fetchNarration(context);
-    expect(result).toBe('Anthropic narration');
-  });
 
   it('throws on empty AI response', async () => {
     globalThis.fetch = buildFetchMock(
       () =>
-        new Response(JSON.stringify({ choices: [{ message: { content: '' } }] }), { status: 200 })
+        new Response(
+          JSON.stringify({
+            id: 'resp_001',
+            output: [{ type: 'message', content: [{ type: 'text', text: '' }] }],
+          }),
+          { status: 200 }
+        )
     );
 
     const context = makeAIContext();
@@ -256,28 +240,19 @@ describe('fetchChartInsight (with endpoint)', () => {
   });
 
   it('returns AI-enhanced insight text', async () => {
+    const jsonResponse = JSON.stringify({ text: 'Cpk trending down' });
     globalThis.fetch = buildFetchMock(
-      () => new Response(JSON.stringify(openAIResponse('Cpk trending down')), { status: 200 })
+      () => new Response(JSON.stringify(responsesApiResponse(jsonResponse)), { status: 200 })
     );
 
     const result = await fetchChartInsight('Describe the trend');
     expect(result).toBe('Cpk trending down');
   });
 
-  it('does not retry on error (single attempt)', async () => {
-    let callCount = 0;
-    globalThis.fetch = buildFetchMock(() => {
-      callCount++;
-      return new Response('error', { status: 429 });
-    });
-
-    await expect(fetchChartInsight('prompt')).rejects.toThrow('AI chip request failed: 429');
-    expect(callCount).toBe(1);
-  });
-
   it('returns cached insight on second call with same prompt', async () => {
+    const jsonResponse = JSON.stringify({ text: 'Cached insight' });
     globalThis.fetch = buildFetchMock(
-      () => new Response(JSON.stringify(openAIResponse('Cached insight')), { status: 200 })
+      () => new Response(JSON.stringify(responsesApiResponse(jsonResponse)), { status: 200 })
     );
 
     const first = await fetchChartInsight('same prompt');
@@ -289,133 +264,6 @@ describe('fetchChartInsight (with endpoint)', () => {
     const second = await fetchChartInsight('same prompt');
     expect(second).toBe('Cached insight');
     expect(failFetch).not.toHaveBeenCalled();
-  });
-});
-
-describe('fetchCoScoutResponse', () => {
-  const originalFetch = globalThis.fetch;
-
-  beforeEach(() => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    mockEndpoint(OPENAI_ENDPOINT);
-  });
-
-  afterEach(() => {
-    globalThis.fetch = originalFetch;
-    vi.useRealTimers();
-    (getRuntimeConfig as ReturnType<typeof vi.fn>).mockReturnValue(null);
-  });
-
-  it('throws when AI endpoint not configured', async () => {
-    (getRuntimeConfig as ReturnType<typeof vi.fn>).mockReturnValue(null);
-    await expect(fetchCoScoutResponse([{ role: 'user', content: 'hello' }])).rejects.toThrow(
-      'AI endpoint not configured'
-    );
-  });
-
-  it('returns response text on success', async () => {
-    globalThis.fetch = buildFetchMock(
-      () => new Response(JSON.stringify(openAIResponse('CoScout reply')), { status: 200 })
-    );
-
-    const result = await fetchCoScoutResponse([{ role: 'user', content: 'hello' }]);
-    expect(result).toBe('CoScout reply');
-  });
-
-  it('retries once on 429 then succeeds', async () => {
-    let callCount = 0;
-    globalThis.fetch = buildFetchMock(() => {
-      callCount++;
-      if (callCount === 1) return new Response('rate limit', { status: 429 });
-      return new Response(JSON.stringify(openAIResponse('ok')), { status: 200 });
-    });
-
-    const result = await fetchCoScoutResponse([{ role: 'user', content: 'hi' }]);
-    expect(result).toBe('ok');
-    expect(callCount).toBe(2);
-  });
-
-  it('throws after both attempts fail on 429', async () => {
-    globalThis.fetch = buildFetchMock(() => new Response('rate limit', { status: 429 }));
-
-    await expect(fetchCoScoutResponse([{ role: 'user', content: 'hi' }])).rejects.toThrow(
-      'AI request failed (rate-limit): 429'
-    );
-  });
-});
-
-describe('fetchCoScoutStreamingResponse', () => {
-  const originalFetch = globalThis.fetch;
-
-  beforeEach(() => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    mockEndpoint(OPENAI_ENDPOINT);
-  });
-
-  afterEach(() => {
-    globalThis.fetch = originalFetch;
-    vi.useRealTimers();
-    (getRuntimeConfig as ReturnType<typeof vi.fn>).mockReturnValue(null);
-  });
-
-  it('throws when AI endpoint not configured', async () => {
-    (getRuntimeConfig as ReturnType<typeof vi.fn>).mockReturnValue(null);
-    const controller = new AbortController();
-    await expect(
-      fetchCoScoutStreamingResponse([{ role: 'user', content: 'hi' }], vi.fn(), controller.signal)
-    ).rejects.toThrow('AI endpoint not configured');
-  });
-
-  it('parses OpenAI SSE chunks and calls onChunk', async () => {
-    const sseChunks = [
-      'data: {"choices":[{"delta":{"content":"Hello"}}]}\n\n',
-      'data: {"choices":[{"delta":{"content":" world"}}]}\n\n',
-      'data: [DONE]\n\n',
-    ];
-
-    globalThis.fetch = buildFetchMock(
-      () =>
-        new Response(createMockStream(sseChunks), {
-          status: 200,
-          headers: { 'Content-Type': 'text/event-stream' },
-        })
-    );
-
-    const chunks: string[] = [];
-    const controller = new AbortController();
-    await fetchCoScoutStreamingResponse(
-      [{ role: 'user', content: 'hi' }],
-      delta => chunks.push(delta),
-      controller.signal
-    );
-
-    expect(chunks).toEqual(['Hello', ' world']);
-  });
-
-  it('throws when response has no body', async () => {
-    globalThis.fetch = buildFetchMock(() => new Response(null, { status: 200 }));
-
-    const controller = new AbortController();
-    await expect(
-      fetchCoScoutStreamingResponse([{ role: 'user', content: 'hi' }], vi.fn(), controller.signal)
-    ).rejects.toThrow('No response body for streaming');
-  });
-
-  it('returns silently when signal is already aborted', async () => {
-    const controller = new AbortController();
-    controller.abort();
-
-    // Fetch will throw on abort, but streaming function should handle it
-    globalThis.fetch = buildFetchMock(() => {
-      throw new DOMException('aborted', 'AbortError');
-    });
-
-    // Should not throw — returns silently on abort
-    await fetchCoScoutStreamingResponse(
-      [{ role: 'user', content: 'hi' }],
-      vi.fn(),
-      controller.signal
-    );
   });
 });
 
@@ -442,7 +290,7 @@ describe('fetchFindingsReport', () => {
 
   it('returns report text on success', async () => {
     globalThis.fetch = buildFetchMock(
-      () => new Response(JSON.stringify(openAIResponse('Full report here')), { status: 200 })
+      () => new Response(JSON.stringify(responsesApiResponse('Full report here')), { status: 200 })
     );
 
     const result = await fetchFindingsReport([{ role: 'user', content: 'report' }]);
@@ -453,8 +301,9 @@ describe('fetchFindingsReport', () => {
     let callCount = 0;
     globalThis.fetch = buildFetchMock(() => {
       callCount++;
-      if (callCount <= 2) return new Response('rate limit', { status: 429 });
-      return new Response(JSON.stringify(openAIResponse('Finally')), { status: 200 });
+      if (callCount <= 2)
+        return new Response('Responses API error 429: rate limit', { status: 429 });
+      return new Response(JSON.stringify(responsesApiResponse('Finally')), { status: 200 });
     });
 
     const result = await fetchFindingsReport([{ role: 'user', content: 'report' }]);
@@ -462,16 +311,16 @@ describe('fetchFindingsReport', () => {
     expect(callCount).toBe(3);
   }, 15_000);
 
-  it('throws on server error without retry', async () => {
+  it('throws on server error', async () => {
     globalThis.fetch = buildFetchMock(() => new Response('error', { status: 500 }));
 
     await expect(fetchFindingsReport([{ role: 'user', content: 'report' }])).rejects.toThrow(
-      'AI report request failed (server): 500'
+      'Responses API error 500'
     );
   }, 15_000);
 });
 
-describe('provider detection and request formatting', () => {
+describe('Responses API request format', () => {
   const originalFetch = globalThis.fetch;
 
   beforeEach(() => {
@@ -483,39 +332,11 @@ describe('provider detection and request formatting', () => {
     (getRuntimeConfig as ReturnType<typeof vi.fn>).mockReturnValue(null);
   });
 
-  it('sends request to Anthropic messages endpoint when provider is Anthropic', async () => {
-    mockEndpoint(ANTHROPIC_ENDPOINT);
-    let capturedUrl = '';
-    let capturedBody = '';
-
-    globalThis.fetch = vi.fn((url: string | URL | Request, init?: Record<string, unknown>) => {
-      const urlStr = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
-      if (urlStr === '/.auth/me') {
-        return Promise.resolve(
-          new Response(JSON.stringify([{ access_token: 'tok' }]), { status: 200 })
-        );
-      }
-      capturedUrl = urlStr;
-      capturedBody = (init?.body as string) || '';
-      return Promise.resolve(
-        new Response(JSON.stringify(anthropicResponse('ok')), { status: 200 })
-      );
-    }) as unknown as typeof globalThis.fetch;
-
-    await fetchChartInsight('test');
-    expect(capturedUrl).toBe(`${ANTHROPIC_ENDPOINT}/anthropic/v1/messages`);
-
-    const body = JSON.parse(capturedBody);
-    expect(body.model).toBe('claude-sonnet-4-20250514');
-    // System message should be in top-level `system` field, not in messages array
-    expect(body.system).toBeDefined();
-    expect(body.messages.every((m: { role: string }) => m.role !== 'system')).toBe(true);
-  });
-
-  it('sends request directly to OpenAI endpoint', async () => {
+  it('sends requests to the Responses API v1 endpoint', async () => {
     mockEndpoint(OPENAI_ENDPOINT);
     let capturedUrl = '';
 
+    const jsonResponse = JSON.stringify({ text: 'ok' });
     globalThis.fetch = vi.fn((url: string | URL | Request, _init?: Record<string, unknown>) => {
       const urlStr = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
       if (urlStr === '/.auth/me') {
@@ -524,11 +345,39 @@ describe('provider detection and request formatting', () => {
         );
       }
       capturedUrl = urlStr;
-      return Promise.resolve(new Response(JSON.stringify(openAIResponse('ok')), { status: 200 }));
+      return Promise.resolve(
+        new Response(JSON.stringify(responsesApiResponse(jsonResponse)), { status: 200 })
+      );
     }) as unknown as typeof globalThis.fetch;
 
     await fetchChartInsight('test');
-    expect(capturedUrl).toBe(OPENAI_ENDPOINT);
+    expect(capturedUrl).toBe('https://test.openai.azure.com/openai/v1/responses');
+  });
+
+  it('sends structured output format in request body', async () => {
+    mockEndpoint(OPENAI_ENDPOINT);
+    let capturedBody = '';
+
+    const jsonResponse = JSON.stringify({ text: 'ok' });
+    globalThis.fetch = vi.fn((url: string | URL | Request, init?: Record<string, unknown>) => {
+      const urlStr = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+      if (urlStr === '/.auth/me') {
+        return Promise.resolve(
+          new Response(JSON.stringify([{ access_token: 'tok' }]), { status: 200 })
+        );
+      }
+      capturedBody = (init?.body as string) || '';
+      return Promise.resolve(
+        new Response(JSON.stringify(responsesApiResponse(jsonResponse)), { status: 200 })
+      );
+    }) as unknown as typeof globalThis.fetch;
+
+    await fetchChartInsight('test');
+    const body = JSON.parse(capturedBody);
+    expect(body.text).toBeDefined();
+    expect(body.text.format.type).toBe('json_schema');
+    expect(body.text.format.name).toBe('chart_insight_response');
+    expect(body.store).toBe(true);
   });
 });
 
@@ -545,39 +394,57 @@ describe('auth headers', () => {
     (getRuntimeConfig as ReturnType<typeof vi.fn>).mockReturnValue(null);
   });
 
-  it('includes Bearer token from /.auth/me in AI request', async () => {
+  it('includes Bearer token from /.auth/me in AI request (via responsesApi buildHeaders)', async () => {
     let capturedHeaders: Record<string, string> = {};
 
+    const jsonResponse = JSON.stringify({ text: 'ok' });
     globalThis.fetch = vi.fn((url: string | URL | Request, init?: Record<string, unknown>) => {
       const urlStr = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
       if (urlStr === '/.auth/me') {
         return Promise.resolve(
-          new Response(JSON.stringify([{ access_token: 'my-secret-token' }]), { status: 200 })
+          // EasyAuth returns a JWT-like token
+          new Response(
+            JSON.stringify([
+              {
+                access_token: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0In0.signature',
+              },
+            ]),
+            { status: 200 }
+          )
         );
       }
       capturedHeaders = Object.fromEntries(Object.entries(init?.headers || {}));
-      return Promise.resolve(new Response(JSON.stringify(openAIResponse('ok')), { status: 200 }));
+      return Promise.resolve(
+        new Response(JSON.stringify(responsesApiResponse(jsonResponse)), { status: 200 })
+      );
     }) as unknown as typeof globalThis.fetch;
 
     await fetchChartInsight('test');
-    expect(capturedHeaders['Authorization']).toBe('Bearer my-secret-token');
+    // responsesApi.ts buildHeaders detects JWT format and uses Authorization: Bearer
+    expect(capturedHeaders['Authorization']).toContain('Bearer ey');
     expect(capturedHeaders['Content-Type']).toBe('application/json');
   });
 
-  it('sends request without Authorization when /.auth/me fails', async () => {
+  it('uses api-key header when token is not a JWT', async () => {
     let capturedHeaders: Record<string, string> = {};
 
+    const jsonResponse = JSON.stringify({ text: 'ok' });
     globalThis.fetch = vi.fn((url: string | URL | Request, init?: Record<string, unknown>) => {
       const urlStr = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
       if (urlStr === '/.auth/me') {
-        return Promise.reject(new Error('auth not available'));
+        // Return a non-JWT API key
+        return Promise.resolve(
+          new Response(JSON.stringify([{ access_token: 'abc123-api-key' }]), { status: 200 })
+        );
       }
       capturedHeaders = Object.fromEntries(Object.entries(init?.headers || {}));
-      return Promise.resolve(new Response(JSON.stringify(openAIResponse('ok')), { status: 200 }));
+      return Promise.resolve(
+        new Response(JSON.stringify(responsesApiResponse(jsonResponse)), { status: 200 })
+      );
     }) as unknown as typeof globalThis.fetch;
 
     await fetchChartInsight('test');
-    expect(capturedHeaders['Authorization']).toBeUndefined();
+    expect(capturedHeaders['api-key']).toBe('abc123-api-key');
     expect(capturedHeaders['Content-Type']).toBe('application/json');
   });
 });

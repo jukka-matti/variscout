@@ -39,6 +39,7 @@ This section captures key architectural decisions made during VariScout developm
 | [025](adr-025-internationalization.md)               | Internationalization Architecture        | Accepted   | 2026-03-17 |
 | [026](adr-026-knowledge-base-sharepoint-first.md)    | Knowledge Base — SharePoint-First        | Accepted   | 2026-03-17 |
 | [027](adr-027-ai-collaborator-evolution.md)          | AI Collaborator Evolution                | Accepted   | 2026-03-19 |
+| [028](adr-028-responses-api-migration.md)            | Responses API Migration                  | Accepted   | 2026-03-19 |
 
 ---
 

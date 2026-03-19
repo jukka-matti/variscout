@@ -22,16 +22,16 @@ After analyzing cost, security, user value, and the latest Foundry IQ capabiliti
 
 ### Resolved Design Questions
 
-| #   | Question            | Decision                                             | Rationale                                                                    |
-| --- | ------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------- |
-| 1   | Document format     | Markdown now, `.docx` later                          | Markdown is interim; `.docx` adds Copilot searchability and Word editability |
-| 2   | Folder location     | Same as save folder (default) + custom override      | Zero config for common case, per-project override for power users            |
-| 3   | Intent detection    | CoScout suggests → user confirms                     | Layered UX: analytical answer first, then "💡 Search Knowledge Base?"        |
-| 4   | Report versioning   | Ask user on re-publish                               | Dialog: "Create new version or replace?"                                     |
-| 5   | Auth for SharePoint | Reuse `getGraphTokenWithScopes()` OBO                | Already built in `graphToken.ts`. Just add SP scope to allowlist.            |
-| 6   | Folder picker       | Text input now, `@microsoft/file-browser` later      | Native SharePoint UX in future; text input for MVP                           |
-| 7   | Scope storage       | Per-project in `AnalysisState.knowledgeSearchFolder` | Different projects can search different document libraries                   |
-| 8   | Document upload     | No in-app upload                                     | SharePoint is the DMS; VariScout publishes reports only                      |
+| #   | Question            | Decision                                                       | Rationale                                                                                                         |
+| --- | ------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 1   | Document format     | Markdown now, `.docx` later                                    | Markdown is interim; `.docx` adds Copilot searchability and Word editability                                      |
+| 2   | Folder location     | Same as save folder (default) + custom override                | Zero config for common case, per-project override for power users                                                 |
+| 3   | Intent detection    | LLM function call (`suggest_knowledge_search`) → user confirms | Layered UX: analytical answer first, then "💡 Search Knowledge Base?"; keyword heuristic as UI fallback (ADR-028) |
+| 4   | Report versioning   | Ask user on re-publish                                         | Dialog: "Create new version or replace?"                                                                          |
+| 5   | Auth for SharePoint | Reuse `getGraphTokenWithScopes()` OBO                          | Already built in `graphToken.ts`. Just add SP scope to allowlist.                                                 |
+| 6   | Folder picker       | Text input now, `@microsoft/file-browser` later                | Native SharePoint UX in future; text input for MVP                                                                |
+| 7   | Scope storage       | Per-project in `AnalysisState.knowledgeSearchFolder`           | Different projects can search different document libraries                                                        |
+| 8   | Document upload     | No in-app upload                                               | SharePoint is the DMS; VariScout publishes reports only                                                           |
 
 ### Problems with the Original Design
 
@@ -208,7 +208,7 @@ Investigation complete → Report View (existing)
 4. **Search scope selection** — Settings → Knowledge Base → channel folder (default) or custom path
 5. **Per-project scope storage** — `AnalysisState.knowledgeSearchFolder` (built)
 6. **Remote SharePoint knowledge source provisioning** — admin setup
-7. **Intent detection** — keyword heuristic for root cause / procedure / history questions (built)
+7. **Intent detection** — LLM-driven via `suggest_knowledge_search` function call tool (ADR-028); keyword heuristic retained as UI fallback when AI is unavailable (built)
 8. **Token scope expansion** — add Graph/SharePoint scope for `xMsQuerySourceAuthorization`
 9. **"Open in SharePoint" link** — opens channel's SharePoint folder in browser (built)
 

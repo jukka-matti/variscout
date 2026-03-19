@@ -28,6 +28,7 @@ export {
   buildChartInsightPrompt,
   buildCoScoutSystemPrompt,
   buildCoScoutMessages,
+  buildCoScoutInput,
   buildCoScoutTools,
   formatKnowledgeContext,
   buildReportSystemPrompt,
@@ -41,8 +42,18 @@ export type {
   ResponsesApiRequest,
   ResponsesApiResponse,
   ResponseOutput,
+  TextFormat,
+  FunctionCallOutput,
+  ToolHandlerMap,
 } from './responsesApi';
-export { sendResponsesTurn, streamResponsesTurn, extractResponseText } from './responsesApi';
+export {
+  sendResponsesTurn,
+  streamResponsesTurn,
+  streamResponsesWithToolLoop,
+  extractResponseText,
+} from './responsesApi';
+
+export { narrationResponseSchema, chartInsightResponseSchema } from './schemas';
 
 export type { AIFeature, TraceMetadata, TokenUsage, TraceRecord, TraceStats } from './tracing';
 export { traceAICall, getRecentTraces, clearTraces, getTraceStats } from './tracing';

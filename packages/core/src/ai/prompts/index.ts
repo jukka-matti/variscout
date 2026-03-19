@@ -23,6 +23,7 @@ export type { BuildCoScoutSystemPromptOptions } from './coScout';
 export {
   buildCoScoutSystemPrompt,
   buildCoScoutMessages,
+  buildCoScoutInput,
   buildCoScoutTools,
   formatKnowledgeContext,
 } from './coScout';

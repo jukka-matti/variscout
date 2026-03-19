@@ -161,19 +161,15 @@ type AITier = 'fast' | 'reasoning';
 
 The service accepts a `tier` parameter and routes to the appropriate model deployment. Model names are configured in the ARM template (customer chooses during deployment).
 
-### Provider Auto-Detection
+### Single-Path API (ADR-028)
 
-The AI service supports multiple backend providers through automatic endpoint detection. No manual provider configuration is required — the service inspects the endpoint URL and adapts its request/response handling accordingly.
+As of ADR-028, only Azure OpenAI is supported. The AI service routes all requests through `responsesApi.ts` (Azure AI Foundry Responses API). The Chat Completions API path and Anthropic provider have been removed.
 
-- **`detectProvider(endpoint)`** — URL pattern matching determines the provider:
-  - `*.openai.azure.com` → OpenAI
-  - `*/anthropic` or `*.services.ai.azure.com` → Anthropic
-  - Default fallback → OpenAI
-- **`formatRequest()`** — Routes to the appropriate API format: OpenAI Chat Completions API or Anthropic Messages API. Handles differences in message structure, system prompt placement, and parameter naming.
-- **`parseResponseText()` / `parseStreamDelta()`** — Provider-specific response parsing. Extracts assistant content from OpenAI's `choices[0].message.content` or Anthropic's `content[0].text` structure. Stream parsing handles SSE delta formats for each provider.
-- **`getAIProviderLabel()`** — Returns a human-readable label ("Azure OpenAI" or "Claude") for UI transparency. Used by the NarrativeBar and CoScoutPanel to show which model generated a response.
+- **`sendResponsesTurn()`** — Single-turn request via the Responses API. Returns structured output (guaranteed JSON schema for narration and chart insights).
+- **`streamResponsesWithToolLoop()`** — Streaming request with tool loop for CoScout. Handles the `suggest_knowledge_search` function call tool for intent-driven Knowledge Base access.
+- **`getAIProviderLabel()`** — Always returns `"Azure OpenAI"`. Provider detection (`detectProvider`, `ModelProvider`), dual-format request building (`formatRequest`), and provider-specific response parsing (`parseResponseText`, `parseStreamDelta`) have been removed from `aiService.ts`.
 
-This approach keeps provider logic centralized in `aiService.ts` — hooks, UI components, and prompt templates remain provider-agnostic.
+`VITE_USE_RESPONSES_API` feature flag has been removed — the Responses API is always on.
 
 ### Response Caching
 

@@ -3,6 +3,7 @@
  *
  * Composes AI hooks (context, narration, CoScout, knowledge search)
  * and computes derived state for the AI-enhanced editing experience.
+ * Uses the Responses API exclusively (ADR-028).
  */
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
@@ -18,9 +19,10 @@ import {
   type DrillStep,
 } from '@variscout/hooks';
 import type { ViewState } from '@variscout/hooks';
-import type { FilterAction } from '@variscout/core';
+import type { FilterAction, ToolHandlerMap } from '@variscout/core';
 import {
   buildSuggestedQuestions,
+  formatKnowledgeContext,
   type StatsResult,
   type SpecLimits,
   type DataRow,
@@ -37,11 +39,8 @@ import type { ResponsesApiConfig } from '@variscout/core';
 import {
   fetchNarration as fetchNarrationFromAI,
   fetchChartInsight as fetchChartInsightFromAI,
-  fetchCoScoutResponse,
-  fetchCoScoutStreamingResponse,
   isAIAvailable,
   getAIProviderLabel,
-  isResponsesApiEnabled,
   getResponsesApiConfig,
 } from '../services/aiService';
 import type { AIPreferences } from '../context/DataContext';
@@ -152,10 +151,10 @@ export function useEditorAI({
     stagedStats,
   });
 
-  // Responses API config (resolved async, feature-flagged via VITE_USE_RESPONSES_API)
+  // Responses API config (resolved async)
   const [responsesConfig, setResponsesConfig] = useState<ResponsesApiConfig | undefined>(undefined);
   useEffect(() => {
-    if (!aiAvailable || !isResponsesApiEnabled()) return;
+    if (!aiAvailable) return;
     let cancelled = false;
     getResponsesApiConfig().then(config => {
       if (!cancelled) setResponsesConfig(config);
@@ -227,20 +226,62 @@ export function useEditorAI({
     enabled: isKnowledgeBaseAvailable(),
     folderScope: effectiveFolderScope,
   });
+
+  // Build tool handlers for CoScout function calling (ADR-028)
+  const toolHandlers = useMemo((): ToolHandlerMap | undefined => {
+    if (!aiAvailable || !prefs.coscout) return undefined;
+    return {
+      get_chart_data: async (args: Record<string, unknown>) => {
+        const chart = args.chart as string;
+        // Return current analysis data summary for the requested chart
+        if (!stats) return JSON.stringify({ error: 'No data loaded' });
+        const data: Record<string, unknown> = { chart, samples: filteredData.length };
+        if (chart === 'ichart') {
+          data.mean = stats.mean;
+          data.ucl = stats.ucl;
+          data.lcl = stats.lcl;
+          data.stdDev = stats.stdDev;
+        } else if (chart === 'boxplot' || chart === 'pareto') {
+          data.factors = factors;
+          data.filterCount = Object.keys(filters).length;
+        } else if (chart === 'capability') {
+          data.cpk = stats.cpk;
+          data.cp = stats.cp;
+          data.mean = stats.mean;
+          data.stdDev = stats.stdDev;
+        }
+        return JSON.stringify(data);
+      },
+      get_statistical_summary: async () => {
+        if (!stats) return JSON.stringify({ error: 'No data loaded' });
+        return JSON.stringify({
+          mean: stats.mean,
+          stdDev: stats.stdDev,
+          cpk: stats.cpk,
+          cp: stats.cp,
+          samples: filteredData.length,
+          ucl: stats.ucl,
+          lcl: stats.lcl,
+        });
+      },
+      suggest_knowledge_search: async (args: Record<string, unknown>) => {
+        const query = args.query as string;
+        if (!query) return JSON.stringify({ error: 'No query provided' });
+        // Execute search — populates knowledgeSearch.documents state for UI document cards
+        const findings = await knowledgeSearch.search(query);
+        // Format results for the LLM to cite (findings + documents from state)
+        const formatted = formatKnowledgeContext(findings, knowledgeSearch.documents);
+        return formatted || JSON.stringify({ results: 0 });
+      },
+    };
+  }, [aiAvailable, prefs.coscout, stats, filteredData, factors, filters, knowledgeSearch]);
+
   // AI CoScout conversation (disabled when per-component toggle is off)
-  // When Responses API is enabled, legacy fetch functions are omitted — the hook
-  // branches internally based on whether responsesApiConfig is provided.
-  const useResponsesApi = aiAvailable && prefs.coscout && !!responsesConfig;
   const coscout = useAICoScout({
     context: aiContext.context,
-    fetchResponse:
-      !useResponsesApi && aiAvailable && prefs.coscout ? fetchCoScoutResponse : undefined,
-    fetchStreamingResponse:
-      !useResponsesApi && aiAvailable && prefs.coscout ? fetchCoScoutStreamingResponse : undefined,
     initialNarrative: narration.narrative,
-    responsesApiConfig: useResponsesApi ? responsesConfig : undefined,
-    // ADR-026: Knowledge search is now on-demand (user clicks "Search Knowledge Base?")
-    // instead of auto-firing on every message via onBeforeSend.
+    responsesApiConfig: aiAvailable && prefs.coscout ? responsesConfig : undefined,
+    toolHandlers,
   });
 
   const suggestedQuestions = useMemo(

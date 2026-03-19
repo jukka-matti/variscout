@@ -16,7 +16,8 @@ import { buildSummaryPrompt } from './narration';
 
 /**
  * Build tool definitions for CoScout Responses API integration.
- * These enable the AI to read chart data and statistics via function calling.
+ * These enable the AI to read chart data, statistics, and search the Knowledge Base
+ * via function calling. All tools use strict mode for guaranteed parameter schemas.
  */
 export function buildCoScoutTools(): ToolDefinition[] {
   return [
@@ -35,6 +36,8 @@ export function buildCoScoutTools(): ToolDefinition[] {
           },
         },
         required: ['chart'],
+        additionalProperties: false,
+        strict: true,
       },
     },
     {
@@ -45,9 +48,87 @@ export function buildCoScoutTools(): ToolDefinition[] {
       parameters: {
         type: 'object',
         properties: {},
+        additionalProperties: false,
+        strict: true,
+      },
+    },
+    {
+      type: 'function',
+      name: 'suggest_knowledge_search',
+      description:
+        'Search the team Knowledge Base (SharePoint documents) for related SOPs, fault trees, past investigations, or procedures. Call when the user asks about historical patterns, root causes, or institutional knowledge.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Search query for Knowledge Base documents' },
+        },
+        required: ['query'],
+        additionalProperties: false,
+        strict: true,
       },
     },
   ];
+}
+
+/**
+ * Build Responses API input format for CoScout.
+ * Returns { instructions, input } suitable for the Responses API,
+ * replacing the Chat Completions message array pattern.
+ *
+ * The instructions field contains the system prompt (static cacheable prefix).
+ * The input field contains the variable context + user message.
+ */
+export function buildCoScoutInput(
+  context: AIContext,
+  history: CoScoutMessage[],
+  userMessage: string
+): {
+  instructions: string;
+  input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
+} {
+  const instructions = buildCoScoutSystemPrompt({
+    glossaryFragment: context.glossaryFragment,
+    investigation: context.investigation,
+    teamContributors: context.teamContributors,
+    sampleCount: context.stats?.samples,
+    stagedComparison: context.stagedComparison,
+    locale: context.locale,
+  });
+
+  const input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
+
+  // Context summary — variable per analysis state
+  const contextSummary = buildSummaryPrompt(context).replace(
+    /Summarize this analysis state.*$/,
+    "This is the current analysis context. Use it to answer the user's question."
+  );
+  input.push({ role: 'system', content: contextSummary });
+
+  // Knowledge Base context (when results/documents available)
+  const hasKnowledgeResults = context.knowledgeResults && context.knowledgeResults.length > 0;
+  const hasKnowledgeDocs = context.knowledgeDocuments && context.knowledgeDocuments.length > 0;
+  if (hasKnowledgeResults || hasKnowledgeDocs) {
+    const knowledgeContent = formatKnowledgeContext(
+      context.knowledgeResults ?? [],
+      context.knowledgeDocuments
+    );
+    if (knowledgeContent) {
+      input.push({ role: 'system', content: knowledgeContent });
+    }
+  }
+
+  // Recent history (last N messages)
+  const recentHistory = history.slice(-COSCOUT_HISTORY_LIMIT);
+  for (const msg of recentHistory) {
+    if (!msg.error) {
+      input.push({ role: msg.role as 'user' | 'assistant', content: msg.content });
+    }
+  }
+
+  // Current user message
+  input.push({ role: 'user', content: userMessage });
+
+  return { instructions, input };
 }
 
 /** Options for building the CoScout system prompt */
