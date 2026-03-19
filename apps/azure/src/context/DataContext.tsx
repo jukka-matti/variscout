@@ -58,6 +58,8 @@ interface AzureDataState extends Omit<DataState, 'saveProject' | 'loadProject'> 
   processContext: ProcessContext;
   aiEnabled: boolean;
   aiPreferences: AIPreferences;
+  /** Custom SharePoint folder path for Knowledge Base search (ADR-026) */
+  knowledgeSearchFolder: string | undefined;
 }
 
 /**
@@ -74,6 +76,7 @@ interface AzureDataActions extends Omit<
   setProcessContext: (ctx: ProcessContext) => void;
   setAIEnabled: (enabled: boolean) => void;
   setAIPreferences: (prefs: AIPreferences) => void;
+  setKnowledgeSearchFolder: (folder: string | undefined) => void;
 }
 
 /**
@@ -95,6 +98,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [processContext, setProcessContext] = useState<ProcessContext>({});
   const [aiEnabled, setAIEnabled] = useState(false);
   const [aiPreferences, setAIPreferences] = useState<AIPreferences>(DEFAULT_AI_PREFERENCES);
+  const [knowledgeSearchFolder, setKnowledgeSearchFolder] = useState<string | undefined>(undefined);
 
   // Azure-specific state — default location based on Teams context
   const defaultLocation = useMemo<StorageLocation>(() => {
@@ -241,8 +245,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       processContext,
       aiEnabled,
       aiPreferences,
+      knowledgeSearchFolder,
     }),
-    [state, currentProjectLocation, syncStatus, processContext, aiEnabled, aiPreferences]
+    [
+      state,
+      currentProjectLocation,
+      syncStatus,
+      processContext,
+      aiEnabled,
+      aiPreferences,
+      knowledgeSearchFolder,
+    ]
   );
 
   // Memoize actions context
@@ -296,6 +309,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProcessContext,
       setAIEnabled,
       setAIPreferences,
+      setKnowledgeSearchFolder,
 
       // Azure-enhanced persistence methods
       saveProject,
@@ -316,6 +330,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProcessContext,
       setAIEnabled,
       setAIPreferences,
+      setKnowledgeSearchFolder,
     ]
   );
 

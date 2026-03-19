@@ -210,7 +210,27 @@ export function AdminKnowledgeSetup() {
                     <ExternalLink size={12} />
                   </a>
                 </li>
+                <li>
+                  Admin consent for <code className="text-content">Sites.Read.All</code> scope
+                  (delegated — enables per-user SharePoint search)
+                </li>
               </ul>
+            </div>
+          </div>
+
+          {/* Search scope info */}
+          <div className="flex gap-3 pt-2 border-t border-edge">
+            <FolderOpen size={16} className="text-blue-400 shrink-0 mt-0.5" />
+            <div className="text-sm text-content-secondary">
+              <p>
+                <strong className="text-content">Search scope:</strong> By default, CoScout searches
+                the channel's SharePoint folder. Users can override this per-project in{' '}
+                <strong className="text-content">Settings &gt; Knowledge Base</strong>.
+              </p>
+              <p className="text-xs text-content-muted mt-1">
+                Add your quality documents (SOPs, FMEA, 8D reports) to the channel folder to make
+                them searchable by CoScout.
+              </p>
             </div>
           </div>
 

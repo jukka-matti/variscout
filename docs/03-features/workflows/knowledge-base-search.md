@@ -28,6 +28,31 @@ The Knowledge Base feature allows CoScout to search your team's SharePoint folde
 
 ---
 
+## Search Scope
+
+By default, CoScout searches the same SharePoint folder where your `.vrs` project files are stored (your Teams channel folder).
+
+### Custom Search Folder
+
+For advanced scenarios (e.g., a shared "Quality Library" across multiple channels):
+
+1. Open **Settings → Knowledge Base**
+2. Select **Custom folder**
+3. Enter the SharePoint folder URL
+
+The custom folder is saved per-project — different analyses can search different document libraries.
+
+> Only documents you have access to will appear in search results.
+
+### Scope Resolution
+
+| Context      | Default Search Scope                 | Override                  |
+| ------------ | ------------------------------------ | ------------------------- |
+| Channel tab  | Channel's SharePoint folder          | Custom folder in Settings |
+| Personal tab | User's OneDrive `/VariScout/` folder | Custom folder in Settings |
+
+---
+
 ## Data Sources
 
 ### SharePoint Documents (Remote SharePoint)

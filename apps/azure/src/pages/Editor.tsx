@@ -121,6 +121,7 @@ export const Editor: React.FC<EditorProps> = ({
     aiEnabled,
     categories,
     setCategories,
+    knowledgeSearchFolder,
   } = useData();
 
   const ingestion = useDataIngestion({
@@ -522,6 +523,7 @@ export const Editor: React.FC<EditorProps> = ({
     drillPath,
     persistedHypotheses,
     locale,
+    knowledgeSearchFolder,
     onOpenCoScout: () => panels.setIsCoScoutOpen(true),
     onOpenFindings: () => panels.setIsFindingsOpen(true),
   });

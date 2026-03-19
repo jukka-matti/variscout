@@ -170,7 +170,7 @@ describe('useKnowledgeSearch', () => {
     });
 
     expect(mockSearchFn).toHaveBeenCalledWith('nozzle issue', { factor: undefined });
-    expect(mockDocSearchFn).toHaveBeenCalledWith('nozzle issue');
+    expect(mockDocSearchFn).toHaveBeenCalledWith('nozzle issue', { folderScope: undefined });
     expect(returned).toEqual([mockResult]);
     expect(result.current.results).toEqual([mockResult]);
     expect(result.current.documents).toEqual([mockDocResult]);
@@ -190,7 +190,7 @@ describe('useKnowledgeSearch', () => {
       await result.current.search('nozzle maintenance');
     });
 
-    expect(mockDocSearchFn).toHaveBeenCalledWith('nozzle maintenance');
+    expect(mockDocSearchFn).toHaveBeenCalledWith('nozzle maintenance', { folderScope: undefined });
     expect(result.current.results).toEqual([]);
     expect(result.current.documents).toEqual([mockDocResult]);
   });

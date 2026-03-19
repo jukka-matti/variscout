@@ -69,6 +69,8 @@ export interface UseEditorAIOptions {
   drillPath: DrillStep[];
   persistedHypotheses?: Hypothesis[];
   locale?: Locale;
+  /** Custom SharePoint folder path for Knowledge Base search (ADR-026) */
+  knowledgeSearchFolder?: string;
   onOpenCoScout: () => void;
   onOpenFindings: () => void;
 }
@@ -117,6 +119,7 @@ export function useEditorAI({
   drillPath,
   persistedHypotheses,
   locale,
+  knowledgeSearchFolder,
   onOpenCoScout,
   onOpenFindings,
 }: UseEditorAIOptions): UseEditorAIReturn {
@@ -193,6 +196,7 @@ export function useEditorAI({
   const knowledgeSearch = useKnowledgeSearch({
     searchDocumentsFn: searchDocuments,
     enabled: isKnowledgeBaseAvailable(),
+    folderScope: knowledgeSearchFolder,
   });
   // AI CoScout conversation (disabled when per-component toggle is off)
   // When Responses API is enabled, legacy fetch functions are omitted — the hook

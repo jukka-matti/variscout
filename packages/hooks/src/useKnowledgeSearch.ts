@@ -34,9 +34,14 @@ export interface UseKnowledgeSearchOptions {
     options?: { factor?: string; top?: number }
   ) => Promise<KnowledgeResult[]>;
   /** Injected search function for documents (from searchService.ts) */
-  searchDocumentsFn?: (query: string, options?: { top?: number }) => Promise<DocumentResult[]>;
+  searchDocumentsFn?: (
+    query: string,
+    options?: { top?: number; folderScope?: string }
+  ) => Promise<DocumentResult[]>;
   /** Whether the Knowledge Base feature is enabled */
   enabled?: boolean;
+  /** Custom SharePoint folder path for scoped search (ADR-026) */
+  folderScope?: string;
 }
 
 export interface UseKnowledgeSearchReturn {
@@ -52,7 +57,7 @@ export interface UseKnowledgeSearchReturn {
 export function useKnowledgeSearch(
   options: UseKnowledgeSearchOptions = {}
 ): UseKnowledgeSearchReturn {
-  const { searchFn, searchDocumentsFn, enabled = false } = options;
+  const { searchFn, searchDocumentsFn, enabled = false, folderScope } = options;
 
   const [results, setResults] = useState<KnowledgeResult[]>([]);
   const [documents, setDocuments] = useState<DocumentResult[]>([]);
@@ -74,7 +79,7 @@ export function useKnowledgeSearch(
         // Run both searches in parallel
         const [findingsResults, docResults] = await Promise.all([
           searchFn ? searchFn(query, { factor }) : Promise.resolve([]),
-          searchDocumentsFn ? searchDocumentsFn(query) : Promise.resolve([]),
+          searchDocumentsFn ? searchDocumentsFn(query, { folderScope }) : Promise.resolve([]),
         ]);
         setResults(findingsResults);
         setDocuments(docResults);
@@ -86,7 +91,7 @@ export function useKnowledgeSearch(
         setIsSearching(false);
       }
     },
-    [enabled, searchFn, searchDocumentsFn]
+    [enabled, searchFn, searchDocumentsFn, folderScope]
   );
 
   const clear = useCallback(() => {

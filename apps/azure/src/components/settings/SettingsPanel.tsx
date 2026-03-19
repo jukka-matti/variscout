@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Palette } from 'lucide-react';
+import { X, Palette, FolderOpen } from 'lucide-react';
 import { SettingsPanelBase, ProcessDescriptionField, PreviewBadge } from '@variscout/ui';
 import { isTeamAIPlan, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { useTheme } from '../../context/ThemeContext';
@@ -34,6 +34,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
     setAIEnabled,
     aiPreferences,
     setAIPreferences,
+    knowledgeSearchFolder,
+    setKnowledgeSearchFolder,
   } = useData();
 
   return (
@@ -257,9 +259,63 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                 <PreviewBadge />
               </label>
               <p className="text-xs text-content-muted">
-                Search past findings across your organization when using CoScout. Requires Azure AI
-                Search (configured by your admin).
+                Search your team's SharePoint documents from CoScout. Requires Azure AI Search
+                (configured by your admin).
               </p>
+
+              {/* Knowledge Base search scope (ADR-026) */}
+              {isPreviewEnabled('knowledge-base') && (
+                <div className="mt-3 space-y-2">
+                  <h4 className="text-xs font-medium text-content-secondary flex items-center gap-1.5">
+                    <FolderOpen size={12} />
+                    Search scope
+                  </h4>
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="az-setting-kb-scope-channel"
+                      className="flex items-center gap-2 text-xs text-content-secondary cursor-pointer"
+                    >
+                      <input
+                        id="az-setting-kb-scope-channel"
+                        name="az-setting-kb-scope"
+                        type="radio"
+                        checked={!knowledgeSearchFolder}
+                        onChange={() => setKnowledgeSearchFolder(undefined)}
+                        className="border-edge"
+                      />
+                      Channel folder (default)
+                    </label>
+                    <label
+                      htmlFor="az-setting-kb-scope-custom"
+                      className="flex items-center gap-2 text-xs text-content-secondary cursor-pointer"
+                    >
+                      <input
+                        id="az-setting-kb-scope-custom"
+                        name="az-setting-kb-scope"
+                        type="radio"
+                        checked={!!knowledgeSearchFolder}
+                        onChange={() => setKnowledgeSearchFolder('')}
+                        className="border-edge"
+                      />
+                      Custom folder
+                    </label>
+                  </div>
+                  {knowledgeSearchFolder !== undefined && (
+                    <input
+                      id="az-setting-kb-folder-path"
+                      name="az-setting-kb-folder-path"
+                      type="text"
+                      value={knowledgeSearchFolder}
+                      onChange={e => setKnowledgeSearchFolder(e.target.value)}
+                      placeholder="https://contoso.sharepoint.com/sites/QualityTeam/..."
+                      className="w-full text-xs px-2.5 py-1.5 rounded border border-edge bg-surface-secondary text-content placeholder:text-content-muted focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  )}
+                  <p className="text-[11px] text-content-muted">
+                    Only documents you have access to will appear in search results.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </>

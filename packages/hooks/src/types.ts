@@ -235,6 +235,10 @@ export interface AnalysisState {
   // --- Entry scenario ---
   /** What prompted the analyst to start this analysis */
   entryScenario?: EntryScenario;
+
+  // --- Knowledge Base scope (ADR-026) ---
+  /** Custom SharePoint folder path for Knowledge Base search (overrides channel folder) */
+  knowledgeSearchFolder?: string;
 }
 
 /**
