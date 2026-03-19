@@ -58,6 +58,7 @@ function createMockOptions(
     setMeasureLabel: vi.fn(),
     loadProject: vi.fn(),
     handleFileUpload: vi.fn().mockResolvedValue(true),
+    processFile: vi.fn().mockResolvedValue(true),
     loadSample: vi.fn(),
     applyTimeExtraction: vi.fn(),
     ...overrides,

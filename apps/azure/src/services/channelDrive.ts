@@ -9,8 +9,7 @@
 
 import { getTeamsContext } from '../teams/teamsContext';
 import { db } from '../db/schema';
-
-const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
+import { graphFetch, GRAPH_BASE } from './graphFetch';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export interface ChannelDriveInfo {
@@ -66,7 +65,7 @@ async function doResolve(
 
   // 2. Resolve via Graph API
   try {
-    const res = await fetch(
+    const res = await graphFetch(
       `${GRAPH_BASE}/teams/${encodeURIComponent(teamId)}/channels/${encodeURIComponent(channelId)}/filesFolder`,
       { headers: { Authorization: `Bearer ${token}` } }
     );

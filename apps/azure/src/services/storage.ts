@@ -11,6 +11,7 @@ import {
   pruneSyncQueue,
   db,
 } from '../db/schema';
+import { graphFetch, GraphError, GRAPH_BASE } from './graphFetch';
 
 // Project data is serialized to JSON for IndexedDB/OneDrive — kept as unknown
 // because the storage layer is a passthrough that doesn't inspect the shape.
@@ -82,14 +83,14 @@ export async function downloadFileFromGraph(
   const baseUrl = `${endpoint}/drives/${driveId}/items/${itemId}`;
 
   // Get metadata for filename
-  const metaRes = await fetch(baseUrl, {
+  const metaRes = await graphFetch(baseUrl, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!metaRes.ok) throw new Error(`Failed to get file metadata: ${metaRes.status}`);
   const meta = await metaRes.json();
 
   // Download content
-  const contentRes = await fetch(`${baseUrl}/content`, {
+  const contentRes = await graphFetch(`${baseUrl}/content`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!contentRes.ok) throw new Error(`Failed to download file: ${contentRes.status}`);
@@ -110,9 +111,9 @@ export async function saveToCustomLocation(
 ): Promise<{ webUrl: string }> {
   const token = await getGraphToken();
   const body = typeof data === 'string' ? new Blob([data], { type: 'application/json' }) : data;
-  const endpoint = `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${folderId}:/${fileName}:/content`;
+  const endpoint = `${GRAPH_BASE}/drives/${driveId}/items/${folderId}:/${fileName}:/content`;
 
-  const res = await fetch(endpoint, {
+  const res = await graphFetch(endpoint, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -160,55 +161,8 @@ function extractStatusCode(msg: string): number {
   return match ? parseInt(match[1], 10) : 0;
 }
 
-// ── Graph API errors ────────────────────────────────────────────────────
-
-export class GraphError extends Error {
-  retryAfterMs?: number;
-  constructor(message: string, retryAfterMs?: number) {
-    super(message);
-    this.name = 'GraphError';
-    this.retryAfterMs = retryAfterMs;
-  }
-}
-
-/** Parse the Retry-After header value into milliseconds.
- *  The value can be seconds (integer) or an HTTP date string. */
-function parseRetryAfter(value: string | null): number | undefined {
-  if (!value) return undefined;
-
-  // Try as integer seconds first
-  const seconds = parseInt(value, 10);
-  if (!isNaN(seconds) && String(seconds) === value.trim()) {
-    return seconds * 1000;
-  }
-
-  // Try as HTTP date
-  const date = new Date(value);
-  if (!isNaN(date.getTime())) {
-    const ms = date.getTime() - Date.now();
-    return ms > 0 ? ms : 1000; // at least 1s if date is in the past
-  }
-
-  return undefined;
-}
-
-/** Perform a Graph API fetch, throwing GraphError with retryAfterMs on 429. */
-async function graphFetch(url: string, init: globalThis.RequestInit): Promise<Response> {
-  const response = await fetch(url, init);
-
-  if (response.status === 429) {
-    const retryAfterMs = parseRetryAfter(response.headers.get('Retry-After'));
-    const body = await response.json().catch(() => ({}));
-    const message = body.error?.message || `Graph API throttled: 429`;
-    throw new GraphError(message, retryAfterMs);
-  }
-
-  return response;
-}
-
-// ── Graph API base URL ──────────────────────────────────────────────────
-
-const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
+// Re-export for consumers that imported from storage.ts
+export { GraphError } from './graphFetch';
 
 // ── Location-aware API paths ────────────────────────────────────────────
 
@@ -231,7 +185,8 @@ async function getApiBase(token: string, location: StorageLocation): Promise<Api
   const { getChannelDriveInfo } = await import('./channelDrive');
   const driveInfo = await getChannelDriveInfo(token);
   if (!driveInfo) {
-    console.warn('[Storage] Channel drive resolution failed, falling back to personal');
+    if (import.meta.env.DEV)
+      console.warn('[Storage] Channel drive resolution failed, falling back to personal');
     return {
       filePath: '/me/drive/root:/VariScout/Projects',
       rootPath: '/me/drive/root',
@@ -423,7 +378,7 @@ async function loadFromCloud(
 
   const data = await response.json();
   if (!data || typeof data !== 'object') {
-    console.warn('[Storage] Invalid .vrs data from cloud');
+    if (import.meta.env.DEV) console.warn('[Storage] Invalid .vrs data from cloud');
     return null;
   }
   return data;
@@ -431,33 +386,44 @@ async function loadFromCloud(
 
 async function listFromCloud(token: string, location: StorageLocation): Promise<CloudProject[]> {
   const apiBase = await getApiBase(token, location);
+  const headers = { Authorization: `Bearer ${token}` };
 
-  const response = await graphFetch(
-    `${GRAPH_BASE}${apiBase.filePath}:/children?$filter=file ne null&$select=id,name,lastModifiedDateTime,lastModifiedBy,size`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  let url: string | null =
+    `${GRAPH_BASE}${apiBase.filePath}:/children?$filter=file ne null&$select=id,name,lastModifiedDateTime,lastModifiedBy,size&$top=200`;
+  const allItems: DriveItem[] = [];
+
+  while (url) {
+    const response = await graphFetch(url, { headers });
+
+    if (response.status === 404) {
+      // Folder doesn't exist yet — create it for future use
+      await ensureFolderExists(token, apiBase).catch(err =>
+        errorService.logWarning('Failed to create project folder', {
+          component: 'storage',
+          action: 'ensureFolderExists',
+          metadata: { error: err instanceof Error ? err.message : String(err) },
+        })
+      );
+      return [];
     }
-  );
 
-  if (response.status === 404) {
-    // Folder doesn't exist yet — create it for future use
-    await ensureFolderExists(token, apiBase).catch(() => {});
-    return [];
+    if (!response.ok) {
+      errorService.logWarning('Failed to list cloud projects', {
+        component: 'storage',
+        action: 'listFromCloud',
+        metadata: { status: response.status },
+      });
+      return [];
+    }
+
+    const data = await response.json();
+    allItems.push(...((data.value || []) as DriveItem[]));
+
+    // Follow @odata.nextLink for pagination
+    url = data['@odata.nextLink'] || null;
   }
 
-  if (!response.ok) {
-    errorService.logWarning('Failed to list cloud projects', {
-      component: 'storage',
-      action: 'listFromCloud',
-      metadata: { status: response.status },
-    });
-    return [];
-  }
-
-  const data = await response.json();
-  return ((data.value || []) as DriveItem[])
+  return allItems
     .filter(file => file.name.endsWith('.vrs'))
     .map(file => ({
       id: file.id,
@@ -501,7 +467,7 @@ async function getCloudModifiedDate(
     const data = await response.json();
     return data.lastModifiedDateTime || null;
   } catch (e) {
-    console.warn('[Storage] Failed to check cloud modified date:', e);
+    if (import.meta.env.DEV) console.warn('[Storage] Failed to check cloud modified date:', e);
     return null;
   }
 }
@@ -740,7 +706,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
         addNotification({ type: 'success', message: 'Saved to cloud', dismissAfter: 3000 });
       } catch (error) {
-        console.error('Cloud save failed:', error);
+        if (import.meta.env.DEV) console.error('Cloud save failed:', error);
         const classified = classifySyncError(error);
 
         await addToSyncQueue({ project, name, location });
@@ -943,7 +909,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 });
                 break; // Stop syncing on auth failure
               }
-              console.error('Sync failed for:', item.name, error);
+              if (import.meta.env.DEV) console.error('Sync failed for:', item.name, error);
             }
           }
         } catch (e) {
@@ -960,7 +926,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
               },
             });
           } else {
-            console.error('Auth failed during sync', e);
+            if (import.meta.env.DEV) console.error('Auth failed during sync', e);
           }
         }
 
@@ -987,7 +953,13 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     window.addEventListener('online', handleOnline);
 
     // Prune stale queue items on mount, then sync if online
-    pruneSyncQueue().catch(() => {});
+    pruneSyncQueue().catch(err =>
+      errorService.logWarning('Failed to prune sync queue', {
+        component: 'storage',
+        action: 'pruneSyncQueue',
+        metadata: { error: err instanceof Error ? err.message : String(err) },
+      })
+    );
     if (navigator.onLine) {
       handleOnline();
     }

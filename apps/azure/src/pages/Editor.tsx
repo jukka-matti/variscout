@@ -193,6 +193,7 @@ export const Editor: React.FC<EditorProps> = ({
     setMeasureLabel,
     loadProject,
     handleFileUpload: ingestion.handleFileUpload,
+    processFile: ingestion.processFile,
     loadSample: ingestion.loadSample,
     applyTimeExtraction: ingestion.applyTimeExtraction,
   });

@@ -20,52 +20,93 @@ function getFunctionUrl(): string {
 
 const CACHE_MARGIN_MS = 5 * 60 * 1000; // 5 min before expiry
 
-let cachedToken: string | null = null;
-let cachedExpiry = 0;
+// ── Token cache ─────────────────────────────────────────────────────────
+// Keyed by scope string ('' for default, sorted scopes for scoped tokens)
+
+interface CachedToken {
+  token: string;
+  expiry: number;
+}
+
+const tokenCache = new Map<string, CachedToken>();
+
+function getCacheKey(scopes?: string[]): string {
+  if (!scopes || scopes.length === 0) return '';
+  return [...scopes].sort().join(' ');
+}
+
+function getCachedToken(scopes?: string[]): string | null {
+  const key = getCacheKey(scopes);
+  const cached = tokenCache.get(key);
+  if (cached && Date.now() < cached.expiry - CACHE_MARGIN_MS) {
+    return cached.token;
+  }
+  return null;
+}
+
+function setCachedToken(token: string, expiresOn: string | undefined, scopes?: string[]): void {
+  const key = getCacheKey(scopes);
+  const expiry = expiresOn ? new Date(expiresOn).getTime() : Date.now() + 3600_000;
+  tokenCache.set(key, { token, expiry });
+}
+
+// ── Shared OBO exchange ─────────────────────────────────────────────────
+
+/**
+ * Exchange a Teams SSO token for a Graph API token via the OBO Azure Function.
+ * Returns null if exchange fails or is unavailable.
+ */
+async function exchangeOboToken(scopes?: string[]): Promise<string | null> {
+  if (!isInTeams() || !getFunctionUrl()) return null;
+
+  const ssoToken = await getTeamsSsoToken();
+  if (!ssoToken) return null;
+
+  try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const functionKey = getFunctionKey();
+    if (functionKey) headers['x-functions-key'] = functionKey;
+
+    const body: Record<string, unknown> = { token: ssoToken };
+    if (scopes && scopes.length > 0) body.scopes = scopes;
+
+    const res = await fetch(`${getFunctionUrl()}/api/token-exchange`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.accessToken) {
+        setCachedToken(data.accessToken, data.expiresOn, scopes);
+        return data.accessToken;
+      }
+    }
+  } catch (err) {
+    if (import.meta.env.DEV) {
+      console.warn('[GraphToken] OBO exchange failed:', err);
+    }
+  }
+
+  return null;
+}
+
+// ── Public API ──────────────────────────────────────────────────────────
 
 /**
  * Get a Graph API access token.
  * Teams SSO → OBO → EasyAuth fallback chain.
  */
 export async function getGraphToken(): Promise<string> {
-  // Return cached token if still valid
-  if (cachedToken && Date.now() < cachedExpiry - CACHE_MARGIN_MS) {
-    return cachedToken;
-  }
+  const cached = getCachedToken();
+  if (cached) return cached;
 
   if (isLocalDev()) {
     throw new AuthError('Graph API not available locally', 'local_dev');
   }
 
-  // Try Teams SSO → OBO exchange
-  if (isInTeams() && getFunctionUrl()) {
-    const ssoToken = await getTeamsSsoToken();
-    if (ssoToken) {
-      try {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        const functionKey = getFunctionKey();
-        if (functionKey) headers['x-functions-key'] = functionKey;
-
-        const res = await fetch(`${getFunctionUrl()}/api/token-exchange`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ token: ssoToken }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.accessToken) {
-            cachedToken = data.accessToken;
-            cachedExpiry = data.expiresOn
-              ? new Date(data.expiresOn).getTime()
-              : Date.now() + 3600_000;
-            return data.accessToken;
-          }
-        }
-      } catch (err) {
-        console.warn('[GraphToken] OBO exchange failed, falling back to EasyAuth:', err);
-      }
-    }
-  }
+  const oboToken = await exchangeOboToken();
+  if (oboToken) return oboToken;
 
   // Fallback to EasyAuth
   return getAccessToken();
@@ -79,35 +120,15 @@ export async function getGraphToken(): Promise<string> {
  * Falls back to standard getGraphToken() if OBO is unavailable.
  */
 export async function getGraphTokenWithScopes(scopes: string[]): Promise<string> {
+  const cached = getCachedToken(scopes);
+  if (cached) return cached;
+
   if (isLocalDev()) {
     throw new AuthError('Graph API not available locally', 'local_dev');
   }
 
-  // Try Teams SSO → OBO exchange with specific scopes
-  if (isInTeams() && getFunctionUrl()) {
-    const ssoToken = await getTeamsSsoToken();
-    if (ssoToken) {
-      try {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        const functionKey = getFunctionKey();
-        if (functionKey) headers['x-functions-key'] = functionKey;
-
-        const res = await fetch(`${getFunctionUrl()}/api/token-exchange`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ token: ssoToken, scopes }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.accessToken) {
-            return data.accessToken;
-          }
-        }
-      } catch (err) {
-        console.warn('[GraphToken] Scoped OBO exchange failed:', err);
-      }
-    }
-  }
+  const oboToken = await exchangeOboToken(scopes);
+  if (oboToken) return oboToken;
 
   // Fallback to standard token (may not have the requested scopes)
   return getGraphToken();
@@ -119,35 +140,16 @@ export async function getGraphTokenWithScopes(scopes: string[]): Promise<string>
  * OBO exchange with `{resource}/.default` scope.
  */
 export async function getTokenForResource(resource: string): Promise<string> {
+  const scopes = [`${resource}/.default`];
+  const cached = getCachedToken(scopes);
+  if (cached) return cached;
+
   if (isLocalDev()) {
     throw new AuthError('Token exchange not available locally', 'local_dev');
   }
 
-  // Try Teams SSO → OBO exchange with resource-specific scope
-  if (isInTeams() && getFunctionUrl()) {
-    const ssoToken = await getTeamsSsoToken();
-    if (ssoToken) {
-      try {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        const functionKey = getFunctionKey();
-        if (functionKey) headers['x-functions-key'] = functionKey;
-
-        const res = await fetch(`${getFunctionUrl()}/api/token-exchange`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ token: ssoToken, scopes: [`${resource}/.default`] }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.accessToken) {
-            return data.accessToken;
-          }
-        }
-      } catch (err) {
-        console.warn('[GraphToken] Resource-scoped OBO exchange failed:', err);
-      }
-    }
-  }
+  const oboToken = await exchangeOboToken(scopes);
+  if (oboToken) return oboToken;
 
   // Fallback to standard token
   return getGraphToken();
@@ -155,6 +157,5 @@ export async function getTokenForResource(resource: string): Promise<string> {
 
 /** Clear the cached token (e.g. on logout). */
 export function clearGraphTokenCache(): void {
-  cachedToken = null;
-  cachedExpiry = 0;
+  tokenCache.clear();
 }

@@ -120,7 +120,7 @@ variscout-lite/
 | `packages/ui/src/components/`                  | \*/ (see .claude/rules/monorepo.md for full list)                                | 60+ shared UI components                                                         |
 | `packages/data/src/samples/`                   | coffee, journey, bottleneck, sachets                                             | Sample datasets                                                                  |
 | `apps/pwa/src/`                                | context/DataContext.tsx, components/Dashboard.tsx                                | PWA state + main UI                                                              |
-| `apps/azure/src/`                              | context/DataContext.tsx, services/, auth/, hooks/useEditor\*.ts                  | Azure state, storage, auth, AI                                                   |
+| `apps/azure/src/`                              | context/DataContext.tsx, services/graphFetch.ts, auth/, hooks/useEditor\*.ts     | Azure state, storage, auth, Graph API wrapper                                    |
 | `packages/ui/src/components/MethodologyCoach/` | JourneyPhaseStrip, CoachPopover, MobileCoachSheet, DiamondPhaseMap, PDCAProgress | Phase strip in header + popover coaching                                         |
 | `infra/`                                       | mainTemplate.json, functions/                                                    | ARM template, Azure Functions                                                    |
 

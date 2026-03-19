@@ -6,6 +6,7 @@
  */
 
 import { getGraphToken } from '../auth/graphToken';
+import { graphFetch, GRAPH_BASE } from './graphFetch';
 
 export interface GraphUser {
   /** Azure AD object ID */
@@ -35,7 +36,7 @@ export async function searchPeople(query: string): Promise<GraphUser[]> {
     $filter: "personType/class eq 'Person' and personType/subclass eq 'OrganizationUser'",
   });
 
-  const res = await fetch(`https://graph.microsoft.com/v1.0/me/people?${params.toString()}`, {
+  const res = await graphFetch(`${GRAPH_BASE}/me/people?${params.toString()}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -43,7 +44,8 @@ export async function searchPeople(query: string): Promise<GraphUser[]> {
   });
 
   if (!res.ok) {
-    console.warn('[GraphPeople] Search failed:', res.status, res.statusText);
+    if (import.meta.env.DEV)
+      console.warn('[GraphPeople] Search failed:', res.status, res.statusText);
     return [];
   }
 

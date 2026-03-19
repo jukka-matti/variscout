@@ -191,6 +191,8 @@ export interface UseEditorDataFlowOptions {
   setMeasureLabel: (label: string) => void;
   loadProject: (id: string) => Promise<void>;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<boolean>;
+  /** Process a File object directly (e.g., from SharePoint File Picker) */
+  processFile: (file: File) => Promise<boolean>;
   loadSample: (sample: SampleDataset) => void;
   applyTimeExtraction: (col: string, config: TimeExtractionConfig) => void;
 }
@@ -279,6 +281,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     setMeasureColumns,
     setMeasureLabel,
     handleFileUpload,
+    processFile: processFileFromPicker,
     loadSample,
     applyTimeExtraction,
   } = options;
@@ -600,16 +603,20 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     fileInputRef.current?.click();
   }, []);
 
-  // Direct File object handler — avoids synthetic event hacks
+  // Direct File object handler — no synthetic event needed
   // Used by SharePoint File Picker integration (ADR-030)
   const handleFile = useCallback(
     async (file: File) => {
-      const syntheticEvent = {
-        target: { files: [file], value: file.name },
-      } as unknown as React.ChangeEvent<HTMLInputElement>;
-      await handleFileChange(syntheticEvent);
+      if (!confirmReplaceIfNeeded()) return;
+      dispatch({ type: 'START_FILE_PARSE' });
+      try {
+        await processFileFromPicker(file);
+        dispatch({ type: 'FILE_PARSED_TO_MAPPING' });
+      } catch {
+        dispatch({ type: 'FILE_PARSE_DONE' });
+      }
     },
-    [handleFileChange]
+    [confirmReplaceIfNeeded, processFileFromPicker]
   );
 
   return {

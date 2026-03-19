@@ -9,10 +9,10 @@
  */
 
 import { getGraphTokenWithScopes } from '../auth/graphToken';
+import { graphFetch, GRAPH_BASE } from './graphFetch';
 
 // ── Constants ───────────────────────────────────────────────────────────
 
-const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 const REPORT_SCOPES = ['Files.ReadWrite.All'];
 
 // ── Types ───────────────────────────────────────────────────────────────
@@ -54,19 +54,21 @@ export async function uploadReportToSharePoint(
     }
   }
 
-  // Upload the file
+  // Upload the file — conflictBehavior must be a URL query parameter for PUT /content
   const conflictBehavior = replaceExisting ? 'replace' : 'fail';
   const filePath = `${apiBase}/${encodeURIComponent(filename)}`;
 
-  const response = await fetch(`${GRAPH_BASE}${filePath}:/content`, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'text/markdown',
-      '@microsoft.graph.conflictBehavior': conflictBehavior,
-    },
-    body: content,
-  });
+  const response = await graphFetch(
+    `${GRAPH_BASE}${filePath}:/content?@microsoft.graph.conflictBehavior=${conflictBehavior}`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'text/markdown',
+      },
+      body: content,
+    }
+  );
 
   if (!response.ok) {
     if (response.status === 409) {
@@ -111,7 +113,7 @@ async function checkFileExists(token: string, apiBase: string, filename: string)
   const filePath = `${apiBase}/${encodeURIComponent(filename)}`;
 
   try {
-    const response = await fetch(`${GRAPH_BASE}${filePath}`, {
+    const response = await graphFetch(`${GRAPH_BASE}${filePath}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

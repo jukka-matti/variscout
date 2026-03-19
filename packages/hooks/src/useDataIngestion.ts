@@ -85,6 +85,8 @@ export interface UseDataIngestionOptions {
 export interface UseDataIngestionReturn {
   /** Handle file upload from input element */
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<boolean>;
+  /** Process a File object directly (e.g., from SharePoint File Picker) */
+  processFile: (file: File) => Promise<boolean>;
   /** Handle separate Pareto file upload */
   handleParetoFileUpload: (file: File) => Promise<boolean>;
   /** Clear separate Pareto data and switch back to derived mode */
@@ -128,11 +130,8 @@ export function useDataIngestion(
     setMeasureLabel,
   } = actions;
 
-  const handleFileUpload = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>): Promise<boolean> => {
-      const file = e.target.files?.[0];
-      if (!file) return false;
-
+  const processFile = useCallback(
+    async (file: File): Promise<boolean> => {
       let data: DataRow[] = [];
       try {
         if (file.name.endsWith('.csv')) {
@@ -206,6 +205,15 @@ export function useDataIngestion(
       rowHardLimit,
       rowWarningThreshold,
     ]
+  );
+
+  const handleFileUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>): Promise<boolean> => {
+      const file = e.target.files?.[0];
+      if (!file) return false;
+      return processFile(file);
+    },
+    [processFile]
   );
 
   // Handle separate Pareto file upload
@@ -333,6 +341,7 @@ export function useDataIngestion(
 
   return {
     handleFileUpload,
+    processFile,
     handleParetoFileUpload,
     clearParetoFile,
     clearData,

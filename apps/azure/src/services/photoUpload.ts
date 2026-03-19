@@ -10,6 +10,7 @@ import { isLocalDev } from '../auth/easyAuth';
 import { getGraphToken } from '../auth/graphToken';
 import { classifySyncError, type StorageLocation } from './storage';
 import { getChannelDriveInfo } from './channelDrive';
+import { graphFetch, GRAPH_BASE } from './graphFetch';
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -17,10 +18,6 @@ export interface PhotoUploadResult {
   driveItemId: string;
   webUrl?: string;
 }
-
-// ── Constants ────────────────────────────────────────────────────────────
-
-const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 
 // ── Drive Path Resolution ────────────────────────────────────────────────
 
@@ -66,51 +63,33 @@ async function ensurePhotoFolder(
     'Content-Type': 'application/json',
   };
 
-  // Create /VariScout (no-op if exists)
-  await fetch(`${GRAPH_BASE}${paths.rootPath}/children`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      name: 'VariScout',
-      folder: {},
-      '@microsoft.graph.conflictBehavior': 'replace',
-    }),
-  });
-
-  // Create /VariScout/Photos
-  await fetch(`${GRAPH_BASE}${paths.rootPath}:/VariScout:/children`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      name: 'Photos',
-      folder: {},
-      '@microsoft.graph.conflictBehavior': 'replace',
-    }),
-  });
-
-  // Create /VariScout/Photos/{analysisId}
-  await fetch(`${GRAPH_BASE}${paths.rootPath}:/VariScout/Photos:/children`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      name: analysisId,
-      folder: {},
-      '@microsoft.graph.conflictBehavior': 'replace',
-    }),
-  });
-
-  // Create /VariScout/Photos/{analysisId}/{findingId}
-  await fetch(
-    `${GRAPH_BASE}${paths.rootPath}:/VariScout/Photos/${encodeURIComponent(analysisId)}:/children`,
-    {
+  const createFolder = async (url: string, name: string): Promise<void> => {
+    const res = await graphFetch(url, {
       method: 'POST',
       headers,
       body: JSON.stringify({
-        name: findingId,
+        name,
         folder: {},
         '@microsoft.graph.conflictBehavior': 'replace',
       }),
+    });
+    // 409 = folder already exists (expected), anything else non-ok is an error
+    if (!res.ok && res.status !== 409) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error?.message || `Failed to create folder "${name}": ${res.status}`);
     }
+  };
+
+  // Create /VariScout (no-op if exists)
+  await createFolder(`${GRAPH_BASE}${paths.rootPath}/children`, 'VariScout');
+  // Create /VariScout/Photos
+  await createFolder(`${GRAPH_BASE}${paths.rootPath}:/VariScout:/children`, 'Photos');
+  // Create /VariScout/Photos/{analysisId}
+  await createFolder(`${GRAPH_BASE}${paths.rootPath}:/VariScout/Photos:/children`, analysisId);
+  // Create /VariScout/Photos/{analysisId}/{findingId}
+  await createFolder(
+    `${GRAPH_BASE}${paths.rootPath}:/VariScout/Photos/${encodeURIComponent(analysisId)}:/children`,
+    findingId
   );
 }
 
@@ -155,7 +134,7 @@ export async function uploadPhoto(
 
   // Upload file content
   const uploadPath = `/VariScout/Photos/${encodeURIComponent(analysisId)}/${encodeURIComponent(findingId)}/${encodeURIComponent(filename)}`;
-  const res = await fetch(`${GRAPH_BASE}${paths.basePath}${uploadPath}:/content`, {
+  const res = await graphFetch(`${GRAPH_BASE}${paths.basePath}${uploadPath}:/content`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,

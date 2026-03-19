@@ -88,13 +88,13 @@ LOCAL (IndexedDB)               ONEDRIVE
 
 ## Graph API Calls
 
-The app uses raw `fetch()` with EasyAuth bearer tokens (no Graph SDK).
+The app uses a shared `graphFetch()` wrapper (`apps/azure/src/services/graphFetch.ts`) with EasyAuth bearer tokens (no Graph SDK). All Graph API calls go through this wrapper, which handles 429 throttling with Retry-After header parsing.
 
 ### List Analyses
 
 ```typescript
-const token = await getAccessToken(); // from EasyAuth /.auth/me
-const response = await fetch(
+const token = await getGraphToken();
+const response = await graphFetch(
   `${GRAPH_BASE}/me/drive/root:/VariScout/Projects:/children?$filter=file ne null&$select=id,name,lastModifiedDateTime,lastModifiedBy,size`,
   { headers: { Authorization: `Bearer ${token}` } }
 );
@@ -103,8 +103,8 @@ const response = await fetch(
 ### Save Analysis
 
 ```typescript
-const token = await getAccessToken();
-await fetch(`${GRAPH_BASE}/me/drive/root:/VariScout/Projects/${name}.vrs:/content`, {
+const token = await getGraphToken();
+await graphFetch(`${GRAPH_BASE}/me/drive/root:/VariScout/Projects/${name}.vrs:/content`, {
   method: 'PUT',
   headers: {
     Authorization: `Bearer ${token}`,
@@ -117,8 +117,8 @@ await fetch(`${GRAPH_BASE}/me/drive/root:/VariScout/Projects/${name}.vrs:/conten
 ### Load Analysis
 
 ```typescript
-const token = await getAccessToken();
-const response = await fetch(
+const token = await getGraphToken();
+const response = await graphFetch(
   `${GRAPH_BASE}/me/drive/root:/VariScout/Projects/${name}.vrs:/content`,
   { headers: { Authorization: `Bearer ${token}` } }
 );

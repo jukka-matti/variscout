@@ -17,6 +17,7 @@ function getDocLocale(): Locale {
 }
 import { getGraphTokenWithScopes } from '../auth/graphToken';
 import { buildFindingLink } from './deepLinks';
+import { graphFetch, GRAPH_BASE } from './graphFetch';
 
 const CHANNEL_MESSAGE_SCOPES = ['https://graph.microsoft.com/ChannelMessage.Send'];
 
@@ -126,23 +127,20 @@ export async function postChannelMention(
   const deepLinkUrl = buildFindingLink(baseUrl, projectName, finding.id);
   const { body, mentions } = buildMentionMessageBody(finding, assignee, deepLinkUrl);
 
-  const res = await fetch(
-    `https://graph.microsoft.com/v1.0/teams/${teamId}/channels/${channelId}/messages`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+  const res = await graphFetch(`${GRAPH_BASE}/teams/${teamId}/channels/${channelId}/messages`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      body: {
+        contentType: 'html',
+        content: body,
       },
-      body: JSON.stringify({
-        body: {
-          contentType: 'html',
-          content: body,
-        },
-        mentions,
-      }),
-    }
-  );
+      mentions,
+    }),
+  });
 
   if (!res.ok) {
     const errorBody = await res.text().catch(() => '');
@@ -165,40 +163,37 @@ export async function postStatusUpdateCard(
 ): Promise<void> {
   const token = await getGraphTokenWithScopes(CHANNEL_MESSAGE_SCOPES);
 
-  const res = await fetch(
-    `https://graph.microsoft.com/v1.0/teams/${teamId}/channels/${channelId}/messages`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+  const res = await graphFetch(`${GRAPH_BASE}/teams/${teamId}/channels/${channelId}/messages`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      body: {
+        contentType: 'html',
+        content: summaryText,
       },
-      body: JSON.stringify({
-        body: {
-          contentType: 'html',
-          content: summaryText,
+      attachments: [
+        {
+          id: 'statusCard',
+          contentType: 'application/vnd.microsoft.card.adaptive',
+          content: JSON.stringify(cardPayload),
         },
-        attachments: [
-          {
-            id: 'statusCard',
-            contentType: 'application/vnd.microsoft.card.adaptive',
-            content: JSON.stringify(cardPayload),
+      ],
+      mentions: mentions.map((m, i) => ({
+        id: i,
+        mentionText: m.mentioned.name,
+        mentioned: {
+          user: {
+            id: m.mentioned.id,
+            displayName: m.mentioned.name,
+            userIdentityType: 'aadUser',
           },
-        ],
-        mentions: mentions.map((m, i) => ({
-          id: i,
-          mentionText: m.mentioned.name,
-          mentioned: {
-            user: {
-              id: m.mentioned.id,
-              displayName: m.mentioned.name,
-              userIdentityType: 'aadUser',
-            },
-          },
-        })),
-      }),
-    }
-  );
+        },
+      })),
+    }),
+  });
 
   if (!res.ok) {
     const errorBody = await res.text().catch(() => '');

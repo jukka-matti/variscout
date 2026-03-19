@@ -80,7 +80,7 @@ export async function getEasyAuthUser(): Promise<EasyAuthUser | null> {
       userId: provider.user_id,
     };
   } catch (e) {
-    console.warn('[EasyAuth] Failed to fetch user:', e);
+    if (import.meta.env.DEV) console.warn('[EasyAuth] Failed to fetch user:', e);
     return null;
   }
 }
@@ -127,7 +127,8 @@ export async function getAccessToken(): Promise<string> {
         }
       } catch (e) {
         // If refresh fails, try using the existing token (it may still work)
-        console.warn('[EasyAuth] Token refresh failed, using existing token:', e);
+        if (import.meta.env.DEV)
+          console.warn('[EasyAuth] Token refresh failed, using existing token:', e);
       }
     }
   }
@@ -188,6 +189,10 @@ export function logout(): void {
     return;
   }
   // Dynamic import to avoid circular dependency (graphToken imports from easyAuth)
-  import('./graphToken').then(m => m.clearGraphTokenCache()).catch(() => {});
+  import('./graphToken')
+    .then(m => m.clearGraphTokenCache())
+    .catch(err => {
+      if (import.meta.env.DEV) console.warn('[EasyAuth] Failed to clear token cache:', err);
+    });
   window.location.href = '/.auth/logout';
 }
