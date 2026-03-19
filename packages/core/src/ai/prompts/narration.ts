@@ -103,6 +103,21 @@ export function buildSummaryPrompt(context: AIContext): string {
     parts.push(`Variation contributions: ${vcStr}`);
   }
 
+  // Drill path with scope
+  if (context.drillPathEnriched && context.drillPathEnriched.length > 0) {
+    const drillStr = context.drillPathEnriched
+      .map(
+        step =>
+          `${step.factor}:${step.values.join(',')} (${Math.round(step.scopeFraction * 100)}% scope)`
+      )
+      .join(' → ');
+    parts.push(
+      `Drill path: ${drillStr}${context.cumulativeScope !== undefined ? ` (${Math.round(context.cumulativeScope * 100)}% total scope)` : ''}`
+    );
+  } else if (context.drillPath && context.drillPath.length > 0) {
+    parts.push(`Drill path: ${context.drillPath.join(' → ')}`);
+  }
+
   // Findings
   if (context.findings) {
     parts.push(`Findings: ${context.findings.total} total`);
@@ -148,7 +163,7 @@ export function buildSummaryPrompt(context: AIContext): string {
     const n = context.stats.samples;
     if (n < 10) {
       parts.push(
-        `Data quality note: Only ${n} observations. Use cautious language: "With only ${n} observations, this is not yet reliable. Consider collecting more data."`
+        `Data quality note: Only ${n} observations. Use cautious language: "With only ${n} observations, this is preliminary. Consider gemba observations or expert input alongside the data."`
       );
     } else if (n < 30) {
       parts.push(

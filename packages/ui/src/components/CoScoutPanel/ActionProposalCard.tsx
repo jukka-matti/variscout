@@ -15,6 +15,7 @@ const TOOL_CONFIG: Record<
 > = {
   apply_filter: { label: 'Apply filter', icon: Filter, editable: false },
   clear_filters: { label: 'Clear all filters', icon: Filter, editable: false },
+  switch_factor: { label: 'Switch factor', icon: Filter, editable: false },
   create_finding: { label: 'Record finding', icon: FileText, editable: true },
   create_hypothesis: { label: 'Add hypothesis', icon: GitBranch, editable: true },
   suggest_action: { label: 'Suggest action', icon: Zap, editable: true },
@@ -45,6 +46,10 @@ function formatPreview(
       if (preview.samples !== undefined) {
         lines.push(`Full dataset: n=${preview.samples}, mean=${formatNum(preview.mean as number)}`);
       }
+      break;
+
+    case 'switch_factor':
+      lines.push(`Switch Boxplot to: ${params.factor}`);
       break;
 
     case 'create_hypothesis': {

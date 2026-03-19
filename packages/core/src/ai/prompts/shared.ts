@@ -16,7 +16,10 @@ export const TERMINOLOGY_INSTRUCTION = `Terminology rules — always use VariSco
 - Say "Contribution %" not "eta squared" or "effect size".
 - Say "Progressive stratification" not "drill-down".
 - Say "Voice of the Process" not "control limits" and "Voice of the Customer" not "spec limits" or "specification limits".
-- Say "characteristic" not "measurement" or "variable".`;
+- Say "characteristic" not "measurement" or "variable".
+- Never say "statistically significant" or "not significant" — use evidence language: "clearly drives", "suggests", "may show a pattern", "no clear evidence".
+- Never advise "collect more data to confirm" — guide toward complementary evidence: gemba walks, expert consultation, linking to findings.
+- Weak data evidence is a pointer to investigate with other methods, not a reason to delay action.`;
 
 /**
  * Build a locale hint to prepend to system prompts.

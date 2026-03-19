@@ -19,10 +19,8 @@ import { formatStatistic } from '../i18n/format';
  * const etaSq = getEtaSquared(data, 'Supplier', 'Weight');
  * // etaSq = 0.34 means 34% of weight variation is explained by supplier
  *
- * Interpretation:
- * - 0.01-0.06: Small effect
- * - 0.06-0.14: Medium effect
- * - > 0.14: Large effect
+ * In process data, interpret η² by relative ranking across factors,
+ * not by fixed thresholds from behavioral science.
  */
 export function getEtaSquared(data: DataRow[], factor: string, outcome: string): number {
   // η² = SS_between / SS_total

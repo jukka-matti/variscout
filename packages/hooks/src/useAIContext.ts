@@ -62,6 +62,10 @@ export interface UseAIContextOptions {
   locale?: Locale;
   /** Entry scenario for tool routing (ADR-029) */
   entryScenario?: EntryScenario;
+  /** Cumulative scope fraction from drill path (0-1) */
+  cumulativeScope?: number;
+  /** Enriched drill path with scope fractions */
+  drillPathEnriched?: Array<{ factor: string; values: string[]; scopeFraction: number }>;
 }
 
 export interface UseAIContextReturn {
@@ -93,6 +97,8 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     stagedComparison,
     locale,
     entryScenario,
+    cumulativeScope,
+    drillPathEnriched,
   } = options;
 
   const context = useMemo<AIContext | null>(() => {
@@ -113,6 +119,8 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       teamContributors,
       stagedComparison,
       locale,
+      cumulativeScope,
+      drillPathEnriched,
     };
 
     // Map StatsResult to AIStatsInput
@@ -151,6 +159,8 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     stagedComparison,
     locale,
     entryScenario,
+    cumulativeScope,
+    drillPathEnriched,
   ]);
 
   return { context };

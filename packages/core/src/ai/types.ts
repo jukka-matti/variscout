@@ -76,6 +76,10 @@ export interface AIContext {
   variationContributions?: Array<{ factor: string; etaSquared: number; category?: string }>;
   /** Drill path: ordered factor names from filter stack */
   drillPath?: string[];
+  /** Enriched drill path with scope fractions (when available from useDrillPath) */
+  drillPathEnriched?: Array<{ factor: string; values: string[]; scopeFraction: number }>;
+  /** Cumulative scope fraction (0-1) from drill path */
+  cumulativeScope?: number;
   /** Summary of findings */
   findings?: {
     total: number;

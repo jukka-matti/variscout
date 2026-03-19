@@ -141,6 +141,36 @@ function buildMetrics(fmt: (v: number, d?: number) => string): MetricDef[] {
 }
 
 // ============================================================================
+// Insight helper
+// ============================================================================
+
+function buildStagedInsight(
+  comparison: StagedComparison,
+  cpkTarget: number | undefined,
+  fmt: (v: number, d?: number) => string
+): string | null {
+  const { stages, deltas } = comparison;
+  if (stages.length < 2) return null;
+
+  const first = stages[0];
+  const last = stages[stages.length - 1];
+
+  if (deltas.cpkDelta !== null && first.stats.cpk !== undefined && last.stats.cpk !== undefined) {
+    const improved = deltas.cpkDelta > 0;
+    const verb = improved ? 'improved' : 'decreased';
+    const assessment = improved
+      ? 'the improvement appears effective'
+      : 'the change may not be effective';
+    return `Cpk ${verb} from ${fmt(first.stats.cpk, 2)} to ${fmt(last.stats.cpk, 2)} — ${assessment}.`;
+  }
+
+  // Fallback: variation ratio
+  const varImproved = deltas.variationRatio < 1;
+  const assessment = varImproved ? 'variation decreased' : 'variation increased';
+  return `Variation ${assessment} (ratio ${fmt(deltas.variationRatio, 2)}).`;
+}
+
+// ============================================================================
 // Component
 // ============================================================================
 
@@ -155,6 +185,10 @@ const StagedComparisonCard: React.FC<StagedComparisonCardProps> = ({
   const hasSpecs = deltas.cpkDelta !== null || deltas.passRateDelta !== null;
   const metrics = useMemo(() => buildMetrics(formatStat), [formatStat]);
   const activeMetrics = metrics.filter(m => !m.requiresSpecs || hasSpecs);
+  const insightText = useMemo(
+    () => buildStagedInsight(comparison, cpkTarget, formatStat),
+    [comparison, cpkTarget, formatStat]
+  );
 
   const isTwoStage = stages.length === 2;
 
@@ -208,6 +242,12 @@ const StagedComparisonCard: React.FC<StagedComparisonCardProps> = ({
 
         {cpkTarget !== undefined && deltas.cpkDelta !== null && (
           <div className="text-[10px] text-content-muted">Target Cpk: {formatStat(cpkTarget)}</div>
+        )}
+
+        {insightText && (
+          <div className="text-[10px] text-content-secondary mt-1" data-testid="staged-insight">
+            {insightText}
+          </div>
         )}
       </div>
     );
@@ -264,6 +304,12 @@ const StagedComparisonCard: React.FC<StagedComparisonCardProps> = ({
 
       {cpkTarget !== undefined && deltas.cpkDelta !== null && (
         <div className="text-[10px] text-content-muted">Target Cpk: {formatStat(cpkTarget)}</div>
+      )}
+
+      {insightText && (
+        <div className="text-[10px] text-content-secondary mt-1" data-testid="staged-insight">
+          {insightText}
+        </div>
       )}
     </div>
   );

@@ -5,8 +5,8 @@ import { hasEntry } from '../knowledge';
 import { isConcept, isGlossaryTerm } from '../types';
 
 describe('concepts', () => {
-  it('has exactly 11 concepts (3 frameworks + 3 principles + 5 phases)', () => {
-    expect(concepts.length).toBe(11);
+  it('has exactly 12 concepts (3 frameworks + 4 principles + 5 phases)', () => {
+    expect(concepts.length).toBe(12);
   });
 
   it('all concepts have unique IDs', () => {

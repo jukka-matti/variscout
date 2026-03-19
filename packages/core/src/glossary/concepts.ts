@@ -93,6 +93,19 @@ export const concepts: readonly Concept[] = [
     ],
   },
   {
+    id: 'statisticalVsPractical',
+    label: 'Statistical vs Practical Significance',
+    definition:
+      'A factor can be "real but irrelevant" (strong evidence, low contribution) or "promising but uncertain" (high contribution, weak evidence). Contribution % tells importance, evidence level tells confidence.',
+    description:
+      'Traditional hypothesis testing treats p < 0.05 as a binary threshold. VariScout separates the two dimensions: Contribution % shows how much a factor matters in practice, while the evidence level (derived from p-value) shows how confident we can be. This prevents two common mistakes: dismissing a high-contribution factor because p > 0.05, or over-reacting to a tiny difference with p < 0.001.',
+    conceptCategory: 'principle',
+    relations: [
+      { targetId: 'etaSquared', type: 'uses' },
+      { targetId: 'contributionNotCausation', type: 'leads-to' },
+    ],
+  },
+  {
     id: 'iterativeExploration',
     label: 'Iterative Exploration',
     definition:

@@ -761,6 +761,28 @@ These will enable model-driven simulation in a future release: regression coeffi
 
 ---
 
+## Evidence Levels
+
+VariScout classifies the confidence in ANOVA results using evidence levels derived from the p-value:
+
+| p-value | Evidence Level | Interpretation                                         |
+| ------- | -------------- | ------------------------------------------------------ |
+| < 0.01  | Strong         | High confidence that the factor drives variation       |
+| < 0.05  | Moderate       | Reasonable confidence — worth investigating further    |
+| < 0.10  | Weak           | Some signal — strengthen with gemba or expert evidence |
+| >= 0.10 | Insufficient   | No clear evidence of a pattern                         |
+
+Evidence level tells you **how confident** you can be. Contribution % tells you **how important** the factor is. Both are needed:
+
+- **High contribution + strong evidence**: This factor clearly drives variation — drill into it
+- **High contribution + weak evidence**: Promising pattern — validate with gemba walk or expert
+- **Low contribution + strong evidence**: Real but small — other factors matter more
+- **Low contribution + weak evidence**: No clear pattern for this factor
+
+> **ASA alignment**: VariScout follows the American Statistical Association's 2016/2019 position — p-values are not used as binary pass/fail thresholds. "Statistically significant" language is replaced with evidence-calibrated descriptions.
+
+---
+
 ## References & Standards
 
 | Topic                                | Standard / Source                                                           |
@@ -777,3 +799,4 @@ These will enable model-driven simulation in a future release: regression coeffi
 | Incomplete beta / continued fraction | Lentz's algorithm (max 200 iterations, ε = 1e-10)                           |
 | Nelson Rule 2                        | Nelson, _Journal of Quality Technology_ (1984) — 9-point runs               |
 | Nelson Rule 3                        | Nelson, _Journal of Quality Technology_ (1984) — 6-point trends             |
+| Evidence levels (p-value)            | ASA Statement on Statistical Significance and P-Values (2016, 2019)         |

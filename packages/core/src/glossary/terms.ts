@@ -144,9 +144,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     id: 'pValue',
     label: 'p-value',
     definition:
-      'Probability the observed difference happened by chance. p < 0.05 = statistically significant.',
+      "Measures how incompatible the data are with 'no difference between groups.' Smaller values = stronger evidence of a real pattern. Always interpret alongside Contribution %.",
     description:
-      'The p-value tests the null hypothesis that all group means are equal. Small p-values (typically < 0.05) provide evidence that at least one group mean differs from the others.',
+      "The p-value tests whether there is evidence against 'no difference between groups.' Smaller values indicate stronger evidence. However, a small p-value alone does not mean a factor is important — Contribution % shows how much the factor matters in practice. A large dataset can produce a small p-value for trivially small differences.",
     category: 'statistics',
     learnMorePath: '/tools/boxplot',
     relatedTerms: ['fStatistic', 'etaSquared'],
@@ -155,9 +155,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     id: 'etaSquared',
     label: '\u03b7\u00b2',
     definition:
-      'Effect size showing what proportion of variation is explained by the factor. Benchmarks (0.06 small, 0.14 large) are from behavioral science — in process data, focus on relative ranking rather than absolute thresholds.',
+      'Effect size showing what proportion of variation is explained by the factor. In process data, focus on relative ranking across factors rather than absolute thresholds.',
     description:
-      'Eta-squared (\u03b7\u00b2) represents the proportion of total variance explained by the grouping factor. Unlike p-value, it indicates practical significance — how much the factor matters. Note: \u03b7\u00b2 is a positively biased estimator that tends to overstate the true effect for small samples. VariScout uses \u03b7\u00b2 for relative ranking, not absolute estimation.',
+      'Eta-squared (\u03b7\u00b2) represents the proportion of total variance explained by the grouping factor. Unlike p-value, it indicates practical importance \u2014 how much the factor matters. VariScout displays this as Contribution % and uses it for relative ranking across factors, not for pass/fail judgments. Note: \u03b7\u00b2 is a positively biased estimator that tends to overstate the true effect for small samples.',
     category: 'statistics',
     learnMorePath: '/tools/boxplot',
     relatedTerms: ['fStatistic', 'pValue'],

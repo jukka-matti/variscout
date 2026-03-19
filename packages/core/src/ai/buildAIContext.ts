@@ -54,6 +54,10 @@ export interface BuildAIContextOptions {
   variationContributions?: Array<{ factor: string; etaSquared: number }>;
   /** Drill path: ordered factor names from filter stack */
   drillPath?: string[];
+  /** Cumulative scope fraction (0-1) from drill path */
+  cumulativeScope?: number;
+  /** Enriched drill path with per-step scope fractions */
+  drillPathEnriched?: Array<{ factor: string; values: string[]; scopeFraction: number }>;
   /** Selected finding for context-aware suggestions */
   selectedFinding?: {
     text: string;
@@ -147,6 +151,14 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 
   if (drillPath && drillPath.length > 0) {
     context.drillPath = drillPath;
+  }
+
+  if (options.cumulativeScope !== undefined) {
+    context.cumulativeScope = options.cumulativeScope;
+  }
+
+  if (options.drillPathEnriched && options.drillPathEnriched.length > 0) {
+    context.drillPathEnriched = options.drillPathEnriched;
   }
 
   if (focusContext) {

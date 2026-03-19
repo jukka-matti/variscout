@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import type { AnovaResult } from '@variscout/core';
+import { generateAnovaInsightLine } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { HelpTooltip } from '../HelpTooltip';
 import { useGlossary } from '../../hooks';
@@ -72,9 +74,27 @@ const AnovaResults = ({
   const { getTerm } = useGlossary();
   const { formatStat } = useTranslation();
 
-  if (!result) return null;
+  const groups = result?.groups;
+  const pValue = result?.pValue ?? 0;
+  const etaSquared = result?.etaSquared ?? 0;
+  const fStatistic = result?.fStatistic ?? 0;
 
-  const { groups, pValue, etaSquared, fStatistic } = result;
+  // Find top category (most deviation from grand mean)
+  const topCategory = useMemo(() => {
+    if (!groups?.length) return '';
+    const grandMean =
+      groups.reduce((sum, g) => sum + g.mean * g.n, 0) / groups.reduce((sum, g) => sum + g.n, 0);
+    return groups.reduce((top, g) =>
+      Math.abs(g.mean - grandMean) > Math.abs(top.mean - grandMean) ? g : top
+    ).name;
+  }, [groups]);
+
+  const insightText = useMemo(() => {
+    if (etaSquared <= 0) return '';
+    return generateAnovaInsightLine({ etaSquared, pValue, topCategoryName: topCategory });
+  }, [etaSquared, pValue, topCategory]);
+
+  if (!result) return null;
 
   return (
     <div
@@ -100,22 +120,34 @@ const AnovaResults = ({
         ))}
       </div>
 
-      {/* Significance result */}
-      <div className={`flex items-center gap-4 text-sm mt-2 border-t ${colorScheme.border} pt-2`}>
-        <span className={`${colorScheme.secondaryText} flex items-center gap-1`}>
-          <span data-testid="anova-significance" className={`font-mono ${colorScheme.contentText}`}>
-            F = {formatStat(fStatistic)}, p = {formatPValue(pValue, formatStat)}
+      {/* Contribution % (primary) + Evidence (secondary) */}
+      <div className={`mt-2 border-t ${colorScheme.border} pt-2`}>
+        <div className="flex items-center gap-4 text-sm">
+          {etaSquared > 0 && (
+            <span
+              data-testid="anova-eta-squared"
+              className={`font-mono font-semibold ${colorScheme.contentText} flex items-center gap-1`}
+            >
+              Contribution {formatStat(etaSquared * 100, 1)}%
+              <HelpTooltip term={getTerm('etaSquared')} iconSize={12} />
+            </span>
+          )}
+          <span className={`${colorScheme.mutedText} text-xs flex items-center gap-1`}>
+            <span data-testid="anova-significance" className="font-mono">
+              F = {formatStat(fStatistic)}, p = {formatPValue(pValue, formatStat)}
+            </span>
+            <HelpTooltip term={getTerm('fStatistic')} iconSize={12} />
           </span>
-          <HelpTooltip term={getTerm('fStatistic')} iconSize={12} />
-        </span>
-        {etaSquared > 0 && (
-          <span
-            data-testid="anova-eta-squared"
-            className={`${colorScheme.mutedText} text-xs flex items-center gap-1`}
+        </div>
+
+        {/* Insight line */}
+        {insightText && (
+          <div
+            className={`text-xs ${colorScheme.secondaryText} mt-1.5`}
+            data-testid="anova-insight"
           >
-            η² = {formatStat(etaSquared)}
-            <HelpTooltip term={getTerm('etaSquared')} iconSize={12} />
-          </span>
+            {insightText}
+          </div>
         )}
       </div>
     </div>

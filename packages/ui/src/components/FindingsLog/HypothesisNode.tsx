@@ -7,7 +7,7 @@ import type {
   IdeaImpact,
   IdeaEffort,
 } from '@variscout/core';
-import { HYPOTHESIS_STATUS_LABELS } from '@variscout/core';
+import { HYPOTHESIS_STATUS_LABELS, interpretEvidence } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 
 /** Status dot colors matching hypothesis statuses */
@@ -45,6 +45,14 @@ export interface HypothesisNodeProps {
   ) => void;
   /** Available factor columns for sub-hypothesis factor picker */
   factors?: string[];
+  /** ANOVA evidence for this hypothesis's factor (for hover tooltip) */
+  anovaEvidence?: {
+    etaSquared: number;
+    pValue: number;
+    totalN: number;
+    groupCount: number;
+    evidenceLevel: string;
+  };
   /** Children summary for display */
   childrenSummary?: {
     supported: number;
@@ -432,6 +440,39 @@ const ValidationTaskSection: React.FC<ValidationTaskSectionProps> = ({
 };
 
 // ============================================================================
+// Status Tooltip Helper
+// ============================================================================
+
+function buildStatusTooltip(
+  status: HypothesisStatus,
+  evidence: HypothesisNodeProps['anovaEvidence'],
+  formatStat: (v: number, d?: number) => string
+): string {
+  const statusLabel = HYPOTHESIS_STATUS_LABELS[status];
+  if (!evidence) return statusLabel;
+
+  const interpretation = interpretEvidence({
+    etaSquared: evidence.etaSquared,
+    pValue: evidence.pValue,
+    totalN: evidence.totalN,
+    groupCount: evidence.groupCount,
+  });
+
+  const lines = [
+    statusLabel,
+    `Contribution: ${formatStat(evidence.etaSquared * 100, 1)}%`,
+    `Evidence: ${interpretation.evidenceLevel} (n=${evidence.totalN})`,
+    interpretation.message,
+  ];
+
+  if (interpretation.evidenceLevel === 'weak' || interpretation.evidenceLevel === 'insufficient') {
+    lines.push('Consider gemba or expert validation');
+  }
+
+  return lines.join('\n');
+}
+
+// ============================================================================
 // HypothesisNode Component
 // ============================================================================
 
@@ -446,6 +487,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
   onAddChild,
   factors,
   childrenSummary,
+  anovaEvidence,
   canAddChild,
   showContradicted,
   onSetValidationTask,
@@ -460,6 +502,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
   onAskCoScout,
   onSetCauseRole,
 }) => {
+  const { formatStat } = useTranslation();
   const isContradicted = hypothesis.status === 'contradicted';
   const dimmed = isContradicted && !showContradicted;
   const [showAddChild, setShowAddChild] = useState(false);
@@ -525,8 +568,8 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
 
         {/* Status dot */}
         <span
-          className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${STATUS_COLORS[hypothesis.status]}`}
-          title={HYPOTHESIS_STATUS_LABELS[hypothesis.status]}
+          className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${STATUS_COLORS[hypothesis.status]}${anovaEvidence ? ' cursor-help' : ''}`}
+          title={buildStatusTooltip(hypothesis.status, anovaEvidence, formatStat)}
         />
 
         {/* Content */}

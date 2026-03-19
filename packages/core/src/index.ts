@@ -31,6 +31,9 @@ export type {
   DeltaColor,
 } from './stats';
 
+// Types - Evidence Interpretation
+export type { EvidenceLevel, EvidenceInterpretation } from './stats';
+
 // (continued types)
 export type {
   NelsonRule3Sequence,
@@ -74,6 +77,9 @@ export {
   sortBoxplotData,
   // Kernel density estimation (for violin plots)
   calculateKDE,
+  // Evidence interpretation
+  interpretEvidence,
+  generateAnovaInsightLine,
 } from './stats';
 
 // Tier (Azure Marketplace multi-tier licensing) — primary module

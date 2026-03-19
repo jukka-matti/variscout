@@ -1107,29 +1107,29 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'vs-pvalue',
         title: 'η² vs p-value',
         content:
-          'P-value answers "is there a statistically significant difference?" η² answers "how big is that difference?" A tiny difference can be statistically significant with enough data. η² tells you if the difference is worth acting on.',
+          'P-value measures how strong the evidence is against "no difference." η² (Contribution %) measures how much the factor matters. A tiny difference can produce a small p-value with enough data. Contribution % tells you if the difference is worth acting on.',
         visual: {
           type: 'comparison',
           data: {
             left: {
               title: 'p-value',
-              subtitle: 'Statistical significance',
+              subtitle: 'Evidence strength',
               items: [
-                '"Is the difference real?"',
+                '"How strong is the evidence?"',
                 'Depends on sample size',
-                'p < 0.05 = significant',
-                "Doesn't tell you effect size",
+                'Smaller = stronger evidence',
+                "Doesn't tell you importance",
               ],
               color: 'neutral',
             },
             right: {
               title: 'η² (eta-squared)',
-              subtitle: 'Practical significance',
+              subtitle: 'Practical importance',
               items: [
-                '"How big is the effect?"',
+                '"How much does this factor matter?"',
                 'Independent of sample size',
-                '> 0.14 = large effect',
-                'Tells you if it matters',
+                'Focus on relative ranking',
+                'Tells you where to investigate',
               ],
               color: 'amber',
             },

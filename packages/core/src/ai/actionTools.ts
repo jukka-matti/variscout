@@ -20,6 +20,7 @@ import { toNumericValue } from '../types';
 export type ActionToolName =
   | 'apply_filter'
   | 'clear_filters'
+  | 'switch_factor'
   | 'create_hypothesis'
   | 'create_finding'
   | 'suggest_action'

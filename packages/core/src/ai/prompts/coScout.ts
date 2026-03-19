@@ -133,6 +133,24 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
       },
       {
         type: 'function',
+        name: 'switch_factor',
+        description:
+          'Propose switching the Boxplot to show a different factor. Use after apply_filter to show remaining factors within the filtered subset.',
+        parameters: {
+          type: 'object',
+          properties: {
+            factor: {
+              type: 'string',
+              description: 'Factor column name to switch the Boxplot to',
+            },
+          },
+          required: ['factor'],
+          additionalProperties: false,
+          strict: true,
+        },
+      },
+      {
+        type: 'function',
         name: 'clear_filters',
         description:
           'Propose clearing all active filters to return to the full dataset. Returns a preview with full-dataset stats.',
@@ -462,7 +480,7 @@ Never invent data or statistics. If the context does not contain enough informat
         diverging:
           'The investigation is exploring possible causes. Tell the user: "You\'re exploring possible causes — let\'s cast a wide net across different factor categories."',
         validating:
-          'The investigation is gathering evidence. Tell the user: "You\'re gathering evidence — let\'s check what the data and contribution percentages tell us."',
+          'The investigation is gathering evidence. Tell the user: "You\'re gathering evidence — data, gemba, and expert input all contribute to understanding. Let\'s see what the data shows."',
         converging: hasSupportedHypotheses
           ? 'The investigation is narrowing down. Tell the user: "You\'re identifying the suspected cause — supported hypotheses found. Let\'s brainstorm improvement ideas."'
           : 'The investigation is narrowing down. Tell the user: "You\'re identifying the suspected cause — let\'s synthesize findings into a coherent story."',
@@ -576,6 +594,10 @@ Never invent data or statistics. If the context does not contain enough informat
   }
 
   parts.push(TERMINOLOGY_INSTRUCTION);
+
+  parts.push(
+    'When citing drill scope, use the provided cumulativeScope value. Never compute or estimate scope from Contribution % values.'
+  );
 
   // Source attribution for Knowledge Base
   parts.push(
@@ -738,6 +760,7 @@ function buildToolRoutingInstructions(): string {
 - Action tools (apply_filter, clear_filters, create_hypothesis, create_finding, suggest_action) return PROPOSALS, not executions. The user must confirm.
 - When an action tool returns a proposal, include the [ACTION:tool_name:params_json] marker in your response so the UI can render a confirmation card.
 - Propose one action at a time — do not chain multiple action tools in one turn.
+- Use switch_factor after apply_filter to show remaining factors within the filtered subset. Call get_available_factors first to verify the factor name.
 - Prefer compare_categories over apply_filter when the user is exploring (SCOUT phase).
 
 Hypothesis guidance (Investigation Diamond):
@@ -745,11 +768,12 @@ Hypothesis guidance (Investigation Diamond):
 - Sub-hypothesis: use create_hypothesis with parent_id="<existing_id>" when breaking a root cause into testable branches. Ask the user what sub-causes might explain the root hypothesis.
 - Never create sub-hypotheses more than 3 levels deep or more than 8 siblings per parent.
 - When factor and level are specified, VariScout auto-validates using ANOVA (Contribution % >=15% supported, <5% contradicted, 5-15% partial). Recommend linking hypotheses to factors whenever possible.
+- When a data-validated hypothesis has weak evidence (p ≥ 0.05), suggest gemba or expert validation. Never advise 'collect more data and wait.'
 - When a hypothesis cannot be tested with data (physical wear, alignment, contamination), set validation_type to "gemba" or "expert" and provide a clear validation_task.
 
 Finding guidance:
 - Use create_finding when the user identifies a notable pattern worth recording.
-- Also proactively suggest create_finding when you detect a significant pattern: Cpk below target, Contribution % > 15% for a factor, out-of-control violations.
+- Also proactively suggest create_finding when you detect a notable pattern: Cpk below target, Contribution % > 15% for a factor, out-of-control violations.
 - Write finding text as a concise factual observation: "[Factor] shows [metric] = [value] ([context])".
 
 Action suggestion guidance (IMPROVE phase):
