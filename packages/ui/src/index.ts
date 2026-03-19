@@ -249,7 +249,13 @@ export {
 } from './components/DashboardBase';
 
 // Settings Panel
-export { SettingsPanelBase, type SettingsPanelBaseProps } from './components/SettingsPanel';
+export {
+  SettingsPanelBase,
+  type SettingsPanelBaseProps,
+  ThemeToggle,
+  type ThemeToggleProps,
+  type ThemeMode as UIThemeMode,
+} from './components/SettingsPanel';
 
 // Findings Panel
 export {
@@ -358,6 +364,8 @@ export {
   defaultCoScoutPanelColorScheme,
   CoScoutMessages,
   type CoScoutMessagesProps,
+  ActionProposalCard,
+  type ActionProposalCardProps,
 } from './components/CoScoutPanel';
 
 // CoScout Inline

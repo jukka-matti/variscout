@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { Search, Loader2, FileText, ExternalLink } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
-import type { CoScoutMessage, CoScoutError } from '@variscout/core';
+import type { CoScoutMessage, CoScoutError, ActionProposal } from '@variscout/core';
+import { parseActionMarkers, stripActionMarkers } from '@variscout/core';
+import { ActionProposalCard } from './ActionProposalCard';
 
 /**
  * Parse [Source: name] markers in assistant text and render as styled inline badges.
@@ -78,6 +80,10 @@ export interface CoScoutMessagesProps {
   onSearchKnowledge?: () => void;
   /** Parent can override intent detection (e.g., always show). Falls back to keyword heuristic. */
   knowledgeIntentDetected?: boolean;
+  /** ADR-029: Action proposals for inline confirmation */
+  actionProposals?: ActionProposal[];
+  onExecuteAction?: (proposal: ActionProposal, editedText?: string) => void;
+  onDismissAction?: (proposalId: string) => void;
 }
 
 const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
@@ -91,6 +97,9 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
   knowledgeDocuments,
   onSearchKnowledge,
   knowledgeIntentDetected,
+  actionProposals,
+  onExecuteAction,
+  onDismissAction,
 }) => {
   const { t } = useTranslation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -149,10 +158,41 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
               </p>
             </div>
           ) : (
-            <div className="max-w-[90%] border border-edge rounded-lg p-3">
-              <p className="text-xs text-content-secondary leading-relaxed whitespace-pre-wrap">
-                {renderWithSourceBadges(msg.content)}
-              </p>
+            <div className="max-w-[90%] space-y-2">
+              {/* Assistant text with action markers stripped */}
+              {(() => {
+                const markers = parseActionMarkers(msg.content);
+                const cleanText =
+                  markers.length > 0 ? stripActionMarkers(msg.content) : msg.content;
+                return (
+                  <>
+                    {cleanText && (
+                      <div className="border border-edge rounded-lg p-3">
+                        <p className="text-xs text-content-secondary leading-relaxed whitespace-pre-wrap">
+                          {renderWithSourceBadges(cleanText)}
+                        </p>
+                      </div>
+                    )}
+                    {/* Inline action proposal cards */}
+                    {markers.map(marker => {
+                      const matchingProposal = actionProposals?.find(
+                        p =>
+                          p.tool === marker.tool &&
+                          JSON.stringify(p.params) === JSON.stringify(marker.params)
+                      );
+                      if (!matchingProposal || !onExecuteAction || !onDismissAction) return null;
+                      return (
+                        <ActionProposalCard
+                          key={matchingProposal.id}
+                          proposal={matchingProposal}
+                          onExecute={onExecuteAction}
+                          onDismiss={onDismissAction}
+                        />
+                      );
+                    })}
+                  </>
+                );
+              })()}
             </div>
           )}
         </div>

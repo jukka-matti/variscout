@@ -12,7 +12,7 @@ import {
   ChevronRight,
   ClipboardCopy,
 } from 'lucide-react';
-import type { CoScoutMessage, CoScoutError } from '@variscout/core';
+import type { CoScoutMessage, CoScoutError, ActionProposal } from '@variscout/core';
 import { useResizablePanel, useTranslation } from '@variscout/hooks';
 import { CoScoutMessages, type KnowledgeDocumentResult } from './CoScoutMessages';
 
@@ -70,6 +70,10 @@ export interface CoScoutPanelBaseProps {
   knowledgeSearching?: boolean;
   knowledgeDocuments?: KnowledgeDocumentResult[];
   onSearchKnowledge?: () => void;
+  /** ADR-029: Action proposals for inline confirmation */
+  actionProposals?: ActionProposal[];
+  onExecuteAction?: (proposal: ActionProposal, editedText?: string) => void;
+  onDismissAction?: (proposalId: string) => void;
 }
 
 const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
@@ -95,6 +99,9 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   knowledgeSearching,
   knowledgeDocuments,
   onSearchKnowledge,
+  actionProposals,
+  onExecuteAction,
+  onDismissAction,
 }) => {
   const { t } = useTranslation();
   const cs = { ...defaultCoScoutPanelColorScheme, ...csOverride };
@@ -361,6 +368,9 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
           knowledgeSearching={knowledgeSearching}
           knowledgeDocuments={knowledgeDocuments}
           onSearchKnowledge={onSearchKnowledge}
+          actionProposals={actionProposals}
+          onExecuteAction={onExecuteAction}
+          onDismissAction={onDismissAction}
         />
 
         {/* Suggested question chips */}

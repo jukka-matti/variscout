@@ -16,7 +16,7 @@ export type FilterType = 'highlight' | 'filter';
 /**
  * Source chart that initiated the filter action
  */
-export type FilterSource = 'ichart' | 'boxplot' | 'pareto';
+export type FilterSource = 'ichart' | 'boxplot' | 'pareto' | 'coscout';
 
 /**
  * A single filter action in the navigation history

@@ -13,6 +13,7 @@ import type {
   InsightChartType,
   StagedComparison,
   Locale,
+  EntryScenario,
 } from '@variscout/core';
 import type { StatsResult, SpecLimits, Finding, Hypothesis } from '@variscout/core';
 
@@ -59,6 +60,8 @@ export interface UseAIContextOptions {
   stagedComparison?: StagedComparison | null;
   /** Active locale for AI response language */
   locale?: Locale;
+  /** Entry scenario for tool routing (ADR-029) */
+  entryScenario?: EntryScenario;
 }
 
 export interface UseAIContextReturn {
@@ -89,6 +92,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     teamContributors,
     stagedComparison,
     locale,
+    entryScenario,
   } = options;
 
   const context = useMemo<AIContext | null>(() => {
@@ -123,7 +127,11 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       };
     }
 
-    return buildAIContext(buildOptions);
+    const ctx = buildAIContext(buildOptions);
+    if (ctx && entryScenario) {
+      ctx.entryScenario = entryScenario;
+    }
+    return ctx;
   }, [
     enabled,
     process,
@@ -142,6 +150,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     teamContributors,
     stagedComparison,
     locale,
+    entryScenario,
   ]);
 
   return { context };

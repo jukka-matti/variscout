@@ -8,3 +8,5 @@ export {
 } from './CoScoutPanelBase';
 
 export { CoScoutMessages, type CoScoutMessagesProps } from './CoScoutMessages';
+
+export { ActionProposalCard, type ActionProposalCardProps } from './ActionProposalCard';

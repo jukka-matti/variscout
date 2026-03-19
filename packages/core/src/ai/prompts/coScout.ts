@@ -7,20 +7,33 @@
  * with variable context (stats, filters, findings) in subsequent messages.
  */
 
-import type { AIContext, CoScoutMessage } from '../types';
+import type { AIContext, CoScoutMessage, JourneyPhase, EntryScenario } from '../types';
 import type { ToolDefinition } from '../responsesApi';
 import type { Locale } from '../../i18n/types';
 import { formatStatistic } from '../../i18n/format';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from './shared';
 import { buildSummaryPrompt } from './narration';
 
+/** Options for building phase-gated CoScout tools */
+export interface BuildCoScoutToolsOptions {
+  /** Current journey phase — determines which tools are available */
+  phase?: JourneyPhase;
+  /** Whether user is on Team plan (enables sharing tools) */
+  isTeamPlan?: boolean;
+}
+
 /**
  * Build tool definitions for CoScout Responses API integration.
- * These enable the AI to read chart data, statistics, and search the Knowledge Base
- * via function calling. All tools use strict mode for guaranteed parameter schemas.
+ * Phase-gating controls which tools are available at each journey phase.
+ * All tools use strict mode for guaranteed parameter schemas.
+ *
+ * ADR-029: Extended from 3 to 13 tools with action tool support.
  */
-export function buildCoScoutTools(): ToolDefinition[] {
-  return [
+export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolDefinition[] {
+  const { phase, isTeamPlan } = options;
+
+  // Read tools — always available
+  const tools: ToolDefinition[] = [
     {
       type: 'function',
       name: 'get_chart_data',
@@ -67,7 +80,227 @@ export function buildCoScoutTools(): ToolDefinition[] {
         strict: true,
       },
     },
+    {
+      type: 'function',
+      name: 'get_available_factors',
+      description:
+        'List all factor columns with their categories and current filter state. Call before apply_filter to verify factor and category names exist.',
+      parameters: {
+        type: 'object',
+        properties: {},
+        additionalProperties: false,
+        strict: true,
+      },
+    },
+    {
+      type: 'function',
+      name: 'compare_categories',
+      description:
+        'Get per-category stats breakdown for a factor, including mean, stdDev, count, Cpk, and ANOVA eta-squared (Contribution %). Use to identify which categories show the most variation before suggesting filters.',
+      parameters: {
+        type: 'object',
+        properties: {
+          factor: {
+            type: 'string',
+            description: 'Factor column name to compare categories for',
+          },
+        },
+        required: ['factor'],
+        additionalProperties: false,
+        strict: true,
+      },
+    },
   ];
+
+  // SCOUT+ tools (not available in FRAME)
+  if (phase && phase !== 'frame') {
+    tools.push(
+      {
+        type: 'function',
+        name: 'apply_filter',
+        description:
+          'Propose filtering the data to a specific category. Returns a preview with stats (not executed until user confirms). The user will see an inline confirmation card.',
+        parameters: {
+          type: 'object',
+          properties: {
+            factor: { type: 'string', description: 'Factor column name to filter by' },
+            value: { type: 'string', description: 'Category value to filter to' },
+          },
+          required: ['factor', 'value'],
+          additionalProperties: false,
+          strict: true,
+        },
+      },
+      {
+        type: 'function',
+        name: 'clear_filters',
+        description:
+          'Propose clearing all active filters to return to the full dataset. Returns a preview with full-dataset stats.',
+        parameters: {
+          type: 'object',
+          properties: {},
+          additionalProperties: false,
+          strict: true,
+        },
+      },
+      {
+        type: 'function',
+        name: 'create_finding',
+        description:
+          'Propose recording an observation as a finding. The user can edit the text before confirming. Write finding text as a concise factual observation.',
+        parameters: {
+          type: 'object',
+          properties: {
+            text: {
+              type: 'string',
+              description:
+                'Finding text — concise factual observation, e.g., "Machine A shows Cpk 0.85 (below 1.33 target), contributing 34% of total variation"',
+            },
+          },
+          required: ['text'],
+          additionalProperties: false,
+          strict: true,
+        },
+      }
+    );
+  }
+
+  // INVESTIGATE+ tools
+  if (phase === 'investigate' || phase === 'improve') {
+    tools.push(
+      {
+        type: 'function',
+        name: 'create_hypothesis',
+        description:
+          'Propose adding a hypothesis to the investigation tree. Root hypothesis (parent_id=null) for new theories; sub-hypothesis (parent_id=existing_id) for breaking down causes. The user can edit the text before confirming.',
+        parameters: {
+          type: 'object',
+          properties: {
+            text: {
+              type: 'string',
+              description: 'Hypothesis text describing the suspected cause',
+            },
+            factor: {
+              type: ['string', 'null'],
+              description:
+                'Factor column linked to this hypothesis (for auto-validation via eta-squared). Null if not data-testable.',
+            },
+            level: {
+              type: ['string', 'null'],
+              description:
+                'Specific category level within the factor. Null if testing the whole factor.',
+            },
+            parent_id: {
+              type: ['string', 'null'],
+              description: 'Parent hypothesis ID for sub-hypotheses. Null for root hypotheses.',
+            },
+            validation_type: {
+              type: 'string',
+              enum: ['data', 'gemba', 'expert'],
+              description:
+                'How this hypothesis should be validated: "data" = auto-validate with ANOVA, "gemba" = physical inspection needed, "expert" = expert opinion needed.',
+            },
+            validation_task: {
+              type: ['string', 'null'],
+              description:
+                'For gemba/expert: description of what to check. Null for data-testable hypotheses.',
+            },
+          },
+          required: ['text', 'factor', 'level', 'parent_id', 'validation_type', 'validation_task'],
+          additionalProperties: false,
+          strict: true,
+        },
+      },
+      {
+        type: 'function',
+        name: 'suggest_action',
+        description:
+          'Propose adding a corrective/preventive action to an existing finding. Use when the user asks "what should we do?" or when Knowledge Base search reveals a relevant SOP.',
+        parameters: {
+          type: 'object',
+          properties: {
+            finding_id: {
+              type: 'string',
+              description: 'ID of the finding to add the action to',
+            },
+            text: {
+              type: 'string',
+              description:
+                'Action description, e.g., "Replace nozzle tip weekly on Machine 5 — per SOP-NZ-003"',
+            },
+            source: {
+              type: 'string',
+              description:
+                'Where this suggestion came from: empty string for CoScout reasoning, or a Knowledge Base source name',
+            },
+          },
+          required: ['finding_id', 'text', 'source'],
+          additionalProperties: false,
+          strict: true,
+        },
+      }
+    );
+
+    // Team-only sharing tools (INVESTIGATE+)
+    if (isTeamPlan) {
+      tools.push(
+        {
+          type: 'function',
+          name: 'share_finding',
+          description:
+            'Propose posting a finding summary to the Teams channel. Shows a preview before sending. Only use at investigation milestones.',
+          parameters: {
+            type: 'object',
+            properties: {
+              finding_id: {
+                type: 'string',
+                description: 'ID of the finding to share',
+              },
+            },
+            required: ['finding_id'],
+            additionalProperties: false,
+            strict: true,
+          },
+        },
+        {
+          type: 'function',
+          name: 'publish_report',
+          description:
+            'Propose publishing the current scouting report to SharePoint. Shows report type and section count before publishing.',
+          parameters: {
+            type: 'object',
+            properties: {},
+            additionalProperties: false,
+            strict: true,
+          },
+        }
+      );
+    }
+  }
+
+  // IMPROVE-only tools
+  if (phase === 'improve' && isTeamPlan) {
+    tools.push({
+      type: 'function',
+      name: 'notify_action_owners',
+      description:
+        'Propose sending Teams notifications to action item assignees. Shows a preview of who will be notified. Only use after actions have been assigned.',
+      parameters: {
+        type: 'object',
+        properties: {
+          finding_id: {
+            type: 'string',
+            description: 'ID of the finding whose action owners to notify',
+          },
+        },
+        required: ['finding_id'],
+        additionalProperties: false,
+        strict: true,
+      },
+    });
+  }
+
+  return tools;
 }
 
 /**
@@ -93,6 +326,7 @@ export function buildCoScoutInput(
     sampleCount: context.stats?.samples,
     stagedComparison: context.stagedComparison,
     locale: context.locale,
+    entryScenario: context.entryScenario,
   });
 
   const input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
@@ -139,6 +373,12 @@ export interface BuildCoScoutSystemPromptOptions {
   sampleCount?: number;
   stagedComparison?: AIContext['stagedComparison'];
   locale?: Locale;
+  /** Entry scenario for tool routing guidance (ADR-029) */
+  entryScenario?: EntryScenario;
+  /** Current journey phase for tool routing (ADR-029) */
+  phase?: JourneyPhase;
+  /** Whether action tools are enabled (adds tool routing instructions) */
+  hasActionTools?: boolean;
 }
 
 /**
@@ -154,6 +394,7 @@ export function buildCoScoutSystemPrompt(options: BuildCoScoutSystemPromptOption
     sampleCount,
     stagedComparison,
     locale,
+    // entryScenario, phase, hasActionTools are read from `options` directly below
   } = options;
   const parts: string[] = [];
   const hint = buildLocaleHint(locale);
@@ -352,6 +593,16 @@ Never invent data or statistics. If the context does not contain enough informat
     );
   }
 
+  // Action tool routing instructions (ADR-029)
+  if (options.hasActionTools) {
+    parts.push(buildToolRoutingInstructions());
+
+    // Entry scenario routing
+    if (options.entryScenario) {
+      parts.push(buildEntryScenarioGuidance(options.entryScenario));
+    }
+  }
+
   return parts.join('\n\n');
 }
 
@@ -472,4 +723,68 @@ export function buildCoScoutMessages(
   messages.push({ role: 'user', content: userMessage });
 
   return messages;
+}
+
+// ── Tool Routing Instructions (ADR-029) ──────────────────────────────────
+
+/**
+ * Build tool routing instructions for the CoScout system prompt.
+ * Added when action tools are enabled.
+ */
+function buildToolRoutingInstructions(): string {
+  return `Tool usage guidance:
+- Call get_available_factors before apply_filter to verify factor and category names exist.
+- Use compare_categories to identify which categories show the most variation before suggesting filters.
+- Action tools (apply_filter, clear_filters, create_hypothesis, create_finding, suggest_action) return PROPOSALS, not executions. The user must confirm.
+- When an action tool returns a proposal, include the [ACTION:tool_name:params_json] marker in your response so the UI can render a confirmation card.
+- Propose one action at a time — do not chain multiple action tools in one turn.
+- Prefer compare_categories over apply_filter when the user is exploring (SCOUT phase).
+
+Hypothesis guidance (Investigation Diamond):
+- Root hypothesis: use create_hypothesis with parent_id=null when starting an investigation or when the user states a new causal theory.
+- Sub-hypothesis: use create_hypothesis with parent_id="<existing_id>" when breaking a root cause into testable branches. Ask the user what sub-causes might explain the root hypothesis.
+- Never create sub-hypotheses more than 3 levels deep or more than 8 siblings per parent.
+- When factor and level are specified, VariScout auto-validates using ANOVA (Contribution % >=15% supported, <5% contradicted, 5-15% partial). Recommend linking hypotheses to factors whenever possible.
+- When a hypothesis cannot be tested with data (physical wear, alignment, contamination), set validation_type to "gemba" or "expert" and provide a clear validation_task.
+
+Finding guidance:
+- Use create_finding when the user identifies a notable pattern worth recording.
+- Also proactively suggest create_finding when you detect a significant pattern: Cpk below target, Contribution % > 15% for a factor, out-of-control violations.
+- Write finding text as a concise factual observation: "[Factor] shows [metric] = [value] ([context])".
+
+Action suggestion guidance (IMPROVE phase):
+- Use suggest_action when the user asks "what should we do?" or when you have a concrete improvement recommendation.
+- When Knowledge Base search returned relevant SOPs, cite them and set the source field.
+- Write action text as a clear, executable task: "[Verb] [what] [where/when] — [rationale or source]".
+- suggest_action only works on findings at 'analyzed' or 'improving' status.
+
+Sharing guidance (Team plan only):
+- Use share_finding at investigation milestones, not during active investigation.
+- Use publish_report when the analyst has completed a meaningful analysis cycle.
+- Use notify_action_owners when the analyst has finalized improvement actions (PDCA "Do" phase).
+- These tools send content externally. Always include clear preview.
+
+The entry scenario may have changed since the previous turn. Always reference the current scenario in your tool decisions.`;
+}
+
+/**
+ * Build entry-scenario-specific tool routing guidance.
+ */
+function buildEntryScenarioGuidance(scenario: EntryScenario): string {
+  switch (scenario) {
+    case 'problem':
+      return `Entry scenario: Problem to solve — The analyst has a specific problem (e.g., Cpk below target).
+- SCOUT: Proactively use compare_categories to scan all factors for the biggest contributor. Suggest apply_filter to drill into the top contributor. Propose create_finding for the key observation.
+- INVESTIGATE: Guide the analyst to create hypotheses linked to the top-contributing factors.`;
+
+    case 'hypothesis':
+      return `Entry scenario: Hypothesis to check — The analyst entered with an upfront hypothesis.
+- SCOUT: Immediately use compare_categories on the factor named in the hypothesis. Report Contribution % and per-category stats. If supported (>=15%), suggest apply_filter and create_finding.
+- INVESTIGATE: Propose create_hypothesis with the upfront hypothesis as the root node. Then suggest sub-hypotheses.`;
+
+    case 'routine':
+      return `Entry scenario: Routine check — No specific problem or hypothesis. Scanning for signals.
+- SCOUT: Use compare_categories conservatively. Only suggest apply_filter if a notable signal is found (Contribution % > 10%). Do NOT proactively suggest findings unless a clear anomaly is detected.
+- INVESTIGATE: Only reached if the analyst manually creates a finding. Follow their lead.`;
+  }
 }

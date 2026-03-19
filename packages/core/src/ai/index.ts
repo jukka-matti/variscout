@@ -20,7 +20,11 @@ export {
   type BuildAIContextOptions,
   type AIStatsInput,
 } from './buildAIContext';
-export type { ChartInsightData, BuildCoScoutSystemPromptOptions } from './promptTemplates';
+export type {
+  ChartInsightData,
+  BuildCoScoutSystemPromptOptions,
+  BuildCoScoutToolsOptions,
+} from './promptTemplates';
 export {
   buildNarrationSystemPrompt,
   buildSummaryPrompt,
@@ -35,6 +39,25 @@ export {
   buildReportPrompt,
   buildLocaleHint,
 } from './promptTemplates';
+
+// Action Tools (ADR-029)
+export type {
+  ActionToolName,
+  ReadToolName,
+  CoScoutToolName,
+  ProposalStatus,
+  ActionProposal,
+  ParsedActionMarker,
+  FilterPreview,
+} from './actionTools';
+export {
+  parseActionMarkers,
+  stripActionMarkers,
+  computeFilterPreview,
+  hashFilterStack,
+  generateProposalId,
+  isDuplicateProposal,
+} from './actionTools';
 
 export type {
   ResponsesApiConfig,

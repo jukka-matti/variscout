@@ -10,6 +10,20 @@ vi.mock('lucide-react', () => ({
   ChevronUp: (props: Record<string, unknown>) => <span data-testid="chevron-up-icon" {...props} />,
   Send: (props: Record<string, unknown>) => <span data-testid="send-icon" {...props} />,
   Square: (props: Record<string, unknown>) => <span data-testid="square-icon" {...props} />,
+  Search: (props: Record<string, unknown>) => <span data-testid="search-icon" {...props} />,
+  Loader2: (props: Record<string, unknown>) => <span data-testid="loader-icon" {...props} />,
+  FileText: (props: Record<string, unknown>) => <span data-testid="filetext-icon" {...props} />,
+  ExternalLink: (props: Record<string, unknown>) => (
+    <span data-testid="externallink-icon" {...props} />
+  ),
+  Filter: (props: Record<string, unknown>) => <span data-testid="filter-icon" {...props} />,
+  Check: (props: Record<string, unknown>) => <span data-testid="check-icon" {...props} />,
+  X: (props: Record<string, unknown>) => <span data-testid="x-icon" {...props} />,
+  GitBranch: (props: Record<string, unknown>) => <span data-testid="gitbranch-icon" {...props} />,
+  Zap: (props: Record<string, unknown>) => <span data-testid="zap-icon" {...props} />,
+  Share2: (props: Record<string, unknown>) => <span data-testid="share-icon" {...props} />,
+  FileUp: (props: Record<string, unknown>) => <span data-testid="fileup-icon" {...props} />,
+  Bell: (props: Record<string, unknown>) => <span data-testid="bell-icon" {...props} />,
 }));
 
 import { CoScoutInline } from '../CoScoutInline';

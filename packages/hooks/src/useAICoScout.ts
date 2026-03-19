@@ -12,6 +12,7 @@ import type {
   AIErrorType,
   ResponsesApiConfig,
   ToolHandlerMap,
+  BuildCoScoutToolsOptions,
 } from '@variscout/core';
 import {
   buildCoScoutInput,
@@ -27,8 +28,10 @@ export interface UseAICoScoutOptions {
   initialNarrative?: string | null;
   /** Responses API config — required for sending messages */
   responsesApiConfig?: ResponsesApiConfig;
-  /** Tool handlers for function calling (get_chart_data, get_statistical_summary, suggest_knowledge_search) */
+  /** Tool handlers for function calling */
   toolHandlers?: ToolHandlerMap;
+  /** Phase-gating options for tool availability (ADR-029) */
+  toolsOptions?: BuildCoScoutToolsOptions;
 }
 
 export interface UseAICoScoutReturn {
@@ -63,7 +66,7 @@ function classifyErrorToCoScoutError(err: unknown): CoScoutError {
 }
 
 export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
-  const { context, initialNarrative, responsesApiConfig, toolHandlers } = options;
+  const { context, initialNarrative, responsesApiConfig, toolHandlers, toolsOptions } = options;
 
   const [messages, setMessages] = useState<CoScoutMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -123,7 +126,7 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
           messagesRef.current,
           text.trim()
         );
-        const tools = buildCoScoutTools();
+        const tools = buildCoScoutTools(toolsOptions);
 
         const placeholderId = generateId();
         const placeholder: CoScoutMessage = {
@@ -192,7 +195,7 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
         }
       }
     },
-    [context, responsesApiConfig, toolHandlers]
+    [context, responsesApiConfig, toolHandlers, toolsOptions]
   );
 
   const stopStreaming = useCallback(() => {

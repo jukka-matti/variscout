@@ -308,6 +308,7 @@ export type {
   BuildAIContextOptions,
   AIStatsInput,
   BuildCoScoutSystemPromptOptions,
+  BuildCoScoutToolsOptions,
 } from './ai';
 export {
   buildAIContext,
@@ -324,6 +325,25 @@ export {
   djb2Hash,
   narrationResponseSchema,
   chartInsightResponseSchema,
+} from './ai';
+
+// AI (Action Tools — ADR-029)
+export type {
+  ActionToolName,
+  ReadToolName,
+  CoScoutToolName,
+  ProposalStatus,
+  ActionProposal,
+  ParsedActionMarker,
+  FilterPreview,
+} from './ai';
+export {
+  parseActionMarkers,
+  stripActionMarkers,
+  computeFilterPreview,
+  hashFilterStack,
+  generateProposalId,
+  isDuplicateProposal,
 } from './ai';
 
 // AI (Phase 2 — Chart Insights)

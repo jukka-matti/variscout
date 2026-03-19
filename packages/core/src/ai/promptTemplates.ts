@@ -30,4 +30,8 @@ export {
   buildReportPrompt,
 } from './prompts';
 
-export type { ChartInsightData, BuildCoScoutSystemPromptOptions } from './prompts';
+export type {
+  ChartInsightData,
+  BuildCoScoutSystemPromptOptions,
+  BuildCoScoutToolsOptions,
+} from './prompts';

@@ -511,6 +511,45 @@ describe('buildCoScoutSystemPrompt', () => {
     });
     expect(prompt).not.toContain('Team collaboration');
   });
+
+  // ADR-029: Tool routing tests
+  it('includes tool routing instructions when hasActionTools is true', () => {
+    const prompt = buildCoScoutSystemPrompt({ hasActionTools: true });
+    expect(prompt).toContain('Tool usage guidance');
+    expect(prompt).toContain('get_available_factors');
+    expect(prompt).toContain('[ACTION:tool_name:params_json]');
+  });
+
+  it('does not include tool routing when hasActionTools is false', () => {
+    const prompt = buildCoScoutSystemPrompt({});
+    expect(prompt).not.toContain('Tool usage guidance');
+  });
+
+  it('includes entry scenario guidance for problem scenario', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      hasActionTools: true,
+      entryScenario: 'problem',
+    });
+    expect(prompt).toContain('Problem to solve');
+    expect(prompt).toContain('compare_categories');
+  });
+
+  it('includes entry scenario guidance for hypothesis scenario', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      hasActionTools: true,
+      entryScenario: 'hypothesis',
+    });
+    expect(prompt).toContain('Hypothesis to check');
+  });
+
+  it('includes entry scenario guidance for routine scenario', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      hasActionTools: true,
+      entryScenario: 'routine',
+    });
+    expect(prompt).toContain('Routine check');
+    expect(prompt).toContain('conservatively');
+  });
 });
 
 describe('formatKnowledgeContext', () => {
@@ -1050,9 +1089,9 @@ describe('locale wiring in system prompts', () => {
 });
 
 describe('buildCoScoutTools', () => {
-  it('returns tool definitions with strict schemas', () => {
+  it('returns base read tool definitions with strict schemas (no phase)', () => {
     const tools = buildCoScoutTools();
-    expect(tools.length).toBe(3);
+    expect(tools.length).toBe(5); // 3 original + get_available_factors + compare_categories
     expect(tools.every(t => t.type === 'function')).toBe(true);
     expect(tools.every(t => t.parameters.strict === true)).toBe(true);
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
@@ -1077,6 +1116,63 @@ describe('buildCoScoutTools', () => {
     expect(kbTool).toBeDefined();
     expect(kbTool!.description).toContain('Knowledge Base');
     expect(kbTool!.parameters.required).toContain('query');
+  });
+
+  // ADR-029: Phase-gating tests
+  it('includes get_available_factors and compare_categories as read tools', () => {
+    const tools = buildCoScoutTools();
+    expect(tools.find(t => t.name === 'get_available_factors')).toBeDefined();
+    expect(tools.find(t => t.name === 'compare_categories')).toBeDefined();
+  });
+
+  it('adds filter and finding tools in SCOUT phase', () => {
+    const tools = buildCoScoutTools({ phase: 'scout' });
+    expect(tools.find(t => t.name === 'apply_filter')).toBeDefined();
+    expect(tools.find(t => t.name === 'clear_filters')).toBeDefined();
+    expect(tools.find(t => t.name === 'create_finding')).toBeDefined();
+    // Hypothesis tools should NOT be available in SCOUT
+    expect(tools.find(t => t.name === 'create_hypothesis')).toBeUndefined();
+  });
+
+  it('adds hypothesis and action tools in INVESTIGATE phase', () => {
+    const tools = buildCoScoutTools({ phase: 'investigate' });
+    expect(tools.find(t => t.name === 'create_hypothesis')).toBeDefined();
+    expect(tools.find(t => t.name === 'suggest_action')).toBeDefined();
+    // Sharing tools should NOT be available without Team plan
+    expect(tools.find(t => t.name === 'share_finding')).toBeUndefined();
+  });
+
+  it('adds sharing tools for Team plan in INVESTIGATE phase', () => {
+    const tools = buildCoScoutTools({ phase: 'investigate', isTeamPlan: true });
+    expect(tools.find(t => t.name === 'share_finding')).toBeDefined();
+    expect(tools.find(t => t.name === 'publish_report')).toBeDefined();
+    // notify_action_owners only in IMPROVE
+    expect(tools.find(t => t.name === 'notify_action_owners')).toBeUndefined();
+  });
+
+  it('adds notify_action_owners in IMPROVE phase for Team plan', () => {
+    const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
+    expect(tools.find(t => t.name === 'notify_action_owners')).toBeDefined();
+  });
+
+  it('has no action tools in FRAME phase', () => {
+    const tools = buildCoScoutTools({ phase: 'frame' });
+    expect(tools.find(t => t.name === 'apply_filter')).toBeUndefined();
+    expect(tools.find(t => t.name === 'create_finding')).toBeUndefined();
+    // Read tools should still be there
+    expect(tools.find(t => t.name === 'get_available_factors')).toBeDefined();
+    expect(tools.length).toBe(5);
+  });
+
+  it('all tools use strict mode and additionalProperties:false', () => {
+    const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
+    expect(tools.every(t => t.parameters.strict === true)).toBe(true);
+    expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
+  });
+
+  it('never exceeds 13 tools (IMPROVE + Team plan)', () => {
+    const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
+    expect(tools.length).toBeLessThanOrEqual(13);
   });
 });
 

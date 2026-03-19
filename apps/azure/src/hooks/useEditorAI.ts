@@ -19,10 +19,13 @@ import {
   type DrillStep,
 } from '@variscout/hooks';
 import type { ViewState } from '@variscout/hooks';
-import type { FilterAction, ToolHandlerMap } from '@variscout/core';
+import type { FilterAction, ToolHandlerMap, JourneyPhase, EntryScenario } from '@variscout/core';
 import {
   buildSuggestedQuestions,
   formatKnowledgeContext,
+  computeFilterPreview,
+  hashFilterStack,
+  generateProposalId,
   type StatsResult,
   type SpecLimits,
   type DataRow,
@@ -33,7 +36,11 @@ import {
   type InsightChartType,
   type StagedStatsResult,
   type Locale,
+  type ActionProposal,
 } from '@variscout/core';
+import { getEtaSquared, groupDataByFactor } from '@variscout/core';
+import { calculateStats } from '@variscout/core';
+import { isTeamPlan } from '@variscout/core';
 import { useAIDerivedState } from './useAIDerivedState';
 import type { ResponsesApiConfig } from '@variscout/core';
 import {
@@ -54,6 +61,8 @@ export interface UseEditorAIOptions {
   aiPreferences?: AIPreferences;
   stats?: StatsResult;
   filteredData: DataRow[];
+  /** Raw unfiltered data — used for action tool preview computation (ADR-029) */
+  rawData?: DataRow[];
   outcome?: string | null;
   specs?: SpecLimits;
   findings: Finding[];
@@ -72,6 +81,10 @@ export interface UseEditorAIOptions {
   locale?: Locale;
   /** Custom SharePoint folder path for Knowledge Base search (ADR-026) */
   knowledgeSearchFolder?: string;
+  /** Current journey phase for tool phase-gating (ADR-029) */
+  journeyPhase?: JourneyPhase;
+  /** Entry scenario for tool routing (ADR-029) */
+  entryScenario?: EntryScenario;
   onOpenCoScout: () => void;
   onOpenFindings: () => void;
 }
@@ -106,6 +119,7 @@ export function useEditorAI({
   aiPreferences,
   stats,
   filteredData,
+  rawData,
   outcome,
   specs,
   findings,
@@ -123,6 +137,8 @@ export function useEditorAI({
   persistedHypotheses,
   locale,
   knowledgeSearchFolder,
+  journeyPhase,
+  entryScenario,
   onOpenCoScout,
   onOpenFindings,
 }: UseEditorAIOptions): UseEditorAIReturn {
@@ -212,6 +228,7 @@ export function useEditorAI({
     teamContributors: aiTeamContributors,
     stagedComparison,
     locale,
+    entryScenario,
   });
 
   // AI narration (disabled when per-component toggle is off)
@@ -227,13 +244,14 @@ export function useEditorAI({
     folderScope: effectiveFolderScope,
   });
 
-  // Build tool handlers for CoScout function calling (ADR-028)
+  // Build tool handlers for CoScout function calling (ADR-028, ADR-029)
   const toolHandlers = useMemo((): ToolHandlerMap | undefined => {
     if (!aiAvailable || !prefs.coscout) return undefined;
-    return {
+
+    const handlers: ToolHandlerMap = {
+      // ── Read Tools (auto-execute) ──────────────────────────────────
       get_chart_data: async (args: Record<string, unknown>) => {
         const chart = args.chart as string;
-        // Return current analysis data summary for the requested chart
         if (!stats) return JSON.stringify({ error: 'No data loaded' });
         const data: Record<string, unknown> = { chart, samples: filteredData.length };
         if (chart === 'ichart') {
@@ -252,6 +270,7 @@ export function useEditorAI({
         }
         return JSON.stringify(data);
       },
+
       get_statistical_summary: async () => {
         if (!stats) return JSON.stringify({ error: 'No data loaded' });
         return JSON.stringify({
@@ -264,17 +283,312 @@ export function useEditorAI({
           lcl: stats.lcl,
         });
       },
+
       suggest_knowledge_search: async (args: Record<string, unknown>) => {
         const query = args.query as string;
         if (!query) return JSON.stringify({ error: 'No query provided' });
-        // Execute search — returns both findings and documents directly (avoids React state race)
-        const { findings, documents } = await knowledgeSearch.search(query);
-        // Format results for the LLM to cite
-        const formatted = formatKnowledgeContext(findings, documents);
+        const { findings: kbFindings, documents } = await knowledgeSearch.search(query);
+        const formatted = formatKnowledgeContext(kbFindings, documents);
         return formatted || JSON.stringify({ results: 0 });
       },
+
+      get_available_factors: async () => {
+        if (!filteredData.length) return JSON.stringify({ error: 'No data loaded' });
+        const result = factors.map(f => {
+          const uniqueVals = [...new Set(filteredData.map(row => String(row[f])))].sort();
+          const activeFilter = filters[f] ? filters[f].map(String) : undefined;
+          return { name: f, categories: uniqueVals, activeFilter };
+        });
+        return JSON.stringify({ factors: result });
+      },
+
+      compare_categories: async (args: Record<string, unknown>) => {
+        const factor = args.factor as string;
+        if (!factor || !factors.includes(factor)) {
+          return JSON.stringify({
+            error: `Unknown factor: ${factor}. Available: ${factors.join(', ')}`,
+          });
+        }
+        if (!outcome || !filteredData.length) {
+          return JSON.stringify({ error: 'No data loaded' });
+        }
+
+        // Group by factor and compute per-category stats
+        const groups = groupDataByFactor(filteredData, factor, outcome);
+        const categoryStats: Array<{
+          name: string;
+          mean: number;
+          stdDev: number;
+          count: number;
+          cpk?: number;
+        }> = [];
+
+        groups.forEach((values, name) => {
+          if (values.length === 0) return;
+          const catStats = calculateStats(values, specs?.usl, specs?.lsl);
+          categoryStats.push({
+            name,
+            mean: catStats.mean,
+            stdDev: catStats.stdDev,
+            count: values.length,
+            cpk: catStats.cpk ?? undefined,
+          });
+        });
+
+        // Compute eta-squared
+        const etaSquared = getEtaSquared(filteredData, factor, outcome);
+
+        return JSON.stringify({
+          factor,
+          etaSquared: Math.round(etaSquared * 1000) / 1000,
+          contributionPct: Math.round(etaSquared * 100),
+          categories: categoryStats,
+        });
+      },
+
+      // ── Action Tools (return proposals) ────────────────────────────
+      apply_filter: async (args: Record<string, unknown>) => {
+        const factor = args.factor as string;
+        const value = args.value as string;
+        if (!factor || !value) return JSON.stringify({ error: 'Missing factor or value' });
+        if (!outcome || !rawData?.length) return JSON.stringify({ error: 'No data loaded' });
+
+        const filterPreview = computeFilterPreview(
+          rawData,
+          outcome,
+          filterStack,
+          { factor, value },
+          specs
+        );
+        const proposal: ActionProposal = {
+          id: generateProposalId(),
+          tool: 'apply_filter',
+          params: { factor, value },
+          preview: { ...filterPreview },
+          status: 'pending',
+          filterStackHash: hashFilterStack(filterStack),
+          timestamp: Date.now(),
+        };
+        return JSON.stringify({ proposal: true, ...proposal });
+      },
+
+      clear_filters: async () => {
+        if (!outcome || !rawData?.length) return JSON.stringify({ error: 'No data loaded' });
+
+        const clearPreview = computeFilterPreview(rawData, outcome, [], null, specs);
+        const proposal: ActionProposal = {
+          id: generateProposalId(),
+          tool: 'clear_filters',
+          params: {},
+          preview: { ...clearPreview },
+          status: 'pending',
+          filterStackHash: hashFilterStack(filterStack),
+          timestamp: Date.now(),
+        };
+        return JSON.stringify({ proposal: true, ...proposal });
+      },
+
+      create_finding: async (args: Record<string, unknown>) => {
+        const text = args.text as string;
+        if (!text) return JSON.stringify({ error: 'Missing finding text' });
+
+        const proposal: ActionProposal = {
+          id: generateProposalId(),
+          tool: 'create_finding',
+          params: { text },
+          preview: {
+            contextSnapshot: {
+              filters: Object.keys(filters),
+              samples: filteredData.length,
+              mean: stats?.mean,
+              cpk: stats?.cpk,
+            },
+          },
+          status: 'pending',
+          filterStackHash: hashFilterStack(filterStack),
+          timestamp: Date.now(),
+          editableText: text,
+        };
+        return JSON.stringify({ proposal: true, ...proposal });
+      },
+
+      create_hypothesis: async (args: Record<string, unknown>) => {
+        const text = args.text as string;
+        const factor = (args.factor as string | null) ?? undefined;
+        const level = (args.level as string | null) ?? undefined;
+        const parentId = (args.parent_id as string | null) ?? undefined;
+        const validationType = (args.validation_type as string) || 'data';
+        const validationTask = (args.validation_task as string | null) ?? undefined;
+
+        if (!text) return JSON.stringify({ error: 'Missing hypothesis text' });
+
+        // Compute predicted validation status if factor is specified
+        let predictedStatus: string | undefined;
+        let etaSquared: number | undefined;
+        if (factor && outcome && filteredData.length > 0) {
+          etaSquared = getEtaSquared(filteredData, factor, outcome);
+          if (etaSquared >= 0.15) predictedStatus = 'supported';
+          else if (etaSquared < 0.05) predictedStatus = 'contradicted';
+          else predictedStatus = 'partial';
+        }
+
+        // Find parent hypothesis text
+        const parentHypo = parentId ? hypotheses.find(h => h.id === parentId) : undefined;
+
+        const proposal: ActionProposal = {
+          id: generateProposalId(),
+          tool: 'create_hypothesis',
+          params: {
+            text,
+            factor,
+            level,
+            parent_id: parentId,
+            validation_type: validationType,
+            validation_task: validationTask,
+          },
+          preview: {
+            predictedStatus,
+            etaSquared: etaSquared !== undefined ? Math.round(etaSquared * 1000) / 1000 : undefined,
+            parentText: parentHypo?.text,
+            depth: parentHypo ? 2 : 1,
+            validationType,
+            validationTask,
+          },
+          status: 'pending',
+          filterStackHash: hashFilterStack(filterStack),
+          timestamp: Date.now(),
+          editableText: text,
+        };
+        return JSON.stringify({ proposal: true, ...proposal });
+      },
+
+      suggest_action: async (args: Record<string, unknown>) => {
+        const findingId = args.finding_id as string;
+        const text = args.text as string;
+        const source = args.source as string;
+
+        if (!findingId || !text) return JSON.stringify({ error: 'Missing finding_id or text' });
+
+        const targetFinding = findings.find(f => f.id === findingId);
+        if (!targetFinding) return JSON.stringify({ error: `Finding not found: ${findingId}` });
+        if (targetFinding.status !== 'analyzed' && targetFinding.status !== 'improving') {
+          return JSON.stringify({
+            error: `Finding must be at 'analyzed' or 'improving' status, currently '${targetFinding.status}'`,
+          });
+        }
+
+        const proposal: ActionProposal = {
+          id: generateProposalId(),
+          tool: 'suggest_action',
+          params: { finding_id: findingId, text, source },
+          preview: {
+            findingText: targetFinding.text,
+            currentActionCount: targetFinding.actions?.length ?? 0,
+            source: source || undefined,
+          },
+          status: 'pending',
+          filterStackHash: hashFilterStack(filterStack),
+          timestamp: Date.now(),
+          editableText: text,
+        };
+        return JSON.stringify({ proposal: true, ...proposal });
+      },
     };
-  }, [aiAvailable, prefs.coscout, stats, filteredData, factors, filters, knowledgeSearch]);
+
+    // Team-only sharing tools
+    if (isTeamPlan()) {
+      handlers.share_finding = async (args: Record<string, unknown>) => {
+        const findingId = args.finding_id as string;
+        if (!findingId) return JSON.stringify({ error: 'Missing finding_id' });
+        const targetFinding = findings.find(f => f.id === findingId);
+        if (!targetFinding) return JSON.stringify({ error: `Finding not found: ${findingId}` });
+
+        const proposal: ActionProposal = {
+          id: generateProposalId(),
+          tool: 'share_finding',
+          params: { finding_id: findingId },
+          preview: {
+            findingText: targetFinding.text,
+            stats: { mean: stats?.mean, cpk: stats?.cpk, samples: filteredData.length },
+          },
+          status: 'pending',
+          filterStackHash: hashFilterStack(filterStack),
+          timestamp: Date.now(),
+        };
+        return JSON.stringify({ proposal: true, ...proposal });
+      };
+
+      handlers.publish_report = async () => {
+        const proposal: ActionProposal = {
+          id: generateProposalId(),
+          tool: 'publish_report',
+          params: {},
+          preview: {
+            findingCount: findings.length,
+          },
+          status: 'pending',
+          filterStackHash: hashFilterStack(filterStack),
+          timestamp: Date.now(),
+        };
+        return JSON.stringify({ proposal: true, ...proposal });
+      };
+
+      handlers.notify_action_owners = async (args: Record<string, unknown>) => {
+        const findingId = args.finding_id as string;
+        if (!findingId) return JSON.stringify({ error: 'Missing finding_id' });
+        const targetFinding = findings.find(f => f.id === findingId);
+        if (!targetFinding) return JSON.stringify({ error: `Finding not found: ${findingId}` });
+
+        const actions = targetFinding.actions ?? [];
+        const assignedActions = actions.filter(a => a.assignee);
+        const unassignedCount = actions.length - assignedActions.length;
+
+        const proposal: ActionProposal = {
+          id: generateProposalId(),
+          tool: 'notify_action_owners',
+          params: { finding_id: findingId },
+          preview: {
+            findingText: targetFinding.text,
+            actions: assignedActions.map(a => ({
+              text: a.text,
+              assigneeDisplayName: a.assignee?.displayName,
+              dueDate: a.dueDate,
+            })),
+            unassignedCount,
+          },
+          status: 'pending',
+          filterStackHash: hashFilterStack(filterStack),
+          timestamp: Date.now(),
+        };
+        return JSON.stringify({ proposal: true, ...proposal });
+      };
+    }
+
+    return handlers;
+  }, [
+    aiAvailable,
+    prefs.coscout,
+    stats,
+    filteredData,
+    rawData,
+    outcome,
+    factors,
+    filters,
+    filterStack,
+    specs,
+    findings,
+    hypotheses,
+    knowledgeSearch,
+  ]);
+
+  // Tool phase-gating options (ADR-029)
+  const toolsOptions = useMemo(
+    () => ({
+      phase: journeyPhase,
+      isTeamPlan: isTeamPlan(),
+    }),
+    [journeyPhase]
+  );
 
   // AI CoScout conversation (disabled when per-component toggle is off)
   const coscout = useAICoScout({
@@ -282,6 +596,7 @@ export function useEditorAI({
     initialNarrative: narration.narrative,
     responsesApiConfig: aiAvailable && prefs.coscout ? responsesConfig : undefined,
     toolHandlers,
+    toolsOptions,
   });
 
   const suggestedQuestions = useMemo(

@@ -178,6 +178,8 @@ export interface AIContext {
     actionsText: string;
     outcomeEffective: boolean | null;
   }>;
+  /** What prompted the analyst to start this analysis (for tool routing) */
+  entryScenario?: EntryScenario;
   /** Active locale for AI response language */
   locale?: Locale;
   /** Documents from Knowledge Base agentic retrieval (SharePoint, SOPs) */

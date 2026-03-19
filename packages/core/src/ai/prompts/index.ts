@@ -19,7 +19,7 @@ export type { ChartInsightData } from './chartInsights';
 export { buildChartInsightSystemPrompt, buildChartInsightPrompt } from './chartInsights';
 
 // CoScout conversational prompts
-export type { BuildCoScoutSystemPromptOptions } from './coScout';
+export type { BuildCoScoutSystemPromptOptions, BuildCoScoutToolsOptions } from './coScout';
 export {
   buildCoScoutSystemPrompt,
   buildCoScoutMessages,

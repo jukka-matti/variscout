@@ -24,7 +24,12 @@ import {
   getCoachingText,
   detectEntryScenario,
 } from '@variscout/hooks';
-import { hasTeamFeatures, computeIdeaImpact } from '@variscout/core';
+import {
+  hasTeamFeatures,
+  computeIdeaImpact,
+  parseActionMarkers as coreParseActionMarkers,
+  isDuplicateProposal as coreIsDuplicateProposal,
+} from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
@@ -507,6 +512,7 @@ export const Editor: React.FC<EditorProps> = ({
     enabled: aiEnabled,
     stats: stats ?? undefined,
     filteredData,
+    rawData,
     outcome,
     specs,
     findings: findingsState.findings,
@@ -524,6 +530,8 @@ export const Editor: React.FC<EditorProps> = ({
     persistedHypotheses,
     locale,
     knowledgeSearchFolder,
+    journeyPhase,
+    entryScenario,
     onOpenCoScout: () => panels.setIsCoScoutOpen(true),
     onOpenFindings: () => panels.setIsFindingsOpen(true),
   });
@@ -535,6 +543,129 @@ export const Editor: React.FC<EditorProps> = ({
       knowledgeSearch.search(lastUserMsg.content);
     }
   }, [coscout.messages, knowledgeSearch]);
+
+  // ADR-029: Action proposal state management
+  const [actionProposals, setActionProposals] = useState<
+    import('@variscout/core').ActionProposal[]
+  >([]);
+
+  // Parse action markers from new assistant messages and collect proposals
+  useEffect(() => {
+    const lastMsg = coscout.messages[coscout.messages.length - 1];
+    if (!lastMsg || lastMsg.role !== 'assistant' || !lastMsg.content) return;
+
+    const markers = coreParseActionMarkers(lastMsg.content);
+    if (markers.length === 0) return;
+
+    setActionProposals(prev => {
+      const newProposals = [...prev];
+      for (const marker of markers) {
+        if (!coreIsDuplicateProposal(newProposals, marker.tool, marker.params)) {
+          // Find the proposal from the tool handler response (embedded in marker params)
+          // The tool handler already created the proposal — look for it by matching tool+params
+          const existing = newProposals.find(
+            p =>
+              p.tool === marker.tool && JSON.stringify(p.params) === JSON.stringify(marker.params)
+          );
+          if (!existing) {
+            // Create a minimal proposal from the marker
+            newProposals.push({
+              id: `proposal-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+              tool: marker.tool,
+              params: marker.params,
+              preview: marker.params, // Fallback — ideally tool handler provides this
+              status: 'pending',
+              filterStackHash: '',
+              timestamp: Date.now(),
+              editableText: (marker.params.text as string) || undefined,
+            });
+          }
+        }
+      }
+      return newProposals;
+    });
+  }, [coscout.messages]);
+
+  const handleExecuteAction = useCallback(
+    (proposal: import('@variscout/core').ActionProposal, editedText?: string) => {
+      switch (proposal.tool) {
+        case 'apply_filter': {
+          const { factor, value } = proposal.params as { factor: string; value: string };
+          filterNav.applyFilter({
+            type: 'filter',
+            source: 'coscout',
+            factor,
+            values: [value],
+          });
+          break;
+        }
+        case 'clear_filters':
+          filterNav.clearFilters();
+          break;
+        case 'create_finding': {
+          const text = editedText || (proposal.params.text as string);
+          if (text) {
+            const findingContext = {
+              activeFilters: filters,
+              cumulativeScope: null,
+              stats: stats
+                ? {
+                    mean: stats.mean,
+                    median: stats.median,
+                    cpk: stats.cpk ?? undefined,
+                    samples: filteredData.length,
+                  }
+                : undefined,
+            };
+            findingsState.addFinding(text, findingContext);
+          }
+          break;
+        }
+        case 'create_hypothesis': {
+          const text = editedText || (proposal.params.text as string);
+          const factor = proposal.params.factor as string | undefined;
+          const level = proposal.params.level as string | undefined;
+          const parentId = proposal.params.parent_id as string | undefined;
+          const validationType = (proposal.params.validation_type as string) || 'data';
+          if (text) {
+            if (parentId) {
+              hypothesesState.addSubHypothesis(
+                parentId,
+                text,
+                factor,
+                level,
+                validationType as 'data' | 'gemba' | 'expert'
+              );
+            } else {
+              hypothesesState.addHypothesis(text, factor, level);
+            }
+          }
+          break;
+        }
+        case 'suggest_action': {
+          const findingId = proposal.params.finding_id as string;
+          const text = editedText || (proposal.params.text as string);
+          if (findingId && text) findingsState.addAction(findingId, text);
+          break;
+        }
+        // share_finding, publish_report, notify_action_owners are handled in Phase 4b (Teams integration)
+        default:
+          break;
+      }
+
+      // Mark proposal as applied
+      setActionProposals(prev =>
+        prev.map(p => (p.id === proposal.id ? { ...p, status: 'applied' as const } : p))
+      );
+    },
+    [filterNav, findingsState, hypothesesState, filters, stats, filteredData.length]
+  );
+
+  const handleDismissAction = useCallback((proposalId: string) => {
+    setActionProposals(prev =>
+      prev.map(p => (p.id === proposalId ? { ...p, status: 'dismissed' as const } : p))
+    );
+  }, []);
 
   // Pass categories and brief from ColumnMapping into DataContext
   const handleMappingConfirmWithCategories = useCallback(
@@ -1059,6 +1190,9 @@ export const Editor: React.FC<EditorProps> = ({
                   knowledgeSearching={knowledgeSearch.isSearching}
                   knowledgeDocuments={knowledgeSearch.documents}
                   onSearchKnowledge={handleSearchKnowledge}
+                  actionProposals={actionProposals}
+                  onExecuteAction={handleExecuteAction}
+                  onDismissAction={handleDismissAction}
                 />
               </div>
             ) : (
@@ -1081,6 +1215,9 @@ export const Editor: React.FC<EditorProps> = ({
                 knowledgeSearching={knowledgeSearch.isSearching}
                 knowledgeDocuments={knowledgeSearch.documents}
                 onSearchKnowledge={handleSearchKnowledge}
+                actionProposals={actionProposals}
+                onExecuteAction={handleExecuteAction}
+                onDismissAction={handleDismissAction}
               />
             )}
             {/* DataPanel: hidden on phone (use DataTableModal instead) */}

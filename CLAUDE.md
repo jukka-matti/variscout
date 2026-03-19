@@ -46,7 +46,7 @@ npx ruflo@latest security cve --check        # CVE check
 | docs/04-cases/          | 7 case studies with demo data                                         |
 | docs/05-technical/      | Architecture, implementation, integrations                            |
 | docs/06-design-system/  | Colors, typography, components, charts, patterns                      |
-| docs/07-decisions/      | ADR-001 through ADR-025                                               |
+| docs/07-decisions/      | ADR-001 through ADR-029                                               |
 | docs/08-products/       | Azure, PWA, website specs, feature-parity matrix                      |
 | docs/09-tutorials/      | Planned step-by-step guides                                           |
 | docs/superpowers/specs/ | Design specs from brainstorming sessions (see index.md)               |
@@ -65,6 +65,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Journey model / Phases     | docs/05-technical/architecture/mental-model-hierarchy.md, journey-phase-screen-mapping.md                        |
 | Investigation / Findings   | adr-015, adr-020, docs/03-features/workflows/investigation-to-action.md, hypothesis-investigation.md             |
 | AI integration             | adr-019, docs/05-technical/architecture/ai-journey-integration.md, ai-architecture.md, ai-context-engineering.md |
+| AI action tools            | adr-029, packages/core/src/ai/actionTools.ts, packages/ui/src/components/CoScoutPanel/ActionProposalCard.tsx     |
 | Deployment / CI            | docs/05-technical/implementation/deployment.md, .github/workflows/                                               |
 | Architecture / ADRs        | docs/07-decisions/, docs/05-technical/                                                                           |
 | Website                    | docs/08-products/website/, apps/website/                                                                         |
