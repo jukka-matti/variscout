@@ -24,19 +24,30 @@ CoScout is a conversational AI assistant embedded in VariScout, a quality engine
 
 ## 2. Safety Controls
 
+### Deployment Controls
+
+- `raiPolicyName: "Microsoft.DefaultV2"` — explicit content filter policy on both model deployments (filters hate, sexual, violence, self-harm, jailbreak, protected material)
+- TPM rate limits: 30 (fast/nano), 60 (reasoning/mini) — Azure-enforced
+- Model version pinning: `versionUpgradeOption: "OnceCurrentVersionExpired"`
+- Tenant isolation: customer's Azure subscription, no cross-tenant data access
+- API keys stored in Azure Key Vault with RBAC authorization; managed identity access
+
 ### Prompt-Level Controls
 
 - System prompts explicitly instruct: "Never invent data or statistics"
 - Confidence calibration based on sample size (n<10, n<30, n<100)
 - Domain-scoped terminology enforcement (TERMINOLOGY_INSTRUCTION)
 - Knowledge Base source attribution requirement
+- Strict tool schemas: `strict: true`, `additionalProperties: false` on all 14 CoScout tools
 
 ### Architectural Controls
 
-- No PII in prompts — data is anonymized factor names + numeric values
+- Stats-only payloads — `buildAIContext()` transforms raw data to summary statistics; raw measurements never enter AI context
 - No external API calls from AI responses
 - AI responses are read-only — no write access to user data
 - Session-only conversation history — no persistence across sessions
+- Proposal pattern — action tools return proposals requiring user confirmation (ADR-029)
+- Phase-gated tools — tool availability restricted by journey phase
 
 ### Content Policy Compliance
 
@@ -75,6 +86,40 @@ CoScout is a conversational AI assistant embedded in VariScout, a quality engine
 - **Rate limiting:** debounce (2s) + min interval (5s) for narration
 - **Abort control:** user can stop streaming at any time
 
-## 5. Recommendation
+## 6. PII Handling
+
+### What data enters AI
+
+| Data type            | Source                                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Computed statistics  | `buildAIContext()` — mean, stdDev, Cpk, ANOVA η², pass rate                                                  |
+| Factor names         | CSV column headers (e.g., "Machine", "Operator")                                                             |
+| Category values      | CSV data values (e.g., "Machine A", "Morning")                                                               |
+| Analyst-written text | Finding descriptions, hypothesis text, action items, process descriptions, problem statements, outcome notes |
+| CoScout conversation | Last 10 messages (user questions + AI responses)                                                             |
+| KB document snippets | Foundry IQ / Remote SharePoint retrieval (400 chars max per document)                                        |
+
+### Design decision
+
+Analyst-written text is sent to AI **without client-side PII scrubbing**.
+
+**Rationale:**
+
+- The analyst is an authenticated data owner in the customer's Azure AD tenant
+- Text is deliberately authored by the analyst, not passively collected
+- AI runs in the customer's own Azure subscription (tenant-isolated)
+- Azure OpenAI content filters apply server-side (DefaultV2 policy)
+- No data leaves the customer's Azure region
+
+### Upgrade path
+
+If enterprise customers require client-side PII detection, Azure AI Content Safety PII Detection API can be added as a pre-processing step to scan analyst-written text before it enters AI context.
+
+## 7. Recommendation
 
 _To be completed after red teaming results are available._
+
+## See Also
+
+- [Responsible AI Policy](../../05-technical/architecture/responsible-ai-policy.md) — Comprehensive RAI framework
+- [EU AI Act Mapping](../../05-technical/architecture/eu-ai-act-mapping.md) — Classification analysis

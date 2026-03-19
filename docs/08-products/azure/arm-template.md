@@ -202,6 +202,21 @@ Key configuration:
 
 These resources are provisioned only when `variscoutPlan` is set to `team-ai`. Standard and Team plans do not include AI resources.
 
+#### AI Deployment Guardrails
+
+Both model deployments include explicit content filter and version management policies:
+
+| Property               | Value                       | Purpose                                                                                                                                                   |
+| ---------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `raiPolicyName`        | `Microsoft.DefaultV2`       | Content filter policy (hate, sexual, violence, self-harm, jailbreak, protected material) — same as Azure default, but explicitly declared for audit trail |
+| `versionUpgradeOption` | `OnceCurrentVersionExpired` | Model version pinning — prevents unplanned capability changes                                                                                             |
+| TPM (fast/nano)        | 30                          | Rate limit for narration + chart insights                                                                                                                 |
+| TPM (reasoning/mini)   | 60                          | Rate limit for CoScout conversation                                                                                                                       |
+
+The `raiPolicyName` is declared in infrastructure-as-code so that content filter configuration is version-controlled and auditable. Azure OpenAI applies DefaultV2 by default; the explicit declaration ensures this is visible in ARM template reviews and compliance audits.
+
+See [Responsible AI Policy](../../05-technical/architecture/responsible-ai-policy.md) for the full guardrail framework.
+
 ### 5. Runtime Configuration
 
 The Node.js server (`server.js`) serves a `/config` endpoint that returns runtime settings from environment variables. This allows Marketplace deployments to configure AI endpoints without rebuilding.
@@ -415,4 +430,5 @@ The template requests only necessary permissions:
 - [Azure Marketplace Guide](marketplace.md)
 - [Pricing](pricing-tiers.md)
 - [Authentication](authentication.md)
+- [Admin Aino](../../02-journeys/personas/admin-aino.md) — IT Admin persona (deployment + troubleshooting)
 - [Azure ARM Template Reference](https://docs.microsoft.com/azure/azure-resource-manager/templates/)
