@@ -1,3 +1,7 @@
+---
+title: 'ADR-028: Responses API Migration'
+---
+
 # ADR-028: Responses API Migration
 
 **Status**: Accepted

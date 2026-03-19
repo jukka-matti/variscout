@@ -103,6 +103,7 @@ describe('getCurrentUser', () => {
       name: 'EasyAuth User',
       email: 'easy@contoso.com',
       userId: 'user-123',
+      roles: [],
     });
 
     const user = await getCurrentUser();
@@ -136,6 +137,7 @@ describe('getCurrentUser', () => {
       name: 'Fallback User',
       email: 'fallback@contoso.com',
       userId: 'u-1',
+      roles: [],
     });
 
     const user = await getCurrentUser();

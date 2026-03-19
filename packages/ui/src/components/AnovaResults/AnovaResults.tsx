@@ -111,7 +111,7 @@ const AnovaResults = ({
 
       {/* Group means and sample sizes */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mb-2">
-        {groups.map(group => (
+        {groups?.map(group => (
           <span key={group.name} className={colorScheme.contentText}>
             <span className={colorScheme.mutedText}>{group.name}:</span>{' '}
             <span className="font-mono">{formatStat(group.mean, 1)}</span>

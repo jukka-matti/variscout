@@ -621,10 +621,6 @@ export default defineConfig({
                       slug: '06-design-system/charts/performance-mode',
                     },
                     {
-                      label: 'Executive Mode',
-                      slug: '06-design-system/charts/executive-mode',
-                    },
-                    {
                       label: 'Colors',
                       slug: '06-design-system/charts/colors',
                     },

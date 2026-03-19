@@ -33,6 +33,7 @@ vi.mock('@variscout/hooks', async importOriginal => {
           'display.filterContext': 'Filter context',
           'display.showSpecs': 'Show specifications',
           'settings.language': 'Language',
+          'action.close': 'Close',
         };
         return map[key] ?? key;
       },
@@ -148,7 +149,7 @@ describe('SettingsPanel', () => {
     const onClose = vi.fn();
     renderPanel(true, onClose);
 
-    fireEvent.click(screen.getByLabelText('Close settings'));
+    fireEvent.click(screen.getByLabelText('Close'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });

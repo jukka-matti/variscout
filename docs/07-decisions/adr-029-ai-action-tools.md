@@ -1,3 +1,7 @@
+---
+title: 'ADR-029: AI Action Tools for CoScout'
+---
+
 # ADR-029: AI Action Tools for CoScout
 
 **Status**: Accepted

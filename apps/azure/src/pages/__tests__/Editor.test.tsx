@@ -262,8 +262,7 @@ describe('Editor', () => {
   it('shows Back button and project name in header', () => {
     renderEditor({ currentProjectName: 'My Analysis' });
 
-    expect(screen.getByLabelText('Back to dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Back')).toBeInTheDocument();
+    expect(screen.getByLabelText('Back to Dashboard')).toBeInTheDocument();
     expect(screen.getByText('My Analysis')).toBeInTheDocument();
   });
 
@@ -292,7 +291,7 @@ describe('Editor', () => {
       factors: ['Machine'],
     });
 
-    expect(screen.getByTitle('What-If Simulator')).toBeInTheDocument();
+    expect(screen.getByTitle('What If')).toBeInTheDocument();
   });
 
   it('shows Findings toggle when data and factors are loaded', () => {
@@ -303,7 +302,7 @@ describe('Editor', () => {
       factors: ['Machine'],
     });
 
-    expect(screen.getByTitle('Show Findings')).toBeInTheDocument();
+    expect(screen.getByTitle('Findings')).toBeInTheDocument();
   });
 
   it('does not show Findings toggle when factors are empty', () => {
@@ -314,7 +313,7 @@ describe('Editor', () => {
       factors: [],
     });
 
-    expect(screen.queryByTitle('Show Findings')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Findings')).not.toBeInTheDocument();
   });
 
   it('shows Data Panel toggle when data is loaded', () => {
@@ -325,7 +324,7 @@ describe('Editor', () => {
       factors: ['Machine'],
     });
 
-    expect(screen.getByTitle('Show Data Panel')).toBeInTheDocument();
+    expect(screen.getByTitle('Show data table')).toBeInTheDocument();
   });
 
   it('shows Save button', () => {
