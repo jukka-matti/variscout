@@ -7,18 +7,17 @@ import { StorageProvider, useStorage } from './services/storage';
 import { Dashboard as ProjectDashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
 
-import { AdminTeamsSetup } from './components/AdminTeamsSetup';
-import { AdminKnowledgeSetup } from './components/AdminKnowledgeSetup';
+import { AdminHub, type AdminTab } from './components/admin/AdminHub';
+import { useAdminAccess } from './hooks/useAdminAccess';
 import SettingsPanel from './components/settings/SettingsPanel';
 import { SyncToastContainer } from './components/SyncToast';
 import { ErrorBoundary, FindingsWindow } from '@variscout/ui';
-import { Activity, BookOpen, LogOut, Settings, Shield } from 'lucide-react';
-import { isTeamAIPlan } from '@variscout/core';
+import { Activity, LogOut, Settings, Shield } from 'lucide-react';
 import { useTeamsContext, notifyTeamsFailure } from './teams';
 import { TeamsTabConfig } from './teams/TeamsTabConfig';
 import { parseDeepLink, parseSubPageId, type DeepLinkParams } from './services/deepLinks';
 
-type View = 'dashboard' | 'editor' | 'admin-teams' | 'admin-knowledge';
+type View = 'dashboard' | 'editor' | 'admin';
 
 function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -58,6 +57,7 @@ function AppMain() {
   const [currentProject, setCurrentProject] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const teams = useTeamsContext();
+  const { isAdmin, gatingMode } = useAdminAccess(user);
 
   // Resolve deep link from URL params or Teams subPageId
   const deepLink = useMemo<DeepLinkParams>(() => {
@@ -202,32 +202,19 @@ function AppMain() {
                     <span className="text-sm text-content-secondary mr-2 hidden sm:inline">
                       {user.name}
                     </span>
-                    <button
-                      onClick={() => setCurrentView('admin-teams')}
-                      aria-label="Admin"
-                      title="Admin"
-                      className={`p-2 rounded-lg transition-colors ${
-                        currentView === 'admin-teams'
-                          ? 'text-blue-400 bg-blue-400/10'
-                          : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
-                      }`}
-                      style={{ minWidth: 40, minHeight: 40 }}
-                    >
-                      <Shield size={18} />
-                    </button>
-                    {isTeamAIPlan() && (
+                    {isAdmin && (
                       <button
-                        onClick={() => setCurrentView('admin-knowledge')}
-                        aria-label="Knowledge Base"
-                        title="Knowledge Base"
+                        onClick={() => setCurrentView('admin')}
+                        aria-label="Admin"
+                        title="Admin"
                         className={`p-2 rounded-lg transition-colors ${
-                          currentView === 'admin-knowledge'
-                            ? 'text-purple-400 bg-purple-400/10'
+                          currentView === 'admin'
+                            ? 'text-blue-400 bg-blue-400/10'
                             : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
                         }`}
                         style={{ minWidth: 40, minHeight: 40 }}
                       >
-                        <BookOpen size={18} />
+                        <Shield size={18} />
                       </button>
                     )}
                     <button
@@ -275,8 +262,16 @@ function AppMain() {
                       }
                     />
                   )}
-                  {currentView === 'admin-teams' && <AdminTeamsSetup />}
-                  {currentView === 'admin-knowledge' && <AdminKnowledgeSetup />}
+                  {currentView === 'admin' && (
+                    <AdminHub
+                      initialTab={
+                        (new URLSearchParams(window.location.search).get('admin') as AdminTab) ||
+                        undefined
+                      }
+                      onBack={navigateToDashboard}
+                      gatingMode={gatingMode}
+                    />
+                  )}
                 </main>
 
                 {/* Settings Panel */}

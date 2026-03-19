@@ -293,6 +293,73 @@ When AI features are enabled (`enableAI` parameter in ARM template), EasyAuth ad
 
 ---
 
+## Admin Role Gating (App Roles)
+
+The Admin Hub uses **soft gating** based on Entra ID App Roles. By default (no App Roles configured), all authenticated users can access the Admin Hub. When App Roles are configured, only users with the `VariScout.Admin` role see the Shield icon.
+
+### How It Works
+
+The `/.auth/me` response includes `roles` claims when App Roles are configured:
+
+```json
+[
+  {
+    "provider_name": "aad",
+    "user_id": "user@contoso.com",
+    "user_claims": [
+      { "typ": "name", "val": "Jane Smith" },
+      { "typ": "roles", "val": "VariScout.Admin" }
+    ]
+  }
+]
+```
+
+The app reads these claims via `EasyAuthUser.roles` and applies soft gating:
+
+| Condition                               | Result                                         |
+| --------------------------------------- | ---------------------------------------------- |
+| No `roles` claims at all                | Admin Hub visible to all (backward compatible) |
+| `roles` includes `VariScout.Admin`      | Admin Hub visible                              |
+| `roles` exists but no `VariScout.Admin` | Admin Hub hidden                               |
+
+### Setup (Optional)
+
+To restrict admin access to specific users:
+
+#### 1. Define the App Role
+
+In Azure Portal → Entra ID → App registrations → your VariScout app → **App roles** → Create app role:
+
+| Field                | Value                                                      |
+| -------------------- | ---------------------------------------------------------- |
+| Display name         | VariScout Admin                                            |
+| Allowed member types | Users/Groups                                               |
+| Value                | `VariScout.Admin`                                          |
+| Description          | Can access the Admin Hub for diagnostics and configuration |
+
+#### 2. Assign Users
+
+In Azure Portal → Entra ID → Enterprise applications → VariScout → **Users and groups**:
+
+- Add IT admins with role "VariScout Admin"
+- Regular analysts get the default assignment (no admin role)
+
+#### 3. Verify
+
+After sign-in, the `roles` claim appears in the `/.auth/me` response. The Admin Hub Status tab shows the current gating mode:
+
+- **"Admin access is currently open to all authenticated users"** — no App Roles configured
+- **"Admin access restricted to users with the VariScout.Admin role"** — App Roles active
+
+### Code Reference
+
+- Role extraction: `apps/azure/src/auth/easyAuth.ts` (`EasyAuthUser.roles`)
+- Gating logic: `apps/azure/src/hooks/useAdminAccess.ts`
+- Shield icon gating: `apps/azure/src/App.tsx`
+- Status display: `apps/azure/src/components/admin/AdminStatusTab.tsx`
+
+---
+
 ## See Also
 
 - [OneDrive Sync](onedrive-sync.md)

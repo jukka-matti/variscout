@@ -22,6 +22,7 @@ export interface EasyAuthUser {
   name: string;
   email: string;
   userId: string;
+  roles: string[];
 }
 
 interface EasyAuthClaim {
@@ -48,6 +49,7 @@ const LOCAL_USER: EasyAuthUser = {
   name: 'Local Developer',
   email: 'dev@localhost',
   userId: 'local-dev',
+  roles: ['VariScout.Admin'],
 };
 
 function findClaim(claims: EasyAuthClaim[], type: string): string | undefined {
@@ -68,6 +70,9 @@ export async function getEasyAuthUser(): Promise<EasyAuthUser | null> {
     const provider = data[0];
     const claims = provider.user_claims;
 
+    // Roles come as individual claims with typ="roles", one per role value
+    const roles = claims.filter(c => c.typ === 'roles').map(c => c.val);
+
     return {
       name:
         findClaim(claims, 'name') ||
@@ -78,6 +83,7 @@ export async function getEasyAuthUser(): Promise<EasyAuthUser | null> {
         findClaim(claims, 'preferred_username') ||
         '',
       userId: provider.user_id,
+      roles,
     };
   } catch (e) {
     if (import.meta.env.DEV) console.warn('[EasyAuth] Failed to fetch user:', e);

@@ -84,7 +84,7 @@ describe('easyAuth', () => {
   // -- getEasyAuthUser -------------------------------------------------------
 
   describe('getEasyAuthUser', () => {
-    it('returns mock user on localhost', async () => {
+    it('returns mock user on localhost with admin role', async () => {
       setLocalhostHostname();
 
       const user = await getEasyAuthUser();
@@ -93,6 +93,7 @@ describe('easyAuth', () => {
         name: 'Local Developer',
         email: 'dev@localhost',
         userId: 'local-dev',
+        roles: ['VariScout.Admin'],
       });
     });
 
@@ -113,7 +114,55 @@ describe('easyAuth', () => {
         name: 'Jane Doe',
         email: 'jane@example.com',
         userId: 'user-123',
+        roles: [],
       });
+    });
+
+    it('extracts roles from claims', async () => {
+      setProductionHostname();
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: () =>
+            Promise.resolve([
+              {
+                provider_name: 'aad',
+                user_id: 'user-123',
+                user_claims: [
+                  { typ: 'name', val: 'Jane Doe' },
+                  {
+                    typ: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
+                    val: 'jane@example.com',
+                  },
+                  { typ: 'roles', val: 'VariScout.Admin' },
+                  { typ: 'roles', val: 'Reader' },
+                ],
+                access_token: 'tok_abc123',
+                expires_on: '2026-03-01T00:00:00Z',
+              },
+            ]),
+        })
+      );
+
+      const user = await getEasyAuthUser();
+
+      expect(user?.roles).toEqual(['VariScout.Admin', 'Reader']);
+    });
+
+    it('returns empty roles when no roles claim exists', async () => {
+      setProductionHostname();
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve(buildAuthMePayload()),
+        })
+      );
+
+      const user = await getEasyAuthUser();
+
+      expect(user?.roles).toEqual([]);
     });
 
     it('returns null when /.auth/me returns empty array', async () => {
@@ -196,6 +245,7 @@ describe('easyAuth', () => {
         name: 'User',
         email: 'anon@corp.com',
         userId: 'u-456',
+        roles: [],
       });
     });
   });
