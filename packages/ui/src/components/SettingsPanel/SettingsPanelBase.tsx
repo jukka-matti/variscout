@@ -96,7 +96,7 @@ function SettingsPanelBase<
             <button
               onClick={onClose}
               className="p-1.5 rounded text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
-              aria-label="Close settings"
+              aria-label={t('action.close')}
             >
               <X size={18} />
             </button>
@@ -125,9 +125,7 @@ function SettingsPanelBase<
                   <span className="text-sm text-content group-hover:text-content transition-colors block">
                     {t('display.lockYAxis')}
                   </span>
-                  <span className="text-xs text-content-muted">
-                    Maintains scale for visual comparison
-                  </span>
+                  <span className="text-xs text-content-muted">{t('display.lockYAxisDesc')}</span>
                 </div>
               </label>
               <label
@@ -147,7 +145,7 @@ function SettingsPanelBase<
                     {t('display.filterContext')}
                   </span>
                   <span className="text-xs text-content-muted">
-                    Display active filter summary below chart headers
+                    {t('display.filterContextDesc')}
                   </span>
                 </div>
               </label>

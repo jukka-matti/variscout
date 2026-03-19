@@ -252,9 +252,9 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
             fontWeight={500}
             onClick={onYAxisClick}
             className={onYAxisClick ? interactionStyles.clickableSubtle : ''}
-            {...getInteractiveA11yProps('Edit axis label', onYAxisClick)}
+            {...getInteractiveA11yProps(t('chart.edit.axisLabel'), onYAxisClick)}
           >
-            {onYAxisClick && <title>Click to edit axis label</title>}
+            {onYAxisClick && <title>{t('chart.edit.axisLabel')}</title>}
             {yAxisLabel}
           </text>
 
@@ -331,9 +331,9 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
             fontWeight={500}
             onClick={onXAxisClick}
             className={onXAxisClick ? interactionStyles.clickableSubtle : ''}
-            {...getInteractiveA11yProps('Edit axis label', onXAxisClick)}
+            {...getInteractiveA11yProps(t('chart.edit.axisLabel'), onXAxisClick)}
           >
-            {onXAxisClick && <title>Click to edit axis label</title>}
+            {onXAxisClick && <title>{t('chart.edit.axisLabel')}</title>}
             {xAxisLabel}
           </text>
         </Group>

@@ -263,6 +263,7 @@ export const nl: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
   'table.page': 'Page {page} of {total}',
@@ -313,4 +314,279 @@ export const nl: MessageCatalog = {
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
+
+  // Chart limit labels (colon-suffixed for SVG rendering)
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': 'Gem.:',
+  'chart.label.tgt': 'Doel:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': 'Waarde:',
+  'chart.label.n': 'n:',
+  'chart.label.target': 'Doel:',
+
+  // Chart status & empty states
+  'chart.status.inControl': 'Onder controle',
+  'chart.status.outOfControl': 'Buiten controle (voorbij UCL/LCL)',
+  'chart.noDataProbPlot': 'Geen gegevens beschikbaar voor kansverdeling',
+
+  // Chart edit affordances
+  'chart.edit.spec': 'Klik om {spec} te bewerken',
+  'chart.edit.axisLabel': 'Klik om aslabel te bewerken',
+  'chart.edit.yAxis': 'Klik om Y-asschaal te bewerken',
+  'chart.edit.saveCancel': 'Enter om op te slaan · Esc om te annuleren',
+
+  // Performance table headers
+  'chart.table.channel': 'Kanaal',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'Grafiek naar klembord kopiëren',
+  'chart.maximize': 'Grafiek maximaliseren',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ hier inzoomen',
+  'chart.percent': 'Percentage',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Y-asschaal',
+  'validation.minLessThanMax': 'Min moet kleiner zijn dan Max',
+  'action.noChanges': 'Geen wijzigingen',
+
+  // Create factor modal
+  'factor.create': 'Factor aanmaken uit selectie',
+  'factor.name': 'Factornaam',
+  'factor.nameEmpty': 'Factornaam mag niet leeg zijn',
+  'factor.nameExists': 'Een factor met deze naam bestaat al',
+  'factor.example': 'bijv. Hoge temperatuur gebeurtenissen',
+  'factor.pointsMarked': '{count} punten worden gemarkeerd als:',
+  'factor.createAndFilter': 'Aanmaken en filteren',
+  'factor.filterExplanation':
+    'De weergave wordt automatisch gefilterd om alleen de geselecteerde punten te tonen.',
+
+  // Characteristic type selector
+  'charType.nominal': 'Nominaal',
+  'charType.nominalDesc': 'Doelgericht (bijv. vulgewicht)',
+  'charType.smaller': 'Kleiner is beter',
+  'charType.smallerDesc': 'Lager is beter (bijv. defecten)',
+  'charType.larger': 'Groter is beter',
+  'charType.largerDesc': 'Hoger is beter (bijv. opbrengst)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt':
+    'Uw onderzoek wordt gevolgd — open het Onderzoekspaneel om het volledige beeld te zien.',
+
+  // Mobile category sheet
+  'chart.highlight': 'Markeren:',
+  'chart.highlightRed': 'Rood',
+  'chart.highlightAmber': 'Amber',
+  'chart.highlightGreen': 'Groen',
+  'chart.clearHighlight': 'Markering wissen',
+  'chart.drillDown': 'Inzoomen op "{category}"',
+  'ai.askCoScout': 'Vraag CoScout hierover',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'Behoudt schaal voor visuele vergelijking',
+  'display.filterContextDesc': 'Toon actief filteroverzicht onder grafiekkoppen',
+
+  // Performance detected modal
+  'performance.detected': 'Performance-modus gedetecteerd',
+  'performance.columnsFound': '{count} meetkolommen gevonden',
+  'performance.labelQuestion': 'Wat vertegenwoordigen deze meetkanalen?',
+  'performance.labelExample': 'bijv. Vulkop, Holte, Mondstuk',
+  'performance.enable': 'Performance-modus inschakelen',
+
+  // Finding editor & data types
+  'finding.placeholder': 'Wat heeft u gevonden?',
+  'finding.note': 'Bevindingsnotitie',
+  'data.typeNumeric': 'Numeriek',
+  'data.typeCategorical': 'Categorisch',
+  'data.typeDate': 'Datum',
+  'data.typeText': 'Tekst',
+  'data.categories': 'categorieën',
+
+  // Coaching text (scenario × phase)
+  'coach.problem.frame': 'Stel uw gegevens in om het probleem te onderzoeken.',
+  'coach.problem.scout': 'Zoek naar variatiepatronen die het probleem kunnen verklaren.',
+  'coach.problem.investigate': 'Bouw bewijs op dat factoren aan het probleem koppelt.',
+  'coach.problem.improve': 'Plan en voer verbeteringen uit met de PDCA-cyclus.',
+  'coach.hypothesis.frame': 'Stel uw gegevens in om uw hypothese te testen.',
+  'coach.hypothesis.scout': 'Zoek naar bewijs dat uw hypothese ondersteunt of weerlegt.',
+  'coach.hypothesis.investigate':
+    'Verzamel statistisch bewijs om de vermoedelijke oorzaak te bevestigen.',
+  'coach.hypothesis.improve': 'Oorzaak bevestigd — plan corrigerende maatregelen via PDCA.',
+  'coach.routine.frame': 'Stel uw gegevens in voor een routinematige procescontrole.',
+  'coach.routine.scout': 'Scan op nieuwe signalen, drift of onverwachte patronen.',
+  'coach.routine.investigate': 'Er is een signaal gevonden — zoom in op mogelijke oorzaken.',
+  'coach.routine.improve': 'Oorzaak geïdentificeerd — plan corrigerende maatregelen via PDCA.',
+
+  // PWA HomeScreen
+  'home.heading': 'Verken variatieanalyse',
+  'home.description':
+    'Gratis trainingstool voor variatieanalyse. Visualiseer variabiliteit, bereken procesbekwaamheid en ontdek waar u moet focussen — direct in uw browser.',
+  'home.divider': 'of gebruik uw eigen gegevens',
+  'home.pasteHelper': 'Kopieer rijen en plak — we detecteren kolommen automatisch',
+  'home.manualEntry': 'Of voer gegevens handmatig in',
+  'home.upgradeHint': 'Teamfuncties, bestandsupload of opgeslagen projecten nodig?',
+
+  // PWA navigation
+  'nav.presentationMode': 'Presentatiemodus',
+  'nav.hideFindings': 'Bevindingen verbergen',
+
+  // Export
+  'export.asImage': 'Exporteren als afbeelding',
+  'export.asCsv': 'Exporteren als CSV',
+  'export.imageDesc': 'PNG-schermafbeelding voor presentaties',
+  'export.csvDesc': 'Spreadsheet-compatibel gegevensbestand',
+
+  // Sample section
+  'sample.heading': 'Probeer een voorbeelddataset',
+  'sample.allSamples': 'Alle voorbeelddatasets',
+  'sample.featured': 'Uitgelicht',
+  'sample.caseStudies': "Casestudy's",
+  'sample.journeys': 'Leertrajecten',
+  'sample.industry': 'Industrie-voorbeelden',
+
+  // View modes (additional)
+  'view.stats': 'Statistieken',
+
+  // Display (additional)
+  'display.appearance': 'Weergave',
+
+  // Azure toolbar
+  'data.manualEntry': 'Handmatige invoer',
+  'data.editTable': 'Gegevenstabel bewerken',
+  'toolbar.saveAs': 'Opslaan als…',
+  'toolbar.saving': 'Opslaan…',
+  'toolbar.saved': 'Opgeslagen',
+  'toolbar.saveFailed': 'Opslaan mislukt',
+  'toolbar.addMore': 'Gegevens toevoegen',
+  'report.scouting': 'Scoutingsrapport',
+  'export.csvFiltered': 'Gefilterde gegevens exporteren als CSV',
+  'error.auth': 'Authenticatiefout',
+
+  // File browse
+  'file.browseLocal': 'Dit apparaat doorzoeken',
+  'file.browseSharePoint': 'SharePoint doorzoeken',
+  'file.open': 'Bestand openen',
+
+  // Admin hub
+  'admin.title': 'Beheer',
+  'admin.status': 'Status',
+  'admin.plan': 'Plan en functies',
+  'admin.teams': 'Teams-configuratie',
+  'admin.knowledge': 'Knowledge Base',
+  'admin.troubleshooting': 'Probleemoplossing',
+
+  // Admin plan tab
+  'admin.currentPlan': 'Huidig',
+  'admin.feature': 'Functie',
+  'admin.manageSubscription': 'Abonnement beheren in Azure',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/mnd',
+  'admin.planTeamPrice': '€199/mnd',
+  'admin.planTeamAIPrice': '€279/mnd',
+  'admin.planStandardDesc': 'Volledige analyse, lokale bestandsopslag',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, mobiel',
+  'admin.planTeamAIDesc': 'AI Knowledge Base, verbeterde CoScout',
+
+  // Feature names (plan matrix)
+  'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
+  'feature.capability': 'Procesbekwaamheidsanalyse (Cp/Cpk)',
+  'feature.performance': 'Performance-modus (multi-kanaal)',
+  'feature.anova': 'ANOVA en factoranalyse',
+  'feature.findingsWorkflow': 'Bevindingen- en onderzoeksworkflow',
+  'feature.whatIf': 'What-If-simulatie',
+  'feature.csvImport': 'CSV/Excel-import',
+  'feature.reportExport': 'Rapportexport (PDF)',
+  'feature.indexedDb': 'Lokale opslag IndexedDB',
+  'feature.maxFactors': 'Tot 6 factoren',
+  'feature.maxRows': 'Tot 100K rijen',
+  'feature.onedriveSync': 'OneDrive-projectsynchronisatie',
+  'feature.sharepointPicker': 'SharePoint-bestandskiezer',
+  'feature.teamsIntegration': 'Microsoft Teams-integratie',
+  'feature.channelCollab': 'Kanaalgebaseerde samenwerking',
+  'feature.mobileUi': 'Mobiel geoptimaliseerde UI',
+  'feature.coScoutAi': 'CoScout AI-assistent',
+  'feature.narrativeBar': 'NarrativeBar-inzichten',
+  'feature.chartInsights': 'Grafiekinzichtchips',
+  'feature.knowledgeBase': 'Knowledge Base (SharePoint-zoeken)',
+  'feature.aiActions': 'Door AI voorgestelde acties',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'VariScout toevoegen aan Microsoft Teams',
+  'admin.teams.description':
+    'Genereer een Teams-app-pakket voor uw implementatie en upload het naar het Teams-beheercentrum.',
+  'admin.teams.running': 'Draait binnen Microsoft Teams',
+  'admin.teams.step1': 'App-registratie Client-ID (optioneel)',
+  'admin.teams.step1Desc':
+    'Voer uw Azure AD App-registratie Client-ID in om Teams SSO in het manifest in te schakelen.',
+  'admin.teams.step2': 'Download het Teams-app-pakket',
+  'admin.teams.step2Desc':
+    'Dit .zip-bestand bevat het manifest en pictogrammen die vooraf zijn geconfigureerd voor uw implementatie.',
+  'admin.teams.step3': 'Uploaden naar het Teams-beheercentrum',
+  'admin.teams.step4': 'VariScout toevoegen aan een kanaal',
+  'admin.teams.download': 'Teams-app-pakket downloaden',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} controles geslaagd',
+  'admin.runChecks': 'Alle controles uitvoeren',
+  'admin.notApplicable': 'Niet van toepassing op uw plan',
+  'admin.managePortal': 'Beheren in Azure Portal',
+  'admin.portalAccessNote':
+    'Deze items vereisen toegang tot Azure Portal en kunnen niet vanuit de browser worden gecontroleerd.',
+  'admin.fixInPortal': 'Oplossen in Azure Portal: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'Veelvoorkomende problemen en hoe ze op te lossen. Klik op een probleem voor stapsgewijze instructies.',
+  'admin.runCheck': 'Controle uitvoeren',
+  'admin.checkPassed': 'Controle geslaagd — dit is mogelijk niet het probleem.',
+  'admin.checkFailed': 'Controle mislukt — volg de onderstaande stappen.',
+  'admin.issue.signin': 'Gebruikers kunnen niet inloggen',
+  'admin.issue.signinDesc': 'Azure AD-authenticatie werkt niet of gebruikers zien een lege pagina.',
+  'admin.issue.signinSteps':
+    'Controleer of App Service-authenticatie is ingeschakeld in Azure Portal.\nControleer of de Azure AD-appregistratie de juiste omleidings-URI\'s heeft.\nZorg ervoor dat de appregistratie "ID-tokens" heeft ingeschakeld onder Authenticatie.\nControleer of de tenant gebruikersaanmelding bij de app toestaat (Bedrijfsapplicaties → Eigenschappen → Ingeschakeld voor gebruikersaanmelding).',
+  'admin.issue.onedrive': 'OneDrive-synchronisatie werkt niet',
+  'admin.issue.onedriveDesc':
+    'Projecten synchroniseren niet naar OneDrive of gebruikers zien machtigingsfouten.',
+  'admin.issue.onedriveSteps':
+    'Controleer of de appregistratie de gedelegeerde machtiging "Files.ReadWrite" heeft.\nControleer of beheerderstoestemming is verleend voor de Graph-machtigingen.\nZorg ervoor dat de gebruiker een OneDrive-licentie heeft toegewezen.\nProbeer uit te loggen en weer in te loggen om het token te vernieuwen.',
+  'admin.issue.coscout': 'CoScout reageert niet',
+  'admin.issue.coscoutDesc': 'De AI-assistent genereert geen antwoorden of toont fouten.',
+  'admin.issue.coscoutSteps':
+    'Controleer of het AI-eindpunt is geconfigureerd in de ARM-sjabloon / App Service-instellingen.\nControleer of de Azure AI Services-resource is geïmplementeerd en actief is.\nControleer of de modelimplementatie bestaat (bijv. gpt-4o) in de AI Services-resource.\nControleer de Azure AI Services-quota — de implementatie heeft mogelijk de snelheidslimieten bereikt.',
+  'admin.issue.kbEmpty': 'Knowledge Base geeft geen resultaten',
+  'admin.issue.kbEmptyDesc':
+    'CoScout\'s "Knowledge Base doorzoeken" vindt niets ondanks bestaande documenten.',
+  'admin.issue.kbEmptySteps':
+    'Controleer of het AI Search-eindpunt is geconfigureerd in de App Service-instellingen.\nControleer of de Remote SharePoint-kennisbron is aangemaakt in AI Search.\nZorg ervoor dat minimaal 1 Microsoft 365 Copilot-licentie actief is in de tenant.\nControleer of de gebruiker SharePoint-toegang heeft tot de gezochte documenten.\nControleer of de Knowledge Base-preview-schakelaar is ingeschakeld (Beheer → tabblad Knowledge Base).',
+  'admin.issue.teamsTab': 'Teams-tabblad wordt niet weergegeven',
+  'admin.issue.teamsTabDesc':
+    'VariScout verschijnt niet in Teams of het tabblad wordt niet geladen.',
+  'admin.issue.teamsTabSteps':
+    'Controleer of het Teams-app-pakket (.zip) is geüpload naar het Teams-beheercentrum.\nControleer of de contentUrl in manifest.json overeenkomt met uw App Service-URL.\nZorg ervoor dat de app is goedgekeurd in het Teams-beheercentrum (niet geblokkeerd door beleid).\nProbeer het tabblad te verwijderen en opnieuw toe te voegen in het kanaal.\nAls u een aangepast domein gebruikt, controleer of het in de validDomains-array van het manifest staat.',
+  'admin.issue.newUser': 'Nieuwe gebruiker heeft geen toegang tot de app',
+  'admin.issue.newUserDesc':
+    'Een nieuw toegevoegde gebruiker ziet een toegang geweigerd of lege pagina.',
+  'admin.issue.newUserSteps':
+    'Ga in Azure AD naar Bedrijfsapplicaties → VariScout → Gebruikers en groepen.\nVoeg de gebruiker of hun beveiligingsgroep toe aan de app.\nAls u "Gebruikerstoewijzing vereist" gebruikt, zorg ervoor dat de gebruiker een toewijzing heeft.\nControleer Voorwaardelijke toegang-beleid dat de gebruiker mogelijk blokkeert.',
+  'admin.issue.aiSlow': 'AI-antwoorden zijn traag',
+  'admin.issue.aiSlowDesc':
+    'CoScout doet er lang over om te reageren of heeft regelmatig een time-out.',
+  'admin.issue.aiSlowSteps':
+    'Controleer de Azure AI Services-implementatieregio — latentie neemt toe met afstand.\nControleer of de modelimplementatie voldoende TPM (tokens per minuut) quota heeft.\nOverweeg een upgrade naar een provisioned throughput-implementatie voor consistente latentie.\nControleer of de AI Search-index groot is — overweeg de kennisbron te optimaliseren.',
+  'admin.issue.forbidden': '"Forbidden"-fouten',
+  'admin.issue.forbiddenDesc': 'Gebruikers zien 403-fouten bij het openen van bepaalde functies.',
+  'admin.issue.forbiddenSteps':
+    'Controleer of alle vereiste Graph API-machtigingen beheerderstoestemming hebben.\nControleer of de App Service-authenticatie-tokenopslag is ingeschakeld.\nZorg ervoor dat het token van de gebruiker niet is verlopen — probeer uit te loggen en weer in te loggen.\nControleer Voorwaardelijke toegang-beleid voor de tenant.',
+  'admin.issue.kbPartial': 'KB werkt niet voor sommige gebruikers',
+  'admin.issue.kbPartialDesc':
+    'Knowledge Base-zoeken werkt voor beheerders maar niet voor andere gebruikers.',
+  'admin.issue.kbPartialSteps':
+    'Remote SharePoint-kennisbronnen gebruiken machtigingen per gebruiker. Elke gebruiker moet SharePoint-toegang tot de documenten hebben.\nControleer of de getroffen gebruikers worden geblokkeerd door Voorwaardelijke toegang-beleid.\nControleer of beheerderstoestemming is verleend voor de gedelegeerde machtiging Sites.Read.All.\nVraag de getroffen gebruikers om uit te loggen en weer in te loggen om hun token te vernieuwen.',
 };

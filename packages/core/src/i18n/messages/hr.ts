@@ -284,6 +284,7 @@ export const hr: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
 
   // Report
   'report.kpi.inSpec': 'In Spec',
@@ -348,5 +349,273 @@ export const hr: MessageCatalog = {
 
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
-  'findings.countLabel': '{count} findings',
+  'findings.countLabel': '{count} nalaza',
+  'chart.label.target': 'Cilj:',
+
+  // Chart limit labels
+  'chart.label.ucl': 'GKG:',
+  'chart.label.lcl': 'DKG:',
+  'chart.label.mean': 'Srednja:',
+  'chart.label.tgt': 'Cilj:',
+  'chart.label.usl': 'GGT:',
+  'chart.label.lsl': 'DGT:',
+  'chart.label.value': 'Vrijednost:',
+  'chart.label.n': 'n:',
+
+  // Chart status
+  'chart.status.inControl': 'Pod kontrolom',
+  'chart.status.outOfControl': 'Izvan kontrole (izvan GKG/DKG)',
+  'chart.noDataProbPlot': 'Nema dostupnih podataka za graf vjerojatnosti',
+
+  // Chart edit affordances
+  'chart.edit.spec': 'Kliknite za uređivanje {spec}',
+  'chart.edit.axisLabel': 'Kliknite za uređivanje oznake osi',
+  'chart.edit.yAxis': 'Kliknite za uređivanje skale Y-osi',
+  'chart.edit.saveCancel': 'Enter za spremanje · Esc za odustajanje',
+
+  // Performance table headers
+  'chart.table.channel': 'Kanal',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'Kopiraj grafikon u međuspremnik',
+  'chart.maximize': 'Maksimiziraj grafikon',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ detalji ovdje',
+  'chart.percent': 'Postotak',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Skala Y-osi',
+  'validation.minLessThanMax': 'Min mora biti manji od Maks',
+  'action.noChanges': 'Nema promjena',
+
+  // Create factor modal
+  'factor.create': 'Stvori faktor iz odabira',
+  'factor.name': 'Naziv faktora',
+  'factor.nameEmpty': 'Naziv faktora ne može biti prazan',
+  'factor.nameExists': 'Faktor s ovim nazivom već postoji',
+  'factor.example': 'npr. Događaji visoke temperature',
+  'factor.pointsMarked': '{count} točaka bit će označeno kao:',
+  'factor.createAndFilter': 'Stvori i filtriraj',
+  'factor.filterExplanation': 'Prikaz će se automatski filtrirati za prikaz samo odabranih točaka.',
+
+  // Characteristic type selector
+  'charType.nominal': 'Nominalno',
+  'charType.nominalDesc': 'Centrirano na cilj (npr. masa punjenja)',
+  'charType.smaller': 'Manje je bolje',
+  'charType.smallerDesc': 'Niže je bolje (npr. defekti)',
+  'charType.larger': 'Veće je bolje',
+  'charType.largerDesc': 'Više je bolje (npr. prinos)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt':
+    'Praćenje vaše istrage — otvorite panel Istrage za potpunu sliku.',
+
+  // Mobile category sheet
+  'chart.highlight': 'Označavanje:',
+  'chart.highlightRed': 'Crveno',
+  'chart.highlightAmber': 'Žuto',
+  'chart.highlightGreen': 'Zeleno',
+  'chart.clearHighlight': 'Ukloni označavanje',
+  'chart.drillDown': 'Detalji u „{category}"',
+  'ai.askCoScout': 'Pitajte CoScout o ovome',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'Održava skalu za vizualnu usporedbu',
+  'display.filterContextDesc': 'Prikaži sažetak aktivnog filtra ispod naslova grafikona',
+
+  // Performance detected modal
+  'performance.detected': 'Otkriven način rada performansi',
+  'performance.columnsFound': 'Pronađeno {count} mjernih stupaca',
+  'performance.labelQuestion': 'Što predstavljaju ovi mjerni kanali?',
+  'performance.labelExample': 'npr. Glava za punjenje, Šupljina, Mlaznica',
+  'performance.enable': 'Aktiviraj način rada performansi',
+
+  // Finding editor & data types
+  'finding.placeholder': 'Što ste otkrili?',
+  'finding.note': 'Bilješka nalaza',
+  'data.typeNumeric': 'Numerički',
+  'data.typeCategorical': 'Kategorijski',
+  'data.typeDate': 'Datum',
+  'data.typeText': 'Tekst',
+  'data.categories': 'kategorije',
+
+  // Coaching text
+  'coach.problem.frame': 'Postavite podatke za početak istrage problema.',
+  'coach.problem.scout': 'Potražite obrasce varijacije koji bi mogli objasniti problem.',
+  'coach.problem.investigate': 'Izgradite dokaze koji povezuju faktore s problemom.',
+  'coach.problem.improve': 'Planirajte i provedite poboljšanja koristeći PDCA ciklus.',
+  'coach.hypothesis.frame': 'Postavite podatke za testiranje vaše hipoteze.',
+  'coach.hypothesis.scout': 'Potražite dokaze koji podupiru ili opovrgavaju vašu hipotezu.',
+  'coach.hypothesis.investigate': 'Prikupite statističke dokaze za potvrdu sumnjivog uzroka.',
+  'coach.hypothesis.improve': 'Uzrok potvrđen — planirajte korektivne radnje putem PDCA.',
+  'coach.routine.frame': 'Postavite podatke za rutinsku provjeru procesa.',
+  'coach.routine.scout': 'Pretražite nove signale, pomak ili neočekivane obrasce.',
+  'coach.routine.investigate': 'Pronađen signal — istražite potencijalne uzroke.',
+  'coach.routine.improve': 'Uzrok identificiran — planirajte korektivne radnje putem PDCA.',
+
+  // PWA HomeScreen
+  'home.heading': 'Istražite analizu varijacije',
+  'home.description':
+    'Besplatan alat za obuku u analizi varijacije. Vizualizirajte varijabilnost, izračunajte sposobnost i pronađite na što se fokusirati — izravno u pregledniku.',
+  'home.divider': 'ili koristite vlastite podatke',
+  'home.pasteHelper': 'Kopirajte redove i zalijepite — automatski ćemo prepoznati stupce',
+  'home.manualEntry': 'Ili unesite podatke ručno',
+  'home.upgradeHint': 'Trebate timske značajke, učitavanje datoteka ili spremljene projekte?',
+
+  // PWA navigation
+  'nav.presentationMode': 'Način prezentacije',
+  'nav.hideFindings': 'Sakrij nalaze',
+
+  // Export
+  'export.asImage': 'Izvezi kao sliku',
+  'export.asCsv': 'Izvezi kao CSV',
+  'export.imageDesc': 'PNG snimka zaslona za prezentacije',
+  'export.csvDesc': 'Datoteka podataka kompatibilna s proračunskim tablicama',
+
+  // Sample section
+  'sample.heading': 'Isprobajte primjer skupa podataka',
+  'sample.allSamples': 'Svi primjeri skupova podataka',
+  'sample.featured': 'Istaknuto',
+  'sample.caseStudies': 'Studije slučaja',
+  'sample.journeys': 'Putovanja učenja',
+  'sample.industry': 'Industrijski primjeri',
+
+  // View modes
+  'view.stats': 'Statistika',
+  'display.appearance': 'Izgled',
+
+  // Azure toolbar
+  'data.manualEntry': 'Ručni unos',
+  'data.editTable': 'Uredi tablicu podataka',
+  'toolbar.saveAs': 'Spremi kao…',
+  'toolbar.saving': 'Spremanje…',
+  'toolbar.saved': 'Spremljeno',
+  'toolbar.saveFailed': 'Spremanje neuspješno',
+  'toolbar.addMore': 'Dodaj podatke',
+  'report.scouting': 'Izvješće izviđanja',
+  'export.csvFiltered': 'Izvezi filtrirane podatke kao CSV',
+  'error.auth': 'Greška autentikacije',
+
+  // File browse
+  'file.browseLocal': 'Pregledaj ovaj uređaj',
+  'file.browseSharePoint': 'Pregledaj SharePoint',
+  'file.open': 'Otvori datoteku',
+
+  // Admin hub
+  'admin.title': 'Administracija',
+  'admin.status': 'Status',
+  'admin.plan': 'Plan i značajke',
+  'admin.teams': 'Postavljanje Teams',
+  'admin.knowledge': 'Baza znanja',
+  'admin.troubleshooting': 'Rješavanje problema',
+
+  // Admin plan tab
+  'admin.currentPlan': 'Trenutni',
+  'admin.feature': 'Značajka',
+  'admin.manageSubscription': 'Upravljanje pretplatom u Azure',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/mj.',
+  'admin.planTeamPrice': '€199/mj.',
+  'admin.planTeamAIPrice': '€279/mj.',
+  'admin.planStandardDesc': 'Potpuna analiza, lokalno pohranjivanje datoteka',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, mobilno',
+  'admin.planTeamAIDesc': 'AI baza znanja, poboljšani CoScout',
+
+  // Feature names
+  'feature.charts': 'I-Chart, Boxplot, Pareto, Statistika',
+  'feature.capability': 'Analiza sposobnosti (Cp/Cpk)',
+  'feature.performance': 'Način rada performansi (višekanalni)',
+  'feature.anova': 'ANOVA i faktorska analiza',
+  'feature.findingsWorkflow': 'Nalazi i tijek rada istrage',
+  'feature.whatIf': 'Simulacija što-ako',
+  'feature.csvImport': 'Uvoz CSV/Excel',
+  'feature.reportExport': 'Izvoz izvješća (PDF)',
+  'feature.indexedDb': 'Lokalno pohranjivanje IndexedDB',
+  'feature.maxFactors': 'Do 6 faktora',
+  'feature.maxRows': 'Do 100K redova',
+  'feature.onedriveSync': 'Sinkronizacija projekata s OneDrive',
+  'feature.sharepointPicker': 'Birač datoteka iz SharePoint',
+  'feature.teamsIntegration': 'Integracija s Microsoft Teams',
+  'feature.channelCollab': 'Suradnja temeljena na kanalima',
+  'feature.mobileUi': 'UI optimiziran za mobilne uređaje',
+  'feature.coScoutAi': 'CoScout AI pomoćnik',
+  'feature.narrativeBar': 'Uvidi NarrativeBar',
+  'feature.chartInsights': 'Čipovi uvida grafikona',
+  'feature.knowledgeBase': 'Baza znanja (pretraga SharePoint)',
+  'feature.aiActions': 'AI-predložene radnje',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'Dodajte VariScout u Microsoft Teams',
+  'admin.teams.description':
+    'Generirajte paket Teams aplikacije za vašu implementaciju i učitajte ga u centar za administraciju Teams.',
+  'admin.teams.running': 'Pokrenut unutar Microsoft Teams',
+  'admin.teams.step1': 'ID klijenta registracije aplikacije (Opcionalno)',
+  'admin.teams.step1Desc':
+    'Unesite ID klijenta registracije Azure AD aplikacije za omogućavanje Teams SSO u manifestu.',
+  'admin.teams.step2': 'Preuzimanje paketa Teams aplikacije',
+  'admin.teams.step2Desc':
+    'Ovaj .zip sadrži manifest i ikone unaprijed konfigurirane za vašu implementaciju.',
+  'admin.teams.step3': 'Učitaj u centar za administraciju Teams',
+  'admin.teams.step4': 'Dodaj VariScout u kanal',
+  'admin.teams.download': 'Preuzmi paket Teams aplikacije',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} provjera uspješno',
+  'admin.runChecks': 'Pokreni sve provjere',
+  'admin.notApplicable': 'Nije primjenjivo za vaš plan',
+  'admin.managePortal': 'Upravljaj u Azure Portal',
+  'admin.portalAccessNote':
+    'Ove stavke zahtijevaju pristup Azure Portalu i ne mogu se provjeriti iz preglednika.',
+  'admin.fixInPortal': 'Popravi u Azure Portal: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'Česti problemi i kako ih riješiti. Kliknite na problem za upute korak po korak.',
+  'admin.runCheck': 'Pokreni provjeru',
+  'admin.checkPassed': 'Provjera uspješna — ovo možda nije problem.',
+  'admin.checkFailed': 'Provjera neuspješna — slijedite korake u nastavku.',
+  'admin.issue.signin': 'Korisnici se ne mogu prijaviti',
+  'admin.issue.signinDesc': 'Azure AD autentikacija ne radi ili korisnici vide praznu stranicu.',
+  'admin.issue.signinSteps':
+    'Provjerite je li autentikacija App Service omogućena u Azure Portal.\nProvjerite ima li registracija Azure AD aplikacije ispravne URI-je za preusmjeravanje.\nOsigurajte da registracija aplikacije ima omogućene "ID tokene" pod Autentikacija.\nProvjerite dopušta li zakupac prijavu korisnika u aplikaciju (Poslovne aplikacije → Svojstva → Omogućeno za prijavu korisnika).',
+  'admin.issue.onedrive': 'OneDrive sinkronizacija ne radi',
+  'admin.issue.onedriveDesc':
+    'Projekti se ne sinkroniziraju s OneDrive ili korisnici vide greške dozvola.',
+  'admin.issue.onedriveSteps':
+    'Provjerite ima li registracija aplikacije delegiranu dozvolu „Files.ReadWrite".\nProvjerite je li dano odobrenje administratora za Graph dozvole.\nOsigurajte da korisnik ima dodijeljenu OneDrive licencu.\nPokušajte se odjaviti i ponovno prijaviti za osvježavanje tokena.',
+  'admin.issue.coscout': 'CoScout ne reagira',
+  'admin.issue.coscoutDesc': 'AI pomoćnik ne generira odgovore ili prikazuje greške.',
+  'admin.issue.coscoutSteps':
+    'Provjerite je li AI krajnja točka konfigurirana u ARM predlošku / postavkama App Service.\nProvjerite je li resurs Azure AI Services implementiran i pokrenut.\nProvjerite postoji li implementacija modela (npr. gpt-4o) u resursu AI Services.\nProvjerite kvote Azure AI Services — implementacija je možda dosegla ograničenja brzine.',
+  'admin.issue.kbEmpty': 'Baza znanja ne vraća rezultate',
+  'admin.issue.kbEmptyDesc':
+    'CoScoutovo „Pretraži bazu znanja" ne pronalazi ništa unatoč postojanju dokumenata.',
+  'admin.issue.kbEmptySteps':
+    'Provjerite je li krajnja točka AI Search konfigurirana u postavkama App Service.\nProvjerite je li udaljeni SharePoint izvor znanja stvoren u AI Search.\nOsigurajte da je ≥1 licenca Microsoft 365 Copilot aktivna u zakupcu.\nProvjerite ima li korisnik pristup SharePoint dokumentima koji se pretražuju.\nProvjerite je li preklopnik pregleda baze znanja omogućen (Administracija → kartica Baza znanja).',
+  'admin.issue.teamsTab': 'Teams kartica se ne prikazuje',
+  'admin.issue.teamsTabDesc': 'VariScout se ne pojavljuje u Teams ili se kartica ne učitava.',
+  'admin.issue.teamsTabSteps':
+    'Provjerite je li paket Teams aplikacije (.zip) učitan u centar za administraciju Teams.\nProvjerite odgovara li contentUrl u manifest.json URL-u vašeg App Service.\nOsigurajte da je aplikacija odobrena u centru za administraciju Teams (nije blokirana politikom).\nPokušajte ukloniti i ponovno dodati karticu u kanalu.\nAko koristite prilagođenu domenu, provjerite je li u nizu validDomains manifesta.',
+  'admin.issue.newUser': 'Novi korisnik ne može pristupiti aplikaciji',
+  'admin.issue.newUserDesc': 'Novododani korisnik vidi odbijen pristup ili praznu stranicu.',
+  'admin.issue.newUserSteps':
+    'U Azure AD idite na Poslovne aplikacije → VariScout → Korisnici i grupe.\nDodajte korisnika ili njihovu sigurnosnu grupu u aplikaciju.\nAko se koristi „Potrebna dodjela korisnika", osigurajte da korisnik ima dodjelu.\nProvjerite politike uvjetnog pristupa koje bi mogle blokirati korisnika.',
+  'admin.issue.aiSlow': 'AI odgovori su spori',
+  'admin.issue.aiSlowDesc': 'CoScout dugo odgovara ili često istječe.',
+  'admin.issue.aiSlowSteps':
+    'Provjerite regiju implementacije Azure AI Services — latencija raste s udaljenošću.\nProvjerite ima li implementacija modela dovoljnu TPM (tokeni po minuti) kvotu.\nRazmislite o nadogradnji na implementaciju s osiguranom propusnošću za dosljednu latenciju.\nProvjerite je li indeks AI Search velik — razmislite o optimizaciji izvora znanja.',
+  'admin.issue.forbidden': 'Greške „Forbidden"',
+  'admin.issue.forbiddenDesc': 'Korisnici vide greške 403 pri pristupu određenim značajkama.',
+  'admin.issue.forbiddenSteps':
+    'Provjerite imaju li sve potrebne Graph API dozvole odobrenje administratora.\nProvjerite je li spremište tokena autentikacije App Service omogućeno.\nOsigurajte da token korisnika nije istekao — pokušajte se odjaviti i ponovno prijaviti.\nProvjerite politike uvjetnog pristupa zakupca.',
+  'admin.issue.kbPartial': 'KB ne radi za neke korisnike',
+  'admin.issue.kbPartialDesc':
+    'Pretraga baze znanja radi za administratore, ali ne i za ostale korisnike.',
+  'admin.issue.kbPartialSteps':
+    'Udaljeni SharePoint izvori znanja koriste dozvole po korisniku. Svaki korisnik mora imati SharePoint pristup dokumentima.\nProvjerite jesu li pogođeni korisnici blokirani politikama uvjetnog pristupa.\nProvjerite je li dano odobrenje administratora za delegiranu dozvolu Sites.Read.All.\nZamolite pogođene korisnike da se odjave i ponovno prijave za osvježavanje tokena.',
 };

@@ -9,6 +9,7 @@ import {
   Table,
   Target,
 } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   onOpenDataTable,
   onOpenSpecEditor,
 }) => {
+  const { t } = useTranslation();
   const menuRef = useRef<React.ElementRef<'div'>>(null);
 
   // Close on outside click
@@ -115,7 +117,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
-          <span className="text-sm font-semibold text-white">Menu</span>
+          <span className="text-sm font-semibold text-white">{t('nav.menu')}</span>
           <button
             onClick={onClose}
             className="p-1 text-content-secondary hover:text-white rounded touch-feedback"
@@ -126,22 +128,30 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
         <div className="py-2">
           {/* Export Section */}
-          <SectionHeader title="Export" />
+          <SectionHeader title={t('nav.export')} />
           <MenuItem
             icon={<FileSpreadsheet size={18} />}
-            label="Export as CSV"
+            label={t('export.asCsv')}
             onClick={onExportCSV}
           />
-          <MenuItem icon={<Image size={18} />} label="Export as Image" onClick={onExportImage} />
+          <MenuItem
+            icon={<Image size={18} />}
+            label={t('export.asImage')}
+            onClick={onExportImage}
+          />
 
           <div className="h-px bg-surface-tertiary my-2" />
 
           {/* View Section */}
           <SectionHeader title="View" />
-          <MenuItem icon={<Table size={18} />} label="Data Table" onClick={onOpenDataTable} />
+          <MenuItem
+            icon={<Table size={18} />}
+            label={t('panel.dataTable')}
+            onClick={onOpenDataTable}
+          />
           <MenuItem
             icon={<Presentation size={18} />}
-            label="Presentation Mode"
+            label={t('nav.presentationMode')}
             onClick={onEnterPresentationMode}
           />
 
@@ -152,16 +162,20 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           {onOpenSpecEditor && (
             <MenuItem
               icon={<Target size={18} />}
-              label="Edit Specification Limits"
+              label={t('stats.editSpecs')}
               onClick={onOpenSpecEditor}
             />
           )}
-          <MenuItem icon={<Plus size={18} />} label="New Analysis" onClick={onReset} />
+          <MenuItem icon={<Plus size={18} />} label={t('nav.newAnalysis')} onClick={onReset} />
 
           <div className="h-px bg-surface-tertiary my-2" />
 
           {/* Settings */}
-          <MenuItem icon={<Settings size={18} />} label="Settings" onClick={onOpenSettings} />
+          <MenuItem
+            icon={<Settings size={18} />}
+            label={t('nav.settings')}
+            onClick={onOpenSettings}
+          />
         </div>
       </div>
     </>

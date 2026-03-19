@@ -284,6 +284,7 @@ export const sk: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
 
   // Report
   'report.kpi.inSpec': 'In Spec',
@@ -348,5 +349,276 @@ export const sk: MessageCatalog = {
 
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
-  'findings.countLabel': '{count} findings',
+  'findings.countLabel': '{count} zistení',
+  'chart.label.target': 'Cieľ:',
+
+  // Chart limit labels
+  'chart.label.ucl': 'HRH:',
+  'chart.label.lcl': 'DRH:',
+  'chart.label.mean': 'Priemer:',
+  'chart.label.tgt': 'Cieľ:',
+  'chart.label.usl': 'HMT:',
+  'chart.label.lsl': 'DMT:',
+  'chart.label.value': 'Hodnota:',
+  'chart.label.n': 'n:',
+
+  // Chart status
+  'chart.status.inControl': 'Pod kontrolou',
+  'chart.status.outOfControl': 'Mimo kontroly (za HRH/DRH)',
+  'chart.noDataProbPlot': 'Žiadne údaje pre graf pravdepodobnosti',
+
+  // Chart edit affordances
+  'chart.edit.spec': 'Kliknite pre úpravu {spec}',
+  'chart.edit.axisLabel': 'Kliknite pre úpravu označenia osi',
+  'chart.edit.yAxis': 'Kliknite pre úpravu mierky osi Y',
+  'chart.edit.saveCancel': 'Enter pre uloženie · Esc pre zrušenie',
+
+  // Performance table headers
+  'chart.table.channel': 'Kanál',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'Kopírovať graf do schránky',
+  'chart.maximize': 'Maximalizovať graf',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ podrobnosti tu',
+  'chart.percent': 'Percento',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Mierka osi Y',
+  'validation.minLessThanMax': 'Min musí byť menšie ako Max',
+  'action.noChanges': 'Žiadne zmeny',
+
+  // Create factor modal
+  'factor.create': 'Vytvoriť faktor z výberu',
+  'factor.name': 'Názov faktora',
+  'factor.nameEmpty': 'Názov faktora nesmie byť prázdny',
+  'factor.nameExists': 'Faktor s týmto názvom už existuje',
+  'factor.example': 'napr. Udalosti vysokej teploty',
+  'factor.pointsMarked': '{count} bodov bude označených ako:',
+  'factor.createAndFilter': 'Vytvoriť a filtrovať',
+  'factor.filterExplanation':
+    'Zobrazenie sa automaticky vyfiltruje na zobrazenie iba vybraných bodov.',
+
+  // Characteristic type selector
+  'charType.nominal': 'Nominálny',
+  'charType.nominalDesc': 'Centrovaný na cieľ (napr. hmotnosť plnenia)',
+  'charType.smaller': 'Menšie je lepšie',
+  'charType.smallerDesc': 'Nižšie je lepšie (napr. chyby)',
+  'charType.larger': 'Väčšie je lepšie',
+  'charType.largerDesc': 'Vyššie je lepšie (napr. výťažnosť)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt':
+    'Sledovanie vášho vyšetrovania — otvorte panel Vyšetrovania pre úplný obraz.',
+
+  // Mobile category sheet
+  'chart.highlight': 'Zvýraznenie:',
+  'chart.highlightRed': 'Červená',
+  'chart.highlightAmber': 'Jantárová',
+  'chart.highlightGreen': 'Zelená',
+  'chart.clearHighlight': 'Zrušiť zvýraznenie',
+  'chart.drillDown': 'Podrobnosti v „{category}"',
+  'ai.askCoScout': 'Opýtajte sa CoScout na toto',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'Zachováva mierku pre vizuálne porovnanie',
+  'display.filterContextDesc': 'Zobraziť súhrn aktívneho filtra pod názvami grafov',
+
+  // Performance detected modal
+  'performance.detected': 'Zistený režim výkonu',
+  'performance.columnsFound': 'Nájdených {count} meracích stĺpcov',
+  'performance.labelQuestion': 'Čo reprezentujú tieto meracie kanály?',
+  'performance.labelExample': 'napr. Plniaca hlava, Dutina, Tryska',
+  'performance.enable': 'Aktivovať režim výkonu',
+
+  // Finding editor & data types
+  'finding.placeholder': 'Čo ste zistili?',
+  'finding.note': 'Poznámka k zisteniu',
+  'data.typeNumeric': 'Číselné',
+  'data.typeCategorical': 'Kategoriálne',
+  'data.typeDate': 'Dátum',
+  'data.typeText': 'Text',
+  'data.categories': 'kategórie',
+
+  // Coaching text
+  'coach.problem.frame': 'Nastavte údaje na začatie vyšetrovania problému.',
+  'coach.problem.scout': 'Hľadajte vzory variácie, ktoré by mohli vysvetliť problém.',
+  'coach.problem.investigate': 'Vybudujte dôkazy spájajúce faktory s problémom.',
+  'coach.problem.improve': 'Naplánujte a vykonajte zlepšenia pomocou cyklu PDCA.',
+  'coach.hypothesis.frame': 'Nastavte údaje na testovanie vašej hypotézy.',
+  'coach.hypothesis.scout': 'Hľadajte dôkazy, ktoré podporujú alebo vyvracajú vašu hypotézu.',
+  'coach.hypothesis.investigate':
+    'Zhromaždite štatistické dôkazy na potvrdenie podozrivej príčiny.',
+  'coach.hypothesis.improve': 'Príčina potvrdená — naplánujte nápravné opatrenia cez PDCA.',
+  'coach.routine.frame': 'Nastavte údaje pre rutinnú kontrolu procesu.',
+  'coach.routine.scout': 'Skenujte nové signály, posun alebo neočakávané vzory.',
+  'coach.routine.investigate': 'Nájdený signál — preskúmajte potenciálne príčiny.',
+  'coach.routine.improve': 'Príčina identifikovaná — naplánujte nápravné opatrenia cez PDCA.',
+
+  // PWA HomeScreen
+  'home.heading': 'Preskúmajte analýzu variácie',
+  'home.description':
+    'Bezplatný nástroj na školenie analýzy variácie. Vizualizujte variabilitu, vypočítajte spôsobilosť a nájdite kam zamerať pozornosť — priamo vo vašom prehliadači.',
+  'home.divider': 'alebo použite vlastné údaje',
+  'home.pasteHelper': 'Skopírujte riadky a vložte — automaticky rozpoznáme stĺpce',
+  'home.manualEntry': 'Alebo zadajte údaje ručne',
+  'home.upgradeHint': 'Potrebujete tímové funkcie, nahrávanie súborov alebo uložené projekty?',
+
+  // PWA navigation
+  'nav.presentationMode': 'Režim prezentácie',
+  'nav.hideFindings': 'Skryť zistenia',
+
+  // Export
+  'export.asImage': 'Exportovať ako obrázok',
+  'export.asCsv': 'Exportovať ako CSV',
+  'export.imageDesc': 'PNG snímka obrazovky pre prezentácie',
+  'export.csvDesc': 'Dátový súbor kompatibilný s tabuľkami',
+
+  // Sample section
+  'sample.heading': 'Vyskúšajte vzorový súbor údajov',
+  'sample.allSamples': 'Všetky vzorové súbory údajov',
+  'sample.featured': 'Odporúčané',
+  'sample.caseStudies': 'Prípadové štúdie',
+  'sample.journeys': 'Vzdelávacie cesty',
+  'sample.industry': 'Priemyselné príklady',
+
+  // View modes
+  'view.stats': 'Štatistika',
+  'display.appearance': 'Vzhľad',
+
+  // Azure toolbar
+  'data.manualEntry': 'Ručné zadávanie',
+  'data.editTable': 'Upraviť tabuľku údajov',
+  'toolbar.saveAs': 'Uložiť ako…',
+  'toolbar.saving': 'Ukladanie…',
+  'toolbar.saved': 'Uložené',
+  'toolbar.saveFailed': 'Uloženie zlyhalo',
+  'toolbar.addMore': 'Pridať údaje',
+  'report.scouting': 'Správa z prieskumu',
+  'export.csvFiltered': 'Exportovať filtrované údaje ako CSV',
+  'error.auth': 'Chyba overenia',
+
+  // File browse
+  'file.browseLocal': 'Prehľadávať toto zariadenie',
+  'file.browseSharePoint': 'Prehľadávať SharePoint',
+  'file.open': 'Otvoriť súbor',
+
+  // Admin hub
+  'admin.title': 'Administrácia',
+  'admin.status': 'Stav',
+  'admin.plan': 'Plán a funkcie',
+  'admin.teams': 'Nastavenie Teams',
+  'admin.knowledge': 'Znalostná báza',
+  'admin.troubleshooting': 'Riešenie problémov',
+
+  // Admin plan tab
+  'admin.currentPlan': 'Aktuálny',
+  'admin.feature': 'Funkcia',
+  'admin.manageSubscription': 'Spravovať predplatné v Azure',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/mes.',
+  'admin.planTeamPrice': '€199/mes.',
+  'admin.planTeamAIPrice': '€279/mes.',
+  'admin.planStandardDesc': 'Úplná analýza, lokálne úložisko súborov',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, mobilné',
+  'admin.planTeamAIDesc': 'AI znalostná báza, vylepšený CoScout',
+
+  // Feature names
+  'feature.charts': 'I-Chart, Boxplot, Pareto, Štatistika',
+  'feature.capability': 'Analýza spôsobilosti (Cp/Cpk)',
+  'feature.performance': 'Režim výkonu (viackanálový)',
+  'feature.anova': 'ANOVA a faktorová analýza',
+  'feature.findingsWorkflow': 'Zistenia a pracovný postup vyšetrovania',
+  'feature.whatIf': 'Simulácia čo-ak',
+  'feature.csvImport': 'Import CSV/Excel',
+  'feature.reportExport': 'Export správy (PDF)',
+  'feature.indexedDb': 'Lokálne úložisko IndexedDB',
+  'feature.maxFactors': 'Až 6 faktorov',
+  'feature.maxRows': 'Až 100K riadkov',
+  'feature.onedriveSync': 'Synchronizácia projektov cez OneDrive',
+  'feature.sharepointPicker': 'Výber súborov zo SharePoint',
+  'feature.teamsIntegration': 'Integrácia s Microsoft Teams',
+  'feature.channelCollab': 'Spolupráca na základe kanálov',
+  'feature.mobileUi': 'UI optimalizované pre mobilné zariadenia',
+  'feature.coScoutAi': 'CoScout AI asistent',
+  'feature.narrativeBar': 'Postrehy NarrativeBar',
+  'feature.chartInsights': 'Čipy postrehov grafov',
+  'feature.knowledgeBase': 'Znalostná báza (vyhľadávanie SharePoint)',
+  'feature.aiActions': 'AI-navrhnuté akcie',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'Pridať VariScout do Microsoft Teams',
+  'admin.teams.description':
+    'Vygenerujte balík aplikácie Teams pre vaše nasadenie a nahrajte ho do centra správy Teams.',
+  'admin.teams.running': 'Beží v rámci Microsoft Teams',
+  'admin.teams.step1': 'ID klienta registrácie aplikácie (Voliteľné)',
+  'admin.teams.step1Desc':
+    'Zadajte ID klienta registrácie aplikácie Azure AD na povolenie Teams SSO v manifeste.',
+  'admin.teams.step2': 'Stiahnuť balík aplikácie Teams',
+  'admin.teams.step2Desc':
+    'Tento .zip obsahuje manifest a ikony predkonfigurované pre vaše nasadenie.',
+  'admin.teams.step3': 'Nahrať do centra správy Teams',
+  'admin.teams.step4': 'Pridať VariScout do kanála',
+  'admin.teams.download': 'Stiahnuť balík aplikácie Teams',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} kontrol úspešných',
+  'admin.runChecks': 'Spustiť všetky kontroly',
+  'admin.notApplicable': 'Neplatí pre váš plán',
+  'admin.managePortal': 'Spravovať v Azure Portal',
+  'admin.portalAccessNote':
+    'Tieto položky vyžadujú prístup k Azure Portal a nedajú sa skontrolovať z prehliadača.',
+  'admin.fixInPortal': 'Opraviť v Azure Portal: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'Bežné problémy a ako ich vyriešiť. Kliknite na problém pre podrobné pokyny.',
+  'admin.runCheck': 'Spustiť kontrolu',
+  'admin.checkPassed': 'Kontrola úspešná — toto nemusí byť problém.',
+  'admin.checkFailed': 'Kontrola neúspešná — postupujte podľa krokov nižšie.',
+  'admin.issue.signin': 'Používatelia sa nemôžu prihlásiť',
+  'admin.issue.signinDesc': 'Overenie Azure AD nefunguje alebo používatelia vidia prázdnu stránku.',
+  'admin.issue.signinSteps':
+    'Overte, že overenie App Service je povolené v Azure Portal.\nSkontrolujte, či registrácia aplikácie Azure AD má správne URI pre presmerovanie.\nUistite sa, že registrácia aplikácie má povolené „ID tokeny" v časti Overenie.\nOverte, že nájomca povoľuje prihlásenie používateľov do aplikácie (Podnikové aplikácie → Vlastnosti → Povolené pre prihlásenie používateľov).',
+  'admin.issue.onedrive': 'Synchronizácia OneDrive nefunguje',
+  'admin.issue.onedriveDesc':
+    'Projekty sa nesynchronizujú s OneDrive alebo používatelia vidia chyby oprávnení.',
+  'admin.issue.onedriveSteps':
+    'Overte, že registrácia aplikácie má delegované oprávnenie „Files.ReadWrite".\nSkontrolujte, či bol udelený súhlas správcu pre oprávnenia Graph.\nUistite sa, že používateľ má pridelenú licenciu OneDrive.\nSkúste sa odhlásiť a znova prihlásiť na obnovenie tokenu.',
+  'admin.issue.coscout': 'CoScout nereaguje',
+  'admin.issue.coscoutDesc': 'AI asistent negeneruje odpovede alebo zobrazuje chyby.',
+  'admin.issue.coscoutSteps':
+    'Overte, že koncový bod AI je nakonfigurovaný v ARM šablóne / nastaveniach App Service.\nSkontrolujte, či je prostriedok Azure AI Services nasadený a beží.\nOverte, že nasadenie modelu existuje (napr. gpt-4o) v prostriedku AI Services.\nSkontrolujte kvóty Azure AI Services — nasadenie mohlo dosiahnuť limity rýchlosti.',
+  'admin.issue.kbEmpty': 'Znalostná báza nevracia výsledky',
+  'admin.issue.kbEmptyDesc':
+    '„Vyhľadať v znalostnej báze" CoScout nenachádza nič napriek existencii dokumentov.',
+  'admin.issue.kbEmptySteps':
+    'Overte, že koncový bod AI Search je nakonfigurovaný v nastaveniach App Service.\nSkontrolujte, či bol vzdialený SharePoint zdroj znalostí vytvorený v AI Search.\nUistite sa, že ≥1 licencia Microsoft 365 Copilot je aktívna v nájomcovi.\nOverte, že používateľ má prístup SharePoint k vyhľadávaným dokumentom.\nSkontrolujte, či je prepínač náhľadu znalostnej bázy povolený (Administrácia → karta Znalostná báza).',
+  'admin.issue.teamsTab': 'Karta Teams sa nezobrazuje',
+  'admin.issue.teamsTabDesc': 'VariScout sa nezobrazuje v Teams alebo sa karta nenačítava.',
+  'admin.issue.teamsTabSteps':
+    'Overte, že balík aplikácie Teams (.zip) bol nahraný do centra správy Teams.\nSkontrolujte, či contentUrl v manifest.json zodpovedá URL vášho App Service.\nUistite sa, že aplikácia je schválená v centre správy Teams (nie je blokovaná politikou).\nSkúste kartu v kanáli odstrániť a znova pridať.\nAk používate vlastnú doménu, overte, že je v poli validDomains manifestu.',
+  'admin.issue.newUser': 'Nový používateľ nemá prístup k aplikácii',
+  'admin.issue.newUserDesc':
+    'Novo pridaný používateľ vidí odmietnutý prístup alebo prázdnu stránku.',
+  'admin.issue.newUserSteps':
+    'V Azure AD prejdite na Podnikové aplikácie → VariScout → Používatelia a skupiny.\nPridajte používateľa alebo ich bezpečnostnú skupinu do aplikácie.\nAk sa používa „Vyžaduje sa priradenie používateľa", uistite sa, že používateľ má priradenie.\nSkontrolujte politiky podmieneného prístupu, ktoré by mohli blokovať používateľa.',
+  'admin.issue.aiSlow': 'AI odpovede sú pomalé',
+  'admin.issue.aiSlowDesc': 'CoScout dlho odpovedá alebo často vyprší časový limit.',
+  'admin.issue.aiSlowSteps':
+    'Skontrolujte región nasadenia Azure AI Services — latencia rastie so vzdialenosťou.\nOverte, že nasadenie modelu má dostatočnú kvótu TPM (tokenov za minútu).\nZvážte upgrade na nasadenie so zaručenou priepustnosťou pre konzistentnú latenciu.\nSkontrolujte, či je index AI Search veľký — zvážte optimalizáciu zdroja znalostí.',
+  'admin.issue.forbidden': 'Chyby „Forbidden"',
+  'admin.issue.forbiddenDesc': 'Používatelia vidia chyby 403 pri prístupe k určitým funkciám.',
+  'admin.issue.forbiddenSteps':
+    'Skontrolujte, či všetky požadované oprávnenia Graph API majú súhlas správcu.\nOverte, že úložisko tokenov overenia App Service je povolené.\nUistite sa, že token používateľa nevypršal — skúste sa odhlásiť a znova prihlásiť.\nSkontrolujte politiky podmieneného prístupu nájomcu.',
+  'admin.issue.kbPartial': 'KB nefunguje pre niektorých používateľov',
+  'admin.issue.kbPartialDesc':
+    'Vyhľadávanie v znalostnej báze funguje pre správcov, ale nie pre ostatných používateľov.',
+  'admin.issue.kbPartialSteps':
+    'Vzdialené SharePoint zdroje znalostí používajú oprávnenia pre každého používateľa. Každý používateľ musí mať prístup SharePoint k dokumentom.\nSkontrolujte, či sú postihnutí používatelia blokovaní politikami podmieneného prístupu.\nOverte, že bol udelený súhlas správcu pre delegované oprávnenie Sites.Read.All.\nPožiadajte postihnutých používateľov, aby sa odhlásili a znova prihlásili na obnovenie ich tokenu.',
 };

@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import type { Finding, JourneyPhase, EntryScenario } from '@variscout/core';
+import { getMessage } from '@variscout/core/i18n';
+import type { Locale } from '@variscout/core/i18n';
 
 /**
  * Detect the high-level analysis journey phase from current state.
@@ -24,25 +26,28 @@ export function useJourneyPhase(hasData: boolean, findings: Finding[]): JourneyP
 // Entry-path-aware coaching text
 // ---------------------------------------------------------------------------
 
-/** Coaching hint per phase × entry scenario */
-const COACHING_TEXT: Record<EntryScenario, Record<JourneyPhase, string>> = {
+/** Coaching key mapping per entry scenario × phase */
+const COACHING_KEYS: Record<
+  EntryScenario,
+  Record<JourneyPhase, `coach.${EntryScenario}.${JourneyPhase}`>
+> = {
   problem: {
-    frame: 'Set up your data to start investigating the problem.',
-    scout: 'Look for variation patterns that could explain the problem.',
-    investigate: 'Build evidence linking factors to the problem.',
-    improve: 'Plan and execute improvements using the PDCA cycle.',
+    frame: 'coach.problem.frame',
+    scout: 'coach.problem.scout',
+    investigate: 'coach.problem.investigate',
+    improve: 'coach.problem.improve',
   },
   hypothesis: {
-    frame: 'Set up your data to test your hypothesis.',
-    scout: 'Look for evidence that supports or refutes your hypothesis.',
-    investigate: 'Gather statistical evidence to confirm the suspected cause.',
-    improve: 'Confirmed cause — plan corrective actions via PDCA.',
+    frame: 'coach.hypothesis.frame',
+    scout: 'coach.hypothesis.scout',
+    investigate: 'coach.hypothesis.investigate',
+    improve: 'coach.hypothesis.improve',
   },
   routine: {
-    frame: 'Set up your data for a routine process check.',
-    scout: 'Scan for new signals, drift, or unexpected patterns.',
-    investigate: 'A signal was found — drill into potential causes.',
-    improve: 'Cause identified — plan corrective actions via PDCA.',
+    frame: 'coach.routine.frame',
+    scout: 'coach.routine.scout',
+    investigate: 'coach.routine.investigate',
+    improve: 'coach.routine.improve',
   },
 };
 
@@ -51,9 +56,10 @@ const COACHING_TEXT: Record<EntryScenario, Record<JourneyPhase, string>> = {
  */
 export function getCoachingText(
   phase: JourneyPhase,
-  entryScenario: EntryScenario = 'problem'
+  entryScenario: EntryScenario = 'problem',
+  locale: Locale = 'en'
 ): string {
-  return COACHING_TEXT[entryScenario][phase];
+  return getMessage(locale, COACHING_KEYS[entryScenario][phase]);
 }
 
 /**

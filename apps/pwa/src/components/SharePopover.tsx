@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { FileSpreadsheet, Image, X } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 
 interface SharePopoverProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ const SharePopover: React.FC<SharePopoverProps> = ({
   onExportImage,
   anchorRef,
 }) => {
+  const { t } = useTranslation();
   const popoverRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, right: 0 });
 
@@ -106,7 +108,7 @@ const SharePopover: React.FC<SharePopoverProps> = ({
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
-        <h3 className="text-sm font-semibold text-white">Export</h3>
+        <h3 className="text-sm font-semibold text-white">{t('nav.export')}</h3>
         <button
           onClick={onClose}
           className="p-1 text-content-secondary hover:text-white rounded transition-colors"
@@ -119,14 +121,14 @@ const SharePopover: React.FC<SharePopoverProps> = ({
       <div className="p-2">
         <MenuItem
           icon={<Image size={16} />}
-          label="Export as Image"
-          description="PNG screenshot for presentations"
+          label={t('export.asImage')}
+          description={t('export.imageDesc')}
           onClick={onExportImage}
         />
         <MenuItem
           icon={<FileSpreadsheet size={16} />}
-          label="Export as CSV"
-          description="Spreadsheet-compatible data file"
+          label={t('export.asCsv')}
+          description={t('export.csvDesc')}
           onClick={onExportCSV}
         />
       </div>

@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Activity, BarChart3, PieChart, TrendingUp } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -82,6 +83,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   onEditFinding,
   onDeleteFinding,
 }) => {
+  const { t } = useTranslation();
   const [activeView, setActiveView] = useState<ChartView>('ichart');
 
   // MobileCategorySheet state
@@ -135,10 +137,10 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   );
 
   const views: { key: ChartView; label: string; icon: React.ReactNode }[] = [
-    { key: 'ichart', label: 'I-Chart', icon: <Activity size={18} /> },
-    { key: 'boxplot', label: 'Boxplot', icon: <BarChart3 size={18} /> },
-    { key: 'pareto', label: 'Pareto', icon: <PieChart size={18} /> },
-    { key: 'stats', label: 'Stats', icon: <TrendingUp size={18} /> },
+    { key: 'ichart', label: t('chart.type.ichart'), icon: <Activity size={18} /> },
+    { key: 'boxplot', label: t('chart.type.boxplot'), icon: <BarChart3 size={18} /> },
+    { key: 'pareto', label: t('chart.type.pareto'), icon: <PieChart size={18} /> },
+    { key: 'stats', label: t('view.stats'), icon: <TrendingUp size={18} /> },
   ];
 
   const currentIndex = views.findIndex(v => v.key === activeView);

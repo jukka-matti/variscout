@@ -263,6 +263,7 @@ export const zhHans: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
   'table.page': 'Page {page} of {total}',
@@ -308,6 +309,265 @@ export const zhHans: MessageCatalog = {
   'chart.violation.direction.increasing': '上升',
   'chart.violation.direction.decreasing': '下降',
 
-  'data.rowsLoaded': '{count} rows loaded',
-  'findings.countLabel': '{count} findings',
+  'data.rowsLoaded': '已加载 {count} 行',
+  'findings.countLabel': '{count} 项发现',
+
+  // Chart limit labels
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': '均值:',
+  'chart.label.tgt': '目标:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': '值:',
+  'chart.label.n': 'n:',
+  'chart.label.target': '目标值:',
+
+  // Chart status
+  'chart.status.inControl': '受控',
+  'chart.status.outOfControl': '失控（超出UCL/LCL）',
+  'chart.noDataProbPlot': '没有可用于概率图的数据',
+
+  // Chart edit affordances
+  'chart.edit.spec': '点击编辑 {spec}',
+  'chart.edit.axisLabel': '点击编辑轴标签',
+  'chart.edit.yAxis': '点击编辑Y轴刻度',
+  'chart.edit.saveCancel': 'Enter 保存 · Esc 取消',
+
+  // Performance table headers
+  'chart.table.channel': '通道',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': '复制图表到剪贴板',
+  'chart.maximize': '最大化图表',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ 在此钻取',
+  'chart.percent': '百分比',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Y轴刻度',
+  'validation.minLessThanMax': '最小值必须小于最大值',
+  'action.noChanges': '无更改',
+
+  // Create factor modal
+  'factor.create': '从选择创建因子',
+  'factor.name': '因子名称',
+  'factor.nameEmpty': '因子名称不能为空',
+  'factor.nameExists': '已存在同名因子',
+  'factor.example': '例如，高温事件',
+  'factor.pointsMarked': '{count} 个点将被标记为：',
+  'factor.createAndFilter': '创建并筛选',
+  'factor.filterExplanation': '视图将自动筛选，仅显示所选点。',
+
+  // Characteristic type selector
+  'charType.nominal': '望目特性',
+  'charType.nominalDesc': '以目标为中心（例如，灌装重量）',
+  'charType.smaller': '望小特性',
+  'charType.smallerDesc': '越低越好（例如，缺陷）',
+  'charType.larger': '望大特性',
+  'charType.largerDesc': '越高越好（例如，产量）',
+
+  // Investigation prompt
+  'investigation.trackingPrompt': '正在跟踪您的调查 — 打开调查面板查看全貌。',
+
+  // Mobile category sheet
+  'chart.highlight': '高亮：',
+  'chart.highlightRed': '红色',
+  'chart.highlightAmber': '琥珀色',
+  'chart.highlightGreen': '绿色',
+  'chart.clearHighlight': '清除高亮',
+  'chart.drillDown': '钻取"{category}"',
+  'ai.askCoScout': '向CoScout询问',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': '保持刻度以便视觉比较',
+  'display.filterContextDesc': '在图表标题下方显示活动筛选器摘要',
+
+  // Performance detected modal
+  'performance.detected': '检测到性能模式',
+  'performance.columnsFound': '找到 {count} 个测量列',
+  'performance.labelQuestion': '这些测量通道代表什么？',
+  'performance.labelExample': '例如，灌装头、模腔、喷嘴',
+  'performance.enable': '启用性能模式',
+
+  // Finding editor & data types
+  'finding.placeholder': '您发现了什么？',
+  'finding.note': '发现备注',
+  'data.typeNumeric': '数值',
+  'data.typeCategorical': '分类',
+  'data.typeDate': '日期',
+  'data.typeText': '文本',
+  'data.categories': '类别',
+
+  // Coaching text
+  'coach.problem.frame': '设置您的数据以开始调查问题。',
+  'coach.problem.scout': '寻找可能解释问题的变异模式。',
+  'coach.problem.investigate': '建立将因子与问题联系起来的证据。',
+  'coach.problem.improve': '使用PDCA循环计划和执行改进。',
+  'coach.hypothesis.frame': '设置您的数据以测试假设。',
+  'coach.hypothesis.scout': '寻找支持或反驳假设的证据。',
+  'coach.hypothesis.investigate': '收集统计证据以确认疑似原因。',
+  'coach.hypothesis.improve': '原因已确认 — 通过PDCA计划纠正措施。',
+  'coach.routine.frame': '设置您的数据进行例行过程检查。',
+  'coach.routine.scout': '扫描新信号、漂移或意外模式。',
+  'coach.routine.investigate': '发现信号 — 深入调查潜在原因。',
+  'coach.routine.improve': '原因已识别 — 通过PDCA计划纠正措施。',
+
+  // PWA HomeScreen
+  'home.heading': '探索变异分析',
+  'home.description':
+    '免费的变异分析培训工具。可视化变异性、计算过程能力、找到关注重点 — 直接在浏览器中使用。',
+  'home.divider': '或使用您自己的数据',
+  'home.pasteHelper': '复制行并粘贴 — 我们将自动检测列',
+  'home.manualEntry': '或手动输入数据',
+  'home.upgradeHint': '需要团队功能、文件上传或保存的项目？',
+
+  // PWA navigation
+  'nav.presentationMode': '演示模式',
+  'nav.hideFindings': '隐藏发现',
+
+  // Export
+  'export.asImage': '导出为图片',
+  'export.asCsv': '导出为CSV',
+  'export.imageDesc': '用于演示的PNG截图',
+  'export.csvDesc': '电子表格兼容的数据文件',
+
+  // Sample section
+  'sample.heading': '试用示例数据集',
+  'sample.allSamples': '所有示例数据集',
+  'sample.featured': '精选',
+  'sample.caseStudies': '案例研究',
+  'sample.journeys': '学习之旅',
+  'sample.industry': '行业示例',
+
+  // View modes
+  'view.stats': '统计',
+  'display.appearance': '外观',
+
+  // Azure toolbar
+  'data.manualEntry': '手动输入',
+  'data.editTable': '编辑数据表',
+  'toolbar.saveAs': '另存为…',
+  'toolbar.saving': '保存中…',
+  'toolbar.saved': '已保存',
+  'toolbar.saveFailed': '保存失败',
+  'toolbar.addMore': '添加数据',
+  'report.scouting': '探查报告',
+  'export.csvFiltered': '将筛选数据导出为CSV',
+  'error.auth': '认证错误',
+
+  // File browse
+  'file.browseLocal': '浏览此设备',
+  'file.browseSharePoint': '浏览SharePoint',
+  'file.open': '打开文件',
+
+  // Admin hub
+  'admin.title': '管理',
+  'admin.status': '状态',
+  'admin.plan': '计划与功能',
+  'admin.teams': 'Teams设置',
+  'admin.knowledge': '知识库',
+  'admin.troubleshooting': '故障排除',
+
+  // Admin plan tab
+  'admin.currentPlan': '当前',
+  'admin.feature': '功能',
+  'admin.manageSubscription': '在Azure中管理订阅',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/月',
+  'admin.planTeamPrice': '€199/月',
+  'admin.planTeamAIPrice': '€279/月',
+  'admin.planStandardDesc': '完整分析，本地文件存储',
+  'admin.planTeamDesc': 'Teams、OneDrive、SharePoint、移动端',
+  'admin.planTeamAIDesc': 'AI知识库，增强型CoScout',
+
+  // Feature names
+  'feature.charts': 'I-Chart、Boxplot、Pareto、统计',
+  'feature.capability': '过程能力分析（Cp/Cpk）',
+  'feature.performance': '性能模式（多通道）',
+  'feature.anova': 'ANOVA与因子分析',
+  'feature.findingsWorkflow': '发现与调查工作流',
+  'feature.whatIf': 'What-If模拟',
+  'feature.csvImport': 'CSV/Excel导入',
+  'feature.reportExport': '报告导出（PDF）',
+  'feature.indexedDb': 'IndexedDB本地存储',
+  'feature.maxFactors': '最多6个因子',
+  'feature.maxRows': '最多100K行',
+  'feature.onedriveSync': 'OneDrive项目同步',
+  'feature.sharepointPicker': 'SharePoint文件选择器',
+  'feature.teamsIntegration': 'Microsoft Teams集成',
+  'feature.channelCollab': '基于频道的协作',
+  'feature.mobileUi': '移动端优化界面',
+  'feature.coScoutAi': 'CoScout AI助手',
+  'feature.narrativeBar': 'NarrativeBar洞察',
+  'feature.chartInsights': '图表洞察标签',
+  'feature.knowledgeBase': '知识库（SharePoint搜索）',
+  'feature.aiActions': 'AI建议操作',
+
+  // Admin Teams setup
+  'admin.teams.heading': '将VariScout添加到Microsoft Teams',
+  'admin.teams.description': '为您的部署生成Teams应用包并上传到Teams管理中心。',
+  'admin.teams.running': '在Microsoft Teams中运行',
+  'admin.teams.step1': '应用注册客户端ID（可选）',
+  'admin.teams.step1Desc': '输入您的Azure AD应用注册客户端ID以在清单中启用Teams SSO。',
+  'admin.teams.step2': '下载Teams应用包',
+  'admin.teams.step2Desc': '此.zip包含为您的部署预配置的清单和图标。',
+  'admin.teams.step3': '上传到Teams管理中心',
+  'admin.teams.step4': '将VariScout添加到频道',
+  'admin.teams.download': '下载Teams应用包',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} 项检查通过',
+  'admin.runChecks': '运行所有检查',
+  'admin.notApplicable': '不适用于您的计划',
+  'admin.managePortal': '在Azure Portal中管理',
+  'admin.portalAccessNote': '这些项目需要Azure Portal访问权限，无法从浏览器中检查。',
+  'admin.fixInPortal': '在Azure Portal中修复：{label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro': '常见问题及解决方法。点击问题查看分步说明。',
+  'admin.runCheck': '运行检查',
+  'admin.checkPassed': '检查通过 — 这可能不是问题所在。',
+  'admin.checkFailed': '检查失败 — 请按照以下步骤操作。',
+  'admin.issue.signin': '用户无法登录',
+  'admin.issue.signinDesc': 'Azure AD身份验证不起作用或用户看到空白页面。',
+  'admin.issue.signinSteps':
+    '验证Azure Portal中是否启用了App Service身份验证。\n检查Azure AD应用注册是否具有正确的重定向URI。\n确保应用注册在"身份验证"下启用了"ID令牌"。\n验证租户是否允许用户登录该应用（企业应用程序 → 属性 → 已为用户启用登录）。',
+  'admin.issue.onedrive': 'OneDrive同步不工作',
+  'admin.issue.onedriveDesc': '项目未同步到OneDrive或用户看到权限错误。',
+  'admin.issue.onedriveSteps':
+    '验证应用注册是否具有"Files.ReadWrite"委托权限。\n检查是否已授予Graph权限的管理员同意。\n确保用户已分配OneDrive许可证。\n尝试注销并重新登录以刷新令牌。',
+  'admin.issue.coscout': 'CoScout没有响应',
+  'admin.issue.coscoutDesc': 'AI助手未生成响应或显示错误。',
+  'admin.issue.coscoutSteps':
+    '验证AI端点是否在ARM模板/App Service设置中配置。\n检查Azure AI Services资源是否已部署并正在运行。\n验证模型部署是否存在（例如gpt-4o）在AI Services资源中。\n检查Azure AI Services配额 — 部署可能已达到速率限制。',
+  'admin.issue.kbEmpty': '知识库未返回结果',
+  'admin.issue.kbEmptyDesc': 'CoScout的"搜索知识库"尽管存在文档但未找到任何内容。',
+  'admin.issue.kbEmptySteps':
+    '验证AI Search端点是否在App Service设置中配置。\n检查远程SharePoint知识源是否已在AI Search中创建。\n确保租户中有≥1个Microsoft 365 Copilot许可证处于活动状态。\n验证用户是否有权访问被搜索文档的SharePoint。\n检查知识库预览开关是否已启用（管理 → 知识库选项卡）。',
+  'admin.issue.teamsTab': 'Teams选项卡未显示',
+  'admin.issue.teamsTabDesc': 'VariScout未出现在Teams中或选项卡无法加载。',
+  'admin.issue.teamsTabSteps':
+    '验证Teams应用包（.zip）是否已上传到Teams管理中心。\n检查manifest.json中的contentUrl是否与您的App Service URL匹配。\n确保应用在Teams管理中心中已获批准（未被策略阻止）。\n尝试在频道中删除并重新添加选项卡。\n如果使用自定义域名，请验证它是否在清单的validDomains数组中。',
+  'admin.issue.newUser': '新用户无法访问应用',
+  'admin.issue.newUserDesc': '新添加的用户看到拒绝访问或空白页面。',
+  'admin.issue.newUserSteps':
+    '在Azure AD中，转到企业应用程序 → VariScout → 用户和组。\n将用户或其安全组添加到应用。\n如果使用"需要用户分配"，请确保用户已获得分配。\n检查可能阻止用户的条件访问策略。',
+  'admin.issue.aiSlow': 'AI响应缓慢',
+  'admin.issue.aiSlowDesc': 'CoScout响应时间长或经常超时。',
+  'admin.issue.aiSlowSteps':
+    '检查Azure AI Services部署区域 — 距离越远延迟越高。\n验证模型部署是否有足够的TPM（每分钟令牌数）配额。\n考虑升级到预置吞吐量部署以获得稳定的延迟。\n检查AI Search索引是否过大 — 考虑优化知识源。',
+  'admin.issue.forbidden': '"Forbidden"错误',
+  'admin.issue.forbiddenDesc': '用户在访问某些功能时看到403错误。',
+  'admin.issue.forbiddenSteps':
+    '检查所有必需的Graph API权限是否已获得管理员同意。\n验证App Service身份验证令牌存储是否已启用。\n确保用户的令牌未过期 — 尝试注销并重新登录。\n检查租户的条件访问策略。',
+  'admin.issue.kbPartial': 'KB对部分用户失败',
+  'admin.issue.kbPartialDesc': '知识库搜索对管理员有效但对其他用户无效。',
+  'admin.issue.kbPartialSteps':
+    '远程SharePoint知识源使用每用户权限。每个用户必须拥有对文档的SharePoint访问权限。\n检查受影响的用户是否被条件访问策略阻止。\n验证是否已授予Sites.Read.All委托权限的管理员同意。\n要求受影响的用户注销并重新登录以刷新其令牌。',
 };

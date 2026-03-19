@@ -1,64 +1,66 @@
 import React from 'react';
 import { Check, Lock, ExternalLink } from 'lucide-react';
 import { getPlan, type MarketplacePlan } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
+import type { MessageCatalog } from '@variscout/core';
 
 interface PlanCard {
   id: MarketplacePlan;
-  name: string;
-  price: string;
-  description: string;
+  nameKey: keyof MessageCatalog;
+  priceKey: keyof MessageCatalog;
+  descKey: keyof MessageCatalog;
 }
 
 const PLANS: PlanCard[] = [
   {
     id: 'standard',
-    name: 'Standard',
-    price: '€99/mo',
-    description: 'Full analysis, local file storage',
+    nameKey: 'admin.planStandard',
+    priceKey: 'admin.planStandardPrice',
+    descKey: 'admin.planStandardDesc',
   },
   {
     id: 'team',
-    name: 'Team',
-    price: '€199/mo',
-    description: 'Teams, OneDrive, SharePoint, mobile',
+    nameKey: 'admin.planTeam',
+    priceKey: 'admin.planTeamPrice',
+    descKey: 'admin.planTeamDesc',
   },
   {
     id: 'team-ai',
-    name: 'Team AI',
-    price: '€279/mo',
-    description: 'AI Knowledge Base, enhanced CoScout',
+    nameKey: 'admin.planTeamAI',
+    priceKey: 'admin.planTeamAIPrice',
+    descKey: 'admin.planTeamAIDesc',
   },
 ];
 
 interface FeatureRow {
-  name: string;
+  nameKey: keyof MessageCatalog;
   standard: boolean;
   team: boolean;
   teamAi: boolean;
 }
 
 const FEATURES: FeatureRow[] = [
-  { name: 'I-Chart, Boxplot, Pareto, Stats', standard: true, team: true, teamAi: true },
-  { name: 'Capability analysis (Cp/Cpk)', standard: true, team: true, teamAi: true },
-  { name: 'Performance Mode (multi-channel)', standard: true, team: true, teamAi: true },
-  { name: 'ANOVA & factor analysis', standard: true, team: true, teamAi: true },
-  { name: 'Findings & investigation workflow', standard: true, team: true, teamAi: true },
-  { name: 'What-If simulation', standard: true, team: true, teamAi: true },
-  { name: 'CSV/Excel import', standard: true, team: true, teamAi: true },
-  { name: 'Report export (PDF)', standard: true, team: true, teamAi: true },
-  { name: 'IndexedDB local storage', standard: true, team: true, teamAi: true },
-  { name: 'Up to 6 factors', standard: true, team: true, teamAi: true },
-  { name: 'Up to 100K rows', standard: true, team: true, teamAi: true },
-  { name: 'OneDrive project sync', standard: false, team: true, teamAi: true },
-  { name: 'SharePoint file picker', standard: false, team: true, teamAi: true },
-  { name: 'Microsoft Teams integration', standard: false, team: true, teamAi: true },
-  { name: 'Channel-based collaboration', standard: false, team: true, teamAi: true },
-  { name: 'Mobile-optimized UI', standard: false, team: true, teamAi: true },
-  { name: 'CoScout AI assistant', standard: false, team: false, teamAi: true },
-  { name: 'NarrativeBar insights', standard: false, team: false, teamAi: true },
-  { name: 'Chart insight chips', standard: false, team: false, teamAi: true },
-  { name: 'Knowledge Base (SharePoint search)', standard: false, team: false, teamAi: true },
-  { name: 'AI-suggested actions', standard: false, team: false, teamAi: true },
+  { nameKey: 'feature.charts', standard: true, team: true, teamAi: true },
+  { nameKey: 'feature.capability', standard: true, team: true, teamAi: true },
+  { nameKey: 'feature.performance', standard: true, team: true, teamAi: true },
+  { nameKey: 'feature.anova', standard: true, team: true, teamAi: true },
+  { nameKey: 'feature.findingsWorkflow', standard: true, team: true, teamAi: true },
+  { nameKey: 'feature.whatIf', standard: true, team: true, teamAi: true },
+  { nameKey: 'feature.csvImport', standard: true, team: true, teamAi: true },
+  { nameKey: 'feature.reportExport', standard: true, team: true, teamAi: true },
+  { nameKey: 'feature.indexedDb', standard: true, team: true, teamAi: true },
+  { nameKey: 'feature.maxFactors', standard: true, team: true, teamAi: true },
+  { nameKey: 'feature.maxRows', standard: true, team: true, teamAi: true },
+  { nameKey: 'feature.onedriveSync', standard: false, team: true, teamAi: true },
+  { nameKey: 'feature.sharepointPicker', standard: false, team: true, teamAi: true },
+  { nameKey: 'feature.teamsIntegration', standard: false, team: true, teamAi: true },
+  { nameKey: 'feature.channelCollab', standard: false, team: true, teamAi: true },
+  { nameKey: 'feature.mobileUi', standard: false, team: true, teamAi: true },
+  { nameKey: 'feature.coScoutAi', standard: false, team: false, teamAi: true },
+  { nameKey: 'feature.narrativeBar', standard: false, team: false, teamAi: true },
+  { nameKey: 'feature.chartInsights', standard: false, team: false, teamAi: true },
+  { nameKey: 'feature.knowledgeBase', standard: false, team: false, teamAi: true },
+  { nameKey: 'feature.aiActions', standard: false, team: false, teamAi: true },
 ];
 
 function featureAvailable(row: FeatureRow, plan: MarketplacePlan): boolean {
@@ -69,6 +71,7 @@ function featureAvailable(row: FeatureRow, plan: MarketplacePlan): boolean {
 
 export function AdminPlanTab() {
   const currentPlan = getPlan();
+  const { t } = useTranslation();
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -84,15 +87,15 @@ export function AdminPlanTab() {
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-content">{plan.name}</h3>
+                <h3 className="text-sm font-semibold text-content">{t(plan.nameKey)}</h3>
                 {isCurrent && (
                   <span className="px-2 py-0.5 text-xs font-medium bg-blue-500/20 text-blue-400 rounded-full">
-                    Current
+                    {t('admin.currentPlan')}
                   </span>
                 )}
               </div>
-              <p className="text-2xl font-bold text-content mb-1">{plan.price}</p>
-              <p className="text-xs text-content-secondary">{plan.description}</p>
+              <p className="text-2xl font-bold text-content mb-1">{t(plan.priceKey)}</p>
+              <p className="text-xs text-content-secondary">{t(plan.descKey)}</p>
             </div>
           );
         })}
@@ -103,7 +106,9 @@ export function AdminPlanTab() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-edge">
-              <th className="text-left py-3 px-4 text-content font-semibold">Feature</th>
+              <th className="text-left py-3 px-4 text-content font-semibold">
+                {t('admin.feature')}
+              </th>
               {PLANS.map(plan => (
                 <th
                   key={plan.id}
@@ -111,15 +116,15 @@ export function AdminPlanTab() {
                     plan.id === currentPlan ? 'text-blue-400' : 'text-content-secondary'
                   }`}
                 >
-                  {plan.name}
+                  {t(plan.nameKey)}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-edge">
             {FEATURES.map(row => (
-              <tr key={row.name}>
-                <td className="py-2.5 px-4 text-content text-xs">{row.name}</td>
+              <tr key={row.nameKey}>
+                <td className="py-2.5 px-4 text-content text-xs">{t(row.nameKey)}</td>
                 {PLANS.map(plan => {
                   const available = featureAvailable(row, plan.id);
                   const isCurrentCol = plan.id === currentPlan;
@@ -151,7 +156,7 @@ export function AdminPlanTab() {
           className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 hover:underline"
         >
           <ExternalLink size={14} />
-          Manage Subscription in Azure
+          {t('admin.manageSubscription')}
         </a>
       </div>
     </div>

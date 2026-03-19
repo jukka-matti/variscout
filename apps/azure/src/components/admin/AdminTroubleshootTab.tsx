@@ -8,6 +8,8 @@ import {
   XCircle,
   AlertTriangle,
 } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
+import type { MessageCatalog } from '@variscout/core';
 import { isLocalDev, getAccessToken } from '../../auth/easyAuth';
 import { graphFetch, GRAPH_BASE } from '../../services/graphFetch';
 import { searchDocuments } from '../../services/searchService';
@@ -15,18 +17,18 @@ import { getRuntimeConfig } from '../../lib/runtimeConfig';
 
 interface TroubleshootIssue {
   id: string;
-  title: string;
-  description: string;
+  titleKey: keyof MessageCatalog;
+  descKey: keyof MessageCatalog;
   checkFn: (() => Promise<boolean>) | null;
-  steps: string[];
+  stepsKey: keyof MessageCatalog;
   portalLink?: { label: string; href: string };
 }
 
 const ISSUES: TroubleshootIssue[] = [
   {
     id: 'signin',
-    title: "Users can't sign in",
-    description: 'Azure AD authentication is not working or users see a blank page.',
+    titleKey: 'admin.issue.signin',
+    descKey: 'admin.issue.signinDesc',
     checkFn: async () => {
       if (isLocalDev()) return true;
       const res = await fetch('/.auth/me');
@@ -34,21 +36,16 @@ const ISSUES: TroubleshootIssue[] = [
       const data = await res.json();
       return Array.isArray(data) && data.length > 0 && data[0].user_claims?.length > 0;
     },
-    steps: [
-      'Verify App Service Authentication is enabled in Azure Portal.',
-      'Check the Azure AD app registration has the correct redirect URIs.',
-      'Ensure the app registration has "ID tokens" enabled under Authentication.',
-      'Verify the tenant allows user sign-in to the app (Enterprise Applications → Properties → Enabled for users to sign-in).',
-    ],
+    stepsKey: 'admin.issue.signinSteps',
     portalLink: {
-      label: 'App Service → Authentication',
+      label: 'App Service \u2192 Authentication',
       href: 'https://portal.azure.com/#view/Microsoft_Azure_ApiManagement/apiManagementMenuBlade/~/authentication',
     },
   },
   {
     id: 'onedrive',
-    title: 'OneDrive sync not working',
-    description: 'Projects are not syncing to OneDrive or users see permission errors.',
+    titleKey: 'admin.issue.onedrive',
+    descKey: 'admin.issue.onedriveDesc',
     checkFn: async () => {
       if (isLocalDev()) return true;
       const token = await getAccessToken();
@@ -57,21 +54,16 @@ const ISSUES: TroubleshootIssue[] = [
       });
       return res.ok;
     },
-    steps: [
-      'Verify the app registration has "Files.ReadWrite" delegated permission.',
-      'Check that admin consent has been granted for the Graph permissions.',
-      'Ensure the user has a OneDrive license assigned.',
-      'Try signing out and signing back in to refresh the token.',
-    ],
+    stepsKey: 'admin.issue.onedriveSteps',
     portalLink: {
-      label: 'App Registration → API permissions',
+      label: 'App Registration \u2192 API permissions',
       href: 'https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps',
     },
   },
   {
     id: 'coscout',
-    title: 'CoScout not responding',
-    description: 'The AI assistant is not generating responses or shows errors.',
+    titleKey: 'admin.issue.coscout',
+    descKey: 'admin.issue.coscoutDesc',
     checkFn: async () => {
       const config = getRuntimeConfig();
       const endpoint = config?.aiEndpoint || import.meta.env.VITE_AI_ENDPOINT;
@@ -80,12 +72,7 @@ const ISSUES: TroubleshootIssue[] = [
       const res = await fetch(endpoint, { method: 'HEAD' }).catch(() => null);
       return !!res;
     },
-    steps: [
-      'Verify the AI endpoint is configured in the ARM template / App Service settings.',
-      'Check that the Azure AI Services resource is deployed and running.',
-      'Verify the model deployment exists (e.g. gpt-4o) in the AI Services resource.',
-      'Check Azure AI Services quotas — the deployment may have hit rate limits.',
-    ],
+    stepsKey: 'admin.issue.coscoutSteps',
     portalLink: {
       label: 'Azure AI Services',
       href: 'https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub',
@@ -93,20 +80,14 @@ const ISSUES: TroubleshootIssue[] = [
   },
   {
     id: 'kb-empty',
-    title: 'Knowledge Base returns no results',
-    description: 'CoScout\'s "Search Knowledge Base" finds nothing despite documents existing.',
+    titleKey: 'admin.issue.kbEmpty',
+    descKey: 'admin.issue.kbEmptyDesc',
     checkFn: async () => {
       if (isLocalDev()) return true;
       await searchDocuments('test connectivity check', { top: 1 });
       return true;
     },
-    steps: [
-      'Verify the AI Search endpoint is configured in App Service settings.',
-      'Check that the Remote SharePoint knowledge source has been created in AI Search.',
-      'Ensure ≥1 Microsoft 365 Copilot license is active in the tenant.',
-      'Verify the user has SharePoint access to the documents being searched.',
-      'Check that the Knowledge Base preview toggle is enabled (Admin → Knowledge Base tab).',
-    ],
+    stepsKey: 'admin.issue.kbEmptySteps',
     portalLink: {
       label: 'Azure AI Search',
       href: 'https://portal.azure.com/#view/Microsoft_Azure_Search',
@@ -114,82 +95,56 @@ const ISSUES: TroubleshootIssue[] = [
   },
   {
     id: 'teams-tab',
-    title: 'Teams tab not showing',
-    description: 'VariScout does not appear in Teams or the tab fails to load.',
+    titleKey: 'admin.issue.teamsTab',
+    descKey: 'admin.issue.teamsTabDesc',
     checkFn: null,
-    steps: [
-      'Verify the Teams app package (.zip) was uploaded to Teams Admin Center.',
-      'Check that the manifest.json contentUrl matches your App Service URL.',
-      'Ensure the app is approved in Teams Admin Center (not blocked by policy).',
-      'Try removing and re-adding the tab in the channel.',
-      "If using a custom domain, verify it's in the manifest's validDomains array.",
-    ],
+    stepsKey: 'admin.issue.teamsTabSteps',
     portalLink: {
-      label: 'Teams Admin Center → Manage apps',
+      label: 'Teams Admin Center \u2192 Manage apps',
       href: 'https://admin.teams.microsoft.com/policies/manage-apps',
     },
   },
   {
     id: 'new-user',
-    title: "New user can't access the app",
-    description: 'A newly added user sees an access denied or blank page.',
+    titleKey: 'admin.issue.newUser',
+    descKey: 'admin.issue.newUserDesc',
     checkFn: null,
-    steps: [
-      'In Azure AD, go to Enterprise Applications → VariScout → Users and groups.',
-      'Add the user or their security group to the app.',
-      'If using "User assignment required", ensure the user has an assignment.',
-      'Check Conditional Access policies that might block the user.',
-    ],
+    stepsKey: 'admin.issue.newUserSteps',
     portalLink: {
-      label: 'Enterprise Applications → Users and groups',
+      label: 'Enterprise Applications \u2192 Users and groups',
       href: 'https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/EnterpriseApps',
     },
   },
   {
     id: 'ai-slow',
-    title: 'AI responses are slow',
-    description: 'CoScout takes a long time to respond or frequently times out.',
+    titleKey: 'admin.issue.aiSlow',
+    descKey: 'admin.issue.aiSlowDesc',
     checkFn: null,
-    steps: [
-      'Check the Azure AI Services deployment region — latency increases with distance.',
-      'Verify the model deployment has sufficient TPM (tokens per minute) quota.',
-      'Consider upgrading to a provisioned throughput deployment for consistent latency.',
-      'Check if the AI Search index is large — consider optimizing the knowledge source.',
-    ],
+    stepsKey: 'admin.issue.aiSlowSteps',
     portalLink: {
-      label: 'Azure AI Services → Deployments',
+      label: 'Azure AI Services \u2192 Deployments',
       href: 'https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub',
     },
   },
   {
     id: 'forbidden',
-    title: '"Forbidden" errors',
-    description: 'Users see 403 errors when accessing certain features.',
+    titleKey: 'admin.issue.forbidden',
+    descKey: 'admin.issue.forbiddenDesc',
     checkFn: null,
-    steps: [
-      'Check that all required Graph API permissions have admin consent.',
-      'Verify the App Service Authentication token store is enabled.',
-      "Ensure the user's token hasn't expired — try signing out and back in.",
-      'Check Conditional Access policies for the tenant.',
-    ],
+    stepsKey: 'admin.issue.forbiddenSteps',
     portalLink: {
-      label: 'App Registration → API permissions',
+      label: 'App Registration \u2192 API permissions',
       href: 'https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps',
     },
   },
   {
     id: 'kb-partial',
-    title: 'KB fails for some users',
-    description: 'Knowledge Base search works for admins but not for other users.',
+    titleKey: 'admin.issue.kbPartial',
+    descKey: 'admin.issue.kbPartialDesc',
     checkFn: null,
-    steps: [
-      'Remote SharePoint knowledge sources use per-user permissions. Each user must have SharePoint access to the documents.',
-      'Check if the affected users are blocked by Conditional Access policies.',
-      'Verify admin consent was granted for the Sites.Read.All delegated permission.',
-      'Ask the affected users to sign out and sign back in to refresh their token.',
-    ],
+    stepsKey: 'admin.issue.kbPartialSteps',
     portalLink: {
-      label: 'Azure AD → Enterprise Applications',
+      label: 'Azure AD \u2192 Enterprise Applications',
       href: 'https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/EnterpriseApps',
     },
   },
@@ -198,6 +153,7 @@ const ISSUES: TroubleshootIssue[] = [
 type InlineCheckStatus = 'idle' | 'running' | 'pass' | 'fail';
 
 function IssueCard({ issue }: { issue: TroubleshootIssue }) {
+  const { t, tf } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [checkStatus, setCheckStatus] = useState<InlineCheckStatus>('idle');
   const [checkError, setCheckError] = useState<string | null>(null);
@@ -227,8 +183,8 @@ function IssueCard({ issue }: { issue: TroubleshootIssue }) {
           <ChevronRight size={16} className="text-content-muted shrink-0" />
         )}
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-content">{issue.title}</h4>
-          <p className="text-xs text-content-secondary mt-0.5">{issue.description}</p>
+          <h4 className="text-sm font-medium text-content">{t(issue.titleKey)}</h4>
+          <p className="text-xs text-content-secondary mt-0.5">{t(issue.descKey)}</p>
         </div>
         {issue.checkFn && checkStatus !== 'idle' && (
           <div className="shrink-0">
@@ -256,29 +212,27 @@ function IssueCard({ issue }: { issue: TroubleshootIssue }) {
                 ) : (
                   <AlertTriangle size={12} />
                 )}
-                Run Check
+                {t('admin.runCheck')}
               </button>
               {checkStatus === 'pass' && (
-                <span className="text-xs text-green-500">
-                  Check passed — this may not be the issue.
-                </span>
+                <span className="text-xs text-green-500">{t('admin.checkPassed')}</span>
               )}
               {checkStatus === 'fail' && (
-                <span className="text-xs text-red-400">
-                  {checkError || 'Check failed — follow the steps below.'}
-                </span>
+                <span className="text-xs text-red-400">{checkError || t('admin.checkFailed')}</span>
               )}
             </div>
           )}
 
           {/* Steps */}
           <ol className="space-y-2">
-            {issue.steps.map((step, i) => (
-              <li key={i} className="flex gap-2 text-xs text-content-secondary">
-                <span className="text-blue-400 font-mono shrink-0">{i + 1}.</span>
-                <span>{step}</span>
-              </li>
-            ))}
+            {t(issue.stepsKey)
+              .split('\n')
+              .map((step, i) => (
+                <li key={i} className="flex gap-2 text-xs text-content-secondary">
+                  <span className="text-blue-400 font-mono shrink-0">{i + 1}.</span>
+                  <span>{step}</span>
+                </li>
+              ))}
           </ol>
 
           {/* Portal link */}
@@ -289,7 +243,7 @@ function IssueCard({ issue }: { issue: TroubleshootIssue }) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 hover:underline"
             >
-              Fix in Azure Portal: {issue.portalLink.label}
+              {tf('admin.fixInPortal', { label: issue.portalLink.label })}
               <ExternalLink size={10} />
             </a>
           )}
@@ -300,11 +254,10 @@ function IssueCard({ issue }: { issue: TroubleshootIssue }) {
 }
 
 export function AdminTroubleshootTab() {
+  const { t } = useTranslation();
   return (
     <div className="max-w-3xl mx-auto space-y-3">
-      <p className="text-sm text-content-secondary mb-4">
-        Common issues and how to fix them. Click an issue to see step-by-step instructions.
-      </p>
+      <p className="text-sm text-content-secondary mb-4">{t('admin.troubleshoot.intro')}</p>
       {ISSUES.map(issue => (
         <IssueCard key={issue.id} issue={issue} />
       ))}

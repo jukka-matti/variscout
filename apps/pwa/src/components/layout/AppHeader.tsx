@@ -9,6 +9,7 @@ import {
   ClipboardList,
   Beaker,
 } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 import { JourneyPhaseStrip, CoachPopover, MobileCoachSheet, type ScoutHint } from '@variscout/ui';
@@ -88,6 +89,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   hypotheses,
   hasStagedData,
 }) => {
+  const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const shareButtonRef = useRef<HTMLButtonElement>(null);
@@ -129,8 +131,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       <button
         onClick={onNewAnalysis}
         className="flex items-center gap-2 sm:gap-3 group hover:opacity-90 transition-opacity"
-        title="New Analysis"
-        aria-label="New Analysis"
+        title={t('nav.newAnalysis')}
+        aria-label={t('nav.newAnalysis')}
       >
         <div className="p-1.5 sm:p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/30 transition-shadow">
           <Activity className="text-white" size={18} />
@@ -199,7 +201,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 {onToggleDataPanel && (
                   <IconButton
                     icon={<Table2 size={18} />}
-                    title={isDataPanelOpen ? 'Hide Data Table' : 'Show Data Table'}
+                    title={isDataPanelOpen ? t('data.hideDataTable') : t('data.showDataTable')}
                     onClick={onToggleDataPanel}
                     isActive={isDataPanelOpen}
                   />
@@ -214,8 +216,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                         ? 'text-blue-400 bg-blue-400/10'
                         : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
                     }`}
-                    title={isFindingsPanelOpen ? 'Hide Findings' : 'Show Findings'}
-                    aria-label={isFindingsPanelOpen ? 'Hide Findings' : 'Show Findings'}
+                    title={isFindingsPanelOpen ? t('nav.hideFindings') : t('panel.findings')}
+                    aria-label={isFindingsPanelOpen ? t('nav.hideFindings') : t('panel.findings')}
                     aria-pressed={isFindingsPanelOpen}
                   >
                     <ClipboardList size={16} />
@@ -232,8 +234,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                         ? 'text-blue-400 bg-blue-400/10'
                         : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
                     }`}
-                    title="What-If Simulator"
-                    aria-label="What-If Simulator"
+                    title={t('panel.whatIf')}
+                    aria-label={t('panel.whatIf')}
                   >
                     <Beaker size={16} />
                     <span className="hidden lg:inline">What-If</span>
@@ -243,14 +245,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 {/* Fullscreen / Presentation Mode */}
                 <IconButton
                   icon={<Maximize size={18} />}
-                  title="Presentation Mode"
+                  title={t('nav.presentationMode')}
                   onClick={onEnterPresentationMode}
                 />
 
                 {/* Export */}
                 <IconButton
                   icon={<Share2 size={18} />}
-                  title="Export"
+                  title={t('nav.export')}
                   onClick={() => setIsShareOpen(true)}
                   buttonRef={shareButtonRef}
                 />
@@ -258,7 +260,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 {/* Settings */}
                 <IconButton
                   icon={<Settings size={18} />}
-                  title="Settings"
+                  title={t('nav.settings')}
                   onClick={onOpenSettings}
                 />
               </div>
@@ -269,8 +271,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="p-2 text-content-secondary hover:text-white hover:bg-surface-secondary rounded-lg transition-colors touch-feedback"
-                title="Menu"
-                aria-label="Menu"
+                title={t('nav.menu')}
+                aria-label={t('nav.menu')}
                 aria-expanded={isMobileMenuOpen}
                 style={{ minWidth: 44, minHeight: 44 }}
               >

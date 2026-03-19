@@ -261,6 +261,7 @@ export const da: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
   'table.page': 'Page {page} of {total}',
@@ -310,4 +311,275 @@ export const da: MessageCatalog = {
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
+  'chart.label.target': 'Målværdi:',
+
+  // Chart limit labels (colon-suffixed for SVG rendering)
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': 'Gns.:',
+  'chart.label.tgt': 'Mål:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': 'Værdi:',
+  'chart.label.n': 'n:',
+
+  // Chart status & empty states
+  'chart.status.inControl': 'Under kontrol',
+  'chart.status.outOfControl': 'Ude af kontrol (ud over UCL/LCL)',
+  'chart.noDataProbPlot': 'Ingen data tilgængelige for sandsynlighedsplot',
+
+  // Chart edit affordances
+  'chart.edit.spec': 'Klik for at redigere {spec}',
+  'chart.edit.axisLabel': 'Klik for at redigere aksemærkat',
+  'chart.edit.yAxis': 'Klik for at redigere Y-aksens skala',
+  'chart.edit.saveCancel': 'Enter for at gemme · Esc for at annullere',
+
+  // Performance table headers
+  'chart.table.channel': 'Kanal',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'Kopiér diagram til udklipsholder',
+  'chart.maximize': 'Maksimer diagram',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ detaljér her',
+  'chart.percent': 'Procent',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Y-aksens skala',
+  'validation.minLessThanMax': 'Min skal være mindre end Maks',
+  'action.noChanges': 'Ingen ændringer',
+
+  // Create factor modal
+  'factor.create': 'Opret faktor fra markering',
+  'factor.name': 'Faktornavn',
+  'factor.nameEmpty': 'Faktornavn kan ikke være tomt',
+  'factor.nameExists': 'En faktor med dette navn findes allerede',
+  'factor.example': 'f.eks. Hændelser med høj temperatur',
+  'factor.pointsMarked': '{count} punkter markeres som:',
+  'factor.createAndFilter': 'Opret og filtrér',
+  'factor.filterExplanation': 'Visningen filtreres automatisk til kun at vise de valgte punkter.',
+
+  // Characteristic type selector
+  'charType.nominal': 'Nominal',
+  'charType.nominalDesc': 'Målcentreret (f.eks. påfyldningsvægt)',
+  'charType.smaller': 'Mindre er bedre',
+  'charType.smallerDesc': 'Lavere er bedre (f.eks. defekter)',
+  'charType.larger': 'Større er bedre',
+  'charType.largerDesc': 'Højere er bedre (f.eks. udbytte)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt':
+    'Sporer din undersøgelse — åbn Undersøgelsespanelet for at se det fulde billede.',
+
+  // Mobile category sheet
+  'chart.highlight': 'Fremhæv:',
+  'chart.highlightRed': 'Rød',
+  'chart.highlightAmber': 'Rav',
+  'chart.highlightGreen': 'Grøn',
+  'chart.clearHighlight': 'Fjern fremhævning',
+  'chart.drillDown': 'Detaljér i "{category}"',
+  'ai.askCoScout': 'Spørg CoScout om dette',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'Bevarer skalaen til visuel sammenligning',
+  'display.filterContextDesc': 'Vis aktiv filteroversigt under diagramoverskrifter',
+
+  // Performance detected modal
+  'performance.detected': 'Performance-tilstand registreret',
+  'performance.columnsFound': '{count} målekolonner fundet',
+  'performance.labelQuestion': 'Hvad repræsenterer disse målekanaler?',
+  'performance.labelExample': 'f.eks. Fyldehoved, Kavitet, Dyse',
+  'performance.enable': 'Aktivér Performance-tilstand',
+
+  // Finding editor & data types
+  'finding.placeholder': 'Hvad fandt du?',
+  'finding.note': 'Fundnote',
+  'data.typeNumeric': 'Numerisk',
+  'data.typeCategorical': 'Kategorisk',
+  'data.typeDate': 'Dato',
+  'data.typeText': 'Tekst',
+  'data.categories': 'kategorier',
+
+  // Coaching text (scenario × phase)
+  'coach.problem.frame': 'Opsæt dine data for at begynde at undersøge problemet.',
+  'coach.problem.scout': 'Led efter variationsmønstre, der kan forklare problemet.',
+  'coach.problem.investigate': 'Opbyg beviser, der kobler faktorer til problemet.',
+  'coach.problem.improve': 'Planlæg og gennemfør forbedringer med PDCA-cyklussen.',
+  'coach.hypothesis.frame': 'Opsæt dine data for at teste din hypotese.',
+  'coach.hypothesis.scout': 'Led efter beviser, der understøtter eller modsiger din hypotese.',
+  'coach.hypothesis.investigate':
+    'Indsaml statistiske beviser for at bekræfte den mistænkte årsag.',
+  'coach.hypothesis.improve': 'Årsag bekræftet — planlæg korrigerende handlinger via PDCA.',
+  'coach.routine.frame': 'Opsæt dine data til en rutinekontrol af processen.',
+  'coach.routine.scout': 'Scan efter nye signaler, drift eller uventede mønstre.',
+  'coach.routine.investigate': 'Et signal blev fundet — undersøg potentielle årsager.',
+  'coach.routine.improve': 'Årsag identificeret — planlæg korrigerende handlinger via PDCA.',
+
+  // PWA HomeScreen
+  'home.heading': 'Udforsk variationsanalyse',
+  'home.description':
+    'Gratis uddannelsesværktøj til variationsanalyse. Visualisér variabilitet, beregn duelighed og find ud af, hvor du skal fokusere — direkte i din browser.',
+  'home.divider': 'eller brug dine egne data',
+  'home.pasteHelper': 'Kopiér rækker og indsæt — vi registrerer kolonner automatisk',
+  'home.manualEntry': 'Eller indtast data manuelt',
+  'home.upgradeHint': 'Har du brug for teamfunktioner, filupload eller gemte projekter?',
+
+  // PWA navigation
+  'nav.presentationMode': 'Præsentationstilstand',
+  'nav.hideFindings': 'Skjul fund',
+
+  // Export
+  'export.asImage': 'Eksportér som billede',
+  'export.asCsv': 'Eksportér som CSV',
+  'export.imageDesc': 'PNG-skærmbillede til præsentationer',
+  'export.csvDesc': 'Regnearkskompatibel datafil',
+
+  // Sample section
+  'sample.heading': 'Prøv et eksempeldatasæt',
+  'sample.allSamples': 'Alle eksempeldatasæt',
+  'sample.featured': 'Fremhævet',
+  'sample.caseStudies': 'Casestudier',
+  'sample.journeys': 'Læringsrejser',
+  'sample.industry': 'Brancheeksempler',
+
+  // View modes (additional)
+  'view.stats': 'Statistik',
+
+  // Display (additional)
+  'display.appearance': 'Udseende',
+
+  // Azure toolbar
+  'data.manualEntry': 'Manuel indtastning',
+  'data.editTable': 'Redigér datatabel',
+  'toolbar.saveAs': 'Gem som…',
+  'toolbar.saving': 'Gemmer…',
+  'toolbar.saved': 'Gemt',
+  'toolbar.saveFailed': 'Gem fejlede',
+  'toolbar.addMore': 'Tilføj data',
+  'report.scouting': 'Scouting-rapport',
+  'export.csvFiltered': 'Eksportér filtrerede data som CSV',
+  'error.auth': 'Autentificeringsfejl',
+
+  // File browse
+  'file.browseLocal': 'Gennemse denne enhed',
+  'file.browseSharePoint': 'Gennemse SharePoint',
+  'file.open': 'Åbn fil',
+
+  // Admin hub
+  'admin.title': 'Administration',
+  'admin.status': 'Status',
+  'admin.plan': 'Plan og funktioner',
+  'admin.teams': 'Teams-opsætning',
+  'admin.knowledge': 'Knowledge Base',
+  'admin.troubleshooting': 'Fejlfinding',
+
+  // Admin plan tab
+  'admin.currentPlan': 'Nuværende',
+  'admin.feature': 'Funktion',
+  'admin.manageSubscription': 'Administrér abonnement i Azure',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/md.',
+  'admin.planTeamPrice': '€199/md.',
+  'admin.planTeamAIPrice': '€279/md.',
+  'admin.planStandardDesc': 'Fuld analyse, lokal fillagring',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, mobil',
+  'admin.planTeamAIDesc': 'AI Knowledge Base, forbedret CoScout',
+
+  // Feature names (plan matrix)
+  'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
+  'feature.capability': 'Duelighedsanalyse (Cp/Cpk)',
+  'feature.performance': 'Performance-tilstand (flerkanal)',
+  'feature.anova': 'ANOVA og faktoranalyse',
+  'feature.findingsWorkflow': 'Arbejdsgang for fund og undersøgelse',
+  'feature.whatIf': 'What-If-simulering',
+  'feature.csvImport': 'CSV/Excel-import',
+  'feature.reportExport': 'Rapporteksport (PDF)',
+  'feature.indexedDb': 'Lokal lagring IndexedDB',
+  'feature.maxFactors': 'Op til 6 faktorer',
+  'feature.maxRows': 'Op til 100K rækker',
+  'feature.onedriveSync': 'OneDrive-projektsynkronisering',
+  'feature.sharepointPicker': 'SharePoint-filvælger',
+  'feature.teamsIntegration': 'Microsoft Teams-integration',
+  'feature.channelCollab': 'Kanalbaseret samarbejde',
+  'feature.mobileUi': 'Mobiloptimeret brugerflade',
+  'feature.coScoutAi': 'CoScout AI-assistent',
+  'feature.narrativeBar': 'NarrativeBar-indsigter',
+  'feature.chartInsights': 'Diagramindsigts-chips',
+  'feature.knowledgeBase': 'Knowledge Base (SharePoint-søgning)',
+  'feature.aiActions': 'AI-foreslåede handlinger',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'Tilføj VariScout til Microsoft Teams',
+  'admin.teams.description':
+    'Generér en Teams-app-pakke til din implementering og upload den til Teams administrationscenter.',
+  'admin.teams.running': 'Kører inde i Microsoft Teams',
+  'admin.teams.step1': 'Appregistrerings klient-ID (valgfrit)',
+  'admin.teams.step1Desc':
+    'Indtast dit Azure AD Appregistrerings klient-ID for at aktivere Teams SSO i manifestet.',
+  'admin.teams.step2': 'Download Teams-app-pakken',
+  'admin.teams.step2Desc':
+    'Denne .zip indeholder manifestet og ikoner forudkonfigureret til din implementering.',
+  'admin.teams.step3': 'Upload til Teams administrationscenter',
+  'admin.teams.step4': 'Tilføj VariScout til en kanal',
+  'admin.teams.download': 'Download Teams-app-pakke',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} kontroller bestået',
+  'admin.runChecks': 'Kør alle kontroller',
+  'admin.notApplicable': 'Ikke relevant for din plan',
+  'admin.managePortal': 'Administrér i Azure Portal',
+  'admin.portalAccessNote':
+    'Disse elementer kræver adgang til Azure Portal og kan ikke kontrolleres fra browseren.',
+  'admin.fixInPortal': 'Ret i Azure Portal: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'Almindelige problemer og hvordan de løses. Klik på et problem for trin-for-trin-instruktioner.',
+  'admin.runCheck': 'Kør kontrol',
+  'admin.checkPassed': 'Kontrol bestået — dette er muligvis ikke problemet.',
+  'admin.checkFailed': 'Kontrol fejlede — følg trinnene nedenfor.',
+  'admin.issue.signin': 'Brugere kan ikke logge ind',
+  'admin.issue.signinDesc': 'Azure AD-autentificering virker ikke, eller brugerne ser en tom side.',
+  'admin.issue.signinSteps':
+    'Bekræft at App Service-autentificering er aktiveret i Azure Portal.\nKontrollér at Azure AD-appregistreringen har de korrekte omdirigerings-URI\'er.\nSørg for at appregistreringen har "ID-tokens" aktiveret under Autentificering.\nBekræft at lejeren tillader brugerlogon til appen (Virksomhedsapplikationer → Egenskaber → Aktiveret for brugerlogon).',
+  'admin.issue.onedrive': 'OneDrive-synkronisering virker ikke',
+  'admin.issue.onedriveDesc':
+    'Projekter synkroniseres ikke til OneDrive, eller brugerne ser rettighedsfejl.',
+  'admin.issue.onedriveSteps':
+    'Bekræft at appregistreringen har den delegerede rettighed "Files.ReadWrite".\nKontrollér at administratorsamtykke er givet for Graph-rettighederne.\nSørg for at brugeren har en tildelt OneDrive-licens.\nPrøv at logge ud og logge ind igen for at opdatere token.',
+  'admin.issue.coscout': 'CoScout svarer ikke',
+  'admin.issue.coscoutDesc': 'AI-assistenten genererer ikke svar eller viser fejl.',
+  'admin.issue.coscoutSteps':
+    'Bekræft at AI-slutpunktet er konfigureret i ARM-skabelonen / App Service-indstillinger.\nKontrollér at Azure AI Services-ressourcen er implementeret og kører.\nBekræft at modelimplementeringen findes (f.eks. gpt-4o) i AI Services-ressourcen.\nKontrollér Azure AI Services-kvoter — implementeringen kan have nået hastighedsgrænser.',
+  'admin.issue.kbEmpty': 'Knowledge Base returnerer ingen resultater',
+  'admin.issue.kbEmptyDesc':
+    'CoScouts "Søg i Knowledge Base" finder intet på trods af eksisterende dokumenter.',
+  'admin.issue.kbEmptySteps':
+    'Bekræft at AI Search-slutpunktet er konfigureret i App Service-indstillinger.\nKontrollér at Remote SharePoint-videnkilden er oprettet i AI Search.\nSørg for at mindst 1 Microsoft 365 Copilot-licens er aktiv i lejeren.\nBekræft at brugeren har SharePoint-adgang til de dokumenter, der søges i.\nKontrollér at Knowledge Base-forhåndsvisningskontakten er aktiveret (Administration → fanen Knowledge Base).',
+  'admin.issue.teamsTab': 'Teams-fane vises ikke',
+  'admin.issue.teamsTabDesc': 'VariScout vises ikke i Teams, eller fanen kan ikke indlæses.',
+  'admin.issue.teamsTabSteps':
+    'Bekræft at Teams-app-pakken (.zip) er uploadet til Teams administrationscenter.\nKontrollér at contentUrl i manifest.json matcher din App Service-URL.\nSørg for at appen er godkendt i Teams administrationscenter (ikke blokeret af politik).\nPrøv at fjerne og tilføje fanen igen i kanalen.\nHvis du bruger et brugerdefineret domæne, bekræft at det er i manifestets validDomains-array.',
+  'admin.issue.newUser': 'Ny bruger kan ikke få adgang til appen',
+  'admin.issue.newUserDesc': 'En nyligt tilføjet bruger ser adgang nægtet eller en tom side.',
+  'admin.issue.newUserSteps':
+    'I Azure AD, gå til Virksomhedsapplikationer → VariScout → Brugere og grupper.\nTilføj brugeren eller deres sikkerhedsgruppe til appen.\nHvis du bruger "Brugertildeling påkrævet", sørg for at brugeren har en tildeling.\nKontrollér politikker for betinget adgang, der kan blokere brugeren.',
+  'admin.issue.aiSlow': 'AI-svar er langsomme',
+  'admin.issue.aiSlowDesc': 'CoScout er lang tid om at svare eller får ofte timeout.',
+  'admin.issue.aiSlowSteps':
+    'Kontrollér Azure AI Services-implementeringsregionen — forsinkelsen stiger med afstanden.\nBekræft at modelimplementeringen har tilstrækkelig TPM (tokens per minut)-kvote.\nOvervej at opgradere til en provisioneret gennemstrømningsimplementering for konsekvent forsinkelse.\nKontrollér om AI Search-indekset er stort — overvej at optimere videnkilden.',
+  'admin.issue.forbidden': '"Forbidden"-fejl',
+  'admin.issue.forbiddenDesc': 'Brugere ser 403-fejl ved adgang til bestemte funktioner.',
+  'admin.issue.forbiddenSteps':
+    'Kontrollér at alle nødvendige Graph API-rettigheder har administratorsamtykke.\nBekræft at App Service-autentificeringens tokenlager er aktiveret.\nSørg for at brugerens token ikke er udløbet — prøv at logge ud og logge ind igen.\nKontrollér politikker for betinget adgang for lejeren.',
+  'admin.issue.kbPartial': 'KB virker ikke for nogle brugere',
+  'admin.issue.kbPartialDesc':
+    'Knowledge Base-søgning virker for administratorer, men ikke for andre brugere.',
+  'admin.issue.kbPartialSteps':
+    'Remote SharePoint-videnkilder bruger rettigheder per bruger. Hver bruger skal have SharePoint-adgang til dokumenterne.\nKontrollér om de berørte brugere er blokeret af politikker for betinget adgang.\nBekræft at administratorsamtykke er givet for den delegerede rettighed Sites.Read.All.\nBed de berørte brugere om at logge ud og logge ind igen for at opdatere deres token.',
 };

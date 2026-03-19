@@ -286,6 +286,7 @@ export const es: MessageCatalog = {
   'ai.tool.shareFinding': 'Compartir hallazgo',
   'ai.tool.publishReport': 'Publicar informe',
   'ai.tool.notifyOwners': 'Notificar a responsables',
+  'ai.tool.suggestIdea': 'Sugerir idea de mejora',
 
   // Report
   'report.kpi.inSpec': 'Dentro de espec.',
@@ -351,4 +352,277 @@ export const es: MessageCatalog = {
   // Parameterized messages
   'data.rowsLoaded': '{count} filas cargadas',
   'findings.countLabel': '{count} hallazgos',
+
+  // Chart limit labels
+  'chart.label.ucl': 'LSC:',
+  'chart.label.lcl': 'LIC:',
+  'chart.label.mean': 'Media:',
+  'chart.label.tgt': 'Obj:',
+  'chart.label.usl': 'LSE:',
+  'chart.label.lsl': 'LIE:',
+  'chart.label.value': 'Valor:',
+  'chart.label.n': 'n:',
+  'chart.label.target': 'Objetivo:',
+
+  // Chart status
+  'chart.status.inControl': 'Bajo control',
+  'chart.status.outOfControl': 'Fuera de control (más allá de LSC/LIC)',
+  'chart.noDataProbPlot': 'No hay datos disponibles para el gráfico de probabilidad',
+
+  // Chart edit affordances
+  'chart.edit.spec': 'Clic para editar {spec}',
+  'chart.edit.axisLabel': 'Clic para editar etiqueta del eje',
+  'chart.edit.yAxis': 'Clic para editar escala del eje Y',
+  'chart.edit.saveCancel': 'Enter para guardar · Esc para cancelar',
+
+  // Performance table headers
+  'chart.table.channel': 'Canal',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'Copiar gráfico al portapapeles',
+  'chart.maximize': 'Maximizar gráfico',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ explorar aquí',
+  'chart.percent': 'Porcentaje',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Escala del eje Y',
+  'validation.minLessThanMax': 'Mín debe ser menor que Máx',
+  'action.noChanges': 'Sin cambios',
+
+  // Create factor modal
+  'factor.create': 'Crear factor a partir de selección',
+  'factor.name': 'Nombre del factor',
+  'factor.nameEmpty': 'El nombre del factor no puede estar vacío',
+  'factor.nameExists': 'Ya existe un factor con este nombre',
+  'factor.example': 'p. ej., Eventos de alta temperatura',
+  'factor.pointsMarked': '{count} puntos se marcarán como:',
+  'factor.createAndFilter': 'Crear y filtrar',
+  'factor.filterExplanation':
+    'La vista se filtrará automáticamente para mostrar solo los puntos seleccionados.',
+
+  // Characteristic type selector
+  'charType.nominal': 'Nominal',
+  'charType.nominalDesc': 'Centrado en objetivo (p. ej., peso de llenado)',
+  'charType.smaller': 'Menor es mejor',
+  'charType.smallerDesc': 'Más bajo es mejor (p. ej., defectos)',
+  'charType.larger': 'Mayor es mejor',
+  'charType.largerDesc': 'Más alto es mejor (p. ej., rendimiento)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt':
+    'Seguimiento de su investigación — abra el panel de investigación para ver el panorama completo.',
+
+  // Mobile category sheet
+  'chart.highlight': 'Resaltar:',
+  'chart.highlightRed': 'Rojo',
+  'chart.highlightAmber': 'Ámbar',
+  'chart.highlightGreen': 'Verde',
+  'chart.clearHighlight': 'Quitar resaltado',
+  'chart.drillDown': 'Explorar en "{category}"',
+  'ai.askCoScout': 'Preguntar a CoScout sobre esto',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'Mantiene la escala para comparación visual',
+  'display.filterContextDesc':
+    'Mostrar resumen de filtros activos debajo de los encabezados de gráficos',
+
+  // Performance detected modal
+  'performance.detected': 'Modo de rendimiento detectado',
+  'performance.columnsFound': '{count} columnas de medición encontradas',
+  'performance.labelQuestion': '¿Qué representan estos canales de medición?',
+  'performance.labelExample': 'p. ej., Cabezal de llenado, Cavidad, Boquilla',
+  'performance.enable': 'Activar modo de rendimiento',
+
+  // Finding editor & data types
+  'finding.placeholder': '¿Qué encontró?',
+  'finding.note': 'Nota del hallazgo',
+  'data.typeNumeric': 'Numérico',
+  'data.typeCategorical': 'Categórico',
+  'data.typeDate': 'Fecha',
+  'data.typeText': 'Texto',
+  'data.categories': 'categorías',
+
+  // Coaching text
+  'coach.problem.frame': 'Configure sus datos para comenzar a investigar el problema.',
+  'coach.problem.scout': 'Busque patrones de variación que puedan explicar el problema.',
+  'coach.problem.investigate': 'Construya evidencia que vincule los factores con el problema.',
+  'coach.problem.improve': 'Planifique y ejecute mejoras usando el ciclo PDCA.',
+  'coach.hypothesis.frame': 'Configure sus datos para probar su hipótesis.',
+  'coach.hypothesis.scout': 'Busque evidencia que respalde o refute su hipótesis.',
+  'coach.hypothesis.investigate': 'Reúna evidencia estadística para confirmar la causa sospechada.',
+  'coach.hypothesis.improve': 'Causa confirmada — planifique acciones correctivas vía PDCA.',
+  'coach.routine.frame': 'Configure sus datos para una verificación rutinaria del proceso.',
+  'coach.routine.scout': 'Busque nuevas señales, derivas o patrones inesperados.',
+  'coach.routine.investigate': 'Se encontró una señal — investigue las causas potenciales.',
+  'coach.routine.improve': 'Causa identificada — planifique acciones correctivas vía PDCA.',
+
+  // PWA HomeScreen
+  'home.heading': 'Explorar análisis de variación',
+  'home.description':
+    'Herramienta gratuita de formación en análisis de variación. Visualice la variabilidad, calcule la capacidad y encuentre dónde enfocarse — directamente en su navegador.',
+  'home.divider': 'o use sus propios datos',
+  'home.pasteHelper': 'Copie filas y pegue — detectaremos las columnas automáticamente',
+  'home.manualEntry': 'O ingrese datos manualmente',
+  'home.upgradeHint': '¿Necesita funciones de equipo, carga de archivos o proyectos guardados?',
+
+  // PWA navigation
+  'nav.presentationMode': 'Modo presentación',
+  'nav.hideFindings': 'Ocultar hallazgos',
+
+  // Export
+  'export.asImage': 'Exportar como imagen',
+  'export.asCsv': 'Exportar como CSV',
+  'export.imageDesc': 'Captura PNG para presentaciones',
+  'export.csvDesc': 'Archivo de datos compatible con hojas de cálculo',
+
+  // Sample section
+  'sample.heading': 'Pruebe un conjunto de datos de ejemplo',
+  'sample.allSamples': 'Todos los conjuntos de datos de ejemplo',
+  'sample.featured': 'Destacados',
+  'sample.caseStudies': 'Casos de estudio',
+  'sample.journeys': 'Recorridos de aprendizaje',
+  'sample.industry': 'Ejemplos de industria',
+
+  // View modes
+  'view.stats': 'Estadísticas',
+  'display.appearance': 'Apariencia',
+
+  // Azure toolbar
+  'data.manualEntry': 'Entrada manual',
+  'data.editTable': 'Editar tabla de datos',
+  'toolbar.saveAs': 'Guardar como…',
+  'toolbar.saving': 'Guardando…',
+  'toolbar.saved': 'Guardado',
+  'toolbar.saveFailed': 'Error al guardar',
+  'toolbar.addMore': 'Agregar datos',
+  'report.scouting': 'Informe de exploración',
+  'export.csvFiltered': 'Exportar datos filtrados como CSV',
+  'error.auth': 'Error de autenticación',
+
+  // File browse
+  'file.browseLocal': 'Explorar este dispositivo',
+  'file.browseSharePoint': 'Explorar SharePoint',
+  'file.open': 'Abrir archivo',
+
+  // Admin hub
+  'admin.title': 'Admin',
+  'admin.status': 'Estado',
+  'admin.plan': 'Plan y funciones',
+  'admin.teams': 'Configuración de Teams',
+  'admin.knowledge': 'Base de conocimiento',
+  'admin.troubleshooting': 'Solución de problemas',
+
+  // Admin plan tab
+  'admin.currentPlan': 'Actual',
+  'admin.feature': 'Función',
+  'admin.manageSubscription': 'Gestionar suscripción en Azure',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/mes',
+  'admin.planTeamPrice': '€199/mes',
+  'admin.planTeamAIPrice': '€279/mes',
+  'admin.planStandardDesc': 'Análisis completo, almacenamiento local de archivos',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, móvil',
+  'admin.planTeamAIDesc': 'Base de conocimiento AI, CoScout mejorado',
+
+  // Feature names
+  'feature.charts': 'I-Chart, Boxplot, Pareto, Estadísticas',
+  'feature.capability': 'Análisis de capacidad (Cp/Cpk)',
+  'feature.performance': 'Modo rendimiento (multicanal)',
+  'feature.anova': 'ANOVA y análisis factorial',
+  'feature.findingsWorkflow': 'Hallazgos y flujo de investigación',
+  'feature.whatIf': 'Simulación qué pasaría si',
+  'feature.csvImport': 'Importación CSV/Excel',
+  'feature.reportExport': 'Exportación de informes (PDF)',
+  'feature.indexedDb': 'Almacenamiento local IndexedDB',
+  'feature.maxFactors': 'Hasta 6 factores',
+  'feature.maxRows': 'Hasta 100K filas',
+  'feature.onedriveSync': 'Sincronización de proyectos OneDrive',
+  'feature.sharepointPicker': 'Selector de archivos SharePoint',
+  'feature.teamsIntegration': 'Integración con Microsoft Teams',
+  'feature.channelCollab': 'Colaboración basada en canales',
+  'feature.mobileUi': 'Interfaz optimizada para móvil',
+  'feature.coScoutAi': 'Asistente CoScout AI',
+  'feature.narrativeBar': 'Información de NarrativeBar',
+  'feature.chartInsights': 'Chips de información de gráficos',
+  'feature.knowledgeBase': 'Base de conocimiento (búsqueda SharePoint)',
+  'feature.aiActions': 'Acciones sugeridas por IA',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'Agregar VariScout a Microsoft Teams',
+  'admin.teams.description':
+    'Genere un paquete de aplicación Teams para su implementación y cárguelo en su centro de administración de Teams.',
+  'admin.teams.running': 'Ejecutándose dentro de Microsoft Teams',
+  'admin.teams.step1': 'ID de cliente del registro de aplicación (Opcional)',
+  'admin.teams.step1Desc':
+    'Ingrese su ID de cliente del registro de aplicación Azure AD para habilitar SSO de Teams en el manifiesto.',
+  'admin.teams.step2': 'Descargar paquete de aplicación Teams',
+  'admin.teams.step2Desc':
+    'Este .zip contiene el manifiesto e iconos preconfigurados para su implementación.',
+  'admin.teams.step3': 'Cargar en el centro de administración de Teams',
+  'admin.teams.step4': 'Agregar VariScout a un canal',
+  'admin.teams.download': 'Descargar paquete de aplicación Teams',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} verificaciones aprobadas',
+  'admin.runChecks': 'Ejecutar todas las verificaciones',
+  'admin.notApplicable': 'No aplica para su plan',
+  'admin.managePortal': 'Gestionar en Azure Portal',
+  'admin.portalAccessNote':
+    'Estos elementos requieren acceso al Azure Portal y no se pueden verificar desde el navegador.',
+  'admin.fixInPortal': 'Corregir en Azure Portal: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'Problemas comunes y cómo solucionarlos. Haga clic en un problema para ver instrucciones paso a paso.',
+  'admin.runCheck': 'Ejecutar verificación',
+  'admin.checkPassed': 'Verificación aprobada — puede que este no sea el problema.',
+  'admin.checkFailed': 'Verificación fallida — siga los pasos a continuación.',
+  'admin.issue.signin': 'Los usuarios no pueden iniciar sesión',
+  'admin.issue.signinDesc':
+    'La autenticación de Azure AD no funciona o los usuarios ven una página en blanco.',
+  'admin.issue.signinSteps':
+    'Verifique que la autenticación de App Service esté habilitada en Azure Portal.\nCompruebe que el registro de aplicación Azure AD tenga las URIs de redirección correctas.\nAsegúrese de que el registro de aplicación tenga "Tokens de ID" habilitados en Autenticación.\nVerifique que el inquilino permita el inicio de sesión de usuarios en la aplicación (Aplicaciones empresariales → Propiedades → Habilitado para que los usuarios inicien sesión).',
+  'admin.issue.onedrive': 'La sincronización de OneDrive no funciona',
+  'admin.issue.onedriveDesc':
+    'Los proyectos no se sincronizan con OneDrive o los usuarios ven errores de permisos.',
+  'admin.issue.onedriveSteps':
+    'Verifique que el registro de aplicación tenga el permiso delegado "Files.ReadWrite".\nCompruebe que se haya otorgado consentimiento de administrador para los permisos de Graph.\nAsegúrese de que el usuario tenga una licencia de OneDrive asignada.\nIntente cerrar sesión y volver a iniciar sesión para actualizar el token.',
+  'admin.issue.coscout': 'CoScout no responde',
+  'admin.issue.coscoutDesc': 'El asistente de IA no genera respuestas o muestra errores.',
+  'admin.issue.coscoutSteps':
+    'Verifique que el endpoint de IA esté configurado en la plantilla ARM / configuración de App Service.\nCompruebe que el recurso Azure AI Services esté implementado y en funcionamiento.\nVerifique que la implementación del modelo exista (p. ej., gpt-4o) en el recurso AI Services.\nRevise las cuotas de Azure AI Services — la implementación puede haber alcanzado los límites de tasa.',
+  'admin.issue.kbEmpty': 'La base de conocimiento no devuelve resultados',
+  'admin.issue.kbEmptyDesc':
+    '"Buscar base de conocimiento" de CoScout no encuentra nada a pesar de existir documentos.',
+  'admin.issue.kbEmptySteps':
+    'Verifique que el endpoint de AI Search esté configurado en la configuración de App Service.\nCompruebe que la fuente de conocimiento remota de SharePoint se haya creado en AI Search.\nAsegúrese de que ≥1 licencia de Microsoft 365 Copilot esté activa en el inquilino.\nVerifique que el usuario tenga acceso SharePoint a los documentos buscados.\nCompruebe que el interruptor de vista previa de la base de conocimiento esté habilitado (Admin → pestaña Base de conocimiento).',
+  'admin.issue.teamsTab': 'La pestaña de Teams no se muestra',
+  'admin.issue.teamsTabDesc': 'VariScout no aparece en Teams o la pestaña no se carga.',
+  'admin.issue.teamsTabSteps':
+    'Verifique que el paquete de aplicación Teams (.zip) se haya cargado en el centro de administración de Teams.\nCompruebe que el contentUrl en manifest.json coincida con la URL de su App Service.\nAsegúrese de que la aplicación esté aprobada en el centro de administración de Teams (no bloqueada por política).\nIntente eliminar y volver a agregar la pestaña en el canal.\nSi usa un dominio personalizado, verifique que esté en el array validDomains del manifiesto.',
+  'admin.issue.newUser': 'Un nuevo usuario no puede acceder a la aplicación',
+  'admin.issue.newUserDesc':
+    'Un usuario recién agregado ve acceso denegado o una página en blanco.',
+  'admin.issue.newUserSteps':
+    'En Azure AD, vaya a Aplicaciones empresariales → VariScout → Usuarios y grupos.\nAgregue el usuario o su grupo de seguridad a la aplicación.\nSi usa "Asignación de usuario requerida", asegúrese de que el usuario tenga una asignación.\nRevise las políticas de acceso condicional que podrían bloquear al usuario.',
+  'admin.issue.aiSlow': 'Las respuestas de IA son lentas',
+  'admin.issue.aiSlowDesc':
+    'CoScout tarda mucho en responder o tiene tiempos de espera frecuentes.',
+  'admin.issue.aiSlowSteps':
+    'Verifique la región de implementación de Azure AI Services — la latencia aumenta con la distancia.\nCompruebe que la implementación del modelo tenga cuota suficiente de TPM (tokens por minuto).\nConsidere actualizar a una implementación de rendimiento aprovisionado para latencia consistente.\nVerifique si el índice de AI Search es grande — considere optimizar la fuente de conocimiento.',
+  'admin.issue.forbidden': 'Errores "Forbidden"',
+  'admin.issue.forbiddenDesc': 'Los usuarios ven errores 403 al acceder a ciertas funciones.',
+  'admin.issue.forbiddenSteps':
+    'Verifique que todos los permisos requeridos de Graph API tengan consentimiento de administrador.\nCompruebe que el almacén de tokens de autenticación de App Service esté habilitado.\nAsegúrese de que el token del usuario no haya expirado — intente cerrar sesión y volver a iniciar sesión.\nRevise las políticas de acceso condicional del inquilino.',
+  'admin.issue.kbPartial': 'KB falla para algunos usuarios',
+  'admin.issue.kbPartialDesc':
+    'La búsqueda en la base de conocimiento funciona para administradores pero no para otros usuarios.',
+  'admin.issue.kbPartialSteps':
+    'Las fuentes de conocimiento remotas de SharePoint usan permisos por usuario. Cada usuario debe tener acceso SharePoint a los documentos.\nVerifique si los usuarios afectados están bloqueados por políticas de acceso condicional.\nCompruebe que se haya otorgado consentimiento de administrador para el permiso delegado Sites.Read.All.\nPida a los usuarios afectados que cierren sesión y vuelvan a iniciar sesión para actualizar su token.',
 };

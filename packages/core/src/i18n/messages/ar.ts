@@ -284,6 +284,7 @@ export const ar: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
 
   // Report
   'report.kpi.inSpec': 'In Spec',
@@ -347,5 +348,268 @@ export const ar: MessageCatalog = {
 
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
-  'findings.countLabel': '{count} findings',
+  'findings.countLabel': '{count} نتائج',
+
+  // Chart limit labels
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': 'المتوسط:',
+  'chart.label.tgt': 'الهدف:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': 'القيمة:',
+  'chart.label.n': 'ن:',
+  'chart.label.target': 'الهدف:',
+
+  // Chart status
+  'chart.status.inControl': 'تحت السيطرة',
+  'chart.status.outOfControl': 'خارج السيطرة (تجاوز UCL/LCL)',
+  'chart.noDataProbPlot': 'لا تتوفر بيانات لرسم الاحتمالات',
+
+  // Chart edit affordances
+  'chart.edit.spec': 'انقر لتعديل {spec}',
+  'chart.edit.axisLabel': 'انقر لتعديل تسمية المحور',
+  'chart.edit.yAxis': 'انقر لتعديل مقياس المحور الصادي',
+  'chart.edit.saveCancel': 'Enter للحفظ · Esc للإلغاء',
+
+  // Performance table headers
+  'chart.table.channel': 'القناة',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'نسخ الرسم البياني إلى الحافظة',
+  'chart.maximize': 'تكبير الرسم البياني',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ التنقيب هنا',
+  'chart.percent': 'النسبة المئوية',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'مقياس المحور الصادي',
+  'validation.minLessThanMax': 'يجب أن يكون الحد الأدنى أقل من الحد الأقصى',
+  'action.noChanges': 'لا تغييرات',
+
+  // Create factor modal
+  'factor.create': 'إنشاء عامل من التحديد',
+  'factor.name': 'اسم العامل',
+  'factor.nameEmpty': 'لا يمكن أن يكون اسم العامل فارغًا',
+  'factor.nameExists': 'عامل بهذا الاسم موجود بالفعل',
+  'factor.example': 'مثال: أحداث الحرارة العالية',
+  'factor.pointsMarked': 'سيتم تمييز {count} نقطة كـ:',
+  'factor.createAndFilter': 'إنشاء وتصفية',
+  'factor.filterExplanation': 'سيتم تصفية العرض تلقائيًا لإظهار النقاط المحددة فقط.',
+
+  // Characteristic type selector
+  'charType.nominal': 'اسمي',
+  'charType.nominalDesc': 'متمركز حول الهدف (مثل وزن التعبئة)',
+  'charType.smaller': 'الأصغر أفضل',
+  'charType.smallerDesc': 'الأقل أفضل (مثل العيوب)',
+  'charType.larger': 'الأكبر أفضل',
+  'charType.largerDesc': 'الأعلى أفضل (مثل العائد)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt': 'جارٍ تتبع تحقيقك — افتح لوحة التحقيق لرؤية الصورة الكاملة.',
+
+  // Mobile category sheet
+  'chart.highlight': 'تمييز:',
+  'chart.highlightRed': 'أحمر',
+  'chart.highlightAmber': 'كهرماني',
+  'chart.highlightGreen': 'أخضر',
+  'chart.clearHighlight': 'إزالة التمييز',
+  'chart.drillDown': 'التنقيب في "{category}"',
+  'ai.askCoScout': 'اسأل CoScout عن هذا',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'يحافظ على المقياس للمقارنة البصرية',
+  'display.filterContextDesc': 'عرض ملخص التصفية النشط أسفل عناوين الرسوم البيانية',
+
+  // Performance detected modal
+  'performance.detected': 'تم اكتشاف وضع الأداء',
+  'performance.columnsFound': 'تم العثور على {count} أعمدة قياس',
+  'performance.labelQuestion': 'ماذا تمثل قنوات القياس هذه؟',
+  'performance.labelExample': 'مثال: رأس التعبئة، التجويف، الفوهة',
+  'performance.enable': 'تفعيل وضع الأداء',
+
+  // Finding editor & data types
+  'finding.placeholder': 'ماذا وجدت؟',
+  'finding.note': 'ملاحظة النتيجة',
+  'data.typeNumeric': 'رقمي',
+  'data.typeCategorical': 'فئوي',
+  'data.typeDate': 'تاريخ',
+  'data.typeText': 'نص',
+  'data.categories': 'فئات',
+
+  // Coaching text
+  'coach.problem.frame': 'قم بإعداد بياناتك لبدء التحقيق في المشكلة.',
+  'coach.problem.scout': 'ابحث عن أنماط التباين التي يمكن أن تفسر المشكلة.',
+  'coach.problem.investigate': 'ابنِ الأدلة التي تربط العوامل بالمشكلة.',
+  'coach.problem.improve': 'خطط ونفذ التحسينات باستخدام دورة PDCA.',
+  'coach.hypothesis.frame': 'قم بإعداد بياناتك لاختبار فرضيتك.',
+  'coach.hypothesis.scout': 'ابحث عن أدلة تدعم أو تدحض فرضيتك.',
+  'coach.hypothesis.investigate': 'اجمع أدلة إحصائية لتأكيد السبب المشتبه به.',
+  'coach.hypothesis.improve': 'تم تأكيد السبب — خطط إجراءات تصحيحية عبر PDCA.',
+  'coach.routine.frame': 'قم بإعداد بياناتك لفحص العملية الروتيني.',
+  'coach.routine.scout': 'ابحث عن إشارات جديدة أو انحراف أو أنماط غير متوقعة.',
+  'coach.routine.investigate': 'تم العثور على إشارة — تعمق في الأسباب المحتملة.',
+  'coach.routine.improve': 'تم تحديد السبب — خطط إجراءات تصحيحية عبر PDCA.',
+
+  // PWA HomeScreen
+  'home.heading': 'استكشف تحليل التباين',
+  'home.description':
+    'أداة تدريب مجانية لتحليل التباين. تصور التقلب، واحسب القدرة، واعثر على نقاط التركيز — مباشرة في متصفحك.',
+  'home.divider': 'أو استخدم بياناتك الخاصة',
+  'home.pasteHelper': 'انسخ الصفوف والصقها — سنكتشف الأعمدة تلقائيًا',
+  'home.manualEntry': 'أو أدخل البيانات يدويًا',
+  'home.upgradeHint': 'هل تحتاج ميزات الفريق أو تحميل الملفات أو المشاريع المحفوظة؟',
+
+  // PWA navigation
+  'nav.presentationMode': 'وضع العرض التقديمي',
+  'nav.hideFindings': 'إخفاء النتائج',
+
+  // Export
+  'export.asImage': 'تصدير كصورة',
+  'export.asCsv': 'تصدير كـ CSV',
+  'export.imageDesc': 'لقطة شاشة PNG للعروض التقديمية',
+  'export.csvDesc': 'ملف بيانات متوافق مع جداول البيانات',
+
+  // Sample section
+  'sample.heading': 'جرب مجموعة بيانات نموذجية',
+  'sample.allSamples': 'جميع مجموعات البيانات النموذجية',
+  'sample.featured': 'مميزة',
+  'sample.caseStudies': 'دراسات حالة',
+  'sample.journeys': 'رحلات تعليمية',
+  'sample.industry': 'أمثلة صناعية',
+
+  // View modes
+  'view.stats': 'إحصائيات',
+  'display.appearance': 'المظهر',
+
+  // Azure toolbar
+  'data.manualEntry': 'إدخال يدوي',
+  'data.editTable': 'تعديل جدول البيانات',
+  'toolbar.saveAs': 'حفظ باسم…',
+  'toolbar.saving': 'جارٍ الحفظ…',
+  'toolbar.saved': 'تم الحفظ',
+  'toolbar.saveFailed': 'فشل الحفظ',
+  'toolbar.addMore': 'إضافة بيانات',
+  'report.scouting': 'تقرير الاستكشاف',
+  'export.csvFiltered': 'تصدير البيانات المصفاة كـ CSV',
+  'error.auth': 'خطأ في المصادقة',
+
+  // File browse
+  'file.browseLocal': 'تصفح هذا الجهاز',
+  'file.browseSharePoint': 'تصفح SharePoint',
+  'file.open': 'فتح ملف',
+
+  // Admin hub
+  'admin.title': 'المسؤول',
+  'admin.status': 'الحالة',
+  'admin.plan': 'الخطة والميزات',
+  'admin.teams': 'إعداد Teams',
+  'admin.knowledge': 'قاعدة المعرفة',
+  'admin.troubleshooting': 'استكشاف الأخطاء',
+
+  // Admin plan tab
+  'admin.currentPlan': 'الحالية',
+  'admin.feature': 'الميزة',
+  'admin.manageSubscription': 'إدارة الاشتراك في Azure',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/شهر',
+  'admin.planTeamPrice': '€199/شهر',
+  'admin.planTeamAIPrice': '€279/شهر',
+  'admin.planStandardDesc': 'تحليل كامل، تخزين ملفات محلي',
+  'admin.planTeamDesc': 'Teams، OneDrive، SharePoint، الجوال',
+  'admin.planTeamAIDesc': 'قاعدة معرفة AI، CoScout محسّن',
+
+  // Feature names
+  'feature.charts': 'I-Chart، Boxplot، Pareto، إحصائيات',
+  'feature.capability': 'تحليل القدرة (Cp/Cpk)',
+  'feature.performance': 'وضع الأداء (متعدد القنوات)',
+  'feature.anova': 'ANOVA وتحليل العوامل',
+  'feature.findingsWorkflow': 'النتائج وسير عمل التحقيق',
+  'feature.whatIf': 'محاكاة ماذا لو',
+  'feature.csvImport': 'استيراد CSV/Excel',
+  'feature.reportExport': 'تصدير التقارير (PDF)',
+  'feature.indexedDb': 'تخزين محلي IndexedDB',
+  'feature.maxFactors': 'حتى 6 عوامل',
+  'feature.maxRows': 'حتى 100 ألف صف',
+  'feature.onedriveSync': 'مزامنة مشاريع OneDrive',
+  'feature.sharepointPicker': 'منتقي ملفات SharePoint',
+  'feature.teamsIntegration': 'تكامل Microsoft Teams',
+  'feature.channelCollab': 'تعاون قائم على القنوات',
+  'feature.mobileUi': 'واجهة محسّنة للجوال',
+  'feature.coScoutAi': 'مساعد CoScout AI',
+  'feature.narrativeBar': 'رؤى NarrativeBar',
+  'feature.chartInsights': 'شرائح رؤى الرسوم البيانية',
+  'feature.knowledgeBase': 'قاعدة المعرفة (بحث SharePoint)',
+  'feature.aiActions': 'إجراءات مقترحة بالذكاء الاصطناعي',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'إضافة VariScout إلى Microsoft Teams',
+  'admin.teams.description': 'أنشئ حزمة تطبيق Teams لنشرك وارفعها إلى مركز إدارة Teams.',
+  'admin.teams.running': 'يعمل داخل Microsoft Teams',
+  'admin.teams.step1': 'معرف عميل تسجيل التطبيق (اختياري)',
+  'admin.teams.step1Desc':
+    'أدخل معرف عميل تسجيل التطبيق في Azure AD لتفعيل Teams SSO في الملف التعريفي.',
+  'admin.teams.step2': 'تنزيل حزمة تطبيق Teams',
+  'admin.teams.step2Desc':
+    'هذا الملف .zip يحتوي على الملف التعريفي والأيقونات المعدة مسبقًا لنشرك.',
+  'admin.teams.step3': 'الرفع إلى مركز إدارة Teams',
+  'admin.teams.step4': 'إضافة VariScout إلى قناة',
+  'admin.teams.download': 'تنزيل حزمة تطبيق Teams',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} فحوصات ناجحة',
+  'admin.runChecks': 'تشغيل جميع الفحوصات',
+  'admin.notApplicable': 'غير قابل للتطبيق على خطتك',
+  'admin.managePortal': 'الإدارة في Azure Portal',
+  'admin.portalAccessNote':
+    'تتطلب هذه العناصر الوصول إلى Azure Portal ولا يمكن التحقق منها من المتصفح.',
+  'admin.fixInPortal': 'الإصلاح في Azure Portal: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro': 'مشاكل شائعة وكيفية حلها. انقر على مشكلة لرؤية التعليمات خطوة بخطوة.',
+  'admin.runCheck': 'تشغيل الفحص',
+  'admin.checkPassed': 'نجح الفحص — قد لا تكون هذه هي المشكلة.',
+  'admin.checkFailed': 'فشل الفحص — اتبع الخطوات أدناه.',
+  'admin.issue.signin': 'لا يستطيع المستخدمون تسجيل الدخول',
+  'admin.issue.signinDesc': 'مصادقة Azure AD لا تعمل أو يرى المستخدمون صفحة فارغة.',
+  'admin.issue.signinSteps':
+    'تحقق من تفعيل مصادقة App Service في Azure Portal.\nتحقق من أن تسجيل تطبيق Azure AD يحتوي على عناوين URI للتوجيه الصحيحة.\nتأكد من تفعيل "رموز المعرف" في تسجيل التطبيق ضمن المصادقة.\nتحقق من أن المستأجر يسمح بتسجيل دخول المستخدمين إلى التطبيق (تطبيقات المؤسسة → الخصائص → مفعل لتسجيل دخول المستخدمين).',
+  'admin.issue.onedrive': 'مزامنة OneDrive لا تعمل',
+  'admin.issue.onedriveDesc':
+    'لا تتم مزامنة المشاريع مع OneDrive أو يرى المستخدمون أخطاء في الأذونات.',
+  'admin.issue.onedriveSteps':
+    'تحقق من أن تسجيل التطبيق يحتوي على إذن "Files.ReadWrite" المفوض.\nتحقق من منح موافقة المسؤول لأذونات Graph.\nتأكد من تعيين ترخيص OneDrive للمستخدم.\nجرب تسجيل الخروج وتسجيل الدخول مرة أخرى لتحديث الرمز المميز.',
+  'admin.issue.coscout': 'CoScout لا يستجيب',
+  'admin.issue.coscoutDesc': 'مساعد الذكاء الاصطناعي لا يولد ردودًا أو يظهر أخطاء.',
+  'admin.issue.coscoutSteps':
+    'تحقق من تكوين نقطة نهاية AI في قالب ARM / إعدادات App Service.\nتحقق من نشر مورد Azure AI Services وتشغيله.\nتحقق من وجود نشر النموذج (مثل gpt-4o) في مورد AI Services.\nتحقق من حصص Azure AI Services — قد يكون النشر قد وصل لحدود المعدل.',
+  'admin.issue.kbEmpty': 'قاعدة المعرفة لا تعيد نتائج',
+  'admin.issue.kbEmptyDesc': '"البحث في قاعدة المعرفة" في CoScout لا يجد شيئًا رغم وجود المستندات.',
+  'admin.issue.kbEmptySteps':
+    'تحقق من تكوين نقطة نهاية AI Search في إعدادات App Service.\nتحقق من إنشاء مصدر معرفة Remote SharePoint في AI Search.\nتأكد من وجود ≥1 ترخيص Microsoft 365 Copilot نشط في المستأجر.\nتحقق من وصول المستخدم إلى المستندات المطلوب البحث فيها عبر SharePoint.\nتحقق من تفعيل مفتاح معاينة قاعدة المعرفة (المسؤول → علامة تبويب قاعدة المعرفة).',
+  'admin.issue.teamsTab': 'علامة تبويب Teams لا تظهر',
+  'admin.issue.teamsTabDesc': 'VariScout لا يظهر في Teams أو فشل تحميل علامة التبويب.',
+  'admin.issue.teamsTabSteps':
+    'تحقق من رفع حزمة تطبيق Teams (.zip) إلى مركز إدارة Teams.\nتحقق من أن contentUrl في manifest.json يتطابق مع عنوان URL لـ App Service.\nتأكد من الموافقة على التطبيق في مركز إدارة Teams (غير محظور بسياسة).\nجرب إزالة وإعادة إضافة علامة التبويب في القناة.\nإذا كنت تستخدم نطاقًا مخصصًا، تحقق من وجوده في مصفوفة validDomains في الملف التعريفي.',
+  'admin.issue.newUser': 'مستخدم جديد لا يستطيع الوصول للتطبيق',
+  'admin.issue.newUserDesc': 'مستخدم مضاف حديثًا يرى رفض الوصول أو صفحة فارغة.',
+  'admin.issue.newUserSteps':
+    'في Azure AD، انتقل إلى تطبيقات المؤسسة → VariScout → المستخدمون والمجموعات.\nأضف المستخدم أو مجموعة الأمان الخاصة بهم إلى التطبيق.\nإذا كان "تعيين المستخدم مطلوب" مفعلاً، تأكد من تعيين المستخدم.\nتحقق من سياسات الوصول المشروط التي قد تمنع المستخدم.',
+  'admin.issue.aiSlow': 'ردود AI بطيئة',
+  'admin.issue.aiSlowDesc': 'CoScout يستغرق وقتًا طويلاً للرد أو ينتهي الوقت بشكل متكرر.',
+  'admin.issue.aiSlowSteps':
+    'تحقق من منطقة نشر Azure AI Services — يزداد التأخير مع المسافة.\nتحقق من أن نشر النموذج لديه حصة TPM (رموز في الدقيقة) كافية.\nفكر في الترقية إلى نشر بمعدل نقل مخصص لتأخير ثابت.\nتحقق مما إذا كان فهرس AI Search كبيرًا — فكر في تحسين مصدر المعرفة.',
+  'admin.issue.forbidden': 'أخطاء "Forbidden"',
+  'admin.issue.forbiddenDesc': 'يرى المستخدمون أخطاء 403 عند الوصول إلى ميزات معينة.',
+  'admin.issue.forbiddenSteps':
+    'تحقق من حصول جميع أذونات Graph API المطلوبة على موافقة المسؤول.\nتحقق من تفعيل مخزن رموز مصادقة App Service.\nتأكد من عدم انتهاء صلاحية رمز المستخدم — جرب تسجيل الخروج والدخول مرة أخرى.\nتحقق من سياسات الوصول المشروط للمستأجر.',
+  'admin.issue.kbPartial': 'KB تفشل لبعض المستخدمين',
+  'admin.issue.kbPartialDesc': 'بحث قاعدة المعرفة يعمل للمسؤولين لكن ليس للمستخدمين الآخرين.',
+  'admin.issue.kbPartialSteps':
+    'مصادر معرفة Remote SharePoint تستخدم أذونات لكل مستخدم. يجب أن يكون لكل مستخدم وصول SharePoint إلى المستندات.\nتحقق مما إذا كان المستخدمون المتأثرون محظورين بسياسات الوصول المشروط.\nتحقق من منح موافقة المسؤول لإذن Sites.Read.All المفوض.\nاطلب من المستخدمين المتأثرين تسجيل الخروج والدخول مرة أخرى لتحديث الرمز المميز.',
 };

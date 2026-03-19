@@ -431,9 +431,9 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             fontWeight={500}
             onClick={onYAxisClick}
             className={onYAxisClick ? interactionStyles.clickableSubtle : ''}
-            {...getInteractiveA11yProps('Edit axis label', onYAxisClick)}
+            {...getInteractiveA11yProps(t('chart.edit.axisLabel'), onYAxisClick)}
           >
-            {onYAxisClick && <title>Click to edit axis label</title>}
+            {onYAxisClick && <title>{t('chart.edit.axisLabel')}</title>}
             {yAxisLabel}
           </text>
 
@@ -529,9 +529,9 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             fontWeight={isHighVariation ? 600 : 500}
             onClick={onXAxisClick}
             className={onXAxisClick ? interactionStyles.clickableSubtle : ''}
-            {...getInteractiveA11yProps('Edit axis label', onXAxisClick)}
+            {...getInteractiveA11yProps(t('chart.edit.axisLabel'), onXAxisClick)}
           >
-            {onXAxisClick && <title>Click to edit axis label</title>}
+            {onXAxisClick && <title>{t('chart.edit.axisLabel')}</title>}
             {xAxisLabel}
           </text>
           {/* Drill suggestion indicator */}
@@ -543,7 +543,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
               fill="#f87171"
               fontSize={fonts.statLabel}
             >
-              ↓ drill here
+              {t('chart.drillHere')}
             </text>
           )}
         </Group>
@@ -590,7 +590,9 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           <div>
             {t('chart.q3')}: {formatStat(tooltipData.q3)}
           </div>
-          <div>n: {tooltipData.values.length}</div>
+          <div>
+            {t('chart.label.n')} {tooltipData.values.length}
+          </div>
           {categoryContributions && categoryContributions.has(tooltipData.key) && (
             <div style={{ color: '#f87171', fontWeight: 500, marginTop: 4 }}>
               {t('report.kpi.variation')}:{' '}

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from '@variscout/hooks';
 
 export interface FindingEditorProps {
   /** Initial text value */
@@ -19,11 +20,13 @@ export interface FindingEditorProps {
  */
 const FindingEditor: React.FC<FindingEditorProps> = ({
   initialText = '',
-  placeholder = 'What did you find?',
+  placeholder,
   onSave,
   onCancel,
   autoFocus = true,
 }) => {
+  const { t } = useTranslation();
+  const resolvedPlaceholder = placeholder ?? t('finding.placeholder');
   const [text, setText] = useState(initialText);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -63,10 +66,10 @@ const FindingEditor: React.FC<FindingEditorProps> = ({
           onCancel();
         }
       }}
-      placeholder={placeholder}
+      placeholder={resolvedPlaceholder}
       rows={2}
       className="w-full bg-surface border border-edge rounded px-2 py-1.5 text-xs text-content placeholder:text-content-muted outline-none focus:border-blue-500 resize-none"
-      aria-label="Finding note"
+      aria-label={t('finding.note')}
     />
   );
 };

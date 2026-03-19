@@ -159,9 +159,14 @@ export interface ImprovementIdea {
   selected?: boolean;
   /** Analyst's rationale for selection or notes */
   notes?: string;
+  /** Improvement category: containment, corrective, or preventive */
+  category?: IdeaCategory;
   /** Timestamp of creation */
   createdAt: string;
 }
+
+/** Improvement idea category */
+export type IdeaCategory = 'containment' | 'corrective' | 'preventive';
 
 // ============================================================================
 // Hypothesis Types

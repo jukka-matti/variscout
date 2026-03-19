@@ -263,6 +263,7 @@ export const zhHant: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
   'table.page': 'Page {page} of {total}',
@@ -308,6 +309,265 @@ export const zhHant: MessageCatalog = {
   'chart.violation.direction.increasing': '上升',
   'chart.violation.direction.decreasing': '下降',
 
-  'data.rowsLoaded': '{count} rows loaded',
-  'findings.countLabel': '{count} findings',
+  'data.rowsLoaded': '已載入 {count} 行',
+  'findings.countLabel': '{count} 項發現',
+
+  // Chart limit labels
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': '平均值:',
+  'chart.label.tgt': '目標:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': '值:',
+  'chart.label.n': 'n:',
+  'chart.label.target': '目標值:',
+
+  // Chart status
+  'chart.status.inControl': '受控',
+  'chart.status.outOfControl': '失控（超出UCL/LCL）',
+  'chart.noDataProbPlot': '沒有可用於機率圖的資料',
+
+  // Chart edit affordances
+  'chart.edit.spec': '點擊編輯 {spec}',
+  'chart.edit.axisLabel': '點擊編輯軸標籤',
+  'chart.edit.yAxis': '點擊編輯Y軸刻度',
+  'chart.edit.saveCancel': 'Enter 儲存 · Esc 取消',
+
+  // Performance table headers
+  'chart.table.channel': '通道',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': '複製圖表到剪貼簿',
+  'chart.maximize': '最大化圖表',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ 在此鑽取',
+  'chart.percent': '百分比',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Y軸刻度',
+  'validation.minLessThanMax': '最小值必須小於最大值',
+  'action.noChanges': '無變更',
+
+  // Create factor modal
+  'factor.create': '從選擇建立因子',
+  'factor.name': '因子名稱',
+  'factor.nameEmpty': '因子名稱不能為空',
+  'factor.nameExists': '已存在同名因子',
+  'factor.example': '例如，高溫事件',
+  'factor.pointsMarked': '{count} 個點將被標記為：',
+  'factor.createAndFilter': '建立並篩選',
+  'factor.filterExplanation': '檢視將自動篩選，僅顯示所選的點。',
+
+  // Characteristic type selector
+  'charType.nominal': '望目特性',
+  'charType.nominalDesc': '以目標為中心（例如，灌裝重量）',
+  'charType.smaller': '望小特性',
+  'charType.smallerDesc': '越低越好（例如，缺陷）',
+  'charType.larger': '望大特性',
+  'charType.largerDesc': '越高越好（例如，良率）',
+
+  // Investigation prompt
+  'investigation.trackingPrompt': '正在追蹤您的調查 — 開啟調查面板以查看全貌。',
+
+  // Mobile category sheet
+  'chart.highlight': '醒目提示：',
+  'chart.highlightRed': '紅色',
+  'chart.highlightAmber': '琥珀色',
+  'chart.highlightGreen': '綠色',
+  'chart.clearHighlight': '清除醒目提示',
+  'chart.drillDown': '鑽取「{category}」',
+  'ai.askCoScout': '詢問CoScout',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': '保持刻度以便視覺比較',
+  'display.filterContextDesc': '在圖表標題下方顯示篩選器摘要',
+
+  // Performance detected modal
+  'performance.detected': '偵測到效能模式',
+  'performance.columnsFound': '找到 {count} 個測量欄',
+  'performance.labelQuestion': '這些測量通道代表什麼？',
+  'performance.labelExample': '例如，灌裝頭、模腔、噴嘴',
+  'performance.enable': '啟用效能模式',
+
+  // Finding editor & data types
+  'finding.placeholder': '您發現了什麼？',
+  'finding.note': '發現備註',
+  'data.typeNumeric': '數值',
+  'data.typeCategorical': '分類',
+  'data.typeDate': '日期',
+  'data.typeText': '文字',
+  'data.categories': '類別',
+
+  // Coaching text
+  'coach.problem.frame': '設定您的資料以開始調查問題。',
+  'coach.problem.scout': '尋找可能解釋問題的變異模式。',
+  'coach.problem.investigate': '建立將因子與問題聯繫起來的證據。',
+  'coach.problem.improve': '使用PDCA循環規劃和執行改善。',
+  'coach.hypothesis.frame': '設定您的資料以測試假設。',
+  'coach.hypothesis.scout': '尋找支持或反駁假設的證據。',
+  'coach.hypothesis.investigate': '收集統計證據以確認疑似原因。',
+  'coach.hypothesis.improve': '原因已確認 — 透過PDCA規劃矯正措施。',
+  'coach.routine.frame': '設定您的資料進行例行製程檢查。',
+  'coach.routine.scout': '掃描新訊號、偏移或意外模式。',
+  'coach.routine.investigate': '發現訊號 — 深入調查潛在原因。',
+  'coach.routine.improve': '原因已識別 — 透過PDCA規劃矯正措施。',
+
+  // PWA HomeScreen
+  'home.heading': '探索變異分析',
+  'home.description':
+    '免費的變異分析訓練工具。視覺化變異性、計算製程能力、找到關注重點 — 直接在瀏覽器中使用。',
+  'home.divider': '或使用您自己的資料',
+  'home.pasteHelper': '複製列並貼上 — 我們將自動偵測欄位',
+  'home.manualEntry': '或手動輸入資料',
+  'home.upgradeHint': '需要團隊功能、檔案上傳或儲存的專案？',
+
+  // PWA navigation
+  'nav.presentationMode': '簡報模式',
+  'nav.hideFindings': '隱藏發現',
+
+  // Export
+  'export.asImage': '匯出為圖片',
+  'export.asCsv': '匯出為CSV',
+  'export.imageDesc': '用於簡報的PNG截圖',
+  'export.csvDesc': '試算表相容的資料檔',
+
+  // Sample section
+  'sample.heading': '試用範例資料集',
+  'sample.allSamples': '所有範例資料集',
+  'sample.featured': '精選',
+  'sample.caseStudies': '案例研究',
+  'sample.journeys': '學習之旅',
+  'sample.industry': '產業範例',
+
+  // View modes
+  'view.stats': '統計',
+  'display.appearance': '外觀',
+
+  // Azure toolbar
+  'data.manualEntry': '手動輸入',
+  'data.editTable': '編輯資料表',
+  'toolbar.saveAs': '另存新檔…',
+  'toolbar.saving': '儲存中…',
+  'toolbar.saved': '已儲存',
+  'toolbar.saveFailed': '儲存失敗',
+  'toolbar.addMore': '新增資料',
+  'report.scouting': '探查報告',
+  'export.csvFiltered': '將篩選資料匯出為CSV',
+  'error.auth': '驗證錯誤',
+
+  // File browse
+  'file.browseLocal': '瀏覽此裝置',
+  'file.browseSharePoint': '瀏覽SharePoint',
+  'file.open': '開啟檔案',
+
+  // Admin hub
+  'admin.title': '管理',
+  'admin.status': '狀態',
+  'admin.plan': '方案與功能',
+  'admin.teams': 'Teams設定',
+  'admin.knowledge': '知識庫',
+  'admin.troubleshooting': '疑難排解',
+
+  // Admin plan tab
+  'admin.currentPlan': '目前',
+  'admin.feature': '功能',
+  'admin.manageSubscription': '在Azure中管理訂閱',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/月',
+  'admin.planTeamPrice': '€199/月',
+  'admin.planTeamAIPrice': '€279/月',
+  'admin.planStandardDesc': '完整分析，本機檔案儲存',
+  'admin.planTeamDesc': 'Teams、OneDrive、SharePoint、行動裝置',
+  'admin.planTeamAIDesc': 'AI知識庫，增強型CoScout',
+
+  // Feature names
+  'feature.charts': 'I-Chart、Boxplot、Pareto、統計',
+  'feature.capability': '製程能力分析（Cp/Cpk）',
+  'feature.performance': '效能模式（多通道）',
+  'feature.anova': 'ANOVA與因子分析',
+  'feature.findingsWorkflow': '發現與調查工作流程',
+  'feature.whatIf': 'What-If模擬',
+  'feature.csvImport': 'CSV/Excel匯入',
+  'feature.reportExport': '報告匯出（PDF）',
+  'feature.indexedDb': 'IndexedDB本機儲存',
+  'feature.maxFactors': '最多6個因子',
+  'feature.maxRows': '最多100K列',
+  'feature.onedriveSync': 'OneDrive專案同步',
+  'feature.sharepointPicker': 'SharePoint檔案選取器',
+  'feature.teamsIntegration': 'Microsoft Teams整合',
+  'feature.channelCollab': '基於頻道的協作',
+  'feature.mobileUi': '行動裝置最佳化介面',
+  'feature.coScoutAi': 'CoScout AI助理',
+  'feature.narrativeBar': 'NarrativeBar洞察',
+  'feature.chartInsights': '圖表洞察標籤',
+  'feature.knowledgeBase': '知識庫（SharePoint搜尋）',
+  'feature.aiActions': 'AI建議操作',
+
+  // Admin Teams setup
+  'admin.teams.heading': '將VariScout新增至Microsoft Teams',
+  'admin.teams.description': '為您的部署產生Teams應用程式套件並上傳至Teams系統管理中心。',
+  'admin.teams.running': '在Microsoft Teams中執行',
+  'admin.teams.step1': '應用程式註冊用戶端ID（選用）',
+  'admin.teams.step1Desc': '輸入您的Azure AD應用程式註冊用戶端ID以在資訊清單中啟用Teams SSO。',
+  'admin.teams.step2': '下載Teams應用程式套件',
+  'admin.teams.step2Desc': '此.zip包含為您的部署預先設定的資訊清單和圖示。',
+  'admin.teams.step3': '上傳至Teams系統管理中心',
+  'admin.teams.step4': '將VariScout新增至頻道',
+  'admin.teams.download': '下載Teams應用程式套件',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} 項檢查通過',
+  'admin.runChecks': '執行所有檢查',
+  'admin.notApplicable': '不適用於您的方案',
+  'admin.managePortal': '在Azure Portal中管理',
+  'admin.portalAccessNote': '這些項目需要Azure Portal存取權限，無法從瀏覽器中檢查。',
+  'admin.fixInPortal': '在Azure Portal中修正：{label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro': '常見問題及解決方式。點擊問題查看逐步說明。',
+  'admin.runCheck': '執行檢查',
+  'admin.checkPassed': '檢查通過 — 這可能不是問題所在。',
+  'admin.checkFailed': '檢查失敗 — 請依照以下步驟操作。',
+  'admin.issue.signin': '使用者無法登入',
+  'admin.issue.signinDesc': 'Azure AD驗證不正常或使用者看到空白頁面。',
+  'admin.issue.signinSteps':
+    '驗證Azure Portal中是否已啟用App Service驗證。\n檢查Azure AD應用程式註冊是否具有正確的重新導向URI。\n確保應用程式註冊在「驗證」下啟用了「識別碼權杖」。\n驗證租用戶是否允許使用者登入該應用程式（企業應用程式 → 屬性 → 已為使用者啟用登入）。',
+  'admin.issue.onedrive': 'OneDrive同步不正常',
+  'admin.issue.onedriveDesc': '專案未同步至OneDrive或使用者看到權限錯誤。',
+  'admin.issue.onedriveSteps':
+    '驗證應用程式註冊是否具有「Files.ReadWrite」委派權限。\n檢查是否已授予Graph權限的管理員同意。\n確保使用者已獲指派OneDrive授權。\n嘗試登出並重新登入以重新整理權杖。',
+  'admin.issue.coscout': 'CoScout沒有回應',
+  'admin.issue.coscoutDesc': 'AI助理未產生回應或顯示錯誤。',
+  'admin.issue.coscoutSteps':
+    '驗證AI端點是否在ARM範本/App Service設定中設定。\n檢查Azure AI Services資源是否已部署並正在執行。\n驗證模型部署是否存在（例如gpt-4o）在AI Services資源中。\n檢查Azure AI Services配額 — 部署可能已達到速率限制。',
+  'admin.issue.kbEmpty': '知識庫未傳回結果',
+  'admin.issue.kbEmptyDesc': 'CoScout的「搜尋知識庫」儘管存在文件但未找到任何內容。',
+  'admin.issue.kbEmptySteps':
+    '驗證AI Search端點是否在App Service設定中設定。\n檢查遠端SharePoint知識來源是否已在AI Search中建立。\n確保租用戶中有≥1個Microsoft 365 Copilot授權處於使用中狀態。\n驗證使用者是否有權存取被搜尋文件的SharePoint。\n檢查知識庫預覽切換是否已啟用（管理 → 知識庫索引標籤）。',
+  'admin.issue.teamsTab': 'Teams索引標籤未顯示',
+  'admin.issue.teamsTabDesc': 'VariScout未出現在Teams中或索引標籤無法載入。',
+  'admin.issue.teamsTabSteps':
+    '驗證Teams應用程式套件（.zip）是否已上傳至Teams系統管理中心。\n檢查manifest.json中的contentUrl是否與您的App Service URL相符。\n確保應用程式在Teams系統管理中心中已獲核准（未被原則封鎖）。\n嘗試在頻道中移除並重新新增索引標籤。\n如果使用自訂網域，請驗證它是否在資訊清單的validDomains陣列中。',
+  'admin.issue.newUser': '新使用者無法存取應用程式',
+  'admin.issue.newUserDesc': '新增加的使用者看到拒絕存取或空白頁面。',
+  'admin.issue.newUserSteps':
+    '在Azure AD中，前往企業應用程式 → VariScout → 使用者和群組。\n將使用者或其安全性群組新增至應用程式。\n如果使用「需要使用者指派」，請確保使用者已獲得指派。\n檢查可能封鎖使用者的條件式存取原則。',
+  'admin.issue.aiSlow': 'AI回應緩慢',
+  'admin.issue.aiSlowDesc': 'CoScout回應時間長或經常逾時。',
+  'admin.issue.aiSlowSteps':
+    '檢查Azure AI Services部署區域 — 距離越遠延遲越高。\n驗證模型部署是否有足夠的TPM（每分鐘權杖數）配額。\n考慮升級至佈建輸送量部署以取得穩定的延遲。\n檢查AI Search索引是否過大 — 考慮最佳化知識來源。',
+  'admin.issue.forbidden': '「Forbidden」錯誤',
+  'admin.issue.forbiddenDesc': '使用者在存取某些功能時看到403錯誤。',
+  'admin.issue.forbiddenSteps':
+    '檢查所有必要的Graph API權限是否已獲得管理員同意。\n驗證App Service驗證權杖存放區是否已啟用。\n確保使用者的權杖未過期 — 嘗試登出並重新登入。\n檢查租用戶的條件式存取原則。',
+  'admin.issue.kbPartial': 'KB對部分使用者失敗',
+  'admin.issue.kbPartialDesc': '知識庫搜尋對管理員有效但對其他使用者無效。',
+  'admin.issue.kbPartialSteps':
+    '遠端SharePoint知識來源使用每位使用者的權限。每位使用者必須擁有對文件的SharePoint存取權限。\n檢查受影響的使用者是否被條件式存取原則封鎖。\n驗證是否已授予Sites.Read.All委派權限的管理員同意。\n要求受影響的使用者登出並重新登入以重新整理其權杖。',
 };

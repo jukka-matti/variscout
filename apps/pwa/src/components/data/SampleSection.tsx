@@ -9,18 +9,28 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { SAMPLES, type SampleDataset, type SampleCategory } from '@variscout/data';
+import { useTranslation } from '@variscout/hooks';
+import type { MessageCatalog } from '@variscout/core';
 
 interface SampleSectionProps {
   onLoadSample: (sample: SampleDataset) => void;
   variant: 'web' | 'installed';
 }
 
-// Category display configuration
-const CATEGORY_CONFIG: Record<SampleCategory, { label: string; order: number }> = {
-  featured: { label: 'Featured', order: 0 },
-  cases: { label: 'Case Studies', order: 1 },
-  journeys: { label: 'Learning Journeys', order: 2 },
-  standard: { label: 'Industry Examples', order: 3 },
+// Category display configuration (order only; labels resolved via i18n inside component)
+const CATEGORY_ORDER: Record<SampleCategory, number> = {
+  featured: 0,
+  cases: 1,
+  journeys: 2,
+  standard: 3,
+};
+
+// i18n key mapping for category labels
+const CATEGORY_LABEL_KEYS: Record<SampleCategory, keyof MessageCatalog> = {
+  featured: 'sample.featured',
+  cases: 'sample.caseStudies',
+  journeys: 'sample.journeys',
+  standard: 'sample.industry',
 };
 
 // Icon mapping for featured cards
@@ -37,6 +47,7 @@ const FEATURED_ICONS: Record<string, React.ReactNode> = {
  * - Installed variant: Compact collapsible list only
  */
 const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) => {
+  const { t } = useTranslation();
   const [expandedCategories, setExpandedCategories] = useState<Set<SampleCategory>>(new Set());
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -67,7 +78,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
   // Sort categories by order
   const sortedCategories = (Object.keys(categorizedSamples) as SampleCategory[])
     .filter(cat => cat !== 'featured') // Featured is shown separately in web mode
-    .sort((a, b) => CATEGORY_CONFIG[a].order - CATEGORY_CONFIG[b].order);
+    .sort((a, b) => CATEGORY_ORDER[a] - CATEGORY_ORDER[b]);
 
   // Web variant: Featured cards + collapsible categories
   if (variant === 'web') {
@@ -76,7 +87,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
         {/* Featured sample cards */}
         <div>
           <h3 className="text-sm font-semibold text-content-secondary mb-3 uppercase tracking-wider">
-            Try a Sample Dataset
+            {t('sample.heading')}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {featuredSamples.map(sample => (
@@ -103,13 +114,13 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
         {/* Collapsible category lists */}
         <div className="border-t border-edge pt-4">
           <div className="text-xs text-content-muted mb-3 uppercase tracking-wider">
-            All Sample Datasets
+            {t('sample.allSamples')}
           </div>
           <div className="space-y-1">
             {sortedCategories.map(category => {
               const samples = categorizedSamples[category];
               const isExpanded = expandedCategories.has(category);
-              const config = CATEGORY_CONFIG[category];
+              const categoryLabel = t(CATEGORY_LABEL_KEYS[category]);
 
               return (
                 <div key={category}>
@@ -124,7 +135,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
                         <ChevronRight size={16} className="text-content-muted" />
                       )}
                       <span className="text-sm text-content-secondary group-hover:text-white">
-                        {config.label}
+                        {categoryLabel}
                       </span>
                     </div>
                     <span className="text-xs text-content-muted">{samples.length}</span>
@@ -163,7 +174,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
 
   // Installed variant: Compact collapsible list
   const allCategories = (Object.keys(categorizedSamples) as SampleCategory[]).sort(
-    (a, b) => CATEGORY_CONFIG[a].order - CATEGORY_CONFIG[b].order
+    (a, b) => CATEGORY_ORDER[a] - CATEGORY_ORDER[b]
   );
 
   const totalSamples = SAMPLES.length;
@@ -192,7 +203,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
           {allCategories.map(category => {
             const samples = categorizedSamples[category];
             const isCatExpanded = expandedCategories.has(category);
-            const config = CATEGORY_CONFIG[category];
+            const catLabel = t(CATEGORY_LABEL_KEYS[category]);
 
             return (
               <div key={category}>
@@ -207,7 +218,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
                       <ChevronRight size={14} className="text-content-muted" />
                     )}
                     <span className="text-xs text-content-muted group-hover:text-content-secondary">
-                      {config.label}
+                      {catLabel}
                     </span>
                   </div>
                   <span className="text-xs text-content-muted">{samples.length}</span>

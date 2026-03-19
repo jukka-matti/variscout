@@ -111,7 +111,7 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
   anchorPosition,
   colorScheme = defaultColorScheme,
 }) => {
-  const { formatStat } = useTranslation();
+  const { t, formatStat } = useTranslation();
   const [localMin, setLocalMin] = useState<string>('');
   const [localMax, setLocalMax] = useState<string>('');
   const [hasChanges, setHasChanges] = useState(false);
@@ -136,7 +136,7 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
 
     // Validate min < max
     if (newMin !== undefined && newMax !== undefined && newMin >= newMax) {
-      setValidationError('Min must be less than Max');
+      setValidationError(t('validation.minLessThanMax'));
     } else {
       setValidationError(null);
     }
@@ -201,12 +201,12 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
       {/* Header */}
       <div className={`flex items-center justify-between px-3 py-2 border-b ${colorScheme.border}`}>
         <h4 className={`text-xs font-semibold ${colorScheme.headerText} uppercase tracking-wider`}>
-          Y-Axis Scale
+          {t('chart.yAxisScale')}
         </h4>
         <button
           onClick={onClose}
           className={`p-1 ${colorScheme.closeButtonDefault} ${colorScheme.closeButtonHover} rounded transition-colors`}
-          title="Close"
+          title={t('action.close')}
         >
           <X size={14} />
         </button>
@@ -217,7 +217,7 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
         <div>
           <div className="flex items-center justify-between mb-1">
             <label htmlFor="yaxis-max" className={`text-[10px] ${colorScheme.labelText} uppercase`}>
-              Max
+              {t('stats.max')}
             </label>
             <span className={`text-[10px] ${colorScheme.autoValueText}`}>
               Auto: {formatStat(autoMax)}
@@ -237,7 +237,7 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
         <div>
           <div className="flex items-center justify-between mb-1">
             <label htmlFor="yaxis-min" className={`text-[10px] ${colorScheme.labelText} uppercase`}>
-              Min
+              {t('stats.min')}
             </label>
             <span className={`text-[10px] ${colorScheme.autoValueText}`}>
               Auto: {formatStat(autoMin)}
@@ -268,7 +268,7 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
             className={`w-full py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1 ${colorScheme.resetButtonBg} ${colorScheme.resetButtonHoverBg} ${colorScheme.resetButtonText} ${colorScheme.resetButtonHoverText}`}
           >
             <RotateCcw size={12} />
-            Reset to Auto
+            {t('action.reset')}
           </button>
         )}
 
@@ -282,7 +282,7 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
               : `${colorScheme.disabledButtonBg} ${colorScheme.disabledButtonText} cursor-not-allowed`
           }`}
         >
-          {hasChanges ? 'Apply Changes' : 'No Changes'}
+          {hasChanges ? t('action.apply') : t('action.noChanges')}
         </button>
       </div>
     </div>

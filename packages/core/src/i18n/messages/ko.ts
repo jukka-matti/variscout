@@ -263,6 +263,7 @@ export const ko: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
   'table.page': 'Page {page} of {total}',
@@ -311,4 +312,272 @@ export const ko: MessageCatalog = {
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
+
+  // Chart limit labels (colon-suffixed for SVG rendering)
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': '평균:',
+  'chart.label.tgt': '목표:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': '값:',
+  'chart.label.n': 'n:',
+  'chart.label.target': '목표값:',
+
+  // Chart status & empty states
+  'chart.status.inControl': '관리 상태',
+  'chart.status.outOfControl': '관리 이탈 (UCL/LCL 초과)',
+  'chart.noDataProbPlot': '확률 플롯에 사용할 수 있는 데이터가 없습니다',
+
+  // Chart edit affordances
+  'chart.edit.spec': '{spec}을(를) 클릭하여 편집',
+  'chart.edit.axisLabel': '클릭하여 축 레이블 편집',
+  'chart.edit.yAxis': '클릭하여 Y축 스케일 편집',
+  'chart.edit.saveCancel': 'Enter로 저장 · Esc로 취소',
+
+  // Performance table headers
+  'chart.table.channel': '채널',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': '차트를 클립보드에 복사',
+  'chart.maximize': '차트 최대화',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ 여기로 드릴다운',
+  'chart.percent': '퍼센트',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Y축 스케일',
+  'validation.minLessThanMax': '최솟값은 최댓값보다 작아야 합니다',
+  'action.noChanges': '변경 사항 없음',
+
+  // Create factor modal
+  'factor.create': '선택 항목으로 요인 생성',
+  'factor.name': '요인 이름',
+  'factor.nameEmpty': '요인 이름은 비워 둘 수 없습니다',
+  'factor.nameExists': '같은 이름의 요인이 이미 존재합니다',
+  'factor.example': '예: 고온 이벤트',
+  'factor.pointsMarked': '{count}개의 포인트가 다음으로 표시됩니다:',
+  'factor.createAndFilter': '생성 및 필터',
+  'factor.filterExplanation': '선택한 포인트만 표시하도록 뷰가 자동으로 필터링됩니다.',
+
+  // Characteristic type selector
+  'charType.nominal': '명목',
+  'charType.nominalDesc': '목표 중심 (예: 충전 중량)',
+  'charType.smaller': '작을수록 좋음',
+  'charType.smallerDesc': '낮을수록 좋음 (예: 결함)',
+  'charType.larger': '클수록 좋음',
+  'charType.largerDesc': '높을수록 좋음 (예: 수율)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt': '조사를 추적 중입니다 — 전체 그림을 보려면 조사 패널을 여세요.',
+
+  // Mobile category sheet
+  'chart.highlight': '강조:',
+  'chart.highlightRed': '빨강',
+  'chart.highlightAmber': '주황',
+  'chart.highlightGreen': '녹색',
+  'chart.clearHighlight': '강조 해제',
+  'chart.drillDown': '"{category}"로 드릴다운',
+  'ai.askCoScout': 'CoScout에 문의',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': '시각적 비교를 위해 스케일 유지',
+  'display.filterContextDesc': '차트 헤더 아래에 활성 필터 요약 표시',
+
+  // Performance detected modal
+  'performance.detected': '성능 모드 감지됨',
+  'performance.columnsFound': '{count}개의 측정 열이 발견되었습니다',
+  'performance.labelQuestion': '이 측정 채널은 무엇을 나타냅니까?',
+  'performance.labelExample': '예: 충전 헤드, 캐비티, 노즐',
+  'performance.enable': '성능 모드 활성화',
+
+  // Finding editor & data types
+  'finding.placeholder': '무엇을 발견했나요?',
+  'finding.note': '발견 사항 메모',
+  'data.typeNumeric': '숫자',
+  'data.typeCategorical': '범주형',
+  'data.typeDate': '날짜',
+  'data.typeText': '텍스트',
+  'data.categories': '범주',
+
+  // Coaching text (scenario × phase)
+  'coach.problem.frame': '문제 조사를 시작하려면 데이터를 설정하세요.',
+  'coach.problem.scout': '문제를 설명할 수 있는 변동 패턴을 찾으세요.',
+  'coach.problem.investigate': '요인과 문제를 연결하는 증거를 구축하세요.',
+  'coach.problem.improve': 'PDCA 사이클을 사용하여 개선을 계획하고 실행하세요.',
+  'coach.hypothesis.frame': '가설을 테스트하려면 데이터를 설정하세요.',
+  'coach.hypothesis.scout': '가설을 뒷받침하거나 반박하는 증거를 찾으세요.',
+  'coach.hypothesis.investigate': '의심되는 원인을 확인하기 위한 통계적 증거를 수집하세요.',
+  'coach.hypothesis.improve': '원인 확인됨 — PDCA를 통해 시정 조치를 계획하세요.',
+  'coach.routine.frame': '일상적인 공정 점검을 위해 데이터를 설정하세요.',
+  'coach.routine.scout': '새로운 신호, 드리프트 또는 예상치 못한 패턴을 스캔하세요.',
+  'coach.routine.investigate': '신호가 발견됨 — 잠재적 원인을 파악하세요.',
+  'coach.routine.improve': '원인 확인됨 — PDCA를 통해 시정 조치를 계획하세요.',
+
+  // PWA HomeScreen
+  'home.heading': '변동 분석 탐색',
+  'home.description':
+    '무료 변동 분석 교육 도구. 변동성을 시각화하고, 공정 능력을 계산하고, 집중할 곳을 찾으세요 — 브라우저에서 바로.',
+  'home.divider': '또는 자신의 데이터 사용',
+  'home.pasteHelper': '행을 복사하여 붙여넣기 — 열을 자동으로 감지합니다',
+  'home.manualEntry': '또는 수동으로 데이터 입력',
+  'home.upgradeHint': '팀 기능, 파일 업로드 또는 저장된 프로젝트가 필요하신가요?',
+
+  // PWA navigation
+  'nav.presentationMode': '프레젠테이션 모드',
+  'nav.hideFindings': '발견 사항 숨기기',
+
+  // Export
+  'export.asImage': '이미지로 내보내기',
+  'export.asCsv': 'CSV로 내보내기',
+  'export.imageDesc': '프레젠테이션용 PNG 스크린샷',
+  'export.csvDesc': '스프레드시트 호환 데이터 파일',
+
+  // Sample section
+  'sample.heading': '샘플 데이터 세트 사용해 보기',
+  'sample.allSamples': '모든 샘플 데이터 세트',
+  'sample.featured': '추천',
+  'sample.caseStudies': '사례 연구',
+  'sample.journeys': '학습 여정',
+  'sample.industry': '산업 예제',
+
+  // View modes (additional)
+  'view.stats': '통계',
+
+  // Display (additional)
+  'display.appearance': '외관',
+
+  // Azure toolbar
+  'data.manualEntry': '수동 입력',
+  'data.editTable': '데이터 테이블 편집',
+  'toolbar.saveAs': '다른 이름으로 저장…',
+  'toolbar.saving': '저장 중…',
+  'toolbar.saved': '저장됨',
+  'toolbar.saveFailed': '저장 실패',
+  'toolbar.addMore': '데이터 추가',
+  'report.scouting': '스카우팅 리포트',
+  'export.csvFiltered': '필터링된 데이터를 CSV로 내보내기',
+  'error.auth': '인증 오류',
+
+  // File browse
+  'file.browseLocal': '이 장치 탐색',
+  'file.browseSharePoint': 'SharePoint 탐색',
+  'file.open': '파일 열기',
+
+  // Admin hub
+  'admin.title': '관리',
+  'admin.status': '상태',
+  'admin.plan': '플랜 및 기능',
+  'admin.teams': 'Teams 설정',
+  'admin.knowledge': 'Knowledge Base',
+  'admin.troubleshooting': '문제 해결',
+
+  // Admin plan tab
+  'admin.currentPlan': '현재',
+  'admin.feature': '기능',
+  'admin.manageSubscription': 'Azure에서 구독 관리',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/월',
+  'admin.planTeamPrice': '€199/월',
+  'admin.planTeamAIPrice': '€279/월',
+  'admin.planStandardDesc': '전체 분석, 로컬 파일 저장소',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, 모바일',
+  'admin.planTeamAIDesc': 'AI Knowledge Base, 향상된 CoScout',
+
+  // Feature names (plan matrix)
+  'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
+  'feature.capability': '공정 능력 분석 (Cp/Cpk)',
+  'feature.performance': 'Performance Mode (다중 채널)',
+  'feature.anova': 'ANOVA 및 요인 분석',
+  'feature.findingsWorkflow': '발견 사항 및 조사 워크플로',
+  'feature.whatIf': 'What-If 시뮬레이션',
+  'feature.csvImport': 'CSV/Excel 가져오기',
+  'feature.reportExport': '리포트 내보내기 (PDF)',
+  'feature.indexedDb': 'IndexedDB 로컬 저장소',
+  'feature.maxFactors': '최대 6개 요인',
+  'feature.maxRows': '최대 100K 행',
+  'feature.onedriveSync': 'OneDrive 프로젝트 동기화',
+  'feature.sharepointPicker': 'SharePoint 파일 선택기',
+  'feature.teamsIntegration': 'Microsoft Teams 통합',
+  'feature.channelCollab': '채널 기반 협업',
+  'feature.mobileUi': '모바일 최적화 UI',
+  'feature.coScoutAi': 'CoScout AI 어시스턴트',
+  'feature.narrativeBar': 'NarrativeBar 인사이트',
+  'feature.chartInsights': '차트 인사이트 칩',
+  'feature.knowledgeBase': 'Knowledge Base (SharePoint 검색)',
+  'feature.aiActions': 'AI 제안 작업',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'Microsoft Teams에 VariScout 추가',
+  'admin.teams.description':
+    '배포를 위한 Teams 앱 패키지를 생성하고 Teams 관리 센터에 업로드하세요.',
+  'admin.teams.running': 'Microsoft Teams 내에서 실행 중',
+  'admin.teams.step1': '앱 등록 클라이언트 ID (선택 사항)',
+  'admin.teams.step1Desc': 'Teams SSO를 활성화하려면 Azure AD 앱 등록 클라이언트 ID를 입력하세요.',
+  'admin.teams.step2': 'Teams 앱 패키지 다운로드',
+  'admin.teams.step2Desc':
+    '이 .zip에는 배포에 맞게 사전 구성된 매니페스트와 아이콘이 포함되어 있습니다.',
+  'admin.teams.step3': 'Teams 관리 센터에 업로드',
+  'admin.teams.step4': '채널에 VariScout 추가',
+  'admin.teams.download': 'Teams 앱 패키지 다운로드',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} 검사 통과',
+  'admin.runChecks': '모든 검사 실행',
+  'admin.notApplicable': '현재 플랜에 해당되지 않음',
+  'admin.managePortal': 'Azure Portal에서 관리',
+  'admin.portalAccessNote':
+    '이 항목들은 Azure Portal 접근이 필요하며 브라우저에서 확인할 수 없습니다.',
+  'admin.fixInPortal': 'Azure Portal에서 수정: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    '일반적인 문제와 해결 방법입니다. 단계별 지침을 보려면 문제를 클릭하세요.',
+  'admin.runCheck': '검사 실행',
+  'admin.checkPassed': '검사 통과 — 이것이 문제가 아닐 수 있습니다.',
+  'admin.checkFailed': '검사 실패 — 아래 단계를 따르세요.',
+  'admin.issue.signin': '사용자가 로그인할 수 없음',
+  'admin.issue.signinDesc': 'Azure AD 인증이 작동하지 않거나 사용자에게 빈 페이지가 표시됩니다.',
+  'admin.issue.signinSteps':
+    'Azure Portal에서 App Service 인증이 활성화되어 있는지 확인하세요.\nAzure AD 앱 등록에 올바른 리디렉트 URI가 있는지 확인하세요.\n앱 등록의 인증에서 "ID 토큰"이 활성화되어 있는지 확인하세요.\n테넌트에서 앱 로그인이 허용되어 있는지 확인하세요 (엔터프라이즈 애플리케이션 → 속성 → 사용자 로그인 활성화).',
+  'admin.issue.onedrive': 'OneDrive 동기화가 작동하지 않음',
+  'admin.issue.onedriveDesc':
+    '프로젝트가 OneDrive에 동기화되지 않거나 사용자에게 권한 오류가 표시됩니다.',
+  'admin.issue.onedriveSteps':
+    '앱 등록에 "Files.ReadWrite" 위임 권한이 있는지 확인하세요.\nGraph 권한에 대한 관리자 동의가 부여되었는지 확인하세요.\n사용자에게 OneDrive 라이선스가 할당되어 있는지 확인하세요.\n로그아웃한 후 다시 로그인하여 토큰을 새로 고치세요.',
+  'admin.issue.coscout': 'CoScout가 응답하지 않음',
+  'admin.issue.coscoutDesc': 'AI 어시스턴트가 응답을 생성하지 않거나 오류가 표시됩니다.',
+  'admin.issue.coscoutSteps':
+    'ARM 템플릿/App Service 설정에 AI 엔드포인트가 구성되어 있는지 확인하세요.\nAzure AI Services 리소스가 배포되어 실행 중인지 확인하세요.\nAI Services 리소스에 모델 배포가 있는지 확인하세요 (예: gpt-4o).\nAzure AI Services 할당량을 확인하세요 — 배포가 속도 제한에 도달했을 수 있습니다.',
+  'admin.issue.kbEmpty': 'Knowledge Base에서 결과가 없음',
+  'admin.issue.kbEmptyDesc':
+    'CoScout의 "Knowledge Base 검색"이 문서가 있음에도 결과를 찾지 못합니다.',
+  'admin.issue.kbEmptySteps':
+    'App Service 설정에 AI Search 엔드포인트가 구성되어 있는지 확인하세요.\nAI Search에 Remote SharePoint 지식 소스가 생성되어 있는지 확인하세요.\n테넌트에 1개 이상의 Microsoft 365 Copilot 라이선스가 활성화되어 있는지 확인하세요.\n사용자가 검색 대상 문서에 대한 SharePoint 접근 권한이 있는지 확인하세요.\nKnowledge Base 미리 보기 토글이 활성화되어 있는지 확인하세요 (관리 → Knowledge Base 탭).',
+  'admin.issue.teamsTab': 'Teams 탭이 표시되지 않음',
+  'admin.issue.teamsTabDesc': 'VariScout가 Teams에 나타나지 않거나 탭 로드에 실패합니다.',
+  'admin.issue.teamsTabSteps':
+    'Teams 앱 패키지 (.zip)가 Teams 관리 센터에 업로드되었는지 확인하세요.\nmanifest.json의 contentUrl이 App Service URL과 일치하는지 확인하세요.\nTeams 관리 센터에서 앱이 승인되었는지 확인하세요 (정책에 의해 차단되지 않음).\n채널에서 탭을 제거한 후 다시 추가해 보세요.\n사용자 지정 도메인을 사용하는 경우 매니페스트의 validDomains 배열에 포함되어 있는지 확인하세요.',
+  'admin.issue.newUser': '신규 사용자가 앱에 접근할 수 없음',
+  'admin.issue.newUserDesc': '새로 추가된 사용자에게 접근 거부 또는 빈 페이지가 표시됩니다.',
+  'admin.issue.newUserSteps':
+    'Azure AD에서 엔터프라이즈 애플리케이션 → VariScout → 사용자 및 그룹으로 이동하세요.\n사용자 또는 보안 그룹을 앱에 추가하세요.\n"사용자 할당 필요"를 사용하는 경우 사용자에게 할당이 있는지 확인하세요.\n사용자를 차단할 수 있는 조건부 접근 정책을 확인하세요.',
+  'admin.issue.aiSlow': 'AI 응답이 느림',
+  'admin.issue.aiSlowDesc': 'CoScout가 응답하는 데 오래 걸리거나 자주 시간 초과됩니다.',
+  'admin.issue.aiSlowSteps':
+    'Azure AI Services 배포 지역을 확인하세요 — 거리가 멀수록 지연 시간이 증가합니다.\n모델 배포에 충분한 TPM (분당 토큰) 할당량이 있는지 확인하세요.\n일관된 지연 시간을 위해 프로비전된 처리량 배포로 업그레이드를 고려하세요.\nAI Search 인덱스가 큰 경우 — 지식 소스 최적화를 고려하세요.',
+  'admin.issue.forbidden': '"Forbidden" 오류',
+  'admin.issue.forbiddenDesc': '사용자가 특정 기능에 접근할 때 403 오류가 표시됩니다.',
+  'admin.issue.forbiddenSteps':
+    '모든 필수 Graph API 권한에 관리자 동의가 있는지 확인하세요.\nApp Service 인증 토큰 저장소가 활성화되어 있는지 확인하세요.\n사용자의 토큰이 만료되지 않았는지 확인하세요 — 로그아웃한 후 다시 로그인해 보세요.\n테넌트의 조건부 접근 정책을 확인하세요.',
+  'admin.issue.kbPartial': '일부 사용자에게 KB가 실패함',
+  'admin.issue.kbPartialDesc':
+    'Knowledge Base 검색이 관리자에게는 작동하지만 다른 사용자에게는 작동하지 않습니다.',
+  'admin.issue.kbPartialSteps':
+    'Remote SharePoint 지식 소스는 사용자별 권한을 사용합니다. 각 사용자는 문서에 대한 SharePoint 접근 권한이 있어야 합니다.\n영향을 받는 사용자가 조건부 접근 정책에 의해 차단되었는지 확인하세요.\nSites.Read.All 위임 권한에 대한 관리자 동의가 부여되었는지 확인하세요.\n영향을 받는 사용자에게 로그아웃한 후 다시 로그인하여 토큰을 새로 고치도록 요청하세요.',
 };

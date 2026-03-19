@@ -98,11 +98,18 @@ export interface AIContext {
     progressPercent?: number;
     selectedFinding?: {
       text: string;
+      status?: string;
       hypothesis?: string;
       projection?: { meanDelta: number; sigmaDelta: number };
-      actions?: Array<{ text: string; status: string }>;
+      actions?: Array<{ text: string; status: string; overdue?: boolean }>;
+      actionProgress?: {
+        total: number;
+        done: number;
+        overdueCount: number;
+      };
     };
     allHypotheses?: Array<{
+      id: string;
       text: string;
       status: string;
       contribution?: number;
@@ -110,10 +117,12 @@ export interface AIContext {
         text: string;
         selected?: boolean;
         projection?: { meanDelta: number; sigmaDelta: number };
+        category?: 'containment' | 'corrective' | 'preventive';
       }>;
     }>;
     /** Hypothesis tree structure for investigation phase detection */
     hypothesisTree?: Array<{
+      id: string;
       text: string;
       status: string;
       factor?: string;

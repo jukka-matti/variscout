@@ -98,7 +98,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'diverging',
-          allHypotheses: [{ text: 'Root cause', status: 'untested' }],
+          allHypotheses: [{ id: 'h-1', text: 'Root cause', status: 'untested' }],
         },
       };
       const result = buildSuggestedQuestions(context);
@@ -111,8 +111,8 @@ describe('buildSuggestedQuestions', () => {
         investigation: {
           phase: 'converging',
           allHypotheses: [
-            { text: 'Supported', status: 'supported' },
-            { text: 'Contradicted', status: 'contradicted' },
+            { id: 'h-1', text: 'Supported', status: 'supported' },
+            { id: 'h-2', text: 'Contradicted', status: 'contradicted' },
           ],
         },
       };
@@ -126,9 +126,15 @@ describe('buildSuggestedQuestions', () => {
         investigation: {
           phase: 'diverging',
           hypothesisTree: [
-            { text: 'Machine issue', status: 'untested', factor: 'Machine', category: 'Equipment' },
+            {
+              id: 'h-1',
+              text: 'Machine issue',
+              status: 'untested',
+              factor: 'Machine',
+              category: 'Equipment',
+            },
           ],
-          allHypotheses: [{ text: 'Machine issue', status: 'untested' }],
+          allHypotheses: [{ id: 'h-1', text: 'Machine issue', status: 'untested' }],
         },
       };
       const result = buildSuggestedQuestions(context);
@@ -155,7 +161,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'improving',
-          allHypotheses: [{ text: 'Root cause', status: 'supported' }],
+          allHypotheses: [{ id: 'h-1', text: 'Root cause', status: 'supported' }],
         },
       };
       const result = buildSuggestedQuestions(context);
@@ -171,7 +177,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'improving',
-          allHypotheses: [{ text: 'Root cause', status: 'supported' }],
+          allHypotheses: [{ id: 'h-1', text: 'Root cause', status: 'supported' }],
         },
         stagedComparison: {
           stageNames: ['Before', 'After'],
@@ -198,7 +204,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'improving',
-          allHypotheses: [{ text: 'Root cause', status: 'supported' }],
+          allHypotheses: [{ id: 'h-1', text: 'Root cause', status: 'supported' }],
         },
         stagedComparison: {
           stageNames: ['Before', 'After'],
@@ -225,7 +231,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'converging',
-          allHypotheses: [{ text: 'Root cause', status: 'supported' }],
+          allHypotheses: [{ id: 'h-1', text: 'Root cause', status: 'supported' }],
         },
         stagedComparison: {
           stageNames: ['Before', 'After'],
@@ -254,6 +260,7 @@ describe('buildSuggestedQuestions', () => {
           phase: 'converging',
           allHypotheses: [
             {
+              id: 'h-1',
               text: 'Night shift training gap',
               status: 'supported',
               ideas: [
@@ -276,7 +283,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'converging',
-          allHypotheses: [{ text: 'Root cause confirmed', status: 'supported' }],
+          allHypotheses: [{ id: 'h-1', text: 'Root cause confirmed', status: 'supported' }],
         },
       };
       const result = buildSuggestedQuestions(context);

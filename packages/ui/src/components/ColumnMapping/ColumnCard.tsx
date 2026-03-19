@@ -8,6 +8,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Pencil, AlertTriangle, CheckSquare } from 'lucide-react';
 import type { ColumnAnalysis } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import { CategoryBadge } from './CategoryBadge';
 
 export interface ColumnCardProps {
@@ -28,11 +29,18 @@ export interface ColumnCardProps {
   };
 }
 
-const TYPE_BADGE: Record<ColumnAnalysis['type'], { label: string; bg: string; text: string }> = {
-  numeric: { label: 'Numeric', bg: 'bg-blue-500/20', text: 'text-blue-400' },
-  categorical: { label: 'Categorical', bg: 'bg-emerald-500/20', text: 'text-emerald-400' },
-  date: { label: 'Date', bg: 'bg-amber-500/20', text: 'text-amber-400' },
-  text: { label: 'Text', bg: 'bg-slate-500/20', text: 'text-slate-400' },
+const TYPE_BADGE_STYLE: Record<
+  ColumnAnalysis['type'],
+  {
+    key: 'data.typeNumeric' | 'data.typeCategorical' | 'data.typeDate' | 'data.typeText';
+    bg: string;
+    text: string;
+  }
+> = {
+  numeric: { key: 'data.typeNumeric', bg: 'bg-blue-500/20', text: 'text-blue-400' },
+  categorical: { key: 'data.typeCategorical', bg: 'bg-emerald-500/20', text: 'text-emerald-400' },
+  date: { key: 'data.typeDate', bg: 'bg-amber-500/20', text: 'text-amber-400' },
+  text: { key: 'data.typeText', bg: 'bg-slate-500/20', text: 'text-slate-400' },
 };
 
 export const ColumnCard: React.FC<ColumnCardProps> = ({
@@ -46,11 +54,12 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
   onRename,
   roleBadge,
 }) => {
+  const { t } = useTranslation();
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(alias || column.name);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const badge = TYPE_BADGE[column.type];
+  const badgeStyle = TYPE_BADGE_STYLE[column.type];
   const displayName = alias || column.name;
 
   const handleStartRename = useCallback(
@@ -90,7 +99,7 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
   // Summary line
   const summaryParts: string[] = [];
   if (column.type === 'categorical' && column.uniqueCount <= 10) {
-    summaryParts.push(`${column.uniqueCount} categories`);
+    summaryParts.push(`${column.uniqueCount} ${t('data.categories')}`);
   } else {
     summaryParts.push(`${column.uniqueCount} unique`);
   }
@@ -208,10 +217,10 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
 
         {/* Type badge */}
         <span
-          className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 ${badge.bg} ${badge.text}`}
+          className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 ${badgeStyle.bg} ${badgeStyle.text}`}
           data-testid={`type-badge-${column.name}`}
         >
-          {badge.label}
+          {t(badgeStyle.key)}
         </span>
 
         {/* Missing warning */}

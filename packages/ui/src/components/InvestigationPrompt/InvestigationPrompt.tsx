@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Network, X } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 
 const SESSION_KEY = 'variscout_investigation_prompt_dismissed';
 
@@ -42,6 +43,7 @@ const InvestigationPrompt: React.FC<InvestigationPromptProps> = ({
   onOpenFindings,
   colorScheme = investigationPromptDefaultColorScheme,
 }) => {
+  const { t } = useTranslation();
   const c = colorScheme;
   const [dismissed, setDismissed] = useState(() => {
     try {
@@ -91,21 +93,14 @@ const InvestigationPrompt: React.FC<InvestigationPromptProps> = ({
     >
       <Network size={16} className={c.text} />
       <div className="flex-1 min-w-0">
-        <span className={`text-xs ${c.mutedText}`}>
-          Tracking your investigation &mdash;{' '}
-          <button
-            onClick={handleOpen}
-            className={`${c.text} underline underline-offset-2 font-medium`}
-          >
-            open the Investigation panel
-          </button>{' '}
-          to see the full picture.
-        </span>
+        <button onClick={handleOpen} className={`text-xs ${c.mutedText} text-left`}>
+          {t('investigation.trackingPrompt')}
+        </button>
       </div>
       <button
         onClick={handleDismiss}
         className={`p-1 rounded ${c.dismissText} transition-colors flex-shrink-0`}
-        aria-label="Dismiss"
+        aria-label={t('action.close')}
       >
         <X size={14} />
       </button>

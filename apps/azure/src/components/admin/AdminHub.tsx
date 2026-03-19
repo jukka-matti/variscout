@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { ArrowLeft, Activity, Cpu, Users, BookOpen, Wrench } from 'lucide-react';
 import { isTeamAIPlan } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import type { AdminGatingMode } from '../../hooks/useAdminAccess';
 import { AdminStatusTab } from './AdminStatusTab';
 import { AdminPlanTab } from './AdminPlanTab';
@@ -46,20 +47,21 @@ function getInitialTab(initialTab?: AdminTab): AdminTab {
 
 export function AdminHub({ initialTab, onBack, gatingMode }: AdminHubProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>(() => getInitialTab(initialTab));
+  const { t } = useTranslation();
 
   const tabs: TabDef[] = [
-    { id: 'status', label: 'Status', icon: <Activity size={14} />, visible: true },
-    { id: 'plan', label: 'Plan & Features', icon: <Cpu size={14} />, visible: true },
-    { id: 'teams', label: 'Teams Setup', icon: <Users size={14} />, visible: true },
+    { id: 'status', label: t('admin.status'), icon: <Activity size={14} />, visible: true },
+    { id: 'plan', label: t('admin.plan'), icon: <Cpu size={14} />, visible: true },
+    { id: 'teams', label: t('admin.teams'), icon: <Users size={14} />, visible: true },
     {
       id: 'knowledge',
-      label: 'Knowledge Base',
+      label: t('admin.knowledge'),
       icon: <BookOpen size={14} />,
       visible: isTeamAIPlan(),
     },
     {
       id: 'troubleshooting',
-      label: 'Troubleshooting',
+      label: t('admin.troubleshooting'),
       icon: <Wrench size={14} />,
       visible: true,
     },
@@ -91,11 +93,11 @@ export function AdminHub({ initialTab, onBack, gatingMode }: AdminHubProps) {
           <button
             onClick={onBack}
             className="p-1.5 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
-            aria-label="Back to dashboard"
+            aria-label={t('nav.backToDashboard')}
           >
             <ArrowLeft size={18} />
           </button>
-          <h2 className="text-xl font-bold text-content">Admin</h2>
+          <h2 className="text-xl font-bold text-content">{t('admin.title')}</h2>
         </div>
 
         {/* Tab bar */}

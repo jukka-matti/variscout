@@ -286,6 +286,7 @@ export const fi: MessageCatalog = {
   'ai.tool.shareFinding': 'Jaa havainto',
   'ai.tool.publishReport': 'Julkaise raportti',
   'ai.tool.notifyOwners': 'Ilmoita vastuuhenkilöille',
+  'ai.tool.suggestIdea': 'Ehdota parannusideaa',
 
   // Report
   'report.kpi.inSpec': 'Toleranssissa',
@@ -351,4 +352,274 @@ export const fi: MessageCatalog = {
   // Parameterized messages
   'data.rowsLoaded': '{count} riviä ladattu',
   'findings.countLabel': '{count} havaintoa',
+
+  // Chart limit labels
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': 'Keskiarvo:',
+  'chart.label.tgt': 'Tavoite:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': 'Arvo:',
+  'chart.label.n': 'n:',
+  'chart.label.target': 'Tavoite:',
+
+  // Chart status
+  'chart.status.inControl': 'Hallinnassa',
+  'chart.status.outOfControl': 'Hallitsematon (UCL/LCL ulkopuolella)',
+  'chart.noDataProbPlot': 'Ei dataa todennäköisyyskaaviolle',
+
+  // Chart edit affordances
+  'chart.edit.spec': 'Napsauta muokataksesi {spec}',
+  'chart.edit.axisLabel': 'Napsauta muokataksesi akselin otsikkoa',
+  'chart.edit.yAxis': 'Napsauta muokataksesi Y-akselin skaalausta',
+  'chart.edit.saveCancel': 'Enter tallentaaksesi · Esc peruuttaaksesi',
+
+  // Performance table headers
+  'chart.table.channel': 'Kanava',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'Kopioi kaavio leikepöydälle',
+  'chart.maximize': 'Suurenna kaavio',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ poraudu tähän',
+  'chart.percent': 'Prosentti',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Y-akselin skaalaus',
+  'validation.minLessThanMax': 'Min täytyy olla pienempi kuin Max',
+  'action.noChanges': 'Ei muutoksia',
+
+  // Create factor modal
+  'factor.create': 'Luo tekijä valinnasta',
+  'factor.name': 'Tekijän nimi',
+  'factor.nameEmpty': 'Tekijän nimi ei voi olla tyhjä',
+  'factor.nameExists': 'Samanniminen tekijä on jo olemassa',
+  'factor.example': 'esim. Korkean lämpötilan tapahtumat',
+  'factor.pointsMarked': '{count} pistettä merkitään:',
+  'factor.createAndFilter': 'Luo ja suodata',
+  'factor.filterExplanation': 'Näkymä suodattuu automaattisesti näyttämään vain valitut pisteet.',
+
+  // Characteristic type selector
+  'charType.nominal': 'Nominaalinen',
+  'charType.nominalDesc': 'Tavoitekeskeinen (esim. täyttöpaino)',
+  'charType.smaller': 'Pienempi on parempi',
+  'charType.smallerDesc': 'Alhaisempi on parempi (esim. virheet)',
+  'charType.larger': 'Suurempi on parempi',
+  'charType.largerDesc': 'Korkeampi on parempi (esim. saanto)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt':
+    'Tutkimustasi seurataan — avaa tutkimuspaneeli nähdäksesi kokonaiskuvan.',
+
+  // Mobile category sheet
+  'chart.highlight': 'Korosta:',
+  'chart.highlightRed': 'Punainen',
+  'chart.highlightAmber': 'Keltainen',
+  'chart.highlightGreen': 'Vihreä',
+  'chart.clearHighlight': 'Poista korostus',
+  'chart.drillDown': 'Poraudu kohteeseen "{category}"',
+  'ai.askCoScout': 'Kysy CoScoutilta tästä',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'Säilyttää skaalauksen visuaalista vertailua varten',
+  'display.filterContextDesc': 'Näytä aktiivinen suodatinyhteenveto kaavioiden otsikoiden alla',
+
+  // Performance detected modal
+  'performance.detected': 'Suorituskykytila havaittu',
+  'performance.columnsFound': '{count} mittaussaraketta löydetty',
+  'performance.labelQuestion': 'Mitä nämä mittauskanavat edustavat?',
+  'performance.labelExample': 'esim. Täyttöpää, Kaviteetti, Suutin',
+  'performance.enable': 'Ota suorituskykytila käyttöön',
+
+  // Finding editor & data types
+  'finding.placeholder': 'Mitä havaitsit?',
+  'finding.note': 'Havainnon muistiinpano',
+  'data.typeNumeric': 'Numeerinen',
+  'data.typeCategorical': 'Luokiteltu',
+  'data.typeDate': 'Päivämäärä',
+  'data.typeText': 'Teksti',
+  'data.categories': 'kategoriat',
+
+  // Coaching text
+  'coach.problem.frame': 'Aseta datasi ongelman tutkimisen aloittamiseksi.',
+  'coach.problem.scout': 'Etsi vaihtelumalleja, jotka voisivat selittää ongelman.',
+  'coach.problem.investigate': 'Rakenna näyttöä, joka yhdistää tekijät ongelmaan.',
+  'coach.problem.improve': 'Suunnittele ja toteuta parannuksia PDCA-syklin avulla.',
+  'coach.hypothesis.frame': 'Aseta datasi hypoteesisi testaamiseksi.',
+  'coach.hypothesis.scout': 'Etsi todisteita, jotka tukevat tai kumoavat hypoteesisi.',
+  'coach.hypothesis.investigate': 'Kerää tilastollista näyttöä epäillyn syyn vahvistamiseksi.',
+  'coach.hypothesis.improve': 'Syy vahvistettu — suunnittele korjaustoimenpiteet PDCA:n kautta.',
+  'coach.routine.frame': 'Aseta datasi rutiininomaista prosessitarkastusta varten.',
+  'coach.routine.scout': 'Etsi uusia signaaleja, ajautumista tai odottamattomia malleja.',
+  'coach.routine.investigate': 'Signaali löydetty — tutki mahdollisia syitä.',
+  'coach.routine.improve': 'Syy tunnistettu — suunnittele korjaustoimenpiteet PDCA:n kautta.',
+
+  // PWA HomeScreen
+  'home.heading': 'Tutustu vaihteluanalyysiin',
+  'home.description':
+    'Ilmainen vaihteluanalyysin koulutustyökalu. Visualisoi vaihtelua, laske kyvykkyys ja löydä kohdistuspisteet — suoraan selaimessasi.',
+  'home.divider': 'tai käytä omaa dataa',
+  'home.pasteHelper': 'Kopioi rivit ja liitä — tunnistamme sarakkeet automaattisesti',
+  'home.manualEntry': 'Tai syötä data manuaalisesti',
+  'home.upgradeHint':
+    'Tarvitsetko tiimitoimintoja, tiedostojen latausta tai tallennettuja projekteja?',
+
+  // PWA navigation
+  'nav.presentationMode': 'Esitystila',
+  'nav.hideFindings': 'Piilota havainnot',
+
+  // Export
+  'export.asImage': 'Vie kuvana',
+  'export.asCsv': 'Vie CSV-tiedostona',
+  'export.imageDesc': 'PNG-kuvakaappaus esityksiä varten',
+  'export.csvDesc': 'Taulukkolaskentayhteensopiva datatiedosto',
+
+  // Sample section
+  'sample.heading': 'Kokeile esimerkkiaineistoa',
+  'sample.allSamples': 'Kaikki esimerkkiaineistot',
+  'sample.featured': 'Suositellut',
+  'sample.caseStudies': 'Tapaustutkimukset',
+  'sample.journeys': 'Oppimispolut',
+  'sample.industry': 'Toimialaesimerkit',
+
+  // View modes
+  'view.stats': 'Tilastot',
+  'display.appearance': 'Ulkoasu',
+
+  // Azure toolbar
+  'data.manualEntry': 'Manuaalinen syöttö',
+  'data.editTable': 'Muokkaa datataulukkoa',
+  'toolbar.saveAs': 'Tallenna nimellä…',
+  'toolbar.saving': 'Tallennetaan…',
+  'toolbar.saved': 'Tallennettu',
+  'toolbar.saveFailed': 'Tallennus epäonnistui',
+  'toolbar.addMore': 'Lisää dataa',
+  'report.scouting': 'Tutkimusraportti',
+  'export.csvFiltered': 'Vie suodatettu data CSV-tiedostona',
+  'error.auth': 'Todennusvirhe',
+
+  // File browse
+  'file.browseLocal': 'Selaa tätä laitetta',
+  'file.browseSharePoint': 'Selaa SharePoint',
+  'file.open': 'Avaa tiedosto',
+
+  // Admin hub
+  'admin.title': 'Hallinta',
+  'admin.status': 'Tila',
+  'admin.plan': 'Tilaus ja ominaisuudet',
+  'admin.teams': 'Teams-asetukset',
+  'admin.knowledge': 'Tietopankki',
+  'admin.troubleshooting': 'Vianmääritys',
+
+  // Admin plan tab
+  'admin.currentPlan': 'Nykyinen',
+  'admin.feature': 'Ominaisuus',
+  'admin.manageSubscription': 'Hallitse tilausta Azuressa',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/kk',
+  'admin.planTeamPrice': '€199/kk',
+  'admin.planTeamAIPrice': '€279/kk',
+  'admin.planStandardDesc': 'Täysi analyysi, paikallinen tiedostotallennus',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, mobiili',
+  'admin.planTeamAIDesc': 'AI-tietopankki, tehostettu CoScout',
+
+  // Feature names
+  'feature.charts': 'I-Chart, Boxplot, Pareto, Tilastot',
+  'feature.capability': 'Kyvykkyysanalyysi (Cp/Cpk)',
+  'feature.performance': 'Suorituskykytila (monikanava)',
+  'feature.anova': 'ANOVA ja tekijäanalyysi',
+  'feature.findingsWorkflow': 'Havainnot ja tutkimustyönkulku',
+  'feature.whatIf': 'Mitä-jos-simulaatio',
+  'feature.csvImport': 'CSV/Excel-tuonti',
+  'feature.reportExport': 'Raportin vienti (PDF)',
+  'feature.indexedDb': 'IndexedDB paikallinen tallennus',
+  'feature.maxFactors': 'Enintään 6 tekijää',
+  'feature.maxRows': 'Enintään 100K riviä',
+  'feature.onedriveSync': 'OneDrive-projektien synkronointi',
+  'feature.sharepointPicker': 'SharePoint-tiedostovalitsin',
+  'feature.teamsIntegration': 'Microsoft Teams -integraatio',
+  'feature.channelCollab': 'Kanavapohjainen yhteistyö',
+  'feature.mobileUi': 'Mobiilioptimoitu käyttöliittymä',
+  'feature.coScoutAi': 'CoScout AI -avustaja',
+  'feature.narrativeBar': 'NarrativeBar-näkymät',
+  'feature.chartInsights': 'Kaavion oivalluskortit',
+  'feature.knowledgeBase': 'Tietopankki (SharePoint-haku)',
+  'feature.aiActions': 'AI-ehdotetut toimenpiteet',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'Lisää VariScout Microsoft Teamsiin',
+  'admin.teams.description':
+    'Luo Teams-sovelluspaketti käyttöönottoasi varten ja lataa se Teams-hallintakeskukseen.',
+  'admin.teams.running': 'Käynnissä Microsoft Teamsin sisällä',
+  'admin.teams.step1': 'Sovellusrekisteröinnin Client ID (Valinnainen)',
+  'admin.teams.step1Desc':
+    'Syötä Azure AD -sovellusrekisteröinnin Client ID ottaaksesi Teams-SSO:n käyttöön manifestissa.',
+  'admin.teams.step2': 'Lataa Teams-sovelluspaketti',
+  'admin.teams.step2Desc':
+    'Tämä .zip sisältää manifestin ja kuvakkeet esikonfiguroituna käyttöönottoasi varten.',
+  'admin.teams.step3': 'Lataa Teams-hallintakeskukseen',
+  'admin.teams.step4': 'Lisää VariScout kanavaan',
+  'admin.teams.download': 'Lataa Teams-sovelluspaketti',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} tarkistusta läpäisty',
+  'admin.runChecks': 'Suorita kaikki tarkistukset',
+  'admin.notApplicable': 'Ei koske tilaussuunnitelmaasi',
+  'admin.managePortal': 'Hallitse Azure Portalissa',
+  'admin.portalAccessNote':
+    'Nämä kohteet vaativat pääsyn Azure Portaliin eikä niitä voi tarkistaa selaimesta.',
+  'admin.fixInPortal': 'Korjaa Azure Portalissa: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'Yleisiä ongelmia ja niiden ratkaisut. Napsauta ongelmaa nähdäksesi vaiheittaiset ohjeet.',
+  'admin.runCheck': 'Suorita tarkistus',
+  'admin.checkPassed': 'Tarkistus läpäisty — tämä ei ehkä ole ongelma.',
+  'admin.checkFailed': 'Tarkistus epäonnistui — seuraa alla olevia ohjeita.',
+  'admin.issue.signin': 'Käyttäjät eivät voi kirjautua sisään',
+  'admin.issue.signinDesc': 'Azure AD -todennus ei toimi tai käyttäjät näkevät tyhjän sivun.',
+  'admin.issue.signinSteps':
+    'Varmista, että App Service Authentication on käytössä Azure Portalissa.\nTarkista, että Azure AD -sovellusrekisteröinnissä on oikeat uudelleenohjaus-URI:t.\nVarmista, että sovellusrekisteröinnissä on "ID-tunnukset" käytössä Todennus-kohdassa.\nVarmista, että vuokraaja sallii käyttäjien kirjautumisen sovellukseen (Yrityssovellukset → Ominaisuudet → Käyttäjille sallittu kirjautuminen).',
+  'admin.issue.onedrive': 'OneDrive-synkronointi ei toimi',
+  'admin.issue.onedriveDesc':
+    'Projektit eivät synkronoidu OneDriveen tai käyttäjät näkevät käyttöoikeusvirheitä.',
+  'admin.issue.onedriveSteps':
+    'Varmista, että sovellusrekisteröinnissä on delegoitu "Files.ReadWrite"-käyttöoikeus.\nTarkista, että järjestelmänvalvojan suostumus on myönnetty Graph-käyttöoikeuksille.\nVarmista, että käyttäjälle on määritetty OneDrive-lisenssi.\nKokeile kirjautumista ulos ja takaisin sisään tunnuksen päivittämiseksi.',
+  'admin.issue.coscout': 'CoScout ei vastaa',
+  'admin.issue.coscoutDesc': 'AI-avustaja ei luo vastauksia tai näyttää virheitä.',
+  'admin.issue.coscoutSteps':
+    'Varmista, että AI-päätepiste on määritetty ARM-mallissa / App Service -asetuksissa.\nTarkista, että Azure AI Services -resurssi on otettu käyttöön ja toimii.\nVarmista, että mallin käyttöönotto on olemassa (esim. gpt-4o) AI Services -resurssissa.\nTarkista Azure AI Services -kiintiöt — käyttöönotto on saattanut saavuttaa nopeusrajat.',
+  'admin.issue.kbEmpty': 'Tietopankki ei palauta tuloksia',
+  'admin.issue.kbEmptyDesc':
+    'CoScoutin "Hae tietopankista" ei löydä mitään, vaikka dokumentteja on olemassa.',
+  'admin.issue.kbEmptySteps':
+    'Varmista, että AI Search -päätepiste on määritetty App Service -asetuksissa.\nTarkista, että etä-SharePoint-tietolähde on luotu AI Searchiin.\nVarmista, että ≥1 Microsoft 365 Copilot -lisenssi on aktiivinen vuokraajassa.\nVarmista, että käyttäjällä on SharePoint-pääsy haettaviin dokumentteihin.\nTarkista, että tietopankin esikatselukytkin on käytössä (Hallinta → Tietopankki-välilehti).',
+  'admin.issue.teamsTab': 'Teams-välilehti ei näy',
+  'admin.issue.teamsTabDesc': 'VariScout ei näy Teamsissa tai välilehti ei lataudu.',
+  'admin.issue.teamsTabSteps':
+    'Varmista, että Teams-sovelluspaketti (.zip) on ladattu Teams-hallintakeskukseen.\nTarkista, että manifest.json contentUrl vastaa App Service -URL:ää.\nVarmista, että sovellus on hyväksytty Teams-hallintakeskuksessa (ei estetty käytännöllä).\nKokeile välilehden poistamista ja uudelleen lisäämistä kanavaan.\nJos käytät mukautettua verkkotunnusta, varmista, että se on manifestin validDomains-taulukossa.',
+  'admin.issue.newUser': 'Uusi käyttäjä ei pääse sovellukseen',
+  'admin.issue.newUserDesc':
+    'Äskettäin lisätty käyttäjä näkee pääsy estetty -ilmoituksen tai tyhjän sivun.',
+  'admin.issue.newUserSteps':
+    'Azure AD:ssä siirry Yrityssovellukset → VariScout → Käyttäjät ja ryhmät.\nLisää käyttäjä tai hänen käyttöoikeusryhmänsä sovellukseen.\nJos "Käyttäjämääritys vaaditaan" on käytössä, varmista, että käyttäjällä on määritys.\nTarkista ehdolliset käyttöoikeuskäytännöt, jotka saattavat estää käyttäjän.',
+  'admin.issue.aiSlow': 'AI-vastaukset ovat hitaita',
+  'admin.issue.aiSlowDesc': 'CoScoutin vastaaminen kestää kauan tai aikakatkaisu tapahtuu usein.',
+  'admin.issue.aiSlowSteps':
+    'Tarkista Azure AI Services -käyttöönottoalue — viive kasvaa etäisyyden myötä.\nVarmista, että mallin käyttöönotossa on riittävästi TPM-kiintiötä (tokenia minuutissa).\nHarkitse päivitystä varattuun suorituskykykäyttöönottoon tasaisen viiveen saavuttamiseksi.\nTarkista, onko AI Search -indeksi suuri — harkitse tietolähteen optimointia.',
+  'admin.issue.forbidden': '"Forbidden"-virheet',
+  'admin.issue.forbiddenDesc': 'Käyttäjät näkevät 403-virheitä tiettyihin toimintoihin pääsyessä.',
+  'admin.issue.forbiddenSteps':
+    'Tarkista, että kaikilla vaadituilla Graph API -käyttöoikeuksilla on järjestelmänvalvojan suostumus.\nVarmista, että App Service Authentication -tunnustevarasto on käytössä.\nVarmista, ettei käyttäjän tunnus ole vanhentunut — kokeile kirjautumista ulos ja takaisin sisään.\nTarkista vuokraajan ehdolliset käyttöoikeuskäytännöt.',
+  'admin.issue.kbPartial': 'Tietopankki ei toimi joillekin käyttäjille',
+  'admin.issue.kbPartialDesc':
+    'Tietopankkihaku toimii järjestelmänvalvojille mutta ei muille käyttäjille.',
+  'admin.issue.kbPartialSteps':
+    'Etä-SharePoint-tietolähteet käyttävät käyttäjäkohtaisia käyttöoikeuksia. Jokaisella käyttäjällä täytyy olla SharePoint-pääsy dokumentteihin.\nTarkista, estävätkö ehdolliset käyttöoikeuskäytännöt kyseisiä käyttäjiä.\nVarmista, että järjestelmänvalvojan suostumus on myönnetty delegoidulle Sites.Read.All-käyttöoikeudelle.\nPyydä kyseisiä käyttäjiä kirjautumaan ulos ja takaisin sisään tunnuksen päivittämiseksi.',
 };

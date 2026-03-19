@@ -263,6 +263,7 @@ export const ja: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
   'table.page': 'Page {page} of {total}',
@@ -309,6 +310,275 @@ export const ja: MessageCatalog = {
   'chart.violation.direction.increasing': '上昇',
   'chart.violation.direction.decreasing': '下降',
 
-  'data.rowsLoaded': '{count} rows loaded',
-  'findings.countLabel': '{count} findings',
+  'data.rowsLoaded': '{count}行読み込み済み',
+  'findings.countLabel': '{count}件の発見',
+
+  // Chart limit labels
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': '平均:',
+  'chart.label.tgt': '目標:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': '値:',
+  'chart.label.n': 'n:',
+  'chart.label.target': '目標値:',
+
+  // Chart status
+  'chart.status.inControl': '管理状態',
+  'chart.status.outOfControl': '管理外（UCL/LCLを超過）',
+  'chart.noDataProbPlot': '確率プロットに利用可能なデータがありません',
+
+  // Chart edit affordances
+  'chart.edit.spec': 'クリックして{spec}を編集',
+  'chart.edit.axisLabel': 'クリックして軸ラベルを編集',
+  'chart.edit.yAxis': 'クリックしてY軸スケールを編集',
+  'chart.edit.saveCancel': 'Enterで保存 · Escでキャンセル',
+
+  // Performance table headers
+  'chart.table.channel': 'チャネル',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'チャートをクリップボードにコピー',
+  'chart.maximize': 'チャートを最大化',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ ここを掘り下げる',
+  'chart.percent': 'パーセント',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Y軸スケール',
+  'validation.minLessThanMax': '最小値は最大値より小さくする必要があります',
+  'action.noChanges': '変更なし',
+
+  // Create factor modal
+  'factor.create': '選択からファクターを作成',
+  'factor.name': 'ファクター名',
+  'factor.nameEmpty': 'ファクター名は空にできません',
+  'factor.nameExists': 'この名前のファクターはすでに存在します',
+  'factor.example': '例：高温イベント',
+  'factor.pointsMarked': '{count}ポイントが次のようにマークされます：',
+  'factor.createAndFilter': '作成してフィルター',
+  'factor.filterExplanation':
+    'ビューは自動的にフィルターされ、選択されたポイントのみが表示されます。',
+
+  // Characteristic type selector
+  'charType.nominal': '望目特性',
+  'charType.nominalDesc': '目標値中心（例：充填重量）',
+  'charType.smaller': '望小特性',
+  'charType.smallerDesc': '低いほど良い（例：不良品）',
+  'charType.larger': '望大特性',
+  'charType.largerDesc': '高いほど良い（例：歩留まり）',
+
+  // Investigation prompt
+  'investigation.trackingPrompt': '調査を追跡中 — 調査パネルを開いて全体像を確認してください。',
+
+  // Mobile category sheet
+  'chart.highlight': '強調表示：',
+  'chart.highlightRed': '赤',
+  'chart.highlightAmber': '琥珀',
+  'chart.highlightGreen': '緑',
+  'chart.clearHighlight': '強調表示をクリア',
+  'chart.drillDown': '「{category}」を掘り下げる',
+  'ai.askCoScout': 'CoScoutに質問する',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': '視覚的な比較のためにスケールを維持',
+  'display.filterContextDesc': 'チャートヘッダーの下にアクティブなフィルターの概要を表示',
+
+  // Performance detected modal
+  'performance.detected': 'パフォーマンスモードを検出',
+  'performance.columnsFound': '{count}個の測定列が見つかりました',
+  'performance.labelQuestion': 'これらの測定チャネルは何を表していますか？',
+  'performance.labelExample': '例：充填ヘッド、キャビティ、ノズル',
+  'performance.enable': 'パフォーマンスモードを有効にする',
+
+  // Finding editor & data types
+  'finding.placeholder': '何を発見しましたか？',
+  'finding.note': '発見メモ',
+  'data.typeNumeric': '数値',
+  'data.typeCategorical': 'カテゴリ',
+  'data.typeDate': '日付',
+  'data.typeText': 'テキスト',
+  'data.categories': 'カテゴリ',
+
+  // Coaching text
+  'coach.problem.frame': '問題の調査を開始するためにデータを設定してください。',
+  'coach.problem.scout': '問題を説明できるばらつきパターンを探してください。',
+  'coach.problem.investigate': '要因と問題を結びつける証拠を構築してください。',
+  'coach.problem.improve': 'PDCAサイクルを使って改善を計画・実行してください。',
+  'coach.hypothesis.frame': '仮説をテストするためにデータを設定してください。',
+  'coach.hypothesis.scout': '仮説を支持または否定する証拠を探してください。',
+  'coach.hypothesis.investigate': '疑われる原因を確認するための統計的証拠を収集してください。',
+  'coach.hypothesis.improve': '原因確認済み — PDCAで是正措置を計画してください。',
+  'coach.routine.frame': '定期的なプロセスチェックのためにデータを設定してください。',
+  'coach.routine.scout': '新しいシグナル、ドリフト、予期しないパターンを探してください。',
+  'coach.routine.investigate': 'シグナルが見つかりました — 潜在的な原因を調査してください。',
+  'coach.routine.improve': '原因特定済み — PDCAで是正措置を計画してください。',
+
+  // PWA HomeScreen
+  'home.heading': 'ばらつき分析を体験する',
+  'home.description':
+    '無料のばらつき分析トレーニングツール。ばらつきを可視化し、工程能力を計算し、注力すべき箇所を見つけましょう — ブラウザで直接。',
+  'home.divider': 'または自分のデータを使用',
+  'home.pasteHelper': '行をコピーして貼り付けてください — 列を自動的に検出します',
+  'home.manualEntry': 'またはデータを手動入力',
+  'home.upgradeHint': 'チーム機能、ファイルアップロード、プロジェクト保存が必要ですか？',
+
+  // PWA navigation
+  'nav.presentationMode': 'プレゼンテーションモード',
+  'nav.hideFindings': '発見を非表示',
+
+  // Export
+  'export.asImage': '画像としてエクスポート',
+  'export.asCsv': 'CSVとしてエクスポート',
+  'export.imageDesc': 'プレゼンテーション用PNGスクリーンショット',
+  'export.csvDesc': 'スプレッドシート互換データファイル',
+
+  // Sample section
+  'sample.heading': 'サンプルデータセットを試す',
+  'sample.allSamples': 'すべてのサンプルデータセット',
+  'sample.featured': '注目',
+  'sample.caseStudies': 'ケーススタディ',
+  'sample.journeys': '学習ジャーニー',
+  'sample.industry': '業界事例',
+
+  // View modes
+  'view.stats': '統計',
+  'display.appearance': '外観',
+
+  // Azure toolbar
+  'data.manualEntry': '手動入力',
+  'data.editTable': 'データテーブルを編集',
+  'toolbar.saveAs': '名前を付けて保存…',
+  'toolbar.saving': '保存中…',
+  'toolbar.saved': '保存済み',
+  'toolbar.saveFailed': '保存失敗',
+  'toolbar.addMore': 'データを追加',
+  'report.scouting': 'スカウティングレポート',
+  'export.csvFiltered': 'フィルター済みデータをCSVとしてエクスポート',
+  'error.auth': '認証エラー',
+
+  // File browse
+  'file.browseLocal': 'このデバイスを参照',
+  'file.browseSharePoint': 'SharePointを参照',
+  'file.open': 'ファイルを開く',
+
+  // Admin hub
+  'admin.title': '管理',
+  'admin.status': 'ステータス',
+  'admin.plan': 'プランと機能',
+  'admin.teams': 'Teams設定',
+  'admin.knowledge': 'ナレッジベース',
+  'admin.troubleshooting': 'トラブルシューティング',
+
+  // Admin plan tab
+  'admin.currentPlan': '現在',
+  'admin.feature': '機能',
+  'admin.manageSubscription': 'Azureでサブスクリプションを管理',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/月',
+  'admin.planTeamPrice': '€199/月',
+  'admin.planTeamAIPrice': '€279/月',
+  'admin.planStandardDesc': '完全な分析、ローカルファイルストレージ',
+  'admin.planTeamDesc': 'Teams、OneDrive、SharePoint、モバイル',
+  'admin.planTeamAIDesc': 'AIナレッジベース、拡張CoScout',
+
+  // Feature names
+  'feature.charts': 'I-Chart、Boxplot、Pareto、統計',
+  'feature.capability': '工程能力分析（Cp/Cpk）',
+  'feature.performance': 'パフォーマンスモード（マルチチャネル）',
+  'feature.anova': 'ANOVAと要因分析',
+  'feature.findingsWorkflow': '発見と調査ワークフロー',
+  'feature.whatIf': 'What-Ifシミュレーション',
+  'feature.csvImport': 'CSV/Excelインポート',
+  'feature.reportExport': 'レポートエクスポート（PDF）',
+  'feature.indexedDb': 'IndexedDBローカルストレージ',
+  'feature.maxFactors': '最大6ファクター',
+  'feature.maxRows': '最大100K行',
+  'feature.onedriveSync': 'OneDriveプロジェクト同期',
+  'feature.sharepointPicker': 'SharePointファイルピッカー',
+  'feature.teamsIntegration': 'Microsoft Teams統合',
+  'feature.channelCollab': 'チャネルベースのコラボレーション',
+  'feature.mobileUi': 'モバイル最適化UI',
+  'feature.coScoutAi': 'CoScout AIアシスタント',
+  'feature.narrativeBar': 'NarrativeBarインサイト',
+  'feature.chartInsights': 'チャートインサイトチップ',
+  'feature.knowledgeBase': 'ナレッジベース（SharePoint検索）',
+  'feature.aiActions': 'AI推奨アクション',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'VariScoutをMicrosoft Teamsに追加',
+  'admin.teams.description':
+    'デプロイメント用のTeamsアプリパッケージを生成し、Teams管理センターにアップロードしてください。',
+  'admin.teams.running': 'Microsoft Teams内で実行中',
+  'admin.teams.step1': 'アプリ登録クライアントID（オプション）',
+  'admin.teams.step1Desc':
+    'Azure ADアプリ登録クライアントIDを入力して、マニフェストでTeams SSOを有効にします。',
+  'admin.teams.step2': 'Teamsアプリパッケージをダウンロード',
+  'admin.teams.step2Desc':
+    'この.zipにはデプロイメント用に事前設定されたマニフェストとアイコンが含まれています。',
+  'admin.teams.step3': 'Teams管理センターにアップロード',
+  'admin.teams.step4': 'VariScoutをチャネルに追加',
+  'admin.teams.download': 'Teamsアプリパッケージをダウンロード',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total}件のチェックに合格',
+  'admin.runChecks': 'すべてのチェックを実行',
+  'admin.notApplicable': 'お使いのプランには該当しません',
+  'admin.managePortal': 'Azure Portalで管理',
+  'admin.portalAccessNote':
+    'これらの項目はAzure Portalへのアクセスが必要で、ブラウザからは確認できません。',
+  'admin.fixInPortal': 'Azure Portalで修正: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'よくある問題とその解決方法。問題をクリックすると、手順が表示されます。',
+  'admin.runCheck': 'チェックを実行',
+  'admin.checkPassed': 'チェック合格 — これは問題ではない可能性があります。',
+  'admin.checkFailed': 'チェック失敗 — 以下の手順に従ってください。',
+  'admin.issue.signin': 'ユーザーがサインインできない',
+  'admin.issue.signinDesc': 'Azure AD認証が機能していないか、ユーザーに空白ページが表示されます。',
+  'admin.issue.signinSteps':
+    'Azure PortalでApp Service認証が有効になっていることを確認してください。\nAzure ADアプリ登録に正しいリダイレクトURIが設定されていることを確認してください。\nアプリ登録の認証で「IDトークン」が有効になっていることを確認してください。\nテナントがアプリへのユーザーサインインを許可していることを確認してください（エンタープライズアプリケーション → プロパティ → ユーザーのサインインが有効）。',
+  'admin.issue.onedrive': 'OneDrive同期が機能しない',
+  'admin.issue.onedriveDesc':
+    'プロジェクトがOneDriveに同期されないか、ユーザーに権限エラーが表示されます。',
+  'admin.issue.onedriveSteps':
+    'アプリ登録に「Files.ReadWrite」委任アクセス許可があることを確認してください。\nGraphアクセス許可に管理者の同意が付与されていることを確認してください。\nユーザーにOneDriveライセンスが割り当てられていることを確認してください。\nサインアウトしてサインインし直し、トークンを更新してみてください。',
+  'admin.issue.coscout': 'CoScoutが応答しない',
+  'admin.issue.coscoutDesc': 'AIアシスタントが応答を生成しないか、エラーが表示されます。',
+  'admin.issue.coscoutSteps':
+    'AIエンドポイントがARMテンプレート/App Service設定で構成されていることを確認してください。\nAzure AI Servicesリソースがデプロイされ実行中であることを確認してください。\nAI Servicesリソースにモデルのデプロイメントが存在することを確認してください（例：gpt-4o）。\nAzure AI Servicesのクォータを確認してください — デプロイメントがレート制限に達した可能性があります。',
+  'admin.issue.kbEmpty': 'ナレッジベースが結果を返さない',
+  'admin.issue.kbEmptyDesc':
+    'CoScoutの「ナレッジベース検索」がドキュメントが存在するにもかかわらず何も見つかりません。',
+  'admin.issue.kbEmptySteps':
+    'AI SearchエンドポイントがApp Service設定で構成されていることを確認してください。\nリモートSharePointナレッジソースがAI Searchに作成されていることを確認してください。\nテナントで1つ以上のMicrosoft 365 Copilotライセンスがアクティブであることを確認してください。\nユーザーが検索対象ドキュメントへのSharePointアクセスを持っていることを確認してください。\nナレッジベースプレビュートグルが有効であることを確認してください（管理 → ナレッジベースタブ）。',
+  'admin.issue.teamsTab': 'Teamsタブが表示されない',
+  'admin.issue.teamsTabDesc': 'VariScoutがTeamsに表示されないか、タブが読み込まれません。',
+  'admin.issue.teamsTabSteps':
+    'Teamsアプリパッケージ（.zip）がTeams管理センターにアップロードされていることを確認してください。\nmanifest.jsonのcontentUrlがApp Service URLと一致していることを確認してください。\nアプリがTeams管理センターで承認されていることを確認してください（ポリシーでブロックされていないこと）。\nチャネルでタブを削除して再追加してみてください。\nカスタムドメインを使用している場合、マニフェストのvalidDomains配列に含まれていることを確認してください。',
+  'admin.issue.newUser': '新しいユーザーがアプリにアクセスできない',
+  'admin.issue.newUserDesc':
+    '新しく追加されたユーザーにアクセス拒否または空白ページが表示されます。',
+  'admin.issue.newUserSteps':
+    'Azure ADで、エンタープライズアプリケーション → VariScout → ユーザーとグループに移動してください。\nユーザーまたはそのセキュリティグループをアプリに追加してください。\n「ユーザーの割り当てが必要」を使用している場合、ユーザーに割り当てがあることを確認してください。\nユーザーをブロックする可能性のある条件付きアクセスポリシーを確認してください。',
+  'admin.issue.aiSlow': 'AI応答が遅い',
+  'admin.issue.aiSlowDesc': 'CoScoutの応答に時間がかかるか、頻繁にタイムアウトします。',
+  'admin.issue.aiSlowSteps':
+    'Azure AI Servicesのデプロイメントリージョンを確認してください — 距離が増すとレイテンシーが増加します。\nモデルのデプロイメントに十分なTPM（トークン/分）クォータがあることを確認してください。\n安定したレイテンシーのためにプロビジョニングされたスループットデプロイメントへのアップグレードを検討してください。\nAI Searchインデックスが大きい場合は、ナレッジソースの最適化を検討してください。',
+  'admin.issue.forbidden': '「Forbidden」エラー',
+  'admin.issue.forbiddenDesc': 'ユーザーが特定の機能にアクセスする際に403エラーが表示されます。',
+  'admin.issue.forbiddenSteps':
+    '必要なGraph APIアクセス許可すべてに管理者の同意があることを確認してください。\nApp Service認証トークンストアが有効であることを確認してください。\nユーザーのトークンが期限切れになっていないことを確認してください — サインアウトしてサインインし直してみてください。\nテナントの条件付きアクセスポリシーを確認してください。',
+  'admin.issue.kbPartial': '一部のユーザーでKBが失敗する',
+  'admin.issue.kbPartialDesc':
+    'ナレッジベース検索は管理者には機能しますが、他のユーザーには機能しません。',
+  'admin.issue.kbPartialSteps':
+    'リモートSharePointナレッジソースはユーザーごとの権限を使用します。各ユーザーはドキュメントへのSharePointアクセスが必要です。\n影響を受けるユーザーが条件付きアクセスポリシーによってブロックされていないか確認してください。\nSites.Read.All委任アクセス許可に管理者の同意が付与されていることを確認してください。\n影響を受けるユーザーにサインアウトしてサインインし直してトークンを更新するよう依頼してください。',
 };

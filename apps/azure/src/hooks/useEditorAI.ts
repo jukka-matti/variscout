@@ -481,6 +481,42 @@ export function useEditorAI({
         return JSON.stringify({ proposal: true, ...proposal });
       },
 
+      suggest_improvement_idea: async (args: Record<string, unknown>) => {
+        const hypothesisId = args.hypothesis_id as string;
+        const text = args.text as string;
+        const category = args.category as string;
+
+        if (!hypothesisId || !text || !category) {
+          return JSON.stringify({ error: 'Missing hypothesis_id, text, or category' });
+        }
+
+        const targetHypothesis = hypotheses.find(h => h.id === hypothesisId);
+        if (!targetHypothesis) {
+          return JSON.stringify({ error: `Hypothesis not found: ${hypothesisId}` });
+        }
+        if (targetHypothesis.status !== 'supported' && targetHypothesis.status !== 'partial') {
+          return JSON.stringify({
+            error: `Hypothesis must be 'supported' or 'partial', currently '${targetHypothesis.status}'`,
+          });
+        }
+
+        const proposal: ActionProposal = {
+          id: generateProposalId(),
+          tool: 'suggest_improvement_idea',
+          params: { hypothesis_id: hypothesisId, text, category },
+          preview: {
+            hypothesisText: targetHypothesis.text,
+            existingIdeasCount: targetHypothesis.ideas?.length ?? 0,
+            category,
+          },
+          status: 'pending',
+          filterStackHash: hashFilterStack(filterStack),
+          timestamp: Date.now(),
+          editableText: text,
+        };
+        return JSON.stringify({ proposal: true, ...proposal });
+      },
+
       suggest_action: async (args: Record<string, unknown>) => {
         const findingId = args.finding_id as string;
         const text = args.text as string;

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Copy, Download, Check, ExternalLink, Info } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import { isInTeams } from '../../teams';
 
 // Generate a stable manifest ID per origin using crypto.randomUUID(), persisted in localStorage.
@@ -81,6 +82,7 @@ function buildManifest(origin: string, clientId?: string): object {
 }
 
 export function AdminTeamsSetup() {
+  const { t } = useTranslation();
   const origin = window.location.origin;
   const [clientId, setClientId] = useState('');
   const manifest = useMemo(() => buildManifest(origin, clientId || undefined), [origin, clientId]);
@@ -134,27 +136,20 @@ export function AdminTeamsSetup() {
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
-      <h2 className="text-2xl font-bold text-content mb-2">Add VariScout to Microsoft Teams</h2>
-      <p className="text-content-secondary mb-8">
-        Generate a Teams app package for your deployment and upload it to your Teams admin center.
-      </p>
+      <h2 className="text-2xl font-bold text-content mb-2">{t('admin.teams.heading')}</h2>
+      <p className="text-content-secondary mb-8">{t('admin.teams.description')}</p>
 
       {/* Teams status indicator */}
       {inTeams && (
         <section className="mb-6 bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-          <p className="text-sm text-green-400 font-medium">Running inside Microsoft Teams</p>
+          <p className="text-sm text-green-400 font-medium">{t('admin.teams.running')}</p>
         </section>
       )}
 
       {/* Client ID for SSO */}
       <section className="mb-8">
-        <h3 className="text-lg font-semibold text-content mb-3">
-          1. App Registration Client ID (Optional)
-        </h3>
-        <p className="text-sm text-content-secondary mb-3">
-          Enter your Azure AD App Registration Client ID to enable Teams SSO in the manifest. This
-          is the same Client ID used for EasyAuth.
-        </p>
+        <h3 className="text-lg font-semibold text-content mb-3">1. {t('admin.teams.step1')}</h3>
+        <p className="text-sm text-content-secondary mb-3">{t('admin.teams.step1Desc')}</p>
         <input
           type="text"
           value={clientId}
@@ -166,12 +161,9 @@ export function AdminTeamsSetup() {
 
       {/* Step 2: Download */}
       <section className="mb-8">
-        <h3 className="text-lg font-semibold text-content mb-3">
-          2. Download the Teams App Package
-        </h3>
+        <h3 className="text-lg font-semibold text-content mb-3">2. {t('admin.teams.step2')}</h3>
         <p className="text-sm text-content-secondary mb-4">
-          This .zip contains the manifest and icons pre-configured for your deployment at{' '}
-          <code className="text-blue-400">{origin}</code>.
+          {t('admin.teams.step2Desc')} <code className="text-blue-400">{origin}</code>.
         </p>
         <div className="flex gap-3">
           <button
@@ -180,7 +172,7 @@ export function AdminTeamsSetup() {
             className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
           >
             <Download size={16} />
-            {downloading ? 'Generating...' : 'Download Teams App Package'}
+            {downloading ? '...' : t('admin.teams.download')}
           </button>
           <button
             onClick={handleCopy}
@@ -194,7 +186,7 @@ export function AdminTeamsSetup() {
 
       {/* Step 2: Upload */}
       <section className="mb-8">
-        <h3 className="text-lg font-semibold text-content mb-3">3. Upload to Teams Admin Center</h3>
+        <h3 className="text-lg font-semibold text-content mb-3">3. {t('admin.teams.step3')}</h3>
         <ol className="space-y-3 text-sm text-content">
           <li className="flex gap-3">
             <span className="text-blue-400 font-mono shrink-0">a.</span>
@@ -236,7 +228,7 @@ export function AdminTeamsSetup() {
 
       {/* Step 4: Add to channel */}
       <section className="mb-8">
-        <h3 className="text-lg font-semibold text-content mb-3">4. Add VariScout to a Channel</h3>
+        <h3 className="text-lg font-semibold text-content mb-3">4. {t('admin.teams.step4')}</h3>
         <ol className="space-y-3 text-sm text-content">
           <li className="flex gap-3">
             <span className="text-blue-400 font-mono shrink-0">a.</span>

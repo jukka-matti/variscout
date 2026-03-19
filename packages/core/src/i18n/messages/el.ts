@@ -284,6 +284,7 @@ export const el: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
 
   // Report
   'report.kpi.inSpec': 'In Spec',
@@ -347,5 +348,280 @@ export const el: MessageCatalog = {
 
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
-  'findings.countLabel': '{count} findings',
+  'findings.countLabel': '{count} ευρήματα',
+  'chart.label.target': 'Στόχος:',
+
+  // Chart limit labels
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': 'Μέσος:',
+  'chart.label.tgt': 'Στόχ.:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': 'Τιμή:',
+  'chart.label.n': 'n:',
+
+  // Chart status
+  'chart.status.inControl': 'Υπό έλεγχο',
+  'chart.status.outOfControl': 'Εκτός ελέγχου (πέρα από UCL/LCL)',
+  'chart.noDataProbPlot': 'Δεν υπάρχουν δεδομένα για το διάγραμμα πιθανότητας',
+
+  // Chart edit affordances
+  'chart.edit.spec': 'Κλικ για επεξεργασία {spec}',
+  'chart.edit.axisLabel': 'Κλικ για επεξεργασία ετικέτας άξονα',
+  'chart.edit.yAxis': 'Κλικ για επεξεργασία κλίμακας άξονα Y',
+  'chart.edit.saveCancel': 'Enter για αποθήκευση · Esc για ακύρωση',
+
+  // Performance table headers
+  'chart.table.channel': 'Κανάλι',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'Αντιγραφή γραφήματος στο πρόχειρο',
+  'chart.maximize': 'Μεγιστοποίηση γραφήματος',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ ανάλυση εδώ',
+  'chart.percent': 'Ποσοστό',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Κλίμακα Άξονα Y',
+  'validation.minLessThanMax': 'Το ελάχιστο πρέπει να είναι μικρότερο από το μέγιστο',
+  'action.noChanges': 'Χωρίς αλλαγές',
+
+  // Create factor modal
+  'factor.create': 'Δημιουργία παράγοντα από επιλογή',
+  'factor.name': 'Όνομα παράγοντα',
+  'factor.nameEmpty': 'Το όνομα παράγοντα δεν μπορεί να είναι κενό',
+  'factor.nameExists': 'Υπάρχει ήδη παράγοντας με αυτό το όνομα',
+  'factor.example': 'π.χ., Συμβάντα υψηλής θερμοκρασίας',
+  'factor.pointsMarked': '{count} σημεία θα επισημανθούν ως:',
+  'factor.createAndFilter': 'Δημιουργία & Φιλτράρισμα',
+  'factor.filterExplanation':
+    'Η προβολή θα φιλτραριστεί αυτόματα για εμφάνιση μόνο των επιλεγμένων σημείων.',
+
+  // Characteristic type selector
+  'charType.nominal': 'Ονομαστικό',
+  'charType.nominalDesc': 'Κεντραρισμένο στο στόχο (π.χ. βάρος πλήρωσης)',
+  'charType.smaller': 'Μικρότερο είναι καλύτερο',
+  'charType.smallerDesc': 'Χαμηλότερο είναι καλύτερο (π.χ. ελαττώματα)',
+  'charType.larger': 'Μεγαλύτερο είναι καλύτερο',
+  'charType.largerDesc': 'Υψηλότερο είναι καλύτερο (π.χ. απόδοση)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt':
+    'Παρακολούθηση της έρευνάς σας — ανοίξτε τον πίνακα Έρευνας για πλήρη εικόνα.',
+
+  // Mobile category sheet
+  'chart.highlight': 'Επισήμανση:',
+  'chart.highlightRed': 'Κόκκινο',
+  'chart.highlightAmber': 'Κεχριμπαρί',
+  'chart.highlightGreen': 'Πράσινο',
+  'chart.clearHighlight': 'Αφαίρεση επισήμανσης',
+  'chart.drillDown': 'Ανάλυση στο "{category}"',
+  'ai.askCoScout': "Ρωτήστε το CoScout γι' αυτό",
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'Διατηρεί την κλίμακα για οπτική σύγκριση',
+  'display.filterContextDesc': 'Εμφάνιση σύνοψης ενεργού φίλτρου κάτω από τους τίτλους γραφημάτων',
+
+  // Performance detected modal
+  'performance.detected': 'Εντοπίστηκε λειτουργία απόδοσης',
+  'performance.columnsFound': 'Βρέθηκαν {count} στήλες μέτρησης',
+  'performance.labelQuestion': 'Τι αντιπροσωπεύουν αυτά τα κανάλια μέτρησης;',
+  'performance.labelExample': 'π.χ., Κεφαλή πλήρωσης, Κοιλότητα, Ακροφύσιο',
+  'performance.enable': 'Ενεργοποίηση λειτουργίας απόδοσης',
+
+  // Finding editor & data types
+  'finding.placeholder': 'Τι ανακαλύψατε;',
+  'finding.note': 'Σημείωση ευρήματος',
+  'data.typeNumeric': 'Αριθμητικό',
+  'data.typeCategorical': 'Κατηγορικό',
+  'data.typeDate': 'Ημερομηνία',
+  'data.typeText': 'Κείμενο',
+  'data.categories': 'κατηγορίες',
+
+  // Coaching text
+  'coach.problem.frame':
+    'Ρυθμίστε τα δεδομένα σας για να ξεκινήσετε τη διερεύνηση του προβλήματος.',
+  'coach.problem.scout': 'Αναζητήστε μοτίβα διακύμανσης που θα μπορούσαν να εξηγήσουν το πρόβλημα.',
+  'coach.problem.investigate': 'Δημιουργήστε τεκμήρια που συνδέουν παράγοντες με το πρόβλημα.',
+  'coach.problem.improve': 'Σχεδιάστε και υλοποιήστε βελτιώσεις με τον κύκλο PDCA.',
+  'coach.hypothesis.frame': 'Ρυθμίστε τα δεδομένα σας για να ελέγξετε την υπόθεσή σας.',
+  'coach.hypothesis.scout': 'Αναζητήστε στοιχεία που υποστηρίζουν ή αντικρούουν την υπόθεσή σας.',
+  'coach.hypothesis.investigate':
+    'Συλλέξτε στατιστικά στοιχεία για επιβεβαίωση της ύποπτης αιτίας.',
+  'coach.hypothesis.improve': 'Η αιτία επιβεβαιώθηκε — σχεδιάστε διορθωτικές ενέργειες μέσω PDCA.',
+  'coach.routine.frame': 'Ρυθμίστε τα δεδομένα σας για τακτικό έλεγχο διαδικασίας.',
+  'coach.routine.scout': 'Σαρώστε για νέα σήματα, ολίσθηση ή απρόσμενα μοτίβα.',
+  'coach.routine.investigate': 'Βρέθηκε σήμα — εμβαθύνετε σε πιθανές αιτίες.',
+  'coach.routine.improve': 'Η αιτία εντοπίστηκε — σχεδιάστε διορθωτικές ενέργειες μέσω PDCA.',
+
+  // PWA HomeScreen
+  'home.heading': 'Εξερεύνηση ανάλυσης διακύμανσης',
+  'home.description':
+    'Δωρεάν εργαλείο εκπαίδευσης ανάλυσης διακύμανσης. Οπτικοποιήστε τη μεταβλητότητα, υπολογίστε την ικανότητα και βρείτε πού να εστιάσετε — απευθείας στο πρόγραμμα περιήγησής σας.',
+  'home.divider': 'ή χρησιμοποιήστε τα δικά σας δεδομένα',
+  'home.pasteHelper': 'Αντιγράψτε γραμμές και επικολλήστε — θα ανιχνεύσουμε αυτόματα τις στήλες',
+  'home.manualEntry': 'Ή εισάγετε δεδομένα χειροκίνητα',
+  'home.upgradeHint': 'Χρειάζεστε λειτουργίες ομάδας, μεταφόρτωση αρχείων ή αποθηκευμένα έργα;',
+
+  // PWA navigation
+  'nav.presentationMode': 'Λειτουργία παρουσίασης',
+  'nav.hideFindings': 'Απόκρυψη ευρημάτων',
+
+  // Export
+  'export.asImage': 'Εξαγωγή ως εικόνα',
+  'export.asCsv': 'Εξαγωγή ως CSV',
+  'export.imageDesc': 'Στιγμιότυπο PNG για παρουσιάσεις',
+  'export.csvDesc': 'Αρχείο δεδομένων συμβατό με υπολογιστικά φύλλα',
+
+  // Sample section
+  'sample.heading': 'Δοκιμάστε ένα δείγμα δεδομένων',
+  'sample.allSamples': 'Όλα τα δείγματα δεδομένων',
+  'sample.featured': 'Προτεινόμενα',
+  'sample.caseStudies': 'Μελέτες περίπτωσης',
+  'sample.journeys': 'Μαθησιακές διαδρομές',
+  'sample.industry': 'Βιομηχανικά παραδείγματα',
+
+  // View modes
+  'view.stats': 'Στατιστικά',
+  'display.appearance': 'Εμφάνιση',
+
+  // Azure toolbar
+  'data.manualEntry': 'Χειροκίνητη εισαγωγή',
+  'data.editTable': 'Επεξεργασία πίνακα δεδομένων',
+  'toolbar.saveAs': 'Αποθήκευση ως…',
+  'toolbar.saving': 'Αποθήκευση…',
+  'toolbar.saved': 'Αποθηκεύτηκε',
+  'toolbar.saveFailed': 'Η αποθήκευση απέτυχε',
+  'toolbar.addMore': 'Προσθήκη δεδομένων',
+  'report.scouting': 'Αναφορά ανίχνευσης',
+  'export.csvFiltered': 'Εξαγωγή φιλτραρισμένων δεδομένων ως CSV',
+  'error.auth': 'Σφάλμα ταυτοποίησης',
+
+  // File browse
+  'file.browseLocal': 'Αναζήτηση σε αυτή τη συσκευή',
+  'file.browseSharePoint': 'Αναζήτηση στο SharePoint',
+  'file.open': 'Άνοιγμα αρχείου',
+
+  // Admin hub
+  'admin.title': 'Διαχείριση',
+  'admin.status': 'Κατάσταση',
+  'admin.plan': 'Πλάνο & Λειτουργίες',
+  'admin.teams': 'Ρύθμιση Teams',
+  'admin.knowledge': 'Βάση Γνώσεων',
+  'admin.troubleshooting': 'Αντιμετώπιση προβλημάτων',
+
+  // Admin plan tab
+  'admin.currentPlan': 'Τρέχον',
+  'admin.feature': 'Λειτουργία',
+  'admin.manageSubscription': 'Διαχείριση συνδρομής στο Azure',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/μήνα',
+  'admin.planTeamPrice': '€199/μήνα',
+  'admin.planTeamAIPrice': '€279/μήνα',
+  'admin.planStandardDesc': 'Πλήρης ανάλυση, τοπική αποθήκευση αρχείων',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, κινητό',
+  'admin.planTeamAIDesc': 'Βάση γνώσεων AI, βελτιωμένο CoScout',
+
+  // Feature names
+  'feature.charts': 'I-Chart, Boxplot, Pareto, Στατιστικά',
+  'feature.capability': 'Ανάλυση ικανότητας (Cp/Cpk)',
+  'feature.performance': 'Λειτουργία απόδοσης (πολλαπλών καναλιών)',
+  'feature.anova': 'ANOVA & ανάλυση παραγόντων',
+  'feature.findingsWorkflow': 'Ευρήματα & ροή εργασίας έρευνας',
+  'feature.whatIf': 'Προσομοίωση τι-αν',
+  'feature.csvImport': 'Εισαγωγή CSV/Excel',
+  'feature.reportExport': 'Εξαγωγή αναφοράς (PDF)',
+  'feature.indexedDb': 'Τοπική αποθήκευση IndexedDB',
+  'feature.maxFactors': 'Έως 6 παράγοντες',
+  'feature.maxRows': 'Έως 100K γραμμές',
+  'feature.onedriveSync': 'Συγχρονισμός έργων OneDrive',
+  'feature.sharepointPicker': 'Επιλογέας αρχείων SharePoint',
+  'feature.teamsIntegration': 'Ενσωμάτωση Microsoft Teams',
+  'feature.channelCollab': 'Συνεργασία βάσει καναλιού',
+  'feature.mobileUi': 'Βελτιστοποιημένο UI για κινητά',
+  'feature.coScoutAi': 'Βοηθός CoScout AI',
+  'feature.narrativeBar': 'Πληροφορίες NarrativeBar',
+  'feature.chartInsights': 'Chips πληροφοριών γραφήματος',
+  'feature.knowledgeBase': 'Βάση Γνώσεων (αναζήτηση SharePoint)',
+  'feature.aiActions': 'Ενέργειες που προτείνονται από AI',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'Προσθήκη VariScout στο Microsoft Teams',
+  'admin.teams.description':
+    'Δημιουργήστε ένα πακέτο εφαρμογής Teams για την ανάπτυξή σας και μεταφορτώστε το στο κέντρο διαχείρισης Teams.',
+  'admin.teams.running': 'Εκτελείται εντός Microsoft Teams',
+  'admin.teams.step1': 'ID πελάτη εγγραφής εφαρμογής (Προαιρετικό)',
+  'admin.teams.step1Desc':
+    'Εισάγετε το ID πελάτη εγγραφής εφαρμογής Azure AD για ενεργοποίηση Teams SSO στο manifest.',
+  'admin.teams.step2': 'Λήψη πακέτου εφαρμογής Teams',
+  'admin.teams.step2Desc':
+    'Αυτό το .zip περιέχει το manifest και τα εικονίδια προρυθμισμένα για την ανάπτυξή σας.',
+  'admin.teams.step3': 'Μεταφόρτωση στο κέντρο διαχείρισης Teams',
+  'admin.teams.step4': 'Προσθήκη VariScout σε κανάλι',
+  'admin.teams.download': 'Λήψη πακέτου εφαρμογής Teams',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} έλεγχοι πέτυχαν',
+  'admin.runChecks': 'Εκτέλεση όλων των ελέγχων',
+  'admin.notApplicable': 'Δεν εφαρμόζεται στο πλάνο σας',
+  'admin.managePortal': 'Διαχείριση στο Azure Portal',
+  'admin.portalAccessNote':
+    'Αυτά τα στοιχεία απαιτούν πρόσβαση στο Azure Portal και δεν μπορούν να ελεγχθούν από το πρόγραμμα περιήγησης.',
+  'admin.fixInPortal': 'Διόρθωση στο Azure Portal: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'Συνηθισμένα προβλήματα και πώς να τα λύσετε. Κάντε κλικ σε ένα πρόβλημα για οδηγίες βήμα-βήμα.',
+  'admin.runCheck': 'Εκτέλεση ελέγχου',
+  'admin.checkPassed': 'Ο έλεγχος πέτυχε — αυτό μπορεί να μην είναι το πρόβλημα.',
+  'admin.checkFailed': 'Ο έλεγχος απέτυχε — ακολουθήστε τα βήματα παρακάτω.',
+  'admin.issue.signin': 'Οι χρήστες δεν μπορούν να συνδεθούν',
+  'admin.issue.signinDesc':
+    'Η ταυτοποίηση Azure AD δεν λειτουργεί ή οι χρήστες βλέπουν κενή σελίδα.',
+  'admin.issue.signinSteps':
+    'Επαληθεύστε ότι η ταυτοποίηση App Service είναι ενεργοποιημένη στο Azure Portal.\nΕλέγξτε ότι η εγγραφή εφαρμογής Azure AD έχει τα σωστά URI ανακατεύθυνσης.\nΒεβαιωθείτε ότι η εγγραφή εφαρμογής έχει ενεργοποιημένα τα "ID tokens" στην Ταυτοποίηση.\nΕπαληθεύστε ότι ο μισθωτής επιτρέπει τη σύνδεση χρηστών στην εφαρμογή (Εταιρικές Εφαρμογές → Ιδιότητες → Ενεργοποιημένο για σύνδεση χρηστών).',
+  'admin.issue.onedrive': 'Ο συγχρονισμός OneDrive δεν λειτουργεί',
+  'admin.issue.onedriveDesc':
+    'Τα έργα δεν συγχρονίζονται στο OneDrive ή οι χρήστες βλέπουν σφάλματα αδειών.',
+  'admin.issue.onedriveSteps':
+    'Επαληθεύστε ότι η εγγραφή εφαρμογής έχει εξουσιοδοτημένη άδεια "Files.ReadWrite".\nΕλέγξτε ότι η συναίνεση διαχειριστή έχει χορηγηθεί για τις άδειες Graph.\nΒεβαιωθείτε ότι ο χρήστης έχει εκχωρημένη άδεια OneDrive.\nΔοκιμάστε αποσύνδεση και επανασύνδεση για ανανέωση του token.',
+  'admin.issue.coscout': 'Το CoScout δεν αποκρίνεται',
+  'admin.issue.coscoutDesc': 'Ο βοηθός AI δεν παράγει απαντήσεις ή εμφανίζει σφάλματα.',
+  'admin.issue.coscoutSteps':
+    'Επαληθεύστε ότι το AI endpoint είναι ρυθμισμένο στο ARM template / ρυθμίσεις App Service.\nΕλέγξτε ότι ο πόρος Azure AI Services είναι αναπτυγμένος και εκτελείται.\nΕπαληθεύστε ότι υπάρχει ανάπτυξη μοντέλου (π.χ. gpt-4o) στον πόρο AI Services.\nΕλέγξτε τα όρια Azure AI Services — η ανάπτυξη μπορεί να έχει φτάσει τα όρια ρυθμού.',
+  'admin.issue.kbEmpty': 'Η Βάση Γνώσεων δεν επιστρέφει αποτελέσματα',
+  'admin.issue.kbEmptyDesc':
+    'Η "Αναζήτηση Βάσης Γνώσεων" του CoScout δεν βρίσκει τίποτα παρά την ύπαρξη εγγράφων.',
+  'admin.issue.kbEmptySteps':
+    'Επαληθεύστε ότι το AI Search endpoint είναι ρυθμισμένο στις ρυθμίσεις App Service.\nΕλέγξτε ότι η απομακρυσμένη πηγή γνώσης SharePoint έχει δημιουργηθεί στο AI Search.\nΒεβαιωθείτε ότι ≥1 άδεια Microsoft 365 Copilot είναι ενεργή στο μισθωτή.\nΕπαληθεύστε ότι ο χρήστης έχει πρόσβαση SharePoint στα αναζητούμενα έγγραφα.\nΕλέγξτε ότι ο διακόπτης προεπισκόπησης Βάσης Γνώσεων είναι ενεργοποιημένος (Διαχείριση → καρτέλα Βάση Γνώσεων).',
+  'admin.issue.teamsTab': 'Η καρτέλα Teams δεν εμφανίζεται',
+  'admin.issue.teamsTabDesc':
+    'Το VariScout δεν εμφανίζεται στο Teams ή η καρτέλα αποτυγχάνει να φορτώσει.',
+  'admin.issue.teamsTabSteps':
+    'Επαληθεύστε ότι το πακέτο εφαρμογής Teams (.zip) μεταφορτώθηκε στο κέντρο διαχείρισης Teams.\nΕλέγξτε ότι το contentUrl στο manifest.json ταιριάζει με το URL του App Service.\nΒεβαιωθείτε ότι η εφαρμογή είναι εγκεκριμένη στο κέντρο διαχείρισης Teams (δεν μπλοκάρεται από πολιτική).\nΔοκιμάστε να αφαιρέσετε και να προσθέσετε ξανά την καρτέλα στο κανάλι.\nΑν χρησιμοποιείτε προσαρμοσμένο domain, επαληθεύστε ότι βρίσκεται στον πίνακα validDomains του manifest.',
+  'admin.issue.newUser': 'Νέος χρήστης δεν μπορεί να έχει πρόσβαση στην εφαρμογή',
+  'admin.issue.newUserDesc':
+    'Ένας πρόσφατα προστεθέν χρήστης βλέπει απόρριψη πρόσβασης ή κενή σελίδα.',
+  'admin.issue.newUserSteps':
+    'Στο Azure AD, μεταβείτε σε Εταιρικές Εφαρμογές → VariScout → Χρήστες και ομάδες.\nΠροσθέστε τον χρήστη ή την ομάδα ασφαλείας του στην εφαρμογή.\nΑν χρησιμοποιείτε "Απαιτείται εκχώρηση χρήστη", βεβαιωθείτε ότι ο χρήστης έχει εκχώρηση.\nΕλέγξτε πολιτικές υπό όρους πρόσβασης που μπορεί να μπλοκάρουν τον χρήστη.',
+  'admin.issue.aiSlow': 'Οι απαντήσεις AI είναι αργές',
+  'admin.issue.aiSlowDesc': 'Το CoScout αργεί να απαντήσει ή λήγει συχνά.',
+  'admin.issue.aiSlowSteps':
+    'Ελέγξτε την περιοχή ανάπτυξης Azure AI Services — η καθυστέρηση αυξάνεται με την απόσταση.\nΕπαληθεύστε ότι η ανάπτυξη μοντέλου έχει επαρκές όριο TPM (tokens ανά λεπτό).\nΣκεφτείτε αναβάθμιση σε ανάπτυξη με εγγυημένη ρυθμαπόδοση για σταθερή καθυστέρηση.\nΕλέγξτε αν ο δείκτης AI Search είναι μεγάλος — σκεφτείτε τη βελτιστοποίηση της πηγής γνώσης.',
+  'admin.issue.forbidden': 'Σφάλματα "Forbidden"',
+  'admin.issue.forbiddenDesc':
+    'Οι χρήστες βλέπουν σφάλματα 403 κατά την πρόσβαση σε ορισμένες λειτουργίες.',
+  'admin.issue.forbiddenSteps':
+    'Ελέγξτε ότι όλες οι απαιτούμενες άδειες Graph API έχουν συναίνεση διαχειριστή.\nΕπαληθεύστε ότι η αποθήκη token ταυτοποίησης App Service είναι ενεργοποιημένη.\nΒεβαιωθείτε ότι το token του χρήστη δεν έχει λήξει — δοκιμάστε αποσύνδεση και επανασύνδεση.\nΕλέγξτε πολιτικές υπό όρους πρόσβασης του μισθωτή.',
+  'admin.issue.kbPartial': 'Η KB αποτυγχάνει για κάποιους χρήστες',
+  'admin.issue.kbPartialDesc':
+    'Η αναζήτηση Βάσης Γνώσεων λειτουργεί για διαχειριστές αλλά όχι για άλλους χρήστες.',
+  'admin.issue.kbPartialSteps':
+    'Οι απομακρυσμένες πηγές γνώσης SharePoint χρησιμοποιούν δικαιώματα ανά χρήστη. Κάθε χρήστης πρέπει να έχει πρόσβαση SharePoint στα έγγραφα.\nΕλέγξτε αν οι επηρεαζόμενοι χρήστες μπλοκάρονται από πολιτικές υπό όρους πρόσβασης.\nΕπαληθεύστε ότι η συναίνεση διαχειριστή δόθηκε για την εξουσιοδοτημένη άδεια Sites.Read.All.\nΖητήστε από τους επηρεαζόμενους χρήστες να αποσυνδεθούν και να συνδεθούν ξανά για ανανέωση του token τους.',
 };

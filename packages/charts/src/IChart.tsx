@@ -406,7 +406,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   textAnchor="start"
                   dominantBaseline="middle"
                 >
-                  UCL: {formatStat(stats.ucl, 1)}
+                  {t('chart.label.ucl')} {formatStat(stats.ucl, 1)}
                 </text>
               )}
               {/* Mean */}
@@ -426,7 +426,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   textAnchor="start"
                   dominantBaseline="middle"
                 >
-                  Mean: {formatStat(stats.mean, 1)}
+                  {t('chart.label.mean')} {formatStat(stats.mean, 1)}
                 </text>
               )}
               {/* LCL */}
@@ -447,7 +447,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   textAnchor="start"
                   dominantBaseline="middle"
                 >
-                  LCL: {formatStat(stats.lcl, 1)}
+                  {t('chart.label.lcl')} {formatStat(stats.lcl, 1)}
                 </text>
               )}
             </>
@@ -476,12 +476,12 @@ const IChartBase: React.FC<IChartProps> = ({
                   className={onSpecClick ? interactionStyles.clickableSubtle : ''}
                   onClick={() => onSpecClick?.('usl')}
                   {...getInteractiveA11yProps(
-                    'Edit USL',
+                    tf('chart.edit.spec', { spec: t('limits.usl') }),
                     onSpecClick ? () => onSpecClick('usl') : undefined
                   )}
                 >
-                  {onSpecClick && <title>Click to edit USL</title>}
-                  USL: {formatStat(specs.usl, 1)}
+                  {onSpecClick && <title>{tf('chart.edit.spec', { spec: t('limits.usl') })}</title>}
+                  {t('chart.label.usl')} {formatStat(specs.usl, 1)}
                 </text>
               )}
             </>
@@ -508,12 +508,12 @@ const IChartBase: React.FC<IChartProps> = ({
                   className={onSpecClick ? interactionStyles.clickableSubtle : ''}
                   onClick={() => onSpecClick?.('lsl')}
                   {...getInteractiveA11yProps(
-                    'Edit LSL',
+                    tf('chart.edit.spec', { spec: t('limits.lsl') }),
                     onSpecClick ? () => onSpecClick('lsl') : undefined
                   )}
                 >
-                  {onSpecClick && <title>Click to edit LSL</title>}
-                  LSL: {formatStat(specs.lsl, 1)}
+                  {onSpecClick && <title>{tf('chart.edit.spec', { spec: t('limits.lsl') })}</title>}
+                  {t('chart.label.lsl')} {formatStat(specs.lsl, 1)}
                 </text>
               )}
             </>
@@ -539,12 +539,14 @@ const IChartBase: React.FC<IChartProps> = ({
                   className={onSpecClick ? interactionStyles.clickableSubtle : ''}
                   onClick={() => onSpecClick?.('target')}
                   {...getInteractiveA11yProps(
-                    'Edit Target',
+                    tf('chart.edit.spec', { spec: t('stats.target') }),
                     onSpecClick ? () => onSpecClick('target') : undefined
                   )}
                 >
-                  {onSpecClick && <title>Click to edit Target</title>}
-                  Tgt: {formatStat(specs.target, 1)}
+                  {onSpecClick && (
+                    <title>{tf('chart.edit.spec', { spec: t('stats.target') })}</title>
+                  )}
+                  {t('chart.label.tgt')} {formatStat(specs.target, 1)}
                 </text>
               )}
             </>
@@ -687,9 +689,9 @@ const IChartBase: React.FC<IChartProps> = ({
               fill="transparent"
               className={`${interactionStyles.clickable} hover:fill-blue-500/10`}
               onClick={onYAxisClick}
-              {...getInteractiveA11yProps('Edit Y-axis scale', onYAxisClick)}
+              {...getInteractiveA11yProps(t('chart.edit.yAxis'), onYAxisClick)}
             >
-              <title>Click to edit Y-axis scale</title>
+              <title>{t('chart.edit.yAxis')}</title>
             </rect>
           )}
 
@@ -777,7 +779,9 @@ const IChartBase: React.FC<IChartProps> = ({
               </div>
             )}
           </div>
-          <div>Value: {formatStat(tooltipData.y)}</div>
+          <div>
+            {t('chart.label.value')} {formatStat(tooltipData.y)}
+          </div>
           {(() => {
             const violation = getViolationReason(
               tooltipData.y,

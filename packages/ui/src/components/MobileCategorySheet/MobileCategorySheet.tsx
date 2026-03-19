@@ -65,7 +65,7 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
   renderExtra,
   onAskCoScout,
 }) => {
-  const { formatStat } = useTranslation();
+  const { t, tf, formatStat } = useTranslation();
   const formatNum = (v: number | undefined): string => {
     if (v === undefined || v === null) return '-';
     return Number.isInteger(v) ? String(v) : formatStat(v);
@@ -160,7 +160,7 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
             onClick={onClose}
             className="p-2 text-content-secondary hover:text-content rounded-lg transition-colors"
             style={{ minWidth: 44, minHeight: 44 }}
-            aria-label="Close"
+            aria-label={t('action.close')}
           >
             <X size={18} />
           </button>
@@ -174,15 +174,15 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
           {isBoxplot ? (
             <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
               <div>
-                <span className="text-content-secondary">n: </span>
+                <span className="text-content-secondary">{t('chart.label.n')} </span>
                 <span className="text-content font-medium">{formatNum(data.sampleN)}</span>
               </div>
               <div>
-                <span className="text-content-secondary">Mean: </span>
+                <span className="text-content-secondary">{t('chart.label.mean')} </span>
                 <span className="text-content font-medium">{formatNum(data.mean)}</span>
               </div>
               <div>
-                <span className="text-content-secondary">Median: </span>
+                <span className="text-content-secondary">{t('chart.median')}: </span>
                 <span className="text-content font-medium">{formatNum(data.median)}</span>
               </div>
               <div>
@@ -223,7 +223,7 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
             style={{ minHeight: 48 }}
             data-testid="category-sheet-drill-down"
           >
-            Drill down into &ldquo;{data.categoryKey}&rdquo;
+            {tf('chart.drillDown', { category: data.categoryKey })}
             <ChevronRight size={16} />
           </button>
         </div>
@@ -233,7 +233,7 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
 
         {/* Highlight row */}
         <div className="px-4 py-3 flex items-center gap-3">
-          <span className="text-sm text-content-secondary">Highlight:</span>
+          <span className="text-sm text-content-secondary">{t('chart.highlight')}</span>
           <div className="flex items-center gap-2">
             {highlightOptions.map(({ color, hex }) => (
               <button
@@ -272,7 +272,7 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
-              aria-label="Clear highlight"
+              aria-label={t('chart.clearHighlight')}
               data-testid="highlight-clear"
             >
               <span
@@ -304,7 +304,7 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
                 style={{ minHeight: 44 }}
                 data-testid="category-sheet-pin-finding"
               >
-                Pin as Finding
+                {t('investigation.pinAsFinding')}
               </button>
             </div>
           </>
@@ -332,7 +332,7 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
                 data-testid="category-sheet-ask-coscout"
               >
                 <MessageCircle size={16} />
-                Ask CoScout about this
+                {t('ai.askCoScout')}
               </button>
             </div>
           </>

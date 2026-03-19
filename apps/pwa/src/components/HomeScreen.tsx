@@ -1,6 +1,7 @@
 import React from 'react';
 import { BarChart2, ClipboardPaste, PenLine, ArrowUpRight } from 'lucide-react';
 import type { SampleDataset } from '@variscout/data';
+import { useTranslation } from '@variscout/hooks';
 import SampleSection from './data/SampleSection';
 
 interface HomeScreenProps {
@@ -20,6 +21,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenPaste,
   onOpenManualEntry,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="h-full flex flex-col items-center justify-start p-4 sm:p-8 overflow-auto animate-in fade-in duration-500">
       <div className="max-w-xl w-full space-y-6 sm:space-y-8 py-4">
@@ -28,11 +31,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           <div className="inline-flex p-4 bg-surface-secondary/50 rounded-full border border-edge">
             <BarChart2 size={40} className="text-blue-500" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-white">Explore Variation Analysis</h2>
-          <p className="text-sm text-content-secondary max-w-md mx-auto">
-            Free variation analysis training tool. Visualize variability, calculate capability, and
-            find where to focus — right in your browser.
-          </p>
+          <h2 className="text-xl sm:text-2xl font-bold text-white">{t('home.heading')}</h2>
+          <p className="text-sm text-content-secondary max-w-md mx-auto">{t('home.description')}</p>
         </div>
 
         {/* Sample datasets section */}
@@ -47,7 +47,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
           <div className="relative flex justify-center">
             <span className="px-3 bg-surface text-xs text-content-muted uppercase tracking-wider">
-              or use your own data
+              {t('home.divider')}
             </span>
           </div>
         </div>
@@ -62,10 +62,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             className="text-blue-400 group-hover:text-blue-300 transition-colors"
           />
           <div className="text-left">
-            <span className="text-sm font-semibold text-white block">Paste from Excel</span>
-            <span className="text-xs text-content-secondary">
-              Copy rows and paste — we'll detect columns automatically
-            </span>
+            <span className="text-sm font-semibold text-white block">{t('data.pasteData')}</span>
+            <span className="text-xs text-content-secondary">{t('home.pasteHelper')}</span>
           </div>
         </button>
 
@@ -76,7 +74,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             className="inline-flex items-center gap-1.5 text-xs text-content-muted hover:text-content-secondary transition-colors"
           >
             <PenLine size={12} />
-            Or enter data manually
+            {t('home.manualEntry')}
           </button>
           <div>
             <a
@@ -85,7 +83,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs text-content-muted/60 hover:text-blue-400 transition-colors"
             >
-              Need team features, file upload, or saved projects?
+              {t('home.upgradeHint')}
               <ArrowUpRight size={10} />
             </a>
           </div>

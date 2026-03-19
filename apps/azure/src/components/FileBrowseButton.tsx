@@ -8,6 +8,7 @@
 
 import React, { useRef, useCallback } from 'react';
 import { CloudUpload, FolderOpen } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import { useFilePicker, type FilePickerResult, type PickerMode } from '../hooks/useFilePicker';
 
 export interface FileBrowseButtonProps {
@@ -31,12 +32,14 @@ const FileBrowseButton: React.FC<FileBrowseButtonProps> = ({
   onPick,
   onLocalFile,
   label,
-  localLabel = 'Browse this device',
+  localLabel,
   className = '',
   showLocalFallback = false,
   entryPath,
   size = 'md',
 }) => {
+  const { t } = useTranslation();
+  const resolvedLocalLabel = localLabel ?? t('file.browseLocal');
   const localInputRef = useRef<HTMLInputElement>(null);
 
   const { open, isOpen, hasCloudAccess } = useFilePicker({
@@ -61,7 +64,7 @@ const FileBrowseButton: React.FC<FileBrowseButtonProps> = ({
 
   const sizeClasses = size === 'sm' ? 'px-3 py-1.5 text-xs gap-1.5' : 'px-4 py-2.5 text-sm gap-2';
 
-  const buttonLabel = label ?? (hasCloudAccess ? 'Browse SharePoint' : 'Open File');
+  const buttonLabel = label ?? (hasCloudAccess ? t('file.browseSharePoint') : t('file.open'));
   const Icon = hasCloudAccess ? CloudUpload : FolderOpen;
 
   // Convert filters to accept string for native input
@@ -94,7 +97,7 @@ const FileBrowseButton: React.FC<FileBrowseButtonProps> = ({
               bg-surface-tertiary text-content hover:bg-surface-tertiary/80`}
           >
             <FolderOpen size={size === 'sm' ? 14 : 16} />
-            {localLabel}
+            {resolvedLocalLabel}
           </button>
           <input
             ref={localInputRef}

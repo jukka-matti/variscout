@@ -496,8 +496,8 @@ export const Editor: React.FC<EditorProps> = ({
   const journeyPhase = useJourneyPhase(!!filteredData.length, findingsState.findings);
   const entryScenario = useMemo(() => detectEntryScenario(processContext), [processContext]);
   const coachingText = useMemo(
-    () => getCoachingText(journeyPhase, entryScenario),
-    [journeyPhase, entryScenario]
+    () => getCoachingText(journeyPhase, entryScenario, locale),
+    [journeyPhase, entryScenario, locale]
   );
 
   // AI orchestration (context, narration, CoScout, knowledge search)
@@ -650,6 +650,20 @@ export const Editor: React.FC<EditorProps> = ({
           const findingId = proposal.params.finding_id as string;
           const text = editedText || (proposal.params.text as string);
           if (findingId && text) findingsState.addAction(findingId, text);
+          break;
+        }
+        case 'suggest_improvement_idea': {
+          const hypothesisId = proposal.params.hypothesis_id as string;
+          const ideaText = editedText || (proposal.params.text as string);
+          const category = proposal.params.category as string;
+          if (hypothesisId && ideaText) {
+            const idea = hypothesesState.addIdea(hypothesisId, ideaText);
+            if (idea && category) {
+              hypothesesState.updateIdea(hypothesisId, idea.id, {
+                category: category as 'containment' | 'corrective' | 'preventive',
+              });
+            }
+          }
           break;
         }
         // share_finding, publish_report, notify_action_owners are handled in Phase 4b (Teams integration)

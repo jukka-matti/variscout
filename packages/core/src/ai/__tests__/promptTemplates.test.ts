@@ -343,8 +343,8 @@ describe('buildCoScoutSystemPrompt', () => {
     const prompt = buildCoScoutSystemPrompt({
       investigation: {
         allHypotheses: [
-          { text: 'Night shift training gap', status: 'supported' },
-          { text: 'Material batch variation', status: 'untested' },
+          { id: 'h-1', text: 'Night shift training gap', status: 'supported' },
+          { id: 'h-2', text: 'Material batch variation', status: 'untested' },
         ],
       },
     });
@@ -403,6 +403,7 @@ describe('buildCoScoutSystemPrompt', () => {
         phase: 'converging',
         allHypotheses: [
           {
+            id: 'h-1',
             text: 'Night shift training gap',
             status: 'supported',
             ideas: [
@@ -428,7 +429,7 @@ describe('buildCoScoutSystemPrompt', () => {
     const prompt = buildCoScoutSystemPrompt({
       investigation: {
         phase: 'converging',
-        allHypotheses: [{ text: 'Root cause', status: 'supported' }],
+        allHypotheses: [{ id: 'h-1', text: 'Root cause', status: 'supported' }],
       },
     });
     expect(prompt).not.toContain('Existing improvement ideas');
@@ -501,7 +502,7 @@ describe('buildCoScoutSystemPrompt', () => {
 
   it('uses generic improving instructions when no staged data', () => {
     const prompt = buildCoScoutSystemPrompt({ investigation: { phase: 'improving' } });
-    expect(prompt).toContain('improvement cycle');
+    expect(prompt).toContain('PDCA: Plan');
     expect(prompt).not.toContain('verification data');
   });
 
@@ -582,6 +583,159 @@ describe('buildCoScoutSystemPrompt', () => {
     const prompt = buildCoScoutSystemPrompt({ hasActionTools: true });
     expect(prompt).toContain('Knowledge Base in IMPROVE phase');
     expect(prompt).toContain('sustaining control procedures');
+  });
+
+  // Workstream B: Enriched AIContext in prompt
+  it('includes hypothesis IDs in investigation context', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        allHypotheses: [
+          { id: 'hyp-1', text: 'Night shift training gap', status: 'supported' },
+          { id: 'hyp-2', text: 'Material batch', status: 'partial' },
+        ],
+      },
+    });
+    expect(prompt).toContain('[hyp-1]');
+    expect(prompt).toContain('[hyp-2]');
+  });
+
+  it('includes finding status in selected finding context', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        selectedFinding: {
+          text: 'Head 3 high variation',
+          status: 'improving',
+        },
+      },
+    });
+    expect(prompt).toContain('[status: improving]');
+  });
+
+  it('includes action progress summary in selected finding', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        selectedFinding: {
+          text: 'Test finding',
+          actions: [
+            { text: 'Replace nozzle', status: 'done' },
+            { text: 'Verify Cpk', status: 'pending', overdue: true },
+          ],
+          actionProgress: { total: 2, done: 1, overdueCount: 1 },
+        },
+      },
+    });
+    expect(prompt).toContain('Action progress: 1/2 complete');
+    expect(prompt).toContain('1 overdue');
+    expect(prompt).toContain('OVERDUE');
+  });
+
+  it('includes idea category in converging phase', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        phase: 'converging',
+        allHypotheses: [
+          {
+            id: 'hyp-1',
+            text: 'Root cause',
+            status: 'supported',
+            ideas: [
+              { text: 'Fix nozzle', category: 'corrective', selected: true },
+              { text: 'Temporary shim', category: 'containment' },
+            ],
+          },
+        ],
+      },
+    });
+    expect(prompt).toContain('[corrective]');
+    expect(prompt).toContain('[containment]');
+  });
+
+  // Workstream A: PDCA sub-state awareness
+  it('includes PDCA coaching section in tool routing instructions', () => {
+    const prompt = buildCoScoutSystemPrompt({ hasActionTools: true });
+    expect(prompt).toContain('PDCA coaching');
+    expect(prompt).toContain('containment');
+    expect(prompt).toContain('corrective');
+    expect(prompt).toContain('preventive');
+  });
+
+  it('uses PDCA Plan instruction when improving with no actions', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        phase: 'improving',
+        selectedFinding: { text: 'Test finding' },
+      },
+    });
+    expect(prompt).toContain('PDCA: Plan');
+    expect(prompt).toContain('brainstorm improvement ideas');
+  });
+
+  it('uses PDCA Do instruction when improving with actions in progress', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        phase: 'improving',
+        selectedFinding: {
+          text: 'Test finding',
+          actions: [
+            { text: 'Replace nozzle', status: 'done' },
+            { text: 'Verify Cpk', status: 'pending' },
+          ],
+        },
+      },
+    });
+    expect(prompt).toContain('PDCA: Do');
+    expect(prompt).toContain('Track progress');
+  });
+
+  it('uses PDCA Act instruction when improving with all actions done', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        phase: 'improving',
+        selectedFinding: {
+          text: 'Test finding',
+          actions: [
+            { text: 'Replace nozzle', status: 'done' },
+            { text: 'Verify Cpk', status: 'done' },
+          ],
+        },
+      },
+    });
+    expect(prompt).toContain('PDCA: Act');
+    expect(prompt).toContain('outcome');
+  });
+
+  it('preserves staged comparison override (CHECK) over PDCA sub-state', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        phase: 'improving',
+        selectedFinding: {
+          text: 'Test finding',
+          actions: [{ text: 'Replace nozzle', status: 'done' }],
+        },
+      },
+      stagedComparison: {
+        stageNames: ['Before', 'After'],
+        deltas: {
+          meanShift: -0.3,
+          variationRatio: 0.7,
+          cpkDelta: 0.5,
+          passRateDelta: null,
+          outOfSpecReduction: 0,
+        },
+        colorCoding: {},
+        cpkBefore: 0.85,
+        cpkAfter: 1.35,
+      },
+    });
+    expect(prompt).toContain('verification data');
+    expect(prompt).not.toContain('PDCA: Act');
+  });
+
+  // Workstream C: suggest_improvement_idea routing guidance
+  it('includes improvement idea routing guidance when action tools enabled', () => {
+    const prompt = buildCoScoutSystemPrompt({ hasActionTools: true });
+    expect(prompt).toContain('suggest_improvement_idea');
+    expect(prompt).toContain('Improvement idea guidance');
   });
 });
 
@@ -1203,9 +1357,29 @@ describe('buildCoScoutTools', () => {
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
   });
 
-  it('never exceeds 14 tools (IMPROVE + Team plan)', () => {
+  it('never exceeds 15 tools (IMPROVE + Team plan)', () => {
     const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
-    expect(tools.length).toBeLessThanOrEqual(14);
+    expect(tools.length).toBeLessThanOrEqual(15);
+  });
+
+  it('includes suggest_improvement_idea in INVESTIGATE phase tools', () => {
+    const tools = buildCoScoutTools({ phase: 'investigate' });
+    expect(tools.find(t => t.name === 'suggest_improvement_idea')).toBeDefined();
+  });
+
+  it('includes suggest_improvement_idea in IMPROVE phase tools', () => {
+    const tools = buildCoScoutTools({ phase: 'improve' });
+    expect(tools.find(t => t.name === 'suggest_improvement_idea')).toBeDefined();
+  });
+
+  it('does not include suggest_improvement_idea in SCOUT phase', () => {
+    const tools = buildCoScoutTools({ phase: 'scout' });
+    expect(tools.find(t => t.name === 'suggest_improvement_idea')).toBeUndefined();
+  });
+
+  it('does not include suggest_improvement_idea in FRAME phase', () => {
+    const tools = buildCoScoutTools({ phase: 'frame' });
+    expect(tools.find(t => t.name === 'suggest_improvement_idea')).toBeUndefined();
   });
 });
 

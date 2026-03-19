@@ -32,7 +32,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
     showBranding,
   });
 
-  const { chrome, colors } = useChartTheme();
+  const { chrome, colors, t } = useChartTheme();
 
   const bins = useMemo(() => {
     if (data.length === 0) return [];
@@ -136,7 +136,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
               fontSize={fonts.statLabel}
               fontWeight="bold"
             >
-              LSL
+              {t('limits.lsl')}
             </text>
           </>
         )}
@@ -159,7 +159,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
               fontSize={fonts.statLabel}
               fontWeight="bold"
             >
-              USL
+              {t('limits.usl')}
             </text>
           </>
         )}
@@ -182,7 +182,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
               fontSize={fonts.statLabel}
               fontWeight="bold"
             >
-              Target
+              {t('limits.target')}
             </text>
           </>
         )}
@@ -202,7 +202,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
           fontSize={fonts.statLabel}
           fontWeight="bold"
         >
-          Mean
+          {t('limits.mean')}
         </text>
 
         {/* Y Axis */}

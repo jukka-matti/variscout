@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, AlertCircle } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 
 export interface CreateFactorModalProps {
   /** Whether the modal is open */
@@ -48,6 +49,7 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
   existingFactors,
   onCreateFactor,
 }) => {
+  const { t, tf } = useTranslation();
   const [factorName, setFactorName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,10 +99,10 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
   // Validate factor name
   const validateName = (name: string): string | null => {
     if (!name.trim()) {
-      return 'Factor name cannot be empty';
+      return t('factor.nameEmpty');
     }
     if (existingFactors.includes(name.trim())) {
-      return 'A factor with this name already exists';
+      return t('factor.nameExists');
     }
     return null;
   };
@@ -147,11 +149,11 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
       <div className="relative bg-surface-tertiary border border-edge rounded-lg shadow-xl w-full max-w-md mx-4">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-edge">
-          <h2 className="text-lg font-semibold text-content">Create Factor from Selection</h2>
+          <h2 className="text-lg font-semibold text-content">{t('factor.create')}</h2>
           <button
             onClick={onClose}
             className="text-content-muted hover:text-content transition-colors"
-            aria-label="Close modal"
+            aria-label={t('action.close')}
           >
             <X size={20} />
           </button>
@@ -165,7 +167,7 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
               htmlFor="factor-name"
               className="block text-sm font-medium text-content-muted mb-2"
             >
-              Factor Name
+              {t('factor.name')}
             </label>
             <input
               ref={inputRef}
@@ -174,7 +176,7 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
               value={factorName}
               onChange={handleNameChange}
               onKeyDown={handleKeyDown}
-              placeholder="e.g., High Temperature Events"
+              placeholder={t('factor.example')}
               className={`
                 w-full px-3 py-2 rounded
                 bg-surface-secondary border
@@ -195,7 +197,7 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
           {/* Preview */}
           <div className="bg-surface-secondary/50 border border-edge rounded px-4 py-3 space-y-2">
             <p className="text-sm text-content-secondary">
-              {selectedCount} {selectedCount === 1 ? 'point' : 'points'} will be marked as:
+              {tf('factor.pointsMarked', { count: selectedCount })}
             </p>
             <ul className="text-sm text-content-muted space-y-1 ml-4">
               <li className="list-disc">
@@ -211,9 +213,7 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
           </div>
 
           {/* Info text */}
-          <p className="text-xs text-content-muted">
-            The view will automatically filter to show only the selected points.
-          </p>
+          <p className="text-xs text-content-muted">{t('factor.filterExplanation')}</p>
         </div>
 
         {/* Footer */}
@@ -227,7 +227,7 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
               transition-colors
             "
           >
-            Cancel
+            {t('action.cancel')}
           </button>
           <button
             onClick={handleCreate}
@@ -242,7 +242,7 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
               }
             `}
           >
-            Create & Filter
+            {t('factor.createAndFilter')}
           </button>
         </div>
       </div>

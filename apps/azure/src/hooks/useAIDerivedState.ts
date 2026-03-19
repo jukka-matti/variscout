@@ -92,8 +92,21 @@ export function useAIDerivedState({
     const f = findings.find(fi => fi.id === highlightedFindingId);
     if (!f) return undefined;
     const hypothesis = f.hypothesisId ? hypotheses.find(h => h.id === f.hypothesisId) : undefined;
+
+    const now = Date.now();
+    const actions = f.actions?.map(a => ({
+      text: a.text,
+      status: a.completedAt ? 'done' : 'pending',
+      overdue: !a.completedAt && a.dueDate ? new Date(a.dueDate).getTime() < now : undefined,
+    }));
+
+    const total = actions?.length ?? 0;
+    const done = actions?.filter(a => a.status === 'done').length ?? 0;
+    const overdueCount = actions?.filter(a => a.overdue).length ?? 0;
+
     return {
       text: f.text,
+      status: f.status,
       hypothesis: hypothesis?.text,
       projection: f.projection
         ? {
@@ -101,7 +114,8 @@ export function useAIDerivedState({
             sigmaDelta: f.projection.projectedSigma - f.projection.baselineSigma,
           }
         : undefined,
-      actions: f.actions?.map(a => ({ text: a.text, status: a.completedAt ? 'done' : 'pending' })),
+      actions,
+      actionProgress: total > 0 ? { total, done, overdueCount } : undefined,
     };
   }, [highlightedFindingId, findings, hypotheses]);
 

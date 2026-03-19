@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react';
 import { Copy, Check, Maximize2 } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import './ChartCard.css';
 
 export type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats';
@@ -73,6 +74,7 @@ export const ChartCard = forwardRef<HTMLDivElement, ChartCardProps>(
     },
     ref
   ) => {
+    const { t } = useTranslation();
     return (
       <div
         ref={ref}
@@ -99,7 +101,7 @@ export const ChartCard = forwardRef<HTMLDivElement, ChartCardProps>(
                     className={`chart-card__action-btn ${
                       copyFeedback ? 'chart-card__action-btn--success' : ''
                     }`}
-                    title="Copy chart to clipboard"
+                    title={t('chart.copyToClipboard')}
                   >
                     {copyFeedback ? <Check size={14} /> : <Copy size={14} />}
                   </button>
@@ -111,7 +113,7 @@ export const ChartCard = forwardRef<HTMLDivElement, ChartCardProps>(
                       onMaximize();
                     }}
                     className="chart-card__action-btn"
-                    title="Maximize chart"
+                    title={t('chart.maximize')}
                   >
                     <Maximize2 size={14} />
                   </button>

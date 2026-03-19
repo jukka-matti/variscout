@@ -10,6 +10,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Activity, X, Check, Sparkles } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import { MeasureColumnSelector } from '../MeasureColumnSelector';
 import type { WideFormatDetection, ChannelInfo } from '@variscout/core';
 
@@ -27,6 +28,7 @@ export const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> =
   onEnable,
   onDecline,
 }) => {
+  const { t, tf } = useTranslation();
   // Local state for selection and label
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     detection.channels.map((c: ChannelInfo) => c.id)
@@ -89,7 +91,7 @@ export const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> =
               <Activity size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-content">Multi-Measure Data Detected</h2>
+              <h2 className="text-lg font-bold text-content">{t('performance.detected')}</h2>
               <p className="text-xs text-content-muted">
                 <span className={confidenceColor}>{detection.confidence} confidence</span>
               </p>
@@ -110,7 +112,7 @@ export const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> =
             <Sparkles className="w-5 h-5 text-blue-400 flex-shrink-0" />
             <div>
               <p className="text-sm text-content">
-                Found <span className="font-bold">{detection.channels.length} measure columns</span>
+                {tf('performance.columnsFound', { count: detection.channels.length })}
               </p>
               <p className="text-xs text-content-muted mt-0.5">
                 {detection.channels
@@ -125,13 +127,13 @@ export const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> =
           {/* Quick label input */}
           <div>
             <label className="block text-sm font-medium text-content-secondary mb-2">
-              What should we call these? (optional)
+              {t('performance.labelQuestion')}
             </label>
             <input
               type="text"
               value={label}
               onChange={e => setLabel(e.target.value || 'Measure')}
-              placeholder="e.g., Head, Valve, Nozzle, Cavity"
+              placeholder={t('performance.labelExample')}
               className="w-full px-3 py-2 bg-surface-tertiary border border-edge rounded-lg text-content placeholder-content-muted focus:outline-none focus:border-blue-500 transition-colors text-sm"
             />
             <p className="text-xs text-content-muted mt-1">
@@ -167,7 +169,7 @@ export const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> =
             onClick={onDecline}
             className="px-4 py-2 text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors text-sm"
           >
-            Not Now
+            {t('action.cancel')}
           </button>
           <button
             onClick={handleEnable}
@@ -175,7 +177,7 @@ export const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> =
             className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
           >
             <Check size={16} />
-            Enable Performance Mode
+            {t('performance.enable')}
           </button>
         </div>
       </div>

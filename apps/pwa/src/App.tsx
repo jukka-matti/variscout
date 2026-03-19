@@ -23,7 +23,12 @@ import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
 import { type ExclusionReason } from '@variscout/core';
-import { useControlViolations, useJourneyPhase, getCoachingText } from '@variscout/hooks';
+import {
+  useControlViolations,
+  useJourneyPhase,
+  getCoachingText,
+  useTranslation,
+} from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
 
@@ -152,8 +157,9 @@ function AppMain() {
   const [highlightedFindingId, setHighlightedFindingId] = useState<string | null>(null);
 
   // Journey phase for AppHeader coaching strip
+  const { locale } = useTranslation();
   const journeyPhase = useJourneyPhase(rawData.length > 0, findingsState.findings);
-  const coachingText = getCoachingText(journeyPhase);
+  const coachingText = getCoachingText(journeyPhase, 'problem', locale);
 
   // Embed mode state
   const [isEmbedMode, setIsEmbedMode] = useState(false);

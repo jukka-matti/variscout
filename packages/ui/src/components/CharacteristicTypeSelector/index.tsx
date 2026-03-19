@@ -1,30 +1,31 @@
 import React from 'react';
 import { MoveVertical, ArrowDown, ArrowUp } from 'lucide-react';
 import type { CharacteristicType } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 
-const TYPE_ICONS: {
+const TYPE_ICON_DEFS: {
   value: CharacteristicType;
   icon: typeof MoveVertical;
-  label: string;
-  description: string;
+  labelKey: 'charType.nominal' | 'charType.smaller' | 'charType.larger';
+  descKey: 'charType.nominalDesc' | 'charType.smallerDesc' | 'charType.largerDesc';
 }[] = [
   {
     value: 'nominal',
     icon: MoveVertical,
-    label: 'Nominal',
-    description: 'Target-centered (e.g. fill weight)',
+    labelKey: 'charType.nominal',
+    descKey: 'charType.nominalDesc',
   },
   {
     value: 'smaller',
     icon: ArrowDown,
-    label: 'Smaller is better',
-    description: 'Lower is better (e.g. defects)',
+    labelKey: 'charType.smaller',
+    descKey: 'charType.smallerDesc',
   },
   {
     value: 'larger',
     icon: ArrowUp,
-    label: 'Larger is better',
-    description: 'Higher is better (e.g. yield)',
+    labelKey: 'charType.larger',
+    descKey: 'charType.largerDesc',
   },
 ];
 
@@ -45,10 +46,13 @@ const CharacteristicTypeSelector: React.FC<CharacteristicTypeSelectorProps> = ({
   autoInferred,
   className,
 }) => {
+  const { t } = useTranslation();
   return (
     <div className={className ?? 'flex gap-1'} role="radiogroup" aria-label="Characteristic type">
-      {TYPE_ICONS.map(opt => {
+      {TYPE_ICON_DEFS.map(opt => {
         const Icon = opt.icon;
+        const label = t(opt.labelKey);
+        const description = t(opt.descKey);
         const isExplicit = value === opt.value;
         const isInferred = !value && autoInferred === opt.value;
         return (
@@ -57,9 +61,9 @@ const CharacteristicTypeSelector: React.FC<CharacteristicTypeSelectorProps> = ({
             type="button"
             role="radio"
             aria-checked={isExplicit}
-            aria-label={`${opt.label} — ${opt.description}`}
+            aria-label={`${label} — ${description}`}
             onClick={() => onChange(isExplicit ? null : opt.value)}
-            title={`${opt.label} — ${opt.description}`}
+            title={`${label} — ${description}`}
             className={`w-7 h-7 flex items-center justify-center rounded transition-colors ${
               isExplicit
                 ? 'bg-blue-600 text-white border border-blue-500'

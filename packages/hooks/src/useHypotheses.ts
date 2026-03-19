@@ -100,7 +100,9 @@ export interface UseHypothesesReturn {
   updateIdea: (
     hypothesisId: string,
     ideaId: string,
-    updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+    updates: Partial<
+      Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes' | 'category'>
+    >
   ) => void;
   /** Remove an improvement idea */
   removeIdea: (hypothesisId: string, ideaId: string) => void;
@@ -491,7 +493,9 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     (
       hypothesisId: string,
       ideaId: string,
-      updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+      updates: Partial<
+        Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes' | 'category'>
+      >
     ) => {
       update(prev =>
         prev.map(h =>

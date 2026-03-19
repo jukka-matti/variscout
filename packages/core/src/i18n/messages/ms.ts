@@ -284,6 +284,7 @@ export const ms: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
 
   // Report
   'report.kpi.inSpec': 'In Spec',
@@ -348,5 +349,277 @@ export const ms: MessageCatalog = {
 
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
-  'findings.countLabel': '{count} findings',
+  'findings.countLabel': '{count} penemuan',
+
+  // Chart limit labels
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': 'Min Purata:',
+  'chart.label.tgt': 'Sas:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': 'Nilai:',
+  'chart.label.n': 'n:',
+  'chart.label.target': 'Sasaran:',
+
+  // Chart status
+  'chart.status.inControl': 'Dalam kawalan',
+  'chart.status.outOfControl': 'Di luar kawalan (melebihi UCL/LCL)',
+  'chart.noDataProbPlot': 'Tiada data untuk plot kebarangkalian',
+
+  // Chart edit affordances
+  'chart.edit.spec': 'Klik untuk mengedit {spec}',
+  'chart.edit.axisLabel': 'Klik untuk mengedit label paksi',
+  'chart.edit.yAxis': 'Klik untuk mengedit skala paksi-Y',
+  'chart.edit.saveCancel': 'Enter untuk simpan · Esc untuk batal',
+
+  // Performance table headers
+  'chart.table.channel': 'Saluran',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'Salin carta ke papan keratan',
+  'chart.maximize': 'Besarkan carta',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ terokai di sini',
+  'chart.percent': 'Peratus',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Skala Paksi-Y',
+  'validation.minLessThanMax': 'Min mesti kurang daripada Maks',
+  'action.noChanges': 'Tiada Perubahan',
+
+  // Create factor modal
+  'factor.create': 'Cipta Faktor daripada Pilihan',
+  'factor.name': 'Nama Faktor',
+  'factor.nameEmpty': 'Nama faktor tidak boleh kosong',
+  'factor.nameExists': 'Faktor dengan nama ini sudah wujud',
+  'factor.example': 'cth., Peristiwa Suhu Tinggi',
+  'factor.pointsMarked': '{count} titik akan ditanda sebagai:',
+  'factor.createAndFilter': 'Cipta & Tapis',
+  'factor.filterExplanation':
+    'Paparan akan ditapis secara automatik untuk menunjukkan hanya titik yang dipilih.',
+
+  // Characteristic type selector
+  'charType.nominal': 'Nominal',
+  'charType.nominalDesc': 'Berpusat sasaran (cth. berat isian)',
+  'charType.smaller': 'Lebih kecil lebih baik',
+  'charType.smallerDesc': 'Lebih rendah lebih baik (cth. kecacatan)',
+  'charType.larger': 'Lebih besar lebih baik',
+  'charType.largerDesc': 'Lebih tinggi lebih baik (cth. hasil)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt':
+    'Menjejaki penyiasatan anda — buka panel Penyiasatan untuk melihat gambaran penuh.',
+
+  // Mobile category sheet
+  'chart.highlight': 'Serlahan:',
+  'chart.highlightRed': 'Merah',
+  'chart.highlightAmber': 'Ambar',
+  'chart.highlightGreen': 'Hijau',
+  'chart.clearHighlight': 'Padam serlahan',
+  'chart.drillDown': 'Terokai "{category}"',
+  'ai.askCoScout': 'Tanya CoScout tentang ini',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'Mengekalkan skala untuk perbandingan visual',
+  'display.filterContextDesc': 'Paparkan ringkasan penapis aktif di bawah tajuk carta',
+
+  // Performance detected modal
+  'performance.detected': 'Mod Prestasi Dikesan',
+  'performance.columnsFound': '{count} lajur pengukuran ditemui',
+  'performance.labelQuestion': 'Apakah yang diwakili oleh saluran pengukuran ini?',
+  'performance.labelExample': 'cth., Kepala Isian, Kaviti, Muncung',
+  'performance.enable': 'Dayakan Mod Prestasi',
+
+  // Finding editor & data types
+  'finding.placeholder': 'Apa yang anda temui?',
+  'finding.note': 'Nota penemuan',
+  'data.typeNumeric': 'Numerik',
+  'data.typeCategorical': 'Kategori',
+  'data.typeDate': 'Tarikh',
+  'data.typeText': 'Teks',
+  'data.categories': 'kategori',
+
+  // Coaching text
+  'coach.problem.frame': 'Sediakan data anda untuk mula menyiasat masalah.',
+  'coach.problem.scout': 'Cari corak variasi yang boleh menjelaskan masalah.',
+  'coach.problem.investigate': 'Bina bukti yang mengaitkan faktor dengan masalah.',
+  'coach.problem.improve': 'Rancang dan laksanakan penambahbaikan menggunakan kitaran PDCA.',
+  'coach.hypothesis.frame': 'Sediakan data anda untuk menguji hipotesis anda.',
+  'coach.hypothesis.scout': 'Cari bukti yang menyokong atau menolak hipotesis anda.',
+  'coach.hypothesis.investigate': 'Kumpul bukti statistik untuk mengesahkan punca yang disyaki.',
+  'coach.hypothesis.improve': 'Punca disahkan — rancang tindakan pembetulan melalui PDCA.',
+  'coach.routine.frame': 'Sediakan data anda untuk semakan proses rutin.',
+  'coach.routine.scout': 'Imbas untuk isyarat baharu, hanyutan, atau corak yang tidak dijangka.',
+  'coach.routine.investigate': 'Isyarat ditemui — teliti punca yang berpotensi.',
+  'coach.routine.improve': 'Punca dikenal pasti — rancang tindakan pembetulan melalui PDCA.',
+
+  // PWA HomeScreen
+  'home.heading': 'Terokai Analisis Variasi',
+  'home.description':
+    'Alat latihan analisis variasi percuma. Visualisasi kebolehubahan, kira keupayaan, dan cari fokus — terus dalam pelayar anda.',
+  'home.divider': 'atau gunakan data anda sendiri',
+  'home.pasteHelper': 'Salin baris dan tampal — kami akan mengesan lajur secara automatik',
+  'home.manualEntry': 'Atau masukkan data secara manual',
+  'home.upgradeHint': 'Perlukan ciri pasukan, muat naik fail, atau projek tersimpan?',
+
+  // PWA navigation
+  'nav.presentationMode': 'Mod Pembentangan',
+  'nav.hideFindings': 'Sembunyikan Penemuan',
+
+  // Export
+  'export.asImage': 'Eksport sebagai Imej',
+  'export.asCsv': 'Eksport sebagai CSV',
+  'export.imageDesc': 'Tangkapan skrin PNG untuk pembentangan',
+  'export.csvDesc': 'Fail data serasi hamparan',
+
+  // Sample section
+  'sample.heading': 'Cuba Set Data Sampel',
+  'sample.allSamples': 'Semua Set Data Sampel',
+  'sample.featured': 'Pilihan',
+  'sample.caseStudies': 'Kajian Kes',
+  'sample.journeys': 'Perjalanan Pembelajaran',
+  'sample.industry': 'Contoh Industri',
+
+  // View modes
+  'view.stats': 'Statistik',
+  'display.appearance': 'Penampilan',
+
+  // Azure toolbar
+  'data.manualEntry': 'Kemasukan Manual',
+  'data.editTable': 'Edit Jadual Data',
+  'toolbar.saveAs': 'Simpan Sebagai…',
+  'toolbar.saving': 'Menyimpan…',
+  'toolbar.saved': 'Disimpan',
+  'toolbar.saveFailed': 'Simpanan Gagal',
+  'toolbar.addMore': 'Tambah Data',
+  'report.scouting': 'Laporan Tinjauan',
+  'export.csvFiltered': 'Eksport data yang ditapis sebagai CSV',
+  'error.auth': 'Ralat pengesahan',
+
+  // File browse
+  'file.browseLocal': 'Semak imbas peranti ini',
+  'file.browseSharePoint': 'Semak imbas SharePoint',
+  'file.open': 'Buka Fail',
+
+  // Admin hub
+  'admin.title': 'Admin',
+  'admin.status': 'Status',
+  'admin.plan': 'Pelan & Ciri',
+  'admin.teams': 'Persediaan Teams',
+  'admin.knowledge': 'Pangkalan Pengetahuan',
+  'admin.troubleshooting': 'Penyelesaian Masalah',
+
+  // Admin plan tab
+  'admin.currentPlan': 'Semasa',
+  'admin.feature': 'Ciri',
+  'admin.manageSubscription': 'Urus Langganan dalam Azure',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/bln',
+  'admin.planTeamPrice': '€199/bln',
+  'admin.planTeamAIPrice': '€279/bln',
+  'admin.planStandardDesc': 'Analisis penuh, storan fail tempatan',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, mudah alih',
+  'admin.planTeamAIDesc': 'Pangkalan Pengetahuan AI, CoScout dipertingkat',
+
+  // Feature names
+  'feature.charts': 'I-Chart, Boxplot, Pareto, Statistik',
+  'feature.capability': 'Analisis keupayaan (Cp/Cpk)',
+  'feature.performance': 'Mod Prestasi (berbilang saluran)',
+  'feature.anova': 'ANOVA & analisis faktor',
+  'feature.findingsWorkflow': 'Penemuan & aliran kerja penyiasatan',
+  'feature.whatIf': 'Simulasi Bagaimana-Jika',
+  'feature.csvImport': 'Import CSV/Excel',
+  'feature.reportExport': 'Eksport laporan (PDF)',
+  'feature.indexedDb': 'Storan tempatan IndexedDB',
+  'feature.maxFactors': 'Sehingga 6 faktor',
+  'feature.maxRows': 'Sehingga 100K baris',
+  'feature.onedriveSync': 'Penyegerakan projek OneDrive',
+  'feature.sharepointPicker': 'Pemilih fail SharePoint',
+  'feature.teamsIntegration': 'Integrasi Microsoft Teams',
+  'feature.channelCollab': 'Kerjasama berasaskan saluran',
+  'feature.mobileUi': 'UI dioptimumkan untuk mudah alih',
+  'feature.coScoutAi': 'Pembantu CoScout AI',
+  'feature.narrativeBar': 'Cerapan NarrativeBar',
+  'feature.chartInsights': 'Cip cerapan carta',
+  'feature.knowledgeBase': 'Pangkalan Pengetahuan (carian SharePoint)',
+  'feature.aiActions': 'Tindakan dicadangkan AI',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'Tambah VariScout ke Microsoft Teams',
+  'admin.teams.description':
+    'Jana pakej aplikasi Teams untuk penggunaan anda dan muat naik ke pusat pentadbir Teams anda.',
+  'admin.teams.running': 'Berjalan dalam Microsoft Teams',
+  'admin.teams.step1': 'ID Klien Pendaftaran Aplikasi (Pilihan)',
+  'admin.teams.step1Desc':
+    'Masukkan ID Klien Pendaftaran Aplikasi Azure AD anda untuk mendayakan Teams SSO dalam manifes.',
+  'admin.teams.step2': 'Muat Turun Pakej Aplikasi Teams',
+  'admin.teams.step2Desc':
+    '.zip ini mengandungi manifes dan ikon yang diprakonfigurasi untuk penggunaan anda.',
+  'admin.teams.step3': 'Muat naik ke Pusat Pentadbir Teams',
+  'admin.teams.step4': 'Tambah VariScout ke Saluran',
+  'admin.teams.download': 'Muat Turun Pakej Aplikasi Teams',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} semakan lulus',
+  'admin.runChecks': 'Jalankan Semua Semakan',
+  'admin.notApplicable': 'Tidak berkenaan untuk pelan anda',
+  'admin.managePortal': 'Urus dalam Azure Portal',
+  'admin.portalAccessNote':
+    'Item ini memerlukan akses Azure Portal dan tidak boleh disemak dari pelayar.',
+  'admin.fixInPortal': 'Betulkan dalam Azure Portal: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'Masalah biasa dan cara menyelesaikannya. Klik masalah untuk melihat arahan langkah demi langkah.',
+  'admin.runCheck': 'Jalankan Semakan',
+  'admin.checkPassed': 'Semakan lulus — ini mungkin bukan masalahnya.',
+  'admin.checkFailed': 'Semakan gagal — ikuti langkah di bawah.',
+  'admin.issue.signin': 'Pengguna tidak boleh log masuk',
+  'admin.issue.signinDesc':
+    'Pengesahan Azure AD tidak berfungsi atau pengguna melihat halaman kosong.',
+  'admin.issue.signinSteps':
+    'Sahkan Pengesahan App Service didayakan dalam Azure Portal.\nSemak pendaftaran aplikasi Azure AD mempunyai URI pengalihan yang betul.\nPastikan pendaftaran aplikasi mempunyai "Token ID" didayakan di bawah Pengesahan.\nSahkan penyewa membenarkan log masuk pengguna ke aplikasi (Aplikasi Perusahaan → Sifat → Didayakan untuk pengguna log masuk).',
+  'admin.issue.onedrive': 'Penyegerakan OneDrive tidak berfungsi',
+  'admin.issue.onedriveDesc':
+    'Projek tidak disegerakkan ke OneDrive atau pengguna melihat ralat kebenaran.',
+  'admin.issue.onedriveSteps':
+    'Sahkan pendaftaran aplikasi mempunyai kebenaran terwakil "Files.ReadWrite".\nSemak persetujuan pentadbir telah diberikan untuk kebenaran Graph.\nPastikan pengguna mempunyai lesen OneDrive yang diberikan.\nCuba log keluar dan log masuk semula untuk menyegarkan token.',
+  'admin.issue.coscout': 'CoScout tidak bertindak balas',
+  'admin.issue.coscoutDesc': 'Pembantu AI tidak menjana respons atau menunjukkan ralat.',
+  'admin.issue.coscoutSteps':
+    'Sahkan titik akhir AI dikonfigurasikan dalam templat ARM / tetapan App Service.\nSemak sumber Azure AI Services telah digunakan dan berjalan.\nSahkan penggunaan model wujud (cth. gpt-4o) dalam sumber AI Services.\nSemak kuota Azure AI Services — penggunaan mungkin telah mencapai had kadar.',
+  'admin.issue.kbEmpty': 'Pangkalan Pengetahuan tidak mengembalikan hasil',
+  'admin.issue.kbEmptyDesc':
+    '"Cari Pangkalan Pengetahuan" CoScout tidak menemui apa-apa walaupun dokumen wujud.',
+  'admin.issue.kbEmptySteps':
+    'Sahkan titik akhir AI Search dikonfigurasikan dalam tetapan App Service.\nSemak sumber pengetahuan Remote SharePoint telah dicipta dalam AI Search.\nPastikan ≥1 lesen Microsoft 365 Copilot aktif dalam penyewa.\nSahkan pengguna mempunyai akses SharePoint ke dokumen yang dicari.\nSemak togol pratonton Pangkalan Pengetahuan didayakan (Admin → tab Pangkalan Pengetahuan).',
+  'admin.issue.teamsTab': 'Tab Teams tidak dipaparkan',
+  'admin.issue.teamsTabDesc': 'VariScout tidak muncul dalam Teams atau tab gagal dimuatkan.',
+  'admin.issue.teamsTabSteps':
+    'Sahkan pakej aplikasi Teams (.zip) telah dimuat naik ke Pusat Pentadbir Teams.\nSemak contentUrl dalam manifest.json sepadan dengan URL App Service anda.\nPastikan aplikasi diluluskan dalam Pusat Pentadbir Teams (tidak disekat oleh dasar).\nCuba alih keluar dan tambah semula tab dalam saluran.\nJika menggunakan domain tersuai, sahkan ia berada dalam tatasusunan validDomains manifes.',
+  'admin.issue.newUser': 'Pengguna baharu tidak boleh mengakses aplikasi',
+  'admin.issue.newUserDesc':
+    'Pengguna yang baru ditambah melihat akses ditolak atau halaman kosong.',
+  'admin.issue.newUserSteps':
+    'Dalam Azure AD, pergi ke Aplikasi Perusahaan → VariScout → Pengguna dan kumpulan.\nTambah pengguna atau kumpulan keselamatan mereka ke aplikasi.\nJika "Penugasan pengguna diperlukan" digunakan, pastikan pengguna mempunyai penugasan.\nSemak dasar Akses Bersyarat yang mungkin menyekat pengguna.',
+  'admin.issue.aiSlow': 'Respons AI lambat',
+  'admin.issue.aiSlowDesc':
+    'CoScout mengambil masa lama untuk bertindak balas atau sering tamat masa.',
+  'admin.issue.aiSlowSteps':
+    'Semak rantau penggunaan Azure AI Services — kependaman meningkat dengan jarak.\nSahkan penggunaan model mempunyai kuota TPM (token seminit) yang mencukupi.\nPertimbangkan naik taraf ke penggunaan daya pemprosesan yang diperuntukkan untuk kependaman yang konsisten.\nSemak jika indeks AI Search besar — pertimbangkan untuk mengoptimumkan sumber pengetahuan.',
+  'admin.issue.forbidden': 'Ralat "Forbidden"',
+  'admin.issue.forbiddenDesc': 'Pengguna melihat ralat 403 semasa mengakses ciri tertentu.',
+  'admin.issue.forbiddenSteps':
+    'Semak semua kebenaran Graph API yang diperlukan mempunyai persetujuan pentadbir.\nSahkan kedai token Pengesahan App Service didayakan.\nPastikan token pengguna belum tamat tempoh — cuba log keluar dan log masuk semula.\nSemak dasar Akses Bersyarat untuk penyewa.',
+  'admin.issue.kbPartial': 'KB gagal untuk sesetengah pengguna',
+  'admin.issue.kbPartialDesc':
+    'Carian Pangkalan Pengetahuan berfungsi untuk pentadbir tetapi tidak untuk pengguna lain.',
+  'admin.issue.kbPartialSteps':
+    'Sumber pengetahuan Remote SharePoint menggunakan kebenaran setiap pengguna. Setiap pengguna mesti mempunyai akses SharePoint ke dokumen.\nSemak jika pengguna yang terjejas disekat oleh dasar Akses Bersyarat.\nSahkan persetujuan pentadbir telah diberikan untuk kebenaran terwakil Sites.Read.All.\nMinta pengguna yang terjejas log keluar dan log masuk semula untuk menyegarkan token mereka.',
 };

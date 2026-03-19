@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   Info,
 } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import { useAdminHealthChecks, type CheckStatus } from '../../hooks/useAdminHealthChecks';
 import type { AdminGatingMode } from '../../hooks/useAdminAccess';
 
@@ -82,6 +83,7 @@ interface AdminStatusTabProps {
 
 export function AdminStatusTab({ gatingMode }: AdminStatusTabProps) {
   const { checks, runAll, runOne, isRunning } = useAdminHealthChecks();
+  const { t, tf } = useTranslation();
 
   const passCount = checks.filter(c => c.status === 'pass').length;
   const applicableCount = checks.filter(c => c.status !== 'na').length;
@@ -94,7 +96,7 @@ export function AdminStatusTab({ gatingMode }: AdminStatusTabProps) {
         <div>
           {hasRun && (
             <p className="text-sm text-content-secondary">
-              {passCount}/{applicableCount} checks passed
+              {tf('admin.checksResult', { pass: passCount, total: applicableCount })}
             </p>
           )}
         </div>
@@ -104,7 +106,7 @@ export function AdminStatusTab({ gatingMode }: AdminStatusTabProps) {
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50"
         >
           <RefreshCw size={14} className={isRunning ? 'animate-spin' : ''} />
-          {isRunning ? 'Running...' : 'Run All Checks'}
+          {isRunning ? `${t('admin.runChecks')}...` : t('admin.runChecks')}
         </button>
       </div>
 
@@ -118,7 +120,7 @@ export function AdminStatusTab({ gatingMode }: AdminStatusTabProps) {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-content">{check.label}</span>
                   {check.status === 'na' && (
-                    <span className="text-xs text-content-muted">Not applicable to your plan</span>
+                    <span className="text-xs text-content-muted">{t('admin.notApplicable')}</span>
                   )}
                 </div>
                 <p className="text-xs text-content-secondary mt-0.5">{check.description}</p>
@@ -135,7 +137,7 @@ export function AdminStatusTab({ gatingMode }: AdminStatusTabProps) {
                         rel="noopener noreferrer"
                         className="text-xs text-blue-400 hover:underline inline-flex items-center gap-1"
                       >
-                        Fix in Azure Portal: {PORTAL_LINKS[check.id].label}
+                        {tf('admin.fixInPortal', { label: PORTAL_LINKS[check.id].label })}
                         <ExternalLink size={10} />
                       </a>
                     )}
@@ -171,10 +173,8 @@ export function AdminStatusTab({ gatingMode }: AdminStatusTabProps) {
 
       {/* Manage in Azure Portal */}
       <section className="bg-surface-secondary/50 border border-edge rounded-lg p-4 mb-8">
-        <h3 className="text-sm font-semibold text-content mb-3">Manage in Azure Portal</h3>
-        <p className="text-xs text-content-secondary mb-3">
-          These items require Azure Portal access and cannot be checked from the browser.
-        </p>
+        <h3 className="text-sm font-semibold text-content mb-3">{t('admin.managePortal')}</h3>
+        <p className="text-xs text-content-secondary mb-3">{t('admin.portalAccessNote')}</p>
         <div className="space-y-2">
           {MANAGE_IN_PORTAL.map(item => (
             <a

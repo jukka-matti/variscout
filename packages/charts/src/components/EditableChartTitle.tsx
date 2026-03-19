@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useChartTheme } from '../useChartTheme';
 
 export interface EditableChartTitleProps {
   /** Auto-generated default title (shown when custom is empty) */
@@ -26,6 +27,7 @@ const EditableChartTitle = ({
   onChange,
   className = '',
 }: EditableChartTitleProps) => {
+  const { t } = useChartTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value || defaultTitle);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -98,7 +100,7 @@ const EditableChartTitle = ({
           className="bg-surface border border-blue-500 rounded px-2 py-1 text-white outline-none min-w-[200px] text-sm font-semibold"
           autoFocus
         />
-        <span className="text-xs text-content-muted">Enter to save • Esc to cancel</span>
+        <span className="text-xs text-content-muted">{t('chart.edit.saveCancel')}</span>
       </div>
     );
   }
@@ -113,7 +115,7 @@ const EditableChartTitle = ({
         transition-colors duration-150
         ${className}
       `}
-      title="Click to edit title"
+      title={t('chart.clickToEdit')}
     >
       {displayValue}
     </span>

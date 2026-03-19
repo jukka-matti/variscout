@@ -32,6 +32,11 @@ vi.mock('@variscout/hooks', () => {
     'quality.noVariationWarning': 'This column has no variation',
     'quality.viewExcluded': 'View excluded',
     'quality.viewAll': 'View all',
+    'data.typeNumeric': 'Numeric',
+    'data.typeCategorical': 'Categorical',
+    'data.typeDate': 'Date',
+    'data.typeText': 'Text',
+    'data.categories': 'categories',
   };
   return {
     useTranslation: () => ({

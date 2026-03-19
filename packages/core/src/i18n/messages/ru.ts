@@ -263,6 +263,7 @@ export const ru: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
   'table.page': 'Page {page} of {total}',
@@ -313,4 +314,279 @@ export const ru: MessageCatalog = {
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
+
+  // Chart limit labels (colon-suffixed for SVG rendering)
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': 'Ср.:',
+  'chart.label.tgt': 'Цель:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': 'Значение:',
+  'chart.label.n': 'n:',
+  'chart.label.target': 'Цель:',
+
+  // Chart status & empty states
+  'chart.status.inControl': 'Под контролем',
+  'chart.status.outOfControl': 'Вне контроля (за пределами UCL/LCL)',
+  'chart.noDataProbPlot': 'Нет данных для графика вероятности',
+
+  // Chart edit affordances
+  'chart.edit.spec': 'Нажмите, чтобы изменить {spec}',
+  'chart.edit.axisLabel': 'Нажмите, чтобы изменить подпись оси',
+  'chart.edit.yAxis': 'Нажмите, чтобы изменить масштаб оси Y',
+  'chart.edit.saveCancel': 'Enter — сохранить · Esc — отменить',
+
+  // Performance table headers
+  'chart.table.channel': 'Канал',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'Копировать график в буфер обмена',
+  'chart.maximize': 'Развернуть график',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ детализировать здесь',
+  'chart.percent': 'Процент',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Масштаб оси Y',
+  'validation.minLessThanMax': 'Мин. должно быть меньше Макс.',
+  'action.noChanges': 'Без изменений',
+
+  // Create factor modal
+  'factor.create': 'Создать фактор из выделения',
+  'factor.name': 'Имя фактора',
+  'factor.nameEmpty': 'Имя фактора не может быть пустым',
+  'factor.nameExists': 'Фактор с таким именем уже существует',
+  'factor.example': 'напр., События высокой температуры',
+  'factor.pointsMarked': '{count} точек будут отмечены как:',
+  'factor.createAndFilter': 'Создать и отфильтровать',
+  'factor.filterExplanation':
+    'Представление будет автоматически отфильтровано, чтобы показать только выбранные точки.',
+
+  // Characteristic type selector
+  'charType.nominal': 'Номинальная',
+  'charType.nominalDesc': 'Целевое значение (напр., масса наполнения)',
+  'charType.smaller': 'Чем меньше, тем лучше',
+  'charType.smallerDesc': 'Чем ниже, тем лучше (напр., дефекты)',
+  'charType.larger': 'Чем больше, тем лучше',
+  'charType.largerDesc': 'Чем выше, тем лучше (напр., выход)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt':
+    'Отслеживание расследования — откройте панель «Расследование», чтобы увидеть полную картину.',
+
+  // Mobile category sheet
+  'chart.highlight': 'Выделение:',
+  'chart.highlightRed': 'Красный',
+  'chart.highlightAmber': 'Янтарный',
+  'chart.highlightGreen': 'Зелёный',
+  'chart.clearHighlight': 'Снять выделение',
+  'chart.drillDown': 'Детализировать «{category}»',
+  'ai.askCoScout': 'Спросить CoScout об этом',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'Сохраняет масштаб для визуального сравнения',
+  'display.filterContextDesc': 'Показывать сводку активных фильтров под заголовками графиков',
+
+  // Performance detected modal
+  'performance.detected': 'Обнаружен режим Performance',
+  'performance.columnsFound': 'Найдено {count} столбцов измерений',
+  'performance.labelQuestion': 'Что представляют эти каналы измерений?',
+  'performance.labelExample': 'напр., Дозирующая головка, Гнездо, Сопло',
+  'performance.enable': 'Включить режим Performance',
+
+  // Finding editor & data types
+  'finding.placeholder': 'Что вы обнаружили?',
+  'finding.note': 'Заметка о находке',
+  'data.typeNumeric': 'Числовой',
+  'data.typeCategorical': 'Категориальный',
+  'data.typeDate': 'Дата',
+  'data.typeText': 'Текст',
+  'data.categories': 'категории',
+
+  // Coaching text (scenario × phase)
+  'coach.problem.frame': 'Настройте данные, чтобы начать расследование проблемы.',
+  'coach.problem.scout': 'Ищите закономерности вариации, которые могут объяснить проблему.',
+  'coach.problem.investigate': 'Собирайте доказательства связи факторов с проблемой.',
+  'coach.problem.improve': 'Планируйте и выполняйте улучшения с помощью цикла PDCA.',
+  'coach.hypothesis.frame': 'Настройте данные для проверки гипотезы.',
+  'coach.hypothesis.scout': 'Ищите доказательства, подтверждающие или опровергающие гипотезу.',
+  'coach.hypothesis.investigate':
+    'Соберите статистические доказательства для подтверждения предполагаемой причины.',
+  'coach.hypothesis.improve':
+    'Причина подтверждена — планируйте корректирующие действия через PDCA.',
+  'coach.routine.frame': 'Настройте данные для рутинной проверки процесса.',
+  'coach.routine.scout': 'Ищите новые сигналы, смещения или неожиданные закономерности.',
+  'coach.routine.investigate': 'Обнаружен сигнал — изучите возможные причины.',
+  'coach.routine.improve': 'Причина определена — планируйте корректирующие действия через PDCA.',
+
+  // PWA HomeScreen
+  'home.heading': 'Исследуйте анализ вариации',
+  'home.description':
+    'Бесплатный инструмент для обучения анализу вариации. Визуализируйте изменчивость, рассчитывайте воспроизводимость и находите, на чём сосредоточиться — прямо в браузере.',
+  'home.divider': 'или используйте свои данные',
+  'home.pasteHelper': 'Скопируйте строки и вставьте — мы автоматически определим столбцы',
+  'home.manualEntry': 'Или введите данные вручную',
+  'home.upgradeHint': 'Нужны командные функции, загрузка файлов или сохранённые проекты?',
+
+  // PWA navigation
+  'nav.presentationMode': 'Режим презентации',
+  'nav.hideFindings': 'Скрыть находки',
+
+  // Export
+  'export.asImage': 'Экспорт как изображение',
+  'export.asCsv': 'Экспорт как CSV',
+  'export.imageDesc': 'Снимок экрана PNG для презентаций',
+  'export.csvDesc': 'Файл данных, совместимый с таблицами',
+
+  // Sample section
+  'sample.heading': 'Попробуйте пример набора данных',
+  'sample.allSamples': 'Все примеры наборов данных',
+  'sample.featured': 'Рекомендуемые',
+  'sample.caseStudies': 'Тематические исследования',
+  'sample.journeys': 'Обучающие маршруты',
+  'sample.industry': 'Отраслевые примеры',
+
+  // View modes (additional)
+  'view.stats': 'Статистика',
+
+  // Display (additional)
+  'display.appearance': 'Внешний вид',
+
+  // Azure toolbar
+  'data.manualEntry': 'Ручной ввод',
+  'data.editTable': 'Редактировать таблицу данных',
+  'toolbar.saveAs': 'Сохранить как…',
+  'toolbar.saving': 'Сохранение…',
+  'toolbar.saved': 'Сохранено',
+  'toolbar.saveFailed': 'Ошибка сохранения',
+  'toolbar.addMore': 'Добавить данные',
+  'report.scouting': 'Отчёт Scouting',
+  'export.csvFiltered': 'Экспортировать отфильтрованные данные как CSV',
+  'error.auth': 'Ошибка авторизации',
+
+  // File browse
+  'file.browseLocal': 'Обзор устройства',
+  'file.browseSharePoint': 'Обзор SharePoint',
+  'file.open': 'Открыть файл',
+
+  // Admin hub
+  'admin.title': 'Администрирование',
+  'admin.status': 'Статус',
+  'admin.plan': 'План и функции',
+  'admin.teams': 'Настройка Teams',
+  'admin.knowledge': 'Knowledge Base',
+  'admin.troubleshooting': 'Устранение неполадок',
+
+  // Admin plan tab
+  'admin.currentPlan': 'Текущий',
+  'admin.feature': 'Функция',
+  'admin.manageSubscription': 'Управление подпиской в Azure',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/мес.',
+  'admin.planTeamPrice': '€199/мес.',
+  'admin.planTeamAIPrice': '€279/мес.',
+  'admin.planStandardDesc': 'Полный анализ, локальное хранение файлов',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, мобильный',
+  'admin.planTeamAIDesc': 'AI Knowledge Base, улучшенный CoScout',
+
+  // Feature names (plan matrix)
+  'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
+  'feature.capability': 'Анализ воспроизводимости (Cp/Cpk)',
+  'feature.performance': 'Режим Performance (многоканальный)',
+  'feature.anova': 'ANOVA и факторный анализ',
+  'feature.findingsWorkflow': 'Рабочий процесс находок и расследования',
+  'feature.whatIf': 'Моделирование What-If',
+  'feature.csvImport': 'Импорт CSV/Excel',
+  'feature.reportExport': 'Экспорт отчёта (PDF)',
+  'feature.indexedDb': 'Локальное хранилище IndexedDB',
+  'feature.maxFactors': 'До 6 факторов',
+  'feature.maxRows': 'До 100 тыс. строк',
+  'feature.onedriveSync': 'Синхронизация проектов OneDrive',
+  'feature.sharepointPicker': 'Выбор файлов SharePoint',
+  'feature.teamsIntegration': 'Интеграция с Microsoft Teams',
+  'feature.channelCollab': 'Совместная работа в каналах',
+  'feature.mobileUi': 'Оптимизированный мобильный интерфейс',
+  'feature.coScoutAi': 'AI-ассистент CoScout',
+  'feature.narrativeBar': 'Аналитика NarrativeBar',
+  'feature.chartInsights': 'Чипы аналитики графиков',
+  'feature.knowledgeBase': 'Knowledge Base (поиск SharePoint)',
+  'feature.aiActions': 'Действия, предлагаемые AI',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'Добавить VariScout в Microsoft Teams',
+  'admin.teams.description':
+    'Сгенерируйте пакет приложения Teams для вашего развёртывания и загрузите его в центр администрирования Teams.',
+  'admin.teams.running': 'Работает внутри Microsoft Teams',
+  'admin.teams.step1': 'Идентификатор клиента регистрации приложения (необязательно)',
+  'admin.teams.step1Desc':
+    'Введите идентификатор клиента регистрации приложения Azure AD для включения SSO Teams в манифесте.',
+  'admin.teams.step2': 'Скачать пакет приложения Teams',
+  'admin.teams.step2Desc':
+    'Этот .zip содержит манифест и значки, предварительно настроенные для вашего развёртывания.',
+  'admin.teams.step3': 'Загрузить в центр администрирования Teams',
+  'admin.teams.step4': 'Добавить VariScout в канал',
+  'admin.teams.download': 'Скачать пакет приложения Teams',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} проверок пройдено',
+  'admin.runChecks': 'Запустить все проверки',
+  'admin.notApplicable': 'Не применимо к вашему плану',
+  'admin.managePortal': 'Управление в Azure Portal',
+  'admin.portalAccessNote':
+    'Эти элементы требуют доступа к Azure Portal и не могут быть проверены из браузера.',
+  'admin.fixInPortal': 'Исправить в Azure Portal: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'Распространённые проблемы и способы их решения. Нажмите на проблему для пошаговых инструкций.',
+  'admin.runCheck': 'Запустить проверку',
+  'admin.checkPassed': 'Проверка пройдена — возможно, это не является проблемой.',
+  'admin.checkFailed': 'Проверка не пройдена — следуйте инструкциям ниже.',
+  'admin.issue.signin': 'Пользователи не могут войти',
+  'admin.issue.signinDesc':
+    'Аутентификация Azure AD не работает или пользователи видят пустую страницу.',
+  'admin.issue.signinSteps':
+    'Убедитесь, что аутентификация App Service включена в Azure Portal.\nПроверьте, что регистрация приложения Azure AD имеет правильные URI перенаправления.\nУбедитесь, что в регистрации приложения включены «Токены ID» в разделе «Аутентификация».\nПроверьте, что арендатор разрешает вход пользователей в приложение (Корпоративные приложения → Свойства → Вход пользователей включён).',
+  'admin.issue.onedrive': 'Синхронизация OneDrive не работает',
+  'admin.issue.onedriveDesc':
+    'Проекты не синхронизируются с OneDrive или пользователи видят ошибки доступа.',
+  'admin.issue.onedriveSteps':
+    'Проверьте, что регистрация приложения имеет делегированное разрешение «Files.ReadWrite».\nУбедитесь, что согласие администратора предоставлено для разрешений Graph.\nУбедитесь, что пользователю назначена лицензия OneDrive.\nПопробуйте выйти и войти снова для обновления токена.',
+  'admin.issue.coscout': 'CoScout не отвечает',
+  'admin.issue.coscoutDesc': 'AI-ассистент не генерирует ответы или показывает ошибки.',
+  'admin.issue.coscoutSteps':
+    'Проверьте, что конечная точка AI настроена в шаблоне ARM / параметрах App Service.\nУбедитесь, что ресурс Azure AI Services развёрнут и работает.\nПроверьте, что развёртывание модели существует (напр., gpt-4o) в ресурсе AI Services.\nПроверьте квоты Azure AI Services — развёртывание могло достигнуть ограничений скорости.',
+  'admin.issue.kbEmpty': 'Knowledge Base не возвращает результатов',
+  'admin.issue.kbEmptyDesc':
+    '«Поиск Knowledge Base» в CoScout ничего не находит, несмотря на наличие документов.',
+  'admin.issue.kbEmptySteps':
+    'Проверьте, что конечная точка AI Search настроена в параметрах App Service.\nУбедитесь, что источник знаний Remote SharePoint создан в AI Search.\nУбедитесь, что минимум 1 лицензия Microsoft 365 Copilot активна в арендаторе.\nПроверьте, что пользователь имеет доступ к документам SharePoint.\nПроверьте, что переключатель предварительного просмотра Knowledge Base включён (Администрирование → вкладка Knowledge Base).',
+  'admin.issue.teamsTab': 'Вкладка Teams не отображается',
+  'admin.issue.teamsTabDesc': 'VariScout не появляется в Teams или вкладка не загружается.',
+  'admin.issue.teamsTabSteps':
+    'Проверьте, что пакет приложения Teams (.zip) загружен в центр администрирования Teams.\nУбедитесь, что contentUrl в manifest.json соответствует URL вашего App Service.\nУбедитесь, что приложение одобрено в центре администрирования Teams (не заблокировано политикой).\nПопробуйте удалить и заново добавить вкладку в канале.\nЕсли используется пользовательский домен, проверьте его наличие в массиве validDomains манифеста.',
+  'admin.issue.newUser': 'Новый пользователь не может получить доступ к приложению',
+  'admin.issue.newUserDesc':
+    'Вновь добавленный пользователь видит отказ в доступе или пустую страницу.',
+  'admin.issue.newUserSteps':
+    'В Azure AD перейдите в Корпоративные приложения → VariScout → Пользователи и группы.\nДобавьте пользователя или его группу безопасности в приложение.\nЕсли используется «Требуется назначение пользователя», убедитесь, что пользователь имеет назначение.\nПроверьте политики условного доступа, которые могут блокировать пользователя.',
+  'admin.issue.aiSlow': 'Медленные ответы AI',
+  'admin.issue.aiSlowDesc': 'CoScout долго отвечает или часто превышает время ожидания.',
+  'admin.issue.aiSlowSteps':
+    'Проверьте регион развёртывания Azure AI Services — задержка увеличивается с расстоянием.\nУбедитесь, что развёртывание модели имеет достаточную квоту TPM (токенов в минуту).\nРассмотрите переход на развёртывание с выделенной пропускной способностью для стабильной задержки.\nПроверьте, велик ли индекс AI Search — рассмотрите оптимизацию источника знаний.',
+  'admin.issue.forbidden': 'Ошибки «Forbidden»',
+  'admin.issue.forbiddenDesc': 'Пользователи видят ошибки 403 при доступе к определённым функциям.',
+  'admin.issue.forbiddenSteps':
+    'Проверьте, что для всех необходимых разрешений Graph API получено согласие администратора.\nУбедитесь, что хранилище токенов аутентификации App Service включено.\nУбедитесь, что токен пользователя не истёк — попробуйте выйти и войти снова.\nПроверьте политики условного доступа для арендатора.',
+  'admin.issue.kbPartial': 'KB не работает для некоторых пользователей',
+  'admin.issue.kbPartialDesc':
+    'Поиск Knowledge Base работает для администраторов, но не для остальных пользователей.',
+  'admin.issue.kbPartialSteps':
+    'Источники знаний Remote SharePoint используют разрешения на уровне пользователя. Каждый пользователь должен иметь доступ SharePoint к документам.\nПроверьте, не заблокированы ли затронутые пользователи политиками условного доступа.\nУбедитесь, что согласие администратора предоставлено для делегированного разрешения Sites.Read.All.\nПопросите затронутых пользователей выйти и войти снова для обновления токена.',
 };

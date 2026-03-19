@@ -1,5 +1,16 @@
 import React, { useState, useCallback } from 'react';
-import { Check, X, Filter, FileText, GitBranch, Zap, Share2, FileUp, Bell } from 'lucide-react';
+import {
+  Check,
+  X,
+  Filter,
+  FileText,
+  GitBranch,
+  Zap,
+  Share2,
+  FileUp,
+  Bell,
+  Lightbulb,
+} from 'lucide-react';
 import type { ActionProposal, ActionToolName, ProposalStatus, Locale } from '@variscout/core';
 import { formatStatistic } from '@variscout/core/i18n';
 import { useTranslation } from '@variscout/hooks';
@@ -25,6 +36,7 @@ const TOOL_CONFIG: Record<
   create_finding: { labelKey: 'ai.tool.createFinding', icon: FileText, editable: true },
   create_hypothesis: { labelKey: 'ai.tool.createHypothesis', icon: GitBranch, editable: true },
   suggest_action: { labelKey: 'ai.tool.suggestAction', icon: Zap, editable: true },
+  suggest_improvement_idea: { labelKey: 'ai.tool.suggestIdea', icon: Lightbulb, editable: true },
   share_finding: { labelKey: 'ai.tool.shareFinding', icon: Share2, editable: false },
   publish_report: { labelKey: 'ai.tool.publishReport', icon: FileUp, editable: false },
   notify_action_owners: { labelKey: 'ai.tool.notifyOwners', icon: Bell, editable: false },
@@ -80,6 +92,25 @@ function formatPreview(
         lines.push(`Finding: "${(preview.findingText as string).slice(0, 60)}..."`);
       if (preview.source) lines.push(`Source: ${preview.source}`);
       break;
+
+    case 'suggest_improvement_idea': {
+      if (preview.hypothesisText)
+        lines.push(`Hypothesis: "${(preview.hypothesisText as string).slice(0, 60)}..."`);
+      if (preview.category) {
+        const categoryLabels: Record<string, string> = {
+          containment: 'Containment (stop the bleeding)',
+          corrective: 'Corrective (fix the cause)',
+          preventive: 'Preventive (prevent recurrence)',
+        };
+        lines.push(`Category: ${categoryLabels[preview.category as string] ?? preview.category}`);
+      }
+      if (typeof preview.existingIdeasCount === 'number' && preview.existingIdeasCount > 0) {
+        lines.push(
+          `${preview.existingIdeasCount} existing idea${preview.existingIdeasCount !== 1 ? 's' : ''}`
+        );
+      }
+      break;
+    }
 
     case 'share_finding':
       if (preview.findingText) lines.push(`"${(preview.findingText as string).slice(0, 80)}..."`);

@@ -61,9 +61,15 @@ export interface BuildAIContextOptions {
   /** Selected finding for context-aware suggestions */
   selectedFinding?: {
     text: string;
+    status?: string;
     hypothesis?: string;
     projection?: { meanDelta: number; sigmaDelta: number };
-    actions?: Array<{ text: string; status: string }>;
+    actions?: Array<{ text: string; status: string; overdue?: boolean }>;
+    actionProgress?: {
+      total: number;
+      done: number;
+      overdueCount: number;
+    };
   };
   /** Focus context from "Ask CoScout about this" actions */
   focusContext?: AIContext['focusContext'];
@@ -233,6 +239,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 
     if (hypotheses && hypotheses.length > 0) {
       context.investigation.allHypotheses = hypotheses.map(h => ({
+        id: h.id,
         text: h.text,
         status: h.status,
         ideas:
@@ -243,6 +250,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
                 projection: idea.projection
                   ? { meanDelta: idea.projection.meanDelta, sigmaDelta: idea.projection.sigmaDelta }
                   : undefined,
+                category: idea.category,
               }))
             : undefined,
       }));
@@ -257,6 +265,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
               ? getCategoryForFactor(categoriesOpt, root.factor)
               : undefined;
           return {
+            id: root.id,
             text: root.text,
             status: root.status,
             factor: root.factor,

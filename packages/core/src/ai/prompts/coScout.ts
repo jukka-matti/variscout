@@ -256,6 +256,35 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
           additionalProperties: false,
           strict: true,
         },
+      },
+      {
+        type: 'function',
+        name: 'suggest_improvement_idea',
+        description:
+          'Propose an improvement idea for a supported hypothesis. Ideas bridge root cause analysis and corrective actions. The analyst can edit, run What-If simulation, and select for implementation.',
+        parameters: {
+          type: 'object',
+          properties: {
+            hypothesis_id: {
+              type: 'string',
+              description: 'ID of the supported hypothesis to attach the idea to',
+            },
+            text: {
+              type: 'string',
+              description:
+                'Improvement idea description, e.g., "Simplify setup procedure with visual alignment guides"',
+            },
+            category: {
+              type: 'string',
+              enum: ['containment', 'corrective', 'preventive'],
+              description:
+                'containment = stop the bleeding, corrective = fix the cause, preventive = prevent recurrence',
+            },
+          },
+          required: ['hypothesis_id', 'text', 'category'],
+          additionalProperties: false,
+          strict: true,
+        },
       }
     );
 
@@ -455,7 +484,7 @@ Never invent data or statistics. If the context does not contain enough informat
 
     if (investigation.allHypotheses && investigation.allHypotheses.length > 0) {
       const hypothesisList = investigation.allHypotheses
-        .map(h => `- "${h.text}" (${h.status})`)
+        .map(h => `- [${h.id}] "${h.text}" (${h.status})`)
         .join('\n');
       invParts.push(`Known hypotheses:\n${hypothesisList}`);
     }
@@ -487,8 +516,19 @@ Never invent data or statistics. If the context does not contain enough informat
         converging: hasSupportedHypotheses
           ? 'The investigation is narrowing down. Tell the user: "You\'re identifying the suspected cause — supported hypotheses found. Let\'s brainstorm improvement ideas."'
           : 'The investigation is narrowing down. Tell the user: "You\'re identifying the suspected cause — let\'s synthesize findings into a coherent story."',
-        improving:
-          'The process is in the improvement phase (PDCA). Tell the user: "You\'re in the improvement cycle — let\'s check whether Cpk is improving and actions are effective."',
+        improving: (() => {
+          const sf = investigation?.selectedFinding;
+          const hasActions = sf?.actions && sf.actions.length > 0;
+          const allActionsDone = hasActions && sf!.actions!.every(a => a.status === 'done');
+          // Note: stagedComparison override happens below, so this handles non-staged cases
+          if (allActionsDone) {
+            return 'PDCA: Act — All corrective actions are complete. Help the analyst assess the outcome: was the improvement effective, partial, or not effective? Recommend sustaining controls for effective improvements.';
+          } else if (hasActions) {
+            return 'PDCA: Do — Corrective actions are in progress. Track progress, flag overdue items, and keep the team focused on execution. Do not suggest new actions unless asked.';
+          } else {
+            return 'PDCA: Plan — No corrective actions yet. Help the analyst brainstorm improvement ideas, search the Knowledge Base for similar past fixes, and convert selected ideas into executable action items.';
+          }
+        })(),
       };
 
       // Override converging/improving with suspected cause context when available
@@ -503,7 +543,8 @@ Never invent data or statistics. If the context does not contain enough informat
           phaseInstructions.converging = `The investigation is narrowing down. Your suspected root cause is ${primaryText}${contribSuffix}. Let's brainstorm improvement ideas targeting the primary cause.`;
         }
         if (investigation.phase === 'improving') {
-          phaseInstructions.improving = `The process is in the improvement phase (PDCA). You're addressing ${primaryText}${contribSuffix}. Let's check whether the corrective actions are working and Cpk is improving.`;
+          const basePdca = phaseInstructions.improving;
+          phaseInstructions.improving = `The process is in the improvement phase. You're addressing ${primaryText}${contribSuffix}. ${basePdca}`;
         }
       }
 
@@ -535,6 +576,7 @@ Never invent data or statistics. If the context does not contain enough informat
           if (h.status === 'supported' && h.ideas && h.ideas.length > 0) {
             const ideaLines = h.ideas.map(idea => {
               let line = `  - "${idea.text}"`;
+              if (idea.category) line += ` [${idea.category}]`;
               if (idea.selected) line += ' [selected]';
               if (idea.projection) line += ' (projected)';
               return line;
@@ -555,6 +597,7 @@ Never invent data or statistics. If the context does not contain enough informat
     if (investigation.selectedFinding) {
       const sf = investigation.selectedFinding;
       let findingLine = `Currently focused finding: "${sf.text}"`;
+      if (sf.status) findingLine += ` [status: ${sf.status}]`;
       if (sf.hypothesis) findingLine += ` (hypothesis: "${sf.hypothesis}")`;
       if (sf.projection) {
         findingLine += `. Projected impact: mean ${sf.projection.meanDelta > 0 ? '+' : ''}${formatStatistic(sf.projection.meanDelta, 'en', 2)}, sigma ${sf.projection.sigmaDelta > 0 ? '+' : ''}${formatStatistic(sf.projection.sigmaDelta, 'en', 2)}`;
@@ -564,10 +607,16 @@ Never invent data or statistics. If the context does not contain enough informat
         findingLine += `\nActions (${done}/${sf.actions.length} complete):`;
         const capped = sf.actions.slice(0, 5);
         for (const a of capped) {
-          findingLine += `\n  - [${a.status}] ${a.text}`;
+          findingLine += `\n  - [${a.status}] ${a.text}${a.overdue ? ' \u26a0 OVERDUE' : ''}`;
         }
         if (sf.actions.length > 5) {
           findingLine += `\n  ... and ${sf.actions.length - 5} more`;
+        }
+      }
+      if (sf.actionProgress) {
+        findingLine += `\nAction progress: ${sf.actionProgress.done}/${sf.actionProgress.total} complete`;
+        if (sf.actionProgress.overdueCount > 0) {
+          findingLine += ` (${sf.actionProgress.overdueCount} overdue)`;
         }
       }
       invParts.push(findingLine);
@@ -805,6 +854,45 @@ Knowledge Base in IMPROVE phase:
 - Look up sustaining control procedures (SOPs, work instructions) relevant to the corrective action.
 - When verifying outcomes, search for historical Cpk benchmarks to contextualize improvement magnitude.
 
+PDCA coaching (when investigation phase is 'improving'):
+- PLAN (finding at 'analyzed' status, no actions yet):
+  - Ask what improvement ideas the team has considered. Proactively suggest suggest_knowledge_search for similar past fixes and SOPs.
+  - If ideas have What-If projections, compare projected impact. Suggest prioritizing the idea with highest Cpk improvement.
+  - Suggest categorizing improvements: containment (stop bleeding), corrective (fix cause), preventive (prevent recurrence).
+  - Use suggest_action to convert selected ideas into executable tasks with clear owners and deadlines.
+  - Use suggest_improvement_idea to propose ideas for supported hypotheses based on the suspected cause and KB results.
+
+- DO (finding at 'improving' status, actions in progress):
+  - Acknowledge action progress: "N of M actions complete."
+  - If overdue actions exist, flag them: "N actions are past their due date."
+  - Suggest notify_action_owners (Team plan) if actions have assignees but aren't progressing.
+  - Do NOT suggest new actions unless the analyst asks — focus on tracking existing ones.
+
+- CHECK (staged comparison data available):
+  - Interpret staged deltas quantitatively with decision criteria:
+    - Cpk delta > 0 AND Cpk after >= target: strong evidence of improvement
+    - Cpk delta > 0 BUT Cpk after < target: partial improvement, more work needed
+    - Variation ratio < 0.8: meaningful variation reduction
+    - Variation ratio > 1.0: variation INCREASED — flag as concern
+    - New out-of-control violations in After data: flag as potential new issue
+  - Recommend compare_categories on the addressed factor to verify IT specifically improved (not just aggregate shift).
+  - If Cpk is still below target despite improvement, say so explicitly with the gap.
+
+- ACT (all actions complete, outcome assessment needed):
+  - Based on staged data, propose an outcome assessment:
+    - Cpk after >= target AND variation ratio < 1.0: suggest "effective"
+    - Cpk improved but still below target: suggest "partial"
+    - Cpk unchanged or degraded: suggest "not effective"
+  - For effective: suggest sustaining controls — update SOPs, set control chart limits, schedule 30-day follow-up.
+  - For partial/not effective: suggest which factors to re-investigate, whether the root cause was actually addressed.
+
+Improvement idea guidance (converging/IMPROVE):
+- Use suggest_improvement_idea when a hypothesis is supported and the analyst needs ideas for what to try.
+- Categorize: containment (immediate containment to stop defects NOW), corrective (address the root cause), preventive (systemic change to prevent recurrence).
+- Prefer corrective over containment. Suggest preventive actions when the root cause is systemic (e.g., training, SOP updates).
+- If Knowledge Base search revealed a past fix for a similar cause, suggest it as an improvement idea with the source cited.
+- suggest_improvement_idea only works on hypotheses with 'supported' or 'partial' status.
+
 Sharing guidance (Team plan only):
 - Use share_finding at investigation milestones, not during active investigation.
 - Use publish_report when the analyst has completed a meaningful analysis cycle.
@@ -823,18 +911,18 @@ function buildEntryScenarioGuidance(scenario: EntryScenario): string {
       return `Entry scenario: Problem to solve — The analyst has a specific problem (e.g., Cpk below target).
 - SCOUT: Proactively use compare_categories to scan all factors for the biggest contributor. Suggest apply_filter to drill into the top contributor. Propose create_finding for the key observation.
 - INVESTIGATE: Guide the analyst to create hypotheses linked to the top-contributing factors.
-- IMPROVE: Check whether Cpk has reached the original target. If staged data shows improvement, help assess whether the fix addressed the stated problem. If not, suggest revisiting root causes.`;
+- IMPROVE: Check whether Cpk has reached the original target. In PLAN sub-state, suggest ideas targeting the confirmed root cause. In CHECK, compare before/after Cpk against the stated problem threshold. In ACT, assess whether the original problem is resolved.`;
 
     case 'hypothesis':
       return `Entry scenario: Hypothesis to check — The analyst entered with an upfront hypothesis.
 - SCOUT: Immediately use compare_categories on the factor named in the hypothesis. Report Contribution % and per-category stats. If supported (>=15%), suggest apply_filter and create_finding.
 - INVESTIGATE: Propose create_hypothesis with the upfront hypothesis as the root node. Then suggest sub-hypotheses.
-- IMPROVE: After addressing the confirmed cause, check whether the metric linked to the original hypothesis has improved. Compare before/after Cpk and variation.`;
+- IMPROVE: After addressing the confirmed cause, compare before/after on the metric linked to the original hypothesis. In PLAN, search KB for fixes to the confirmed hypothesis factor. In ACT, verify whether the hypothesis-specific metric improved.`;
 
     case 'routine':
       return `Entry scenario: Routine check — No specific problem or hypothesis. Scanning for signals.
 - SCOUT: Use compare_categories conservatively. Only suggest apply_filter if a notable signal is found (Contribution % > 10%). Do NOT proactively suggest findings unless a clear anomaly is detected.
 - INVESTIGATE: Only reached if the analyst manually creates a finding. Follow their lead.
-- IMPROVE: Signal has been addressed — help evaluate whether sustaining controls prevent recurrence. Suggest checking recent data for stability.`;
+- IMPROVE: Signal has been addressed — help evaluate whether sustaining controls prevent recurrence. In PLAN, suggest preventive actions and SOP updates. In ACT, recommend scheduling a follow-up check in 30 days.`;
   }
 }

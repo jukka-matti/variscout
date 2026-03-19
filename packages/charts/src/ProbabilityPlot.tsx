@@ -79,7 +79,7 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
     fontsOverride,
   });
 
-  const { chrome, colors } = useChartTheme();
+  const { chrome, colors, t } = useChartTheme();
 
   // Calculate plot data for data points
   const plotData = useMemo(() => calculateProbabilityPlotData(data), [data]);
@@ -188,7 +188,7 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
           fontSize={fonts.statLabel}
           fontStyle="italic"
         >
-          No data available for probability plot
+          {t('chart.noDataProbPlot')}
         </text>
       </svg>
     );
@@ -284,7 +284,7 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
             fontFamily: 'monospace',
             fontWeight: 400,
           })}
-          label={parentWidth > 300 ? 'Percent' : ''}
+          label={parentWidth > 300 ? t('chart.percent') : ''}
           labelOffset={parentWidth < 400 ? 28 : 36}
           labelProps={{
             fill: chrome.labelSecondary,

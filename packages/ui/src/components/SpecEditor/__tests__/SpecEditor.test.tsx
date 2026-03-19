@@ -9,6 +9,12 @@ vi.mock('@variscout/hooks', () => {
   const catalog: Record<string, string> = {
     'specs.editTitle': 'Edit Specifications',
     'action.save': 'Save',
+    'charType.nominal': 'Nominal',
+    'charType.nominalDesc': 'Target-centered (e.g. fill weight)',
+    'charType.smaller': 'Smaller is better',
+    'charType.smallerDesc': 'Lower is better (e.g. defects)',
+    'charType.larger': 'Larger is better',
+    'charType.largerDesc': 'Higher is better (e.g. yield)',
   };
   return {
     useTranslation: () => ({

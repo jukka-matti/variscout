@@ -261,6 +261,7 @@ export const sv: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
   'table.page': 'Page {page} of {total}',
@@ -310,4 +311,274 @@ export const sv: MessageCatalog = {
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
+
+  // Chart limit labels (colon-suffixed for SVG rendering)
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': 'Medel:',
+  'chart.label.tgt': 'Mål:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': 'Värde:',
+  'chart.label.n': 'n:',
+  'chart.label.target': 'Målvärde:',
+
+  // Chart status & empty states
+  'chart.status.inControl': 'Under kontroll',
+  'chart.status.outOfControl': 'Utanför kontroll (bortom UCL/LCL)',
+  'chart.noDataProbPlot': 'Inga data tillgängliga för sannolikhetsdiagram',
+
+  // Chart edit affordances
+  'chart.edit.spec': 'Klicka för att redigera {spec}',
+  'chart.edit.axisLabel': 'Klicka för att redigera axeletikett',
+  'chart.edit.yAxis': 'Klicka för att redigera Y-axelns skala',
+  'chart.edit.saveCancel': 'Enter för att spara · Esc för att avbryta',
+
+  // Performance table headers
+  'chart.table.channel': 'Kanal',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'Kopiera diagram till urklipp',
+  'chart.maximize': 'Maximera diagram',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ detaljera här',
+  'chart.percent': 'Procent',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Y-axelns skala',
+  'validation.minLessThanMax': 'Min måste vara mindre än Max',
+  'action.noChanges': 'Inga ändringar',
+
+  // Create factor modal
+  'factor.create': 'Skapa faktor från urval',
+  'factor.name': 'Faktornamn',
+  'factor.nameEmpty': 'Faktornamn kan inte vara tomt',
+  'factor.nameExists': 'En faktor med detta namn finns redan',
+  'factor.example': 't.ex. Höga temperaturhändelser',
+  'factor.pointsMarked': '{count} punkter markeras som:',
+  'factor.createAndFilter': 'Skapa och filtrera',
+  'factor.filterExplanation': 'Vyn filtreras automatiskt för att visa enbart de valda punkterna.',
+
+  // Characteristic type selector
+  'charType.nominal': 'Nominal',
+  'charType.nominalDesc': 'Målcentrerad (t.ex. fyllningsvikt)',
+  'charType.smaller': 'Mindre är bättre',
+  'charType.smallerDesc': 'Lägre är bättre (t.ex. defekter)',
+  'charType.larger': 'Större är bättre',
+  'charType.largerDesc': 'Högre är bättre (t.ex. utbyte)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt':
+    'Spårar din undersökning — öppna Undersökningspanelen för att se hela bilden.',
+
+  // Mobile category sheet
+  'chart.highlight': 'Markera:',
+  'chart.highlightRed': 'Röd',
+  'chart.highlightAmber': 'Bärnsten',
+  'chart.highlightGreen': 'Grön',
+  'chart.clearHighlight': 'Ta bort markering',
+  'chart.drillDown': 'Detaljera i "{category}"',
+  'ai.askCoScout': 'Fråga CoScout om detta',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'Behåller skalan för visuell jämförelse',
+  'display.filterContextDesc': 'Visa sammanfattning av aktiva filter under diagramrubriker',
+
+  // Performance detected modal
+  'performance.detected': 'Performance-läge upptäckt',
+  'performance.columnsFound': '{count} mätkolumner hittades',
+  'performance.labelQuestion': 'Vad representerar dessa mätkanaler?',
+  'performance.labelExample': 't.ex. Fyllhuvud, Kavitet, Munstycke',
+  'performance.enable': 'Aktivera Performance-läge',
+
+  // Finding editor & data types
+  'finding.placeholder': 'Vad hittade du?',
+  'finding.note': 'Fyndanteckning',
+  'data.typeNumeric': 'Numerisk',
+  'data.typeCategorical': 'Kategorisk',
+  'data.typeDate': 'Datum',
+  'data.typeText': 'Text',
+  'data.categories': 'kategorier',
+
+  // Coaching text (scenario × phase)
+  'coach.problem.frame': 'Ställ in dina data för att börja undersöka problemet.',
+  'coach.problem.scout': 'Leta efter variationsmönster som kan förklara problemet.',
+  'coach.problem.investigate': 'Bygg bevis som kopplar faktorer till problemet.',
+  'coach.problem.improve': 'Planera och genomför förbättringar med PDCA-cykeln.',
+  'coach.hypothesis.frame': 'Ställ in dina data för att testa din hypotes.',
+  'coach.hypothesis.scout': 'Leta efter bevis som stödjer eller motbevisar din hypotes.',
+  'coach.hypothesis.investigate':
+    'Samla statistiska bevis för att bekräfta den misstänkta orsaken.',
+  'coach.hypothesis.improve': 'Orsak bekräftad — planera korrigerande åtgärder via PDCA.',
+  'coach.routine.frame': 'Ställ in dina data för en rutinmässig processkontroll.',
+  'coach.routine.scout': 'Sök efter nya signaler, drift eller oväntade mönster.',
+  'coach.routine.investigate': 'En signal hittades — undersök potentiella orsaker.',
+  'coach.routine.improve': 'Orsak identifierad — planera korrigerande åtgärder via PDCA.',
+
+  // PWA HomeScreen
+  'home.heading': 'Utforska variationsanalys',
+  'home.description':
+    'Gratis utbildningsverktyg för variationsanalys. Visualisera variation, beräkna duglighet och hitta var du ska fokusera — direkt i webbläsaren.',
+  'home.divider': 'eller använd egna data',
+  'home.pasteHelper': 'Kopiera rader och klistra in — vi identifierar kolumner automatiskt',
+  'home.manualEntry': 'Eller ange data manuellt',
+  'home.upgradeHint': 'Behöver du teamfunktioner, filuppladdning eller sparade projekt?',
+
+  // PWA navigation
+  'nav.presentationMode': 'Presentationsläge',
+  'nav.hideFindings': 'Dölj fynd',
+
+  // Export
+  'export.asImage': 'Exportera som bild',
+  'export.asCsv': 'Exportera som CSV',
+  'export.imageDesc': 'PNG-skärmbild för presentationer',
+  'export.csvDesc': 'Kalkylbladskompatibel datafil',
+
+  // Sample section
+  'sample.heading': 'Prova ett exempeldataset',
+  'sample.allSamples': 'Alla exempeldataset',
+  'sample.featured': 'Utvalda',
+  'sample.caseStudies': 'Fallstudier',
+  'sample.journeys': 'Läranderesa',
+  'sample.industry': 'Branschexempel',
+
+  // View modes (additional)
+  'view.stats': 'Statistik',
+
+  // Display (additional)
+  'display.appearance': 'Utseende',
+
+  // Azure toolbar
+  'data.manualEntry': 'Manuell inmatning',
+  'data.editTable': 'Redigera datatabell',
+  'toolbar.saveAs': 'Spara som…',
+  'toolbar.saving': 'Sparar…',
+  'toolbar.saved': 'Sparat',
+  'toolbar.saveFailed': 'Sparande misslyckades',
+  'toolbar.addMore': 'Lägg till data',
+  'report.scouting': 'Scouting-rapport',
+  'export.csvFiltered': 'Exportera filtrerade data som CSV',
+  'error.auth': 'Autentiseringsfel',
+
+  // File browse
+  'file.browseLocal': 'Bläddra på denna enhet',
+  'file.browseSharePoint': 'Bläddra i SharePoint',
+  'file.open': 'Öppna fil',
+
+  // Admin hub
+  'admin.title': 'Administration',
+  'admin.status': 'Status',
+  'admin.plan': 'Plan och funktioner',
+  'admin.teams': 'Teams-konfiguration',
+  'admin.knowledge': 'Knowledge Base',
+  'admin.troubleshooting': 'Felsökning',
+
+  // Admin plan tab
+  'admin.currentPlan': 'Nuvarande',
+  'admin.feature': 'Funktion',
+  'admin.manageSubscription': 'Hantera prenumeration i Azure',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/mån',
+  'admin.planTeamPrice': '€199/mån',
+  'admin.planTeamAIPrice': '€279/mån',
+  'admin.planStandardDesc': 'Fullständig analys, lokal fillagring',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, mobil',
+  'admin.planTeamAIDesc': 'AI Knowledge Base, förbättrad CoScout',
+
+  // Feature names (plan matrix)
+  'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
+  'feature.capability': 'Duglighetsanalys (Cp/Cpk)',
+  'feature.performance': 'Performance-läge (flerkanal)',
+  'feature.anova': 'ANOVA och faktoranalys',
+  'feature.findingsWorkflow': 'Arbetsflöde för fynd och undersökning',
+  'feature.whatIf': 'What-If-simulering',
+  'feature.csvImport': 'CSV/Excel-import',
+  'feature.reportExport': 'Rapportexport (PDF)',
+  'feature.indexedDb': 'Lokal lagring IndexedDB',
+  'feature.maxFactors': 'Upp till 6 faktorer',
+  'feature.maxRows': 'Upp till 100K rader',
+  'feature.onedriveSync': 'OneDrive-projektsynkronisering',
+  'feature.sharepointPicker': 'SharePoint-filväljare',
+  'feature.teamsIntegration': 'Microsoft Teams-integration',
+  'feature.channelCollab': 'Kanalbaserat samarbete',
+  'feature.mobileUi': 'Mobiloptimerat gränssnitt',
+  'feature.coScoutAi': 'CoScout AI-assistent',
+  'feature.narrativeBar': 'NarrativeBar-insikter',
+  'feature.chartInsights': 'Diagraminsiktschips',
+  'feature.knowledgeBase': 'Knowledge Base (SharePoint-sökning)',
+  'feature.aiActions': 'AI-föreslagna åtgärder',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'Lägg till VariScout i Microsoft Teams',
+  'admin.teams.description':
+    'Generera ett Teams-apppaket för din distribution och ladda upp det till Teams administrationscenter.',
+  'admin.teams.running': 'Körs inuti Microsoft Teams',
+  'admin.teams.step1': 'Appregistrerings klient-ID (valfritt)',
+  'admin.teams.step1Desc':
+    'Ange ditt Azure AD Appregistrerings klient-ID för att aktivera Teams SSO i manifestet.',
+  'admin.teams.step2': 'Ladda ner Teams-apppaketet',
+  'admin.teams.step2Desc':
+    'Denna .zip innehåller manifestet och ikoner förkonfigurerade för din distribution.',
+  'admin.teams.step3': 'Ladda upp till Teams administrationscenter',
+  'admin.teams.step4': 'Lägg till VariScout i en kanal',
+  'admin.teams.download': 'Ladda ner Teams-apppaket',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} kontroller godkända',
+  'admin.runChecks': 'Kör alla kontroller',
+  'admin.notApplicable': 'Ej tillämpligt för din plan',
+  'admin.managePortal': 'Hantera i Azure Portal',
+  'admin.portalAccessNote':
+    'Dessa objekt kräver åtkomst till Azure Portal och kan inte kontrolleras från webbläsaren.',
+  'admin.fixInPortal': 'Åtgärda i Azure Portal: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'Vanliga problem och hur du löser dem. Klicka på ett problem för steg-för-steg-instruktioner.',
+  'admin.runCheck': 'Kör kontroll',
+  'admin.checkPassed': 'Kontroll godkänd — detta kanske inte är problemet.',
+  'admin.checkFailed': 'Kontroll misslyckades — följ stegen nedan.',
+  'admin.issue.signin': 'Användare kan inte logga in',
+  'admin.issue.signinDesc': 'Azure AD-autentisering fungerar inte eller användare ser en tom sida.',
+  'admin.issue.signinSteps':
+    'Verifiera att App Service-autentisering är aktiverad i Azure Portal.\nKontrollera att Azure AD-appregistreringen har korrekta omdirigerings-URI:er.\nSäkerställ att appregistreringen har "ID-tokens" aktiverat under Autentisering.\nVerifiera att klientorganisationen tillåter användarinlogging till appen (Företagsprogram → Egenskaper → Aktiverad för användarinloggning).',
+  'admin.issue.onedrive': 'OneDrive-synkronisering fungerar inte',
+  'admin.issue.onedriveDesc':
+    'Projekt synkroniseras inte till OneDrive eller användare ser behörighetsfel.',
+  'admin.issue.onedriveSteps':
+    'Verifiera att appregistreringen har delegerad behörighet "Files.ReadWrite".\nKontrollera att administratörsmedgivande har beviljats för Graph-behörigheter.\nSäkerställ att användaren har en tilldelad OneDrive-licens.\nFörsök logga ut och logga in igen för att uppdatera token.',
+  'admin.issue.coscout': 'CoScout svarar inte',
+  'admin.issue.coscoutDesc': 'AI-assistenten genererar inte svar eller visar fel.',
+  'admin.issue.coscoutSteps':
+    'Verifiera att AI-slutpunkten är konfigurerad i ARM-mallen / App Service-inställningar.\nKontrollera att Azure AI Services-resursen är distribuerad och körs.\nVerifiera att modelldistributionen finns (t.ex. gpt-4o) i AI Services-resursen.\nKontrollera Azure AI Services-kvoter — distributionen kan ha nått hastighetsbegränsningar.',
+  'admin.issue.kbEmpty': 'Knowledge Base returnerar inga resultat',
+  'admin.issue.kbEmptyDesc': 'CoScouts "Sök Knowledge Base" hittar inget trots att dokument finns.',
+  'admin.issue.kbEmptySteps':
+    'Verifiera att AI Search-slutpunkten är konfigurerad i App Service-inställningar.\nKontrollera att Remote SharePoint-kunskapskällan har skapats i AI Search.\nSäkerställ att minst 1 Microsoft 365 Copilot-licens är aktiv i klientorganisationen.\nVerifiera att användaren har SharePoint-åtkomst till dokumenten som söks.\nKontrollera att Knowledge Base-förhandsgranskningens växel är aktiverad (Administration → fliken Knowledge Base).',
+  'admin.issue.teamsTab': 'Teams-fliken visas inte',
+  'admin.issue.teamsTabDesc': 'VariScout visas inte i Teams eller fliken kan inte laddas.',
+  'admin.issue.teamsTabSteps':
+    'Verifiera att Teams-apppaketet (.zip) har laddats upp till Teams administrationscenter.\nKontrollera att contentUrl i manifest.json matchar din App Service-URL.\nSäkerställ att appen är godkänd i Teams administrationscenter (ej blockerad av policy).\nFörsök ta bort och lägga till fliken igen i kanalen.\nOm du använder en anpassad domän, verifiera att den finns i manifestets validDomains-array.',
+  'admin.issue.newUser': 'Ny användare kan inte komma åt appen',
+  'admin.issue.newUserDesc': 'En nyligen tillagd användare ser åtkomst nekad eller en tom sida.',
+  'admin.issue.newUserSteps':
+    'I Azure AD, gå till Företagsprogram → VariScout → Användare och grupper.\nLägg till användaren eller deras säkerhetsgrupp i appen.\nOm du använder "Användartilldelning krävs", säkerställ att användaren har en tilldelning.\nKontrollera Villkorsstyrd åtkomst-policyer som kan blockera användaren.',
+  'admin.issue.aiSlow': 'AI-svar är långsamma',
+  'admin.issue.aiSlowDesc': 'CoScout tar lång tid att svara eller får ofta timeout.',
+  'admin.issue.aiSlowSteps':
+    'Kontrollera Azure AI Services-distributionsregionen — fördröjningen ökar med avståndet.\nVerifiera att modelldistributionen har tillräcklig TPM (tokens per minut)-kvot.\nÖverväg att uppgradera till en provisionerad genomströmningsdistribution för konsekvent fördröjning.\nKontrollera om AI Search-indexet är stort — överväg att optimera kunskapskällan.',
+  'admin.issue.forbidden': '"Forbidden"-fel',
+  'admin.issue.forbiddenDesc': 'Användare ser 403-fel vid åtkomst till vissa funktioner.',
+  'admin.issue.forbiddenSteps':
+    'Kontrollera att alla nödvändiga Graph API-behörigheter har administratörsmedgivande.\nVerifiera att App Service-autentiseringens tokenlagring är aktiverad.\nSäkerställ att användarens token inte har gått ut — försök logga ut och logga in igen.\nKontrollera Villkorsstyrd åtkomst-policyer för klientorganisationen.',
+  'admin.issue.kbPartial': 'KB fungerar inte för vissa användare',
+  'admin.issue.kbPartialDesc':
+    'Knowledge Base-sökning fungerar för administratörer men inte för andra användare.',
+  'admin.issue.kbPartialSteps':
+    'Remote SharePoint-kunskapskällor använder behörigheter per användare. Varje användare måste ha SharePoint-åtkomst till dokumenten.\nKontrollera om de drabbade användarna blockeras av Villkorsstyrd åtkomst-policyer.\nVerifiera att administratörsmedgivande har beviljats för den delegerade behörigheten Sites.Read.All.\nBe de drabbade användarna att logga ut och logga in igen för att uppdatera sin token.',
 };

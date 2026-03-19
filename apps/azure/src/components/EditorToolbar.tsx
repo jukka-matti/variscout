@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { hasTeamFeatures, downloadCSV } from '@variscout/core';
 import type { DataRow, SpecLimits } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import type {
   JourneyPhase,
   InvestigationPhase,
@@ -119,6 +120,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   hasStagedData,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
+  const { t } = useTranslation();
   const hasActiveData = hasData && hasOutcome;
 
   // Add Data dropdown state
@@ -163,11 +165,11 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
       <div className="flex items-center gap-4 min-w-0">
         <button
           onClick={onBack}
-          aria-label="Back to dashboard"
+          aria-label={t('nav.backToDashboard')}
           className="flex items-center gap-1 text-content-muted hover:text-content transition-colors flex-shrink-0"
         >
           <ArrowLeft size={18} />
-          {!isPhone && <span>Back</span>}
+          {!isPhone && <span>{t('nav.backToDashboard')}</span>}
         </button>
         <h2 className={`font-semibold text-content truncate ${isPhone ? 'text-base' : 'text-xl'}`}>
           {projectName}
@@ -230,11 +232,11 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                 window.location.href = '/.auth/login/aad';
               }}
               className={`flex items-center gap-1.5 text-sm ${syncColor} hover:text-red-300 transition-colors`}
-              title="Click to re-authenticate"
+              title={t('error.auth')}
             >
               <SyncIcon size={16} />
               <span className="underline underline-offset-2">
-                {syncStatus.message || 'Auth error'}
+                {syncStatus.message || t('error.auth')}
               </span>
             </button>
           ) : (
@@ -258,11 +260,11 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                 <button
                   onClick={() => setAddDataOpen(prev => !prev)}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
-                  title="Add more data"
+                  title={t('toolbar.addMore')}
                   data-testid="btn-add-data"
                 >
                   <Plus size={16} />
-                  <span className="text-sm">Add Data</span>
+                  <span className="text-sm">{t('toolbar.addMore')}</span>
                   <ChevronDown
                     size={14}
                     className={`transition-transform ${addDataOpen ? 'rotate-180' : ''}`}
@@ -279,7 +281,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                       data-testid="add-data-paste"
                     >
                       <ClipboardPaste size={15} />
-                      Paste Data
+                      {t('data.pasteData')}
                     </button>
                     <button
                       onClick={() => {
@@ -290,7 +292,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                       data-testid="add-data-file"
                     >
                       <Upload size={15} />
-                      Upload File
+                      {t('data.uploadFile')}
                     </button>
                     <button
                       onClick={() => {
@@ -301,7 +303,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                       data-testid="add-data-manual"
                     >
                       <PenLine size={15} />
-                      Manual Entry
+                      {t('data.manualEntry')}
                     </button>
                   </div>
                 )}
@@ -313,7 +315,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               <button
                 onClick={onOpenDataTable}
                 className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-                title="Edit Data Table"
+                title={t('data.editTable')}
                 data-testid="btn-edit-data"
               >
                 <Pencil size={18} />
@@ -325,7 +327,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               <button
                 onClick={() => downloadCSV(filteredData, outcome!, specs)}
                 className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-                title="Export filtered data as CSV"
+                title={t('export.csvFiltered')}
                 data-testid="btn-csv-export"
               >
                 <Download size={18} />
@@ -337,11 +339,11 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               <button
                 onClick={onOpenWhatIf}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-                title="What-If Simulator"
+                title={t('panel.whatIf')}
                 data-testid="btn-what-if"
               >
                 <Beaker size={16} />
-                <span>What-If</span>
+                <span>{t('panel.whatIf')}</span>
               </button>
             )}
 
@@ -350,11 +352,11 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               <button
                 onClick={onOpenReport}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-                title="Scouting Report"
+                title={t('report.scouting')}
                 data-testid="btn-report"
               >
                 <FileText size={16} />
-                <span>Report</span>
+                <span>{t('report.scouting')}</span>
               </button>
             )}
 
@@ -363,7 +365,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               <button
                 onClick={onOpenPresentation}
                 className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-                title="Presentation Mode"
+                title={t('nav.presentationMode')}
                 data-testid="btn-presentation"
               >
                 <Maximize2 size={18} />
@@ -379,12 +381,12 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                     ? 'bg-blue-600 text-white'
                     : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
                 }`}
-                title={isFindingsOpen ? 'Hide Findings' : 'Show Findings'}
+                title={isFindingsOpen ? t('nav.hideFindings') : t('panel.findings')}
                 data-testid="btn-findings"
               >
                 <ClipboardList size={16} />
                 <span className="hidden lg:inline">
-                  Findings
+                  {t('panel.findings')}
                   {findingsCount > 0 && ` (${findingsCount})`}
                 </span>
               </button>
@@ -399,7 +401,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                     ? 'bg-blue-600 text-white'
                     : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
                 }`}
-                title={isDataPanelOpen ? 'Hide Data Panel' : 'Show Data Panel'}
+                title={isDataPanelOpen ? t('data.hideDataTable') : t('data.showDataTable')}
                 data-testid="btn-data-panel"
               >
                 <Table2 size={18} />
@@ -424,12 +426,12 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           <Save size={16} />
           {!isPhone &&
             (saveStatus === 'saving'
-              ? 'Saving...'
+              ? t('toolbar.saving')
               : saveStatus === 'saved'
-                ? 'Saved'
+                ? t('toolbar.saved')
                 : saveStatus === 'error'
-                  ? 'Save Failed'
-                  : 'Save')}
+                  ? t('toolbar.saveFailed')
+                  : t('action.save'))}
         </button>
 
         {/* Save As... for Team plans (ADR-030) */}
@@ -440,7 +442,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
             title="Save to SharePoint folder..."
           >
             <FolderUp size={14} />
-            Save As...
+            {t('toolbar.saveAs')}
           </button>
         )}
 
@@ -451,8 +453,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               onClick={() => setOverflowOpen(prev => !prev)}
               className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
               style={{ minWidth: 44, minHeight: 44 }}
-              title="More actions"
-              aria-label="More actions"
+              title={t('nav.moreActions')}
+              aria-label={t('nav.moreActions')}
               data-testid="btn-overflow"
             >
               <EllipsisVertical size={20} />
@@ -467,7 +469,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <Plus size={16} />
-                  Add Data
+                  {t('toolbar.addMore')}
                 </button>
                 <button
                   onClick={() => {
@@ -477,7 +479,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <Pencil size={16} />
-                  Edit Data
+                  {t('data.editData')}
                 </button>
                 <button
                   onClick={() => {
@@ -487,7 +489,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <Download size={16} />
-                  Export CSV
+                  {t('export.asCsv')}
                 </button>
                 <div className="border-t border-edge my-1" />
                 <button
@@ -498,7 +500,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <Beaker size={16} />
-                  What-If
+                  {t('panel.whatIf')}
                 </button>
                 <button
                   onClick={() => {
@@ -508,7 +510,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <FileText size={16} />
-                  Scouting Report
+                  {t('report.scouting')}
                 </button>
                 <button
                   onClick={() => {
@@ -518,7 +520,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <Maximize2 size={16} />
-                  Presentation
+                  {t('nav.presentationMode')}
                 </button>
                 {hasFactors && (
                   <button
@@ -529,7 +531,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                     className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
                   >
                     <ClipboardList size={16} />
-                    Findings
+                    {t('panel.findings')}
                     {findingsCount > 0 && (
                       <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
                         {findingsCount}
@@ -545,7 +547,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <Table2 size={16} />
-                  Data Table
+                  {t('panel.dataTable')}
                 </button>
               </div>
             )}

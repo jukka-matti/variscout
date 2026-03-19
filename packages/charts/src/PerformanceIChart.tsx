@@ -62,7 +62,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
   cpkTarget = DEFAULT_CPK_TARGET,
   showLegend = false,
 }) => {
-  const { chrome, fontScale, formatStat } = useChartTheme();
+  const { chrome, fontScale, formatStat, t } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'ichart', sourceBarHeight);
   const fonts = getScaledFonts(parentWidth, fontScale);
@@ -151,17 +151,17 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
     if (controlLimits) {
       labels.push({
         y: yScale(controlLimits.ucl),
-        text: `UCL: ${formatStat(controlLimits.ucl)}`,
+        text: `${t('chart.label.ucl')} ${formatStat(controlLimits.ucl)}`,
         fill: chrome.axisSecondary,
       });
       labels.push({
         y: yScale(controlLimits.mean),
-        text: `Mean: ${formatStat(controlLimits.mean)}`,
+        text: `${t('chart.label.mean')} ${formatStat(controlLimits.mean)}`,
         fill: chartColors.mean,
       });
       labels.push({
         y: yScale(controlLimits.lcl),
-        text: `LCL: ${formatStat(controlLimits.lcl)}`,
+        text: `${t('chart.label.lcl')} ${formatStat(controlLimits.lcl)}`,
         fill: chrome.axisSecondary,
       });
     }
@@ -169,7 +169,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
     // Add target label
     labels.push({
       y: yScale(cpkTarget),
-      text: `Target: ${formatStat(cpkTarget)}`,
+      text: `${t('chart.label.target')} ${formatStat(cpkTarget)}`,
       fill: chartColors.target,
     });
 
@@ -246,7 +246,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
           color: chrome.labelSecondary,
         }}
       >
-        <p>No channel performance data available</p>
+        <p>{t('chart.noChannelData')}</p>
       </div>
     );
   }
@@ -475,7 +475,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
             fontSize={fonts.axisLabel}
             textAnchor="middle"
           >
-            Channel
+            {t('chart.table.channel')}
           </text>
 
           {/* Y Axis */}
@@ -521,11 +521,11 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
               />
               <Circle cx={8} cy={12} r={4} fill={chartColors.mean} />
               <text x={16} y={15} fontSize={fonts.tickLabel} fill={chrome.labelPrimary}>
-                Cpk
+                {t('report.kpi.cpk')}
               </text>
               <Circle cx={8} cy={30} r={4} fill={chartColors.meanAlt} />
               <text x={16} y={33} fontSize={fonts.tickLabel} fill={chrome.labelPrimary}>
-                Cp
+                {t('stats.cp')}
               </text>
             </Group>
           )}
@@ -569,7 +569,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ fontWeight: 600 }}>{tooltipData.channel.label}</div>
             <div>
-              Cp:{' '}
+              {t('stats.cp')}:{' '}
               <span style={{ fontFamily: 'monospace' }}>
                 {tooltipData.channel.cp !== undefined && tooltipData.channel.cp !== null
                   ? formatStat(tooltipData.channel.cp)
@@ -577,7 +577,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
               </span>
             </div>
             <div>
-              Cpk:{' '}
+              {t('report.kpi.cpk')}:{' '}
               <span style={{ fontFamily: 'monospace' }}>
                 {tooltipData.channel.cpk !== undefined && tooltipData.channel.cpk !== null
                   ? formatStat(tooltipData.channel.cpk)
@@ -585,10 +585,11 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
               </span>
             </div>
             <div>
-              n: <span style={{ fontFamily: 'monospace' }}>{tooltipData.channel.n}</span>
+              {t('chart.label.n')}{' '}
+              <span style={{ fontFamily: 'monospace' }}>{tooltipData.channel.n}</span>
             </div>
             <div>
-              Mean:{' '}
+              {t('chart.label.mean')}{' '}
               <span style={{ fontFamily: 'monospace' }}>
                 {formatStat(tooltipData.channel.mean)}
               </span>
@@ -601,7 +602,9 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
                   color: tooltipData.status.inControl ? chartColors.mean : chartColors.fail,
                 }}
               >
-                {!tooltipData.status.inControl ? 'Out of control (beyond UCL/LCL)' : 'In control'}
+                {!tooltipData.status.inControl
+                  ? t('chart.status.outOfControl')
+                  : t('chart.status.inControl')}
               </div>
             )}
           </div>

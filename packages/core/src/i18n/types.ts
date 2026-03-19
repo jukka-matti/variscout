@@ -399,6 +399,7 @@ export interface MessageCatalog {
   'ai.tool.shareFinding': string;
   'ai.tool.publishReport': string;
   'ai.tool.notifyOwners': string;
+  'ai.tool.suggestIdea': string;
 
   // Report
   'report.kpi.inSpec': string;
@@ -462,4 +463,255 @@ export interface MessageCatalog {
   // Parameterized messages
   'data.rowsLoaded': string;
   'findings.countLabel': string;
+
+  // Chart limit labels (colon-suffixed for SVG rendering)
+  'chart.label.ucl': string;
+  'chart.label.lcl': string;
+  'chart.label.mean': string;
+  'chart.label.tgt': string;
+  'chart.label.usl': string;
+  'chart.label.lsl': string;
+  'chart.label.value': string;
+  'chart.label.n': string;
+  'chart.label.target': string;
+
+  // Chart status & empty states
+  'chart.status.inControl': string;
+  'chart.status.outOfControl': string;
+  'chart.noDataProbPlot': string;
+
+  // Chart edit affordances
+  'chart.edit.spec': string;
+  'chart.edit.axisLabel': string;
+  'chart.edit.yAxis': string;
+  'chart.edit.saveCancel': string;
+
+  // Performance table headers
+  'chart.table.channel': string;
+  'stats.cp': string;
+
+  // Chart UI labels
+  'chart.copyToClipboard': string;
+  'chart.maximize': string;
+  'chart.type.ichart': string;
+  'chart.type.boxplot': string;
+  'chart.type.pareto': string;
+  'chart.drillHere': string;
+  'chart.percent': string;
+
+  // Y-axis popover
+  'chart.yAxisScale': string;
+  'validation.minLessThanMax': string;
+  'action.noChanges': string;
+
+  // Create factor modal
+  'factor.create': string;
+  'factor.name': string;
+  'factor.nameEmpty': string;
+  'factor.nameExists': string;
+  'factor.example': string;
+  'factor.pointsMarked': string;
+  'factor.createAndFilter': string;
+  'factor.filterExplanation': string;
+
+  // Characteristic type selector
+  'charType.nominal': string;
+  'charType.nominalDesc': string;
+  'charType.smaller': string;
+  'charType.smallerDesc': string;
+  'charType.larger': string;
+  'charType.largerDesc': string;
+
+  // Investigation prompt
+  'investigation.trackingPrompt': string;
+
+  // Mobile category sheet
+  'chart.highlight': string;
+  'chart.highlightRed': string;
+  'chart.highlightAmber': string;
+  'chart.highlightGreen': string;
+  'chart.clearHighlight': string;
+  'chart.drillDown': string;
+  'ai.askCoScout': string;
+
+  // Settings descriptions
+  'display.lockYAxisDesc': string;
+  'display.filterContextDesc': string;
+
+  // Performance detected modal
+  'performance.detected': string;
+  'performance.columnsFound': string;
+  'performance.labelQuestion': string;
+  'performance.labelExample': string;
+  'performance.enable': string;
+
+  // Finding editor & data types
+  'finding.placeholder': string;
+  'finding.note': string;
+  'data.typeNumeric': string;
+  'data.typeCategorical': string;
+  'data.typeDate': string;
+  'data.typeText': string;
+  'data.categories': string;
+
+  // Coaching text (scenario × phase)
+  'coach.problem.frame': string;
+  'coach.problem.scout': string;
+  'coach.problem.investigate': string;
+  'coach.problem.improve': string;
+  'coach.hypothesis.frame': string;
+  'coach.hypothesis.scout': string;
+  'coach.hypothesis.investigate': string;
+  'coach.hypothesis.improve': string;
+  'coach.routine.frame': string;
+  'coach.routine.scout': string;
+  'coach.routine.investigate': string;
+  'coach.routine.improve': string;
+
+  // PWA HomeScreen
+  'home.heading': string;
+  'home.description': string;
+  'home.divider': string;
+  'home.pasteHelper': string;
+  'home.manualEntry': string;
+  'home.upgradeHint': string;
+
+  // PWA navigation
+  'nav.presentationMode': string;
+  'nav.hideFindings': string;
+
+  // Export
+  'export.asImage': string;
+  'export.asCsv': string;
+  'export.imageDesc': string;
+  'export.csvDesc': string;
+
+  // Sample section
+  'sample.heading': string;
+  'sample.allSamples': string;
+  'sample.featured': string;
+  'sample.caseStudies': string;
+  'sample.journeys': string;
+  'sample.industry': string;
+
+  // View modes (additional)
+  'view.stats': string;
+
+  // Display (additional)
+  'display.appearance': string;
+
+  // Azure toolbar
+  'data.manualEntry': string;
+  'data.editTable': string;
+  'toolbar.saveAs': string;
+  'toolbar.saving': string;
+  'toolbar.saved': string;
+  'toolbar.saveFailed': string;
+  'toolbar.addMore': string;
+  'report.scouting': string;
+  'export.csvFiltered': string;
+  'error.auth': string;
+
+  // File browse
+  'file.browseLocal': string;
+  'file.browseSharePoint': string;
+  'file.open': string;
+
+  // Admin hub
+  'admin.title': string;
+  'admin.status': string;
+  'admin.plan': string;
+  'admin.teams': string;
+  'admin.knowledge': string;
+  'admin.troubleshooting': string;
+
+  // Admin plan tab
+  'admin.currentPlan': string;
+  'admin.feature': string;
+  'admin.manageSubscription': string;
+  'admin.planStandard': string;
+  'admin.planTeam': string;
+  'admin.planTeamAI': string;
+  'admin.planStandardPrice': string;
+  'admin.planTeamPrice': string;
+  'admin.planTeamAIPrice': string;
+  'admin.planStandardDesc': string;
+  'admin.planTeamDesc': string;
+  'admin.planTeamAIDesc': string;
+
+  // Feature names (plan matrix)
+  'feature.charts': string;
+  'feature.capability': string;
+  'feature.performance': string;
+  'feature.anova': string;
+  'feature.findingsWorkflow': string;
+  'feature.whatIf': string;
+  'feature.csvImport': string;
+  'feature.reportExport': string;
+  'feature.indexedDb': string;
+  'feature.maxFactors': string;
+  'feature.maxRows': string;
+  'feature.onedriveSync': string;
+  'feature.sharepointPicker': string;
+  'feature.teamsIntegration': string;
+  'feature.channelCollab': string;
+  'feature.mobileUi': string;
+  'feature.coScoutAi': string;
+  'feature.narrativeBar': string;
+  'feature.chartInsights': string;
+  'feature.knowledgeBase': string;
+  'feature.aiActions': string;
+
+  // Admin Teams setup
+  'admin.teams.heading': string;
+  'admin.teams.description': string;
+  'admin.teams.running': string;
+  'admin.teams.step1': string;
+  'admin.teams.step1Desc': string;
+  'admin.teams.step2': string;
+  'admin.teams.step2Desc': string;
+  'admin.teams.step3': string;
+  'admin.teams.step4': string;
+  'admin.teams.download': string;
+
+  // Admin status tab
+  'admin.checksResult': string;
+  'admin.runChecks': string;
+  'admin.notApplicable': string;
+  'admin.managePortal': string;
+  'admin.portalAccessNote': string;
+  'admin.fixInPortal': string;
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro': string;
+  'admin.runCheck': string;
+  'admin.checkPassed': string;
+  'admin.checkFailed': string;
+  'admin.issue.signin': string;
+  'admin.issue.signinDesc': string;
+  'admin.issue.signinSteps': string;
+  'admin.issue.onedrive': string;
+  'admin.issue.onedriveDesc': string;
+  'admin.issue.onedriveSteps': string;
+  'admin.issue.coscout': string;
+  'admin.issue.coscoutDesc': string;
+  'admin.issue.coscoutSteps': string;
+  'admin.issue.kbEmpty': string;
+  'admin.issue.kbEmptyDesc': string;
+  'admin.issue.kbEmptySteps': string;
+  'admin.issue.teamsTab': string;
+  'admin.issue.teamsTabDesc': string;
+  'admin.issue.teamsTabSteps': string;
+  'admin.issue.newUser': string;
+  'admin.issue.newUserDesc': string;
+  'admin.issue.newUserSteps': string;
+  'admin.issue.aiSlow': string;
+  'admin.issue.aiSlowDesc': string;
+  'admin.issue.aiSlowSteps': string;
+  'admin.issue.forbidden': string;
+  'admin.issue.forbiddenDesc': string;
+  'admin.issue.forbiddenSteps': string;
+  'admin.issue.kbPartial': string;
+  'admin.issue.kbPartialDesc': string;
+  'admin.issue.kbPartialSteps': string;
 }

@@ -263,6 +263,7 @@ export const tr: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
   'table.page': 'Page {page} of {total}',
@@ -312,4 +313,278 @@ export const tr: MessageCatalog = {
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
+
+  // Chart limit labels (colon-suffixed for SVG rendering)
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': 'Ort.:',
+  'chart.label.tgt': 'Hdf:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': 'Değer:',
+  'chart.label.n': 'n:',
+  'chart.label.target': 'Hedef:',
+
+  // Chart status & empty states
+  'chart.status.inControl': 'Kontrol altında',
+  'chart.status.outOfControl': 'Kontrol dışında (UCL/LCL aşıldı)',
+  'chart.noDataProbPlot': 'Olasılık grafiği için veri yok',
+
+  // Chart edit affordances
+  'chart.edit.spec': '{spec} düzenlemek için tıklayın',
+  'chart.edit.axisLabel': 'Eksen etiketini düzenlemek için tıklayın',
+  'chart.edit.yAxis': 'Y ekseni ölçeğini düzenlemek için tıklayın',
+  'chart.edit.saveCancel': 'Kaydet: Enter · İptal: Esc',
+
+  // Performance table headers
+  'chart.table.channel': 'Kanal',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'Grafiği panoya kopyala',
+  'chart.maximize': 'Grafiği büyüt',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ buraya detaylandır',
+  'chart.percent': 'Yüzde',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Y Ekseni Ölçeği',
+  'validation.minLessThanMax': 'Min, Maks değerinden küçük olmalıdır',
+  'action.noChanges': 'Değişiklik Yok',
+
+  // Create factor modal
+  'factor.create': 'Seçimden Faktör Oluştur',
+  'factor.name': 'Faktör Adı',
+  'factor.nameEmpty': 'Faktör adı boş olamaz',
+  'factor.nameExists': 'Bu isimde bir faktör zaten mevcut',
+  'factor.example': 'ör. Yüksek Sıcaklık Olayları',
+  'factor.pointsMarked': '{count} nokta şu şekilde işaretlenecek:',
+  'factor.createAndFilter': 'Oluştur ve Filtrele',
+  'factor.filterExplanation':
+    'Görünüm, yalnızca seçilen noktaları gösterecek şekilde otomatik olarak filtrelenir.',
+
+  // Characteristic type selector
+  'charType.nominal': 'Nominal',
+  'charType.nominalDesc': 'Hedefe yönelik (ör. dolum ağırlığı)',
+  'charType.smaller': 'Küçük olan daha iyi',
+  'charType.smallerDesc': 'Düşük olan daha iyi (ör. hatalar)',
+  'charType.larger': 'Büyük olan daha iyi',
+  'charType.largerDesc': 'Yüksek olan daha iyi (ör. verim)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt':
+    'Araştırmanız izleniyor — tam resmi görmek için Araştırma panelini açın.',
+
+  // Mobile category sheet
+  'chart.highlight': 'Vurgula:',
+  'chart.highlightRed': 'Kırmızı',
+  'chart.highlightAmber': 'Amber',
+  'chart.highlightGreen': 'Yeşil',
+  'chart.clearHighlight': 'Vurgulamayı kaldır',
+  'chart.drillDown': '"{category}" içine detaylandır',
+  'ai.askCoScout': "CoScout'a sor",
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'Görsel karşılaştırma için ölçeği korur',
+  'display.filterContextDesc': 'Grafik başlıkları altında aktif filtre özetini göster',
+
+  // Performance detected modal
+  'performance.detected': 'Performance Modu Algılandı',
+  'performance.columnsFound': '{count} ölçüm sütunu bulundu',
+  'performance.labelQuestion': 'Bu ölçüm kanalları neyi temsil ediyor?',
+  'performance.labelExample': 'ör. Dolum Kafası, Boşluk, Nozül',
+  'performance.enable': 'Performance Modunu Etkinleştir',
+
+  // Finding editor & data types
+  'finding.placeholder': 'Ne buldunuz?',
+  'finding.note': 'Bulgu notu',
+  'data.typeNumeric': 'Sayısal',
+  'data.typeCategorical': 'Kategorik',
+  'data.typeDate': 'Tarih',
+  'data.typeText': 'Metin',
+  'data.categories': 'kategoriler',
+
+  // Coaching text (scenario × phase)
+  'coach.problem.frame': 'Problemi araştırmaya başlamak için verilerinizi ayarlayın.',
+  'coach.problem.scout': 'Problemi açıklayabilecek varyasyon kalıplarını arayın.',
+  'coach.problem.investigate': 'Faktörleri problemle ilişkilendiren kanıtlar oluşturun.',
+  'coach.problem.improve': 'PDCA döngüsünü kullanarak iyileştirmeleri planlayın ve uygulayın.',
+  'coach.hypothesis.frame': 'Hipotezinizi test etmek için verilerinizi ayarlayın.',
+  'coach.hypothesis.scout': 'Hipotezinizi destekleyen veya çürüten kanıtları arayın.',
+  'coach.hypothesis.investigate':
+    'Şüphelenilen nedeni doğrulamak için istatistiksel kanıt toplayın.',
+  'coach.hypothesis.improve': 'Neden doğrulandı — PDCA ile düzeltici eylemleri planlayın.',
+  'coach.routine.frame': 'Rutin süreç kontrolü için verilerinizi ayarlayın.',
+  'coach.routine.scout': 'Yeni sinyalleri, kaymaları veya beklenmeyen kalıpları tarayın.',
+  'coach.routine.investigate': 'Bir sinyal bulundu — olası nedenleri araştırın.',
+  'coach.routine.improve': 'Neden belirlendi — PDCA ile düzeltici eylemleri planlayın.',
+
+  // PWA HomeScreen
+  'home.heading': 'Varyasyon Analizini Keşfedin',
+  'home.description':
+    'Ücretsiz varyasyon analizi eğitim aracı. Değişkenliği görselleştirin, yeterliliği hesaplayın ve odaklanacağınız yeri bulun — doğrudan tarayıcınızda.',
+  'home.divider': 'veya kendi verilerinizi kullanın',
+  'home.pasteHelper': 'Satırları kopyalayın ve yapıştırın — sütunları otomatik algılayacağız',
+  'home.manualEntry': 'Veya verileri elle girin',
+  'home.upgradeHint': 'Ekip özellikleri, dosya yükleme veya kayıtlı projeler mi gerekiyor?',
+
+  // PWA navigation
+  'nav.presentationMode': 'Sunum Modu',
+  'nav.hideFindings': 'Bulguları Gizle',
+
+  // Export
+  'export.asImage': 'Görüntü olarak dışa aktar',
+  'export.asCsv': 'CSV olarak dışa aktar',
+  'export.imageDesc': 'Sunumlar için PNG ekran görüntüsü',
+  'export.csvDesc': 'Elektronik tablo uyumlu veri dosyası',
+
+  // Sample section
+  'sample.heading': 'Bir Örnek Veri Setini Deneyin',
+  'sample.allSamples': 'Tüm Örnek Veri Setleri',
+  'sample.featured': 'Öne Çıkan',
+  'sample.caseStudies': 'Vaka Çalışmaları',
+  'sample.journeys': 'Öğrenme Yolculukları',
+  'sample.industry': 'Sektör Örnekleri',
+
+  // View modes (additional)
+  'view.stats': 'İstatistikler',
+
+  // Display (additional)
+  'display.appearance': 'Görünüm',
+
+  // Azure toolbar
+  'data.manualEntry': 'Elle Giriş',
+  'data.editTable': 'Veri Tablosunu Düzenle',
+  'toolbar.saveAs': 'Farklı Kaydet…',
+  'toolbar.saving': 'Kaydediliyor…',
+  'toolbar.saved': 'Kaydedildi',
+  'toolbar.saveFailed': 'Kayıt Başarısız',
+  'toolbar.addMore': 'Veri Ekle',
+  'report.scouting': 'Scouting Raporu',
+  'export.csvFiltered': 'Filtrelenmiş verileri CSV olarak dışa aktar',
+  'error.auth': 'Kimlik doğrulama hatası',
+
+  // File browse
+  'file.browseLocal': 'Bu cihaza göz at',
+  'file.browseSharePoint': "SharePoint'a göz at",
+  'file.open': 'Dosya Aç',
+
+  // Admin hub
+  'admin.title': 'Yönetim',
+  'admin.status': 'Durum',
+  'admin.plan': 'Plan ve Özellikler',
+  'admin.teams': 'Teams Kurulumu',
+  'admin.knowledge': 'Knowledge Base',
+  'admin.troubleshooting': 'Sorun Giderme',
+
+  // Admin plan tab
+  'admin.currentPlan': 'Mevcut',
+  'admin.feature': 'Özellik',
+  'admin.manageSubscription': "Azure'da Aboneliği Yönet",
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/ay',
+  'admin.planTeamPrice': '€199/ay',
+  'admin.planTeamAIPrice': '€279/ay',
+  'admin.planStandardDesc': 'Tam analiz, yerel dosya depolama',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, mobil',
+  'admin.planTeamAIDesc': 'AI Knowledge Base, gelişmiş CoScout',
+
+  // Feature names (plan matrix)
+  'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
+  'feature.capability': 'Yeterlilik analizi (Cp/Cpk)',
+  'feature.performance': 'Performance Modu (çok kanallı)',
+  'feature.anova': 'ANOVA ve faktör analizi',
+  'feature.findingsWorkflow': 'Bulgular ve araştırma iş akışı',
+  'feature.whatIf': 'What-If simülasyonu',
+  'feature.csvImport': 'CSV/Excel içe aktarma',
+  'feature.reportExport': 'Rapor dışa aktarma (PDF)',
+  'feature.indexedDb': 'IndexedDB yerel depolama',
+  'feature.maxFactors': 'En fazla 6 faktör',
+  'feature.maxRows': 'En fazla 100K satır',
+  'feature.onedriveSync': 'OneDrive proje senkronizasyonu',
+  'feature.sharepointPicker': 'SharePoint dosya seçici',
+  'feature.teamsIntegration': 'Microsoft Teams entegrasyonu',
+  'feature.channelCollab': 'Kanal tabanlı iş birliği',
+  'feature.mobileUi': 'Mobil için optimize edilmiş UI',
+  'feature.coScoutAi': 'CoScout AI asistanı',
+  'feature.narrativeBar': 'NarrativeBar içgörüleri',
+  'feature.chartInsights': 'Grafik içgörü çipleri',
+  'feature.knowledgeBase': 'Knowledge Base (SharePoint araması)',
+  'feature.aiActions': 'AI önerili eylemler',
+
+  // Admin Teams setup
+  'admin.teams.heading': "VariScout'u Microsoft Teams'e Ekleyin",
+  'admin.teams.description':
+    'Dağıtımınız için bir Teams uygulama paketi oluşturun ve Teams yönetim merkezine yükleyin.',
+  'admin.teams.running': 'Microsoft Teams içinde çalışıyor',
+  'admin.teams.step1': 'Uygulama Kaydı İstemci Kimliği (İsteğe bağlı)',
+  'admin.teams.step1Desc':
+    "Manifestte Teams SSO'yu etkinleştirmek için Azure AD Uygulama Kaydı İstemci Kimliğinizi girin.",
+  'admin.teams.step2': 'Teams Uygulama Paketini İndirin',
+  'admin.teams.step2Desc':
+    'Bu .zip, dağıtımınız için önceden yapılandırılmış manifesti ve simgeleri içerir.',
+  'admin.teams.step3': 'Teams Yönetim Merkezine Yükleyin',
+  'admin.teams.step4': 'Bir Kanala VariScout Ekleyin',
+  'admin.teams.download': 'Teams Uygulama Paketini İndir',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} kontrol başarılı',
+  'admin.runChecks': 'Tüm Kontrolleri Çalıştır',
+  'admin.notApplicable': 'Planınız için geçerli değil',
+  'admin.managePortal': "Azure Portal'da Yönet",
+  'admin.portalAccessNote':
+    'Bu öğeler Azure Portal erişimi gerektirir ve tarayıcıdan kontrol edilemez.',
+  'admin.fixInPortal': "Azure Portal'da düzelt: {label}",
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'Yaygın sorunlar ve çözümleri. Adım adım talimatları görmek için bir soruna tıklayın.',
+  'admin.runCheck': 'Kontrol Çalıştır',
+  'admin.checkPassed': 'Kontrol başarılı — bu sorun olmayabilir.',
+  'admin.checkFailed': 'Kontrol başarısız — aşağıdaki adımları izleyin.',
+  'admin.issue.signin': 'Kullanıcılar oturum açamıyor',
+  'admin.issue.signinDesc':
+    'Azure AD kimlik doğrulaması çalışmıyor veya kullanıcılar boş bir sayfa görüyor.',
+  'admin.issue.signinSteps':
+    'Azure Portal\'da App Service Kimlik Doğrulamasının etkin olduğunu doğrulayın.\nAzure AD uygulama kaydının doğru yönlendirme URI\'lerine sahip olduğunu kontrol edin.\nUygulama kaydının Kimlik Doğrulama altında "Kimlik belirteçleri"nin etkin olduğundan emin olun.\nKiracının uygulamaya kullanıcı girişine izin verdiğini doğrulayın (Kurumsal Uygulamalar → Özellikler → Kullanıcıların oturum açması için etkin).',
+  'admin.issue.onedrive': 'OneDrive senkronizasyonu çalışmıyor',
+  'admin.issue.onedriveDesc':
+    "Projeler OneDrive'a senkronize edilmiyor veya kullanıcılar izin hataları görüyor.",
+  'admin.issue.onedriveSteps':
+    'Uygulama kaydının "Files.ReadWrite" temsilci iznine sahip olduğunu doğrulayın.\nGraph izinleri için yönetici onayının verildiğini kontrol edin.\nKullanıcının OneDrive lisansı atanmış olduğundan emin olun.\nBelirteci yenilemek için oturumu kapatıp tekrar açmayı deneyin.',
+  'admin.issue.coscout': 'CoScout yanıt vermiyor',
+  'admin.issue.coscoutDesc': 'AI asistanı yanıt üretmiyor veya hatalar gösteriyor.',
+  'admin.issue.coscoutSteps':
+    'AI uç noktasının ARM şablonunda / App Service ayarlarında yapılandırıldığını doğrulayın.\nAzure AI Services kaynağının dağıtılmış ve çalışır durumda olduğunu kontrol edin.\nAI Services kaynağında model dağıtımının mevcut olduğunu doğrulayın (ör. gpt-4o).\nAzure AI Services kotalarını kontrol edin — dağıtım hız sınırlarına ulaşmış olabilir.',
+  'admin.issue.kbEmpty': 'Knowledge Base sonuç döndürmüyor',
+  'admin.issue.kbEmptyDesc':
+    'CoScout\'un "Knowledge Base Ara" özelliği belgeler olmasına rağmen hiçbir şey bulamıyor.',
+  'admin.issue.kbEmptySteps':
+    "AI Search uç noktasının App Service ayarlarında yapılandırıldığını doğrulayın.\nAI Search'te Remote SharePoint bilgi kaynağının oluşturulduğunu kontrol edin.\nKiracıda en az 1 Microsoft 365 Copilot lisansının aktif olduğundan emin olun.\nKullanıcının aranan belgelere SharePoint erişimi olduğunu doğrulayın.\nKnowledge Base önizleme düğmesinin etkin olduğunu kontrol edin (Yönetim → Knowledge Base sekmesi).",
+  'admin.issue.teamsTab': 'Teams sekmesi görünmüyor',
+  'admin.issue.teamsTabDesc': "VariScout Teams'de görünmüyor veya sekme yüklenemiyor.",
+  'admin.issue.teamsTabSteps':
+    "Teams uygulama paketinin (.zip) Teams Yönetim Merkezine yüklendiğini doğrulayın.\nmanifest.json'daki contentUrl'nin App Service URL'nizle eşleştiğini kontrol edin.\nUygulamanın Teams Yönetim Merkezinde onaylandığından emin olun (ilke tarafından engellenmemiş).\nKanalda sekmeyi kaldırıp yeniden eklemeyi deneyin.\nÖzel alan adı kullanıyorsanız, manifestteki validDomains dizisinde olduğunu doğrulayın.",
+  'admin.issue.newUser': 'Yeni kullanıcı uygulamaya erişemiyor',
+  'admin.issue.newUserDesc': 'Yeni eklenen kullanıcı erişim reddedildi veya boş sayfa görüyor.',
+  'admin.issue.newUserSteps':
+    'Azure AD\'de Kurumsal Uygulamalar → VariScout → Kullanıcılar ve gruplar\'a gidin.\nKullanıcıyı veya güvenlik grubunu uygulamaya ekleyin.\n"Kullanıcı ataması gerekli" kullanıyorsanız, kullanıcının bir ataması olduğundan emin olun.\nKullanıcıyı engelleyebilecek Koşullu Erişim ilkelerini kontrol edin.',
+  'admin.issue.aiSlow': 'AI yanıtları yavaş',
+  'admin.issue.aiSlowDesc':
+    'CoScout yanıt vermesi uzun sürüyor veya sık sık zaman aşımına uğruyor.',
+  'admin.issue.aiSlowSteps':
+    'Azure AI Services dağıtım bölgesini kontrol edin — mesafe arttıkça gecikme artar.\nModel dağıtımının yeterli TPM (dakika başına belirteç) kotasına sahip olduğunu doğrulayın.\nTutarlı gecikme için sağlanan verimlilik dağıtımına yükseltmeyi düşünün.\nAI Search dizininin büyük olup olmadığını kontrol edin — bilgi kaynağını optimize etmeyi düşünün.',
+  'admin.issue.forbidden': '"Forbidden" hataları',
+  'admin.issue.forbiddenDesc': 'Kullanıcılar belirli özelliklere erişirken 403 hataları görüyor.',
+  'admin.issue.forbiddenSteps':
+    'Gerekli tüm Graph API izinlerinin yönetici onayına sahip olduğunu kontrol edin.\nApp Service Kimlik Doğrulama belirteç deposunun etkin olduğunu doğrulayın.\nKullanıcının belirtecinin süresinin dolmadığından emin olun — oturumu kapatıp tekrar açmayı deneyin.\nKiracı için Koşullu Erişim ilkelerini kontrol edin.',
+  'admin.issue.kbPartial': 'KB bazı kullanıcılarda çalışmıyor',
+  'admin.issue.kbPartialDesc':
+    'Knowledge Base araması yöneticiler için çalışıyor ancak diğer kullanıcılar için çalışmıyor.',
+  'admin.issue.kbPartialSteps':
+    'Remote SharePoint bilgi kaynakları kullanıcı bazlı izinler kullanır. Her kullanıcının belgelere SharePoint erişimi olmalıdır.\nEtkilenen kullanıcıların Koşullu Erişim ilkeleri tarafından engellenip engellenmediğini kontrol edin.\nSites.Read.All temsilci izni için yönetici onayının verildiğini doğrulayın.\nEtkilenen kullanıcılardan belirteçlerini yenilemek için oturumu kapatıp tekrar açmalarını isteyin.',
 };

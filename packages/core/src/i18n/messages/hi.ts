@@ -284,6 +284,7 @@ export const hi: MessageCatalog = {
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
+  'ai.tool.suggestIdea': 'Suggest improvement idea',
 
   // Report
   'report.kpi.inSpec': 'In Spec',
@@ -348,5 +349,279 @@ export const hi: MessageCatalog = {
 
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
-  'findings.countLabel': '{count} findings',
+  'findings.countLabel': '{count} निष्कर्ष',
+
+  // Chart limit labels
+  'chart.label.ucl': 'UCL:',
+  'chart.label.lcl': 'LCL:',
+  'chart.label.mean': 'माध्य:',
+  'chart.label.tgt': 'लक्ष्य:',
+  'chart.label.usl': 'USL:',
+  'chart.label.lsl': 'LSL:',
+  'chart.label.value': 'मान:',
+  'chart.label.n': 'n:',
+  'chart.label.target': 'लक्ष्य:',
+
+  // Chart status
+  'chart.status.inControl': 'नियंत्रण में',
+  'chart.status.outOfControl': 'नियंत्रण से बाहर (UCL/LCL से परे)',
+  'chart.noDataProbPlot': 'प्रायिकता प्लॉट के लिए कोई डेटा उपलब्ध नहीं',
+
+  // Chart edit affordances
+  'chart.edit.spec': '{spec} संपादित करने के लिए क्लिक करें',
+  'chart.edit.axisLabel': 'अक्ष लेबल संपादित करने के लिए क्लिक करें',
+  'chart.edit.yAxis': 'Y-अक्ष स्केल संपादित करने के लिए क्लिक करें',
+  'chart.edit.saveCancel': 'सहेजने के लिए Enter · रद्द करने के लिए Esc',
+
+  // Performance table headers
+  'chart.table.channel': 'चैनल',
+  'stats.cp': 'Cp',
+
+  // Chart UI labels
+  'chart.copyToClipboard': 'चार्ट को क्लिपबोर्ड पर कॉपी करें',
+  'chart.maximize': 'चार्ट को अधिकतम करें',
+  'chart.type.ichart': 'I-Chart',
+  'chart.type.boxplot': 'Boxplot',
+  'chart.type.pareto': 'Pareto',
+  'chart.drillHere': '↓ यहाँ ड्रिल करें',
+  'chart.percent': 'प्रतिशत',
+
+  // Y-axis popover
+  'chart.yAxisScale': 'Y-अक्ष स्केल',
+  'validation.minLessThanMax': 'न्यूनतम अधिकतम से कम होना चाहिए',
+  'action.noChanges': 'कोई परिवर्तन नहीं',
+
+  // Create factor modal
+  'factor.create': 'चयन से कारक बनाएँ',
+  'factor.name': 'कारक का नाम',
+  'factor.nameEmpty': 'कारक का नाम रिक्त नहीं हो सकता',
+  'factor.nameExists': 'इस नाम का कारक पहले से मौजूद है',
+  'factor.example': 'उदा., उच्च तापमान घटनाएँ',
+  'factor.pointsMarked': '{count} बिंदु इस रूप में चिह्नित होंगे:',
+  'factor.createAndFilter': 'बनाएँ और फ़िल्टर करें',
+  'factor.filterExplanation': 'दृश्य स्वचालित रूप से केवल चयनित बिंदु दिखाने के लिए फ़िल्टर होगा।',
+
+  // Characteristic type selector
+  'charType.nominal': 'नॉमिनल',
+  'charType.nominalDesc': 'लक्ष्य-केंद्रित (उदा. भरण वजन)',
+  'charType.smaller': 'छोटा बेहतर है',
+  'charType.smallerDesc': 'कम बेहतर है (उदा. दोष)',
+  'charType.larger': 'बड़ा बेहतर है',
+  'charType.largerDesc': 'अधिक बेहतर है (उदा. उपज)',
+
+  // Investigation prompt
+  'investigation.trackingPrompt':
+    'आपकी जाँच ट्रैक हो रही है — पूरी तस्वीर देखने के लिए जाँच पैनल खोलें।',
+
+  // Mobile category sheet
+  'chart.highlight': 'हाइलाइट:',
+  'chart.highlightRed': 'लाल',
+  'chart.highlightAmber': 'एम्बर',
+  'chart.highlightGreen': 'हरा',
+  'chart.clearHighlight': 'हाइलाइट हटाएँ',
+  'chart.drillDown': '"{category}" में ड्रिल करें',
+  'ai.askCoScout': 'इसके बारे में CoScout से पूछें',
+
+  // Settings descriptions
+  'display.lockYAxisDesc': 'दृश्य तुलना के लिए स्केल बनाए रखता है',
+  'display.filterContextDesc': 'चार्ट शीर्षकों के नीचे सक्रिय फ़िल्टर सारांश प्रदर्शित करें',
+
+  // Performance detected modal
+  'performance.detected': 'प्रदर्शन मोड का पता चला',
+  'performance.columnsFound': '{count} माप स्तंभ मिले',
+  'performance.labelQuestion': 'ये माप चैनल क्या दर्शाते हैं?',
+  'performance.labelExample': 'उदा., फिल हेड, कैविटी, नोज़ल',
+  'performance.enable': 'प्रदर्शन मोड सक्षम करें',
+
+  // Finding editor & data types
+  'finding.placeholder': 'आपने क्या पाया?',
+  'finding.note': 'निष्कर्ष नोट',
+  'data.typeNumeric': 'संख्यात्मक',
+  'data.typeCategorical': 'श्रेणीबद्ध',
+  'data.typeDate': 'दिनांक',
+  'data.typeText': 'पाठ',
+  'data.categories': 'श्रेणियाँ',
+
+  // Coaching text
+  'coach.problem.frame': 'समस्या की जाँच शुरू करने के लिए अपना डेटा सेट करें।',
+  'coach.problem.scout': 'ऐसे विचलन पैटर्न खोजें जो समस्या की व्याख्या कर सकें।',
+  'coach.problem.investigate': 'कारकों को समस्या से जोड़ने वाले साक्ष्य बनाएँ।',
+  'coach.problem.improve': 'PDCA चक्र का उपयोग करके सुधारों की योजना बनाएँ और उन्हें लागू करें।',
+  'coach.hypothesis.frame': 'अपनी परिकल्पना का परीक्षण करने के लिए अपना डेटा सेट करें।',
+  'coach.hypothesis.scout': 'ऐसे साक्ष्य खोजें जो आपकी परिकल्पना का समर्थन या खंडन करें।',
+  'coach.hypothesis.investigate': 'संदिग्ध कारण की पुष्टि के लिए सांख्यिकीय साक्ष्य एकत्र करें।',
+  'coach.hypothesis.improve':
+    'कारण की पुष्टि हुई — PDCA के माध्यम से सुधारात्मक कार्रवाई की योजना बनाएँ।',
+  'coach.routine.frame': 'नियमित प्रक्रिया जाँच के लिए अपना डेटा सेट करें।',
+  'coach.routine.scout': 'नए संकेतों, बहाव, या अप्रत्याशित पैटर्न की खोज करें।',
+  'coach.routine.investigate': 'एक संकेत मिला — संभावित कारणों की गहराई में जाएँ।',
+  'coach.routine.improve':
+    'कारण की पहचान हुई — PDCA के माध्यम से सुधारात्मक कार्रवाई की योजना बनाएँ।',
+
+  // PWA HomeScreen
+  'home.heading': 'विचलन विश्लेषण का अन्वेषण करें',
+  'home.description':
+    'मुफ़्त विचलन विश्लेषण प्रशिक्षण उपकरण। परिवर्तनशीलता को देखें, क्षमता की गणना करें, और ध्यान केंद्रित करने का स्थान खोजें — सीधे अपने ब्राउज़र में।',
+  'home.divider': 'या अपना स्वयं का डेटा उपयोग करें',
+  'home.pasteHelper':
+    'पंक्तियाँ कॉपी करें और पेस्ट करें — हम स्तंभों को स्वचालित रूप से पहचान लेंगे',
+  'home.manualEntry': 'या डेटा मैन्युअल रूप से दर्ज करें',
+  'home.upgradeHint': 'टीम सुविधाओं, फ़ाइल अपलोड, या सहेजे गए प्रोजेक्ट की आवश्यकता है?',
+
+  // PWA navigation
+  'nav.presentationMode': 'प्रस्तुति मोड',
+  'nav.hideFindings': 'निष्कर्ष छिपाएँ',
+
+  // Export
+  'export.asImage': 'छवि के रूप में निर्यात करें',
+  'export.asCsv': 'CSV के रूप में निर्यात करें',
+  'export.imageDesc': 'प्रस्तुतियों के लिए PNG स्क्रीनशॉट',
+  'export.csvDesc': 'स्प्रेडशीट-संगत डेटा फ़ाइल',
+
+  // Sample section
+  'sample.heading': 'एक नमूना डेटासेट आज़माएँ',
+  'sample.allSamples': 'सभी नमूना डेटासेट',
+  'sample.featured': 'विशेष',
+  'sample.caseStudies': 'केस स्टडी',
+  'sample.journeys': 'शिक्षण यात्राएँ',
+  'sample.industry': 'उद्योग उदाहरण',
+
+  // View modes
+  'view.stats': 'सांख्यिकी',
+  'display.appearance': 'दिखावट',
+
+  // Azure toolbar
+  'data.manualEntry': 'मैन्युअल प्रविष्टि',
+  'data.editTable': 'डेटा तालिका संपादित करें',
+  'toolbar.saveAs': 'इस रूप में सहेजें…',
+  'toolbar.saving': 'सहेज रहा है…',
+  'toolbar.saved': 'सहेजा गया',
+  'toolbar.saveFailed': 'सहेजना विफल',
+  'toolbar.addMore': 'डेटा जोड़ें',
+  'report.scouting': 'स्काउटिंग रिपोर्ट',
+  'export.csvFiltered': 'फ़िल्टर किए गए डेटा को CSV के रूप में निर्यात करें',
+  'error.auth': 'प्रमाणीकरण त्रुटि',
+
+  // File browse
+  'file.browseLocal': 'इस डिवाइस में ब्राउज़ करें',
+  'file.browseSharePoint': 'SharePoint में ब्राउज़ करें',
+  'file.open': 'फ़ाइल खोलें',
+
+  // Admin hub
+  'admin.title': 'व्यवस्थापक',
+  'admin.status': 'स्थिति',
+  'admin.plan': 'योजना और सुविधाएँ',
+  'admin.teams': 'Teams सेटअप',
+  'admin.knowledge': 'ज्ञान आधार',
+  'admin.troubleshooting': 'समस्या निवारण',
+
+  // Admin plan tab
+  'admin.currentPlan': 'वर्तमान',
+  'admin.feature': 'सुविधा',
+  'admin.manageSubscription': 'Azure में सदस्यता प्रबंधित करें',
+  'admin.planStandard': 'Standard',
+  'admin.planTeam': 'Team',
+  'admin.planTeamAI': 'Team AI',
+  'admin.planStandardPrice': '€99/माह',
+  'admin.planTeamPrice': '€199/माह',
+  'admin.planTeamAIPrice': '€279/माह',
+  'admin.planStandardDesc': 'पूर्ण विश्लेषण, स्थानीय फ़ाइल संग्रहण',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, मोबाइल',
+  'admin.planTeamAIDesc': 'AI ज्ञान आधार, उन्नत CoScout',
+
+  // Feature names
+  'feature.charts': 'I-Chart, Boxplot, Pareto, सांख्यिकी',
+  'feature.capability': 'क्षमता विश्लेषण (Cp/Cpk)',
+  'feature.performance': 'प्रदर्शन मोड (बहु-चैनल)',
+  'feature.anova': 'ANOVA और कारक विश्लेषण',
+  'feature.findingsWorkflow': 'निष्कर्ष और जाँच कार्यप्रवाह',
+  'feature.whatIf': 'क्या-अगर सिमुलेशन',
+  'feature.csvImport': 'CSV/Excel आयात',
+  'feature.reportExport': 'रिपोर्ट निर्यात (PDF)',
+  'feature.indexedDb': 'IndexedDB स्थानीय संग्रहण',
+  'feature.maxFactors': '6 कारकों तक',
+  'feature.maxRows': '100K पंक्तियों तक',
+  'feature.onedriveSync': 'OneDrive प्रोजेक्ट सिंक',
+  'feature.sharepointPicker': 'SharePoint फ़ाइल पिकर',
+  'feature.teamsIntegration': 'Microsoft Teams एकीकरण',
+  'feature.channelCollab': 'चैनल-आधारित सहयोग',
+  'feature.mobileUi': 'मोबाइल-अनुकूलित UI',
+  'feature.coScoutAi': 'CoScout AI सहायक',
+  'feature.narrativeBar': 'NarrativeBar अंतर्दृष्टि',
+  'feature.chartInsights': 'चार्ट अंतर्दृष्टि चिप्स',
+  'feature.knowledgeBase': 'ज्ञान आधार (SharePoint खोज)',
+  'feature.aiActions': 'AI-सुझावित कार्रवाइयाँ',
+
+  // Admin Teams setup
+  'admin.teams.heading': 'Microsoft Teams में VariScout जोड़ें',
+  'admin.teams.description':
+    'अपनी तैनाती के लिए एक Teams ऐप पैकेज बनाएँ और इसे अपने Teams व्यवस्थापक केंद्र में अपलोड करें।',
+  'admin.teams.running': 'Microsoft Teams के अंदर चल रहा है',
+  'admin.teams.step1': 'ऐप पंजीकरण क्लाइंट ID (वैकल्पिक)',
+  'admin.teams.step1Desc':
+    'मैनिफ़ेस्ट में Teams SSO सक्षम करने के लिए अपना Azure AD ऐप पंजीकरण क्लाइंट ID दर्ज करें।',
+  'admin.teams.step2': 'Teams ऐप पैकेज डाउनलोड करें',
+  'admin.teams.step2Desc':
+    'इस .zip में आपकी तैनाती के लिए पूर्व-कॉन्फ़िगर किए गए मैनिफ़ेस्ट और आइकन हैं।',
+  'admin.teams.step3': 'Teams व्यवस्थापक केंद्र में अपलोड करें',
+  'admin.teams.step4': 'किसी चैनल में VariScout जोड़ें',
+  'admin.teams.download': 'Teams ऐप पैकेज डाउनलोड करें',
+
+  // Admin status tab
+  'admin.checksResult': '{pass}/{total} जाँचें पास हुईं',
+  'admin.runChecks': 'सभी जाँचें चलाएँ',
+  'admin.notApplicable': 'आपकी योजना पर लागू नहीं',
+  'admin.managePortal': 'Azure Portal में प्रबंधित करें',
+  'admin.portalAccessNote':
+    'इन आइटम्स के लिए Azure Portal एक्सेस आवश्यक है और ब्राउज़र से जाँच नहीं की जा सकती।',
+  'admin.fixInPortal': 'Azure Portal में ठीक करें: {label}',
+
+  // Admin troubleshoot tab
+  'admin.troubleshoot.intro':
+    'सामान्य समस्याएँ और उन्हें कैसे ठीक करें। चरण-दर-चरण निर्देशों के लिए किसी समस्या पर क्लिक करें।',
+  'admin.runCheck': 'जाँच चलाएँ',
+  'admin.checkPassed': 'जाँच पास हुई — यह समस्या नहीं हो सकती।',
+  'admin.checkFailed': 'जाँच विफल — नीचे दिए गए चरणों का पालन करें।',
+  'admin.issue.signin': 'उपयोगकर्ता साइन इन नहीं कर सकते',
+  'admin.issue.signinDesc':
+    'Azure AD प्रमाणीकरण काम नहीं कर रहा या उपयोगकर्ताओं को खाली पृष्ठ दिखता है।',
+  'admin.issue.signinSteps':
+    'सत्यापित करें कि App Service प्रमाणीकरण Azure Portal में सक्षम है।\nजाँचें कि Azure AD ऐप पंजीकरण में सही रीडायरेक्ट URI हैं।\nसुनिश्चित करें कि ऐप पंजीकरण में प्रमाणीकरण के तहत "ID टोकन" सक्षम हैं।\nसत्यापित करें कि टेनेंट ऐप में उपयोगकर्ता साइन-इन की अनुमति देता है (एंटरप्राइज़ एप्लिकेशन → गुण → उपयोगकर्ताओं के साइन-इन के लिए सक्षम)।',
+  'admin.issue.onedrive': 'OneDrive सिंक काम नहीं कर रहा',
+  'admin.issue.onedriveDesc':
+    'प्रोजेक्ट OneDrive पर सिंक नहीं हो रहे या उपयोगकर्ताओं को अनुमति त्रुटियाँ दिखती हैं।',
+  'admin.issue.onedriveSteps':
+    'सत्यापित करें कि ऐप पंजीकरण में "Files.ReadWrite" प्रत्यायोजित अनुमति है।\nजाँचें कि Graph अनुमतियों के लिए व्यवस्थापक सहमति दी गई है।\nसुनिश्चित करें कि उपयोगकर्ता को OneDrive लाइसेंस सौंपा गया है।\nटोकन रीफ़्रेश करने के लिए साइन आउट और साइन इन करने का प्रयास करें।',
+  'admin.issue.coscout': 'CoScout प्रतिक्रिया नहीं दे रहा',
+  'admin.issue.coscoutDesc': 'AI सहायक प्रतिक्रियाएँ उत्पन्न नहीं कर रहा या त्रुटियाँ दिखा रहा है।',
+  'admin.issue.coscoutSteps':
+    'सत्यापित करें कि AI एंडपॉइंट ARM टेम्पलेट / App Service सेटिंग्स में कॉन्फ़िगर है।\nजाँचें कि Azure AI Services संसाधन तैनात और चल रहा है।\nसत्यापित करें कि AI Services संसाधन में मॉडल तैनाती मौजूद है (उदा. gpt-4o)।\nAzure AI Services कोटा जाँचें — तैनाती दर सीमा तक पहुँच गई हो सकती है।',
+  'admin.issue.kbEmpty': 'ज्ञान आधार कोई परिणाम नहीं लौटाता',
+  'admin.issue.kbEmptyDesc':
+    'CoScout का "ज्ञान आधार खोजें" दस्तावेज़ मौजूद होने के बावजूद कुछ नहीं पाता।',
+  'admin.issue.kbEmptySteps':
+    'सत्यापित करें कि AI Search एंडपॉइंट App Service सेटिंग्स में कॉन्फ़िगर है।\nजाँचें कि Remote SharePoint ज्ञान स्रोत AI Search में बनाया गया है।\nसुनिश्चित करें कि टेनेंट में ≥1 Microsoft 365 Copilot लाइसेंस सक्रिय है।\nसत्यापित करें कि उपयोगकर्ता के पास खोजे जा रहे दस्तावेज़ों तक SharePoint पहुँच है।\nजाँचें कि ज्ञान आधार पूर्वावलोकन टॉगल सक्षम है (व्यवस्थापक → ज्ञान आधार टैब)।',
+  'admin.issue.teamsTab': 'Teams टैब नहीं दिख रहा',
+  'admin.issue.teamsTabDesc': 'VariScout Teams में दिखाई नहीं देता या टैब लोड नहीं होता।',
+  'admin.issue.teamsTabSteps':
+    'सत्यापित करें कि Teams ऐप पैकेज (.zip) Teams व्यवस्थापक केंद्र में अपलोड किया गया है।\nजाँचें कि manifest.json में contentUrl आपके App Service URL से मेल खाता है।\nसुनिश्चित करें कि ऐप Teams व्यवस्थापक केंद्र में स्वीकृत है (नीति द्वारा अवरुद्ध नहीं)।\nचैनल में टैब हटाकर फिर से जोड़ने का प्रयास करें।\nयदि कस्टम डोमेन का उपयोग कर रहे हैं, सत्यापित करें कि यह मैनिफ़ेस्ट के validDomains सरणी में है।',
+  'admin.issue.newUser': 'नया उपयोगकर्ता ऐप एक्सेस नहीं कर सकता',
+  'admin.issue.newUserDesc': 'नया जोड़ा गया उपयोगकर्ता एक्सेस अस्वीकृत या खाली पृष्ठ देखता है।',
+  'admin.issue.newUserSteps':
+    'Azure AD में, एंटरप्राइज़ एप्लिकेशन → VariScout → उपयोगकर्ता और समूह पर जाएँ।\nउपयोगकर्ता या उनके सुरक्षा समूह को ऐप में जोड़ें।\nयदि "उपयोगकर्ता असाइनमेंट आवश्यक" का उपयोग हो, सुनिश्चित करें कि उपयोगकर्ता के पास असाइनमेंट है।\nउपयोगकर्ता को अवरुद्ध करने वाली सशर्त पहुँच नीतियों की जाँच करें।',
+  'admin.issue.aiSlow': 'AI प्रतिक्रियाएँ धीमी हैं',
+  'admin.issue.aiSlowDesc':
+    'CoScout प्रतिक्रिया देने में बहुत समय लेता है या बार-बार समय समाप्त हो जाता है।',
+  'admin.issue.aiSlowSteps':
+    'Azure AI Services तैनाती क्षेत्र जाँचें — दूरी के साथ विलंबता बढ़ती है।\nसत्यापित करें कि मॉडल तैनाती में पर्याप्त TPM (प्रति मिनट टोकन) कोटा है।\nनिरंतर विलंबता के लिए प्रावधानित थ्रूपुट तैनाती में अपग्रेड पर विचार करें।\nजाँचें कि AI Search इंडेक्स बड़ा तो नहीं — ज्ञान स्रोत को अनुकूलित करने पर विचार करें।',
+  'admin.issue.forbidden': '"Forbidden" त्रुटियाँ',
+  'admin.issue.forbiddenDesc':
+    'कुछ सुविधाओं तक पहुँचने पर उपयोगकर्ताओं को 403 त्रुटियाँ दिखती हैं।',
+  'admin.issue.forbiddenSteps':
+    'जाँचें कि सभी आवश्यक Graph API अनुमतियों को व्यवस्थापक सहमति प्राप्त है।\nसत्यापित करें कि App Service प्रमाणीकरण टोकन स्टोर सक्षम है।\nसुनिश्चित करें कि उपयोगकर्ता का टोकन समाप्त नहीं हुआ है — साइन आउट और साइन इन करने का प्रयास करें।\nटेनेंट की सशर्त पहुँच नीतियों की जाँच करें।',
+  'admin.issue.kbPartial': 'कुछ उपयोगकर्ताओं के लिए KB विफल',
+  'admin.issue.kbPartialDesc':
+    'ज्ञान आधार खोज व्यवस्थापकों के लिए काम करती है लेकिन अन्य उपयोगकर्ताओं के लिए नहीं।',
+  'admin.issue.kbPartialSteps':
+    'Remote SharePoint ज्ञान स्रोत प्रति-उपयोगकर्ता अनुमतियों का उपयोग करते हैं। प्रत्येक उपयोगकर्ता के पास दस्तावेज़ों तक SharePoint पहुँच होनी चाहिए।\nजाँचें कि प्रभावित उपयोगकर्ता सशर्त पहुँच नीतियों द्वारा अवरुद्ध तो नहीं हैं।\nसत्यापित करें कि Sites.Read.All प्रत्यायोजित अनुमति के लिए व्यवस्थापक सहमति दी गई है।\nप्रभावित उपयोगकर्ताओं से अपना टोकन रीफ़्रेश करने के लिए साइन आउट और साइन इन करने को कहें।',
 };

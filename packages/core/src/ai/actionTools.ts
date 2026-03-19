@@ -24,6 +24,7 @@ export type ActionToolName =
   | 'create_hypothesis'
   | 'create_finding'
   | 'suggest_action'
+  | 'suggest_improvement_idea'
   | 'share_finding'
   | 'publish_report'
   | 'notify_action_owners';
