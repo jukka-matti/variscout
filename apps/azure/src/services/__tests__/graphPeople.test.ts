@@ -60,12 +60,14 @@ describe('searchPeople', () => {
   });
 
   it('returns empty array on API error', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     globalThis.fetch = vi
       .fn()
       .mockResolvedValue({ ok: false, status: 403, statusText: 'Forbidden' });
 
     const result = await searchPeople('test');
     expect(result).toEqual([]);
+    warnSpy.mockRestore();
   });
 
   it('returns empty array when value is missing from response', async () => {

@@ -3,7 +3,6 @@
  *
  * ADR-026: SharePoint-first strategy with Remote SharePoint knowledge sources.
  * - searchDocuments() uses Foundry IQ agentic retrieval with user token passthrough
- * - searchRelatedFindings() is deprecated (no dedicated findings index)
  * - Folder-scoped via KQL filter on the channel's SharePoint path
  */
 
@@ -18,21 +17,6 @@ export interface DocumentResult {
   source: string;
   url?: string;
   relevanceScore: number;
-}
-
-/** @deprecated ADR-026: Dedicated findings index replaced by SharePoint reports */
-export interface SearchResult {
-  findingId: string;
-  projectName: string;
-  factor: string;
-  status: string;
-  etaSquared: number | null;
-  cpkBefore: number | null;
-  cpkAfter: number | null;
-  suspectedCause: string;
-  actionsText: string;
-  outcomeEffective: boolean | null;
-  score: number;
 }
 
 function getSearchEndpoint(): string | null {
@@ -62,21 +46,6 @@ export async function checkKnowledgeBasePermissions(): Promise<{
   } catch {
     return { available: true, hasSharePointAccess: false };
   }
-}
-
-/**
- * @deprecated ADR-026: No longer using a dedicated findings index.
- * Knowledge comes from SharePoint documents via searchDocuments().
- * Kept for backward compatibility — returns empty array.
- */
-export async function searchRelatedFindings(
-  _query: string,
-  _options?: { factor?: string; top?: number }
-): Promise<SearchResult[]> {
-  console.warn(
-    '[SearchService] searchRelatedFindings() is deprecated (ADR-026). Use searchDocuments() instead.'
-  );
-  return [];
 }
 
 /**

@@ -166,14 +166,17 @@ describe('getGraphToken', () => {
     });
 
     it('falls back to EasyAuth when OBO fetch fails', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       const token = await getGraphToken();
       expect(token).toBe('easyauth-token-123');
       expect(getAccessToken).toHaveBeenCalled();
+      warnSpy.mockRestore();
     });
 
     it('falls back to EasyAuth when OBO returns !ok', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 401,
@@ -182,6 +185,7 @@ describe('getGraphToken', () => {
 
       const token = await getGraphToken();
       expect(token).toBe('easyauth-token-123');
+      warnSpy.mockRestore();
     });
 
     it('getGraphTokenWithScopes sends scopes array', async () => {

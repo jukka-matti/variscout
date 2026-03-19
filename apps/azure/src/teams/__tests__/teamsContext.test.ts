@@ -159,6 +159,7 @@ describe('teamsContext', () => {
     });
 
     it('returns null when SSO fails', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       mockInitialize.mockResolvedValueOnce(undefined);
       mockGetContext.mockResolvedValueOnce({
         page: { id: 'test', frameContext: 'content' },
@@ -171,6 +172,7 @@ describe('teamsContext', () => {
       const token = await mod.getTeamsSsoToken();
 
       expect(token).toBeNull();
+      warnSpy.mockRestore();
     });
   });
 

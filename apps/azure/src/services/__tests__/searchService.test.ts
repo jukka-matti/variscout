@@ -15,7 +15,7 @@ vi.mock('@variscout/core', async () => {
   };
 });
 
-import { isKnowledgeBaseAvailable, searchRelatedFindings, searchDocuments } from '../searchService';
+import { isKnowledgeBaseAvailable, searchDocuments } from '../searchService';
 import { isTeamAIPlan, isPreviewEnabled } from '@variscout/core';
 
 const mockIsTeamAIPlan = vi.mocked(isTeamAIPlan);
@@ -50,26 +50,6 @@ describe('searchService', () => {
     it('returns false when no search endpoint', () => {
       import.meta.env.VITE_AI_SEARCH_ENDPOINT = '';
       expect(isKnowledgeBaseAvailable()).toBe(false);
-    });
-  });
-
-  describe('searchRelatedFindings (deprecated — ADR-026)', () => {
-    it('returns empty array (deprecated stub)', async () => {
-      const results = await searchRelatedFindings('machine variation');
-      expect(results).toEqual([]);
-    });
-
-    it('does not make HTTP calls', async () => {
-      const mockFetch = vi.fn();
-      globalThis.fetch = mockFetch;
-
-      await searchRelatedFindings('test query');
-      expect(mockFetch).not.toHaveBeenCalled();
-    });
-
-    it('returns empty array regardless of options', async () => {
-      const results = await searchRelatedFindings('variation', { factor: 'Machine', top: 10 });
-      expect(results).toEqual([]);
     });
   });
 

@@ -147,6 +147,7 @@ describe('easyAuth', () => {
     });
 
     it('handles fetch errors gracefully and returns null', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
       setProductionHostname();
       vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network failure')));
 
@@ -217,6 +218,7 @@ describe('easyAuth', () => {
     });
 
     it('throws AuthError when refresh fails', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
       setProductionHostname();
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 }));
 
@@ -318,6 +320,7 @@ describe('easyAuth', () => {
     });
 
     it('uses existing token when refresh fails but token not yet expired', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
       setProductionHostname();
 
       const nearExpiry = new Date(Date.now() + 2 * 60 * 1000).toISOString();

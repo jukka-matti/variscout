@@ -49,7 +49,6 @@ vi.mock('../../services/aiService', () => ({
 }));
 
 vi.mock('../../services/searchService', () => ({
-  searchRelatedFindings: vi.fn(),
   searchDocuments: vi.fn(),
   isKnowledgeBaseAvailable: vi.fn(() => false),
 }));
