@@ -57,8 +57,21 @@ export default defineConfig(async () => {
           clientsClaim: true,
           skipWaiting: true,
           navigateFallback: '/index.html',
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          // Only precache the app shell — not lazy-loaded feature chunks
+          globPatterns: ['**/*.{css,html,ico,png,svg,woff,woff2}'],
+          // Lazy JS chunks get runtime-cached on first use (content-hashed = immutable)
           runtimeCaching: [
+            {
+              urlPattern: /\.js$/,
+              handler: 'StaleWhileRevalidate',
+              options: {
+                cacheName: 'js-cache',
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                },
+              },
+            },
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
               handler: 'CacheFirst',
@@ -100,11 +113,23 @@ export default defineConfig(async () => {
       emptyOutDir: true,
       rollupOptions: {
         output: {
-          manualChunks: {
-            // Split large dependencies into separate chunks
-            d3: ['d3-array'],
-            visx: ['@visx/responsive'],
-            vendor: ['react', 'react-dom', 'lucide-react'],
+          manualChunks(id) {
+            if (
+              id.includes('node_modules/react/') ||
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/scheduler/')
+            ) {
+              return 'vendor-react';
+            }
+            if (id.includes('node_modules/lucide-react')) {
+              return 'vendor-icons';
+            }
+            if (id.includes('node_modules/d3-')) {
+              return 'vendor-d3';
+            }
+            if (id.includes('node_modules/@visx/')) {
+              return 'vendor-visx';
+            }
           },
         },
       },

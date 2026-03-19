@@ -15,7 +15,12 @@ import type {
   BoxplotGroupData,
   ChartMargins,
   ChartFonts,
+  IChartDataPoint,
+  ParetoDataPoint,
 } from '@variscout/core';
+
+// Re-export data point types from core (canonical source)
+export type { IChartDataPoint, ParetoDataPoint } from '@variscout/core';
 
 /** Highlight color for annotated chart elements */
 export type HighlightColor = 'red' | 'amber' | 'green';
@@ -53,22 +58,6 @@ export interface BaseChartProps {
   showBranding?: boolean;
   /** Custom branding text (defaults to tier-based text) */
   brandingText?: string;
-}
-
-/**
- * Data point for I-Chart
- */
-export interface IChartDataPoint {
-  /** X-axis value (typically index or time) */
-  x: number;
-  /** Y-axis value (measurement) */
-  y: number;
-  /** Original row index for drill-down navigation */
-  originalIndex?: number;
-  /** Stage identifier for staged I-Charts */
-  stage?: string;
-  /** Formatted time value for tooltip display */
-  timeValue?: string | null;
 }
 
 /**
@@ -161,16 +150,6 @@ export interface BoxplotProps extends BaseChartProps {
   fillOverrides?: Record<string, string>;
   /** Draw thin dashed vertical separator lines between every N boxes (for staged grouping) */
   groupSize?: number;
-}
-
-/**
- * Pareto chart data point
- */
-export interface ParetoDataPoint {
-  key: string;
-  value: number;
-  cumulative: number;
-  cumulativePercentage: number;
 }
 
 /**

@@ -10,9 +10,8 @@
  * then renders BoxplotBase + ChartAnnotationLayer + AxisEditor with the results.
  */
 import { useMemo } from 'react';
-import { getResponsiveMargins, stageColors } from '@variscout/charts';
-import { computeCategoryDirectionColors } from '@variscout/core';
-import type { BoxplotGroupData } from '@variscout/charts';
+import { getResponsiveMargins, stageColors, computeCategoryDirectionColors } from '@variscout/core';
+import type { BoxplotGroupData } from '@variscout/core';
 import type { SpecLimits } from '@variscout/core';
 import type { HighlightColor, DisplayOptions } from './types';
 import type { StageInfo } from './useBoxplotData';

@@ -16,7 +16,7 @@ import { useState, useCallback, useEffect } from 'react';
 import type { DataRow, AnovaResult, FilterAction } from '@variscout/core';
 import { getNextDrillFactor } from '@variscout/core';
 import type { DisplayOptions } from './types';
-import type { BoxplotGroupData } from '@variscout/charts';
+import type { BoxplotGroupData } from '@variscout/core';
 import { useVariationTracking, type FilterChipData } from './useVariationTracking';
 import { useDashboardComputedData } from './useDashboardComputedData';
 import { useChartCopy, type UseChartCopyOptions, type UseChartCopyReturn } from './useChartCopy';

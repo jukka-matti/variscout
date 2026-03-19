@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { group, quantile, ascending, mean, deviation } from 'd3-array';
 import { calculateKDE } from '@variscout/core';
-import type { BoxplotGroupData } from '@variscout/charts';
+import type { BoxplotGroupData } from '@variscout/core';
 
 /** Pre-computed KDE density data keyed by category */
 export type ViolinDataMap = Map<string, Array<{ value: number; count: number }>>;

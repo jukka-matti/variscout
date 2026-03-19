@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { toBlob, toPng } from 'html-to-image';
 
 const DEFAULT_BG = '#0f172a';
 
@@ -114,6 +113,7 @@ export function useChartCopy(options?: UseChartCopyOptions): UseChartCopyReturn 
       prepareForExport(node);
       try {
         const backgroundColor = options?.getBackgroundColor?.() ?? DEFAULT_BG;
+        const { toBlob } = await import('html-to-image');
         const blob = await withFixedSize(node, chartName, async el => {
           return toBlob(el, { cacheBust: true, backgroundColor, pixelRatio: 2 });
         });
@@ -138,6 +138,7 @@ export function useChartCopy(options?: UseChartCopyOptions): UseChartCopyReturn 
       prepareForExport(node);
       try {
         const backgroundColor = options?.getBackgroundColor?.() ?? DEFAULT_BG;
+        const { toPng } = await import('html-to-image');
         const dataUrl = await withFixedSize(node, chartName, async el => {
           return toPng(el, { cacheBust: true, backgroundColor, pixelRatio: 2 });
         });

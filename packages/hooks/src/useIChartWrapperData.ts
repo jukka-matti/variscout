@@ -7,7 +7,7 @@
  * - effectiveStats / effectiveStagedStats: display options gating
  */
 import React, { useMemo, useCallback } from 'react';
-import { getResponsiveMargins } from '@variscout/charts';
+import { getResponsiveMargins } from '@variscout/core';
 import type { StatsResult, StagedStatsResult, Finding } from '@variscout/core';
 import type { DisplayOptions } from './types';
 

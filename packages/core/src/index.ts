@@ -49,6 +49,9 @@ export type {
   PerformanceSummary,
   ChannelPerformanceData,
   WideFormatDetection,
+  // Chart Data Point Types
+  IChartDataPoint,
+  ParetoDataPoint,
 } from './types';
 
 // Statistics
@@ -280,6 +283,7 @@ export {
   getScaledFonts,
   getResponsiveTickCount,
   getBreakpoints,
+  stageColors,
 } from './responsive';
 
 // Time utilities

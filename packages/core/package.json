@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "d3-array": "^3.2.4",
-    "exceljs": "^4.4.0",
+    "read-excel-file": "^5.8.6",
     "papaparse": "^5.5.3"
   },
   "devDependencies": {

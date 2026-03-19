@@ -1,9 +1,9 @@
 /**
- * Excel file parsing — uses ExcelJS
+ * Excel file parsing — uses read-excel-file (39 KB vs 948 KB ExcelJS)
+ * Dynamic import keeps it out of the main chunk entirely.
  */
 
-import ExcelJS from 'exceljs';
-import type { DataRow, DataCellValue } from '../types';
+import type { DataRow } from '../types';
 
 /**
  * Parse an Excel file into an array of data rows
@@ -19,52 +19,28 @@ export async function parseExcel(file: File): Promise<DataRow[]> {
     );
   }
 
-  const arrayBuffer = await file.arrayBuffer();
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(arrayBuffer);
+  const { default: readXlsxFile } = await import('read-excel-file');
+  const rawRows = await readXlsxFile(file);
+  if (rawRows.length === 0) return [];
 
-  const worksheet = workbook.worksheets[0];
-  if (!worksheet) return [];
-
-  // Get headers from first row
-  const headers: string[] = [];
-  const headerRow = worksheet.getRow(1);
-  headerRow.eachCell((cell, colNumber) => {
-    headers[colNumber - 1] = String(cell.value ?? `Column${colNumber}`);
-  });
-
-  // Convert rows to objects
+  const headers = rawRows[0].map((h, i) => String(h ?? `Column${i + 1}`));
   const rows: DataRow[] = [];
-  worksheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return; // Skip header row
+
+  for (let r = 1; r < rawRows.length; r++) {
     const rowData: DataRow = {};
-    row.eachCell((cell, colNumber) => {
-      const header = headers[colNumber - 1];
-      if (header) {
-        // Handle ExcelJS cell value types
-        const cellValue = cell.value;
-        if (cellValue === null || cellValue === undefined) {
-          rowData[header] = null;
-        } else if (typeof cellValue === 'object' && 'result' in cellValue) {
-          // Formula cell - use the computed result
-          rowData[header] = cellValue.result as DataCellValue;
-        } else if (typeof cellValue === 'object' && 'richText' in cellValue) {
-          // Rich text - concatenate text parts
-          rowData[header] = (cellValue.richText as Array<{ text: string }>)
-            .map(rt => rt.text)
-            .join('');
-        } else if (cellValue instanceof Date) {
-          rowData[header] = cellValue.toISOString();
-        } else {
-          rowData[header] = cellValue as DataCellValue;
-        }
+    for (let c = 0; c < headers.length; c++) {
+      const val = rawRows[r][c];
+      if (val === null || val === undefined) {
+        rowData[headers[c]] = null;
+      } else if (val instanceof Date) {
+        rowData[headers[c]] = val.toISOString();
+      } else {
+        rowData[headers[c]] = val as string | number | boolean;
       }
-    });
-    // Only add non-empty rows
+    }
     if (Object.keys(rowData).length > 0) {
       rows.push(rowData);
     }
-  });
-
+  }
   return rows;
 }

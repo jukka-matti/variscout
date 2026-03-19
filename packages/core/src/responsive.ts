@@ -249,3 +249,13 @@ export function getBreakpoints(containerWidth: number): Breakpoints {
     isSmallMobile: containerWidth < 320,
   };
 }
+
+// ============================================================================
+// Stage Colors (shared between charts and hooks)
+// ============================================================================
+
+/** Stage colors for dual-stage boxplot (before/after comparison) */
+export const stageColors = [
+  '#94a3b8', // slate-400 — "before" stage
+  '#3b82f6', // blue-500 — "after" stage
+] as const;

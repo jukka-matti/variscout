@@ -11,8 +11,8 @@
  */
 import { useMemo } from 'react';
 import { rollup, sum } from 'd3-array';
-import { getResponsiveMargins } from '@variscout/charts';
-import type { ParetoDataPoint } from '@variscout/charts';
+import { getResponsiveMargins } from '@variscout/core';
+import type { ParetoDataPoint } from '@variscout/core';
 import type { DataRow, DataCellValue, ParetoRow } from '@variscout/core';
 
 export interface UseParetoChartDataOptions {

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { IChartDataPoint } from '@variscout/charts';
+import type { IChartDataPoint } from '@variscout/core';
 import { formatTimeValue, type DataCellValue } from '@variscout/core';
 
 /**

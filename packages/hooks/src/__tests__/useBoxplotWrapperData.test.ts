@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useBoxplotWrapperData } from '../useBoxplotWrapperData';
-import type { BoxplotGroupData } from '@variscout/charts';
+import type { BoxplotGroupData } from '@variscout/core';
 import type { HighlightColor } from '../types';
 
 const makeGroup = (key: string, mean: number): BoxplotGroupData => ({

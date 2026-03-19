@@ -744,3 +744,33 @@ export interface MultiRegressionResult {
   /** Star rating 1-5 based on adjusted R² strength */
   strengthRating: 1 | 2 | 3 | 4 | 5;
 }
+
+// ============================================================================
+// Chart Data Point Types (shared between hooks and charts packages)
+// ============================================================================
+
+/**
+ * Data point for I-Chart
+ */
+export interface IChartDataPoint {
+  /** X-axis value (typically index or time) */
+  x: number;
+  /** Y-axis value (measurement) */
+  y: number;
+  /** Original row index for drill-down navigation */
+  originalIndex?: number;
+  /** Stage identifier for staged I-Charts */
+  stage?: string;
+  /** Formatted time value for tooltip display */
+  timeValue?: string | null;
+}
+
+/**
+ * Pareto chart data point
+ */
+export interface ParetoDataPoint {
+  key: string;
+  value: number;
+  cumulative: number;
+  cumulativePercentage: number;
+}

@@ -1,5 +1,4 @@
 import React, { Suspense, useCallback, useState, useEffect, useMemo } from 'react';
-import { toPng } from 'html-to-image';
 import { useData } from './context/DataContext';
 import { downloadCSV } from './lib/export';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
@@ -239,6 +238,7 @@ function AppMain() {
     if (!node) return;
 
     try {
+      const { toPng } = await import('html-to-image');
       const dataUrl = await toPng(node, {
         cacheBust: true,
         backgroundColor: '#0f172a',

@@ -77,10 +77,8 @@ export const operatorColors = [
 ] as const;
 
 // Stage colors for dual-stage boxplot (before/after comparison)
-export const stageColors = [
-  '#94a3b8', // slate-400 — "before" stage
-  '#3b82f6', // blue-500 — "after" stage
-] as const;
+// Canonical source is @variscout/core/responsive — re-exported here for chart consumers
+export { stageColors } from '@variscout/core';
 
 // Type exports for type safety
 export type ChartColor = keyof typeof chartColors;
