@@ -146,16 +146,6 @@ export const ar: MessageCatalog = {
   'status.loading': 'جارٍ التحميل',
   'status.ai': 'ذ.ا.',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const ar: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -439,20 +423,6 @@ export const ar: MessageCatalog = {
   'data.typeDate': 'تاريخ',
   'data.typeText': 'نص',
   'data.categories': 'فئات',
-
-  // Coaching text
-  'coach.problem.frame': 'قم بإعداد بياناتك لبدء التحقيق في المشكلة.',
-  'coach.problem.scout': 'ابحث عن أنماط التباين التي يمكن أن تفسر المشكلة.',
-  'coach.problem.investigate': 'ابنِ الأدلة التي تربط العوامل بالمشكلة.',
-  'coach.problem.improve': 'خطط ونفذ التحسينات باستخدام دورة PDCA.',
-  'coach.hypothesis.frame': 'قم بإعداد بياناتك لاختبار فرضيتك.',
-  'coach.hypothesis.scout': 'ابحث عن أدلة تدعم أو تدحض فرضيتك.',
-  'coach.hypothesis.investigate': 'اجمع أدلة إحصائية لتأكيد السبب المشتبه به.',
-  'coach.hypothesis.improve': 'تم تأكيد السبب — خطط إجراءات تصحيحية عبر PDCA.',
-  'coach.routine.frame': 'قم بإعداد بياناتك لفحص العملية الروتيني.',
-  'coach.routine.scout': 'ابحث عن إشارات جديدة أو انحراف أو أنماط غير متوقعة.',
-  'coach.routine.investigate': 'تم العثور على إشارة — تعمق في الأسباب المحتملة.',
-  'coach.routine.improve': 'تم تحديد السبب — خطط إجراءات تصحيحية عبر PDCA.',
 
   // PWA HomeScreen
   'home.heading': 'استكشف تحليل التباين',

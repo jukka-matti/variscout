@@ -261,16 +261,6 @@ export interface MessageCatalog {
   'status.loading': string;
   'status.ai': string;
 
-  // Methodology Coach
-  'coach.frame': string;
-  'coach.scout': string;
-  'coach.investigate': string;
-  'coach.improve': string;
-  'coach.frameDesc': string;
-  'coach.scoutDesc': string;
-  'coach.investigateDesc': string;
-  'coach.improveDesc': string;
-
   // Report KPIs
   'report.kpi.samples': string;
   'report.kpi.mean': string;
@@ -382,12 +372,6 @@ export interface MessageCatalog {
   'investigation.verifySideEffects': string;
   'investigation.verifyOutcome': string;
   'investigation.uninvestigated': string;
-
-  // Coach mobile phase titles
-  'coach.frameTitle': string;
-  'coach.scoutTitle': string;
-  'coach.investigateTitle': string;
-  'coach.improveTitle': string;
 
   // AI action tool labels
   'ai.tool.applyFilter': string;
@@ -553,20 +537,6 @@ export interface MessageCatalog {
   'data.typeDate': string;
   'data.typeText': string;
   'data.categories': string;
-
-  // Coaching text (scenario × phase)
-  'coach.problem.frame': string;
-  'coach.problem.scout': string;
-  'coach.problem.investigate': string;
-  'coach.problem.improve': string;
-  'coach.hypothesis.frame': string;
-  'coach.hypothesis.scout': string;
-  'coach.hypothesis.investigate': string;
-  'coach.hypothesis.improve': string;
-  'coach.routine.frame': string;
-  'coach.routine.scout': string;
-  'coach.routine.investigate': string;
-  'coach.routine.improve': string;
 
   // PWA HomeScreen
   'home.heading': string;

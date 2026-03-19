@@ -147,15 +147,6 @@ export const nl: MessageCatalog = {
   'status.cached': 'In cache',
   'status.loading': 'Laden',
   'status.ai': 'AI',
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
   'report.kpi.variation': 'Variation',
@@ -250,10 +241,6 @@ export const nl: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
   'ai.tool.applyFilter': 'Apply filter',
   'ai.tool.clearFilters': 'Clear filters',
   'ai.tool.switchFactor': 'Switch factor',
@@ -406,21 +393,6 @@ export const nl: MessageCatalog = {
   'data.typeDate': 'Datum',
   'data.typeText': 'Tekst',
   'data.categories': 'categorieën',
-
-  // Coaching text (scenario × phase)
-  'coach.problem.frame': 'Stel uw gegevens in om het probleem te onderzoeken.',
-  'coach.problem.scout': 'Zoek naar variatiepatronen die het probleem kunnen verklaren.',
-  'coach.problem.investigate': 'Bouw bewijs op dat factoren aan het probleem koppelt.',
-  'coach.problem.improve': 'Plan en voer verbeteringen uit met de PDCA-cyclus.',
-  'coach.hypothesis.frame': 'Stel uw gegevens in om uw hypothese te testen.',
-  'coach.hypothesis.scout': 'Zoek naar bewijs dat uw hypothese ondersteunt of weerlegt.',
-  'coach.hypothesis.investigate':
-    'Verzamel statistisch bewijs om de vermoedelijke oorzaak te bevestigen.',
-  'coach.hypothesis.improve': 'Oorzaak bevestigd — plan corrigerende maatregelen via PDCA.',
-  'coach.routine.frame': 'Stel uw gegevens in voor een routinematige procescontrole.',
-  'coach.routine.scout': 'Scan op nieuwe signalen, drift of onverwachte patronen.',
-  'coach.routine.investigate': 'Er is een signaal gevonden — zoom in op mogelijke oorzaken.',
-  'coach.routine.improve': 'Oorzaak geïdentificeerd — plan corrigerende maatregelen via PDCA.',
 
   // PWA HomeScreen
   'home.heading': 'Verken variatieanalyse',

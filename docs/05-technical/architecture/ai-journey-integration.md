@@ -56,7 +56,7 @@ AI is not active during FRAME — there is no analysed data yet. However, FRAME 
 - **Factor roles** — Auto-inferred from column names during `detectColumns()` (equipment, temporal, operator, material, location)
 - **Analysis brief** — Azure users can capture an upfront hypothesis, which seeds the investigation tree root in INVESTIGATE
 
-The Methodology Coach provides a setup checklist during FRAME.
+FRAME seeds the `ProcessContext` used by AI in later phases.
 
 ### SCOUT — Discovery (AI Active)
 

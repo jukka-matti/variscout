@@ -146,16 +146,6 @@ export const hi: MessageCatalog = {
   'status.loading': 'लोड हो रहा है',
   'status.ai': 'AI',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const hi: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -441,22 +425,6 @@ export const hi: MessageCatalog = {
   'data.typeDate': 'दिनांक',
   'data.typeText': 'पाठ',
   'data.categories': 'श्रेणियाँ',
-
-  // Coaching text
-  'coach.problem.frame': 'समस्या की जाँच शुरू करने के लिए अपना डेटा सेट करें।',
-  'coach.problem.scout': 'ऐसे विचलन पैटर्न खोजें जो समस्या की व्याख्या कर सकें।',
-  'coach.problem.investigate': 'कारकों को समस्या से जोड़ने वाले साक्ष्य बनाएँ।',
-  'coach.problem.improve': 'PDCA चक्र का उपयोग करके सुधारों की योजना बनाएँ और उन्हें लागू करें।',
-  'coach.hypothesis.frame': 'अपनी परिकल्पना का परीक्षण करने के लिए अपना डेटा सेट करें।',
-  'coach.hypothesis.scout': 'ऐसे साक्ष्य खोजें जो आपकी परिकल्पना का समर्थन या खंडन करें।',
-  'coach.hypothesis.investigate': 'संदिग्ध कारण की पुष्टि के लिए सांख्यिकीय साक्ष्य एकत्र करें।',
-  'coach.hypothesis.improve':
-    'कारण की पुष्टि हुई — PDCA के माध्यम से सुधारात्मक कार्रवाई की योजना बनाएँ।',
-  'coach.routine.frame': 'नियमित प्रक्रिया जाँच के लिए अपना डेटा सेट करें।',
-  'coach.routine.scout': 'नए संकेतों, बहाव, या अप्रत्याशित पैटर्न की खोज करें।',
-  'coach.routine.investigate': 'एक संकेत मिला — संभावित कारणों की गहराई में जाएँ।',
-  'coach.routine.improve':
-    'कारण की पहचान हुई — PDCA के माध्यम से सुधारात्मक कार्रवाई की योजना बनाएँ।',
 
   // PWA HomeScreen
   'home.heading': 'विचलन विश्लेषण का अन्वेषण करें',

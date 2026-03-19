@@ -145,15 +145,6 @@ export const da: MessageCatalog = {
   'status.cached': 'Cachelagret',
   'status.loading': 'Indlæser',
   'status.ai': 'AI',
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
   'report.kpi.variation': 'Variation',
@@ -248,10 +239,6 @@ export const da: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
   'ai.tool.applyFilter': 'Apply filter',
   'ai.tool.clearFilters': 'Clear filters',
   'ai.tool.switchFactor': 'Switch factor',
@@ -402,21 +389,6 @@ export const da: MessageCatalog = {
   'data.typeDate': 'Dato',
   'data.typeText': 'Tekst',
   'data.categories': 'kategorier',
-
-  // Coaching text (scenario × phase)
-  'coach.problem.frame': 'Opsæt dine data for at begynde at undersøge problemet.',
-  'coach.problem.scout': 'Led efter variationsmønstre, der kan forklare problemet.',
-  'coach.problem.investigate': 'Opbyg beviser, der kobler faktorer til problemet.',
-  'coach.problem.improve': 'Planlæg og gennemfør forbedringer med PDCA-cyklussen.',
-  'coach.hypothesis.frame': 'Opsæt dine data for at teste din hypotese.',
-  'coach.hypothesis.scout': 'Led efter beviser, der understøtter eller modsiger din hypotese.',
-  'coach.hypothesis.investigate':
-    'Indsaml statistiske beviser for at bekræfte den mistænkte årsag.',
-  'coach.hypothesis.improve': 'Årsag bekræftet — planlæg korrigerende handlinger via PDCA.',
-  'coach.routine.frame': 'Opsæt dine data til en rutinekontrol af processen.',
-  'coach.routine.scout': 'Scan efter nye signaler, drift eller uventede mønstre.',
-  'coach.routine.investigate': 'Et signal blev fundet — undersøg potentielle årsager.',
-  'coach.routine.improve': 'Årsag identificeret — planlæg korrigerende handlinger via PDCA.',
 
   // PWA HomeScreen
   'home.heading': 'Udforsk variationsanalyse',

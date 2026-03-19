@@ -146,16 +146,6 @@ export const he: MessageCatalog = {
   'status.loading': 'טוען',
   'status.ai': 'בינה',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const he: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -439,20 +423,6 @@ export const he: MessageCatalog = {
   'data.typeDate': 'תאריך',
   'data.typeText': 'טקסט',
   'data.categories': 'קטגוריות',
-
-  // Coaching text
-  'coach.problem.frame': 'הגדר את הנתונים שלך כדי להתחיל לחקור את הבעיה.',
-  'coach.problem.scout': 'חפש דפוסי שונות שיכולים להסביר את הבעיה.',
-  'coach.problem.investigate': 'בנה ראיות המקשרות גורמים לבעיה.',
-  'coach.problem.improve': 'תכנן ובצע שיפורים באמצעות מחזור PDCA.',
-  'coach.hypothesis.frame': 'הגדר את הנתונים שלך כדי לבדוק את ההשערה שלך.',
-  'coach.hypothesis.scout': 'חפש ראיות התומכות או מפריכות את ההשערה שלך.',
-  'coach.hypothesis.investigate': 'אסוף ראיות סטטיסטיות לאישור הסיבה החשודה.',
-  'coach.hypothesis.improve': 'הסיבה אושרה — תכנן פעולות מתקנות דרך PDCA.',
-  'coach.routine.frame': 'הגדר את הנתונים שלך לבדיקת תהליך שגרתית.',
-  'coach.routine.scout': 'סרוק אחר אותות חדשים, סחיפה, או דפוסים בלתי צפויים.',
-  'coach.routine.investigate': 'נמצא אות — חפור לתוך סיבות אפשריות.',
-  'coach.routine.improve': 'הסיבה זוהתה — תכנן פעולות מתקנות דרך PDCA.',
 
   // PWA HomeScreen
   'home.heading': 'חקור ניתוח שונות',

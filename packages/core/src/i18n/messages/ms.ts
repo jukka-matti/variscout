@@ -146,16 +146,6 @@ export const ms: MessageCatalog = {
   'status.loading': 'Memuatkan',
   'status.ai': 'AI',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const ms: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -442,20 +426,6 @@ export const ms: MessageCatalog = {
   'data.typeDate': 'Tarikh',
   'data.typeText': 'Teks',
   'data.categories': 'kategori',
-
-  // Coaching text
-  'coach.problem.frame': 'Sediakan data anda untuk mula menyiasat masalah.',
-  'coach.problem.scout': 'Cari corak variasi yang boleh menjelaskan masalah.',
-  'coach.problem.investigate': 'Bina bukti yang mengaitkan faktor dengan masalah.',
-  'coach.problem.improve': 'Rancang dan laksanakan penambahbaikan menggunakan kitaran PDCA.',
-  'coach.hypothesis.frame': 'Sediakan data anda untuk menguji hipotesis anda.',
-  'coach.hypothesis.scout': 'Cari bukti yang menyokong atau menolak hipotesis anda.',
-  'coach.hypothesis.investigate': 'Kumpul bukti statistik untuk mengesahkan punca yang disyaki.',
-  'coach.hypothesis.improve': 'Punca disahkan — rancang tindakan pembetulan melalui PDCA.',
-  'coach.routine.frame': 'Sediakan data anda untuk semakan proses rutin.',
-  'coach.routine.scout': 'Imbas untuk isyarat baharu, hanyutan, atau corak yang tidak dijangka.',
-  'coach.routine.investigate': 'Isyarat ditemui — teliti punca yang berpotensi.',
-  'coach.routine.improve': 'Punca dikenal pasti — rancang tindakan pembetulan melalui PDCA.',
 
   // PWA HomeScreen
   'home.heading': 'Terokai Analisis Variasi',

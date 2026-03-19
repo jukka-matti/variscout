@@ -85,12 +85,12 @@ The thread is not always linear — Routine Check entries may never reach INVEST
 
 ### FRAME
 
-| Aspect   | Detail                                                                                               |
-| -------- | ---------------------------------------------------------------------------------------------------- |
-| Goal     | Define the problem space — parse data, map columns, set specs, capture process context               |
-| AI       | Not active (no analysed data yet). Coach provides setup checklist. Seeds AI context for later phases |
-| Key Code | `useDataIngestion`, `useDataState`, `ColumnMapping`, `parser.ts`, `ProcessDescriptionField`          |
-| Exit     | `AnalysisState` populated: data parsed, columns mapped, specs set                                    |
+| Aspect   | Detail                                                                                      |
+| -------- | ------------------------------------------------------------------------------------------- |
+| Goal     | Define the problem space — parse data, map columns, set specs, capture process context      |
+| AI       | Not active (no analysed data yet). Seeds AI context for later phases                        |
+| Key Code | `useDataIngestion`, `useDataState`, `ColumnMapping`, `parser.ts`, `ProcessDescriptionField` |
+| Exit     | `AnalysisState` populated: data parsed, columns mapped, specs set                           |
 
 FRAME contains significant deterministic engines: data parsing and validation, column type detection, factor role keyword inference (equipment/temporal/operator/material/location), investigation category auto-grouping, and characteristic type selection. Process context and analysis brief (Azure) become the AI's grounding context in subsequent phases.
 
@@ -155,7 +155,7 @@ The diamond is a **structured learning** process within the INVESTIGATE phase:
 
 The diamond closes at Converging. What follows — improvement ideation, actions, implementation, and verification — belongs to the IMPROVE phase (PDCA).
 
-**In code:** `InvestigationPhase` type (4 diamond phases + `'improving'` for IMPROVE), `InvestigationPhaseBadge` component, CoScout phase-aware prompts, `DiamondPhaseMap` in Methodology Coach.
+**In code:** `InvestigationPhase` type (4 diamond phases + `'improving'` for IMPROVE), `InvestigationPhaseBadge` component, CoScout phase-aware prompts.
 
 **Hypothesis validation** within the diamond uses `ValidationStatus`: `untested → supported / partial / contradicted`. Auto-validation triggers when η² exceeds thresholds.
 
@@ -207,7 +207,7 @@ How the analyst entered the journey shapes what each phase needs to accomplish:
 
 This table is mirrored in [Analysis Journey Map § Entry-Path-Dependent Phase Goals](../../03-features/workflows/analysis-journey-map.md#entry-path-dependent-phase-goals).
 
-**In code:** `EntryScenario` type in `@variscout/core/ai/types.ts`, detection via `detectEntryScenario()` in `@variscout/hooks`, coaching text via `getCoachingText()`.
+**In code:** `EntryScenario` type in `@variscout/core/ai/types.ts`, detection via `detectEntryScenario()` in `@variscout/hooks` (flows to CoScout AI context).
 
 ---
 
@@ -286,20 +286,20 @@ These are product/business concepts that were previously listed as mental models
 
 ## What's In Code
 
-| Concept               | In Code? | Code Location                                                                                                              |
-| --------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Journey Phases        | YES      | `JourneyPhase` type, `useJourneyPhase`, `JourneyPhaseStrip` in header, [screen mapping](./journey-phase-screen-mapping.md) |
-| Watson's EDA          | YES      | Chart components, stats engine                                                                                             |
-| Investigation Diamond | YES      | `InvestigationPhase` type (4 + `'improving'`), `InvestigationPhaseBadge`, CoScout prompts, `DiamondPhaseMap`               |
-| Finding Status        | YES      | `FindingStatus` type, board columns, tier gating                                                                           |
-| AI Layers             | YES      | NarrativeBar, ChartInsightChip, CoScoutPanel                                                                               |
-| Report Steps          | YES      | `useReportSections`, `ReportStepMarker`                                                                                    |
-| Two Voices            | YES      | Control limits (calculated) vs spec limits (user-entered)                                                                  |
-| Three Entry Paths     | YES      | `EntryScenario` type, `detectEntryScenario()`, `getCoachingText()`                                                         |
-| Hypothesis Validation | YES      | `ValidationStatus` type                                                                                                    |
-| Knowledge Layer       | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup` (Team AI only, preview-gated)                              |
-| Value Levers          | Indirect | Tier gating                                                                                                                |
-| Four Lenses           | NO       | Teaching/marketing only (intentional)                                                                                      |
+| Concept               | In Code? | Code Location                                                                                                |
+| --------------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| Journey Phases        | YES      | `JourneyPhase` type, `useJourneyPhase` (AI tool gating), [screen mapping](./journey-phase-screen-mapping.md) |
+| Watson's EDA          | YES      | Chart components, stats engine                                                                               |
+| Investigation Diamond | YES      | `InvestigationPhase` type (4 + `'improving'`), `InvestigationPhaseBadge`, CoScout prompts                    |
+| Finding Status        | YES      | `FindingStatus` type, board columns, tier gating                                                             |
+| AI Layers             | YES      | NarrativeBar, ChartInsightChip, CoScoutPanel                                                                 |
+| Report Steps          | YES      | `useReportSections`, `ReportStepMarker`                                                                      |
+| Two Voices            | YES      | Control limits (calculated) vs spec limits (user-entered)                                                    |
+| Three Entry Paths     | YES      | `EntryScenario` type, `detectEntryScenario()` (AI context)                                                   |
+| Hypothesis Validation | YES      | `ValidationStatus` type                                                                                      |
+| Knowledge Layer       | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup` (Team AI only, preview-gated)                |
+| Value Levers          | Indirect | Tier gating                                                                                                  |
+| Four Lenses           | NO       | Teaching/marketing only (intentional)                                                                        |
 
 ---
 
@@ -336,4 +336,4 @@ The analysis brief captures upfront hypotheses during FRAME. With the AI collabo
 - [Scouting Report Design](../../archive/specs/scouting-report-design.md) — Report Steps (archived)
 - [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — Finding Status, Hypothesis lifecycle
 - [Journey Phase → Screen Mapping](./journey-phase-screen-mapping.md) — concrete code references per phase
-- [Methodology Coach Design](../../superpowers/specs/2026-03-18-methodology-coach-design.md) — UI implementation of journey awareness
+- [Methodology Coach Design](../../archive/2026-03-18-methodology-coach-design.md) — UI implementation of journey awareness (archived, removed)

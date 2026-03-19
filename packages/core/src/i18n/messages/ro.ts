@@ -146,16 +146,6 @@ export const ro: MessageCatalog = {
   'status.loading': 'Se încarcă',
   'status.ai': 'IA',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const ro: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -418,18 +402,6 @@ export const ro: MessageCatalog = {
   'data.typeDate': 'Dată',
   'data.typeText': 'Text',
   'data.categories': 'categorii',
-  'coach.problem.frame': 'Configurați datele pentru a începe investigarea problemei.',
-  'coach.problem.scout': 'Căutați tipare de variație care ar putea explica problema.',
-  'coach.problem.investigate': 'Construiți dovezi care leagă factorii de problemă.',
-  'coach.problem.improve': 'Planificați și executați îmbunătățiri folosind ciclul PDCA.',
-  'coach.hypothesis.frame': 'Configurați datele pentru a testa ipoteza.',
-  'coach.hypothesis.scout': 'Căutați dovezi care susțin sau infirmă ipoteza.',
-  'coach.hypothesis.investigate': 'Adunați dovezi statistice pentru a confirma cauza suspectată.',
-  'coach.hypothesis.improve': 'Cauză confirmată — planificați acțiuni corective prin PDCA.',
-  'coach.routine.frame': 'Configurați datele pentru o verificare de rutină a procesului.',
-  'coach.routine.scout': 'Căutați semnale noi, derivă sau tipare neașteptate.',
-  'coach.routine.investigate': 'Un semnal a fost găsit — investigați cauzele potențiale.',
-  'coach.routine.improve': 'Cauză identificată — planificați acțiuni corective prin PDCA.',
   'home.heading': 'Explorați analiza variației',
   'home.description':
     'Instrument gratuit de formare în analiza variației. Vizualizați variabilitatea, calculați capabilitatea și găsiți unde să vă concentrați — direct în browser.',

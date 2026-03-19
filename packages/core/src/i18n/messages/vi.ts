@@ -146,16 +146,6 @@ export const vi: MessageCatalog = {
   'status.loading': 'Đang tải',
   'status.ai': 'AI',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const vi: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -417,19 +401,6 @@ export const vi: MessageCatalog = {
   'data.typeDate': 'Ngày',
   'data.typeText': 'Văn bản',
   'data.categories': 'danh mục',
-  'coach.problem.frame': 'Thiết lập dữ liệu của bạn để bắt đầu điều tra vấn đề.',
-  'coach.problem.scout': 'Tìm kiếm các mẫu biến thiên có thể giải thích vấn đề.',
-  'coach.problem.investigate': 'Xây dựng bằng chứng liên kết các yếu tố với vấn đề.',
-  'coach.problem.improve': 'Lập kế hoạch và thực hiện cải tiến theo chu trình PDCA.',
-  'coach.hypothesis.frame': 'Thiết lập dữ liệu của bạn để kiểm tra giả thuyết.',
-  'coach.hypothesis.scout': 'Tìm kiếm bằng chứng hỗ trợ hoặc bác bỏ giả thuyết của bạn.',
-  'coach.hypothesis.investigate': 'Thu thập bằng chứng thống kê để xác nhận nguyên nhân nghi ngờ.',
-  'coach.hypothesis.improve':
-    'Đã xác nhận nguyên nhân — lập kế hoạch hành động khắc phục qua PDCA.',
-  'coach.routine.frame': 'Thiết lập dữ liệu của bạn để kiểm tra quy trình định kỳ.',
-  'coach.routine.scout': 'Quét tìm tín hiệu mới, trôi dạt hoặc các mẫu bất thường.',
-  'coach.routine.investigate': 'Phát hiện tín hiệu — phân tích sâu các nguyên nhân tiềm ẩn.',
-  'coach.routine.improve': 'Đã xác định nguyên nhân — lập kế hoạch hành động khắc phục qua PDCA.',
   'home.heading': 'Khám phá phân tích biến thiên',
   'home.description':
     'Công cụ đào tạo phân tích biến thiên miễn phí. Trực quan hóa biến thiên, tính toán khả năng và tìm ra nơi cần tập trung — ngay trong trình duyệt.',

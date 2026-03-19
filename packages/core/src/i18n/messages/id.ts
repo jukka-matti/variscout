@@ -146,16 +146,6 @@ export const id: MessageCatalog = {
   'status.loading': 'Memuat',
   'status.ai': 'AI',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const id: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -417,19 +401,6 @@ export const id: MessageCatalog = {
   'data.typeDate': 'Tanggal',
   'data.typeText': 'Teks',
   'data.categories': 'kategori',
-  'coach.problem.frame': 'Siapkan data Anda untuk mulai menyelidiki masalah.',
-  'coach.problem.scout': 'Cari pola variasi yang bisa menjelaskan masalah.',
-  'coach.problem.investigate': 'Bangun bukti yang menghubungkan faktor dengan masalah.',
-  'coach.problem.improve': 'Rencanakan dan laksanakan perbaikan menggunakan siklus PDCA.',
-  'coach.hypothesis.frame': 'Siapkan data Anda untuk menguji hipotesis.',
-  'coach.hypothesis.scout': 'Cari bukti yang mendukung atau membantah hipotesis Anda.',
-  'coach.hypothesis.investigate':
-    'Kumpulkan bukti statistik untuk mengonfirmasi penyebab yang dicurigai.',
-  'coach.hypothesis.improve': 'Penyebab terkonfirmasi — rencanakan tindakan korektif melalui PDCA.',
-  'coach.routine.frame': 'Siapkan data Anda untuk pemeriksaan proses rutin.',
-  'coach.routine.scout': 'Pindai sinyal baru, pergeseran, atau pola tak terduga.',
-  'coach.routine.investigate': 'Sinyal ditemukan — telusuri penyebab potensial.',
-  'coach.routine.improve': 'Penyebab teridentifikasi — rencanakan tindakan korektif melalui PDCA.',
   'home.heading': 'Jelajahi Analisis Variasi',
   'home.description':
     'Alat pelatihan analisis variasi gratis. Visualisasikan variabilitas, hitung kapabilitas, dan temukan area fokus — langsung di browser Anda.',

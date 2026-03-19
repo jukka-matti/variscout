@@ -146,16 +146,6 @@ export const sk: MessageCatalog = {
   'status.loading': 'Načítava sa',
   'status.ai': 'UI',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const sk: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -442,21 +426,6 @@ export const sk: MessageCatalog = {
   'data.typeDate': 'Dátum',
   'data.typeText': 'Text',
   'data.categories': 'kategórie',
-
-  // Coaching text
-  'coach.problem.frame': 'Nastavte údaje na začatie vyšetrovania problému.',
-  'coach.problem.scout': 'Hľadajte vzory variácie, ktoré by mohli vysvetliť problém.',
-  'coach.problem.investigate': 'Vybudujte dôkazy spájajúce faktory s problémom.',
-  'coach.problem.improve': 'Naplánujte a vykonajte zlepšenia pomocou cyklu PDCA.',
-  'coach.hypothesis.frame': 'Nastavte údaje na testovanie vašej hypotézy.',
-  'coach.hypothesis.scout': 'Hľadajte dôkazy, ktoré podporujú alebo vyvracajú vašu hypotézu.',
-  'coach.hypothesis.investigate':
-    'Zhromaždite štatistické dôkazy na potvrdenie podozrivej príčiny.',
-  'coach.hypothesis.improve': 'Príčina potvrdená — naplánujte nápravné opatrenia cez PDCA.',
-  'coach.routine.frame': 'Nastavte údaje pre rutinnú kontrolu procesu.',
-  'coach.routine.scout': 'Skenujte nové signály, posun alebo neočakávané vzory.',
-  'coach.routine.investigate': 'Nájdený signál — preskúmajte potenciálne príčiny.',
-  'coach.routine.improve': 'Príčina identifikovaná — naplánujte nápravné opatrenia cez PDCA.',
 
   // PWA HomeScreen
   'home.heading': 'Preskúmajte analýzu variácie',

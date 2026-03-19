@@ -148,16 +148,6 @@ export const pt: MessageCatalog = {
   'status.loading': 'Carregando',
   'status.ai': 'IA',
 
-  // Methodology Coach
-  'coach.frame': 'Enquadrar',
-  'coach.scout': 'Explorar',
-  'coach.investigate': 'Investigar',
-  'coach.improve': 'Melhorar',
-  'coach.frameDesc': 'Definir o problema e estabelecer limites',
-  'coach.scoutDesc': 'Recolher dados e explorar padrões',
-  'coach.investigateDesc': 'Testar hipóteses e encontrar causas raiz',
-  'coach.improveDesc': 'Implementar mudanças e verificar resultados',
-
   // Report KPIs
   'report.kpi.samples': 'Amostras',
   'report.kpi.mean': 'Média',
@@ -269,12 +259,6 @@ export const pt: MessageCatalog = {
   'investigation.verifySideEffects': 'Nenhum efeito colateral observado',
   'investigation.verifyOutcome': 'Resultado sustentado ao longo do tempo',
   'investigation.uninvestigated': 'Fatores não investigados',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Enquadrar o problema',
-  'coach.scoutTitle': 'Explorar os dados',
-  'coach.investigateTitle': 'Investigar causas',
-  'coach.improveTitle': 'Melhorar o processo',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Aplicar filtro',
@@ -444,20 +428,6 @@ export const pt: MessageCatalog = {
   'data.typeDate': 'Data',
   'data.typeText': 'Texto',
   'data.categories': 'categorias',
-
-  // Coaching text
-  'coach.problem.frame': 'Configure seus dados para começar a investigar o problema.',
-  'coach.problem.scout': 'Procure padrões de variação que possam explicar o problema.',
-  'coach.problem.investigate': 'Construa evidências vinculando fatores ao problema.',
-  'coach.problem.improve': 'Planeje e execute melhorias usando o ciclo PDCA.',
-  'coach.hypothesis.frame': 'Configure seus dados para testar sua hipótese.',
-  'coach.hypothesis.scout': 'Procure evidências que apoiem ou refutem sua hipótese.',
-  'coach.hypothesis.investigate': 'Reúna evidências estatísticas para confirmar a causa suspeita.',
-  'coach.hypothesis.improve': 'Causa confirmada — planeje ações corretivas via PDCA.',
-  'coach.routine.frame': 'Configure seus dados para uma verificação rotineira do processo.',
-  'coach.routine.scout': 'Procure novos sinais, desvios ou padrões inesperados.',
-  'coach.routine.investigate': 'Um sinal foi encontrado — investigue as causas potenciais.',
-  'coach.routine.improve': 'Causa identificada — planeje ações corretivas via PDCA.',
 
   // PWA HomeScreen
   'home.heading': 'Explorar análise de variação',

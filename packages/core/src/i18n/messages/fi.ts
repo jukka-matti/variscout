@@ -148,16 +148,6 @@ export const fi: MessageCatalog = {
   'status.loading': 'Ladataan',
   'status.ai': 'Tekoäly',
 
-  // Methodology Coach
-  'coach.frame': 'Rajaa',
-  'coach.scout': 'Tutki',
-  'coach.investigate': 'Selvitä',
-  'coach.improve': 'Paranna',
-  'coach.frameDesc': 'Määrittele ongelma ja rajaa',
-  'coach.scoutDesc': 'Kerää dataa ja tutki kuvioita',
-  'coach.investigateDesc': 'Testaa hypoteeseja ja etsi juurisyyt',
-  'coach.improveDesc': 'Toteuta muutokset ja varmista tulokset',
-
   // Report KPIs
   'report.kpi.samples': 'Näytteet',
   'report.kpi.mean': 'Keskiarvo',
@@ -269,12 +259,6 @@ export const fi: MessageCatalog = {
   'investigation.verifySideEffects': 'Sivuvaikutuksia ei havaittu',
   'investigation.verifyOutcome': 'Tulos säilyy ajan myötä',
   'investigation.uninvestigated': 'Tutkimattomat tekijät',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Rajaa ongelma',
-  'coach.scoutTitle': 'Tutki dataa',
-  'coach.investigateTitle': 'Selvitä syyt',
-  'coach.improveTitle': 'Paranna prosessia',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Käytä suodatinta',
@@ -443,20 +427,6 @@ export const fi: MessageCatalog = {
   'data.typeDate': 'Päivämäärä',
   'data.typeText': 'Teksti',
   'data.categories': 'kategoriat',
-
-  // Coaching text
-  'coach.problem.frame': 'Aseta datasi ongelman tutkimisen aloittamiseksi.',
-  'coach.problem.scout': 'Etsi vaihtelumalleja, jotka voisivat selittää ongelman.',
-  'coach.problem.investigate': 'Rakenna näyttöä, joka yhdistää tekijät ongelmaan.',
-  'coach.problem.improve': 'Suunnittele ja toteuta parannuksia PDCA-syklin avulla.',
-  'coach.hypothesis.frame': 'Aseta datasi hypoteesisi testaamiseksi.',
-  'coach.hypothesis.scout': 'Etsi todisteita, jotka tukevat tai kumoavat hypoteesisi.',
-  'coach.hypothesis.investigate': 'Kerää tilastollista näyttöä epäillyn syyn vahvistamiseksi.',
-  'coach.hypothesis.improve': 'Syy vahvistettu — suunnittele korjaustoimenpiteet PDCA:n kautta.',
-  'coach.routine.frame': 'Aseta datasi rutiininomaista prosessitarkastusta varten.',
-  'coach.routine.scout': 'Etsi uusia signaaleja, ajautumista tai odottamattomia malleja.',
-  'coach.routine.investigate': 'Signaali löydetty — tutki mahdollisia syitä.',
-  'coach.routine.improve': 'Syy tunnistettu — suunnittele korjaustoimenpiteet PDCA:n kautta.',
 
   // PWA HomeScreen
   'home.heading': 'Tutustu vaihteluanalyysiin',

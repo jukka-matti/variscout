@@ -146,16 +146,6 @@ export const bg: MessageCatalog = {
   'status.loading': 'Зареждане',
   'status.ai': 'ИИ',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const bg: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -442,22 +426,6 @@ export const bg: MessageCatalog = {
   'data.typeDate': 'Дата',
   'data.typeText': 'Текст',
   'data.categories': 'категории',
-
-  // Coaching text
-  'coach.problem.frame': 'Подгответе данните си, за да започнете да разследвате проблема.',
-  'coach.problem.scout': 'Потърсете модели на вариация, които биха могли да обяснят проблема.',
-  'coach.problem.investigate': 'Изградете доказателства, свързващи фактори с проблема.',
-  'coach.problem.improve': 'Планирайте и изпълнете подобрения чрез цикъла PDCA.',
-  'coach.hypothesis.frame': 'Подгответе данните си, за да тествате хипотезата си.',
-  'coach.hypothesis.scout':
-    'Потърсете доказателства, които подкрепят или опровергават хипотезата ви.',
-  'coach.hypothesis.investigate':
-    'Съберете статистически доказателства за потвърждаване на предполагаемата причина.',
-  'coach.hypothesis.improve': 'Причината е потвърдена — планирайте коригиращи действия чрез PDCA.',
-  'coach.routine.frame': 'Подгответе данните си за рутинна проверка на процеса.',
-  'coach.routine.scout': 'Сканирайте за нови сигнали, отклонения или неочаквани модели.',
-  'coach.routine.investigate': 'Открит е сигнал — проучете потенциалните причини.',
-  'coach.routine.improve': 'Причината е идентифицирана — планирайте коригиращи действия чрез PDCA.',
 
   // PWA HomeScreen
   'home.heading': 'Изследване на анализа на вариация',

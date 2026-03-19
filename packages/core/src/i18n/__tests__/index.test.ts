@@ -102,14 +102,6 @@ describe('formatMessage', () => {
 });
 
 describe('new catalog keys', () => {
-  it('has coach phase names in primary locales', () => {
-    expect(getMessage('en', 'coach.frame')).toBe('Frame');
-    expect(getMessage('de', 'coach.frame')).toBe('Rahmen');
-    expect(getMessage('fi', 'coach.frame')).toBe('Rajaa');
-    expect(getMessage('fr', 'coach.frame')).toBe('Cadrer');
-    expect(getMessage('es', 'coach.frame')).toBe('Enmarcar');
-  });
-
   it('has report KPI keys', () => {
     expect(getMessage('en', 'report.kpi.cpk')).toBe('Cpk');
     expect(getMessage('de', 'report.kpi.samples')).toBe('Stichproben');

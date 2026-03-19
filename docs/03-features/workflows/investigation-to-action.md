@@ -510,10 +510,9 @@ The convergence synthesis is a deliberate pause between the INVESTIGATE and IMPR
 The synthesis step activates when the investigation diamond reaches the **Converging** sub-phase:
 
 - At least one hypothesis has `status: 'supported'` or `causeRole: 'primary'`
-- The investigation diamond renders the Converging phase as active
-- The Methodology Coach provides a nudge: _"Your evidence is converging. Summarize what you've learned before planning improvements."_
+- The investigation diamond reaches the Converging phase
 
-The nudge is informational, not blocking. The analyst can write the synthesis at any time, or skip it entirely.
+The analyst can write the synthesis at any time, or skip it entirely.
 
 ### Storage
 
@@ -625,15 +624,3 @@ Every step works without AI. CoScout enhances but never gates:
 - [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md) — AI × investigation phase touch points
 - [ADR-023: Verification Experience](../../07-decisions/adr-023-data-lifecycle.md) — Data lifecycle, staged comparison, verification vision
 - [ADR-024: Scouting Report](../../07-decisions/adr-024-scouting-report.md) — Dynamic Report View for sharing investigation stories
-- [Methodology Coach Design Spec](../../superpowers/specs/2026-03-18-methodology-coach-design.md) — Phase-aware coaching panel
-
-### Methodology Coach
-
-The **Methodology Coach** panel (right side of the dashboard) surfaces the investigation workflow phases visually, with plain-language labels. It provides phase-aware coaching:
-
-- **FRAME** — Setup checklist (data loaded, outcome selected, factors mapped, specs set)
-- **SCOUT** — Key observation hints + drill suggestions
-- **INVESTIGATE** — Investigation diamond phases (First look → Exploring possible causes → Gathering evidence → Identifying suspected cause) with uncovered factors and suggested questions
-- **IMPROVE** — PDCA progress tracker (Plan → Do → Check → Act) with verification checklist
-
-The Coach uses the `JourneyPhase` type (`frame | scout | investigate | improve`) detected by the `useJourneyPhase` hook. During the INVESTIGATE phase, it also renders the investigation diamond sub-phases via `DiamondPhaseMap`. See [Methodology Coach Design Spec](../../superpowers/specs/2026-03-18-methodology-coach-design.md) for full design details.

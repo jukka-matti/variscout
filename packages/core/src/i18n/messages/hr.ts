@@ -146,16 +146,6 @@ export const hr: MessageCatalog = {
   'status.loading': 'Učitavanje',
   'status.ai': 'UI',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const hr: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -441,20 +425,6 @@ export const hr: MessageCatalog = {
   'data.typeDate': 'Datum',
   'data.typeText': 'Tekst',
   'data.categories': 'kategorije',
-
-  // Coaching text
-  'coach.problem.frame': 'Postavite podatke za početak istrage problema.',
-  'coach.problem.scout': 'Potražite obrasce varijacije koji bi mogli objasniti problem.',
-  'coach.problem.investigate': 'Izgradite dokaze koji povezuju faktore s problemom.',
-  'coach.problem.improve': 'Planirajte i provedite poboljšanja koristeći PDCA ciklus.',
-  'coach.hypothesis.frame': 'Postavite podatke za testiranje vaše hipoteze.',
-  'coach.hypothesis.scout': 'Potražite dokaze koji podupiru ili opovrgavaju vašu hipotezu.',
-  'coach.hypothesis.investigate': 'Prikupite statističke dokaze za potvrdu sumnjivog uzroka.',
-  'coach.hypothesis.improve': 'Uzrok potvrđen — planirajte korektivne radnje putem PDCA.',
-  'coach.routine.frame': 'Postavite podatke za rutinsku provjeru procesa.',
-  'coach.routine.scout': 'Pretražite nove signale, pomak ili neočekivane obrasce.',
-  'coach.routine.investigate': 'Pronađen signal — istražite potencijalne uzroke.',
-  'coach.routine.improve': 'Uzrok identificiran — planirajte korektivne radnje putem PDCA.',
 
   // PWA HomeScreen
   'home.heading': 'Istražite analizu varijacije',

@@ -146,16 +146,6 @@ export const uk: MessageCatalog = {
   'status.loading': 'Завантаження',
   'status.ai': 'ШІ',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const uk: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -418,19 +402,6 @@ export const uk: MessageCatalog = {
   'data.typeDate': 'Дата',
   'data.typeText': 'Текст',
   'data.categories': 'категорії',
-  'coach.problem.frame': 'Налаштуйте ваші дані, щоб почати дослідження проблеми.',
-  'coach.problem.scout': 'Шукайте патерни варіації, які можуть пояснити проблему.',
-  'coach.problem.investigate': "Збудуйте докази, що пов'язують фактори з проблемою.",
-  'coach.problem.improve': 'Сплануйте та виконайте покращення за допомогою циклу PDCA.',
-  'coach.hypothesis.frame': 'Налаштуйте ваші дані для перевірки гіпотези.',
-  'coach.hypothesis.scout': 'Шукайте докази, що підтверджують або спростовують вашу гіпотезу.',
-  'coach.hypothesis.investigate':
-    'Зберіть статистичні докази для підтвердження підозрюваної причини.',
-  'coach.hypothesis.improve': 'Причину підтверджено — сплануйте коригувальні дії через PDCA.',
-  'coach.routine.frame': 'Налаштуйте ваші дані для планової перевірки процесу.',
-  'coach.routine.scout': 'Шукайте нові сигнали, дрейф або неочікувані патерни.',
-  'coach.routine.investigate': 'Виявлено сигнал — дослідіть потенційні причини.',
-  'coach.routine.improve': 'Причину визначено — сплануйте коригувальні дії через PDCA.',
   'home.heading': 'Дослідіть аналіз варіації',
   'home.description':
     'Безкоштовний навчальний інструмент для аналізу варіації. Візуалізуйте мінливість, розрахуйте придатність та знайдіть, на чому зосередитись — прямо в браузері.',

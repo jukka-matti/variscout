@@ -147,15 +147,6 @@ export const tr: MessageCatalog = {
   'status.cached': 'Önbellekte',
   'status.loading': 'Yükleniyor',
   'status.ai': 'YZ',
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
   'report.kpi.variation': 'Variation',
@@ -250,10 +241,6 @@ export const tr: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
   'ai.tool.applyFilter': 'Apply filter',
   'ai.tool.clearFilters': 'Clear filters',
   'ai.tool.switchFactor': 'Switch factor',
@@ -405,21 +392,6 @@ export const tr: MessageCatalog = {
   'data.typeDate': 'Tarih',
   'data.typeText': 'Metin',
   'data.categories': 'kategoriler',
-
-  // Coaching text (scenario × phase)
-  'coach.problem.frame': 'Problemi araştırmaya başlamak için verilerinizi ayarlayın.',
-  'coach.problem.scout': 'Problemi açıklayabilecek varyasyon kalıplarını arayın.',
-  'coach.problem.investigate': 'Faktörleri problemle ilişkilendiren kanıtlar oluşturun.',
-  'coach.problem.improve': 'PDCA döngüsünü kullanarak iyileştirmeleri planlayın ve uygulayın.',
-  'coach.hypothesis.frame': 'Hipotezinizi test etmek için verilerinizi ayarlayın.',
-  'coach.hypothesis.scout': 'Hipotezinizi destekleyen veya çürüten kanıtları arayın.',
-  'coach.hypothesis.investigate':
-    'Şüphelenilen nedeni doğrulamak için istatistiksel kanıt toplayın.',
-  'coach.hypothesis.improve': 'Neden doğrulandı — PDCA ile düzeltici eylemleri planlayın.',
-  'coach.routine.frame': 'Rutin süreç kontrolü için verilerinizi ayarlayın.',
-  'coach.routine.scout': 'Yeni sinyalleri, kaymaları veya beklenmeyen kalıpları tarayın.',
-  'coach.routine.investigate': 'Bir sinyal bulundu — olası nedenleri araştırın.',
-  'coach.routine.improve': 'Neden belirlendi — PDCA ile düzeltici eylemleri planlayın.',
 
   // PWA HomeScreen
   'home.heading': 'Varyasyon Analizini Keşfedin',

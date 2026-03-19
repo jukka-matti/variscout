@@ -284,45 +284,7 @@ Escape priority is handled by `useAppPanels` — it dismisses panels in reverse-
 
 ---
 
-## 7. Phase-Aware UX
-
-The toolbar subtly shifts emphasis based on where the analyst is in the journey.
-
-### Phase Detection
-
-`useJourneyPhase` hook (in `@variscout/hooks`) detects the current phase from analysis signals:
-
-- **frame**: No data loaded yet
-- **scout**: Data loaded, exploring charts, <2 findings
-- **investigate**: 2+ findings, hypothesis tree active
-- **improve**: Findings at `improving`/`resolved` status, staged comparison present
-
-### Emphasis Model
-
-Toolbar icon groups receive phase-based opacity:
-
-| Emphasis  | Opacity | Meaning                          |
-| --------- | ------- | -------------------------------- |
-| Primary   | 100%    | The main activity for this phase |
-| Secondary | 70%     | Supporting activity              |
-| Default   | 50%     | Available but not the focus      |
-
-### Phase → Group Mapping
-
-| Phase       | Primary Group | Secondary Group |
-| ----------- | ------------- | --------------- |
-| frame       | data          | —               |
-| scout       | analysis      | data            |
-| investigate | investigation | analysis        |
-| improve     | output        | investigation   |
-
-### AI Tone Conditioning
-
-The narration style subtly shifts based on journey phase. See [AI Journey Integration § Phase-Conditioned Narration Tone](../../05-technical/architecture/ai-journey-integration.md#future-phase-conditioned-narration-tone) for the design.
-
----
-
-## 8. Mobile Patterns
+## 7. Mobile Patterns
 
 ### Phone (<640px)
 
@@ -347,7 +309,7 @@ The narration style subtly shifts based on journey phase. See [AI Journey Integr
 
 ---
 
-## 9. Future: Unified Navigation Hook
+## 8. Future: Unified Navigation Hook
 
 The `feature/navigation-architecture` branch (preserved as reference) prototypes a `useNavigation` hook that would unify view management:
 
@@ -378,7 +340,7 @@ This is **designed but not implemented** on main. The branch code is 38+ commits
 
 ---
 
-## 10. See Also
+## 9. See Also
 
 - [Journey Phase → Screen Mapping](../../05-technical/architecture/journey-phase-screen-mapping.md) — phase-to-component-to-tier mapping
 - [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) — conceptual navigation layers

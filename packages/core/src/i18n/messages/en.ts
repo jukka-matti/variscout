@@ -149,16 +149,6 @@ export const en: MessageCatalog = {
   'status.loading': 'Loading',
   'status.ai': 'AI',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -270,12 +260,6 @@ export const en: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -443,23 +427,6 @@ export const en: MessageCatalog = {
   'data.typeDate': 'Date',
   'data.typeText': 'Text',
   'data.categories': 'categories',
-
-  // Coaching text (scenario \u00d7 phase)
-  'coach.problem.frame': 'Set up your data to start investigating the problem.',
-  'coach.problem.scout': 'Look for variation patterns that could explain the problem.',
-  'coach.problem.investigate': 'Build evidence linking factors to the problem.',
-  'coach.problem.improve':
-    'Brainstorm ideas using the Four Directions (Prevent, Detect, Simplify, Eliminate), then plan and execute via PDCA.',
-  'coach.hypothesis.frame': 'Set up your data to test your hypothesis.',
-  'coach.hypothesis.scout': 'Look for evidence that supports or refutes your hypothesis.',
-  'coach.hypothesis.investigate': 'Gather statistical evidence to confirm the suspected cause.',
-  'coach.hypothesis.improve':
-    'Confirmed cause \u2014 brainstorm ideas (Prevent, Detect, Simplify, Eliminate), assess feasibility, then execute via PDCA.',
-  'coach.routine.frame': 'Set up your data for a routine process check.',
-  'coach.routine.scout': 'Scan for new signals, drift, or unexpected patterns.',
-  'coach.routine.investigate': 'A signal was found \u2014 drill into potential causes.',
-  'coach.routine.improve':
-    'Signal confirmed \u2014 brainstorm preventive actions and sustaining controls via PDCA.',
 
   // PWA HomeScreen
   'home.heading': 'Explore Variation Analysis',

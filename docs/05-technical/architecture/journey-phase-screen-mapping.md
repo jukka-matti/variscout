@@ -3,7 +3,7 @@ title: Journey Phase → Screen Mapping
 audience: [analyst, engineer]
 category: architecture
 status: stable
-related: [journey-phase, mental-model-hierarchy, analysis-journey-map, methodology-coach]
+related: [journey-phase, mental-model-hierarchy, analysis-journey-map]
 ---
 
 # Journey Phase → Screen Mapping
@@ -40,17 +40,16 @@ HomeScreen → PasteScreen/ManualEntry → ColumnMapping → Dashboard → [Focu
 | FilterBreadcrumb       | `FilterBreadcrumb` drill path chips with η²                                             | All      | Progressive stratification                      |
 | NarrativeBar           | `NarrativeBar` AI summary                                                               | Azure AI | Per-chart insights                              |
 
-**Entry scenario affects SCOUT:** "Hypothesis to Check" → coaching says "Look for evidence supporting your hypothesis". "Routine Check" → "Scan for new signals or drift".
+**Entry scenario affects SCOUT:** "Hypothesis to Check" → CoScout references the upfront hypothesis. "Routine Check" → CoScout highlights signals vs. stable state.
 
 ### INVESTIGATE (findings exist, building hypotheses)
 
-| Screen                    | Components                                                        | Tier     | Notes                                                       |
-| ------------------------- | ----------------------------------------------------------------- | -------- | ----------------------------------------------------------- |
-| Dashboard + FindingsPanel | `FindingsPanelBase`, `FindingCard`, `FindingBoardView`            | All      | PWA: 3 statuses (observed/investigating/analyzed), Azure: 5 |
-| Hypothesis tree           | `HypothesisTreeView`, `HypothesisNode`                            | Azure    | Auto-validation with η² thresholds                          |
-| FindingsWindow popout     | `FindingsWindow`, `InvestigationSidebar`                          | Azure    | Desktop dual-screen                                         |
-| CoScout panel             | `CoScoutPanelBase` phase-aware conversation                       | Azure AI | Explicit phase coaching via `InvestigationPhaseBadge`       |
-| Investigation diamond     | `DiamondPhaseMap` (initial → diverging → validating → converging) | Azure    | Visualizes investigation progress                           |
+| Screen                    | Components                                             | Tier     | Notes                                                       |
+| ------------------------- | ------------------------------------------------------ | -------- | ----------------------------------------------------------- |
+| Dashboard + FindingsPanel | `FindingsPanelBase`, `FindingCard`, `FindingBoardView` | All      | PWA: 3 statuses (observed/investigating/analyzed), Azure: 5 |
+| Hypothesis tree           | `HypothesisTreeView`, `HypothesisNode`                 | Azure    | Auto-validation with η² thresholds                          |
+| FindingsWindow popout     | `FindingsWindow`, `InvestigationSidebar`               | Azure    | Desktop dual-screen                                         |
+| CoScout panel             | `CoScoutPanelBase` phase-aware conversation            | Azure AI | Explicit phase coaching via `InvestigationPhaseBadge`       |
 
 **New UI elements added in INVESTIGATE (2026-03-18):**
 
@@ -58,7 +57,7 @@ HomeScreen → PasteScreen/ManualEntry → ColumnMapping → Dashboard → [Focu
 - **`HypothesisNode` — cause role cycle button:** Supported/partial nodes show a 🎯 button that cycles `none → primary → contributing → none`. Only one primary allowed per root tree; no limit on contributing. `PRIMARY` / `CONTRIBUTING` badges rendered on the node row.
 - **`FindingCard` — "Suspected cause" section:** When any hypothesis carries a causeRole and the finding is `analyzed` or higher, the card renders a "Suspected cause" section listing the primary hypothesis prominently and contributing hypotheses beneath it.
 
-**Entry scenario affects INVESTIGATE:** "Problem to Solve" → full diamond traversal expected. "Hypothesis to Check" → may skip diverging, go straight to validating.
+**Entry scenario affects INVESTIGATE:** "Problem to Solve" → full diamond traversal expected. "Hypothesis to Check" → may skip diverging, go straight to validating. Entry scenario flows to CoScout via `useEditorAI`.
 
 ### IMPROVE (actions exist, PDCA cycle)
 
@@ -69,7 +68,6 @@ HomeScreen → PasteScreen/ManualEntry → ColumnMapping → Dashboard → [Focu
 | What-If Simulator     | `WhatIfPageBase`, scenario sliders                                                    | All   | Project Cpk impact             |
 | Staged Analysis       | `StagedComparisonCard`, per-stage stats                                               | Azure | Before/After verification      |
 | Report View           | `ReportViewBase`, 5-step story via `ReportSection`                                    | Azure | Shares investigation narrative |
-| PDCA tracker          | `PDCAProgress` (Plan → Do → Check → Act)                                              | Azure | Tracks cycle completion        |
 
 **New UI elements added in IMPROVE (2026-03-19):**
 
@@ -80,7 +78,6 @@ HomeScreen → PasteScreen/ManualEntry → ColumnMapping → Dashboard → [Focu
 - **Direction badge on `HypothesisNode` ideas:** Color-coded prevent/detect/simplify/eliminate badge (Four Ideation Directions).
 - **Effort dropdown on `HypothesisNode`:** Inline `<select>` replacing the cycle button, color-coded (green/amber/red).
 - **Projected vs actual on `FindingCard` outcome:** Shows "Projected X.XX → Actual Y.YY (+delta)" with green/red color.
-- **`PDCAProgress.hasSynthesis` prop:** Enables synthesis indicator in the PDCA progress tracker.
 - **`WhatIfPageBase` — projection context banner:** When opened via the "P" (Project) button on an improvement idea, the simulator displays a banner identifying the linked finding and idea name. A **"Save to idea"** button captures the current projection (projected mean, σ, Cpk, yield) back onto the idea record, completing the idea → What-If → idea round-trip.
 
 **IMPROVE follows the full PDCA cycle:**
@@ -91,26 +88,9 @@ HomeScreen → PasteScreen/ManualEntry → ColumnMapping → Dashboard → [Focu
 4. **Check** — staged analysis (before vs after), compare Cpk/mean/σ
 5. **Act** — target met → record outcome, close finding (`resolved`), standardize. Not met → new PDCA cycle or re-enter INVESTIGATE.
 
-## Phase Indicator Visibility
-
-The `JourneyPhaseStrip` (compact dots + label) appears in the app header across all post-FRAME views:
-
-| View                      | Visible | Notes                                     |
-| ------------------------- | ------- | ----------------------------------------- |
-| HomeScreen                | No      | FRAME screens have no indicator           |
-| PasteScreen / ManualEntry | No      | FRAME screens                             |
-| ColumnMapping             | No      | FRAME screens                             |
-| Dashboard (grid)          | Yes     | Header persists                           |
-| Dashboard (focused)       | Yes     | Header persists                           |
-| Mobile carousel           | Yes     | Compact pill in header                    |
-| What-If Page              | Yes     | Header persists                           |
-| Report View               | Yes     | Header persists                           |
-| Presentation View         | No      | Minimal chrome                            |
-| FindingsWindow popout     | No      | Separate window, has InvestigationSidebar |
-
 ## Entry Scenarios
 
-Three scenarios affect coaching content at each phase. See `EntryScenario` type in `@variscout/core`.
+Three scenarios affect AI behavior at each phase. See `EntryScenario` type in `@variscout/core`, detected by `detectEntryScenario()` in `@variscout/hooks`.
 
 | Scenario     | Label               | Typical Flow                                                                                          |
 | ------------ | ------------------- | ----------------------------------------------------------------------------------------------------- |
@@ -132,4 +112,4 @@ Phase detection uses `useJourneyPhase` hook from `@variscout/hooks`:
 - [analysis-journey-map.md](../../03-features/workflows/analysis-journey-map.md) — Conceptual journey definition
 - [mental-model-hierarchy.md](./mental-model-hierarchy.md) — The Journey Model
 - [investigation-to-action.md](../../03-features/workflows/investigation-to-action.md) — INVESTIGATE/IMPROVE workflow
-- [methodology-coach-design.md](../../superpowers/specs/2026-03-18-methodology-coach-design.md) — Coach UI design spec
+- [methodology-coach-design.md](../../archive/2026-03-18-methodology-coach-design.md) — Coach UI design spec (archived, removed)

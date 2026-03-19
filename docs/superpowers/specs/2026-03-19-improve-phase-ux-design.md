@@ -45,8 +45,8 @@ The analyst's cognitive task shifts as they move through the workflow. Each work
 - **Analysis workspace** is the default. The dashboard, charts, and filter navigation live here.
 - **Findings workspace** is the existing Findings panel in board mode, accessible via the Findings button in the toolbar.
 - **Improvement workspace** is a new full-page view, accessible from:
+  - The toolbar Improvement button
   - The Findings board (button on analyzed/improving findings)
-  - The Methodology Coach PDCA section (Plan step link)
   - Direct URL parameter: `?view=improvement`
 
 ### Multi-Screen Support
@@ -75,13 +75,12 @@ The synthesis step activates when the investigation diamond reaches the **Conver
 
 ### Trigger
 
-The Methodology Coach provides a nudge when converging conditions are met:
+Convergence conditions:
 
 - At least one hypothesis has `status: 'supported'` or `causeRole: 'primary'`
-- The investigation diamond renders Converging phase as active
-- Coach text: _"Your evidence is converging. Summarize what you've learned before planning improvements."_
+- The investigation diamond reaches the Converging phase
 
-The nudge is informational, not blocking. The analyst can write the synthesis at any time or skip it entirely.
+The analyst can write the synthesis at any time or skip it entirely.
 
 ### With CoScout
 
@@ -364,7 +363,7 @@ Every step in the IMPROVE phase works without AI. CoScout enhances the experienc
 
 | Step                    | Without CoScout                                                    | With CoScout                                                          |
 | ----------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| **Convergence trigger** | Methodology Coach nudge based on hypothesis status                 | Same nudge + CoScout can ask "Ready to summarize?"                    |
+| **Convergence trigger** | Hypothesis status signals convergence                              | CoScout can ask "Ready to summarize?"                                 |
 | **Write synthesis**     | Manual text field with placeholder guidance                        | "Draft synthesis" button generates narrative from evidence            |
 | **Brainstorm ideas**    | Manual entry on hypothesis nodes, Four Directions hint visible     | `suggest_improvement_idea` tool generates ideas with effort/direction |
 | **Project impact**      | What-If Simulator round-trip (manual slider adjustment)            | CoScout can suggest simulation parameters                             |
@@ -396,7 +395,7 @@ The following components and infrastructure have been implemented:
 | Effort in ActionProposalCard       | `@variscout/ui`   | Preview line with effort label and definition                                   |
 | Projected vs actual in FindingCard | `@variscout/ui`   | Outcome section shows projected → actual with delta and color                   |
 | i18n keys                          | `@variscout/core` | `improve.*`, `effort.*`, `idea.*`, `outcome.*` keys in en.ts catalog            |
-| Four Directions in coaching        | `@variscout/core` | Coach text and PDCA hint reference Prevent/Detect/Simplify/Eliminate            |
+| Four Directions hint               | `@variscout/ui`   | ImprovementWorkspaceBase hint references Prevent/Detect/Simplify/Eliminate      |
 | Effort in tool schema              | `@variscout/core` | `suggest_improvement_idea` includes effort field with definitions               |
 | Process context in narration       | `@variscout/core` | `product` and `measurement` in `buildSummaryPrompt`                             |
 
@@ -412,7 +411,7 @@ All P1–P4 roadmap items are fully delivered as of 2026-03-19.
 | P1    | 4   | Editor.tsx effort extraction                 | Delivered |
 | P2    | 5   | FindingBoardView — synthesis header          | Delivered |
 | P2    | 6   | ReportView — Step 3 synthesis section        | Delivered |
-| P2    | 7   | CoachPopover — convergence nudge             | Delivered |
+| P2    | 7   | Convergence nudge (removed with Coach)       | Removed   |
 | P3    | 8   | WhatIfPageBase — "Save projection to idea"   | Delivered |
 | P3    | 9   | `onOpenWhatIf` wiring                        | Delivered |
 | P4    | 10  | FindingCard `projectedCpk` resolution        | Delivered |
@@ -420,7 +419,7 @@ All P1–P4 roadmap items are fully delivered as of 2026-03-19.
 ## Related
 
 - [Investigation to Action Workflow](../../03-features/workflows/investigation-to-action.md) — full investigation and improvement methodology
-- [Methodology Coach Design](2026-03-18-methodology-coach-design.md) — phase-aware coaching framework
+- [Methodology Coach Design](../../archive/2026-03-18-methodology-coach-design.md) — phase-aware coaching framework (archived, removed)
 - [AI Action Tools Design](2026-03-19-ai-action-tools-design.md) — CoScout tool schemas including `suggest_improvement_idea`
 - [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — hypothesis model and finding status decisions
 - [ADR-029: AI Action Tools](../../07-decisions/adr-029-ai-action-tools.md) — tool definitions and phase gating

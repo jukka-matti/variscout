@@ -61,7 +61,6 @@ flowchart LR
         u7["2 Simulation"]
         u8["5 Dashboard"]
         u9["11 AI & CoScout"]
-        u10["7 Methodology Coach"]
         u11["6 Report View"]
         u12["6 Investigation"]
         u13["3 Utilities"]
@@ -340,15 +339,6 @@ flowchart TB
         paretowrapbase["ParetoChartWrapperBase"]
     end
 
-    subgraph coach["Methodology Coach (7)"]
-        journeystrip["JourneyPhaseStrip"]
-        coachpopover["CoachPopover"]
-        mobilecoach["MobileCoachSheet"]
-        journeyindicator["JourneyPhaseIndicator"]
-        diamondmap["DiamondPhaseMap"]
-        pdcaprogress["PDCAProgress"]
-        methodologybase["MethodologyCoachBase"]
-    end
 
     subgraph report["Report View (6)"]
         reportview["ReportViewBase"]

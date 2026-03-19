@@ -146,16 +146,6 @@ export const th: MessageCatalog = {
   'status.loading': 'กำลังโหลด',
   'status.ai': 'AI',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const th: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -414,18 +398,6 @@ export const th: MessageCatalog = {
   'data.typeDate': 'วันที่',
   'data.typeText': 'ข้อความ',
   'data.categories': 'หมวดหมู่',
-  'coach.problem.frame': 'ตั้งค่าข้อมูลของคุณเพื่อเริ่มสอบสวนปัญหา',
-  'coach.problem.scout': 'มองหารูปแบบความแปรปรวนที่อาจอธิบายปัญหาได้',
-  'coach.problem.investigate': 'สร้างหลักฐานเชื่อมโยงปัจจัยกับปัญหา',
-  'coach.problem.improve': 'วางแผนและดำเนินการปรับปรุงด้วยวงจร PDCA',
-  'coach.hypothesis.frame': 'ตั้งค่าข้อมูลของคุณเพื่อทดสอบสมมติฐาน',
-  'coach.hypothesis.scout': 'มองหาหลักฐานที่สนับสนุนหรือหักล้างสมมติฐานของคุณ',
-  'coach.hypothesis.investigate': 'รวบรวมหลักฐานทางสถิติเพื่อยืนยันสาเหตุที่สงสัย',
-  'coach.hypothesis.improve': 'ยืนยันสาเหตุแล้ว — วางแผนการแก้ไขผ่าน PDCA',
-  'coach.routine.frame': 'ตั้งค่าข้อมูลของคุณสำหรับการตรวจสอบกระบวนการตามปกติ',
-  'coach.routine.scout': 'สแกนหาสัญญาณใหม่ การเบี่ยงเบน หรือรูปแบบที่ไม่คาดคิด',
-  'coach.routine.investigate': 'พบสัญญาณ — เจาะลึกหาสาเหตุที่เป็นไปได้',
-  'coach.routine.improve': 'ระบุสาเหตุแล้ว — วางแผนการแก้ไขผ่าน PDCA',
   'home.heading': 'สำรวจการวิเคราะห์ความแปรปรวน',
   'home.description':
     'เครื่องมือฝึกอบรมการวิเคราะห์ความแปรปรวนฟรี แสดงผลความแปรปรวน คำนวณความสามารถ และค้นหาจุดที่ต้องมุ่งเน้น — ในเบราว์เซอร์ของคุณ',

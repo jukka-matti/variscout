@@ -146,16 +146,6 @@ export const el: MessageCatalog = {
   'status.loading': 'Φόρτωση',
   'status.ai': 'AI',
 
-  // Methodology Coach
-  'coach.frame': 'Frame',
-  'coach.scout': 'Scout',
-  'coach.investigate': 'Investigate',
-  'coach.improve': 'Improve',
-  'coach.frameDesc': 'Define the problem and set boundaries',
-  'coach.scoutDesc': 'Gather data and explore patterns',
-  'coach.investigateDesc': 'Test hypotheses and find root causes',
-  'coach.improveDesc': 'Implement changes and verify results',
-
   // Report KPIs
   'report.kpi.samples': 'Samples',
   'report.kpi.mean': 'Mean',
@@ -267,12 +257,6 @@ export const el: MessageCatalog = {
   'investigation.verifySideEffects': 'No side effects observed',
   'investigation.verifyOutcome': 'Outcome sustained over time',
   'investigation.uninvestigated': 'Uninvestigated Factors',
-
-  // Coach mobile phase titles
-  'coach.frameTitle': 'Frame the Problem',
-  'coach.scoutTitle': 'Scout the Data',
-  'coach.investigateTitle': 'Investigate Causes',
-  'coach.improveTitle': 'Improve the Process',
 
   // AI action tool labels
   'ai.tool.applyFilter': 'Apply filter',
@@ -441,22 +425,6 @@ export const el: MessageCatalog = {
   'data.typeDate': 'Ημερομηνία',
   'data.typeText': 'Κείμενο',
   'data.categories': 'κατηγορίες',
-
-  // Coaching text
-  'coach.problem.frame':
-    'Ρυθμίστε τα δεδομένα σας για να ξεκινήσετε τη διερεύνηση του προβλήματος.',
-  'coach.problem.scout': 'Αναζητήστε μοτίβα διακύμανσης που θα μπορούσαν να εξηγήσουν το πρόβλημα.',
-  'coach.problem.investigate': 'Δημιουργήστε τεκμήρια που συνδέουν παράγοντες με το πρόβλημα.',
-  'coach.problem.improve': 'Σχεδιάστε και υλοποιήστε βελτιώσεις με τον κύκλο PDCA.',
-  'coach.hypothesis.frame': 'Ρυθμίστε τα δεδομένα σας για να ελέγξετε την υπόθεσή σας.',
-  'coach.hypothesis.scout': 'Αναζητήστε στοιχεία που υποστηρίζουν ή αντικρούουν την υπόθεσή σας.',
-  'coach.hypothesis.investigate':
-    'Συλλέξτε στατιστικά στοιχεία για επιβεβαίωση της ύποπτης αιτίας.',
-  'coach.hypothesis.improve': 'Η αιτία επιβεβαιώθηκε — σχεδιάστε διορθωτικές ενέργειες μέσω PDCA.',
-  'coach.routine.frame': 'Ρυθμίστε τα δεδομένα σας για τακτικό έλεγχο διαδικασίας.',
-  'coach.routine.scout': 'Σαρώστε για νέα σήματα, ολίσθηση ή απρόσμενα μοτίβα.',
-  'coach.routine.investigate': 'Βρέθηκε σήμα — εμβαθύνετε σε πιθανές αιτίες.',
-  'coach.routine.improve': 'Η αιτία εντοπίστηκε — σχεδιάστε διορθωτικές ενέργειες μέσω PDCA.',
 
   // PWA HomeScreen
   'home.heading': 'Εξερεύνηση ανάλυσης διακύμανσης',
