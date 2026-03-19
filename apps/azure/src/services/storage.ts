@@ -69,6 +69,62 @@ export interface ClassifiedError {
   message: string;
 }
 
+/**
+ * Download a file from Graph API using drive item metadata.
+ * Used by File Picker v8 integration (ADR-030) after user selects a file.
+ */
+export async function downloadFileFromGraph(
+  endpoint: string,
+  driveId: string,
+  itemId: string
+): Promise<File> {
+  const token = await getGraphToken();
+  const baseUrl = `${endpoint}/drives/${driveId}/items/${itemId}`;
+
+  // Get metadata for filename
+  const metaRes = await fetch(baseUrl, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!metaRes.ok) throw new Error(`Failed to get file metadata: ${metaRes.status}`);
+  const meta = await metaRes.json();
+
+  // Download content
+  const contentRes = await fetch(`${baseUrl}/content`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!contentRes.ok) throw new Error(`Failed to download file: ${contentRes.status}`);
+  const blob = await contentRes.blob();
+
+  return new File([blob], meta.name, { type: blob.type });
+}
+
+/**
+ * Save a file to a specific SharePoint folder via Graph API.
+ * Used by "Save As..." feature (ADR-030).
+ */
+export async function saveToCustomLocation(
+  driveId: string,
+  folderId: string,
+  fileName: string,
+  data: string | Blob
+): Promise<{ webUrl: string }> {
+  const token = await getGraphToken();
+  const body = typeof data === 'string' ? new Blob([data], { type: 'application/json' }) : data;
+  const endpoint = `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${folderId}:/${fileName}:/content`;
+
+  const res = await fetch(endpoint, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': body.type || 'application/octet-stream',
+    },
+    body,
+  });
+  if (!res.ok) throw new Error(`Failed to save file: ${res.status}`);
+  const result = await res.json();
+  return { webUrl: result.webUrl };
+}
+
 export function classifySyncError(error: unknown): ClassifiedError {
   if (error instanceof AuthError) {
     return { category: 'auth', retryable: false, message: error.message };

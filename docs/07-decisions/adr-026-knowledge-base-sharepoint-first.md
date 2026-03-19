@@ -29,7 +29,7 @@ After analyzing cost, security, user value, and the latest Foundry IQ capabiliti
 | 3   | Intent detection    | LLM function call (`suggest_knowledge_search`) → user confirms | Layered UX: analytical answer first, then "💡 Search Knowledge Base?"; keyword heuristic as UI fallback (ADR-028) |
 | 4   | Report versioning   | Ask user on re-publish                                         | Dialog: "Create new version or replace?"                                                                          |
 | 5   | Auth for SharePoint | Reuse `getGraphTokenWithScopes()` OBO                          | Already built in `graphToken.ts`. Just add SP scope to allowlist.                                                 |
-| 6   | Folder picker       | Text input now, `@microsoft/file-browser` later                | Native SharePoint UX in future; text input for MVP                                                                |
+| 6   | Folder picker       | OneDrive File Picker v8 — unified across app                   | Native SharePoint UX for KB scope, data import, project open/save                                                 |
 | 7   | Scope storage       | Per-project in `AnalysisState.knowledgeSearchFolder`           | Different projects can search different document libraries                                                        |
 | 8   | Document upload     | No in-app upload                                               | SharePoint is the DMS; VariScout publishes reports only                                                           |
 
@@ -183,7 +183,6 @@ Investigation complete → Report View (existing)
 | -------------------------------------- | ------------- | --------------------------------------------------- |
 | **CoScout** — root cause questions     | 🟢 High       | Intent-detected suggestion → user confirms → search |
 | **CoScout** — "ask about this finding" | 🟢 High       | Same path, finding text as search context           |
-| **Report generation**                  | 🟡 Medium     | Reference similar past reports (future)             |
 | Dashboard, charts, settings            | 🔴 Not needed | Current data analysis doesn't need external docs    |
 
 ### What's Already Built

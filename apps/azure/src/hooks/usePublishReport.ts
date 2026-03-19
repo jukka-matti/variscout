@@ -42,6 +42,8 @@ export interface UsePublishReportReturn {
   publishReplace: () => Promise<void>;
   status: PublishStatus;
   error: string | null;
+  /** SharePoint web URL of the published report (available after success) */
+  publishedUrl: string | null;
   reset: () => void;
 }
 
@@ -50,6 +52,7 @@ export interface UsePublishReportReturn {
 export function usePublishReport(options: UsePublishReportOptions): UsePublishReportReturn {
   const [status, setStatus] = useState<PublishStatus>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
 
   const doPublish = useCallback(
     async (replaceExisting: boolean) => {
@@ -91,6 +94,7 @@ export function usePublishReport(options: UsePublishReportOptions): UsePublishRe
         }
 
         setStatus('success');
+        setPublishedUrl(result.webUrl ?? null);
       } catch (err) {
         console.error('[PublishReport] Failed:', err);
         setError(err instanceof Error ? err.message : 'Failed to publish report');
@@ -106,7 +110,8 @@ export function usePublishReport(options: UsePublishReportOptions): UsePublishRe
   const reset = useCallback(() => {
     setStatus('idle');
     setError(null);
+    setPublishedUrl(null);
   }, []);
 
-  return { publish, publishReplace, status, error, reset };
+  return { publish, publishReplace, status, error, publishedUrl, reset };
 }

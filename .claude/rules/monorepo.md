@@ -33,7 +33,7 @@ packages/
 │              #   useNarration - NarrativeBar state
 │              #   useChartInsights - Per-chart insight orchestration
 │              #   useAICoScout - CoScout conversation state
-│              #   useKnowledgeSearch - Knowledge Base search wrapper
+│              #   useKnowledgeSearch - Knowledge Base search wrapper (returns lastSearchTimestamp)
 │              #   useFilterHandlers - Dashboard filter handler callbacks
 │              #   useCreateFactorModal - Dashboard create-factor modal state
 │              #   useVerificationCharts - Verification chart toggle state + availability

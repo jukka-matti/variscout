@@ -48,6 +48,23 @@ export function isKnowledgeBaseAvailable(): boolean {
 }
 
 /**
+ * Check if Knowledge Base permissions are available.
+ * Tests whether SharePoint access (Sites.Read.All) can be obtained.
+ */
+export async function checkKnowledgeBasePermissions(): Promise<{
+  available: boolean;
+  hasSharePointAccess: boolean;
+}> {
+  if (!isKnowledgeBaseAvailable()) return { available: false, hasSharePointAccess: false };
+  try {
+    await getGraphTokenWithScopes(['Sites.Read.All']);
+    return { available: true, hasSharePointAccess: true };
+  } catch {
+    return { available: true, hasSharePointAccess: false };
+  }
+}
+
+/**
  * @deprecated ADR-026: No longer using a dedicated findings index.
  * Knowledge comes from SharePoint documents via searchDocuments().
  * Kept for backward compatibility — returns empty array.

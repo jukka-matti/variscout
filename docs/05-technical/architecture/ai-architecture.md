@@ -263,7 +263,7 @@ CoScout question --> User clicks "Search KB?" --> searchDocuments()
 
 When findings are published as scouting reports to SharePoint, they become searchable by future investigations. The 8-step investigation workflow maps directly to where AI adds value:
 
-- **Step 5 (investigate):** CoScout finds past reports about similar causes
+- **Step 5 (investigate):** CoScout searches team documents for related causes and procedures
 - **Step 7 (derive action):** CoScout references SOPs and past corrective actions
 
 After 50+ published reports, the AI has genuine organizational knowledge -- measurement-backed, closed-loop, and continuously evolving.

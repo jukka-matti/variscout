@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Search, Loader2, FileText, ExternalLink } from 'lucide-react';
+import { Search, Loader2, FileText, ExternalLink, AlertTriangle } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import type { CoScoutMessage, CoScoutError, ActionProposal } from '@variscout/core';
 import { parseActionMarkers, stripActionMarkers } from '@variscout/core';
@@ -44,6 +44,13 @@ export interface KnowledgeDocumentResult {
   url?: string;
 }
 
+function formatRelativeTime(ts: number): string {
+  const mins = Math.floor((Date.now() - ts) / 60000);
+  if (mins < 1) return 'just now';
+  if (mins === 1) return '1 min ago';
+  return `${mins} min ago`;
+}
+
 /** Check if a message contains keywords suggesting knowledge base search intent. */
 function detectKnowledgeIntent(text: string): boolean {
   const INTENT_KEYWORDS = [
@@ -80,6 +87,12 @@ export interface CoScoutMessagesProps {
   onSearchKnowledge?: () => void;
   /** Parent can override intent detection (e.g., always show). Falls back to keyword heuristic. */
   knowledgeIntentDetected?: boolean;
+  /** Friendly label for the KB search scope (e.g., folder name) */
+  knowledgeSearchScope?: string;
+  /** Timestamp of last KB search completion */
+  knowledgeSearchTimestamp?: number;
+  /** Show warning when SharePoint admin consent is missing */
+  knowledgePermissionWarning?: boolean;
   /** ADR-029: Action proposals for inline confirmation */
   actionProposals?: ActionProposal[];
   onExecuteAction?: (proposal: ActionProposal, editedText?: string) => void;
@@ -97,6 +110,9 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
   knowledgeDocuments,
   onSearchKnowledge,
   knowledgeIntentDetected,
+  knowledgeSearchScope,
+  knowledgeSearchTimestamp,
+  knowledgePermissionWarning,
   actionProposals,
   onExecuteAction,
   onDismissAction,
@@ -219,7 +235,7 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
         (knowledgeIntentDetected ??
           (() => {
             const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
-            return lastUserMsg ? detectKnowledgeIntent(lastUserMsg.content) : true;
+            return lastUserMsg ? detectKnowledgeIntent(lastUserMsg.content) : false;
           })()) && (
           <div className="flex justify-start" data-testid="coscout-knowledge-search-action">
             <button
@@ -231,6 +247,14 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
             </button>
           </div>
         )}
+
+      {/* Admin consent warning (Item 4) */}
+      {knowledgePermissionWarning && knowledgeAvailable && (
+        <div className="flex items-center gap-1 px-3 py-1 text-[10px] text-amber-400">
+          <AlertTriangle size={10} />
+          SharePoint access unavailable — ask your admin to grant consent
+        </div>
+      )}
 
       {/* Knowledge search loading */}
       {knowledgeSearching && (
@@ -250,6 +274,13 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
               📄 Knowledge Base — {knowledgeDocuments.length} document
               {knowledgeDocuments.length !== 1 ? 's' : ''} found
             </p>
+            {(knowledgeSearchScope || knowledgeSearchTimestamp) && (
+              <p className="text-[9px] text-content-muted px-1 mt-0.5">
+                {knowledgeSearchScope && <>Searched: {knowledgeSearchScope}</>}
+                {knowledgeSearchScope && knowledgeSearchTimestamp && <> · </>}
+                {knowledgeSearchTimestamp && <>{formatRelativeTime(knowledgeSearchTimestamp)}</>}
+              </p>
+            )}
             {knowledgeDocuments.slice(0, 5).map((doc, i) => (
               <div key={i} className="border border-violet-500/20 bg-violet-500/5 rounded-lg p-2.5">
                 <div className="flex items-start gap-1.5">

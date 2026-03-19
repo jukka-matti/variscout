@@ -28,6 +28,7 @@ import {
   FileText,
   Maximize2,
   EllipsisVertical,
+  FolderUp,
 } from 'lucide-react';
 export interface ToolbarDataState {
   hasData: boolean;
@@ -42,6 +43,8 @@ export interface ToolbarSyncState {
   syncStatus: { status: string; message?: string };
   saveStatus: 'idle' | 'saving' | 'saved' | 'error';
   onSave: () => void;
+  /** Save to a custom SharePoint location (Team/Team AI only, ADR-030) */
+  onSaveAs?: () => void;
 }
 
 export interface ToolbarPanelState {
@@ -87,7 +90,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   projectName,
   hasUnsavedChanges,
   dataState: { hasData, hasOutcome, hasFactors, filteredData, outcome, specs },
-  syncState: { syncStatus, saveStatus, onSave },
+  syncState: { syncStatus, saveStatus, onSave, onSaveAs },
   panelState: {
     isFindingsOpen,
     isDataPanelOpen,
@@ -428,6 +431,18 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   ? 'Save Failed'
                   : 'Save')}
         </button>
+
+        {/* Save As... for Team plans (ADR-030) */}
+        {!isPhone && hasTeamFeatures() && onSaveAs && hasData && (
+          <button
+            onClick={onSaveAs}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors"
+            title="Save to SharePoint folder..."
+          >
+            <FolderUp size={14} />
+            Save As...
+          </button>
+        )}
 
         {/* ===== Phone overflow menu ===== */}
         {isPhone && hasActiveData && (

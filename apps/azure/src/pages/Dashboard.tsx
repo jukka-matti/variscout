@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { hasTeamFeatures } from '@variscout/core';
-import { useStorage, type CloudProject } from '../services/storage';
+import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
 import {
   Plus,
   RefreshCw,
@@ -12,13 +12,34 @@ import {
   Users,
   Search,
 } from 'lucide-react';
+import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
 
 interface DashboardProps {
   onOpenProject: (id?: string) => void;
+  /** Load a .vrs project file (from SharePoint download) */
+  onLoadProjectFile?: (file: File) => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject, onLoadProjectFile }) => {
   const { listProjects, syncStatus } = useStorage();
+
+  const handleOpenFromSharePoint = useCallback(
+    async (items: FilePickerResult[]) => {
+      const item = items[0];
+      if (!item || !onLoadProjectFile) return;
+      try {
+        const file = await downloadFileFromGraph(
+          item['@sharePoint.endpoint'],
+          item.parentReference.driveId,
+          item.id
+        );
+        onLoadProjectFile(file);
+      } catch (err) {
+        console.error('[Dashboard] SharePoint project open failed:', err);
+      }
+    },
+    [onLoadProjectFile]
+  );
   const [projects, setProjects] = useState<CloudProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -99,6 +120,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
         </div>
         <div className="flex items-center gap-3">
           {hasTeamFeatures() && getSyncStatusDisplay()}
+          {hasTeamFeatures() && onLoadProjectFile && (
+            <FileBrowseButton
+              mode="files"
+              filters={['.vrs']}
+              onPick={handleOpenFromSharePoint}
+              label="Open from SharePoint"
+              size="sm"
+            />
+          )}
           <button
             onClick={() => onOpenProject()}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"

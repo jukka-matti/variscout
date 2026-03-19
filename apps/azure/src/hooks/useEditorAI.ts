@@ -51,7 +51,11 @@ import {
   getResponsesApiConfig,
 } from '../services/aiService';
 import type { AIPreferences } from '../context/DataContext';
-import { searchDocuments, isKnowledgeBaseAvailable } from '../services/searchService';
+import {
+  searchDocuments,
+  isKnowledgeBaseAvailable,
+  checkKnowledgeBasePermissions,
+} from '../services/searchService';
 import { getChannelDriveInfo } from '../services/channelDrive';
 import { getGraphToken } from '../auth/graphToken';
 import { updateFindingsPopout } from '@variscout/ui';
@@ -112,6 +116,12 @@ export interface UseEditorAIReturn {
   aiContextSummary: AIContextSummary | null;
   /** Resolved channel folder SharePoint URL (for "Open in SharePoint" links) */
   resolvedChannelFolderUrl?: string;
+  /** Friendly label for KB search scope */
+  knowledgeSearchScope?: string;
+  /** Timestamp of last KB search */
+  knowledgeSearchTimestamp?: number;
+  /** Whether admin consent for SharePoint is missing */
+  kbPermissionWarning: boolean;
 }
 
 export function useEditorAI({
@@ -201,6 +211,15 @@ export function useEditorAI({
       cancelled = true;
     };
   }, [aiAvailable, knowledgeSearchFolder]);
+
+  // Admin consent runtime check for KB (Item 4)
+  const [kbPermissionWarning, setKbPermissionWarning] = useState(false);
+  useEffect(() => {
+    if (!isKnowledgeBaseAvailable()) return;
+    checkKnowledgeBasePermissions().then(result => {
+      if (result.available && !result.hasSharePointAccess) setKbPermissionWarning(true);
+    });
+  }, []);
 
   // Effective folder scope: explicit user setting > auto-resolved channel folder
   const effectiveFolderScope = knowledgeSearchFolder ?? resolvedChannelFolderUrl;
@@ -701,6 +720,18 @@ export function useEditorAI({
     };
   }, [aiContext.context, formatStat]);
 
+  // Knowledge search scope label (Item 3)
+  const knowledgeSearchScope = useMemo(() => {
+    if (!effectiveFolderScope) return undefined;
+    try {
+      const url = new URL(effectiveFolderScope);
+      const parts = url.pathname.split('/').filter(Boolean);
+      return parts[parts.length - 1] || 'Channel folder';
+    } catch {
+      return effectiveFolderScope.split('/').pop() || 'Channel folder';
+    }
+  }, [effectiveFolderScope]);
+
   return {
     aiContext,
     narration,
@@ -718,5 +749,8 @@ export function useEditorAI({
     providerLabel,
     aiContextSummary,
     resolvedChannelFolderUrl,
+    knowledgeSearchScope,
+    knowledgeSearchTimestamp: knowledgeSearch.lastSearchTimestamp,
+    kbPermissionWarning,
   };
 }

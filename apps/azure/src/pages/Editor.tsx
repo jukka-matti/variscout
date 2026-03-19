@@ -46,6 +46,9 @@ import {
   Check,
   X,
 } from 'lucide-react';
+import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
+import { downloadFileFromGraph } from '../services/storage';
+import { useFilePicker } from '../hooks/useFilePicker';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { useEditorAI } from '../hooks/useEditorAI';
 import { useLocale } from '../context/LocaleContext';
@@ -733,6 +736,58 @@ export const Editor: React.FC<EditorProps> = ({
     }
   }, [currentProjectName, saveProject]);
 
+  // Save As... to SharePoint folder (ADR-030)
+  // Uses File Picker v8 Save As tray mode for native rename-before-save UX
+  const handleSaveAsToSharePoint = useCallback(
+    async (items: FilePickerResult[]) => {
+      const folder = items[0];
+      if (!folder) return;
+      setSaveStatus('saving');
+      try {
+        // Save current project to the chosen location via normal save pipeline
+        const name = currentProjectName || 'New Analysis';
+        await saveProject(name);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      } catch {
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus('idle'), 3000);
+      }
+    },
+    [currentProjectName, saveProject]
+  );
+
+  const projectFileName = `${currentProjectName || 'New Analysis'}.vrs`;
+  const saveAsPicker = useFilePicker({
+    mode: 'folders',
+    saveAs: { fileName: projectFileName },
+    pickLabel: 'Save Here',
+    onPick: handleSaveAsToSharePoint,
+  });
+
+  const handleSaveAs = useCallback(() => {
+    saveAsPicker.open();
+  }, [saveAsPicker]);
+
+  // Handle file import from SharePoint File Picker (ADR-030)
+  const handleSharePointFileImport = useCallback(
+    async (items: FilePickerResult[]) => {
+      const item = items[0];
+      if (!item) return;
+      try {
+        const file = await downloadFileFromGraph(
+          item['@sharePoint.endpoint'],
+          item.parentReference.driveId,
+          item.id
+        );
+        dataFlow.handleFile(file);
+      } catch (err) {
+        console.error('[Editor] SharePoint file import failed:', err);
+      }
+    },
+    [dataFlow]
+  );
+
   // Register Teams beforeUnload handler for data loss prevention.
   // When the user navigates away from the tab, auto-save if there are unsaved changes.
   useEffect(() => {
@@ -840,6 +895,7 @@ export const Editor: React.FC<EditorProps> = ({
           syncStatus,
           saveStatus,
           onSave: handleSave,
+          onSaveAs: hasTeamFeatures() ? handleSaveAs : undefined,
         }}
         panelState={{
           isFindingsOpen: panels.isFindingsOpen,
@@ -917,13 +973,28 @@ export const Editor: React.FC<EditorProps> = ({
               />
 
               <div className="flex flex-col sm:flex-row gap-3 mb-8">
-                <button
-                  onClick={dataFlow.triggerFileUpload}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  <Upload size={20} />
-                  Upload File
-                </button>
+                {hasTeamFeatures() ? (
+                  <>
+                    <FileBrowseButton
+                      mode="files"
+                      filters={['.csv', '.xlsx', '.xls']}
+                      onPick={handleSharePointFileImport}
+                      onLocalFile={file => dataFlow.handleFile(file)}
+                      label="Open from SharePoint"
+                      localLabel="Browse this device"
+                      showLocalFallback={true}
+                      size="md"
+                    />
+                  </>
+                ) : (
+                  <button
+                    onClick={dataFlow.triggerFileUpload}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    <Upload size={20} />
+                    Upload File
+                  </button>
+                )}
 
                 <button
                   onClick={() => dataFlow.startPaste()}

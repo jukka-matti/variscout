@@ -308,6 +308,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     publishReplace,
     status: publishStatus,
     error: publishError,
+    publishedUrl,
     reset: publishReset,
   } = usePublishReport({
     projectName: processName,
@@ -423,6 +424,7 @@ const ReportView: React.FC<ReportViewProps> = ({
       paretoData,
       paretoTotalCount,
       paretoComparisonData,
+      REPORT_CHART_WIDTH,
     ]
   );
 
@@ -643,6 +645,7 @@ const ReportView: React.FC<ReportViewProps> = ({
         publishStatus={publishStatus}
         publishError={publishError}
         onPublishReset={publishReset}
+        publishedUrl={publishedUrl}
         onClose={onClose}
         canShareViaTeams={canShareViaTeams}
       />

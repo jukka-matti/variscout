@@ -236,6 +236,8 @@ export interface UseEditorDataFlowReturn {
   handleDrillToMeasure: (measureId: string) => void;
   handleBackToPerformance: () => void;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  /** Handle a File object directly (e.g., from SharePoint File Picker, ADR-030) */
+  handleFile: (file: File) => Promise<void>;
   handleAppendPaste: (text: string) => Promise<void>;
   handleAppendFile: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   triggerFileUpload: () => void;
@@ -598,6 +600,18 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     fileInputRef.current?.click();
   }, []);
 
+  // Direct File object handler — avoids synthetic event hacks
+  // Used by SharePoint File Picker integration (ADR-030)
+  const handleFile = useCallback(
+    async (file: File) => {
+      const syntheticEvent = {
+        target: { files: [file], value: file.name },
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
+      await handleFileChange(syntheticEvent);
+    },
+    [handleFileChange]
+  );
+
   return {
     // State (from reducer)
     ...flowState,
@@ -626,6 +640,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     handleDrillToMeasure,
     handleBackToPerformance,
     handleFileChange,
+    handleFile,
     handleAppendPaste,
     handleAppendFile,
     triggerFileUpload,

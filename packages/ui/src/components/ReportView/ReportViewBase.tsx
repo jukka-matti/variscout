@@ -1,5 +1,15 @@
 import React from 'react';
-import { X, FileText, Copy, Share2, Upload, Loader2, Check, AlertCircle } from 'lucide-react';
+import {
+  X,
+  FileText,
+  Copy,
+  Share2,
+  Upload,
+  Loader2,
+  Check,
+  AlertCircle,
+  ExternalLink,
+} from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 
 export interface ReportViewBaseColorScheme {
@@ -52,6 +62,8 @@ export interface ReportViewBaseProps {
   publishStatus?: 'idle' | 'rendering' | 'uploading' | 'success' | 'error' | 'exists';
   publishError?: string | null;
   onPublishReset?: () => void;
+  /** SharePoint web URL of the published report (shown as clickable link on success) */
+  publishedUrl?: string | null;
   onClose: () => void;
   canShareViaTeams?: boolean;
   colorScheme?: Partial<ReportViewBaseColorScheme>;
@@ -86,6 +98,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   publishStatus,
   publishError,
   onPublishReset,
+  publishedUrl,
   onClose,
   canShareViaTeams,
   colorScheme,
@@ -171,12 +184,24 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
                   {publishStatus === 'rendering' ? 'Rendering report…' : 'Uploading…'}
                 </div>
               )}
-              {publishStatus === 'success' && (
-                <div className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 dark:text-green-400">
-                  <Check size={14} />
-                  Published to SharePoint
-                </div>
-              )}
+              {publishStatus === 'success' &&
+                (publishedUrl ? (
+                  <a
+                    href={publishedUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 dark:text-green-400 hover:underline"
+                  >
+                    <Check size={14} />
+                    Published to SharePoint
+                    <ExternalLink size={12} />
+                  </a>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 dark:text-green-400">
+                    <Check size={14} />
+                    Published to SharePoint
+                  </div>
+                ))}
               {publishStatus === 'exists' && onPublishReplace && onPublishReset && (
                 <div className="space-y-1">
                   <p className="px-3 py-1 text-xs text-amber-600 dark:text-amber-400">

@@ -105,17 +105,19 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Persistence & Storage
 
-| Feature                |            Azure Standard            |             Azure Team              | PWA (Free) | Notes                                        |
-| ---------------------- | :----------------------------------: | :---------------------------------: | :--------: | -------------------------------------------- |
-| **Local storage**      |              IndexedDB               |              IndexedDB              |     -      | PWA is session-only                          |
-| **File storage**       | Local files (File System Access API) | Local files + OneDrive + SharePoint |     -      | Team adds cloud sync                         |
-| **Channel storage**    |                  -                   |      SharePoint (per channel)       |     -      | Team plan only                               |
-| **Offline support**    |                Cached                |               Cached                |     ✓      | Azure caches for offline                     |
-| **Analysis save/load** |                  ✓                   |                  ✓                  |     -      | PWA is session-only                          |
-| **Export CSV**         |                  ✓                   |                  ✓                  |     ✓      |                                              |
-| **Export JSON**        |                  ✓                   |                  ✓                  |     -      | Azure App only                               |
-| **Screenshot export**  |                  ✓                   |                  ✓                  |     ✓      |                                              |
-| **Sync notifications** |                  -                   |                  ✓                  |     -      | Toast feedback for sync status, errors, auth |
+| Feature                    |            Azure Standard            |             Azure Team              | PWA (Free) | Notes                                         |
+| -------------------------- | :----------------------------------: | :---------------------------------: | :--------: | --------------------------------------------- |
+| **Local storage**          |              IndexedDB               |              IndexedDB              |     -      | PWA is session-only                           |
+| **File storage**           | Local files (File System Access API) | Local files + OneDrive + SharePoint |     -      | Team adds cloud sync                          |
+| **Channel storage**        |                  -                   |      SharePoint (per channel)       |     -      | Team plan only                                |
+| **Offline support**        |                Cached                |               Cached                |     ✓      | Azure caches for offline                      |
+| **Analysis save/load**     |                  ✓                   |                  ✓                  |     -      | PWA is session-only                           |
+| **Export CSV**             |                  ✓                   |                  ✓                  |     ✓      |                                               |
+| **Export JSON**            |                  ✓                   |                  ✓                  |     -      | Azure App only                                |
+| **Screenshot export**      |                  ✓                   |                  ✓                  |     ✓      |                                               |
+| **Sync notifications**     |                  -                   |                  ✓                  |     -      | Toast feedback for sync status, errors, auth  |
+| **SharePoint file picker** |                  -                   |                  ✓                  |     -      | Browse SP for import, open, save-as (ADR-030) |
+| **Report publish URL**     |                  -                   |          ✓ (Team AI only)           |     -      | Clickable "Open in SharePoint" after publish  |
 
 ---
 
@@ -131,6 +133,8 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Process description field**   |    Optional    |  Optional  |   Optional    |     -      | Free-text process context for AI grounding                              |
 | **AI visibility toggle**        |    Optional    |  Optional  |   Optional    |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists  |
 | **Knowledge Base Search**       |       -        |     -      | Yes (preview) |     -      | On-demand search via Remote SharePoint knowledge source (Team AI only)  |
+| **KB Freshness Indicator**      |       -        |     -      |       ✓       |     -      | Scope label + relative timestamp below KB results                       |
+| **KB Permission Warning**       |       -        |     -      |       ✓       |     -      | Amber warning when admin consent missing for SharePoint                 |
 | **Findings Export (CSV/JSON)**  |       -        |     ✓      |       ✓       |     -      | Download findings as CSV (Excel-compatible) or structured JSON          |
 | **Findings Export (AI Report)** |       -        |     -      |       ✓       |     -      | AI-generated quality engineering report from findings data              |
 

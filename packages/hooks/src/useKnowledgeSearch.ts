@@ -50,6 +50,8 @@ export interface UseKnowledgeSearchReturn {
   isSearching: boolean;
   /** Whether knowledge search is available (enabled + has search function) */
   isAvailable: boolean;
+  /** Timestamp of the last completed search */
+  lastSearchTimestamp: number | undefined;
   search: (
     query: string,
     factor?: string
@@ -65,6 +67,7 @@ export function useKnowledgeSearch(
   const [results, setResults] = useState<KnowledgeResult[]>([]);
   const [documents, setDocuments] = useState<DocumentResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [lastSearchTimestamp, setLastSearchTimestamp] = useState<number | undefined>(undefined);
 
   const search = useCallback(
     async (
@@ -90,6 +93,7 @@ export function useKnowledgeSearch(
         ]);
         setResults(findingsResults);
         setDocuments(docResults);
+        setLastSearchTimestamp(Date.now());
         return { findings: findingsResults, documents: docResults };
       } catch (err) {
         console.warn('[useKnowledgeSearch] Search failed:', err);
@@ -111,6 +115,7 @@ export function useKnowledgeSearch(
     documents,
     isSearching,
     isAvailable: enabled && (!!searchFn || !!searchDocumentsFn),
+    lastSearchTimestamp,
     search,
     clear,
   };

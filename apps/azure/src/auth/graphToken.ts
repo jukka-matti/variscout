@@ -113,6 +113,46 @@ export async function getGraphTokenWithScopes(scopes: string[]): Promise<string>
   return getGraphToken();
 }
 
+/**
+ * Get a token for a specific resource (e.g., SharePoint site URL).
+ * Used by OneDrive File Picker v8 which requests resource-scoped tokens.
+ * OBO exchange with `{resource}/.default` scope.
+ */
+export async function getTokenForResource(resource: string): Promise<string> {
+  if (isLocalDev()) {
+    throw new AuthError('Token exchange not available locally', 'local_dev');
+  }
+
+  // Try Teams SSO → OBO exchange with resource-specific scope
+  if (isInTeams() && getFunctionUrl()) {
+    const ssoToken = await getTeamsSsoToken();
+    if (ssoToken) {
+      try {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        const functionKey = getFunctionKey();
+        if (functionKey) headers['x-functions-key'] = functionKey;
+
+        const res = await fetch(`${getFunctionUrl()}/api/token-exchange`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ token: ssoToken, scopes: [`${resource}/.default`] }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.accessToken) {
+            return data.accessToken;
+          }
+        }
+      } catch (err) {
+        console.warn('[GraphToken] Resource-scoped OBO exchange failed:', err);
+      }
+    }
+  }
+
+  // Fallback to standard token
+  return getGraphToken();
+}
+
 /** Clear the cached token (e.g. on logout). */
 export function clearGraphTokenCache(): void {
   cachedToken = null;

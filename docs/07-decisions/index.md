@@ -41,6 +41,7 @@ This section captures key architectural decisions made during VariScout developm
 | [027](adr-027-ai-collaborator-evolution.md)          | AI Collaborator Evolution                | Accepted   | 2026-03-19 |
 | [028](adr-028-responses-api-migration.md)            | Responses API Migration                  | Accepted   | 2026-03-19 |
 | [029](adr-029-ai-action-tools.md)                    | AI Action Tools for CoScout              | Accepted   | 2026-03-19 |
+| [030](adr-030-unified-file-picker.md)                | Unified File Picker (OneDrive v8)        | Accepted   | 2026-03-19 |
 
 ---
 
