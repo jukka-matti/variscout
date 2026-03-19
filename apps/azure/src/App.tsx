@@ -316,6 +316,13 @@ function TeamsThemeSync({ teamsTheme }: { teamsTheme: string | null }) {
       // Teams actively changed the theme — follow it
       setTheme({ mode: mapped });
     }
+
+    // Signal Teams high-contrast mode for CSS targeting (F-13)
+    if (teamsTheme === 'contrast') {
+      document.documentElement.dataset.teamsContrast = 'true';
+    } else {
+      delete document.documentElement.dataset.teamsContrast;
+    }
   }, [teamsTheme, setTheme]);
 
   return null;

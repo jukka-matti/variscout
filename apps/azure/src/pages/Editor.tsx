@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState, useCallback } from 'react';
+import React, { useMemo, useEffect, useState, useCallback, useRef } from 'react';
 import { useStorage } from '../services/storage';
 import { useData } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
@@ -168,6 +168,28 @@ export const Editor: React.FC<EditorProps> = ({
     viewState,
     onViewStateChange: handleViewStateChange,
   });
+
+  // Focus return refs for mobile overlays (F-19)
+  const findingsTriggerRef = useRef<Element | null>(null);
+  const coScoutTriggerRef = useRef<Element | null>(null);
+
+  // Restore focus when mobile findings overlay closes
+  useEffect(() => {
+    if (!isPhone || panels.isFindingsOpen) return;
+    if (findingsTriggerRef.current instanceof HTMLElement) {
+      findingsTriggerRef.current.focus();
+      findingsTriggerRef.current = null;
+    }
+  }, [isPhone, panels.isFindingsOpen]);
+
+  // Restore focus when mobile CoScout overlay closes
+  useEffect(() => {
+    if (!isPhone || panels.isCoScoutOpen) return;
+    if (coScoutTriggerRef.current instanceof HTMLElement) {
+      coScoutTriggerRef.current.focus();
+      coScoutTriggerRef.current = null;
+    }
+  }, [isPhone, panels.isCoScoutOpen]);
 
   // Phone: data panel opens DataTableModal instead of inline panel
   const handleDataPanelToggle = useCallback(() => {
@@ -704,8 +726,14 @@ export const Editor: React.FC<EditorProps> = ({
     knowledgeSearchFolder,
     journeyPhase,
     entryScenario,
-    onOpenCoScout: () => panels.setIsCoScoutOpen(true),
-    onOpenFindings: () => panels.setIsFindingsOpen(true),
+    onOpenCoScout: () => {
+      if (isPhone) coScoutTriggerRef.current = document.activeElement;
+      panels.setIsCoScoutOpen(true);
+    },
+    onOpenFindings: () => {
+      if (isPhone) findingsTriggerRef.current = document.activeElement;
+      panels.setIsFindingsOpen(true);
+    },
   });
 
   // ADR-026: On-demand knowledge search handler
@@ -1118,7 +1146,11 @@ export const Editor: React.FC<EditorProps> = ({
           isDataPanelOpen: panels.isDataPanelOpen,
           isImprovementOpen: panels.isImprovementOpen,
           findingsCount: findingsState.findings.length,
-          onToggleFindings: () => panels.setIsFindingsOpen(prev => !prev),
+          onToggleFindings: () => {
+            if (isPhone && !panels.isFindingsOpen)
+              findingsTriggerRef.current = document.activeElement;
+            panels.setIsFindingsOpen(prev => !prev);
+          },
           onToggleDataPanel: handleDataPanelToggle,
         }}
         dataActions={{
@@ -1157,8 +1189,18 @@ export const Editor: React.FC<EditorProps> = ({
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-0 bg-surface rounded-xl border border-edge overflow-hidden">
+      {/* Main Content — inert when phone overlay is open (F-18 focus trap) */}
+      <div
+        ref={el => {
+          if (!el) return;
+          if (isPhone && (panels.isFindingsOpen || panels.isCoScoutOpen)) {
+            el.setAttribute('inert', '');
+          } else {
+            el.removeAttribute('inert');
+          }
+        }}
+        className="flex-1 flex flex-col min-h-0 bg-surface rounded-xl border border-edge overflow-hidden"
+      >
         {rawData.length === 0 ? (
           // Empty State - Upload Data + Sample Datasets
           <div className="flex-1 flex flex-col items-center justify-start p-8 overflow-y-auto relative">
@@ -1305,7 +1347,7 @@ export const Editor: React.FC<EditorProps> = ({
             />
             {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
             {isPhone && panels.isFindingsOpen ? (
-              <div className="fixed inset-0 z-40 bg-surface flex flex-col animate-slide-up safe-area-bottom">
+              <div className="fixed inset-0 z-[60] bg-surface flex flex-col animate-slide-up safe-area-bottom">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
                   <h2 className="text-sm font-semibold text-content">Findings</h2>
                   <button
@@ -1454,7 +1496,7 @@ export const Editor: React.FC<EditorProps> = ({
             )}
             {/* CoScoutPanel: full-screen overlay on phone, inline sidebar on desktop */}
             {isPhone && panels.isCoScoutOpen ? (
-              <div className="fixed inset-0 z-40 bg-surface flex flex-col animate-slide-up safe-area-bottom">
+              <div className="fixed inset-0 z-[60] bg-surface flex flex-col animate-slide-up safe-area-bottom">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
                   <h2 className="text-sm font-semibold text-content">CoScout</h2>
                   <button

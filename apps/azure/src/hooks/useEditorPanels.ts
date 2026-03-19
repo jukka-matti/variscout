@@ -79,11 +79,26 @@ export function editorPanelReducer(
           }
         : { ...state, isImprovementOpen: false };
     case 'OPEN_PRESENTATION':
-      return { ...state, isPresentationMode: true, isReportOpen: false, isImprovementOpen: false };
+      return {
+        ...state,
+        isPresentationMode: true,
+        isReportOpen: false,
+        isImprovementOpen: false,
+        isFindingsOpen: false,
+        isCoScoutOpen: false,
+      };
     case 'CLOSE_PRESENTATION':
       return { ...state, isPresentationMode: false };
     case 'OPEN_REPORT':
-      return { ...state, isReportOpen: true, isPresentationMode: false, isImprovementOpen: false };
+      return {
+        ...state,
+        isReportOpen: true,
+        isPresentationMode: false,
+        isImprovementOpen: false,
+        isFindingsOpen: false,
+        isCoScoutOpen: false,
+        isDataPanelOpen: false,
+      };
     case 'CLOSE_REPORT':
       return { ...state, isReportOpen: false };
     case 'SET_HIGHLIGHT_ROW':

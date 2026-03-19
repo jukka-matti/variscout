@@ -17,7 +17,7 @@ const FocusedViewOverlay: React.FC<FocusedViewOverlayProps> = ({ onPrev, onNext,
   <div className="flex-1 flex p-4 h-full relative group/focus">
     <button
       onClick={onPrev}
-      className="absolute left-6 top-1/2 -translate-y-1/2 z-50 p-3 bg-surface-secondary/80 hover:bg-surface-tertiary text-content-secondary hover:text-content rounded-full shadow-lg border border-edge opacity-0 group-hover/focus:opacity-100 transition-opacity"
+      className="absolute left-6 top-1/2 -translate-y-1/2 z-50 p-3 bg-surface-secondary/80 hover:bg-surface-tertiary text-content-secondary hover:text-content rounded-full shadow-lg border border-edge opacity-0 group-hover/focus:opacity-100 focus-visible:opacity-100 transition-opacity"
       aria-label="Previous chart"
       title="Previous Chart (Left Arrow)"
     >
@@ -25,7 +25,7 @@ const FocusedViewOverlay: React.FC<FocusedViewOverlayProps> = ({ onPrev, onNext,
     </button>
     <button
       onClick={onNext}
-      className="absolute right-6 top-1/2 -translate-y-1/2 z-50 p-3 bg-surface-secondary/80 hover:bg-surface-tertiary text-content-secondary hover:text-content rounded-full shadow-lg border border-edge opacity-0 group-hover/focus:opacity-100 transition-opacity"
+      className="absolute right-6 top-1/2 -translate-y-1/2 z-50 p-3 bg-surface-secondary/80 hover:bg-surface-tertiary text-content-secondary hover:text-content rounded-full shadow-lg border border-edge opacity-0 group-hover/focus:opacity-100 focus-visible:opacity-100 transition-opacity"
       aria-label="Next chart"
       title="Next Chart (Right Arrow)"
     >

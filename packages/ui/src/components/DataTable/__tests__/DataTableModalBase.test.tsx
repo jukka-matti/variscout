@@ -51,9 +51,28 @@ const defaultProps = {
   specs: { usl: 25, lsl: 5 },
 };
 
+// Mock native <dialog> methods (jsdom doesn't support them)
+beforeEach(() => {
+  HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+    this.setAttribute('open', '');
+  });
+  HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+    this.removeAttribute('open');
+    this.dispatchEvent(new Event('close'));
+  });
+});
+
 describe('DataTableModalBase', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    // Re-apply dialog mocks after restoreAllMocks
+    HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+      this.setAttribute('open', '');
+    });
+    HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+      this.removeAttribute('open');
+      this.dispatchEvent(new Event('close'));
+    });
     defaultProps.onClose = vi.fn();
     defaultProps.onApply = vi.fn();
   });
@@ -179,5 +198,16 @@ describe('DataTableModalBase', () => {
     );
     expect(screen.getByText('2 excluded rows')).toBeTruthy();
     expect(screen.getByText('Show All')).toBeTruthy();
+  });
+
+  it('calls showModal when opened (F-18 focus trap)', () => {
+    render(<DataTableModalBase {...defaultProps} />);
+    expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
+  });
+
+  it('renders as dialog element for native focus trapping (F-18)', () => {
+    const { container } = render(<DataTableModalBase {...defaultProps} />);
+    const dialog = container.querySelector('dialog');
+    expect(dialog).toBeTruthy();
   });
 });

@@ -348,16 +348,32 @@ describe('editorPanelReducer', () => {
       expect(state.highlightRowIndex).toBe(5);
     });
 
-    it('does not affect other panels when toggling one', () => {
+    it('OPEN_PRESENTATION closes findings and CoScout (F-09)', () => {
       const start: EditorPanelState = {
         ...initialPanelState,
         isDataPanelOpen: true,
         isFindingsOpen: true,
+        isCoScoutOpen: true,
       };
       const state = editorPanelReducer(start, { type: 'OPEN_PRESENTATION' });
       expect(state.isDataPanelOpen).toBe(true);
-      expect(state.isFindingsOpen).toBe(true);
+      expect(state.isFindingsOpen).toBe(false);
+      expect(state.isCoScoutOpen).toBe(false);
       expect(state.isPresentationMode).toBe(true);
+    });
+
+    it('OPEN_REPORT closes findings, CoScout, and data panel (F-09)', () => {
+      const start: EditorPanelState = {
+        ...initialPanelState,
+        isDataPanelOpen: true,
+        isFindingsOpen: true,
+        isCoScoutOpen: true,
+      };
+      const state = editorPanelReducer(start, { type: 'OPEN_REPORT' });
+      expect(state.isReportOpen).toBe(true);
+      expect(state.isDataPanelOpen).toBe(false);
+      expect(state.isFindingsOpen).toBe(false);
+      expect(state.isCoScoutOpen).toBe(false);
     });
   });
 });

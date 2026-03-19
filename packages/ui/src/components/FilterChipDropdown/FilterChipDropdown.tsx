@@ -231,7 +231,7 @@ const FilterChipDropdown: React.FC<FilterChipDropdownProps> = ({
             <span className="text-sm font-medium text-white">{factorLabel}</span>
             <button
               onClick={onClose}
-              className={`p-1 ${colorScheme.textSecondary} hover:text-white rounded transition-colors`}
+              className={`p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center ${colorScheme.textSecondary} hover:text-white rounded transition-colors`}
             >
               <X size={18} />
             </button>

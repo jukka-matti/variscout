@@ -106,6 +106,14 @@
   }
 }
 
+/* Accessibility: Teams high-contrast mode (F-13) */
+[data-teams-contrast='true'] {
+  --border-width: 2px;
+}
+[data-teams-contrast='true'] .border-edge {
+  border-width: 2px;
+}
+
 /* Accessibility: Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   * {

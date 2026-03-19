@@ -488,7 +488,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                     setOverflowOpen(false);
                     onAddPasteData();
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <Plus size={16} />
                   {t('toolbar.addMore')}
@@ -498,7 +498,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                     setOverflowOpen(false);
                     onOpenDataTable();
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <Pencil size={16} />
                   {t('data.editData')}
@@ -508,7 +508,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                     setOverflowOpen(false);
                     downloadCSV(filteredData, outcome!, specs);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <Download size={16} />
                   {t('export.asCsv')}
@@ -519,7 +519,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                     setOverflowOpen(false);
                     onOpenWhatIf();
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <Beaker size={16} />
                   {t('panel.whatIf')}
@@ -530,7 +530,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                       setOverflowOpen(false);
                       onOpenImprovement();
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
                   >
                     <Lightbulb size={16} />
                     {t('improve.title')}
@@ -541,7 +541,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                     setOverflowOpen(false);
                     onOpenReport();
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <FileText size={16} />
                   {t('report.scouting')}
@@ -551,7 +551,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                     setOverflowOpen(false);
                     onOpenPresentation();
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <Maximize2 size={16} />
                   {t('nav.presentationMode')}
@@ -562,7 +562,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                       setOverflowOpen(false);
                       onToggleFindings();
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
                   >
                     <ClipboardList size={16} />
                     {t('panel.findings')}
@@ -578,7 +578,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                     setOverflowOpen(false);
                     onToggleDataPanel();
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
                 >
                   <Table2 size={16} />
                   {t('panel.dataTable')}
