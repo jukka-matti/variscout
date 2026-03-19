@@ -45,8 +45,9 @@ INVESTIGATE (Amber #f59e0b)
 
 IMPROVE (Purple #8b5cf6)
   Goal: Improve to target through PDCA
-  Method: Plan (Ideate + Select) → Do → Check → Act
-    Plan: Brainstorm improvements, What-If projections
+  Method: Synthesis → Plan (Ideate + Select) → Do → Check → Act
+    Synthesis: Weave findings into a suspected cause narrative (max 500 chars)
+    Plan: Brainstorm improvements (Four Directions: Prevent, Detect, Simplify, Eliminate)
     Do: Implement improvement actions
     Check: Staged analysis (before vs after)
     Act: Standardize fix or loop (new PDCA cycle / re-investigate)
@@ -207,6 +208,22 @@ How the analyst entered the journey shapes what each phase needs to accomplish:
 This table is mirrored in [Analysis Journey Map § Entry-Path-Dependent Phase Goals](../../03-features/workflows/analysis-journey-map.md#entry-path-dependent-phase-goals).
 
 **In code:** `EntryScenario` type in `@variscout/core/ai/types.ts`, detection via `detectEntryScenario()` in `@variscout/hooks`, coaching text via `getCoachingText()`.
+
+---
+
+## Three-Workspace Model
+
+The analyst's cognitive task shifts across the journey. Three workspaces match this:
+
+| Workspace       | Purpose                        | Primary Phase         | Layout               |
+| --------------- | ------------------------------ | --------------------- | -------------------- |
+| **Analysis**    | See data, discover patterns    | SCOUT, IMPROVE/Check  | Full page (main)     |
+| **Findings**    | Build understanding of causes  | INVESTIGATE           | Side panel or popout |
+| **Improvement** | Plan, act, verify improvements | IMPROVE/Plan, Do, Act | Full page or popout  |
+
+Navigation tabs in header: Analysis | Findings | Improvement. Journey phase dots remain separate (WHERE you are vs WHAT you're doing). Multi-screen via popout: `?view=findings`, `?view=improvement` URL params.
+
+**In code:** `ImprovementWorkspaceBase` (full-page layout), `SynthesisCard` (convergence narrative), `IdeaGroupCard` (hypothesis-grouped ideas), `ImprovementSummaryBar` (selection aggregation). All in `@variscout/ui`. App-level wiring (workspace navigation tabs, URL routing) is future work.
 
 ---
 

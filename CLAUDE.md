@@ -87,6 +87,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Knowledge model / Glossary | docs/05-technical/architecture/knowledge-model.md, packages/core/src/glossary/                                                                          |
 | Diagram health             | scripts/check-diagram-health.sh, docs/05-technical/architecture/component-map.md                                                                        |
 | Documentation site         | apps/docs/ (Astro + Starlight)                                                                                                                          |
+| IMPROVE Phase / Workspaces | docs/superpowers/specs/2026-03-19-improve-phase-ux-design.md, packages/ui/src/components/ImprovementPlan/                                               |
 | Methodology Coach          | docs/superpowers/specs/2026-03-18-methodology-coach-design.md, packages/ui/src/components/MethodologyCoach/                                             |
 
 ## Repository Structure
@@ -123,6 +124,7 @@ variscout-lite/
 | `apps/pwa/src/`                                | context/DataContext.tsx, components/Dashboard.tsx                                | PWA state + main UI                                                              |
 | `apps/azure/src/`                              | context/DataContext.tsx, services/graphFetch.ts, auth/, hooks/useEditor\*.ts     | Azure state, storage, auth, Graph API wrapper                                    |
 | `packages/ui/src/components/MethodologyCoach/` | JourneyPhaseStrip, CoachPopover, MobileCoachSheet, DiamondPhaseMap, PDCAProgress | Phase strip in header + popover coaching                                         |
+| `packages/ui/src/components/ImprovementPlan/`  | ImprovementWorkspaceBase, SynthesisCard, IdeaGroupCard, ImprovementSummaryBar    | Improvement planning workspace (Azure only)                                      |
 | `infra/`                                       | mainTemplate.json, functions/                                                    | ARM template, Azure Functions                                                    |
 
 ## Key Patterns
@@ -137,11 +139,10 @@ See `.claude/rules/` for code style, chart, testing, and monorepo conventions.
 
 ## Products & Pricing
 
-| Product        | Distribution      | Pricing    | Features                                               | Status      |
-| -------------- | ----------------- | ---------- | ------------------------------------------------------ | ----------- |
-| Azure Standard | Azure Marketplace | €99/month  | Full analysis, local file storage                      | **PRIMARY** |
-| Azure Team     | Azure Marketplace | €199/month | + Teams, OneDrive, SharePoint, mobile, photos          | **PRIMARY** |
-| Azure Team AI  | Azure Marketplace | €279/month | + AI Knowledge Base, AI-enhanced CoScout, org learning | **PRIMARY** |
-| PWA            | Public URL        | FREE       | Training & education (forever free)                    | Production  |
+| Product        | Distribution      | Pricing    | Features                                          | Status      |
+| -------------- | ----------------- | ---------- | ------------------------------------------------- | ----------- |
+| Azure Standard | Azure Marketplace | €79/month  | Full analysis with CoScout AI, local file storage | **PRIMARY** |
+| Azure Team     | Azure Marketplace | €199/month | + Teams, OneDrive, SharePoint, Knowledge Base     | **PRIMARY** |
+| PWA            | Public URL        | FREE       | Training & education (forever free)               | Production  |
 
-See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for the distribution strategy.
+See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) and [ADR-033](docs/07-decisions/adr-033-pricing-simplification.md) for distribution and pricing strategy.

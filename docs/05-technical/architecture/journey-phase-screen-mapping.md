@@ -62,16 +62,25 @@ HomeScreen → PasteScreen/ManualEntry → ColumnMapping → Dashboard → [Focu
 
 ### IMPROVE (actions exist, PDCA cycle)
 
-| Screen              | Components                                         | Tier  | Notes                          |
-| ------------------- | -------------------------------------------------- | ----- | ------------------------------ |
-| Dashboard + actions | `ActionItem` in `FindingCard`                      | Azure | PWA stops at Analyzed          |
-| What-If Simulator   | `WhatIfPageBase`, scenario sliders                 | All   | Project Cpk impact             |
-| Staged Analysis     | `StagedComparisonCard`, per-stage stats            | Azure | Before/After verification      |
-| Report View         | `ReportViewBase`, 5-step story via `ReportSection` | Azure | Shares investigation narrative |
-| PDCA tracker        | `PDCAProgress` (Plan → Do → Check → Act)           | Azure | Tracks cycle completion        |
+| Screen                | Components                                                                            | Tier  | Notes                          |
+| --------------------- | ------------------------------------------------------------------------------------- | ----- | ------------------------------ |
+| Dashboard + actions   | `ActionItem` in `FindingCard`                                                         | Azure | PWA stops at Analyzed          |
+| Improvement Workspace | `ImprovementWorkspaceBase`, `SynthesisCard`, `IdeaGroupCard`, `ImprovementSummaryBar` | Azure | Full-page improvement planning |
+| What-If Simulator     | `WhatIfPageBase`, scenario sliders                                                    | All   | Project Cpk impact             |
+| Staged Analysis       | `StagedComparisonCard`, per-stage stats                                               | Azure | Before/After verification      |
+| Report View           | `ReportViewBase`, 5-step story via `ReportSection`                                    | Azure | Shares investigation narrative |
+| PDCA tracker          | `PDCAProgress` (Plan → Do → Check → Act)                                              | Azure | Tracks cycle completion        |
 
-**New UI elements added in IMPROVE (2026-03-18):**
+**New UI elements added in IMPROVE (2026-03-19):**
 
+- **`ImprovementWorkspaceBase`** — Full-page improvement planning view. Contains SynthesisCard, Four Directions hint, IdeaGroupCards grouped by hypothesis, and ImprovementSummaryBar. Azure only.
+- **`SynthesisCard`** — Convergence synthesis narrative (editable, max 500 chars). Linked finding badges. Read-only variant for Board view header.
+- **`IdeaGroupCard`** — Ideas grouped by supported/partial hypothesis. Each row has checkbox, category badge, effort dropdown, projection badge, What-If and CoScout buttons.
+- **`ImprovementSummaryBar`** — Sticky bottom bar: selected count, effort breakdown (low/med/high), projected Cpk, "Convert selected → Actions" button.
+- **Category badge on `HypothesisNode` ideas:** Color-coded containment/corrective/preventive badge.
+- **Effort dropdown on `HypothesisNode`:** Inline `<select>` replacing the cycle button, color-coded (green/amber/red).
+- **Projected vs actual on `FindingCard` outcome:** Shows "Projected X.XX → Actual Y.YY (+delta)" with green/red color.
+- **`PDCAProgress.hasSynthesis` prop:** Enables synthesis indicator in the PDCA progress tracker.
 - **`WhatIfPageBase` — projection context banner:** When opened via the "P" (Project) button on an improvement idea, the simulator displays a banner identifying the linked finding and idea name. A **"Save to idea"** button captures the current projection (projected mean, σ, Cpk, yield) back onto the idea record, completing the idea → What-If → idea round-trip.
 
 **IMPROVE follows the full PDCA cycle:**

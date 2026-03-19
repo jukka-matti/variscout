@@ -257,6 +257,32 @@ The Improvement Ideas section on a finding unlocks once at least one hypothesis 
 
 This is the creative bridge between "we know what causes the problem" and "here is our action plan." By comparing projected impact across ideas, analysts can prioritize the most effective fix before committing resources. Selected ideas flow naturally into the corrective actions list below.
 
+#### Improvement Ideation Methodology
+
+VariScout's improvement ideation follows the RDMAIC framework, which structures brainstorming around four directions and filters ideas through four feasibility criteria.
+
+**Four Ideation Directions** — creative prompts that push thinking beyond the obvious fix:
+
+| Direction     | Question                                                  | Example                                         |
+| ------------- | --------------------------------------------------------- | ----------------------------------------------- |
+| **Prevent**   | Can the root cause be prevented from occurring?           | Poka-yoke fixture that blocks wrong orientation |
+| **Detect**    | Can the problem be made visible so it's caught earlier?   | In-line sensor alarm at ±2σ threshold           |
+| **Simplify**  | Can the work be made easier or less error-prone?          | Pre-measured kits replacing manual weighing     |
+| **Eliminate** | Can the work step be removed or fundamentally redesigned? | Automation of the manual adjustment step        |
+
+Working through all four directions before evaluating prevents premature convergence on the first idea that comes to mind.
+
+**Four Feasibility Criteria** — quality filter applied to each idea. The best improvement says "yes" to all four:
+
+| Criterion                   | Why it matters                                       |
+| --------------------------- | ---------------------------------------------------- |
+| **Removes root cause?**     | Treating symptoms isn't enough — the problem returns |
+| **Can we do it ourselves?** | Dependencies on others delay weeks                   |
+| **Can we try small?**       | Small experiment, big learning; failure is cheap     |
+| **Can we measure it?**      | Without a metric, you won't know if it worked        |
+
+**Prioritization principle:** Prefer lean improvements (no investment) first. The best improvement is the simplest one that addresses the root cause. A cheap experiment that removes the root cause beats a capital project that merely reduces symptoms.
+
 ### Idea → What-If Round-Trip
 
 Each improvement idea can be linked directly to a What-If simulation. Clicking the **"P" (Project)** button on an idea opens the What-If Simulator with a context banner identifying the linked finding and idea. Adjusting the sliders and clicking **"Save to idea"** captures the resulting projection (projected mean, σ, Cpk, yield) back onto the idea record — no manual copying required.
@@ -474,6 +500,115 @@ Filter to Store C + Weekend, then use What-If:
 - Shifting mean by -5 minutes (better routing) -> Cpk improves from 0.6 to 1.1
 - Adding 20% variation reduction (standardized process) -> Cpk reaches 1.4
 - Combined projection supports the business case for process improvement at Store C
+
+## Convergence Synthesis
+
+The convergence synthesis is a deliberate pause between the INVESTIGATE and IMPROVE phases. Before shifting to improvement planning, the analyst writes a concise narrative summarizing what the evidence points to.
+
+### When It Occurs
+
+The synthesis step activates when the investigation diamond reaches the **Converging** sub-phase:
+
+- At least one hypothesis has `status: 'supported'` or `causeRole: 'primary'`
+- The investigation diamond renders the Converging phase as active
+- The Methodology Coach provides a nudge: _"Your evidence is converging. Summarize what you've learned before planning improvements."_
+
+The nudge is informational, not blocking. The analyst can write the synthesis at any time, or skip it entirely.
+
+### Storage
+
+The synthesis is stored on `ProcessContext.synthesis` (max 500 characters). It lives on `ProcessContext` rather than on a single finding because it describes the analyst's overall process understanding — potentially synthesizing evidence from multiple findings and hypotheses.
+
+```typescript
+interface ProcessContext {
+  // ... other fields
+  /** Convergence synthesis — suspected cause narrative (max 500 chars) */
+  synthesis?: string;
+}
+```
+
+### Language Guidance
+
+VariScout builds understanding through structured learning. The synthesis field enforces careful language:
+
+| Use                         | Avoid                      |
+| --------------------------- | -------------------------- |
+| "The evidence points to..." | "Confirmed that..."        |
+| "The evidence suggests..."  | "Root cause identified..." |
+| "Suspected cause"           | "Proven cause"             |
+
+True confirmation only comes when the process improves to target (outcome = effective at "Resolved" status). The synthesis captures the best-supported theory — confident enough to act on, but not yet proven.
+
+### Where Synthesis Surfaces
+
+| Surface                   | How It Appears                                              |
+| ------------------------- | ----------------------------------------------------------- |
+| **Board view header**     | Read-only card above status columns (when populated)        |
+| **Improvement workspace** | Editable SynthesisCard at top of the improvement plan       |
+| **Report Step 3**         | "Suspected Cause" section with synthesis narrative          |
+| **CoScout context**       | Included in system prompt to ground improvement suggestions |
+| **Narration prompt**      | Included in `buildSummaryPrompt` for narrative generation   |
+
+### CoScout Drafting (Azure Team AI)
+
+When CoScout is available, the analyst can request a draft synthesis. CoScout assembles a narrative from supported hypotheses, key-driver findings, and eta-squared evidence. The draft appears in the synthesis field for editing — the analyst always has final edit control. CoScout drafts use "The evidence suggests..." framing, never "Confirmed that..." language.
+
+## Improvement Planning Workflow
+
+The Improvement Planning Workflow bridges the gap between investigation convergence and corrective action execution. It follows a three-workspace transition model that matches the analyst's shifting cognitive task.
+
+### Three-Workspace Transition
+
+| Step                   | Workspace       | What Happens                                          |
+| ---------------------- | --------------- | ----------------------------------------------------- |
+| 1. Discover variation  | **Analysis**    | Dashboard charts, drill-down, filter navigation       |
+| 2. Build understanding | **Findings**    | Hypothesis tree, validation, convergence synthesis    |
+| 3. Plan improvements   | **Improvement** | Brainstorm ideas, estimate effort, convert to actions |
+
+The analyst moves between workspaces as their focus shifts. Navigation tabs (Analysis | Findings | Improvement) provide direct access. All workspaces support popout via URL parameters (`?view=findings`, `?view=improvement`) for dual-monitor setups.
+
+### Improvement Workspace Layout
+
+The `ImprovementWorkspaceBase` provides a full-page planning view:
+
+1. **SynthesisCard** — The convergence synthesis narrative anchors the page. Editable text area (max 500 chars) with linked finding badges showing key-driver findings that contributed to the synthesis.
+
+2. **Four Directions hint** — A single-line creative prompt: "Think: Prevent · Detect · Simplify · Eliminate". Surfaces the RDMAIC ideation framework as a lightweight brainstorming aid.
+
+3. **IdeaGroupCards** — Ideas grouped by supported/partial hypothesis. Each idea row contains: selection checkbox, idea text, category badge (containment/corrective/preventive), effort dropdown (low/medium/high with color coding), projection badge if a What-If simulation is attached, and action buttons for What-If and CoScout.
+
+4. **ImprovementSummaryBar** — Sticky bottom bar aggregating: selected idea count, effort breakdown, best projected Cpk from selected ideas, and "Convert selected → Actions" button.
+
+### Idea → Action Conversion
+
+When the analyst selects ideas and clicks "Convert selected → Actions":
+
+1. Each selected idea creates an `ActionItem` with `ideaId` FK for traceability
+2. The action text is copied from the idea text
+3. Actions are routed to the correct finding via the hypothesis's `findingId` link
+4. If this is the first action on an `analyzed` finding, status auto-transitions to `improving`
+5. Converted ideas show a "→ Action" indicator in the workspace
+
+### Projected vs Actual Learning Loop
+
+The `ideaId` FK enables a learning loop in the FindingCard outcome section. When a finding has an outcome with `cpkAfter` and an action linked to an idea with a What-If projection, the card displays:
+
+```
+Projected 1.35 → Actual 1.42 (+0.07)
+```
+
+Green when actual meets or exceeds projection, red when it falls short. Over time, this builds estimation confidence and feeds the Knowledge Base (Azure Team AI).
+
+### CoScout-Optional Design
+
+Every step works without AI. CoScout enhances but never gates:
+
+| Step              | Without CoScout                             | With CoScout                                                         |
+| ----------------- | ------------------------------------------- | -------------------------------------------------------------------- |
+| Write synthesis   | Manual text field with placeholder guidance | "Draft synthesis" generates narrative from evidence                  |
+| Brainstorm ideas  | Manual entry, Four Directions hint visible  | `suggest_improvement_idea` tool generates ideas with effort/category |
+| Project impact    | What-If Simulator manual sliders            | CoScout can suggest simulation parameters                            |
+| Convert → Actions | Select ideas, click Convert                 | Same — conversion is always user-initiated                           |
 
 ## Related Documentation
 
