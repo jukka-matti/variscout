@@ -136,7 +136,7 @@ No new scopes needed.
 
 ### Intent Detection Refinement (Built)
 
-Intent detection is now **primarily LLM-driven** via the `suggest_knowledge_search` function call (ADR-028). When CoScout determines that a user query warrants a knowledge base lookup, the model emits this tool call and the client executes the search automatically — no keyword scanning required.
+Intent detection is now **primarily LLM-driven** via the `suggest_knowledge_search` function call (ADR-028). When CoScout determines that a user query warrants a knowledge base lookup, the model emits this tool call and the client executes the search automatically — no keyword scanning required. The tool handler receives both findings and SharePoint documents directly from the `search()` return value (`{ findings, documents }`), avoiding a React state race condition where batched `setDocuments()` updates wouldn't be visible synchronously.
 
 Tool definition:
 

@@ -42,14 +42,18 @@ describe('useKnowledgeSearch', () => {
       useKnowledgeSearch({ searchFn: mockSearchFn, enabled: true })
     );
 
-    let returned: KnowledgeResult[] = [];
+    let returned: { findings: KnowledgeResult[]; documents: DocumentResult[] } = {
+      findings: [],
+      documents: [],
+    };
     await act(async () => {
       returned = await result.current.search('nozzle issue');
     });
 
     expect(mockSearchFn).toHaveBeenCalledWith('nozzle issue', { factor: undefined });
     expect(result.current.results).toEqual([mockResult]);
-    expect(returned).toEqual([mockResult]);
+    expect(returned.findings).toEqual([mockResult]);
+    expect(returned.documents).toEqual([]);
     expect(result.current.isSearching).toBe(false);
   });
 
@@ -70,25 +74,19 @@ describe('useKnowledgeSearch', () => {
       useKnowledgeSearch({ searchFn: mockSearchFn, enabled: false })
     );
 
-    let returned: KnowledgeResult[] = [];
-    await act(async () => {
-      returned = await result.current.search('nozzle issue');
-    });
+    let returned = await act(async () => result.current.search('nozzle issue'));
 
     expect(mockSearchFn).not.toHaveBeenCalled();
-    expect(returned).toEqual([]);
+    expect(returned).toEqual({ findings: [], documents: [] });
     expect(result.current.results).toEqual([]);
   });
 
   it('search does nothing when searchFn is not provided', async () => {
     const { result } = renderHook(() => useKnowledgeSearch({ enabled: true }));
 
-    let returned: KnowledgeResult[] = [];
-    await act(async () => {
-      returned = await result.current.search('query');
-    });
+    let returned = await act(async () => result.current.search('query'));
 
-    expect(returned).toEqual([]);
+    expect(returned).toEqual({ findings: [], documents: [] });
   });
 
   it('search does nothing for empty query', async () => {
@@ -109,12 +107,9 @@ describe('useKnowledgeSearch', () => {
 
     const { result } = renderHook(() => useKnowledgeSearch({ searchFn: failingFn, enabled: true }));
 
-    let returned: KnowledgeResult[] = [];
-    await act(async () => {
-      returned = await result.current.search('query');
-    });
+    let returned = await act(async () => result.current.search('query'));
 
-    expect(returned).toEqual([]);
+    expect(returned).toEqual({ findings: [], documents: [] });
     expect(result.current.results).toEqual([]);
     expect(result.current.isSearching).toBe(false);
     consoleSpy.mockRestore();
@@ -164,14 +159,12 @@ describe('useKnowledgeSearch', () => {
       })
     );
 
-    let returned: KnowledgeResult[] = [];
-    await act(async () => {
-      returned = await result.current.search('nozzle issue');
-    });
+    let returned = await act(async () => result.current.search('nozzle issue'));
 
     expect(mockSearchFn).toHaveBeenCalledWith('nozzle issue', { factor: undefined });
     expect(mockDocSearchFn).toHaveBeenCalledWith('nozzle issue', { folderScope: undefined });
-    expect(returned).toEqual([mockResult]);
+    expect(returned.findings).toEqual([mockResult]);
+    expect(returned.documents).toEqual([mockDocResult]);
     expect(result.current.results).toEqual([mockResult]);
     expect(result.current.documents).toEqual([mockDocResult]);
   });

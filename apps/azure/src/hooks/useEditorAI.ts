@@ -267,10 +267,10 @@ export function useEditorAI({
       suggest_knowledge_search: async (args: Record<string, unknown>) => {
         const query = args.query as string;
         if (!query) return JSON.stringify({ error: 'No query provided' });
-        // Execute search — populates knowledgeSearch.documents state for UI document cards
-        const findings = await knowledgeSearch.search(query);
-        // Format results for the LLM to cite (findings + documents from state)
-        const formatted = formatKnowledgeContext(findings, knowledgeSearch.documents);
+        // Execute search — returns both findings and documents directly (avoids React state race)
+        const { findings, documents } = await knowledgeSearch.search(query);
+        // Format results for the LLM to cite
+        const formatted = formatKnowledgeContext(findings, documents);
         return formatted || JSON.stringify({ results: 0 });
       },
     };

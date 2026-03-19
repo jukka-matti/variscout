@@ -50,7 +50,10 @@ export interface UseKnowledgeSearchReturn {
   isSearching: boolean;
   /** Whether knowledge search is available (enabled + has search function) */
   isAvailable: boolean;
-  search: (query: string, factor?: string) => Promise<KnowledgeResult[]>;
+  search: (
+    query: string,
+    factor?: string
+  ) => Promise<{ findings: KnowledgeResult[]; documents: DocumentResult[] }>;
   clear: () => void;
 }
 
@@ -64,14 +67,18 @@ export function useKnowledgeSearch(
   const [isSearching, setIsSearching] = useState(false);
 
   const search = useCallback(
-    async (query: string, factor?: string): Promise<KnowledgeResult[]> => {
+    async (
+      query: string,
+      factor?: string
+    ): Promise<{ findings: KnowledgeResult[]; documents: DocumentResult[] }> => {
+      const empty = { findings: [], documents: [] };
       if (!enabled || !query.trim()) {
-        return [];
+        return empty;
       }
 
       // Need at least one search function
       if (!searchFn && !searchDocumentsFn) {
-        return [];
+        return empty;
       }
 
       setIsSearching(true);
@@ -83,10 +90,10 @@ export function useKnowledgeSearch(
         ]);
         setResults(findingsResults);
         setDocuments(docResults);
-        return findingsResults;
+        return { findings: findingsResults, documents: docResults };
       } catch (err) {
         console.warn('[useKnowledgeSearch] Search failed:', err);
-        return [];
+        return empty;
       } finally {
         setIsSearching(false);
       }
