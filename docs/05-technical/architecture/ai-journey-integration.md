@@ -100,6 +100,28 @@ Plan → Do → Check → Act. AI shifts to action planning and outcome verifica
 | **Check** | NarrativeBar summarizes staged comparison: mean shift, Cpk delta, violation reduction. CoScout grounded in before/after evidence. |
 | **Act**   | Outcome assessment. "Effective" / "Not effective" / "Partial" with Cpk before/after auto-filled from staged data.                 |
 
+**Reasoning effort:** `'low'` — IMPROVE actions are execution-focused, not analytically complex. The model validates outcomes and suggests actions rather than performing deep causal reasoning. This is a deliberate cost-control choice (see ADR-019).
+
+**3-tier system prompt adaptation:** CoScout's IMPROVE instructions adapt based on available context:
+
+1. **Basic** — Problem statement + findings + actions. CoScout coaches through PDCA steps.
+2. **Suspected cause** — Adds primary/contributing cause context. CoScout references the confirmed root cause when suggesting actions and evaluating outcomes.
+3. **Staged comparison** — Adds before/after deltas (mean shift, variation ratio, Cpk delta). CoScout switches to verification mode: "Is the improvement real and sustained? Are there new patterns? What sustaining controls are needed?"
+
+**Tool availability in IMPROVE:**
+
+| Tool                                                       | Availability        | Notes                                      |
+| ---------------------------------------------------------- | ------------------- | ------------------------------------------ |
+| Read tools (get_chart_data, get_statistical_summary, etc.) | Always              |                                            |
+| SCOUT+ tools (apply_filter, create_finding, etc.)          | Available           | Filters useful for before/after comparison |
+| create_hypothesis, suggest_action                          | Available           | Actions are the primary IMPROVE tool       |
+| share_finding, publish_report                              | Team plan only      | Sharing at investigation milestones        |
+| notify_action_owners                                       | IMPROVE + Team only | Notify assignees after actions finalized   |
+
+**NarrativeBar in IMPROVE:** Verification behavior is context-driven (triggered by staged comparison data), not phase-driven. The NarrativeBar shows before/after comparison when `stagedComparison` is present in the AI context, regardless of which phase label is active.
+
+**Knowledge Base in IMPROVE (Mode 3):** KB search shifts from diagnostic to prescriptive — finding similar past improvement patterns, sustaining control procedures (SOPs), and historical Cpk benchmarks to contextualize improvement magnitude.
+
 **Staged verification:** When staged comparison data is present, all AI components switch to verification-specific behavior. See [AIX Design System § Verification Sub-pattern](aix-design-system.md#verification-sub-pattern-improve-phase-with-staged-data).
 
 ---

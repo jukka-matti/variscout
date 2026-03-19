@@ -550,6 +550,39 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).toContain('Routine check');
     expect(prompt).toContain('conservatively');
   });
+
+  it('includes IMPROVE guidance in problem entry scenario', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      hasActionTools: true,
+      entryScenario: 'problem',
+    });
+    expect(prompt).toContain('IMPROVE:');
+    expect(prompt).toContain('Cpk has reached the original target');
+  });
+
+  it('includes IMPROVE guidance in hypothesis entry scenario', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      hasActionTools: true,
+      entryScenario: 'hypothesis',
+    });
+    expect(prompt).toContain('IMPROVE:');
+    expect(prompt).toContain('original hypothesis');
+  });
+
+  it('includes IMPROVE guidance in routine entry scenario', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      hasActionTools: true,
+      entryScenario: 'routine',
+    });
+    expect(prompt).toContain('IMPROVE:');
+    expect(prompt).toContain('sustaining controls');
+  });
+
+  it('includes IMPROVE KB guidance in tool routing instructions', () => {
+    const prompt = buildCoScoutSystemPrompt({ hasActionTools: true });
+    expect(prompt).toContain('Knowledge Base in IMPROVE phase');
+    expect(prompt).toContain('sustaining control procedures');
+  });
 });
 
 describe('formatKnowledgeContext', () => {
@@ -1215,6 +1248,28 @@ describe('buildCoScoutInput', () => {
     const result = buildCoScoutInput(ctx, [], 'Question');
     const kbMsg = result.input.find(m => m.content.includes('Knowledge Base'));
     expect(kbMsg).toBeDefined();
+  });
+
+  it('includes tool routing instructions when journeyPhase is provided', () => {
+    const result = buildCoScoutInput(baseCtx, [], 'What should we do?', {
+      journeyPhase: 'improve',
+    });
+    expect(result.instructions).toContain('Tool usage guidance');
+    expect(result.instructions).toContain('Action suggestion guidance');
+  });
+
+  it('includes entry scenario guidance when journeyPhase and entryScenario are provided', () => {
+    const ctx: AIContext = {
+      ...baseCtx,
+      entryScenario: 'problem',
+    };
+    const result = buildCoScoutInput(ctx, [], 'Check Cpk', { journeyPhase: 'scout' });
+    expect(result.instructions).toContain('Entry scenario: Problem to solve');
+  });
+
+  it('does not include tool routing instructions when no journeyPhase', () => {
+    const result = buildCoScoutInput(baseCtx, [], 'Hello');
+    expect(result.instructions).not.toContain('Tool usage guidance');
   });
 });
 

@@ -13,7 +13,7 @@ import type { JourneyPhase } from './types';
  * - frame: Quick orientation, no deep reasoning needed
  * - scout: Pattern exploration, light reasoning
  * - investigate: Root cause analysis, needs structured reasoning
- * - improve: Action validation, moderate reasoning
+ * - improve: Action validation, light reasoning
  */
 export function getCoScoutReasoningEffort(
   phase?: JourneyPhase

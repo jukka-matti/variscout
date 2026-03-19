@@ -332,7 +332,8 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
 export function buildCoScoutInput(
   context: AIContext,
   history: CoScoutMessage[],
-  userMessage: string
+  userMessage: string,
+  options?: { journeyPhase?: JourneyPhase; isTeamPlan?: boolean }
 ): {
   instructions: string;
   input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
@@ -345,6 +346,8 @@ export function buildCoScoutInput(
     stagedComparison: context.stagedComparison,
     locale: context.locale,
     entryScenario: context.entryScenario,
+    phase: options?.journeyPhase,
+    hasActionTools: options?.journeyPhase != null,
   });
 
   const input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
@@ -707,7 +710,8 @@ export function formatKnowledgeContext(
 export function buildCoScoutMessages(
   context: AIContext,
   history: CoScoutMessage[],
-  userMessage: string
+  userMessage: string,
+  options?: { journeyPhase?: JourneyPhase; isTeamPlan?: boolean }
 ): Array<{ role: 'user' | 'assistant' | 'system'; content: string }> {
   const messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
 
@@ -721,6 +725,9 @@ export function buildCoScoutMessages(
       sampleCount: context.stats?.samples,
       stagedComparison: context.stagedComparison,
       locale: context.locale,
+      entryScenario: context.entryScenario,
+      phase: options?.journeyPhase,
+      hasActionTools: options?.journeyPhase != null,
     }),
   });
 
@@ -793,6 +800,11 @@ Action suggestion guidance (IMPROVE phase):
 - Write action text as a clear, executable task: "[Verb] [what] [where/when] — [rationale or source]".
 - suggest_action only works on findings at 'analyzed' or 'improving' status.
 
+Knowledge Base in IMPROVE phase:
+- Search for similar past improvement patterns and their outcomes before suggesting actions.
+- Look up sustaining control procedures (SOPs, work instructions) relevant to the corrective action.
+- When verifying outcomes, search for historical Cpk benchmarks to contextualize improvement magnitude.
+
 Sharing guidance (Team plan only):
 - Use share_finding at investigation milestones, not during active investigation.
 - Use publish_report when the analyst has completed a meaningful analysis cycle.
@@ -810,16 +822,19 @@ function buildEntryScenarioGuidance(scenario: EntryScenario): string {
     case 'problem':
       return `Entry scenario: Problem to solve — The analyst has a specific problem (e.g., Cpk below target).
 - SCOUT: Proactively use compare_categories to scan all factors for the biggest contributor. Suggest apply_filter to drill into the top contributor. Propose create_finding for the key observation.
-- INVESTIGATE: Guide the analyst to create hypotheses linked to the top-contributing factors.`;
+- INVESTIGATE: Guide the analyst to create hypotheses linked to the top-contributing factors.
+- IMPROVE: Check whether Cpk has reached the original target. If staged data shows improvement, help assess whether the fix addressed the stated problem. If not, suggest revisiting root causes.`;
 
     case 'hypothesis':
       return `Entry scenario: Hypothesis to check — The analyst entered with an upfront hypothesis.
 - SCOUT: Immediately use compare_categories on the factor named in the hypothesis. Report Contribution % and per-category stats. If supported (>=15%), suggest apply_filter and create_finding.
-- INVESTIGATE: Propose create_hypothesis with the upfront hypothesis as the root node. Then suggest sub-hypotheses.`;
+- INVESTIGATE: Propose create_hypothesis with the upfront hypothesis as the root node. Then suggest sub-hypotheses.
+- IMPROVE: After addressing the confirmed cause, check whether the metric linked to the original hypothesis has improved. Compare before/after Cpk and variation.`;
 
     case 'routine':
       return `Entry scenario: Routine check — No specific problem or hypothesis. Scanning for signals.
 - SCOUT: Use compare_categories conservatively. Only suggest apply_filter if a notable signal is found (Contribution % > 10%). Do NOT proactively suggest findings unless a clear anomaly is detected.
-- INVESTIGATE: Only reached if the analyst manually creates a finding. Follow their lead.`;
+- INVESTIGATE: Only reached if the analyst manually creates a finding. Follow their lead.
+- IMPROVE: Signal has been addressed — help evaluate whether sustaining controls prevent recurrence. Suggest checking recent data for stability.`;
   }
 }

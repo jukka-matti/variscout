@@ -121,11 +121,12 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
       setError(null);
 
       try {
-        // Build Responses API input
+        // Build Responses API input (pass journeyPhase so tool routing instructions reach the LLM)
         const { instructions, input } = buildCoScoutInput(
           context,
           messagesRef.current,
-          text.trim()
+          text.trim(),
+          { journeyPhase: toolsOptions?.phase, isTeamPlan: toolsOptions?.isTeamPlan }
         );
         const tools = buildCoScoutTools(toolsOptions);
 
