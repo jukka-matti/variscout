@@ -336,6 +336,16 @@ export const uk: MessageCatalog = {
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Правило Нельсона 2 — серія {count} {side} середнього (#{start}–{end})',
+  'chart.violation.nelson3.detail':
+    'Правило Нельсона 3 — тренд {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'вище',
+  'chart.violation.side.below': 'нижче',
+  'chart.violation.direction.increasing': 'зростаючий',
+  'chart.violation.direction.decreasing': 'спадний',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',

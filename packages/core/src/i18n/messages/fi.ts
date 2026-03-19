@@ -338,6 +338,16 @@ export const fi: MessageCatalog = {
   'whatif.resetAdjustments': 'Palauta säädöt',
   'whatif.yield': 'Ennustettu saanto',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Nelsonin sääntö 2 — jakso {count} {side} keskiarvon (#{start}–{end})',
+  'chart.violation.nelson3.detail':
+    'Nelsonin sääntö 3 — trendi {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'yli',
+  'chart.violation.side.below': 'ali',
+  'chart.violation.direction.increasing': 'nouseva',
+  'chart.violation.direction.decreasing': 'laskeva',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} riviä ladattu',
   'findings.countLabel': '{count} havaintoa',

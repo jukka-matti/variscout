@@ -127,6 +127,51 @@ describe('new catalog keys', () => {
   });
 });
 
+describe('chart violation detail keys', () => {
+  it('interpolates nelson2.detail with all params', () => {
+    expect(
+      formatMessage('en', 'chart.violation.nelson2.detail', {
+        count: 9,
+        side: 'above',
+        start: 5,
+        end: 13,
+      })
+    ).toBe('Nelson Rule 2 — run of 9 above mean (#5–13)');
+  });
+
+  it('interpolates nelson3.detail with all params', () => {
+    expect(
+      formatMessage('en', 'chart.violation.nelson3.detail', {
+        count: 7,
+        direction: 'increasing',
+        start: 3,
+        end: 9,
+      })
+    ).toBe('Nelson Rule 3 — trend of 7 increasing (#3–9)');
+  });
+
+  it('has side/direction keys in primary locales', () => {
+    expect(getMessage('en', 'chart.violation.side.above')).toBe('above');
+    expect(getMessage('en', 'chart.violation.side.below')).toBe('below');
+    expect(getMessage('fi', 'chart.violation.side.above')).toBe('yli');
+    expect(getMessage('fi', 'chart.violation.side.below')).toBe('ali');
+    expect(getMessage('de', 'chart.violation.side.above')).toBe('über');
+    expect(getMessage('de', 'chart.violation.direction.increasing')).toBe('steigend');
+    expect(getMessage('de', 'chart.violation.direction.decreasing')).toBe('fallend');
+  });
+
+  it('interpolates nelson2.detail in Finnish', () => {
+    expect(
+      formatMessage('fi', 'chart.violation.nelson2.detail', {
+        count: 9,
+        side: 'yli',
+        start: 5,
+        end: 13,
+      })
+    ).toBe('Nelsonin sääntö 2 — jakso 9 yli keskiarvon (#5–13)');
+  });
+});
+
 describe('detectLocale', () => {
   it('detects exact locale codes', () => {
     expect(detectLocale('en')).toBe('en');

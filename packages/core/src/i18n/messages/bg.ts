@@ -336,6 +336,16 @@ export const bg: MessageCatalog = {
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Правило на Нелсън 2 — серия {count} {side} средното (#{start}–{end})',
+  'chart.violation.nelson3.detail':
+    'Правило на Нелсън 3 — тенденция {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'над',
+  'chart.violation.side.below': 'под',
+  'chart.violation.direction.increasing': 'нарастващ',
+  'chart.violation.direction.decreasing': 'намаляващ',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',

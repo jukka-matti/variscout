@@ -298,6 +298,16 @@ export const sv: MessageCatalog = {
   'whatif.currentProjected': 'Current vs Projected',
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Nelsonregel 2 — serie av {count} {side} medelvärde (#{start}–{end})',
+  'chart.violation.nelson3.detail': 'Nelsonregel 3 — trend av {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'ovanför',
+  'chart.violation.side.below': 'nedanför',
+  'chart.violation.direction.increasing': 'stigande',
+  'chart.violation.direction.decreasing': 'fallande',
+
+  // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
 };

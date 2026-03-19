@@ -336,6 +336,16 @@ export const hr: MessageCatalog = {
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Nelsonovo pravilo 2 — niz {count} {side} prosjeka (#{start}–{end})',
+  'chart.violation.nelson3.detail':
+    'Nelsonovo pravilo 3 — trend {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'iznad',
+  'chart.violation.side.below': 'ispod',
+  'chart.violation.direction.increasing': 'rastući',
+  'chart.violation.direction.decreasing': 'padajući',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',

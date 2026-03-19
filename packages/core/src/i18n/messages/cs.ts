@@ -298,6 +298,16 @@ export const cs: MessageCatalog = {
   'whatif.currentProjected': 'Current vs Projected',
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Nelsonovo pravidlo 2 — série {count} {side} průměru (#{start}–{end})',
+  'chart.violation.nelson3.detail':
+    'Nelsonovo pravidlo 3 — trend {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'nad',
+  'chart.violation.side.below': 'pod',
+  'chart.violation.direction.increasing': 'rostoucí',
+  'chart.violation.direction.decreasing': 'klesající',
+
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
 };

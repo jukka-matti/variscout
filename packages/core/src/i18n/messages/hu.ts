@@ -298,6 +298,15 @@ export const hu: MessageCatalog = {
   'whatif.currentProjected': 'Current vs Projected',
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Nelson-szabály 2 — {count} sorozat átlag {side} (#{start}–{end})',
+  'chart.violation.nelson3.detail': 'Nelson-szabály 3 — {count} {direction} trend (#{start}–{end})',
+  'chart.violation.side.above': 'felett',
+  'chart.violation.side.below': 'alatt',
+  'chart.violation.direction.increasing': 'növekvő',
+  'chart.violation.direction.decreasing': 'csökkenő',
+
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
 };

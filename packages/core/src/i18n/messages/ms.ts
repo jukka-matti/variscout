@@ -336,6 +336,16 @@ export const ms: MessageCatalog = {
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Peraturan Nelson 2 — siri {count} {side} purata (#{start}–{end})',
+  'chart.violation.nelson3.detail':
+    'Peraturan Nelson 3 — trend {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'di atas',
+  'chart.violation.side.below': 'di bawah',
+  'chart.violation.direction.increasing': 'meningkat',
+  'chart.violation.direction.decreasing': 'menurun',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',

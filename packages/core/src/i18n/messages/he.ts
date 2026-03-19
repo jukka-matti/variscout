@@ -336,6 +336,14 @@ export const he: MessageCatalog = {
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail': 'כלל נלסון 2 — רצף {count} {side} ממוצע (#{start}–{end})',
+  'chart.violation.nelson3.detail': 'כלל נלסון 3 — מגמה {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'מעל',
+  'chart.violation.side.below': 'מתחת',
+  'chart.violation.direction.increasing': 'עולה',
+  'chart.violation.direction.decreasing': 'יורד',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',

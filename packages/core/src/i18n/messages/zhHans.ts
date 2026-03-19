@@ -300,6 +300,14 @@ export const zhHans: MessageCatalog = {
   'whatif.currentProjected': 'Current vs Projected',
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail': '尼尔森规则2 — {count}点在均值{side} (#{start}–{end})',
+  'chart.violation.nelson3.detail': '尼尔森规则3 — {count}点{direction}趋势 (#{start}–{end})',
+  'chart.violation.side.above': '之上',
+  'chart.violation.side.below': '之下',
+  'chart.violation.direction.increasing': '上升',
+  'chart.violation.direction.decreasing': '下降',
+
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
 };

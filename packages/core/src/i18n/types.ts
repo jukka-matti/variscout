@@ -451,6 +451,14 @@ export interface MessageCatalog {
   'whatif.resetAdjustments': string;
   'whatif.yield': string;
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail': string;
+  'chart.violation.nelson3.detail': string;
+  'chart.violation.side.above': string;
+  'chart.violation.side.below': string;
+  'chart.violation.direction.increasing': string;
+  'chart.violation.direction.decreasing': string;
+
   // Parameterized messages
   'data.rowsLoaded': string;
   'findings.countLabel': string;

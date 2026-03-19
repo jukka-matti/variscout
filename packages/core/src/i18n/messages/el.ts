@@ -336,6 +336,15 @@ export const el: MessageCatalog = {
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Κανόνας Nelson 2 — σειρά {count} {side} μέσου (#{start}–{end})',
+  'chart.violation.nelson3.detail': 'Κανόνας Nelson 3 — τάση {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'πάνω',
+  'chart.violation.side.below': 'κάτω',
+  'chart.violation.direction.increasing': 'αυξητική',
+  'chart.violation.direction.decreasing': 'φθίνουσα',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',

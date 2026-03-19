@@ -336,6 +336,16 @@ export const vi: MessageCatalog = {
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Quy tắc Nelson 2 — chuỗi {count} {side} trung bình (#{start}–{end})',
+  'chart.violation.nelson3.detail':
+    'Quy tắc Nelson 3 — xu hướng {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'trên',
+  'chart.violation.side.below': 'dưới',
+  'chart.violation.direction.increasing': 'tăng',
+  'chart.violation.direction.decreasing': 'giảm',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',

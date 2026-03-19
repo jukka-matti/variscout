@@ -300,6 +300,16 @@ export const pl: MessageCatalog = {
   'whatif.currentProjected': 'Current vs Projected',
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Reguła Nelsona 2 — seria {count} {side} średniej (#{start}–{end})',
+  'chart.violation.nelson3.detail': 'Reguła Nelsona 3 — trend {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'powyżej',
+  'chart.violation.side.below': 'poniżej',
+  'chart.violation.direction.increasing': 'rosnący',
+  'chart.violation.direction.decreasing': 'malejący',
+
+  // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
 };

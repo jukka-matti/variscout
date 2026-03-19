@@ -7,6 +7,7 @@ import { GridRows } from '@visx/grid';
 import { withParentSize } from '@visx/responsive';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { getStageBoundaries, inferCharacteristicType, type StatsResult } from '@variscout/core';
+import type { MessageCatalog } from '@variscout/core';
 import type { IChartProps, StageBoundary } from './types';
 import { getResponsiveTickCount } from './responsive';
 import ChartSourceBar from './ChartSourceBar';
@@ -51,7 +52,7 @@ const IChartBase: React.FC<IChartProps> = ({
   showLegend = false,
   legendMode = 'educational',
 }) => {
-  const { chrome, formatStat, t } = useChartTheme();
+  const { chrome, formatStat, t, tf } = useChartTheme();
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
     useChartTooltip<{ x: number; y: number; index: number; stage?: string; timeValue?: string }>();
 
@@ -168,9 +169,15 @@ const IChartBase: React.FC<IChartProps> = ({
   ): { text: string; favorable: boolean } | null => {
     // Priority 1: Check spec limit violations
     if (specs.usl !== undefined && value > specs.usl)
-      return { text: t('chart.violation.aboveUsl'), favorable: false };
+      return {
+        text: tf('chart.violation.aboveUsl', { value: formatStat(specs.usl) }),
+        favorable: false,
+      };
     if (specs.lsl !== undefined && value < specs.lsl)
-      return { text: t('chart.violation.belowLsl'), favorable: false };
+      return {
+        text: tf('chart.violation.belowLsl', { value: formatStat(specs.lsl) }),
+        favorable: false,
+      };
 
     // Priority 2: Check control limit violations (direction-aware)
     const stageStats = getStageStatsForPoint(stage);
@@ -199,7 +206,12 @@ const IChartBase: React.FC<IChartProps> = ({
       if (sequence) {
         const count = sequence.endIndex - sequence.startIndex + 1;
         return {
-          text: `${t('chart.violation.nelson2')} (#${sequence.startIndex + 1}-${sequence.endIndex + 1}, ${count} ${sequence.side})`,
+          text: tf('chart.violation.nelson2.detail', {
+            count,
+            side: t(`chart.violation.side.${sequence.side}` as keyof MessageCatalog),
+            start: sequence.startIndex + 1,
+            end: sequence.endIndex + 1,
+          }),
           favorable: false,
         };
       }
@@ -214,7 +226,12 @@ const IChartBase: React.FC<IChartProps> = ({
       if (sequence) {
         const count = sequence.endIndex - sequence.startIndex + 1;
         return {
-          text: `${t('chart.violation.nelson3')} (#${sequence.startIndex + 1}-${sequence.endIndex + 1}, ${count} ${sequence.direction})`,
+          text: tf('chart.violation.nelson3.detail', {
+            count,
+            direction: t(`chart.violation.direction.${sequence.direction}` as keyof MessageCatalog),
+            start: sequence.startIndex + 1,
+            end: sequence.endIndex + 1,
+          }),
           favorable: false,
         };
       }

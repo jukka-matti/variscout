@@ -339,6 +339,14 @@ export const en: MessageCatalog = {
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail': 'Nelson Rule 2 — run of {count} {side} mean (#{start}–{end})',
+  'chart.violation.nelson3.detail': 'Nelson Rule 3 — trend of {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'above',
+  'chart.violation.side.below': 'below',
+  'chart.violation.direction.increasing': 'increasing',
+  'chart.violation.direction.decreasing': 'decreasing',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',

@@ -336,6 +336,16 @@ export const hi: MessageCatalog = {
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'नेल्सन नियम 2 — {count} की श्रृंखला औसत से {side} (#{start}–{end})',
+  'chart.violation.nelson3.detail':
+    'नेल्सन नियम 3 — {count} {direction} प्रवृत्ति (#{start}–{end})',
+  'chart.violation.side.above': 'ऊपर',
+  'chart.violation.side.below': 'नीचे',
+  'chart.violation.direction.increasing': 'बढ़ती',
+  'chart.violation.direction.decreasing': 'घटती',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',

@@ -300,6 +300,15 @@ export const ja: MessageCatalog = {
   'whatif.currentProjected': 'Current vs Projected',
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail': 'ネルソンルール2 — {count}点が平均{side} (#{start}–{end})',
+  'chart.violation.nelson3.detail':
+    'ネルソンルール3 — {count}点{direction}トレンド (#{start}–{end})',
+  'chart.violation.side.above': 'の上',
+  'chart.violation.side.below': 'の下',
+  'chart.violation.direction.increasing': '上昇',
+  'chart.violation.direction.decreasing': '下降',
+
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
 };

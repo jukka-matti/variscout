@@ -300,6 +300,16 @@ export const tr: MessageCatalog = {
   'whatif.currentProjected': 'Current vs Projected',
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Nelson Kuralı 2 — ortalama {side} {count} seri (#{start}–{end})',
+  'chart.violation.nelson3.detail': 'Nelson Kuralı 3 — {count} {direction} trend (#{start}–{end})',
+  'chart.violation.side.above': 'üstünde',
+  'chart.violation.side.below': 'altında',
+  'chart.violation.direction.increasing': 'artan',
+  'chart.violation.direction.decreasing': 'azalan',
+
+  // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
 };

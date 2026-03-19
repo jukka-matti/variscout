@@ -300,6 +300,17 @@ export const ru: MessageCatalog = {
   'whatif.currentProjected': 'Current vs Projected',
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Правило Нельсона 2 — серия {count} {side} среднего (#{start}–{end})',
+  'chart.violation.nelson3.detail':
+    'Правило Нельсона 3 — тренд {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'выше',
+  'chart.violation.side.below': 'ниже',
+  'chart.violation.direction.increasing': 'возрастающий',
+  'chart.violation.direction.decreasing': 'убывающий',
+
+  // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
 };

@@ -300,6 +300,15 @@ export const ko: MessageCatalog = {
   'whatif.currentProjected': 'Current vs Projected',
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail': '넬슨 규칙 2 — 평균 {side} {count}점 연속 (#{start}–{end})',
+  'chart.violation.nelson3.detail': '넬슨 규칙 3 — {count}점 {direction} 추세 (#{start}–{end})',
+  'chart.violation.side.above': '위',
+  'chart.violation.side.below': '아래',
+  'chart.violation.direction.increasing': '상승',
+  'chart.violation.direction.decreasing': '하강',
+
+  // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
 };

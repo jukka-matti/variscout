@@ -336,6 +336,16 @@ export const ro: MessageCatalog = {
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Regula Nelson 2 — serie de {count} {side} medie (#{start}–{end})',
+  'chart.violation.nelson3.detail':
+    'Regula Nelson 3 — tendință de {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'deasupra',
+  'chart.violation.side.below': 'sub',
+  'chart.violation.direction.increasing': 'crescătoare',
+  'chart.violation.direction.decreasing': 'descrescătoare',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',

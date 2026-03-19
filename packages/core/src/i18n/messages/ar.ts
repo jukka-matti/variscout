@@ -336,6 +336,15 @@ export const ar: MessageCatalog = {
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'قاعدة نيلسون 2 — سلسلة {count} {side} المتوسط (#{start}–{end})',
+  'chart.violation.nelson3.detail': 'قاعدة نيلسون 3 — اتجاه {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'فوق',
+  'chart.violation.side.below': 'تحت',
+  'chart.violation.direction.increasing': 'تصاعدي',
+  'chart.violation.direction.decreasing': 'تنازلي',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',

@@ -336,6 +336,15 @@ export const id: MessageCatalog = {
   'whatif.resetAdjustments': 'Reset adjustments',
   'whatif.yield': 'Projected yield',
 
+  // Chart violation details (parameterized)
+  'chart.violation.nelson2.detail':
+    'Aturan Nelson 2 — seri {count} {side} rata-rata (#{start}–{end})',
+  'chart.violation.nelson3.detail': 'Aturan Nelson 3 — tren {count} {direction} (#{start}–{end})',
+  'chart.violation.side.above': 'di atas',
+  'chart.violation.side.below': 'di bawah',
+  'chart.violation.direction.increasing': 'meningkat',
+  'chart.violation.direction.decreasing': 'menurun',
+
   // Parameterized messages
   'data.rowsLoaded': '{count} rows loaded',
   'findings.countLabel': '{count} findings',
