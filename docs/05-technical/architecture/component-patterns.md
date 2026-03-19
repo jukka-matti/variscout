@@ -411,60 +411,37 @@ function Dashboard() {
 
 ## Shared UI Components
 
-Components extracted to `@variscout/ui` use a **colorScheme prop pattern** for platform-agnostic theming.
+Components extracted to `@variscout/ui` use semantic Tailwind classes (`bg-surface-secondary`, `text-content`, `border-edge`) that adapt to light/dark via `data-theme`. Most components use these tokens directly in their markup.
 
-### Pattern
-
-```tsx
-// Component defines interface and default preset using semantic tokens
-export interface MyComponentColorScheme {
-  background: string; // Tailwind class (semantic token)
-  text: string;
-  border: string;
-}
-
-export const defaultColorScheme: MyComponentColorScheme = {
-  background: 'bg-surface-secondary',
-  text: 'text-content',
-  border: 'border-edge',
-};
-```
-
-### Usage
-
-Both PWA and Azure use the default color scheme (semantic tokens). No explicit `colorScheme` prop is needed:
-
-```tsx
-// Both apps — default semantic tokens apply automatically
-<FilterBreadcrumb {...props} />
-```
+Some components (~24) still accept an optional `colorScheme` prop with a default preset. This pattern is being phased out in favor of direct semantic tokens. Priority components (FilterContextBar, StatsPanelBase, CoScoutPanelBase, FindingsPanelBase, ErrorBoundary) have already been migrated off `colorScheme`.
 
 ### Available Components
 
-| Component                     | Base | Color Schemes               | Context-Free                            |
-| ----------------------------- | ---- | --------------------------- | --------------------------------------- |
-| `FilterBreadcrumb`            | ✓    | default (semantic tokens)   | ✓                                       |
-| `FilterChipDropdown`          | ✓    | default (semantic tokens)   | ✓                                       |
-| `FilterContextBar`            | ✓    | default (semantic tokens)   | ✓                                       |
-| `ChartDownloadMenu`           | ✓    | default (semantic tokens)   | ✓                                       |
-| `PasteScreenBase`             | ✓    | default (semantic tokens)   | ✓                                       |
-| `InvestigationPrompt`         | ✓    | default (semantic tokens)   | First-drill investigation prompt        |
-| `PerformanceSetupPanelBase`   | ✓    | default (semantic tokens)   | Props + optional tierProps              |
-| `StatsPanelBase`              | ✓    | default (semantic tokens)   | `onEditSpecs` callback opens SpecEditor |
-| `ManualEntryBase`             | ✓    | semantic tokens (no scheme) | `enablePerformanceMode` prop            |
-| `ManualEntrySetupBase`        | ✓    | semantic tokens (no scheme) | ✓                                       |
-| `SpecsPopover` / `SpecEditor` | ✓    | default (semantic tokens)   | ✓                                       |
-| `CapabilityHistogram`         | ✓    | default (semantic tokens)   | ✓                                       |
-| `ProbabilityPlot`             | ✓    | default (semantic tokens)   | ✓                                       |
-| `BoxplotDisplayToggle`        | ✓    | default (semantic tokens)   | Popover with checkboxes + sort controls |
-| `ChartAnnotationLayer`        | ✓    | -                           | HTML overlay for draggable text notes   |
-| `AnnotationContextMenu`       | ✓    | -                           | Right-click menu (highlight + add note) |
-| `FocusedViewOverlay`          | ✓    | -                           | Full-screen backdrop for focused charts |
-| `FocusedChartCard`            | ✓    | -                           | Container card for focused chart view   |
-| `DashboardChartCard`          | ✓    | -                           | Dashboard chart card with expand button |
-| `DashboardGrid`               | ✓    | -                           | Responsive dashboard chart layout grid  |
-
-See [Colors > Shared Component Color Schemes](../../06-design-system/foundations/colors.md#shared-component-color-schemes) for the complete color mapping.
+| Component                     | Base | Theming                    | Notes                                   |
+| ----------------------------- | ---- | -------------------------- | --------------------------------------- |
+| `FilterBreadcrumb`            | ✓    | colorScheme (legacy)       | ✓                                       |
+| `FilterChipDropdown`          | ✓    | colorScheme (legacy)       | ✓                                       |
+| `FilterContextBar`            | ✓    | semantic tokens (migrated) | ✓                                       |
+| `ChartDownloadMenu`           | ✓    | colorScheme (legacy)       | ✓                                       |
+| `PasteScreenBase`             | ✓    | colorScheme (legacy)       | ✓                                       |
+| `InvestigationPrompt`         | ✓    | colorScheme (legacy)       | First-drill investigation prompt        |
+| `PerformanceSetupPanelBase`   | ✓    | colorScheme (legacy)       | Props + optional tierProps              |
+| `StatsPanelBase`              | ✓    | semantic tokens (migrated) | `onEditSpecs` callback opens SpecEditor |
+| `ManualEntryBase`             | ✓    | semantic tokens            | `enablePerformanceMode` prop            |
+| `ManualEntrySetupBase`        | ✓    | semantic tokens            | ✓                                       |
+| `SpecsPopover` / `SpecEditor` | ✓    | colorScheme (legacy)       | ✓                                       |
+| `CapabilityHistogram`         | ✓    | colorScheme (legacy)       | ✓                                       |
+| `ProbabilityPlot`             | ✓    | colorScheme (legacy)       | ✓                                       |
+| `BoxplotDisplayToggle`        | ✓    | colorScheme (legacy)       | Popover with checkboxes + sort controls |
+| `ChartAnnotationLayer`        | ✓    | -                          | HTML overlay for draggable text notes   |
+| `AnnotationContextMenu`       | ✓    | -                          | Right-click menu (highlight + add note) |
+| `FocusedViewOverlay`          | ✓    | -                          | Full-screen backdrop for focused charts |
+| `FocusedChartCard`            | ✓    | -                          | Container card for focused chart view   |
+| `DashboardChartCard`          | ✓    | -                          | Dashboard chart card with expand button |
+| `DashboardGrid`               | ✓    | -                          | Responsive dashboard chart layout grid  |
+| `CoScoutPanelBase`            | ✓    | semantic tokens (migrated) | AI conversation panel                   |
+| `FindingsPanelBase`           | ✓    | semantic tokens (migrated) | Findings sidebar panel                  |
+| `ErrorBoundary`               | ✓    | semantic tokens (migrated) | Error boundary wrapper                  |
 
 ---
 
@@ -553,7 +530,7 @@ Accessible via the Settings gear icon. These apply to all charts and persist acr
 | Show filter context | boolean | true    | Display active filters on charts    |
 | Chart text size     | preset  | Normal  | Compact / Normal / Large            |
 
-**PWA** has a slim panel (4 display toggles + chart text size). **Azure** adds theme toggle, company accent color, and font scale.
+**PWA** has a slim panel (4 display toggles + chart text size). **Azure** adds theme toggle, font scale, and AI preferences.
 
 ### Contextual Toggles (Chart Card Headers)
 

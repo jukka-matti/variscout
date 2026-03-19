@@ -51,7 +51,7 @@ flowchart TD
     I -->|Teams tab| K[Admin generates Teams manifest]
     K --> L[Sideload manifest to Teams]
     L --> M[VariScout appears as Teams tab]
-    I -->|Settings| N[Company accent, theme defaults]
+    I -->|Settings| N[Theme defaults, chart text size]
 ```
 
 ### Team Adoption Journey
@@ -204,7 +204,6 @@ Admin or any user can customize via the Settings panel:
 | Setting            | Purpose                                              |
 | ------------------ | ---------------------------------------------------- |
 | Theme              | Light / Dark / System (per user)                     |
-| Company accent     | Brand color applied to headers (per user)            |
 | Chart font scale   | Adjust chart text size (per user)                    |
 | Show AI assistance | Show or hide AI components (per user, if configured) |
 

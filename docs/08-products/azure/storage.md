@@ -144,7 +144,6 @@ Files are `.vrs` extension, containing JSON-serialized `AnalysisState` (see `doc
 | Chart titles         | In project   | Yes                    |
 | Display options      | localStorage | No                     |
 | Theme preference     | localStorage | No                     |
-| Company accent       | localStorage | No                     |
 
 > Standard plan stores all project data in IndexedDB only. The "Synced to Cloud" column applies to the Team plan.
 
@@ -153,6 +152,23 @@ Files are `.vrs` extension, containing JSON-serialized `AnalysisState` (see `doc
 ## Queue Pruning (Team Plan Only)
 
 Stale sync queue items (older than 30 days) are pruned on app mount via `pruneSyncQueue()`. This prevents unbounded queue growth if the user is offline for extended periods.
+
+---
+
+## File Picker Integration (ADR-030)
+
+Team and Team AI plans use OneDrive File Picker v8 for SharePoint browsing:
+
+| Use Case             | Component                        | Available On   |
+| -------------------- | -------------------------------- | -------------- |
+| KB folder selection  | SettingsPanel → FileBrowseButton | Team AI        |
+| Import .csv/.xlsx    | Editor → FileBrowseButton        | Team + Team AI |
+| Open .vrs project    | Dashboard → FileBrowseButton     | Team + Team AI |
+| Save As to SP folder | EditorToolbar → useFilePicker    | Team + Team AI |
+
+Standard plan users see only local file browsing.
+
+Implementation: `apps/azure/src/hooks/useFilePicker.ts`, `apps/azure/src/components/FileBrowseButton.tsx`
 
 ---
 

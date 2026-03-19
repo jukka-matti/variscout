@@ -294,7 +294,6 @@ Accessible from the settings panel:
 | Setting            | Options               | Effect                         |
 | ------------------ | --------------------- | ------------------------------ |
 | Theme              | Light / Dark / System | Switches all UI colors         |
-| Company accent     | Color picker          | Brand color on headers         |
 | Chart font scale   | Slider                | Adjusts chart text size        |
 | Show AI assistance | Toggle (on/off)       | Show or hide all AI components |
 

@@ -17,27 +17,10 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
-    chartMode: {
-      name: 'Chart Mode',
-      description: 'Chart color mode',
-      defaultValue: 'technical',
-      toolbar: {
-        icon: 'graphline',
-        items: [
-          { value: 'technical', title: 'Technical' },
-          { value: 'executive', title: 'Executive' },
-        ],
-        dynamicTitle: true,
-      },
-    },
   },
   decorators: [
     (Story, context) => {
       document.documentElement.setAttribute('data-theme', context.globals.theme || 'dark');
-      document.documentElement.setAttribute(
-        'data-chart-mode',
-        context.globals.chartMode || 'technical'
-      );
       return <Story />;
     },
   ],

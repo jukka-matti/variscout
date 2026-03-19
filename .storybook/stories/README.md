@@ -59,13 +59,12 @@ Use `tags: ['autodocs']` on every story to enable automatic documentation pages.
 The Storybook toolbar provides:
 
 - **Theme** toggle: Sets `data-theme` attribute (`dark` / `light`)
-- **Chart Mode** toggle: Sets `data-chart-mode` attribute (`technical` / `executive`)
 
-Components that read these attributes will respond automatically.
+Components that read this attribute will respond automatically.
 
 ## Color Schemes
 
-Many UI components accept a `colorScheme` prop. Use the exported `defaultScheme` for each component:
+Some UI components (~24) still accept a `colorScheme` prop with a default preset (being phased out). Priority components (FilterContextBar, StatsPanelBase, CoScoutPanelBase, FindingsPanelBase, ErrorBoundary) use semantic tokens directly. For components that still use colorScheme, import the exported default:
 
 ```tsx
 import { AnovaResults, anovaDefaultColorScheme } from '@variscout/ui';
