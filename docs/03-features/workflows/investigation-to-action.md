@@ -64,7 +64,7 @@ From variation discovery to projected improvement — the analyst workflow.
   <div class="process-step">
     <div class="process-step__box process-step__box--navigate">
       <div class="process-step__title">Export / Save</div>
-      <div class="process-step__detail">Copy chart or save</div>
+      <div class="process-step__detail">Copy chart, save as PDF, or save project</div>
     </div>
     <div class="process-step__clicks">1 click</div>
   </div>

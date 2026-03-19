@@ -2,7 +2,7 @@
  * Azure ReportView - Thin wrapper connecting DataContext to ReportViewBase.
  * Composes the scouting report from current analysis state, findings, and hypotheses.
  */
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { hasTeamFeatures } from '@variscout/core';
 import {
@@ -322,6 +322,46 @@ const ReportView: React.FC<ReportViewProps> = ({
     aiNarrative: narrative ?? undefined,
   });
 
+  // ---------------------------------------------------------------------------
+  // Print / Save as PDF
+  // ---------------------------------------------------------------------------
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  const handlePrint = useCallback(() => {
+    // Force-expand all sections
+    setIsPrinting(true);
+
+    // Switch to light theme for print
+    const prevTheme = document.documentElement.getAttribute('data-theme');
+    document.documentElement.setAttribute('data-theme', 'light');
+
+    // Wait for React re-render, then print
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.print();
+      });
+    });
+
+    // Restore after print dialog closes
+    const restore = () => {
+      if (prevTheme) {
+        document.documentElement.setAttribute('data-theme', prevTheme);
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+      setIsPrinting(false);
+      window.removeEventListener('afterprint', restore);
+    };
+    window.addEventListener('afterprint', restore);
+  }, []);
+
+  // Cleanup afterprint listener on unmount
+  useEffect(() => {
+    return () => {
+      // Safety: if component unmounts while print dialog is open, restore won't leak
+    };
+  }, []);
+
   // Build a lookup map for extended section data
   const sectionMap = useMemo(() => {
     const map = new Map<string, ReportSectionDescriptor>();
@@ -450,6 +490,7 @@ const ReportView: React.FC<ReportViewProps> = ({
           onCopyAsSlide={() => handleCopySectionAsSlide(section.id)}
           copyFeedback={sectionCopyFeedback === section.id}
           defaultOpen={section.status !== 'future'}
+          forceOpen={isPrinting}
         >
           {section.id === 'current-condition' && stats && outcome && (
             <div className="space-y-4">
@@ -607,6 +648,7 @@ const ReportView: React.FC<ReportViewProps> = ({
       sectionMap,
       sectionCopyFeedback,
       handleCopySectionAsSlide,
+      isPrinting,
       stats,
       outcome,
       specs,
@@ -639,6 +681,7 @@ const ReportView: React.FC<ReportViewProps> = ({
         activeSectionId={activeSectionId}
         onScrollToSection={handleScrollToSection}
         renderSection={renderSection}
+        onPrintReport={handlePrint}
         onShareReport={onShareReport}
         onPublishToSharePoint={canPublish ? publish : undefined}
         onPublishReplace={publishReplace}

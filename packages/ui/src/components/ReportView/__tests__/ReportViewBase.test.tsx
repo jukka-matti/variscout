@@ -37,12 +37,14 @@ function defaultProps(overrides: Partial<ReportViewBaseProps> = {}): ReportViewB
 describe('ReportViewBase', () => {
   it('renders the process name in the header', () => {
     render(<ReportViewBase {...defaultProps()} />);
-    expect(screen.getByText('Filling Machine A')).toBeDefined();
+    // Process name appears in header and print header
+    expect(screen.getAllByText('Filling Machine A').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders the analystName when provided', () => {
     render(<ReportViewBase {...defaultProps({ analystName: 'Jane Doe' })} />);
-    expect(screen.getByText('Jane Doe')).toBeDefined();
+    // Analyst name appears in header and print footer
+    expect(screen.getAllByText('Jane Doe').length).toBeGreaterThanOrEqual(1);
   });
 
   it('does not render analystName when not provided', () => {

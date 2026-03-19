@@ -192,5 +192,6 @@ Step 5 (Verification — "Did the actions work?") renders actual before/after st
 - [ADR-015: Investigation Board](adr-015-investigation-board.md) — Findings model
 - [ADR-020: Investigation Workflow](adr-020-investigation-workflow.md) — Hypothesis model
 - [ADR-023: Verification Experience](adr-023-data-lifecycle.md) — Staged comparison, data lifecycle
+- [ADR-031: Report Export](adr-031-report-export.md) — Print/PDF export for Standard+ plans
 - [Investigation to Action Workflow](../03-features/workflows/investigation-to-action.md) — Workflow spec
 - [Azure Daily Use](../02-journeys/flows/azure-daily-use.md) — Report View in daily workflow context

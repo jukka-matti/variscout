@@ -67,7 +67,7 @@ flowchart TD
     P -->|Copy chart| R[Clipboard: chart as image]
     P -->|Edit title| S[Custom chart title for report]
     P -->|Report| U[Open Report View — story-driven report]
-    U --> U2[Copy sections as slides or share via Teams]
+    U --> U2[Copy sections as slides, save as PDF, or share via Teams]
     P -->|Done| T[Click Save — local + OneDrive sync on Team plan]
 ```
 
@@ -97,6 +97,7 @@ journey
       Download CSV export: 5: User
       Open Report View: 5: User
       Copy section as slide: 5: User
+      Save report as PDF: 5: User
       Share report via Teams: 5: User
       Save analysis: 5: User
 ```
@@ -233,15 +234,16 @@ If the verification data lives in a separate file or system:
 
 ## Export and Sharing
 
-| Action           | How                                               | Output                          |
-| ---------------- | ------------------------------------------------- | ------------------------------- |
-| CSV export       | Editor header button                              | Filtered data as CSV            |
-| Copy chart       | Chart card menu → "Copy to clipboard"             | PNG image on clipboard          |
-| Edit chart title | Click chart title → type custom text              | Appears in copied image         |
-| Download chart   | Chart card menu → "Download"                      | PNG file                        |
-| Share analysis   | Share the `.vrs` file from OneDrive _(Team plan)_ | Colleague opens in their app    |
-| Report View      | Toolbar button → scrollable story report          | Copy sections as slides         |
-| Share report     | Report View → "Share Report" _(Team plan)_        | Teams Adaptive Card + deep link |
+| Action           | How                                               | Output                           |
+| ---------------- | ------------------------------------------------- | -------------------------------- |
+| CSV export       | Editor header button                              | Filtered data as CSV             |
+| Copy chart       | Chart card menu → "Copy to clipboard"             | PNG image on clipboard           |
+| Edit chart title | Click chart title → type custom text              | Appears in copied image          |
+| Download chart   | Chart card menu → "Download"                      | PNG file                         |
+| Share analysis   | Share the `.vrs` file from OneDrive _(Team plan)_ | Colleague opens in their app     |
+| Report View      | Toolbar button → scrollable story report          | Copy sections as slides          |
+| Save as PDF      | Report View → "Save as PDF" button                | Professional PDF (browser print) |
+| Share report     | Report View → "Share Report" _(Team plan)_        | Teams Adaptive Card + deep link  |
 
 ### Report View — Share the Full Story
 
@@ -258,6 +260,7 @@ Instead of downloading individual charts and assembling them in PowerPoint, Gary
 1. **Copy element** — Hover over any chart or stats block → copy button → paste into PowerPoint as individual image
 2. **Copy section as slide** — Each story step has a "Copy as slide" button → captures at 16:9 (1920×1080) → paste = one PowerPoint slide done
 3. **Copy all charts** — TOC footer → bundles every chart as individual PNGs for custom layout
+4. **Save as PDF** — TOC footer → opens browser print dialog → "Save as PDF" produces a professional, paginated document
 
 **Teams sharing (Team plan):**
 
@@ -265,7 +268,7 @@ Instead of downloading individual charts and assembling them in PowerPoint, Gary
 - Posts an Adaptive Card to the Teams channel with process name, key metric (Cpk), and status
 - Deep link (`?project=X&mode=report`) opens the Report View directly for colleagues
 
-**Time savings:** Weekly review drops from 5–10 minutes of manual assembly to 1–2 minutes of copy-paste. Improvement reports drop from 15–20 minutes to 3–5 minutes.
+**Time savings:** Weekly review drops from 5–10 minutes of manual assembly to < 1 minute (Save as PDF for the complete report). Improvement reports drop from 15–20 minutes to 3–5 minutes.
 
 See [ADR-024: Scouting Report](../../07-decisions/adr-024-scouting-report.md) for the full design.
 

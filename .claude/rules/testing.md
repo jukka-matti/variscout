@@ -77,6 +77,7 @@ Key `data-testid` attributes used in Playwright E2E tests:
 | CoScout input    | `[data-testid="coscout-input"]`             |
 | CoScout message  | `[data-testid^="coscout-message-"]`         |
 | ChartInsightChip | `[data-testid^="insight-chip-"]`            |
+| Save as PDF button | `[data-testid="report-save-pdf"]`          |
 
 ## Feature Verification Protocols
 

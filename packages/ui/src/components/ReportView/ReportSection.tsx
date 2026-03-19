@@ -29,6 +29,8 @@ export interface ReportSectionProps {
   onCopyAsSlide?: () => void;
   copyFeedback?: boolean;
   defaultOpen?: boolean;
+  /** When true, section renders open regardless of local state (used for print export) */
+  forceOpen?: boolean;
   colorScheme?: Partial<ReportSectionColorScheme>;
 }
 
@@ -42,6 +44,7 @@ export const ReportSection: React.FC<ReportSectionProps> = ({
   onCopyAsSlide,
   copyFeedback,
   defaultOpen,
+  forceOpen,
   colorScheme,
 }) => {
   const scheme: ReportSectionColorScheme = {
@@ -59,7 +62,12 @@ export const ReportSection: React.FC<ReportSectionProps> = ({
   };
 
   return (
-    <div id={id} ref={sectionRef} className={`${scheme.container} ${isFuture ? 'opacity-50' : ''}`}>
+    <div
+      id={id}
+      ref={sectionRef}
+      data-report-section
+      className={`${scheme.container} ${isFuture ? 'opacity-50' : ''}`}
+    >
       {/* Header */}
       <div
         className={scheme.header}
@@ -96,7 +104,7 @@ export const ReportSection: React.FC<ReportSectionProps> = ({
       </div>
 
       {/* Content */}
-      {isOpen && !isFuture && <div className={scheme.content}>{children}</div>}
+      {(forceOpen || (isOpen && !isFuture)) && <div className={scheme.content}>{children}</div>}
     </div>
   );
 };

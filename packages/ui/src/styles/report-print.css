@@ -1,0 +1,109 @@
+/* ========================================
+   Report View — Print Stylesheet
+   ADR-031: Print/PDF export for all Azure plans
+   ======================================== */
+
+@media print {
+  /* === Layout === */
+  /* Remove fixed/sticky positioning so content paginates */
+  .fixed.inset-0 {
+    position: static !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .sticky {
+    position: static !important;
+  }
+  .overflow-y-auto,
+  .overflow-hidden {
+    overflow: visible !important;
+  }
+  /* Kill all height constraints that create blank pages */
+  .h-screen,
+  .min-h-screen {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* Hide interactive chrome */
+  [data-export-hide],
+  aside,
+  header button,
+  header select,
+  .animate-spin {
+    display: none !important;
+  }
+
+  /* Kill animations and transitions (freeze mid-state otherwise) */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* === Color preservation === */
+  /* Ensures colored status badges, dots, and chart fills print in color */
+  * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  /* === Typography === */
+  body {
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+  h1 {
+    font-size: 18pt;
+    margin-top: 0;
+  }
+  h2 {
+    font-size: 14pt;
+  }
+
+  /* === Page control === */
+  @page {
+    margin: 20mm 15mm;
+    size: A4;
+  }
+  /* Each report section starts on a new page */
+  [data-report-section] {
+    break-before: page;
+    page-break-before: always;
+  }
+  [data-report-section]:first-child {
+    break-before: avoid;
+    page-break-before: avoid;
+  }
+  /* Never split charts, KPI grids, or finding cards across pages */
+  [data-testid^='chart-'],
+  [data-report-kpi],
+  [data-report-finding] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* === SVG charts (visx) === */
+  svg {
+    overflow: visible !important;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* === Print-only elements === */
+  [data-report-print-header] {
+    display: block !important;
+  }
+  [data-report-print-footer] {
+    display: block !important;
+  }
+}
+
+/* Hide print-only elements in screen mode */
+@media screen {
+  [data-report-print-header],
+  [data-report-print-footer] {
+    display: none;
+  }
+}

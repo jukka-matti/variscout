@@ -1,5 +1,6 @@
 @import '@variscout/ui/styles/theme.css';
 @import '@variscout/ui/styles/components.css';
+@import '@variscout/ui/styles/report-print.css';
 
 @tailwind base;
 @tailwind components;

@@ -47,7 +47,7 @@ export const ReportKPIGrid: React.FC<ReportKPIGridProps> = ({
   const cpkColor = getCpkColor(stats.cpk, cpkTarget);
 
   return (
-    <div className={scheme.container}>
+    <div data-report-kpi className={scheme.container}>
       {/* Samples */}
       <div className={scheme.card}>
         <div className={scheme.label}>Samples</div>

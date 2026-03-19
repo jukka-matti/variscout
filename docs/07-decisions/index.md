@@ -42,6 +42,7 @@ This section captures key architectural decisions made during VariScout developm
 | [028](adr-028-responses-api-migration.md)            | Responses API Migration                  | Accepted   | 2026-03-19 |
 | [029](adr-029-ai-action-tools.md)                    | AI Action Tools for CoScout              | Accepted   | 2026-03-19 |
 | [030](adr-030-unified-file-picker.md)                | Unified File Picker (OneDrive v8)        | Accepted   | 2026-03-19 |
+| [031](adr-031-report-export.md)                      | Report Export — Print/PDF for All Azure  | Accepted   | 2026-03-19 |
 
 ---
 
