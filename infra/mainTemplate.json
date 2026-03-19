@@ -389,8 +389,8 @@
       "properties": {
         "model": {
           "format": "OpenAI",
-          "name": "gpt-4o-mini",
-          "version": "2024-07-18"
+          "name": "gpt-5.4-nano",
+          "version": "2026-03-17"
         },
         "versionUpgradeOption": "OnceCurrentVersionExpired"
       }
@@ -410,8 +410,8 @@
       "properties": {
         "model": {
           "format": "OpenAI",
-          "name": "gpt-4o",
-          "version": "2024-08-06"
+          "name": "gpt-5.4-mini",
+          "version": "2026-03-17"
         },
         "versionUpgradeOption": "OnceCurrentVersionExpired"
       }

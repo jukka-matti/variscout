@@ -625,7 +625,18 @@ Never invent data or statistics. If the context does not contain enough informat
     }
   }
 
-  return parts.join('\n\n');
+  const prompt = parts.join('\n\n');
+
+  if (import.meta.env.DEV) {
+    const estTokens = Math.ceil(prompt.length / 4);
+    if (estTokens < 1024) {
+      console.warn(
+        `[VariScout AI] CoScout system prompt ~${estTokens} tokens. Prompt caching requires ≥1,024.`
+      );
+    }
+  }
+
+  return prompt;
 }
 
 /** Maximum number of history messages to include in CoScout API calls */

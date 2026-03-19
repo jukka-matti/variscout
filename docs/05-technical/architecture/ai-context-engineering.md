@@ -102,8 +102,33 @@ Azure AI Foundry caches the longest matching prefix of the system prompt. VariSc
 1. Placing static content (role + methodology + glossary) first in the system message
 2. Placing variable content (stats, filters) in a separate system message
 3. Keeping the static prefix stable across requests (>1,024 tokens)
+4. Using `prompt_cache_key` on all Responses API requests for explicit server-side caching
 
 This means the first ~950 tokens of every CoScout request are served from cache after the first call, reducing latency and cost.
+
+### `prompt_cache_key` Usage
+
+All Responses API requests include a `prompt_cache_key` for explicit server-side system prompt caching:
+
+| Feature        | Cache Key             | Tier      |
+| -------------- | --------------------- | --------- |
+| Narration      | `variscout-narration` | fast      |
+| Chart Insights | `variscout-chip`      | fast      |
+| CoScout        | `variscout-coscout`   | reasoning |
+| Report         | `variscout-report`    | reasoning |
+
+### System Prompt Token Threshold Verification
+
+Dev-only diagnostics warn if system prompts fall below the 1,024-token caching threshold:
+
+```typescript
+// Emitted in dev mode by buildCoScoutSystemPrompt() and buildNarrationSystemPrompt()
+console.warn(
+  `[VariScout AI] CoScout system prompt ~${estTokens} tokens. Prompt caching requires ≥1,024.`
+);
+```
+
+Unit tests verify the CoScout system prompt with a realistic glossary exceeds the threshold. Narration prompts are intentionally compact; caching relies on `store: true` and `prompt_cache_key`.
 
 ---
 

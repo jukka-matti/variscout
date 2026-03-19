@@ -133,6 +133,8 @@ export function trackAICall(trace: TraceRecord): void {
       inputTokens: trace.tokens?.inputTokens ?? 0,
       outputTokens: trace.tokens?.outputTokens ?? 0,
       totalTokens: trace.tokens?.totalTokens ?? 0,
+      cachedTokens: trace.tokens?.cachedTokens ?? 0,
+      reasoningTokens: trace.tokens?.reasoningTokens ?? 0,
     },
   });
 }

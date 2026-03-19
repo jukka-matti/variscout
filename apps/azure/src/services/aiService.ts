@@ -6,7 +6,7 @@
  * CoScout conversations are handled directly via useAICoScout + streamResponsesWithToolLoop.
  */
 
-import type { AIContext, AIErrorType, Locale, ResponsesApiConfig } from '@variscout/core';
+import type { AIContext, AIErrorType, AITier, Locale, ResponsesApiConfig } from '@variscout/core';
 import {
   buildNarrationSystemPrompt,
   buildSummaryPrompt,
@@ -63,12 +63,18 @@ export function isAIAvailable(): boolean {
 }
 
 /**
- * Build Responses API config.
+ * Build Responses API config for a specific model tier.
+ *
+ * Deployment names ('fast', 'reasoning') are stable — they match the ARM template
+ * deployment names. The underlying model (e.g. gpt-5.4-nano) is managed by Azure
+ * via `versionUpgradeOption: "OnceCurrentVersionExpired"`.
  *
  * Auth: In production, fetches the EasyAuth bearer token.
  * In dev, falls back to VITE_AI_API_KEY env var.
  */
-export async function getResponsesApiConfig(): Promise<ResponsesApiConfig | undefined> {
+export async function getResponsesApiConfig(
+  tier: AITier = 'reasoning'
+): Promise<ResponsesApiConfig | undefined> {
   const endpoint = getAIEndpoint();
   if (!endpoint) return undefined;
 
@@ -81,11 +87,14 @@ export async function getResponsesApiConfig(): Promise<ResponsesApiConfig | unde
     baseEndpoint = deploymentMatch[1];
   }
 
-  // Deployment name: explicit env var > extract from URL > fallback
+  // Deployment name resolution:
+  // 1. Explicit env var override (dev only)
+  // 2. Extract from URL (legacy config)
+  // 3. Use tier name directly — matches ARM deployment names ('fast' or 'reasoning')
   let deployment = import.meta.env.VITE_RESPONSES_API_DEPLOYMENT || '';
   if (!deployment) {
     const pathMatch = endpoint.match(/\/deployments\/([^/]+)/);
-    deployment = pathMatch?.[1] || 'gpt-4o';
+    deployment = pathMatch?.[1] || tier;
   }
 
   // Auth: try EasyAuth token first (production), fall back to env var (dev)
@@ -176,7 +185,7 @@ export async function fetchNarration(context: AIContext): Promise<string> {
   const cached = getCached(CACHE_KEY_PREFIX, cacheKeyStr);
   if (cached) return cached;
 
-  const config = await getResponsesApiConfig();
+  const config = await getResponsesApiConfig('fast');
   if (!config) throw new Error('AI endpoint not configured');
 
   // Retry with exponential backoff (max 3 attempts)
@@ -192,6 +201,8 @@ export async function fetchNarration(context: AIContext): Promise<string> {
         instructions: systemPrompt,
         input: userPrompt,
         store: true,
+        prompt_cache_key: 'variscout-narration',
+        reasoning: { effort: 'none' },
         text: {
           format: {
             type: 'json_schema',
@@ -245,7 +256,7 @@ export async function fetchChartInsight(userPrompt: string, locale?: Locale): Pr
   const cached = getCached(CHIP_CACHE_KEY_PREFIX, cacheKeyStr);
   if (cached) return cached;
 
-  const config = await getResponsesApiConfig();
+  const config = await getResponsesApiConfig('fast');
   if (!config) throw new Error('AI endpoint not configured');
 
   const systemPrompt = buildChartInsightSystemPrompt(locale);
@@ -254,6 +265,8 @@ export async function fetchChartInsight(userPrompt: string, locale?: Locale): Pr
     instructions: systemPrompt,
     input: userPrompt,
     store: true,
+    prompt_cache_key: 'variscout-chip',
+    reasoning: { effort: 'none' },
     text: {
       format: {
         type: 'json_schema',
@@ -290,7 +303,7 @@ export async function fetchChartInsight(userPrompt: string, locale?: Locale): Pr
 export async function fetchFindingsReport(
   messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>
 ): Promise<string> {
-  const config = await getResponsesApiConfig();
+  const config = await getResponsesApiConfig('reasoning');
   if (!config) throw new Error('AI endpoint not configured');
 
   // Separate system/instructions from input messages
@@ -311,6 +324,8 @@ export async function fetchFindingsReport(
         instructions,
         input: nonSystemMessages,
         store: true,
+        prompt_cache_key: 'variscout-report',
+        reasoning: { effort: 'low' },
       });
 
       const text = extractResponseText(response);

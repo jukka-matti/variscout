@@ -1231,3 +1231,33 @@ describe('structured output schemas', () => {
     expect(chartInsightResponseSchema.additionalProperties).toBe(false);
   });
 });
+
+describe('prompt caching threshold', () => {
+  it('CoScout system prompt without glossary exceeds 500 estimated tokens', () => {
+    // Base prompt is substantial — the static role + methodology text
+    const prompt = buildCoScoutSystemPrompt();
+    const estTokens = Math.ceil(prompt.length / 4);
+    expect(estTokens).toBeGreaterThanOrEqual(500);
+  });
+
+  it('CoScout system prompt with glossary exceeds 1024 estimated tokens', () => {
+    // Production glossary is ~30+ terms; simulate realistic size
+    const terms = Array.from(
+      { length: 30 },
+      (_, i) =>
+        `- **Term${i}**: A quality engineering concept used in statistical process control and variation analysis for manufacturing processes`
+    ).join('\n');
+    const glossary = `## Terminology\n\n${terms}`;
+    const prompt = buildCoScoutSystemPrompt({ glossaryFragment: glossary });
+    const estTokens = Math.ceil(prompt.length / 4);
+    expect(estTokens).toBeGreaterThanOrEqual(1024);
+  });
+
+  it('Narration system prompt is compact without glossary', () => {
+    // Narration without glossary is intentionally small — glossary pushes it over
+    const prompt = buildNarrationSystemPrompt();
+    const estTokens = Math.ceil(prompt.length / 4);
+    // Narration system prompt is short by design; caching relies on `store: true`
+    expect(estTokens).toBeGreaterThan(0);
+  });
+});

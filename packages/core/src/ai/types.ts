@@ -5,6 +5,9 @@
 import type { InsightChartType } from './chartInsights';
 import type { Locale } from '../i18n/types';
 
+/** AI model tier — maps to ARM deployment names ('fast' or 'reasoning') */
+export type AITier = 'fast' | 'reasoning';
+
 /** Target metric type for improvement tracking */
 export type TargetMetric = 'mean' | 'sigma' | 'cpk' | 'yield' | 'passRate';
 

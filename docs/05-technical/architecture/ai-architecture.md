@@ -43,7 +43,7 @@ Technical architecture for optional AI integration in the Azure App.
 │  AZURE (customer's tenant — optional)                │
 │                                                      │
 │  Azure AI Foundry          Azure AI Search            │
-│  (GPT-4o / Claude / etc)   (knowledge orchestration)  │
+│  (gpt-5.4-nano / mini)    (knowledge orchestration)  │
 │                                                      │
 │  SharePoint                OneDrive                   │
 │  (published reports,       (.vrs projects)            │
@@ -155,11 +155,27 @@ See [ADR-026](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md) for
 ```typescript
 type AITier = 'fast' | 'reasoning';
 
-// fast → cheap model (narrative bar, chart chips)
-// reasoning → capable model (CoScout conversation, reports)
+// fast → gpt-5.4-nano (narrative bar, chart chips) — reasoning: none
+// reasoning → gpt-5.4-mini (CoScout conversation, reports) — reasoning: low
 ```
 
-The service accepts a `tier` parameter and routes to the appropriate model deployment. Model names are configured in the ARM template (customer chooses during deployment).
+The service accepts a `tier` parameter and routes to the appropriate ARM deployment name. `getResponsesApiConfig(tier)` resolves the deployment name (stable: `'fast'` or `'reasoning'`). The underlying model auto-upgrades via `versionUpgradeOption: "OnceCurrentVersionExpired"` — zero customer intervention needed.
+
+**New API parameters (GPT-5.4):**
+
+| Parameter           | Purpose                                 | Usage                                              |
+| ------------------- | --------------------------------------- | -------------------------------------------------- |
+| `prompt_cache_key`  | Server-side system prompt caching       | All requests — narration, chips, CoScout, report   |
+| `reasoning.effort`  | Control hidden reasoning token overhead | `'none'` for fast tier, `'low'` for reasoning tier |
+| `reasoning.summary` | Surface reasoning chain (future)        | Not yet used — planned for debug panel             |
+| `truncation`        | Long context truncation strategy        | Not yet used                                       |
+
+**Model lifecycle:**
+
+| Model                     | Tier      | Retirement | Auto-upgrade                |
+| ------------------------- | --------- | ---------- | --------------------------- |
+| gpt-5.4-nano (2026-03-17) | fast      | 2027-09-17 | `OnceCurrentVersionExpired` |
+| gpt-5.4-mini (2026-03-17) | reasoning | 2027-09-17 | `OnceCurrentVersionExpired` |
 
 ### Single-Path API (ADR-028)
 
@@ -274,18 +290,18 @@ After 50+ published reports, the AI has genuine organizational knowledge -- meas
 
 All AI resources are conditional on `parameters('enableAI')`:
 
-| Resource                   | Type                                                           | Purpose                                               |
-| -------------------------- | -------------------------------------------------------------- | ----------------------------------------------------- |
-| AI Services account        | `Microsoft.CognitiveServices/accounts` (kind: OpenAI, SKU: S0) | Azure AI Foundry host                                 |
-| Fast model deployment      | `Microsoft.CognitiveServices/accounts/deployments`             | Cheap model (e.g., GPT-4o-mini) for narration + chips |
-| Reasoning model deployment | `Microsoft.CognitiveServices/accounts/deployments`             | Capable model (e.g., GPT-4o) for CoScout + reports    |
-| AI Search service          | `Microsoft.Search/searchServices` (2025-05-01 API)             | Knowledge base orchestration (Foundry IQ)             |
-| Azure Function             | `Microsoft.Web/sites`                                          | OBO token exchange (SharePoint access)                |
+| Resource                   | Type                                                           | Purpose                                              |
+| -------------------------- | -------------------------------------------------------------- | ---------------------------------------------------- |
+| AI Services account        | `Microsoft.CognitiveServices/accounts` (kind: OpenAI, SKU: S0) | Azure AI Foundry host                                |
+| Fast model deployment      | `Microsoft.CognitiveServices/accounts/deployments`             | gpt-5.4-nano for narration + chips (reasoning: none) |
+| Reasoning model deployment | `Microsoft.CognitiveServices/accounts/deployments`             | gpt-5.4-mini for CoScout + reports (reasoning: low)  |
+| AI Search service          | `Microsoft.Search/searchServices` (2025-05-01 API)             | Knowledge base orchestration (Foundry IQ)            |
+| Azure Function             | `Microsoft.Web/sites`                                          | OBO token exchange (SharePoint access)               |
 
 `createUiDefinition.json` additions:
 
 - "Enable AI-powered analysis" checkbox → `enableAI` boolean parameter
-- Model selection dropdown (GPT-4o-mini default, GPT-4o, Claude Sonnet)
+- Model selection dropdown (gpt-5.4-nano default fast, gpt-5.4-mini default reasoning)
 
 EasyAuth `authsettingsV2` updated to include Cognitive Services scope.
 

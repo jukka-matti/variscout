@@ -148,6 +148,8 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
               tools,
               previous_response_id: previousResponseIdRef.current,
               store: true,
+              prompt_cache_key: 'variscout-coscout',
+              reasoning: { effort: 'low' },
             },
             toolHandlers || {},
             (delta: string) => {
@@ -164,6 +166,8 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
                   inputTokens: resp.usage.input_tokens,
                   outputTokens: resp.usage.output_tokens,
                   totalTokens: resp.usage.total_tokens,
+                  cachedTokens: resp.usage.input_tokens_details?.cached_tokens,
+                  reasoningTokens: resp.usage.output_tokens_details?.reasoning_tokens,
                 }
               : undefined,
           };

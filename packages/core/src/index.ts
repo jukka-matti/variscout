@@ -307,6 +307,7 @@ export type {
   EntryScenario,
   InvestigationPhase,
   JourneyPhase,
+  AITier,
   AIContext,
   AIErrorType,
   CoScoutMessage,

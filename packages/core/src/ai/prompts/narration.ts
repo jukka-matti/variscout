@@ -33,7 +33,18 @@ Never invent data — only describe what is provided in the context.`
 
   parts.push(TERMINOLOGY_INSTRUCTION);
 
-  return parts.join('\n\n');
+  const prompt = parts.join('\n\n');
+
+  if (import.meta.env.DEV) {
+    const estTokens = Math.ceil(prompt.length / 4);
+    if (estTokens < 1024) {
+      console.warn(
+        `[VariScout AI] Narration system prompt ~${estTokens} tokens. Prompt caching requires ≥1,024.`
+      );
+    }
+  }
+
+  return prompt;
 }
 
 /**

@@ -73,10 +73,10 @@ CoScout prompts are grounded in VariScout's own methodology (Four Lenses, Two Vo
 
 Azure AI Foundry hosts both OpenAI and Anthropic models with a unified API. Customer chooses model during ARM deployment.
 
-**Dual-model routing:**
+**Dual-model routing (implemented March 2026):**
 
-- `tier: 'fast'` → cheap model (narrative bar, chart chips) — e.g., GPT-4o-mini
-- `tier: 'reasoning'` → smart model (CoScout, reports) — e.g., GPT-4o or Claude Sonnet
+- `tier: 'fast'` → cheap model (narrative bar, chart chips) — gpt-5.4-nano (`reasoning: { effort: 'none' }`)
+- `tier: 'reasoning'` → capable model (CoScout, reports) — gpt-5.4-mini (`reasoning: { effort: 'low' }`)
 
 ### Authentication
 
@@ -170,7 +170,7 @@ See [AI Readiness Review](../archive/ai-readiness-review.md) for the full Proces
 | Risk                                            | Mitigation                                                                                 |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Remote SharePoint requires M365 Copilot license | Minimum 1 license per tenant. Documented as prerequisite in admin setup.                   |
-| AI costs concern customers                      | Default to cheapest model (GPT-4o-mini). Dual-model routing. Response caching.             |
+| AI costs concern customers                      | Default to cheapest model (gpt-5.4-nano). Dual-model routing. Response caching.            |
 | EDAScout-style chatbot backlash                 | AI never auto-acts. Always dismissable. Shows stats source alongside explanation.          |
 | Model quality for SPC domain                    | Prompt templates grounded in VariScout glossary. Stats-only context reduces hallucination. |
 | Privacy / data sovereignty                      | All AI resources in customer tenant. Stats-only payloads. Same EasyAuth + RBAC.            |
@@ -221,3 +221,12 @@ The AI integration has been simplified per ADR-028:
 - **Function calling** added for Knowledge Base intent detection (`suggest_knowledge_search`)
 - Provider detection (`detectProvider`, `ModelProvider`) and dual-format parsing removed from `aiService.ts`
 - `VITE_USE_RESPONSES_API` feature flag removed — always on
+
+## Implementation Update (Model Upgrade, 2026-03-19)
+
+- **Dual-model routing implemented** — `getResponsesApiConfig(tier)` accepts `'fast'` or `'reasoning'` tier; deployment names are stable ARM references
+- **Models updated to GPT-5.4 generation** — gpt-5.4-nano (fast tier, `reasoning: { effort: 'none' }`), gpt-5.4-mini (reasoning tier, `reasoning: { effort: 'low' }`)
+- **Prompt caching** — `prompt_cache_key` added to all Responses API requests for server-side system prompt caching
+- **Token observability** — `TokenUsage` extended with `cachedTokens` and `reasoningTokens`; telemetry tracks both
+- **Model lifecycle** — ARM template uses `versionUpgradeOption: "OnceCurrentVersionExpired"` for zero-touch customer upgrades; deployment names (`fast`, `reasoning`) are stable while underlying models auto-upgrade
+- **GPT-4o retirement** — gpt-4o (2024-08-06) and gpt-4o-mini (2024-07-18) retire 2026-03-31; existing deployments auto-upgrade via Azure; new deployments use GPT-5.4 (18-month runway to 2027-09-17)

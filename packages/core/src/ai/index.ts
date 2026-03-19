@@ -3,6 +3,7 @@
  */
 
 export type {
+  AITier,
   ProcessContext,
   TargetMetric,
   EntryScenario,

@@ -182,7 +182,7 @@ export function useEditorAI({
   useEffect(() => {
     if (!aiAvailable) return;
     let cancelled = false;
-    getResponsesApiConfig().then(config => {
+    getResponsesApiConfig('reasoning').then(config => {
       if (!cancelled) setResponsesConfig(config);
     });
     return () => {

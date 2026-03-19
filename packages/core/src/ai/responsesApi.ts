@@ -50,6 +50,15 @@ export interface ResponsesApiRequest {
   tool_choice?: string | { type: 'function'; name: string };
   /** Structured output format for text responses */
   text?: { format: TextFormat };
+  /** Prompt cache key for server-side caching of system prompts */
+  prompt_cache_key?: string;
+  /** Reasoning configuration for GPT-5.4 models */
+  reasoning?: {
+    effort?: 'none' | 'low' | 'medium' | 'high';
+    summary?: 'auto' | 'concise' | 'detailed';
+  };
+  /** Truncation strategy for long contexts */
+  truncation?: string;
 }
 
 /** Structured output format — JSON Schema */
@@ -88,6 +97,8 @@ export interface ResponsesApiResponse {
     input_tokens: number;
     output_tokens: number;
     total_tokens: number;
+    input_tokens_details?: { cached_tokens?: number };
+    output_tokens_details?: { reasoning_tokens?: number };
   };
 }
 

@@ -27,6 +27,10 @@ export interface TokenUsage {
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;
+  /** Cached input tokens (from input_tokens_details.cached_tokens) */
+  cachedTokens?: number;
+  /** Reasoning output tokens (from output_tokens_details.reasoning_tokens) */
+  reasoningTokens?: number;
 }
 
 export interface TraceRecord {
