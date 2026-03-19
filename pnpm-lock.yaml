@@ -430,6 +430,9 @@ importers:
       d3-array:
         specifier: ^3.2.4
         version: 3.2.4
+      html-to-image:
+        specifier: ^1.11.13
+        version: 1.11.13
       react:
         specifier: ^18.0.0 || ^19.0.0
         version: 19.2.3
@@ -446,9 +449,6 @@ importers:
       '@types/react':
         specifier: ^18.3.3
         version: 18.3.27
-      html-to-image:
-        specifier: ^1.11.13
-        version: 1.11.13
       jsdom:
         specifier: ^28.1.0
         version: 28.1.0
