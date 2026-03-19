@@ -17,6 +17,7 @@ import {
   chartInsightResponseSchema,
   isTeamAIPlan,
   djb2Hash,
+  traceAICall,
 } from '@variscout/core';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
 
@@ -197,35 +198,50 @@ export async function fetchNarration(context: AIContext): Promise<string> {
     }
 
     try {
-      const response = await sendResponsesTurn(config, {
-        instructions: systemPrompt,
-        input: userPrompt,
-        store: true,
-        prompt_cache_key: 'variscout-narration',
-        reasoning: { effort: 'none' },
-        text: {
-          format: {
-            type: 'json_schema',
-            name: 'narration_response',
-            schema: narrationResponseSchema,
-            strict: true,
+      const { result: text } = await traceAICall({ feature: 'narration' }, async () => {
+        const response = await sendResponsesTurn(config, {
+          instructions: systemPrompt,
+          input: userPrompt,
+          store: true,
+          prompt_cache_key: 'variscout-narration',
+          reasoning: { effort: 'none' },
+          text: {
+            format: {
+              type: 'json_schema',
+              name: 'narration_response',
+              schema: narrationResponseSchema,
+              strict: true,
+            },
           },
-        },
+        });
+
+        const rawText = extractResponseText(response);
+        if (!rawText) throw new Error('Empty response from AI');
+
+        // Parse structured output — extract just the text field
+        let parsed: string;
+        try {
+          const obj = JSON.parse(rawText) as { text: string };
+          parsed = obj.text;
+        } catch {
+          // Fallback: use raw text if structured parsing fails
+          parsed = rawText;
+        }
+        if (!parsed) throw new Error('Empty response from AI');
+
+        return {
+          result: parsed,
+          tokens: response.usage
+            ? {
+                inputTokens: response.usage.input_tokens,
+                outputTokens: response.usage.output_tokens,
+                totalTokens: response.usage.total_tokens,
+                cachedTokens: response.usage.input_tokens_details?.cached_tokens,
+                reasoningTokens: response.usage.output_tokens_details?.reasoning_tokens,
+              }
+            : undefined,
+        };
       });
-
-      const rawText = extractResponseText(response);
-      if (!rawText) throw new Error('Empty response from AI');
-
-      // Parse structured output — extract just the text field
-      let text: string;
-      try {
-        const parsed = JSON.parse(rawText) as { text: string };
-        text = parsed.text;
-      } catch {
-        // Fallback: use raw text if structured parsing fails
-        text = rawText;
-      }
-      if (!text) throw new Error('Empty response from AI');
 
       // Cache successful response
       setCached(CACHE_KEY_PREFIX, cacheKeyStr, text);
@@ -261,34 +277,49 @@ export async function fetchChartInsight(userPrompt: string, locale?: Locale): Pr
 
   const systemPrompt = buildChartInsightSystemPrompt(locale);
 
-  const response = await sendResponsesTurn(config, {
-    instructions: systemPrompt,
-    input: userPrompt,
-    store: true,
-    prompt_cache_key: 'variscout-chip',
-    reasoning: { effort: 'none' },
-    text: {
-      format: {
-        type: 'json_schema',
-        name: 'chart_insight_response',
-        schema: chartInsightResponseSchema,
-        strict: true,
+  const { result: text } = await traceAICall({ feature: 'chart-insight' }, async () => {
+    const response = await sendResponsesTurn(config, {
+      instructions: systemPrompt,
+      input: userPrompt,
+      store: true,
+      prompt_cache_key: 'variscout-chip',
+      reasoning: { effort: 'none' },
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'chart_insight_response',
+          schema: chartInsightResponseSchema,
+          strict: true,
+        },
       },
-    },
+    });
+
+    const rawText = extractResponseText(response);
+    if (!rawText) throw new Error('Empty response from AI');
+
+    // Parse structured output — extract just the text field
+    let parsed: string;
+    try {
+      const obj = JSON.parse(rawText) as { text: string };
+      parsed = obj.text;
+    } catch {
+      parsed = rawText;
+    }
+    if (!parsed) throw new Error('Empty response from AI');
+
+    return {
+      result: parsed,
+      tokens: response.usage
+        ? {
+            inputTokens: response.usage.input_tokens,
+            outputTokens: response.usage.output_tokens,
+            totalTokens: response.usage.total_tokens,
+            cachedTokens: response.usage.input_tokens_details?.cached_tokens,
+            reasoningTokens: response.usage.output_tokens_details?.reasoning_tokens,
+          }
+        : undefined,
+    };
   });
-
-  const rawText = extractResponseText(response);
-  if (!rawText) throw new Error('Empty response from AI');
-
-  // Parse structured output — extract just the text field
-  let text: string;
-  try {
-    const parsed = JSON.parse(rawText) as { text: string };
-    text = parsed.text;
-  } catch {
-    text = rawText;
-  }
-  if (!text) throw new Error('Empty response from AI');
 
   // Cache successful response
   setCached(CHIP_CACHE_KEY_PREFIX, cacheKeyStr, text);
@@ -320,16 +351,31 @@ export async function fetchFindingsReport(
     }
 
     try {
-      const response = await sendResponsesTurn(config, {
-        instructions,
-        input: nonSystemMessages,
-        store: true,
-        prompt_cache_key: 'variscout-report',
-        reasoning: { effort: 'low' },
-      });
+      const { result: text } = await traceAICall({ feature: 'report' }, async () => {
+        const response = await sendResponsesTurn(config, {
+          instructions,
+          input: nonSystemMessages,
+          store: true,
+          prompt_cache_key: 'variscout-report',
+          reasoning: { effort: 'low' },
+        });
 
-      const text = extractResponseText(response);
-      if (!text) throw new Error('Empty response from AI');
+        const responseText = extractResponseText(response);
+        if (!responseText) throw new Error('Empty response from AI');
+
+        return {
+          result: responseText,
+          tokens: response.usage
+            ? {
+                inputTokens: response.usage.input_tokens,
+                outputTokens: response.usage.output_tokens,
+                totalTokens: response.usage.total_tokens,
+                cachedTokens: response.usage.input_tokens_details?.cached_tokens,
+                reasoningTokens: response.usage.output_tokens_details?.reasoning_tokens,
+              }
+            : undefined,
+        };
+      });
 
       return text;
     } catch (err) {

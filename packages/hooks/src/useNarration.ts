@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { AIContext } from '@variscout/core';
-import { djb2Hash, traceAICall } from '@variscout/core';
+import { djb2Hash } from '@variscout/core';
 
 export type NarrationStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -94,9 +94,8 @@ export function useNarration(options: UseNarrationOptions): UseNarrationReturn {
       setError(null);
 
       try {
-        const { result } = await traceAICall({ feature: 'narration' }, async () => ({
-          result: await fetchNarration(ctx),
-        }));
+        // Tracing is handled in the service layer (aiService.ts)
+        const result = await fetchNarration(ctx);
         if (controller.signal.aborted) return;
 
         cache.current.set(key, result);

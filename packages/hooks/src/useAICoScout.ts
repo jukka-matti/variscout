@@ -19,6 +19,7 @@ import {
   buildCoScoutTools,
   streamResponsesWithToolLoop,
   traceAICall,
+  getCoScoutReasoningEffort,
 } from '@variscout/core';
 
 export interface UseAICoScoutOptions {
@@ -149,7 +150,7 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
               previous_response_id: previousResponseIdRef.current,
               store: true,
               prompt_cache_key: 'variscout-coscout',
-              reasoning: { effort: 'low' },
+              reasoning: { effort: getCoScoutReasoningEffort(toolsOptions?.phase) },
             },
             toolHandlers || {},
             (delta: string) => {

@@ -98,4 +98,6 @@ export {
 
 export { buildSuggestedQuestions, formatForMobile } from './suggestedQuestions';
 
+export { getCoScoutReasoningEffort } from './reasoningConfig';
+
 export { djb2Hash } from './hash';

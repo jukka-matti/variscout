@@ -230,3 +230,9 @@ The AI integration has been simplified per ADR-028:
 - **Token observability** — `TokenUsage` extended with `cachedTokens` and `reasoningTokens`; telemetry tracks both
 - **Model lifecycle** — ARM template uses `versionUpgradeOption: "OnceCurrentVersionExpired"` for zero-touch customer upgrades; deployment names (`fast`, `reasoning`) are stable while underlying models auto-upgrade
 - **GPT-4o retirement** — gpt-4o (2024-08-06) and gpt-4o-mini (2024-07-18) retire 2026-03-31; existing deployments auto-upgrade via Azure; new deployments use GPT-5.4 (18-month runway to 2027-09-17)
+
+## Implementation Update (Observability + Phase Reasoning, 2026-03-19)
+
+- **`traceAICall()` wired into all service functions** — `fetchNarration`, `fetchChartInsight`, and `fetchFindingsReport` in `aiService.ts` now wrap their API calls with `traceAICall()`, capturing token usage (input, output, cached, reasoning tokens) for all AI features. Previously only CoScout traced fully.
+- **Per-journey-phase reasoning effort** — CoScout uses `getCoScoutReasoningEffort(phase)` from `@variscout/core` instead of hardcoded `'low'`. FRAME→none, SCOUT→low, INVESTIGATE→medium, IMPROVE→low. Narration/chips stay at `'none'`, reports stay at `'low'`.
+- **Redundant hook-level tracing removed** — `useNarration` no longer wraps calls with `traceAICall()` since tracing is now in the service layer.

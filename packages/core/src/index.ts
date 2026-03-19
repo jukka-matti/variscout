@@ -399,6 +399,7 @@ export {
   streamResponsesWithToolLoop,
   extractResponseText,
   buildCoScoutTools,
+  getCoScoutReasoningEffort,
 } from './ai';
 
 // Category keyword matching and inference

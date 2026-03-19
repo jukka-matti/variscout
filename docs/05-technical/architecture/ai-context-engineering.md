@@ -81,11 +81,11 @@ When converging with supported hypotheses that have improvement ideas, the promp
 
 ## 3. Token Budget Management
 
-| Consumer             | Max Context | Model Tier |
-| -------------------- | ----------- | ---------- |
-| NarrativeBar         | ~2K tokens  | fast       |
-| ChartInsightChip     | ~1K tokens  | fast       |
-| CoScout conversation | ~8K tokens  | reasoning  |
+| Consumer             | Max Context | Model Tier | Reasoning Effort                                                  |
+| -------------------- | ----------- | ---------- | ----------------------------------------------------------------- |
+| NarrativeBar         | ~2K tokens  | fast       | `'none'`                                                          |
+| ChartInsightChip     | ~1K tokens  | fast       | `'none'`                                                          |
+| CoScout conversation | ~8K tokens  | reasoning  | Per-phase: FRAME→none, SCOUT→low, INVESTIGATE→medium, IMPROVE→low |
 
 Budget is managed by:
 
@@ -288,7 +288,8 @@ Azure AI Foundry            -- Azure OpenAI only (ADR-028; Responses API)
 | `packages/core/src/ai/prompts/`              | `@variscout/core`      | Modular prompt builders: `shared.ts`, `narration.ts`, `coScout.ts`, `chartInsights.ts`, `reports.ts`                                                                                              |
 | `packages/core/src/ai/promptTemplates.ts`    | `@variscout/core`      | Thin re-export barrel for backward compatibility                                                                                                                                                  |
 | `packages/core/src/ai/responsesApi.ts`       | `@variscout/core`      | Sole API client — Azure AI Foundry Responses API. `sendResponsesTurn()` (structured outputs) and `streamResponsesWithToolLoop()` (streaming + tool loop). Chat Completions API removed (ADR-028). |
-| `packages/core/src/ai/tracing.ts`            | `@variscout/core`      | AI observability: `traceAICall` wrapper, `getTraceStats`                                                                                                                                          |
+| `packages/core/src/ai/tracing.ts`            | `@variscout/core`      | AI observability: `traceAICall` wrapper, `getTraceStats`. Wired into all service functions (narration, chart-insight, report, CoScout).                                                           |
+| `packages/core/src/ai/reasoningConfig.ts`    | `@variscout/core`      | `getCoScoutReasoningEffort(phase)` — per-journey-phase reasoning effort mapping                                                                                                                   |
 | `packages/core/src/ai/chartInsights.ts`      | `@variscout/core`      | Deterministic insight builders per chart type                                                                                                                                                     |
 | `packages/core/src/ai/suggestedQuestions.ts` | `@variscout/core`      | `buildSuggestedQuestions()` — context-aware question generation                                                                                                                                   |
 | `packages/core/src/ai/hash.ts`               | `@variscout/core`      | `djb2Hash()` — shared hash for cache keys and dedup                                                                                                                                               |

@@ -62,11 +62,11 @@ The Methodology Coach provides a setup checklist during FRAME.
 
 Watson's EDA chart sequence: I-Chart → Boxplot → Pareto → Capability. AI explains what you see and suggests what to do.
 
-| Component            | No AI                      | AI Enabled                                                                      | AI + Knowledge Base                                        |
-| -------------------- | -------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| **NarrativeBar**     | Hidden                     | Summary bar: "Machine A explains 47% of variation. Cpk 0.85 below target 1.33." | Same (KB doesn't affect narration)                         |
-| **ChartInsightChip** | Deterministic insight only | AI-enhanced: "→ Drill Machine A (47%) — your process mentions nozzle clogging"  | Same                                                       |
-| **CoScout**          | Hidden                     | Available: "Why is this chart showing a shift?"                                 | + On-demand KB search: "Have we seen this pattern before?" |
+| Component            | No AI                      | AI Enabled                                                                      | AI + Knowledge Base                                        | Reasoning Effort |
+| -------------------- | -------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------- | ---------------- |
+| **NarrativeBar**     | Hidden                     | Summary bar: "Machine A explains 47% of variation. Cpk 0.85 below target 1.33." | Same (KB doesn't affect narration)                         | `'none'`         |
+| **ChartInsightChip** | Deterministic insight only | AI-enhanced: "→ Drill Machine A (47%) — your process mentions nozzle clogging"  | Same                                                       | `'none'`         |
+| **CoScout**          | Hidden                     | Available: "Why is this chart showing a shift?"                                 | + On-demand KB search: "Have we seen this pattern before?" | `'low'`          |
 
 **Deterministic-first pipeline:** ChartInsightChips always render a deterministic insight first (from `buildIChartInsight()`, `buildBoxplotInsight()`, etc.). AI enhancement replaces it when ready. Insights work in all modes, including PWA.
 
@@ -76,12 +76,14 @@ Watson's EDA chart sequence: I-Chart → Boxplot → Pareto → Capability. AI e
 
 The Investigation Diamond (Initial → Diverging → Validating → Converging) with phase-specific AI coaching:
 
-| Diamond Phase | AI Role        | CoScout Behavior                                             |
-| ------------- | -------------- | ------------------------------------------------------------ |
-| Initial       | Orientation    | Help identify which chart to examine first                   |
-| Diverging     | Exploration    | Encourage testing hypotheses across factor categories        |
-| Validating    | Interpretation | Help interpret η² (contribution, not causation)              |
-| Converging    | Synthesis      | Help evaluate suspected causes, brainstorm improvement ideas |
+| Diamond Phase | AI Role        | CoScout Behavior                                             | Reasoning Effort |
+| ------------- | -------------- | ------------------------------------------------------------ | ---------------- |
+| Initial       | Orientation    | Help identify which chart to examine first                   | `'none'`         |
+| Diverging     | Exploration    | Encourage testing hypotheses across factor categories        | `'low'`          |
+| Validating    | Interpretation | Help interpret η² (contribution, not causation)              | `'medium'`       |
+| Converging    | Synthesis      | Help evaluate suspected causes, brainstorm improvement ideas | `'medium'`       |
+
+> **Note on reasoning effort:** Investigation Diamond phases map to journey phases for reasoning effort: Initial/Diverging → SCOUT (`'low'`), Validating/Converging → INVESTIGATE (`'medium'`). The effort level is set by `getCoScoutReasoningEffort(journeyPhase)` from `@variscout/core`.
 
 **Knowledge Base (Mode 3):** "Search Knowledge Base?" button in CoScout triggers Foundry IQ (Remote SharePoint via Azure AI Search). Returns folder-scoped documents using the user's own token (per-user security).
 
