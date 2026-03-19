@@ -484,10 +484,11 @@ export function useEditorAI({
       suggest_improvement_idea: async (args: Record<string, unknown>) => {
         const hypothesisId = args.hypothesis_id as string;
         const text = args.text as string;
-        const category = args.category as string;
+        const direction = args.direction as string;
+        const effort = args.effort as string;
 
-        if (!hypothesisId || !text || !category) {
-          return JSON.stringify({ error: 'Missing hypothesis_id, text, or category' });
+        if (!hypothesisId || !text || !direction) {
+          return JSON.stringify({ error: 'Missing hypothesis_id, text, or direction' });
         }
 
         const targetHypothesis = hypotheses.find(h => h.id === hypothesisId);
@@ -503,11 +504,12 @@ export function useEditorAI({
         const proposal: ActionProposal = {
           id: generateProposalId(),
           tool: 'suggest_improvement_idea',
-          params: { hypothesis_id: hypothesisId, text, category },
+          params: { hypothesis_id: hypothesisId, text, direction, effort },
           preview: {
             hypothesisText: targetHypothesis.text,
             existingIdeasCount: targetHypothesis.ideas?.length ?? 0,
-            category,
+            direction,
+            effort,
           },
           status: 'pending',
           filterStackHash: hashFilterStack(filterStack),

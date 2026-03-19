@@ -741,10 +741,12 @@ export interface MessageCatalog {
   'effort.high': string;
   'effort.label': string;
 
-  // Idea category labels
-  'idea.containment': string;
-  'idea.corrective': string;
-  'idea.preventive': string;
+  // Idea direction labels (Four Ideation Directions)
+  'idea.direction': string;
+  'idea.prevent': string;
+  'idea.detect': string;
+  'idea.simplify': string;
+  'idea.eliminate': string;
 
   // Projected vs actual
   'outcome.projectedVsActual': string;

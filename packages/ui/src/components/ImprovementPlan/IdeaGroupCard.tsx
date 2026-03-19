@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import type { ImprovementIdea, IdeaEffort } from '@variscout/core';
+import { Trash2 } from 'lucide-react';
+import type { ImprovementIdea, IdeaEffort, IdeaDirection } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 
 export interface IdeaGroupCardProps {
@@ -13,6 +14,12 @@ export interface IdeaGroupCardProps {
   linkedFindingName?: string;
   onToggleSelect?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
   onUpdateEffort?: (hypothesisId: string, ideaId: string, effort: IdeaEffort | undefined) => void;
+  onUpdateDirection?: (
+    hypothesisId: string,
+    ideaId: string,
+    direction: IdeaDirection | undefined
+  ) => void;
+  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
   onOpenWhatIf?: (hypothesisId: string, ideaId: string) => void;
   onAddIdea?: (hypothesisId: string, text: string) => void;
   onAskCoScout?: (question: string) => void;
@@ -41,17 +48,22 @@ const EFFORT_BG: Record<IdeaEffort, string> = {
   high: 'bg-red-400/10',
 };
 
-const CATEGORY_STYLES: Record<string, string> = {
-  containment: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
-  corrective: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
-  preventive: 'bg-purple-500/15 text-purple-600 dark:text-purple-400',
+const DIRECTION_STYLES: Record<IdeaDirection, string> = {
+  prevent: 'bg-purple-500/15 text-purple-600 dark:text-purple-400',
+  detect: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+  simplify: 'bg-green-500/15 text-green-600 dark:text-green-400',
+  eliminate: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
 };
 
-const CATEGORY_KEYS: Record<string, 'idea.containment' | 'idea.corrective' | 'idea.preventive'> = {
-  containment: 'idea.containment',
-  corrective: 'idea.corrective',
-  preventive: 'idea.preventive',
-};
+const DIRECTION_OPTIONS: Array<{
+  value: IdeaDirection;
+  labelKey: 'idea.prevent' | 'idea.detect' | 'idea.simplify' | 'idea.eliminate';
+}> = [
+  { value: 'prevent', labelKey: 'idea.prevent' },
+  { value: 'detect', labelKey: 'idea.detect' },
+  { value: 'simplify', labelKey: 'idea.simplify' },
+  { value: 'eliminate', labelKey: 'idea.eliminate' },
+];
 
 export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
   hypothesis,
@@ -59,6 +71,8 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
   linkedFindingName,
   onToggleSelect,
   onUpdateEffort,
+  onUpdateDirection,
+  onRemoveIdea,
   onOpenWhatIf,
   onAddIdea,
   onAskCoScout,
@@ -129,19 +143,29 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
               />
 
               {/* Text */}
-              <span className="text-sm text-content flex-1 min-w-0 truncate">{idea.text}</span>
+              <span className="text-sm text-content flex-1 min-w-0 line-clamp-2">{idea.text}</span>
 
-              {/* Category badge */}
-              {idea.category && (
-                <span
-                  data-testid={`idea-category-${idea.id}`}
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium shrink-0 ${
-                    CATEGORY_STYLES[idea.category] ?? ''
-                  }`}
-                >
-                  {t(CATEGORY_KEYS[idea.category] ?? 'idea.corrective')}
-                </span>
-              )}
+              {/* Direction dropdown */}
+              <select
+                data-testid={`idea-direction-${idea.id}`}
+                value={idea.direction ?? idea.category ?? ''}
+                onChange={e => {
+                  const val = e.target.value as IdeaDirection | '';
+                  onUpdateDirection?.(hypothesis.id, idea.id, val === '' ? undefined : val);
+                }}
+                className={`rounded border border-edge bg-surface px-2 py-1 text-xs shrink-0 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                  (idea.direction ?? idea.category)
+                    ? DIRECTION_STYLES[idea.direction ?? idea.category!]
+                    : 'text-content/50'
+                }`}
+              >
+                <option value="">{t('idea.direction')}</option>
+                {DIRECTION_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>
+                    {t(opt.labelKey)}
+                  </option>
+                ))}
+              </select>
 
               {/* Effort dropdown */}
               <select
@@ -193,6 +217,19 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
                   className="rounded px-2 py-1 text-xs text-blue-500 hover:bg-blue-500/10 transition-colors shrink-0"
                 >
                   What-If
+                </button>
+              )}
+
+              {/* Delete button */}
+              {onRemoveIdea && (
+                <button
+                  data-testid={`idea-remove-${idea.id}`}
+                  onClick={() => onRemoveIdea(hypothesis.id, idea.id)}
+                  className="rounded p-1 text-content-muted hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+                  title="Remove idea"
+                  aria-label="Remove idea"
+                >
+                  <Trash2 size={14} />
                 </button>
               )}
             </div>

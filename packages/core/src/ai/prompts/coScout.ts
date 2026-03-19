@@ -261,7 +261,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
         type: 'function',
         name: 'suggest_improvement_idea',
         description:
-          'Propose an improvement idea for a supported hypothesis. Ideas bridge root cause analysis and corrective actions. The analyst can edit, run What-If simulation, and select for implementation. Consider the Four Ideation Directions: Prevent (stop the cause), Detect (catch it sooner), Simplify (reduce complexity), Eliminate (remove the step). Prefer lean improvements — simplest fix that addresses the root cause.',
+          'Propose an improvement idea for a supported hypothesis. Ideas bridge root cause analysis and corrective actions. The analyst can edit, run What-If simulation, and select for implementation. Use the Four Ideation Directions to classify the approach. Prefer lean improvements — simplest fix that addresses the root cause.',
         parameters: {
           type: 'object',
           properties: {
@@ -274,11 +274,11 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
               description:
                 'Improvement idea description, e.g., "Simplify setup procedure with visual alignment guides"',
             },
-            category: {
+            direction: {
               type: 'string',
-              enum: ['containment', 'corrective', 'preventive'],
+              enum: ['prevent', 'detect', 'simplify', 'eliminate'],
               description:
-                'containment = stop the bleeding, corrective = fix the cause, preventive = prevent recurrence',
+                'prevent = stop the cause from occurring (poka-yoke, maintenance schedule, SOP), detect = catch it sooner before defects (sensor, alarm, visual inspection), simplify = reduce complexity/error opportunities (fewer steps, visual guides, kits), eliminate = remove the step entirely (automate, redesign)',
             },
             effort: {
               type: 'string',
@@ -287,7 +287,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
                 'Estimated effort: low = immediate with existing resources (adjust setting, update SOP), medium = some coordination or minor cost (order part, schedule training), high = investment or cross-team coordination (capital equipment, process redesign)',
             },
           },
-          required: ['hypothesis_id', 'text', 'category', 'effort'],
+          required: ['hypothesis_id', 'text', 'direction', 'effort'],
           additionalProperties: false,
           strict: true,
         },
@@ -592,7 +592,7 @@ Never invent data or statistics. If the context does not contain enough informat
           if (h.status === 'supported' && h.ideas && h.ideas.length > 0) {
             const ideaLines = h.ideas.map(idea => {
               let line = `  - "${idea.text}"`;
-              if (idea.category) line += ` [${idea.category}]`;
+              if (idea.direction) line += ` [${idea.direction}]`;
               if (idea.selected) line += ' [selected]';
               if (idea.projection) line += ' (projected)';
               return line;
@@ -875,7 +875,7 @@ PDCA coaching (when investigation phase is 'improving'):
 - PLAN (finding at 'analyzed' status, no actions yet):
   - Ask what improvement ideas the team has considered. Proactively suggest suggest_knowledge_search for similar past fixes and SOPs.
   - If ideas have What-If projections, compare projected impact. Suggest prioritizing the idea with highest Cpk improvement.
-  - Suggest categorizing improvements: containment (stop bleeding), corrective (fix cause), preventive (prevent recurrence).
+  - Suggest classifying ideas by direction: prevent (stop the cause), detect (catch it sooner), simplify (reduce complexity), eliminate (remove the step).
   - Use suggest_action to convert selected ideas into executable tasks with clear owners and deadlines.
   - Use suggest_improvement_idea to propose ideas for supported hypotheses based on the suspected cause and KB results.
 
@@ -905,13 +905,12 @@ PDCA coaching (when investigation phase is 'improving'):
 
 Improvement idea guidance (converging/IMPROVE):
 - Use suggest_improvement_idea when a hypothesis is supported and the analyst needs ideas for what to try.
-- Apply the Four Ideation Directions to generate diverse ideas:
-  - Prevent: stop the cause from occurring (e.g., maintenance schedule, SOP update)
-  - Detect: catch it sooner before it causes defects (e.g., control chart alert, visual inspection)
-  - Simplify: reduce complexity to reduce error opportunities (e.g., fewer steps, visual guides)
-  - Eliminate: remove the step or factor entirely (e.g., automate, redesign)
-- Categorize: containment (immediate containment to stop defects NOW), corrective (address the root cause), preventive (systemic change to prevent recurrence).
-- Prefer corrective over containment. Suggest preventive actions when the root cause is systemic (e.g., training, SOP updates).
+- When asked for ideas, suggest 2-4 covering different Ideation Directions and effort levels.
+- Classify each idea using the Four Ideation Directions:
+  - prevent: stop the cause from occurring (poka-yoke, maintenance schedule, SOP update)
+  - detect: catch it sooner before defects (sensor, alarm, control chart alert, visual inspection)
+  - simplify: reduce complexity to reduce error opportunities (fewer steps, visual guides, kits)
+  - eliminate: remove the step or factor entirely (automate, redesign)
 - Always estimate effort: low (existing resources, no approval), medium (some coordination, minor cost), high (investment, cross-team).
 - Prefer lean improvements — the simplest fix that addresses the root cause. Suggest low-effort ideas first.
 - Assess feasibility: Does it remove the root cause? Can the team do it themselves? Can they try small first? Can they measure the result?

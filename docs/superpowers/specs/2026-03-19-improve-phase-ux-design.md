@@ -8,7 +8,7 @@ related: [improve, pdca, findings, ideation, actions, coaching, synthesis, works
 
 # IMPROVE Phase UX Design
 
-The IMPROVE phase redesign introduces three key innovations to bridge the gap between investigation convergence and corrective action:
+The IMPROVE phase redesign introduces three key innovations to bridge the gap between investigation convergence and action:
 
 1. **Three-Workspace Model** — Analysis | Findings | Improvement workspaces matching cognitive tasks
 2. **Convergence Synthesis** — A deliberate synthesis moment where the analyst weaves findings into a suspected cause narrative
@@ -152,7 +152,7 @@ The Improvement Workspace is a full-page planning view that replaces the dashboa
 │  ┌─────────────────────────────────────────────────────┐ │
 │  │ Hypothesis: "Nozzle tip wear" (supported)           │ │  ← IdeaGroupCard
 │  │                                                     │ │
-│  │  ☑ Replace nozzle weekly   [Preventive] [Low ▾]    │ │
+│  │  ☑ Replace nozzle weekly   [Prevent]    [Low ▾]    │ │
 │  │    P: Cpk 1.35  [What-If] [Ask CoScout]           │ │
 │  │                                                     │ │
 │  │  ☐ Add inline sensor       [Detect]     [Med ▾]    │ │
@@ -164,7 +164,7 @@ The Improvement Workspace is a full-page planning view that replaces the dashboa
 │                                                          │
 │  ┌─────────────────────────────────────────────────────┐ │
 │  │ Hypothesis: "Shift changeover gap" (partial)        │ │
-│  │  ☐ Standardize handoff SOP  [Preventive] [Low ▾]   │ │
+│  │  ☐ Standardize handoff SOP  [Prevent]    [Low ▾]   │ │
 │  └─────────────────────────────────────────────────────┘ │
 │                                                          │
 ├──────────────────────────────────────────────────────────┤
@@ -212,7 +212,7 @@ Each idea row contains:
 | ----------------------- | ------------------------------------------------------------------------------ |
 | **Checkbox**            | Select/deselect for conversion to actions                                      |
 | **Idea text**           | Editable inline text                                                           |
-| **Category badge**      | Containment / Corrective / Preventive (color-coded)                            |
+| **Direction badge**     | Prevent / Detect / Simplify / Eliminate (color-coded)                          |
 | **Effort dropdown**     | Inline `<select>` with LOW / MED / HIGH options, color-coded (green/amber/red) |
 | **Projection badge**    | "P: Cpk X.XX" if a What-If projection is attached                              |
 | **What-If button**      | Opens What-If Simulator with idea context                                      |
@@ -362,14 +362,14 @@ The effort definitions are included in the tool schema description so the LLM ca
 
 Every step in the IMPROVE phase works without AI. CoScout enhances the experience but is never required:
 
-| Step                    | Without CoScout                                                    | With CoScout                                                         |
-| ----------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| **Convergence trigger** | Methodology Coach nudge based on hypothesis status                 | Same nudge + CoScout can ask "Ready to summarize?"                   |
-| **Write synthesis**     | Manual text field with placeholder guidance                        | "Draft synthesis" button generates narrative from evidence           |
-| **Brainstorm ideas**    | Manual entry on hypothesis nodes, Four Directions hint visible     | `suggest_improvement_idea` tool generates ideas with effort/category |
-| **Project impact**      | What-If Simulator round-trip (manual slider adjustment)            | CoScout can suggest simulation parameters                            |
-| **Convert → Actions**   | Select ideas, click Convert, actions created with FK               | Same — conversion is always user-initiated                           |
-| **Verify outcome**      | Set outcome manually (Effective/Partial/Not effective + Cpk after) | CoScout can summarize improvement delta from staged data             |
+| Step                    | Without CoScout                                                    | With CoScout                                                          |
+| ----------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| **Convergence trigger** | Methodology Coach nudge based on hypothesis status                 | Same nudge + CoScout can ask "Ready to summarize?"                    |
+| **Write synthesis**     | Manual text field with placeholder guidance                        | "Draft synthesis" button generates narrative from evidence            |
+| **Brainstorm ideas**    | Manual entry on hypothesis nodes, Four Directions hint visible     | `suggest_improvement_idea` tool generates ideas with effort/direction |
+| **Project impact**      | What-If Simulator round-trip (manual slider adjustment)            | CoScout can suggest simulation parameters                             |
+| **Convert → Actions**   | Select ideas, click Convert, actions created with FK               | Same — conversion is always user-initiated                            |
+| **Verify outcome**      | Set outcome manually (Effective/Partial/Not effective + Cpk after) | CoScout can summarize improvement delta from staged data              |
 
 The tier gating is:
 
@@ -385,13 +385,13 @@ The tier gating is:
 The following components and infrastructure have been implemented:
 
 | Component                          | Package           | What It Does                                                                    |
-| ---------------------------------- | ----------------- | ------------------------------------------------------------------------------- | ------------ | -------------------------------- |
+| ---------------------------------- | ----------------- | ------------------------------------------------------------------------------- | -------- | ---------- | ------------------------------- | --- | --- |
 | `ProcessContext.synthesis`         | `@variscout/core` | Field on AI context type (max 500 chars)                                        |
 | Synthesis in CoScout prompt        | `@variscout/core` | `coScout.ts` includes synthesis in investigation context with language guidance |
 | Synthesis in narration prompt      | `@variscout/core` | `narration.ts` includes synthesis in summary prompt                             |
 | `ActionItem.ideaId`                | `@variscout/core` | FK field + `createActionItem()` helper accepts ideaId                           |
-| `IdeaCategory` type                | `@variscout/core` | `'containment'                                                                  | 'corrective' | 'preventive'`on`ImprovementIdea` |
-| Category badge on HypothesisNode   | `@variscout/ui`   | Color-coded badge rendering idea category                                       |
+| `IdeaDirection` type               | `@variscout/core` | `'prevent'                                                                      | 'detect' | 'simplify' | 'eliminate'`on`ImprovementIdea` |     |     |
+| Direction badge on HypothesisNode  | `@variscout/ui`   | Color-coded badge rendering idea direction                                      |
 | Effort dropdown on HypothesisNode  | `@variscout/ui`   | Inline `<select>` replacing cycle button, color-coded                           |
 | Effort in ActionProposalCard       | `@variscout/ui`   | Preview line with effort label and definition                                   |
 | Projected vs actual in FindingCard | `@variscout/ui`   | Outcome section shows projected → actual with delta and color                   |

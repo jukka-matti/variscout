@@ -161,14 +161,19 @@ export interface ImprovementIdea {
   selected?: boolean;
   /** Analyst's rationale for selection or notes */
   notes?: string;
-  /** Improvement category: containment, corrective, or preventive */
-  category?: IdeaCategory;
+  /** Improvement direction: prevent, detect, simplify, or eliminate */
+  direction?: IdeaDirection;
+  /** @deprecated Use `direction` instead. Alias kept for migration. */
+  category?: IdeaDirection;
   /** Timestamp of creation */
   createdAt: string;
 }
 
-/** Improvement idea category */
-export type IdeaCategory = 'containment' | 'corrective' | 'preventive';
+/** Four Ideation Directions — replaces old CAPA categories */
+export type IdeaDirection = 'prevent' | 'detect' | 'simplify' | 'eliminate';
+
+/** @deprecated Use IdeaDirection instead */
+export type IdeaCategory = IdeaDirection;
 
 // ============================================================================
 // Hypothesis Types

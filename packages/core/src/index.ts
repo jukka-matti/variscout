@@ -432,6 +432,7 @@ export type {
   ImprovementIdea,
   IdeaEffort,
   IdeaImpact,
+  IdeaDirection,
   IdeaCategory,
 } from './findings';
 export {

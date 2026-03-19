@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import type { ImprovementIdea, IdeaEffort } from '@variscout/core';
+import type { ImprovementIdea, IdeaEffort, IdeaDirection } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { ArrowLeft } from 'lucide-react';
 import { SynthesisCard } from './SynthesisCard';
@@ -20,6 +20,12 @@ export interface ImprovementWorkspaceBaseProps {
   linkedFindings?: Array<{ id: string; text: string }>;
   onToggleSelect?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
   onUpdateEffort?: (hypothesisId: string, ideaId: string, effort: IdeaEffort | undefined) => void;
+  onUpdateDirection?: (
+    hypothesisId: string,
+    ideaId: string,
+    direction: IdeaDirection | undefined
+  ) => void;
+  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
   onOpenWhatIf?: (hypothesisId: string, ideaId: string) => void;
   onAddIdea?: (hypothesisId: string, text: string) => void;
   onAskCoScout?: (question: string) => void;
@@ -39,6 +45,8 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
   linkedFindings,
   onToggleSelect,
   onUpdateEffort,
+  onUpdateDirection,
+  onRemoveIdea,
   onOpenWhatIf,
   onAddIdea,
   onAskCoScout,
@@ -128,6 +136,8 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
                 linkedFindingName={h.linkedFindingName}
                 onToggleSelect={onToggleSelect}
                 onUpdateEffort={onUpdateEffort}
+                onUpdateDirection={onUpdateDirection}
+                onRemoveIdea={onRemoveIdea}
                 onOpenWhatIf={onOpenWhatIf}
                 onAddIdea={onAddIdea}
                 onAskCoScout={onAskCoScout}

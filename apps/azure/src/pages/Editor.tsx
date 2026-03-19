@@ -655,12 +655,16 @@ export const Editor: React.FC<EditorProps> = ({
         case 'suggest_improvement_idea': {
           const hypothesisId = proposal.params.hypothesis_id as string;
           const ideaText = editedText || (proposal.params.text as string);
-          const category = proposal.params.category as string;
+          const direction = proposal.params.direction as string;
+          const effort = proposal.params.effort as string;
           if (hypothesisId && ideaText) {
             const idea = hypothesesState.addIdea(hypothesisId, ideaText);
-            if (idea && category) {
+            if (idea) {
               hypothesesState.updateIdea(hypothesisId, idea.id, {
-                category: category as 'containment' | 'corrective' | 'preventive',
+                ...(direction && {
+                  direction: direction as 'prevent' | 'detect' | 'simplify' | 'eliminate',
+                }),
+                ...(effort && { effort: effort as 'low' | 'medium' | 'high' }),
               });
             }
           }

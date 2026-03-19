@@ -645,10 +645,12 @@ export const hr: MessageCatalog = {
   'effort.high': 'High',
   'effort.label': 'Effort',
 
-  // Idea category labels
-  'idea.containment': 'Containment',
-  'idea.corrective': 'Corrective',
-  'idea.preventive': 'Preventive',
+  // Idea direction labels (Four Ideation Directions)
+  'idea.direction': 'Direction',
+  'idea.prevent': 'Prevent',
+  'idea.detect': 'Detect',
+  'idea.simplify': 'Simplify',
+  'idea.eliminate': 'Eliminate',
 
   // Projected vs actual
   'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',

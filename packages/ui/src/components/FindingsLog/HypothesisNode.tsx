@@ -111,10 +111,11 @@ const EFFORT_COLORS: Record<IdeaEffort, string> = {
   high: 'text-red-400',
 };
 
-const CATEGORY_BADGE_COLORS: Record<string, string> = {
-  containment: 'bg-amber-500/15 text-amber-400',
-  corrective: 'bg-blue-500/15 text-blue-400',
-  preventive: 'bg-purple-500/15 text-purple-400',
+const DIRECTION_BADGE_COLORS: Record<string, string> = {
+  prevent: 'bg-purple-500/15 text-purple-400',
+  detect: 'bg-blue-500/15 text-blue-400',
+  simplify: 'bg-green-500/15 text-green-400',
+  eliminate: 'bg-amber-500/15 text-amber-400',
 };
 
 interface ImprovementIdeasSectionProps {
@@ -215,17 +216,19 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                       </span>
                     )}
 
-                    {/* Category badge */}
-                    {idea.category && (
+                    {/* Direction badge */}
+                    {(idea.direction ?? idea.category) && (
                       <span
-                        className={`text-[10px] px-1 py-0.5 rounded ${CATEGORY_BADGE_COLORS[idea.category] ?? ''}`}
-                        data-testid={`idea-category-${idea.id}`}
+                        className={`text-[10px] px-1 py-0.5 rounded ${DIRECTION_BADGE_COLORS[idea.direction ?? idea.category!] ?? ''}`}
+                        data-testid={`idea-direction-${idea.id}`}
                       >
-                        {idea.category === 'containment'
-                          ? 'Containment'
-                          : idea.category === 'corrective'
-                            ? 'Corrective'
-                            : 'Preventive'}
+                        {(idea.direction ?? idea.category) === 'prevent'
+                          ? 'Prevent'
+                          : (idea.direction ?? idea.category) === 'detect'
+                            ? 'Detect'
+                            : (idea.direction ?? idea.category) === 'simplify'
+                              ? 'Simplify'
+                              : 'Eliminate'}
                       </span>
                     )}
 

@@ -119,7 +119,7 @@ export interface AIContext {
         text: string;
         selected?: boolean;
         projection?: { meanDelta: number; sigmaDelta: number };
-        category?: 'containment' | 'corrective' | 'preventive';
+        direction?: 'prevent' | 'detect' | 'simplify' | 'eliminate';
       }>;
     }>;
     /** Hypothesis tree structure for investigation phase detection */

@@ -639,24 +639,25 @@ describe('buildCoScoutSystemPrompt', () => {
             text: 'Root cause',
             status: 'supported',
             ideas: [
-              { text: 'Fix nozzle', category: 'corrective', selected: true },
-              { text: 'Temporary shim', category: 'containment' },
+              { text: 'Fix nozzle', direction: 'prevent', selected: true },
+              { text: 'Temporary shim', direction: 'detect' },
             ],
           },
         ],
       },
     });
-    expect(prompt).toContain('[corrective]');
-    expect(prompt).toContain('[containment]');
+    expect(prompt).toContain('[prevent]');
+    expect(prompt).toContain('[detect]');
   });
 
   // Workstream A: PDCA sub-state awareness
   it('includes PDCA coaching section in tool routing instructions', () => {
     const prompt = buildCoScoutSystemPrompt({ hasActionTools: true });
     expect(prompt).toContain('PDCA coaching');
-    expect(prompt).toContain('containment');
-    expect(prompt).toContain('corrective');
-    expect(prompt).toContain('preventive');
+    expect(prompt).toContain('prevent');
+    expect(prompt).toContain('detect');
+    expect(prompt).toContain('simplify');
+    expect(prompt).toContain('eliminate');
   });
 
   it('uses PDCA Plan instruction when improving with no actions', () => {

@@ -575,7 +575,7 @@ The `ImprovementWorkspaceBase` provides a full-page planning view:
 
 2. **Four Directions hint** — A single-line creative prompt: "Think: Prevent · Detect · Simplify · Eliminate". Surfaces the RDMAIC ideation framework as a lightweight brainstorming aid.
 
-3. **IdeaGroupCards** — Ideas grouped by supported/partial hypothesis. Each idea row contains: selection checkbox, idea text, category badge (containment/corrective/preventive), effort dropdown (low/medium/high with color coding), projection badge if a What-If simulation is attached, and action buttons for What-If and CoScout.
+3. **IdeaGroupCards** — Ideas grouped by supported/partial hypothesis. Each idea row contains: selection checkbox, idea text, direction badge (prevent/detect/simplify/eliminate), effort dropdown (low/medium/high with color coding), projection badge if a What-If simulation is attached, and action buttons for What-If and CoScout.
 
 4. **ImprovementSummaryBar** — Sticky bottom bar aggregating: selected idea count, effort breakdown, best projected Cpk from selected ideas, and "Convert selected → Actions" button.
 
@@ -603,12 +603,12 @@ Green when actual meets or exceeds projection, red when it falls short. Over tim
 
 Every step works without AI. CoScout enhances but never gates:
 
-| Step              | Without CoScout                             | With CoScout                                                         |
-| ----------------- | ------------------------------------------- | -------------------------------------------------------------------- |
-| Write synthesis   | Manual text field with placeholder guidance | "Draft synthesis" generates narrative from evidence                  |
-| Brainstorm ideas  | Manual entry, Four Directions hint visible  | `suggest_improvement_idea` tool generates ideas with effort/category |
-| Project impact    | What-If Simulator manual sliders            | CoScout can suggest simulation parameters                            |
-| Convert → Actions | Select ideas, click Convert                 | Same — conversion is always user-initiated                           |
+| Step              | Without CoScout                             | With CoScout                                                          |
+| ----------------- | ------------------------------------------- | --------------------------------------------------------------------- |
+| Write synthesis   | Manual text field with placeholder guidance | "Draft synthesis" generates narrative from evidence                   |
+| Brainstorm ideas  | Manual entry, Four Directions hint visible  | `suggest_improvement_idea` tool generates ideas with effort/direction |
+| Project impact    | What-If Simulator manual sliders            | CoScout can suggest simulation parameters                             |
+| Convert → Actions | Select ideas, click Convert                 | Same — conversion is always user-initiated                            |
 
 ## Related Documentation
 

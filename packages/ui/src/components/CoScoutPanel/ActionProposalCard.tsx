@@ -96,13 +96,16 @@ function formatPreview(
     case 'suggest_improvement_idea': {
       if (preview.hypothesisText)
         lines.push(`Hypothesis: "${(preview.hypothesisText as string).slice(0, 60)}..."`);
-      if (preview.category) {
-        const categoryLabels: Record<string, string> = {
-          containment: 'Containment (stop the bleeding)',
-          corrective: 'Corrective (fix the cause)',
-          preventive: 'Preventive (prevent recurrence)',
+      if (preview.direction) {
+        const directionLabels: Record<string, string> = {
+          prevent: 'Prevent (stop the cause)',
+          detect: 'Detect (catch it sooner)',
+          simplify: 'Simplify (reduce complexity)',
+          eliminate: 'Eliminate (remove the step)',
         };
-        lines.push(`Category: ${categoryLabels[preview.category as string] ?? preview.category}`);
+        lines.push(
+          `Direction: ${directionLabels[preview.direction as string] ?? preview.direction}`
+        );
       }
       if (params.effort || preview.effort) {
         const effort = (params.effort ?? preview.effort) as string;
