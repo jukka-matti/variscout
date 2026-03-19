@@ -155,6 +155,7 @@ export interface ViewState {
   activeTab?: 'analysis' | 'performance';
   isFindingsOpen?: boolean;
   isWhatIfOpen?: boolean;
+  isImprovementOpen?: boolean;
   focusedChart?: 'ichart' | 'boxplot' | 'pareto' | null;
   boxplotFactor?: string;
   paretoFactor?: string;

@@ -11,6 +11,7 @@ export interface EditorPanelState {
   isFindingsOpen: boolean;
   isCoScoutOpen: boolean;
   isWhatIfOpen: boolean;
+  isImprovementOpen: boolean;
   isPresentationMode: boolean;
   isReportOpen: boolean;
   highlightRowIndex: number | null;
@@ -28,6 +29,7 @@ export type EditorPanelAction =
   | { type: 'SET_COSCOUT_OPEN'; value: boolean }
   | { type: 'TOGGLE_COSCOUT' }
   | { type: 'SET_WHAT_IF_OPEN'; value: boolean }
+  | { type: 'SET_IMPROVEMENT_OPEN'; value: boolean }
   | { type: 'OPEN_PRESENTATION' }
   | { type: 'CLOSE_PRESENTATION' }
   | { type: 'OPEN_REPORT' }
@@ -65,12 +67,23 @@ export function editorPanelReducer(
       return { ...state, isCoScoutOpen: !state.isCoScoutOpen };
     case 'SET_WHAT_IF_OPEN':
       return state.isWhatIfOpen === action.value ? state : { ...state, isWhatIfOpen: action.value };
+    case 'SET_IMPROVEMENT_OPEN':
+      if (state.isImprovementOpen === action.value) return state;
+      return action.value
+        ? {
+            ...state,
+            isImprovementOpen: true,
+            isWhatIfOpen: false,
+            isReportOpen: false,
+            isPresentationMode: false,
+          }
+        : { ...state, isImprovementOpen: false };
     case 'OPEN_PRESENTATION':
-      return { ...state, isPresentationMode: true, isReportOpen: false };
+      return { ...state, isPresentationMode: true, isReportOpen: false, isImprovementOpen: false };
     case 'CLOSE_PRESENTATION':
       return { ...state, isPresentationMode: false };
     case 'OPEN_REPORT':
-      return { ...state, isReportOpen: true, isPresentationMode: false };
+      return { ...state, isReportOpen: true, isPresentationMode: false, isImprovementOpen: false };
     case 'CLOSE_REPORT':
       return { ...state, isReportOpen: false };
     case 'SET_HIGHLIGHT_ROW':
@@ -96,6 +109,7 @@ export const initialPanelState: EditorPanelState = {
   isFindingsOpen: false,
   isCoScoutOpen: false,
   isWhatIfOpen: false,
+  isImprovementOpen: false,
   isPresentationMode: false,
   isReportOpen: false,
   highlightRowIndex: null,
@@ -124,6 +138,8 @@ export interface UseEditorPanelsReturn {
   setIsCoScoutOpen: BoolSetter;
   isWhatIfOpen: boolean;
   setIsWhatIfOpen: BoolSetter;
+  isImprovementOpen: boolean;
+  setIsImprovementOpen: BoolSetter;
   isPresentationMode: boolean;
   setIsPresentationMode: BoolSetter;
   isReportOpen: boolean;
@@ -149,6 +165,7 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     ...initialPanelState,
     isFindingsOpen: viewState?.isFindingsOpen ?? false,
     isWhatIfOpen: viewState?.isWhatIfOpen ?? false,
+    isImprovementOpen: viewState?.isImprovementOpen ?? false,
   });
 
   // Persistence side effect: report findings/whatIf changes to view state
@@ -162,8 +179,9 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     onViewStateChange?.({
       isFindingsOpen: state.isFindingsOpen,
       isWhatIfOpen: state.isWhatIfOpen,
+      isImprovementOpen: state.isImprovementOpen,
     });
-  }, [state.isFindingsOpen, state.isWhatIfOpen, onViewStateChange]);
+  }, [state.isFindingsOpen, state.isWhatIfOpen, state.isImprovementOpen, onViewStateChange]);
 
   // Row click highlight timeout side effect
   useEffect(() => {
@@ -219,6 +237,14 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     }
   }, []);
 
+  const setIsImprovementOpen: BoolSetter = useCallback(value => {
+    if (typeof value === 'function') {
+      dispatch({ type: 'SET_IMPROVEMENT_OPEN', value: true });
+    } else {
+      dispatch({ type: 'SET_IMPROVEMENT_OPEN', value });
+    }
+  }, []);
+
   const setIsPresentationMode: BoolSetter = useCallback(value => {
     if (typeof value === 'function') {
       // No toggle usage in Editor.tsx
@@ -263,6 +289,8 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     setIsCoScoutOpen,
     isWhatIfOpen: state.isWhatIfOpen,
     setIsWhatIfOpen,
+    isImprovementOpen: state.isImprovementOpen,
+    setIsImprovementOpen,
     isPresentationMode: state.isPresentationMode,
     setIsPresentationMode,
     isReportOpen: state.isReportOpen,

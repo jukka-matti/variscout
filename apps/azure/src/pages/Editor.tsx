@@ -15,6 +15,7 @@ import {
   ColumnMapping,
   CoScoutPanelBase,
   AIOnboardingTooltip,
+  ImprovementWorkspaceBase,
   type AnalysisBrief,
 } from '@variscout/ui';
 import {
@@ -489,6 +490,75 @@ export const Editor: React.FC<EditorProps> = ({
     [findingsState, hypothesesState]
   );
 
+  // ── Improvement Workspace data prep ──────────────────────────────────────
+
+  // Hypotheses with supported/partial status that have ideas → feed workspace
+  const improvementHypotheses = useMemo(() => {
+    return (persistedHypotheses ?? [])
+      .filter(h => (h.status === 'supported' || h.status === 'partial') && h.ideas?.length)
+      .map(h => ({
+        id: h.id,
+        text: h.text,
+        causeRole: h.causeRole,
+        factor: h.factor,
+        ideas: h.ideas ?? [],
+        linkedFindingName: findingsState.findings
+          .find(f => f.hypothesisId === h.id)
+          ?.text?.slice(0, 60),
+      }));
+  }, [persistedHypotheses, findingsState.findings]);
+
+  // Findings linked to any hypothesis with ideas
+  const improvementLinkedFindings = useMemo(() => {
+    const hypothesisIds = new Set(improvementHypotheses.map(h => h.id));
+    return findingsState.findings
+      .filter(f => f.hypothesisId && hypothesisIds.has(f.hypothesisId))
+      .map(f => ({ id: f.id, text: f.text }));
+  }, [improvementHypotheses, findingsState.findings]);
+
+  // Set of selected idea IDs across all hypotheses
+  const selectedIdeaIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const h of persistedHypotheses ?? []) {
+      for (const idea of h.ideas ?? []) {
+        if (idea.selected) ids.add(idea.id);
+      }
+    }
+    return ids;
+  }, [persistedHypotheses]);
+
+  // Ideas that already have matching action items
+  const convertedIdeaIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const f of findingsState.findings) {
+      for (const action of f.actions ?? []) {
+        if (action.ideaId) ids.add(action.ideaId);
+      }
+    }
+    return ids;
+  }, [findingsState.findings]);
+
+  // Convert all selected ideas to action items on their linked findings
+  const handleConvertIdeasToActions = useCallback(() => {
+    for (const h of persistedHypotheses ?? []) {
+      const linkedFinding = findingsState.findings.find(f => f.hypothesisId === h.id);
+      if (!linkedFinding) continue;
+      for (const idea of h.ideas ?? []) {
+        if (!idea.selected) continue;
+        if (linkedFinding.actions?.some(a => a.ideaId === idea.id)) continue;
+        findingsState.addAction(linkedFinding.id, idea.text, undefined, undefined, idea.id);
+      }
+    }
+  }, [persistedHypotheses, findingsState]);
+
+  // Synthesis text change handler
+  const handleSynthesisChange = useCallback(
+    (text: string) => {
+      setProcessContext({ ...processContext, synthesis: text });
+    },
+    [processContext, setProcessContext]
+  );
+
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
 
@@ -896,6 +966,34 @@ export const Editor: React.FC<EditorProps> = ({
     );
   }
 
+  // If Improvement Workspace is open, show full-page view
+  if (panels.isImprovementOpen) {
+    return (
+      <ImprovementWorkspaceBase
+        synthesis={processContext?.synthesis}
+        onSynthesisChange={handleSynthesisChange}
+        hypotheses={improvementHypotheses}
+        linkedFindings={improvementLinkedFindings}
+        onToggleSelect={(hId, iId, sel) => hypothesesState.selectIdea(hId, iId, sel)}
+        onUpdateEffort={(hId, iId, effort) => hypothesesState.updateIdea(hId, iId, { effort })}
+        onUpdateDirection={(hId, iId, dir) =>
+          hypothesesState.updateIdea(hId, iId, { direction: dir })
+        }
+        onRemoveIdea={hypothesesState.removeIdea}
+        onOpenWhatIf={handleProjectIdea}
+        onAddIdea={(hId, text) => {
+          hypothesesState.addIdea(hId, text);
+        }}
+        onAskCoScout={handleAskCoScoutFromIdeas}
+        onConvertToActions={handleConvertIdeasToActions}
+        onBack={() => panels.setIsImprovementOpen(false)}
+        selectedIdeaIds={selectedIdeaIds}
+        convertedIdeaIds={convertedIdeaIds}
+        targetCpk={processContext?.targetValue}
+      />
+    );
+  }
+
   return (
     <div className={`flex flex-col ${isPhone ? 'h-[calc(100vh-64px)]' : 'h-[calc(100vh-120px)]'}`}>
       <EditorToolbar
@@ -919,6 +1017,7 @@ export const Editor: React.FC<EditorProps> = ({
         panelState={{
           isFindingsOpen: panels.isFindingsOpen,
           isDataPanelOpen: panels.isDataPanelOpen,
+          isImprovementOpen: panels.isImprovementOpen,
           findingsCount: findingsState.findings.length,
           onToggleFindings: () => panels.setIsFindingsOpen(prev => !prev),
           onToggleDataPanel: handleDataPanelToggle,
@@ -929,6 +1028,7 @@ export const Editor: React.FC<EditorProps> = ({
           onAddManualData: dataFlow.handleAddMoreData,
           onOpenDataTable: () => panels.setIsDataTableOpen(true),
           onOpenWhatIf: () => panels.setIsWhatIfOpen(true),
+          onOpenImprovement: () => panels.setIsImprovementOpen(true),
           onOpenReport: () => panels.setIsReportOpen(true),
           onOpenPresentation: () => panels.setIsPresentationMode(true),
         }}

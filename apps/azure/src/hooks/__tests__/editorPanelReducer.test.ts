@@ -20,6 +20,7 @@ describe('editorPanelReducer', () => {
         isFindingsOpen: false,
         isCoScoutOpen: false,
         isWhatIfOpen: false,
+        isImprovementOpen: false,
         isPresentationMode: false,
         isReportOpen: false,
         highlightRowIndex: null,
@@ -119,6 +120,62 @@ describe('editorPanelReducer', () => {
       const before = { ...initialPanelState, isWhatIfOpen: false };
       const after = editorPanelReducer(before, { type: 'SET_WHAT_IF_OPEN', value: false });
       expect(after).toBe(before);
+    });
+  });
+
+  describe('improvement workspace', () => {
+    it('SET_IMPROVEMENT_OPEN opens improvement workspace', () => {
+      const state = editorPanelReducer(initialPanelState, {
+        type: 'SET_IMPROVEMENT_OPEN',
+        value: true,
+      });
+      expect(state.isImprovementOpen).toBe(true);
+    });
+
+    it('SET_IMPROVEMENT_OPEN closes improvement workspace', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isImprovementOpen: true },
+        { type: 'SET_IMPROVEMENT_OPEN', value: false }
+      );
+      expect(state.isImprovementOpen).toBe(false);
+    });
+
+    it('SET_IMPROVEMENT_OPEN returns same reference when value unchanged', () => {
+      const before = { ...initialPanelState, isImprovementOpen: false };
+      const after = editorPanelReducer(before, { type: 'SET_IMPROVEMENT_OPEN', value: false });
+      expect(after).toBe(before);
+    });
+
+    it('opening improvement closes report, presentation, and what-if', () => {
+      const before: EditorPanelState = {
+        ...initialPanelState,
+        isReportOpen: true,
+        isPresentationMode: true,
+        isWhatIfOpen: true,
+      };
+      const state = editorPanelReducer(before, { type: 'SET_IMPROVEMENT_OPEN', value: true });
+      expect(state.isImprovementOpen).toBe(true);
+      expect(state.isReportOpen).toBe(false);
+      expect(state.isPresentationMode).toBe(false);
+      expect(state.isWhatIfOpen).toBe(false);
+    });
+
+    it('opening report closes improvement', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isImprovementOpen: true },
+        { type: 'OPEN_REPORT' }
+      );
+      expect(state.isReportOpen).toBe(true);
+      expect(state.isImprovementOpen).toBe(false);
+    });
+
+    it('opening presentation closes improvement', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isImprovementOpen: true },
+        { type: 'OPEN_PRESENTATION' }
+      );
+      expect(state.isPresentationMode).toBe(true);
+      expect(state.isImprovementOpen).toBe(false);
     });
   });
 

@@ -30,6 +30,7 @@ import {
   Maximize2,
   EllipsisVertical,
   FolderUp,
+  Lightbulb,
 } from 'lucide-react';
 export interface ToolbarDataState {
   hasData: boolean;
@@ -51,6 +52,7 @@ export interface ToolbarSyncState {
 export interface ToolbarPanelState {
   isFindingsOpen: boolean;
   isDataPanelOpen: boolean;
+  isImprovementOpen?: boolean;
   findingsCount: number;
   onToggleFindings: () => void;
   onToggleDataPanel: () => void;
@@ -62,6 +64,7 @@ export interface ToolbarDataActions {
   onAddManualData: () => void;
   onOpenDataTable: () => void;
   onOpenWhatIf: () => void;
+  onOpenImprovement: () => void;
   onOpenReport: () => void;
   onOpenPresentation: () => void;
 }
@@ -95,6 +98,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   panelState: {
     isFindingsOpen,
     isDataPanelOpen,
+    isImprovementOpen,
     findingsCount,
     onToggleFindings,
     onToggleDataPanel,
@@ -105,6 +109,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     onAddManualData,
     onOpenDataTable,
     onOpenWhatIf,
+    onOpenImprovement,
     onOpenReport,
     onOpenPresentation,
   },
@@ -347,6 +352,23 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               </button>
             )}
 
+            {/* Improvement Workspace */}
+            {hasActiveData && hasFactors && (
+              <button
+                onClick={onOpenImprovement}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  isImprovementOpen
+                    ? 'bg-purple-600 text-white'
+                    : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
+                }`}
+                title={t('improve.title')}
+                data-testid="btn-improvement"
+              >
+                <Lightbulb size={16} />
+                <span className="hidden lg:inline">{t('improve.title')}</span>
+              </button>
+            )}
+
             {/* Scouting Report */}
             {hasActiveData && (
               <button
@@ -502,6 +524,18 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   <Beaker size={16} />
                   {t('panel.whatIf')}
                 </button>
+                {hasFactors && (
+                  <button
+                    onClick={() => {
+                      setOverflowOpen(false);
+                      onOpenImprovement();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  >
+                    <Lightbulb size={16} />
+                    {t('improve.title')}
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     setOverflowOpen(false);
