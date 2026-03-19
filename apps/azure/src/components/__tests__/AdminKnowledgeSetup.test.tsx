@@ -23,7 +23,7 @@ vi.mock('../../lib/runtimeConfig', () => ({
   getRuntimeConfig: vi.fn(),
 }));
 
-import { AdminKnowledgeSetup } from '../AdminKnowledgeSetup';
+import { AdminKnowledgeSetup } from '../admin/AdminKnowledgeSetup';
 import { isTeamAIPlan, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { isKnowledgeBaseAvailable } from '../../services/searchService';
 import { getRuntimeConfig } from '../../lib/runtimeConfig';

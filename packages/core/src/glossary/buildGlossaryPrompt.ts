@@ -15,7 +15,7 @@ import { esGlossary } from './locales/es';
 import { frGlossary } from './locales/fr';
 import { ptGlossary } from './locales/pt';
 
-const localeGlossaryMap: Record<string, GlossaryLocale> = {
+const localeGlossaryMap: Partial<Record<Locale, GlossaryLocale>> = {
   de: deGlossary,
   es: esGlossary,
   fr: frGlossary,

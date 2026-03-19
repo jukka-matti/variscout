@@ -195,10 +195,10 @@ Key configuration:
 
 ### 4. AI Services (Team AI only)
 
-| Resource          | SKU   | Purpose                      | Monthly Cost |
-| ----------------- | ----- | ---------------------------- | ------------ |
-| Azure AI Services | S0    | Model hosting (gpt-4o-mini)  | ~€15-25      |
-| Azure AI Search   | Basic | Knowledge base orchestration | ~EUR50-60    |
+| Resource          | SKU   | Purpose                                     | Monthly Cost |
+| ----------------- | ----- | ------------------------------------------- | ------------ |
+| Azure AI Services | S0    | Model hosting (gpt-5.4-nano + gpt-5.4-mini) | ~€15-25      |
+| Azure AI Search   | Basic | Knowledge base orchestration                | ~EUR50-60    |
 
 These resources are provisioned only when `variscoutPlan` is set to `team-ai`. Standard and Team plans do not include AI resources.
 
@@ -225,7 +225,7 @@ The Node.js server (`server.js`) serves a `/config` endpoint that returns runtim
 | -------------------- | --------------------------------------- | -------------- |
 | `AI_ENDPOINT`        | Azure AI Foundry endpoint               | Team AI        |
 | `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint                | Team AI        |
-| `AI_SEARCH_INDEX`    | Search index name (default: `findings`) | Team AI        |
+| `AI_SEARCH_INDEX`    | Search index name                       | Team AI        |
 | `FUNCTION_URL`       | Function App URL for OBO token exchange | Team / Team AI |
 
 The client fetches `/config` on startup via `runtimeConfig.ts` and uses the returned values to configure AI service clients. Environment variables without the `VITE_` prefix are invisible to the Vite build — the `/config` endpoint is the only way they reach the client.

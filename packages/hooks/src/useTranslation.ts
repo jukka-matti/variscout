@@ -1,10 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { Locale, MessageCatalog } from '@variscout/core';
-import { LOCALES, getMessage, formatStatistic, formatPercent } from '@variscout/core/i18n';
+import {
+  LOCALES,
+  getMessage,
+  formatMessage,
+  formatStatistic,
+  formatPercent,
+} from '@variscout/core/i18n';
 
 export interface UseTranslationReturn {
   /** Get a translated message by key */
   t: (key: keyof MessageCatalog) => string;
+  /** Get a translated message with parameter interpolation */
+  tf: (key: keyof MessageCatalog, params: Record<string, string | number>) => string;
   /** Current locale */
   locale: Locale;
   /** Format a number with locale-correct decimal separator */
@@ -58,6 +66,8 @@ export function useTranslation(): UseTranslationReturn {
   return useMemo(
     () => ({
       t: (key: keyof MessageCatalog) => getMessage(locale, key),
+      tf: (key: keyof MessageCatalog, params: Record<string, string | number>) =>
+        formatMessage(locale, key, params),
       locale,
       formatNumber: (value: number, decimals: number = 2) =>
         formatStatistic(value, locale, decimals),

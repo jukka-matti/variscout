@@ -16,6 +16,6 @@
   },
   "notes": {
     "sharePointKnowledgeSource": "Requires customer SharePoint connection string. Uses remoteSharePoint kind — on-demand document access with per-user permissions, no pre-indexing.",
-    "llmRequirement": "Knowledge base requires an OpenAI model connection (gpt-4o-mini recommended for cost efficiency)"
+    "llmRequirement": "Knowledge base requires an OpenAI model connection (gpt-5.4-nano recommended for cost efficiency)"
   }
 }

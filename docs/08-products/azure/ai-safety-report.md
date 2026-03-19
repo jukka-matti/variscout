@@ -20,7 +20,7 @@ CoScout is a conversational AI assistant embedded in VariScout, a quality engine
 - Conversational Q&A grounded in user data
 - Investigation report generation
 
-**Model:** Azure OpenAI (gpt-4o-mini for "fast", gpt-4o for "reasoning")
+**Model:** Azure OpenAI (gpt-5.4-nano for "fast", gpt-5.4-mini for "reasoning")
 
 ## 2. Safety Controls
 

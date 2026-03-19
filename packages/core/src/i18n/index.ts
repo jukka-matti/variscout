@@ -98,6 +98,31 @@ export function getMessage(locale: Locale, key: keyof MessageCatalog): string {
 }
 
 /**
+ * Get a translated message with parameter interpolation.
+ * Replaces `{param}` placeholders with provided values.
+ * Falls back to English if the key is missing in the target locale.
+ *
+ * @example
+ * ```ts
+ * formatMessage('en', 'data.rowsLoaded', { count: 150 })
+ * // => "150 rows loaded"
+ * ```
+ */
+export function formatMessage(
+  locale: Locale,
+  key: keyof MessageCatalog,
+  params?: Record<string, string | number>
+): string {
+  let msg = catalogs[locale]?.[key] ?? catalogs.en[key];
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      msg = msg.replaceAll(`{${k}}`, String(v));
+    }
+  }
+  return msg;
+}
+
+/**
  * Detect the best matching locale from a browser language string.
  * Falls back to 'en' if no match.
  *

@@ -18,4 +18,5 @@ End-to-end journey flows from discovery through daily use.
 - [Flow 7: Azure App — Daily Use](azure-daily-use.md)
 - [Flow 8: Azure App — Team Collaboration](azure-team-collaboration.md)
 - [Flow 9: Azure App — AI Setup](azure-ai-setup.md)
+- [Flow 10: Azure App — Admin Operations](azure-admin-operations.md)
 - [Azure Teams Mobile Flow](azure-teams-mobile.md)

@@ -2,6 +2,8 @@
  * Glossary types for the systemic help tooltip system
  */
 
+import type { Locale } from '../i18n/types';
+
 export type GlossaryCategory =
   | 'control-limits'
   | 'capability'
@@ -28,7 +30,7 @@ export interface GlossaryTerm {
 }
 
 export interface GlossaryLocale {
-  locale: string;
+  locale: Locale;
   terms: Record<string, Omit<GlossaryTerm, 'id' | 'category' | 'learnMorePath' | 'relatedTerms'>>;
 }
 

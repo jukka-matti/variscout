@@ -13,7 +13,8 @@
  * SharePoint folder, forming the team's knowledge base.
  */
 
-import type { Finding, Hypothesis, ProcessContext, StatsResult } from '@variscout/core';
+import type { Finding, Hypothesis, ProcessContext, StatsResult, Locale } from '@variscout/core';
+import { formatStatistic } from '@variscout/core/i18n';
 import type { ReportSectionDescriptor, ReportType } from '@variscout/hooks';
 
 // ── Types ───────────────────────────────────────────────────────────────
@@ -35,6 +36,7 @@ export interface RenderReportOptions {
   processContext?: ProcessContext;
   stats?: StatsResult;
   aiNarrative?: string;
+  locale?: Locale;
 }
 
 // ── Rendering ───────────────────────────────────────────────────────────
@@ -48,7 +50,8 @@ export interface RenderReportOptions {
  * - Findings formatted with status tags, hypotheses, and outcomes
  */
 export function renderReportMarkdown(options: RenderReportOptions): string {
-  const { metadata, sections, processContext, stats, aiNarrative } = options;
+  const { metadata, sections, processContext, stats, aiNarrative, locale = 'en' } = options;
+  const fmt = (n: number, d: number = 2) => formatStatistic(n, locale, d);
   const parts: string[] = [];
 
   // ── Title & metadata ────────────────────────────────────────────────
@@ -65,13 +68,13 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
     parts.push('## Key Metrics');
     parts.push('');
     const metrics: string[] = [];
-    if (metadata.cpk !== undefined) metrics.push(`- **Cpk:** ${metadata.cpk.toFixed(2)}`);
-    if (metadata.mean !== undefined) metrics.push(`- **Mean:** ${metadata.mean.toFixed(3)}`);
-    if (stats?.stdDev !== undefined) metrics.push(`- **StdDev:** ${stats.stdDev.toFixed(4)}`);
+    if (metadata.cpk !== undefined) metrics.push(`- **Cpk:** ${fmt(metadata.cpk)}`);
+    if (metadata.mean !== undefined) metrics.push(`- **Mean:** ${fmt(metadata.mean, 3)}`);
+    if (stats?.stdDev !== undefined) metrics.push(`- **StdDev:** ${fmt(stats.stdDev, 4)}`);
     if (metadata.sampleCount !== undefined)
       metrics.push(`- **Sample Size:** ${metadata.sampleCount}`);
     if (stats?.outOfSpecPercentage !== undefined) {
-      metrics.push(`- **Out of Spec:** ${stats.outOfSpecPercentage.toFixed(1)}%`);
+      metrics.push(`- **Out of Spec:** ${fmt(stats.outOfSpecPercentage, 1)}%`);
     }
     parts.push(metrics.join('\n'));
     parts.push('');
@@ -103,7 +106,7 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
 
     // Render findings
     for (const finding of section.findings) {
-      parts.push(renderFinding(finding, section.hypotheses));
+      parts.push(renderFinding(finding, section.hypotheses, locale));
     }
 
     // Render standalone hypotheses (not already covered by findings)
@@ -137,7 +140,8 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
-function renderFinding(finding: Finding, hypotheses: Hypothesis[]): string {
+function renderFinding(finding: Finding, hypotheses: Hypothesis[], locale: Locale = 'en'): string {
+  const fmt = (n: number, d: number = 2) => formatStatistic(n, locale, d);
   const lines: string[] = [];
   const statusTag = `[${finding.status.toUpperCase()}]`;
   const tagSuffix = finding.tag ? ` · ${finding.tag}` : '';
@@ -156,7 +160,7 @@ function renderFinding(finding: Finding, hypotheses: Hypothesis[]): string {
 
   // Stats snapshot
   if (finding.context.stats?.cpk !== undefined) {
-    lines.push(`**Cpk at time of finding:** ${finding.context.stats.cpk.toFixed(2)}`);
+    lines.push(`**Cpk at time of finding:** ${fmt(finding.context.stats.cpk)}`);
     lines.push('');
   }
 
@@ -185,7 +189,7 @@ function renderFinding(finding: Finding, hypotheses: Hypothesis[]): string {
 
     let outcomeLine = `**Outcome:** ${effective}`;
     if (finding.outcome.cpkAfter) {
-      outcomeLine += ` — Cpk improved to ${finding.outcome.cpkAfter.toFixed(2)}`;
+      outcomeLine += ` — Cpk improved to ${fmt(finding.outcome.cpkAfter)}`;
     }
     lines.push(outcomeLine);
     if (finding.outcome.notes) {

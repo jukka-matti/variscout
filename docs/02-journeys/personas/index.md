@@ -9,6 +9,7 @@ status: stable
 
 Target user archetypes driving VariScout design decisions.
 
+- [Admin Aino](admin-aino.md)
 - [Curious Carlos](curious-carlos.md)
 - [Evaluator Erik](evaluator-erik.md)
 - [Field Fiona](field-fiona.md)

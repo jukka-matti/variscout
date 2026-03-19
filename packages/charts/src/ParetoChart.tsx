@@ -77,7 +77,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
     showBranding,
   });
 
-  const { chrome, colors, formatStat } = useChartTheme();
+  const { chrome, colors, formatStat, t } = useChartTheme();
   const highlightFillColors = getHighlightFillColors(colors);
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
@@ -264,7 +264,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
             left={width}
             stroke={chrome.axisPrimary}
             tickStroke={chrome.axisPrimary}
-            label={parentWidth > 400 ? 'Cumulative %' : '%'}
+            label={parentWidth > 400 ? t('chart.cumulative') : '%'}
             labelProps={{
               fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
@@ -372,8 +372,12 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
               <div>
                 <strong>{tooltipData.key}</strong>
               </div>
-              <div>Count: {tooltipData.value}</div>
-              <div>Cumulative: {formatStat(tooltipData.cumulativePercentage, 1)}%</div>
+              <div>
+                {t('chart.count')}: {tooltipData.value}
+              </div>
+              <div>
+                {t('chart.cumulative')}: {formatStat(tooltipData.cumulativePercentage, 1)}%
+              </div>
             </>
           )}
         </TooltipWithBounds>

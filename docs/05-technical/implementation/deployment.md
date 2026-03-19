@@ -78,13 +78,12 @@ pnpm --filter @variscout/azure-app test
 
 ### AI Resources (Team AI only)
 
-| Variable             | Description                   | Required | Set By                                |
-| -------------------- | ----------------------------- | -------- | ------------------------------------- |
-| `AI_ENDPOINT`        | Azure AI Foundry endpoint URL | Team AI  | ARM template                          |
-| `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint URL  | Team AI  | ARM template                          |
-| `AI_SEARCH_INDEX`    | Search index name             | Team AI  | ARM template (default: `findings`)    |
-| `AI_DEPLOYMENT`      | Model deployment name         | Team AI  | ARM template (default: `gpt-4o-mini`) |
-| `FUNCTION_URL`       | Function App URL              | Team/AI  | ARM template                          |
+| Variable             | Description                   | Required | Set By       |
+| -------------------- | ----------------------------- | -------- | ------------ |
+| `AI_ENDPOINT`        | Azure AI Foundry endpoint URL | Team AI  | ARM template |
+| `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint URL  | Team AI  | ARM template |
+| `AI_SEARCH_INDEX`    | Search index name             | Team AI  | ARM template |
+| `FUNCTION_URL`       | Function App URL              | Team/AI  | ARM template |
 
 > **Note**: These variables are NOT prefixed with `VITE_` because they are served at runtime via the `/config` endpoint (see `apps/azure/src/lib/runtimeConfig.ts`), not baked into the Vite build.
 

@@ -268,6 +268,7 @@ export {
   formatInteger,
   getMessages,
   getMessage,
+  formatMessage,
   detectLocale,
 } from './i18n';
 

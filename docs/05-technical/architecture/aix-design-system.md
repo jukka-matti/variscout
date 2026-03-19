@@ -268,7 +268,7 @@ Improvement ideas injected during converging phase when supported hypotheses exi
 - **Conversation:** Session-only (50 messages max), streaming with abort, narrative-seeded
 - **Suggested questions:** Phase-aware, dynamically generated from investigation state
 - **Accessibility:** `role="log"` + `aria-live="polite"` on message container
-- **Knowledge Base:** Search indicator during loading ("Searching N related findings...")
+- **Knowledge Base:** Search indicator during loading ("Searching knowledge base...")
 - **Provider label:** `providerLabel` prop displays the AI provider name (e.g., "Claude", "Azure OpenAI") below the panel title.
 - **Empty state:** When no messages, shows a capability overview: "I can help you: understand patterns, investigate root causes, interpret capability metrics, suggest next steps."
 - **Conversation export:** "Copy conversation" action in overflow menu via `onCopyConversation` prop.

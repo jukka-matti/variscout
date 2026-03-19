@@ -82,6 +82,19 @@ function getLineStyle(type: LimitType): { strokeWidth: number; strokeDasharray?:
   }
 }
 
+/** Limit type to i18n key mapping */
+const LIMIT_KEYS: Record<
+  LimitType,
+  'limits.usl' | 'limits.lsl' | 'limits.target' | 'limits.ucl' | 'limits.lcl' | 'limits.mean'
+> = {
+  usl: 'limits.usl',
+  lsl: 'limits.lsl',
+  target: 'limits.target',
+  ucl: 'limits.ucl',
+  lcl: 'limits.lcl',
+  mean: 'limits.mean',
+};
+
 /**
  * Get default label text for limit type
  */
@@ -89,27 +102,14 @@ function getDefaultLabel(
   type: LimitType,
   value: number,
   decimalPlaces: number,
-  formatStat?: (v: number, d?: number) => string
+  formatStat?: (v: number, d?: number) => string,
+  t?: (key: keyof import('@variscout/core').MessageCatalog) => string
 ): string {
   const formattedValue = formatStat
     ? formatStat(value, decimalPlaces)
     : formatStatistic(value, 'en', decimalPlaces);
-  switch (type) {
-    case 'usl':
-      return `USL: ${formattedValue}`;
-    case 'lsl':
-      return `LSL: ${formattedValue}`;
-    case 'target':
-      return `Tgt: ${formattedValue}`;
-    case 'ucl':
-      return `UCL: ${formattedValue}`;
-    case 'lcl':
-      return `LCL: ${formattedValue}`;
-    case 'mean':
-      return `Mean: ${formattedValue}`;
-    default:
-      return formattedValue;
-  }
+  const label = t ? t(LIMIT_KEYS[type]) : type.toUpperCase();
+  return `${label}: ${formattedValue}`;
 }
 
 /**
@@ -139,11 +139,11 @@ export const SpecLimitLine: React.FC<SpecLimitLineProps> = ({
   onLabelClick,
   decimalPlaces = 1,
 }) => {
-  const { formatStat } = useChartTheme();
+  const { formatStat, t } = useChartTheme();
   const y = yScale(value);
   const color = getLineColor(type);
   const lineStyle = getLineStyle(type);
-  const label = labelText ?? getDefaultLabel(type, value, decimalPlaces, formatStat);
+  const label = labelText ?? getDefaultLabel(type, value, decimalPlaces, formatStat, t);
 
   return (
     <>
@@ -202,10 +202,11 @@ export const VerticalSpecLimitLine: React.FC<VerticalSpecLimitLineProps> = ({
   showLabel = true,
   labelText,
 }) => {
+  const { t } = useChartTheme();
   const x = xScale(value);
   const color = getLineColor(type);
   const lineStyle = getLineStyle(type);
-  const label = labelText ?? type.toUpperCase();
+  const label = labelText ?? t(LIMIT_KEYS[type]);
 
   return (
     <>

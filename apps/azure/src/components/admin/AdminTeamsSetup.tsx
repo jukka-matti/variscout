@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Copy, Download, Check, ExternalLink, Info } from 'lucide-react';
-import { isInTeams } from '../teams';
+import { isInTeams } from '../../teams';
 
 // Generate a stable manifest ID per origin using crypto.randomUUID(), persisted in localStorage.
 // This avoids the weak hash that previously produced non-compliant UUIDs.

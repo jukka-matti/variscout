@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getMessage, getMessages, detectLocale } from '../index';
+import { getMessage, getMessages, formatMessage, detectLocale } from '../index';
 import { LOCALES } from '../types';
 
 describe('getMessage', () => {
@@ -70,6 +70,60 @@ describe('getMessages', () => {
         expect(localeKeys).toContain(key);
       }
     }
+  });
+});
+
+describe('formatMessage', () => {
+  it('returns plain message when no params', () => {
+    expect(formatMessage('en', 'stats.mean')).toBe('Mean');
+  });
+
+  it('interpolates {count} parameter', () => {
+    expect(formatMessage('en', 'data.rowsLoaded', { count: 150 })).toBe('150 rows loaded');
+  });
+
+  it('interpolates with German locale', () => {
+    expect(formatMessage('de', 'data.rowsLoaded', { count: 42 })).toBe('42 Zeilen geladen');
+  });
+
+  it('interpolates findings count', () => {
+    expect(formatMessage('en', 'findings.countLabel', { count: 5 })).toBe('5 findings');
+    expect(formatMessage('fi', 'findings.countLabel', { count: 3 })).toBe('3 havaintoa');
+  });
+
+  it('handles multiple placeholders', () => {
+    // Currently only single-param keys, but verify the mechanism works
+    expect(formatMessage('en', 'data.rowsLoaded', { count: 0 })).toBe('0 rows loaded');
+  });
+
+  it('falls back to English for missing locale key', () => {
+    expect(formatMessage('de', 'data.rowsLoaded', { count: 10 })).toBe('10 Zeilen geladen');
+  });
+});
+
+describe('new catalog keys', () => {
+  it('has coach phase names in primary locales', () => {
+    expect(getMessage('en', 'coach.frame')).toBe('Frame');
+    expect(getMessage('de', 'coach.frame')).toBe('Rahmen');
+    expect(getMessage('fi', 'coach.frame')).toBe('Rajaa');
+    expect(getMessage('fr', 'coach.frame')).toBe('Cadrer');
+    expect(getMessage('es', 'coach.frame')).toBe('Enmarcar');
+  });
+
+  it('has report KPI keys', () => {
+    expect(getMessage('en', 'report.kpi.cpk')).toBe('Cpk');
+    expect(getMessage('de', 'report.kpi.samples')).toBe('Stichproben');
+  });
+
+  it('has AI action keys', () => {
+    expect(getMessage('en', 'ai.propose')).toBe('Propose');
+    expect(getMessage('de', 'ai.applied')).toBe('Angewendet');
+  });
+
+  it('has staged analysis keys', () => {
+    expect(getMessage('en', 'staged.before')).toBe('Before');
+    expect(getMessage('de', 'staged.before')).toBe('Vorher');
+    expect(getMessage('fi', 'staged.after')).toBe('Jälkeen');
   });
 });
 

@@ -6,8 +6,8 @@ import {
   type ChromeColorValues,
   type ChartColor,
 } from './colors';
-import type { Locale } from '@variscout/core';
-import { LOCALES, formatStatistic, formatPercent } from '@variscout/core/i18n';
+import type { Locale, MessageCatalog } from '@variscout/core';
+import { LOCALES, getMessage, formatStatistic, formatPercent } from '@variscout/core/i18n';
 
 export interface ChartThemeColors {
   /** Whether dark theme is active */
@@ -24,6 +24,8 @@ export interface ChartThemeColors {
   formatStat: (value: number, decimals?: number) => string;
   /** Format a percentage (0.0-1.0) with locale-correct formatting */
   formatPct: (value: number, decimals?: number) => string;
+  /** Get a translated message by key */
+  t: (key: keyof MessageCatalog) => string;
 }
 
 /**
@@ -88,6 +90,7 @@ export function useChartTheme(): ChartThemeColors {
       locale,
       formatStat: (value: number, decimals: number = 2) => formatStatistic(value, locale, decimals),
       formatPct: (value: number, decimals: number = 1) => formatPercent(value, locale, decimals),
+      t: (key: keyof MessageCatalog) => getMessage(locale, key),
     }),
     [theme, fontScale, locale]
   );

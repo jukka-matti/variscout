@@ -26,7 +26,7 @@ const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
   variationThreshold = 50,
   compact = false,
 }) => {
-  const { isDark, formatStat } = useChartTheme();
+  const { isDark, formatStat, t } = useChartTheme();
 
   // Find the row with highest StdDev
   const highestStdDevKey = useMemo(() => {
@@ -81,7 +81,7 @@ const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
             <th
               className={`${padding} text-left font-semibold ${textPrimary} border ${borderColor}`}
             >
-              Group
+              {t('chart.category')}
             </th>
             <th
               className={`${padding} text-right font-semibold ${textPrimary} border ${borderColor}`}
@@ -91,23 +91,23 @@ const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
             <th
               className={`${padding} text-right font-semibold ${textPrimary} border ${borderColor}`}
             >
-              Mean
+              {t('stats.mean')}
             </th>
             <th
               className={`${padding} text-right font-semibold ${textPrimary} border ${borderColor}`}
             >
-              Median
+              {t('stats.median')}
             </th>
             <th
               className={`${padding} text-right font-semibold ${textPrimary} border ${borderColor}`}
             >
-              StdDev
+              {t('stats.stdDev')}
             </th>
             {showVariation && (
               <th
                 className={`${padding} text-right font-semibold ${textPrimary} border ${borderColor}`}
               >
-                Variation %
+                {t('report.kpi.variation')} %
               </th>
             )}
           </tr>

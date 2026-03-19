@@ -20,7 +20,8 @@
     "docs:preview": "pnpm --filter @variscout/docs preview",
     "docs:check": "bash scripts/check-diagram-health.sh",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "check:i18n": "npx tsx scripts/check-i18n.ts"
   },
   "lint-staged": {
     "**/*.{ts,tsx}": [

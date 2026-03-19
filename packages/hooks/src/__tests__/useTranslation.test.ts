@@ -72,4 +72,22 @@ describe('useTranslation', () => {
     const formatted = result.current.formatPct(0.955, 1);
     expect(formatted).toBe('95.5%');
   });
+
+  it('tf interpolates parameters', () => {
+    document.documentElement.setAttribute('data-locale', 'en');
+    const { result } = renderHook(() => useTranslation());
+    expect(result.current.tf('data.rowsLoaded', { count: 150 })).toBe('150 rows loaded');
+  });
+
+  it('tf interpolates with German locale', () => {
+    document.documentElement.setAttribute('data-locale', 'de');
+    const { result } = renderHook(() => useTranslation());
+    expect(result.current.tf('data.rowsLoaded', { count: 42 })).toBe('42 Zeilen geladen');
+  });
+
+  it('tf interpolates findings count', () => {
+    document.documentElement.setAttribute('data-locale', 'fi');
+    const { result } = renderHook(() => useTranslation());
+    expect(result.current.tf('findings.countLabel', { count: 3 })).toBe('3 havaintoa');
+  });
 });

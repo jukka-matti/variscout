@@ -9,9 +9,9 @@ import {
   FolderOpen,
 } from 'lucide-react';
 import { isTeamAIPlan, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
-import { isKnowledgeBaseAvailable, searchDocuments } from '../services/searchService';
-import { getRuntimeConfig } from '../lib/runtimeConfig';
-import { getCachedChannelFolderUrl } from '../services/channelDrive';
+import { isKnowledgeBaseAvailable, searchDocuments } from '../../services/searchService';
+import { getRuntimeConfig } from '../../lib/runtimeConfig';
+import { getCachedChannelFolderUrl } from '../../services/channelDrive';
 
 interface StatusRowProps {
   label: string;

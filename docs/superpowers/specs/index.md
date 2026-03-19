@@ -19,6 +19,7 @@ Once a feature stabilizes, the ADR is the canonical reference.
 | [2026-03-17-platform-opportunities.md](2026-03-17-platform-opportunities.md)                                     | Platform Opportunities            | —       | Active   |
 | [2026-03-17-teams-compliance-audit.md](2026-03-17-teams-compliance-audit.md)                                     | Teams Compliance                  | —       | Active   |
 | [2026-03-19-ai-action-tools-design.md](2026-03-19-ai-action-tools-design.md)                                     | AI Action Tools for CoScout       | ADR-029 | Active   |
+| [2026-03-19-admin-experience-design.md](2026-03-19-admin-experience-design.md)                                   | Admin Hub & Diagnostics           | —       | Draft    |
 | [2026-03-19-knowledge-base-folder-search-design.md](2026-03-19-knowledge-base-folder-search-design.md)           | KB Folder Selection & Permissions | ADR-026 | Active   |
 | [2026-03-16-ai-integration-evaluation.md](2026-03-16-ai-integration-evaluation.md)                               | AI Integration Evaluation         | ADR-019 | Active   |
 | [2026-03-16-code-review-design.md](2026-03-16-code-review-design.md)                                             | Code Review Process               | —       | Active   |
