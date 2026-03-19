@@ -114,6 +114,11 @@ export default defineConfig(async () => {
       rollupOptions: {
         output: {
           manualChunks(id) {
+            // Locale files → individual named chunks (English stays in main bundle)
+            const localeMatch = id.match(/i18n\/messages\/(\w+)\.ts$/);
+            if (localeMatch && localeMatch[1] !== 'en') {
+              return `locale-${localeMatch[1]}`;
+            }
             if (
               id.includes('node_modules/react/') ||
               id.includes('node_modules/react-dom/') ||

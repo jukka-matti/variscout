@@ -164,6 +164,22 @@ buildNarrationSystemPrompt(glossaryFragment, locale)  ← ADD locale param
 
 Phase 0 (this ADR): Infrastructure — types, formatters, message catalogs, hooks, providers. No visible changes.
 
+### Locale Lazy Loading (2026-03-20)
+
+All 33 locale catalogs were originally statically imported, adding ~20,900 lines to the main bundle. Restructured to:
+
+- **English statically bundled** — always available, zero-delay fallback (majority of users)
+- **32 other locales lazy-loaded** via `import.meta.glob('./messages/*.ts', { eager: false })` — Vite code-splits each into its own `locale-{code}.js` chunk (~4-5 KB gzip each)
+- **Mutable `Map<string, MessageCatalog>`** initialized with English, grows as locales load
+- **`preloadLocale(locale)`** — async function to load a locale on demand; `useLocaleState` calls this before setting `data-locale`
+- **`isLocaleLoaded(locale)`** — sync check for whether a catalog is loaded
+- **`manualChunks`** in both PWA and Azure vite configs produce clean `locale-*.js` chunk names
+- **Service worker** runtime-caches locale chunks via existing `StaleWhileRevalidate` JS rule (content-hashed = immutable)
+
+Sync API (`getMessage`, `getMessages`, `formatMessage`) unchanged — falls back to English if locale not yet loaded.
+
+Bundle impact: main chunk reduced ~400-500 KB minified (~80-100 KB gzip). English users download zero extra data. Non-English users fetch one ~5 KB chunk on locale switch.
+
 Future phases:
 
 1. Replace `.toFixed()` → `formatStatistic()` (~51 files)

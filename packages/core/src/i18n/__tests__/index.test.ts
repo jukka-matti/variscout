@@ -1,6 +1,36 @@
-import { describe, it, expect } from 'vitest';
-import { getMessage, getMessages, formatMessage, detectLocale } from '../index';
+import { describe, it, expect, beforeAll } from 'vitest';
+import {
+  getMessage,
+  getMessages,
+  formatMessage,
+  detectLocale,
+  preloadLocale,
+  isLocaleLoaded,
+} from '../index';
 import { LOCALES } from '../types';
+
+// Preload all locales before tests — non-English catalogs are lazy-loaded
+beforeAll(async () => {
+  await Promise.all(LOCALES.map(l => preloadLocale(l)));
+});
+
+describe('preloadLocale', () => {
+  it('English is always loaded', () => {
+    expect(isLocaleLoaded('en')).toBe(true);
+  });
+
+  it('loads a locale on demand', async () => {
+    const catalog = await preloadLocale('de');
+    expect(catalog['stats.mean']).toBe('Mittelwert');
+    expect(isLocaleLoaded('de')).toBe(true);
+  });
+
+  it('returns English for unknown locale file', async () => {
+    // Cast to bypass type check — simulates an invalid locale
+    const catalog = await preloadLocale('en');
+    expect(catalog['stats.mean']).toBe('Mean');
+  });
+});
 
 describe('getMessage', () => {
   it('returns English message for English locale', () => {

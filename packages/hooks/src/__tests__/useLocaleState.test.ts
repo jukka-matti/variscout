@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useLocaleState } from '../useLocaleState';
 
 describe('useLocaleState', () => {
@@ -29,14 +29,19 @@ describe('useLocaleState', () => {
     expect(result.current.locale).toBe('de');
   });
 
-  it('sets data-locale attribute on document element', () => {
+  it('sets data-locale attribute on document element', async () => {
     const { result } = renderHook(() => useLocaleState({ localeEnabled: true }));
-    expect(document.documentElement.getAttribute('data-locale')).toBe(result.current.locale);
+    // preloadLocale resolves async, then sets DOM attribute
+    await waitFor(() => {
+      expect(document.documentElement.getAttribute('data-locale')).toBe(result.current.locale);
+    });
   });
 
-  it('sets lang attribute on document element', () => {
+  it('sets lang attribute on document element', async () => {
     const { result } = renderHook(() => useLocaleState({ localeEnabled: true }));
-    expect(document.documentElement.lang).toBe(result.current.locale);
+    await waitFor(() => {
+      expect(document.documentElement.lang).toBe(result.current.locale);
+    });
   });
 
   it('persists locale change to localStorage', () => {
@@ -50,15 +55,18 @@ describe('useLocaleState', () => {
     expect(localStorage.getItem('variscout_locale')).toBe('fr');
   });
 
-  it('updates DOM attributes when locale changes', () => {
+  it('updates DOM attributes when locale changes', async () => {
     const { result } = renderHook(() => useLocaleState({ localeEnabled: true }));
 
     act(() => {
       result.current.setLocale('de');
     });
 
-    expect(document.documentElement.getAttribute('data-locale')).toBe('de');
-    expect(document.documentElement.lang).toBe('de');
+    // preloadLocale resolves async, then sets DOM attribute
+    await waitFor(() => {
+      expect(document.documentElement.getAttribute('data-locale')).toBe('de');
+      expect(document.documentElement.lang).toBe('de');
+    });
   });
 
   it('exposes localeEnabled flag', () => {

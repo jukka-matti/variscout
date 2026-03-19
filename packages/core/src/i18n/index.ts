@@ -3,6 +3,10 @@
  *
  * Internationalization infrastructure for VariScout.
  * Custom lightweight solution using typed message catalogs + native Intl APIs.
+ *
+ * English is statically bundled (zero-delay fallback).
+ * All other locales are lazy-loaded via dynamic import() — Vite code-splits
+ * each into its own chunk (~4-5 KB gzip each).
  */
 
 export type { Locale, MessageCatalog } from './types';
@@ -11,90 +15,64 @@ export { LOCALES, LOCALE_NAMES } from './types';
 export { formatStatistic, formatPercent, formatDate, formatInteger } from './format';
 
 import type { Locale, MessageCatalog } from './types';
+import { LOCALES } from './types';
 import { en } from './messages/en';
-import { de } from './messages/de';
-import { es } from './messages/es';
-import { fi } from './messages/fi';
-import { fr } from './messages/fr';
-import { pt } from './messages/pt';
-import { ja } from './messages/ja';
-import { zhHans } from './messages/zhHans';
-import { zhHant } from './messages/zhHant';
-import { ko } from './messages/ko';
-import { it } from './messages/it';
-import { nl } from './messages/nl';
-import { pl } from './messages/pl';
-import { ru } from './messages/ru';
-import { tr } from './messages/tr';
-import { sv } from './messages/sv';
-import { da } from './messages/da';
-import { nb } from './messages/nb';
-import { cs } from './messages/cs';
-import { hu } from './messages/hu';
-import { ro } from './messages/ro';
-import { uk } from './messages/uk';
-import { th } from './messages/th';
-import { vi } from './messages/vi';
-import { id } from './messages/id';
-import { ms } from './messages/ms';
-import { ar } from './messages/ar';
-import { he } from './messages/he';
-import { hi } from './messages/hi';
-import { el } from './messages/el';
-import { bg } from './messages/bg';
-import { hr } from './messages/hr';
-import { sk } from './messages/sk';
 
-/** All message catalogs keyed by locale */
-const catalogs: Record<Locale, MessageCatalog> = {
-  en,
-  de,
-  es,
-  fi,
-  fr,
-  pt,
-  ja,
-  'zh-Hans': zhHans,
-  'zh-Hant': zhHant,
-  ko,
-  it,
-  nl,
-  pl,
-  ru,
-  tr,
-  sv,
-  da,
-  nb,
-  cs,
-  hu,
-  ro,
-  uk,
-  th,
-  vi,
-  id,
-  ms,
-  ar,
-  he,
-  hi,
-  el,
-  bg,
-  hr,
-  sk,
+// Lazy loaders — Vite auto-splits each into its own chunk
+const loaders = import.meta.glob<Record<string, MessageCatalog>>('./messages/*.ts', {
+  eager: false,
+});
+
+// Mutable registry — starts with English, grows as locales load
+const loaded = new Map<string, MessageCatalog>([['en', en]]);
+
+// Set of valid locale strings for fast membership checks (used by detectLocale)
+const localeSet = new Set<string>(LOCALES as readonly string[]);
+
+// Filename ↔ locale mapping for zh-Hans/zh-Hant
+const LOCALE_TO_FILENAME: Record<string, string> = {
+  'zh-Hans': 'zhHans',
+  'zh-Hant': 'zhHant',
 };
 
 /**
+ * Preload a locale's message catalog via dynamic import.
+ * Returns immediately for English or already-loaded locales.
+ * Falls back to English if the locale file doesn't exist.
+ */
+export async function preloadLocale(locale: Locale): Promise<MessageCatalog> {
+  if (loaded.has(locale)) return loaded.get(locale)!;
+  const filename = LOCALE_TO_FILENAME[locale] ?? locale;
+  const loader = loaders[`./messages/${filename}.ts`];
+  if (!loader) return en;
+  const mod = await loader();
+  const catalog = mod[filename] as MessageCatalog;
+  loaded.set(locale, catalog);
+  return catalog;
+}
+
+/**
+ * Check whether a locale's catalog has been loaded.
+ */
+export function isLocaleLoaded(locale: Locale): boolean {
+  return loaded.has(locale);
+}
+
+/**
  * Get the full message catalog for a locale.
+ * Returns English fallback if the locale hasn't been preloaded yet.
  */
 export function getMessages(locale: Locale): MessageCatalog {
-  return catalogs[locale];
+  return loaded.get(locale) ?? en;
 }
 
 /**
  * Get a single translated message by key.
- * Falls back to English if the key is missing in the target locale.
+ * Falls back to English if the key is missing in the target locale
+ * or if the locale hasn't been preloaded yet.
  */
 export function getMessage(locale: Locale, key: keyof MessageCatalog): string {
-  return catalogs[locale]?.[key] ?? catalogs.en[key];
+  return loaded.get(locale)?.[key] ?? en[key];
 }
 
 /**
@@ -113,7 +91,7 @@ export function formatMessage(
   key: keyof MessageCatalog,
   params?: Record<string, string | number>
 ): string {
-  let msg = catalogs[locale]?.[key] ?? catalogs.en[key];
+  let msg = loaded.get(locale)?.[key] ?? en[key];
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       msg = msg.replaceAll(`{${k}}`, String(v));
@@ -132,7 +110,7 @@ export function detectLocale(browserLang: string): Locale {
   const lang = browserLang.toLowerCase();
 
   // Exact match (e.g., "en", "de", "zh-hans")
-  if (lang in catalogs) return lang as Locale;
+  if (localeSet.has(lang)) return lang as Locale;
 
   // Hyphenated script variants (e.g., "zh-hans-cn" → "zh-Hans", "zh-hant-tw" → "zh-Hant")
   if (lang.startsWith('zh-hant') || lang.startsWith('zh-tw')) return 'zh-Hant';
@@ -143,7 +121,7 @@ export function detectLocale(browserLang: string): Locale {
 
   // Prefix match (e.g., "de-AT" → "de", "pt-BR" → "pt")
   const prefix = lang.split('-')[0];
-  if (prefix in catalogs) return prefix as Locale;
+  if (localeSet.has(prefix)) return prefix as Locale;
 
   return 'en';
 }

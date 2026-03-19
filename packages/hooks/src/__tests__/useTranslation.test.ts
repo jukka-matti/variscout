@@ -1,6 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTranslation } from '../useTranslation';
+import { preloadLocale } from '@variscout/core/i18n';
+import { LOCALES } from '@variscout/core';
+
+// Preload all locales — non-English catalogs are lazy-loaded
+beforeAll(async () => {
+  await Promise.all(LOCALES.map(l => preloadLocale(l)));
+});
 
 describe('useTranslation', () => {
   beforeEach(() => {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Locale } from '@variscout/core';
-import { detectLocale, LOCALES } from '@variscout/core/i18n';
+import { detectLocale, LOCALES, preloadLocale } from '@variscout/core/i18n';
 
 export interface UseLocaleStateOptions {
   /** Whether locale selection is enabled (false = auto-detect only, true = user-selectable) */
@@ -57,12 +57,20 @@ export function useLocaleState({ localeEnabled }: UseLocaleStateOptions): UseLoc
     return getBrowserLocale();
   });
 
-  // Apply locale to document
+  // Preload locale catalog, then apply to document
   useEffect(() => {
-    const root = document.documentElement;
-    root.setAttribute('data-locale', locale);
-    root.lang = locale;
-    root.dir = RTL_LOCALES.has(locale) ? 'rtl' : 'ltr';
+    let cancelled = false;
+    preloadLocale(locale).then(() => {
+      if (!cancelled) {
+        const root = document.documentElement;
+        root.setAttribute('data-locale', locale);
+        root.lang = locale;
+        root.dir = RTL_LOCALES.has(locale) ? 'rtl' : 'ltr';
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [locale]);
 
   const setLocale = useCallback((newLocale: Locale) => {

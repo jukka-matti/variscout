@@ -31,12 +31,22 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          d3: ['d3-array'],
-          visx: ['@visx/responsive'],
-          vendor: ['react', 'react-dom', 'lucide-react'],
-          teams: ['@microsoft/teams-js'],
-          storage: ['dexie'],
+        manualChunks(id) {
+          // Locale files → individual named chunks (English stays in main bundle)
+          const localeMatch = id.match(/i18n\/messages\/(\w+)\.ts$/);
+          if (localeMatch && localeMatch[1] !== 'en') {
+            return `locale-${localeMatch[1]}`;
+          }
+          if (id.includes('node_modules/d3-')) return 'd3';
+          if (id.includes('node_modules/@visx/')) return 'visx';
+          if (
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/lucide-react')
+          )
+            return 'vendor';
+          if (id.includes('node_modules/@microsoft/teams-js')) return 'teams';
+          if (id.includes('node_modules/dexie')) return 'storage';
         },
       },
     },
