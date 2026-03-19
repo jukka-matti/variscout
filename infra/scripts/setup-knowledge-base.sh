@@ -2,8 +2,11 @@
 set -euo pipefail
 
 # VariScout Knowledge Base Setup
-# Creates Azure AI Search index and Foundry IQ Knowledge Base
+# Creates Foundry IQ Knowledge Base with Remote SharePoint knowledge source
 # using the 2025-11-01-preview REST API.
+#
+# ADR-026: Remote SharePoint approach — on-demand document access with
+# per-user permissions, no pre-indexing.
 
 # ── Colors ──────────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -17,27 +20,24 @@ NC='\033[0m' # No Color
 usage() {
   cat <<EOF
 ${BOLD}Usage:${NC}
-  $(basename "$0") --resource-group <rg> --search-service <name> --ai-services <name> [--sharepoint-url <url>]
+  $(basename "$0") --resource-group <rg> --ai-services <name> --sharepoint-url <url>
 
 ${BOLD}Required:${NC}
   --resource-group   Azure resource group name
-  --search-service   Azure AI Search service name
   --ai-services      Azure AI Services account name (for Foundry IQ)
+  --sharepoint-url   SharePoint site URL for SOP documents
 
 ${BOLD}Optional:${NC}
-  --sharepoint-url   SharePoint site URL for SOP indexing
   -h, --help         Show this help message
 
-${BOLD}Examples:${NC}
-  $(basename "$0") --resource-group rg-variscout --search-service vs-search --ai-services vs-ai
-  $(basename "$0") --resource-group rg-variscout --search-service vs-search --ai-services vs-ai --sharepoint-url "https://contoso.sharepoint.com/sites/quality"
+${BOLD}Example:${NC}
+  $(basename "$0") --resource-group rg-variscout --ai-services vs-ai --sharepoint-url "https://contoso.sharepoint.com/sites/quality"
 EOF
   exit 1
 }
 
 # ── Argument Parsing ────────────────────────────────────────────────
 RESOURCE_GROUP=""
-SEARCH_SERVICE=""
 AI_SERVICES=""
 SHAREPOINT_URL=""
 
@@ -45,10 +45,6 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --resource-group)
       RESOURCE_GROUP="$2"
-      shift 2
-      ;;
-    --search-service)
-      SEARCH_SERVICE="$2"
       shift 2
       ;;
     --ai-services)
@@ -69,15 +65,13 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -z "$RESOURCE_GROUP" || -z "$SEARCH_SERVICE" || -z "$AI_SERVICES" ]]; then
+if [[ -z "$RESOURCE_GROUP" || -z "$AI_SERVICES" || -z "$SHAREPOINT_URL" ]]; then
   echo -e "${RED}Error:${NC} Missing required arguments."
   usage
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SEARCH_INDEX_SCHEMA="$SCRIPT_DIR/../search-index-schema.json"
-SEARCH_API_VERSION="2024-07-01"
 KB_API_VERSION="2025-11-01-preview"
+TOTAL_STEPS=3
 
 # ── Helpers ─────────────────────────────────────────────────────────
 log_step() { echo -e "\n${CYAN}[$1/${TOTAL_STEPS}]${NC} ${BOLD}$2${NC}"; }
@@ -94,68 +88,13 @@ if ! command -v jq &> /dev/null; then
   log_fail "jq is not installed. Install it from https://jqlang.github.io/jq/download/"
 fi
 
-if [[ ! -f "$SEARCH_INDEX_SCHEMA" ]]; then
-  log_fail "Search index schema not found at $SEARCH_INDEX_SCHEMA"
-fi
-
-TOTAL_STEPS=6
-if [[ -n "$SHAREPOINT_URL" ]]; then
-  TOTAL_STEPS=7
-fi
-
 echo -e "${BOLD}VariScout Knowledge Base Setup${NC}"
 echo -e "Resource Group:  ${CYAN}$RESOURCE_GROUP${NC}"
-echo -e "Search Service:  ${CYAN}$SEARCH_SERVICE${NC}"
 echo -e "AI Services:     ${CYAN}$AI_SERVICES${NC}"
-if [[ -n "$SHAREPOINT_URL" ]]; then
-  echo -e "SharePoint URL:  ${CYAN}$SHAREPOINT_URL${NC}"
-fi
+echo -e "SharePoint URL:  ${CYAN}$SHAREPOINT_URL${NC}"
 
-# ── Step 1: Get search service endpoint ─────────────────────────────
-log_step 1 "Getting search service endpoint..."
-
-SEARCH_ENDPOINT=$(az search service show \
-  --resource-group "$RESOURCE_GROUP" \
-  --name "$SEARCH_SERVICE" \
-  --query "hostName" -o tsv 2>/dev/null) || log_fail "Could not retrieve search service endpoint"
-
-SEARCH_ENDPOINT="https://${SEARCH_ENDPOINT}"
-log_ok "Endpoint: $SEARCH_ENDPOINT"
-
-# ── Step 2: Get search admin key ────────────────────────────────────
-log_step 2 "Getting search service admin key..."
-
-SEARCH_ADMIN_KEY=$(az search admin-key show \
-  --resource-group "$RESOURCE_GROUP" \
-  --service-name "$SEARCH_SERVICE" \
-  --query "primaryKey" -o tsv 2>/dev/null) || log_fail "Could not retrieve search admin key"
-
-log_ok "Admin key retrieved"
-
-# ── Step 3: Create search index ─────────────────────────────────────
-log_step 3 "Creating search index from schema..."
-
-INDEX_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-  "${SEARCH_ENDPOINT}/indexes?api-version=${SEARCH_API_VERSION}" \
-  -H "Content-Type: application/json" \
-  -H "api-key: ${SEARCH_ADMIN_KEY}" \
-  -d @"$SEARCH_INDEX_SCHEMA")
-
-INDEX_HTTP_CODE=$(echo "$INDEX_RESPONSE" | tail -1)
-INDEX_BODY=$(echo "$INDEX_RESPONSE" | sed '$d')
-
-if [[ "$INDEX_HTTP_CODE" -ge 200 && "$INDEX_HTTP_CODE" -lt 300 ]]; then
-  INDEX_NAME=$(echo "$INDEX_BODY" | jq -r '.name // "unknown"')
-  log_ok "Index created: $INDEX_NAME"
-elif [[ "$INDEX_HTTP_CODE" -eq 409 ]]; then
-  log_warn "Index already exists (409 Conflict) — skipping"
-else
-  echo "$INDEX_BODY" | jq . 2>/dev/null || echo "$INDEX_BODY"
-  log_fail "Failed to create search index (HTTP $INDEX_HTTP_CODE)"
-fi
-
-# ── Step 4: Get AI Services endpoint ────────────────────────────────
-log_step 4 "Getting AI Services endpoint..."
+# ── Step 1: Get AI Services endpoint ────────────────────────────────
+log_step 1 "Getting AI Services endpoint..."
 
 AI_ENDPOINT=$(az cognitiveservices account show \
   --resource-group "$RESOURCE_GROUP" \
@@ -173,55 +112,13 @@ AI_TOKEN=$(az account get-access-token \
 
 log_ok "Access token acquired"
 
-# ── Step 5: Create findings knowledge source ────────────────────────
-log_step 5 "Creating findings knowledge source (searchIndex)..."
+# ── Step 2: Create SharePoint knowledge source (remoteSharePoint) ──
+log_step 2 "Creating SharePoint knowledge source (remoteSharePoint)..."
 
-FINDINGS_KS_BODY=$(cat <<'KSJSON'
+SP_KS_BODY=$(cat <<SPJSON
 {
-  "kind": "searchIndex",
-  "description": "Indexed findings from VariScout projects",
-  "searchIndexConnection": {
-    "searchServiceResourceId": "__SEARCH_RESOURCE_ID__",
-    "indexName": "variscout-findings"
-  }
-}
-KSJSON
-)
-
-SEARCH_RESOURCE_ID=$(az search service show \
-  --resource-group "$RESOURCE_GROUP" \
-  --name "$SEARCH_SERVICE" \
-  --query "id" -o tsv 2>/dev/null) || log_fail "Could not get search service resource ID"
-
-FINDINGS_KS_BODY=$(echo "$FINDINGS_KS_BODY" | sed "s|__SEARCH_RESOURCE_ID__|${SEARCH_RESOURCE_ID}|g")
-
-KS_RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT \
-  "${AI_ENDPOINT}/knowledgesources/findings-ks?api-version=${KB_API_VERSION}" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${AI_TOKEN}" \
-  -d "$FINDINGS_KS_BODY")
-
-KS_HTTP_CODE=$(echo "$KS_RESPONSE" | tail -1)
-KS_BODY=$(echo "$KS_RESPONSE" | sed '$d')
-
-if [[ "$KS_HTTP_CODE" -ge 200 && "$KS_HTTP_CODE" -lt 300 ]]; then
-  log_ok "Knowledge source 'findings-ks' created"
-elif [[ "$KS_HTTP_CODE" -eq 409 ]]; then
-  log_warn "Knowledge source 'findings-ks' already exists — skipping"
-else
-  echo "$KS_BODY" | jq . 2>/dev/null || echo "$KS_BODY"
-  log_fail "Failed to create findings knowledge source (HTTP $KS_HTTP_CODE)"
-fi
-
-# ── Step 5b (optional): Create SharePoint knowledge source ──────────
-CURRENT_STEP=6
-if [[ -n "$SHAREPOINT_URL" ]]; then
-  log_step "$CURRENT_STEP" "Creating SharePoint knowledge source (indexedSharePoint)..."
-
-  SP_KS_BODY=$(cat <<SPJSON
-{
-  "kind": "indexedSharePoint",
-  "description": "SOPs and procedures from SharePoint",
+  "kind": "remoteSharePoint",
+  "description": "SOPs and procedures from SharePoint (on-demand, per-user permissions)",
   "sharePointConnection": {
     "siteUrl": "${SHAREPOINT_URL}"
   }
@@ -229,40 +126,31 @@ if [[ -n "$SHAREPOINT_URL" ]]; then
 SPJSON
 )
 
-  SP_RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT \
-    "${AI_ENDPOINT}/knowledgesources/sharepoint-sops-ks?api-version=${KB_API_VERSION}" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer ${AI_TOKEN}" \
-    -d "$SP_KS_BODY")
+SP_RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT \
+  "${AI_ENDPOINT}/knowledgesources/sharepoint-sops-ks?api-version=${KB_API_VERSION}" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${AI_TOKEN}" \
+  -d "$SP_KS_BODY")
 
-  SP_HTTP_CODE=$(echo "$SP_RESPONSE" | tail -1)
-  SP_BODY=$(echo "$SP_RESPONSE" | sed '$d')
+SP_HTTP_CODE=$(echo "$SP_RESPONSE" | tail -1)
+SP_BODY=$(echo "$SP_RESPONSE" | sed '$d')
 
-  if [[ "$SP_HTTP_CODE" -ge 200 && "$SP_HTTP_CODE" -lt 300 ]]; then
-    log_ok "Knowledge source 'sharepoint-sops-ks' created"
-  elif [[ "$SP_HTTP_CODE" -eq 409 ]]; then
-    log_warn "Knowledge source 'sharepoint-sops-ks' already exists — skipping"
-  else
-    echo "$SP_BODY" | jq . 2>/dev/null || echo "$SP_BODY"
-    log_fail "Failed to create SharePoint knowledge source (HTTP $SP_HTTP_CODE)"
-  fi
-
-  CURRENT_STEP=7
+if [[ "$SP_HTTP_CODE" -ge 200 && "$SP_HTTP_CODE" -lt 300 ]]; then
+  log_ok "Knowledge source 'sharepoint-sops-ks' created"
+elif [[ "$SP_HTTP_CODE" -eq 409 ]]; then
+  log_warn "Knowledge source 'sharepoint-sops-ks' already exists — skipping"
+else
+  echo "$SP_BODY" | jq . 2>/dev/null || echo "$SP_BODY"
+  log_fail "Failed to create SharePoint knowledge source (HTTP $SP_HTTP_CODE)"
 fi
 
-# ── Step N: Create knowledge base ───────────────────────────────────
-log_step "$CURRENT_STEP" "Creating knowledge base 'variscout-kb'..."
-
-KB_SOURCES='["findings-ks"'
-if [[ -n "$SHAREPOINT_URL" ]]; then
-  KB_SOURCES="${KB_SOURCES}, \"sharepoint-sops-ks\""
-fi
-KB_SOURCES="${KB_SOURCES}]"
+# ── Step 3: Create knowledge base ───────────────────────────────────
+log_step 3 "Creating knowledge base 'variscout-kb'..."
 
 KB_BODY=$(cat <<KBJSON
 {
-  "description": "VariScout Knowledge Base — findings + optional SharePoint documents",
-  "knowledgeSources": ${KB_SOURCES},
+  "description": "VariScout Knowledge Base — Remote SharePoint documents with per-user access control",
+  "knowledgeSources": ["sharepoint-sops-ks"],
   "retrievalReasoningEffort": { "kind": "low" },
   "outputMode": "ExtractedData"
 }
@@ -289,14 +177,9 @@ fi
 echo ""
 echo -e "${GREEN}${BOLD}Setup complete!${NC}"
 echo -e "────────────────────────────────────────────"
-echo -e "  Search endpoint:    ${CYAN}${SEARCH_ENDPOINT}${NC}"
-echo -e "  Search index:       ${CYAN}variscout-findings${NC}"
 echo -e "  AI Services:        ${CYAN}${AI_ENDPOINT}${NC}"
 echo -e "  Knowledge base:     ${CYAN}variscout-kb${NC}"
-echo -e "  Knowledge sources:  ${CYAN}findings-ks${NC}"
-if [[ -n "$SHAREPOINT_URL" ]]; then
-  echo -e "                      ${CYAN}sharepoint-sops-ks${NC}"
-fi
+echo -e "  Knowledge sources:  ${CYAN}sharepoint-sops-ks${NC} (remoteSharePoint)"
 echo -e "────────────────────────────────────────────"
 echo -e "${YELLOW}Note:${NC} Ensure an OpenAI model connection (gpt-4o-mini recommended)"
 echo -e "      is configured in your AI Services account for KB queries."

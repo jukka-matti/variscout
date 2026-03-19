@@ -296,18 +296,6 @@
               "value": "[if(variables('isTeamAI'), concat('@Microsoft.KeyVault(VaultName=', variables('keyVaultName'), ';SecretName=ai-services-api-key)'), '')]"
             },
             {
-              "name": "SEARCH_ENDPOINT",
-              "value": "[if(variables('isTeamAI'), concat('https://', variables('searchServiceName'), '.search.windows.net'), '')]"
-            },
-            {
-              "name": "SEARCH_API_KEY",
-              "value": "[if(variables('isTeamAI'), concat('@Microsoft.KeyVault(VaultName=', variables('keyVaultName'), ';SecretName=search-api-key)'), '')]"
-            },
-            {
-              "name": "SEARCH_INDEX",
-              "value": "[variables('aiSearchIndex')]"
-            },
-            {
               "name": "ALLOWED_ORIGIN",
               "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
             },

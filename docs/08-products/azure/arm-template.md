@@ -226,7 +226,7 @@ The Node.js server (`server.js`) serves a `/config` endpoint that returns runtim
 | `AI_ENDPOINT`        | Azure AI Foundry endpoint               | Team AI        |
 | `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint                | Team AI        |
 | `AI_SEARCH_INDEX`    | Search index name (default: `findings`) | Team AI        |
-| `FUNCTION_URL`       | Function App URL for OBO + indexer      | Team / Team AI |
+| `FUNCTION_URL`       | Function App URL for OBO token exchange | Team / Team AI |
 
 The client fetches `/config` on startup via `runtimeConfig.ts` and uses the returned values to configure AI service clients. Environment variables without the `VITE_` prefix are invisible to the Vite build — the `/config` endpoint is the only way they reach the client.
 

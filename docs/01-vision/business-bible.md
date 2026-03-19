@@ -187,7 +187,7 @@ Each hypothesis has a statement, supporting evidence, invalidation criteria, and
 
 ### H10: Team AI Premium Justifies Itself
 
-**Statement:** Organizations investing in AI Knowledge Base (Azure AI Search indexing of findings + team documents) will see enough investigation time savings to justify the €80/month premium over Azure Team (€279 vs €199).
+**Statement:** Organizations investing in AI Knowledge Base (Azure AI Search knowledge base (Remote SharePoint team documents)) will see enough investigation time savings to justify the €80/month premium over Azure Team (€279 vs €199).
 
 **Evidence for:**
 

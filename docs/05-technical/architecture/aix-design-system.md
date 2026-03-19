@@ -169,7 +169,7 @@ Each tier is independently dismissable. Global toggle in Settings disables all A
 
 Azure AI Search + Foundry IQ integration for organizational learning:
 
-**Indexing:**
+**Knowledge sources:**
 
 - Published scouting reports accessible via Remote SharePoint knowledge source (ADR-026)
 - Team documents accessed on demand from SharePoint with per-user permissions

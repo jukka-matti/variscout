@@ -5,23 +5,17 @@
     "name": "variscout-kb",
     "knowledgeSources": [
       {
-        "name": "findings-ks",
-        "kind": "searchIndex",
-        "description": "Indexed findings from VariScout projects"
-      },
-      {
         "name": "sharepoint-sops-ks",
-        "kind": "indexedSharePoint",
-        "description": "SOPs and procedures from SharePoint"
+        "kind": "remoteSharePoint",
+        "description": "SOPs and procedures from SharePoint (on-demand, per-user permissions)"
       }
     ],
     "retrievalReasoningEffort": { "kind": "low" },
     "outputMode": "ExtractedData",
-    "description": "VariScout Knowledge Base — findings + optional SharePoint documents"
+    "description": "VariScout Knowledge Base — Remote SharePoint documents with per-user access control"
   },
   "notes": {
-    "findingsKnowledgeSource": "Created automatically from search-index-schema.json",
-    "sharePointKnowledgeSource": "Requires customer SharePoint connection string. Uses indexedSharePoint kind with embedding model.",
+    "sharePointKnowledgeSource": "Requires customer SharePoint connection string. Uses remoteSharePoint kind — on-demand document access with per-user permissions, no pre-indexing.",
     "llmRequirement": "Knowledge base requires an OpenAI model connection (gpt-4o-mini recommended for cost efficiency)"
   }
 }

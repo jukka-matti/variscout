@@ -108,7 +108,7 @@ Analyst-written text is sent to AI without client-side PII scrubbing.
 ### Knowledge Base documents
 
 - Customer-controlled SharePoint folder; per-user permissions via delegated token passthrough
-- Customers choose which folders are indexed (AdminKnowledgeSetup)
+- Customers choose which folders are searchable (AdminKnowledgeSetup)
 - Document snippets are truncated to 400 characters maximum
 - Source attribution required in AI responses (`[Source: name]` notation)
 
@@ -147,7 +147,7 @@ Foundry IQ retrieval (Remote SharePoint) has these specific controls:
 
 ### Recursive knowledge risk
 
-Published reports could theoretically be indexed and retrieved in future analyses. Mitigations:
+Published reports could theoretically be discovered and retrieved in future analyses. Mitigations:
 
 - Reports are stored in `/VariScout/Projects/` (separate from KB source folder)
 - Customers control which folders are KB sources
