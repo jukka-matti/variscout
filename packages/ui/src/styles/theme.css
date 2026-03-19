@@ -88,3 +88,27 @@
 
   color-scheme: dark;
 }
+
+/* Accessibility: Windows High Contrast / Teams high-contrast */
+@media (forced-colors: active) {
+  .border-edge {
+    border-color: ButtonText;
+  }
+  .text-content {
+    color: ButtonText;
+  }
+  .text-content-secondary {
+    color: GrayText;
+  }
+  button:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
+/* Accessibility: Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+  }
+}

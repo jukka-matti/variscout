@@ -89,6 +89,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Documentation site         | apps/docs/ (Astro + Starlight)                                                                                                                          |
 | IMPROVE Phase / Workspaces | docs/superpowers/specs/2026-03-19-improve-phase-ux-design.md, packages/ui/src/components/ImprovementPlan/                                               |
 | Methodology Coach          | docs/superpowers/specs/2026-03-18-methodology-coach-design.md, packages/ui/src/components/MethodologyCoach/                                             |
+| Navigation / Views         | docs/06-design-system/patterns/navigation.md, apps/pwa/src/hooks/useAppPanels.ts, apps/azure/src/hooks/useEditorPanels.ts                               |
 
 ## Repository Structure
 

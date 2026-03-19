@@ -124,6 +124,23 @@ Plan → Do → Check → Act. AI shifts to action planning and outcome verifica
 
 **Staged verification:** When staged comparison data is present, all AI components switch to verification-specific behavior. See [AIX Design System § Verification Sub-pattern](aix-design-system.md#verification-sub-pattern-improve-phase-with-staged-data).
 
+### Future: Phase-Conditioned Narration Tone
+
+Currently NarrativeBar generates the same style of summary regardless of journey phase. A future enhancement would append a short phase-specific instruction (~20 tokens) to the narration prompt:
+
+| Phase       | Tone Suffix                                                         |
+| ----------- | ------------------------------------------------------------------- |
+| frame       | _(none — no narration in FRAME)_                                    |
+| scout       | "Suggest patterns to investigate. Mention drilling into factors."   |
+| investigate | "Reference existing findings. Suggest the next validation step."    |
+| improve     | "Summarize improvement progress. Suggest verification or a report." |
+
+Special case: when in SCOUT with 2+ active filters but 0 findings pinned → "Suggest pinning a finding to track this pattern."
+
+This would be implemented as a `getPhaseToneSuffix(phase, filterCount, findingsCount)` helper in `narration.ts`, wired into `buildSummaryPrompt()`. The tone shift is subtle — it doesn't change what the narration says, but nudges the LLM toward phase-appropriate suggestions.
+
+See also: [Navigation Patterns § Phase-Aware UX](../../06-design-system/patterns/navigation.md#7-phase-aware-ux) for the broader phase emphasis model.
+
 ---
 
 ## AI Collaborator Capabilities
