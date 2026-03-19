@@ -199,86 +199,18 @@ import { chartColors, chromeColors } from './colors';
 />
 ```
 
-## Executive Color Palette
+## Helper Functions
 
-VariScout supports an executive chart mode designed for consulting-grade reports (McKinsey, Bain, BCG style). The executive palette prioritizes clarity, authority, and high data-ink ratio.
+### getChromeColors(isDark)
 
-### executiveColors
-
-Muted, professional tones that replace the standard `chartColors` in executive mode:
-
-```typescript
-import { executiveColors } from '@variscout/charts';
-
-executiveColors.pass; // #10b981 - emerald-500, refined green
-executiveColors.fail; // #ef4444 - red-500, standard red
-executiveColors.warning; // #f59e0b - amber-500
-executiveColors.violation; // #ea580c - orange-600, deep orange
-
-executiveColors.mean; // #0f172a - slate-900, nearly black for authority
-executiveColors.meanAlt; // #7c3aed - violet-600
-executiveColors.target; // #10b981 - emerald-500
-executiveColors.spec; // #94a3b8 - slate-400, subtle (don't distract)
-executiveColors.control; // #64748b - slate-500, subtle control limits
-
-executiveColors.linear; // #0f172a - slate-900
-executiveColors.quadratic; // #475569 - slate-600
-executiveColors.cumulative; // #475569 - slate-600, distinct from bars
-executiveColors.threshold80; // #94a3b8 - slate-400
-```
-
-### executiveChrome
-
-Light-mode-only chrome for executive reports (executive reports are rarely dark mode):
-
-```typescript
-import { executiveChrome } from '@variscout/charts';
-
-executiveChrome.tooltipBg; // #ffffff - white
-executiveChrome.gridLine; // #e2e8f0 - slate-200, very subtle
-executiveChrome.barBackground; // #cbd5e1 - slate-300
-
-executiveChrome.labelPrimary; // #334155 - slate-700
-executiveChrome.labelSecondary; // #64748b - slate-500
-executiveChrome.axisPrimary; // #cbd5e1 - slate-300, subtle axis
-executiveChrome.axisSecondary; // #e2e8f0 - slate-200
-executiveChrome.pointStroke; // #ffffff - white stroke for separation
-
-executiveChrome.boxDefault; // #94a3b8 - slate-400
-executiveChrome.boxBorder; // #475569 - slate-600
-executiveChrome.ciband; // #e2e8f0 - slate-200
-```
-
-### getChartColors(mode)
-
-Returns the appropriate data color palette:
-
-```typescript
-import { getChartColors } from '@variscout/charts';
-
-const colors = getChartColors('executive'); // returns executiveColors
-const colors = getChartColors('technical'); // returns chartColors (default)
-```
-
-### getChromeColors(isDark, mode)
-
-Returns theme-aware chrome colors with optional mode parameter:
+Returns theme-aware chrome colors:
 
 ```typescript
 import { getChromeColors } from '@variscout/charts';
 
-// Technical mode (default) - respects dark/light theme
 getChromeColors(true); // dark chrome (chromeColors)
 getChromeColors(false); // light chrome (chromeColorsLight)
-
-// Executive mode - always returns executiveChrome regardless of isDark
-getChromeColors(true, 'executive'); // executiveChrome
-getChromeColors(false, 'executive'); // executiveChrome
 ```
-
-### Enabling Executive Mode
-
-Set `data-chart-mode="executive"` on the `<html>` element. The `useChartTheme` hook automatically detects this attribute and switches all chart colors to the executive palette.
 
 ## Design Principles
 
@@ -317,7 +249,6 @@ stroke={chartColors.spec}  // #ef4444
 ## See Also
 
 - [Overview](./overview.md) - Chart design system overview and selection guide
-- [Executive Mode](./executive-mode.md) - Consulting-grade chart styling
 - [Responsive](./responsive.md) - Breakpoints and scaling utilities
 - [Hooks](./hooks.md) - useChartTheme for theme-aware colors
 - [IChart](./ichart.md) - I-Chart point coloring implementation

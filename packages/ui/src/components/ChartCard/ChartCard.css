@@ -21,7 +21,7 @@
 }
 
 .chart-card:hover {
-  border-color: var(--accent-hex, var(--color-edge-hover, #475569));
+  border-color: var(--color-edge-hover, #475569);
 }
 
 /* Header Layout */

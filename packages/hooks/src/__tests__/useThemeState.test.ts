@@ -21,7 +21,6 @@ beforeEach(() => {
   // Reset document attributes
   document.documentElement.removeAttribute('data-theme');
   document.documentElement.removeAttribute('data-chart-scale');
-  document.documentElement.style.removeProperty('--accent');
 
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -81,12 +80,11 @@ describe('useThemeState', () => {
     const { result } = renderHook(() => useThemeState({ themingEnabled: true }));
 
     act(() => {
-      result.current.setTheme({ mode: 'light', companyAccent: '#ff5500' });
+      result.current.setTheme({ mode: 'light' });
     });
 
     const stored = JSON.parse(localStorage.getItem('variscout_theme')!);
     expect(stored.mode).toBe('light');
-    expect(stored.companyAccent).toBe('#ff5500');
   });
 
   it('chartFontScaleValue returns correct values for each preset', () => {

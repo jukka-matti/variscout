@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { ErrorBoundary, errorBoundaryDefaultColorScheme } from '../../../../packages/ui/src/index';
+import { ErrorBoundary } from '../../../../packages/ui/src/index';
 
 const ThrowError = () => {
   throw new Error('Example error for Storybook');
@@ -16,14 +16,12 @@ type Story = StoryObj<typeof meta>;
 
 export const WithError: Story = {
   args: {
-    colorScheme: errorBoundaryDefaultColorScheme,
     children: <ThrowError />,
   },
 };
 
 export const NoError: Story = {
   args: {
-    colorScheme: errorBoundaryDefaultColorScheme,
     children: (
       <div style={{ padding: 16, color: '#94a3b8' }}>
         This content renders normally when no error occurs.

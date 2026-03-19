@@ -1,6 +1,5 @@
 export { default as StatsPanelBase } from './StatsPanelBase';
-export { statsPanelDefaultColorScheme } from './StatsPanelBase';
-export type { StatsPanelBaseProps, StatsPanelColorScheme } from './types';
+export type { StatsPanelBaseProps } from './types';
 export { StagedComparisonCard, defaultStagedComparisonColorScheme } from './StagedComparisonCard';
 export type {
   StagedComparisonCardProps,

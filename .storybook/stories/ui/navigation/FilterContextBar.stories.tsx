@@ -1,8 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  FilterContextBar,
-  filterContextBarDefaultColorScheme,
-} from '../../../../packages/ui/src/index';
+import { FilterContextBar } from '../../../../packages/ui/src/index';
 
 const meta = {
   title: 'UI/Navigation/FilterContextBar',
@@ -20,14 +17,12 @@ export const Default: Story = {
       { factor: 'Machine', values: ['Line A'] },
       { factor: 'Operator', values: ['Alice'] },
     ],
-    colorScheme: filterContextBarDefaultColorScheme,
   },
 };
 
 export const NoFilters: Story = {
   args: {
     filters: [],
-    colorScheme: filterContextBarDefaultColorScheme,
   },
 };
 
@@ -38,6 +33,5 @@ export const ManyFilters: Story = {
       { factor: 'Operator', values: ['Alice', 'Bob'] },
       { factor: 'Shift', values: ['Morning'] },
     ],
-    colorScheme: filterContextBarDefaultColorScheme,
   },
 };

@@ -171,14 +171,13 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Theming & Customization
 
-| Feature                  | Azure Standard | Azure Team | PWA (Free) | Notes                                                                            |
-| ------------------------ | :------------: | :--------: | :--------: | -------------------------------------------------------------------------------- |
-| **Dark/Light theme**     |       ✓        |     ✓      |     ✓      | All platforms support dark/light switching                                       |
-| **System theme follow**  |       ✓        |     ✓      |     ✓      | All platforms follow OS preference (default)                                     |
-| **Company accent color** |       ✓        |     ✓      |     -      | Azure App only                                                                   |
-| **Chart font scale**     |       ✓        |     ✓      |     ✓      | Compact / Normal / Large presets in all apps                                     |
-| **Settings panel**       |       ✓        |     ✓      |     ✓      | PWA: theme + display toggles + chart text size; Azure: + accent color + AI prefs |
-| **Branding removal**     |       ✓        |     ✓      |     -      | Azure App only                                                                   |
+| Feature                 | Azure Standard | Azure Team | PWA (Free) | Notes                                                             |
+| ----------------------- | :------------: | :--------: | :--------: | ----------------------------------------------------------------- |
+| **Dark/Light theme**    |       ✓        |     ✓      |     ✓      | All platforms support dark/light switching                        |
+| **System theme follow** |       ✓        |     ✓      |     ✓      | All platforms follow OS preference (default)                      |
+| **Chart font scale**    |       ✓        |     ✓      |     ✓      | Compact / Normal / Large presets in all apps                      |
+| **Settings panel**      |       ✓        |     ✓      |     ✓      | PWA: theme + display toggles + chart text size; Azure: + AI prefs |
+| **Branding removal**    |       ✓        |     ✓      |     -      | Azure App only                                                    |
 
 ---
 
@@ -241,7 +240,7 @@ Features that behave differently on phone (<640px) versus desktop.
 - File upload (CSV/Excel)
 - Save/persistence (local files via File System Access API, IndexedDB fallback)
 - EasyAuth authentication flow
-- Company accent color / branding removal
+- Branding removal
 - ARM template deployment (Managed Application)
 - Add data during analysis (paste/upload append with row/column auto-detection)
 - Presentation mode (full-screen chart overview with focused navigation)

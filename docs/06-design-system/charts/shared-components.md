@@ -304,12 +304,11 @@ interface ChartSignatureProps {
 }
 ```
 
-### Mode-Aware Styling
+### Styling
 
-| Mode      | Font               | Size | Opacity | Text        |
-| --------- | ------------------ | ---- | ------- | ----------- |
-| Technical | Caveat (cursive)   | 16px | 0.4     | "VariScout" |
-| Executive | Inter (sans-serif) | 12px | 0.3     | "VARISCOUT" |
+| Font             | Size | Opacity | Text        |
+| ---------------- | ---- | ------- | ----------- |
+| Caveat (cursive) | 16px | 0.4     | "VariScout" |
 
 ---
 
@@ -332,7 +331,7 @@ interface ChartSourceBarProps {
 
 Height: 18px (included in bottom margin calculations via `getSourceBarHeight(showBranding)`).
 
-The branding dot uses `var(--accent-hex)` for its fill color, picking up the company accent when set in Azure App. Falls back to the `accentColor` prop (blue-500) when the variable is absent.
+The branding dot uses blue-500 for its fill color.
 
 ---
 

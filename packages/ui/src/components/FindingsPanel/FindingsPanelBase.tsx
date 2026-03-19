@@ -33,19 +33,6 @@ export interface FindingsPanelResizeConfig {
   defaultWidth?: number;
 }
 
-/** Customizable classes for app-specific styling of the findings panel. */
-export interface FindingsPanelColorScheme {
-  container: string;
-  headerBg: string;
-  badge: string;
-}
-
-export const defaultFindingsPanelColorScheme: FindingsPanelColorScheme = {
-  container: 'bg-surface-secondary border-l border-edge',
-  headerBg: 'border-b border-edge',
-  badge: 'bg-blue-500/20 text-blue-400',
-};
-
 export interface FindingsPanelBaseProps {
   isOpen: boolean;
   onClose: () => void;
@@ -155,9 +142,6 @@ export interface FindingsPanelBaseProps {
   // Resize config
   resizeConfig: FindingsPanelResizeConfig;
 
-  /** Customizable color scheme (defaults to defaultFindingsPanelColorScheme) */
-  colorScheme?: Partial<FindingsPanelColorScheme>;
-
   // CoScout inline (Azure only — omit in PWA)
   coScoutMessages?: CoScoutMessage[];
   coScoutOnSend?: (text: string) => void;
@@ -235,10 +219,8 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   investigationPhase,
   coScoutSuggestedQuestions,
   currentUserUpn,
-  colorScheme: csOverride,
 }) => {
   const { t, formatStat } = useTranslation();
-  const cs = { ...defaultFindingsPanelColorScheme, ...csOverride };
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [coScoutExpanded, setCoScoutExpanded] = useState(false);
   const [localViewMode, setLocalViewMode] = useState<'list' | 'board' | 'tree'>('list');
@@ -300,15 +282,15 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
 
       {/* Panel */}
       <div
-        className={`flex-shrink-0 ${cs.container} flex flex-col overflow-hidden`}
+        className="flex-shrink-0 bg-surface-secondary border-l border-edge flex flex-col overflow-hidden"
         style={{ width }}
       >
         {/* Header */}
-        <div className={`flex items-center justify-between px-4 py-3 ${cs.headerBg}`}>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
           <h2 className="text-sm font-semibold text-content flex items-center">
             {t('panel.findings')}
             {findings.length > 0 && (
-              <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] ${cs.badge} rounded`}>
+              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
                 {showAssignedToMe ? displayFindings.length : findings.length}
               </span>
             )}

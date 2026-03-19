@@ -79,8 +79,7 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
     fontsOverride,
   });
 
-  const { chrome, colors, mode } = useChartTheme();
-  const isExecutive = mode === 'executive';
+  const { chrome, colors } = useChartTheme();
 
   // Calculate plot data for data points
   const plotData = useMemo(() => calculateProbabilityPlotData(data), [data]);
@@ -213,7 +212,6 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
           stroke={chrome.tooltipBorder}
           strokeOpacity={0.5}
           tickValues={gridZScores}
-          strokeDasharray={isExecutive ? '2,4' : undefined}
         />
 
         {/* CI Bands (shaded area) - now smooth and symmetric! */}
@@ -254,18 +252,18 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
             key={i}
             cx={xScale(d.x)}
             cy={yScale(d.z)}
-            r={isExecutive ? 2.5 : 4}
+            r={4}
             fill={colors.pass}
-            stroke={isExecutive ? 'none' : '#fff'}
+            stroke="#fff"
             strokeWidth={1}
-            fillOpacity={isExecutive ? 0.6 : 1}
+            fillOpacity={1}
           />
         ))}
 
         {/* Y Axis (Percent) - custom tick formatting */}
         <AxisLeft
           scale={yScale}
-          stroke={isExecutive ? 'transparent' : chrome.labelMuted}
+          stroke={chrome.labelMuted}
           tickStroke={chrome.labelMuted}
           tickValues={tickPercentiles.map(p => normalQuantile(p / 100))}
           tickFormat={zValue => {
@@ -283,8 +281,8 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
             textAnchor: 'end',
             dy: '0.33em',
             dx: -4,
-            fontFamily: isExecutive ? 'Inter, sans-serif' : 'monospace',
-            fontWeight: isExecutive ? 500 : 400,
+            fontFamily: 'monospace',
+            fontWeight: 400,
           })}
           label={parentWidth > 300 ? 'Percent' : ''}
           labelOffset={parentWidth < 400 ? 28 : 36}
@@ -299,7 +297,7 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
         <AxisBottom
           scale={xScale}
           top={height}
-          stroke={isExecutive ? 'transparent' : chrome.labelMuted}
+          stroke={chrome.labelMuted}
           tickStroke={chrome.labelMuted}
           numTicks={parentWidth < 300 ? 4 : 6}
           tickLabelProps={() => ({
@@ -307,8 +305,7 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
             fontSize: fonts.tickLabel,
             textAnchor: 'middle',
             dy: 4,
-            fontFamily: isExecutive ? 'Inter, sans-serif' : undefined,
-            fontWeight: isExecutive ? 500 : 400,
+            fontWeight: 400,
           })}
         />
 

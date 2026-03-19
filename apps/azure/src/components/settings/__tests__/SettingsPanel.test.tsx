@@ -58,7 +58,6 @@ vi.mock('lucide-react', async importOriginal => {
     Sun: ({ size }: { size?: number }) => <span data-testid="icon-sun" data-size={size} />,
     Moon: ({ size }: { size?: number }) => <span data-testid="icon-moon" data-size={size} />,
     Monitor: ({ size }: { size?: number }) => <span data-testid="icon-monitor" data-size={size} />,
-    Palette: ({ size }: { size?: number }) => <span data-testid="icon-palette" data-size={size} />,
   };
 });
 
@@ -96,7 +95,6 @@ describe('SettingsPanel', () => {
     // Dialog should be open
     expect(screen.getByText('Settings')).toBeInTheDocument();
     expect(screen.getByText('Appearance')).toBeInTheDocument();
-    expect(screen.getByText('Company Accent')).toBeInTheDocument();
     expect(screen.getByText('Chart Text Size')).toBeInTheDocument();
   });
 
@@ -119,20 +117,10 @@ describe('SettingsPanel', () => {
     expect(screen.getByText('System')).toBeInTheDocument();
   });
 
-  it('shows accent color presets', () => {
+  it('does not show accent color section (removed)', () => {
     renderPanel(true);
 
-    // 7 color presets + 1 reset button
-    const accentButtons = screen.getAllByRole('button').filter(btn => {
-      const label = btn.getAttribute('aria-label');
-      return label?.startsWith('Set accent color') || label === 'Reset accent color';
-    });
-    expect(accentButtons).toHaveLength(8); // 7 presets + reset
-
-    // Verify specific preset labels
-    expect(screen.getByLabelText('Set accent color to #3b82f6')).toBeInTheDocument();
-    expect(screen.getByLabelText('Set accent color to #8b5cf6')).toBeInTheDocument();
-    expect(screen.getByLabelText('Reset accent color')).toBeInTheDocument();
+    expect(screen.queryByText('Company Accent')).not.toBeInTheDocument();
   });
 
   it('calls setTheme when a theme mode is clicked', () => {
@@ -146,16 +134,6 @@ describe('SettingsPanel', () => {
 
     // Dark button should no longer be active
     expect(screen.getByLabelText('Switch to Dark theme')).not.toHaveClass('bg-blue-600');
-  });
-
-  it('calls setTheme when an accent color is clicked', () => {
-    renderPanel(true);
-
-    const violetButton = screen.getByLabelText('Set accent color to #8b5cf6');
-    fireEvent.click(violetButton);
-
-    // After clicking, the violet button should have the active border (border-white scale-110)
-    expect(violetButton).toHaveClass('border-white');
   });
 
   it('shows chart font scale options (Compact/Normal/Large)', () => {

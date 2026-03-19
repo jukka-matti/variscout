@@ -80,12 +80,7 @@ export {
   type WhatIfPageBaseProps,
 } from './components/WhatIfPage';
 
-export {
-  ErrorBoundary,
-  errorBoundaryDefaultColorScheme,
-  type ErrorBoundaryProps,
-  type ErrorBoundaryColorScheme,
-} from './components/ErrorBoundary';
+export { ErrorBoundary, type ErrorBoundaryProps } from './components/ErrorBoundary';
 export {
   AxisEditor,
   axisEditorDefaultColorScheme,
@@ -113,11 +108,9 @@ export {
 
 export {
   StatsPanelBase,
-  statsPanelDefaultColorScheme,
   StagedComparisonCard,
   defaultStagedComparisonColorScheme,
   type StatsPanelBaseProps,
-  type StatsPanelColorScheme,
   type StagedComparisonCardProps,
   type StagedComparisonColorScheme,
 } from './components/StatsPanel';
@@ -156,12 +149,7 @@ export {
 
 export { ProbabilityPlot, type ProbabilityPlotProps } from './components/ProbabilityPlot';
 
-export {
-  FilterContextBar,
-  filterContextBarDefaultColorScheme,
-  type FilterContextBarProps,
-  type FilterContextBarColorScheme,
-} from './components/FilterContextBar';
+export { FilterContextBar, type FilterContextBarProps } from './components/FilterContextBar';
 
 export {
   BoxplotDisplayToggle,
@@ -262,8 +250,6 @@ export {
   FindingsPanelBase,
   type FindingsPanelBaseProps,
   type FindingsPanelResizeConfig,
-  type FindingsPanelColorScheme,
-  defaultFindingsPanelColorScheme,
   BriefHeader,
   type BriefHeaderProps,
   FindingDetailPanel,
@@ -359,9 +345,7 @@ export {
   CoScoutPanelBase,
   type CoScoutPanelBaseProps,
   type CoScoutPanelResizeConfig,
-  type CoScoutPanelColorScheme,
   type AIContextSummary,
-  defaultCoScoutPanelColorScheme,
   CoScoutMessages,
   type CoScoutMessagesProps,
   ActionProposalCard,

@@ -1,30 +1,6 @@
 import React from 'react';
 import type { FilterChipData } from '@variscout/hooks';
 
-/**
- * Color scheme for FilterContextBar component
- */
-export interface FilterContextBarColorScheme {
-  /** Text color for factor labels (e.g., 'text-content-secondary' or 'text-slate-400') */
-  textLabel: string;
-  /** Text color for values (e.g., 'text-content-muted' or 'text-slate-500') */
-  textValue: string;
-  /** Text color for the variation percentage — kept for interface compat; actual color now uses CSS var(--accent-hex) */
-  textVariation: string;
-  /** Separator color (e.g., 'text-content-muted' or 'text-slate-600') */
-  textSeparator: string;
-}
-
-/**
- * Default color scheme using PWA semantic tokens
- */
-export const defaultColorScheme: FilterContextBarColorScheme = {
-  textLabel: 'text-content-secondary',
-  textValue: 'text-content-muted',
-  textVariation: 'text-blue-400',
-  textSeparator: 'text-content-muted',
-};
-
 export interface FilterContextBarProps {
   /** Filter chip data from useVariationTracking */
   filterChipData: FilterChipData[];
@@ -34,8 +10,6 @@ export interface FilterContextBarProps {
   cumulativeVariationPct?: number | null;
   /** Whether to show the bar (respects displayOptions.showFilterContext) */
   show?: boolean;
-  /** Color scheme for styling */
-  colorScheme?: FilterContextBarColorScheme;
 }
 
 /**
@@ -62,7 +36,6 @@ const FilterContextBar: React.FC<FilterContextBarProps> = ({
   columnAliases = {},
   cumulativeVariationPct,
   show = true,
-  colorScheme = defaultColorScheme,
 }) => {
   if (!show || !filterChipData || filterChipData.length === 0) {
     return null;
@@ -80,23 +53,20 @@ const FilterContextBar: React.FC<FilterContextBarProps> = ({
         return (
           <React.Fragment key={chip.factor}>
             {i > 0 && (
-              <span className={colorScheme.textSeparator} aria-hidden="true">
+              <span className="text-content-muted" aria-hidden="true">
                 {'\u2192'}
               </span>
             )}
             <span className="whitespace-nowrap">
-              <span className={`font-medium ${colorScheme.textLabel}`}>{label}:</span>{' '}
-              <span className={colorScheme.textValue}>{formatValues(chip.values)}</span>
+              <span className="font-medium text-content-secondary">{label}:</span>{' '}
+              <span className="text-content-muted">{formatValues(chip.values)}</span>
             </span>
           </React.Fragment>
         );
       })}
       {hasVariation && (
         <>
-          <span
-            className="ml-auto pl-2 whitespace-nowrap font-medium"
-            style={{ color: 'var(--accent-hex, #60a5fa)' }}
-          >
+          <span className="ml-auto pl-2 whitespace-nowrap font-medium text-blue-400">
             {Math.round(cumulativeVariationPct!)}% in focus
           </span>
         </>

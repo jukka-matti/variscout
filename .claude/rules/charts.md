@@ -59,11 +59,11 @@ Charts support automatic theme switching via the `useChartTheme` hook:
 import { useChartTheme } from '@variscout/charts';
 
 const MyChart = () => {
-  const { isDark, mode, chrome, colors, fontScale } = useChartTheme();
+  const { isDark, chrome, colors, fontScale } = useChartTheme();
 
   // Use chrome.xxx instead of hardcoded hex colors:
   // chrome.gridLine, chrome.axisPrimary, chrome.labelPrimary, etc.
-  // Use colors.xxx for data colors (adapts to executive mode):
+  // Use colors.xxx for data colors:
   // colors.pass, colors.fail, colors.mean, colors.spec, etc.
 };
 ```
@@ -71,15 +71,14 @@ const MyChart = () => {
 Returns:
 
 - `isDark: boolean` - Whether dark theme is active
-- `mode: 'technical' | 'executive'` - Current chart mode (from `data-chart-mode` attribute)
-- `chrome: ChromeColorValues` - Theme-appropriate chrome colors
-- `colors: Record<ChartColor, string>` - Data colors for current mode
+- `chrome: ChromeColorValues` - Theme-appropriate chrome colors (dark/light)
+- `colors: Record<ChartColor, string>` - Data colors (technical palette)
 - `fontScale: number` - Font scale from `data-chart-scale` attribute
 
 ### Color Functions
 
-- `getChromeColors(isDark, mode)` - Get chrome colors for theme and mode
-- `getChartColors(mode)` - Get data colors (`executiveColors` for executive, `chartColors` for technical)
+- `getChromeColors(isDark)` - Get chrome colors for theme
+- `getChartColors()` - Get data colors (technical palette)
 - `getDocumentTheme()` - Detect theme from `data-theme` attribute
 
 ### Chrome Color Mapping

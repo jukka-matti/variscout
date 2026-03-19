@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Palette, FolderOpen, ExternalLink } from 'lucide-react';
+import { FolderOpen, ExternalLink } from 'lucide-react';
+import { FileBrowseButton, type FilePickerResult } from '../FileBrowseButton';
 import { SettingsPanelBase, ProcessDescriptionField, PreviewBadge } from '@variscout/ui';
 import { isTeamAIPlan, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { useTheme } from '../../context/ThemeContext';
@@ -7,16 +8,6 @@ import { useData } from '../../context/DataContext';
 import ThemeToggle from './ThemeToggle';
 import { isAIAvailable } from '../../services/aiService';
 import { getCachedChannelFolderUrl } from '../../services/channelDrive';
-
-const ACCENT_PRESETS = [
-  '#3b82f6', // blue (default)
-  '#8b5cf6', // violet
-  '#06b6d4', // cyan
-  '#10b981', // emerald
-  '#f59e0b', // amber
-  '#ef4444', // red
-  '#ec4899', // pink
-];
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -49,62 +40,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
       onChartFontScaleChange={scale => setTheme({ chartFontScale: scale })}
       idPrefix="az-setting"
       headerSections={
-        <>
-          {/* Theme Section */}
-          <section>
-            <h3 className="text-sm font-medium text-content mb-3">Appearance</h3>
-            <ThemeToggle />
-          </section>
-
-          {/* Company Accent Color */}
-          <section>
-            <h3 className="text-sm font-medium text-content mb-3 flex items-center gap-2">
-              <Palette size={14} />
-              Company Accent
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {ACCENT_PRESETS.map(color => (
-                <button
-                  key={color}
-                  onClick={() => setTheme({ companyAccent: color })}
-                  className={`w-8 h-8 rounded-lg border-2 transition-all ${
-                    theme.companyAccent === color
-                      ? 'border-white scale-110'
-                      : 'border-edge-secondary hover:border-edge-secondary'
-                  }`}
-                  style={{ backgroundColor: color }}
-                  aria-label={`Set accent color to ${color}`}
-                />
-              ))}
-              <button
-                onClick={() => setTheme({ companyAccent: undefined })}
-                className={`w-8 h-8 rounded-lg border-2 text-xs text-content-secondary transition-all ${
-                  !theme.companyAccent
-                    ? 'border-white bg-surface-tertiary'
-                    : 'border-edge-secondary bg-surface-secondary hover:border-edge-secondary'
-                }`}
-                aria-label="Reset accent color"
-                title="Reset to default"
-              >
-                <X size={12} className="mx-auto" />
-              </button>
-            </div>
-            <div className="mt-3 flex items-center gap-2">
-              <input
-                id="az-setting-accent-color"
-                name="az-setting-accent-color"
-                type="color"
-                value={theme.companyAccent || '#3b82f6'}
-                onChange={e => setTheme({ companyAccent: e.target.value })}
-                className="w-8 h-8 rounded border-0 cursor-pointer bg-transparent"
-                aria-label="Custom accent color"
-              />
-              <label htmlFor="az-setting-accent-color" className="text-xs text-content-secondary">
-                Custom color
-              </label>
-            </div>
-          </section>
-        </>
+        <section>
+          <h3 className="text-sm font-medium text-content mb-3">Appearance</h3>
+          <ThemeToggle />
+        </section>
       }
       extraToggles={
         <>
@@ -302,15 +241,38 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                     </label>
                   </div>
                   {knowledgeSearchFolder !== undefined && (
-                    <input
-                      id="az-setting-kb-folder-path"
-                      name="az-setting-kb-folder-path"
-                      type="text"
-                      value={knowledgeSearchFolder}
-                      onChange={e => setKnowledgeSearchFolder(e.target.value)}
-                      placeholder="https://contoso.sharepoint.com/sites/QualityTeam/..."
-                      className="w-full text-xs px-2.5 py-1.5 rounded border border-edge bg-surface-secondary text-content placeholder:text-content-muted focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    />
+                    <div className="space-y-2">
+                      {knowledgeSearchFolder && (
+                        <div className="flex items-center gap-1.5 text-xs text-content-secondary bg-surface-tertiary rounded px-2.5 py-1.5">
+                          <FolderOpen size={12} className="flex-shrink-0" />
+                          <span className="truncate" title={knowledgeSearchFolder}>
+                            {knowledgeSearchFolder.split('/').pop() || knowledgeSearchFolder}
+                          </span>
+                        </div>
+                      )}
+                      <FileBrowseButton
+                        mode="folders"
+                        onPick={(items: FilePickerResult[]) =>
+                          setKnowledgeSearchFolder(items[0]?.webUrl ?? '')
+                        }
+                        label="Browse SharePoint"
+                        size="sm"
+                      />
+                      <details className="text-[10px]">
+                        <summary className="text-content-muted cursor-pointer hover:text-content-secondary">
+                          Enter URL manually
+                        </summary>
+                        <input
+                          id="az-setting-kb-folder-path"
+                          name="az-setting-kb-folder-path"
+                          type="text"
+                          value={knowledgeSearchFolder}
+                          onChange={e => setKnowledgeSearchFolder(e.target.value)}
+                          placeholder="https://contoso.sharepoint.com/sites/QualityTeam/..."
+                          className="w-full mt-1 text-xs px-2.5 py-1.5 rounded border border-edge bg-surface-secondary text-content placeholder:text-content-muted focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </details>
+                    </div>
                   )}
                   <p className="text-[11px] text-content-muted">
                     Only documents you have access to will appear in search results.

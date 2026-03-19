@@ -69,8 +69,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
     showBranding,
   });
 
-  const { chrome, colors, mode, formatStat } = useChartTheme();
-  const isExecutive = mode === 'executive';
+  const { chrome, colors, formatStat } = useChartTheme();
   const highlightFillColors = getHighlightFillColors(colors);
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
@@ -368,9 +367,9 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                         key={j}
                         cx={x + barWidth / 2}
                         cy={yScale(o)}
-                        r={isExecutive ? 2 : 3}
+                        r={3}
                         fill={colors.fail}
-                        opacity={isExecutive ? 0.4 : 0.6}
+                        opacity={0.6}
                       />
                     ))}
                   </>
@@ -408,7 +407,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           {/* Y-Axis */}
           <AxisLeft
             scale={yScale}
-            stroke={isExecutive ? 'transparent' : chrome.axisPrimary}
+            stroke={chrome.axisPrimary}
             tickStroke={chrome.axisPrimary}
             tickLabelProps={() => ({
               fill: chrome.labelPrimary,
@@ -416,8 +415,8 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
               textAnchor: 'end',
               dx: -4,
               dy: 3,
-              fontFamily: isExecutive ? 'Inter, sans-serif' : 'monospace',
-              fontWeight: isExecutive ? 500 : 400,
+              fontFamily: 'monospace',
+              fontWeight: 400,
             })}
           />
 
@@ -450,8 +449,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dy: 2,
-              fontFamily: isExecutive ? 'Inter, sans-serif' : undefined,
-              fontWeight: isExecutive ? 500 : 400,
+              fontWeight: 400,
             })}
           />
 

@@ -51,8 +51,7 @@ const IChartBase: React.FC<IChartProps> = ({
   showLegend = false,
   legendMode = 'educational',
 }) => {
-  const { chrome, mode, formatStat } = useChartTheme();
-  const isExecutive = mode === 'executive';
+  const { chrome, formatStat } = useChartTheme();
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
     useChartTooltip<{ x: number; y: number; index: number; stage?: string; timeValue?: string }>();
 
@@ -290,8 +289,7 @@ const IChartBase: React.FC<IChartProps> = ({
             scale={yScale}
             width={width}
             stroke={chrome.gridLine}
-            strokeDasharray={isExecutive ? '2,4' : undefined}
-            strokeOpacity={isStaged ? 0.15 : isExecutive ? 0.5 : 0.4}
+            strokeOpacity={isStaged ? 0.15 : 0.4}
           />
 
           {/* Control limits - Staged mode */}
@@ -537,8 +535,8 @@ const IChartBase: React.FC<IChartProps> = ({
             x={d => xScale(d.x)}
             y={d => yScale(d.y)}
             stroke={chrome.dataLine}
-            strokeWidth={isExecutive ? 1.5 : 1}
-            strokeOpacity={isExecutive ? 0.3 : 0.5}
+            strokeWidth={1}
+            strokeOpacity={0.5}
           />
 
           {/* Brush selection rectangle */}
@@ -561,21 +559,9 @@ const IChartBase: React.FC<IChartProps> = ({
             const isSelected = enableBrushSelection && isPointSelected(i);
             const pointOpacity = enableBrushSelection ? getPointOpacity(i) : 1;
             const pointSize =
-              enableBrushSelection && isSelected
-                ? getPointSize(i)
-                : isHighlighted
-                  ? 6
-                  : isExecutive
-                    ? 3
-                    : 4;
+              enableBrushSelection && isSelected ? getPointSize(i) : isHighlighted ? 6 : 4;
             const strokeWidth =
-              enableBrushSelection && isSelected
-                ? getPointStrokeWidth(i)
-                : isHighlighted
-                  ? 2
-                  : isExecutive
-                    ? 1.5
-                    : 1;
+              enableBrushSelection && isSelected ? getPointStrokeWidth(i) : isHighlighted ? 2 : 1;
 
             return (
               <g key={i} opacity={pointOpacity}>
@@ -634,7 +620,7 @@ const IChartBase: React.FC<IChartProps> = ({
           {/* Axes */}
           <AxisLeft
             scale={yScale}
-            stroke={isExecutive ? 'transparent' : chrome.axisPrimary}
+            stroke={chrome.axisPrimary}
             tickStroke={chrome.axisPrimary}
             numTicks={yTickCount}
             tickLabelProps={() => ({
@@ -643,8 +629,8 @@ const IChartBase: React.FC<IChartProps> = ({
               textAnchor: 'end',
               dx: -4,
               dy: 3,
-              fontFamily: isExecutive ? 'Inter, sans-serif' : 'monospace',
-              fontWeight: isExecutive ? 500 : 400,
+              fontFamily: 'monospace',
+              fontWeight: 400,
             })}
           />
 
@@ -688,8 +674,7 @@ const IChartBase: React.FC<IChartProps> = ({
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dy: 2,
-              fontFamily: isExecutive ? 'Inter, sans-serif' : undefined,
-              fontWeight: isExecutive ? 500 : 400,
+              fontWeight: 400,
             })}
           />
 

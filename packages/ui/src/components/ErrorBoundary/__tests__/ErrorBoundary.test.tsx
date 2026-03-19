@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import ErrorBoundary, { defaultColorScheme } from '../ErrorBoundary';
+import ErrorBoundary from '../ErrorBoundary';
 
 // Mock the error service
 vi.mock('../../../services', () => ({
@@ -99,9 +99,9 @@ describe('ErrorBoundary', () => {
     );
   });
 
-  it('applies custom colorScheme classes', () => {
+  it('applies default styling classes', () => {
     const { container } = render(
-      <ErrorBoundary colorScheme={defaultColorScheme}>
+      <ErrorBoundary>
         <ThrowingChild shouldThrow={true} />
       </ErrorBoundary>
     );

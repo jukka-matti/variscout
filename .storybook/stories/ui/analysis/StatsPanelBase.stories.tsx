@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { StatsPanelBase, statsPanelDefaultColorScheme } from '../../../../packages/ui/src/index';
+import { StatsPanelBase } from '../../../../packages/ui/src/index';
 import type { StatsResult } from '../../../../packages/core/src/types';
 
 const mockStats: StatsResult = {
@@ -30,7 +30,6 @@ export const Default: Story = {
     stats: mockStats,
     specs: { usl: 11.0, lsl: 9.0, target: 10.0 },
     sampleCount: 150,
-    colorScheme: statsPanelDefaultColorScheme,
   },
 };
 
@@ -39,7 +38,6 @@ export const NoSpecs: Story = {
     stats: { ...mockStats, cp: undefined, cpk: undefined, outOfSpecPercentage: 0 },
     specs: {},
     sampleCount: 150,
-    colorScheme: statsPanelDefaultColorScheme,
   },
 };
 
@@ -48,7 +46,6 @@ export const WithEditSpecs: Story = {
     stats: mockStats,
     specs: { usl: 11.0, lsl: 9.0, target: 10.0 },
     sampleCount: 150,
-    colorScheme: statsPanelDefaultColorScheme,
     onEditSpecs: () => {},
   },
 };

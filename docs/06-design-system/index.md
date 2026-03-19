@@ -23,7 +23,6 @@ All platforms use CSS variables for theming with runtime theme switching. Defaul
 | Dark mode         | ✓           | ✓                |
 | Light mode        | ✓           | ✓                |
 | System preference | ✓ (default) | ✓ (default)      |
-| Company accent    | -           | ✓                |
 
 ### Semantic Color Classes
 

@@ -1,13 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import {
-  getChromeColors,
-  getChartColors,
-  getDocumentTheme,
-  chartColors,
-  executiveColors,
-  chromeColors,
-} from '../colors';
+import { getChromeColors, getDocumentTheme, chartColors, chromeColors } from '../colors';
 import { useChartTheme } from '../useChartTheme';
 
 describe('getDocumentTheme', () => {
@@ -31,49 +24,22 @@ describe('getDocumentTheme', () => {
 });
 
 describe('getChromeColors', () => {
-  it('returns dark chrome colors for dark + technical', () => {
-    const result = getChromeColors(true, 'technical');
+  it('returns dark chrome colors for dark theme', () => {
+    const result = getChromeColors(true);
     expect(result.tooltipBg).toBe(chromeColors.tooltipBg);
   });
 
-  it('returns light chrome colors for light + technical', () => {
-    const result = getChromeColors(false, 'technical');
+  it('returns light chrome colors for light theme', () => {
+    const result = getChromeColors(false);
     expect(result.tooltipBg).not.toBe(chromeColors.tooltipBg);
     // Light theme has white tooltip bg
     expect(result.tooltipBg).toBe('#ffffff');
   });
 
-  it('returns executive chrome for executive mode (any theme)', () => {
-    const dark = getChromeColors(true, 'executive');
-    const light = getChromeColors(false, 'executive');
-    // Executive mode always returns the same chrome
-    expect(dark).toEqual(light);
-  });
-
-  it('dark and light technical produce different palettes', () => {
-    const dark = getChromeColors(true, 'technical');
-    const light = getChromeColors(false, 'technical');
+  it('dark and light produce different palettes', () => {
+    const dark = getChromeColors(true);
+    const light = getChromeColors(false);
     expect(dark.labelPrimary).not.toBe(light.labelPrimary);
-  });
-});
-
-describe('getChartColors', () => {
-  it('returns chartColors for technical mode', () => {
-    const result = getChartColors('technical');
-    expect(result.pass).toBe(chartColors.pass);
-    expect(result.mean).toBe(chartColors.mean);
-  });
-
-  it('returns executiveColors for executive mode', () => {
-    const result = getChartColors('executive');
-    expect(result.pass).toBe(executiveColors.pass);
-    expect(result.mean).toBe(executiveColors.mean);
-  });
-
-  it('technical and executive mean colors differ', () => {
-    const tech = getChartColors('technical');
-    const exec = getChartColors('executive');
-    expect(tech.mean).not.toBe(exec.mean);
   });
 });
 
@@ -81,19 +47,16 @@ describe('useChartTheme', () => {
   beforeEach(() => {
     document.documentElement.removeAttribute('data-theme');
     document.documentElement.removeAttribute('data-chart-scale');
-    document.documentElement.removeAttribute('data-chart-mode');
   });
 
   afterEach(() => {
     document.documentElement.removeAttribute('data-theme');
     document.documentElement.removeAttribute('data-chart-scale');
-    document.documentElement.removeAttribute('data-chart-mode');
   });
 
-  it('returns default values (dark theme, technical mode, scale 1)', () => {
+  it('returns default values (dark theme, scale 1)', () => {
     const { result } = renderHook(() => useChartTheme());
     expect(result.current.isDark).toBe(true);
-    expect(result.current.mode).toBe('technical');
     expect(result.current.fontScale).toBe(1);
   });
 
@@ -106,18 +69,6 @@ describe('useChartTheme', () => {
 
     await waitFor(() => {
       expect(result.current.isDark).toBe(false);
-    });
-  });
-
-  it('responds to data-chart-mode attribute change', async () => {
-    const { result } = renderHook(() => useChartTheme());
-
-    expect(result.current.mode).toBe('technical');
-
-    document.documentElement.setAttribute('data-chart-mode', 'executive');
-
-    await waitFor(() => {
-      expect(result.current.mode).toBe('executive');
     });
   });
 

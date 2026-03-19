@@ -23,17 +23,6 @@ export interface CoScoutPanelResizeConfig {
   defaultWidth?: number;
 }
 
-/** Customizable classes for app-specific styling of the CoScout panel. */
-export interface CoScoutPanelColorScheme {
-  container: string;
-  headerBg: string;
-}
-
-export const defaultCoScoutPanelColorScheme: CoScoutPanelColorScheme = {
-  container: 'bg-surface-secondary border-l border-edge',
-  headerBg: 'border-b border-edge',
-};
-
 /** Summary of AI context for transparency disclosure */
 export interface AIContextSummary {
   stats: string;
@@ -63,13 +52,17 @@ export interface CoScoutPanelBaseProps {
   providerLabel?: string;
   /** AI context summary for transparency disclosure card */
   aiContextSummary?: AIContextSummary | null;
-  /** Customizable color scheme (defaults to defaultCoScoutPanelColorScheme) */
-  colorScheme?: Partial<CoScoutPanelColorScheme>;
   /** ADR-026: On-demand knowledge search */
   knowledgeAvailable?: boolean;
   knowledgeSearching?: boolean;
   knowledgeDocuments?: KnowledgeDocumentResult[];
   onSearchKnowledge?: () => void;
+  /** Friendly label for the KB search scope (e.g., folder name) */
+  knowledgeSearchScope?: string;
+  /** Timestamp of last KB search completion */
+  knowledgeSearchTimestamp?: number;
+  /** Show warning when SharePoint admin consent is missing */
+  knowledgePermissionWarning?: boolean;
   /** ADR-029: Action proposals for inline confirmation */
   actionProposals?: ActionProposal[];
   onExecuteAction?: (proposal: ActionProposal, editedText?: string) => void;
@@ -94,17 +87,18 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   onStopStreaming,
   providerLabel,
   aiContextSummary,
-  colorScheme: csOverride,
   knowledgeAvailable,
   knowledgeSearching,
   knowledgeDocuments,
   onSearchKnowledge,
+  knowledgeSearchScope,
+  knowledgeSearchTimestamp,
+  knowledgePermissionWarning,
   actionProposals,
   onExecuteAction,
   onDismissAction,
 }) => {
   const { t } = useTranslation();
-  const cs = { ...defaultCoScoutPanelColorScheme, ...csOverride };
   const [input, setInput] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
@@ -247,12 +241,12 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
 
       {/* Panel */}
       <div
-        className={`flex-shrink-0 ${cs.container} flex flex-col overflow-hidden`}
+        className="flex-shrink-0 bg-surface-secondary border-l border-edge flex flex-col overflow-hidden"
         style={{ width }}
         data-testid="coscout-panel"
       >
         {/* Header */}
-        <div className={`flex items-center justify-between px-4 py-3 ${cs.headerBg}`}>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
           <div>
             <h2 className="text-sm font-semibold text-content">CoScout</h2>
             {providerLabel && (
@@ -368,6 +362,9 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
           knowledgeSearching={knowledgeSearching}
           knowledgeDocuments={knowledgeDocuments}
           onSearchKnowledge={onSearchKnowledge}
+          knowledgeSearchScope={knowledgeSearchScope}
+          knowledgeSearchTimestamp={knowledgeSearchTimestamp}
+          knowledgePermissionWarning={knowledgePermissionWarning}
           actionProposals={actionProposals}
           onExecuteAction={onExecuteAction}
           onDismissAction={onDismissAction}

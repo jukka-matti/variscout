@@ -67,11 +67,6 @@ module.exports = {
                     hover: "rgb(var(--interactive-hover) / <alpha-value>)",
                     active: "rgb(var(--interactive-active) / <alpha-value>)",
                 },
-                brand: {
-                    DEFAULT: "rgb(var(--accent) / <alpha-value>)",
-                    hover: "rgb(var(--accent-hover) / <alpha-value>)",
-                    foreground: "rgb(var(--accent-foreground) / <alpha-value>)",
-                },
                 status: {
                     pass: "rgb(var(--status-pass) / <alpha-value>)",
                     fail: "rgb(var(--status-fail) / <alpha-value>)",

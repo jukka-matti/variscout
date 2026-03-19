@@ -13,7 +13,7 @@ React hooks for chart layout, tooltips, and selection state in `@variscout/chart
 | `useChartLayout`    | Consolidated layout calculations (margins, fonts, dimensions) |
 | `useChartTooltip`   | Unified tooltip positioning                                   |
 | `useSelectionState` | Selection state and opacity management                        |
-| `useChartTheme`     | Theme-aware colors with executive mode support                |
+| `useChartTheme`     | Theme-aware colors for dark/light themes                      |
 | `useMultiSelection` | Minitab-style brushing and multi-point selection              |
 
 **Source:** `packages/charts/src/hooks/`, `packages/charts/src/useChartTheme.ts`
@@ -239,11 +239,9 @@ Provides theme-aware chart colors with automatic updates when the theme changes.
 interface ChartThemeColors {
   /** Whether dark theme is active */
   isDark: boolean;
-  /** Current chart mode */
-  mode: 'technical' | 'executive';
-  /** Chrome colors for current theme and mode */
+  /** Chrome colors for current theme */
   chrome: ChromeColorValues;
-  /** Data colors for current mode */
+  /** Data colors */
   colors: Record<ChartColor, string>;
   /** Font scale multiplier (from data-chart-scale attribute) */
   fontScale: number;
@@ -256,35 +254,31 @@ interface ChartThemeColors {
 import { useChartTheme } from '@variscout/charts';
 
 const MyChart = () => {
-  const { isDark, mode, chrome, colors, fontScale } = useChartTheme();
+  const { isDark, chrome, colors, fontScale } = useChartTheme();
 
-  // Use chrome.xxx for UI elements (adapts to theme + mode):
+  // Use chrome.xxx for UI elements (adapts to theme):
   // chrome.gridLine, chrome.axisPrimary, chrome.labelPrimary, etc.
 
-  // Use colors.xxx for data elements (adapts to mode):
+  // Use colors.xxx for data elements:
   // colors.pass, colors.fail, colors.mean, colors.spec, etc.
-
-  const isExecutive = mode === 'executive';
 };
 ```
 
 ### Observed Attributes
 
-The hook watches three `<html>` element attributes via `MutationObserver`:
+The hook watches two `<html>` element attributes via `MutationObserver`:
 
-| Attribute          | Values                         | Purpose               |
-| ------------------ | ------------------------------ | --------------------- |
-| `data-theme`       | `'light'` or `'dark'`          | Theme switching       |
-| `data-chart-mode`  | `'technical'` or `'executive'` | Color palette mode    |
-| `data-chart-scale` | Numeric string (e.g. `'1.2'`)  | Font scale multiplier |
+| Attribute          | Values                        | Purpose               |
+| ------------------ | ----------------------------- | --------------------- |
+| `data-theme`       | `'light'` or `'dark'`         | Theme switching       |
+| `data-chart-scale` | Numeric string (e.g. `'1.2'`) | Font scale multiplier |
 
 ### Color Resolution
 
-| Mode        | isDark | chrome source       | colors source     |
-| ----------- | ------ | ------------------- | ----------------- |
-| `technical` | true   | `chromeColors`      | `chartColors`     |
-| `technical` | false  | `chromeColorsLight` | `chartColors`     |
-| `executive` | any    | `executiveChrome`   | `executiveColors` |
+| isDark | chrome source       | colors source |
+| ------ | ------------------- | ------------- |
+| true   | `chromeColors`      | `chartColors` |
+| false  | `chromeColorsLight` | `chartColors` |
 
 ---
 

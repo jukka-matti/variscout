@@ -3,7 +3,7 @@ import { Pencil } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import { HelpTooltip } from '../HelpTooltip';
 import type { GlossaryTerm } from '@variscout/core';
-import type { StatsPanelBaseProps, StatsPanelColorScheme } from './types';
+import type { StatsPanelBaseProps } from './types';
 import { StagedComparisonCard } from './StagedComparisonCard';
 
 // MetricCard component for the summary grid
@@ -41,18 +41,19 @@ const MetricCard = ({
   </div>
 );
 
-export const statsPanelDefaultColorScheme: StatsPanelColorScheme = {
-  container:
-    'w-full lg:w-80 bg-surface-secondary rounded-xl border border-edge p-6 flex flex-col gap-4 shadow-lg relative',
-  containerCompact: 'flex flex-col h-full p-3 overflow-auto scroll-touch',
-  tabBar: 'flex bg-surface/50 p-1 rounded-lg border border-edge/50',
-  tabActive: 'bg-surface-tertiary text-white shadow-sm',
-  tabInactive: 'text-content-secondary hover:text-content',
-  metricCardBg: 'bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 text-center',
-  metricLabel: 'flex items-center justify-center gap-1 text-xs text-content-secondary mb-1',
-  metricValue: 'text-xl font-bold font-mono text-white',
-  emptyState: 'flex items-center justify-center h-full text-content-muted italic text-sm',
-};
+const CONTAINER_CLASS =
+  'w-full lg:w-80 bg-surface-secondary rounded-xl border border-edge p-6 flex flex-col gap-4 shadow-lg relative';
+const CONTAINER_COMPACT_CLASS = 'flex flex-col h-full p-3 overflow-auto scroll-touch';
+const TAB_BAR_CLASS = 'flex bg-surface/50 p-1 rounded-lg border border-edge/50';
+const TAB_ACTIVE_CLASS = 'bg-surface-tertiary text-white shadow-sm';
+const TAB_INACTIVE_CLASS = 'text-content-secondary hover:text-content';
+const METRIC_CARD_BG_CLASS =
+  'bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 text-center';
+const METRIC_LABEL_CLASS =
+  'flex items-center justify-center gap-1 text-xs text-content-secondary mb-1';
+const METRIC_VALUE_CLASS = 'text-xl font-bold font-mono text-white';
+const EMPTY_STATE_CLASS =
+  'flex items-center justify-center h-full text-content-muted italic text-sm';
 
 const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   stats,
@@ -62,7 +63,6 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   defaultTab,
   className,
   compact = false,
-  colorScheme = statsPanelDefaultColorScheme,
   onEditSpecs,
   showCpk = true,
   stagedComparison,
@@ -73,7 +73,6 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   getTerm,
 }) => {
   const { t, formatStat } = useTranslation();
-  const cs = colorScheme;
   const [activeTab, setActiveTab] = useState<'summary' | 'histogram' | 'normality'>(
     defaultTab || 'summary'
   );
@@ -86,7 +85,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
       .filter((v: number) => !isNaN(v));
   }, [filteredData, outcome]);
 
-  const emptyState = (message: string) => <div className={cs.emptyState}>{message}</div>;
+  const emptyState = (message: string) => <div className={EMPTY_STATE_CLASS}>{message}</div>;
 
   const editButtonClass =
     'flex items-center gap-1.5 text-xs text-content-secondary hover:text-blue-400 cursor-pointer transition-colors';
@@ -107,17 +106,17 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
                 value={formatStat(100 - (stats?.outOfSpecPercentage || 0), 1)}
                 unit="%"
                 helpTerm={getTerm('passRate')}
-                bgClass={cs.metricCardBg}
-                labelClass={cs.metricLabel}
-                valueClass={cs.metricValue}
+                bgClass={METRIC_CARD_BG_CLASS}
+                labelClass={METRIC_LABEL_CLASS}
+                valueClass={METRIC_VALUE_CLASS}
               />
               <MetricCard
                 label="Cp"
                 value={stats?.cp !== undefined && stats?.cp !== null ? formatStat(stats.cp) : 'N/A'}
                 helpTerm={getTerm('cp')}
-                bgClass={cs.metricCardBg}
-                labelClass={cs.metricLabel}
-                valueClass={cs.metricValue}
+                bgClass={METRIC_CARD_BG_CLASS}
+                labelClass={METRIC_LABEL_CLASS}
+                valueClass={METRIC_VALUE_CLASS}
               />
               <MetricCard
                 label="Cpk"
@@ -125,9 +124,9 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
                   stats?.cpk !== undefined && stats?.cpk !== null ? formatStat(stats.cpk) : 'N/A'
                 }
                 helpTerm={getTerm('cpk')}
-                bgClass={cs.metricCardBg}
-                labelClass={cs.metricLabel}
-                valueClass={cs.metricValue}
+                bgClass={METRIC_CARD_BG_CLASS}
+                labelClass={METRIC_LABEL_CLASS}
+                valueClass={METRIC_VALUE_CLASS}
               />
             </>
           )}
@@ -137,9 +136,9 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
               stats?.mean !== undefined && stats?.mean !== null ? formatStat(stats.mean) : 'N/A'
             }
             helpTerm={getTerm('mean')}
-            bgClass={cs.metricCardBg}
-            labelClass={cs.metricLabel}
-            valueClass={cs.metricValue}
+            bgClass={METRIC_CARD_BG_CLASS}
+            labelClass={METRIC_LABEL_CLASS}
+            valueClass={METRIC_VALUE_CLASS}
           />
           <MetricCard
             label={t('stats.median')}
@@ -149,9 +148,9 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
                 : 'N/A'
             }
             helpTerm={getTerm('median')}
-            bgClass={cs.metricCardBg}
-            labelClass={cs.metricLabel}
-            valueClass={cs.metricValue}
+            bgClass={METRIC_CARD_BG_CLASS}
+            labelClass={METRIC_LABEL_CLASS}
+            valueClass={METRIC_VALUE_CLASS}
           />
           <MetricCard
             label={t('stats.stdDev')}
@@ -161,16 +160,16 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
                 : 'N/A'
             }
             helpTerm={getTerm('stdDev')}
-            bgClass={cs.metricCardBg}
-            labelClass={cs.metricLabel}
-            valueClass={cs.metricValue}
+            bgClass={METRIC_CARD_BG_CLASS}
+            labelClass={METRIC_LABEL_CLASS}
+            valueClass={METRIC_VALUE_CLASS}
           />
           <MetricCard
             label={t('stats.samples')}
             value={`n=${filteredData?.length ?? 0}`}
-            bgClass={cs.metricCardBg}
-            labelClass={cs.metricLabel}
-            valueClass={cs.metricValue}
+            bgClass={METRIC_CARD_BG_CLASS}
+            labelClass={METRIC_LABEL_CLASS}
+            valueClass={METRIC_VALUE_CLASS}
           />
         </div>
         {onEditSpecs && (
@@ -222,7 +221,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     <button
       onClick={() => setActiveTab(tab)}
       className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1 ${
-        activeTab === tab ? cs.tabActive : cs.tabInactive
+        activeTab === tab ? TAB_ACTIVE_CLASS : TAB_INACTIVE_CLASS
       } ${compact ? 'flex-1 px-2 py-2' : ''}`}
       style={compact ? { minHeight: 44 } : undefined}
     >
@@ -234,8 +233,8 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   // Compact layout (mobile)
   if (compact) {
     return (
-      <div className={cs.containerCompact}>
-        <div className={`${cs.tabBar} mb-4`}>
+      <div className={CONTAINER_COMPACT_CLASS}>
+        <div className={`${TAB_BAR_CLASS} mb-4`}>
           <TabButton tab="summary" label="Summary" />
           <TabButton tab="histogram" label="Histogram" helpTerm={getTerm('capabilityAnalysis')} />
           <TabButton tab="normality" label="Prob Plot" />
@@ -256,10 +255,10 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
 
   // Desktop layout
   return (
-    <div className={className ? `${cs.container} ${className}` : cs.container}>
+    <div className={className ? `${CONTAINER_CLASS} ${className}` : CONTAINER_CLASS}>
       {/* Header / Tab buttons */}
       <div className="flex justify-between items-center border-b border-inherit pb-4">
-        <div className={cs.tabBar}>
+        <div className={TAB_BAR_CLASS}>
           <TabButton tab="summary" label="Summary" />
           <TabButton tab="histogram" label="Histogram" helpTerm={getTerm('capabilityAnalysis')} />
           <TabButton tab="normality" label="Prob Plot" />

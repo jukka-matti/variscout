@@ -14,7 +14,6 @@ Styling, behavior, and implementation specs for all chart types.
 - [Responsive Charts](responsive.md)
 - [Chart Hooks](hooks.md)
 - [Shared Chart Components](shared-components.md)
-- [Executive Mode](executive-mode.md)
 - [Boxplot Charts](boxplot.md)
 - [Capability Histograms](capability.md)
 - [I-Chart](ichart.md)

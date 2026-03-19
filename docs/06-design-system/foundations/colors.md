@@ -8,10 +8,10 @@ VariScout uses CSS variables with Tailwind semantic classes for theme-aware styl
 
 ## Theme Support
 
-| Product    | Dark | Light | System Pref | Company Accent |
-| ---------- | :--: | :---: | :---------: | :------------: |
-| PWA (Free) |  ✓   |   ✓   | ✓ (default) |       -        |
-| Azure App  |  ✓   |   ✓   | ✓ (default) |       ✓        |
+| Product    | Dark | Light | System Pref |
+| ---------- | :--: | :---: | :---------: |
+| PWA (Free) |  ✓   |   ✓   | ✓ (default) |
+| Azure App  |  ✓   |   ✓   | ✓ (default) |
 
 ## CSS Variables
 
@@ -97,27 +97,6 @@ These colors have **consistent semantic meaning** across both themes:
 | brand-hover   | `#2563eb` | `hover:bg-blue-700` | Hover state              |
 | brand-light   | `#60a5fa` | `text-blue-400`     | Links, highlights        |
 
-### Company Accent (Azure App Only)
-
-Azure App users can customize the accent color via Settings > Appearance. The `useThemeState` hook sets two CSS variables on `<html>`:
-
-| Variable       | Format      | Example      | Usage                                        |
-| -------------- | ----------- | ------------ | -------------------------------------------- |
-| `--accent`     | RGB triplet | `139 92 246` | Tailwind `rgb(var(--accent))` utilities      |
-| `--accent-hex` | Hex string  | `#8b5cf6`    | Inline `style` where `rgb()` isn't practical |
-
-When no accent is set, both variables are removed and consumers fall back to their defaults.
-
-**Surfaces that consume `--accent-hex`:**
-
-| Component          | Property                  | Fallback                           |
-| ------------------ | ------------------------- | ---------------------------------- |
-| `ChartSourceBar`   | Branding dot fill         | `accentColor` prop (blue-500)      |
-| `FilterContextBar` | Variation percentage text | `#60a5fa` (blue-400)               |
-| `ChartCard`        | Hover border color        | `var(--color-edge-hover, #475569)` |
-
-PWA has no accent set, so these surfaces always use their fallback values.
-
 ## Chart Colors
 
 See [Charts > Colors](../charts/colors.md) for data visualization colors.
@@ -167,32 +146,9 @@ const getPointColor = (value: number, usl?: number, lsl?: number) => {
 };
 ```
 
-## Shared Component Color Schemes
+## Semantic Token Mapping
 
-Components in `@variscout/ui` use a **colorScheme prop pattern** for platform-agnostic styling:
-
-### Pattern Overview
-
-```tsx
-// Component defines color scheme interface
-interface ComponentColorScheme {
-  containerBg: string; // Tailwind class for background
-  border: string; // Tailwind class for borders
-  textMuted: string; // Tailwind class for muted text
-  // ... component-specific color slots
-}
-
-// Default uses PWA semantic tokens
-const defaultColorScheme: ComponentColorScheme = {
-  containerBg: 'bg-surface-secondary',
-  border: 'border-edge',
-  textMuted: 'text-content-muted',
-};
-```
-
-### Color Scheme Mapping
-
-Both PWA and Azure use the same semantic tokens. The Slate equivalents are shown for historical reference (Azure previously used hardcoded Slate classes before the visual convergence migration):
+Both PWA and Azure use the same semantic tokens. The Slate equivalents are shown for reference:
 
 | Semantic Token           | Resolved Value (Dark)  | Usage               |
 | ------------------------ | ---------------------- | ------------------- |
@@ -205,68 +161,6 @@ Both PWA and Azure use the same semantic tokens. The Slate equivalents are shown
 | `text-content-secondary` | `text-slate-400`       | Secondary text      |
 | `text-content-muted`     | `text-slate-500`       | Muted/disabled text |
 | `hover:text-content`     | `hover:text-slate-300` | Hover text          |
-
-### Available Color Schemes
-
-Each component exports a single `defaultColorScheme` using semantic tokens. Both PWA and Azure apps use these defaults:
-
-| Component                   | Default Export                            | Notes                              |
-| --------------------------- | ----------------------------------------- | ---------------------------------- |
-| `FilterBreadcrumb`          | `filterBreadcrumbDefaultColorScheme`      | Semantic tokens, used by both apps |
-| `FilterChipDropdown`        | `filterChipDropdownDefaultColorScheme`    | Semantic tokens, used by both apps |
-| `VariationBar`              | `variationBarDefaultColorScheme`          | Semantic tokens, used by both apps |
-| `AnovaResults`              | `anovaDefaultColorScheme`                 | Semantic tokens, used by both apps |
-| `YAxisPopover`              | `yAxisPopoverDefaultColorScheme`          | Semantic tokens, used by both apps |
-| `PerformanceSetupPanelBase` | `performanceSetupPanelDefaultColorScheme` | Semantic tokens, used by both apps |
-
-### Usage in Apps
-
-Both PWA and Azure use the default color scheme (semantic tokens). No explicit `colorScheme` prop is needed:
-
-```tsx
-import { FilterBreadcrumb } from '@variscout/ui';
-
-// Default colorScheme uses semantic tokens — works for both PWA and Azure
-<FilterBreadcrumb {...props} />;
-```
-
-### Nested Color Schemes
-
-Some components contain other themeable components. They use nested color schemes:
-
-```tsx
-interface FilterBreadcrumbColorScheme {
-  containerBg: string;
-  border: string;
-  // Nested schemes for child components
-  variationBar: VariationBarColorScheme;
-  dropdown: FilterChipDropdownColorScheme;
-}
-```
-
-### Creating New Color Schemes
-
-When extracting a component to `@variscout/ui`:
-
-1. **Identify color slots** needed by the component
-2. **Create interface** with all color slots
-3. **Define default scheme** using semantic tokens
-4. **Export** from component index and main package index
-
-```tsx
-// packages/ui/src/components/MyComponent/MyComponent.tsx
-export interface MyComponentColorScheme {
-  background: string;
-  text: string;
-  border: string;
-}
-
-export const defaultColorScheme: MyComponentColorScheme = {
-  background: 'bg-surface-secondary',
-  text: 'text-content',
-  border: 'border-edge',
-};
-```
 
 ## Accessibility
 

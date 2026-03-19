@@ -1,6 +1,1 @@
-export {
-  default as ErrorBoundary,
-  defaultColorScheme as errorBoundaryDefaultColorScheme,
-  type ErrorBoundaryProps,
-  type ErrorBoundaryColorScheme,
-} from './ErrorBoundary';
+export { default as ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';

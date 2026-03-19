@@ -7,22 +7,6 @@ import type {
   StagedComparison,
 } from '@variscout/core';
 
-export interface StatsPanelColorScheme {
-  // Container
-  container: string;
-  containerCompact: string;
-  // Tabs
-  tabBar: string;
-  tabActive: string;
-  tabInactive: string;
-  // Metric card
-  metricCardBg: string;
-  metricLabel: string;
-  metricValue: string;
-  // Empty state
-  emptyState: string;
-}
-
 export interface StatsPanelBaseProps {
   stats: StatsResult | null;
   specs: SpecLimits;
@@ -31,7 +15,6 @@ export interface StatsPanelBaseProps {
   defaultTab?: 'summary' | 'histogram' | 'normality';
   className?: string;
   compact?: boolean;
-  colorScheme?: StatsPanelColorScheme;
   /** Called when user clicks the pencil link to edit/set spec limits */
   onEditSpecs?: () => void;
   /** Render histogram chart content */

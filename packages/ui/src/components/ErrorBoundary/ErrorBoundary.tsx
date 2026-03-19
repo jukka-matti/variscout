@@ -3,37 +3,10 @@ import type { ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { errorService } from '../../services';
 
-/**
- * Color scheme for ErrorBoundary component
- * Allows customization for different app themes (PWA vs Azure)
- */
-export interface ErrorBoundaryColorScheme {
-  /** Container background class */
-  container: string;
-  /** Border class */
-  border: string;
-  /** Secondary text class */
-  secondaryText: string;
-  /** Button classes */
-  button: string;
-}
-
-/**
- * Default color scheme using PWA semantic tokens
- */
-export const defaultColorScheme: ErrorBoundaryColorScheme = {
-  container: 'bg-surface-secondary/50',
-  border: 'border-edge',
-  secondaryText: 'text-content-secondary',
-  button: 'bg-surface-tertiary hover:bg-surface-elevated',
-};
-
 export interface ErrorBoundaryProps {
   children: ReactNode;
   /** Optional fallback component name for error message */
   componentName?: string;
-  /** Color scheme for styling (defaults to PWA semantic tokens) */
-  colorScheme?: ErrorBoundaryColorScheme;
   /** Called when an error is caught — use to notify external systems (e.g. Teams) */
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
@@ -85,24 +58,22 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   render(): ReactNode {
     if (this.state.hasError) {
-      const { componentName, colorScheme = defaultColorScheme } = this.props;
+      const { componentName } = this.props;
       return (
-        <div
-          className={`flex flex-col items-center justify-center h-full min-h-[200px] ${colorScheme.container} rounded-xl border ${colorScheme.border} p-6 text-center`}
-        >
+        <div className="flex flex-col items-center justify-center h-full min-h-[200px] bg-surface-secondary/50 rounded-xl border border-edge p-6 text-center">
           <div className="p-3 bg-red-500/10 rounded-full mb-4">
             <AlertTriangle size={32} className="text-red-400" />
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">
             {componentName ? `${componentName} Error` : 'Something went wrong'}
           </h3>
-          <p className={`text-sm ${colorScheme.secondaryText} mb-4 max-w-xs`}>
+          <p className="text-sm text-content-secondary mb-4 max-w-xs">
             {this.state.error?.message ||
               'An unexpected error occurred while rendering this component.'}
           </p>
           <button
             onClick={this.handleRetry}
-            className={`flex items-center gap-2 px-4 py-2 ${colorScheme.button} text-white text-sm font-medium rounded-lg transition-colors`}
+            className="flex items-center gap-2 px-4 py-2 bg-surface-tertiary hover:bg-surface-elevated text-white text-sm font-medium rounded-lg transition-colors"
           >
             <RefreshCw size={16} />
             Try Again

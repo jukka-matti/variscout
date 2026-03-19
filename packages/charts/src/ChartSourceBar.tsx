@@ -49,14 +49,8 @@ const ChartSourceBar: React.FC<ChartSourceBarProps> = ({
           strokeWidth={1}
         />
 
-        {/* Accent dot on left */}
-        <circle
-          cx={10}
-          cy={BAR_HEIGHT / 2}
-          r={3}
-          fill={accentColor}
-          style={{ fill: 'var(--accent-hex)' }}
-        />
+        {/* Brand dot on left */}
+        <circle cx={10} cy={BAR_HEIGHT / 2} r={3} fill={accentColor} />
 
         {/* Branding text */}
         {brandingText && (

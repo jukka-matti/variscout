@@ -235,15 +235,9 @@ Individual card for column mapping. Displays type badges (Blue=Numeric, Green=Ca
 
 Collapsible mini table (first 5 rows) with color-coded headers. Collapsed by default, toggle via Table icon.
 
-### ChartCard (Accent-Aware Hover)
+### ChartCard
 
-```css
-.chart-card:hover {
-  border-color: var(--accent-hex, var(--color-edge-hover, #475569));
-}
-```
-
-Azure App picks up company accent color; PWA falls back to `--color-edge-hover`. See [Shared Chart Components > ChartCard](../charts/shared-components.md#chartcard).
+See [Shared Chart Components > ChartCard](../charts/shared-components.md#chartcard) for the chart card wrapper component.
 
 ---
 

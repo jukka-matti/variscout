@@ -14,12 +14,11 @@ export const CHART_FONT_SCALES: Record<ChartFontScale, number> = {
 
 export interface ThemeConfig {
   mode: ThemeMode;
-  companyAccent?: string;
   chartFontScale?: ChartFontScale;
 }
 
 export interface UseThemeStateOptions {
-  /** Whether theming features (theme switching, company accent) are enabled */
+  /** Whether theming features (theme switching) are enabled */
   themingEnabled: boolean;
 }
 
@@ -56,9 +55,9 @@ function saveTheme(theme: ThemeConfig): void {
 /**
  * Shared theme state hook for PWA and Azure apps.
  *
- * Manages theme config, system preference detection, document attribute application,
- * and company accent color. The `themingEnabled` option controls whether theme
- * switching is active (false in free PWA, true in Azure).
+ * Manages theme config, system preference detection, and document attribute application.
+ * The `themingEnabled` option controls whether theme switching is active
+ * (false in free PWA, true in Azure).
  */
 export function useThemeState({ themingEnabled }: UseThemeStateOptions): UseThemeStateReturn {
   const [theme, setThemeState] = useState<ThemeConfig>(loadStoredTheme);
@@ -105,19 +104,7 @@ export function useThemeState({ themingEnabled }: UseThemeStateOptions): UseThem
 
     root.setAttribute('data-theme', resolvedTheme);
     root.setAttribute('data-chart-scale', String(chartFontScaleValue));
-
-    if (themingEnabled && theme.companyAccent) {
-      const hex = theme.companyAccent.replace('#', '');
-      const r = parseInt(hex.substring(0, 2), 16);
-      const g = parseInt(hex.substring(2, 4), 16);
-      const b = parseInt(hex.substring(4, 6), 16);
-      root.style.setProperty('--accent', `${r} ${g} ${b}`);
-      root.style.setProperty('--accent-hex', theme.companyAccent);
-    } else {
-      root.style.removeProperty('--accent');
-      root.style.removeProperty('--accent-hex');
-    }
-  }, [resolvedTheme, theme.companyAccent, themingEnabled, chartFontScaleValue]);
+  }, [resolvedTheme, chartFontScaleValue]);
 
   // Update theme configuration
   const setTheme = useCallback((config: Partial<ThemeConfig>) => {

@@ -77,8 +77,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
     showBranding,
   });
 
-  const { chrome, colors, mode, formatStat } = useChartTheme();
-  const isExecutive = mode === 'executive';
+  const { chrome, colors, formatStat } = useChartTheme();
   const highlightFillColors = getHighlightFillColors(colors);
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
@@ -124,13 +123,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
         aria-label="Pareto chart: category frequency analysis"
       >
         <Group left={margin.left} top={margin.top}>
-          <GridRows
-            scale={yScale}
-            width={width}
-            stroke={chrome.gridLine}
-            strokeDasharray={isExecutive ? '2,4' : undefined}
-            strokeOpacity={isExecutive ? 0.5 : 1}
-          />
+          <GridRows scale={yScale} width={width} stroke={chrome.gridLine} strokeOpacity={1} />
 
           {/* Ghost bars - comparison data (rendered behind regular bars) */}
           {comparisonData &&
@@ -235,7 +228,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
           {/* Left Y-Axis (Count) */}
           <AxisLeft
             scale={yScale}
-            stroke={isExecutive ? 'transparent' : chrome.axisPrimary}
+            stroke={chrome.axisPrimary}
             tickStroke={chrome.axisPrimary}
             tickLabelProps={() => ({
               fill: chrome.labelPrimary,
@@ -243,8 +236,8 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
               textAnchor: 'end',
               dx: -4,
               dy: 3,
-              fontFamily: isExecutive ? 'Inter, sans-serif' : 'monospace',
-              fontWeight: isExecutive ? 500 : 400,
+              fontFamily: 'monospace',
+              fontWeight: 400,
             })}
           />
 
@@ -269,7 +262,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
           <AxisRight
             scale={yPercScale}
             left={width}
-            stroke={isExecutive ? 'transparent' : chrome.axisPrimary}
+            stroke={chrome.axisPrimary}
             tickStroke={chrome.axisPrimary}
             label={parentWidth > 400 ? 'Cumulative %' : '%'}
             labelProps={{
@@ -284,8 +277,8 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
               textAnchor: 'start',
               dx: 4,
               dy: 3,
-              fontFamily: isExecutive ? 'Inter, sans-serif' : 'monospace',
-              fontWeight: isExecutive ? 500 : 400,
+              fontFamily: 'monospace',
+              fontWeight: 400,
             })}
           />
 
@@ -300,8 +293,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dy: 2,
-              fontFamily: isExecutive ? 'Inter, sans-serif' : undefined,
-              fontWeight: isExecutive ? 500 : 400,
+              fontWeight: 400,
             })}
           />
 

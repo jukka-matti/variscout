@@ -32,8 +32,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
     showBranding,
   });
 
-  const { chrome, colors, mode } = useChartTheme();
-  const isExecutive = mode === 'executive';
+  const { chrome, colors } = useChartTheme();
 
   const bins = useMemo(() => {
     if (data.length === 0) return [];
@@ -210,7 +209,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
         <AxisLeft
           scale={yScale}
           numTicks={parentWidth < 300 ? 3 : 5}
-          stroke={isExecutive ? 'transparent' : chrome.axisSecondary}
+          stroke={chrome.axisSecondary}
           tickStroke={chrome.axisSecondary}
           tickLabelProps={() => ({
             fill: chrome.labelSecondary,
@@ -218,8 +217,8 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
             textAnchor: 'end',
             dy: '0.33em',
             dx: -4,
-            fontFamily: isExecutive ? 'Inter, sans-serif' : 'monospace',
-            fontWeight: isExecutive ? 500 : 400,
+            fontFamily: 'monospace',
+            fontWeight: 400,
           })}
         />
 
@@ -235,8 +234,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
             fontSize: fonts.tickLabel,
             textAnchor: 'middle',
             dy: 4,
-            fontFamily: isExecutive ? 'Inter, sans-serif' : undefined,
-            fontWeight: isExecutive ? 500 : 400,
+            fontWeight: 400,
           })}
         />
       </Group>
