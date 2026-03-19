@@ -173,11 +173,11 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 | Feature                  | Azure Standard | Azure Team | PWA (Free) | Notes                                                                            |
 | ------------------------ | :------------: | :--------: | :--------: | -------------------------------------------------------------------------------- |
-| **Dark/Light theme**     |       ✓        |     ✓      |     -      | PWA: dark only; Azure: full dark/light switching                                 |
-| **System theme follow**  |       ✓        |     ✓      |     -      | PWA: dark only; Azure: follows system preference                                 |
+| **Dark/Light theme**     |       ✓        |     ✓      |     ✓      | All platforms support dark/light switching                                       |
+| **System theme follow**  |       ✓        |     ✓      |     ✓      | All platforms follow OS preference (default)                                     |
 | **Company accent color** |       ✓        |     ✓      |     -      | Azure App only                                                                   |
-| **Chart font scale**     |       ✓        |     ✓      |     ✓      | Compact / Normal / Large presets in both apps                                    |
-| **Settings panel**       |       ✓        |     ✓      |     ✓      | PWA: display toggles + chart text size; Azure: full (theme, accent, all toggles) |
+| **Chart font scale**     |       ✓        |     ✓      |     ✓      | Compact / Normal / Large presets in all apps                                     |
+| **Settings panel**       |       ✓        |     ✓      |     ✓      | PWA: theme + display toggles + chart text size; Azure: + accent color + AI prefs |
 | **Branding removal**     |       ✓        |     ✓      |     -      | Azure App only                                                                   |
 
 ---

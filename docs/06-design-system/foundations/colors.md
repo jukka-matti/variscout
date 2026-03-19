@@ -10,8 +10,8 @@ VariScout uses CSS variables with Tailwind semantic classes for theme-aware styl
 
 | Product    | Dark | Light | System Pref | Company Accent |
 | ---------- | :--: | :---: | :---------: | :------------: |
-| PWA (Free) |  ✓   |   -   |      -      |       -        |
-| Azure App  |  ✓   |   ✓   |      ✓      |       ✓        |
+| PWA (Free) |  ✓   |   ✓   | ✓ (default) |       -        |
+| Azure App  |  ✓   |   ✓   | ✓ (default) |       ✓        |
 
 ## CSS Variables
 
@@ -19,16 +19,6 @@ Defined in `apps/pwa/src/index.css`, these variables use RGB format for alpha su
 
 ```css
 :root,
-[data-theme='dark'] {
-  --surface-primary: 15 23 42; /* slate-900 */
-  --surface-secondary: 30 41 59; /* slate-800 */
-  --surface-tertiary: 51 65 85; /* slate-700 */
-  --content-primary: 226 232 240; /* slate-200 */
-  --content-secondary: 148 163 184; /* slate-400 */
-  --content-muted: 100 116 139; /* slate-500 */
-  --edge-primary: 51 65 85; /* slate-700 */
-}
-
 [data-theme='light'] {
   --surface-primary: 248 250 252; /* slate-50 */
   --surface-secondary: 241 245 249; /* slate-100 */
@@ -37,6 +27,16 @@ Defined in `apps/pwa/src/index.css`, these variables use RGB format for alpha su
   --content-secondary: 71 85 105; /* slate-600 */
   --content-muted: 100 116 139; /* slate-500 */
   --edge-primary: 226 232 240; /* slate-200 */
+}
+
+[data-theme='dark'] {
+  --surface-primary: 15 23 42; /* slate-900 */
+  --surface-secondary: 30 41 59; /* slate-800 */
+  --surface-tertiary: 51 65 85; /* slate-700 */
+  --content-primary: 226 232 240; /* slate-200 */
+  --content-secondary: 148 163 184; /* slate-400 */
+  --content-muted: 100 116 139; /* slate-500 */
+  --edge-primary: 51 65 85; /* slate-700 */
 }
 ```
 

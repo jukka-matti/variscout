@@ -19,7 +19,7 @@
 - Utilities: `camelCase.ts` (e.g., `persistence.ts`)
 - Types: `PascalCase` (e.g., `StatsResult`)
 
-## Colors (PWA Tailwind)
+## Colors (Tailwind)
 
 - Green (`text-green-500`): Pass/in-spec values
 - Red (`text-red-400`): Fail USL

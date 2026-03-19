@@ -8,22 +8,22 @@ A unified design system for VariScout covering PWA and Azure App platforms.
 
 ## Principles
 
-1. **Theme-aware** - Supports dark/light modes (light mode for paid tiers)
+1. **Theme-aware** - Supports dark/light/system modes across all platforms
 2. **Data-focused** - Colors prioritize data visibility and status communication
 3. **Consistent semantics** - Same meaning for colors across platforms
 4. **Responsive** - Adapts to screen size without losing functionality
 5. **Accessible** - WCAG AA compliant contrast ratios
 
-## Theming (PWA)
+## Theming
 
-The PWA uses CSS variables for theming, enabling runtime theme switching:
+All platforms use CSS variables for theming with runtime theme switching. Default is system preference (typically light).
 
-| Feature           | Free tier   | Paid tiers (Individual/Team/Enterprise) |
-| ----------------- | ----------- | --------------------------------------- |
-| Dark mode         | ✓ (default) | ✓                                       |
-| Light mode        | -           | ✓                                       |
-| System preference | -           | ✓                                       |
-| Company accent    | -           | ✓                                       |
+| Feature           | PWA (Free)  | Azure App (Paid) |
+| ----------------- | ----------- | ---------------- |
+| Dark mode         | ✓           | ✓                |
+| Light mode        | ✓           | ✓                |
+| System preference | ✓ (default) | ✓ (default)      |
+| Company accent    | -           | ✓                |
 
 ### Semantic Color Classes
 

@@ -43,20 +43,37 @@ beforeEach(() => {
 });
 
 describe('useThemeState', () => {
-  it('defaults to dark theme when no stored value', () => {
+  it('defaults to system mode when no stored value', () => {
     const { result } = renderHook(() => useThemeState({ themingEnabled: true }));
 
-    expect(result.current.theme.mode).toBe('dark');
+    expect(result.current.theme.mode).toBe('system');
+    // matchMediaMatches is false (light preference), so resolvedTheme = light
+    expect(result.current.resolvedTheme).toBe('light');
+  });
+
+  it('defaults to system mode and resolves dark when system prefers dark', () => {
+    matchMediaMatches = true;
+    const { result } = renderHook(() => useThemeState({ themingEnabled: true }));
+
+    expect(result.current.theme.mode).toBe('system');
     expect(result.current.resolvedTheme).toBe('dark');
   });
 
-  it('resolvedTheme is dark when themingEnabled is false regardless of mode', () => {
-    localStorage.setItem('variscout_theme', JSON.stringify({ mode: 'light' }));
+  it('resolvedTheme follows system preference when themingEnabled is false', () => {
+    // System prefers light (matchMediaMatches = false)
+    localStorage.setItem('variscout_theme', JSON.stringify({ mode: 'dark' }));
 
     const { result } = renderHook(() => useThemeState({ themingEnabled: false }));
 
-    // Even though stored mode is 'light', resolved should be 'dark' when theming is disabled
-    expect(result.current.theme.mode).toBe('light');
+    // Stored mode is 'dark' but when theming is disabled, system preference wins
+    expect(result.current.theme.mode).toBe('dark');
+    expect(result.current.resolvedTheme).toBe('light');
+  });
+
+  it('resolvedTheme follows system dark preference when themingEnabled is false', () => {
+    matchMediaMatches = true;
+    const { result } = renderHook(() => useThemeState({ themingEnabled: false }));
+
     expect(result.current.resolvedTheme).toBe('dark');
   });
 
@@ -94,8 +111,8 @@ describe('useThemeState', () => {
   it('sets data-theme attribute on document.documentElement', () => {
     renderHook(() => useThemeState({ themingEnabled: true }));
 
-    // Default dark mode
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    // Default system mode with light system preference
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
   });
 
   it('sets data-chart-scale attribute on document.documentElement', () => {
@@ -125,5 +142,15 @@ describe('useThemeState', () => {
 
     expect(result.current.resolvedTheme).toBe('dark');
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+  });
+
+  it('preserves existing user choice from localStorage', () => {
+    // User who previously chose dark explicitly should still get dark
+    localStorage.setItem('variscout_theme', JSON.stringify({ mode: 'dark' }));
+
+    const { result } = renderHook(() => useThemeState({ themingEnabled: true }));
+
+    expect(result.current.theme.mode).toBe('dark');
+    expect(result.current.resolvedTheme).toBe('dark');
   });
 });

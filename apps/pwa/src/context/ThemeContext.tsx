@@ -22,9 +22,9 @@ interface ThemeProviderProps {
 }
 
 /**
- * PWA Theme provider — theming disabled (free tier, always dark)
+ * PWA Theme provider — theme switching enabled (light/dark/system)
  */
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const value = useThemeState({ themingEnabled: false });
+  const value = useThemeState({ themingEnabled: true });
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

@@ -42,7 +42,7 @@ function loadStoredTheme(): ThemeConfig {
   } catch {
     // Ignore parse errors
   }
-  return { mode: 'dark' };
+  return { mode: 'system' };
 }
 
 function saveTheme(theme: ThemeConfig): void {
@@ -62,7 +62,11 @@ function saveTheme(theme: ThemeConfig): void {
  */
 export function useThemeState({ themingEnabled }: UseThemeStateOptions): UseThemeStateReturn {
   const [theme, setThemeState] = useState<ThemeConfig>(loadStoredTheme);
-  const [systemPreference, setSystemPreference] = useState<'light' | 'dark'>('dark');
+  const [systemPreference, setSystemPreference] = useState<'light' | 'dark'>(() =>
+    typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light'
+  );
 
   // Detect system color scheme preference
   useEffect(() => {
@@ -80,7 +84,8 @@ export function useThemeState({ themingEnabled }: UseThemeStateOptions): UseThem
   // Resolve the actual theme (handles 'system' mode)
   const resolvedTheme = useMemo<'light' | 'dark'>(() => {
     if (!themingEnabled) {
-      return 'dark';
+      // When theming toggle is hidden, follow system preference
+      return systemPreference;
     }
     if (theme.mode === 'system') {
       return systemPreference;

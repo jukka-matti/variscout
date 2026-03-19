@@ -1,5 +1,5 @@
 import React from 'react';
-import { SettingsPanelBase } from '@variscout/ui';
+import { SettingsPanelBase, ThemeToggle } from '@variscout/ui';
 import { useData } from '../../context/DataContext';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -21,6 +21,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
       chartFontScale={theme.chartFontScale ?? 'normal'}
       onChartFontScaleChange={scale => setTheme({ chartFontScale: scale })}
       idPrefix="pwa-setting"
+      headerSections={
+        <section>
+          <h3 className="text-sm font-medium text-content mb-3">Appearance</h3>
+          <ThemeToggle mode={theme.mode} onModeChange={mode => setTheme({ mode })} />
+        </section>
+      }
     />
   );
 };
