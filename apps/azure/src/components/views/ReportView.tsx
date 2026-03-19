@@ -14,6 +14,7 @@ import {
   StagedComparisonCard,
   CapabilityHistogram,
   VerificationEvidenceBase,
+  SynthesisCard,
 } from '@variscout/ui';
 import {
   useReportSections,
@@ -542,6 +543,11 @@ const ReportView: React.FC<ReportViewProps> = ({
 
           {section.id === 'hypotheses' && outcome && (
             <div className="space-y-4">
+              {processContext?.synthesis && (
+                <div className="mb-2">
+                  <SynthesisCard synthesis={processContext.synthesis} readOnly />
+                </div>
+              )}
               {(extendedSection?.findings ?? []).length > 0 ? (
                 (extendedSection?.findings ?? []).map(finding => (
                   <FindingChartSnapshot
@@ -660,6 +666,7 @@ const ReportView: React.FC<ReportViewProps> = ({
       handleCopyChart,
       aiEnabled,
       narrative,
+      processContext?.synthesis,
       hasStagedComparison,
       hasAnyAvailable,
       verificationCharts,

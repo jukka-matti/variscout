@@ -17,30 +17,27 @@ Per [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md):
 ```mermaid
 flowchart LR
     subgraph Paid["Paid Product"]
-        A1[Azure Standard<br/>€99/month]
+        A1[Azure Standard<br/>€79/month]
         A2[Azure Team<br/>€199/month]
-        A3[Azure Team AI<br/>€279/month]
     end
 
     subgraph Free["Free Product"]
         C[PWA<br/>Free Training Tool]
     end
 
-    C -->|"Need file upload, save, Performance Mode"| A1
-    A1 -->|"Need Teams, OneDrive, SharePoint, mobile"| A2
-    A2 -->|"Need AI Knowledge Base, CoScout, org learning"| A3
+    C -->|"Need file upload, save, Performance Mode, AI"| A1
+    A1 -->|"Need Teams, OneDrive, SharePoint, mobile, Knowledge Base"| A2
 ```
 
 ## Product Matrix
 
-| Product                              | Status      | Distribution      | Use Case                                   | Pricing        |
-| ------------------------------------ | ----------- | ----------------- | ------------------------------------------ | -------------- |
-| **[Azure Standard](azure/index.md)** | **PRIMARY** | Azure Marketplace | Full analysis, local files                 | €99/month      |
-| **[Azure Team](azure/index.md)**     | **PRIMARY** | Azure Marketplace | + Teams, OneDrive, mobile                  | €199/month     |
-| **[Azure Team AI](azure/index.md)**  | **PRIMARY** | Azure Marketplace | + AI Knowledge Base, CoScout, org learning | €279/month     |
-| [PWA](pwa/index.md)                  | Production  | Direct URL        | Training & education                       | FREE (forever) |
-| Power BI (archived)                  | Shelved     | —                 | Dashboard integration (not in development) | —              |
-| [Website](website/index.md)          | Production  | Public            | Marketing & docs                           | N/A            |
+| Product                              | Status      | Distribution      | Use Case                                     | Pricing        |
+| ------------------------------------ | ----------- | ----------------- | -------------------------------------------- | -------------- |
+| **[Azure Standard](azure/index.md)** | **PRIMARY** | Azure Marketplace | Full analysis with CoScout AI, local files   | €79/month      |
+| **[Azure Team](azure/index.md)**     | **PRIMARY** | Azure Marketplace | + Teams, OneDrive, mobile, AI Knowledge Base | €199/month     |
+| [PWA](pwa/index.md)                  | Production  | Direct URL        | Training & education                         | FREE (forever) |
+| Power BI (archived)                  | Shelved     | —                 | Dashboard integration (not in development)   | —              |
+| [Website](website/index.md)          | Production  | Public            | Marketing & docs                             | N/A            |
 
 :::tip[Getting Started]
 **Free**: Start with the [PWA](pwa/index.md) — free training tool with copy-paste input and 16 sample datasets. Upgrade to the [Azure App](azure/index.md) for file upload, save/persistence, Performance Mode, and team features.
@@ -54,9 +51,9 @@ flowchart LR
 ┌─────────────────────────────────────────────────────────────┐
 │  VariScout on Azure Marketplace (PRIMARY)                   │
 │                                                             │
-│  Standard Plan     €99/month    Full analysis, local files  │
-│  Team Plan         €199/month   + Teams, OneDrive, mobile   │
-│  Team AI Plan      €279/month   + AI Knowledge Base, CoScout│
+│  Standard Plan     €79/month    Full analysis + CoScout AI  │
+│  Team Plan         €199/month   + Teams, OneDrive, mobile,  │
+│                                   AI Knowledge Base         │
 │                                  Unlimited users in tenant  │
 │                                                             │
 │  Offer type: Managed Application                           │
@@ -88,22 +85,19 @@ flowchart LR
 
 ## Pricing (Azure App)
 
-| Plan     | Price      | Net Revenue         | Includes                                               |
-| -------- | ---------- | ------------------- | ------------------------------------------------------ |
-| Standard | €99/month  | €96.03/month (−3%)  | Full analysis, file upload, save, SSO, offline         |
-| Team     | €199/month | €193.03/month (−3%) | + Teams, OneDrive, SharePoint, mobile, photos          |
-| Team AI  | €279/month | €270.63/month (−3%) | + AI Knowledge Base, AI-enhanced CoScout, org learning |
+| Plan     | Price      | Net Revenue         | Includes                                                         |
+| -------- | ---------- | ------------------- | ---------------------------------------------------------------- |
+| Standard | €79/month  | €76.63/month (−3%)  | Full analysis, CoScout AI, file upload, save, SSO, offline       |
+| Team     | €199/month | €193.03/month (−3%) | + Teams, OneDrive, SharePoint, mobile, photos, AI Knowledge Base |
 
 | Aspect  | Value                                              |
 | ------- | -------------------------------------------------- |
 | Billing | Monthly (Microsoft handles billing, 3% fee)        |
 | Model   | Per-deployment (one subscription per Azure tenant) |
 
-**Standard** — all chart types, Performance Mode, Microsoft SSO, offline support, data stays in customer's Azure tenant.
+**Standard** — all chart types, Performance Mode, CoScout AI, Microsoft SSO, offline support, data stays in customer's Azure tenant.
 
-**Team** — everything in Standard, plus Teams integration, OneDrive/SharePoint sync, mobile access, and photo evidence.
-
-**Team AI** — everything in Team, plus AI Knowledge Base, AI-enhanced CoScout assistant, and organizational learning.
+**Team** — everything in Standard, plus Teams integration, OneDrive/SharePoint sync, mobile access, photo evidence, AI Knowledge Base, and organizational learning.
 
 ---
 

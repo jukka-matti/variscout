@@ -661,4 +661,8 @@ export const en: MessageCatalog = {
   // Projected vs actual
   'outcome.projectedVsActual': 'Projected {projected} \u2192 Actual {actual}',
   'outcome.delta': '({sign}{delta})',
+
+  // Improvement convergence
+  'improve.convergenceNudge':
+    'Your evidence is converging \u2014 summarize what you\u2019ve learned in the Improvement Plan.',
 };

@@ -177,9 +177,9 @@ The PWA serves as the **feature development sandbox**:
 
 ## Upgrade Path
 
-| Ready For...             | Next Step                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------ |
-| File upload, save, teams | [Azure App](../azure/index.md) — from €99/month (Standard), €199/month (Team), or €279/month (Team AI) |
+| Ready For...             | Next Step                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| File upload, save, teams | [Azure App](../azure/index.md) — from €79/month (Standard) or €199/month (Team) |
 
 ---
 

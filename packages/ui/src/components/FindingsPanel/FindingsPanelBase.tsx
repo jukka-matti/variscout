@@ -155,6 +155,12 @@ export interface FindingsPanelBaseProps {
 
   /** Current user's UPN for "assigned to me" filtering (Azure Team only) */
   currentUserUpn?: string;
+  /** Projected Cpk map keyed by finding ID (for projected vs actual comparison) */
+  projectedCpkMap?: Record<string, number>;
+  /** Synthesis narrative for board view header */
+  synthesis?: string;
+  /** Linked findings for board view synthesis card */
+  linkedFindings?: Array<{ id: string; text: string }>;
 }
 
 const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
@@ -219,6 +225,9 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   investigationPhase,
   coScoutSuggestedQuestions,
   currentUserUpn,
+  projectedCpkMap,
+  synthesis,
+  linkedFindings,
 }) => {
   const { t, formatStat } = useTranslation();
   const [copyFeedback, setCopyFeedback] = useState(false);
@@ -437,6 +446,9 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           onAskCoScout={onAskCoScout}
           onSetCauseRole={onSetCauseRole}
           onAskCoScoutAboutFinding={onAskCoScoutAboutFinding}
+          projectedCpkMap={projectedCpkMap}
+          synthesis={synthesis}
+          linkedFindings={linkedFindings}
         />
 
         {/* CoScout inline (Azure only) */}

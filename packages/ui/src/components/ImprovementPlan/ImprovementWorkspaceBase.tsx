@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import type { ImprovementIdea, IdeaEffort, IdeaDirection } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { SynthesisCard } from './SynthesisCard';
 import { IdeaGroupCard } from './IdeaGroupCard';
 import { ImprovementSummaryBar } from './ImprovementSummaryBar';
@@ -31,6 +31,8 @@ export interface ImprovementWorkspaceBaseProps {
   onAskCoScout?: (question: string) => void;
   onConvertToActions?: () => void;
   onBack?: () => void;
+  /** Open in popout window */
+  onPopout?: () => void;
   /** Currently selected idea IDs for summary calculation */
   selectedIdeaIds?: Set<string>;
   /** Map of ideaId to whether it has been converted to an action */
@@ -52,6 +54,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
   onAskCoScout,
   onConvertToActions,
   onBack,
+  onPopout,
   selectedIdeaIds,
   convertedIdeaIds,
   targetCpk,
@@ -103,8 +106,19 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
         <h2 className="text-base font-semibold text-content ml-auto mr-auto">
           {t('improve.title')}
         </h2>
-        {/* Spacer to balance back button */}
-        {onBack && <div className="w-[120px]" />}
+        {/* Popout + spacer to balance back button */}
+        <div className="w-[120px] flex justify-end">
+          {onPopout && (
+            <button
+              onClick={onPopout}
+              className="hidden sm:inline-flex p-1.5 text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors"
+              title="Open in separate window"
+              aria-label="Open improvement in separate window"
+            >
+              <ExternalLink size={14} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Scrollable content */}

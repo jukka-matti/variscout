@@ -51,6 +51,13 @@ import { FileBrowseButton, type FilePickerResult } from '../components/FileBrows
 import { downloadFileFromGraph } from '../services/storage';
 import { useFilePicker } from '../hooks/useFilePicker';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
+import {
+  openImprovementPopout,
+  updateImprovementPopout,
+  IMPROVEMENT_ACTION_KEY,
+  type ImprovementSyncData,
+  type ImprovementAction,
+} from '../components/ImprovementWindow';
 import { useEditorAI } from '../hooks/useEditorAI';
 import { useLocale } from '../context/LocaleContext';
 import { useEditorPanels } from '../hooks/useEditorPanels';
@@ -527,6 +534,22 @@ export const Editor: React.FC<EditorProps> = ({
     return ids;
   }, [persistedHypotheses]);
 
+  // Projected Cpk map: finding ID → projected Cpk from linked improvement idea
+  const projectedCpkMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const h of persistedHypotheses ?? []) {
+      const linkedFinding = findingsState.findings.find(f => f.hypothesisId === h.id);
+      if (!linkedFinding) continue;
+      const projectedIdea =
+        (h.ideas ?? []).find(i => i.selected && i.projection?.projectedCpk != null) ??
+        (h.ideas ?? []).find(i => i.projection?.projectedCpk != null);
+      if (projectedIdea?.projection?.projectedCpk != null) {
+        map[linkedFinding.id] = projectedIdea.projection.projectedCpk;
+      }
+    }
+    return map;
+  }, [persistedHypotheses, findingsState.findings]);
+
   // Ideas that already have matching action items
   const convertedIdeaIds = useMemo(() => {
     const ids = new Set<string>();
@@ -550,6 +573,81 @@ export const Editor: React.FC<EditorProps> = ({
       }
     }
   }, [persistedHypotheses, findingsState]);
+
+  // ── Improvement Popout ─────────────────────────────────────────────────
+  const improvementPopoutRef = React.useRef<Window | null>(null);
+
+  const buildImprovementSyncData = useCallback(
+    (): ImprovementSyncData => ({
+      synthesis: processContext?.synthesis,
+      hypotheses: improvementHypotheses,
+      linkedFindings: improvementLinkedFindings,
+      selectedIdeaIds: Array.from(selectedIdeaIds),
+      convertedIdeaIds: Array.from(convertedIdeaIds),
+      targetCpk: processContext?.targetValue,
+      timestamp: Date.now(),
+    }),
+    [
+      processContext,
+      improvementHypotheses,
+      improvementLinkedFindings,
+      selectedIdeaIds,
+      convertedIdeaIds,
+    ]
+  );
+
+  const handleOpenImprovementPopout = useCallback(() => {
+    const popup = openImprovementPopout(buildImprovementSyncData());
+    improvementPopoutRef.current = popup;
+  }, [buildImprovementSyncData]);
+
+  // Keep popout in sync when data changes
+  useEffect(() => {
+    if (!improvementPopoutRef.current || improvementPopoutRef.current.closed) return;
+    updateImprovementPopout(buildImprovementSyncData());
+  }, [buildImprovementSyncData]);
+
+  // Listen for actions from the popout window
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key !== IMPROVEMENT_ACTION_KEY || !e.newValue) return;
+      try {
+        const action = JSON.parse(e.newValue) as ImprovementAction;
+        switch (action.type) {
+          case 'synthesis-change':
+            setProcessContext({ ...processContext, synthesis: action.text });
+            break;
+          case 'toggle-select':
+            hypothesesState.selectIdea(action.hypothesisId, action.ideaId, action.selected);
+            break;
+          case 'update-effort':
+            hypothesesState.updateIdea(action.hypothesisId, action.ideaId, {
+              effort: action.effort,
+            });
+            break;
+          case 'update-direction':
+            hypothesesState.updateIdea(action.hypothesisId, action.ideaId, {
+              direction: action.direction,
+            });
+            break;
+          case 'remove-idea':
+            hypothesesState.removeIdea(action.hypothesisId, action.ideaId);
+            break;
+          case 'add-idea':
+            hypothesesState.addIdea(action.hypothesisId, action.text);
+            break;
+          case 'convert-to-actions':
+            handleConvertIdeasToActions();
+            break;
+        }
+      } catch (err) {
+        console.error('[Editor] Failed to parse improvement action:', err);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [processContext, setProcessContext, hypothesesState, handleConvertIdeasToActions]);
 
   // Synthesis text change handler
   const handleSynthesisChange = useCallback(
@@ -987,6 +1085,7 @@ export const Editor: React.FC<EditorProps> = ({
         onAskCoScout={handleAskCoScoutFromIdeas}
         onConvertToActions={handleConvertIdeasToActions}
         onBack={() => panels.setIsImprovementOpen(false)}
+        onPopout={handleOpenImprovementPopout}
         selectedIdeaIds={selectedIdeaIds}
         convertedIdeaIds={convertedIdeaIds}
         targetCpk={processContext?.targetValue}
@@ -1287,6 +1386,9 @@ export const Editor: React.FC<EditorProps> = ({
                   coScoutOnRetry={coscout.retry}
                   investigationPhase={aiContext.context?.investigation?.phase}
                   coScoutSuggestedQuestions={suggestedQuestions}
+                  projectedCpkMap={projectedCpkMap}
+                  synthesis={processContext?.synthesis}
+                  linkedFindings={improvementLinkedFindings}
                 />
               </div>
             ) : (
@@ -1345,6 +1447,9 @@ export const Editor: React.FC<EditorProps> = ({
                 coScoutOnRetry={coscout.retry}
                 investigationPhase={aiContext.context?.investigation?.phase}
                 coScoutSuggestedQuestions={suggestedQuestions}
+                projectedCpkMap={projectedCpkMap}
+                synthesis={processContext?.synthesis}
+                linkedFindings={improvementLinkedFindings}
               />
             )}
             {/* CoScoutPanel: full-screen overlay on phone, inline sidebar on desktop */}

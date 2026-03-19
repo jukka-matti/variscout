@@ -751,4 +751,7 @@ export interface MessageCatalog {
   // Projected vs actual
   'outcome.projectedVsActual': string;
   'outcome.delta': string;
+
+  // Improvement convergence
+  'improve.convergenceNudge': string;
 }

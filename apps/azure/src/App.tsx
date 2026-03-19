@@ -12,6 +12,7 @@ import { useAdminAccess } from './hooks/useAdminAccess';
 import SettingsPanel from './components/settings/SettingsPanel';
 import { SyncToastContainer } from './components/SyncToast';
 import { ErrorBoundary, FindingsWindow } from '@variscout/ui';
+import ImprovementWindow from './components/ImprovementWindow';
 import { Activity, LogOut, Settings, Shield } from 'lucide-react';
 import { useTeamsContext, notifyTeamsFailure } from './teams';
 import { TeamsTabConfig } from './teams/TeamsTabConfig';
@@ -27,6 +28,17 @@ function App() {
     return (
       <ThemeProvider>
         <FindingsWindow />
+      </ThemeProvider>
+    );
+  }
+
+  // Popout window route: render standalone ImprovementWindow
+  if (urlParams.get('view') === 'improvement') {
+    return (
+      <ThemeProvider>
+        <LocaleProvider>
+          <ImprovementWindow />
+        </LocaleProvider>
       </ThemeProvider>
     );
   }

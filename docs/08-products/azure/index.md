@@ -10,11 +10,10 @@ VariScout for Microsoft 365 enterprises - the only paid product, distributed via
 
 ## Overview
 
-The Azure App is the **only paid VariScout product**, available in three plans:
+The Azure App is the **only paid VariScout product**, available in two plans per [ADR-033](../../07-decisions/adr-033-pricing-simplification.md):
 
-- **Standard (€99/month)**: Full analysis features, local file storage, EasyAuth SSO
-- **Team (€199/month)**: Everything in Standard + OneDrive/SharePoint sync, Teams integration, channel storage, photo capture
-- **Team AI (€279/month)**: Everything in Team + AI Knowledge Base, AI-enhanced CoScout, organizational learning
+- **Standard (€79/month)**: Full analysis features with CoScout AI, local file storage, EasyAuth SSO
+- **Team (€199/month)**: Everything in Standard + OneDrive/SharePoint sync, Teams integration, channel storage, photo capture, AI Knowledge Base, organizational learning
 
 All plans include all chart types, Performance Mode, and customer-controlled data (stays in their Azure tenant).
 
@@ -26,14 +25,14 @@ All plans include all chart types, Performance Mode, and customer-controlled dat
 
 VariScout Azure App is available on **Azure Marketplace** as a Managed Application:
 
-| Aspect           | Value                                                                  |
-| ---------------- | ---------------------------------------------------------------------- |
-| Offer type       | Managed Application                                                    |
-| Price            | €99/month (Standard), €199/month (Team), €279/month (Team AI)          |
-| Plans            | Standard, Team (+ OneDrive/SharePoint, Teams), Team AI (+ AI features) |
-| Billing          | Monthly (Microsoft, 3% fee)                                            |
-| Publisher access | Disabled (zero access to customer resources)                           |
-| Customer access  | Full control                                                           |
+| Aspect           | Value                                                                              |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| Offer type       | Managed Application                                                                |
+| Price            | €79/month (Standard), €199/month (Team)                                            |
+| Plans            | Standard (full analysis + AI), Team (+ OneDrive/SharePoint, Teams, Knowledge Base) |
+| Billing          | Monthly (Microsoft, 3% fee)                                                        |
+| Publisher access | Disabled (zero access to customer resources)                                       |
+| Customer access  | Full control                                                                       |
 
 All plans include:
 
@@ -50,12 +49,9 @@ Team plan adds:
 - Channel storage for shared projects
 - Photo capture with EXIF stripping (Teams SDK native camera + HTML5 fallback)
 - Automatic Teams Adaptive Cards posted to the channel when findings reach 'analyzed' or 'resolved' status (with @mentions, Cpk deltas, and deep links)
-
-Team AI plan adds:
-
-- AI Knowledge Base for organizational learning
-- AI-enhanced CoScout assistant
-- Organizational learning across analyses
+- AI Knowledge Base for organizational learning (Azure AI Search)
+- AI-enhanced CoScout assistant with methodology grounding
+- Report publishing to SharePoint for organizational learning
 
 **Billing**: Handled by Microsoft (3% fee). Supports enterprise procurement with purchase orders and invoicing.
 
@@ -152,8 +148,8 @@ All Managed Application deployments get full analysis features. The plan determi
 // Tier: always enterprise for Managed App deployments
 const tier = import.meta.env.VITE_LICENSE_TIER; // Always 'enterprise'
 
-// Plan: determines storage and collaboration features
-const plan = import.meta.env.VARISCOUT_PLAN; // 'standard', 'team', or 'team-ai'
+// Plan: determines storage, collaboration, and knowledge features
+const plan = import.meta.env.VARISCOUT_PLAN; // 'standard' or 'team'
 ```
 
 ---

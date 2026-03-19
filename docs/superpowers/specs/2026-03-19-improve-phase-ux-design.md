@@ -400,45 +400,22 @@ The following components and infrastructure have been implemented:
 | Effort in tool schema              | `@variscout/core` | `suggest_improvement_idea` includes effort field with definitions               |
 | Process context in narration       | `@variscout/core` | `product` and `measurement` in `buildSummaryPrompt`                             |
 
-### Future Work — Prioritized Roadmap
+### Roadmap — All Items Delivered
 
-The shared UI components (`ImprovementWorkspaceBase`, `SynthesisCard`, `IdeaGroupCard`, `ImprovementSummaryBar`) are delivered in `@variscout/ui`. The remaining work is app-level wiring and cross-feature integration.
+All P1–P4 roadmap items are fully delivered as of 2026-03-19.
 
-#### P1: App-Level Wiring (enables the workspace)
-
-These items connect the delivered components to the Azure app and make the workspace navigable.
-
-| #   | Item                                              | Scope              | Notes                                                                                                                                                    |
-| --- | ------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Azure Editor.tsx — workspace navigation tabs**  | `apps/azure`       | Add Analysis \| Findings \| Improvement tabs to header. Render `ImprovementWorkspaceBase` with state connections (findings, hypotheses, processContext). |
-| 2   | **Azure App.tsx — `?view=improvement` URL param** | `apps/azure`       | Popout support via URL parameter, BroadcastChannel sync with main window.                                                                                |
-| 3   | **`useIdeaSelection` hook**                       | `@variscout/hooks` | Track selected ideas across hypothesis groups, compute effort breakdown, handle batch conversion to ActionItems with ideaId FK.                          |
-| 4   | **Editor.tsx effort extraction**                  | `apps/azure`       | Extract `effort` from `suggest_improvement_idea` proposal params when creating ideas via CoScout.                                                        |
-
-#### P2: Board View + Report (surfaces synthesis)
-
-These items make the synthesis narrative visible in existing views.
-
-| #   | Item                                          | Scope           | Notes                                                                                                         |
-| --- | --------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------- |
-| 5   | **FindingBoardView — synthesis header**       | `@variscout/ui` | Read-only SynthesisCard above status columns when `processContext.synthesis` is populated.                    |
-| 6   | **ReportViewBase — Step 3 synthesis section** | `@variscout/ui` | Render `processContext.synthesis` in the "Suspected Cause" report section (Step 3: "Why Is This Happening?"). |
-| 7   | **CoachPopover — convergence nudge**          | `@variscout/ui` | "Ready to summarize?" prompt when investigation diamond reaches converging sub-phase.                         |
-
-#### P3: What-If Round-Trip (completes idea projection)
-
-These items close the idea → What-If → idea round-trip loop.
-
-| #   | Item                                           | Scope           | Notes                                                                                    |
-| --- | ---------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------- |
-| 8   | **WhatIfPageBase — "Save projection to idea"** | `@variscout/ui` | Button to save current What-If projection back to the linked idea record.                |
-| 9   | **`onOpenWhatIf` wiring**                      | `apps/azure`    | Connect IdeaGroupCard's What-If button to actual What-If page routing with idea context. |
-
-#### P4: Projected vs Actual (completes learning loop)
-
-| #   | Item                                      | Scope        | Notes                                                                                                                            |
-| --- | ----------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| 10  | **FindingCard `projectedCpk` resolution** | `apps/azure` | App-level logic to trace `action.ideaId → hypothesis.ideas[].projection.projectedCpk` and pass to FindingCard's outcome section. |
+| Phase | #   | Item                                         | Status    |
+| ----- | --- | -------------------------------------------- | --------- |
+| P1    | 1   | Azure Editor.tsx — workspace navigation tabs | Delivered |
+| P1    | 2   | Azure App.tsx — `?view=improvement` popout   | Delivered |
+| P1    | 3   | Idea selection (inline in Editor.tsx memos)  | Delivered |
+| P1    | 4   | Editor.tsx effort extraction                 | Delivered |
+| P2    | 5   | FindingBoardView — synthesis header          | Delivered |
+| P2    | 6   | ReportView — Step 3 synthesis section        | Delivered |
+| P2    | 7   | CoachPopover — convergence nudge             | Delivered |
+| P3    | 8   | WhatIfPageBase — "Save projection to idea"   | Delivered |
+| P3    | 9   | `onOpenWhatIf` wiring                        | Delivered |
+| P4    | 10  | FindingCard `projectedCpk` resolution        | Delivered |
 
 ## Related
 

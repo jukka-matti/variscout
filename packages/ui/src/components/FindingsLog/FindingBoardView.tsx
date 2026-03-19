@@ -9,6 +9,7 @@ import {
 } from '@variscout/core';
 import FindingCard from './FindingCard';
 import { STATUS_DOT_COLORS } from './FindingStatusBadge';
+import { SynthesisCard } from '../ImprovementPlan/SynthesisCard';
 
 export interface FindingBoardViewProps {
   findings: Finding[];
@@ -32,6 +33,12 @@ export interface FindingBoardViewProps {
   onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
   onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
   hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
+  /** Synthesis narrative for header card */
+  synthesis?: string;
+  /** Linked findings for synthesis card badges */
+  linkedFindings?: Array<{ id: string; text: string }>;
+  /** Projected Cpk map for FindingCard comparison display */
+  projectedCpkMap?: Record<string, number>;
   onAddAction?: (
     id: string,
     text: string,
@@ -77,6 +84,9 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
   onLinkHypothesis,
   onCreateHypothesis,
   hypothesesMap,
+  synthesis,
+  linkedFindings,
+  projectedCpkMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -103,6 +113,11 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
 
   return (
     <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1" data-testid="findings-board">
+      {synthesis && (
+        <div className="mb-4">
+          <SynthesisCard synthesis={synthesis} readOnly linkedFindings={linkedFindings} />
+        </div>
+      )}
       {FINDING_STATUSES.map(status => {
         const items = groups[status];
         const isExpanded = expanded[status];
@@ -160,6 +175,7 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                     onLinkHypothesis={onLinkHypothesis}
                     onCreateHypothesis={onCreateHypothesis}
                     hypothesesMap={hypothesesMap}
+                    projectedCpk={projectedCpkMap?.[finding.id]}
                     onAddAction={onAddAction}
                     onCompleteAction={onCompleteAction}
                     onDeleteAction={onDeleteAction}

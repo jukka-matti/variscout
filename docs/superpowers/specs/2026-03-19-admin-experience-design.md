@@ -2,7 +2,7 @@
 title: Admin Experience Design Spec
 audience: [developer, analyst]
 category: architecture
-status: draft
+status: delivered
 related: [admin, azure, diagnostics, health-check, troubleshooting]
 ---
 
@@ -46,19 +46,18 @@ Two standalone admin views behind a shield icon in the Azure app header:
 
 ### Tab Structure
 
-| Tab                 | What It Shows                                             | Status                |
-| ------------------- | --------------------------------------------------------- | --------------------- |
-| **Status**          | Health checks for all integrations                        | **New**               |
-| **Plan & Features** | Current plan, feature matrix, upgrade path                | **New**               |
-| **Teams Setup**     | Existing `AdminTeamsSetup` content                        | Exists                |
-| **Knowledge Base**  | Existing `AdminKnowledgeSetup` content                    | Exists (Team AI only) |
-| **Troubleshooting** | Common issues, diagnostic checks, Azure Portal deep links | **New**               |
+| Tab                 | What It Shows                                             | Status             |
+| ------------------- | --------------------------------------------------------- | ------------------ |
+| **Status**          | Health checks for all integrations                        | **New**            |
+| **Plan & Features** | Current plan, feature matrix, upgrade path                | **New**            |
+| **Teams Setup**     | Existing `AdminTeamsSetup` content                        | Exists             |
+| **Knowledge Base**  | Existing `AdminKnowledgeSetup` content                    | Exists (Team only) |
+| **Troubleshooting** | Common issues, diagnostic checks, Azure Portal deep links | **New**            |
 
 Tabs are conditionally shown based on plan:
 
 - **Standard:** Status, Plan & Features, Troubleshooting
-- **Team:** Status, Plan & Features, Teams Setup, Troubleshooting
-- **Team AI:** All five tabs
+- **Team:** All five tabs (Status, Plan & Features, Teams Setup, Knowledge Base, Troubleshooting)
 
 ### Layout
 
@@ -84,14 +83,14 @@ Full-page view within the Azure app (replaces current standalone admin screens).
 
 ### Browser-Runnable Health Checks
 
-| Check                | How                                    | What It Tests                             | Plan    |
-| -------------------- | -------------------------------------- | ----------------------------------------- | ------- |
-| Authentication       | `GET /.auth/me`                        | EasyAuth configured, user has valid token | All     |
-| Graph API — Profile  | `GET /me` via `graphFetch`             | User.Read permission granted              | All     |
-| Graph API — Files    | `GET /me/drive` via `graphFetch`       | Files.ReadWrite.All permission            | Team+   |
-| Graph API — Channels | `GET /me/joinedTeams` via `graphFetch` | Channel.ReadBasic.All permission          | Team+   |
-| AI Endpoint          | `GET {VITE_AI_ENDPOINT}`               | AI Services reachable                     | Team AI |
-| AI Search            | Test query via AI Search API           | Knowledge Base connectivity               | Team AI |
+| Check                | How                                    | What It Tests                             | Plan  |
+| -------------------- | -------------------------------------- | ----------------------------------------- | ----- |
+| Authentication       | `GET /.auth/me`                        | EasyAuth configured, user has valid token | All   |
+| Graph API — Profile  | `GET /me` via `graphFetch`             | User.Read permission granted              | All   |
+| Graph API — Files    | `GET /me/drive` via `graphFetch`       | Files.ReadWrite.All permission            | Team+ |
+| Graph API — Channels | `GET /me/joinedTeams` via `graphFetch` | Channel.ReadBasic.All permission          | Team+ |
+| AI Endpoint          | `GET {VITE_AI_ENDPOINT}`               | AI Services reachable                     | All   |
+| AI Search            | Test query via AI Search API           | Knowledge Base connectivity               | Team  |
 
 ### Display
 
@@ -115,7 +114,7 @@ Vertical checklist with status indicators:
 │   Requires Team plan                     │
 │                                          │
 │ ● AI Endpoint              ○ N/A        │
-│   Requires Team AI plan                  │
+│   Requires Team plan                     │
 │                                          │
 │          [Run All Checks]                │
 └──────────────────────────────────────────┘
@@ -156,19 +155,19 @@ Show these as a "Manage in Azure Portal" section with deep links. No fake health
 
 ### Feature Matrix
 
-| Feature                        | Standard | Team | Team AI |
-| ------------------------------ | -------- | ---- | ------- |
-| Analysis & charts              | ✓        | ✓    | ✓       |
-| Findings & investigation       | ✓        | ✓    | ✓       |
-| Local file storage (IndexedDB) | ✓        | ✓    | ✓       |
-| OneDrive sync                  | —        | ✓    | ✓       |
-| Teams integration              | —        | ✓    | ✓       |
-| SharePoint file picker         | —        | ✓    | ✓       |
-| Mobile photo capture           | —        | ✓    | ✓       |
-| AI narration & insights        | —        | —    | ✓       |
-| CoScout assistant              | —        | —    | ✓       |
-| Knowledge Base                 | —        | —    | ✓       |
-| Report publishing              | —        | —    | ✓       |
+| Feature                        | Standard | Team |
+| ------------------------------ | -------- | ---- |
+| Analysis & charts              | ✓        | ✓    |
+| Findings & investigation       | ✓        | ✓    |
+| Local file storage (IndexedDB) | ✓        | ✓    |
+| AI narration & insights        | ✓        | ✓    |
+| CoScout assistant              | ✓        | ✓    |
+| OneDrive sync                  | —        | ✓    |
+| Teams integration              | —        | ✓    |
+| SharePoint file picker         | —        | ✓    |
+| Mobile photo capture           | —        | ✓    |
+| Knowledge Base                 | —        | ✓    |
+| Report publishing              | —        | ✓    |
 
 ### Display
 
@@ -176,10 +175,10 @@ Show these as a "Manage in Azure Portal" section with deep links. No fake health
 ┌──────────────────────────────────────────┐
 │ Your Plan: Team                          │
 │                                          │
-│ ┌────────┐ ┌────────┐ ┌────────┐        │
-│ │Standard│ │ Team ← │ │Team AI │        │
-│ │ €99/mo │ │€199/mo │ │€279/mo │        │
-│ └────────┘ └────────┘ └────────┘        │
+│ ┌────────┐ ┌────────┐                    │
+│ │Standard│ │ Team ← │                    │
+│ │ €79/mo │ │€199/mo │                    │
+│ └────────┘ └────────┘                    │
 │                                          │
 │ Feature matrix table...                  │
 │                                          │
@@ -190,8 +189,8 @@ Show these as a "Manage in Azure Portal" section with deep links. No fake health
 └──────────────────────────────────────────┘
 ```
 
-- Current plan determined from `VITE_VARISCOUT_PLAN` env var + `isTeamPlan()` / `isTeamAIPlan()` from `@variscout/core/tier`
-- Pricing from `docs/08-products/tier-philosophy.md`
+- Current plan determined from `VITE_VARISCOUT_PLAN` env var + `hasTeamFeatures()` / `hasKnowledgeBase()` from `@variscout/core/tier`
+- Pricing from `docs/08-products/tier-philosophy.md` (Standard €79/month, Team €199/month)
 - Upgrade link: Azure Marketplace subscription management
 
 ---
@@ -204,7 +203,7 @@ Existing `AdminTeamsSetup` component, unchanged. Generates Teams manifest (manif
 
 ## Tab: Knowledge Base (Existing)
 
-Existing `AdminKnowledgeSetup` component, unchanged. Shows KB connectivity, preview toggle, folder selection via `useFilePicker`. Only visible for Team AI plan.
+Existing `AdminKnowledgeSetup` component, unchanged. Shows KB connectivity, preview toggle, folder selection via `useFilePicker`. Only visible for Team plan.
 
 ---
 
@@ -346,12 +345,12 @@ apps/azure/src/
 
 ## Implementation Sequence
 
-This is a **documentation + design** deliverable. Code implementation is a separate follow-up:
+All four phases have been delivered:
 
-1. **Phase 1:** Admin Hub shell with tabs, migrate existing screens into tabs
-2. **Phase 2:** Status tab (health checks) + Plan & Features tab
-3. **Phase 3:** Troubleshooting tab with diagnostic checks
-4. **Phase 4:** Admin role gating via Entra ID App Roles — **Implemented**
+1. **Phase 1:** Admin Hub shell with tabs, existing screens migrated into tabs — **Delivered**
+2. **Phase 2:** Status tab (health checks) + Plan & Features tab — **Delivered**
+3. **Phase 3:** Troubleshooting tab with diagnostic checks — **Delivered**
+4. **Phase 4:** Admin role gating via Entra ID App Roles — **Delivered**
 
 ---
 

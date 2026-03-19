@@ -6,6 +6,7 @@ import type {
   Hypothesis,
   EntryScenario,
 } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import { DiamondPhaseMap } from './DiamondPhaseMap';
 import { PDCAProgress } from './PDCAProgress';
 
@@ -60,6 +61,7 @@ const CoachPopover: React.FC<CoachPopoverProps> = ({
   hypotheses,
   hasStagedData,
 }) => {
+  const { t } = useTranslation();
   return (
     <div
       className="w-72 bg-surface-secondary border border-edge rounded-xl shadow-xl p-3 space-y-3"
@@ -129,6 +131,9 @@ const CoachPopover: React.FC<CoachPopoverProps> = ({
       {phase === 'improve' && (
         <>
           <PDCAProgress findings={findings ?? []} hypotheses={hypotheses} />
+          {investigationPhase === 'converging' && (
+            <p className="text-xs text-purple-400 mt-2 italic">{t('improve.convergenceNudge')}</p>
+          )}
           {hasStagedData && (
             <div>
               <div className="text-[10px] uppercase tracking-wider text-content-muted font-medium mb-1.5">

@@ -14,7 +14,7 @@ Why features are gated where they are — the reasoning behind VariScout's produ
 
 ## Capability Maturity Model
 
-VariScout has four purchasable tiers, each targeting a different maturity level:
+VariScout has two paid plans, each targeting a different maturity level:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -25,38 +25,32 @@ VariScout has four purchasable tiers, each targeting a different maturity level:
 │  Session-only (no persistence). 3 factors, 50K rows.            │
 │                                                                 │
 │  Azure Standard      "Analyze your own data"                    │
-│  (€99/month)                                                    │
+│  (€79/month)                                                    │
 │  ────────────────────────────────────────────                   │
 │  + File upload, save/load, Performance Mode                     │
 │  + 6 factors, 100K rows, closed-loop investigations             │
 │  + Local files (File System Access API + IndexedDB)             │
+│  + CoScout AI (optional, customer-deployed Azure AI Foundry)    │
 │                                                                 │
-│  Azure Team           "Collaborate with your team"              │
+│  Azure Team           "Collaborate and build knowledge"         │
 │  (€199/month)                                                   │
 │  ────────────────────────────────────────────                   │
 │  + Teams integration (SSO, channel tabs, Adaptive Cards)        │
 │  + OneDrive + SharePoint channel file storage                   │
 │  + Mobile gemba access, photo evidence in findings              │
-│                                                                 │
-│  Azure Team AI        "Build organizational knowledge"          │
-│  (€279/month)                                                   │
-│  ────────────────────────────────────────────                   │
-│  + AI Knowledge Base (Azure AI Search index of findings)        │
-│  + Enhanced CoScout (methodology-grounded, knowledge-aware)     │
-│  + Organizational learning from resolved findings               │
+│  + AI Knowledge Base (Azure AI Search + organizational learning)│
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### AI as Horizontal Capability
+### AI Included in All Plans
 
-AI features (NarrativeBar, ChartInsightChips, CoScout) are **not tier-gated**. They are available on any Azure plan when the customer deploys Azure AI Foundry resources in their tenant. The Team AI plan adds the **Knowledge Base layer** — the organizational memory that makes AI progressively smarter from resolved findings.
+Per [ADR-033](../07-decisions/adr-033-pricing-simplification.md), AI features (NarrativeBar, ChartInsightChips, CoScout) are **included in all Azure plans** when the customer deploys Azure AI Foundry resources in their tenant. The Team plan adds the **Knowledge Base layer** — the organizational memory that makes AI progressively smarter from resolved findings.
 
 This means:
 
-- A Standard customer can have AI narration and CoScout
-- A Team customer can have AI narration and CoScout
-- Only Team AI adds the managed knowledge index and cross-project retrieval
+- A Standard customer can have AI narration, CoScout, and chart insights
+- A Team customer gets everything in Standard plus the managed knowledge index and cross-project retrieval
 
 AI is an optional deployment add-on, not a sequential upgrade step.
 
@@ -80,13 +74,13 @@ The Standard-to-Team upgrade is about **who** uses the tool, not **what** it doe
 
 ### Principle 3: Knowledge Compounds at Scale
 
-Organizational learning only delivers value when multiple people contribute findings over time. Gating the knowledge base to Team AI ensures the feature reaches customers who have the team structure to generate enough resolved findings (target: 50+) for meaningful AI knowledge.
+Organizational learning only delivers value when multiple people contribute findings over time. Gating the knowledge base to the Team plan ensures the feature reaches customers who have the team structure to generate enough resolved findings (target: 50+) for meaningful AI knowledge.
 
-**Applied:** AI Knowledge Base, organizational learning, and cross-project queries are Team AI only. Individual analysis AI (narration, chips, CoScout) is available on any Azure plan.
+**Applied:** AI Knowledge Base, organizational learning, and cross-project queries are Team only. Core AI (narration, chips, CoScout) is available on any Azure plan.
 
 ### Principle 4: Never Gate Core Analysis
 
-No chart type, statistical calculation, or analytical capability is tier-gated (except Performance Mode, which requires file upload). A PWA user and an Azure Team AI user see the same I-Chart, the same Cpk calculation, the same η² value.
+No chart type, statistical calculation, or analytical capability is tier-gated (except Performance Mode, which requires file upload). A PWA user and an Azure Team user see the same I-Chart, the same Cpk calculation, the same η² value.
 
 **Applied:** All 4 chart types, ANOVA, Nelson Rules, capability metrics, drill-down, and linked filtering are in every tier.
 
@@ -94,7 +88,7 @@ No chart type, statistical calculation, or analytical capability is tier-gated (
 
 Features that require Azure infrastructure (SSO, Graph API, AI Foundry) naturally belong in Azure tiers. Features that require team infrastructure (SharePoint, Teams SDK) naturally belong in Team tiers.
 
-**Applied:** EasyAuth → Standard+. Graph API (OneDrive/SharePoint) → Team+. Azure AI Search → Team AI.
+**Applied:** EasyAuth → Standard+. Graph API (OneDrive/SharePoint) → Team. Azure AI Search → Team.
 
 ### Principle 6: Upgrade Triggers Should Be Natural
 
@@ -105,7 +99,7 @@ Users shouldn't feel manipulated. They should hit a genuine ceiling that makes t
 | "I need to upload a CSV file"  | Natural limitation | Standard   |
 | "I need to save my analysis"   | Natural limitation | Standard   |
 | "I need my team to see this"   | Collaboration need | Team       |
-| "What did we learn last time?" | Knowledge need     | Team AI    |
+| "What did we learn last time?" | Knowledge need     | Team       |
 
 ### Principle 7: PWA and Azure Must Feel Like the Same Product
 
@@ -139,14 +133,6 @@ The specific moments where each ceiling becomes visible.
 | No mobile access     | Can't review charts during gemba walks           | Shop floor visits    |
 | No photo evidence    | Can't attach photos to findings                  | Field investigations |
 
-### Team → Team AI
-
-| Ceiling                    | User Experience                                    | Frequency          |
-| -------------------------- | -------------------------------------------------- | ------------------ |
-| No knowledge base          | "Have we seen this before?" requires manual search | Recurring issues   |
-| No document retrieval      | Must manually look up SOPs and fault trees         | Each investigation |
-| No organizational learning | Each investigation starts from scratch             | Knowledge gaps     |
-
 ---
 
 ## Implementation
@@ -156,14 +142,14 @@ The specific moments where each ceiling becomes visible.
 ```typescript
 // packages/core/src/tier.ts
 type LicenseTier = 'free' | 'enterprise'; // PWA vs Azure
-type MarketplacePlan = 'standard' | 'team' | 'team-ai'; // Azure plans
+type MarketplacePlan = 'standard' | 'team'; // Azure plans
 
 // Feature gating functions
 getTier(); // → 'free' (PWA) or 'enterprise' (all Azure)
-getPlan(); // → 'standard', 'team', or 'team-ai'
+getPlan(); // → 'standard' or 'team'
 isPaidTier(); // → true for any Azure plan
-hasTeamFeatures(); // → true for 'team' or 'team-ai'
-isTeamAIPlan(); // → true for 'team-ai' only
+hasTeamFeatures(); // → true for 'team'
+hasKnowledgeBase(); // → true for 'team' (KB is a Team feature)
 ```
 
 The ARM template passes `VARISCOUT_PLAN` environment variable. All Azure deployments are `enterprise` tier; the plan controls which collaboration and knowledge features are enabled.

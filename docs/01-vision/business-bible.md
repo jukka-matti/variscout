@@ -23,7 +23,7 @@ Each hypothesis has a statement, supporting evidence, invalidation criteria, and
 **Evidence for:**
 
 - Market analysis confirms VariScout targets the "lightweight quality analytics" segment (~10-15% of $1.05B SPC market)
-- Minitab pricing (~€135-155/user/month) vs VariScout unlimited users from €99/month
+- Minitab pricing (~€135-155/user/month) vs VariScout unlimited users from €79/month
 - Grace Mwangi persona: "I calculate averages, standard deviations, make charts... I need maybe 20% of what Minitab offers"
 
 **Evidence against:** None observed yet (pre-launch).
@@ -110,7 +110,7 @@ Each hypothesis has a statement, supporting evidence, invalidation criteria, and
 
 ### H6: Per-Deployment Pricing Beats Per-User
 
-**Statement:** Unlimited users per deployment (from €99/month) creates better value perception for teams than per-seat pricing, which penalizes collaboration.
+**Statement:** Unlimited users per deployment (from €79/month) creates better value perception for teams than per-seat pricing, which penalizes collaboration.
 
 **Evidence for:**
 
@@ -185,21 +185,13 @@ Each hypothesis has a statement, supporting evidence, invalidation criteria, and
 
 ---
 
-### H10: Team AI Premium Justifies Itself
+### H10: ~~Team AI Premium Justifies Itself~~ — Superseded by ADR-033
 
-**Statement:** Organizations investing in AI Knowledge Base (Azure AI Search knowledge base (Remote SharePoint team documents)) will see enough investigation time savings to justify the €80/month premium over Azure Team (€279 vs €199).
+**Status:** Superseded by [ADR-033](../07-decisions/adr-033-pricing-simplification.md). The Team AI tier was removed — AI is now included in all plans, and the Knowledge Base moved to the Team plan. The hypothesis is no longer testable as designed because the €80 premium no longer exists.
 
-**Evidence for:**
+**Original statement:** Organizations investing in AI Knowledge Base would see enough investigation time savings to justify the €80/month premium over Azure Team (€279 vs €199).
 
-- CoScout can reference past findings: "You've seen this pattern 3 times. Nozzle wear was the cause 67% of the time."
-- Document retrieval (SOPs, fault trees from SharePoint) reduces context-switching
-- ISO 9001:2026 emphasis on data-driven decisions aligns with knowledge base approach
-
-**Evidence against:** Requires AI resource deployment + ongoing Azure consumption costs beyond the subscription price.
-
-**Invalidation criteria:** If Team AI churn exceeds Team churn by >2×, the premium doesn't deliver perceived value.
-
-**Status:** Untested
+**Why superseded:** The three-plan model created upsell friction. Simplifying to two plans (Standard €79, Team €199) with AI included in all plans removes the barrier to AI adoption and pairs the Knowledge Base with team collaboration features where it naturally belongs.
 
 ---
 
@@ -231,21 +223,13 @@ Five layers of value, each building on the previous:
 
 **Available in:** Azure plans (optional, customer-deployed Azure AI Foundry).
 
-### L4: Team Collaboration
+### L4: Team Collaboration + Knowledge
 
-**What:** Teams integration, OneDrive/SharePoint sync, mobile gemba access, photo evidence, Adaptive Cards.
+**What:** Teams integration, OneDrive/SharePoint sync, mobile gemba access, photo evidence, Adaptive Cards, AI Knowledge Base (Azure AI Search), cross-project queries, document retrieval, measurement-backed organizational memory.
 
-**Why it matters:** Quality is a team sport. Sharing findings, assigning actions, and reviewing on the shop floor multiplies impact.
+**Why it matters:** Quality is a team sport. Sharing findings, assigning actions, reviewing on the shop floor, and building organizational knowledge multiplies impact. Organizations stop rediscovering the same root causes.
 
-**Available in:** Azure Team and Team AI plans.
-
-### L5: Organizational Learning
-
-**What:** AI Knowledge Base (Azure AI Search), cross-project queries, document retrieval, measurement-backed organizational memory.
-
-**Why it matters:** Organizations stop rediscovering the same root causes. Knowledge compounds across projects and teams.
-
-**Available in:** Azure Team AI plan.
+**Available in:** Azure Team plan.
 
 ---
 
@@ -260,20 +244,14 @@ Five layers of value, each building on the previous:
                              ▼
                     ┌──────────────────┐
                     │  Azure Standard  │
-                    │  (€99/month)     │◄──── "I need file upload, save,
-                    └────────┬─────────┘      Performance Mode"
-                             │ team needs collaboration
+                    │  (€79/month)     │◄──── "I need file upload, save,
+                    └────────┬─────────┘      Performance Mode, AI"
+                             │ team needs collaboration + knowledge
                              ▼
                     ┌──────────────────┐
                     │   Azure Team     │
                     │  (€199/month)    │◄──── "I need Teams, mobile,
-                    └────────┬─────────┘      shared storage"
-                             │ AI knowledge compounds
-                             ▼
-                    ┌──────────────────┐
-                    │  Azure Team AI   │
-                    │  (€279/month)    │◄──── "I need AI Knowledge Base,
-                    └────────┬─────────┘      organizational memory"
+                    └────────┬─────────┘      shared storage, Knowledge Base"
                              │
                              │ resolved findings feed back
                              ▼
@@ -304,7 +282,7 @@ Consolidated from [UX Research](../02-journeys/ux-research.md) and [Journey Pers
 | **Carlos Mendez**   | Training Coordinator (coffee)  | Educational tool for farmers   | Course link        | PWA (free)      |
 | **Green Belt Gary** | Quality Engineer, GB certified | Better tools than Excel        | Google, LinkedIn   | PWA → Standard  |
 | **Curious Carlos**  | Operations Supervisor          | Understand variation           | YouTube, TikTok    | PWA → Standard  |
-| **OpEx Olivia**     | OpEx Manager                   | Tools for her team             | Referral, LinkedIn | Team → Team AI  |
+| **OpEx Olivia**     | OpEx Manager                   | Tools for her team             | Referral, LinkedIn | Team            |
 | **Student Sara**    | LSS trainee                    | Learn methodology              | Course link        | PWA (free)      |
 | **Evaluator Erik**  | IT/Procurement                 | Assess for organization        | Direct link        | Team            |
 | **Trainer Tina**    | LSS Trainer/Consultant         | Tools for courses & clients    | LinkedIn           | PWA + Standard  |
@@ -316,14 +294,13 @@ Consolidated from [UX Research](../02-journeys/ux-research.md) and [Journey Pers
 
 The explicit progression from free to maximum value, with the trigger moments that drive each upgrade.
 
-| From         | To                    | Trigger Moment                                                           | What They Gain                                           |
-| ------------ | --------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------- |
-| —            | **PWA (Free)**        | Finds VariScout via search, training, or referral                        | Core analysis, Four Lenses, sample datasets              |
-| **PWA**      | **Standard (€99/mo)** | Hits PWA ceiling: needs file upload, save, Performance Mode, >3 factors  | Full analysis suite, persistence, 6 factors, 100K rows   |
-| **Standard** | **Team (€199/mo)**    | Team needs collaboration: shared files, mobile access, Teams integration | OneDrive, SharePoint, Teams tabs, mobile gemba, photos   |
-| **Team**     | **Team AI (€279/mo)** | Wants AI Knowledge Base, organizational memory from resolved findings    | AI Search index, enhanced CoScout, cross-project queries |
+| From         | To                    | Trigger Moment                                                                           | What They Gain                                                            |
+| ------------ | --------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| —            | **PWA (Free)**        | Finds VariScout via search, training, or referral                                        | Core analysis, Four Lenses, sample datasets                               |
+| **PWA**      | **Standard (€79/mo)** | Hits PWA ceiling: needs file upload, save, Performance Mode, AI, >3 factors              | Full analysis suite + CoScout AI, persistence, 6 factors, 100K rows       |
+| **Standard** | **Team (€199/mo)**    | Team needs collaboration: shared files, mobile access, Teams integration, Knowledge Base | OneDrive, SharePoint, Teams tabs, mobile gemba, photos, AI Knowledge Base |
 
-AI features (NarrativeBar, ChartInsightChips, CoScout) are available as an optional capability on any Azure plan — the customer deploys their own Azure AI Foundry resources. Team AI adds the managed Knowledge Base layer on top.
+AI features (NarrativeBar, ChartInsightChips, CoScout) are included in all Azure plans — the customer deploys their own Azure AI Foundry resources. The Team plan adds the managed Knowledge Base layer on top.
 
 ---
 

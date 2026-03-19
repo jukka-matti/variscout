@@ -10,14 +10,13 @@ Complete feature availability across VariScout platforms.
 
 ## Platform Overview
 
-| Platform           | Primary Use                           | Status      | Distribution      | Price      |
-| ------------------ | ------------------------------------- | ----------- | ----------------- | ---------- |
-| **Azure Standard** | Full analysis, local file storage     | **PRIMARY** | Azure Marketplace | €99/month  |
-| **Azure Team**     | + Teams, cloud storage, mobile        | **PRIMARY** | Azure Marketplace | €199/month |
-| **Azure Team AI**  | + AI Knowledge Base, enhanced CoScout | **PRIMARY** | Azure Marketplace | €279/month |
-| **PWA**            | Training & education                  | Production  | Direct URL        | FREE       |
+| Platform           | Primary Use                                       | Status      | Distribution      | Price      |
+| ------------------ | ------------------------------------------------- | ----------- | ----------------- | ---------- |
+| **Azure Standard** | Full analysis with CoScout AI, local file storage | **PRIMARY** | Azure Marketplace | €79/month  |
+| **Azure Team**     | + Teams, cloud storage, mobile, AI Knowledge Base | **PRIMARY** | Azure Marketplace | €199/month |
+| **PWA**            | Training & education                              | Production  | Direct URL        | FREE       |
 
-> Per [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md), Azure App is the only paid product with a three-plan model: Standard (€99/month), Team (€199/month), and Team AI (€279/month). All are Azure Marketplace Managed Applications. PWA is free forever. See [ADR-016](../07-decisions/adr-016-teams-integration.md) for Teams integration design and [ADR-019](../07-decisions/adr-019-ai-integration.md) for AI integration design.
+> Per [ADR-033](../07-decisions/adr-033-pricing-simplification.md), Azure App is the only paid product with a two-plan model: Standard (€79/month) and Team (€199/month). AI is included in all plans. Knowledge Base is a Team feature. All are Azure Marketplace Managed Applications. PWA is free forever. See [ADR-016](../07-decisions/adr-016-teams-integration.md) for Teams integration design and [ADR-019](../07-decisions/adr-019-ai-integration.md) for AI integration design.
 
 ---
 
@@ -34,7 +33,7 @@ Complete feature availability across VariScout platforms.
 | **Boxplot category sorting** |       ✓        |     ✓      |     ✓      |
 | **Performance Mode**         |       ✓        |     ✓      |     -      |
 
-> PWA includes core analysis charts plus Green Belt tools for training. Performance Mode requires the Azure App (either plan).
+> PWA includes core analysis charts plus Green Belt tools for training. Performance Mode requires the Azure App.
 
 ---
 
@@ -65,7 +64,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Hypothesis Investigation**      |       ✓        |     ✓      |   Basic    | PWA: single hypothesis per finding, auto-validation, max 5. Azure Standard: + hypothesis tree (depth 3, max 30), gemba/expert tasks, progress tracking, tree view, CoScout investigation sidebar. Azure Team: + Teams auto-post on convergence, task assignment              |
 | **Improvement Ideas**             |       ✓        |     ✓      |     -      | Brainstorm and evaluate ideas on supported hypotheses. Impact badge from What-If projection, effort rating, CoScout ideation coaching. Requires hypothesis tree (no PWA)                                                                                                     |
 | **Improvement Workspace**         |       ✓        |     ✓      |     -      | Full-page improvement planning: synthesis card, idea groups by hypothesis, effort dropdowns, convert to actions. PWA stops at Analyzed status.                                                                                                                               |
-| **Convergence Synthesis**         |       ✓        |     ✓      |     -      | Editable suspected cause narrative (max 500 chars). CoScout can draft (Team AI only).                                                                                                                                                                                        |
+| **Convergence Synthesis**         |       ✓        |     ✓      |     -      | Editable suspected cause narrative (max 500 chars). CoScout can draft.                                                                                                                                                                                                       |
 | **What-If Simulator**             |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                                                                              |
 | **Keyboard navigation**           |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                                                                              |
 | **Copy chart to clipboard**       |       ✓        |     ✓      |     ✓      | Includes filter context bar when active                                                                                                                                                                                                                                      |
@@ -75,7 +74,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Create Factor**                 |       ✓        |     ✓      |     ✓      | From point selection                                                                                                                                                                                                                                                         |
 | **Focus mode (fullscreen chart)** |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                                                                              |
 | **Presentation Mode**             |       ✓        |     ✓      |     -      | Full-screen grid overview + focused chart view                                                                                                                                                                                                                               |
-| **Scouting Report (Report View)** |       ✓        |     ✓      |     -      | Story-driven report with 5 steps, chart snapshots per finding, copy-as-slide, Teams deep link sharing. Staged verification evidence in Step 5 (Team/Team AI). AI prose blocks in Team AI plan.                                                                               |
+| **Scouting Report (Report View)** |       ✓        |     ✓      |     -      | Story-driven report with 5 steps, chart snapshots per finding, copy-as-slide, Teams deep link sharing. Staged verification evidence in Step 5 (Team). AI prose blocks when AI available.                                                                                     |
 | **Save as PDF (Report)**          |       ✓        |     ✓      |     -      | Print stylesheet + `window.print()` — produces professional PDF from Report View                                                                                                                                                                                             |
 | **Median in Stats Panel**         |       ✓        |     ✓      |     ✓      | Always shown alongside Mean                                                                                                                                                                                                                                                  |
 | **Spec editing (Stats)**          |       ✓        |     ✓      |     ✓      | `onEditSpecs` callback; pencil link opens SpecEditor popover                                                                                                                                                                                                                 |
@@ -120,28 +119,29 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Screenshot export**      |                  ✓                   |                  ✓                  |     ✓      |                                               |
 | **Sync notifications**     |                  -                   |                  ✓                  |     -      | Toast feedback for sync status, errors, auth  |
 | **SharePoint file picker** |                  -                   |                  ✓                  |     -      | Browse SP for import, open, save-as (ADR-030) |
-| **Report publish URL**     |                  -                   |          ✓ (Team AI only)           |     -      | Clickable "Open in SharePoint" after publish  |
+| **Report publish URL**     |                  -                   |                  ✓                  |     -      | Clickable "Open in SharePoint" after publish  |
 
 ---
 
 ## AI Features
 
-| Feature                         | Azure Standard | Azure Team | Azure Team AI | PWA (Free) | Notes                                                                   |
-| ------------------------------- | :------------: | :--------: | :-----------: | :--------: | ----------------------------------------------------------------------- |
-| **NarrativeBar**                |    Optional    |  Optional  |   Optional    |     -      | Plain-language analysis summary at dashboard bottom                     |
-| **ChartInsightChip**            |    Optional    |  Optional  |   Optional    |     -      | Per-chart contextual suggestions                                        |
-| **CoScoutPanel**                |    Optional    |  Optional  |   Enhanced    |     -      | Team AI: methodology-grounded, knowledge-base-aware                     |
-| **AI Knowledge Base**           |       -        |     -      |       ✓       |     -      | Remote SharePoint knowledge search via Azure AI Search (Team AI only)   |
-| **Organizational learning**     |       -        |     -      |       ✓       |     -      | Published scouting reports feed back into knowledge base (Team AI only) |
-| **Process description field**   |    Optional    |  Optional  |   Optional    |     -      | Free-text process context for AI grounding                              |
-| **AI visibility toggle**        |    Optional    |  Optional  |   Optional    |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists  |
-| **Knowledge Base Search**       |       -        |     -      | Yes (preview) |     -      | On-demand search via Remote SharePoint knowledge source (Team AI only)  |
-| **KB Freshness Indicator**      |       -        |     -      |       ✓       |     -      | Scope label + relative timestamp below KB results                       |
-| **KB Permission Warning**       |       -        |     -      |       ✓       |     -      | Amber warning when admin consent missing for SharePoint                 |
-| **Findings Export (CSV/JSON)**  |       -        |     ✓      |       ✓       |     -      | Download findings as CSV (Excel-compatible) or structured JSON          |
-| **Findings Export (AI Report)** |       -        |     -      |       ✓       |     -      | AI-generated quality engineering report from findings data              |
+| Feature                         | Azure Standard | Azure Team | PWA (Free) | Notes                                                                              |
+| ------------------------------- | :------------: | :--------: | :--------: | ---------------------------------------------------------------------------------- |
+| **NarrativeBar**                |    Optional    |  Optional  |     -      | Plain-language analysis summary at dashboard bottom                                |
+| **ChartInsightChip**            |    Optional    |  Optional  |     -      | Per-chart contextual suggestions                                                   |
+| **CoScoutPanel**                |    Optional    |  Enhanced  |     -      | Team: methodology-grounded, knowledge-base-aware                                   |
+| **AI Knowledge Base**           |       -        |     ✓      |     -      | Remote SharePoint knowledge search via Azure AI Search (Team only)                 |
+| **Organizational learning**     |       -        |     ✓      |     -      | Published scouting reports feed back into knowledge base (Team only)               |
+| **Process description field**   |    Optional    |  Optional  |     -      | Free-text process context for AI grounding                                         |
+| **AI visibility toggle**        |    Optional    |  Optional  |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists             |
+| **Knowledge Base Search**       |       -        |  Preview   |     -      | On-demand search via Remote SharePoint knowledge source (Team only)                |
+| **KB Freshness Indicator**      |       -        |     ✓      |     -      | Scope label + relative timestamp below KB results                                  |
+| **KB Permission Warning**       |       -        |     ✓      |     -      | Amber warning when admin consent missing for SharePoint                            |
+| **Findings Export (CSV/JSON)**  |       ✓        |     ✓      |     -      | Download findings as CSV (Excel-compatible) or structured JSON                     |
+| **Findings Export (AI Report)** |    Optional    |  Optional  |     -      | AI-generated quality engineering report from findings data                         |
+| **Admin Hub**                   |       ✓        |     ✓      |     -      | Health checks, plan overview, Teams setup (Team), KB setup (Team), troubleshooting |
 
-> AI features require customer-deployed Azure AI Foundry resources (optional ARM deployment checkbox). See [ADR-019](../07-decisions/adr-019-ai-integration.md). PWA never has AI.
+> AI features require customer-deployed Azure AI Foundry resources (optional ARM deployment checkbox). AI is included in all Azure plans per [ADR-033](../07-decisions/adr-033-pricing-simplification.md). See [ADR-019](../07-decisions/adr-019-ai-integration.md). PWA never has AI.
 
 ---
 
@@ -226,16 +226,16 @@ Features that behave differently on phone (<640px) versus desktop.
 
 ## Licensing & Pricing
 
-| Aspect            | Azure Standard                       | Azure Team                                    | Azure Team AI                                            | PWA (Free)                                                |
-| ----------------- | ------------------------------------ | --------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------- |
-| **Distribution**  | Azure Marketplace                    | Azure Marketplace                             | Azure Marketplace                                        | Direct URL                                                |
-| **Pricing**       | €99/month                            | €199/month                                    | €279/month                                               | FREE (forever)                                            |
-| **Billing**       | Monthly (Managed Application)        | Monthly (Managed Application)                 | Monthly (Managed Application)                            | N/A                                                       |
-| **Users**         | Unlimited (per-deployment)           | Unlimited (per-deployment)                    | Unlimited (per-deployment)                               | N/A                                                       |
-| **Features**      | All analysis features                | All analysis + Teams + cloud storage + mobile | All Team features + AI Knowledge Base + enhanced CoScout | Core analysis + Green Belt (no Performance Mode, no save) |
-| **Auth**          | EasyAuth / Entra (User.Read)         | EasyAuth + Teams SSO (+ Files, Channels)      | EasyAuth + Teams SSO (+ Files, Channels)                 | None                                                      |
-| **Storage**       | Local files (File System Access API) | + OneDrive + SharePoint channels              | + OneDrive + SharePoint channels + AI Search             | Session-only                                              |
-| **Admin consent** | None                                 | Required (one-time)                           | Required (one-time)                                      | N/A                                                       |
+| Aspect            | Azure Standard                       | Azure Team                                                        | PWA (Free)                                                |
+| ----------------- | ------------------------------------ | ----------------------------------------------------------------- | --------------------------------------------------------- |
+| **Distribution**  | Azure Marketplace                    | Azure Marketplace                                                 | Direct URL                                                |
+| **Pricing**       | €79/month                            | €199/month                                                        | FREE (forever)                                            |
+| **Billing**       | Monthly (Managed Application)        | Monthly (Managed Application)                                     | N/A                                                       |
+| **Users**         | Unlimited (per-deployment)           | Unlimited (per-deployment)                                        | N/A                                                       |
+| **Features**      | All analysis + CoScout AI            | All analysis + Teams + cloud storage + mobile + AI Knowledge Base | Core analysis + Green Belt (no Performance Mode, no save) |
+| **Auth**          | EasyAuth / Entra (User.Read)         | EasyAuth + Teams SSO (+ Files, Channels)                          | None                                                      |
+| **Storage**       | Local files (File System Access API) | + OneDrive + SharePoint channels + AI Search                      | Session-only                                              |
+| **Admin consent** | None                                 | Required (one-time)                                               | N/A                                                       |
 
 ---
 
@@ -266,9 +266,6 @@ Features that behave differently on phone (<640px) versus desktop.
 - Sync notifications (toast feedback for cloud operations)
 - Team assignment on corrective actions (people picker for team members)
 - Teams auto-posting on finding analyzed + resolved status changes
-
-### Azure Team AI Only (vs Team)
-
 - AI Knowledge Base via Azure AI Search (Remote SharePoint knowledge source)
 - AI-enhanced CoScout with methodology-grounded assistant
 - Report publishing to SharePoint (searchable by future investigations)
@@ -286,7 +283,8 @@ Features that behave differently on phone (<640px) versus desktop.
 | Feature                              | Target Platform       | Status                          |
 | ------------------------------------ | --------------------- | ------------------------------- |
 | AI Integration (Phases 1–3)          | Azure Standard + Team | Delivered (March 2026)          |
-| AI Knowledge Base (Phase 3)          | Azure Team AI         | Delivered (March 2026, preview) |
+| AI Knowledge Base (Phase 3)          | Azure Team            | Delivered (March 2026, preview) |
+| Admin Hub (4 phases)                 | Azure Standard + Team | Delivered (March 2026)          |
 | Closed-loop investigations           | Azure Standard + Team | Delivered (ADR-015)             |
 | Findings Export (CSV/JSON/AI Report) | Azure Standard+       | Delivered (March 2026)          |
 

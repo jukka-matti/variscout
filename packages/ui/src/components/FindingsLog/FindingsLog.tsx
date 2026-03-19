@@ -143,6 +143,12 @@ export interface FindingsLogProps {
   processContext?: ProcessContext;
   /** Callback for AI report generation (requires AI endpoint) */
   onGenerateAIReport?: () => Promise<string>;
+  /** Projected Cpk map keyed by finding ID (for projected vs actual comparison) */
+  projectedCpkMap?: Record<string, number>;
+  /** Synthesis narrative for board view header */
+  synthesis?: string;
+  /** Linked findings for board view synthesis card */
+  linkedFindings?: Array<{ id: string; text: string }>;
 }
 
 /**
@@ -201,6 +207,9 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onAskCoScoutAboutFinding,
   processContext,
   onGenerateAIReport,
+  projectedCpkMap,
+  synthesis,
+  linkedFindings,
 }) => {
   if (findings.length === 0) {
     return (
@@ -268,6 +277,9 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onLinkHypothesis={onLinkHypothesis}
           onCreateHypothesis={onCreateHypothesis}
           hypothesesMap={hypothesesMap}
+          synthesis={synthesis}
+          linkedFindings={linkedFindings}
+          projectedCpkMap={projectedCpkMap}
           onAddAction={onAddAction}
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
@@ -322,6 +334,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
             hasSpecs={hasSpecs}
             renderActionAssigneePicker={renderActionAssigneePicker}
             onAskCoScout={onAskCoScoutAboutFinding}
+            projectedCpk={projectedCpkMap?.[finding.id]}
           />
         ))}
       </div>

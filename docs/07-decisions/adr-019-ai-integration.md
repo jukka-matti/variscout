@@ -4,7 +4,7 @@ title: 'ADR-019: AI Integration (Azure App)'
 
 # ADR-019: AI Integration (Azure App)
 
-**Status:** Accepted
+**Status:** Accepted. **Pricing revised by [ADR-033](adr-033-pricing-simplification.md)** — Team AI tier removed; AI included in all plans, Knowledge Base moved to Team.
 
 **Date:** 2026-03-14
 

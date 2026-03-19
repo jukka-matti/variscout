@@ -70,4 +70,30 @@ describe('CoachPopover', () => {
     );
     expect(screen.getByTestId('pdca-progress')).toBeDefined();
   });
+
+  it('shows convergence nudge when phase=improve and investigationPhase=converging', () => {
+    render(
+      <CoachPopover
+        phase="improve"
+        investigationPhase="converging"
+        findings={[]}
+        onClose={vi.fn()}
+      />
+    );
+    // The convergence nudge text (from i18n key improve.convergenceNudge)
+    expect(screen.getByText(/converging/i)).toBeDefined();
+  });
+
+  it('does not show convergence nudge when investigationPhase is not converging', () => {
+    render(
+      <CoachPopover
+        phase="improve"
+        investigationPhase="diverging"
+        findings={[]}
+        onClose={vi.fn()}
+      />
+    );
+    const nudge = screen.queryByText(/converging/i);
+    expect(nudge).toBeNull();
+  });
 });

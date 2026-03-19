@@ -4,7 +4,7 @@ title: 'ADR-007: Azure Marketplace Distribution Strategy'
 
 # ADR-007: Azure Marketplace Distribution Strategy
 
-**Status**: Accepted (Revised 2026-02-27)
+**Status**: Accepted (Revised 2026-02-27). **Pricing revised by [ADR-033](adr-033-pricing-simplification.md)** — simplified to 2 plans: Standard (€79/month) and Team (€199/month). Team AI tier removed; AI included in all plans, Knowledge Base moved to Team.
 
 **Date**: 2026-02-05 (Original), 2026-02-13 (Revised), 2026-02-27 (Revised)
 
