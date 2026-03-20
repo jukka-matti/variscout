@@ -1,3 +1,7 @@
+---
+title: 'ADR-035: Improvement Prioritization Model'
+---
+
 # ADR-035: Improvement Prioritization Model
 
 **Status:** Accepted
