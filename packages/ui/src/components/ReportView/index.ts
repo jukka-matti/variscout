@@ -31,3 +31,12 @@ export {
   type VerificationChartId as VerificationChartIdUI,
   type VerificationChartOption as VerificationChartOptionUI,
 } from './VerificationEvidenceBase';
+export {
+  ReportHypothesisSummary,
+  type ReportHypothesisSummaryProps,
+} from './ReportHypothesisSummary';
+export {
+  ReportImprovementSummary,
+  type ReportImprovementSummaryProps,
+} from './ReportImprovementSummary';
+export { ReportCpkLearningLoop, type ReportCpkLearningLoopProps } from './ReportCpkLearningLoop';

@@ -241,6 +241,8 @@ export {
   type SectionStatus,
   type UseReportSectionsOptions,
   type UseReportSectionsReturn,
+  type ReportWorkspace,
+  type AudienceMode,
 } from './useReportSections';
 
 // Scroll Spy

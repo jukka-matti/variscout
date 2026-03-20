@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Copy, Check } from 'lucide-react';
 import { ReportStepMarker } from './ReportStepMarker';
 
+type ReportWorkspace = 'analysis' | 'findings' | 'improvement';
+
+const WORKSPACE_BORDER_COLORS: Record<ReportWorkspace, string> = {
+  analysis: 'border-l-green-500',
+  findings: 'border-l-amber-500',
+  improvement: 'border-l-purple-500',
+};
+
 export interface ReportSectionColorScheme {
   container: string;
   header: string;
@@ -24,6 +32,7 @@ export interface ReportSectionProps {
   stepNumber: number;
   title: string;
   status: 'done' | 'active' | 'future';
+  workspace?: ReportWorkspace;
   sectionRef: React.RefObject<HTMLDivElement>;
   children: React.ReactNode;
   onCopyAsSlide?: () => void;
@@ -39,6 +48,7 @@ export const ReportSection: React.FC<ReportSectionProps> = ({
   stepNumber,
   title,
   status,
+  workspace,
   sectionRef,
   children,
   onCopyAsSlide,
@@ -61,12 +71,14 @@ export const ReportSection: React.FC<ReportSectionProps> = ({
     }
   };
 
+  const borderClass = workspace ? `border-l-2 ${WORKSPACE_BORDER_COLORS[workspace]} pl-3` : '';
+
   return (
     <div
       id={id}
       ref={sectionRef}
       data-report-section
-      className={`${scheme.container} ${isFuture ? 'opacity-50' : ''}`}
+      className={`${scheme.container} ${borderClass} ${isFuture ? 'opacity-50' : ''}`}
     >
       {/* Header */}
       <div
@@ -75,7 +87,7 @@ export const ReportSection: React.FC<ReportSectionProps> = ({
         role={isFuture ? undefined : 'button'}
         aria-expanded={isFuture ? undefined : isOpen}
       >
-        <ReportStepMarker stepNumber={stepNumber} status={status} />
+        <ReportStepMarker stepNumber={stepNumber} status={status} workspace={workspace} />
 
         <span className={scheme.title}>{title}</span>
 

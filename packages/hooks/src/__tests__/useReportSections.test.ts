@@ -44,18 +44,18 @@ const baseOptions = {
 // ---------------------------------------------------------------------------
 
 describe('useReportSections — report type detection', () => {
-  it('returns quick-check when there are no findings', () => {
+  it('returns analysis-snapshot when there are no findings', () => {
     const { result } = renderHook(() => useReportSections({ ...baseOptions }));
-    expect(result.current.reportType).toBe('quick-check');
+    expect(result.current.reportType).toBe('analysis-snapshot');
   });
 
-  it('returns deep-dive when findings exist but no actions', () => {
+  it('returns investigation-report when findings exist but no actions', () => {
     const findings = [makeFinding({ id: 'f-1' }), makeFinding({ id: 'f-2' })];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
-    expect(result.current.reportType).toBe('deep-dive');
+    expect(result.current.reportType).toBe('investigation-report');
   });
 
-  it('returns deep-dive when findings have actions but no outcome', () => {
+  it('returns investigation-report when findings have actions but no outcome', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
@@ -63,10 +63,10 @@ describe('useReportSections — report type detection', () => {
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
-    expect(result.current.reportType).toBe('deep-dive');
+    expect(result.current.reportType).toBe('investigation-report');
   });
 
-  it('returns full-cycle when findings have actions AND outcome', () => {
+  it('returns improvement-story when findings have actions AND outcome', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
@@ -77,7 +77,7 @@ describe('useReportSections — report type detection', () => {
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
-    expect(result.current.reportType).toBe('full-cycle');
+    expect(result.current.reportType).toBe('improvement-story');
   });
 });
 
@@ -86,12 +86,18 @@ describe('useReportSections — report type detection', () => {
 // ---------------------------------------------------------------------------
 
 describe('useReportSections — section count', () => {
-  it('always returns exactly 5 sections', () => {
+  it('returns 2 sections for analysis-snapshot', () => {
     const { result } = renderHook(() => useReportSections({ ...baseOptions }));
-    expect(result.current.sections).toHaveLength(5);
+    expect(result.current.sections).toHaveLength(2);
   });
 
-  it('always returns 5 sections for full-cycle report', () => {
+  it('returns 3 sections for investigation-report', () => {
+    const findings = [makeFinding({ id: 'f-1' })];
+    const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
+    expect(result.current.sections).toHaveLength(3);
+  });
+
+  it('returns 6 sections for improvement-story', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
@@ -100,7 +106,7 @@ describe('useReportSections — section count', () => {
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
-    expect(result.current.sections).toHaveLength(5);
+    expect(result.current.sections).toHaveLength(6);
   });
 });
 
@@ -108,33 +114,28 @@ describe('useReportSections — section count', () => {
 // Section statuses
 // ---------------------------------------------------------------------------
 
-describe('useReportSections — section status (quick-check)', () => {
-  it('steps 1 and 2 are active, steps 3–5 are future', () => {
+describe('useReportSections — section status (analysis-snapshot)', () => {
+  it('both sections are active', () => {
     const { result } = renderHook(() => useReportSections({ ...baseOptions }));
     const { sections } = result.current;
     expect(sections[0].status).toBe('active'); // current-condition
     expect(sections[1].status).toBe('active'); // drivers
-    expect(sections[2].status).toBe('future'); // hypotheses
-    expect(sections[3].status).toBe('future'); // actions
-    expect(sections[4].status).toBe('future'); // verification
   });
 });
 
-describe('useReportSections — section status (deep-dive)', () => {
-  it('steps 1–3 are active, steps 4–5 are future', () => {
+describe('useReportSections — section status (investigation-report)', () => {
+  it('all 3 sections are active', () => {
     const findings = [makeFinding()];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
     const { sections } = result.current;
     expect(sections[0].status).toBe('active'); // current-condition
     expect(sections[1].status).toBe('active'); // drivers
-    expect(sections[2].status).toBe('active'); // hypotheses
-    expect(sections[3].status).toBe('future'); // actions
-    expect(sections[4].status).toBe('future'); // verification
+    expect(sections[2].status).toBe('active'); // evidence-trail
   });
 });
 
-describe('useReportSections — section status (full-cycle)', () => {
-  it('all 5 sections are done', () => {
+describe('useReportSections — section status (improvement-story)', () => {
+  it('all 6 sections are done', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
@@ -149,29 +150,42 @@ describe('useReportSections — section status (full-cycle)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Step 3 title adaptation
+// Workspace assignment
 // ---------------------------------------------------------------------------
 
-describe('useReportSections — step 3 title', () => {
-  it('uses default title when no hypotheses', () => {
+describe('useReportSections — workspace assignment', () => {
+  it('analysis-snapshot sections are in analysis workspace', () => {
     const { result } = renderHook(() => useReportSections({ ...baseOptions }));
-    const hypothesesSection = result.current.sections.find(s => s.id === 'hypotheses');
-    expect(hypothesesSection?.title).toBe('Why is this happening?');
+    const { sections } = result.current;
+    expect(sections[0].workspace).toBe('analysis');
+    expect(sections[1].workspace).toBe('analysis');
   });
 
-  it('uses hypothesis text in title when hypotheses exist', () => {
-    const hypotheses = [makeHypothesis({ text: 'machine vibration' })];
-    const { result } = renderHook(() => useReportSections({ ...baseOptions, hypotheses }));
-    const hypothesesSection = result.current.sections.find(s => s.id === 'hypotheses');
-    expect(hypothesesSection?.title).toMatch(/^What causes/);
-    expect(hypothesesSection?.title).toContain('machine vibration');
+  it('investigation-report has analysis and findings workspaces', () => {
+    const findings = [makeFinding()];
+    const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
+    const { sections } = result.current;
+    expect(sections[0].workspace).toBe('analysis');
+    expect(sections[1].workspace).toBe('analysis');
+    expect(sections[2].workspace).toBe('findings');
   });
 
-  it('falls back to default title when first hypothesis has empty text', () => {
-    const hypotheses = [makeHypothesis({ text: '' })];
-    const { result } = renderHook(() => useReportSections({ ...baseOptions, hypotheses }));
-    const hypothesesSection = result.current.sections.find(s => s.id === 'hypotheses');
-    expect(hypothesesSection?.title).toBe('Why is this happening?');
+  it('improvement-story has all three workspaces', () => {
+    const findings = [
+      makeFinding({
+        id: 'f-1',
+        actions: [{ id: 'a-1', text: 'action', completedAt: Date.now(), createdAt: Date.now() }],
+        outcome: { effective: 'yes', notes: 'done', verifiedAt: Date.now() },
+      }),
+    ];
+    const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
+    const { sections } = result.current;
+    expect(sections[0].workspace).toBe('analysis'); // current-condition
+    expect(sections[1].workspace).toBe('analysis'); // drivers
+    expect(sections[2].workspace).toBe('findings'); // evidence-trail
+    expect(sections[3].workspace).toBe('improvement'); // improvement-plan
+    expect(sections[4].workspace).toBe('improvement'); // actions-taken
+    expect(sections[5].workspace).toBe('improvement'); // verification
   });
 });
 
@@ -180,16 +194,105 @@ describe('useReportSections — step 3 title', () => {
 // ---------------------------------------------------------------------------
 
 describe('useReportSections — section ordering', () => {
-  it('sections have correct ids in order', () => {
+  it('analysis-snapshot has correct ids', () => {
     const { result } = renderHook(() => useReportSections({ ...baseOptions }));
     const ids = result.current.sections.map(s => s.id);
-    expect(ids).toEqual(['current-condition', 'drivers', 'hypotheses', 'actions', 'verification']);
+    expect(ids).toEqual(['current-condition', 'drivers']);
   });
 
-  it('sections have sequential step numbers 1–5', () => {
-    const { result } = renderHook(() => useReportSections({ ...baseOptions }));
+  it('investigation-report has correct ids', () => {
+    const findings = [makeFinding()];
+    const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
+    const ids = result.current.sections.map(s => s.id);
+    expect(ids).toEqual(['current-condition', 'drivers', 'evidence-trail']);
+  });
+
+  it('improvement-story has correct ids', () => {
+    const findings = [
+      makeFinding({
+        id: 'f-1',
+        actions: [{ id: 'a-1', text: 'action', completedAt: Date.now(), createdAt: Date.now() }],
+        outcome: { effective: 'yes', notes: 'done', verifiedAt: Date.now() },
+      }),
+    ];
+    const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
+    const ids = result.current.sections.map(s => s.id);
+    expect(ids).toEqual([
+      'current-condition',
+      'drivers',
+      'evidence-trail',
+      'improvement-plan',
+      'actions-taken',
+      'verification',
+    ]);
+  });
+
+  it('improvement-story has sequential step numbers 1-6', () => {
+    const findings = [
+      makeFinding({
+        id: 'f-1',
+        actions: [{ id: 'a-1', text: 'action', completedAt: Date.now(), createdAt: Date.now() }],
+        outcome: { effective: 'yes', notes: 'done', verifiedAt: Date.now() },
+      }),
+    ];
+    const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
     const stepNumbers = result.current.sections.map(s => s.stepNumber);
-    expect(stepNumbers).toEqual([1, 2, 3, 4, 5]);
+    expect(stepNumbers).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Evidence trail title adaptation
+// ---------------------------------------------------------------------------
+
+describe('useReportSections — evidence trail title', () => {
+  it('uses default title when no hypotheses', () => {
+    const findings = [makeFinding()];
+    const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
+    const evidenceSection = result.current.sections.find(s => s.id === 'evidence-trail');
+    expect(evidenceSection?.title).toBe('Why is this happening?');
+  });
+
+  it('uses hypothesis text in title when hypotheses exist', () => {
+    const findings = [makeFinding()];
+    const hypotheses = [makeHypothesis({ text: 'machine vibration' })];
+    const { result } = renderHook(() =>
+      useReportSections({ ...baseOptions, findings, hypotheses })
+    );
+    const evidenceSection = result.current.sections.find(s => s.id === 'evidence-trail');
+    expect(evidenceSection?.title).toMatch(/^What causes/);
+    expect(evidenceSection?.title).toContain('machine vibration');
+  });
+
+  it('improvement-story evidence trail uses "What did we find?" title', () => {
+    const findings = [
+      makeFinding({
+        id: 'f-1',
+        actions: [{ id: 'a-1', text: 'action', completedAt: Date.now(), createdAt: Date.now() }],
+        outcome: { effective: 'yes', notes: 'done', verifiedAt: Date.now() },
+      }),
+    ];
+    const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
+    const evidenceSection = result.current.sections.find(s => s.id === 'evidence-trail');
+    expect(evidenceSection?.title).toBe('What did we find?');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Audience mode
+// ---------------------------------------------------------------------------
+
+describe('useReportSections — audience mode', () => {
+  it('defaults to technical', () => {
+    const { result } = renderHook(() => useReportSections({ ...baseOptions }));
+    expect(result.current.audienceMode).toBe('technical');
+  });
+
+  it('passes through summary mode', () => {
+    const { result } = renderHook(() =>
+      useReportSections({ ...baseOptions, audienceMode: 'summary' })
+    );
+    expect(result.current.audienceMode).toBe('summary');
   });
 });
 
@@ -203,17 +306,14 @@ describe('useReportSections — hasAIContent', () => {
     const { sections } = result.current;
     // current-condition uses aiEnabled
     expect(sections[0].hasAIContent).toBe(true);
-    // actions never has AI content
-    expect(sections[3].hasAIContent).toBe(false);
   });
 
-  it('drivers and verification get hasAIContent from stagedComparison too', () => {
+  it('drivers get hasAIContent from stagedComparison too', () => {
     const { result } = renderHook(() =>
       useReportSections({ ...baseOptions, aiEnabled: false, stagedComparison: true })
     );
     const { sections } = result.current;
     expect(sections[1].hasAIContent).toBe(true); // drivers
-    expect(sections[4].hasAIContent).toBe(true); // verification
     expect(sections[0].hasAIContent).toBe(false); // current-condition (no aiEnabled, no staged)
   });
 });

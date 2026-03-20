@@ -319,6 +319,12 @@ export {
   type ReportChartSnapshotColorScheme,
   type VerificationEvidenceBaseProps,
   type VerificationEvidenceColorScheme,
+  ReportHypothesisSummary,
+  type ReportHypothesisSummaryProps,
+  ReportImprovementSummary,
+  type ReportImprovementSummaryProps,
+  ReportCpkLearningLoop,
+  type ReportCpkLearningLoopProps,
 } from './components/ReportView';
 
 // Services

@@ -15,7 +15,7 @@
 
 import type { Finding, Hypothesis, ProcessContext, StatsResult, Locale } from '@variscout/core';
 import { formatStatistic } from '@variscout/core/i18n';
-import type { ReportSectionDescriptor, ReportType } from '@variscout/hooks';
+import type { ReportSectionDescriptor, ReportType, ReportWorkspace } from '@variscout/hooks';
 
 // ── Types ───────────────────────────────────────────────────────────────
 
@@ -39,14 +39,23 @@ export interface RenderReportOptions {
   locale?: Locale;
 }
 
+// ── Workspace labels ────────────────────────────────────────────────────
+
+const WORKSPACE_HEADING: Record<ReportWorkspace, string> = {
+  analysis: 'Analysis',
+  findings: 'Findings',
+  improvement: 'Improvement',
+};
+
 // ── Rendering ───────────────────────────────────────────────────────────
 
 /**
- * Render a complete scouting report as Markdown.
+ * Render a complete report as Markdown.
  *
  * The document is structured for both human readability and AI retrieval:
  * - YAML-style metadata block at the top
- * - Clear section headings matching the 5-step investigation flow
+ * - Workspace group headings (## Analysis, ## Findings, ## Improvement)
+ * - Section headings matching step numbers
  * - Findings formatted with status tags, hypotheses, and outcomes
  */
 export function renderReportMarkdown(options: RenderReportOptions): string {
@@ -55,7 +64,7 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
   const parts: string[] = [];
 
   // ── Title & metadata ────────────────────────────────────────────────
-  parts.push(`# VariScout Scouting Report: ${metadata.projectName}`);
+  parts.push(`# VariScout ${formatReportType(metadata.reportType)}: ${metadata.projectName}`);
   parts.push('');
   parts.push(`**Date:** ${metadata.date}`);
   if (metadata.analyst) parts.push(`**Analyst:** ${metadata.analyst}`);
@@ -95,14 +104,56 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
     parts.push('');
   }
 
-  // ── Investigation sections ──────────────────────────────────────────
+  // ── Sections grouped by workspace ─────────────────────────────────
+  let currentWorkspace: ReportWorkspace | null = null;
+
   for (const section of sections) {
-    if (section.findings.length === 0 && section.hypotheses.length === 0) {
-      continue; // Skip empty sections
+    // Workspace group heading
+    if (section.workspace !== currentWorkspace) {
+      currentWorkspace = section.workspace;
+      parts.push(`## ${WORKSPACE_HEADING[currentWorkspace]}`);
+      parts.push('');
     }
 
-    parts.push(`## Step ${section.stepNumber}: ${section.title}`);
+    parts.push(`### Step ${section.stepNumber}: ${section.title}`);
     parts.push('');
+
+    // Render synthesis for evidence-trail section
+    if (section.id === 'evidence-trail' && processContext?.synthesis) {
+      parts.push(`> ${processContext.synthesis}`);
+      parts.push('');
+    }
+
+    // Render hypotheses for evidence-trail and improvement-plan sections
+    if (
+      (section.id === 'evidence-trail' || section.id === 'improvement-plan') &&
+      section.hypotheses.length > 0
+    ) {
+      parts.push('**Hypotheses:**');
+      parts.push('');
+      for (const h of section.hypotheses) {
+        const roleTag = h.causeRole ? ` [${h.causeRole}]` : '';
+        parts.push(`- **${h.text}** (${h.status})${roleTag}`);
+
+        // Render ideas for improvement-plan section
+        if (section.id === 'improvement-plan' && h.ideas && h.ideas.length > 0) {
+          for (const idea of h.ideas) {
+            const selected = idea.selected ? '✅' : '⬜';
+            const direction = idea.direction ? ` [${idea.direction}]` : '';
+            const timeframe = idea.timeframe ?? '';
+            const projCpk =
+              idea.projection?.projectedCpk != null
+                ? ` — Cpk ${fmt(idea.projection.projectedCpk)}`
+                : '';
+            parts.push(`  - ${selected} ${idea.text}${direction} (${timeframe})${projCpk}`);
+          }
+        }
+      }
+      parts.push('');
+
+      // Skip orphan hypothesis rendering for improvement-plan (already covered above)
+      if (section.id === 'improvement-plan') continue;
+    }
 
     // Render findings
     for (const finding of section.findings) {
@@ -113,8 +164,8 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
     const orphanHypotheses = section.hypotheses.filter(
       h => !section.findings.some(f => f.hypothesisId === h.id)
     );
-    if (orphanHypotheses.length > 0) {
-      parts.push('### Hypotheses');
+    if (orphanHypotheses.length > 0 && section.id !== 'improvement-plan') {
+      parts.push('**Hypotheses:**');
       parts.push('');
       for (const h of orphanHypotheses) {
         parts.push(`- **${h.text}** (${h.status})`);
@@ -146,7 +197,7 @@ function renderFinding(finding: Finding, hypotheses: Hypothesis[], locale: Local
   const statusTag = `[${finding.status.toUpperCase()}]`;
   const tagSuffix = finding.tag ? ` · ${finding.tag}` : '';
 
-  lines.push(`### ${statusTag}${tagSuffix} ${finding.text}`);
+  lines.push(`#### ${statusTag}${tagSuffix} ${finding.text}`);
   lines.push('');
 
   // Linked hypothesis
@@ -203,12 +254,12 @@ function renderFinding(finding: Finding, hypotheses: Hypothesis[], locale: Local
 
 function formatReportType(type: ReportType): string {
   switch (type) {
-    case 'quick-check':
-      return 'Quick Check';
-    case 'deep-dive':
-      return 'Deep Dive';
-    case 'full-cycle':
-      return 'Full Cycle';
+    case 'analysis-snapshot':
+      return 'Analysis Snapshot';
+    case 'investigation-report':
+      return 'Investigation Report';
+    case 'improvement-story':
+      return 'Improvement Story';
     default:
       return type;
   }
