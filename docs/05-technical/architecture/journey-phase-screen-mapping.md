@@ -73,16 +73,16 @@ HomeScreen → PasteScreen/ManualEntry → ColumnMapping → Dashboard → [Focu
 
 - **`ImprovementWorkspaceBase`** — Full-page improvement planning view. Contains SynthesisCard, Four Directions hint, IdeaGroupCards grouped by hypothesis, and ImprovementSummaryBar. Azure only.
 - **`SynthesisCard`** — Convergence synthesis narrative (editable, max 500 chars). Linked finding badges. Read-only variant for Board view header.
-- **`IdeaGroupCard`** — Ideas grouped by supported/partial hypothesis. Each row has checkbox, direction badge (Four Ideation Directions), effort dropdown, projection badge, What-If and CoScout buttons.
-- **`ImprovementSummaryBar`** — Sticky bottom bar: selected count, effort breakdown (low/med/high), projected Cpk, "Convert selected → Actions" button.
+- **`IdeaGroupCard`** — Ideas grouped by supported/partial hypothesis. Each row has checkbox, direction badge (Four Ideation Directions), timeframe dropdown (just do/days/weeks/months), cost estimate, risk assessment, projection badge, What-If and CoScout buttons.
+- **`ImprovementSummaryBar`** — Sticky bottom bar: selected count, timeframe breakdown, projected Cpk, "Convert selected → Actions" button.
 - **Direction badge on `HypothesisNode` ideas:** Color-coded prevent/detect/simplify/eliminate badge (Four Ideation Directions).
-- **Effort dropdown on `HypothesisNode`:** Inline `<select>` replacing the cycle button, color-coded (green/amber/red).
+- **Timeframe dropdown on `HypothesisNode`:** Inline `<select>` for implementation timeframe (just do/days/weeks/months), color-coded.
 - **Projected vs actual on `FindingCard` outcome:** Shows "Projected X.XX → Actual Y.YY (+delta)" with green/red color.
 - **`WhatIfPageBase` — projection context banner:** When opened via the "P" (Project) button on an improvement idea, the simulator displays a banner identifying the linked finding and idea name. A **"Save to idea"** button captures the current projection (projected mean, σ, Cpk, yield) back onto the idea record, completing the idea → What-If → idea round-trip.
 
 **IMPROVE follows the full PDCA cycle:**
 
-1. **Plan: Ideate** — brainstorm improvement ideas (effort estimate + What-If projection)
+1. **Plan: Ideate** — brainstorm improvement ideas (timeframe/cost/risk estimate + What-If projection)
 2. **Plan: Select** — compare projected impact, selected ideas become corrective actions
 3. **Do** — define and execute actions (owners, dates, tracking) — finding → `improving`
 4. **Check** — staged analysis (before vs after), compare Cpk/mean/σ

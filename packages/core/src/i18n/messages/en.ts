@@ -119,6 +119,10 @@ export const en: MessageCatalog = {
   'settings.language': 'Language',
   'settings.theme': 'Theme',
   'settings.textSize': 'Text Size',
+  'settings.improvementEvaluation': 'Improvement Evaluation',
+  'settings.riskAxis1': 'Risk Axis 1',
+  'settings.riskAxis2': 'Risk Axis 2',
+  'settings.improvementBudget': 'Improvement Budget',
 
   // Finding statuses
   'findings.observed': 'Observed',

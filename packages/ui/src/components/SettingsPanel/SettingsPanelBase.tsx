@@ -1,8 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
+import type { RiskAxisConfig, RiskAxisPreset, MessageCatalog } from '@variscout/core';
+import { DEFAULT_RISK_AXIS_CONFIG } from '@variscout/core';
 
 type ChartFontScale = 'compact' | 'normal' | 'large';
+
+const RISK_AXIS_PRESETS: RiskAxisPreset[] = [
+  'process',
+  'safety',
+  'environmental',
+  'quality',
+  'regulatory',
+  'brand',
+];
 
 export interface SettingsPanelBaseProps<
   T extends { lockYAxisToFullData?: boolean; showFilterContext?: boolean } = {
@@ -22,6 +33,14 @@ export interface SettingsPanelBaseProps<
   extraToggles?: React.ReactNode;
   /** ID prefix for input elements (accessibility) */
   idPrefix?: string;
+  /** Risk axis configuration for improvement evaluation */
+  riskAxisConfig?: RiskAxisConfig;
+  /** Callback when risk axis configuration changes */
+  onRiskAxisConfigChange?: (config: RiskAxisConfig) => void;
+  /** Improvement budget in euros */
+  budget?: number;
+  /** Callback when budget changes */
+  onBudgetChange?: (budget: number | undefined) => void;
 }
 
 const FONT_SCALE_OPTIONS: { value: ChartFontScale; label: string }[] = [
@@ -42,6 +61,10 @@ function SettingsPanelBase<
   headerSections,
   extraToggles,
   idPrefix = 'settings',
+  riskAxisConfig,
+  onRiskAxisConfigChange,
+  budget,
+  onBudgetChange,
 }: SettingsPanelBaseProps<T>) {
   const { t } = useTranslation();
   // Local state for display options — synced on open, applied on change
@@ -179,6 +202,105 @@ function SettingsPanelBase<
               })}
             </div>
           </section>
+
+          {/* Improvement Evaluation — only shown when callbacks are provided */}
+          {onRiskAxisConfigChange && (
+            <section>
+              <h3 className="text-sm font-medium text-content mb-3">
+                {t('settings.improvementEvaluation')}
+              </h3>
+              <div className="space-y-3">
+                {/* Risk Axis 1 */}
+                <div>
+                  <label
+                    htmlFor={`${idPrefix}-risk-axis-1`}
+                    className="block text-sm text-content-secondary mb-1"
+                  >
+                    {t('settings.riskAxis1')}
+                  </label>
+                  <select
+                    id={`${idPrefix}-risk-axis-1`}
+                    value={(riskAxisConfig ?? DEFAULT_RISK_AXIS_CONFIG).axis1}
+                    onChange={e => {
+                      const current = riskAxisConfig ?? DEFAULT_RISK_AXIS_CONFIG;
+                      onRiskAxisConfigChange({
+                        ...current,
+                        axis1: e.target.value as RiskAxisPreset,
+                      });
+                    }}
+                    className="w-full rounded-lg border border-edge bg-surface-secondary text-content text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {RISK_AXIS_PRESETS.filter(
+                      p => p !== (riskAxisConfig ?? DEFAULT_RISK_AXIS_CONFIG).axis2
+                    ).map(preset => (
+                      <option key={preset} value={preset}>
+                        {t(`risk.preset.${preset}` as keyof MessageCatalog)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Risk Axis 2 */}
+                <div>
+                  <label
+                    htmlFor={`${idPrefix}-risk-axis-2`}
+                    className="block text-sm text-content-secondary mb-1"
+                  >
+                    {t('settings.riskAxis2')}
+                  </label>
+                  <select
+                    id={`${idPrefix}-risk-axis-2`}
+                    value={(riskAxisConfig ?? DEFAULT_RISK_AXIS_CONFIG).axis2}
+                    onChange={e => {
+                      const current = riskAxisConfig ?? DEFAULT_RISK_AXIS_CONFIG;
+                      onRiskAxisConfigChange({
+                        ...current,
+                        axis2: e.target.value as RiskAxisPreset,
+                      });
+                    }}
+                    className="w-full rounded-lg border border-edge bg-surface-secondary text-content text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {RISK_AXIS_PRESETS.filter(
+                      p => p !== (riskAxisConfig ?? DEFAULT_RISK_AXIS_CONFIG).axis1
+                    ).map(preset => (
+                      <option key={preset} value={preset}>
+                        {t(`risk.preset.${preset}` as keyof MessageCatalog)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Improvement Budget */}
+                <div>
+                  <label
+                    htmlFor={`${idPrefix}-improvement-budget`}
+                    className="block text-sm text-content-secondary mb-1"
+                  >
+                    {t('settings.improvementBudget')}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-content-muted pointer-events-none">
+                      &euro;
+                    </span>
+                    <input
+                      id={`${idPrefix}-improvement-budget`}
+                      type="number"
+                      min={0}
+                      step={100}
+                      value={budget ?? ''}
+                      placeholder="e.g., 10000"
+                      onChange={e => {
+                        if (!onBudgetChange) return;
+                        const val = e.target.value;
+                        onBudgetChange(val === '' ? undefined : Number(val));
+                      }}
+                      className="w-full rounded-lg border border-edge bg-surface-secondary text-content text-sm pl-8 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </dialog>

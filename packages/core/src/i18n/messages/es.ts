@@ -669,6 +669,10 @@ export const es: MessageCatalog = {
   'timeframe.label': 'Effort',
 
   // Idea direction labels (Four Ideation Directions)
+  'settings.improvementEvaluation': 'Improvement Evaluation',
+  'settings.riskAxis1': 'Risk Axis 1',
+  'settings.riskAxis2': 'Risk Axis 2',
+  'settings.improvementBudget': 'Improvement Budget',
   'matrix.selected': 'Selected',
   'matrix.axis.benefit': 'Benefit',
   'matrix.axis.timeframe': 'Timeframe',

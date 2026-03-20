@@ -46,6 +46,7 @@ This section captures key architectural decisions made during VariScout developm
 | [032](adr-032-evidence-communication.md)             | Evidence-Based Statistical Communication | Accepted   | 2026-03-19 |
 | [033](adr-033-pricing-simplification.md)             | Pricing Simplification — 3 to 2 Tiers    | Accepted   | 2026-03-19 |
 | [034](adr-034-yamazumi-analysis-mode.md)             | Yamazumi Analysis Mode                   | Accepted   | 2026-03-20 |
+| [035](adr-035-improvement-prioritization.md)         | Improvement Prioritization Model         | Accepted   | 2026-03-20 |
 
 ---
 

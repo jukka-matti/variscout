@@ -231,6 +231,10 @@ export interface MessageCatalog {
   'settings.language': string;
   'settings.theme': string;
   'settings.textSize': string;
+  'settings.improvementEvaluation': string;
+  'settings.riskAxis1': string;
+  'settings.riskAxis2': string;
+  'settings.improvementBudget': string;
 
   // Finding statuses
   'findings.observed': string;

@@ -97,6 +97,10 @@ The hypothesis tree workflow — form hypotheses, validate with data, track evid
 
 Search organizational knowledge from past analyses to accelerate current investigations (Azure Team AI).
 
+### [Improvement Prioritization](improvement-prioritization.md)
+
+Prioritization matrix (impact vs timeframe), cost/risk assessment, and idea comparison for selecting the best improvements to convert into corrective actions (Azure only).
+
 ## Time-Boxed Scenarios
 
 ### [Quick Check (5 Minutes)](quick-check.md)
