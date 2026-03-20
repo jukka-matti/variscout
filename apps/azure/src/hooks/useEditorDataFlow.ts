@@ -260,6 +260,7 @@ export interface UseEditorDataFlowReturn {
   // Yamazumi detection
   yamazumiDetection: YamazumiDetection | null;
   dismissYamazumiDetection: () => void;
+  handleYamazumiDetectedFromIngestion: (result: YamazumiDetection) => void;
 }
 
 // ── Hook implementation ────────────────────────────────────────────────────
@@ -313,6 +314,10 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   // Yamazumi detection state
   const [yamazumiDetection, setYamazumiDetection] = useState<YamazumiDetection | null>(null);
   const dismissYamazumiDetection = useCallback(() => setYamazumiDetection(null), []);
+  const handleYamazumiDetectedFromIngestion = useCallback(
+    (result: YamazumiDetection) => setYamazumiDetection(result),
+    []
+  );
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const appendFileInputRef = useRef<HTMLInputElement>(null);
@@ -681,5 +686,6 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     // Yamazumi detection
     yamazumiDetection,
     dismissYamazumiDetection,
+    handleYamazumiDetectedFromIngestion,
   };
 }

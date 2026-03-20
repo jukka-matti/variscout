@@ -23,7 +23,7 @@ Complete feature availability across VariScout platforms.
 ## Core Analysis Features
 
 | Feature                      | Azure Standard | Azure Team | PWA (Free) |
-| ---------------------------- | :------------: | :--------: | :--------: |
+| ---------------------------- | :------------: | :--------: | :--------: | ------------------------------------- |
 | **I-Chart**                  |       ✓        |     ✓      |     ✓      |
 | **Boxplot**                  |       ✓        |     ✓      |     ✓      |
 | **Pareto**                   |       ✓        |     ✓      |     ✓      |
@@ -32,6 +32,7 @@ Complete feature availability across VariScout platforms.
 | **Violin Mode**              |       ✓        |     ✓      |     ✓      |
 | **Boxplot category sorting** |       ✓        |     ✓      |     ✓      |
 | **Performance Mode**         |       ✓        |     ✓      |     -      |
+| **Yamazumi (time study)**    |       ✓        |     ✓      |     ✓      | Auto-detected from activity type data |
 
 > PWA includes core analysis charts plus Green Belt tools for training. Performance Mode requires the Azure App.
 

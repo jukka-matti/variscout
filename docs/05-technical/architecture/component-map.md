@@ -137,6 +137,10 @@ flowchart TB
         perf_capability["PerformanceCapability<br/><small>Single channel histogram</small>"]
     end
 
+    subgraph yamazumi["Yamazumi Charts (lean time study)"]
+        yam_chart["YamazumiChart<br/><small>Stacked bar by activity type<br/>takt time line</small>"]
+    end
+
     subgraph supporting["Supporting Components"]
         stats_table["BoxplotStatsTable<br/><small>Summary statistics table</small>"]
         legend["ChartLegend"]
@@ -153,6 +157,8 @@ flowchart TB
     standard --> core_stats
     performance --> core_types
     performance --> core_stats
+    yamazumi --> core_types
+    yamazumi --> core_stats
     supporting --> core_types
 ```
 
@@ -462,6 +468,21 @@ flowchart TB
     boxplot --> types
     pareto --> types
 ```
+
+---
+
+## Yamazumi Dashboard Slot Composition
+
+When Yamazumi (lean time study) mode is active, the standard 4-slot dashboard layout is replaced:
+
+| Slot | Standard Mode | Yamazumi Mode                                                | Hook / Component           |
+| ---- | ------------- | ------------------------------------------------------------ | -------------------------- |
+| 1    | I-Chart       | I-Chart (switchable metric via `YamazumiIChartMetricToggle`) | `useYamazumiIChartData`    |
+| 2    | Boxplot       | YamazumiChart (stacked bars by activity type)                | `useYamazumiChartData`     |
+| 3    | Pareto        | Pareto (5 switchable modes via `YamazumiParetoModeDropdown`) | `useYamazumiParetoData`    |
+| 4    | Stats Panel   | Yamazumi Summary (`YamazumiSummaryBar`)                      | Core `computeYamazumiData` |
+
+Detection is automatic via `detectYamazumiFormat()` in `@variscout/core` during paste or file upload. The detection modal (`YamazumiDetectedModal`) confirms the mapping before entering Yamazumi mode.
 
 ---
 

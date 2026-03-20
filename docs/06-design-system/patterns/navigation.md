@@ -309,7 +309,21 @@ Escape priority is handled by `useAppPanels` — it dismisses panels in reverse-
 
 ---
 
-## 8. Future: Unified Navigation Hook
+## 8. Analysis Modes
+
+The dashboard supports three mutually exclusive analysis modes, each with its own 4-slot chart layout:
+
+| Mode                   | Trigger                                        | Slot 1                      | Slot 2               | Slot 3           | Slot 4           |
+| ---------------------- | ---------------------------------------------- | --------------------------- | -------------------- | ---------------- | ---------------- |
+| **Standard** (default) | Any non-special data                           | I-Chart                     | Boxplot              | Pareto           | Stats Panel      |
+| **Performance**        | Wide-format data with multiple measure columns | Cpk Scatter                 | Boxplot              | Cpk Pareto       | Stats Panel      |
+| **Yamazumi**           | Data with activity type column (VA/NVA/Waste)  | I-Chart (switchable metric) | Yamazumi stacked bar | Pareto (5 modes) | Yamazumi Summary |
+
+Mode is set via `analysisMode` in DataContext (`'standard' | 'performance' | 'yamazumi'`). Detection happens automatically during data ingestion — `detectWideFormat()` for Performance, `detectYamazumiFormat()` for Yamazumi — and presents a confirmation modal before switching.
+
+---
+
+## 9. Future: Unified Navigation Hook
 
 The `feature/navigation-architecture` branch (preserved as reference) prototypes a `useNavigation` hook that would unify view management:
 
@@ -340,7 +354,7 @@ This is **designed but not implemented** on main. The branch code is 38+ commits
 
 ---
 
-## 9. See Also
+## 10. See Also
 
 - [Journey Phase → Screen Mapping](../../05-technical/architecture/journey-phase-screen-mapping.md) — phase-to-component-to-tier mapping
 - [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) — conceptual navigation layers

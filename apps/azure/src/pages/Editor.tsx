@@ -149,6 +149,9 @@ export const Editor: React.FC<EditorProps> = ({
         dataFlowRef.current?.setTimeExtractionConfig(prev => ({ ...prev, extractHour: true }));
       }
     },
+    onYamazumiDetected: result => {
+      dataFlowRef.current?.handleYamazumiDetectedFromIngestion(result);
+    },
     getRawData: () => rawData,
     getOutcome: () => outcome,
     getFactors: () => factors,

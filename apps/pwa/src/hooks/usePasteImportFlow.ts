@@ -4,6 +4,7 @@ import {
   parseText,
   detectColumns,
   detectWideFormat,
+  detectYamazumiFormat,
   type DataRow,
   type DataQualityReport,
   type WideFormatDetection,
@@ -240,6 +241,11 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
 
         const report = validateData(data, detected.outcome);
         setDataQualityReport(report);
+
+        const yamazumiResult = detectYamazumiFormat(data, detected.columnAnalysis);
+        if (yamazumiResult.isYamazumiFormat) {
+          dispatch({ type: 'YAMAZUMI_DETECTED', detection: yamazumiResult });
+        }
 
         const wideFormat = detectWideFormat(data);
         if (wideFormat.isWideFormat) {
