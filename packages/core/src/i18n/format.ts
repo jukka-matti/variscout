@@ -22,7 +22,6 @@ const BCP47: Record<Locale, string> = {
   it: 'it-IT',
   nl: 'nl-NL',
   pl: 'pl-PL',
-  ru: 'ru-RU',
   tr: 'tr-TR',
   sv: 'sv-SE',
   da: 'da-DK',
