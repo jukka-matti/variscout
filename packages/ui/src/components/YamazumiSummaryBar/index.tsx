@@ -50,22 +50,22 @@ export const YamazumiSummaryBar: React.FC<YamazumiSummaryBarProps> = ({
   // Waste breakdown as array
   const wasteBreakdown: { type: ActivityType; time: number; ratio: number }[] = [
     {
-      type: 'va',
+      type: 'va' as ActivityType,
       time: summary.vaTime,
       ratio: summary.totalLeadTime > 0 ? summary.vaTime / summary.totalLeadTime : 0,
     },
     {
-      type: 'nva-required',
+      type: 'nva-required' as ActivityType,
       time: summary.nvaTime,
       ratio: summary.totalLeadTime > 0 ? summary.nvaTime / summary.totalLeadTime : 0,
     },
     {
-      type: 'waste',
+      type: 'waste' as ActivityType,
       time: summary.wasteTime,
       ratio: summary.totalLeadTime > 0 ? summary.wasteTime / summary.totalLeadTime : 0,
     },
     {
-      type: 'wait',
+      type: 'wait' as ActivityType,
       time: summary.waitTime,
       ratio: summary.totalLeadTime > 0 ? summary.waitTime / summary.totalLeadTime : 0,
     },
@@ -80,7 +80,7 @@ export const YamazumiSummaryBar: React.FC<YamazumiSummaryBarProps> = ({
           <div className="flex items-center gap-1.5 mb-1">
             <Percent size={14} className="text-green-400" />
             <span className="text-xs text-content-secondary">
-              {t?.('yamazumi.summary.vaRatio', 'VA Ratio') ?? 'VA Ratio'}
+              {t?.('yamazumi.summary.vaRatio') ?? 'VA Ratio'}
             </span>
           </div>
           <div className="text-xl font-semibold text-content" data-testid="yamazumi-va-ratio">
@@ -93,7 +93,7 @@ export const YamazumiSummaryBar: React.FC<YamazumiSummaryBarProps> = ({
           <div className="flex items-center gap-1.5 mb-1">
             <TrendingUp size={14} className="text-blue-400" />
             <span className="text-xs text-content-secondary">
-              {t?.('yamazumi.summary.efficiency', 'Process Efficiency') ?? 'Process Efficiency'}
+              {t?.('yamazumi.summary.efficiency') ?? 'Process Efficiency'}
             </span>
           </div>
           <div className="text-xl font-semibold text-content" data-testid="yamazumi-efficiency">
@@ -106,7 +106,7 @@ export const YamazumiSummaryBar: React.FC<YamazumiSummaryBarProps> = ({
       <div className="bg-surface-secondary rounded-lg p-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-content-secondary">
-            {t?.('yamazumi.summary.leadTime', 'Total Lead Time') ?? 'Total Lead Time'}
+            {t?.('yamazumi.summary.leadTime') ?? 'Total Lead Time'}
           </span>
           <span className="text-sm font-medium text-content" data-testid="yamazumi-lead-time">
             {formatTime(summary.totalLeadTime)}
@@ -148,7 +148,7 @@ export const YamazumiSummaryBar: React.FC<YamazumiSummaryBarProps> = ({
             <div className="flex items-center gap-1.5">
               <Timer size={14} className="text-content-secondary" />
               <span className="text-xs text-content-secondary">
-                {t?.('yamazumi.summary.takt', 'Takt Time') ?? 'Takt Time'}
+                {t?.('yamazumi.summary.takt') ?? 'Takt Time'}
               </span>
             </div>
 
@@ -162,7 +162,7 @@ export const YamazumiSummaryBar: React.FC<YamazumiSummaryBarProps> = ({
               >
                 {summary.taktTime
                   ? formatTime(summary.taktTime)
-                  : (t?.('yamazumi.summary.setTakt', 'Set') ?? 'Set')}
+                  : (t?.('yamazumi.summary.setTakt') ?? 'Set')}
               </button>
             )}
 
@@ -193,7 +193,7 @@ export const YamazumiSummaryBar: React.FC<YamazumiSummaryBarProps> = ({
               <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
               <span className="text-xs text-amber-400">
                 {summary.stepsOverTakt.length}{' '}
-                {t?.('yamazumi.summary.overTakt', 'steps over takt') ?? 'steps over takt'}:{' '}
+                {t?.('yamazumi.summary.overTakt') ?? 'steps over takt'}:{' '}
                 {summary.stepsOverTakt.join(', ')}
               </span>
             </div>

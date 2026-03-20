@@ -240,7 +240,11 @@ const Dashboard = ({
   // Restore persisted focused chart (one-time after hook initializes)
   useEffect(() => {
     if (!hasRestoredFocusedChart && initialViewState?.focusedChart) {
-      setFocusedChart(initialViewState.focusedChart);
+      const chart = initialViewState.focusedChart;
+      // FocusedChart only covers standard charts; skip yamazumi (handled by YamazumiDashboard)
+      if (chart === 'ichart' || chart === 'boxplot' || chart === 'pareto') {
+        setFocusedChart(chart);
+      }
       setHasRestoredFocusedChart(true);
     } else if (!hasRestoredFocusedChart) {
       setHasRestoredFocusedChart(true);

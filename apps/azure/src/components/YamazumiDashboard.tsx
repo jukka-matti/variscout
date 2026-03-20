@@ -23,7 +23,7 @@ import type {
   YamazumiIChartMetric,
   YamazumiParetoMode,
 } from '@variscout/core';
-import { IChartBase, ParetoChartBase, YamazumiChartBase } from '@variscout/charts';
+import { IChart, ParetoChart, YamazumiChart } from '@variscout/charts';
 import { useData } from '../context/DataContext';
 
 interface YamazumiDashboardProps {
@@ -66,74 +66,66 @@ const YamazumiDashboard: React.FC<YamazumiDashboardProps> = ({
   );
 
   return (
-    <DashboardGrid>
-      {/* Slot 1: I-Chart with switchable metric */}
-      <DashboardChartCard
-        chartId="ichart"
-        title="I-Chart"
-        headerExtra={
-          <YamazumiIChartMetricToggle metric={ichartMetric} onMetricChange={setIchartMetric} />
-        }
-      >
-        {(width: number, height: number) => (
-          <IChartBase
-            parentWidth={width}
-            parentHeight={height}
-            data={ichartData}
-            stats={stats}
-            specs={specs}
-            showBranding={showBranding}
-          />
-        )}
-      </DashboardChartCard>
-
-      {/* Slot 2: Yamazumi stacked bar chart */}
-      <DashboardChartCard chartId="yamazumi" title="Yamazumi">
-        {(width: number, height: number) => (
-          <YamazumiChartBase
-            parentWidth={width}
-            parentHeight={height}
+    <DashboardGrid
+      ichartCard={
+        <DashboardChartCard
+          id="yamazumi-ichart"
+          testId="chart-ichart"
+          title={<span className="text-sm font-medium text-content">I-Chart</span>}
+          chartName="I-Chart"
+          controls={
+            <YamazumiIChartMetricToggle metric={ichartMetric} onMetricChange={setIchartMetric} />
+          }
+        >
+          <IChart data={ichartData} stats={stats} specs={specs} showBranding={showBranding} />
+        </DashboardChartCard>
+      }
+      boxplotCard={
+        <DashboardChartCard
+          id="yamazumi-chart"
+          testId="chart-yamazumi"
+          title={<span className="text-sm font-medium text-content">Yamazumi</span>}
+          chartName="Yamazumi"
+        >
+          <YamazumiChart
             data={barData}
             taktTime={mapping.taktTime}
             onBarClick={onBarClick}
             showBranding={showBranding}
           />
-        )}
-      </DashboardChartCard>
-
-      {/* Slot 3: Pareto with switchable mode */}
-      <DashboardChartCard
-        chartId="pareto"
-        title="Pareto"
-        headerExtra={
-          <YamazumiParetoModeDropdown
-            mode={paretoMode}
-            onModeChange={setParetoMode}
-            hasReasonColumn={!!mapping.reasonColumn}
-            hasActivityColumn={!!mapping.activityColumn}
-          />
-        }
-      >
-        {(width: number, height: number) => (
-          <ParetoChartBase
-            parentWidth={width}
-            parentHeight={height}
-            data={paretoData}
-            totalCount={totalCount}
-            showBranding={showBranding}
-          />
-        )}
-      </DashboardChartCard>
-
-      {/* Slot 4: Yamazumi Summary */}
-      <DashboardChartCard chartId="stats" title="Summary">
-        {() => (
+        </DashboardChartCard>
+      }
+      paretoCard={
+        <DashboardChartCard
+          id="yamazumi-pareto"
+          testId="chart-pareto"
+          title={<span className="text-sm font-medium text-content">Pareto</span>}
+          chartName="Pareto"
+          controls={
+            <YamazumiParetoModeDropdown
+              mode={paretoMode}
+              onModeChange={setParetoMode}
+              hasReasonColumn={!!mapping.reasonColumn}
+              hasActivityColumn={!!mapping.activityColumn}
+            />
+          }
+        >
+          <ParetoChart data={paretoData} totalCount={totalCount} showBranding={showBranding} />
+        </DashboardChartCard>
+      }
+      statsPanel={
+        <DashboardChartCard
+          id="yamazumi-summary"
+          testId="chart-stats"
+          title={<span className="text-sm font-medium text-content">Summary</span>}
+          chartName="Summary"
+        >
           <div className="p-3 overflow-y-auto h-full">
             <YamazumiSummaryBar summary={summary} onTaktTimeChange={handleTaktTimeChange} />
           </div>
-        )}
-      </DashboardChartCard>
-    </DashboardGrid>
+        </DashboardChartCard>
+      }
+    />
   );
 };
 

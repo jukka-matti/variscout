@@ -79,12 +79,11 @@ export const YamazumiDetectedModal: React.FC<YamazumiDetectedModalProps> = ({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-content">
-                {t?.('yamazumi.detected.title', 'Time Study Data Detected') ??
-                  'Time Study Data Detected'}
+                {t?.('yamazumi.detected.title') ?? 'Time Study Data Detected'}
               </h3>
               <p className={`text-sm ${confidenceColor}`}>
                 {detection.confidence === 'high' ? 'High' : 'Medium'}{' '}
-                {t?.('yamazumi.detected.confidence', 'confidence') ?? 'confidence'}
+                {t?.('yamazumi.detected.confidence') ?? 'confidence'}
               </p>
             </div>
           </div>
@@ -98,10 +97,7 @@ export const YamazumiDetectedModal: React.FC<YamazumiDetectedModalProps> = ({
 
         {/* Description */}
         <p className="text-sm text-content-secondary mb-4">
-          {t?.(
-            'yamazumi.detected.description',
-            'Your data contains activity type classifications (VA, NVA, Waste, Wait). Enable Yamazumi mode to visualize cycle time composition across process steps.'
-          ) ??
+          {t?.('yamazumi.detected.description') ??
             'Your data contains activity type classifications (VA, NVA, Waste, Wait). Enable Yamazumi mode to visualize cycle time composition across process steps.'}
         </p>
 
@@ -111,7 +107,7 @@ export const YamazumiDetectedModal: React.FC<YamazumiDetectedModalProps> = ({
             <div className="flex items-center gap-2 text-sm">
               <Check size={14} className="text-green-400 shrink-0" />
               <span className="text-content-secondary">
-                {t?.('yamazumi.detected.activityType', 'Activity Type') ?? 'Activity Type'}:
+                {t?.('yamazumi.detected.activityType') ?? 'Activity Type'}:
               </span>
               <span className="text-content font-medium">
                 {suggestedMapping.activityTypeColumn}
@@ -122,7 +118,7 @@ export const YamazumiDetectedModal: React.FC<YamazumiDetectedModalProps> = ({
             <div className="flex items-center gap-2 text-sm">
               <Check size={14} className="text-green-400 shrink-0" />
               <span className="text-content-secondary">
-                {t?.('yamazumi.detected.cycleTime', 'Cycle Time') ?? 'Cycle Time'}:
+                {t?.('yamazumi.detected.cycleTime') ?? 'Cycle Time'}:
               </span>
               <span className="text-content font-medium">{suggestedMapping.cycleTimeColumn}</span>
             </div>
@@ -131,7 +127,7 @@ export const YamazumiDetectedModal: React.FC<YamazumiDetectedModalProps> = ({
             <div className="flex items-center gap-2 text-sm">
               <Check size={14} className="text-green-400 shrink-0" />
               <span className="text-content-secondary">
-                {t?.('yamazumi.detected.step', 'Process Step') ?? 'Process Step'}:
+                {t?.('yamazumi.detected.step') ?? 'Process Step'}:
               </span>
               <span className="text-content font-medium">{suggestedMapping.stepColumn}</span>
             </div>
@@ -140,7 +136,7 @@ export const YamazumiDetectedModal: React.FC<YamazumiDetectedModalProps> = ({
             <div className="flex items-center gap-2 text-sm">
               <Check size={14} className="text-blue-400 shrink-0" />
               <span className="text-content-secondary">
-                {t?.('yamazumi.detected.reason', 'Waste Reason') ?? 'Waste Reason'}:
+                {t?.('yamazumi.detected.reason') ?? 'Waste Reason'}:
               </span>
               <span className="text-content font-medium">{suggestedMapping.reasonColumn}</span>
             </div>
@@ -151,7 +147,7 @@ export const YamazumiDetectedModal: React.FC<YamazumiDetectedModalProps> = ({
         <div className="mb-5">
           <label className="block text-sm text-content-secondary mb-1.5">
             <Timer size={14} className="inline mr-1 -mt-0.5" />
-            {t?.('yamazumi.detected.taktTime', 'Takt Time (optional)') ?? 'Takt Time (optional)'}
+            {t?.('yamazumi.detected.taktTime') ?? 'Takt Time (optional)'}
           </label>
           <input
             type="number"
@@ -159,9 +155,7 @@ export const YamazumiDetectedModal: React.FC<YamazumiDetectedModalProps> = ({
             step="any"
             value={taktTime}
             onChange={e => setTaktTime(e.target.value)}
-            placeholder={
-              t?.('yamazumi.detected.taktPlaceholder', 'e.g., 120 seconds') ?? 'e.g., 120 seconds'
-            }
+            placeholder={t?.('yamazumi.detected.taktPlaceholder') ?? 'e.g., 120 seconds'}
             className="w-full px-3 py-2 bg-surface-secondary border border-edge rounded-lg text-content text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           />
         </div>
@@ -172,13 +166,13 @@ export const YamazumiDetectedModal: React.FC<YamazumiDetectedModalProps> = ({
             onClick={onDecline}
             className="flex-1 px-4 py-2.5 text-sm text-content-secondary bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-lg transition-colors"
           >
-            {t?.('yamazumi.detected.decline', 'Use Standard Mode') ?? 'Use Standard Mode'}
+            {t?.('yamazumi.detected.decline') ?? 'Use Standard Mode'}
           </button>
           <button
             onClick={handleEnable}
             className="flex-1 px-4 py-2.5 text-sm text-white bg-amber-600 hover:bg-amber-500 rounded-lg font-medium transition-colors"
           >
-            {t?.('yamazumi.detected.enable', 'Enable Yamazumi Mode') ?? 'Enable Yamazumi Mode'}
+            {t?.('yamazumi.detected.enable') ?? 'Enable Yamazumi Mode'}
           </button>
         </div>
       </div>

@@ -14,7 +14,7 @@ import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
 import { useChartLayout, useChartTooltip } from './hooks';
 import { interactionStyles } from './styles/interactionStyles';
-import { getBarA11yProps, getInteractiveA11yProps } from './utils/accessibility';
+import { getBarA11yProps } from './utils/accessibility';
 
 /** Highlight color name → hex fill color */
 const getHighlightFillColors = (colors: Record<string, string>) => ({
@@ -123,10 +123,8 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
         width={parentWidth}
         height={parentHeight - sourceBarHeight}
         data-testid="chart-yamazumi"
-        {...getInteractiveA11yProps(
-          'Yamazumi chart',
-          'Shows cycle time composition by activity type across process steps'
-        )}
+        role="img"
+        aria-label="Yamazumi chart — Shows cycle time composition by activity type across process steps"
       >
         <Group left={margin.left} top={margin.top}>
           {/* Grid lines */}
@@ -174,23 +172,19 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
                       }}
                       onContextMenu={(e: React.MouseEvent) => handleContextMenu(bar.key, e)}
                       onMouseMove={(event: React.MouseEvent) => {
-                        tooltip.showTooltip({
-                          tooltipData: {
-                            stepKey: bar.key,
-                            activityType: segment.activityType,
-                            time: segment.totalTime,
-                            percentage: segment.percentage,
-                            count: segment.count,
-                            totalTime: bar.totalTime,
-                          },
-                          tooltipLeft: event.clientX,
-                          tooltipTop: event.clientY,
+                        tooltip.showTooltipAtPoint(event, {
+                          stepKey: bar.key,
+                          activityType: segment.activityType,
+                          time: segment.totalTime,
+                          percentage: segment.percentage,
+                          count: segment.count,
+                          totalTime: bar.totalTime,
                         });
                       }}
                       onMouseLeave={() => tooltip.hideTooltip()}
                       {...getBarA11yProps(
                         `${bar.key} - ${ACTIVITY_TYPE_LABELS[segment.activityType]}`,
-                        formatStat(segment.totalTime)
+                        segment.totalTime
                       )}
                     />
                   );
@@ -212,7 +206,7 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
                           textAnchor="middle"
                           dominantBaseline="middle"
                           fill="white"
-                          fontSize={fonts.tick}
+                          fontSize={fonts.tickLabel}
                           fontWeight={600}
                           pointerEvents="none"
                         >
@@ -243,10 +237,10 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
                 y={yScale(taktTime) - 6}
                 textAnchor="end"
                 fill={chartColors.spec}
-                fontSize={fonts.tick}
+                fontSize={fonts.tickLabel}
                 fontWeight={600}
               >
-                {t?.('yamazumi.takt', 'Takt') ?? 'Takt'}: {formatStat(taktTime)}
+                {t?.('yamazumi.takt') ?? 'Takt'}: {formatStat(taktTime)}
               </text>
             </Group>
           )}
@@ -257,7 +251,7 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
             scale={xScale}
             tickLabelProps={() => ({
               fill: chrome.axisPrimary,
-              fontSize: fonts.tick,
+              fontSize: fonts.tickLabel,
               textAnchor: 'end' as const,
               dy: '0.25em',
               angle: data.length > 6 ? -45 : 0,
@@ -273,7 +267,7 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
             scale={yScale}
             tickLabelProps={() => ({
               fill: chrome.axisPrimary,
-              fontSize: fonts.tick,
+              fontSize: fonts.tickLabel,
               textAnchor: 'end' as const,
               dx: '-0.25em',
               dy: '0.3em',
@@ -284,7 +278,7 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
             label={yAxisLabel}
             labelProps={{
               fill: chrome.labelPrimary,
-              fontSize: fonts.axis,
+              fontSize: fonts.axisLabel,
               textAnchor: 'middle',
             }}
           />
@@ -292,7 +286,13 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
       </svg>
 
       {/* Branding */}
-      {showBranding && <ChartSourceBar text={brandingText} />}
+      {showBranding && (
+        <ChartSourceBar
+          width={parentWidth}
+          top={parentHeight - sourceBarHeight}
+          brandingText={brandingText}
+        />
+      )}
 
       {/* Tooltip */}
       {tooltip.tooltipOpen && tooltip.tooltipData && (
@@ -304,7 +304,7 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
             backgroundColor: chrome.tooltipBg ?? '#1e293b',
             color: '#e2e8f0',
             padding: '8px 12px',
-            fontSize: fonts.tick,
+            fontSize: fonts.tickLabel,
             borderRadius: 6,
             pointerEvents: 'none',
           }}
@@ -326,7 +326,7 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
             {formatStat(tooltip.tooltipData.time)} (
             {Math.round(tooltip.tooltipData.percentage * 100)}%)
           </div>
-          <div style={{ color: '#94a3b8', marginTop: 2, fontSize: fonts.tick - 1 }}>
+          <div style={{ color: '#94a3b8', marginTop: 2, fontSize: fonts.tickLabel - 1 }}>
             Total: {formatStat(tooltip.tooltipData.totalTime)} · {tooltip.tooltipData.count}{' '}
             {tooltip.tooltipData.count === 1 ? 'row' : 'rows'}
           </div>

@@ -49,7 +49,7 @@ export const YamazumiIChartMetricToggle: React.FC<YamazumiIChartMetricToggleProp
               : 'text-content-secondary hover:text-content'
           }`}
         >
-          {t?.(`yamazumi.metric.${opt.value}`, opt.label) ?? opt.label}
+          {t?.(`yamazumi.metric.${opt.value}`) ?? opt.label}
         </button>
       ))}
     </div>
@@ -105,7 +105,7 @@ export const YamazumiParetoModeDropdown: React.FC<YamazumiParetoModeDropdownProp
     >
       {availableOptions.map(opt => (
         <option key={opt.value} value={opt.value}>
-          {t?.(`yamazumi.pareto.${opt.value}`, opt.label) ?? opt.label}
+          {t?.(`yamazumi.pareto.${opt.value}`) ?? opt.label}
         </option>
       ))}
     </select>
