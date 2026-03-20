@@ -307,3 +307,34 @@ export interface PerformanceCapabilityProps extends BaseChartProps {
   /** Specification limits for reference lines */
   specs: SpecLimits;
 }
+
+// ============================================================================
+// Yamazumi Chart Types
+// ============================================================================
+
+/** Re-export from core for chart component usage */
+export type { YamazumiBarData, YamazumiSegment, ActivityType } from '@variscout/core';
+
+/**
+ * YamazumiChart props - Stacked bar chart for lean time study analysis
+ */
+export interface YamazumiChartProps extends BaseChartProps {
+  /** Bar data (one per process step) */
+  data: import('@variscout/core').YamazumiBarData[];
+  /** Reference takt time (renders as horizontal dashed line) */
+  taktTime?: number;
+  /** Currently selected bar keys */
+  selectedBars?: string[];
+  /** Callback when a bar is clicked (drill-down) */
+  onBarClick?: (stepKey: string) => void;
+  /** Callback when a segment within a bar is clicked */
+  onSegmentClick?: (stepKey: string, activityType: import('@variscout/core').ActivityType) => void;
+  /** Callback for right-click context menu */
+  onBarContextMenu?: (key: string, event: React.MouseEvent) => void;
+  /** Highlighted bars with colors (annotation highlights) */
+  highlightedBars?: Record<string, HighlightColor>;
+  /** Show percentage labels on segments */
+  showPercentLabels?: boolean;
+  /** Y-axis label */
+  yAxisLabel?: string;
+}

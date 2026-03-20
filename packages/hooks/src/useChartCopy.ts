@@ -11,6 +11,7 @@ export const EXPORT_SIZES: Record<string, { width: number; height: number }> = {
   probability: { width: 800, height: 700 },
   stats: { width: 1200, height: 400 },
   scatter: { width: 1200, height: 800 },
+  yamazumi: { width: 1200, height: 800 },
   dashboard: { width: 1600, height: 0 }, // height=0 → auto (capture full scrollHeight)
   slide: { width: 1920, height: 1080 },
 };

@@ -297,7 +297,8 @@ export interface FindingProjection {
 /** Where a chart observation originated — discriminated union by chart type */
 export type FindingSource =
   | { chart: 'boxplot' | 'pareto'; category: string }
-  | { chart: 'ichart'; anchorX: number; anchorY: number };
+  | { chart: 'ichart'; anchorX: number; anchorY: number }
+  | { chart: 'yamazumi'; category: string; activityType?: string };
 
 // ============================================================================
 // Finding Types
@@ -676,6 +677,17 @@ function migrateSource(source: FindingSource | undefined): FindingSource | undef
       anchorX: (s.anchorX as number) ?? 0,
       anchorY: (s.anchorY as number) ?? 0,
     };
+  }
+  // Yamazumi: category-based with optional activityType
+  if (source.chart === 'yamazumi') {
+    const s = source as Record<string, unknown>;
+    const result: FindingSource = {
+      chart: 'yamazumi',
+      category: (s.category as string) ?? '',
+    };
+    if (s.activityType)
+      (result as { activityType?: string }).activityType = s.activityType as string;
+    return result;
   }
   // Ensure boxplot/pareto shape has required category
   const s = source as Record<string, unknown>;

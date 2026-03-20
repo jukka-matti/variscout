@@ -156,10 +156,14 @@ export interface ViewState {
   isFindingsOpen?: boolean;
   isWhatIfOpen?: boolean;
   isImprovementOpen?: boolean;
-  focusedChart?: 'ichart' | 'boxplot' | 'pareto' | null;
+  focusedChart?: 'ichart' | 'boxplot' | 'pareto' | 'yamazumi' | null;
   boxplotFactor?: string;
   paretoFactor?: string;
   findingsViewMode?: 'list' | 'board' | 'tree';
+  /** Yamazumi I-Chart metric selector */
+  yamazumiIChartMetric?: import('@variscout/core').YamazumiIChartMetric;
+  /** Yamazumi Pareto mode selector */
+  yamazumiParetoMode?: import('@variscout/core').YamazumiParetoMode;
 }
 
 /**
@@ -186,8 +190,12 @@ export interface AnalysisState {
   stageColumn?: string | null;
   /** Stage ordering mode */
   stageOrderMode?: StageOrderMode;
-  /** Performance Mode active */
+  /** Performance Mode active (legacy — use analysisMode instead) */
   isPerformanceMode?: boolean;
+  /** Analysis mode: standard, performance, or yamazumi */
+  analysisMode?: import('@variscout/core').AnalysisMode;
+  /** Yamazumi column role mapping */
+  yamazumiMapping?: import('@variscout/core').YamazumiColumnMapping;
   /** Selected measure columns for Performance Mode */
   measureColumns?: string[];
   /** Active channel drill in Performance Mode */

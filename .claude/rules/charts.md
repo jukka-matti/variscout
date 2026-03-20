@@ -180,6 +180,7 @@ Charts export at fixed, presentation-ready dimensions via `useChartCopy` from `@
 | Wide | Pareto | 1200 | 720 | 5:3 |
 | Compact | Histogram | 800 | 600 | 4:3 |
 | Compact | Probability | 800 | 700 | ~1.14:1 |
+| Wide | Yamazumi | 1200 | 800 | 3:2 |
 | Text | Stats panel | 1200 | 400 | 3:1 |
 | Composite | Dashboard | 1600 | auto | 16:9 target |
 
@@ -193,6 +194,36 @@ Dashboard uses auto-height mode (`height: 0` in EXPORT_SIZES) — captures full 
 - `useChartCopy` — Hook from `@variscout/hooks`: copy-to-clipboard, PNG download, SVG download
 - Copy button: inline 1-click with Check feedback icon
 - All export icons use `size={14}`
+
+## Yamazumi Chart (Lean Time Study Analysis)
+
+Yamazumi stacked bar chart visualizes cycle time composition by activity type:
+
+| Component | Base Export | Purpose |
+|-----------|-------------|---------|
+| `YamazumiChart` | `YamazumiChartBase` | Stacked bars by activity type per step |
+
+**Activity type colors (fixed, never change by drill level):**
+- VA: `#22c55e` (green) — Value-Adding
+- NVA Required: `#f59e0b` (amber) — Necessary non-value-adding
+- Waste: `#ef4444` (red) — Eliminable waste
+- Wait: `#94a3b8` (grey) — Queue/wait time
+
+**Props pattern:**
+- Accepts `data: YamazumiBarData[]` from `computeYamazumiData()` in `@variscout/core`
+- `taktTime?: number` renders horizontal dashed line (reuses spec limit pattern)
+- `onBarClick`, `onBarContextMenu` for drill-down and findings
+- `highlightedBars` for annotation highlights
+- Theme-aware via `useChartTheme`
+
+**Chart slot mapping (Yamazumi mode):**
+
+| Slot | Standard | Performance | Yamazumi |
+|------|----------|-------------|----------|
+| 1 | I-Chart | Cpk Scatter | I-Chart (switchable metric) |
+| 2 | Boxplot | Boxplot | Yamazumi Chart |
+| 3 | Pareto | Pareto (Cpk) | Pareto (5 switchable modes) |
+| 4 | Stats | Stats | Yamazumi Summary |
 
 ## Adding New Charts
 

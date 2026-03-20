@@ -382,6 +382,19 @@ export {
   type ImprovementWorkspaceBaseProps,
 } from './components/ImprovementPlan';
 
+// Yamazumi Components
+export {
+  YamazumiDetectedModal,
+  type YamazumiDetectedModalProps,
+} from './components/YamazumiDetectedModal';
+export {
+  YamazumiIChartMetricToggle,
+  YamazumiParetoModeDropdown,
+  type YamazumiIChartMetricToggleProps,
+  type YamazumiParetoModeDropdownProps,
+} from './components/YamazumiDisplayToggle';
+export { YamazumiSummaryBar, type YamazumiSummaryBarProps } from './components/YamazumiSummaryBar';
+
 // Hooks
 export {
   useIsMobile,

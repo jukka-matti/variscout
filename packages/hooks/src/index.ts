@@ -281,3 +281,12 @@ export {
   type UseVerificationChartsOptions,
   type UseVerificationChartsReturn,
 } from './useVerificationCharts';
+
+// Yamazumi Data Hooks
+export { useYamazumiChartData, type UseYamazumiChartDataOptions } from './useYamazumiChartData';
+export { useYamazumiIChartData, type UseYamazumiIChartDataOptions } from './useYamazumiIChartData';
+export {
+  useYamazumiParetoData,
+  type UseYamazumiParetoDataOptions,
+  type UseYamazumiParetoDataReturn,
+} from './useYamazumiParetoData';

@@ -106,6 +106,10 @@ export { default as ProbabilityPlot, ProbabilityPlotBase } from './ProbabilityPl
 export { default as ChartSourceBar, getSourceBarHeight } from './ChartSourceBar';
 export { default as ChartLegend, type ChartLegendProps } from './ChartLegend';
 
+// Yamazumi chart components
+export { default as YamazumiChart, YamazumiChartBase } from './YamazumiChart';
+export type { YamazumiChartProps } from './types';
+
 // Performance chart components
 export { default as PerformanceIChart, PerformanceIChartBase } from './PerformanceIChart';
 export { default as PerformanceBoxplot, PerformanceBoxplotBase } from './PerformanceBoxplot';

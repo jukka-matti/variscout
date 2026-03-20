@@ -41,12 +41,12 @@ npx ruflo@latest security cve --check        # CVE check
 | Directory               | Contents                                                              |
 | ----------------------- | --------------------------------------------------------------------- |
 | docs/01-vision/         | Philosophy, Four Lenses, Two Voices, methodology, evaluations         |
-| docs/02-journeys/       | 8 personas, user flows, 13 use cases                                  |
+| docs/02-journeys/       | 9 personas, user flows, 13 use cases                                  |
 | docs/03-features/       | Analysis, workflows, data, navigation, learning                       |
-| docs/04-cases/          | 7 case studies with demo data                                         |
+| docs/04-cases/          | 8 case studies with demo data                                         |
 | docs/05-technical/      | Architecture, implementation, integrations                            |
 | docs/06-design-system/  | Colors, typography, components, charts, patterns                      |
-| docs/07-decisions/      | ADR-001 through ADR-029                                               |
+| docs/07-decisions/      | ADR-001 through ADR-034                                               |
 | docs/08-products/       | Azure, PWA, website specs, feature-parity matrix                      |
 | docs/09-tutorials/      | Planned step-by-step guides                                           |
 | docs/superpowers/specs/ | Design specs from brainstorming sessions (see index.md)               |
@@ -88,6 +88,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Diagram health             | scripts/check-diagram-health.sh, docs/05-technical/architecture/component-map.md                                                                        |
 | Documentation site         | apps/docs/ (Astro + Starlight)                                                                                                                          |
 | IMPROVE Phase / Workspaces | docs/superpowers/specs/2026-03-19-improve-phase-ux-design.md, packages/ui/src/components/ImprovementPlan/                                               |
+| Yamazumi / Time Study      | adr-034, docs/03-features/analysis/yamazumi.md, packages/core/src/yamazumi/                                                                             |
 | Navigation / Views         | docs/06-design-system/patterns/navigation.md, apps/pwa/src/hooks/useAppPanels.ts, apps/azure/src/hooks/useEditorPanels.ts                               |
 
 ## Repository Structure
@@ -114,17 +115,17 @@ variscout-lite/
 
 ## Key Entry Points
 
-| Package                                       | Key Files                                                                     | Purpose                                                                          |
-| --------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `packages/core/src/`                          | stats/, parser/, types.ts, tier.ts, ai/, glossary/, variation/                | Stats engine (13 modules), parser, types, tier, AI context, glossary, simulation |
-| `packages/charts/src/`                        | IChart, Boxplot, Pareto, Performance\*, colors.ts, useChartTheme              | Chart components (see .claude/rules/charts.md)                                   |
-| `packages/hooks/src/`                         | use\*.ts (see .claude/rules/monorepo.md for full list)                        | 40+ shared React hooks                                                           |
-| `packages/ui/src/components/`                 | \*/ (see .claude/rules/monorepo.md for full list)                             | 60+ shared UI components                                                         |
-| `packages/data/src/samples/`                  | coffee, journey, bottleneck, sachets                                          | Sample datasets                                                                  |
-| `apps/pwa/src/`                               | context/DataContext.tsx, components/Dashboard.tsx                             | PWA state + main UI                                                              |
-| `apps/azure/src/`                             | context/DataContext.tsx, services/graphFetch.ts, auth/, hooks/useEditor\*.ts  | Azure state, storage, auth, Graph API wrapper                                    |
-| `packages/ui/src/components/ImprovementPlan/` | ImprovementWorkspaceBase, SynthesisCard, IdeaGroupCard, ImprovementSummaryBar | Improvement planning workspace (Azure only)                                      |
-| `infra/`                                      | mainTemplate.json, functions/                                                 | ARM template, Azure Functions                                                    |
+| Package                                       | Key Files                                                                     | Purpose                                                                                    |
+| --------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `packages/core/src/`                          | stats/, parser/, types.ts, tier.ts, ai/, glossary/, variation/, yamazumi/     | Stats engine (13 modules), parser, types, tier, AI context, glossary, simulation, yamazumi |
+| `packages/charts/src/`                        | IChart, Boxplot, Pareto, Performance\*, colors.ts, useChartTheme              | Chart components (see .claude/rules/charts.md)                                             |
+| `packages/hooks/src/`                         | use\*.ts (see .claude/rules/monorepo.md for full list)                        | 40+ shared React hooks                                                                     |
+| `packages/ui/src/components/`                 | \*/ (see .claude/rules/monorepo.md for full list)                             | 60+ shared UI components                                                                   |
+| `packages/data/src/samples/`                  | coffee, journey, bottleneck, sachets                                          | Sample datasets                                                                            |
+| `apps/pwa/src/`                               | context/DataContext.tsx, components/Dashboard.tsx                             | PWA state + main UI                                                                        |
+| `apps/azure/src/`                             | context/DataContext.tsx, services/graphFetch.ts, auth/, hooks/useEditor\*.ts  | Azure state, storage, auth, Graph API wrapper                                              |
+| `packages/ui/src/components/ImprovementPlan/` | ImprovementWorkspaceBase, SynthesisCard, IdeaGroupCard, ImprovementSummaryBar | Improvement planning workspace (Azure only)                                                |
+| `infra/`                                      | mainTemplate.json, functions/                                                 | ARM template, Azure Functions                                                              |
 
 ## Key Patterns
 

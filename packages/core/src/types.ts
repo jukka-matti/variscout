@@ -342,6 +342,14 @@ export interface RegressionResult {
 export type StageOrderMode = 'auto' | 'data-order';
 
 /**
+ * Analysis mode — determines chart layout and data pipeline
+ * - 'standard': SPC analysis (I-Chart + Boxplot + Pareto + Stats)
+ * - 'performance': Multi-channel analysis (Cpk Scatter + Boxplot + Pareto + Stats)
+ * - 'yamazumi': Lean time study analysis (I-Chart + Yamazumi + Pareto + Summary)
+ */
+export type AnalysisMode = 'standard' | 'performance' | 'yamazumi';
+
+/**
  * Result of staged statistical calculations
  * Used when data is divided into distinct phases with separate control limits
  */

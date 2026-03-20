@@ -5,7 +5,7 @@
 ```
 packages/
 ├── core/      # @variscout/core - Pure logic, glossary, tier system, i18n (no React)
-├── charts/    # @variscout/charts - React + Visx (standard + Performance charts), useChartTheme
+├── charts/    # @variscout/charts - React + Visx (standard + Performance + Yamazumi charts), useChartTheme
 ├── data/      # @variscout/data - Sample datasets with pre-computed chart data
 ├── hooks/     # @variscout/hooks - Shared React hooks:
 │              #   useChartScale - Y-axis scale calculation
@@ -44,6 +44,9 @@ packages/
 │              #   copySectionAsHTML - Rich clipboard copy utility
 │              #   useLocaleState - Locale state (localStorage + data-locale attribute)
 │              #   useTranslation - Component-level translation hook (MutationObserver)
+│              #   useYamazumiChartData - Yamazumi stacked bar data from filtered rows
+│              #   useYamazumiIChartData - I-Chart data with switchable metric for Yamazumi
+│              #   useYamazumiParetoData - Pareto data with 5 switchable modes for Yamazumi
 └── ui/        # @variscout/ui - Shared UI components:
                #   AnovaResults, FilterBreadcrumb, FilterChipDropdown, FilterContextBar,
                #   PerformanceSetupPanelBase, VariationBar,
@@ -66,6 +69,8 @@ packages/
                #   ReportViewBase, ReportSection, ReportStepMarker, ReportKPIGrid,
                #   ReportChartSnapshot, VerificationEvidenceBase,
                #   SynthesisCard, IdeaGroupCard, ImprovementSummaryBar, ImprovementWorkspaceBase,
+               #   YamazumiDetectedModal, YamazumiIChartMetricToggle, YamazumiParetoModeDropdown,
+               #   YamazumiSummaryBar,
                #   useGlossary, useIsMobile, errorService
 
 apps/
