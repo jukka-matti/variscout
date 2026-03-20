@@ -670,6 +670,14 @@ export const en: MessageCatalog = {
   'matrix.preset.budgetView': 'Budget View',
   'matrix.quickWins': 'Quick Wins',
   'matrix.clickToSelect': 'Click to select',
+  'matrix.selected': 'Selected',
+  'matrix.axis.benefit': 'Benefit',
+  'matrix.axis.timeframe': 'Timeframe',
+  'matrix.axis.cost': 'Cost',
+  'matrix.axis.risk': 'Risk',
+  'benefit.low': 'Low',
+  'benefit.medium': 'Medium',
+  'benefit.high': 'High',
 
   // Idea direction labels (Four Ideation Directions)
   'idea.direction': 'Direction',

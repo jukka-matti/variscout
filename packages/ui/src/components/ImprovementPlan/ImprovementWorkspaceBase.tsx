@@ -1,5 +1,13 @@
 import React, { useMemo } from 'react';
-import type { ImprovementIdea, IdeaTimeframe, IdeaDirection } from '@variscout/core';
+import type {
+  ImprovementIdea,
+  IdeaTimeframe,
+  IdeaDirection,
+  IdeaCostCategory,
+  IdeaRiskAssessment,
+  ComputedRiskLevel,
+  RiskAxisConfig,
+} from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { SynthesisCard } from './SynthesisCard';
@@ -29,12 +37,25 @@ export interface ImprovementWorkspaceBaseProps {
     ideaId: string,
     direction: IdeaDirection | undefined
   ) => void;
+  onUpdateCost?: (
+    hypothesisId: string,
+    ideaId: string,
+    cost: { category: IdeaCostCategory } | undefined
+  ) => void;
+  onUpdateRisk?: (
+    hypothesisId: string,
+    ideaId: string,
+    risk: IdeaRiskAssessment | undefined
+  ) => void;
+  onOpenRisk?: (hypothesisId: string, ideaId: string) => void;
   onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
   onOpenWhatIf?: (hypothesisId: string, ideaId: string) => void;
   onAddIdea?: (hypothesisId: string, text: string) => void;
   onAskCoScout?: (question: string) => void;
   onConvertToActions?: () => void;
   onBack?: () => void;
+  riskAxisConfig?: RiskAxisConfig;
+  budget?: number;
   /** Open in popout window */
   onPopout?: () => void;
   /** Currently selected idea IDs for summary calculation */
@@ -52,6 +73,8 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
   onToggleSelect,
   onUpdateTimeframe,
   onUpdateDirection,
+  onUpdateCost,
+  onOpenRisk,
   onRemoveIdea,
   onOpenWhatIf,
   onAddIdea,
@@ -62,6 +85,8 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
   selectedIdeaIds,
   convertedIdeaIds,
   targetCpk,
+  riskAxisConfig,
+  budget,
 }) => {
   const { t } = useTranslation();
 
@@ -74,13 +99,39 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
   }, [allIdeas, selectedIdeaIds]);
 
   const timeframeBreakdown = useMemo(() => {
-    const breakdown: Record<string, number> = { 'just-do': 0, days: 0, weeks: 0, months: 0 };
+    const breakdown = { 'just-do': 0, days: 0, weeks: 0, months: 0 };
     for (const idea of selectedIdeas) {
       if (idea.timeframe) {
         breakdown[idea.timeframe]++;
       }
     }
     return breakdown;
+  }, [selectedIdeas]);
+
+  // Max risk among selected ideas
+  const maxRisk = useMemo<ComputedRiskLevel | undefined>(() => {
+    const levels: ComputedRiskLevel[] = ['low', 'medium', 'high', 'very-high'];
+    let max = -1;
+    for (const idea of selectedIdeas) {
+      if (idea.risk) {
+        const idx = levels.indexOf(idea.risk.computed);
+        if (idx > max) max = idx;
+      }
+    }
+    return max >= 0 ? levels[max] : undefined;
+  }, [selectedIdeas]);
+
+  // Total cost from selected ideas with precise amounts
+  const totalCost = useMemo(() => {
+    let sum = 0;
+    let hasAmount = false;
+    for (const idea of selectedIdeas) {
+      if (idea.cost?.amount != null) {
+        sum += idea.cost.amount;
+        hasAmount = true;
+      }
+    }
+    return hasAmount ? sum : undefined;
   }, [selectedIdeas]);
 
   // Average projected Cpk from selected ideas that have projections
@@ -155,10 +206,13 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
                 onToggleSelect={onToggleSelect}
                 onUpdateTimeframe={onUpdateTimeframe}
                 onUpdateDirection={onUpdateDirection}
+                onUpdateCost={onUpdateCost}
+                onOpenRisk={onOpenRisk}
                 onRemoveIdea={onRemoveIdea}
                 onOpenWhatIf={onOpenWhatIf}
                 onAddIdea={onAddIdea}
                 onAskCoScout={onAskCoScout}
+                riskAxisConfig={riskAxisConfig}
                 convertedIdeaIds={convertedIdeaIds}
               />
             ))
@@ -176,6 +230,9 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
       <ImprovementSummaryBar
         selectedCount={selectedIdeaIds?.size ?? 0}
         timeframeBreakdown={timeframeBreakdown}
+        maxRisk={maxRisk}
+        totalCost={totalCost}
+        budget={budget}
         projectedCpk={projectedCpk}
         targetCpk={targetCpk}
         onConvertToActions={onConvertToActions}

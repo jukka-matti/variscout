@@ -762,6 +762,14 @@ export interface MessageCatalog {
   'matrix.preset.budgetView': string;
   'matrix.quickWins': string;
   'matrix.clickToSelect': string;
+  'matrix.selected': string;
+  'matrix.axis.benefit': string;
+  'matrix.axis.timeframe': string;
+  'matrix.axis.cost': string;
+  'matrix.axis.risk': string;
+  'benefit.low': string;
+  'benefit.medium': string;
+  'benefit.high': string;
 
   // Idea direction labels (Four Ideation Directions)
   'idea.direction': string;

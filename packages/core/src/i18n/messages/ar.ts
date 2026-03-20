@@ -656,6 +656,14 @@ export const ar: MessageCatalog = {
   'timeframe.label': 'Effort',
 
   // Idea direction labels (Four Ideation Directions)
+  'matrix.selected': 'Selected',
+  'matrix.axis.benefit': 'Benefit',
+  'matrix.axis.timeframe': 'Timeframe',
+  'matrix.axis.cost': 'Cost',
+  'matrix.axis.risk': 'Risk',
+  'benefit.low': 'Low',
+  'benefit.medium': 'Medium',
+  'benefit.high': 'High',
   'idea.direction': 'Direction',
   'idea.prevent': 'Prevent',
   'idea.detect': 'Detect',
