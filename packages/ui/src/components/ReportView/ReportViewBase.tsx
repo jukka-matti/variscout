@@ -39,13 +39,16 @@ export const reportViewBaseDefaultColorScheme: ReportViewBaseColorScheme = {
   footer: 'p-4 border-t border-slate-200 dark:border-slate-700 space-y-2',
 };
 
-type ReportType = 'quick-check' | 'deep-dive' | 'full-cycle';
+type ReportType = 'analysis-snapshot' | 'investigation-report' | 'improvement-story';
+type ReportWorkspace = 'analysis' | 'findings' | 'improvement';
+type AudienceMode = 'technical' | 'summary';
 
 interface SectionDescriptor {
   id: string;
   stepNumber: number;
   title: string;
   status: 'done' | 'active' | 'future';
+  workspace: ReportWorkspace;
 }
 
 export interface ReportViewBaseProps {
@@ -54,6 +57,8 @@ export interface ReportViewBaseProps {
   reportType: ReportType;
   sections: SectionDescriptor[];
   activeSectionId: string | null;
+  audienceMode?: AudienceMode;
+  onAudienceModeChange?: (mode: AudienceMode) => void;
   onScrollToSection: (id: string) => void;
   renderSection: (section: SectionDescriptor) => React.ReactNode;
   onCopyAllCharts?: () => void;
@@ -74,16 +79,58 @@ export interface ReportViewBaseProps {
 }
 
 const BADGE_COLORS: Record<ReportType, string> = {
-  'quick-check': 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
-  'deep-dive': 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
-  'full-cycle': 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  'analysis-snapshot': 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  'investigation-report': 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  'improvement-story': 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300',
 };
 
 const BADGE_LABELS: Record<ReportType, string> = {
-  'quick-check': 'Quick Check',
-  'deep-dive': 'Deep Dive',
-  'full-cycle': 'Full Cycle',
+  'analysis-snapshot': 'Analysis Snapshot',
+  'investigation-report': 'Investigation Report',
+  'improvement-story': 'Improvement Story',
 };
+
+const WORKSPACE_COLORS: Record<ReportWorkspace, { border: string; text: string; dot: string }> = {
+  analysis: {
+    border: 'border-l-green-500',
+    text: 'text-green-600 dark:text-green-400',
+    dot: 'bg-green-500',
+  },
+  findings: {
+    border: 'border-l-amber-500',
+    text: 'text-amber-600 dark:text-amber-400',
+    dot: 'bg-amber-500',
+  },
+  improvement: {
+    border: 'border-l-purple-500',
+    text: 'text-purple-600 dark:text-purple-400',
+    dot: 'bg-purple-500',
+  },
+};
+
+const WORKSPACE_LABELS: Record<ReportWorkspace, string> = {
+  analysis: 'ANALYSIS',
+  findings: 'FINDINGS',
+  improvement: 'IMPROVEMENT',
+};
+
+/** Group sections by workspace, preserving order. */
+function groupByWorkspace(
+  sections: SectionDescriptor[]
+): Array<{ workspace: ReportWorkspace; sections: SectionDescriptor[] }> {
+  const groups: Array<{ workspace: ReportWorkspace; sections: SectionDescriptor[] }> = [];
+  let currentWorkspace: ReportWorkspace | null = null;
+
+  for (const section of sections) {
+    if (section.workspace !== currentWorkspace) {
+      currentWorkspace = section.workspace;
+      groups.push({ workspace: currentWorkspace, sections: [] });
+    }
+    groups[groups.length - 1].sections.push(section);
+  }
+
+  return groups;
+}
 
 export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   processName,
@@ -91,6 +138,8 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   reportType,
   sections,
   activeSectionId,
+  audienceMode = 'technical',
+  onAudienceModeChange,
   onScrollToSection,
   renderSection,
   onCopyAllCharts,
@@ -113,6 +162,8 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
     ...colorScheme,
   };
 
+  const workspaceGroups = groupByWorkspace(sections);
+
   return (
     <div className={scheme.container}>
       {/* Sidebar TOC (desktop only) */}
@@ -124,28 +175,43 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
           </p>
         </div>
 
-        {/* TOC items */}
+        {/* TOC items grouped by workspace */}
         <nav className="flex-1 py-2">
-          {sections.map(section => {
-            const isActive = section.id === activeSectionId;
+          {workspaceGroups.map(group => {
+            const wsColors = WORKSPACE_COLORS[group.workspace];
             return (
-              <button
-                key={section.id}
-                className={`w-full text-left flex items-center gap-2 ${isActive ? scheme.sidebarItemActive : scheme.sidebarItem}`}
-                onClick={() => onScrollToSection(section.id)}
-              >
-                {/* Tiny status dot */}
-                <span
-                  className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                    section.status === 'done'
-                      ? 'bg-green-500'
-                      : section.status === 'active'
-                        ? 'bg-blue-500'
-                        : 'bg-slate-300 dark:bg-slate-600'
-                  }`}
-                />
-                <span className="truncate">{section.title}</span>
-              </button>
+              <div key={group.workspace}>
+                {/* Workspace group header */}
+                <div className={`px-4 py-1.5 mt-2 first:mt-0 border-l-2 ${wsColors.border}`}>
+                  <span className={`text-[10px] font-semibold tracking-widest ${wsColors.text}`}>
+                    {WORKSPACE_LABELS[group.workspace]}
+                  </span>
+                </div>
+
+                {/* Section items */}
+                {group.sections.map(section => {
+                  const isActive = section.id === activeSectionId;
+                  return (
+                    <button
+                      key={section.id}
+                      className={`w-full text-left flex items-center gap-2 ${isActive ? scheme.sidebarItemActive : scheme.sidebarItem}`}
+                      onClick={() => onScrollToSection(section.id)}
+                    >
+                      {/* Status dot with workspace color */}
+                      <span
+                        className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                          section.status === 'done'
+                            ? 'bg-green-500'
+                            : section.status === 'active'
+                              ? wsColors.dot
+                              : 'bg-slate-300 dark:bg-slate-600'
+                        }`}
+                      />
+                      <span className="truncate">{section.title}</span>
+                    </button>
+                  );
+                })}
+              </div>
             );
           })}
         </nav>
@@ -277,6 +343,35 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
             {BADGE_LABELS[reportType]}
           </span>
 
+          {/* Audience toggle */}
+          {onAudienceModeChange && (
+            <div
+              className="hidden sm:flex items-center rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden"
+              data-export-hide
+            >
+              <button
+                className={`px-3 py-1 text-xs font-medium transition-colors ${
+                  audienceMode === 'technical'
+                    ? 'bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+                onClick={() => onAudienceModeChange('technical')}
+              >
+                Technical
+              </button>
+              <button
+                className={`px-3 py-1 text-xs font-medium transition-colors ${
+                  audienceMode === 'summary'
+                    ? 'bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+                onClick={() => onAudienceModeChange('summary')}
+              >
+                Summary
+              </button>
+            </div>
+          )}
+
           {/* Mobile TOC dropdown (visible below lg breakpoint) */}
           <select
             className="lg:hidden text-sm bg-transparent border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500"
@@ -284,15 +379,19 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
             onChange={e => onScrollToSection(e.target.value)}
             aria-label="Navigate to section"
           >
-            {sections.map(section => (
-              <option key={section.id} value={section.id}>
-                {section.status === 'done'
-                  ? '\u2713'
-                  : section.status === 'active'
-                    ? '\u25CF'
-                    : '\u25CB'}{' '}
-                {section.title}
-              </option>
+            {workspaceGroups.map(group => (
+              <optgroup key={group.workspace} label={WORKSPACE_LABELS[group.workspace]}>
+                {group.sections.map(section => (
+                  <option key={section.id} value={section.id}>
+                    {section.status === 'done'
+                      ? '\u2713'
+                      : section.status === 'active'
+                        ? '\u25CF'
+                        : '\u25CB'}{' '}
+                    {section.title}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
 

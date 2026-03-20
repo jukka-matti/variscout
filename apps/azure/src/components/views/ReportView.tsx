@@ -1,6 +1,9 @@
 /**
- * Azure ReportView - Thin wrapper connecting DataContext to ReportViewBase.
- * Composes the scouting report from current analysis state, findings, and hypotheses.
+ * Azure ReportView - Workspace-aligned report with audience toggle.
+ *
+ * Composes the report from current analysis state, findings, hypotheses,
+ * and improvement data. Supports 3 report types (Analysis Snapshot,
+ * Investigation Report, Improvement Story) with Technical/Summary audience modes.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useData } from '../../context/DataContext';
@@ -15,6 +18,9 @@ import {
   CapabilityHistogram,
   VerificationEvidenceBase,
   SynthesisCard,
+  ReportHypothesisSummary,
+  ReportImprovementSummary,
+  ReportCpkLearningLoop,
 } from '@variscout/ui';
 import {
   useReportSections,
@@ -27,7 +33,7 @@ import {
   useIChartData,
   copySectionAsHTML,
 } from '@variscout/hooks';
-import type { ReportSectionDescriptor, VerificationChartId } from '@variscout/hooks';
+import type { ReportSectionDescriptor, VerificationChartId, AudienceMode } from '@variscout/hooks';
 import type { Finding, SpecLimits } from '@variscout/core';
 import { formatFindingFilters, calculateStagedComparison } from '@variscout/core';
 import { IChartBase, BoxplotBase, ParetoChartBase } from '@variscout/charts';
@@ -40,7 +46,7 @@ interface ReportViewProps {
   onClose: () => void;
   onShareReport?: () => void;
   canShareViaTeams?: boolean;
-  // AI enhancement (Phase 5)
+  // AI enhancement
   aiEnabled?: boolean;
   narrative?: string | null;
 }
@@ -114,8 +120,14 @@ const ReportView: React.FC<ReportViewProps> = ({
     displayOptions,
   } = useData();
 
-  const findings = persistedFindings ?? [];
-  const hypotheses = persistedHypotheses ?? [];
+  const findings = useMemo(() => persistedFindings ?? [], [persistedFindings]);
+  const hypotheses = useMemo(() => persistedHypotheses ?? [], [persistedHypotheses]);
+
+  // ---------------------------------------------------------------------------
+  // Audience mode state
+  // ---------------------------------------------------------------------------
+  const [audienceMode, setAudienceMode] = useState<AudienceMode>('technical');
+  const isSummary = audienceMode === 'summary';
 
   // ---------------------------------------------------------------------------
   // Responsive chart width — clamp to container width on small screens
@@ -243,6 +255,31 @@ const ReportView: React.FC<ReportViewProps> = ({
   }, [filteredData, firstFactor, stageColumn, stageOrder, outcome]);
 
   // ---------------------------------------------------------------------------
+  // Best projected Cpk from improvement ideas (for learning loop)
+  // ---------------------------------------------------------------------------
+  const bestProjectedCpk = useMemo(() => {
+    const projections: number[] = [];
+    for (const h of hypotheses) {
+      if (h.ideas) {
+        for (const idea of h.ideas) {
+          if (idea.selected && idea.projection?.projectedCpk != null) {
+            projections.push(idea.projection.projectedCpk);
+          }
+        }
+      }
+    }
+    return projections.length > 0 ? Math.max(...projections) : undefined;
+  }, [hypotheses]);
+
+  // ---------------------------------------------------------------------------
+  // First finding with outcome (for learning loop verdict)
+  // ---------------------------------------------------------------------------
+  const primaryOutcome = useMemo(() => {
+    const f = findings.find(f => f.outcome != null);
+    return f?.outcome ?? null;
+  }, [findings]);
+
+  // ---------------------------------------------------------------------------
   // Verification chart toggle state
   // ---------------------------------------------------------------------------
   const {
@@ -265,6 +302,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     hypotheses,
     stagedComparison: hasStagedComparison,
     aiEnabled: aiEnabled ?? false,
+    audienceMode,
   });
 
   // Scroll spy for sidebar highlighting
@@ -476,6 +514,7 @@ const ReportView: React.FC<ReportViewProps> = ({
       stepNumber: number;
       title: string;
       status: 'done' | 'active' | 'future';
+      workspace: 'analysis' | 'findings' | 'improvement';
     }) => {
       const extendedSection = sectionMap.get(section.id);
       const ref = sectionRefs[section.id];
@@ -487,26 +526,30 @@ const ReportView: React.FC<ReportViewProps> = ({
           stepNumber={section.stepNumber}
           title={section.title}
           status={section.status}
+          workspace={section.workspace}
           sectionRef={ref}
           onCopyAsSlide={() => handleCopySectionAsSlide(section.id)}
           copyFeedback={sectionCopyFeedback === section.id}
           defaultOpen={section.status !== 'future'}
           forceOpen={isPrinting}
         >
+          {/* Step 1: Current Condition */}
           {section.id === 'current-condition' && stats && outcome && (
             <div className="space-y-4">
               <ReportKPIGrid stats={stats} specs={specs} sampleCount={filteredData.length} />
-              <ReportChartSnapshot
-                id="report-snapshot-ichart"
-                chartType="ichart"
-                filterLabel="Current state"
-                renderChart={() => <IChart />}
-                onCopyChart={async (containerId, chartName) => {
-                  await handleCopyChart(containerId, chartName);
-                }}
-                copyFeedback={copyFeedback}
-              />
-              {aiEnabled && narrative && (
+              {!isSummary && (
+                <ReportChartSnapshot
+                  id="report-snapshot-ichart"
+                  chartType="ichart"
+                  filterLabel="Current state"
+                  renderChart={() => <IChart />}
+                  onCopyChart={async (containerId, chartName) => {
+                    await handleCopyChart(containerId, chartName);
+                  }}
+                  copyFeedback={copyFeedback}
+                />
+              )}
+              {!isSummary && aiEnabled && narrative && (
                 <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
                   <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                     {narrative}
@@ -516,39 +559,62 @@ const ReportView: React.FC<ReportViewProps> = ({
             </div>
           )}
 
+          {/* Step 2: Variation Drivers */}
           {section.id === 'drivers' && firstFactor && (
             <div className="space-y-4">
-              <ReportChartSnapshot
-                id="report-snapshot-boxplot"
-                chartType="boxplot"
-                filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
-                renderChart={() => <Boxplot factor={firstFactor} />}
-                onCopyChart={async (containerId, chartName) => {
-                  await handleCopyChart(containerId, chartName);
-                }}
-                copyFeedback={copyFeedback}
-              />
-              <ReportChartSnapshot
-                id="report-snapshot-pareto"
-                chartType="pareto"
-                filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
-                renderChart={() => <ParetoChart factor={firstFactor} />}
-                onCopyChart={async (containerId, chartName) => {
-                  await handleCopyChart(containerId, chartName);
-                }}
-                copyFeedback={copyFeedback}
-              />
+              {isSummary ? (
+                <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
+                  <p className="text-sm text-slate-700 dark:text-slate-300">
+                    Key driver:{' '}
+                    <span className="font-medium">
+                      {columnAliases?.[firstFactor] || firstFactor}
+                    </span>
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <ReportChartSnapshot
+                    id="report-snapshot-boxplot"
+                    chartType="boxplot"
+                    filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
+                    renderChart={() => <Boxplot factor={firstFactor} />}
+                    onCopyChart={async (containerId, chartName) => {
+                      await handleCopyChart(containerId, chartName);
+                    }}
+                    copyFeedback={copyFeedback}
+                  />
+                  <ReportChartSnapshot
+                    id="report-snapshot-pareto"
+                    chartType="pareto"
+                    filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
+                    renderChart={() => <ParetoChart factor={firstFactor} />}
+                    onCopyChart={async (containerId, chartName) => {
+                      await handleCopyChart(containerId, chartName);
+                    }}
+                    copyFeedback={copyFeedback}
+                  />
+                </>
+              )}
             </div>
           )}
 
-          {section.id === 'hypotheses' && outcome && (
+          {/* Step 3: Evidence Trail */}
+          {section.id === 'evidence-trail' && outcome && (
             <div className="space-y-4">
+              {/* Synthesis card (always shown) */}
               {processContext?.synthesis && (
                 <div className="mb-2">
                   <SynthesisCard synthesis={processContext.synthesis} readOnly />
                 </div>
               )}
-              {(extendedSection?.findings ?? []).length > 0 ? (
+
+              {/* Hypothesis tree (technical only) */}
+              {!isSummary && (extendedSection?.hypotheses ?? []).length > 0 && (
+                <ReportHypothesisSummary hypotheses={extendedSection?.hypotheses ?? []} />
+              )}
+
+              {/* Finding snapshots (technical only) */}
+              {!isSummary && (extendedSection?.findings ?? []).length > 0 ? (
                 (extendedSection?.findings ?? []).map(finding => (
                   <FindingChartSnapshot
                     key={finding.id}
@@ -559,46 +625,109 @@ const ReportView: React.FC<ReportViewProps> = ({
                     columnAliases={columnAliases}
                   />
                 ))
-              ) : (
+              ) : !isSummary ? (
                 <p className="text-sm text-slate-500 dark:text-slate-400 italic">
                   No hypotheses have been linked to findings yet.
+                </p>
+              ) : null}
+            </div>
+          )}
+
+          {/* Step 4: Improvement Plan (Improvement Story only) */}
+          {section.id === 'improvement-plan' && (
+            <div className="space-y-3">
+              {(extendedSection?.hypotheses ?? []).length > 0 ? (
+                <ReportImprovementSummary
+                  hypotheses={(extendedSection?.hypotheses ?? []).map(h => ({
+                    id: h.id,
+                    text: h.text,
+                    causeRole: h.causeRole,
+                    ideas: h.ideas ?? [],
+                  }))}
+                  summaryOnly={isSummary}
+                  targetCpk={cpkTarget}
+                />
+              ) : (
+                <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+                  No improvement ideas have been recorded yet.
                 </p>
               )}
             </div>
           )}
 
-          {section.id === 'actions' && (
+          {/* Step 5: Actions Taken (Improvement Story only) */}
+          {section.id === 'actions-taken' && (
             <div className="space-y-3">
               {(extendedSection?.findings ?? []).length > 0 ? (
-                (extendedSection?.findings ?? []).map(finding => (
-                  <div
-                    key={finding.id}
-                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3"
-                  >
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
-                      {finding.text || 'Observation'}
-                    </p>
-                    <ul className="space-y-1">
-                      {finding.actions?.map(action => (
-                        <li
-                          key={action.id}
-                          className={`text-sm flex items-center gap-2 ${
-                            action.completedAt
-                              ? 'text-green-600 dark:text-green-400 line-through'
-                              : 'text-slate-700 dark:text-slate-300'
-                          }`}
-                        >
+                isSummary ? (
+                  // Summary: action count + completion %
+                  (() => {
+                    const allActions = (extendedSection?.findings ?? []).flatMap(
+                      f => f.actions ?? []
+                    );
+                    const completed = allActions.filter(a => a.completedAt);
+                    const pct =
+                      allActions.length > 0
+                        ? Math.round((completed.length / allActions.length) * 100)
+                        : 0;
+                    return (
+                      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
+                        <p className="text-sm text-slate-700 dark:text-slate-300">
+                          <span className="font-medium">{allActions.length}</span> actions
+                          {' · '}
                           <span
-                            className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                              action.completedAt ? 'bg-green-500' : 'bg-slate-400'
+                            className={
+                              completed.length === allActions.length
+                                ? 'text-green-600 dark:text-green-400 font-medium'
+                                : ''
+                            }
+                          >
+                            {pct}% complete
+                          </span>
+                        </p>
+                      </div>
+                    );
+                  })()
+                ) : (
+                  // Technical: full action list
+                  (extendedSection?.findings ?? []).map(finding => (
+                    <div
+                      key={finding.id}
+                      className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3"
+                    >
+                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
+                        {finding.text || 'Observation'}
+                      </p>
+                      <ul className="space-y-1">
+                        {finding.actions?.map(action => (
+                          <li
+                            key={action.id}
+                            className={`text-sm flex items-center gap-2 ${
+                              action.completedAt
+                                ? 'text-green-600 dark:text-green-400 line-through'
+                                : 'text-slate-700 dark:text-slate-300'
                             }`}
-                          />
-                          {action.text}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                                action.completedAt ? 'bg-green-500' : 'bg-slate-400'
+                              }`}
+                            />
+                            {action.text}
+                            {action.assignee && (
+                              <span className="text-xs text-slate-400">
+                                ({action.assignee.displayName})
+                              </span>
+                            )}
+                            {action.dueDate && (
+                              <span className="text-xs text-slate-400">due {action.dueDate}</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))
+                )
               ) : (
                 <p className="text-sm text-slate-500 dark:text-slate-400 italic">
                   No actions have been recorded yet.
@@ -607,10 +736,22 @@ const ReportView: React.FC<ReportViewProps> = ({
             </div>
           )}
 
+          {/* Step 6: Verification (Improvement Story only) */}
           {section.id === 'verification' && (
             <div className="space-y-3">
-              {/* Finding outcomes list (always shown) */}
-              {(extendedSection?.findings ?? []).length > 0 &&
+              {/* Cpk learning loop */}
+              {(cpkBefore != null || cpkAfter != null) && (
+                <ReportCpkLearningLoop
+                  cpkBefore={cpkBefore}
+                  projectedCpk={bestProjectedCpk}
+                  cpkAfter={cpkAfter}
+                  verdict={primaryOutcome?.effective}
+                />
+              )}
+
+              {/* Finding outcomes list (technical only) */}
+              {!isSummary &&
+                (extendedSection?.findings ?? []).length > 0 &&
                 (extendedSection?.findings ?? []).map(finding => (
                   <div
                     key={finding.id}
@@ -628,8 +769,8 @@ const ReportView: React.FC<ReportViewProps> = ({
                   </div>
                 ))}
 
-              {/* Staged verification evidence (replaces old placeholder callout) */}
-              {hasStagedComparison && hasAnyAvailable && (
+              {/* Staged verification evidence (technical only) */}
+              {!isSummary && hasStagedComparison && hasAnyAvailable && (
                 <VerificationEvidenceBase
                   charts={verificationCharts}
                   activeCharts={activeVerificationCharts}
@@ -673,6 +814,12 @@ const ReportView: React.FC<ReportViewProps> = ({
       activeVerificationCharts,
       toggleVerificationChart,
       renderVerificationChart,
+      isSummary,
+      cpkBefore,
+      cpkAfter,
+      bestProjectedCpk,
+      primaryOutcome,
+      cpkTarget,
     ]
   );
 
@@ -686,6 +833,8 @@ const ReportView: React.FC<ReportViewProps> = ({
         reportType={reportType}
         sections={sections}
         activeSectionId={activeSectionId}
+        audienceMode={audienceMode}
+        onAudienceModeChange={setAudienceMode}
         onScrollToSection={handleScrollToSection}
         renderSection={renderSection}
         onPrintReport={handlePrint}

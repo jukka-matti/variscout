@@ -8,15 +8,27 @@ import type { ReportViewBaseProps } from '../ReportViewBase';
 // ---------------------------------------------------------------------------
 
 const defaultSections: ReportViewBaseProps['sections'] = [
-  { id: 'current-condition', stepNumber: 1, title: 'Current condition', status: 'active' },
-  { id: 'drivers', stepNumber: 2, title: 'Drivers', status: 'active' },
-  { id: 'hypotheses', stepNumber: 3, title: 'Hypotheses', status: 'future' },
+  {
+    id: 'current-condition',
+    stepNumber: 1,
+    title: 'Current condition',
+    status: 'active',
+    workspace: 'analysis',
+  },
+  { id: 'drivers', stepNumber: 2, title: 'Drivers', status: 'active', workspace: 'analysis' },
+  {
+    id: 'evidence-trail',
+    stepNumber: 3,
+    title: 'Evidence trail',
+    status: 'future',
+    workspace: 'findings',
+  },
 ];
 
 function defaultProps(overrides: Partial<ReportViewBaseProps> = {}): ReportViewBaseProps {
   return {
     processName: 'Filling Machine A',
-    reportType: 'quick-check',
+    reportType: 'analysis-snapshot',
     sections: defaultSections,
     activeSectionId: 'current-condition',
     onScrollToSection: vi.fn(),
@@ -53,19 +65,19 @@ describe('ReportViewBase', () => {
   });
 
   describe('report type badge', () => {
-    it('renders Quick Check badge for quick-check report type', () => {
-      render(<ReportViewBase {...defaultProps({ reportType: 'quick-check' })} />);
-      expect(screen.getByText('Quick Check')).toBeDefined();
+    it('renders Analysis Snapshot badge for analysis-snapshot report type', () => {
+      render(<ReportViewBase {...defaultProps({ reportType: 'analysis-snapshot' })} />);
+      expect(screen.getByText('Analysis Snapshot')).toBeDefined();
     });
 
-    it('renders Deep Dive badge for deep-dive report type', () => {
-      render(<ReportViewBase {...defaultProps({ reportType: 'deep-dive' })} />);
-      expect(screen.getByText('Deep Dive')).toBeDefined();
+    it('renders Investigation Report badge for investigation-report report type', () => {
+      render(<ReportViewBase {...defaultProps({ reportType: 'investigation-report' })} />);
+      expect(screen.getByText('Investigation Report')).toBeDefined();
     });
 
-    it('renders Full Cycle badge for full-cycle report type', () => {
-      render(<ReportViewBase {...defaultProps({ reportType: 'full-cycle' })} />);
-      expect(screen.getByText('Full Cycle')).toBeDefined();
+    it('renders Improvement Story badge for improvement-story report type', () => {
+      render(<ReportViewBase {...defaultProps({ reportType: 'improvement-story' })} />);
+      expect(screen.getByText('Improvement Story')).toBeDefined();
     });
   });
 
@@ -83,7 +95,7 @@ describe('ReportViewBase', () => {
     render(<ReportViewBase {...defaultProps()} />);
     expect(screen.getByTestId('section-current-condition')).toBeDefined();
     expect(screen.getByTestId('section-drivers')).toBeDefined();
-    expect(screen.getByTestId('section-hypotheses')).toBeDefined();
+    expect(screen.getByTestId('section-evidence-trail')).toBeDefined();
   });
 
   it('calls onClose when close button is clicked', () => {
@@ -92,6 +104,39 @@ describe('ReportViewBase', () => {
     const closeBtn = screen.getByRole('button', { name: /close/i });
     fireEvent.click(closeBtn);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  describe('workspace group headers', () => {
+    it('renders workspace group labels in the sidebar', () => {
+      render(<ReportViewBase {...defaultProps()} />);
+      expect(screen.getByText('ANALYSIS')).toBeDefined();
+      expect(screen.getByText('FINDINGS')).toBeDefined();
+    });
+  });
+
+  describe('audience toggle', () => {
+    it('renders audience toggle when onAudienceModeChange is provided', () => {
+      const onAudienceModeChange = vi.fn();
+      render(
+        <ReportViewBase {...defaultProps({ audienceMode: 'technical', onAudienceModeChange })} />
+      );
+      expect(screen.getByText('Technical')).toBeDefined();
+      expect(screen.getByText('Summary')).toBeDefined();
+    });
+
+    it('does not render audience toggle when onAudienceModeChange is not provided', () => {
+      render(<ReportViewBase {...defaultProps()} />);
+      expect(screen.queryByText('Summary')).toBeNull();
+    });
+
+    it('calls onAudienceModeChange when Summary is clicked', () => {
+      const onAudienceModeChange = vi.fn();
+      render(
+        <ReportViewBase {...defaultProps({ audienceMode: 'technical', onAudienceModeChange })} />
+      );
+      fireEvent.click(screen.getByText('Summary'));
+      expect(onAudienceModeChange).toHaveBeenCalledWith('summary');
+    });
   });
 
   describe('Share button', () => {
