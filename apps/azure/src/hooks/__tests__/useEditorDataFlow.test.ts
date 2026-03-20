@@ -10,6 +10,7 @@ vi.mock('@variscout/core', () => ({
   detectColumns: vi.fn(),
   validateData: vi.fn(),
   detectWideFormat: vi.fn(),
+  detectYamazumiFormat: vi.fn(),
 }));
 
 // Mock useDataMerge helpers (direct function exports)
@@ -19,7 +20,13 @@ vi.mock('../useDataMerge', () => ({
   mergeColumns: vi.fn(),
 }));
 
-import { parseText, detectColumns, validateData, detectWideFormat } from '@variscout/core';
+import {
+  parseText,
+  detectColumns,
+  validateData,
+  detectWideFormat,
+  detectYamazumiFormat,
+} from '@variscout/core';
 import { detectMergeStrategy, mergeRows, mergeColumns } from '../useDataMerge';
 import { useEditorDataFlow } from '../useEditorDataFlow';
 import type { UseEditorDataFlowOptions } from '../useEditorDataFlow';
@@ -29,6 +36,7 @@ const mockParseText = parseText as ReturnType<typeof vi.fn>;
 const mockDetectColumns = detectColumns as ReturnType<typeof vi.fn>;
 const mockValidateData = validateData as ReturnType<typeof vi.fn>;
 const mockDetectWideFormat = detectWideFormat as ReturnType<typeof vi.fn>;
+const mockDetectYamazumiFormat = detectYamazumiFormat as ReturnType<typeof vi.fn>;
 const mockDetectMergeStrategy = detectMergeStrategy as ReturnType<typeof vi.fn>;
 const mockMergeRows = mergeRows as ReturnType<typeof vi.fn>;
 const mockMergeColumns = mergeColumns as ReturnType<typeof vi.fn>;
@@ -76,6 +84,7 @@ describe('useEditorDataFlow', () => {
       columnAnalysis: [],
     });
     mockValidateData.mockReturnValue({ issues: [], warnings: [] });
+    mockDetectYamazumiFormat.mockReturnValue({ isYamazumiFormat: false, suggestedMapping: {} });
     mockDetectWideFormat.mockReturnValue({ isWideFormat: false, channels: [] });
   });
 

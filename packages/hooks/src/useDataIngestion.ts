@@ -20,9 +20,13 @@ import {
   validateData,
   parseParetoFile,
   detectWideFormat,
+  detectYamazumiFormat,
   augmentWithTimeColumns,
   hasTimeComponent,
   type WideFormatDetection,
+  type YamazumiDetection,
+  type AnalysisMode,
+  type YamazumiColumnMapping,
   type DataQualityReport,
   type ParetoRow,
   type DataRow,
@@ -53,6 +57,8 @@ export interface DataIngestionActions {
   setPerformanceMode: (enabled: boolean) => void;
   setMeasureColumns: (columns: string[]) => void;
   setMeasureLabel: (label: string) => void;
+  setAnalysisMode: (mode: AnalysisMode) => void;
+  setYamazumiMapping: (mapping: YamazumiColumnMapping | null) => void;
 }
 
 export interface TimeExtractionPrompt {
@@ -70,6 +76,8 @@ export interface DataIngestionConfig {
 export interface UseDataIngestionOptions {
   /** Callback when wide-format (multi-measure) data is detected */
   onWideFormatDetected?: (result: WideFormatDetection) => void;
+  /** Callback when Yamazumi (time study) format is detected */
+  onYamazumiDetected?: (result: YamazumiDetection) => void;
   /** Callback when time column is detected */
   onTimeColumnDetected?: (prompt: TimeExtractionPrompt) => void;
   /** Getter for current rawData (needed for time extraction) */
@@ -110,8 +118,15 @@ export function useDataIngestion(
   actions: DataIngestionActions,
   options?: UseDataIngestionOptions
 ): UseDataIngestionReturn {
-  const { onWideFormatDetected, onTimeColumnDetected, getRawData, getOutcome, getFactors, limits } =
-    options || {};
+  const {
+    onWideFormatDetected,
+    onYamazumiDetected,
+    onTimeColumnDetected,
+    getRawData,
+    getOutcome,
+    getFactors,
+    limits,
+  } = options || {};
   const rowHardLimit = limits?.rowHardLimit ?? DEFAULT_ROW_HARD_LIMIT;
   const rowWarningThreshold = limits?.rowWarningThreshold ?? DEFAULT_ROW_WARNING_THRESHOLD;
   const {
@@ -128,6 +143,8 @@ export function useDataIngestion(
     setPerformanceMode,
     setMeasureColumns,
     setMeasureLabel,
+    setAnalysisMode,
+    setYamazumiMapping,
   } = actions;
 
   const processFile = useCallback(
@@ -167,12 +184,17 @@ export function useDataIngestion(
           const report = validateData(data, detected.outcome);
           setDataQualityReport(report);
 
-          // Check for wide format (multi-measure) data
-          const wideFormat = detectWideFormat(data);
-          if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
-            // Use callback if provided
-            if (onWideFormatDetected) {
-              onWideFormatDetected(wideFormat);
+          // Check for Yamazumi format (more specific than wide format)
+          const yamazumiResult = detectYamazumiFormat(data, detected.columnAnalysis);
+          if (yamazumiResult.isYamazumiFormat && onYamazumiDetected) {
+            onYamazumiDetected(yamazumiResult);
+          } else {
+            // Check for wide format (multi-measure) data
+            const wideFormat = detectWideFormat(data);
+            if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
+              if (onWideFormatDetected) {
+                onWideFormatDetected(wideFormat);
+              }
             }
           }
 
@@ -201,6 +223,7 @@ export function useDataIngestion(
       setFactors,
       setDataQualityReport,
       onWideFormatDetected,
+      onYamazumiDetected,
       onTimeColumnDetected,
       rowHardLimit,
       rowWarningThreshold,
@@ -256,6 +279,9 @@ export function useDataIngestion(
     setMeasureColumns([]);
     setMeasureLabel('Measure');
     setPerformanceMode(false);
+    // Reset analysis mode
+    setAnalysisMode('standard');
+    setYamazumiMapping(null);
   }, [
     setRawData,
     setDataFilename,
@@ -270,6 +296,8 @@ export function useDataIngestion(
     setMeasureColumns,
     setMeasureLabel,
     setPerformanceMode,
+    setAnalysisMode,
+    setYamazumiMapping,
   ]);
 
   // Apply time extraction to current dataset
@@ -322,6 +350,22 @@ export function useDataIngestion(
         setMeasureColumns([]);
         setMeasureLabel('Channel');
       }
+      // Set analysis mode based on sample config
+      if (sample.config.yamazumiMode && sample.config.yamazumiMapping) {
+        setAnalysisMode('yamazumi');
+        setYamazumiMapping({
+          activityTypeColumn: sample.config.yamazumiMapping.activityTypeColumn,
+          cycleTimeColumn: sample.config.yamazumiMapping.cycleTimeColumn,
+          stepColumn: sample.config.yamazumiMapping.stepColumn,
+          activityColumn: sample.config.yamazumiMapping.activityColumn,
+          reasonColumn: sample.config.yamazumiMapping.reasonColumn,
+          productColumn: sample.config.yamazumiMapping.productColumn,
+          waitTimeColumn: sample.config.yamazumiMapping.waitTimeColumn,
+        });
+      } else {
+        setAnalysisMode(sample.config.performanceMode ? 'performance' : 'standard');
+        setYamazumiMapping(null);
+      }
     },
     [
       setRawData,
@@ -336,6 +380,8 @@ export function useDataIngestion(
       setPerformanceMode,
       setMeasureColumns,
       setMeasureLabel,
+      setAnalysisMode,
+      setYamazumiMapping,
     ]
   );
 

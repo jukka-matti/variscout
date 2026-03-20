@@ -5,6 +5,7 @@ import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
 import MobileChartCarousel from './MobileChartCarousel';
 import PerformanceDashboard from './PerformanceDashboard';
+import YamazumiDashboard from './YamazumiDashboard';
 import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
 import PresentationView from './views/PresentationView';
@@ -43,6 +44,7 @@ import {
   Activity,
   BarChart3,
   Gauge,
+  Timer,
   ArrowLeft,
   Copy,
   Check,
@@ -50,7 +52,7 @@ import {
   Settings2,
 } from 'lucide-react';
 
-type DashboardTab = 'analysis' | 'performance';
+type DashboardTab = 'analysis' | 'performance' | 'yamazumi';
 
 interface DashboardProps {
   onPointClick?: (index: number) => void;
@@ -145,6 +147,8 @@ const Dashboard = ({
     filters,
     setFilters,
     isPerformanceMode,
+    analysisMode,
+    yamazumiMapping,
     columnAliases,
     stageColumn,
     stageOrderMode,
@@ -186,6 +190,13 @@ const Dashboard = ({
       setActiveTab('analysis');
     }
   }, [drillFromPerformance, setActiveTab]);
+
+  // Auto-switch to yamazumi tab when analysis mode becomes yamazumi
+  useEffect(() => {
+    if (analysisMode === 'yamazumi') {
+      setActiveTab('yamazumi');
+    }
+  }, [analysisMode, setActiveTab]);
 
   // Chart state and logic from the hook
   const {
@@ -486,6 +497,21 @@ const Dashboard = ({
               Performance
             </button>
           )}
+          {analysisMode === 'yamazumi' && (
+            <button
+              role="tab"
+              aria-selected={activeTab === 'yamazumi'}
+              onClick={() => setActiveTab('yamazumi')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'yamazumi'
+                  ? 'bg-amber-600 text-white'
+                  : 'bg-surface-secondary text-content-secondary hover:text-content hover:bg-surface-tertiary'
+              }`}
+            >
+              <Timer size={16} />
+              Yamazumi
+            </button>
+          )}
         </div>
       </div>
 
@@ -503,6 +529,18 @@ const Dashboard = ({
         <div className="flex-1 overflow-hidden">
           <ErrorBoundary componentName="Performance Dashboard">
             <PerformanceDashboard onDrillToMeasure={onDrillToMeasure} />
+          </ErrorBoundary>
+        </div>
+      )}
+
+      {/* Yamazumi Tab */}
+      {activeTab === 'yamazumi' && yamazumiMapping && (
+        <div className="flex-1 overflow-hidden">
+          <ErrorBoundary componentName="Yamazumi Dashboard">
+            <YamazumiDashboard
+              mapping={yamazumiMapping}
+              onBarClick={key => handleDrillDown(yamazumiMapping.stepColumn, key)}
+            />
           </ErrorBoundary>
         </div>
       )}

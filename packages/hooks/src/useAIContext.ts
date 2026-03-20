@@ -15,7 +15,14 @@ import type {
   Locale,
   EntryScenario,
 } from '@variscout/core';
-import type { StatsResult, SpecLimits, Finding, Hypothesis } from '@variscout/core';
+import type {
+  StatsResult,
+  SpecLimits,
+  Finding,
+  Hypothesis,
+  AnalysisMode,
+  YamazumiSummary,
+} from '@variscout/core';
 
 export interface UseAIContextOptions {
   /** Whether AI is enabled */
@@ -62,6 +69,10 @@ export interface UseAIContextOptions {
   locale?: Locale;
   /** Entry scenario for tool routing (ADR-029) */
   entryScenario?: EntryScenario;
+  /** Current analysis mode */
+  analysisMode?: AnalysisMode;
+  /** Yamazumi summary stats */
+  yamazumiSummary?: YamazumiSummary;
   /** Cumulative scope fraction from drill path (0-1) */
   cumulativeScope?: number;
   /** Enriched drill path with scope fractions */
@@ -97,6 +108,8 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     stagedComparison,
     locale,
     entryScenario,
+    analysisMode,
+    yamazumiSummary,
     cumulativeScope,
     drillPathEnriched,
   } = options;
@@ -119,6 +132,8 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       teamContributors,
       stagedComparison,
       locale,
+      analysisMode,
+      yamazumiSummary,
       cumulativeScope,
       drillPathEnriched,
     };
@@ -159,6 +174,8 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     stagedComparison,
     locale,
     entryScenario,
+    analysisMode,
+    yamazumiSummary,
     cumulativeScope,
     drillPathEnriched,
   ]);

@@ -45,8 +45,14 @@ vi.mock('../../components/WhatIfPage', () => ({
 
 vi.mock('@variscout/core', () => ({
   parseText: vi.fn(async () => [{ Weight: 10, Machine: 'A' }]),
-  detectColumns: vi.fn(() => ({ outcome: 'Weight', factors: ['Machine'] })),
+  detectColumns: vi.fn(() => ({ outcome: 'Weight', factors: ['Machine'], columnAnalysis: [] })),
   detectWideFormat: vi.fn(() => ({ isWideFormat: false, channels: [] })),
+  detectYamazumiFormat: vi.fn(() => ({
+    isYamazumiFormat: false,
+    confidence: 'low',
+    suggestedMapping: {},
+    reason: '',
+  })),
   validateData: vi.fn(() => ({ isValid: true, errors: [], warnings: [] })),
   downloadCSV: vi.fn(),
   getNelsonRule2ViolationPoints: vi.fn(() => []),
@@ -218,6 +224,10 @@ const baseDataCtx = {
   saveProject: vi.fn(),
   loadProject: vi.fn(() => Promise.resolve()),
   clearSelection: vi.fn(),
+  analysisMode: 'standard' as const,
+  yamazumiMapping: null,
+  setAnalysisMode: vi.fn(),
+  setYamazumiMapping: vi.fn(),
 };
 
 const defaultProps = {

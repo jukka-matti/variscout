@@ -36,6 +36,18 @@ export interface SampleConfig {
   performanceMode?: boolean;
   /** Column names for measure variables (wide format data) */
   measureColumns?: string[];
+  /** Enable Yamazumi analysis mode (time study analysis) */
+  yamazumiMode?: boolean;
+  /** Yamazumi column role mapping */
+  yamazumiMapping?: {
+    activityTypeColumn: string;
+    cycleTimeColumn: string;
+    stepColumn: string;
+    activityColumn?: string;
+    reasonColumn?: string;
+    productColumn?: string;
+    waitTimeColumn?: string;
+  };
 }
 
 export interface SpecLimits {

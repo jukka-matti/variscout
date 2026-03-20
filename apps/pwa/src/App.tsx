@@ -9,6 +9,7 @@ import {
   updateFindingsPopout,
   FINDINGS_ACTION_KEY,
   type FindingsAction,
+  YamazumiDetectedModal,
 } from '@variscout/ui';
 import {
   useFindings,
@@ -36,6 +37,7 @@ const SettingsPanel = React.lazy(() => import('./components/settings/SettingsPan
 const DataTableModal = React.lazy(() => import('./components/data/DataTableModal'));
 const DataPanel = React.lazy(() => import('./components/data/DataPanel'));
 const FindingsPanel = React.lazy(() => import('./components/FindingsPanel'));
+const YamazumiDashboard = React.lazy(() => import('./components/YamazumiDashboard'));
 
 const LazyFallback = () => (
   <div className="flex items-center justify-center h-screen">
@@ -96,6 +98,10 @@ function AppMain() {
     selectedPoints,
     togglePointSelection,
     clearSelection,
+    analysisMode,
+    yamazumiMapping,
+    setAnalysisMode,
+    setYamazumiMapping,
   } = useData();
 
   // Data ingestion must be declared before importFlow since importFlow uses its callbacks.
@@ -104,6 +110,9 @@ function AppMain() {
   const ingestion = useDataIngestion({
     onWideFormatDetected: result => {
       importFlowRef.current?.handleWideFormatDetected(result);
+    },
+    onYamazumiDetected: result => {
+      importFlowRef.current?.handleYamazumiDetected(result);
     },
     onTimeColumnDetected: prompt => {
       importFlowRef.current?.setTimeExtractionPrompt(prompt);
@@ -492,6 +501,23 @@ function AppMain() {
                 onTimeExtractionChange={importFlow.setTimeExtractionConfig}
                 mode={importFlow.isMappingReEdit ? 'edit' : 'setup'}
               />
+            ) : analysisMode === 'yamazumi' && yamazumiMapping ? (
+              <Suspense fallback={null}>
+                <YamazumiDashboard
+                  mapping={yamazumiMapping}
+                  onBarClick={key =>
+                    filterNav.applyFilter({
+                      type: 'filter',
+                      source: 'pareto',
+                      factor: yamazumiMapping.stepColumn,
+                      values: [key],
+                    })
+                  }
+                  onTaktTimeChange={taktTime =>
+                    setYamazumiMapping({ ...yamazumiMapping, taktTime })
+                  }
+                />
+              </Suspense>
             ) : (
               <Dashboard
                 onPointClick={panels.openDataTableAtRow}
@@ -599,6 +625,29 @@ function AppMain() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Yamazumi Detection Modal */}
+      {importFlow.yamazumiDetection && (
+        <YamazumiDetectedModal
+          detection={importFlow.yamazumiDetection}
+          onEnable={taktTime => {
+            const m = importFlow.yamazumiDetection!.suggestedMapping;
+            setAnalysisMode('yamazumi');
+            setYamazumiMapping({
+              activityTypeColumn: m.activityTypeColumn!,
+              cycleTimeColumn: m.cycleTimeColumn!,
+              stepColumn: m.stepColumn!,
+              activityColumn: m.activityColumn,
+              reasonColumn: m.reasonColumn,
+              productColumn: m.productColumn,
+              waitTimeColumn: m.waitTimeColumn,
+              taktTime,
+            });
+            importFlow.handleDismissYamazumi();
+          }}
+          onDecline={() => importFlow.handleDismissYamazumi()}
+        />
       )}
     </div>
   );

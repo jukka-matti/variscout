@@ -8,6 +8,7 @@ import {
   type DataQualityReport,
   type WideFormatDetection,
   type TimeExtractionConfig,
+  type YamazumiDetection,
 } from '@variscout/core';
 
 // ── Reducer types ──────────────────────────────────────────────────────────
@@ -19,6 +20,7 @@ export interface PasteFlowState {
   isMappingReEdit: boolean;
   isManualEntry: boolean;
   wideFormatDetection: WideFormatDetection | null;
+  yamazumiDetection: YamazumiDetection | null;
 }
 
 export type PasteFlowAction =
@@ -34,7 +36,9 @@ export type PasteFlowAction =
   | { type: 'CONFIRM_MAPPING' }
   | { type: 'CANCEL_MAPPING' }
   | { type: 'WIDE_FORMAT_DETECTED'; detection: WideFormatDetection }
-  | { type: 'DISMISS_WIDE_FORMAT' };
+  | { type: 'DISMISS_WIDE_FORMAT' }
+  | { type: 'YAMAZUMI_DETECTED'; detection: YamazumiDetection }
+  | { type: 'DISMISS_YAMAZUMI' };
 
 export const initialPasteFlowState: PasteFlowState = {
   isPasteMode: false,
@@ -43,6 +47,7 @@ export const initialPasteFlowState: PasteFlowState = {
   isMappingReEdit: false,
   isManualEntry: false,
   wideFormatDetection: null,
+  yamazumiDetection: null,
 };
 
 /** Pure reducer — testable without React. */
@@ -79,6 +84,10 @@ export function pasteFlowReducer(state: PasteFlowState, action: PasteFlowAction)
       return { ...state, wideFormatDetection: action.detection };
     case 'DISMISS_WIDE_FORMAT':
       return { ...state, wideFormatDetection: null };
+    case 'YAMAZUMI_DETECTED':
+      return { ...state, yamazumiDetection: action.detection };
+    case 'DISMISS_YAMAZUMI':
+      return { ...state, yamazumiDetection: null };
     default:
       return state;
   }
@@ -138,6 +147,9 @@ export interface UsePasteImportFlowReturn {
   ) => void;
   handleMappingCancel: () => void;
   handleDismissWideFormat: () => void;
+  yamazumiDetection: YamazumiDetection | null;
+  handleYamazumiDetected: (result: YamazumiDetection) => void;
+  handleDismissYamazumi: () => void;
   isMappingReEdit: boolean;
   openFactorManager: () => void;
 }
@@ -351,6 +363,14 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     dispatch({ type: 'DISMISS_WIDE_FORMAT' });
   }, []);
 
+  const handleYamazumiDetected = useCallback((result: YamazumiDetection) => {
+    dispatch({ type: 'YAMAZUMI_DETECTED', detection: result });
+  }, []);
+
+  const handleDismissYamazumi = useCallback(() => {
+    dispatch({ type: 'DISMISS_YAMAZUMI' });
+  }, []);
+
   return {
     isPasteMode: flowState.isPasteMode,
     pasteError: flowState.pasteError,
@@ -373,6 +393,9 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     handleMappingConfirm,
     handleMappingCancel,
     handleDismissWideFormat,
+    yamazumiDetection: flowState.yamazumiDetection,
+    handleYamazumiDetected,
+    handleDismissYamazumi,
     isMappingReEdit: flowState.isMappingReEdit,
     openFactorManager,
   };

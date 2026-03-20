@@ -9,6 +9,8 @@ import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { buildGlossaryPrompt } from '../glossary/buildGlossaryPrompt';
 import type { GlossaryCategory } from '../glossary/types';
+import type { AnalysisMode } from '../types';
+import type { YamazumiSummary } from '../yamazumi/types';
 import type { Locale } from '../i18n/types';
 
 /** Stats input for AI context — extends StatsResult with app-level fields */
@@ -81,6 +83,10 @@ export interface BuildAIContextOptions {
   maxGlossaryTerms?: number;
   /** Locale for bilingual glossary and AI response language */
   locale?: Locale;
+  /** Current analysis mode */
+  analysisMode?: AnalysisMode;
+  /** Yamazumi summary stats (when in yamazumi mode) */
+  yamazumiSummary?: YamazumiSummary;
 }
 
 /**
@@ -106,6 +112,8 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     stagedComparison,
     maxGlossaryTerms = 40,
     locale,
+    analysisMode,
+    yamazumiSummary,
   } = options;
 
   // Determine relevant glossary categories based on state
@@ -165,6 +173,19 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 
   if (options.drillPathEnriched && options.drillPathEnriched.length > 0) {
     context.drillPathEnriched = options.drillPathEnriched;
+  }
+
+  if (analysisMode === 'yamazumi' && yamazumiSummary) {
+    context.analysisMode = 'yamazumi';
+    context.yamazumi = {
+      vaRatio: yamazumiSummary.vaRatio,
+      processEfficiency: yamazumiSummary.processEfficiency,
+      totalLeadTime: yamazumiSummary.totalLeadTime,
+      wasteTime: yamazumiSummary.wasteTime,
+      waitTime: yamazumiSummary.waitTime,
+      taktTime: yamazumiSummary.taktTime,
+      stepsOverTakt: yamazumiSummary.stepsOverTakt,
+    };
   }
 
   if (focusContext) {

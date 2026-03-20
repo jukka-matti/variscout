@@ -17,6 +17,8 @@ import type {
   Finding,
   Hypothesis,
   InvestigationCategory,
+  AnalysisMode,
+  YamazumiColumnMapping,
 } from '@variscout/core';
 import type {
   AnalysisState,
@@ -60,6 +62,10 @@ export interface ProjectPersistenceInputs {
   selectedMeasure: string | null;
   measureLabel: string;
   chartTitles: ChartTitles;
+
+  // Analysis mode (yamazumi/performance/standard)
+  analysisMode: AnalysisMode;
+  yamazumiMapping: YamazumiColumnMapping | null;
 
   // Pareto getters
   paretoMode: ParetoMode;
@@ -113,6 +119,8 @@ export interface ProjectPersistenceInputs {
   setMeasureLabel: (label: string) => void;
   setSelectedMeasure: (measureId: string | null) => void;
   setCpkTarget: (target: number) => void;
+  setAnalysisMode: (mode: AnalysisMode) => void;
+  setYamazumiMapping: (mapping: YamazumiColumnMapping | null) => void;
 
   // Filter stack setter (Phase 2)
   setFilterStack: (stack: FilterAction[]) => void;
@@ -178,6 +186,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     selectedMeasure,
     measureLabel,
     chartTitles,
+    analysisMode,
+    yamazumiMapping,
     paretoMode,
     paretoAggregation,
     separateParetoData,
@@ -212,6 +222,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setMeasureLabel,
     setSelectedMeasure,
     setCpkTarget,
+    setAnalysisMode,
+    setYamazumiMapping,
     setFilterStack,
     setViewState,
     findings,
@@ -249,6 +261,10 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     if (selectedMeasure !== null) state.selectedMeasure = selectedMeasure;
     if (measureLabel !== 'Measure') state.measureLabel = measureLabel;
     if (Object.keys(chartTitles).length > 0) state.chartTitles = chartTitles;
+
+    // Analysis mode — only include non-default values for compact serialization
+    if (analysisMode !== 'standard') state.analysisMode = analysisMode;
+    if (yamazumiMapping) state.yamazumiMapping = yamazumiMapping;
 
     // Pareto fields — only include non-default values for compact serialization
     if (paretoMode !== 'derived') state.paretoMode = paretoMode;
@@ -293,6 +309,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     selectedMeasure,
     measureLabel,
     chartTitles,
+    analysisMode,
+    yamazumiMapping,
     paretoMode,
     paretoAggregation,
     separateParetoData,
@@ -343,6 +361,12 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
         setSelectedMeasure(state.selectedMeasure ?? null);
         setMeasureLabel(state.measureLabel ?? 'Measure');
         setChartTitles(state.chartTitles ?? {});
+
+        // Analysis mode (backward-compat: old .vrs files won't have these)
+        setAnalysisMode(
+          state.analysisMode ?? (state.isPerformanceMode ? 'performance' : 'standard')
+        );
+        setYamazumiMapping(state.yamazumiMapping ?? null);
 
         // Pareto fields
         setParetoMode(state.paretoMode ?? 'derived');
@@ -416,6 +440,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setSelectedMeasure,
       setMeasureLabel,
       setChartTitles,
+      setAnalysisMode,
+      setYamazumiMapping,
       setParetoMode,
       setParetoAggregation,
       setSeparateParetoData,
@@ -482,6 +508,10 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setMeasureLabel(state.measureLabel ?? 'Measure');
       setChartTitles(state.chartTitles ?? {});
       if (state.measureSpecs) setMeasureSpecs(state.measureSpecs);
+
+      // Analysis mode
+      setAnalysisMode(state.analysisMode ?? (state.isPerformanceMode ? 'performance' : 'standard'));
+      setYamazumiMapping(state.yamazumiMapping ?? null);
 
       // Pareto fields
       setParetoMode(state.paretoMode ?? 'derived');
@@ -552,6 +582,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setMeasureLabel,
       setChartTitles,
       setMeasureSpecs,
+      setAnalysisMode,
+      setYamazumiMapping,
       setParetoMode,
       setParetoAggregation,
       setSeparateParetoData,
@@ -596,6 +628,9 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setMeasureLabel('Measure');
     setSelectedMeasure(null);
     setCpkTarget(1.33);
+    // Reset analysis mode
+    setAnalysisMode('standard');
+    setYamazumiMapping(null);
     // Reset filter stack, view state, findings, hypotheses, and categories
     setFilterStack([]);
     setViewState(null);
@@ -631,6 +666,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setMeasureLabel,
     setSelectedMeasure,
     setCpkTarget,
+    setAnalysisMode,
+    setYamazumiMapping,
     setFilterStack,
     setViewState,
     setFindings,

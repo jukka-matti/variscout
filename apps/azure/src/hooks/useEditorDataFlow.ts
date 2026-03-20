@@ -4,9 +4,15 @@ import {
   detectColumns,
   validateData,
   detectWideFormat,
+  detectYamazumiFormat,
   augmentWithTimeColumns,
 } from '@variscout/core';
-import type { DataRow, DataQualityReport, TimeExtractionConfig } from '@variscout/core';
+import type {
+  DataRow,
+  DataQualityReport,
+  TimeExtractionConfig,
+  YamazumiDetection,
+} from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import type { ManualEntryConfig } from '../components/data/ManualEntry';
 import { detectMergeStrategy, mergeColumns, mergeRows } from './useDataMerge';
@@ -251,6 +257,9 @@ export interface UseEditorDataFlowReturn {
   setTimeExtractionPrompt: (v: { timeColumn: string; hasTimeComponent: boolean } | null) => void;
   timeExtractionConfig: TimeExtractionConfig;
   setTimeExtractionConfig: React.Dispatch<React.SetStateAction<TimeExtractionConfig>>;
+  // Yamazumi detection
+  yamazumiDetection: YamazumiDetection | null;
+  dismissYamazumiDetection: () => void;
 }
 
 // ── Hook implementation ────────────────────────────────────────────────────
@@ -300,6 +309,10 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     extractDayOfWeek: true,
     extractHour: false,
   });
+
+  // Yamazumi detection state
+  const [yamazumiDetection, setYamazumiDetection] = useState<YamazumiDetection | null>(null);
+  const dismissYamazumiDetection = useCallback(() => setYamazumiDetection(null), []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const appendFileInputRef = useRef<HTMLInputElement>(null);
@@ -386,11 +399,17 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         const report = validateData(data, detected.outcome);
         setDataQualityReport(report);
 
-        const wideFormat = detectWideFormat(data);
-        if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
-          setMeasureColumns(wideFormat.channels.map(c => c.id));
-          setMeasureLabel('Channel');
-          setPerformanceMode(true);
+        // Check for Yamazumi format (more specific than wide format)
+        const yamazumiResult = detectYamazumiFormat(data, detected.columnAnalysis);
+        if (yamazumiResult.isYamazumiFormat) {
+          setYamazumiDetection(yamazumiResult);
+        } else {
+          const wideFormat = detectWideFormat(data);
+          if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
+            setMeasureColumns(wideFormat.channels.map(c => c.id));
+            setMeasureLabel('Channel');
+            setPerformanceMode(true);
+          }
         }
 
         if (detected.timeColumn) {
@@ -659,5 +678,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     setTimeExtractionPrompt,
     timeExtractionConfig,
     setTimeExtractionConfig,
+    // Yamazumi detection
+    yamazumiDetection,
+    dismissYamazumiDetection,
   };
 }

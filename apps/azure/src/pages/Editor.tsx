@@ -16,6 +16,7 @@ import {
   CoScoutPanelBase,
   AIOnboardingTooltip,
   ImprovementWorkspaceBase,
+  YamazumiDetectedModal,
   type AnalysisBrief,
 } from '@variscout/ui';
 import {
@@ -116,6 +117,8 @@ export const Editor: React.FC<EditorProps> = ({
     setMeasureColumns,
     setMeasureLabel,
     setColumnAliases,
+    setAnalysisMode,
+    setYamazumiMapping,
     filters,
     setFilters,
     displayOptions,
@@ -1591,6 +1594,29 @@ export const Editor: React.FC<EditorProps> = ({
         excludedReasons={excludedReasons}
         controlViolations={controlViolations}
       />
+
+      {/* Yamazumi Detection Modal */}
+      {dataFlow.yamazumiDetection && (
+        <YamazumiDetectedModal
+          detection={dataFlow.yamazumiDetection}
+          onEnable={taktTime => {
+            const m = dataFlow.yamazumiDetection!.suggestedMapping;
+            setAnalysisMode('yamazumi');
+            setYamazumiMapping({
+              activityTypeColumn: m.activityTypeColumn!,
+              cycleTimeColumn: m.cycleTimeColumn!,
+              stepColumn: m.stepColumn!,
+              activityColumn: m.activityColumn,
+              reasonColumn: m.reasonColumn,
+              productColumn: m.productColumn,
+              waitTimeColumn: m.waitTimeColumn,
+              taktTime,
+            });
+            dataFlow.dismissYamazumiDetection();
+          }}
+          onDecline={() => dataFlow.dismissYamazumiDetection()}
+        />
+      )}
     </div>
   );
 };

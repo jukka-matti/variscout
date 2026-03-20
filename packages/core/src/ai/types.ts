@@ -4,6 +4,7 @@
 
 import type { InsightChartType } from './chartInsights';
 import type { Locale } from '../i18n/types';
+import type { AnalysisMode } from '../types';
 
 /** AI model tier — maps to ARM deployment names ('fast' or 'reasoning') */
 export type AITier = 'fast' | 'reasoning';
@@ -200,6 +201,18 @@ export interface AIContext {
   entryScenario?: EntryScenario;
   /** Active locale for AI response language */
   locale?: Locale;
+  /** Current analysis mode */
+  analysisMode?: AnalysisMode;
+  /** Yamazumi summary for time study context */
+  yamazumi?: {
+    vaRatio: number;
+    processEfficiency: number;
+    totalLeadTime: number;
+    wasteTime: number;
+    waitTime: number;
+    taktTime?: number;
+    stepsOverTakt: string[];
+  };
   /** Documents from Knowledge Base agentic retrieval (SharePoint, SOPs) */
   knowledgeDocuments?: Array<{
     title: string;

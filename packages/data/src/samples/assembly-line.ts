@@ -226,5 +226,14 @@ export const assemblyLine: SampleDataset = {
     outcome: 'Cycle_Time',
     factors: ['Step', 'Activity_Type', 'Product'],
     specs: {},
+    yamazumiMode: true,
+    yamazumiMapping: {
+      activityTypeColumn: 'Activity_Type',
+      cycleTimeColumn: 'Cycle_Time',
+      stepColumn: 'Step',
+      activityColumn: 'Activity',
+      reasonColumn: 'Reason',
+      productColumn: 'Product',
+    },
   },
 };

@@ -211,6 +211,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       measureSpecs: state.measureSpecs,
       getSpecsForMeasure: state.getSpecsForMeasure,
 
+      // Yamazumi / analysis mode state
+      analysisMode: state.analysisMode,
+      yamazumiMapping: state.yamazumiMapping,
+
       // Multi-point selection state
       selectedPoints: state.selectedPoints,
       selectionIndexMap: state.selectionIndexMap,
@@ -281,6 +285,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCpkTarget: actions.setCpkTarget,
       setMeasureSpecs: actions.setMeasureSpecs,
       setMeasureSpec: actions.setMeasureSpec,
+
+      // Yamazumi / analysis mode setters
+      setAnalysisMode: actions.setAnalysisMode,
+      setYamazumiMapping: actions.setYamazumiMapping,
 
       // Multi-point selection actions
       setSelectedPoints: actions.setSelectedPoints,

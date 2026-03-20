@@ -22,6 +22,7 @@ describe('pasteFlowReducer', () => {
         isMappingReEdit: false,
         isManualEntry: false,
         wideFormatDetection: null,
+        yamazumiDetection: null,
       });
     });
   });

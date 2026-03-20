@@ -25,6 +25,8 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setPerformanceMode,
     setMeasureColumns,
     setMeasureLabel,
+    setAnalysisMode,
+    setYamazumiMapping,
   } = useData();
 
   const actions = {
@@ -41,6 +43,8 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setPerformanceMode,
     setMeasureColumns,
     setMeasureLabel,
+    setAnalysisMode,
+    setYamazumiMapping,
   };
 
   return useDataIngestionBase(actions, options);
