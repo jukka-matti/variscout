@@ -624,7 +624,7 @@ export const sv: MessageCatalog = {
   'improve.maxRisk': 'Max risk: {level}',
   'improve.totalCost': '€{amount}',
   'improve.budgetStatus': '€{spent} / €{budget}',
-  'timeframe.label': 'Effort',
+  'timeframe.label': 'Tidsram',
 
   // Idea direction labels (Four Ideation Directions)
   'settings.improvementEvaluation': 'Improvement Evaluation',

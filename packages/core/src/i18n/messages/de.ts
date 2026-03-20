@@ -665,7 +665,7 @@ export const de: MessageCatalog = {
   'improve.maxRisk': 'Max risk: {level}',
   'improve.totalCost': '€{amount}',
   'improve.budgetStatus': '€{spent} / €{budget}',
-  'timeframe.label': 'Effort',
+  'timeframe.label': 'Zeitrahmen',
 
   // Idea direction labels (Four Ideation Directions)
   'settings.improvementEvaluation': 'Improvement Evaluation',

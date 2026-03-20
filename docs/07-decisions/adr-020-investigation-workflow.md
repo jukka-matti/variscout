@@ -53,8 +53,11 @@ Implement a complete Problem -> Hypothesis -> Evidence -> Projection -> Action -
     interface ImprovementIdea {
       id: string;
       text: string; // What the improvement involves
-      effort: 'low' | 'medium' | 'high'; // Rough implementation cost
-      impactOverride?: number; // Manual Cpk impact (overrides computed)
+      direction?: IdeaDirection; // Prevent / Detect / Simplify / Eliminate
+      timeframe?: IdeaTimeframe; // 'just-do' | 'days' | 'weeks' | 'months'
+      cost?: IdeaCost; // Category (none/low/med/high) + optional € amount
+      risk?: IdeaRiskAssessment; // 2-axis matrix → computed risk level
+      impactOverride?: IdeaImpact; // Manual impact override
       projection?: FindingProjection; // What-If simulation result
       selected: boolean; // Marked for conversion to actions
       notes?: string; // Additional context
