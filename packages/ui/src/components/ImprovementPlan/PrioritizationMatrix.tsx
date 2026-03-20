@@ -10,6 +10,7 @@ import type {
   ComputedRiskLevel,
   IdeaCostCategory,
 } from '@variscout/core';
+import type { MessageCatalog } from '@variscout/core/i18n';
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -85,6 +86,44 @@ export const DEFAULT_PRESETS: MatrixPreset[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// i18n key mapping (enum values to MessageCatalog keys)
+// ---------------------------------------------------------------------------
+
+const TIMEFRAME_I18N: Record<IdeaTimeframe, keyof MessageCatalog> = {
+  'just-do': 'timeframe.justDo',
+  days: 'timeframe.days',
+  weeks: 'timeframe.weeks',
+  months: 'timeframe.months',
+};
+
+const COST_I18N: Record<IdeaCostCategory, keyof MessageCatalog> = {
+  none: 'cost.none',
+  low: 'cost.low',
+  medium: 'cost.medium',
+  high: 'cost.high',
+};
+
+const RISK_I18N: Record<ComputedRiskLevel, keyof MessageCatalog> = {
+  low: 'risk.low',
+  medium: 'risk.medium',
+  high: 'risk.high',
+  'very-high': 'risk.veryHigh',
+};
+
+const BENEFIT_I18N: Record<IdeaImpact, keyof MessageCatalog> = {
+  low: 'benefit.low',
+  medium: 'benefit.medium',
+  high: 'benefit.high',
+};
+
+const AXIS_I18N: Record<MatrixDimension, keyof MessageCatalog> = {
+  benefit: 'matrix.axis.benefit',
+  timeframe: 'matrix.axis.timeframe',
+  cost: 'matrix.axis.cost',
+  risk: 'matrix.axis.risk',
+};
+
+// ---------------------------------------------------------------------------
 // Dimension positioning helpers
 // ---------------------------------------------------------------------------
 
@@ -149,13 +188,13 @@ const BENEFIT_COLORS: Record<IdeaImpact, string> = {
 const GRAY_DOT = '#64748b';
 
 // ---------------------------------------------------------------------------
-// Axis dimension labels (i18n keys for tick labels)
+// Ordered labels for axes/legends
 // ---------------------------------------------------------------------------
 
-const TIMEFRAME_LABELS: IdeaTimeframe[] = ['just-do', 'days', 'weeks', 'months'];
-const COST_LABELS: IdeaCostCategory[] = ['none', 'low', 'medium', 'high'];
-const RISK_LABELS: ComputedRiskLevel[] = ['low', 'medium', 'high', 'very-high'];
-const BENEFIT_LABELS: IdeaImpact[] = ['high', 'medium', 'low']; // top to bottom
+const TIMEFRAME_ORDER: IdeaTimeframe[] = ['just-do', 'days', 'weeks', 'months'];
+const COST_ORDER: IdeaCostCategory[] = ['none', 'low', 'medium', 'high'];
+const RISK_ORDER: ComputedRiskLevel[] = ['low', 'medium', 'high', 'very-high'];
+const BENEFIT_ORDER_Y: IdeaImpact[] = ['high', 'medium', 'low'];
 
 // ---------------------------------------------------------------------------
 // Positioning logic
@@ -171,7 +210,6 @@ function getCategoricalPosition(dimension: MatrixDimension, idea: MatrixIdea): n
       return idea.risk ? RISK_POS[idea.risk.computed] : undefined;
     case 'benefit': {
       if (idea.impactOverride) return BENEFIT_MANUAL_POS[idea.impactOverride];
-      // Continuous benefit handled separately
       return undefined;
     }
   }
@@ -191,15 +229,12 @@ function computeContinuousRanges(
   let yRange: NormRange | null = null;
 
   if (xAxis === 'benefit' || yAxis === 'benefit') {
-    // Use projectedCpk directly as the continuous value
     const values = ideas
       .filter(i => i.projection?.projectedCpk != null && !i.impactOverride)
       .map(i => i.projection!.projectedCpk!);
 
     if (values.length > 0) {
-      const min = Math.min(...values);
-      const max = Math.max(...values);
-      const range = { min, max };
+      const range = { min: Math.min(...values), max: Math.max(...values) };
       if (xAxis === 'benefit') xRange = range;
       if (yAxis === 'benefit') yRange = range;
     }
@@ -209,9 +244,7 @@ function computeContinuousRanges(
     const amounts = ideas.filter(i => i.cost?.amount != null).map(i => i.cost!.amount!);
 
     if (amounts.length > 0) {
-      const min = Math.min(...amounts);
-      const max = Math.max(...amounts);
-      const range = { min, max };
+      const range = { min: Math.min(...amounts), max: Math.max(...amounts) };
       if (xAxis === 'cost') xRange = range;
       if (yAxis === 'cost') yRange = range;
     }
@@ -227,9 +260,8 @@ function getContinuousPosition(
 ): number | undefined {
   if (dimension === 'benefit' && idea.projection?.projectedCpk != null && !idea.impactOverride) {
     if (!range || range.max === range.min) return 0.5;
-    // Invert: higher Cpk = top (lower y fraction)
     const normalized = (idea.projection.projectedCpk - range.min) / (range.max - range.min);
-    return 0.85 - normalized * 0.7; // map to 0.15..0.85 inverted
+    return 0.85 - normalized * 0.7;
   }
   if (dimension === 'cost' && idea.cost?.amount != null) {
     if (!range || range.max === range.min) return 0.5;
@@ -257,46 +289,70 @@ function getColor(colorBy: MatrixDimension, idea: MatrixIdea): string {
       return idea.risk ? RISK_COLORS[idea.risk.computed] : GRAY_DOT;
     case 'cost':
       return idea.cost ? COST_COLORS[idea.cost.category] : GRAY_DOT;
-    case 'benefit': {
-      const impact = idea.impactOverride;
-      return impact ? BENEFIT_COLORS[impact] : GRAY_DOT;
-    }
+    case 'benefit':
+      return idea.impactOverride ? BENEFIT_COLORS[idea.impactOverride] : GRAY_DOT;
   }
 }
 
-function getTickLabels(
-  dimension: MatrixDimension,
-  isYAxis: boolean
-): Array<{ label: string; pos: number }> {
+// ---------------------------------------------------------------------------
+// Tick / legend builders
+// ---------------------------------------------------------------------------
+
+interface TickItem {
+  i18nKey: keyof MessageCatalog;
+  pos: number;
+}
+
+function getTickLabels(dimension: MatrixDimension, isYAxis: boolean): TickItem[] {
   switch (dimension) {
     case 'timeframe':
-      return TIMEFRAME_LABELS.map(l => ({ label: `timeframe.${l}`, pos: TIMEFRAME_POS[l] }));
+      return TIMEFRAME_ORDER.map(l => ({
+        i18nKey: TIMEFRAME_I18N[l],
+        pos: TIMEFRAME_POS[l],
+      }));
     case 'cost':
-      return COST_LABELS.map(l => ({ label: `cost.${l}`, pos: COST_CATEGORY_POS[l] }));
+      return COST_ORDER.map(l => ({
+        i18nKey: COST_I18N[l],
+        pos: COST_CATEGORY_POS[l],
+      }));
     case 'risk':
-      return RISK_LABELS.map(l => ({ label: `risk.${l}`, pos: RISK_POS[l] }));
+      return RISK_ORDER.map(l => ({
+        i18nKey: RISK_I18N[l],
+        pos: RISK_POS[l],
+      }));
     case 'benefit':
-      return BENEFIT_LABELS.map(l => ({
-        label: `benefit.${l}`,
+      return BENEFIT_ORDER_Y.map(l => ({
+        i18nKey: BENEFIT_I18N[l],
         pos: isYAxis ? BENEFIT_MANUAL_POS[l] : 1 - BENEFIT_MANUAL_POS[l],
       }));
   }
 }
 
-function getLegendEntries(colorBy: MatrixDimension): Array<{ labelKey: string; color: string }> {
+interface LegendItem {
+  i18nKey: keyof MessageCatalog;
+  color: string;
+}
+
+function getLegendEntries(colorBy: MatrixDimension): LegendItem[] {
   switch (colorBy) {
     case 'timeframe':
-      return TIMEFRAME_LABELS.map(l => ({
-        labelKey: `timeframe.${l}`,
+      return TIMEFRAME_ORDER.map(l => ({
+        i18nKey: TIMEFRAME_I18N[l],
         color: TIMEFRAME_COLORS[l],
       }));
     case 'risk':
-      return RISK_LABELS.map(l => ({ labelKey: `risk.${l}`, color: RISK_COLORS[l] }));
+      return RISK_ORDER.map(l => ({
+        i18nKey: RISK_I18N[l],
+        color: RISK_COLORS[l],
+      }));
     case 'cost':
-      return COST_LABELS.map(l => ({ labelKey: `cost.${l}`, color: COST_COLORS[l] }));
+      return COST_ORDER.map(l => ({
+        i18nKey: COST_I18N[l],
+        color: COST_COLORS[l],
+      }));
     case 'benefit':
       return (['high', 'medium', 'low'] as IdeaImpact[]).map(l => ({
-        labelKey: `benefit.${l}`,
+        i18nKey: BENEFIT_I18N[l],
         color: BENEFIT_COLORS[l],
       }));
   }
@@ -306,21 +362,26 @@ function getLegendEntries(colorBy: MatrixDimension): Array<{ labelKey: string; c
 // Tooltip builder
 // ---------------------------------------------------------------------------
 
-function buildTooltip(idea: MatrixIdea, t: (key: string) => string): string {
+function buildTooltip(idea: MatrixIdea, t: (key: keyof MessageCatalog) => string): string {
   const lines: string[] = [idea.text];
-  if (idea.timeframe)
-    lines.push(`${t('matrix.axis.timeframe')}: ${t(`timeframe.${idea.timeframe}`)}`);
+  if (idea.timeframe) {
+    lines.push(`${t('matrix.axis.timeframe')}: ${t(TIMEFRAME_I18N[idea.timeframe])}`);
+  }
   if (idea.cost) {
-    const costLabel = t(`cost.${idea.cost.category}`);
+    const costLabel = t(COST_I18N[idea.cost.category]);
     const amount =
-      idea.cost.amount != null ? ` (${idea.cost.currency ?? '€'}${idea.cost.amount})` : '';
+      idea.cost.amount != null ? ` (${idea.cost.currency ?? '\u20AC'}${idea.cost.amount})` : '';
     lines.push(`${t('matrix.axis.cost')}: ${costLabel}${amount}`);
   }
-  if (idea.risk) lines.push(`${t('matrix.axis.risk')}: ${t(`risk.${idea.risk.computed}`)}`);
-  if (idea.impactOverride)
-    lines.push(`${t('matrix.axis.benefit')}: ${t(`benefit.${idea.impactOverride}`)}`);
-  if (idea.projection?.projectedCpk != null)
+  if (idea.risk) {
+    lines.push(`${t('matrix.axis.risk')}: ${t(RISK_I18N[idea.risk.computed])}`);
+  }
+  if (idea.impactOverride) {
+    lines.push(`${t('matrix.axis.benefit')}: ${t(BENEFIT_I18N[idea.impactOverride])}`);
+  }
+  if (idea.projection?.projectedCpk != null) {
     lines.push(`Cpk: ${idea.projection.projectedCpk.toFixed(2)}`);
+  }
   lines.push(`\n${t('matrix.clickToSelect')}`);
   return lines.join('\n');
 }
@@ -346,7 +407,7 @@ interface DimensionSelectProps {
   label: string;
   value: MatrixDimension;
   onChange: (v: MatrixDimension) => void;
-  t: (key: string) => string;
+  t: (key: keyof MessageCatalog) => string;
 }
 
 const DimensionSelect: React.FC<DimensionSelectProps> = ({ label, value, onChange, t }) => (
@@ -359,7 +420,7 @@ const DimensionSelect: React.FC<DimensionSelectProps> = ({ label, value, onChang
     >
       {DIMENSIONS.map(d => (
         <option key={d} value={d}>
-          {t(`matrix.axis.${d}`)}
+          {t(AXIS_I18N[d])}
         </option>
       ))}
     </select>
@@ -381,9 +442,7 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
   activePreset,
   onPresetChange,
 }) => {
-  const { t: t_ } = useTranslation();
-  // Widen t to accept computed string keys (e.g., `matrix.axis.${d}`)
-  const t = t_ as (key: string) => string;
+  const { t } = useTranslation();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
@@ -392,7 +451,6 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
     [ideas, xAxis, yAxis]
   );
 
-  // Compute positioned dots
   const dots = useMemo(() => {
     return ideas
       .map((idea, index) => {
@@ -420,7 +478,6 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
   const yTicks = useMemo(() => getTickLabels(yAxis, true), [yAxis]);
   const legendEntries = useMemo(() => getLegendEntries(colorBy), [colorBy]);
 
-  // Determine if quick-wins label should show (benefit on Y, low-cost or fast on X)
   const showQuickWins = yAxis === 'benefit' && (xAxis === 'timeframe' || xAxis === 'cost');
 
   return (
@@ -430,8 +487,8 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
     >
       {/* Axis selectors + presets */}
       <div className="flex flex-wrap items-center gap-3 mb-3">
-        <DimensionSelect label={`Y:`} value={yAxis} onChange={v => onAxisChange('y', v)} t={t} />
-        <DimensionSelect label={`X:`} value={xAxis} onChange={v => onAxisChange('x', v)} t={t} />
+        <DimensionSelect label="Y:" value={yAxis} onChange={v => onAxisChange('y', v)} t={t} />
+        <DimensionSelect label="X:" value={xAxis} onChange={v => onAxisChange('x', v)} t={t} />
         <DimensionSelect
           label={`${t('matrix.color')}:`}
           value={colorBy}
@@ -452,7 +509,7 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
                 }`}
                 onClick={() => onPresetChange?.(p.id)}
               >
-                {t(p.labelKey)}
+                {t(p.labelKey as keyof MessageCatalog)}
               </button>
             ))}
           </div>
@@ -473,7 +530,7 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
               const x = MARGIN.left + tick.pos * CHART_W;
               return (
                 <line
-                  key={`xg-${tick.label}`}
+                  key={`xg-${tick.i18nKey}`}
                   x1={x}
                   y1={MARGIN.top}
                   x2={x}
@@ -488,7 +545,7 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
               const y = MARGIN.top + tick.pos * CHART_H;
               return (
                 <line
-                  key={`yg-${tick.label}`}
+                  key={`yg-${tick.i18nKey}`}
                   x1={MARGIN.left}
                   y1={y}
                   x2={MARGIN.left + CHART_W}
@@ -524,14 +581,14 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
             const x = MARGIN.left + tick.pos * CHART_W;
             return (
               <text
-                key={`xt-${tick.label}`}
+                key={`xt-${tick.i18nKey}`}
                 x={x}
                 y={MARGIN.top + CHART_H + 14}
                 textAnchor="middle"
                 className="fill-content/50"
                 fontSize={9}
               >
-                {t(tick.label)}
+                {t(tick.i18nKey)}
               </text>
             );
           })}
@@ -541,14 +598,14 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
             const y = MARGIN.top + tick.pos * CHART_H;
             return (
               <text
-                key={`yt-${tick.label}`}
+                key={`yt-${tick.i18nKey}`}
                 x={MARGIN.left - 6}
                 y={y + 3}
                 textAnchor="end"
                 className="fill-content/50"
                 fontSize={9}
               >
-                {t(tick.label)}
+                {t(tick.i18nKey)}
               </text>
             );
           })}
@@ -562,7 +619,7 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
             fontSize={10}
             fontWeight={500}
           >
-            {t(`matrix.axis.${xAxis}`)}
+            {t(AXIS_I18N[xAxis])}
           </text>
           <text
             x={12}
@@ -573,7 +630,7 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
             fontWeight={500}
             transform={`rotate(-90, 12, ${MARGIN.top + CHART_H / 2})`}
           >
-            {t(`matrix.axis.${yAxis}`)}
+            {t(AXIS_I18N[yAxis])}
           </text>
 
           {/* Quick Wins label */}
@@ -586,7 +643,7 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
               fontSize={10}
               fontWeight={600}
             >
-              {`★ ${t('matrix.quickWins')}`}
+              {`\u2605 ${t('matrix.quickWins')}`}
             </text>
           )}
 
@@ -655,19 +712,18 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
           ))}
         </svg>
 
-        {/* Hidden tooltip ref for potential future custom tooltip */}
         <div ref={tooltipRef} />
       </div>
 
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-content/60">
         {legendEntries.map(entry => (
-          <span key={entry.labelKey} className="flex items-center gap-1">
+          <span key={entry.i18nKey} className="flex items-center gap-1">
             <span
               className="inline-block w-2.5 h-2.5 rounded-full"
               style={{ backgroundColor: entry.color }}
             />
-            {t(entry.labelKey)}
+            {t(entry.i18nKey)}
           </span>
         ))}
         <span className="flex items-center gap-1 ml-2">

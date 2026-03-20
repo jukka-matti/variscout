@@ -11,6 +11,7 @@ export type { RiskPopoverProps } from './RiskPopover';
 export { PrioritizationMatrix, DEFAULT_PRESETS } from './PrioritizationMatrix';
 export type {
   MatrixDimension,
+  MatrixIdea,
   MatrixPreset,
   PrioritizationMatrixProps,
 } from './PrioritizationMatrix';
