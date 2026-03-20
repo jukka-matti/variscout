@@ -273,9 +273,9 @@ describe('buildSuggestedQuestions', () => {
       };
       const result = buildSuggestedQuestions(context);
       // Should include idea-specific questions instead of generic ideation
-      expect(result.some(q => q.includes('Simplify setup') || q.includes('effort-to-impact'))).toBe(
-        true
-      );
+      expect(
+        result.some(q => q.includes('Simplify setup') || q.includes('quickest improvement'))
+      ).toBe(true);
     });
 
     it('returns ideation questions when converging without ideas', () => {

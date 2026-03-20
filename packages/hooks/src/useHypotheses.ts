@@ -103,7 +103,7 @@ export interface UseHypothesesReturn {
     updates: Partial<
       Pick<
         ImprovementIdea,
-        'text' | 'effort' | 'impactOverride' | 'notes' | 'direction' | 'category'
+        'text' | 'timeframe' | 'cost' | 'impactOverride' | 'notes' | 'direction' | 'category'
       >
     >
   ) => void;
@@ -499,7 +499,7 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
       updates: Partial<
         Pick<
           ImprovementIdea,
-          'text' | 'effort' | 'impactOverride' | 'notes' | 'direction' | 'category'
+          'text' | 'timeframe' | 'cost' | 'impactOverride' | 'notes' | 'direction' | 'category'
         >
       >
     ) => {

@@ -231,6 +231,10 @@ export interface MessageCatalog {
   'settings.language': string;
   'settings.theme': string;
   'settings.textSize': string;
+  'settings.improvementEvaluation': string;
+  'settings.riskAxis1': string;
+  'settings.riskAxis2': string;
+  'settings.improvementBudget': string;
 
   // Finding statuses
   'findings.observed': string;
@@ -700,16 +704,76 @@ export interface MessageCatalog {
   'improve.convertToActions': string;
   'improve.noIdeas': string;
   'improve.selectedCount': string;
-  'improve.effortBreakdown': string;
+  'improve.timeframeBreakdown': string;
   'improve.projectedCpk': string;
   'improve.targetDelta': string;
   'improve.convertedToAction': string;
+  'improve.maxRisk': string;
+  'improve.totalCost': string;
+  'improve.budgetStatus': string;
 
-  // Effort labels
-  'effort.low': string;
-  'effort.medium': string;
-  'effort.high': string;
-  'effort.label': string;
+  // Timeframe labels (replaces effort)
+  'timeframe.label': string;
+  'timeframe.justDo': string;
+  'timeframe.days': string;
+  'timeframe.weeks': string;
+  'timeframe.months': string;
+  'timeframe.justDo.description': string;
+  'timeframe.days.description': string;
+  'timeframe.weeks.description': string;
+  'timeframe.months.description': string;
+
+  // Cost labels
+  'cost.label': string;
+  'cost.none': string;
+  'cost.low': string;
+  'cost.medium': string;
+  'cost.high': string;
+  'cost.amount': string;
+  'cost.budget': string;
+
+  // Risk labels
+  'risk.label': string;
+  'risk.low': string;
+  'risk.medium': string;
+  'risk.high': string;
+  'risk.veryHigh': string;
+  'risk.notSet': string;
+  'risk.axis1Label': string;
+  'risk.small': string;
+  'risk.significant': string;
+  'risk.severe': string;
+  'risk.none': string;
+  'risk.possible': string;
+  'risk.immediate': string;
+  'risk.preset.process': string;
+  'risk.preset.safety': string;
+  'risk.preset.environmental': string;
+  'risk.preset.quality': string;
+  'risk.preset.regulatory': string;
+  'risk.preset.brand': string;
+
+  // Prioritization matrix
+  'matrix.title': string;
+  'matrix.listView': string;
+  'matrix.matrixView': string;
+  'matrix.yAxis': string;
+  'matrix.xAxis': string;
+  'matrix.color': string;
+  'matrix.preset.bangForBuck': string;
+  'matrix.preset.quickImpact': string;
+  'matrix.preset.riskReward': string;
+  'matrix.preset.budgetView': string;
+  'matrix.quickWins': string;
+  'matrix.clickToSelect': string;
+  'matrix.selected': string;
+  'matrix.axis.benefit': string;
+  'matrix.axis.timeframe': string;
+  'matrix.axis.cost': string;
+  'matrix.axis.risk': string;
+  'benefit.low': string;
+  'benefit.medium': string;
+  'benefit.high': string;
 
   // Idea direction labels (Four Ideation Directions)
   'idea.direction': string;

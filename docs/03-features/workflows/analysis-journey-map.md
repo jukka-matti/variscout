@@ -278,7 +278,7 @@ flowchart TD
 
 ### PDCA Steps
 
-1. **Plan: Ideate** -- Brainstorm improvement options based on the suspected root cause. Each idea gets an effort estimate (low/medium/high) and a What-If projection (projected Cpk/yield impact).
+1. **Plan: Ideate** -- Brainstorm improvement options based on the suspected root cause. Each idea gets a timeframe estimate (just-do/days/weeks/months) and a What-If projection (projected Cpk/yield impact).
 2. **Plan: Select** -- Compare projected impact across ideas. Selected ideas become corrective actions. Use the What-If Simulator (`directAdjustment`) to model scenarios.
 3. **Do** -- Define and execute corrective actions (owners, dates, completion tracking). Implementation happens mostly outside VariScout. When the first action is added, the finding transitions to `improving`.
 4. **Check** -- Load new data into staged analysis. Compare before vs after (control limits, Cpk, mean shift, σ change). Did the process improve to target?

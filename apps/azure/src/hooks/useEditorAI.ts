@@ -485,7 +485,10 @@ export function useEditorAI({
         const hypothesisId = args.hypothesis_id as string;
         const text = args.text as string;
         const direction = args.direction as string;
-        const effort = args.effort as string;
+        const timeframe = args.timeframe as string;
+        const cost = args.cost as string | undefined;
+        const riskAxis1 = args.risk_axis1 as number | null | undefined;
+        const riskAxis2 = args.risk_axis2 as number | null | undefined;
 
         if (!hypothesisId || !text || !direction) {
           return JSON.stringify({ error: 'Missing hypothesis_id, text, or direction' });
@@ -504,12 +507,21 @@ export function useEditorAI({
         const proposal: ActionProposal = {
           id: generateProposalId(),
           tool: 'suggest_improvement_idea',
-          params: { hypothesis_id: hypothesisId, text, direction, effort },
+          params: {
+            hypothesis_id: hypothesisId,
+            text,
+            direction,
+            timeframe,
+            cost: cost ?? undefined,
+            risk_axis1: riskAxis1 ?? undefined,
+            risk_axis2: riskAxis2 ?? undefined,
+          },
           preview: {
             hypothesisText: targetHypothesis.text,
             existingIdeasCount: targetHypothesis.ideas?.length ?? 0,
             direction,
-            effort,
+            timeframe,
+            cost: cost ?? undefined,
           },
           status: 'pending',
           filterStackHash: hashFilterStack(filterStack),

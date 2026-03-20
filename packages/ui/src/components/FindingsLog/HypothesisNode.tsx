@@ -5,7 +5,7 @@ import type {
   Finding,
   ImprovementIdea,
   IdeaImpact,
-  IdeaEffort,
+  IdeaTimeframe,
 } from '@variscout/core';
 import { HYPOTHESIS_STATUS_LABELS, interpretEvidence } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
@@ -81,7 +81,7 @@ export interface HypothesisNodeProps {
   onUpdateIdea?: (
     hypothesisId: string,
     ideaId: string,
-    updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
   ) => void;
   /** Remove an improvement idea */
   onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
@@ -105,10 +105,11 @@ const IMPACT_COLORS: Record<IdeaImpact, string> = {
   low: 'bg-gray-500/15 text-gray-400',
 };
 
-const EFFORT_COLORS: Record<IdeaEffort, string> = {
-  low: 'text-green-400',
-  medium: 'text-amber-400',
-  high: 'text-red-400',
+const TIMEFRAME_COLORS: Record<IdeaTimeframe, string> = {
+  'just-do': 'text-green-400',
+  days: 'text-cyan-400',
+  weeks: 'text-amber-400',
+  months: 'text-red-400',
 };
 
 const DIRECTION_BADGE_COLORS: Record<string, string> = {
@@ -126,7 +127,7 @@ interface ImprovementIdeasSectionProps {
   onUpdateIdea?: (
     hypothesisId: string,
     ideaId: string,
-    updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
   ) => void;
   onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
   onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
@@ -232,24 +233,25 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                       </span>
                     )}
 
-                    {/* Effort dropdown (always visible, color-coded) */}
+                    {/* Timeframe dropdown (always visible, color-coded) */}
                     <select
                       className={`text-[10px] bg-transparent border border-edge rounded px-1 py-0.5 focus:outline-none focus:border-blue-400 cursor-pointer ${
-                        idea.effort ? EFFORT_COLORS[idea.effort] : 'text-content-muted'
+                        idea.timeframe ? TIMEFRAME_COLORS[idea.timeframe] : 'text-content-muted'
                       }`}
-                      value={idea.effort ?? ''}
+                      value={idea.timeframe ?? ''}
                       onChange={e => {
-                        const val = e.target.value as IdeaEffort | '';
-                        onUpdateIdea?.(hypothesisId, idea.id, { effort: val || undefined });
+                        const val = e.target.value as IdeaTimeframe | '';
+                        onUpdateIdea?.(hypothesisId, idea.id, { timeframe: val || undefined });
                       }}
                       onClick={e => e.stopPropagation()}
-                      data-testid={`idea-effort-${idea.id}`}
-                      aria-label="Effort level"
+                      data-testid={`idea-timeframe-${idea.id}`}
+                      aria-label="Timeframe"
                     >
-                      <option value="">Effort</option>
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
+                      <option value="">Timeframe</option>
+                      <option value="just-do">Just Do</option>
+                      <option value="days">Days</option>
+                      <option value="weeks">Weeks</option>
+                      <option value="months">Months</option>
                     </select>
 
                     {/* Projection summary */}

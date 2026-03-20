@@ -176,7 +176,7 @@ function buildInvestigationQuestions(context: AIContext): string[] {
           questions.push(`Is the projected improvement from "${firstIdea.text}" realistic?`);
         }
         if (questions.length < 5) {
-          questions.push('Which idea has the best effort-to-impact ratio?');
+          questions.push('Which idea offers the quickest improvement with least cost?');
         }
       } else {
         // No ideas yet — prompt for ideation

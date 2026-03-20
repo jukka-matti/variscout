@@ -197,11 +197,11 @@ Two hypotheses supported (worn nozzle + temperature drift), two contradicted. Th
 
 With the suspected root cause identified, the analyst moves to IMPROVE:
 
-**Plan — Ideate and select:** Brainstorm improvement ideas, each with an effort estimate and What-If projection:
+**Plan — Ideate and select:** Brainstorm improvement ideas, each with a timeframe estimate and What-If projection:
 
-- "Replace nozzle tip weekly" (effort: low, projected Cpk: 1.25)
-- "Install automated nozzle wear sensor" (effort: high, projected Cpk: 1.40)
-- "Tighten temperature controller PID loop" (effort: medium, projected Cpk: 1.15)
+- "Replace nozzle tip weekly" (timeframe: just-do, projected Cpk: 1.25)
+- "Install automated nozzle wear sensor" (timeframe: months, projected Cpk: 1.40)
+- "Tighten temperature controller PID loop" (timeframe: weeks, projected Cpk: 1.15)
 
 **Do — Execute:** Define and execute corrective actions:
 

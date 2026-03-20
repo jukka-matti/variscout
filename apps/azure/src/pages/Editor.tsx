@@ -647,14 +647,19 @@ export const Editor: React.FC<EditorProps> = ({
           case 'toggle-select':
             hypothesesState.selectIdea(action.hypothesisId, action.ideaId, action.selected);
             break;
-          case 'update-effort':
+          case 'update-timeframe':
             hypothesesState.updateIdea(action.hypothesisId, action.ideaId, {
-              effort: action.effort,
+              timeframe: action.timeframe,
             });
             break;
           case 'update-direction':
             hypothesesState.updateIdea(action.hypothesisId, action.ideaId, {
               direction: action.direction,
+            });
+            break;
+          case 'update-cost':
+            hypothesesState.updateIdea(action.hypothesisId, action.ideaId, {
+              cost: action.cost,
             });
             break;
           case 'remove-idea':
@@ -853,7 +858,7 @@ export const Editor: React.FC<EditorProps> = ({
           const hypothesisId = proposal.params.hypothesis_id as string;
           const ideaText = editedText || (proposal.params.text as string);
           const direction = proposal.params.direction as string;
-          const effort = proposal.params.effort as string;
+          const timeframe = proposal.params.timeframe as string;
           if (hypothesisId && ideaText) {
             const idea = hypothesesState.addIdea(hypothesisId, ideaText);
             if (idea) {
@@ -861,7 +866,9 @@ export const Editor: React.FC<EditorProps> = ({
                 ...(direction && {
                   direction: direction as 'prevent' | 'detect' | 'simplify' | 'eliminate',
                 }),
-                ...(effort && { effort: effort as 'low' | 'medium' | 'high' }),
+                ...(timeframe && {
+                  timeframe: timeframe as 'just-do' | 'days' | 'weeks' | 'months',
+                }),
               });
             }
           }
@@ -1102,10 +1109,16 @@ export const Editor: React.FC<EditorProps> = ({
         hypotheses={improvementHypotheses}
         linkedFindings={improvementLinkedFindings}
         onToggleSelect={(hId, iId, sel) => hypothesesState.selectIdea(hId, iId, sel)}
-        onUpdateEffort={(hId, iId, effort) => hypothesesState.updateIdea(hId, iId, { effort })}
+        onUpdateTimeframe={(hId, iId, timeframe) =>
+          hypothesesState.updateIdea(hId, iId, { timeframe })
+        }
         onUpdateDirection={(hId, iId, dir) =>
           hypothesesState.updateIdea(hId, iId, { direction: dir })
         }
+        onUpdateCost={(hId, iId, cost) => hypothesesState.updateIdea(hId, iId, { cost })}
+        onOpenRisk={(_hId, _iId) => {
+          // Risk popover will be wired in a follow-up (Phase 10)
+        }}
         onRemoveIdea={hypothesesState.removeIdea}
         onOpenWhatIf={handleProjectIdea}
         onAddIdea={(hId, text) => {

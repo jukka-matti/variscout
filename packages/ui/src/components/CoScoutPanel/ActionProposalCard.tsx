@@ -107,14 +107,30 @@ function formatPreview(
           `Direction: ${directionLabels[preview.direction as string] ?? preview.direction}`
         );
       }
-      if (params.effort || preview.effort) {
-        const effort = (params.effort ?? preview.effort) as string;
-        const effortLabels: Record<string, string> = {
-          low: 'Low \u2014 existing resources, no approval',
-          medium: 'Medium \u2014 some coordination, minor cost',
-          high: 'High \u2014 investment, cross-team coordination',
+      if (params.timeframe || preview.timeframe) {
+        const timeframe = (params.timeframe ?? preview.timeframe) as string;
+        const timeframeLabels: Record<string, string> = {
+          'just-do': 'Just Do \u2014 immediate, no approval needed',
+          days: 'Days \u2014 quick turnaround',
+          weeks: 'Weeks \u2014 some coordination needed',
+          months: 'Months \u2014 significant planning required',
         };
-        lines.push(`Effort: ${effortLabels[effort] ?? effort}`);
+        lines.push(`Timeframe: ${timeframeLabels[timeframe] ?? timeframe}`);
+      }
+      if (params.cost || preview.cost) {
+        const cost = (params.cost ?? preview.cost) as string;
+        const costLabels: Record<string, string> = {
+          none: 'None \u2014 no additional cost',
+          low: 'Low \u2014 minor budget, within team authority',
+          medium: 'Medium \u2014 requires budget approval',
+          high: 'High \u2014 capital investment, executive approval',
+        };
+        lines.push(`Cost: ${costLabels[cost] ?? cost}`);
+      }
+      if (params.risk_axis1 != null && params.risk_axis2 != null) {
+        lines.push(
+          `Risk: Process ${params.risk_axis1} \u00d7 Safety ${params.risk_axis2} (suggested)`
+        );
       }
       if (typeof preview.existingIdeasCount === 'number' && preview.existingIdeasCount > 0) {
         lines.push(

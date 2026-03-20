@@ -22,6 +22,7 @@ import {
   FINDING_TAGS,
   FINDING_TAG_LABELS,
   PWA_STATUSES,
+  computeRiskLevel,
 } from '../findings';
 import type { Finding, FindingAssignee, FindingStatus, FindingSource } from '../findings';
 
@@ -551,9 +552,9 @@ describe('createImprovementIdea', () => {
     expect(new Date(idea.createdAt).toISOString()).toBe(idea.createdAt);
   });
 
-  it('no effort/projection/selected/notes by default', () => {
+  it('no timeframe/projection/selected/notes by default', () => {
     const idea = createImprovementIdea('Add poka-yoke fixture');
-    expect(idea.effort).toBeUndefined();
+    expect(idea.timeframe).toBeUndefined();
     expect(idea.projection).toBeUndefined();
     expect(idea.selected).toBeUndefined();
     expect(idea.notes).toBeUndefined();
@@ -564,6 +565,23 @@ describe('createImprovementIdea', () => {
     const a = createImprovementIdea('Idea A');
     const b = createImprovementIdea('Idea B');
     expect(a.id).not.toBe(b.id);
+  });
+});
+
+describe('computeRiskLevel', () => {
+  it('returns correct levels for all 9 matrix cells', () => {
+    // Row 1 (Small): low, medium, high
+    expect(computeRiskLevel(1, 1)).toBe('low');
+    expect(computeRiskLevel(1, 2)).toBe('medium');
+    expect(computeRiskLevel(1, 3)).toBe('high');
+    // Row 2 (Significant): medium, medium, high
+    expect(computeRiskLevel(2, 1)).toBe('medium');
+    expect(computeRiskLevel(2, 2)).toBe('medium');
+    expect(computeRiskLevel(2, 3)).toBe('high');
+    // Row 3 (Severe): high, high, very-high
+    expect(computeRiskLevel(3, 1)).toBe('high');
+    expect(computeRiskLevel(3, 2)).toBe('high');
+    expect(computeRiskLevel(3, 3)).toBe('very-high');
   });
 });
 

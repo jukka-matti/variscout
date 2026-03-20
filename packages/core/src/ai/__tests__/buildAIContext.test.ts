@@ -160,7 +160,7 @@ describe('buildAIContext', () => {
       {
         id: 'idea-1',
         text: 'Simplify setup',
-        effort: 'low',
+        timeframe: 'just-do',
         selected: true,
         projection: {
           baselineMean: 10,

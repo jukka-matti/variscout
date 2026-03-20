@@ -244,12 +244,14 @@ A suspected root cause becomes **confirmed** only when the outcome shows the fix
 
 Improvement ideation is the first step of the **IMPROVE** phase (PDCA: Plan), not the tail end of investigation. Once the investigation diamond converges on a suspected root cause, the focus shifts from "understand the cause" to "fix the process."
 
-The Improvement Ideas section on a finding unlocks once at least one hypothesis is supported. Analysts can generate multiple improvement ideas, estimate effort (low/medium/high), and attach a What-If projection to each idea to quantify its expected impact on Cpk and yield.
+The Improvement Ideas section on a finding unlocks once at least one hypothesis is supported. Analysts can generate multiple improvement ideas, estimate timeframe (just do/days/weeks/months), cost, and risk, then attach a What-If projection to each idea to quantify its expected impact on Cpk and yield.
 
 | Field                  | Purpose                                                           |
 | ---------------------- | ----------------------------------------------------------------- |
 | **Idea text**          | What the improvement involves (e.g., "Replace nozzle tip weekly") |
-| **Effort estimate**    | Low / Medium / High — rough implementation cost                   |
+| **Timeframe**          | Just do / Days / Weeks / Months — how long implementation takes   |
+| **Cost estimate**      | None / Low / Medium / High — investment required                  |
+| **Risk assessment**    | Low / Medium / High — implementation risk or uncertainty          |
 | **What-If projection** | Attach a What-If simulation result to compute projected Cpk/yield |
 | **Impact**             | Computed from projection (auto) or manually overridden            |
 | **Selected**           | Mark the best idea(s) to convert into corrective actions          |
@@ -281,7 +283,7 @@ Working through all four directions before evaluating prevents premature converg
 | **Can we try small?**       | Small experiment, big learning; failure is cheap     |
 | **Can we measure it?**      | Without a metric, you won't know if it worked        |
 
-**Prioritization principle:** Prefer lean improvements (no investment) first. The best improvement is the simplest one that addresses the root cause. A cheap experiment that removes the root cause beats a capital project that merely reduces symptoms.
+**Prioritization principle:** Prefer lean improvements (no investment) first. The best improvement is the simplest one that addresses the root cause. A cheap experiment that removes the root cause beats a capital project that merely reduces symptoms. The **Prioritization Matrix** (impact vs timeframe scatter plot) visualizes all ideas at once, making it easy to spot quick wins (high impact, short timeframe) and avoid time sinks (low impact, long timeframe). See [Improvement Prioritization](improvement-prioritization.md) for the full matrix design.
 
 ### Idea → What-If Round-Trip
 
@@ -558,11 +560,11 @@ The Improvement Planning Workflow bridges the gap between investigation converge
 
 ### Three-Workspace Transition
 
-| Step                   | Workspace       | What Happens                                          |
-| ---------------------- | --------------- | ----------------------------------------------------- |
-| 1. Discover variation  | **Analysis**    | Dashboard charts, drill-down, filter navigation       |
-| 2. Build understanding | **Findings**    | Hypothesis tree, validation, convergence synthesis    |
-| 3. Plan improvements   | **Improvement** | Brainstorm ideas, estimate effort, convert to actions |
+| Step                   | Workspace       | What Happens                                                                   |
+| ---------------------- | --------------- | ------------------------------------------------------------------------------ |
+| 1. Discover variation  | **Analysis**    | Dashboard charts, drill-down, filter navigation                                |
+| 2. Build understanding | **Findings**    | Hypothesis tree, validation, convergence synthesis                             |
+| 3. Plan improvements   | **Improvement** | Brainstorm ideas, estimate timeframe/cost/risk, prioritize, convert to actions |
 
 The analyst moves between workspaces as their focus shifts. Navigation tabs (Analysis | Findings | Improvement) provide direct access. All workspaces support popout via URL parameters (`?view=findings`, `?view=improvement`) for dual-monitor setups.
 
@@ -574,9 +576,9 @@ The `ImprovementWorkspaceBase` provides a full-page planning view:
 
 2. **Four Directions hint** — A single-line creative prompt: "Think: Prevent · Detect · Simplify · Eliminate". Surfaces the RDMAIC ideation framework as a lightweight brainstorming aid.
 
-3. **IdeaGroupCards** — Ideas grouped by supported/partial hypothesis. Each idea row contains: selection checkbox, idea text, direction badge (prevent/detect/simplify/eliminate), effort dropdown (low/medium/high with color coding), projection badge if a What-If simulation is attached, and action buttons for What-If and CoScout.
+3. **IdeaGroupCards** — Ideas grouped by supported/partial hypothesis. Each idea row contains: selection checkbox, idea text, direction badge (prevent/detect/simplify/eliminate), timeframe dropdown (just do/days/weeks/months), cost estimate dropdown (none/low/medium/high), risk assessment dropdown (low/medium/high), projection badge if a What-If simulation is attached, and action buttons for What-If and CoScout.
 
-4. **ImprovementSummaryBar** — Sticky bottom bar aggregating: selected idea count, effort breakdown, best projected Cpk from selected ideas, and "Convert selected → Actions" button.
+4. **ImprovementSummaryBar** — Sticky bottom bar aggregating: selected idea count, timeframe breakdown, best projected Cpk from selected ideas, and "Convert selected → Actions" button.
 
 ### Idea → Action Conversion
 
@@ -602,12 +604,12 @@ Green when actual meets or exceeds projection, red when it falls short. Over tim
 
 Every step works without AI. CoScout enhances but never gates:
 
-| Step              | Without CoScout                             | With CoScout                                                          |
-| ----------------- | ------------------------------------------- | --------------------------------------------------------------------- |
-| Write synthesis   | Manual text field with placeholder guidance | "Draft synthesis" generates narrative from evidence                   |
-| Brainstorm ideas  | Manual entry, Four Directions hint visible  | `suggest_improvement_idea` tool generates ideas with effort/direction |
-| Project impact    | What-If Simulator manual sliders            | CoScout can suggest simulation parameters                             |
-| Convert → Actions | Select ideas, click Convert                 | Same — conversion is always user-initiated                            |
+| Step              | Without CoScout                             | With CoScout                                                             |
+| ----------------- | ------------------------------------------- | ------------------------------------------------------------------------ |
+| Write synthesis   | Manual text field with placeholder guidance | "Draft synthesis" generates narrative from evidence                      |
+| Brainstorm ideas  | Manual entry, Four Directions hint visible  | `suggest_improvement_idea` tool generates ideas with timeframe/direction |
+| Project impact    | What-If Simulator manual sliders            | CoScout can suggest simulation parameters                                |
+| Convert → Actions | Select ideas, click Convert                 | Same — conversion is always user-initiated                               |
 
 ## Related Documentation
 
@@ -618,6 +620,7 @@ Every step works without AI. CoScout enhances but never gates:
 - [Findings Components](../../06-design-system/components/findings.md) — Design system specs
 - [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CoScoutPanel specs
 - [Hypothesis Investigation](hypothesis-investigation.md) — Diamond pattern root cause investigation
+- [Improvement Prioritization](improvement-prioritization.md) — Prioritization matrix, cost/risk assessment, idea comparison
 - [ADR-015: Investigation Board](../../07-decisions/adr-015-investigation-board.md) — Architectural decisions
 - [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Hypothesis model decisions
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Knowledge base dependency

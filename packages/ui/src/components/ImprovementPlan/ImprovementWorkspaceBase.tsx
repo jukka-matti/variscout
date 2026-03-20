@@ -1,5 +1,13 @@
 import React, { useMemo } from 'react';
-import type { ImprovementIdea, IdeaEffort, IdeaDirection } from '@variscout/core';
+import type {
+  ImprovementIdea,
+  IdeaTimeframe,
+  IdeaDirection,
+  IdeaCostCategory,
+  IdeaRiskAssessment,
+  ComputedRiskLevel,
+  RiskAxisConfig,
+} from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { SynthesisCard } from './SynthesisCard';
@@ -19,18 +27,35 @@ export interface ImprovementWorkspaceBaseProps {
   }>;
   linkedFindings?: Array<{ id: string; text: string }>;
   onToggleSelect?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
-  onUpdateEffort?: (hypothesisId: string, ideaId: string, effort: IdeaEffort | undefined) => void;
+  onUpdateTimeframe?: (
+    hypothesisId: string,
+    ideaId: string,
+    timeframe: IdeaTimeframe | undefined
+  ) => void;
   onUpdateDirection?: (
     hypothesisId: string,
     ideaId: string,
     direction: IdeaDirection | undefined
   ) => void;
+  onUpdateCost?: (
+    hypothesisId: string,
+    ideaId: string,
+    cost: { category: IdeaCostCategory } | undefined
+  ) => void;
+  onUpdateRisk?: (
+    hypothesisId: string,
+    ideaId: string,
+    risk: IdeaRiskAssessment | undefined
+  ) => void;
+  onOpenRisk?: (hypothesisId: string, ideaId: string) => void;
   onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
   onOpenWhatIf?: (hypothesisId: string, ideaId: string) => void;
   onAddIdea?: (hypothesisId: string, text: string) => void;
   onAskCoScout?: (question: string) => void;
   onConvertToActions?: () => void;
   onBack?: () => void;
+  riskAxisConfig?: RiskAxisConfig;
+  budget?: number;
   /** Open in popout window */
   onPopout?: () => void;
   /** Currently selected idea IDs for summary calculation */
@@ -46,8 +71,10 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
   hypotheses,
   linkedFindings,
   onToggleSelect,
-  onUpdateEffort,
+  onUpdateTimeframe,
   onUpdateDirection,
+  onUpdateCost,
+  onOpenRisk,
   onRemoveIdea,
   onOpenWhatIf,
   onAddIdea,
@@ -58,6 +85,8 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
   selectedIdeaIds,
   convertedIdeaIds,
   targetCpk,
+  riskAxisConfig,
+  budget,
 }) => {
   const { t } = useTranslation();
 
@@ -69,14 +98,40 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
     return allIdeas.filter(idea => selectedIdeaIds.has(idea.id));
   }, [allIdeas, selectedIdeaIds]);
 
-  const effortBreakdown = useMemo(() => {
-    const breakdown = { low: 0, medium: 0, high: 0 };
+  const timeframeBreakdown = useMemo(() => {
+    const breakdown = { 'just-do': 0, days: 0, weeks: 0, months: 0 };
     for (const idea of selectedIdeas) {
-      if (idea.effort) {
-        breakdown[idea.effort]++;
+      if (idea.timeframe) {
+        breakdown[idea.timeframe]++;
       }
     }
     return breakdown;
+  }, [selectedIdeas]);
+
+  // Max risk among selected ideas
+  const maxRisk = useMemo<ComputedRiskLevel | undefined>(() => {
+    const levels: ComputedRiskLevel[] = ['low', 'medium', 'high', 'very-high'];
+    let max = -1;
+    for (const idea of selectedIdeas) {
+      if (idea.risk) {
+        const idx = levels.indexOf(idea.risk.computed);
+        if (idx > max) max = idx;
+      }
+    }
+    return max >= 0 ? levels[max] : undefined;
+  }, [selectedIdeas]);
+
+  // Total cost from selected ideas with precise amounts
+  const totalCost = useMemo(() => {
+    let sum = 0;
+    let hasAmount = false;
+    for (const idea of selectedIdeas) {
+      if (idea.cost?.amount != null) {
+        sum += idea.cost.amount;
+        hasAmount = true;
+      }
+    }
+    return hasAmount ? sum : undefined;
   }, [selectedIdeas]);
 
   // Average projected Cpk from selected ideas that have projections
@@ -149,12 +204,15 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
                 ideas={h.ideas}
                 linkedFindingName={h.linkedFindingName}
                 onToggleSelect={onToggleSelect}
-                onUpdateEffort={onUpdateEffort}
+                onUpdateTimeframe={onUpdateTimeframe}
                 onUpdateDirection={onUpdateDirection}
+                onUpdateCost={onUpdateCost}
+                onOpenRisk={onOpenRisk}
                 onRemoveIdea={onRemoveIdea}
                 onOpenWhatIf={onOpenWhatIf}
                 onAddIdea={onAddIdea}
                 onAskCoScout={onAskCoScout}
+                riskAxisConfig={riskAxisConfig}
                 convertedIdeaIds={convertedIdeaIds}
               />
             ))
@@ -171,7 +229,10 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
       {/* Sticky summary bar */}
       <ImprovementSummaryBar
         selectedCount={selectedIdeaIds?.size ?? 0}
-        effortBreakdown={effortBreakdown}
+        timeframeBreakdown={timeframeBreakdown}
+        maxRisk={maxRisk}
+        totalCost={totalCost}
+        budget={budget}
         projectedCpk={projectedCpk}
         targetCpk={targetCpk}
         onConvertToActions={onConvertToActions}
