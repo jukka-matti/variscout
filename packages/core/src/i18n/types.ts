@@ -17,7 +17,6 @@ export type Locale =
   | 'it'
   | 'nl'
   | 'pl'
-  | 'ru'
   | 'tr'
   | 'sv'
   | 'da'
@@ -53,7 +52,6 @@ export const LOCALES: Locale[] = [
   'it',
   'nl',
   'pl',
-  'ru',
   'tr',
   'sv',
   'da',
@@ -90,7 +88,6 @@ export const LOCALE_NAMES: Record<Locale, string> = {
   it: 'Italiano',
   nl: 'Nederlands',
   pl: 'Polski',
-  ru: 'Русский',
   tr: 'Türkçe',
   sv: 'Svenska',
   da: 'Dansk',
