@@ -607,7 +607,7 @@ export const bg: MessageCatalog = {
   'improve.noIdeas': 'No improvement ideas yet',
   'improve.selectedCount': '{count} selected',
   'improve.timeframeBreakdown': '{low} low · {medium} med · {high} high',
-  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.projectedCpk': 'Best projected Cpk: {value}',
   'improve.targetDelta': 'Δ {delta} to target',
   'improve.convertedToAction': '→ Action',
 
@@ -681,7 +681,18 @@ export const bg: MessageCatalog = {
   'idea.detect': 'Detect',
   'idea.simplify': 'Simplify',
   'idea.eliminate': 'Eliminate',
+  'idea.whatIfSimulator': 'What-If Simulator',
+  'idea.askCoScout': 'Ask CoScout',
+  'idea.delete': 'Delete idea',
+  'idea.addPlaceholder': 'Add improvement idea...',
+  'idea.addButton': 'Add',
+  'idea.askCoScoutForIdeas': 'Ask CoScout for ideas',
+  'idea.moreOptions': 'More options',
+  'idea.riskAssessment': 'Risk assessment',
 
+  // Hypothesis role labels
+  'hypothesis.primary': 'Primary',
+  'hypothesis.contributing': 'Contributing',
   // Projected vs actual
   'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
   'outcome.delta': '({sign}{delta})',

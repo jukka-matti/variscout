@@ -781,6 +781,18 @@ export interface MessageCatalog {
   'idea.detect': string;
   'idea.simplify': string;
   'idea.eliminate': string;
+  'idea.whatIfSimulator': string;
+  'idea.askCoScout': string;
+  'idea.delete': string;
+  'idea.addPlaceholder': string;
+  'idea.addButton': string;
+  'idea.askCoScoutForIdeas': string;
+  'idea.moreOptions': string;
+  'idea.riskAssessment': string;
+
+  // Hypothesis role labels
+  'hypothesis.primary': string;
+  'hypothesis.contributing': string;
 
   // Projected vs actual
   'outcome.projectedVsActual': string;

@@ -7,7 +7,6 @@ import type {
   IdeaCostCategory,
   IdeaRiskAssessment,
   ComputedRiskLevel,
-  RiskAxisConfig,
 } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 
@@ -20,7 +19,6 @@ export interface IdeaGroupCardProps {
   };
   ideas: ImprovementIdea[];
   linkedFindingName?: string;
-  riskAxisConfig?: RiskAxisConfig;
   onToggleSelect?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
   onUpdateTimeframe?: (
     hypothesisId: string,
@@ -167,7 +165,7 @@ const IdeaOverflowMenu: React.FC<{
         data-testid={`idea-menu-${idea.id}`}
         onClick={() => setOpen(!open)}
         className="rounded p-1 text-content-muted hover:text-content hover:bg-surface-secondary transition-colors"
-        aria-label="More options"
+        aria-label={t('idea.moreOptions')}
       >
         <MoreHorizontal size={14} />
       </button>
@@ -228,7 +226,7 @@ const IdeaOverflowMenu: React.FC<{
               }}
               className="w-full px-3 py-1.5 text-left text-xs text-content hover:bg-surface-secondary"
             >
-              What-If Simulator
+              {t('idea.whatIfSimulator')}
             </button>
           )}
 
@@ -241,7 +239,7 @@ const IdeaOverflowMenu: React.FC<{
               }}
               className="w-full px-3 py-1.5 text-left text-xs text-content hover:bg-surface-secondary"
             >
-              Ask CoScout
+              {t('idea.askCoScout')}
             </button>
           )}
 
@@ -256,7 +254,7 @@ const IdeaOverflowMenu: React.FC<{
                 }}
                 className="w-full px-3 py-1.5 text-left text-xs text-red-400 hover:bg-red-500/10"
               >
-                Delete idea
+                {t('idea.delete')}
               </button>
             </>
           )}
@@ -310,12 +308,12 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
           <span className="text-sm font-medium text-content">{hypothesis.text}</span>
           {hypothesis.causeRole === 'primary' && (
             <span className="inline-flex items-center rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-500">
-              Primary
+              {t('hypothesis.primary')}
             </span>
           )}
           {hypothesis.causeRole === 'contributing' && (
             <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-500">
-              Contributing
+              {t('hypothesis.contributing')}
             </span>
           )}
           {hypothesis.factor && (
@@ -406,7 +404,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
                     ? `${t('risk.label')}: ${t(`risk.${idea.risk.computed === 'very-high' ? 'veryHigh' : idea.risk.computed}`)}`
                     : t('risk.notSet')
                 }
-                aria-label="Risk assessment"
+                aria-label={t('idea.riskAssessment')}
               >
                 <span
                   className={`inline-block w-2.5 h-2.5 rounded-full ${
@@ -459,7 +457,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
             data-testid={`idea-add-input-${hypothesis.id}`}
             type="text"
             className="flex-1 rounded border border-edge bg-surface px-2 py-1.5 text-sm text-content placeholder:text-content/40 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            placeholder="Add improvement idea..."
+            placeholder={t('idea.addPlaceholder')}
             value={newIdeaText}
             onChange={e => setNewIdeaText(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -470,7 +468,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
             disabled={!newIdeaText.trim()}
             className="rounded px-3 py-1.5 text-xs font-medium text-white bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            Add
+            {t('idea.addButton')}
           </button>
         </div>
       )}
@@ -483,7 +481,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
             onClick={() => onAskCoScout(`Suggest improvement ideas for: ${hypothesis.text}`)}
             className="text-xs text-blue-500 hover:underline"
           >
-            Ask CoScout for ideas
+            {t('idea.askCoScoutForIdeas')}
           </button>
         </div>
       )}

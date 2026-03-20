@@ -85,7 +85,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
   selectedIdeaIds,
   convertedIdeaIds,
   targetCpk,
-  riskAxisConfig,
+  riskAxisConfig: _riskAxisConfig,
   budget,
 }) => {
   const { t } = useTranslation();
@@ -134,12 +134,11 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
     return hasAmount ? sum : undefined;
   }, [selectedIdeas]);
 
-  // Average projected Cpk from selected ideas that have projections
+  // Best (max) single-idea projected Cpk among selected ideas
   const projectedCpk = useMemo(() => {
     const withProjection = selectedIdeas.filter(idea => idea.projection?.projectedCpk != null);
     if (withProjection.length === 0) return undefined;
-    const sum = withProjection.reduce((acc, idea) => acc + (idea.projection?.projectedCpk ?? 0), 0);
-    return sum / withProjection.length;
+    return Math.max(...withProjection.map(i => i.projection!.projectedCpk!));
   }, [selectedIdeas]);
 
   const hasIdeas = hypotheses.some(h => h.ideas.length > 0);
@@ -212,7 +211,6 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
                 onOpenWhatIf={onOpenWhatIf}
                 onAddIdea={onAddIdea}
                 onAskCoScout={onAskCoScout}
-                riskAxisConfig={riskAxisConfig}
                 convertedIdeaIds={convertedIdeaIds}
               />
             ))

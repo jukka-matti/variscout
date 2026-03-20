@@ -613,7 +613,7 @@ export const en: MessageCatalog = {
   'improve.selectedCount': '{count} selected',
   'improve.timeframeBreakdown':
     '{justDo} just do \u00b7 {days} days \u00b7 {weeks} wks \u00b7 {months} mo',
-  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.projectedCpk': 'Best projected Cpk: {value}',
   'improve.targetDelta': '\u0394 {delta} to target',
   'improve.convertedToAction': '\u2192 Action',
   'improve.maxRisk': 'Max risk: {level}',
@@ -689,6 +689,18 @@ export const en: MessageCatalog = {
   'idea.detect': 'Detect',
   'idea.simplify': 'Simplify',
   'idea.eliminate': 'Eliminate',
+  'idea.whatIfSimulator': 'What-If Simulator',
+  'idea.askCoScout': 'Ask CoScout',
+  'idea.delete': 'Delete idea',
+  'idea.addPlaceholder': 'Add improvement idea...',
+  'idea.addButton': 'Add',
+  'idea.askCoScoutForIdeas': 'Ask CoScout for ideas',
+  'idea.moreOptions': 'More options',
+  'idea.riskAssessment': 'Risk assessment',
+
+  // Hypothesis role labels
+  'hypothesis.primary': 'Primary',
+  'hypothesis.contributing': 'Contributing',
 
   // Projected vs actual
   'outcome.projectedVsActual': 'Projected {projected} \u2192 Actual {actual}',
