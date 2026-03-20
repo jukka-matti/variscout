@@ -34,11 +34,11 @@ This language discipline applies to all surfaces: coaching text, CoScout prompts
 
 The analyst's cognitive task shifts as they move through the workflow. Each workspace matches a distinct mental mode:
 
-| Workspace       | Cognitive Mode                                                           | Primary View                                                        | When Active                                  |
-| --------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------- | -------------------------------------------- |
-| **Analysis**    | Exploration — scanning charts, drilling factors, reading patterns        | Dashboard with charts, stats, filter breadcrumbs                    | FRAME, SCOUT, INVESTIGATE                    |
-| **Findings**    | Evaluation — reviewing evidence, classifying findings, building the case | Board view with status columns, finding cards, hypothesis trees     | INVESTIGATE (converging), IMPROVE (planning) |
-| **Improvement** | Planning — brainstorming ideas, estimating effort, converting to actions | Full-page improvement plan with synthesis, idea groups, summary bar | IMPROVE                                      |
+| Workspace       | Cognitive Mode                                                              | Primary View                                                        | When Active                                  |
+| --------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------- |
+| **Analysis**    | Exploration — scanning charts, drilling factors, reading patterns           | Dashboard with charts, stats, filter breadcrumbs                    | FRAME, SCOUT, INVESTIGATE                    |
+| **Findings**    | Evaluation — reviewing evidence, classifying findings, building the case    | Board view with status columns, finding cards, hypothesis trees     | INVESTIGATE (converging), IMPROVE (planning) |
+| **Improvement** | Planning — brainstorming ideas, estimating timeframe, converting to actions | Full-page improvement plan with synthesis, idea groups, summary bar | IMPROVE                                      |
 
 ### Workspace Navigation
 
@@ -174,11 +174,11 @@ The Improvement Workspace is a full-page planning view that replaces the dashboa
 
 ### Top Bar
 
-| Element               | Description                                                 |
-| --------------------- | ----------------------------------------------------------- |
-| Back button           | "← Back to Analysis" — returns to the dashboard             |
-| Title                 | "Improvement Plan" (i18n: `improve.title`)                  |
-| Effort summary badges | Compact count of selected ideas by effort level: `2L 1M 0H` |
+| Element                  | Description                                              |
+| ------------------------ | -------------------------------------------------------- |
+| Back button              | "← Back to Analysis" — returns to the dashboard          |
+| Title                    | "Improvement Plan" (i18n: `improve.title`)               |
+| Timeframe summary badges | Compact count of selected ideas by timeframe: `2L 1M 0H` |
 
 ### SynthesisCard
 
@@ -207,16 +207,16 @@ Ideas are grouped by hypothesis. Each IdeaGroupCard shows:
 
 Each idea row contains:
 
-| Element                 | Description                                                                    |
-| ----------------------- | ------------------------------------------------------------------------------ |
-| **Checkbox**            | Select/deselect for conversion to actions                                      |
-| **Idea text**           | Editable inline text                                                           |
-| **Direction badge**     | Prevent / Detect / Simplify / Eliminate (color-coded)                          |
-| **Effort dropdown**     | Inline `<select>` with LOW / MED / HIGH options, color-coded (green/amber/red) |
-| **Projection badge**    | "P: Cpk X.XX" if a What-If projection is attached                              |
-| **What-If button**      | Opens What-If Simulator with idea context                                      |
-| **Ask CoScout button**  | Sends idea to CoScout for feasibility assessment (AI plans only)               |
-| **Converted indicator** | "→ Action" label shown when `ideaId` FK exists on an ActionItem                |
+| Element                 | Description                                                                 |
+| ----------------------- | --------------------------------------------------------------------------- |
+| **Checkbox**            | Select/deselect for conversion to actions                                   |
+| **Idea text**           | Editable inline text                                                        |
+| **Direction badge**     | Prevent / Detect / Simplify / Eliminate (color-coded)                       |
+| **Timeframe dropdown**  | Inline `<select>` with Just Do / Days / Weeks / Months options, color-coded |
+| **Projection badge**    | "P: Cpk X.XX" if a What-If projection is attached                           |
+| **What-If button**      | Opens What-If Simulator with idea context                                   |
+| **Ask CoScout button**  | Sends idea to CoScout for feasibility assessment (AI plans only)            |
+| **Converted indicator** | "→ Action" label shown when `ideaId` FK exists on an ActionItem             |
 
 Only ideas from hypotheses with `status: 'supported'` or `status: 'partial'` are shown. Contradicted and untested hypotheses are excluded from the improvement workspace since their ideas lack evidentiary support.
 
@@ -224,12 +224,12 @@ Only ideas from hypotheses with `status: 'supported'` or `status: 'partial'` are
 
 A sticky bottom bar that aggregates selection state:
 
-| Element              | Description                                                           |
-| -------------------- | --------------------------------------------------------------------- |
-| **Selected count**   | "N selected" (i18n: `improve.selectedCount`)                          |
-| **Effort breakdown** | "X low · Y med · Z high" (i18n: `improve.effortBreakdown`)            |
-| **Projected Cpk**    | Best projected Cpk from selected ideas (i18n: `improve.projectedCpk`) |
-| **Convert button**   | "Convert selected → Actions" — creates ActionItems with ideaId FK     |
+| Element                 | Description                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------ |
+| **Selected count**      | "N selected" (i18n: `improve.selectedCount`)                                   |
+| **Timeframe breakdown** | "X just-do · Y days · Z weeks · W months" (i18n: `improve.timeframeBreakdown`) |
+| **Projected Cpk**       | Best projected Cpk from selected ideas (i18n: `improve.projectedCpk`)          |
+| **Convert button**      | "Convert selected → Actions" — creates ActionItems with ideaId FK              |
 
 The Convert button is disabled when no ideas are selected.
 
@@ -314,61 +314,62 @@ The projected-vs-actual comparison closes the learning loop:
 - Over time, this builds estimation confidence
 - The data is available for Knowledge Base contribution (Azure Team AI plan)
 
-## Effort UX Improvement
+## Timeframe & Cost UX
 
-### Before (cycle button)
+### Timeframe (replaces effort)
 
-The original effort UI was a tiny "E" button that cycled through `undefined → low → medium → high → undefined`. Problems:
+The timeframe field is an inline `<select>` dropdown on the idea row:
 
-- No visible current state without hovering
-- Accidental clicks cycle past the desired value
-- Not discoverable on mobile
+| Value     | Color | Label   |
+| --------- | ----- | ------- |
+| _(empty)_ | Muted | —       |
+| Just Do   | Green | Just Do |
+| Days      | Cyan  | Days    |
+| Weeks     | Amber | Weeks   |
+| Months    | Red   | Months  |
 
-### After (inline dropdown)
+This is implemented in `IdeaGroupCard.tsx` as a native `<select>` element with color-coded text matching `TIMEFRAME_COLORS`.
 
-The effort field is now an inline `<select>` dropdown on the idea row:
+### Cost Badge
 
-| Value     | Color | Label  |
-| --------- | ----- | ------ |
-| _(empty)_ | Muted | —      |
-| Low       | Green | Low    |
-| Medium    | Amber | Medium |
-| High      | Red   | High   |
+Each idea also has an inline cost badge (dropdown: None / Low / Med / High, or precise € amount input).
 
-This is implemented in `HypothesisNode.tsx` as a native `<select>` element with color-coded text matching `EFFORT_COLORS`.
+### Risk Dot
 
-### Effort in ActionProposalCard
+A colored circle indicating the computed risk level from a 3×3 risk matrix. Clickable to open `RiskPopover` for axis selection and scoring.
 
-When CoScout suggests an improvement idea via `suggest_improvement_idea`, the `ActionProposalCard` preview includes an effort line:
+### Timeframe in ActionProposalCard
+
+When CoScout suggests an improvement idea via `suggest_improvement_idea`, the `ActionProposalCard` preview includes timeframe and cost lines:
 
 ```
-Effort: Low — existing resources, no approval
-Effort: Medium — some coordination, minor cost
-Effort: High — investment, cross-team coordination
+Timeframe: Just Do — can be implemented immediately
+Timeframe: Days — requires a few days of preparation
+Timeframe: Weeks — needs planning and coordination
+Timeframe: Months — significant project with lead time
 ```
 
-The effort definitions are included in the tool schema description so the LLM can make informed estimates.
+### Timeframe Definitions
 
-### Effort Estimation Definitions
-
-| Level      | Definition                                                            | Examples                                                  |
-| ---------- | --------------------------------------------------------------------- | --------------------------------------------------------- |
-| **Low**    | Can be done immediately with existing resources, no approval needed   | Adjust machine setting, update SOP, add visual aid        |
-| **Medium** | Requires some coordination, minor cost, or schedule adjustment        | Order replacement part, schedule training, modify fixture |
-| **High**   | Requires investment, cross-team coordination, or significant downtime | Capital equipment, process redesign, new tooling          |
+| Level       | Definition                                                     | Examples                                                  |
+| ----------- | -------------------------------------------------------------- | --------------------------------------------------------- |
+| **Just Do** | Can be implemented immediately, no planning needed             | Adjust machine setting, update SOP, add visual aid        |
+| **Days**    | Requires a few days of preparation or coordination             | Order replacement part, schedule training, modify fixture |
+| **Weeks**   | Needs planning, coordination, or procurement lead time         | New tooling, process redesign, cross-team coordination    |
+| **Months**  | Significant project requiring capital or organizational change | Capital equipment, facility changes, system overhaul      |
 
 ## CoScout-Optional Design
 
 Every step in the IMPROVE phase works without AI. CoScout enhances the experience but is never required:
 
-| Step                    | Without CoScout                                                    | With CoScout                                                          |
-| ----------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| **Convergence trigger** | Hypothesis status signals convergence                              | CoScout can ask "Ready to summarize?"                                 |
-| **Write synthesis**     | Manual text field with placeholder guidance                        | "Draft synthesis" button generates narrative from evidence            |
-| **Brainstorm ideas**    | Manual entry on hypothesis nodes, Four Directions hint visible     | `suggest_improvement_idea` tool generates ideas with effort/direction |
-| **Project impact**      | What-If Simulator round-trip (manual slider adjustment)            | CoScout can suggest simulation parameters                             |
-| **Convert → Actions**   | Select ideas, click Convert, actions created with FK               | Same — conversion is always user-initiated                            |
-| **Verify outcome**      | Set outcome manually (Effective/Partial/Not effective + Cpk after) | CoScout can summarize improvement delta from staged data              |
+| Step                    | Without CoScout                                                    | With CoScout                                                                  |
+| ----------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| **Convergence trigger** | Hypothesis status signals convergence                              | CoScout can ask "Ready to summarize?"                                         |
+| **Write synthesis**     | Manual text field with placeholder guidance                        | "Draft synthesis" button generates narrative from evidence                    |
+| **Brainstorm ideas**    | Manual entry on hypothesis nodes, Four Directions hint visible     | `suggest_improvement_idea` tool generates ideas with timeframe/cost/direction |
+| **Project impact**      | What-If Simulator round-trip (manual slider adjustment)            | CoScout can suggest simulation parameters                                     |
+| **Convert → Actions**   | Select ideas, click Convert, actions created with FK               | Same — conversion is always user-initiated                                    |
+| **Verify outcome**      | Set outcome manually (Effective/Partial/Not effective + Cpk after) | CoScout can summarize improvement delta from staged data                      |
 
 The tier gating is:
 
@@ -383,21 +384,21 @@ The tier gating is:
 
 The following components and infrastructure have been implemented:
 
-| Component                          | Package           | What It Does                                                                    |
-| ---------------------------------- | ----------------- | ------------------------------------------------------------------------------- |
-| `ProcessContext.synthesis`         | `@variscout/core` | Field on AI context type (max 500 chars)                                        |
-| Synthesis in CoScout prompt        | `@variscout/core` | `coScout.ts` includes synthesis in investigation context with language guidance |
-| Synthesis in narration prompt      | `@variscout/core` | `narration.ts` includes synthesis in summary prompt                             |
-| `ActionItem.ideaId`                | `@variscout/core` | FK field + `createActionItem()` helper accepts ideaId                           |
-| `IdeaDirection` type               | `@variscout/core` | `'prevent' \| 'detect' \| 'simplify' \| 'eliminate'` on `ImprovementIdea`       |
-| Direction badge on HypothesisNode  | `@variscout/ui`   | Color-coded badge rendering idea direction                                      |
-| Effort dropdown on HypothesisNode  | `@variscout/ui`   | Inline `<select>` replacing cycle button, color-coded                           |
-| Effort in ActionProposalCard       | `@variscout/ui`   | Preview line with effort label and definition                                   |
-| Projected vs actual in FindingCard | `@variscout/ui`   | Outcome section shows projected → actual with delta and color                   |
-| i18n keys                          | `@variscout/core` | `improve.*`, `effort.*`, `idea.*`, `outcome.*` keys in en.ts catalog            |
-| Four Directions hint               | `@variscout/ui`   | ImprovementWorkspaceBase hint references Prevent/Detect/Simplify/Eliminate      |
-| Effort in tool schema              | `@variscout/core` | `suggest_improvement_idea` includes effort field with definitions               |
-| Process context in narration       | `@variscout/core` | `product` and `measurement` in `buildSummaryPrompt`                             |
+| Component                            | Package           | What It Does                                                                                |
+| ------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------- |
+| `ProcessContext.synthesis`           | `@variscout/core` | Field on AI context type (max 500 chars)                                                    |
+| Synthesis in CoScout prompt          | `@variscout/core` | `coScout.ts` includes synthesis in investigation context with language guidance             |
+| Synthesis in narration prompt        | `@variscout/core` | `narration.ts` includes synthesis in summary prompt                                         |
+| `ActionItem.ideaId`                  | `@variscout/core` | FK field + `createActionItem()` helper accepts ideaId                                       |
+| `IdeaDirection` type                 | `@variscout/core` | `'prevent' \| 'detect' \| 'simplify' \| 'eliminate'` on `ImprovementIdea`                   |
+| Direction badge on HypothesisNode    | `@variscout/ui`   | Color-coded badge rendering idea direction                                                  |
+| Timeframe dropdown on IdeaGroupCard  | `@variscout/ui`   | Inline `<select>` with Just Do/Days/Weeks/Months, color-coded                               |
+| Timeframe+Cost in ActionProposalCard | `@variscout/ui`   | Preview lines with timeframe and cost labels                                                |
+| Projected vs actual in FindingCard   | `@variscout/ui`   | Outcome section shows projected → actual with delta and color                               |
+| i18n keys                            | `@variscout/core` | `improve.*`, `timeframe.*`, `cost.*`, `risk.*`, `idea.*`, `outcome.*` keys in en.ts catalog |
+| Four Directions hint                 | `@variscout/ui`   | ImprovementWorkspaceBase hint references Prevent/Detect/Simplify/Eliminate                  |
+| Timeframe+Cost in tool schema        | `@variscout/core` | `suggest_improvement_idea` includes timeframe and cost fields                               |
+| Process context in narration         | `@variscout/core` | `product` and `measurement` in `buildSummaryPrompt`                                         |
 
 ### Roadmap — All Items Delivered
 
@@ -408,7 +409,7 @@ All P1–P4 roadmap items are fully delivered as of 2026-03-19.
 | P1    | 1   | Azure Editor.tsx — workspace navigation tabs | Delivered |
 | P1    | 2   | Azure App.tsx — `?view=improvement` popout   | Delivered |
 | P1    | 3   | Idea selection (inline in Editor.tsx memos)  | Delivered |
-| P1    | 4   | Editor.tsx effort extraction                 | Delivered |
+| P1    | 4   | Editor.tsx timeframe extraction              | Delivered |
 | P2    | 5   | FindingBoardView — synthesis header          | Delivered |
 | P2    | 6   | ReportView — Step 3 synthesis section        | Delivered |
 | P2    | 7   | Convergence nudge (removed with Coach)       | Removed   |

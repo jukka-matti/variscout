@@ -354,15 +354,15 @@ Components use the standard `colorScheme` pattern with `defaultColorScheme` (sem
 
 ## Responsive Behavior
 
-| Context                   | Behavior                                                                                                                                                                |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Desktop                   | Inline resizable panel (Azure) or slide-in overlay (PWA)                                                                                                                |
-| Desktop (popout)          | Separate window with horizontal board columns                                                                                                                           |
-| Phone (<640px)            | Full-screen overlay (fixed inset-0 z-40)                                                                                                                                |
-| Phone (chart annotations) | MobileCategorySheet bottom action sheet replaces right-click. "Pin as Finding" includes source metadata. Draggable text annotations are desktop-only.                   |
-| Phone (action buttons)    | All hover-dependent action buttons (edit, delete, ask CoScout, effort, remove) are always visible on touch devices via `touch-show` CSS class (`@media (hover: none)`). |
-| Phone (board view)        | Board columns layout is popout-only (popout button hidden on phone). In-panel view uses accordion layout on all screens including phone.                                |
-| Phone (ideas/actions)     | Improvement idea buttons (effort, project, remove) and action item buttons (ask, delete) always visible on touch — no hover required.                                   |
+| Context                   | Behavior                                                                                                                                                                   |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Desktop                   | Inline resizable panel (Azure) or slide-in overlay (PWA)                                                                                                                   |
+| Desktop (popout)          | Separate window with horizontal board columns                                                                                                                              |
+| Phone (<640px)            | Full-screen overlay (fixed inset-0 z-40)                                                                                                                                   |
+| Phone (chart annotations) | MobileCategorySheet bottom action sheet replaces right-click. "Pin as Finding" includes source metadata. Draggable text annotations are desktop-only.                      |
+| Phone (action buttons)    | All hover-dependent action buttons (edit, delete, ask CoScout, timeframe, remove) are always visible on touch devices via `touch-show` CSS class (`@media (hover: none)`). |
+| Phone (board view)        | Board columns layout is popout-only (popout button hidden on phone). In-panel view uses accordion layout on all screens including phone.                                   |
+| Phone (ideas/actions)     | Improvement idea buttons (timeframe, cost, project, remove) and action item buttons (ask, delete) always visible on touch — no hover required.                             |
 
 ---
 
@@ -508,14 +508,14 @@ Collapsible section within HypothesisNode, visible when the hypothesis status is
 ┌──────────────────────────────────────────────────┐
 │  ▼ Improvement Ideas (2)                         │
 │                                                  │
-│  ★ Replace nozzle tip weekly                     │
-│    Impact: High   Effort: Low   Cpk 0.85 → 1.42 │
-│                                                  │
-│  ○ Add temperature PID controller                │
-│    Impact: Medium  Effort: High                  │
-│                                                  │
-│  [+ Add idea...]                                 │
-│  [Ask CoScout]  [▼ Effort]  [Project →]          │
+│  ★ Replace nozzle tip weekly                          │
+│    Impact: High   Timeframe: Just Do   Cpk 0.85→1.42 │
+│                                                       │
+│  ○ Add temperature PID controller                     │
+│    Impact: Medium  Timeframe: Months                  │
+│                                                       │
+│  [+ Add idea...]                                      │
+│  [Ask CoScout]  [▼ Timeframe]  [Project →]            │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -524,14 +524,14 @@ Collapsible section within HypothesisNode, visible when the hypothesis status is
 | Element              | Spec                                                                                                         |
 | -------------------- | ------------------------------------------------------------------------------------------------------------ |
 | Section header       | Collapsible. "Improvement Ideas (N)" with chevron toggle. Hidden when hypothesis is untested or contradicted |
-| Idea row             | Text description (editable inline), impact badge, effort badge, optional projection summary                  |
+| Idea row             | Text description (editable inline), impact badge, timeframe badge, optional projection summary               |
 | Impact badge         | Computed from What-If projection: High (green), Medium (amber), Low (gray). "—" if no projection             |
-| Effort badge         | Manual cycle: Low → Medium → High → Low. Pill with color: Low (green), Medium (amber), High (red)            |
+| Timeframe badge      | Dropdown: Just Do (green) / Days (cyan) / Weeks (amber) / Months (red)                                       |
 | Projection summary   | Inline text: "Cpk 0.85 → 1.42" when a What-If projection exists for this idea                                |
 | Selected indicator   | Star (★) for selected idea, circle (○) for unselected. Click to toggle. Max one selected per hypothesis      |
 | "Add idea" input     | Text input at bottom of list. Enter to add. Placeholder: "Add improvement idea..."                           |
 | "Ask CoScout" button | Opens CoScout panel with ideation context pre-loaded. Only shown when AI is configured                       |
-| Effort cycle button  | Cycles the selected idea's effort level (Low → Medium → High)                                                |
+| Timeframe dropdown   | Selects the idea's timeframe (Just Do / Days / Weeks / Months)                                               |
 | "Project" button     | Opens What-If Simulator pre-populated with the selected idea's parameters. Disabled when no idea selected    |
 
 #### Interaction
