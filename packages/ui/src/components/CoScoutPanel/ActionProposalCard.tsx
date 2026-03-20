@@ -117,6 +117,21 @@ function formatPreview(
         };
         lines.push(`Timeframe: ${timeframeLabels[timeframe] ?? timeframe}`);
       }
+      if (params.cost || preview.cost) {
+        const cost = (params.cost ?? preview.cost) as string;
+        const costLabels: Record<string, string> = {
+          none: 'None \u2014 no additional cost',
+          low: 'Low \u2014 minor budget, within team authority',
+          medium: 'Medium \u2014 requires budget approval',
+          high: 'High \u2014 capital investment, executive approval',
+        };
+        lines.push(`Cost: ${costLabels[cost] ?? cost}`);
+      }
+      if (params.risk_axis1 != null && params.risk_axis2 != null) {
+        lines.push(
+          `Risk: Process ${params.risk_axis1} \u00d7 Safety ${params.risk_axis2} (suggested)`
+        );
+      }
       if (typeof preview.existingIdeasCount === 'number' && preview.existingIdeasCount > 0) {
         lines.push(
           `${preview.existingIdeasCount} existing idea${preview.existingIdeasCount !== 1 ? 's' : ''}`

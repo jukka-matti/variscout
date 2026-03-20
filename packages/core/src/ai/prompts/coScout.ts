@@ -286,8 +286,34 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
               description:
                 'Estimated timeframe: just-do = can be done right now with existing resources, no approval needed, days = requires minor coordination, can be done within days, weeks = requires planning, coordination, moderate resources, months = requires investment, cross-team coordination, significant planning',
             },
+            cost: {
+              type: 'string',
+              enum: ['none', 'low', 'medium', 'high'],
+              description:
+                'Estimated cost: none = no additional cost (adjust setting, change SOP), low = minor budget within team authority (parts, supplies), medium = requires budget approval (training, fixture modification), high = capital investment or executive approval (new equipment, process redesign)',
+            },
+            risk_axis1: {
+              type: ['integer', 'null'],
+              enum: [1, 2, 3, null],
+              description:
+                'Process impact risk (optional): 1 = small/negligible, 2 = significant/moderate, 3 = severe/critical. Set null if uncertain.',
+            },
+            risk_axis2: {
+              type: ['integer', 'null'],
+              enum: [1, 2, 3, null],
+              description:
+                'Safety impact risk (optional): 1 = none, 2 = possible, 3 = immediate. Set null if uncertain.',
+            },
           },
-          required: ['hypothesis_id', 'text', 'direction', 'timeframe'],
+          required: [
+            'hypothesis_id',
+            'text',
+            'direction',
+            'timeframe',
+            'cost',
+            'risk_axis1',
+            'risk_axis2',
+          ],
           additionalProperties: false,
           strict: true,
         },
@@ -912,6 +938,8 @@ Improvement idea guidance (converging/IMPROVE):
   - simplify: reduce complexity to reduce error opportunities (fewer steps, visual guides, kits)
   - eliminate: remove the step or factor entirely (automate, redesign)
 - Always estimate timeframe: just-do (existing resources, no approval), days (minor coordination), weeks (planning, moderate resources), months (investment, cross-team).
+- Always estimate cost: none (no cost), low (team budget), medium (needs approval), high (capital investment).
+- If you can assess the risk, provide risk_axis1 (process impact 1-3) and risk_axis2 (safety impact 1-3). Set null if uncertain.
 - Prefer lean improvements — the simplest fix that addresses the root cause. Suggest just-do and days timeframe ideas first.
 - Assess feasibility: Does it remove the root cause? Can the team do it themselves? Can they try small first? Can they measure the result?
 - If Knowledge Base search revealed a past fix for a similar cause, suggest it as an improvement idea with the source cited.

@@ -1,5 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import type { IdeaTimeframe, IdeaDirection, ImprovementIdea } from '@variscout/core';
+import type {
+  IdeaTimeframe,
+  IdeaDirection,
+  IdeaCostCategory,
+  ImprovementIdea,
+} from '@variscout/core';
 import { ImprovementWorkspaceBase } from '@variscout/ui';
 
 /**
@@ -46,6 +51,13 @@ export type ImprovementAction =
       hypothesisId: string;
       ideaId: string;
       direction: IdeaDirection | undefined;
+      timestamp: number;
+    }
+  | {
+      type: 'update-cost';
+      hypothesisId: string;
+      ideaId: string;
+      cost: { category: IdeaCostCategory } | undefined;
       timestamp: number;
     }
   | { type: 'remove-idea'; hypothesisId: string; ideaId: string; timestamp: number }
@@ -187,6 +199,31 @@ const ImprovementWindow: React.FC = () => {
     [sendAction]
   );
 
+  const handleUpdateCost = useCallback(
+    (hypothesisId: string, ideaId: string, cost: { category: IdeaCostCategory } | undefined) => {
+      sendAction({
+        type: 'update-cost',
+        hypothesisId,
+        ideaId,
+        cost,
+        timestamp: Date.now(),
+      });
+      setSyncData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          hypotheses: prev.hypotheses.map(h =>
+            h.id === hypothesisId
+              ? { ...h, ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, cost } : i)) }
+              : h
+          ),
+          timestamp: Date.now(),
+        };
+      });
+    },
+    [sendAction]
+  );
+
   const handleRemoveIdea = useCallback(
     (hypothesisId: string, ideaId: string) => {
       sendAction({ type: 'remove-idea', hypothesisId, ideaId, timestamp: Date.now() });
@@ -272,6 +309,7 @@ const ImprovementWindow: React.FC = () => {
         onToggleSelect={handleToggleSelect}
         onUpdateTimeframe={handleUpdateTimeframe}
         onUpdateDirection={handleUpdateDirection}
+        onUpdateCost={handleUpdateCost}
         onRemoveIdea={handleRemoveIdea}
         onAddIdea={handleAddIdea}
         onConvertToActions={handleConvertToActions}

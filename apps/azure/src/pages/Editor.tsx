@@ -651,6 +651,11 @@ export const Editor: React.FC<EditorProps> = ({
               direction: action.direction,
             });
             break;
+          case 'update-cost':
+            hypothesesState.updateIdea(action.hypothesisId, action.ideaId, {
+              cost: action.cost,
+            });
+            break;
           case 'remove-idea':
             hypothesesState.removeIdea(action.hypothesisId, action.ideaId);
             break;
@@ -1104,6 +1109,10 @@ export const Editor: React.FC<EditorProps> = ({
         onUpdateDirection={(hId, iId, dir) =>
           hypothesesState.updateIdea(hId, iId, { direction: dir })
         }
+        onUpdateCost={(hId, iId, cost) => hypothesesState.updateIdea(hId, iId, { cost })}
+        onOpenRisk={(_hId, _iId) => {
+          // Risk popover will be wired in a follow-up (Phase 10)
+        }}
         onRemoveIdea={hypothesesState.removeIdea}
         onOpenWhatIf={handleProjectIdea}
         onAddIdea={(hId, text) => {
