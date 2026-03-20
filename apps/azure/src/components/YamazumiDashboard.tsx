@@ -17,7 +17,7 @@ import {
   useYamazumiIChartData,
   useYamazumiParetoData,
 } from '@variscout/hooks';
-import { computeYamazumiSummary, isPaidTier } from '@variscout/core';
+import { computeYamazumiSummary, calculateStats, isPaidTier } from '@variscout/core';
 import type {
   YamazumiColumnMapping,
   YamazumiIChartMetric,
@@ -37,7 +37,7 @@ const YamazumiDashboard: React.FC<YamazumiDashboardProps> = ({
   onBarClick,
   onTaktTimeChange,
 }) => {
-  const { filteredData, stats, specs } = useData();
+  const { filteredData, specs } = useData();
   const showBranding = !isPaidTier();
 
   // Yamazumi-specific display state
@@ -52,6 +52,12 @@ const YamazumiDashboard: React.FC<YamazumiDashboardProps> = ({
     mapping,
     mode: paretoMode,
   });
+
+  // Recompute stats from aggregated I-Chart data (not raw measurement stats)
+  const ichartStats = useMemo(() => {
+    const values = ichartData.map(d => d.y);
+    return values.length > 0 ? calculateStats(values) : null;
+  }, [ichartData]);
 
   const summary = useMemo(
     () => computeYamazumiSummary(barData, mapping.taktTime),
@@ -77,7 +83,7 @@ const YamazumiDashboard: React.FC<YamazumiDashboardProps> = ({
             <YamazumiIChartMetricToggle metric={ichartMetric} onMetricChange={setIchartMetric} />
           }
         >
-          <IChart data={ichartData} stats={stats} specs={specs} showBranding={showBranding} />
+          <IChart data={ichartData} stats={ichartStats} specs={specs} showBranding={showBranding} />
         </DashboardChartCard>
       }
       boxplotCard={

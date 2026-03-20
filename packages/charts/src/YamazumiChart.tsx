@@ -302,7 +302,7 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
           style={{
             ...defaultStyles,
             backgroundColor: chrome.tooltipBg ?? '#1e293b',
-            color: '#e2e8f0',
+            color: chrome.tooltipText ?? '#e2e8f0',
             padding: '8px 12px',
             fontSize: fonts.tickLabel,
             borderRadius: 6,
@@ -326,7 +326,13 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
             {formatStat(tooltip.tooltipData.time)} (
             {Math.round(tooltip.tooltipData.percentage * 100)}%)
           </div>
-          <div style={{ color: '#94a3b8', marginTop: 2, fontSize: fonts.tickLabel - 1 }}>
+          <div
+            style={{
+              color: chrome.labelSecondary ?? '#94a3b8',
+              marginTop: 2,
+              fontSize: fonts.tickLabel - 1,
+            }}
+          >
             Total: {formatStat(tooltip.tooltipData.totalTime)} · {tooltip.tooltipData.count}{' '}
             {tooltip.tooltipData.count === 1 ? 'row' : 'rows'}
           </div>

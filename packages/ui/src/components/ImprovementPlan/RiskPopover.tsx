@@ -297,7 +297,7 @@ const AxisDropdown: React.FC<{
   onSelect: (preset: RiskAxisPreset) => void;
   t: (key: I18nKey) => string;
 }> = ({ current, exclude, onSelect, t }) => (
-  <div className="absolute z-60 mt-1 bg-surface-secondary border border-edge rounded-md shadow-xl py-1 min-w-[120px]">
+  <div className="absolute z-[60] mt-1 bg-surface-secondary border border-edge rounded-md shadow-xl py-1 min-w-[120px]">
     {ALL_PRESETS.filter(p => p !== exclude).map(preset => (
       <button
         key={preset}

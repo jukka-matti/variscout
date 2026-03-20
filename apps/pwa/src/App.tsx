@@ -240,7 +240,7 @@ function AppMain() {
       const { toPng } = await import('html-to-image');
       const dataUrl = await toPng(node, {
         cacheBust: true,
-        backgroundColor: '#0f172a',
+        backgroundColor: document.documentElement.dataset.theme === 'dark' ? '#0f172a' : '#f8fafc',
       });
       const link = document.createElement('a');
       link.download = `variscout-analysis-${new Date().toISOString().split('T')[0]}.png`;
@@ -547,60 +547,68 @@ function AppMain() {
         </div>
 
         {/* Findings Panel (inline, desktop only) */}
-        {panels.isDesktop && outcome && (
-          <FindingsPanel
-            isOpen={panels.isFindingsPanelOpen}
-            onClose={() => {
-              panels.handleCloseFindingsPanel();
-              setHighlightedFindingId(null);
-            }}
-            findings={findingsState.findings}
-            onEditFinding={findingsState.editFinding}
-            onDeleteFinding={findingsState.deleteFinding}
-            onRestoreFinding={handleRestoreFinding}
-            onSetFindingStatus={findingsState.setFindingStatus}
-            onSetFindingTag={findingsState.setFindingTag}
-            onAddComment={findingsState.addFindingComment}
-            onEditComment={findingsState.editFindingComment}
-            onDeleteComment={findingsState.deleteFindingComment}
-            columnAliases={columnAliases}
-            drillPath={drillPath}
-            activeFindingId={highlightedFindingId}
-            onPopout={handleOpenFindingsPopout}
-            maxStatuses={3}
-          />
-        )}
+        <Suspense fallback={null}>
+          {panels.isDesktop && outcome && (
+            <FindingsPanel
+              isOpen={panels.isFindingsPanelOpen}
+              onClose={() => {
+                panels.handleCloseFindingsPanel();
+                setHighlightedFindingId(null);
+              }}
+              findings={findingsState.findings}
+              onEditFinding={findingsState.editFinding}
+              onDeleteFinding={findingsState.deleteFinding}
+              onRestoreFinding={handleRestoreFinding}
+              onSetFindingStatus={findingsState.setFindingStatus}
+              onSetFindingTag={findingsState.setFindingTag}
+              onAddComment={findingsState.addFindingComment}
+              onEditComment={findingsState.editFindingComment}
+              onDeleteComment={findingsState.deleteFindingComment}
+              columnAliases={columnAliases}
+              drillPath={drillPath}
+              activeFindingId={highlightedFindingId}
+              onPopout={handleOpenFindingsPopout}
+              maxStatuses={3}
+            />
+          )}
+        </Suspense>
 
         {/* Data Panel (desktop only, when open) */}
-        {panels.isDesktop && rawData.length > 0 && !importFlow.isMapping && (
-          <DataPanel
-            isOpen={panels.isDataPanelOpen}
-            onClose={panels.handleCloseDataPanel}
-            highlightRowIndex={panels.highlightRowIndex}
-            onRowClick={panels.handleDataPanelRowClick}
-            excludedRowIndices={excludedRowIndices}
-            excludedReasons={excludedReasons}
-            controlViolations={controlViolations}
-            selectedIndices={selectedPoints}
-            onToggleSelection={togglePointSelection}
-          />
-        )}
+        <Suspense fallback={null}>
+          {panels.isDesktop && rawData.length > 0 && !importFlow.isMapping && (
+            <DataPanel
+              isOpen={panels.isDataPanelOpen}
+              onClose={panels.handleCloseDataPanel}
+              highlightRowIndex={panels.highlightRowIndex}
+              onRowClick={panels.handleDataPanelRowClick}
+              excludedRowIndices={excludedRowIndices}
+              excludedReasons={excludedReasons}
+              controlViolations={controlViolations}
+              selectedIndices={selectedPoints}
+              onToggleSelection={togglePointSelection}
+            />
+          )}
+        </Suspense>
       </main>
 
       {/* Settings Panel (slide-in from right) */}
-      <SettingsPanel
-        isOpen={panels.isSettingsOpen}
-        onClose={() => panels.setIsSettingsOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <SettingsPanel
+          isOpen={panels.isSettingsOpen}
+          onClose={() => panels.setIsSettingsOpen(false)}
+        />
+      </Suspense>
 
-      <DataTableModal
-        isOpen={panels.isDataTableOpen}
-        onClose={panels.handleCloseDataTable}
-        highlightRowIndex={panels.highlightRowIndex ?? undefined}
-        showExcludedOnly={panels.showExcludedOnly}
-        excludedRowIndices={excludedRowIndices}
-        excludedReasons={excludedReasons}
-      />
+      <Suspense fallback={null}>
+        <DataTableModal
+          isOpen={panels.isDataTableOpen}
+          onClose={panels.handleCloseDataTable}
+          highlightRowIndex={panels.highlightRowIndex ?? undefined}
+          showExcludedOnly={panels.showExcludedOnly}
+          excludedRowIndices={excludedRowIndices}
+          excludedReasons={excludedReasons}
+        />
+      </Suspense>
 
       {/* Hide footer in embed mode */}
       {!isEmbedMode && (
