@@ -103,6 +103,7 @@ date: 2026-03-17
 #### F-09: Panel Stacking — Presentation/Report Don't Close Findings/CoScout
 
 - **Severity:** S1 | **Priority:** P1
+- **Status:** RESOLVED
 - **Description:** `useEditorPanels` reducer correctly gates Presentation and Report as mutually exclusive, but does NOT close `isFindingsOpen` or `isCoScoutOpen`. On mobile, this creates z-40 + fullscreen conflicts. On desktop, resizable panels overlay presentation slides.
 - **Files:** `apps/azure/src/hooks/useEditorPanels.ts:68-75`
 - **Fix:** Add compound close to OPEN_PRESENTATION and OPEN_REPORT actions:
@@ -110,13 +111,16 @@ date: 2026-03-17
   case 'OPEN_PRESENTATION':
     return { ...state, isPresentationMode: true, isReportOpen: false, isFindingsOpen: false, isCoScoutOpen: false };
   ```
+- **Implementation:** Compound closures added to `OPEN_PRESENTATION` and `OPEN_REPORT` actions in `editorPanelReducer`. Both actions now reset `isFindingsOpen` and `isCoScoutOpen` to `false` before entering fullscreen mode.
 
 #### F-10: Mobile Findings Panel z-40 Under App Header z-50
 
 - **Severity:** S1 | **Priority:** P1
+- **Status:** RESOLVED
 - **Description:** Mobile findings overlay uses `z-40` but sticky app header is `z-50`. Header overlaps top of findings panel, potentially intercepting touch events on close/navigation controls.
 - **Files:** `apps/azure/src/pages/Editor.tsx:808`
 - **Fix:** Raise mobile overlays to `z-50` or use `z-[60]` for fullscreen mobile panels that should cover the header.
+- **Implementation:** Phone overlays (Findings, CoScout, IMPROVE workspace) raised to `z-[60]`, placing them above the app header (`z-50`) and eliminating touch interception conflicts.
 
 #### F-11: Z-Index Hierarchy Undocumented
 
