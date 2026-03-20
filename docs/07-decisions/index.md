@@ -35,7 +35,7 @@ This section captures key architectural decisions made during VariScout developm
 | [021](adr-021-security-evaluation.md)                | Security Evaluation (Teams)              | Accepted   | 2026-02-27 |
 | [022](adr-022-knowledge-layer-architecture.md)       | Knowledge Layer Architecture             | Accepted   | 2026-03-16 |
 | [023](adr-023-data-lifecycle.md)                     | Verification Experience & Data Lifecycle | Accepted   | 2026-03-16 |
-| [024](adr-024-scouting-report.md)                    | Scouting Report — Dynamic Report View    | Accepted   | 2026-03-16 |
+| [024](adr-024-scouting-report.md)                    | Scouting Report — Dynamic Report View    | Superseded | 2026-03-16 |
 | [025](adr-025-internationalization.md)               | Internationalization Architecture        | Accepted   | 2026-03-17 |
 | [026](adr-026-knowledge-base-sharepoint-first.md)    | Knowledge Base — SharePoint-First        | Accepted   | 2026-03-17 |
 | [027](adr-027-ai-collaborator-evolution.md)          | AI Collaborator Evolution                | Accepted   | 2026-03-19 |
@@ -47,6 +47,8 @@ This section captures key architectural decisions made during VariScout developm
 | [033](adr-033-pricing-simplification.md)             | Pricing Simplification — 3 to 2 Tiers    | Accepted   | 2026-03-19 |
 | [034](adr-034-yamazumi-analysis-mode.md)             | Yamazumi Analysis Mode                   | Accepted   | 2026-03-20 |
 | [035](adr-035-improvement-prioritization.md)         | Improvement Prioritization Model         | Accepted   | 2026-03-20 |
+| [036](adr-036-no-russian-language.md)                | No Russian Language                      | Accepted   | 2026-03-20 |
+| [037](adr-037-reporting-workspaces.md)               | Reporting Workspaces                     | Accepted   | 2026-03-20 |
 
 ---
 

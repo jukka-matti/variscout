@@ -69,7 +69,6 @@ describe('getMessage', () => {
     expect(getMessage('ja', 'stats.mean')).toBe('平均');
     expect(getMessage('fi', 'stats.mean')).toBe('Keskiarvo');
     expect(getMessage('ko', 'stats.mean')).toBe('평균');
-    expect(getMessage('ru', 'stats.mean')).toBe('Среднее');
   });
 });
 
@@ -203,12 +202,11 @@ describe('detectLocale', () => {
     expect(detectLocale('pt')).toBe('pt');
   });
 
-  it('detects all 33 supported locales', () => {
+  it('detects all 32 supported locales', () => {
     expect(detectLocale('ja')).toBe('ja');
     expect(detectLocale('ko')).toBe('ko');
     expect(detectLocale('fi')).toBe('fi');
     expect(detectLocale('it')).toBe('it');
-    expect(detectLocale('ru')).toBe('ru');
     expect(detectLocale('ar')).toBe('ar');
     expect(detectLocale('th')).toBe('th');
   });

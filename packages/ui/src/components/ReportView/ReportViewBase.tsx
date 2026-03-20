@@ -12,6 +12,7 @@ import {
   Printer,
 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
+import type { MessageCatalog } from '@variscout/core';
 
 export interface ReportViewBaseColorScheme {
   container: string;
@@ -84,10 +85,10 @@ const BADGE_COLORS: Record<ReportType, string> = {
   'improvement-story': 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300',
 };
 
-const BADGE_LABELS: Record<ReportType, string> = {
-  'analysis-snapshot': 'Analysis Snapshot',
-  'investigation-report': 'Investigation Report',
-  'improvement-story': 'Improvement Story',
+const BADGE_I18N_KEYS: Record<ReportType, keyof MessageCatalog> = {
+  'analysis-snapshot': 'report.type.analysisSnapshot',
+  'investigation-report': 'report.type.investigationReport',
+  'improvement-story': 'report.type.improvementStory',
 };
 
 const WORKSPACE_COLORS: Record<ReportWorkspace, { border: string; text: string; dot: string }> = {
@@ -108,10 +109,10 @@ const WORKSPACE_COLORS: Record<ReportWorkspace, { border: string; text: string; 
   },
 };
 
-const WORKSPACE_LABELS: Record<ReportWorkspace, string> = {
-  analysis: 'ANALYSIS',
-  findings: 'FINDINGS',
-  improvement: 'IMPROVEMENT',
+const WORKSPACE_I18N_KEYS: Record<ReportWorkspace, keyof MessageCatalog> = {
+  analysis: 'report.workspace.analysis',
+  findings: 'report.workspace.findings',
+  improvement: 'report.workspace.improvement',
 };
 
 /** Group sections by workspace, preserving order. */
@@ -171,7 +172,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
         {/* Sidebar header */}
         <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            Sections
+            {t('report.sections')}
           </p>
         </div>
 
@@ -184,7 +185,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
                 {/* Workspace group header */}
                 <div className={`px-4 py-1.5 mt-2 first:mt-0 border-l-2 ${wsColors.border}`}>
                   <span className={`text-[10px] font-semibold tracking-widest ${wsColors.text}`}>
-                    {WORKSPACE_LABELS[group.workspace]}
+                    {t(WORKSPACE_I18N_KEYS[group.workspace])}
                   </span>
                 </div>
 
@@ -224,7 +225,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
               onClick={onCopyAllCharts}
             >
               <Copy size={14} />
-              Copy All Charts
+              {t('report.action.copyAllCharts')}
             </button>
           )}
           {onPrintReport && (
@@ -234,7 +235,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
               data-testid="report-save-pdf"
             >
               <Printer size={14} />
-              Save as PDF
+              {t('report.action.saveAsPdf')}
             </button>
           )}
           {canShareViaTeams && onShareReport && (
@@ -243,7 +244,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
               onClick={onShareReport}
             >
               <Share2 size={14} />
-              Share Report
+              {t('report.action.shareReport')}
             </button>
           )}
           {onPublishToSharePoint && (
@@ -254,13 +255,15 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
                   onClick={onPublishToSharePoint}
                 >
                   <Upload size={14} />
-                  Publish to SharePoint
+                  {t('report.action.publishToSharePoint')}
                 </button>
               )}
               {(publishStatus === 'rendering' || publishStatus === 'uploading') && (
                 <div className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 dark:text-blue-400">
                   <Loader2 size={14} className="animate-spin" />
-                  {publishStatus === 'rendering' ? 'Rendering report…' : 'Uploading…'}
+                  {publishStatus === 'rendering'
+                    ? t('report.publish.rendering')
+                    : t('report.publish.uploading')}
                 </div>
               )}
               {publishStatus === 'success' &&
@@ -272,26 +275,26 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
                     className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 dark:text-green-400 hover:underline"
                   >
                     <Check size={14} />
-                    Published to SharePoint
+                    {t('report.action.publishedToSharePoint')}
                     <ExternalLink size={12} />
                   </a>
                 ) : (
                   <div className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 dark:text-green-400">
                     <Check size={14} />
-                    Published to SharePoint
+                    {t('report.action.publishedToSharePoint')}
                   </div>
                 ))}
               {publishStatus === 'exists' && onPublishReplace && onPublishReset && (
                 <div className="space-y-1">
                   <p className="px-3 py-1 text-xs text-amber-600 dark:text-amber-400">
-                    Report already exists in SharePoint.
+                    {t('report.publish.exists')}
                   </p>
                   <div className="flex gap-1 px-3">
                     <button
                       className="flex-1 px-2 py-1 text-xs text-white bg-amber-500 hover:bg-amber-600 rounded transition-colors"
                       onClick={onPublishReplace}
                     >
-                      Replace
+                      {t('report.publish.replace')}
                     </button>
                     <button
                       className="flex-1 px-2 py-1 text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors"
@@ -306,13 +309,13 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 px-3 py-1 text-sm text-red-600 dark:text-red-400">
                     <AlertCircle size={14} />
-                    {publishError || 'Publish failed'}
+                    {publishError || t('report.publish.failed')}
                   </div>
                   <button
                     className="w-full px-3 py-1 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
                     onClick={onPublishReset}
                   >
-                    Try again
+                    {t('report.publish.tryAgain')}
                   </button>
                 </div>
               )}
@@ -340,7 +343,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
           </h1>
 
           <span className={`${scheme.badge} ${BADGE_COLORS[reportType]}`}>
-            {BADGE_LABELS[reportType]}
+            {t(BADGE_I18N_KEYS[reportType])}
           </span>
 
           {/* Audience toggle */}
@@ -357,7 +360,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
                 }`}
                 onClick={() => onAudienceModeChange('technical')}
               >
-                Technical
+                {t('report.audience.technical')}
               </button>
               <button
                 className={`px-3 py-1 text-xs font-medium transition-colors ${
@@ -367,7 +370,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
                 }`}
                 onClick={() => onAudienceModeChange('summary')}
               >
-                Summary
+                {t('report.audience.summary')}
               </button>
             </div>
           )}
@@ -380,7 +383,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
             aria-label="Navigate to section"
           >
             {workspaceGroups.map(group => (
-              <optgroup key={group.workspace} label={WORKSPACE_LABELS[group.workspace]}>
+              <optgroup key={group.workspace} label={t(WORKSPACE_I18N_KEYS[group.workspace])}>
                 {group.sections.map(section => (
                   <option key={section.id} value={section.id}>
                     {section.status === 'done'

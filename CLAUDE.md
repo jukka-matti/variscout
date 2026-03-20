@@ -78,7 +78,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Internationalization       | adr-025, packages/core/src/i18n/, packages/hooks/src/useLocaleState.ts, useTranslation.ts                                                               |
 | Testing                    | .claude/rules/testing.md, docs/05-technical/implementation/testing.md                                                                                   |
 | File Picker / SP files     | adr-030, apps/azure/src/hooks/useFilePicker.ts, apps/azure/src/components/FileBrowseButton.tsx                                                          |
-| Report View / Sharing      | adr-024, adr-030, adr-031, docs/archive/specs/scouting-report-design.md                                                                                 |
+| Report View / Sharing      | adr-037, adr-030, adr-031, docs/superpowers/specs/2026-03-20-reporting-workspaces-design.md                                                             |
 | Verification / Staged      | adr-023, docs/03-features/analysis/staged-analysis.md                                                                                                   |
 | Characteristic types       | docs/03-features/analysis/characteristic-types.md, packages/core/src/types.ts                                                                           |
 | Data lifecycle / Append    | adr-023, apps/azure/src/hooks/useEditorDataFlow.ts                                                                                                      |
@@ -126,6 +126,7 @@ variscout-lite/
 | `apps/pwa/src/`                               | context/DataContext.tsx, components/Dashboard.tsx                                                                | PWA state + main UI                                                                        |
 | `apps/azure/src/`                             | context/DataContext.tsx, services/graphFetch.ts, auth/, hooks/useEditor\*.ts                                     | Azure state, storage, auth, Graph API wrapper                                              |
 | `packages/ui/src/components/ImprovementPlan/` | ImprovementWorkspaceBase, SynthesisCard, IdeaGroupCard, ImprovementSummaryBar, RiskPopover, PrioritizationMatrix | Improvement planning workspace (Azure only)                                                |
+| `packages/ui/src/components/ReportView/`      | ReportViewBase, ReportSection, ReportCpkLearningLoop, ReportHypothesisSummary, ReportImprovementSummary          | Report view with 3 workspace-aligned types + audience toggle                               |
 | `infra/`                                      | mainTemplate.json, functions/                                                                                    | ARM template, Azure Functions                                                              |
 
 ## Key Patterns

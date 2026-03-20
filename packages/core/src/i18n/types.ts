@@ -829,4 +829,47 @@ export interface MessageCatalog {
   'yamazumi.takt': string;
   'yamazumi.mode.label': string;
   'yamazumi.mode.switch': string;
+
+  // Report workspace view
+  'report.cpkLearningLoop': string;
+  'report.verdict.effective': string;
+  'report.verdict.partiallyEffective': string;
+  'report.verdict.notEffective': string;
+  'report.cpk.before': string;
+  'report.cpk.projected': string;
+  'report.cpk.actual': string;
+  'report.cpk.pendingVerification': string;
+  'report.cpk.metProjection': string;
+  'report.cpk.fromProjection': string;
+  'report.hypothesisTree': string;
+  'report.hypothesis.supported': string;
+  'report.hypothesis.partial': string;
+  'report.hypothesis.contradicted': string;
+  'report.hypothesis.untested': string;
+  'report.type.analysisSnapshot': string;
+  'report.type.investigationReport': string;
+  'report.type.improvementStory': string;
+  'report.sections': string;
+  'report.audience.technical': string;
+  'report.audience.summary': string;
+  'report.workspace.analysis': string;
+  'report.workspace.findings': string;
+  'report.workspace.improvement': string;
+  'report.action.copyAllCharts': string;
+  'report.action.saveAsPdf': string;
+  'report.action.shareReport': string;
+  'report.action.publishToSharePoint': string;
+  'report.action.publishedToSharePoint': string;
+  'report.publish.rendering': string;
+  'report.publish.uploading': string;
+  'report.publish.exists': string;
+  'report.publish.replace': string;
+  'report.publish.failed': string;
+  'report.publish.tryAgain': string;
+  'report.selectedCount': string;
+  'report.bestProjectedCpk': string;
+  'report.meetsTarget': string;
+  'report.costCategory': string;
+  'report.noCost': string;
+  'report.riskLevel': string;
 }

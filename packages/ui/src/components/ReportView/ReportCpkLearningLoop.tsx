@@ -13,6 +13,8 @@
  */
 
 import React from 'react';
+import { useTranslation } from '@variscout/hooks';
+import type { MessageCatalog } from '@variscout/core';
 
 // ============================================================================
 // Types
@@ -49,16 +51,16 @@ function formatDelta(from: number | undefined, to: number | undefined): string {
   return `${sign}${delta.toFixed(2)}`;
 }
 
-function getVerdictText(verdict?: 'yes' | 'no' | 'partial'): string {
+function getVerdictKey(verdict?: 'yes' | 'no' | 'partial'): string | null {
   switch (verdict) {
     case 'yes':
-      return 'Effective';
+      return 'report.verdict.effective';
     case 'partial':
-      return 'Partially effective';
+      return 'report.verdict.partiallyEffective';
     case 'no':
-      return 'Not effective';
+      return 'report.verdict.notEffective';
     default:
-      return '';
+      return null;
   }
 }
 
@@ -98,6 +100,7 @@ export const ReportCpkLearningLoop: React.FC<ReportCpkLearningLoopProps> = ({
   cpkAfter,
   verdict,
 }) => {
+  const { t, tf } = useTranslation();
   const hasProjection = projectedCpk !== undefined;
   const hasBefore = cpkBefore !== undefined;
   const hasAfter = cpkAfter !== undefined;
@@ -112,14 +115,16 @@ export const ReportCpkLearningLoop: React.FC<ReportCpkLearningLoopProps> = ({
     >
       {/* Title */}
       <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-        Cpk Learning Loop
+        {t('report.cpkLearningLoop')}
       </p>
 
       {/* Timeline */}
       <div className="flex items-center justify-between gap-2">
         {/* Before */}
         <div className="text-center flex-1">
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Before</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+            {t('report.cpk.before')}
+          </p>
           <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">
             {formatCpk(cpkBefore)}
           </p>
@@ -134,7 +139,9 @@ export const ReportCpkLearningLoop: React.FC<ReportCpkLearningLoopProps> = ({
 
             {/* Projected */}
             <div className="text-center flex-1">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Projected</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                {t('report.cpk.projected')}
+              </p>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {formatCpk(projectedCpk)}
               </p>
@@ -149,7 +156,9 @@ export const ReportCpkLearningLoop: React.FC<ReportCpkLearningLoopProps> = ({
 
         {/* Actual */}
         <div className="text-center flex-1">
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Actual</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+            {t('report.cpk.actual')}
+          </p>
           <p className={`text-2xl font-bold ${getDeltaColor(cpkBefore, cpkAfter)}`}>
             {formatCpk(cpkAfter)}
           </p>
@@ -169,15 +178,15 @@ export const ReportCpkLearningLoop: React.FC<ReportCpkLearningLoopProps> = ({
         {hasProjection && hasAfter && (
           <span className="text-xs text-slate-400 dark:text-slate-500">
             {cpkAfter! >= projectedCpk!
-              ? 'Met projection'
-              : `${formatDelta(projectedCpk, cpkAfter)} from projection`}
+              ? t('report.cpk.metProjection')
+              : tf('report.cpk.fromProjection', { delta: formatDelta(projectedCpk, cpkAfter) })}
           </span>
         )}
 
         {/* Verdict */}
         {verdict && (
           <span className={`text-sm font-semibold ${getVerdictColor(verdict)}`}>
-            {getVerdictText(verdict)}
+            {getVerdictKey(verdict) ? t(getVerdictKey(verdict)! as keyof MessageCatalog) : ''}
           </span>
         )}
       </div>

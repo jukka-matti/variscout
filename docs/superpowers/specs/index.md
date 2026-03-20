@@ -24,7 +24,7 @@ Once a feature stabilizes, the ADR is the canonical reference.
 | [2026-03-19-knowledge-base-folder-search-design.md](2026-03-19-knowledge-base-folder-search-design.md)           | KB Folder Selection & Permissions | ADR-026 | Active    |
 | [2026-03-16-ai-integration-evaluation.md](2026-03-16-ai-integration-evaluation.md)                               | AI Integration Evaluation         | ADR-019 | Active    |
 | [2026-03-16-code-review-design.md](2026-03-16-code-review-design.md)                                             | Code Review Process               | —       | Active    |
-| [2026-03-20-reporting-workspaces-design.md](2026-03-20-reporting-workspaces-design.md)                           | Reporting Workspaces              | ADR-024 | Draft     |
+| [2026-03-20-reporting-workspaces-design.md](2026-03-20-reporting-workspaces-design.md)                           | Reporting Workspaces              | ADR-037 | Active    |
 | [scouting-report-design.md](../../archive/specs/scouting-report-design.md)                                       | Report View (superseded)          | ADR-024 | Archived  |
 | [report-verification-upgrade-design.md](../../archive/specs/report-verification-upgrade-design.md)               | Staged Verification               | ADR-023 | Archived  |
 | [hypothesis-investigation-design.md](../../archive/specs/hypothesis-investigation-design.md)                     | Investigation Workflow            | ADR-020 | Archived  |

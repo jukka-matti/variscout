@@ -9,7 +9,8 @@
  */
 
 import React from 'react';
-import type { Hypothesis, HypothesisStatus } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
+import type { Hypothesis, HypothesisStatus, MessageCatalog } from '@variscout/core';
 
 // ============================================================================
 // Types
@@ -30,11 +31,11 @@ const STATUS_DOT_COLORS: Record<HypothesisStatus, string> = {
   untested: 'bg-slate-400 dark:bg-slate-500',
 };
 
-const STATUS_LABELS: Record<HypothesisStatus, string> = {
-  supported: 'Supported',
-  partial: 'Partial',
-  contradicted: 'Contradicted',
-  untested: 'Untested',
+const STATUS_I18N_KEYS: Record<HypothesisStatus, keyof MessageCatalog> = {
+  supported: 'report.hypothesis.supported',
+  partial: 'report.hypothesis.partial',
+  contradicted: 'report.hypothesis.contradicted',
+  untested: 'report.hypothesis.untested',
 };
 
 const CAUSE_ROLE_COLORS: Record<string, string> = {
@@ -71,12 +72,13 @@ const HypothesisRow: React.FC<{
   hypothesis: Hypothesis;
   indent?: boolean;
 }> = ({ hypothesis, indent }) => {
+  const { t } = useTranslation();
   return (
     <div className={`flex items-start gap-2 py-1 ${indent ? 'ml-6' : ''}`}>
       {/* Status dot */}
       <span
         className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${STATUS_DOT_COLORS[hypothesis.status]}`}
-        title={STATUS_LABELS[hypothesis.status]}
+        title={t(STATUS_I18N_KEYS[hypothesis.status])}
       />
 
       {/* Content */}
@@ -103,7 +105,7 @@ const HypothesisRow: React.FC<{
 
           {/* Status label */}
           <span className="text-xs text-slate-400 dark:text-slate-500">
-            {STATUS_LABELS[hypothesis.status]}
+            {t(STATUS_I18N_KEYS[hypothesis.status])}
           </span>
         </div>
       </div>
@@ -112,6 +114,7 @@ const HypothesisRow: React.FC<{
 };
 
 export const ReportHypothesisSummary: React.FC<ReportHypothesisSummaryProps> = ({ hypotheses }) => {
+  const { t } = useTranslation();
   if (hypotheses.length === 0) return null;
 
   const tree = buildTree(hypotheses);
@@ -122,7 +125,7 @@ export const ReportHypothesisSummary: React.FC<ReportHypothesisSummaryProps> = (
       className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3"
     >
       <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-        Hypothesis Tree
+        {t('report.hypothesisTree')}
       </p>
       <div className="space-y-0.5">
         {tree.map(({ hypothesis, children }) => (

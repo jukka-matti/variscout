@@ -84,7 +84,18 @@ export const ReportSection: React.FC<ReportSectionProps> = ({
       <div
         className={scheme.header}
         onClick={handleToggle}
+        onKeyDown={
+          isFuture
+            ? undefined
+            : (e: React.KeyboardEvent) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleToggle();
+                }
+              }
+        }
         role={isFuture ? undefined : 'button'}
+        tabIndex={isFuture ? undefined : 0}
         aria-expanded={isFuture ? undefined : isOpen}
       >
         <ReportStepMarker stepNumber={stepNumber} status={status} workspace={workspace} />

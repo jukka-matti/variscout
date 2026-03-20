@@ -9,7 +9,13 @@
  */
 
 import React, { useMemo } from 'react';
-import type { ImprovementIdea, IdeaTimeframe, IdeaDirection } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
+import type {
+  ImprovementIdea,
+  IdeaTimeframe,
+  IdeaDirection,
+  MessageCatalog,
+} from '@variscout/core';
 
 // ============================================================================
 // Types
@@ -38,11 +44,11 @@ const DIRECTION_COLORS: Record<IdeaDirection, string> = {
   eliminate: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
 };
 
-const DIRECTION_LABELS: Record<IdeaDirection, string> = {
-  prevent: 'Prevent',
-  detect: 'Detect',
-  simplify: 'Simplify',
-  eliminate: 'Eliminate',
+const DIRECTION_I18N_KEYS: Record<IdeaDirection, keyof MessageCatalog> = {
+  prevent: 'idea.prevent',
+  detect: 'idea.detect',
+  simplify: 'idea.simplify',
+  eliminate: 'idea.eliminate',
 };
 
 const TIMEFRAME_COLORS: Record<IdeaTimeframe, string> = {
@@ -52,11 +58,11 @@ const TIMEFRAME_COLORS: Record<IdeaTimeframe, string> = {
   months: 'text-red-600 dark:text-red-400',
 };
 
-const TIMEFRAME_LABELS: Record<IdeaTimeframe, string> = {
-  'just-do': 'Just do',
-  days: 'Days',
-  weeks: 'Weeks',
-  months: 'Months',
+const TIMEFRAME_I18N_KEYS: Record<IdeaTimeframe, keyof MessageCatalog> = {
+  'just-do': 'timeframe.justDo',
+  days: 'timeframe.days',
+  weeks: 'timeframe.weeks',
+  months: 'timeframe.months',
 };
 
 // ============================================================================
@@ -64,6 +70,7 @@ const TIMEFRAME_LABELS: Record<IdeaTimeframe, string> = {
 // ============================================================================
 
 const IdeaRow: React.FC<{ idea: ImprovementIdea }> = ({ idea }) => {
+  const { t, tf } = useTranslation();
   return (
     <div className="flex items-start gap-2 py-1.5 px-2">
       {/* Selection indicator */}
@@ -97,7 +104,7 @@ const IdeaRow: React.FC<{ idea: ImprovementIdea }> = ({ idea }) => {
             <span
               className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${DIRECTION_COLORS[idea.direction]}`}
             >
-              {DIRECTION_LABELS[idea.direction]}
+              {t(DIRECTION_I18N_KEYS[idea.direction])}
             </span>
           )}
         </div>
@@ -106,7 +113,7 @@ const IdeaRow: React.FC<{ idea: ImprovementIdea }> = ({ idea }) => {
         <div className="flex items-center gap-3 mt-0.5 text-xs">
           {idea.timeframe && (
             <span className={TIMEFRAME_COLORS[idea.timeframe]}>
-              {TIMEFRAME_LABELS[idea.timeframe]}
+              {t(TIMEFRAME_I18N_KEYS[idea.timeframe])}
             </span>
           )}
           {idea.cost && (
@@ -114,8 +121,8 @@ const IdeaRow: React.FC<{ idea: ImprovementIdea }> = ({ idea }) => {
               {idea.cost.amount != null
                 ? `€${idea.cost.amount.toLocaleString()}`
                 : idea.cost.category !== 'none'
-                  ? `${idea.cost.category} cost`
-                  : 'No cost'}
+                  ? tf('report.costCategory', { category: idea.cost.category })
+                  : t('report.noCost')}
             </span>
           )}
           {idea.risk && (
@@ -128,7 +135,7 @@ const IdeaRow: React.FC<{ idea: ImprovementIdea }> = ({ idea }) => {
                     : 'text-red-500'
               }`}
             >
-              {idea.risk.computed} risk
+              {tf('report.riskLevel', { level: idea.risk.computed })}
             </span>
           )}
           {idea.projection?.projectedCpk != null && (
@@ -147,6 +154,7 @@ export const ReportImprovementSummary: React.FC<ReportImprovementSummaryProps> =
   summaryOnly,
   targetCpk,
 }) => {
+  const { t, tf } = useTranslation();
   const allIdeas = useMemo(() => hypotheses.flatMap(h => h.ideas), [hypotheses]);
   const selectedIdeas = useMemo(() => allIdeas.filter(i => i.selected), [allIdeas]);
 
@@ -177,7 +185,7 @@ export const ReportImprovementSummary: React.FC<ReportImprovementSummaryProps> =
     >
       <div className="flex items-center gap-4 flex-wrap text-sm">
         <span className="font-medium text-slate-700 dark:text-slate-300">
-          {selectedIdeas.length} selected
+          {tf('report.selectedCount', { count: selectedIdeas.length })}
         </span>
 
         {/* Timeframe breakdown */}
@@ -186,7 +194,7 @@ export const ReportImprovementSummary: React.FC<ReportImprovementSummaryProps> =
             .filter(([, count]) => count > 0)
             .map(([tf, count]) => (
               <span key={tf} className={TIMEFRAME_COLORS[tf]}>
-                {count} {TIMEFRAME_LABELS[tf].toLowerCase()}
+                {count} {t(TIMEFRAME_I18N_KEYS[tf]).toLowerCase()}
               </span>
             ))}
         </div>
@@ -194,9 +202,9 @@ export const ReportImprovementSummary: React.FC<ReportImprovementSummaryProps> =
         {/* Projected Cpk */}
         {bestProjectedCpk != null && (
           <span className="text-blue-600 dark:text-blue-400 font-medium text-xs">
-            Best projected Cpk: {bestProjectedCpk.toFixed(2)}
+            {tf('report.bestProjectedCpk', { value: bestProjectedCpk.toFixed(2) })}
             {targetCpk != null && bestProjectedCpk >= targetCpk && (
-              <span className="text-green-500 ml-1">(meets target)</span>
+              <span className="text-green-500 ml-1">{t('report.meetsTarget')}</span>
             )}
           </span>
         )}
