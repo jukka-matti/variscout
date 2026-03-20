@@ -16,7 +16,7 @@
     "lint": "eslint src"
   },
   "peerDependencies": {
-    "lucide-react": "^0.475.0",
+    "lucide-react": "^0.577.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "tailwindcss": "^3.0.0"
@@ -31,11 +31,11 @@
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
-    "@types/node": "^20.0.0",
+    "@types/node": "^25.5.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.4.1",
-    "autoprefixer": "^10.4.23",
+    "autoprefixer": "^10.4.27",
     "jsdom": "^28.1.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
