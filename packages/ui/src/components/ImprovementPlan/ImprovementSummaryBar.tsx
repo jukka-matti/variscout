@@ -1,9 +1,21 @@
 import React from 'react';
 import { useTranslation } from '@variscout/hooks';
+import type { ComputedRiskLevel } from '@variscout/core';
+
+const RISK_COLORS: Record<ComputedRiskLevel, string> = {
+  low: 'text-green-500',
+  medium: 'text-amber-500',
+  high: 'text-red-400',
+  'very-high': 'text-red-600',
+};
 
 export interface ImprovementSummaryBarProps {
   selectedCount: number;
-  effortBreakdown: { low: number; medium: number; high: number };
+  timeframeBreakdown: { 'just-do': number; days: number; weeks: number; months: number };
+  maxRisk?: ComputedRiskLevel;
+  totalCost?: number;
+  costBreakdown?: { none: number; low: number; medium: number; high: number };
+  budget?: number;
   projectedCpk?: number;
   targetCpk?: number;
   onConvertToActions?: () => void;
@@ -12,7 +24,10 @@ export interface ImprovementSummaryBarProps {
 
 export const ImprovementSummaryBar: React.FC<ImprovementSummaryBarProps> = ({
   selectedCount,
-  effortBreakdown,
+  timeframeBreakdown,
+  maxRisk,
+  totalCost,
+  budget,
   projectedCpk,
   targetCpk,
   onConvertToActions,
@@ -32,15 +47,39 @@ export const ImprovementSummaryBar: React.FC<ImprovementSummaryBarProps> = ({
         {tf('improve.selectedCount', { count: selectedCount })}
       </span>
 
-      {/* Center: effort breakdown */}
-      <span data-testid="summary-effort-breakdown" className="text-xs text-content/60">
-        <span className="text-green-500">{effortBreakdown.low}</span>
-        {' low · '}
-        <span className="text-amber-500">{effortBreakdown.medium}</span>
-        {' med · '}
-        <span className="text-red-400">{effortBreakdown.high}</span>
-        {' high'}
-      </span>
+      {/* Center: timeframe breakdown + risk + cost */}
+      <div className="flex items-center gap-3 text-xs text-content/60">
+        <span data-testid="summary-timeframe-breakdown">
+          <span className="text-green-500">{timeframeBreakdown['just-do']}</span>
+          {' just do · '}
+          <span className="text-cyan-500">{timeframeBreakdown.days}</span>
+          {' days · '}
+          <span className="text-amber-500">{timeframeBreakdown.weeks}</span>
+          {' wks · '}
+          <span className="text-red-400">{timeframeBreakdown.months}</span>
+          {' mo'}
+        </span>
+
+        {maxRisk && (
+          <span data-testid="summary-max-risk" className={RISK_COLORS[maxRisk]}>
+            {'\u26A0'}{' '}
+            {tf('improve.maxRisk', {
+              level: t(`risk.${maxRisk === 'very-high' ? 'veryHigh' : maxRisk}`),
+            })}
+          </span>
+        )}
+
+        {totalCost != null && totalCost > 0 && (
+          <span data-testid="summary-cost">
+            {budget != null
+              ? tf('improve.budgetStatus', {
+                  spent: totalCost.toLocaleString(),
+                  budget: budget.toLocaleString(),
+                })
+              : tf('improve.totalCost', { amount: totalCost.toLocaleString() })}
+          </span>
+        )}
+      </div>
 
       {/* Right: projected Cpk + convert button */}
       <div className="flex items-center gap-4">

@@ -524,7 +524,7 @@ describe('useHypotheses', () => {
       expect(idea).toBeNull();
     });
 
-    it('updateIdea updates idea text, effort, and notes', () => {
+    it('updateIdea updates idea text, timeframe, and notes', () => {
       const h = createHypothesis('Root cause');
       const { result } = renderHook(() => useHypotheses({ initialHypotheses: [h] }));
 
@@ -537,14 +537,14 @@ describe('useHypotheses', () => {
       act(() => {
         result.current.updateIdea(h.id, ideaId!, {
           text: 'Updated text',
-          effort: 'medium',
+          timeframe: 'weeks',
           notes: 'Worth trying first',
         });
       });
 
       const updated = result.current.hypotheses[0].ideas![0];
       expect(updated.text).toBe('Updated text');
-      expect(updated.effort).toBe('medium');
+      expect(updated.timeframe).toBe('weeks');
       expect(updated.notes).toBe('Worth trying first');
     });
 

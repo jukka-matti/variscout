@@ -485,7 +485,7 @@ export function useEditorAI({
         const hypothesisId = args.hypothesis_id as string;
         const text = args.text as string;
         const direction = args.direction as string;
-        const effort = args.effort as string;
+        const timeframe = args.timeframe as string;
 
         if (!hypothesisId || !text || !direction) {
           return JSON.stringify({ error: 'Missing hypothesis_id, text, or direction' });
@@ -504,12 +504,12 @@ export function useEditorAI({
         const proposal: ActionProposal = {
           id: generateProposalId(),
           tool: 'suggest_improvement_idea',
-          params: { hypothesis_id: hypothesisId, text, direction, effort },
+          params: { hypothesis_id: hypothesisId, text, direction, timeframe },
           preview: {
             hypothesisText: targetHypothesis.text,
             existingIdeasCount: targetHypothesis.ideas?.length ?? 0,
             direction,
-            effort,
+            timeframe,
           },
           status: 'pending',
           filterStackHash: hashFilterStack(filterStack),

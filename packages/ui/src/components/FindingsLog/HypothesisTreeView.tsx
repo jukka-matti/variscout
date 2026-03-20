@@ -65,7 +65,7 @@ export interface HypothesisTreeViewProps {
   onUpdateIdea?: (
     hypothesisId: string,
     ideaId: string,
-    updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
   ) => void;
   /** Remove an improvement idea */
   onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;

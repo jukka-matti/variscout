@@ -641,9 +641,9 @@ export const Editor: React.FC<EditorProps> = ({
           case 'toggle-select':
             hypothesesState.selectIdea(action.hypothesisId, action.ideaId, action.selected);
             break;
-          case 'update-effort':
+          case 'update-timeframe':
             hypothesesState.updateIdea(action.hypothesisId, action.ideaId, {
-              effort: action.effort,
+              timeframe: action.timeframe,
             });
             break;
           case 'update-direction':
@@ -847,7 +847,7 @@ export const Editor: React.FC<EditorProps> = ({
           const hypothesisId = proposal.params.hypothesis_id as string;
           const ideaText = editedText || (proposal.params.text as string);
           const direction = proposal.params.direction as string;
-          const effort = proposal.params.effort as string;
+          const timeframe = proposal.params.timeframe as string;
           if (hypothesisId && ideaText) {
             const idea = hypothesesState.addIdea(hypothesisId, ideaText);
             if (idea) {
@@ -855,7 +855,9 @@ export const Editor: React.FC<EditorProps> = ({
                 ...(direction && {
                   direction: direction as 'prevent' | 'detect' | 'simplify' | 'eliminate',
                 }),
-                ...(effort && { effort: effort as 'low' | 'medium' | 'high' }),
+                ...(timeframe && {
+                  timeframe: timeframe as 'just-do' | 'days' | 'weeks' | 'months',
+                }),
               });
             }
           }
@@ -1096,7 +1098,9 @@ export const Editor: React.FC<EditorProps> = ({
         hypotheses={improvementHypotheses}
         linkedFindings={improvementLinkedFindings}
         onToggleSelect={(hId, iId, sel) => hypothesesState.selectIdea(hId, iId, sel)}
-        onUpdateEffort={(hId, iId, effort) => hypothesesState.updateIdea(hId, iId, { effort })}
+        onUpdateTimeframe={(hId, iId, timeframe) =>
+          hypothesesState.updateIdea(hId, iId, { timeframe })
+        }
         onUpdateDirection={(hId, iId, dir) =>
           hypothesesState.updateIdea(hId, iId, { direction: dir })
         }

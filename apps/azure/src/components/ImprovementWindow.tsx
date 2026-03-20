@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import type { IdeaEffort, IdeaDirection, ImprovementIdea } from '@variscout/core';
+import type { IdeaTimeframe, IdeaDirection, ImprovementIdea } from '@variscout/core';
 import { ImprovementWorkspaceBase } from '@variscout/ui';
 
 /**
@@ -35,10 +35,10 @@ export type ImprovementAction =
       timestamp: number;
     }
   | {
-      type: 'update-effort';
+      type: 'update-timeframe';
       hypothesisId: string;
       ideaId: string;
-      effort: IdeaEffort | undefined;
+      timeframe: IdeaTimeframe | undefined;
       timestamp: number;
     }
   | {
@@ -137,16 +137,22 @@ const ImprovementWindow: React.FC = () => {
     [sendAction]
   );
 
-  const handleUpdateEffort = useCallback(
-    (hypothesisId: string, ideaId: string, effort: IdeaEffort | undefined) => {
-      sendAction({ type: 'update-effort', hypothesisId, ideaId, effort, timestamp: Date.now() });
+  const handleUpdateTimeframe = useCallback(
+    (hypothesisId: string, ideaId: string, timeframe: IdeaTimeframe | undefined) => {
+      sendAction({
+        type: 'update-timeframe',
+        hypothesisId,
+        ideaId,
+        timeframe,
+        timestamp: Date.now(),
+      });
       setSyncData(prev => {
         if (!prev) return prev;
         return {
           ...prev,
           hypotheses: prev.hypotheses.map(h =>
             h.id === hypothesisId
-              ? { ...h, ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, effort } : i)) }
+              ? { ...h, ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, timeframe } : i)) }
               : h
           ),
           timestamp: Date.now(),
@@ -264,7 +270,7 @@ const ImprovementWindow: React.FC = () => {
         hypotheses={syncData.hypotheses}
         linkedFindings={syncData.linkedFindings}
         onToggleSelect={handleToggleSelect}
-        onUpdateEffort={handleUpdateEffort}
+        onUpdateTimeframe={handleUpdateTimeframe}
         onUpdateDirection={handleUpdateDirection}
         onRemoveIdea={handleRemoveIdea}
         onAddIdea={handleAddIdea}

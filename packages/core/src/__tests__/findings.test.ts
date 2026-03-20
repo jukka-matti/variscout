@@ -551,9 +551,9 @@ describe('createImprovementIdea', () => {
     expect(new Date(idea.createdAt).toISOString()).toBe(idea.createdAt);
   });
 
-  it('no effort/projection/selected/notes by default', () => {
+  it('no timeframe/projection/selected/notes by default', () => {
     const idea = createImprovementIdea('Add poka-yoke fixture');
-    expect(idea.effort).toBeUndefined();
+    expect(idea.timeframe).toBeUndefined();
     expect(idea.projection).toBeUndefined();
     expect(idea.selected).toBeUndefined();
     expect(idea.notes).toBeUndefined();

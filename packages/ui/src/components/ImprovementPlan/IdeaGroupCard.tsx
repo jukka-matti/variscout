@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2 } from 'lucide-react';
-import type { ImprovementIdea, IdeaEffort, IdeaDirection } from '@variscout/core';
+import type { ImprovementIdea, IdeaTimeframe, IdeaDirection } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 
 export interface IdeaGroupCardProps {
@@ -13,7 +13,11 @@ export interface IdeaGroupCardProps {
   ideas: ImprovementIdea[];
   linkedFindingName?: string;
   onToggleSelect?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
-  onUpdateEffort?: (hypothesisId: string, ideaId: string, effort: IdeaEffort | undefined) => void;
+  onUpdateTimeframe?: (
+    hypothesisId: string,
+    ideaId: string,
+    timeframe: IdeaTimeframe | undefined
+  ) => void;
   onUpdateDirection?: (
     hypothesisId: string,
     ideaId: string,
@@ -27,25 +31,28 @@ export interface IdeaGroupCardProps {
   convertedIdeaIds?: Set<string>;
 }
 
-const EFFORT_OPTIONS: Array<{
-  value: IdeaEffort;
-  labelKey: 'effort.low' | 'effort.medium' | 'effort.high';
+const TIMEFRAME_OPTIONS: Array<{
+  value: IdeaTimeframe;
+  labelKey: 'timeframe.justDo' | 'timeframe.days' | 'timeframe.weeks' | 'timeframe.months';
 }> = [
-  { value: 'low', labelKey: 'effort.low' },
-  { value: 'medium', labelKey: 'effort.medium' },
-  { value: 'high', labelKey: 'effort.high' },
+  { value: 'just-do', labelKey: 'timeframe.justDo' },
+  { value: 'days', labelKey: 'timeframe.days' },
+  { value: 'weeks', labelKey: 'timeframe.weeks' },
+  { value: 'months', labelKey: 'timeframe.months' },
 ];
 
-const EFFORT_COLORS: Record<IdeaEffort, string> = {
-  low: 'text-green-500',
-  medium: 'text-amber-500',
-  high: 'text-red-400',
+const TIMEFRAME_COLORS: Record<IdeaTimeframe, string> = {
+  'just-do': 'text-green-500',
+  days: 'text-cyan-500',
+  weeks: 'text-amber-500',
+  months: 'text-red-400',
 };
 
-const EFFORT_BG: Record<IdeaEffort, string> = {
-  low: 'bg-green-500/10',
-  medium: 'bg-amber-500/10',
-  high: 'bg-red-400/10',
+const TIMEFRAME_BG: Record<IdeaTimeframe, string> = {
+  'just-do': 'bg-green-500/10',
+  days: 'bg-cyan-500/10',
+  weeks: 'bg-amber-500/10',
+  months: 'bg-red-400/10',
 };
 
 const DIRECTION_STYLES: Record<IdeaDirection, string> = {
@@ -70,7 +77,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
   ideas,
   linkedFindingName,
   onToggleSelect,
-  onUpdateEffort,
+  onUpdateTimeframe,
   onUpdateDirection,
   onRemoveIdea,
   onOpenWhatIf,
@@ -167,22 +174,22 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
                 ))}
               </select>
 
-              {/* Effort dropdown */}
+              {/* Timeframe dropdown */}
               <select
-                data-testid={`idea-effort-${idea.id}`}
-                value={idea.effort ?? ''}
+                data-testid={`idea-timeframe-${idea.id}`}
+                value={idea.timeframe ?? ''}
                 onChange={e => {
-                  const val = e.target.value as IdeaEffort | '';
-                  onUpdateEffort?.(hypothesis.id, idea.id, val === '' ? undefined : val);
+                  const val = e.target.value as IdeaTimeframe | '';
+                  onUpdateTimeframe?.(hypothesis.id, idea.id, val === '' ? undefined : val);
                 }}
                 className={`rounded border border-edge bg-surface px-2 py-1 text-xs shrink-0 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                  idea.effort
-                    ? `${EFFORT_COLORS[idea.effort]} ${EFFORT_BG[idea.effort]}`
+                  idea.timeframe
+                    ? `${TIMEFRAME_COLORS[idea.timeframe]} ${TIMEFRAME_BG[idea.timeframe]}`
                     : 'text-content/50'
                 }`}
               >
-                <option value="">{t('effort.label')}</option>
-                {EFFORT_OPTIONS.map(opt => (
+                <option value="">{t('timeframe.label')}</option>
+                {TIMEFRAME_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>
                     {t(opt.labelKey)}
                   </option>

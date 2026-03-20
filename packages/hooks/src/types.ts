@@ -248,6 +248,12 @@ export interface AnalysisState {
   // --- Knowledge Base scope (ADR-026) ---
   /** Custom SharePoint folder path for Knowledge Base search (overrides channel folder) */
   knowledgeSearchFolder?: string;
+
+  // --- Improvement prioritization (ADR-035) ---
+  /** Risk matrix axis configuration (default: process × safety) */
+  riskAxisConfig?: import('@variscout/core').RiskAxisConfig;
+  /** Budget for improvement planning */
+  budgetConfig?: import('@variscout/core').BudgetConfig;
 }
 
 /**

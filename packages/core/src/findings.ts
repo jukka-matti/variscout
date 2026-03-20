@@ -136,11 +136,81 @@ export interface FindingOutcome {
 // Improvement Idea Types (creative bridge between suspected cause and actions)
 // ============================================================================
 
-/** Effort level for an improvement idea (manual human judgment) */
-export type IdeaEffort = 'low' | 'medium' | 'high';
+/** Implementation timeframe for an improvement idea (replaces IdeaEffort) */
+export type IdeaTimeframe = 'just-do' | 'days' | 'weeks' | 'months';
 
 /** Impact level for an improvement idea (computed or manual) */
 export type IdeaImpact = 'low' | 'medium' | 'high';
+
+/** Cost category for an improvement idea */
+export type IdeaCostCategory = 'none' | 'low' | 'medium' | 'high';
+
+/** Cost — categorical quick estimate or precise euro amount */
+export interface IdeaCost {
+  category: IdeaCostCategory;
+  /** Optional precise amount (enables budget fitting, ROI, continuous matrix positioning) */
+  amount?: number;
+  /** Currency code (default: 'EUR') */
+  currency?: string;
+}
+
+/** Risk sub-axis level (1 = low, 2 = moderate, 3 = severe/immediate) */
+export type RiskLevel = 1 | 2 | 3;
+
+/** Risk assessment from 2-axis matrix (RDMAIC methodology) */
+export interface IdeaRiskAssessment {
+  axis1: RiskLevel;
+  axis2: RiskLevel;
+  computed: ComputedRiskLevel;
+}
+
+/** Computed risk level from 2-axis matrix */
+export type ComputedRiskLevel = 'low' | 'medium' | 'high' | 'very-high';
+
+/** Available risk axis presets */
+export type RiskAxisPreset =
+  | 'process'
+  | 'safety'
+  | 'environmental'
+  | 'quality'
+  | 'regulatory'
+  | 'brand';
+
+/** Risk axis configuration — which two presets are selected */
+export interface RiskAxisConfig {
+  axis1: RiskAxisPreset;
+  axis2: RiskAxisPreset;
+}
+
+/** Default risk axis configuration */
+export const DEFAULT_RISK_AXIS_CONFIG: RiskAxisConfig = {
+  axis1: 'process',
+  axis2: 'safety',
+};
+
+/** Budget configuration for improvement planning */
+export interface BudgetConfig {
+  totalBudget?: number;
+  currency?: string;
+}
+
+/**
+ * Compute risk level from two sub-axes using the 3×3 RDMAIC risk matrix.
+ *
+ * Matrix:
+ *            axis2=1    axis2=2    axis2=3
+ * axis1=3:   high       high       very-high
+ * axis1=2:   medium     medium     high
+ * axis1=1:   low        medium     high
+ */
+export function computeRiskLevel(axis1: RiskLevel, axis2: RiskLevel): ComputedRiskLevel {
+  const matrix: Record<number, Record<number, ComputedRiskLevel>> = {
+    3: { 1: 'high', 2: 'high', 3: 'very-high' },
+    2: { 1: 'medium', 2: 'medium', 3: 'high' },
+    1: { 1: 'low', 2: 'medium', 3: 'high' },
+  };
+  return matrix[axis1][axis2];
+}
 
 /**
  * An improvement idea attached to a supported/partial hypothesis.
@@ -151,8 +221,12 @@ export interface ImprovementIdea {
   id: string;
   /** Idea description (e.g., "Simplify setup with visual guides") */
   text: string;
-  /** Manual effort estimate — human judgment */
-  effort?: IdeaEffort;
+  /** Implementation timeframe estimate */
+  timeframe?: IdeaTimeframe;
+  /** Cost estimate (categorical or precise) */
+  cost?: IdeaCost;
+  /** Risk assessment from 2-axis matrix */
+  risk?: IdeaRiskAssessment;
   /** Manual impact fallback when no projection is available */
   impactOverride?: IdeaImpact;
   /** Optional What-If projection — when present, impact is auto-computed */

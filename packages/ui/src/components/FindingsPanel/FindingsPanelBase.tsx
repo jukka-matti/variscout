@@ -126,7 +126,7 @@ export interface FindingsPanelBaseProps {
   onUpdateIdea?: (
     hypothesisId: string,
     ideaId: string,
-    updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
   ) => void;
   onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
   onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;

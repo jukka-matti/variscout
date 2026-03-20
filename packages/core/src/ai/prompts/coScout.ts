@@ -280,14 +280,14 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
               description:
                 'prevent = stop the cause from occurring (poka-yoke, maintenance schedule, SOP), detect = catch it sooner before defects (sensor, alarm, visual inspection), simplify = reduce complexity/error opportunities (fewer steps, visual guides, kits), eliminate = remove the step entirely (automate, redesign)',
             },
-            effort: {
+            timeframe: {
               type: 'string',
-              enum: ['low', 'medium', 'high'],
+              enum: ['just-do', 'days', 'weeks', 'months'],
               description:
-                'Estimated effort: low = immediate with existing resources (adjust setting, update SOP), medium = some coordination or minor cost (order part, schedule training), high = investment or cross-team coordination (capital equipment, process redesign)',
+                'Estimated timeframe: just-do = can be done right now with existing resources, no approval needed, days = requires minor coordination, can be done within days, weeks = requires planning, coordination, moderate resources, months = requires investment, cross-team coordination, significant planning',
             },
           },
-          required: ['hypothesis_id', 'text', 'direction', 'effort'],
+          required: ['hypothesis_id', 'text', 'direction', 'timeframe'],
           additionalProperties: false,
           strict: true,
         },
@@ -905,14 +905,14 @@ PDCA coaching (when investigation phase is 'improving'):
 
 Improvement idea guidance (converging/IMPROVE):
 - Use suggest_improvement_idea when a hypothesis is supported and the analyst needs ideas for what to try.
-- When asked for ideas, suggest 2-4 covering different Ideation Directions and effort levels.
+- When asked for ideas, suggest 2-4 covering different Ideation Directions and timeframe levels.
 - Classify each idea using the Four Ideation Directions:
   - prevent: stop the cause from occurring (poka-yoke, maintenance schedule, SOP update)
   - detect: catch it sooner before defects (sensor, alarm, control chart alert, visual inspection)
   - simplify: reduce complexity to reduce error opportunities (fewer steps, visual guides, kits)
   - eliminate: remove the step or factor entirely (automate, redesign)
-- Always estimate effort: low (existing resources, no approval), medium (some coordination, minor cost), high (investment, cross-team).
-- Prefer lean improvements — the simplest fix that addresses the root cause. Suggest low-effort ideas first.
+- Always estimate timeframe: just-do (existing resources, no approval), days (minor coordination), weeks (planning, moderate resources), months (investment, cross-team).
+- Prefer lean improvements — the simplest fix that addresses the root cause. Suggest just-do and days timeframe ideas first.
 - Assess feasibility: Does it remove the root cause? Can the team do it themselves? Can they try small first? Can they measure the result?
 - If Knowledge Base search revealed a past fix for a similar cause, suggest it as an improvement idea with the source cited.
 - suggest_improvement_idea only works on hypotheses with 'supported' or 'partial' status.

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import type { ImprovementIdea, IdeaEffort, IdeaDirection } from '@variscout/core';
+import type { ImprovementIdea, IdeaTimeframe, IdeaDirection } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { SynthesisCard } from './SynthesisCard';
@@ -19,7 +19,11 @@ export interface ImprovementWorkspaceBaseProps {
   }>;
   linkedFindings?: Array<{ id: string; text: string }>;
   onToggleSelect?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
-  onUpdateEffort?: (hypothesisId: string, ideaId: string, effort: IdeaEffort | undefined) => void;
+  onUpdateTimeframe?: (
+    hypothesisId: string,
+    ideaId: string,
+    timeframe: IdeaTimeframe | undefined
+  ) => void;
   onUpdateDirection?: (
     hypothesisId: string,
     ideaId: string,
@@ -46,7 +50,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
   hypotheses,
   linkedFindings,
   onToggleSelect,
-  onUpdateEffort,
+  onUpdateTimeframe,
   onUpdateDirection,
   onRemoveIdea,
   onOpenWhatIf,
@@ -69,11 +73,11 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
     return allIdeas.filter(idea => selectedIdeaIds.has(idea.id));
   }, [allIdeas, selectedIdeaIds]);
 
-  const effortBreakdown = useMemo(() => {
-    const breakdown = { low: 0, medium: 0, high: 0 };
+  const timeframeBreakdown = useMemo(() => {
+    const breakdown: Record<string, number> = { 'just-do': 0, days: 0, weeks: 0, months: 0 };
     for (const idea of selectedIdeas) {
-      if (idea.effort) {
-        breakdown[idea.effort]++;
+      if (idea.timeframe) {
+        breakdown[idea.timeframe]++;
       }
     }
     return breakdown;
@@ -149,7 +153,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
                 ideas={h.ideas}
                 linkedFindingName={h.linkedFindingName}
                 onToggleSelect={onToggleSelect}
-                onUpdateEffort={onUpdateEffort}
+                onUpdateTimeframe={onUpdateTimeframe}
                 onUpdateDirection={onUpdateDirection}
                 onRemoveIdea={onRemoveIdea}
                 onOpenWhatIf={onOpenWhatIf}
@@ -171,7 +175,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
       {/* Sticky summary bar */}
       <ImprovementSummaryBar
         selectedCount={selectedIdeaIds?.size ?? 0}
-        effortBreakdown={effortBreakdown}
+        timeframeBreakdown={timeframeBreakdown}
         projectedCpk={projectedCpk}
         targetCpk={targetCpk}
         onConvertToActions={onConvertToActions}
