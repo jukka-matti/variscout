@@ -26,12 +26,14 @@ import {
   useJourneyPhase,
   detectEntryScenario,
   useCapabilityIChartData,
+  useTranslation,
 } from '@variscout/hooks';
 import {
   hasTeamFeatures,
   computeIdeaImpact,
   parseActionMarkers as coreParseActionMarkers,
   isDuplicateProposal as coreIsDuplicateProposal,
+  downloadCSV,
 } from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
@@ -48,11 +50,17 @@ import {
   RefreshCw,
   Check,
   X,
+  Pencil,
+  Download,
+  Beaker,
+  Table2,
+  Plus,
+  Maximize2,
 } from 'lucide-react';
 import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
 import { downloadFileFromGraph } from '../services/storage';
 import { useFilePicker } from '../hooks/useFilePicker';
-import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
+import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
 import {
   openImprovementPopout,
   updateImprovementPopout,
@@ -162,6 +170,10 @@ export const Editor: React.FC<EditorProps> = ({
     getFactors: () => factors,
   });
   const isPhone = useIsMobile(BREAKPOINTS.phone);
+  const { t } = useTranslation();
+
+  // Mobile tab bar state (phone only)
+  const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('analysis');
 
   // Report view state changes for persistence (merge partial updates)
   const handleViewStateChange = useCallback(
@@ -210,6 +222,24 @@ export const Editor: React.FC<EditorProps> = ({
     }
   }, [isPhone, panels]);
 
+  // Mobile tab bar navigation handler
+  const handleMobileTabChange = useCallback(
+    (tab: MobileTab) => {
+      setMobileActiveTab(tab);
+      if (tab === 'findings') {
+        if (isPhone) findingsTriggerRef.current = document.activeElement;
+        panels.setIsFindingsOpen(true);
+      } else if (tab === 'improve') {
+        panels.setIsImprovementOpen(true);
+      } else if (tab === 'analysis') {
+        panels.setIsFindingsOpen(false);
+        panels.setIsImprovementOpen(false);
+      }
+      // 'more' is handled by the More bottom sheet
+    },
+    [isPhone, panels]
+  );
+
   // Manual data merge (for append mode)
   const dataFlow = useEditorDataFlow({
     rawData,
@@ -237,6 +267,43 @@ export const Editor: React.FC<EditorProps> = ({
     loadSample: ingestion.loadSample,
     applyTimeExtraction: ingestion.applyTimeExtraction,
   });
+
+  // Mobile "More" sheet action handler
+  const handleMobileMore = useCallback(
+    (action: string) => {
+      setMobileActiveTab('analysis');
+      switch (action) {
+        case 'report':
+          panels.setIsReportOpen(true);
+          break;
+        case 'whatif':
+          panels.setIsWhatIfOpen(true);
+          break;
+        case 'presentation':
+          panels.setIsPresentationMode(true);
+          break;
+        case 'datatable':
+          panels.setIsDataTableOpen(true);
+          break;
+        case 'addpaste':
+          dataFlow.startAppendPaste();
+          break;
+        case 'addfile':
+          dataFlow.startAppendFileUpload();
+          break;
+        case 'addmanual':
+          dataFlow.handleAddMoreData();
+          break;
+        case 'editdata':
+          panels.setIsDataTableOpen(true);
+          break;
+        case 'csv':
+          if (outcome) downloadCSV(filteredData, outcome, specs);
+          break;
+      }
+    },
+    [panels, dataFlow, filteredData, outcome, specs]
+  );
 
   // Ref to allow ingestion callbacks to reach dataFlow setters
   const dataFlowRef = React.useRef(dataFlow);
@@ -1192,7 +1259,9 @@ export const Editor: React.FC<EditorProps> = ({
   }
 
   return (
-    <div className={`flex flex-col ${isPhone ? 'h-[calc(100vh-64px)]' : 'h-[calc(100vh-120px)]'}`}>
+    <div
+      className={`flex flex-col ${isPhone ? 'h-[calc(100vh-64px)]' : 'h-[calc(100vh-120px)]'} ${isPhone && rawData.length > 0 ? 'pb-[62px]' : ''}`}
+    >
       <EditorToolbar
         onBack={onBack}
         projectName={currentProjectName || (projectId ? `Analysis ${projectId}` : 'New Analysis')}
@@ -1233,6 +1302,7 @@ export const Editor: React.FC<EditorProps> = ({
           onOpenReport: () => panels.setIsReportOpen(true),
           onOpenPresentation: () => panels.setIsPresentationMode(true),
         }}
+        showOverflowMenu={!isPhone}
       />
 
       {/* Hidden file input for append-mode file upload */}
@@ -1705,6 +1775,82 @@ export const Editor: React.FC<EditorProps> = ({
           }}
           factorColumns={factors}
         />
+      )}
+
+      {/* Mobile Tab Bar (phone only, when data loaded) */}
+      {isPhone && rawData.length > 0 && (
+        <MobileTabBar
+          activeTab={mobileActiveTab}
+          onTabChange={handleMobileTabChange}
+          findingsCount={findingsState.findings.length}
+          showImproveTab={factors.length > 0}
+        />
+      )}
+
+      {/* More bottom sheet (phone only) */}
+      {mobileActiveTab === 'more' && isPhone && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setMobileActiveTab('analysis')}
+          />
+          {/* Bottom sheet */}
+          <div className="fixed bottom-[50px] left-0 right-0 bg-surface-primary border-t border-edge rounded-t-2xl z-50 animate-slide-up safe-area-bottom max-h-[60vh] overflow-y-auto">
+            <div className="py-2">
+              <button
+                onClick={() => handleMobileMore('report')}
+                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
+              >
+                <FileText size={18} />
+                {t('report.scouting') || 'Scouting Report'}
+              </button>
+              <button
+                onClick={() => handleMobileMore('whatif')}
+                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
+              >
+                <Beaker size={18} />
+                {t('panel.whatIf') || 'What-If'}
+              </button>
+              <button
+                onClick={() => handleMobileMore('presentation')}
+                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
+              >
+                <Maximize2 size={18} />
+                {t('nav.presentationMode') || 'Presentation'}
+              </button>
+              <div className="border-t border-edge my-1" />
+              <button
+                onClick={() => handleMobileMore('addpaste')}
+                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
+              >
+                <Plus size={18} />
+                {t('toolbar.addMore') || 'Add More Data'}
+              </button>
+              <button
+                onClick={() => handleMobileMore('editdata')}
+                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
+              >
+                <Pencil size={18} />
+                {t('data.editData') || 'Edit Data'}
+              </button>
+              <button
+                onClick={() => handleMobileMore('csv')}
+                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
+              >
+                <Download size={18} />
+                {t('export.asCsv') || 'Export CSV'}
+              </button>
+              <button
+                onClick={() => handleMobileMore('datatable')}
+                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
+              >
+                <Table2 size={18} />
+                {t('panel.dataTable') || 'Data Table'}
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
