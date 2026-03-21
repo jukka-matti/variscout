@@ -23,6 +23,8 @@ export interface AnovaComputeRequest {
   factorValues: string[];
   /** Outcome column values (numeric) */
   outcomeValues: number[];
+  /** Outcome column name (for "lower is better" heuristic in insight text) */
+  outcomeName?: string;
 }
 
 /** The API exposed by the stats Worker via Comlink */

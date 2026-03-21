@@ -113,7 +113,9 @@ export function useDashboardComputedData({
       const factorValues = filteredData.map(d => String(d[boxplotFactor]));
       const outcomeValues = filteredData.map(d => Number(d[outcome]));
 
-      Promise.resolve(workerApi.computeAnova({ factorValues, outcomeValues }))
+      Promise.resolve(
+        workerApi.computeAnova({ factorValues, outcomeValues, outcomeName: outcome ?? undefined })
+      )
         .then(result => {
           if (thisGeneration !== generationRef.current) return; // Stale
           setAnovaResult(result);

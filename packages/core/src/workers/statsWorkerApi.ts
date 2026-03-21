@@ -28,5 +28,5 @@ export function computeStats(request: StatsComputeRequest): StatsComputeResult {
  * Runs inside the Web Worker — avoids serializing full DataRow[] objects.
  */
 export function computeAnova(request: AnovaComputeRequest): AnovaResult | null {
-  return calculateAnovaFromArrays(request.factorValues, request.outcomeValues);
+  return calculateAnovaFromArrays(request.factorValues, request.outcomeValues, request.outcomeName);
 }

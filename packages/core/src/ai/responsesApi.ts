@@ -407,7 +407,7 @@ export class ConversationHistory {
   }
 
   /** Fallback input for when previous_response_id session has expired */
-  toFallbackInput(): Array<{ role: string; content: string }> {
+  toFallbackInput(): Array<{ role: 'user' | 'assistant'; content: string }> {
     return this.messages.map(m => ({ role: m.role, content: m.content }));
   }
 

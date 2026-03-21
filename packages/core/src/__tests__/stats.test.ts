@@ -362,6 +362,16 @@ describe('calculateAnovaFromArrays', () => {
     expect(result!.groups).toHaveLength(3);
     expect(result!.isSignificant).toBe(true);
   });
+
+  it('should identify lowest group as best for time metrics', () => {
+    const result = calculateAnovaFromArrays(
+      ['Fast', 'Fast', 'Fast', 'Slow', 'Slow', 'Slow'],
+      [5, 6, 7, 15, 16, 17],
+      'CycleTime'
+    );
+    expect(result).not.toBeNull();
+    expect(result!.insight).toContain('Fast is best');
+  });
 });
 
 describe('Stage Order Detection', () => {

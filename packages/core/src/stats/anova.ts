@@ -243,7 +243,8 @@ export function calculateAnova<T extends Record<string, unknown>>(
  */
 export function calculateAnovaFromArrays(
   factorValues: string[],
-  outcomeValues: number[]
+  outcomeValues: number[],
+  outcomeName?: string
 ): AnovaResult | null {
   // Build groups map from parallel arrays (mirrors groupDataByFactor logic)
   const groups = new Map<string, number[]>();
@@ -259,8 +260,5 @@ export function calculateAnovaFromArrays(
     }
   }
 
-  // Use an empty string for outcomeName — insight text still works because
-  // group names drive the "best/worst" language; outcome name only affects
-  // the "lower is better" heuristic which is irrelevant without a column name.
-  return calculateAnovaFromGroups(groups, '');
+  return calculateAnovaFromGroups(groups, outcomeName ?? '');
 }
