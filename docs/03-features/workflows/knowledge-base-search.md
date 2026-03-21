@@ -106,4 +106,4 @@ For setting up the Remote SharePoint knowledge source, follow Microsoft's docume
 - [AI Architecture](../../05-technical/architecture/ai-architecture.md)
 - [ADR-022: Knowledge Layer Architecture](../../07-decisions/adr-022-knowledge-layer-architecture.md) (original, amended by ADR-026)
 - [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
-- [ARM Template — AI Services](../../08-products/azure/arm-template.md#4-ai-services-team-only)
+- [ARM Template — AI Services](../../08-products/azure/arm-template.md#4-ai-services-all-plans)

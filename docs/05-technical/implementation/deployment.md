@@ -76,14 +76,14 @@ pnpm --filter @variscout/azure-app test
 
 > **Note**: MSAL-era variables (`VITE_AZURE_CLIENT_ID`, `VITE_AZURE_TENANT_ID`, `VITE_AZURE_REDIRECT_URI`, `VITE_MAX_USERS`, `VITE_MAX_CHANNELS`) are no longer used. Authentication is handled by EasyAuth (App Service Authentication), not MSAL.
 
-### AI Resources (Team only)
+### AI Resources (all plans)
 
-| Variable             | Description                   | Required | Set By       |
-| -------------------- | ----------------------------- | -------- | ------------ |
-| `AI_ENDPOINT`        | Azure AI Foundry endpoint URL | Team     | ARM template |
-| `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint URL  | Team     | ARM template |
-| `AI_SEARCH_INDEX`    | Search index name             | Team     | ARM template |
-| `FUNCTION_URL`       | Function App URL              | Team     | ARM template |
+| Variable             | Description                   | Required  | Set By       |
+| -------------------- | ----------------------------- | --------- | ------------ |
+| `AI_ENDPOINT`        | Azure AI Foundry endpoint URL | All plans | ARM template |
+| `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint URL  | Team only | ARM template |
+| `AI_SEARCH_INDEX`    | Search index name             | Team only | ARM template |
+| `FUNCTION_URL`       | Function App URL              | All plans | ARM template |
 
 > **Note**: These variables are NOT prefixed with `VITE_` because they are served at runtime via the `/config` endpoint (see `apps/azure/src/lib/runtimeConfig.ts`), not baked into the Vite build.
 

@@ -266,13 +266,13 @@ This table is the master spec for:
 
 ### With and Without AI
 
-**Without AI (PWA / Azure Standard):**
+**Without AI (PWA):**
 
 - The journey is fully manual — the analyst reads charts, makes decisions, pins findings
 - Navigation follows the Four Lenses sequence (I-Chart → Boxplot → Pareto → Capability)
 - All decision points in the Decision Point Map are human-driven
 
-**With AI (Azure Team):**
+**With AI (Azure Standard + Team):**
 
 - CoScout adds a second entry path: hypothesis-driven (AI suggests → confirm → jump to Investigate)
 - NarrativeBar provides passive guidance at each phase

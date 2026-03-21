@@ -56,6 +56,7 @@
     "functionStorageName": "[concat('vsf', uniqueString(resourceGroup().id))]",
     "functionPlanName": "[concat(parameters('appName'), '-func-plan')]",
     "hasTeamFeatures": "[equals(parameters('variscoutPlan'), 'team')]",
+    "hasAI": "[not(equals(parameters('variscoutPlan'), 'free'))]",
     "appInsightsName": "[concat(parameters('appName'), '-insights')]",
     "aiServicesName": "[concat(parameters('appName'), '-ai')]",
     "searchServiceName": "[concat(parameters('appName'), '-search')]",
@@ -126,11 +127,11 @@
             },
             {
               "name": "VITE_FUNCTION_URL",
-              "value": "[if(variables('hasTeamFeatures'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
+              "value": "[if(variables('hasAI'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
             },
             {
               "name": "AI_ENDPOINT",
-              "value": "[if(variables('hasTeamFeatures'), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').endpoint, '')]"
+              "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').endpoint, '')]"
             },
             {
               "name": "AI_SEARCH_ENDPOINT",
@@ -142,11 +143,11 @@
             },
             {
               "name": "FUNCTION_URL",
-              "value": "[if(variables('hasTeamFeatures'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
+              "value": "[if(variables('hasAI'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
             },
             {
               "name": "VITE_APPINSIGHTS_CONNECTION_STRING",
-              "value": "[if(variables('hasTeamFeatures'), reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString, '')]"
+              "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString, '')]"
             }
           ],
           "minTlsVersion": "1.2",
@@ -179,7 +180,7 @@
             },
             "login": {
               "loginParameters": [
-                "[if(variables('hasTeamFeatures'), 'scope=openid profile email User.Read Files.ReadWrite Files.ReadWrite.All Channel.ReadBasic.All People.Read ChannelMessage.Send', 'scope=openid profile email User.Read')]"
+                "[if(variables('hasTeamFeatures'), 'scope=openid profile email User.Read Files.ReadWrite Files.ReadWrite.All Channel.ReadBasic.All People.Read ChannelMessage.Send', 'scope=openid profile email User.Read https://cognitiveservices.azure.com/.default')]"
               ]
             }
           }
@@ -192,7 +193,7 @@
       }
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "Microsoft.Storage/storageAccounts",
       "apiVersion": "2023-05-01",
       "name": "[variables('functionStorageName')]",
@@ -212,7 +213,7 @@
       }
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2024-04-01",
       "name": "[variables('functionPlanName')]",
@@ -229,7 +230,7 @@
       "properties": {}
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "Microsoft.Web/sites",
       "apiVersion": "2024-04-01",
       "name": "[variables('functionAppName')]",
@@ -288,11 +289,11 @@
             },
             {
               "name": "AI_ENDPOINT",
-              "value": "[if(variables('hasTeamFeatures'), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').endpoint, '')]"
+              "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').endpoint, '')]"
             },
             {
               "name": "AI_SERVICES_API_KEY",
-              "value": "[if(variables('hasTeamFeatures'), concat('@Microsoft.KeyVault(VaultName=', variables('keyVaultName'), ';SecretName=ai-services-api-key)'), '')]"
+              "value": "[if(variables('hasAI'), concat('@Microsoft.KeyVault(VaultName=', variables('keyVaultName'), ';SecretName=ai-services-api-key)'), '')]"
             },
             {
               "name": "ALLOWED_ORIGIN",
@@ -304,7 +305,7 @@
             },
             {
               "name": "MSAL_CACHE_LOCATION",
-              "value": "[if(variables('hasTeamFeatures'), '/home/data/msal-cache', '')]"
+              "value": "[if(variables('hasAI'), '/home/data/msal-cache', '')]"
             }
           ],
           "cors": {
@@ -318,7 +319,7 @@
       }
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "Microsoft.Insights/components",
       "apiVersion": "2020-02-02",
       "name": "[variables('appInsightsName')]",
@@ -337,7 +338,7 @@
       }
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "Microsoft.CognitiveServices/accounts",
       "apiVersion": "2025-09-01",
       "name": "[variables('aiServicesName')]",
@@ -362,7 +363,7 @@
       }
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "Microsoft.CognitiveServices/accounts/deployments",
       "apiVersion": "2025-09-01",
       "name": "[concat(variables('aiServicesName'), '/fast')]",
@@ -384,7 +385,7 @@
       }
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "Microsoft.CognitiveServices/accounts/deployments",
       "apiVersion": "2025-09-01",
       "name": "[concat(variables('aiServicesName'), '/reasoning')]",
@@ -438,7 +439,7 @@
       }
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "Microsoft.KeyVault/vaults",
       "apiVersion": "2023-07-01",
       "name": "[variables('keyVaultName')]",
@@ -460,7 +461,7 @@
       }
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2022-04-01",
       "name": "[guid(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), variables('keyVaultSecretsUserRole'), resourceId('Microsoft.Web/sites', variables('webAppName')))]",
@@ -476,7 +477,7 @@
       }
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "Microsoft.KeyVault/vaults/secrets",
       "apiVersion": "2023-07-01",
       "name": "[concat(variables('keyVaultName'), '/ai-services-api-key')]",
@@ -502,7 +503,7 @@
       }
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "Microsoft.KeyVault/vaults/secrets",
       "apiVersion": "2023-07-01",
       "name": "[concat(variables('keyVaultName'), '/client-secret')]",
@@ -525,7 +526,7 @@
       }
     },
     {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2022-04-01",
       "name": "[guid(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), variables('keyVaultSecretsUserRole'), resourceId('Microsoft.Web/sites', variables('functionAppName')))]",
@@ -547,14 +548,14 @@
       "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
     },
     "functionUrl": {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "string",
-      "value": "[if(variables('hasTeamFeatures'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
+      "value": "[if(variables('hasAI'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
     },
     "aiEndpoint": {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "string",
-      "value": "[if(variables('hasTeamFeatures'), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').endpoint, '')]"
+      "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').endpoint, '')]"
     },
     "searchEndpoint": {
       "condition": "[variables('hasTeamFeatures')]",
@@ -562,9 +563,9 @@
       "value": "[if(variables('hasTeamFeatures'), concat('https://', variables('searchServiceName'), '.search.windows.net'), '')]"
     },
     "appInsightsConnectionString": {
-      "condition": "[variables('hasTeamFeatures')]",
+      "condition": "[variables('hasAI')]",
       "type": "string",
-      "value": "[if(variables('hasTeamFeatures'), reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString, '')]"
+      "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString, '')]"
     }
   }
 }
