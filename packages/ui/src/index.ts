@@ -286,6 +286,9 @@ export {
   type MobileCategorySheetData,
 } from './components/MobileCategorySheet';
 
+// Mobile Tab Bar
+export { MobileTabBar, type MobileTabBarProps, type MobileTab } from './components/MobileTabBar';
+
 // Focused Chart View
 export {
   FocusedChartViewBase,
