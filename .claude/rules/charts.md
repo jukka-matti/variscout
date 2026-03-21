@@ -225,6 +225,20 @@ Yamazumi stacked bar chart visualizes cycle time composition by activity type:
 | 3 | Pareto | Pareto (Cpk) | Pareto (5 switchable modes) |
 | 4 | Stats | Stats | Yamazumi Summary |
 
+## Chart Performance
+
+### React.memo
+
+All chart base components (`IChartBase`, `BoxplotBase`, `ParetoBase`, `YamazumiChartBase`) are wrapped in `React.memo()` to prevent unnecessary re-renders when parent state changes but chart props haven't changed. This is critical on mobile where each re-render of SVG subtrees is expensive.
+
+### LTTB Point Decimation
+
+I-Chart uses Largest-Triangle-Three-Buckets (LTTB) downsampling for large datasets. When `chartWidth` is provided to `useIChartData`, datasets exceeding `chartWidth * 2` points are decimated to that threshold while preserving visual shape.
+
+- Stats are computed from the **full** dataset (decimation is display-only)
+- Control limit violation points (above UCL or below LCL) are force-included — never hidden by decimation
+- The `lttb()` function is in `@variscout/core` (`packages/core/src/stats/lttb.ts`)
+
 ## Adding New Charts
 
 1. Create `NewChart.tsx` with `NewChartBase` export

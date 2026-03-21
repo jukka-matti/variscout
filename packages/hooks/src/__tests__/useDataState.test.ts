@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useDataState } from '../useDataState';
 import type { PersistenceAdapter } from '../types';
 
@@ -175,7 +175,7 @@ describe('useDataState', () => {
 
   // ---- Computed stats ----
 
-  it('stats are computed when rawData and outcome are set', () => {
+  it('stats are computed when rawData and outcome are set', async () => {
     const { result } = renderHook(() => useDataState({ persistence: mockPersistence }));
 
     act(() => {
@@ -186,8 +186,8 @@ describe('useDataState', () => {
       result.current[1].setOutcome('Weight');
     });
 
+    await waitFor(() => expect(result.current[0].stats).not.toBeNull());
     const stats = result.current[0].stats;
-    expect(stats).not.toBeNull();
     expect(stats!.mean).toBe(25);
     expect(stats!.stdDev).toBeGreaterThan(0);
   });
@@ -202,7 +202,7 @@ describe('useDataState', () => {
     expect(result.current[0].stats).toBeNull();
   });
 
-  it('stats include capability indices when specs are provided', () => {
+  it('stats include capability indices when specs are provided', async () => {
     const { result } = renderHook(() => useDataState({ persistence: mockPersistence }));
 
     act(() => {
@@ -214,8 +214,8 @@ describe('useDataState', () => {
       result.current[1].setSpecs({ usl: 50, lsl: 5 });
     });
 
+    await waitFor(() => expect(result.current[0].stats).not.toBeNull());
     const stats = result.current[0].stats;
-    expect(stats).not.toBeNull();
     expect(stats!.cp).toBeDefined();
     expect(stats!.cpk).toBeDefined();
     expect(stats!.cp).toBeGreaterThan(0);

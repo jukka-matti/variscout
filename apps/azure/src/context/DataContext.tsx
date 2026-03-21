@@ -19,6 +19,7 @@ import {
   type SavedProject,
 } from '@variscout/hooks';
 import { azurePersistenceAdapter, setDefaultLocation } from '../lib/persistenceAdapter';
+import { useStatsWorker } from '../workers/useStatsWorker';
 import { useStorage, type StorageLocation, type SyncStatus } from '../services/storage';
 import type {
   StatsResult,
@@ -89,8 +90,10 @@ const DataActionsContext = createContext<AzureDataActions | undefined>(undefined
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Core state from shared hook
+  const workerApi = useStatsWorker();
   const [state, actions] = useDataState({
     persistence: azurePersistenceAdapter,
+    workerApi,
   });
 
   // AI process context
@@ -234,6 +237,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Investigation categories
       categories: state.categories,
+
+      // Async computation state
+      isComputing: state.isComputing,
 
       // Azure-specific state
       currentProjectLocation,

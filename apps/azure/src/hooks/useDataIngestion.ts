@@ -5,6 +5,7 @@
  * Azure supports larger datasets (100K rows vs PWA's 50K).
  */
 
+import { useIsMobile } from '@variscout/ui';
 import { useData } from '../context/DataContext';
 import {
   useDataIngestion as useDataIngestionBase,
@@ -14,6 +15,11 @@ import {
 const AZURE_LIMITS = {
   rowHardLimit: 100_000,
   rowWarningThreshold: 10_000,
+};
+
+const AZURE_MOBILE_LIMITS = {
+  rowHardLimit: 25_000,
+  rowWarningThreshold: 5_000,
 };
 
 export const useDataIngestion = (options?: UseDataIngestionOptions) => {
@@ -53,5 +59,10 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setYamazumiMapping,
   };
 
-  return useDataIngestionBase(actions, { ...options, limits: AZURE_LIMITS });
+  const isMobile = useIsMobile(640);
+
+  return useDataIngestionBase(actions, {
+    ...options,
+    limits: isMobile ? AZURE_MOBILE_LIMITS : AZURE_LIMITS,
+  });
 };

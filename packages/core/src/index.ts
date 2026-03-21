@@ -81,6 +81,8 @@ export {
   sortBoxplotData,
   // Kernel density estimation (for violin plots)
   calculateKDE,
+  // Point decimation for chart rendering
+  lttb,
   // Evidence interpretation
   interpretEvidence,
   generateAnovaInsightLine,
@@ -518,3 +520,7 @@ export {
   computeYamazumiSummary,
   detectYamazumiFormat,
 } from './yamazumi';
+
+// Worker types (for app-level Worker integration)
+export type { StatsComputeRequest, StatsComputeResult, StatsWorkerAPI } from './workers/types';
+export { computeStats } from './workers/statsWorkerApi';

@@ -34,33 +34,38 @@ const IChart = ({ parentWidth, parentHeight, ...props }: IChartProps) => {
   });
 
   return (
-    <IChartWrapperBase
-      parentWidth={parentWidth}
-      parentHeight={parentHeight}
-      filteredData={ctx.filteredData}
-      outcome={ctx.outcome}
-      timeColumn={ctx.timeColumn}
-      stageColumn={ctx.stageColumn}
-      stagedData={ctx.stagedData}
-      stats={ctx.stats}
-      stagedStats={ctx.stagedStats}
-      specs={ctx.specs}
-      axisSettings={ctx.axisSettings}
-      onAxisSettingsChange={ctx.setAxisSettings}
-      autoMin={autoMin}
-      autoMax={autoMax}
-      columnAliases={ctx.columnAliases}
-      displayOptions={ctx.displayOptions}
-      selectedPoints={ctx.selectedPoints}
-      onSelectionChange={ctx.setSelectedPoints}
-      showBranding={false}
-      isCapabilityMode={isCapabilityMode}
-      capabilityCpkData={isCapabilityMode ? capData.cpkData : undefined}
-      capabilityCpData={isCapabilityMode ? capData.cpData : undefined}
-      capabilityCpkStats={isCapabilityMode ? capData.cpkStats : undefined}
-      capabilityCpStats={isCapabilityMode ? capData.cpStats : undefined}
-      {...props}
-    />
+    <div className="relative h-full w-full">
+      <IChartWrapperBase
+        parentWidth={parentWidth}
+        parentHeight={parentHeight}
+        filteredData={ctx.filteredData}
+        outcome={ctx.outcome}
+        timeColumn={ctx.timeColumn}
+        stageColumn={ctx.stageColumn}
+        stagedData={ctx.stagedData}
+        stats={ctx.stats}
+        stagedStats={ctx.stagedStats}
+        specs={ctx.specs}
+        axisSettings={ctx.axisSettings}
+        onAxisSettingsChange={ctx.setAxisSettings}
+        autoMin={autoMin}
+        autoMax={autoMax}
+        columnAliases={ctx.columnAliases}
+        displayOptions={ctx.displayOptions}
+        selectedPoints={ctx.selectedPoints}
+        onSelectionChange={ctx.setSelectedPoints}
+        showBranding={false}
+        isCapabilityMode={isCapabilityMode}
+        capabilityCpkData={isCapabilityMode ? capData.cpkData : undefined}
+        capabilityCpData={isCapabilityMode ? capData.cpData : undefined}
+        capabilityCpkStats={isCapabilityMode ? capData.cpkStats : undefined}
+        capabilityCpStats={isCapabilityMode ? capData.cpStats : undefined}
+        {...props}
+      />
+      {ctx.isComputing && (
+        <div className="absolute inset-0 bg-surface-primary/30 pointer-events-none transition-opacity duration-200" />
+      )}
+    </div>
   );
 };
 

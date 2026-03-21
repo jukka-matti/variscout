@@ -41,3 +41,14 @@ This tension is compounded by VariScout's four-chart layout. On desktop, four li
 - [Sidebar Filter Panel](../../../archive/evaluation-patterns/sidebar-filter-panel.md) --- Would make the screen budget problem worse on mobile by adding a persistent panel.
 - [Small Multiples](../../../archive/evaluation-patterns/small-multiples.md) --- Grid layouts are inherently hostile to narrow screens.
 - [Factor Map](../../../archive/evaluation-patterns/factor-map.md) --- A separate spatial view could decouple the filter state display from chart space, potentially improving mobile by opening filters in a dedicated screen.
+
+## Mitigation (ADR-039)
+
+ADR-039 addresses the mobile performance side of this tension:
+
+- **LTTB point decimation** reduces I-Chart SVG nodes from 50K to ~1,200, making chart rendering smooth on mobile
+- **Mobile-specific row limits** (PWA 10K, Azure 25K) prevent the worst-case memory and computation scenarios
+- **Web Worker** for stats computation keeps the UI responsive during filter/drill operations
+- **React.memo** on chart components prevents unnecessary re-renders
+
+The screen budget tension (filter UI vs chart space) remains a UX challenge, but the performance constraints that exacerbated it are now addressed.

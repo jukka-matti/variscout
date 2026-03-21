@@ -10,7 +10,6 @@
 
 import { useMemo, useCallback } from 'react';
 import {
-  calculateStats,
   calculateStatsByStage,
   sortDataByStage,
   determineStageOrder,
@@ -24,7 +23,9 @@ import {
   safeMin,
   safeMax,
 } from '@variscout/core';
+import type { StatsWorkerAPI } from '@variscout/core';
 import type { DisplayOptions } from './types';
+import { useAsyncStats } from './useAsyncStats';
 
 // ============================================================================
 // Types
@@ -41,6 +42,8 @@ export interface DataComputationInputs {
   displayOptions: DisplayOptions;
   isPerformanceMode: boolean;
   measureColumns: string[];
+  /** Stats Worker API (null = sync fallback) */
+  workerApi?: StatsWorkerAPI | null;
 }
 
 export interface DataComputationResult {
@@ -51,6 +54,8 @@ export interface DataComputationResult {
   stagedStats: StagedStatsResult | null;
   performanceResult: ChannelPerformanceData | null;
   getSpecsForMeasure: (measureId: string) => SpecLimits;
+  /** True while async stats computation is in progress */
+  isComputing: boolean;
 }
 
 // ============================================================================
@@ -71,17 +76,23 @@ export function useDataComputation(inputs: DataComputationInputs): DataComputati
     measureColumns,
   } = inputs;
 
-  // Statistics for filtered data
-  const stats = useMemo(() => {
-    if (!outcome || filteredData.length === 0) return null;
-    const values = filteredData
+  // Extract numeric values for Worker (memoized to prevent unnecessary Worker calls)
+  const values = useMemo(() => {
+    if (!outcome || filteredData.length === 0) return [];
+    return filteredData
       .map(d => {
         const v = d[outcome];
         return typeof v === 'number' ? v : Number(v);
       })
       .filter(v => !isNaN(v));
-    return calculateStats(values, specs.usl, specs.lsl);
-  }, [filteredData, outcome, specs]);
+  }, [filteredData, outcome]);
+
+  // Async stats via Worker (with sync fallback)
+  const { stats, isComputing } = useAsyncStats({
+    values,
+    specs,
+    workerApi: inputs.workerApi ?? null,
+  });
 
   // Full dataset Y domain (for Y-axis lock feature)
   const fullDataYDomain = useMemo(() => {
@@ -162,5 +173,6 @@ export function useDataComputation(inputs: DataComputationInputs): DataComputati
     stagedStats,
     performanceResult,
     getSpecsForMeasure,
+    isComputing,
   };
 }

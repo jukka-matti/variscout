@@ -47,6 +47,7 @@ packages/
 │              #   useYamazumiChartData - Yamazumi stacked bar data from filtered rows
 │              #   useYamazumiIChartData - I-Chart data with switchable metric for Yamazumi
 │              #   useYamazumiParetoData - Pareto data with 5 switchable modes for Yamazumi
+│              #   useAsyncStats - Async stats computation via Web Worker with generation counter
 └── ui/        # @variscout/ui - Shared UI components:
                #   AnovaResults, FilterBreadcrumb, FilterChipDropdown, FilterContextBar,
                #   PerformanceSetupPanelBase, VariationBar,

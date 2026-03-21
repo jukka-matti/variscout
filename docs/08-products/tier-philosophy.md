@@ -124,6 +124,8 @@ The specific moments where each ceiling becomes visible.
 | No Performance Mode          | Can't analyze multi-channel data (fill heads, cavities)      | Multi-measure data             |
 | No closed-loop investigation | Can't track from finding to resolution with Cpk verification | First real improvement project |
 
+> Mobile limits are lower: PWA 10K rows / Azure 25K rows (see ADR-039).
+
 ### Standard → Team
 
 | Ceiling              | User Experience                                  | Frequency            |

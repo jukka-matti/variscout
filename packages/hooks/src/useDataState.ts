@@ -29,6 +29,7 @@ import type {
   AnalysisMode,
   YamazumiColumnMapping,
   SubgroupConfig,
+  StatsWorkerAPI,
 } from '@variscout/core';
 import type {
   DisplayOptions,
@@ -51,6 +52,8 @@ import { useProjectPersistence } from './useProjectPersistence';
 export interface UseDataStateOptions {
   /** Persistence adapter for project storage */
   persistence: PersistenceAdapter;
+  /** Stats Worker API for async computation (null = sync fallback) */
+  workerApi?: StatsWorkerAPI | null;
 }
 
 export interface DataState {
@@ -135,6 +138,9 @@ export interface DataState {
 
   // Investigation categories (dynamic factor grouping)
   categories: InvestigationCategory[];
+
+  /** True while async stats computation is in progress */
+  isComputing: boolean;
 }
 
 export interface DataActions {
@@ -394,6 +400,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     stagedStats,
     performanceResult,
     getSpecsForMeasure,
+    isComputing,
   } = useDataComputation({
     rawData,
     filteredData,
@@ -405,6 +412,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     displayOptions,
     isPerformanceMode,
     measureColumns,
+    workerApi: options.workerApi,
   });
 
   // ---------------------------------------------------------------------------
@@ -543,6 +551,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       findings,
       hypotheses,
       categories,
+      isComputing,
     }),
     [
       rawData,
@@ -591,6 +600,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       findings,
       hypotheses,
       categories,
+      isComputing,
     ]
   );
 

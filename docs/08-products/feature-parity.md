@@ -85,24 +85,24 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Data Handling
 
-| Feature                           | Azure Standard | Azure Team | PWA (Free) | Notes                                                         |
-| --------------------------------- | :------------: | :--------: | :--------: | ------------------------------------------------------------- |
-| **CSV upload**                    |       ✓        |     ✓      |     -      | Azure App only                                                |
-| **Excel upload**                  |       ✓        |     ✓      |     -      | Azure App only                                                |
-| **Paste data**                    |       ✓        |     ✓      |     ✓      |                                                               |
-| **Sample datasets**               |       ✓        |     ✓      |     ✓      | PWA pre-loaded with cases                                     |
-| **Column mapping**                |       ✓        |     ✓      |     ✓      | Data-rich cards with type badges, sample values, data preview |
-| **Spec entry at column mapping**  |       ✓        |     ✓      |     ✓      | Collapsible SpecsSection in ColumnMapping                     |
-| **Column data preview**           |       ✓        |     ✓      |     ✓      | Collapsible mini-table showing first 5 rows                   |
-| **Column renaming at setup**      |       ✓        |     ✓      |     ✓      | Pencil icon on column cards → `columnAliases`                 |
-| **Time factor extraction**        |       ✓        |     ✓      |     ✓      | Extract year/month/weekday/hour from date columns             |
-| **Inline data editing**           |       ✓        |     ✓      |     ✓      | Edit cells, add/delete rows, batch apply                      |
-| **Add data during analysis**      |       ✓        |     ✓      |     -      | Paste/upload/manual append with auto-detection                |
-| **Manual entry**                  |       ✓        |     ✓      |     ✓      |                                                               |
-| **Data validation**               |       ✓        |     ✓      |     ✓      |                                                               |
-| **Row limit**                     |    100,000     |  100,000   |   50,000   | Configurable via `DataIngestionConfig`                        |
-| **Max factors**                   |       6        |     6      |     3      | Configurable via `maxFactors` prop                            |
-| **Factor management in analysis** |       ✓        |     ✓      |     ✓      | Both: ColumnMapping re-edit via "Factors" button in nav bar   |
+| Feature                           | Azure Standard | Azure Team | PWA (Free) | Notes                                                                                           |
+| --------------------------------- | :------------: | :--------: | :--------: | ----------------------------------------------------------------------------------------------- |
+| **CSV upload**                    |       ✓        |     ✓      |     -      | Azure App only                                                                                  |
+| **Excel upload**                  |       ✓        |     ✓      |     -      | Azure App only                                                                                  |
+| **Paste data**                    |       ✓        |     ✓      |     ✓      |                                                                                                 |
+| **Sample datasets**               |       ✓        |     ✓      |     ✓      | PWA pre-loaded with cases                                                                       |
+| **Column mapping**                |       ✓        |     ✓      |     ✓      | Data-rich cards with type badges, sample values, data preview                                   |
+| **Spec entry at column mapping**  |       ✓        |     ✓      |     ✓      | Collapsible SpecsSection in ColumnMapping                                                       |
+| **Column data preview**           |       ✓        |     ✓      |     ✓      | Collapsible mini-table showing first 5 rows                                                     |
+| **Column renaming at setup**      |       ✓        |     ✓      |     ✓      | Pencil icon on column cards → `columnAliases`                                                   |
+| **Time factor extraction**        |       ✓        |     ✓      |     ✓      | Extract year/month/weekday/hour from date columns                                               |
+| **Inline data editing**           |       ✓        |     ✓      |     ✓      | Edit cells, add/delete rows, batch apply                                                        |
+| **Add data during analysis**      |       ✓        |     ✓      |     -      | Paste/upload/manual append with auto-detection                                                  |
+| **Manual entry**                  |       ✓        |     ✓      |     ✓      |                                                                                                 |
+| **Data validation**               |       ✓        |     ✓      |     ✓      |                                                                                                 |
+| **Row limit**                     |    100,000     |  100,000   |   50,000   | Configurable via `DataIngestionConfig`. Mobile limits are lower: PWA 10K / Azure 25K (ADR-039). |
+| **Max factors**                   |       6        |     6      |     3      | Configurable via `maxFactors` prop                                                              |
+| **Factor management in analysis** |       ✓        |     ✓      |     ✓      | Both: ColumnMapping re-edit via "Factors" button in nav bar                                     |
 
 ---
 

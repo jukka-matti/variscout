@@ -303,3 +303,10 @@ export {
   useCapabilityBoxplotData,
   type UseCapabilityBoxplotDataOptions,
 } from './useCapabilityBoxplotData';
+
+// Async Stats Hook (Worker bridge)
+export {
+  useAsyncStats,
+  type UseAsyncStatsOptions,
+  type UseAsyncStatsResult,
+} from './useAsyncStats';

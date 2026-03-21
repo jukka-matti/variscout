@@ -386,9 +386,12 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
   );
 };
 
+// Memoize to prevent unnecessary re-renders when parent state changes
+const ParetoChartBaseMemo = React.memo(ParetoChartBase);
+
 // Export with responsive wrapper
-const ParetoChart = withParentSize(ParetoChartBase);
+const ParetoChart = withParentSize(ParetoChartBaseMemo);
 export default ParetoChart;
 
 // Also export the base component for custom sizing
-export { ParetoChartBase };
+export { ParetoChartBaseMemo as ParetoChartBase };
