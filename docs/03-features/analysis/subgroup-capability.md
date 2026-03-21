@@ -79,6 +79,24 @@ When only USL or only LSL is set:
 - **All identical values in subgroup**: Sigma = 0, capability is undefined
 - **No specs set**: Toggle is disabled with tooltip "Set specification limits to enable capability view"
 
+## Methodology
+
+### Why Per-Subgroup Cp/Cpk
+
+A single Pp/Ppk number is a black box — it tells you the overall result but hides _when_ and _how_ capability shifts. This aligns with Watson's EDA principle of "see with eyes": a time-series of capability indices reveals patterns that a summary statistic conceals.
+
+### Connection to Two Voices
+
+In standard mode, the Voice of the Process is expressed through control limits on raw measurements. In Capability mode, VariScout applies the same concept one level up: control limits on _Cpk values_ become the Voice of the Process applied to capability itself — meta-stability. If the Cpk I-Chart is in control, the process produces _consistently_ capable output.
+
+### Connection to Progressive Stratification
+
+After identifying unstable subgroups (out-of-control Cpk points), the analyst drills into WHICH factors drive capability differences — the same progressive stratification workflow as standard mode. Filter to the problematic subgroup, then examine the Boxplot and Pareto to find contributing factors.
+
+### Supplier Context (PPAP)
+
+For supplier quality management and PPAP submissions, this analysis provides what reviewers need: evidence that capability is _consistently_ meeting requirements, not just an average that hides batch-to-batch variation. An in-control Cpk I-Chart is stronger evidence than a single Ppk number.
+
 ## Architecture
 
 - Core: `packages/core/src/stats/subgroupCapability.ts`

@@ -346,9 +346,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Grouping data by meaningful time periods or sources so within-group variation represents only common cause.',
     description:
-      'The foundation of effective stratification. Group data so that variation within each group is homogeneous (common cause only), and differences between groups can reveal special causes. Poor subgrouping masks real signals.',
+      'The foundation of effective stratification. Group data so that variation within each group is homogeneous (common cause only), and differences between groups can reveal special causes. Poor subgrouping masks real signals. In Capability mode, rational subgroups also serve as the basis for per-subgroup Cp/Cpk calculation — each subgroup gets its own within-group sigma, enabling capability stability analysis over time.',
     category: 'methodology',
-    relatedTerms: ['stratification', 'commonCause', 'specialCause'],
+    relatedTerms: ['stratification', 'commonCause', 'specialCause', 'capabilityStability'],
   },
   {
     id: 'stratification',

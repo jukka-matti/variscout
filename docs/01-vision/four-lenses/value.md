@@ -68,3 +68,4 @@ Questions to ask:
 
 - [Four Lenses Overview](index.md)
 - [Two Voices](../two-voices/index.md) — Control limits vs specification limits
+- [Subgroup Capability](../../03-features/analysis/subgroup-capability.md) — Per-subgroup Cp/Cpk stability analysis

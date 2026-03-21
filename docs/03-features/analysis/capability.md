@@ -68,7 +68,9 @@ Where:
 
 ### Why subgroup size = 1 (individuals)
 
-VariScout always uses subgroup size n=1 because data arrives as individual measurements (flat rows), not rational subgroups. This means:
+In standard Values mode, VariScout uses subgroup size n=1 because data arrives as individual measurements (flat rows). In **Capability mode**, the analyst defines rational subgroups (by column or fixed size) and VariScout calculates per-subgroup Cp/Cpk. See [Subgroup Capability Analysis](subgroup-capability.md).
+
+In standard mode, this means:
 
 - Chart type is always **I-MR** (Individuals and Moving Range)
 - The moving range span is 2 (consecutive pairs), giving d2 = 1.128
@@ -97,7 +99,7 @@ The moving range assumes data is in **time or production order**. If rows are sh
 | **Sensitive to**     | Consecutive-point differences     | All data points equally          |
 | **When they differ** | Process has shifts or trends      | —                                |
 
-VariScout computes Cp/Cpk only (using σ_within). Pp/Ppk (using σ_overall) are not currently reported.
+VariScout computes Cp/Cpk only (using σ_within). Pp/Ppk (using σ_overall) are not reported directly. However, Capability mode plots Cpk per subgroup on the I-Chart — if the Cpk I-Chart is in control, then Cpk ≈ Ppk naturally. This provides the same information more diagnostically. See [Subgroup Capability Analysis](subgroup-capability.md).
 
 ---
 
@@ -183,4 +185,5 @@ const stats = calculateStats(values, usl, lsl);
 - [Staged Analysis](staged-analysis.md) - Before/after capability comparison
 - [Glossary: Cp/Cpk](../../glossary.md#cp)
 - [Chart Design](../../06-design-system/charts/capability.md)
+- [Subgroup Capability](subgroup-capability.md) - Per-subgroup Cp/Cpk stability analysis
 - [Case: Packaging](../../04-cases/packaging/index.md) - Capability assessment example

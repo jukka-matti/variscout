@@ -134,6 +134,18 @@ The lens metaphor is useful for marketing and teaching, but the methodology work
 
 ---
 
+### Analysis Modes
+
+Beyond the standard four-tool view, VariScout supports alternative analysis modes that reconfigure the dashboard for specific analytical questions:
+
+- **Performance Mode** — Multi-channel Cpk comparison for wide-format data (fill heads, cavities, nozzles)
+- **Yamazumi Mode** — Lean time study with stacked activity bars and cycle time decomposition
+- **Capability Mode** — Per-subgroup Cp/Cpk stability analysis on the I-Chart
+
+Each mode reuses the same chart infrastructure with different data pipelines and interpretation context. See [Subgroup Capability Analysis](../03-features/analysis/subgroup-capability.md) for the newest addition.
+
+---
+
 ## Key Principles
 
 **Contribution, Not Causation.** ANOVA η² quantifies how much of the total variation a factor explains. It does not prove that factor causes the variation. Causation requires domain knowledge and further investigation.

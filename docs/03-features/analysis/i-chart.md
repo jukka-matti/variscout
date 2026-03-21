@@ -145,6 +145,14 @@ See [Characteristic Type Awareness](characteristic-types.md) for the full violat
 
 ---
 
+## Capability Mode
+
+The I-Chart can switch from plotting raw measurements to plotting **Cp and Cpk per subgroup**. This reveals whether capability itself is stable over time. When both series are in control, the overall Cpk is representative; when out of control, capability is shifting and needs investigation.
+
+See [Subgroup Capability Analysis](subgroup-capability.md) for details on configuration, interpretation, and the dual Cp/Cpk series.
+
+---
+
 ## See Also
 
 - [CHANGE Lens](../../01-vision/four-lenses/change.md) - Time-based stability concepts
@@ -152,6 +160,7 @@ See [Characteristic Type Awareness](characteristic-types.md) for the full violat
 - [Nelson Rules](nelson-rules.md) - Pattern detection (9-point runs)
 - [Staged Analysis](staged-analysis.md) - Per-stage control limits
 - [Boxplot](boxplot.md) - Next step: find which factor explains variation
+- [Subgroup Capability](subgroup-capability.md) - Per-subgroup Cp/Cpk on the I-Chart
 - [Chart Design](../../06-design-system/charts/ichart.md)
 - [Glossary: UCL/LCL](../../glossary.md#ucl-upper-control-limit)
 - [Case: Bottleneck](../../04-cases/bottleneck/index.md) - I-Chart in action
