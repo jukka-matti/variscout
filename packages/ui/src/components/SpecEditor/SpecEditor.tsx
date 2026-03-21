@@ -2,11 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Save } from 'lucide-react';
 import { inferCharacteristicType, type CharacteristicType } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
-import { useIsMobile } from '../../hooks';
+import { useIsMobile, BREAKPOINTS } from '../../hooks';
 import CharacteristicTypeSelector from '../CharacteristicTypeSelector';
 import type { SpecEditorColorScheme, SpecEditorProps } from './types';
-
-const MOBILE_BREAKPOINT = 640;
 
 export const specEditorDefaultColorScheme: SpecEditorColorScheme = {
   label: 'block text-[10px] sm:text-xs text-content-secondary mb-1',
@@ -40,7 +38,7 @@ const SpecEditor = ({
   const [typeSelection, setTypeSelection] = useState<CharacteristicType | null>(
     specs.characteristicType ?? null
   );
-  const isMobile = useIsMobile(MOBILE_BREAKPOINT);
+  const isMobile = useIsMobile(BREAKPOINTS.phone);
 
   // Compute what "Auto" would infer for display hint
   const autoInferred = inferCharacteristicType({
