@@ -40,6 +40,17 @@ Wrap IChartBase, BoxplotBase, ParetoBase, YamazumiChartBase in React.memo() with
 
 Mobile detection in app-level wrappers via useIsMobile(640), passed as limits parameter to shared useDataIngestion hook.
 
+## Implementation
+
+All four decisions have been implemented:
+
+| Decision                  | Status      | Location                                                                                       |
+| ------------------------- | ----------- | ---------------------------------------------------------------------------------------------- |
+| LTTB point decimation     | Implemented | `packages/core/src/stats/lttb.ts`, integrated in `packages/hooks/src/useIChartData.ts`         |
+| Web Worker async stats    | Implemented | `packages/hooks/src/useAsyncStats.ts` via Comlink                                              |
+| React.memo on chart bases | Implemented | All 4 bases (IChartBase, BoxplotBase, ParetoBase, YamazumiChartBase) in `packages/charts/src/` |
+| Mobile row limits         | Implemented | Both app `useDataIngestion` wrappers (`apps/pwa/`, `apps/azure/`)                              |
+
 ## Consequences
 
 - Stats consumers must handle async results (stats may be null while computing)
