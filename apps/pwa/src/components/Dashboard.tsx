@@ -27,6 +27,7 @@ import {
   useChartInsights,
   useFilterHandlers,
   useCreateFactorModal,
+  useCapabilityIChartData,
 } from '@variscout/hooks';
 import {
   getNelsonRule2Sequences,
@@ -124,12 +125,26 @@ const Dashboard = ({
     setDisplayOptions,
     subgroupConfig,
     setSubgroupConfig,
+    cpkTarget,
+    setCpkTarget,
     // Selection state
     selectedPoints,
     clearSelection,
   } = useData();
 
   const { getTerm } = useGlossary();
+
+  const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
+  const capabilityData = useCapabilityIChartData({
+    filteredData,
+    outcome: outcome ?? '',
+    specs,
+    subgroupConfig,
+    cpkTarget,
+  });
+  const handleCpkClick = useCallback(() => {
+    setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
+  }, [displayOptions, setDisplayOptions]);
 
   // Annotations (right-click context menu for highlights)
   const {
@@ -338,11 +353,11 @@ const Dashboard = ({
       () => ({
         cpk: stats?.cpk,
         cp: stats?.cp,
-        cpkTarget: 1.33,
+        cpkTarget,
         passRate: stats ? 100 - stats.outOfSpecPercentage : undefined,
         hasSpecs: !!(specs?.usl !== undefined || specs?.lsl !== undefined),
       }),
-      [stats, specs]
+      [stats, specs, cpkTarget]
     ),
   });
 
@@ -637,6 +652,8 @@ const Dashboard = ({
               specs={specs}
               onSave={newSpecs => setSpecs(newSpecs)}
               onOpenAdvanced={() => setShowSpecEditor(true)}
+              cpkTarget={cpkTarget}
+              onCpkTargetChange={setCpkTarget}
             />
           </div>
         }
@@ -724,7 +741,18 @@ const Dashboard = ({
         }
         renderStatsPanel={
           <ErrorBoundary componentName="Stats Panel">
-            <StatsPanel stats={stats} specs={specs} filteredData={filteredData} outcome={outcome} />
+            <StatsPanel
+              stats={stats}
+              specs={specs}
+              filteredData={filteredData}
+              outcome={outcome}
+              cpkTarget={cpkTarget}
+              onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
+              subgroupsMeetingTarget={
+                isCapabilityMode ? capabilityData.subgroupsMeetingTarget : undefined
+              }
+              subgroupCount={isCapabilityMode ? capabilityData.subgroupResults.length : undefined}
+            />
           </ErrorBoundary>
         }
         renderFocusedView={

@@ -49,13 +49,11 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
     specs,
     setSpecs,
     measureColumns,
+    cpkTarget,
   } = useData();
 
   // Cp/Cpk toggle state (includes 'both' option)
   const [capabilityMetric, setCapabilityMetric] = useState<CapabilityMetric>('cpk');
-
-  // Cpk target threshold state
-  const [cpkTarget, setCpkTarget] = useState<number>(1.33);
 
   // Global specs editing (local state for input fields)
   const [localLSL, setLocalLSL] = useState<string>(specs.lsl?.toString() || '');
@@ -129,11 +127,9 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   const specsControlsProps = {
     localLSL,
     localUSL,
-    cpkTarget,
     specs,
     onLSLChange: handleLSLChange,
     onUSLChange: handleUSLChange,
-    onCpkTargetChange: setCpkTarget,
     onLSLBlur: handleLSLBlur,
     onUSLBlur: handleUSLBlur,
   };

@@ -90,6 +90,8 @@ export interface IChartWrapperBaseProps {
   capabilityCpkStats?: StatsResult | null;
   /** Stats for Cp series control limits */
   capabilityCpStats?: StatsResult | null;
+  /** Cpk target threshold — renders as green target line in capability mode */
+  cpkTarget?: number;
 }
 
 export const IChartWrapperBase = ({
@@ -125,6 +127,7 @@ export const IChartWrapperBase = ({
   capabilityCpData,
   capabilityCpkStats,
   capabilityCpStats,
+  cpkTarget,
 }: IChartWrapperBaseProps) => {
   const [isEditingScale, setIsEditingScale] = useState(false);
 
@@ -166,7 +169,15 @@ export const IChartWrapperBase = ({
         data={chartData}
         stats={chartStats}
         stagedStats={isCapabilityMode ? undefined : effectiveStagedStats}
-        specs={isCapabilityMode ? {} : displayOptions.showSpecs !== false ? specs : {}}
+        specs={
+          isCapabilityMode
+            ? cpkTarget !== undefined
+              ? { target: cpkTarget }
+              : {}
+            : displayOptions.showSpecs !== false
+              ? specs
+              : {}
+        }
         yAxisLabel={chartYLabel}
         axisSettings={isCapabilityMode ? {} : axisSettings}
         parentWidth={parentWidth}

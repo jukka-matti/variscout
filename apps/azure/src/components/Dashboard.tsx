@@ -34,6 +34,7 @@ import {
   useChartInsights,
   useFilterHandlers,
   useCreateFactorModal,
+  useCapabilityIChartData,
 } from '@variscout/hooks';
 import {
   getNelsonRule2Sequences,
@@ -165,11 +166,24 @@ const Dashboard = ({
     setDisplayOptions,
     subgroupConfig,
     setSubgroupConfig,
+    cpkTarget,
     selectedPoints,
     clearSelection,
   } = useData();
   const { getTerm } = useGlossary();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
+
+  const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
+  const capabilityData = useCapabilityIChartData({
+    filteredData,
+    outcome: outcome ?? '',
+    specs,
+    subgroupConfig,
+    cpkTarget,
+  });
+  const handleCpkClick = useCallback(() => {
+    setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
+  }, [displayOptions, setDisplayOptions]);
 
   const [activeTab, setActiveTabRaw] = useState<DashboardTab>(
     initialViewState?.activeTab ?? 'analysis'
@@ -377,11 +391,11 @@ const Dashboard = ({
       () => ({
         cpk: stats?.cpk,
         cp: stats?.cp,
-        cpkTarget: 1.33,
+        cpkTarget,
         passRate: stats ? 100 - stats.outOfSpecPercentage : undefined,
         hasSpecs: !!(specs?.usl !== undefined || specs?.lsl !== undefined),
       }),
-      [stats, specs]
+      [stats, specs, cpkTarget]
     ),
   });
 
@@ -811,6 +825,14 @@ const Dashboard = ({
                     outcome={outcome}
                     onSaveSpecs={setSpecs}
                     showCpk={displayOptions.showCpk !== false}
+                    cpkTarget={cpkTarget}
+                    onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
+                    subgroupsMeetingTarget={
+                      isCapabilityMode ? capabilityData.subgroupsMeetingTarget : undefined
+                    }
+                    subgroupCount={
+                      isCapabilityMode ? capabilityData.subgroupResults.length : undefined
+                    }
                   />
                 }
                 renderFocusedView={

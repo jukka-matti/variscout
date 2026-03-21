@@ -14,6 +14,10 @@ interface StatsPanelProps {
   defaultTab?: 'summary' | 'histogram' | 'normality';
   className?: string;
   compact?: boolean;
+  cpkTarget?: number;
+  onCpkClick?: () => void;
+  subgroupsMeetingTarget?: number;
+  subgroupCount?: number;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({
@@ -24,6 +28,10 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   defaultTab,
   className,
   compact = false,
+  cpkTarget,
+  onCpkClick,
+  subgroupsMeetingTarget,
+  subgroupCount,
 }) => {
   const { setSpecs } = useData();
   const { getTerm } = useGlossary();
@@ -54,6 +62,10 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         className={className}
         compact={compact}
         onEditSpecs={() => setIsEditingSpecs(true)}
+        cpkTarget={cpkTarget}
+        onCpkClick={onCpkClick}
+        subgroupsMeetingTarget={subgroupsMeetingTarget}
+        subgroupCount={subgroupCount}
         getTerm={getTerm}
         renderHistogram={(data, specLimits, mean) => (
           <CapabilityHistogram data={data} specs={specLimits} mean={mean} />

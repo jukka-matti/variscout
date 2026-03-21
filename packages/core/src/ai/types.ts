@@ -217,6 +217,8 @@ export interface AIContext {
     cpkOutOfControl: number;
     meanCp?: number;
     centeringLoss?: number;
+    cpkTarget?: number;
+    subgroupsMeetingTarget?: number;
   };
   /** Yamazumi summary for time study context */
   yamazumi?: {

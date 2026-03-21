@@ -113,8 +113,8 @@ export interface DataState {
   measureLabel: string;
   selectedMeasure: string | null;
   performanceResult: ChannelPerformanceData | null;
-  /** User-defined Cpk target for Performance Mode (default: 1.33) */
-  cpkTarget: number;
+  /** User-defined Cpk target (undefined = not set, no target line shown) */
+  cpkTarget: number | undefined;
 
   // Analysis mode (standard | performance | yamazumi)
   analysisMode: AnalysisMode;
@@ -187,7 +187,7 @@ export interface DataActions {
   setMeasureColumns: (columns: string[]) => void;
   setMeasureLabel: (label: string) => void;
   setSelectedMeasure: (measureId: string | null) => void;
-  setCpkTarget: (target: number) => void;
+  setCpkTarget: (target: number | undefined) => void;
   setAnalysisMode: (mode: AnalysisMode) => void;
   setYamazumiMapping: (mapping: YamazumiColumnMapping | null) => void;
   setSubgroupConfig: (config: SubgroupConfig) => void;
@@ -278,7 +278,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   const [measureColumns, setMeasureColumns] = useState<string[]>([]);
   const [measureLabel, setMeasureLabel] = useState('Measure');
   const [selectedMeasure, setSelectedMeasure] = useState<string | null>(null);
-  const [cpkTarget, setCpkTarget] = useState(1.33);
+  const [cpkTarget, setCpkTarget] = useState<number | undefined>(undefined);
 
   // Analysis mode (unified mode selector — replaces isPerformanceMode in Phase 6)
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('standard');

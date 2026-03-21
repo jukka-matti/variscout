@@ -67,6 +67,9 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   showCpk = true,
   stagedComparison,
   cpkTarget,
+  onCpkClick,
+  subgroupsMeetingTarget,
+  subgroupCount,
   renderHistogram,
   renderProbabilityPlot,
   renderSummaryFooter,
@@ -118,16 +121,40 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
                 labelClass={METRIC_LABEL_CLASS}
                 valueClass={METRIC_VALUE_CLASS}
               />
-              <MetricCard
-                label="Cpk"
-                value={
-                  stats?.cpk !== undefined && stats?.cpk !== null ? formatStat(stats.cpk) : 'N/A'
+              <div
+                className={`${METRIC_CARD_BG_CLASS}${onCpkClick ? ' cursor-pointer hover:border-blue-500/50 transition-colors' : ''}`}
+                data-testid="stat-cpk"
+                onClick={onCpkClick}
+                role={onCpkClick ? 'button' : undefined}
+                tabIndex={onCpkClick ? 0 : undefined}
+                onKeyDown={
+                  onCpkClick
+                    ? (e: React.KeyboardEvent) => {
+                        if (e.key === 'Enter' || e.key === ' ') onCpkClick();
+                      }
+                    : undefined
                 }
-                helpTerm={getTerm('cpk')}
-                bgClass={METRIC_CARD_BG_CLASS}
-                labelClass={METRIC_LABEL_CLASS}
-                valueClass={METRIC_VALUE_CLASS}
-              />
+              >
+                <div className={METRIC_LABEL_CLASS}>
+                  Cpk
+                  {getTerm('cpk') && <HelpTooltip term={getTerm('cpk')!} iconSize={12} />}
+                </div>
+                <div className={METRIC_VALUE_CLASS} data-testid="stat-value-cpk">
+                  {stats?.cpk !== undefined && stats?.cpk !== null ? formatStat(stats.cpk) : 'N/A'}
+                </div>
+                {cpkTarget !== undefined && (
+                  <div
+                    className={`text-[10px] mt-0.5 ${stats?.cpk !== undefined && stats?.cpk !== null && stats.cpk >= cpkTarget ? 'text-green-500' : 'text-red-400'}`}
+                  >
+                    target: {formatStat(cpkTarget)}
+                    {subgroupsMeetingTarget !== undefined && subgroupCount !== undefined && (
+                      <span className="ml-1">
+                        ({subgroupsMeetingTarget}/{subgroupCount})
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             </>
           )}
           <MetricCard

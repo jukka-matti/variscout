@@ -368,6 +368,14 @@ vi.mock('@variscout/hooks', () => ({
     handleCreateFactor: vi.fn(),
   }),
   useJourneyPhase: () => 'scout',
+  useCapabilityIChartData: () => ({
+    cpkData: [],
+    cpData: [],
+    cpkStats: null,
+    cpStats: null,
+    subgroupResults: [],
+    subgroupsMeetingTarget: undefined,
+  }),
 }));
 
 // Mock core functions

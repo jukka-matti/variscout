@@ -31,6 +31,12 @@ export interface StatsPanelBaseProps {
   stagedComparison?: StagedComparison;
   /** Cpk target for staged comparison display */
   cpkTarget?: number;
+  /** Callback when Cpk card is clicked (navigates to capability mode) */
+  onCpkClick?: () => void;
+  /** Number of subgroups meeting cpkTarget (shown when in capability mode) */
+  subgroupsMeetingTarget?: number;
+  /** Total subgroup count (shown with subgroupsMeetingTarget) */
+  subgroupCount?: number;
   /** Render extra content after summary (e.g., What-If Simulator, Spec Editor button) */
   renderSummaryFooter?: (stats: StatsResult, specs: SpecLimits) => React.ReactNode;
   /** Glossary term lookup function */

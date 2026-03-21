@@ -28,6 +28,8 @@ export interface UseCapabilityIChartDataOptions {
   specs: { usl?: number; lsl?: number };
   /** Subgroup configuration */
   subgroupConfig: SubgroupConfig;
+  /** Cpk target threshold */
+  cpkTarget?: number;
 }
 
 export interface UseCapabilityIChartDataResult {
@@ -41,6 +43,8 @@ export interface UseCapabilityIChartDataResult {
   cpStats: StatsResult | null;
   /** Raw results for export/table */
   subgroupResults: SubgroupCapabilityResult[];
+  /** Number of subgroups meeting Cpk target (undefined when no target set) */
+  subgroupsMeetingTarget?: number;
 }
 
 /**
@@ -68,6 +72,7 @@ export function useCapabilityIChartData({
   outcome,
   specs,
   subgroupConfig,
+  cpkTarget,
 }: UseCapabilityIChartDataOptions): UseCapabilityIChartDataResult {
   return useMemo(() => {
     const empty: UseCapabilityIChartDataResult = {
@@ -117,12 +122,16 @@ export function useCapabilityIChartData({
     const cpkLimits = calculateSeriesControlLimits(cpkValues);
     const cpLimits = calculateSeriesControlLimits(cpValues);
 
+    const subgroupsMeetingTarget =
+      cpkTarget !== undefined ? cpkValues.filter(v => v >= cpkTarget).length : undefined;
+
     return {
       cpkData,
       cpData,
       cpkStats: buildSyntheticStats(cpkLimits),
       cpStats: buildSyntheticStats(cpLimits),
       subgroupResults: results,
+      subgroupsMeetingTarget,
     };
-  }, [filteredData, outcome, specs.usl, specs.lsl, subgroupConfig]);
+  }, [filteredData, outcome, specs.usl, specs.lsl, subgroupConfig, cpkTarget]);
 }

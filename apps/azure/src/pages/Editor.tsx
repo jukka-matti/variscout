@@ -142,6 +142,7 @@ export const Editor: React.FC<EditorProps> = ({
     setCategories,
     knowledgeSearchFolder,
     subgroupConfig,
+    cpkTarget,
   } = useData();
 
   const ingestion = useDataIngestion({
@@ -704,6 +705,7 @@ export const Editor: React.FC<EditorProps> = ({
     outcome: outcome ?? '',
     specs: specs ?? {},
     subgroupConfig: subgroupConfig ?? { method: 'fixed-size', size: 5 },
+    cpkTarget,
   });
   const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
   const aiCapabilityData = useMemo(() => {
@@ -719,8 +721,9 @@ export const Editor: React.FC<EditorProps> = ({
         : null,
       cpStats: capabilityIChartData.cpStats ? { mean: capabilityIChartData.cpStats.mean } : null,
       config: subgroupConfig ?? { method: 'fixed-size' as const, size: 5 },
+      cpkTarget,
     };
-  }, [isCapabilityMode, capabilityIChartData, subgroupConfig]);
+  }, [isCapabilityMode, capabilityIChartData, subgroupConfig, cpkTarget]);
 
   // AI orchestration (context, narration, CoScout, knowledge search)
   const {

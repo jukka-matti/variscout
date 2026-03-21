@@ -94,6 +94,7 @@ export interface BuildAIContextOptions {
     cpkStats: { mean: number; ucl: number; lcl: number } | null;
     cpStats: { mean: number } | null;
     config: SubgroupConfig;
+    cpkTarget?: number;
   };
 }
 
@@ -219,6 +220,11 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
         centeringLoss:
           cpStats && cpValues.length > 0
             ? cpValues.reduce((a, b) => a + b, 0) / cpValues.length - cpkStats.mean
+            : undefined,
+        cpkTarget: options.capabilityData.cpkTarget,
+        subgroupsMeetingTarget:
+          options.capabilityData.cpkTarget !== undefined
+            ? cpkValues.filter(v => v >= options.capabilityData!.cpkTarget!).length
             : undefined,
       };
     }

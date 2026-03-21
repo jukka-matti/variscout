@@ -128,7 +128,7 @@ function createDefaultInputs(
     valueLabels: {},
     displayOptions: { lockYAxisToFullData: true, showControlLimits: true },
     currentProjectId: null,
-    cpkTarget: 1.33,
+    cpkTarget: undefined,
     stageColumn: null,
     stageOrderMode: 'auto',
     isPerformanceMode: false,
@@ -438,7 +438,7 @@ describe('useProjectPersistence', () => {
       });
 
       // Should apply sensible defaults
-      expect(setters.setCpkTarget).toHaveBeenCalledWith(1.33);
+      expect(setters.setCpkTarget).toHaveBeenCalledWith(undefined);
       expect(setters.setStageColumn).toHaveBeenCalledWith(null);
       expect(setters.setStageOrderMode).toHaveBeenCalledWith('auto');
       expect(setters.setPerformanceMode).toHaveBeenCalledWith(false);
@@ -1004,7 +1004,7 @@ describe('useProjectPersistence', () => {
         await result.current.importProject(file);
       });
 
-      expect(setters.setCpkTarget).toHaveBeenCalledWith(1.33);
+      expect(setters.setCpkTarget).toHaveBeenCalledWith(undefined);
       expect(setters.setStageColumn).toHaveBeenCalledWith(null);
       expect(setters.setStageOrderMode).toHaveBeenCalledWith('auto');
       expect(setters.setPerformanceMode).toHaveBeenCalledWith(false);
@@ -1196,7 +1196,7 @@ describe('useProjectPersistence', () => {
       expect(setters.setMeasureColumns).toHaveBeenCalledWith([]);
       expect(setters.setMeasureLabel).toHaveBeenCalledWith('Measure');
       expect(setters.setSelectedMeasure).toHaveBeenCalledWith(null);
-      expect(setters.setCpkTarget).toHaveBeenCalledWith(1.33);
+      expect(setters.setCpkTarget).toHaveBeenCalledWith(undefined);
       expect(setters.setFilterStack).toHaveBeenCalledWith([]);
       expect(setters.setViewState).toHaveBeenCalledWith(null);
       expect(setters.setFindings).toHaveBeenCalledWith([]);
