@@ -8,14 +8,25 @@ Comprehensive reference for VariScout's data handling limits, classification thr
 
 ## Data Import Limits
 
-| Constraint                    | Value                          | Location                    | Behavior                                                                                     |
-| ----------------------------- | ------------------------------ | --------------------------- | -------------------------------------------------------------------------------------------- |
-| Row hard limit                | 50,000 (PWA) / 100,000 (Azure) | `useDataIngestion.ts`       | Alert shown, upload rejected. Configurable via `DataIngestionConfig.rowHardLimit`            |
-| Row warning                   | 5,000 (PWA) / 10,000 (Azure)   | `useDataIngestion.ts`       | Confirm dialog, user can proceed. Configurable via `DataIngestionConfig.rowWarningThreshold` |
-| Column limit                  | None enforced                  | —                           | All columns loaded                                                                           |
-| Auto-detected factors         | 3 suggested                    | `parser.ts detectColumns()` | `.slice(0, 3)` default suggestion                                                            |
-| Max selectable factors        | 3 (PWA) / 6 (Azure)            | `ColumnMapping`             | Configurable via `maxFactors` prop                                                           |
-| Factor change during analysis | Both (PWA 3, Azure 6)          | ColumnMapping `mode='edit'` | "Factors" button in nav bar reopens ColumnMapping                                            |
+| Constraint     | Value                          | Location              | Behavior                                                                                     |
+| -------------- | ------------------------------ | --------------------- | -------------------------------------------------------------------------------------------- |
+| Row hard limit | 50,000 (PWA) / 100,000 (Azure) | `useDataIngestion.ts` | Alert shown, upload rejected. Configurable via `DataIngestionConfig.rowHardLimit`            |
+| Row warning    | 5,000 (PWA) / 10,000 (Azure)   | `useDataIngestion.ts` | Confirm dialog, user can proceed. Configurable via `DataIngestionConfig.rowWarningThreshold` |
+
+### Mobile Row Limits (ADR-039)
+
+Mobile devices use lower limits to prevent memory and computation issues on constrained hardware:
+
+| Platform | Desktop Hard Limit | Desktop Warning | Mobile Hard Limit | Mobile Warning |
+| -------- | ------------------ | --------------- | ----------------- | -------------- |
+| PWA      | 50,000 rows        | 5,000 rows      | 10,000 rows       | 2,000 rows     |
+| Azure    | 100,000 rows       | 10,000 rows     | 25,000 rows       | 5,000 rows     |
+
+Mobile detection uses `useIsMobile(640)` in app-level `useDataIngestion` wrappers. The limits are passed as `DataIngestionConfig` overrides — the hook itself is unchanged.
+| Column limit | None enforced | — | All columns loaded |
+| Auto-detected factors | 3 suggested | `parser.ts detectColumns()` | `.slice(0, 3)` default suggestion |
+| Max selectable factors | 3 (PWA) / 6 (Azure) | `ColumnMapping` | Configurable via `maxFactors` prop |
+| Factor change during analysis | Both (PWA 3, Azure 6) | ColumnMapping `mode='edit'` | "Factors" button in nav bar reopens ColumnMapping |
 
 ## Categorical Classification
 

@@ -92,6 +92,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Improvement Prioritization | adr-035, docs/03-features/workflows/improvement-prioritization.md, docs/superpowers/specs/2026-03-20-improvement-prioritization-design.md               |
 | Yamazumi / Time Study      | adr-034, docs/03-features/analysis/yamazumi.md, packages/core/src/yamazumi/                                                                             |
 | Navigation / Views         | docs/06-design-system/patterns/navigation.md, apps/pwa/src/hooks/useAppPanels.ts, apps/azure/src/hooks/useEditorPanels.ts                               |
+| Performance / Mobile       | adr-039, docs/05-technical/implementation/system-limits.md, .claude/rules/charts.md                                                                     |
 
 ## Repository Structure
 
