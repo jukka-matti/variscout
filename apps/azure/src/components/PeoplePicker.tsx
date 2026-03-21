@@ -32,7 +32,7 @@ const PeoplePicker: React.FC<PeoplePickerProps> = ({
   const [results, setResults] = useState<GraphUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside

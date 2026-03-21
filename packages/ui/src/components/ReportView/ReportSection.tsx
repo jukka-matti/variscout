@@ -33,7 +33,7 @@ export interface ReportSectionProps {
   title: string;
   status: 'done' | 'active' | 'future';
   workspace?: ReportWorkspace;
-  sectionRef: React.RefObject<HTMLDivElement>;
+  sectionRef: React.RefObject<HTMLDivElement | null>;
   children: React.ReactNode;
   onCopyAsSlide?: () => void;
   copyFeedback?: boolean;

@@ -77,10 +77,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     title: string;
     onClick: () => void;
     isActive?: boolean;
-    buttonRef?: React.RefObject<HTMLButtonElement>;
+    buttonRef?: React.RefObject<HTMLButtonElement | null>;
   }) => (
     <button
-      ref={buttonRef as React.RefObject<HTMLButtonElement>}
+      ref={buttonRef}
       onClick={onClick}
       className={`p-2 rounded-lg transition-colors ${
         isActive

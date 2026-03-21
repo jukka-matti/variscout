@@ -250,8 +250,8 @@ export interface UseEditorDataFlowReturn {
   handleAppendFile: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   triggerFileUpload: () => void;
   triggerAppendFileUpload: () => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
-  appendFileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  appendFileInputRef: React.RefObject<HTMLInputElement | null>;
   // Independent state (not part of flow reducer)
   timeExtractionPrompt: { timeColumn: string; hasTimeComponent: boolean } | null;
   setTimeExtractionPrompt: (v: { timeColumn: string; hasTimeComponent: boolean } | null) => void;
@@ -676,8 +676,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     handleAppendFile,
     triggerFileUpload,
     triggerAppendFileUpload,
-    fileInputRef: fileInputRef as React.RefObject<HTMLInputElement>,
-    appendFileInputRef: appendFileInputRef as React.RefObject<HTMLInputElement>,
+    fileInputRef,
+    appendFileInputRef,
     // Independent state
     timeExtractionPrompt,
     setTimeExtractionPrompt,

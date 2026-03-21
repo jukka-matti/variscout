@@ -7,7 +7,7 @@ import { ReportSection } from '../ReportSection';
 // Helper
 // ---------------------------------------------------------------------------
 
-function makeRef(): React.RefObject<HTMLDivElement> {
+function makeRef(): React.RefObject<HTMLDivElement | null> {
   return { current: null };
 }
 

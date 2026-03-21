@@ -76,7 +76,7 @@ export interface ReportViewBaseProps {
   canShareViaTeams?: boolean;
   colorScheme?: Partial<ReportViewBaseColorScheme>;
   /** Ref to attach to the scrollable content area (for measuring width) */
-  contentRef?: React.RefObject<HTMLDivElement>;
+  contentRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 const BADGE_COLORS: Record<ReportType, string> = {

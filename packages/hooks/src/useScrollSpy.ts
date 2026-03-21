@@ -22,7 +22,7 @@ export interface UseScrollSpyOptions {
 
 export interface UseScrollSpyReturn {
   activeId: string | null;
-  refs: Record<string, React.RefObject<HTMLDivElement>>;
+  refs: Record<string, React.RefObject<HTMLDivElement | null>>;
 }
 
 // ============================================================================
@@ -39,12 +39,12 @@ export function useScrollSpy({
 
   // Create a stable ref object keyed by id.
   // Using useRef to hold the map so refs themselves don't change identity.
-  const refsMapRef = useRef<Record<string, React.RefObject<HTMLDivElement>>>({});
+  const refsMapRef = useRef<Record<string, React.RefObject<HTMLDivElement | null>>>({});
 
   // Ensure all current sectionIds have a ref entry.
   for (const id of sectionIds) {
     if (!refsMapRef.current[id]) {
-      refsMapRef.current[id] = { current: null } as React.RefObject<HTMLDivElement>;
+      refsMapRef.current[id] = { current: null };
     }
   }
 

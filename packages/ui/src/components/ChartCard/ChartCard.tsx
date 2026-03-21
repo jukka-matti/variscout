@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { Copy, Check, Maximize2 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import './ChartCard.css';
@@ -55,80 +55,74 @@ export interface ChartCardProps {
  *   <IChart />
  * </ChartCard>
  */
-export const ChartCard = forwardRef<HTMLDivElement, ChartCardProps>(
-  (
-    {
-      id,
-      chartId,
-      title,
-      controls,
-      children,
-      onCopy,
-      onMaximize,
-      copyFeedback = false,
-      highlightClass = '',
-      onClick,
-      minHeight = '280px',
-      showActions = true,
-      className = '',
-    },
-    ref
-  ) => {
-    const { t } = useTranslation();
-    return (
-      <div
-        ref={ref}
-        id={id}
-        data-chart-id={chartId}
-        onClick={onClick}
-        className={`chart-card ${highlightClass} ${className}`}
-        style={{ minHeight }}
-      >
-        <div className="chart-card__header">
-          <div className="chart-card__title">{title}</div>
+export const ChartCard = ({
+  ref,
+  id,
+  chartId,
+  title,
+  controls,
+  children,
+  onCopy,
+  onMaximize,
+  copyFeedback = false,
+  highlightClass = '',
+  onClick,
+  minHeight = '280px',
+  showActions = true,
+  className = '',
+}: ChartCardProps & { ref?: React.Ref<HTMLDivElement> }) => {
+  const { t } = useTranslation();
+  return (
+    <div
+      ref={ref}
+      id={id}
+      data-chart-id={chartId}
+      onClick={onClick}
+      className={`chart-card ${highlightClass} ${className}`}
+      style={{ minHeight }}
+    >
+      <div className="chart-card__header">
+        <div className="chart-card__title">{title}</div>
 
-          <div className="chart-card__controls">
-            {controls}
+        <div className="chart-card__controls">
+          {controls}
 
-            {showActions && (
-              <div className="chart-card__actions">
-                {onCopy && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      onCopy();
-                    }}
-                    className={`chart-card__action-btn ${
-                      copyFeedback ? 'chart-card__action-btn--success' : ''
-                    }`}
-                    title={t('chart.copyToClipboard')}
-                  >
-                    {copyFeedback ? <Check size={14} /> : <Copy size={14} />}
-                  </button>
-                )}
-                {onMaximize && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      onMaximize();
-                    }}
-                    className="chart-card__action-btn"
-                    title={t('chart.maximize')}
-                  >
-                    <Maximize2 size={14} />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+          {showActions && (
+            <div className="chart-card__actions">
+              {onCopy && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onCopy();
+                  }}
+                  className={`chart-card__action-btn ${
+                    copyFeedback ? 'chart-card__action-btn--success' : ''
+                  }`}
+                  title={t('chart.copyToClipboard')}
+                >
+                  {copyFeedback ? <Check size={14} /> : <Copy size={14} />}
+                </button>
+              )}
+              {onMaximize && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onMaximize();
+                  }}
+                  className="chart-card__action-btn"
+                  title={t('chart.maximize')}
+                >
+                  <Maximize2 size={14} />
+                </button>
+              )}
+            </div>
+          )}
         </div>
-
-        <div className="chart-card__content">{children}</div>
       </div>
-    );
-  }
-);
 
-ChartCard.displayName = 'ChartCard';
+      <div className="chart-card__content">{children}</div>
+    </div>
+  );
+};
 
 export default ChartCard;

@@ -7,7 +7,7 @@ interface SharePopoverProps {
   onClose: () => void;
   onExportCSV: () => void;
   onExportImage: () => void;
-  anchorRef?: React.RefObject<HTMLButtonElement>;
+  anchorRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 const SharePopover: React.FC<SharePopoverProps> = ({
