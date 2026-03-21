@@ -88,11 +88,13 @@ export {
   groupDataIntoSubgroups,
   calculateSubgroupCapability,
   calculateSeriesControlLimits,
+  formatTimeBucket,
 } from './stats';
 
 // Subgroup capability types
 export type {
   SubgroupMethod,
+  TimeGranularity,
   SubgroupConfig,
   SubgroupCapabilityResult,
   SubgroupData,

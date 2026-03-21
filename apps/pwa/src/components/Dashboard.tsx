@@ -37,7 +37,7 @@ import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import { Activity, Copy, Check, Download, Settings2 } from 'lucide-react';
-import { getColumnNames, type SpecLimits, type Finding } from '@variscout/core';
+import { getColumnNames, hasTimeComponent, type SpecLimits, type Finding } from '@variscout/core';
 
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
 
@@ -655,6 +655,8 @@ const Dashboard = ({
                 onConfigChange={setSubgroupConfig}
                 availableColumns={factors}
                 columnAliases={columnAliases}
+                timeColumn={timeColumn}
+                hasTimeOfDay={timeColumn ? hasTimeComponent(filteredData, timeColumn) : false}
               />
             )}
           </div>
