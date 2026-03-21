@@ -55,6 +55,7 @@ const IChartBase: React.FC<IChartProps> = ({
   secondaryStats,
   primaryLabel,
   secondaryLabel,
+  targetLabel,
 }) => {
   const { chrome, formatStat, t, tf } = useChartTheme();
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
@@ -578,7 +579,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   {onSpecClick && (
                     <title>{tf('chart.edit.spec', { spec: t('stats.target') })}</title>
                   )}
-                  {t('chart.label.tgt')} {formatStat(specs.target, 1)}
+                  {targetLabel ?? t('chart.label.tgt')} {formatStat(specs.target, 1)}
                 </text>
               )}
             </>

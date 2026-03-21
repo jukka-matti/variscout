@@ -196,6 +196,7 @@ export const IChartWrapperBase = ({
         secondaryStats={isCapabilityMode ? capabilityCpStats : undefined}
         primaryLabel={isCapabilityMode ? 'Cpk' : undefined}
         secondaryLabel={isCapabilityMode ? 'Cp' : undefined}
+        targetLabel={isCapabilityMode && cpkTarget !== undefined ? 'Cpk target' : undefined}
       />
 
       {ichartFindings.length > 0 && onEditFinding && onDeleteFinding && (

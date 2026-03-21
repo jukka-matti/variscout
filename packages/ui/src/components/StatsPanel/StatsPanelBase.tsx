@@ -144,7 +144,11 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
                 </div>
                 {cpkTarget !== undefined && (
                   <div
-                    className={`text-[10px] mt-0.5 ${stats?.cpk !== undefined && stats?.cpk !== null && stats.cpk >= cpkTarget ? 'text-green-500' : 'text-red-400'}`}
+                    className={`text-[10px] mt-0.5 ${
+                      stats?.cpk !== undefined && stats?.cpk !== null && stats.cpk >= cpkTarget
+                        ? 'text-green-500'
+                        : 'text-red-400'
+                    }`}
                   >
                     target: {formatStat(cpkTarget)}
                     {subgroupsMeetingTarget !== undefined && subgroupCount !== undefined && (

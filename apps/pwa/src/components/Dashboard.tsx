@@ -134,6 +134,7 @@ const Dashboard = ({
 
   const { getTerm } = useGlossary();
 
+  // Capability data for stats panel target count
   const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
   const capabilityData = useCapabilityIChartData({
     filteredData,
@@ -142,7 +143,9 @@ const Dashboard = ({
     subgroupConfig,
     cpkTarget,
   });
+
   const handleCpkClick = useCallback(() => {
+    // Activate capability mode on the I-Chart
     setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
   }, [displayOptions, setDisplayOptions]);
 

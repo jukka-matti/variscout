@@ -173,6 +173,7 @@ const Dashboard = ({
   const { getTerm } = useGlossary();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
 
+  // Capability data for stats panel target count
   const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
   const capabilityData = useCapabilityIChartData({
     filteredData,
@@ -181,6 +182,7 @@ const Dashboard = ({
     subgroupConfig,
     cpkTarget,
   });
+
   const handleCpkClick = useCallback(() => {
     setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
   }, [displayOptions, setDisplayOptions]);

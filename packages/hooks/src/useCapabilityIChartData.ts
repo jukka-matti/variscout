@@ -28,7 +28,7 @@ export interface UseCapabilityIChartDataOptions {
   specs: { usl?: number; lsl?: number };
   /** Subgroup configuration */
   subgroupConfig: SubgroupConfig;
-  /** Cpk target threshold */
+  /** Cpk target threshold (undefined = not set) */
   cpkTarget?: number;
 }
 
@@ -43,7 +43,7 @@ export interface UseCapabilityIChartDataResult {
   cpStats: StatsResult | null;
   /** Raw results for export/table */
   subgroupResults: SubgroupCapabilityResult[];
-  /** Number of subgroups meeting Cpk target (undefined when no target set) */
+  /** Number of subgroups meeting cpkTarget (undefined if no target set) */
   subgroupsMeetingTarget?: number;
 }
 
@@ -122,6 +122,7 @@ export function useCapabilityIChartData({
     const cpkLimits = calculateSeriesControlLimits(cpkValues);
     const cpLimits = calculateSeriesControlLimits(cpValues);
 
+    // Count subgroups meeting target (when cpkTarget is set)
     const subgroupsMeetingTarget =
       cpkTarget !== undefined ? cpkValues.filter(v => v >= cpkTarget).length : undefined;
 

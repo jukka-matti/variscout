@@ -29,7 +29,7 @@ export interface StatsPanelBaseProps {
   showCpk?: boolean;
   /** When present and staged data is active, replaces default metric grid with comparison card */
   stagedComparison?: StagedComparison;
-  /** Cpk target for staged comparison display */
+  /** Cpk target threshold (shown in Cpk card, used for staged comparison) */
   cpkTarget?: number;
   /** Callback when Cpk card is clicked (navigates to capability mode) */
   onCpkClick?: () => void;

@@ -71,7 +71,7 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
     setHasChanges(false);
   }, [specs]);
 
-  // Sync Cpk target state when prop changes from outside
+  // Sync cpkTarget local state when prop changes
   useEffect(() => {
     setLocalCpkTarget(cpkTarget?.toString() || '1.33');
     setCpkTargetEnabled(cpkTarget !== undefined);
@@ -273,6 +273,7 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
               checked={visibility.lsl}
               placeholder="Min"
             />
+
             {/* Cpk Target — process capability threshold (separate from product specs) */}
             {onCpkTargetChange && (
               <>

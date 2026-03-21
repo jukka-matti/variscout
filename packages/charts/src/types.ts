@@ -108,6 +108,8 @@ export interface IChartProps extends BaseChartProps {
   primaryLabel?: string;
   /** Label for secondary series (e.g., "Cp") */
   secondaryLabel?: string;
+  /** Override the target line label (default: translated "Tgt") */
+  targetLabel?: string;
 }
 
 /**
