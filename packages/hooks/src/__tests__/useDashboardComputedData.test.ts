@@ -82,6 +82,19 @@ describe('useDashboardComputedData', () => {
   });
 
   describe('anovaResult', () => {
+    it('exposes isPending boolean in result', () => {
+      const { result } = renderHook(() =>
+        useDashboardComputedData({
+          rawData: RAW_DATA,
+          filteredData: RAW_DATA,
+          outcome: 'Weight',
+          boxplotFactor: 'Machine',
+        })
+      );
+
+      expect(typeof result.current.isPending).toBe('boolean');
+    });
+
     it('computes ANOVA for factor vs outcome', () => {
       const { result } = renderHook(() =>
         useDashboardComputedData({

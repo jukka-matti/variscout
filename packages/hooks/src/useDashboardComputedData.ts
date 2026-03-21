@@ -7,7 +7,7 @@
  * - anovaResult: ANOVA calculation for current boxplot factor
  * - boxplotData: grouped and sorted boxplot data for stats tables
  */
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect, useTransition } from 'react';
 import { calculateAnova, sortBoxplotData, calculateBoxplotStats } from '@variscout/core';
 import type {
   AnovaResult,
@@ -41,6 +41,8 @@ export interface UseDashboardComputedDataResult {
   availableStageColumns: string[];
   /** ANOVA result for current boxplot factor vs outcome */
   anovaResult: AnovaResult | null;
+  /** True while ANOVA computation is deferred via useTransition */
+  isPending: boolean;
   /** Grouped and sorted boxplot data */
   boxplotData: BoxplotGroupData[];
 }
@@ -87,10 +89,22 @@ export function useDashboardComputedData({
     return candidates;
   }, [rawData, outcome]);
 
-  // Computed: ANOVA result
-  const anovaResult: AnovaResult | null = useMemo(() => {
-    if (!outcome || !boxplotFactor || filteredData.length === 0) return null;
-    return calculateAnova(filteredData, outcome, boxplotFactor);
+  // Computed: ANOVA result — wrapped in useTransition to avoid blocking the UI
+  // on large datasets (100K rows). The result lags by one render cycle but
+  // keeps interactions responsive while the calculation runs.
+  const [isPending, startTransition] = useTransition();
+  const [anovaResult, setAnovaResult] = useState<AnovaResult | null>(null);
+
+  useEffect(() => {
+    if (!outcome || !boxplotFactor || filteredData.length === 0) {
+      setAnovaResult(null);
+      return;
+    }
+    startTransition(() => {
+      const result = calculateAnova(filteredData, outcome, boxplotFactor);
+      setAnovaResult(result);
+    });
+    // startTransition is stable and does not need to be in the deps array
   }, [filteredData, outcome, boxplotFactor]);
 
   // Computed: boxplot data (skip when pre-computed data is provided)
@@ -127,6 +141,7 @@ export function useDashboardComputedData({
     availableOutcomes,
     availableStageColumns,
     anovaResult,
+    isPending,
     boxplotData,
   };
 }
