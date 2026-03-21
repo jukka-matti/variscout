@@ -28,24 +28,29 @@ const Boxplot = ({ parentWidth, parentHeight, ...props }: BoxplotProps) => {
   const { min, max } = useChartScale();
 
   return (
-    <BoxplotWrapperBase
-      parentWidth={parentWidth}
-      parentHeight={parentHeight}
-      filteredData={ctx.filteredData}
-      outcome={ctx.outcome}
-      specs={ctx.specs}
-      filters={ctx.filters}
-      onFiltersChange={ctx.setFilters}
-      columnAliases={ctx.columnAliases}
-      onColumnAliasesChange={ctx.setColumnAliases}
-      valueLabels={ctx.valueLabels}
-      onValueLabelsChange={ctx.setValueLabels}
-      displayOptions={ctx.displayOptions}
-      yDomainMin={min}
-      yDomainMax={max}
-      showBranding={false}
-      {...props}
-    />
+    <div className="relative h-full w-full">
+      <BoxplotWrapperBase
+        parentWidth={parentWidth}
+        parentHeight={parentHeight}
+        filteredData={ctx.filteredData}
+        outcome={ctx.outcome}
+        specs={ctx.specs}
+        filters={ctx.filters}
+        onFiltersChange={ctx.setFilters}
+        columnAliases={ctx.columnAliases}
+        onColumnAliasesChange={ctx.setColumnAliases}
+        valueLabels={ctx.valueLabels}
+        onValueLabelsChange={ctx.setValueLabels}
+        displayOptions={ctx.displayOptions}
+        yDomainMin={min}
+        yDomainMax={max}
+        showBranding={false}
+        {...props}
+      />
+      {ctx.isComputing && (
+        <div className="absolute inset-0 bg-surface-primary/30 pointer-events-none transition-opacity duration-200" />
+      )}
+    </div>
   );
 };
 

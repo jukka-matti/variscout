@@ -18,6 +18,7 @@ import {
 } from '@variscout/hooks';
 import { type StatsResult, type StagedStatsResult, type StageOrderMode } from '@variscout/core';
 import { pwaPersistenceAdapter } from '../lib/persistenceAdapter';
+import { useStatsWorker } from '../workers/useStatsWorker';
 
 // Re-export types for backwards compatibility
 export type { DisplayOptions, ChartTitles, ParetoMode, DataQualityReport, ParetoRow };
@@ -26,8 +27,10 @@ const DataStateContext = createContext<DataState | undefined>(undefined);
 const DataActionsContext = createContext<DataActions | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const workerApi = useStatsWorker();
   const [state, actions] = useDataState({
     persistence: pwaPersistenceAdapter,
+    workerApi,
   });
 
   return (

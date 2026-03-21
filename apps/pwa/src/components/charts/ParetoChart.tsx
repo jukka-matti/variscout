@@ -32,20 +32,25 @@ const ParetoChart = ({ parentWidth, parentHeight, ...props }: ParetoChartProps) 
   const ctx = useData();
 
   return (
-    <ParetoChartWrapperBase
-      parentWidth={parentWidth}
-      parentHeight={parentHeight}
-      rawData={ctx.rawData}
-      filteredData={ctx.filteredData}
-      outcome={ctx.outcome}
-      filters={ctx.filters}
-      onFiltersChange={ctx.setFilters}
-      columnAliases={ctx.columnAliases}
-      onColumnAliasesChange={ctx.setColumnAliases}
-      paretoMode={ctx.paretoMode}
-      separateParetoData={ctx.separateParetoData}
-      {...props}
-    />
+    <div className="relative h-full w-full">
+      <ParetoChartWrapperBase
+        parentWidth={parentWidth}
+        parentHeight={parentHeight}
+        rawData={ctx.rawData}
+        filteredData={ctx.filteredData}
+        outcome={ctx.outcome}
+        filters={ctx.filters}
+        onFiltersChange={ctx.setFilters}
+        columnAliases={ctx.columnAliases}
+        onColumnAliasesChange={ctx.setColumnAliases}
+        paretoMode={ctx.paretoMode}
+        separateParetoData={ctx.separateParetoData}
+        {...props}
+      />
+      {ctx.isComputing && (
+        <div className="absolute inset-0 bg-surface-primary/30 pointer-events-none transition-opacity duration-200" />
+      )}
+    </div>
   );
 };
 
