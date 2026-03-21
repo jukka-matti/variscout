@@ -10,6 +10,9 @@
 
 import type { DataCellValue, DataRow } from './types';
 
+/** Time interval granularity for time-based subgrouping */
+export type TimeGranularity = 'minute' | 'hour' | 'day' | 'week';
+
 /**
  * Extracted time components from a date value
  */
@@ -30,6 +33,8 @@ export interface TimeExtractionConfig {
   extractWeek: boolean;
   extractDayOfWeek: boolean;
   extractHour: boolean;
+  /** Minute-interval extraction: 1, 5, 15, or 30. Creates column like 'timestamp_15min'. */
+  extractMinuteInterval?: number;
 }
 
 /**
@@ -217,6 +222,47 @@ export function formatTimeValue(value: DataCellValue): string | null {
 }
 
 /**
+ * Format a date into a bucket label for the given granularity.
+ *
+ * @param date - Date to format
+ * @param granularity - Time granularity
+ * @param minuteInterval - Minute interval (only used when granularity = 'minute')
+ * @returns Formatted bucket label
+ */
+export function formatTimeBucket(
+  date: Date,
+  granularity: TimeGranularity,
+  minuteInterval: number = 15
+): string {
+  const month = MONTH_ABBR[date.getMonth()];
+  const day = date.getDate();
+
+  switch (granularity) {
+    case 'minute': {
+      const effectiveInterval = Math.max(1, minuteInterval);
+      const floored = Math.floor(date.getMinutes() / effectiveInterval) * effectiveInterval;
+      const hh = String(date.getHours()).padStart(2, '0');
+      const mm = String(floored).padStart(2, '0');
+      return `${month} ${day} ${hh}:${mm}`;
+    }
+    case 'hour': {
+      const hh = String(date.getHours()).padStart(2, '0');
+      return `${month} ${day} ${hh}:00`;
+    }
+    case 'day':
+      return `${month} ${day}`;
+    case 'week': {
+      // ISO week number
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const weekNum = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+      return `W${String(weekNum).padStart(2, '0')} ${d.getUTCFullYear()}`;
+    }
+  }
+}
+
+/**
  * Augment dataset with computed time columns
  *
  * IMPORTANT: Mutates the data array in place by adding new properties to each row
@@ -265,6 +311,21 @@ export function augmentWithTimeColumns(
 
       // Add component to row
       row[columnName] = components[key] ?? null;
+    }
+  }
+
+  // Minute-interval extraction
+  if (config.extractMinuteInterval && config.extractMinuteInterval > 0) {
+    const interval = config.extractMinuteInterval;
+    const colName = `${timeColumn}_${interval}min`;
+    newColumns.push(colName);
+    for (const row of data) {
+      const date = parseTimeValue(row[timeColumn]);
+      if (date) {
+        row[colName] = formatTimeBucket(date, 'minute', interval);
+      } else {
+        row[colName] = '';
+      }
     }
   }
 

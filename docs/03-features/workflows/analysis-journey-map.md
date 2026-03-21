@@ -127,6 +127,7 @@ flowchart TD
 2. **Compare factors in Boxplot** -- Read ANOVA eta-squared to identify which factor explains the most variation.
 3. **Rank in Pareto** -- See which categories within a factor contribute most to failures or out-of-spec results.
 4. **Check Cpk** -- After filtering, assess whether the isolated subset meets specification requirements.
+5. **Toggle Capability Mode** -- The I-Chart supports a "Values | Capability" toggle switching between raw measurements and per-subgroup Cp/Cpk. This checks whether subgroups consistently meet the Cpk target. See [Analysis Flow](analysis-flow.md) for the complete two-thread analysis journey.
 
 At any point, the analyst can **pin a finding** to capture an observation for later investigation.
 

@@ -106,6 +106,16 @@ FRAME contains significant deterministic engines: data parsing and validation, c
 
 The Four Lenses (CHANGE/FLOW/FAILURE/VALUE) are pedagogical labels for the chart sequence — useful for teaching and marketing. Code uses chart names directly.
 
+#### Analysis Modes (SCOUT)
+
+The standard Four Lenses dashboard can be augmented with alternative analysis modes:
+
+- **Performance Mode** — Multi-channel Cpk comparison (wide-format data)
+- **Yamazumi Mode** — Lean time study (stacked activity bars)
+- **Capability Mode** — I-Chart view toggle showing per-subgroup Cp/Cpk ("Are we meeting our Cpk target?")
+
+Each mode is a view configuration, not a separate workflow. The analyst switches freely and all modes share the same findings, drill-down, and investigation infrastructure.
+
 ### INVESTIGATE
 
 | Aspect   | Detail                                                                                          |

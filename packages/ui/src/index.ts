@@ -9,6 +9,10 @@ export {
   PerformanceDetectedModal,
   type PerformanceDetectedModalProps,
 } from './components/PerformanceDetectedModal';
+export {
+  CapabilitySuggestionModal,
+  type CapabilitySuggestionModalProps,
+} from './components/CapabilitySuggestionModal';
 export { DataQualityBanner, type DataQualityBannerProps } from './components/DataQualityBanner';
 export {
   ColumnMapping,

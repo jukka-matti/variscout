@@ -351,6 +351,45 @@ describe('augmentWithTimeColumns', () => {
     expect(result.newColumns).toEqual([]);
     expect(result.hasHourColumn).toBe(false);
   });
+
+  describe('minute intervals', () => {
+    it('should extract 15-minute interval columns', () => {
+      const data = [
+        { timestamp: '2025-03-19T14:03:00' },
+        { timestamp: '2025-03-19T14:18:00' },
+        { timestamp: '2025-03-19T14:32:00' },
+      ];
+      const config: TimeExtractionConfig = {
+        extractYear: false,
+        extractMonth: false,
+        extractWeek: false,
+        extractDayOfWeek: false,
+        extractHour: false,
+        extractMinuteInterval: 15,
+      };
+      const result = augmentWithTimeColumns(asRows(data), 'timestamp', config);
+      expect(result.newColumns).toContain('timestamp_15min');
+      expect((data[0] as Record<string, unknown>)['timestamp_15min']).toBe('Mar 19 14:00');
+      expect((data[1] as Record<string, unknown>)['timestamp_15min']).toBe('Mar 19 14:15');
+      expect((data[2] as Record<string, unknown>)['timestamp_15min']).toBe('Mar 19 14:30');
+    });
+
+    it('should extract 5-minute interval columns', () => {
+      const data = [{ timestamp: '2025-03-19T14:03:00' }, { timestamp: '2025-03-19T14:07:00' }];
+      const config: TimeExtractionConfig = {
+        extractYear: false,
+        extractMonth: false,
+        extractWeek: false,
+        extractDayOfWeek: false,
+        extractHour: false,
+        extractMinuteInterval: 5,
+      };
+      const result = augmentWithTimeColumns(asRows(data), 'timestamp', config);
+      expect(result.newColumns).toContain('timestamp_5min');
+      expect((data[0] as Record<string, unknown>)['timestamp_5min']).toBe('Mar 19 14:00');
+      expect((data[1] as Record<string, unknown>)['timestamp_5min']).toBe('Mar 19 14:05');
+    });
+  });
 });
 
 describe('hasTimeComponent', () => {

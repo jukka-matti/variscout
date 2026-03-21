@@ -8,6 +8,14 @@ export interface TimeExtractionPanelProps {
   onTimeExtractionChange?: (config: TimeExtractionConfig) => void;
 }
 
+const MINUTE_INTERVAL_OPTIONS = [
+  { value: 0, label: 'Hour only' },
+  { value: 30, label: 'Every 30 min' },
+  { value: 15, label: 'Every 15 min' },
+  { value: 5, label: 'Every 5 min' },
+  { value: 1, label: 'Every 1 min' },
+] as const;
+
 const TimeExtractionPanel: React.FC<TimeExtractionPanelProps> = ({
   timeColumn,
   hasTimeComponent,
@@ -58,7 +66,12 @@ const TimeExtractionPanel: React.FC<TimeExtractionPanelProps> = ({
               type="checkbox"
               checked={config[key]}
               onChange={e => {
-                const newConfig = { ...config, [key]: e.target.checked };
+                const checked = e.target.checked;
+                const newConfig = { ...config, [key]: checked };
+                // Clear minute interval when Hour is unchecked
+                if (key === 'extractHour' && !checked) {
+                  newConfig.extractMinuteInterval = undefined;
+                }
                 setConfig(newConfig);
                 onTimeExtractionChange?.(newConfig);
               }}
@@ -68,6 +81,37 @@ const TimeExtractionPanel: React.FC<TimeExtractionPanelProps> = ({
             <span className="text-xs text-slate-500 font-mono">{example}</span>
           </label>
         ))}
+
+        {hasTimeComponent && config.extractHour && (
+          <div className="ml-9 p-2">
+            <label
+              htmlFor="time-extract-minute-interval"
+              className="block text-xs text-slate-400 mb-1"
+            >
+              Minute interval
+            </label>
+            <select
+              id="time-extract-minute-interval"
+              value={config.extractMinuteInterval ?? 0}
+              onChange={e => {
+                const value = Number(e.target.value);
+                const newConfig = {
+                  ...config,
+                  extractMinuteInterval: value > 0 ? value : undefined,
+                };
+                setConfig(newConfig);
+                onTimeExtractionChange?.(newConfig);
+              }}
+              className="w-full rounded border border-slate-600 bg-slate-700 text-sm text-slate-200 px-2 py-1.5 focus:ring-purple-600 focus:border-purple-600"
+            >
+              {MINUTE_INTERVAL_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <p className="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-700">
           New columns will be added as factors (e.g., "{timeColumn}_Month", "{timeColumn}_Year")

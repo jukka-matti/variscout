@@ -140,9 +140,9 @@ Beyond the standard four-tool view, VariScout supports alternative analysis mode
 
 - **Performance Mode** — Multi-channel Cpk comparison for wide-format data (fill heads, cavities, nozzles)
 - **Yamazumi Mode** — Lean time study with stacked activity bars and cycle time decomposition
-- **Capability Mode** — Per-subgroup Cp/Cpk stability analysis on the I-Chart
+- **Capability Mode** — Per-subgroup Cp/Cpk stability analysis on the I-Chart, answering "Are we meeting our Cpk target?" Analysts switch freely between standard and capability views at any drill level. Time-based subgrouping uses extracted time columns from FRAME. See [Analysis Flow](../03-features/workflows/analysis-flow.md) for how these modes interleave through the full journey.
 
-Each mode reuses the same chart infrastructure with different data pipelines and interpretation context. See [Subgroup Capability Analysis](../03-features/analysis/subgroup-capability.md) for the newest addition.
+Each mode reuses the same chart infrastructure with different data pipelines and interpretation context. See [Subgroup Capability Analysis](../03-features/analysis/subgroup-capability.md) for the capability mode details.
 
 ---
 

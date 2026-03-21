@@ -17,6 +17,7 @@ import {
   AIOnboardingTooltip,
   ImprovementWorkspaceBase,
   YamazumiDetectedModal,
+  CapabilitySuggestionModal,
   type AnalysisBrief,
 } from '@variscout/ui';
 import {
@@ -142,6 +143,7 @@ export const Editor: React.FC<EditorProps> = ({
     setCategories,
     knowledgeSearchFolder,
     subgroupConfig,
+    setSubgroupConfig,
     cpkTarget,
   } = useData();
 
@@ -258,6 +260,10 @@ export const Editor: React.FC<EditorProps> = ({
       dataFlow.manualEntryDone();
     },
   });
+
+  // Capability suggestion modal state
+  const [showCapabilitySuggestion, setShowCapabilitySuggestion] = useState(false);
+  const [capabilitySuggestionDismissed, setCapabilitySuggestionDismissed] = useState(false);
 
   // Load project data when opening an existing project
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -694,6 +700,26 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
+
+  // Capability suggestion: show when specs are set and no other detection modal is showing
+  useEffect(() => {
+    if (
+      rawData.length > 0 &&
+      (specs?.usl !== undefined || specs?.lsl !== undefined) &&
+      (factors.length > 0 || rawData.length >= 10) &&
+      !capabilitySuggestionDismissed &&
+      !showCapabilitySuggestion &&
+      !dataFlow.yamazumiDetection
+    ) {
+      setShowCapabilitySuggestion(true);
+    }
+  }, [
+    rawData.length,
+    specs,
+    capabilitySuggestionDismissed,
+    showCapabilitySuggestion,
+    dataFlow.yamazumiDetection,
+  ]);
 
   // Journey phase detection for toolbar coaching strip
   const journeyPhase = useJourneyPhase(!!filteredData.length, findingsState.findings);
@@ -1661,6 +1687,23 @@ export const Editor: React.FC<EditorProps> = ({
             dataFlow.dismissYamazumiDetection();
           }}
           onDecline={() => dataFlow.dismissYamazumiDetection()}
+        />
+      )}
+
+      {/* Capability Suggestion Modal */}
+      {showCapabilitySuggestion && (
+        <CapabilitySuggestionModal
+          onStartCapability={config => {
+            setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
+            setSubgroupConfig(config);
+            setShowCapabilitySuggestion(false);
+            setCapabilitySuggestionDismissed(true);
+          }}
+          onStartStandard={() => {
+            setShowCapabilitySuggestion(false);
+            setCapabilitySuggestionDismissed(true);
+          }}
+          factorColumns={factors}
         />
       )}
     </div>

@@ -9,17 +9,13 @@ import * as d3 from 'd3-array';
 import type { DataRow } from '../types';
 import { toNumericValue } from '../types';
 import { calculateMovingRangeSigma } from './basic';
-import { parseTimeValue } from '../time';
 
 // ============================================================================
 // Types
 // ============================================================================
 
 /** How subgroups are formed from raw data */
-export type SubgroupMethod = 'column' | 'fixed-size' | 'time-interval';
-
-/** Time interval granularity for time-based subgrouping */
-export type TimeGranularity = 'minute' | 'hour' | 'day' | 'week';
+export type SubgroupMethod = 'column' | 'fixed-size';
 
 /** Configuration for subgroup formation */
 export interface SubgroupConfig {
@@ -29,12 +25,6 @@ export interface SubgroupConfig {
   column?: string;
   /** Subgroup size when method = 'fixed-size' (default 5, min 2) */
   size?: number;
-  /** Time column name when method = 'time-interval' */
-  timeColumn?: string;
-  /** Time granularity when method = 'time-interval' */
-  granularity?: TimeGranularity;
-  /** Minute interval when granularity = 'minute' (e.g., 5, 15, 30) */
-  minuteInterval?: number;
 }
 
 /** A single subgroup's capability result */
@@ -105,15 +95,6 @@ export function groupDataIntoSubgroups(
   if (config.method === 'column' && config.column) {
     return groupByColumn(rows, outcome, config.column);
   }
-  if (config.method === 'time-interval' && config.timeColumn && config.granularity) {
-    return groupByTimeInterval(
-      rows,
-      outcome,
-      config.timeColumn,
-      config.granularity,
-      config.minuteInterval
-    );
-  }
   return groupByFixedSize(rows, outcome, config.size ?? 5);
 }
 
@@ -171,95 +152,6 @@ function groupByFixedSize(rows: DataRow[], outcome: string, size: number): Subgr
   }
 
   return result;
-}
-
-function groupByTimeInterval(
-  rows: DataRow[],
-  outcome: string,
-  timeColumn: string,
-  granularity: TimeGranularity,
-  minuteInterval: number = 15
-): SubgroupData[] {
-  const groups = new Map<string, { values: number[]; rows: DataRow[] }>();
-
-  for (const row of rows) {
-    const val = toNumericValue(row[outcome]);
-    if (val === undefined) continue;
-
-    const date = parseTimeValue(row[timeColumn]);
-    if (!date) continue;
-
-    const key = formatTimeBucket(date, granularity, minuteInterval);
-    let group = groups.get(key);
-    if (!group) {
-      group = { values: [], rows: [] };
-      groups.set(key, group);
-    }
-    group.values.push(val);
-    group.rows.push(row);
-  }
-
-  const result: SubgroupData[] = [];
-  for (const [label, group] of groups) {
-    result.push({ values: group.values, label, rows: group.rows });
-  }
-  return result;
-}
-
-const MONTH_ABBR = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
-
-/**
- * Format a date into a bucket label for the given granularity.
- *
- * @param date - Date to format
- * @param granularity - Time granularity
- * @param minuteInterval - Minute interval (only used when granularity = 'minute')
- * @returns Formatted bucket label
- */
-export function formatTimeBucket(
-  date: Date,
-  granularity: TimeGranularity,
-  minuteInterval: number = 15
-): string {
-  const month = MONTH_ABBR[date.getMonth()];
-  const day = date.getDate();
-
-  switch (granularity) {
-    case 'minute': {
-      const effectiveInterval = Math.max(1, minuteInterval);
-      const floored = Math.floor(date.getMinutes() / effectiveInterval) * effectiveInterval;
-      const hh = String(date.getHours()).padStart(2, '0');
-      const mm = String(floored).padStart(2, '0');
-      return `${month} ${day} ${hh}:${mm}`;
-    }
-    case 'hour': {
-      const hh = String(date.getHours()).padStart(2, '0');
-      return `${month} ${day} ${hh}:00`;
-    }
-    case 'day':
-      return `${month} ${day}`;
-    case 'week': {
-      // ISO week number
-      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-      const weekNum = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-      return `W${String(weekNum).padStart(2, '0')} ${d.getUTCFullYear()}`;
-    }
-  }
 }
 
 // ============================================================================
