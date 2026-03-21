@@ -10,6 +10,7 @@ import {
   FINDINGS_ACTION_KEY,
   type FindingsAction,
   YamazumiDetectedModal,
+  CapabilitySuggestionModal,
 } from '@variscout/ui';
 import {
   useFindings,
@@ -102,6 +103,9 @@ function AppMain() {
     yamazumiMapping,
     setAnalysisMode,
     setYamazumiMapping,
+    displayOptions,
+    setDisplayOptions,
+    setSubgroupConfig,
   } = useData();
 
   // Data ingestion must be declared before importFlow since importFlow uses its callbacks.
@@ -158,6 +162,10 @@ function AppMain() {
   // Findings state
   const findingsState = useFindings();
   const [highlightedFindingId, setHighlightedFindingId] = useState<string | null>(null);
+
+  // Capability suggestion modal state
+  const [showCapabilitySuggestion, setShowCapabilitySuggestion] = useState(false);
+  const [capabilitySuggestionDismissed, setCapabilitySuggestionDismissed] = useState(false);
 
   // Embed mode state
   const [isEmbedMode, setIsEmbedMode] = useState(false);
@@ -231,6 +239,27 @@ function AppMain() {
 
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
+
+  // Capability suggestion: show when specs are set and no other detection modal is showing
+  useEffect(() => {
+    if (
+      rawData.length > 0 &&
+      (specs?.usl !== undefined || specs?.lsl !== undefined) &&
+      !capabilitySuggestionDismissed &&
+      !showCapabilitySuggestion &&
+      !importFlow.yamazumiDetection &&
+      !importFlow.wideFormatDetection
+    ) {
+      setShowCapabilitySuggestion(true);
+    }
+  }, [
+    rawData.length,
+    specs,
+    capabilitySuggestionDismissed,
+    showCapabilitySuggestion,
+    importFlow.yamazumiDetection,
+    importFlow.wideFormatDetection,
+  ]);
 
   const handleExport = useCallback(async () => {
     const node = document.getElementById('dashboard-export-container');
@@ -655,6 +684,24 @@ function AppMain() {
             importFlow.handleDismissYamazumi();
           }}
           onDecline={() => importFlow.handleDismissYamazumi()}
+        />
+      )}
+
+      {/* Capability Suggestion Modal */}
+      {showCapabilitySuggestion && (
+        <CapabilitySuggestionModal
+          onStartCapability={config => {
+            setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
+            setSubgroupConfig(config);
+            setShowCapabilitySuggestion(false);
+            setCapabilitySuggestionDismissed(true);
+          }}
+          onStartStandard={() => {
+            setShowCapabilitySuggestion(false);
+            setCapabilitySuggestionDismissed(true);
+          }}
+          hasFactors={factors.length > 0}
+          factorColumns={factors}
         />
       )}
     </div>
