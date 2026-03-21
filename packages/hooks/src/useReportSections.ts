@@ -7,7 +7,7 @@
  */
 
 import { useMemo } from 'react';
-import type { Finding, Hypothesis } from '@variscout/core';
+import type { Finding, Hypothesis, AnalysisMode } from '@variscout/core';
 
 // ============================================================================
 // Types
@@ -49,6 +49,8 @@ export interface UseReportSectionsOptions {
   aiEnabled: boolean;
   /** Audience mode for content level (defaults to 'technical') */
   audienceMode?: AudienceMode;
+  /** Analysis mode — overrides section titles for yamazumi */
+  analysisMode?: AnalysisMode;
 }
 
 export interface UseReportSectionsReturn {
@@ -129,6 +131,7 @@ export function useReportSections({
   stagedComparison,
   aiEnabled,
   audienceMode = 'technical',
+  analysisMode,
 }: UseReportSectionsOptions): UseReportSectionsReturn {
   return useMemo(() => {
     const reportType = deriveReportType(findings);
@@ -140,7 +143,10 @@ export function useReportSections({
     allSections.push({
       id: 'current-condition',
       stepNumber: 1,
-      title: 'What does the process look like?',
+      title:
+        analysisMode === 'yamazumi'
+          ? 'What does the time composition look like?'
+          : 'What does the process look like?',
       status: sectionStatus('current-condition', reportType),
       workspace: sectionWorkspace('current-condition'),
       findings: findings.filter(f => !f.hypothesisId),
@@ -152,9 +158,11 @@ export function useReportSections({
       id: 'drivers',
       stepNumber: 2,
       title:
-        reportType === 'improvement-story'
-          ? 'Where does variation hide?'
-          : 'What is driving the variation?',
+        analysisMode === 'yamazumi'
+          ? 'What is driving the activity composition?'
+          : reportType === 'improvement-story'
+            ? 'Where does variation hide?'
+            : 'What is driving the variation?',
       status: sectionStatus('drivers', reportType),
       workspace: sectionWorkspace('drivers'),
       findings: findings.filter(f => !f.hypothesisId),
@@ -218,5 +226,5 @@ export function useReportSections({
     }
 
     return { reportType, sections: allSections, audienceMode };
-  }, [findings, hypotheses, stagedComparison, aiEnabled, audienceMode]);
+  }, [findings, hypotheses, stagedComparison, aiEnabled, audienceMode, analysisMode]);
 }
