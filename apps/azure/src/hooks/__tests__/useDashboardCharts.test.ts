@@ -58,6 +58,11 @@ vi.mock('@variscout/hooks', () => ({
   useKeyboardNavigation: vi.fn(),
 }));
 
+// Mock useStatsWorker (Worker is not available in jsdom)
+vi.mock('../../workers/useStatsWorker', () => ({
+  useStatsWorker: vi.fn(() => null),
+}));
+
 // Mock the local filter navigation hook (imported via ../hooks barrel)
 const mockApplyFilter = vi.fn();
 const mockClearFilters = vi.fn();
