@@ -706,6 +706,7 @@ export const Editor: React.FC<EditorProps> = ({
     if (
       rawData.length > 0 &&
       (specs?.usl !== undefined || specs?.lsl !== undefined) &&
+      (factors.length > 0 || rawData.length >= 10) &&
       !capabilitySuggestionDismissed &&
       !showCapabilitySuggestion &&
       !dataFlow.yamazumiDetection
@@ -1702,7 +1703,6 @@ export const Editor: React.FC<EditorProps> = ({
             setShowCapabilitySuggestion(false);
             setCapabilitySuggestionDismissed(true);
           }}
-          hasFactors={factors.length > 0}
           factorColumns={factors}
         />
       )}

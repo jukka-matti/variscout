@@ -18,14 +18,12 @@ export interface CapabilitySuggestionModalProps {
     size?: number;
   }) => void;
   onStartStandard: () => void;
-  hasFactors: boolean;
   factorColumns: string[];
 }
 
 export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps> = ({
   onStartCapability,
   onStartStandard,
-  hasFactors: _hasFactors,
   factorColumns,
 }) => {
   const { t } = useTranslation();
@@ -140,5 +138,3 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
     </dialog>
   );
 };
-
-export default CapabilitySuggestionModal;

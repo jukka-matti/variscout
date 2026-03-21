@@ -245,6 +245,7 @@ function AppMain() {
     if (
       rawData.length > 0 &&
       (specs?.usl !== undefined || specs?.lsl !== undefined) &&
+      (factors.length > 0 || rawData.length >= 10) &&
       !capabilitySuggestionDismissed &&
       !showCapabilitySuggestion &&
       !importFlow.yamazumiDetection &&
@@ -700,7 +701,6 @@ function AppMain() {
             setShowCapabilitySuggestion(false);
             setCapabilitySuggestionDismissed(true);
           }}
-          hasFactors={factors.length > 0}
           factorColumns={factors}
         />
       )}
