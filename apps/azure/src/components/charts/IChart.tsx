@@ -4,6 +4,7 @@
 import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
+import { useCapabilityIChartData } from '@variscout/hooks';
 import { IChartWrapperBase } from '@variscout/ui';
 import type { Finding } from '@variscout/core';
 
@@ -22,6 +23,15 @@ interface IChartProps {
 const IChart = ({ parentWidth, parentHeight, ...props }: IChartProps) => {
   const ctx = useData();
   const { min: autoMin, max: autoMax } = useChartScale();
+
+  const isCapabilityMode = ctx.displayOptions.standardIChartMetric === 'capability';
+
+  const capData = useCapabilityIChartData({
+    filteredData: ctx.filteredData,
+    outcome: ctx.outcome ?? '',
+    specs: ctx.specs,
+    subgroupConfig: ctx.subgroupConfig,
+  });
 
   return (
     <IChartWrapperBase
@@ -44,6 +54,11 @@ const IChart = ({ parentWidth, parentHeight, ...props }: IChartProps) => {
       selectedPoints={ctx.selectedPoints}
       onSelectionChange={ctx.setSelectedPoints}
       showBranding={false}
+      isCapabilityMode={isCapabilityMode}
+      capabilityCpkData={isCapabilityMode ? capData.cpkData : undefined}
+      capabilityCpData={isCapabilityMode ? capData.cpData : undefined}
+      capabilityCpkStats={isCapabilityMode ? capData.cpkStats : undefined}
+      capabilityCpStats={isCapabilityMode ? capData.cpStats : undefined}
       {...props}
     />
   );

@@ -122,6 +122,10 @@ export interface DisplayOptions {
   showSpecs?: boolean;
   /** Show Cpk values in stats panel (default: true) */
   showCpk?: boolean;
+  /** Standard I-Chart metric mode (default: 'measurement') */
+  standardIChartMetric?: import('@variscout/core').StandardIChartMetric;
+  /** Capability boxplot metric (default: 'cpk') */
+  capabilityBoxplotMetric?: 'cp' | 'cpk';
 }
 
 /**
@@ -254,6 +258,10 @@ export interface AnalysisState {
   riskAxisConfig?: import('@variscout/core').RiskAxisConfig;
   /** Budget for improvement planning */
   budgetConfig?: import('@variscout/core').BudgetConfig;
+
+  // --- Subgroup capability analysis ---
+  /** Subgroup configuration for capability mode */
+  subgroupConfig?: import('@variscout/core').SubgroupConfig;
 }
 
 /**

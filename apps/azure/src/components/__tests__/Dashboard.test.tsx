@@ -66,6 +66,8 @@ vi.mock('@variscout/ui', () => ({
   ChartDownloadMenu: () => <div data-testid="chart-download-menu">Download</div>,
   AnnotationContextMenu: () => null,
   HelpTooltip: () => null,
+  CapabilityMetricToggle: () => <div data-testid="capability-metric-toggle" />,
+  SubgroupConfigPopover: () => <div data-testid="subgroup-config-popover" />,
   useGlossary: () => ({ getTerm: () => undefined }),
   DashboardChartCard: ({
     id,
@@ -412,6 +414,8 @@ describe('Dashboard', () => {
       lockYAxisToFullData: true,
     },
     setDisplayOptions: vi.fn(),
+    subgroupConfig: { method: 'fixed-size' as const, size: 5 },
+    setSubgroupConfig: vi.fn(),
     categoryContributions: new Map(),
     selectedPoints: new Set<number>(),
     clearSelection: vi.fn(),

@@ -20,6 +20,8 @@ import {
   SelectionPanel,
   CreateFactorModal,
   DashboardLayoutBase,
+  CapabilityMetricToggle,
+  SubgroupConfigPopover,
   useIsMobile,
   useGlossary,
   BREAKPOINTS,
@@ -161,6 +163,8 @@ const Dashboard = ({
     timeColumn,
     displayOptions,
     setDisplayOptions,
+    subgroupConfig,
+    setSubgroupConfig,
     selectedPoints,
     clearSelection,
   } = useData();
@@ -696,18 +700,35 @@ const Dashboard = ({
                 }}
                 // Azure-specific: Manage Factors button in I-Chart header
                 ichartHeaderExtra={
-                  onManageFactors ? (
-                    <button
-                      onClick={onManageFactors}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-content-secondary hover:text-content bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-lg transition-colors"
-                      title="Manage analysis factors"
-                      aria-label="Manage factors"
-                      data-testid="btn-manage-factors"
-                    >
-                      <Settings2 size={14} />
-                      <span>Factors ({factors.length})</span>
-                    </button>
-                  ) : undefined
+                  <div className="flex items-center gap-2">
+                    <CapabilityMetricToggle
+                      metric={displayOptions.standardIChartMetric ?? 'measurement'}
+                      onMetricChange={m =>
+                        setDisplayOptions({ ...displayOptions, standardIChartMetric: m })
+                      }
+                      disabled={specs.usl === undefined && specs.lsl === undefined}
+                    />
+                    {displayOptions.standardIChartMetric === 'capability' && (
+                      <SubgroupConfigPopover
+                        config={subgroupConfig}
+                        onConfigChange={setSubgroupConfig}
+                        availableColumns={factors}
+                        columnAliases={columnAliases}
+                      />
+                    )}
+                    {onManageFactors && (
+                      <button
+                        onClick={onManageFactors}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-content-secondary hover:text-content bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-lg transition-colors"
+                        title="Manage analysis factors"
+                        aria-label="Manage factors"
+                        data-testid="btn-manage-factors"
+                      >
+                        <Settings2 size={14} />
+                        <span>Factors ({factors.length})</span>
+                      </button>
+                    )}
+                  </div>
                 }
                 // Azure-specific: lastAdvancedFactor ring on boxplot factor selector
                 boxplotFactorWrapper={selector => (

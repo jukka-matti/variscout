@@ -28,6 +28,7 @@ import type {
   InvestigationCategory,
   AnalysisMode,
   YamazumiColumnMapping,
+  SubgroupConfig,
 } from '@variscout/core';
 import type {
   DisplayOptions,
@@ -115,6 +116,7 @@ export interface DataState {
   // Analysis mode (standard | performance | yamazumi)
   analysisMode: AnalysisMode;
   yamazumiMapping: YamazumiColumnMapping | null;
+  subgroupConfig: SubgroupConfig;
 
   /** Helper to get effective specs for a measure (per-measure override or global) */
   getSpecsForMeasure: (measureId: string) => SpecLimits;
@@ -182,6 +184,7 @@ export interface DataActions {
   setCpkTarget: (target: number) => void;
   setAnalysisMode: (mode: AnalysisMode) => void;
   setYamazumiMapping: (mapping: YamazumiColumnMapping | null) => void;
+  setSubgroupConfig: (config: SubgroupConfig) => void;
 
   // Filter stack
   setFilterStack: (stack: FilterAction[]) => void;
@@ -274,6 +277,10 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   // Analysis mode (unified mode selector — replaces isPerformanceMode in Phase 6)
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('standard');
   const [yamazumiMapping, setYamazumiMapping] = useState<YamazumiColumnMapping | null>(null);
+  const [subgroupConfig, setSubgroupConfig] = useState<SubgroupConfig>({
+    method: 'fixed-size',
+    size: 5,
+  });
 
   // Filter stack (ordered drill trail for breadcrumb persistence)
   const [filterStack, setFilterStack] = useState<FilterAction[]>([]);
@@ -432,6 +439,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     isPerformanceMode,
     analysisMode,
     yamazumiMapping,
+    subgroupConfig,
     measureColumns,
     selectedMeasure,
     measureLabel,
@@ -475,6 +483,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     setCpkTarget,
     setAnalysisMode,
     setYamazumiMapping,
+    setSubgroupConfig,
     setFilterStack,
     setViewState,
     setFindings,
@@ -526,6 +535,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       getSpecsForMeasure,
       analysisMode,
       yamazumiMapping,
+      subgroupConfig,
       selectedPoints,
       selectionIndexMap,
       filterStack,
@@ -573,6 +583,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       getSpecsForMeasure,
       analysisMode,
       yamazumiMapping,
+      subgroupConfig,
       selectedPoints,
       selectionIndexMap,
       filterStack,
@@ -614,6 +625,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setCpkTarget,
       setAnalysisMode,
       setYamazumiMapping,
+      setSubgroupConfig,
       setFilterStack,
       setViewState,
       setFindings,
@@ -663,6 +675,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setCpkTarget,
       setAnalysisMode,
       setYamazumiMapping,
+      setSubgroupConfig,
       setFilterStack,
       setViewState,
       setFindings,

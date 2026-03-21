@@ -46,7 +46,7 @@ npx ruflo@latest security cve --check        # CVE check
 | docs/04-cases/          | 8 case studies with demo data                                         |
 | docs/05-technical/      | Architecture, implementation, integrations                            |
 | docs/06-design-system/  | Colors, typography, components, charts, patterns                      |
-| docs/07-decisions/      | ADR-001 through ADR-034                                               |
+| docs/07-decisions/      | ADR-001 through ADR-038                                               |
 | docs/08-products/       | Azure, PWA, website specs, feature-parity matrix                      |
 | docs/09-tutorials/      | Planned step-by-step guides                                           |
 | docs/superpowers/specs/ | Design specs from brainstorming sessions (see index.md)               |
@@ -81,6 +81,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Report View / Sharing      | adr-037, adr-030, adr-031, docs/superpowers/specs/2026-03-20-reporting-workspaces-design.md                                                             |
 | Verification / Staged      | adr-023, docs/03-features/analysis/staged-analysis.md                                                                                                   |
 | Characteristic types       | docs/03-features/analysis/characteristic-types.md, packages/core/src/types.ts                                                                           |
+| Subgroup capability        | adr-038, docs/03-features/analysis/subgroup-capability.md, packages/core/src/stats/subgroupCapability.ts                                                |
 | Data lifecycle / Append    | adr-023, apps/azure/src/hooks/useEditorDataFlow.ts                                                                                                      |
 | Teams integration          | adr-016, docs/08-products/azure/authentication.md                                                                                                       |
 | Platform comparison        | docs/08-products/feature-parity.md                                                                                                                      |
@@ -118,7 +119,7 @@ variscout-lite/
 
 | Package                                       | Key Files                                                                                                        | Purpose                                                                                    |
 | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `packages/core/src/`                          | stats/, parser/, types.ts, tier.ts, ai/, glossary/, variation/, yamazumi/                                        | Stats engine (13 modules), parser, types, tier, AI context, glossary, simulation, yamazumi |
+| `packages/core/src/`                          | stats/, parser/, types.ts, tier.ts, ai/, glossary/, variation/, yamazumi/                                        | Stats engine (14 modules), parser, types, tier, AI context, glossary, simulation, yamazumi |
 | `packages/charts/src/`                        | IChart, Boxplot, Pareto, Performance\*, colors.ts, useChartTheme                                                 | Chart components (see .claude/rules/charts.md)                                             |
 | `packages/hooks/src/`                         | use\*.ts (see .claude/rules/monorepo.md for full list)                                                           | 40+ shared React hooks                                                                     |
 | `packages/ui/src/components/`                 | \*/ (see .claude/rules/monorepo.md for full list)                                                                | 60+ shared UI components                                                                   |

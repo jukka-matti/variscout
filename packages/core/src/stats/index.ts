@@ -79,3 +79,18 @@ export { calculateKDE } from './kde';
 // Evidence interpretation
 export type { EvidenceLevel, EvidenceInterpretation } from './evidence';
 export { interpretEvidence, generateAnovaInsightLine } from './evidence';
+
+// Subgroup capability analysis
+export type {
+  SubgroupMethod,
+  SubgroupConfig,
+  SubgroupCapabilityResult,
+  SubgroupData,
+  CapabilitySeriesLimits,
+  StandardIChartMetric,
+} from './subgroupCapability';
+export {
+  groupDataIntoSubgroups,
+  calculateSubgroupCapability,
+  calculateSeriesControlLimits,
+} from './subgroupCapability';

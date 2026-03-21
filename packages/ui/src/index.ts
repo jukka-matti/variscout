@@ -401,6 +401,13 @@ export {
 } from './components/YamazumiDisplayToggle';
 export { YamazumiSummaryBar, type YamazumiSummaryBarProps } from './components/YamazumiSummaryBar';
 
+// Subgroup Capability
+export {
+  CapabilityMetricToggle,
+  type CapabilityMetricToggleProps,
+} from './components/CapabilityMetricToggle';
+export { SubgroupConfigPopover, type SubgroupConfigProps } from './components/SubgroupConfig';
+
 // Hooks
 export {
   useIsMobile,

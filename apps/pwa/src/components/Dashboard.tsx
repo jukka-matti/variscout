@@ -14,6 +14,8 @@ import {
   SelectionPanel,
   CreateFactorModal,
   DashboardLayoutBase,
+  CapabilityMetricToggle,
+  SubgroupConfigPopover,
   useIsMobile,
   useGlossary,
   BREAKPOINTS,
@@ -120,6 +122,8 @@ const Dashboard = ({
     timeColumn,
     displayOptions,
     setDisplayOptions,
+    subgroupConfig,
+    setSubgroupConfig,
     // Selection state
     selectedPoints,
     clearSelection,
@@ -634,6 +638,25 @@ const Dashboard = ({
               onSave={newSpecs => setSpecs(newSpecs)}
               onOpenAdvanced={() => setShowSpecEditor(true)}
             />
+          </div>
+        }
+        ichartHeaderExtra={
+          <div className="flex items-center gap-1">
+            <CapabilityMetricToggle
+              metric={displayOptions.standardIChartMetric ?? 'measurement'}
+              onMetricChange={m =>
+                setDisplayOptions({ ...displayOptions, standardIChartMetric: m })
+              }
+              disabled={specs.usl === undefined && specs.lsl === undefined}
+            />
+            {displayOptions.standardIChartMetric === 'capability' && (
+              <SubgroupConfigPopover
+                config={subgroupConfig}
+                onConfigChange={setSubgroupConfig}
+                availableColumns={factors}
+                columnAliases={columnAliases}
+              />
+            )}
           </div>
         }
         // Render slots

@@ -16,7 +16,14 @@ import { useIChartData, useIChartWrapperData } from '@variscout/hooks';
 import { shouldShowBranding, getBrandingText } from '@variscout/core';
 import { ChartAnnotationLayer } from '../ChartAnnotationLayer';
 import { YAxisPopover } from '../YAxisPopover';
-import type { DataRow, StatsResult, SpecLimits, StagedStatsResult, Finding } from '@variscout/core';
+import type {
+  DataRow,
+  StatsResult,
+  SpecLimits,
+  StagedStatsResult,
+  Finding,
+  IChartDataPoint,
+} from '@variscout/core';
 import type { DisplayOptions } from '@variscout/hooks';
 
 export interface IChartWrapperBaseProps {
@@ -72,6 +79,17 @@ export interface IChartWrapperBaseProps {
   onEditFinding?: (id: string, text: string) => void;
   /** Delete a finding from the annotation box */
   onDeleteFinding?: (id: string) => void;
+  // --- Capability mode (dual series) ---
+  /** When true, renders capability mode with dual Cp/Cpk series */
+  isCapabilityMode?: boolean;
+  /** Cpk data points (primary series in capability mode) */
+  capabilityCpkData?: IChartDataPoint[];
+  /** Cp data points (secondary series in capability mode) */
+  capabilityCpData?: IChartDataPoint[];
+  /** Stats for Cpk series control limits */
+  capabilityCpkStats?: StatsResult | null;
+  /** Stats for Cp series control limits */
+  capabilityCpStats?: StatsResult | null;
 }
 
 export const IChartWrapperBase = ({
@@ -102,6 +120,11 @@ export const IChartWrapperBase = ({
   onCreateObservation,
   onEditFinding,
   onDeleteFinding,
+  isCapabilityMode = false,
+  capabilityCpkData,
+  capabilityCpData,
+  capabilityCpkStats,
+  capabilityCpStats,
 }: IChartWrapperBaseProps) => {
   const [isEditingScale, setIsEditingScale] = useState(false);
 
@@ -132,27 +155,36 @@ export const IChartWrapperBase = ({
   const showBranding = showBrandingProp ?? shouldShowBranding();
   const fonts = getScaledFonts(parentWidth);
 
+  // In capability mode, use capability data instead of raw measurement data
+  const chartData = isCapabilityMode && capabilityCpkData?.length ? capabilityCpkData : data;
+  const chartStats = isCapabilityMode && capabilityCpkStats ? capabilityCpkStats : effectiveStats;
+  const chartYLabel = isCapabilityMode ? 'Cpk' : columnAliases[outcome] || outcome;
+
   return (
     <div className="relative w-full h-full" onContextMenu={handleContextMenu}>
       <IChartBase
-        data={data}
-        stats={effectiveStats}
-        stagedStats={effectiveStagedStats}
-        specs={displayOptions.showSpecs !== false ? specs : {}}
-        yAxisLabel={columnAliases[outcome] || outcome}
-        axisSettings={axisSettings}
+        data={chartData}
+        stats={chartStats}
+        stagedStats={isCapabilityMode ? undefined : effectiveStagedStats}
+        specs={isCapabilityMode ? {} : displayOptions.showSpecs !== false ? specs : {}}
+        yAxisLabel={chartYLabel}
+        axisSettings={isCapabilityMode ? {} : axisSettings}
         parentWidth={parentWidth}
         parentHeight={parentHeight}
         showBranding={showBranding}
         brandingText={showBranding ? getBrandingText() : undefined}
         onPointClick={onPointClick}
-        onSpecClick={onSpecClick}
-        onYAxisClick={() => setIsEditingScale(true)}
-        enableBrushSelection={true}
-        selectedPoints={selectedPoints}
-        onSelectionChange={onSelectionChange}
-        highlightedPointIndex={highlightedPointIndex}
+        onSpecClick={isCapabilityMode ? undefined : onSpecClick}
+        onYAxisClick={isCapabilityMode ? undefined : () => setIsEditingScale(true)}
+        enableBrushSelection={!isCapabilityMode}
+        selectedPoints={isCapabilityMode ? undefined : selectedPoints}
+        onSelectionChange={isCapabilityMode ? undefined : onSelectionChange}
+        highlightedPointIndex={isCapabilityMode ? undefined : highlightedPointIndex}
         showLimitLabels={showLimitLabels}
+        secondaryData={isCapabilityMode ? capabilityCpData : undefined}
+        secondaryStats={isCapabilityMode ? capabilityCpStats : undefined}
+        primaryLabel={isCapabilityMode ? 'Cpk' : undefined}
+        secondaryLabel={isCapabilityMode ? 'Cp' : undefined}
       />
 
       {ichartFindings.length > 0 && onEditFinding && onDeleteFinding && (

@@ -292,3 +292,14 @@ export {
   type UseYamazumiParetoDataOptions,
   type UseYamazumiParetoDataReturn,
 } from './useYamazumiParetoData';
+
+// Subgroup Capability Data Hooks
+export {
+  useCapabilityIChartData,
+  type UseCapabilityIChartDataOptions,
+  type UseCapabilityIChartDataResult,
+} from './useCapabilityIChartData';
+export {
+  useCapabilityBoxplotData,
+  type UseCapabilityBoxplotDataOptions,
+} from './useCapabilityBoxplotData';

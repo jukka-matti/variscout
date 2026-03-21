@@ -19,6 +19,7 @@ import type {
   InvestigationCategory,
   AnalysisMode,
   YamazumiColumnMapping,
+  SubgroupConfig,
 } from '@variscout/core';
 import type {
   AnalysisState,
@@ -66,6 +67,7 @@ export interface ProjectPersistenceInputs {
   // Analysis mode (yamazumi/performance/standard)
   analysisMode: AnalysisMode;
   yamazumiMapping: YamazumiColumnMapping | null;
+  subgroupConfig: SubgroupConfig;
 
   // Pareto getters
   paretoMode: ParetoMode;
@@ -121,6 +123,7 @@ export interface ProjectPersistenceInputs {
   setCpkTarget: (target: number) => void;
   setAnalysisMode: (mode: AnalysisMode) => void;
   setYamazumiMapping: (mapping: YamazumiColumnMapping | null) => void;
+  setSubgroupConfig: (config: SubgroupConfig) => void;
 
   // Filter stack setter (Phase 2)
   setFilterStack: (stack: FilterAction[]) => void;
@@ -188,6 +191,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     chartTitles,
     analysisMode,
     yamazumiMapping,
+    subgroupConfig,
     paretoMode,
     paretoAggregation,
     separateParetoData,
@@ -224,6 +228,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setCpkTarget,
     setAnalysisMode,
     setYamazumiMapping,
+    setSubgroupConfig,
     setFilterStack,
     setViewState,
     findings,
@@ -265,6 +270,9 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     // Analysis mode — only include non-default values for compact serialization
     if (analysisMode !== 'standard') state.analysisMode = analysisMode;
     if (yamazumiMapping) state.yamazumiMapping = yamazumiMapping;
+    if (subgroupConfig && (subgroupConfig.method !== 'fixed-size' || subgroupConfig.size !== 5)) {
+      state.subgroupConfig = subgroupConfig;
+    }
 
     // Pareto fields — only include non-default values for compact serialization
     if (paretoMode !== 'derived') state.paretoMode = paretoMode;
@@ -311,6 +319,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     chartTitles,
     analysisMode,
     yamazumiMapping,
+    subgroupConfig,
     paretoMode,
     paretoAggregation,
     separateParetoData,
@@ -367,6 +376,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
           state.analysisMode ?? (state.isPerformanceMode ? 'performance' : 'standard')
         );
         setYamazumiMapping(state.yamazumiMapping ?? null);
+        setSubgroupConfig(state.subgroupConfig ?? { method: 'fixed-size', size: 5 });
 
         // Pareto fields
         setParetoMode(state.paretoMode ?? 'derived');
@@ -442,6 +452,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setChartTitles,
       setAnalysisMode,
       setYamazumiMapping,
+      setSubgroupConfig,
       setParetoMode,
       setParetoAggregation,
       setSeparateParetoData,
@@ -512,6 +523,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       // Analysis mode
       setAnalysisMode(state.analysisMode ?? (state.isPerformanceMode ? 'performance' : 'standard'));
       setYamazumiMapping(state.yamazumiMapping ?? null);
+      setSubgroupConfig(state.subgroupConfig ?? { method: 'fixed-size', size: 5 });
 
       // Pareto fields
       setParetoMode(state.paretoMode ?? 'derived');
@@ -584,6 +596,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setMeasureSpecs,
       setAnalysisMode,
       setYamazumiMapping,
+      setSubgroupConfig,
       setParetoMode,
       setParetoAggregation,
       setSeparateParetoData,
@@ -631,6 +644,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     // Reset analysis mode
     setAnalysisMode('standard');
     setYamazumiMapping(null);
+    setSubgroupConfig({ method: 'fixed-size', size: 5 });
     // Reset filter stack, view state, findings, hypotheses, and categories
     setFilterStack([]);
     setViewState(null);
@@ -668,6 +682,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setCpkTarget,
     setAnalysisMode,
     setYamazumiMapping,
+    setSubgroupConfig,
     setFilterStack,
     setViewState,
     setFindings,

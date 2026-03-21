@@ -72,7 +72,7 @@ export const glossaryTerms: GlossaryTerm[] = [
       'Cp compares the width of specification limits to 6\u03c3_within of the process. Cp = (USL - LSL) / (6\u03c3_within), where \u03c3_within is estimated from the moving range (MR\u0304/d2). This captures short-term, inherent variation. Higher values mean the process has room to spare within specs. Does not account for centering.',
     category: 'capability',
     learnMorePath: '/tools/capability',
-    relatedTerms: ['cpk', 'usl', 'lsl', 'stdDev'],
+    relatedTerms: ['cpk', 'usl', 'lsl', 'stdDev', 'rationalSubgrouping'],
   },
   {
     id: 'cpk',
@@ -83,7 +83,7 @@ export const glossaryTerms: GlossaryTerm[] = [
       'Cpk considers both spread and centering using \u03c3_within (estimated from the moving range). Cpk = min(CPU, CPL) where CPU = (USL - mean) / (3\u03c3_within) and CPL = (mean - LSL) / (3\u03c3_within). A Cpk much lower than Cp indicates the process mean is shifted toward one spec limit.',
     category: 'capability',
     learnMorePath: '/tools/capability',
-    relatedTerms: ['cp', 'usl', 'lsl', 'mean'],
+    relatedTerms: ['cp', 'usl', 'lsl', 'mean', 'rationalSubgrouping'],
   },
   {
     id: 'passRate',
