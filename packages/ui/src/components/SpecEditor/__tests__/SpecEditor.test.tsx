@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('../../../hooks', () => ({
   useIsMobile: () => false,
+  BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));
 
 vi.mock('@variscout/hooks', () => {

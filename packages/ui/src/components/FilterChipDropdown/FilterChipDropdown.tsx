@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { X, Check } from 'lucide-react';
-import { useIsMobile } from '../../hooks';
+import { useIsMobile, BREAKPOINTS } from '../../hooks';
 import type { FilterChipData } from '@variscout/hooks';
 
 /**
@@ -100,7 +100,7 @@ const FilterChipDropdown: React.FC<FilterChipDropdownProps> = ({
   anchorRect,
   colorScheme = defaultColorScheme,
 }) => {
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(BREAKPOINTS.phone);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [localValues, setLocalValues] = useState<Set<string>>(new Set(chipData.values.map(String)));
 
