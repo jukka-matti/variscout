@@ -325,6 +325,8 @@ export {
   type ReportImprovementSummaryProps,
   ReportCpkLearningLoop,
   type ReportCpkLearningLoopProps,
+  ReportYamazumiKPIGrid,
+  type ReportYamazumiKPIGridProps,
 } from './components/ReportView';
 
 // Services

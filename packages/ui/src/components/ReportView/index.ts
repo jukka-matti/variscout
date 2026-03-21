@@ -40,3 +40,8 @@ export {
   type ReportImprovementSummaryProps,
 } from './ReportImprovementSummary';
 export { ReportCpkLearningLoop, type ReportCpkLearningLoopProps } from './ReportCpkLearningLoop';
+export { ReportYamazumiKPIGrid, type ReportYamazumiKPIGridProps } from './ReportYamazumiKPIGrid';
+export {
+  ReportActivityBreakdown,
+  type ReportActivityBreakdownProps,
+} from './ReportActivityBreakdown';
