@@ -18,6 +18,14 @@ A single Pp/Ppk number is a black box — it tells you the overall result but hi
 - Visualize **centering loss** — the gap between Cp and Cpk shows off-center processes
 - Identify **when** a process went out of capability (not just that it did)
 
+## Journey Context
+
+Capability mode is a view toggle within the SCOUT phase of the analysis journey. The analyst switches between Values (variation analysis) and Capability (target compliance) at any point during analysis. Both views work on the same filtered data — drill-down, findings, and investigation are identical in both modes.
+
+Time-based subgrouping uses extracted time columns from FRAME (TimeExtractionPanel with minute-interval support), ensuring subgroups appear as Boxplot-filterable categories and work seamlessly with findings. For fixed-size subgroups where a specific subgroup fails, the analyst can use the Brush → Create Factor flow to isolate problematic data points for deeper investigation.
+
+See [Analysis Flow](../workflows/analysis-flow.md) for the complete two-thread analysis journey.
+
 ## Dual Cp/Cpk Series
 
 The I-Chart in Capability mode shows **both Cp and Cpk** as two series on the same chart:
