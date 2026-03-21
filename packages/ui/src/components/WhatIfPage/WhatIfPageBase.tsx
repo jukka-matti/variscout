@@ -417,7 +417,7 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
           <Beaker size={18} className="text-blue-400" />
           <h1 className={`text-sm font-semibold ${c.headingText}`}>What-If Simulator</h1>
         </div>
-        <div className={`flex items-center gap-3 text-xs ${c.mutedText}`}>
+        <div className={`flex items-center flex-wrap gap-3 text-xs ${c.mutedText}`}>
           <span>{outcome}</span>
           <span className={c.secondaryText}>n = {filteredData.length}</span>
           {filterCount > 0 && (

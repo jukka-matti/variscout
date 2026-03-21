@@ -300,10 +300,10 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
 
           {/* Add idea input */}
           {onAddIdea && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 min-w-0">
               <input
                 type="text"
-                className="flex-1 text-xs bg-transparent border-b border-edge text-content placeholder:text-content-muted focus:outline-none focus:border-blue-400 py-0.5"
+                className="flex-1 min-w-0 text-xs bg-transparent border-b border-edge text-content placeholder:text-content-muted focus:outline-none focus:border-blue-400 py-0.5"
                 placeholder="Add improvement idea..."
                 value={newIdeaText}
                 onChange={e => setNewIdeaText(e.target.value)}
@@ -743,13 +743,13 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
       {/* Inline sub-hypothesis form */}
       {showAddChild && (
         <div
-          className="ml-6 mt-1.5 p-2 rounded border border-edge bg-surface-secondary space-y-1.5"
+          className="ml-6 mt-1.5 p-2 rounded border border-edge bg-surface-secondary space-y-1.5 min-w-0"
           onClick={e => e.stopPropagation()}
           data-testid={`add-child-form-${hypothesis.id}`}
         >
           <input
             type="text"
-            className="w-full text-xs bg-transparent border-b border-edge text-content placeholder:text-content-muted focus:outline-none focus:border-blue-400 py-0.5"
+            className="w-full min-w-0 text-xs bg-transparent border-b border-edge text-content placeholder:text-content-muted focus:outline-none focus:border-blue-400 py-0.5"
             placeholder="What might cause this?"
             value={childText}
             onChange={e => setChildText(e.target.value)}

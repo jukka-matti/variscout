@@ -370,7 +370,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
                   return (
                     <div
                       key={factorName}
-                      className="ml-4"
+                      className="ml-3 sm:ml-4"
                       data-testid={`factor-group-${factorName}`}
                     >
                       {/* Factor sub-header */}
@@ -399,7 +399,9 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
 
                       {/* Hypothesis nodes under this factor */}
                       {isFactorExpanded && (
-                        <div className="ml-4">{factorHypotheses.map(h => renderNode(h, 2))}</div>
+                        <div className="ml-3 sm:ml-4">
+                          {factorHypotheses.map(h => renderNode(h, 2))}
+                        </div>
                       )}
                     </div>
                   );
@@ -415,7 +417,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
               <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-slate-500" />
               <span className="text-sm font-semibold text-content-secondary">Other</span>
             </div>
-            <div className="ml-4">{uncategorizedRoots.map(h => renderNode(h, 1))}</div>
+            <div className="ml-3 sm:ml-4">{uncategorizedRoots.map(h => renderNode(h, 1))}</div>
           </div>
         )}
       </div>
