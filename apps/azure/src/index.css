@@ -1,10 +1,9 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
 @import '@variscout/ui/styles/theme.css';
 @import '@variscout/ui/styles/components.css';
 @import '@variscout/ui/styles/report-print.css';
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 /* ========================================
    Azure-specific: Font Override
@@ -19,6 +18,6 @@
     sans-serif;
   letter-spacing: -0.01em;
 
-  color: rgb(var(--content-primary));
-  background-color: rgb(var(--surface-primary));
+  color: var(--content-primary);
+  background-color: var(--surface-primary);
 }

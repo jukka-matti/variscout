@@ -3,45 +3,110 @@
    Used by both PWA and Azure apps
    ======================================== */
 
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme {
+  /* Semantic surface colors */
+  --color-surface: var(--surface-primary);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-tertiary: var(--surface-tertiary);
+  --color-surface-elevated: var(--surface-elevated);
+
+  /* Semantic content (text) colors */
+  --color-content: var(--content-primary);
+  --color-content-secondary: var(--content-secondary);
+  --color-content-muted: var(--content-muted);
+
+  /* Semantic edge (border) colors */
+  --color-edge: var(--edge-primary);
+  --color-edge-secondary: var(--edge-secondary);
+
+  /* Interactive states */
+  --color-interactive-hover: var(--interactive-hover);
+  --color-interactive-active: var(--interactive-active);
+
+  /* Status colors */
+  --color-status-pass: var(--status-pass);
+  --color-status-fail: var(--status-fail);
+  --color-status-warning: var(--status-warning);
+
+  /* shadcn/ui colors (HSL-based) */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  /* Border radius */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /* Container */
+  --container-2xl: 1400px;
+
+  /* Breakpoints */
+  --breakpoint-xs: 375px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
 :root,
 [data-theme='light'] {
   /* Surface colors (backgrounds) */
-  --surface-primary: 248 250 252; /* slate-50 #f8fafc */
-  --surface-secondary: 241 245 249; /* slate-100 #f1f5f9 */
-  --surface-tertiary: 226 232 240; /* slate-200 #e2e8f0 */
-  --surface-elevated: 255 255 255; /* white */
+  --surface-primary: #f8fafc; /* slate-50 */
+  --surface-secondary: #f1f5f9; /* slate-100 */
+  --surface-tertiary: #e2e8f0; /* slate-200 */
+  --surface-elevated: #ffffff; /* white */
 
   /* Content colors (text) */
-  --content-primary: 15 23 42; /* slate-900 #0f172a */
-  --content-secondary: 71 85 105; /* slate-600 #475569 */
-  --content-muted: 100 116 139; /* slate-500 #64748b */
+  --content-primary: #0f172a; /* slate-900 */
+  --content-secondary: #475569; /* slate-600 */
+  --content-muted: #64748b; /* slate-500 */
 
   /* Edge colors (borders) */
-  --edge-primary: 226 232 240; /* slate-200 #e2e8f0 */
-  --edge-secondary: 203 213 225; /* slate-300 #cbd5e1 */
+  --edge-primary: #e2e8f0; /* slate-200 */
+  --edge-secondary: #cbd5e1; /* slate-300 */
 
   /* Interactive states */
-  --interactive-hover: 241 245 249; /* slate-100 */
-  --interactive-active: 226 232 240; /* slate-200 */
+  --interactive-hover: #f1f5f9; /* slate-100 */
+  --interactive-active: #e2e8f0; /* slate-200 */
 
-  /* Brand colors (fixed blue — not user-configurable) */
-  --accent: 59 130 246; /* blue-500 #3b82f6 */
-  --accent-hover: 37 99 235; /* blue-600 #2563eb */
-  --accent-foreground: 255 255 255; /* white */
+  /* Brand colors (fixed blue -- not user-configurable) */
+  --vs-accent: #3b82f6; /* blue-500 */
+  --vs-accent-hover: #2563eb; /* blue-600 */
+  --vs-accent-foreground: #ffffff; /* white */
 
   /* HelpTooltip link color */
-  --help-link-color: 59 130 246; /* blue-500 */
+  --help-link-color: #3b82f6; /* blue-500 */
 
   /* Status colors (universal - same in light/dark) */
-  --status-pass: 34 197 94; /* green-500 #22c55e */
-  --status-fail: 239 68 68; /* red-500 #ef4444 */
-  --status-warning: 245 158 11; /* amber-500 #f59e0b */
+  --status-pass: #22c55e; /* green-500 */
+  --status-fail: #ef4444; /* red-500 */
+  --status-warning: #f59e0b; /* amber-500 */
 
   /* Chart chrome colors */
-  --chart-grid: 241 245 249; /* slate-100 */
-  --chart-axis: 100 116 139; /* slate-500 */
-  --chart-tooltip-bg: 255 255 255; /* white */
-  --chart-tooltip-border: 226 232 240; /* slate-200 */
+  --chart-grid: #f1f5f9; /* slate-100 */
+  --chart-axis: #64748b; /* slate-500 */
+  --chart-tooltip-bg: #ffffff; /* white */
+  --chart-tooltip-border: #e2e8f0; /* slate-200 */
 
   color-scheme: light;
 }
@@ -49,42 +114,42 @@
 /* Dark theme */
 [data-theme='dark'] {
   /* Surface colors (backgrounds) - slate palette */
-  --surface-primary: 15 23 42; /* slate-900 #0f172a */
-  --surface-secondary: 30 41 59; /* slate-800 #1e293b */
-  --surface-tertiary: 51 65 85; /* slate-700 #334155 */
-  --surface-elevated: 71 85 105; /* slate-600 #475569 */
+  --surface-primary: #0f172a; /* slate-900 */
+  --surface-secondary: #1e293b; /* slate-800 */
+  --surface-tertiary: #334155; /* slate-700 */
+  --surface-elevated: #475569; /* slate-600 */
 
   /* Content colors (text) */
-  --content-primary: 226 232 240; /* slate-200 #e2e8f0 */
-  --content-secondary: 148 163 184; /* slate-400 #94a3b8 */
-  --content-muted: 100 116 139; /* slate-500 #64748b */
+  --content-primary: #e2e8f0; /* slate-200 */
+  --content-secondary: #94a3b8; /* slate-400 */
+  --content-muted: #64748b; /* slate-500 */
 
   /* Edge colors (borders) */
-  --edge-primary: 51 65 85; /* slate-700 #334155 */
-  --edge-secondary: 71 85 105; /* slate-600 #475569 */
+  --edge-primary: #334155; /* slate-700 */
+  --edge-secondary: #475569; /* slate-600 */
 
   /* Interactive states */
-  --interactive-hover: 51 65 85; /* slate-700 */
-  --interactive-active: 71 85 105; /* slate-600 */
+  --interactive-hover: #334155; /* slate-700 */
+  --interactive-active: #475569; /* slate-600 */
 
   /* Brand colors (same as light) */
-  --accent: 59 130 246; /* blue-500 */
-  --accent-hover: 37 99 235; /* blue-600 */
-  --accent-foreground: 255 255 255; /* white */
+  --vs-accent: #3b82f6; /* blue-500 */
+  --vs-accent-hover: #2563eb; /* blue-600 */
+  --vs-accent-foreground: #ffffff; /* white */
 
   /* HelpTooltip link color */
-  --help-link-color: 59 130 246; /* blue-500 */
+  --help-link-color: #3b82f6; /* blue-500 */
 
   /* Status colors (universal) */
-  --status-pass: 34 197 94;
-  --status-fail: 239 68 68;
-  --status-warning: 245 158 11;
+  --status-pass: #22c55e;
+  --status-fail: #ef4444;
+  --status-warning: #f59e0b;
 
   /* Chart chrome colors */
-  --chart-grid: 30 41 59; /* slate-800 */
-  --chart-axis: 100 116 139; /* slate-500 */
-  --chart-tooltip-bg: 30 41 59; /* slate-800 */
-  --chart-tooltip-border: 51 65 85; /* slate-700 */
+  --chart-grid: #1e293b; /* slate-800 */
+  --chart-axis: #64748b; /* slate-500 */
+  --chart-tooltip-bg: #1e293b; /* slate-800 */
+  --chart-tooltip-border: #334155; /* slate-700 */
 
   color-scheme: dark;
 }

@@ -1,3 +1,6 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
 @font-face {
   font-family: 'Caveat';
   font-style: normal;
@@ -8,10 +11,6 @@
 
 @import '@variscout/ui/styles/theme.css';
 @import '@variscout/ui/styles/components.css';
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 /* ========================================
    PWA-specific: shadcn CSS Variables
@@ -74,8 +73,8 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color: rgb(var(--content-primary));
-  background-color: rgb(var(--surface-primary));
+  color: var(--content-primary);
+  background-color: var(--surface-primary);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
