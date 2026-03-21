@@ -13,6 +13,10 @@ interface StatsPanelProps {
   outcome?: string | null;
   onSaveSpecs?: (specs: SpecLimits) => void;
   showCpk?: boolean;
+  cpkTarget?: number;
+  onCpkClick?: () => void;
+  subgroupsMeetingTarget?: number;
+  subgroupCount?: number;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({
@@ -22,6 +26,10 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   outcome,
   onSaveSpecs,
   showCpk = true,
+  cpkTarget,
+  onCpkClick,
+  subgroupsMeetingTarget,
+  subgroupCount,
 }) => {
   const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
@@ -48,6 +56,10 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         filteredData={filteredData}
         outcome={outcome}
         showCpk={showCpk}
+        cpkTarget={cpkTarget}
+        onCpkClick={onCpkClick}
+        subgroupsMeetingTarget={subgroupsMeetingTarget}
+        subgroupCount={subgroupCount}
         onEditSpecs={onSaveSpecs ? () => setIsEditingSpecs(true) : undefined}
         getTerm={getTerm}
         renderHistogram={(data, specLimits, mean) => (

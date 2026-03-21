@@ -702,6 +702,10 @@ Current state: ${cs.subgroupCount} subgroups (${subgroupDesc})
 Mean Cpk: ${cs.meanCpk.toFixed(2)}, range: ${cs.minCpk.toFixed(2)}–${cs.maxCpk.toFixed(2)}
 In-control: ${cs.cpkInControl}/${cs.subgroupCount} subgroups`;
 
+    if (cs.cpkTarget !== undefined && cs.subgroupsMeetingTarget !== undefined) {
+      capSection += `\nCpk target: ${cs.cpkTarget.toFixed(2)} — ${cs.subgroupsMeetingTarget}/${cs.subgroupCount} subgroups meet target`;
+    }
+
     if (cs.centeringLoss !== undefined) {
       capSection += `\nCentering loss: ${cs.centeringLoss.toFixed(3)} (gap between mean Cp and mean Cpk)`;
     }

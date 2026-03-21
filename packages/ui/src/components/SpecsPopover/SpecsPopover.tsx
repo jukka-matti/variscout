@@ -31,6 +31,8 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
   specs,
   onSave,
   onOpenAdvanced,
+  cpkTarget,
+  onCpkTargetChange,
   className = '',
   colorScheme = specsPopoverDefaultColorScheme,
 }) => {
@@ -47,6 +49,8 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
     lsl: specs.lsl !== undefined,
     target: specs.target !== undefined,
   });
+  const [localCpkTarget, setLocalCpkTarget] = useState(cpkTarget?.toString() || '1.33');
+  const [cpkTargetEnabled, setCpkTargetEnabled] = useState(cpkTarget !== undefined);
   const [hasChanges, setHasChanges] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -67,6 +71,12 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
     setHasChanges(false);
   }, [specs]);
 
+  // Sync Cpk target state when prop changes from outside
+  useEffect(() => {
+    setLocalCpkTarget(cpkTarget?.toString() || '1.33');
+    setCpkTargetEnabled(cpkTarget !== undefined);
+  }, [cpkTarget]);
+
   // Track changes
   useEffect(() => {
     const newSpecs = {
@@ -74,10 +84,12 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
       lsl: visibility.lsl && localSpecs.lsl ? parseFloat(localSpecs.lsl) : undefined,
       target: visibility.target && localSpecs.target ? parseFloat(localSpecs.target) : undefined,
     };
-    const changed =
+    const specsChanged =
       newSpecs.usl !== specs.usl || newSpecs.lsl !== specs.lsl || newSpecs.target !== specs.target;
-    setHasChanges(changed);
-  }, [localSpecs, visibility, specs]);
+    const newCpkValue = cpkTargetEnabled && localCpkTarget ? parseFloat(localCpkTarget) : undefined;
+    const cpkChanged = newCpkValue !== cpkTarget;
+    setHasChanges(specsChanged || cpkChanged);
+  }, [localSpecs, visibility, specs, localCpkTarget, cpkTargetEnabled, cpkTarget]);
 
   // Close on outside click
   useEffect(() => {
@@ -132,8 +144,13 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
       target: visibility.target && localSpecs.target ? parseFloat(localSpecs.target) : undefined,
     };
     onSave(newSpecs);
+    if (onCpkTargetChange) {
+      const newCpkValue =
+        cpkTargetEnabled && localCpkTarget ? parseFloat(localCpkTarget) : undefined;
+      onCpkTargetChange(newCpkValue !== undefined && !isNaN(newCpkValue) ? newCpkValue : undefined);
+    }
     setIsOpen(false);
-  }, [localSpecs, visibility, onSave]);
+  }, [localSpecs, visibility, onSave, onCpkTargetChange, cpkTargetEnabled, localCpkTarget]);
 
   const handleInputChange = (field: 'usl' | 'lsl' | 'target', value: string) => {
     setLocalSpecs(prev => ({ ...prev, [field]: value }));
@@ -145,7 +162,10 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
 
   // Determine button label
   const hasAnySpec =
-    specs.usl !== undefined || specs.lsl !== undefined || specs.target !== undefined;
+    specs.usl !== undefined ||
+    specs.lsl !== undefined ||
+    specs.target !== undefined ||
+    cpkTarget !== undefined;
   const buttonLabel = hasAnySpec ? 'Specs' : '+ Specs';
 
   // Spec input row component
@@ -253,6 +273,42 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
               checked={visibility.lsl}
               placeholder="Min"
             />
+            {/* Cpk Target — process capability threshold (separate from product specs) */}
+            {onCpkTargetChange && (
+              <>
+                <div className="border-t border-edge-secondary" />
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="specpop-cpktarget"
+                    className="flex items-center gap-2 flex-1 cursor-pointer"
+                  >
+                    <input
+                      id="specpop-cpktarget"
+                      name="specpop-cpktarget"
+                      type="checkbox"
+                      checked={cpkTargetEnabled}
+                      onChange={e => setCpkTargetEnabled(e.target.checked)}
+                      className={cs.checkbox}
+                    />
+                    <span className={cs.checkboxLabel}>Cpk</span>
+                  </label>
+                  <input
+                    id="specpop-cpktarget-value"
+                    name="specpop-cpktarget-value"
+                    type="number"
+                    min="0.5"
+                    max="3.0"
+                    step="0.01"
+                    value={localCpkTarget}
+                    onChange={e => setLocalCpkTarget(e.target.value)}
+                    disabled={!cpkTargetEnabled}
+                    placeholder="1.33"
+                    title="Industry standard: 1.33 (4σ), 1.67 (5σ), 2.00 (6σ)"
+                    className={`${cs.input} ${!cpkTargetEnabled ? cs.inputDisabled : ''}`}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Apply Button */}

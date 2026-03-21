@@ -55,7 +55,7 @@ export interface ProjectPersistenceInputs {
   currentProjectId: string | null;
 
   // Quick-win workflow getters (Phase 1)
-  cpkTarget: number;
+  cpkTarget: number | undefined;
   stageColumn: string | null;
   stageOrderMode: StageOrderMode;
   isPerformanceMode: boolean;
@@ -120,7 +120,7 @@ export interface ProjectPersistenceInputs {
   setMeasureColumns: (columns: string[]) => void;
   setMeasureLabel: (label: string) => void;
   setSelectedMeasure: (measureId: string | null) => void;
-  setCpkTarget: (target: number) => void;
+  setCpkTarget: (target: number | undefined) => void;
   setAnalysisMode: (mode: AnalysisMode) => void;
   setYamazumiMapping: (mapping: YamazumiColumnMapping | null) => void;
   setSubgroupConfig: (config: SubgroupConfig) => void;
@@ -258,7 +258,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     };
 
     // Quick-win fields — only include non-default values for compact serialization
-    if (cpkTarget !== 1.33) state.cpkTarget = cpkTarget;
+    if (cpkTarget !== undefined) state.cpkTarget = cpkTarget;
     if (stageColumn !== null) state.stageColumn = stageColumn;
     if (stageOrderMode !== 'auto') state.stageOrderMode = stageOrderMode;
     if (isPerformanceMode) state.isPerformanceMode = true;
@@ -362,7 +362,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
         if (state.displayOptions) setDisplayOptions(state.displayOptions);
 
         // Quick-win fields (backward-compat: old .vrs files won't have these)
-        setCpkTarget(state.cpkTarget ?? 1.33);
+        setCpkTarget(state.cpkTarget);
         setStageColumn(state.stageColumn ?? null);
         setStageOrderMode(state.stageOrderMode ?? 'auto');
         setPerformanceMode(state.isPerformanceMode ?? false);
@@ -510,7 +510,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       if (state.displayOptions) setDisplayOptions(state.displayOptions);
 
       // Quick-win fields
-      setCpkTarget(state.cpkTarget ?? 1.33);
+      setCpkTarget(state.cpkTarget);
       setStageColumn(state.stageColumn ?? null);
       setStageOrderMode(state.stageOrderMode ?? 'auto');
       setPerformanceMode(state.isPerformanceMode ?? false);
@@ -640,7 +640,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setMeasureColumns([]);
     setMeasureLabel('Measure');
     setSelectedMeasure(null);
-    setCpkTarget(1.33);
+    setCpkTarget(undefined);
     // Reset analysis mode
     setAnalysisMode('standard');
     setYamazumiMapping(null);

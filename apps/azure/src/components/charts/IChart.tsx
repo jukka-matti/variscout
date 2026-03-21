@@ -31,6 +31,7 @@ const IChart = ({ parentWidth, parentHeight, ...props }: IChartProps) => {
     outcome: ctx.outcome ?? '',
     specs: ctx.specs,
     subgroupConfig: ctx.subgroupConfig,
+    cpkTarget: ctx.cpkTarget,
   });
 
   return (
@@ -60,6 +61,7 @@ const IChart = ({ parentWidth, parentHeight, ...props }: IChartProps) => {
         capabilityCpData={isCapabilityMode ? capData.cpData : undefined}
         capabilityCpkStats={isCapabilityMode ? capData.cpkStats : undefined}
         capabilityCpStats={isCapabilityMode ? capData.cpStats : undefined}
+        cpkTarget={ctx.cpkTarget}
         {...props}
       />
       {ctx.isComputing && (
