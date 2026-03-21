@@ -110,8 +110,8 @@ function SettingsPanelBase<
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* Panel — positioned right */}
-      <div className="absolute right-0 top-0 w-80 h-full bg-surface border-l border-edge shadow-2xl overflow-y-auto animate-slide-in-right">
+      {/* Panel — full-screen on phone, positioned right on tablet+ */}
+      <div className="absolute inset-0 sm:inset-auto sm:right-0 sm:top-0 sm:w-80 sm:h-full bg-surface sm:border-l border-edge shadow-2xl overflow-y-auto animate-slide-in-right safe-area-bottom">
         <div className="p-5 space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">
@@ -120,6 +120,7 @@ function SettingsPanelBase<
               onClick={onClose}
               className="p-1.5 rounded text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
               aria-label={t('action.close')}
+              style={{ minWidth: 44, minHeight: 44 }}
             >
               <X size={18} />
             </button>
