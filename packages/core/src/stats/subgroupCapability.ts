@@ -9,14 +9,13 @@ import * as d3 from 'd3-array';
 import type { DataRow } from '../types';
 import { toNumericValue } from '../types';
 import { calculateMovingRangeSigma } from './basic';
-import { parseTimeValue, formatTimeBucket, type TimeGranularity } from '../time';
 
 // ============================================================================
 // Types
 // ============================================================================
 
 /** How subgroups are formed from raw data */
-export type SubgroupMethod = 'column' | 'fixed-size' | 'time-interval';
+export type SubgroupMethod = 'column' | 'fixed-size';
 
 /** Configuration for subgroup formation */
 export interface SubgroupConfig {
@@ -26,12 +25,6 @@ export interface SubgroupConfig {
   column?: string;
   /** Subgroup size when method = 'fixed-size' (default 5, min 2) */
   size?: number;
-  /** Time column name when method = 'time-interval' */
-  timeColumn?: string;
-  /** Time granularity when method = 'time-interval' */
-  granularity?: TimeGranularity;
-  /** Minute interval when granularity = 'minute' (e.g., 5, 15, 30) */
-  minuteInterval?: number;
 }
 
 /** A single subgroup's capability result */
@@ -102,15 +95,6 @@ export function groupDataIntoSubgroups(
   if (config.method === 'column' && config.column) {
     return groupByColumn(rows, outcome, config.column);
   }
-  if (config.method === 'time-interval' && config.timeColumn && config.granularity) {
-    return groupByTimeInterval(
-      rows,
-      outcome,
-      config.timeColumn,
-      config.granularity,
-      config.minuteInterval
-    );
-  }
   return groupByFixedSize(rows, outcome, config.size ?? 5);
 }
 
@@ -167,39 +151,6 @@ function groupByFixedSize(rows: DataRow[], outcome: string, size: number): Subgr
     });
   }
 
-  return result;
-}
-
-function groupByTimeInterval(
-  rows: DataRow[],
-  outcome: string,
-  timeColumn: string,
-  granularity: TimeGranularity,
-  minuteInterval: number = 15
-): SubgroupData[] {
-  const groups = new Map<string, { values: number[]; rows: DataRow[] }>();
-
-  for (const row of rows) {
-    const val = toNumericValue(row[outcome]);
-    if (val === undefined) continue;
-
-    const date = parseTimeValue(row[timeColumn]);
-    if (!date) continue;
-
-    const key = formatTimeBucket(date, granularity, minuteInterval);
-    let group = groups.get(key);
-    if (!group) {
-      group = { values: [], rows: [] };
-      groups.set(key, group);
-    }
-    group.values.push(val);
-    group.rows.push(row);
-  }
-
-  const result: SubgroupData[] = [];
-  for (const [label, group] of groups) {
-    result.push({ values: group.values, label, rows: group.rows });
-  }
   return result;
 }
 
