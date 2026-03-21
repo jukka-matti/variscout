@@ -742,9 +742,9 @@ const ReportView: React.FC<ReportViewProps> = ({
               {/* Cpk learning loop */}
               {(cpkBefore != null || cpkAfter != null) && (
                 <ReportCpkLearningLoop
-                  cpkBefore={cpkBefore}
-                  projectedCpk={bestProjectedCpk}
-                  cpkAfter={cpkAfter}
+                  valueBefore={cpkBefore}
+                  projectedValue={bestProjectedCpk}
+                  valueAfter={cpkAfter}
                   verdict={primaryOutcome?.effective}
                 />
               )}
