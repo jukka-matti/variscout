@@ -772,4 +772,16 @@ export const hr: MessageCatalog = {
   'report.costCategory': '{category} cost',
   'report.noCost': 'No cost',
   'report.riskLevel': '{level} risk',
+
+  // Capability suggestion modal
+  'capability.suggestion.title': 'Specification limits set',
+  'capability.suggestion.description':
+    'Would you like to start with the Capability view to check if your subgroups are meeting the Cpk target?',
+  'capability.suggestion.whatYouSee': "What you'll see:",
+  'capability.suggestion.bullet1': 'I-Chart plotting Cp and Cpk per subgroup',
+  'capability.suggestion.bullet2': 'Whether subgroups consistently meet your target',
+  'capability.suggestion.bullet3': 'Centering loss (gap between Cp and Cpk)',
+  'capability.suggestion.startCapability': 'Start with Capability View',
+  'capability.suggestion.standardView': 'Standard View',
+  'capability.suggestion.footer': 'You can switch anytime using the toggle in the I-Chart header.',
 };

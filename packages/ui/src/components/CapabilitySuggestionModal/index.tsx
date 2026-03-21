@@ -88,7 +88,7 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                   <BarChart3 size={20} className="text-green-400" />
                 </div>
                 <h2 className="text-base font-semibold text-content">
-                  {t('capability.suggestion.title', 'Specification limits set')}
+                  {t('capability.suggestion.title')}
                 </h2>
               </div>
               <button
@@ -100,28 +100,16 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
             </div>
 
             <p className="text-sm text-content-muted mb-4">
-              {t(
-                'capability.suggestion.description',
-                'Would you like to start with the Capability view to check if your subgroups are meeting the Cpk target?'
-              )}
+              {t('capability.suggestion.description')}
             </p>
 
             <div className="bg-surface-tertiary rounded-lg p-3 mb-4 text-xs text-content-muted space-y-1">
               <div className="font-medium text-content text-xs mb-1">
-                {t('capability.suggestion.whatYouSee', "What you'll see:")}
+                {t('capability.suggestion.whatYouSee')}
               </div>
-              <div>
-                {t('capability.suggestion.bullet1', 'I-Chart plotting Cp and Cpk per subgroup')}
-              </div>
-              <div>
-                {t(
-                  'capability.suggestion.bullet2',
-                  'Whether subgroups consistently meet your target'
-                )}
-              </div>
-              <div>
-                {t('capability.suggestion.bullet3', 'Centering loss (gap between Cp and Cpk)')}
-              </div>
+              <div>{t('capability.suggestion.bullet1')}</div>
+              <div>{t('capability.suggestion.bullet2')}</div>
+              <div>{t('capability.suggestion.bullet3')}</div>
             </div>
 
             <div className="flex gap-2">
@@ -129,21 +117,18 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                 onClick={handleStartCapability}
                 className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
               >
-                {t('capability.suggestion.startCapability', 'Start with Capability View')}
+                {t('capability.suggestion.startCapability')}
               </button>
               <button
                 onClick={onStartStandard}
                 className="flex-1 px-4 py-2 bg-surface-tertiary hover:bg-surface-elevated text-content border border-edge rounded-lg text-sm font-medium transition-colors"
               >
-                {t('capability.suggestion.standardView', 'Standard View')}
+                {t('capability.suggestion.standardView')}
               </button>
             </div>
 
             <p className="text-[10px] text-content-muted text-center mt-3">
-              {t(
-                'capability.suggestion.footer',
-                'You can switch anytime using the toggle in the I-Chart header.'
-              )}
+              {t('capability.suggestion.footer')}
             </p>
           </div>
         </div>

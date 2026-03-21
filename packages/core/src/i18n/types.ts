@@ -787,6 +787,17 @@ export interface MessageCatalog {
   'idea.moreOptions': string;
   'idea.riskAssessment': string;
 
+  // Capability suggestion modal
+  'capability.suggestion.title': string;
+  'capability.suggestion.description': string;
+  'capability.suggestion.whatYouSee': string;
+  'capability.suggestion.bullet1': string;
+  'capability.suggestion.bullet2': string;
+  'capability.suggestion.bullet3': string;
+  'capability.suggestion.startCapability': string;
+  'capability.suggestion.standardView': string;
+  'capability.suggestion.footer': string;
+
   // Hypothesis role labels
   'hypothesis.primary': string;
   'hypothesis.contributing': string;

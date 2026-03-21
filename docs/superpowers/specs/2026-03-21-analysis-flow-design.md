@@ -1,3 +1,7 @@
+---
+title: Analysis Flow Documentation + Capability Mode Features
+---
+
 # Analysis Flow Documentation + Capability Mode Features
 
 **Date:** 2026-03-21
