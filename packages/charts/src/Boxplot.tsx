@@ -605,12 +605,9 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
   );
 };
 
-// Memoize to prevent unnecessary re-renders when parent state changes
-const BoxplotBaseMemo = React.memo(BoxplotBase);
-
 // Export with responsive wrapper
-const Boxplot = withParentSize(BoxplotBaseMemo);
+const Boxplot = withParentSize(BoxplotBase);
 export default Boxplot;
 
 // Also export the base component for custom sizing
-export { BoxplotBaseMemo as BoxplotBase };
+export { BoxplotBase };

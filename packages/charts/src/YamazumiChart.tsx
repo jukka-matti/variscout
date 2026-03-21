@@ -342,11 +342,8 @@ const YamazumiChartBase: React.FC<YamazumiChartProps> = ({
   );
 };
 
-/** Memoize to prevent unnecessary re-renders when parent state changes */
-const YamazumiChartBaseMemo = React.memo(YamazumiChartBase);
-
 /** Responsive wrapper with automatic parent size detection */
-const YamazumiChart = withParentSize(YamazumiChartBaseMemo);
+const YamazumiChart = withParentSize(YamazumiChartBase);
 
 export default YamazumiChart;
-export { YamazumiChartBaseMemo as YamazumiChartBase };
+export { YamazumiChartBase };
