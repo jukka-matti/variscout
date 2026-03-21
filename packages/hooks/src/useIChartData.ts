@@ -40,7 +40,7 @@ export function useIChartData(
     if (stats?.ucl !== undefined && stats?.lcl !== undefined) {
       fullData.forEach(p => {
         if (p.y > stats.ucl || p.y < stats.lcl) {
-          forceInclude.add(p.originalIndex);
+          if (p.originalIndex !== undefined) forceInclude.add(p.originalIndex);
         }
       });
     }

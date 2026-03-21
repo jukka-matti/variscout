@@ -1,3 +1,7 @@
+---
+title: 'Capability Mode: Time-Based Subgrouping + Journey Integration'
+---
+
 # Capability Mode: Time-Based Subgrouping + Journey Integration
 
 **Date:** 2026-03-21

@@ -1,3 +1,7 @@
+---
+title: 'Mobile Performance & Async Computation Architecture'
+---
+
 # Mobile Performance & Async Computation Architecture
 
 **Date**: 2026-03-21

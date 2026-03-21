@@ -12,7 +12,7 @@
  * @param forceInclude - Set of originalIndex values that must appear in output
  *                       (e.g., control limit violations)
  */
-export function lttb<T extends { x: number; y: number; originalIndex: number }>(
+export function lttb<T extends { x: number; y: number; originalIndex?: number }>(
   data: T[],
   threshold: number,
   forceInclude?: Set<number>
