@@ -155,46 +155,62 @@ Add mobile-visible action buttons in report header. Currently hidden in sidebar 
 </div>
 ```
 
-**Audience toggle:** Move from sidebar to report header on phone:
+**Audience toggle:** Render as a separate row below the action buttons on phone, hidden on desktop:
 
 ```html
-<div className="flex gap-1 lg:hidden">
-  <button>Technical</button>
-  <button>Summary</button>
+<!-- Mobile action bar: below report header, above content -->
+<div className="lg:hidden border-b border-edge">
+  <div className="flex gap-2 px-4 py-2">
+    <button>📄 PDF</button>
+    <button>📤 Share</button>
+    <button>☁ Publish</button>
+    <!-- Team plan only -->
+  </div>
+  <div className="flex gap-1 px-4 pb-2">
+    <button className="active">Technical</button>
+    <button>Summary</button>
+  </div>
 </div>
 ```
 
 ### 4. OneDrive File Picker Mobile
 
-**Approach:** Test during Chrome visual testing. If File Picker v8 popup doesn't work on mobile Chrome:
+**Approach:** Deferred to Chrome visual testing phase. This is a separate concern from the tab bar / polish work.
 
-- Add `isPhone` check in `useFilePicker.ts`
-- On phone: fall back to native `<input type="file" accept=".csv,.xlsx">` instead of popup
-- Show toast: "SharePoint file picker is available on desktop"
+- Test File Picker v8 popup on mobile Chrome during Chrome testing
+- If broken: add `isPhone` check in `useFilePicker.ts`, fall back to native `<input type="file">` on phone
+- If works: no change needed
+- Decision owner: developer during Chrome test phase
+- Not in scope for the initial implementation PR
 
 ### 5. Component Polish
 
-| Component                | File                                                                      | Fix                                                                                                                                                   |
-| ------------------------ | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ImprovementWorkspaceBase | `packages/ui/src/components/ImprovementPlan/ImprovementWorkspaceBase.tsx` | Add `truncate` to title h2. Add `safe-area-bottom` / `pb-[env(safe-area-inset-bottom)]` to sticky summary bar. Update empty state text to guide user. |
-| HypothesisTreeView       | `packages/ui/src/components/FindingsLog/HypothesisTreeView.tsx`           | On phone: reduce node indentation from `ml-4` to `ml-3`. Add `min-w-0` to inline form input containers to prevent overflow.                           |
-| PrioritizationMatrix     | `packages/ui/src/components/ImprovementPlan/PrioritizationMatrix.tsx`     | Increase axis selector and preset button touch targets to `min-h-[44px]` on phone.                                                                    |
-| WhatIfPageBase           | `packages/ui/src/components/WhatIfPage/WhatIfPageBase.tsx`                | Add `flex-wrap` to header right-side info labels for graceful wrapping on narrow screens.                                                             |
+| Component                | File                                                                      | Fix                                                                                                                                                                                                        |
+| ------------------------ | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ImprovementWorkspaceBase | `packages/ui/src/components/ImprovementPlan/ImprovementWorkspaceBase.tsx` | Add `truncate` to title h2. Add `safe-area-bottom` / `pb-[env(safe-area-inset-bottom)]` to sticky summary bar. Update empty state text to guide user.                                                      |
+| HypothesisTreeView       | `packages/ui/src/components/FindingsLog/HypothesisTreeView.tsx`           | Phone only (<640px): reduce node indentation from `ml-4` to `sm:ml-3` (Tailwind: `ml-3 sm:ml-4` — smaller on phone, normal on tablet+). Add `min-w-0` to inline form input containers to prevent overflow. |
+| PrioritizationMatrix     | `packages/ui/src/components/ImprovementPlan/PrioritizationMatrix.tsx`     | Increase axis selector and preset button touch targets to `min-h-[44px]` on phone.                                                                                                                         |
+| WhatIfPageBase           | `packages/ui/src/components/WhatIfPage/WhatIfPageBase.tsx`                | Add `flex-wrap` to header right-side info labels for graceful wrapping on narrow screens.                                                                                                                  |
 
 ### 6. ImprovementWorkspace Empty State Enhancement
 
-Update the `improve.noIdeas` empty state to be more helpful on mobile:
+Update empty states based on workspace content:
 
-```
-Current: "No ideas yet"
-New: "Pin findings from the Analysis view, then brainstorm improvement ideas here."
-```
+| State                                   | Condition                                                 | Message                                                                                                 |
+| --------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| No findings at all                      | `findings.length === 0`                                   | "Pin findings from the Analysis view, then brainstorm improvement ideas here."                          |
+| Findings exist, no supported hypotheses | `hypotheses.length > 0` but none `supported`/`partial`    | "Validate your hypotheses in the Findings view. Supported hypotheses unlock improvement brainstorming." |
+| Supported hypotheses, no ideas          | Hypotheses `supported`/`partial` but `ideas.length === 0` | Current `improve.noIdeas` text (existing behavior)                                                      |
 
-When hypotheses exist but none are supported/partial:
+### 7. "More" Menu Implementation
 
-```
-"Validate your hypotheses in the Findings view. Supported hypotheses unlock improvement brainstorming."
-```
+The "More" tab opens a **bottom sheet** (not a dropdown or new screen). Uses the existing bottom sheet pattern from MobileCategorySheet:
+
+- Slide-up animation (`animate-slide-up`)
+- Backdrop dismiss on tap outside
+- Safe-area-inset-bottom
+- Menu items with 44px min touch targets
+- Same items as current phone overflow menu, reorganized
 
 ---
 
