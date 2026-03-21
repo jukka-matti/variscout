@@ -115,16 +115,16 @@ The specific moments where each ceiling becomes visible.
 
 ### PWA → Standard
 
-| Ceiling        | User Experience                            | Frequency              |
-| -------------- | ------------------------------------------ | ---------------------- |
-| No file upload | Must copy-paste from Excel every time      | Every session          |
-| No save        | Loses work when browser closes             | First serious analysis |
-| 3-factor limit | Can't add 4th factor for deeper drill-down | Complex datasets       |
-| 50K row limit  | Large datasets rejected                    | Manufacturing data     |
+| Ceiling                      | User Experience                                              | Frequency                      |
+| ---------------------------- | ------------------------------------------------------------ | ------------------------------ |
+| No file upload               | Must copy-paste from Excel every time                        | Every session                  |
+| No save                      | Loses work when browser closes                               | First serious analysis         |
+| 3-factor limit               | Can't add 4th factor for deeper drill-down                   | Complex datasets               |
+| 50K row limit                | Large datasets rejected                                      | Manufacturing data             |
+| No Performance Mode          | Can't analyze multi-channel data (fill heads, cavities)      | Multi-measure data             |
+| No closed-loop investigation | Can't track from finding to resolution with Cpk verification | First real improvement project |
 
 > Mobile limits are lower: PWA 10K rows / Azure 25K rows (see ADR-039).
-> | No Performance Mode | Can't analyze multi-channel data (fill heads, cavities) | Multi-measure data |
-> | No closed-loop investigation | Can't track from finding to resolution with Cpk verification | First real improvement project |
 
 ### Standard → Team
 

@@ -23,9 +23,12 @@ Mobile devices use lower limits to prevent memory and computation issues on cons
 | Azure    | 100,000 rows       | 10,000 rows     | 25,000 rows       | 5,000 rows     |
 
 Mobile detection uses `useIsMobile(640)` in app-level `useDataIngestion` wrappers. The limits are passed as `DataIngestionConfig` overrides — the hook itself is unchanged.
-| Column limit | None enforced | — | All columns loaded |
-| Auto-detected factors | 3 suggested | `parser.ts detectColumns()` | `.slice(0, 3)` default suggestion |
-| Max selectable factors | 3 (PWA) / 6 (Azure) | `ColumnMapping` | Configurable via `maxFactors` prop |
+
+| Constraint                    | Value                 | Location                    | Behavior                                          |
+| ----------------------------- | --------------------- | --------------------------- | ------------------------------------------------- |
+| Column limit                  | None enforced         | —                           | All columns loaded                                |
+| Auto-detected factors         | 3 suggested           | `parser.ts detectColumns()` | `.slice(0, 3)` default suggestion                 |
+| Max selectable factors        | 3 (PWA) / 6 (Azure)   | `ColumnMapping`             | Configurable via `maxFactors` prop                |
 | Factor change during analysis | Both (PWA 3, Azure 6) | ColumnMapping `mode='edit'` | "Factors" button in nav bar reopens ColumnMapping |
 
 ## Categorical Classification
