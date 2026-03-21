@@ -21,6 +21,8 @@ import {
   ReportHypothesisSummary,
   ReportImprovementSummary,
   ReportCpkLearningLoop,
+  ReportYamazumiKPIGrid,
+  ReportActivityBreakdown,
 } from '@variscout/ui';
 import {
   useReportSections,
@@ -31,12 +33,17 @@ import {
   useBoxplotData,
   useBoxplotWrapperData,
   useIChartData,
+  useYamazumiChartData,
   copySectionAsHTML,
 } from '@variscout/hooks';
 import type { ReportSectionDescriptor, VerificationChartId, AudienceMode } from '@variscout/hooks';
 import type { Finding, SpecLimits } from '@variscout/core';
-import { formatFindingFilters, calculateStagedComparison } from '@variscout/core';
-import { IChartBase, BoxplotBase, ParetoChartBase } from '@variscout/charts';
+import {
+  formatFindingFilters,
+  calculateStagedComparison,
+  computeYamazumiSummary,
+} from '@variscout/core';
+import { IChartBase, BoxplotBase, ParetoChartBase, YamazumiChartBase } from '@variscout/charts';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
@@ -118,10 +125,30 @@ const ReportView: React.FC<ReportViewProps> = ({
     stagedStats,
     cpkTarget,
     displayOptions,
+    analysisMode,
+    yamazumiMapping,
   } = useData();
 
   const findings = useMemo(() => persistedFindings ?? [], [persistedFindings]);
   const hypotheses = useMemo(() => persistedHypotheses ?? [], [persistedHypotheses]);
+
+  // ---------------------------------------------------------------------------
+  // Yamazumi mode data
+  // ---------------------------------------------------------------------------
+  const isYamazumi = analysisMode === 'yamazumi';
+
+  const yamazumiBarData = useYamazumiChartData({
+    filteredData: isYamazumi ? filteredData : [],
+    mapping: isYamazumi ? (yamazumiMapping ?? null) : null,
+  });
+
+  const yamazumiSummary = useMemo(
+    () =>
+      isYamazumi && yamazumiBarData.length > 0
+        ? computeYamazumiSummary(yamazumiBarData, yamazumiMapping?.taktTime)
+        : null,
+    [isYamazumi, yamazumiBarData, yamazumiMapping?.taktTime]
+  );
 
   // ---------------------------------------------------------------------------
   // Audience mode state
@@ -303,6 +330,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     stagedComparison: hasStagedComparison,
     aiEnabled: aiEnabled ?? false,
     audienceMode,
+    analysisMode: analysisMode ?? 'standard',
   });
 
   // Scroll spy for sidebar highlighting
@@ -533,21 +561,42 @@ const ReportView: React.FC<ReportViewProps> = ({
           defaultOpen={section.status !== 'future'}
           forceOpen={isPrinting}
         >
-          {/* Step 1: Current Condition */}
-          {section.id === 'current-condition' && stats && outcome && (
+          {/* Step 1: Current Condition / Time Composition */}
+          {section.id === 'current-condition' && outcome && (
             <div className="space-y-4">
-              <ReportKPIGrid stats={stats} specs={specs} sampleCount={filteredData.length} />
-              {!isSummary && (
-                <ReportChartSnapshot
-                  id="report-snapshot-ichart"
-                  chartType="ichart"
-                  filterLabel="Current state"
-                  renderChart={() => <IChart />}
-                  onCopyChart={async (containerId, chartName) => {
-                    await handleCopyChart(containerId, chartName);
-                  }}
-                  copyFeedback={copyFeedback}
-                />
+              {isYamazumi && yamazumiSummary ? (
+                <>
+                  <ReportYamazumiKPIGrid summary={yamazumiSummary} />
+                  {!isSummary && yamazumiBarData.length > 0 && (
+                    <div style={{ pointerEvents: 'none' }}>
+                      <YamazumiChartBase
+                        data={yamazumiBarData}
+                        taktTime={yamazumiMapping?.taktTime}
+                        parentWidth={REPORT_CHART_WIDTH}
+                        parentHeight={REPORT_CHART_HEIGHT}
+                        showBranding={false}
+                      />
+                    </div>
+                  )}
+                </>
+              ) : (
+                stats && (
+                  <>
+                    <ReportKPIGrid stats={stats} specs={specs} sampleCount={filteredData.length} />
+                    {!isSummary && (
+                      <ReportChartSnapshot
+                        id="report-snapshot-ichart"
+                        chartType="ichart"
+                        filterLabel="Current state"
+                        renderChart={() => <IChart />}
+                        onCopyChart={async (containerId, chartName) => {
+                          await handleCopyChart(containerId, chartName);
+                        }}
+                        copyFeedback={copyFeedback}
+                      />
+                    )}
+                  </>
+                )
               )}
               {!isSummary && aiEnabled && narrative && (
                 <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
@@ -559,42 +608,121 @@ const ReportView: React.FC<ReportViewProps> = ({
             </div>
           )}
 
-          {/* Step 2: Variation Drivers */}
-          {section.id === 'drivers' && firstFactor && (
+          {/* Step 2: Variation Drivers / Activity Composition */}
+          {section.id === 'drivers' && (
             <div className="space-y-4">
-              {isSummary ? (
-                <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
-                  <p className="text-sm text-slate-700 dark:text-slate-300">
-                    Key driver:{' '}
-                    <span className="font-medium">
-                      {columnAliases?.[firstFactor] || firstFactor}
-                    </span>
+              {(extendedSection?.findings ?? []).length > 0 ? (
+                // Finding-driven content (all modes)
+                isSummary ? (
+                  // Summary: finding text + key driver name
+                  (extendedSection?.findings ?? []).map(finding => (
+                    <div
+                      key={finding.id}
+                      className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3"
+                    >
+                      <p className="text-sm text-slate-700 dark:text-slate-300">
+                        {finding.text || 'Observation'}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  // Technical: finding text + chart context
+                  (extendedSection?.findings ?? []).map(finding => (
+                    <div key={finding.id} className="space-y-3">
+                      <div className="flex items-start gap-2">
+                        <span
+                          className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${
+                            finding.status === 'observed'
+                              ? 'bg-amber-400'
+                              : finding.status === 'investigating'
+                                ? 'bg-blue-400'
+                                : finding.status === 'analyzed'
+                                  ? 'bg-purple-400'
+                                  : 'bg-green-400'
+                          }`}
+                        />
+                        <p className="text-sm text-slate-700 dark:text-slate-300">
+                          {finding.text || 'Observation'}
+                        </p>
+                      </div>
+                      {/* Yamazumi: show activity breakdown for the step */}
+                      {isYamazumi &&
+                        finding.source &&
+                        'category' in finding.source &&
+                        (() => {
+                          const { category } = finding.source as { category: string };
+                          const barData = yamazumiBarData.find(b => b.key === category);
+                          return barData ? (
+                            <ReportActivityBreakdown stepName={category} barData={barData} />
+                          ) : null;
+                        })()}
+                      {/* SPC: show KPI snapshot */}
+                      {!isYamazumi && outcome && (
+                        <FindingChartSnapshot
+                          finding={finding}
+                          rawData={rawData}
+                          outcome={outcome}
+                          specs={specs}
+                          columnAliases={columnAliases}
+                        />
+                      )}
+                    </div>
+                  ))
+                )
+              ) : // Fallback: no findings
+              isYamazumi ? (
+                // Yamazumi fallback: show yamazumi chart as overview
+                !isSummary && yamazumiBarData.length > 0 ? (
+                  <div style={{ pointerEvents: 'none' }}>
+                    <YamazumiChartBase
+                      data={yamazumiBarData}
+                      taktTime={yamazumiMapping?.taktTime}
+                      parentWidth={REPORT_CHART_WIDTH}
+                      parentHeight={REPORT_CHART_HEIGHT}
+                      showBranding={false}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+                    Pin observations on the yamazumi chart to see activity breakdowns here.
                   </p>
-                </div>
-              ) : (
-                <>
-                  <ReportChartSnapshot
-                    id="report-snapshot-boxplot"
-                    chartType="boxplot"
-                    filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
-                    renderChart={() => <Boxplot factor={firstFactor} />}
-                    onCopyChart={async (containerId, chartName) => {
-                      await handleCopyChart(containerId, chartName);
-                    }}
-                    copyFeedback={copyFeedback}
-                  />
-                  <ReportChartSnapshot
-                    id="report-snapshot-pareto"
-                    chartType="pareto"
-                    filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
-                    renderChart={() => <ParetoChart factor={firstFactor} />}
-                    onCopyChart={async (containerId, chartName) => {
-                      await handleCopyChart(containerId, chartName);
-                    }}
-                    copyFeedback={copyFeedback}
-                  />
-                </>
-              )}
+                )
+              ) : firstFactor ? (
+                // Standard SPC fallback (unchanged)
+                isSummary ? (
+                  <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
+                    <p className="text-sm text-slate-700 dark:text-slate-300">
+                      Key driver:{' '}
+                      <span className="font-medium">
+                        {columnAliases?.[firstFactor] || firstFactor}
+                      </span>
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <ReportChartSnapshot
+                      id="report-snapshot-boxplot"
+                      chartType="boxplot"
+                      filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
+                      renderChart={() => <Boxplot factor={firstFactor} />}
+                      onCopyChart={async (containerId, chartName) => {
+                        await handleCopyChart(containerId, chartName);
+                      }}
+                      copyFeedback={copyFeedback}
+                    />
+                    <ReportChartSnapshot
+                      id="report-snapshot-pareto"
+                      chartType="pareto"
+                      filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
+                      renderChart={() => <ParetoChart factor={firstFactor} />}
+                      onCopyChart={async (containerId, chartName) => {
+                        await handleCopyChart(containerId, chartName);
+                      }}
+                      copyFeedback={copyFeedback}
+                    />
+                  </>
+                )
+              ) : null}
             </div>
           )}
 
@@ -742,10 +870,12 @@ const ReportView: React.FC<ReportViewProps> = ({
               {/* Cpk learning loop */}
               {(cpkBefore != null || cpkAfter != null) && (
                 <ReportCpkLearningLoop
-                  cpkBefore={cpkBefore}
-                  projectedCpk={bestProjectedCpk}
-                  cpkAfter={cpkAfter}
+                  valueBefore={cpkBefore}
+                  projectedValue={bestProjectedCpk}
+                  valueAfter={cpkAfter}
                   verdict={primaryOutcome?.effective}
+                  metricLabel={isYamazumi ? 'VA Ratio' : 'Cpk'}
+                  formatValue={isYamazumi ? (v: number) => `${Math.round(v * 100)}%` : undefined}
                 />
               )}
 
@@ -820,6 +950,10 @@ const ReportView: React.FC<ReportViewProps> = ({
       bestProjectedCpk,
       primaryOutcome,
       cpkTarget,
+      isYamazumi,
+      yamazumiBarData,
+      yamazumiSummary,
+      yamazumiMapping?.taktTime,
     ]
   );
 

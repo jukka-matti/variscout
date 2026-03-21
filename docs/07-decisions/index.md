@@ -49,6 +49,7 @@ This section captures key architectural decisions made during VariScout developm
 | [035](adr-035-improvement-prioritization.md)         | Improvement Prioritization Model         | Accepted   | 2026-03-20 |
 | [036](adr-036-no-russian-language.md)                | No Russian Language                      | Accepted   | 2026-03-20 |
 | [037](adr-037-reporting-workspaces.md)               | Reporting Workspaces                     | Accepted   | 2026-03-20 |
+| [038](adr-038-subgroup-capability.md)                | Subgroup Capability Analysis             | Accepted   | 2026-03-21 |
 
 ---
 

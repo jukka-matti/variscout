@@ -1,10 +1,10 @@
 /**
- * ReportCpkLearningLoop — Before → Projected → Actual Cpk comparison.
+ * ReportCpkLearningLoop — Before → Projected → Actual metric comparison.
  *
  * Visualizes the PDCA learning loop:
- * - Before Cpk (from FindingOutcome.cpkBefore)
- * - Projected Cpk (best projection from selected ImprovementIdeas)
- * - Actual Cpk (from FindingOutcome.cpkAfter)
+ * - Before value (from FindingOutcome.cpkBefore or custom metric)
+ * - Projected value (best projection from selected ImprovementIdeas)
+ * - Actual value (from FindingOutcome.cpkAfter or custom metric)
  *
  * Color-coded verdict:
  * - Green: actual ≥ projected (or within 5%)
@@ -21,20 +21,26 @@ import type { MessageCatalog } from '@variscout/core';
 // ============================================================================
 
 export interface ReportCpkLearningLoopProps {
-  cpkBefore?: number;
-  projectedCpk?: number;
-  cpkAfter?: number;
+  valueBefore?: number;
+  projectedValue?: number;
+  valueAfter?: number;
   /** Overall outcome verdict */
   verdict?: 'yes' | 'no' | 'partial';
+  /** Label for the metric (default: 'Cpk') */
+  metricLabel?: string;
+  /** Custom value formatter (default: v => v.toFixed(2)) */
+  formatValue?: (v: number) => string;
 }
 
 // ============================================================================
 // Helpers
 // ============================================================================
 
-function formatCpk(value: number | undefined): string {
+const defaultFormatValue = (v: number): string => v.toFixed(2);
+
+function formatDisplay(value: number | undefined, formatter: (v: number) => string): string {
   if (value === undefined) return '—';
-  return value.toFixed(2);
+  return formatter(value);
 }
 
 function getDeltaColor(before: number | undefined, after: number | undefined): string {
@@ -95,15 +101,17 @@ function getVerdictBg(verdict?: 'yes' | 'no' | 'partial'): string {
 // ============================================================================
 
 export const ReportCpkLearningLoop: React.FC<ReportCpkLearningLoopProps> = ({
-  cpkBefore,
-  projectedCpk,
-  cpkAfter,
+  valueBefore,
+  projectedValue,
+  valueAfter,
   verdict,
+  metricLabel = 'Cpk',
+  formatValue = defaultFormatValue,
 }) => {
   const { t, tf } = useTranslation();
-  const hasProjection = projectedCpk !== undefined;
-  const hasBefore = cpkBefore !== undefined;
-  const hasAfter = cpkAfter !== undefined;
+  const hasProjection = projectedValue !== undefined;
+  const hasBefore = valueBefore !== undefined;
+  const hasAfter = valueAfter !== undefined;
 
   // Don't render if we have no data at all
   if (!hasBefore && !hasAfter) return null;
@@ -126,7 +134,7 @@ export const ReportCpkLearningLoop: React.FC<ReportCpkLearningLoopProps> = ({
             {t('report.cpk.before')}
           </p>
           <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">
-            {formatCpk(cpkBefore)}
+            {formatDisplay(valueBefore, formatValue)}
           </p>
         </div>
 
@@ -143,7 +151,7 @@ export const ReportCpkLearningLoop: React.FC<ReportCpkLearningLoopProps> = ({
                 {t('report.cpk.projected')}
               </p>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {formatCpk(projectedCpk)}
+                {formatDisplay(projectedValue, formatValue)}
               </p>
             </div>
           </>
@@ -159,8 +167,8 @@ export const ReportCpkLearningLoop: React.FC<ReportCpkLearningLoopProps> = ({
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
             {t('report.cpk.actual')}
           </p>
-          <p className={`text-2xl font-bold ${getDeltaColor(cpkBefore, cpkAfter)}`}>
-            {formatCpk(cpkAfter)}
+          <p className={`text-2xl font-bold ${getDeltaColor(valueBefore, valueAfter)}`}>
+            {formatDisplay(valueAfter, formatValue)}
           </p>
         </div>
       </div>
@@ -169,17 +177,17 @@ export const ReportCpkLearningLoop: React.FC<ReportCpkLearningLoopProps> = ({
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200/50 dark:border-slate-700/50">
         {/* Overall delta */}
         {hasBefore && hasAfter && (
-          <span className={`text-sm font-medium ${getDeltaColor(cpkBefore, cpkAfter)}`}>
-            {formatDelta(cpkBefore, cpkAfter)} Cpk
+          <span className={`text-sm font-medium ${getDeltaColor(valueBefore, valueAfter)}`}>
+            {formatDelta(valueBefore, valueAfter)} {metricLabel}
           </span>
         )}
 
         {/* Projection gap */}
         {hasProjection && hasAfter && (
           <span className="text-xs text-slate-400 dark:text-slate-500">
-            {cpkAfter! >= projectedCpk!
+            {valueAfter! >= projectedValue!
               ? t('report.cpk.metProjection')
-              : tf('report.cpk.fromProjection', { delta: formatDelta(projectedCpk, cpkAfter) })}
+              : tf('report.cpk.fromProjection', { delta: formatDelta(projectedValue, valueAfter) })}
           </span>
         )}
 

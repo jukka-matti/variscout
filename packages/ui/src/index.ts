@@ -325,6 +325,10 @@ export {
   type ReportImprovementSummaryProps,
   ReportCpkLearningLoop,
   type ReportCpkLearningLoopProps,
+  ReportYamazumiKPIGrid,
+  type ReportYamazumiKPIGridProps,
+  ReportActivityBreakdown,
+  type ReportActivityBreakdownProps,
 } from './components/ReportView';
 
 // Services
@@ -400,6 +404,13 @@ export {
   type YamazumiParetoModeDropdownProps,
 } from './components/YamazumiDisplayToggle';
 export { YamazumiSummaryBar, type YamazumiSummaryBarProps } from './components/YamazumiSummaryBar';
+
+// Subgroup Capability
+export {
+  CapabilityMetricToggle,
+  type CapabilityMetricToggleProps,
+} from './components/CapabilityMetricToggle';
+export { SubgroupConfigPopover, type SubgroupConfigProps } from './components/SubgroupConfig';
 
 // Hooks
 export {

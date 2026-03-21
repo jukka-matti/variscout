@@ -14,6 +14,8 @@ import {
   SelectionPanel,
   CreateFactorModal,
   DashboardLayoutBase,
+  CapabilityMetricToggle,
+  SubgroupConfigPopover,
   useIsMobile,
   useGlossary,
   BREAKPOINTS,
@@ -35,7 +37,7 @@ import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import { Activity, Copy, Check, Download, Settings2 } from 'lucide-react';
-import { getColumnNames, type SpecLimits, type Finding } from '@variscout/core';
+import { getColumnNames, hasTimeComponent, type SpecLimits, type Finding } from '@variscout/core';
 
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
 
@@ -120,6 +122,8 @@ const Dashboard = ({
     timeColumn,
     displayOptions,
     setDisplayOptions,
+    subgroupConfig,
+    setSubgroupConfig,
     // Selection state
     selectedPoints,
     clearSelection,
@@ -634,6 +638,27 @@ const Dashboard = ({
               onSave={newSpecs => setSpecs(newSpecs)}
               onOpenAdvanced={() => setShowSpecEditor(true)}
             />
+          </div>
+        }
+        ichartHeaderExtra={
+          <div className="flex items-center gap-1">
+            <CapabilityMetricToggle
+              metric={displayOptions.standardIChartMetric ?? 'measurement'}
+              onMetricChange={m =>
+                setDisplayOptions({ ...displayOptions, standardIChartMetric: m })
+              }
+              disabled={specs.usl === undefined && specs.lsl === undefined}
+            />
+            {displayOptions.standardIChartMetric === 'capability' && (
+              <SubgroupConfigPopover
+                config={subgroupConfig}
+                onConfigChange={setSubgroupConfig}
+                availableColumns={factors}
+                columnAliases={columnAliases}
+                timeColumn={timeColumn}
+                hasTimeOfDay={timeColumn ? hasTimeComponent(filteredData, timeColumn) : false}
+              />
+            )}
           </div>
         }
         // Render slots

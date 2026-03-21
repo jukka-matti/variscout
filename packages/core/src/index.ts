@@ -84,6 +84,22 @@ export {
   // Evidence interpretation
   interpretEvidence,
   generateAnovaInsightLine,
+  // Subgroup capability analysis
+  groupDataIntoSubgroups,
+  calculateSubgroupCapability,
+  calculateSeriesControlLimits,
+  formatTimeBucket,
+} from './stats';
+
+// Subgroup capability types
+export type {
+  SubgroupMethod,
+  TimeGranularity,
+  SubgroupConfig,
+  SubgroupCapabilityResult,
+  SubgroupData,
+  CapabilitySeriesLimits,
+  StandardIChartMetric,
 } from './stats';
 
 // Tier (Azure Marketplace multi-tier licensing) — primary module

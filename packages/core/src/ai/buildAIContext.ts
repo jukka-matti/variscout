@@ -11,6 +11,7 @@ import { buildGlossaryPrompt } from '../glossary/buildGlossaryPrompt';
 import type { GlossaryCategory } from '../glossary/types';
 import type { AnalysisMode } from '../types';
 import type { YamazumiSummary } from '../yamazumi/types';
+import type { SubgroupCapabilityResult, SubgroupConfig } from '../stats/subgroupCapability';
 import type { Locale } from '../i18n/types';
 
 /** Stats input for AI context — extends StatsResult with app-level fields */
@@ -87,6 +88,13 @@ export interface BuildAIContextOptions {
   analysisMode?: AnalysisMode;
   /** Yamazumi summary stats (when in yamazumi mode) */
   yamazumiSummary?: YamazumiSummary;
+  /** Subgroup capability data (when capability mode is active) */
+  capabilityData?: {
+    subgroupResults: SubgroupCapabilityResult[];
+    cpkStats: { mean: number; ucl: number; lcl: number } | null;
+    cpStats: { mean: number } | null;
+    config: SubgroupConfig;
+  };
 }
 
 /**
@@ -186,6 +194,34 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       taktTime: yamazumiSummary.taktTime,
       stepsOverTakt: yamazumiSummary.stepsOverTakt,
     };
+  }
+
+  // Subgroup capability context (standard mode with capability toggle)
+  if (analysisMode !== 'yamazumi' && options.capabilityData) {
+    const { subgroupResults, cpkStats, cpStats, config } = options.capabilityData;
+    const cpkValues = subgroupResults.map(r => r.cpk).filter((v): v is number => v !== undefined);
+    const cpValues = subgroupResults.map(r => r.cp).filter((v): v is number => v !== undefined);
+
+    if (cpkValues.length > 0 && cpkStats) {
+      const cpkInControl = cpkValues.filter(v => v >= cpkStats.lcl && v <= cpkStats.ucl).length;
+      context.capabilityStability = {
+        method: config.method,
+        column: config.column,
+        subgroupSize: config.size,
+        granularity: config.granularity,
+        subgroupCount: cpkValues.length,
+        meanCpk: cpkStats.mean,
+        minCpk: Math.min(...cpkValues),
+        maxCpk: Math.max(...cpkValues),
+        cpkInControl,
+        cpkOutOfControl: cpkValues.length - cpkInControl,
+        meanCp: cpStats?.mean,
+        centeringLoss:
+          cpStats && cpValues.length > 0
+            ? cpValues.reduce((a, b) => a + b, 0) / cpValues.length - cpkStats.mean
+            : undefined,
+      };
+    }
   }
 
   if (focusContext) {

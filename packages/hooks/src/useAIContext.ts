@@ -77,6 +77,8 @@ export interface UseAIContextOptions {
   cumulativeScope?: number;
   /** Enriched drill path with scope fractions */
   drillPathEnriched?: Array<{ factor: string; values: string[]; scopeFraction: number }>;
+  /** Subgroup capability data (when capability mode is active) */
+  capabilityData?: BuildAIContextOptions['capabilityData'];
 }
 
 export interface UseAIContextReturn {
@@ -112,6 +114,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     yamazumiSummary,
     cumulativeScope,
     drillPathEnriched,
+    capabilityData,
   } = options;
 
   const context = useMemo<AIContext | null>(() => {
@@ -136,6 +139,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       yamazumiSummary,
       cumulativeScope,
       drillPathEnriched,
+      capabilityData,
     };
 
     // Map StatsResult to AIStatsInput
@@ -178,6 +182,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     yamazumiSummary,
     cumulativeScope,
     drillPathEnriched,
+    capabilityData,
   ]);
 
   return { context };

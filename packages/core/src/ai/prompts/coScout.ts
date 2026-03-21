@@ -410,6 +410,7 @@ export function buildCoScoutInput(
     phase: options?.journeyPhase,
     hasActionTools: options?.journeyPhase != null,
     synthesis: context.process?.synthesis,
+    capabilityStability: context.capabilityStability,
   });
 
   const input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
@@ -464,6 +465,8 @@ export interface BuildCoScoutSystemPromptOptions {
   hasActionTools?: boolean;
   /** Convergence synthesis narrative (from ProcessContext) */
   synthesis?: string;
+  /** Subgroup capability stability data (when capability mode active) */
+  capabilityStability?: AIContext['capabilityStability'];
 }
 
 /**
@@ -685,6 +688,38 @@ Never invent data or statistics. If the context does not contain enough informat
         'Confidence calibration: Moderate sample size. Use standard language — "The analysis suggests...", "Current data indicates..."'
       );
     }
+  }
+
+  // Capability stability mode context
+  if (options.capabilityStability) {
+    const cs = options.capabilityStability;
+    const subgroupDesc =
+      cs.method === 'column' ? `by ${cs.column}` : `fixed size n=${cs.subgroupSize}`;
+    let capSection = `CAPABILITY STABILITY MODE ACTIVE
+The analyst is viewing Cp/Cpk per subgroup on the I-Chart. This reveals whether process capability itself is stable over time.
+
+Current state: ${cs.subgroupCount} subgroups (${subgroupDesc})
+Mean Cpk: ${cs.meanCpk.toFixed(2)}, range: ${cs.minCpk.toFixed(2)}–${cs.maxCpk.toFixed(2)}
+In-control: ${cs.cpkInControl}/${cs.subgroupCount} subgroups`;
+
+    if (cs.centeringLoss !== undefined) {
+      capSection += `\nCentering loss: ${cs.centeringLoss.toFixed(3)} (gap between mean Cp and mean Cpk)`;
+    }
+
+    capSection += `
+
+Interpretation guidance:
+- If ALL subgroups in control → capability is stable, overall Ppk is representative
+- If subgroups OUT OF CONTROL → capability is shifting; investigate WHICH subgroups and WHEN
+- Large Cp-Cpk gap → process is capable but off-center; investigate centering drift
+- Low Cpk with high Cp → the spread is fine, the mean is shifting
+- Both Cp and Cpk out of control → process is fundamentally unstable
+
+Focus your analysis on:
+1. Are there specific subgroups (${cs.method === 'column' ? 'batches/groups' : 'time periods'}) where capability drops?
+2. Is the centering loss systematic or random?
+3. What factors might explain capability shifts between subgroups?`;
+    parts.push(capSection);
   }
 
   parts.push(TERMINOLOGY_INSTRUCTION);

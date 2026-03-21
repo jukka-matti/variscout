@@ -72,7 +72,7 @@ export const glossaryTerms: GlossaryTerm[] = [
       'Cp compares the width of specification limits to 6\u03c3_within of the process. Cp = (USL - LSL) / (6\u03c3_within), where \u03c3_within is estimated from the moving range (MR\u0304/d2). This captures short-term, inherent variation. Higher values mean the process has room to spare within specs. Does not account for centering.',
     category: 'capability',
     learnMorePath: '/tools/capability',
-    relatedTerms: ['cpk', 'usl', 'lsl', 'stdDev'],
+    relatedTerms: ['cpk', 'usl', 'lsl', 'stdDev', 'rationalSubgrouping'],
   },
   {
     id: 'cpk',
@@ -83,7 +83,7 @@ export const glossaryTerms: GlossaryTerm[] = [
       'Cpk considers both spread and centering using \u03c3_within (estimated from the moving range). Cpk = min(CPU, CPL) where CPU = (USL - mean) / (3\u03c3_within) and CPL = (mean - LSL) / (3\u03c3_within). A Cpk much lower than Cp indicates the process mean is shifted toward one spec limit.',
     category: 'capability',
     learnMorePath: '/tools/capability',
-    relatedTerms: ['cp', 'usl', 'lsl', 'mean'],
+    relatedTerms: ['cp', 'usl', 'lsl', 'mean', 'rationalSubgrouping'],
   },
   {
     id: 'passRate',
@@ -346,9 +346,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Grouping data by meaningful time periods or sources so within-group variation represents only common cause.',
     description:
-      'The foundation of effective stratification. Group data so that variation within each group is homogeneous (common cause only), and differences between groups can reveal special causes. Poor subgrouping masks real signals.',
+      'The foundation of effective stratification. Group data so that variation within each group is homogeneous (common cause only), and differences between groups can reveal special causes. Poor subgrouping masks real signals. In Capability mode, rational subgroups also serve as the basis for per-subgroup Cp/Cpk calculation — each subgroup gets its own within-group sigma, enabling capability stability analysis over time.',
     category: 'methodology',
-    relatedTerms: ['stratification', 'commonCause', 'specialCause'],
+    relatedTerms: ['stratification', 'commonCause', 'specialCause', 'capabilityStability'],
   },
   {
     id: 'stratification',

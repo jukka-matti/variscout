@@ -214,6 +214,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Yamazumi / analysis mode state
       analysisMode: state.analysisMode,
       yamazumiMapping: state.yamazumiMapping,
+      subgroupConfig: state.subgroupConfig,
 
       // Multi-point selection state
       selectedPoints: state.selectedPoints,
@@ -289,6 +290,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Yamazumi / analysis mode setters
       setAnalysisMode: actions.setAnalysisMode,
       setYamazumiMapping: actions.setYamazumiMapping,
+      setSubgroupConfig: actions.setSubgroupConfig,
 
       // Multi-point selection actions
       setSelectedPoints: actions.setSelectedPoints,

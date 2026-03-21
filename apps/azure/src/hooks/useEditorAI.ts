@@ -19,7 +19,13 @@ import {
   type DrillStep,
 } from '@variscout/hooks';
 import type { ViewState } from '@variscout/hooks';
-import type { FilterAction, ToolHandlerMap, JourneyPhase, EntryScenario } from '@variscout/core';
+import type {
+  FilterAction,
+  ToolHandlerMap,
+  JourneyPhase,
+  EntryScenario,
+  BuildAIContextOptions,
+} from '@variscout/core';
 import {
   buildSuggestedQuestions,
   formatKnowledgeContext,
@@ -89,6 +95,8 @@ export interface UseEditorAIOptions {
   journeyPhase?: JourneyPhase;
   /** Entry scenario for tool routing (ADR-029) */
   entryScenario?: EntryScenario;
+  /** Pre-computed subgroup capability data (when capability mode active) */
+  capabilityData?: BuildAIContextOptions['capabilityData'];
   onOpenCoScout: () => void;
   onOpenFindings: () => void;
 }
@@ -149,6 +157,7 @@ export function useEditorAI({
   knowledgeSearchFolder,
   journeyPhase,
   entryScenario,
+  capabilityData,
   onOpenCoScout,
   onOpenFindings,
 }: UseEditorAIOptions): UseEditorAIReturn {
@@ -248,6 +257,7 @@ export function useEditorAI({
     stagedComparison,
     locale,
     entryScenario,
+    capabilityData,
   });
 
   // AI narration (disabled when per-component toggle is off)

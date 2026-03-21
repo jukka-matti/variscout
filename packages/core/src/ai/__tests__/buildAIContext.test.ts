@@ -477,3 +477,72 @@ describe('detectInvestigationPhase', () => {
     expect(detectInvestigationPhase([h1, h2])).toBe('converging');
   });
 });
+
+describe('buildAIContext capabilityStability', () => {
+  it('populates capabilityStability when capabilityData is provided', () => {
+    const ctx = buildAIContext({
+      capabilityData: {
+        subgroupResults: [
+          { label: 'A', index: 0, n: 5, mean: 10, sigmaWithin: 0.5, cp: 1.5, cpk: 1.2 },
+          { label: 'B', index: 1, n: 5, mean: 10.5, sigmaWithin: 0.6, cp: 1.4, cpk: 0.9 },
+          { label: 'C', index: 2, n: 5, mean: 10.2, sigmaWithin: 0.4, cp: 1.6, cpk: 1.3 },
+        ],
+        cpkStats: { mean: 1.133, ucl: 1.5, lcl: 0.7 },
+        cpStats: { mean: 1.5 },
+        config: { method: 'column', column: 'Batch' },
+      },
+    });
+
+    expect(ctx.capabilityStability).toBeDefined();
+    const cs = ctx.capabilityStability!;
+    expect(cs.method).toBe('column');
+    expect(cs.column).toBe('Batch');
+    expect(cs.subgroupCount).toBe(3);
+    expect(cs.meanCpk).toBe(1.133);
+    expect(cs.minCpk).toBeCloseTo(0.9);
+    expect(cs.maxCpk).toBeCloseTo(1.3);
+    expect(cs.cpkInControl).toBe(3); // all within 0.7-1.5
+    expect(cs.cpkOutOfControl).toBe(0);
+    expect(cs.meanCp).toBe(1.5);
+    expect(cs.centeringLoss).toBeCloseTo(1.5 - 1.133, 3);
+  });
+
+  it('counts out-of-control subgroups correctly', () => {
+    const ctx = buildAIContext({
+      capabilityData: {
+        subgroupResults: [
+          { label: 'A', index: 0, n: 5, mean: 10, sigmaWithin: 0.5, cpk: 1.2 },
+          { label: 'B', index: 1, n: 5, mean: 10, sigmaWithin: 0.5, cpk: 0.5 }, // below lcl
+          { label: 'C', index: 2, n: 5, mean: 10, sigmaWithin: 0.5, cpk: 1.8 }, // above ucl
+        ],
+        cpkStats: { mean: 1.167, ucl: 1.5, lcl: 0.8 },
+        cpStats: null,
+        config: { method: 'fixed-size', size: 5 },
+      },
+    });
+
+    const cs = ctx.capabilityStability!;
+    expect(cs.cpkInControl).toBe(1);
+    expect(cs.cpkOutOfControl).toBe(2);
+    expect(cs.meanCp).toBeUndefined();
+    expect(cs.centeringLoss).toBeUndefined();
+    expect(cs.subgroupSize).toBe(5);
+  });
+
+  it('omits capabilityStability when no capabilityData provided', () => {
+    const ctx = buildAIContext({});
+    expect(ctx.capabilityStability).toBeUndefined();
+  });
+
+  it('omits capabilityStability when cpkStats is null', () => {
+    const ctx = buildAIContext({
+      capabilityData: {
+        subgroupResults: [],
+        cpkStats: null,
+        cpStats: null,
+        config: { method: 'fixed-size', size: 5 },
+      },
+    });
+    expect(ctx.capabilityStability).toBeUndefined();
+  });
+});

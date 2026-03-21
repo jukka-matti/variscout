@@ -24,6 +24,7 @@ import {
   useHypotheses,
   useJourneyPhase,
   detectEntryScenario,
+  useCapabilityIChartData,
 } from '@variscout/hooks';
 import {
   hasTeamFeatures,
@@ -140,6 +141,7 @@ export const Editor: React.FC<EditorProps> = ({
     categories,
     setCategories,
     knowledgeSearchFolder,
+    subgroupConfig,
   } = useData();
 
   const ingestion = useDataIngestion({
@@ -696,6 +698,30 @@ export const Editor: React.FC<EditorProps> = ({
   const journeyPhase = useJourneyPhase(!!filteredData.length, findingsState.findings);
   const entryScenario = useMemo(() => detectEntryScenario(processContext), [processContext]);
 
+  // Subgroup capability data for AI context (when capability mode active)
+  const capabilityIChartData = useCapabilityIChartData({
+    filteredData,
+    outcome: outcome ?? '',
+    specs: specs ?? {},
+    subgroupConfig: subgroupConfig ?? { method: 'fixed-size', size: 5 },
+  });
+  const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
+  const aiCapabilityData = useMemo(() => {
+    if (!isCapabilityMode || !capabilityIChartData.cpkStats) return undefined;
+    return {
+      subgroupResults: capabilityIChartData.subgroupResults,
+      cpkStats: capabilityIChartData.cpkStats
+        ? {
+            mean: capabilityIChartData.cpkStats.mean,
+            ucl: capabilityIChartData.cpkStats.ucl,
+            lcl: capabilityIChartData.cpkStats.lcl,
+          }
+        : null,
+      cpStats: capabilityIChartData.cpStats ? { mean: capabilityIChartData.cpStats.mean } : null,
+      config: subgroupConfig ?? { method: 'fixed-size' as const, size: 5 },
+    };
+  }, [isCapabilityMode, capabilityIChartData, subgroupConfig]);
+
   // AI orchestration (context, narration, CoScout, knowledge search)
   const {
     aiContext,
@@ -732,6 +758,7 @@ export const Editor: React.FC<EditorProps> = ({
     knowledgeSearchFolder,
     journeyPhase,
     entryScenario,
+    capabilityData: aiCapabilityData,
     onOpenCoScout: () => {
       if (isPhone) coScoutTriggerRef.current = document.activeElement;
       panels.setIsCoScoutOpen(true);

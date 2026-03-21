@@ -12,7 +12,7 @@ import type { IChartProps, StageBoundary } from './types';
 import { getResponsiveTickCount } from './responsive';
 import ChartSourceBar from './ChartSourceBar';
 import ChartLegend from './ChartLegend';
-import { chartColors } from './colors';
+import { chartColors, operatorColors } from './colors';
 import { useChartTheme } from './useChartTheme';
 import { useChartLayout, useChartTooltip } from './hooks';
 import { useMultiSelection } from './hooks/useMultiSelection';
@@ -51,6 +51,10 @@ const IChartBase: React.FC<IChartProps> = ({
   highlightedPointIndex,
   showLegend = false,
   legendMode = 'educational',
+  secondaryData,
+  secondaryStats,
+  primaryLabel,
+  secondaryLabel,
 }) => {
   const { chrome, formatStat, t, tf } = useChartTheme();
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
@@ -71,20 +75,48 @@ const IChartBase: React.FC<IChartProps> = ({
 
   const isStaged = stageBoundaries.length > 0;
 
+  // Track whether we have a secondary series
+  const hasSecondary = secondaryData && secondaryData.length > 0;
+
   // Determine Y domain
-  const yDomain = useMemo(
-    () =>
-      computeIChartYDomain(
-        data,
-        stats,
-        specs,
-        isStaged,
-        stageBoundaries,
-        axisSettings,
-        yDomainOverride
-      ),
-    [data, stats, isStaged, stageBoundaries, specs, axisSettings, yDomainOverride]
-  );
+  const yDomain = useMemo(() => {
+    const baseDomain = computeIChartYDomain(
+      data,
+      stats,
+      specs,
+      isStaged,
+      stageBoundaries,
+      axisSettings,
+      yDomainOverride
+    );
+
+    // Expand domain to include secondary series if present
+    if (!hasSecondary) return baseDomain;
+
+    let [min, max] = baseDomain;
+    for (const d of secondaryData!) {
+      if (d.y < min) min = d.y;
+      if (d.y > max) max = d.y;
+    }
+    if (secondaryStats) {
+      if (secondaryStats.ucl > max) max = secondaryStats.ucl;
+      if (secondaryStats.lcl < min) min = secondaryStats.lcl;
+    }
+    // Add 5% padding
+    const range = max - min;
+    return [min - range * 0.05, max + range * 0.05] as [number, number];
+  }, [
+    data,
+    stats,
+    isStaged,
+    stageBoundaries,
+    specs,
+    axisSettings,
+    yDomainOverride,
+    hasSecondary,
+    secondaryData,
+    secondaryStats,
+  ]);
 
   const xScale = useMemo(
     () =>
@@ -561,6 +593,70 @@ const IChartBase: React.FC<IChartProps> = ({
             yScale={yScale}
           />
 
+          {/* Secondary series control limits (dashed, distinct color) */}
+          {hasSecondary && secondaryStats && (
+            <>
+              <Line
+                from={{ x: 0, y: yScale(secondaryStats.ucl) }}
+                to={{ x: width, y: yScale(secondaryStats.ucl) }}
+                stroke={operatorColors[1]}
+                strokeWidth={0.8}
+                strokeDasharray="3,3"
+                strokeOpacity={0.5}
+              />
+              <Line
+                from={{ x: 0, y: yScale(secondaryStats.mean) }}
+                to={{ x: width, y: yScale(secondaryStats.mean) }}
+                stroke={operatorColors[1]}
+                strokeWidth={1}
+                strokeOpacity={0.6}
+              />
+              <Line
+                from={{ x: 0, y: yScale(secondaryStats.lcl) }}
+                to={{ x: width, y: yScale(secondaryStats.lcl) }}
+                stroke={operatorColors[1]}
+                strokeWidth={0.8}
+                strokeDasharray="3,3"
+                strokeOpacity={0.5}
+              />
+            </>
+          )}
+
+          {/* Secondary series data line + dots */}
+          {hasSecondary && (
+            <>
+              <LinePath
+                data={secondaryData!}
+                x={d => xScale(d.x)}
+                y={d => yScale(d.y)}
+                stroke={operatorColors[1]}
+                strokeWidth={1}
+                strokeOpacity={0.4}
+              />
+              {secondaryData!.map((d, i) => (
+                <Circle
+                  key={`sec-${i}`}
+                  cx={xScale(d.x)}
+                  cy={yScale(d.y)}
+                  r={3}
+                  fill={operatorColors[1]}
+                  stroke={chrome.pointStroke}
+                  strokeWidth={0.5}
+                  opacity={0.7}
+                  onMouseOver={() =>
+                    showTooltipAtCoords(xScale(d.x), yScale(d.y), {
+                      x: d.x,
+                      y: d.y,
+                      index: i,
+                      stage: d.stage,
+                    })
+                  }
+                  onMouseLeave={hideTooltip}
+                />
+              ))}
+            </>
+          )}
+
           {/* Data line */}
           <LinePath
             data={data}
@@ -730,6 +826,20 @@ const IChartBase: React.FC<IChartProps> = ({
               top={height + (parentWidth < 400 ? 35 : 45)}
               show={showLegend}
             />
+          )}
+
+          {/* Dual-series legend (capability mode) */}
+          {hasSecondary && primaryLabel && secondaryLabel && (
+            <g transform={`translate(${width - 120}, -12)`}>
+              <Circle cx={0} cy={0} r={4} fill={chartColors.mean} />
+              <text x={8} y={4} fill={chrome.labelPrimary} fontSize={fonts.tickLabel}>
+                {primaryLabel}
+              </text>
+              <Circle cx={60} cy={0} r={3} fill={operatorColors[1]} />
+              <text x={68} y={4} fill={chrome.labelSecondary} fontSize={fonts.tickLabel}>
+                {secondaryLabel}
+              </text>
+            </g>
           )}
 
           {/* Source Bar (branding) */}

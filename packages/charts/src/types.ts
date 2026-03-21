@@ -100,6 +100,14 @@ export interface IChartProps extends BaseChartProps {
   showLegend?: boolean;
   /** Legend display mode: educational (variation learning) or practical (action-oriented) */
   legendMode?: 'educational' | 'practical';
+  /** Secondary data series (e.g., Cp alongside Cpk in capability mode) */
+  secondaryData?: IChartDataPoint[];
+  /** Stats for secondary series (mean, UCL, LCL) */
+  secondaryStats?: StatsResult | null;
+  /** Label for primary series (e.g., "Cpk") */
+  primaryLabel?: string;
+  /** Label for secondary series (e.g., "Cp") */
+  secondaryLabel?: string;
 }
 
 /**

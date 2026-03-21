@@ -203,6 +203,21 @@ export interface AIContext {
   locale?: Locale;
   /** Current analysis mode */
   analysisMode?: AnalysisMode;
+  /** Subgroup capability summary (when in capability mode) */
+  capabilityStability?: {
+    method: 'column' | 'fixed-size' | 'time-interval';
+    column?: string;
+    subgroupSize?: number;
+    granularity?: string;
+    subgroupCount: number;
+    meanCpk: number;
+    minCpk: number;
+    maxCpk: number;
+    cpkInControl: number;
+    cpkOutOfControl: number;
+    meanCp?: number;
+    centeringLoss?: number;
+  };
   /** Yamazumi summary for time study context */
   yamazumi?: {
     vaRatio: number;

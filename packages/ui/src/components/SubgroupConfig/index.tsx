@@ -1,0 +1,233 @@
+/**
+ * SubgroupConfig - Popover for configuring subgroup formation method.
+ *
+ * Radio: "By column" / "Fixed size"
+ * "By column" → dropdown of available columns
+ * "Fixed size" → number input (default 5, min 2, max 100)
+ */
+
+import React, { useState, useRef, useEffect } from 'react';
+import type { SubgroupConfig as SubgroupConfigType, TimeGranularity } from '@variscout/core';
+
+interface GranularityOption {
+  label: string;
+  granularity: TimeGranularity;
+  minuteInterval?: number;
+  requiresTimeComponent: boolean;
+}
+
+const GRANULARITY_OPTIONS: GranularityOption[] = [
+  { label: 'Every 5 min', granularity: 'minute', minuteInterval: 5, requiresTimeComponent: true },
+  { label: 'Every 15 min', granularity: 'minute', minuteInterval: 15, requiresTimeComponent: true },
+  { label: 'Every 30 min', granularity: 'minute', minuteInterval: 30, requiresTimeComponent: true },
+  { label: 'Hourly', granularity: 'hour', requiresTimeComponent: true },
+  { label: 'Daily', granularity: 'day', requiresTimeComponent: false },
+  { label: 'Weekly', granularity: 'week', requiresTimeComponent: false },
+];
+
+export interface SubgroupConfigProps {
+  /** Current subgroup configuration */
+  config: SubgroupConfigType;
+  /** Callback when configuration changes */
+  onConfigChange: (config: SubgroupConfigType) => void;
+  /** Available factor columns for "By column" mode */
+  availableColumns: string[];
+  /** Column display aliases */
+  columnAliases?: Record<string, string>;
+  /** Time column name (enables time-based option when truthy) */
+  timeColumn?: string | null;
+  /** Whether the time column has time-of-day component (enables minute/hour options) */
+  hasTimeOfDay?: boolean;
+}
+
+export const SubgroupConfigPopover: React.FC<SubgroupConfigProps> = ({
+  config,
+  onConfigChange,
+  availableColumns,
+  columnAliases,
+  timeColumn,
+  hasTimeOfDay,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [isOpen]);
+
+  return (
+    <div className="relative" ref={popoverRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-1 rounded hover:bg-surface-secondary text-content-secondary hover:text-content transition-colors"
+        title="Subgroup configuration"
+        aria-label="Configure subgroups"
+      >
+        <svg
+          width={14}
+          height={14}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-1 z-50 bg-surface-primary border border-edge rounded-lg shadow-lg p-3 w-56">
+          <div className="text-xs font-medium text-content mb-2">Subgroup Method</div>
+
+          {/* Fixed-size radio */}
+          <label className="flex items-center gap-2 py-1 cursor-pointer">
+            <input
+              type="radio"
+              name="sg-method"
+              checked={config.method === 'fixed-size'}
+              onChange={() => onConfigChange({ method: 'fixed-size', size: config.size ?? 5 })}
+              className="accent-blue-500"
+            />
+            <span className="text-xs text-content">Fixed size</span>
+          </label>
+
+          {config.method === 'fixed-size' && (
+            <div className="ml-6 mt-1 mb-2">
+              <label className="text-xs text-content-secondary">
+                n ={' '}
+                <input
+                  type="number"
+                  min={2}
+                  max={100}
+                  value={config.size ?? 5}
+                  onChange={e => {
+                    const n = Math.max(2, Math.min(100, parseInt(e.target.value) || 5));
+                    onConfigChange({ method: 'fixed-size', size: n });
+                  }}
+                  className="w-14 ml-1 px-1 py-0.5 text-xs bg-surface-secondary border border-edge rounded text-content"
+                />
+              </label>
+            </div>
+          )}
+
+          {/* Column-based radio */}
+          <label className="flex items-center gap-2 py-1 cursor-pointer">
+            <input
+              type="radio"
+              name="sg-method"
+              checked={config.method === 'column'}
+              onChange={() =>
+                onConfigChange({
+                  method: 'column',
+                  column: config.column ?? availableColumns[0],
+                })
+              }
+              disabled={availableColumns.length === 0}
+              className="accent-blue-500"
+            />
+            <span
+              className={`text-xs ${availableColumns.length === 0 ? 'text-content-secondary opacity-50' : 'text-content'}`}
+            >
+              By column
+            </span>
+          </label>
+
+          {config.method === 'column' && availableColumns.length > 0 && (
+            <div className="ml-6 mt-1">
+              <select
+                value={config.column ?? availableColumns[0]}
+                onChange={e => onConfigChange({ method: 'column', column: e.target.value })}
+                className="w-full px-1 py-0.5 text-xs bg-surface-secondary border border-edge rounded text-content"
+              >
+                {availableColumns.map(col => (
+                  <option key={col} value={col}>
+                    {columnAliases?.[col] ?? col}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Time-interval radio (only shown when timeColumn detected) */}
+          {timeColumn && (
+            <>
+              <label className="flex items-center gap-2 py-1 cursor-pointer">
+                <input
+                  type="radio"
+                  name="sg-method"
+                  checked={config.method === 'time-interval'}
+                  onChange={() => {
+                    const defaultGranularity: TimeGranularity = hasTimeOfDay ? 'hour' : 'day';
+                    onConfigChange({
+                      method: 'time-interval',
+                      timeColumn,
+                      granularity: defaultGranularity,
+                    });
+                  }}
+                  className="accent-blue-500"
+                />
+                <span className="text-xs text-content">By time interval</span>
+              </label>
+
+              {config.method === 'time-interval' && (
+                <div className="ml-6 mt-1">
+                  <select
+                    value={
+                      config.granularity === 'minute'
+                        ? `minute-${config.minuteInterval ?? 15}`
+                        : (config.granularity ?? 'hour')
+                    }
+                    onChange={e => {
+                      const val = e.target.value;
+                      if (val.startsWith('minute-')) {
+                        const interval = parseInt(val.split('-')[1]);
+                        onConfigChange({
+                          method: 'time-interval',
+                          timeColumn,
+                          granularity: 'minute',
+                          minuteInterval: interval,
+                        });
+                      } else {
+                        onConfigChange({
+                          method: 'time-interval',
+                          timeColumn,
+                          granularity: val as TimeGranularity,
+                        });
+                      }
+                    }}
+                    className="w-full px-1 py-0.5 text-xs bg-surface-secondary border border-edge rounded text-content"
+                  >
+                    {GRANULARITY_OPTIONS.filter(
+                      opt => !opt.requiresTimeComponent || hasTimeOfDay
+                    ).map(opt => {
+                      const value =
+                        opt.granularity === 'minute'
+                          ? `minute-${opt.minuteInterval}`
+                          : opt.granularity;
+                      return (
+                        <option key={value} value={value}>
+                          {opt.label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};

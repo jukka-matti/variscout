@@ -215,6 +215,38 @@ flowchart TD
 
 ---
 
+## Lean Improvement Principle
+
+Yamazumi analysis embeds a lean improvement framework through activity type classification. Each type maps to a specific improvement action:
+
+| Activity Type  | Color | Lean Action   | Guidance                                      |
+| -------------- | ----- | ------------- | --------------------------------------------- |
+| Waste (NVA)    | Red   | **Eliminate** | Remove this activity entirely                 |
+| Wait / Idle    | Grey  | **Eliminate** | Remove idle/queue time                        |
+| NVA Required   | Amber | **Reduce**    | Minimize through automation or simplification |
+| Value-Add (VA) | Green | **Optimize**  | Improve efficiency of value-adding work       |
+
+This principle surfaces as tooltips on activity type badges in the Report View's Activity Composition section (interactive only, not in print).
+
+---
+
+## Reporting
+
+The Report View adapts its content when in Yamazumi mode. Same 6-step structure, different story:
+
+| Step | Standard SPC Report | Yamazumi Report                                                          |
+| ---- | ------------------- | ------------------------------------------------------------------------ |
+| 1    | Current Condition   | **Time Composition** — VA Ratio, Takt, Over-Takt KPIs + yamazumi chart   |
+| 2    | Variation Drivers   | **Activity Composition** — finding-driven with activity breakdown tables |
+| 3    | Evidence Trail      | Evidence Trail (unchanged)                                               |
+| 4    | Improvement Plan    | Improvement Plan (unchanged)                                             |
+| 5    | Actions Taken       | Actions Taken (unchanged)                                                |
+| 6    | Verification        | Verification — learning loop uses VA Ratio instead of Cpk                |
+
+**Step 2 is finding-driven across all modes:** when the analyst has pinned findings, those findings replace auto-generated charts. Each finding includes its chart context — yamazumi findings show an activity breakdown table with lean tooltips, while SPC findings show KPI snapshots.
+
+---
+
 ## Technical Reference
 
 ```typescript
