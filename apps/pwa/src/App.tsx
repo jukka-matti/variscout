@@ -11,7 +11,12 @@ import {
   type FindingsAction,
   YamazumiDetectedModal,
   CapabilitySuggestionModal,
+  MobileTabBar,
+  type MobileTab,
+  useIsMobile,
+  BREAKPOINTS,
 } from '@variscout/ui';
+import { Beaker, Settings, Download, Table2, RotateCcw } from 'lucide-react';
 import {
   useFindings,
   useDrillPath,
@@ -162,6 +167,23 @@ function AppMain() {
   // Findings state
   const findingsState = useFindings();
   const [highlightedFindingId, setHighlightedFindingId] = useState<string | null>(null);
+
+  // Mobile tab bar (phone only, <640px)
+  const isPhone = useIsMobile(BREAKPOINTS.phone);
+  const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('analysis');
+
+  const handleMobileTabChange = useCallback(
+    (tab: MobileTab) => {
+      setMobileActiveTab(tab);
+      if (tab === 'findings') {
+        panels.setIsFindingsPanelOpen(true);
+      } else if (tab === 'analysis') {
+        panels.setIsFindingsPanelOpen(false);
+      }
+      // 'more' is handled by the bottom sheet overlay
+    },
+    [panels]
+  );
 
   // Capability suggestion modal state
   const [showCapabilitySuggestion, setShowCapabilitySuggestion] = useState(false);
@@ -416,7 +438,9 @@ function AppMain() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-surface text-content font-sans selection:bg-blue-500/30">
+    <div
+      className={`flex flex-col h-screen bg-surface text-content font-sans selection:bg-blue-500/30${isPhone && rawData.length > 0 ? ' pb-[50px]' : ''}`}
+    >
       {/* Offline status banner */}
       {!isOnline && (
         <div
@@ -576,12 +600,15 @@ function AppMain() {
           </Suspense>
         </div>
 
-        {/* Findings Panel (inline, desktop only) */}
+        {/* Findings Panel (inline desktop, or mobile when findings tab active) */}
         <Suspense fallback={null}>
-          {panels.isDesktop && outcome && (
+          {(panels.isDesktop || (isPhone && mobileActiveTab === 'findings')) && outcome && (
             <FindingsPanel
-              isOpen={panels.isFindingsPanelOpen}
+              isOpen={panels.isDesktop ? panels.isFindingsPanelOpen : true}
               onClose={() => {
+                if (isPhone) {
+                  setMobileActiveTab('analysis');
+                }
                 panels.handleCloseFindingsPanel();
                 setHighlightedFindingId(null);
               }}
@@ -703,6 +730,82 @@ function AppMain() {
           }}
           factorColumns={factors}
         />
+      )}
+
+      {/* Mobile Tab Bar (phone only) */}
+      {isPhone && rawData.length > 0 && (
+        <MobileTabBar
+          activeTab={mobileActiveTab}
+          onTabChange={handleMobileTabChange}
+          findingsCount={findingsState.findings.length}
+          showImproveTab={false}
+        />
+      )}
+
+      {/* More bottom sheet (phone only) */}
+      {mobileActiveTab === 'more' && isPhone && rawData.length > 0 && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setMobileActiveTab('analysis')}
+          />
+          <div className="fixed bottom-[50px] left-0 right-0 bg-surface-primary border-t border-edge rounded-t-2xl z-50 animate-slide-up safe-area-bottom">
+            <div className="py-2">
+              <button
+                className="flex items-center gap-3 w-full px-5 py-3 text-sm text-content hover:bg-surface-secondary transition-colors"
+                onClick={() => {
+                  setMobileActiveTab('analysis');
+                  panels.setIsWhatIfPageOpen(true);
+                }}
+              >
+                <Beaker size={18} className="text-content-secondary" />
+                What-If Simulator
+              </button>
+              <button
+                className="flex items-center gap-3 w-full px-5 py-3 text-sm text-content hover:bg-surface-secondary transition-colors"
+                onClick={() => {
+                  setMobileActiveTab('analysis');
+                  panels.setIsSettingsOpen(true);
+                }}
+              >
+                <Settings size={18} className="text-content-secondary" />
+                Settings
+              </button>
+              <button
+                className="flex items-center gap-3 w-full px-5 py-3 text-sm text-content hover:bg-surface-secondary transition-colors"
+                onClick={() => {
+                  setMobileActiveTab('analysis');
+                  handleExportCSV();
+                }}
+              >
+                <Download size={18} className="text-content-secondary" />
+                Export CSV
+              </button>
+              <button
+                className="flex items-center gap-3 w-full px-5 py-3 text-sm text-content hover:bg-surface-secondary transition-colors"
+                onClick={() => {
+                  setMobileActiveTab('analysis');
+                  panels.setHighlightRowIndex(null);
+                  panels.setIsDataTableOpen(true);
+                }}
+              >
+                <Table2 size={18} className="text-content-secondary" />
+                Data Table
+              </button>
+              <div className="border-t border-edge my-1" />
+              <button
+                className="flex items-center gap-3 w-full px-5 py-3 text-sm text-red-400 hover:bg-surface-secondary transition-colors"
+                onClick={() => {
+                  setMobileActiveTab('analysis');
+                  panels.handleResetRequest();
+                }}
+              >
+                <RotateCcw size={18} />
+                New Analysis
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
