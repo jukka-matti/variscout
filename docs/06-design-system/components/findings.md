@@ -597,7 +597,7 @@ Dropdown menu for exporting findings data. Appears in the FindingsLog header.
 | Copy as text       | All paid plans | Copies formatted findings text to clipboard  |
 | Download CSV       | All paid plans | Downloads findings as CSV with BOM for Excel |
 | Download JSON      | All paid plans | Downloads structured JSON with metadata      |
-| Generate AI report | Team AI only   | Generates quality engineering report via AI  |
+| Generate AI report | Team only      | Generates quality engineering report via AI  |
 
 ### Props
 
@@ -612,7 +612,7 @@ interface FindingsExportMenuProps {
 }
 ```
 
-The AI report option only appears when `onGenerateAIReport` is provided (injected by the Azure app for Team AI plan).
+The AI report option only appears when `onGenerateAIReport` is provided (injected by the Azure app for Team plan).
 
 ---
 

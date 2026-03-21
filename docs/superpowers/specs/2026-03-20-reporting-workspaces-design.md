@@ -319,15 +319,15 @@ The `audienceMode` flows into the `ReportSectionDescriptor` as a signal for rend
 
 ## Tier Availability
 
-| Feature                | PWA                | Azure Standard | Azure Team | Azure Team AI |
-| ---------------------- | ------------------ | -------------- | ---------- | ------------- |
-| Analysis Snapshot      | ✗ (no report view) | ✓              | ✓          | ✓             |
-| Investigation Report   | ✗                  | ✓              | ✓          | ✓             |
-| Improvement Story      | ✗                  | ✓              | ✓          | ✓             |
-| Audience toggle        | ✗                  | ✓              | ✓          | ✓             |
-| AI narrative in report | ✗                  | ✗              | ✗          | ✓             |
-| SharePoint publish     | ✗                  | ✗              | ✓          | ✓             |
-| Teams share            | ✗                  | ✗              | ✓          | ✓             |
+| Feature                | PWA                | Azure Standard | Azure Team |
+| ---------------------- | ------------------ | -------------- | ---------- |
+| Analysis Snapshot      | ✗ (no report view) | ✓              | ✓          |
+| Investigation Report   | ✗                  | ✓              | ✓          |
+| Improvement Story      | ✗                  | ✓              | ✓          |
+| Audience toggle        | ✗                  | ✓              | ✓          |
+| AI narrative in report | ✗                  | ✓              | ✓          |
+| SharePoint publish     | ✗                  | ✗              | ✓          |
+| Teams share            | ✗                  | ✗              | ✓          |
 
 ---
 

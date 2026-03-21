@@ -37,9 +37,8 @@ Add optional AI integration to the Azure App via Azure AI Foundry (model-agnosti
 | Product                 | AI                                               | Distribution      |
 | ----------------------- | ------------------------------------------------ | ----------------- |
 | PWA (Free)              | No AI. Never. Training tool.                     | Public URL        |
-| Azure Standard (€99/mo) | AI optional — customer deploys Azure AI Foundry  | Azure Marketplace |
-| Azure Team (€199/mo)    | AI optional — customer deploys Azure AI Foundry  | Azure Marketplace |
-| Azure Team AI (€279/mo) | AI optional + knowledge base via Azure AI Search | Azure Marketplace |
+| Azure Standard (€79/mo) | AI optional — customer deploys Azure AI Foundry  | Azure Marketplace |
+| Azure Team (€199/mo)    | AI optional + Knowledge Base via Azure AI Search | Azure Marketplace |
 
 ### User Control
 

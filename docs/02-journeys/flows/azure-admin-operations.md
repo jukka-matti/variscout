@@ -26,7 +26,7 @@ title: 'Flow 10: Azure App — Admin Operations'
 ### What Aino is thinking:
 
 - "Someone reported OneDrive sync is broken — where do I check?"
-- "We want to upgrade to Team AI — what changes?"
+- "We want to upgrade to Team — what changes?"
 - "Is the AI endpoint still working after the weekend?"
 - "The new hire can't access the app — what's missing?"
 
@@ -106,8 +106,8 @@ After the ARM template deploys and the app is live, Aino verifies that all integ
 | Graph API — Profile  | `GET /me`             | User.Read permission granted                 |
 | Graph API — Files    | `GET /me/drive`       | Files.ReadWrite.All permission (Team plan)   |
 | Graph API — Channels | `GET /me/joinedTeams` | Channel.ReadBasic.All permission (Team plan) |
-| AI Endpoint          | `GET {endpoint}`      | AI Services reachable (Team AI plan)         |
-| AI Search            | Test query            | Knowledge Base connectivity (Team AI plan)   |
+| AI Endpoint          | `GET {endpoint}`      | AI Services reachable                        |
+| AI Search            | Test query            | Knowledge Base connectivity (Team plan)      |
 
 Each check shows: green (pass), red (fail with error message), or grey (not applicable for current plan).
 
@@ -159,24 +159,24 @@ Each row provides:
 
 The Plan & Features tab shows the current plan and what each tier unlocks:
 
-| Feature                        | Standard | Team | Team AI |
-| ------------------------------ | -------- | ---- | ------- |
-| Analysis & charts              | ✓        | ✓    | ✓       |
-| Findings & investigation       | ✓        | ✓    | ✓       |
-| Local file storage (IndexedDB) | ✓        | ✓    | ✓       |
-| OneDrive sync                  | —        | ✓    | ✓       |
-| Teams integration              | —        | ✓    | ✓       |
-| SharePoint file picker         | —        | ✓    | ✓       |
-| AI narration & insights        | —        | —    | ✓       |
-| CoScout assistant              | —        | —    | ✓       |
-| Knowledge Base                 | —        | —    | ✓       |
+| Feature                        | Standard | Team |
+| ------------------------------ | -------- | ---- |
+| Analysis & charts              | ✓        | ✓    |
+| Findings & investigation       | ✓        | ✓    |
+| Local file storage (IndexedDB) | ✓        | ✓    |
+| AI narration & insights        | ✓        | ✓    |
+| CoScout assistant              | ✓        | ✓    |
+| OneDrive sync                  | —        | ✓    |
+| Teams integration              | —        | ✓    |
+| SharePoint file picker         | —        | ✓    |
+| Knowledge Base                 | —        | ✓    |
 
 Current plan is highlighted. Upgrade links point to Azure Marketplace subscription management.
 
 After a plan upgrade:
 
 1. Update `VITE_VARISCOUT_PLAN` in App Service configuration
-2. Redeploy ARM template if new resources are needed (e.g., AI Services for Team AI)
+2. Redeploy ARM template if new resources are needed (e.g., AI Services)
 3. Verify new features via Status tab health checks
 
 ### 5. Integration Lifecycle

@@ -207,7 +207,7 @@ See [ARM Template](arm-template.md) for the complete deployment configuration.
 
 ## Required Permissions
 
-**Standard plan (€99/month):**
+**Standard plan (€79/month):**
 
 | Permission | Type      | Admin Consent | Purpose          |
 | ---------- | --------- | ------------- | ---------------- |
@@ -215,7 +215,7 @@ See [ARM Template](arm-template.md) for the complete deployment configuration.
 
 No admin consent required — users grant consent on first login.
 
-**Team plan (€199/month) / Team AI (€279/month) additional scopes:**
+**Team plan (€199/month) additional scopes:**
 
 | Permission            | Type      | Admin Consent | Purpose                   |
 | --------------------- | --------- | ------------- | ------------------------- |

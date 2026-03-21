@@ -68,9 +68,9 @@ Numbered, falsifiable bets with explicit invalidation criteria. Format per hypot
 - **H5:** Teams integration creates organizational stickiness that reduces churn below 5%/month
 - **H6:** The investigation workflow (observed → resolved) is more valuable than the charts themselves
 - **H7:** Offline-first architecture is a competitive advantage for manufacturing floor use
-- **H8:** €99/month per-deployment pricing is the right price point for quality teams of 2-10 people
+- **H8:** €79/month per-deployment pricing is the right price point for quality teams of 2-10 people
 - **H9:** The free PWA as training tool creates a genuine market funnel, not just goodwill
-- **H10:** Knowledge Base (organizational memory from resolved findings) justifies the €80/month Team AI premium
+- **H10:** Knowledge Base (organizational memory from resolved findings) justifies the Team plan premium
 
 #### Section 2: Value Levers
 
@@ -82,7 +82,7 @@ Inspired by tblsum's L1-L6 system. Each lever represents a capability axis that 
 | **L2: Investigation Workflow**  | Findings → hypotheses → actions → outcomes          | @variscout/hooks (useFindings, useHypotheses) | Standard+ (PWA: basic)     |
 | **L3: AI Augmentation**         | NarrativeBar, CoScout, ChartInsightChips            | @variscout/core/ai, Azure AI Foundry          | Optional on any Azure plan |
 | **L4: Team Collaboration**      | OneDrive sync, Teams tabs, Adaptive Cards, photos   | apps/azure (Teams SDK)                        | Team+                      |
-| **L5: Organizational Learning** | Knowledge Base, resolved findings → AI Search index | Azure AI Search                               | Team AI                    |
+| **L5: Organizational Learning** | Knowledge Base, resolved findings → AI Search index | Azure AI Search                               | Team                       |
 
 Each lever includes:
 
@@ -98,19 +98,17 @@ VariScout's reinforcement loop — how each tier feeds the next:
 Free PWA
   └→ Trains users in methodology (Four Lenses, investigation)
       └→ Trained users hit PWA limits (no save, 50K rows, 3 factors)
-          └→ Upgrade to Azure Standard (€99/mo)
+          └→ Upgrade to Azure Standard (€79/mo)
               └→ Professional analysis proves value (persistence, presentation)
                   └→ Team needs shared analysis
                       └→ Upgrade to Azure Team (€199/mo)
-                          └→ Resolved findings accumulate
-                              └→ Organization wants memory
-                                  └→ Upgrade to Team AI (€279/mo)
-                                      └→ Knowledge base reduces investigation time
+                          └→ Resolved findings accumulate → Knowledge Base
+                              └→ Knowledge base reduces investigation time
                                           └→ More findings resolved → richer knowledge
                                               └→ Stickiness (switching cost = losing organizational memory)
 ```
 
-**Key insight from tblsum:** The flywheel is not just "more features = more money." Each tier creates data/behavior that makes the next tier valuable. Standard creates saved analyses. Team creates shared findings. Team AI creates organizational memory. The knowledge compounds.
+**Key insight from tblsum:** The flywheel is not just "more features = more money." Each tier creates data/behavior that makes the next tier valuable. Standard creates saved analyses. Team creates shared findings and organizational memory via the Knowledge Base. The knowledge compounds.
 
 #### Section 4: Personas
 
@@ -124,13 +122,11 @@ Consolidated from existing `docs/02-journeys/ux-research.md`:
 
 Explicit upgrade progression with trigger moments:
 
-| From     | To          | Trigger Moment                                                    | Value Proposition                  |
-| -------- | ----------- | ----------------------------------------------------------------- | ---------------------------------- |
-| Nothing  | PWA         | "I need to learn variation analysis"                              | Free, no signup, instant           |
-| PWA      | Standard    | "I need to save my work / upload CSV / analyze 100K rows"         | Professional scale + persistence   |
-| Standard | Standard+AI | "I want faster insights / need to explain findings to management" | AI narrates what you see           |
-| Standard | Team        | "My colleague needs to see this analysis"                         | Shared storage + Teams integration |
-| Team     | Team AI     | "We've solved this before — where's that finding?"                | Organizational memory              |
+| From     | To       | Trigger Moment                                                    | Value Proposition                       |
+| -------- | -------- | ----------------------------------------------------------------- | --------------------------------------- |
+| Nothing  | PWA      | "I need to learn variation analysis"                              | Free, no signup, instant                |
+| PWA      | Standard | "I need to save my work / upload CSV / analyze 100K rows"         | Professional scale + persistence        |
+| Standard | Team     | "My colleague needs to see this analysis / where's that finding?" | Shared storage + Teams + Knowledge Base |
 
 #### Section 6: Competitive Landscape
 
@@ -161,7 +157,7 @@ Five levels of capability maturity, mapping to product tiers:
 | **1: Professional**          | Azure Standard           | User has professional tools       | Persistence, scale, presentation                              |
 | **2: AI-Augmented**          | Standard + AI (optional) | AI narrates and suggests          | "AI augments, never replaces" — faster insight, human control |
 | **3: Collaborative**         | Azure Team               | Team shares and acts together     | Shared analysis, gemba evidence, team assignments             |
-| **4: Learning Organization** | Azure Team AI            | Organization remembers and learns | Knowledge compounds across investigations and analysts        |
+| **4: Learning Organization** | Azure Team               | Organization remembers and learns | Knowledge compounds across investigations and analysts        |
 
 **Important:** AI is an orthogonal axis, not a sequential tier. A customer can have Standard+AI without Team features. The capability maturity model shows the _typical_ progression, not a mandatory path.
 
@@ -173,7 +169,7 @@ Explicit rules for feature placement:
 2. **Standard gate:** "Paid if it requires persistence, professional scale (100K rows, 6 factors), or closed-loop workflow"
 3. **AI gate:** "Available on any Azure plan — AI is optional and customer-deployed, not tier-locked"
 4. **Team gate:** "Team if it requires multi-user coordination, shared storage, or mobile gemba access"
-5. **Team AI gate:** "Team AI if it creates or consumes organizational knowledge"
+5. **Team gate (Knowledge Base):** "Team if it creates or consumes organizational knowledge"
 
 #### Upgrade Triggers
 
@@ -185,7 +181,7 @@ The moment the user hits each ceiling — what they experience and what they nee
 | "I have 60K rows and 5 factors — PWA won't load this"                | Row/factor limits hit            | → Standard      |
 | "I'm spending 20 minutes explaining this chart to my manager"        | Manual interpretation labor      | → Standard + AI |
 | "My colleague needs to continue this investigation"                  | Single-user workflow             | → Team          |
-| "We solved this exact problem 3 months ago but nobody remembers how" | No organizational memory         | → Team AI       |
+| "We solved this exact problem 3 months ago but nobody remembers how" | No organizational memory         | → Team          |
 
 ---
 
@@ -227,7 +223,7 @@ The same dashboard, but three new elements appear:
 
 **Key moment:** The analyst notices the NarrativeBar mentions a Nelson Rule 2 violation they hadn't spotted. AI didn't replace their analysis — it caught something they missed.
 
-#### With Knowledge Base (Team AI)
+#### With Knowledge Base (Team)
 
 Everything above, plus:
 

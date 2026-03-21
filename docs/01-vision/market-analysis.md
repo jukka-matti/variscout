@@ -92,7 +92,7 @@ Narrowed by:
 
 - **Microsoft ecosystem only** — Azure Marketplace + AppSource
 - **English/EU markets first** — initial language and compliance reach
-- **SMBs with 5–200 employees** — sweet spot for from-€99/month flat pricing
+- **SMBs with 5–200 employees** — sweet spot for from-€79/month flat pricing
 - **Manufacturing, food, pharma** — core verticals with variation analysis need
 
 ### SOM (Serviceable Obtainable Market): €100K–1M/year
@@ -121,10 +121,10 @@ Near-term realistic capture (solo founder, no sales team):
 
 | Product    | Model                  | Price                | VariScout Equivalent            |
 | ---------- | ---------------------- | -------------------- | ------------------------------- |
-| Minitab    | Per-user, annual       | ~€135–155/user/month | From €99/month unlimited users  |
-| InfinityQS | Per-user, subscription | €50–100/user/month   | From €99/month unlimited users  |
-| PQ Systems | Perpetual license      | ~€595 one-time       | Free PWA + from €99/month Azure |
-| VariScout  | Per-deployment         | €99–299/month        | —                               |
+| Minitab    | Per-user, annual       | ~€135–155/user/month | From €79/month unlimited users  |
+| InfinityQS | Per-user, subscription | €50–100/user/month   | From €79/month unlimited users  |
+| PQ Systems | Perpetual license      | ~€595 one-time       | Free PWA + from €79/month Azure |
+| VariScout  | Per-deployment         | €79–199/month        | —                               |
 
 > **Key insight:** VariScout is Minitab-priced per seat, but unlimited users. A team of 3+ saves money vs Minitab immediately. For a team of 10, it's 10× cheaper.
 
@@ -140,7 +140,7 @@ Minitab added AI that interprets existing statistics — "AI you can trust." AI 
 
 - **Closed-loop feedback:** VariScout's Finding system captures investigation outcomes with measured Cpk before/after. After 50+ resolved findings, AI has real organizational knowledge.
 - **Team knowledge:** Minitab is single-user desktop. VariScout's Team plan connects findings across projects via Azure AI Search.
-- **Unlimited users:** Minitab is per-seat (~€135-155/user/month). VariScout is per-deployment (from €99/month, unlimited users).
+- **Unlimited users:** Minitab is per-seat (~€135-155/user/month). VariScout is per-deployment (from €79/month, unlimited users).
 
 ### ISO 9001:2026 + EU AI Act
 
@@ -163,7 +163,7 @@ Minitab added AI that interprets existing statistics — "AI you can trust." AI 
 
 ## Bottom Line
 
-> VariScout's TAM is **real but niche** (~€100–200M). The product sits in a genuine gap between expensive SPC suites (used at 20% capacity) and DIY spreadsheet approaches. The from-€99/month flat pricing (three plans: Standard €99, Team €199, Team AI €279) keeps the barrier low for individuals while capturing collaboration value from teams.
+> VariScout's TAM is **real but niche** (~€100–200M). The product sits in a genuine gap between expensive SPC suites (used at 20% capacity) and DIY spreadsheet approaches. The from-€79/month flat pricing (two plans: Standard €79, Team €199) keeps the barrier low for individuals while capturing collaboration value from teams.
 >
 > The biggest variable isn't market size — it's **distribution**. Azure Marketplace reach and the free-to-paid funnel (PWA → Azure App) will determine whether VariScout captures 50 or 5,000 customers.
 

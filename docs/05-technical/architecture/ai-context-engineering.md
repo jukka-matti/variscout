@@ -236,7 +236,7 @@ stagedComparison?: {
 
 ## 8. Knowledge Documents Context
 
-When the Knowledge Base is available (Azure Team AI plan):
+When the Knowledge Base is available (Azure Team plan):
 
 ```typescript
 knowledgeDocuments?: Array<{

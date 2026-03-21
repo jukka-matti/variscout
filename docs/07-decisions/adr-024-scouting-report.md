@@ -103,7 +103,7 @@ All AI content (NarrativeBar prose, ChartInsightChip text, CoScout suggestions) 
 - Sections show data and charts only
 - The report is complete without AI
 
-When AI is available (Team AI plan, €279/month):
+When AI is available (all Azure plans):
 
 - Step 1 adds a prose paragraph from NarrativeBar
 - Step 2 adds insight text per chart from ChartInsightChip

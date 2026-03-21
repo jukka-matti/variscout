@@ -151,9 +151,8 @@ The /product/enterprise page must answer:
 
 ### 3. Pricing
 
-- Standard: €99/month — all analysis features, local file storage
-- Team: €199/month — adds OneDrive/SharePoint, Teams integration, photos
-- Team AI: €279/month — adds AI-enhanced CoScout, knowledge base via Azure AI Search
+- Standard: €79/month — all analysis features with CoScout AI, local file storage
+- Team: €199/month — adds OneDrive/SharePoint, Teams integration, Knowledge Base
 - All plans: unlimited users in your tenant, no per-user fees
 
 ### 4. Support

@@ -228,7 +228,7 @@ Phases 2 and 3 can proceed in parallel after Phase 1. Phase 6 can be done at any
 
 ## Related Decisions
 
-- [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md) — Three-plan model (Standard / Team / Team AI)
+- [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md) — Two-plan model (Standard / Team)
 - [ADR-015: Investigation Board](adr-015-investigation-board.md) — Finding statuses, tags, and comments (extended here with author + photos)
 - [ADR-004: Offline-First](adr-004-offline-first.md) — Offline capability preserved; photo upload queued when offline
 

@@ -18,7 +18,7 @@ The ARM template deploys VariScout to a customer's Azure subscription as a Manag
 
 The customer provides their own App Registration (created before deployment) so that VariScout can authenticate users and access OneDrive via Graph API (Team plan).
 
-**Minimal backend resources** -- Standard and Team plans run entirely in the browser. The Team AI plan adds Azure AI Services (model hosting), Azure AI Search (knowledge base orchestration), and Azure Key Vault (secure secret storage) for the Knowledge Base feature. An Azure Function handles OBO token exchange (Team/Team AI). The App Service uses a system-assigned managed identity for RBAC-based access to Key Vault.
+**Minimal backend resources** -- Standard and Team plans run entirely in the browser. The Team plan adds Azure AI Services (model hosting), Azure AI Search (knowledge base orchestration), and Azure Key Vault (secure secret storage) for the Knowledge Base feature. An Azure Function handles OBO token exchange (Team plan). The App Service uses a system-assigned managed identity for RBAC-based access to Key Vault.
 
 ### Managed Application Package
 
@@ -55,10 +55,10 @@ Before deploying VariScout, the customer must create an App Registration in Azur
 1. Go to **API permissions > Add a permission > Microsoft Graph > Delegated permissions**
 2. Add permissions based on your plan:
 
-   **Standard plan (€99/month):**
+   **Standard plan (€79/month):**
    - `User.Read` — sign-in and read user profile
 
-   **Team plan (€199/month) / Team AI plan (€279/month) — add all of the above, plus:**
+   **Team plan (€199/month) — add all of the above, plus:**
    - `Files.ReadWrite` — read and write user's OneDrive files (for project sync)
    - `Files.ReadWrite.All` — channel SharePoint access (for shared projects)
    - `Channel.ReadBasic.All` — channel listing (for Teams integration)
@@ -85,11 +85,11 @@ Before deploying VariScout, the customer must create an App Registration in Azur
 
 ### Optional Parameters
 
-| Parameter       | Type   | Default                 | Description                                                  |
-| --------------- | ------ | ----------------------- | ------------------------------------------------------------ |
-| `location`      | string | Resource group location | Azure region for deployment                                  |
-| `appName`       | string | `variscout-{unique}`    | Name for App Service (3-24)                                  |
-| `variscoutPlan` | string | `standard`              | Plan: `standard` (local files) or `team` (+ OneDrive, Teams) |
+| Parameter       | Type   | Default                 | Description                                                                  |
+| --------------- | ------ | ----------------------- | ---------------------------------------------------------------------------- |
+| `location`      | string | Resource group location | Azure region for deployment                                                  |
+| `appName`       | string | `variscout-{unique}`    | Name for App Service (3-24)                                                  |
+| `variscoutPlan` | string | `standard`              | Plan: `standard` (local files) or `team` (+ OneDrive, Teams, Knowledge Base) |
 
 ---
 
@@ -120,7 +120,7 @@ Linux B1 plan for hosting the App Service:
 
 ### 2. App Service
 
-Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`. Uses system-assigned managed identity for Key Vault access (Team AI plan). The client secret is stored as an app setting for EasyAuth to use:
+Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`. Uses system-assigned managed identity for Key Vault access (Team plan). The client secret is stored as an app setting for EasyAuth to use:
 
 ```json
 {
@@ -193,14 +193,14 @@ Key configuration:
 - **Login parameters**: conditional by plan — Standard requests `User.Read` only; Team requests `User.Read` + `Files.ReadWrite` for OneDrive access
 - **Redirect to login**: unauthenticated users are automatically redirected to Azure AD sign-in
 
-### 4. AI Services (Team AI only)
+### 4. AI Services (Team only)
 
 | Resource          | SKU   | Purpose                                     | Monthly Cost |
 | ----------------- | ----- | ------------------------------------------- | ------------ |
 | Azure AI Services | S0    | Model hosting (gpt-5.4-nano + gpt-5.4-mini) | ~€15-25      |
 | Azure AI Search   | Basic | Knowledge base orchestration                | ~EUR50-60    |
 
-These resources are provisioned only when `variscoutPlan` is set to `team-ai`. Standard and Team plans do not include AI resources.
+These resources are provisioned only when `variscoutPlan` is set to `team`. The Standard plan does not include AI resources.
 
 #### AI Deployment Guardrails
 
@@ -221,12 +221,12 @@ See [Responsible AI Policy](../../05-technical/architecture/responsible-ai-polic
 
 The Node.js server (`server.js`) serves a `/config` endpoint that returns runtime settings from environment variables. This allows Marketplace deployments to configure AI endpoints without rebuilding.
 
-| Variable             | Description                             | Plan           |
-| -------------------- | --------------------------------------- | -------------- |
-| `AI_ENDPOINT`        | Azure AI Foundry endpoint               | Team AI        |
-| `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint                | Team AI        |
-| `AI_SEARCH_INDEX`    | Search index name                       | Team AI        |
-| `FUNCTION_URL`       | Function App URL for OBO token exchange | Team / Team AI |
+| Variable             | Description                             | Plan |
+| -------------------- | --------------------------------------- | ---- |
+| `AI_ENDPOINT`        | Azure AI Foundry endpoint               | Team |
+| `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint                | Team |
+| `AI_SEARCH_INDEX`    | Search index name                       | Team |
+| `FUNCTION_URL`       | Function App URL for OBO token exchange | Team |
 
 The client fetches `/config` on startup via `runtimeConfig.ts` and uses the returned values to configure AI service clients. Environment variables without the `VITE_` prefix are invisible to the Vite build — the `/config` endpoint is the only way they reach the client.
 
@@ -259,9 +259,8 @@ The customer provides an app name and selects a region.
 
 The customer selects their VariScout plan:
 
-- **Standard (€99/month)** — Full analysis, local file storage
-- **Team (€199/month)** — Teams, OneDrive, SharePoint, mobile, photos
-- **Team AI (€279/month)** — Everything in Team + AI-powered analysis
+- **Standard (€79/month)** — Full analysis, local file storage
+- **Team (€199/month)** — Teams, OneDrive, SharePoint, Knowledge Base, mobile, photos
 
 The selected `variscoutPlan` parameter is passed to the ARM template, which conditionally provisions Team plan resources (Function App, Storage Account) and adjusts EasyAuth login scopes.
 
@@ -396,7 +395,7 @@ The template requests only necessary permissions:
 - The secret is stored as an App Service app setting (server-side, not in client code)
 - The secret is not included in template outputs
 - EasyAuth uses the token store (server-side) for access tokens
-- **Key Vault (Team AI):** API keys stored in Azure Key Vault with RBAC authorization. App Service accesses secrets via managed identity (Key Vault Secrets User role).
+- **Key Vault (Team):** API keys stored in Azure Key Vault with RBAC authorization. App Service accesses secrets via managed identity (Key Vault Secrets User role).
 - **AI observability:** `tracing.ts` module records latency, token usage, and error rates for cost monitoring.
 
 ### Customer Data Isolation

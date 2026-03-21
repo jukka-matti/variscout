@@ -76,14 +76,14 @@ pnpm --filter @variscout/azure-app test
 
 > **Note**: MSAL-era variables (`VITE_AZURE_CLIENT_ID`, `VITE_AZURE_TENANT_ID`, `VITE_AZURE_REDIRECT_URI`, `VITE_MAX_USERS`, `VITE_MAX_CHANNELS`) are no longer used. Authentication is handled by EasyAuth (App Service Authentication), not MSAL.
 
-### AI Resources (Team AI only)
+### AI Resources (Team only)
 
 | Variable             | Description                   | Required | Set By       |
 | -------------------- | ----------------------------- | -------- | ------------ |
-| `AI_ENDPOINT`        | Azure AI Foundry endpoint URL | Team AI  | ARM template |
-| `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint URL  | Team AI  | ARM template |
-| `AI_SEARCH_INDEX`    | Search index name             | Team AI  | ARM template |
-| `FUNCTION_URL`       | Function App URL              | Team/AI  | ARM template |
+| `AI_ENDPOINT`        | Azure AI Foundry endpoint URL | Team     | ARM template |
+| `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint URL  | Team     | ARM template |
+| `AI_SEARCH_INDEX`    | Search index name             | Team     | ARM template |
+| `FUNCTION_URL`       | Function App URL              | Team     | ARM template |
 
 > **Note**: These variables are NOT prefixed with `VITE_` because they are served at runtime via the `/config` endpoint (see `apps/azure/src/lib/runtimeConfig.ts`), not baked into the Vite build.
 
@@ -97,9 +97,9 @@ The Knowledge Base uses a Remote SharePoint knowledge source (ADR-026). Setup st
 
 #### Azure Functions
 
-| Function         | Purpose                                              | Plan           |
-| ---------------- | ---------------------------------------------------- | -------------- |
-| `token-exchange` | OBO token exchange for Teams SSO + SharePoint access | Team + Team AI |
+| Function         | Purpose                                              | Plan |
+| ---------------- | ---------------------------------------------------- | ---- |
+| `token-exchange` | OBO token exchange for Teams SSO + SharePoint access | Team |
 
 Both functions are deployed via the CI/CD pipeline when `AZURE_FUNCTION_APP_NAME` is configured as a GitHub Actions variable. The pipeline uses `azure/functions-action@v2` to deploy the `infra/functions/` directory.
 
@@ -122,9 +122,8 @@ The Azure App is published to Azure Marketplace as a **Managed Application**:
 ```
 Azure Marketplace
 └── VariScout (Managed Application)
-    ├── Standard Plan (€99/month, full analysis, local files)
-    ├── Team Plan (€199/month, + Teams, OneDrive, SharePoint)
-    └── Team AI Plan (€279/month, + AI-assisted analysis)
+    ├── Standard Plan (€79/month, full analysis, local files)
+    └── Team Plan (€199/month, + Teams, OneDrive, SharePoint, Knowledge Base)
 ```
 
 ### Publication Process
@@ -136,13 +135,13 @@ Azure Marketplace
 
 2. **Create Azure Application Offer**
    - Offer type: Managed Application
-   - Three plans: Standard (€99/month), Team (€199/month), and Team AI (€279/month)
+   - Two plans: Standard (€79/month) and Team (€199/month)
    - Upload deployment package (.zip with mainTemplate.json + createUiDefinition.json)
    - Publisher management: Disabled (zero access)
    - Customer access: Enabled (full control)
 
 3. **Configure Pricing**
-   - Set monthly prices (Standard €99, Team €199, Team AI €279)
+   - Set monthly prices (Standard €79, Team €199)
    - Configure regional pricing (EUR, USD, GBP)
    - Microsoft handles VAT and billing (3% fee)
 

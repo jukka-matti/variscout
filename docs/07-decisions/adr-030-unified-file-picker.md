@@ -64,10 +64,10 @@ Key capabilities used:
 
 | Use Case                  | Available On    | Gate                                                               |
 | ------------------------- | --------------- | ------------------------------------------------------------------ |
-| KB folder selection       | Team AI only    | `isTeamAIPlan()` (existing gate)                                   |
-| Import from SharePoint    | Team + Team AI  | `hasTeamFeatures()`                                                |
-| Open .vrs from SharePoint | Team + Team AI  | `hasTeamFeatures()`                                                |
-| Save As to SharePoint     | Team + Team AI  | `hasTeamFeatures()`                                                |
+| KB folder selection       | Team only       | `hasKnowledgeBase()` (existing gate)                               |
+| Import from SharePoint    | Team            | `hasTeamFeatures()`                                                |
+| Open .vrs from SharePoint | Team            | `hasTeamFeatures()`                                                |
+| Save As to SharePoint     | Team            | `hasTeamFeatures()`                                                |
 | Browse local files (all)  | All Azure plans | Always (native `<input type="file">` or picker's browseThisDevice) |
 
 Standard plan users see only local file browsing options (no SharePoint).
@@ -102,7 +102,7 @@ apps/azure/src/
 
 **`FileBrowseButton`** is a thin UI wrapper that renders:
 
-- A "Browse SharePoint" button (Team/Team AI plans) calling `useFilePicker().open()`
+- A "Browse SharePoint" button (Team plan) calling `useFilePicker().open()`
 - An optional "Browse this device" button with native `<input type="file">`
 
 **`handleFile(file: File)`** on `useEditorDataFlow` provides a clean API for programmatic file loading without synthetic event hacks.

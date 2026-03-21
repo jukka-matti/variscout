@@ -50,13 +50,13 @@ What's new in the Microsoft platform ecosystem and how VariScout can leverage it
 
 ## Longer-Term / Watch List
 
-| Feature                          | Why Watch                                                                 |
-| -------------------------------- | ------------------------------------------------------------------------- |
-| **Computer-Using Agent (CUA)**   | Could automate QA testing of VariScout by navigating the UI               |
-| **Foundry MCP Server** (managed) | Centralized model deployment — could simplify Team AI tier infrastructure |
-| **Foundry Local + NPU**          | On-device AI for privacy-sensitive analysis (no cloud roundtrip)          |
-| **Fabric Data Agents**           | Connect VariScout to enterprise data lakes for automated data ingestion   |
-| **LUIS retirement (Mar 2026)**   | Not using LUIS, but validates shift toward newer AI SDK patterns          |
+| Feature                          | Why Watch                                                               |
+| -------------------------------- | ----------------------------------------------------------------------- |
+| **Computer-Using Agent (CUA)**   | Could automate QA testing of VariScout by navigating the UI             |
+| **Foundry MCP Server** (managed) | Centralized model deployment — could simplify AI infrastructure         |
+| **Foundry Local + NPU**          | On-device AI for privacy-sensitive analysis (no cloud roundtrip)        |
+| **Fabric Data Agents**           | Connect VariScout to enterprise data lakes for automated data ingestion |
+| **LUIS retirement (Mar 2026)**   | Not using LUIS, but validates shift toward newer AI SDK patterns        |
 
 ## Recommended Prioritization
 

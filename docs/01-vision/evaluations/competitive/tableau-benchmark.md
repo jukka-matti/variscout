@@ -13,7 +13,7 @@ title: 'Tableau Competitive Benchmark'
 | Dimension           | Tableau                                                                       | VariScout                                               |
 | ------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------- |
 | **Platform**        | Desktop (authoring) + Server/Cloud (viewing)                                  | Browser-based (PWA, Azure, Excel Add-in)                |
-| **Pricing**         | $75/user/month (Creator), $42/user/month (Explorer), $15/user/month (Viewer)  | From €99/month (Azure) or free (PWA)                    |
+| **Pricing**         | $75/user/month (Creator), $42/user/month (Explorer), $15/user/month (Viewer)  | From €79/month (Azure) or free (PWA)                    |
 | **Distribution**    | Salesforce direct sales, cloud and on-premise                                 | Azure Marketplace, AppSource, public URL                |
 | **Target audience** | Business analysts, data teams, executives                                     | Quality practitioners, Green Belts, learners            |
 | **Market position** | Dominant BI and visual analytics platform                                     | Specialized variation analysis tool                     |
@@ -112,7 +112,7 @@ The filter interaction model is fundamentally different from VariScout's progres
 | Nelson rules / run tests            | Not available                                  | Yes                                                                                               |
 | Dashboard publishing                | Yes (Server/Cloud)                             | Not applicable (analysis tool, not BI)                                                            |
 | Browser-based analysis              | Viewer/Explorer roles (view and filter only)   | Full analysis capability                                                                          |
-| Price for individual analyst        | $75/month (Creator)                            | Free (PWA) or from €99/month (Azure)                                                              |
+| Price for individual analyst        | $75/month (Creator)                            | Free (PWA) or from €79/month (Azure)                                                              |
 
 ---
 

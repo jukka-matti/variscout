@@ -23,7 +23,7 @@ Step-by-step guides for learning VariScout through hands-on exercises.
 | Your First Process Analysis            | PWA + coffee sample | Beginner     | Planned |
 | Comparing Manufacturing Channels       | Performance Mode    | Intermediate | Planned |
 | Investigating Root Causes              | Findings + What-If  | Intermediate | Planned |
-| Using CoScout for AI-Assisted Analysis | Azure Team AI       | Advanced     | Planned |
+| Using CoScout for AI-Assisted Analysis | Azure               | Advanced     | Planned |
 
 ---
 

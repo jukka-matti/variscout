@@ -59,7 +59,7 @@ Documents reach the searchable scope through two paths:
 
 ### UI
 
-In Settings → Knowledge Base (Team AI plan only):
+In Settings → Knowledge Base (Team plan only):
 
 ```
 Search scope

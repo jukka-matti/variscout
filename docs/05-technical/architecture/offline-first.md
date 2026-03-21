@@ -112,7 +112,7 @@ USER                    SERVICE WORKER              CACHE
 
 Both Azure plans store data locally in IndexedDB. The Team plan additionally syncs to OneDrive.
 
-**Standard plan (€99/month)** — IndexedDB only, no cloud sync:
+**Standard plan (€79/month)** — IndexedDB only, no cloud sync:
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -132,7 +132,7 @@ Both Azure plans store data locally in IndexedDB. The Team plan additionally syn
 └─────────────────────────────────────────────────────┘
 ```
 
-**Team plan (€199/month) / Team AI plan (€279/month)** — IndexedDB + OneDrive sync:
+**Team plan (€199/month)** — IndexedDB + OneDrive sync:
 
 ```
 ┌─────────────────────────────────────────────────────┐

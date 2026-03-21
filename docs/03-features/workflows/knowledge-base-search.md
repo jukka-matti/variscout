@@ -13,7 +13,7 @@ Search your team's SharePoint documents from CoScout to accelerate investigation
 
 The Knowledge Base feature allows CoScout to search your team's SharePoint folder for relevant documents when answering questions. This brings institutional knowledge into every investigation.
 
-**Plan requirement**: Team AI (€279/month)
+**Plan requirement**: Team (€199/month)
 **Status**: Preview (opt-in via Admin > Knowledge Base)
 **Architecture**: [ADR-026](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
 
@@ -90,7 +90,7 @@ The Knowledge Base search degrades gracefully:
 
 1. Navigate to **Admin > Knowledge Base** (BookOpen icon in header)
 2. Verify all status checks are green:
-   - Team AI plan active
+   - Team plan active
    - Search endpoint configured (via ARM template)
    - Preview feature enabled
 3. Click **Test Search Connectivity** to verify the Remote SharePoint knowledge source
@@ -106,4 +106,4 @@ For setting up the Remote SharePoint knowledge source, follow Microsoft's docume
 - [AI Architecture](../../05-technical/architecture/ai-architecture.md)
 - [ADR-022: Knowledge Layer Architecture](../../07-decisions/adr-022-knowledge-layer-architecture.md) (original, amended by ADR-026)
 - [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
-- [ARM Template — AI Services](../../08-products/azure/arm-template.md#4-ai-services-team-ai-only)
+- [ARM Template — AI Services](../../08-products/azure/arm-template.md#4-ai-services-team-only)

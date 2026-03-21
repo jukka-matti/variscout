@@ -219,7 +219,7 @@ If the verification data lives in a separate file or system:
 16. Change Finding status to **Resolved**
 17. _(If AI enabled)_ NarrativeBar reflects the improvement in current stats when using Staged Analysis
 18. _(Team plan)_ Teams auto-posts the outcome with Cpk before/after comparison
-19. _(Team AI plan)_ The resolved finding is **indexed to the Knowledge Base** — future investigations can reference this resolution
+19. _(Team plan)_ The resolved finding is **indexed to the Knowledge Base** — future investigations can reference this resolution
 
 ### Tier Availability
 

@@ -13,7 +13,7 @@ title: 'Power BI Competitive Benchmark'
 | Dimension           | Power BI                                                                | VariScout                                               |
 | ------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------- |
 | **Platform**        | Desktop (authoring) + Service (cloud) + Mobile                          | Browser-based (PWA, Azure, Excel Add-in)                |
-| **Pricing**         | $10/user/month (Pro), $20/user/month (Premium per user), Free (Desktop) | From €99/month (Azure) or free (PWA)                    |
+| **Pricing**         | $10/user/month (Pro), $20/user/month (Premium per user), Free (Desktop) | From €79/month (Azure) or free (PWA)                    |
 | **Distribution**    | Microsoft 365 ecosystem, Azure integration                              | Azure Marketplace, AppSource, public URL                |
 | **Target audience** | Business analysts, report builders, enterprise IT                       | Quality practitioners, Green Belts, learners            |
 | **Market position** | Microsoft's enterprise BI platform                                      | Specialized variation analysis tool                     |
@@ -115,7 +115,7 @@ The fundamental limitation: Power BI is a reporting tool, not an analysis tool. 
 | Nelson rules / run tests     | Not available                                     | Yes                                                                                               |
 | Excel integration            | Deep (bidirectional)                              | Excel Add-in (native Office.js)                                                                   |
 | Natural language queries     | Q&A feature                                       | Not applicable                                                                                    |
-| Price for individual analyst | Free (Desktop), $10/month (Pro sharing)           | Free (PWA) or from €99/month (Azure)                                                              |
+| Price for individual analyst | Free (Desktop), $10/month (Pro sharing)           | Free (PWA) or from €79/month (Azure)                                                              |
 | Microsoft ecosystem          | Deep integration (365, Teams, SharePoint)         | Azure Marketplace only                                                                            |
 
 ---

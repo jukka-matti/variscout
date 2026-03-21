@@ -244,10 +244,10 @@ The journey behaves differently depending on which AI mode is active. Modes are 
 | Mode                    | Available On                                               | What Changes                                                                                                                                                     |
 | ----------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **No AI**               | PWA (always), Azure without AI Foundry, or user toggle OFF | Dashboard shows deterministic insights only. All AI UI hidden with zero layout disruption.                                                                       |
-| **AI Enabled**          | Azure Standard/Team/Team AI with AI Foundry deployed       | NarrativeBar + ChartInsightChips + CoScout active from SCOUT onward. Phase-aware prompts. Actionable suggestions (drill, pin finding) with analyst confirmation. |
-| **AI + Knowledge Base** | Azure Team AI (€279/month) only                            | Adds organizational document search (Foundry IQ) in CoScout from SCOUT onward (on-demand). Cross-project knowledge queries.                                      |
+| **AI Enabled**          | Azure Standard/Team with AI Foundry deployed               | NarrativeBar + ChartInsightChips + CoScout active from SCOUT onward. Phase-aware prompts. Actionable suggestions (drill, pin finding) with analyst confirmation. |
+| **AI + Knowledge Base** | Azure Team (€199/month) only                               | Adds organizational document search (Foundry IQ) in CoScout from SCOUT onward (on-demand). Cross-project knowledge queries.                                      |
 
-**Mode ≠ Tier:** AI is a horizontal capability, not tier-gated. A Standard customer who deploys AI Foundry gets Mode 2. Only the Knowledge Base (Mode 3) is Team AI exclusive.
+**Mode ≠ Tier:** AI is a horizontal capability, not tier-gated. A Standard customer who deploys AI Foundry gets Mode 2. Only the Knowledge Base (Mode 3) is Team exclusive.
 
 **In code:** `showAI` visibility check, `aiEndpointConfigured` flag, `AdminKnowledgeSetup` preview gate.
 
@@ -277,7 +277,7 @@ These are product/business concepts that were previously listed as mental models
 | Concept             | What it is                                                           | Where it lives                                   |
 | ------------------- | -------------------------------------------------------------------- | ------------------------------------------------ |
 | Value Levers        | Business capability tiers (L1–L5)                                    | `docs/01-vision/business-bible.md`               |
-| Experience Spectrum | Product tiers (PWA → Standard → Team → Team AI)                      | `core/tier.ts`                                   |
+| Experience Spectrum | Product tiers (PWA → Standard → Team)                                | `core/tier.ts`                                   |
 | Two Speeds          | Quick Check (~5 min) / Deep Dive (~30 min)                           | Report auto-detection; absorbed by Entry Paths   |
 | Three Contributions | Parallel Views, Progressive Stratification, Hypothesis Investigation | Marketing/methodology copy, not a separate model |
 | Four Lenses         | CHANGE/FLOW/FAILURE/VALUE teaching labels                            | Docs and marketing only (intentional)            |
@@ -297,7 +297,7 @@ These are product/business concepts that were previously listed as mental models
 | Two Voices            | YES      | Control limits (calculated) vs spec limits (user-entered)                                                    |
 | Three Entry Paths     | YES      | `EntryScenario` type, `detectEntryScenario()` (AI context)                                                   |
 | Hypothesis Validation | YES      | `ValidationStatus` type                                                                                      |
-| Knowledge Layer       | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup` (Team AI only, preview-gated)                |
+| Knowledge Layer       | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup` (Team only, preview-gated)                   |
 | Value Levers          | Indirect | Tier gating                                                                                                  |
 | Four Lenses           | NO       | Teaching/marketing only (intentional)                                                                        |
 

@@ -74,7 +74,7 @@ Workflows organized by journey phase. See the [Analysis Journey Map](workflows/a
 | [Investigation to Action](workflows/investigation-to-action.md)         | Findings, hypotheses, actions, outcomes |
 | [Hypothesis Investigation](workflows/hypothesis-investigation.md)       | Hypothesis tree, validation, evidence   |
 | [Investigation Lifecycle Map](workflows/investigation-lifecycle-map.md) | Diamond state diagrams                  |
-| [Knowledge Base Search](workflows/knowledge-base-search.md)             | Organizational knowledge (Team AI)      |
+| [Knowledge Base Search](workflows/knowledge-base-search.md)             | Organizational knowledge (Team)         |
 
 ### Cross-Phase
 

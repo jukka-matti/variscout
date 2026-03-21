@@ -95,7 +95,7 @@ The hypothesis tree workflow — form hypotheses, validate with data, track evid
 
 ### [Knowledge Base Search](knowledge-base-search.md)
 
-Search organizational knowledge from past analyses to accelerate current investigations (Azure Team AI).
+Search organizational knowledge from past analyses to accelerate current investigations (Azure Team).
 
 ### [Improvement Prioritization](improvement-prioritization.md)
 

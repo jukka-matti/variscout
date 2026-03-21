@@ -88,12 +88,11 @@ AI is always optional, dismissable, and controlled by a user-visible Settings to
 
 ## Products & Pricing
 
-| Product        | Distribution      | Pricing                                            | Status      |
-| -------------- | ----------------- | -------------------------------------------------- | ----------- |
-| Azure Standard | Azure Marketplace | €99/month (full analysis, local files)             | **PRIMARY** |
-| Azure Team     | Azure Marketplace | €199/month (+ Teams, OneDrive, SharePoint, mobile) | **PRIMARY** |
-| Azure Team AI  | Azure Marketplace | €279/month (+ AI-assisted analysis)                | **PRIMARY** |
-| PWA            | Public URL        | FREE (forever, training & education)               | Production  |
+| Product        | Distribution      | Pricing                                                            | Status      |
+| -------------- | ----------------- | ------------------------------------------------------------------ | ----------- |
+| Azure Standard | Azure Marketplace | €79/month (full analysis, local files)                             | **PRIMARY** |
+| Azure Team     | Azure Marketplace | €199/month (+ Teams, OneDrive, SharePoint, Knowledge Base, mobile) | **PRIMARY** |
+| PWA            | Public URL        | FREE (forever, training & education)                               | Production  |
 
 ### Free (PWA)
 
@@ -102,7 +101,7 @@ AI is always optional, dismissable, and controlled by a user-visible Settings to
 - VariScout branding on charts
 - Session-only storage (no save)
 
-### Standard (Azure App — €99/month)
+### Standard (Azure App — €79/month)
 
 - All features, unlimited users
 - EasyAuth (Microsoft SSO), file upload, save/persistence
@@ -115,14 +114,9 @@ AI is always optional, dismissable, and controlled by a user-visible Settings to
 - Everything in Standard, plus:
 - Teams integration (channel tabs, SSO)
 - OneDrive and SharePoint sync
+- Knowledge Base (organizational document search)
 - Mobile access via Teams app
 - Photo evidence with EXIF stripping
-
-### Team AI (Azure App — €279/month)
-
-- Everything in Team, plus:
-- AI-assisted analysis (CoScout, narrative insights, chart insights)
-- AI-powered suggested questions and hypothesis generation
 
 ---
 
@@ -132,7 +126,7 @@ AI is always optional, dismissable, and controlled by a user-visible Settings to
 
 | Aspect         | Minitab          | VaRiScout              |
 | -------------- | ---------------- | ---------------------- |
-| Price          | $1,000+/year     | From €99/month or free |
+| Price          | $1,000+/year     | From €79/month or free |
 | Installation   | Desktop software | Browser (no install)   |
 | Learning curve | Steep            | Minimal                |
 | Feature depth  | Deep (30 years)  | Focused (essentials)   |

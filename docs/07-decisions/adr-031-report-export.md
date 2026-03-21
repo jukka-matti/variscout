@@ -54,7 +54,7 @@ local file export.
 ## Decision
 
 Add a Print/PDF export to the Report View, available on all Azure plans
-(Standard, Team, Team AI). Not available on PWA (no Report View).
+(Standard, Team). Not available on PWA (no Report View).
 
 ### Implementation
 
@@ -94,7 +94,7 @@ still drives Standard → Team.
 
 - Existing copy workflow unchanged (chart PNG, section-as-slide, rich HTML)
 - Teams sharing unchanged (Team+ only)
-- SharePoint publishing unchanged (Team AI only)
+- SharePoint publishing unchanged (Team only)
 
 ### Future options (backlog, not commitments)
 

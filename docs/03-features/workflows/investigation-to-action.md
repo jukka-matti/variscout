@@ -550,7 +550,7 @@ True confirmation only comes when the process improves to target (outcome = effe
 | **CoScout context**       | Included in system prompt to ground improvement suggestions |
 | **Narration prompt**      | Included in `buildSummaryPrompt` for narrative generation   |
 
-### CoScout Drafting (Azure Team AI)
+### CoScout Drafting (Azure Team)
 
 When CoScout is available, the analyst can request a draft synthesis. CoScout assembles a narrative from supported hypotheses, key-driver findings, and eta-squared evidence. The draft appears in the synthesis field for editing — the analyst always has final edit control. CoScout drafts use "The evidence suggests..." framing, never "Confirmed that..." language.
 
@@ -598,7 +598,7 @@ The `ideaId` FK enables a learning loop in the FindingCard outcome section. When
 Projected 1.35 → Actual 1.42 (+0.07)
 ```
 
-Green when actual meets or exceeds projection, red when it falls short. Over time, this builds estimation confidence and feeds the Knowledge Base (Azure Team AI).
+Green when actual meets or exceeds projection, red when it falls short. Over time, this builds estimation confidence and feeds the Knowledge Base (Azure Team).
 
 ### CoScout-Optional Design
 

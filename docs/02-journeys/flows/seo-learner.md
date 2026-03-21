@@ -170,7 +170,7 @@ Gary clicks around, explores the demo:
 
 Gary evaluates:
 
-- PWA (free) vs Azure App (from €99/month)
+- PWA (free) vs Azure App (from €79/month)
 - Comparison to Minitab
 
 ---
@@ -189,7 +189,7 @@ Gary evaluates:
 
 1. Tool page → "Try Demo" → Explore with samples
 2. Like it? → "Paste Your Data" → Try with own data (free)
-3. Need team features? → Azure App (from €99/month)
+3. Need team features? → Azure App (from €79/month)
 
 ---
 

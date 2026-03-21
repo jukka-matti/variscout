@@ -4,7 +4,7 @@ title: 'ADR-021 Security Evaluation: Teams Integration'
 
 # ADR-021 Security Evaluation: Teams Integration
 
-**Status**: Accepted
+**Status**: Accepted. **Pricing revised by [ADR-033](adr-033-pricing-simplification.md)** — simplified to 2 plans: Standard (€79/month) and Team (€199/month). Team AI tier removed; AI included in all plans, Knowledge Base moved to Team.
 
 **Date**: 2026-02-27
 
@@ -228,15 +228,15 @@ Teams integration adds 1 dependency: `@microsoft/teams-js` (Microsoft-maintained
 
 ### 6.1 Who Is This Buyer?
 
-A €5M revenue Finnish manufacturer with ~200 employees. They have M365 E3 or E5 licenses, Entra ID for identity, and 1–3 IT staff who manage network, endpoints, M365, and security. The quality manager found VariScout through the free PWA and wants the team version. €99–279/month is a real budget line item that goes through procurement.
+A €5M revenue Finnish manufacturer with ~200 employees. They have M365 E3 or E5 licenses, Entra ID for identity, and 1–3 IT staff who manage network, endpoints, M365, and security. The quality manager found VariScout through the free PWA and wants the team version. €79–199/month is a real budget line item that goes through procurement.
 
 ### 6.2 The Admin Consent Conversation
 
 The quality manager asks IT to approve the app. Here's what happens:
 
-**Standard plan (€99/month)**: No admin consent needed. Only `User.Read` is requested (local-only storage, no OneDrive). IT may still want to review the app registration, but there's no blocker.
+**Standard plan (€79/month)**: No admin consent needed. Only `User.Read` is requested (local-only storage, no OneDrive). IT may still want to review the app registration, but there's no blocker.
 
-**Team plan (€199/month) and Team AI plan (€279/month)**: IT admin must grant tenant-wide consent for `Files.ReadWrite.All`. The admin sees a consent screen listing the permission. What they need to understand:
+**Team plan (€199/month)**: IT admin must grant tenant-wide consent for `Files.ReadWrite.All`. The admin sees a consent screen listing the permission. What they need to understand:
 
 - **"Access files that user has access to"** — the app cannot access files the user couldn't already access. It's _delegated_, not _application_.
 - **"All" means all locations** — OneDrive + SharePoint, not "all users' files."
@@ -493,7 +493,7 @@ Canvas re-encode + stripExifFromBlob ──── EXIF/GPS stripped (two layers)
 ## See Also
 
 - [ADR-016: Teams Integration](adr-016-teams-integration.md) — the technical design being evaluated
-- [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md) — three-plan model (Standard / Team / Team AI)
+- [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md) — two-plan model (Standard / Team)
 - [Certification Guide](../08-products/azure/certification-guide.md) — marketplace certification mechanics
 - [Submission Checklist](../08-products/azure/submission-checklist.md) — submission readiness tracker
 - [Authentication](../08-products/azure/authentication.md) — EasyAuth setup details

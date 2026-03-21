@@ -24,12 +24,12 @@ The journey behaves differently depending on which AI mode is active. Modes are 
 | Mode                    | Available On                                               | What Changes                                                                                                                                |
 | ----------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | **No AI**               | PWA (always), Azure without AI Foundry, or user toggle OFF | Dashboard shows deterministic insights only. All AI UI hidden with zero layout disruption.                                                  |
-| **AI Enabled**          | Azure Standard/Team/Team AI with AI Foundry deployed       | NarrativeBar + ChartInsightChips + CoScout active from SCOUT onward. Phase-aware prompts. Actionable suggestions with analyst confirmation. |
-| **AI + Knowledge Base** | Azure Team AI (€279/month) only                            | Adds organizational document search (Foundry IQ) in CoScout from SCOUT onward (on-demand). Cross-project knowledge queries.                 |
+| **AI Enabled**          | Azure Standard/Team with AI Foundry deployed               | NarrativeBar + ChartInsightChips + CoScout active from SCOUT onward. Phase-aware prompts. Actionable suggestions with analyst confirmation. |
+| **AI + Knowledge Base** | Azure Team (€199/month) only                               | Adds organizational document search (Foundry IQ) in CoScout from SCOUT onward (on-demand). Cross-project knowledge queries.                 |
 
-**Mode ≠ Tier:** AI is a horizontal capability, not tier-gated. A Standard customer who deploys AI Foundry gets Mode 2. Only the Knowledge Base (Mode 3) is Team AI exclusive.
+**Mode ≠ Tier:** AI is a horizontal capability, not tier-gated. A Standard customer who deploys AI Foundry gets Mode 2. Only the Knowledge Base (Mode 3) is Team exclusive.
 
-**Availability:** Azure App only (Standard, Team, and Team AI plans). Requires AI endpoint configured in ARM deployment AND user Settings toggle "Show AI assistance" set to ON. PWA never has AI.
+**Availability:** Azure App only (Standard and Team plans). Requires AI endpoint configured in ARM deployment AND user Settings toggle "Show AI assistance" set to ON. PWA never has AI.
 
 ---
 
@@ -206,7 +206,7 @@ All cached responses have a 24-hour TTL or expire when analysis data changes.
 ## The Experience Spectrum
 
 ```
-PWA (Free)              Azure Standard/Team              Azure Team AI
+PWA (Free)              Azure Standard                   Azure Team
 ─────────────────────   ──────────────────────────────   ─────────────────────────
 Charts + numbers        + NarrativeBar                   + Knowledge Base
 Deterministic hints     + ChartInsightChips              + Cross-project queries

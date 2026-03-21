@@ -84,7 +84,7 @@ The analyst can write the synthesis at any time or skip it entirely.
 
 ### With CoScout
 
-When CoScout is available (Azure Team AI plan), the analyst can request a synthesis draft:
+When CoScout is available (any Azure plan with AI configured), the analyst can request a synthesis draft:
 
 - Click "Draft synthesis" in the CoScout panel or synthesis field
 - CoScout assembles a narrative from supported hypotheses, key-driver findings, and eta-squared evidence
@@ -312,7 +312,7 @@ The projected-vs-actual comparison closes the learning loop:
 
 - Analysts learn whether their What-If projections were accurate
 - Over time, this builds estimation confidence
-- The data is available for Knowledge Base contribution (Azure Team AI plan)
+- The data is available for Knowledge Base contribution (Azure Team plan)
 
 ## Timeframe & Cost UX
 
@@ -374,9 +374,8 @@ Every step in the IMPROVE phase works without AI. CoScout enhances the experienc
 The tier gating is:
 
 - **PWA (Free)**: 3-status model, no IMPROVE phase, no actions, no synthesis
-- **Azure Standard**: Full IMPROVE phase, manual-only (no CoScout)
-- **Azure Team**: Full IMPROVE phase, manual-only (no CoScout)
-- **Azure Team AI**: Full IMPROVE phase + CoScout assistance
+- **Azure Standard**: Full IMPROVE phase + CoScout assistance
+- **Azure Team**: Full IMPROVE phase + CoScout assistance + Knowledge Base
 
 ## Implementation Status
 

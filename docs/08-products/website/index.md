@@ -135,7 +135,7 @@ Search / Social / Referral
   └── Pricing ────────── "Get started" ──► Azure Marketplace
 ```
 
-Every page includes a CTA. Tool and learn pages link to the free PWA for immediate engagement. Pricing and product pages link to the Azure Marketplace (from €99/month).
+Every page includes a CTA. Tool and learn pages link to the free PWA for immediate engagement. Pricing and product pages link to the Azure Marketplace (from €79/month).
 
 ---
 
@@ -162,7 +162,7 @@ See [User Journeys](../../02-journeys/index.md) and [Flow Documentation](../../0
 - **Meta tags:** title, description, canonical URL (per-page)
 - **Open Graph:** og:title, og:description, og:image, og:locale (per language)
 - **Twitter Cards:** summary_large_image with per-page content
-- **Schema.org:** `SoftwareApplication` structured data with pricing (Free Web App, from €99/month Azure App)
+- **Schema.org:** `SoftwareApplication` structured data with pricing (Free Web App, from €79/month Azure App)
 - **Sitemap:** auto-generated via `@astrojs/sitemap` integration
 - **Canonical URLs:** resolve to `https://variscout.com` with correct locale paths
 - **Self-hosted fonts:** woff2 files in `public/fonts/` (GDPR-clean — no requests to Google)

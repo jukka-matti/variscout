@@ -231,7 +231,7 @@ Carlos learns the methodology:
 
 1. Case study → "Find YOUR 46%" → Try Demo with samples
 2. Like it? → "Paste Your Data" → Try with own data (free)
-3. Need team features? → Azure App (from €99/month)
+3. Need team features? → Azure App (from €79/month)
 
 ---
 

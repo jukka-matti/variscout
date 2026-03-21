@@ -108,7 +108,7 @@ The existing guidance elements are **individually well-designed** but suffer fro
 
 1. **Scattered placement**: Guidance appears in the Boxplot (chart layer), FilterBreadcrumb (navigation layer), and Funnel Panel (slide-out panel). No single view shows the investigation state.
 2. **Hidden depth**: The richest guidance (factor ranking, Cpk badges, cumulative target) lives in the Funnel Panel, which requires explicit opening. First-time users never find it.
-3. **Platform inconsistency**: The PWA has 10+ elements; Azure has 4. Professional users paying from €99/month have less guidance than free PWA users.
+3. **Platform inconsistency**: The PWA has 10+ elements; Azure has 4. Professional users paying from €79/month have less guidance than free PWA users.
 
 ---
 

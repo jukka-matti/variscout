@@ -54,7 +54,7 @@ journey
 | ------------------ | --------------------------------------- | -------------------------- |
 | Deployment ticket  | "Deploy VariScout for the quality team" | Azure Marketplace          |
 | Support ticket     | "OneDrive sync stopped working"         | In-app admin → Status tab  |
-| Olivia's request   | "Can we upgrade to Team AI?"            | In-app admin → Plan tab    |
+| Olivia's request   | "Can we upgrade to Team?"               | In-app admin → Plan tab    |
 | Azure Portal alert | "App Service health degraded"           | Azure Portal → App Service |
 
 ---

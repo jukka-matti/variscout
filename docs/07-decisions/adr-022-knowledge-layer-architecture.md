@@ -20,7 +20,7 @@ title: 'ADR-022: Knowledge Layer Architecture'
 
 Quality teams accumulate institutional knowledge through investigation findings — root causes identified, actions taken, outcomes measured. This knowledge currently lives within individual projects, invisible to other teams analyzing similar processes.
 
-The Team AI plan (€279/month) needs a knowledge layer that:
+The Team plan (€199/month) needs a knowledge layer that:
 
 1. Makes past findings searchable across projects and teams
 2. Optionally indexes SharePoint documents (SOPs, procedures) for richer context
@@ -87,7 +87,7 @@ CoScout question → useKnowledgeSearch → searchRelatedFindings() (semantic)
 
 ### Negative
 
-- Additional cost: ~€65-85/month for AI Search + AI Services (already included in Team AI pricing)
+- Additional cost: ~€65-85/month for AI Search + AI Services (already included in Team pricing)
 - Search quality depends on finding text quality (garbage in, garbage out)
 - Preview API (2025-11-01-preview) may change before GA
 - Agentic retrieval latency (~1-3s) adds to CoScout response time
