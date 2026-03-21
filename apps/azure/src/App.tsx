@@ -224,7 +224,7 @@ function AppMain() {
                             ? 'text-blue-400 bg-blue-400/10'
                             : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
                         }`}
-                        style={{ minWidth: 40, minHeight: 40 }}
+                        style={{ minWidth: 44, minHeight: 44 }}
                       >
                         <Shield size={18} />
                       </button>
@@ -234,7 +234,7 @@ function AppMain() {
                       aria-label="Settings"
                       title="Settings"
                       className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
-                      style={{ minWidth: 40, minHeight: 40 }}
+                      style={{ minWidth: 44, minHeight: 44 }}
                     >
                       <Settings size={18} />
                     </button>
@@ -245,7 +245,7 @@ function AppMain() {
                         aria-label="Sign out"
                         title="Sign Out"
                         className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
-                        style={{ minWidth: 40, minHeight: 40 }}
+                        style={{ minWidth: 44, minHeight: 44 }}
                       >
                         <LogOut size={18} />
                       </button>

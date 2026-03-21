@@ -90,7 +90,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       title={title}
       aria-label={title}
       aria-pressed={isActive}
-      style={{ minWidth: 40, minHeight: 40 }}
+      style={{ minWidth: 44, minHeight: 44 }}
     >
       {icon}
     </button>
