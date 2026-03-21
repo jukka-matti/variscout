@@ -65,6 +65,7 @@ export {
   calculateConformance,
   groupDataByFactor,
   calculateAnova,
+  calculateAnovaFromArrays,
   // Staged stats functions
   determineStageOrder,
   sortDataByStage,
@@ -421,6 +422,7 @@ export {
   streamResponsesTurn,
   streamResponsesWithToolLoop,
   extractResponseText,
+  ConversationHistory,
   buildCoScoutTools,
   getCoScoutReasoningEffort,
 } from './ai';
@@ -521,5 +523,10 @@ export {
 } from './yamazumi';
 
 // Worker types (for app-level Worker integration)
-export type { StatsComputeRequest, StatsComputeResult, StatsWorkerAPI } from './workers/types';
-export { computeStats } from './workers/statsWorkerApi';
+export type {
+  StatsComputeRequest,
+  StatsComputeResult,
+  AnovaComputeRequest,
+  StatsWorkerAPI,
+} from './workers/types';
+export { computeStats, computeAnova } from './workers/statsWorkerApi';

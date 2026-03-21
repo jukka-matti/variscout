@@ -10,6 +10,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useData } from '../context/DataContext';
+import { useStatsWorker } from '../workers/useStatsWorker';
 import type { AnovaResult } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/charts';
 import { useDashboardChartsBase, useKeyboardNavigation } from '@variscout/hooks';
@@ -66,6 +67,7 @@ export interface UseDashboardChartsResult {
 export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboardChartsResult {
   const { outcome, factors, rawData, filteredData, chartTitles, setChartTitles, displayOptions } =
     useData();
+  const workerApi = useStatsWorker();
 
   const { initialBoxplotFactor, initialParetoFactor, onViewStateChange } = props ?? {};
 
@@ -94,6 +96,7 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     },
     initialBoxplotFactor,
     initialParetoFactor,
+    workerApi,
   });
 
   // Wrap factor setters to report changes for persistence

@@ -13,7 +13,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import type { DataRow, AnovaResult, FilterAction } from '@variscout/core';
+import type { DataRow, AnovaResult, FilterAction, StatsWorkerAPI } from '@variscout/core';
 import { getNextDrillFactor } from '@variscout/core';
 import type { DisplayOptions } from './types';
 import type { BoxplotGroupData } from '@variscout/core';
@@ -43,6 +43,8 @@ export interface UseDashboardChartsBaseOptions {
   initialBoxplotFactor?: string;
   /** Initial pareto factor (from persisted view state) */
   initialParetoFactor?: string;
+  /** Worker API for off-thread ANOVA computation */
+  workerApi?: StatsWorkerAPI | null;
 }
 
 export interface UseDashboardChartsBaseResult {
@@ -90,6 +92,7 @@ export function useDashboardChartsBase({
   chartCopyOptions,
   initialBoxplotFactor,
   initialParetoFactor,
+  workerApi,
 }: UseDashboardChartsBaseOptions): UseDashboardChartsBaseResult {
   // ── Factor state ──────────────────────────────────────────────────────
   const [boxplotFactor, setBoxplotFactor] = useState<string>(initialBoxplotFactor ?? '');
@@ -116,6 +119,7 @@ export function useDashboardChartsBase({
       boxplotFactor,
       boxplotSortBy: displayOptions.boxplotSortBy,
       boxplotSortDirection: displayOptions.boxplotSortDirection,
+      workerApi,
     });
 
   // ── Chart export ──────────────────────────────────────────────────────

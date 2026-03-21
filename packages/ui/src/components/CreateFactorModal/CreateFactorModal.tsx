@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import FocusTrap from 'focus-trap-react';
 import { X, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 
@@ -146,38 +147,50 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
       }}
     >
       {/* Modal */}
-      <div className="relative bg-surface-tertiary border border-edge rounded-lg shadow-xl w-full max-w-md mx-4">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-edge">
-          <h2 className="text-lg font-semibold text-content">{t('factor.create')}</h2>
-          <button
-            onClick={onClose}
-            className="text-content-muted hover:text-content transition-colors"
-            aria-label={t('action.close')}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="px-6 py-4 space-y-4">
-          {/* Factor name input */}
-          <div>
-            <label
-              htmlFor="factor-name"
-              className="block text-sm font-medium text-content-muted mb-2"
+      <FocusTrap
+        active={isOpen}
+        focusTrapOptions={{
+          allowOutsideClick: true,
+          escapeDeactivates: false,
+          fallbackFocus: '[role="dialog"]',
+        }}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="relative bg-surface-tertiary border border-edge rounded-lg shadow-xl w-full max-w-md mx-4"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-edge">
+            <h2 className="text-lg font-semibold text-content">{t('factor.create')}</h2>
+            <button
+              onClick={onClose}
+              className="text-content-muted hover:text-content transition-colors"
+              aria-label={t('action.close')}
             >
-              {t('factor.name')}
-            </label>
-            <input
-              ref={inputRef}
-              id="factor-name"
-              type="text"
-              value={factorName}
-              onChange={handleNameChange}
-              onKeyDown={handleKeyDown}
-              placeholder={t('factor.example')}
-              className={`
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="px-6 py-4 space-y-4">
+            {/* Factor name input */}
+            <div>
+              <label
+                htmlFor="factor-name"
+                className="block text-sm font-medium text-content-muted mb-2"
+              >
+                {t('factor.name')}
+              </label>
+              <input
+                ref={inputRef}
+                id="factor-name"
+                type="text"
+                value={factorName}
+                onChange={handleNameChange}
+                onKeyDown={handleKeyDown}
+                placeholder={t('factor.example')}
+                className={`
                 w-full px-3 py-2 rounded
                 bg-surface-secondary border
                 ${error ? 'border-red-400' : 'border-edge'}
@@ -185,54 +198,54 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
                 focus:outline-none focus:ring-2
                 ${error ? 'focus:ring-red-400/50' : 'focus:ring-blue-500/50'}
               `}
-            />
-            {error && (
-              <div className="flex items-center gap-2 mt-2 text-xs text-red-400">
-                <AlertCircle size={14} />
-                <span>{error}</span>
-              </div>
-            )}
+              />
+              {error && (
+                <div className="flex items-center gap-2 mt-2 text-xs text-red-400">
+                  <AlertCircle size={14} />
+                  <span>{error}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Preview */}
+            <div className="bg-surface-secondary/50 border border-edge rounded px-4 py-3 space-y-2">
+              <p className="text-sm text-content-secondary">
+                {tf('factor.pointsMarked', { count: selectedCount })}
+              </p>
+              <ul className="text-sm text-content-muted space-y-1 ml-4">
+                <li className="list-disc">
+                  <span className="text-blue-300 font-medium">
+                    "{factorName.trim() || 'Factor Name'}"
+                  </span>{' '}
+                  (selected)
+                </li>
+                <li className="list-disc">
+                  <span className="text-content-secondary">"Other"</span> (unselected)
+                </li>
+              </ul>
+            </div>
+
+            {/* Info text */}
+            <p className="text-xs text-content-muted">{t('factor.filterExplanation')}</p>
           </div>
 
-          {/* Preview */}
-          <div className="bg-surface-secondary/50 border border-edge rounded px-4 py-3 space-y-2">
-            <p className="text-sm text-content-secondary">
-              {tf('factor.pointsMarked', { count: selectedCount })}
-            </p>
-            <ul className="text-sm text-content-muted space-y-1 ml-4">
-              <li className="list-disc">
-                <span className="text-blue-300 font-medium">
-                  "{factorName.trim() || 'Factor Name'}"
-                </span>{' '}
-                (selected)
-              </li>
-              <li className="list-disc">
-                <span className="text-content-secondary">"Other"</span> (unselected)
-              </li>
-            </ul>
-          </div>
-
-          {/* Info text */}
-          <p className="text-xs text-content-muted">{t('factor.filterExplanation')}</p>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-edge">
-          <button
-            onClick={onClose}
-            className="
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-edge">
+            <button
+              onClick={onClose}
+              className="
               px-4 py-2 rounded
               text-sm text-content-secondary
               hover:bg-surface-secondary
               transition-colors
             "
-          >
-            {t('action.cancel')}
-          </button>
-          <button
-            onClick={handleCreate}
-            disabled={!isValid}
-            className={`
+            >
+              {t('action.cancel')}
+            </button>
+            <button
+              onClick={handleCreate}
+              disabled={!isValid}
+              className={`
               px-4 py-2 rounded text-sm font-medium
               transition-colors
               ${
@@ -241,11 +254,12 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
                   : 'bg-surface-secondary text-content-muted cursor-not-allowed'
               }
             `}
-          >
-            {t('factor.createAndFilter')}
-          </button>
+            >
+              {t('factor.createAndFilter')}
+            </button>
+          </div>
         </div>
-      </div>
+      </FocusTrap>
     </dialog>
   );
 };

@@ -75,6 +75,7 @@ export {
   streamResponsesTurn,
   streamResponsesWithToolLoop,
   extractResponseText,
+  ConversationHistory,
 } from './responsesApi';
 
 export { narrationResponseSchema, chartInsightResponseSchema } from './schemas';

@@ -385,3 +385,34 @@ export function extractResponseText(response: ResponsesApiResponse): string {
   }
   return '';
 }
+
+/**
+ * Client-side conversation history backup.
+ *
+ * Maintains a parallel record of the conversation alongside the server-side
+ * previous_response_id chain. If the server session expires, toFallbackInput()
+ * provides the message history for replay.
+ */
+export class ConversationHistory {
+  messages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+  previousResponseId: string | null = null;
+
+  addUserMessage(content: string): void {
+    this.messages.push({ role: 'user', content });
+  }
+
+  addAssistantMessage(content: string, responseId: string): void {
+    this.messages.push({ role: 'assistant', content });
+    this.previousResponseId = responseId;
+  }
+
+  /** Fallback input for when previous_response_id session has expired */
+  toFallbackInput(): Array<{ role: 'user' | 'assistant'; content: string }> {
+    return this.messages.map(m => ({ role: m.role, content: m.content }));
+  }
+
+  clear(): void {
+    this.messages = [];
+    this.previousResponseId = null;
+  }
+}

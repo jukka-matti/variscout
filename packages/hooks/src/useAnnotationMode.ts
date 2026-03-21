@@ -9,7 +9,7 @@
  * This hook now only manages visual highlights and the context menu.
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { HighlightColor, DisplayOptions } from './types';
 
 interface ContextMenuState {
@@ -70,14 +70,8 @@ export function useAnnotations({
 }: UseAnnotationsOptions): UseAnnotationsResult {
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(INITIAL_MENU_STATE);
 
-  const boxplotHighlights = useMemo(
-    () => displayOptions.boxplotHighlights ?? {},
-    [displayOptions.boxplotHighlights]
-  );
-  const paretoHighlights = useMemo(
-    () => displayOptions.paretoHighlights ?? {},
-    [displayOptions.paretoHighlights]
-  );
+  const boxplotHighlights = displayOptions.boxplotHighlights ?? {};
+  const paretoHighlights = displayOptions.paretoHighlights ?? {};
 
   // Context menu handlers
   const handleContextMenu = useCallback(

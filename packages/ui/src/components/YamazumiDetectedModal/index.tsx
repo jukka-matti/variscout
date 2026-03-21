@@ -8,6 +8,7 @@
  */
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import FocusTrap from 'focus-trap-react';
 import { Timer, X, Check, BarChart3 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import type { YamazumiDetection } from '@variscout/core';
@@ -70,112 +71,124 @@ export const YamazumiDetectedModal: React.FC<YamazumiDetectedModalProps> = ({
       ref={dialogRef}
       className="fixed inset-0 z-50 bg-transparent backdrop:bg-black/60 backdrop:backdrop-blur-sm max-w-none max-h-none w-full h-full m-0 p-0 flex items-center justify-center"
     >
-      <div className="bg-surface-primary border border-edge rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-500/10 rounded-lg">
-              <BarChart3 size={20} className="text-amber-400" />
+      <FocusTrap
+        focusTrapOptions={{
+          allowOutsideClick: true,
+          escapeDeactivates: false,
+          fallbackFocus: '[role="dialog"]',
+        }}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="bg-surface-primary border border-edge rounded-xl shadow-2xl max-w-md w-full mx-4 p-6"
+        >
+          {/* Header */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-500/10 rounded-lg">
+                <BarChart3 size={20} className="text-amber-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-content">
+                  {t?.('yamazumi.detected.title') ?? 'Time Study Data Detected'}
+                </h3>
+                <p className={`text-sm ${confidenceColor}`}>
+                  {detection.confidence === 'high' ? 'High' : 'Medium'}{' '}
+                  {t?.('yamazumi.detected.confidence') ?? 'confidence'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-content">
-                {t?.('yamazumi.detected.title') ?? 'Time Study Data Detected'}
-              </h3>
-              <p className={`text-sm ${confidenceColor}`}>
-                {detection.confidence === 'high' ? 'High' : 'Medium'}{' '}
-                {t?.('yamazumi.detected.confidence') ?? 'confidence'}
-              </p>
-            </div>
+            <button
+              onClick={onDecline}
+              className="p-1 text-content-secondary hover:text-content rounded"
+            >
+              <X size={18} />
+            </button>
           </div>
-          <button
-            onClick={onDecline}
-            className="p-1 text-content-secondary hover:text-content rounded"
-          >
-            <X size={18} />
-          </button>
-        </div>
 
-        {/* Description */}
-        <p className="text-sm text-content-secondary mb-4">
-          {t?.('yamazumi.detected.description') ??
-            'Your data contains activity type classifications (VA, NVA, Waste, Wait). Enable Yamazumi mode to visualize cycle time composition across process steps.'}
-        </p>
+          {/* Description */}
+          <p className="text-sm text-content-secondary mb-4">
+            {t?.('yamazumi.detected.description') ??
+              'Your data contains activity type classifications (VA, NVA, Waste, Wait). Enable Yamazumi mode to visualize cycle time composition across process steps.'}
+          </p>
 
-        {/* Detected columns */}
-        <div className="bg-surface-secondary rounded-lg p-3 mb-4 space-y-1.5">
-          {suggestedMapping.activityTypeColumn && (
-            <div className="flex items-center gap-2 text-sm">
-              <Check size={14} className="text-green-400 shrink-0" />
-              <span className="text-content-secondary">
-                {t?.('yamazumi.detected.activityType') ?? 'Activity Type'}:
-              </span>
-              <span className="text-content font-medium">
-                {suggestedMapping.activityTypeColumn}
-              </span>
-            </div>
-          )}
-          {suggestedMapping.cycleTimeColumn && (
-            <div className="flex items-center gap-2 text-sm">
-              <Check size={14} className="text-green-400 shrink-0" />
-              <span className="text-content-secondary">
-                {t?.('yamazumi.detected.cycleTime') ?? 'Cycle Time'}:
-              </span>
-              <span className="text-content font-medium">{suggestedMapping.cycleTimeColumn}</span>
-            </div>
-          )}
-          {suggestedMapping.stepColumn && (
-            <div className="flex items-center gap-2 text-sm">
-              <Check size={14} className="text-green-400 shrink-0" />
-              <span className="text-content-secondary">
-                {t?.('yamazumi.detected.step') ?? 'Process Step'}:
-              </span>
-              <span className="text-content font-medium">{suggestedMapping.stepColumn}</span>
-            </div>
-          )}
-          {suggestedMapping.reasonColumn && (
-            <div className="flex items-center gap-2 text-sm">
-              <Check size={14} className="text-blue-400 shrink-0" />
-              <span className="text-content-secondary">
-                {t?.('yamazumi.detected.reason') ?? 'Waste Reason'}:
-              </span>
-              <span className="text-content font-medium">{suggestedMapping.reasonColumn}</span>
-            </div>
-          )}
-        </div>
+          {/* Detected columns */}
+          <div className="bg-surface-secondary rounded-lg p-3 mb-4 space-y-1.5">
+            {suggestedMapping.activityTypeColumn && (
+              <div className="flex items-center gap-2 text-sm">
+                <Check size={14} className="text-green-400 shrink-0" />
+                <span className="text-content-secondary">
+                  {t?.('yamazumi.detected.activityType') ?? 'Activity Type'}:
+                </span>
+                <span className="text-content font-medium">
+                  {suggestedMapping.activityTypeColumn}
+                </span>
+              </div>
+            )}
+            {suggestedMapping.cycleTimeColumn && (
+              <div className="flex items-center gap-2 text-sm">
+                <Check size={14} className="text-green-400 shrink-0" />
+                <span className="text-content-secondary">
+                  {t?.('yamazumi.detected.cycleTime') ?? 'Cycle Time'}:
+                </span>
+                <span className="text-content font-medium">{suggestedMapping.cycleTimeColumn}</span>
+              </div>
+            )}
+            {suggestedMapping.stepColumn && (
+              <div className="flex items-center gap-2 text-sm">
+                <Check size={14} className="text-green-400 shrink-0" />
+                <span className="text-content-secondary">
+                  {t?.('yamazumi.detected.step') ?? 'Process Step'}:
+                </span>
+                <span className="text-content font-medium">{suggestedMapping.stepColumn}</span>
+              </div>
+            )}
+            {suggestedMapping.reasonColumn && (
+              <div className="flex items-center gap-2 text-sm">
+                <Check size={14} className="text-blue-400 shrink-0" />
+                <span className="text-content-secondary">
+                  {t?.('yamazumi.detected.reason') ?? 'Waste Reason'}:
+                </span>
+                <span className="text-content font-medium">{suggestedMapping.reasonColumn}</span>
+              </div>
+            )}
+          </div>
 
-        {/* Takt time input */}
-        <div className="mb-5">
-          <label className="block text-sm text-content-secondary mb-1.5">
-            <Timer size={14} className="inline mr-1 -mt-0.5" />
-            {t?.('yamazumi.detected.taktTime') ?? 'Takt Time (optional)'}
-          </label>
-          <input
-            type="number"
-            min="0"
-            step="any"
-            value={taktTime}
-            onChange={e => setTaktTime(e.target.value)}
-            placeholder={t?.('yamazumi.detected.taktPlaceholder') ?? 'e.g., 120 seconds'}
-            className="w-full px-3 py-2 bg-surface-secondary border border-edge rounded-lg text-content text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-          />
-        </div>
+          {/* Takt time input */}
+          <div className="mb-5">
+            <label className="block text-sm text-content-secondary mb-1.5">
+              <Timer size={14} className="inline mr-1 -mt-0.5" />
+              {t?.('yamazumi.detected.taktTime') ?? 'Takt Time (optional)'}
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="any"
+              value={taktTime}
+              onChange={e => setTaktTime(e.target.value)}
+              placeholder={t?.('yamazumi.detected.taktPlaceholder') ?? 'e.g., 120 seconds'}
+              className="w-full px-3 py-2 bg-surface-secondary border border-edge rounded-lg text-content text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            />
+          </div>
 
-        {/* Actions */}
-        <div className="flex gap-3">
-          <button
-            onClick={onDecline}
-            className="flex-1 px-4 py-2.5 text-sm text-content-secondary bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-lg transition-colors"
-          >
-            {t?.('yamazumi.detected.decline') ?? 'Use Standard Mode'}
-          </button>
-          <button
-            onClick={handleEnable}
-            className="flex-1 px-4 py-2.5 text-sm text-white bg-amber-600 hover:bg-amber-500 rounded-lg font-medium transition-colors"
-          >
-            {t?.('yamazumi.detected.enable') ?? 'Enable Yamazumi Mode'}
-          </button>
+          {/* Actions */}
+          <div className="flex gap-3">
+            <button
+              onClick={onDecline}
+              className="flex-1 px-4 py-2.5 text-sm text-content-secondary bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-lg transition-colors"
+            >
+              {t?.('yamazumi.detected.decline') ?? 'Use Standard Mode'}
+            </button>
+            <button
+              onClick={handleEnable}
+              className="flex-1 px-4 py-2.5 text-sm text-white bg-amber-600 hover:bg-amber-500 rounded-lg font-medium transition-colors"
+            >
+              {t?.('yamazumi.detected.enable') ?? 'Enable Yamazumi Mode'}
+            </button>
+          </div>
         </div>
-      </div>
+      </FocusTrap>
     </dialog>
   );
 };

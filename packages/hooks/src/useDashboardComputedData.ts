@@ -7,7 +7,7 @@
  * - anovaResult: ANOVA calculation for current boxplot factor
  * - boxplotData: grouped and sorted boxplot data for stats tables
  */
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect, useTransition, useRef } from 'react';
 import { calculateAnova, sortBoxplotData, calculateBoxplotStats } from '@variscout/core';
 import type {
   AnovaResult,
@@ -15,6 +15,7 @@ import type {
   BoxplotGroupData,
   BoxplotSortBy,
   BoxplotSortDirection,
+  StatsWorkerAPI,
 } from '@variscout/core';
 
 export interface UseDashboardComputedDataOptions {
@@ -32,6 +33,8 @@ export interface UseDashboardComputedDataOptions {
   boxplotSortDirection?: BoxplotSortDirection;
   /** Pre-computed boxplot data from useBoxplotData — skips redundant calculation when provided */
   precomputedBoxplotData?: BoxplotGroupData[];
+  /** Worker API for off-thread ANOVA computation (falls back to useTransition when absent) */
+  workerApi?: StatsWorkerAPI | null;
 }
 
 export interface UseDashboardComputedDataResult {
@@ -41,6 +44,8 @@ export interface UseDashboardComputedDataResult {
   availableStageColumns: string[];
   /** ANOVA result for current boxplot factor vs outcome */
   anovaResult: AnovaResult | null;
+  /** True while ANOVA computation is deferred via useTransition */
+  isPending: boolean;
   /** Grouped and sorted boxplot data */
   boxplotData: BoxplotGroupData[];
 }
@@ -53,6 +58,7 @@ export function useDashboardComputedData({
   boxplotSortBy,
   boxplotSortDirection,
   precomputedBoxplotData,
+  workerApi,
 }: UseDashboardComputedDataOptions): UseDashboardComputedDataResult {
   // Computed: available outcome columns (numeric)
   const availableOutcomes = useMemo(() => {
@@ -87,11 +93,48 @@ export function useDashboardComputedData({
     return candidates;
   }, [rawData, outcome]);
 
-  // Computed: ANOVA result
-  const anovaResult: AnovaResult | null = useMemo(() => {
-    if (!outcome || !boxplotFactor || filteredData.length === 0) return null;
-    return calculateAnova(filteredData, outcome, boxplotFactor);
-  }, [filteredData, outcome, boxplotFactor]);
+  // Computed: ANOVA result — uses Web Worker when available, falls back to
+  // useTransition on the main thread. Generation counter discards stale results
+  // when inputs change faster than the Worker can respond.
+  const [isPending, startTransition] = useTransition();
+  const [anovaResult, setAnovaResult] = useState<AnovaResult | null>(null);
+  const generationRef = useRef(0);
+
+  useEffect(() => {
+    if (!outcome || !boxplotFactor || filteredData.length === 0) {
+      setAnovaResult(null);
+      return;
+    }
+
+    const thisGeneration = ++generationRef.current;
+
+    if (workerApi) {
+      // Async Worker path — extract column arrays for serialization
+      const factorValues = filteredData.map(d => String(d[boxplotFactor]));
+      const outcomeValues = filteredData.map(d => Number(d[outcome]));
+
+      Promise.resolve(
+        workerApi.computeAnova({ factorValues, outcomeValues, outcomeName: outcome ?? undefined })
+      )
+        .then(result => {
+          if (thisGeneration !== generationRef.current) return; // Stale
+          setAnovaResult(result);
+        })
+        .catch(() => {
+          if (thisGeneration !== generationRef.current) return;
+          setAnovaResult(null);
+        });
+    } else {
+      // Sync fallback with useTransition
+      startTransition(() => {
+        const result = calculateAnova(filteredData, outcome, boxplotFactor);
+        if (thisGeneration === generationRef.current) {
+          setAnovaResult(result);
+        }
+      });
+    }
+    // startTransition is stable and does not need to be in the deps array
+  }, [filteredData, outcome, boxplotFactor, workerApi]);
 
   // Computed: boxplot data (skip when pre-computed data is provided)
   const boxplotData: BoxplotGroupData[] = useMemo(() => {
@@ -127,6 +170,7 @@ export function useDashboardComputedData({
     availableOutcomes,
     availableStageColumns,
     anovaResult,
+    isPending,
     boxplotData,
   };
 }

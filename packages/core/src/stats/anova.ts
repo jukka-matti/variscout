@@ -104,31 +104,19 @@ function generateAnovaInsight(
 }
 
 /**
- * Calculate one-way ANOVA for comparing group means
+ * Internal helper: compute ANOVA from pre-built groups map.
  *
- * Tests whether there are statistically significant differences between
- * the means of two or more groups. Mathematically equivalent to t-test
- * when there are exactly 2 groups.
+ * Both `calculateAnova` (DataRow[]) and `calculateAnovaFromArrays` (parallel
+ * arrays) build a `Map<string, number[]>` and delegate here so the math lives
+ * in exactly one place.
  *
- * @param data - Array of data records with factor and outcome columns
- * @param outcomeColumn - Column name for the numeric outcome variable
- * @param factorColumn - Column name for the categorical grouping variable
- * @returns AnovaResult with F-statistic, p-value, and plain-language insight
- *
- * @example
- * const result = calculateAnova(data, 'CycleTime', 'Shift');
- * if (result?.isSignificant) {
- *   console.log(result.insight); // "Shift A is fastest (24.3 min average)"
- * }
+ * @param groups - Map of group name → array of outcome values
+ * @param outcomeName - Used only for insight text generation
  */
-export function calculateAnova<T extends Record<string, unknown>>(
-  data: T[],
-  outcomeColumn: string,
-  factorColumn: string
+function calculateAnovaFromGroups(
+  groups: Map<string, number[]>,
+  outcomeName: string
 ): AnovaResult | null {
-  // Group data by factor
-  const groups = groupDataByFactor(data, factorColumn, outcomeColumn);
-
   // Need at least 2 groups for comparison
   if (groups.size < 2) return null;
 
@@ -193,7 +181,7 @@ export function calculateAnova<T extends Record<string, unknown>>(
   const etaSquared = sst > 0 ? ssb / sst : 0;
 
   // Generate plain-language insight
-  const insight = generateAnovaInsight(groupStats, isSignificant, outcomeColumn);
+  const insight = generateAnovaInsight(groupStats, isSignificant, outcomeName);
 
   return {
     groups: groupStats,
@@ -209,4 +197,68 @@ export function calculateAnova<T extends Record<string, unknown>>(
     etaSquared,
     insight,
   };
+}
+
+/**
+ * Calculate one-way ANOVA for comparing group means
+ *
+ * Tests whether there are statistically significant differences between
+ * the means of two or more groups. Mathematically equivalent to t-test
+ * when there are exactly 2 groups.
+ *
+ * @param data - Array of data records with factor and outcome columns
+ * @param outcomeColumn - Column name for the numeric outcome variable
+ * @param factorColumn - Column name for the categorical grouping variable
+ * @returns AnovaResult with F-statistic, p-value, and plain-language insight
+ *
+ * @example
+ * const result = calculateAnova(data, 'CycleTime', 'Shift');
+ * if (result?.isSignificant) {
+ *   console.log(result.insight); // "Shift A is fastest (24.3 min average)"
+ * }
+ */
+export function calculateAnova<T extends Record<string, unknown>>(
+  data: T[],
+  outcomeColumn: string,
+  factorColumn: string
+): AnovaResult | null {
+  const groups = groupDataByFactor(data, factorColumn, outcomeColumn);
+  return calculateAnovaFromGroups(groups, outcomeColumn);
+}
+
+/**
+ * Array-based ANOVA for use in Web Workers where DataRow[] serialization is
+ * expensive. Accepts pre-extracted parallel arrays of factor labels and
+ * numeric outcome values and produces results identical to `calculateAnova`.
+ *
+ * @param factorValues - Parallel array of categorical factor labels
+ * @param outcomeValues - Parallel array of numeric outcome measurements
+ * @returns AnovaResult with F-statistic, p-value, and plain-language insight,
+ *          or null when fewer than 2 groups exist
+ *
+ * @example
+ * const factors = rows.map(r => String(r[factorCol]));
+ * const outcomes = rows.map(r => Number(r[outcomeCol]));
+ * const result = calculateAnovaFromArrays(factors, outcomes);
+ */
+export function calculateAnovaFromArrays(
+  factorValues: string[],
+  outcomeValues: number[],
+  outcomeName?: string
+): AnovaResult | null {
+  // Build groups map from parallel arrays (mirrors groupDataByFactor logic)
+  const groups = new Map<string, number[]>();
+
+  for (let i = 0; i < factorValues.length; i++) {
+    const key = factorValues[i];
+    const val = outcomeValues[i];
+    if (!isNaN(val)) {
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key)!.push(val);
+    }
+  }
+
+  return calculateAnovaFromGroups(groups, outcomeName ?? '');
 }

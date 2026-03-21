@@ -24,6 +24,11 @@ vi.mock('html-to-image', () => ({
   toBlob: vi.fn(),
 }));
 
+// Mock useStatsWorker (Worker is not available in jsdom)
+vi.mock('../../workers/useStatsWorker', () => ({
+  useStatsWorker: vi.fn(() => null),
+}));
+
 // Mock core functions
 vi.mock('@variscout/core', async () => {
   const actual = await vi.importActual('@variscout/core');

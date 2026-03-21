@@ -924,12 +924,9 @@ const IChartBase: React.FC<IChartProps> = ({
   );
 };
 
-// Memoize to prevent unnecessary re-renders when parent state changes
-const IChartBaseMemo = React.memo(IChartBase);
-
 // Export with responsive wrapper
-const IChart = withParentSize(IChartBaseMemo);
+const IChart = withParentSize(IChartBase);
 export default IChart;
 
 // Also export the base component for custom sizing
-export { IChartBaseMemo as IChartBase };
+export { IChartBase };

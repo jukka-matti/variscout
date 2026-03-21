@@ -1,4 +1,4 @@
-import type { StatsResult, SpecLimits } from '../types';
+import type { StatsResult, SpecLimits, AnovaResult } from '../types';
 
 /** Input for a stats computation request */
 export interface StatsComputeRequest {
@@ -17,7 +17,18 @@ export interface StatsComputeResult {
   kde?: { value: number; count: number }[] | null;
 }
 
+/** Input for an ANOVA computation request (pre-extracted column arrays) */
+export interface AnovaComputeRequest {
+  /** Factor column values (categorical) */
+  factorValues: string[];
+  /** Outcome column values (numeric) */
+  outcomeValues: number[];
+  /** Outcome column name (for "lower is better" heuristic in insight text) */
+  outcomeName?: string;
+}
+
 /** The API exposed by the stats Worker via Comlink */
 export interface StatsWorkerAPI {
   computeStats(request: StatsComputeRequest): StatsComputeResult;
+  computeAnova(request: AnovaComputeRequest): AnovaResult | null;
 }

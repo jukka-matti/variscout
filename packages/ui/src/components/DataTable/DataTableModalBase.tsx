@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import FocusTrap from 'focus-trap-react';
 import { X, Plus, Save, Table, Filter, ClipboardPaste } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import DataTableBase from './DataTableBase';
@@ -155,100 +156,113 @@ const DataTableModalBase: React.FC<DataTableModalBaseProps> = ({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="flex items-center justify-center p-4 w-full h-full">
-        <div className="relative bg-surface-secondary border border-edge rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col max-h-[90vh]">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-edge">
-            <div className="flex items-center gap-3">
-              <Table size={20} className="text-blue-400" />
-              <h2 className="text-xl font-bold text-content">{t('panel.dataTable')}</h2>
-              <span className="text-sm text-content-secondary">
-                {filterExcluded && excludedRowIndices
-                  ? `${excludedRowIndices.size} excluded rows`
-                  : `${localData.length} rows`}
-                {hasChanges && (
-                  <span className="text-amber-400 ml-2">({t('table.unsavedChanges')})</span>
+      <FocusTrap
+        active={isOpen}
+        focusTrapOptions={{
+          allowOutsideClick: true,
+          escapeDeactivates: false,
+          fallbackFocus: '[role="dialog"]',
+        }}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="flex items-center justify-center p-4 w-full h-full"
+        >
+          <div className="relative bg-surface-secondary border border-edge rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-edge">
+              <div className="flex items-center gap-3">
+                <Table size={20} className="text-blue-400" />
+                <h2 className="text-xl font-bold text-content">{t('panel.dataTable')}</h2>
+                <span className="text-sm text-content-secondary">
+                  {filterExcluded && excludedRowIndices
+                    ? `${excludedRowIndices.size} excluded rows`
+                    : `${localData.length} rows`}
+                  {hasChanges && (
+                    <span className="text-amber-400 ml-2">({t('table.unsavedChanges')})</span>
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {excludedRowIndices && excludedRowIndices.size > 0 && (
+                  <button
+                    onClick={() => setFilterExcluded(!filterExcluded)}
+                    className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                      filterExcluded
+                        ? 'bg-amber-600 hover:bg-amber-500 text-white'
+                        : 'bg-surface-tertiary hover:bg-surface-tertiary/80 text-content'
+                    }`}
+                  >
+                    <Filter size={16} />
+                    {filterExcluded ? 'Show All' : `Show Excluded (${excludedRowIndices.size})`}
+                  </button>
                 )}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              {excludedRowIndices && excludedRowIndices.size > 0 && (
                 <button
-                  onClick={() => setFilterExcluded(!filterExcluded)}
-                  className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                    filterExcluded
-                      ? 'bg-amber-600 hover:bg-amber-500 text-white'
-                      : 'bg-surface-tertiary hover:bg-surface-tertiary/80 text-content'
-                  }`}
+                  onClick={handleHeaderPaste}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface-tertiary hover:bg-surface-tertiary/80 text-content rounded-lg transition-colors"
+                  title="Paste tab-delimited data from clipboard"
                 >
-                  <Filter size={16} />
-                  {filterExcluded ? 'Show All' : `Show Excluded (${excludedRowIndices.size})`}
+                  <ClipboardPaste size={16} />
+                  Paste
                 </button>
-              )}
-              <button
-                onClick={handleHeaderPaste}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface-tertiary hover:bg-surface-tertiary/80 text-content rounded-lg transition-colors"
-                title="Paste tab-delimited data from clipboard"
-              >
-                <ClipboardPaste size={16} />
-                Paste
-              </button>
-              <button
-                onClick={handleAddRow}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface-tertiary hover:bg-surface-tertiary/80 text-content rounded-lg transition-colors"
-              >
-                <Plus size={16} />
-                {t('table.addRow')}
-              </button>
+                <button
+                  onClick={handleAddRow}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface-tertiary hover:bg-surface-tertiary/80 text-content rounded-lg transition-colors"
+                >
+                  <Plus size={16} />
+                  {t('table.addRow')}
+                </button>
+                <button
+                  onClick={onClose}
+                  className="text-content-secondary hover:text-content transition-colors p-1"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
+
+            {/* Table content */}
+            <DataTableBase
+              data={localData}
+              columns={columns}
+              outcome={outcome}
+              specs={specs}
+              columnAliases={columnAliases}
+              onCellChange={handleCellChange}
+              onDeleteRow={handleDeleteRow}
+              onBulkPaste={handleBulkPaste}
+              excludedRowIndices={excludedRowIndices}
+              excludedReasons={excludedReasons}
+              controlViolations={controlViolations}
+              filterExcluded={filterExcluded}
+              highlightRowIndex={highlightRowIndex}
+            />
+
+            {/* Footer with Apply/Cancel */}
+            <div className="p-6 border-t border-edge flex justify-end gap-3">
               <button
                 onClick={onClose}
-                className="text-content-secondary hover:text-content transition-colors p-1"
+                className="px-4 py-2 text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors font-medium"
               >
-                <X size={24} />
+                {t('action.cancel')}
+              </button>
+              <button
+                onClick={applyChanges}
+                disabled={!hasChanges}
+                className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors font-bold ${
+                  hasChanges
+                    ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20'
+                    : 'bg-surface-tertiary text-content-muted cursor-not-allowed'
+                }`}
+              >
+                <Save size={18} />
+                {t('action.apply')}
               </button>
             </div>
           </div>
-
-          {/* Table content */}
-          <DataTableBase
-            data={localData}
-            columns={columns}
-            outcome={outcome}
-            specs={specs}
-            columnAliases={columnAliases}
-            onCellChange={handleCellChange}
-            onDeleteRow={handleDeleteRow}
-            onBulkPaste={handleBulkPaste}
-            excludedRowIndices={excludedRowIndices}
-            excludedReasons={excludedReasons}
-            controlViolations={controlViolations}
-            filterExcluded={filterExcluded}
-            highlightRowIndex={highlightRowIndex}
-          />
-
-          {/* Footer with Apply/Cancel */}
-          <div className="p-6 border-t border-edge flex justify-end gap-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors font-medium"
-            >
-              {t('action.cancel')}
-            </button>
-            <button
-              onClick={applyChanges}
-              disabled={!hasChanges}
-              className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors font-bold ${
-                hasChanges
-                  ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20'
-                  : 'bg-surface-tertiary text-content-muted cursor-not-allowed'
-              }`}
-            >
-              <Save size={18} />
-              {t('action.apply')}
-            </button>
-          </div>
         </div>
-      </div>
+      </FocusTrap>
     </dialog>
   );
 };

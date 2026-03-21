@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   calculateStats,
   calculateAnova,
+  calculateAnovaFromArrays,
   determineStageOrder,
   sortDataByStage,
   calculateStatsByStage,
@@ -323,6 +324,53 @@ describe('ANOVA', () => {
     expect(smallGroup!.n).toBe(3);
     // Should still detect significant difference
     expect(result!.isSignificant).toBe(true);
+  });
+});
+
+describe('calculateAnovaFromArrays', () => {
+  it('should produce identical results to calculateAnova', () => {
+    const data = [
+      { Supplier: 'A', Weight: 10.1 },
+      { Supplier: 'A', Weight: 10.3 },
+      { Supplier: 'A', Weight: 10.0 },
+      { Supplier: 'B', Weight: 9.8 },
+      { Supplier: 'B', Weight: 9.9 },
+      { Supplier: 'B', Weight: 9.7 },
+    ];
+    // IMPORTANT: arg order is (data, outcomeColumn, factorColumn)
+    const fromRows = calculateAnova(data, 'Weight', 'Supplier');
+    const fromArrays = calculateAnovaFromArrays(
+      ['A', 'A', 'A', 'B', 'B', 'B'],
+      [10.1, 10.3, 10.0, 9.8, 9.9, 9.7]
+    );
+    expect(fromArrays).not.toBeNull();
+    expect(fromArrays!.fStatistic).toBeCloseTo(fromRows!.fStatistic);
+    expect(fromArrays!.pValue).toBeCloseTo(fromRows!.pValue);
+    expect(fromArrays!.etaSquared).toBeCloseTo(fromRows!.etaSquared);
+  });
+
+  it('should return null for fewer than 2 groups', () => {
+    expect(calculateAnovaFromArrays(['A', 'A'], [1, 2])).toBeNull();
+  });
+
+  it('should handle 3+ groups', () => {
+    const result = calculateAnovaFromArrays(
+      ['X', 'X', 'X', 'Y', 'Y', 'Y', 'Z', 'Z', 'Z'],
+      [10, 11, 12, 20, 21, 22, 30, 31, 32]
+    );
+    expect(result).not.toBeNull();
+    expect(result!.groups).toHaveLength(3);
+    expect(result!.isSignificant).toBe(true);
+  });
+
+  it('should identify lowest group as best for time metrics', () => {
+    const result = calculateAnovaFromArrays(
+      ['Fast', 'Fast', 'Fast', 'Slow', 'Slow', 'Slow'],
+      [5, 6, 7, 15, 16, 17],
+      'CycleTime'
+    );
+    expect(result).not.toBeNull();
+    expect(result!.insight).toContain('Fast is best');
   });
 });
 

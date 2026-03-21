@@ -38,7 +38,12 @@ export type {
 export { calculateStats, calculateMovingRangeSigma } from './basic';
 
 // ANOVA
-export { getEtaSquared, groupDataByFactor, calculateAnova } from './anova';
+export {
+  getEtaSquared,
+  groupDataByFactor,
+  calculateAnova,
+  calculateAnovaFromArrays,
+} from './anova';
 
 // Probability plots
 export { calculateProbabilityPlotData, normalQuantile } from './probability';

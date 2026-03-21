@@ -10,6 +10,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useData } from '../context/DataContext';
+import { useStatsWorker } from '../workers/useStatsWorker';
 import type { AnovaResult } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/charts';
 import { useFilterNavigation, type UseFilterNavigationReturn } from './useFilterNavigation';
@@ -78,6 +79,7 @@ export function useDashboardCharts({
   onChartClick,
 }: UseDashboardChartsProps = {}): UseDashboardChartsResult {
   const { outcome, factors, rawData, filteredData, displayOptions } = useData();
+  const workerApi = useStatsWorker();
 
   // Filter navigation — use external if provided, otherwise create local
   const localFilterNav = useFilterNavigation({
@@ -105,6 +107,7 @@ export function useDashboardCharts({
     filterStack,
     displayOptions,
     filterNav,
+    workerApi,
   });
 
   // Focus mode + keyboard navigation
