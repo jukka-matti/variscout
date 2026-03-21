@@ -166,7 +166,7 @@ describe('ReportViewBase', () => {
           })}
         />
       );
-      expect(screen.getByText('Share Report')).toBeDefined();
+      expect(screen.getAllByText('Share Report').length).toBeGreaterThan(0);
     });
 
     it('calls onShareReport when Share button is clicked', () => {
@@ -179,7 +179,7 @@ describe('ReportViewBase', () => {
           })}
         />
       );
-      fireEvent.click(screen.getByText('Share Report'));
+      fireEvent.click(screen.getAllByText('Share Report')[0]);
       expect(onShareReport).toHaveBeenCalledTimes(1);
     });
   });
