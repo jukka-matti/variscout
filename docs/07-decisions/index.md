@@ -50,6 +50,7 @@ This section captures key architectural decisions made during VariScout developm
 | [036](adr-036-no-russian-language.md)                | No Russian Language                      | Accepted   | 2026-03-20 |
 | [037](adr-037-reporting-workspaces.md)               | Reporting Workspaces                     | Accepted   | 2026-03-20 |
 | [038](adr-038-subgroup-capability.md)                | Subgroup Capability Analysis             | Accepted   | 2026-03-21 |
+| [039](adr-039-mobile-performance-architecture.md)    | Mobile Performance & Async Stats         | Accepted   | 2026-03-21 |
 
 ---
 
