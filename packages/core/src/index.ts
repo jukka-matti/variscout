@@ -65,6 +65,7 @@ export {
   calculateConformance,
   groupDataByFactor,
   calculateAnova,
+  calculateAnovaFromArrays,
   // Staged stats functions
   determineStageOrder,
   sortDataByStage,
