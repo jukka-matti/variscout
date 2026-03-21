@@ -469,7 +469,7 @@ export const ja: MessageCatalog = {
   'feature.reportExport': 'レポートエクスポート（PDF）',
   'feature.indexedDb': 'IndexedDBローカルストレージ',
   'feature.maxFactors': '最大6ファクター',
-  'feature.maxRows': '最大100K行',
+  'feature.maxRows': '最大250K行',
   'feature.onedriveSync': 'OneDriveプロジェクト同期',
   'feature.sharepointPicker': 'SharePointファイルピッカー',
   'feature.teamsIntegration': 'Microsoft Teams統合',

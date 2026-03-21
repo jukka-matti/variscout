@@ -161,13 +161,16 @@ export function useDataIngestion(
           // Check row limits for performance
           if (data.length > rowHardLimit) {
             alert(
-              `File too large (${data.length.toLocaleString()} rows). Maximum is ${rowHardLimit.toLocaleString()} rows.`
+              `File too large (${data.length.toLocaleString()} rows). ` +
+                `Maximum is ${rowHardLimit.toLocaleString()} rows. ` +
+                `Large datasets require significant browser memory — consider filtering or aggregating data before import.`
             );
             return false;
           }
           if (data.length > rowWarningThreshold) {
             const proceed = window.confirm(
-              `Large dataset (${data.length.toLocaleString()} rows) may slow performance. Continue?`
+              `Large dataset (${data.length.toLocaleString()} rows). ` +
+                `This may use significant browser memory and could slow down older computers. Continue?`
             );
             if (!proceed) return false;
           }

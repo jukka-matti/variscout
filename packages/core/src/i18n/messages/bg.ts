@@ -505,7 +505,7 @@ export const bg: MessageCatalog = {
   'feature.reportExport': 'Експорт на доклад (PDF)',
   'feature.indexedDb': 'Локално съхранение IndexedDB',
   'feature.maxFactors': 'До 6 фактора',
-  'feature.maxRows': 'До 100K реда',
+  'feature.maxRows': 'До 250K реда',
   'feature.onedriveSync': 'Синхронизация на проекти с OneDrive',
   'feature.sharepointPicker': 'Избор на файлове от SharePoint',
   'feature.teamsIntegration': 'Интеграция с Microsoft Teams',

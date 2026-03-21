@@ -10,8 +10,8 @@ Comprehensive reference for VariScout's data handling limits, classification thr
 
 | Constraint     | Value                          | Location              | Behavior                                                                                     |
 | -------------- | ------------------------------ | --------------------- | -------------------------------------------------------------------------------------------- |
-| Row hard limit | 50,000 (PWA) / 100,000 (Azure) | `useDataIngestion.ts` | Alert shown, upload rejected. Configurable via `DataIngestionConfig.rowHardLimit`            |
-| Row warning    | 5,000 (PWA) / 10,000 (Azure)   | `useDataIngestion.ts` | Confirm dialog, user can proceed. Configurable via `DataIngestionConfig.rowWarningThreshold` |
+| Row hard limit | 50,000 (PWA) / 250,000 (Azure) | `useDataIngestion.ts` | Alert shown, upload rejected. Configurable via `DataIngestionConfig.rowHardLimit`            |
+| Row warning    | 5,000 (PWA) / 100,000 (Azure)  | `useDataIngestion.ts` | Confirm dialog, user can proceed. Configurable via `DataIngestionConfig.rowWarningThreshold` |
 
 ### Mobile Row Limits (ADR-039)
 
@@ -20,7 +20,7 @@ Mobile devices use lower limits to prevent memory and computation issues on cons
 | Platform | Desktop Hard Limit | Desktop Warning | Mobile Hard Limit | Mobile Warning |
 | -------- | ------------------ | --------------- | ----------------- | -------------- |
 | PWA      | 50,000 rows        | 5,000 rows      | 10,000 rows       | 2,000 rows     |
-| Azure    | 100,000 rows       | 10,000 rows     | 25,000 rows       | 5,000 rows     |
+| Azure    | 250,000 rows       | 100,000 rows    | 50,000 rows       | 10,000 rows    |
 
 Mobile detection uses `useIsMobile(640)` in app-level `useDataIngestion` wrappers. The limits are passed as `DataIngestionConfig` overrides — the hook itself is unchanged.
 
@@ -72,12 +72,26 @@ What VariScout handles well vs. what requires data pre-aggregation:
 | Multi-SKU packaging, 200 products, daily data            | ~5,000  | Product(200)       | Partially — products classified as `'text'` (>50 unique). Pre-filter to top 20-50 products before import. |
 | Supplier quality, 500 suppliers                          | ~10,000 | Supplier(500)      | No direct drill — supplier column excluded. Aggregate by supplier group/region first.                     |
 | High-frequency sensor data, 1 reading/sec for 8 hours    | 28,800  | Time-based         | Works for stats, but time column treated as numeric not categorical.                                      |
-| Large production dataset (Azure)                         | 80,000  | Head(12), Shift(3) | Azure only — 100K row limit accommodates larger datasets.                                                 |
+| Large production dataset (Azure)                         | 200,000 | Head(12), Shift(3) | Azure only — 250K row limit accommodates larger datasets.                                                 |
 
 ## Browser Memory
 
 - IndexedDB quotas are browser-dependent (Chrome 60% of disk, Firefox 50%, Safari 1GB)
 - All computation is in-browser JavaScript — no server offload
 - PWA: 50K rows x 20 columns x ~100 bytes/cell = ~100MB working memory — well within modern browser limits
-- Azure: 100K rows x 20 columns x ~100 bytes/cell = ~200MB working memory — acceptable for desktop browsers
+- Azure: 250K rows x 20 columns x ~100 bytes/cell = ~500MB working memory — acceptable for desktop browsers
 - Boxplot uses iterative min/max (no spread operator) to avoid stack-overflow with large outlier arrays
+
+## Worker Transfer Optimization
+
+Stats and ANOVA computation run in a Web Worker via Comlink. For large datasets (100K+ rows),
+the data transfer cost from main thread to Worker becomes significant when using structured clone.
+
+VariScout uses Transferable ArrayBuffers (`Float64Array`) for zero-copy transfer of numeric arrays
+to the Worker. This makes transfer cost constant (<10ms) regardless of dataset size, compared to
+~180ms at 250K rows with structured clone.
+
+- `useAsyncStats` converts values to `Float64Array` and uses `Comlink.transfer()`
+- `useDashboardComputedData` transfers ANOVA outcome values the same way
+- Factor values (strings) are still cloned — only `ArrayBuffer` supports zero-copy
+- The Worker converts `Float64Array` back to `number[]` for d3/KDE compatibility

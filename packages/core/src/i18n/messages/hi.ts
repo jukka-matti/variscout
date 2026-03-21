@@ -505,7 +505,7 @@ export const hi: MessageCatalog = {
   'feature.reportExport': 'रिपोर्ट निर्यात (PDF)',
   'feature.indexedDb': 'IndexedDB स्थानीय संग्रहण',
   'feature.maxFactors': '6 कारकों तक',
-  'feature.maxRows': '100K पंक्तियों तक',
+  'feature.maxRows': '250K पंक्तियों तक',
   'feature.onedriveSync': 'OneDrive प्रोजेक्ट सिंक',
   'feature.sharepointPicker': 'SharePoint फ़ाइल पिकर',
   'feature.teamsIntegration': 'Microsoft Teams एकीकरण',

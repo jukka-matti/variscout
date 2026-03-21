@@ -467,7 +467,7 @@ export const zhHant: MessageCatalog = {
   'feature.reportExport': '報告匯出（PDF）',
   'feature.indexedDb': 'IndexedDB本機儲存',
   'feature.maxFactors': '最多6個因子',
-  'feature.maxRows': '最多100K列',
+  'feature.maxRows': '最多250K列',
   'feature.onedriveSync': 'OneDrive專案同步',
   'feature.sharepointPicker': 'SharePoint檔案選取器',
   'feature.teamsIntegration': 'Microsoft Teams整合',

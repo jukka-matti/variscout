@@ -457,7 +457,7 @@ export const th: MessageCatalog = {
   'feature.reportExport': 'ส่งออกรายงาน (PDF)',
   'feature.indexedDb': 'พื้นที่เก็บข้อมูลภายใน IndexedDB',
   'feature.maxFactors': 'สูงสุด 6 ปัจจัย',
-  'feature.maxRows': 'สูงสุด 100K แถว',
+  'feature.maxRows': 'สูงสุด 250K แถว',
   'feature.onedriveSync': 'ซิงค์โปรเจกต์ OneDrive',
   'feature.sharepointPicker': 'ตัวเลือกไฟล์ SharePoint',
   'feature.teamsIntegration': 'การรวม Microsoft Teams',

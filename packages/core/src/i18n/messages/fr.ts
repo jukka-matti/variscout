@@ -510,7 +510,7 @@ export const fr: MessageCatalog = {
   'feature.reportExport': 'Export de rapports (PDF)',
   'feature.indexedDb': 'Stockage local IndexedDB',
   'feature.maxFactors': "Jusqu'à 6 facteurs",
-  'feature.maxRows': "Jusqu'à 100K lignes",
+  'feature.maxRows': "Jusqu'à 250K lignes",
   'feature.onedriveSync': 'Synchronisation de projets OneDrive',
   'feature.sharepointPicker': 'Sélecteur de fichiers SharePoint',
   'feature.teamsIntegration': 'Intégration Microsoft Teams',

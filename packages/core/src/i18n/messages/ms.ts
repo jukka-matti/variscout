@@ -505,7 +505,7 @@ export const ms: MessageCatalog = {
   'feature.reportExport': 'Eksport laporan (PDF)',
   'feature.indexedDb': 'Storan tempatan IndexedDB',
   'feature.maxFactors': 'Sehingga 6 faktor',
-  'feature.maxRows': 'Sehingga 100K baris',
+  'feature.maxRows': 'Sehingga 250K baris',
   'feature.onedriveSync': 'Penyegerakan projek OneDrive',
   'feature.sharepointPicker': 'Pemilih fail SharePoint',
   'feature.teamsIntegration': 'Integrasi Microsoft Teams',

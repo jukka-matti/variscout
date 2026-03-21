@@ -502,7 +502,7 @@ export const he: MessageCatalog = {
   'feature.reportExport': 'ייצוא דוחות (PDF)',
   'feature.indexedDb': 'אחסון מקומי IndexedDB',
   'feature.maxFactors': 'עד 6 גורמים',
-  'feature.maxRows': 'עד 100K שורות',
+  'feature.maxRows': 'עד 250K שורות',
   'feature.onedriveSync': 'סנכרון פרויקטים ב-OneDrive',
   'feature.sharepointPicker': 'בורר קבצים של SharePoint',
   'feature.teamsIntegration': 'שילוב Microsoft Teams',

@@ -473,7 +473,7 @@ export const tr: MessageCatalog = {
   'feature.reportExport': 'Rapor dışa aktarma (PDF)',
   'feature.indexedDb': 'IndexedDB yerel depolama',
   'feature.maxFactors': 'En fazla 6 faktör',
-  'feature.maxRows': 'En fazla 100K satır',
+  'feature.maxRows': 'En fazla 250K satır',
   'feature.onedriveSync': 'OneDrive proje senkronizasyonu',
   'feature.sharepointPicker': 'SharePoint dosya seçici',
   'feature.teamsIntegration': 'Microsoft Teams entegrasyonu',

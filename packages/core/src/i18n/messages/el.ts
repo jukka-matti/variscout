@@ -504,7 +504,7 @@ export const el: MessageCatalog = {
   'feature.reportExport': 'Εξαγωγή αναφοράς (PDF)',
   'feature.indexedDb': 'Τοπική αποθήκευση IndexedDB',
   'feature.maxFactors': 'Έως 6 παράγοντες',
-  'feature.maxRows': 'Έως 100K γραμμές',
+  'feature.maxRows': 'Έως 250K γραμμές',
   'feature.onedriveSync': 'Συγχρονισμός έργων OneDrive',
   'feature.sharepointPicker': 'Επιλογέας αρχείων SharePoint',
   'feature.teamsIntegration': 'Ενσωμάτωση Microsoft Teams',

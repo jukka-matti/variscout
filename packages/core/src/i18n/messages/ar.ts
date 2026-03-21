@@ -502,7 +502,7 @@ export const ar: MessageCatalog = {
   'feature.reportExport': 'تصدير التقارير (PDF)',
   'feature.indexedDb': 'تخزين محلي IndexedDB',
   'feature.maxFactors': 'حتى 6 عوامل',
-  'feature.maxRows': 'حتى 100 ألف صف',
+  'feature.maxRows': 'حتى 250 ألف صف',
   'feature.onedriveSync': 'مزامنة مشاريع OneDrive',
   'feature.sharepointPicker': 'منتقي ملفات SharePoint',
   'feature.teamsIntegration': 'تكامل Microsoft Teams',

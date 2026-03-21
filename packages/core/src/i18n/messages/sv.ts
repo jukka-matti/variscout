@@ -470,7 +470,7 @@ export const sv: MessageCatalog = {
   'feature.reportExport': 'Rapportexport (PDF)',
   'feature.indexedDb': 'Lokal lagring IndexedDB',
   'feature.maxFactors': 'Upp till 6 faktorer',
-  'feature.maxRows': 'Upp till 100K rader',
+  'feature.maxRows': 'Upp till 250K rader',
   'feature.onedriveSync': 'OneDrive-projektsynkronisering',
   'feature.sharepointPicker': 'SharePoint-filväljare',
   'feature.teamsIntegration': 'Microsoft Teams-integration',

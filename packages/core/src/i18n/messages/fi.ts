@@ -507,7 +507,7 @@ export const fi: MessageCatalog = {
   'feature.reportExport': 'Raportin vienti (PDF)',
   'feature.indexedDb': 'IndexedDB paikallinen tallennus',
   'feature.maxFactors': 'Enintään 6 tekijää',
-  'feature.maxRows': 'Enintään 100K riviä',
+  'feature.maxRows': 'Enintään 250K riviä',
   'feature.onedriveSync': 'OneDrive-projektien synkronointi',
   'feature.sharepointPicker': 'SharePoint-tiedostovalitsin',
   'feature.teamsIntegration': 'Microsoft Teams -integraatio',

@@ -100,7 +100,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Add data during analysis**      |       ✓        |     ✓      |     -      | Paste/upload/manual append with auto-detection                                                  |
 | **Manual entry**                  |       ✓        |     ✓      |     ✓      |                                                                                                 |
 | **Data validation**               |       ✓        |     ✓      |     ✓      |                                                                                                 |
-| **Row limit**                     |    100,000     |  100,000   |   50,000   | Configurable via `DataIngestionConfig`. Mobile limits are lower: PWA 10K / Azure 25K (ADR-039). |
+| **Row limit**                     |    250,000     |  250,000   |   50,000   | Configurable via `DataIngestionConfig`. Mobile limits are lower: PWA 10K / Azure 50K (ADR-039). |
 | **Max factors**                   |       6        |     6      |     3      | Configurable via `maxFactors` prop                                                              |
 | **Factor management in analysis** |       ✓        |     ✓      |     ✓      | Both: ColumnMapping re-edit via "Factors" button in nav bar                                     |
 

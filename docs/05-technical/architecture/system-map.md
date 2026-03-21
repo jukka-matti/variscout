@@ -100,7 +100,7 @@ flowchart TB
 | App            | Distribution      | Technology              | Key characteristics                                                |
 | -------------- | ----------------- | ----------------------- | ------------------------------------------------------------------ |
 | `apps/pwa`     | Public URL (free) | React + Vite PWA        | Session-only storage, 3 factors max, 50K rows                      |
-| `apps/azure`   | Azure Marketplace | React + Vite + EasyAuth | IndexedDB + OneDrive sync, 6 factors, 100K rows, Teams integration |
+| `apps/azure`   | Azure Marketplace | React + Vite + EasyAuth | IndexedDB + OneDrive sync, 6 factors, 250K rows, Teams integration |
 | `apps/website` | Public URL        | Astro + React Islands   | Static marketing site with embedded chart demos                    |
 
 ## Infrastructure

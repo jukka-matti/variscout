@@ -2,8 +2,8 @@ import type { StatsResult, SpecLimits, AnovaResult } from '../types';
 
 /** Input for a stats computation request */
 export interface StatsComputeRequest {
-  /** Numeric values extracted from the outcome column */
-  values: number[];
+  /** Numeric values — regular array or Float64Array for zero-copy transfer */
+  values: number[] | Float64Array;
   /** Spec limits for capability calculation */
   specs: SpecLimits;
   /** Whether to compute KDE (for violin plots) — expensive, O(n * numPoints) */
@@ -21,8 +21,8 @@ export interface StatsComputeResult {
 export interface AnovaComputeRequest {
   /** Factor column values (categorical) */
   factorValues: string[];
-  /** Outcome column values (numeric) */
-  outcomeValues: number[];
+  /** Outcome column values (numeric) — regular array or Float64Array for zero-copy transfer */
+  outcomeValues: number[] | Float64Array;
   /** Outcome column name (for "lower is better" heuristic in insight text) */
   outcomeName?: string;
 }

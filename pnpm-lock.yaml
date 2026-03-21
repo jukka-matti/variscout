@@ -444,6 +444,9 @@ importers:
       '@variscout/data':
         specifier: workspace:*
         version: link:../data
+      comlink:
+        specifier: ^4.4.2
+        version: 4.4.2
       d3-array:
         specifier: ^3.2.4
         version: 3.2.4

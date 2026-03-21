@@ -8,6 +8,7 @@
  * - boxplotData: grouped and sorted boxplot data for stats tables
  */
 import { useMemo, useState, useEffect, useTransition, useRef } from 'react';
+import * as Comlink from 'comlink';
 import { calculateAnova, sortBoxplotData, calculateBoxplotStats } from '@variscout/core';
 import type {
   AnovaResult,
@@ -111,10 +112,14 @@ export function useDashboardComputedData({
     if (workerApi) {
       // Async Worker path — extract column arrays for serialization
       const factorValues = filteredData.map(d => String(d[boxplotFactor]));
-      const outcomeValues = filteredData.map(d => Number(d[outcome]));
+      const outcomeFloat64 = new Float64Array(filteredData.map(d => Number(d[outcome])));
 
       Promise.resolve(
-        workerApi.computeAnova({ factorValues, outcomeValues, outcomeName: outcome ?? undefined })
+        workerApi.computeAnova({
+          factorValues,
+          outcomeValues: Comlink.transfer(outcomeFloat64, [outcomeFloat64.buffer]),
+          outcomeName: outcome ?? undefined,
+        })
       )
         .then(result => {
           if (thisGeneration !== generationRef.current) return; // Stale

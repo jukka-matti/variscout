@@ -78,7 +78,7 @@ flowchart TD
 | Dimension   | PWA (Free)   | Azure (Standard / Team)         |
 | ----------- | ------------ | ------------------------------- |
 | Max factors | 3            | 6                               |
-| Max rows    | 50,000       | 100,000                         |
+| Max rows    | 50,000       | 250,000                         |
 | Persistence | Session only | IndexedDB (+ OneDrive for Team) |
 
 ### CoScout in Frame

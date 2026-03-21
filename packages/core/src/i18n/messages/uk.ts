@@ -461,7 +461,7 @@ export const uk: MessageCatalog = {
   'feature.reportExport': 'Експорт звіту (PDF)',
   'feature.indexedDb': 'Локальне сховище IndexedDB',
   'feature.maxFactors': 'До 6 факторів',
-  'feature.maxRows': 'До 100K рядків',
+  'feature.maxRows': 'До 250K рядків',
   'feature.onedriveSync': 'Синхронізація проектів OneDrive',
   'feature.sharepointPicker': 'Вибір файлів SharePoint',
   'feature.teamsIntegration': 'Інтеграція Microsoft Teams',

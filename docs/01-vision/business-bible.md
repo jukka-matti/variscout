@@ -297,7 +297,7 @@ The explicit progression from free to maximum value, with the trigger moments th
 | From         | To                    | Trigger Moment                                                                           | What They Gain                                                            |
 | ------------ | --------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | —            | **PWA (Free)**        | Finds VariScout via search, training, or referral                                        | Core analysis, Four Lenses, sample datasets                               |
-| **PWA**      | **Standard (€79/mo)** | Hits PWA ceiling: needs file upload, save, Performance Mode, AI, >3 factors              | Full analysis suite + CoScout AI, persistence, 6 factors, 100K rows       |
+| **PWA**      | **Standard (€79/mo)** | Hits PWA ceiling: needs file upload, save, Performance Mode, AI, >3 factors              | Full analysis suite + CoScout AI, persistence, 6 factors, 250K rows       |
 | **Standard** | **Team (€199/mo)**    | Team needs collaboration: shared files, mobile access, Teams integration, Knowledge Base | OneDrive, SharePoint, Teams tabs, mobile gemba, photos, AI Knowledge Base |
 
 AI features (NarrativeBar, ChartInsightChips, CoScout) are included in all Azure plans — the customer deploys their own Azure AI Foundry resources. The Team plan adds the managed Knowledge Base layer on top.

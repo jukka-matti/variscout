@@ -461,7 +461,7 @@ export const ro: MessageCatalog = {
   'feature.reportExport': 'Export raport (PDF)',
   'feature.indexedDb': 'Stocare locală IndexedDB',
   'feature.maxFactors': 'Până la 6 factori',
-  'feature.maxRows': 'Până la 100K rânduri',
+  'feature.maxRows': 'Până la 250K rânduri',
   'feature.onedriveSync': 'Sincronizare proiecte OneDrive',
   'feature.sharepointPicker': 'Selector fișiere SharePoint',
   'feature.teamsIntegration': 'Integrare Microsoft Teams',

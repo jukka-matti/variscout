@@ -425,7 +425,7 @@ export const hu: MessageCatalog = {
   'feature.reportExport': 'Jelentés exportálás (PDF)',
   'feature.indexedDb': 'IndexedDB helyi tárolás',
   'feature.maxFactors': 'Legfeljebb 6 tényező',
-  'feature.maxRows': 'Legfeljebb 100K sor',
+  'feature.maxRows': 'Legfeljebb 250K sor',
   'feature.onedriveSync': 'OneDrive projekt szinkronizáció',
   'feature.sharepointPicker': 'SharePoint fájlválasztó',
   'feature.teamsIntegration': 'Microsoft Teams integráció',

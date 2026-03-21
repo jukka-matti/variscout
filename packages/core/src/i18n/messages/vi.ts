@@ -460,7 +460,7 @@ export const vi: MessageCatalog = {
   'feature.reportExport': 'Xuất báo cáo (PDF)',
   'feature.indexedDb': 'Lưu trữ cục bộ IndexedDB',
   'feature.maxFactors': 'Tối đa 6 yếu tố',
-  'feature.maxRows': 'Tối đa 100K hàng',
+  'feature.maxRows': 'Tối đa 250K hàng',
   'feature.onedriveSync': 'Đồng bộ dự án OneDrive',
   'feature.sharepointPicker': 'Bộ chọn tệp SharePoint',
   'feature.teamsIntegration': 'Tích hợp Microsoft Teams',

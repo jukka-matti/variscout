@@ -28,7 +28,7 @@ VariScout has two paid plans, each targeting a different maturity level:
 │  (€79/month)                                                    │
 │  ────────────────────────────────────────────                   │
 │  + File upload, save/load, Performance Mode                     │
-│  + 6 factors, 100K rows, closed-loop investigations             │
+│  + 6 factors, 250K rows, closed-loop investigations             │
 │  + Local files (File System Access API + IndexedDB)             │
 │  + CoScout AI (optional, customer-deployed Azure AI Foundry)    │
 │                                                                 │

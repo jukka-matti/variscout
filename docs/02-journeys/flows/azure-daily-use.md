@@ -310,7 +310,7 @@ The "Show AI assistance" toggle only appears when an AI endpoint is configured. 
 | ------------------- | ----------------------------------------------------------------------- |
 | Saved analyses      | Listed on open; synced via OneDrive on Team plan (Standard: local-only) |
 | Factor management   | Add/remove/change up to 6 factors during analysis                       |
-| Row capacity        | 100,000 rows                                                            |
+| Row capacity        | 250,000 rows                                                            |
 | Performance Mode    | Multi-channel Cpk analysis (hundreds of channels)                       |
 | Offline work        | Full functionality, queues sync for reconnection                        |
 | Chart branding      | No VariScout branding (enterprise tier)                                 |
