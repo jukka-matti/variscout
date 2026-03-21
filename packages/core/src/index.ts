@@ -422,6 +422,7 @@ export {
   streamResponsesTurn,
   streamResponsesWithToolLoop,
   extractResponseText,
+  ConversationHistory,
   buildCoScoutTools,
   getCoScoutReasoningEffort,
 } from './ai';
