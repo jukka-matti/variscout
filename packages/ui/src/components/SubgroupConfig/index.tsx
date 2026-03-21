@@ -7,23 +7,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import type { SubgroupConfig as SubgroupConfigType, TimeGranularity } from '@variscout/core';
-
-interface GranularityOption {
-  label: string;
-  granularity: TimeGranularity;
-  minuteInterval?: number;
-  requiresTimeComponent: boolean;
-}
-
-const GRANULARITY_OPTIONS: GranularityOption[] = [
-  { label: 'Every 5 min', granularity: 'minute', minuteInterval: 5, requiresTimeComponent: true },
-  { label: 'Every 15 min', granularity: 'minute', minuteInterval: 15, requiresTimeComponent: true },
-  { label: 'Every 30 min', granularity: 'minute', minuteInterval: 30, requiresTimeComponent: true },
-  { label: 'Hourly', granularity: 'hour', requiresTimeComponent: true },
-  { label: 'Daily', granularity: 'day', requiresTimeComponent: false },
-  { label: 'Weekly', granularity: 'week', requiresTimeComponent: false },
-];
+import type { SubgroupConfig as SubgroupConfigType } from '@variscout/core';
 
 export interface SubgroupConfigProps {
   /** Current subgroup configuration */
@@ -34,10 +18,6 @@ export interface SubgroupConfigProps {
   availableColumns: string[];
   /** Column display aliases */
   columnAliases?: Record<string, string>;
-  /** Time column name (enables time-based option when truthy) */
-  timeColumn?: string | null;
-  /** Whether the time column has time-of-day component (enables minute/hour options) */
-  hasTimeOfDay?: boolean;
 }
 
 export const SubgroupConfigPopover: React.FC<SubgroupConfigProps> = ({
@@ -45,8 +25,6 @@ export const SubgroupConfigPopover: React.FC<SubgroupConfigProps> = ({
   onConfigChange,
   availableColumns,
   columnAliases,
-  timeColumn,
-  hasTimeOfDay,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -157,74 +135,6 @@ export const SubgroupConfigPopover: React.FC<SubgroupConfigProps> = ({
                 ))}
               </select>
             </div>
-          )}
-
-          {/* Time-interval radio (only shown when timeColumn detected) */}
-          {timeColumn && (
-            <>
-              <label className="flex items-center gap-2 py-1 cursor-pointer">
-                <input
-                  type="radio"
-                  name="sg-method"
-                  checked={config.method === 'time-interval'}
-                  onChange={() => {
-                    const defaultGranularity: TimeGranularity = hasTimeOfDay ? 'hour' : 'day';
-                    onConfigChange({
-                      method: 'time-interval',
-                      timeColumn,
-                      granularity: defaultGranularity,
-                    });
-                  }}
-                  className="accent-blue-500"
-                />
-                <span className="text-xs text-content">By time interval</span>
-              </label>
-
-              {config.method === 'time-interval' && (
-                <div className="ml-6 mt-1">
-                  <select
-                    value={
-                      config.granularity === 'minute'
-                        ? `minute-${config.minuteInterval ?? 15}`
-                        : (config.granularity ?? 'hour')
-                    }
-                    onChange={e => {
-                      const val = e.target.value;
-                      if (val.startsWith('minute-')) {
-                        const interval = parseInt(val.split('-')[1]);
-                        onConfigChange({
-                          method: 'time-interval',
-                          timeColumn,
-                          granularity: 'minute',
-                          minuteInterval: interval,
-                        });
-                      } else {
-                        onConfigChange({
-                          method: 'time-interval',
-                          timeColumn,
-                          granularity: val as TimeGranularity,
-                        });
-                      }
-                    }}
-                    className="w-full px-1 py-0.5 text-xs bg-surface-secondary border border-edge rounded text-content"
-                  >
-                    {GRANULARITY_OPTIONS.filter(
-                      opt => !opt.requiresTimeComponent || hasTimeOfDay
-                    ).map(opt => {
-                      const value =
-                        opt.granularity === 'minute'
-                          ? `minute-${opt.minuteInterval}`
-                          : opt.granularity;
-                      return (
-                        <option key={value} value={value}>
-                          {opt.label}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-              )}
-            </>
           )}
         </div>
       )}

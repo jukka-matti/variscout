@@ -26,7 +26,7 @@ import {
   useGlossary,
   BREAKPOINTS,
 } from '@variscout/ui';
-import { getColumnNames, hasTimeComponent } from '@variscout/core';
+import { getColumnNames } from '@variscout/core';
 import type { Finding } from '@variscout/core';
 import type { FindingsCallbacks } from '../types/findingsCallbacks';
 import {
@@ -730,10 +730,6 @@ const Dashboard = ({
                         onConfigChange={setSubgroupConfig}
                         availableColumns={factors}
                         columnAliases={columnAliases}
-                        timeColumn={timeColumn}
-                        hasTimeOfDay={
-                          timeColumn ? hasTimeComponent(filteredData, timeColumn) : false
-                        }
                       />
                     )}
                     {onManageFactors && (
