@@ -86,7 +86,6 @@ export { interpretEvidence, generateAnovaInsightLine } from './evidence';
 // Subgroup capability analysis
 export type {
   SubgroupMethod,
-  TimeGranularity,
   SubgroupConfig,
   SubgroupCapabilityResult,
   SubgroupData,
@@ -97,5 +96,4 @@ export {
   groupDataIntoSubgroups,
   calculateSubgroupCapability,
   calculateSeriesControlLimits,
-  formatTimeBucket,
 } from './subgroupCapability';

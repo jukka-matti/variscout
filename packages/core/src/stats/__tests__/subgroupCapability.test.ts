@@ -3,8 +3,8 @@ import {
   groupDataIntoSubgroups,
   calculateSubgroupCapability,
   calculateSeriesControlLimits,
-  formatTimeBucket,
 } from '../subgroupCapability';
+import { formatTimeBucket } from '../../time';
 import type { SubgroupConfig, SubgroupData } from '../subgroupCapability';
 import type { DataRow } from '../../types';
 

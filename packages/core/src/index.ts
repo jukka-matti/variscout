@@ -90,13 +90,11 @@ export {
   groupDataIntoSubgroups,
   calculateSubgroupCapability,
   calculateSeriesControlLimits,
-  formatTimeBucket,
 } from './stats';
 
 // Subgroup capability types
 export type {
   SubgroupMethod,
-  TimeGranularity,
   SubgroupConfig,
   SubgroupCapabilityResult,
   SubgroupData,
@@ -306,11 +304,12 @@ export {
 } from './responsive';
 
 // Time utilities
-export type { TimeComponents, TimeExtractionConfig } from './time';
+export type { TimeComponents, TimeExtractionConfig, TimeGranularity } from './time';
 export {
   parseTimeValue,
   extractTimeComponents,
   formatTimeValue,
+  formatTimeBucket,
   augmentWithTimeColumns,
   hasTimeComponent,
 } from './time';
