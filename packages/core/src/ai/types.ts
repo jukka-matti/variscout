@@ -205,10 +205,9 @@ export interface AIContext {
   analysisMode?: AnalysisMode;
   /** Subgroup capability summary (when in capability mode) */
   capabilityStability?: {
-    method: 'column' | 'fixed-size' | 'time-interval';
+    method: 'column' | 'fixed-size';
     column?: string;
     subgroupSize?: number;
-    granularity?: string;
     subgroupCount: number;
     meanCpk: number;
     minCpk: number;

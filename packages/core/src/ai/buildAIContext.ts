@@ -209,7 +209,6 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
         method: config.method,
         column: config.column,
         subgroupSize: config.size,
-        granularity: config.granularity,
         subgroupCount: cpkValues.length,
         meanCpk: cpkStats.mean,
         minCpk: Math.min(...cpkValues),
