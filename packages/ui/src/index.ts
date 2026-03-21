@@ -327,6 +327,8 @@ export {
   type ReportCpkLearningLoopProps,
   ReportYamazumiKPIGrid,
   type ReportYamazumiKPIGridProps,
+  ReportActivityBreakdown,
+  type ReportActivityBreakdownProps,
 } from './components/ReportView';
 
 // Services
