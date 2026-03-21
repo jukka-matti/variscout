@@ -81,6 +81,8 @@ export {
   sortBoxplotData,
   // Kernel density estimation (for violin plots)
   calculateKDE,
+  // Point decimation for chart rendering
+  lttb,
   // Evidence interpretation
   interpretEvidence,
   generateAnovaInsightLine,

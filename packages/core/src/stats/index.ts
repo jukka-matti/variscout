@@ -76,6 +76,9 @@ export { calculateBoxplotStats, sortBoxplotData } from './boxplot';
 // Kernel density estimation
 export { calculateKDE } from './kde';
 
+// Point decimation for chart rendering
+export { lttb } from './lttb';
+
 // Evidence interpretation
 export type { EvidenceLevel, EvidenceInterpretation } from './evidence';
 export { interpretEvidence, generateAnovaInsightLine } from './evidence';
