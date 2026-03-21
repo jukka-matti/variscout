@@ -99,6 +99,9 @@ importers:
       '@visx/responsive':
         specifier: ^3.12.0
         version: 3.12.0(react@18.3.1)
+      comlink:
+        specifier: ^4.4.2
+        version: 4.4.2
       d3-array:
         specifier: ^3.2.4
         version: 3.2.4
@@ -144,7 +147,7 @@ importers:
         version: 18.3.7(@types/react@18.3.27)
       '@vitejs/plugin-react':
         specifier: ^4.4.1
-        version: 4.7.0(vite@6.4.1(@types/node@25.5.0)(jiti@1.21.7)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2))
+        version: 4.7.0(vite@6.4.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2))
       autoprefixer:
         specifier: ^10.4.27
         version: 10.4.27(postcss@8.5.6)
@@ -162,10 +165,10 @@ importers:
         version: 5.9.3
       vite:
         specifier: ^6.3.0
-        version: 6.4.1(@types/node@25.5.0)(jiti@1.21.7)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2)
+        version: 6.4.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2)
       vitest:
         specifier: ^4.0.18
-        version: 4.0.18(@types/node@25.5.0)(jiti@1.21.7)(jsdom@28.1.0)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2)
+        version: 4.0.18(@types/node@25.5.0)(jiti@2.6.1)(jsdom@28.1.0)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2)
 
   apps/docs:
     dependencies:
@@ -202,6 +205,9 @@ importers:
       '@visx/responsive':
         specifier: ^3.12.0
         version: 3.12.0(react@18.3.1)
+      comlink:
+        specifier: ^4.4.2
+        version: 4.4.2
       d3-array:
         specifier: ^3.2.4
         version: 3.2.4
@@ -241,7 +247,7 @@ importers:
         version: 18.3.7(@types/react@18.3.27)
       '@vitejs/plugin-react':
         specifier: ^4.4.1
-        version: 4.7.0(vite@6.4.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2))
+        version: 4.7.0(vite@6.4.1(@types/node@25.5.0)(jiti@1.21.7)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2))
       autoprefixer:
         specifier: ^10.4.27
         version: 10.4.27(postcss@8.5.6)
@@ -262,13 +268,13 @@ importers:
         version: 5.9.3
       vite:
         specifier: ^6.3.0
-        version: 6.4.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2)
+        version: 6.4.1(@types/node@25.5.0)(jiti@1.21.7)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2)
       vite-plugin-pwa:
         specifier: ^1.2.0
-        version: 1.2.0(vite@6.4.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2))(workbox-build@7.4.0(@types/babel__core@7.20.5))(workbox-window@7.4.0)
+        version: 1.2.0(vite@6.4.1(@types/node@25.5.0)(jiti@1.21.7)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2))(workbox-build@7.4.0(@types/babel__core@7.20.5))(workbox-window@7.4.0)
       vitest:
         specifier: ^4.0.18
-        version: 4.0.18(@types/node@25.5.0)(jiti@2.6.1)(jsdom@28.1.0)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2)
+        version: 4.0.18(@types/node@25.5.0)(jiti@1.21.7)(jsdom@28.1.0)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2)
 
   apps/website:
     dependencies:
@@ -3424,6 +3430,9 @@ packages:
 
   colorette@2.0.20:
     resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
+
+  comlink@4.4.2:
+    resolution: {integrity: sha512-OxGdvBmJuNKSCMO4NTl1L47VRp6xn2wG4F/2hYzB6tiCb709otOxtEYCSvK80PtjODfXXZu8ds+Nw5kVCjqd2g==}
 
   comma-separated-tokens@2.0.3:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
@@ -10396,6 +10405,8 @@ snapshots:
 
   colorette@2.0.20: {}
 
+  comlink@4.4.2: {}
+
   comma-separated-tokens@2.0.3: {}
 
   commander@11.1.0: {}
@@ -14305,12 +14316,12 @@ snapshots:
       - rollup
       - supports-color
 
-  vite-plugin-pwa@1.2.0(vite@6.4.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2))(workbox-build@7.4.0(@types/babel__core@7.20.5))(workbox-window@7.4.0):
+  vite-plugin-pwa@1.2.0(vite@6.4.1(@types/node@25.5.0)(jiti@1.21.7)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2))(workbox-build@7.4.0(@types/babel__core@7.20.5))(workbox-window@7.4.0):
     dependencies:
       debug: 4.4.3
       pretty-bytes: 6.1.1
       tinyglobby: 0.2.15
-      vite: 6.4.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2)
+      vite: 6.4.1(@types/node@25.5.0)(jiti@1.21.7)(lightningcss@1.31.1)(terser@5.44.1)(yaml@2.8.2)
       workbox-build: 7.4.0(@types/babel__core@7.20.5)
       workbox-window: 7.4.0
     transitivePeerDependencies:
