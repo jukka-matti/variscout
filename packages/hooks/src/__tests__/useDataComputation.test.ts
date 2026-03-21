@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { useDataComputation } from '../useDataComputation';
 import type { DataComputationInputs } from '../useDataComputation';
 import type { DataRow, SpecLimits, StageOrderMode } from '@variscout/core';
@@ -20,6 +20,7 @@ function makeInputs(overrides: Partial<DataComputationInputs> = {}): DataComputa
     displayOptions: { lockYAxisToFullData: false },
     isPerformanceMode: false,
     measureColumns: [],
+    workerApi: null,
     ...overrides,
   };
 }
@@ -30,7 +31,7 @@ function makeRows(values: number[], outcome = 'value'): DataRow[] {
 
 describe('useDataComputation', () => {
   // 1. NaN values in rawData: stats computed for valid values only
-  it('filters NaN values from data before computing stats', () => {
+  it('filters NaN values from data before computing stats', async () => {
     const data = makeRows([10, NaN, 20, NaN, 30]);
     const inputs = makeInputs({
       rawData: data,
@@ -40,7 +41,7 @@ describe('useDataComputation', () => {
 
     const { result } = renderHook(() => useDataComputation(inputs));
 
-    expect(result.current.stats).not.toBeNull();
+    await waitFor(() => expect(result.current.stats).not.toBeNull());
     // Only the 3 valid values (10, 20, 30) contribute; NaN rows are filtered
     expect(result.current.stats!.mean).toBeCloseTo(20, 5);
     // stdDev should be based on 3 values, not 5
@@ -123,7 +124,7 @@ describe('useDataComputation', () => {
   });
 
   // 6. Stats computed correctly for filtered data subset
-  it('computes stats from filteredData, not rawData', () => {
+  it('computes stats from filteredData, not rawData', async () => {
     const rawData = makeRows([10, 20, 30, 40, 50]);
     const filteredData = makeRows([10, 20, 30]); // subset
     const inputs = makeInputs({
@@ -134,7 +135,7 @@ describe('useDataComputation', () => {
 
     const { result } = renderHook(() => useDataComputation(inputs));
 
-    expect(result.current.stats).not.toBeNull();
+    await waitFor(() => expect(result.current.stats).not.toBeNull());
     expect(result.current.stats!.mean).toBeCloseTo(20, 5);
     // stdDev based on 3 values [10,20,30], not 5
     expect(result.current.stats!.stdDev).toBeCloseTo(10, 0);
@@ -213,7 +214,7 @@ describe('useDataComputation', () => {
   });
 
   // 10. fullDataYDomain is null when all values are NaN
-  it('returns null fullDataYDomain when all raw data values are NaN', () => {
+  it('returns null fullDataYDomain and null stats when all raw data values are NaN', () => {
     const data = makeRows([NaN, NaN, NaN]);
     const inputs = makeInputs({
       rawData: data,
@@ -225,9 +226,7 @@ describe('useDataComputation', () => {
 
     // fullDataYDomain guards against empty valid values
     expect(result.current.fullDataYDomain).toBeNull();
-    // stats: calculateStats is called with empty array (filteredData.length > 0 passes guard)
-    // but all NaN values are filtered out, so stats has zero/degenerate values
-    expect(result.current.stats).not.toBeNull();
-    expect(result.current.stats!.mean).toBe(0);
+    // All NaN values are filtered out → values array is empty → stats is null immediately
+    expect(result.current.stats).toBeNull();
   });
 });
