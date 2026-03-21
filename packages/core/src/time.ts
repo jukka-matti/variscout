@@ -33,6 +33,8 @@ export interface TimeExtractionConfig {
   extractWeek: boolean;
   extractDayOfWeek: boolean;
   extractHour: boolean;
+  /** Minute-interval extraction: 1, 5, 15, or 30. Creates column like 'timestamp_15min'. */
+  extractMinuteInterval?: number;
 }
 
 /**
@@ -309,6 +311,21 @@ export function augmentWithTimeColumns(
 
       // Add component to row
       row[columnName] = components[key] ?? null;
+    }
+  }
+
+  // Minute-interval extraction
+  if (config.extractMinuteInterval && config.extractMinuteInterval > 0) {
+    const interval = config.extractMinuteInterval;
+    const colName = `${timeColumn}_${interval}min`;
+    newColumns.push(colName);
+    for (const row of data) {
+      const date = parseTimeValue(row[timeColumn]);
+      if (date) {
+        row[colName] = formatTimeBucket(date, 'minute', interval);
+      } else {
+        row[colName] = '';
+      }
     }
   }
 
