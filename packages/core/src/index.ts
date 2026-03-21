@@ -520,3 +520,7 @@ export {
   computeYamazumiSummary,
   detectYamazumiFormat,
 } from './yamazumi';
+
+// Worker types (for app-level Worker integration)
+export type { StatsComputeRequest, StatsComputeResult, StatsWorkerAPI } from './workers/types';
+export { computeStats } from './workers/statsWorkerApi';
