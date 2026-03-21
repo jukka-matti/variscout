@@ -90,14 +90,10 @@ export function useVerificationCharts({
   }, [stagedComparison, stagedStats, factors, specs, stageColumn, comparisonData]);
 
   // Compute a stable string key from available chart ids for change detection
-  const availableKey = useMemo(
-    () =>
-      charts
-        .filter(c => c.available)
-        .map(c => c.id)
-        .join(','),
-    [charts]
-  );
+  const availableKey = charts
+    .filter(c => c.available)
+    .map(c => c.id)
+    .join(',');
 
   // Smart defaults: all available charts ON
   const computeDefaults = useCallback(() => {
