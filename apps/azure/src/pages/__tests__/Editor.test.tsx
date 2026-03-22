@@ -170,6 +170,11 @@ vi.mock('../../services/storage', () => ({
     saveProject: vi.fn(),
     syncStatus: { status: 'synced', message: 'Synced' },
   })),
+  classifySyncError: vi.fn(() => ({
+    category: 'unknown',
+    retryable: false,
+    message: 'Unknown error',
+  })),
 }));
 
 // ── Mock DataContext ──

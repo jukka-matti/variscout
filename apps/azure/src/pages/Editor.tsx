@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState, useCallback, useRef } from 'react';
-import { useStorage } from '../services/storage';
+import { useStorage, classifySyncError } from '../services/storage';
 import { useData } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
 import { useFilterNavigation } from '../hooks';
@@ -79,6 +79,26 @@ import { buildChartSharePayload, buildReportSharePayload } from '../services/sha
 import { buildSubPageId, buildCurrentViewLink } from '../services/deepLinks';
 import { useToast } from '../context/ToastContext';
 import { setBeforeUnloadHandler } from '../teams';
+
+type LoadErrorCode = 'not-found' | 'forbidden' | 'plan-mismatch' | 'offline' | 'auth' | 'unknown';
+
+interface LoadError {
+  code: LoadErrorCode;
+  message: string;
+  action?: { label: string; onClick: () => void };
+}
+
+const ERROR_MESSAGES: Record<LoadErrorCode, string> = {
+  'not-found':
+    'Project not found. It may have been deleted or moved. Ask the person who shared this link.',
+  forbidden:
+    "This project is in a Teams channel you don't have access to. Ask a channel member to add you.",
+  'plan-mismatch': 'This project requires a Team plan to access. Contact your admin.',
+  offline:
+    "You're offline and this project isn't cached locally. Connect to the internet to load it.",
+  auth: 'Your session has expired.',
+  unknown: 'Failed to load project. Please try again.',
+};
 
 const COSCOUT_RESIZE_CONFIG = {
   storageKey: 'variscout-azure-coscout-panel-width',
@@ -342,14 +362,40 @@ export const Editor: React.FC<EditorProps> = ({
   const [capabilitySuggestionDismissed, setCapabilitySuggestionDismissed] = useState(false);
 
   // Load project data when opening an existing project
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<LoadError | null>(null);
   useEffect(() => {
     if (projectId && rawData.length === 0 && !dataFlow.isLoadingProject) {
       dataFlow.startProjectLoad();
       setLoadError(null);
       loadProject(projectId)
-        .catch(() => {
-          setLoadError('Failed to load project. Please try again.');
+        .catch(error => {
+          const classified = classifySyncError(error);
+          const code: LoadErrorCode =
+            classified.category === 'not_found'
+              ? 'not-found'
+              : classified.category === 'forbidden'
+                ? 'forbidden'
+                : classified.category === 'auth'
+                  ? 'auth'
+                  : !navigator.onLine
+                    ? 'offline'
+                    : 'unknown';
+
+          setLoadError({
+            code,
+            message: ERROR_MESSAGES[code],
+            action:
+              code === 'auth'
+                ? {
+                    label: 'Sign in',
+                    onClick: () => {
+                      window.location.href = '/.auth/login/aad';
+                    },
+                  }
+                : code !== 'unknown'
+                  ? { label: 'Go to Dashboard', onClick: onBack }
+                  : undefined,
+          });
         })
         .finally(() => dataFlow.projectLoaded());
     }
@@ -1459,8 +1505,16 @@ export const Editor: React.FC<EditorProps> = ({
               </div>
 
               {loadError && (
-                <div className="mb-4 px-4 py-3 bg-red-900/40 border border-red-700/50 rounded-lg text-sm text-red-300">
-                  {loadError}
+                <div className="mx-4 mt-4 p-4 bg-red-900/30 border border-red-700/50 rounded-lg text-red-200">
+                  <p className="text-sm">{loadError.message}</p>
+                  {loadError.action && (
+                    <button
+                      onClick={loadError.action.onClick}
+                      className="mt-2 text-xs font-medium underline underline-offset-2 hover:no-underline"
+                    >
+                      {loadError.action.label}
+                    </button>
+                  )}
                 </div>
               )}
               <p className="text-xs text-content-muted mb-6">Supports CSV, XLSX, and XLS files</p>
