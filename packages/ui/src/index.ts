@@ -334,6 +334,10 @@ export {
   type ReportCpkLearningLoopProps,
   ReportYamazumiKPIGrid,
   type ReportYamazumiKPIGridProps,
+  ReportCapabilityKPIGrid,
+  type ReportCapabilityKPIGridProps,
+  ReportPerformanceKPIGrid,
+  type ReportPerformanceKPIGridProps,
   ReportActivityBreakdown,
   type ReportActivityBreakdownProps,
 } from './components/ReportView';

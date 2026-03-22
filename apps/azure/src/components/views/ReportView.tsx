@@ -22,6 +22,8 @@ import {
   ReportImprovementSummary,
   ReportCpkLearningLoop,
   ReportYamazumiKPIGrid,
+  ReportCapabilityKPIGrid,
+  ReportPerformanceKPIGrid,
   ReportActivityBreakdown,
 } from '@variscout/ui';
 import {
@@ -34,6 +36,7 @@ import {
   useBoxplotWrapperData,
   useIChartData,
   useYamazumiChartData,
+  useCapabilityIChartData,
   copySectionAsHTML,
 } from '@variscout/hooks';
 import type { ReportSectionDescriptor, VerificationChartId, AudienceMode } from '@variscout/hooks';
@@ -127,6 +130,8 @@ const ReportView: React.FC<ReportViewProps> = ({
     displayOptions,
     analysisMode,
     yamazumiMapping,
+    subgroupConfig,
+    performanceResult,
   } = useData();
 
   const findings = useMemo(() => persistedFindings ?? [], [persistedFindings]);
@@ -136,6 +141,8 @@ const ReportView: React.FC<ReportViewProps> = ({
   // Yamazumi mode data
   // ---------------------------------------------------------------------------
   const isYamazumi = analysisMode === 'yamazumi';
+  const isCapabilityMode =
+    analysisMode === 'standard' && displayOptions?.standardIChartMetric === 'capability';
 
   const yamazumiBarData = useYamazumiChartData({
     filteredData: isYamazumi ? filteredData : [],
@@ -149,6 +156,32 @@ const ReportView: React.FC<ReportViewProps> = ({
         : null,
     [isYamazumi, yamazumiBarData, yamazumiMapping?.taktTime]
   );
+
+  // ---------------------------------------------------------------------------
+  // Capability mode data
+  // ---------------------------------------------------------------------------
+  const capabilityIChartData = useCapabilityIChartData({
+    filteredData: isCapabilityMode ? filteredData : [],
+    outcome: outcome ?? '',
+    specs: specs ?? {},
+    subgroupConfig: subgroupConfig ?? { method: 'fixed-size', size: 5 },
+    cpkTarget,
+  });
+
+  const capabilityKPIs = useMemo(() => {
+    if (!isCapabilityMode || !capabilityIChartData.cpkStats) return null;
+    const results = capabilityIChartData.subgroupResults;
+    const target = cpkTarget ?? 1.33;
+    const cpkValues = results.map(r => r.cpk).filter((v): v is number => v !== undefined);
+    const cpValues = results.map(r => r.cp).filter((v): v is number => v !== undefined);
+    return {
+      meanCpk: cpkValues.length > 0 ? cpkValues.reduce((a, b) => a + b, 0) / cpkValues.length : 0,
+      meanCp:
+        cpValues.length > 0 ? cpValues.reduce((a, b) => a + b, 0) / cpValues.length : undefined,
+      subgroupCount: results.length,
+      passingCount: cpkValues.filter(v => v >= target).length,
+    };
+  }, [isCapabilityMode, capabilityIChartData, cpkTarget]);
 
   // ---------------------------------------------------------------------------
   // Audience mode state
@@ -331,6 +364,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     aiEnabled: aiEnabled ?? false,
     audienceMode,
     analysisMode: analysisMode ?? 'standard',
+    isCapabilityMode,
   });
 
   // Scroll spy for sidebar highlighting
@@ -579,6 +613,63 @@ const ReportView: React.FC<ReportViewProps> = ({
                     </div>
                   )}
                 </>
+              ) : isCapabilityMode && capabilityKPIs ? (
+                <>
+                  <ReportCapabilityKPIGrid
+                    meanCpk={capabilityKPIs.meanCpk}
+                    meanCp={capabilityKPIs.meanCp}
+                    cpkTarget={cpkTarget ?? 1.33}
+                    subgroupCount={capabilityKPIs.subgroupCount}
+                    passingCount={capabilityKPIs.passingCount}
+                  />
+                  {!isSummary && (
+                    <ReportChartSnapshot
+                      id="report-snapshot-capability-ichart"
+                      chartType="capability-ichart"
+                      filterLabel="Capability per subgroup"
+                      renderChart={() => <IChart />}
+                      onCopyChart={async (containerId, chartName) => {
+                        await handleCopyChart(containerId, chartName);
+                      }}
+                      copyFeedback={copyFeedback}
+                    />
+                  )}
+                </>
+              ) : analysisMode === 'performance' && performanceResult ? (
+                (() => {
+                  const target = cpkTarget ?? 1.33;
+                  const withCpk = performanceResult.channels.filter(c => c.cpk !== undefined);
+                  const worst =
+                    withCpk.length > 0 ? withCpk.reduce((w, c) => (c.cpk! < w.cpk! ? c : w)) : null;
+                  return (
+                    <>
+                      <ReportPerformanceKPIGrid
+                        totalChannels={performanceResult.channels.length}
+                        passingChannels={withCpk.filter(c => c.cpk! >= target).length}
+                        worstCpk={worst?.cpk ?? 0}
+                        worstChannelName={worst?.label ?? '—'}
+                        meanCpk={
+                          withCpk.length > 0
+                            ? withCpk.reduce((s, c) => s + c.cpk!, 0) / withCpk.length
+                            : 0
+                        }
+                        cpkTarget={target}
+                      />
+                      {!isSummary && (
+                        <ReportChartSnapshot
+                          id="report-snapshot-performance-ichart"
+                          chartType="performance-ichart"
+                          filterLabel="Channel performance"
+                          renderChart={() => <IChart />}
+                          onCopyChart={async (containerId, chartName) => {
+                            await handleCopyChart(containerId, chartName);
+                          }}
+                          copyFeedback={copyFeedback}
+                        />
+                      )}
+                    </>
+                  );
+                })()
               ) : (
                 stats && (
                   <>
@@ -954,6 +1045,9 @@ const ReportView: React.FC<ReportViewProps> = ({
       yamazumiBarData,
       yamazumiSummary,
       yamazumiMapping?.taktTime,
+      isCapabilityMode,
+      capabilityKPIs,
+      performanceResult,
     ]
   );
 

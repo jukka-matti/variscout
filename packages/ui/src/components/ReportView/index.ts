@@ -42,6 +42,14 @@ export {
 export { ReportCpkLearningLoop, type ReportCpkLearningLoopProps } from './ReportCpkLearningLoop';
 export { ReportYamazumiKPIGrid, type ReportYamazumiKPIGridProps } from './ReportYamazumiKPIGrid';
 export {
+  ReportCapabilityKPIGrid,
+  type ReportCapabilityKPIGridProps,
+} from './ReportCapabilityKPIGrid';
+export {
+  ReportPerformanceKPIGrid,
+  type ReportPerformanceKPIGridProps,
+} from './ReportPerformanceKPIGrid';
+export {
   ReportActivityBreakdown,
   type ReportActivityBreakdownProps,
 } from './ReportActivityBreakdown';
