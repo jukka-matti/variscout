@@ -418,6 +418,7 @@ export {
   getRecentTraces,
   clearTraces,
   getTraceStats,
+  ResponsesApiError,
   sendResponsesTurn,
   streamResponsesTurn,
   streamResponsesWithToolLoop,

@@ -71,6 +71,7 @@ export type {
   ToolHandlerMap,
 } from './responsesApi';
 export {
+  ResponsesApiError,
   sendResponsesTurn,
   streamResponsesTurn,
   streamResponsesWithToolLoop,

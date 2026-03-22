@@ -102,6 +102,33 @@ export interface ResponsesApiResponse {
   };
 }
 
+// ── Typed Error ──────────────────────────────────────────────────────────
+
+/** Typed error for Responses API failures */
+export class ResponsesApiError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly statusText: string,
+    public readonly body: string
+  ) {
+    super(`Responses API error ${status}: ${body}`);
+    this.name = 'ResponsesApiError';
+  }
+
+  get isRateLimit(): boolean {
+    return this.status === 429;
+  }
+  get isServerError(): boolean {
+    return this.status >= 500;
+  }
+  get isAuthError(): boolean {
+    return this.status === 401 || this.status === 403;
+  }
+  get isRetryable(): boolean {
+    return this.isRateLimit || this.isServerError;
+  }
+}
+
 // ── API Client ───────────────────────────────────────────────────────────
 
 /**
@@ -151,7 +178,7 @@ export async function sendResponsesTurn(
 
   if (!res.ok) {
     const errorText = await res.text().catch(() => 'Unknown error');
-    throw new Error(`Responses API error ${res.status}: ${errorText}`);
+    throw new ResponsesApiError(res.status, res.statusText, errorText);
   }
 
   return res.json() as Promise<ResponsesApiResponse>;
@@ -202,7 +229,7 @@ async function streamSingleTurn(
 
   if (!res.ok) {
     const errorText = await res.text().catch(() => 'Unknown error');
-    throw new Error(`Responses API error ${res.status}: ${errorText}`);
+    throw new ResponsesApiError(res.status, res.statusText, errorText);
   }
 
   const reader = res.body?.getReader();

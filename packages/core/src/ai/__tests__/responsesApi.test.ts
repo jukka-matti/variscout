@@ -1,5 +1,6 @@
 import { vi, describe, it, expect, afterEach } from 'vitest';
 import {
+  ResponsesApiError,
   sendResponsesTurn,
   streamResponsesTurn,
   streamResponsesWithToolLoop,
@@ -190,28 +191,58 @@ describe('sendResponsesTurn', () => {
     expect(response.usage!.total_tokens).toBe(15);
   });
 
-  it('throws on HTTP 400 error', async () => {
-    mockFetch(() => new Response('Bad request', { status: 400 }));
+  it('throws ResponsesApiError on HTTP 400 error', async () => {
+    mockFetch(() => new Response('Bad request', { status: 400, statusText: 'Bad Request' }));
 
     await expect(sendResponsesTurn(baseConfig, { input: 'bad' })).rejects.toThrow(
-      'Responses API error 400: Bad request'
+      ResponsesApiError
     );
+    try {
+      await sendResponsesTurn(baseConfig, { input: 'bad' });
+    } catch (e) {
+      expect(e).toBeInstanceOf(ResponsesApiError);
+      expect((e as ResponsesApiError).status).toBe(400);
+      expect((e as ResponsesApiError).body).toBe('Bad request');
+      expect((e as ResponsesApiError).isRetryable).toBe(false);
+      expect((e as ResponsesApiError).isAuthError).toBe(false);
+    }
   });
 
-  it('throws on HTTP 500 error', async () => {
-    mockFetch(() => new Response('Internal server error', { status: 500 }));
+  it('throws ResponsesApiError on HTTP 500 error', async () => {
+    mockFetch(
+      () =>
+        new Response('Internal server error', { status: 500, statusText: 'Internal Server Error' })
+    );
 
     await expect(sendResponsesTurn(baseConfig, { input: 'fail' })).rejects.toThrow(
-      'Responses API error 500'
+      ResponsesApiError
     );
+    try {
+      await sendResponsesTurn(baseConfig, { input: 'fail' });
+    } catch (e) {
+      expect(e).toBeInstanceOf(ResponsesApiError);
+      expect((e as ResponsesApiError).status).toBe(500);
+      expect((e as ResponsesApiError).isServerError).toBe(true);
+      expect((e as ResponsesApiError).isRetryable).toBe(true);
+    }
   });
 
-  it('throws on HTTP 429 rate limit', async () => {
-    mockFetch(() => new Response('Too many requests', { status: 429 }));
+  it('throws ResponsesApiError on HTTP 429 rate limit', async () => {
+    mockFetch(
+      () => new Response('Too many requests', { status: 429, statusText: 'Too Many Requests' })
+    );
 
     await expect(sendResponsesTurn(baseConfig, { input: 'spam' })).rejects.toThrow(
-      'Responses API error 429'
+      ResponsesApiError
     );
+    try {
+      await sendResponsesTurn(baseConfig, { input: 'spam' });
+    } catch (e) {
+      expect(e).toBeInstanceOf(ResponsesApiError);
+      expect((e as ResponsesApiError).status).toBe(429);
+      expect((e as ResponsesApiError).isRateLimit).toBe(true);
+      expect((e as ResponsesApiError).isRetryable).toBe(true);
+    }
   });
 });
 
@@ -284,13 +315,23 @@ describe('streamResponsesTurn', () => {
     expect(response.usage!.output_tokens).toBe(25);
   });
 
-  it('throws on HTTP error before streaming', async () => {
-    mockFetch(() => new Response('Service unavailable', { status: 503 }));
+  it('throws ResponsesApiError on HTTP error before streaming', async () => {
+    mockFetch(
+      () => new Response('Service unavailable', { status: 503, statusText: 'Service Unavailable' })
+    );
 
     const controller = new AbortController();
     await expect(
       streamResponsesTurn(baseConfig, { input: 'fail' }, () => {}, controller.signal)
-    ).rejects.toThrow('Responses API error 503');
+    ).rejects.toThrow(ResponsesApiError);
+    try {
+      await streamResponsesTurn(baseConfig, { input: 'fail' }, () => {}, controller.signal);
+    } catch (e) {
+      expect(e).toBeInstanceOf(ResponsesApiError);
+      expect((e as ResponsesApiError).status).toBe(503);
+      expect((e as ResponsesApiError).isServerError).toBe(true);
+      expect((e as ResponsesApiError).isRetryable).toBe(true);
+    }
   });
 
   it('captures response ID from first event', async () => {
@@ -795,5 +836,59 @@ describe('ConversationHistory', () => {
     history.clear();
 
     expect(history.toFallbackInput()).toEqual([]);
+  });
+});
+
+// ── ResponsesApiError ─────────────────────────────────────────────────────
+
+describe('ResponsesApiError', () => {
+  it('isRateLimit returns true for 429', () => {
+    const err = new ResponsesApiError(429, 'Too Many Requests', 'rate limited');
+    expect(err.isRateLimit).toBe(true);
+    expect(err.isServerError).toBe(false);
+    expect(err.isAuthError).toBe(false);
+  });
+
+  it('isServerError returns true for 500', () => {
+    const err = new ResponsesApiError(500, 'Internal Server Error', 'server error');
+    expect(err.isServerError).toBe(true);
+    expect(err.isRateLimit).toBe(false);
+  });
+
+  it('isServerError returns true for 503', () => {
+    const err = new ResponsesApiError(503, 'Service Unavailable', 'unavailable');
+    expect(err.isServerError).toBe(true);
+  });
+
+  it('isAuthError returns true for 401', () => {
+    const err = new ResponsesApiError(401, 'Unauthorized', 'unauthorized');
+    expect(err.isAuthError).toBe(true);
+    expect(err.isRetryable).toBe(false);
+  });
+
+  it('isAuthError returns true for 403', () => {
+    const err = new ResponsesApiError(403, 'Forbidden', 'forbidden');
+    expect(err.isAuthError).toBe(true);
+    expect(err.isRetryable).toBe(false);
+  });
+
+  it('isRetryable returns true for 429 and 500', () => {
+    expect(new ResponsesApiError(429, 'Too Many Requests', '').isRetryable).toBe(true);
+    expect(new ResponsesApiError(500, 'Internal Server Error', '').isRetryable).toBe(true);
+  });
+
+  it('isRetryable returns false for 400 and 401', () => {
+    expect(new ResponsesApiError(400, 'Bad Request', '').isRetryable).toBe(false);
+    expect(new ResponsesApiError(401, 'Unauthorized', '').isRetryable).toBe(false);
+  });
+
+  it('has correct name property', () => {
+    const err = new ResponsesApiError(400, 'Bad Request', 'bad');
+    expect(err.name).toBe('ResponsesApiError');
+  });
+
+  it('message contains status and body', () => {
+    const err = new ResponsesApiError(400, 'Bad Request', 'invalid input');
+    expect(err.message).toBe('Responses API error 400: invalid input');
   });
 });
