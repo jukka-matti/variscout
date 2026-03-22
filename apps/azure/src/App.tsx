@@ -4,6 +4,7 @@ import { DataProvider } from './context/DataContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { LocaleProvider } from './context/LocaleContext';
 import { StorageProvider, useStorage } from './services/storage';
+import { ToastProvider, useToast } from './context/ToastContext';
 import { Dashboard as ProjectDashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
 
@@ -163,135 +164,137 @@ function AppMain() {
       <ThemeProvider>
         {teams.isTeams && <TeamsThemeSync teamsTheme={teams.theme} />}
         <StorageProvider>
-          <div className="min-h-screen bg-surface text-content">
-            <a
-              href="#main-content"
-              className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
-            >
-              Skip to main content
-            </a>
-            <ErrorBoundary onError={handleAppError}>
-              <DataProvider>
-                {/* Header */}
-                <header className="h-14 border-b border-edge flex items-center justify-between px-4 sm:px-6 bg-surface/50 backdrop-blur-md sticky top-0 z-50">
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="flex items-center gap-2 cursor-pointer"
-                      role="button"
-                      aria-label="Go to dashboard"
-                      tabIndex={0}
-                      onClick={navigateToDashboard}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' || e.key === ' ') navigateToDashboard();
-                      }}
-                    >
-                      <div className="p-1.5 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
-                        <Activity className="text-white" size={18} />
+          <ToastProvider>
+            <div className="min-h-screen bg-surface text-content">
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+              >
+                Skip to main content
+              </a>
+              <ErrorBoundary onError={handleAppError}>
+                <DataProvider>
+                  {/* Header */}
+                  <header className="h-14 border-b border-edge flex items-center justify-between px-4 sm:px-6 bg-surface/50 backdrop-blur-md sticky top-0 z-50">
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="flex items-center gap-2 cursor-pointer"
+                        role="button"
+                        aria-label="Go to dashboard"
+                        tabIndex={0}
+                        onClick={navigateToDashboard}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' || e.key === ' ') navigateToDashboard();
+                        }}
+                      >
+                        <div className="p-1.5 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
+                          <Activity className="text-white" size={18} />
+                        </div>
+                        <h1 className="text-lg font-bold text-content">VariScout</h1>
                       </div>
-                      <h1 className="text-lg font-bold text-content">VariScout</h1>
+
+                      {teams.isTeams && teams.channelName && currentView !== 'editor' && (
+                        <>
+                          <span className="text-content-muted">/</span>
+                          <span className="text-sm text-content-secondary truncate max-w-[200px]">
+                            {teams.channelName}
+                          </span>
+                        </>
+                      )}
+
+                      {currentView === 'editor' && (
+                        <>
+                          <span className="text-content-muted">/</span>
+                          <span className="text-content-secondary">
+                            {currentProject ? `Analysis ${currentProject}` : 'New Analysis'}
+                          </span>
+                        </>
+                      )}
                     </div>
 
-                    {teams.isTeams && teams.channelName && currentView !== 'editor' && (
-                      <>
-                        <span className="text-content-muted">/</span>
-                        <span className="text-sm text-content-secondary truncate max-w-[200px]">
-                          {teams.channelName}
-                        </span>
-                      </>
-                    )}
-
-                    {currentView === 'editor' && (
-                      <>
-                        <span className="text-content-muted">/</span>
-                        <span className="text-content-secondary">
-                          {currentProject ? `Analysis ${currentProject}` : 'New Analysis'}
-                        </span>
-                      </>
-                    )}
-                  </div>
-
-                  <nav aria-label="App actions" className="flex items-center gap-1">
-                    <span className="text-sm text-content-secondary mr-2 hidden sm:inline">
-                      {user.name}
-                    </span>
-                    {isAdmin && (
+                    <nav aria-label="App actions" className="flex items-center gap-1">
+                      <span className="text-sm text-content-secondary mr-2 hidden sm:inline">
+                        {user.name}
+                      </span>
+                      {isAdmin && (
+                        <button
+                          onClick={() => setCurrentView('admin')}
+                          aria-label="Admin"
+                          title="Admin"
+                          className={`p-2 rounded-lg transition-colors ${
+                            currentView === 'admin'
+                              ? 'text-blue-400 bg-blue-400/10'
+                              : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
+                          }`}
+                          style={{ minWidth: 44, minHeight: 44 }}
+                        >
+                          <Shield size={18} />
+                        </button>
+                      )}
                       <button
-                        onClick={() => setCurrentView('admin')}
-                        aria-label="Admin"
-                        title="Admin"
-                        className={`p-2 rounded-lg transition-colors ${
-                          currentView === 'admin'
-                            ? 'text-blue-400 bg-blue-400/10'
-                            : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
-                        }`}
-                        style={{ minWidth: 44, minHeight: 44 }}
-                      >
-                        <Shield size={18} />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setIsSettingsOpen(true)}
-                      aria-label="Settings"
-                      title="Settings"
-                      className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
-                      style={{ minWidth: 44, minHeight: 44 }}
-                    >
-                      <Settings size={18} />
-                    </button>
-                    {/* Hide sign-out in Teams — Teams manages the session */}
-                    {!teams.isTeams && (
-                      <button
-                        onClick={logout}
-                        aria-label="Sign out"
-                        title="Sign Out"
+                        onClick={() => setIsSettingsOpen(true)}
+                        aria-label="Settings"
+                        title="Settings"
                         className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
                         style={{ minWidth: 44, minHeight: 44 }}
                       >
-                        <LogOut size={18} />
+                        <Settings size={18} />
                       </button>
+                      {/* Hide sign-out in Teams — Teams manages the session */}
+                      {!teams.isTeams && (
+                        <button
+                          onClick={logout}
+                          aria-label="Sign out"
+                          title="Sign Out"
+                          className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
+                          style={{ minWidth: 44, minHeight: 44 }}
+                        >
+                          <LogOut size={18} />
+                        </button>
+                      )}
+                    </nav>
+                  </header>
+
+                  {/* Main Content */}
+                  <main id="main-content" className="p-6">
+                    {currentView === 'dashboard' && (
+                      <ProjectDashboard onOpenProject={id => navigateToEditor(id)} />
                     )}
-                  </nav>
-                </header>
+                    {currentView === 'editor' && (
+                      <Editor
+                        projectId={currentProject}
+                        onBack={navigateToDashboard}
+                        initialFindingId={
+                          deepLink.project === currentProject
+                            ? (deepLink.findingId ?? undefined)
+                            : undefined
+                        }
+                        initialChart={
+                          deepLink.project === currentProject
+                            ? (deepLink.chart ?? undefined)
+                            : undefined
+                        }
+                      />
+                    )}
+                    {currentView === 'admin' && (
+                      <AdminHub
+                        initialTab={
+                          (new URLSearchParams(window.location.search).get('admin') as AdminTab) ||
+                          undefined
+                        }
+                        onBack={navigateToDashboard}
+                        gatingMode={gatingMode}
+                      />
+                    )}
+                  </main>
 
-                {/* Main Content */}
-                <main id="main-content" className="p-6">
-                  {currentView === 'dashboard' && (
-                    <ProjectDashboard onOpenProject={id => navigateToEditor(id)} />
-                  )}
-                  {currentView === 'editor' && (
-                    <Editor
-                      projectId={currentProject}
-                      onBack={navigateToDashboard}
-                      initialFindingId={
-                        deepLink.project === currentProject
-                          ? (deepLink.findingId ?? undefined)
-                          : undefined
-                      }
-                      initialChart={
-                        deepLink.project === currentProject
-                          ? (deepLink.chart ?? undefined)
-                          : undefined
-                      }
-                    />
-                  )}
-                  {currentView === 'admin' && (
-                    <AdminHub
-                      initialTab={
-                        (new URLSearchParams(window.location.search).get('admin') as AdminTab) ||
-                        undefined
-                      }
-                      onBack={navigateToDashboard}
-                      gatingMode={gatingMode}
-                    />
-                  )}
-                </main>
-
-                {/* Settings Panel */}
-                <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
-              </DataProvider>
-            </ErrorBoundary>
-            <SyncToasts />
-          </div>
+                  {/* Settings Panel */}
+                  <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+                </DataProvider>
+              </ErrorBoundary>
+              <SyncToasts />
+            </div>
+          </ToastProvider>
         </StorageProvider>
       </ThemeProvider>
     </LocaleProvider>
@@ -328,10 +331,33 @@ function TeamsThemeSync({ teamsTheme }: { teamsTheme: string | null }) {
   return null;
 }
 
-/** Renders sync toast notifications from the StorageProvider context. */
+/** Bridges storage notifications into ToastContext and renders them via SyncToastContainer. */
 function SyncToasts() {
-  const { notifications, dismissNotification } = useStorage();
-  return <SyncToastContainer notifications={notifications} onDismiss={dismissNotification} />;
+  const { notifications: storageNotifs, dismissNotification } = useStorage();
+  const { notifications: toastNotifs, showToast, dismissToast } = useToast();
+
+  // Bridge: push new storage notifications into toast context, preserving original IDs
+  const prevStorageRef = React.useRef<string[]>([]);
+  React.useEffect(() => {
+    const prevIds = new Set(prevStorageRef.current);
+    for (const notif of storageNotifs) {
+      if (!prevIds.has(notif.id)) {
+        showToast(notif); // showToast preserves the id when provided
+      }
+    }
+    prevStorageRef.current = storageNotifs.map(n => n.id);
+  }, [storageNotifs, showToast]);
+
+  // Dismiss in both systems
+  const handleDismiss = React.useCallback(
+    (id: string) => {
+      dismissToast(id);
+      dismissNotification(id);
+    },
+    [dismissToast, dismissNotification]
+  );
+
+  return <SyncToastContainer notifications={toastNotifs} onDismiss={handleDismiss} />;
 }
 
 export default App;
