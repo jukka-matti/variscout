@@ -1,25 +1,12 @@
-import React, { useMemo, useEffect, useState, useCallback, useRef } from 'react';
+import React, { useMemo, useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react';
 import { useStorage, classifySyncError } from '../services/storage';
 import { useData } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
 import { useFilterNavigation } from '../hooks';
-import Dashboard from '../components/Dashboard';
 import { EditorToolbar } from '../components/EditorToolbar';
-import DataPanel from '../components/data/DataPanel';
-import DataTableModal from '../components/data/DataTableModal';
-import FindingsPanel from '../components/FindingsPanel';
-import ManualEntry from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
-import WhatIfPage from '../components/WhatIfPage';
-import {
-  ColumnMapping,
-  CoScoutPanelBase,
-  AIOnboardingTooltip,
-  ImprovementWorkspaceBase,
-  YamazumiDetectedModal,
-  CapabilitySuggestionModal,
-  type AnalysisBrief,
-} from '@variscout/ui';
+import ManualEntry from '../components/data/ManualEntry';
+import { ColumnMapping, ImprovementWorkspaceBase, type AnalysisBrief } from '@variscout/ui';
 import {
   useControlViolations,
   useHypotheses,
@@ -34,24 +21,8 @@ import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
 import type { ExclusionReason } from '@variscout/core';
-import { SAMPLES } from '@variscout/data';
-import {
-  Upload,
-  FileText,
-  PenLine,
-  ClipboardPaste,
-  Database,
-  RefreshCw,
-  Check,
-  X,
-  Pencil,
-  Download,
-  Beaker,
-  Table2,
-  Plus,
-  Maximize2,
-} from 'lucide-react';
-import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
+import { Check } from 'lucide-react';
+import { type FilePickerResult } from '../components/FileBrowseButton';
 import { downloadFileFromGraph } from '../services/storage';
 import { useFilePicker } from '../hooks/useFilePicker';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
@@ -72,6 +43,12 @@ import { buildChartSharePayload, buildReportSharePayload } from '../services/sha
 import { buildSubPageId, buildCurrentViewLink } from '../services/deepLinks';
 import { useToast } from '../context/ToastContext';
 import { setBeforeUnloadHandler } from '../teams';
+import { EditorEmptyState } from '../components/editor/EditorEmptyState';
+import { EditorDashboardView } from '../components/editor/EditorDashboardView';
+import { EditorModals } from '../components/editor/EditorModals';
+import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
+
+const WhatIfPage = lazy(() => import('../components/WhatIfPage'));
 
 type LoadErrorCode = 'not-found' | 'forbidden' | 'plan-mismatch' | 'offline' | 'auth' | 'unknown';
 
@@ -91,13 +68,6 @@ const ERROR_MESSAGES: Record<LoadErrorCode, string> = {
     "You're offline and this project isn't cached locally. Connect to the internet to load it.",
   auth: 'Your session has expired.',
   unknown: 'Failed to load project. Please try again.',
-};
-
-const COSCOUT_RESIZE_CONFIG = {
-  storageKey: 'variscout-azure-coscout-panel-width',
-  min: 320,
-  max: 600,
-  defaultWidth: 384,
 };
 
 interface EditorProps {
@@ -185,16 +155,14 @@ export const Editor: React.FC<EditorProps> = ({
     getFactors: () => factors,
   });
   const isPhone = useIsMobile(BREAKPOINTS.phone);
-  const { t } = useTranslation();
+  useTranslation();
 
   // Mobile tab bar state (phone only)
   const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('analysis');
 
   // Reset mobile tab when data is cleared
   useEffect(() => {
-    if (rawData.length === 0) {
-      setMobileActiveTab('analysis');
-    }
+    if (rawData.length === 0) setMobileActiveTab('analysis');
   }, [rawData.length]);
 
   // Report view state changes for persistence (merge partial updates)
@@ -210,12 +178,14 @@ export const Editor: React.FC<EditorProps> = ({
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
   const isImprovementOpen = usePanelsStore(s => s.isImprovementOpen);
-  const isPresentationMode = usePanelsStore(s => s.isPresentationMode);
+  // Note: some selectors below are used only in EditorDashboardView but must stay here
+  // for React hook-count consistency (early returns in Editor change the render path).
+  void usePanelsStore(s => s.isPresentationMode);
   const isReportOpen = usePanelsStore(s => s.isReportOpen);
   const isDataPanelOpen = usePanelsStore(s => s.isDataPanelOpen);
-  const isDataTableOpen = usePanelsStore(s => s.isDataTableOpen);
-  const highlightRowIndex = usePanelsStore(s => s.highlightRowIndex);
-  const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
+  void usePanelsStore(s => s.isDataTableOpen);
+  void usePanelsStore(s => s.highlightRowIndex);
+  void usePanelsStore(s => s.highlightedChartPoint);
 
   // Initialize from persisted ViewState (once, on mount)
   const viewStateInitRef = useRef(false);
@@ -227,6 +197,15 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Side effects: persistence + highlight timeout
   usePanelsSideEffects(handleViewStateChange);
+
+  // Phone: data panel opens DataTableModal instead of inline panel
+  const handleDataPanelToggle = useCallback(() => {
+    if (isPhone) {
+      usePanelsStore.getState().openDataTable();
+    } else {
+      usePanelsStore.getState().toggleDataPanel();
+    }
+  }, [isPhone]);
 
   // Focus return refs for mobile overlays (F-19)
   const findingsTriggerRef = useRef<Element | null>(null);
@@ -250,15 +229,6 @@ export const Editor: React.FC<EditorProps> = ({
     }
   }, [isPhone, isCoScoutOpen]);
 
-  // Phone: data panel opens DataTableModal instead of inline panel
-  const handleDataPanelToggle = useCallback(() => {
-    if (isPhone) {
-      usePanelsStore.getState().openDataTable();
-    } else {
-      usePanelsStore.getState().toggleDataPanel();
-    }
-  }, [isPhone]);
-
   // Mobile tab bar navigation handler
   const handleMobileTabChange = useCallback(
     (tab: MobileTab) => {
@@ -273,12 +243,11 @@ export const Editor: React.FC<EditorProps> = ({
         ps.setFindingsOpen(false);
         ps.setImprovementOpen(false);
       }
-      // 'more' is handled by the More bottom sheet
     },
     [isPhone]
   );
 
-  // Manual data merge (for append mode)
+  // Data flow hook
   const dataFlow = useEditorDataFlow({
     rawData,
     outcome,
@@ -362,9 +331,7 @@ export const Editor: React.FC<EditorProps> = ({
     setMeasureColumns,
     setMeasureLabel,
     setPerformanceMode,
-    onDone: () => {
-      dataFlow.manualEntryDone();
-    },
+    onDone: () => dataFlow.manualEntryDone(),
   });
 
   // Capability suggestion modal state
@@ -410,7 +377,7 @@ export const Editor: React.FC<EditorProps> = ({
         .finally(() => dataFlow.projectLoaded());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId]); // intentionally exclude rawData/dataFlow to avoid re-triggering
+  }, [projectId]);
 
   // Filter navigation
   const filterNav = useFilterNavigation({
@@ -426,7 +393,7 @@ export const Editor: React.FC<EditorProps> = ({
   // Share handlers
   const { shareFinding, canMentionInChannel } = useShareFinding({ projectName, baseUrl });
 
-  // Compute projected metric value from selected improvement ideas (for BriefHeader progress bar)
+  // Compute projected metric value from selected improvement ideas
   const projectedFromIdeas = useMemo(() => {
     if (!processContext?.targetMetric || processContext?.targetValue === undefined)
       return undefined;
@@ -445,11 +412,10 @@ export const Editor: React.FC<EditorProps> = ({
     const metric = processContext.targetMetric;
     if (metric === 'mean') return stats.mean + totalMeanShift;
     if (metric === 'sigma') return stats.stdDev + totalSigmaReduction;
-    return undefined; // cpk would need recalculation
+    return undefined;
   }, [persistedHypotheses, processContext, stats]);
 
-  // Findings orchestration (extracted from Editor — pin, restore, chart observation, popout, etc.)
-  // Findings store selectors (highlight state lives in Zustand)
+  // Findings orchestration
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
 
@@ -497,7 +463,6 @@ export const Editor: React.FC<EditorProps> = ({
         focusedChart: initialChart as 'ichart' | 'boxplot' | 'pareto' | null,
       });
     }
-    // Clear deep link params from URL to avoid re-triggering on refresh
     if (initialFindingId || initialChart) {
       const cleanUrl = window.location.origin + window.location.pathname;
       window.history.replaceState({}, '', cleanUrl);
@@ -556,7 +521,7 @@ export const Editor: React.FC<EditorProps> = ({
       showPublishReport: isReportOpen && hasTeamFeatures(),
       onShareTeams: handleShareTeams,
       onPublishReport: () => {
-        /* P3 — wired later */
+        /* P3 -- wired later */
       },
       onToast: showToast,
     }),
@@ -569,7 +534,7 @@ export const Editor: React.FC<EditorProps> = ({
     getCurrentUser().then(setCurrentUser);
   }, []);
 
-  // Photo comments (Team plan only — wires photo processing + upload)
+  // Photo comments (Team plan only)
   const { handleAddPhoto, handleCaptureFromTeams, isTeamsCamera, handleAddCommentWithAuthor } =
     usePhotoComments({
       findingsState,
@@ -578,14 +543,14 @@ export const Editor: React.FC<EditorProps> = ({
       location: currentProjectLocation,
     });
 
-  // Hypothesis CRUD (causal theories linked to findings)
+  // Hypothesis CRUD
   const hypothesesState = useHypotheses({
     initialHypotheses: persistedHypotheses,
     onHypothesesChange: setPersistedHypotheses,
     findings: findingsState.findings,
   });
 
-  // Investigation workflow: action callbacks from orchestration, read-side state from store
+  // Investigation workflow
   const {
     handleCreateHypothesis,
     handleProjectIdea,
@@ -598,11 +563,13 @@ export const Editor: React.FC<EditorProps> = ({
     processContext,
     stats,
   });
-  const hypothesesMap = useInvestigationStore(s => s.hypothesesMap);
-  const ideaImpacts = useInvestigationStore(s => s.ideaImpacts);
+  // Hook-count stability: these selectors are used in EditorDashboardView
+  // but the hook calls must remain here (above early returns) for consistency.
+  void useInvestigationStore(s => s.hypothesesMap);
+  void useInvestigationStore(s => s.ideaImpacts);
   const projectionTarget = useInvestigationStore(s => s.projectionTarget);
 
-  // Improvement workspace: data prep, popout sync, idea-to-action conversion
+  // Improvement workspace
   const { handleConvertIdeasToActions, handleOpenImprovementPopout, handleSynthesisChange } =
     useImprovementOrchestration({
       hypothesesState,
@@ -614,13 +581,13 @@ export const Editor: React.FC<EditorProps> = ({
   const improvementHypotheses = useImprovementStore(s => s.improvementHypotheses);
   const improvementLinkedFindings = useImprovementStore(s => s.improvementLinkedFindings);
   const selectedIdeaIds = useImprovementStore(s => s.selectedIdeaIds);
-  const projectedCpkMap = useImprovementStore(s => s.projectedCpkMap);
+  void useImprovementStore(s => s.projectedCpkMap);
   const convertedIdeaIds = useImprovementStore(s => s.convertedIdeaIds);
 
-  // Control violations for DataPanel annotations
+  // Control violations for DataPanel annotations (must be called unconditionally for hook order)
   const controlViolations = useControlViolations(filteredData, outcome, specs);
 
-  // Capability suggestion: show when specs are set and no other detection modal is showing
+  // Capability suggestion: show when specs are set
   useEffect(() => {
     if (
       rawData.length > 0 &&
@@ -641,11 +608,11 @@ export const Editor: React.FC<EditorProps> = ({
     dataFlow.yamazumiDetection,
   ]);
 
-  // Journey phase detection for toolbar coaching strip
+  // Journey phase detection
   const journeyPhase = useJourneyPhase(!!filteredData.length, findingsState.findings);
   const entryScenario = useMemo(() => detectEntryScenario(processContext), [processContext]);
 
-  // Subgroup capability data for AI context (when capability mode active)
+  // Subgroup capability data for AI context
   const capabilityIChartData = useCapabilityIChartData({
     filteredData,
     outcome: outcome ?? '',
@@ -671,19 +638,8 @@ export const Editor: React.FC<EditorProps> = ({
     };
   }, [isCapabilityMode, capabilityIChartData, subgroupConfig, cpkTarget]);
 
-  // AI orchestration (context, narration, CoScout, knowledge search)
-  const {
-    aiContext,
-    narration,
-    coscout,
-    knowledgeSearch,
-    suggestedQuestions,
-    fetchChartInsight: fetchChartInsightFromAI,
-    handleNarrativeAsk,
-    handleAskCoScoutFromIdeas,
-    handleAskCoScoutFromFinding,
-    handleAskCoScoutFromCategory,
-  } = useAIOrchestration({
+  // AI orchestration
+  const aiOrch = useAIOrchestration({
     enabled: aiEnabled,
     stats: stats ?? undefined,
     filteredData,
@@ -718,17 +674,15 @@ export const Editor: React.FC<EditorProps> = ({
     },
   });
 
-  // ADR-026: On-demand knowledge search handler
+  // On-demand knowledge search handler
   const handleSearchKnowledge = useCallback(() => {
-    const lastUserMsg = [...coscout.messages].reverse().find(m => m.role === 'user');
-    if (lastUserMsg?.content) {
-      knowledgeSearch.search(lastUserMsg.content);
-    }
-  }, [coscout.messages, knowledgeSearch]);
+    const lastUserMsg = [...aiOrch.coscout.messages].reverse().find(m => m.role === 'user');
+    if (lastUserMsg?.content) aiOrch.knowledgeSearch.search(lastUserMsg.content);
+  }, [aiOrch.coscout.messages, aiOrch.knowledgeSearch]);
 
-  // ADR-029: Action proposal state management
-  const { actionProposals, handleExecuteAction, handleDismissAction } = useActionProposals({
-    messages: coscout.messages,
+  // Action proposal state management
+  const actionProposalsState = useActionProposals({
+    messages: aiOrch.coscout.messages,
     filterNav,
     findingsState,
     hypothesesState,
@@ -746,22 +700,16 @@ export const Editor: React.FC<EditorProps> = ({
       newCategories?: import('@variscout/core').InvestigationCategory[],
       brief?: AnalysisBrief
     ) => {
-      if (newCategories) {
-        setCategories(newCategories);
-      }
-      // Apply brief data to ProcessContext and create hypotheses
+      if (newCategories) setCategories(newCategories);
       if (brief) {
         const updatedContext = { ...processContext };
-        if (brief.problemStatement) {
-          updatedContext.problemStatement = brief.problemStatement;
-        }
+        if (brief.problemStatement) updatedContext.problemStatement = brief.problemStatement;
         if (brief.target) {
           updatedContext.targetMetric = brief.target.metric;
           updatedContext.targetValue = brief.target.value;
           updatedContext.targetDirection = brief.target.direction;
         }
         setProcessContext(updatedContext);
-        // Create hypotheses from brief
         if (brief.hypotheses) {
           for (const h of brief.hypotheses) {
             hypothesesState.addHypothesis(h.text, h.factor, h.level);
@@ -782,14 +730,12 @@ export const Editor: React.FC<EditorProps> = ({
   const excludedReasons = useMemo(() => {
     if (!dataQualityReport) return undefined;
     const map = new Map<number, ExclusionReason[]>();
-    dataQualityReport.excludedRows.forEach(row => {
-      map.set(row.index, row.reasons);
-    });
+    dataQualityReport.excludedRows.forEach(row => map.set(row.index, row.reasons));
     return map;
   }, [dataQualityReport]);
 
+  // Save
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-
   const handleSave = useCallback(async () => {
     const name = currentProjectName || 'New Analysis';
     setSaveStatus('saving');
@@ -803,15 +749,13 @@ export const Editor: React.FC<EditorProps> = ({
     }
   }, [currentProjectName, saveProject]);
 
-  // Save As... to SharePoint folder (ADR-030)
-  // Uses File Picker v8 Save As tray mode for native rename-before-save UX
+  // Save As to SharePoint
   const handleSaveAsToSharePoint = useCallback(
     async (items: FilePickerResult[]) => {
       const folder = items[0];
       if (!folder) return;
       setSaveStatus('saving');
       try {
-        // Save current project to the chosen location via normal save pipeline
         const name = currentProjectName || 'New Analysis';
         await saveProject(name);
         setSaveStatus('saved');
@@ -831,12 +775,9 @@ export const Editor: React.FC<EditorProps> = ({
     pickLabel: 'Save Here',
     onPick: handleSaveAsToSharePoint,
   });
+  const handleSaveAs = useCallback(() => saveAsPicker.open(), [saveAsPicker]);
 
-  const handleSaveAs = useCallback(() => {
-    saveAsPicker.open();
-  }, [saveAsPicker]);
-
-  // Handle file import from SharePoint File Picker (ADR-030)
+  // Handle file import from SharePoint
   const handleSharePointFileImport = useCallback(
     async (items: FilePickerResult[]) => {
       const item = items[0];
@@ -855,8 +796,7 @@ export const Editor: React.FC<EditorProps> = ({
     [dataFlow]
   );
 
-  // Register Teams beforeUnload handler for data loss prevention.
-  // When the user navigates away from the tab, auto-save if there are unsaved changes.
+  // Register Teams beforeUnload handler for data loss prevention
   useEffect(() => {
     setBeforeUnloadHandler(async () => {
       if (hasUnsavedChanges) {
@@ -866,7 +806,8 @@ export const Editor: React.FC<EditorProps> = ({
     });
   }, [hasUnsavedChanges, currentProjectName, saveProject]);
 
-  // If in paste mode, show PasteScreen full screen
+  // ── Mode routing (full-screen takeover views) ────────────────────────────
+
   if (dataFlow.isPasteMode) {
     const isAppendPaste = dataFlow.appendMode && rawData.length > 0 && !!outcome;
     return (
@@ -880,7 +821,6 @@ export const Editor: React.FC<EditorProps> = ({
     );
   }
 
-  // If in manual entry mode, show ManualEntry full screen
   if (dataFlow.isManualEntry) {
     return (
       <ManualEntry
@@ -893,7 +833,6 @@ export const Editor: React.FC<EditorProps> = ({
     );
   }
 
-  // If in column mapping mode, show ColumnMapping full screen
   if (dataFlow.isMapping) {
     return (
       <ColumnMapping
@@ -921,30 +860,36 @@ export const Editor: React.FC<EditorProps> = ({
     );
   }
 
-  // If What-If Simulator is open, show full-page view
   if (isWhatIfOpen) {
     return (
-      <WhatIfPage
-        onBack={() => {
-          clearProjectionTarget();
-          usePanelsStore.getState().setWhatIfOpen(false);
-        }}
-        filterCount={filterNav.filterStack.length}
-        filterStack={filterNav.filterStack}
-        projectionContext={
-          projectionTarget
-            ? {
-                ideaText: projectionTarget.ideaText,
-                hypothesisText: projectionTarget.hypothesisText,
-              }
-            : undefined
+      <Suspense
+        fallback={
+          <div className="flex-1 flex items-center justify-center">
+            <span className="text-content-secondary text-sm">Loading...</span>
+          </div>
         }
-        onSaveProjection={projectionTarget ? handleSaveIdeaProjection : undefined}
-      />
+      >
+        <WhatIfPage
+          onBack={() => {
+            clearProjectionTarget();
+            usePanelsStore.getState().setWhatIfOpen(false);
+          }}
+          filterCount={filterNav.filterStack.length}
+          filterStack={filterNav.filterStack}
+          projectionContext={
+            projectionTarget
+              ? {
+                  ideaText: projectionTarget.ideaText,
+                  hypothesisText: projectionTarget.hypothesisText,
+                }
+              : undefined
+          }
+          onSaveProjection={projectionTarget ? handleSaveIdeaProjection : undefined}
+        />
+      </Suspense>
     );
   }
 
-  // If Improvement Workspace is open, show full-page view
   if (isImprovementOpen) {
     return (
       <ImprovementWorkspaceBase
@@ -960,15 +905,11 @@ export const Editor: React.FC<EditorProps> = ({
           hypothesesState.updateIdea(hId, iId, { direction: dir })
         }
         onUpdateCost={(hId, iId, cost) => hypothesesState.updateIdea(hId, iId, { cost })}
-        onOpenRisk={(_hId, _iId) => {
-          // Risk popover will be wired in a follow-up (Phase 10)
-        }}
+        onOpenRisk={() => {}}
         onRemoveIdea={hypothesesState.removeIdea}
         onOpenWhatIf={handleProjectIdea}
-        onAddIdea={(hId, text) => {
-          hypothesesState.addIdea(hId, text);
-        }}
-        onAskCoScout={handleAskCoScoutFromIdeas}
+        onAddIdea={(hId, text) => hypothesesState.addIdea(hId, text)}
+        onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
         onConvertToActions={handleConvertIdeasToActions}
         onBack={() => usePanelsStore.getState().setImprovementOpen(false)}
         onPopout={handleOpenImprovementPopout}
@@ -978,6 +919,8 @@ export const Editor: React.FC<EditorProps> = ({
       />
     );
   }
+
+  // ── Main editor layout ───────────────────────────────────────────────────
 
   return (
     <div
@@ -1043,7 +986,7 @@ export const Editor: React.FC<EditorProps> = ({
         </div>
       )}
 
-      {/* Main Content — inert when phone overlay is open (F-18 focus trap) */}
+      {/* Main Content -- inert when phone overlay is open (F-18 focus trap) */}
       <div
         ref={el => {
           if (!el) return;
@@ -1056,383 +999,45 @@ export const Editor: React.FC<EditorProps> = ({
         className="flex-1 flex flex-col min-h-0 bg-surface rounded-xl border border-edge overflow-hidden"
       >
         {rawData.length === 0 ? (
-          // Empty State - Upload Data + Sample Datasets
-          <div className="flex-1 flex flex-col items-center justify-start p-8 overflow-y-auto relative">
-            {/* Loading overlay for project load or file parse */}
-            {(dataFlow.isLoadingProject || dataFlow.isParsingFile) && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface/60">
-                <div className="flex flex-col items-center gap-3">
-                  <RefreshCw size={32} className="text-blue-400 animate-spin" />
-                  <span className="text-sm text-content">
-                    {dataFlow.isLoadingProject ? 'Loading project...' : 'Parsing file...'}
-                  </span>
-                </div>
-              </div>
-            )}
-            <div className="max-w-lg w-full text-center">
-              <div className="w-16 h-16 mx-auto mb-6 bg-surface-secondary rounded-full flex items-center justify-center">
-                <FileText size={32} className="text-content-secondary" />
-              </div>
-              <h3 className="text-xl font-semibold text-content mb-2">Start Your Analysis</h3>
-              <p className="text-content-secondary mb-6">
-                Upload your data, paste from Excel, enter manually, or try a sample dataset.
-              </p>
-
-              <input
-                ref={dataFlow.fileInputRef}
-                type="file"
-                accept=".csv,.xlsx,.xls"
-                onChange={dataFlow.handleFileChange}
-                className="hidden"
-              />
-
-              <div className="flex flex-col sm:flex-row gap-3 mb-8">
-                {hasTeamFeatures() ? (
-                  <>
-                    <FileBrowseButton
-                      mode="files"
-                      filters={['.csv', '.xlsx', '.xls']}
-                      onPick={handleSharePointFileImport}
-                      onLocalFile={file => dataFlow.handleFile(file)}
-                      label="Open from SharePoint"
-                      localLabel="Browse this device"
-                      showLocalFallback={true}
-                      size="md"
-                    />
-                  </>
-                ) : (
-                  <button
-                    onClick={dataFlow.triggerFileUpload}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  >
-                    <Upload size={20} />
-                    Upload File
-                  </button>
-                )}
-
-                <button
-                  onClick={() => dataFlow.startPaste()}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-surface-tertiary text-content rounded-lg hover:bg-surface-tertiary/80 transition-colors font-medium"
-                >
-                  <ClipboardPaste size={20} />
-                  Paste Data
-                </button>
-
-                <button
-                  onClick={() => dataFlow.startManualEntry()}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-surface-tertiary text-content rounded-lg hover:bg-surface-tertiary/80 transition-colors font-medium"
-                >
-                  <PenLine size={20} />
-                  Manual Entry
-                </button>
-              </div>
-
-              {loadError && (
-                <div className="mx-4 mt-4 p-4 bg-red-900/30 border border-red-700/50 rounded-lg text-red-200">
-                  <p className="text-sm">{loadError.message}</p>
-                  {loadError.action && (
-                    <button
-                      onClick={loadError.action.onClick}
-                      className="mt-2 text-xs font-medium underline underline-offset-2 hover:no-underline"
-                    >
-                      {loadError.action.label}
-                    </button>
-                  )}
-                </div>
-              )}
-              <p className="text-xs text-content-muted mb-6">Supports CSV, XLSX, and XLS files</p>
-
-              {/* Sample Datasets */}
-              <div className="text-left">
-                <h4 className="text-sm font-medium text-content mb-3 flex items-center gap-2">
-                  <Database size={14} />
-                  Sample Datasets
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {SAMPLES.filter(s => s.featured || s.category === 'cases')
-                    .slice(0, 8)
-                    .map(sample => (
-                      <button
-                        key={sample.urlKey}
-                        data-testid={`sample-${sample.urlKey}`}
-                        onClick={() => dataFlow.handleLoadSample(sample)}
-                        className="text-left p-3 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-blue-500/50 rounded-lg transition-all group"
-                      >
-                        <span className="text-sm font-medium text-content group-hover:text-blue-300 block truncate">
-                          {sample.name}
-                        </span>
-                        <span className="text-xs text-content-muted line-clamp-1">
-                          {sample.description}
-                        </span>
-                      </button>
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          <EditorEmptyState
+            dataFlow={dataFlow}
+            loadError={loadError}
+            onSharePointFileImport={handleSharePointFileImport}
+          />
         ) : outcome ? (
-          // Dashboard with charts, optional data panel, and optional findings
-          <div className="flex-1 flex overflow-hidden">
-            <Dashboard
-              drillFromPerformance={dataFlow.drillFromPerformance}
-              onBackToPerformance={dataFlow.handleBackToPerformance}
-              onDrillToMeasure={dataFlow.handleDrillToMeasure}
-              onPointClick={isPhone ? undefined : usePanelsStore.getState().handlePointClick}
-              highlightedPointIndex={isPhone ? undefined : highlightedChartPoint}
-              filterNav={filterNav}
-              initialViewState={viewState ?? undefined}
-              onViewStateChange={handleViewStateChange}
-              isReportOpen={isReportOpen}
-              onCloseReport={() => usePanelsStore.getState().closeReport()}
-              isPresentationMode={isPresentationMode}
-              onExitPresentation={() => usePanelsStore.getState().closePresentation()}
-              onManageFactors={dataFlow.openFactorManager}
-              onPinFinding={handlePinFinding}
-              onShareChart={handleShareChart}
-              findingsCallbacks={findingsCallbacks}
-              fetchChartInsight={fetchChartInsightFromAI}
-              aiContext={aiContext.context}
-              aiEnabled={aiEnabled && isAIAvailable()}
-              narrative={narration.narrative}
-              narrativeLoading={narration.isLoading}
-              narrativeCached={narration.isCached}
-              narrativeError={narration.error}
-              onNarrativeRetry={narration.refresh}
-              onNarrativeAsk={handleNarrativeAsk}
-              onAskCoScoutFromCategory={handleAskCoScoutFromCategory}
-              findings={findingsState.findings}
-            />
-            {/* AI onboarding tooltip — first-time hint for NarrativeBar Ask button */}
-            <AIOnboardingTooltip
-              isAIAvailable={aiEnabled && isAIAvailable()}
-              anchorSelector='[data-testid="narrative-ask-button"]'
-            />
-            {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
-            {isPhone && isFindingsOpen ? (
-              <div className="fixed inset-0 z-[60] bg-surface flex flex-col animate-slide-up safe-area-bottom">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
-                  <h2 className="text-sm font-semibold text-content">Findings</h2>
-                  <button
-                    onClick={() => {
-                      usePanelsStore.getState().setFindingsOpen(false);
-                      setHighlightedFindingId(null);
-                    }}
-                    className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
-                    style={{ minWidth: 44, minHeight: 44 }}
-                    aria-label="Close findings"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                <FindingsPanel
-                  isOpen={true}
-                  onClose={() => {
-                    usePanelsStore.getState().setFindingsOpen(false);
-                    setHighlightedFindingId(null);
-                  }}
-                  findings={findingsState.findings}
-                  onEditFinding={findingsState.editFinding}
-                  onDeleteFinding={findingsState.deleteFinding}
-                  onRestoreFinding={handleRestoreFinding}
-                  onSetFindingStatus={handleSetFindingStatus}
-                  onSetFindingTag={findingsState.setFindingTag}
-                  onAddComment={handleAddCommentWithAuthor}
-                  onEditComment={findingsState.editFindingComment}
-                  onDeleteComment={findingsState.deleteFindingComment}
-                  onAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
-                  onCaptureFromTeams={
-                    hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined
-                  }
-                  onCreateHypothesis={handleCreateHypothesis}
-                  hypothesesMap={hypothesesMap}
-                  hypotheses={hypothesesState.hypotheses}
-                  onSelectHypothesis={h => {
-                    if (h.factor && h.level) {
-                      setFilters({ [h.factor]: [h.level] });
-                    }
-                  }}
-                  onAddSubHypothesis={(parentId, text, factor, vType) =>
-                    hypothesesState.addSubHypothesis(parentId, text, factor, undefined, vType)
-                  }
-                  factors={factors}
-                  getChildrenSummary={hypothesesState.getChildrenSummary}
-                  onSetValidationTask={hypothesesState.setValidationTask}
-                  onCompleteTask={hypothesesState.completeTask}
-                  onSetManualStatus={hypothesesState.setManualStatus}
-                  onAddAction={findingsState.addAction}
-                  onCompleteAction={findingsState.completeAction}
-                  onDeleteAction={findingsState.deleteAction}
-                  onSetOutcome={findingsState.setOutcome}
-                  ideaImpacts={ideaImpacts}
-                  onAddIdea={hypothesesState.addIdea}
-                  onUpdateIdea={hypothesesState.updateIdea}
-                  onRemoveIdea={hypothesesState.removeIdea}
-                  onSelectIdea={hypothesesState.selectIdea}
-                  onProjectIdea={handleProjectIdea}
-                  onSetCauseRole={hypothesesState.setCauseRole}
-                  onAskCoScout={handleAskCoScoutFromIdeas}
-                  onAskCoScoutAboutFinding={handleAskCoScoutFromFinding}
-                  showAuthors={true}
-                  columnAliases={columnAliases}
-                  drillPath={drillPath}
-                  activeFindingId={highlightedFindingId}
-                  onShareFinding={handleShareFinding}
-                  onSetFindingAssignee={findingsState.setFindingAssignee}
-                  onNavigateToChart={handleNavigateToChart}
-                  viewMode={viewState?.findingsViewMode}
-                  onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
-                  coScoutMessages={coscout.messages}
-                  coScoutOnSend={coscout.send}
-                  coScoutIsLoading={coscout.isLoading}
-                  coScoutIsStreaming={coscout.isStreaming}
-                  coScoutOnStopStreaming={coscout.stopStreaming}
-                  coScoutError={coscout.error}
-                  coScoutOnRetry={coscout.retry}
-                  investigationPhase={aiContext.context?.investigation?.phase}
-                  coScoutSuggestedQuestions={suggestedQuestions}
-                  projectedCpkMap={projectedCpkMap}
-                  synthesis={processContext?.synthesis}
-                  linkedFindings={improvementLinkedFindings}
-                />
-              </div>
-            ) : (
-              <FindingsPanel
-                isOpen={isFindingsOpen}
-                onClose={() => {
-                  usePanelsStore.getState().setFindingsOpen(false);
-                  setHighlightedFindingId(null);
-                }}
-                findings={findingsState.findings}
-                onEditFinding={findingsState.editFinding}
-                onDeleteFinding={findingsState.deleteFinding}
-                onRestoreFinding={handleRestoreFinding}
-                onSetFindingStatus={handleSetFindingStatus}
-                onSetFindingTag={findingsState.setFindingTag}
-                onAddComment={handleAddCommentWithAuthor}
-                onEditComment={findingsState.editFindingComment}
-                onDeleteComment={findingsState.deleteFindingComment}
-                onAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
-                onCaptureFromTeams={
-                  hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined
-                }
-                onCreateHypothesis={handleCreateHypothesis}
-                onSetValidationTask={hypothesesState.setValidationTask}
-                onCompleteTask={hypothesesState.completeTask}
-                onSetManualStatus={hypothesesState.setManualStatus}
-                onAddAction={findingsState.addAction}
-                onCompleteAction={findingsState.completeAction}
-                onDeleteAction={findingsState.deleteAction}
-                onSetOutcome={findingsState.setOutcome}
-                ideaImpacts={ideaImpacts}
-                onAddIdea={hypothesesState.addIdea}
-                onUpdateIdea={hypothesesState.updateIdea}
-                onRemoveIdea={hypothesesState.removeIdea}
-                onSelectIdea={hypothesesState.selectIdea}
-                onProjectIdea={handleProjectIdea}
-                onSetCauseRole={hypothesesState.setCauseRole}
-                onAskCoScout={handleAskCoScoutFromIdeas}
-                onAskCoScoutAboutFinding={handleAskCoScoutFromFinding}
-                showAuthors={true}
-                columnAliases={columnAliases}
-                drillPath={drillPath}
-                activeFindingId={highlightedFindingId}
-                onPopout={handleOpenFindingsPopout}
-                onShareFinding={handleShareFinding}
-                onSetFindingAssignee={findingsState.setFindingAssignee}
-                onNavigateToChart={handleNavigateToChart}
-                viewMode={viewState?.findingsViewMode}
-                onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
-                coScoutMessages={coscout.messages}
-                coScoutOnSend={coscout.send}
-                coScoutIsLoading={coscout.isLoading}
-                coScoutIsStreaming={coscout.isStreaming}
-                coScoutOnStopStreaming={coscout.stopStreaming}
-                coScoutError={coscout.error}
-                coScoutOnRetry={coscout.retry}
-                investigationPhase={aiContext.context?.investigation?.phase}
-                coScoutSuggestedQuestions={suggestedQuestions}
-                projectedCpkMap={projectedCpkMap}
-                synthesis={processContext?.synthesis}
-                linkedFindings={improvementLinkedFindings}
-              />
-            )}
-            {/* CoScoutPanel: full-screen overlay on phone, inline sidebar on desktop */}
-            {isPhone && isCoScoutOpen ? (
-              <div className="fixed inset-0 z-[60] bg-surface flex flex-col animate-slide-up safe-area-bottom">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
-                  <h2 className="text-sm font-semibold text-content">CoScout</h2>
-                  <button
-                    onClick={() => usePanelsStore.getState().setCoScoutOpen(false)}
-                    className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
-                    style={{ minWidth: 44, minHeight: 44 }}
-                    aria-label="Close CoScout"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                <CoScoutPanelBase
-                  isOpen={true}
-                  onClose={() => usePanelsStore.getState().setCoScoutOpen(false)}
-                  messages={coscout.messages}
-                  onSend={coscout.send}
-                  isLoading={coscout.isLoading}
-                  isStreaming={coscout.isStreaming}
-                  onStopStreaming={coscout.stopStreaming}
-                  error={coscout.error}
-                  onRetry={coscout.retry}
-                  onClear={coscout.clear}
-                  onCopyLastResponse={coscout.copyLastResponse}
-                  resizeConfig={COSCOUT_RESIZE_CONFIG}
-                  suggestedQuestions={suggestedQuestions}
-                  onSuggestedQuestionClick={coscout.send}
-                  knowledgeAvailable={knowledgeSearch.isAvailable}
-                  knowledgeSearching={knowledgeSearch.isSearching}
-                  knowledgeDocuments={knowledgeSearch.documents}
-                  onSearchKnowledge={handleSearchKnowledge}
-                  actionProposals={actionProposals}
-                  onExecuteAction={handleExecuteAction}
-                  onDismissAction={handleDismissAction}
-                />
-              </div>
-            ) : (
-              <CoScoutPanelBase
-                isOpen={isCoScoutOpen}
-                onClose={() => usePanelsStore.getState().setCoScoutOpen(false)}
-                messages={coscout.messages}
-                onSend={coscout.send}
-                isLoading={coscout.isLoading}
-                isStreaming={coscout.isStreaming}
-                onStopStreaming={coscout.stopStreaming}
-                error={coscout.error}
-                onRetry={coscout.retry}
-                onClear={coscout.clear}
-                onCopyLastResponse={coscout.copyLastResponse}
-                resizeConfig={COSCOUT_RESIZE_CONFIG}
-                suggestedQuestions={suggestedQuestions}
-                onSuggestedQuestionClick={coscout.send}
-                knowledgeAvailable={knowledgeSearch.isAvailable}
-                knowledgeSearching={knowledgeSearch.isSearching}
-                knowledgeDocuments={knowledgeSearch.documents}
-                onSearchKnowledge={handleSearchKnowledge}
-                actionProposals={actionProposals}
-                onExecuteAction={handleExecuteAction}
-                onDismissAction={handleDismissAction}
-              />
-            )}
-            {/* DataPanel: hidden on phone (use DataTableModal instead) */}
-            {!isPhone && (
-              <DataPanel
-                isOpen={isDataPanelOpen}
-                onClose={() => usePanelsStore.getState().closeDataPanel()}
-                highlightRowIndex={highlightRowIndex}
-                onRowClick={usePanelsStore.getState().handleRowClick}
-                controlViolations={controlViolations}
-                onOpenEditor={() => usePanelsStore.getState().openDataTable()}
-              />
-            )}
-          </div>
+          <EditorDashboardView
+            dataFlow={dataFlow}
+            filterNav={filterNav}
+            viewState={viewState ?? undefined}
+            onViewStateChange={handleViewStateChange}
+            findingsState={findingsState}
+            findingsCallbacks={findingsCallbacks}
+            handlePinFinding={handlePinFinding}
+            handleRestoreFinding={handleRestoreFinding}
+            handleNavigateToChart={handleNavigateToChart}
+            handleShareFinding={handleShareFinding}
+            handleOpenFindingsPopout={handleOpenFindingsPopout}
+            handleSetFindingStatus={handleSetFindingStatus}
+            drillPath={drillPath}
+            hypothesesState={hypothesesState}
+            handleCreateHypothesis={handleCreateHypothesis}
+            handleProjectIdea={handleProjectIdea}
+            handleAddCommentWithAuthor={handleAddCommentWithAuthor}
+            handleAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
+            handleCaptureFromTeams={
+              hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined
+            }
+            isTeamsCamera={isTeamsCamera}
+            aiOrch={aiOrch}
+            actionProposalsState={actionProposalsState}
+            handleSearchKnowledge={handleSearchKnowledge}
+            handleShareChart={handleShareChart}
+            controlViolations={controlViolations}
+            excludedRowIndices={excludedRowIndices}
+            excludedReasons={excludedReasons}
+            columnAliases={columnAliases}
+          />
         ) : (
-          // Data loaded but no outcome selected -- column mapping fallback
           <ColumnMapping
             columnAnalysis={dataFlow.mappingColumnAnalysis}
             availableColumns={Object.keys(rawData[0] || {})}
@@ -1457,54 +1062,38 @@ export const Editor: React.FC<EditorProps> = ({
         )}
       </div>
 
-      {/* Data Table Editor Modal */}
-      <DataTableModal
-        isOpen={isDataTableOpen}
-        onClose={() => usePanelsStore.getState().closeDataTable()}
-        excludedRowIndices={excludedRowIndices}
-        excludedReasons={excludedReasons}
-        controlViolations={controlViolations}
+      {/* Detection modals */}
+      <EditorModals
+        yamazumiDetection={dataFlow.yamazumiDetection}
+        onEnableYamazumi={taktTime => {
+          const m = dataFlow.yamazumiDetection!.suggestedMapping;
+          setAnalysisMode('yamazumi');
+          setYamazumiMapping({
+            activityTypeColumn: m.activityTypeColumn!,
+            cycleTimeColumn: m.cycleTimeColumn!,
+            stepColumn: m.stepColumn!,
+            activityColumn: m.activityColumn,
+            reasonColumn: m.reasonColumn,
+            productColumn: m.productColumn,
+            waitTimeColumn: m.waitTimeColumn,
+            taktTime,
+          });
+          dataFlow.dismissYamazumiDetection();
+        }}
+        onDeclineYamazumi={() => dataFlow.dismissYamazumiDetection()}
+        showCapabilitySuggestion={showCapabilitySuggestion}
+        onStartCapability={config => {
+          setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
+          setSubgroupConfig(config);
+          setShowCapabilitySuggestion(false);
+          setCapabilitySuggestionDismissed(true);
+        }}
+        onStartStandard={() => {
+          setShowCapabilitySuggestion(false);
+          setCapabilitySuggestionDismissed(true);
+        }}
+        factorColumns={factors}
       />
-
-      {/* Yamazumi Detection Modal */}
-      {dataFlow.yamazumiDetection && (
-        <YamazumiDetectedModal
-          detection={dataFlow.yamazumiDetection}
-          onEnable={taktTime => {
-            const m = dataFlow.yamazumiDetection!.suggestedMapping;
-            setAnalysisMode('yamazumi');
-            setYamazumiMapping({
-              activityTypeColumn: m.activityTypeColumn!,
-              cycleTimeColumn: m.cycleTimeColumn!,
-              stepColumn: m.stepColumn!,
-              activityColumn: m.activityColumn,
-              reasonColumn: m.reasonColumn,
-              productColumn: m.productColumn,
-              waitTimeColumn: m.waitTimeColumn,
-              taktTime,
-            });
-            dataFlow.dismissYamazumiDetection();
-          }}
-          onDecline={() => dataFlow.dismissYamazumiDetection()}
-        />
-      )}
-
-      {/* Capability Suggestion Modal */}
-      {showCapabilitySuggestion && (
-        <CapabilitySuggestionModal
-          onStartCapability={config => {
-            setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
-            setSubgroupConfig(config);
-            setShowCapabilitySuggestion(false);
-            setCapabilitySuggestionDismissed(true);
-          }}
-          onStartStandard={() => {
-            setShowCapabilitySuggestion(false);
-            setCapabilitySuggestionDismissed(true);
-          }}
-          factorColumns={factors}
-        />
-      )}
 
       {/* Mobile Tab Bar (phone only, when data loaded) */}
       {isPhone && rawData.length > 0 && (
@@ -1518,68 +1107,10 @@ export const Editor: React.FC<EditorProps> = ({
 
       {/* More bottom sheet (phone only) */}
       {mobileActiveTab === 'more' && isPhone && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setMobileActiveTab('analysis')}
-          />
-          {/* Bottom sheet */}
-          <div className="fixed bottom-[50px] left-0 right-0 bg-surface-primary border-t border-edge rounded-t-2xl z-50 animate-slide-up safe-area-bottom max-h-[60vh] overflow-y-auto">
-            <div className="py-2">
-              <button
-                onClick={() => handleMobileMore('report')}
-                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
-              >
-                <FileText size={18} />
-                {t('report.scouting') || 'Scouting Report'}
-              </button>
-              <button
-                onClick={() => handleMobileMore('whatif')}
-                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
-              >
-                <Beaker size={18} />
-                {t('panel.whatIf') || 'What-If'}
-              </button>
-              <button
-                onClick={() => handleMobileMore('presentation')}
-                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
-              >
-                <Maximize2 size={18} />
-                {t('nav.presentationMode') || 'Presentation'}
-              </button>
-              <div className="border-t border-edge my-1" />
-              <button
-                onClick={() => handleMobileMore('addpaste')}
-                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
-              >
-                <Plus size={18} />
-                {t('toolbar.addMore') || 'Add More Data'}
-              </button>
-              <button
-                onClick={() => handleMobileMore('editdata')}
-                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
-              >
-                <Pencil size={18} />
-                {t('data.editData') || 'Edit Data'}
-              </button>
-              <button
-                onClick={() => handleMobileMore('csv')}
-                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
-              >
-                <Download size={18} />
-                {t('export.asCsv') || 'Export CSV'}
-              </button>
-              <button
-                onClick={() => handleMobileMore('datatable')}
-                className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
-              >
-                <Table2 size={18} />
-                {t('panel.dataTable') || 'Data Table'}
-              </button>
-            </div>
-          </div>
-        </>
+        <EditorMobileSheet
+          onAction={handleMobileMore}
+          onClose={() => setMobileActiveTab('analysis')}
+        />
       )}
     </div>
   );
