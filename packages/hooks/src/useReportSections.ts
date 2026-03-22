@@ -49,8 +49,12 @@ export interface UseReportSectionsOptions {
   aiEnabled: boolean;
   /** Audience mode for content level (defaults to 'technical') */
   audienceMode?: AudienceMode;
-  /** Analysis mode — overrides section titles for yamazumi */
+  /** Analysis mode — overrides section titles for yamazumi/performance */
   analysisMode?: AnalysisMode;
+  /** True when standard mode I-Chart is showing Cp/Cpk per subgroup */
+  isCapabilityMode?: boolean;
+  /** Target metric for KPI emphasis (from ProcessContext) */
+  targetMetric?: string;
 }
 
 export interface UseReportSectionsReturn {
@@ -132,6 +136,8 @@ export function useReportSections({
   aiEnabled,
   audienceMode = 'technical',
   analysisMode,
+  isCapabilityMode,
+  targetMetric,
 }: UseReportSectionsOptions): UseReportSectionsReturn {
   return useMemo(() => {
     const reportType = deriveReportType(findings);
@@ -146,7 +152,11 @@ export function useReportSections({
       title:
         analysisMode === 'yamazumi'
           ? 'What does the time composition look like?'
-          : 'What does the process look like?',
+          : analysisMode === 'performance'
+            ? 'How do channels perform?'
+            : isCapabilityMode
+              ? 'Is capability meeting target?'
+              : 'What does the process look like?',
       status: sectionStatus('current-condition', reportType),
       workspace: sectionWorkspace('current-condition'),
       findings: findings.filter(f => !f.hypothesisId),
@@ -160,9 +170,13 @@ export function useReportSections({
       title:
         analysisMode === 'yamazumi'
           ? 'What is driving the activity composition?'
-          : reportType === 'improvement-story'
-            ? 'Where does variation hide?'
-            : 'What is driving the variation?',
+          : analysisMode === 'performance'
+            ? 'Which channels are failing?'
+            : isCapabilityMode
+              ? 'What drives capability differences?'
+              : reportType === 'improvement-story'
+                ? 'Where does variation hide?'
+                : 'What is driving the variation?',
       status: sectionStatus('drivers', reportType),
       workspace: sectionWorkspace('drivers'),
       findings: findings.filter(f => !f.hypothesisId),
@@ -226,5 +240,14 @@ export function useReportSections({
     }
 
     return { reportType, sections: allSections, audienceMode };
-  }, [findings, hypotheses, stagedComparison, aiEnabled, audienceMode, analysisMode]);
+  }, [
+    findings,
+    hypotheses,
+    stagedComparison,
+    aiEnabled,
+    audienceMode,
+    analysisMode,
+    isCapabilityMode,
+    targetMetric,
+  ]);
 }

@@ -297,6 +297,63 @@ describe('useReportSections — audience mode', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Mode-aware titles
+// ---------------------------------------------------------------------------
+
+describe('useReportSections — mode-aware titles', () => {
+  it('uses capability titles when isCapabilityMode is true', () => {
+    const { result } = renderHook(() =>
+      useReportSections({
+        ...baseOptions,
+        analysisMode: 'standard',
+        isCapabilityMode: true,
+      })
+    );
+    expect(result.current.sections[0].title).toBe('Is capability meeting target?');
+    expect(result.current.sections[1].title).toBe('What drives capability differences?');
+  });
+
+  it('uses performance titles when analysisMode is performance', () => {
+    const { result } = renderHook(() =>
+      useReportSections({
+        ...baseOptions,
+        analysisMode: 'performance',
+      })
+    );
+    expect(result.current.sections[0].title).toBe('How do channels perform?');
+    expect(result.current.sections[1].title).toBe('Which channels are failing?');
+  });
+
+  it('uses yamazumi titles when analysisMode is yamazumi (unchanged)', () => {
+    const { result } = renderHook(() =>
+      useReportSections({
+        ...baseOptions,
+        analysisMode: 'yamazumi',
+      })
+    );
+    expect(result.current.sections[0].title).toBe('What does the time composition look like?');
+    expect(result.current.sections[1].title).toBe('What is driving the activity composition?');
+  });
+
+  it('uses standard titles by default', () => {
+    const { result } = renderHook(() => useReportSections({ ...baseOptions }));
+    expect(result.current.sections[0].title).toBe('What does the process look like?');
+    expect(result.current.sections[1].title).toBe('What is driving the variation?');
+  });
+
+  it('performance mode takes precedence over isCapabilityMode', () => {
+    const { result } = renderHook(() =>
+      useReportSections({
+        ...baseOptions,
+        analysisMode: 'performance',
+        isCapabilityMode: true,
+      })
+    );
+    expect(result.current.sections[0].title).toBe('How do channels perform?');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // hasAIContent
 // ---------------------------------------------------------------------------
 
