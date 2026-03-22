@@ -14,13 +14,16 @@ import { hasTeamFeatures } from '@variscout/core';
 import { postChannelMention } from '../services/graphChannelMessage';
 import { buildFindingSharePayload } from '../services/shareContent';
 import { useTeamsShare } from './useTeamsShare';
+import type { SyncNotification } from '../services/storage';
 
 interface UseShareFindingOptions {
   projectName: string;
   baseUrl: string;
+  onToast?: (notif: Omit<SyncNotification, 'id'>) => void;
 }
 
-export function useShareFinding({ projectName, baseUrl }: UseShareFindingOptions) {
+export function useShareFinding({ projectName, baseUrl, onToast }: UseShareFindingOptions) {
+  // Do NOT pass onToast here — useShareFinding handles its own toasts to avoid double-firing
   const { share } = useTeamsShare();
 
   const canMentionInChannel = useMemo(() => isChannelTab() && hasTeamFeatures(), []);
@@ -44,6 +47,11 @@ export function useShareFinding({ projectName, baseUrl }: UseShareFindingOptions
               baseUrl,
               projectName
             );
+            onToast?.({
+              type: 'success',
+              message: 'Finding shared to channel',
+              dismissAfter: 3000,
+            });
             return true;
           }
         } catch (err) {
@@ -53,9 +61,13 @@ export function useShareFinding({ projectName, baseUrl }: UseShareFindingOptions
 
       // Fallback: Teams share dialog or clipboard
       const payload = buildFindingSharePayload(finding, projectName, baseUrl);
-      return share(payload);
+      const result = await share(payload);
+      if (!result) {
+        onToast?.({ type: 'error', message: "Couldn't share finding. Try again." });
+      }
+      return result;
     },
-    [canMentionInChannel, baseUrl, projectName, share]
+    [canMentionInChannel, baseUrl, projectName, share, onToast]
   );
 
   return { shareFinding, canMentionInChannel };
