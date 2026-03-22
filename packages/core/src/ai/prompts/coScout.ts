@@ -179,6 +179,87 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
           additionalProperties: false,
           strict: true,
         },
+      },
+      {
+        type: 'function',
+        name: 'search_project',
+        description:
+          'Search findings, hypotheses, improvement ideas, and actions in the current project by text and optional filters. Use when the user asks about past analysis, whether something was investigated, or what was found.',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description:
+                'Search text (matched against text of findings, hypotheses, ideas, actions, and comments)',
+            },
+            artifact_type: {
+              type: 'string',
+              enum: ['finding', 'hypothesis', 'idea', 'action', 'all'],
+              description: 'Type of artifact to search. Use "all" for all types.',
+            },
+            finding_status: {
+              type: 'string',
+              enum: ['observed', 'investigating', 'analyzed', 'improving', 'resolved', 'any'],
+              description:
+                'Filter findings by status. Use "any" for no filter. Only applies to findings.',
+            },
+            hypothesis_status: {
+              type: 'string',
+              enum: ['untested', 'supported', 'contradicted', 'partial', 'any'],
+              description:
+                'Filter hypotheses by validation status. Use "any" for no filter. Only applies to hypotheses.',
+            },
+          },
+          required: ['query', 'artifact_type', 'finding_status', 'hypothesis_status'],
+          additionalProperties: false,
+          strict: true,
+        },
+      },
+      {
+        type: 'function',
+        name: 'navigate_to',
+        description:
+          'Navigate to a specific finding, hypothesis, chart view, or workspace. Auto-executes for panel navigation. Set restore_filters to true when restoring filter context from a finding (requires user confirmation).',
+        parameters: {
+          type: 'object',
+          properties: {
+            target: {
+              type: 'string',
+              enum: [
+                'finding',
+                'hypothesis',
+                'chart',
+                'improvement_workspace',
+                'report',
+                'dashboard',
+              ],
+              description: 'What to navigate to',
+            },
+            target_id: {
+              type: 'string',
+              description: 'ID of the finding or hypothesis. Empty string if not applicable.',
+            },
+            chart_type: {
+              type: 'string',
+              enum: ['ichart', 'boxplot', 'pareto', 'capability', 'stats', 'none'],
+              description: 'Which chart to focus. Use "none" if not applicable.',
+            },
+            restore_filters: {
+              type: 'boolean',
+              description:
+                'Restore the filter context from when the finding was created. When true, requires user confirmation via proposal card.',
+            },
+            factor: {
+              type: 'string',
+              description:
+                'Factor context to restore for boxplot/pareto. Empty string if not applicable.',
+            },
+          },
+          required: ['target', 'target_id', 'chart_type', 'restore_filters', 'factor'],
+          additionalProperties: false,
+          strict: true,
+        },
       }
     );
   }

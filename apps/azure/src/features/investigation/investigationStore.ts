@@ -29,6 +29,8 @@ interface InvestigationStoreState {
   ideaImpacts: Record<string, IdeaImpact | undefined>;
   /** Current projection target for What-If round-trip */
   projectionTarget: ProjectionTarget | null;
+  /** Hypothesis ID to expand/scroll-to in the investigation tree (null = none) */
+  expandedHypothesisId: string | null;
 }
 
 // ── Actions ─────────────────────────────────────────────────────────────────
@@ -45,6 +47,8 @@ interface InvestigationStoreActions {
   syncIdeaImpacts: (impacts: Record<string, IdeaImpact | undefined>) => void;
   /** Set or clear the projection target for What-If round-trip */
   setProjectionTarget: (target: ProjectionTarget | null) => void;
+  /** Expand and scroll-to a hypothesis in the investigation tree (null = clear) */
+  expandToHypothesis: (id: string | null) => void;
 }
 
 export type InvestigationStore = InvestigationStoreState & InvestigationStoreActions;
@@ -57,6 +61,7 @@ export const useInvestigationStore = create<InvestigationStore>(set => ({
   hypothesesMap: {},
   ideaImpacts: {},
   projectionTarget: null,
+  expandedHypothesisId: null,
 
   // Actions
   syncHypotheses: (hypotheses: Hypothesis[]) => set({ hypotheses }),
@@ -64,4 +69,5 @@ export const useInvestigationStore = create<InvestigationStore>(set => ({
   syncIdeaImpacts: (impacts: Record<string, IdeaImpact | undefined>) =>
     set({ ideaImpacts: impacts }),
   setProjectionTarget: (target: ProjectionTarget | null) => set({ projectionTarget: target }),
+  expandToHypothesis: id => set({ expandedHypothesisId: id }),
 }));

@@ -30,6 +30,8 @@ interface FindingsStoreState {
   highlightedFindingId: string | null;
   /** Findings grouped by source chart type (derived from findings) */
   chartFindings: ChartFindings;
+  /** Active status filter for the findings list (null = show all) */
+  statusFilter: string | null;
 }
 
 // ── Actions ─────────────────────────────────────────────────────────────────
@@ -43,6 +45,8 @@ interface FindingsStoreActions {
   syncFindings: (findings: Finding[]) => void;
   /** Set the highlighted finding ID (for scroll-to animation) */
   setHighlightedFindingId: (id: string | null) => void;
+  /** Set the status filter for the findings list (null = show all) */
+  setStatusFilter: (status: string | null) => void;
 }
 
 export type FindingsStore = FindingsStoreState & FindingsStoreActions;
@@ -54,6 +58,7 @@ export const useFindingsStore = create<FindingsStore>((set, get) => ({
   findings: [],
   highlightedFindingId: null,
   chartFindings: { boxplot: [], pareto: [], ichart: [] },
+  statusFilter: null,
 
   // Actions
   syncFindings: (findings: Finding[]) => {
@@ -65,4 +70,5 @@ export const useFindingsStore = create<FindingsStore>((set, get) => ({
   },
 
   setHighlightedFindingId: (id: string | null) => set({ highlightedFindingId: id }),
+  setStatusFilter: status => set({ statusFilter: status }),
 }));

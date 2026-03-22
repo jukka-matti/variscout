@@ -4,6 +4,7 @@ import { usePanelsStore } from '../panelsStore';
 /** Reset store to defaults before each test. */
 beforeEach(() => {
   usePanelsStore.setState({
+    activeView: 'editor',
     isDataPanelOpen: false,
     isDataTableOpen: false,
     isFindingsOpen: false,
@@ -14,6 +15,7 @@ beforeEach(() => {
     isReportOpen: false,
     highlightRowIndex: null,
     highlightedChartPoint: null,
+    pendingChartFocus: null,
   });
 });
 
@@ -338,6 +340,42 @@ describe('panelsStore', () => {
       usePanelsStore.setState({ isWhatIfOpen: true });
       usePanelsStore.getState().initFromViewState(undefined);
       expect(usePanelsStore.getState().isWhatIfOpen).toBe(false);
+    });
+  });
+
+  describe('activeView (dashboard/editor)', () => {
+    it('defaults to editor', () => {
+      expect(usePanelsStore.getState().activeView).toBe('editor');
+    });
+
+    it('showDashboard sets activeView to dashboard', () => {
+      usePanelsStore.getState().showDashboard();
+      expect(usePanelsStore.getState().activeView).toBe('dashboard');
+    });
+
+    it('showEditor sets activeView to editor', () => {
+      usePanelsStore.getState().showDashboard();
+      usePanelsStore.getState().showEditor();
+      expect(usePanelsStore.getState().activeView).toBe('editor');
+    });
+
+    it('showDashboard closes report and presentation', () => {
+      usePanelsStore.setState({ isReportOpen: true, isPresentationMode: true });
+      usePanelsStore.getState().showDashboard();
+      const s = usePanelsStore.getState();
+      expect(s.activeView).toBe('dashboard');
+      expect(s.isReportOpen).toBe(false);
+      expect(s.isPresentationMode).toBe(false);
+    });
+
+    it('initFromViewState restores activeView', () => {
+      usePanelsStore.getState().initFromViewState({ activeView: 'dashboard' });
+      expect(usePanelsStore.getState().activeView).toBe('dashboard');
+    });
+
+    it('initFromViewState defaults to editor when activeView missing', () => {
+      usePanelsStore.getState().initFromViewState({});
+      expect(usePanelsStore.getState().activeView).toBe('editor');
     });
   });
 });

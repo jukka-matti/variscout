@@ -85,6 +85,7 @@ When converging with supported hypotheses that have improvement ideas, the promp
 | -------------------- | ----------- | ---------- | ----------------------------------------------------------------- |
 | NarrativeBar         | ~2K tokens  | fast       | `'none'`                                                          |
 | ChartInsightChip     | ~1K tokens  | fast       | `'none'`                                                          |
+| Dashboard summary    | ~2K tokens  | fast       | `'none'`                                                          |
 | CoScout conversation | ~8K tokens  | reasoning  | Per-phase: FRAME→none, SCOUT→low, INVESTIGATE→medium, IMPROVE→low |
 
 Budget is managed by:
@@ -110,12 +111,13 @@ This means the first ~950 tokens of every CoScout request are served from cache 
 
 All Responses API requests include a `prompt_cache_key` for explicit server-side system prompt caching:
 
-| Feature        | Cache Key             | Tier      |
-| -------------- | --------------------- | --------- |
-| Narration      | `variscout-narration` | fast      |
-| Chart Insights | `variscout-chip`      | fast      |
-| CoScout        | `variscout-coscout`   | reasoning |
-| Report         | `variscout-report`    | reasoning |
+| Feature           | Cache Key             | Tier      | Cache Invalidation                                                                                                                    |
+| ----------------- | --------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Narration         | `variscout-narration` | fast      | 24h TTL or data change                                                                                                                |
+| Chart Insights    | `variscout-chip`      | fast      | 24h TTL or data change                                                                                                                |
+| CoScout           | `variscout-coscout`   | reasoning | No caching (conversational)                                                                                                           |
+| Report            | `variscout-report`    | reasoning | 24h TTL or data change                                                                                                                |
+| Dashboard summary | `variscout-dashboard` | fast      | State-aware: hash of `findingCount + hypothesisStatusCounts + actionCompletionCount`. Refreshes on dashboard return if state changed. |
 
 ### System Prompt Token Threshold Verification
 

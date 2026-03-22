@@ -47,6 +47,8 @@ import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 import { EditorModals } from '../components/editor/EditorModals';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
+import ProjectDashboard from '../components/ProjectDashboard';
+import { useAIStore } from '../features/ai/aiStore';
 
 const WhatIfPage = lazy(() => import('../components/WhatIfPage'));
 
@@ -174,6 +176,7 @@ export const Editor: React.FC<EditorProps> = ({
   );
 
   // Panel visibility and chart/table sync (Zustand store)
+  const activeView = usePanelsStore(s => s.activeView);
   const isFindingsOpen = usePanelsStore(s => s.isFindingsOpen);
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
@@ -191,6 +194,16 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Side effects: persistence + highlight timeout
   usePanelsSideEffects(handleViewStateChange);
+
+  // Consume pendingChartFocus from panelsStore (set by navigate_to tool handler)
+  const pendingChartFocus = usePanelsStore(s => s.pendingChartFocus);
+  useEffect(() => {
+    if (!pendingChartFocus) return;
+    handleViewStateChange({
+      focusedChart: pendingChartFocus as 'ichart' | 'boxplot' | 'pareto' | null,
+    });
+    usePanelsStore.getState().setPendingChartFocus(null);
+  }, [pendingChartFocus, handleViewStateChange]);
 
   // Phone: data panel opens DataTableModal instead of inline panel
   const handleDataPanelToggle = useCallback(() => {
@@ -384,6 +397,38 @@ export const Editor: React.FC<EditorProps> = ({
   const baseUrl = window.location.origin + window.location.pathname;
   const projectName = currentProjectName || 'New Analysis';
 
+  // Dashboard → Editor navigation handler
+  const handleDashboardNavigate = useCallback((target: string, targetId?: string) => {
+    usePanelsStore.getState().showEditor();
+    if (target === 'finding' && targetId) {
+      usePanelsStore.getState().setFindingsOpen(true);
+      useFindingsStore.getState().setHighlightedFindingId(targetId);
+    } else if (target === 'findings' && targetId) {
+      // Navigate to findings filtered by status
+      usePanelsStore.getState().setFindingsOpen(true);
+      useFindingsStore.getState().setStatusFilter(targetId);
+    } else if (target === 'hypothesis' && targetId) {
+      usePanelsStore.getState().setFindingsOpen(true);
+      useInvestigationStore.getState().expandToHypothesis(targetId);
+    } else if (target === 'improvement' || target === 'actions') {
+      usePanelsStore.getState().setImprovementOpen(true);
+    } else if (target === 'report') {
+      usePanelsStore.getState().openReport();
+    } else if (target === 'coscout') {
+      // Pending question is already set in aiStore by ProjectDashboard
+      usePanelsStore.getState().setCoScoutOpen(true);
+    }
+  }, []);
+
+  const handleDashboardAddData = useCallback(() => {
+    usePanelsStore.getState().showEditor();
+    dataFlow.startAppendPaste();
+  }, [dataFlow]);
+
+  const handleDashboardResumeAnalysis = useCallback(() => {
+    usePanelsStore.getState().showEditor();
+  }, []);
+
   // Share handlers
   const { shareFinding, canMentionInChannel } = useShareFinding({ projectName, baseUrl });
 
@@ -445,6 +490,7 @@ export const Editor: React.FC<EditorProps> = ({
   });
 
   // Deep link: auto-open findings panel and highlight target finding (one-shot)
+  // Also set activeView to 'dashboard' on project load unless deep-linked
   const deepLinkConsumedRef = React.useRef(false);
   useEffect(() => {
     if (deepLinkConsumedRef.current || !rawData.length || !outcome) return;
@@ -460,6 +506,16 @@ export const Editor: React.FC<EditorProps> = ({
     if (initialFindingId || initialChart) {
       const cleanUrl = window.location.origin + window.location.pathname;
       window.history.replaceState({}, '', cleanUrl);
+      // Deep-linked: stay in editor view
+      usePanelsStore.getState().showEditor();
+    } else if (projectId) {
+      // Project loaded with data, no deep link: honor persisted view or default to dashboard
+      const persistedView = viewState?.activeView;
+      if (persistedView === 'editor') {
+        usePanelsStore.getState().showEditor();
+      } else {
+        usePanelsStore.getState().showDashboard();
+      }
     }
     deepLinkConsumedRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -679,6 +735,17 @@ export const Editor: React.FC<EditorProps> = ({
     stats,
     filteredDataLength: filteredData.length,
   });
+
+  // Auto-send pending dashboard question to CoScout when panel opens
+  useEffect(() => {
+    if (!isCoScoutOpen) return;
+    const pendingQ = useAIStore.getState().pendingDashboardQuestion;
+    if (pendingQ) {
+      useAIStore.getState().setPendingDashboardQuestion(null);
+      // Send the question via CoScout's send function
+      aiOrch.coscout.send(pendingQ);
+    }
+  }, [isCoScoutOpen, aiOrch.coscout]);
 
   // Pass categories and brief from ColumnMapping into DataContext
   const handleMappingConfirmWithCategories = useCallback(
@@ -994,38 +1061,78 @@ export const Editor: React.FC<EditorProps> = ({
             onSharePointFileImport={handleSharePointFileImport}
           />
         ) : outcome ? (
-          <EditorDashboardView
-            dataFlow={dataFlow}
-            filterNav={filterNav}
-            viewState={viewState ?? undefined}
-            onViewStateChange={handleViewStateChange}
-            findingsState={findingsState}
-            findingsCallbacks={findingsCallbacks}
-            handlePinFinding={handlePinFinding}
-            handleRestoreFinding={handleRestoreFinding}
-            handleNavigateToChart={handleNavigateToChart}
-            handleShareFinding={handleShareFinding}
-            handleOpenFindingsPopout={handleOpenFindingsPopout}
-            handleSetFindingStatus={handleSetFindingStatus}
-            drillPath={drillPath}
-            hypothesesState={hypothesesState}
-            handleCreateHypothesis={handleCreateHypothesis}
-            handleProjectIdea={handleProjectIdea}
-            handleAddCommentWithAuthor={handleAddCommentWithAuthor}
-            handleAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
-            handleCaptureFromTeams={
-              hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined
-            }
-            isTeamsCamera={isTeamsCamera}
-            aiOrch={aiOrch}
-            actionProposalsState={actionProposalsState}
-            handleSearchKnowledge={handleSearchKnowledge}
-            handleShareChart={handleShareChart}
-            controlViolations={controlViolations}
-            excludedRowIndices={excludedRowIndices}
-            excludedReasons={excludedReasons}
-            columnAliases={columnAliases}
-          />
+          <>
+            {/* Overview / Analysis tab bar */}
+            <div className="flex border-b border-edge flex-shrink-0" data-testid="view-toggle">
+              <button
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeView === 'dashboard'
+                    ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'text-content-secondary hover:text-content'
+                }`}
+                onClick={() => usePanelsStore.getState().showDashboard()}
+                data-testid="view-toggle-overview"
+              >
+                Overview
+              </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeView === 'editor'
+                    ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'text-content-secondary hover:text-content'
+                }`}
+                onClick={() => usePanelsStore.getState().showEditor()}
+                data-testid="view-toggle-analysis"
+              >
+                Analysis
+              </button>
+            </div>
+
+            {/* View content */}
+            {activeView === 'dashboard' ? (
+              <div className="flex-1 overflow-y-auto">
+                <ProjectDashboard
+                  projectName={currentProjectName ?? 'Untitled'}
+                  onNavigate={handleDashboardNavigate}
+                  onAddData={handleDashboardAddData}
+                  onResumeAnalysis={handleDashboardResumeAnalysis}
+                />
+              </div>
+            ) : (
+              <EditorDashboardView
+                dataFlow={dataFlow}
+                filterNav={filterNav}
+                viewState={viewState ?? undefined}
+                onViewStateChange={handleViewStateChange}
+                findingsState={findingsState}
+                findingsCallbacks={findingsCallbacks}
+                handlePinFinding={handlePinFinding}
+                handleRestoreFinding={handleRestoreFinding}
+                handleNavigateToChart={handleNavigateToChart}
+                handleShareFinding={handleShareFinding}
+                handleOpenFindingsPopout={handleOpenFindingsPopout}
+                handleSetFindingStatus={handleSetFindingStatus}
+                drillPath={drillPath}
+                hypothesesState={hypothesesState}
+                handleCreateHypothesis={handleCreateHypothesis}
+                handleProjectIdea={handleProjectIdea}
+                handleAddCommentWithAuthor={handleAddCommentWithAuthor}
+                handleAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
+                handleCaptureFromTeams={
+                  hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined
+                }
+                isTeamsCamera={isTeamsCamera}
+                aiOrch={aiOrch}
+                actionProposalsState={actionProposalsState}
+                handleSearchKnowledge={handleSearchKnowledge}
+                handleShareChart={handleShareChart}
+                controlViolations={controlViolations}
+                excludedRowIndices={excludedRowIndices}
+                excludedReasons={excludedReasons}
+                columnAliases={columnAliases}
+              />
+            )}
+          </>
         ) : (
           <ColumnMapping
             columnAnalysis={dataFlow.mappingColumnAnalysis}

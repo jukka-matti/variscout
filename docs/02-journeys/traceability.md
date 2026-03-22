@@ -57,13 +57,20 @@ Referral → self-serve evaluation → deployment.
 
 ### Flow 5: Return Visitor
 
-Bookmark/history → resume work.
+Bookmark/history → resume work. Azure users land on the Project Dashboard; PWA users resume the session directly.
 
-| Step                 | Action                       | Package                            | Key Components                     |
-| -------------------- | ---------------------------- | ---------------------------------- | ---------------------------------- |
-| 1. Auto-authenticate | SSO session cookie           | `apps/azure/src/auth`              | `easyAuth.ts`, `getEasyAuthUser()` |
-| 2. Restore analysis  | Load from IndexedDB/OneDrive | `@variscout/hooks`                 | `useProjectPersistence`            |
-| 3. Hit PWA ceiling   | See upgrade prompt           | `@variscout/ui`, `@variscout/core` | `UpgradePrompt`, `tier.ts`         |
+| Step                   | Action                                           | Package                            | Key Components                                              |
+| ---------------------- | ------------------------------------------------ | ---------------------------------- | ----------------------------------------------------------- |
+| 1. Auto-authenticate   | SSO session cookie                               | `apps/azure/src/auth`              | `easyAuth.ts`, `getEasyAuthUser()`                          |
+| 2. Restore analysis    | Load from IndexedDB/OneDrive                     | `@variscout/hooks`                 | `useProjectPersistence`                                     |
+| 3. Land on Dashboard   | Project Dashboard loads (Azure only)             | `apps/azure/src/components`        | `ProjectDashboard`, `panelsStore.activeView`                |
+| 4. Scan project status | Review findings, hypotheses, actions at a glance | `apps/azure/src/components`        | `ProjectStatusCard`, `DashboardSummaryCard`                 |
+| 5a. Continue analysis  | Click "Go to analysis" or "Overview" tab         | `apps/azure/src/features/panels`   | `panelsStore.showEditor()`                                  |
+| 5b. Ask CoScout        | Type question in quick-ask input                 | `apps/azure/src/features/ai`       | `aiStore.setPendingDashboardQuestion()`, `CoScoutPanelBase` |
+| 5c. Add new data       | Click "Add new data batch"                       | `apps/azure/src/hooks`             | `useEditorDataFlow`                                         |
+| 6. Hit PWA ceiling     | See upgrade prompt (PWA only)                    | `@variscout/ui`, `@variscout/core` | `UpgradePrompt`, `tier.ts`                                  |
+
+> **Deep link bypass:** Teams task links or URLs with `?finding=<id>` / `?chart=<type>` skip the dashboard and land in the Editor at the target directly. See [project-reopen.md](flows/project-reopen.md) for the full flow.
 
 ### Flow 6: Azure First Analysis
 
@@ -82,20 +89,22 @@ First login → first saved analysis (activation).
 
 ### Flow 7: Azure Daily Use
 
-Repeat analysis, Performance Mode, investigation, exports.
+Open saved project → dashboard → analysis. Repeat analysis, Performance Mode, investigation, exports.
 
-| Step                   | Action                             | Package                              | Key Components                                                 |
-| ---------------------- | ---------------------------------- | ------------------------------------ | -------------------------------------------------------------- |
-| 1. Open saved analysis | Load from list                     | `@variscout/hooks`                   | `useProjectPersistence`                                        |
-| 2. Quick check         | Scan I-Chart + Stats               | `@variscout/charts`, `@variscout/ui` | `IChart`, `StatsPanelBase`                                     |
-| 3. AI narration        | Read NarrativeBar summary          | `@variscout/hooks`, `@variscout/ui`  | `useNarration`, `NarrativeBar`                                 |
-| 4. Drill with AI hints | Follow ChartInsightChip suggestion | `@variscout/hooks`, `@variscout/ui`  | `useChartInsights`, `ChartInsightChip`                         |
-| 5. Ask CoScout         | Open panel, ask question           | `@variscout/hooks`, `@variscout/ui`  | `useAICoScout`, `CoScoutPanelBase`                             |
-| 6. Performance Mode    | Multi-channel analysis             | `@variscout/charts`                  | `PerformanceIChart`, `PerformancePareto`, `PerformanceBoxplot` |
-| 7. Investigate         | Finding → hypothesis → action      | `@variscout/hooks`, `@variscout/ui`  | `useFindings`, `useHypotheses`, `InvestigationSidebar`         |
-| 8. What-If             | Simulate improvement               | `@variscout/ui`                      | `WhatIfSimulator`                                              |
-| 9. Verify              | Staged analysis, Cpk comparison    | `@variscout/ui`, `@variscout/hooks`  | `StagedComparisonCard`, `useVerificationCharts`                |
-| 10. Export             | Copy chart, download, report       | `@variscout/hooks`, `@variscout/ui`  | `useChartCopy`, `ChartDownloadMenu`, `ReportViewBase`          |
+| Step                      | Action                             | Package                              | Key Components                                                  |
+| ------------------------- | ---------------------------------- | ------------------------------------ | --------------------------------------------------------------- |
+| 1. Open saved analysis    | Load from list                     | `@variscout/hooks`                   | `useProjectPersistence`                                         |
+| 1a. Dashboard orientation | Scan findings/hypotheses/actions   | `apps/azure/src/components`          | `ProjectDashboard`, `ProjectStatusCard`, `DashboardSummaryCard` |
+| 1b. Switch to Editor      | "Go to analysis" or tab click      | `apps/azure/src/features/panels`     | `panelsStore.showEditor()`                                      |
+| 2. Quick check            | Scan I-Chart + Stats               | `@variscout/charts`, `@variscout/ui` | `IChart`, `StatsPanelBase`                                      |
+| 3. AI narration           | Read NarrativeBar summary          | `@variscout/hooks`, `@variscout/ui`  | `useNarration`, `NarrativeBar`                                  |
+| 4. Drill with AI hints    | Follow ChartInsightChip suggestion | `@variscout/hooks`, `@variscout/ui`  | `useChartInsights`, `ChartInsightChip`                          |
+| 5. Ask CoScout            | Open panel, ask question           | `@variscout/hooks`, `@variscout/ui`  | `useAICoScout`, `CoScoutPanelBase`                              |
+| 6. Performance Mode       | Multi-channel analysis             | `@variscout/charts`                  | `PerformanceIChart`, `PerformancePareto`, `PerformanceBoxplot`  |
+| 7. Investigate            | Finding → hypothesis → action      | `@variscout/hooks`, `@variscout/ui`  | `useFindings`, `useHypotheses`, `InvestigationSidebar`          |
+| 8. What-If                | Simulate improvement               | `@variscout/ui`                      | `WhatIfSimulator`                                               |
+| 9. Verify                 | Staged analysis, Cpk comparison    | `@variscout/ui`, `@variscout/hooks`  | `StagedComparisonCard`, `useVerificationCharts`                 |
+| 10. Export                | Copy chart, download, report       | `@variscout/hooks`, `@variscout/ui`  | `useChartCopy`, `ChartDownloadMenu`, `ReportViewBase`           |
 
 ### Flow 8: Azure Team Collaboration
 

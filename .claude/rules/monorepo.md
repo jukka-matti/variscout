@@ -86,6 +86,10 @@ apps/
 │              #     ai/ - AI/CoScout feature wiring + aiStore
 │              #     data-flow/ - Data pipeline orchestration
 │              #     panels/ - panelsStore (panel visibility & layout)
+│              #   components/ - Azure-only app components:
+│              #     ProjectDashboard - Full project overview view (peer to Editor)
+│              #     ProjectStatusCard - Status summary (findings, hypotheses, actions)
+│              #     DashboardSummaryCard - AI summary card + quick-ask input
 └── website/      # @variscout/website - Marketing website (Astro + React Islands)
 ```
 

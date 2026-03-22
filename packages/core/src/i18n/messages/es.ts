@@ -271,6 +271,7 @@ export const es: MessageCatalog = {
   'ai.tool.publishReport': 'Publicar informe',
   'ai.tool.notifyOwners': 'Notificar a responsables',
   'ai.tool.suggestIdea': 'Sugerir idea de mejora',
+  'ai.tool.navigateTo': 'Navigate to',
 
   // Report
   'report.kpi.inSpec': 'Dentro de espec.',

@@ -309,7 +309,55 @@ Escape priority is handled by `useAppPanels` — it dismisses panels in reverse-
 
 ---
 
-## 8. Analysis Modes
+## 8. Dashboard ↔ Editor Navigation (Azure)
+
+For saved Azure projects with data, the project shell contains two peer views: **Project Dashboard** (Overview tab) and **analysis Editor** (Analysis tab). Navigation between them is controlled by `panelsStore.activeView`.
+
+```
+Project Shell
+├── Overview tab  → activeView: 'dashboard' → ProjectDashboard component
+└── Analysis tab  → activeView: 'editor'   → Editor component (full analysis view)
+```
+
+### Entry rules
+
+| Situation                          | Landing view     | Mechanism                                                      |
+| ---------------------------------- | ---------------- | -------------------------------------------------------------- |
+| Open saved project with data       | Dashboard        | `loadProject()` sets `activeView: 'dashboard'`                 |
+| New project (no data)              | Editor (FRAME)   | Skip dashboard — no data to summarize                          |
+| Deep link (`?finding=`, `?chart=`) | Editor at target | `activeView: 'editor'` set before render                       |
+| User clicks "Overview" tab         | Dashboard        | `panelsStore.showDashboard()`                                  |
+| User clicks "Analysis" tab         | Editor           | `panelsStore.showEditor()`                                     |
+| User clicks any dashboard item     | Editor (focused) | Dashboard item calls `panelsStore.showEditor()` + panel action |
+
+### Dashboard quick actions → Editor
+
+Each clickable item on the dashboard navigates to the Editor with a pre-configured view:
+
+| Dashboard item           | Editor destination                                                        |
+| ------------------------ | ------------------------------------------------------------------------- |
+| "Go to analysis" button  | Current `ViewState` (last focused chart, active filters)                  |
+| Findings count by status | Findings panel open, `findingsStore.statusFilter` set                     |
+| Hypothesis tree row      | Investigation sidebar open, `investigationStore.expandedHypothesisId` set |
+| Action progress bar      | Improvement workspace open                                                |
+| "Add new data batch"     | Editor in data append flow (`useEditorDataFlow`)                          |
+| "View report"            | Report view open                                                          |
+
+### CoScout navigate_to tool
+
+CoScout's `navigate_to` tool (ADR-042) extends dashboard navigation into conversation:
+
+- `navigate_to({target: 'dashboard'})` — Switches to the Project Dashboard from anywhere
+- `navigate_to({target: 'finding', target_id: '...'})` — Auto-executes: opens findings panel, switches to Editor
+- `navigate_to({target: 'finding', target_id: '...', restore_filters: true})` — Shows proposal card (filter mutation requires confirmation)
+
+### Persistence
+
+`activeView` is included in `ViewState` and restored on project reopen. If a user was on the dashboard when they last saved, they return to the dashboard.
+
+---
+
+## 9. Analysis Modes
 
 The dashboard supports three mutually exclusive analysis modes, each with its own 4-slot chart layout:
 
@@ -323,7 +371,7 @@ Mode is set via `analysisMode` in DataContext (`'standard' | 'performance' | 'ya
 
 ---
 
-## 9. Future: Unified Navigation Hook
+## 10. Future: Unified Navigation Hook
 
 The `feature/navigation-architecture` branch (preserved as reference) prototypes a `useNavigation` hook that would unify view management:
 
@@ -354,7 +402,7 @@ This is **designed but not implemented** on main. The branch code is 38+ commits
 
 ---
 
-## 10. See Also
+## 11. See Also
 
 - [Journey Phase → Screen Mapping](../../05-technical/architecture/journey-phase-screen-mapping.md) — phase-to-component-to-tier mapping
 - [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) — conceptual navigation layers

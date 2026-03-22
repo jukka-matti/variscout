@@ -426,7 +426,12 @@ export {
   ConversationHistory,
   buildCoScoutTools,
   getCoScoutReasoningEffort,
+  buildDashboardSummaryPrompt,
 } from './ai';
+
+// AI (Project Search — ADR-042)
+export { searchProjectArtifacts } from './ai';
+export type { SearchProjectOptions, SearchResult } from './ai';
 
 // Category keyword matching and inference
 export {

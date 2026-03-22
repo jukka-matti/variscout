@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { Editor } from '../Editor';
 import * as DataContextModule from '../../context/DataContext';
 import * as StorageModule from '../../services/storage';
+import { usePanelsStore } from '../../features/panels/panelsStore';
 
 // ── Mock child components ──
 
@@ -39,6 +40,10 @@ vi.mock('../../components/data/PasteScreen', () => ({
 
 vi.mock('../../components/WhatIfPage', () => ({
   default: () => <div data-testid="what-if-page">WhatIfPage</div>,
+}));
+
+vi.mock('../../components/ProjectDashboard', () => ({
+  default: () => <div data-testid="project-dashboard-mock">ProjectDashboard</div>,
 }));
 
 // ── Mock @variscout/core ──
@@ -263,6 +268,9 @@ describe('Editor', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
 
+    // Reset panelsStore activeView to default state
+    usePanelsStore.setState({ activeView: 'editor' });
+
     // Re-apply storage mock after restoreAllMocks
     vi.mocked(StorageModule.useStorage).mockReturnValue({
       saveProject: vi.fn(),
@@ -371,13 +379,29 @@ describe('Editor', () => {
     expect(screen.getByTestId('column-mapping')).toBeInTheDocument();
   });
 
-  it('shows Dashboard when data is loaded and outcome selected', () => {
+  it('shows project dashboard overview when data is loaded with projectId', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       filteredData: [{ Weight: 10, Machine: 'A' }],
       outcome: 'Weight',
       factors: ['Machine'],
     });
+
+    // With projectId, loads into dashboard (overview) view first
+    expect(screen.getByTestId('project-dashboard-mock')).toBeInTheDocument();
+    expect(screen.getByTestId('view-toggle')).toBeInTheDocument();
+  });
+
+  it('shows analysis view when Analysis tab is clicked', () => {
+    renderEditor({
+      rawData: [{ Weight: 10, Machine: 'A' }],
+      filteredData: [{ Weight: 10, Machine: 'A' }],
+      outcome: 'Weight',
+      factors: ['Machine'],
+    });
+
+    // Click "Analysis" tab to switch to editor view
+    fireEvent.click(screen.getByTestId('view-toggle-analysis'));
 
     expect(screen.getByTestId('dashboard')).toBeInTheDocument();
   });

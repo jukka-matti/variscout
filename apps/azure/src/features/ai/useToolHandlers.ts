@@ -25,8 +25,12 @@ import {
   hashFilterStack,
   generateProposalId,
   formatKnowledgeContext,
+  searchProjectArtifacts,
 } from '@variscout/core';
 import type { UseKnowledgeSearchReturn } from '@variscout/hooks';
+import { usePanelsStore } from '../panels/panelsStore';
+import { useFindingsStore } from '../findings/findingsStore';
+import { useInvestigationStore } from '../investigation/investigationStore';
 
 export interface UseToolHandlersOptions {
   aiAvailable: boolean;
@@ -356,6 +360,95 @@ export function useToolHandlers({
           editableText: text,
         };
         return JSON.stringify({ proposal: true, ...proposal });
+      },
+
+      // ── Read Tools (continued) ─────────────────────────────────────
+      search_project: async (args: Record<string, unknown>) => {
+        const results = searchProjectArtifacts({
+          query: (args.query as string) ?? '',
+          findings,
+          hypotheses,
+          artifactType: args.artifact_type as string as
+            | 'finding'
+            | 'hypothesis'
+            | 'idea'
+            | 'action'
+            | 'all'
+            | undefined,
+          findingStatus: (args.finding_status as string) ?? 'any',
+          hypothesisStatus: (args.hypothesis_status as string) ?? 'any',
+        });
+        return JSON.stringify({ results });
+      },
+
+      // ── Navigation Tool (hybrid: auto-execute or proposal) ─────────
+      navigate_to: async (args: Record<string, unknown>) => {
+        const target = args.target as string;
+        const targetId = (args.target_id as string) || undefined;
+        const restoreFilters = (args.restore_filters as boolean) ?? false;
+        const chartType = args.chart_type as string;
+        const factor = (args.factor as string) || undefined;
+
+        if (restoreFilters && targetId) {
+          // Return as proposal for user confirmation (filter restoration mutates state)
+          const targetFinding = findings.find(f => f.id === targetId);
+          const proposal: ActionProposal = {
+            id: generateProposalId(),
+            tool: 'navigate_to',
+            params: { target, target_id: targetId, restore_filters: true, factor },
+            preview: {
+              findingText: targetFinding?.text,
+              target,
+              targetId,
+            },
+            status: 'pending',
+            filterStackHash: hashFilterStack(filterStack),
+            timestamp: Date.now(),
+          };
+          return JSON.stringify({ proposal: true, ...proposal });
+        }
+
+        // Auto-execute navigation
+        const panels = usePanelsStore.getState();
+
+        switch (target) {
+          case 'dashboard':
+            panels.showDashboard();
+            return JSON.stringify({ navigated: 'dashboard' });
+          case 'finding':
+            panels.showEditor();
+            panels.setFindingsOpen(true);
+            if (targetId) {
+              useFindingsStore.getState().setHighlightedFindingId(targetId);
+            }
+            return JSON.stringify({ navigated: 'finding', id: targetId });
+          case 'hypothesis':
+            panels.showEditor();
+            panels.setFindingsOpen(true);
+            if (targetId) {
+              useInvestigationStore.getState().expandToHypothesis(targetId);
+            }
+            return JSON.stringify({ navigated: 'hypothesis', id: targetId });
+          case 'chart':
+            panels.showEditor();
+            if (chartType && chartType !== 'none') {
+              panels.setPendingChartFocus(chartType);
+            }
+            return JSON.stringify({
+              navigated: 'chart',
+              type: chartType !== 'none' ? chartType : undefined,
+            });
+          case 'improvement_workspace':
+            panels.showEditor();
+            panels.setImprovementOpen(true);
+            return JSON.stringify({ navigated: 'improvement_workspace' });
+          case 'report':
+            panels.showEditor();
+            panels.openReport();
+            return JSON.stringify({ navigated: 'report' });
+          default:
+            return JSON.stringify({ error: `Unknown target: ${target}` });
+        }
       },
     };
 

@@ -3,6 +3,7 @@ import { create } from 'zustand';
 // ── State ────────────────────────────────────────────────────────────────────
 
 interface PanelsState {
+  activeView: 'dashboard' | 'editor';
   isDataPanelOpen: boolean;
   isDataTableOpen: boolean;
   isFindingsOpen: boolean;
@@ -13,11 +14,15 @@ interface PanelsState {
   isReportOpen: boolean;
   highlightRowIndex: number | null;
   highlightedChartPoint: number | null;
+  /** Set by navigate_to tool; consumed by Editor to focus a chart via ViewState. */
+  pendingChartFocus: string | null;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
 
 interface PanelsActions {
+  showDashboard: () => void;
+  showEditor: () => void;
   openDataPanel: () => void;
   closeDataPanel: () => void;
   toggleDataPanel: () => void;
@@ -37,9 +42,11 @@ interface PanelsActions {
   setHighlightPoint: (index: number | null) => void;
   handlePointClick: (index: number) => void;
   handleRowClick: (index: number) => void;
+  setPendingChartFocus: (chart: string | null) => void;
   /** Initialize persisted panel state from a saved ViewState. */
   initFromViewState: (
     viewState?: {
+      activeView?: 'dashboard' | 'editor';
       isFindingsOpen?: boolean;
       isWhatIfOpen?: boolean;
       isImprovementOpen?: boolean;
@@ -53,6 +60,7 @@ export type PanelsStore = PanelsState & PanelsActions;
 
 export const usePanelsStore = create<PanelsStore>(set => ({
   // Initial state
+  activeView: 'editor',
   isDataPanelOpen: false,
   isDataTableOpen: false,
   isFindingsOpen: false,
@@ -63,6 +71,19 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   isReportOpen: false,
   highlightRowIndex: null,
   highlightedChartPoint: null,
+  pendingChartFocus: null,
+
+  // Dashboard/editor view toggle
+  showDashboard: () =>
+    set(() => ({
+      activeView: 'dashboard',
+      isReportOpen: false,
+      isPresentationMode: false,
+    })),
+  showEditor: () =>
+    set(() => ({
+      activeView: 'editor',
+    })),
 
   // Data panel
   openDataPanel: () => set({ isDataPanelOpen: true }),
@@ -132,9 +153,13 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   // Compound: row click → highlight chart point
   handleRowClick: index => set({ highlightedChartPoint: index }),
 
+  // Pending chart focus (consumed by Editor to set focusedChart in ViewState)
+  setPendingChartFocus: chart => set({ pendingChartFocus: chart }),
+
   // ViewState initialization
   initFromViewState: viewState =>
     set({
+      activeView: viewState?.activeView ?? 'editor',
       isFindingsOpen: viewState?.isFindingsOpen ?? false,
       isWhatIfOpen: viewState?.isWhatIfOpen ?? false,
       isImprovementOpen: viewState?.isImprovementOpen ?? false,

@@ -269,6 +269,7 @@ export const vi: MessageCatalog = {
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
   'ai.tool.suggestIdea': 'Suggest improvement idea',
+  'ai.tool.navigateTo': 'Navigate to',
 
   // Report
   'report.kpi.inSpec': 'In Spec',

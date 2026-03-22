@@ -1358,9 +1358,9 @@ describe('buildCoScoutTools', () => {
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
   });
 
-  it('never exceeds 15 tools (IMPROVE + Team plan)', () => {
+  it('never exceeds 17 tools (IMPROVE + Team plan)', () => {
     const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
-    expect(tools.length).toBeLessThanOrEqual(15);
+    expect(tools.length).toBeLessThanOrEqual(17);
   });
 
   it('includes suggest_improvement_idea in INVESTIGATE phase tools', () => {

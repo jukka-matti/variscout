@@ -46,7 +46,7 @@ npx ruflo@latest security cve --check        # CVE check
 | docs/04-cases/          | 8 case studies with demo data                                         |
 | docs/05-technical/      | Architecture, implementation, integrations                            |
 | docs/06-design-system/  | Colors, typography, components, charts, patterns                      |
-| docs/07-decisions/      | ADR-001 through ADR-041                                               |
+| docs/07-decisions/      | ADR-001 through ADR-042                                               |
 | docs/08-products/       | Azure, PWA, website specs, feature-parity matrix                      |
 | docs/09-tutorials/      | Planned step-by-step guides                                           |
 | docs/superpowers/specs/ | Design specs from brainstorming sessions (see index.md)               |
@@ -94,6 +94,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Navigation / Views         | docs/06-design-system/patterns/navigation.md, apps/pwa/src/hooks/useAppPanels.ts, apps/azure/src/hooks/useEditorPanels.ts                               |
 | Performance / Mobile       | adr-039, docs/05-technical/implementation/system-limits.md, .claude/rules/charts.md                                                                     |
 | State management / Stores  | adr-041, apps/azure/src/features/\*/ (stores co-located per feature)                                                                                    |
+| Project Dashboard / Reopen | adr-042, docs/03-features/workflows/project-dashboard.md, apps/azure/src/components/ProjectDashboard.tsx                                                |
 
 ## Repository Structure
 

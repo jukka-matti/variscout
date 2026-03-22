@@ -39,6 +39,7 @@ export {
   buildReportSystemPrompt,
   buildReportPrompt,
   buildLocaleHint,
+  buildDashboardSummaryPrompt,
 } from './promptTemplates';
 
 // Action Tools (ADR-029)
@@ -103,3 +104,6 @@ export { buildSuggestedQuestions, formatForMobile } from './suggestedQuestions';
 export { getCoScoutReasoningEffort } from './reasoningConfig';
 
 export { djb2Hash } from './hash';
+
+export { searchProjectArtifacts } from './searchProject';
+export type { SearchProjectOptions, SearchResult } from './searchProject';

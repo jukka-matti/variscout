@@ -219,8 +219,8 @@ describe('tool schema strictness', () => {
 
   it('all tools are available in improve phase with team plan', () => {
     const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
-    // 5 read + 4 scout+ + 3 investigate+ + 2 team sharing + 1 improve-only = 15
-    expect(tools.length).toBe(15);
+    // 5 read + 6 scout+ (incl. search_project, navigate_to) + 3 investigate+ + 2 team sharing + 1 improve-only = 17
+    expect(tools.length).toBe(17);
   });
 
   it('non-team plan excludes team-only tools', () => {

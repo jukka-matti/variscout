@@ -28,6 +28,8 @@ export {
   // Reports
   buildReportSystemPrompt,
   buildReportPrompt,
+  // Dashboard Summary
+  buildDashboardSummaryPrompt,
 } from './prompts';
 
 export type {

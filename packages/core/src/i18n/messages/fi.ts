@@ -271,6 +271,7 @@ export const fi: MessageCatalog = {
   'ai.tool.publishReport': 'Julkaise raportti',
   'ai.tool.notifyOwners': 'Ilmoita vastuuhenkilöille',
   'ai.tool.suggestIdea': 'Ehdota parannusideaa',
+  'ai.tool.navigateTo': 'Navigate to',
 
   // Report
   'report.kpi.inSpec': 'Toleranssissa',

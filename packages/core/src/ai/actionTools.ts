@@ -27,7 +27,8 @@ export type ActionToolName =
   | 'suggest_improvement_idea'
   | 'share_finding'
   | 'publish_report'
-  | 'notify_action_owners';
+  | 'notify_action_owners'
+  | 'navigate_to'; // Project dashboard navigation
 
 /** Names of all read tools (auto-execute) */
 export type ReadToolName =
@@ -35,7 +36,8 @@ export type ReadToolName =
   | 'get_statistical_summary'
   | 'suggest_knowledge_search'
   | 'get_available_factors'
-  | 'compare_categories';
+  | 'compare_categories'
+  | 'search_project'; // Project dashboard search
 
 /** All CoScout tool names */
 export type CoScoutToolName = ActionToolName | ReadToolName;

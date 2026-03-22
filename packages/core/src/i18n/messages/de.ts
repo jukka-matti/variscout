@@ -272,6 +272,7 @@ export const de: MessageCatalog = {
   'ai.tool.publishReport': 'Bericht veröffentlichen',
   'ai.tool.notifyOwners': 'Verantwortliche benachrichtigen',
   'ai.tool.suggestIdea': 'Verbesserungsidee vorschlagen',
+  'ai.tool.navigateTo': 'Navigate to',
 
   // Report
   'report.kpi.inSpec': 'Innerhalb Spezifikation',

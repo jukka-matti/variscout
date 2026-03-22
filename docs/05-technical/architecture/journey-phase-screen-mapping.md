@@ -14,7 +14,26 @@ Maps the 4-phase analysis journey (FRAME → SCOUT → INVESTIGATE → IMPROVE) 
 
 ```
 HomeScreen → PasteScreen/ManualEntry → ColumnMapping → Dashboard → [FocusedView, Report, WhatIf]
+
+Azure saved projects: loadProject() → Project Dashboard (activeView: 'dashboard') → Editor
+                      Deep links (Teams, initialFindingId, initialChart) → Editor directly
 ```
+
+## Project Dashboard (Azure-only)
+
+The Project Dashboard is a **peer view** alongside the analysis Editor, available for saved Azure projects that have data. It is the default landing when opening a saved project.
+
+| Field                | Detail                                                                                                   |
+| -------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Navigation model** | `panelsStore.activeView: 'dashboard'                                                                     | 'editor'` — toggled by "Overview" / "Analysis" tab bar in the project shell |
+| **Default landing**  | Set to `'dashboard'` after `loadProject()` for projects with data (unless deep link is present)          |
+| **New projects**     | Skip dashboard; go straight to Editor in FRAME mode (no data yet)                                        |
+| **Deep links**       | Teams task links, `?finding=<id>`, `?chart=<type>` bypass the dashboard and land in Editor at the target |
+| **Persistence**      | `activeView` is included in `ViewState` and restored on project reopen                                   |
+| **Components**       | `ProjectDashboard`, `ProjectStatusCard`, `DashboardSummaryCard` in `apps/azure/src/components/`          |
+| **AI summary**       | Fast tier (gpt-5.4-nano, reasoning: none). State-aware cache key. Hidden when AI unavailable.            |
+
+Store actions: `panelsStore.showDashboard()` / `panelsStore.showEditor()`. See [ADR-042](../../07-decisions/adr-042-project-dashboard.md).
 
 ## Phase Mapping
 

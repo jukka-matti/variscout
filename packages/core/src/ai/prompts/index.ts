@@ -30,3 +30,6 @@ export {
 
 // Report generation prompts
 export { buildReportSystemPrompt, buildReportPrompt } from './reports';
+
+// Dashboard summary prompt
+export { buildDashboardSummaryPrompt } from './dashboardSummary';

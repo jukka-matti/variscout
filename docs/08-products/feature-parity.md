@@ -75,6 +75,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Create Factor**                 |       ✓        |     ✓      |     ✓      | From point selection                                                                                                                                                                                                                                                         |
 | **Focus mode (fullscreen chart)** |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                                                                              |
 | **Presentation Mode**             |       ✓        |     ✓      |     -      | Full-screen grid overview + focused chart view                                                                                                                                                                                                                               |
+| **Project Dashboard**             |       ✓        |     ✓      |     -      | Default landing for saved projects. Status overview (findings by status, hypothesis tree, action progress), AI summary card, quick actions. Deep links bypass to Editor. PWA has no project persistence, so no dashboard.                                                    |
 | **Report View (3 Workspaces)**    |       ✓        |     ✓      |     -      | 3 workspace-aligned report types (Analysis Snapshot, Investigation Report, Improvement Story), audience toggle (Technical/Summary), workspace-colored sections, Cpk Learning Loop.                                                                                           |
 | **Save as PDF (Report)**          |       ✓        |     ✓      |     -      | Print stylesheet + `window.print()` — produces professional PDF from Report View                                                                                                                                                                                             |
 | **Median in Stats Panel**         |       ✓        |     ✓      |     ✓      | Always shown alongside Mean                                                                                                                                                                                                                                                  |
@@ -253,6 +254,7 @@ Features that behave differently on phone (<640px) versus desktop.
 - Add data during analysis (paste/upload append with row/column auto-detection)
 - Presentation mode (full-screen chart overview with focused navigation)
 - Closed-loop investigations: 5-status model (observed → resolved), suspected cause, corrective actions with due dates, outcome assessment with Cpk before/after
+- Project Dashboard: default landing for saved projects with status overview, AI summary card, and quick navigation (PWA has no project persistence)
 
 ### Azure Team Only (vs Standard)
 

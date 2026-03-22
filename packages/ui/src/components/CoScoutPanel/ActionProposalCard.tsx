@@ -10,6 +10,7 @@ import {
   FileUp,
   Bell,
   Lightbulb,
+  Navigation,
 } from 'lucide-react';
 import type { ActionProposal, ActionToolName, ProposalStatus, Locale } from '@variscout/core';
 import { formatStatistic } from '@variscout/core/i18n';
@@ -40,6 +41,7 @@ const TOOL_CONFIG: Record<
   share_finding: { labelKey: 'ai.tool.shareFinding', icon: Share2, editable: false },
   publish_report: { labelKey: 'ai.tool.publishReport', icon: FileUp, editable: false },
   notify_action_owners: { labelKey: 'ai.tool.notifyOwners', icon: Bell, editable: false },
+  navigate_to: { labelKey: 'ai.tool.navigateTo', icon: Navigation, editable: false },
 };
 
 /** Format preview data for display */

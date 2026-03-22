@@ -251,6 +251,7 @@ export const zhHans: MessageCatalog = {
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
   'ai.tool.suggestIdea': 'Suggest improvement idea',
+  'ai.tool.navigateTo': 'Navigate to',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
   'table.page': 'Page {page} of {total}',

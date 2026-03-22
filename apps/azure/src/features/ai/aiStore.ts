@@ -19,6 +19,8 @@ export interface AIContextSummary {
 // ── State ───────────────────────────────────────────────────────────────────
 
 interface AIStoreState {
+  /** Pending question to pre-fill CoScout when navigating from the project dashboard */
+  pendingDashboardQuestion: string | null;
   /** Narration state (text, loading, etc.) */
   narration: Pick<UseNarrationReturn, 'narrative' | 'isLoading' | 'isCached' | 'error'> | null;
   /** CoScout conversation messages */
@@ -67,6 +69,8 @@ interface AIStoreActions {
     isSearching: boolean;
     documents: UseKnowledgeSearchReturn['documents'];
   }) => void;
+  /** Set or clear a pending question to pre-fill CoScout from the project dashboard */
+  setPendingDashboardQuestion: (question: string | null) => void;
 }
 
 export type AIStore = AIStoreState & AIStoreActions;
@@ -75,6 +79,7 @@ export type AIStore = AIStoreState & AIStoreActions;
 
 export const useAIStore = create<AIStore>(set => ({
   // Initial state
+  pendingDashboardQuestion: null,
   narration: null,
   coscoutMessages: [],
   suggestedQuestions: [],
@@ -106,4 +111,5 @@ export const useAIStore = create<AIStore>(set => ({
       knowledgeSearching: state.isSearching,
       knowledgeDocuments: state.documents,
     }),
+  setPendingDashboardQuestion: question => set({ pendingDashboardQuestion: question }),
 }));

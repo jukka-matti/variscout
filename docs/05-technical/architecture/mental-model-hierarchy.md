@@ -17,6 +17,9 @@ VariScout has **one mental model: the journey**. Each phase has its own method. 
 ## The Journey
 
 ```
+Project List → Dashboard (saved projects) → Editor
+             └→ Editor directly (new project or deep link)
+
 FRAME → SCOUT → INVESTIGATE → IMPROVE
 
 FRAME (Blue #3b82f6)
@@ -336,6 +339,32 @@ A future enhancement could allow process document references during FRAME, so th
 The analysis brief captures upfront hypotheses during FRAME. With the AI collaborator model (ADR-027), the upfront hypothesis is referenced by AI during SCOUT ("Your hypothesis about Machine A is supported — it accounts for 47% of variation") and can auto-seed the investigation tree root in INVESTIGATE. This closes the gap between the brief and the tree — the analyst no longer needs to manually re-enter their upfront hypothesis.
 
 ---
+
+## Project Dashboard as Journey Entry Point
+
+For **saved Azure projects**, the journey begins with the **Project Dashboard** rather than directly in the Editor:
+
+```
+Project List
+    ↓ select saved project
+loadProject() [hydrates AnalysisState from IndexedDB/OneDrive]
+    ↓ has data?
+    ├─ Yes (default) → Project Dashboard (activeView: 'dashboard')
+    │                      → user navigates to Editor (any of: tab click, status item click, quick action)
+    └─ No (new project) → Editor in FRAME mode
+         └─ Deep link (Teams, ?finding=, ?chart=) → Editor at target directly (skip dashboard)
+```
+
+The dashboard is not a phase — it is an **orientation layer** before the phase journey begins (or resumes). It shows where the project stands across all phases without requiring the user to enter any specific phase view.
+
+Key behavioral rules:
+
+- **Default landing**: `panelsStore.activeView` set to `'dashboard'` after `loadProject()` when data exists
+- **Deep link bypass**: `initialFindingId`, `initialChart`, or Teams task URLs set `activeView` to `'editor'` directly
+- **Phase detection still runs**: Journey phase (SCOUT/INVESTIGATE/IMPROVE) is detected normally from `AnalysisState`; the dashboard simply reads and displays it without requiring the user to be "in" that phase view
+- **Return mid-session**: User can return to the dashboard from the Editor at any time via the "Overview" tab; AI summary refreshes if project state changed
+
+See [ADR-042](../../07-decisions/adr-042-project-dashboard.md) and [Journey Phase → Screen Mapping](./journey-phase-screen-mapping.md#project-dashboard-azure-only).
 
 ## See Also
 

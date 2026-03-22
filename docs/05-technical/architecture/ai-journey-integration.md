@@ -124,6 +124,27 @@ Plan → Do → Check → Act. AI shifts to action planning and outcome verifica
 
 **Staged verification:** When staged comparison data is present, all AI components switch to verification-specific behavior. See [AIX Design System § Verification Sub-pattern](aix-design-system.md#verification-sub-pattern-improve-phase-with-staged-data).
 
+### Project Dashboard — Cross-Phase AI Touch Point
+
+The **Project Dashboard** (Azure-only) is a persistent overview view that sits outside the standard phase flow. It provides a cross-phase AI summary that works regardless of which journey phase the project is currently in.
+
+| Aspect          | Detail                                                                                                                                        |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **When active** | When user opens a saved project (`activeView: 'dashboard'` in `panelsStore`). Also accessible as "Overview" tab from within the Editor.       |
+| **AI summary**  | 1-3 sentence contextual summary: current investigation status, overdue items, suggested next step. Fast tier (gpt-5.4-nano, reasoning: none). |
+| **Cache key**   | `variscout-dashboard` — state-aware, invalidates when `findingCount`, `hypothesisStatusCounts`, or `actionCompletionCount` changes.           |
+| **No-AI mode**  | Dashboard shows status counts and hypothesis tree without the AI summary card. Left column expands to full width.                             |
+| **Refresh**     | Checks cache staleness when the user returns to the dashboard mid-session — not just on first project load.                                   |
+
+The dashboard also exposes a **"Ask CoScout..." input** which stores the question in `aiStore.pendingDashboardQuestion`, switches to the Editor, and pre-loads the question into the CoScout panel. The CoScout panel auto-calls `search_project` to answer "have we checked X?" questions.
+
+Two new CoScout tools support the dashboard (both available SCOUT+, phase-gated out of FRAME):
+
+- **`search_project`** (Read, auto-execute): Search project artifacts by text + status filters
+- **`navigate_to`** (Hybrid): Navigate to panels/views (auto) or restore filter context (proposal)
+
+See [ADR-042](../../07-decisions/adr-042-project-dashboard.md) for the design decisions.
+
 ### Future: Phase-Conditioned Narration Tone
 
 Currently NarrativeBar generates the same style of summary regardless of journey phase. A future enhancement would append a short phase-specific instruction (~20 tokens) to the narration prompt:
