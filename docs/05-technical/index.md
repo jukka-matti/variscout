@@ -46,7 +46,7 @@ VARISCOUT ARCHITECTURE (Browser-Only)
 └─────────────────────────────────────────────────────────────────┘
 
   No external payment or license services.
-  Tier detection: Azure Marketplace (ARM template params / Graph API).
+  Tier detection: Azure Marketplace (Bicep/ARM template params / Graph API).
   See ADR-007 for distribution strategy.
 ```
 
@@ -98,13 +98,13 @@ Cross-product and embedding:
 
 ## Key Technical Decisions
 
-| Decision                 | Choice            | Rationale                                       |
-| ------------------------ | ----------------- | ----------------------------------------------- |
-| No backend for user data | Client-only       | GDPR simplicity, no hosting costs               |
-| IndexedDB for storage    | Dexie.js          | Large data support, async, persistent           |
-| Tier detection           | Azure Marketplace | ARM template parameters, Graph API tenant check |
-| Distribution             | Azure Marketplace | Per-seat SaaS subscriptions, Microsoft billing  |
-| Hosting                  | Azure App Service | WEBSITE_RUN_FROM_PACKAGE, EasyAuth              |
+| Decision                 | Choice            | Rationale                                             |
+| ------------------------ | ----------------- | ----------------------------------------------------- |
+| No backend for user data | Client-only       | GDPR simplicity, no hosting costs                     |
+| IndexedDB for storage    | Dexie.js          | Large data support, async, persistent                 |
+| Tier detection           | Azure Marketplace | Bicep/ARM template parameters, Graph API tenant check |
+| Distribution             | Azure Marketplace | Per-seat SaaS subscriptions, Microsoft billing        |
+| Hosting                  | Azure App Service | WEBSITE_RUN_FROM_PACKAGE, EasyAuth                    |
 
 See [Architecture Decision Records](../07-decisions/index.md) for detailed rationale.
 

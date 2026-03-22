@@ -113,6 +113,38 @@ Both functions are deployed via the CI/CD pipeline when `AZURE_FUNCTION_APP_NAME
 
 ---
 
+## Infrastructure as Code
+
+### Bicep Modules
+
+Infrastructure is defined in Bicep (`infra/main.bicep`) with modular resource definitions:
+
+| Module                      | Resources                                       |
+| --------------------------- | ----------------------------------------------- |
+| `modules/app-service.bicep` | App Service Plan + Web App + EasyAuth           |
+| `modules/ai-services.bicep` | Azure AI Foundry (OpenAI) + model deployments   |
+| `modules/key-vault.bicep`   | Key Vault + RBAC authorization                  |
+| `modules/search.bicep`      | Azure AI Search (Team plan only)                |
+| `modules/functions.bicep`   | Function App for OBO token exchange (Team plan) |
+
+The compiled `mainTemplate.json` is auto-generated for Azure Marketplace packaging:
+
+```bash
+az bicep build --file main.bicep --outfile mainTemplate.json
+```
+
+> **Do not edit `mainTemplate.json` directly** — always edit the `.bicep` source files and recompile.
+
+### Infrastructure vs App Deployment
+
+- **CI/CD deploys app code only** — the staging pipeline builds the Vite app and deploys to App Service
+- **Infrastructure deployment is manual** — customers deploy via Azure Marketplace (which uses the compiled ARM template) or via CLI (`az deployment group create -f main.bicep`)
+- Infrastructure changes require recompiling `mainTemplate.json` and resubmitting the Marketplace package
+
+See [ADR-040: Bicep Migration](../../07-decisions/adr-040-bicep-migration.md) for the migration decision.
+
+---
+
 ## Azure Marketplace Publication
 
 ### Overview
@@ -147,23 +179,24 @@ Azure Marketplace
 
 4. **Submit for Certification**
    - Microsoft reviews listing content
-   - Automated ARM template validation
+   - Automated ARM template validation (compiled from Bicep)
    - Security assessment
    - Timeline: 5-10 business days
 
 See [Azure Marketplace Guide](../../08-products/azure/marketplace.md) for detailed instructions.
 
-### ARM Template Deployment
+### Infrastructure Deployment
 
-Customers deploy via ARM template:
+Customers deploy via Azure Marketplace (which uses the compiled ARM template) or directly via Bicep:
 
 ```bash
 az deployment group create \
   --resource-group rg-variscout \
-  --template-uri https://raw.githubusercontent.com/variscout/azure-deploy/main/azuredeploy.json
+  --template-file main.bicep \
+  --parameters appName=variscout clientId=<id> clientSecret=<secret> variscoutPlan=standard
 ```
 
-See [ARM Template Documentation](../../08-products/azure/arm-template.md) for template details.
+The Marketplace deployment package contains the compiled `mainTemplate.json` (auto-generated from `main.bicep`) and `createUiDefinition.json`. See [ARM Template Documentation](../../08-products/azure/arm-template.md) for template details.
 
 ---
 
@@ -220,10 +253,10 @@ EasyAuth intercepts `/.auth/*` at the platform level before the Node server — 
 
 ### Azure App — Marketplace (Production)
 
-Deployed via ARM template to customer's Azure subscription:
+Deployed via Bicep/ARM template to customer's Azure subscription:
 
 ```yaml
-# App Service configuration (in ARM template)
+# App Service configuration (defined in Bicep, compiled to ARM template)
 resource:
   type: Microsoft.Web/sites # App Service, not Static Web Apps
   apiVersion: 2025-01-01
@@ -292,6 +325,7 @@ The customer creates an App Registration before deployment (the ARM template ref
 
 ### Azure Marketplace Submission
 
+- [ ] Bicep compiles (`az bicep build --file main.bicep --outfile mainTemplate.json`)
 - [ ] ARM template validates (`az deployment group validate`)
 - [ ] Partner Center account verified
 - [ ] Privacy policy URL accessible
@@ -324,14 +358,15 @@ az webapp config appsettings set \
 az webapp restart --name variscout-xyz --resource-group rg-variscout
 ```
 
-### ARM Template Updates
+### Infrastructure Template Updates
 
-For template updates:
+For Bicep/ARM template updates:
 
-1. Update template in repository
-2. Submit new version to Partner Center
-3. Existing deployments unaffected
-4. New deployments use new template
+1. Edit `.bicep` source files in `infra/`
+2. Recompile: `az bicep build --file main.bicep --outfile mainTemplate.json`
+3. Submit new version to Partner Center
+4. Existing deployments unaffected
+5. New deployments use new template
 
 ---
 
@@ -342,7 +377,7 @@ For template updates:
 Customers can add Application Insights:
 
 ```json
-// Optional in ARM template
+// Optional — can be added to Bicep modules
 {
   "type": "Microsoft.Insights/components",
   "apiVersion": "2020-02-02",
@@ -412,7 +447,7 @@ az group create --name rg-variscout-staging --location northeurope
 
 az deployment group create \
   --resource-group rg-variscout-staging \
-  --template-file infra/mainTemplate.json \
+  --template-file infra/main.bicep \
   --parameters \
     appName=variscout-staging \
     clientId=$CLIENT_ID \
@@ -469,3 +504,4 @@ Trigger via `workflow_dispatch` or push a change to `main`.
 - [Azure Marketplace Guide](../../08-products/azure/marketplace.md)
 - [ARM Template](../../08-products/azure/arm-template.md)
 - [ADR-007: Distribution Strategy](../../07-decisions/adr-007-azure-marketplace-distribution.md)
+- [ADR-040: Bicep Migration](../../07-decisions/adr-040-bicep-migration.md)

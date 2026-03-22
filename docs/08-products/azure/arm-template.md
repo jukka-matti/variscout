@@ -6,11 +6,13 @@ title: 'ARM Template Documentation'
 
 Azure Resource Manager (ARM) template for VariScout Managed Application deployment.
 
+> **Note**: The infrastructure is authored in Bicep (`infra/main.bicep` + `infra/modules/*.bicep`). The `mainTemplate.json` is auto-generated via `az bicep build --file main.bicep --outfile mainTemplate.json`. See [ADR-040](../../07-decisions/adr-040-bicep-migration.md).
+
 ---
 
 ## Overview
 
-The ARM template deploys VariScout to a customer's Azure subscription as a Managed Application with:
+The ARM template (compiled from Bicep) deploys VariScout to a customer's Azure subscription as a Managed Application with:
 
 - Azure App Service (hosting via `WEBSITE_RUN_FROM_PACKAGE`)
 - App Service Authentication (EasyAuth) with Azure AD
@@ -33,7 +35,7 @@ The template is packaged as a `.zip` file for Partner Center:
 
 ```
 variscout-managed-app.zip
-├── mainTemplate.json         # ARM template (this document)
+├── mainTemplate.json         # Compiled ARM template (auto-generated from main.bicep)
 └── createUiDefinition.json   # Azure portal deployment wizard
 ```
 
