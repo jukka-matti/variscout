@@ -56,7 +56,8 @@ import { downloadFileFromGraph } from '../services/storage';
 import { useFilePicker } from '../hooks/useFilePicker';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
 import { useEditorAI } from '../hooks/useEditorAI';
-import { useEditorInvestigation } from '../hooks/useEditorInvestigation';
+import { useInvestigationOrchestration } from '../features/investigation';
+import { useInvestigationStore } from '../stores/investigationStore';
 import { useEditorImprovement } from '../hooks/useEditorImprovement';
 import { useActionProposals } from '../hooks/useActionProposals';
 import { useLocale } from '../context/LocaleContext';
@@ -584,22 +585,22 @@ export const Editor: React.FC<EditorProps> = ({
     findings: findingsState.findings,
   });
 
-  // Investigation workflow: hypotheses map, idea impacts, projection, status transitions
+  // Investigation workflow: action callbacks from orchestration, read-side state from store
   const {
-    hypothesesMap,
     handleCreateHypothesis,
-    ideaImpacts,
-    projectionTarget,
     handleProjectIdea,
     handleSaveIdeaProjection,
     clearProjectionTarget,
     handleSetFindingStatus,
-  } = useEditorInvestigation({
+  } = useInvestigationOrchestration({
     hypothesesState,
     findingsState,
     processContext,
     stats,
   });
+  const hypothesesMap = useInvestigationStore(s => s.hypothesesMap);
+  const ideaImpacts = useInvestigationStore(s => s.ideaImpacts);
+  const projectionTarget = useInvestigationStore(s => s.projectionTarget);
 
   // Improvement workspace: data prep, popout sync, idea-to-action conversion
   const {
