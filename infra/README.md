@@ -109,6 +109,18 @@ The `functions/` directory contains an Azure Function that exchanges a Teams SSO
 
 The Function App is provisioned by the Bicep template (conditional on Team plan) and deployed via the CI/CD pipeline when `AZURE_FUNCTION_APP_NAME` is configured.
 
+## Fresh Deployment Notes
+
+On a fresh deployment, the Function App starts before Key Vault RBAC assignments are created.
+This causes temporary errors when the Function App tries to resolve `@Microsoft.KeyVault()` references.
+The Function App will self-heal within minutes as Azure propagates the RBAC assignment.
+
+If errors persist, restart the Function App:
+
+```bash
+az webapp restart -g <resource-group> -n <function-app-name>
+```
+
 ## See Also
 
 - [ARM Template Documentation](../docs/08-products/azure/arm-template.md)

@@ -138,5 +138,7 @@ output functionAppId string = functionApp.id
 @description('Principal ID of the Function App managed identity')
 output principalId string = functionApp.identity.principalId
 
+// WARNING: outputs-should-not-contain-secrets — accepted because this value flows
+// directly into Key Vault (key-vault module). Not exposed as a top-level template output.
 @description('Default function key')
 output defaultFunctionKey string = functionApp.listKeys().functionKeys.default

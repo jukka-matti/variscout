@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.40.2.10011",
-      "templateHash": "18032065380983793460"
+      "templateHash": "6597241454776573983"
     },
     "description": "Deploys VariScout Azure App as a Managed Application with App Service and EasyAuth"
   },
@@ -100,7 +100,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.40.2.10011",
-              "templateHash": "3176517832540849813"
+              "templateHash": "3804476778468531553"
             }
           },
           "parameters": {
@@ -146,7 +146,7 @@
               "kind": "web",
               "properties": {
                 "Application_Type": "web",
-                "RetentionInDays": 30,
+                "RetentionInDays": 90,
                 "publicNetworkAccessForIngestion": "Enabled",
                 "publicNetworkAccessForQuery": "Enabled"
               }

@@ -404,7 +404,7 @@ importers:
         specifier: ^5.5.3
         version: 5.5.3
       read-excel-file:
-        specifier: ^7.0.2
+        specifier: 7.0.2
         version: 7.0.2
     devDependencies:
       '@types/d3-array':

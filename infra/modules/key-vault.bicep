@@ -84,6 +84,8 @@ resource aiServicesApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' =
   }
 }
 
+// EasyAuth reads clientSecret from app settings (MICROSOFT_PROVIDER_AUTHENTICATION_SECRET).
+// This Key Vault copy provides a secure audit trail and enables admin rotation via Azure Portal.
 resource clientSecretSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
   name: 'client-secret'
