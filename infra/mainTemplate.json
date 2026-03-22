@@ -2,6 +2,11 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "18032065380983793460"
+    },
     "description": "Deploys VariScout Azure App as a Managed Application with App Service and EasyAuth"
   },
   "parameters": {
@@ -14,7 +19,7 @@
     },
     "appName": {
       "type": "string",
-      "defaultValue": "[concat('variscout-', uniqueString(resourceGroup().id))]",
+      "defaultValue": "[format('variscout-{0}', uniqueString(resourceGroup().id))]",
       "minLength": 3,
       "maxLength": 24,
       "metadata": {
@@ -28,7 +33,7 @@
       }
     },
     "clientSecret": {
-      "type": "secureString",
+      "type": "securestring",
       "metadata": {
         "description": "Client secret of the Azure AD App Registration. Stored in Key Vault and referenced via @Microsoft.KeyVault() in app settings."
       }
@@ -50,522 +55,1093 @@
     }
   },
   "variables": {
-    "appServicePlanName": "[concat(parameters('appName'), '-plan')]",
+    "appServicePlanName": "[format('{0}-plan', parameters('appName'))]",
     "webAppName": "[parameters('appName')]",
-    "functionAppName": "[concat(parameters('appName'), '-func')]",
-    "functionStorageName": "[concat('vsf', uniqueString(resourceGroup().id))]",
-    "functionPlanName": "[concat(parameters('appName'), '-func-plan')]",
+    "functionAppName": "[format('{0}-func', parameters('appName'))]",
+    "functionStorageName": "[format('vsf{0}', uniqueString(resourceGroup().id))]",
+    "functionPlanName": "[format('{0}-func-plan', parameters('appName'))]",
+    "appInsightsName": "[format('{0}-insights', parameters('appName'))]",
+    "aiServicesName": "[format('{0}-ai', parameters('appName'))]",
+    "searchServiceName": "[format('{0}-search', parameters('appName'))]",
+    "keyVaultName": "[format('kv-{0}-{1}', take(parameters('appName'), 17), take(uniqueString(resourceGroup().id), 4))]",
     "hasTeamFeatures": "[equals(parameters('variscoutPlan'), 'team')]",
     "hasAI": "[not(equals(parameters('variscoutPlan'), 'free'))]",
-    "appInsightsName": "[concat(parameters('appName'), '-insights')]",
-    "aiServicesName": "[concat(parameters('appName'), '-ai')]",
-    "searchServiceName": "[concat(parameters('appName'), '-search')]",
-    "aiSearchIndex": "findings",
-    "keyVaultName": "[concat('kv-', take(parameters('appName'), 17), '-', take(uniqueString(resourceGroup().id), 4))]",
-    "keyVaultSecretsUserRole": "4633458b-17de-408a-b874-0445c86b69e6"
+    "aiSearchIndex": "findings"
   },
   "resources": [
     {
-      "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2024-04-01",
-      "name": "[variables('appServicePlanName')]",
-      "location": "[parameters('location')]",
-      "tags": {
-        "product": "VariScout",
-        "plan": "[parameters('variscoutPlan')]",
-        "managedBy": "AzureMarketplace"
-      },
-      "kind": "linux",
-      "sku": {
-        "name": "B1",
-        "tier": "Basic"
-      },
+      "condition": "[variables('hasAI')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "aiServices",
       "properties": {
-        "reserved": true
-      }
-    },
-    {
-      "type": "Microsoft.Web/sites",
-      "apiVersion": "2024-04-01",
-      "name": "[variables('webAppName')]",
-      "location": "[parameters('location')]",
-      "identity": {
-        "type": "SystemAssigned"
-      },
-      "tags": {
-        "product": "VariScout",
-        "plan": "[parameters('variscoutPlan')]",
-        "managedBy": "AzureMarketplace"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
-        "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName'))]",
-        "[resourceId('Microsoft.Search/searchServices', variables('searchServiceName'))]",
-        "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]"
-      ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
-        "httpsOnly": true,
-        "siteConfig": {
-          "linuxFxVersion": "NODE|22-lts",
-          "appSettings": [
-            {
-              "name": "WEBSITE_RUN_FROM_PACKAGE",
-              "value": "[parameters('packageUrl')]"
-            },
-            {
-              "name": "VITE_LICENSE_TIER",
-              "value": "enterprise"
-            },
-            {
-              "name": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET",
-              "value": "[parameters('clientSecret')]"
-            },
-            {
-              "name": "VITE_VARISCOUT_PLAN",
-              "value": "[parameters('variscoutPlan')]"
-            },
-            {
-              "name": "VITE_FUNCTION_URL",
-              "value": "[if(variables('hasAI'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
-            },
-            {
-              "name": "AI_ENDPOINT",
-              "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').endpoint, '')]"
-            },
-            {
-              "name": "AI_SEARCH_ENDPOINT",
-              "value": "[if(variables('hasTeamFeatures'), concat('https://', variables('searchServiceName'), '.search.windows.net'), '')]"
-            },
-            {
-              "name": "AI_SEARCH_INDEX",
-              "value": "[variables('aiSearchIndex')]"
-            },
-            {
-              "name": "FUNCTION_URL",
-              "value": "[if(variables('hasAI'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
-            },
-            {
-              "name": "VITE_APPINSIGHTS_CONNECTION_STRING",
-              "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString, '')]"
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "aiServicesName": {
+            "value": "[variables('aiServicesName')]"
+          },
+          "appInsightsName": {
+            "value": "[variables('appInsightsName')]"
+          },
+          "variscoutPlan": {
+            "value": "[parameters('variscoutPlan')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.40.2.10011",
+              "templateHash": "3176517832540849813"
             }
-          ],
-          "minTlsVersion": "1.2",
-          "ftpsState": "Disabled"
-        }
-      }
-    },
-    {
-      "type": "Microsoft.Web/sites/config",
-      "apiVersion": "2024-04-01",
-      "name": "[concat(variables('webAppName'), '/authsettingsV2')]",
-      "dependsOn": ["[resourceId('Microsoft.Web/sites', variables('webAppName'))]"],
-      "properties": {
-        "platform": {
-          "enabled": true
-        },
-        "globalValidation": {
-          "requireAuthentication": true,
-          "unauthenticatedClientAction": "RedirectToLoginPage",
-          "redirectToProvider": "azureactivedirectory",
-          "excludedPaths": ["/health", "/config"]
-        },
-        "identityProviders": {
-          "azureActiveDirectory": {
-            "enabled": true,
-            "registration": {
-              "openIdIssuer": "[concat('https://login.microsoftonline.com/', subscription().tenantId, '/v2.0')]",
-              "clientId": "[parameters('clientId')]",
-              "clientSecretSettingName": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for deployment"
+              }
             },
-            "login": {
-              "loginParameters": [
-                "[if(variables('hasTeamFeatures'), 'scope=openid profile email User.Read Files.ReadWrite Files.ReadWrite.All Channel.ReadBasic.All People.Read ChannelMessage.Send', 'scope=openid profile email User.Read https://cognitiveservices.azure.com/.default')]"
+            "aiServicesName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name for the OpenAI account"
+              }
+            },
+            "appInsightsName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name for the App Insights resource"
+              }
+            },
+            "variscoutPlan": {
+              "type": "string",
+              "metadata": {
+                "description": "VariScout plan identifier"
+              }
+            }
+          },
+          "variables": {
+            "tags": {
+              "product": "VariScout",
+              "plan": "[parameters('variscoutPlan')]"
+            },
+            "tagsWithManaged": "[union(variables('tags'), createObject('managedBy', 'AzureMarketplace'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Insights/components",
+              "apiVersion": "2020-02-02",
+              "name": "[parameters('appInsightsName')]",
+              "location": "[parameters('location')]",
+              "tags": "[variables('tagsWithManaged')]",
+              "kind": "web",
+              "properties": {
+                "Application_Type": "web",
+                "RetentionInDays": 30,
+                "publicNetworkAccessForIngestion": "Enabled",
+                "publicNetworkAccessForQuery": "Enabled"
+              }
+            },
+            {
+              "type": "Microsoft.CognitiveServices/accounts",
+              "apiVersion": "2025-09-01",
+              "name": "[parameters('aiServicesName')]",
+              "location": "[parameters('location')]",
+              "tags": "[variables('tags')]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "kind": "OpenAI",
+              "sku": {
+                "name": "S0"
+              },
+              "properties": {
+                "customSubDomainName": "[parameters('aiServicesName')]",
+                "publicNetworkAccess": "Enabled",
+                "networkAcls": {
+                  "defaultAction": "Allow"
+                }
+              }
+            },
+            {
+              "type": "Microsoft.CognitiveServices/accounts/deployments",
+              "apiVersion": "2025-09-01",
+              "name": "[format('{0}/{1}', parameters('aiServicesName'), 'fast')]",
+              "sku": {
+                "name": "Standard",
+                "capacity": 30
+              },
+              "properties": {
+                "model": {
+                  "format": "OpenAI",
+                  "name": "gpt-5.4-nano",
+                  "version": "2026-03-17"
+                },
+                "versionUpgradeOption": "OnceCurrentVersionExpired",
+                "raiPolicyName": "Microsoft.DefaultV2"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.CognitiveServices/accounts/deployments",
+              "apiVersion": "2025-09-01",
+              "name": "[format('{0}/{1}', parameters('aiServicesName'), 'reasoning')]",
+              "sku": {
+                "name": "Standard",
+                "capacity": 60
+              },
+              "properties": {
+                "model": {
+                  "format": "OpenAI",
+                  "name": "gpt-5.4-mini",
+                  "version": "2026-03-17"
+                },
+                "versionUpgradeOption": "OnceCurrentVersionExpired",
+                "raiPolicyName": "Microsoft.DefaultV2"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]",
+                "[resourceId('Microsoft.CognitiveServices/accounts/deployments', parameters('aiServicesName'), 'fast')]"
               ]
             }
-          }
-        },
-        "login": {
-          "tokenStore": {
-            "enabled": true
+          ],
+          "outputs": {
+            "aiServicesId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the OpenAI account"
+              },
+              "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]"
+            },
+            "aiEndpoint": {
+              "type": "string",
+              "metadata": {
+                "description": "OpenAI endpoint URL"
+              },
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName')), '2025-09-01').endpoint]"
+            },
+            "aiServicesApiKey": {
+              "type": "string",
+              "metadata": {
+                "description": "API key for the OpenAI account"
+              },
+              "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName')), '2025-09-01').key1]"
+            },
+            "appInsightsConnectionString": {
+              "type": "string",
+              "metadata": {
+                "description": "App Insights connection string"
+              },
+              "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), '2020-02-02').ConnectionString]"
+            }
           }
         }
       }
     },
     {
-      "condition": "[variables('hasAI')]",
-      "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "2023-05-01",
-      "name": "[variables('functionStorageName')]",
-      "location": "[parameters('location')]",
-      "tags": {
-        "product": "VariScout",
-        "plan": "[parameters('variscoutPlan')]",
-        "managedBy": "AzureMarketplace"
-      },
-      "kind": "StorageV2",
-      "sku": {
-        "name": "Standard_LRS"
-      },
+      "condition": "[variables('hasTeamFeatures')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "search",
       "properties": {
-        "supportsHttpsTrafficOnly": true,
-        "minimumTlsVersion": "TLS1_2"
-      }
-    },
-    {
-      "condition": "[variables('hasAI')]",
-      "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2024-04-01",
-      "name": "[variables('functionPlanName')]",
-      "location": "[parameters('location')]",
-      "tags": {
-        "product": "VariScout",
-        "plan": "[parameters('variscoutPlan')]",
-        "managedBy": "AzureMarketplace"
-      },
-      "sku": {
-        "name": "Y1",
-        "tier": "Dynamic"
-      },
-      "properties": {}
-    },
-    {
-      "condition": "[variables('hasAI')]",
-      "type": "Microsoft.Web/sites",
-      "apiVersion": "2024-04-01",
-      "name": "[variables('functionAppName')]",
-      "location": "[parameters('location')]",
-      "tags": {
-        "product": "VariScout",
-        "plan": "[parameters('variscoutPlan')]",
-        "managedBy": "AzureMarketplace"
-      },
-      "kind": "functionapp",
-      "identity": {
-        "type": "SystemAssigned"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('functionPlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('functionStorageName'))]",
-        "[resourceId('Microsoft.Web/sites', variables('webAppName'))]",
-        "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName'))]",
-        "[resourceId('Microsoft.Search/searchServices', variables('searchServiceName'))]",
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'ai-services-api-key')]",
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'search-api-key')]",
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'client-secret')]"
-      ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionPlanName'))]",
-        "httpsOnly": true,
-        "siteConfig": {
-          "appSettings": [
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('functionStorageName'), ';EndpointSuffix=core.windows.net;AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('functionStorageName')), '2023-05-01').keys[0].value)]"
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "searchServiceName": {
+            "value": "[variables('searchServiceName')]"
+          },
+          "variscoutPlan": {
+            "value": "[parameters('variscoutPlan')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.40.2.10011",
+              "templateHash": "11877704128382012245"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for deployment"
+              }
             },
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "~4"
+            "searchServiceName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name for the AI Search service"
+              }
             },
+            "variscoutPlan": {
+              "type": "string",
+              "metadata": {
+                "description": "VariScout plan identifier"
+              }
+            }
+          },
+          "variables": {
+            "tags": {
+              "product": "VariScout",
+              "plan": "[parameters('variscoutPlan')]"
+            }
+          },
+          "resources": [
             {
-              "name": "FUNCTIONS_WORKER_RUNTIME",
-              "value": "node"
-            },
-            {
-              "name": "WEBSITE_NODE_DEFAULT_VERSION",
-              "value": "~22"
-            },
-            {
-              "name": "CLIENT_ID",
-              "value": "[parameters('clientId')]"
-            },
-            {
-              "name": "CLIENT_SECRET",
-              "value": "[concat('@Microsoft.KeyVault(VaultName=', variables('keyVaultName'), ';SecretName=client-secret)')]"
-            },
-            {
-              "name": "TENANT_ID",
-              "value": "[subscription().tenantId]"
-            },
-            {
-              "name": "AI_ENDPOINT",
-              "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').endpoint, '')]"
-            },
-            {
-              "name": "AI_SERVICES_API_KEY",
-              "value": "[if(variables('hasAI'), concat('@Microsoft.KeyVault(VaultName=', variables('keyVaultName'), ';SecretName=ai-services-api-key)'), '')]"
-            },
-            {
-              "name": "ALLOWED_ORIGIN",
-              "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
-            },
-            {
-              "name": "FUNCTION_KEY",
-              "value": "[concat('@Microsoft.KeyVault(VaultName=', variables('keyVaultName'), ';SecretName=function-key)')]"
-            },
-            {
-              "name": "MSAL_CACHE_LOCATION",
-              "value": "[if(variables('hasAI'), '/home/data/msal-cache', '')]"
+              "type": "Microsoft.Search/searchServices",
+              "apiVersion": "2025-05-01",
+              "name": "[parameters('searchServiceName')]",
+              "location": "[parameters('location')]",
+              "tags": "[variables('tags')]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "sku": {
+                "name": "basic"
+              },
+              "properties": {
+                "replicaCount": 1,
+                "partitionCount": 1,
+                "hostingMode": "Default",
+                "semanticSearch": "standard",
+                "publicNetworkAccess": "Enabled",
+                "authOptions": {
+                  "aadOrApiKey": {
+                    "aadAuthFailureMode": "http401WithBearerChallenge"
+                  }
+                },
+                "networkRuleSet": {
+                  "bypass": "AzureServices"
+                }
+              }
             }
           ],
-          "cors": {
-            "allowedOrigins": [
-              "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
-            ]
+          "outputs": {
+            "searchServiceId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Search service"
+              },
+              "value": "[resourceId('Microsoft.Search/searchServices', parameters('searchServiceName'))]"
+            },
+            "searchAdminKey": {
+              "type": "string",
+              "metadata": {
+                "description": "Admin key for the Search service"
+              },
+              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices', parameters('searchServiceName')), '2025-05-01').primaryKey]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "appService",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
           },
-          "minTlsVersion": "1.2",
-          "ftpsState": "Disabled"
-        }
-      }
-    },
-    {
-      "condition": "[variables('hasAI')]",
-      "type": "Microsoft.Insights/components",
-      "apiVersion": "2020-02-02",
-      "name": "[variables('appInsightsName')]",
-      "location": "[parameters('location')]",
-      "tags": {
-        "product": "VariScout",
-        "plan": "[parameters('variscoutPlan')]",
-        "managedBy": "AzureMarketplace"
-      },
-      "kind": "web",
-      "properties": {
-        "Application_Type": "web",
-        "RetentionInDays": 30,
-        "publicNetworkAccessForIngestion": "Enabled",
-        "publicNetworkAccessForQuery": "Enabled"
-      }
-    },
-    {
-      "condition": "[variables('hasAI')]",
-      "type": "Microsoft.CognitiveServices/accounts",
-      "apiVersion": "2025-09-01",
-      "name": "[variables('aiServicesName')]",
-      "location": "[parameters('location')]",
-      "tags": {
-        "product": "VariScout",
-        "plan": "[parameters('variscoutPlan')]"
-      },
-      "identity": {
-        "type": "SystemAssigned"
-      },
-      "kind": "OpenAI",
-      "sku": {
-        "name": "S0"
-      },
-      "properties": {
-        "customSubDomainName": "[variables('aiServicesName')]",
-        "publicNetworkAccess": "Enabled",
-        "networkAcls": {
-          "defaultAction": "Allow"
-        }
-      }
-    },
-    {
-      "condition": "[variables('hasAI')]",
-      "type": "Microsoft.CognitiveServices/accounts/deployments",
-      "apiVersion": "2025-09-01",
-      "name": "[concat(variables('aiServicesName'), '/fast')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName'))]"
-      ],
-      "sku": {
-        "name": "Standard",
-        "capacity": 30
-      },
-      "properties": {
-        "model": {
-          "format": "OpenAI",
-          "name": "gpt-5.4-nano",
-          "version": "2026-03-17"
-        },
-        "versionUpgradeOption": "OnceCurrentVersionExpired",
-        "raiPolicyName": "Microsoft.DefaultV2"
-      }
-    },
-    {
-      "condition": "[variables('hasAI')]",
-      "type": "Microsoft.CognitiveServices/accounts/deployments",
-      "apiVersion": "2025-09-01",
-      "name": "[concat(variables('aiServicesName'), '/reasoning')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('aiServicesName'), 'fast')]"
-      ],
-      "sku": {
-        "name": "Standard",
-        "capacity": 60
-      },
-      "properties": {
-        "model": {
-          "format": "OpenAI",
-          "name": "gpt-5.4-mini",
-          "version": "2026-03-17"
-        },
-        "versionUpgradeOption": "OnceCurrentVersionExpired",
-        "raiPolicyName": "Microsoft.DefaultV2"
-      }
-    },
-    {
-      "condition": "[variables('hasTeamFeatures')]",
-      "type": "Microsoft.Search/searchServices",
-      "apiVersion": "2025-05-01",
-      "name": "[variables('searchServiceName')]",
-      "location": "[parameters('location')]",
-      "tags": {
-        "product": "VariScout",
-        "plan": "[parameters('variscoutPlan')]"
-      },
-      "identity": {
-        "type": "SystemAssigned"
-      },
-      "sku": {
-        "name": "basic"
-      },
-      "properties": {
-        "replicaCount": 1,
-        "partitionCount": 1,
-        "hostingMode": "default",
-        "semanticSearch": "standard",
-        "publicNetworkAccess": "Enabled",
-        "authOptions": {
-          "aadOrApiKey": {
-            "aadAuthFailureMode": "http401WithBearerChallenge"
+          "appServicePlanName": {
+            "value": "[variables('appServicePlanName')]"
+          },
+          "webAppName": {
+            "value": "[variables('webAppName')]"
+          },
+          "variscoutPlan": {
+            "value": "[parameters('variscoutPlan')]"
+          },
+          "clientId": {
+            "value": "[parameters('clientId')]"
+          },
+          "clientSecret": {
+            "value": "[parameters('clientSecret')]"
+          },
+          "packageUrl": {
+            "value": "[parameters('packageUrl')]"
+          },
+          "hasAI": {
+            "value": "[variables('hasAI')]"
+          },
+          "hasTeamFeatures": {
+            "value": "[variables('hasTeamFeatures')]"
+          },
+          "functionAppName": {
+            "value": "[variables('functionAppName')]"
+          },
+          "aiEndpoint": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiEndpoint.value), createObject('value', ''))]",
+          "appInsightsConnectionString": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.appInsightsConnectionString.value), createObject('value', ''))]",
+          "searchServiceName": {
+            "value": "[variables('searchServiceName')]"
+          },
+          "aiSearchIndex": {
+            "value": "[variables('aiSearchIndex')]"
           }
         },
-        "networkRuleSet": {
-          "bypass": "AzureServices"
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.40.2.10011",
+              "templateHash": "14785674350473375142"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for deployment"
+              }
+            },
+            "appServicePlanName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name for the App Service Plan"
+              }
+            },
+            "webAppName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name for the Web App"
+              }
+            },
+            "variscoutPlan": {
+              "type": "string",
+              "metadata": {
+                "description": "VariScout plan identifier"
+              }
+            },
+            "clientId": {
+              "type": "string",
+              "metadata": {
+                "description": "Client ID of the Azure AD App Registration"
+              }
+            },
+            "clientSecret": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Client secret of the Azure AD App Registration"
+              }
+            },
+            "packageUrl": {
+              "type": "string",
+              "metadata": {
+                "description": "URL to the VariScout application deployment package"
+              }
+            },
+            "hasAI": {
+              "type": "bool",
+              "metadata": {
+                "description": "Whether AI features are enabled"
+              }
+            },
+            "hasTeamFeatures": {
+              "type": "bool",
+              "metadata": {
+                "description": "Whether Team plan features are enabled"
+              }
+            },
+            "functionAppName": {
+              "type": "string",
+              "metadata": {
+                "description": "Function App name (for URL construction)"
+              }
+            },
+            "aiEndpoint": {
+              "type": "string",
+              "metadata": {
+                "description": "AI endpoint URL (empty if AI disabled)"
+              }
+            },
+            "appInsightsConnectionString": {
+              "type": "string",
+              "metadata": {
+                "description": "App Insights connection string (empty if AI disabled)"
+              }
+            },
+            "searchServiceName": {
+              "type": "string",
+              "metadata": {
+                "description": "Search service name (for URL construction)"
+              }
+            },
+            "aiSearchIndex": {
+              "type": "string",
+              "metadata": {
+                "description": "AI Search index name"
+              }
+            }
+          },
+          "variables": {
+            "tags": {
+              "product": "VariScout",
+              "plan": "[parameters('variscoutPlan')]",
+              "managedBy": "AzureMarketplace"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Web/serverfarms",
+              "apiVersion": "2024-04-01",
+              "name": "[parameters('appServicePlanName')]",
+              "location": "[parameters('location')]",
+              "tags": "[variables('tags')]",
+              "kind": "linux",
+              "sku": {
+                "name": "B1",
+                "tier": "Basic"
+              },
+              "properties": {
+                "reserved": true
+              }
+            },
+            {
+              "type": "Microsoft.Web/sites",
+              "apiVersion": "2024-04-01",
+              "name": "[parameters('webAppName')]",
+              "location": "[parameters('location')]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "tags": "[variables('tags')]",
+              "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
+                "httpsOnly": true,
+                "siteConfig": {
+                  "linuxFxVersion": "NODE|22-lts",
+                  "appSettings": [
+                    {
+                      "name": "WEBSITE_RUN_FROM_PACKAGE",
+                      "value": "[parameters('packageUrl')]"
+                    },
+                    {
+                      "name": "VITE_LICENSE_TIER",
+                      "value": "enterprise"
+                    },
+                    {
+                      "name": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET",
+                      "value": "[parameters('clientSecret')]"
+                    },
+                    {
+                      "name": "VITE_VARISCOUT_PLAN",
+                      "value": "[parameters('variscoutPlan')]"
+                    },
+                    {
+                      "name": "VITE_FUNCTION_URL",
+                      "value": "[if(parameters('hasAI'), format('https://{0}.azurewebsites.net', parameters('functionAppName')), '')]"
+                    },
+                    {
+                      "name": "AI_ENDPOINT",
+                      "value": "[parameters('aiEndpoint')]"
+                    },
+                    {
+                      "name": "AI_SEARCH_ENDPOINT",
+                      "value": "[if(parameters('hasTeamFeatures'), format('https://{0}.search.windows.net', parameters('searchServiceName')), '')]"
+                    },
+                    {
+                      "name": "AI_SEARCH_INDEX",
+                      "value": "[parameters('aiSearchIndex')]"
+                    },
+                    {
+                      "name": "FUNCTION_URL",
+                      "value": "[if(parameters('hasAI'), format('https://{0}.azurewebsites.net', parameters('functionAppName')), '')]"
+                    },
+                    {
+                      "name": "VITE_APPINSIGHTS_CONNECTION_STRING",
+                      "value": "[parameters('appInsightsConnectionString')]"
+                    }
+                  ],
+                  "minTlsVersion": "1.2",
+                  "ftpsState": "Disabled"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Web/sites/config",
+              "apiVersion": "2024-04-01",
+              "name": "[format('{0}/{1}', parameters('webAppName'), 'authsettingsV2')]",
+              "properties": {
+                "platform": {
+                  "enabled": true
+                },
+                "globalValidation": {
+                  "requireAuthentication": true,
+                  "unauthenticatedClientAction": "RedirectToLoginPage",
+                  "redirectToProvider": "azureactivedirectory",
+                  "excludedPaths": ["/health", "/config"]
+                },
+                "identityProviders": {
+                  "azureActiveDirectory": {
+                    "enabled": true,
+                    "registration": {
+                      "openIdIssuer": "[format('https://login.microsoftonline.com/{0}/v2.0', subscription().tenantId)]",
+                      "clientId": "[parameters('clientId')]",
+                      "clientSecretSettingName": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+                    },
+                    "login": {
+                      "loginParameters": [
+                        "[if(parameters('hasTeamFeatures'), 'scope=openid profile email User.Read Files.ReadWrite Files.ReadWrite.All Channel.ReadBasic.All People.Read ChannelMessage.Send', 'scope=openid profile email User.Read https://cognitiveservices.azure.com/.default')]"
+                      ]
+                    }
+                  }
+                },
+                "login": {
+                  "tokenStore": {
+                    "enabled": true
+                  }
+                }
+              },
+              "dependsOn": ["[resourceId('Microsoft.Web/sites', parameters('webAppName'))]"]
+            }
+          ],
+          "outputs": {
+            "webAppId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Web App"
+              },
+              "value": "[resourceId('Microsoft.Web/sites', parameters('webAppName'))]"
+            },
+            "defaultHostName": {
+              "type": "string",
+              "metadata": {
+                "description": "Default hostname of the Web App"
+              },
+              "value": "[reference(resourceId('Microsoft.Web/sites', parameters('webAppName')), '2024-04-01').defaultHostName]"
+            },
+            "principalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal ID of the Web App managed identity"
+              },
+              "value": "[reference(resourceId('Microsoft.Web/sites', parameters('webAppName')), '2024-04-01', 'full').identity.principalId]"
+            }
+          }
         }
-      }
-    },
-    {
-      "condition": "[variables('hasAI')]",
-      "type": "Microsoft.KeyVault/vaults",
-      "apiVersion": "2023-07-01",
-      "name": "[variables('keyVaultName')]",
-      "location": "[parameters('location')]",
-      "tags": {
-        "product": "VariScout",
-        "plan": "[parameters('variscoutPlan')]",
-        "managedBy": "AzureMarketplace"
       },
+      "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'aiServices')]"]
+    },
+    {
+      "condition": "[variables('hasAI')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "functions",
       "properties": {
-        "enableRbacAuthorization": true,
-        "tenantId": "[subscription().tenantId]",
-        "sku": {
-          "family": "A",
-          "name": "standard"
+        "expressionEvaluationOptions": {
+          "scope": "inner"
         },
-        "enableSoftDelete": true,
-        "softDeleteRetentionInDays": 7
-      }
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "functionAppName": {
+            "value": "[variables('functionAppName')]"
+          },
+          "functionPlanName": {
+            "value": "[variables('functionPlanName')]"
+          },
+          "functionStorageName": {
+            "value": "[variables('functionStorageName')]"
+          },
+          "variscoutPlan": {
+            "value": "[parameters('variscoutPlan')]"
+          },
+          "hasAI": {
+            "value": "[variables('hasAI')]"
+          },
+          "clientId": {
+            "value": "[parameters('clientId')]"
+          },
+          "keyVaultName": {
+            "value": "[variables('keyVaultName')]"
+          },
+          "aiEndpoint": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiEndpoint.value), createObject('value', ''))]",
+          "webAppDefaultHostName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'appService'), '2025-04-01').outputs.defaultHostName.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.40.2.10011",
+              "templateHash": "5768016708259949924"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for deployment"
+              }
+            },
+            "functionAppName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name for the Function App"
+              }
+            },
+            "functionPlanName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name for the Function App plan"
+              }
+            },
+            "functionStorageName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name for the Function storage account"
+              }
+            },
+            "variscoutPlan": {
+              "type": "string",
+              "metadata": {
+                "description": "VariScout plan identifier"
+              }
+            },
+            "hasAI": {
+              "type": "bool",
+              "metadata": {
+                "description": "Whether AI features are enabled"
+              }
+            },
+            "clientId": {
+              "type": "string",
+              "metadata": {
+                "description": "Client ID of the Azure AD App Registration"
+              }
+            },
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "Key Vault name for secret references"
+              }
+            },
+            "aiEndpoint": {
+              "type": "string",
+              "metadata": {
+                "description": "AI endpoint URL"
+              }
+            },
+            "webAppDefaultHostName": {
+              "type": "string",
+              "metadata": {
+                "description": "Default hostname of the Web App (for CORS)"
+              }
+            }
+          },
+          "variables": {
+            "tags": {
+              "product": "VariScout",
+              "plan": "[parameters('variscoutPlan')]",
+              "managedBy": "AzureMarketplace"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2023-05-01",
+              "name": "[parameters('functionStorageName')]",
+              "location": "[parameters('location')]",
+              "tags": "[variables('tags')]",
+              "kind": "StorageV2",
+              "sku": {
+                "name": "Standard_LRS"
+              },
+              "properties": {
+                "supportsHttpsTrafficOnly": true,
+                "minimumTlsVersion": "TLS1_2"
+              }
+            },
+            {
+              "type": "Microsoft.Web/serverfarms",
+              "apiVersion": "2024-04-01",
+              "name": "[parameters('functionPlanName')]",
+              "location": "[parameters('location')]",
+              "tags": "[variables('tags')]",
+              "sku": {
+                "name": "Y1",
+                "tier": "Dynamic"
+              },
+              "properties": {}
+            },
+            {
+              "type": "Microsoft.Web/sites",
+              "apiVersion": "2024-04-01",
+              "name": "[parameters('functionAppName')]",
+              "location": "[parameters('location')]",
+              "tags": "[variables('tags')]",
+              "kind": "functionapp",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('functionPlanName'))]",
+                "httpsOnly": true,
+                "siteConfig": {
+                  "appSettings": [
+                    {
+                      "name": "AzureWebJobsStorage",
+                      "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', parameters('functionStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('functionStorageName')), '2023-05-01').keys[0].value)]"
+                    },
+                    {
+                      "name": "FUNCTIONS_EXTENSION_VERSION",
+                      "value": "~4"
+                    },
+                    {
+                      "name": "FUNCTIONS_WORKER_RUNTIME",
+                      "value": "node"
+                    },
+                    {
+                      "name": "WEBSITE_NODE_DEFAULT_VERSION",
+                      "value": "~22"
+                    },
+                    {
+                      "name": "CLIENT_ID",
+                      "value": "[parameters('clientId')]"
+                    },
+                    {
+                      "name": "CLIENT_SECRET",
+                      "value": "[format('@Microsoft.KeyVault(VaultName={0};SecretName=client-secret)', parameters('keyVaultName'))]"
+                    },
+                    {
+                      "name": "TENANT_ID",
+                      "value": "[subscription().tenantId]"
+                    },
+                    {
+                      "name": "AI_ENDPOINT",
+                      "value": "[if(parameters('hasAI'), parameters('aiEndpoint'), '')]"
+                    },
+                    {
+                      "name": "AI_SERVICES_API_KEY",
+                      "value": "[if(parameters('hasAI'), format('@Microsoft.KeyVault(VaultName={0};SecretName=ai-services-api-key)', parameters('keyVaultName')), '')]"
+                    },
+                    {
+                      "name": "ALLOWED_ORIGIN",
+                      "value": "[format('https://{0}', parameters('webAppDefaultHostName'))]"
+                    },
+                    {
+                      "name": "FUNCTION_KEY",
+                      "value": "[format('@Microsoft.KeyVault(VaultName={0};SecretName=function-key)', parameters('keyVaultName'))]"
+                    },
+                    {
+                      "name": "MSAL_CACHE_LOCATION",
+                      "value": "[if(parameters('hasAI'), '/home/data/msal-cache', '')]"
+                    }
+                  ],
+                  "cors": {
+                    "allowedOrigins": [
+                      "[format('https://{0}', parameters('webAppDefaultHostName'))]"
+                    ]
+                  },
+                  "minTlsVersion": "1.2",
+                  "ftpsState": "Disabled"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('functionPlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('functionStorageName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "functionAppId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Function App"
+              },
+              "value": "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]"
+            },
+            "principalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal ID of the Function App managed identity"
+              },
+              "value": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2024-04-01', 'full').identity.principalId]"
+            },
+            "defaultFunctionKey": {
+              "type": "string",
+              "metadata": {
+                "description": "Default function key"
+              },
+              "value": "[listKeys(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2024-04-01').functionKeys.default]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'aiServices')]",
+        "[resourceId('Microsoft.Resources/deployments', 'appService')]"
+      ]
     },
     {
       "condition": "[variables('hasAI')]",
-      "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2022-04-01",
-      "name": "[guid(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), variables('keyVaultSecretsUserRole'), resourceId('Microsoft.Web/sites', variables('webAppName')))]",
-      "scope": "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "keyVault",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "keyVaultName": {
+            "value": "[variables('keyVaultName')]"
+          },
+          "variscoutPlan": {
+            "value": "[parameters('variscoutPlan')]"
+          },
+          "hasTeamFeatures": {
+            "value": "[variables('hasTeamFeatures')]"
+          },
+          "clientSecret": {
+            "value": "[parameters('clientSecret')]"
+          },
+          "aiServicesApiKey": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiServicesApiKey.value), createObject('value', ''))]",
+          "searchApiKey": "[if(variables('hasTeamFeatures'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'search'), '2025-04-01').outputs.searchAdminKey.value), createObject('value', ''))]",
+          "functionKey": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'functions'), '2025-04-01').outputs.defaultFunctionKey.value), createObject('value', ''))]",
+          "webAppPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'appService'), '2025-04-01').outputs.principalId.value]"
+          },
+          "functionAppPrincipalId": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'functions'), '2025-04-01').outputs.principalId.value), createObject('value', ''))]"
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.40.2.10011",
+              "templateHash": "17754386857755675052"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for deployment"
+              }
+            },
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name for the Key Vault"
+              }
+            },
+            "variscoutPlan": {
+              "type": "string",
+              "metadata": {
+                "description": "VariScout plan identifier"
+              }
+            },
+            "hasTeamFeatures": {
+              "type": "bool",
+              "metadata": {
+                "description": "Whether Team plan features are enabled"
+              }
+            },
+            "clientSecret": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Client secret value to store"
+              }
+            },
+            "aiServicesApiKey": {
+              "type": "securestring",
+              "metadata": {
+                "description": "AI Services API key to store"
+              }
+            },
+            "searchApiKey": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Search admin key to store (empty if not Team plan)"
+              }
+            },
+            "functionKey": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Function App default key to store (empty if not Team plan)"
+              }
+            },
+            "webAppPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal ID of the Web App managed identity"
+              }
+            },
+            "functionAppPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal ID of the Function App managed identity"
+              }
+            }
+          },
+          "variables": {
+            "tags": {
+              "product": "VariScout",
+              "plan": "[parameters('variscoutPlan')]",
+              "managedBy": "AzureMarketplace"
+            },
+            "keyVaultSecretsUserRole": "4633458b-17de-408a-b874-0445c86b69e6"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults",
+              "apiVersion": "2023-07-01",
+              "name": "[parameters('keyVaultName')]",
+              "location": "[parameters('location')]",
+              "tags": "[variables('tags')]",
+              "properties": {
+                "enableRbacAuthorization": true,
+                "tenantId": "[subscription().tenantId]",
+                "sku": {
+                  "family": "A",
+                  "name": "standard"
+                },
+                "enableSoftDelete": true,
+                "softDeleteRetentionInDays": 7
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
+              "name": "[guid(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), variables('keyVaultSecretsUserRole'), parameters('webAppPrincipalId'))]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('keyVaultSecretsUserRole'))]",
+                "principalId": "[parameters('webAppPrincipalId')]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
+              "name": "[guid(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), variables('keyVaultSecretsUserRole'), parameters('functionAppPrincipalId'))]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('keyVaultSecretsUserRole'))]",
+                "principalId": "[parameters('functionAppPrincipalId')]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"]
+            },
+            {
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2023-07-01",
+              "name": "[format('{0}/{1}', parameters('keyVaultName'), 'ai-services-api-key')]",
+              "properties": {
+                "value": "[parameters('aiServicesApiKey')]"
+              },
+              "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"]
+            },
+            {
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2023-07-01",
+              "name": "[format('{0}/{1}', parameters('keyVaultName'), 'client-secret')]",
+              "properties": {
+                "value": "[parameters('clientSecret')]"
+              },
+              "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"]
+            },
+            {
+              "condition": "[parameters('hasTeamFeatures')]",
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2023-07-01",
+              "name": "[format('{0}/{1}', parameters('keyVaultName'), 'search-api-key')]",
+              "properties": {
+                "value": "[parameters('searchApiKey')]"
+              },
+              "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"]
+            },
+            {
+              "condition": "[parameters('hasTeamFeatures')]",
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2023-07-01",
+              "name": "[format('{0}/{1}', parameters('keyVaultName'), 'function-key')]",
+              "properties": {
+                "value": "[parameters('functionKey')]"
+              },
+              "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"]
+            }
+          ],
+          "outputs": {
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Key Vault"
+              },
+              "value": "[parameters('keyVaultName')]"
+            }
+          }
+        }
+      },
       "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
-        "[resourceId('Microsoft.Web/sites', variables('webAppName'))]"
-      ],
-      "properties": {
-        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('keyVaultSecretsUserRole'))]",
-        "principalId": "[reference(resourceId('Microsoft.Web/sites', variables('webAppName')), '2024-04-01', 'Full').identity.principalId]",
-        "principalType": "ServicePrincipal"
-      }
-    },
-    {
-      "condition": "[variables('hasAI')]",
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2023-07-01",
-      "name": "[concat(variables('keyVaultName'), '/ai-services-api-key')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
-        "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName'))]"
-      ],
-      "properties": {
-        "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').key1]"
-      }
-    },
-    {
-      "condition": "[variables('hasTeamFeatures')]",
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2023-07-01",
-      "name": "[concat(variables('keyVaultName'), '/search-api-key')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
-        "[resourceId('Microsoft.Search/searchServices', variables('searchServiceName'))]"
-      ],
-      "properties": {
-        "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices', variables('searchServiceName')), '2025-05-01').primaryKey]"
-      }
-    },
-    {
-      "condition": "[variables('hasAI')]",
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2023-07-01",
-      "name": "[concat(variables('keyVaultName'), '/client-secret')]",
-      "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"],
-      "properties": {
-        "value": "[parameters('clientSecret')]"
-      }
-    },
-    {
-      "condition": "[variables('hasTeamFeatures')]",
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2023-07-01",
-      "name": "[concat(variables('keyVaultName'), '/function-key')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
-        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
-      ],
-      "properties": {
-        "value": "[listKeys(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2024-04-01').functionKeys.default]"
-      }
-    },
-    {
-      "condition": "[variables('hasAI')]",
-      "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2022-04-01",
-      "name": "[guid(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), variables('keyVaultSecretsUserRole'), resourceId('Microsoft.Web/sites', variables('functionAppName')))]",
-      "scope": "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
-        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
-      ],
-      "properties": {
-        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('keyVaultSecretsUserRole'))]",
-        "principalId": "[reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2024-04-01', 'Full').identity.principalId]",
-        "principalType": "ServicePrincipal"
-      }
+        "[resourceId('Microsoft.Resources/deployments', 'aiServices')]",
+        "[resourceId('Microsoft.Resources/deployments', 'appService')]",
+        "[resourceId('Microsoft.Resources/deployments', 'functions')]",
+        "[resourceId('Microsoft.Resources/deployments', 'search')]"
+      ]
     }
   ],
   "outputs": {
     "appUrl": {
       "type": "string",
-      "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
+      "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'appService'), '2025-04-01').outputs.defaultHostName.value)]"
     },
     "functionUrl": {
-      "condition": "[variables('hasAI')]",
       "type": "string",
-      "value": "[if(variables('hasAI'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
+      "value": "[if(variables('hasAI'), format('https://{0}.azurewebsites.net', variables('functionAppName')), '')]"
     },
     "aiEndpoint": {
-      "condition": "[variables('hasAI')]",
       "type": "string",
-      "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').endpoint, '')]"
+      "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiEndpoint.value, '')]"
     },
     "searchEndpoint": {
-      "condition": "[variables('hasTeamFeatures')]",
       "type": "string",
-      "value": "[if(variables('hasTeamFeatures'), concat('https://', variables('searchServiceName'), '.search.windows.net'), '')]"
+      "value": "[if(variables('hasTeamFeatures'), format('https://{0}.search.windows.net', variables('searchServiceName')), '')]"
     },
     "appInsightsConnectionString": {
-      "condition": "[variables('hasAI')]",
       "type": "string",
-      "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString, '')]"
+      "value": "[if(variables('hasAI'), reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.appInsightsConnectionString.value, '')]"
     }
   }
 }
