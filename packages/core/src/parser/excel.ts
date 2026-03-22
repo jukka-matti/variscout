@@ -19,7 +19,7 @@ export async function parseExcel(file: File): Promise<DataRow[]> {
     );
   }
 
-  const { default: readXlsxFile } = await import('read-excel-file');
+  const { default: readXlsxFile } = await import('read-excel-file/browser');
   const rawRows = await readXlsxFile(file);
   if (rawRows.length === 0) return [];
 
