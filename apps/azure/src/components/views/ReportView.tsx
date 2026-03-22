@@ -981,16 +981,32 @@ const ReportView: React.FC<ReportViewProps> = ({
           {section.id === 'verification' && (
             <div className="space-y-3">
               {/* Cpk learning loop */}
-              {(cpkBefore != null || cpkAfter != null) && (
-                <ReportCpkLearningLoop
-                  valueBefore={cpkBefore}
-                  projectedValue={bestProjectedCpk}
-                  valueAfter={cpkAfter}
-                  verdict={primaryOutcome?.effective}
-                  metricLabel={isYamazumi ? 'VA Ratio' : 'Cpk'}
-                  formatValue={isYamazumi ? (v: number) => `${Math.round(v * 100)}%` : undefined}
-                />
-              )}
+              {(cpkBefore != null || cpkAfter != null) &&
+                (() => {
+                  const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
+                  const loopMetricLabel = isYamazumi
+                    ? 'VA Ratio'
+                    : isCapabilityMode
+                      ? 'Mean Cpk'
+                      : analysisMode === 'performance'
+                        ? 'Worst Channel Cpk'
+                        : hasSpecs
+                          ? 'Cpk'
+                          : 'σ';
+                  const loopFormatValue = isYamazumi
+                    ? (v: number) => `${Math.round(v * 100)}%`
+                    : undefined;
+                  return (
+                    <ReportCpkLearningLoop
+                      valueBefore={cpkBefore}
+                      projectedValue={bestProjectedCpk}
+                      valueAfter={cpkAfter}
+                      verdict={primaryOutcome?.effective}
+                      metricLabel={loopMetricLabel}
+                      formatValue={loopFormatValue}
+                    />
+                  );
+                })()}
 
               {/* Finding outcomes list (technical only) */}
               {!isSummary &&
