@@ -6,6 +6,7 @@
  */
 import { useMemo, useState, useCallback } from 'react';
 import { computeIdeaImpact } from '@variscout/core';
+import { usePanelsStore } from '../stores/panelsStore';
 import type {
   Finding,
   FindingProjection,
@@ -29,9 +30,6 @@ export interface UseEditorInvestigationOptions {
   findingsState: FindingsStateSlice;
   processContext: ProcessContext | undefined;
   stats: StatsResult | null;
-  panels: {
-    setIsWhatIfOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
-  };
 }
 
 export interface ProjectionTarget {
@@ -81,7 +79,6 @@ export function useEditorInvestigation({
   findingsState,
   processContext,
   stats,
-  panels,
 }: UseEditorInvestigationOptions): UseEditorInvestigationReturn {
   // Build hypothesesMap for FindingCard display
   const hypothesesMap = useMemo(() => {
@@ -158,9 +155,9 @@ export function useEditorInvestigation({
           hypothesisText: hypothesis.text,
         });
       }
-      panels.setIsWhatIfOpen(true);
+      usePanelsStore.getState().setWhatIfOpen(true);
     },
-    [panels, hypothesesState]
+    [hypothesesState]
   );
 
   // Clear the projection target (e.g., when closing What-If without saving)
@@ -178,10 +175,10 @@ export function useEditorInvestigation({
           projection
         );
         setProjectionTarget(null);
-        panels.setIsWhatIfOpen(false);
+        usePanelsStore.getState().setWhatIfOpen(false);
       }
     },
-    [projectionTarget, hypothesesState, panels]
+    [projectionTarget, hypothesesState]
   );
 
   // Idea -> Action conversion: when a finding moves to 'improving', convert selected ideas to actions

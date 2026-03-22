@@ -12,6 +12,7 @@ import {
   buildFindingContext,
   buildFindingSource,
 } from '@variscout/hooks';
+import { usePanelsStore } from '../stores/panelsStore';
 import { useStatusUpdateCards } from './useStatusUpdateCards';
 import type { UseFilterNavigationReturn } from './useFilterNavigation';
 import type { FindingsCallbacks } from '../types/findingsCallbacks';
@@ -52,8 +53,6 @@ export interface UseFindingsOrchestrationOptions {
   filterNav: UseFilterNavigationReturn;
   /** Callback to set filters (for restoring a finding's filter state) */
   setFilters: (filters: Record<string, (string | number)[]>) => void;
-  /** Panel toggle for findings sidebar */
-  setIsFindingsOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   /** Share finding callback */
   shareFinding: (finding: Finding, assignee?: Finding['assignee']) => Promise<boolean>;
   /** Whether channel @mentions are available */
@@ -122,7 +121,6 @@ export function useFindingsOrchestration({
   columnAliases,
   filterNav,
   setFilters,
-  setIsFindingsOpen,
   shareFinding,
   canMentionInChannel,
   onViewStateChange,
@@ -167,16 +165,16 @@ export function useFindingsOrchestration({
     (noteText?: string) => {
       const existing = findingsState.findDuplicate(filters);
       if (existing) {
-        setIsFindingsOpen(true);
+        usePanelsStore.getState().setFindingsOpen(true);
         setHighlightedFindingId(existing.id);
         return;
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(noteText || '', context);
-      setIsFindingsOpen(true);
+      usePanelsStore.getState().setFindingsOpen(true);
       setHighlightedFindingId(newFinding.id);
     },
-    [filters, drillPath, filteredData, outcome, specs, findingsState, setIsFindingsOpen]
+    [filters, drillPath, filteredData, outcome, specs, findingsState]
   );
 
   // Restore a finding's filters
@@ -201,17 +199,17 @@ export function useFindingsOrchestration({
       const source = buildFindingSource(chartType, categoryKey, anchorX, anchorY);
       const existing = findingsState.findDuplicateSource(source);
       if (existing) {
-        setIsFindingsOpen(true);
+        usePanelsStore.getState().setFindingsOpen(true);
         setHighlightedFindingId(existing.id);
         return;
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(noteText ?? '', context, source);
-      setIsFindingsOpen(true);
+      usePanelsStore.getState().setFindingsOpen(true);
       setHighlightedFindingId(newFinding.id);
       return newFinding;
     },
-    [filters, drillPath, filteredData, outcome, specs, findingsState, setIsFindingsOpen]
+    [filters, drillPath, filteredData, outcome, specs, findingsState]
   );
 
   // Chart findings grouped by type

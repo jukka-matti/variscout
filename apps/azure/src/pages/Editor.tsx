@@ -60,7 +60,8 @@ import { useEditorInvestigation } from '../hooks/useEditorInvestigation';
 import { useEditorImprovement } from '../hooks/useEditorImprovement';
 import { useActionProposals } from '../hooks/useActionProposals';
 import { useLocale } from '../context/LocaleContext';
-import { useEditorPanels } from '../hooks/useEditorPanels';
+import { usePanelsStore } from '../stores/panelsStore';
+import { usePanelsSideEffects } from '../hooks/usePanelsSideEffects';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
 import { useTeamsShare } from '../hooks/useTeamsShare';
 import { useShareFinding } from '../hooks/useShareFinding';
@@ -202,13 +203,28 @@ export const Editor: React.FC<EditorProps> = ({
     [viewState, setViewState]
   );
 
-  // Panel visibility and chart/table sync
-  const panels = useEditorPanels({
-    displayOptions,
-    setDisplayOptions,
-    viewState,
-    onViewStateChange: handleViewStateChange,
-  });
+  // Panel visibility and chart/table sync (Zustand store)
+  const isFindingsOpen = usePanelsStore(s => s.isFindingsOpen);
+  const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
+  const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
+  const isImprovementOpen = usePanelsStore(s => s.isImprovementOpen);
+  const isPresentationMode = usePanelsStore(s => s.isPresentationMode);
+  const isReportOpen = usePanelsStore(s => s.isReportOpen);
+  const isDataPanelOpen = usePanelsStore(s => s.isDataPanelOpen);
+  const isDataTableOpen = usePanelsStore(s => s.isDataTableOpen);
+  const highlightRowIndex = usePanelsStore(s => s.highlightRowIndex);
+  const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
+
+  // Initialize from persisted ViewState (once, on mount)
+  const viewStateInitRef = useRef(false);
+  useEffect(() => {
+    if (viewStateInitRef.current) return;
+    viewStateInitRef.current = true;
+    usePanelsStore.getState().initFromViewState(viewState);
+  }, [viewState]);
+
+  // Side effects: persistence + highlight timeout
+  usePanelsSideEffects(handleViewStateChange);
 
   // Focus return refs for mobile overlays (F-19)
   const findingsTriggerRef = useRef<Element | null>(null);
@@ -216,47 +232,48 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Restore focus when mobile findings overlay closes
   useEffect(() => {
-    if (!isPhone || panels.isFindingsOpen) return;
+    if (!isPhone || isFindingsOpen) return;
     if (findingsTriggerRef.current instanceof HTMLElement) {
       findingsTriggerRef.current.focus();
       findingsTriggerRef.current = null;
     }
-  }, [isPhone, panels.isFindingsOpen]);
+  }, [isPhone, isFindingsOpen]);
 
   // Restore focus when mobile CoScout overlay closes
   useEffect(() => {
-    if (!isPhone || panels.isCoScoutOpen) return;
+    if (!isPhone || isCoScoutOpen) return;
     if (coScoutTriggerRef.current instanceof HTMLElement) {
       coScoutTriggerRef.current.focus();
       coScoutTriggerRef.current = null;
     }
-  }, [isPhone, panels.isCoScoutOpen]);
+  }, [isPhone, isCoScoutOpen]);
 
   // Phone: data panel opens DataTableModal instead of inline panel
   const handleDataPanelToggle = useCallback(() => {
     if (isPhone) {
-      panels.setIsDataTableOpen(true);
+      usePanelsStore.getState().openDataTable();
     } else {
-      panels.setIsDataPanelOpen(prev => !prev);
+      usePanelsStore.getState().toggleDataPanel();
     }
-  }, [isPhone, panels]);
+  }, [isPhone]);
 
   // Mobile tab bar navigation handler
   const handleMobileTabChange = useCallback(
     (tab: MobileTab) => {
       setMobileActiveTab(tab);
+      const ps = usePanelsStore.getState();
       if (tab === 'findings') {
         if (isPhone) findingsTriggerRef.current = document.activeElement;
-        panels.setIsFindingsOpen(true);
+        ps.setFindingsOpen(true);
       } else if (tab === 'improve') {
-        panels.setIsImprovementOpen(true);
+        ps.setImprovementOpen(true);
       } else if (tab === 'analysis') {
-        panels.setIsFindingsOpen(false);
-        panels.setIsImprovementOpen(false);
+        ps.setFindingsOpen(false);
+        ps.setImprovementOpen(false);
       }
       // 'more' is handled by the More bottom sheet
     },
-    [isPhone, panels]
+    [isPhone]
   );
 
   // Manual data merge (for append mode)
@@ -291,18 +308,19 @@ export const Editor: React.FC<EditorProps> = ({
   const handleMobileMore = useCallback(
     (action: string) => {
       setMobileActiveTab('analysis');
+      const ps = usePanelsStore.getState();
       switch (action) {
         case 'report':
-          panels.setIsReportOpen(true);
+          ps.openReport();
           break;
         case 'whatif':
-          panels.setIsWhatIfOpen(true);
+          ps.setWhatIfOpen(true);
           break;
         case 'presentation':
-          panels.setIsPresentationMode(true);
+          ps.openPresentation();
           break;
         case 'datatable':
-          panels.setIsDataTableOpen(true);
+          ps.openDataTable();
           break;
         case 'addpaste':
           dataFlow.startAppendPaste();
@@ -314,14 +332,14 @@ export const Editor: React.FC<EditorProps> = ({
           dataFlow.handleAddMoreData();
           break;
         case 'editdata':
-          panels.setIsDataTableOpen(true);
+          ps.openDataTable();
           break;
         case 'csv':
           if (outcome) downloadCSV(filteredData, outcome, specs);
           break;
       }
     },
-    [panels, dataFlow, filteredData, outcome, specs]
+    [dataFlow, filteredData, outcome, specs]
   );
 
   // Ref to allow ingestion callbacks to reach dataFlow setters
@@ -451,7 +469,6 @@ export const Editor: React.FC<EditorProps> = ({
     columnAliases,
     filterNav,
     setFilters,
-    setIsFindingsOpen: panels.setIsFindingsOpen,
     shareFinding,
     canMentionInChannel,
     onViewStateChange: handleViewStateChange,
@@ -468,7 +485,7 @@ export const Editor: React.FC<EditorProps> = ({
   useEffect(() => {
     if (deepLinkConsumedRef.current || !rawData.length || !outcome) return;
     if (initialFindingId) {
-      panels.setIsFindingsOpen(true);
+      usePanelsStore.getState().setFindingsOpen(true);
       setHighlightedFindingId(initialFindingId);
     }
     if (initialChart) {
@@ -506,9 +523,9 @@ export const Editor: React.FC<EditorProps> = ({
     return buildCurrentViewLink(baseUrl, projectName, {
       focusedChart: viewState?.focusedChart ?? undefined,
       findingId: highlightedFindingId ?? undefined,
-      mode: panels.isReportOpen ? 'report' : undefined,
+      mode: isReportOpen ? 'report' : undefined,
     });
-  }, [baseUrl, projectName, viewState?.focusedChart, highlightedFindingId, panels.isReportOpen]);
+  }, [baseUrl, projectName, viewState?.focusedChart, highlightedFindingId, isReportOpen]);
 
   // Share via Teams native dialog with toast feedback
   const handleShareTeams = useCallback(() => {
@@ -532,14 +549,14 @@ export const Editor: React.FC<EditorProps> = ({
     () => ({
       deepLinkUrl,
       isInTeams: isTeams,
-      showPublishReport: panels.isReportOpen && hasTeamFeatures(),
+      showPublishReport: isReportOpen && hasTeamFeatures(),
       onShareTeams: handleShareTeams,
       onPublishReport: () => {
         /* P3 — wired later */
       },
       onToast: showToast,
     }),
-    [deepLinkUrl, isTeams, panels.isReportOpen, handleShareTeams, showToast]
+    [deepLinkUrl, isTeams, isReportOpen, handleShareTeams, showToast]
   );
 
   // Current user (for comment author attribution)
@@ -579,7 +596,6 @@ export const Editor: React.FC<EditorProps> = ({
     findingsState,
     processContext,
     stats,
-    panels,
   });
 
   // Improvement workspace: data prep, popout sync, idea-to-action conversion
@@ -693,11 +709,11 @@ export const Editor: React.FC<EditorProps> = ({
     capabilityData: aiCapabilityData,
     onOpenCoScout: () => {
       if (isPhone) coScoutTriggerRef.current = document.activeElement;
-      panels.setIsCoScoutOpen(true);
+      usePanelsStore.getState().setCoScoutOpen(true);
     },
     onOpenFindings: () => {
       if (isPhone) findingsTriggerRef.current = document.activeElement;
-      panels.setIsFindingsOpen(true);
+      usePanelsStore.getState().setFindingsOpen(true);
     },
   });
 
@@ -905,12 +921,12 @@ export const Editor: React.FC<EditorProps> = ({
   }
 
   // If What-If Simulator is open, show full-page view
-  if (panels.isWhatIfOpen) {
+  if (isWhatIfOpen) {
     return (
       <WhatIfPage
         onBack={() => {
           clearProjectionTarget();
-          panels.setIsWhatIfOpen(false);
+          usePanelsStore.getState().setWhatIfOpen(false);
         }}
         filterCount={filterNav.filterStack.length}
         filterStack={filterNav.filterStack}
@@ -928,7 +944,7 @@ export const Editor: React.FC<EditorProps> = ({
   }
 
   // If Improvement Workspace is open, show full-page view
-  if (panels.isImprovementOpen) {
+  if (isImprovementOpen) {
     return (
       <ImprovementWorkspaceBase
         synthesis={processContext?.synthesis}
@@ -953,7 +969,7 @@ export const Editor: React.FC<EditorProps> = ({
         }}
         onAskCoScout={handleAskCoScoutFromIdeas}
         onConvertToActions={handleConvertIdeasToActions}
-        onBack={() => panels.setIsImprovementOpen(false)}
+        onBack={() => usePanelsStore.getState().setImprovementOpen(false)}
         onPopout={handleOpenImprovementPopout}
         selectedIdeaIds={selectedIdeaIds}
         convertedIdeaIds={convertedIdeaIds}
@@ -985,14 +1001,13 @@ export const Editor: React.FC<EditorProps> = ({
           onSaveAs: hasTeamFeatures() ? handleSaveAs : undefined,
         }}
         panelState={{
-          isFindingsOpen: panels.isFindingsOpen,
-          isDataPanelOpen: panels.isDataPanelOpen,
-          isImprovementOpen: panels.isImprovementOpen,
+          isFindingsOpen,
+          isDataPanelOpen,
+          isImprovementOpen,
           findingsCount: findingsState.findings.length,
           onToggleFindings: () => {
-            if (isPhone && !panels.isFindingsOpen)
-              findingsTriggerRef.current = document.activeElement;
-            panels.setIsFindingsOpen(prev => !prev);
+            if (isPhone && !isFindingsOpen) findingsTriggerRef.current = document.activeElement;
+            usePanelsStore.getState().toggleFindings();
           },
           onToggleDataPanel: handleDataPanelToggle,
         }}
@@ -1000,11 +1015,11 @@ export const Editor: React.FC<EditorProps> = ({
           onAddPasteData: () => dataFlow.startAppendPaste(),
           onAddFileData: () => dataFlow.startAppendFileUpload(),
           onAddManualData: dataFlow.handleAddMoreData,
-          onOpenDataTable: () => panels.setIsDataTableOpen(true),
-          onOpenWhatIf: () => panels.setIsWhatIfOpen(true),
-          onOpenImprovement: () => panels.setIsImprovementOpen(true),
-          onOpenReport: () => panels.setIsReportOpen(true),
-          onOpenPresentation: () => panels.setIsPresentationMode(true),
+          onOpenDataTable: () => usePanelsStore.getState().openDataTable(),
+          onOpenWhatIf: () => usePanelsStore.getState().setWhatIfOpen(true),
+          onOpenImprovement: () => usePanelsStore.getState().setImprovementOpen(true),
+          onOpenReport: () => usePanelsStore.getState().openReport(),
+          onOpenPresentation: () => usePanelsStore.getState().openPresentation(),
         }}
         showOverflowMenu={!isPhone}
         shareState={shareState}
@@ -1031,7 +1046,7 @@ export const Editor: React.FC<EditorProps> = ({
       <div
         ref={el => {
           if (!el) return;
-          if (isPhone && (panels.isFindingsOpen || panels.isCoScoutOpen)) {
+          if (isPhone && (isFindingsOpen || isCoScoutOpen)) {
             el.setAttribute('inert', '');
           } else {
             el.removeAttribute('inert');
@@ -1161,15 +1176,15 @@ export const Editor: React.FC<EditorProps> = ({
               drillFromPerformance={dataFlow.drillFromPerformance}
               onBackToPerformance={dataFlow.handleBackToPerformance}
               onDrillToMeasure={dataFlow.handleDrillToMeasure}
-              onPointClick={isPhone ? undefined : panels.handlePointClick}
-              highlightedPointIndex={isPhone ? undefined : panels.highlightedChartPoint}
+              onPointClick={isPhone ? undefined : usePanelsStore.getState().handlePointClick}
+              highlightedPointIndex={isPhone ? undefined : highlightedChartPoint}
               filterNav={filterNav}
               initialViewState={viewState ?? undefined}
               onViewStateChange={handleViewStateChange}
-              isReportOpen={panels.isReportOpen}
-              onCloseReport={() => panels.setIsReportOpen(false)}
-              isPresentationMode={panels.isPresentationMode}
-              onExitPresentation={() => panels.setIsPresentationMode(false)}
+              isReportOpen={isReportOpen}
+              onCloseReport={() => usePanelsStore.getState().closeReport()}
+              isPresentationMode={isPresentationMode}
+              onExitPresentation={() => usePanelsStore.getState().closePresentation()}
               onManageFactors={dataFlow.openFactorManager}
               onPinFinding={handlePinFinding}
               onShareChart={handleShareChart}
@@ -1192,13 +1207,13 @@ export const Editor: React.FC<EditorProps> = ({
               anchorSelector='[data-testid="narrative-ask-button"]'
             />
             {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
-            {isPhone && panels.isFindingsOpen ? (
+            {isPhone && isFindingsOpen ? (
               <div className="fixed inset-0 z-[60] bg-surface flex flex-col animate-slide-up safe-area-bottom">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
                   <h2 className="text-sm font-semibold text-content">Findings</h2>
                   <button
                     onClick={() => {
-                      panels.setIsFindingsOpen(false);
+                      usePanelsStore.getState().setFindingsOpen(false);
                       setHighlightedFindingId(null);
                     }}
                     className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
@@ -1211,7 +1226,7 @@ export const Editor: React.FC<EditorProps> = ({
                 <FindingsPanel
                   isOpen={true}
                   onClose={() => {
-                    panels.setIsFindingsOpen(false);
+                    usePanelsStore.getState().setFindingsOpen(false);
                     setHighlightedFindingId(null);
                   }}
                   findings={findingsState.findings}
@@ -1281,9 +1296,9 @@ export const Editor: React.FC<EditorProps> = ({
               </div>
             ) : (
               <FindingsPanel
-                isOpen={panels.isFindingsOpen}
+                isOpen={isFindingsOpen}
                 onClose={() => {
-                  panels.setIsFindingsOpen(false);
+                  usePanelsStore.getState().setFindingsOpen(false);
                   setHighlightedFindingId(null);
                 }}
                 findings={findingsState.findings}
@@ -1341,12 +1356,12 @@ export const Editor: React.FC<EditorProps> = ({
               />
             )}
             {/* CoScoutPanel: full-screen overlay on phone, inline sidebar on desktop */}
-            {isPhone && panels.isCoScoutOpen ? (
+            {isPhone && isCoScoutOpen ? (
               <div className="fixed inset-0 z-[60] bg-surface flex flex-col animate-slide-up safe-area-bottom">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
                   <h2 className="text-sm font-semibold text-content">CoScout</h2>
                   <button
-                    onClick={() => panels.setIsCoScoutOpen(false)}
+                    onClick={() => usePanelsStore.getState().setCoScoutOpen(false)}
                     className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
                     style={{ minWidth: 44, minHeight: 44 }}
                     aria-label="Close CoScout"
@@ -1356,7 +1371,7 @@ export const Editor: React.FC<EditorProps> = ({
                 </div>
                 <CoScoutPanelBase
                   isOpen={true}
-                  onClose={() => panels.setIsCoScoutOpen(false)}
+                  onClose={() => usePanelsStore.getState().setCoScoutOpen(false)}
                   messages={coscout.messages}
                   onSend={coscout.send}
                   isLoading={coscout.isLoading}
@@ -1380,8 +1395,8 @@ export const Editor: React.FC<EditorProps> = ({
               </div>
             ) : (
               <CoScoutPanelBase
-                isOpen={panels.isCoScoutOpen}
-                onClose={() => panels.setIsCoScoutOpen(false)}
+                isOpen={isCoScoutOpen}
+                onClose={() => usePanelsStore.getState().setCoScoutOpen(false)}
                 messages={coscout.messages}
                 onSend={coscout.send}
                 isLoading={coscout.isLoading}
@@ -1406,12 +1421,12 @@ export const Editor: React.FC<EditorProps> = ({
             {/* DataPanel: hidden on phone (use DataTableModal instead) */}
             {!isPhone && (
               <DataPanel
-                isOpen={panels.isDataPanelOpen}
-                onClose={() => panels.setIsDataPanelOpen(false)}
-                highlightRowIndex={panels.highlightRowIndex}
-                onRowClick={panels.handleRowClick}
+                isOpen={isDataPanelOpen}
+                onClose={() => usePanelsStore.getState().closeDataPanel()}
+                highlightRowIndex={highlightRowIndex}
+                onRowClick={usePanelsStore.getState().handleRowClick}
                 controlViolations={controlViolations}
-                onOpenEditor={() => panels.setIsDataTableOpen(true)}
+                onOpenEditor={() => usePanelsStore.getState().openDataTable()}
               />
             )}
           </div>
@@ -1443,8 +1458,8 @@ export const Editor: React.FC<EditorProps> = ({
 
       {/* Data Table Editor Modal */}
       <DataTableModal
-        isOpen={panels.isDataTableOpen}
-        onClose={() => panels.setIsDataTableOpen(false)}
+        isOpen={isDataTableOpen}
+        onClose={() => usePanelsStore.getState().closeDataTable()}
         excludedRowIndices={excludedRowIndices}
         excludedReasons={excludedReasons}
         controlViolations={controlViolations}
