@@ -23,13 +23,13 @@ The Azure app's `Editor.tsx` had grown into a 1,963-line god component that inst
 
 Adopt **Zustand stores per feature domain** in the Azure app:
 
-| Store                | Domain                      | Key State                                                 |
-| -------------------- | --------------------------- | --------------------------------------------------------- |
-| `panelsStore`        | Panel visibility & layout   | activeTab, isFindingsOpen, isCoScoutOpen, focusedChart    |
-| `findingsStore`      | Findings read-side state    | selectedFindingId, isEditing, boardView, exportMenuOpen   |
-| `investigationStore` | Investigation UI state      | hypothesisTreeExpanded, selectedHypothesisId, phaseFilter |
-| `improvementStore`   | Improvement workspace state | activeWorkspace, selectedIdeaId, matrixView               |
-| `aiStore`            | AI/CoScout UI state         | isCoScoutOpen, pendingAction, insightDismissals           |
+| Store                | Domain                      | Key State                                                                      |
+| -------------------- | --------------------------- | ------------------------------------------------------------------------------ |
+| `panelsStore`        | Panel visibility & layout   | isFindingsOpen, isCoScoutOpen, isDataPanelOpen, highlightRowIndex, etc.        |
+| `findingsStore`      | Findings read-side state    | findings[], highlightedFindingId, chartFindings (grouped by chart type)        |
+| `investigationStore` | Investigation UI state      | hypotheses[], hypothesesMap, ideaImpacts, projectionTarget                     |
+| `improvementStore`   | Improvement workspace state | improvementHypotheses, selectedIdeaIds, projectedCpkMap, convertedIdeaIds      |
+| `aiStore`            | AI/CoScout UI state         | narration, coscoutMessages, suggestedQuestions, actionProposals, providerLabel |
 
 ### Architecture principles
 
@@ -48,7 +48,7 @@ Adopt **Zustand stores per feature domain** in the Azure app:
 ### Positive
 
 - **Editor.tsx reduced from 1,963 to 1,085 lines** — Feature-specific state and wiring moved to feature modules and stores.
-- **Eliminated prop drilling** — Components use `useStore(selector)` to access exactly the state they need without intermediate prop threading.
+- **Eliminated read-side prop drilling** — Components use `useStore(selector)` to access state directly without intermediate prop threading. Orchestration callbacks (action handlers that depend on DataContext) remain as props — an architectural constraint of hook-based composition.
 - **Granular re-renders** — Zustand's selector-based subscriptions mean components only re-render when their specific slice of state changes.
 - **Clear feature boundaries** — The `features/` directory makes ownership and dependencies between feature modules explicit.
 - **Testable in isolation** — Stores can be tested by calling actions and asserting state, without rendering components.

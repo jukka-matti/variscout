@@ -49,18 +49,20 @@ export type FindingsStore = FindingsStoreState & FindingsStoreActions;
 
 // ── Store ───────────────────────────────────────────────────────────────────
 
-export const useFindingsStore = create<FindingsStore>(set => ({
+export const useFindingsStore = create<FindingsStore>((set, get) => ({
   // Initial state
   findings: [],
   highlightedFindingId: null,
   chartFindings: { boxplot: [], pareto: [], ichart: [] },
 
   // Actions
-  syncFindings: (findings: Finding[]) =>
+  syncFindings: (findings: Finding[]) => {
+    if (findings === get().findings) return; // skip redundant recomputation
     set({
       findings,
       chartFindings: groupFindingsByChart(findings),
-    }),
+    });
+  },
 
   setHighlightedFindingId: (id: string | null) => set({ highlightedFindingId: id }),
 }));

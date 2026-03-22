@@ -178,14 +178,8 @@ export const Editor: React.FC<EditorProps> = ({
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
   const isImprovementOpen = usePanelsStore(s => s.isImprovementOpen);
-  // Note: some selectors below are used only in EditorDashboardView but must stay here
-  // for React hook-count consistency (early returns in Editor change the render path).
-  void usePanelsStore(s => s.isPresentationMode);
   const isReportOpen = usePanelsStore(s => s.isReportOpen);
   const isDataPanelOpen = usePanelsStore(s => s.isDataPanelOpen);
-  void usePanelsStore(s => s.isDataTableOpen);
-  void usePanelsStore(s => s.highlightRowIndex);
-  void usePanelsStore(s => s.highlightedChartPoint);
 
   // Initialize from persisted ViewState (once, on mount)
   const viewStateInitRef = useRef(false);
@@ -563,10 +557,6 @@ export const Editor: React.FC<EditorProps> = ({
     processContext,
     stats,
   });
-  // Hook-count stability: these selectors are used in EditorDashboardView
-  // but the hook calls must remain here (above early returns) for consistency.
-  void useInvestigationStore(s => s.hypothesesMap);
-  void useInvestigationStore(s => s.ideaImpacts);
   const projectionTarget = useInvestigationStore(s => s.projectionTarget);
 
   // Improvement workspace
@@ -581,7 +571,6 @@ export const Editor: React.FC<EditorProps> = ({
   const improvementHypotheses = useImprovementStore(s => s.improvementHypotheses);
   const improvementLinkedFindings = useImprovementStore(s => s.improvementLinkedFindings);
   const selectedIdeaIds = useImprovementStore(s => s.selectedIdeaIds);
-  void useImprovementStore(s => s.projectedCpkMap);
   const convertedIdeaIds = useImprovementStore(s => s.convertedIdeaIds);
 
   // Control violations for DataPanel annotations (must be called unconditionally for hook order)
