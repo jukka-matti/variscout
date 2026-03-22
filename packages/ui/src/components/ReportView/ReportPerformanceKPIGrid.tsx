@@ -17,7 +17,7 @@ function getCpkColor(cpk: number, target: number): string {
 
 function getChannelsColor(passing: number, total: number): string {
   if (passing === total) return 'text-green-600 dark:text-green-400';
-  if (passing / total > 0.5) return 'text-amber-600 dark:text-amber-400';
+  if (total > 0 && passing / total > 0.5) return 'text-amber-600 dark:text-amber-400';
   return 'text-red-600 dark:text-red-400';
 }
 

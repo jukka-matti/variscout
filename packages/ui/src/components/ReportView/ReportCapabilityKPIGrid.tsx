@@ -34,7 +34,7 @@ export const ReportCapabilityKPIGrid: React.FC<ReportCapabilityKPIGridProps> = (
 }) => {
   const hasCp = meanCp !== undefined;
   const centeringLoss = hasCp ? (meanCp - meanCpk).toFixed(2) : '—';
-  const passingPct = Math.round((passingCount / subgroupCount) * 100);
+  const passingPct = subgroupCount > 0 ? Math.round((passingCount / subgroupCount) * 100) : 0;
   const colsClass = hasCp ? 'sm:grid-cols-4' : 'sm:grid-cols-3';
 
   return (

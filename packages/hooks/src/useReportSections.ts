@@ -53,8 +53,6 @@ export interface UseReportSectionsOptions {
   analysisMode?: AnalysisMode;
   /** True when standard mode I-Chart is showing Cp/Cpk per subgroup */
   isCapabilityMode?: boolean;
-  /** Target metric for KPI emphasis (from ProcessContext) */
-  targetMetric?: string;
 }
 
 export interface UseReportSectionsReturn {
@@ -137,7 +135,6 @@ export function useReportSections({
   audienceMode = 'technical',
   analysisMode,
   isCapabilityMode,
-  targetMetric,
 }: UseReportSectionsOptions): UseReportSectionsReturn {
   return useMemo(() => {
     const reportType = deriveReportType(findings);
@@ -248,6 +245,5 @@ export function useReportSections({
     audienceMode,
     analysisMode,
     isCapabilityMode,
-    targetMetric,
   ]);
 }
