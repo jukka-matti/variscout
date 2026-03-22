@@ -19,7 +19,7 @@ export const reportChartSnapshotDefaultColorScheme: ReportChartSnapshotColorSche
 
 export interface ReportChartSnapshotProps {
   id: string;
-  chartType: 'ichart' | 'boxplot' | 'pareto';
+  chartType: 'ichart' | 'boxplot' | 'pareto' | 'capability-ichart' | 'performance-ichart';
   filterLabel: string;
   renderChart: () => React.ReactNode;
   onCopyChart?: (containerId: string, chartName: string) => Promise<void>;
@@ -31,6 +31,8 @@ const chartTypeLabel: Record<ReportChartSnapshotProps['chartType'], string> = {
   ichart: 'I-Chart',
   boxplot: 'Boxplot',
   pareto: 'Pareto',
+  'capability-ichart': 'Capability I-Chart',
+  'performance-ichart': 'Performance I-Chart',
 };
 
 export const ReportChartSnapshot: React.FC<ReportChartSnapshotProps> = ({
