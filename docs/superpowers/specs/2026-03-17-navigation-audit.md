@@ -18,7 +18,7 @@ date: 2026-03-17
 
 1. **Add focus traps to all modal/overlay components** — 5 components lack focus traps (DataTableModalBase, SettingsPanelBase, CoScoutPanelBase, MobileCategorySheet, FilterChipDropdown mobile sheet)
 2. **Fix touch targets below 44px minimum** — FilterBreadcrumb chips (20×12px), overflow menu items (24×20px), carousel pills (24×36px), FilterChipDropdown close (26×26px)
-3. **Close competing panels when entering Presentation/Report mode** — useEditorPanels reducer allows Findings + CoScout to remain open under fullscreen overlays
+3. **Close competing panels when entering Presentation/Report mode** — panelsStore allows Findings + CoScout to remain open under fullscreen overlays
 4. **Implement Teams high-contrast theme** — `mapTeamsTheme()` collapses 'contrast' to 'light', losing accessibility benefit
 5. **Add `focus-visible:opacity-100` to focused chart nav buttons** — currently hover-only, invisible to keyboard users
 
@@ -104,14 +104,14 @@ date: 2026-03-17
 
 - **Severity:** S1 | **Priority:** P1
 - **Status:** RESOLVED
-- **Description:** `useEditorPanels` reducer correctly gates Presentation and Report as mutually exclusive, but does NOT close `isFindingsOpen` or `isCoScoutOpen`. On mobile, this creates z-40 + fullscreen conflicts. On desktop, resizable panels overlay presentation slides.
-- **Files:** `apps/azure/src/hooks/useEditorPanels.ts:68-75`
+- **Description:** `panelsStore` correctly gates Presentation and Report as mutually exclusive, but does NOT close `isFindingsOpen` or `isCoScoutOpen`. On mobile, this creates z-40 + fullscreen conflicts. On desktop, resizable panels overlay presentation slides.
+- **Files:** `apps/azure/src/features/panels/panelsStore.ts`
 - **Fix:** Add compound close to OPEN_PRESENTATION and OPEN_REPORT actions:
   ```typescript
   case 'OPEN_PRESENTATION':
     return { ...state, isPresentationMode: true, isReportOpen: false, isFindingsOpen: false, isCoScoutOpen: false };
   ```
-- **Implementation:** Compound closures added to `OPEN_PRESENTATION` and `OPEN_REPORT` actions in `editorPanelReducer`. Both actions now reset `isFindingsOpen` and `isCoScoutOpen` to `false` before entering fullscreen mode.
+- **Implementation:** Compound closures added to `openPresentation` and `openReport` actions in `panelsStore`. Both actions now reset `isFindingsOpen` and `isCoScoutOpen` to `false` before entering fullscreen mode.
 
 #### F-10: Mobile Findings Panel z-40 Under App Header z-50
 
@@ -283,11 +283,11 @@ date: 2026-03-17
 - **Files:** `apps/azure/src/App.tsx:148+`
 - **Fix:** Consider a one-time "Getting Started" overlay or guided tour for first-time users.
 
-#### F-30: useEditorPanels Functional Update Edge Case
+#### F-30: usePanelsStore Functional Update Edge Case
 
 - **Severity:** S4 | **Priority:** P3
 - **Description:** `setIsDataTableOpen` and similar setters handle `typeof value === 'function'` by always dispatching OPEN, not evaluating the function with current state. If future code calls `setIsDataTableOpen(prev => !prev)`, it will always open.
-- **Files:** `apps/azure/src/hooks/useEditorPanels.ts:187-195`
+- **Files:** `apps/azure/src/features/panels/panelsStore.ts`
 - **Fix:** Capture current state in callback for proper toggle support.
 
 ---

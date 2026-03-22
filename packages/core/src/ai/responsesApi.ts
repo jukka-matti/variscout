@@ -129,6 +129,82 @@ export class ResponsesApiError extends Error {
   }
 }
 
+// ── Retry Logic ──────────────────────────────────────────────────────────
+
+const MAX_RETRIES = 3;
+const BASE_DELAY_MS = 1000;
+
+/**
+ * Retry a fetch-based operation with exponential backoff + jitter.
+ * Only retries on ResponsesApiError where isRetryable is true (429, 5xx).
+ * Respects Retry-After header when present.
+ */
+export async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries = MAX_RETRIES,
+  signal?: AbortSignal
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (attempt === maxRetries || !(err instanceof ResponsesApiError) || !err.isRetryable) {
+        throw err;
+      }
+
+      if (signal?.aborted) throw err;
+
+      // Calculate delay: respect Retry-After or use exponential backoff + jitter
+      let delayMs: number;
+      const retryAfter = parseRetryAfter(err.body);
+      if (retryAfter !== null) {
+        delayMs = retryAfter;
+      } else {
+        const exponential = BASE_DELAY_MS * Math.pow(2, attempt);
+        const jitter = Math.random() * BASE_DELAY_MS;
+        delayMs = exponential + jitter;
+      }
+
+      await sleep(delayMs, signal);
+    }
+  }
+  throw lastError; // unreachable, but satisfies TS
+}
+
+/** Parse Retry-After from error body (JSON { retry_after: seconds } or header-style) */
+function parseRetryAfter(body: string): number | null {
+  try {
+    const parsed = JSON.parse(body);
+    if (typeof parsed?.error?.retry_after === 'number') {
+      return parsed.error.retry_after * 1000;
+    }
+    if (typeof parsed?.retry_after === 'number') {
+      return parsed.retry_after * 1000;
+    }
+  } catch {
+    // Not JSON — ignore
+  }
+  return null;
+}
+
+/** Abortable sleep */
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(signal.reason);
+    const timer = setTimeout(resolve, ms);
+    signal?.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timer);
+        reject(signal.reason);
+      },
+      { once: true }
+    );
+  });
+}
+
 // ── API Client ───────────────────────────────────────────────────────────
 
 /**
@@ -162,26 +238,28 @@ export async function sendResponsesTurn(
   config: ResponsesApiConfig,
   request: Omit<ResponsesApiRequest, 'model' | 'stream'>
 ): Promise<ResponsesApiResponse> {
-  const url = buildUrl(config);
+  return retryWithBackoff(async () => {
+    const url = buildUrl(config);
 
-  const body: ResponsesApiRequest = {
-    ...request,
-    model: config.deployment,
-    stream: false,
-  };
+    const body: ResponsesApiRequest = {
+      ...request,
+      model: config.deployment,
+      stream: false,
+    };
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: buildHeaders(config),
-    body: JSON.stringify(body),
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: buildHeaders(config),
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => 'Unknown error');
+      throw new ResponsesApiError(res.status, res.statusText, errorText);
+    }
+
+    return res.json() as Promise<ResponsesApiResponse>;
   });
-
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => 'Unknown error');
-    throw new ResponsesApiError(res.status, res.statusText, errorText);
-  }
-
-  return res.json() as Promise<ResponsesApiResponse>;
 }
 
 /** Internal result from a single streaming turn — may be text or function calls */
@@ -212,25 +290,34 @@ async function streamSingleTurn(
   onChunk: (delta: string) => void,
   signal: AbortSignal
 ): Promise<StreamTurnResult> {
-  const url = buildUrl(config);
+  // Retry only the HTTP request — once streaming starts, retrying would duplicate output
+  const res = await retryWithBackoff(
+    async () => {
+      const url = buildUrl(config);
 
-  const body: ResponsesApiRequest = {
-    ...request,
-    model: config.deployment,
-    stream: true,
-  };
+      const body: ResponsesApiRequest = {
+        ...request,
+        model: config.deployment,
+        stream: true,
+      };
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: buildHeaders(config),
-    body: JSON.stringify(body),
-    signal,
-  });
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: buildHeaders(config),
+        body: JSON.stringify(body),
+        signal,
+      });
 
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => 'Unknown error');
-    throw new ResponsesApiError(res.status, res.statusText, errorText);
-  }
+      if (!r.ok) {
+        const errorText = await r.text().catch(() => 'Unknown error');
+        throw new ResponsesApiError(r.status, r.statusText, errorText);
+      }
+
+      return r;
+    },
+    MAX_RETRIES,
+    signal
+  );
 
   const reader = res.body?.getReader();
   if (!reader) throw new Error('No response body for streaming');

@@ -8,8 +8,8 @@ Lightweight, offline-first variation analysis tool for quality professionals.
 pnpm dev             # PWA dev server (localhost:5173)
 pnpm --filter @variscout/azure-app dev  # Azure app dev server
 
-pnpm build           # Build all packages and apps
-pnpm test            # Run Vitest tests (all packages)
+pnpm build           # Build all packages and apps (runs turbo build)
+pnpm test            # Run Vitest tests (all packages, runs turbo test)
 pnpm --filter @variscout/core test      # Core package tests only
 pnpm --filter @variscout/pwa test       # PWA tests only
 pnpm --filter @variscout/azure-app test # Azure app tests only
@@ -93,7 +93,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Yamazumi / Time Study      | adr-034, docs/03-features/analysis/yamazumi.md, packages/core/src/yamazumi/                                                                             |
 | Navigation / Views         | docs/06-design-system/patterns/navigation.md, apps/pwa/src/hooks/useAppPanels.ts, apps/azure/src/hooks/useEditorPanels.ts                               |
 | Performance / Mobile       | adr-039, docs/05-technical/implementation/system-limits.md, .claude/rules/charts.md                                                                     |
-| State management / Stores  | adr-041, apps/azure/src/stores/                                                                                                                         |
+| State management / Stores  | adr-041, apps/azure/src/features/\*/ (stores co-located per feature)                                                                                    |
 
 ## Repository Structure
 
@@ -119,18 +119,18 @@ variscout-lite/
 
 ## Key Entry Points
 
-| Package                                       | Key Files                                                                                                                                                                 | Purpose                                                                                    |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `packages/core/src/`                          | stats/, parser/, types.ts, tier.ts, ai/, glossary/, variation/, yamazumi/                                                                                                 | Stats engine (14 modules), parser, types, tier, AI context, glossary, simulation, yamazumi |
-| `packages/charts/src/`                        | IChart, Boxplot, Pareto, Performance\*, colors.ts, useChartTheme                                                                                                          | Chart components (see .claude/rules/charts.md)                                             |
-| `packages/hooks/src/`                         | use\*.ts (see .claude/rules/monorepo.md for full list)                                                                                                                    | 40+ shared React hooks                                                                     |
-| `packages/ui/src/components/`                 | \*/ (see .claude/rules/monorepo.md for full list)                                                                                                                         | 60+ shared UI components                                                                   |
-| `packages/data/src/samples/`                  | coffee, journey, bottleneck, sachets                                                                                                                                      | Sample datasets                                                                            |
-| `apps/pwa/src/`                               | context/DataContext.tsx, components/Dashboard.tsx                                                                                                                         | PWA state + main UI                                                                        |
-| `apps/azure/src/`                             | context/DataContext.tsx, services/graphFetch.ts, auth/, hooks/useEditor\*.ts, stores/panelsStore, findingsStore, investigationStore, improvementStore, aiStore, features/ | Azure state, storage, auth, Graph API wrapper, Zustand feature stores                      |
-| `packages/ui/src/components/ImprovementPlan/` | ImprovementWorkspaceBase, SynthesisCard, IdeaGroupCard, ImprovementSummaryBar, RiskPopover, PrioritizationMatrix                                                          | Improvement planning workspace (Azure only)                                                |
-| `packages/ui/src/components/ReportView/`      | ReportViewBase, ReportSection, ReportCpkLearningLoop, ReportHypothesisSummary, ReportImprovementSummary                                                                   | Report view with 3 workspace-aligned types + audience toggle                               |
-| `infra/`                                      | main.bicep, modules/\*.bicep, mainTemplate.json, functions/                                                                                                               | Bicep modules, compiled ARM template, Azure Functions                                      |
+| Package                                       | Key Files                                                                                                                  | Purpose                                                                                    |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `packages/core/src/`                          | stats/, parser/, types.ts, tier.ts, ai/, glossary/, variation/, yamazumi/                                                  | Stats engine (14 modules), parser, types, tier, AI context, glossary, simulation, yamazumi |
+| `packages/charts/src/`                        | IChart, Boxplot, Pareto, Performance\*, colors.ts, useChartTheme                                                           | Chart components (see .claude/rules/charts.md)                                             |
+| `packages/hooks/src/`                         | use\*.ts (see .claude/rules/monorepo.md for full list)                                                                     | 40+ shared React hooks                                                                     |
+| `packages/ui/src/components/`                 | \*/ (see .claude/rules/monorepo.md for full list)                                                                          | 60+ shared UI components                                                                   |
+| `packages/data/src/samples/`                  | coffee, journey, bottleneck, sachets                                                                                       | Sample datasets                                                                            |
+| `apps/pwa/src/`                               | context/DataContext.tsx, components/Dashboard.tsx                                                                          | PWA state + main UI                                                                        |
+| `apps/azure/src/`                             | context/DataContext.tsx, services/graphFetch.ts, auth/, hooks/useEditor\*.ts, features/\*/ (stores co-located per feature) | Azure state, storage, auth, Graph API wrapper, Zustand feature stores                      |
+| `packages/ui/src/components/ImprovementPlan/` | ImprovementWorkspaceBase, SynthesisCard, IdeaGroupCard, ImprovementSummaryBar, RiskPopover, PrioritizationMatrix           | Improvement planning workspace (Azure only)                                                |
+| `packages/ui/src/components/ReportView/`      | ReportViewBase, ReportSection, ReportCpkLearningLoop, ReportHypothesisSummary, ReportImprovementSummary                    | Report view with 3 workspace-aligned types + audience toggle                               |
+| `infra/`                                      | main.bicep, modules/\*.bicep, mainTemplate.json, functions/                                                                | Bicep modules, compiled ARM template, Azure Functions                                      |
 
 ## Key Patterns
 
@@ -139,7 +139,7 @@ variscout-lite/
 - **Props-based Charts**: Chart components accept data via props (not context)
 - **Persistence**: PWA = session-only (no persistence); Azure Standard = IndexedDB (local); Azure Team = IndexedDB + OneDrive sync
 - **Offline-first**: PWA works without internet after first visit
-- **Zustand Feature Stores**: Azure app uses Zustand stores per feature domain (panels, findings, investigation, improvement, AI). DataContext stays as React Context for the core data pipeline. Components use store selectors instead of prop drilling.
+- **Zustand Feature Stores**: Azure app uses Zustand stores per feature domain (panels, findings, investigation, improvement, AI), co-located in `features/*/` directories (Feature-Sliced Design). DataContext stays as React Context for the core data pipeline. Components use store selectors instead of prop drilling.
 
 See `.claude/rules/` for code style, chart, testing, and monorepo conventions.
 

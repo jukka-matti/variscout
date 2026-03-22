@@ -80,7 +80,7 @@ Three layers of gaps surfaced during analysis:
 
 #### Append architecture (Azure only)
 
-Append entry points live in `apps/azure/src/hooks/useEditorDataFlow.ts`. Auto-detection (`detectMergeStrategy()`) determines whether new data should be appended as rows or merged as columns based on column overlap.
+Append entry points live in `apps/azure/src/features/data-flow/`. Auto-detection (`detectMergeStrategy()`) determines whether new data should be appended as rows or merged as columns based on column overlap.
 
 **Time extraction gap**: `augmentWithTimeColumns()` in `packages/core/src/time.ts` runs on initial data load but does not re-run on append. Derived time columns (Hour, Day of Week, etc.) don't extend to appended rows. Fix is ~5 lines in the append handler — call `augmentWithTimeColumns()` on the combined dataset after merge.
 
@@ -301,7 +301,7 @@ Delivered:
 | `FindingOutcome`            | `packages/core/src/findings.ts`                                      |
 | InvestigationSidebar        | `packages/ui/src/components/FindingsWindow/InvestigationSidebar.tsx` |
 | Merge logic                 | `apps/azure/src/hooks/useDataMerge.ts`                               |
-| Append entry points         | `apps/azure/src/hooks/useEditorDataFlow.ts`                          |
+| Append entry points         | `apps/azure/src/features/data-flow/`                                 |
 | Time extraction             | `packages/core/src/time.ts`                                          |
 | Row limits                  | `packages/hooks/src/useDataIngestion.ts`                             |
 

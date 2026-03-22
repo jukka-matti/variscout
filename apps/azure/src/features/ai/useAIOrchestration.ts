@@ -40,7 +40,7 @@ import {
 import { isTeamPlan } from '@variscout/core';
 import { useAIDerivedState } from './useAIDerivedState';
 import { useToolHandlers } from './useToolHandlers';
-import { useAIStore, type AIContextSummary } from '../../stores/aiStore';
+import { useAIStore, type AIContextSummary } from './aiStore';
 import type { ResponsesApiConfig } from '@variscout/core';
 import {
   fetchNarration as fetchNarrationFromAI,

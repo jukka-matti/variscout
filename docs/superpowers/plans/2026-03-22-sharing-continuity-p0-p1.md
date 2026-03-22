@@ -717,7 +717,7 @@ import { useToast } from '../context/ToastContext';
 const { showToast } = useToast();
 
 // Build deep link for current view state.
-// Use `panels.isReportOpen` (from useEditorPanels) — NOT a "currentViewMode" variable.
+// Use `panels.isReportOpen` (from usePanelsStore) — NOT a "currentViewMode" variable.
 const deepLinkUrl = useMemo(() => {
   if (!projectName) return '';
   const baseUrl = window.location.origin + window.location.pathname;
@@ -768,7 +768,7 @@ Pass `shareState` to `<EditorToolbar shareState={shareState} ... />`.
 
 **Variable mapping note:** The variable names in Editor.tsx may differ slightly. Key mappings:
 
-- `panels` = from `useEditorPanels()` — has `panels.isReportOpen`
+- `panels` = from `usePanelsStore()` — has `panels.isReportOpen`
 - `viewState` = view state object with `focusedChart`
 - `highlightedFindingId` = currently selected finding ID
 - `isTeams` = from `useTeamsShare()` return value

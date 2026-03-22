@@ -467,7 +467,7 @@ flowchart LR
         PC[ProcessContext]
     end
 
-    subgraph Orchestration["useEditorAI"]
+    subgraph Orchestration["useAIOrchestration (features/ai/)"]
         AC[useAIContext]
         NR[useNarration]
         CI[useChartInsights]
@@ -518,7 +518,7 @@ flowchart LR
 
 **Data flow summary:**
 
-1. `useEditorAI` composes all AI hooks and provides a single return object to the Editor
+1. `useAIOrchestration` (in `features/ai/`) composes all AI hooks and provides a single return object to the Editor (see ADR-041 for the Zustand feature stores migration)
 2. `useAIContext` calls `buildAIContext()` to assemble the structured `AIContext` from analysis state
 3. Each hook consumes the context and calls the appropriate AI service function
 4. Service responses flow into UI components via hook return values

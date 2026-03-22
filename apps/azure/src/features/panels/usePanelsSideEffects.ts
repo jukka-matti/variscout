@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { usePanelsStore } from '../stores/panelsStore';
+import { usePanelsStore } from './panelsStore';
 import type { ViewState } from '@variscout/hooks';
 
 /**

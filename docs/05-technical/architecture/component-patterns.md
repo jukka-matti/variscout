@@ -548,11 +548,11 @@ Attached directly to individual chart cards. These are chart-specific display op
 
 ## AI Hook Layer
 
-**`useEditorAI` composes all AI hooks into a single orchestration point for the Azure Editor.**
+**`useAIOrchestration` (in `features/ai/`) composes all AI hooks into a single orchestration point for the Azure Editor.**
 
 ```mermaid
 flowchart TB
-    subgraph Orchestrator["useEditorAI"]
+    subgraph Orchestrator["useAIOrchestration"]
         AC[useAIContext]
         NR[useNarration]
         CS[useAICoScout]

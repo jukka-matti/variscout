@@ -59,6 +59,10 @@ Adopt **Zustand stores per feature domain** in the Azure app:
 - **Two state paradigms** — Developers must understand when to use React Context (data pipeline) vs Zustand stores (feature UI state).
 - **Store proliferation risk** — Without discipline, stores could fragment state across too many small slices. The 5-store model should be treated as a ceiling, not a starting point.
 
+### Store co-location (implemented)
+
+Stores have been moved from `apps/azure/src/stores/` into their respective `apps/azure/src/features/*/` directories following Feature-Sliced Design. Each feature module (findings, investigation, improvement, AI, panels) owns its store alongside its components and wiring. The separate `stores/` directory no longer exists.
+
 ### Migration path
 
 - PWA app retains its simpler architecture (fewer features, no investigation/improvement). Zustand adoption is Azure-only for now.

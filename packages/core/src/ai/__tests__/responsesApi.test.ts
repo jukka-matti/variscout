@@ -1,6 +1,7 @@
 import { vi, describe, it, expect, afterEach } from 'vitest';
 import {
   ResponsesApiError,
+  retryWithBackoff,
   sendResponsesTurn,
   streamResponsesTurn,
   streamResponsesWithToolLoop,
@@ -208,41 +209,51 @@ describe('sendResponsesTurn', () => {
     }
   });
 
-  it('throws ResponsesApiError on HTTP 500 error', async () => {
-    mockFetch(
-      () =>
-        new Response('Internal server error', { status: 500, statusText: 'Internal Server Error' })
-    );
+  it('retries then throws ResponsesApiError on HTTP 500 error', async () => {
+    vi.useFakeTimers();
+    let callCount = 0;
+    mockFetch(() => {
+      callCount++;
+      return new Response('Internal server error', {
+        status: 500,
+        statusText: 'Internal Server Error',
+      });
+    });
 
-    await expect(sendResponsesTurn(baseConfig, { input: 'fail' })).rejects.toThrow(
-      ResponsesApiError
-    );
-    try {
-      await sendResponsesTurn(baseConfig, { input: 'fail' });
-    } catch (e) {
+    const promise = sendResponsesTurn(baseConfig, { input: 'fail' });
+    // Attach handler before advancing to avoid unhandled rejection
+    const assertion = promise.catch(e => {
       expect(e).toBeInstanceOf(ResponsesApiError);
       expect((e as ResponsesApiError).status).toBe(500);
       expect((e as ResponsesApiError).isServerError).toBe(true);
       expect((e as ResponsesApiError).isRetryable).toBe(true);
-    }
+    });
+    await vi.advanceTimersByTimeAsync(15000);
+    await assertion;
+    // 1 original + 3 retries = 4 total calls
+    expect(callCount).toBe(4);
+    vi.useRealTimers();
   });
 
-  it('throws ResponsesApiError on HTTP 429 rate limit', async () => {
-    mockFetch(
-      () => new Response('Too many requests', { status: 429, statusText: 'Too Many Requests' })
-    );
+  it('retries then throws ResponsesApiError on HTTP 429 rate limit', async () => {
+    vi.useFakeTimers();
+    let callCount = 0;
+    mockFetch(() => {
+      callCount++;
+      return new Response('Too many requests', { status: 429, statusText: 'Too Many Requests' });
+    });
 
-    await expect(sendResponsesTurn(baseConfig, { input: 'spam' })).rejects.toThrow(
-      ResponsesApiError
-    );
-    try {
-      await sendResponsesTurn(baseConfig, { input: 'spam' });
-    } catch (e) {
+    const promise = sendResponsesTurn(baseConfig, { input: 'spam' });
+    const assertion = promise.catch(e => {
       expect(e).toBeInstanceOf(ResponsesApiError);
       expect((e as ResponsesApiError).status).toBe(429);
       expect((e as ResponsesApiError).isRateLimit).toBe(true);
       expect((e as ResponsesApiError).isRetryable).toBe(true);
-    }
+    });
+    await vi.advanceTimersByTimeAsync(15000);
+    await assertion;
+    expect(callCount).toBe(4);
+    vi.useRealTimers();
   });
 });
 
@@ -315,23 +326,29 @@ describe('streamResponsesTurn', () => {
     expect(response.usage!.output_tokens).toBe(25);
   });
 
-  it('throws ResponsesApiError on HTTP error before streaming', async () => {
-    mockFetch(
-      () => new Response('Service unavailable', { status: 503, statusText: 'Service Unavailable' })
-    );
+  it('retries then throws ResponsesApiError on HTTP error before streaming', async () => {
+    vi.useFakeTimers();
+    let callCount = 0;
+    mockFetch(() => {
+      callCount++;
+      return new Response('Service unavailable', {
+        status: 503,
+        statusText: 'Service Unavailable',
+      });
+    });
 
     const controller = new AbortController();
-    await expect(
-      streamResponsesTurn(baseConfig, { input: 'fail' }, () => {}, controller.signal)
-    ).rejects.toThrow(ResponsesApiError);
-    try {
-      await streamResponsesTurn(baseConfig, { input: 'fail' }, () => {}, controller.signal);
-    } catch (e) {
+    const promise = streamResponsesTurn(baseConfig, { input: 'fail' }, () => {}, controller.signal);
+    const assertion = promise.catch(e => {
       expect(e).toBeInstanceOf(ResponsesApiError);
       expect((e as ResponsesApiError).status).toBe(503);
       expect((e as ResponsesApiError).isServerError).toBe(true);
       expect((e as ResponsesApiError).isRetryable).toBe(true);
-    }
+    });
+    await vi.advanceTimersByTimeAsync(15000);
+    await assertion;
+    expect(callCount).toBe(4);
+    vi.useRealTimers();
   });
 
   it('captures response ID from first event', async () => {
@@ -836,6 +853,161 @@ describe('ConversationHistory', () => {
     history.clear();
 
     expect(history.toFallbackInput()).toEqual([]);
+  });
+});
+
+// ── retryWithBackoff ──────────────────────────────────────────────────────
+
+describe('retryWithBackoff', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('succeeds on first attempt without retrying', async () => {
+    let attempts = 0;
+    const result = await retryWithBackoff(async () => {
+      attempts++;
+      return 'ok';
+    });
+    expect(result).toBe('ok');
+    expect(attempts).toBe(1);
+  });
+
+  it('retries on 429 and succeeds on second attempt', async () => {
+    let attempts = 0;
+    const promise = retryWithBackoff(async () => {
+      attempts++;
+      if (attempts === 1) throw new ResponsesApiError(429, 'Too Many Requests', '');
+      return 'recovered';
+    });
+
+    await vi.advanceTimersByTimeAsync(5000);
+    const result = await promise;
+
+    expect(result).toBe('recovered');
+    expect(attempts).toBe(2);
+  });
+
+  it('retries on 500 and succeeds on third attempt', async () => {
+    let attempts = 0;
+    const promise = retryWithBackoff(async () => {
+      attempts++;
+      if (attempts <= 2) throw new ResponsesApiError(500, 'Server Error', '');
+      return 'recovered';
+    });
+
+    await vi.advanceTimersByTimeAsync(15000);
+    const result = await promise;
+
+    expect(result).toBe('recovered');
+    expect(attempts).toBe(3);
+  });
+
+  it('exhausts retries and throws the last error', async () => {
+    let attempts = 0;
+    const promise = retryWithBackoff(async () => {
+      attempts++;
+      throw new ResponsesApiError(500, 'Server Error', 'always fails');
+    });
+
+    // Attach rejection handler before advancing timers to avoid unhandled rejection
+    const assertion = expect(promise).rejects.toThrow(ResponsesApiError);
+    await vi.advanceTimersByTimeAsync(15000);
+    await assertion;
+    expect(attempts).toBe(4); // 1 original + 3 retries
+  });
+
+  it('does not retry on 400 (not retryable)', async () => {
+    let attempts = 0;
+    await expect(
+      retryWithBackoff(async () => {
+        attempts++;
+        throw new ResponsesApiError(400, 'Bad Request', 'bad');
+      })
+    ).rejects.toThrow(ResponsesApiError);
+
+    expect(attempts).toBe(1);
+  });
+
+  it('does not retry on 401 (auth error)', async () => {
+    let attempts = 0;
+    await expect(
+      retryWithBackoff(async () => {
+        attempts++;
+        throw new ResponsesApiError(401, 'Unauthorized', 'bad key');
+      })
+    ).rejects.toThrow(ResponsesApiError);
+
+    expect(attempts).toBe(1);
+  });
+
+  it('does not retry on 403 (forbidden)', async () => {
+    let attempts = 0;
+    await expect(
+      retryWithBackoff(async () => {
+        attempts++;
+        throw new ResponsesApiError(403, 'Forbidden', 'denied');
+      })
+    ).rejects.toThrow(ResponsesApiError);
+
+    expect(attempts).toBe(1);
+  });
+
+  it('does not retry non-ResponsesApiError errors', async () => {
+    let attempts = 0;
+    await expect(
+      retryWithBackoff(async () => {
+        attempts++;
+        throw new Error('network failure');
+      })
+    ).rejects.toThrow('network failure');
+
+    expect(attempts).toBe(1);
+  });
+
+  it('respects Retry-After header in error body', async () => {
+    let attempts = 0;
+    const sleepStarts: number[] = [];
+
+    const promise = retryWithBackoff(async () => {
+      attempts++;
+      sleepStarts.push(Date.now());
+      if (attempts === 1) {
+        throw new ResponsesApiError(
+          429,
+          'Too Many Requests',
+          JSON.stringify({ error: { retry_after: 3 } })
+        );
+      }
+      return 'ok';
+    });
+
+    // Advance 3 seconds (the Retry-After value)
+    await vi.advanceTimersByTimeAsync(3000);
+    const result = await promise;
+
+    expect(result).toBe('ok');
+    expect(attempts).toBe(2);
+  });
+
+  it('respects maxRetries parameter', async () => {
+    let attempts = 0;
+    const promise = retryWithBackoff(
+      async () => {
+        attempts++;
+        throw new ResponsesApiError(500, 'Server Error', '');
+      },
+      1 // only 1 retry
+    );
+
+    const assertion = expect(promise).rejects.toThrow(ResponsesApiError);
+    await vi.advanceTimersByTimeAsync(5000);
+    await assertion;
+    expect(attempts).toBe(2); // 1 original + 1 retry
   });
 });
 

@@ -208,13 +208,13 @@ Field quality engineer on shop floor via Teams mobile.
 
 ### Azure App (`apps/azure/`)
 
-| Module                  | Serves Flows  | Purpose in Journey                   |
-| ----------------------- | ------------- | ------------------------------------ |
-| `auth/easyAuth.ts`      | 5, 6, 7, 8, 9 | SSO authentication                   |
-| `services/aiService.ts` | 7, 9          | AI API calls, caching, model routing |
-| `hooks/useEditorAI.ts`  | 7, 9          | AI integration in editor             |
-| `AdminTeamsSetup`       | 8             | Teams manifest generation            |
-| `services/` (Graph API) | 8             | OneDrive/SharePoint storage          |
+| Module                              | Serves Flows  | Purpose in Journey                   |
+| ----------------------------------- | ------------- | ------------------------------------ |
+| `auth/easyAuth.ts`                  | 5, 6, 7, 8, 9 | SSO authentication                   |
+| `services/aiService.ts`             | 7, 9          | AI API calls, caching, model routing |
+| `features/ai/useAIOrchestration.ts` | 7, 9          | AI integration in editor             |
+| `AdminTeamsSetup`                   | 8             | Teams manifest generation            |
+| `services/` (Graph API)             | 8             | OneDrive/SharePoint storage          |
 
 ### Infrastructure (`infra/`)
 

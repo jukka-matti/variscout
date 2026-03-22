@@ -356,14 +356,14 @@ However, the review surfaces **1 critical security finding**, **several high-pri
 
 ### Larger Refactors (1+ day each)
 
-| #   | Item                                 | Priority | Scope                                                                                      | Dependencies                  |
-| --- | ------------------------------------ | -------- | ------------------------------------------------------------------------------------------ | ----------------------------- |
-| L1  | Extract shared chart wrappers        | High     | Move chart wrapper logic from both apps to shared location; reduce ~7K LoC duplication     | M10 (colorScheme docs)        |
-| L2  | Extract shared Dashboard logic       | High     | Create composable hooks (useDashboardState, useDashboardLayout); split into sub-components | L1 (chart wrappers)           |
-| L3  | Refactor Editor.tsx orchestration    | Medium   | Extract useEditorAI, enhance useEditorPanels, reduce from 1,252 to ~800 lines              | None                          |
-| L4  | Pre-compute KDE in useBoxplotData    | Medium   | Move KDE from chart render path to data hook; ensure reference-stable arrays               | None                          |
-| L5  | Unify boxplot stats computation      | Medium   | Eliminate dual computation in useBoxplotData + useDashboardComputedData                    | L4                            |
-| L6  | Split useDataState into domain hooks | Low      | AnalysisState, PersistenceState, PerformanceState (consider if benefit outweighs churn)    | L2 (dashboard refactor first) |
+| #   | Item                                 | Priority           | Scope                                                                                      | Dependencies                  |
+| --- | ------------------------------------ | ------------------ | ------------------------------------------------------------------------------------------ | ----------------------------- |
+| L1  | Extract shared chart wrappers        | High               | Move chart wrapper logic from both apps to shared location; reduce ~7K LoC duplication     | M10 (colorScheme docs)        |
+| L2  | Extract shared Dashboard logic       | High               | Create composable hooks (useDashboardState, useDashboardLayout); split into sub-components | L1 (chart wrappers)           |
+| L3  | Refactor Editor.tsx orchestration    | Complete (ADR-041) | Extract useEditorAI, Zustand panelsStore + feature stores, reduced to 1,085 lines          | None                          |
+| L4  | Pre-compute KDE in useBoxplotData    | Medium             | Move KDE from chart render path to data hook; ensure reference-stable arrays               | None                          |
+| L5  | Unify boxplot stats computation      | Medium             | Eliminate dual computation in useBoxplotData + useDashboardComputedData                    | L4                            |
+| L6  | Split useDataState into domain hooks | Low                | AnalysisState, PersistenceState, PerformanceState (consider if benefit outweighs churn)    | L2 (dashboard refactor first) |
 
 **Total larger refactors: ~2-3 weeks**
 

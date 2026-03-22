@@ -188,72 +188,55 @@ export async function fetchNarration(context: AIContext): Promise<string> {
   const config = await getResponsesApiConfig('fast');
   if (!config) throw new Error('AI endpoint not configured');
 
-  // Retry with exponential backoff (max 3 attempts)
-  let lastError: Error | null = null;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (attempt > 0) {
-      const delay = 1000 * Math.pow(2, attempt) * (0.5 + Math.random());
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
+  // Retry logic is handled by sendResponsesTurn (retryWithBackoff)
+  const { result: text } = await traceAICall({ feature: 'narration' }, async () => {
+    const response = await sendResponsesTurn(config, {
+      instructions: systemPrompt,
+      input: userPrompt,
+      store: true,
+      prompt_cache_key: 'variscout-narration',
+      reasoning: { effort: 'none' },
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'narration_response',
+          schema: narrationResponseSchema,
+          strict: true,
+        },
+      },
+    });
 
+    const rawText = extractResponseText(response);
+    if (!rawText) throw new Error('Empty response from AI');
+
+    // Parse structured output — extract just the text field
+    let parsed: string;
     try {
-      const { result: text } = await traceAICall({ feature: 'narration' }, async () => {
-        const response = await sendResponsesTurn(config, {
-          instructions: systemPrompt,
-          input: userPrompt,
-          store: true,
-          prompt_cache_key: 'variscout-narration',
-          reasoning: { effort: 'none' },
-          text: {
-            format: {
-              type: 'json_schema',
-              name: 'narration_response',
-              schema: narrationResponseSchema,
-              strict: true,
-            },
-          },
-        });
-
-        const rawText = extractResponseText(response);
-        if (!rawText) throw new Error('Empty response from AI');
-
-        // Parse structured output — extract just the text field
-        let parsed: string;
-        try {
-          const obj = JSON.parse(rawText) as { text: string };
-          parsed = obj.text;
-        } catch {
-          // Fallback: use raw text if structured parsing fails
-          parsed = rawText;
-        }
-        if (!parsed) throw new Error('Empty response from AI');
-
-        return {
-          result: parsed,
-          tokens: response.usage
-            ? {
-                inputTokens: response.usage.input_tokens,
-                outputTokens: response.usage.output_tokens,
-                totalTokens: response.usage.total_tokens,
-                cachedTokens: response.usage.input_tokens_details?.cached_tokens,
-                reasoningTokens: response.usage.output_tokens_details?.reasoning_tokens,
-              }
-            : undefined,
-        };
-      });
-
-      // Cache successful response
-      setCached(CACHE_KEY_PREFIX, cacheKeyStr, text);
-      return text;
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-      const errorMsg = lastError.message;
-      if (errorMsg.includes('429') && attempt < 2) continue;
-      if (attempt === 2) throw lastError;
+      const obj = JSON.parse(rawText) as { text: string };
+      parsed = obj.text;
+    } catch {
+      // Fallback: use raw text if structured parsing fails
+      parsed = rawText;
     }
-  }
+    if (!parsed) throw new Error('Empty response from AI');
 
-  throw lastError || new Error('AI request failed');
+    return {
+      result: parsed,
+      tokens: response.usage
+        ? {
+            inputTokens: response.usage.input_tokens,
+            outputTokens: response.usage.output_tokens,
+            totalTokens: response.usage.total_tokens,
+            cachedTokens: response.usage.input_tokens_details?.cached_tokens,
+            reasoningTokens: response.usage.output_tokens_details?.reasoning_tokens,
+          }
+        : undefined,
+    };
+  });
+
+  // Cache successful response
+  setCached(CACHE_KEY_PREFIX, cacheKeyStr, text);
+  return text;
 }
 
 /**
@@ -328,7 +311,7 @@ export async function fetchChartInsight(userPrompt: string, locale?: Locale): Pr
 /**
  * Fetch an AI-generated findings report via the Responses API.
  * Free-form Markdown output (no structured schema).
- * Retry with exponential backoff (max 3 attempts).
+ * Retry is handled by the underlying sendResponsesTurn (retryWithBackoff).
  */
 export async function fetchFindingsReport(
   messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>
@@ -341,49 +324,32 @@ export async function fetchFindingsReport(
   const nonSystemMessages = messages.filter(m => m.role !== 'system');
   const instructions = systemMessages.map(m => m.content).join('\n\n');
 
-  // Retry with exponential backoff (max 3 attempts)
-  let lastError: Error | null = null;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (attempt > 0) {
-      const delay = 1000 * Math.pow(2, attempt) * (0.5 + Math.random());
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
+  // Retry logic is handled by sendResponsesTurn (retryWithBackoff)
+  const { result: text } = await traceAICall({ feature: 'report' }, async () => {
+    const response = await sendResponsesTurn(config, {
+      instructions,
+      input: nonSystemMessages,
+      store: true,
+      prompt_cache_key: 'variscout-report',
+      reasoning: { effort: 'low' },
+    });
 
-    try {
-      const { result: text } = await traceAICall({ feature: 'report' }, async () => {
-        const response = await sendResponsesTurn(config, {
-          instructions,
-          input: nonSystemMessages,
-          store: true,
-          prompt_cache_key: 'variscout-report',
-          reasoning: { effort: 'low' },
-        });
+    const responseText = extractResponseText(response);
+    if (!responseText) throw new Error('Empty response from AI');
 
-        const responseText = extractResponseText(response);
-        if (!responseText) throw new Error('Empty response from AI');
+    return {
+      result: responseText,
+      tokens: response.usage
+        ? {
+            inputTokens: response.usage.input_tokens,
+            outputTokens: response.usage.output_tokens,
+            totalTokens: response.usage.total_tokens,
+            cachedTokens: response.usage.input_tokens_details?.cached_tokens,
+            reasoningTokens: response.usage.output_tokens_details?.reasoning_tokens,
+          }
+        : undefined,
+    };
+  });
 
-        return {
-          result: responseText,
-          tokens: response.usage
-            ? {
-                inputTokens: response.usage.input_tokens,
-                outputTokens: response.usage.output_tokens,
-                totalTokens: response.usage.total_tokens,
-                cachedTokens: response.usage.input_tokens_details?.cached_tokens,
-                reasoningTokens: response.usage.output_tokens_details?.reasoning_tokens,
-              }
-            : undefined,
-        };
-      });
-
-      return text;
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-      const errorMsg = lastError.message;
-      if (errorMsg.includes('429') && attempt < 2) continue;
-      if (attempt === 2) throw lastError;
-    }
-  }
-
-  throw lastError || new Error('AI report request failed');
+  return text;
 }

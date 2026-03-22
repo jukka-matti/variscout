@@ -6,11 +6,11 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter @variscout/pwa dev",
-    "build": "pnpm -r build",
+    "build": "turbo build",
     "build:pwa": "pnpm --filter @variscout/pwa build",
     "preview": "pnpm --filter @variscout/pwa preview",
-    "test": "pnpm -r test",
-    "lint": "pnpm -r lint",
+    "test": "turbo test",
+    "lint": "turbo lint",
     "lint:fix": "pnpm -r lint:fix",
     "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\" \"apps/*/src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"packages/*/src/**/*.{ts,tsx}\" \"apps/*/src/**/*.{ts,tsx}\"",
@@ -53,6 +53,7 @@
     "prettier": "^3.8.1",
     "storybook": "^10.3.1",
     "tailwindcss": "^4.2.1",
+    "turbo": "^2.8.20",
     "typescript": "^5.8.3"
   },
   "pnpm": {

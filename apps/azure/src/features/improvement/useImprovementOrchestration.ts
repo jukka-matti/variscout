@@ -17,9 +17,9 @@ import {
   type ImprovementSyncData,
   type ImprovementAction,
 } from '../../components/ImprovementWindow';
-import { useImprovementStore } from '../../stores/improvementStore';
+import { useImprovementStore } from './improvementStore';
 
-export type { ImprovementHypothesis } from '../../stores/improvementStore';
+export type { ImprovementHypothesis } from './improvementStore';
 
 // ── Types ────────────────────────────────────────────────────────────────
 

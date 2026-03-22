@@ -227,9 +227,9 @@ Yamazumi stacked bar chart visualizes cycle time composition by activity type:
 
 ## Chart Performance
 
-### React.memo
+### Memoization (React Compiler)
 
-All chart base components (`IChartBase`, `BoxplotBase`, `ParetoBase`, `YamazumiChartBase`) are wrapped in `React.memo()` to prevent unnecessary re-renders when parent state changes but chart props haven't changed. This is critical on mobile where each re-render of SVG subtrees is expensive.
+React Compiler (babel-plugin-react-compiler, enabled in both apps) automatically memoizes components and hooks. **Do not add manual `React.memo()` wrapping to new chart components** — the compiler handles it. Existing base components (`IChartBase`, `BoxplotBase`, `ParetoBase`, `YamazumiChartBase`) do not use `React.memo` and rely on the compiler.
 
 ### LTTB Point Decimation
 

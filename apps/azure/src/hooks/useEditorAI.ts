@@ -9,4 +9,4 @@ export {
   type UseAIOrchestrationOptions as UseEditorAIOptions,
   type UseAIOrchestrationReturn as UseEditorAIReturn,
 } from '../features/ai';
-export type { AIContextSummary } from '../stores/aiStore';
+export type { AIContextSummary } from '../features/ai/aiStore';

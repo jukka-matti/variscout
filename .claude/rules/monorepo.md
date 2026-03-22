@@ -79,18 +79,13 @@ packages/
 apps/
 ├── pwa/          # @variscout/pwa - PWA website
 ├── azure/        # @variscout/azure-app - Azure Team App
-│              #   stores/ - Zustand feature stores:
-│              #     panelsStore - Panel visibility & layout (activeTab, focusedChart, etc.)
-│              #     findingsStore - Findings read-side state (selectedFindingId, boardView, etc.)
-│              #     investigationStore - Investigation UI state (hypothesisTreeExpanded, phaseFilter, etc.)
-│              #     improvementStore - Improvement workspace state (activeWorkspace, matrixView, etc.)
-│              #     aiStore - AI/CoScout UI state (isCoScoutOpen, pendingAction, etc.)
-│              #   features/ - Feature modules:
-│              #     findings/ - Findings feature wiring
-│              #     investigation/ - Investigation feature wiring
-│              #     improvement/ - Improvement workspace feature wiring
-│              #     ai/ - AI/CoScout feature wiring
+│              #   features/ - Feature modules (Feature-Sliced Design, stores co-located):
+│              #     findings/ - Findings feature wiring + findingsStore
+│              #     investigation/ - Investigation feature wiring + investigationStore
+│              #     improvement/ - Improvement workspace feature wiring + improvementStore
+│              #     ai/ - AI/CoScout feature wiring + aiStore
 │              #     data-flow/ - Data pipeline orchestration
+│              #     panels/ - panelsStore (panel visibility & layout)
 └── website/      # @variscout/website - Marketing website (Astro + React Islands)
 ```
 

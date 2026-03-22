@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef, useTransition } from 'react';
 import {
   type FilterAction,
   type FilterSource,
@@ -79,6 +79,9 @@ export interface UseFilterNavigationReturn {
   /** Check if there are any active filters */
   hasFilters: boolean;
 
+  /** True while a filter transition is pending (heavy computation in progress) */
+  isFilterPending: boolean;
+
   /**
    * Update the values for an existing filter.
    * If the filter doesn't exist, creates a new one.
@@ -126,6 +129,7 @@ export function useFilterNavigation(
   const filterStack = externalFilterStack ?? internalFilterStack;
   const setFilterStack = externalSetFilterStack ?? internalSetFilterStack;
   const [currentHighlight, setCurrentHighlight] = useState<HighlightState | null>(null);
+  const [isFilterPending, startTransition] = useTransition();
 
   // Track if we're handling a popstate event (to avoid pushing history)
   const isPopstateRef = useRef(false);
@@ -187,7 +191,11 @@ export function useFilterNavigation(
   const syncFiltersFromStack = useCallback(
     (stack: FilterAction[], pushHistory = true) => {
       const newFilters = filterStackToFilters(stack);
-      setFilters(newFilters);
+      // Mark filter application as non-urgent — keeps breadcrumb UI responsive
+      // while the expensive filteredData re-computation runs in the background
+      startTransition(() => {
+        setFilters(newFilters);
+      });
 
       if (shouldSyncUrl) {
         const newUrl = updateUrlWithFilters(newFilters);
@@ -357,6 +365,7 @@ export function useFilterNavigation(
     setHighlight,
     clearHighlight,
     hasFilters,
+    isFilterPending,
     updateFilterValues,
     removeFilter,
   };

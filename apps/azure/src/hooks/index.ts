@@ -23,7 +23,7 @@ export { useDrillConfirmation, type UseDrillConfirmationReturn } from './useDril
 export { useControlViolations } from '@variscout/hooks';
 export { useDataMerge } from './useDataMerge';
 export { useEditorAI, type UseEditorAIOptions, type UseEditorAIReturn } from './useEditorAI';
-export type { AIContextSummary } from '../stores/aiStore';
+export type { AIContextSummary } from '../features/ai/aiStore';
 export {
   useFindingsOrchestration,
   type UseFindingsOrchestrationReturn,

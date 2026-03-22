@@ -87,7 +87,7 @@ The system prompt adjusts tool emphasis based on the detected entry scenario (fr
 | `packages/hooks/src/useAICoScout.ts`                             | Accepts `toolsOptions: { phase, plan }` for phase-gating; passes to `buildCoScoutTools()`                    |
 | `packages/ui/src/components/CoScoutPanel/ActionProposalCard.tsx` | New component — renders proposal preview with Apply/Dismiss buttons, status feedback                         |
 | `packages/ui/src/components/CoScoutPanel/CoScoutMessages.tsx`    | Parses `[ACTION:...]` markers from message content, renders `ActionProposalCard` inline                      |
-| `apps/azure/src/hooks/useEditorAI.ts`                            | 10 new tool handlers in the `toolHandlers` map; preview computation for each action tool                     |
+| `apps/azure/src/features/ai/useAIOrchestration.ts`               | 10 new tool handlers in the `toolHandlers` map; preview computation for each action tool                     |
 | `apps/azure/src/pages/Editor.tsx`                                | Proposal state management, execution dispatch connecting proposal Apply to actual state mutations            |
 
 ### Tool Call Lifecycle

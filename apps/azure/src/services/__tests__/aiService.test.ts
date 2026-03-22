@@ -184,6 +184,7 @@ describe('fetchNarration', () => {
   });
 
   it('retries on 429 and succeeds on second attempt', async () => {
+    vi.useFakeTimers();
     let callCount = 0;
     const jsonResponse = JSON.stringify({ text: 'Success after retry', confidence: 'moderate' });
     globalThis.fetch = buildFetchMock(() => {
@@ -197,16 +198,24 @@ describe('fetchNarration', () => {
     });
 
     const context = makeAIContext();
-    const result = await fetchNarration(context);
+    const promise = fetchNarration(context);
+    await vi.advanceTimersByTimeAsync(5000);
+    const result = await promise;
     expect(result).toBe('Success after retry');
     expect(callCount).toBe(2);
+    vi.useRealTimers();
   });
 
   it('throws after 3 failed attempts', async () => {
+    vi.useFakeTimers();
     globalThis.fetch = buildFetchMock(() => new Response('error', { status: 500 }));
 
     const context = makeAIContext();
-    await expect(fetchNarration(context)).rejects.toThrow('Responses API error 500');
+    const promise = fetchNarration(context);
+    const assertion = expect(promise).rejects.toThrow('Responses API error 500');
+    await vi.advanceTimersByTimeAsync(30000);
+    await assertion;
+    vi.useRealTimers();
   }, 15_000);
 
   it('throws on empty AI response', async () => {
@@ -314,9 +323,10 @@ describe('fetchFindingsReport', () => {
   it('throws on server error', async () => {
     globalThis.fetch = buildFetchMock(() => new Response('error', { status: 500 }));
 
-    await expect(fetchFindingsReport([{ role: 'user', content: 'report' }])).rejects.toThrow(
-      'Responses API error 500'
-    );
+    const promise = fetchFindingsReport([{ role: 'user', content: 'report' }]);
+    const assertion = expect(promise).rejects.toThrow('Responses API error 500');
+    await vi.advanceTimersByTimeAsync(30000);
+    await assertion;
   }, 15_000);
 });
 

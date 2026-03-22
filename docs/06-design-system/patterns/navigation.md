@@ -18,7 +18,7 @@ VariScout's navigation model is **data-driven exploration**, not page-based rout
 
 Key principles:
 
-- **State, not routes**: Panels open/close via `useAppPanels()` (PWA) and `useEditorPanels()` (Azure) reducers
+- **State, not routes**: Panels open/close via `useAppPanels()` (PWA) and `usePanelsStore()` (Azure) reducers
 - **Shared logic**: Filter navigation, keyboard shortcuts, and chart interaction hooks live in `@variscout/hooks`
 - **Shared UI**: Panel components, filter chips, and mobile sheets live in `@variscout/ui`
 - **Progressive disclosure**: Start with the dashboard, reveal panels as the analyst drills deeper
@@ -77,7 +77,7 @@ Desktop/mobile behavior splits at 1024px. Compound actions handle cross-panel co
 
 **Source**: `apps/pwa/src/hooks/useAppPanels.ts`
 
-### Azure: `useEditorPanels()`
+### Azure: `usePanelsStore()`
 
 Manages a richer panel set including CoScout, reports, and presentation mode:
 
@@ -96,7 +96,7 @@ interface EditorPanelState {
 
 Findings and What-If state are persisted to `ViewState` via a side-effect, surviving project reload. `BoolSetter`-compatible wrappers support both `setState(true)` and `setState(prev => !prev)` patterns.
 
-**Source**: `apps/azure/src/hooks/useEditorPanels.ts`
+**Source**: `apps/azure/src/features/panels/panelsStore.ts`
 
 ### Deep links (Azure)
 
