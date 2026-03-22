@@ -55,12 +55,11 @@ import { FileBrowseButton, type FilePickerResult } from '../components/FileBrows
 import { downloadFileFromGraph } from '../services/storage';
 import { useFilePicker } from '../hooks/useFilePicker';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
-import { useEditorAI } from '../hooks/useEditorAI';
+import { useAIOrchestration, useActionProposals } from '../features/ai';
 import { useInvestigationOrchestration } from '../features/investigation';
 import { useInvestigationStore } from '../stores/investigationStore';
 import { useImprovementOrchestration } from '../features/improvement';
 import { useImprovementStore } from '../stores/improvementStore';
-import { useActionProposals } from '../hooks/useActionProposals';
 import { useLocale } from '../context/LocaleContext';
 import { usePanelsStore } from '../stores/panelsStore';
 import { usePanelsSideEffects } from '../hooks/usePanelsSideEffects';
@@ -684,7 +683,7 @@ export const Editor: React.FC<EditorProps> = ({
     handleAskCoScoutFromIdeas,
     handleAskCoScoutFromFinding,
     handleAskCoScoutFromCategory,
-  } = useEditorAI({
+  } = useAIOrchestration({
     enabled: aiEnabled,
     stats: stats ?? undefined,
     filteredData,
