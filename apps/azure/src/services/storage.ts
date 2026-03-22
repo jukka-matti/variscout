@@ -58,6 +58,8 @@ export interface SyncNotification {
 
 export type SyncErrorCategory =
   | 'auth'
+  | 'forbidden' // 403 — no access to resource (e.g. recipient of a shared link without permissions)
+  | 'plan-mismatch' // tried to load a team project without a team plan
   | 'network'
   | 'throttle'
   | 'server'
@@ -137,8 +139,11 @@ export function classifySyncError(error: unknown): ClassifiedError {
   const msg = error instanceof Error ? error.message : String(error);
   const status = extractStatusCode(msg);
 
-  if (status === 401 || status === 403 || /unauthorized|forbidden/i.test(msg)) {
+  if (status === 401 || /unauthorized/i.test(msg)) {
     return { category: 'auth', retryable: false, message: 'Authentication expired' };
+  }
+  if (status === 403 || /forbidden/i.test(msg)) {
+    return { category: 'forbidden', retryable: false, message: 'Access denied' };
   }
   if (status === 404) {
     return { category: 'not_found', retryable: false, message: 'Resource not found' };

@@ -188,6 +188,29 @@ describe('storage service', () => {
       expect(result.category).toBe('unknown');
       expect(result.retryable).toBe(true);
     });
+
+    it('classifies 403 as forbidden (not auth)', () => {
+      const result = classifySyncError(new Error('403 Forbidden'));
+      expect(result.category).toBe('forbidden');
+      expect(result.retryable).toBe(false);
+    });
+
+    it('classifies "forbidden" text as forbidden', () => {
+      const result = classifySyncError(new Error('Access forbidden'));
+      expect(result.category).toBe('forbidden');
+      expect(result.retryable).toBe(false);
+    });
+
+    it('classifies "unauthorized" text as auth (not forbidden)', () => {
+      const result = classifySyncError(new Error('Request unauthorized'));
+      expect(result.category).toBe('auth');
+      expect(result.retryable).toBe(false);
+    });
+
+    it('does NOT classify 403 as auth', () => {
+      const result = classifySyncError(new Error('403 Forbidden'));
+      expect(result.category).not.toBe('auth');
+    });
   });
 
   // -------------------------------------------------------------------------
