@@ -75,3 +75,17 @@ export function parseSubPageId(subPageId: string): DeepLinkParams {
   // subPageId uses the same format as URL search params (without leading ?)
   return parseDeepLink(subPageId.startsWith('?') ? subPageId : `?${subPageId}`);
 }
+
+/** Build a deep link for the current editor view state */
+export function buildCurrentViewLink(
+  baseUrl: string,
+  project: string,
+  state: { focusedChart?: string; findingId?: string; mode?: string }
+): string {
+  const url = new URL(baseUrl);
+  url.searchParams.set('project', project);
+  if (state.focusedChart) url.searchParams.set('chart', state.focusedChart);
+  if (state.findingId) url.searchParams.set('finding', state.findingId);
+  if (state.mode) url.searchParams.set('mode', state.mode);
+  return url.toString();
+}
