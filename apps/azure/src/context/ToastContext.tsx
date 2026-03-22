@@ -27,7 +27,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const showToast = useCallback((notif: Omit<SyncNotification, 'id'> & { id?: string }) => {
     const id = notif.id || `toast-${++toastCounter}`;
-    setNotifications(prev => [...prev.slice(-4), { ...notif, id }]); // max 5
+    setNotifications(prev => {
+      if (notif.id && prev.some(n => n.id === id)) return prev; // dedup bridged notifications
+      return [...prev.slice(-4), { ...notif, id }]; // max 5
+    });
 
     if (notif.dismissAfter) {
       const timer = setTimeout(() => {

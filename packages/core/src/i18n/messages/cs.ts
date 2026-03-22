@@ -517,6 +517,10 @@ export const cs: MessageCatalog = {
   'improve.fourDirections': 'Think: Prevent · Detect · Simplify · Eliminate',
   'improve.convertToActions': 'Convert selected → Actions',
   'improve.noIdeas': 'No improvement ideas yet',
+  'improve.emptyNoFindings':
+    'Pin findings from the Analysis view, then brainstorm improvement ideas here.',
+  'improve.emptyNoSupported':
+    'Validate your hypotheses in the Findings view. Supported hypotheses unlock improvement brainstorming.',
   'improve.selectedCount': '{count} selected',
   'improve.timeframeBreakdown': '{low} low · {medium} med · {high} high',
   'improve.projectedCpk': 'Best projected Cpk: {value}',

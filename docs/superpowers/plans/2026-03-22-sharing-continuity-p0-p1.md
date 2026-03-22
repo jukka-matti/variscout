@@ -319,7 +319,8 @@ describe('buildCurrentViewLink', () => {
 
   it('encodes project names with spaces', () => {
     const url = buildCurrentViewLink(base, 'My Project', {});
-    expect(url).toContain('project=My+Project');
+    // URL.searchParams.set uses percent-encoding: spaces become %20
+    expect(url).toContain('project=My%20Project');
   });
 });
 ```
@@ -677,12 +678,24 @@ In the overflow menu (the `{overflowOpen && (` block around line 426), add after
           Share in Teams
         </button>
       )}
+      {shareState.showPublishReport && (
+        <button
+          onClick={() => {
+            setOverflowOpen(false);
+            shareState.onPublishReport();
+          }}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
+        >
+          <Upload size={16} />
+          Publish report
+        </button>
+      )}
     </>
   );
 }
 ```
 
-Add `MessageSquare` to the lucide-react import.
+Add `MessageSquare`, `Upload`, and `Share2` to the lucide-react import.
 
 - [ ] **Step 4: Wire share handlers in Editor.tsx**
 
@@ -703,16 +716,21 @@ import { useToast } from '../context/ToastContext';
 // Inside Editor component:
 const { showToast } = useToast();
 
+// Build deep link for current view state.
+// Use `panels.isReportOpen` (from useEditorPanels) — NOT a "currentViewMode" variable.
 const deepLinkUrl = useMemo(() => {
   if (!projectName) return '';
   const baseUrl = window.location.origin + window.location.pathname;
   return buildCurrentViewLink(baseUrl, projectName, {
     focusedChart: viewState?.focusedChart ?? undefined,
     findingId: highlightedFindingId ?? undefined,
-    mode: currentViewMode === 'report' ? 'report' : undefined,
+    mode: panels.isReportOpen ? 'report' : undefined,
   });
-}, [projectName, viewState?.focusedChart, highlightedFindingId, currentViewMode]);
+}, [projectName, viewState?.focusedChart, highlightedFindingId, panels.isReportOpen]);
 
+// Share in Teams handler.
+// IMPORTANT: Do NOT also pass onToast to useTeamsShare() for this code path —
+// toasts are handled here directly to avoid double-firing.
 const handleShareTeams = useCallback(() => {
   const payload = buildReportSharePayload(
     processDescription || projectName,
@@ -724,7 +742,8 @@ const handleShareTeams = useCallback(() => {
     if (success) {
       showToast({ type: 'success', message: 'Shared in Teams', dismissAfter: 3000 });
     } else {
-      showToast({ type: 'info', message: 'Link copied to clipboard', dismissAfter: 3000 });
+      // Teams dialog dismissed AND clipboard fallback failed
+      showToast({ type: 'error', message: "Couldn't share. Try again.", dismissAfter: 5000 });
     }
   });
 }, [share, projectName, processDescription, outcome, stats?.cpk, showToast]);
@@ -734,20 +753,28 @@ const shareState = useMemo(
   () => ({
     deepLinkUrl,
     isInTeams: isTeams,
-    showPublishReport: currentViewMode === 'report' && hasTeamFeatures(),
+    showPublishReport: panels.isReportOpen && hasTeamFeatures(),
     onShareTeams: handleShareTeams,
     onPublishReport: () => {
       /* P3 — wired later */
     },
     onToast: showToast,
   }),
-  [deepLinkUrl, isTeams, currentViewMode, handleShareTeams, showToast]
+  [deepLinkUrl, isTeams, panels.isReportOpen, handleShareTeams, showToast]
 );
 ```
 
 Pass `shareState` to `<EditorToolbar shareState={shareState} ... />`.
 
-Note: Find the exact variable names for `currentViewMode`, `highlightedFindingId`, `viewState`, `processDescription`, `stats`, `isTeams` by reading the existing Editor.tsx code. The names above are approximate — match to the actual variables used.
+**Variable mapping note:** The variable names in Editor.tsx may differ slightly. Key mappings:
+
+- `panels` = from `useEditorPanels()` — has `panels.isReportOpen`
+- `viewState` = view state object with `focusedChart`
+- `highlightedFindingId` = currently selected finding ID
+- `isTeams` = from `useTeamsShare()` return value
+- `share` = from `useTeamsShare()` return value
+- `processDescription` = process description field value
+- `stats` = current stats result (has `.cpk`)
 
 - [ ] **Step 5: Run full azure test suite**
 

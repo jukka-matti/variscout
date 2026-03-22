@@ -1,11 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { ShareDropdown } from '../ShareDropdown';
 
-// Mock clipboard
+// Mock clipboard (restore original after tests)
+const originalClipboard = navigator.clipboard;
 const writeText = vi.fn().mockResolvedValue(undefined);
 Object.assign(navigator, { clipboard: { writeText } });
+afterAll(() => {
+  Object.assign(navigator, { clipboard: originalClipboard });
+});
 
 describe('ShareDropdown', () => {
   const defaultProps = {

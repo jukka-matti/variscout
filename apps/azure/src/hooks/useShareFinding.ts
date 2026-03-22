@@ -62,7 +62,9 @@ export function useShareFinding({ projectName, baseUrl, onToast }: UseShareFindi
       // Fallback: Teams share dialog or clipboard
       const payload = buildFindingSharePayload(finding, projectName, baseUrl);
       const result = await share(payload);
-      if (!result) {
+      if (result) {
+        onToast?.({ type: 'info', message: 'Link copied to clipboard', dismissAfter: 3000 });
+      } else {
         onToast?.({ type: 'error', message: "Couldn't share finding. Try again." });
       }
       return result;

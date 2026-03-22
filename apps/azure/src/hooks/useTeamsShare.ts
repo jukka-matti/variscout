@@ -5,7 +5,7 @@
  * Outside Teams: copies the deep link URL to clipboard.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { sharing, pages } from '@microsoft/teams-js';
 import { isInTeams } from '../teams';
 import type { SharePayload } from '../services/shareContent';
@@ -16,47 +16,48 @@ interface UseTeamsShareOptions {
 }
 
 export function useTeamsShare(options?: UseTeamsShareOptions) {
+  // Use ref to avoid recreating share callback when options object changes
+  const onToastRef = useRef(options?.onToast);
+  onToastRef.current = options?.onToast;
+
   /**
    * Share a payload via Teams share dialog, or copy URL to clipboard as fallback.
    * Returns true if the share/copy succeeded.
    */
-  const share = useCallback(
-    async (payload: SharePayload): Promise<boolean> => {
-      if (isInTeams()) {
-        try {
-          await sharing.shareWebContent({
-            content: [
-              {
-                type: 'URL',
-                url: payload.url,
-                message: payload.previewText,
-                preview: true,
-              },
-            ],
-          });
-          options?.onToast?.({ type: 'success', message: 'Shared in Teams', dismissAfter: 3000 });
-          return true;
-        } catch {
-          // Teams share dialog failed or was dismissed — fall through to clipboard
-        }
-      }
-
-      // Non-Teams or fallback: copy URL to clipboard
+  const share = useCallback(async (payload: SharePayload): Promise<boolean> => {
+    if (isInTeams()) {
       try {
-        await navigator.clipboard.writeText(payload.url);
-        options?.onToast?.({
-          type: 'info',
-          message: 'Link copied to clipboard',
-          dismissAfter: 3000,
+        await sharing.shareWebContent({
+          content: [
+            {
+              type: 'URL',
+              url: payload.url,
+              message: payload.previewText,
+              preview: true,
+            },
+          ],
         });
+        onToastRef.current?.({ type: 'success', message: 'Shared in Teams', dismissAfter: 3000 });
         return true;
       } catch {
-        options?.onToast?.({ type: 'error', message: "Couldn't share. Try again." });
-        return false;
+        // Teams share dialog failed or was dismissed — fall through to clipboard
       }
-    },
-    [options]
-  );
+    }
+
+    // Non-Teams or fallback: copy URL to clipboard
+    try {
+      await navigator.clipboard.writeText(payload.url);
+      onToastRef.current?.({
+        type: 'info',
+        message: 'Link copied to clipboard',
+        dismissAfter: 3000,
+      });
+      return true;
+    } catch {
+      onToastRef.current?.({ type: 'error', message: "Couldn't share. Try again." });
+      return false;
+    }
+  }, []);
 
   /**
    * Set the Teams deep link for the current view.
