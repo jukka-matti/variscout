@@ -112,30 +112,30 @@ describe('ReportKPIGrid', () => {
   describe('ReportKPIGrid specs gating', () => {
     it('hides Cpk and In-Spec% when no specs are set', () => {
       render(<ReportKPIGrid stats={mockStats} specs={emptySpecs} sampleCount={50} />);
-      expect(screen.queryByText('Cpk')).not.toBeInTheDocument();
-      expect(screen.queryByText(/in.*spec/i)).not.toBeInTheDocument();
+      expect(screen.queryByText('Cpk')).toBeNull();
+      expect(screen.queryByText(/in.*spec/i)).toBeNull();
     });
 
     it('shows Cpk when only USL is set (one-sided)', () => {
       render(<ReportKPIGrid stats={mockStats} specs={{ usl: 110 }} sampleCount={50} />);
-      expect(screen.getByText('Cpk')).toBeInTheDocument();
+      expect(screen.getByText('Cpk')).toBeDefined();
     });
 
     it('shows In-Spec% when only USL is set (one-sided)', () => {
       render(<ReportKPIGrid stats={mockStats} specs={{ usl: 110 }} sampleCount={50} />);
-      expect(screen.getByText('In Spec %')).toBeInTheDocument();
+      expect(screen.getByText('In Spec %')).toBeDefined();
     });
 
     it('shows Cpk when only LSL is set (one-sided)', () => {
       render(<ReportKPIGrid stats={mockStats} specs={{ lsl: 90 }} sampleCount={50} />);
-      expect(screen.getByText('Cpk')).toBeInTheDocument();
+      expect(screen.getByText('Cpk')).toBeDefined();
     });
 
     it('shows all 3 base cards when no specs set', () => {
       render(<ReportKPIGrid stats={mockStats} specs={emptySpecs} sampleCount={50} />);
-      expect(screen.getByText('Samples')).toBeInTheDocument();
-      expect(screen.getByText('Mean')).toBeInTheDocument();
-      expect(screen.getByText('Variation (σ)')).toBeInTheDocument();
+      expect(screen.getByText('Samples')).toBeDefined();
+      expect(screen.getByText('Mean')).toBeDefined();
+      expect(screen.getByText('Variation (σ)')).toBeDefined();
     });
   });
 });

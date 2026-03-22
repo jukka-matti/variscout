@@ -14,13 +14,13 @@ const props = {
 describe('ReportPerformanceKPIGrid', () => {
   it('renders channel pass count', () => {
     render(<ReportPerformanceKPIGrid {...props} />);
-    expect(screen.getByText('12/16')).toBeInTheDocument();
+    expect(screen.getByText('12/16')).toBeDefined();
   });
 
   it('renders worst channel with name', () => {
     render(<ReportPerformanceKPIGrid {...props} />);
-    expect(screen.getByText('0.85')).toBeInTheDocument();
-    expect(screen.getByText('Head 7')).toBeInTheDocument();
+    expect(screen.getByText('0.85')).toBeDefined();
+    expect(screen.getByText('Head 7')).toBeDefined();
   });
 
   it('colors worst Cpk red when below 1.0', () => {
@@ -31,12 +31,12 @@ describe('ReportPerformanceKPIGrid', () => {
 
   it('renders mean Cpk', () => {
     render(<ReportPerformanceKPIGrid {...props} />);
-    expect(screen.getByText('1.28')).toBeInTheDocument();
+    expect(screen.getByText('1.28')).toBeDefined();
   });
 
   it('shows target subtitle', () => {
     render(<ReportPerformanceKPIGrid {...props} />);
-    expect(screen.getByText('target: 1.33')).toBeInTheDocument();
+    expect(screen.getByText('target: 1.33')).toBeDefined();
   });
 
   it('colors channels green when all passing', () => {

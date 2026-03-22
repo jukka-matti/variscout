@@ -13,23 +13,23 @@ const props = {
 describe('ReportCapabilityKPIGrid', () => {
   it('renders mean Cpk with value', () => {
     render(<ReportCapabilityKPIGrid {...props} />);
-    expect(screen.getByText('1.45')).toBeInTheDocument();
-    expect(screen.getByText(/mean cpk/i)).toBeInTheDocument();
+    expect(screen.getByText('1.45')).toBeDefined();
+    expect(screen.getByText(/mean cpk/i)).toBeDefined();
   });
 
   it('renders % passing', () => {
     render(<ReportCapabilityKPIGrid {...props} />);
-    expect(screen.getByText('90%')).toBeInTheDocument();
+    expect(screen.getByText('90%')).toBeDefined();
   });
 
   it('renders centering loss', () => {
     render(<ReportCapabilityKPIGrid {...props} />);
-    expect(screen.getByText('0.17')).toBeInTheDocument(); // 1.62 - 1.45
+    expect(screen.getByText('0.17')).toBeDefined(); // 1.62 - 1.45
   });
 
   it('hides Cp when undefined (one-sided specs)', () => {
     render(<ReportCapabilityKPIGrid {...props} meanCp={undefined} />);
-    expect(screen.queryByText(/mean cp$/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/mean cp$/i)).toBeNull();
   });
 
   it('shows green for Cpk above target', () => {
@@ -39,6 +39,6 @@ describe('ReportCapabilityKPIGrid', () => {
 
   it('shows subgroup count subtitle', () => {
     render(<ReportCapabilityKPIGrid {...props} />);
-    expect(screen.getByText('18/20 subgroups')).toBeInTheDocument();
+    expect(screen.getByText('18/20 subgroups')).toBeDefined();
   });
 });
