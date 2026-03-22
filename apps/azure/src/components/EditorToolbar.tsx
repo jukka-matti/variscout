@@ -23,7 +23,11 @@ import {
   EllipsisVertical,
   FolderUp,
   Lightbulb,
+  Share2,
+  MessageSquare,
 } from 'lucide-react';
+import { ShareDropdown } from './ShareDropdown';
+import type { SyncNotification } from '../services/storage';
 export interface ToolbarDataState {
   hasData: boolean;
   hasOutcome: boolean;
@@ -71,6 +75,15 @@ interface EditorToolbarProps {
   dataActions: ToolbarDataActions;
   /** When false, hide the phone overflow menu (replaced by MobileTabBar). Default true. */
   showOverflowMenu?: boolean;
+  /** Share callbacks — when provided, Share button appears in toolbar */
+  shareState?: {
+    deepLinkUrl: string;
+    isInTeams: boolean;
+    showPublishReport: boolean;
+    onShareTeams: () => void;
+    onPublishReport: () => void;
+    onToast: (notif: Omit<SyncNotification, 'id'>) => void;
+  };
 }
 
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({
@@ -98,6 +111,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     onOpenPresentation,
   },
   showOverflowMenu = true,
+  shareState,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const { t } = useTranslation();
@@ -335,6 +349,9 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               </button>
             )}
 
+            {/* Share */}
+            {hasActiveData && shareState && <ShareDropdown {...shareState} />}
+
             {/* Findings Toggle */}
             {hasActiveData && hasFactors && (
               <button
@@ -497,6 +514,58 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   <Maximize2 size={16} />
                   {t('nav.presentationMode')}
                 </button>
+                {/* Share */}
+                {shareState && (
+                  <>
+                    <div className="border-t border-edge my-1" />
+                    <button
+                      onClick={() => {
+                        setOverflowOpen(false);
+                        navigator.clipboard.writeText(shareState.deepLinkUrl).then(
+                          () =>
+                            shareState.onToast({
+                              type: 'success',
+                              message: 'Link copied to clipboard',
+                              dismissAfter: 3000,
+                            }),
+                          () =>
+                            shareState.onToast({
+                              type: 'error',
+                              message: "Couldn't copy link. Try again.",
+                            })
+                        );
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
+                    >
+                      <Share2 size={16} />
+                      Copy link
+                    </button>
+                    {shareState.isInTeams && (
+                      <button
+                        onClick={() => {
+                          setOverflowOpen(false);
+                          shareState.onShareTeams();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
+                      >
+                        <MessageSquare size={16} />
+                        Share in Teams
+                      </button>
+                    )}
+                    {shareState.showPublishReport && (
+                      <button
+                        onClick={() => {
+                          setOverflowOpen(false);
+                          shareState.onPublishReport();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
+                      >
+                        <Upload size={16} />
+                        Publish report
+                      </button>
+                    )}
+                  </>
+                )}
                 {hasFactors && (
                   <button
                     onClick={() => {

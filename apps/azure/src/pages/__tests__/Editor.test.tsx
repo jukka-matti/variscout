@@ -178,6 +178,14 @@ vi.mock('../../context/DataContext', () => ({
   useData: vi.fn(),
 }));
 
+vi.mock('../../context/ToastContext', () => ({
+  useToast: () => ({
+    notifications: [],
+    showToast: vi.fn(),
+    dismissToast: vi.fn(),
+  }),
+}));
+
 // ── Test helpers ──
 
 const baseDataCtx = {

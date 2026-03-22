@@ -75,8 +75,9 @@ import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
 import { useTeamsShare } from '../hooks/useTeamsShare';
 import { useShareFinding } from '../hooks/useShareFinding';
 import { useFindingsOrchestration } from '../hooks/useFindingsOrchestration';
-import { buildChartSharePayload } from '../services/shareContent';
-import { buildSubPageId } from '../services/deepLinks';
+import { buildChartSharePayload, buildReportSharePayload } from '../services/shareContent';
+import { buildSubPageId, buildCurrentViewLink } from '../services/deepLinks';
+import { useToast } from '../context/ToastContext';
 import { setBeforeUnloadHandler } from '../teams';
 
 const COSCOUT_RESIZE_CONFIG = {
@@ -103,6 +104,7 @@ export const Editor: React.FC<EditorProps> = ({
 }) => {
   const { syncStatus } = useStorage();
   const { locale } = useLocale();
+  const { showToast } = useToast();
   const {
     rawData,
     filteredData,
@@ -361,7 +363,7 @@ export const Editor: React.FC<EditorProps> = ({
   });
 
   // Teams share integration
-  const { share, setDeepLink } = useTeamsShare();
+  const { share, setDeepLink, isTeams } = useTeamsShare();
   const baseUrl = window.location.origin + window.location.pathname;
   const projectName = currentProjectName || 'New Analysis';
 
@@ -460,6 +462,48 @@ export const Editor: React.FC<EditorProps> = ({
       share(payload);
     },
     [projectName, baseUrl, share]
+  );
+
+  // Deep link URL for the current editor view (used by ShareDropdown)
+  const deepLinkUrl = useMemo(() => {
+    if (!projectName) return '';
+    return buildCurrentViewLink(baseUrl, projectName, {
+      focusedChart: viewState?.focusedChart ?? undefined,
+      findingId: highlightedFindingId ?? undefined,
+      mode: panels.isReportOpen ? 'report' : undefined,
+    });
+  }, [baseUrl, projectName, viewState?.focusedChart, highlightedFindingId, panels.isReportOpen]);
+
+  // Share via Teams native dialog with toast feedback
+  const handleShareTeams = useCallback(() => {
+    const payload = buildReportSharePayload(
+      processContext?.description || projectName,
+      projectName,
+      baseUrl,
+      outcome ? stats?.cpk : undefined
+    );
+    share(payload).then(success => {
+      if (success) {
+        showToast({ type: 'success', message: 'Shared in Teams', dismissAfter: 3000 });
+      } else {
+        showToast({ type: 'error', message: "Couldn't share. Try again.", dismissAfter: 5000 });
+      }
+    });
+  }, [share, projectName, processContext?.description, outcome, stats?.cpk, baseUrl, showToast]);
+
+  // Share state for EditorToolbar's ShareDropdown
+  const shareState = useMemo(
+    () => ({
+      deepLinkUrl,
+      isInTeams: isTeams,
+      showPublishReport: panels.isReportOpen && hasTeamFeatures(),
+      onShareTeams: handleShareTeams,
+      onPublishReport: () => {
+        /* P3 — wired later */
+      },
+      onToast: showToast,
+    }),
+    [deepLinkUrl, isTeams, panels.isReportOpen, handleShareTeams, showToast]
   );
 
   // Current user (for comment author attribution)
@@ -1310,6 +1354,7 @@ export const Editor: React.FC<EditorProps> = ({
           onOpenPresentation: () => panels.setIsPresentationMode(true),
         }}
         showOverflowMenu={!isPhone}
+        shareState={shareState}
       />
 
       {/* Hidden file input for append-mode file upload */}
