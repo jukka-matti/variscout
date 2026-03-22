@@ -61,7 +61,9 @@ describe('ToastContext', () => {
         result.current.showToast({ type: 'info', message: `Msg ${i}` });
       }
     });
-    expect(result.current.notifications.length).toBeLessThanOrEqual(5);
+    expect(result.current.notifications).toHaveLength(5);
+    // Oldest notifications (Msg 0, Msg 1) were dropped
+    expect(result.current.notifications[0].message).toBe('Msg 2');
   });
 
   it('throws when used outside provider', () => {

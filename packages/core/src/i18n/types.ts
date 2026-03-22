@@ -700,6 +700,8 @@ export interface MessageCatalog {
   'improve.fourDirections': string;
   'improve.convertToActions': string;
   'improve.noIdeas': string;
+  'improve.emptyNoFindings': string;
+  'improve.emptyNoSupported': string;
   'improve.selectedCount': string;
   'improve.timeframeBreakdown': string;
   'improve.projectedCpk': string;

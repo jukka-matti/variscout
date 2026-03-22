@@ -610,6 +610,10 @@ export const en: MessageCatalog = {
   'improve.fourDirections': 'Think: Prevent \u00b7 Detect \u00b7 Simplify \u00b7 Eliminate',
   'improve.convertToActions': 'Convert selected \u2192 Actions',
   'improve.noIdeas': 'No improvement ideas yet',
+  'improve.emptyNoFindings':
+    'Pin findings from the Analysis view, then brainstorm improvement ideas here.',
+  'improve.emptyNoSupported':
+    'Validate your hypotheses in the Findings view. Supported hypotheses unlock improvement brainstorming.',
   'improve.selectedCount': '{count} selected',
   'improve.timeframeBreakdown':
     '{justDo} just do \u00b7 {days} days \u00b7 {weeks} wks \u00b7 {months} mo',
