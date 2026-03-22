@@ -79,6 +79,18 @@ packages/
 apps/
 ├── pwa/          # @variscout/pwa - PWA website
 ├── azure/        # @variscout/azure-app - Azure Team App
+│              #   stores/ - Zustand feature stores:
+│              #     panelsStore - Panel visibility & layout (activeTab, focusedChart, etc.)
+│              #     findingsStore - Findings read-side state (selectedFindingId, boardView, etc.)
+│              #     investigationStore - Investigation UI state (hypothesisTreeExpanded, phaseFilter, etc.)
+│              #     improvementStore - Improvement workspace state (activeWorkspace, matrixView, etc.)
+│              #     aiStore - AI/CoScout UI state (isCoScoutOpen, pendingAction, etc.)
+│              #   features/ - Feature modules:
+│              #     findings/ - Findings feature wiring
+│              #     investigation/ - Investigation feature wiring
+│              #     improvement/ - Improvement workspace feature wiring
+│              #     ai/ - AI/CoScout feature wiring
+│              #     data-flow/ - Data pipeline orchestration
 └── website/      # @variscout/website - Marketing website (Astro + React Islands)
 ```
 
@@ -104,6 +116,7 @@ pnpm -r build           # Build recursively
 - Root devDependencies: Shared tooling (TypeScript, ESLint)
 - Package dependencies: Package-specific needs
 - Use `workspace:*` for internal package references
+- `@variscout/azure-app` depends on `zustand` (feature stores, see ADR-041)
 
 ## Naming Conventions
 

@@ -52,6 +52,7 @@ This section captures key architectural decisions made during VariScout developm
 | [038](adr-038-subgroup-capability.md)                | Subgroup Capability Analysis             | Accepted   | 2026-03-21 |
 | [039](adr-039-mobile-performance-architecture.md)    | Mobile Performance & Async Stats         | Accepted   | 2026-03-21 |
 | [040](adr-040-bicep-migration.md)                    | Migrate Infrastructure to Bicep          | Accepted   | 2026-03-22 |
+| [041](adr-041-zustand-feature-stores.md)             | Zustand Feature Stores                   | Accepted   | 2026-03-22 |
 
 ---
 

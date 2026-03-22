@@ -79,6 +79,29 @@ Key `data-testid` attributes used in Playwright E2E tests:
 | ChartInsightChip | `[data-testid^="insight-chip-"]`            |
 | Save as PDF button | `[data-testid="report-save-pdf"]`          |
 
+## Zustand Store Testing
+
+Zustand stores are tested as plain state containers without rendering components:
+
+- **Pattern**: Create store instance, call actions, assert resulting state
+- **Reset between tests**: Use `store.setState(initialState)` or call `store.getState().reset()` if the store exposes a reset action
+- **Selector testing**: Assert that selectors derive correct values from known state
+- **Cross-store access**: Mock `otherStore.getState()` when testing stores that read from siblings
+- **Reference test**: `apps/azure/src/stores/__tests__/panelsStore.test.ts`
+
+```typescript
+import { usePanelsStore } from '../panelsStore';
+
+beforeEach(() => {
+  usePanelsStore.setState(usePanelsStore.getInitialState());
+});
+
+it('should toggle findings panel', () => {
+  usePanelsStore.getState().toggleFindings();
+  expect(usePanelsStore.getState().isFindingsOpen).toBe(true);
+});
+```
+
 ## Feature Verification Protocols
 
 Executable via Antigravity agents or `claude --chrome`. Full protocol details in [testing.md](../../docs/05-technical/implementation/testing.md#feature-verification-protocols).
