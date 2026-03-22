@@ -38,6 +38,8 @@ var keyVaultName = 'kv-${take(appName, 17)}-${take(uniqueString(resourceGroup().
 
 // --- Feature flags ---
 var hasTeamFeatures = (variscoutPlan == 'team')
+// hasAI is always true for current allowed plans (standard, team).
+// Kept as a variable for future-proofing if a 'free' plan tier is introduced.
 var hasAI = (variscoutPlan != 'free')
 var aiSearchIndex = 'findings'
 
@@ -114,6 +116,9 @@ module keyVault 'modules/key-vault.bicep' = if (hasAI) {
     clientSecret: clientSecret
     aiServicesApiKey: hasAI ? aiServices.outputs.aiServicesApiKey : ''
     searchApiKey: hasTeamFeatures ? search.outputs.searchAdminKey : ''
+    // Function key is passed when hasAI (standard + team) but only stored as a KV secret
+    // when hasTeamFeatures (team only). Standard plan Functions don't need KV-stored keys
+    // because they're only accessed internally by the App Service.
     functionKey: hasAI ? functions.outputs.defaultFunctionKey : ''
     webAppPrincipalId: appService.outputs.principalId
     functionAppPrincipalId: hasAI ? functions.outputs.principalId : ''

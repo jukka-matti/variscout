@@ -42,5 +42,7 @@ resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
 @description('Resource ID of the Search service')
 output searchServiceId string = searchService.id
 
+// WARNING: outputs-should-not-contain-secrets — accepted because this value flows
+// directly into Key Vault (key-vault module). Not exposed as a top-level template output.
 @description('Admin key for the Search service')
 output searchAdminKey string = searchService.listAdminKeys().primaryKey
