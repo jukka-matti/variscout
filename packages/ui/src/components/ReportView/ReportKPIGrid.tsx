@@ -33,6 +33,7 @@ function getCpkColor(cpk: number | undefined, target: number): string {
 
 export const ReportKPIGrid: React.FC<ReportKPIGridProps> = ({
   stats,
+  specs,
   sampleCount,
   cpkTarget = 1.33,
   colorScheme,
@@ -43,11 +44,15 @@ export const ReportKPIGrid: React.FC<ReportKPIGridProps> = ({
     ...colorScheme,
   };
 
+  const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
+  const gridCols = hasSpecs ? 'sm:grid-cols-5' : 'sm:grid-cols-3';
+  const containerClass = colorScheme?.container ?? `grid grid-cols-2 ${gridCols} gap-3`;
+
   const inSpecPct = 100 - stats.outOfSpecPercentage;
   const cpkColor = getCpkColor(stats.cpk, cpkTarget);
 
   return (
-    <div data-report-kpi className={scheme.container}>
+    <div data-report-kpi className={containerClass}>
       {/* Samples */}
       <div className={scheme.card}>
         <div className={scheme.label}>{t('report.kpi.samples')}</div>
@@ -68,19 +73,23 @@ export const ReportKPIGrid: React.FC<ReportKPIGridProps> = ({
         <div className={`mt-1 ${scheme.value}`}>{formatStat(stats.stdDev, 3)}</div>
       </div>
 
-      {/* Cpk */}
-      <div className={scheme.card}>
-        <div className={scheme.label}>{t('report.kpi.cpk')}</div>
-        <div className={`mt-1 text-lg font-semibold ${cpkColor}`}>
-          {stats.cpk !== undefined ? formatStat(stats.cpk) : '—'}
+      {/* Cpk — only when specs are set */}
+      {hasSpecs && (
+        <div className={scheme.card}>
+          <div className={scheme.label}>{t('report.kpi.cpk')}</div>
+          <div className={`mt-1 text-lg font-semibold ${cpkColor}`}>
+            {stats.cpk !== undefined ? formatStat(stats.cpk) : '—'}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* In-Spec % */}
-      <div className={scheme.card}>
-        <div className={scheme.label}>{t('report.kpi.inSpec')} %</div>
-        <div className={`mt-1 ${scheme.value}`}>{formatStat(inSpecPct, 1)}%</div>
-      </div>
+      {/* In-Spec % — only when specs are set */}
+      {hasSpecs && (
+        <div className={scheme.card}>
+          <div className={scheme.label}>{t('report.kpi.inSpec')} %</div>
+          <div className={`mt-1 ${scheme.value}`}>{formatStat(inSpecPct, 1)}%</div>
+        </div>
+      )}
     </div>
   );
 };
