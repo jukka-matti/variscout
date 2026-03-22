@@ -157,7 +157,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
             {t('improve.backToAnalysis')}
           </button>
         )}
-        <h2 className="text-base font-semibold text-content ml-auto mr-auto">
+        <h2 className="text-base font-semibold text-content ml-auto mr-auto truncate">
           {t('improve.title')}
         </h2>
         {/* Popout + spacer to balance back button */}
@@ -217,25 +217,43 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
         ) : (
           <div
             data-testid="improvement-empty-state"
-            className="flex items-center justify-center py-12 text-sm text-content/50"
+            className="flex flex-col items-center justify-center py-12 text-sm text-content/50 text-center px-6 gap-2"
           >
-            {t('improve.noIdeas')}
+            {hypotheses.length === 0 ? (
+              <>
+                <p className="font-medium text-content/60">
+                  {!linkedFindings || linkedFindings.length === 0
+                    ? t(
+                        'improve.emptyNoFindings',
+                        'Pin findings from the Analysis view, then brainstorm improvement ideas here.'
+                      )
+                    : t(
+                        'improve.emptyNoSupported',
+                        'Validate your hypotheses in the Findings view. Supported hypotheses unlock improvement brainstorming.'
+                      )}
+                </p>
+              </>
+            ) : (
+              <p>{t('improve.noIdeas')}</p>
+            )}
           </div>
         )}
       </div>
 
       {/* Sticky summary bar */}
-      <ImprovementSummaryBar
-        selectedCount={selectedIdeaIds?.size ?? 0}
-        timeframeBreakdown={timeframeBreakdown}
-        maxRisk={maxRisk}
-        totalCost={totalCost}
-        budget={budget}
-        projectedCpk={projectedCpk}
-        targetCpk={targetCpk}
-        onConvertToActions={onConvertToActions}
-        convertDisabled={!selectedIdeaIds || selectedIdeaIds.size === 0}
-      />
+      <div className="safe-area-bottom">
+        <ImprovementSummaryBar
+          selectedCount={selectedIdeaIds?.size ?? 0}
+          timeframeBreakdown={timeframeBreakdown}
+          maxRisk={maxRisk}
+          totalCost={totalCost}
+          budget={budget}
+          projectedCpk={projectedCpk}
+          targetCpk={targetCpk}
+          onConvertToActions={onConvertToActions}
+          convertDisabled={!selectedIdeaIds || selectedIdeaIds.size === 0}
+        />
+      </div>
     </div>
   );
 };

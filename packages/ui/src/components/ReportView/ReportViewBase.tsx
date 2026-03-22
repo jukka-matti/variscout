@@ -349,7 +349,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
           {/* Audience toggle */}
           {onAudienceModeChange && (
             <div
-              className="hidden sm:flex items-center rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden"
+              className="flex items-center rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden"
               data-export-hide
             >
               <button
@@ -404,6 +404,100 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
             </span>
           )}
         </header>
+
+        {/* Mobile action bar (visible below lg breakpoint, mirrors sidebar actions) */}
+        {(onPrintReport || (canShareViaTeams && onShareReport) || onPublishToSharePoint) && (
+          <div
+            className="lg:hidden flex items-center gap-1 px-4 py-2 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-x-auto"
+            data-export-hide
+          >
+            {onCopyAllCharts && (
+              <button
+                className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
+                onClick={onCopyAllCharts}
+                style={{ minHeight: 44 }}
+              >
+                <Copy size={14} />
+                {t('report.action.copyAllCharts')}
+              </button>
+            )}
+            {onPrintReport && (
+              <button
+                className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
+                onClick={onPrintReport}
+                style={{ minHeight: 44 }}
+              >
+                <Printer size={14} />
+                {t('report.action.saveAsPdf')}
+              </button>
+            )}
+            {canShareViaTeams && onShareReport && (
+              <button
+                className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
+                onClick={onShareReport}
+                style={{ minHeight: 44 }}
+              >
+                <Share2 size={14} />
+                {t('report.action.shareReport')}
+              </button>
+            )}
+            {onPublishToSharePoint && (!publishStatus || publishStatus === 'idle') && (
+              <button
+                className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
+                onClick={onPublishToSharePoint}
+                style={{ minHeight: 44 }}
+              >
+                <Upload size={14} />
+                {t('report.action.publishToSharePoint')}
+              </button>
+            )}
+            {(publishStatus === 'rendering' || publishStatus === 'uploading') && (
+              <span className="flex items-center gap-1.5 px-3 py-2 text-xs text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                <Loader2 size={14} className="animate-spin" />
+                {publishStatus === 'rendering'
+                  ? t('report.publish.rendering')
+                  : t('report.publish.uploading')}
+              </span>
+            )}
+            {publishStatus === 'success' && (
+              <span className="flex items-center gap-1.5 px-3 py-2 text-xs text-green-600 dark:text-green-400 whitespace-nowrap">
+                <Check size={14} />
+                {t('report.action.publishedToSharePoint')}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Audience toggle for mobile */}
+        {onAudienceModeChange && (
+          <div
+            className="lg:hidden flex gap-1 px-4 pb-2 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+            data-export-hide
+          >
+            <button
+              className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                audienceMode === 'technical'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+              style={{ minHeight: 36 }}
+              onClick={() => onAudienceModeChange('technical')}
+            >
+              {t('report.audience.technical')}
+            </button>
+            <button
+              className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                audienceMode === 'summary'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+              style={{ minHeight: 36 }}
+              onClick={() => onAudienceModeChange('summary')}
+            >
+              {t('report.audience.summary')}
+            </button>
+          </div>
+        )}
 
         {/* Scrollable content */}
         <div className={scheme.content} ref={contentRef}>

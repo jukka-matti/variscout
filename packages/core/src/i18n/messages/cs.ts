@@ -424,7 +424,7 @@ export const cs: MessageCatalog = {
   'feature.reportExport': 'Export zprávy (PDF)',
   'feature.indexedDb': 'IndexedDB lokální úložiště',
   'feature.maxFactors': 'Až 6 faktorů',
-  'feature.maxRows': 'Až 100K řádků',
+  'feature.maxRows': 'Až 250K řádků',
   'feature.onedriveSync': 'Synchronizace projektů přes OneDrive',
   'feature.sharepointPicker': 'Výběr souborů SharePoint',
   'feature.teamsIntegration': 'Integrace Microsoft Teams',

@@ -467,7 +467,7 @@ export const zhHans: MessageCatalog = {
   'feature.reportExport': '报告导出（PDF）',
   'feature.indexedDb': 'IndexedDB本地存储',
   'feature.maxFactors': '最多6个因子',
-  'feature.maxRows': '最多100K行',
+  'feature.maxRows': '最多250K行',
   'feature.onedriveSync': 'OneDrive项目同步',
   'feature.sharepointPicker': 'SharePoint文件选择器',
   'feature.teamsIntegration': 'Microsoft Teams集成',

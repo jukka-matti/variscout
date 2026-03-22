@@ -414,7 +414,7 @@ const DimensionSelect: React.FC<DimensionSelectProps> = ({ label, value, onChang
   <label className="flex items-center gap-1 text-xs text-content/70">
     {label}
     <select
-      className="rounded border border-edge bg-surface px-1.5 py-0.5 text-xs text-content focus:outline-none focus:ring-1 focus:ring-blue-500"
+      className="rounded border border-edge bg-surface px-1.5 py-0.5 text-xs text-content focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
       value={value}
       onChange={e => onChange(e.target.value as MatrixDimension)}
     >
@@ -502,7 +502,7 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
               <button
                 key={p.id}
                 data-testid={`matrix-preset-${p.id}`}
-                className={`rounded-full px-2.5 py-0.5 text-xs border transition-colors ${
+                className={`rounded-full px-2.5 py-0.5 text-xs border transition-colors min-h-[44px] sm:min-h-0 ${
                   activePreset === p.id
                     ? 'border-blue-500 bg-blue-500/10 text-blue-400 font-medium'
                     : 'border-edge text-content/60 hover:border-blue-400 hover:text-content'

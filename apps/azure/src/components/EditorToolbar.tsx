@@ -69,6 +69,8 @@ interface EditorToolbarProps {
   syncState: ToolbarSyncState;
   panelState: ToolbarPanelState;
   dataActions: ToolbarDataActions;
+  /** When false, hide the phone overflow menu (replaced by MobileTabBar). Default true. */
+  showOverflowMenu?: boolean;
 }
 
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({
@@ -95,6 +97,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     onOpenReport,
     onOpenPresentation,
   },
+  showOverflowMenu = true,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const { t } = useTranslation();
@@ -406,8 +409,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           </button>
         )}
 
-        {/* ===== Phone overflow menu ===== */}
-        {isPhone && hasActiveData && (
+        {/* ===== Phone overflow menu (hidden when MobileTabBar active) ===== */}
+        {showOverflowMenu && isPhone && hasActiveData && (
           <div ref={overflowRef} className="relative">
             <button
               onClick={() => setOverflowOpen(prev => !prev)}

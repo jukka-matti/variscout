@@ -424,7 +424,7 @@ export const nb: MessageCatalog = {
   'feature.reportExport': 'Rapporteksport (PDF)',
   'feature.indexedDb': 'IndexedDB lokal lagring',
   'feature.maxFactors': 'Opptil 6 faktorer',
-  'feature.maxRows': 'Opptil 100K rader',
+  'feature.maxRows': 'Opptil 250K rader',
   'feature.onedriveSync': 'OneDrive-prosjektsynkronisering',
   'feature.sharepointPicker': 'SharePoint-filvelger',
   'feature.teamsIntegration': 'Microsoft Teams-integrasjon',

@@ -120,8 +120,9 @@ describe('ReportViewBase', () => {
       render(
         <ReportViewBase {...defaultProps({ audienceMode: 'technical', onAudienceModeChange })} />
       );
-      expect(screen.getByText('Technical')).toBeDefined();
-      expect(screen.getByText('Summary')).toBeDefined();
+      // Multiple buttons exist (desktop header + mobile action bar)
+      expect(screen.getAllByText('Technical').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Summary').length).toBeGreaterThanOrEqual(1);
     });
 
     it('does not render audience toggle when onAudienceModeChange is not provided', () => {
@@ -134,7 +135,8 @@ describe('ReportViewBase', () => {
       render(
         <ReportViewBase {...defaultProps({ audienceMode: 'technical', onAudienceModeChange })} />
       );
-      fireEvent.click(screen.getByText('Summary'));
+      // Multiple Summary buttons exist (desktop header + mobile action bar), click the first one
+      fireEvent.click(screen.getAllByText('Summary')[0]);
       expect(onAudienceModeChange).toHaveBeenCalledWith('summary');
     });
   });
@@ -166,7 +168,7 @@ describe('ReportViewBase', () => {
           })}
         />
       );
-      expect(screen.getByText('Share Report')).toBeDefined();
+      expect(screen.getAllByText('Share Report').length).toBeGreaterThan(0);
     });
 
     it('calls onShareReport when Share button is clicked', () => {
@@ -179,7 +181,7 @@ describe('ReportViewBase', () => {
           })}
         />
       );
-      fireEvent.click(screen.getByText('Share Report'));
+      fireEvent.click(screen.getAllByText('Share Report')[0]);
       expect(onShareReport).toHaveBeenCalledTimes(1);
     });
   });

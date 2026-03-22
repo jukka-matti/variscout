@@ -252,7 +252,7 @@ The same 4-phase journey applies to all tiers, with features progressively unloc
 
 | Journey Phase   | PWA (Free)                      | Azure Standard                      | Azure Team                                       |
 | --------------- | ------------------------------- | ----------------------------------- | ------------------------------------------------ |
-| **FRAME**       | Paste only, 3 factors, 50K rows | + File upload, 6 factors, 100K rows | + OneDrive sync                                  |
+| **FRAME**       | Paste only, 3 factors, 50K rows | + File upload, 6 factors, 250K rows | + OneDrive sync                                  |
 | **SCOUT**       | Four Lenses + drill-down        | Same + more factors                 | + NarrativeBar, ChartInsightChips                |
 | **INVESTIGATE** | 3 statuses, no photos           | Same                                | + 5 statuses, photo evidence, CoScout            |
 | **IMPROVE**     | What-If only                    | Same                                | + Action tracking, staged verification, outcomes |

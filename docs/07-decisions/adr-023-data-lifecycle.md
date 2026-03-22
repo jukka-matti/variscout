@@ -88,7 +88,7 @@ Append entry points live in `apps/azure/src/hooks/useEditorDataFlow.ts`. Auto-de
 
 Current architecture supports daily monitoring through append:
 
-- **Row ceiling**: 100K rows (Azure), enforced in `useDataIngestion`
+- **Row ceiling**: 250K rows (Azure), enforced in `useDataIngestion`
 - **Persistence**: Full-JSON serialization to OneDrive (Team plan) — no archival or compression
 - **Practical limit**: ~6 months of daily batches at typical manufacturing volumes before hitting row ceiling or OneDrive sync latency
 
@@ -251,7 +251,7 @@ Delivered:
 
 - Continue Investigation workflow (row limit / schema change scenarios)
 - Statistical significance test (t-test for mean shift, Levene's for variance)
-- Archival for long-running projects beyond 100K row ceiling
+- Archival for long-running projects beyond 250K row ceiling
 
 ### 6. Verification Decision Guide
 

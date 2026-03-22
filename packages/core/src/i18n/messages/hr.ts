@@ -504,7 +504,7 @@ export const hr: MessageCatalog = {
   'feature.reportExport': 'Izvoz izvješća (PDF)',
   'feature.indexedDb': 'Lokalno pohranjivanje IndexedDB',
   'feature.maxFactors': 'Do 6 faktora',
-  'feature.maxRows': 'Do 100K redova',
+  'feature.maxRows': 'Do 250K redova',
   'feature.onedriveSync': 'Sinkronizacija projekata s OneDrive',
   'feature.sharepointPicker': 'Birač datoteka iz SharePoint',
   'feature.teamsIntegration': 'Integracija s Microsoft Teams',

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import * as Comlink from 'comlink';
 import type { StatsResult, SpecLimits, StatsWorkerAPI, StatsComputeResult } from '@variscout/core';
 
 export interface UseAsyncStatsOptions {
@@ -36,7 +37,8 @@ export function useAsyncStats(options: UseAsyncStatsOptions): UseAsyncStatsResul
 
   // Stable keys to avoid re-firing on every render when callers pass inline arrays/objects.
   // In production, callers should memoize; this is a safety net.
-  const valuesKey = values.join(',');
+  // Use cheap fingerprint instead of join(',') which creates multi-MB strings at 250K rows.
+  const valuesKey = `${values.length}:${values[0]}:${values[values.length - 1]}`;
   const specsKey = JSON.stringify(specs);
 
   useEffect(() => {
@@ -64,9 +66,19 @@ export function useAsyncStats(options: UseAsyncStatsOptions): UseAsyncStatsResul
       return;
     }
 
+    // Transfer values as Float64Array for zero-copy to Worker thread.
+    // After transfer the source buffer is neutered, but values is a
+    // memoized derived array — a fresh one is created on next filter change.
+    const float64 = new Float64Array(values);
+    const transferRequest = {
+      values: Comlink.transfer(float64, [float64.buffer]),
+      specs,
+      computeKDE,
+    };
+
     // Comlink wraps the worker method to return a Promise at runtime,
     // even though the StatsWorkerAPI type declares a sync return.
-    Promise.resolve(workerApi.computeStats(request))
+    Promise.resolve(workerApi.computeStats(transferRequest))
       .then((result: StatsComputeResult) => {
         if (thisGeneration !== generationRef.current) return; // Stale
         setStats(result.stats);

@@ -9,7 +9,10 @@ import type { StatsComputeRequest, StatsComputeResult, AnovaComputeRequest } fro
  * This function runs inside the Web Worker — heavy computation offloaded from main thread.
  */
 export function computeStats(request: StatsComputeRequest): StatsComputeResult {
-  const { values, specs, computeKDE: doKDE } = request;
+  const { specs, computeKDE: doKDE } = request;
+  // Convert Float64Array to regular array (d3 and KDE expect number[])
+  const values =
+    request.values instanceof Float64Array ? Array.from(request.values) : request.values;
 
   // Basic stats (mean, stdDev, Cp, Cpk, control limits)
   const stats = calculateStats(values, specs.usl, specs.lsl);
@@ -28,5 +31,10 @@ export function computeStats(request: StatsComputeRequest): StatsComputeResult {
  * Runs inside the Web Worker — avoids serializing full DataRow[] objects.
  */
 export function computeAnova(request: AnovaComputeRequest): AnovaResult | null {
-  return calculateAnovaFromArrays(request.factorValues, request.outcomeValues, request.outcomeName);
+  // Convert Float64Array to regular array if needed
+  const outcomeValues =
+    request.outcomeValues instanceof Float64Array
+      ? Array.from(request.outcomeValues)
+      : request.outcomeValues;
+  return calculateAnovaFromArrays(request.factorValues, outcomeValues, request.outcomeName);
 }

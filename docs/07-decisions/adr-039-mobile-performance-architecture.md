@@ -33,10 +33,10 @@ Wrap IChartBase, BoxplotBase, ParetoBase, YamazumiChartBase in React.memo() with
 
 ### 4. Mobile-Specific Row Limits
 
-| Platform | Desktop         | Mobile (<640px) |
-| -------- | --------------- | --------------- |
-| PWA      | 50K (warn 5K)   | 10K (warn 2K)   |
-| Azure    | 100K (warn 10K) | 25K (warn 5K)   |
+| Platform | Desktop          | Mobile (<640px) |
+| -------- | ---------------- | --------------- |
+| PWA      | 50K (warn 5K)    | 10K (warn 2K)   |
+| Azure    | 250K (warn 100K) | 50K (warn 10K)  |
 
 Mobile detection in app-level wrappers via useIsMobile(640), passed as limits parameter to shared useDataIngestion hook.
 

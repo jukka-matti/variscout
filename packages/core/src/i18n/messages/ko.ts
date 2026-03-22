@@ -470,7 +470,7 @@ export const ko: MessageCatalog = {
   'feature.reportExport': '리포트 내보내기 (PDF)',
   'feature.indexedDb': 'IndexedDB 로컬 저장소',
   'feature.maxFactors': '최대 6개 요인',
-  'feature.maxRows': '최대 100K 행',
+  'feature.maxRows': '최대 250K 행',
   'feature.onedriveSync': 'OneDrive 프로젝트 동기화',
   'feature.sharepointPicker': 'SharePoint 파일 선택기',
   'feature.teamsIntegration': 'Microsoft Teams 통합',

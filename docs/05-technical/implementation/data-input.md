@@ -467,7 +467,7 @@ The parser auto-detects:
 | ----------------------------- | ------------------------------------- | ------------------------------------- |
 | Below warning (5K / 10K)      | Loads immediately                     | Loads immediately                     |
 | Warning to hard limit         | Warning prompt (may slow performance) | Warning prompt (may slow performance) |
-| Above hard limit (50K / 100K) | Rejected with error message           | Rejected with error message           |
+| Above hard limit (50K / 250K) | Rejected with error message           | Rejected with error message           |
 
 Defaults in `packages/hooks/src/useDataIngestion.ts`, configurable via `DataIngestionConfig`:
 
@@ -476,7 +476,7 @@ const DEFAULT_ROW_WARNING_THRESHOLD = 5000;
 const DEFAULT_ROW_HARD_LIMIT = 50000;
 
 // Azure wrapper overrides:
-{ rowHardLimit: 100_000, rowWarningThreshold: 10_000 }
+{ rowHardLimit: 250_000, rowWarningThreshold: 100_000 }
 ```
 
 ---

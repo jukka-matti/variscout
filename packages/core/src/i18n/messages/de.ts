@@ -507,7 +507,7 @@ export const de: MessageCatalog = {
   'feature.reportExport': 'Berichtexport (PDF)',
   'feature.indexedDb': 'IndexedDB lokale Speicherung',
   'feature.maxFactors': 'Bis zu 6 Faktoren',
-  'feature.maxRows': 'Bis zu 100K Zeilen',
+  'feature.maxRows': 'Bis zu 250K Zeilen',
   'feature.onedriveSync': 'OneDrive-Projektsynchronisierung',
   'feature.sharepointPicker': 'SharePoint-Dateiauswahl',
   'feature.teamsIntegration': 'Microsoft Teams-Integration',

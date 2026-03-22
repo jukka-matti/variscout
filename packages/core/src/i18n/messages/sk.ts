@@ -505,7 +505,7 @@ export const sk: MessageCatalog = {
   'feature.reportExport': 'Export správy (PDF)',
   'feature.indexedDb': 'Lokálne úložisko IndexedDB',
   'feature.maxFactors': 'Až 6 faktorov',
-  'feature.maxRows': 'Až 100K riadkov',
+  'feature.maxRows': 'Až 250K riadkov',
   'feature.onedriveSync': 'Synchronizácia projektov cez OneDrive',
   'feature.sharepointPicker': 'Výber súborov zo SharePoint',
   'feature.teamsIntegration': 'Integrácia s Microsoft Teams',

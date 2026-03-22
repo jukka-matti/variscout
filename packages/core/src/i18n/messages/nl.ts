@@ -474,7 +474,7 @@ export const nl: MessageCatalog = {
   'feature.reportExport': 'Rapportexport (PDF)',
   'feature.indexedDb': 'Lokale opslag IndexedDB',
   'feature.maxFactors': 'Tot 6 factoren',
-  'feature.maxRows': 'Tot 100K rijen',
+  'feature.maxRows': 'Tot 250K rijen',
   'feature.onedriveSync': 'OneDrive-projectsynchronisatie',
   'feature.sharepointPicker': 'SharePoint-bestandskiezer',
   'feature.teamsIntegration': 'Microsoft Teams-integratie',

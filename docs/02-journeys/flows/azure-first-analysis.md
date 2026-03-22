@@ -181,7 +181,7 @@ See [OneDrive Sync](../../08-products/azure/onedrive-sync.md) for Team plan sync
 | Authentication   | EasyAuth (platform-level, no library code)             |
 | Data input       | Upload, paste, or manual entry — all parsed in-browser |
 | Factor limit     | Up to 6 factors, can add/change during analysis        |
-| Row limit        | 100,000 rows                                           |
+| Row limit        | 250,000 rows                                           |
 | Persistence      | IndexedDB (all plans) + OneDrive sync (Team plan only) |
 | Offline          | Full functionality, queues changes for sync            |
 | Performance Mode | Available (multi-channel Cpk analysis)                 |
