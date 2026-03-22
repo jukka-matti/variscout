@@ -315,6 +315,29 @@ No new fields needed — `activeView: 'dashboard' | 'editor'` from ADR-042 alrea
 
 ---
 
+## Documentation Plan
+
+### New documents
+
+| Document                                              | Purpose                                                                                                        |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `docs/07-decisions/adr-043-teams-entry-experience.md` | ADR: Portfolio, metadata sidecar, ID-based deep links, "what's new" timestamp diff, expanded deep link targets |
+
+### Updated documents
+
+| Document                                            | Changes                                                                                                   |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `docs/07-decisions/index.md`                        | Add ADR-043 entry                                                                                         |
+| `docs/03-features/workflows/project-dashboard.md`   | Add "what's new" section, "other projects", integration with Portfolio, rename to cover full Overview tab |
+| `docs/02-journeys/flows/project-reopen.md`          | Add Portfolio as entry point, update flow with rich cards and "what's new"                                |
+| `docs/05-technical/architecture/ai-architecture.md` | Dashboard summary prompt extension with "what's new" context                                              |
+| `docs/06-design-system/patterns/navigation.md`      | Add Portfolio → Overview → Analysis navigation pattern                                                    |
+| `docs/08-products/feature-parity.md`                | Update Portfolio row (Azure-only), add metadata sidecar note                                              |
+| `CLAUDE.md`                                         | Update task-to-documentation table for Portfolio/Teams entry                                              |
+| `.claude/rules/monorepo.md`                         | Add ProjectCard, WhatsNewSection, OtherProjectsList, SampleDataPicker to component listing                |
+
+---
+
 ## Verification
 
 ### Unit tests
