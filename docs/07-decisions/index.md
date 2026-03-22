@@ -51,6 +51,7 @@ This section captures key architectural decisions made during VariScout developm
 | [037](adr-037-reporting-workspaces.md)               | Reporting Workspaces                     | Accepted   | 2026-03-20 |
 | [038](adr-038-subgroup-capability.md)                | Subgroup Capability Analysis             | Accepted   | 2026-03-21 |
 | [039](adr-039-mobile-performance-architecture.md)    | Mobile Performance & Async Stats         | Accepted   | 2026-03-21 |
+| [040](adr-040-bicep-migration.md)                    | Migrate Infrastructure to Bicep          | Accepted   | 2026-03-22 |
 
 ---
 

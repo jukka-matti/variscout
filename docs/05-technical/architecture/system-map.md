@@ -53,7 +53,7 @@ flowchart TB
     end
 
     subgraph infra["Infrastructure"]
-        arm["infra/mainTemplate.json<br/><i>ARM template</i>"]
+        arm["infra/main.bicep<br/><i>Bicep modules (compiled to ARM)</i>"]
     end
 
     subgraph external["External Systems"]
@@ -105,10 +105,10 @@ flowchart TB
 
 ## Infrastructure
 
-| Component                                    | Purpose                                                           | Docs                                                       |
-| -------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------- |
-| `infra/mainTemplate.json`                    | ARM template for Azure Marketplace Managed Application deployment | [arm-template.md](../../08-products/azure/arm-template.md) |
-| `.github/workflows/deploy-azure-staging.yml` | CI/CD pipeline: build + OIDC deploy to staging                    | [deployment.md](../implementation/deployment.md)           |
+| Component                                    | Purpose                                                             | Docs                                                       |
+| -------------------------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `infra/main.bicep` + `infra/modules/*.bicep` | Bicep IaC modules (compiled to `mainTemplate.json` for Marketplace) | [arm-template.md](../../08-products/azure/arm-template.md) |
+| `.github/workflows/deploy-azure-staging.yml` | CI/CD pipeline: build + OIDC deploy to staging                      | [deployment.md](../implementation/deployment.md)           |
 
 ## See Also
 

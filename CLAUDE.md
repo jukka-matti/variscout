@@ -46,7 +46,7 @@ npx ruflo@latest security cve --check        # CVE check
 | docs/04-cases/          | 8 case studies with demo data                                         |
 | docs/05-technical/      | Architecture, implementation, integrations                            |
 | docs/06-design-system/  | Colors, typography, components, charts, patterns                      |
-| docs/07-decisions/      | ADR-001 through ADR-038                                               |
+| docs/07-decisions/      | ADR-001 through ADR-040                                               |
 | docs/08-products/       | Azure, PWA, website specs, feature-parity matrix                      |
 | docs/09-tutorials/      | Planned step-by-step guides                                           |
 | docs/superpowers/specs/ | Design specs from brainstorming sessions (see index.md)               |
@@ -112,7 +112,7 @@ variscout-lite/
 │   ├── azure/         # Azure Team App (EasyAuth + OneDrive sync)
 │   ├── website/       # Marketing website (Astro + React Islands)
 │   └── docs/          # Documentation site (Astro + Starlight)
-├── infra/             # ARM template + Azure Functions
+├── infra/             # Bicep modules + compiled ARM template + Azure Functions
 └── docs/              # Documentation (see table above)
 ```
 
@@ -129,7 +129,7 @@ variscout-lite/
 | `apps/azure/src/`                             | context/DataContext.tsx, services/graphFetch.ts, auth/, hooks/useEditor\*.ts                                     | Azure state, storage, auth, Graph API wrapper                                              |
 | `packages/ui/src/components/ImprovementPlan/` | ImprovementWorkspaceBase, SynthesisCard, IdeaGroupCard, ImprovementSummaryBar, RiskPopover, PrioritizationMatrix | Improvement planning workspace (Azure only)                                                |
 | `packages/ui/src/components/ReportView/`      | ReportViewBase, ReportSection, ReportCpkLearningLoop, ReportHypothesisSummary, ReportImprovementSummary          | Report view with 3 workspace-aligned types + audience toggle                               |
-| `infra/`                                      | mainTemplate.json, functions/                                                                                    | ARM template, Azure Functions                                                              |
+| `infra/`                                      | main.bicep, modules/\*.bicep, mainTemplate.json, functions/                                                      | Bicep modules, compiled ARM template, Azure Functions                                      |
 
 ## Key Patterns
 
