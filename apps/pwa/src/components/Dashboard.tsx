@@ -24,16 +24,10 @@ import {
 import {
   useKeyboardNavigation,
   useAnnotations,
-  useChartInsights,
   useFilterHandlers,
   useCreateFactorModal,
-  useCapabilityIChartData,
+  useDashboardInsights,
 } from '@variscout/hooks';
-import {
-  getNelsonRule2Sequences,
-  getNelsonRule3Sequences,
-  getNextDrillFactor,
-} from '@variscout/core';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
@@ -133,21 +127,6 @@ const Dashboard = ({
   } = useData();
 
   const { getTerm } = useGlossary();
-
-  // Capability data for stats panel target count
-  const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
-  const capabilityData = useCapabilityIChartData({
-    filteredData,
-    outcome: outcome ?? '',
-    specs,
-    subgroupConfig,
-    cpkTarget,
-  });
-
-  const handleCpkClick = useCallback(() => {
-    // Activate capability mode on the I-Chart
-    setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
-  }, [displayOptions, setDisplayOptions]);
 
   // Annotations (right-click context menu for highlights)
   const {
@@ -292,76 +271,28 @@ const Dashboard = ({
     return parts.join('. ');
   }, [filteredData.length, rawData.length, filters]);
 
-  // --- Chart Insight Chips (deterministic only in PWA) ---
-  const ichartInsight = useChartInsights({
-    chartType: 'ichart',
-    aiEnabled: false,
-    aiContext: null,
-    deterministicData: useMemo(() => {
-      if (!stats || !filteredData.length || !outcome) return {};
-      const values = filteredData
-        .map(r => {
-          const v = r[outcome];
-          return typeof v === 'number' ? v : parseFloat(String(v));
-        })
-        .filter(v => !isNaN(v));
-      const sequences = getNelsonRule2Sequences(values, stats.mean);
-      const rule3Sequences = getNelsonRule3Sequences(values);
-      const ooc = values.filter(v => v > stats.ucl || v < stats.lcl).length;
-      return {
-        nelsonSequences: sequences,
-        nelsonRule3Sequences: rule3Sequences,
-        outOfControlCount: ooc,
-        totalPoints: values.length,
-      };
-    }, [filteredData, outcome, stats]),
-  });
-
-  const boxplotInsight = useChartInsights({
-    chartType: 'boxplot',
-    aiEnabled: false,
-    aiContext: null,
-    deterministicData: useMemo(
-      () => ({
-        factorVariations,
-        currentFactor: boxplotFactor,
-        nextDrillFactor: getNextDrillFactor(factorVariations, boxplotFactor),
-      }),
-      [factorVariations, boxplotFactor]
-    ),
-  });
-
-  const paretoInsight = useChartInsights({
-    chartType: 'pareto',
-    aiEnabled: false,
-    aiContext: null,
-    deterministicData: useMemo(() => {
-      const innerMap = categoryContributions?.get(paretoFactor);
-      const converted = innerMap
-        ? new Map([...innerMap.entries()].map(([k, v]) => [String(k), v]))
-        : undefined;
-      return {
-        categoryContributions: converted,
-        categoryCount: innerMap?.size ?? 0,
-        paretoFactor,
-      };
-    }, [categoryContributions, paretoFactor]),
-  });
-
-  const statsInsight = useChartInsights({
-    chartType: 'stats',
-    aiEnabled: false,
-    aiContext: null,
-    deterministicData: useMemo(
-      () => ({
-        cpk: stats?.cpk,
-        cp: stats?.cp,
-        cpkTarget,
-        passRate: stats ? 100 - stats.outOfSpecPercentage : undefined,
-        hasSpecs: !!(specs?.usl !== undefined || specs?.lsl !== undefined),
-      }),
-      [stats, specs, cpkTarget]
-    ),
+  // --- Chart Insight Chips + Capability mode (shared hook) ---
+  const {
+    ichartInsight,
+    boxplotInsight,
+    paretoInsight,
+    statsInsight,
+    handleCpkClick,
+    isCapabilityMode,
+    capabilityData,
+  } = useDashboardInsights({
+    stats,
+    filteredData,
+    outcome,
+    specs,
+    cpkTarget,
+    factorVariations,
+    boxplotFactor,
+    paretoFactor,
+    categoryContributions,
+    displayOptions,
+    setDisplayOptions,
+    subgroupConfig,
   });
 
   if (!outcome) return null;

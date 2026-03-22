@@ -7,10 +7,6 @@
  * Internal structure:
  *   basic.ts          — calculateStats, calculateMovingRangeSigma
  *   anova.ts          — calculateAnova, groupDataByFactor, getEtaSquared
- *   regression.ts     — calculateRegression
- *   multiRegression.ts — calculateMultipleRegression
- *   interaction.ts    — getInteractionStrength
- *   modelReduction.ts — suggestTermRemoval
  *   probability.ts    — calculateProbabilityPlotData, normalQuantile
  *   conformance.ts    — calculateConformance
  *   staged.ts         — determineStageOrder, sortDataByStage, calculateStatsByStage, getStageBoundaries

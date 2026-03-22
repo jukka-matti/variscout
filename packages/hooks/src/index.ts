@@ -304,6 +304,13 @@ export {
   type UseCapabilityBoxplotDataOptions,
 } from './useCapabilityBoxplotData';
 
+// Dashboard Insights (shared chart insight computation)
+export {
+  useDashboardInsights,
+  type UseDashboardInsightsOptions,
+  type UseDashboardInsightsReturn,
+} from './useDashboardInsights';
+
 // Async Stats Hook (Worker bridge)
 export {
   useAsyncStats,

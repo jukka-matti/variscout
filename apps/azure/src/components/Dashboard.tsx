@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -31,16 +31,10 @@ import type { Finding } from '@variscout/core';
 import type { FindingsCallbacks } from '../types/findingsCallbacks';
 import {
   useAnnotations,
-  useChartInsights,
   useFilterHandlers,
   useCreateFactorModal,
-  useCapabilityIChartData,
+  useDashboardInsights,
 } from '@variscout/hooks';
-import {
-  getNelsonRule2Sequences,
-  getNelsonRule3Sequences,
-  getNextDrillFactor,
-} from '@variscout/core';
 import type { AIContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 import {
@@ -172,20 +166,6 @@ const Dashboard = ({
   } = useData();
   const { getTerm } = useGlossary();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
-
-  // Capability data for stats panel target count
-  const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
-  const capabilityData = useCapabilityIChartData({
-    filteredData,
-    outcome: outcome ?? '',
-    specs,
-    subgroupConfig,
-    cpkTarget,
-  });
-
-  const handleCpkClick = useCallback(() => {
-    setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
-  }, [displayOptions, setDisplayOptions]);
 
   const [activeTab, setActiveTabRaw] = useState<DashboardTab>(
     initialViewState?.activeTab ?? 'analysis'
@@ -325,80 +305,31 @@ const Dashboard = ({
     clearSelection,
   });
 
-  // --- Chart Insight Chips (AI-enhanced when available) ---
-  const ichartInsight = useChartInsights({
-    chartType: 'ichart',
+  // --- Chart Insight Chips + Capability mode (shared hook) ---
+  const {
+    ichartInsight,
+    boxplotInsight,
+    paretoInsight,
+    statsInsight,
+    handleCpkClick,
+    isCapabilityMode,
+    capabilityData,
+  } = useDashboardInsights({
+    stats,
+    filteredData,
+    outcome,
+    specs,
+    cpkTarget,
+    factorVariations,
+    boxplotFactor,
+    paretoFactor,
+    categoryContributions,
+    displayOptions,
+    setDisplayOptions,
+    subgroupConfig,
     aiEnabled: aiEnabled ?? false,
-    aiContext: aiContext ?? null,
-    fetchInsight: fetchChartInsight,
-    deterministicData: useMemo(() => {
-      if (!stats || !filteredData.length || !outcome) return {};
-      const values = filteredData
-        .map(r => {
-          const v = r[outcome];
-          return typeof v === 'number' ? v : parseFloat(String(v));
-        })
-        .filter(v => !isNaN(v));
-      const sequences = getNelsonRule2Sequences(values, stats.mean);
-      const rule3Sequences = getNelsonRule3Sequences(values);
-      const ooc = values.filter(v => v > stats.ucl || v < stats.lcl).length;
-      return {
-        nelsonSequences: sequences,
-        nelsonRule3Sequences: rule3Sequences,
-        outOfControlCount: ooc,
-        totalPoints: values.length,
-      };
-    }, [filteredData, outcome, stats]),
-  });
-
-  const boxplotInsight = useChartInsights({
-    chartType: 'boxplot',
-    aiEnabled: aiEnabled ?? false,
-    aiContext: aiContext ?? null,
-    fetchInsight: fetchChartInsight,
-    deterministicData: useMemo(
-      () => ({
-        factorVariations,
-        currentFactor: boxplotFactor,
-        nextDrillFactor: getNextDrillFactor(factorVariations, boxplotFactor),
-      }),
-      [factorVariations, boxplotFactor]
-    ),
-  });
-
-  const paretoInsight = useChartInsights({
-    chartType: 'pareto',
-    aiEnabled: aiEnabled ?? false,
-    aiContext: aiContext ?? null,
-    fetchInsight: fetchChartInsight,
-    deterministicData: useMemo(() => {
-      const innerMap = categoryContributions?.get(paretoFactor);
-      const converted = innerMap
-        ? new Map([...innerMap.entries()].map(([k, v]) => [String(k), v]))
-        : undefined;
-      return {
-        categoryContributions: converted,
-        categoryCount: innerMap?.size ?? 0,
-        paretoFactor,
-      };
-    }, [categoryContributions, paretoFactor]),
-  });
-
-  const statsInsight = useChartInsights({
-    chartType: 'stats',
-    aiEnabled: aiEnabled ?? false,
-    aiContext: aiContext ?? null,
-    fetchInsight: fetchChartInsight,
-    deterministicData: useMemo(
-      () => ({
-        cpk: stats?.cpk,
-        cp: stats?.cp,
-        cpkTarget,
-        passRate: stats ? 100 - stats.outOfSpecPercentage : undefined,
-        hasSpecs: !!(specs?.usl !== undefined || specs?.lsl !== undefined),
-      }),
-      [stats, specs, cpkTarget]
-    ),
+    aiContext,
+    fetchChartInsight,
   });
 
   if (!outcome) return null;

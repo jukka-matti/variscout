@@ -16,7 +16,7 @@ export default defineConfig({
   ],
   test: {
     environment: 'jsdom',
-    setupFiles: ['../../test/setup.ts', './src/setupTests.ts'],
+    setupFiles: ['../../test/setup.ts'],
     globals: true,
     exclude: ['e2e/**', 'node_modules/**', 'api/**'],
     pool: 'forks',
@@ -36,6 +36,7 @@ export default defineConfig({
     },
   },
   build: {
+    target: 'es2020',
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
