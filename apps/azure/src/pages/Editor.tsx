@@ -58,7 +58,8 @@ import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@varisco
 import { useEditorAI } from '../hooks/useEditorAI';
 import { useInvestigationOrchestration } from '../features/investigation';
 import { useInvestigationStore } from '../stores/investigationStore';
-import { useEditorImprovement } from '../hooks/useEditorImprovement';
+import { useImprovementOrchestration } from '../features/improvement';
+import { useImprovementStore } from '../stores/improvementStore';
 import { useActionProposals } from '../hooks/useActionProposals';
 import { useLocale } from '../context/LocaleContext';
 import { usePanelsStore } from '../stores/panelsStore';
@@ -603,22 +604,19 @@ export const Editor: React.FC<EditorProps> = ({
   const projectionTarget = useInvestigationStore(s => s.projectionTarget);
 
   // Improvement workspace: data prep, popout sync, idea-to-action conversion
-  const {
-    improvementHypotheses,
-    improvementLinkedFindings,
-    selectedIdeaIds,
-    projectedCpkMap,
-    convertedIdeaIds,
-    handleConvertIdeasToActions,
-    handleOpenImprovementPopout,
-    handleSynthesisChange,
-  } = useEditorImprovement({
-    hypothesesState,
-    findingsState,
-    persistedHypotheses,
-    processContext,
-    setProcessContext,
-  });
+  const { handleConvertIdeasToActions, handleOpenImprovementPopout, handleSynthesisChange } =
+    useImprovementOrchestration({
+      hypothesesState,
+      findingsState,
+      persistedHypotheses,
+      processContext,
+      setProcessContext,
+    });
+  const improvementHypotheses = useImprovementStore(s => s.improvementHypotheses);
+  const improvementLinkedFindings = useImprovementStore(s => s.improvementLinkedFindings);
+  const selectedIdeaIds = useImprovementStore(s => s.selectedIdeaIds);
+  const projectedCpkMap = useImprovementStore(s => s.projectedCpkMap);
+  const convertedIdeaIds = useImprovementStore(s => s.convertedIdeaIds);
 
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
