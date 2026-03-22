@@ -65,7 +65,8 @@ import { usePanelsSideEffects } from '../hooks/usePanelsSideEffects';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
 import { useTeamsShare } from '../hooks/useTeamsShare';
 import { useShareFinding } from '../hooks/useShareFinding';
-import { useFindingsOrchestration } from '../hooks/useFindingsOrchestration';
+import { useFindingsOrchestration } from '../features/findings';
+import { useFindingsStore } from '../stores/findingsStore';
 import { buildChartSharePayload, buildReportSharePayload } from '../services/shareContent';
 import { buildSubPageId, buildCurrentViewLink } from '../services/deepLinks';
 import { useToast } from '../context/ToastContext';
@@ -447,10 +448,12 @@ export const Editor: React.FC<EditorProps> = ({
   }, [persistedHypotheses, processContext, stats]);
 
   // Findings orchestration (extracted from Editor — pin, restore, chart observation, popout, etc.)
+  // Findings store selectors (highlight state lives in Zustand)
+  const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
+  const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
+
   const {
     findingsState,
-    highlightedFindingId,
-    setHighlightedFindingId,
     handlePinFinding,
     handleRestoreFinding,
     findingsCallbacks,

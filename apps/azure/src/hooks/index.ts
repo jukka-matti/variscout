@@ -26,7 +26,7 @@ export { useEditorAI, type UseEditorAIOptions, type UseEditorAIReturn } from './
 export {
   useFindingsOrchestration,
   type UseFindingsOrchestrationReturn,
-} from './useFindingsOrchestration';
+} from '../features/findings';
 
 export {
   useDashboardCharts,
