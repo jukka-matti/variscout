@@ -700,122 +700,144 @@ const ReportView: React.FC<ReportViewProps> = ({
           )}
 
           {/* Step 2: Variation Drivers / Activity Composition */}
-          {section.id === 'drivers' && (
-            <div className="space-y-4">
-              {(extendedSection?.findings ?? []).length > 0 ? (
-                // Finding-driven content (all modes)
-                isSummary ? (
-                  // Summary: finding text + key driver name
-                  (extendedSection?.findings ?? []).map(finding => (
-                    <div
-                      key={finding.id}
-                      className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3"
-                    >
-                      <p className="text-sm text-slate-700 dark:text-slate-300">
-                        {finding.text || 'Observation'}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  // Technical: finding text + chart context
-                  (extendedSection?.findings ?? []).map(finding => (
-                    <div key={finding.id} className="space-y-3">
-                      <div className="flex items-start gap-2">
-                        <span
-                          className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                            finding.status === 'observed'
-                              ? 'bg-amber-400'
-                              : finding.status === 'investigating'
-                                ? 'bg-blue-400'
-                                : finding.status === 'analyzed'
-                                  ? 'bg-purple-400'
-                                  : 'bg-green-400'
-                          }`}
+          {section.id === 'drivers' &&
+            (() => {
+              // Audience-aware findings filter
+              const rawFindings = extendedSection?.findings ?? [];
+              const driverFindings = (() => {
+                if (!isSummary) {
+                  // Technical: all findings, key-driver first
+                  return [...rawFindings].sort((a, b) => {
+                    if (a.tag === 'key-driver' && b.tag !== 'key-driver') return -1;
+                    if (b.tag === 'key-driver' && a.tag !== 'key-driver') return 1;
+                    return 0;
+                  });
+                }
+                // Summary (improvement-story): only findings with actions
+                const withActions = rawFindings.filter(f => f.actions && f.actions.length > 0);
+                if (withActions.length > 0) return withActions;
+                // Fallback: key-driver tagged, or all
+                const keyDrivers = rawFindings.filter(f => f.tag === 'key-driver');
+                return keyDrivers.length > 0 ? keyDrivers : rawFindings;
+              })();
+
+              return (
+                <div className="space-y-4">
+                  {driverFindings.length > 0 ? (
+                    // Finding-driven content (all modes)
+                    isSummary ? (
+                      // Summary: finding text + key driver name
+                      driverFindings.map(finding => (
+                        <div
+                          key={finding.id}
+                          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3"
+                        >
+                          <p className="text-sm text-slate-700 dark:text-slate-300">
+                            {finding.text || 'Observation'}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      // Technical: finding text + chart context
+                      driverFindings.map(finding => (
+                        <div key={finding.id} className="space-y-3">
+                          <div className="flex items-start gap-2">
+                            <span
+                              className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${
+                                finding.status === 'observed'
+                                  ? 'bg-amber-400'
+                                  : finding.status === 'investigating'
+                                    ? 'bg-blue-400'
+                                    : finding.status === 'analyzed'
+                                      ? 'bg-purple-400'
+                                      : 'bg-green-400'
+                              }`}
+                            />
+                            <p className="text-sm text-slate-700 dark:text-slate-300">
+                              {finding.text || 'Observation'}
+                            </p>
+                          </div>
+                          {/* Yamazumi: show activity breakdown for the step */}
+                          {isYamazumi &&
+                            finding.source &&
+                            'category' in finding.source &&
+                            (() => {
+                              const { category } = finding.source as { category: string };
+                              const barData = yamazumiBarData.find(b => b.key === category);
+                              return barData ? (
+                                <ReportActivityBreakdown stepName={category} barData={barData} />
+                              ) : null;
+                            })()}
+                          {/* SPC: show KPI snapshot */}
+                          {!isYamazumi && outcome && (
+                            <FindingChartSnapshot
+                              finding={finding}
+                              rawData={rawData}
+                              outcome={outcome}
+                              specs={specs}
+                              columnAliases={columnAliases}
+                            />
+                          )}
+                        </div>
+                      ))
+                    )
+                  ) : // Fallback: no findings
+                  isYamazumi ? (
+                    // Yamazumi fallback: show yamazumi chart as overview
+                    !isSummary && yamazumiBarData.length > 0 ? (
+                      <div style={{ pointerEvents: 'none' }}>
+                        <YamazumiChartBase
+                          data={yamazumiBarData}
+                          taktTime={yamazumiMapping?.taktTime}
+                          parentWidth={REPORT_CHART_WIDTH}
+                          parentHeight={REPORT_CHART_HEIGHT}
+                          showBranding={false}
                         />
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+                        Pin observations on the yamazumi chart to see activity breakdowns here.
+                      </p>
+                    )
+                  ) : firstFactor ? (
+                    // Standard SPC fallback (unchanged)
+                    isSummary ? (
+                      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
                         <p className="text-sm text-slate-700 dark:text-slate-300">
-                          {finding.text || 'Observation'}
+                          Key driver:{' '}
+                          <span className="font-medium">
+                            {columnAliases?.[firstFactor] || firstFactor}
+                          </span>
                         </p>
                       </div>
-                      {/* Yamazumi: show activity breakdown for the step */}
-                      {isYamazumi &&
-                        finding.source &&
-                        'category' in finding.source &&
-                        (() => {
-                          const { category } = finding.source as { category: string };
-                          const barData = yamazumiBarData.find(b => b.key === category);
-                          return barData ? (
-                            <ReportActivityBreakdown stepName={category} barData={barData} />
-                          ) : null;
-                        })()}
-                      {/* SPC: show KPI snapshot */}
-                      {!isYamazumi && outcome && (
-                        <FindingChartSnapshot
-                          finding={finding}
-                          rawData={rawData}
-                          outcome={outcome}
-                          specs={specs}
-                          columnAliases={columnAliases}
+                    ) : (
+                      <>
+                        <ReportChartSnapshot
+                          id="report-snapshot-boxplot"
+                          chartType="boxplot"
+                          filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
+                          renderChart={() => <Boxplot factor={firstFactor} />}
+                          onCopyChart={async (containerId, chartName) => {
+                            await handleCopyChart(containerId, chartName);
+                          }}
+                          copyFeedback={copyFeedback}
                         />
-                      )}
-                    </div>
-                  ))
-                )
-              ) : // Fallback: no findings
-              isYamazumi ? (
-                // Yamazumi fallback: show yamazumi chart as overview
-                !isSummary && yamazumiBarData.length > 0 ? (
-                  <div style={{ pointerEvents: 'none' }}>
-                    <YamazumiChartBase
-                      data={yamazumiBarData}
-                      taktTime={yamazumiMapping?.taktTime}
-                      parentWidth={REPORT_CHART_WIDTH}
-                      parentHeight={REPORT_CHART_HEIGHT}
-                      showBranding={false}
-                    />
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-                    Pin observations on the yamazumi chart to see activity breakdowns here.
-                  </p>
-                )
-              ) : firstFactor ? (
-                // Standard SPC fallback (unchanged)
-                isSummary ? (
-                  <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
-                    <p className="text-sm text-slate-700 dark:text-slate-300">
-                      Key driver:{' '}
-                      <span className="font-medium">
-                        {columnAliases?.[firstFactor] || firstFactor}
-                      </span>
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <ReportChartSnapshot
-                      id="report-snapshot-boxplot"
-                      chartType="boxplot"
-                      filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
-                      renderChart={() => <Boxplot factor={firstFactor} />}
-                      onCopyChart={async (containerId, chartName) => {
-                        await handleCopyChart(containerId, chartName);
-                      }}
-                      copyFeedback={copyFeedback}
-                    />
-                    <ReportChartSnapshot
-                      id="report-snapshot-pareto"
-                      chartType="pareto"
-                      filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
-                      renderChart={() => <ParetoChart factor={firstFactor} />}
-                      onCopyChart={async (containerId, chartName) => {
-                        await handleCopyChart(containerId, chartName);
-                      }}
-                      copyFeedback={copyFeedback}
-                    />
-                  </>
-                )
-              ) : null}
-            </div>
-          )}
+                        <ReportChartSnapshot
+                          id="report-snapshot-pareto"
+                          chartType="pareto"
+                          filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
+                          renderChart={() => <ParetoChart factor={firstFactor} />}
+                          onCopyChart={async (containerId, chartName) => {
+                            await handleCopyChart(containerId, chartName);
+                          }}
+                          copyFeedback={copyFeedback}
+                        />
+                      </>
+                    )
+                  ) : null}
+                </div>
+              );
+            })()}
 
           {/* Step 3: Evidence Trail */}
           {section.id === 'evidence-trail' && outcome && (
