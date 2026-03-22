@@ -223,8 +223,14 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
               <>
                 <p className="font-medium text-content/60">
                   {!linkedFindings || linkedFindings.length === 0
-                    ? 'Pin findings from the Analysis view, then brainstorm improvement ideas here.'
-                    : 'Validate your hypotheses in the Findings view. Supported hypotheses unlock improvement brainstorming.'}
+                    ? t(
+                        'improve.emptyNoFindings',
+                        'Pin findings from the Analysis view, then brainstorm improvement ideas here.'
+                      )
+                    : t(
+                        'improve.emptyNoSupported',
+                        'Validate your hypotheses in the Findings view. Supported hypotheses unlock improvement brainstorming.'
+                      )}
                 </p>
               </>
             ) : (

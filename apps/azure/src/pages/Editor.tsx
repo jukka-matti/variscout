@@ -175,6 +175,13 @@ export const Editor: React.FC<EditorProps> = ({
   // Mobile tab bar state (phone only)
   const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('analysis');
 
+  // Reset mobile tab when data is cleared
+  useEffect(() => {
+    if (rawData.length === 0) {
+      setMobileActiveTab('analysis');
+    }
+  }, [rawData.length]);
+
   // Report view state changes for persistence (merge partial updates)
   const handleViewStateChange = useCallback(
     (partial: Partial<import('@variscout/hooks').ViewState>) => {

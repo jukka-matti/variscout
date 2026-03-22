@@ -172,6 +172,13 @@ function AppMain() {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('analysis');
 
+  // Reset mobile tab when data is cleared
+  useEffect(() => {
+    if (rawData.length === 0) {
+      setMobileActiveTab('analysis');
+    }
+  }, [rawData.length]);
+
   const handleMobileTabChange = useCallback(
     (tab: MobileTab) => {
       setMobileActiveTab(tab);
@@ -752,7 +759,7 @@ function AppMain() {
           <div className="fixed bottom-[50px] left-0 right-0 bg-surface-primary border-t border-edge rounded-t-2xl z-50 animate-slide-up safe-area-bottom">
             <div className="py-2">
               <button
-                className="flex items-center gap-3 w-full px-5 py-3 text-sm text-content hover:bg-surface-secondary transition-colors"
+                className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
                 onClick={() => {
                   setMobileActiveTab('analysis');
                   panels.setIsWhatIfPageOpen(true);
@@ -762,7 +769,7 @@ function AppMain() {
                 What-If Simulator
               </button>
               <button
-                className="flex items-center gap-3 w-full px-5 py-3 text-sm text-content hover:bg-surface-secondary transition-colors"
+                className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
                 onClick={() => {
                   setMobileActiveTab('analysis');
                   panels.setIsSettingsOpen(true);
@@ -772,7 +779,7 @@ function AppMain() {
                 Settings
               </button>
               <button
-                className="flex items-center gap-3 w-full px-5 py-3 text-sm text-content hover:bg-surface-secondary transition-colors"
+                className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
                 onClick={() => {
                   setMobileActiveTab('analysis');
                   handleExportCSV();
@@ -782,7 +789,7 @@ function AppMain() {
                 Export CSV
               </button>
               <button
-                className="flex items-center gap-3 w-full px-5 py-3 text-sm text-content hover:bg-surface-secondary transition-colors"
+                className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
                 onClick={() => {
                   setMobileActiveTab('analysis');
                   panels.setHighlightRowIndex(null);
@@ -794,7 +801,7 @@ function AppMain() {
               </button>
               <div className="border-t border-edge my-1" />
               <button
-                className="flex items-center gap-3 w-full px-5 py-3 text-sm text-red-400 hover:bg-surface-secondary transition-colors"
+                className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-red-400 hover:bg-surface-secondary transition-colors"
                 onClick={() => {
                   setMobileActiveTab('analysis');
                   panels.handleResetRequest();

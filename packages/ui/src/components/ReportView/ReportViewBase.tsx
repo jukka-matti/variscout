@@ -468,6 +468,37 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
           </div>
         )}
 
+        {/* Audience toggle for mobile */}
+        {onAudienceModeChange && (
+          <div
+            className="lg:hidden flex gap-1 px-4 pb-2 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+            data-export-hide
+          >
+            <button
+              className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                audienceMode === 'technical'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+              style={{ minHeight: 36 }}
+              onClick={() => onAudienceModeChange('technical')}
+            >
+              {t('report.audience.technical')}
+            </button>
+            <button
+              className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                audienceMode === 'summary'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+              style={{ minHeight: 36 }}
+              onClick={() => onAudienceModeChange('summary')}
+            >
+              {t('report.audience.summary')}
+            </button>
+          </div>
+        )}
+
         {/* Scrollable content */}
         <div className={scheme.content} ref={contentRef}>
           <div className="max-w-4xl mx-auto px-6 py-6">

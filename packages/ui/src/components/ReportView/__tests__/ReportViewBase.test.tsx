@@ -120,8 +120,9 @@ describe('ReportViewBase', () => {
       render(
         <ReportViewBase {...defaultProps({ audienceMode: 'technical', onAudienceModeChange })} />
       );
-      expect(screen.getByText('Technical')).toBeDefined();
-      expect(screen.getByText('Summary')).toBeDefined();
+      // Multiple buttons exist (desktop header + mobile action bar)
+      expect(screen.getAllByText('Technical').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Summary').length).toBeGreaterThanOrEqual(1);
     });
 
     it('does not render audience toggle when onAudienceModeChange is not provided', () => {
@@ -134,7 +135,8 @@ describe('ReportViewBase', () => {
       render(
         <ReportViewBase {...defaultProps({ audienceMode: 'technical', onAudienceModeChange })} />
       );
-      fireEvent.click(screen.getByText('Summary'));
+      // Multiple Summary buttons exist (desktop header + mobile action bar), click the first one
+      fireEvent.click(screen.getAllByText('Summary')[0]);
       expect(onAudienceModeChange).toHaveBeenCalledWith('summary');
     });
   });
