@@ -16,7 +16,7 @@ import { useInvestigationStore } from '../../features/investigation/investigatio
 import { useImprovementStore } from '../../features/improvement/improvementStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
-import type { FindingsCallbacks } from '../../types/findingsCallbacks';
+import type { AzureFindingsCallbacks } from '@variscout/ui';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
 import type { UseActionProposalsReturn } from '../../features/ai';
@@ -36,7 +36,7 @@ interface EditorDashboardViewProps {
   onViewStateChange: (partial: Partial<ViewState>) => void;
   // Findings (from useFindingsOrchestration)
   findingsState: UseFindingsReturn;
-  findingsCallbacks: FindingsCallbacks;
+  findingsCallbacks: AzureFindingsCallbacks;
   handlePinFinding: UseFindingsOrchestrationReturn['handlePinFinding'];
   handleRestoreFinding: UseFindingsOrchestrationReturn['handleRestoreFinding'];
   handleNavigateToChart: UseFindingsOrchestrationReturn['handleNavigateToChart'];

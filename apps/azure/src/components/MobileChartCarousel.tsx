@@ -46,7 +46,7 @@ import type {
   FindingAssignee,
 } from '@variscout/core';
 import type { FilterChipData, HighlightColor } from '@variscout/hooks';
-import type { FindingsCallbacks } from '../types/findingsCallbacks';
+import type { AzureFindingsCallbacks } from '@variscout/ui';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
@@ -120,7 +120,7 @@ interface MobileChartCarouselProps {
   // Category sheet data (from Dashboard)
   boxplotData: BoxplotGroupData[];
   // Grouped findings callbacks
-  findingsCallbacks?: FindingsCallbacks;
+  findingsCallbacks?: AzureFindingsCallbacks;
   // Ask CoScout about a category
   onAskCoScout?: (focusContext: {
     chartType: 'boxplot' | 'pareto';

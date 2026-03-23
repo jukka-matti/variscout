@@ -240,6 +240,9 @@ export {
   type DashboardChartFindings,
 } from './components/DashboardBase';
 
+// Findings callback types (shared by PWA and Azure dashboards)
+export type { FindingsCallbacks, AzureFindingsCallbacks } from './types/findingsCallbacks';
+
 // Settings Panel
 export {
   SettingsPanelBase,

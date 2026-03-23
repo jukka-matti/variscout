@@ -342,6 +342,7 @@ function AppMain() {
     (
       chartType: 'boxplot' | 'pareto' | 'ichart',
       categoryKey?: string,
+      _noteText?: string,
       anchorX?: number,
       anchorY?: number
     ) => {

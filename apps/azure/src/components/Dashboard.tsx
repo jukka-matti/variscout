@@ -28,7 +28,7 @@ import {
 } from '@variscout/ui';
 import { getColumnNames } from '@variscout/core';
 import type { Finding } from '@variscout/core';
-import type { FindingsCallbacks } from '../types/findingsCallbacks';
+import type { AzureFindingsCallbacks } from '@variscout/ui';
 import {
   useAnnotations,
   useFilterHandlers,
@@ -77,7 +77,7 @@ interface DashboardProps {
   /** Callback to share a chart via deep link */
   onShareChart?: (chartType: string) => void;
   /** Grouped findings-related callbacks */
-  findingsCallbacks?: FindingsCallbacks;
+  findingsCallbacks?: AzureFindingsCallbacks;
   /** AI-enhanced chart insight fetch function (from Editor) */
   fetchChartInsight?: (userPrompt: string) => Promise<string>;
   /** AI context for chart insights */
@@ -245,13 +245,11 @@ const Dashboard = ({
       const chart = initialViewState.focusedChart;
       // FocusedChart only covers standard charts; skip yamazumi (handled by YamazumiDashboard)
       if (chart === 'ichart' || chart === 'boxplot' || chart === 'pareto') {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restoration from persisted view state
         setFocusedChart(chart);
       }
       // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restoration from persisted view state
       setHasRestoredFocusedChart(true);
     } else if (!hasRestoredFocusedChart) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restoration from persisted view state
       setHasRestoredFocusedChart(true);
     }
   }, [hasRestoredFocusedChart, initialViewState?.focusedChart, setFocusedChart]);

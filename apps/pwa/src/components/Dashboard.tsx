@@ -35,19 +35,7 @@ import { Activity, Copy, Check, Download, Settings2 } from 'lucide-react';
 import { getColumnNames, type SpecLimits, type Finding } from '@variscout/core';
 
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
-
-/** Grouped findings callbacks — mirrors Azure's FindingsCallbacks pattern */
-interface FindingsCallbacks {
-  onAddChartObservation?: (
-    chartType: 'boxplot' | 'pareto' | 'ichart',
-    categoryKey?: string,
-    anchorX?: number,
-    anchorY?: number
-  ) => void;
-  chartFindings?: { boxplot: Finding[]; pareto: Finding[]; ichart: Finding[] };
-  onEditFinding?: (id: string, text: string) => void;
-  onDeleteFinding?: (id: string) => void;
-}
+import type { FindingsCallbacks } from '@variscout/ui';
 
 interface DashboardProps {
   onPointClick?: (index: number) => void;
@@ -66,7 +54,7 @@ interface DashboardProps {
   onSpecEditorOpened?: () => void;
   highlightedPointIndex?: number | null;
   filterNav?: UseFilterNavigationReturn;
-  onPinFinding?: () => void;
+  onPinFinding?: (noteText?: string) => void;
   findingsCallbacks?: FindingsCallbacks;
   /** All findings (for methodology coach phase detection) */
   findings?: Finding[];
@@ -620,7 +608,8 @@ const Dashboard = ({
               ichartFindings={chartFindings?.ichart}
               onCreateObservation={
                 onAddChartObservation
-                  ? (ax: number, ay: number) => onAddChartObservation('ichart', undefined, ax, ay)
+                  ? (ax: number, ay: number) =>
+                      onAddChartObservation('ichart', undefined, undefined, ax, ay)
                   : undefined
               }
               onEditFinding={onEditFinding}
@@ -722,7 +711,8 @@ const Dashboard = ({
               ichartFindings={chartFindings?.ichart}
               onCreateObservation={
                 onAddChartObservation
-                  ? (ax: number, ay: number) => onAddChartObservation('ichart', undefined, ax, ay)
+                  ? (ax: number, ay: number) =>
+                      onAddChartObservation('ichart', undefined, undefined, ax, ay)
                   : undefined
               }
               onEditFinding={onEditFinding}

@@ -19,7 +19,7 @@ import { useFindingsStore } from './findingsStore';
 import { useStatusUpdateCards } from '../../hooks/useStatusUpdateCards';
 import { usePopoutSync } from './usePopoutSync';
 import type { UseFilterNavigationReturn } from '../../hooks/useFilterNavigation';
-import type { FindingsCallbacks } from '../../types/findingsCallbacks';
+import type { AzureFindingsCallbacks } from '@variscout/ui';
 import type {
   Finding,
   FindingSource,
@@ -91,7 +91,7 @@ export interface UseFindingsOrchestrationReturn {
     anchorY?: number
   ) => Finding | void;
   /** Pre-built findings callbacks for Dashboard */
-  findingsCallbacks: FindingsCallbacks;
+  findingsCallbacks: AzureFindingsCallbacks;
   /** Open findings in a popout window */
   handleOpenFindingsPopout: () => void;
   /** Navigate to chart from finding source badge */
@@ -234,7 +234,7 @@ export function useFindingsOrchestration({
   );
 
   // Pre-built callbacks for Dashboard
-  const findingsCallbacks = useMemo<FindingsCallbacks>(
+  const findingsCallbacks = useMemo<AzureFindingsCallbacks>(
     () => ({
       onAddChartObservation: handleAddChartObservation,
       chartFindings,
