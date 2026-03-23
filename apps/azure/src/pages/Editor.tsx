@@ -1,11 +1,7 @@
 import React, { useMemo, useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react';
-import {
-  useStorage,
-  classifySyncError,
-  updateLastViewedAt,
-  type CloudProject,
-} from '../services/storage';
-import { getEasyAuthUser } from '../auth/easyAuth';
+import { useStorage } from '../services/storage';
+import { useProjectLoader } from '../hooks/useProjectLoader';
+import { useProjectOverview } from '../hooks/useProjectOverview';
 import { useData } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
 import { useFilterNavigation } from '../hooks';
@@ -58,26 +54,6 @@ import { useAIStore } from '../features/ai/aiStore';
 
 const WhatIfPage = lazy(() => import('../components/WhatIfPage'));
 
-type LoadErrorCode = 'not-found' | 'forbidden' | 'plan-mismatch' | 'offline' | 'auth' | 'unknown';
-
-interface LoadError {
-  code: LoadErrorCode;
-  message: string;
-  action?: { label: string; onClick: () => void };
-}
-
-const ERROR_MESSAGES: Record<LoadErrorCode, string> = {
-  'not-found':
-    'Project not found. It may have been deleted or moved. Ask the person who shared this link.',
-  forbidden:
-    "This project is in a Teams channel you don't have access to. Ask a channel member to add you.",
-  'plan-mismatch': 'This project requires a Team plan to access. Contact your admin.',
-  offline:
-    "You're offline and this project isn't cached locally. Connect to the internet to load it.",
-  auth: 'Your session has expired.',
-  unknown: 'Failed to load project. Please try again.',
-};
-
 interface EditorProps {
   projectId: string | null;
   onBack: () => void;
@@ -126,6 +102,7 @@ export const Editor: React.FC<EditorProps> = ({
     setMeasureColumns,
     setMeasureLabel,
     setColumnAliases,
+    analysisMode,
     setAnalysisMode,
     setYamazumiMapping,
     filters,
@@ -358,45 +335,15 @@ export const Editor: React.FC<EditorProps> = ({
   const [capabilitySuggestionDismissed, setCapabilitySuggestionDismissed] = useState(false);
 
   // Load project data when opening an existing project
-  const [loadError, setLoadError] = useState<LoadError | null>(null);
-  useEffect(() => {
-    if (projectId && rawData.length === 0 && !dataFlow.isLoadingProject) {
-      dataFlow.startProjectLoad();
-      setLoadError(null);
-      loadProject(projectId)
-        .catch(error => {
-          const classified = classifySyncError(error);
-          const code: LoadErrorCode =
-            classified.category === 'not_found'
-              ? 'not-found'
-              : classified.category === 'forbidden'
-                ? 'forbidden'
-                : classified.category === 'auth'
-                  ? 'auth'
-                  : !navigator.onLine
-                    ? 'offline'
-                    : 'unknown';
-
-          setLoadError({
-            code,
-            message: ERROR_MESSAGES[code],
-            action:
-              code === 'auth'
-                ? {
-                    label: 'Sign in',
-                    onClick: () => {
-                      window.location.href = '/.auth/login/aad';
-                    },
-                  }
-                : code !== 'unknown'
-                  ? { label: 'Go to Dashboard', onClick: onBack }
-                  : undefined,
-          });
-        })
-        .finally(() => dataFlow.projectLoaded());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId]);
+  const loadError = useProjectLoader({
+    projectId,
+    hasData: rawData.length > 0,
+    isLoadingProject: dataFlow.isLoadingProject,
+    startProjectLoad: dataFlow.startProjectLoad,
+    projectLoaded: dataFlow.projectLoaded,
+    loadProject,
+    onBack,
+  });
 
   // Filter navigation
   const filterNav = useFilterNavigation({
@@ -628,33 +575,11 @@ export const Editor: React.FC<EditorProps> = ({
   }, []);
 
   // Overview dashboard data: userId + other projects list
-  const [overviewUserId, setOverviewUserId] = useState<string>('local');
-  const [overviewProjects, setOverviewProjects] = useState<CloudProject[]>([]);
-  useEffect(() => {
-    getEasyAuthUser()
-      .then(u => {
-        if (u?.userId) setOverviewUserId(u.userId);
-        else if (u?.email) setOverviewUserId(u.email);
-      })
-      .catch(() => {});
-    listProjects()
-      .then(setOverviewProjects)
-      .catch(() => {});
-  }, [listProjects]);
-
-  // lastViewedAt for WhatsNewSection — from the loaded project's metadata
-  const lastViewedAt = useMemo(() => {
-    // Find the current project in the overview projects list and read its metadata
-    const project = overviewProjects.find(
-      p => p.name === currentProjectName || p.id === currentProjectName
-    );
-    return project?.metadata?.lastViewedAt?.[overviewUserId] ?? 0;
-  }, [overviewProjects, currentProjectName, overviewUserId]);
-
-  const handleUpdateLastViewed = useCallback(() => {
-    if (!currentProjectName) return;
-    updateLastViewedAt(currentProjectName, currentProjectLocation, overviewUserId);
-  }, [currentProjectName, currentProjectLocation, overviewUserId]);
+  const { overviewProjects, lastViewedAt, handleUpdateLastViewed } = useProjectOverview({
+    listProjects,
+    currentProjectName: currentProjectName ?? undefined,
+    currentProjectLocation,
+  });
 
   // Photo comments (Team plan only)
   const { handleAddPhoto, handleCaptureFromTeams, isTeamsCamera, handleAddCommentWithAuthor } =
@@ -781,6 +706,7 @@ export const Editor: React.FC<EditorProps> = ({
     journeyPhase,
     entryScenario,
     capabilityData: aiCapabilityData,
+    analysisMode,
     onOpenCoScout: () => {
       if (isPhone) coScoutTriggerRef.current = document.activeElement;
       usePanelsStore.getState().setCoScoutOpen(true);

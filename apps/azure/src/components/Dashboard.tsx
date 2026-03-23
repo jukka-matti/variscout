@@ -11,6 +11,7 @@ import FocusedChartView from './views/FocusedChartView';
 import PresentationView from './views/PresentationView';
 import ReportView from './views/ReportView';
 import { useData } from '../context/DataContext';
+import { resolveMode } from '@variscout/core/strategy';
 import { useDashboardCharts } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
 import {
@@ -142,7 +143,6 @@ const Dashboard = ({
     filteredData,
     filters,
     setFilters,
-    isPerformanceMode,
     analysisMode,
     yamazumiMapping,
     columnAliases,
@@ -180,6 +180,11 @@ const Dashboard = ({
     [onViewStateChange]
   );
 
+  // Resolved analysis mode (ADR-047)
+  const resolvedMode = resolveMode(analysisMode, {
+    standardIChartMetric: displayOptions.standardIChartMetric,
+  });
+
   // Initialize focused chart from persisted view state (one-time on mount)
   const [hasRestoredFocusedChart, setHasRestoredFocusedChart] = useState(false);
 
@@ -193,11 +198,11 @@ const Dashboard = ({
 
   // Auto-switch to yamazumi tab when analysis mode becomes yamazumi
   useEffect(() => {
-    if (analysisMode === 'yamazumi') {
+    if (resolvedMode === 'yamazumi') {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- responding to external analysis mode change
       setActiveTab('yamazumi');
     }
-  }, [analysisMode, setActiveTab]);
+  }, [resolvedMode, setActiveTab]);
 
   // Chart state and logic from the hook
   const {
@@ -439,7 +444,7 @@ const Dashboard = ({
             <BarChart3 size={16} />
             Analysis
           </button>
-          {isPerformanceMode && (
+          {resolvedMode === 'performance' && (
             <button
               role="tab"
               aria-selected={activeTab === 'performance'}
@@ -454,7 +459,7 @@ const Dashboard = ({
               Performance
             </button>
           )}
-          {analysisMode === 'yamazumi' && (
+          {resolvedMode === 'yamazumi' && (
             <button
               role="tab"
               aria-selected={activeTab === 'yamazumi'}

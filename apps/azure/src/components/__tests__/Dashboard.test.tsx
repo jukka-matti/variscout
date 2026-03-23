@@ -516,6 +516,7 @@ describe('Dashboard', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       ...mockDataCtx,
       isPerformanceMode: true,
+      analysisMode: 'performance',
     } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(<Dashboard />);

@@ -332,6 +332,44 @@ See [AI Architecture](ai-architecture.md) for the full context collection design
 
 ---
 
+## Azure Feature-Sliced Data Flow (ADR-041)
+
+In the Azure app, data flows through an additional orchestration layer between shared hooks and UI components:
+
+```
+DataContext (React Context — core data pipeline)
+  │  rawData, filteredData, stats, specs, findings, hypotheses
+  │
+  ▼
+Shared Hooks (@variscout/hooks — CRUD engines)
+  │  useFindings, useHypotheses, useNarration, useAICoScout, ...
+  │
+  ▼
+Orchestration Hooks (apps/azure/src/features/*/)
+  │  useFindingsOrchestration, useInvestigationOrchestration,
+  │  useImprovementOrchestration, useAIOrchestration
+  │  Compute derived state, sync to Zustand stores
+  │
+  ▼
+Zustand Stores (read-side UI state, 5 stores)
+  │  panelsStore, findingsStore, investigationStore,
+  │  improvementStore, aiStore
+  │
+  ▼
+Components (via selectors — granular re-renders)
+```
+
+**Key design choices:**
+
+- **DataContext stays as React Context** — low-frequency data pipeline, broadly consumed. Validated against 2025-2026 ecosystem consensus (see [ADR-041](../../07-decisions/adr-041-zustand-feature-stores.md)).
+- **Zustand holds UI read-state only** — panel visibility, selection, view modes. Shared hooks remain the CRUD engines.
+- **Orchestration hooks are the bridge** — thin `useEffect` hooks that sync from shared hooks into stores, keeping both layers decoupled.
+- **Cross-store access via `getState()`** — explicit, traceable. See [Store Interactions](store-interactions.md) for coupling analysis.
+
+PWA uses a simpler pattern (DataContext → Hooks → Components) without the orchestration/store layer.
+
+---
+
 ## Data Export
 
 ### Export Formats

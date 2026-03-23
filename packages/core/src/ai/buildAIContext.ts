@@ -184,8 +184,12 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     context.drillPathEnriched = options.drillPathEnriched;
   }
 
+  // Propagate analysis mode to AI context
+  if (analysisMode) {
+    context.analysisMode = analysisMode;
+  }
+
   if (analysisMode === 'yamazumi' && yamazumiSummary) {
-    context.analysisMode = 'yamazumi';
     context.yamazumi = {
       vaRatio: yamazumiSummary.vaRatio,
       processEfficiency: yamazumiSummary.processEfficiency,

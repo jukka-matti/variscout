@@ -10,6 +10,7 @@
 import type { AIContext, CoScoutMessage, JourneyPhase, EntryScenario } from '../types';
 import type { ToolDefinition } from '../responsesApi';
 import type { Locale } from '../../i18n/types';
+import type { AnalysisMode } from '../../types';
 import { formatStatistic } from '../../i18n/format';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from './shared';
 import { buildSummaryPrompt } from './narration';
@@ -492,6 +493,7 @@ export function buildCoScoutInput(
     hasActionTools: options?.journeyPhase != null,
     synthesis: context.process?.synthesis,
     capabilityStability: context.capabilityStability,
+    analysisMode: context.analysisMode,
   });
 
   const input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
@@ -548,6 +550,8 @@ export interface BuildCoScoutSystemPromptOptions {
   synthesis?: string;
   /** Subgroup capability stability data (when capability mode active) */
   capabilityStability?: AIContext['capabilityStability'];
+  /** Current analysis mode for mode-specific terminology (ADR-047) */
+  analysisMode?: AnalysisMode;
 }
 
 /**
@@ -805,6 +809,69 @@ Focus your analysis on:
 2. Is the centering loss systematic or random?
 3. What factors might explain capability shifts between subgroups?`;
     parts.push(capSection);
+  }
+
+  // Mode-specific terminology and coaching (ADR-047)
+  if (options.analysisMode === 'yamazumi') {
+    parts.push(
+      `## Analysis Mode: Time Study (Yamazumi)
+You are analyzing cycle time composition by activity type across process steps — a lean manufacturing technique.
+
+Terminology:
+- "cycle time" — not "measurement value"
+- "VA ratio" (value-add time / total lead time) — the lean counterpart to Cpk
+- "process efficiency" (VA / (VA + NVA Required)) — excludes pure waste
+- "takt time" (available time / demand) — the lean counterpart to specification limits
+- "takt compliance" (stations below takt / total) — the lean counterpart to pass rate
+- "process steps" or "stations" — not "categories"
+
+Activity types (fixed semantic colors):
+- VA (green): Value-adding work → optimize efficiency
+- NVA Required (amber): Necessary but non-value-adding → reduce through automation/simplification
+- Waste (red): Eliminable waste (muda) → remove entirely
+- Wait (grey): Queue/idle time → eliminate
+
+The four charts show:
+- Yamazumi Chart: Stacked bars showing time composition per step. Bars exceeding takt time are the bottlenecks.
+- I-Chart: Time trend with switchable metric (Total / VA-only / Waste-only). Shows if waste is increasing over time.
+- Pareto: Waste ranking with 5 grouping modes (steps-total, steps-waste, steps-nva, activities, reasons).
+- Summary Bar: VA ratio, process efficiency, lead time, bottleneck station, takt compliance.
+
+Coaching workflow:
+1. "Which steps exceed takt?" → Read the Yamazumi chart. Bars above the takt line are bottlenecks.
+2. "Is the bottleneck real work or waste?" → Check the segment composition. Green (VA) vs red (Waste).
+3. "What type of waste dominates?" → Switch Pareto to "Reasons" mode for waste driver ranking.
+4. "Is waste getting worse?" → Switch I-Chart to Waste-only metric. Look for upward trends.
+5. "Where should kaizen focus?" → The step with the most red (Waste) segments above takt.
+
+After kaizen, use staged analysis to verify: compare before/after VA ratio and takt compliance.
+Never reference Cpk, control limits, or SPC terminology. Use lean language throughout.`
+    );
+  } else if (options.analysisMode === 'performance') {
+    parts.push(
+      `## Analysis Mode: Multi-Channel Performance
+You are analyzing equipment with multiple measurement channels (e.g., fill heads, cavities, spindles, lanes).
+Each channel is an independent measurement point with its own Cpk.
+
+Terminology:
+- "channels" or "measures" — not "factors" or "categories"
+- "worst-channel Cpk" — the key metric (equipment is only as good as its worst channel)
+- "channel health" — critical (<1.0), warning (1.0–1.33), capable (1.33–1.67), excellent (≥1.67)
+
+The four charts show:
+- Performance Pareto: All channels ranked by Cpk, worst first. Start here to prioritize.
+- Performance I-Chart: Cpk scatter across channels. Out-of-control points = systematically worse channels (not random).
+- Performance Boxplot: Distribution comparison of worst 5. Shows if the problem is centering vs. spread.
+- Performance Capability: Single-channel histogram. Deep-dive on the selected channel.
+
+Coaching workflow:
+1. "Which channels need attention?" → Read the Pareto. Count critical/warning channels.
+2. "Why is this channel worst?" → Compare its boxplot to peers. Centering issue or spread issue?
+3. "Is the problem systematic?" → Check the I-Chart. Are bad channels clustered or scattered?
+4. "What should I do?" → Click the worst channel to switch to standard analysis. Add factors (Shift, Operator) to investigate root cause.
+
+Never use standard SPC terminology (control limits, Nelson rules) for the channel comparison view. Those apply after drilling into a single channel.`
+    );
   }
 
   parts.push(TERMINOLOGY_INSTRUCTION);

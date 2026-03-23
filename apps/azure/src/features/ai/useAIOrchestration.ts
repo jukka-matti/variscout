@@ -26,6 +26,7 @@ import type {
   AIContext,
   InsightChartType,
   Locale,
+  AnalysisMode,
 } from '@variscout/core';
 import {
   buildSuggestedQuestions,
@@ -87,6 +88,7 @@ export interface UseAIOrchestrationOptions {
   journeyPhase?: JourneyPhase;
   entryScenario?: EntryScenario;
   capabilityData?: BuildAIContextOptions['capabilityData'];
+  analysisMode?: AnalysisMode;
   onOpenCoScout: () => void;
   onOpenFindings: () => void;
 }
@@ -140,6 +142,7 @@ export function useAIOrchestration({
   journeyPhase,
   entryScenario,
   capabilityData,
+  analysisMode,
   onOpenCoScout,
   onOpenFindings,
 }: UseAIOrchestrationOptions): UseAIOrchestrationReturn {
@@ -240,6 +243,7 @@ export function useAIOrchestration({
     locale,
     entryScenario,
     capabilityData,
+    analysisMode,
   });
 
   // AI narration (disabled when per-component toggle is off)

@@ -79,6 +79,28 @@ When converging with supported hypotheses that have improvement ideas, the promp
 
 ---
 
+## 2b. Mode-Aware Context (ADR-047)
+
+The CoScout system prompt includes analysis-mode-specific terminology and coaching instructions. This content is placed in the Tier 1 static prefix (after glossary, before phase instructions) since analysis mode rarely changes mid-session.
+
+| Mode        | Terminology                                                        | Key Metric        | Coaching Focus                                                      |
+| ----------- | ------------------------------------------------------------------ | ----------------- | ------------------------------------------------------------------- |
+| Standard    | SPC (Cpk, control limits, Nelson rules)                            | Cpk               | Factor-driven variation investigation                               |
+| Performance | Multi-channel (channels, worst-channel Cpk, health classification) | Worst-channel Cpk | Channel ranking → drill worst → standard analysis                   |
+| Yamazumi    | Lean (cycle time, VA ratio, takt time, waste categories)           | VA Ratio          | Bottleneck identification → waste composition → kaizen verification |
+
+Each mode prompt includes:
+
+- **Terminology mapping** — correct domain language to use (and what to avoid)
+- **Chart interpretation guide** — what each of the four charts shows in this mode
+- **Coaching workflow** — numbered steps guiding the analyst through the analysis methodology
+
+Mode-specific blocks are injected by `buildCoScoutSystemPrompt()` based on `AIContext.analysisMode`, which flows from Editor → useAIOrchestration → useAIContext → buildAIContext.
+
+See [ADR-047 Implementation Status](../../07-decisions/adr-047-analysis-mode-strategy.md#implementation-status) for the strategy pattern adoption roadmap.
+
+---
+
 ## 3. Token Budget Management
 
 | Consumer             | Max Context | Model Tier | Reasoning Effort                                                  |

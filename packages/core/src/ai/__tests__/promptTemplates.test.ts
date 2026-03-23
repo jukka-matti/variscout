@@ -738,6 +738,39 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).toContain('suggest_improvement_idea');
     expect(prompt).toContain('Improvement idea guidance');
   });
+
+  // Mode-specific terminology and coaching (ADR-047)
+  it('includes yamazumi methodology when analysisMode is yamazumi', () => {
+    const prompt = buildCoScoutSystemPrompt({ analysisMode: 'yamazumi' });
+    expect(prompt).toContain('Time Study (Yamazumi)');
+    expect(prompt).toContain('cycle time');
+    expect(prompt).toContain('VA ratio');
+    expect(prompt).toContain('takt time');
+    expect(prompt).toContain('takt compliance');
+    expect(prompt).toContain('Coaching workflow');
+    expect(prompt).toContain('Activity types');
+  });
+
+  it('includes performance methodology when analysisMode is performance', () => {
+    const prompt = buildCoScoutSystemPrompt({ analysisMode: 'performance' });
+    expect(prompt).toContain('Multi-Channel Performance');
+    expect(prompt).toContain('channels');
+    expect(prompt).toContain('worst-channel Cpk');
+    expect(prompt).toContain('channel health');
+    expect(prompt).toContain('Coaching workflow');
+  });
+
+  it('does not include mode-specific blocks for standard mode', () => {
+    const prompt = buildCoScoutSystemPrompt({});
+    expect(prompt).not.toContain('Time Study (Yamazumi)');
+    expect(prompt).not.toContain('Multi-Channel Performance');
+  });
+
+  it('does not include mode-specific blocks when analysisMode is standard', () => {
+    const prompt = buildCoScoutSystemPrompt({ analysisMode: 'standard' });
+    expect(prompt).not.toContain('Time Study (Yamazumi)');
+    expect(prompt).not.toContain('Multi-Channel Performance');
+  });
 });
 
 describe('formatKnowledgeContext', () => {

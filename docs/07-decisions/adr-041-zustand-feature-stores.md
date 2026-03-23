@@ -99,3 +99,29 @@ export function usePanelsPersistence(
 **When to generalize:** If 3+ bridge hooks are needed, extract a `useStorePersistence(store, selector, onPersist)` utility.
 
 **When event-driven persistence makes sense:** When persistence moves out of React Context into a standalone service (e.g., server-side API backend or real-time collaboration with CRDT).
+
+## Architectural Validation (Mar 2026)
+
+### DataContext as React Context — Validated
+
+The decision to keep DataContext as React Context (not migrate to Zustand) was validated against 2025-2026 ecosystem consensus:
+
+- **React team position:** Context is a dependency injection transport, not a state management tool. React has intentionally not added selector support to Context (Dan Abramov, Mark Erikson).
+- **React Compiler does not fix Context re-renders.** The compiler auto-memoizes component bodies but cannot prevent Context propagation (Nadia Makarevich, testing across three production apps: compiler fixed only 2/10 re-render cases).
+- **VariScout is in the safe zone:** DataContext updates at human speed (seconds, not animation frames), stats computation is off-thread via Web Worker, `startTransition` wraps filter updates, and high-frequency UI state is already in Zustand.
+- **Rule going forward:** New rapidly-changing state always goes to Zustand. DataContext stays as the data pipeline container. Do not add state updating at >1Hz to DataContext.
+
+### Navigation Without Router — Validated
+
+The decision to use state-driven navigation (`panelsStore.activeView`) instead of React Router was validated:
+
+- **Teams embedding favors state-driven navigation:** No URL bar visible, `subPageId` is a string (not a path), 2048 character limit on deep links, no browser history participation, session loss on tab switch.
+- **Comparable workspace apps** (Figma, Notion, Linear) use state-driven navigation for within-editor views.
+- **Re-evaluate when any two become true:** >6 independent top-level views, route-level code splitting needed, public-facing SSR needed, back/forward browser navigation required, app stops being Teams-embedded.
+
+## Related Decisions
+
+- [ADR-045: Modular Architecture](adr-045-modular-architecture.md) — broader DDD-lite architecture context
+- [ADR-046: Event-Driven Architecture](adr-046-event-driven-architecture.md) — event bus evaluation; superseded, `getState()` calls retained
+- [ADR-047: Analysis Mode Strategy Pattern](adr-047-analysis-mode-strategy.md) — strategy fields for AI tool sets not yet consumed by stores
+- [Store Interactions](../05-technical/architecture/store-interactions.md) — cross-store dependency graph and coupling analysis

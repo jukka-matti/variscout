@@ -29,6 +29,7 @@ import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
 import { type ExclusionReason } from '@variscout/core';
+import { resolveMode } from '@variscout/core/strategy';
 import { useControlViolations } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
@@ -564,7 +565,7 @@ function AppMain() {
                 onTimeExtractionChange={importFlow.setTimeExtractionConfig}
                 mode={importFlow.isMappingReEdit ? 'edit' : 'setup'}
               />
-            ) : analysisMode === 'yamazumi' && yamazumiMapping ? (
+            ) : resolveMode(analysisMode) === 'yamazumi' && yamazumiMapping ? (
               <Suspense fallback={null}>
                 <YamazumiDashboard
                   mapping={yamazumiMapping}

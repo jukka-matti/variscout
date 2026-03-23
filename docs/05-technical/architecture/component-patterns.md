@@ -588,11 +588,38 @@ For detailed data flow, context shape, and three-mode comparison, see [AI Archit
 
 ---
 
+## Feature-Sliced Design (Azure Only)
+
+The Azure app uses Feature-Sliced Design ([ADR-041](../../07-decisions/adr-041-zustand-feature-stores.md), [ADR-045](../../07-decisions/adr-045-modular-architecture.md)) with 5 Zustand feature stores:
+
+| Store                | Domain                    | Key Responsibility                                    |
+| -------------------- | ------------------------- | ----------------------------------------------------- |
+| `panelsStore`        | Panel visibility & layout | View toggle, panel open/close, mutual exclusion rules |
+| `findingsStore`      | Findings read-side state  | Findings list, chart grouping, highlight state        |
+| `investigationStore` | Investigation UI state    | Hypothesis map, idea impacts, projection target       |
+| `improvementStore`   | Improvement workspace     | Improvement hypotheses, selected ideas, projected Cpk |
+| `aiStore`            | AI/CoScout UI state       | Narration, messages, suggestions, action proposals    |
+
+### Architecture Principles
+
+- **Stores hold read-side UI state** — not CRUD. Shared hooks from `@variscout/hooks` (useFindings, useHypotheses, etc.) remain the CRUD engines.
+- **Orchestration hooks sync to stores** — Each feature has a `use*Orchestration.ts` hook that watches shared hooks via `useEffect` and syncs derived state to its Zustand store.
+- **Components read via selectors** — `useStore(s => s.field)` provides granular re-renders without prop drilling.
+- **Cross-store access via `getState()`** — Explicit and traceable. 12 cross-store calls across 3 files (within manageable limits).
+- **Bridge hooks for persistence** — `usePanelsPersistence` watches store changes and syncs to DataContext's `ViewState` for project-level persistence.
+
+See [Store Interactions](store-interactions.md) for the full coupling analysis and [Data Flow](data-flow.md#azure-feature-sliced-data-flow-adr-041) for the layered data flow diagram.
+
+---
+
 ## See Also
 
 - [Data Flow](data-flow.md) - How data moves through the system
 - [AI Architecture](ai-architecture.md#data-flow--hook-composition) - AI hook composition and interaction modes
+- [Store Interactions](store-interactions.md) - Zustand cross-store coupling analysis
 - [Shared Packages](shared-packages.md) - Package exports
 - [Colors > Color Schemes](../../06-design-system/foundations/colors.md#shared-component-color-schemes) - ColorScheme prop pattern
 - [Charts Overview](../../06-design-system/charts/overview.md) - Chart components
 - [ADR-005: Props-Based Charts](../../07-decisions/adr-005-props-based-charts.md)
+- [ADR-041: Zustand Feature Stores](../../07-decisions/adr-041-zustand-feature-stores.md)
+- [ADR-045: Modular Architecture](../../07-decisions/adr-045-modular-architecture.md)

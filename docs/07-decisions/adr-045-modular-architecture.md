@@ -166,8 +166,22 @@ apps/pwa:       Dashboard.tsx (wires DataContext → DashboardLayoutBase)
 - PWA doesn't follow Feature-Sliced Design (acceptable for current size)
 - Cross-store coupling is explicit but creates implicit ordering dependencies
 
+## Architectural Review Results (Mar 2026)
+
+A CTO-level architecture analysis graded the overall architecture **B+** — production-ready, maintainable, with strong foundations but incomplete integration between subsystems. Key findings:
+
+- **Strongest aspect:** Unidirectional data flow (DataContext → Hooks → Orchestration → Stores → Components) — clean, testable, no circular dependencies
+- **Strategy pattern (ADR-047):** Correct abstraction, 26% adopted (2 of ~13 sites). `chartSlots`, `aiChartInsightKeys`, `aiToolSet` fields defined but not consumed
+- **AI mode awareness gap:** `analysisMode` not wired from Editor.tsx to useAIOrchestration — AI uses SPC terminology in all modes
+- **Validated decisions:** DataContext as React Context (correct for low-frequency data pipeline), state-driven navigation without router (correct for Teams-embedded workspace), Editor.tsx size (acceptable at 1,289 lines as composition root)
+
+See ADR-047 Implementation Status for the strategy adoption roadmap.
+
 ## Related
 
-- [ADR-041: Zustand Feature Stores](adr-041-zustand-feature-stores.md)
+- [ADR-041: Zustand Feature Stores](adr-041-zustand-feature-stores.md) — store architecture and DataContext validation
 - [ADR-044: Architectural Review](adr-044-architectural-review.md)
+- [ADR-046: Event-Driven Architecture](adr-046-event-driven-architecture.md) — evaluated and superseded; `getState()` retained
+- [ADR-047: Analysis Mode Strategy Pattern](adr-047-analysis-mode-strategy.md) — mode-specific rendering contracts
+- [ADR-048: ESLint Boundary Enforcement](adr-048-eslint-boundaries.md) — tooling validation of package DAG
 - [Store Interactions](../05-technical/architecture/store-interactions.md)

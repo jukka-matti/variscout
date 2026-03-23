@@ -156,8 +156,33 @@ No other files need to change.
 - Mode detection logic (auto-detect from data) is unchanged
 - PWA is unaffected (only supports `standard` mode today)
 
+## Implementation Status
+
+| File                                                       | Status   | What Changed                                            |
+| ---------------------------------------------------------- | -------- | ------------------------------------------------------- |
+| `packages/ui/src/components/ReportView/ReportViewBase.tsx` | Complete | Strategy lookup replaces ~21 mode ternaries             |
+| `packages/hooks/src/useReportSections.ts`                  | Complete | `resolveMode()` + title lookup tables                   |
+| `apps/azure/src/components/Dashboard.tsx`                  | Pending  | `analysisMode === 'yamazumi'` tab switch                |
+| `apps/azure/src/pages/Editor.tsx`                          | Pending  | ~5 `isPerformanceMode` boolean checks                   |
+| `apps/pwa/src/App.tsx`                                     | Pending  | `analysisMode === 'yamazumi' ? <YamazumiDashboard>`     |
+| `packages/core/src/ai/buildAIContext.ts`                   | Pending  | 2 direct `analysisMode === 'yamazumi'` checks           |
+| `apps/azure/src/features/ai/useToolHandlers.ts`            | Pending  | Hardcoded chart types (should use `aiChartInsightKeys`) |
+
+**Unused strategy fields (defined but not yet consumed):**
+
+- `chartSlots` — Intended for chart slot dispatch; rendering still uses inline conditionals
+- `aiChartInsightKeys` — Intended to gate chart insight generation by mode
+- `aiToolSet` — Intended to adjust CoScout tool emphasis by mode
+
+**Adoption plan:** Progressive refactoring on touch. Priority integration points are:
+
+1. Wire `analysisMode` from Editor.tsx → useAIOrchestration → buildAIContext (currently missing)
+2. Chart slot dispatcher (component map from `strategy.chartSlots`)
+3. AI insight gating via `strategy.aiChartInsightKeys`
+
 ## Related
 
 - [ADR-034: Yamazumi Analysis Mode](adr-034-yamazumi-analysis-mode.md) — introduced the third mode that motivated this pattern
 - [ADR-045: Modular Architecture](adr-045-modular-architecture.md) — architectural context for where strategy objects live
+- [AI Architecture](../05-technical/architecture/ai-architecture.md) — documents the AI mode awareness gap
 - Full design: `docs/superpowers/specs/2026-03-23-event-driven-architecture-design.md`

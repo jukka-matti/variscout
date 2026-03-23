@@ -617,6 +617,46 @@ How AI context changes across investigation phases:
 
 > **`buildSuggestedQuestions()`** is a pure function — no AI call. It selects phase-appropriate questions from the `AIContext` state. These appear in the Investigation Sidebar and work in all modes.
 
+## Analysis Mode Awareness
+
+> **Status (Mar 2026):** `analysisMode` is not currently wired from Editor.tsx to `useAIOrchestration`. This is a known integration gap.
+
+### Current State
+
+The strategy pattern ([ADR-047](../../07-decisions/adr-047-analysis-mode-strategy.md)) defines per-mode AI configuration:
+
+| Resolved Mode | `aiToolSet`     | `aiChartInsightKeys`                                    |
+| ------------- | --------------- | ------------------------------------------------------- |
+| standard      | `'standard'`    | `['ichart', 'boxplot', 'pareto']`                       |
+| capability    | `'standard'`    | `['capability-ichart', 'boxplot', 'pareto']`            |
+| performance   | `'performance'` | `['cpk-scatter', 'distribution-boxplot', 'cpk-pareto']` |
+| yamazumi      | `'yamazumi'`    | `['yamazumi', 'yamazumi-ichart', 'yamazumi-pareto']`    |
+
+**Neither field is consumed by the AI system.** `buildAIContext()` accepts `analysisMode` as a parameter, but Editor.tsx never passes it through `useAIOrchestration`. Confirmed by grep: zero references to `analysisMode` in `apps/azure/src/features/ai/`.
+
+### Impact
+
+- **Standard mode** (80%+ of usage): No impact — works correctly
+- **Yamazumi mode**: CoScout uses SPC terminology ("Cpk," "control limits") instead of lean terminology ("cycle time," "VA ratio," "takt time")
+- **Performance mode**: CoScout doesn't know it's analyzing channels — treats multi-measure data as single-measure
+- **Capability mode**: `capabilityData` is passed, but `analysisMode` itself is not
+
+### Required Wiring
+
+```
+Editor.tsx
+  → useAIOrchestration({ ..., analysisMode })        // ADD: pass analysisMode
+    → useAIContext({ ..., analysisMode })              // Thread through
+      → buildAIContext({ ..., analysisMode })          // Already accepts it
+        → mode-specific system prompts                 // ADD: terminology blocks
+        → strategy.aiToolSet → tool emphasis           // ADD: consume from strategy
+        → strategy.aiChartInsightKeys → insight focus  // ADD: consume from strategy
+```
+
+See [ADR-047 Implementation Status](../../07-decisions/adr-047-analysis-mode-strategy.md#implementation-status) for the full adoption roadmap.
+
+---
+
 ## See Also
 
 - [AI Journey Integration](ai-journey-integration.md) — entry point for AI × journey overview
