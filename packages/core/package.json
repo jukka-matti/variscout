@@ -8,7 +8,7 @@
     "./stats": "./src/stats/index.ts",
     "./parser": "./src/parser/index.ts",
     "./ai": "./src/ai/index.ts",
-    "./findings": "./src/findings.ts",
+    "./findings": "./src/findings/index.ts",
     "./variation": "./src/variation/index.ts",
     "./yamazumi": "./src/yamazumi/index.ts",
     "./export": "./src/export.ts",
@@ -20,7 +20,8 @@
     "./i18n": "./src/i18n/index.ts",
     "./performance": "./src/performance.ts",
     "./time": "./src/time.ts",
-    "./projectMetadata": "./src/projectMetadata.ts"
+    "./projectMetadata": "./src/projectMetadata.ts",
+    "./strategy": "./src/analysisStrategy.ts"
   },
   "scripts": {
     "test": "vitest",
@@ -28,8 +29,8 @@
   },
   "dependencies": {
     "d3-array": "^3.2.4",
-    "read-excel-file": "7.0.2",
-    "papaparse": "^5.5.3"
+    "papaparse": "^5.5.3",
+    "read-excel-file": "7.0.2"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.1",

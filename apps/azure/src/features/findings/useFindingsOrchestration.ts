@@ -14,8 +14,8 @@ import {
   buildFindingContext,
   buildFindingSource,
 } from '@variscout/hooks';
-import { usePanelsStore } from '../panels/panelsStore';
 import { useFindingsStore } from './findingsStore';
+import { usePanelsStore } from '../panels/panelsStore';
 import { useStatusUpdateCards } from '../../hooks/useStatusUpdateCards';
 import { usePopoutSync } from './usePopoutSync';
 import type { UseFilterNavigationReturn } from '../../hooks/useFilterNavigation';

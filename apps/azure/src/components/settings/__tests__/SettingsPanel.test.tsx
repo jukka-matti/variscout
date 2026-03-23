@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ThemeProvider } from '../../../context/ThemeContext';
+import { ThemeProvider } from '@variscout/ui';
 
 // Mock DataContext BEFORE importing SettingsPanel
 const mockDisplayOptions = {

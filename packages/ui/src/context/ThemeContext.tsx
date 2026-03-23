@@ -7,7 +7,7 @@ export { CHART_FONT_SCALES } from '@variscout/hooks';
 const ThemeContext = createContext<UseThemeStateReturn | undefined>(undefined);
 
 /**
- * Hook to access theme context
+ * Hook to access theme context — must be used within a ThemeProvider.
  */
 export function useTheme(): UseThemeStateReturn {
   const context = useContext(ThemeContext);
@@ -22,7 +22,8 @@ interface ThemeProviderProps {
 }
 
 /**
- * PWA Theme provider — theme switching enabled (light/dark/system)
+ * Shared theme provider — wraps useThemeState with React Context.
+ * Both PWA and Azure use identical theming (themingEnabled: true).
  */
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const value = useThemeState({ themingEnabled: true });

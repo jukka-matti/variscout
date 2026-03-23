@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { getEasyAuthUser, login, logout, type EasyAuthUser } from './auth/easyAuth';
 import { DataProvider } from './context/DataContext';
-import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { ThemeProvider, useTheme } from '@variscout/ui';
 import { LocaleProvider } from './context/LocaleContext';
 import { StorageProvider, useStorage } from './services/storage';
 import { ToastProvider, useToast } from './context/ToastContext';

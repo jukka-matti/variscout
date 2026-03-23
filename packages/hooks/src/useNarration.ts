@@ -128,11 +128,11 @@ export function useNarration(options: UseNarrationOptions): UseNarrationReturn {
     const cached = cache.current.get(key);
     if (cached) {
       activeHash.current = key;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronous cache hit from external context change
+
       setNarrative(cached);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronous cache hit from external context change
+
       setIsCached(true);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronous cache hit from external context change
+
       setStatus('ready');
       return;
     }

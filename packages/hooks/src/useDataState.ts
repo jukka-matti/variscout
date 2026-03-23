@@ -386,7 +386,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting selection when filtered data changes (filter navigation)
     setSelectionIndexMap(filteredIndexMap);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting selection when filtered data changes (filter navigation)
+
     setSelectedPoints(new Set());
   }, [filteredIndexMap]);
 

@@ -32,6 +32,14 @@ import { usePanelsStore } from '../panels/panelsStore';
 import { useFindingsStore } from '../findings/findingsStore';
 import { useInvestigationStore } from '../investigation/investigationStore';
 
+type NavigationTarget =
+  | 'dashboard'
+  | 'finding'
+  | 'hypothesis'
+  | 'chart'
+  | 'improvement_workspace'
+  | 'report';
+
 export interface UseToolHandlersOptions {
   aiAvailable: boolean;
   coscoutEnabled: boolean;
@@ -383,7 +391,7 @@ export function useToolHandlers({
 
       // ── Navigation Tool (hybrid: auto-execute or proposal) ─────────
       navigate_to: async (args: Record<string, unknown>) => {
-        const target = args.target as string;
+        const target = args.target as NavigationTarget;
         const targetId = (args.target_id as string) || undefined;
         const restoreFilters = (args.restore_filters as boolean) ?? false;
         const chartType = args.chart_type as string;
@@ -408,47 +416,59 @@ export function useToolHandlers({
           return JSON.stringify({ proposal: true, ...proposal });
         }
 
-        // Auto-execute navigation
-        const panels = usePanelsStore.getState();
+        // Validate target
+        const validTargets: NavigationTarget[] = [
+          'dashboard',
+          'finding',
+          'hypothesis',
+          'chart',
+          'improvement_workspace',
+          'report',
+        ];
+        if (!validTargets.includes(target)) {
+          return JSON.stringify({ error: `Unknown navigation target: ${target}` });
+        }
 
+        // Auto-execute navigation via direct store calls
+        const panels = usePanelsStore.getState();
         switch (target) {
           case 'dashboard':
             panels.showDashboard();
-            return JSON.stringify({ navigated: 'dashboard' });
+            break;
           case 'finding':
             panels.showEditor();
             panels.setFindingsOpen(true);
             if (targetId) {
               useFindingsStore.getState().setHighlightedFindingId(targetId);
             }
-            return JSON.stringify({ navigated: 'finding', id: targetId });
+            break;
           case 'hypothesis':
             panels.showEditor();
             panels.setFindingsOpen(true);
             if (targetId) {
               useInvestigationStore.getState().expandToHypothesis(targetId);
             }
-            return JSON.stringify({ navigated: 'hypothesis', id: targetId });
+            break;
           case 'chart':
             panels.showEditor();
-            if (chartType && chartType !== 'none') {
+            if (chartType) {
               panels.setPendingChartFocus(chartType);
             }
-            return JSON.stringify({
-              navigated: 'chart',
-              type: chartType !== 'none' ? chartType : undefined,
-            });
+            break;
           case 'improvement_workspace':
             panels.showEditor();
             panels.setImprovementOpen(true);
-            return JSON.stringify({ navigated: 'improvement_workspace' });
+            break;
           case 'report':
             panels.showEditor();
             panels.openReport();
-            return JSON.stringify({ navigated: 'report' });
-          default:
-            return JSON.stringify({ error: `Unknown target: ${target}` });
+            break;
         }
+        return JSON.stringify({
+          navigated: target,
+          ...(targetId && { id: targetId }),
+          ...(chartType && { chartType }),
+        });
       },
     };
 

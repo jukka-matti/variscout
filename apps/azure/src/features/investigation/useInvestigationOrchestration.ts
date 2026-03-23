@@ -7,8 +7,8 @@
  */
 import { useMemo, useCallback, useEffect } from 'react';
 import { computeIdeaImpact } from '@variscout/core';
-import { usePanelsStore } from '../panels/panelsStore';
 import { useInvestigationStore } from './investigationStore';
+import { usePanelsStore } from '../panels/panelsStore';
 import type {
   Finding,
   FindingProjection,

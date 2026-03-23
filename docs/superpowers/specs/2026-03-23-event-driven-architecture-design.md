@@ -2,11 +2,13 @@
 title: Event-Driven Architecture Transition
 audience: [engineer]
 category: architecture
-status: draft
+status: superseded
 related: [domain-events, strategy-pattern, eslint-boundaries, zustand, mitt]
 ---
 
 # Event-Driven Architecture Transition
+
+> **Post-Implementation Review (2026-03-23):** Phase 1 (mitt event bus) was implemented, tested, and then reverted after community research found that Zustand's maintainer (dai-shi) explicitly recommends direct `getState()` calls over event buses for cross-store communication. At 5 stores / 9 interactions, orchestration hooks provide better traceability. Phase 2 (strategy pattern, ADR-047) and Phase 3 (ESLint boundaries, ADR-048) were validated and kept. See ADR-046 for full supersession rationale.
 
 ## Problem
 
@@ -115,6 +117,7 @@ When a user confirms a CoScout proposal (clicks "Apply" on ActionProposalCard), 
 2. `useToolHandlers.ts` — Replace 6-way `navigate_to` switch with `bus.emit('navigate:to', { target, targetId })`. Listeners in panelsStore handle the routing.
 3. `useInvestigationOrchestration.ts` — Replace 2 `.getState()` calls.
 4. `usePanelsSideEffects.ts` — Replace DataContext bridge with `panel:visibility-changed` event listener.
+   (Deferred — this hook bridges Zustand → DataContext for persistence, not cross-store coupling. Architectural review concluded: extracting persistence from React Context adds complexity with no net benefit. See ADR-041 for bridge hook pattern.)
 
 **Step 3: Wire listeners in stores**
 

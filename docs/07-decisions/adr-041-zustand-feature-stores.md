@@ -67,3 +67,35 @@ Stores have been moved from `apps/azure/src/stores/` into their respective `apps
 
 - PWA app retains its simpler architecture (fewer features, no investigation/improvement). Zustand adoption is Azure-only for now.
 - Shared hooks in `@variscout/hooks` are unchanged — no migration needed for the packages layer.
+
+### Bridge Hook Pattern
+
+React hooks that watch Zustand stores and notify DataContext for persistence.
+
+**Why:** DataContext holds the full AnalysisState blob (rawData, filters, specs, findings, etc.) and manages project-level persistence to IndexedDB/OneDrive. Zustand stores hold transient UI state (panel visibility, highlights, focused charts). When UI state changes that should persist across sessions, a bridge hook watches the Zustand store via selectors and calls DataContext's `setViewState()` to merge the partial update into the full project state.
+
+**Current instances:**
+
+- `usePanelsPersistence` — watches `isFindingsOpen`, `isWhatIfOpen`, `isImprovementOpen`, `activeView` from panelsStore
+
+**Pattern:**
+
+```typescript
+export function usePanelsPersistence(
+  onViewStateChange?: (partial: Partial<ViewState>) => void
+): void {
+  const field = usePanelsStore(s => s.field);
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    onViewStateChange?.({ field });
+  }, [field, onViewStateChange]);
+}
+```
+
+**When to generalize:** If 3+ bridge hooks are needed, extract a `useStorePersistence(store, selector, onPersist)` utility.
+
+**When event-driven persistence makes sense:** When persistence moves out of React Context into a standalone service (e.g., server-side API backend or real-time collaboration with CRDT).

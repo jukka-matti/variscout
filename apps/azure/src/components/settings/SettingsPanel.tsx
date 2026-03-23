@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { FolderOpen, ExternalLink } from 'lucide-react';
 import { FileBrowseButton, type FilePickerResult } from '../FileBrowseButton';
-import { SettingsPanelBase, ProcessDescriptionField, PreviewBadge } from '@variscout/ui';
+import { SettingsPanelBase, ProcessDescriptionField, PreviewBadge, useTheme } from '@variscout/ui';
 import { hasTeamFeatures, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
-import { useTheme } from '../../context/ThemeContext';
 import { useData } from '../../context/DataContext';
 import ThemeToggle from './ThemeToggle';
 import { isAIAvailable } from '../../services/aiService';

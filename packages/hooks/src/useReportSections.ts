@@ -8,6 +8,8 @@
 
 import { useMemo } from 'react';
 import type { Finding, Hypothesis, AnalysisMode } from '@variscout/core';
+import { resolveMode } from '@variscout/core/strategy';
+import type { ResolvedMode } from '@variscout/core/strategy';
 
 // ============================================================================
 // Types
@@ -124,6 +126,24 @@ function sectionWorkspace(sectionId: ReportSectionId): ReportWorkspace {
 }
 
 // ============================================================================
+// Section title lookups (report-section–specific, not part of strategy interface)
+// ============================================================================
+
+const currentConditionTitles: Record<ResolvedMode, string> = {
+  yamazumi: 'What does the time composition look like?',
+  performance: 'How do channels perform?',
+  capability: 'Is capability meeting target?',
+  standard: 'What does the process look like?',
+};
+
+const driversTitles: Record<ResolvedMode, string> = {
+  yamazumi: 'What is driving the activity composition?',
+  performance: 'Which channels are failing?',
+  capability: 'What drives capability differences?',
+  standard: 'What is driving the variation?',
+};
+
+// ============================================================================
 // Hook
 // ============================================================================
 
@@ -137,6 +157,10 @@ export function useReportSections({
   isCapabilityMode,
 }: UseReportSectionsOptions): UseReportSectionsReturn {
   return useMemo(() => {
+    const resolved = resolveMode(analysisMode ?? 'standard', {
+      standardIChartMetric: isCapabilityMode ? 'capability' : undefined,
+    });
+
     const reportType = deriveReportType(findings);
 
     // Build sections based on report type
@@ -146,14 +170,7 @@ export function useReportSections({
     allSections.push({
       id: 'current-condition',
       stepNumber: 1,
-      title:
-        analysisMode === 'yamazumi'
-          ? 'What does the time composition look like?'
-          : analysisMode === 'performance'
-            ? 'How do channels perform?'
-            : isCapabilityMode
-              ? 'Is capability meeting target?'
-              : 'What does the process look like?',
+      title: currentConditionTitles[resolved],
       status: sectionStatus('current-condition', reportType),
       workspace: sectionWorkspace('current-condition'),
       findings: findings.filter(f => !f.hypothesisId),
@@ -165,15 +182,9 @@ export function useReportSections({
       id: 'drivers',
       stepNumber: 2,
       title:
-        analysisMode === 'yamazumi'
-          ? 'What is driving the activity composition?'
-          : analysisMode === 'performance'
-            ? 'Which channels are failing?'
-            : isCapabilityMode
-              ? 'What drives capability differences?'
-              : reportType === 'improvement-story'
-                ? 'Where does variation hide?'
-                : 'What is driving the variation?',
+        resolved === 'standard' && reportType === 'improvement-story'
+          ? 'Where does variation hide?'
+          : driversTitles[resolved],
       status: sectionStatus('drivers', reportType),
       workspace: sectionWorkspace('drivers'),
       findings: findings.filter(f => !f.hypothesisId),

@@ -3,19 +3,20 @@ import { usePanelsStore } from './panelsStore';
 import type { ViewState } from '@variscout/hooks';
 
 /**
- * Bridge hook for Zustand panelsStore side effects that require React lifecycle.
+ * Bridge hook: watches Zustand panelsStore and persists visibility state
+ * to DataContext (project-level persistence via IndexedDB/OneDrive).
  *
- * 1. ViewState persistence — reports findings/whatIf/improvement changes to the
- *    project persistence layer (skips the initial render to avoid echoing back
- *    the values that were just loaded).
- * 2. Highlight timeout — clears highlightedChartPoint after 2 seconds.
+ * This hook exists because persistence lives in React Context (DataContext),
+ * while panel state lives in Zustand. The hook bridges the two layers.
+ * See ADR-041 for the bridge hook pattern rationale.
  */
-export function usePanelsSideEffects(
+export function usePanelsPersistence(
   onViewStateChange?: (partial: Partial<ViewState>) => void
 ): void {
   const isFindingsOpen = usePanelsStore(s => s.isFindingsOpen);
   const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
   const isImprovementOpen = usePanelsStore(s => s.isImprovementOpen);
+  const activeView = usePanelsStore(s => s.activeView);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
 
   // Persistence — skip initial render
@@ -25,8 +26,8 @@ export function usePanelsSideEffects(
       isFirstRender.current = false;
       return;
     }
-    onViewStateChange?.({ isFindingsOpen, isWhatIfOpen, isImprovementOpen });
-  }, [isFindingsOpen, isWhatIfOpen, isImprovementOpen, onViewStateChange]);
+    onViewStateChange?.({ isFindingsOpen, isWhatIfOpen, isImprovementOpen, activeView });
+  }, [isFindingsOpen, isWhatIfOpen, isImprovementOpen, activeView, onViewStateChange]);
 
   // Highlight timeout
   useEffect(() => {

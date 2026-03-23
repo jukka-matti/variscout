@@ -174,3 +174,17 @@ Components subscribing to multiple stores via selectors is the normal Zustand pa
 ### Testing Stores in Isolation
 
 Each store can be tested independently by calling actions and asserting state, without mocking other stores. Cross-store interactions are tested at the orchestration hook level. See `features/panels/__tests__/panelsStore.test.ts` for the reference pattern.
+
+## Cross-Store Coordination Pattern
+
+Orchestration hooks are the designated coordination layer for cross-store interactions. They use direct `getState()` calls, which is the Zustand-recommended pattern for cross-store communication (per maintainer guidance).
+
+```typescript
+// useFindingsOrchestration.ts — explicit, traceable cross-store calls
+usePanelsStore.getState().setFindingsOpen(true);
+useFindingsStore.getState().setHighlightedFindingId(finding.id);
+```
+
+**Why direct calls, not an event bus:** An event bus (ADR-046, superseded) was implemented and evaluated. At 5 stores / 9 cross-store interactions, direct calls provide better traceability ("Go to Definition" works, stack traces are clear) without the indirection cost of events. See [ADR-046](../../07-decisions/adr-046-event-driven-architecture.md) for the full evaluation.
+
+**Bridge hooks** (e.g., `usePanelsPersistence`) handle Zustand→Context persistence via Zustand's `.subscribe()` — the community-approved pattern for reactive persistence bridges.

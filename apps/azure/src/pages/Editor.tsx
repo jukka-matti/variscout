@@ -39,7 +39,7 @@ import { useImprovementOrchestration } from '../features/improvement';
 import { useImprovementStore } from '../features/improvement/improvementStore';
 import { useLocale } from '../context/LocaleContext';
 import { usePanelsStore } from '../features/panels/panelsStore';
-import { usePanelsSideEffects } from '../features/panels/usePanelsSideEffects';
+import { usePanelsPersistence } from '../features/panels/usePanelsPersistence';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
 import { useTeamsShare } from '../hooks/useTeamsShare';
 import { useShareFinding } from '../hooks/useShareFinding';
@@ -204,8 +204,8 @@ export const Editor: React.FC<EditorProps> = ({
     usePanelsStore.getState().initFromViewState(viewState);
   }, [viewState]);
 
-  // Side effects: persistence + highlight timeout
-  usePanelsSideEffects(handleViewStateChange);
+  // Bridge hook: persists Zustand panel state to DataContext (IndexedDB/OneDrive)
+  usePanelsPersistence(handleViewStateChange);
 
   // Consume pendingChartFocus from panelsStore (set by navigate_to tool handler)
   const pendingChartFocus = usePanelsStore(s => s.pendingChartFocus);

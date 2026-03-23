@@ -77,9 +77,9 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
       highlightRowIndex < data.length
     ) {
       const targetPage = Math.floor(highlightRowIndex / rowsPerPage);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- responding to external highlight prop (chart click → table scroll)
+
       setCurrentPage(targetPage);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- responding to external highlight prop (chart click → table scroll)
+
       setHighlightedRow(highlightRowIndex);
     }
   }, [highlightRowIndex, data.length, rowsPerPage, setCurrentPage, setHighlightedRow]);
@@ -106,7 +106,7 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
   useEffect(() => {
     if (pasteTarget !== null && pasteTarget < data.length) {
       const targetPage = Math.floor(pasteTarget / rowsPerPage);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- navigating to page after async paste data arrives
+
       setCurrentPage(targetPage);
       // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing one-shot paste target after navigation
       setPasteTarget(null);

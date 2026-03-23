@@ -1,6 +1,5 @@
 import React from 'react';
-import { ThemeToggle as ThemeToggleBase } from '@variscout/ui';
-import { useTheme } from '../../context/ThemeContext';
+import { ThemeToggle as ThemeToggleBase, useTheme } from '@variscout/ui';
 
 const ThemeToggle: React.FC = () => {
   const { theme, setTheme } = useTheme();
