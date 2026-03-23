@@ -24,6 +24,7 @@ import {
   type DeepLinkParams,
 } from './services/deepLinks';
 import { hasTeamFeatures } from '@variscout/core';
+import { trackException } from './lib/appInsights';
 
 type View = 'dashboard' | 'editor' | 'admin';
 
@@ -149,6 +150,7 @@ function AppMain() {
   // Notify Teams host when a render error crashes the app
   // (must be before early returns to satisfy rules-of-hooks)
   const handleAppError = useCallback((error: Error) => {
+    trackException(error);
     notifyTeamsFailure(error.message || 'Application render error');
   }, []);
 
