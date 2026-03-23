@@ -211,7 +211,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
       const visibleChildren = showContradicted
         ? children
         : children.filter(c => c.status !== 'contradicted');
-      // eslint-disable-next-line react-hooks/immutability -- read-only filter, no mutation
+
       const linkedFindings = hypothesis.linkedFindingIds
         .map(fid => findingsById.get(fid))
         .filter(Boolean) as Finding[];

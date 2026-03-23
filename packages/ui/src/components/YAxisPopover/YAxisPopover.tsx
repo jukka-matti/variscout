@@ -121,7 +121,7 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
     if (isOpen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting local form state when popover opens
       setLocalMin(currentMin !== undefined ? currentMin.toString() : '');
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting local form state when popover opens
+
       setLocalMax(currentMax !== undefined ? currentMax.toString() : '');
     }
   }, [isOpen, currentMin, currentMax]);

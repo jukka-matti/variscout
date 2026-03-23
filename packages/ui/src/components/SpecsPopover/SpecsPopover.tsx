@@ -110,7 +110,7 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
       lsl: specs.lsl?.toString() || '',
       target: specs.target?.toString() || '',
     });
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local form state from external spec prop changes
+
     setVisibility({
       usl: specs.usl !== undefined,
       lsl: specs.lsl !== undefined,
@@ -122,7 +122,7 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local form state from external cpkTarget prop changes
     setLocalCpkTarget(cpkTarget?.toString() || '1.33');
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local form state from external cpkTarget prop changes
+
     setCpkTargetEnabled(cpkTarget !== undefined);
   }, [cpkTarget]);
 
