@@ -81,11 +81,17 @@ export interface HighlightChartPointEvent {
 export interface DomainEventMap {
   // Domain events
   'finding:created': FindingCreatedEvent;
+  /** @reserved — no emitter/listener yet */
   'finding:status-changed': FindingStatusChangedEvent;
+  /** @reserved — no emitter/listener yet */
   'finding:resolved': FindingResolvedEvent;
+  /** @reserved — no emitter/listener yet */
   'hypothesis:validated': HypothesisValidatedEvent;
+  /** @reserved — no emitter/listener yet */
   'hypothesis:cause-assigned': HypothesisCauseAssignedEvent;
+  /** @reserved — no emitter/listener yet */
   'idea:projection-attached': IdeaProjectionAttachedEvent;
+  /** @reserved — no emitter/listener yet */
   'idea:converted-to-actions': IdeaConvertedToActionsEvent;
   // UI choreography events
   'navigate:to': NavigateToEvent;
