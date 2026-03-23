@@ -88,6 +88,22 @@ export function registerListeners(bus: DomainEventBus): () => void {
     usePanelsStore.getState().setWhatIfOpen(true);
   });
 
+  // ── panel:visibility-changed ──────────────────────────────────────────────
+  on('panel:visibility-changed', ({ panel, visible }) => {
+    const panels = usePanelsStore.getState();
+    switch (panel) {
+      case 'whatIf':
+        panels.setWhatIfOpen(visible);
+        break;
+      case 'findings':
+        panels.setFindingsOpen(visible);
+        break;
+      case 'improvement':
+        panels.setImprovementOpen(visible);
+        break;
+    }
+  });
+
   // ── Cleanup ───────────────────────────────────────────────────────────────
   return () => {
     for (const { event, handler } of registered) {
