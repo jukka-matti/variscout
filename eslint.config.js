@@ -112,20 +112,26 @@ export default [
       'boundaries/dependencies': [
         'error',
         {
-          default: 'allow',
+          // Allowlist pattern: everything is forbidden unless explicitly permitted.
+          // Adding a new internal dependency requires a deliberate allow rule here.
+          default: 'disallow',
           rules: [
-            // core cannot import any other internal package
-            { from: { type: 'core' }, disallow: { to: { type: ['charts', 'hooks', 'ui', 'data', 'pwa', 'azure', 'website', 'docs'] } } },
-            // charts cannot import higher-level packages
-            { from: { type: 'charts' }, disallow: { to: { type: ['hooks', 'ui', 'pwa', 'azure', 'website', 'docs'] } } },
-            // hooks cannot import ui or apps
-            { from: { type: 'hooks' }, disallow: { to: { type: ['ui', 'charts', 'pwa', 'azure', 'website', 'docs'] } } },
-            // ui cannot import apps
-            { from: { type: 'ui' }, disallow: { to: { type: ['pwa', 'azure', 'website', 'docs'] } } },
-            // apps cannot import sibling apps
-            { from: { type: 'pwa' }, disallow: { to: { type: ['azure', 'website', 'docs'] } } },
-            { from: { type: 'azure' }, disallow: { to: { type: ['pwa', 'website', 'docs'] } } },
-            { from: { type: 'website' }, disallow: { to: { type: ['pwa', 'azure', 'docs'] } } },
+            // core → nothing (no internal package imports allowed)
+            // charts → core
+            { from: { type: 'charts' }, allow: { to: { type: ['core'] } } },
+            // hooks → core
+            { from: { type: 'hooks' }, allow: { to: { type: ['core'] } } },
+            // data → core
+            { from: { type: 'data' }, allow: { to: { type: ['core'] } } },
+            // ui → core, charts, hooks
+            { from: { type: 'ui' }, allow: { to: { type: ['core', 'charts', 'hooks'] } } },
+            // pwa → core, charts, hooks, ui, data
+            { from: { type: 'pwa' }, allow: { to: { type: ['core', 'charts', 'hooks', 'ui', 'data'] } } },
+            // azure → core, charts, hooks, ui, data
+            { from: { type: 'azure' }, allow: { to: { type: ['core', 'charts', 'hooks', 'ui', 'data'] } } },
+            // website → core, charts, hooks, ui, data
+            { from: { type: 'website' }, allow: { to: { type: ['core', 'charts', 'hooks', 'ui', 'data'] } } },
+            // docs → no source imports from internal packages
           ],
         },
       ],
