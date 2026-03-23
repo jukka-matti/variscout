@@ -256,9 +256,8 @@ This enables **silent SSO** — no redirect flash when saving to OneDrive or upl
 | ------------------- | ------------------------------------------------------------------------------------------------- |
 | Audience validation | JWT `aud` must match `CLIENT_ID` — prevents exchanging tokens issued for other apps               |
 | Scope allowlist     | Only `Files.ReadWrite.All`, `ChannelMessage.Send`, `People.Read` — other scopes rejected with 400 |
-| Function key        | Injected by `server.js` proxy (never in client code) — stored in App Service app settings         |
+| Function key        | Injected by `server.js` proxy (never in client code). The Function validates `X-Functions-Key` header if `FUNCTION_KEY` env var is set |
 | CORS                | Configurable `ALLOWED_ORIGIN` env var (defaults to `*` for dev); `OPTIONS` preflight supported    |
-| Function-key auth   | Optional `FUNCTION_KEY` env var — if set, requests must include `X-Functions-Key` header          |
 | Generic errors      | Catch block returns `"Token exchange failed"` — no MSAL internals leaked to clients               |
 | Method restriction  | Only `POST` accepted; other methods return 405                                                    |
 

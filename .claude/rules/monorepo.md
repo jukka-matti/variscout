@@ -125,6 +125,11 @@ The core package supports granular sub-path imports (in addition to the root `@v
 | `@variscout/core/i18n` | i18n/ | registerLocaleLoaders, preloadLocale, getMessage, formatMessage |
 | `@variscout/core/glossary` | glossary/ | Knowledge model, term definitions |
 | `@variscout/core/export` | export.ts | CSV export, PDF metadata |
+| `@variscout/core/navigation` | navigation.ts | Navigation utilities |
+| `@variscout/core/responsive` | responsive.ts | getResponsiveMargins, getResponsiveFonts, getResponsiveTickCount |
+| `@variscout/core/performance` | performance.ts | Multi-measure performance analysis |
+| `@variscout/core/time` | time.ts | Time column detection and extraction |
+| `@variscout/core/projectMetadata` | projectMetadata.ts | Project metadata computation (phase, findings summary, timestamps) |
 
 Apps must call `registerLocaleLoaders()` at startup to provide bundler-specific locale loading (see app `main.tsx` files).
 

@@ -57,7 +57,7 @@ Implement 11 of 15 items. Defer 2 (pnpm release age requires version upgrade; us
 - Storage module now testable in isolation
 - Core package is bundler-agnostic (no Vite dependency)
 - Zero-downtime production deployments possible
-- 94 React Compiler warnings reduced to ~24 (then to 0 in follow-up)
+- 94 React Compiler warnings reduced to 0 (in two passes: structural fixes first, then component extractions)
 
 ### Negative
 - `server.js` now has proxy logic (was pure static server)
