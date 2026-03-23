@@ -97,6 +97,9 @@ apps/
 │              #     ai/ - AI/CoScout feature wiring + aiStore
 │              #     data-flow/ - Data pipeline orchestration
 │              #     panels/ - panelsStore (panel visibility & layout)
+│              #   hooks/ - App-specific hooks:
+│              #     useProjectLoader - Project loading lifecycle + error classification
+│              #     useProjectOverview - Overview dashboard data (userId, projects, lastViewedAt)
 │              #   components/ - Azure-only app components:
 │              #     ProjectDashboard - Full project overview view (peer to Editor)
 │              #     ProjectStatusCard - Status summary (findings, hypotheses, actions)
