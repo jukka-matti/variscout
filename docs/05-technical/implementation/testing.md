@@ -851,6 +851,69 @@ Assign the following tasks to an Antigravity agent or execute interactively via 
 
 ---
 
+## Test Coverage Backlog (Mar 2026)
+
+Current state: 3,786 tests across 227 files, all passing. Coverage thresholds met in all packages.
+
+### P1 — Azure Feature Store Tests (~2h)
+
+5 Zustand stores lack unit tests. Pattern reference: `apps/azure/src/features/panels/__tests__/panelsStore.test.ts` (46 tests).
+
+| Store                | Location                  | Status   |
+| -------------------- | ------------------------- | -------- |
+| `aiStore`            | `features/ai/`            | No tests |
+| `findingsStore`      | `features/findings/`      | No tests |
+| `investigationStore` | `features/investigation/` | No tests |
+| `improvementStore`   | `features/improvement/`   | No tests |
+| `data-flow`          | `features/data-flow/`     | No tests |
+
+### P2 — UI Component Priority Subset (~1 day)
+
+26/66 UI components have tests. Priority subset for the remaining 40:
+
+- ChartAnnotationLayer, CreateFactorModal, SpecsPopover, FocusedChartViewBase
+- PasteScreen (both apps), PerformanceSetupPanel
+- PresentationView, SettingsPanel, SelectionPanel
+
+### P3 — Performance Chart Tests (~half day)
+
+PerformanceIChart, PerformanceBoxplot, PerformancePareto, PerformanceCapability — no unit tests (tested indirectly via app integration).
+
+### P4 — Hook Test Completeness (~1h)
+
+4 hooks without dedicated test files: useAnnotations, useChartTheme, useGlossary, useIsMobile. Likely covered indirectly via component tests.
+
+---
+
+## Refactoring Candidates (Mar 2026)
+
+Validated via code analysis. Priorities based on ROI and risk.
+
+### P1 — ReportView.tsx (1,058 → ~500 lines)
+
+`apps/azure/src/components/views/ReportView.tsx` — Extract:
+
+- `VerificationChartRenderer` sub-component (150-180 lines of 5-branch conditional rendering)
+- Report section rendering (500+ lines of conditional JSX → `ReportContent` sub-component)
+
+### P2 — Editor.tsx Phase 7 (1,289 → ~950 lines)
+
+`apps/azure/src/pages/Editor.tsx` — Extract `useEditorOrchestration` hook to consolidate 25 hook calls (AI, investigation, improvement orchestration). Depends on ADR-041 store consolidation.
+
+### P3 — Dashboard.tsx Prop Grouping (873 lines)
+
+`apps/azure/src/components/Dashboard.tsx` — Group 47 props into domain interfaces (filter, chart, ai, findings). No component extraction needed — correctly uses DashboardBase.
+
+### P4 — Shared Dashboard Types (quick-win)
+
+Extract `FindingsCallbacks` interface to `@variscout/ui` (duplicated in PWA + Azure Dashboard components). 3-5h, zero risk.
+
+### Dropped — PWA App.tsx (822 lines)
+
+Validated as correctly scoped entry point. No action needed.
+
+---
+
 ## Related Documentation
 
 - `.claude/rules/testing.md` - Quick reference testing rules (in project root)

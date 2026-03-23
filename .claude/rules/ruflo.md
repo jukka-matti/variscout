@@ -20,6 +20,15 @@ Common queries:
 - **MEMORY.md**: Always-in-context routing (project state, key decisions, user preferences)
 - **Ruflo memory**: Deep semantic search (domain knowledge, architecture details, 117 entries)
 
+## When to Use Ruflo (Workflow)
+
+- **Before feature work**: `mcp__ruflo__memory_search` for domain context and prior decisions
+- **Before creating PR**: `mcp__ruflo__analyze_diff` for risk assessment + dispatch `testgaps` and `audit` workers
+- **After major refactoring**: `npx ruflo@3.5.42 hooks pretrain` to reindex + update stale memory entries
+- **Keep memory fresh**: Update entries when test counts, architecture, or conventions change
+
+Full workflow: [ruflo-workflow.md](../../docs/05-technical/implementation/ruflo-workflow.md)
+
 ## After Major Codebase Changes
 
 Run `npx ruflo@3.5.42 hooks pretrain` to refresh the codebase index. Then add specific entries:
