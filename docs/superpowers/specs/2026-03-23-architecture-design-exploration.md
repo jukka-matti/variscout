@@ -215,14 +215,29 @@ Signals (Preact Signals, SolidJS, Angular 20, Vue 4) represent a fundamental par
 
 ---
 
-## Adoption Roadmap
+## Adoption Roadmap (Updated Mar 23)
 
-| Priority | Pattern           | When                                 | Effort    | Impact                                      |
-| -------- | ----------------- | ------------------------------------ | --------- | ------------------------------------------- |
-| **P1**   | Strategy pattern  | ReportView extraction (next session) | Medium    | Eliminates 37 ternaries, extensible modes   |
-| **P2**   | ESLint boundaries | Follow-up session                    | Low       | Makes ADR-045 rules CI-enforceable          |
-| **P3**   | Domain events     | Q3 2026 / threshold trigger          | Medium    | Decouples stores (only when coupling grows) |
-| **Skip** | Signals migration | Not recommended                      | Very high | Lateral move, massive cost, no net benefit  |
+**Decision:** Adopt full event-driven architecture alongside strategy pattern. Domain events promoted from P3 to P1.
+
+| Priority | Pattern               | When          | Effort | Impact                                    |
+| -------- | --------------------- | ------------- | ------ | ----------------------------------------- |
+| **P1a**  | Domain events (full)  | Next session  | Medium | Decouples all 12+ cross-store calls       |
+| **P1b**  | Strategy pattern      | With events   | Medium | Eliminates 37 ternaries, extensible modes |
+| **P2**   | ESLint boundaries     | Follow-up     | Low    | Makes ADR-045 rules CI-enforceable        |
+| **P1c**  | ReportView extraction | After P1a+P1b | Medium | Applies both patterns to biggest file     |
+| **Skip** | Signals migration     | Not planned   | High   | Lateral move, no net benefit              |
+
+### Event-Driven Design (next session scope)
+
+Full event-driven architecture for cross-store communication:
+
+- Typed event bus (mitt or custom ~30 lines)
+- Finding lifecycle events: `finding-created`, `finding-status-changed`, `finding-resolved`
+- Investigation events: `hypothesis-validated`, `projection-started`
+- Panel events: `navigate-to-panel`, `focus-chart`
+- AI tool events: `tool-executed` → side effects (panel open, highlight)
+- All 12+ `store.getState().action()` calls replaced with `bus.emit()`
+- Listeners registered in stores or side-effect hooks
 
 ---
 
