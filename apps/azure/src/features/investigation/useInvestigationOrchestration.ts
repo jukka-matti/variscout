@@ -150,10 +150,7 @@ export function useInvestigationOrchestration({
           hypothesisText: hypothesis.text,
         });
       }
-      bus.emit('idea:projection-attached', {
-        ideaId: idea?.id ?? ideaId,
-        projected: { mean: 0, sigma: 0, cpk: 0 },
-      });
+      bus.emit('panel:visibility-changed', { panel: 'whatIf', visible: true });
     },
     [hypothesesState]
   );

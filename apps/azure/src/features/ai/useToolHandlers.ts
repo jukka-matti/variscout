@@ -382,7 +382,7 @@ export function useToolHandlers({
 
       // ── Navigation Tool (hybrid: auto-execute or proposal) ─────────
       navigate_to: async (args: Record<string, unknown>) => {
-        const target = args.target as string;
+        const target = args.target as NavigationTarget;
         const targetId = (args.target_id as string) || undefined;
         const restoreFilters = (args.restore_filters as boolean) ?? false;
         const chartType = args.chart_type as string;
@@ -407,13 +407,26 @@ export function useToolHandlers({
           return JSON.stringify({ proposal: true, ...proposal });
         }
 
+        // Validate target
+        const validTargets: NavigationTarget[] = [
+          'dashboard',
+          'finding',
+          'hypothesis',
+          'chart',
+          'improvement_workspace',
+          'report',
+        ];
+        if (!validTargets.includes(target)) {
+          return JSON.stringify({ error: `Unknown navigation target: ${target}` });
+        }
+
         // Auto-execute navigation via domain event
-        bus.emit('navigate:to', {
-          target: target as NavigationTarget,
-          targetId,
-          chartType,
+        bus.emit('navigate:to', { target, targetId, chartType });
+        return JSON.stringify({
+          navigated: target,
+          ...(targetId && { id: targetId }),
+          ...(chartType && { chartType }),
         });
-        return JSON.stringify({ success: true });
       },
     };
 

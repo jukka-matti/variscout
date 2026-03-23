@@ -83,11 +83,6 @@ export function registerListeners(bus: DomainEventBus): () => void {
     }
   });
 
-  // ── idea:projection-attached ──────────────────────────────────────────────
-  on('idea:projection-attached', () => {
-    usePanelsStore.getState().setWhatIfOpen(true);
-  });
-
   // ── panel:visibility-changed ──────────────────────────────────────────────
   on('panel:visibility-changed', ({ panel, visible }) => {
     const panels = usePanelsStore.getState();
