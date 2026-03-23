@@ -28,6 +28,10 @@ Run `npx ruflo@3.5.42 hooks pretrain` to refresh the codebase index. Then add sp
 npx ruflo@3.5.42 memory store --namespace architecture --key "change-name" --value "description"
 ```
 
+## Background Workers
+
+7 workers run periodically via `.ruflo/config.yaml`: `audit` (security), `testgaps` (coverage), `map` (structure), `optimize` (performance), `consolidate` (memory), `deepdive` (analysis), `refactor` (quality). 5 more available for manual dispatch via `mcp__ruflo__hooks_worker-dispatch`.
+
 ## Hook Error Logs
 
 Hook errors are logged to `/tmp/ruflo-hooks.log`. Check if hooks are failing silently:

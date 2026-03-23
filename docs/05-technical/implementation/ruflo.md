@@ -92,13 +92,17 @@ Use MEMORY.md for "what should I always know." Use ruflo memory for "find me som
 
 ### Background Workers
 
-| Worker        | Interval | Purpose                    |
-| ------------- | -------- | -------------------------- |
-| `map`         | 15min    | Codebase structure mapping |
-| `audit`       | 10min    | Security analysis (OWASP)  |
-| `optimize`    | 15min    | Performance hints          |
-| `consolidate` | 30min    | Memory dedup and cleanup   |
-| `testgaps`    | 20min    | Test coverage analysis     |
+| Worker        | Interval | Priority | Purpose                                    |
+| ------------- | -------- | -------- | ------------------------------------------ |
+| `audit`       | 10min    | critical | CVE tracking, OWASP on auth/storage        |
+| `testgaps`    | 20min    | normal   | Coverage gaps across 3,572+ tests          |
+| `map`         | 15min    | normal   | Monorepo structure changes (9 workspaces)  |
+| `optimize`    | 15min    | high     | Chart rendering, large dataset performance |
+| `consolidate` | 30min    | low      | Memory dedup and cleanup                   |
+| `deepdive`    | 30min    | normal   | Deep analysis of recently changed files    |
+| `refactor`    | 30min    | normal   | Code quality suggestions across packages   |
+
+5 additional workers (`predict`, `preload`, `ultralearn`, `document`, `benchmark`) are disabled by default but available for manual dispatch via `mcp__ruflo__hooks_worker-dispatch`.
 
 Workers are resource-throttled: max 2 concurrent, CPU load < 2, free memory > 20%.
 
@@ -129,7 +133,7 @@ Neural learning accumulates passively — runs automatically when daemon is acti
 
 ```bash
 rm .ruflo/daemon.pid
-npx ruflo@latest daemon start
+npx ruflo@3.5.42 daemon start
 ```
 
 ### Worker stuck in "running" state
@@ -139,8 +143,8 @@ Edit `.ruflo/daemon-state.json` and set `"isRunning": false` for the stuck worke
 ### Memory empty after session
 
 ```bash
-npx ruflo@latest memory init --force
-npx ruflo@latest hooks pretrain
+npx ruflo@3.5.42 memory init --force
+npx ruflo@3.5.42 hooks pretrain
 ```
 
 Then re-seed memory entries (see seed commands in ADR-011).

@@ -142,7 +142,7 @@ pnpm build           # Build all packages and apps
 pnpm test            # Run Vitest tests (all packages)
 
 # AI development tooling
-npx ruflo@latest daemon status              # Check worker state
-npx ruflo@latest memory search --query "..."  # Semantic search
-npx ruflo@latest security scan --depth full   # OWASP scan
+npx ruflo@3.5.42 daemon status              # Check worker state
+npx ruflo@3.5.42 memory search --query "..."  # Semantic search
+npx ruflo@3.5.42 security scan --depth full   # OWASP scan
 ```

@@ -33,7 +33,7 @@ Use ruflo (formerly claude-flow) as an MCP-integrated development tooling layer.
 
 2. **Hybrid memory backend** -- sql.js for structured storage + HNSW indexing for semantic vector search. 150x-12,500x faster than linear scan for similarity queries.
 
-3. **5 background workers** -- `map` (codebase structure), `audit` (security), `optimize` (performance hints), `consolidate` (memory dedup), `testgaps` (coverage analysis). Workers are staggered and resource-throttled (max 2 concurrent, CPU/memory guards).
+3. **7 background workers** -- `audit` (security), `testgaps` (coverage), `map` (codebase structure), `optimize` (performance hints), `consolidate` (memory dedup), `deepdive` (code analysis), `refactor` (quality suggestions). 5 additional workers available for on-demand dispatch. Workers are staggered and resource-throttled (max 2 concurrent, CPU/memory guards).
 
 4. **autoStart on session open** -- MCP server starts automatically when Claude Code opens via `autoStart: true` in `.mcp.json`. SessionStart hook starts the daemon.
 
