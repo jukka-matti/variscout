@@ -6,35 +6,40 @@ title: 'Ruflo Development Tooling'
 
 ## What It Is
 
-ruflo is an MCP-integrated AI development tooling layer for VariScout. It provides semantic codebase search, persistent cross-session memory, automated security scanning, and background workers. It is **not** a runtime dependency -- it only runs during development sessions.
+ruflo is an MCP-integrated AI development tooling layer for VariScout. It provides semantic codebase search, persistent cross-session memory, hooks intelligence (pattern learning), neural learning (SONA), automated security scanning, and background workers. It is **not** a runtime dependency -- it only runs during development sessions.
+
+**Version**: Pinned to `ruflo@3.5.42` in `.mcp.json` and `.claude/settings.json`. Update monthly.
 
 ## Quick Commands
 
 ```bash
 # System status
-npx ruflo@latest daemon status
+npx ruflo@3.5.42 daemon status
+npx ruflo@3.5.42 hooks metrics              # Hook intelligence stats
 
-# Semantic search
-npx ruflo@latest memory search --query "Cpk calculation"
-npx ruflo@latest memory search --query "Azure authentication"
+# Semantic search (72+ indexed entries, ~80-100ms response)
+npx ruflo@3.5.42 memory search --query "Cpk calculation"
+npx ruflo@3.5.42 memory search --query "Azure authentication"
+npx ruflo@3.5.42 memory search --query "which persona needs admin"
 
 # Memory operations
-npx ruflo@latest memory stats
-npx ruflo@latest memory list --namespace architecture
-npx ruflo@latest memory store -k "key" --namespace ns --value "data"
+npx ruflo@3.5.42 memory stats
+npx ruflo@3.5.42 memory list --namespace domain
+npx ruflo@3.5.42 memory store -k "key" --namespace ns --value "data"
 
 # Security scanning
-npx ruflo@latest security scan --depth full   # OWASP Top 10
-npx ruflo@latest security cve --check          # CVE database
+npx ruflo@3.5.42 security scan --depth full  # OWASP Top 10
+npx ruflo@3.5.42 security cve --check         # CVE database
 
 # Daemon control
-npx ruflo@latest daemon start
-npx ruflo@latest daemon stop
-npx ruflo@latest daemon trigger -w audit       # Run worker manually
+npx ruflo@3.5.42 daemon start
+npx ruflo@3.5.42 daemon stop
 
-# Reindex codebase
-npx ruflo@latest hooks pretrain
-npx ruflo@latest hooks build-agents
+# Reindex codebase (run after major changes)
+npx ruflo@3.5.42 hooks pretrain
+
+# Neural / pattern learning
+npx ruflo@3.5.42 neural status
 ```
 
 ## Architecture
@@ -59,12 +64,30 @@ Claude Code ──MCP──▶ ruflo MCP Server (npx, port 3000)
 
 ### Memory Namespaces
 
-| Namespace      | Contents                                            |
-| -------------- | --------------------------------------------------- |
-| `architecture` | Monorepo structure, product model, key files        |
-| `conventions`  | Coding standards, import rules, color usage         |
-| `decisions`    | Removed features, Azure architecture, system limits |
-| `testing`      | Test counts, runner commands                        |
+| Namespace       | Entries | Contents                                                                         |
+| --------------- | ------- | -------------------------------------------------------------------------------- |
+| `architecture`  | ~15     | Monorepo structure, storage split, sub-path exports, App Insights, key files     |
+| `conventions`   | ~8      | Coding standards, import rules, color usage, token proxy, component patterns     |
+| `decisions`     | ~12     | ADR summaries, removed features, Azure architecture, system limits               |
+| `domain`        | ~40+    | Personas (9), use cases (14), flows, methodology, four lenses, two voices        |
+| `testing`       | ~12     | Test counts, patterns, priorities, coverage gaps, e2e selectors                  |
+| `anti-patterns` | ~6      | Common mistakes: no hardcoded colors, no cross-package imports, removed features |
+| `state`         | ~2      | Product status, recent changes                                                   |
+
+Total: 72+ entries with HNSW vector embeddings. Semantic search returns results in ~80-100ms.
+
+### Memory + MEMORY.md Complementarity
+
+Both systems are used and serve different purposes:
+
+| Feature           | Claude Code MEMORY.md             | Ruflo AgentDB                                 |
+| ----------------- | --------------------------------- | --------------------------------------------- |
+| Always in context | Yes (auto-loaded)                 | No (explicit retrieval)                       |
+| Capacity          | ~200 lines                        | 72+ entries (thousands possible)              |
+| Search            | Scanned by AI during context      | Semantic vector search (HNSW)                 |
+| Best for          | High-level project state, routing | Detailed domain knowledge, semantic discovery |
+
+Use MEMORY.md for "what should I always know." Use ruflo memory for "find me something specific."
 
 ### Background Workers
 
@@ -77,6 +100,27 @@ Claude Code ──MCP──▶ ruflo MCP Server (npx, port 3000)
 | `testgaps`    | 20min    | Test coverage analysis     |
 
 Workers are resource-throttled: max 2 concurrent, CPU load < 2, free memory > 20%.
+
+### Hooks Intelligence
+
+Hooks automatically learn from development patterns:
+
+- **Pattern learning**: Tracks which files are edited together, command sequences, success/failure rates
+- **Routing**: Classifies prompts and routes to appropriate agent types (87% accuracy, 42 routes)
+- **Metrics**: `npx ruflo@3.5.42 hooks metrics` shows 24h dashboard
+
+As of Mar 2026: 128 commands tracked, 15 patterns at 85% confidence, 94% success rate.
+
+### Neural Learning (SONA)
+
+SONA (Self-Optimizing Neural Architecture) provides deeper pattern recognition:
+
+- Q-learning + neural reinforcement from task execution
+- Mixture of Experts (8 networks) for routing decisions
+- Elastic Weight Consolidation prevents forgetting older patterns
+- Bootstrapped via `npx ruflo@3.5.42 hooks pretrain`
+
+Neural learning accumulates passively — runs automatically when daemon is active.
 
 ## Troubleshooting
 
