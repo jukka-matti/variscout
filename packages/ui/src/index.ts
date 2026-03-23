@@ -437,3 +437,13 @@ export {
   type UseGlossaryOptions,
   type UseGlossaryResult,
 } from './hooks';
+
+// Context
+export {
+  ThemeProvider,
+  useTheme,
+  CHART_FONT_SCALES,
+  type ThemeMode,
+  type ChartFontScale,
+  type ThemeConfig,
+} from './context/ThemeContext';

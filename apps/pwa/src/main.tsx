@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { DataProvider } from './context/DataContext';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider } from '@variscout/ui';
 import { LocaleProvider } from './context/LocaleContext';
 import { ErrorBoundary } from '@variscout/ui';
 import { registerLocaleLoaders } from '@variscout/core';

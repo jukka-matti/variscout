@@ -1,8 +1,7 @@
 import React from 'react';
-import { SettingsPanelBase, ThemeToggle } from '@variscout/ui';
+import { SettingsPanelBase, ThemeToggle, useTheme } from '@variscout/ui';
 import { useTranslation } from '@variscout/hooks';
 import { useData } from '../../context/DataContext';
-import { useTheme } from '../../context/ThemeContext';
 
 interface SettingsPanelProps {
   isOpen: boolean;
