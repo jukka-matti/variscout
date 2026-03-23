@@ -46,6 +46,8 @@ import {
   calculateStagedComparison,
   computeYamazumiSummary,
 } from '@variscout/core';
+import { resolveMode, getStrategy } from '@variscout/core/strategy';
+import type { ResolvedMode } from '@variscout/core/strategy';
 import { IChartBase, BoxplotBase, ParetoChartBase, YamazumiChartBase } from '@variscout/charts';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
@@ -138,11 +140,20 @@ const ReportView: React.FC<ReportViewProps> = ({
   const hypotheses = useMemo(() => persistedHypotheses ?? [], [persistedHypotheses]);
 
   // ---------------------------------------------------------------------------
+  // Resolved analysis mode + strategy
+  // ---------------------------------------------------------------------------
+  const resolved: ResolvedMode = resolveMode(analysisMode ?? 'standard', {
+    standardIChartMetric: displayOptions?.standardIChartMetric,
+  });
+  const strategy = getStrategy(resolved);
+
+  // Boolean aliases — kept for the many binary checks in the render tree
+  const isYamazumi = resolved === 'yamazumi';
+  const isCapabilityMode = resolved === 'capability';
+
+  // ---------------------------------------------------------------------------
   // Yamazumi mode data
   // ---------------------------------------------------------------------------
-  const isYamazumi = analysisMode === 'yamazumi';
-  const isCapabilityMode =
-    analysisMode === 'standard' && displayOptions?.standardIChartMetric === 'capability';
 
   const yamazumiBarData = useYamazumiChartData({
     filteredData: isYamazumi ? filteredData : [],
@@ -557,27 +568,210 @@ const ReportView: React.FC<ReportViewProps> = ({
     const extendedSection = sectionMap.get(section.id);
     const ref = sectionRefs[section.id];
 
-      return (
-        <ReportSection
-          key={section.id}
-          id={section.id}
-          stepNumber={section.stepNumber}
-          title={section.title}
-          status={section.status}
-          workspace={section.workspace}
-          sectionRef={ref}
-          onCopyAsSlide={() => handleCopySectionAsSlide(section.id)}
-          copyFeedback={sectionCopyFeedback === section.id}
-          defaultOpen={section.status !== 'future'}
-          forceOpen={isPrinting}
-        >
-          {/* Step 1: Current Condition / Time Composition */}
-          {section.id === 'current-condition' && outcome && (
-            <div className="space-y-4">
-              {isYamazumi && yamazumiSummary ? (
+    return (
+      <ReportSection
+        key={section.id}
+        id={section.id}
+        stepNumber={section.stepNumber}
+        title={section.title}
+        status={section.status}
+        workspace={section.workspace}
+        sectionRef={ref}
+        onCopyAsSlide={() => handleCopySectionAsSlide(section.id)}
+        copyFeedback={sectionCopyFeedback === section.id}
+        defaultOpen={section.status !== 'future'}
+        forceOpen={isPrinting}
+      >
+        {/* Step 1: Current Condition / Time Composition */}
+        {section.id === 'current-condition' && outcome && (
+          <div className="space-y-4">
+            {resolved === 'yamazumi' && yamazumiSummary ? (
+              <>
+                <ReportYamazumiKPIGrid summary={yamazumiSummary} />
+                {!isSummary && yamazumiBarData.length > 0 && (
+                  <div style={{ pointerEvents: 'none' }}>
+                    <YamazumiChartBase
+                      data={yamazumiBarData}
+                      taktTime={yamazumiMapping?.taktTime}
+                      parentWidth={REPORT_CHART_WIDTH}
+                      parentHeight={REPORT_CHART_HEIGHT}
+                      showBranding={false}
+                    />
+                  </div>
+                )}
+              </>
+            ) : resolved === 'capability' && capabilityKPIs ? (
+              <>
+                <ReportCapabilityKPIGrid
+                  meanCpk={capabilityKPIs.meanCpk}
+                  meanCp={capabilityKPIs.meanCp}
+                  cpkTarget={cpkTarget ?? 1.33}
+                  subgroupCount={capabilityKPIs.subgroupCount}
+                  passingCount={capabilityKPIs.passingCount}
+                />
+                {!isSummary && (
+                  <ReportChartSnapshot
+                    id="report-snapshot-capability-ichart"
+                    chartType="capability-ichart"
+                    filterLabel="Capability per subgroup"
+                    renderChart={() => <IChart />}
+                    onCopyChart={async (containerId, chartName) => {
+                      await handleCopyChart(containerId, chartName);
+                    }}
+                    copyFeedback={copyFeedback}
+                  />
+                )}
+              </>
+            ) : resolved === 'performance' && performanceResult ? (
+              (() => {
+                const target = cpkTarget ?? 1.33;
+                const withCpk = performanceResult.channels.filter(c => c.cpk !== undefined);
+                const worst =
+                  withCpk.length > 0 ? withCpk.reduce((w, c) => (c.cpk! < w.cpk! ? c : w)) : null;
+                return (
+                  <>
+                    <ReportPerformanceKPIGrid
+                      totalChannels={performanceResult.channels.length}
+                      passingChannels={withCpk.filter(c => c.cpk! >= target).length}
+                      worstCpk={worst?.cpk ?? 0}
+                      worstChannelName={worst?.label ?? '—'}
+                      meanCpk={
+                        withCpk.length > 0
+                          ? withCpk.reduce((s, c) => s + c.cpk!, 0) / withCpk.length
+                          : 0
+                      }
+                      cpkTarget={target}
+                    />
+                    {!isSummary && (
+                      <ReportChartSnapshot
+                        id="report-snapshot-performance-ichart"
+                        chartType="performance-ichart"
+                        filterLabel="Channel performance"
+                        renderChart={() => <IChart />}
+                        onCopyChart={async (containerId, chartName) => {
+                          await handleCopyChart(containerId, chartName);
+                        }}
+                        copyFeedback={copyFeedback}
+                      />
+                    )}
+                  </>
+                );
+              })()
+            ) : (
+              stats && (
                 <>
-                  <ReportYamazumiKPIGrid summary={yamazumiSummary} />
-                  {!isSummary && yamazumiBarData.length > 0 && (
+                  <ReportKPIGrid stats={stats} specs={specs} sampleCount={filteredData.length} />
+                  {!isSummary && (
+                    <ReportChartSnapshot
+                      id="report-snapshot-ichart"
+                      chartType="ichart"
+                      filterLabel="Current state"
+                      renderChart={() => <IChart />}
+                      onCopyChart={async (containerId, chartName) => {
+                        await handleCopyChart(containerId, chartName);
+                      }}
+                      copyFeedback={copyFeedback}
+                    />
+                  )}
+                </>
+              )
+            )}
+            {!isSummary && aiEnabled && narrative && (
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
+                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                  {narrative}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 2: Variation Drivers / Activity Composition */}
+        {section.id === 'drivers' &&
+          (() => {
+            // Audience-aware findings filter
+            const rawFindings = extendedSection?.findings ?? [];
+            const driverFindings = (() => {
+              if (!isSummary) {
+                // Technical: all findings, key-driver first
+                return [...rawFindings].sort((a, b) => {
+                  if (a.tag === 'key-driver' && b.tag !== 'key-driver') return -1;
+                  if (b.tag === 'key-driver' && a.tag !== 'key-driver') return 1;
+                  return 0;
+                });
+              }
+              // Summary (improvement-story): only findings with actions
+              const withActions = rawFindings.filter(f => f.actions && f.actions.length > 0);
+              if (withActions.length > 0) return withActions;
+              // Fallback: key-driver tagged, or all
+              const keyDrivers = rawFindings.filter(f => f.tag === 'key-driver');
+              return keyDrivers.length > 0 ? keyDrivers : rawFindings;
+            })();
+
+            return (
+              <div className="space-y-4">
+                {driverFindings.length > 0 ? (
+                  // Finding-driven content (all modes)
+                  isSummary ? (
+                    // Summary: finding text + key driver name
+                    driverFindings.map(finding => (
+                      <div
+                        key={finding.id}
+                        className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3"
+                      >
+                        <p className="text-sm text-slate-700 dark:text-slate-300">
+                          {finding.text || 'Observation'}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    // Technical: finding text + chart context
+                    driverFindings.map(finding => (
+                      <div key={finding.id} className="space-y-3">
+                        <div className="flex items-start gap-2">
+                          <span
+                            className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${
+                              finding.status === 'observed'
+                                ? 'bg-amber-400'
+                                : finding.status === 'investigating'
+                                  ? 'bg-blue-400'
+                                  : finding.status === 'analyzed'
+                                    ? 'bg-purple-400'
+                                    : 'bg-green-400'
+                            }`}
+                          />
+                          <p className="text-sm text-slate-700 dark:text-slate-300">
+                            {finding.text || 'Observation'}
+                          </p>
+                        </div>
+                        {/* Yamazumi: show activity breakdown for the step */}
+                        {isYamazumi &&
+                          finding.source &&
+                          'category' in finding.source &&
+                          (() => {
+                            const { category } = finding.source as { category: string };
+                            const barData = yamazumiBarData.find(b => b.key === category);
+                            return barData ? (
+                              <ReportActivityBreakdown stepName={category} barData={barData} />
+                            ) : null;
+                          })()}
+                        {/* SPC: show KPI snapshot */}
+                        {!isYamazumi && outcome && (
+                          <FindingChartSnapshot
+                            finding={finding}
+                            rawData={rawData}
+                            outcome={outcome}
+                            specs={specs}
+                            columnAliases={columnAliases}
+                          />
+                        )}
+                      </div>
+                    ))
+                  )
+                ) : // Fallback: no findings
+                isYamazumi ? (
+                  // Yamazumi fallback: show yamazumi chart as overview
+                  !isSummary && yamazumiBarData.length > 0 ? (
                     <div style={{ pointerEvents: 'none' }}>
                       <YamazumiChartBase
                         data={yamazumiBarData}
@@ -587,443 +781,250 @@ const ReportView: React.FC<ReportViewProps> = ({
                         showBranding={false}
                       />
                     </div>
-                  )}
-                </>
-              ) : isCapabilityMode && capabilityKPIs ? (
-                <>
-                  <ReportCapabilityKPIGrid
-                    meanCpk={capabilityKPIs.meanCpk}
-                    meanCp={capabilityKPIs.meanCp}
-                    cpkTarget={cpkTarget ?? 1.33}
-                    subgroupCount={capabilityKPIs.subgroupCount}
-                    passingCount={capabilityKPIs.passingCount}
-                  />
-                  {!isSummary && (
-                    <ReportChartSnapshot
-                      id="report-snapshot-capability-ichart"
-                      chartType="capability-ichart"
-                      filterLabel="Capability per subgroup"
-                      renderChart={() => <IChart />}
-                      onCopyChart={async (containerId, chartName) => {
-                        await handleCopyChart(containerId, chartName);
-                      }}
-                      copyFeedback={copyFeedback}
-                    />
-                  )}
-                </>
-              ) : analysisMode === 'performance' && performanceResult ? (
-                (() => {
-                  const target = cpkTarget ?? 1.33;
-                  const withCpk = performanceResult.channels.filter(c => c.cpk !== undefined);
-                  const worst =
-                    withCpk.length > 0 ? withCpk.reduce((w, c) => (c.cpk! < w.cpk! ? c : w)) : null;
-                  return (
+                  ) : (
+                    <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+                      Pin observations on the yamazumi chart to see activity breakdowns here.
+                    </p>
+                  )
+                ) : firstFactor ? (
+                  // Standard SPC fallback (unchanged)
+                  isSummary ? (
+                    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
+                      <p className="text-sm text-slate-700 dark:text-slate-300">
+                        Key driver:{' '}
+                        <span className="font-medium">
+                          {columnAliases?.[firstFactor] || firstFactor}
+                        </span>
+                      </p>
+                    </div>
+                  ) : (
                     <>
-                      <ReportPerformanceKPIGrid
-                        totalChannels={performanceResult.channels.length}
-                        passingChannels={withCpk.filter(c => c.cpk! >= target).length}
-                        worstCpk={worst?.cpk ?? 0}
-                        worstChannelName={worst?.label ?? '—'}
-                        meanCpk={
-                          withCpk.length > 0
-                            ? withCpk.reduce((s, c) => s + c.cpk!, 0) / withCpk.length
-                            : 0
-                        }
-                        cpkTarget={target}
-                      />
-                      {!isSummary && (
-                        <ReportChartSnapshot
-                          id="report-snapshot-performance-ichart"
-                          chartType="performance-ichart"
-                          filterLabel="Channel performance"
-                          renderChart={() => <IChart />}
-                          onCopyChart={async (containerId, chartName) => {
-                            await handleCopyChart(containerId, chartName);
-                          }}
-                          copyFeedback={copyFeedback}
-                        />
-                      )}
-                    </>
-                  );
-                })()
-              ) : (
-                stats && (
-                  <>
-                    <ReportKPIGrid stats={stats} specs={specs} sampleCount={filteredData.length} />
-                    {!isSummary && (
                       <ReportChartSnapshot
-                        id="report-snapshot-ichart"
-                        chartType="ichart"
-                        filterLabel="Current state"
-                        renderChart={() => <IChart />}
+                        id="report-snapshot-boxplot"
+                        chartType="boxplot"
+                        filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
+                        renderChart={() => <Boxplot factor={firstFactor} />}
                         onCopyChart={async (containerId, chartName) => {
                           await handleCopyChart(containerId, chartName);
                         }}
                         copyFeedback={copyFeedback}
                       />
-                    )}
-                  </>
-                )
-              )}
-              {!isSummary && aiEnabled && narrative && (
-                <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
-                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                    {narrative}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
+                      <ReportChartSnapshot
+                        id="report-snapshot-pareto"
+                        chartType="pareto"
+                        filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
+                        renderChart={() => <ParetoChart factor={firstFactor} />}
+                        onCopyChart={async (containerId, chartName) => {
+                          await handleCopyChart(containerId, chartName);
+                        }}
+                        copyFeedback={copyFeedback}
+                      />
+                    </>
+                  )
+                ) : null}
+              </div>
+            );
+          })()}
 
-          {/* Step 2: Variation Drivers / Activity Composition */}
-          {section.id === 'drivers' &&
-            (() => {
-              // Audience-aware findings filter
-              const rawFindings = extendedSection?.findings ?? [];
-              const driverFindings = (() => {
-                if (!isSummary) {
-                  // Technical: all findings, key-driver first
-                  return [...rawFindings].sort((a, b) => {
-                    if (a.tag === 'key-driver' && b.tag !== 'key-driver') return -1;
-                    if (b.tag === 'key-driver' && a.tag !== 'key-driver') return 1;
-                    return 0;
-                  });
-                }
-                // Summary (improvement-story): only findings with actions
-                const withActions = rawFindings.filter(f => f.actions && f.actions.length > 0);
-                if (withActions.length > 0) return withActions;
-                // Fallback: key-driver tagged, or all
-                const keyDrivers = rawFindings.filter(f => f.tag === 'key-driver');
-                return keyDrivers.length > 0 ? keyDrivers : rawFindings;
-              })();
+        {/* Step 3: Evidence Trail */}
+        {section.id === 'evidence-trail' && outcome && (
+          <div className="space-y-4">
+            {/* Synthesis card (always shown) */}
+            {processContext?.synthesis && (
+              <div className="mb-2">
+                <SynthesisCard synthesis={processContext.synthesis} readOnly />
+              </div>
+            )}
 
-              return (
-                <div className="space-y-4">
-                  {driverFindings.length > 0 ? (
-                    // Finding-driven content (all modes)
-                    isSummary ? (
-                      // Summary: finding text + key driver name
-                      driverFindings.map(finding => (
-                        <div
-                          key={finding.id}
-                          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3"
-                        >
-                          <p className="text-sm text-slate-700 dark:text-slate-300">
-                            {finding.text || 'Observation'}
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      // Technical: finding text + chart context
-                      driverFindings.map(finding => (
-                        <div key={finding.id} className="space-y-3">
-                          <div className="flex items-start gap-2">
-                            <span
-                              className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                                finding.status === 'observed'
-                                  ? 'bg-amber-400'
-                                  : finding.status === 'investigating'
-                                    ? 'bg-blue-400'
-                                    : finding.status === 'analyzed'
-                                      ? 'bg-purple-400'
-                                      : 'bg-green-400'
-                              }`}
-                            />
-                            <p className="text-sm text-slate-700 dark:text-slate-300">
-                              {finding.text || 'Observation'}
-                            </p>
-                          </div>
-                          {/* Yamazumi: show activity breakdown for the step */}
-                          {isYamazumi &&
-                            finding.source &&
-                            'category' in finding.source &&
-                            (() => {
-                              const { category } = finding.source as { category: string };
-                              const barData = yamazumiBarData.find(b => b.key === category);
-                              return barData ? (
-                                <ReportActivityBreakdown stepName={category} barData={barData} />
-                              ) : null;
-                            })()}
-                          {/* SPC: show KPI snapshot */}
-                          {!isYamazumi && outcome && (
-                            <FindingChartSnapshot
-                              finding={finding}
-                              rawData={rawData}
-                              outcome={outcome}
-                              specs={specs}
-                              columnAliases={columnAliases}
-                            />
-                          )}
-                        </div>
-                      ))
-                    )
-                  ) : // Fallback: no findings
-                  isYamazumi ? (
-                    // Yamazumi fallback: show yamazumi chart as overview
-                    !isSummary && yamazumiBarData.length > 0 ? (
-                      <div style={{ pointerEvents: 'none' }}>
-                        <YamazumiChartBase
-                          data={yamazumiBarData}
-                          taktTime={yamazumiMapping?.taktTime}
-                          parentWidth={REPORT_CHART_WIDTH}
-                          parentHeight={REPORT_CHART_HEIGHT}
-                          showBranding={false}
-                        />
-                      </div>
-                    ) : (
-                      <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-                        Pin observations on the yamazumi chart to see activity breakdowns here.
-                      </p>
-                    )
-                  ) : firstFactor ? (
-                    // Standard SPC fallback (unchanged)
-                    isSummary ? (
-                      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
-                        <p className="text-sm text-slate-700 dark:text-slate-300">
-                          Key driver:{' '}
-                          <span className="font-medium">
-                            {columnAliases?.[firstFactor] || firstFactor}
-                          </span>
-                        </p>
-                      </div>
-                    ) : (
-                      <>
-                        <ReportChartSnapshot
-                          id="report-snapshot-boxplot"
-                          chartType="boxplot"
-                          filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
-                          renderChart={() => <Boxplot factor={firstFactor} />}
-                          onCopyChart={async (containerId, chartName) => {
-                            await handleCopyChart(containerId, chartName);
-                          }}
-                          copyFeedback={copyFeedback}
-                        />
-                        <ReportChartSnapshot
-                          id="report-snapshot-pareto"
-                          chartType="pareto"
-                          filterLabel={`Factor: ${columnAliases?.[firstFactor] || firstFactor}`}
-                          renderChart={() => <ParetoChart factor={firstFactor} />}
-                          onCopyChart={async (containerId, chartName) => {
-                            await handleCopyChart(containerId, chartName);
-                          }}
-                          copyFeedback={copyFeedback}
-                        />
-                      </>
-                    )
-                  ) : null}
-                </div>
-              );
-            })()}
+            {/* Hypothesis tree (technical only) */}
+            {!isSummary && (extendedSection?.hypotheses ?? []).length > 0 && (
+              <ReportHypothesisSummary hypotheses={extendedSection?.hypotheses ?? []} />
+            )}
 
-          {/* Step 3: Evidence Trail */}
-          {section.id === 'evidence-trail' && outcome && (
-            <div className="space-y-4">
-              {/* Synthesis card (always shown) */}
-              {processContext?.synthesis && (
-                <div className="mb-2">
-                  <SynthesisCard synthesis={processContext.synthesis} readOnly />
-                </div>
-              )}
-
-              {/* Hypothesis tree (technical only) */}
-              {!isSummary && (extendedSection?.hypotheses ?? []).length > 0 && (
-                <ReportHypothesisSummary hypotheses={extendedSection?.hypotheses ?? []} />
-              )}
-
-              {/* Finding snapshots (technical only) */}
-              {!isSummary && (extendedSection?.findings ?? []).length > 0 ? (
-                (extendedSection?.findings ?? []).map(finding => (
-                  <FindingChartSnapshot
-                    key={finding.id}
-                    finding={finding}
-                    rawData={rawData}
-                    outcome={outcome}
-                    specs={specs}
-                    columnAliases={columnAliases}
-                  />
-                ))
-              ) : !isSummary ? (
-                <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-                  No hypotheses have been linked to findings yet.
-                </p>
-              ) : null}
-            </div>
-          )}
-
-          {/* Step 4: Improvement Plan (Improvement Story only) */}
-          {section.id === 'improvement-plan' && (
-            <div className="space-y-3">
-              {(extendedSection?.hypotheses ?? []).length > 0 ? (
-                <ReportImprovementSummary
-                  hypotheses={(extendedSection?.hypotheses ?? []).map(h => ({
-                    id: h.id,
-                    text: h.text,
-                    causeRole: h.causeRole,
-                    ideas: h.ideas ?? [],
-                  }))}
-                  summaryOnly={isSummary}
-                  targetCpk={cpkTarget}
+            {/* Finding snapshots (technical only) */}
+            {!isSummary && (extendedSection?.findings ?? []).length > 0 ? (
+              (extendedSection?.findings ?? []).map(finding => (
+                <FindingChartSnapshot
+                  key={finding.id}
+                  finding={finding}
+                  rawData={rawData}
+                  outcome={outcome}
+                  specs={specs}
+                  columnAliases={columnAliases}
                 />
-              ) : (
-                <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-                  No improvement ideas have been recorded yet.
-                </p>
-              )}
-            </div>
-          )}
+              ))
+            ) : !isSummary ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+                No hypotheses have been linked to findings yet.
+              </p>
+            ) : null}
+          </div>
+        )}
 
-          {/* Step 5: Actions Taken (Improvement Story only) */}
-          {section.id === 'actions-taken' && (
-            <div className="space-y-3">
-              {(extendedSection?.findings ?? []).length > 0 ? (
-                isSummary ? (
-                  // Summary: action count + completion %
-                  (() => {
-                    const allActions = (extendedSection?.findings ?? []).flatMap(
-                      f => f.actions ?? []
-                    );
-                    const completed = allActions.filter(a => a.completedAt);
-                    const pct =
-                      allActions.length > 0
-                        ? Math.round((completed.length / allActions.length) * 100)
-                        : 0;
-                    return (
-                      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
-                        <p className="text-sm text-slate-700 dark:text-slate-300">
-                          <span className="font-medium">{allActions.length}</span> actions
-                          {' · '}
-                          <span
-                            className={
-                              completed.length === allActions.length
-                                ? 'text-green-600 dark:text-green-400 font-medium'
-                                : ''
-                            }
-                          >
-                            {pct}% complete
-                          </span>
-                        </p>
-                      </div>
-                    );
-                  })()
-                ) : (
-                  // Technical: full action list
-                  (extendedSection?.findings ?? []).map(finding => (
-                    <div
-                      key={finding.id}
-                      className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3"
-                    >
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
-                        {finding.text || 'Observation'}
-                      </p>
-                      <ul className="space-y-1">
-                        {finding.actions?.map(action => (
-                          <li
-                            key={action.id}
-                            className={`text-sm flex items-center gap-2 ${
-                              action.completedAt
-                                ? 'text-green-600 dark:text-green-400 line-through'
-                                : 'text-slate-700 dark:text-slate-300'
-                            }`}
-                          >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                                action.completedAt ? 'bg-green-500' : 'bg-slate-400'
-                              }`}
-                            />
-                            {action.text}
-                            {action.assignee && (
-                              <span className="text-xs text-slate-400">
-                                ({action.assignee.displayName})
-                              </span>
-                            )}
-                            {action.dueDate && (
-                              <span className="text-xs text-slate-400">due {action.dueDate}</span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))
-                )
-              ) : (
-                <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-                  No actions have been recorded yet.
-                </p>
-              )}
-            </div>
-          )}
+        {/* Step 4: Improvement Plan (Improvement Story only) */}
+        {section.id === 'improvement-plan' && (
+          <div className="space-y-3">
+            {(extendedSection?.hypotheses ?? []).length > 0 ? (
+              <ReportImprovementSummary
+                hypotheses={(extendedSection?.hypotheses ?? []).map(h => ({
+                  id: h.id,
+                  text: h.text,
+                  causeRole: h.causeRole,
+                  ideas: h.ideas ?? [],
+                }))}
+                summaryOnly={isSummary}
+                targetCpk={cpkTarget}
+              />
+            ) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+                No improvement ideas have been recorded yet.
+              </p>
+            )}
+          </div>
+        )}
 
-          {/* Step 6: Verification (Improvement Story only) */}
-          {section.id === 'verification' && (
-            <div className="space-y-3">
-              {/* Cpk learning loop */}
-              {(cpkBefore != null || cpkAfter != null) &&
+        {/* Step 5: Actions Taken (Improvement Story only) */}
+        {section.id === 'actions-taken' && (
+          <div className="space-y-3">
+            {(extendedSection?.findings ?? []).length > 0 ? (
+              isSummary ? (
+                // Summary: action count + completion %
                 (() => {
-                  const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
-                  const loopMetricLabel = isYamazumi
-                    ? 'VA Ratio'
-                    : isCapabilityMode
-                      ? 'Mean Cpk'
-                      : analysisMode === 'performance'
-                        ? 'Worst Channel Cpk'
-                        : hasSpecs
-                          ? 'Cpk'
-                          : 'σ';
-                  const loopFormatValue = isYamazumi
-                    ? (v: number) => `${Math.round(v * 100)}%`
-                    : undefined;
-                  return (
-                    <ReportCpkLearningLoop
-                      valueBefore={cpkBefore}
-                      projectedValue={bestProjectedCpk}
-                      valueAfter={cpkAfter}
-                      verdict={primaryOutcome?.effective}
-                      metricLabel={loopMetricLabel}
-                      formatValue={loopFormatValue}
-                    />
+                  const allActions = (extendedSection?.findings ?? []).flatMap(
+                    f => f.actions ?? []
                   );
-                })()}
-
-              {/* Finding outcomes list (technical only) */}
-              {!isSummary &&
-                (extendedSection?.findings ?? []).length > 0 &&
+                  const completed = allActions.filter(a => a.completedAt);
+                  const pct =
+                    allActions.length > 0
+                      ? Math.round((completed.length / allActions.length) * 100)
+                      : 0;
+                  return (
+                    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
+                      <p className="text-sm text-slate-700 dark:text-slate-300">
+                        <span className="font-medium">{allActions.length}</span> actions
+                        {' · '}
+                        <span
+                          className={
+                            completed.length === allActions.length
+                              ? 'text-green-600 dark:text-green-400 font-medium'
+                              : ''
+                          }
+                        >
+                          {pct}% complete
+                        </span>
+                      </p>
+                    </div>
+                  );
+                })()
+              ) : (
+                // Technical: full action list
                 (extendedSection?.findings ?? []).map(finding => (
                   <div
                     key={finding.id}
                     className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3"
                   >
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
                       {finding.text || 'Observation'}
                     </p>
-                    {finding.outcome && (
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                        Outcome: {finding.outcome.effective}
-                        {finding.outcome.notes && ` - ${finding.outcome.notes}`}
-                      </p>
-                    )}
+                    <ul className="space-y-1">
+                      {finding.actions?.map(action => (
+                        <li
+                          key={action.id}
+                          className={`text-sm flex items-center gap-2 ${
+                            action.completedAt
+                              ? 'text-green-600 dark:text-green-400 line-through'
+                              : 'text-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                              action.completedAt ? 'bg-green-500' : 'bg-slate-400'
+                            }`}
+                          />
+                          {action.text}
+                          {action.assignee && (
+                            <span className="text-xs text-slate-400">
+                              ({action.assignee.displayName})
+                            </span>
+                          )}
+                          {action.dueDate && (
+                            <span className="text-xs text-slate-400">due {action.dueDate}</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                ))}
+                ))
+              )
+            ) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+                No actions have been recorded yet.
+              </p>
+            )}
+          </div>
+        )}
 
-              {/* Staged verification evidence (technical only) */}
-              {!isSummary && hasStagedComparison && hasAnyAvailable && (
-                <VerificationEvidenceBase
-                  charts={verificationCharts}
-                  activeCharts={activeVerificationCharts}
-                  onToggleChart={toggleVerificationChart}
-                  renderChart={renderVerificationChart}
-                />
-              )}
+        {/* Step 6: Verification (Improvement Story only) */}
+        {section.id === 'verification' && (
+          <div className="space-y-3">
+            {/* Cpk learning loop */}
+            {(cpkBefore != null || cpkAfter != null) &&
+              (() => {
+                const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
+                const loopMetricLabel = strategy.metricLabel(hasSpecs);
+                const loopFormatValue = strategy.formatMetricValue;
+                return (
+                  <ReportCpkLearningLoop
+                    valueBefore={cpkBefore}
+                    projectedValue={bestProjectedCpk}
+                    valueAfter={cpkAfter}
+                    verdict={primaryOutcome?.effective}
+                    metricLabel={loopMetricLabel}
+                    formatValue={loopFormatValue}
+                  />
+                );
+              })()}
 
-              {/* Empty state when no findings and no staged data */}
-              {(extendedSection?.findings ?? []).length === 0 && !hasStagedComparison && (
-                <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-                  Verification data will appear once actions are evaluated.
-                </p>
-              )}
-            </div>
-          )}
-        </ReportSection>
-      );
+            {/* Finding outcomes list (technical only) */}
+            {!isSummary &&
+              (extendedSection?.findings ?? []).length > 0 &&
+              (extendedSection?.findings ?? []).map(finding => (
+                <div
+                  key={finding.id}
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3"
+                >
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                    {finding.text || 'Observation'}
+                  </p>
+                  {finding.outcome && (
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                      Outcome: {finding.outcome.effective}
+                      {finding.outcome.notes && ` - ${finding.outcome.notes}`}
+                    </p>
+                  )}
+                </div>
+              ))}
+
+            {/* Staged verification evidence (technical only) */}
+            {!isSummary && hasStagedComparison && hasAnyAvailable && (
+              <VerificationEvidenceBase
+                charts={verificationCharts}
+                activeCharts={activeVerificationCharts}
+                onToggleChart={toggleVerificationChart}
+                renderChart={renderVerificationChart}
+              />
+            )}
+
+            {/* Empty state when no findings and no staged data */}
+            {(extendedSection?.findings ?? []).length === 0 && !hasStagedComparison && (
+              <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+                Verification data will appear once actions are evaluated.
+              </p>
+            )}
+          </div>
+        )}
+      </ReportSection>
+    );
   };
 
   if (!outcome) return null;
