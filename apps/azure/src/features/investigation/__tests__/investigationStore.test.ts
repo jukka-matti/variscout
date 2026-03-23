@@ -71,22 +71,23 @@ describe('investigationStore', () => {
 
   describe('syncIdeaImpacts', () => {
     it('sets idea impacts record', () => {
-      const impacts = { idea1: 0.85, idea2: 0.42 };
+      const impacts = { idea1: 'high' as const, idea2: 'medium' as const };
       useInvestigationStore.getState().syncIdeaImpacts(impacts);
       expect(useInvestigationStore.getState().ideaImpacts).toEqual(impacts);
     });
 
     it('handles undefined values', () => {
-      const impacts = { idea1: undefined, idea2: 0.5 };
-      useInvestigationStore
-        .getState()
-        .syncIdeaImpacts(impacts as Record<string, number | undefined>);
+      const impacts: Record<string, 'low' | 'medium' | 'high' | undefined> = {
+        idea1: undefined,
+        idea2: 'low',
+      };
+      useInvestigationStore.getState().syncIdeaImpacts(impacts);
       expect(useInvestigationStore.getState().ideaImpacts.idea1).toBeUndefined();
-      expect(useInvestigationStore.getState().ideaImpacts.idea2).toBe(0.5);
+      expect(useInvestigationStore.getState().ideaImpacts.idea2).toBe('low');
     });
 
     it('clears with empty object', () => {
-      useInvestigationStore.getState().syncIdeaImpacts({ idea1: 0.9 });
+      useInvestigationStore.getState().syncIdeaImpacts({ idea1: 'high' });
       useInvestigationStore.getState().syncIdeaImpacts({});
       expect(useInvestigationStore.getState().ideaImpacts).toEqual({});
     });

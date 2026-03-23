@@ -53,7 +53,7 @@ interface AIStoreState {
 
 interface AIStoreActions {
   syncNarration: (
-    narration: Pick<UseNarrationReturn, 'narrative' | 'isLoading' | 'isCached' | 'error'>
+    narration: Pick<UseNarrationReturn, 'narrative' | 'isLoading' | 'isCached' | 'error'> | null
   ) => void;
   syncCoScoutMessages: (messages: UseAICoScoutReturn['messages']) => void;
   syncSuggestedQuestions: (questions: string[]) => void;
