@@ -236,33 +236,39 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     <>
       <div className="flex-1 flex overflow-hidden">
         <Dashboard
-          drillFromPerformance={dataFlow.drillFromPerformance}
-          onBackToPerformance={dataFlow.handleBackToPerformance}
-          onDrillToMeasure={dataFlow.handleDrillToMeasure}
           onPointClick={isPhone ? undefined : usePanelsStore.getState().handlePointClick}
           highlightedPointIndex={isPhone ? undefined : highlightedChartPoint}
           filterNav={filterNav}
           initialViewState={viewState ?? undefined}
           onViewStateChange={onViewStateChange}
-          isReportOpen={isReportOpen}
-          onCloseReport={() => usePanelsStore.getState().closeReport()}
-          isPresentationMode={isPresentationMode}
-          onExitPresentation={() => usePanelsStore.getState().closePresentation()}
           onManageFactors={dataFlow.openFactorManager}
           onPinFinding={handlePinFinding}
           onShareChart={handleShareChart}
           findingsCallbacks={findingsCallbacks}
-          fetchChartInsight={fetchChartInsightFromAI}
-          aiContext={aiContext.context}
-          aiEnabled={aiAvailable}
-          narrative={narration.narrative}
-          narrativeLoading={narration.isLoading}
-          narrativeCached={narration.isCached}
-          narrativeError={narration.error}
-          onNarrativeRetry={narration.refresh}
-          onNarrativeAsk={handleNarrativeAsk}
-          onAskCoScoutFromCategory={handleAskCoScoutFromCategory}
           findings={findingsState.findings}
+          viewMode={{
+            isReportOpen,
+            onCloseReport: () => usePanelsStore.getState().closeReport(),
+            isPresentationMode,
+            onExitPresentation: () => usePanelsStore.getState().closePresentation(),
+          }}
+          performance={{
+            drillFromPerformance: dataFlow.drillFromPerformance,
+            onBackToPerformance: dataFlow.handleBackToPerformance,
+            onDrillToMeasure: dataFlow.handleDrillToMeasure,
+          }}
+          ai={{
+            fetchChartInsight: fetchChartInsightFromAI,
+            aiContext: aiContext.context,
+            aiEnabled: aiAvailable,
+            narrative: narration.narrative,
+            narrativeLoading: narration.isLoading,
+            narrativeCached: narration.isCached,
+            narrativeError: narration.error,
+            onNarrativeRetry: narration.refresh,
+            onNarrativeAsk: handleNarrativeAsk,
+            onAskCoScoutFromCategory: handleAskCoScoutFromCategory,
+          }}
         />
         {/* AI onboarding tooltip */}
         <AIOnboardingTooltip

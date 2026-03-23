@@ -51,84 +51,83 @@ import {
 
 type DashboardTab = 'analysis' | 'performance' | 'yamazumi';
 
-interface DashboardProps {
-  onPointClick?: (index: number) => void;
-  highlightedPointIndex?: number | null;
+interface DashboardViewModeProps {
+  isPresentationMode?: boolean;
+  onExitPresentation?: () => void;
+  isReportOpen?: boolean;
+  onCloseReport?: () => void;
+}
+
+interface DashboardPerformanceProps {
   drillFromPerformance?: string | null;
   onBackToPerformance?: () => void;
   onDrillToMeasure?: (measureId: string) => void;
-  filterNav?: UseFilterNavigationReturn;
-  /** Initial view state from persistence (tab, focused chart, factors) */
-  initialViewState?: ViewState;
-  /** Report view state changes for persistence */
-  onViewStateChange?: (partial: Partial<ViewState>) => void;
-  /** Whether presentation mode is active */
-  isPresentationMode?: boolean;
-  /** Callback to exit presentation mode */
-  onExitPresentation?: () => void;
-  /** Whether report view is active */
-  isReportOpen?: boolean;
-  /** Callback to close report view */
-  onCloseReport?: () => void;
-  /** Callback to open ColumnMapping in re-edit mode for factor management */
-  onManageFactors?: () => void;
-  /** Callback to pin current filter state as a finding (optional note text) */
-  onPinFinding?: (noteText?: string) => void;
-  /** Callback to share a chart via deep link */
-  onShareChart?: (chartType: string) => void;
-  /** Grouped findings-related callbacks */
-  findingsCallbacks?: AzureFindingsCallbacks;
-  /** AI-enhanced chart insight fetch function (from Editor) */
+}
+
+interface DashboardAIProps {
   fetchChartInsight?: (userPrompt: string) => Promise<string>;
-  /** AI context for chart insights */
   aiContext?: AIContext | null;
-  /** Whether AI is enabled */
   aiEnabled?: boolean;
-  /** AI narration state */
   narrative?: string | null;
   narrativeLoading?: boolean;
   narrativeCached?: boolean;
   narrativeError?: string | null;
   onNarrativeAsk?: () => void;
   onNarrativeRetry?: () => void;
-  /** Ask CoScout about a category (from MobileCategorySheet) */
   onAskCoScoutFromCategory?: (focusContext: {
     chartType: 'boxplot' | 'pareto';
     category: { name: string; mean?: number; contributionPct?: number };
   }) => void;
-  /** All findings (for methodology coach journey phase detection) */
+}
+
+interface DashboardProps {
+  // Core
+  onPointClick?: (index: number) => void;
+  highlightedPointIndex?: number | null;
+  filterNav?: UseFilterNavigationReturn;
+  onManageFactors?: () => void;
+  onPinFinding?: (noteText?: string) => void;
+  onShareChart?: (chartType: string) => void;
+  findingsCallbacks?: AzureFindingsCallbacks;
   findings?: Finding[];
+  // Persistence
+  initialViewState?: ViewState;
+  onViewStateChange?: (partial: Partial<ViewState>) => void;
+  // Domain groups
+  viewMode?: DashboardViewModeProps;
+  performance?: DashboardPerformanceProps;
+  ai?: DashboardAIProps;
 }
 
 const Dashboard = ({
   onPointClick,
   highlightedPointIndex,
-  drillFromPerformance,
-  onBackToPerformance,
-  onDrillToMeasure,
   filterNav: externalFilterNav,
   initialViewState,
   onViewStateChange,
-  isPresentationMode,
-  onExitPresentation,
-  isReportOpen,
-  onCloseReport,
   onManageFactors,
   onPinFinding,
   onShareChart,
   findingsCallbacks,
-  fetchChartInsight,
-  aiContext,
-  aiEnabled,
-  narrative,
-  narrativeLoading,
-  narrativeCached,
-  narrativeError,
-  onNarrativeAsk,
-  onNarrativeRetry,
-  onAskCoScoutFromCategory,
   findings: _allFindings,
+  viewMode = {},
+  performance = {},
+  ai = {},
 }: DashboardProps) => {
+  const { isPresentationMode, onExitPresentation, isReportOpen, onCloseReport } = viewMode;
+  const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
+  const {
+    fetchChartInsight,
+    aiContext,
+    aiEnabled,
+    narrative,
+    narrativeLoading,
+    narrativeCached,
+    narrativeError,
+    onNarrativeAsk,
+    onNarrativeRetry,
+    onAskCoScoutFromCategory,
+  } = ai;
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
     findingsCallbacks ?? {};
   const {

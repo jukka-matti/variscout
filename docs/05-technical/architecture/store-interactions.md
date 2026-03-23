@@ -57,6 +57,10 @@ graph TD
         EDV[EditorDashboardView.tsx]
     end
 
+    %% EditorDashboardView passes grouped prop objects to Dashboard:
+    %% viewMode (presentation/report), performance (drill-from),
+    %% ai (narration, insights, CoScout). Core props remain flat.
+
     %% Orchestration hook -> store writes (sync)
     FO -->|syncFindings, setHighlightedFindingId| FS
     FO -->|setFindingsOpen| PS

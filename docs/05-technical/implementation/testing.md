@@ -900,13 +900,13 @@ Validated via code analysis. Priorities based on ROI and risk.
 
 `apps/azure/src/pages/Editor.tsx` — Extract `useEditorOrchestration` hook to consolidate 25 hook calls (AI, investigation, improvement orchestration). Depends on ADR-041 store consolidation.
 
-### P3 — Dashboard.tsx Prop Grouping (873 lines)
+### ~~P3 — Dashboard.tsx Prop Grouping~~ (DONE Mar 2026)
 
-`apps/azure/src/components/Dashboard.tsx` — Group 47 props into domain interfaces (filter, chart, ai, findings). No component extraction needed — correctly uses DashboardBase.
+Grouped 28 flat props into 3 domain interfaces (`viewMode`, `performance`, `ai`) + flat core props. Prop surface reduced from 28 to 14.
 
-### P4 — Shared Dashboard Types (quick-win)
+### ~~P4 — Shared Dashboard Types~~ (DONE Mar 2026)
 
-Extract `FindingsCallbacks` interface to `@variscout/ui` (duplicated in PWA + Azure Dashboard components). 3-5h, zero risk.
+Extracted `FindingsCallbacks` + `AzureFindingsCallbacks` to `@variscout/ui/src/types/findingsCallbacks.ts`. PWA and Azure both import from shared package.
 
 ### Dropped — PWA App.tsx (822 lines)
 
