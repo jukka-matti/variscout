@@ -14,7 +14,7 @@ import {
   buildFindingContext,
   buildFindingSource,
 } from '@variscout/hooks';
-import { usePanelsStore } from '../panels/panelsStore';
+import { bus } from '../../events/bus';
 import { useFindingsStore } from './findingsStore';
 import { useStatusUpdateCards } from '../../hooks/useStatusUpdateCards';
 import { usePopoutSync } from './usePopoutSync';
@@ -168,14 +168,12 @@ export function useFindingsOrchestration({
     (noteText?: string) => {
       const existing = findingsState.findDuplicate(filters);
       if (existing) {
-        usePanelsStore.getState().setFindingsOpen(true);
-        useFindingsStore.getState().setHighlightedFindingId(existing.id);
+        bus.emit('finding:created', { finding: existing });
         return;
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(noteText || '', context);
-      usePanelsStore.getState().setFindingsOpen(true);
-      useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
+      bus.emit('finding:created', { finding: newFinding });
     },
     [filters, drillPath, filteredData, outcome, specs, findingsState]
   );
@@ -202,14 +200,12 @@ export function useFindingsOrchestration({
       const source = buildFindingSource(chartType, categoryKey, anchorX, anchorY);
       const existing = findingsState.findDuplicateSource(source);
       if (existing) {
-        usePanelsStore.getState().setFindingsOpen(true);
-        useFindingsStore.getState().setHighlightedFindingId(existing.id);
+        bus.emit('finding:created', { finding: existing, source });
         return;
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(noteText ?? '', context, source);
-      usePanelsStore.getState().setFindingsOpen(true);
-      useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
+      bus.emit('finding:created', { finding: newFinding, source });
       return newFinding;
     },
     [filters, drillPath, filteredData, outcome, specs, findingsState]
