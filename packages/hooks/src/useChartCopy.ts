@@ -87,6 +87,7 @@ async function withFixedSize<T>(
  *   Defaults to dark theme (#0f172a).
  */
 export function useChartCopy(options?: UseChartCopyOptions): UseChartCopyReturn {
+  const getBackgroundColor = options?.getBackgroundColor;
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -113,7 +114,7 @@ export function useChartCopy(options?: UseChartCopyOptions): UseChartCopyReturn 
 
       prepareForExport(node);
       try {
-        const backgroundColor = options?.getBackgroundColor?.() ?? DEFAULT_BG;
+        const backgroundColor = getBackgroundColor?.() ?? DEFAULT_BG;
         const { toBlob } = await import('html-to-image');
         const blob = await withFixedSize(node, chartName, async el => {
           return toBlob(el, { cacheBust: true, backgroundColor, pixelRatio: 2 });
@@ -128,7 +129,7 @@ export function useChartCopy(options?: UseChartCopyOptions): UseChartCopyReturn 
         cleanupAfterExport(node);
       }
     },
-    [options?.getBackgroundColor, showFeedback]
+    [getBackgroundColor, showFeedback]
   );
 
   const handleDownloadPng = useCallback(
@@ -138,7 +139,7 @@ export function useChartCopy(options?: UseChartCopyOptions): UseChartCopyReturn 
 
       prepareForExport(node);
       try {
-        const backgroundColor = options?.getBackgroundColor?.() ?? DEFAULT_BG;
+        const backgroundColor = getBackgroundColor?.() ?? DEFAULT_BG;
         const { toPng } = await import('html-to-image');
         const dataUrl = await withFixedSize(node, chartName, async el => {
           return toPng(el, { cacheBust: true, backgroundColor, pixelRatio: 2 });
@@ -154,7 +155,7 @@ export function useChartCopy(options?: UseChartCopyOptions): UseChartCopyReturn 
         cleanupAfterExport(node);
       }
     },
-    [options?.getBackgroundColor, showFeedback]
+    [getBackgroundColor, showFeedback]
   );
 
   const handleDownloadSvg = useCallback(

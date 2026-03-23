@@ -285,6 +285,7 @@ function AppMain() {
   }, [
     rawData.length,
     specs,
+    factors.length,
     capabilitySuggestionDismissed,
     showCapabilitySuggestion,
     importFlow.yamazumiDetection,

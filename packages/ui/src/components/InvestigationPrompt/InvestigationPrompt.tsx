@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Network, X } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 
@@ -55,20 +55,7 @@ const InvestigationPrompt: React.FC<InvestigationPromptProps> = ({
 
   const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    if (filterCount === 1 && !dismissed && !isFindingsOpen) {
-      setVisible(true);
-    }
-  }, [filterCount, dismissed, isFindingsOpen]);
-
-  // Auto-hide if findings panel is opened
-  useEffect(() => {
-    if (isFindingsOpen && visible) {
-      handleDismiss();
-    }
-  }, [isFindingsOpen]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleDismiss = () => {
+  const handleDismiss = useCallback(() => {
     setVisible(false);
     setDismissed(true);
     try {
@@ -76,7 +63,22 @@ const InvestigationPrompt: React.FC<InvestigationPromptProps> = ({
     } catch {
       // sessionStorage unavailable
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (filterCount === 1 && !dismissed && !isFindingsOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- show prompt when user first drills down
+      setVisible(true);
+    }
+  }, [filterCount, dismissed, isFindingsOpen]);
+
+  // Auto-hide if findings panel is opened
+  useEffect(() => {
+    if (isFindingsOpen && visible) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- auto-dismiss when findings panel opens
+      handleDismiss();
+    }
+  }, [isFindingsOpen, visible, handleDismiss]);
 
   const handleOpen = () => {
     onOpenFindings();

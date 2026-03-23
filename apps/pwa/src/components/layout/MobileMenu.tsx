@@ -25,6 +25,40 @@ const SectionHeader = ({ title }: { title: string }) => (
   </div>
 );
 
+interface MobileMenuItemProps {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  onClose: () => void;
+  danger?: boolean;
+}
+
+const MobileMenuItem: React.FC<MobileMenuItemProps> = ({
+  icon,
+  label,
+  onClick,
+  onClose,
+  danger,
+}) => (
+  <button
+    onClick={() => {
+      onClick();
+      onClose();
+    }}
+    className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm touch-feedback
+              ${
+                danger
+                  ? 'text-red-400 hover:bg-red-400/10 active:bg-red-400/20'
+                  : 'text-content hover:bg-surface-tertiary/50 active:bg-surface-tertiary'
+              }
+              transition-colors`}
+    style={{ minHeight: 48 }}
+  >
+    {icon}
+    <span>{label}</span>
+  </button>
+);
+
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
@@ -83,36 +117,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
   if (!isOpen) return null;
 
-  const MenuItem = ({
-    icon,
-    label,
-    onClick,
-    danger,
-  }: {
-    icon: React.ReactNode;
-    label: string;
-    onClick: () => void;
-    danger?: boolean;
-  }) => (
-    <button
-      onClick={() => {
-        onClick();
-        onClose();
-      }}
-      className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm touch-feedback
-                ${
-                  danger
-                    ? 'text-red-400 hover:bg-red-400/10 active:bg-red-400/20'
-                    : 'text-content hover:bg-surface-tertiary/50 active:bg-surface-tertiary'
-                }
-                transition-colors`}
-      style={{ minHeight: 48 }}
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
-  );
-
   return (
     <>
       {/* Backdrop */}
@@ -137,30 +141,34 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
         <div className="py-2">
           {/* Export Section */}
           <SectionHeader title={t('nav.export')} />
-          <MenuItem
+          <MobileMenuItem
             icon={fileSpreadsheetIcon}
             label={t('export.asCsv')}
             onClick={onExportCSV}
+            onClose={onClose}
           />
-          <MenuItem
+          <MobileMenuItem
             icon={imageIcon}
             label={t('export.asImage')}
             onClick={onExportImage}
+            onClose={onClose}
           />
 
           <div className="h-px bg-surface-tertiary my-2" />
 
           {/* View Section */}
           <SectionHeader title="View" />
-          <MenuItem
+          <MobileMenuItem
             icon={tableIcon}
             label={t('panel.dataTable')}
             onClick={onOpenDataTable}
+            onClose={onClose}
           />
-          <MenuItem
+          <MobileMenuItem
             icon={presentationIcon}
             label={t('nav.presentationMode')}
             onClick={onEnterPresentationMode}
+            onClose={onClose}
           />
 
           <div className="h-px bg-surface-tertiary my-2" />
@@ -168,21 +176,23 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           {/* Analysis Section */}
           <SectionHeader title="Analysis" />
           {onOpenSpecEditor && (
-            <MenuItem
+            <MobileMenuItem
               icon={targetIcon}
               label={t('stats.editSpecs')}
               onClick={onOpenSpecEditor}
+              onClose={onClose}
             />
           )}
-          <MenuItem icon={plusIcon} label={t('nav.newAnalysis')} onClick={onReset} />
+          <MobileMenuItem icon={plusIcon} label={t('nav.newAnalysis')} onClick={onReset} onClose={onClose} />
 
           <div className="h-px bg-surface-tertiary my-2" />
 
           {/* Settings */}
-          <MenuItem
+          <MobileMenuItem
             icon={settingsIcon}
             label={t('nav.settings')}
             onClick={onOpenSettings}
+            onClose={onClose}
           />
         </div>
       </div>

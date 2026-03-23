@@ -18,6 +18,38 @@ const maximizeIcon = <Maximize size={18} />;
 const share2Icon = <Share2 size={18} />;
 const settingsIcon = <Settings size={18} />;
 
+interface HeaderIconButtonProps {
+  icon: React.ReactNode;
+  title: string;
+  onClick: () => void;
+  isActive?: boolean;
+  buttonRef?: React.RefObject<HTMLButtonElement | null>;
+}
+
+const HeaderIconButton: React.FC<HeaderIconButtonProps> = ({
+  icon,
+  title,
+  onClick,
+  isActive,
+  buttonRef,
+}) => (
+  <button
+    ref={buttonRef}
+    onClick={onClick}
+    className={`p-2 rounded-lg transition-colors ${
+      isActive
+        ? 'text-blue-400 bg-blue-400/10'
+        : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
+    }`}
+    title={title}
+    aria-label={title}
+    aria-pressed={isActive}
+    style={{ minWidth: 44, minHeight: 44 }}
+  >
+    {icon}
+  </button>
+);
+
 interface AppHeaderProps {
   hasData: boolean;
   dataFilename: string | null;
@@ -70,37 +102,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const [isShareOpen, setIsShareOpen] = useState(false);
   const shareButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Icon button component for consistent styling
-  const IconButton = ({
-    icon,
-    title,
-    onClick,
-    isActive,
-    buttonRef,
-  }: {
-    icon: React.ReactNode;
-    title: string;
-    onClick: () => void;
-    isActive?: boolean;
-    buttonRef?: React.RefObject<HTMLButtonElement | null>;
-  }) => (
-    <button
-      ref={buttonRef}
-      onClick={onClick}
-      className={`p-2 rounded-lg transition-colors ${
-        isActive
-          ? 'text-blue-400 bg-blue-400/10'
-          : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
-      }`}
-      title={title}
-      aria-label={title}
-      aria-pressed={isActive}
-      style={{ minWidth: 44, minHeight: 44 }}
-    >
-      {icon}
-    </button>
-  );
-
   return (
     <header className="h-14 border-b border-edge flex items-center justify-between px-4 sm:px-6 bg-surface/50 backdrop-blur-md z-10">
       {/* Logo and dataset name - clickable to start new analysis */}
@@ -139,7 +140,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <div className="hidden sm:flex items-center gap-1">
                 {/* Data Table Toggle */}
                 {onToggleDataPanel && (
-                  <IconButton
+                  <HeaderIconButton
                     icon={table2Icon}
                     title={isDataPanelOpen ? t('data.hideDataTable') : t('data.showDataTable')}
                     onClick={onToggleDataPanel}
@@ -183,14 +184,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 )}
 
                 {/* Fullscreen / Presentation Mode */}
-                <IconButton
+                <HeaderIconButton
                   icon={maximizeIcon}
                   title={t('nav.presentationMode')}
                   onClick={onEnterPresentationMode}
                 />
 
                 {/* Export */}
-                <IconButton
+                <HeaderIconButton
                   icon={share2Icon}
                   title={t('nav.export')}
                   onClick={() => setIsShareOpen(true)}
@@ -198,7 +199,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 />
 
                 {/* Settings */}
-                <IconButton
+                <HeaderIconButton
                   icon={settingsIcon}
                   title={t('nav.settings')}
                   onClick={onOpenSettings}

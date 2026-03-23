@@ -157,7 +157,7 @@ export function useFilterNavigation(
       const state: HistoryState = { drillFilters: {} };
       window.history.replaceState(state, '');
     }
-  }, [shouldSyncUrl, shouldUseHistory, columnAliases, setFilters]);
+  }, [shouldSyncUrl, shouldUseHistory, columnAliases, setFilters, setFilterStack]);
 
   // Handle browser back/forward button
   useEffect(() => {
@@ -185,7 +185,7 @@ export function useFilterNavigation(
 
     window.addEventListener('popstate', handlePopstate);
     return () => window.removeEventListener('popstate', handlePopstate);
-  }, [shouldUseHistory, shouldSyncUrl, columnAliases, setFilters]);
+  }, [shouldUseHistory, shouldSyncUrl, columnAliases, setFilters, setFilterStack]);
 
   // Sync filter stack to DataContext filters and optionally update URL/history
   const syncFiltersFromStack = useCallback(

@@ -23,6 +23,8 @@ interface ContextMenuState {
   chartType: 'boxplot' | 'pareto';
 }
 
+const EMPTY_HIGHLIGHTS: Record<string, HighlightColor> = {};
+
 const INITIAL_MENU_STATE: ContextMenuState = {
   isOpen: false,
   position: { x: 0, y: 0 },
@@ -70,8 +72,8 @@ export function useAnnotations({
 }: UseAnnotationsOptions): UseAnnotationsResult {
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(INITIAL_MENU_STATE);
 
-  const boxplotHighlights = displayOptions.boxplotHighlights ?? {};
-  const paretoHighlights = displayOptions.paretoHighlights ?? {};
+  const boxplotHighlights = displayOptions.boxplotHighlights ?? EMPTY_HIGHLIGHTS;
+  const paretoHighlights = displayOptions.paretoHighlights ?? EMPTY_HIGHLIGHTS;
 
   // Context menu handlers
   const handleContextMenu = useCallback(

@@ -5,6 +5,41 @@ import { useTranslation } from '@variscout/hooks';
 const imageIcon = <Image size={16} />;
 const fileSpreadsheetIcon = <FileSpreadsheet size={16} />;
 
+interface ShareMenuItemProps {
+  icon: React.ReactNode;
+  label: string;
+  description: string;
+  onClick: () => void;
+  onClose: () => void;
+}
+
+const ShareMenuItem: React.FC<ShareMenuItemProps> = ({
+  icon,
+  label,
+  description,
+  onClick,
+  onClose,
+}) => (
+  <button
+    onClick={() => {
+      onClick();
+      onClose();
+    }}
+    aria-label={label}
+    className="w-full flex items-start gap-3 px-3 py-2.5 text-left hover:bg-surface-tertiary/50 rounded-lg transition-colors group"
+  >
+    <div className="p-1.5 bg-surface-tertiary rounded-lg text-content-secondary group-hover:text-white group-hover:bg-surface-elevated transition-colors">
+      {icon}
+    </div>
+    <div className="flex-1 min-w-0">
+      <div className="text-sm font-medium text-content group-hover:text-white">{label}</div>
+      <div className="text-xs text-content-muted group-hover:text-content-secondary">
+        {description}
+      </div>
+    </div>
+  </button>
+);
+
 interface SharePopoverProps {
   isOpen: boolean;
   onClose: () => void;
@@ -69,37 +104,6 @@ const SharePopover: React.FC<SharePopoverProps> = ({
 
   if (!isOpen) return null;
 
-  const MenuItem = ({
-    icon,
-    label,
-    description,
-    onClick,
-  }: {
-    icon: React.ReactNode;
-    label: string;
-    description: string;
-    onClick: () => void;
-  }) => (
-    <button
-      onClick={() => {
-        onClick();
-        onClose();
-      }}
-      aria-label={label}
-      className="w-full flex items-start gap-3 px-3 py-2.5 text-left hover:bg-surface-tertiary/50 rounded-lg transition-colors group"
-    >
-      <div className="p-1.5 bg-surface-tertiary rounded-lg text-content-secondary group-hover:text-white group-hover:bg-surface-elevated transition-colors">
-        {icon}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-content group-hover:text-white">{label}</div>
-        <div className="text-xs text-content-muted group-hover:text-content-secondary">
-          {description}
-        </div>
-      </div>
-    </button>
-  );
-
   return (
     <div
       ref={popoverRef}
@@ -122,17 +126,19 @@ const SharePopover: React.FC<SharePopoverProps> = ({
 
       {/* Options */}
       <div className="p-2">
-        <MenuItem
+        <ShareMenuItem
           icon={imageIcon}
           label={t('export.asImage')}
           description={t('export.imageDesc')}
           onClick={onExportImage}
+          onClose={onClose}
         />
-        <MenuItem
+        <ShareMenuItem
           icon={fileSpreadsheetIcon}
           label={t('export.asCsv')}
           description={t('export.csvDesc')}
           onClick={onExportCSV}
+          onClose={onClose}
         />
       </div>
     </div>

@@ -246,6 +246,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
             onAskCoScout={onAskCoScout}
             onSetCauseRole={onSetCauseRole}
           />
+          {/* eslint-disable-next-line react-hooks/immutability -- recursive useCallback: renderNode must reference itself */}
           {isExpanded && visibleChildren.map(child => renderNode(child, extraDepth))}
         </React.Fragment>
       );
