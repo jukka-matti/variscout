@@ -259,6 +259,8 @@ const baseDataCtx = {
   yamazumiMapping: null,
   setAnalysisMode: vi.fn(),
   setYamazumiMapping: vi.fn(),
+  viewState: null,
+  setViewState: vi.fn(),
 };
 
 const defaultProps = {

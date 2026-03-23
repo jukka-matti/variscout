@@ -1,2 +1,2 @@
 export { usePanelsStore } from './panelsStore';
-export { usePanelsSideEffects } from './usePanelsSideEffects';
+export { usePanelsPersistence } from './usePanelsPersistence';
