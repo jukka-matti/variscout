@@ -174,3 +174,68 @@ Components subscribing to multiple stores via selectors is the normal Zustand pa
 ### Testing Stores in Isolation
 
 Each store can be tested independently by calling actions and asserting state, without mocking other stores. Cross-store interactions are tested at the orchestration hook level. See `features/panels/__tests__/panelsStore.test.ts` for the reference pattern.
+
+## Event Bus Architecture (ADR-046)
+
+The event bus replaces direct cross-store `.getState()` calls in orchestration hooks. See [ADR-046](../../07-decisions/adr-046-event-driven-architecture.md) for the full decision record.
+
+### Before and after
+
+**Before (direct cross-store call):**
+
+```typescript
+// useFindingsOrchestration.ts — reaches into a different feature's store
+usePanelsStore.getState().setFindingsOpen(true);
+```
+
+**After (event emission):**
+
+```typescript
+// useFindingsOrchestration.ts — emits a domain event
+bus.emit('finding:created', { finding });
+
+// apps/azure/src/events/listeners.ts — side effect centralized here
+bus.on('finding:created', () => {
+  usePanelsStore.getState().setFindingsOpen(true);
+});
+```
+
+### 11 typed events in 3 layers
+
+**Domain events** (7) — emitted by orchestration hooks after CRUD operations:
+
+| Event                          | Emitted After                                           |
+| ------------------------------ | ------------------------------------------------------- |
+| `finding:created`              | New finding pinned or observed                          |
+| `finding:pinned`               | Finding explicitly pinned from chart                    |
+| `finding:status-changed`       | Finding status updated (observed → investigating, etc.) |
+| `hypothesis:validated`         | ANOVA validation completed on a hypothesis              |
+| `idea:projection-started`      | User initiates What-If projection for an idea           |
+| `idea:projection-completed`    | What-If round-trip returns projected Cpk                |
+| `improvement:action-completed` | Improvement action item marked complete                 |
+
+**UI choreography events** (4) — emitted by domain listeners, consumed by panel listeners:
+
+| Event                    | Effect                                           |
+| ------------------------ | ------------------------------------------------ |
+| `ui:open-findings-panel` | `panelsStore.setFindingsOpen(true)`              |
+| `ui:open-whatif-panel`   | `panelsStore.setWhatIfOpen(true)`                |
+| `ui:close-whatif-panel`  | `panelsStore.setWhatIfOpen(false)`               |
+| `ui:navigate-to`         | Multi-store navigation for AI `navigate_to` tool |
+
+**AI integration** — AI action tools call the same CRUD functions as user actions. The resulting domain events are identical. No dedicated AI event layer is needed.
+
+### Centralized listeners
+
+All cross-domain side effects are registered in `apps/azure/src/events/listeners.ts`. The file is mounted once in `Editor.tsx` via `useEffect`. Reading this file gives a complete picture of every cross-domain side effect in the application.
+
+```
+apps/azure/src/events/
+├── bus.ts          — mitt instance (200B, typed)
+├── types.ts        — AppEvents type map
+└── listeners.ts    — all on() registrations
+```
+
+### Effect on the cross-store write table
+
+With the event bus in place, the [Cross-Store Writes via Orchestration Hooks](#cross-store-writes-via-orchestration-hooks) table above reflects intra-feature syncs only (e.g., `useFindingsOrchestration` → `findingsStore`). Cross-domain writes now flow through `listeners.ts`. The orchestration hooks themselves contain zero cross-domain `.getState()` calls.
