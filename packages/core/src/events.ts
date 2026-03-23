@@ -1,4 +1,4 @@
-import mitt from 'mitt';
+import mitt, { type Emitter } from 'mitt';
 import type { Finding, FindingSource, FindingStatus, FindingOutcome, ActionItem } from './findings';
 
 // ── Navigation Types ──────────────────────────────────────────────────
@@ -98,6 +98,15 @@ export interface DomainEventMap {
 
 export type DomainEventBus = ReturnType<typeof createEventBus>;
 
-export function createEventBus() {
-  return mitt<DomainEventMap>();
+// mitt's generic constraint requires `Record<EventType, unknown>`.
+// We satisfy this by using a type-level workaround: call mitt() untyped
+// and cast the result to a properly-typed Emitter.
+type DomainEmitter = Emitter<Record<string, unknown>> & {
+  on<K extends keyof DomainEventMap>(type: K, handler: (event: DomainEventMap[K]) => void): void;
+  off<K extends keyof DomainEventMap>(type: K, handler?: (event: DomainEventMap[K]) => void): void;
+  emit<K extends keyof DomainEventMap>(type: K, event: DomainEventMap[K]): void;
+};
+
+export function createEventBus(): DomainEmitter {
+  return mitt() as DomainEmitter;
 }
