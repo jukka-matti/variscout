@@ -50,28 +50,28 @@ export const bus = mitt<AppEvents>();
 
 **Layer 1: Domain events** (7 events — emitted by orchestration hooks after CRUD operations)
 
-| Event                          | Emitted by                      | Payload                                     |
-| ------------------------------ | ------------------------------- | ------------------------------------------- |
-| `finding:created`              | `useFindingsOrchestration`      | `{ finding: Finding }`                      |
-| `finding:pinned`               | `useFindingsOrchestration`      | `{ finding: Finding }`                      |
-| `finding:status-changed`       | `useFindingsOrchestration`      | `{ id: string, status: FindingStatus }`     |
-| `hypothesis:validated`         | `useInvestigationOrchestration` | `{ id: string, result: ValidationResult }`  |
-| `idea:projection-started`      | `useInvestigationOrchestration` | `{ ideaId: string }`                        |
-| `idea:projection-completed`    | `useInvestigationOrchestration` | `{ ideaId: string, cpkProjection: number }` |
-| `improvement:action-completed` | `useImprovementOrchestration`   | `{ actionId: string }`                      |
+| Event                       | Emitted by                      | Payload                                                                                                  |
+| --------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `finding:created`           | `useFindingsOrchestration`      | `{ finding: Finding, source?: FindingSource }`                                                           |
+| `finding:status-changed`    | `useFindingsOrchestration`      | `{ findingId: string, from: FindingStatus, to: FindingStatus }` — reserved                               |
+| `finding:resolved`          | `useFindingsOrchestration`      | `{ findingId: string, outcome: FindingOutcome }` — reserved                                              |
+| `hypothesis:validated`      | `useInvestigationOrchestration` | `{ hypothesisId: string, status: 'supported'\|'contradicted'\|'partial', eta2: number }` — reserved      |
+| `hypothesis:cause-assigned` | `useInvestigationOrchestration` | `{ hypothesisId: string, role: 'primary'\|'contributing', findingId: string }` — reserved                |
+| `idea:projection-attached`  | `useInvestigationOrchestration` | `{ ideaId: string, projected: { mean: number, sigma: number, cpk: number, yield?: number } }` — reserved |
+| `idea:converted-to-actions` | `useImprovementOrchestration`   | `{ ideaIds: string[], findingId: string, actions: ActionItem[] }` — reserved                             |
 
 **Layer 2: UI choreography events** (4 events — emitted by domain listeners, consumed by panel listeners)
 
-| Event                    | Meaning                                                  |
-| ------------------------ | -------------------------------------------------------- |
-| `ui:open-findings-panel` | A workflow requires the findings panel to become visible |
-| `ui:open-whatif-panel`   | An idea projection round-trip needs the What-If panel    |
-| `ui:close-whatif-panel`  | Projection completed; panel can close                    |
-| `ui:navigate-to`         | AI `navigate_to` tool resolved a destination             |
+| Event                      | Meaning                                                           |
+| -------------------------- | ----------------------------------------------------------------- |
+| `panel:visibility-changed` | A workflow requires a panel to open or close                      |
+| `navigate:to`              | AI `navigate_to` tool or a domain listener resolved a destination |
+| `highlight:finding`        | Scroll to and briefly highlight a specific finding — reserved     |
+| `highlight:chart-point`    | Briefly highlight a data point on the active chart — reserved     |
 
 **Layer 3: AI integration** (flows through domain events — no dedicated AI layer)
 
-AI action tools call CRUD functions in `@variscout/hooks` (the same path as user actions). The resulting domain events are identical. `useToolHandlers` emits `ui:navigate-to` directly when the tool resolves navigation targets.
+AI action tools call CRUD functions in `@variscout/hooks` (the same path as user actions). The resulting domain events are identical. `useToolHandlers` emits `navigate:to` directly when the tool resolves navigation targets.
 
 ### Centralized listeners
 
@@ -92,8 +92,8 @@ bus.on('finding:created', () => {
   usePanelsStore.getState().setFindingsOpen(true);
 });
 
-// Example: idea:projection-started → open what-if panel
-bus.on('idea:projection-started', () => {
+// Example: idea:projection-attached → open what-if panel (listener would be added when reserved event is activated)
+bus.on('idea:projection-attached', () => {
   usePanelsStore.getState().setWhatIfOpen(true);
 });
 ```

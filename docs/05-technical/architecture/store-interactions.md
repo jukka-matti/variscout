@@ -204,24 +204,24 @@ bus.on('finding:created', () => {
 
 **Domain events** (7) — emitted by orchestration hooks after CRUD operations:
 
-| Event                          | Emitted After                                           |
-| ------------------------------ | ------------------------------------------------------- |
-| `finding:created`              | New finding pinned or observed                          |
-| `finding:pinned`               | Finding explicitly pinned from chart                    |
-| `finding:status-changed`       | Finding status updated (observed → investigating, etc.) |
-| `hypothesis:validated`         | ANOVA validation completed on a hypothesis              |
-| `idea:projection-started`      | User initiates What-If projection for an idea           |
-| `idea:projection-completed`    | What-If round-trip returns projected Cpk                |
-| `improvement:action-completed` | Improvement action item marked complete                 |
+| Event                       | Emitted After                                                      |
+| --------------------------- | ------------------------------------------------------------------ |
+| `finding:created`           | New finding pinned or observed (active)                            |
+| `finding:status-changed`    | Finding status updated (observed → investigating, etc.) — reserved |
+| `finding:resolved`          | Finding marked resolved with an outcome — reserved                 |
+| `hypothesis:validated`      | ANOVA validation completed on a hypothesis — reserved              |
+| `hypothesis:cause-assigned` | Hypothesis linked as primary or contributing cause — reserved      |
+| `idea:projection-attached`  | What-If round-trip returns projected Cpk for an idea — reserved    |
+| `idea:converted-to-actions` | Idea ideas converted to improvement action items — reserved        |
 
-**UI choreography events** (4) — emitted by domain listeners, consumed by panel listeners:
+**UI choreography events** (4) — emitted by domain listeners, consumed by panel or navigation listeners:
 
-| Event                    | Effect                                           |
-| ------------------------ | ------------------------------------------------ |
-| `ui:open-findings-panel` | `panelsStore.setFindingsOpen(true)`              |
-| `ui:open-whatif-panel`   | `panelsStore.setWhatIfOpen(true)`                |
-| `ui:close-whatif-panel`  | `panelsStore.setWhatIfOpen(false)`               |
-| `ui:navigate-to`         | Multi-store navigation for AI `navigate_to` tool |
+| Event                      | Effect                                               |
+| -------------------------- | ---------------------------------------------------- |
+| `panel:visibility-changed` | Open or close any named panel in `panelsStore`       |
+| `navigate:to`              | Multi-store navigation for AI `navigate_to` tool     |
+| `highlight:finding`        | Scroll to and briefly highlight a finding — reserved |
+| `highlight:chart-point`    | Briefly highlight a data point on chart — reserved   |
 
 **AI integration** — AI action tools call the same CRUD functions as user actions. The resulting domain events are identical. No dedicated AI event layer is needed.
 
