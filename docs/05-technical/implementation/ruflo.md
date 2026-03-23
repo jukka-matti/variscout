@@ -17,7 +17,7 @@ ruflo is an MCP-integrated AI development tooling layer for VariScout. It provid
 npx ruflo@3.5.42 daemon status
 npx ruflo@3.5.42 hooks metrics              # Hook intelligence stats
 
-# Semantic search (72+ indexed entries, ~80-100ms response)
+# Semantic search (117 indexed entries, ~80-100ms response)
 npx ruflo@3.5.42 memory search --query "Cpk calculation"
 npx ruflo@3.5.42 memory search --query "Azure authentication"
 npx ruflo@3.5.42 memory search --query "which persona needs admin"
@@ -60,21 +60,22 @@ Claude Code ──MCP──▶ ruflo MCP Server (npx, port 3000)
 | `.mcp.json`                | MCP server definition (autoStart: true)            |
 | `.ruflo/config.yaml`       | Runtime config (topology, memory backend, workers) |
 | `.ruflo/daemon-state.json` | Worker state and schedules                         |
-| `.claude/settings.json`    | Hooks, model preferences, worker list              |
+| `.claude/settings.json`    | Hooks, statusline, permissions, attribution        |
 
 ### Memory Namespaces
 
-| Namespace       | Entries | Contents                                                                         |
-| --------------- | ------- | -------------------------------------------------------------------------------- |
-| `architecture`  | ~15     | Monorepo structure, storage split, sub-path exports, App Insights, key files     |
-| `conventions`   | ~8      | Coding standards, import rules, color usage, token proxy, component patterns     |
-| `decisions`     | ~12     | ADR summaries, removed features, Azure architecture, system limits               |
-| `domain`        | ~40+    | Personas (9), use cases (14), flows, methodology, four lenses, two voices        |
-| `testing`       | ~12     | Test counts, patterns, priorities, coverage gaps, e2e selectors                  |
-| `anti-patterns` | ~6      | Common mistakes: no hardcoded colors, no cross-package imports, removed features |
-| `state`         | ~2      | Product status, recent changes                                                   |
+| Namespace             | Entries | Contents                                                                         |
+| --------------------- | ------- | -------------------------------------------------------------------------------- |
+| `domain`              | 51      | Personas (9), use cases (14), flows, methodology, four lenses, two voices        |
+| `architecture`        | 20      | Monorepo structure, storage split, sub-path exports, App Insights, key files     |
+| `decisions`           | 14      | ADR summaries, removed features, Azure architecture, system limits               |
+| `testing`             | 13      | Test counts, patterns, priorities, coverage gaps, e2e selectors                  |
+| `conventions`         | 10      | Coding standards, import rules, color usage, token proxy, component patterns     |
+| `anti-patterns`       | 6       | Common mistakes: no hardcoded colors, no cross-package imports, removed features |
+| `state`               | 2       | Product status, recent changes                                                   |
+| `project_exploration` | 1       | Codebase exploration context                                                     |
 
-Total: 72+ entries with HNSW vector embeddings. Semantic search returns results in ~80-100ms.
+Total: 117 entries with HNSW vector embeddings. Semantic search returns results in ~80-100ms.
 
 ### Memory + MEMORY.md Complementarity
 
@@ -83,7 +84,7 @@ Both systems are used and serve different purposes:
 | Feature           | Claude Code MEMORY.md             | Ruflo AgentDB                                 |
 | ----------------- | --------------------------------- | --------------------------------------------- |
 | Always in context | Yes (auto-loaded)                 | No (explicit retrieval)                       |
-| Capacity          | ~200 lines                        | 72+ entries (thousands possible)              |
+| Capacity          | ~200 lines                        | 117 entries (thousands possible)              |
 | Search            | Scanned by AI during context      | Semantic vector search (HNSW)                 |
 | Best for          | High-level project state, routing | Detailed domain knowledge, semantic discovery |
 
