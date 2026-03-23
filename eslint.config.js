@@ -21,6 +21,9 @@ export default [
   {
     ignores: ['dist/**', 'node_modules/**', '*.config.js', '*.config.ts'],
   },
+  // React Compiler validation rules (from eslint-plugin-react-hooks v7+)
+  // recommended-latest includes purity, immutability, refs, static-components etc.
+  reactHooks.configs.flat['recommended-latest'],
   {
     files: ['**/src/**/*.{ts,tsx}'],
     languageOptions: {
@@ -40,7 +43,6 @@ export default [
     plugins: {
       '@typescript-eslint': typescript,
       react: react,
-      'react-hooks': reactHooks,
     },
     settings: {
       react: {
@@ -58,9 +60,16 @@ export default [
       'react/prop-types': 'off',
       'react/display-name': 'off',
 
-      // React hooks
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      // React Compiler rules — warn for now, upgrade to error incrementally
+      // These rules validate React Compiler compatibility (purity, refs, memoization)
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/purity': 'warn',
+      'react-hooks/immutability': 'warn',
+      'react-hooks/set-state-in-render': 'warn',
+      'react-hooks/static-components': 'warn',
+      'react-hooks/preserve-manual-memoization': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/globals': 'warn',
 
       // General
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],

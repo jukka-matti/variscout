@@ -3,12 +3,18 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "inputs": ["src/**", "tsconfig.json", "package.json"],
       "outputs": ["dist/**"]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "test/**", "vitest.config.*", "tsconfig.json"],
+      "outputs": []
     },
-    "lint": {},
+    "lint": {
+      "inputs": ["src/**", "eslint.config.*"],
+      "outputs": []
+    },
     "dev": {
       "cache": false,
       "persistent": true
