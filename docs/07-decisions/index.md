@@ -56,6 +56,7 @@ This section captures key architectural decisions made during VariScout developm
 | [042](adr-042-project-dashboard.md)                  | Project Dashboard                        | Accepted   | 2026-03-22 |
 | [043](adr-043-teams-entry-experience.md)             | Teams Entry Experience                   | Accepted   | 2026-03-22 |
 | [044](adr-044-architectural-review.md)               | Architectural Review (Mar 2026)          | Accepted   | 2026-03-23 |
+| [045](adr-045-modular-architecture.md)               | Modular Architecture (DDD-Lite + FSD)    | Accepted   | 2026-03-23 |
 
 ---
 

@@ -1,5 +1,15 @@
 # Monorepo Rules
 
+## Architecture
+
+DDD-lite with Feature-Sliced Design ([ADR-045](../../docs/07-decisions/adr-045-modular-architecture.md)):
+- **Domain layer** (`@variscout/core`) — pure TypeScript, no React
+- **Orchestration layer** (`@variscout/hooks`) — React hooks, data pipeline
+- **Presentation layer** (`@variscout/ui`, `@variscout/charts`) — props-based components
+- **Apps layer** — Azure (Feature-Sliced + Zustand), PWA (Context, flat)
+
+Dependencies flow strictly downward. Packages never import apps.
+
 ## Package Structure
 
 ```
