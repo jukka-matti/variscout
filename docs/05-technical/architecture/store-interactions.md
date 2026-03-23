@@ -188,3 +188,42 @@ useFindingsStore.getState().setHighlightedFindingId(finding.id);
 **Why direct calls, not an event bus:** An event bus (ADR-046, superseded) was implemented and evaluated. At 5 stores / 9 cross-store interactions, direct calls provide better traceability ("Go to Definition" works, stack traces are clear) without the indirection cost of events. See [ADR-046](../../07-decisions/adr-046-event-driven-architecture.md) for the full evaluation.
 
 **Bridge hooks** (e.g., `usePanelsPersistence`) handle Zustand→Context persistence via Zustand's `.subscribe()` — the community-approved pattern for reactive persistence bridges.
+
+### How to Add a Cross-Store Side Effect
+
+When a domain action in one feature needs to trigger a side effect in another feature's store:
+
+**Step 1:** Identify the orchestration hook that owns the triggering action.
+
+| Action                      | Orchestration Hook              |
+| --------------------------- | ------------------------------- |
+| Finding created/pinned      | `useFindingsOrchestration`      |
+| Hypothesis linked           | `useInvestigationOrchestration` |
+| AI tool navigation          | `useToolHandlers`               |
+| Improvement idea projection | `useInvestigationOrchestration` |
+
+**Step 2:** Add the `getState()` call in the orchestration hook:
+
+```typescript
+// In useFindingsOrchestration.ts
+const handlePinFinding = useCallback(() => {
+  const newFinding = findingsState.addFinding(text, context);
+
+  // Cross-store side effect: open findings panel + highlight
+  usePanelsStore.getState().setFindingsOpen(true);
+  useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
+
+  return newFinding;
+}, [findingsState]);
+```
+
+**Step 3:** Test the side effect in the orchestration hook's test file (not in the store test).
+
+### Anti-Patterns
+
+| Don't                                       | Do Instead                                        |
+| ------------------------------------------- | ------------------------------------------------- |
+| `bus.emit('finding:created')`               | Direct `getState()` call in orchestration hook    |
+| Call `getState()` from a component          | Call from orchestration hook, pass result as prop |
+| `storeA.subscribe(() => storeB.setState())` | Direct `getState()` call (avoids infinite loops)  |
+| Import stores in other stores               | Keep stores independent; coordinate via hooks     |
