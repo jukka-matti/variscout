@@ -20,7 +20,8 @@
     "./i18n": "./src/i18n/index.ts",
     "./performance": "./src/performance.ts",
     "./time": "./src/time.ts",
-    "./projectMetadata": "./src/projectMetadata.ts"
+    "./projectMetadata": "./src/projectMetadata.ts",
+    "./events": "./src/events.ts"
   },
   "scripts": {
     "test": "vitest",
@@ -28,8 +29,9 @@
   },
   "dependencies": {
     "d3-array": "^3.2.4",
-    "read-excel-file": "7.0.2",
-    "papaparse": "^5.5.3"
+    "mitt": "^3.0.1",
+    "papaparse": "^5.5.3",
+    "read-excel-file": "7.0.2"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.1",
