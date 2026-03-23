@@ -28,9 +28,8 @@ import {
   searchProjectArtifacts,
 } from '@variscout/core';
 import type { UseKnowledgeSearchReturn } from '@variscout/hooks';
-import { usePanelsStore } from '../panels/panelsStore';
-import { useFindingsStore } from '../findings/findingsStore';
-import { useInvestigationStore } from '../investigation/investigationStore';
+import { bus } from '../../events/bus';
+import type { NavigationTarget } from '@variscout/core/events';
 
 export interface UseToolHandlersOptions {
   aiAvailable: boolean;
@@ -408,47 +407,13 @@ export function useToolHandlers({
           return JSON.stringify({ proposal: true, ...proposal });
         }
 
-        // Auto-execute navigation
-        const panels = usePanelsStore.getState();
-
-        switch (target) {
-          case 'dashboard':
-            panels.showDashboard();
-            return JSON.stringify({ navigated: 'dashboard' });
-          case 'finding':
-            panels.showEditor();
-            panels.setFindingsOpen(true);
-            if (targetId) {
-              useFindingsStore.getState().setHighlightedFindingId(targetId);
-            }
-            return JSON.stringify({ navigated: 'finding', id: targetId });
-          case 'hypothesis':
-            panels.showEditor();
-            panels.setFindingsOpen(true);
-            if (targetId) {
-              useInvestigationStore.getState().expandToHypothesis(targetId);
-            }
-            return JSON.stringify({ navigated: 'hypothesis', id: targetId });
-          case 'chart':
-            panels.showEditor();
-            if (chartType && chartType !== 'none') {
-              panels.setPendingChartFocus(chartType);
-            }
-            return JSON.stringify({
-              navigated: 'chart',
-              type: chartType !== 'none' ? chartType : undefined,
-            });
-          case 'improvement_workspace':
-            panels.showEditor();
-            panels.setImprovementOpen(true);
-            return JSON.stringify({ navigated: 'improvement_workspace' });
-          case 'report':
-            panels.showEditor();
-            panels.openReport();
-            return JSON.stringify({ navigated: 'report' });
-          default:
-            return JSON.stringify({ error: `Unknown target: ${target}` });
-        }
+        // Auto-execute navigation via domain event
+        bus.emit('navigate:to', {
+          target: target as NavigationTarget,
+          targetId,
+          chartType,
+        });
+        return JSON.stringify({ success: true });
       },
     };
 
