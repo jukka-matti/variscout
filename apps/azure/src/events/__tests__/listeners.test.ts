@@ -129,4 +129,25 @@ describe('registerListeners', () => {
     expect(panels.activeView).toBe('editor');
     expect(panels.isReportOpen).toBe(true);
   });
+
+  it('navigate:to hypothesis opens editor, opens findings panel, and expands hypothesis', () => {
+    usePanelsStore.getState().showDashboard();
+
+    bus.emit('navigate:to', { target: 'hypothesis', targetId: 'h1' });
+
+    const panels = usePanelsStore.getState();
+    expect(panels.activeView).toBe('editor');
+    expect(panels.isFindingsOpen).toBe(true);
+    expect(useInvestigationStore.getState().expandedHypothesisId).toBe('h1');
+  });
+
+  it('navigate:to chart opens editor and sets pending chart focus', () => {
+    usePanelsStore.getState().showDashboard();
+
+    bus.emit('navigate:to', { target: 'chart', chartType: 'ichart' });
+
+    const panels = usePanelsStore.getState();
+    expect(panels.activeView).toBe('editor');
+    expect(panels.pendingChartFocus).toBe('ichart');
+  });
 });
