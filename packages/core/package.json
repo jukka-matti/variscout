@@ -21,7 +21,8 @@
     "./performance": "./src/performance.ts",
     "./time": "./src/time.ts",
     "./projectMetadata": "./src/projectMetadata.ts",
-    "./events": "./src/events.ts"
+    "./events": "./src/events.ts",
+    "./strategy": "./src/analysisStrategy.ts"
   },
   "scripts": {
     "test": "vitest",
