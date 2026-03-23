@@ -71,7 +71,8 @@ export interface HighlightFindingEvent {
 }
 
 export interface HighlightChartPointEvent {
-  point: { x: number; y: number; label?: string };
+  /** Row index in the dataset (matches panelsStore.highlightedChartPoint) */
+  pointIndex: number;
   duration?: number;
 }
 
