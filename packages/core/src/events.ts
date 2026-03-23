@@ -97,6 +97,7 @@ export interface DomainEventMap {
   'navigate:to': NavigateToEvent;
   'panel:visibility-changed': PanelVisibilityChangedEvent;
   'highlight:finding': HighlightFindingEvent;
+  /** @reserved — no emitter/listener yet */
   'highlight:chart-point': HighlightChartPointEvent;
 }
 
