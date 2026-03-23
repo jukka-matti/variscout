@@ -21,7 +21,6 @@ describe('runtimeConfig', () => {
   it('returns and caches config on successful fetch', async () => {
     const validConfig = {
       plan: 'team',
-      functionUrl: 'https://func.azurewebsites.net',
       aiEndpoint: 'https://ai.openai.azure.com',
       aiSearchEndpoint: 'https://search.windows.net',
       aiSearchIndex: 'findings',
@@ -42,7 +41,6 @@ describe('runtimeConfig', () => {
   it('returns cached config on second call without re-fetching', async () => {
     const validConfig = {
       plan: 'team',
-      functionUrl: 'https://func.azurewebsites.net',
       aiEndpoint: 'https://ai.openai.azure.com',
       aiSearchEndpoint: 'https://search.windows.net',
       aiSearchIndex: 'findings',
@@ -73,7 +71,6 @@ describe('runtimeConfig', () => {
 
     expect(result).toEqual({
       plan: '',
-      functionUrl: '',
       aiEndpoint: '',
       aiSearchEndpoint: '',
       aiSearchIndex: '',
@@ -89,7 +86,6 @@ describe('runtimeConfig', () => {
 
     expect(result).toEqual({
       plan: '',
-      functionUrl: '',
       aiEndpoint: '',
       aiSearchEndpoint: '',
       aiSearchIndex: '',
@@ -100,8 +96,7 @@ describe('runtimeConfig', () => {
   it('logs error and returns empty config when URLs use http://', async () => {
     const insecureConfig = {
       plan: 'team',
-      functionUrl: 'http://func.azurewebsites.net',
-      aiEndpoint: 'https://ai.openai.azure.com',
+      aiEndpoint: 'http://ai.openai.azure.com',
       aiSearchEndpoint: 'https://search.windows.net',
       aiSearchIndex: 'findings',
     };
@@ -117,7 +112,6 @@ describe('runtimeConfig', () => {
     expect(consoleSpy).toHaveBeenCalledWith('Runtime config contains invalid URLs');
     expect(result).toEqual({
       plan: '',
-      functionUrl: '',
       aiEndpoint: '',
       aiSearchEndpoint: '',
       aiSearchIndex: '',
@@ -128,7 +122,6 @@ describe('runtimeConfig', () => {
   it('allows empty string URLs (fallback to env vars)', async () => {
     const configWithEmptyUrls = {
       plan: 'standard',
-      functionUrl: '',
       aiEndpoint: '',
       aiSearchEndpoint: '',
       aiSearchIndex: '',
@@ -154,7 +147,6 @@ describe('runtimeConfig', () => {
   it('getRuntimeConfig returns cached config after loadRuntimeConfig', async () => {
     const validConfig = {
       plan: 'team',
-      functionUrl: 'https://func.azurewebsites.net',
       aiEndpoint: 'https://ai.openai.azure.com',
       aiSearchEndpoint: 'https://search.windows.net',
       aiSearchIndex: 'findings',

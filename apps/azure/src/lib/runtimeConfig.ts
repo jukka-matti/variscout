@@ -8,7 +8,6 @@
 
 export interface RuntimeConfig {
   plan: string;
-  functionUrl: string;
   aiEndpoint: string;
   aiSearchEndpoint: string;
   aiSearchIndex: string;
@@ -38,11 +37,7 @@ export async function loadRuntimeConfig(): Promise<RuntimeConfig> {
           return false;
         }
       };
-      if (
-        !isValidUrl(data.functionUrl) ||
-        !isValidUrl(data.aiEndpoint) ||
-        !isValidUrl(data.aiSearchEndpoint)
-      ) {
+      if (!isValidUrl(data.aiEndpoint) || !isValidUrl(data.aiSearchEndpoint)) {
         console.error('Runtime config contains invalid URLs');
       } else {
         cached = data;
@@ -56,7 +51,6 @@ export async function loadRuntimeConfig(): Promise<RuntimeConfig> {
   // Fallback: empty config, consumers fall back to import.meta.env
   cached = {
     plan: '',
-    functionUrl: '',
     aiEndpoint: '',
     aiSearchEndpoint: '',
     aiSearchIndex: '',

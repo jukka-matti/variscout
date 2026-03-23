@@ -19,15 +19,9 @@ vi.mock('../../teams/teamsContext', () => ({
   getTeamsSsoToken: vi.fn(() => Promise.resolve(null)),
 }));
 
-// Mock runtimeConfig
-vi.mock('../../lib/runtimeConfig', () => ({
-  getRuntimeConfig: vi.fn(() => null),
-}));
-
 import { getGraphToken, getGraphTokenWithScopes, clearGraphTokenCache } from '../graphToken';
 import { isLocalDev, getAccessToken } from '../easyAuth';
 import { isInTeams, getTeamsSsoToken } from '../../teams/teamsContext';
-import { getRuntimeConfig } from '../../lib/runtimeConfig';
 
 describe('getGraphToken', () => {
   const originalFetch = globalThis.fetch;
@@ -49,11 +43,12 @@ describe('getGraphToken', () => {
     expect(getAccessToken).toHaveBeenCalled();
   });
 
-  it('falls back to EasyAuth when FUNCTION_URL is empty', async () => {
+  it('falls back to EasyAuth when SSO token exchange fails', async () => {
     vi.mocked(isInTeams).mockReturnValue(true);
     vi.mocked(getTeamsSsoToken).mockResolvedValue('sso-token-abc');
+    // OBO proxy returns error
+    globalThis.fetch = vi.fn().mockResolvedValue({ ok: false, status: 503 });
 
-    // VITE_FUNCTION_URL is '' in test environment
     const token = await getGraphToken();
     expect(token).toBe('easyauth-token-123');
   });
@@ -93,21 +88,13 @@ describe('getGraphToken', () => {
 
   // ── OBO exchange tests ─────────────────────────────────────────────────
 
-  describe('OBO exchange', () => {
+  describe('OBO exchange via same-origin proxy', () => {
     beforeEach(() => {
       vi.mocked(isInTeams).mockReturnValue(true);
       vi.mocked(getTeamsSsoToken).mockResolvedValue('sso-token-abc');
-      vi.mocked(getRuntimeConfig).mockReturnValue({
-        plan: 'team',
-        functionUrl: 'https://func.azurewebsites.net',
-        aiEndpoint: '',
-        aiSearchEndpoint: '',
-        aiSearchIndex: '',
-        appInsightsConnectionString: '',
-      });
     });
 
-    it('performs OBO exchange and returns token', async () => {
+    it('performs OBO exchange via /api/token-exchange proxy', async () => {
       const expiresOn = new Date(Date.now() + 3600_000).toISOString();
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -117,7 +104,7 @@ describe('getGraphToken', () => {
       const token = await getGraphToken();
       expect(token).toBe('obo-token-xyz');
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        'https://func.azurewebsites.net/api/token-exchange',
+        '/api/token-exchange',
         expect.objectContaining({ method: 'POST' })
       );
     });

@@ -11,16 +11,9 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const DIST = join(__dirname, 'dist');
 const PORT = parseInt(process.env.PORT || '8080', 10);
 
-// Build dynamic connect-src to include Azure Function URL for OBO token exchange
-const functionUrl = process.env.FUNCTION_URL || '';
+// Build dynamic connect-src for external services.
+// Token exchange goes through same-origin /api/token-exchange proxy (no external Function URL needed in CSP).
 let connectSrc = "'self' https://graph.microsoft.com https://*.sharepoint.com https://login.microsoftonline.com";
-if (functionUrl) {
-  try {
-    connectSrc += ` ${new URL(functionUrl).origin}`;
-  } catch {
-    // Invalid FUNCTION_URL — ignore, CSP stays without it
-  }
-}
 const aiEndpoint = process.env.AI_ENDPOINT || '';
 const searchEndpoint = process.env.AI_SEARCH_ENDPOINT || '';
 if (aiEndpoint) {
@@ -88,15 +81,60 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  // Proxy for OBO token exchange — keeps Function key server-side (not in client bundle).
+  // The client calls /api/token-exchange (same-origin), this server injects the Function key
+  // and forwards to the actual Azure Function.
+  if (pathname === '/api/token-exchange' && req.method === 'POST') {
+    const functionUrlEnv = process.env.FUNCTION_URL;
+    if (!functionUrlEnv) {
+      writeResponse(res, 503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Token exchange not configured' }));
+      return;
+    }
+
+    // Read request body
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    const body = Buffer.concat(chunks);
+
+    // Forward to Azure Function with server-side Function key
+    const targetUrl = new URL('/api/token-exchange', functionUrlEnv);
+    const proxyHeaders = {
+      'Content-Type': 'application/json',
+      'Content-Length': body.length.toString(),
+    };
+    const functionKey = process.env.FUNCTION_KEY || '';
+    if (functionKey) proxyHeaders['x-functions-key'] = functionKey;
+
+    try {
+      const proxyRes = await fetch(targetUrl, {
+        method: 'POST',
+        headers: proxyHeaders,
+        body,
+      });
+      const responseBody = await proxyRes.text();
+      writeResponse(res, proxyRes.status, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+      });
+      res.end(responseBody);
+    } catch (err) {
+      writeResponse(res, 502, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Token exchange proxy failed' }));
+    }
+    return;
+  }
+
   // Runtime configuration endpoint — serves env vars as JSON.
   // Required for Marketplace deployments where Vite env vars are baked at build time.
   if (pathname === '/config') {
     const config = {
       plan: process.env.VITE_VARISCOUT_PLAN || 'standard',
-      functionUrl: process.env.FUNCTION_URL || '',
+      // functionUrl removed — token exchange now proxied through /api/token-exchange (same-origin)
       aiEndpoint: process.env.AI_ENDPOINT || '',
       aiSearchEndpoint: process.env.AI_SEARCH_ENDPOINT || '',
       aiSearchIndex: process.env.AI_SEARCH_INDEX || 'findings',
+      appInsightsConnectionString: process.env.APPINSIGHTS_CONNECTION_STRING || process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '',
     };
     writeResponse(res, 200, {
       'Content-Type': 'application/json',

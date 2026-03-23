@@ -42,7 +42,6 @@ describe('AdminKnowledgeSetup', () => {
     mockIsKnowledgeBaseAvailable.mockReturnValue(true);
     mockGetRuntimeConfig.mockReturnValue({
       plan: 'enterprise',
-      functionUrl: '',
       aiEndpoint: '',
       aiSearchEndpoint: 'https://search.example.com',
       aiSearchIndex: 'findings',
@@ -79,7 +78,6 @@ describe('AdminKnowledgeSetup', () => {
   it('shows search endpoint not configured when aiSearchEndpoint is missing', () => {
     mockGetRuntimeConfig.mockReturnValue({
       plan: '',
-      functionUrl: '',
       aiEndpoint: '',
       aiSearchEndpoint: '',
       aiSearchIndex: '',

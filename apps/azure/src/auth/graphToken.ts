@@ -8,15 +8,6 @@
 
 import { getAccessToken, isLocalDev, AuthError } from './easyAuth';
 import { getTeamsSsoToken, isInTeams } from '../teams/teamsContext';
-import { getRuntimeConfig } from '../lib/runtimeConfig';
-
-function getFunctionKey(): string {
-  return import.meta.env.VITE_FUNCTION_KEY || '';
-}
-
-function getFunctionUrl(): string {
-  return getRuntimeConfig()?.functionUrl || import.meta.env.VITE_FUNCTION_URL || '';
-}
 
 const CACHE_MARGIN_MS = 5 * 60 * 1000; // 5 min before expiry
 
@@ -53,26 +44,24 @@ function setCachedToken(token: string, expiresOn: string | undefined, scopes?: s
 // ── Shared OBO exchange ─────────────────────────────────────────────────
 
 /**
- * Exchange a Teams SSO token for a Graph API token via the OBO Azure Function.
+ * Exchange a Teams SSO token for a Graph API token via the server-side OBO proxy.
+ * The proxy at /api/token-exchange injects the Function key server-side,
+ * keeping it out of the client bundle.
  * Returns null if exchange fails or is unavailable.
  */
 async function exchangeOboToken(scopes?: string[]): Promise<string | null> {
-  if (!isInTeams() || !getFunctionUrl()) return null;
+  if (!isInTeams()) return null;
 
   const ssoToken = await getTeamsSsoToken();
   if (!ssoToken) return null;
 
   try {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    const functionKey = getFunctionKey();
-    if (functionKey) headers['x-functions-key'] = functionKey;
-
     const body: Record<string, unknown> = { token: ssoToken };
     if (scopes && scopes.length > 0) body.scopes = scopes;
 
-    const res = await fetch(`${getFunctionUrl()}/api/token-exchange`, {
+    const res = await fetch('/api/token-exchange', {
       method: 'POST',
-      headers,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     if (res.ok) {
