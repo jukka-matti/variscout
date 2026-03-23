@@ -7,8 +7,8 @@
  */
 import { useMemo, useCallback, useEffect } from 'react';
 import { computeIdeaImpact } from '@variscout/core';
-import { bus } from '../../events/bus';
 import { useInvestigationStore } from './investigationStore';
+import { usePanelsStore } from '../panels/panelsStore';
 import type {
   Finding,
   FindingProjection,
@@ -150,7 +150,7 @@ export function useInvestigationOrchestration({
           hypothesisText: hypothesis.text,
         });
       }
-      bus.emit('panel:visibility-changed', { panel: 'whatIf', visible: true });
+      usePanelsStore.getState().setWhatIfOpen(true);
     },
     [hypothesesState]
   );
@@ -167,7 +167,7 @@ export function useInvestigationOrchestration({
       if (target) {
         hypothesesState.setIdeaProjection(target.hypothesisId, target.ideaId, projection);
         useInvestigationStore.getState().setProjectionTarget(null);
-        bus.emit('panel:visibility-changed', { panel: 'whatIf', visible: false });
+        usePanelsStore.getState().setWhatIfOpen(false);
       }
     },
     [hypothesesState]

@@ -57,7 +57,7 @@ This section captures key architectural decisions made during VariScout developm
 | [043](adr-043-teams-entry-experience.md)             | Teams Entry Experience                   | Accepted   | 2026-03-22 |
 | [044](adr-044-architectural-review.md)               | Architectural Review (Mar 2026)          | Accepted   | 2026-03-23 |
 | [045](adr-045-modular-architecture.md)               | Modular Architecture (DDD-Lite + FSD)    | Accepted   | 2026-03-23 |
-| [046](adr-046-event-driven-architecture.md)          | Event-Driven Architecture (mitt bus)     | Accepted   | 2026-03-23 |
+| [046](adr-046-event-driven-architecture.md)          | Event-Driven Architecture (mitt bus)     | Superseded | 2026-03-23 |
 | [047](adr-047-analysis-mode-strategy.md)             | Analysis Mode Strategy Pattern           | Accepted   | 2026-03-23 |
 | [048](adr-048-eslint-boundaries.md)                  | ESLint Boundary Enforcement              | Accepted   | 2026-03-23 |
 

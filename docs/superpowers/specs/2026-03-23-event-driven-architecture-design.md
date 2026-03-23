@@ -2,11 +2,13 @@
 title: Event-Driven Architecture Transition
 audience: [engineer]
 category: architecture
-status: draft
+status: superseded
 related: [domain-events, strategy-pattern, eslint-boundaries, zustand, mitt]
 ---
 
 # Event-Driven Architecture Transition
+
+> **Post-Implementation Review (2026-03-23):** Phase 1 (mitt event bus) was implemented, tested, and then reverted after community research found that Zustand's maintainer (dai-shi) explicitly recommends direct `getState()` calls over event buses for cross-store communication. At 5 stores / 9 interactions, orchestration hooks provide better traceability. Phase 2 (strategy pattern, ADR-047) and Phase 3 (ESLint boundaries, ADR-048) were validated and kept. See ADR-046 for full supersession rationale.
 
 ## Problem
 

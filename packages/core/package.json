@@ -21,7 +21,6 @@
     "./performance": "./src/performance.ts",
     "./time": "./src/time.ts",
     "./projectMetadata": "./src/projectMetadata.ts",
-    "./events": "./src/events.ts",
     "./strategy": "./src/analysisStrategy.ts"
   },
   "scripts": {
@@ -30,7 +29,6 @@
   },
   "dependencies": {
     "d3-array": "^3.2.4",
-    "mitt": "^3.0.1",
     "papaparse": "^5.5.3",
     "read-excel-file": "7.0.2"
   },

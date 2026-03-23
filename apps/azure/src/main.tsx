@@ -6,12 +6,7 @@ import { initAppInsights } from './lib/appInsights';
 import { initTelemetry } from './services/telemetry';
 import { registerLocaleLoaders } from '@variscout/core';
 import type { MessageCatalog } from '@variscout/core';
-import { bus } from './events/bus';
-import { registerListeners } from './events/listeners';
 import './index.css';
-
-// Register domain event listeners (once, before render)
-registerListeners(bus);
 
 // Register bundler-specific locale loaders (Vite code-splits each into its own chunk)
 registerLocaleLoaders(

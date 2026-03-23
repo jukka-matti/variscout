@@ -14,8 +14,8 @@ import {
   buildFindingContext,
   buildFindingSource,
 } from '@variscout/hooks';
-import { bus } from '../../events/bus';
 import { useFindingsStore } from './findingsStore';
+import { usePanelsStore } from '../panels/panelsStore';
 import { useStatusUpdateCards } from '../../hooks/useStatusUpdateCards';
 import { usePopoutSync } from './usePopoutSync';
 import type { UseFilterNavigationReturn } from '../../hooks/useFilterNavigation';
@@ -168,12 +168,14 @@ export function useFindingsOrchestration({
     (noteText?: string) => {
       const existing = findingsState.findDuplicate(filters);
       if (existing) {
-        bus.emit('finding:created', { finding: existing });
+        usePanelsStore.getState().setFindingsOpen(true);
+        useFindingsStore.getState().setHighlightedFindingId(existing.id);
         return;
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(noteText || '', context);
-      bus.emit('finding:created', { finding: newFinding });
+      usePanelsStore.getState().setFindingsOpen(true);
+      useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
     },
     [filters, drillPath, filteredData, outcome, specs, findingsState]
   );
@@ -200,12 +202,14 @@ export function useFindingsOrchestration({
       const source = buildFindingSource(chartType, categoryKey, anchorX, anchorY);
       const existing = findingsState.findDuplicateSource(source);
       if (existing) {
-        bus.emit('finding:created', { finding: existing, source });
+        usePanelsStore.getState().setFindingsOpen(true);
+        useFindingsStore.getState().setHighlightedFindingId(existing.id);
         return;
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(noteText ?? '', context, source);
-      bus.emit('finding:created', { finding: newFinding, source });
+      usePanelsStore.getState().setFindingsOpen(true);
+      useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
       return newFinding;
     },
     [filters, drillPath, filteredData, outcome, specs, findingsState]

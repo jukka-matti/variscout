@@ -175,67 +175,16 @@ Components subscribing to multiple stores via selectors is the normal Zustand pa
 
 Each store can be tested independently by calling actions and asserting state, without mocking other stores. Cross-store interactions are tested at the orchestration hook level. See `features/panels/__tests__/panelsStore.test.ts` for the reference pattern.
 
-## Event Bus Architecture (ADR-046)
+## Cross-Store Coordination Pattern
 
-The event bus replaces direct cross-store `.getState()` calls in orchestration hooks. See [ADR-046](../../07-decisions/adr-046-event-driven-architecture.md) for the full decision record.
-
-### Before and after
-
-**Before (direct cross-store call):**
+Orchestration hooks are the designated coordination layer for cross-store interactions. They use direct `getState()` calls, which is the Zustand-recommended pattern for cross-store communication (per maintainer guidance).
 
 ```typescript
-// useFindingsOrchestration.ts — reaches into a different feature's store
+// useFindingsOrchestration.ts — explicit, traceable cross-store calls
 usePanelsStore.getState().setFindingsOpen(true);
+useFindingsStore.getState().setHighlightedFindingId(finding.id);
 ```
 
-**After (event emission):**
+**Why direct calls, not an event bus:** An event bus (ADR-046, superseded) was implemented and evaluated. At 5 stores / 9 cross-store interactions, direct calls provide better traceability ("Go to Definition" works, stack traces are clear) without the indirection cost of events. See [ADR-046](../../07-decisions/adr-046-event-driven-architecture.md) for the full evaluation.
 
-```typescript
-// useFindingsOrchestration.ts — emits a domain event
-bus.emit('finding:created', { finding });
-
-// apps/azure/src/events/listeners.ts — side effect centralized here
-bus.on('finding:created', () => {
-  usePanelsStore.getState().setFindingsOpen(true);
-});
-```
-
-### 11 typed events in 3 layers
-
-**Domain events** (7) — emitted by orchestration hooks after CRUD operations:
-
-| Event                       | Emitted After                                                      |
-| --------------------------- | ------------------------------------------------------------------ |
-| `finding:created`           | New finding pinned or observed (active)                            |
-| `finding:status-changed`    | Finding status updated (observed → investigating, etc.) — reserved |
-| `finding:resolved`          | Finding marked resolved with an outcome — reserved                 |
-| `hypothesis:validated`      | ANOVA validation completed on a hypothesis — reserved              |
-| `hypothesis:cause-assigned` | Hypothesis linked as primary or contributing cause — reserved      |
-| `idea:projection-attached`  | What-If round-trip returns projected Cpk for an idea — reserved    |
-| `idea:converted-to-actions` | Idea ideas converted to improvement action items — reserved        |
-
-**UI choreography events** (4) — emitted by domain listeners, consumed by panel or navigation listeners:
-
-| Event                      | Effect                                               |
-| -------------------------- | ---------------------------------------------------- |
-| `panel:visibility-changed` | Open or close any named panel in `panelsStore`       |
-| `navigate:to`              | Multi-store navigation for AI `navigate_to` tool     |
-| `highlight:finding`        | Scroll to and briefly highlight a finding — reserved |
-| `highlight:chart-point`    | Briefly highlight a data point on chart — reserved   |
-
-**AI integration** — AI action tools call the same CRUD functions as user actions. The resulting domain events are identical. No dedicated AI event layer is needed.
-
-### Centralized listeners
-
-All cross-domain side effects are registered in `apps/azure/src/events/listeners.ts`. The file is mounted once in `Editor.tsx` via `useEffect`. Reading this file gives a complete picture of every cross-domain side effect in the application.
-
-```
-apps/azure/src/events/
-├── bus.ts          — mitt instance (200B, typed)
-├── types.ts        — AppEvents type map
-└── listeners.ts    — all on() registrations
-```
-
-### Effect on the cross-store write table
-
-With the event bus in place, the [Cross-Store Writes via Orchestration Hooks](#cross-store-writes-via-orchestration-hooks) table above reflects intra-feature syncs only (e.g., `useFindingsOrchestration` → `findingsStore`). Cross-domain writes now flow through `listeners.ts`. The orchestration hooks themselves contain zero cross-domain `.getState()` calls.
+**Bridge hooks** (e.g., `usePanelsPersistence`) handle Zustand→Context persistence via Zustand's `.subscribe()` — the community-approved pattern for reactive persistence bridges.

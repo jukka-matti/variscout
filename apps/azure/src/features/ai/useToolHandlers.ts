@@ -28,8 +28,17 @@ import {
   searchProjectArtifacts,
 } from '@variscout/core';
 import type { UseKnowledgeSearchReturn } from '@variscout/hooks';
-import { bus } from '../../events/bus';
-import type { NavigationTarget } from '@variscout/core/events';
+import { usePanelsStore } from '../panels/panelsStore';
+import { useFindingsStore } from '../findings/findingsStore';
+import { useInvestigationStore } from '../investigation/investigationStore';
+
+type NavigationTarget =
+  | 'dashboard'
+  | 'finding'
+  | 'hypothesis'
+  | 'chart'
+  | 'improvement_workspace'
+  | 'report';
 
 export interface UseToolHandlersOptions {
   aiAvailable: boolean;
@@ -420,8 +429,41 @@ export function useToolHandlers({
           return JSON.stringify({ error: `Unknown navigation target: ${target}` });
         }
 
-        // Auto-execute navigation via domain event
-        bus.emit('navigate:to', { target, targetId, chartType });
+        // Auto-execute navigation via direct store calls
+        const panels = usePanelsStore.getState();
+        switch (target) {
+          case 'dashboard':
+            panels.showDashboard();
+            break;
+          case 'finding':
+            panels.showEditor();
+            panels.setFindingsOpen(true);
+            if (targetId) {
+              useFindingsStore.getState().setHighlightedFindingId(targetId);
+            }
+            break;
+          case 'hypothesis':
+            panels.showEditor();
+            panels.setFindingsOpen(true);
+            if (targetId) {
+              useInvestigationStore.getState().expandToHypothesis(targetId);
+            }
+            break;
+          case 'chart':
+            panels.showEditor();
+            if (chartType) {
+              panels.setPendingChartFocus(chartType);
+            }
+            break;
+          case 'improvement_workspace':
+            panels.showEditor();
+            panels.setImprovementOpen(true);
+            break;
+          case 'report':
+            panels.showEditor();
+            panels.openReport();
+            break;
+        }
         return JSON.stringify({
           navigated: target,
           ...(targetId && { id: targetId }),

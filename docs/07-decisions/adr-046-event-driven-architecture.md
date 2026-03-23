@@ -4,8 +4,9 @@ title: 'ADR-046: Event-Driven Architecture — mitt Event Bus'
 
 # ADR-046: Event-Driven Architecture — mitt Event Bus
 
-**Status:** Accepted
+**Status:** Superseded
 **Date:** 2026-03-23
+**Superseded:** 2026-03-23 — Reverted after community research validated that orchestration hooks with direct `getState()` calls are the Zustand-recommended pattern at this scale. See Supersession Rationale below.
 
 ## Context
 
@@ -130,6 +131,34 @@ Intra-feature syncs (e.g., `useFindingsOrchestration` writing to `findingsStore`
 - Intra-feature store writes remain as direct calls (no events for same-domain sync)
 - Component selector reads are unchanged
 - `panelsStore` remains the UI coordinator — now driven by events rather than direct calls
+
+## Supersession Rationale
+
+The event bus was implemented, tested, and evaluated against community best practices. It was reverted for the following reasons:
+
+### Zustand maintainer guidance
+
+dai-shi (Zustand maintainer) explicitly recommends direct `getState()` calls in actions for cross-store communication. His preferred hierarchy: (1) single store with slices, (2) action composition via `get()`, (3) `getState()` for cross-store reads, (4) `.subscribe()` as last resort. Event buses are not in this hierarchy.
+
+### Scale mismatch
+
+At 5 stores and 9 cross-store interactions, an event bus adds indirection without proportional benefit. Event buses are justified for plugin systems, undo/redo, audit logging, or 20+ store architectures — none of which are on the VariScout roadmap.
+
+### Orchestration hooks are the right pattern
+
+The orchestration hooks (`useFindingsOrchestration`, `useInvestigationOrchestration`, `useToolHandlers`) that existed before the event bus ARE the community-recommended coordination layer. They make cross-store calls explicit, traceable via "Go to Definition", and debuggable with standard breakpoints.
+
+### What was kept
+
+- **ADR-047 (Strategy Pattern)** — validated as the right approach for mode-branching
+- **ADR-048 (ESLint Boundaries)** — validated for package DAG enforcement
+- **usePanelsPersistence bridge hook** — the community-approved pattern for Zustand↔Context persistence bridges
+
+### Community evidence
+
+- Zustand GitHub Discussions #1384, #630, #2496
+- Vue.js removed its built-in event bus in Vue 3 due to maintainability complaints
+- Practitioner consensus: event buses work for fire-and-forget UI signals (toasts, analytics) but not for state coordination
 
 ## Related
 
