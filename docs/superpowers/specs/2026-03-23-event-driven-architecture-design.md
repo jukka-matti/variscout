@@ -115,6 +115,7 @@ When a user confirms a CoScout proposal (clicks "Apply" on ActionProposalCard), 
 2. `useToolHandlers.ts` — Replace 6-way `navigate_to` switch with `bus.emit('navigate:to', { target, targetId })`. Listeners in panelsStore handle the routing.
 3. `useInvestigationOrchestration.ts` — Replace 2 `.getState()` calls.
 4. `usePanelsSideEffects.ts` — Replace DataContext bridge with `panel:visibility-changed` event listener.
+   (Deferred — this hook bridges Zustand → DataContext for persistence, not cross-store coupling. Architectural review concluded: extracting persistence from React Context adds complexity with no net benefit. See ADR-041 for bridge hook pattern.)
 
 **Step 3: Wire listeners in stores**
 
