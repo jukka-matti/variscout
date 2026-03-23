@@ -47,7 +47,7 @@ export function useTranslation(): UseTranslationReturn {
   const [locale, setLocale] = useState<Locale>(getDocumentLocale);
 
   useEffect(() => {
-    // Sync initial value
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- subscribing to DOM MutationObserver for locale attribute changes
     setLocale(getDocumentLocale());
 
     // Watch for locale changes on document element

@@ -115,6 +115,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Ref to track current state — avoids stale closure in saveProject
   const stateRef = useRef(state);
+  // eslint-disable-next-line react-hooks/refs -- intentional: sync ref to avoid stale closure in saveProject callback
   stateRef.current = state;
 
   /**

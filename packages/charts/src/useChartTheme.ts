@@ -69,9 +69,11 @@ export function useChartTheme(): ChartThemeColors {
   const [locale, setLocale] = useState<Locale>(getDocumentLocale);
 
   useEffect(() => {
-    // Check initial values
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- subscribing to DOM MutationObserver for attribute changes
     setTheme(getDocumentTheme());
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- subscribing to DOM MutationObserver for attribute changes
     setFontScale(getDocumentFontScale());
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- subscribing to DOM MutationObserver for attribute changes
     setLocale(getDocumentLocale());
 
     // Watch for theme, font scale, and locale changes

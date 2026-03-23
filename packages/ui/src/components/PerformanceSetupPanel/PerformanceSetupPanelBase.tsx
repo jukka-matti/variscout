@@ -170,6 +170,7 @@ const PerformanceSetupPanelBase: React.FC<PerformanceSetupPanelBaseProps> = ({
     if (selectedColumns.length === 0 && availableColumns.length > 0) {
       const matched = availableColumns.filter(c => c.matchedPattern).map(c => c.id);
       if (matched.length >= 3) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time auto-selection when columns become available and none selected
         setSelectedColumns(matched);
       }
     }

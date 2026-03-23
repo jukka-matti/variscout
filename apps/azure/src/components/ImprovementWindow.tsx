@@ -84,11 +84,14 @@ const ImprovementWindow: React.FC = () => {
     try {
       const stored = localStorage.getItem(IMPROVEMENT_SYNC_KEY);
       if (stored) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time initialization from localStorage on mount
         setSyncData(JSON.parse(stored) as ImprovementSyncData);
       } else {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time initialization from localStorage on mount
         setError('No data available. Please open from the main VariScout window.');
       }
     } catch {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time initialization from localStorage on mount
       setError('Failed to load data from main window.');
     }
   }, []);

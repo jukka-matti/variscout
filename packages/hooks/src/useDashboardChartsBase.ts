@@ -101,7 +101,9 @@ export function useDashboardChartsBase({
   // Sync factors when available factors change (initialization + invalid factor reset)
   useEffect(() => {
     if (factors.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing factor selection when available factors change (column mapping change)
       setBoxplotFactor(prev => (!prev || !factors.includes(prev) ? factors[0] : prev));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing factor selection when available factors change (column mapping change)
       setParetoFactor(prev => (!prev || !factors.includes(prev) ? factors[1] || factors[0] : prev));
     }
   }, [factors]);

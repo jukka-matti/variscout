@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type Dispatch, type SetStateAction } from 'react';
 
 export interface UseHighlightFadeReturn {
   highlightedRow: number | null;
-  setHighlightedRow: React.Dispatch<React.SetStateAction<number | null>>;
+  setHighlightedRow: Dispatch<SetStateAction<number | null>>;
 }
 
 /**
@@ -22,6 +22,7 @@ export function useHighlightFade(
 
   useEffect(() => {
     if (externalIndex !== null && externalIndex !== undefined) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from external trigger prop (chart click → highlight row)
       setHighlightedRow(externalIndex);
       const timeout = setTimeout(() => setHighlightedRow(null), delay);
       return () => clearTimeout(timeout);

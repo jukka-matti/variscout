@@ -113,6 +113,7 @@ export function useVerificationCharts({
   useEffect(() => {
     if (prevKeyRef.current !== availableKey) {
       prevKeyRef.current = availableKey;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting toggle state when chart availability changes (external data change)
       setActiveCharts(computeDefaults());
     }
   }, [availableKey, computeDefaults]);

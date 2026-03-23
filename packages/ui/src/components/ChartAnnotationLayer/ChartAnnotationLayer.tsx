@@ -55,6 +55,7 @@ export const ChartAnnotationLayer: React.FC<ChartAnnotationLayerProps> = ({
   useEffect(() => {
     const keys = Array.from(categoryPositions.keys()).sort().join(',');
     if (prevKeysRef.current !== '' && prevKeysRef.current !== keys) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting visual offsets when chart categories change (external data change)
       setOffsets(new Map());
     }
     prevKeysRef.current = keys;

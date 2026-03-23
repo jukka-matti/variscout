@@ -1,7 +1,54 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { ChevronDown, Settings2 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import type { SpecsPopoverColorScheme, SpecsPopoverProps } from './types';
+
+interface SpecRowProps {
+  label: string;
+  field: 'usl' | 'lsl' | 'target';
+  value: string;
+  checked: boolean;
+  placeholder: string;
+  onVisibilityChange: (field: 'usl' | 'lsl' | 'target', checked: boolean) => void;
+  onInputChange: (field: 'usl' | 'lsl' | 'target', value: string) => void;
+  cs: SpecsPopoverColorScheme;
+}
+
+const SpecRow = ({
+  label,
+  field,
+  value,
+  checked,
+  placeholder,
+  onVisibilityChange,
+  onInputChange,
+  cs,
+}: SpecRowProps) => (
+  <div className="flex items-center gap-2">
+    <label htmlFor={`specpop-${field}`} className="flex items-center gap-2 flex-1 cursor-pointer">
+      <input
+        id={`specpop-${field}`}
+        name={`specpop-${field}`}
+        type="checkbox"
+        checked={checked}
+        onChange={e => onVisibilityChange(field, e.target.checked)}
+        className={cs.checkbox}
+      />
+      <span className={cs.checkboxLabel}>{label}</span>
+    </label>
+    <input
+      id={`specpop-${field}-value`}
+      name={`specpop-${field}-value`}
+      type="number"
+      step="any"
+      value={value}
+      onChange={e => onInputChange(field, e.target.value)}
+      disabled={!checked}
+      placeholder={placeholder}
+      className={`${cs.input} ${!checked ? cs.inputDisabled : ''}`}
+    />
+  </div>
+);
 
 export const specsPopoverDefaultColorScheme: SpecsPopoverColorScheme = {
   triggerActive: 'text-blue-400 hover:text-blue-300 hover:bg-surface-tertiary/50',
@@ -51,34 +98,36 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
   });
   const [localCpkTarget, setLocalCpkTarget] = useState(cpkTarget?.toString() || '1.33');
   const [cpkTargetEnabled, setCpkTargetEnabled] = useState(cpkTarget !== undefined);
-  const [hasChanges, setHasChanges] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const popoverRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Sync local state when specs change from outside
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local form state from external spec prop changes
     setLocalSpecs({
       usl: specs.usl?.toString() || '',
       lsl: specs.lsl?.toString() || '',
       target: specs.target?.toString() || '',
     });
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local form state from external spec prop changes
     setVisibility({
       usl: specs.usl !== undefined,
       lsl: specs.lsl !== undefined,
       target: specs.target !== undefined,
     });
-    setHasChanges(false);
   }, [specs]);
 
   // Sync cpkTarget local state when prop changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local form state from external cpkTarget prop changes
     setLocalCpkTarget(cpkTarget?.toString() || '1.33');
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local form state from external cpkTarget prop changes
     setCpkTargetEnabled(cpkTarget !== undefined);
   }, [cpkTarget]);
 
-  // Track changes
-  useEffect(() => {
+  // Derived: track whether local form differs from props
+  const hasChanges = useMemo(() => {
     const newSpecs = {
       usl: visibility.usl && localSpecs.usl ? parseFloat(localSpecs.usl) : undefined,
       lsl: visibility.lsl && localSpecs.lsl ? parseFloat(localSpecs.lsl) : undefined,
@@ -88,7 +137,7 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
       newSpecs.usl !== specs.usl || newSpecs.lsl !== specs.lsl || newSpecs.target !== specs.target;
     const newCpkValue = cpkTargetEnabled && localCpkTarget ? parseFloat(localCpkTarget) : undefined;
     const cpkChanged = newCpkValue !== cpkTarget;
-    setHasChanges(specsChanged || cpkChanged);
+    return specsChanged || cpkChanged;
   }, [localSpecs, visibility, specs, localCpkTarget, cpkTargetEnabled, cpkTarget]);
 
   // Close on outside click
@@ -168,46 +217,6 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
     cpkTarget !== undefined;
   const buttonLabel = hasAnySpec ? 'Specs' : '+ Specs';
 
-  // Spec input row component
-  const SpecRow = ({
-    label,
-    field,
-    value,
-    checked,
-    placeholder,
-  }: {
-    label: string;
-    field: 'usl' | 'lsl' | 'target';
-    value: string;
-    checked: boolean;
-    placeholder: string;
-  }) => (
-    <div className="flex items-center gap-2">
-      <label htmlFor={`specpop-${field}`} className="flex items-center gap-2 flex-1 cursor-pointer">
-        <input
-          id={`specpop-${field}`}
-          name={`specpop-${field}`}
-          type="checkbox"
-          checked={checked}
-          onChange={e => handleVisibilityChange(field, e.target.checked)}
-          className={cs.checkbox}
-        />
-        <span className={cs.checkboxLabel}>{label}</span>
-      </label>
-      <input
-        id={`specpop-${field}-value`}
-        name={`specpop-${field}-value`}
-        type="number"
-        step="any"
-        value={value}
-        onChange={e => handleInputChange(field, e.target.value)}
-        disabled={!checked}
-        placeholder={placeholder}
-        className={`${cs.input} ${!checked ? cs.inputDisabled : ''}`}
-      />
-    </div>
-  );
-
   return (
     <div className={`relative ${className}`}>
       {/* Trigger Button */}
@@ -258,6 +267,9 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
               value={localSpecs.usl}
               checked={visibility.usl}
               placeholder="Max"
+              onVisibilityChange={handleVisibilityChange}
+              onInputChange={handleInputChange}
+              cs={cs}
             />
             <SpecRow
               label="Target"
@@ -265,6 +277,9 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
               value={localSpecs.target}
               checked={visibility.target}
               placeholder="Ideal"
+              onVisibilityChange={handleVisibilityChange}
+              onInputChange={handleInputChange}
+              cs={cs}
             />
             <SpecRow
               label="LSL"
@@ -272,6 +287,9 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
               value={localSpecs.lsl}
               checked={visibility.lsl}
               placeholder="Min"
+              onVisibilityChange={handleVisibilityChange}
+              onInputChange={handleInputChange}
+              cs={cs}
             />
 
             {/* Cpk Target — process capability threshold (separate from product specs) */}

@@ -13,6 +13,11 @@ import { useTranslation } from '@variscout/hooks';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 
+const table2Icon = <Table2 size={18} />;
+const maximizeIcon = <Maximize size={18} />;
+const share2Icon = <Share2 size={18} />;
+const settingsIcon = <Settings size={18} />;
+
 interface AppHeaderProps {
   hasData: boolean;
   dataFilename: string | null;
@@ -135,7 +140,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 {/* Data Table Toggle */}
                 {onToggleDataPanel && (
                   <IconButton
-                    icon={<Table2 size={18} />}
+                    icon={table2Icon}
                     title={isDataPanelOpen ? t('data.hideDataTable') : t('data.showDataTable')}
                     onClick={onToggleDataPanel}
                     isActive={isDataPanelOpen}
@@ -179,14 +184,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
                 {/* Fullscreen / Presentation Mode */}
                 <IconButton
-                  icon={<Maximize size={18} />}
+                  icon={maximizeIcon}
                   title={t('nav.presentationMode')}
                   onClick={onEnterPresentationMode}
                 />
 
                 {/* Export */}
                 <IconButton
-                  icon={<Share2 size={18} />}
+                  icon={share2Icon}
                   title={t('nav.export')}
                   onClick={() => setIsShareOpen(true)}
                   buttonRef={shareButtonRef}
@@ -194,7 +199,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
                 {/* Settings */}
                 <IconButton
-                  icon={<Settings size={18} />}
+                  icon={settingsIcon}
                   title={t('nav.settings')}
                   onClick={onOpenSettings}
                 />

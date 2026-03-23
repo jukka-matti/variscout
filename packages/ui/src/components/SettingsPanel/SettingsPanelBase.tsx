@@ -71,6 +71,7 @@ function SettingsPanelBase<
   const [local, setLocal] = useState<T>(displayOptions);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting local form state when settings panel opens
     if (isOpen) setLocal(displayOptions);
   }, [isOpen, displayOptions]);
 

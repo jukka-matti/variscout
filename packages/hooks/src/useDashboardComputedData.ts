@@ -103,6 +103,7 @@ export function useDashboardComputedData({
 
   useEffect(() => {
     if (!outcome || !boxplotFactor || filteredData.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing result when inputs become invalid
       setAnovaResult(null);
       return;
     }

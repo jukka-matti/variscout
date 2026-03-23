@@ -26,6 +26,7 @@ interface UseTeamsShareOptions {
 export function useTeamsShare(options?: UseTeamsShareOptions) {
   // Use ref to avoid recreating share callback when options object changes
   const onToastRef = useRef(options?.onToast);
+  // eslint-disable-next-line react-hooks/refs -- intentional: sync ref to avoid stale closure
   onToastRef.current = options?.onToast;
 
   /**

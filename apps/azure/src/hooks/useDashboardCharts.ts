@@ -100,24 +100,19 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
   });
 
   // Wrap factor setters to report changes for persistence
-  const setBoxplotFactor = useCallback(
-    (f: string) => {
-      base.setBoxplotFactor(f);
-      onViewStateChange?.({ boxplotFactor: f });
-    },
-    [base.setBoxplotFactor, onViewStateChange]
-  );
-  const setParetoFactor = useCallback(
-    (f: string) => {
-      base.setParetoFactor(f);
-      onViewStateChange?.({ paretoFactor: f });
-    },
-    [base.setParetoFactor, onViewStateChange]
-  );
+  const setBoxplotFactor = (f: string) => {
+    base.setBoxplotFactor(f);
+    onViewStateChange?.({ boxplotFactor: f });
+  };
+  const setParetoFactor = (f: string) => {
+    base.setParetoFactor(f);
+    onViewStateChange?.({ paretoFactor: f });
+  };
 
   // Pareto panel visibility (reset on data/factor changes)
   const [showParetoPanel, setShowParetoPanel] = useState(true);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting panel visibility when data/factors change
     setShowParetoPanel(true);
   }, [rawData, factors]);
 
@@ -166,20 +161,17 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
   );
 
   // Drill-down with visual feedback
-  const handleDrillDown = useCallback(
-    (factor: string, value: string) => {
-      const nextFactor = base.handleDrillDown(factor, value);
-      if (nextFactor) {
-        onViewStateChange?.({ boxplotFactor: nextFactor, paretoFactor: nextFactor });
-        setLastAdvancedFactor(nextFactor);
-        if (advancedFactorTimeoutRef.current) clearTimeout(advancedFactorTimeoutRef.current);
-        advancedFactorTimeoutRef.current = setTimeout(() => setLastAdvancedFactor(null), 2000);
-      } else {
-        onViewStateChange?.({ boxplotFactor: factor, paretoFactor: factor });
-      }
-    },
-    [base.handleDrillDown, onViewStateChange]
-  );
+  const handleDrillDown = (factor: string, value: string) => {
+    const nextFactor = base.handleDrillDown(factor, value);
+    if (nextFactor) {
+      onViewStateChange?.({ boxplotFactor: nextFactor, paretoFactor: nextFactor });
+      setLastAdvancedFactor(nextFactor);
+      if (advancedFactorTimeoutRef.current) clearTimeout(advancedFactorTimeoutRef.current);
+      advancedFactorTimeoutRef.current = setTimeout(() => setLastAdvancedFactor(null), 2000);
+    } else {
+      onViewStateChange?.({ boxplotFactor: factor, paretoFactor: factor });
+    }
+  };
 
   // Coerce nulls to match Azure's stricter types
   const cumulativeVariationPct = base.cumulativeVariationPct ?? 0;

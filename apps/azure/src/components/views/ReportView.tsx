@@ -471,115 +471,91 @@ const ReportView: React.FC<ReportViewProps> = ({
   }, [sections]);
 
   // Render a staged verification chart by ID
-  const renderVerificationChart = useCallback(
-    (id: VerificationChartId): React.ReactNode | null => {
-      switch (id) {
-        case 'stats':
-          return stagedComparison ? (
-            <div className="p-4">
-              <StagedComparisonCard comparison={stagedComparison} cpkTarget={cpkTarget} />
-            </div>
-          ) : null;
+  const renderVerificationChart = (id: VerificationChartId): React.ReactNode | null => {
+    switch (id) {
+      case 'stats':
+        return stagedComparison ? (
+          <div className="p-4">
+            <StagedComparisonCard comparison={stagedComparison} cpkTarget={cpkTarget} />
+          </div>
+        ) : null;
 
-        case 'ichart':
-          return stagedStats && stats && outcome ? (
-            <div style={{ pointerEvents: 'none' }}>
-              <IChartBase
-                data={ichartData}
-                stats={stats}
-                stagedStats={stagedStats}
-                specs={specs}
-                parentWidth={REPORT_CHART_WIDTH}
-                parentHeight={REPORT_CHART_HEIGHT}
-                showBranding={false}
-              />
-            </div>
-          ) : null;
+      case 'ichart':
+        return stagedStats && stats && outcome ? (
+          <div style={{ pointerEvents: 'none' }}>
+            <IChartBase
+              data={ichartData}
+              stats={stats}
+              stagedStats={stagedStats}
+              specs={specs}
+              parentWidth={REPORT_CHART_WIDTH}
+              parentHeight={REPORT_CHART_HEIGHT}
+              showBranding={false}
+            />
+          </div>
+        ) : null;
 
-        case 'boxplot':
-          return boxplotData.length > 0 ? (
-            <div style={{ pointerEvents: 'none' }}>
-              <BoxplotBase
-                data={boxplotData}
-                specs={specs}
-                parentWidth={REPORT_CHART_WIDTH}
-                parentHeight={REPORT_CHART_HEIGHT}
-                showBranding={false}
-                fillOverrides={fillOverrides}
-                groupSize={stageInfo?.groupSize}
-                xTickFormat={xTickFormat}
-              />
-            </div>
-          ) : null;
+      case 'boxplot':
+        return boxplotData.length > 0 ? (
+          <div style={{ pointerEvents: 'none' }}>
+            <BoxplotBase
+              data={boxplotData}
+              specs={specs}
+              parentWidth={REPORT_CHART_WIDTH}
+              parentHeight={REPORT_CHART_HEIGHT}
+              showBranding={false}
+              fillOverrides={fillOverrides}
+              groupSize={stageInfo?.groupSize}
+              xTickFormat={xTickFormat}
+            />
+          </div>
+        ) : null;
 
-        case 'histogram':
-          return histogramValues.length > 0 ? (
-            <div style={{ pointerEvents: 'none' }}>
-              <CapabilityHistogram
-                parentWidth={REPORT_CHART_WIDTH}
-                parentHeight={REPORT_HISTOGRAM_HEIGHT}
-                data={histogramValues}
-                specs={specs}
-                mean={histogramMean}
-                cpkBefore={cpkBefore}
-                cpkAfter={cpkAfter}
-              />
-            </div>
-          ) : null;
+      case 'histogram':
+        return histogramValues.length > 0 ? (
+          <div style={{ pointerEvents: 'none' }}>
+            <CapabilityHistogram
+              parentWidth={REPORT_CHART_WIDTH}
+              parentHeight={REPORT_HISTOGRAM_HEIGHT}
+              data={histogramValues}
+              specs={specs}
+              mean={histogramMean}
+              cpkBefore={cpkBefore}
+              cpkAfter={cpkAfter}
+            />
+          </div>
+        ) : null;
 
-        case 'pareto':
-          return paretoData.length > 0 ? (
-            <div style={{ pointerEvents: 'none' }}>
-              <ParetoChartBase
-                data={paretoData}
-                totalCount={paretoTotalCount}
-                parentWidth={REPORT_CHART_WIDTH}
-                parentHeight={REPORT_CHART_HEIGHT}
-                showBranding={false}
-                comparisonData={paretoComparisonData ?? undefined}
-                showRankChange
-              />
-            </div>
-          ) : null;
+      case 'pareto':
+        return paretoData.length > 0 ? (
+          <div style={{ pointerEvents: 'none' }}>
+            <ParetoChartBase
+              data={paretoData}
+              totalCount={paretoTotalCount}
+              parentWidth={REPORT_CHART_WIDTH}
+              parentHeight={REPORT_CHART_HEIGHT}
+              showBranding={false}
+              comparisonData={paretoComparisonData ?? undefined}
+              showRankChange
+            />
+          </div>
+        ) : null;
 
-        default:
-          return null;
-      }
-    },
-    [
-      stagedComparison,
-      cpkTarget,
-      stagedStats,
-      stats,
-      outcome,
-      ichartData,
-      specs,
-      boxplotData,
-      fillOverrides,
-      stageInfo,
-      xTickFormat,
-      histogramValues,
-      histogramMean,
-      cpkBefore,
-      cpkAfter,
-      paretoData,
-      paretoTotalCount,
-      paretoComparisonData,
-      REPORT_CHART_WIDTH,
-    ]
-  );
+      default:
+        return null;
+    }
+  };
 
   // Render a single section based on its descriptor
-  const renderSection = useCallback(
-    (section: {
-      id: string;
-      stepNumber: number;
-      title: string;
-      status: 'done' | 'active' | 'future';
-      workspace: 'analysis' | 'findings' | 'improvement';
-    }) => {
-      const extendedSection = sectionMap.get(section.id);
-      const ref = sectionRefs[section.id];
+  const renderSection = (section: {
+    id: string;
+    stepNumber: number;
+    title: string;
+    status: 'done' | 'active' | 'future';
+    workspace: 'analysis' | 'findings' | 'improvement';
+  }) => {
+    const extendedSection = sectionMap.get(section.id);
+    const ref = sectionRefs[section.id];
 
       return (
         <ReportSection
@@ -1048,46 +1024,7 @@ const ReportView: React.FC<ReportViewProps> = ({
           )}
         </ReportSection>
       );
-    },
-    [
-      sectionRefs,
-      sectionMap,
-      sectionCopyFeedback,
-      handleCopySectionAsSlide,
-      isPrinting,
-      stats,
-      outcome,
-      specs,
-      filteredData,
-      firstFactor,
-      columnAliases,
-      rawData,
-      copyFeedback,
-      handleCopyChart,
-      aiEnabled,
-      narrative,
-      processContext?.synthesis,
-      hasStagedComparison,
-      hasAnyAvailable,
-      verificationCharts,
-      activeVerificationCharts,
-      toggleVerificationChart,
-      renderVerificationChart,
-      isSummary,
-      cpkBefore,
-      cpkAfter,
-      bestProjectedCpk,
-      primaryOutcome,
-      cpkTarget,
-      isYamazumi,
-      yamazumiBarData,
-      yamazumiSummary,
-      yamazumiMapping?.taktTime,
-      isCapabilityMode,
-      capabilityKPIs,
-      performanceResult,
-    ]
-  );
+  };
 
   if (!outcome) return null;
 

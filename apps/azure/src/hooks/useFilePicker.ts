@@ -89,6 +89,7 @@ export function useFilePicker(options: FilePickerOptions): UseFilePickerReturn {
   const portRef = useRef<MessagePort | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const optionsRef = useRef(options);
+  // eslint-disable-next-line react-hooks/refs -- intentional: sync ref to avoid stale closure in popup handler
   optionsRef.current = options;
 
   const cloudAccess = hasTeamFeatures();

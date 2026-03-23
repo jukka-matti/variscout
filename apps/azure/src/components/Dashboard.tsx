@@ -187,6 +187,7 @@ const Dashboard = ({
   // Auto-switch to analysis tab when drilling from performance mode
   useEffect(() => {
     if (drillFromPerformance) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- responding to external navigation event (performance drill-down)
       setActiveTab('analysis');
     }
   }, [drillFromPerformance, setActiveTab]);
@@ -194,6 +195,7 @@ const Dashboard = ({
   // Auto-switch to yamazumi tab when analysis mode becomes yamazumi
   useEffect(() => {
     if (analysisMode === 'yamazumi') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- responding to external analysis mode change
       setActiveTab('yamazumi');
     }
   }, [analysisMode, setActiveTab]);
@@ -243,10 +245,13 @@ const Dashboard = ({
       const chart = initialViewState.focusedChart;
       // FocusedChart only covers standard charts; skip yamazumi (handled by YamazumiDashboard)
       if (chart === 'ichart' || chart === 'boxplot' || chart === 'pareto') {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restoration from persisted view state
         setFocusedChart(chart);
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restoration from persisted view state
       setHasRestoredFocusedChart(true);
     } else if (!hasRestoredFocusedChart) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restoration from persisted view state
       setHasRestoredFocusedChart(true);
     }
   }, [hasRestoredFocusedChart, initialViewState?.focusedChart, setFocusedChart]);

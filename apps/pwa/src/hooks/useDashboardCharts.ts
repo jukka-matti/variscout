@@ -119,12 +119,14 @@ export function useDashboardCharts({
 
   // Reset Pareto panel on data change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting panel visibility when data/factors change
     setShowParetoPanel(true);
   }, [rawData, factors]);
 
   // Open spec editor when requested from MobileMenu
   useEffect(() => {
     if (openSpecEditorRequested) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- responding to external request from MobileMenu
       setShowSpecEditor(true);
       onSpecEditorOpened?.();
     }
@@ -147,12 +149,9 @@ export function useDashboardCharts({
   );
 
   // Wrap drill-down to discard return value (PWA doesn't use lastAdvancedFactor)
-  const handleDrillDown = useCallback(
-    (factor: string, value: string) => {
-      base.handleDrillDown(factor, value);
-    },
-    [base.handleDrillDown]
-  );
+  const handleDrillDown = (factor: string, value: string) => {
+    base.handleDrillDown(factor, value);
+  };
 
   return {
     ...base,

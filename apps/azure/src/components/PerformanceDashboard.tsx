@@ -61,7 +61,9 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
 
   // Sync local state when specs change externally
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local form state from external spec prop changes
     setLocalLSL(specs.lsl?.toString() || '');
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local form state from external spec prop changes
     setLocalUSL(specs.usl?.toString() || '');
   }, [specs.lsl, specs.usl]);
 

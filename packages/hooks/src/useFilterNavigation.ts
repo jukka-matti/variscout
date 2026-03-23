@@ -213,140 +213,128 @@ export function useFilterNavigation(
     [setFilters, shouldSyncUrl, shouldUseHistory]
   );
 
-  const applyFilter = useCallback(
-    (params: {
-      type: FilterType;
-      source: FilterSource;
-      factor?: string;
-      values: (string | number)[];
-      rowIndex?: number;
-      originalIndex?: number;
-    }) => {
-      if (params.type === 'highlight') {
-        if (params.rowIndex !== undefined) {
-          setCurrentHighlight({
-            rowIndex: params.rowIndex,
-            value: params.values[0] as number,
-            originalIndex: params.originalIndex,
-          });
-        }
-        return;
+  const applyFilter = (params: {
+    type: FilterType;
+    source: FilterSource;
+    factor?: string;
+    values: (string | number)[];
+    rowIndex?: number;
+    originalIndex?: number;
+  }) => {
+    if (params.type === 'highlight') {
+      if (params.rowIndex !== undefined) {
+        setCurrentHighlight({
+          rowIndex: params.rowIndex,
+          value: params.values[0] as number,
+          originalIndex: params.originalIndex,
+        });
       }
+      return;
+    }
 
-      if (shouldToggleFilter(filterStack, params)) {
-        const newStack = filterStack.filter(
-          a => !(a.type === 'filter' && a.factor === params.factor)
-        );
-        setFilterStack(newStack);
-        syncFiltersFromStack(newStack);
-        return;
-      }
-
-      const action = createFilterAction({
-        type: params.type,
-        source: params.source,
-        factor: params.factor,
-        values: params.values,
-        rowIndex: params.rowIndex,
-      });
-
-      if (params.factor && columnAliases[params.factor]) {
-        action.label = action.label.replace(params.factor, columnAliases[params.factor]);
-      }
-
-      const newStack = pushFilterStack(filterStack, action);
+    if (shouldToggleFilter(filterStack, params)) {
+      const newStack = filterStack.filter(
+        a => !(a.type === 'filter' && a.factor === params.factor)
+      );
       setFilterStack(newStack);
       syncFiltersFromStack(newStack);
-    },
-    [filterStack, columnAliases, syncFiltersFromStack]
-  );
+      return;
+    }
 
-  const removeLastFilter = useCallback(() => {
+    const action = createFilterAction({
+      type: params.type,
+      source: params.source,
+      factor: params.factor,
+      values: params.values,
+      rowIndex: params.rowIndex,
+    });
+
+    if (params.factor && columnAliases[params.factor]) {
+      action.label = action.label.replace(params.factor, columnAliases[params.factor]);
+    }
+
+    const newStack = pushFilterStack(filterStack, action);
+    setFilterStack(newStack);
+    syncFiltersFromStack(newStack);
+  };
+
+  const removeLastFilter = () => {
     const newStack = popFilterStack(filterStack);
     setFilterStack(newStack);
     syncFiltersFromStack(newStack);
-  }, [filterStack, syncFiltersFromStack]);
+  };
 
-  const navigateTo = useCallback(
-    (actionId: string) => {
-      if (actionId === 'root') {
-        setFilterStack([]);
-        syncFiltersFromStack([]);
-        return;
-      }
+  const navigateTo = (actionId: string) => {
+    if (actionId === 'root') {
+      setFilterStack([]);
+      syncFiltersFromStack([]);
+      return;
+    }
 
-      const newStack = popFilterStackTo(filterStack, actionId);
-      setFilterStack(newStack);
-      syncFiltersFromStack(newStack);
-    },
-    [filterStack, syncFiltersFromStack]
-  );
+    const newStack = popFilterStackTo(filterStack, actionId);
+    setFilterStack(newStack);
+    syncFiltersFromStack(newStack);
+  };
 
-  const clearFilters = useCallback(() => {
+  const clearFilters = () => {
     setFilterStack([]);
     syncFiltersFromStack([]);
     setCurrentHighlight(null);
-  }, [syncFiltersFromStack]);
+  };
 
-  const setHighlight = useCallback((rowIndex: number, value: number, originalIndex?: number) => {
+  const setHighlight = (rowIndex: number, value: number, originalIndex?: number) => {
     setCurrentHighlight({ rowIndex, value, originalIndex });
-  }, []);
+  };
 
-  const clearHighlight = useCallback(() => {
+  const clearHighlight = () => {
     setCurrentHighlight(null);
-  }, []);
+  };
 
-  const updateFilterValues = useCallback(
-    (factor: string, newValues: (string | number)[], source: FilterSource = 'boxplot') => {
-      if (newValues.length === 0) {
-        const newStack = filterStack.filter(a => !(a.type === 'filter' && a.factor === factor));
-        setFilterStack(newStack);
-        syncFiltersFromStack(newStack);
-        return;
-      }
-
-      const existingIndex = filterStack.findIndex(a => a.type === 'filter' && a.factor === factor);
-
-      if (existingIndex >= 0) {
-        const newStack = [...filterStack];
-        const existing = newStack[existingIndex];
-        const newLabel = `${factor}: ${newValues.slice(0, 2).map(String).join(', ')}${newValues.length > 2 ? ` +${newValues.length - 2}` : ''}`;
-        const aliasedLabel = columnAliases[factor]
-          ? newLabel.replace(factor, columnAliases[factor])
-          : newLabel;
-        newStack[existingIndex] = {
-          ...existing,
-          values: newValues,
-          label: aliasedLabel,
-        };
-        setFilterStack(newStack);
-        syncFiltersFromStack(newStack);
-      } else {
-        const action = createFilterAction({
-          type: 'filter',
-          source,
-          factor,
-          values: newValues,
-        });
-        if (columnAliases[factor]) {
-          action.label = action.label.replace(factor, columnAliases[factor]);
-        }
-        const newStack = pushFilterStack(filterStack, action);
-        setFilterStack(newStack);
-        syncFiltersFromStack(newStack);
-      }
-    },
-    [filterStack, columnAliases, syncFiltersFromStack]
-  );
-
-  const removeFilter = useCallback(
-    (factor: string) => {
+  const updateFilterValues = (factor: string, newValues: (string | number)[], source: FilterSource = 'boxplot') => {
+    if (newValues.length === 0) {
       const newStack = filterStack.filter(a => !(a.type === 'filter' && a.factor === factor));
       setFilterStack(newStack);
       syncFiltersFromStack(newStack);
-    },
-    [filterStack, syncFiltersFromStack]
-  );
+      return;
+    }
+
+    const existingIndex = filterStack.findIndex(a => a.type === 'filter' && a.factor === factor);
+
+    if (existingIndex >= 0) {
+      const newStack = [...filterStack];
+      const existing = newStack[existingIndex];
+      const newLabel = `${factor}: ${newValues.slice(0, 2).map(String).join(', ')}${newValues.length > 2 ? ` +${newValues.length - 2}` : ''}`;
+      const aliasedLabel = columnAliases[factor]
+        ? newLabel.replace(factor, columnAliases[factor])
+        : newLabel;
+      newStack[existingIndex] = {
+        ...existing,
+        values: newValues,
+        label: aliasedLabel,
+      };
+      setFilterStack(newStack);
+      syncFiltersFromStack(newStack);
+    } else {
+      const action = createFilterAction({
+        type: 'filter',
+        source,
+        factor,
+        values: newValues,
+      });
+      if (columnAliases[factor]) {
+        action.label = action.label.replace(factor, columnAliases[factor]);
+      }
+      const newStack = pushFilterStack(filterStack, action);
+      setFilterStack(newStack);
+      syncFiltersFromStack(newStack);
+    }
+  };
+
+  const removeFilter = (factor: string) => {
+    const newStack = filterStack.filter(a => !(a.type === 'filter' && a.factor === factor));
+    setFilterStack(newStack);
+    syncFiltersFromStack(newStack);
+  };
 
   const breadcrumbs = useMemo(() => {
     return filterStackToBreadcrumbs(filterStack, 'All Data');

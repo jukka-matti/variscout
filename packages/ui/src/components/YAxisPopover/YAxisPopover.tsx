@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { RotateCcw, X } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 
@@ -114,33 +114,34 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
   const { t, formatStat } = useTranslation();
   const [localMin, setLocalMin] = useState<string>('');
   const [localMax, setLocalMax] = useState<string>('');
-  const [hasChanges, setHasChanges] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   // Sync local state when popover opens or props change
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting local form state when popover opens
       setLocalMin(currentMin !== undefined ? currentMin.toString() : '');
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting local form state when popover opens
       setLocalMax(currentMax !== undefined ? currentMax.toString() : '');
-      setValidationError(null);
     }
   }, [isOpen, currentMin, currentMax]);
 
-  // Track changes
-  useEffect(() => {
+  // Derived: track changes and validation
+  const hasChanges = useMemo(() => {
     const newMin = localMin ? parseFloat(localMin) : undefined;
     const newMax = localMax ? parseFloat(localMax) : undefined;
-    const changed = newMin !== currentMin || newMax !== currentMax;
-    setHasChanges(changed);
-
-    // Validate min < max
-    if (newMin !== undefined && newMax !== undefined && newMin >= newMax) {
-      setValidationError(t('validation.minLessThanMax'));
-    } else {
-      setValidationError(null);
-    }
+    return newMin !== currentMin || newMax !== currentMax;
   }, [localMin, localMax, currentMin, currentMax]);
+
+  // Derived: validation error
+  const validationError = useMemo(() => {
+    const newMin = localMin ? parseFloat(localMin) : undefined;
+    const newMax = localMax ? parseFloat(localMax) : undefined;
+    if (newMin !== undefined && newMax !== undefined && newMin >= newMax) {
+      return t('validation.minLessThanMax');
+    }
+    return null;
+  }, [localMin, localMax, t]);
 
   // Close on outside click
   useEffect(() => {

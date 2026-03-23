@@ -5,7 +5,6 @@
  * Follows useYamazumiIChartData pattern: groups data, computes metric,
  * returns IChartDataPoint[] for the existing IChart component.
  */
-import { useMemo } from 'react';
 import type {
   DataRow,
   IChartDataPoint,
@@ -74,65 +73,63 @@ export function useCapabilityIChartData({
   subgroupConfig,
   cpkTarget,
 }: UseCapabilityIChartDataOptions): UseCapabilityIChartDataResult {
-  return useMemo(() => {
-    const empty: UseCapabilityIChartDataResult = {
-      cpkData: [],
-      cpData: [],
-      cpkStats: null,
-      cpStats: null,
-      subgroupResults: [],
-    };
+  const empty: UseCapabilityIChartDataResult = {
+    cpkData: [],
+    cpData: [],
+    cpkStats: null,
+    cpStats: null,
+    subgroupResults: [],
+  };
 
-    if (!outcome || filteredData.length === 0) return empty;
-    if (specs.usl === undefined && specs.lsl === undefined) return empty;
+  if (!outcome || filteredData.length === 0) return empty;
+  if (specs.usl === undefined && specs.lsl === undefined) return empty;
 
-    const subgroups = groupDataIntoSubgroups(filteredData, outcome, subgroupConfig);
-    if (subgroups.length === 0) return empty;
+  const subgroups = groupDataIntoSubgroups(filteredData, outcome, subgroupConfig);
+  if (subgroups.length === 0) return empty;
 
-    const results = calculateSubgroupCapability(subgroups, specs);
+  const results = calculateSubgroupCapability(subgroups, specs);
 
-    // Build I-Chart data points
-    const cpkData: IChartDataPoint[] = [];
-    const cpData: IChartDataPoint[] = [];
-    const cpkValues: number[] = [];
-    const cpValues: number[] = [];
+  // Build I-Chart data points
+  const cpkData: IChartDataPoint[] = [];
+  const cpData: IChartDataPoint[] = [];
+  const cpkValues: number[] = [];
+  const cpValues: number[] = [];
 
-    for (const r of results) {
-      if (r.cpk !== undefined) {
-        cpkData.push({
-          x: r.index,
-          y: r.cpk,
-          originalIndex: r.index,
-          stage: r.label,
-        });
-        cpkValues.push(r.cpk);
-      }
-
-      if (r.cp !== undefined) {
-        cpData.push({
-          x: r.index,
-          y: r.cp,
-          originalIndex: r.index,
-          stage: r.label,
-        });
-        cpValues.push(r.cp);
-      }
+  for (const r of results) {
+    if (r.cpk !== undefined) {
+      cpkData.push({
+        x: r.index,
+        y: r.cpk,
+        originalIndex: r.index,
+        stage: r.label,
+      });
+      cpkValues.push(r.cpk);
     }
 
-    const cpkLimits = calculateSeriesControlLimits(cpkValues);
-    const cpLimits = calculateSeriesControlLimits(cpValues);
+    if (r.cp !== undefined) {
+      cpData.push({
+        x: r.index,
+        y: r.cp,
+        originalIndex: r.index,
+        stage: r.label,
+      });
+      cpValues.push(r.cp);
+    }
+  }
 
-    // Count subgroups meeting target (when cpkTarget is set)
-    const subgroupsMeetingTarget =
-      cpkTarget !== undefined ? cpkValues.filter(v => v >= cpkTarget).length : undefined;
+  const cpkLimits = calculateSeriesControlLimits(cpkValues);
+  const cpLimits = calculateSeriesControlLimits(cpValues);
 
-    return {
-      cpkData,
-      cpData,
-      cpkStats: buildSyntheticStats(cpkLimits),
-      cpStats: buildSyntheticStats(cpLimits),
-      subgroupResults: results,
-      subgroupsMeetingTarget,
-    };
-  }, [filteredData, outcome, specs.usl, specs.lsl, subgroupConfig, cpkTarget]);
+  // Count subgroups meeting target (when cpkTarget is set)
+  const subgroupsMeetingTarget =
+    cpkTarget !== undefined ? cpkValues.filter(v => v >= cpkTarget).length : undefined;
+
+  return {
+    cpkData,
+    cpData,
+    cpkStats: buildSyntheticStats(cpkLimits),
+    cpStats: buildSyntheticStats(cpLimits),
+    subgroupResults: results,
+    subgroupsMeetingTarget,
+  };
 }

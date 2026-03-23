@@ -70,6 +70,7 @@ export function useThemeState({ themingEnabled }: UseThemeStateOptions): UseThem
   // Detect system color scheme preference
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- subscribing to matchMedia change events
     setSystemPreference(mediaQuery.matches ? 'dark' : 'light');
 
     const handler = (e: MediaQueryListEvent) => {

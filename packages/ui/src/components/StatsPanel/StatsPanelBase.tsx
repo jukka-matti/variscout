@@ -55,6 +55,30 @@ const METRIC_VALUE_CLASS = 'text-xl font-bold font-mono text-white';
 const EMPTY_STATE_CLASS =
   'flex items-center justify-center h-full text-content-muted italic text-sm';
 
+const pencilIcon = <Pencil size={12} />;
+
+interface TabButtonProps {
+  tab: 'summary' | 'histogram' | 'normality';
+  label: string;
+  helpTerm?: GlossaryTerm;
+  activeTab: 'summary' | 'histogram' | 'normality';
+  onTabChange: (tab: 'summary' | 'histogram' | 'normality') => void;
+  compact?: boolean;
+}
+
+const TabButton = ({ tab, label, helpTerm, activeTab, onTabChange, compact }: TabButtonProps) => (
+  <button
+    onClick={() => onTabChange(tab)}
+    className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1 ${
+      activeTab === tab ? TAB_ACTIVE_CLASS : TAB_INACTIVE_CLASS
+    } ${compact ? 'flex-1 px-2 py-2' : ''}`}
+    style={compact ? { minHeight: 44 } : undefined}
+  >
+    {label}
+    {helpTerm && <HelpTooltip term={helpTerm} iconSize={10} />}
+  </button>
+);
+
 const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   stats,
   specs,
@@ -210,7 +234,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
             type="button"
             data-testid="edit-specs-link"
           >
-            <Pencil size={12} />
+            {pencilIcon}
             <span>{t('stats.editSpecs')}</span>
           </button>
         )}
@@ -239,40 +263,21 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     return emptyState(t('empty.noData'));
   };
 
-  // Tab button component
-  const TabButton = ({
-    tab,
-    label,
-    helpTerm,
-  }: {
-    tab: 'summary' | 'histogram' | 'normality';
-    label: string;
-    helpTerm?: GlossaryTerm;
-  }) => (
-    <button
-      onClick={() => setActiveTab(tab)}
-      className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1 ${
-        activeTab === tab ? TAB_ACTIVE_CLASS : TAB_INACTIVE_CLASS
-      } ${compact ? 'flex-1 px-2 py-2' : ''}`}
-      style={compact ? { minHeight: 44 } : undefined}
-    >
-      {label}
-      {helpTerm && <HelpTooltip term={helpTerm} iconSize={10} />}
-    </button>
-  );
-
   // Compact layout (mobile)
   if (compact) {
     return (
       <div className={CONTAINER_COMPACT_CLASS}>
         <div className={`${TAB_BAR_CLASS} mb-4`}>
-          <TabButton tab="summary" label={t('stats.summary')} />
+          <TabButton tab="summary" label={t('stats.summary')} activeTab={activeTab} onTabChange={setActiveTab} compact={compact} />
           <TabButton
             tab="histogram"
             label={t('stats.histogram')}
             helpTerm={getTerm('capabilityAnalysis')}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            compact={compact}
           />
-          <TabButton tab="normality" label={t('stats.probPlot')} />
+          <TabButton tab="normality" label={t('stats.probPlot')} activeTab={activeTab} onTabChange={setActiveTab} compact={compact} />
         </div>
 
         <div className="flex-1 min-h-0">
@@ -294,13 +299,16 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
       {/* Header / Tab buttons */}
       <div className="flex justify-between items-center border-b border-inherit pb-4">
         <div className={TAB_BAR_CLASS}>
-          <TabButton tab="summary" label={t('stats.summary')} />
+          <TabButton tab="summary" label={t('stats.summary')} activeTab={activeTab} onTabChange={setActiveTab} compact={compact} />
           <TabButton
             tab="histogram"
             label={t('stats.histogram')}
             helpTerm={getTerm('capabilityAnalysis')}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            compact={compact}
           />
-          <TabButton tab="normality" label={t('stats.probPlot')} />
+          <TabButton tab="normality" label={t('stats.probPlot')} activeTab={activeTab} onTabChange={setActiveTab} compact={compact} />
         </div>
       </div>
 

@@ -43,8 +43,11 @@ const DataTableModalBase: React.FC<DataTableModalBaseProps> = ({
   // Sync local data when modal opens
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting modal local state when it opens (controlled by parent)
       setLocalData(rawData.map(row => ({ ...row })));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting modal local state when it opens (controlled by parent)
       setHasChanges(false);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting modal local state when it opens (controlled by parent)
       setFilterExcluded(initialFilterExcluded);
     }
   }, [isOpen, rawData, initialFilterExcluded]);

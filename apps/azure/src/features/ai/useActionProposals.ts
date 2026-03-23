@@ -94,6 +94,7 @@ export function useActionProposals({
     const markers = coreParseActionMarkers(lastMsg.content);
     if (markers.length === 0) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- responding to new AI message arriving (external async event)
     setActionProposals(prev => {
       const newProposals = [...prev];
       for (const marker of markers) {

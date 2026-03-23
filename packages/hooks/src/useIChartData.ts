@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import type { IChartDataPoint, StatsResult } from '@variscout/core';
 import { formatTimeValue, lttb, type DataCellValue } from '@variscout/core';
 
@@ -16,7 +15,7 @@ export function useIChartData(
   /** Stats with control limits — used to force-include violation points in decimation */
   stats?: StatsResult | null
 ): IChartDataPoint[] {
-  const fullData = useMemo(() => {
+  const fullData = (() => {
     if (!outcome) return [];
     return sourceData
       .map(
@@ -29,22 +28,20 @@ export function useIChartData(
         })
       )
       .filter(d => !isNaN(d.y));
-  }, [sourceData, outcome, stageColumn, timeColumn]);
+  })();
 
   // Apply LTTB decimation for large datasets
-  return useMemo(() => {
-    if (!chartWidth || fullData.length <= chartWidth * 2) return fullData;
+  if (!chartWidth || fullData.length <= chartWidth * 2) return fullData;
 
-    // Find violation points to force-include
-    const forceInclude = new Set<number>();
-    if (stats?.ucl !== undefined && stats?.lcl !== undefined) {
-      fullData.forEach(p => {
-        if (p.y > stats.ucl || p.y < stats.lcl) {
-          if (p.originalIndex !== undefined) forceInclude.add(p.originalIndex);
-        }
-      });
-    }
+  // Find violation points to force-include
+  const forceInclude = new Set<number>();
+  if (stats?.ucl !== undefined && stats?.lcl !== undefined) {
+    fullData.forEach(p => {
+      if (p.y > stats.ucl || p.y < stats.lcl) {
+        if (p.originalIndex !== undefined) forceInclude.add(p.originalIndex);
+      }
+    });
+  }
 
-    return lttb(fullData, chartWidth * 2, forceInclude.size > 0 ? forceInclude : undefined);
-  }, [fullData, chartWidth, stats?.ucl, stats?.lcl]);
+  return lttb(fullData, chartWidth * 2, forceInclude.size > 0 ? forceInclude : undefined);
 }

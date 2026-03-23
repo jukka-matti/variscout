@@ -93,6 +93,7 @@ export function useAIDerivedState({
     if (!f) return undefined;
     const hypothesis = f.hypothesisId ? hypotheses.find(h => h.id === f.hypothesisId) : undefined;
 
+    // eslint-disable-next-line react-hooks/purity -- Date.now() intentional for overdue calculation
     const now = Date.now();
     const actions = f.actions?.map(a => ({
       text: a.text,

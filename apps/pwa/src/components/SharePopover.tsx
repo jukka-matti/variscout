@@ -2,6 +2,9 @@ import React, { useRef, useEffect, useState } from 'react';
 import { FileSpreadsheet, Image, X } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 
+const imageIcon = <Image size={16} />;
+const fileSpreadsheetIcon = <FileSpreadsheet size={16} />;
+
 interface SharePopoverProps {
   isOpen: boolean;
   onClose: () => void;
@@ -120,13 +123,13 @@ const SharePopover: React.FC<SharePopoverProps> = ({
       {/* Options */}
       <div className="p-2">
         <MenuItem
-          icon={<Image size={16} />}
+          icon={imageIcon}
           label={t('export.asImage')}
           description={t('export.imageDesc')}
           onClick={onExportImage}
         />
         <MenuItem
-          icon={<FileSpreadsheet size={16} />}
+          icon={fileSpreadsheetIcon}
           label={t('export.asCsv')}
           description={t('export.csvDesc')}
           onClick={onExportCSV}

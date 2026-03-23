@@ -11,7 +11,7 @@
  * Props-based component for sharing across PWA, Azure, and Excel Add-in.
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Group } from '@visx/group';
 import { Circle } from '@visx/shape';
 import { scaleLinear, scaleBand } from '@visx/scale';
@@ -76,34 +76,27 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
 
   // Calculate control limits from capability values across channels
   // Use 'cpk' for control limits when in 'both' mode (can't show control limits for both metrics)
-  const controlLimits = useMemo(() => {
-    const metric = capabilityMetric === 'both' ? 'cpk' : capabilityMetric;
-    return calculateCapabilityControlLimits(channels, metric);
-  }, [channels, capabilityMetric]);
+  const controlLimitMetric = capabilityMetric === 'both' ? 'cpk' as const : capabilityMetric;
+  const controlLimits = calculateCapabilityControlLimits(channels, controlLimitMetric);
 
   // Determine control status for each channel
-  const controlStatus = useMemo(() => {
-    if (!controlLimits) return new Map<string, CapabilityControlStatus>();
-    const metric = capabilityMetric === 'both' ? 'cpk' : capabilityMetric;
-    return getCapabilityControlStatus(channels, controlLimits, metric);
-  }, [channels, controlLimits, capabilityMetric]);
+  const controlStatus = controlLimits
+    ? getCapabilityControlStatus(channels, controlLimits, controlLimitMetric)
+    : new Map<string, CapabilityControlStatus>();
 
   // X scale - band scale for channels
-  const xScale = useMemo(
-    () =>
-      scaleBand({
-        range: [0, width],
-        domain: channels.map((_, i) => i.toString()),
-        padding: 0.1,
-      }),
-    [channels, width]
-  );
+  const xScale = scaleBand({
+    range: [0, width],
+    domain: channels.map((_, i) => i.toString()),
+    padding: 0.1,
+  });
 
   // Metric label for display
   const metricLabel = capabilityMetric === 'cp' ? 'Cp' : 'Cpk';
 
   // Y scale - capability metric values with control limits and target
-  const yScale = useMemo(() => {
+  // Y scale - capability metric values with control limits and target
+  const yScale = (() => {
     if (channels.length === 0) {
       return scaleLinear({ range: [height, 0], domain: [0, 2] });
     }
@@ -137,10 +130,10 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
       domain: [Math.min(minMetric - padding, 0), maxMetric + padding],
       nice: true,
     });
-  }, [channels, height, capabilityMetric, controlLimits, cpkTarget]);
+  })();
 
   // Label Collision Detection (adapted from PWA IChart)
-  const resolvedLabels = useMemo(() => {
+  const resolvedLabels = (() => {
     const labels: Array<{
       y: number;
       text: string;
@@ -188,16 +181,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
     }
 
     return labels;
-  }, [
-    controlLimits,
-    cpkTarget,
-    yScale,
-    fonts.statLabel,
-    chrome.axisSecondary,
-    chartColors.mean,
-    chartColors.target,
-    formatStat,
-  ]);
+  })();
 
   const xTickCount = getResponsiveTickCount(width, 'x');
 

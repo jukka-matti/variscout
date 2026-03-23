@@ -81,6 +81,7 @@ export function AdminHub({ initialTab, onBack, gatingMode }: AdminHubProps) {
   // Sync initialTab changes (e.g. from URL param updates)
   useEffect(() => {
     if (initialTab) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- responding to external URL param change for tab routing
       setActiveTab(initialTab);
     }
   }, [initialTab]);

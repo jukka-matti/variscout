@@ -265,7 +265,9 @@ const WhatIfSimulator = ({
 
   useEffect(() => {
     if (initialPreset) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- applying externally-provided preset (e.g. from AI action tool)
       setMeanShift(initialPreset.meanShift);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- applying externally-provided preset (e.g. from AI action tool)
       setVariationReduction(initialPreset.variationReduction);
     }
   }, [initialPreset]);

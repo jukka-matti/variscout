@@ -11,6 +11,20 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 
+const fileSpreadsheetIcon = <FileSpreadsheet size={18} />;
+const imageIcon = <Image size={18} />;
+const tableIcon = <Table size={18} />;
+const presentationIcon = <Presentation size={18} />;
+const targetIcon = <Target size={18} />;
+const plusIcon = <Plus size={18} />;
+const settingsIcon = <Settings size={18} />;
+
+const SectionHeader = ({ title }: { title: string }) => (
+  <div className="px-4 py-2 text-xs font-semibold text-content-muted uppercase tracking-wider">
+    {title}
+  </div>
+);
+
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
@@ -99,12 +113,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
     </button>
   );
 
-  const SectionHeader = ({ title }: { title: string }) => (
-    <div className="px-4 py-2 text-xs font-semibold text-content-muted uppercase tracking-wider">
-      {title}
-    </div>
-  );
-
   return (
     <>
       {/* Backdrop */}
@@ -130,12 +138,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           {/* Export Section */}
           <SectionHeader title={t('nav.export')} />
           <MenuItem
-            icon={<FileSpreadsheet size={18} />}
+            icon={fileSpreadsheetIcon}
             label={t('export.asCsv')}
             onClick={onExportCSV}
           />
           <MenuItem
-            icon={<Image size={18} />}
+            icon={imageIcon}
             label={t('export.asImage')}
             onClick={onExportImage}
           />
@@ -145,12 +153,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           {/* View Section */}
           <SectionHeader title="View" />
           <MenuItem
-            icon={<Table size={18} />}
+            icon={tableIcon}
             label={t('panel.dataTable')}
             onClick={onOpenDataTable}
           />
           <MenuItem
-            icon={<Presentation size={18} />}
+            icon={presentationIcon}
             label={t('nav.presentationMode')}
             onClick={onEnterPresentationMode}
           />
@@ -161,18 +169,18 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           <SectionHeader title="Analysis" />
           {onOpenSpecEditor && (
             <MenuItem
-              icon={<Target size={18} />}
+              icon={targetIcon}
               label={t('stats.editSpecs')}
               onClick={onOpenSpecEditor}
             />
           )}
-          <MenuItem icon={<Plus size={18} />} label={t('nav.newAnalysis')} onClick={onReset} />
+          <MenuItem icon={plusIcon} label={t('nav.newAnalysis')} onClick={onReset} />
 
           <div className="h-px bg-surface-tertiary my-2" />
 
           {/* Settings */}
           <MenuItem
-            icon={<Settings size={18} />}
+            icon={settingsIcon}
             label={t('nav.settings')}
             onClick={onOpenSettings}
           />

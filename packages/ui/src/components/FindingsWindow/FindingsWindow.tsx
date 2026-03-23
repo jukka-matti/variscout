@@ -108,11 +108,14 @@ const FindingsWindow: React.FC = () => {
       const stored = localStorage.getItem(FINDINGS_SYNC_KEY);
       if (stored) {
         const data = JSON.parse(stored) as FindingsSyncData;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time initialization from localStorage on mount
         setSyncData(data);
       } else {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time initialization from localStorage on mount
         setError('No data available. Please open from the main VariScout window.');
       }
     } catch {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time initialization from localStorage on mount
       setError('Failed to load data from main window.');
     }
   }, []);

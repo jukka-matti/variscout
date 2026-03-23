@@ -45,6 +45,7 @@ const EditableChartTitle = ({
   // Sync edit value when value prop changes
   useEffect(() => {
     if (!isEditing) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local edit buffer from controlled prop change
       setEditValue(value || defaultTitle);
     }
   }, [value, defaultTitle, isEditing]);

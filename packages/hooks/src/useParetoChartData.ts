@@ -133,11 +133,12 @@ export function useParetoChartData({
     }
 
     const total = sum(sorted, d => d.value);
-    let cumulative = 0;
-    const withCumulative: ParetoDataPoint[] = sorted.map(d => {
-      cumulative += d.value;
-      return { ...d, cumulative, cumulativePercentage: (cumulative / total) * 100 };
-    });
+    // Build cumulative sums via reduce (immutable — avoids react-hooks/immutability warning)
+    const withCumulative: ParetoDataPoint[] = sorted.reduce<ParetoDataPoint[]>((acc, d) => {
+      const cumulative = (acc.length > 0 ? acc[acc.length - 1].cumulative : 0) + d.value;
+      acc.push({ ...d, cumulative, cumulativePercentage: (cumulative / total) * 100 });
+      return acc;
+    }, []);
 
     return { data: withCumulative, totalCount: total };
   }, [filteredData, factor, aggregation, outcome, usingSeparateData, separateParetoData]);

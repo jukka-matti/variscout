@@ -88,8 +88,11 @@ const DevTierSwitcherContent: React.FC = () => {
 
   // Update state when tier/plan changes (e.g., from localStorage on mount)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from localStorage on mount
     setCurrentTier(getTier());
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from localStorage on mount
     setCurrentPlan(getPlan());
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from localStorage on mount
     setHasOverride(getDevTierOverrideValue() !== null || getDevPlanOverrideValue() !== null);
   }, []);
 

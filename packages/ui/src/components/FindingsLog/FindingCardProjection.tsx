@@ -24,6 +24,7 @@ export interface ProjectionSectionProps {
 
 const ProjectionSection: React.FC<ProjectionSectionProps> = ({ projection, hasSpecs }) => {
   const { formatStat } = useTranslation();
+  // eslint-disable-next-line react-hooks/purity -- Date.now() is intentional for relative time display
   const age = Math.round((Date.now() - new Date(projection.createdAt).getTime()) / 86400000);
   const ageText = age === 0 ? 'today' : age === 1 ? '1 day ago' : `${age} days ago`;
 

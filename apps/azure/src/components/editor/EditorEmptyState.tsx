@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs -- fileInputRef is passed via dataFlow prop, accessed in event handlers only */
 import React from 'react';
 import { Upload, FileText, PenLine, ClipboardPaste, Database, RefreshCw } from 'lucide-react';
 import { hasTeamFeatures } from '@variscout/core';
