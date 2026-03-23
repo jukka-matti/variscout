@@ -5,8 +5,9 @@
  * Custom lightweight solution using typed message catalogs + native Intl APIs.
  *
  * English is statically bundled (zero-delay fallback).
- * All other locales are lazy-loaded via dynamic import() — Vite code-splits
- * each into its own chunk (~4-5 KB gzip each).
+ * All other locales are lazy-loaded via the app-provided loader function.
+ * Apps call registerLocaleLoaders() at startup with their bundler's
+ * dynamic import mechanism (e.g., import.meta.glob for Vite).
  */
 
 export type { Locale, MessageCatalog } from './types';
@@ -18,10 +19,11 @@ import type { Locale, MessageCatalog } from './types';
 import { LOCALES } from './types';
 import { en } from './messages/en';
 
-// Lazy loaders — Vite auto-splits each into its own chunk
-const loaders = import.meta.glob<Record<string, MessageCatalog>>('./messages/*.ts', {
-  eager: false,
-});
+/** Lazy loader map: file path → () => Promise<module> */
+type LocaleLoaderMap = Record<string, () => Promise<Record<string, MessageCatalog>>>;
+
+// Loader map injected by the app at startup (bundler-specific)
+let loaders: LocaleLoaderMap = {};
 
 // Mutable registry — starts with English, grows as locales load
 const loaded = new Map<string, MessageCatalog>([['en', en]]);
@@ -36,16 +38,44 @@ const LOCALE_TO_FILENAME: Record<string, string> = {
 };
 
 /**
- * Preload a locale's message catalog via dynamic import.
+ * Register bundler-specific locale loaders.
+ * Call once at app startup before any locale preloading.
+ *
+ * @example Vite apps:
+ * ```ts
+ * import { registerLocaleLoaders } from '@variscout/core';
+ *
+ * registerLocaleLoaders(
+ *   import.meta.glob('./node_modules/@variscout/core/src/i18n/messages/*.ts', { eager: false })
+ * );
+ * ```
+ */
+export function registerLocaleLoaders(loaderMap: LocaleLoaderMap): void {
+  loaders = loaderMap;
+}
+
+/**
+ * Register a single locale's message catalog directly.
+ * Useful for testing or SSR where dynamic imports aren't available.
+ */
+export function registerLocale(locale: string, messages: MessageCatalog): void {
+  loaded.set(locale, messages);
+}
+
+/**
+ * Preload a locale's message catalog via the registered loader.
  * Returns immediately for English or already-loaded locales.
- * Falls back to English if the locale file doesn't exist.
+ * Falls back to English if no loader is registered or the locale file doesn't exist.
  */
 export async function preloadLocale(locale: Locale): Promise<MessageCatalog> {
   if (loaded.has(locale)) return loaded.get(locale)!;
   const filename = LOCALE_TO_FILENAME[locale] ?? locale;
-  const loader = loaders[`./messages/${filename}.ts`];
-  if (!loader) return en;
-  const mod = await loader();
+
+  // Try to find the loader by matching the filename in any registered path
+  const matchingKey = Object.keys(loaders).find(k => k.endsWith(`/${filename}.ts`));
+  if (!matchingKey) return en;
+
+  const mod = await loaders[matchingKey]();
   const catalog = mod[filename] as MessageCatalog;
   loaded.set(locale, catalog);
   return catalog;

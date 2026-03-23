@@ -5,14 +5,22 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./stats": "./src/stats.ts",
-    "./parser": "./src/parser.ts",
+    "./stats": "./src/stats/index.ts",
+    "./parser": "./src/parser/index.ts",
+    "./ai": "./src/ai/index.ts",
+    "./findings": "./src/findings.ts",
+    "./variation": "./src/variation/index.ts",
+    "./yamazumi": "./src/yamazumi/index.ts",
     "./export": "./src/export.ts",
     "./tier": "./src/tier.ts",
+    "./types": "./src/types.ts",
     "./navigation": "./src/navigation.ts",
     "./glossary": "./src/glossary/index.ts",
     "./responsive": "./src/responsive.ts",
-    "./i18n": "./src/i18n/index.ts"
+    "./i18n": "./src/i18n/index.ts",
+    "./performance": "./src/performance.ts",
+    "./time": "./src/time.ts",
+    "./projectMetadata": "./src/projectMetadata.ts"
   },
   "scripts": {
     "test": "vitest",

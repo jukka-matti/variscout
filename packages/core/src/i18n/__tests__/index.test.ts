@@ -6,8 +6,15 @@ import {
   detectLocale,
   preloadLocale,
   isLocaleLoaded,
+  registerLocaleLoaders,
 } from '../index';
+import type { MessageCatalog } from '../types';
 import { LOCALES } from '../types';
+
+// Register Vite-based locale loaders for tests (apps do this at startup)
+registerLocaleLoaders(
+  import.meta.glob<Record<string, MessageCatalog>>('../messages/*.ts', { eager: false })
+);
 
 // Preload all locales before tests — non-English catalogs are lazy-loaded
 beforeAll(async () => {

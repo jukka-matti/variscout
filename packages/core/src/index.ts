@@ -291,6 +291,10 @@ export {
   getMessage,
   formatMessage,
   detectLocale,
+  registerLocaleLoaders,
+  registerLocale,
+  preloadLocale,
+  isLocaleLoaded,
 } from './i18n';
 
 // Responsive utilities (chart layout calculations)

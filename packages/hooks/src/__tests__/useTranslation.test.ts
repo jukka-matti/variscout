@@ -1,8 +1,16 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTranslation } from '../useTranslation';
-import { preloadLocale } from '@variscout/core/i18n';
+import { preloadLocale, registerLocaleLoaders } from '@variscout/core/i18n';
+import type { MessageCatalog } from '@variscout/core';
 import { LOCALES } from '@variscout/core';
+
+// Register Vite-based locale loaders for tests
+registerLocaleLoaders(
+  import.meta.glob<Record<string, MessageCatalog>>('../../../core/src/i18n/messages/*.ts', {
+    eager: false,
+  })
+);
 
 // Preload all locales — non-English catalogs are lazy-loaded
 beforeAll(async () => {

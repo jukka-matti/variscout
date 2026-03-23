@@ -1,6 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useLocaleState } from '../useLocaleState';
+import { registerLocaleLoaders } from '@variscout/core/i18n';
+import type { MessageCatalog } from '@variscout/core';
+
+// Register Vite-based locale loaders for tests
+registerLocaleLoaders(
+  import.meta.glob<Record<string, MessageCatalog>>('../../../core/src/i18n/messages/*.ts', {
+    eager: false,
+  })
+);
 
 describe('useLocaleState', () => {
   const originalGetItem = Storage.prototype.getItem;

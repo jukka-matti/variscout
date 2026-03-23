@@ -416,6 +416,9 @@ export {
 } from './components/YamazumiDisplayToggle';
 export { YamazumiSummaryBar, type YamazumiSummaryBarProps } from './components/YamazumiSummaryBar';
 
+// Data Panel
+export { DataPanelBase, type DataPanelBaseProps } from './components/DataPanel';
+
 // Subgroup Capability
 export {
   CapabilityMetricToggle,
