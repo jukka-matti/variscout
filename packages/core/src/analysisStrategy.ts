@@ -43,7 +43,8 @@ export function resolveMode(
   return 'standard';
 }
 
-const strategies: Record<ResolvedMode, AnalysisModeStrategy> = {
+/** Immutable strategy registry — one entry per resolved analysis mode. */
+const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
   standard: {
     chartSlots: { slot1: 'ichart', slot2: 'boxplot', slot3: 'pareto', slot4: 'stats' },
     kpiComponent: 'standard',

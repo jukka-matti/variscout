@@ -127,7 +127,7 @@ The core package supports granular sub-path imports (in addition to the root `@v
 | `@variscout/core/stats` | stats/ | calculateStats, calculateAnova, calculateBoxplotStats, calculateKDE, lttb |
 | `@variscout/core/ai` | ai/ | responsesApi, buildAIContext, actionTools, chartInsights |
 | `@variscout/core/parser` | parser/ | parseText, detectColumns, validateData |
-| `@variscout/core/findings` | findings.ts | Finding types and CRUD utilities |
+| `@variscout/core/findings` | findings/ | Finding types, factories, helpers, migration |
 | `@variscout/core/variation` | variation/ | Variation tracking, simulation, suggestions |
 | `@variscout/core/yamazumi` | yamazumi/ | Yamazumi aggregation, classification, detection |
 | `@variscout/core/tier` | tier.ts | configureTier, getTier, isPaidTier, feature gates |
@@ -140,6 +140,7 @@ The core package supports granular sub-path imports (in addition to the root `@v
 | `@variscout/core/performance` | performance.ts | Multi-measure performance analysis |
 | `@variscout/core/time` | time.ts | Time column detection and extraction |
 | `@variscout/core/projectMetadata` | projectMetadata.ts | Project metadata computation (phase, findings summary, timestamps) |
+| `@variscout/core/strategy` | analysisStrategy.ts | resolveMode, getStrategy, AnalysisModeStrategy (ADR-047) |
 
 Apps must call `registerLocaleLoaders()` at startup to provide bundler-specific locale loading (see app `main.tsx` files).
 
