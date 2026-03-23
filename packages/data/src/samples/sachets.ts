@@ -87,7 +87,7 @@ export const sachets: SampleDataset = {
       target: 10,
       usl: 10.5,
     },
-    performanceMode: true,
+    analysisMode: 'performance' as const,
     measureColumns,
   },
 };

@@ -158,27 +158,22 @@ No other files need to change.
 
 ## Implementation Status
 
-| File                                                       | Status   | What Changed                                            |
-| ---------------------------------------------------------- | -------- | ------------------------------------------------------- |
-| `packages/ui/src/components/ReportView/ReportViewBase.tsx` | Complete | Strategy lookup replaces ~21 mode ternaries             |
-| `packages/hooks/src/useReportSections.ts`                  | Complete | `resolveMode()` + title lookup tables                   |
-| `apps/azure/src/components/Dashboard.tsx`                  | Pending  | `analysisMode === 'yamazumi'` tab switch                |
-| `apps/azure/src/pages/Editor.tsx`                          | Pending  | ~5 `isPerformanceMode` boolean checks                   |
-| `apps/pwa/src/App.tsx`                                     | Pending  | `analysisMode === 'yamazumi' ? <YamazumiDashboard>`     |
-| `packages/core/src/ai/buildAIContext.ts`                   | Pending  | 2 direct `analysisMode === 'yamazumi'` checks           |
-| `apps/azure/src/features/ai/useToolHandlers.ts`            | Pending  | Hardcoded chart types (should use `aiChartInsightKeys`) |
+| File                                                       | Status   | What Changed                                                         |
+| ---------------------------------------------------------- | -------- | -------------------------------------------------------------------- |
+| `packages/ui/src/components/ReportView/ReportViewBase.tsx` | Complete | Strategy lookup replaces ~21 mode ternaries                          |
+| `packages/hooks/src/useReportSections.ts`                  | Complete | `resolveMode()` + title lookup tables                                |
+| `apps/azure/src/components/Dashboard.tsx`                  | Complete | `resolvedMode` replaces `isPerformanceMode`/`analysisMode` ternaries |
+| `apps/azure/src/pages/Editor.tsx`                          | Complete | `isPerformanceMode` removed, `analysisMode` is sole source           |
+| `apps/pwa/src/App.tsx`                                     | Complete | `resolveMode()` for yamazumi conditional                             |
+| `packages/core/src/ai/buildAIContext.ts`                   | Complete | `analysisMode` propagated to AIContext for all modes                 |
+| `packages/core/src/ai/prompts/coScout.ts`                  | Complete | `strategy.aiToolSet` routes mode-specific coaching                   |
+| `isPerformanceMode` removal                                | Complete | 20 files, ~67 references removed. `analysisMode` is sole source.     |
 
-**Unused strategy fields (defined but not yet consumed):**
+**Strategy field consumption status:**
 
-- `chartSlots` — Intended for chart slot dispatch; rendering still uses inline conditionals
-- `aiChartInsightKeys` — Intended to gate chart insight generation by mode
-- `aiToolSet` — Intended to adjust CoScout tool emphasis by mode
-
-**Adoption plan:** Progressive refactoring on touch. Priority integration points are:
-
-1. Wire `analysisMode` from Editor.tsx → useAIOrchestration → buildAIContext (currently missing)
-2. Chart slot dispatcher (component map from `strategy.chartSlots`)
-3. AI insight gating via `strategy.aiChartInsightKeys`
+- `chartSlots` — Used by reports; intentionally NOT consumed for chart rendering (render-props pattern is correct; different chart types need different props)
+- `aiChartInsightKeys` — Defined per mode; low-impact (wrong-mode charts aren't rendered)
+- `aiToolSet` — Consumed by `buildCoScoutSystemPrompt()` to route mode-specific coaching
 
 ## Related
 

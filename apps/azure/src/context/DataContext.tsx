@@ -206,7 +206,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       yDomainForCharts: state.yDomainForCharts,
 
       // Performance mode state
-      isPerformanceMode: state.isPerformanceMode,
       measureColumns: state.measureColumns,
       measureLabel: state.measureLabel,
       selectedMeasure: state.selectedMeasure,
@@ -286,7 +285,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setStageOrderMode: actions.setStageOrderMode,
 
       // Performance mode setters
-      setPerformanceMode: actions.setPerformanceMode,
       setMeasureColumns: actions.setMeasureColumns,
       setMeasureLabel: actions.setMeasureLabel,
       setSelectedMeasure: actions.setSelectedMeasure,

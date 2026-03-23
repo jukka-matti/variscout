@@ -17,7 +17,7 @@ export interface ManualEntrySetupBaseProps {
   onContinue: () => void;
   // Performance mode props (hidden when enablePerformanceMode=false)
   enablePerformanceMode?: boolean;
-  isPerformanceMode?: boolean;
+  analysisMode?: 'standard' | 'performance';
   measureLabel?: string;
   channelCount?: number;
   onModeChange?: (mode: EntryMode) => void;
@@ -37,7 +37,7 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
   onCancel,
   onContinue,
   enablePerformanceMode = false,
-  isPerformanceMode = false,
+  analysisMode = 'standard',
   measureLabel = 'Head',
   channelCount = 8,
   onModeChange,
@@ -47,11 +47,11 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
   const { t, tf } = useTranslation();
   // Local state for mode toggle if parent doesn't control it
   const [localMode, setLocalMode] = useState<EntryMode>(
-    isPerformanceMode ? 'performance' : 'standard'
+    analysisMode === 'performance' ? 'performance' : 'standard'
   );
 
   const mode =
-    enablePerformanceMode && isPerformanceMode
+    enablePerformanceMode && analysisMode === 'performance'
       ? 'performance'
       : enablePerformanceMode
         ? localMode

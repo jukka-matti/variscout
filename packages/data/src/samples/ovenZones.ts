@@ -83,7 +83,7 @@ export const ovenZonesData: SampleDataset = {
       usl: 190,
       target: 180,
     },
-    performanceMode: true,
+    analysisMode: 'performance' as const,
     measureColumns,
   },
 };

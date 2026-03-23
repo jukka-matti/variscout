@@ -51,7 +51,7 @@ function createMockOptions(
     specs: {},
     columnAliases: {},
     dataFilename: null,
-    isPerformanceMode: false,
+    analysisMode: 'standard' as const,
     measureColumns: null,
     measureLabel: null,
     setRawData: vi.fn(),
@@ -61,7 +61,7 @@ function createMockOptions(
     setDataFilename: vi.fn(),
     setDataQualityReport: vi.fn(),
     setColumnAliases: vi.fn(),
-    setPerformanceMode: vi.fn(),
+    setAnalysisMode: vi.fn(),
     setMeasureColumns: vi.fn(),
     setMeasureLabel: vi.fn(),
     loadProject: vi.fn(),
@@ -147,7 +147,7 @@ describe('useEditorDataFlow', () => {
         outcome: 'Weight',
         factors: ['Operator'],
         specs: { usl: 15, lsl: 5 },
-        isPerformanceMode: false,
+        analysisMode: 'standard' as const,
         measureColumns: null,
         measureLabel: null,
       });
@@ -157,7 +157,7 @@ describe('useEditorDataFlow', () => {
         outcome: 'Weight',
         factors: ['Operator'],
         specs: { usl: 15, lsl: 5 },
-        isPerformanceMode: false,
+        analysisMode: 'standard',
         measureColumns: [],
         measureLabel: 'Channel',
       });
@@ -254,7 +254,7 @@ describe('useEditorDataFlow', () => {
 
       expect(options.setMeasureColumns).toHaveBeenCalledWith(['Ch1', 'Ch2', 'Ch3']);
       expect(options.setMeasureLabel).toHaveBeenCalledWith('Channel');
-      expect(options.setPerformanceMode).toHaveBeenCalledWith(true);
+      expect(options.setAnalysisMode).toHaveBeenCalledWith('performance');
     });
 
     it('does not enable performance mode for fewer than 3 channels', async () => {
@@ -277,7 +277,7 @@ describe('useEditorDataFlow', () => {
         await result.current.handlePasteAnalyze('Ch1\tCh2\n10\t11');
       });
 
-      expect(options.setPerformanceMode).not.toHaveBeenCalled();
+      expect(options.setAnalysisMode).not.toHaveBeenCalled();
     });
 
     it('prompts confirm when replacing existing data', async () => {

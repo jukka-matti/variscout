@@ -14,6 +14,7 @@ import type { AnalysisMode } from '../../types';
 import { formatStatistic } from '../../i18n/format';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from './shared';
 import { buildSummaryPrompt } from './narration';
+import { resolveMode, getStrategy } from '../../analysisStrategy';
 
 /** Options for building phase-gated CoScout tools */
 export interface BuildCoScoutToolsOptions {
@@ -812,7 +813,11 @@ Focus your analysis on:
   }
 
   // Mode-specific terminology and coaching (ADR-047)
-  if (options.analysisMode === 'yamazumi') {
+  // Routed through strategy registry — adding a new mode only requires a registry entry
+  const modeToolSet = options.analysisMode
+    ? getStrategy(resolveMode(options.analysisMode)).aiToolSet
+    : 'standard';
+  if (modeToolSet === 'yamazumi') {
     parts.push(
       `## Analysis Mode: Time Study (Yamazumi)
 You are analyzing cycle time composition by activity type across process steps — a lean manufacturing technique.
@@ -847,7 +852,7 @@ Coaching workflow:
 After kaizen, use staged analysis to verify: compare before/after VA ratio and takt compliance.
 Never reference Cpk, control limits, or SPC terminology. Use lean language throughout.`
     );
-  } else if (options.analysisMode === 'performance') {
+  } else if (modeToolSet === 'performance') {
     parts.push(
       `## Analysis Mode: Multi-Channel Performance
 You are analyzing equipment with multiple measurement channels (e.g., fill heads, cavities, spindles, lanes).

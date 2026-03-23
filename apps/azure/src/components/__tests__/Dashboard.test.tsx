@@ -438,7 +438,6 @@ describe('Dashboard', () => {
     setSpecs: vi.fn(),
     setRawData: vi.fn(),
     columnAliases: {},
-    isPerformanceMode: false,
     stageColumn: null,
     stageOrderMode: 'auto' as const,
     stagedStats: null,
@@ -512,10 +511,9 @@ describe('Dashboard', () => {
     expect(screen.getByText('8.00')).toBeInTheDocument();
   });
 
-  it('shows Performance tab when isPerformanceMode is true', () => {
+  it('shows Performance tab when analysisMode is performance', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       ...mockDataCtx,
-      isPerformanceMode: true,
       analysisMode: 'performance',
     } as unknown as ReturnType<typeof DataContextModule.useData>);
 

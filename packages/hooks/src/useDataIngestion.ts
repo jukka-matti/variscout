@@ -54,7 +54,6 @@ export interface DataIngestionActions {
   setParetoMode: (mode: 'derived' | 'separate') => void;
   setSeparateParetoData: (data: ParetoRow[] | null) => void;
   setSeparateParetoFilename: (filename: string | null) => void;
-  setPerformanceMode: (enabled: boolean) => void;
   setMeasureColumns: (columns: string[]) => void;
   setMeasureLabel: (label: string) => void;
   setAnalysisMode: (mode: AnalysisMode) => void;
@@ -140,7 +139,6 @@ export function useDataIngestion(
     setParetoMode,
     setSeparateParetoData,
     setSeparateParetoFilename,
-    setPerformanceMode,
     setMeasureColumns,
     setMeasureLabel,
     setAnalysisMode,
@@ -278,11 +276,9 @@ export function useDataIngestion(
     setParetoMode('derived');
     setSeparateParetoData(null);
     setSeparateParetoFilename(null);
-    // Reset performance mode
+    // Reset measure state
     setMeasureColumns([]);
     setMeasureLabel('Measure');
-    setPerformanceMode(false);
-    // Reset analysis mode
     setAnalysisMode('standard');
     setYamazumiMapping(null);
   }, [
@@ -298,7 +294,6 @@ export function useDataIngestion(
     setSeparateParetoFilename,
     setMeasureColumns,
     setMeasureLabel,
-    setPerformanceMode,
     setAnalysisMode,
     setYamazumiMapping,
   ]);
@@ -341,15 +336,13 @@ export function useDataIngestion(
       setSeparateParetoData(null);
       setSeparateParetoFilename(null);
       if (
-        sample.config.performanceMode &&
+        sample.config.analysisMode === 'performance' &&
         sample.config.measureColumns &&
         sample.config.measureColumns.length >= 3
       ) {
-        setPerformanceMode(true);
         setMeasureColumns(sample.config.measureColumns);
         setMeasureLabel('Channel');
       } else {
-        setPerformanceMode(false);
         setMeasureColumns([]);
         setMeasureLabel('Channel');
       }
@@ -366,7 +359,7 @@ export function useDataIngestion(
           waitTimeColumn: sample.config.yamazumiMapping.waitTimeColumn,
         });
       } else {
-        setAnalysisMode(sample.config.performanceMode ? 'performance' : 'standard');
+        setAnalysisMode(sample.config.analysisMode ?? 'standard');
         setYamazumiMapping(null);
       }
     },
@@ -380,7 +373,6 @@ export function useDataIngestion(
       setParetoMode,
       setSeparateParetoData,
       setSeparateParetoFilename,
-      setPerformanceMode,
       setMeasureColumns,
       setMeasureLabel,
       setAnalysisMode,

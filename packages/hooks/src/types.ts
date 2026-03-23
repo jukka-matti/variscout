@@ -195,8 +195,6 @@ export interface AnalysisState {
   stageColumn?: string | null;
   /** Stage ordering mode */
   stageOrderMode?: StageOrderMode;
-  /** Performance Mode active (legacy — use analysisMode instead) */
-  isPerformanceMode?: boolean;
   /** Analysis mode: standard, performance, or yamazumi */
   analysisMode?: import('@variscout/core').AnalysisMode;
   /** Yamazumi column role mapping */

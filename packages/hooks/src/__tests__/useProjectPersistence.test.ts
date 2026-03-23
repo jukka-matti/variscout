@@ -95,7 +95,6 @@ function createMockSetters() {
     setSeparateParetoFilename: vi.fn(),
     setStageColumn: vi.fn(),
     setStageOrderMode: vi.fn(),
-    setPerformanceMode: vi.fn(),
     setMeasureColumns: vi.fn(),
     setMeasureLabel: vi.fn(),
     setSelectedMeasure: vi.fn(),
@@ -131,7 +130,6 @@ function createDefaultInputs(
     cpkTarget: undefined,
     stageColumn: null,
     stageOrderMode: 'auto',
-    isPerformanceMode: false,
     measureColumns: [],
     selectedMeasure: null,
     measureLabel: 'Measure',
@@ -226,7 +224,6 @@ describe('useProjectPersistence', () => {
       expect(savedState.cpkTarget).toBeUndefined();
       expect(savedState.stageColumn).toBeUndefined();
       expect(savedState.stageOrderMode).toBeUndefined();
-      expect(savedState.isPerformanceMode).toBeUndefined();
       expect(savedState.measureColumns).toBeUndefined();
       expect(savedState.selectedMeasure).toBeUndefined();
       expect(savedState.measureLabel).toBeUndefined();
@@ -244,7 +241,6 @@ describe('useProjectPersistence', () => {
         cpkTarget: 2.0,
         stageColumn: 'Stage',
         stageOrderMode: 'data-order',
-        isPerformanceMode: true,
         measureColumns: ['Fill1', 'Fill2'],
         selectedMeasure: 'Fill1',
         measureLabel: 'Fill Head',
@@ -277,7 +273,6 @@ describe('useProjectPersistence', () => {
       expect(savedState.cpkTarget).toBe(2.0);
       expect(savedState.stageColumn).toBe('Stage');
       expect(savedState.stageOrderMode).toBe('data-order');
-      expect(savedState.isPerformanceMode).toBe(true);
       expect(savedState.measureColumns).toEqual(['Fill1', 'Fill2']);
       expect(savedState.selectedMeasure).toBe('Fill1');
       expect(savedState.measureLabel).toBe('Fill Head');
@@ -326,7 +321,6 @@ describe('useProjectPersistence', () => {
       cpkTarget: 2.0,
       stageColumn: 'Stage',
       stageOrderMode: 'data-order',
-      isPerformanceMode: true,
       measureColumns: ['Fill1', 'Fill2'],
       selectedMeasure: 'Fill1',
       measureLabel: 'Fill Head',
@@ -371,7 +365,6 @@ describe('useProjectPersistence', () => {
       expect(setters.setCpkTarget).toHaveBeenCalledWith(2.0);
       expect(setters.setStageColumn).toHaveBeenCalledWith('Stage');
       expect(setters.setStageOrderMode).toHaveBeenCalledWith('data-order');
-      expect(setters.setPerformanceMode).toHaveBeenCalledWith(true);
       expect(setters.setMeasureColumns).toHaveBeenCalledWith(['Fill1', 'Fill2']);
       expect(setters.setSelectedMeasure).toHaveBeenCalledWith('Fill1');
       expect(setters.setMeasureLabel).toHaveBeenCalledWith('Fill Head');
@@ -441,7 +434,6 @@ describe('useProjectPersistence', () => {
       expect(setters.setCpkTarget).toHaveBeenCalledWith(undefined);
       expect(setters.setStageColumn).toHaveBeenCalledWith(null);
       expect(setters.setStageOrderMode).toHaveBeenCalledWith('auto');
-      expect(setters.setPerformanceMode).toHaveBeenCalledWith(false);
       expect(setters.setMeasureColumns).toHaveBeenCalledWith([]);
       expect(setters.setSelectedMeasure).toHaveBeenCalledWith(null);
       expect(setters.setMeasureLabel).toHaveBeenCalledWith('Measure');
@@ -882,7 +874,6 @@ describe('useProjectPersistence', () => {
       cpkTarget: 1.67,
       stageColumn: 'Stage',
       stageOrderMode: 'data-order',
-      isPerformanceMode: true,
       measureColumns: ['Temp'],
       selectedMeasure: 'Temp',
       measureLabel: 'Temperature',
@@ -930,7 +921,6 @@ describe('useProjectPersistence', () => {
       expect(setters.setCpkTarget).toHaveBeenCalledWith(1.67);
       expect(setters.setStageColumn).toHaveBeenCalledWith('Stage');
       expect(setters.setStageOrderMode).toHaveBeenCalledWith('data-order');
-      expect(setters.setPerformanceMode).toHaveBeenCalledWith(true);
       expect(setters.setMeasureColumns).toHaveBeenCalledWith(['Temp']);
       expect(setters.setSelectedMeasure).toHaveBeenCalledWith('Temp');
       expect(setters.setMeasureLabel).toHaveBeenCalledWith('Temperature');
@@ -1007,7 +997,6 @@ describe('useProjectPersistence', () => {
       expect(setters.setCpkTarget).toHaveBeenCalledWith(undefined);
       expect(setters.setStageColumn).toHaveBeenCalledWith(null);
       expect(setters.setStageOrderMode).toHaveBeenCalledWith('auto');
-      expect(setters.setPerformanceMode).toHaveBeenCalledWith(false);
       expect(setters.setMeasureColumns).toHaveBeenCalledWith([]);
       expect(setters.setSelectedMeasure).toHaveBeenCalledWith(null);
       expect(setters.setMeasureLabel).toHaveBeenCalledWith('Measure');
@@ -1192,7 +1181,6 @@ describe('useProjectPersistence', () => {
       expect(setters.setSeparateParetoFilename).toHaveBeenCalledWith(null);
       expect(setters.setStageColumn).toHaveBeenCalledWith(null);
       expect(setters.setStageOrderMode).toHaveBeenCalledWith('auto');
-      expect(setters.setPerformanceMode).toHaveBeenCalledWith(false);
       expect(setters.setMeasureColumns).toHaveBeenCalledWith([]);
       expect(setters.setMeasureLabel).toHaveBeenCalledWith('Measure');
       expect(setters.setSelectedMeasure).toHaveBeenCalledWith(null);

@@ -18,7 +18,7 @@ function makeInputs(overrides: Partial<DataComputationInputs> = {}): DataComputa
     stageColumn: null,
     stageOrderMode: 'auto' as StageOrderMode,
     displayOptions: { lockYAxisToFullData: false },
-    isPerformanceMode: false,
+    analysisMode: 'standard' as const,
     measureColumns: [],
     workerApi: null,
     ...overrides,
@@ -48,14 +48,14 @@ describe('useDataComputation', () => {
     expect(result.current.stats!.stdDev).toBeCloseTo(10, 0);
   });
 
-  // 2. Empty measureColumns + performanceMode: performanceResult=null
-  it('returns null performanceResult when performanceMode=true but measureColumns is empty', () => {
+  // 2. Empty measureColumns + performance mode: performanceResult=null
+  it('returns null performanceResult when analysisMode=performance but measureColumns is empty', () => {
     const data = makeRows([10, 20, 30]);
     const inputs = makeInputs({
       rawData: data,
       filteredData: data,
       outcome: 'value',
-      isPerformanceMode: true,
+      analysisMode: 'performance' as const,
       measureColumns: [],
       specs: { usl: 50, lsl: 0 },
     });
@@ -203,7 +203,7 @@ describe('useDataComputation', () => {
     const inputs = makeInputs({
       rawData: data,
       filteredData: data,
-      isPerformanceMode: true,
+      analysisMode: 'performance' as const,
       measureColumns: ['m1', 'm2'],
       specs: {}, // no USL/LSL
     });

@@ -58,7 +58,6 @@ export interface ProjectPersistenceInputs {
   cpkTarget: number | undefined;
   stageColumn: string | null;
   stageOrderMode: StageOrderMode;
-  isPerformanceMode: boolean;
   measureColumns: string[];
   selectedMeasure: string | null;
   measureLabel: string;
@@ -116,7 +115,6 @@ export interface ProjectPersistenceInputs {
   setSeparateParetoFilename: (filename: string | null) => void;
   setStageColumn: (col: string | null) => void;
   setStageOrderMode: (mode: StageOrderMode) => void;
-  setPerformanceMode: (enabled: boolean) => void;
   setMeasureColumns: (columns: string[]) => void;
   setMeasureLabel: (label: string) => void;
   setSelectedMeasure: (measureId: string | null) => void;
@@ -184,7 +182,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     cpkTarget,
     stageColumn,
     stageOrderMode,
-    isPerformanceMode,
     measureColumns,
     selectedMeasure,
     measureLabel,
@@ -221,7 +218,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setSeparateParetoFilename,
     setStageColumn,
     setStageOrderMode,
-    setPerformanceMode,
     setMeasureColumns,
     setMeasureLabel,
     setSelectedMeasure,
@@ -261,7 +257,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     if (cpkTarget !== undefined) state.cpkTarget = cpkTarget;
     if (stageColumn !== null) state.stageColumn = stageColumn;
     if (stageOrderMode !== 'auto') state.stageOrderMode = stageOrderMode;
-    if (isPerformanceMode) state.isPerformanceMode = true;
     if (measureColumns.length > 0) state.measureColumns = measureColumns;
     if (selectedMeasure !== null) state.selectedMeasure = selectedMeasure;
     if (measureLabel !== 'Measure') state.measureLabel = measureLabel;
@@ -312,7 +307,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     cpkTarget,
     stageColumn,
     stageOrderMode,
-    isPerformanceMode,
     measureColumns,
     selectedMeasure,
     measureLabel,
@@ -365,16 +359,13 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
         setCpkTarget(state.cpkTarget);
         setStageColumn(state.stageColumn ?? null);
         setStageOrderMode(state.stageOrderMode ?? 'auto');
-        setPerformanceMode(state.isPerformanceMode ?? false);
         setMeasureColumns(state.measureColumns ?? []);
         setSelectedMeasure(state.selectedMeasure ?? null);
         setMeasureLabel(state.measureLabel ?? 'Measure');
         setChartTitles(state.chartTitles ?? {});
 
         // Analysis mode (backward-compat: old .vrs files won't have these)
-        setAnalysisMode(
-          state.analysisMode ?? (state.isPerformanceMode ? 'performance' : 'standard')
-        );
+        setAnalysisMode(state.analysisMode ?? 'standard');
         setYamazumiMapping(state.yamazumiMapping ?? null);
         setSubgroupConfig(state.subgroupConfig ?? { method: 'fixed-size', size: 5 });
 
@@ -445,7 +436,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setCpkTarget,
       setStageColumn,
       setStageOrderMode,
-      setPerformanceMode,
       setMeasureColumns,
       setSelectedMeasure,
       setMeasureLabel,
@@ -513,7 +503,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setCpkTarget(state.cpkTarget);
       setStageColumn(state.stageColumn ?? null);
       setStageOrderMode(state.stageOrderMode ?? 'auto');
-      setPerformanceMode(state.isPerformanceMode ?? false);
       setMeasureColumns(state.measureColumns ?? []);
       setSelectedMeasure(state.selectedMeasure ?? null);
       setMeasureLabel(state.measureLabel ?? 'Measure');
@@ -521,7 +510,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       if (state.measureSpecs) setMeasureSpecs(state.measureSpecs);
 
       // Analysis mode
-      setAnalysisMode(state.analysisMode ?? (state.isPerformanceMode ? 'performance' : 'standard'));
+      setAnalysisMode(state.analysisMode ?? 'standard');
       setYamazumiMapping(state.yamazumiMapping ?? null);
       setSubgroupConfig(state.subgroupConfig ?? { method: 'fixed-size', size: 5 });
 
@@ -588,7 +577,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setCpkTarget,
       setStageColumn,
       setStageOrderMode,
-      setPerformanceMode,
       setMeasureColumns,
       setSelectedMeasure,
       setMeasureLabel,
@@ -636,7 +624,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setStageColumn(null);
     setStageOrderMode('auto');
     // Reset performance mode
-    setPerformanceMode(false);
     setMeasureColumns([]);
     setMeasureLabel('Measure');
     setSelectedMeasure(null);
@@ -675,7 +662,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setSeparateParetoFilename,
     setStageColumn,
     setStageOrderMode,
-    setPerformanceMode,
     setMeasureColumns,
     setMeasureLabel,
     setSelectedMeasure,

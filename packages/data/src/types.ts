@@ -32,8 +32,8 @@ export interface SampleConfig {
   factors: string[];
   /** Specification limits */
   specs: SpecLimits;
-  /** Enable performance mode (multi-measure Cpk analysis) */
-  performanceMode?: boolean;
+  /** Analysis mode (standard, performance, or yamazumi) */
+  analysisMode?: 'standard' | 'performance' | 'yamazumi';
   /** Column names for measure variables (wide format data) */
   measureColumns?: string[];
   /** Enable Yamazumi analysis mode (time study analysis) */

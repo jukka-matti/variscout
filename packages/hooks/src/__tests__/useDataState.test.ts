@@ -70,7 +70,6 @@ describe('useDataState', () => {
     expect(state.filters).toEqual({});
     expect(state.filteredData).toEqual([]);
     expect(state.stats).toBeNull();
-    expect(state.isPerformanceMode).toBe(false);
     expect(state.measureColumns).toEqual([]);
     expect(state.measureLabel).toBe('Measure');
   });
@@ -222,24 +221,6 @@ describe('useDataState', () => {
   });
 
   // ---- Performance mode ----
-
-  it('setPerformanceMode toggles performanceMode', () => {
-    const { result } = renderHook(() => useDataState({ persistence: mockPersistence }));
-
-    expect(result.current[0].isPerformanceMode).toBe(false);
-
-    act(() => {
-      result.current[1].setPerformanceMode(true);
-    });
-
-    expect(result.current[0].isPerformanceMode).toBe(true);
-
-    act(() => {
-      result.current[1].setPerformanceMode(false);
-    });
-
-    expect(result.current[0].isPerformanceMode).toBe(false);
-  });
 
   it('setMeasureColumns and setMeasureLabel update performance state', () => {
     const { result } = renderHook(() => useDataState({ persistence: mockPersistence }));

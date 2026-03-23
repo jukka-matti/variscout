@@ -46,7 +46,7 @@ const PerformanceSetupPanel: React.FC<PerformanceSetupPanelProps> = ({
     cpkTarget: currentCpkTarget,
     setMeasureColumns,
     setMeasureLabel,
-    setPerformanceMode,
+    setAnalysisMode,
     setCpkTarget,
   } = useData();
 
@@ -81,10 +81,10 @@ const PerformanceSetupPanel: React.FC<PerformanceSetupPanelProps> = ({
         setMeasureColumns(columns);
         setMeasureLabel(label);
         setCpkTarget(cpkTarget);
-        setPerformanceMode(true);
+        setAnalysisMode('performance');
       }
     },
-    [onEnable, setMeasureColumns, setMeasureLabel, setCpkTarget, setPerformanceMode]
+    [onEnable, setMeasureColumns, setMeasureLabel, setCpkTarget, setAnalysisMode]
   );
 
   return (

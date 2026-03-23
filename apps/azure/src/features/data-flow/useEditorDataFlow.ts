@@ -8,6 +8,7 @@ import {
   augmentWithTimeColumns,
 } from '@variscout/core';
 import type {
+  AnalysisMode,
   DataRow,
   DataQualityReport,
   TimeExtractionConfig,
@@ -182,7 +183,7 @@ export interface UseEditorDataFlowOptions {
   specs: { usl?: number; lsl?: number; target?: number };
   columnAliases: Record<string, string>;
   dataFilename: string | null;
-  isPerformanceMode: boolean;
+  analysisMode: AnalysisMode;
   measureColumns: string[] | null;
   measureLabel: string | null;
   setRawData: (data: DataRow[]) => void;
@@ -192,7 +193,7 @@ export interface UseEditorDataFlowOptions {
   setDataFilename: (filename: string | null) => void;
   setDataQualityReport: (report: DataQualityReport | null) => void;
   setColumnAliases: (aliases: Record<string, string>) => void;
-  setPerformanceMode: (v: boolean) => void;
+  setAnalysisMode: (mode: AnalysisMode) => void;
   setMeasureColumns: (cols: string[]) => void;
   setMeasureLabel: (label: string) => void;
   loadProject: (id: string) => Promise<void>;
@@ -277,7 +278,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     factors,
     specs,
     columnAliases,
-    isPerformanceMode,
+    analysisMode,
     measureColumns,
     measureLabel,
     setRawData,
@@ -287,7 +288,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     setDataFilename,
     setDataQualityReport,
     setColumnAliases,
-    setPerformanceMode,
+    setAnalysisMode,
     setMeasureColumns,
     setMeasureLabel,
     handleFileUpload,
@@ -352,11 +353,11 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         specs?.usl !== undefined || specs?.lsl !== undefined
           ? { usl: specs.usl, lsl: specs.lsl }
           : undefined,
-      isPerformanceMode,
+      analysisMode: analysisMode === 'performance' ? 'performance' : 'standard',
       measureColumns: measureColumns || [],
       measureLabel: measureLabel || 'Channel',
     };
-  }, [outcome, factors, specs, isPerformanceMode, measureColumns, measureLabel]);
+  }, [outcome, factors, specs, analysisMode, measureColumns, measureLabel]);
 
   const showFeedback = useCallback((_msg: string) => {
     // Feedback is set via dispatch (APPEND_ROWS_DONE / APPEND_COLUMNS_DONE)
@@ -413,7 +414,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
             setMeasureColumns(wideFormat.channels.map(c => c.id));
             setMeasureLabel('Channel');
-            setPerformanceMode(true);
+            setAnalysisMode('performance');
           }
         }
 
@@ -449,7 +450,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       setDataQualityReport,
       setMeasureColumns,
       setMeasureLabel,
-      setPerformanceMode,
+      setAnalysisMode,
     ]
   );
 

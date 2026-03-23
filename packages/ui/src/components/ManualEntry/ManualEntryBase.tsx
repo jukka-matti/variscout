@@ -11,7 +11,7 @@ export interface ManualEntryConfig {
   outcome: string;
   factors: string[];
   specs?: Pick<SpecLimits, 'usl' | 'lsl'>;
-  isPerformanceMode?: boolean;
+  analysisMode?: 'standard' | 'performance';
   measureColumns?: string[];
   measureLabel?: string;
 }
@@ -38,27 +38,29 @@ const ManualEntryBase = ({
 
   // Mode State - use existing config if in append mode
   const [mode, setMode] = useState<EntryMode>(
-    appendMode && existingConfig?.isPerformanceMode ? 'performance' : 'standard'
+    appendMode && existingConfig?.analysisMode === 'performance' ? 'performance' : 'standard'
   );
 
   // Standard Mode Config State - pre-fill from existing config in append mode
   const [outcomeName, setOutcomeName] = useState(
-    appendMode && existingConfig && !existingConfig.isPerformanceMode
+    appendMode && existingConfig && existingConfig.analysisMode !== 'performance'
       ? existingConfig.outcome
       : 'Weight'
   );
   const [factors, setFactors] = useState<string[]>(
-    appendMode && existingConfig && !existingConfig.isPerformanceMode
+    appendMode && existingConfig && existingConfig.analysisMode !== 'performance'
       ? existingConfig.factors
       : ['Operator', 'Machine']
   );
 
   // Performance Mode Config State - pre-fill from existing config in append mode
   const [measureLabel, setMeasureLabel] = useState(
-    appendMode && existingConfig?.isPerformanceMode ? existingConfig.measureLabel || 'Head' : 'Head'
+    appendMode && existingConfig?.analysisMode === 'performance'
+      ? existingConfig.measureLabel || 'Head'
+      : 'Head'
   );
   const [channelCount, setChannelCount] = useState(
-    appendMode && existingConfig?.isPerformanceMode && existingConfig.measureColumns
+    appendMode && existingConfig?.analysisMode === 'performance' && existingConfig.measureColumns
       ? existingConfig.measureColumns.length
       : 8
   );
@@ -342,7 +344,7 @@ const ManualEntryBase = ({
         outcome: measureColumns[0],
         factors: [],
         specs,
-        isPerformanceMode: true,
+        analysisMode: 'performance' as const,
         measureColumns,
         measureLabel,
       });
@@ -375,7 +377,7 @@ const ManualEntryBase = ({
         onCancel={onCancel}
         onContinue={handleContinue}
         enablePerformanceMode={enablePerformanceMode}
-        isPerformanceMode={mode === 'performance'}
+        analysisMode={mode}
         measureLabel={measureLabel}
         channelCount={channelCount}
         onModeChange={handleModeChange}

@@ -20,6 +20,7 @@ import {
   type StagedStatsResult,
   type StageOrderMode,
   type ChannelPerformanceData,
+  type AnalysisMode,
   safeMin,
   safeMax,
 } from '@variscout/core';
@@ -40,7 +41,7 @@ export interface DataComputationInputs {
   stageColumn: string | null;
   stageOrderMode: StageOrderMode;
   displayOptions: DisplayOptions;
-  isPerformanceMode: boolean;
+  analysisMode: AnalysisMode;
   measureColumns: string[];
   /** Stats Worker API (null = sync fallback) */
   workerApi?: StatsWorkerAPI | null;
@@ -72,7 +73,7 @@ export function useDataComputation(inputs: DataComputationInputs): DataComputati
     stageColumn,
     stageOrderMode,
     displayOptions,
-    isPerformanceMode,
+    analysisMode,
     measureColumns,
   } = inputs;
 
@@ -144,7 +145,7 @@ export function useDataComputation(inputs: DataComputationInputs): DataComputati
 
   // Performance result - calculated for all measures in performance mode
   const performanceResult = useMemo(() => {
-    if (!isPerformanceMode || measureColumns.length === 0 || rawData.length === 0) {
+    if (analysisMode !== 'performance' || measureColumns.length === 0 || rawData.length === 0) {
       return null;
     }
     // Only calculate if specs are defined (need at least one spec for Cpk)
@@ -152,7 +153,7 @@ export function useDataComputation(inputs: DataComputationInputs): DataComputati
       return null;
     }
     return calculateChannelPerformance(rawData, measureColumns, specs);
-  }, [isPerformanceMode, rawData, measureColumns, specs]);
+  }, [analysisMode, rawData, measureColumns, specs]);
 
   /**
    * Get the effective specs for a measure in Performance Mode.

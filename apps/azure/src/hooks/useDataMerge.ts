@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { validateData, augmentWithTimeColumns } from '@variscout/core';
-import type { DataRow, DataQualityReport } from '@variscout/core';
+import type { AnalysisMode, DataRow, DataQualityReport } from '@variscout/core';
 import type { ManualEntryConfig } from '../components/data/ManualEntry';
 
 /**
@@ -107,7 +107,7 @@ interface UseDataMergeOptions {
   setDataQualityReport: (report: DataQualityReport) => void;
   setMeasureColumns: (cols: string[]) => void;
   setMeasureLabel: (label: string) => void;
-  setPerformanceMode: (enabled: boolean) => void;
+  setAnalysisMode: (mode: AnalysisMode) => void;
   onDone: () => void;
 }
 
@@ -126,7 +126,7 @@ export function useDataMerge({
   setDataQualityReport,
   setMeasureColumns,
   setMeasureLabel,
-  setPerformanceMode,
+  setAnalysisMode,
   onDone,
 }: UseDataMergeOptions) {
   const mergeData = useCallback(
@@ -136,7 +136,7 @@ export function useDataMerge({
 
   const mergeConfig = useCallback(
     (existing: ManualEntryConfig, incoming: ManualEntryConfig): ManualEntryConfig => {
-      if (existing.isPerformanceMode && incoming.isPerformanceMode) {
+      if (existing.analysisMode === 'performance' && incoming.analysisMode === 'performance') {
         const allMeasureColumns = Array.from(
           new Set([...(existing.measureColumns || []), ...(incoming.measureColumns || [])])
         );
@@ -178,13 +178,13 @@ export function useDataMerge({
       setDataQualityReport(report);
 
       if (
-        finalConfig.isPerformanceMode &&
+        finalConfig.analysisMode === 'performance' &&
         finalConfig.measureColumns &&
         finalConfig.measureColumns.length >= 3
       ) {
         setMeasureColumns(finalConfig.measureColumns);
         setMeasureLabel(finalConfig.measureLabel || 'Channel');
-        setPerformanceMode(true);
+        setAnalysisMode('performance');
       }
 
       onDone();
@@ -203,7 +203,7 @@ export function useDataMerge({
       setDataQualityReport,
       setMeasureColumns,
       setMeasureLabel,
-      setPerformanceMode,
+      setAnalysisMode,
       onDone,
     ]
   );

@@ -108,7 +108,6 @@ export interface DataState {
   yDomainForCharts: { min: number; max: number } | undefined;
 
   // Performance mode (multi-measure analysis)
-  isPerformanceMode: boolean;
   measureColumns: string[];
   measureLabel: string;
   selectedMeasure: string | null;
@@ -183,7 +182,6 @@ export interface DataActions {
   setStageOrderMode: (mode: StageOrderMode) => void;
 
   // Performance mode setters
-  setPerformanceMode: (enabled: boolean) => void;
   setMeasureColumns: (columns: string[]) => void;
   setMeasureLabel: (label: string) => void;
   setSelectedMeasure: (measureId: string | null) => void;
@@ -274,13 +272,12 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   const [separateParetoFilename, setSeparateParetoFilename] = useState<string | null>(null);
 
   // Performance mode (multi-measure analysis)
-  const [isPerformanceMode, setPerformanceMode] = useState(false);
   const [measureColumns, setMeasureColumns] = useState<string[]>([]);
   const [measureLabel, setMeasureLabel] = useState('Measure');
   const [selectedMeasure, setSelectedMeasure] = useState<string | null>(null);
   const [cpkTarget, setCpkTarget] = useState<number | undefined>(undefined);
 
-  // Analysis mode (unified mode selector — replaces isPerformanceMode in Phase 6)
+  // Analysis mode (standard | performance | yamazumi)
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('standard');
   const [yamazumiMapping, setYamazumiMapping] = useState<YamazumiColumnMapping | null>(null);
   const [subgroupConfig, setSubgroupConfig] = useState<SubgroupConfig>({
@@ -412,7 +409,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     stageColumn,
     stageOrderMode,
     displayOptions,
-    isPerformanceMode,
+    analysisMode,
     measureColumns,
     workerApi: options.workerApi,
   });
@@ -446,7 +443,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     cpkTarget,
     stageColumn,
     stageOrderMode,
-    isPerformanceMode,
     analysisMode,
     yamazumiMapping,
     subgroupConfig,
@@ -486,7 +482,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     setSeparateParetoFilename,
     setStageColumn,
     setStageOrderMode,
-    setPerformanceMode,
     setMeasureColumns,
     setMeasureLabel,
     setSelectedMeasure,
@@ -536,7 +531,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       separateParetoFilename,
       fullDataYDomain,
       yDomainForCharts,
-      isPerformanceMode,
       measureColumns,
       measureLabel,
       selectedMeasure,
@@ -585,7 +579,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       separateParetoFilename,
       fullDataYDomain,
       yDomainForCharts,
-      isPerformanceMode,
       measureColumns,
       measureLabel,
       selectedMeasure,
@@ -630,7 +623,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setSeparateParetoFilename,
       setStageColumn,
       setStageOrderMode,
-      setPerformanceMode,
       setMeasureColumns,
       setMeasureLabel,
       setSelectedMeasure,
@@ -680,7 +672,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setSeparateParetoFilename,
       setStageColumn,
       setStageOrderMode,
-      setPerformanceMode,
       setMeasureColumns,
       setMeasureLabel,
       setSelectedMeasure,

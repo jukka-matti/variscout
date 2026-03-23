@@ -80,7 +80,7 @@ export const largeScale: SampleDataset = {
       usl: 110,
       target: 100,
     },
-    performanceMode: true,
+    analysisMode: 'performance' as const,
     measureColumns,
   },
 };

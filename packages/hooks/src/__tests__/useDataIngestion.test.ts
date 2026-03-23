@@ -36,7 +36,6 @@ function createMockActions(): DataIngestionActions {
     setParetoMode: vi.fn(),
     setSeparateParetoData: vi.fn(),
     setSeparateParetoFilename: vi.fn(),
-    setPerformanceMode: vi.fn(),
     setMeasureColumns: vi.fn(),
     setMeasureLabel: vi.fn(),
     setAnalysisMode: vi.fn(),
@@ -78,7 +77,7 @@ const performanceSample: SampleDataset = {
     outcome: 'Ch1',
     factors: [],
     specs: { usl: 50, lsl: 5 },
-    performanceMode: true,
+    analysisMode: 'performance' as const,
     measureColumns: ['Ch1', 'Ch2', 'Ch3'],
   },
 };
@@ -132,7 +131,6 @@ describe('useDataIngestion', () => {
     expect(mockActions.setSeparateParetoFilename).toHaveBeenCalledWith(null);
     expect(mockActions.setMeasureColumns).toHaveBeenCalledWith([]);
     expect(mockActions.setMeasureLabel).toHaveBeenCalledWith('Measure');
-    expect(mockActions.setPerformanceMode).toHaveBeenCalledWith(false);
   });
 
   // ---- loadSample (standard) ----
@@ -152,14 +150,13 @@ describe('useDataIngestion', () => {
     expect(mockActions.setDataQualityReport).toHaveBeenCalled();
   });
 
-  it('loadSample sets performance mode to false for standard samples', () => {
+  it('loadSample resets measure state for standard samples', () => {
     const { result } = renderHook(() => useDataIngestion(mockActions));
 
     act(() => {
       result.current.loadSample(standardSample);
     });
 
-    expect(mockActions.setPerformanceMode).toHaveBeenCalledWith(false);
     expect(mockActions.setMeasureColumns).toHaveBeenCalledWith([]);
     expect(mockActions.setMeasureLabel).toHaveBeenCalledWith('Channel');
   });
@@ -185,7 +182,6 @@ describe('useDataIngestion', () => {
       result.current.loadSample(performanceSample);
     });
 
-    expect(mockActions.setPerformanceMode).toHaveBeenCalledWith(true);
     expect(mockActions.setMeasureColumns).toHaveBeenCalledWith(['Ch1', 'Ch2', 'Ch3']);
     expect(mockActions.setMeasureLabel).toHaveBeenCalledWith('Channel');
   });
@@ -195,7 +191,7 @@ describe('useDataIngestion', () => {
       ...performanceSample,
       config: {
         ...performanceSample.config,
-        performanceMode: true,
+        analysisMode: 'performance' as const,
         measureColumns: ['Ch1', 'Ch2'],
       },
     };
@@ -206,7 +202,6 @@ describe('useDataIngestion', () => {
       result.current.loadSample(twoColumnSample);
     });
 
-    expect(mockActions.setPerformanceMode).toHaveBeenCalledWith(false);
     expect(mockActions.setMeasureColumns).toHaveBeenCalledWith([]);
   });
 

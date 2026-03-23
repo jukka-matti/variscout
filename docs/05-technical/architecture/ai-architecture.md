@@ -619,41 +619,30 @@ How AI context changes across investigation phases:
 
 ## Analysis Mode Awareness
 
-> **Status (Mar 2026):** `analysisMode` is not currently wired from Editor.tsx to `useAIOrchestration`. This is a known integration gap.
+> **Status (Mar 2026):** Fully implemented. `analysisMode` flows from Editor.tsx through the full AI pipeline. `isPerformanceMode` has been completely removed.
 
-### Current State
+### Architecture
+
+`analysisMode` is threaded through the full AI pipeline:
+
+```
+Editor.tsx (analysisMode from DataContext)
+  → useAIOrchestration({ ..., analysisMode })
+    → useAIContext({ ..., analysisMode })
+      → buildAIContext({ ..., analysisMode })    → AIContext.analysisMode
+        → buildCoScoutSystemPrompt()             → strategy.aiToolSet routes coaching
+```
 
 The strategy pattern ([ADR-047](../../07-decisions/adr-047-analysis-mode-strategy.md)) defines per-mode AI configuration:
 
-| Resolved Mode | `aiToolSet`     | `aiChartInsightKeys`                                    |
-| ------------- | --------------- | ------------------------------------------------------- |
-| standard      | `'standard'`    | `['ichart', 'boxplot', 'pareto']`                       |
-| capability    | `'standard'`    | `['capability-ichart', 'boxplot', 'pareto']`            |
-| performance   | `'performance'` | `['cpk-scatter', 'distribution-boxplot', 'cpk-pareto']` |
-| yamazumi      | `'yamazumi'`    | `['yamazumi', 'yamazumi-ichart', 'yamazumi-pareto']`    |
+| Resolved Mode | `aiToolSet`     | Coaching Focus                                             |
+| ------------- | --------------- | ---------------------------------------------------------- |
+| standard      | `'standard'`    | SPC terminology (Cpk, control limits, variation)           |
+| capability    | `'standard'`    | SPC terminology (same as standard)                         |
+| performance   | `'performance'` | Multi-channel (channels, worst-channel Cpk, health grades) |
+| yamazumi      | `'yamazumi'`    | Lean (cycle time, VA ratio, takt time, waste categories)   |
 
-**Neither field is consumed by the AI system.** `buildAIContext()` accepts `analysisMode` as a parameter, but Editor.tsx never passes it through `useAIOrchestration`. Confirmed by grep: zero references to `analysisMode` in `apps/azure/src/features/ai/`.
-
-### Impact
-
-- **Standard mode** (80%+ of usage): No impact — works correctly
-- **Yamazumi mode**: CoScout uses SPC terminology ("Cpk," "control limits") instead of lean terminology ("cycle time," "VA ratio," "takt time")
-- **Performance mode**: CoScout doesn't know it's analyzing channels — treats multi-measure data as single-measure
-- **Capability mode**: `capabilityData` is passed, but `analysisMode` itself is not
-
-### Required Wiring
-
-```
-Editor.tsx
-  → useAIOrchestration({ ..., analysisMode })        // ADD: pass analysisMode
-    → useAIContext({ ..., analysisMode })              // Thread through
-      → buildAIContext({ ..., analysisMode })          // Already accepts it
-        → mode-specific system prompts                 // ADD: terminology blocks
-        → strategy.aiToolSet → tool emphasis           // ADD: consume from strategy
-        → strategy.aiChartInsightKeys → insight focus  // ADD: consume from strategy
-```
-
-See [ADR-047 Implementation Status](../../07-decisions/adr-047-analysis-mode-strategy.md#implementation-status) for the full adoption roadmap.
+Each mode prompt includes terminology mapping, chart interpretation guide, and numbered coaching workflow. See [AI Context Engineering §2b](ai-context-engineering.md) for the three-tier architecture.
 
 ---
 

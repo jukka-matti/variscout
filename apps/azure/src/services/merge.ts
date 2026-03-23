@@ -60,11 +60,6 @@ export function mergeAnalysisState(
     cpkTarget: mergeScalar(base.cpkTarget, local.cpkTarget, remote.cpkTarget),
     stageColumn: mergeScalar(base.stageColumn, local.stageColumn, remote.stageColumn),
     stageOrderMode: mergeScalar(base.stageOrderMode, local.stageOrderMode, remote.stageOrderMode),
-    isPerformanceMode: mergeScalar(
-      base.isPerformanceMode,
-      local.isPerformanceMode,
-      remote.isPerformanceMode
-    ),
     measureColumns: mergeScalar(base.measureColumns, local.measureColumns, remote.measureColumns),
     selectedMeasure: mergeScalar(
       base.selectedMeasure,
