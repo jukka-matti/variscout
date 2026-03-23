@@ -87,6 +87,7 @@ Zustand stores are tested as plain state containers without rendering components
 - **Reset between tests**: Use `store.setState(initialState)` or call `store.getState().reset()` if the store exposes a reset action
 - **Selector testing**: Assert that selectors derive correct values from known state
 - **Cross-store access**: Mock `otherStore.getState()` when testing stores that read from siblings
+- **All 5 stores tested**: panelsStore (41), aiStore (27), investigationStore (15), findingsStore (10), improvementStore (6)
 - **Reference test**: `apps/azure/src/features/panels/__tests__/panelsStore.test.ts`
 
 ```typescript

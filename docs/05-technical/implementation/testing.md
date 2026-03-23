@@ -587,6 +587,16 @@ apps/azure/
 │   │   └── SyncToast.test.tsx
 │   ├── components/settings/__tests__/
 │   │   └── SettingsPanel.test.tsx
+│   ├── features/panels/__tests__/
+│   │   └── panelsStore.test.ts         # Zustand store (41 tests)
+│   ├── features/ai/__tests__/
+│   │   └── aiStore.test.ts             # Zustand store (27 tests)
+│   ├── features/findings/__tests__/
+│   │   └── findingsStore.test.ts       # Zustand store (10 tests)
+│   ├── features/investigation/__tests__/
+│   │   └── investigationStore.test.ts  # Zustand store (15 tests)
+│   ├── features/improvement/__tests__/
+│   │   └── improvementStore.test.ts    # Zustand store (6 tests)
 │   └── pages/__tests__/
 │       └── Editor.test.tsx
 ```
@@ -853,19 +863,21 @@ Assign the following tasks to an Antigravity agent or execute interactively via 
 
 ## Test Coverage Backlog (Mar 2026)
 
-Current state: 3,786 tests across 227 files, all passing. Coverage thresholds met in all packages.
+Current state: 3,844 tests across 231 files, all passing. Coverage thresholds met in all packages.
 
-### P1 — Azure Feature Store Tests (~2h)
+### ~~P1 — Azure Feature Store Tests~~ (DONE Mar 2026)
 
-5 Zustand stores lack unit tests. Pattern reference: `apps/azure/src/features/panels/__tests__/panelsStore.test.ts` (46 tests).
+4 Zustand stores tested (58 new tests). Pattern: `panelsStore.test.ts`.
 
-| Store                | Location                  | Status   |
-| -------------------- | ------------------------- | -------- |
-| `aiStore`            | `features/ai/`            | No tests |
-| `findingsStore`      | `features/findings/`      | No tests |
-| `investigationStore` | `features/investigation/` | No tests |
-| `improvementStore`   | `features/improvement/`   | No tests |
-| `data-flow`          | `features/data-flow/`     | No tests |
+| Store                | Location                  | Tests |
+| -------------------- | ------------------------- | ----- |
+| `panelsStore`        | `features/panels/`        | 41    |
+| `aiStore`            | `features/ai/`            | 27    |
+| `investigationStore` | `features/investigation/` | 15    |
+| `findingsStore`      | `features/findings/`      | 10    |
+| `improvementStore`   | `features/improvement/`   | 6     |
+
+Note: `data-flow` uses `useReducer` (not Zustand) — hook testing is a separate item.
 
 ### P2 — UI Component Priority Subset (~1 day)
 
