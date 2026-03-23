@@ -96,6 +96,16 @@ export function registerListeners(bus: DomainEventBus): () => void {
       case 'improvement':
         panels.setImprovementOpen(visible);
         break;
+      case 'coScout':
+        panels.setCoScoutOpen(visible);
+        break;
+      case 'report':
+        if (visible) {
+          panels.openReport();
+        } else {
+          panels.closeReport();
+        }
+        break;
     }
   });
 
