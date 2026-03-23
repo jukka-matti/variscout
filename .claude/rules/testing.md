@@ -87,7 +87,7 @@ Zustand stores are tested as plain state containers without rendering components
 - **Reset between tests**: Use `store.setState(initialState)` or call `store.getState().reset()` if the store exposes a reset action
 - **Selector testing**: Assert that selectors derive correct values from known state
 - **Cross-store access**: Mock `otherStore.getState()` when testing stores that read from siblings
-- **Reference test**: `apps/azure/src/stores/__tests__/panelsStore.test.ts`
+- **Reference test**: `apps/azure/src/features/panels/__tests__/panelsStore.test.ts`
 
 ```typescript
 import { usePanelsStore } from '../panelsStore';
@@ -101,6 +101,30 @@ it('should toggle findings panel', () => {
   expect(usePanelsStore.getState().isFindingsOpen).toBe(true);
 });
 ```
+
+## i18n Test Setup
+
+Tests that use translations must register locale loaders before preloading. `@variscout/core` no longer uses `import.meta.glob` directly — apps and tests register their own loaders:
+
+```typescript
+import { registerLocaleLoaders } from '@variscout/core/i18n';
+import type { MessageCatalog } from '@variscout/core';
+
+// Register Vite-based locale loaders for tests
+registerLocaleLoaders(
+  import.meta.glob<Record<string, MessageCatalog>>(
+    '../../../core/src/i18n/messages/*.ts',
+    { eager: false }
+  )
+);
+
+// Then preload as needed
+beforeAll(async () => {
+  await Promise.all(LOCALES.map(l => preloadLocale(l)));
+});
+```
+
+Reference tests: `packages/core/src/i18n/__tests__/index.test.ts`, `packages/hooks/src/__tests__/useTranslation.test.ts`
 
 ## Feature Verification Protocols
 

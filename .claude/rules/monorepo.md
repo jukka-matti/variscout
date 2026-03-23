@@ -60,7 +60,7 @@ packages/
                #   InvestigationPrompt, PasteScreenBase, BoxplotDisplayToggle,
                #   ChartAnnotationLayer, AnnotationContextMenu, MobileCategorySheet,
                #   ManualEntryBase, ManualEntrySetupBase, SpecsPopover, SpecEditor,
-               #   CapabilityHistogram, ProbabilityPlot, DataTableBase,
+               #   CapabilityHistogram, ProbabilityPlot, DataPanelBase, DataTableBase,
                #   ChartDownloadMenu, CharacteristicTypeSelector,
                #   EditableChartTitle, SettingsPanelBase, FocusedChartViewBase,
                #   DashboardBase (DashboardLayoutBase, FocusedViewOverlay, FocusedChartCard,
@@ -105,7 +105,28 @@ apps/
 - `@variscout/core` has no React dependencies (exports stats, parser, glossary, tier)
 - `@variscout/charts` depends on `@variscout/core`
 - `@variscout/hooks` depends on `@variscout/core` (for types, utilities, and tier)
-- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `PerformanceSetupPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `FindingsWindow`, `FindingsLog`, `FindingCard`, `FindingEditor`, `FindingStatusBadge`, `FindingComments`, `FindingBoardView`, `FindingsExportMenu`, `HypothesisTreeView`, `HypothesisNode`, `InvestigationPrompt`, `PasteScreenBase`, `ManualEntryBase`, `ManualEntrySetupBase`, `SpecsPopover`, `SpecEditor`, `CapabilityHistogram`, `ProbabilityPlot`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `MobileCategorySheet`, `DataTableBase`, `DataTableModalBase`, `ChartDownloadMenu`, `CharacteristicTypeSelector`, `EditableChartTitle`, `SettingsPanelBase`, `FocusedChartViewBase`, `FocusedViewOverlay`, `FocusedChartCard`, `DashboardChartCard`, `DashboardGrid`, `DashboardLayoutBase`, `IChartWrapperBase`, `BoxplotWrapperBase`, `ParetoChartWrapperBase`, `FindingsPanelBase`, `BriefHeader`, `FindingDetailPanel`, `NarrativeBar`, `ProcessDescriptionField`, `ChartInsightChip`, `CoScoutInline`, `CoScoutMessages`, `CoScoutPanelBase`, `InvestigationPhaseBadge`, `AIOnboardingTooltip`, `InvestigationSidebar`, `StagedComparisonCard`, `PresentationViewBase`, `PreviewBadge`, `ReportViewBase`, `ReportSection`, `ReportStepMarker`, `ReportKPIGrid`, `ReportChartSnapshot`, `ReportCpkLearningLoop`, `ReportHypothesisSummary`, `ReportImprovementSummary`, `ReportCapabilityKPIGrid`, `ReportPerformanceKPIGrid`, `SynthesisCard`, `IdeaGroupCard`, `ImprovementSummaryBar`, `ImprovementWorkspaceBase`, `RiskPopover`, `PrioritizationMatrix`, `BREAKPOINTS`, `useGlossary`, `useIsMobile`, `errorService`
+- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `PerformanceSetupPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `FindingsWindow`, `FindingsLog`, `FindingCard`, `FindingEditor`, `FindingStatusBadge`, `FindingComments`, `FindingBoardView`, `FindingsExportMenu`, `HypothesisTreeView`, `HypothesisNode`, `InvestigationPrompt`, `PasteScreenBase`, `ManualEntryBase`, `ManualEntrySetupBase`, `SpecsPopover`, `SpecEditor`, `CapabilityHistogram`, `ProbabilityPlot`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `MobileCategorySheet`, `DataPanelBase`, `DataTableBase`, `DataTableModalBase`, `ChartDownloadMenu`, `CharacteristicTypeSelector`, `EditableChartTitle`, `SettingsPanelBase`, `FocusedChartViewBase`, `FocusedViewOverlay`, `FocusedChartCard`, `DashboardChartCard`, `DashboardGrid`, `DashboardLayoutBase`, `IChartWrapperBase`, `BoxplotWrapperBase`, `ParetoChartWrapperBase`, `FindingsPanelBase`, `BriefHeader`, `FindingDetailPanel`, `NarrativeBar`, `ProcessDescriptionField`, `ChartInsightChip`, `CoScoutInline`, `CoScoutMessages`, `CoScoutPanelBase`, `InvestigationPhaseBadge`, `AIOnboardingTooltip`, `InvestigationSidebar`, `StagedComparisonCard`, `PresentationViewBase`, `PreviewBadge`, `ReportViewBase`, `ReportSection`, `ReportStepMarker`, `ReportKPIGrid`, `ReportChartSnapshot`, `ReportCpkLearningLoop`, `ReportHypothesisSummary`, `ReportImprovementSummary`, `ReportCapabilityKPIGrid`, `ReportPerformanceKPIGrid`, `SynthesisCard`, `IdeaGroupCard`, `ImprovementSummaryBar`, `ImprovementWorkspaceBase`, `RiskPopover`, `PrioritizationMatrix`, `BREAKPOINTS`, `useGlossary`, `useIsMobile`, `errorService`
+
+## @variscout/core Sub-Path Exports
+
+The core package supports granular sub-path imports (in addition to the root `@variscout/core` import):
+
+| Import Path | Module | Key Exports |
+|-------------|--------|-------------|
+| `@variscout/core` | Root barrel | Everything (backwards compatible) |
+| `@variscout/core/stats` | stats/ | calculateStats, calculateAnova, calculateBoxplotStats, calculateKDE, lttb |
+| `@variscout/core/ai` | ai/ | responsesApi, buildAIContext, actionTools, chartInsights |
+| `@variscout/core/parser` | parser/ | parseText, detectColumns, validateData |
+| `@variscout/core/findings` | findings.ts | Finding types and CRUD utilities |
+| `@variscout/core/variation` | variation/ | Variation tracking, simulation, suggestions |
+| `@variscout/core/yamazumi` | yamazumi/ | Yamazumi aggregation, classification, detection |
+| `@variscout/core/tier` | tier.ts | configureTier, getTier, isPaidTier, feature gates |
+| `@variscout/core/types` | types.ts | All TypeScript domain types |
+| `@variscout/core/i18n` | i18n/ | registerLocaleLoaders, preloadLocale, getMessage, formatMessage |
+| `@variscout/core/glossary` | glossary/ | Knowledge model, term definitions |
+| `@variscout/core/export` | export.ts | CSV export, PDF metadata |
+
+Apps must call `registerLocaleLoaders()` at startup to provide bundler-specific locale loading (see app `main.tsx` files).
 
 ## Build Commands
 

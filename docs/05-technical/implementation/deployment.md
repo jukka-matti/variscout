@@ -213,7 +213,9 @@ The staging environment deploys automatically on push to `main` via GitHub Actio
 - SPA fallback routing (all non-file paths → `index.html`)
 - Cache headers (hashed `/assets/*` get 1-year immutable, rest `no-cache`)
 - Security headers on every response: CSP, HSTS (1 year, includeSubDomains), X-Content-Type-Options, Referrer-Policy, Permissions-Policy
-- Dynamic `connect-src` in CSP: includes `graph.microsoft.com` and OBO function URL (from `FUNCTION_URL` env var)
+- Dynamic `connect-src` in CSP: includes `graph.microsoft.com`, AI endpoint, and AI Search endpoint
+- OBO token exchange proxy (`POST /api/token-exchange`): forwards requests to Azure Function with server-side Function key injection — keeps `FUNCTION_KEY` out of client bundle
+- Runtime config endpoint (`GET /config`): serves plan, AI endpoints, App Insights connection string
 - Health endpoint (`GET /health` → 200)
 - SIGTERM graceful shutdown (closes server, exits cleanly)
 - Listens on `process.env.PORT` (set by App Service)
@@ -222,19 +224,36 @@ EasyAuth intercepts `/.auth/*` at the platform level before the Node server — 
 
 **Pipeline** (`.github/workflows/deploy-azure-staging.yml`):
 
-1. pnpm install + build Azure app
+1. pnpm install (with Turborepo cache restore via `actions/cache`)
 2. `pnpm audit --audit-level=high` — fail on high/critical vulnerabilities
-3. Generate CycloneDX SBOM (`sbom.json`) and upload as build artifact
-4. Assemble zip: `dist/` + `server.js` + minimal `package.json`
-5. OIDC login → `azure/webapps-deploy@v3`
-6. Health check (`GET /health`) — verifies deployment stability
-7. (Conditional, separate job) Deploy OBO token-exchange Azure Function — runs only when `AZURE_FUNCTION_APP_NAME` variable is set; deploys `infra/functions/` via `azure/functions-action@v2`
+3. `lockfile-lint` — enforce HTTPS-only npm registry
+4. `pnpm test` — all packages
+5. Build Azure app
+6. Generate CycloneDX SBOM (`sbom.json`) and upload as build artifact
+7. Assemble zip: `dist/` + `server.js` + minimal `package.json`
+8. OIDC login → deploy to **staging slot** (`azure/webapps-deploy@v3` with `slot-name: staging`)
+9. Health check on staging slot URL
+10. (Conditional, separate job) Deploy OBO token-exchange Azure Function
+
+### Azure App — Production (Slot Swap)
+
+Production deployment uses a **zero-downtime slot swap** pattern (`.github/workflows/deploy-azure-production.yml`):
+
+1. **Manual trigger** (`workflow_dispatch`) with GitHub environment `production` (requires approval)
+2. Health check on staging slot — verify app is stable before swap
+3. `az webapp deployment slot swap --slot staging --target-slot production` — instant traffic switch
+4. Health check on production URL
+5. **Automatic rollback**: if any step fails, a rollback job swaps back to the previous production version
+
+**Advantages**: Zero downtime, instant rollback, warm-up before traffic switch.
+**Requirement**: App Service Standard tier (S1+) for deployment slots.
 
 ### Supply Chain Security
 
 - **Dependabot** (`.github/dependabot.yml`): weekly updates for both npm and GitHub Actions ecosystems
-- **SHA-pinned actions**: all 6 GitHub Actions use commit SHA (not version tags) to prevent supply chain attacks via tag mutation
+- **SHA-pinned actions**: all GitHub Actions use commit SHA (not version tags) to prevent supply chain attacks via tag mutation
 - **SBOM**: CycloneDX JSON generated per build, uploaded as artifact for audit trail
+- **lockfile-lint**: enforces HTTPS-only registry in `pnpm-lock.yaml`
 
 **GitHub secrets** (3, all OIDC — no credentials stored):
 

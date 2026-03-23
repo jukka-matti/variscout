@@ -240,12 +240,15 @@ When running inside Microsoft Teams, the app uses the Teams SDK for single sign-
 When running inside Teams, the app exchanges the Teams SSO token for a Graph API token via an Azure Function:
 
 1. `getTeamsSsoToken()` acquires an Azure AD token scoped to the app's client ID
-2. The token is POST-ed to the OBO function (`/api/token-exchange`)
-3. The function validates the token's audience matches `CLIENT_ID`, then exchanges it via MSAL OBO flow
-4. The Graph API token is returned and cached client-side (5 min margin). Scoped tokens (e.g., ChannelMessage.Send) and resource-specific tokens (e.g., SharePoint File Picker) are also cached with the same margin.
-5. If OBO fails, the app falls back to EasyAuth redirect (graceful degradation)
+2. The token is POST-ed to `/api/token-exchange` (same-origin proxy in `server.js`)
+3. `server.js` injects the `FUNCTION_KEY` header and forwards to the actual Azure Function
+4. The function validates the token's audience matches `CLIENT_ID`, then exchanges it via MSAL OBO flow
+5. The Graph API token is returned and cached client-side (5 min margin). Scoped tokens (e.g., ChannelMessage.Send) and resource-specific tokens (e.g., SharePoint File Picker) are also cached with the same margin.
+6. If OBO fails, the app falls back to EasyAuth redirect (graceful degradation)
 
 This enables **silent SSO** — no redirect flash when saving to OneDrive or uploading photos from within Teams.
+
+**Token proxy pattern**: The Function key (`FUNCTION_KEY`) never reaches the client bundle. The `server.js` static server acts as a trusted proxy, injecting the key server-side on each `/api/token-exchange` request. This is a defense-in-depth measure — the Function is also protected by EasyAuth. See `apps/azure/server.js` and `apps/azure/src/auth/graphToken.ts`.
 
 **Security controls on the OBO function:**
 
@@ -253,6 +256,7 @@ This enables **silent SSO** — no redirect flash when saving to OneDrive or upl
 | ------------------- | ------------------------------------------------------------------------------------------------- |
 | Audience validation | JWT `aud` must match `CLIENT_ID` — prevents exchanging tokens issued for other apps               |
 | Scope allowlist     | Only `Files.ReadWrite.All`, `ChannelMessage.Send`, `People.Read` — other scopes rejected with 400 |
+| Function key        | Injected by `server.js` proxy (never in client code) — stored in App Service app settings         |
 | CORS                | Configurable `ALLOWED_ORIGIN` env var (defaults to `*` for dev); `OPTIONS` preflight supported    |
 | Function-key auth   | Optional `FUNCTION_KEY` env var — if set, requests must include `X-Functions-Key` header          |
 | Generic errors      | Catch block returns `"Token exchange failed"` — no MSAL internals leaked to clients               |
