@@ -91,6 +91,10 @@ apps/
 │              #     ProjectDashboard - Full project overview view (peer to Editor)
 │              #     ProjectStatusCard - Status summary (findings, hypotheses, actions)
 │              #     DashboardSummaryCard - AI summary card + quick-ask input
+│              #     ProjectCard - Rich portfolio card (phase, findings, tasks, overdue, what's-new dot)
+│              #     WhatsNewSection - "What's new since last visit" summary on Dashboard
+│              #     OtherProjectsList - Cross-project compact list on Dashboard Overview
+│              #     SampleDataPicker - Guided sample data entry for empty portfolio state
 └── website/      # @variscout/website - Marketing website (Astro + React Islands)
 ```
 

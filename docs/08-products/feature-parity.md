@@ -78,6 +78,9 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Project Dashboard**             |       ✓        |     ✓      |     -      | Default landing for saved projects. Status overview (findings by status, hypothesis tree, action progress), AI summary card, quick actions. Deep links bypass to Editor. PWA has no project persistence, so no dashboard.                                                    |
 | **Report View (3 Workspaces)**    |       ✓        |     ✓      |     -      | 3 workspace-aligned report types (Analysis Snapshot, Investigation Report, Improvement Story), audience toggle (Technical/Summary), workspace-colored sections, Cpk Learning Loop.                                                                                           |
 | **Save as PDF (Report)**          |       ✓        |     ✓      |     -      | Print stylesheet + `window.print()` — produces professional PDF from Report View                                                                                                                                                                                             |
+| **Portfolio Home Screen**         |       ✓        |     ✓      |     -      | Grid of `ProjectCard` components with health indicators (phase, findings by status, overdue flag) read from `.meta.json` sidecars. `SampleDataPicker` shown when no projects exist. Azure-only (PWA has no persistence).                                                     |
+| **What's New on Reopen**          |       ✓        |     ✓      |     -      | `WhatsNewSection` on Project Dashboard summarizes changes since `lastViewedAt` (new findings, hypothesis status changes, completed/overdue actions). Dismissed by user. Azure-only.                                                                                          |
+| **Deep Link Targets**             |       ✓        |     ✓      |     -      | ID-based links (UUID) replacing fragile name-based links. Targets: finding, chart, hypothesis, improvement workspace, overview tab, analysis tab. Legacy name links still resolve. Azure-only.                                                                               |
 | **Median in Stats Panel**         |       ✓        |     ✓      |     ✓      | Always shown alongside Mean                                                                                                                                                                                                                                                  |
 | **Spec editing (Stats)**          |       ✓        |     ✓      |     ✓      | `onEditSpecs` callback; pencil link opens SpecEditor popover                                                                                                                                                                                                                 |
 | **Chart color highlights**        |       ✓        |     ✓      |     ✓      | Desktop: right-click context menu. Mobile: tap → action sheet. Red/amber/green category markers (Boxplot, Pareto). I-Chart: desktop only.                                                                                                                                    |
@@ -254,7 +257,9 @@ Features that behave differently on phone (<640px) versus desktop.
 - Add data during analysis (paste/upload append with row/column auto-detection)
 - Presentation mode (full-screen chart overview with focused navigation)
 - Closed-loop investigations: 5-status model (observed → resolved), suspected cause, corrective actions with due dates, outcome assessment with Cpk before/after
-- Project Dashboard: default landing for saved projects with status overview, AI summary card, and quick navigation (PWA has no project persistence)
+- Portfolio home screen: `ProjectCard` grid with health indicators (phase, findings, overdue flag) read from `.meta.json` sidecars; `SampleDataPicker` for empty state
+- Project Dashboard: default landing for saved projects with status overview, What's New section, AI summary card, OtherProjectsList, and quick navigation (PWA has no project persistence)
+- ID-based deep links (UUID) to findings, charts, hypotheses, improvement workspace, and overview/analysis tabs; backward-compatible name fallback
 
 ### Azure Team Only (vs Standard)
 
@@ -290,6 +295,9 @@ Features that behave differently on phone (<640px) versus desktop.
 | Admin Hub (4 phases)                 | Azure Standard + Team | Delivered (March 2026)          |
 | Closed-loop investigations           | Azure Standard + Team | Delivered (ADR-015)             |
 | Findings Export (CSV/JSON/AI Report) | Azure Standard+       | Delivered (March 2026)          |
+| Portfolio Home + ProjectCard         | Azure Standard + Team | Delivered (ADR-043, March 2026) |
+| What's New / Metadata Sidecar        | Azure Standard + Team | Delivered (ADR-043, March 2026) |
+| ID-Based Deep Links (expanded)       | Azure Standard + Team | Delivered (ADR-043, March 2026) |
 
 ---
 

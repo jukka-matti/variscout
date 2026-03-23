@@ -1,12 +1,15 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Play, Upload, FileText, ListChecks } from 'lucide-react';
 
 import { useDataStateCtx } from '../context/DataContext';
 import { useJourneyPhase } from '@variscout/hooks';
 import { useAIStore } from '../features/ai/aiStore';
+import type { CloudProject } from '../services/storage';
 
 import ProjectStatusCard from './ProjectStatusCard';
 import DashboardSummaryCard from './DashboardSummaryCard';
+import WhatsNewSection from './WhatsNewSection';
+import OtherProjectsList from './OtherProjectsList';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,6 +19,14 @@ export interface ProjectDashboardProps {
   onNavigate: (target: string, targetId?: string) => void;
   onAddData: () => void;
   onResumeAnalysis: () => void;
+  /** Epoch ms — when the current user last viewed this project */
+  lastViewedAt?: number;
+  /** All projects in the portfolio (for "Other projects" section) */
+  projects?: CloudProject[];
+  /** Navigate back to portfolio view */
+  onViewPortfolio?: () => void;
+  /** Called once on mount to update the lastViewedAt timestamp */
+  onUpdateLastViewed?: () => void;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -26,6 +37,10 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
   onNavigate,
   onAddData,
   onResumeAnalysis,
+  lastViewedAt,
+  projects,
+  onViewPortfolio,
+  onUpdateLastViewed,
 }) => {
   // Data context
   const { findings, hypotheses, filterStack, viewState, rawData, aiEnabled } = useDataStateCtx();
@@ -65,6 +80,15 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
     [setPendingDashboardQuestion, onNavigate]
   );
 
+  // Update lastViewedAt on mount (once)
+  const lastViewedUpdatedRef = useRef(false);
+  useEffect(() => {
+    if (!lastViewedUpdatedRef.current) {
+      lastViewedUpdatedRef.current = true;
+      onUpdateLastViewed?.();
+    }
+  }, [onUpdateLastViewed]);
+
   // Determine which quick actions to show
   const hasFindings = findings.length > 0;
   const hasActions = findings.some(f => f.actions && f.actions.length > 0);
@@ -74,8 +98,30 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
       className="flex flex-col lg:flex-row gap-6 p-6 max-w-6xl mx-auto"
       data-testid="project-dashboard"
     >
+      {/* What's New — top on mobile for maximum visibility */}
+      {lastViewedAt != null && lastViewedAt > 0 && (
+        <div className="lg:hidden">
+          <WhatsNewSection
+            findings={findings}
+            hypotheses={hypotheses}
+            lastViewedAt={lastViewedAt}
+          />
+        </div>
+      )}
+
       {/* Left column: Project Status */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 space-y-6">
+        {/* What's New — above status card on desktop */}
+        {lastViewedAt != null && lastViewedAt > 0 && (
+          <div className="hidden lg:block">
+            <WhatsNewSection
+              findings={findings}
+              hypotheses={hypotheses}
+              lastViewedAt={lastViewedAt}
+            />
+          </div>
+        )}
+
         <ProjectStatusCard
           projectName={projectName}
           lastEdited={lastEdited}
@@ -91,9 +137,12 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
         />
       </div>
 
-      {/* Right column: AI Summary + Quick Actions */}
+      {/* Right column: AI Summary + Quick Actions + Other Projects */}
       <div className="flex-1 min-w-0 space-y-6">
         {/* AI Summary Card */}
+        {/* TODO: Extend dashboard AI summary with "what's new" context (deferred from ADR-043).
+         * Create packages/core/src/ai/prompts/whatsNew.ts to inject recent changes into CoScout's summary.
+         */}
         <DashboardSummaryCard
           summary={narration?.narrative ?? null}
           isLoading={narration?.isLoading ?? false}
@@ -146,6 +195,15 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
             )}
           </div>
         </div>
+
+        {/* Other Projects */}
+        {projects && projects.length > 1 && (
+          <OtherProjectsList
+            projects={projects}
+            currentProjectId={projectName}
+            onViewPortfolio={onViewPortfolio}
+          />
+        )}
       </div>
     </div>
   );

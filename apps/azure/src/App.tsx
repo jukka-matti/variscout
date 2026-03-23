@@ -17,7 +17,13 @@ import ImprovementWindow from './components/ImprovementWindow';
 import { Activity, LogOut, Settings, Shield } from 'lucide-react';
 import { useTeamsContext, notifyTeamsFailure } from './teams';
 import { TeamsTabConfig } from './teams/TeamsTabConfig';
-import { parseDeepLink, parseSubPageId, type DeepLinkParams } from './services/deepLinks';
+import {
+  parseDeepLink,
+  parseSubPageId,
+  validateDeepLink,
+  type DeepLinkParams,
+} from './services/deepLinks';
+import { hasTeamFeatures } from '@variscout/core';
 
 type View = 'dashboard' | 'editor' | 'admin';
 
@@ -77,14 +83,44 @@ function AppMain() {
     const fromUrl = parseDeepLink(window.location.search);
     if (fromUrl.project) return fromUrl;
     if (teams.subPageId) return parseSubPageId(teams.subPageId);
-    return { project: null, findingId: null, chart: null, mode: null };
+    return {
+      project: null,
+      findingId: null,
+      hypothesisId: null,
+      chart: null,
+      mode: null,
+      tab: null,
+    };
   }, [teams.subPageId]);
 
-  // Auto-navigate to editor when a deep link specifies a project
+  // Deep link validation state
+  const [deepLinkError, setDeepLinkError] = useState<string | null>(null);
+
+  // Auto-navigate to editor when a deep link specifies a project (with validation)
+  const { listProjects } = useStorage();
   useEffect(() => {
-    if (deepLink.project && currentView === 'dashboard') {
-      navigateToEditor(deepLink.project);
-    }
+    if (!deepLink.project || currentView !== 'dashboard') return;
+
+    // Validate: check if the project exists before navigating
+    listProjects()
+      .then(projects => {
+        const projectExists = (id: string) => projects.some(p => p.id === id || p.name === id);
+        const isStandard = !hasTeamFeatures();
+        const validation = validateDeepLink(deepLink, projectExists, isStandard);
+
+        if (!validation.valid) {
+          setDeepLinkError(validation.errorMessage ?? 'Project not found.');
+          return;
+        }
+
+        // tab=overview means stay on the project overview (dashboard) after navigating
+        // The Editor handles this via its own activeView logic
+        navigateToEditor(deepLink.project!);
+      })
+      .catch(() => {
+        // Failed to list projects — navigate anyway, Editor handles load errors
+        navigateToEditor(deepLink.project!);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deepLink.project]);
 
@@ -257,7 +293,25 @@ function AppMain() {
 
                   {/* Main Content */}
                   <main id="main-content" className="p-6">
-                    {currentView === 'dashboard' && (
+                    {/* Deep link error — shown instead of normal content */}
+                    {deepLinkError && currentView === 'dashboard' && (
+                      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+                        <p className="text-lg font-medium text-content mb-2">Link error</p>
+                        <p className="text-sm text-content-secondary mb-6 max-w-md">
+                          {deepLinkError}
+                        </p>
+                        <button
+                          onClick={() => {
+                            setDeepLinkError(null);
+                            navigateToDashboard();
+                          }}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                        >
+                          Go to Portfolio
+                        </button>
+                      </div>
+                    )}
+                    {currentView === 'dashboard' && !deepLinkError && (
                       <ProjectDashboard onOpenProject={id => navigateToEditor(id)} />
                     )}
                     {currentView === 'editor' && (
@@ -272,6 +326,16 @@ function AppMain() {
                         initialChart={
                           deepLink.project === currentProject
                             ? (deepLink.chart ?? undefined)
+                            : undefined
+                        }
+                        initialHypothesisId={
+                          deepLink.project === currentProject
+                            ? (deepLink.hypothesisId ?? undefined)
+                            : undefined
+                        }
+                        initialMode={
+                          deepLink.project === currentProject
+                            ? (deepLink.mode ?? undefined)
                             : undefined
                         }
                       />

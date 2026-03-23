@@ -31,6 +31,22 @@ vi.mock('lucide-react', () => ({
   Send: () => <span data-testid="icon-send" />,
 }));
 
+vi.mock('../WhatsNewSection', () => ({
+  default: ({ lastViewedAt }: { lastViewedAt: number }) => (
+    <div data-testid="whats-new-section" data-last-viewed={lastViewedAt} />
+  ),
+}));
+
+vi.mock('../OtherProjectsList', () => ({
+  default: ({ currentProjectId }: { currentProjectId: string }) => (
+    <div data-testid="other-projects-section" data-current={currentProjectId} />
+  ),
+}));
+
+vi.mock('../../services/storage', () => ({
+  updateLastViewedAt: vi.fn(),
+}));
+
 import ProjectDashboard from '../ProjectDashboard';
 import ProjectStatusCard from '../ProjectStatusCard';
 import DashboardSummaryCard from '../DashboardSummaryCard';
@@ -339,5 +355,59 @@ describe('ProjectDashboard', () => {
   it('does not render AI summary card when aiEnabled is false', () => {
     render(<ProjectDashboard {...defaultProps} />);
     expect(screen.queryByTestId('dashboard-summary-card')).not.toBeInTheDocument();
+  });
+
+  it('renders WhatsNewSection when lastViewedAt is provided and > 0', () => {
+    render(<ProjectDashboard {...defaultProps} lastViewedAt={Date.now() - 60000} />);
+    // Rendered twice (mobile + desktop), at least one should be in DOM
+    expect(screen.getAllByTestId('whats-new-section').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('does not render WhatsNewSection when lastViewedAt is 0', () => {
+    render(<ProjectDashboard {...defaultProps} lastViewedAt={0} />);
+    expect(screen.queryByTestId('whats-new-section')).not.toBeInTheDocument();
+  });
+
+  it('does not render WhatsNewSection when lastViewedAt is undefined', () => {
+    render(<ProjectDashboard {...defaultProps} />);
+    expect(screen.queryByTestId('whats-new-section')).not.toBeInTheDocument();
+  });
+
+  it('renders OtherProjectsList when projects has more than 1 project', () => {
+    const projects = [
+      {
+        id: 'p1',
+        name: 'Coffee Line 3',
+        modified: new Date().toISOString(),
+        location: 'personal' as const,
+      },
+      {
+        id: 'p2',
+        name: 'Sachet Fill',
+        modified: new Date().toISOString(),
+        location: 'personal' as const,
+      },
+    ];
+    render(<ProjectDashboard {...defaultProps} projects={projects} />);
+    expect(screen.getByTestId('other-projects-section')).toBeInTheDocument();
+  });
+
+  it('does not render OtherProjectsList when only 1 project', () => {
+    const projects = [
+      {
+        id: 'p1',
+        name: 'Coffee Line 3',
+        modified: new Date().toISOString(),
+        location: 'personal' as const,
+      },
+    ];
+    render(<ProjectDashboard {...defaultProps} projects={projects} />);
+    expect(screen.queryByTestId('other-projects-section')).not.toBeInTheDocument();
+  });
+
+  it('calls onUpdateLastViewed once on mount', () => {
+    const onUpdateLastViewed = vi.fn();
+    render(<ProjectDashboard {...defaultProps} onUpdateLastViewed={onUpdateLastViewed} />);
+    expect(onUpdateLastViewed).toHaveBeenCalledTimes(1);
   });
 });

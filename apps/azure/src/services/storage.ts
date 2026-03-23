@@ -1,9 +1,10 @@
 // src/services/storage.ts
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { isLocalDev, AuthError } from '../auth/easyAuth';
+import { isLocalDev, AuthError, getEasyAuthUser } from '../auth/easyAuth';
 import { getGraphToken } from '../auth/graphToken';
 import { errorService } from '@variscout/ui';
-import { hasTeamFeatures } from '@variscout/core';
+import { hasTeamFeatures, buildProjectMetadata } from '@variscout/core';
+import type { ProjectMetadata, Finding, Hypothesis } from '@variscout/core';
 import {
   addToSyncQueue,
   getPendingSyncItems,
@@ -42,6 +43,8 @@ export interface CloudProject {
   modifiedBy?: string;
   location: StorageLocation;
   etag?: string;
+  /** Lightweight project health summary from .meta.json sidecar */
+  metadata?: ProjectMetadata;
 }
 
 // ── Sync Notifications ──────────────────────────────────────────────────
@@ -236,15 +239,45 @@ async function ensureFolderExists(token: string, apiBase: ApiBase): Promise<void
   });
 }
 
+// ── Metadata extraction ─────────────────────────────────────────────────
+
+/**
+ * Extract findings, hypotheses, and data presence from an opaque project object.
+ * The storage layer treats project data as `unknown`; this peeks at the shape
+ * to pull out the fields needed for metadata building.
+ */
+function extractMetadataInputs(
+  project: Project,
+  userId: string,
+  existingLastViewedAt?: Record<string, number>
+): ProjectMetadata | null {
+  try {
+    const p = project as Record<string, unknown> | null;
+    if (!p || typeof p !== 'object') return null;
+    const findings = (Array.isArray(p.findings) ? p.findings : []) as Finding[];
+    const hypotheses = (Array.isArray(p.hypotheses) ? p.hypotheses : []) as Hypothesis[];
+    const hasData = Array.isArray(p.rawData) && p.rawData.length > 0;
+    return buildProjectMetadata(findings, hypotheses, hasData, userId, existingLastViewedAt);
+  } catch {
+    return null;
+  }
+}
+
 // ── IndexedDB operations ────────────────────────────────────────────────
 
-async function saveToIndexedDB(project: Project, name: string, location: StorageLocation) {
+async function saveToIndexedDB(
+  project: Project,
+  name: string,
+  location: StorageLocation,
+  meta?: ProjectMetadata
+) {
   await db.projects.put({
     name,
     location,
     modified: new Date(),
     synced: false,
     data: project,
+    meta,
   });
 }
 
@@ -260,6 +293,7 @@ async function listFromIndexedDB(): Promise<CloudProject[]> {
     name: r.name,
     modified: r.modified?.toISOString() || new Date().toISOString(),
     location: r.location,
+    metadata: r.meta,
   }));
 }
 
@@ -428,15 +462,139 @@ async function listFromCloud(token: string, location: StorageLocation): Promise<
     url = data['@odata.nextLink'] || null;
   }
 
-  return allItems
-    .filter(file => file.name.endsWith('.vrs'))
-    .map(file => ({
-      id: file.id,
-      name: file.name.replace('.vrs', ''),
-      modified: file.lastModifiedDateTime,
-      modifiedBy: file.lastModifiedBy?.user?.displayName,
-      location,
-    }));
+  // Build a map of .meta.json drive item IDs for quick content fetching
+  const metaItemMap = new Map<string, string>();
+  for (const item of allItems) {
+    if (item.name.endsWith('.meta.json')) {
+      // Key by project name (without .meta.json extension)
+      metaItemMap.set(item.name.replace('.meta.json', ''), item.id);
+    }
+  }
+
+  const vrsFiles = allItems.filter(file => file.name.endsWith('.vrs'));
+  const projects: CloudProject[] = vrsFiles.map(file => ({
+    id: file.id,
+    name: file.name.replace('.vrs', ''),
+    modified: file.lastModifiedDateTime,
+    modifiedBy: file.lastModifiedBy?.user?.displayName,
+    location,
+  }));
+
+  // Fetch metadata sidecars in parallel (non-blocking)
+  if (metaItemMap.size > 0) {
+    const metaFetches = projects.map(async proj => {
+      const metaId = metaItemMap.get(proj.name);
+      if (!metaId) return;
+      try {
+        const meta = await loadSidecarFromCloud(token, proj.name, location);
+        if (meta) proj.metadata = meta;
+      } catch {
+        // Sidecar fetch failure is non-critical
+      }
+    });
+    await Promise.allSettled(metaFetches);
+  }
+
+  return projects;
+}
+
+// ── Cloud metadata sidecar operations ────────────────────────────────────
+
+/** Write a .meta.json sidecar alongside the .vrs file. Fire-and-forget — errors are logged, not thrown. */
+async function saveSidecarToCloud(
+  token: string,
+  meta: ProjectMetadata,
+  name: string,
+  location: StorageLocation
+): Promise<void> {
+  const apiBase = await getApiBase(token, location);
+  const filename = name.endsWith('.vrs') ? name.replace('.vrs', '.meta.json') : `${name}.meta.json`;
+  const content = JSON.stringify(meta);
+
+  const response = await graphFetch(`${GRAPH_BASE}${apiBase.filePath}/${filename}:/content`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: content,
+  });
+
+  if (!response.ok && import.meta.env.DEV) {
+    console.warn('[Storage] Failed to write .meta.json sidecar:', response.status);
+  }
+}
+
+/** Read a single .meta.json sidecar from cloud. Returns null if not found or on error. */
+async function loadSidecarFromCloud(
+  token: string,
+  name: string,
+  location: StorageLocation
+): Promise<ProjectMetadata | null> {
+  const apiBase = await getApiBase(token, location);
+  const filename = name.endsWith('.vrs') ? name.replace('.vrs', '.meta.json') : `${name}.meta.json`;
+
+  const response = await graphFetch(`${GRAPH_BASE}${apiBase.filePath}/${filename}:/content`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) return null;
+
+  try {
+    const data = await response.json();
+    if (data && typeof data === 'object' && 'phase' in data) {
+      return data as ProjectMetadata;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Update the `lastViewedAt[userId]` field in a project's metadata sidecar.
+ * Reads existing metadata, patches the timestamp, and writes it back.
+ * Non-critical — errors are logged and swallowed.
+ */
+export async function updateLastViewedAt(
+  projectName: string,
+  location: StorageLocation,
+  userId: string
+): Promise<void> {
+  try {
+    // Update IndexedDB metadata
+    const record = await db.projects.get(projectName);
+    const existingMeta = record?.meta;
+    const updatedLastViewed = { ...existingMeta?.lastViewedAt, [userId]: Date.now() };
+
+    if (record) {
+      const newMeta: ProjectMetadata = existingMeta
+        ? { ...existingMeta, lastViewedAt: updatedLastViewed }
+        : {
+            phase: 'frame',
+            findingCounts: {},
+            hypothesisCounts: {},
+            actionCounts: { total: 0, completed: 0, overdue: 0 },
+            assignedTaskCount: 0,
+            hasOverdueTasks: false,
+            lastViewedAt: updatedLastViewed,
+          };
+      await db.projects.update(projectName, { meta: newMeta });
+
+      // Also update cloud sidecar if online + team features
+      if (hasTeamFeatures() && navigator.onLine) {
+        try {
+          const token = await getGraphToken();
+          await saveSidecarToCloud(token, newMeta, projectName, location);
+        } catch (e) {
+          if (import.meta.env.DEV)
+            console.warn('[Storage] Failed to update cloud sidecar lastViewedAt:', e);
+        }
+      }
+    }
+  } catch (e) {
+    if (import.meta.env.DEV) console.warn('[Storage] Failed to update lastViewedAt:', e);
+  }
 }
 
 async function markAsSynced(name: string, cloudId: string, etag: string, baseStateJson?: string) {
@@ -629,9 +787,17 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const saveProject = useCallback(
     async (project: Project, name: string, location: StorageLocation) => {
+      // Build lightweight metadata for portfolio view
+      const user = await getEasyAuthUser().catch(() => null);
+      const userId = user?.userId || user?.email || 'local';
+      // Read existing lastViewedAt so we preserve it across saves
+      const existingRecord = await db.projects.get(name).catch(() => null);
+      const existingLastViewed = existingRecord?.meta?.lastViewedAt;
+      const meta = extractMetadataInputs(project, userId, existingLastViewed) ?? undefined;
+
       // Always save to IndexedDB first (instant feedback)
       try {
-        await saveToIndexedDB(project, name, location);
+        await saveToIndexedDB(project, name, location, meta);
       } catch (dbError) {
         const isQuota = dbError instanceof DOMException && dbError.name === 'QuotaExceededError';
         const message = isQuota
@@ -694,14 +860,24 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
               }
 
               projectToSave = result.merged as Project;
-              // Update IndexedDB with merged result
-              await saveToIndexedDB(projectToSave, name, location);
+              // Update IndexedDB with merged result (rebuild metadata for merged data)
+              const mergedMeta =
+                extractMetadataInputs(projectToSave, userId, existingLastViewed) ?? undefined;
+              await saveToIndexedDB(projectToSave, name, location, mergedMeta);
             }
           }
         }
 
         const { id, etag } = await saveToCloud(token, projectToSave, name, location);
         baseStateForSync = JSON.stringify(projectToSave);
+
+        // Fire-and-forget: write metadata sidecar alongside .vrs
+        const sidecarMeta = extractMetadataInputs(projectToSave, userId, existingLastViewed);
+        if (sidecarMeta) {
+          saveSidecarToCloud(token, sidecarMeta, name, location).catch(e => {
+            if (import.meta.env.DEV) console.warn('[Storage] Sidecar write failed:', e);
+          });
+        }
 
         await markAsSynced(name, id, etag, baseStateForSync);
         setSyncStatus({

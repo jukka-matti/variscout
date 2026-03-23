@@ -1,5 +1,11 @@
 import React, { useMemo, useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react';
-import { useStorage, classifySyncError } from '../services/storage';
+import {
+  useStorage,
+  classifySyncError,
+  updateLastViewedAt,
+  type CloudProject,
+} from '../services/storage';
+import { getEasyAuthUser } from '../auth/easyAuth';
 import { useData } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
 import { useFilterNavigation } from '../hooks';
@@ -79,6 +85,10 @@ interface EditorProps {
   initialFindingId?: string;
   /** Deep link: auto-focus this chart type */
   initialChart?: string;
+  /** Deep link: auto-select this hypothesis in investigation view */
+  initialHypothesisId?: string;
+  /** Deep link: auto-open a specific mode (e.g. 'improvement', 'report') */
+  initialMode?: string;
 }
 
 export const Editor: React.FC<EditorProps> = ({
@@ -86,8 +96,10 @@ export const Editor: React.FC<EditorProps> = ({
   onBack,
   initialFindingId,
   initialChart,
+  initialHypothesisId,
+  initialMode,
 }) => {
-  const { syncStatus } = useStorage();
+  const { syncStatus, listProjects } = useStorage();
   const { locale } = useLocale();
   const { showToast } = useToast();
   const {
@@ -494,16 +506,47 @@ export const Editor: React.FC<EditorProps> = ({
   const deepLinkConsumedRef = React.useRef(false);
   useEffect(() => {
     if (deepLinkConsumedRef.current || !rawData.length || !outcome) return;
+
+    const hasDeepLink =
+      !!initialFindingId || !!initialChart || !!initialHypothesisId || !!initialMode;
+
     if (initialFindingId) {
-      usePanelsStore.getState().setFindingsOpen(true);
-      setHighlightedFindingId(initialFindingId);
+      if (!findingsState.findings.some(f => f.id === initialFindingId)) {
+        showToast({
+          type: 'warning',
+          message: 'The linked finding was not found',
+          dismissAfter: 5000,
+        });
+      } else {
+        usePanelsStore.getState().setFindingsOpen(true);
+        setHighlightedFindingId(initialFindingId);
+      }
     }
     if (initialChart) {
       handleViewStateChange({
         focusedChart: initialChart as 'ichart' | 'boxplot' | 'pareto' | null,
       });
     }
-    if (initialFindingId || initialChart) {
+    if (initialHypothesisId) {
+      if (!hypothesesState.hypotheses.some(h => h.id === initialHypothesisId)) {
+        showToast({
+          type: 'warning',
+          message: 'The linked hypothesis was not found',
+          dismissAfter: 5000,
+        });
+      } else {
+        // Open findings/investigation sidebar and expand to the target hypothesis
+        usePanelsStore.getState().setFindingsOpen(true);
+        useInvestigationStore.getState().expandToHypothesis(initialHypothesisId);
+      }
+    }
+    if (initialMode === 'improvement') {
+      usePanelsStore.getState().setImprovementOpen(true);
+    } else if (initialMode === 'report') {
+      usePanelsStore.getState().openReport();
+    }
+
+    if (hasDeepLink) {
       const cleanUrl = window.location.origin + window.location.pathname;
       window.history.replaceState({}, '', cleanUrl);
       // Deep-linked: stay in editor view
@@ -519,7 +562,7 @@ export const Editor: React.FC<EditorProps> = ({
     }
     deepLinkConsumedRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rawData.length, outcome, initialFindingId, initialChart]);
+  }, [rawData.length, outcome, initialFindingId, initialChart, initialHypothesisId, initialMode]);
 
   // Update Teams deep link context when project/view changes
   useEffect(() => {
@@ -583,6 +626,35 @@ export const Editor: React.FC<EditorProps> = ({
   useEffect(() => {
     getCurrentUser().then(setCurrentUser);
   }, []);
+
+  // Overview dashboard data: userId + other projects list
+  const [overviewUserId, setOverviewUserId] = useState<string>('local');
+  const [overviewProjects, setOverviewProjects] = useState<CloudProject[]>([]);
+  useEffect(() => {
+    getEasyAuthUser()
+      .then(u => {
+        if (u?.userId) setOverviewUserId(u.userId);
+        else if (u?.email) setOverviewUserId(u.email);
+      })
+      .catch(() => {});
+    listProjects()
+      .then(setOverviewProjects)
+      .catch(() => {});
+  }, [listProjects]);
+
+  // lastViewedAt for WhatsNewSection — from the loaded project's metadata
+  const lastViewedAt = useMemo(() => {
+    // Find the current project in the overview projects list and read its metadata
+    const project = overviewProjects.find(
+      p => p.name === currentProjectName || p.id === currentProjectName
+    );
+    return project?.metadata?.lastViewedAt?.[overviewUserId] ?? 0;
+  }, [overviewProjects, currentProjectName, overviewUserId]);
+
+  const handleUpdateLastViewed = useCallback(() => {
+    if (!currentProjectName) return;
+    updateLastViewedAt(currentProjectName, currentProjectLocation, overviewUserId);
+  }, [currentProjectName, currentProjectLocation, overviewUserId]);
 
   // Photo comments (Team plan only)
   const { handleAddPhoto, handleCaptureFromTeams, isTeamsCamera, handleAddCommentWithAuthor } =
@@ -1096,6 +1168,10 @@ export const Editor: React.FC<EditorProps> = ({
                   onNavigate={handleDashboardNavigate}
                   onAddData={handleDashboardAddData}
                   onResumeAnalysis={handleDashboardResumeAnalysis}
+                  lastViewedAt={lastViewedAt}
+                  projects={overviewProjects}
+                  onViewPortfolio={onBack}
+                  onUpdateLastViewed={handleUpdateLastViewed}
                 />
               </div>
             ) : (

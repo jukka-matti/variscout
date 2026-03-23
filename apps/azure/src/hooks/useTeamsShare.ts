@@ -5,11 +5,19 @@
  * Outside Teams: copies the deep link URL to clipboard.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { sharing, pages } from '@microsoft/teams-js';
 import { isInTeams } from '../teams';
 import type { SharePayload } from '../services/shareContent';
 import type { SyncNotification } from '../services/storage';
+import {
+  buildHypothesisLink,
+  buildImprovementLink,
+  buildOverviewLink,
+  buildSubPageId,
+  type DeepLinkMode,
+  type DeepLinkTab,
+} from '../services/deepLinks';
 
 interface UseTeamsShareOptions {
   onToast?: (notif: Omit<SyncNotification, 'id'>) => void;
@@ -62,16 +70,48 @@ export function useTeamsShare(options?: UseTeamsShareOptions) {
   /**
    * Set the Teams deep link for the current view.
    * This allows Teams to resolve deep links natively when sharing the tab.
+   *
+   * Accepts either a raw subPageId string or a structured target object.
    */
-  const setDeepLink = useCallback((subPageId: string, label: string) => {
-    if (isInTeams()) {
+  const setDeepLink = useCallback(
+    (
+      subPageIdOrProject: string,
+      label: string,
+      target?: {
+        findingId?: string;
+        hypothesisId?: string;
+        chart?: string;
+        mode?: DeepLinkMode;
+        tab?: DeepLinkTab;
+      }
+    ) => {
+      if (!isInTeams()) return;
       try {
+        // If a target object is provided, build the subPageId from project + target
+        const subPageId = target ? buildSubPageId(subPageIdOrProject, target) : subPageIdOrProject;
         pages.shareDeepLink({ subPageId, subPageLabel: label });
       } catch {
         // Non-critical — deep link registration is best-effort
       }
-    }
-  }, []);
+    },
+    []
+  );
 
-  return { share, setDeepLink, isTeams: isInTeams() };
+  // Pre-bound link builders for convenience
+  const baseUrl = useMemo(() => window.location.origin + window.location.pathname, []);
+
+  const linkBuilders = useMemo(
+    () => ({
+      /** Build a URL linking to a specific hypothesis in the investigation view */
+      buildHypothesisLink: (projectId: string, hypothesisId: string) =>
+        buildHypothesisLink(baseUrl, projectId, hypothesisId),
+      /** Build a URL linking directly to the improvement workspace */
+      buildImprovementLink: (projectId: string) => buildImprovementLink(baseUrl, projectId),
+      /** Build a URL linking to the project overview tab */
+      buildOverviewLink: (projectId: string) => buildOverviewLink(baseUrl, projectId),
+    }),
+    [baseUrl]
+  );
+
+  return { share, setDeepLink, isTeams: isInTeams(), ...linkBuilders };
 }

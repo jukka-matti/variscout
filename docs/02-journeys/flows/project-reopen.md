@@ -3,29 +3,47 @@ title: Project Reopen Flow
 audience: [analyst, engineer]
 category: workflow
 status: stable
-related: [return-visitor, azure-daily-use, project-dashboard, adr-042]
+related: [return-visitor, azure-daily-use, project-dashboard, adr-042, adr-043]
 ---
 
-# Flow: Open Saved Project → Project Dashboard → Analysis
+# Flow: Portfolio → Open Saved Project → Project Dashboard → Analysis
 
-Expands [Flow 5: Return Visitor](../../02-journeys/traceability.md#flow-5-return-visitor) with the full project reopen experience, including the Project Dashboard landing introduced in ADR-042.
+Expands [Flow 5: Return Visitor](../../02-journeys/traceability.md#flow-5-return-visitor) with the full project reopen experience. Entry now starts at the **Portfolio home screen** (ADR-043), followed by the Project Dashboard landing (ADR-042).
 
 ---
 
 ## Context
 
-When an Azure user reopens a saved VariScout project, they often return for one of several specific intents:
+When an Azure user opens VariScout, they land on the Portfolio home screen — a grid of `ProjectCard` components showing project health at a glance. From there, they select a project and (for projects with data) land on the Project Dashboard before entering analysis.
+
+Common return intents:
 
 - **Continue analysis** — resume at the point where they left off
 - **Check investigation status** — scan findings, hypotheses, open questions
 - **Add new data batch** — append fresh measurements to an ongoing analysis
 - **Ask a question** — "have we already checked X?"
 
-The Project Dashboard provides an orientation moment that acknowledges these intents and routes the user to the right place. It is the default landing for saved Azure projects with data.
+The Portfolio provides an orientation moment before the project is even opened. The Project Dashboard provides a second orientation layer once inside the project.
 
 ---
 
 ## Full Flow
+
+### Step 0: Portfolio Home Screen
+
+Before selecting a project, the user scans the Portfolio grid.
+
+| Action                                | Implementation                                                               |
+| ------------------------------------- | ---------------------------------------------------------------------------- |
+| App loads, SSO session active         | `easyAuth.ts`, `getEasyAuthUser()`                                           |
+| Portfolio reads `.meta.json` sidecars | `storage.ts` — lightweight sidecar reads, no `.vrs` loaded yet               |
+| `ProjectCard` components rendered     | Phase indicator, finding counts, task counts, overdue flag, "What's new" dot |
+| "What's new" indicator visible        | `lastModified > lastViewedAt` comparison from `.meta.json`                   |
+| User scans cards for signals          | Overdue badges, unresolved findings, blue "new changes" dots                 |
+
+**Empty portfolio**: When no projects exist, `SampleDataPicker` is shown instead of an empty list. The user can select a sample dataset (coffee, journey, bottleneck, sachets) to create a new project with pre-loaded data.
+
+---
 
 ### Step 1: Authenticate + Load Project
 
@@ -43,6 +61,17 @@ The Project Dashboard provides an orientation moment that acknowledges these int
 ### Step 2: Project Dashboard Loads
 
 `ProjectDashboard` renders when `panelsStore.activeView === 'dashboard'`. All status data comes from the already-loaded `AnalysisState` — no extra fetch.
+
+**What's New section (top, conditional):**
+
+Shown when `lastModified > lastViewedAt` (read from `.meta.json` sidecar). Summarizes changes since last visit:
+
+- New findings added (count + names)
+- Hypotheses whose status changed
+- Actions completed or newly overdue
+- Findings resolved
+
+Dismissed by clicking "Got it" or switching to the Editor tab. Dismissal writes current timestamp to `lastViewedAt` in `.meta.json`.
 
 **Left column — Project Status (no AI required):**
 
@@ -180,8 +209,9 @@ The "Ask CoScout..." input collapses to a tap-to-expand bottom sheet. All naviga
 
 ## See Also
 
-- [ADR-042: Project Dashboard](../../07-decisions/adr-042-project-dashboard.md) — design decisions for this flow
+- [ADR-042: Project Dashboard](../../07-decisions/adr-042-project-dashboard.md) — design decisions for the Dashboard ↔ Editor model
+- [ADR-043: Teams Entry Experience](../../07-decisions/adr-043-teams-entry-experience.md) — design decisions for Portfolio, ProjectCard, What's New, and deep links
 - [Journey Traceability — Flow 5](../traceability.md#flow-5-return-visitor) — high-level flow index
-- [Journey Traceability — Flow 7](../traceability.md#flow-7-azure-daily-use) — daily use (includes dashboard entry)
+- [Journey Traceability — Flow 7](../traceability.md#flow-7-azure-daily-use) — daily use (includes portfolio + dashboard entry)
 - [Journey Phase → Screen Mapping](../../05-technical/architecture/journey-phase-screen-mapping.md#project-dashboard-azure-only)
-- [Navigation Patterns § Dashboard ↔ Editor](../../06-design-system/patterns/navigation.md#8-dashboard--editor-navigation-azure)
+- [Navigation Patterns § Portfolio and Dashboard](../../06-design-system/patterns/navigation.md#8-portfolio-and-dashboard-navigation-azure)

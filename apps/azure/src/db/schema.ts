@@ -8,6 +8,8 @@ export interface ProjectRecord {
   modified: Date;
   synced: boolean;
   data: unknown;
+  /** Lightweight project health metadata (phase, finding counts, etc.) */
+  meta?: import('@variscout/core').ProjectMetadata;
 }
 
 export interface SyncStateRecord {

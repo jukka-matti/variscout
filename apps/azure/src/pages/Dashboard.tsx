@@ -1,27 +1,49 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { hasTeamFeatures } from '@variscout/core';
+import type { SampleDataset } from '@variscout/data';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
+import { getEasyAuthUser } from '../auth/easyAuth';
 import {
   Plus,
   RefreshCw,
   Cloud,
   CloudOff,
   FolderOpen,
-  Clock,
-  User,
-  Users,
   Search,
+  FlaskConical,
+  Upload,
 } from 'lucide-react';
 import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
+import ProjectCard from '../components/ProjectCard';
+import SampleDataPicker from '../components/SampleDataPicker';
 
 interface DashboardProps {
   onOpenProject: (id?: string) => void;
   /** Load a .vrs project file (from SharePoint download) */
   onLoadProjectFile?: (file: File) => void;
+  /** Load a sample dataset directly into a new analysis */
+  onLoadSample?: (sample: SampleDataset) => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject, onLoadProjectFile }) => {
+export const Dashboard: React.FC<DashboardProps> = ({
+  onOpenProject,
+  onLoadProjectFile,
+  onLoadSample,
+}) => {
   const { listProjects, syncStatus } = useStorage();
+
+  const [userId, setUserId] = useState('local');
+  const [projects, setProjects] = useState<CloudProject[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSamplePickerOpen, setIsSamplePickerOpen] = useState(false);
+
+  // Fetch current user ID for task ownership display
+  useEffect(() => {
+    getEasyAuthUser().then(user => {
+      if (user?.userId) setUserId(user.userId);
+    });
+  }, []);
 
   const handleOpenFromSharePoint = useCallback(
     async (items: FilePickerResult[]) => {
@@ -40,18 +62,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject, onLoadProje
     },
     [onLoadProjectFile]
   );
-  const [projects, setProjects] = useState<CloudProject[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
 
-  // Load projects on mount — loadProjects is defined below and not
-  // useCallback-wrapped, so adding it would cause infinite re-runs.
+  // Load projects on mount
   useEffect(() => {
     loadProjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadProjects = async () => {
+  const loadProjects = async (): Promise<void> => {
     setIsLoading(true);
     try {
       const projectList = await listProjects();
@@ -63,29 +81,52 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject, onLoadProje
     }
   };
 
-  // Filter projects based on search
-  const filteredProjects = projects.filter(project =>
-    project.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Sort projects: overdue tasks first, then assigned tasks, then by modified date
+  const sortedProjects = useMemo(() => {
+    const filtered = projects.filter(project =>
+      project.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    return filtered.sort((a, b) => {
+      // 1. Has overdue tasks first
+      const aHasOverdue = a.metadata?.hasOverdueTasks ?? false;
+      const bHasOverdue = b.metadata?.hasOverdueTasks ?? false;
+      if (aHasOverdue !== bHasOverdue) return aHasOverdue ? -1 : 1;
 
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
+      // 2. Has assigned tasks
+      const aHasTasks = (a.metadata?.assignedTaskCount ?? 0) > 0;
+      const bHasTasks = (b.metadata?.assignedTaskCount ?? 0) > 0;
+      if (aHasTasks !== bHasTasks) return aHasTasks ? -1 : 1;
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} min ago`;
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
+      // 3. Recently modified
+      return new Date(b.modified).getTime() - new Date(a.modified).getTime();
+    });
+  }, [projects, searchQuery]);
+
+  const handleSampleSelect = (sample: SampleDataset): void => {
+    if (onLoadSample) {
+      onLoadSample(sample);
+    } else {
+      // Fallback: open a new analysis (user will pick sample from EditorEmptyState)
+      onOpenProject();
+    }
+  };
+
+  // Native file input for Standard plan "Open from Computer"
+  const handleLocalFileOpen = (): void => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.vrs';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (file && onLoadProjectFile) {
+        onLoadProjectFile(file);
+      }
+    };
+    input.click();
   };
 
   // Get sync status display
-  const getSyncStatusDisplay = () => {
+  const getSyncStatusDisplay = (): React.ReactNode => {
     const isOnline = navigator.onLine;
     const Icon = isOnline ? Cloud : CloudOff;
     const color =
@@ -118,9 +159,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject, onLoadProje
           <h2 className="text-2xl font-bold text-content">Analyses</h2>
           <p className="text-content-secondary text-sm mt-1">Manage your saved analyses</p>
         </div>
+        <div className="flex items-center gap-3">{hasTeamFeatures() && getSyncStatusDisplay()}</div>
+      </div>
+
+      {/* Action row */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <button
+          onClick={() => onOpenProject()}
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium sm:w-auto w-full"
+        >
+          <Plus size={18} />
+          New Analysis
+        </button>
         <div className="flex items-center gap-3">
-          {hasTeamFeatures() && getSyncStatusDisplay()}
-          {hasTeamFeatures() && onLoadProjectFile && (
+          <button
+            onClick={() => setIsSamplePickerOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 border border-edge rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors font-medium"
+          >
+            <FlaskConical size={16} />
+            Try a Sample
+          </button>
+          {hasTeamFeatures() && onLoadProjectFile ? (
             <FileBrowseButton
               mode="files"
               filters={['.vrs']}
@@ -128,20 +187,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject, onLoadProje
               label="Open from SharePoint"
               size="sm"
             />
-          )}
-          <button
-            onClick={() => onOpenProject()}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            <Plus size={18} />
-            New Analysis
-          </button>
+          ) : onLoadProjectFile ? (
+            <button
+              onClick={handleLocalFileOpen}
+              className="flex items-center gap-2 px-4 py-2 border border-edge rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors font-medium"
+            >
+              <Upload size={16} />
+              Open File
+            </button>
+          ) : null}
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Search + Refresh */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        {/* Search */}
         <div className="relative flex-1">
           <Search
             size={18}
@@ -155,8 +214,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject, onLoadProje
             className="w-full pl-10 pr-4 py-2 bg-surface-secondary border border-edge rounded-lg text-content placeholder-content-muted focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
-
-        {/* Refresh */}
         <button
           onClick={loadProjects}
           disabled={isLoading}
@@ -172,7 +229,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject, onLoadProje
         <div className="flex items-center justify-center py-16">
           <RefreshCw size={32} className="text-content-muted animate-spin" />
         </div>
-      ) : filteredProjects.length === 0 ? (
+      ) : sortedProjects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FolderOpen size={48} className="text-content-muted mb-4" />
           <h3 className="text-lg font-medium text-content mb-2">
@@ -184,89 +241,43 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject, onLoadProje
               : "Try adjusting your search or filter to find what you're looking for."}
           </p>
           {projects.length === 0 && (
-            <button
-              onClick={() => onOpenProject()}
-              className="mt-6 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              <Plus size={18} />
-              New Analysis
-            </button>
+            <div className="flex flex-col sm:flex-row items-center gap-3 mt-6">
+              <button
+                onClick={() => onOpenProject()}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                <Plus size={18} />
+                New Analysis
+              </button>
+              <button
+                onClick={() => setIsSamplePickerOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 border border-edge rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors font-medium"
+              >
+                <FlaskConical size={16} />
+                Try a Sample
+              </button>
+            </div>
           )}
         </div>
       ) : (
-        <div className="bg-surface-secondary rounded-xl border border-edge overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="bg-surface/50 border-b border-edge">
-              <tr>
-                <th className="px-6 py-3 text-xs font-medium text-content-muted uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-xs font-medium text-content-muted uppercase tracking-wider hidden md:table-cell">
-                  Modified
-                </th>
-                <th className="px-6 py-3 text-xs font-medium text-content-muted uppercase tracking-wider hidden lg:table-cell">
-                  Modified By
-                </th>
-                <th className="px-6 py-3 text-xs font-medium text-content-muted uppercase tracking-wider hidden md:table-cell">
-                  Location
-                </th>
-                <th className="px-6 py-3 text-xs font-medium text-content-muted uppercase tracking-wider">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-edge/50">
-              {filteredProjects.map(project => (
-                <tr
-                  key={project.id}
-                  className="hover:bg-surface-tertiary/30 transition-colors cursor-pointer"
-                  onClick={() => onOpenProject(project.name)}
-                >
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-content">{project.name}</div>
-                    <div className="text-xs text-content-muted md:hidden mt-0.5">
-                      {formatDate(project.modified)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-content-secondary text-sm hidden md:table-cell">
-                    <div className="flex items-center gap-1.5">
-                      <Clock size={14} />
-                      {formatDate(project.modified)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-content-secondary text-sm hidden lg:table-cell">
-                    {project.modifiedBy ? (
-                      <div className="flex items-center gap-1.5">
-                        <User size={14} />
-                        {project.modifiedBy}
-                      </div>
-                    ) : (
-                      '-'
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-content-secondary text-sm hidden md:table-cell">
-                    <div className="flex items-center gap-1.5">
-                      {project.location === 'team' ? <Users size={14} /> : <User size={14} />}
-                      <span>{project.location === 'team' ? 'Channel' : 'Personal'}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        onOpenProject(project.name);
-                      }}
-                      className="text-blue-400 hover:text-blue-300 font-medium text-sm"
-                    >
-                      Open
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex flex-col gap-3">
+          {sortedProjects.map(project => (
+            <ProjectCard
+              key={project.id || project.name}
+              project={project}
+              currentUserId={userId}
+              onClick={() => onOpenProject(project.id)}
+            />
+          ))}
         </div>
       )}
+
+      {/* Sample Data Picker Modal */}
+      <SampleDataPicker
+        isOpen={isSamplePickerOpen}
+        onClose={() => setIsSamplePickerOpen(false)}
+        onSelectSample={handleSampleSelect}
+      />
     </div>
   );
 };

@@ -5,6 +5,11 @@ import {
   buildChartLink,
   buildSubPageId,
   parseSubPageId,
+  buildProjectLink,
+  buildHypothesisLink,
+  buildImprovementLink,
+  buildOverviewLink,
+  validateDeepLink,
 } from '../deepLinks';
 
 describe('deepLinks', () => {
@@ -14,8 +19,10 @@ describe('deepLinks', () => {
       expect(result).toEqual({
         project: 'MyAnalysis',
         findingId: 'abc123',
+        hypothesisId: null,
         chart: null,
         mode: null,
+        tab: null,
       });
     });
 
@@ -24,19 +31,35 @@ describe('deepLinks', () => {
       expect(result).toEqual({
         project: 'Test',
         findingId: null,
+        hypothesisId: null,
         chart: 'boxplot',
         mode: null,
+        tab: null,
       });
     });
 
     it('returns nulls for empty search string', () => {
       const result = parseDeepLink('');
-      expect(result).toEqual({ project: null, findingId: null, chart: null, mode: null });
+      expect(result).toEqual({
+        project: null,
+        findingId: null,
+        hypothesisId: null,
+        chart: null,
+        mode: null,
+        tab: null,
+      });
     });
 
     it('returns null chart for invalid chart type', () => {
       const result = parseDeepLink('?project=X&chart=pie');
-      expect(result).toEqual({ project: 'X', findingId: null, chart: null, mode: null });
+      expect(result).toEqual({
+        project: 'X',
+        findingId: null,
+        hypothesisId: null,
+        chart: null,
+        mode: null,
+        tab: null,
+      });
     });
 
     it('validates all chart types', () => {
@@ -54,6 +77,40 @@ describe('deepLinks', () => {
     it('handles special characters in finding ID', () => {
       const result = parseDeepLink('?project=X&finding=abc-123_def');
       expect(result.findingId).toBe('abc-123_def');
+    });
+
+    it('parses hypothesis param', () => {
+      const result = parseDeepLink('?project=P&hypothesis=abc123');
+      expect(result.hypothesisId).toBe('abc123');
+      expect(result.findingId).toBeNull();
+    });
+
+    it('parses mode=improvement', () => {
+      const result = parseDeepLink('?project=P&mode=improvement');
+      expect(result.mode).toBe('improvement');
+    });
+
+    it('parses mode=report', () => {
+      const result = parseDeepLink('?project=P&mode=report');
+      expect(result.mode).toBe('report');
+    });
+
+    it('parses tab=overview', () => {
+      const result = parseDeepLink('?project=P&tab=overview');
+      expect(result.tab).toBe('overview');
+    });
+
+    it('returns null tab for invalid tab value', () => {
+      const result = parseDeepLink('?project=P&tab=dashboard');
+      expect(result.tab).toBeNull();
+    });
+
+    it('does not parse tab=overview as view param (no collision with popout routing)', () => {
+      // tab= and view= are separate params; tab=overview must not set any view-related field
+      const result = parseDeepLink('?project=P&tab=overview');
+      expect(result.tab).toBe('overview');
+      // Confirm there is no 'view' field on the result
+      expect('view' in result).toBe(false);
     });
   });
 
@@ -76,6 +133,54 @@ describe('deepLinks', () => {
     });
   });
 
+  describe('buildProjectLink', () => {
+    it('builds a URL with only the project param', () => {
+      const url = buildProjectLink('https://app.example.com/', 'proj-001');
+      expect(url).toBe('https://app.example.com/?project=proj-001');
+    });
+
+    it('does not add finding, chart, mode, or tab params', () => {
+      const url = buildProjectLink('https://app.example.com/', 'proj-001');
+      const parsed = new URL(url);
+      expect(parsed.searchParams.get('finding')).toBeNull();
+      expect(parsed.searchParams.get('chart')).toBeNull();
+      expect(parsed.searchParams.get('mode')).toBeNull();
+      expect(parsed.searchParams.get('tab')).toBeNull();
+    });
+  });
+
+  describe('buildHypothesisLink', () => {
+    it('builds a URL with project and hypothesis params', () => {
+      const url = buildHypothesisLink('https://app.example.com/', 'proj-001', 'hyp-42');
+      expect(url).toBe('https://app.example.com/?project=proj-001&hypothesis=hyp-42');
+    });
+
+    it('does not include view param', () => {
+      const url = buildHypothesisLink('https://app.example.com/', 'p', 'h');
+      expect(url).not.toContain('view=');
+    });
+  });
+
+  describe('buildImprovementLink', () => {
+    it('builds a URL with project and mode=improvement', () => {
+      const url = buildImprovementLink('https://app.example.com/', 'proj-001');
+      expect(url).toBe('https://app.example.com/?project=proj-001&mode=improvement');
+    });
+  });
+
+  describe('buildOverviewLink', () => {
+    it('uses tab=overview, not view=overview', () => {
+      const url = buildOverviewLink('https://app.example.com/', 'proj-001');
+      expect(url).toContain('tab=overview');
+      expect(url).not.toContain('view=overview');
+    });
+
+    it('builds a URL with project and tab=overview', () => {
+      const url = buildOverviewLink('https://app.example.com/', 'proj-001');
+      expect(url).toBe('https://app.example.com/?project=proj-001&tab=overview');
+    });
+  });
+
   describe('buildSubPageId', () => {
     it('builds subPageId with finding', () => {
       const id = buildSubPageId('Project', { findingId: 'f1' });
@@ -91,6 +196,21 @@ describe('deepLinks', () => {
       const id = buildSubPageId('Project', {});
       expect(id).toBe('project=Project');
     });
+
+    it('builds subPageId with hypothesis', () => {
+      const id = buildSubPageId('Project', { hypothesisId: 'hyp-99' });
+      expect(id).toBe('project=Project&hypothesis=hyp-99');
+    });
+
+    it('builds subPageId with mode=improvement', () => {
+      const id = buildSubPageId('Project', { mode: 'improvement' });
+      expect(id).toBe('project=Project&mode=improvement');
+    });
+
+    it('builds subPageId with tab=overview', () => {
+      const id = buildSubPageId('Project', { tab: 'overview' });
+      expect(id).toBe('project=Project&tab=overview');
+    });
   });
 
   describe('parseSubPageId', () => {
@@ -100,8 +220,10 @@ describe('deepLinks', () => {
       expect(parsed).toEqual({
         project: 'MyProject',
         findingId: 'abc',
+        hypothesisId: null,
         chart: null,
         mode: null,
+        tab: null,
       });
     });
 
@@ -111,8 +233,10 @@ describe('deepLinks', () => {
       expect(parsed).toEqual({
         project: 'P',
         findingId: null,
+        hypothesisId: null,
         chart: 'pareto',
         mode: null,
+        tab: null,
       });
     });
 
@@ -126,6 +250,111 @@ describe('deepLinks', () => {
       const parsed = parseSubPageId('project=X&chart=stats');
       expect(parsed.project).toBe('X');
       expect(parsed.chart).toBe('stats');
+    });
+
+    it('round-trips with buildSubPageId for hypothesis', () => {
+      const id = buildSubPageId('Proj', { hypothesisId: 'hyp-7' });
+      const parsed = parseSubPageId(id);
+      expect(parsed.hypothesisId).toBe('hyp-7');
+      expect(parsed.findingId).toBeNull();
+    });
+
+    it('round-trips with buildSubPageId for mode=improvement', () => {
+      const id = buildSubPageId('Proj', { mode: 'improvement' });
+      const parsed = parseSubPageId(id);
+      expect(parsed.mode).toBe('improvement');
+    });
+
+    it('round-trips with buildSubPageId for tab=overview', () => {
+      const id = buildSubPageId('Proj', { tab: 'overview' });
+      const parsed = parseSubPageId(id);
+      expect(parsed.tab).toBe('overview');
+    });
+  });
+
+  describe('validateDeepLink', () => {
+    const existingProjects = new Set(['proj-001', 'proj-002']);
+    const projectExists = (id: string) => existingProjects.has(id);
+
+    it('returns valid when params have no project', () => {
+      const result = validateDeepLink(
+        { project: null, findingId: null, hypothesisId: null, chart: null, mode: null, tab: null },
+        projectExists,
+        false
+      );
+      expect(result.valid).toBe(true);
+      expect(result.error).toBeUndefined();
+    });
+
+    it('returns valid when project exists (Team plan)', () => {
+      const result = validateDeepLink(
+        {
+          project: 'proj-001',
+          findingId: null,
+          hypothesisId: null,
+          chart: null,
+          mode: null,
+          tab: null,
+        },
+        projectExists,
+        false
+      );
+      expect(result.valid).toBe(true);
+      expect(result.error).toBeUndefined();
+    });
+
+    it('returns valid when project exists (Standard plan)', () => {
+      const result = validateDeepLink(
+        {
+          project: 'proj-002',
+          findingId: null,
+          hypothesisId: null,
+          chart: null,
+          mode: null,
+          tab: null,
+        },
+        projectExists,
+        true
+      );
+      expect(result.valid).toBe(true);
+    });
+
+    it('returns project-not-found with Team plan error message when project missing on Team plan', () => {
+      const result = validateDeepLink(
+        {
+          project: 'proj-missing',
+          findingId: null,
+          hypothesisId: null,
+          chart: null,
+          mode: null,
+          tab: null,
+        },
+        projectExists,
+        false
+      );
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe('project-not-found');
+      expect(result.errorMessage).toBe('This project may have been moved or deleted.');
+    });
+
+    it('returns project-not-found with Standard plan error message when project missing on Standard plan', () => {
+      const result = validateDeepLink(
+        {
+          project: 'proj-missing',
+          findingId: null,
+          hypothesisId: null,
+          chart: null,
+          mode: null,
+          tab: null,
+        },
+        projectExists,
+        true
+      );
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe('project-not-found');
+      expect(result.errorMessage).toBe(
+        'This project was not found locally. Standard plan projects are stored on this device only — Team plan enables shared access.'
+      );
     });
   });
 });

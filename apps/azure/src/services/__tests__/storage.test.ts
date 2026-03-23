@@ -51,6 +51,15 @@ vi.mock('../../db/schema', () => ({
 // ---------------------------------------------------------------------------
 vi.mock('@variscout/core', () => ({
   hasTeamFeatures: () => true,
+  buildProjectMetadata: () => ({
+    phase: 'scout',
+    findingCounts: {},
+    hypothesisCounts: {},
+    actionCounts: { total: 0, completed: 0, overdue: 0 },
+    assignedTaskCount: 0,
+    hasOverdueTasks: false,
+    lastViewedAt: {},
+  }),
 }));
 
 // ---------------------------------------------------------------------------
@@ -58,6 +67,9 @@ vi.mock('@variscout/core', () => ({
 // ---------------------------------------------------------------------------
 vi.mock('../../auth/easyAuth', () => ({
   isLocalDev: () => false,
+  getEasyAuthUser: vi
+    .fn()
+    .mockResolvedValue({ name: 'Test', email: 'test@test.com', userId: 'test-user', roles: [] }),
   AuthError: class AuthError extends Error {
     code: string;
     constructor(message: string, code: string) {
@@ -310,6 +322,14 @@ describe('storage service', () => {
     it('marks project as synced in IndexedDB after cloud save', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
+      // First get: metadata extraction reads existing record for lastViewedAt
+      mockProjects.get.mockResolvedValueOnce({
+        name: 'synced-proj',
+        location: 'personal',
+        synced: false,
+        data: sampleProject,
+      });
+      // Second get: markAsSynced reads record to update synced flag
       mockProjects.get.mockResolvedValueOnce({
         name: 'synced-proj',
         location: 'personal',
@@ -317,7 +337,10 @@ describe('storage service', () => {
         data: sampleProject,
       });
 
+      // Cloud .vrs save response
       fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'cloud-99', eTag: 'etag-99' }));
+      // Cloud .meta.json sidecar write response (fire-and-forget)
+      fetchSpy.mockResolvedValueOnce(createFetchResponse({}));
 
       const { result } = renderHook(() => useStorage(), { wrapper });
 

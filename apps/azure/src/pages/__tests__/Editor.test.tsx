@@ -95,6 +95,17 @@ vi.mock('../../auth/getCurrentUser', () => ({
   getCurrentUser: vi.fn(() => Promise.resolve({ name: 'Test User', email: 'test@test.com' })),
 }));
 
+vi.mock('../../auth/easyAuth', () => ({
+  getEasyAuthUser: vi.fn(() =>
+    Promise.resolve({
+      name: 'Test User',
+      email: 'test@test.com',
+      userId: 'test-user-id',
+      roles: [],
+    })
+  ),
+}));
+
 vi.mock('../../context/LocaleContext', () => ({
   useLocale: () => ({ locale: 'en', isLocaleEnabled: true, setLocale: vi.fn() }),
 }));
@@ -173,8 +184,10 @@ vi.mock('../../hooks', () => ({
 vi.mock('../../services/storage', () => ({
   useStorage: vi.fn(() => ({
     saveProject: vi.fn(),
+    listProjects: vi.fn(() => Promise.resolve([])),
     syncStatus: { status: 'synced', message: 'Synced' },
   })),
+  updateLastViewedAt: vi.fn(),
   classifySyncError: vi.fn(() => ({
     category: 'unknown',
     retryable: false,
@@ -274,6 +287,7 @@ describe('Editor', () => {
     // Re-apply storage mock after restoreAllMocks
     vi.mocked(StorageModule.useStorage).mockReturnValue({
       saveProject: vi.fn(),
+      listProjects: vi.fn(() => Promise.resolve([])),
       syncStatus: { status: 'synced', message: 'Synced' },
     } as unknown as ReturnType<typeof StorageModule.useStorage>);
   });

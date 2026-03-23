@@ -9,6 +9,7 @@ import type {
 import { FINDING_STATUSES, FINDING_STATUS_LABELS } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 import { filterStackToBreadcrumbs } from '@variscout/core';
+import { PHASE_CONFIG } from '../lib/journeyPhaseConfig';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,15 +26,6 @@ export interface ProjectStatusCardProps {
   onNavigateToActions: () => void;
   onResumeAnalysis: () => void;
 }
-
-// ── Phase colors ─────────────────────────────────────────────────────────────
-
-const PHASE_CONFIG: Record<string, { label: string; color: string; bgColor: string }> = {
-  frame: { label: 'FRAME', color: 'text-blue-500', bgColor: 'bg-blue-500' },
-  scout: { label: 'SCOUT', color: 'text-green-500', bgColor: 'bg-green-500' },
-  investigate: { label: 'INVESTIGATE', color: 'text-amber-500', bgColor: 'bg-amber-500' },
-  improve: { label: 'IMPROVE', color: 'text-purple-500', bgColor: 'bg-purple-500' },
-};
 
 const PHASE_ORDER = ['frame', 'scout', 'investigate', 'improve'] as const;
 
@@ -134,12 +126,12 @@ const ProjectStatusCard: React.FC<ProjectStatusCardProps> = ({
               <div key={phase} className="flex-1 flex flex-col items-center gap-1">
                 <div
                   className={`h-1.5 w-full rounded-full ${
-                    isActive ? config.bgColor : 'bg-slate-300 dark:bg-slate-600'
+                    isActive ? config.solidBgColor : 'bg-slate-300 dark:bg-slate-600'
                   }`}
                 />
                 <span
                   className={`text-[10px] font-medium ${
-                    phase === journeyPhase ? config.color : 'text-content-secondary'
+                    phase === journeyPhase ? config.textColor : 'text-content-secondary'
                   }`}
                 >
                   {config.label}

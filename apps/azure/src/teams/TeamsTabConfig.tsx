@@ -20,12 +20,14 @@ export function TeamsTabConfig() {
       try {
         await app.initialize();
 
+        const ctx = await app.getContext();
+        const channelId = ctx.channel?.id ?? 'default';
         const origin = window.location.origin;
 
         pages.config.registerOnSaveHandler(saveEvent => {
           pages.config.setConfig({
             suggestedDisplayName: 'VariScout',
-            entityId: 'variscout-channel',
+            entityId: `variscout-${channelId}`,
             contentUrl: origin,
             websiteUrl: origin,
           });

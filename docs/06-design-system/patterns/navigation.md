@@ -43,15 +43,21 @@ VariScout organizes the analyst's workflow into three workspaces, mapped to the 
 
 ### URL parameters
 
-| Parameter           | Purpose                   | Status              |
-| ------------------- | ------------------------- | ------------------- |
-| `?view=findings`    | Popout findings window    | Implemented         |
-| `?view=improvement` | Improvement workspace     | Future              |
-| `?embed=true`       | Embed mode (hides chrome) | Implemented (PWA)   |
-| `?project=<id>`     | Deep link to project      | Implemented (Azure) |
-| `?finding=<id>`     | Deep link to finding      | Implemented (Azure) |
-| `?chart=<type>`     | Deep link to chart        | Implemented (Azure) |
-| `?mode=performance` | Performance mode          | Implemented (Azure) |
+| Parameter            | Purpose                                          | Status              |
+| -------------------- | ------------------------------------------------ | ------------------- |
+| `?view=findings`     | Popout findings window                           | Implemented         |
+| `?view=improvement`  | Improvement workspace popout                     | Future              |
+| `?embed=true`        | Embed mode (hides chrome)                        | Implemented (PWA)   |
+| `?project=<id>`      | Deep link to project (UUID or legacy name)       | Implemented (Azure) |
+| `?tab=overview`      | Land on Dashboard (Overview tab) within project  | Implemented (Azure) |
+| `?tab=analysis`      | Land on Editor (Analysis tab) within project     | Implemented (Azure) |
+| `?finding=<id>`      | Deep link to finding                             | Implemented (Azure) |
+| `?chart=<type>`      | Deep link to chart                               | Implemented (Azure) |
+| `?hypothesis=<id>`   | Deep link to hypothesis in Investigation sidebar | Implemented (Azure) |
+| `?workspace=improve` | Deep link to Improvement workspace               | Implemented (Azure) |
+| `?mode=performance`  | Performance mode                                 | Implemented (Azure) |
+
+> `tab=` is distinct from `view=`. `view=` opens a popout window (separate browser tab). `tab=` selects which project tab (Overview vs Analysis) to show within the main app window.
 
 ---
 
@@ -309,7 +315,35 @@ Escape priority is handled by `useAppPanels` — it dismisses panels in reverse-
 
 ---
 
-## 8. Dashboard ↔ Editor Navigation (Azure)
+## 8. Portfolio and Dashboard Navigation (Azure)
+
+The Azure app has three navigation layers: **Portfolio** (project selection), **Project Dashboard** (Overview tab), and **analysis Editor** (Analysis tab). The Portfolio is the app entry point. Within a loaded project, the Dashboard and Editor are peer views controlled by `panelsStore.activeView`.
+
+### Portfolio → Project selection
+
+```
+App entry
+└── Portfolio home screen
+    ├── ProjectCard × N  (reads .meta.json sidecars)
+    │   ├── Phase indicator
+    │   ├── Finding counts by status
+    │   ├── Overdue action badge
+    │   └── "What's new" indicator dot
+    ├── SampleDataPicker  (shown when no projects exist)
+    └── [select project] → loadProject()
+                               ↓
+                         Project Shell (DataContext)
+```
+
+| Situation                          | Next screen                    | Mechanism                               |
+| ---------------------------------- | ------------------------------ | --------------------------------------- |
+| Project has data                   | Project Dashboard (Overview)   | `activeView: 'dashboard'`               |
+| New project (no data)              | Editor (FRAME mode)            | `activeView: 'editor'` — skip Dashboard |
+| Deep link `?tab=overview`          | Project Dashboard              | `tab` param parsed before shell renders |
+| Deep link `?tab=analysis`          | Editor                         | `tab` param parsed before shell renders |
+| Deep link `?finding=` or `?chart=` | Editor at target               | Existing deep link bypass               |
+| Deep link `?hypothesis=<id>`       | Editor + Investigation sidebar | New; scrolls to hypothesis              |
+| Deep link `?workspace=improve`     | Editor + Improvement workspace | New target                              |
 
 For saved Azure projects with data, the project shell contains two peer views: **Project Dashboard** (Overview tab) and **analysis Editor** (Analysis tab). Navigation between them is controlled by `panelsStore.activeView`.
 
@@ -350,6 +384,29 @@ CoScout's `navigate_to` tool (ADR-042) extends dashboard navigation into convers
 - `navigate_to({target: 'dashboard'})` — Switches to the Project Dashboard from anywhere
 - `navigate_to({target: 'finding', target_id: '...'})` — Auto-executes: opens findings panel, switches to Editor
 - `navigate_to({target: 'finding', target_id: '...', restore_filters: true})` — Shows proposal card (filter mutation requires confirmation)
+
+### "← Portfolio" back link
+
+The project shell header always shows a "← Portfolio" back link that returns the user to the Portfolio home screen. This unloads the current project (clears DataContext) and renders the portfolio grid. The back link is visible from both the Dashboard and the Editor.
+
+On Teams channel tab, the "← Portfolio" link is hidden (Teams users always operate within a shared channel project — there is no personal portfolio in the channel tab context).
+
+### Deep link bypass
+
+Deep links always bypass the Dashboard and land directly in the Editor at the target. The `tab=` parameter is the only way to intentionally target the Dashboard via a link:
+
+| Link type                          | Landing                                               |
+| ---------------------------------- | ----------------------------------------------------- |
+| `?tab=overview`                    | Dashboard (Overview tab)                              |
+| `?tab=analysis`                    | Editor (Analysis tab)                                 |
+| `?finding=<id>`                    | Editor + findings panel + finding highlighted         |
+| `?chart=<type>`                    | Editor + focused chart                                |
+| `?hypothesis=<id>`                 | Editor + Investigation sidebar scrolled to hypothesis |
+| `?workspace=improve`               | Editor + Improvement workspace                        |
+| Teams Adaptive Card "View Finding" | Editor + finding highlighted                          |
+| Teams channel tab initial load     | Editor (teams users start in analysis)                |
+
+After a deep link lands in the Editor, the user can always navigate to the Dashboard via the "Overview" tab in the project shell.
 
 ### Persistence
 
@@ -408,6 +465,10 @@ This is **designed but not implemented** on main. The branch code is 38+ commits
 - [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) — conceptual navigation layers
 - [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — INVESTIGATE phase workflow
 - [IMPROVE Phase UX Design](../../superpowers/specs/2026-03-19-improve-phase-ux-design.md) — three-workspace model detail
+- [Project Dashboard](../../03-features/workflows/project-dashboard.md) — Dashboard feature (What's New, OtherProjectsList, Portfolio integration)
+- [Project Reopen Flow](../../02-journeys/flows/project-reopen.md) — Full flow: Portfolio → Dashboard → Analysis
+- [ADR-042: Project Dashboard](../../07-decisions/adr-042-project-dashboard.md) — Dashboard ↔ Editor design decisions
+- [ADR-043: Teams Entry Experience](../../07-decisions/adr-043-teams-entry-experience.md) — Portfolio, ProjectCard, deep links design decisions
 - [Accessibility Foundations](../foundations/accessibility.md) — full accessibility guidelines
 - [Filter Chips](../../03-features/navigation/breadcrumbs.md) — detailed filter chip design
 - [Drill-Down](../../03-features/navigation/drill-down.md) — drill-down methodology and decision thresholds

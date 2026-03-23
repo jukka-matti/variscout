@@ -54,6 +54,7 @@ This section captures key architectural decisions made during VariScout developm
 | [040](adr-040-bicep-migration.md)                    | Migrate Infrastructure to Bicep          | Accepted   | 2026-03-22 |
 | [041](adr-041-zustand-feature-stores.md)             | Zustand Feature Stores                   | Accepted   | 2026-03-22 |
 | [042](adr-042-project-dashboard.md)                  | Project Dashboard                        | Accepted   | 2026-03-22 |
+| [043](adr-043-teams-entry-experience.md)             | Teams Entry Experience                   | Accepted   | 2026-03-22 |
 
 ---
 

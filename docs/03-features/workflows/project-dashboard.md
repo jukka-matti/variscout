@@ -158,3 +158,60 @@ Stale filter handling: if a filter category no longer exists in current data (e.
 | `apps/azure/src/features/ai/aiStore.ts`                       | `pendingDashboardQuestion` + `setPendingDashboardQuestion()` action |
 
 See [ADR-042](../../07-decisions/adr-042-project-dashboard.md) for design decisions and consequences.
+
+---
+
+## What's New (Timestamp Diff Mechanism)
+
+When a user reopens a project, VariScout compares the project's `lastModified` timestamp against `lastViewedAt` (both stored in the `.meta.json` sidecar):
+
+```
+if (lastModified > lastViewedAt) → show WhatsNewSection
+```
+
+`lastViewedAt` is written to `.meta.json` at the moment the project is opened. If the project was modified by a teammate (via OneDrive sync, Team plan) or by the same user on another device since the last visit, the condition triggers.
+
+`WhatsNewSection` renders at the top of the Project Dashboard before the main status columns. It summarizes changes since `lastViewedAt`:
+
+- New findings added (count + names)
+- Hypotheses whose status changed (e.g., "Operator hypothesis moved to Supported")
+- Actions completed or newly overdue
+- Findings resolved
+
+The section is dismissed by clicking "Got it" or switching to the Editor tab. Dismissal updates `lastViewedAt` in both the local store and the `.meta.json` sidecar.
+
+**Component**: `WhatsNewSection` — `apps/azure/src/components/WhatsNewSection.tsx`
+
+---
+
+## Other Projects (Cross-Project List)
+
+The Project Dashboard (Overview tab) includes an `OtherProjectsList` component at the bottom of the page. It shows a compact list of up to three other active projects, each displaying:
+
+- Project name
+- Current journey phase indicator
+- Overdue action flag (amber badge if any actions are past due)
+
+Clicking a project card in `OtherProjectsList` navigates to that project's portfolio card (loads the project). This provides cross-project awareness without leaving the current project context.
+
+`OtherProjectsList` reads health data from the already-loaded `.meta.json` sidecars — no additional file I/O is required at render time.
+
+**Component**: `OtherProjectsList` — `apps/azure/src/components/OtherProjectsList.tsx`
+
+---
+
+## Portfolio Integration
+
+The Project Dashboard (Overview tab) is reached via the Portfolio home screen. The Portfolio renders `ProjectCard` components for each saved project, reading lightweight health data from `.meta.json` sidecars without loading full `.vrs` files. Each card shows:
+
+- Journey phase indicator and finding counts by status
+- Assigned task count and overdue flag
+- "What's new" indicator dot when `lastModified > lastViewedAt`
+
+Opening a project from the Portfolio sets `panelsStore.activeView` to `'dashboard'` (for projects with data) or `'editor'` (for new empty projects). The Dashboard then loads synchronously from already-hydrated `AnalysisState`.
+
+Deep links can target the Dashboard directly via `?tab=overview`, or bypass it to land in the Editor via `?tab=analysis`, `?finding=<id>`, `?chart=<type>`, `?hypothesis=<id>`, or `?workspace=improve`.
+
+**Component**: `ProjectCard` — `apps/azure/src/components/ProjectCard.tsx`
+
+See [ADR-043](../../07-decisions/adr-043-teams-entry-experience.md) for the full Portfolio and Teams entry experience design.

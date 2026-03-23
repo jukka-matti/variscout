@@ -536,3 +536,7 @@ export type {
   StatsWorkerAPI,
 } from './workers/types';
 export { computeStats, computeAnova } from './workers/statsWorkerApi';
+
+// Project Metadata (Portfolio view)
+export { buildProjectMetadata } from './projectMetadata';
+export type { ProjectMetadata } from './projectMetadata';
