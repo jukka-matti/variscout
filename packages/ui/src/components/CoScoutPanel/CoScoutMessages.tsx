@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react';
-import { Search, Loader2, FileText, ExternalLink, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Loader2, FileText, ExternalLink, AlertTriangle, Bookmark } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import type { CoScoutMessage, CoScoutError, ActionProposal } from '@variscout/core';
 import { parseActionMarkers, stripActionMarkers } from '@variscout/core';
 import { ActionProposalCard } from './ActionProposalCard';
+import { SaveInsightDialog } from './SaveInsightDialog';
 
 /**
  * Parse [Source: name] markers in assistant text and render as styled inline badges.
@@ -97,6 +98,14 @@ export interface CoScoutMessagesProps {
   actionProposals?: ActionProposal[];
   onExecuteAction?: (proposal: ActionProposal, editedText?: string) => void;
   onDismissAction?: (proposalId: string) => void;
+  /** ADR-049: Insight capture — save message as finding or comment */
+  onSaveAsNewFinding?: (text: string, sourceMessageId: string) => void;
+  onAddCommentToFinding?: (findingId: string, text: string) => void;
+  onAddCommentToHypothesis?: (hypothesisId: string, text: string) => void;
+  /** Existing findings for comment target selection */
+  insightFindings?: Array<{ id: string; text: string }>;
+  /** Existing hypotheses for comment target selection */
+  insightHypotheses?: Array<{ id: string; text: string }>;
 }
 
 const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
@@ -116,9 +125,18 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
   actionProposals,
   onExecuteAction,
   onDismissAction,
+  onSaveAsNewFinding,
+  onAddCommentToFinding,
+  onAddCommentToHypothesis,
+  insightFindings,
+  insightHypotheses,
 }) => {
   const { t } = useTranslation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [insightDialogMessage, setInsightDialogMessage] = useState<{
+    id: string;
+    text: string;
+  } | null>(null);
 
   const getTranslatedErrorText = (error: CoScoutError): string => {
     switch (error.type) {
@@ -168,13 +186,26 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
               )}
             </div>
           ) : msg.role === 'user' ? (
-            <div className="max-w-[85%] bg-surface-tertiary rounded-lg p-3">
-              <p className="text-xs text-content leading-relaxed whitespace-pre-wrap">
-                {msg.content}
-              </p>
+            <div className="max-w-[85%] group relative">
+              <div className="bg-surface-tertiary rounded-lg p-3">
+                <p className="text-xs text-content leading-relaxed whitespace-pre-wrap">
+                  {msg.content}
+                </p>
+              </div>
+              {onSaveAsNewFinding && (
+                <button
+                  onClick={() => setInsightDialogMessage({ id: msg.id, text: msg.content })}
+                  className="absolute -left-6 top-1 opacity-0 group-hover:opacity-100 p-1 text-content-muted hover:text-content transition-opacity"
+                  title="Save as insight"
+                  aria-label="Save message as insight"
+                  data-testid={`bookmark-message-${index}`}
+                >
+                  <Bookmark size={14} />
+                </button>
+              )}
             </div>
           ) : (
-            <div className="max-w-[90%] space-y-2">
+            <div className="max-w-[90%] space-y-2 group relative">
               {/* Assistant text with action markers stripped */}
               {(() => {
                 const markers = parseActionMarkers(msg.content);
@@ -209,6 +240,17 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
                   </>
                 );
               })()}
+              {onSaveAsNewFinding && (
+                <button
+                  onClick={() => setInsightDialogMessage({ id: msg.id, text: msg.content })}
+                  className="absolute -right-6 top-1 opacity-0 group-hover:opacity-100 p-1 text-content-muted hover:text-content transition-opacity"
+                  title="Save as insight"
+                  aria-label="Save message as insight"
+                  data-testid={`bookmark-message-${index}`}
+                >
+                  <Bookmark size={14} />
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -334,6 +376,21 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
       )}
 
       <div ref={messagesEndRef} />
+
+      {/* Save Insight Dialog */}
+      {onSaveAsNewFinding && (
+        <SaveInsightDialog
+          isOpen={insightDialogMessage !== null}
+          messageText={insightDialogMessage?.text ?? ''}
+          messageId={insightDialogMessage?.id ?? ''}
+          findings={insightFindings}
+          hypotheses={insightHypotheses}
+          onSaveAsNewFinding={onSaveAsNewFinding}
+          onAddCommentToFinding={onAddCommentToFinding}
+          onAddCommentToHypothesis={onAddCommentToHypothesis}
+          onClose={() => setInsightDialogMessage(null)}
+        />
+      )}
     </div>
   );
 };

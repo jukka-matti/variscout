@@ -8,3 +8,5 @@ export {
 export { CoScoutMessages, type CoScoutMessagesProps } from './CoScoutMessages';
 
 export { ActionProposalCard, type ActionProposalCardProps } from './ActionProposalCard';
+
+export { SaveInsightDialog, type SaveInsightDialogProps } from './SaveInsightDialog';
