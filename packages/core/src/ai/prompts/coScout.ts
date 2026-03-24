@@ -943,6 +943,22 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
     if (options.entryScenario) {
       parts.push(buildEntryScenarioGuidance(options.entryScenario));
     }
+
+    // Insight capture guidance — INVESTIGATE and IMPROVE phases only (ADR-049)
+    if (options.phase === 'investigate' || options.phase === 'improve') {
+      parts.push(
+        `Insight capture guidance (INVESTIGATE/IMPROVE phases):
+- Use suggest_save_finding when the conversation reveals:
+  - A validated hypothesis conclusion (supported or refuted)
+  - A quantitative process insight (specific eta-squared, Cpk shift, or defect rate)
+  - A negative learning (approach tried and found ineffective — equally valuable)
+  - A root cause identification with supporting evidence
+  - A cross-factor interaction discovered during drill-down
+- Include negative learnings: "Adjusting temperature had no effect on variation (eta-squared < 0.01)" is as valuable as positive findings.
+- Do NOT suggest saving generic observations or restating what's already in findings.
+- Limit to 1-2 suggestions per conversation to avoid prompt fatigue.`
+      );
+    }
   }
 
   const prompt = parts.join('\n\n');

@@ -771,6 +771,40 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).not.toContain('Time Study (Yamazumi)');
     expect(prompt).not.toContain('Multi-Channel Performance');
   });
+
+  // Insight capture guidance (ADR-049)
+  it('includes insight capture guidance in system prompt for INVESTIGATE phase', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      phase: 'investigate',
+      hasActionTools: true,
+    });
+    expect(prompt).toContain('suggest_save_finding');
+    expect(prompt).toContain('negative learning');
+  });
+
+  it('includes insight capture guidance for IMPROVE phase', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      phase: 'improve',
+      hasActionTools: true,
+    });
+    expect(prompt).toContain('suggest_save_finding');
+  });
+
+  it('excludes insight capture guidance for SCOUT phase', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      phase: 'scout',
+      hasActionTools: true,
+    });
+    expect(prompt).not.toContain('Insight capture guidance');
+  });
+
+  it('excludes insight capture guidance when hasActionTools is false', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      phase: 'investigate',
+      hasActionTools: false,
+    });
+    expect(prompt).not.toContain('Insight capture guidance');
+  });
 });
 
 describe('formatKnowledgeContext', () => {
