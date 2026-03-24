@@ -37,7 +37,7 @@ export interface UseAICoScoutOptions {
 
 export interface UseAICoScoutReturn {
   messages: CoScoutMessage[];
-  send: (text: string) => void;
+  send: (text: string, images?: Array<{ id: string; dataUrl: string; mimeType: string }>) => void;
   retry: () => void;
   isLoading: boolean;
   isStreaming: boolean;
@@ -101,7 +101,7 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
   }, [initialNarrative]);
 
   const send = useCallback(
-    async (text: string) => {
+    async (text: string, images?: Array<{ id: string; dataUrl: string; mimeType: string }>) => {
       if (!context || !responsesApiConfig || !text.trim()) return;
 
       // Abort previous request
@@ -114,11 +114,23 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
         role: 'user',
         content: text.trim(),
         timestamp: Date.now(),
+        ...(images?.length
+          ? {
+              images: images.map(img => ({
+                id: img.id,
+                dataUrl: img.dataUrl,
+                mimeType: img.mimeType as 'image/jpeg' | 'image/png',
+                sizeBytes: Math.round(img.dataUrl.length * 0.75), // approximate decoded size
+              })),
+            }
+          : {}),
       };
 
       setMessages(prev => [...prev, userMessage]);
       setIsLoading(true);
       setError(null);
+
+      const hasImages = images && images.length > 0;
 
       try {
         // Build Responses API input (pass journeyPhase so tool routing instructions reach the LLM)
@@ -126,7 +138,11 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
           context,
           messagesRef.current,
           text.trim(),
-          { journeyPhase: toolsOptions?.phase, isTeamPlan: toolsOptions?.isTeamPlan }
+          {
+            journeyPhase: toolsOptions?.phase,
+            isTeamPlan: toolsOptions?.isTeamPlan,
+            ...(hasImages ? { images: images.map(img => ({ dataUrl: img.dataUrl })) } : {}),
+          }
         );
         const tools = buildCoScoutTools(toolsOptions);
 
@@ -149,7 +165,7 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
               instructions,
               tools,
               previous_response_id: previousResponseIdRef.current,
-              store: true,
+              store: !hasImages,
               prompt_cache_key: 'variscout-coscout',
               reasoning: { effort: getCoScoutReasoningEffort(toolsOptions?.phase) },
             },

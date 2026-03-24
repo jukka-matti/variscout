@@ -218,6 +218,7 @@ export function useFindingsOrchestration({
   // Navigate to chart from finding source
   const handleNavigateToChart = useCallback(
     (source: FindingSource) => {
+      if (source.chart === 'coscout') return; // CoScout findings have no chart to focus
       onViewStateChange({ focusedChart: source.chart });
     },
     [onViewStateChange]

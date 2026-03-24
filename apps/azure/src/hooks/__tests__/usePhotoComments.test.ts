@@ -77,6 +77,8 @@ function createMockFindingsState(): UseFindingsReturn {
     completeAction: vi.fn(),
     deleteAction: vi.fn(),
     setOutcome: vi.fn(),
+    addAttachmentToComment: vi.fn(),
+    updateAttachmentStatus: vi.fn(),
   };
 }
 

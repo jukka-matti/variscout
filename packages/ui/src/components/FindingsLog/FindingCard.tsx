@@ -39,8 +39,8 @@ export interface FindingCardProps {
   onSetStatus?: (id: string, status: FindingStatus) => void;
   /** Callback to set a finding's classification tag */
   onSetTag?: (id: string, tag: FindingTag | null) => void;
-  /** Callback to add a comment */
-  onAddComment?: (id: string, text: string) => void;
+  /** Callback to add a comment, with optional file attachment */
+  onAddComment?: (id: string, text: string, attachment?: File) => void;
   /** Callback to edit a comment */
   onEditComment?: (findingId: string, commentId: string, text: string) => void;
   /** Callback to delete a comment */
@@ -196,7 +196,11 @@ const FindingCard: React.FC<FindingCardProps> = ({
                 {finding.source.chart === 'boxplot' && <BarChart3 size={9} />}
                 {finding.source.chart === 'pareto' && <Layers size={9} />}
                 <span>
-                  {finding.source.chart === 'ichart' ? 'I-Chart' : finding.source.category}
+                  {finding.source.chart === 'ichart' || finding.source.chart === 'coscout'
+                    ? finding.source.chart === 'ichart'
+                      ? 'I-Chart'
+                      : 'CoScout'
+                    : finding.source.category}
                 </span>
               </button>
             )}

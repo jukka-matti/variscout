@@ -31,9 +31,20 @@ export interface ToolDefinition {
   parameters: Record<string, unknown> & { strict?: boolean };
 }
 
+/** A single content part within a multimodal message */
+export interface InputContentPart {
+  type: 'input_text' | 'input_image';
+  text?: string;
+  image_url?: string;
+  detail?: 'auto' | 'low' | 'high';
+}
+
+/** Message content — plain string or multimodal content parts */
+export type MessageContent = string | InputContentPart[];
+
 export interface ResponsesApiRequest {
   /** User input — text string or structured messages */
-  input: string | Array<{ role: string; content: string } | FunctionCallOutput>;
+  input: string | Array<{ role: string; content: MessageContent } | FunctionCallOutput>;
   /** System prompt / instructions */
   instructions?: string;
   /** Previous response ID for multi-turn continuity */

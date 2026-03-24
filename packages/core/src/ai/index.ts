@@ -13,7 +13,26 @@ export type {
   AIErrorType,
   CoScoutMessage,
   CoScoutError,
+  ImageAttachment,
 } from './types';
+
+export {
+  validateImageFile,
+  fileToDataUrl,
+  MAGIC_BYTES,
+  MAX_IMAGE_SIZE,
+  MAX_IMAGES_PER_MESSAGE,
+} from './imageValidation';
+
+export {
+  validateAttachmentFile,
+  sanitizeFilename,
+  inferMimeFromExtension,
+  FILE_MAGIC_BYTES,
+  FILE_SIZE_LIMITS,
+  SUPPORTED_ATTACHMENT_TYPES,
+} from './fileValidation';
+export type { AttachmentValidationResult } from './fileValidation';
 
 export {
   buildAIContext,
@@ -70,6 +89,8 @@ export type {
   TextFormat,
   FunctionCallOutput,
   ToolHandlerMap,
+  InputContentPart,
+  MessageContent,
 } from './responsesApi';
 export {
   ResponsesApiError,
@@ -107,3 +128,6 @@ export { djb2Hash } from './hash';
 
 export { searchProjectArtifacts } from './searchProject';
 export type { SearchProjectOptions, SearchResult } from './searchProject';
+
+export { budgetContext } from './budgetContext';
+export type { ContextComponent, BudgetResult } from './budgetContext';

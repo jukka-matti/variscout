@@ -172,6 +172,50 @@ export function useToolHandlers({
         });
       },
 
+      get_finding_attachment: async (args: Record<string, unknown>) => {
+        const findingId = (args as { finding_id: string }).finding_id;
+        const finding = findings.find(f => f.id === findingId);
+        if (!finding) {
+          return JSON.stringify({ error: `Finding ${findingId} not found` });
+        }
+
+        const photoAttachments = (finding.comments ?? [])
+          .filter(c => c.photos && c.photos.length > 0)
+          .flatMap(c =>
+            (c.photos ?? []).map(p => ({
+              type: 'photo' as const,
+              commentText: c.text,
+              commentDate: new Date(c.createdAt).toISOString(),
+              filename: p.filename,
+              uploadStatus: p.uploadStatus,
+              hasThumbnail: Boolean(p.thumbnailDataUrl),
+            }))
+          );
+
+        const fileAttachments = (finding.comments ?? [])
+          .filter(c => c.attachments && c.attachments.length > 0)
+          .flatMap(c =>
+            (c.attachments ?? []).map(a => ({
+              type: 'file' as const,
+              commentText: c.text,
+              commentDate: new Date(c.createdAt).toISOString(),
+              filename: a.filename,
+              mimeType: a.mimeType,
+              sizeBytes: a.sizeBytes,
+              uploadStatus: a.uploadStatus,
+            }))
+          );
+
+        const allAttachments = [...photoAttachments, ...fileAttachments];
+
+        return JSON.stringify({
+          findingId,
+          findingText: finding.text,
+          attachmentCount: allAttachments.length,
+          attachments: allAttachments,
+        });
+      },
+
       // ── Action Tools (return proposals) ────────────────────────────
       apply_filter: async (args: Record<string, unknown>) => {
         const factor = args.factor as string;
@@ -334,6 +378,49 @@ export function useToolHandlers({
           filterStackHash: hashFilterStack(filterStack),
           timestamp: Date.now(),
           editableText: text,
+        };
+        return JSON.stringify({ proposal: true, ...proposal });
+      },
+
+      suggest_save_finding: async (args: Record<string, unknown>) => {
+        const insightText = args.insight_text as string;
+        const suggestedHypothesisId = (args.suggested_hypothesis_id as string | null) ?? undefined;
+        const category = (args.category as string | null) ?? undefined;
+
+        if (!insightText) return JSON.stringify({ error: 'Missing insight_text' });
+
+        // Validate hypothesis exists if one is suggested
+        if (suggestedHypothesisId) {
+          const targetHypo = hypotheses.find(h => h.id === suggestedHypothesisId);
+          if (!targetHypo) {
+            return JSON.stringify({ error: `Hypothesis not found: ${suggestedHypothesisId}` });
+          }
+        }
+
+        const proposal: ActionProposal = {
+          id: generateProposalId(),
+          tool: 'suggest_save_finding',
+          params: {
+            insight_text: insightText,
+            suggested_hypothesis_id: suggestedHypothesisId,
+            category: category,
+          },
+          preview: {
+            contextSnapshot: {
+              filters: Object.keys(filters),
+              samples: filteredData.length,
+              mean: stats?.mean,
+              cpk: stats?.cpk,
+            },
+            suggestedHypothesisText: suggestedHypothesisId
+              ? hypotheses.find(h => h.id === suggestedHypothesisId)?.text
+              : undefined,
+            category,
+          },
+          status: 'pending',
+          filterStackHash: hashFilterStack(filterStack),
+          timestamp: Date.now(),
+          editableText: insightText,
         };
         return JSON.stringify({ proposal: true, ...proposal });
       },

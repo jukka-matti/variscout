@@ -385,6 +385,7 @@ export interface MessageCatalog {
   'ai.tool.publishReport': string;
   'ai.tool.notifyOwners': string;
   'ai.tool.suggestIdea': string;
+  'ai.tool.suggestSaveFinding': string;
   'ai.tool.navigateTo': string;
 
   // Report

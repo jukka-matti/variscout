@@ -58,7 +58,7 @@ export function formatFindingsText(
     const statsStr = statsParts.length > 0 ? ` | ${statsParts.join(' \u00b7 ')}` : '';
     // Chart source prefix
     const sourceStr = finding.source
-      ? `${finding.source.chart.charAt(0).toUpperCase() + finding.source.chart.slice(1)}${finding.source.chart !== 'ichart' ? `: ${finding.source.category}` : ''} \u00b7 `
+      ? `${finding.source.chart.charAt(0).toUpperCase() + finding.source.chart.slice(1)}${finding.source.chart !== 'ichart' && finding.source.chart !== 'coscout' ? `: ${finding.source.category}` : ''} \u00b7 `
       : '';
     lines.push(
       `${i + 1}. [${statusLabel}${tagLabel}] ${sourceStr}${filterStr || '(no filters)'}${statsStr}`

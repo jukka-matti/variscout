@@ -272,6 +272,7 @@ export const fr: MessageCatalog = {
   'ai.tool.publishReport': 'Publier le rapport',
   'ai.tool.notifyOwners': 'Notifier les responsables',
   'ai.tool.suggestIdea': "Suggérer une idée d'amélioration",
+  'ai.tool.suggestSaveFinding': "Enregistrer l'insight",
   'ai.tool.navigateTo': 'Navigate to',
 
   // Report

@@ -10,10 +10,15 @@
  */
 
 import { useCallback } from 'react';
-import { createPhotoAttachment, hasTeamFeatures } from '@variscout/core';
+import { createPhotoAttachment, createCommentAttachment, hasTeamFeatures } from '@variscout/core';
+import {
+  validateAttachmentFile,
+  sanitizeFilename,
+  inferMimeFromExtension,
+} from '@variscout/core/ai';
 import type { UseFindingsReturn } from '@variscout/hooks';
 import { processPhoto } from '../utils/photoProcessing';
-import { uploadPhoto } from '../services/photoUpload';
+import { uploadPhoto, uploadAttachment } from '../services/photoUpload';
 import { isLocalDev } from '../auth/easyAuth';
 import type { StorageLocation } from '../services/storage';
 import { isTeamsMediaAvailable, capturePhotoFromTeams } from '../teams/teamsMedia';
@@ -102,11 +107,81 @@ export function usePhotoComments({
     [handleAddPhoto]
   );
 
+  /**
+   * Add a comment, optionally with a file attachment.
+   * - Image files (JPEG/PNG): routed through the existing photo-upload path.
+   * - Non-image files (PDF, XLSX, CSV, TXT): use the generic attachment upload path.
+   * - Files that fail validation are silently dropped (validation happens in the UI before this).
+   */
   const handleAddCommentWithAuthor = useCallback(
-    (findingId: string, text: string) => {
-      findingsState.addFindingComment(findingId, text, author);
+    async (findingId: string, text: string, attachmentFile?: File) => {
+      // Always add the comment text first so it appears immediately
+      const comment = findingsState.addFindingComment(findingId, text, author);
+      if (!comment || !attachmentFile) return;
+
+      const mimeType = attachmentFile.type || inferMimeFromExtension(attachmentFile.name);
+      const isImage = mimeType.startsWith('image/');
+
+      // Re-validate to be safe (UI already validated, but defense-in-depth)
+      const validation = await validateAttachmentFile(attachmentFile);
+      if (!validation.valid) {
+        console.warn('[PhotoComments] Attachment validation failed:', validation.reason);
+        return;
+      }
+
+      if (isImage) {
+        // Route image through the existing photo upload path
+        await handleAddPhoto(findingId, comment.id, attachmentFile);
+        return;
+      }
+
+      // Non-image attachment — Team plan only for upload; Standard gets a local reference
+      if (!hasTeamFeatures()) {
+        // Standard plan: record the filename as a local-only reference (no upload)
+        const att = createCommentAttachment(
+          sanitizeFilename(attachmentFile.name),
+          mimeType,
+          attachmentFile.size
+        );
+        // Mark as uploaded (local only — no actual upload)
+        att.uploadStatus = 'uploaded';
+        findingsState.addAttachmentToComment(findingId, comment.id, att);
+        return;
+      }
+
+      // Team plan: upload to OneDrive and track status
+      const sanitized = sanitizeFilename(attachmentFile.name);
+      const att = createCommentAttachment(sanitized, mimeType, attachmentFile.size);
+      // Optimistic add with pending status
+      findingsState.addAttachmentToComment(findingId, comment.id, att);
+
+      if (isLocalDev()) {
+        findingsState.updateAttachmentStatus(findingId, comment.id, att.id, 'uploaded');
+        return;
+      }
+
+      try {
+        const result = await uploadAttachment(
+          attachmentFile,
+          sanitized,
+          analysisId,
+          findingId,
+          location
+        );
+        findingsState.updateAttachmentStatus(
+          findingId,
+          comment.id,
+          att.id,
+          'uploaded',
+          result.driveItemId,
+          result.webUrl
+        );
+      } catch (err) {
+        console.warn('[PhotoComments] Attachment upload failed:', err);
+        findingsState.updateAttachmentStatus(findingId, comment.id, att.id, 'failed');
+      }
     },
-    [findingsState, author]
+    [findingsState, author, analysisId, location, handleAddPhoto]
   );
 
   return {

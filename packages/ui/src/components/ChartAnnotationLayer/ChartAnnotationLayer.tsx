@@ -103,6 +103,10 @@ export const ChartAnnotationLayer: React.FC<ChartAnnotationLayerProps> = ({
       // I-Chart findings use their ID as anchor key (free-floating)
       return finding.id;
     }
+    if (finding.source.chart === 'coscout') {
+      // CoScout findings are not tied to a chart position — exclude from annotation layer
+      return null;
+    }
     return finding.source.category;
   };
 

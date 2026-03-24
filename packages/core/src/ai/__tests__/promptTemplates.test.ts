@@ -771,6 +771,64 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).not.toContain('Time Study (Yamazumi)');
     expect(prompt).not.toContain('Multi-Channel Performance');
   });
+
+  // Insight capture guidance (ADR-049)
+  it('includes insight capture guidance in system prompt for INVESTIGATE phase', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      phase: 'investigate',
+      hasActionTools: true,
+    });
+    expect(prompt).toContain('suggest_save_finding');
+    expect(prompt).toContain('negative learning');
+  });
+
+  it('includes insight capture guidance for IMPROVE phase', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      phase: 'improve',
+      hasActionTools: true,
+    });
+    expect(prompt).toContain('suggest_save_finding');
+  });
+
+  it('excludes insight capture guidance for SCOUT phase', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      phase: 'scout',
+      hasActionTools: true,
+    });
+    expect(prompt).not.toContain('Insight capture guidance');
+  });
+
+  it('excludes insight capture guidance when hasActionTools is false', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      phase: 'investigate',
+      hasActionTools: false,
+    });
+    expect(prompt).not.toContain('Insight capture guidance');
+  });
+
+  // CoScout-sourced finding nudge (ADR-049)
+  it('includes CoScout-sourced finding nudge when coscoutInsights present', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      coscoutInsights: [
+        { text: 'Nozzle 3 shows 2x variation', status: 'investigating' },
+        { text: 'Temperature adjustment ineffective', status: 'analyzed' },
+      ],
+    });
+    expect(prompt).toContain('Previous CoScout insights saved as findings:');
+    expect(prompt).toContain('"Nozzle 3 shows 2x variation" (investigating)');
+    expect(prompt).toContain('"Temperature adjustment ineffective" (analyzed)');
+    expect(prompt).toContain("Build on these — don't repeat them.");
+  });
+
+  it('excludes CoScout finding nudge when coscoutInsights is absent', () => {
+    const prompt = buildCoScoutSystemPrompt({});
+    expect(prompt).not.toContain('Previous CoScout insights saved as findings:');
+  });
+
+  it('excludes CoScout finding nudge when coscoutInsights is empty', () => {
+    const prompt = buildCoScoutSystemPrompt({ coscoutInsights: [] });
+    expect(prompt).not.toContain('Previous CoScout insights saved as findings:');
+  });
 });
 
 describe('formatKnowledgeContext', () => {
@@ -1312,7 +1370,7 @@ describe('locale wiring in system prompts', () => {
 describe('buildCoScoutTools', () => {
   it('returns base read tool definitions with strict schemas (no phase)', () => {
     const tools = buildCoScoutTools();
-    expect(tools.length).toBe(5); // 3 original + get_available_factors + compare_categories
+    expect(tools.length).toBe(6); // 3 original + get_available_factors + compare_categories + get_finding_attachment
     expect(tools.every(t => t.type === 'function')).toBe(true);
     expect(tools.every(t => t.parameters.strict === true)).toBe(true);
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
@@ -1382,7 +1440,7 @@ describe('buildCoScoutTools', () => {
     expect(tools.find(t => t.name === 'create_finding')).toBeUndefined();
     // Read tools should still be there
     expect(tools.find(t => t.name === 'get_available_factors')).toBeDefined();
-    expect(tools.length).toBe(5);
+    expect(tools.length).toBe(6);
   });
 
   it('all tools use strict mode and additionalProperties:false', () => {
@@ -1391,9 +1449,19 @@ describe('buildCoScoutTools', () => {
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
   });
 
-  it('never exceeds 17 tools (IMPROVE + Team plan)', () => {
+  it('never exceeds 19 tools (IMPROVE + Team plan)', () => {
     const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
-    expect(tools.length).toBeLessThanOrEqual(17);
+    expect(tools.length).toBeLessThanOrEqual(19);
+  });
+
+  it('includes get_finding_attachment in all phases', () => {
+    const tools = buildCoScoutTools();
+    expect(tools.find(t => t.name === 'get_finding_attachment')).toBeDefined();
+  });
+
+  it('includes get_finding_attachment even in FRAME phase', () => {
+    const tools = buildCoScoutTools({ phase: 'frame' });
+    expect(tools.find(t => t.name === 'get_finding_attachment')).toBeDefined();
   });
 
   it('includes suggest_improvement_idea in INVESTIGATE phase tools', () => {
@@ -1414,6 +1482,35 @@ describe('buildCoScoutTools', () => {
   it('does not include suggest_improvement_idea in FRAME phase', () => {
     const tools = buildCoScoutTools({ phase: 'frame' });
     expect(tools.find(t => t.name === 'suggest_improvement_idea')).toBeUndefined();
+  });
+
+  it('includes suggest_save_finding tool in INVESTIGATE phase', () => {
+    const tools = buildCoScoutTools({ phase: 'investigate' });
+    const tool = tools.find(t => t.name === 'suggest_save_finding');
+    expect(tool).toBeDefined();
+    expect(tool!.parameters.properties).toHaveProperty('insight_text');
+    expect(tool!.parameters.properties).toHaveProperty('reasoning');
+    expect(tool!.parameters.properties).toHaveProperty('suggested_hypothesis_id');
+  });
+
+  it('includes suggest_save_finding tool in IMPROVE phase', () => {
+    const tools = buildCoScoutTools({ phase: 'improve' });
+    expect(tools.find(t => t.name === 'suggest_save_finding')).toBeDefined();
+  });
+
+  it('excludes suggest_save_finding in SCOUT phase', () => {
+    const tools = buildCoScoutTools({ phase: 'scout' });
+    expect(tools.find(t => t.name === 'suggest_save_finding')).toBeUndefined();
+  });
+
+  it('excludes suggest_save_finding in FRAME phase', () => {
+    const tools = buildCoScoutTools({ phase: 'frame' });
+    expect(tools.find(t => t.name === 'suggest_save_finding')).toBeUndefined();
+  });
+
+  it('excludes suggest_save_finding when no phase specified', () => {
+    const tools = buildCoScoutTools();
+    expect(tools.find(t => t.name === 'suggest_save_finding')).toBeUndefined();
   });
 });
 
@@ -1454,7 +1551,9 @@ describe('buildCoScoutInput', () => {
       knowledgeDocuments: [{ title: 'SOP', snippet: 'Clean nozzles.', source: 'SharePoint' }],
     };
     const result = buildCoScoutInput(ctx, [], 'Question');
-    const kbMsg = result.input.find(m => m.content.includes('Knowledge Base'));
+    const kbMsg = result.input.find(
+      m => typeof m.content === 'string' && m.content.includes('Knowledge Base')
+    );
     expect(kbMsg).toBeDefined();
   });
 
@@ -1478,6 +1577,75 @@ describe('buildCoScoutInput', () => {
   it('does not include tool routing instructions when no journeyPhase', () => {
     const result = buildCoScoutInput(baseCtx, [], 'Hello');
     expect(result.instructions).not.toContain('Tool usage guidance');
+  });
+
+  // CoScout-sourced finding nudge flows through buildCoScoutInput (ADR-049)
+  it('includes CoScout finding nudge in instructions when context has coscoutInsights', () => {
+    const ctx: AIContext = {
+      ...baseCtx,
+      findings: {
+        total: 1,
+        byStatus: { investigating: 1 },
+        keyDrivers: [],
+        coscoutInsights: [{ text: 'Nozzle 3 shows 2x variation', status: 'investigating' }],
+      },
+    };
+    const result = buildCoScoutInput(ctx, [], 'What should we check next?');
+    expect(result.instructions).toContain('Previous CoScout insights saved as findings:');
+    expect(result.instructions).toContain('"Nozzle 3 shows 2x variation" (investigating)');
+    expect(result.instructions).toContain("Build on these — don't repeat them.");
+  });
+
+  it('excludes CoScout finding nudge in instructions when findings has no coscoutInsights', () => {
+    const ctx: AIContext = {
+      ...baseCtx,
+      findings: { total: 1, byStatus: { observed: 1 }, keyDrivers: [] },
+    };
+    const result = buildCoScoutInput(ctx, [], 'Question');
+    expect(result.instructions).not.toContain('Previous CoScout insights saved as findings:');
+  });
+
+  it('builds multimodal input when images provided', () => {
+    const { input } = buildCoScoutInput(baseCtx, [], 'Describe this', {
+      images: [{ dataUrl: 'data:image/jpeg;base64,abc' }],
+    });
+    const userMsg = input[input.length - 1];
+    expect(Array.isArray(userMsg.content)).toBe(true);
+    if (Array.isArray(userMsg.content)) {
+      expect(userMsg.content).toContainEqual(
+        expect.objectContaining({ type: 'input_text', text: 'Describe this' })
+      );
+      expect(userMsg.content).toContainEqual(
+        expect.objectContaining({
+          type: 'input_image',
+          image_url: 'data:image/jpeg;base64,abc',
+          detail: 'auto',
+        })
+      );
+    }
+  });
+
+  it('builds plain text input when no images', () => {
+    const { input } = buildCoScoutInput(baseCtx, [], 'Question');
+    const userMsg = input[input.length - 1];
+    expect(typeof userMsg.content).toBe('string');
+    expect(userMsg.content).toBe('Question');
+  });
+
+  it('supports multiple images in multimodal input', () => {
+    const { input } = buildCoScoutInput(baseCtx, [], 'Compare these', {
+      images: [
+        { dataUrl: 'data:image/png;base64,img1' },
+        { dataUrl: 'data:image/jpeg;base64,img2' },
+      ],
+    });
+    const userMsg = input[input.length - 1];
+    expect(Array.isArray(userMsg.content)).toBe(true);
+    if (Array.isArray(userMsg.content)) {
+      expect(userMsg.content).toHaveLength(3); // 1 text + 2 images
+      const imageParts = userMsg.content.filter((p: { type: string }) => p.type === 'input_image');
+      expect(imageParts).toHaveLength(2);
+    }
   });
 });
 

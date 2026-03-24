@@ -18,12 +18,16 @@ beforeEach(() => {
     knowledgeAvailable: false,
     knowledgeSearching: false,
     knowledgeDocuments: [],
+    pendingSaveProposals: 0,
+    unsavedBookmarks: [],
+    turnCount: 0,
+    findingsCreatedThisSession: false,
   });
 });
 
 describe('aiStore', () => {
   describe('initial state', () => {
-    it('has correct defaults for all 14 fields', () => {
+    it('has correct defaults for all 18 fields', () => {
       const s = useAIStore.getState();
       expect(s.pendingDashboardQuestion).toBeNull();
       expect(s.narration).toBeNull();
@@ -39,6 +43,10 @@ describe('aiStore', () => {
       expect(s.knowledgeAvailable).toBe(false);
       expect(s.knowledgeSearching).toBe(false);
       expect(s.knowledgeDocuments).toEqual([]);
+      expect(s.pendingSaveProposals).toBe(0);
+      expect(s.unsavedBookmarks).toEqual([]);
+      expect(s.turnCount).toBe(0);
+      expect(s.findingsCreatedThisSession).toBe(false);
     });
   });
 
@@ -242,5 +250,68 @@ describe('aiStore', () => {
       useAIStore.getState().setPendingDashboardQuestion(null);
       expect(useAIStore.getState().pendingDashboardQuestion).toBeNull();
     });
+  });
+});
+
+describe('AISessionState', () => {
+  beforeEach(() => {
+    useAIStore.setState(useAIStore.getInitialState());
+  });
+
+  it('tracks pendingSaveProposals', () => {
+    useAIStore.getState().incrementPendingSaveProposals();
+    expect(useAIStore.getState().pendingSaveProposals).toBe(1);
+    useAIStore.getState().decrementPendingSaveProposals();
+    expect(useAIStore.getState().pendingSaveProposals).toBe(0);
+  });
+
+  it('tracks unsaved bookmarks', () => {
+    useAIStore.getState().addUnsavedBookmark('msg-1');
+    expect(useAIStore.getState().unsavedBookmarks).toContain('msg-1');
+    useAIStore.getState().removeUnsavedBookmark('msg-1');
+    expect(useAIStore.getState().unsavedBookmarks).not.toContain('msg-1');
+  });
+
+  it('tracks turn count', () => {
+    useAIStore.getState().incrementTurnCount();
+    useAIStore.getState().incrementTurnCount();
+    expect(useAIStore.getState().turnCount).toBe(2);
+  });
+
+  it('shouldShowClosePrompt returns true with pending proposals', () => {
+    useAIStore.getState().incrementPendingSaveProposals();
+    expect(useAIStore.getState().shouldShowClosePrompt()).toBe(true);
+  });
+
+  it('shouldShowClosePrompt returns true with unsaved bookmarks', () => {
+    useAIStore.getState().addUnsavedBookmark('msg-1');
+    expect(useAIStore.getState().shouldShowClosePrompt()).toBe(true);
+  });
+
+  it('shouldShowClosePrompt returns true with 5+ turns and no findings', () => {
+    for (let i = 0; i < 5; i++) useAIStore.getState().incrementTurnCount();
+    expect(useAIStore.getState().shouldShowClosePrompt()).toBe(true);
+  });
+
+  it('shouldShowClosePrompt returns false with 5+ turns but findings created', () => {
+    for (let i = 0; i < 5; i++) useAIStore.getState().incrementTurnCount();
+    useAIStore.getState().markFindingCreatedThisSession();
+    expect(useAIStore.getState().shouldShowClosePrompt()).toBe(false);
+  });
+
+  it('shouldShowClosePrompt returns false with fresh session', () => {
+    expect(useAIStore.getState().shouldShowClosePrompt()).toBe(false);
+  });
+
+  it('resetSessionState clears all fields', () => {
+    useAIStore.getState().incrementPendingSaveProposals();
+    useAIStore.getState().addUnsavedBookmark('msg-1');
+    useAIStore.getState().incrementTurnCount();
+    useAIStore.getState().markFindingCreatedThisSession();
+    useAIStore.getState().resetSessionState();
+    expect(useAIStore.getState().pendingSaveProposals).toBe(0);
+    expect(useAIStore.getState().unsavedBookmarks).toEqual([]);
+    expect(useAIStore.getState().turnCount).toBe(0);
+    expect(useAIStore.getState().findingsCreatedThisSession).toBe(false);
   });
 });

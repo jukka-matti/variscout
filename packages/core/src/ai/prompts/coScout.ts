@@ -8,7 +8,7 @@
  */
 
 import type { AIContext, CoScoutMessage, JourneyPhase, EntryScenario } from '../types';
-import type { ToolDefinition } from '../responsesApi';
+import type { ToolDefinition, MessageContent, InputContentPart } from '../responsesApi';
 import type { Locale } from '../../i18n/types';
 import type { AnalysisMode } from '../../types';
 import { formatStatistic } from '../../i18n/format';
@@ -108,6 +108,26 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
           },
         },
         required: ['factor'],
+        additionalProperties: false,
+        strict: true,
+      },
+    },
+    {
+      type: 'function',
+      name: 'get_finding_attachment',
+      description:
+        "Retrieve photos and file metadata attached to a finding's comments. " +
+        'Returns attachment descriptions and metadata. ' +
+        'Use when the analyst references a finding photo or asks to compare visual evidence.',
+      parameters: {
+        type: 'object',
+        properties: {
+          finding_id: {
+            type: 'string',
+            description: 'ID of the finding to retrieve attachments from',
+          },
+        },
+        required: ['finding_id'],
         additionalProperties: false,
         strict: true,
       },
@@ -400,6 +420,40 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
           additionalProperties: false,
           strict: true,
         },
+      },
+      {
+        type: 'function',
+        name: 'suggest_save_finding',
+        description:
+          'Proactively suggest saving a key insight as a finding. Use when the conversation ' +
+          'reveals a significant process observation, a validated hypothesis conclusion, ' +
+          'or a negative learning (approach tried and found ineffective). ' +
+          'The analyst sees a confirmation card and can edit before saving.',
+        parameters: {
+          type: 'object',
+          properties: {
+            insight_text: {
+              type: 'string',
+              description:
+                'Concise insight text, e.g., "Nozzle 3 shows 2x variation of other nozzles — ' +
+                'cleaning frequency is the likely root cause (eta-squared 0.42)"',
+            },
+            reasoning: {
+              type: 'string',
+              description:
+                'Why this insight is worth saving — helps analyst decide. ' +
+                'E.g., "This explains 42% of total variation and directly informs the improvement plan."',
+            },
+            suggested_hypothesis_id: {
+              type: ['string', 'null'],
+              description:
+                'If the insight relates to a specific hypothesis, provide its ID to link them. Null otherwise.',
+            },
+          },
+          required: ['insight_text', 'reasoning', 'suggested_hypothesis_id'],
+          additionalProperties: false,
+          strict: true,
+        },
       }
     );
 
@@ -477,10 +531,14 @@ export function buildCoScoutInput(
   context: AIContext,
   history: CoScoutMessage[],
   userMessage: string,
-  options?: { journeyPhase?: JourneyPhase; isTeamPlan?: boolean }
+  options?: {
+    journeyPhase?: JourneyPhase;
+    isTeamPlan?: boolean;
+    images?: Array<{ dataUrl: string }>;
+  }
 ): {
   instructions: string;
-  input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
+  input: Array<{ role: 'user' | 'assistant' | 'system'; content: MessageContent }>;
 } {
   const instructions = buildCoScoutSystemPrompt({
     glossaryFragment: context.glossaryFragment,
@@ -495,9 +553,10 @@ export function buildCoScoutInput(
     synthesis: context.process?.synthesis,
     capabilityStability: context.capabilityStability,
     analysisMode: context.analysisMode,
+    coscoutInsights: context.findings?.coscoutInsights,
   });
 
-  const input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
+  const input: Array<{ role: 'user' | 'assistant' | 'system'; content: MessageContent }> = [];
 
   // Context summary — variable per analysis state
   const contextSummary = buildSummaryPrompt(context).replace(
@@ -527,8 +586,21 @@ export function buildCoScoutInput(
     }
   }
 
-  // Current user message
-  input.push({ role: 'user', content: userMessage });
+  // Current user message — multimodal when images are present
+  const images = options?.images;
+  if (images && images.length > 0) {
+    const parts: InputContentPart[] = [
+      { type: 'input_text', text: userMessage },
+      ...images.map(img => ({
+        type: 'input_image' as const,
+        image_url: img.dataUrl,
+        detail: 'auto' as const,
+      })),
+    ];
+    input.push({ role: 'user', content: parts });
+  } else {
+    input.push({ role: 'user', content: userMessage });
+  }
 
   return { instructions, input };
 }
@@ -553,6 +625,8 @@ export interface BuildCoScoutSystemPromptOptions {
   capabilityStability?: AIContext['capabilityStability'];
   /** Current analysis mode for mode-specific terminology (ADR-047) */
   analysisMode?: AnalysisMode;
+  /** Insights previously saved from CoScout conversations — used to avoid repetition (ADR-049) */
+  coscoutInsights?: Array<{ text: string; status: string }>;
 }
 
 /**
@@ -909,6 +983,30 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
     if (options.entryScenario) {
       parts.push(buildEntryScenarioGuidance(options.entryScenario));
     }
+
+    // Insight capture guidance — INVESTIGATE and IMPROVE phases only (ADR-049)
+    if (options.phase === 'investigate' || options.phase === 'improve') {
+      parts.push(
+        `Insight capture guidance (INVESTIGATE/IMPROVE phases):
+- Use suggest_save_finding when the conversation reveals:
+  - A validated hypothesis conclusion (supported or refuted)
+  - A quantitative process insight (specific eta-squared, Cpk shift, or defect rate)
+  - A negative learning (approach tried and found ineffective — equally valuable)
+  - A root cause identification with supporting evidence
+  - A cross-factor interaction discovered during drill-down
+- Include negative learnings: "Adjusting temperature had no effect on variation (eta-squared < 0.01)" is as valuable as positive findings.
+- Do NOT suggest saving generic observations or restating what's already in findings.
+- Limit to 1-2 suggestions per conversation to avoid prompt fatigue.`
+      );
+    }
+  }
+
+  // Prior CoScout insights nudge — tell CoScout about findings it already helped create (ADR-049)
+  if (options.coscoutInsights && options.coscoutInsights.length > 0) {
+    const insightLines = options.coscoutInsights.map(i => `- "${i.text}" (${i.status})`).join('\n');
+    parts.push(
+      `Previous CoScout insights saved as findings:\n${insightLines}\nBuild on these — don't repeat them.`
+    );
   }
 
   const prompt = parts.join('\n\n');

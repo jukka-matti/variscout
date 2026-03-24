@@ -1,8 +1,20 @@
 /**
- * Photo upload service — uploads full-resolution photos to OneDrive
- * via Graph API. Team plan only.
+ * Photo upload service — uploads files to OneDrive via Graph API.
+ * Team plan only.
  *
- * OneDrive path: /VariScout/Photos/{analysisId}/{findingId}/{filename}
+ * Default photo path:  /VariScout/Photos/{analysisId}/{findingId}/{filename}
+ * Generic attachment:  /VariScout/Attachments/{analysisId}/{findingId}/{filename}
+ *
+ * The core `uploadFile` helper accepts any File / Blob and an explicit
+ * OneDrive sub-folder name, so it can be reused for non-image attachments
+ * (PDF, XLSX, CSV, TXT) without changing the Graph API upload logic.
+ *
+ * Public API:
+ *   uploadPhoto(blob, filename, analysisId, findingId, location?)
+ *     – backwards-compatible wrapper, uses "Photos" sub-folder, forces image/jpeg
+ *   uploadAttachment(file, filename, analysisId, findingId, location?)
+ *     – general-purpose wrapper for any supported attachment type;
+ *       Content-Type is derived from the File's MIME type
  */
 
 import { hasTeamFeatures } from '@variscout/core';
@@ -21,22 +33,19 @@ export interface PhotoUploadResult {
 
 // ── Drive Path Resolution ────────────────────────────────────────────────
 
-interface PhotoDrivePaths {
+interface DrivePaths {
   rootPath: string; // e.g. '/me/drive/root' or '/drives/{driveId}/root'
   basePath: string; // e.g. '/me/drive/root:' or '/drives/{driveId}/root:'
 }
 
-async function getPhotoDrivePaths(
-  token: string,
-  location: StorageLocation
-): Promise<PhotoDrivePaths> {
+async function getDrivePaths(token: string, location: StorageLocation): Promise<DrivePaths> {
   if (location === 'personal') {
     return { rootPath: '/me/drive/root', basePath: '/me/drive/root:' };
   }
 
   const driveInfo = await getChannelDriveInfo(token);
   if (!driveInfo) {
-    // Fallback to personal
+    // Fallback to personal drive
     return { rootPath: '/me/drive/root', basePath: '/me/drive/root:' };
   }
 
@@ -49,14 +58,15 @@ async function getPhotoDrivePaths(
 // ── Folder Creation ──────────────────────────────────────────────────────
 
 /**
- * Ensure /VariScout/Photos/{analysisId}/{findingId}/ exists in the target drive.
- * Uses conflictBehavior: 'replace' (idempotent — no-op if folder exists).
+ * Ensure /VariScout/{subFolder}/{analysisId}/{findingId}/ exists in the target drive.
+ * Uses conflictBehavior: 'replace' (idempotent — no-op if folder already exists).
  */
-async function ensurePhotoFolder(
+async function ensureFolder(
   token: string,
+  subFolder: string,
   analysisId: string,
   findingId: string,
-  paths: PhotoDrivePaths
+  paths: DrivePaths
 ): Promise<void> {
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -73,7 +83,7 @@ async function ensurePhotoFolder(
         '@microsoft.graph.conflictBehavior': 'replace',
       }),
     });
-    // 409 = folder already exists (expected), anything else non-ok is an error
+    // 409 = folder already exists (expected); anything else non-ok is an error
     if (!res.ok && res.status !== 409) {
       const body = await res.json().catch(() => ({}));
       throw new Error(body.error?.message || `Failed to create folder "${name}": ${res.status}`);
@@ -82,63 +92,54 @@ async function ensurePhotoFolder(
 
   // Create /VariScout (no-op if exists)
   await createFolder(`${GRAPH_BASE}${paths.rootPath}/children`, 'VariScout');
-  // Create /VariScout/Photos
-  await createFolder(`${GRAPH_BASE}${paths.rootPath}:/VariScout:/children`, 'Photos');
-  // Create /VariScout/Photos/{analysisId}
-  await createFolder(`${GRAPH_BASE}${paths.rootPath}:/VariScout/Photos:/children`, analysisId);
-  // Create /VariScout/Photos/{analysisId}/{findingId}
+  // Create /VariScout/{subFolder}
+  await createFolder(`${GRAPH_BASE}${paths.rootPath}:/VariScout:/children`, subFolder);
+  // Create /VariScout/{subFolder}/{analysisId}
   await createFolder(
-    `${GRAPH_BASE}${paths.rootPath}:/VariScout/Photos/${encodeURIComponent(analysisId)}:/children`,
+    `${GRAPH_BASE}${paths.rootPath}:/VariScout/${encodeURIComponent(subFolder)}:/children`,
+    analysisId
+  );
+  // Create /VariScout/{subFolder}/{analysisId}/{findingId}
+  await createFolder(
+    `${GRAPH_BASE}${paths.rootPath}:/VariScout/${encodeURIComponent(subFolder)}/${encodeURIComponent(analysisId)}:/children`,
     findingId
   );
 }
 
-// ── Upload ───────────────────────────────────────────────────────────────
+// ── Core Upload Helper ───────────────────────────────────────────────────
 
 /**
- * Upload a photo blob to OneDrive (personal or channel drive).
+ * Upload any file to /VariScout/{subFolder}/{analysisId}/{findingId}/{filename}
+ * on the target OneDrive / SharePoint drive.
  *
- * @param blob - The JPEG blob to upload
- * @param filename - Sanitized filename (e.g., "photo_001.jpg")
- * @param analysisId - The project/analysis name
- * @param findingId - The finding this photo belongs to
- * @param location - Storage location ('personal' or 'team')
- * @returns OneDrive driveItemId + webUrl
+ * @param blob - The file content (File or Blob)
+ * @param contentType - MIME type sent as Content-Type header
+ * @param subFolder - Top-level sub-folder inside /VariScout/ (e.g. "Photos", "Attachments")
+ * @param filename - Sanitized filename
+ * @param analysisId - Project/analysis identifier
+ * @param findingId - Finding identifier
+ * @param location - Drive location ('personal' or 'team')
  */
-export async function uploadPhoto(
+async function uploadFile(
   blob: Blob,
+  contentType: string,
+  subFolder: string,
   filename: string,
   analysisId: string,
   findingId: string,
-  location: StorageLocation = 'personal'
+  location: StorageLocation
 ): Promise<PhotoUploadResult> {
-  if (!hasTeamFeatures()) {
-    throw new Error('Photo upload requires Team plan');
-  }
-
-  if (isLocalDev()) {
-    // Simulate upload in local dev
-    console.info(
-      `[PhotoUpload] Local dev: simulated upload of ${filename} to /VariScout/Photos/${analysisId}/${findingId}/`
-    );
-    return { driveItemId: `local-dev-${Date.now()}` };
-  }
-
   const token = await getGraphToken();
+  const paths = await getDrivePaths(token, location);
 
-  // Resolve drive paths for the target location
-  const paths = await getPhotoDrivePaths(token, location);
+  await ensureFolder(token, subFolder, analysisId, findingId, paths);
 
-  // Ensure folder structure exists
-  await ensurePhotoFolder(token, analysisId, findingId, paths);
-
-  // Upload file content
-  const uploadPath = `/VariScout/Photos/${encodeURIComponent(analysisId)}/${encodeURIComponent(findingId)}/${encodeURIComponent(filename)}`;
+  const uploadPath = `/VariScout/${encodeURIComponent(subFolder)}/${encodeURIComponent(analysisId)}/${encodeURIComponent(findingId)}/${encodeURIComponent(filename)}`;
   const res = await graphFetch(`${GRAPH_BASE}${paths.basePath}${uploadPath}:/content`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
-      'Content-Type': 'image/jpeg',
+      'Content-Type': contentType,
     },
     body: blob,
   });
@@ -153,4 +154,72 @@ export async function uploadPhoto(
     driveItemId: data.id,
     webUrl: data.webUrl,
   };
+}
+
+// ── Public API ───────────────────────────────────────────────────────────
+
+/**
+ * Upload a photo (JPEG) to OneDrive under /VariScout/Photos/.
+ * Backwards-compatible with previous callers.
+ *
+ * @param blob - The JPEG blob to upload
+ * @param filename - Sanitized filename (e.g., "photo_001.jpg")
+ * @param analysisId - The project/analysis name
+ * @param findingId - The finding this photo belongs to
+ * @param location - Storage location ('personal' or 'team')
+ */
+export async function uploadPhoto(
+  blob: Blob,
+  filename: string,
+  analysisId: string,
+  findingId: string,
+  location: StorageLocation = 'personal'
+): Promise<PhotoUploadResult> {
+  if (!hasTeamFeatures()) {
+    throw new Error('Photo upload requires Team plan');
+  }
+
+  if (isLocalDev()) {
+    console.info(
+      `[PhotoUpload] Local dev: simulated upload of ${filename} to /VariScout/Photos/${analysisId}/${findingId}/`
+    );
+    return { driveItemId: `local-dev-${Date.now()}` };
+  }
+
+  return uploadFile(blob, 'image/jpeg', 'Photos', filename, analysisId, findingId, location);
+}
+
+/**
+ * Upload any supported attachment (PDF, XLSX, CSV, TXT, or image) to OneDrive
+ * under /VariScout/Attachments/.
+ *
+ * The Content-Type is read from `file.type`; pass a pre-validated File from
+ * `validateAttachmentFile()` to ensure only supported types reach this function.
+ *
+ * @param file - The File object to upload
+ * @param filename - Sanitized filename (use `sanitizeFilename()` from @variscout/core)
+ * @param analysisId - The project/analysis name
+ * @param findingId - The finding this attachment belongs to
+ * @param location - Storage location ('personal' or 'team')
+ */
+export async function uploadAttachment(
+  file: File,
+  filename: string,
+  analysisId: string,
+  findingId: string,
+  location: StorageLocation = 'personal'
+): Promise<PhotoUploadResult> {
+  if (!hasTeamFeatures()) {
+    throw new Error('Attachment upload requires Team plan');
+  }
+
+  if (isLocalDev()) {
+    console.info(
+      `[PhotoUpload] Local dev: simulated upload of ${filename} to /VariScout/Attachments/${analysisId}/${findingId}/`
+    );
+    return { driveItemId: `local-dev-${Date.now()}` };
+  }
+
+  const contentType = file.type || 'application/octet-stream';
+  return uploadFile(file, contentType, 'Attachments', filename, analysisId, findingId, location);
 }

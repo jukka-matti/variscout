@@ -7,8 +7,10 @@ import {
   findDuplicateBySource,
   migrateFindings,
   type ActionItem,
+  type CommentAttachment,
   type Finding,
   type FindingAssignee,
+  type FindingComment,
   type FindingContext,
   type FindingOutcome,
   type FindingProjection,
@@ -49,8 +51,8 @@ export interface UseFindingsReturn {
   setFindingStatus: (id: string, status: FindingStatus) => void;
   /** Set or clear a finding's classification tag */
   setFindingTag: (id: string, tag: FindingTag | null) => void;
-  /** Add a comment to a finding */
-  addFindingComment: (id: string, text: string, author?: string) => void;
+  /** Add a comment to a finding. Returns the created comment. */
+  addFindingComment: (id: string, text: string, author?: string) => FindingComment;
   /** Edit an existing comment */
   editFindingComment: (findingId: string, commentId: string, text: string) => void;
   /** Delete a comment */
@@ -66,6 +68,21 @@ export interface UseFindingsReturn {
     photoId: string,
     status: PhotoUploadStatus,
     driveItemId?: string
+  ) => void;
+  /** Add a non-image file attachment to an existing comment */
+  addAttachmentToComment: (
+    findingId: string,
+    commentId: string,
+    attachment: CommentAttachment
+  ) => void;
+  /** Update a non-image attachment's upload status (and optionally set driveItemId + webUrl) */
+  updateAttachmentStatus: (
+    findingId: string,
+    commentId: string,
+    attachmentId: string,
+    status: PhotoUploadStatus,
+    driveItemId?: string,
+    webUrl?: string
   ) => void;
   /** Link a finding to a hypothesis */
   linkHypothesis: (
@@ -232,6 +249,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
         onFindingsChange?.(next);
         return next;
       });
+      return comment;
     },
     [onFindingsChange]
   );
@@ -312,6 +330,69 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
                                 ...(driveItemId ? { driveItemId } : {}),
                               }
                             : p
+                        ),
+                      }
+                    : c
+                ),
+              }
+            : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const addAttachmentToComment = useCallback(
+    (findingId: string, commentId: string, attachment: CommentAttachment) => {
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === findingId
+            ? {
+                ...f,
+                comments: f.comments.map(c =>
+                  c.id === commentId
+                    ? { ...c, attachments: [...(c.attachments ?? []), attachment] }
+                    : c
+                ),
+              }
+            : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const updateAttachmentStatus = useCallback(
+    (
+      findingId: string,
+      commentId: string,
+      attachmentId: string,
+      status: PhotoUploadStatus,
+      driveItemId?: string,
+      webUrl?: string
+    ) => {
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === findingId
+            ? {
+                ...f,
+                comments: f.comments.map(c =>
+                  c.id === commentId
+                    ? {
+                        ...c,
+                        attachments: c.attachments?.map(a =>
+                          a.id === attachmentId
+                            ? {
+                                ...a,
+                                uploadStatus: status,
+                                ...(driveItemId ? { driveItemId } : {}),
+                                ...(webUrl ? { webUrl } : {}),
+                              }
+                            : a
                         ),
                       }
                     : c
@@ -496,6 +577,8 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     deleteFindingComment,
     addPhotoToComment,
     updatePhotoStatus,
+    addAttachmentToComment,
+    updateAttachmentStatus,
     linkHypothesis,
     unlinkHypothesis,
     setProjection,
