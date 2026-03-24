@@ -28,6 +28,7 @@ Once a feature stabilizes, the ADR is the canonical reference.
 | [2026-03-21-mobile-performance-design.md](2026-03-21-mobile-performance-design.md)                               | Mobile Performance                | ADR-039 | Delivered |
 | [2026-03-22-project-dashboard-design.md](2026-03-22-project-dashboard-design.md)                                 | Project Dashboard + CoScout Nav   | ADR-042 | Delivered |
 | [2026-03-22-teams-entry-experience-design.md](2026-03-22-teams-entry-experience-design.md)                       | Teams Entry Experience Redesign   | —       | Draft     |
+| [2026-03-24-coscout-context-and-memory-design.md](2026-03-24-coscout-context-and-memory-design.md)               | CoScout Context & Process Memory  | ADR-049 | Draft     |
 | [scouting-report-design.md](../../archive/specs/scouting-report-design.md)                                       | Report View (superseded)          | ADR-024 | Archived  |
 | [report-verification-upgrade-design.md](../../archive/specs/report-verification-upgrade-design.md)               | Staged Verification               | ADR-023 | Archived  |
 | [hypothesis-investigation-design.md](../../archive/specs/hypothesis-investigation-design.md)                     | Investigation Workflow            | ADR-020 | Archived  |
