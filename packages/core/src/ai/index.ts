@@ -25,6 +25,16 @@ export {
 } from './imageValidation';
 
 export {
+  validateAttachmentFile,
+  sanitizeFilename,
+  inferMimeFromExtension,
+  FILE_MAGIC_BYTES,
+  FILE_SIZE_LIMITS,
+  SUPPORTED_ATTACHMENT_TYPES,
+} from './fileValidation';
+export type { AttachmentValidationResult } from './fileValidation';
+
+export {
   buildAIContext,
   detectInvestigationPhase,
   type BuildAIContextOptions,
