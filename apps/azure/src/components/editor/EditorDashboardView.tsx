@@ -56,7 +56,11 @@ interface EditorDashboardViewProps {
   ) => void;
   handleProjectIdea: (hypothesisId: string, ideaId: string) => void;
   // Photo comments
-  handleAddCommentWithAuthor: (findingId: string, text: string) => void;
+  handleAddCommentWithAuthor: (
+    findingId: string,
+    text: string,
+    attachment?: File
+  ) => void | Promise<void>;
   handleAddPhoto: ((findingId: string, commentId: string, file: File) => Promise<void>) | undefined;
   handleCaptureFromTeams: ((findingId: string, commentId: string) => Promise<void>) | undefined;
   isTeamsCamera: boolean;
@@ -319,10 +323,15 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   );
 
   const handleAddCommentToFinding = useCallback(
-    (findingId: string, text: string) => {
-      findingsState.addFindingComment(findingId, text);
+    (findingId: string, text: string, attachment?: File) => {
+      if (attachment) {
+        // Route through handleAddCommentWithAuthor which handles attachment upload
+        void handleAddCommentWithAuthor(findingId, text, attachment);
+      } else {
+        findingsState.addFindingComment(findingId, text);
+      }
     },
-    [findingsState]
+    [findingsState, handleAddCommentWithAuthor]
   );
 
   const handleAddCommentToHypothesis = useCallback(

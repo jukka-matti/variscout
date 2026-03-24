@@ -27,7 +27,7 @@ export interface FindingDetailPanelProps {
   onRestoreFinding: (id: string) => void;
   onSetFindingStatus?: (id: string, status: FindingStatus) => void;
   onSetFindingTag?: (id: string, tag: FindingTag | null) => void;
-  onAddComment?: (id: string, text: string) => void;
+  onAddComment?: (id: string, text: string, attachment?: File) => void;
   onEditComment?: (findingId: string, commentId: string, text: string) => void;
   onDeleteComment?: (findingId: string, commentId: string) => void;
   onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;

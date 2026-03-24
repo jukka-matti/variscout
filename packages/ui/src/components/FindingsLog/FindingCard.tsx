@@ -39,8 +39,8 @@ export interface FindingCardProps {
   onSetStatus?: (id: string, status: FindingStatus) => void;
   /** Callback to set a finding's classification tag */
   onSetTag?: (id: string, tag: FindingTag | null) => void;
-  /** Callback to add a comment */
-  onAddComment?: (id: string, text: string) => void;
+  /** Callback to add a comment, with optional file attachment */
+  onAddComment?: (id: string, text: string, attachment?: File) => void;
   /** Callback to edit a comment */
   onEditComment?: (findingId: string, commentId: string, text: string) => void;
   /** Callback to delete a comment */

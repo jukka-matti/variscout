@@ -76,6 +76,32 @@ export interface PhotoAttachment {
   capturedAt: number;
 }
 
+// ============================================================================
+// Comment Attachment Types (non-image files: PDF, XLSX, CSV, TXT)
+// ============================================================================
+
+/**
+ * A non-image file attached to a finding comment.
+ * Images use the existing `PhotoAttachment` + `photos` field.
+ * Team plan: uploaded to OneDrive under /VariScout/Attachments/.
+ * Standard plan: stored as local filename reference only (no upload).
+ */
+export interface CommentAttachment {
+  id: string;
+  filename: string;
+  /** MIME type of the file (e.g. 'application/pdf', 'text/csv') */
+  mimeType: string;
+  /** File size in bytes */
+  sizeBytes: number;
+  /** OneDrive drive item ID, set after successful upload (Team plan only) */
+  driveItemId?: string;
+  /** SharePoint web URL for the uploaded file (Team plan only) */
+  webUrl?: string;
+  uploadStatus: PhotoUploadStatus;
+  /** Timestamp when the attachment was added */
+  attachedAt: number;
+}
+
 /** A timestamped comment in a finding's investigation log */
 export interface FindingComment {
   id: string;
@@ -85,6 +111,8 @@ export interface FindingComment {
   author?: string;
   /** Photo attachments (Team plan only) */
   photos?: PhotoAttachment[];
+  /** Non-image file attachments (PDF, XLSX, CSV, TXT). Team plan: OneDrive upload. Standard: local reference. */
+  attachments?: CommentAttachment[];
 }
 
 // ============================================================================

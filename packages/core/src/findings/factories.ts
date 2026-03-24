@@ -3,6 +3,7 @@
  */
 import {
   CATEGORY_COLORS,
+  type CommentAttachment,
   type Finding,
   type FindingStatus,
   type FindingSource,
@@ -86,6 +87,24 @@ export function createPhotoAttachment(filename: string): PhotoAttachment {
     filename,
     uploadStatus: 'pending',
     capturedAt: Date.now(),
+  };
+}
+
+/**
+ * Create a CommentAttachment (non-image file) with a unique ID and pending upload status
+ */
+export function createCommentAttachment(
+  filename: string,
+  mimeType: string,
+  sizeBytes: number
+): CommentAttachment {
+  return {
+    id: generateId(),
+    filename,
+    mimeType,
+    sizeBytes,
+    uploadStatus: 'pending',
+    attachedAt: Date.now(),
   };
 }
 
