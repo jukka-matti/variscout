@@ -12,3 +12,9 @@ export { ActionProposalCard, type ActionProposalCardProps } from './ActionPropos
 export { SaveInsightDialog, type SaveInsightDialogProps } from './SaveInsightDialog';
 
 export { ImagePreview, type ImagePreviewProps, type ImagePreviewItem } from './ImagePreview';
+
+export {
+  SessionClosePrompt,
+  type SessionClosePromptProps,
+  type SessionClosePromptItem,
+} from './SessionClosePrompt';
