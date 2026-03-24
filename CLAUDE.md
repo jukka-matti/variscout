@@ -46,7 +46,7 @@ npx ruflo@3.5.42 security cve --check        # CVE check
 | docs/04-cases/          | 8 case studies with demo data                                         |
 | docs/05-technical/      | Architecture, implementation, integrations                            |
 | docs/06-design-system/  | Colors, typography, components, charts, patterns                      |
-| docs/07-decisions/      | ADR-001 through ADR-048                                               |
+| docs/07-decisions/      | ADR-001 through ADR-049                                               |
 | docs/08-products/       | Azure, PWA, website specs, feature-parity matrix                      |
 | docs/09-tutorials/      | Planned step-by-step guides                                           |
 | docs/superpowers/specs/ | Design specs from brainstorming sessions (see index.md)               |
@@ -67,6 +67,7 @@ npx ruflo@3.5.42 security cve --check        # CVE check
 | AI integration             | adr-019, docs/05-technical/architecture/ai-journey-integration.md, ai-architecture.md, ai-context-engineering.md                                                                                                                                                                                  |
 | AI mode prompting          | adr-047, docs/05-technical/architecture/ai-context-engineering.md §2b, packages/core/src/ai/prompts/coScout.ts                                                                                                                                                                                    |
 | AI action tools            | adr-029, packages/core/src/ai/actionTools.ts, packages/ui/src/components/CoScoutPanel/ActionProposalCard.tsx                                                                                                                                                                                      |
+| AI context & memory        | adr-049, docs/superpowers/specs/2026-03-24-coscout-context-and-memory-design.md, packages/hooks/src/useAICoScout.ts                                                                                                                                                                               |
 | Strategy pattern           | adr-047, packages/core/src/analysisStrategy.ts, docs/05-technical/architecture/ai-architecture.md (mode awareness section)                                                                                                                                                                        |
 | Admin experience           | docs/02-journeys/personas/admin-aino.md, docs/02-journeys/flows/azure-admin-operations.md, docs/superpowers/specs/2026-03-19-admin-experience-design.md                                                                                                                                           |
 | Deployment / CI            | docs/05-technical/implementation/deployment.md, .github/workflows/                                                                                                                                                                                                                                |
