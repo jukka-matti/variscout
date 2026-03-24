@@ -47,9 +47,17 @@ function migrateSource(source: FindingSource | undefined): FindingSource | undef
       (result as { activityType?: string }).activityType = s.activityType as string;
     return result;
   }
+  // CoScout findings: no category, keyed by messageId
+  if (source.chart === 'coscout') {
+    const s = source as Record<string, unknown>;
+    return { chart: 'coscout', messageId: (s.messageId as string) ?? '' };
+  }
   // Ensure boxplot/pareto shape has required category
   const s = source as Record<string, unknown>;
-  return { chart: source.chart, category: (s.category as string) ?? '' };
+  return {
+    chart: source.chart as 'boxplot' | 'pareto',
+    category: (s.category as string) ?? '',
+  };
 }
 
 /**

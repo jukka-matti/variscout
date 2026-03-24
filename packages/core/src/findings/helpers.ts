@@ -78,11 +78,17 @@ export function findDuplicateBySource(
   return findings.find(f => {
     if (!f.source) return false;
     if (f.source.chart !== source.chart) return false;
-    // Category-based charts (boxplot/pareto)
-    if (source.chart !== 'ichart') {
-      return f.source.chart !== 'ichart' && f.source.category === source.category;
+    // Category-based charts (boxplot/pareto/yamazumi)
+    if (source.chart === 'boxplot' || source.chart === 'pareto' || source.chart === 'yamazumi') {
+      return (
+        (f.source.chart === 'boxplot' ||
+          f.source.chart === 'pareto' ||
+          f.source.chart === 'yamazumi') &&
+        f.source.category === source.category
+      );
     }
     // I-Chart: no duplicate detection by position (each is unique)
+    // CoScout: no duplicate detection (each message is unique)
     return false;
   });
 }
