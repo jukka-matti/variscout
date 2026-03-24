@@ -38,6 +38,7 @@ const TOOL_CONFIG: Record<
   create_hypothesis: { labelKey: 'ai.tool.createHypothesis', icon: GitBranch, editable: true },
   suggest_action: { labelKey: 'ai.tool.suggestAction', icon: Zap, editable: true },
   suggest_improvement_idea: { labelKey: 'ai.tool.suggestIdea', icon: Lightbulb, editable: true },
+  suggest_save_finding: { labelKey: 'ai.tool.suggestSaveFinding', icon: Lightbulb, editable: true },
   share_finding: { labelKey: 'ai.tool.shareFinding', icon: Share2, editable: false },
   publish_report: { labelKey: 'ai.tool.publishReport', icon: FileUp, editable: false },
   notify_action_owners: { labelKey: 'ai.tool.notifyOwners', icon: Bell, editable: false },

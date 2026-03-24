@@ -249,6 +249,7 @@ export const hu: MessageCatalog = {
   'ai.tool.publishReport': 'Publish report',
   'ai.tool.notifyOwners': 'Notify owners',
   'ai.tool.suggestIdea': 'Suggest improvement idea',
+  'ai.tool.suggestSaveFinding': 'Save insight',
   'ai.tool.navigateTo': 'Navigate to',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
