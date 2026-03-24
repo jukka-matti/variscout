@@ -529,6 +529,7 @@ export function buildCoScoutInput(
     synthesis: context.process?.synthesis,
     capabilityStability: context.capabilityStability,
     analysisMode: context.analysisMode,
+    coscoutInsights: context.findings?.coscoutInsights,
   });
 
   const input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
@@ -587,6 +588,8 @@ export interface BuildCoScoutSystemPromptOptions {
   capabilityStability?: AIContext['capabilityStability'];
   /** Current analysis mode for mode-specific terminology (ADR-047) */
   analysisMode?: AnalysisMode;
+  /** Insights previously saved from CoScout conversations — used to avoid repetition (ADR-049) */
+  coscoutInsights?: Array<{ text: string; status: string }>;
 }
 
 /**
@@ -959,6 +962,14 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
 - Limit to 1-2 suggestions per conversation to avoid prompt fatigue.`
       );
     }
+  }
+
+  // Prior CoScout insights nudge — tell CoScout about findings it already helped create (ADR-049)
+  if (options.coscoutInsights && options.coscoutInsights.length > 0) {
+    const insightLines = options.coscoutInsights.map(i => `- "${i.text}" (${i.status})`).join('\n');
+    parts.push(
+      `Previous CoScout insights saved as findings:\n${insightLines}\nBuild on these — don't repeat them.`
+    );
   }
 
   const prompt = parts.join('\n\n');

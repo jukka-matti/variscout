@@ -91,6 +91,8 @@ export interface AIContext {
     total: number;
     byStatus: Record<string, number>;
     keyDrivers: string[];
+    /** Insights previously saved from CoScout conversations (source.chart === 'coscout') */
+    coscoutInsights?: Array<{ text: string; status: string }>;
   };
   /** Investigation context (for investigation page CoScout) */
   investigation?: {

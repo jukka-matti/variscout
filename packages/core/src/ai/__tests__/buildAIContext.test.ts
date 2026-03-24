@@ -96,6 +96,67 @@ describe('buildAIContext', () => {
     expect(ctx.findings!.keyDrivers).toContain('Head 3 drift');
   });
 
+  it('populates coscoutInsights from findings with source.chart === coscout', () => {
+    const findings: Finding[] = [
+      {
+        id: 'f-1',
+        text: 'Nozzle 3 shows 2x variation',
+        createdAt: 1000,
+        context: { activeFilters: {}, cumulativeScope: null },
+        status: 'investigating',
+        comments: [],
+        statusChangedAt: 1000,
+        source: { chart: 'coscout', messageId: 'msg-1' },
+      },
+      {
+        id: 'f-2',
+        text: 'Temperature adjustment ineffective',
+        createdAt: 2000,
+        context: { activeFilters: {}, cumulativeScope: null },
+        status: 'analyzed',
+        comments: [],
+        statusChangedAt: 2000,
+        source: { chart: 'coscout', messageId: 'msg-2' },
+      },
+      {
+        id: 'f-3',
+        text: 'Manual observation from boxplot',
+        createdAt: 3000,
+        context: { activeFilters: {}, cumulativeScope: null },
+        status: 'observed',
+        comments: [],
+        statusChangedAt: 3000,
+        source: { chart: 'boxplot', category: 'Head 3' },
+      },
+    ];
+    const ctx = buildAIContext({ findings });
+    expect(ctx.findings!.coscoutInsights).toHaveLength(2);
+    expect(ctx.findings!.coscoutInsights![0]).toEqual({
+      text: 'Nozzle 3 shows 2x variation',
+      status: 'investigating',
+    });
+    expect(ctx.findings!.coscoutInsights![1]).toEqual({
+      text: 'Temperature adjustment ineffective',
+      status: 'analyzed',
+    });
+  });
+
+  it('omits coscoutInsights when no findings have coscout source', () => {
+    const findings: Finding[] = [
+      {
+        id: 'f-1',
+        text: 'Manual observation',
+        createdAt: 1000,
+        context: { activeFilters: {}, cumulativeScope: null },
+        status: 'observed',
+        comments: [],
+        statusChangedAt: 1000,
+      },
+    ];
+    const ctx = buildAIContext({ findings });
+    expect(ctx.findings!.coscoutInsights).toBeUndefined();
+  });
+
   it('includes process context', () => {
     const process: ProcessContext = {
       description: 'Fill weight measurement on Line 3',

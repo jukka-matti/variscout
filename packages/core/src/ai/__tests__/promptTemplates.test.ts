@@ -805,6 +805,30 @@ describe('buildCoScoutSystemPrompt', () => {
     });
     expect(prompt).not.toContain('Insight capture guidance');
   });
+
+  // CoScout-sourced finding nudge (ADR-049)
+  it('includes CoScout-sourced finding nudge when coscoutInsights present', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      coscoutInsights: [
+        { text: 'Nozzle 3 shows 2x variation', status: 'investigating' },
+        { text: 'Temperature adjustment ineffective', status: 'analyzed' },
+      ],
+    });
+    expect(prompt).toContain('Previous CoScout insights saved as findings:');
+    expect(prompt).toContain('"Nozzle 3 shows 2x variation" (investigating)');
+    expect(prompt).toContain('"Temperature adjustment ineffective" (analyzed)');
+    expect(prompt).toContain("Build on these — don't repeat them.");
+  });
+
+  it('excludes CoScout finding nudge when coscoutInsights is absent', () => {
+    const prompt = buildCoScoutSystemPrompt({});
+    expect(prompt).not.toContain('Previous CoScout insights saved as findings:');
+  });
+
+  it('excludes CoScout finding nudge when coscoutInsights is empty', () => {
+    const prompt = buildCoScoutSystemPrompt({ coscoutInsights: [] });
+    expect(prompt).not.toContain('Previous CoScout insights saved as findings:');
+  });
 });
 
 describe('formatKnowledgeContext', () => {
@@ -1541,6 +1565,32 @@ describe('buildCoScoutInput', () => {
   it('does not include tool routing instructions when no journeyPhase', () => {
     const result = buildCoScoutInput(baseCtx, [], 'Hello');
     expect(result.instructions).not.toContain('Tool usage guidance');
+  });
+
+  // CoScout-sourced finding nudge flows through buildCoScoutInput (ADR-049)
+  it('includes CoScout finding nudge in instructions when context has coscoutInsights', () => {
+    const ctx: AIContext = {
+      ...baseCtx,
+      findings: {
+        total: 1,
+        byStatus: { investigating: 1 },
+        keyDrivers: [],
+        coscoutInsights: [{ text: 'Nozzle 3 shows 2x variation', status: 'investigating' }],
+      },
+    };
+    const result = buildCoScoutInput(ctx, [], 'What should we check next?');
+    expect(result.instructions).toContain('Previous CoScout insights saved as findings:');
+    expect(result.instructions).toContain('"Nozzle 3 shows 2x variation" (investigating)');
+    expect(result.instructions).toContain("Build on these — don't repeat them.");
+  });
+
+  it('excludes CoScout finding nudge in instructions when findings has no coscoutInsights', () => {
+    const ctx: AIContext = {
+      ...baseCtx,
+      findings: { total: 1, byStatus: { observed: 1 }, keyDrivers: [] },
+    };
+    const result = buildCoScoutInput(ctx, [], 'Question');
+    expect(result.instructions).not.toContain('Previous CoScout insights saved as findings:');
   });
 });
 

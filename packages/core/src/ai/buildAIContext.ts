@@ -270,12 +270,17 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       .map(f => f.text)
       .filter(Boolean);
 
+    const coscoutInsights = findings
+      .filter(f => f.source?.chart === 'coscout')
+      .map(f => ({ text: f.text, status: f.status }));
+
     context.findings = {
       total: findings.length,
       byStatus: Object.fromEntries(
         Object.entries(groups).map(([status, items]) => [status, items.length])
       ),
       keyDrivers,
+      ...(coscoutInsights.length > 0 ? { coscoutInsights } : {}),
     };
   }
 
