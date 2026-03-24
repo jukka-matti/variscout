@@ -436,4 +436,4 @@ Cache keys use `djb2Hash` from `@variscout/core`.
 - [Knowledge Model](knowledge-model.md)
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)
 - [ADR-027: AI Collaborator Evolution](../../07-decisions/adr-027-ai-collaborator-evolution.md)
-- [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)
+- [ADR-049: CoScout Knowledge Catalyst](../../07-decisions/adr-049-coscout-context-and-memory.md)

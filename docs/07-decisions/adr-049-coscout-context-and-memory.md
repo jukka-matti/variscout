@@ -35,7 +35,7 @@ Industry research validated this direction:
 
 Seven capabilities that enhance CoScout's knowledge capture without persisting conversations:
 
-**1. Image Paste** — Paste/drop images into CoScout. `detail: 'auto'`, `store: false` for privacy. Session-scoped. Save to finding via existing photoUpload pattern.
+**1. Image Paste** — Paste/drop images into CoScout. `detail: 'auto'`, `store: false` for privacy. Max 2 images per message. Session-scoped. Save to finding via existing photoUpload pattern.
 
 **2. Retrieve Finding Attachments** — New `get_finding_attachment` tool. CoScout retrieves and analyzes photos/files on findings. Bidirectional flow with image paste.
 

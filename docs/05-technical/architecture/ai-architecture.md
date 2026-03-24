@@ -409,9 +409,9 @@ CoScout responses can contain action markers that render as interactive elements
 
 Action callbacks flow through `CoScoutPanelBase` props (`onPinFinding`, `onDrillSuggestion`) to the app's action handlers.
 
-### 15 CoScout Tools (ADR-029 + ADR-042)
+### 15 + 2 Planned CoScout Tools (ADR-029 + ADR-042 + ADR-049)
 
-CoScout has 15 tools total, phase-gated by journey phase. The two new tools added in ADR-042:
+CoScout has 15 tools today, phase-gated by journey phase. ADR-049 adds 2 more (`suggest_save_finding`, `get_finding_attachment`) for the Knowledge Catalyst feature. The two tools added in ADR-042:
 
 | Tool             | Type        | Execution                                            | Phase Gate | Purpose                                                          |
 | ---------------- | ----------- | ---------------------------------------------------- | ---------- | ---------------------------------------------------------------- |
@@ -438,7 +438,7 @@ This closes the gap between FRAME and INVESTIGATE — hypotheses flow through as
 
 The `buildAIContext()` function in `@variscout/core` is the structured bridge between the data layer and AI. Design principles:
 
-- **Token-budget aware:** Accepts a `maxTokens` parameter and truncates context layers in priority order (findings first, then process context, then violations)
+- **Token-budget aware:** Accepts a `maxTokens` parameter and delegates to `budgetContext()` which trims context in an 8-level degradation pipeline (see [AI Context Engineering](ai-context-engineering.md) for priority order)
 - **Deterministic insights as input:** Includes computed suggestions from `getNextDrillFactor()` and `shouldHighlightDrill()` so AI explains rather than competes
 - **Structured output:** Returns a typed `AIContext` object, not a string — prompt templates handle serialization
 - **Pure function:** No React dependency, no side effects — lives in `@variscout/core`
@@ -698,5 +698,6 @@ The existing Project Dashboard (WhatsNewSection, DashboardSummaryCard, ProjectSt
 - [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
 - [ADR-027: AI Collaborator Evolution](../../07-decisions/adr-027-ai-collaborator-evolution.md)
 - [AI Components](../../06-design-system/components/ai-components.md)
+- [ADR-049: CoScout Knowledge Catalyst](../../07-decisions/adr-049-coscout-context-and-memory.md)
 - [Component Patterns](component-patterns.md)
 - [Data Flow](data-flow.md)
