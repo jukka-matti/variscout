@@ -266,7 +266,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
       if (proposal.tool === 'suggest_save_finding' && proposal.status === 'pending') {
         const text =
           proposal.editableText ??
-          (typeof proposal.params.text === 'string' ? proposal.params.text : '');
+          (typeof proposal.params.insight_text === 'string' ? proposal.params.insight_text : '');
         if (text) {
           items.push({ id: `proposal:${proposal.id}`, text, preChecked: false });
         }
@@ -315,8 +315,15 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
 
   // Wrapped send that increments session turn count (ADR-049)
   const handleCoScoutSend = useCallback(
-    (message: string) => {
-      coscout.send(message);
+    (message: string, images?: Array<{ id: string; dataUrl: string; mimeType?: string }>) => {
+      coscout.send(
+        message,
+        images?.map(img => ({
+          id: img.id,
+          dataUrl: img.dataUrl,
+          mimeType: img.mimeType ?? 'image/png',
+        }))
+      );
       useAIStore.getState().incrementTurnCount();
     },
     [coscout]

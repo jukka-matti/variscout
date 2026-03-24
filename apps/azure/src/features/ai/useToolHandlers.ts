@@ -179,7 +179,7 @@ export function useToolHandlers({
           return JSON.stringify({ error: `Finding ${findingId} not found` });
         }
 
-        const attachments = (finding.comments ?? [])
+        const photoAttachments = (finding.comments ?? [])
           .filter(c => c.photos && c.photos.length > 0)
           .flatMap(c =>
             (c.photos ?? []).map(p => ({
@@ -192,11 +192,27 @@ export function useToolHandlers({
             }))
           );
 
+        const fileAttachments = (finding.comments ?? [])
+          .filter(c => c.attachments && c.attachments.length > 0)
+          .flatMap(c =>
+            (c.attachments ?? []).map(a => ({
+              type: 'file' as const,
+              commentText: c.text,
+              commentDate: new Date(c.createdAt).toISOString(),
+              filename: a.filename,
+              mimeType: a.mimeType,
+              sizeBytes: a.sizeBytes,
+              uploadStatus: a.uploadStatus,
+            }))
+          );
+
+        const allAttachments = [...photoAttachments, ...fileAttachments];
+
         return JSON.stringify({
           findingId,
           findingText: finding.text,
-          attachmentCount: attachments.length,
-          attachments,
+          attachmentCount: allAttachments.length,
+          attachments: allAttachments,
         });
       },
 

@@ -50,6 +50,9 @@ vi.mock('lucide-react', () => ({
   FileUp: (props: Record<string, unknown>) => <span data-testid="fileup-icon" {...props} />,
   Bell: (props: Record<string, unknown>) => <span data-testid="bell-icon" {...props} />,
   Lightbulb: (props: Record<string, unknown>) => <span data-testid="lightbulb-icon" {...props} />,
+  BookmarkPlus: (props: Record<string, unknown>) => (
+    <span data-testid="bookmarkplus-icon" {...props} />
+  ),
   Navigation: (props: Record<string, unknown>) => <span data-testid="navigation-icon" {...props} />,
   Paperclip: (props: Record<string, unknown>) => <span data-testid="paperclip-icon" {...props} />,
 }));

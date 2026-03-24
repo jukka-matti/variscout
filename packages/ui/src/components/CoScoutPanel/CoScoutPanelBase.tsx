@@ -226,10 +226,6 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
     if (fileArray.length === 0) return;
 
     for (const file of fileArray) {
-      setPendingImages(prev => {
-        if (prev.length >= MAX_IMAGES_PER_MESSAGE) return prev;
-        return prev; // will be replaced after async validation
-      });
       const valid = await validateImageFile(file);
       if (!valid) continue;
 

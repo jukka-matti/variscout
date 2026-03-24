@@ -10,6 +10,7 @@ import {
   FileUp,
   Bell,
   Lightbulb,
+  BookmarkPlus,
   Navigation,
 } from 'lucide-react';
 import type { ActionProposal, ActionToolName, ProposalStatus, Locale } from '@variscout/core';
@@ -38,7 +39,11 @@ const TOOL_CONFIG: Record<
   create_hypothesis: { labelKey: 'ai.tool.createHypothesis', icon: GitBranch, editable: true },
   suggest_action: { labelKey: 'ai.tool.suggestAction', icon: Zap, editable: true },
   suggest_improvement_idea: { labelKey: 'ai.tool.suggestIdea', icon: Lightbulb, editable: true },
-  suggest_save_finding: { labelKey: 'ai.tool.suggestSaveFinding', icon: Lightbulb, editable: true },
+  suggest_save_finding: {
+    labelKey: 'ai.tool.suggestSaveFinding',
+    icon: BookmarkPlus,
+    editable: true,
+  },
   share_finding: { labelKey: 'ai.tool.shareFinding', icon: Share2, editable: false },
   publish_report: { labelKey: 'ai.tool.publishReport', icon: FileUp, editable: false },
   notify_action_owners: { labelKey: 'ai.tool.notifyOwners', icon: Bell, editable: false },
@@ -139,6 +144,16 @@ function formatPreview(
         lines.push(
           `${preview.existingIdeasCount} existing idea${preview.existingIdeasCount !== 1 ? 's' : ''}`
         );
+      }
+      break;
+    }
+
+    case 'suggest_save_finding': {
+      if (preview.suggestedHypothesisText)
+        lines.push(`Related: "${(preview.suggestedHypothesisText as string).slice(0, 60)}..."`);
+      if (preview.contextSnapshot) {
+        const snap = preview.contextSnapshot as Record<string, unknown>;
+        if (snap.cpk !== undefined) lines.push(`Cpk=${formatNum(snap.cpk as number)}`);
       }
       break;
     }

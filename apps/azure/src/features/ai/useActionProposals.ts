@@ -9,7 +9,13 @@ import {
   parseActionMarkers as coreParseActionMarkers,
   isDuplicateProposal as coreIsDuplicateProposal,
 } from '@variscout/core';
-import type { ActionProposal, FilterSource, FindingSource, Finding } from '@variscout/core';
+import type {
+  ActionProposal,
+  FilterSource,
+  FindingSource,
+  Finding,
+  FindingComment,
+} from '@variscout/core';
 import type { UseHypothesesReturn } from '@variscout/hooks';
 
 // ── Interfaces ────────────────────────────────────────────────────────────
@@ -45,7 +51,7 @@ interface FindingsStateSlice {
     hypothesisId: string,
     validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
   ) => void;
-  addFindingComment: (findingId: string, text: string, author?: string) => void;
+  addFindingComment: (findingId: string, text: string, author?: string) => FindingComment;
 }
 
 interface StatsSlice {
