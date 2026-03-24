@@ -107,3 +107,6 @@ export { djb2Hash } from './hash';
 
 export { searchProjectArtifacts } from './searchProject';
 export type { SearchProjectOptions, SearchResult } from './searchProject';
+
+export { budgetContext } from './budgetContext';
+export type { ContextComponent, BudgetResult } from './budgetContext';
