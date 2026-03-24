@@ -89,7 +89,8 @@ Azure uses Feature-Sliced Design for its 6 domain features:
 
 ```
 features/
-├── ai/             — aiStore + useAIOrchestration + useToolHandlers
+├── ai/             — aiStore + useAIOrchestration + useToolHandlers (composer)
+│                     + readToolHandlers, actionToolHandlers, teamToolHandlers
 ├── findings/       — findingsStore + useFindingsOrchestration
 ├── investigation/  — investigationStore + useInvestigationOrchestration
 ├── improvement/    — improvementStore + useImprovementOrchestration

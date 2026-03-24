@@ -110,9 +110,9 @@ These are the only places where code in one feature domain writes to a store own
 | `useInvestigationOrchestration.ts` | `investigationStore` | `syncHypotheses()`, `syncHypothesesMap()`, `syncIdeaImpacts()`, `setProjectionTarget()`                                                                                                                                                                             | Sync hypothesis CRUD state and computed display data                      |
 | `useImprovementOrchestration.ts`   | `improvementStore`   | `syncState()`                                                                                                                                                                                                                                                       | Bulk sync computed improvement workspace data                             |
 | `useAIOrchestration.ts`            | `aiStore`            | `syncNarration()`, `syncCoScoutMessages()`, `syncSuggestedQuestions()`, `syncAIContext()`, `setProviderLabel()`, `setKbPermissionWarning()`, `setResolvedChannelFolderUrl()`, `setKnowledgeSearchScope()`, `setKnowledgeSearchTimestamp()`, `syncKnowledgeSearch()` | Sync all AI-derived state from composed hooks                             |
-| `useToolHandlers.ts`               | `panelsStore`        | `showDashboard()`, `showEditor()`, `setFindingsOpen()`, `setCoScoutOpen()` (implied via navigation), `setImprovementOpen()`, `openReport()`, `setPendingChartFocus()`                                                                                               | `navigate_to` tool handler navigates UI panels                            |
-| `useToolHandlers.ts`               | `findingsStore`      | `setHighlightedFindingId()`                                                                                                                                                                                                                                         | `navigate_to` tool highlights target finding                              |
-| `useToolHandlers.ts`               | `investigationStore` | `expandToHypothesis()`                                                                                                                                                                                                                                              | `navigate_to` tool scrolls to target hypothesis                           |
+| `teamToolHandlers.ts`              | `panelsStore`        | `showDashboard()`, `showEditor()`, `setFindingsOpen()`, `setCoScoutOpen()` (implied via navigation), `setImprovementOpen()`, `openReport()`, `setPendingChartFocus()`                                                                                               | `navigate_to` tool handler navigates UI panels                            |
+| `teamToolHandlers.ts`              | `findingsStore`      | `setHighlightedFindingId()`                                                                                                                                                                                                                                         | `navigate_to` tool highlights target finding                              |
+| `teamToolHandlers.ts`              | `investigationStore` | `expandToHypothesis()`                                                                                                                                                                                                                                              | `navigate_to` tool scrolls to target hypothesis                           |
 | `usePanelsSideEffects.ts`          | `panelsStore`        | `setHighlightPoint(null)`                                                                                                                                                                                                                                           | Auto-clear chart highlight after 2-second timeout                         |
 
 ## Cross-Store Reads via Page/Component Layer
@@ -134,13 +134,13 @@ These are selector-based reads where a component subscribes to multiple stores. 
 
 ## Store Isolation Summary
 
-| Store                | Direct Cross-Store Imports | Written By (orchestration)                                                                                           | Read By (components)                    |
-| -------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `panelsStore`        | None                       | `useFindingsOrchestration`, `useInvestigationOrchestration`, `useToolHandlers`, `usePanelsSideEffects`, `Editor.tsx` | `Editor.tsx`, `EditorDashboardView.tsx` |
-| `findingsStore`      | None                       | `useFindingsOrchestration`, `useToolHandlers`                                                                        | `Editor.tsx`, `EditorDashboardView.tsx` |
-| `investigationStore` | None                       | `useInvestigationOrchestration`, `useToolHandlers`                                                                   | `Editor.tsx`, `EditorDashboardView.tsx` |
-| `improvementStore`   | None                       | `useImprovementOrchestration`                                                                                        | `Editor.tsx`, `EditorDashboardView.tsx` |
-| `aiStore`            | None                       | `useAIOrchestration`                                                                                                 | `Editor.tsx`, `ProjectDashboard.tsx`    |
+| Store                | Direct Cross-Store Imports | Written By (orchestration)                                                                                            | Read By (components)                    |
+| -------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `panelsStore`        | None                       | `useFindingsOrchestration`, `useInvestigationOrchestration`, `teamToolHandlers`, `usePanelsSideEffects`, `Editor.tsx` | `Editor.tsx`, `EditorDashboardView.tsx` |
+| `findingsStore`      | None                       | `useFindingsOrchestration`, `teamToolHandlers`                                                                        | `Editor.tsx`, `EditorDashboardView.tsx` |
+| `investigationStore` | None                       | `useInvestigationOrchestration`, `teamToolHandlers`                                                                   | `Editor.tsx`, `EditorDashboardView.tsx` |
+| `improvementStore`   | None                       | `useImprovementOrchestration`                                                                                         | `Editor.tsx`, `EditorDashboardView.tsx` |
+| `aiStore`            | None                       | `useAIOrchestration`                                                                                                  | `Editor.tsx`, `ProjectDashboard.tsx`    |
 
 ## Guidelines
 
@@ -165,7 +165,7 @@ When an action in one domain needs to affect another domain's store, route it th
 
 ### useToolHandlers Is the Cross-Store Bridge for AI
 
-`useToolHandlers` is the only orchestration-level file that reads/writes three stores (`panelsStore`, `findingsStore`, `investigationStore`). This is intentional: the `navigate_to` AI tool must be able to navigate to any part of the UI. The tool handler is the single point of contact for AI-driven navigation.
+`useToolHandlers` composes three handler modules: `readToolHandlers` (7 data tools), `actionToolHandlers` (7 proposal tools), and `teamToolHandlers` (`navigate_to` + 3 team-only tools). Only `teamToolHandlers` reads/writes stores (`panelsStore`, `findingsStore`, `investigationStore`) — the other two modules are pure functions with no store access. This is intentional: the `navigate_to` AI tool must be able to navigate to any part of the UI, and the team tools need store access for sharing. The handler module split keeps store coupling isolated to one file.
 
 ### Component Reads Are Free
 
@@ -199,7 +199,7 @@ When a domain action in one feature needs to trigger a side effect in another fe
 | --------------------------- | ------------------------------- |
 | Finding created/pinned      | `useFindingsOrchestration`      |
 | Hypothesis linked           | `useInvestigationOrchestration` |
-| AI tool navigation          | `useToolHandlers`               |
+| AI tool navigation          | `teamToolHandlers`              |
 | Improvement idea projection | `useInvestigationOrchestration` |
 
 **Step 2:** Add the `getState()` call in the orchestration hook:
