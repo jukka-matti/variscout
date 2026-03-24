@@ -292,6 +292,35 @@ After 50+ resolved findings published as scouting reports, the AI has genuine or
 
 ---
 
+## CoScout Knowledge Catalyst Flows (ADR-049)
+
+### Image Flow (Bidirectional)
+
+- **Forward:** Paste image into CoScout → CoScout analyzes visual evidence → optionally save insight as finding
+- **Reverse:** `get_finding_attachment` tool retrieves finding photos → CoScout analyzes previously captured evidence
+
+### Insight Capture Flow
+
+- **During conversation:** Bookmark any CoScout message → save as finding (or add as comment on existing finding)
+- **Auto-suggest:** CoScout uses `suggest_save_finding` tool in INVESTIGATE/IMPROVE phases to proactively propose saving insights
+- **Session close:** Advisory prompt lists unsaved insights → analyst selects which to save before closing the panel
+
+### Expert Collaboration Flow (Team)
+
+- Finding shared via deep link → recipient adds comment with file attachment
+- CoScout can retrieve attachment metadata via `get_finding_attachment`
+
+### Phase Gating
+
+| Capability                | Availability                                             |
+| ------------------------- | -------------------------------------------------------- |
+| `suggest_save_finding`    | INVESTIGATE + IMPROVE only                               |
+| `get_finding_attachment`  | Always available                                         |
+| Image paste               | Always available                                         |
+| Session-close save prompt | Triggers when CoScout panel closes with unsaved insights |
+
+---
+
 ## What AI Does NOT Do
 
 - Replace or override statistical calculations

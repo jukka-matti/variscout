@@ -60,6 +60,7 @@ This section captures key architectural decisions made during VariScout developm
 | [046](adr-046-event-driven-architecture.md)          | Event-Driven Architecture (mitt bus)     | Superseded | 2026-03-23 |
 | [047](adr-047-analysis-mode-strategy.md)             | Analysis Mode Strategy Pattern           | Accepted   | 2026-03-23 |
 | [048](adr-048-eslint-boundaries.md)                  | ESLint Boundary Enforcement              | Accepted   | 2026-03-23 |
+| [049](adr-049-coscout-context-and-memory.md)         | CoScout Knowledge Catalyst               | Draft      | 2026-03-24 |
 
 ---
 

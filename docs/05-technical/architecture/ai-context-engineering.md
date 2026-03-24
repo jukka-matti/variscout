@@ -108,13 +108,35 @@ See [ADR-047 Implementation Status](../../07-decisions/adr-047-analysis-mode-str
 | NarrativeBar         | ~2K tokens  | fast       | `'none'`                                                          |
 | ChartInsightChip     | ~1K tokens  | fast       | `'none'`                                                          |
 | Dashboard summary    | ~2K tokens  | fast       | `'none'`                                                          |
-| CoScout conversation | ~8K tokens  | reasoning  | Per-phase: FRAME→none, SCOUT→low, INVESTIGATE→medium, IMPROVE→low |
+| CoScout conversation | ~12K tokens | reasoning  | Per-phase: FRAME→none, SCOUT→low, INVESTIGATE→medium, IMPROVE→low |
 
 Budget is managed by:
 
 - `maxGlossaryTerms` parameter (default 40) limits glossary size
 - History truncation (last 10 messages for CoScout)
 - Category-based glossary filtering (only include relevant categories)
+- `budgetContext()` function in `coScout.ts` — trims from bottom up until total fits within 12K
+
+### Degradation Priority Pipeline
+
+When total context exceeds the 12K budget, `budgetContext()` trims content from lowest priority upward:
+
+| Priority  | Content                              | Budget       | Trim Strategy                   |
+| --------- | ------------------------------------ | ------------ | ------------------------------- |
+| 1 (never) | System instructions + security       | ~200 fixed   | —                               |
+| 2 (never) | Tier 1 static (role + glossary)      | ~950 fixed   | —                               |
+| 3 (never) | Current turn (user question + tools) | ~2K variable | —                               |
+| 4         | Recent conversation (last 5 turns)   | ~1.5-3K      | Summarize turns 6+              |
+| 5         | Tier 2 investigation state           | ~400         | Trim hypothesis details         |
+| 6         | Knowledge Base results               | ~500         | Fewer results                   |
+| 7         | Images                               | ~170-1530    | Reduce detail or drop with note |
+| 8         | Older session turns                  | 0-1K         | Summary paragraph or drop       |
+
+Implementation: `budgetContext()` uses a word-count heuristic for token estimation (words \* 1.3). Priorities 1-3 are never trimmed. Images use `store: false` to avoid server-side persistence.
+
+### CoScout-Sourced Finding Nudge
+
+When findings have `source.chart === 'coscout'`, the prompt includes their texts as prior insights (~100-200 tokens). This gives CoScout awareness of insights the analyst has already bookmarked from previous conversations, preventing redundant suggestions.
 
 ---
 
