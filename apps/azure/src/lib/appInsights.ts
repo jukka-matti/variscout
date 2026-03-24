@@ -9,7 +9,7 @@
  * trace metadata (feature name, model, duration, token counts, success/failure).
  */
 
-import { ApplicationInsights } from '@microsoft/applicationinsights-web';
+import type { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import type { TraceRecord } from '@variscout/core';
 import { getRecentTraces, clearTraces, getTraceStats } from '@variscout/core';
 
@@ -24,8 +24,12 @@ let lastFlushedTraceId: string | null = null;
  *
  * Sets up: SDK init, periodic AI trace flushing, beforeunload handler.
  */
-export function initAppInsights(connectionString: string): void {
+export async function initAppInsights(connectionString: string): Promise<void> {
   if (!connectionString || appInsights) return;
+
+  // Dynamic import — SDK loads as async chunk after first paint.
+  // Same deferred pattern as Microsoft's SDK Loader Script (CDN).
+  const { ApplicationInsights } = await import('@microsoft/applicationinsights-web');
 
   appInsights = new ApplicationInsights({
     config: {

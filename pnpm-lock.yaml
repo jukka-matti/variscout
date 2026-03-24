@@ -93,9 +93,6 @@ importers:
 
   apps/azure:
     dependencies:
-      '@microsoft/applicationinsights-react-js':
-        specifier: ^19.3.8
-        version: 19.3.8(history@5.3.0)(react@19.2.3)(tslib@2.8.1)
       '@microsoft/applicationinsights-web':
         specifier: ^3.3.11
         version: 3.3.11(tslib@2.8.1)
@@ -2072,13 +2069,6 @@ packages:
     resolution: {integrity: sha512-GOyIV8QziFop/LelZW1LAKwhGvtjzN7d47NkSRh9ZyZPW/ahWifakdQ6mZfLcL2uTyTmpcK8JtMtfNADo77NZg==}
     peerDependencies:
       tslib: '>= 1.0.0'
-
-  '@microsoft/applicationinsights-react-js@19.3.8':
-    resolution: {integrity: sha512-Y6KYRxXxkj1lunZcPUEfVelttO7i4Q6WFQE30wyV0Vu1A8USh9/JjRpTVItk7Vt11DQSH9nh3hjYX3p64SE3vA==}
-    peerDependencies:
-      history: '>= 4.10.1'
-      react: '>= 19.0.0'
-      tslib: '*'
 
   '@microsoft/applicationinsights-shims@3.0.1':
     resolution: {integrity: sha512-DKwboF47H1nb33rSUfjqI6ryX29v+2QWcTrRvcQDA32AZr5Ilkr7whOOSsD1aBzwqX0RJEIP1Z81jfE3NBm/Lg==}
@@ -4551,9 +4541,6 @@ packages:
 
   hermes-parser@0.25.1:
     resolution: {integrity: sha512-6pEjquH3rqaI6cYAXYPcz9MS4rY6R4ngRgrgfDshRptUZIc3lw0MCIJIGDj9++mfySOuPTHB4nrSW99BCvOPIA==}
-
-  history@5.3.0:
-    resolution: {integrity: sha512-ZqaKwjjrAYUYfLG+htGaIIZ4nioX2L70ZUMIFysS3xvBsSG4x/n1V6TXV3N8ZYNuFGlDirFg32T7B6WOUPDYcQ==}
 
   html-encoding-sniffer@6.0.0:
     resolution: {integrity: sha512-CV9TW3Y3f8/wT0BRFc1/KAVQ3TUHiXmaAb6VW9vtiMFf7SLoMd1PdAc4W3KFOFETBJUb90KatHqlsZMWV+R9Gg==}
@@ -8885,17 +8872,6 @@ snapshots:
       '@nevware21/ts-utils': 0.13.0
       tslib: 2.8.1
 
-  '@microsoft/applicationinsights-react-js@19.3.8(history@5.3.0)(react@19.2.3)(tslib@2.8.1)':
-    dependencies:
-      '@microsoft/applicationinsights-common': 3.3.11(tslib@2.8.1)
-      '@microsoft/applicationinsights-core-js': 3.3.11(tslib@2.8.1)
-      '@microsoft/applicationinsights-shims': 3.0.1
-      '@microsoft/dynamicproto-js': 2.0.3
-      '@nevware21/ts-utils': 0.13.0
-      history: 5.3.0
-      react: 19.2.3
-      tslib: 2.8.1
-
   '@microsoft/applicationinsights-shims@3.0.1':
     dependencies:
       '@nevware21/ts-utils': 0.13.0
@@ -11901,10 +11877,6 @@ snapshots:
   hermes-parser@0.25.1:
     dependencies:
       hermes-estree: 0.25.1
-
-  history@5.3.0:
-    dependencies:
-      '@babel/runtime': 7.28.4
 
   html-encoding-sniffer@6.0.0:
     dependencies:

@@ -67,12 +67,16 @@ Locale loading is code-split via Vite's `import.meta.glob`:
 
 Two Rolldown `checks` options are suppressed in build configs:
 
-| Check                      | Suppressed In   | Rationale                                                             |
-| -------------------------- | --------------- | --------------------------------------------------------------------- |
-| `ineffectiveDynamicImport` | UI library only | `@variscout/core` in Worker fallback uses intentional lazy loading    |
-| `pluginTimings`            | UI library only | `vite-plugin-dts` is slow but correct; warning is informational noise |
+| Check                      | Suppressed In         | Rationale                                                                                                              |
+| -------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `ineffectiveDynamicImport` | Azure app, UI library | Azure: App Insights SDK loads via dynamic import (async chunk, conditional on connection string). UI: Worker fallback. |
+| `pluginTimings`            | UI library only       | `vite-plugin-dts` is slow but correct; warning is informational noise                                                  |
 
-These patterns are architecturally intentional — the dynamic imports exist for conditional loading, not for code splitting. Suppressing the warning prevents noise without hiding real issues.
+These patterns are architecturally intentional — the dynamic imports exist for conditional loading (same pattern as Microsoft's SDK Loader Script), not for code splitting.
+
+**App Insights async loading**: The `@microsoft/applicationinsights-web` SDK (~62KB gzipped, ~160KB minified) loads via `await import()` in `initAppInsights()`. Rollup auto-creates an async chunk — no `manualChunks` entry needed (combining manual chunks with dynamic import is an anti-pattern per vitejs/vite#5189). The SDK loads after first paint, only when a connection string is configured.
+
+**Chunk size limit**: `chunkSizeWarningLimit: 1000` in the Azure app. After splitting out App Insights, the main chunk is ~974KB minified (254KB gzipped). This is within community-accepted range for enterprise SPAs with heavy visualization (d3, visx). The limit provides early regression detection if new dependencies significantly grow the bundle.
 
 **Vitest 4 migration**: `test.poolOptions` was removed in Vitest 4. Pool-specific options (like `execArgv`) are now top-level under `test:` directly. See [Vitest 4 migration guide](https://main.vitest.dev/guide/migration).
 

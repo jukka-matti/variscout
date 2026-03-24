@@ -35,9 +35,16 @@ export default defineConfig({
     target: 'es2020',
     outDir: 'dist',
     emptyOutDir: true,
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: variscoutManualChunks,
+      },
+      checks: {
+        // App Insights SDK loads via dynamic import (async chunk) —
+        // intentional conditional loading, same pattern as Microsoft's
+        // SDK Loader Script. See build-system.md.
+        ineffectiveDynamicImport: false,
       },
     },
   },

@@ -96,7 +96,13 @@ All infrastructure is defined in Bicep (`infra/`) and compiled to ARM template (
 
 ## Monitoring
 
-- **App Insights**: Client-side error monitoring via `@microsoft/applicationinsights-web` (per customer instance)
+- **App Insights**: Client-side telemetry via `@microsoft/applicationinsights-web` (per customer's own App Insights instance — connection string from ARM deployment). SDK loads as async chunk after first paint. Collects:
+  - **Exceptions**: Unhandled errors from ErrorBoundary (`trackException`)
+  - **Page views**: Auto-tracked route changes (`enableAutoRouteTracking`)
+  - **API performance**: Fetch/AJAX latency and CORS correlation
+  - **AI usage**: Custom events `AI.Call` (per-call: feature, model, duration, tokens) and `AI.Summary` (aggregate: total calls, success rate, p95 latency, total tokens). Flushed every 5 minutes.
+  - **Not collected**: No PII, no analysis data, no user content, no data sent to publisher
+  - **Suggested alerts**: Error rate > 5%, AI call failure rate > 10%, p95 latency > 10s
 - **Health endpoint**: `GET /health` returns 200 when the app server is running
 - **App Service diagnostics**: Azure Portal provides CPU, memory, HTTP error metrics
 - **OneDrive sync errors**: Classified by `SyncErrorCategory` (auth, network, throttle, server, not_found)

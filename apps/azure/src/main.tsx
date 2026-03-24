@@ -17,7 +17,8 @@ registerLocaleLoaders(
 // Load runtime config before rendering — required for Marketplace deployments
 // where VITE_* env vars are baked at build time.
 loadRuntimeConfig().then(config => {
-  // Initialize App Insights + AI trace flushing (no-op if connection string is empty)
+  // Fire-and-forget: SDK loads as async chunk in background, doesn't block first paint.
+  // All call sites guard with appInsights?. — safe before SDK finishes loading.
   initAppInsights(config.appInsightsConnectionString);
 
   ReactDOM.createRoot(document.getElementById('root')!).render(
