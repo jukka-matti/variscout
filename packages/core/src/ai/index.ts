@@ -13,7 +13,16 @@ export type {
   AIErrorType,
   CoScoutMessage,
   CoScoutError,
+  ImageAttachment,
 } from './types';
+
+export {
+  validateImageFile,
+  fileToDataUrl,
+  MAGIC_BYTES,
+  MAX_IMAGE_SIZE,
+  MAX_IMAGES_PER_MESSAGE,
+} from './imageValidation';
 
 export {
   buildAIContext,

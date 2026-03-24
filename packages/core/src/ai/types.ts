@@ -249,6 +249,20 @@ export type AIErrorType =
   | 'content-filter'
   | 'unknown';
 
+/** Image attachment on a CoScout message (session-scoped) */
+export interface ImageAttachment {
+  /** Unique ID for this image */
+  id: string;
+  /** Base64 data URL (session-scoped, not persisted) */
+  dataUrl: string;
+  /** MIME type */
+  mimeType: 'image/jpeg' | 'image/png';
+  /** Original filename if available */
+  filename?: string;
+  /** File size in bytes */
+  sizeBytes: number;
+}
+
 /** CoScout conversation message */
 export interface CoScoutMessage {
   id: string;
@@ -256,6 +270,8 @@ export interface CoScoutMessage {
   content: string;
   timestamp: number;
   error?: CoScoutError;
+  /** Image attachments (session-scoped, not persisted) */
+  images?: ImageAttachment[];
 }
 
 /** Error attached to a CoScout message */
