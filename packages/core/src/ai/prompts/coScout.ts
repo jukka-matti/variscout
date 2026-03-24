@@ -112,6 +112,26 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
         strict: true,
       },
     },
+    {
+      type: 'function',
+      name: 'get_finding_attachment',
+      description:
+        "Retrieve photos and file metadata attached to a finding's comments. " +
+        'Returns attachment descriptions and metadata. ' +
+        'Use when the analyst references a finding photo or asks to compare visual evidence.',
+      parameters: {
+        type: 'object',
+        properties: {
+          finding_id: {
+            type: 'string',
+            description: 'ID of the finding to retrieve attachments from',
+          },
+        },
+        required: ['finding_id'],
+        additionalProperties: false,
+        strict: true,
+      },
+    },
   ];
 
   // SCOUT+ tools (not available in FRAME)

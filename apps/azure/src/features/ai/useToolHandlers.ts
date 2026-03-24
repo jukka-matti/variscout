@@ -172,6 +172,34 @@ export function useToolHandlers({
         });
       },
 
+      get_finding_attachment: async (args: Record<string, unknown>) => {
+        const findingId = (args as { finding_id: string }).finding_id;
+        const finding = findings.find(f => f.id === findingId);
+        if (!finding) {
+          return JSON.stringify({ error: `Finding ${findingId} not found` });
+        }
+
+        const attachments = (finding.comments ?? [])
+          .filter(c => c.photos && c.photos.length > 0)
+          .flatMap(c =>
+            (c.photos ?? []).map(p => ({
+              type: 'photo' as const,
+              commentText: c.text,
+              commentDate: new Date(c.createdAt).toISOString(),
+              filename: p.filename,
+              uploadStatus: p.uploadStatus,
+              hasThumbnail: Boolean(p.thumbnailDataUrl),
+            }))
+          );
+
+        return JSON.stringify({
+          findingId,
+          findingText: finding.text,
+          attachmentCount: attachments.length,
+          attachments,
+        });
+      },
+
       // ── Action Tools (return proposals) ────────────────────────────
       apply_filter: async (args: Record<string, unknown>) => {
         const factor = args.factor as string;

@@ -38,7 +38,8 @@ export type ReadToolName =
   | 'suggest_knowledge_search'
   | 'get_available_factors'
   | 'compare_categories'
-  | 'search_project'; // Project dashboard search
+  | 'search_project' // Project dashboard search
+  | 'get_finding_attachment'; // Retrieve photos and file metadata from findings
 
 /** All CoScout tool names */
 export type CoScoutToolName = ActionToolName | ReadToolName;

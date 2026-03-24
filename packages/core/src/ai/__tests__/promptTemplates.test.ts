@@ -1370,7 +1370,7 @@ describe('locale wiring in system prompts', () => {
 describe('buildCoScoutTools', () => {
   it('returns base read tool definitions with strict schemas (no phase)', () => {
     const tools = buildCoScoutTools();
-    expect(tools.length).toBe(5); // 3 original + get_available_factors + compare_categories
+    expect(tools.length).toBe(6); // 3 original + get_available_factors + compare_categories + get_finding_attachment
     expect(tools.every(t => t.type === 'function')).toBe(true);
     expect(tools.every(t => t.parameters.strict === true)).toBe(true);
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
@@ -1440,7 +1440,7 @@ describe('buildCoScoutTools', () => {
     expect(tools.find(t => t.name === 'create_finding')).toBeUndefined();
     // Read tools should still be there
     expect(tools.find(t => t.name === 'get_available_factors')).toBeDefined();
-    expect(tools.length).toBe(5);
+    expect(tools.length).toBe(6);
   });
 
   it('all tools use strict mode and additionalProperties:false', () => {
@@ -1449,9 +1449,19 @@ describe('buildCoScoutTools', () => {
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
   });
 
-  it('never exceeds 18 tools (IMPROVE + Team plan)', () => {
+  it('never exceeds 19 tools (IMPROVE + Team plan)', () => {
     const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
-    expect(tools.length).toBeLessThanOrEqual(18);
+    expect(tools.length).toBeLessThanOrEqual(19);
+  });
+
+  it('includes get_finding_attachment in all phases', () => {
+    const tools = buildCoScoutTools();
+    expect(tools.find(t => t.name === 'get_finding_attachment')).toBeDefined();
+  });
+
+  it('includes get_finding_attachment even in FRAME phase', () => {
+    const tools = buildCoScoutTools({ phase: 'frame' });
+    expect(tools.find(t => t.name === 'get_finding_attachment')).toBeDefined();
   });
 
   it('includes suggest_improvement_idea in INVESTIGATE phase tools', () => {
