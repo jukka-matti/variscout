@@ -79,6 +79,8 @@ export type {
   TextFormat,
   FunctionCallOutput,
   ToolHandlerMap,
+  InputContentPart,
+  MessageContent,
 } from './responsesApi';
 export {
   ResponsesApiError,

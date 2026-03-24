@@ -1541,7 +1541,9 @@ describe('buildCoScoutInput', () => {
       knowledgeDocuments: [{ title: 'SOP', snippet: 'Clean nozzles.', source: 'SharePoint' }],
     };
     const result = buildCoScoutInput(ctx, [], 'Question');
-    const kbMsg = result.input.find(m => m.content.includes('Knowledge Base'));
+    const kbMsg = result.input.find(
+      m => typeof m.content === 'string' && m.content.includes('Knowledge Base')
+    );
     expect(kbMsg).toBeDefined();
   });
 
@@ -1591,6 +1593,49 @@ describe('buildCoScoutInput', () => {
     };
     const result = buildCoScoutInput(ctx, [], 'Question');
     expect(result.instructions).not.toContain('Previous CoScout insights saved as findings:');
+  });
+
+  it('builds multimodal input when images provided', () => {
+    const { input } = buildCoScoutInput(baseCtx, [], 'Describe this', {
+      images: [{ dataUrl: 'data:image/jpeg;base64,abc' }],
+    });
+    const userMsg = input[input.length - 1];
+    expect(Array.isArray(userMsg.content)).toBe(true);
+    if (Array.isArray(userMsg.content)) {
+      expect(userMsg.content).toContainEqual(
+        expect.objectContaining({ type: 'input_text', text: 'Describe this' })
+      );
+      expect(userMsg.content).toContainEqual(
+        expect.objectContaining({
+          type: 'input_image',
+          image_url: 'data:image/jpeg;base64,abc',
+          detail: 'auto',
+        })
+      );
+    }
+  });
+
+  it('builds plain text input when no images', () => {
+    const { input } = buildCoScoutInput(baseCtx, [], 'Question');
+    const userMsg = input[input.length - 1];
+    expect(typeof userMsg.content).toBe('string');
+    expect(userMsg.content).toBe('Question');
+  });
+
+  it('supports multiple images in multimodal input', () => {
+    const { input } = buildCoScoutInput(baseCtx, [], 'Compare these', {
+      images: [
+        { dataUrl: 'data:image/png;base64,img1' },
+        { dataUrl: 'data:image/jpeg;base64,img2' },
+      ],
+    });
+    const userMsg = input[input.length - 1];
+    expect(Array.isArray(userMsg.content)).toBe(true);
+    if (Array.isArray(userMsg.content)) {
+      expect(userMsg.content).toHaveLength(3); // 1 text + 2 images
+      const imageParts = userMsg.content.filter((p: { type: string }) => p.type === 'input_image');
+      expect(imageParts).toHaveLength(2);
+    }
   });
 });
 

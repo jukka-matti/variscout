@@ -8,7 +8,7 @@
  */
 
 import type { AIContext, CoScoutMessage, JourneyPhase, EntryScenario } from '../types';
-import type { ToolDefinition } from '../responsesApi';
+import type { ToolDefinition, MessageContent, InputContentPart } from '../responsesApi';
 import type { Locale } from '../../i18n/types';
 import type { AnalysisMode } from '../../types';
 import { formatStatistic } from '../../i18n/format';
@@ -511,10 +511,14 @@ export function buildCoScoutInput(
   context: AIContext,
   history: CoScoutMessage[],
   userMessage: string,
-  options?: { journeyPhase?: JourneyPhase; isTeamPlan?: boolean }
+  options?: {
+    journeyPhase?: JourneyPhase;
+    isTeamPlan?: boolean;
+    images?: Array<{ dataUrl: string }>;
+  }
 ): {
   instructions: string;
-  input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
+  input: Array<{ role: 'user' | 'assistant' | 'system'; content: MessageContent }>;
 } {
   const instructions = buildCoScoutSystemPrompt({
     glossaryFragment: context.glossaryFragment,
@@ -532,7 +536,7 @@ export function buildCoScoutInput(
     coscoutInsights: context.findings?.coscoutInsights,
   });
 
-  const input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
+  const input: Array<{ role: 'user' | 'assistant' | 'system'; content: MessageContent }> = [];
 
   // Context summary — variable per analysis state
   const contextSummary = buildSummaryPrompt(context).replace(
@@ -562,8 +566,21 @@ export function buildCoScoutInput(
     }
   }
 
-  // Current user message
-  input.push({ role: 'user', content: userMessage });
+  // Current user message — multimodal when images are present
+  const images = options?.images;
+  if (images && images.length > 0) {
+    const parts: InputContentPart[] = [
+      { type: 'input_text', text: userMessage },
+      ...images.map(img => ({
+        type: 'input_image' as const,
+        image_url: img.dataUrl,
+        detail: 'auto' as const,
+      })),
+    ];
+    input.push({ role: 'user', content: parts });
+  } else {
+    input.push({ role: 'user', content: userMessage });
+  }
 
   return { instructions, input };
 }
