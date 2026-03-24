@@ -40,12 +40,5 @@ export default defineConfig({
         manualChunks: variscoutManualChunks,
       },
     },
-    rolldownOptions: {
-      checks: {
-        // Intentional lazy patterns: App Insights conditional loading,
-        // graphToken circular dep avoidance. See build-system.md.
-        ineffectiveDynamicImport: false,
-      },
-    },
   },
 });

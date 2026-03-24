@@ -80,7 +80,7 @@ If VariScout were classified as high-risk in the future, Annex IV documentation 
 | Transparency provisions              | This document §2                                                            | Complete                      |
 | Human oversight measures             | [ADR-029](../../07-decisions/adr-029-ai-action-tools.md) (proposal pattern) | Complete                      |
 | Accuracy, robustness, cybersecurity  | [`ai-safety-report.md`](../../08-products/azure/ai-safety-report.md)        | Partial (red teaming pending) |
-| Logging capabilities                 | `tracing.ts` + `telemetry.ts` (operational logs)                            | Partial (audit spec needed)   |
+| Logging capabilities                 | `tracing.ts` + `appInsights.ts` (operational logs)                          | Partial (audit spec needed)   |
 | Instructions for use                 | In-app help tooltips + AIX Design System                                    | Complete                      |
 
 ### Gap analysis for high-risk readiness

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { getEasyAuthUser, login, logout, type EasyAuthUser } from './auth/easyAuth';
+import { clearGraphTokenCache } from './auth/graphToken';
 import { DataProvider } from './context/DataContext';
 import { ThemeProvider, useTheme } from '@variscout/ui';
 import { LocaleProvider } from './context/LocaleContext';
@@ -154,6 +155,11 @@ function AppMain() {
     notifyTeamsFailure(error.message || 'Application render error');
   }, []);
 
+  const handleLogout = useCallback(() => {
+    clearGraphTokenCache();
+    logout();
+  }, []);
+
   // Still checking auth
   if (!authChecked) {
     return (
@@ -281,7 +287,7 @@ function AppMain() {
                       {/* Hide sign-out in Teams — Teams manages the session */}
                       {!teams.isTeams && (
                         <button
-                          onClick={logout}
+                          onClick={handleLogout}
                           aria-label="Sign out"
                           title="Sign Out"
                           className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"

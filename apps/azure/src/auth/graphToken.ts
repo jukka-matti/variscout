@@ -6,7 +6,8 @@
  * Includes in-memory token caching to avoid redundant OBO calls.
  */
 
-import { getAccessToken, isLocalDev, AuthError } from './easyAuth';
+import { getAccessToken, isLocalDev } from './easyAuth';
+import { AuthError } from './types';
 import { getTeamsSsoToken, isInTeams } from '../teams/teamsContext';
 
 const CACHE_MARGIN_MS = 5 * 60 * 1000; // 5 min before expiry

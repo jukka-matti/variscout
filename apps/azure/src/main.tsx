@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { loadRuntimeConfig } from './lib/runtimeConfig';
 import { initAppInsights } from './lib/appInsights';
-import { initTelemetry } from './services/telemetry';
 import { registerLocaleLoaders } from '@variscout/core';
 import type { MessageCatalog } from '@variscout/core';
 import './index.css';
@@ -18,11 +17,8 @@ registerLocaleLoaders(
 // Load runtime config before rendering — required for Marketplace deployments
 // where VITE_* env vars are baked at build time.
 loadRuntimeConfig().then(config => {
-  // Initialize client-side error monitoring (no-op if connection string is empty)
+  // Initialize App Insights + AI trace flushing (no-op if connection string is empty)
   initAppInsights(config.appInsightsConnectionString);
-
-  // Initialize AI telemetry (no-op if connection string is not configured)
-  initTelemetry();
 
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>

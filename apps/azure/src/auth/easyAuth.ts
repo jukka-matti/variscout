@@ -2,28 +2,10 @@
 // In local dev, falls back to mock data so the app runs without Azure.
 // In Teams context, attempts Teams SSO before EasyAuth redirect.
 
-export type AuthErrorCode =
-  | 'not_authenticated'
-  | 'no_provider'
-  | 'no_token'
-  | 'refresh_failed'
-  | 'local_dev';
+import { AuthError, type EasyAuthUser } from './types';
 
-export class AuthError extends Error {
-  code: AuthErrorCode;
-  constructor(message: string, code: AuthErrorCode) {
-    super(message);
-    this.name = 'AuthError';
-    this.code = code;
-  }
-}
-
-export interface EasyAuthUser {
-  name: string;
-  email: string;
-  userId: string;
-  roles: string[];
-}
+// Re-export for backward compatibility
+export { AuthError, type AuthErrorCode, type EasyAuthUser } from './types';
 
 interface EasyAuthClaim {
   typ: string;
@@ -188,17 +170,11 @@ export function stopPeriodicRefresh(): void {
   }
 }
 
-/** Redirect to EasyAuth logout. Clears graph token cache before redirect. */
+/** Redirect to EasyAuth logout. */
 export function logout(): void {
   if (isLocalDev()) {
     window.location.reload();
     return;
   }
-  // Dynamic import to avoid circular dependency (graphToken imports from easyAuth)
-  import('./graphToken')
-    .then(m => m.clearGraphTokenCache())
-    .catch(err => {
-      if (import.meta.env.DEV) console.warn('[EasyAuth] Failed to clear token cache:', err);
-    });
   window.location.href = '/.auth/logout';
 }
