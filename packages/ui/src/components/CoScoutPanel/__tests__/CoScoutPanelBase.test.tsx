@@ -51,6 +51,7 @@ vi.mock('lucide-react', () => ({
   Bell: (props: Record<string, unknown>) => <span data-testid="bell-icon" {...props} />,
   Lightbulb: (props: Record<string, unknown>) => <span data-testid="lightbulb-icon" {...props} />,
   Navigation: (props: Record<string, unknown>) => <span data-testid="navigation-icon" {...props} />,
+  Paperclip: (props: Record<string, unknown>) => <span data-testid="paperclip-icon" {...props} />,
 }));
 
 import { CoScoutPanelBase } from '../CoScoutPanelBase';

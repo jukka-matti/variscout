@@ -11,10 +11,13 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardCopy,
+  Paperclip,
 } from 'lucide-react';
 import type { CoScoutMessage, CoScoutError, ActionProposal } from '@variscout/core';
+import { validateImageFile, fileToDataUrl, MAX_IMAGES_PER_MESSAGE } from '@variscout/core/ai';
 import { useResizablePanel, useTranslation } from '@variscout/hooks';
 import { CoScoutMessages, type KnowledgeDocumentResult } from './CoScoutMessages';
+import { ImagePreview, type ImagePreviewItem } from './ImagePreview';
 
 export interface CoScoutPanelResizeConfig {
   storageKey: string;
@@ -35,7 +38,7 @@ export interface CoScoutPanelBaseProps {
   isOpen: boolean;
   onClose: () => void;
   messages: CoScoutMessage[];
-  onSend: (text: string) => void;
+  onSend: (text: string, images?: ImagePreviewItem[]) => void;
   isLoading: boolean;
   error?: CoScoutError | null;
   onRetry?: () => void;
@@ -118,6 +121,8 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [copyConvFeedback, setCopyConvFeedback] = useState(false);
   const [contextExpanded, setContextExpanded] = useState(false);
+  const [pendingImages, setPendingImages] = useState<ImagePreviewItem[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const overflowRef = useRef<HTMLDivElement>(null);
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -173,14 +178,20 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
 
   const handleSend = useCallback(() => {
     const text = input.trim();
-    if (!text || isLoading) return;
-    onSend(text);
+    if ((!text && pendingImages.length === 0) || isLoading) return;
+    if (!text) return; // text is still required even with images
+    if (pendingImages.length > 0) {
+      onSend(text, pendingImages);
+    } else {
+      onSend(text);
+    }
     setInput('');
+    setPendingImages([]);
     // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [input, isLoading, onSend]);
+  }, [input, isLoading, onSend, pendingImages]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -208,6 +219,74 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   const handleInputBlur = useCallback(() => {
     // Delay hiding chips so click can register
     blurTimeoutRef.current = setTimeout(() => setInputFocused(false), 200);
+  }, []);
+
+  const addImageFiles = useCallback(async (files: FileList | File[]) => {
+    const fileArray = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (fileArray.length === 0) return;
+
+    for (const file of fileArray) {
+      setPendingImages(prev => {
+        if (prev.length >= MAX_IMAGES_PER_MESSAGE) return prev;
+        return prev; // will be replaced after async validation
+      });
+      const valid = await validateImageFile(file);
+      if (!valid) continue;
+
+      const dataUrl = await fileToDataUrl(file);
+      setPendingImages(prev => {
+        if (prev.length >= MAX_IMAGES_PER_MESSAGE) return prev;
+        const id = typeof crypto !== 'undefined' ? crypto.randomUUID() : `img-${Date.now()}`;
+        return [...prev, { id, dataUrl, filename: file.name, mimeType: file.type }];
+      });
+    }
+  }, []);
+
+  const handlePaste = useCallback(
+    async (e: React.ClipboardEvent<HTMLDivElement>) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      const imageFiles: File[] = [];
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) imageFiles.push(file);
+        }
+      }
+      if (imageFiles.length > 0) {
+        await addImageFiles(imageFiles);
+      }
+    },
+    [addImageFiles]
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    const hasImages = Array.from(e.dataTransfer.items).some(i => i.type.startsWith('image/'));
+    if (hasImages) {
+      e.preventDefault();
+      setIsDragOver(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    async (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsDragOver(false);
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        await addImageFiles(files);
+      }
+    },
+    [addImageFiles]
+  );
+
+  const handleRemoveImage = useCallback((id: string) => {
+    setPendingImages(prev => prev.filter(img => img.id !== id));
   }, []);
 
   const handleClearWithConfirm = useCallback(() => {
@@ -408,8 +487,20 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
         )}
 
         {/* Input footer */}
-        <div className="border-t border-edge p-3">
-          <div className="flex items-end gap-2">
+        <div
+          className={`border-t border-edge${isDragOver ? ' ring-2 ring-blue-400 ring-inset' : ''}`}
+          onPaste={handlePaste}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          data-testid="coscout-input-footer"
+        >
+          {pendingImages.length > 0 && (
+            <div className="pt-2">
+              <ImagePreview images={pendingImages} onRemove={handleRemoveImage} />
+            </div>
+          )}
+          <div className="flex items-end gap-2 p-3">
             <textarea
               ref={textareaRef}
               data-testid="coscout-input"
@@ -423,6 +514,28 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
               disabled={isStreaming}
               className="flex-1 resize-none bg-surface border border-edge rounded-lg px-3 py-2 text-xs text-content placeholder-content-muted focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-50"
             />
+            {pendingImages.length < MAX_IMAGES_PER_MESSAGE && !isStreaming && (
+              <label
+                className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors flex-shrink-0 cursor-pointer"
+                title="Attach image (or paste / drag-drop)"
+                aria-label="Attach image"
+                data-testid="coscout-attach-image"
+              >
+                <Paperclip size={14} />
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  multiple
+                  className="sr-only"
+                  onChange={e => {
+                    if (e.target.files) {
+                      void addImageFiles(e.target.files);
+                      e.target.value = '';
+                    }
+                  }}
+                />
+              </label>
+            )}
             {isStreaming ? (
               <button
                 onClick={onStopStreaming}
