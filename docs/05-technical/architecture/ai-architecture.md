@@ -139,6 +139,16 @@ The system includes:
 
 CoScout prompts are grounded in VariScout's methodology rather than generic SPC terminology. See [Knowledge Model Architecture](knowledge-model.md) and [AI Context Engineering](ai-context-engineering.md) for details.
 
+### Multimodal Context (Images)
+
+CoScout supports image input for visual evidence analysis:
+
+- **Image paste** — Analyst pastes a screenshot or photo directly into the CoScout input. The image is sent as a base64 `input_image` content part in the Responses API message.
+- **Finding attachment retrieval** — The `get_finding_attachment` tool retrieves photos attached to findings, enabling CoScout to analyze visual evidence captured during investigation.
+- **`store: false`** — Messages containing images are sent with `store: false` to avoid persisting image data server-side (privacy + cost).
+
+Images are budget-managed as part of the degradation priority pipeline (see [AI Context Engineering](ai-context-engineering.md)).
+
 ### Layer 4 -- Team Documents (SharePoint, ADR-026)
 
 Published scouting reports, fault trees, process maps, SOPs, and control plans from the team's SharePoint folder. Accessed on demand via Azure AI Search **Remote SharePoint** knowledge sources with per-user permissions (user token passthrough).
@@ -328,7 +338,7 @@ EasyAuth `authsettingsV2` updated to include Cognitive Services scope.
 | Control              | Mechanism                                                       |
 | -------------------- | --------------------------------------------------------------- |
 | Stats-only payloads  | Typically <500 tokens per request                               |
-| Max context tokens   | 2K for narration (fast tier), 8K for CoScout (reasoning tier)   |
+| Max context tokens   | 2K for narration (fast tier), 12K for CoScout (reasoning tier)  |
 | Client-side throttle | Max 1 narration request per 5 seconds                           |
 | Response caching     | Reduces repeat queries for same analysis state                  |
 | Dual-model routing   | Cheap model for simple tasks, reasoning model only for CoScout  |
@@ -399,9 +409,9 @@ CoScout responses can contain action markers that render as interactive elements
 
 Action callbacks flow through `CoScoutPanelBase` props (`onPinFinding`, `onDrillSuggestion`) to the app's action handlers.
 
-### 15 CoScout Tools (ADR-029 + ADR-042)
+### 15 + 2 Planned CoScout Tools (ADR-029 + ADR-042 + ADR-049)
 
-CoScout has 15 tools total, phase-gated by journey phase. The two new tools added in ADR-042:
+CoScout has 15 tools today, phase-gated by journey phase. ADR-049 adds 2 more (`suggest_save_finding`, `get_finding_attachment`) for the Knowledge Catalyst feature. The two tools added in ADR-042:
 
 | Tool             | Type        | Execution                                            | Phase Gate | Purpose                                                          |
 | ---------------- | ----------- | ---------------------------------------------------- | ---------- | ---------------------------------------------------------------- |
@@ -428,7 +438,7 @@ This closes the gap between FRAME and INVESTIGATE — hypotheses flow through as
 
 The `buildAIContext()` function in `@variscout/core` is the structured bridge between the data layer and AI. Design principles:
 
-- **Token-budget aware:** Accepts a `maxTokens` parameter and truncates context layers in priority order (findings first, then process context, then violations)
+- **Token-budget aware:** Accepts a `maxTokens` parameter and delegates to `budgetContext()` which trims context in an 8-level degradation pipeline (see [AI Context Engineering](ai-context-engineering.md) for priority order)
 - **Deterministic insights as input:** Includes computed suggestions from `getNextDrillFactor()` and `shouldHighlightDrill()` so AI explains rather than competes
 - **Structured output:** Returns a typed `AIContext` object, not a string — prompt templates handle serialization
 - **Pure function:** No React dependency, no side effects — lives in `@variscout/core`
@@ -646,6 +656,37 @@ Each mode prompt includes terminology mapping, chart interpretation guide, and n
 
 ---
 
+## Investigation Model as Memory
+
+VariScout takes a deliberate architectural position: **CoScout conversations are ephemeral; the investigation model is the durable memory.**
+
+Every CoScout session receives the full investigation context via the `buildAIContext()` → `buildCoScoutInput()` pipeline:
+
+- `ProcessContext` (problem statement, synthesis, target metrics)
+- Findings with status, hypotheses, actions, outcomes
+- Hypothesis tree with validation and ideas
+- Statistics, filters, drill path, violations
+- Knowledge Base results (Team plan)
+
+When an analyst creates findings, hypotheses, and actions during a CoScout conversation, that knowledge is captured in the investigation model — which persists in `AnalysisState` (IndexedDB, optionally OneDrive sync). The conversation itself is disposable because its substance is already captured in structured form.
+
+This approach was validated by industry research (ADR-049):
+
+- Every major AI product except Figma Make stores conversations separately from project data
+- GitHub Copilot deliberately does not persist conversations
+- Figma Make (the only product embedding conversations in project files) sees performance degradation and privacy concerns from users
+
+CoScout enhances knowledge capture with:
+
+- **Save insight as finding** — bookmark any message to create a Finding
+- **Auto-suggested insights** — `suggest_save_finding` tool proposes saving findings proactively
+- **Session-close save prompt** — advisory modal prevents accidental insight loss
+- **Image paste + save to finding** — visual evidence captured in the investigation model
+
+The existing Project Dashboard (WhatsNewSection, DashboardSummaryCard, ProjectStatusCard) handles the "welcome back" experience on project reopen.
+
+---
+
 ## See Also
 
 - [AI Journey Integration](ai-journey-integration.md) — entry point for AI × journey overview
@@ -657,5 +698,6 @@ Each mode prompt includes terminology mapping, chart interpretation guide, and n
 - [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
 - [ADR-027: AI Collaborator Evolution](../../07-decisions/adr-027-ai-collaborator-evolution.md)
 - [AI Components](../../06-design-system/components/ai-components.md)
+- [ADR-049: CoScout Knowledge Catalyst](../../07-decisions/adr-049-coscout-context-and-memory.md)
 - [Component Patterns](component-patterns.md)
 - [Data Flow](data-flow.md)
