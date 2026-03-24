@@ -99,7 +99,11 @@ export interface CoScoutMessagesProps {
   onExecuteAction?: (proposal: ActionProposal, editedText?: string) => void;
   onDismissAction?: (proposalId: string) => void;
   /** ADR-049: Insight capture — save message as finding or comment */
-  onSaveAsNewFinding?: (text: string, sourceMessageId: string) => void;
+  onSaveAsNewFinding?: (
+    text: string,
+    sourceMessageId: string,
+    images?: Array<{ dataUrl: string; mimeType: string }>
+  ) => void;
   onAddCommentToFinding?: (findingId: string, text: string) => void;
   onAddCommentToHypothesis?: (hypothesisId: string, text: string) => void;
   /** Existing findings for comment target selection */
@@ -136,6 +140,7 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
   const [insightDialogMessage, setInsightDialogMessage] = useState<{
     id: string;
     text: string;
+    images?: Array<{ dataUrl: string; mimeType: string }>;
   } | null>(null);
 
   const getTranslatedErrorText = (error: CoScoutError): string => {
@@ -191,10 +196,31 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
                 <p className="text-xs text-content leading-relaxed whitespace-pre-wrap">
                   {msg.content}
                 </p>
+                {msg.images && msg.images.length > 0 && (
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    {msg.images.map(img => (
+                      <img
+                        key={img.id}
+                        src={img.dataUrl}
+                        alt={img.filename || 'Attached image'}
+                        className="rounded max-h-[120px] border border-edge object-contain"
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
               {onSaveAsNewFinding && (
                 <button
-                  onClick={() => setInsightDialogMessage({ id: msg.id, text: msg.content })}
+                  onClick={() =>
+                    setInsightDialogMessage({
+                      id: msg.id,
+                      text: msg.content,
+                      images: msg.images?.map(img => ({
+                        dataUrl: img.dataUrl,
+                        mimeType: img.mimeType,
+                      })),
+                    })
+                  }
                   className="absolute -left-6 top-1 opacity-0 group-hover:opacity-100 p-1 text-content-muted hover:text-content transition-opacity"
                   title="Save as insight"
                   aria-label="Save message as insight"
@@ -242,7 +268,12 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
               })()}
               {onSaveAsNewFinding && (
                 <button
-                  onClick={() => setInsightDialogMessage({ id: msg.id, text: msg.content })}
+                  onClick={() =>
+                    setInsightDialogMessage({
+                      id: msg.id,
+                      text: msg.content,
+                    })
+                  }
                   className="absolute -right-6 top-1 opacity-0 group-hover:opacity-100 p-1 text-content-muted hover:text-content transition-opacity"
                   title="Save as insight"
                   aria-label="Save message as insight"
@@ -383,6 +414,7 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
           isOpen={insightDialogMessage !== null}
           messageText={insightDialogMessage?.text ?? ''}
           messageId={insightDialogMessage?.id ?? ''}
+          messageImages={insightDialogMessage?.images}
           findings={insightFindings}
           hypotheses={insightHypotheses}
           onSaveAsNewFinding={onSaveAsNewFinding}

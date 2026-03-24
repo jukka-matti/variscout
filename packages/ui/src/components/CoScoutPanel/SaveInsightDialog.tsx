@@ -4,12 +4,18 @@ export interface SaveInsightDialogProps {
   isOpen: boolean;
   messageText: string;
   messageId: string;
+  /** Image attachments on the source message, passed through to onSaveAsNewFinding */
+  messageImages?: Array<{ dataUrl: string; mimeType: string }>;
   /** Existing findings to add comments to */
   findings?: Array<{ id: string; text: string }>;
   /** Existing hypotheses to add comments to */
   hypotheses?: Array<{ id: string; text: string }>;
   /** Called when saving as new finding */
-  onSaveAsNewFinding: (text: string, sourceMessageId: string) => void;
+  onSaveAsNewFinding: (
+    text: string,
+    sourceMessageId: string,
+    images?: Array<{ dataUrl: string; mimeType: string }>
+  ) => void;
   /** Called when adding comment to existing finding */
   onAddCommentToFinding?: (findingId: string, text: string) => void;
   /** Called when adding comment to existing hypothesis */
@@ -27,6 +33,7 @@ const SaveInsightDialog: React.FC<SaveInsightDialogProps> = ({
   isOpen,
   messageText,
   messageId,
+  messageImages,
   findings,
   hypotheses,
   onSaveAsNewFinding,
@@ -101,7 +108,7 @@ const SaveInsightDialog: React.FC<SaveInsightDialogProps> = ({
 
     switch (mode) {
       case 'new-finding':
-        onSaveAsNewFinding(trimmed, messageId);
+        onSaveAsNewFinding(trimmed, messageId, messageImages);
         break;
       case 'comment-finding':
         if (selectedFindingId && onAddCommentToFinding) {
@@ -119,6 +126,7 @@ const SaveInsightDialog: React.FC<SaveInsightDialogProps> = ({
     text,
     mode,
     messageId,
+    messageImages,
     selectedFindingId,
     selectedHypothesisId,
     onSaveAsNewFinding,

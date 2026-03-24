@@ -20,7 +20,7 @@ describe('SaveInsightDialog', () => {
     const onSave = vi.fn();
     render(<SaveInsightDialog {...defaultProps} onSaveAsNewFinding={onSave} />);
     fireEvent.click(screen.getByText('Save'));
-    expect(onSave).toHaveBeenCalledWith('Nozzle 3 shows 2x variation', 'msg-1');
+    expect(onSave).toHaveBeenCalledWith('Nozzle 3 shows 2x variation', 'msg-1', undefined);
   });
 
   it('calls onClose on cancel', () => {
