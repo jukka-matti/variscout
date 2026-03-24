@@ -1,9 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import Dashboard from '../Dashboard';
 import DataPanel from '../data/DataPanel';
 import DataTableModal from '../data/DataTableModal';
 import FindingsPanel from '../FindingsPanel';
-import { CoScoutPanelBase, AIOnboardingTooltip } from '@variscout/ui';
+import { CoScoutPanelBase, AIOnboardingTooltip, SessionClosePrompt } from '@variscout/ui';
+import type { SessionClosePromptItem } from '@variscout/ui';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { hasTeamFeatures } from '@variscout/core';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
@@ -14,6 +15,7 @@ import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import { useInvestigationStore } from '../../features/investigation/investigationStore';
 import { useImprovementStore } from '../../features/improvement/improvementStore';
+import { useAIStore } from '../../features/ai/aiStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
 import type { AzureFindingsCallbacks } from '@variscout/ui';
@@ -104,6 +106,10 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
 }) => {
   const { factors, aiEnabled, processContext, filteredData, stats, filters } = useData();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
+
+  // Session-close prompt state (ADR-049)
+  const [showClosePrompt, setShowClosePrompt] = useState(false);
+  const [closePromptItems, setClosePromptItems] = useState<SessionClosePromptItem[]>([]);
 
   // Panel state from Zustand
   const isFindingsOpen = usePanelsStore(s => s.isFindingsOpen);
@@ -230,6 +236,88 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     [findingsState, filters, stats, filteredData.length]
   );
 
+  // CoScout close intercept: check for unsaved insights before closing (ADR-049)
+  const handleCoScoutClose = useCallback(() => {
+    const aiState = useAIStore.getState();
+    if (!aiState.shouldShowClosePrompt()) {
+      usePanelsStore.getState().setCoScoutOpen(false);
+      aiState.resetSessionState();
+      return;
+    }
+
+    // Build items list from unsaved bookmarks and pending save proposals
+    const messages = aiState.coscoutMessages;
+    const items: SessionClosePromptItem[] = [];
+
+    // Bookmarked messages (preChecked = true, user explicitly bookmarked them)
+    for (const messageId of aiState.unsavedBookmarks) {
+      const msg = messages.find(m => m.id === messageId);
+      if (msg) {
+        items.push({ id: `bookmark:${messageId}`, text: msg.content, preChecked: true });
+      }
+    }
+
+    // Pending save proposals from action proposals (preChecked = false, suggested by AI)
+    for (const proposal of aiState.actionProposals) {
+      if (proposal.tool === 'suggest_save_finding' && proposal.status === 'pending') {
+        const text =
+          proposal.editableText ??
+          (typeof proposal.params.text === 'string' ? proposal.params.text : '');
+        if (text) {
+          items.push({ id: `proposal:${proposal.id}`, text, preChecked: false });
+        }
+      }
+    }
+
+    if (items.length === 0) {
+      // No specific items but threshold met (turn count) — close without prompt
+      usePanelsStore.getState().setCoScoutOpen(false);
+      aiState.resetSessionState();
+      return;
+    }
+
+    setClosePromptItems(items);
+    setShowClosePrompt(true);
+  }, []);
+
+  // Save selected items as findings and close
+  const handleClosePromptSave = useCallback(
+    (selectedIds: string[]) => {
+      for (const id of selectedIds) {
+        if (id.startsWith('bookmark:')) {
+          const messageId = id.slice('bookmark:'.length);
+          const messages = useAIStore.getState().coscoutMessages;
+          const msg = messages.find(m => m.id === messageId);
+          if (msg) {
+            handleSaveAsNewFinding(msg.content, messageId);
+          }
+        }
+        // Proposals are applied via their own action handlers — skip here
+        // (they were already presented as ActionProposalCards)
+      }
+      setShowClosePrompt(false);
+      usePanelsStore.getState().setCoScoutOpen(false);
+      useAIStore.getState().resetSessionState();
+    },
+    [handleSaveAsNewFinding]
+  );
+
+  // Dismiss without saving and close
+  const handleClosePromptDismiss = useCallback(() => {
+    setShowClosePrompt(false);
+    usePanelsStore.getState().setCoScoutOpen(false);
+    useAIStore.getState().resetSessionState();
+  }, []);
+
+  // Wrapped send that increments session turn count (ADR-049)
+  const handleCoScoutSend = useCallback(
+    (message: string) => {
+      coscout.send(message);
+      useAIStore.getState().incrementTurnCount();
+    },
+    [coscout]
+  );
+
   const handleAddCommentToFinding = useCallback(
     (findingId: string, text: string) => {
       findingsState.addFindingComment(findingId, text);
@@ -252,7 +340,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   // Shared CoScoutPanel props
   const sharedCoScoutProps = {
     messages: coscout.messages,
-    onSend: coscout.send,
+    onSend: handleCoScoutSend,
     isLoading: coscout.isLoading,
     isStreaming: coscout.isStreaming,
     onStopStreaming: coscout.stopStreaming,
@@ -262,7 +350,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     onCopyLastResponse: coscout.copyLastResponse,
     resizeConfig: COSCOUT_RESIZE_CONFIG,
     suggestedQuestions,
-    onSuggestedQuestionClick: coscout.send,
+    onSuggestedQuestionClick: handleCoScoutSend,
     knowledgeAvailable: knowledgeSearch.isAvailable,
     knowledgeSearching: knowledgeSearch.isSearching,
     knowledgeDocuments: knowledgeSearch.documents,
@@ -359,7 +447,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
             <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
               <h2 className="text-sm font-semibold text-content">CoScout</h2>
               <button
-                onClick={() => usePanelsStore.getState().setCoScoutOpen(false)}
+                onClick={handleCoScoutClose}
                 className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
                 style={{ minWidth: 44, minHeight: 44 }}
                 aria-label="Close CoScout"
@@ -367,16 +455,12 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
                 <X size={20} />
               </button>
             </div>
-            <CoScoutPanelBase
-              isOpen={true}
-              onClose={() => usePanelsStore.getState().setCoScoutOpen(false)}
-              {...sharedCoScoutProps}
-            />
+            <CoScoutPanelBase isOpen={true} onClose={handleCoScoutClose} {...sharedCoScoutProps} />
           </div>
         ) : (
           <CoScoutPanelBase
             isOpen={isCoScoutOpen}
-            onClose={() => usePanelsStore.getState().setCoScoutOpen(false)}
+            onClose={handleCoScoutClose}
             {...sharedCoScoutProps}
           />
         )}
@@ -400,6 +484,14 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
         excludedRowIndices={excludedRowIndices}
         excludedReasons={excludedReasons}
         controlViolations={controlViolations}
+      />
+
+      {/* Session-close save prompt (ADR-049) */}
+      <SessionClosePrompt
+        isOpen={showClosePrompt}
+        items={closePromptItems}
+        onSave={handleClosePromptSave}
+        onDismiss={handleClosePromptDismiss}
       />
     </>
   );

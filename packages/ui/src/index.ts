@@ -374,6 +374,9 @@ export {
   type CoScoutMessagesProps,
   ActionProposalCard,
   type ActionProposalCardProps,
+  SessionClosePrompt,
+  type SessionClosePromptProps,
+  type SessionClosePromptItem,
 } from './components/CoScoutPanel';
 
 // CoScout Inline
