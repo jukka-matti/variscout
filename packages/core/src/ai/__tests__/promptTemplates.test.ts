@@ -1391,9 +1391,9 @@ describe('buildCoScoutTools', () => {
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
   });
 
-  it('never exceeds 17 tools (IMPROVE + Team plan)', () => {
+  it('never exceeds 18 tools (IMPROVE + Team plan)', () => {
     const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
-    expect(tools.length).toBeLessThanOrEqual(17);
+    expect(tools.length).toBeLessThanOrEqual(18);
   });
 
   it('includes suggest_improvement_idea in INVESTIGATE phase tools', () => {
@@ -1414,6 +1414,35 @@ describe('buildCoScoutTools', () => {
   it('does not include suggest_improvement_idea in FRAME phase', () => {
     const tools = buildCoScoutTools({ phase: 'frame' });
     expect(tools.find(t => t.name === 'suggest_improvement_idea')).toBeUndefined();
+  });
+
+  it('includes suggest_save_finding tool in INVESTIGATE phase', () => {
+    const tools = buildCoScoutTools({ phase: 'investigate' });
+    const tool = tools.find(t => t.name === 'suggest_save_finding');
+    expect(tool).toBeDefined();
+    expect(tool!.parameters.properties).toHaveProperty('insight_text');
+    expect(tool!.parameters.properties).toHaveProperty('reasoning');
+    expect(tool!.parameters.properties).toHaveProperty('suggested_hypothesis_id');
+  });
+
+  it('includes suggest_save_finding tool in IMPROVE phase', () => {
+    const tools = buildCoScoutTools({ phase: 'improve' });
+    expect(tools.find(t => t.name === 'suggest_save_finding')).toBeDefined();
+  });
+
+  it('excludes suggest_save_finding in SCOUT phase', () => {
+    const tools = buildCoScoutTools({ phase: 'scout' });
+    expect(tools.find(t => t.name === 'suggest_save_finding')).toBeUndefined();
+  });
+
+  it('excludes suggest_save_finding in FRAME phase', () => {
+    const tools = buildCoScoutTools({ phase: 'frame' });
+    expect(tools.find(t => t.name === 'suggest_save_finding')).toBeUndefined();
+  });
+
+  it('excludes suggest_save_finding when no phase specified', () => {
+    const tools = buildCoScoutTools();
+    expect(tools.find(t => t.name === 'suggest_save_finding')).toBeUndefined();
   });
 });
 

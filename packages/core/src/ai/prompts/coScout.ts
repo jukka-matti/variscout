@@ -400,6 +400,40 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
           additionalProperties: false,
           strict: true,
         },
+      },
+      {
+        type: 'function',
+        name: 'suggest_save_finding',
+        description:
+          'Proactively suggest saving a key insight as a finding. Use when the conversation ' +
+          'reveals a significant process observation, a validated hypothesis conclusion, ' +
+          'or a negative learning (approach tried and found ineffective). ' +
+          'The analyst sees a confirmation card and can edit before saving.',
+        parameters: {
+          type: 'object',
+          properties: {
+            insight_text: {
+              type: 'string',
+              description:
+                'Concise insight text, e.g., "Nozzle 3 shows 2x variation of other nozzles — ' +
+                'cleaning frequency is the likely root cause (eta-squared 0.42)"',
+            },
+            reasoning: {
+              type: 'string',
+              description:
+                'Why this insight is worth saving — helps analyst decide. ' +
+                'E.g., "This explains 42% of total variation and directly informs the improvement plan."',
+            },
+            suggested_hypothesis_id: {
+              type: ['string', 'null'],
+              description:
+                'If the insight relates to a specific hypothesis, provide its ID to link them. Null otherwise.',
+            },
+          },
+          required: ['insight_text', 'reasoning', 'suggested_hypothesis_id'],
+          additionalProperties: false,
+          strict: true,
+        },
       }
     );
 
