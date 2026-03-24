@@ -67,6 +67,14 @@ export interface CoScoutPanelBaseProps {
   actionProposals?: ActionProposal[];
   onExecuteAction?: (proposal: ActionProposal, editedText?: string) => void;
   onDismissAction?: (proposalId: string) => void;
+  /** ADR-049: Insight capture — save message as finding or comment */
+  onSaveAsNewFinding?: (text: string, sourceMessageId: string) => void;
+  onAddCommentToFinding?: (findingId: string, text: string) => void;
+  onAddCommentToHypothesis?: (hypothesisId: string, text: string) => void;
+  /** Existing findings for insight dialog target selection */
+  insightFindings?: Array<{ id: string; text: string }>;
+  /** Existing hypotheses for insight dialog target selection */
+  insightHypotheses?: Array<{ id: string; text: string }>;
 }
 
 const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
@@ -97,6 +105,11 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   actionProposals,
   onExecuteAction,
   onDismissAction,
+  onSaveAsNewFinding,
+  onAddCommentToFinding,
+  onAddCommentToHypothesis,
+  insightFindings,
+  insightHypotheses,
 }) => {
   const { t } = useTranslation();
   const [input, setInput] = useState('');
@@ -368,6 +381,11 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
           actionProposals={actionProposals}
           onExecuteAction={onExecuteAction}
           onDismissAction={onDismissAction}
+          onSaveAsNewFinding={onSaveAsNewFinding}
+          onAddCommentToFinding={onAddCommentToFinding}
+          onAddCommentToHypothesis={onAddCommentToHypothesis}
+          insightFindings={insightFindings}
+          insightHypotheses={insightHypotheses}
         />
 
         {/* Suggested question chips */}

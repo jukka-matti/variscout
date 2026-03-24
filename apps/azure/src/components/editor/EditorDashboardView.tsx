@@ -102,7 +102,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   excludedReasons,
   columnAliases,
 }) => {
-  const { factors, aiEnabled, processContext } = useData();
+  const { factors, aiEnabled, processContext, filteredData, stats, filters } = useData();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
 
   // Panel state from Zustand
@@ -207,6 +207,48 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     linkedFindings: improvementLinkedFindings,
   };
 
+  // Insight capture callbacks for SaveInsightDialog (ADR-049)
+  const handleSaveAsNewFinding = useCallback(
+    (text: string, sourceMessageId: string) => {
+      findingsState.addFinding(
+        text,
+        {
+          activeFilters: filters,
+          cumulativeScope: null,
+          stats: stats
+            ? {
+                mean: stats.mean,
+                median: stats.median,
+                cpk: stats.cpk ?? undefined,
+                samples: filteredData.length,
+              }
+            : undefined,
+        },
+        { chart: 'coscout', messageId: sourceMessageId }
+      );
+    },
+    [findingsState, filters, stats, filteredData.length]
+  );
+
+  const handleAddCommentToFinding = useCallback(
+    (findingId: string, text: string) => {
+      findingsState.addFindingComment(findingId, text);
+    },
+    [findingsState]
+  );
+
+  const handleAddCommentToHypothesis = useCallback(
+    (hypothesisId: string, text: string) => {
+      // Add as idea to hypothesis (hypotheses don't have a comment system)
+      hypothesesState.addIdea(hypothesisId, text);
+    },
+    [hypothesesState]
+  );
+
+  // Insight targets for SaveInsightDialog
+  const insightFindings = findingsState.findings.map(f => ({ id: f.id, text: f.text }));
+  const insightHypotheses = hypothesesState.hypotheses.map(h => ({ id: h.id, text: h.text }));
+
   // Shared CoScoutPanel props
   const sharedCoScoutProps = {
     messages: coscout.messages,
@@ -228,6 +270,11 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     actionProposals,
     onExecuteAction: handleExecuteAction,
     onDismissAction: handleDismissAction,
+    onSaveAsNewFinding: handleSaveAsNewFinding,
+    onAddCommentToFinding: handleAddCommentToFinding,
+    onAddCommentToHypothesis: handleAddCommentToHypothesis,
+    insightFindings,
+    insightHypotheses,
   };
 
   const aiAvailable = aiEnabled && isAIAvailable();

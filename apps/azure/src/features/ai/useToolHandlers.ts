@@ -338,6 +338,49 @@ export function useToolHandlers({
         return JSON.stringify({ proposal: true, ...proposal });
       },
 
+      suggest_save_finding: async (args: Record<string, unknown>) => {
+        const insightText = args.insight_text as string;
+        const suggestedHypothesisId = (args.suggested_hypothesis_id as string | null) ?? undefined;
+        const category = (args.category as string | null) ?? undefined;
+
+        if (!insightText) return JSON.stringify({ error: 'Missing insight_text' });
+
+        // Validate hypothesis exists if one is suggested
+        if (suggestedHypothesisId) {
+          const targetHypo = hypotheses.find(h => h.id === suggestedHypothesisId);
+          if (!targetHypo) {
+            return JSON.stringify({ error: `Hypothesis not found: ${suggestedHypothesisId}` });
+          }
+        }
+
+        const proposal: ActionProposal = {
+          id: generateProposalId(),
+          tool: 'suggest_save_finding',
+          params: {
+            insight_text: insightText,
+            suggested_hypothesis_id: suggestedHypothesisId,
+            category: category,
+          },
+          preview: {
+            contextSnapshot: {
+              filters: Object.keys(filters),
+              samples: filteredData.length,
+              mean: stats?.mean,
+              cpk: stats?.cpk,
+            },
+            suggestedHypothesisText: suggestedHypothesisId
+              ? hypotheses.find(h => h.id === suggestedHypothesisId)?.text
+              : undefined,
+            category,
+          },
+          status: 'pending',
+          filterStackHash: hashFilterStack(filterStack),
+          timestamp: Date.now(),
+          editableText: insightText,
+        };
+        return JSON.stringify({ proposal: true, ...proposal });
+      },
+
       suggest_action: async (args: Record<string, unknown>) => {
         const findingId = args.finding_id as string;
         const text = args.text as string;

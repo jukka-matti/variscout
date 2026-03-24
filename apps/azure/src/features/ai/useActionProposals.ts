@@ -9,7 +9,7 @@ import {
   parseActionMarkers as coreParseActionMarkers,
   isDuplicateProposal as coreIsDuplicateProposal,
 } from '@variscout/core';
-import type { ActionProposal, FilterSource } from '@variscout/core';
+import type { ActionProposal, FilterSource, FindingSource, Finding } from '@variscout/core';
 import type { UseHypothesesReturn } from '@variscout/hooks';
 
 // ── Interfaces ────────────────────────────────────────────────────────────
@@ -36,9 +36,16 @@ interface FindingsStateSlice {
       activeFilters: Record<string, (string | number)[]>;
       cumulativeScope: null;
       stats?: { mean: number; median?: number; cpk?: number; samples: number };
-    }
-  ) => void;
+    },
+    source?: FindingSource
+  ) => Finding;
   addAction: (findingId: string, text: string) => void;
+  linkHypothesis: (
+    findingId: string,
+    hypothesisId: string,
+    validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
+  ) => void;
+  addFindingComment: (findingId: string, text: string, author?: string) => void;
 }
 
 interface StatsSlice {
@@ -181,6 +188,38 @@ export function useActionProposals({
           const findingId = proposal.params.finding_id as string;
           const text = editedText || (proposal.params.text as string);
           if (findingId && text) findingsState.addAction(findingId, text);
+          break;
+        }
+        case 'suggest_save_finding': {
+          const text = editedText || (proposal.params.insight_text as string);
+          const suggestedHypothesisId = proposal.params.suggested_hypothesis_id as
+            | string
+            | undefined;
+          if (text) {
+            const findingContext = {
+              activeFilters: filters,
+              cumulativeScope: null as null,
+              stats: stats
+                ? {
+                    mean: stats.mean,
+                    median: stats.median,
+                    cpk: stats.cpk ?? undefined,
+                    samples: filteredDataLength,
+                  }
+                : undefined,
+            };
+            // Create finding with coscout source — use a generated messageId
+            // since tool-call proposals don't carry the parent message ID
+            const source: FindingSource = {
+              chart: 'coscout',
+              messageId: `tool-${proposal.id}`,
+            };
+            const newFinding = findingsState.addFinding(text, findingContext, source);
+            // Link to hypothesis if suggested
+            if (suggestedHypothesisId && newFinding) {
+              findingsState.linkHypothesis(newFinding.id, suggestedHypothesisId);
+            }
+          }
           break;
         }
         case 'suggest_improvement_idea': {
