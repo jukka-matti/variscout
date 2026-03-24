@@ -21,11 +21,7 @@ export default defineConfig({
     exclude: ['e2e/**', 'node_modules/**', 'api/**'],
     pool: 'forks',
     fileParallelism: false,
-    poolOptions: {
-      forks: {
-        execArgv: ['--max-old-space-size=4096'],
-      },
-    },
+    execArgv: ['--max-old-space-size=4096'],
     coverage: {
       provider: 'v8',
       thresholds: {
@@ -42,6 +38,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: variscoutManualChunks,
+      },
+    },
+    rolldownOptions: {
+      checks: {
+        // Intentional lazy patterns: App Insights conditional loading,
+        // graphToken circular dep avoidance. See build-system.md.
+        ineffectiveDynamicImport: false,
       },
     },
   },

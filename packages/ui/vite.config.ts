@@ -27,5 +27,14 @@ export default defineConfig({
         },
       },
     },
+    rolldownOptions: {
+      checks: {
+        // @variscout/core statically imported everywhere; dynamic import
+        // in useAsyncStats fallback is intentional (Worker unavailable path)
+        ineffectiveDynamicImport: false,
+        // vite-plugin-dts is slow but correct; suppress timing noise
+        pluginTimings: false,
+      },
+    },
   },
 });

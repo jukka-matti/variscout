@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import * as Comlink from 'comlink';
 import type { StatsResult, SpecLimits, StatsWorkerAPI, StatsComputeResult } from '@variscout/core';
+import { computeStats } from '@variscout/core';
 
 export interface UseAsyncStatsOptions {
   /** Numeric values from outcome column */
@@ -56,13 +57,11 @@ export function useAsyncStats(options: UseAsyncStatsOptions): UseAsyncStatsResul
 
     if (!workerApi) {
       // Fallback: sync computation (for tests or Worker unavailable)
-      import('@variscout/core').then(({ computeStats }) => {
-        if (thisGeneration !== generationRef.current) return;
-        const result = computeStats(request);
-        setStats(result.stats);
-        setKde(result.kde ?? null);
-        setIsComputing(false);
-      });
+      const result = computeStats(request);
+      if (thisGeneration !== generationRef.current) return;
+      setStats(result.stats);
+      setKde(result.kde ?? null);
+      setIsComputing(false);
       return;
     }
 
