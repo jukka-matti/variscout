@@ -31,29 +31,29 @@ export interface PerformanceSetupPanelColorScheme {
 }
 
 /**
- * Default color scheme using Tailwind Slate palette (matches Azure)
+ * Default color scheme using semantic tokens (theme-aware)
  */
 export const defaultColorScheme: PerformanceSetupPanelColorScheme = {
-  containerBg: 'bg-slate-900',
-  secondaryBg: 'bg-slate-700',
-  border: 'border-slate-700',
-  textPrimary: 'text-slate-200',
-  textSecondary: 'text-slate-400',
-  textMuted: 'text-slate-500',
-  inputBg: 'bg-slate-700',
-  inputBorder: 'border-slate-600',
-  inputPlaceholder: 'placeholder-slate-500',
-  hoverBg: 'hover:bg-slate-700',
+  containerBg: 'bg-surface',
+  secondaryBg: 'bg-surface-secondary',
+  border: 'border-edge',
+  textPrimary: 'text-content',
+  textSecondary: 'text-content-secondary',
+  textMuted: 'text-content-muted',
+  inputBg: 'bg-surface-secondary',
+  inputBorder: 'border-edge',
+  inputPlaceholder: 'placeholder-content-muted',
+  hoverBg: 'hover:bg-surface-tertiary',
 };
 
 /**
  * PWA color scheme using semantic tokens
  */
 export const pwaColorScheme: PerformanceSetupPanelColorScheme = {
-  containerBg: 'bg-slate-900',
+  containerBg: 'bg-surface',
   secondaryBg: 'bg-surface-secondary',
   border: 'border-edge',
-  textPrimary: 'text-slate-200',
+  textPrimary: 'text-content',
   textSecondary: 'text-content-secondary',
   textMuted: 'text-content-muted',
   inputBg: 'bg-surface-secondary',
@@ -243,7 +243,7 @@ const PerformanceSetupPanelBase: React.FC<PerformanceSetupPanelBaseProps> = ({
             value={label}
             onChange={e => setLabel(e.target.value)}
             placeholder="e.g., Valve, Head, Nozzle"
-            className={`flex-1 px-3 py-2 ${colorScheme.inputBg} border ${colorScheme.inputBorder} rounded-lg text-white ${colorScheme.inputPlaceholder} focus:outline-none focus:border-blue-500 transition-colors`}
+            className={`flex-1 px-3 py-2 ${colorScheme.inputBg} border ${colorScheme.inputBorder} rounded-lg ${colorScheme.textPrimary} ${colorScheme.inputPlaceholder} focus:outline-none focus:border-blue-500 transition-colors`}
           />
           <span className={`text-xs ${colorScheme.textMuted} whitespace-nowrap`}>
             e.g., "{label} 1", "{label} 2"
@@ -267,7 +267,7 @@ const PerformanceSetupPanelBase: React.FC<PerformanceSetupPanelBaseProps> = ({
             min={0.5}
             max={3.0}
             step={0.01}
-            className={`w-24 px-3 py-2 ${colorScheme.inputBg} border ${colorScheme.inputBorder} rounded-lg text-white font-mono focus:outline-none focus:border-blue-500 transition-colors`}
+            className={`w-24 px-3 py-2 ${colorScheme.inputBg} border ${colorScheme.inputBorder} rounded-lg ${colorScheme.textPrimary} font-mono focus:outline-none focus:border-blue-500 transition-colors`}
           />
           <span className={`text-xs ${colorScheme.textMuted}`}>
             Target line shown on I-Chart (default: 1.33)
@@ -367,7 +367,9 @@ const PerformanceSetupPanelBase: React.FC<PerformanceSetupPanelBaseProps> = ({
             <Activity size={24} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Configure Performance Mode</h2>
+            <h2 className={`text-xl font-bold ${colorScheme.textPrimary}`}>
+              Configure Performance Mode
+            </h2>
             <p className={`text-sm ${colorScheme.textSecondary}`}>
               Select which columns to analyze as measures
             </p>
@@ -398,12 +400,14 @@ const PerformanceSetupPanelBase: React.FC<PerformanceSetupPanelBaseProps> = ({
           <div className="p-2 bg-blue-600/20 text-blue-400 rounded-lg">
             <Activity size={20} />
           </div>
-          <h2 className="text-lg font-bold text-white">Configure Performance Mode</h2>
+          <h2 className={`text-lg font-bold ${colorScheme.textPrimary}`}>
+            Configure Performance Mode
+          </h2>
         </div>
         {onCancel && (
           <button
             onClick={onCancel}
-            className={`${colorScheme.textSecondary} hover:text-white p-1 transition-colors`}
+            className={`${colorScheme.textSecondary} hover:${colorScheme.textPrimary} p-1 transition-colors`}
           >
             <X size={20} />
           </button>
@@ -418,7 +422,7 @@ const PerformanceSetupPanelBase: React.FC<PerformanceSetupPanelBaseProps> = ({
         {onCancel && (
           <button
             onClick={onCancel}
-            className={`px-4 py-2 ${colorScheme.textSecondary} hover:text-white ${colorScheme.hoverBg} rounded-lg transition-colors`}
+            className={`px-4 py-2 ${colorScheme.textSecondary} hover:${colorScheme.textPrimary} ${colorScheme.hoverBg} rounded-lg transition-colors`}
           >
             Cancel
           </button>

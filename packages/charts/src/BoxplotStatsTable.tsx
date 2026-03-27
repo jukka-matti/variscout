@@ -26,7 +26,7 @@ const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
   variationThreshold = 50,
   compact = false,
 }) => {
-  const { isDark, formatStat, t } = useChartTheme();
+  const { formatStat, t } = useChartTheme();
 
   // Find the row with highest StdDev
   const highestStdDevKey = useMemo(() => {
@@ -60,13 +60,13 @@ const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
 
   const showVariation = categoryContributions && categoryContributions.size > 0;
 
-  // Theme-aware colors
-  const headerBg = isDark ? 'bg-slate-800' : 'bg-slate-100';
-  const rowEvenBg = isDark ? 'bg-slate-900/50' : 'bg-white';
-  const rowOddBg = isDark ? 'bg-slate-800/30' : 'bg-slate-50';
-  const borderColor = isDark ? 'border-slate-700' : 'border-slate-200';
-  const textPrimary = isDark ? 'text-slate-200' : 'text-slate-800';
-  const textSecondary = isDark ? 'text-slate-400' : 'text-slate-600';
+  // Theme-aware colors using semantic tokens
+  const headerBg = 'bg-surface-tertiary';
+  const rowEvenBg = 'bg-surface';
+  const rowOddBg = 'bg-surface-secondary/30';
+  const borderColor = 'border-edge';
+  const textPrimary = 'text-content';
+  const textSecondary = 'text-content-secondary';
   const highlightText = 'text-red-400';
   const starColor = 'text-amber-400';
 
