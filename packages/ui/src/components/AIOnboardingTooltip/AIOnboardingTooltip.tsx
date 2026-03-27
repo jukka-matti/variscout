@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useTooltipPosition } from '@variscout/hooks';
 
 const STORAGE_KEY = 'variscout_ai_onboarding_seen';
 
@@ -15,20 +16,43 @@ export interface AIOnboardingTooltipProps {
  * First-time onboarding tooltip pointing to the NarrativeBar "Ask" button.
  * Shows once per browser, dismissed on any click.
  */
+/** Arrow classes for each direction */
+function getArrowClass(dir: 'top' | 'bottom' | 'left' | 'right'): string {
+  const base = 'absolute w-3 h-3 bg-blue-600 rotate-45';
+  switch (dir) {
+    case 'top':
+      return `${base} left-1/2 -translate-x-1/2 -bottom-1.5`;
+    case 'bottom':
+      return `${base} left-1/2 -translate-x-1/2 -top-1.5`;
+    case 'left':
+      return `${base} top-1/2 -translate-y-1/2 -right-1.5`;
+    case 'right':
+      return `${base} top-1/2 -translate-y-1/2 -left-1.5`;
+  }
+}
+
 const AIOnboardingTooltip: React.FC<AIOnboardingTooltipProps> = ({
   isAIAvailable,
   anchorRef,
   anchorSelector,
 }) => {
   const [visible, setVisible] = useState(false);
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  const getAnchorElement = useCallback((): HTMLElement | null => {
-    if (anchorRef?.current) return anchorRef.current;
-    if (anchorSelector) return document.querySelector<HTMLElement>(anchorSelector);
-    return null;
-  }, [anchorRef, anchorSelector]);
+  // Resolve anchor element into a stable ref for the hook
+  const resolvedAnchorRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (anchorRef?.current) {
+      resolvedAnchorRef.current = anchorRef.current;
+    } else if (anchorSelector) {
+      resolvedAnchorRef.current = document.querySelector<HTMLElement>(anchorSelector);
+    }
+  }, [anchorRef, anchorSelector, visible]);
+
+  const { position, style } = useTooltipPosition(resolvedAnchorRef, tooltipRef, {
+    preferred: 'top',
+    enabled: visible,
+  });
 
   // Check if already seen
   useEffect(() => {
@@ -44,26 +68,6 @@ const AIOnboardingTooltip: React.FC<AIOnboardingTooltipProps> = ({
       // localStorage unavailable — skip
     }
   }, [isAIAvailable]);
-
-  // Position above anchor
-  useEffect(() => {
-    if (!visible) return;
-
-    const updatePosition = () => {
-      const el = getAnchorElement();
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        setPosition({
-          top: rect.top - 8,
-          left: rect.left + rect.width / 2,
-        });
-      }
-    };
-
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    return () => window.removeEventListener('resize', updatePosition);
-  }, [visible, getAnchorElement]);
 
   // Dismiss on any click
   const dismiss = useCallback(() => {
@@ -88,28 +92,21 @@ const AIOnboardingTooltip: React.FC<AIOnboardingTooltipProps> = ({
     };
   }, [visible, dismiss]);
 
-  if (!visible || !position) return null;
+  if (!visible) return null;
 
   return (
     <div
       ref={tooltipRef}
       data-testid="ai-onboarding-tooltip"
-      className="fixed z-50 max-w-[280px] px-3 py-2 rounded-lg bg-blue-600 text-white text-xs shadow-lg transition-opacity duration-300"
-      style={{
-        top: position.top,
-        left: position.left,
-        transform: 'translate(-50%, -100%)',
-      }}
+      className="z-50 max-w-[280px] px-3 py-2 rounded-lg bg-blue-600 text-white text-xs shadow-lg transition-opacity duration-300"
+      style={style}
     >
       <p>
         Tap &ldquo;Ask &rarr;&rdquo; to explore your data with AI assistance. You can control this
         in Settings.
       </p>
-      {/* Arrow pointing down */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-3 h-3 bg-blue-600 rotate-45"
-        aria-hidden="true"
-      />
+      {/* Arrow */}
+      <div className={getArrowClass(position)} aria-hidden="true" />
     </div>
   );
 };

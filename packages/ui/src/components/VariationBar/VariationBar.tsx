@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { getVariationImpactLevel, getVariationInsight } from '@variscout/core';
+import { useTooltipPosition, type TooltipDirection } from '@variscout/hooks';
 
 /**
  * Color scheme for VariationBar component
@@ -74,6 +75,21 @@ function getTextColor(impactLevel: 'high' | 'moderate' | 'low'): string {
   }
 }
 
+/** Arrow position classes for each tooltip direction */
+function getArrowClasses(dir: TooltipDirection, tooltipBg: string, tooltipBorder: string): string {
+  const base = `absolute w-2 h-2 rotate-45 ${tooltipBg}`;
+  switch (dir) {
+    case 'top':
+      return `${base} bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 border-r border-b ${tooltipBorder}`;
+    case 'bottom':
+      return `${base} top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 border-l border-t ${tooltipBorder}`;
+    case 'left':
+      return `${base} right-0 top-1/2 -translate-y-1/2 translate-x-1/2 border-t border-r ${tooltipBorder}`;
+    case 'right':
+      return `${base} left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 border-b border-l ${tooltipBorder}`;
+  }
+}
+
 /**
  * Stacked bar showing focused vs outside-scope variation
  *
@@ -108,15 +124,26 @@ const VariationBar: React.FC<VariationBarProps> = ({
   const insightText = getVariationInsight(isolatedPct);
   const unexplainedPct = 100 - isolatedPct;
 
+  const [isHovered, setIsHovered] = useState(false);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const { position, style } = useTooltipPosition(triggerRef, tooltipRef, {
+    preferred: 'top',
+    enabled: isHovered,
+  });
+
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
       {/* Bar container */}
       <div
-        className={`relative group${onClick ? ' cursor-pointer' : ''}`}
+        ref={triggerRef}
+        className={`relative${onClick ? ' cursor-pointer' : ''}`}
         onClick={onClick}
         role={onClick ? 'button' : undefined}
         tabIndex={onClick ? 0 : undefined}
         aria-label={onClick ? 'Open investigation panel' : undefined}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         onKeyDown={
           onClick
             ? e => {
@@ -136,33 +163,32 @@ const VariationBar: React.FC<VariationBarProps> = ({
             style={{ width: `${Math.max(isolatedPct, 1)}%` }}
           />
         </div>
+      </div>
 
-        {/* Tooltip */}
-        <div
-          className={`
-            absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 rounded-lg
-            ${colorScheme.tooltipBg} border ${colorScheme.tooltipBorder} shadow-xl
-            opacity-0 invisible group-hover:opacity-100 group-hover:visible
-            transition-all duration-200 z-50
-            text-xs pointer-events-none
-          `}
-        >
-          <div className={`font-semibold ${textColor} mb-1`}>
-            Focused on {Math.round(isolatedPct)}% of total variation
-          </div>
-          <p className={colorScheme.contentText}>{insightText}</p>
-          <div
-            className={`mt-2 pt-2 border-t ${colorScheme.tooltipBorder} ${colorScheme.mutedText}`}
-          >
-            {impactLevel === 'high' && 'High impact - strong case for action'}
-            {impactLevel === 'moderate' && 'Moderate impact - worth investigating'}
-            {impactLevel === 'low' && 'One of several contributing factors'}
-          </div>
-          {/* Tooltip arrow */}
-          <div
-            className={`absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 ${colorScheme.tooltipBg} border-r border-b ${colorScheme.tooltipBorder}`}
-          />
+      {/* Tooltip (portal-free, fixed position) */}
+      <div
+        ref={tooltipRef}
+        className={`
+          w-64 p-3 rounded-lg z-50
+          ${colorScheme.tooltipBg} border ${colorScheme.tooltipBorder} shadow-xl
+          transition-opacity duration-200 text-xs pointer-events-none
+          ${isHovered ? 'opacity-100' : 'opacity-0 invisible'}
+        `}
+        style={style}
+      >
+        <div className={`font-semibold ${textColor} mb-1`}>
+          Focused on {Math.round(isolatedPct)}% of total variation
         </div>
+        <p className={colorScheme.contentText}>{insightText}</p>
+        <div className={`mt-2 pt-2 border-t ${colorScheme.tooltipBorder} ${colorScheme.mutedText}`}>
+          {impactLevel === 'high' && 'High impact - strong case for action'}
+          {impactLevel === 'moderate' && 'Moderate impact - worth investigating'}
+          {impactLevel === 'low' && 'One of several contributing factors'}
+        </div>
+        {/* Tooltip arrow */}
+        <div
+          className={getArrowClasses(position, colorScheme.tooltipBg, colorScheme.tooltipBorder)}
+        />
       </div>
 
       {/* Labels */}

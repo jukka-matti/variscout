@@ -15,6 +15,10 @@ vi.mock('@variscout/hooks', () => {
       t: (key: string) => catalog[key] ?? key,
       locale: 'en',
     }),
+    useTooltipPosition: () => ({
+      position: 'top',
+      style: { position: 'fixed', top: 0, left: 0, visibility: 'visible' },
+    }),
   };
 });
 

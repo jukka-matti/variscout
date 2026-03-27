@@ -248,6 +248,14 @@ export {
 // Scroll Spy
 export { useScrollSpy, type UseScrollSpyOptions, type UseScrollSpyReturn } from './useScrollSpy';
 
+// Tooltip Positioning
+export {
+  useTooltipPosition,
+  type TooltipDirection,
+  type UseTooltipPositionOptions,
+  type TooltipPositionResult,
+} from './useTooltipPosition';
+
 // Snapshot Data
 export {
   useSnapshotData,

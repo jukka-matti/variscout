@@ -66,7 +66,14 @@ import { HelpTooltip } from '@variscout/ui';
 
 ---
 
+## Viewport-Aware Positioning
+
+HelpTooltip defaults to `position="auto"`, which uses the `useTooltipPosition` hook from `@variscout/hooks` to automatically flip direction when the tooltip would clip against the viewport edge. Pass an explicit position (`"top"`, `"bottom"`, `"left"`, `"right"`) to override auto-detection.
+
+See [Tooltip Positioning](../patterns/tooltip-positioning.md) for the full pattern documentation.
+
 ## See Also
 
 - [Glossary Feature](../../03-features/learning/glossary.md)
 - [Foundational Patterns](foundational-patterns.md)
+- [Tooltip Positioning Pattern](../patterns/tooltip-positioning.md)

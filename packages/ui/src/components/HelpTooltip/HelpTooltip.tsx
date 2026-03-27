@@ -1,10 +1,10 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Info } from 'lucide-react';
 import type { GlossaryTerm } from '@variscout/core';
-import { useTranslation } from '@variscout/hooks';
+import { useTranslation, useTooltipPosition } from '@variscout/hooks';
 import './HelpTooltip.css';
 
-export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right';
+export type TooltipPosition = 'auto' | 'top' | 'bottom' | 'left' | 'right';
 
 export interface HelpTooltipProps {
   /** The term ID to look up in the glossary */
@@ -43,7 +43,7 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
   iconSize = 14,
   websiteUrl = 'https://variscout.com',
   onLearnMoreClick,
-  position = 'top',
+  position = 'auto',
   className = '',
   children,
   showLearnMore = true,
@@ -55,6 +55,19 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const tooltipId = `help-tooltip-${termId || 'custom'}`;
+
+  // Viewport-aware auto-positioning (when position='auto')
+  const isAuto = position === 'auto';
+  const showTooltipState = isVisible || isFocused || isTouchToggled;
+  const { position: resolvedPosition, style: tooltipStyle } = useTooltipPosition(
+    triggerRef,
+    tooltipRef,
+    {
+      preferred: 'top',
+      enabled: isAuto && showTooltipState && !!term,
+    }
+  );
+  const effectivePosition = isAuto ? resolvedPosition : position;
 
   // Touch toggle: tap ⓘ to show/hide on touch devices
   const handleClick = useCallback((e: React.MouseEvent) => {
@@ -123,7 +136,7 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
     return children ? <>{children}</> : null;
   }
 
-  const showTooltip = isVisible || isFocused || isTouchToggled;
+  const showTooltip = showTooltipState;
 
   return (
     <span
@@ -144,7 +157,8 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
       <div
         ref={tooltipRef}
         id={tooltipId}
-        className={`help-tooltip help-tooltip--${position} ${showTooltip ? 'help-tooltip--visible' : ''}`}
+        className={`help-tooltip help-tooltip--${effectivePosition} ${showTooltip ? 'help-tooltip--visible' : ''}`}
+        style={isAuto && showTooltip ? tooltipStyle : undefined}
         role="tooltip"
         aria-hidden={!showTooltip}
       >
