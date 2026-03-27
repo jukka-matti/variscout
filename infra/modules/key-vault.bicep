@@ -40,7 +40,7 @@ var tags = {
 
 var keyVaultSecretsUserRole = '4633458b-17de-408a-b874-0445c86b69e6'
 
-resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
+resource keyVault 'Microsoft.KeyVault/vaults@2024-11-01' = {
   name: keyVaultName
   location: location
   tags: tags
@@ -76,7 +76,7 @@ resource functionAppRoleAssignment 'Microsoft.Authorization/roleAssignments@2022
   }
 }
 
-resource aiServicesApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource aiServicesApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2024-11-01' = {
   parent: keyVault
   name: 'ai-services-api-key'
   properties: {
@@ -86,7 +86,7 @@ resource aiServicesApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' =
 
 // EasyAuth reads clientSecret from app settings (MICROSOFT_PROVIDER_AUTHENTICATION_SECRET).
 // This Key Vault copy provides a secure audit trail and enables admin rotation via Azure Portal.
-resource clientSecretSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource clientSecretSecret 'Microsoft.KeyVault/vaults/secrets@2024-11-01' = {
   parent: keyVault
   name: 'client-secret'
   properties: {
@@ -94,7 +94,7 @@ resource clientSecretSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   }
 }
 
-resource searchApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if (hasTeamFeatures) {
+resource searchApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2024-11-01' = if (hasTeamFeatures) {
   parent: keyVault
   name: 'search-api-key'
   properties: {
@@ -102,7 +102,7 @@ resource searchApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if 
   }
 }
 
-resource functionKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if (hasTeamFeatures) {
+resource functionKeySecret 'Microsoft.KeyVault/vaults/secrets@2024-11-01' = if (hasTeamFeatures) {
   parent: keyVault
   name: 'function-key'
   properties: {

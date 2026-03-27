@@ -4,7 +4,7 @@ title: 'ADR-049: CoScout Knowledge Catalyst — Visual Context & Active Insight 
 
 # ADR-049: CoScout Knowledge Catalyst — Visual Context & Active Insight Capture
 
-**Status:** Draft (revised)
+**Status:** Accepted
 **Date:** 2026-03-24
 
 ## Context

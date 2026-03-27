@@ -215,6 +215,60 @@ All errors are inline — never modal dialogs. Errors logged to `errorService`.
 
 ---
 
+## RefLink and Visual Grounding
+
+When CoScout messages reference specific chart elements, they render inline `RefLink` components that let analysts jump directly to what the AI is describing.
+
+### RefLink Component
+
+Inline clickable reference rendered inside CoScout message bubbles.
+
+**Props:**
+
+```typescript
+interface RefLinkProps {
+  targetType: 'factor' | 'stat' | 'chart' | 'finding';
+  targetId?: string;
+  displayText: string;
+  onActivate: (targetType: string, targetId?: string) => void;
+}
+```
+
+**Visual:** Blue text (`text-blue-400`) with a dotted underline, preceded by a small lucide icon that maps to the target type:
+
+| `targetType` | Icon         |
+| ------------ | ------------ |
+| `factor`     | `BarChart2`  |
+| `stat`       | `Activity`   |
+| `chart`      | `TrendingUp` |
+| `finding`    | `Flag`       |
+
+**Interaction:** Clicking a `RefLink` calls `onActivate`, which dispatches a highlight event via `useVisualGrounding`. The first ref in a new CoScout response auto-activates on render; subsequent refs require a click.
+
+**Accessibility:** `role="button"`, `tabIndex={0}`, keyboard-activatable via Enter/Space.
+
+### Visual Highlight Classes
+
+CSS classes applied by `useVisualGrounding` to DOM elements matching a ref target. Theme-aware — variants are defined in `packages/ui/src/styles/components.css`.
+
+| Class                         | State                | Style                                                                  |
+| ----------------------------- | -------------------- | ---------------------------------------------------------------------- |
+| `.coscout-highlight`          | Active (0–3s)        | 2px blue border + `box-shadow` glow (`#3b82f6` light / `#60a5fa` dark) |
+| `.coscout-highlight--settled` | Settled (after glow) | 1px blue border, no glow                                               |
+
+Both classes are removed at the start of the next conversation turn, or when `useVisualGrounding` receives a `clear` event.
+
+**Elements that receive highlight classes:**
+
+- `DashboardChartCard` — for `factor` and `chart` refs (boxplot categories, pareto bars, chart containers)
+- `StatsPanelBase` stat cards — for `stat` refs (mean, sigma, cpk, cp, samples)
+- `FindingCard` — for `finding` refs
+- SVG `<g>` elements inside charts for bar/point-level precision (future)
+
+**`useVisualGrounding` hook** (`packages/hooks/src/useVisualGrounding.ts`) manages the full lifecycle: auto-highlight first ref, handle click-activations, run the 3s timer, transition to settled state, and clear on turn boundary. Components subscribe via a `data-ref-target` attribute that the hook uses to locate DOM nodes.
+
+---
+
 ## Color Scheme
 
 All components follow the standard `colorScheme` pattern with defaults using semantic tokens.

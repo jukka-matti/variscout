@@ -45,7 +45,7 @@ jobs:
         run: pnpm audit --audit-level=high
 
       - name: Validate lockfile integrity
-        run: npx lockfile-lint --path pnpm-lock.yaml --type npm --allowed-hosts npm --validate-https
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Run tests
         run: pnpm test

@@ -76,7 +76,9 @@
             },
             "toolTip": "A client secret from your App Registration. Found under Certificates & secrets.",
             "constraints": {
-              "required": true
+              "required": true,
+              "regex": "^.{1,}$",
+              "validationMessage": "Client secret is required."
             },
             "options": {
               "hideConfirmation": true

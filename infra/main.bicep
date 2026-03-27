@@ -16,7 +16,7 @@ param clientId string
 param clientSecret string
 
 @description('URL to the VariScout application deployment package')
-param packageUrl string = 'https://variscout.blob.core.windows.net/releases/variscout-azure-latest.zip'
+param packageUrl string = 'https://variscout.blob.${environment().suffixes.storage}/releases/variscout-azure-latest.zip'
 
 @description('VariScout plan: \'standard\' (local files, AI included), \'team\' (+ OneDrive, Teams collaboration, Knowledge Base)')
 @allowed([

@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.40.2.10011",
-      "templateHash": "6597241454776573983"
+      "version": "0.41.2.15936",
+      "templateHash": "5088387156692704870"
     },
     "description": "Deploys VariScout Azure App as a Managed Application with App Service and EasyAuth"
   },
@@ -40,7 +40,7 @@
     },
     "packageUrl": {
       "type": "string",
-      "defaultValue": "https://variscout.blob.core.windows.net/releases/variscout-azure-latest.zip",
+      "defaultValue": "[format('https://variscout.blob.{0}/releases/variscout-azure-latest.zip', environment().suffixes.storage)]",
       "metadata": {
         "description": "URL to the VariScout application deployment package"
       }
@@ -99,8 +99,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.40.2.10011",
-              "templateHash": "3804476778468531553"
+              "version": "0.41.2.15936",
+              "templateHash": "4198521691278681829"
             }
           },
           "parameters": {
@@ -276,8 +276,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.40.2.10011",
-              "templateHash": "11877704128382012245"
+              "version": "0.41.2.15936",
+              "templateHash": "1509274814155354089"
             }
           },
           "parameters": {
@@ -410,8 +410,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.40.2.10011",
-              "templateHash": "14785674350473375142"
+              "version": "0.41.2.15936",
+              "templateHash": "496426149177660577"
             }
           },
           "parameters": {
@@ -605,7 +605,7 @@
                   "azureActiveDirectory": {
                     "enabled": true,
                     "registration": {
-                      "openIdIssuer": "[format('https://login.microsoftonline.com/{0}/v2.0', subscription().tenantId)]",
+                      "openIdIssuer": "[format('{0}{1}/v2.0', environment().authentication.loginEndpoint, subscription().tenantId)]",
                       "clientId": "[parameters('clientId')]",
                       "clientSecretSettingName": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
                     },
@@ -698,8 +698,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.40.2.10011",
-              "templateHash": "5768016708259949924"
+              "version": "0.41.2.15936",
+              "templateHash": "14170450424861749463"
             }
           },
           "parameters": {
@@ -774,7 +774,7 @@
           "resources": [
             {
               "type": "Microsoft.Storage/storageAccounts",
-              "apiVersion": "2023-05-01",
+              "apiVersion": "2025-01-01",
               "name": "[parameters('functionStorageName')]",
               "location": "[parameters('location')]",
               "tags": "[variables('tags')]",
@@ -816,7 +816,7 @@
                   "appSettings": [
                     {
                       "name": "AzureWebJobsStorage",
-                      "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', parameters('functionStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('functionStorageName')), '2023-05-01').keys[0].value)]"
+                      "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', parameters('functionStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('functionStorageName')), '2025-01-01').keys[0].value)]"
                     },
                     {
                       "name": "FUNCTIONS_EXTENSION_VERSION",
@@ -948,8 +948,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.40.2.10011",
-              "templateHash": "17754386857755675052"
+              "version": "0.41.2.15936",
+              "templateHash": "6220342521848020537"
             }
           },
           "parameters": {
@@ -1025,7 +1025,7 @@
           "resources": [
             {
               "type": "Microsoft.KeyVault/vaults",
-              "apiVersion": "2023-07-01",
+              "apiVersion": "2024-11-01",
               "name": "[parameters('keyVaultName')]",
               "location": "[parameters('location')]",
               "tags": "[variables('tags')]",
@@ -1066,7 +1066,7 @@
             },
             {
               "type": "Microsoft.KeyVault/vaults/secrets",
-              "apiVersion": "2023-07-01",
+              "apiVersion": "2024-11-01",
               "name": "[format('{0}/{1}', parameters('keyVaultName'), 'ai-services-api-key')]",
               "properties": {
                 "value": "[parameters('aiServicesApiKey')]"
@@ -1075,7 +1075,7 @@
             },
             {
               "type": "Microsoft.KeyVault/vaults/secrets",
-              "apiVersion": "2023-07-01",
+              "apiVersion": "2024-11-01",
               "name": "[format('{0}/{1}', parameters('keyVaultName'), 'client-secret')]",
               "properties": {
                 "value": "[parameters('clientSecret')]"
@@ -1085,7 +1085,7 @@
             {
               "condition": "[parameters('hasTeamFeatures')]",
               "type": "Microsoft.KeyVault/vaults/secrets",
-              "apiVersion": "2023-07-01",
+              "apiVersion": "2024-11-01",
               "name": "[format('{0}/{1}', parameters('keyVaultName'), 'search-api-key')]",
               "properties": {
                 "value": "[parameters('searchApiKey')]"
@@ -1095,7 +1095,7 @@
             {
               "condition": "[parameters('hasTeamFeatures')]",
               "type": "Microsoft.KeyVault/vaults/secrets",
-              "apiVersion": "2023-07-01",
+              "apiVersion": "2024-11-01",
               "name": "[format('{0}/{1}', parameters('keyVaultName'), 'function-key')]",
               "properties": {
                 "value": "[parameters('functionKey')]"

@@ -34,7 +34,7 @@ var tags = {
   managedBy: 'AzureMarketplace'
 }
 
-resource functionStorage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
+resource functionStorage 'Microsoft.Storage/storageAccounts@2025-01-01' = {
   name: functionStorageName
   location: location
   tags: tags

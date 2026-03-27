@@ -138,6 +138,8 @@ Only **Azure OpenAI** is supported. Provider detection (`detectProvider`, `Model
 
 **Source attribution:** Knowledge Base sources formatted in `formatKnowledgeContext()` with `[Source: name]` markers. In the CoScout UI, these markers are rendered as violet inline badges in assistant messages.
 
+**Visual grounding extends transparency:** When CoScout references a specific chart element, the Visual Grounding Pattern (§2.9) highlights it in the UI, making the AI's frame of reference visible and verifiable by the analyst.
+
 ### 2.4 Error & Degradation Pattern
 
 VariScout's error handling is already exemplary — documenting here as reference:
@@ -211,6 +213,58 @@ When the analyst is in the IMPROVE phase **and** staged comparison data is prese
 - All responses are grounded in computed `StagedComparisonResult` data — AI interprets, never invents numbers (Principle 1)
 
 Improvement ideas injected during converging phase when supported hypotheses exist. See `prompts/coScout.ts` for implementation.
+
+### 2.9 Visual Grounding Pattern (ADR-050)
+
+**Principle:** When CoScout references a chart element (a factor in the Boxplot, a bar in the Pareto, a point in the I-Chart, or a stat card in the Stats panel), the UI highlights that element so the analyst can see exactly what the AI is talking about.
+
+**Mechanism:**
+
+- CoScout responses embed `REF[type:id]` markers (e.g., `REF[factor:Machine_A]`, `REF[stat:cpk]`) when referencing visual elements
+- `parseRefMarkers()` in `packages/core/src/ai/refMarkers.ts` extracts these markers from the raw response text
+- Parsed refs are rendered as `RefLink` inline components in `CoScoutMessages` — blue text with a dotted underline and a lucide icon prefix matching the target type
+- `useVisualGrounding` in `packages/hooks/src/useVisualGrounding.ts` manages highlight lifecycle: first ref in a response auto-highlights on render; additional refs highlight on click
+
+**Highlight lifecycle:**
+
+1. **Active glow** — `coscout-highlight` CSS class applied: 2px blue (`#3b82f6`) border + `box-shadow` glow for 3 seconds
+2. **Settled** — Transitions to `coscout-highlight--settled`: subtle 1px blue border, no glow
+3. **Clear** — Class removed when a new conversation turn begins or another ref is activated
+
+**Theme-aware CSS classes:**
+
+```css
+/* Light theme */
+.coscout-highlight {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+.coscout-highlight--settled {
+  border: 1px solid #3b82f6;
+}
+
+/* Dark theme (data-theme="dark") */
+[data-theme='dark'] .coscout-highlight {
+  border: 2px solid #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+[data-theme='dark'] .coscout-highlight--settled {
+  border: 1px solid #60a5fa;
+}
+```
+
+**Supported targets:**
+
+| Target type | Applied to                                           | lucide icon prefix |
+| ----------- | ---------------------------------------------------- | ------------------ |
+| `factor`    | `DashboardChartCard` (Boxplot category, Pareto bar)  | `BarChart2`        |
+| `stat`      | `StatsPanelBase` stat cards (mean, sigma, cpk, etc.) | `Activity`         |
+| `chart`     | Chart container wrapper                              | `TrendingUp`       |
+| `finding`   | `FindingCard`                                        | `Flag`             |
+
+**Action proposal highlights:** `ActionProposalCard` in CoScout also dispatches highlight events for its target when the proposal card enters view, reinforcing the link between a proposed action and the visual element it refers to.
+
+**Governance:** Visual grounding never overrides or interferes with data. Highlights are purely decorative CSS classes applied and removed by `useVisualGrounding`. No analysis state is mutated.
 
 ### 2.8 Actionable Suggestion Pattern (ADR-027)
 

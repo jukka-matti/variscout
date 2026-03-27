@@ -141,7 +141,7 @@ resource authSettings 'Microsoft.Web/sites/config@2024-04-01' = {
       azureActiveDirectory: {
         enabled: true
         registration: {
-          openIdIssuer: 'https://login.microsoftonline.com/${subscription().tenantId}/v2.0'
+          openIdIssuer: '${environment().authentication.loginEndpoint}${subscription().tenantId}/v2.0'
           clientId: clientId
           clientSecretSettingName: 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET'
         }
