@@ -9,38 +9,56 @@ export interface DashboardGridProps {
   paretoCard?: React.ReactNode;
   /** The Stats panel (right column on large screens) */
   statsPanel: React.ReactNode;
+  /** Layout mode: 'grid' (2x2 viewport-fit) or 'scroll' (stacked full-width) */
+  layout?: 'grid' | 'scroll';
 }
 
 /**
  * DashboardGrid — Shared chart grid layout for the analysis dashboard.
  *
- * Height chain (desktop): h-screen → flex-1 → h-full → flex-1 → **h-full grid**
- * Every container must have DEFINITE height for CSS Grid fr units to work.
- * Grid items use overflow-hidden so withParentSize measures the constrained
- * size, not the SVG intrinsic size (which would create circular expansion).
+ * Two layout modes:
  *
- * Layout:
- * - Top: I-Chart (full width, 55fr)
- * - Bottom: [Boxplot + Pareto] side-by-side | StatsPanel (45fr)
+ * **Grid** (default): All 4 charts fit viewport in a 55fr/45fr CSS Grid.
+ * Height chain: h-screen → flex-1 → h-full → **h-full grid**
+ * Grid items use overflow-hidden so withParentSize measures constrained size.
  *
- * Mobile/tablet: flex-col with natural scroll (no grid).
+ * **Scroll**: Charts stack vertically at comfortable fixed heights.
+ * Natural overflow-y-auto scroll. Each chart gets full width.
+ *
+ * Mobile/tablet: always flex-col with natural scroll (layout prop ignored).
  */
 const DashboardGrid: React.FC<DashboardGridProps> = ({
   ichartCard,
   boxplotCard,
   paretoCard,
   statsPanel,
-}) => (
-  <div className="flex flex-col gap-3 p-3 flex-1 min-h-0 lg:h-full lg:grid lg:grid-rows-[55fr_45fr] lg:overflow-hidden">
-    <div className="min-h-0 overflow-hidden lg:rounded-2xl">{ichartCard}</div>
-    <div className="flex flex-col lg:flex-row gap-3 min-h-0 overflow-hidden">
-      <div className="flex flex-1 flex-col md:flex-row gap-3 min-h-0 overflow-hidden">
-        {boxplotCard}
-        {paretoCard}
+  layout = 'grid',
+}) => {
+  // Scroll mode: stacked full-width with fixed heights
+  if (layout === 'scroll') {
+    return (
+      <div className="flex flex-col gap-4 p-3 overflow-y-auto">
+        <div className="min-h-[500px] rounded-2xl">{ichartCard}</div>
+        <div className="min-h-[400px] rounded-2xl">{boxplotCard}</div>
+        {paretoCard && <div className="min-h-[400px] rounded-2xl">{paretoCard}</div>}
+        <div className="rounded-2xl">{statsPanel}</div>
       </div>
-      <div className="min-h-0 overflow-hidden lg:w-[340px] lg:flex-shrink-0">{statsPanel}</div>
+    );
+  }
+
+  // Grid mode (default): 2x2 viewport-fit
+  return (
+    <div className="flex flex-col gap-3 p-3 flex-1 min-h-0 lg:h-full lg:grid lg:grid-rows-[55fr_45fr] lg:overflow-hidden">
+      <div className="min-h-0 overflow-hidden lg:rounded-2xl">{ichartCard}</div>
+      <div className="flex flex-col lg:flex-row gap-3 min-h-0 overflow-hidden">
+        <div className="flex flex-1 flex-col md:flex-row gap-3 min-h-0 overflow-hidden">
+          {boxplotCard}
+          {paretoCard}
+        </div>
+        <div className="min-h-0 overflow-hidden lg:w-[340px] lg:flex-shrink-0">{statsPanel}</div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default DashboardGrid;

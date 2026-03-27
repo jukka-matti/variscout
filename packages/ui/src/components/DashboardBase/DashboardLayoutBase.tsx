@@ -182,6 +182,8 @@ export interface DashboardLayoutBaseProps {
   boxplotObservationCount?: number;
   /** Pareto observation count */
   paretoObservationCount?: number;
+  /** Dashboard layout mode: 'grid' (viewport-fit) or 'scroll' (stacked) */
+  layout?: 'grid' | 'scroll';
 }
 
 /**
@@ -259,6 +261,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   ichartObservationCount,
   boxplotObservationCount,
   paretoObservationCount,
+  layout,
 }) => {
   const { formatStat } = useTranslation();
   const {
@@ -481,6 +484,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
         renderFocusedView
       ) : (
         <DashboardGrid
+          layout={layout}
           ichartCard={
             <DashboardChartCard
               id="ichart-card"

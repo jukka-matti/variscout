@@ -49,6 +49,23 @@ h-dvh (100dvh)                            ← App.tsx root div (dvh adapts to mo
 | `flex-shrink-0`         | Prevents sticky nav from being compressed by flex algorithm                                                       |
 | `grid-rows-[55fr_45fr]` | Splits available height: 55% I-Chart, 45% bottom row                                                              |
 
+## Layout Modes
+
+The dashboard supports two layout modes, toggled via a segmented control in the toolbar:
+
+| Mode               | Description                           | Overflow                     | Charts                              |
+| ------------------ | ------------------------------------- | ---------------------------- | ----------------------------------- |
+| **Grid** (default) | 2x2 viewport-fit CSS Grid (55fr/45fr) | `overflow-hidden` on desktop | All visible simultaneously          |
+| **Scroll**         | Full-width stacked, natural scroll    | `overflow-y-auto`            | Sequential review, each chart large |
+
+**Grid mode**: Best for overview — see all 4 charts at once. Matches the height chain pattern.
+
+**Scroll mode**: Best for detailed review — each chart at comfortable height (I-Chart ~500px, others ~400px). Stats panel goes full-width below charts.
+
+Layout choice persists in `displayOptions.dashboardLayout` (survives navigation). Mobile always uses scroll layout (toggle hidden).
+
+**Implementation**: `DashboardGrid` accepts a `layout: 'grid' | 'scroll'` prop. When `scroll`, it renders a `flex flex-col gap-4 overflow-y-auto` container with `min-h-[400px]` per chart card.
+
 ## Grid Slot Mapping
 
 ```

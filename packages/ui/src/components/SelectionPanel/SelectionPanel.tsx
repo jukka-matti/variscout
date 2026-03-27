@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { X, Tag } from 'lucide-react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import { X, Tag, ChevronDown, ChevronUp } from 'lucide-react';
 import type { DataRow } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 
@@ -32,21 +32,24 @@ function formatValue(value: unknown): string {
 }
 
 /**
- * SelectionPanel - Shows selected points with details
+ * SelectionPanel - Compact bar with expandable point details
  *
- * Appears below FilterBreadcrumb when points are brushed in IChart.
- * Shows first 5 selected points with their values and factors.
+ * Collapsed (default): Single-line bar with count + actions (~36px)
+ * Expanded (click chevron): Absolute dropdown overlaying chart with point list
  *
  * Design:
  * ```
- * ┌─────────────────────────────────────────────────┐
- * │ 12 points selected       [Clear] [Create Factor] │
- * ├─────────────────────────────────────────────────┤
- * │ #23: Value=45.2, Operator=A, Time=09:15        │
- * │ #47: Value=43.8, Operator=B, Time=09:30        │
- * │ #52: Value=44.1, Operator=A, Time=09:35        │
- * │ ... and 9 more points                           │
- * └─────────────────────────────────────────────────┘
+ * ┌──────────────────────────────────────────────────┐
+ * │ ● 6 selected (Esc)  [✕ Clear] [+ Create Factor] ▼│
+ * └──────────────────────────────────────────────────┘
+ *
+ * Expanded (overlays chart, doesn't push it down):
+ * ┌──────────────────────────────────────────────────┐
+ * │ ● 6 selected (Esc)  [✕ Clear] [+ Create Factor] ▲│
+ * ├──────────────────────────────────────────────────┤
+ * │ #16: Moisture_pct=10.4, Drying_Bed=Bed B         │
+ * │ ... and 1 more                                    │
+ * └──────────────────────────────────────────────────┘
  * ```
  */
 export const SelectionPanel: React.FC<SelectionPanelProps> = ({
@@ -60,6 +63,10 @@ export const SelectionPanel: React.FC<SelectionPanelProps> = ({
   onCreateFactor,
 }) => {
   const { t, formatStat } = useTranslation();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+
   // Convert Set to sorted array of indices
   const sortedIndices = useMemo(() => {
     return Array.from(selectedIndices).sort((a, b) => a - b);
@@ -71,21 +78,16 @@ export const SelectionPanel: React.FC<SelectionPanelProps> = ({
       const row = data[index];
       if (!row) return null;
 
-      // Get outcome value
       const value = outcome ? row[outcome] : null;
-
-      // Get factor values
       const factorValues = factors.map(f => ({
         name: columnAliases[f] || f,
         value: formatValue(row[f]),
       }));
-
-      // Get time value
       const timeValue = timeColumn ? formatValue(row[timeColumn]) : null;
 
       return {
         index,
-        rowNumber: index + 1, // 1-based for user display
+        rowNumber: index + 1,
         value: value !== null && value !== undefined ? formatStat(Number(value), 1) : '—',
         factors: factorValues,
         time: timeValue,
@@ -95,43 +97,63 @@ export const SelectionPanel: React.FC<SelectionPanelProps> = ({
 
   const remainingCount = sortedIndices.length - 5;
 
+  // Close dropdown on click outside
+  useEffect(() => {
+    if (!isExpanded) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        barRef.current &&
+        !barRef.current.contains(e.target as Node) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsExpanded(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isExpanded]);
+
+  // Collapse when selection is cleared
+  useEffect(() => {
+    if (selectedIndices.size === 0) setIsExpanded(false);
+  }, [selectedIndices.size]);
+
   return (
-    <div className="flex flex-col bg-blue-500/10 border-b border-blue-500/30">
-      {/* Header row */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-2 border-b border-blue-500/20">
-        <div className="flex items-center gap-2">
+    <div className="relative bg-blue-500/10 border-b border-blue-500/30" ref={barRef}>
+      {/* Compact bar — always visible */}
+      <div className="flex items-center justify-between px-4 sm:px-6 py-1.5">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-2 hover:bg-blue-500/10 rounded px-1 -ml-1 py-0.5 transition-colors"
+          aria-expanded={isExpanded}
+          aria-label={`${sortedIndices.length} points selected. Click to ${isExpanded ? 'collapse' : 'expand'} details.`}
+        >
+          <span className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />
           <span className="text-sm font-medium text-blue-300">
             {sortedIndices.length} {sortedIndices.length === 1 ? 'point' : 'points'} selected
           </span>
-          <span className="text-xs text-content-muted hidden sm:inline">(Press Esc to clear)</span>
-        </div>
+          <span className="text-xs text-content-muted hidden sm:inline">(Esc to clear)</span>
+          {isExpanded ? (
+            <ChevronUp size={14} className="text-content-muted" />
+          ) : (
+            <ChevronDown size={14} className="text-content-muted" />
+          )}
+        </button>
 
         <div className="flex items-center gap-2">
-          {/* Clear button */}
           <button
             onClick={onClearSelection}
-            className="
-              flex items-center gap-1 px-2 py-1
-              text-xs text-content-secondary
-              hover:text-red-400 hover:bg-red-400/10
-              rounded transition-colors
-            "
+            className="flex items-center gap-1 px-2 py-1 text-xs text-content-secondary hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
             aria-label="Clear selection"
           >
             <X size={14} />
             <span className="hidden sm:inline">{t('action.clear')}</span>
           </button>
 
-          {/* Create Factor button */}
           <button
             onClick={onCreateFactor}
-            className="
-              flex items-center gap-1.5 px-3 py-1.5
-              bg-blue-500/20 text-blue-300
-              hover:bg-blue-500/30
-              rounded text-xs font-medium
-              transition-colors
-            "
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 rounded text-xs font-medium transition-colors"
             aria-label="Create factor from selection"
           >
             <Tag size={14} />
@@ -140,47 +162,52 @@ export const SelectionPanel: React.FC<SelectionPanelProps> = ({
         </div>
       </div>
 
-      {/* Point details */}
-      <div className="px-4 sm:px-6 py-2 space-y-1">
-        {displayPoints.map(point => {
-          if (!point) return null;
+      {/* Expandable dropdown — overlays chart, doesn't push content */}
+      {isExpanded && (
+        <div
+          ref={dropdownRef}
+          className="absolute top-full left-0 right-0 z-50 bg-surface-secondary border border-blue-500/30 border-t-0 rounded-b-lg shadow-xl px-4 sm:px-6 py-2 space-y-1"
+        >
+          {displayPoints.map(point => {
+            if (!point) return null;
 
-          return (
-            <div key={point.index} className="text-xs text-content-secondary">
-              <span className="text-blue-300 font-medium">#{point.rowNumber}:</span>
-              {outcome && (
-                <>
-                  {' '}
-                  <span className="text-content-muted">{columnAliases[outcome] || outcome}=</span>
-                  <span className="text-white">{point.value}</span>
-                </>
-              )}
-              {point.factors.map(f => (
-                <span key={f.name}>
-                  {', '}
-                  <span className="text-content-muted">{f.name}=</span>
-                  <span className="text-white">{f.value}</span>
-                </span>
-              ))}
-              {point.time && (
-                <>
-                  {', '}
-                  <span className="text-content-muted">
-                    {columnAliases[timeColumn!] || timeColumn}=
+            return (
+              <div key={point.index} className="text-xs text-content-secondary">
+                <span className="text-blue-300 font-medium">#{point.rowNumber}:</span>
+                {outcome && (
+                  <>
+                    {' '}
+                    <span className="text-content-muted">{columnAliases[outcome] || outcome}=</span>
+                    <span className="text-white">{point.value}</span>
+                  </>
+                )}
+                {point.factors.map(f => (
+                  <span key={f.name}>
+                    {', '}
+                    <span className="text-content-muted">{f.name}=</span>
+                    <span className="text-white">{f.value}</span>
                   </span>
-                  <span className="text-white">{point.time}</span>
-                </>
-              )}
-            </div>
-          );
-        })}
+                ))}
+                {point.time && (
+                  <>
+                    {', '}
+                    <span className="text-content-muted">
+                      {columnAliases[timeColumn!] || timeColumn}=
+                    </span>
+                    <span className="text-white">{point.time}</span>
+                  </>
+                )}
+              </div>
+            );
+          })}
 
-        {remainingCount > 0 && (
-          <div className="text-xs text-content-muted italic pt-1">
-            ... and {remainingCount} more {remainingCount === 1 ? 'point' : 'points'}
-          </div>
-        )}
-      </div>
+          {remainingCount > 0 && (
+            <div className="text-xs text-content-muted italic pt-1">
+              ... and {remainingCount} more {remainingCount === 1 ? 'point' : 'points'}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
