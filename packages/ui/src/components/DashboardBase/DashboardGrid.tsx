@@ -15,13 +15,14 @@ export interface DashboardGridProps {
  * DashboardGrid — Shared chart grid layout for the analysis dashboard.
  *
  * Layout:
- * - Top: I-Chart (full width)
- * - Bottom: [Boxplot + Pareto] side-by-side | StatsPanel
+ * - Top: I-Chart (full width, ~55% height)
+ * - Bottom: [Boxplot + Pareto] side-by-side | StatsPanel (~45% height)
  *
- * Responsive breakpoints:
- * - Mobile: stacked vertically
- * - md: Boxplot + Pareto side-by-side
- * - lg: Secondary charts + StatsPanel side-by-side
+ * Desktop (lg+): CSS Grid with percentage rows + overflow-hidden ensures
+ * all 4 panels fit within the viewport. Percentage rows (not fr units)
+ * prevent content intrinsic size from expanding rows beyond their allocation.
+ *
+ * Mobile/tablet: flex-col with natural scroll.
  */
 const DashboardGrid: React.FC<DashboardGridProps> = ({
   ichartCard,
@@ -29,10 +30,10 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({
   paretoCard,
   statsPanel,
 }) => (
-  <div className="flex flex-col gap-4 p-4 flex-1 min-h-0 lg:grid lg:grid-rows-[55fr_45fr]">
-    {ichartCard}
-    <div className="flex flex-col lg:flex-row gap-4 min-h-0">
-      <div className="flex flex-1 flex-col md:flex-row gap-4 min-h-0">
+  <div className="flex flex-col gap-3 p-3 flex-1 min-h-0 lg:grid lg:grid-rows-[55%_calc(45%-12px)] lg:overflow-hidden">
+    <div className="min-h-0 overflow-hidden">{ichartCard}</div>
+    <div className="flex flex-col lg:flex-row gap-3 min-h-0 overflow-hidden">
+      <div className="flex flex-1 flex-col md:flex-row gap-3 min-h-0">
         {boxplotCard}
         {paretoCard}
       </div>
