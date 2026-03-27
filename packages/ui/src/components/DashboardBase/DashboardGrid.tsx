@@ -18,9 +18,9 @@ export interface DashboardGridProps {
  * - Top: I-Chart (full width, ~55% height)
  * - Bottom: [Boxplot + Pareto] side-by-side | StatsPanel (~45% height)
  *
- * Desktop (lg+): CSS Grid with percentage rows + overflow-hidden ensures
- * all 4 panels fit within the viewport. Percentage rows (not fr units)
- * prevent content intrinsic size from expanding rows beyond their allocation.
+ * Desktop (lg+): CSS Grid with fr rows + overflow-hidden on grid items.
+ * Grid items have min-h-0 + overflow-hidden so their intrinsic content
+ * size cannot expand the rows beyond the fr allocation.
  *
  * Mobile/tablet: flex-col with natural scroll.
  */
@@ -30,14 +30,14 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({
   paretoCard,
   statsPanel,
 }) => (
-  <div className="flex flex-col gap-3 p-3 flex-1 min-h-0 lg:grid lg:grid-rows-[55%_calc(45%-12px)] lg:overflow-hidden">
-    <div className="min-h-0 overflow-hidden">{ichartCard}</div>
+  <div className="flex flex-col gap-3 p-3 flex-1 min-h-0 lg:grid lg:grid-rows-[55fr_45fr]">
+    <div className="min-h-0 overflow-hidden rounded-2xl">{ichartCard}</div>
     <div className="flex flex-col lg:flex-row gap-3 min-h-0 overflow-hidden">
-      <div className="flex flex-1 flex-col md:flex-row gap-3 min-h-0">
+      <div className="flex flex-1 flex-col md:flex-row gap-3 min-h-0 overflow-hidden">
         {boxplotCard}
         {paretoCard}
       </div>
-      {statsPanel}
+      <div className="min-h-0 overflow-hidden lg:w-[340px] lg:flex-shrink-0">{statsPanel}</div>
     </div>
   </div>
 );
