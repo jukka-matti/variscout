@@ -308,8 +308,12 @@ interface UseMultiSelectionOptions<T> {
   getY?: (d: T, index: number) => number;
   /** Enable brush selection (default: true) */
   enableBrush?: boolean;
+  /** Chart margin — offsets mouse coords from SVG root to Group-local space */
+  margin?: { left: number; top: number };
 }
 ```
+
+**Important:** When the chart uses `<Group left={margin.left} top={margin.top}>` to offset content, pass the same margin to `useMultiSelection`. The brush rect must be rendered at SVG root level (outside `<Group>`), not inside it — otherwise mouse position and brush visual will be offset by the margin.
 
 ### Returns
 
@@ -368,23 +372,30 @@ const {
   selectedPoints,
   onSelectionChange,
   enableBrush: true,
+  margin: { left: margin.left, top: margin.top },
 });
 
-// Wire up SVG event handlers
+// Wire up SVG event handlers — brush rect OUTSIDE Group, data points INSIDE
 <svg
   onMouseDown={handleBrushStart}
   onMouseMove={handleBrushMove}
   onMouseUp={handleBrushEnd}
   onMouseLeave={handleBrushEnd}
 >
-  {data.map((d, i) => (
-    <Circle
-      r={getPointSize(i)}
-      opacity={getPointOpacity(i)}
-      strokeWidth={getPointStrokeWidth(i)}
-      onClick={e => handlePointClick(i, e)}
-    />
-  ))}
+  <Group left={margin.left} top={margin.top}>
+    {data.map((d, i) => (
+      <Circle
+        r={getPointSize(i)}
+        opacity={getPointOpacity(i)}
+        strokeWidth={getPointStrokeWidth(i)}
+        onClick={e => handlePointClick(i, e)}
+      />
+    ))}
+  </Group>
+  {/* Brush rect at SVG root — coordinates match mouse position */}
+  {isBrushing && brushExtent && (
+    <rect x={Math.min(brushExtent.x0, brushExtent.x1)} ... />
+  )}
 </svg>;
 ```
 

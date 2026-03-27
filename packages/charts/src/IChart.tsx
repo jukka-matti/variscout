@@ -158,6 +158,7 @@ const IChartBase: React.FC<IChartProps> = ({
     getX: d => d.x,
     getY: d => d.y,
     enableBrush: enableBrushSelection,
+    margin: { left: margin.left, top: margin.top },
   });
 
   // Compute Nelson Rule 2 & 3 violations
@@ -227,20 +228,6 @@ const IChartBase: React.FC<IChartProps> = ({
             xScale={xScale}
             yScale={yScale}
           />
-
-          {/* Brush selection rectangle */}
-          {enableBrushSelection && isBrushing && brushExtent && (
-            <rect
-              x={Math.min(brushExtent.x0, brushExtent.x1)}
-              y={Math.min(brushExtent.y0, brushExtent.y1)}
-              width={Math.abs(brushExtent.x1 - brushExtent.x0)}
-              height={Math.abs(brushExtent.y1 - brushExtent.y0)}
-              fill="rgba(59, 130, 246, 0.1)"
-              stroke="rgba(59, 130, 246, 0.5)"
-              strokeWidth={1.5}
-              pointerEvents="none"
-            />
-          )}
 
           {/* Data points (primary + secondary) */}
           <DataPoints
@@ -379,6 +366,21 @@ const IChartBase: React.FC<IChartProps> = ({
             />
           )}
         </Group>
+
+        {/* Brush selection rectangle — rendered at SVG root level (not inside Group)
+            so coordinates match the mouse position calculated from svg.getBoundingClientRect() */}
+        {enableBrushSelection && isBrushing && brushExtent && (
+          <rect
+            x={Math.min(brushExtent.x0, brushExtent.x1)}
+            y={Math.min(brushExtent.y0, brushExtent.y1)}
+            width={Math.abs(brushExtent.x1 - brushExtent.x0)}
+            height={Math.abs(brushExtent.y1 - brushExtent.y0)}
+            fill="rgba(59, 130, 246, 0.1)"
+            stroke="rgba(59, 130, 246, 0.5)"
+            strokeWidth={1.5}
+            pointerEvents="none"
+          />
+        )}
       </svg>
 
       {/* Tooltip */}

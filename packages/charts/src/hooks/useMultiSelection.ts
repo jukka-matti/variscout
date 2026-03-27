@@ -56,6 +56,8 @@ export interface UseMultiSelectionOptions<T> {
   getY?: (d: T, index: number) => number;
   /** Enable brush selection (default: true) */
   enableBrush?: boolean;
+  /** Chart margin — offsets mouse coords from SVG root to Group-local space */
+  margin?: { left: number; top: number };
 }
 
 export interface BrushExtent {
@@ -104,6 +106,7 @@ export function useMultiSelection<T = { x: number; y: number }>({
   getX = ((d: T) => (d as Record<string, number>).x) as (d: T, index: number) => number,
   getY = ((d: T) => (d as Record<string, number>).y) as (d: T, index: number) => number,
   enableBrush = true,
+  margin = { left: 0, top: 0 },
 }: UseMultiSelectionOptions<T>): UseMultiSelectionResult {
   const [brushExtent, setBrushExtent] = useState<BrushExtent | null>(null);
   const [isBrushing, setIsBrushing] = useState(false);
@@ -112,14 +115,15 @@ export function useMultiSelection<T = { x: number; y: number }>({
   /**
    * Get the bounding box of the chart area from the scale ranges
    */
+  // Chart bounds in SVG-root coordinates (scale ranges are Group-local, offset by margin)
   const chartBounds = useMemo(
     () => ({
-      left: xScale.range()[0],
-      right: xScale.range()[1],
-      top: yScale.range()[1], // Y-scale is inverted (0 at bottom)
-      bottom: yScale.range()[0],
+      left: xScale.range()[0] + margin.left,
+      right: xScale.range()[1] + margin.left,
+      top: yScale.range()[1] + margin.top, // Y-scale is inverted (0 at bottom)
+      bottom: yScale.range()[0] + margin.top,
     }),
-    [xScale, yScale]
+    [xScale, yScale, margin.left, margin.top]
   );
 
   /**
@@ -129,11 +133,11 @@ export function useMultiSelection<T = { x: number; y: number }>({
     (extent: BrushExtent): Set<number> => {
       const { x0, y0, x1, y1 } = extent;
 
-      // Convert brush pixel coords to data values
-      const dataX0 = xScale.invert(Math.min(x0, x1));
-      const dataX1 = xScale.invert(Math.max(x0, x1));
-      const dataY0 = yScale.invert(Math.max(y0, y1)); // Y inverted
-      const dataY1 = yScale.invert(Math.min(y0, y1));
+      // Convert brush pixel coords (SVG-root space) to Group-local, then to data values
+      const dataX0 = xScale.invert(Math.min(x0, x1) - margin.left);
+      const dataX1 = xScale.invert(Math.max(x0, x1) - margin.left);
+      const dataY0 = yScale.invert(Math.max(y0, y1) - margin.top); // Y inverted
+      const dataY1 = yScale.invert(Math.min(y0, y1) - margin.top);
 
       const indices = new Set<number>();
       data.forEach((d, i) => {
