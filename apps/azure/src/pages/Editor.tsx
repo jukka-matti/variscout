@@ -127,6 +127,7 @@ export const Editor: React.FC<EditorProps> = ({
     subgroupConfig,
     setSubgroupConfig,
     cpkTarget,
+    setCpkTarget,
   } = useData();
 
   const ingestion = useDataIngestion({
@@ -1189,6 +1190,14 @@ export const Editor: React.FC<EditorProps> = ({
           setCapabilitySuggestionDismissed(true);
         }}
         factorColumns={factors}
+        dataFilename={dataFilename}
+        outcome={outcome}
+        rowCount={rawData.length}
+        specs={specs}
+        stats={stats}
+        cpkTarget={cpkTarget}
+        onSpecsChange={setSpecs}
+        onCpkTargetChange={setCpkTarget}
       />
 
       {/* Mobile Tab Bar (phone only, when data loaded) */}

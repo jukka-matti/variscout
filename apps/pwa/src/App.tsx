@@ -112,6 +112,9 @@ function AppMain() {
     displayOptions,
     setDisplayOptions,
     setSubgroupConfig,
+    stats,
+    cpkTarget,
+    setCpkTarget,
   } = useData();
 
   // Data ingestion must be declared before importFlow since importFlow uses its callbacks.
@@ -739,6 +742,14 @@ function AppMain() {
             setCapabilitySuggestionDismissed(true);
           }}
           factorColumns={factors}
+          dataFilename={dataFilename}
+          outcome={outcome}
+          rowCount={rawData.length}
+          specs={specs}
+          stats={stats}
+          cpkTarget={cpkTarget}
+          onSpecsChange={setSpecs}
+          onCpkTargetChange={setCpkTarget}
         />
       )}
 
