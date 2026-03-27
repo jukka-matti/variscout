@@ -391,7 +391,7 @@ const Dashboard = ({
       </div>
 
       {/* Sticky Navigation */}
-      <div className="sticky top-0 z-30 bg-surface">
+      <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
         {/* Filter Breadcrumb Navigation with Variation Tracking */}
         <div className="flex items-center">
           <div className="flex-1 min-w-0">

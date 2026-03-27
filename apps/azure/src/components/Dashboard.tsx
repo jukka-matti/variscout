@@ -369,7 +369,7 @@ const Dashboard = ({
       className="flex flex-col h-full overflow-y-auto lg:overflow-hidden bg-surface relative"
     >
       {/* Sticky Navigation */}
-      <div className="sticky top-0 z-30 bg-surface">
+      <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
         <div className="flex items-center">
           <div className="flex-1 min-w-0">
             {/* On phone, FilterBreadcrumb is handled inside MobileChartCarousel */}
