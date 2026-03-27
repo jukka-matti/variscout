@@ -45,13 +45,13 @@ const CONTAINER_CLASS =
   'w-full lg:w-80 bg-surface-secondary rounded-xl border border-edge p-6 flex flex-col gap-4 shadow-lg relative';
 const CONTAINER_COMPACT_CLASS = 'flex flex-col h-full p-3 overflow-auto scroll-touch';
 const TAB_BAR_CLASS = 'flex bg-surface/50 p-1 rounded-lg border border-edge/50';
-const TAB_ACTIVE_CLASS = 'bg-surface-tertiary text-white shadow-sm';
+const TAB_ACTIVE_CLASS = 'bg-surface-tertiary text-content shadow-sm';
 const TAB_INACTIVE_CLASS = 'text-content-secondary hover:text-content';
 const METRIC_CARD_BG_CLASS =
   'bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 text-center';
 const METRIC_LABEL_CLASS =
   'flex items-center justify-center gap-1 text-xs text-content-secondary mb-1';
-const METRIC_VALUE_CLASS = 'text-xl font-bold font-mono text-white';
+const METRIC_VALUE_CLASS = 'text-xl font-bold font-mono text-content';
 const EMPTY_STATE_CLASS =
   'flex items-center justify-center h-full text-content-muted italic text-sm';
 
@@ -268,7 +268,13 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     return (
       <div className={CONTAINER_COMPACT_CLASS}>
         <div className={`${TAB_BAR_CLASS} mb-4`}>
-          <TabButton tab="summary" label={t('stats.summary')} activeTab={activeTab} onTabChange={setActiveTab} compact={compact} />
+          <TabButton
+            tab="summary"
+            label={t('stats.summary')}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            compact={compact}
+          />
           <TabButton
             tab="histogram"
             label={t('stats.histogram')}
@@ -277,7 +283,13 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
             onTabChange={setActiveTab}
             compact={compact}
           />
-          <TabButton tab="normality" label={t('stats.probPlot')} activeTab={activeTab} onTabChange={setActiveTab} compact={compact} />
+          <TabButton
+            tab="normality"
+            label={t('stats.probPlot')}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            compact={compact}
+          />
         </div>
 
         <div className="flex-1 min-h-0">
@@ -299,7 +311,13 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
       {/* Header / Tab buttons */}
       <div className="flex justify-between items-center border-b border-inherit pb-4">
         <div className={TAB_BAR_CLASS}>
-          <TabButton tab="summary" label={t('stats.summary')} activeTab={activeTab} onTabChange={setActiveTab} compact={compact} />
+          <TabButton
+            tab="summary"
+            label={t('stats.summary')}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            compact={compact}
+          />
           <TabButton
             tab="histogram"
             label={t('stats.histogram')}
@@ -308,7 +326,13 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
             onTabChange={setActiveTab}
             compact={compact}
           />
-          <TabButton tab="normality" label={t('stats.probPlot')} activeTab={activeTab} onTabChange={setActiveTab} compact={compact} />
+          <TabButton
+            tab="normality"
+            label={t('stats.probPlot')}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            compact={compact}
+          />
         </div>
       </div>
 

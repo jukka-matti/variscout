@@ -21,7 +21,7 @@ export const defaultStagedComparisonColorScheme: StagedComparisonColorScheme = {
   header: 'text-xs font-medium text-content-secondary uppercase tracking-wider',
   stageLabel: 'text-xs font-medium text-content-secondary',
   metricLabel: 'text-[11px] text-content-muted',
-  metricValue: 'text-sm font-mono font-bold text-white',
+  metricValue: 'text-sm font-mono font-bold text-content',
   deltaRow: 'text-xs font-mono font-medium',
 };
 
