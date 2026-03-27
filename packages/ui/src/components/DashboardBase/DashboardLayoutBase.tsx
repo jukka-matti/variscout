@@ -486,7 +486,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
               id="ichart-card"
               testId="chart-ichart"
               chartName="ichart"
-              minHeight="400px"
+              minHeight={undefined}
               highlightClass={ichartHighlightClass}
               onClick={onIChartCardClick}
               onMaximize={() => setFocusedChart('ichart')}
@@ -509,7 +509,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
               id="boxplot-card"
               testId="chart-boxplot"
               chartName="boxplot"
-              className="flex-1 min-w-[300px]"
+              className="flex-1 min-w-[300px] min-h-0"
               highlightClass={boxplotHighlightClass}
               onClick={onBoxplotCardClick}
               onMaximize={() => setFocusedChart('boxplot')}
@@ -541,7 +541,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
                 id="pareto-card"
                 testId="chart-pareto"
                 chartName="pareto"
-                className="flex-1 min-w-[300px]"
+                className="flex-1 min-w-[300px] min-h-0"
                 highlightClass={paretoHighlightClass}
                 onClick={onParetoCardClick}
                 onMaximize={() => setFocusedChart('pareto')}

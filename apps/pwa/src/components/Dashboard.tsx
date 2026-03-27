@@ -383,7 +383,7 @@ const Dashboard = ({
   return (
     <div
       id="dashboard-export-container"
-      className="flex flex-col h-full overflow-y-auto bg-surface relative"
+      className="flex flex-col h-full overflow-y-auto lg:overflow-hidden bg-surface relative"
     >
       {/* Accessible live region for screen readers */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">

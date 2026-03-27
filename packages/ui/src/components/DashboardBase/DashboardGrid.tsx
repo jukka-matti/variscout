@@ -29,10 +29,10 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({
   paretoCard,
   statsPanel,
 }) => (
-  <div className="flex flex-col gap-4 p-4">
+  <div className="flex flex-col gap-4 p-4 lg:grid lg:grid-rows-[55fr_45fr] lg:h-full lg:min-h-0">
     {ichartCard}
-    <div className="flex flex-col lg:flex-row gap-4 min-h-[350px]">
-      <div className="flex flex-1 flex-col md:flex-row gap-4">
+    <div className="flex flex-col lg:flex-row gap-4 min-h-0">
+      <div className="flex flex-1 flex-col md:flex-row gap-4 min-h-0">
         {boxplotCard}
         {paretoCard}
       </div>

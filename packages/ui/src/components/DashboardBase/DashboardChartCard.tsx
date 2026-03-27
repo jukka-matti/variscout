@@ -69,7 +69,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
   onDownloadPng,
   onDownloadSvg,
   onMaximize,
-  minHeight = '280px',
+  minHeight,
   highlightClass = '',
   onClick,
   className = '',
@@ -84,8 +84,8 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
       id={id}
       data-testid={testId}
       onClick={onClick}
-      className={`bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 flex flex-col transition-all ${highlightClass} ${className}`}
-      style={{ minHeight }}
+      className={`bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 flex flex-col min-h-0 h-full transition-all ${highlightClass} ${className}`}
+      style={minHeight ? { minHeight } : undefined}
     >
       <div className="flex justify-between items-center mb-2 gap-4">
         <div className="flex items-center gap-1.5">
@@ -164,9 +164,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
 
       {filterBar}
 
-      <div className="flex-1" style={{ minHeight: '180px' }}>
-        {children}
-      </div>
+      <div className="flex-1 min-h-0">{children}</div>
 
       {footer}
     </div>

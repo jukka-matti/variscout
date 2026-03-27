@@ -366,7 +366,7 @@ const Dashboard = ({
   return (
     <div
       id="dashboard-export-container"
-      className="flex flex-col h-full overflow-y-auto bg-surface relative"
+      className="flex flex-col h-full overflow-y-auto lg:overflow-hidden bg-surface relative"
     >
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface">
