@@ -628,7 +628,7 @@ function AppMain() {
               onRestoreFinding={handleRestoreFinding}
               onSetFindingStatus={findingsState.setFindingStatus}
               onSetFindingTag={findingsState.setFindingTag}
-              onAddComment={findingsState.addFindingComment}
+              onAddComment={(id, text) => findingsState.addFindingComment(id, text)}
               onEditComment={findingsState.editFindingComment}
               onDeleteComment={findingsState.deleteFindingComment}
               columnAliases={columnAliases}
