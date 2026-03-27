@@ -58,6 +58,60 @@ interface ControlLinesProps {
   hasSecondary: boolean;
 }
 
+/**
+ * Resolve overlapping label positions by nudging labels apart.
+ *
+ * Sorts labels by y-position, then iteratively enforces a minimum gap between
+ * adjacent labels using alternating top-down/bottom-up passes. Each pass pushes
+ * overlapping pairs apart evenly, converging within a few iterations.
+ */
+function resolveLabels(
+  entries: { key: string; y: number }[],
+  minGap: number,
+  chartHeight: number
+): Map<string, number> {
+  if (entries.length === 0) return new Map();
+
+  const sorted = [...entries].sort((a, b) => a.y - b.y);
+  const pos = sorted.map(e => e.y);
+
+  // Iterative relaxation: alternate top-down and bottom-up passes
+  for (let iter = 0; iter < 8; iter++) {
+    let settled = true;
+
+    // Top-down: push overlapping labels apart
+    for (let i = 1; i < pos.length; i++) {
+      const overlap = minGap - (pos[i] - pos[i - 1]);
+      if (overlap > 0) {
+        pos[i - 1] -= overlap / 2;
+        pos[i] += overlap / 2;
+        settled = false;
+      }
+    }
+
+    // Bottom-up: push overlapping labels apart
+    for (let i = pos.length - 2; i >= 0; i--) {
+      const overlap = minGap - (pos[i + 1] - pos[i]);
+      if (overlap > 0) {
+        pos[i] -= overlap / 2;
+        pos[i + 1] += overlap / 2;
+        settled = false;
+      }
+    }
+
+    if (settled) break;
+  }
+
+  // Clamp to chart bounds
+  for (let i = 0; i < pos.length; i++) {
+    pos[i] = Math.max(minGap / 2, Math.min(chartHeight - minGap / 2, pos[i]));
+  }
+
+  const result = new Map<string, number>();
+  sorted.forEach((entry, i) => result.set(entry.key, pos[i]));
+  return result;
+}
+
 const ControlLines: React.FC<ControlLinesProps> = ({
   width,
   height,
@@ -78,6 +132,40 @@ const ControlLines: React.FC<ControlLinesProps> = ({
   secondaryStats,
   hasSecondary,
 }) => {
+  // Build resolved label positions to avoid overlap
+  const labelPositions = React.useMemo(() => {
+    if (!showLimitLabels) return new Map<string, number>();
+
+    const entries: { key: string; y: number }[] = [];
+
+    // Control limits (non-staged only)
+    if (!isStaged && stats) {
+      entries.push({ key: 'ucl', y: yScale(stats.ucl) });
+      entries.push({ key: 'mean', y: yScale(stats.mean) });
+      entries.push({ key: 'lcl', y: yScale(stats.lcl) });
+    }
+
+    // Spec limits
+    if (specs.usl !== undefined) {
+      entries.push({ key: 'usl', y: yScale(specs.usl) });
+    }
+    if (specs.lsl !== undefined) {
+      entries.push({ key: 'lsl', y: yScale(specs.lsl) });
+    }
+    if (specs.target !== undefined) {
+      entries.push({ key: 'target', y: yScale(specs.target) });
+    }
+
+    // Ideal gap is 1.4× font size, but shrink if labels won't fit in the chart height
+    const idealGap = fonts.statLabel * 1.4;
+    const totalNeeded = idealGap * (entries.length - 1);
+    const minGap = totalNeeded > height ? height / Math.max(entries.length, 1) : idealGap;
+    return resolveLabels(entries, minGap, height);
+  }, [showLimitLabels, isStaged, stats, specs, yScale, fonts.statLabel, height]);
+
+  /** Get the resolved y-position for a label, falling back to the raw scaled value. */
+  const labelY = (key: string, rawY: number): number => labelPositions.get(key) ?? rawY;
+
   return (
     <>
       {/* Control limits - Staged mode */}
@@ -158,7 +246,7 @@ const ControlLines: React.FC<ControlLinesProps> = ({
           {showLimitLabels && (
             <text
               x={width + 4}
-              y={yScale(stats.ucl)}
+              y={labelY('ucl', yScale(stats.ucl))}
               fill={chartColors.control}
               fontSize={fonts.statLabel}
               textAnchor="start"
@@ -178,7 +266,7 @@ const ControlLines: React.FC<ControlLinesProps> = ({
           {showLimitLabels && (
             <text
               x={width + 4}
-              y={yScale(stats.mean)}
+              y={labelY('mean', yScale(stats.mean))}
               fill={chartColors.mean}
               fontSize={fonts.statLabel}
               textAnchor="start"
@@ -199,7 +287,7 @@ const ControlLines: React.FC<ControlLinesProps> = ({
           {showLimitLabels && (
             <text
               x={width + 4}
-              y={yScale(stats.lcl)}
+              y={labelY('lcl', yScale(stats.lcl))}
               fill={chartColors.control}
               fontSize={fonts.statLabel}
               textAnchor="start"
@@ -226,7 +314,7 @@ const ControlLines: React.FC<ControlLinesProps> = ({
           {showLimitLabels && (
             <text
               x={width + 4}
-              y={yScale(specs.usl)}
+              y={labelY('usl', yScale(specs.usl))}
               fill={chartColors.spec}
               fontSize={fonts.statLabel}
               textAnchor="start"
@@ -258,7 +346,7 @@ const ControlLines: React.FC<ControlLinesProps> = ({
           {showLimitLabels && (
             <text
               x={width + 4}
-              y={yScale(specs.lsl)}
+              y={labelY('lsl', yScale(specs.lsl))}
               fill={chartColors.spec}
               fontSize={fonts.statLabel}
               textAnchor="start"
@@ -289,7 +377,7 @@ const ControlLines: React.FC<ControlLinesProps> = ({
           {showLimitLabels && (
             <text
               x={width + 4}
-              y={yScale(specs.target)}
+              y={labelY('target', yScale(specs.target))}
               fill={chartColors.target}
               fontSize={fonts.statLabel}
               textAnchor="start"
