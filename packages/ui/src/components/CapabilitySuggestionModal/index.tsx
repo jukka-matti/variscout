@@ -215,7 +215,10 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
             {/* Editable spec fields */}
             <div className="grid grid-cols-3 gap-2 mb-3">
               <label className="flex flex-col gap-1">
-                <span className="text-[10px] font-medium text-content-muted uppercase tracking-wider">
+                <span
+                  className="text-[10px] font-medium text-content-muted uppercase tracking-wider"
+                  title="Upper Specification Limit — maximum acceptable value"
+                >
                   USL
                 </span>
                 <input
@@ -228,7 +231,10 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                 />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-[10px] font-medium text-content-muted uppercase tracking-wider">
+                <span
+                  className="text-[10px] font-medium text-content-muted uppercase tracking-wider"
+                  title="Nominal target value — the ideal process center"
+                >
                   Target
                 </span>
                 <input
@@ -241,7 +247,10 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                 />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-[10px] font-medium text-content-muted uppercase tracking-wider">
+                <span
+                  className="text-[10px] font-medium text-content-muted uppercase tracking-wider"
+                  title="Lower Specification Limit — minimum acceptable value"
+                >
                   LSL
                 </span>
                 <input
@@ -258,7 +267,12 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
             {/* Type + Cpk target row */}
             <div className="flex items-center gap-3 mb-4">
               <label className="flex items-center gap-1.5 text-xs">
-                <span className="text-content-muted">Type:</span>
+                <span
+                  className="text-content-muted"
+                  title="How specs are applied: Nominal (both limits), Smaller-is-better (USL only), Larger-is-better (LSL only)"
+                >
+                  Type:
+                </span>
                 <select
                   value={localCharType}
                   onChange={e =>
@@ -272,7 +286,12 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                 </select>
               </label>
               <label className="flex items-center gap-1.5 text-xs ml-auto">
-                <span className="text-content-muted">Cpk target:</span>
+                <span
+                  className="text-content-muted"
+                  title="Process capability target. Common: 1.33 (general), 1.67 (safety-critical), 2.00 (aerospace)"
+                >
+                  Cpk target:
+                </span>
                 <input
                   type="number"
                   step="0.01"
@@ -294,7 +313,10 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                 <span
                   className={`text-sm font-semibold ${getCpkColor(liveCpk.cpk, parsedCpkTarget)}`}
                 >
-                  Cpk {liveCpk.cpk !== undefined ? liveCpk.cpk.toFixed(2) : '—'}
+                  <span title="Process Capability Index — measures how well the process fits within specification limits">
+                    Cpk
+                  </span>{' '}
+                  {liveCpk.cpk !== undefined ? liveCpk.cpk.toFixed(2) : '—'}
                 </span>
                 <span className="text-xs text-content-muted">
                   — {getCpkVerdict(liveCpk.cpk, parsedCpkTarget)}
@@ -302,7 +324,10 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
               </div>
               {liveCpk.cp !== undefined && (
                 <div className="text-xs text-content-muted mt-1 ml-[18px]">
-                  Cp {liveCpk.cp.toFixed(2)}
+                  <span title="Process Potential — measures spread vs spec width, ignoring centering">
+                    Cp
+                  </span>{' '}
+                  {liveCpk.cp.toFixed(2)}
                 </div>
               )}
             </div>
@@ -311,15 +336,17 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
             <div className="flex gap-2">
               <button
                 onClick={handleStartCapability}
-                className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                className="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-center"
               >
-                Start Capability View
+                <div className="text-sm font-medium">Start Capability View</div>
+                <div className="text-[10px] opacity-75">Cpk trend per subgroup</div>
               </button>
               <button
                 onClick={handleDismiss}
-                className="flex-1 px-4 py-2 bg-surface-tertiary hover:bg-surface-elevated text-content border border-edge rounded-lg text-sm font-medium transition-colors"
+                className="flex-1 px-4 py-2.5 bg-surface-tertiary hover:bg-surface-elevated text-content border border-edge rounded-lg transition-colors text-center"
               >
-                Standard View
+                <div className="text-sm font-medium">Standard View</div>
+                <div className="text-[10px] text-content-muted">Individual values chart</div>
               </button>
             </div>
 
