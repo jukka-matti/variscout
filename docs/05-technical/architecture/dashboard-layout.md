@@ -15,7 +15,7 @@ Single reference for how the dashboard fits all charts into the viewport on desk
 Every container from the root to the chart SVG must have a **definite height**. If any link breaks (becomes `auto`), `withParentSize` measures unconstrained content and the chart expands infinitely.
 
 ```
-h-screen (100vh)                          ← App.tsx root div
+h-dvh (100dvh)                            ← App.tsx root div (dvh adapts to mobile browser chrome)
   ├─ h-14 (header)                        ← AppHeader, flex-shrink-0
   ├─ flex-1 overflow-hidden               ← <main>, computed height
   │  └─ flex-1 overflow-hidden flex-col   ← content wrapper
@@ -27,9 +27,10 @@ h-screen (100vh)                          ← App.tsx root div
   │              lg:grid-rows-[55fr_45fr]
   │              ├─ min-h-0 overflow-hidden  ← I-Chart row (55fr)
   │              │  └─ h-full flex-col min-h-0  ← DashboardChartCard
-  │              │     └─ flex-1 min-h-0        ← chart content
-  │              │        └─ withParentSize     ← visx measures parent
-  │              │           └─ <svg>           ← renders at measured size
+  │              │     └─ flex-1 min-h-0 relative  ← chart content area
+  │              │        └─ absolute inset-0      ← defense-in-depth wrapper
+  │              │           └─ withParentSize     ← visx measures absolute container
+  │              │              └─ <svg>           ← renders at measured size
   │              └─ min-h-0 overflow-hidden  ← Bottom row (45fr)
   │                 ├─ flex-1 (Boxplot + Pareto side-by-side)
   │                 └─ lg:w-[340px] (Stats panel, fixed width)
@@ -38,15 +39,15 @@ h-screen (100vh)                          ← App.tsx root div
 
 ### Why each property matters
 
-| Property                | Purpose                                                                                                |
-| ----------------------- | ------------------------------------------------------------------------------------------------------ |
-| `h-screen`              | Establishes the viewport constraint at the root                                                        |
-| `flex-1`                | Distributes remaining space after fixed-height siblings                                                |
-| `min-h-0`               | Overrides flex default `min-height: auto` so children can shrink below content size                    |
-| `overflow-hidden`       | Prevents content from expanding its container; breaks circular sizing with `withParentSize`            |
-| `h-full`                | Gives the grid a definite height (100% of flex-computed parent) so `fr` units can compute pixel values |
-| `flex-shrink-0`         | Prevents sticky nav from being compressed by flex algorithm                                            |
-| `grid-rows-[55fr_45fr]` | Splits available height: 55% I-Chart, 45% bottom row                                                   |
+| Property                | Purpose                                                                                                           |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `h-dvh`                 | Establishes the viewport constraint at the root (dvh adapts to mobile browser chrome, identical to vh on desktop) |
+| `flex-1`                | Distributes remaining space after fixed-height siblings                                                           |
+| `min-h-0`               | Overrides flex default `min-height: auto` so children can shrink below content size                               |
+| `overflow-hidden`       | Prevents content from expanding its container; breaks circular sizing with `withParentSize`                       |
+| `h-full`                | Gives the grid a definite height (100% of flex-computed parent) so `fr` units can compute pixel values            |
+| `flex-shrink-0`         | Prevents sticky nav from being compressed by flex algorithm                                                       |
+| `grid-rows-[55fr_45fr]` | Splits available height: 55% I-Chart, 45% bottom row                                                              |
 
 ## Grid Slot Mapping
 
@@ -134,6 +135,24 @@ Export uses fixed off-screen dimensions (from `EXPORT_SIZES` in `useChartCopy.ts
 
 Dashboard export temporarily enables `overflow: visible; height: auto` to capture full content, then restores the grid layout.
 
+## Defense-in-Depth: `absolute inset-0` Chart Wrapper
+
+Inside `DashboardChartCard`, the chart content area uses the "absolute fill" pattern:
+
+```tsx
+<div className="flex-1 min-h-0 relative">
+  {' '}
+  {/* sized by flex algorithm */}
+  <div className="absolute inset-0">
+    {' '}
+    {/* fills parent, cannot influence its size */}
+    {children} {/* withParentSize chart */}
+  </div>
+</div>
+```
+
+This is the industry-standard defense against ResizeObserver circular sizing ([visx #881](https://github.com/airbnb/visx/issues/881)). An absolute-positioned child is removed from document flow, so it physically cannot expand its parent — breaking the feedback loop even if intermediate containers forget `min-h-0`.
+
 ## Common Pitfalls
 
 1. **Adding `min-height` to chart cards** — breaks grid constraint, chart expands beyond `fr` allocation
@@ -141,3 +160,4 @@ Dashboard export temporarily enables `overflow: visible; height: auto` to captur
 3. **Forgetting `min-h-0` on flex children** — flex default `min-height: auto` prevents shrinking
 4. **Missing `h-full` on grid container** — `fr` units need definite height to compute pixel values
 5. **Sticky nav without `flex-shrink-0`** — nav height becomes variable in flex calculation
+6. **Using `h-screen` instead of `h-dvh`** — on mobile Safari, `100vh` includes area behind URL bar causing overflow

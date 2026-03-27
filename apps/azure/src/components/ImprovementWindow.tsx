@@ -281,7 +281,7 @@ const ImprovementWindow: React.FC = () => {
   // Error state
   if (error) {
     return (
-      <div className="h-screen w-screen bg-surface flex items-center justify-center p-8">
+      <div className="h-dvh w-screen bg-surface flex items-center justify-center p-8">
         <div className="text-center max-w-md">
           <div className="text-4xl mb-4">:(</div>
           <h1 className="text-xl font-bold text-content mb-2">No Connection</h1>
@@ -294,14 +294,14 @@ const ImprovementWindow: React.FC = () => {
   // Loading state
   if (!syncData) {
     return (
-      <div className="h-screen w-screen bg-surface flex items-center justify-center">
+      <div className="h-dvh w-screen bg-surface flex items-center justify-center">
         <div className="animate-pulse text-content-secondary">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen w-screen bg-surface">
+    <div className="h-dvh w-screen bg-surface">
       <ImprovementWorkspaceBase
         synthesis={syncData.synthesis}
         onSynthesisChange={handleSynthesisChange}

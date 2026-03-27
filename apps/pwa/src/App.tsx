@@ -47,7 +47,7 @@ const FindingsPanel = React.lazy(() => import('./components/FindingsPanel'));
 const YamazumiDashboard = React.lazy(() => import('./components/YamazumiDashboard'));
 
 const LazyFallback = () => (
-  <div className="flex items-center justify-center h-screen">
+  <div className="flex items-center justify-center h-dvh">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
   </div>
 );
@@ -449,7 +449,7 @@ function AppMain() {
 
   return (
     <div
-      className={`flex flex-col h-screen bg-surface text-content font-sans selection:bg-blue-500/30${isPhone && rawData.length > 0 ? ' pb-[50px]' : ''}`}
+      className={`flex flex-col h-dvh bg-surface text-content font-sans selection:bg-blue-500/30${isPhone && rawData.length > 0 ? ' pb-[50px]' : ''}`}
     >
       {/* Offline status banner */}
       {!isOnline && (

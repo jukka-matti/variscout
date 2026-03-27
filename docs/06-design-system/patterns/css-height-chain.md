@@ -28,10 +28,11 @@ Every container from root to chart must have a **definite height** and allow shr
 {
   /* 1. Root: explicit viewport height */
 }
-<div className="h-screen flex flex-col">
+<div className="h-dvh flex flex-col">
+  {' '}
+  {/* dvh adapts to mobile browser chrome */}
   {/* 2. Fixed elements: flex-shrink-0 */}
   <header className="h-14 flex-shrink-0" />
-
   {/* 3. Content area: flex-1 + overflow-hidden */}
   <main className="flex-1 overflow-hidden flex flex-col">
     {/* 4. Scrollable/constrained container: h-full */}
@@ -47,9 +48,11 @@ Every container from root to chart must have a **definite height** and allow shr
           <div className="min-h-0 overflow-hidden">
             {/* 9. Card: h-full flex-col */}
             <div className="h-full flex flex-col min-h-0">
-              {/* 10. Chart area: flex-1 min-h-0 */}
-              <div className="flex-1 min-h-0">
-                <ChartWithParentSize /> {/* Safe: parent has definite height */}
+              {/* 10. Chart area: absolute fill (defense-in-depth) */}
+              <div className="flex-1 min-h-0 relative">
+                <div className="absolute inset-0">
+                  <ChartWithParentSize /> {/* Cannot influence parent size */}
+                </div>
               </div>
             </div>
           </div>

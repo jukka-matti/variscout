@@ -52,12 +52,9 @@ Fixed dimensions. Used for chart export (off-screen capture).
 
 ## Container Pattern
 
-The standard chart container in the dashboard:
+The standard chart container in the dashboard (`DashboardChartCard.tsx`):
 
 ```tsx
-{
-  /* DashboardChartCard.tsx */
-}
 <div className="flex flex-col min-h-0 h-full">
   {' '}
   {/* Card fills grid cell */}
@@ -67,16 +64,20 @@ The standard chart container in the dashboard:
     {title} {controls}
   </div>
   {filterBar} {/* Optional (fixed) */}
-  <div className="flex-1 min-h-0">
+  <div className="flex-1 min-h-0 relative">
     {' '}
     {/* Chart area (flexible) */}
-    {children} {/* withParentSize chart here */}
+    <div className="absolute inset-0">
+      {' '}
+      {/* Defense-in-depth */}
+      {children} {/* withParentSize chart */}
+    </div>
   </div>
   {footer} {/* Optional insight chip */}
-</div>;
+</div>
 ```
 
-The `flex-1 min-h-0` div is the key — it takes remaining space after header/controls and can shrink to fit the grid allocation.
+The chart content area uses the **absolute fill** pattern: the `relative` parent gets its size from the flex algorithm, and the `absolute inset-0` child fills it without being able to influence the parent's size. This breaks the ResizeObserver feedback loop ([visx #881](https://github.com/airbnb/visx/issues/881)) — even if `withParentSize` measures large content, the absolute container cannot push its parent larger.
 
 ## Responsive Utilities
 
