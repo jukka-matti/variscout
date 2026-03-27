@@ -143,7 +143,7 @@ CSS Grid `fr` units distribute **free space**. If the grid container's height is
 
 ## Diagnosing Height Chain Breaks
 
-**Symptom**: Chart keeps growing, pushes siblings off-screen.
+**Symptom**: Chart keeps growing, pushes siblings off-screen, or dashboard renders as vertical stack on desktop.
 
 **Diagnosis steps**:
 
@@ -154,8 +154,57 @@ CSS Grid `fr` units distribute **free space**. If the grid container's height is
 3. Check `min-height`: if `auto` on a flex child → add `min-h-0`
 4. Check `overflow`: if `visible` on a grid item → add `overflow-hidden`
 5. Check the grid container's `height`: if `auto` → add `h-full`
+6. **Check if responsive classes exist in compiled CSS**: If the grid container shows `display: flex` instead of `display: grid` at desktop width, Tailwind is not generating the `lg:` classes (see below)
 
 **Quick test**: Add `outline: 2px solid red` to the grid container. If it grows beyond the viewport, the height chain is broken above it.
+
+### 7. Tailwind v4 monorepo: `@source` directives required
+
+In a pnpm monorepo with Tailwind v4 (`@tailwindcss/vite`), workspace packages are not automatically scanned for utility classes. Each app's CSS entry point must declare explicit `@source` directives:
+
+```css
+@import 'tailwindcss';
+
+/* Scan shared workspace packages for utility classes */
+@source "../../../packages/ui/src/**/*.tsx";
+@source "../../../packages/charts/src/**/*.tsx";
+@source "../../../packages/hooks/src/**/*.ts";
+```
+
+Without these, responsive utilities (`lg:grid`, `lg:flex-row`, `md:flex-row`, etc.) from shared packages will be silently missing. The DOM will have the correct class names but no corresponding CSS rules — a particularly hard-to-diagnose failure.
+
+**Diagnosis**: In DevTools Console, run:
+
+```js
+[...document.styleSheets]
+  .flatMap(s => {
+    try {
+      return [...s.cssRules];
+    } catch {
+      return [];
+    }
+  })
+  .filter(r => r instanceof CSSMediaRule && r.conditionText?.includes('1024')).length;
+```
+
+If this returns 0 or only non-Tailwind rules, `@source` is missing.
+
+### 8. Body and `#root` must constrain to viewport
+
+For full-viewport apps, `body` and `#root` need explicit height constraints. Vite's scaffold template includes `min-height: 100vh` (allows growth beyond viewport) and `place-items: center` (centering, not needed for full-viewport apps):
+
+```css
+/* Correct for full-viewport apps */
+body {
+  margin: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+#root {
+  width: 100%;
+  height: 100%;
+}
+```
 
 ## Related
 

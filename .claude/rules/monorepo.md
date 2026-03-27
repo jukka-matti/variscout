@@ -111,6 +111,21 @@ apps/
 └── website/      # @variscout/website - Marketing website (Astro + React Islands)
 ```
 
+## Tailwind v4 `@source` (Critical)
+
+Tailwind v4 (`@tailwindcss/vite`) does not reliably auto-scan linked workspace packages in a pnpm monorepo. Each app's CSS entry point **must** declare `@source` directives for shared packages, or responsive utility classes (`lg:grid`, `md:flex-row`, etc.) from those packages will be silently missing.
+
+```css
+/* Required in apps/pwa/src/index.css and apps/azure/src/index.css */
+@import 'tailwindcss';
+
+@source "../../../packages/ui/src/**/*.tsx";
+@source "../../../packages/charts/src/**/*.tsx";
+@source "../../../packages/hooks/src/**/*.ts";
+```
+
+When adding a new shared package that uses Tailwind classes, add a corresponding `@source` directive to each app's CSS.
+
 ## Import Rules
 
 - Apps import from packages: `import { calculateStats } from '@variscout/core'`

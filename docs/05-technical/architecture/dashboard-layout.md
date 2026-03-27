@@ -153,11 +153,45 @@ Inside `DashboardChartCard`, the chart content area uses the "absolute fill" pat
 
 This is the industry-standard defense against ResizeObserver circular sizing ([visx #881](https://github.com/airbnb/visx/issues/881)). An absolute-positioned child is removed from document flow, so it physically cannot expand its parent — breaking the feedback loop even if intermediate containers forget `min-h-0`.
 
+## Tailwind v4 `@source` Requirement
+
+Tailwind v4 (`@tailwindcss/vite`) uses automatic content detection via the Vite module graph, but in a pnpm monorepo it does **not** reliably scan linked workspace packages. Without explicit `@source` directives, responsive utility classes (`lg:grid`, `lg:flex-row`, `lg:h-full`, etc.) from `packages/ui/`, `packages/charts/`, and `packages/hooks/` will be silently missing from the CSS output — breaking the entire desktop grid layout.
+
+**Required in each app's `index.css`** (after `@import 'tailwindcss'`):
+
+```css
+@source "../../../packages/ui/src/**/*.tsx";
+@source "../../../packages/charts/src/**/*.tsx";
+@source "../../../packages/hooks/src/**/*.ts";
+```
+
+**Diagnosis**: If the dashboard renders as a vertical stack on desktop (>1024px), check the compiled CSS for `lg:` rules. Zero `lg:` rules = missing `@source`.
+
+## Body and Root Styles (PWA)
+
+The PWA `index.css` must constrain `body` and `#root` to the viewport. Vite's default scaffold includes `min-height: 100vh` + `display: flex` + `place-items: center` on body — these must be replaced for a full-viewport app:
+
+```css
+body {
+  margin: 0;
+  min-width: 320px;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+```
+
 ## Common Pitfalls
 
-1. **Adding `min-height` to chart cards** — breaks grid constraint, chart expands beyond `fr` allocation
-2. **Removing `overflow-hidden` from grid items** — allows `withParentSize` to measure unconstrained content
-3. **Forgetting `min-h-0` on flex children** — flex default `min-height: auto` prevents shrinking
-4. **Missing `h-full` on grid container** — `fr` units need definite height to compute pixel values
-5. **Sticky nav without `flex-shrink-0`** — nav height becomes variable in flex calculation
-6. **Using `h-screen` instead of `h-dvh`** — on mobile Safari, `100vh` includes area behind URL bar causing overflow
+1. **Missing `@source` directives** — Tailwind v4 won't generate responsive classes from workspace packages, silently breaking the desktop grid
+2. **Vite scaffold body styles** — `min-height: 100vh` + `place-items: center` allow body to grow beyond viewport
+3. **Adding `min-height` to chart cards** — breaks grid constraint, chart expands beyond `fr` allocation
+4. **Removing `overflow-hidden` from grid items** — allows `withParentSize` to measure unconstrained content
+5. **Forgetting `min-h-0` on flex children** — flex default `min-height: auto` prevents shrinking
+6. **Missing `h-full` on grid container** — `fr` units need definite height to compute pixel values
+7. **Sticky nav without `flex-shrink-0`** — nav height becomes variable in flex calculation
+8. **Using `h-screen` instead of `h-dvh`** — on mobile Safari, `100vh` includes area behind URL bar causing overflow
