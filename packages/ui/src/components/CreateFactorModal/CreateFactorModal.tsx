@@ -138,6 +138,8 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
 
   const isValid = factorName.trim() && !error;
 
+  if (!isOpen) return null;
+
   return (
     <dialog
       ref={dialogRef}
