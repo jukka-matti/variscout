@@ -102,7 +102,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
                     <FolderOpen size={24} className="text-content-secondary" />
                   )}
                 </div>
-                <div className="text-sm font-medium text-white group-hover:text-blue-400 transition-colors">
+                <div className="text-sm font-medium text-content group-hover:text-blue-400 transition-colors">
                   {sample.name.replace('Case: ', '').replace('Journey: ', '')}
                 </div>
                 <div className="text-xs text-content-muted mt-1">{sample.data.length} rows</div>
@@ -134,7 +134,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
                       ) : (
                         <ChevronRight size={16} className="text-content-muted" />
                       )}
-                      <span className="text-sm text-content-secondary group-hover:text-white">
+                      <span className="text-sm text-content-secondary group-hover:text-content">
                         {categoryLabel}
                       </span>
                     </div>
@@ -151,7 +151,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
                           className="w-full flex items-center justify-between p-2 hover:bg-surface-secondary rounded-lg transition-colors group text-left"
                         >
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm text-content-secondary group-hover:text-white truncate">
+                            <div className="text-sm text-content-secondary group-hover:text-content truncate">
                               {sample.name}
                             </div>
                           </div>
@@ -191,7 +191,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
           ) : (
             <ChevronRight size={16} className="text-content-muted" />
           )}
-          <span className="text-sm text-content-secondary group-hover:text-white">
+          <span className="text-sm text-content-secondary group-hover:text-content">
             Sample datasets
           </span>
         </div>
@@ -234,7 +234,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
                         className="w-full flex items-center justify-between p-2 hover:bg-surface-secondary rounded-lg transition-colors group text-left"
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs text-content-secondary group-hover:text-white truncate">
+                          <div className="text-xs text-content-secondary group-hover:text-content truncate">
                             {sample.name}
                           </div>
                         </div>

@@ -31,7 +31,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           <div className="inline-flex p-4 bg-surface-secondary/50 rounded-full border border-edge">
             <BarChart2 size={40} className="text-blue-500" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-white">{t('home.heading')}</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-content">{t('home.heading')}</h2>
           <p className="text-sm text-content-secondary max-w-md mx-auto">{t('home.description')}</p>
         </div>
 
@@ -62,7 +62,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             className="text-blue-400 group-hover:text-blue-300 transition-colors"
           />
           <div className="text-left">
-            <span className="text-sm font-semibold text-white block">{t('data.pasteData')}</span>
+            <span className="text-sm font-semibold text-content block">{t('data.pasteData')}</span>
             <span className="text-xs text-content-secondary">{t('home.pasteHelper')}</span>
           </div>
         </button>
