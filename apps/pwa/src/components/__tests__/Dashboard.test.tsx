@@ -142,10 +142,10 @@ describe('Dashboard', () => {
 
     render(<Dashboard />);
 
-    // Dashboard view shows I-Chart, Boxplot, and Stats Panel
+    // Dashboard view shows I-Chart, Boxplot, and ProcessHealthBar
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
     expect(screen.getByTestId('boxplot')).toBeInTheDocument();
-    expect(screen.getByTestId('stats-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('process-health-bar')).toBeInTheDocument();
   });
 
   it('does not render AnovaResults when calculation returns null', () => {

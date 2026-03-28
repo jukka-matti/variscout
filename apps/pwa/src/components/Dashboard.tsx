@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
-import StatsPanel from './StatsPanel';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
 import MobileDashboard from './MobileDashboard';
@@ -90,7 +89,7 @@ const Dashboard = ({
   onPinFinding,
   findingsCallbacks,
   findings: _allFindings,
-  hideStatsInGrid = false,
+  hideStatsInGrid: _hideStatsInGrid = false,
   onExportCSV,
   onExportImage: _onExportImage,
   onEnterPresentationMode,
@@ -292,7 +291,6 @@ const Dashboard = ({
     statsInsight,
     handleCpkClick,
     isCapabilityMode,
-    capabilityData,
   } = useDashboardInsights({
     stats,
     filteredData,
@@ -654,24 +652,8 @@ const Dashboard = ({
             )}
           </ErrorBoundary>
         }
-        renderStatsPanel={
-          hideStatsInGrid ? undefined : (
-            <ErrorBoundary componentName="Stats Panel">
-              <StatsPanel
-                stats={stats}
-                specs={specs}
-                filteredData={filteredData}
-                outcome={outcome}
-                cpkTarget={cpkTarget}
-                onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
-                subgroupsMeetingTarget={
-                  isCapabilityMode ? capabilityData.subgroupsMeetingTarget : undefined
-                }
-                subgroupCount={isCapabilityMode ? capabilityData.subgroupResults.length : undefined}
-              />
-            </ErrorBoundary>
-          )
-        }
+        /* Stats panel removed from grid — key stats now in ProcessHealthBar toolbar.
+           Stats sidebar (Azure) or Stats toggle provides detailed view when needed. */
         renderVerificationCard={
           histogramData.length > 0 && stats ? (
             <VerificationCard

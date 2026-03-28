@@ -482,7 +482,7 @@ describe('Dashboard', () => {
     expect(screen.getByText('Analysis')).toHaveClass('bg-blue-600'); // Active
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
     expect(screen.getByTestId('boxplot')).toBeInTheDocument();
-    expect(screen.getByTestId('stats-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('process-health-bar')).toBeInTheDocument();
   });
 
   it('does not render AnovaResults when calculation returns null', () => {

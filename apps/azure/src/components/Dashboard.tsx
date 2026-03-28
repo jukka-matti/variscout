@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
-import StatsPanel from './StatsPanel';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
 import MobileChartCarousel from './MobileChartCarousel';
@@ -42,7 +41,6 @@ import {
   useDashboardInsights,
 } from '@variscout/hooks';
 import type { AIContext } from '@variscout/core';
-import { usePanelsStore } from '../features/panels/panelsStore';
 import type { ViewState } from '@variscout/hooks';
 import { Activity, BarChart3, Gauge, Timer, ArrowLeft, Settings2 } from 'lucide-react';
 
@@ -111,7 +109,7 @@ const Dashboard = ({
   performance = {},
   ai = {},
 }: DashboardProps) => {
-  const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
+  // isStatsSidebarOpen still read by EditorDashboardView — not needed in Dashboard itself now
   const { isPresentationMode, onExitPresentation, isReportOpen, onCloseReport } = viewMode;
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
@@ -326,7 +324,6 @@ const Dashboard = ({
     statsInsight,
     handleCpkClick,
     isCapabilityMode,
-    capabilityData,
   } = useDashboardInsights({
     stats,
     filteredData,
@@ -743,26 +740,8 @@ const Dashboard = ({
                     )}
                   </ErrorBoundary>
                 }
-                renderStatsPanel={
-                  isStatsSidebarOpen ? undefined : (
-                    <StatsPanel
-                      stats={stats}
-                      specs={specs}
-                      filteredData={filteredData}
-                      outcome={outcome}
-                      onSaveSpecs={setSpecs}
-                      showCpk={displayOptions.showCpk !== false}
-                      cpkTarget={cpkTarget}
-                      onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
-                      subgroupsMeetingTarget={
-                        isCapabilityMode ? capabilityData.subgroupsMeetingTarget : undefined
-                      }
-                      subgroupCount={
-                        isCapabilityMode ? capabilityData.subgroupResults.length : undefined
-                      }
-                    />
-                  )
-                }
+                /* Stats panel removed from grid — key stats now in ProcessHealthBar toolbar.
+                   Stats sidebar (left) provides detailed view when toggled. */
                 renderVerificationCard={
                   histogramData.length > 0 && stats ? (
                     <VerificationCard

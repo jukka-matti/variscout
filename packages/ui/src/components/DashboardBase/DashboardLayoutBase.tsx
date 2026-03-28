@@ -145,7 +145,7 @@ export interface DashboardLayoutBaseProps {
   renderIChartContent: React.ReactNode;
   renderBoxplotContent: React.ReactNode;
   renderParetoContent: React.ReactNode;
-  renderStatsPanel: React.ReactNode;
+  renderStatsPanel?: React.ReactNode;
   renderFocusedView?: React.ReactNode;
   /** Tabbed verification card (Histogram/ProbPlot) */
   renderVerificationCard?: React.ReactNode;
