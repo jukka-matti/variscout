@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
 export interface UseResizablePanelReturn {
   width: number;
@@ -9,18 +9,18 @@ export interface UseResizablePanelReturn {
 /**
  * Manages a horizontally resizable panel with localStorage persistence.
  *
- * The panel width is computed as `window.innerWidth - e.clientX` (right-side panel).
- *
  * @param storageKey - localStorage key to persist width
  * @param min - Minimum width in px
  * @param max - Maximum width in px
  * @param defaultWidth - Default width if no stored value
+ * @param side - Which side of the viewport the panel is on ('right' default, 'left')
  */
 export function useResizablePanel(
   storageKey: string,
   min: number,
   max: number,
-  defaultWidth: number
+  defaultWidth: number,
+  side: 'left' | 'right' = 'right'
 ): UseResizablePanelReturn {
   const [width, setWidth] = useState(() => {
     const saved = localStorage.getItem(storageKey);
@@ -42,7 +42,7 @@ export function useResizablePanel(
     if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = window.innerWidth - e.clientX;
+      const newWidth = side === 'left' ? e.clientX : window.innerWidth - e.clientX;
       setWidth(Math.min(Math.max(newWidth, min), max));
     };
 
@@ -57,7 +57,7 @@ export function useResizablePanel(
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, min, max]);
+  }, [isDragging, min, max, side]);
 
   return { width, isDragging, handleMouseDown };
 }

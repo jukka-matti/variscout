@@ -24,16 +24,20 @@ h-dvh (100dvh)                            ← App.tsx root div (dvh adapts to mo
   │        ├─ sticky flex-shrink-0        ← Sticky nav (filter breadcrumb, toolbar)
   │        └─ flex-1 flex-col min-h-0     ← DashboardLayoutBase
   │           └─ lg:h-full lg:grid        ← DashboardGrid
-  │              lg:grid-rows-[55fr_45fr]
-  │              ├─ min-h-0 overflow-hidden  ← I-Chart row (55fr)
+  │              lg:grid-rows-[40fr_35fr_25fr]  (3-row mode)
+  │              lg:grid-rows-[55fr_45fr]       (2-row fallback)
+  │              ├─ min-h-0 overflow-hidden  ← Row 1: I-Chart (40fr / 55fr)
   │              │  └─ h-full flex-col min-h-0  ← DashboardChartCard
   │              │     └─ flex-1 min-h-0 relative  ← chart content area
   │              │        └─ absolute inset-0      ← defense-in-depth wrapper
   │              │           └─ withParentSize     ← visx measures absolute container
   │              │              └─ <svg>           ← renders at measured size
-  │              └─ min-h-0 overflow-hidden  ← Bottom row (45fr)
-  │                 ├─ flex-1 (Boxplot + Pareto side-by-side)
-  │                 └─ lg:w-[340px] (Stats panel, fixed width)
+  │              ├─ min-h-0 overflow-hidden  ← Row 2: Boxplot + Pareto (+ Stats) (35fr / 45fr)
+  │              │  ├─ flex-1 (Boxplot + Pareto side-by-side)
+  │              │  └─ lg:w-[280px] (Stats Summary, when sidebar closed)
+  │              └─ min-h-0 overflow-hidden  ← Row 3: Probability Plot + Histogram (25fr)
+  │                 ├─ flex-1 (Probability Plot)
+  │                 └─ flex-1 (Histogram)
   └─ h-8 (footer)                         ← AppFooter, flex-shrink-0
 ```
 
@@ -53,52 +57,84 @@ h-dvh (100dvh)                            ← App.tsx root div (dvh adapts to mo
 
 The dashboard supports two layout modes, toggled via a segmented control in the toolbar:
 
-| Mode               | Description                           | Overflow                     | Charts                              |
-| ------------------ | ------------------------------------- | ---------------------------- | ----------------------------------- |
-| **Grid** (default) | 2x2 viewport-fit CSS Grid (55fr/45fr) | `overflow-hidden` on desktop | All visible simultaneously          |
-| **Scroll**         | Full-width stacked, natural scroll    | `overflow-y-auto`            | Sequential review, each chart large |
+| Mode               | Description                                  | Overflow                     | Charts                              |
+| ------------------ | -------------------------------------------- | ---------------------------- | ----------------------------------- |
+| **Grid** (default) | 3-row viewport-fit CSS Grid (40fr/35fr/25fr) | `overflow-hidden` on desktop | All 6 slots visible simultaneously  |
+| **Scroll**         | Full-width stacked, natural scroll           | `overflow-y-auto`            | Sequential review, each chart large |
 
-**Grid mode**: Best for overview — see all 4 charts at once. Matches the height chain pattern.
+**Grid mode**: Best for overview — see all charts at once (I-Chart, Boxplot, Pareto, Stats Summary, Probability Plot, Histogram). Falls back to 2-row (55fr/45fr) when histogram/probability-plot slots are not provided.
 
-**Scroll mode**: Best for detailed review — each chart at comfortable height (I-Chart ~500px, others ~400px). Stats panel goes full-width below charts.
+**Scroll mode**: Best for detailed review — each chart at comfortable height (I-Chart ~500px, others ~400px). Stats panel uses tabbed layout (Summary/Histogram/Probability Plot) since charts are already stacked sequentially.
 
 Layout choice persists in `displayOptions.dashboardLayout` (survives navigation). Mobile always uses scroll layout (toggle hidden).
 
 **Implementation**: `DashboardGrid` accepts a `layout: 'grid' | 'scroll'` prop. When `scroll`, it renders a `flex flex-col gap-4 overflow-y-auto` container with `min-h-[400px]` per chart card.
 
-## Panel Sidebars (Planned)
+## Panel Sidebars
 
-The dashboard supports two cross-cutting sidebars that work in both grid and scroll modes:
+The dashboard supports cross-cutting sidebars that coexist with the chart grid. All sidebars are toggle-able from the header and resizable via drag handles.
 
 ```
-┌──────┬──────────────────────┬────────┐
-│Stats │   Charts (center)    │CoScout │
-│/Data │                      │(right) │
-│(left)│   responsive grid    │        │
-│      │   or scroll stack    │        │
-└──────┴──────────────────────┴────────┘
+┌──────┬──────────────────────────────┬────────┐
+│Stats │   Charts (center grid)       │Right   │
+│/Data │                              │panel(s)│
+│(left,│   responsive grid            │(resiz.)│
+│resiz)│   or scroll stack            │        │
+└──────┴──────────────────────────────┴────────┘
 ```
 
-| Sidebar        | Side  | Width                 | Content                                                   | Toggle      |
-| -------------- | ----- | --------------------- | --------------------------------------------------------- | ----------- |
-| **Stats/Data** | Left  | ~280-320px            | Summary, Data table, Histogram, Probability Plot (4 tabs) | Header icon |
-| **CoScout**    | Right | 320-600px (resizable) | AI conversation, phase-adaptive coaching                  | Header icon |
+| Sidebar        | Side  | Width Range | Default | Content                                                   | Resize      |
+| -------------- | ----- | ----------- | ------- | --------------------------------------------------------- | ----------- |
+| **Stats/Data** | Left  | 280-500px   | 320px   | Summary, Data table, Histogram, Probability Plot (4 tabs) | Drag handle |
+| **Findings**   | Right | 320-600px   | 384px   | Finding cards, board view, hypothesis tree                | Drag handle |
+| **CoScout**    | Right | 320-600px   | 384px   | AI conversation, phase-adaptive coaching                  | Drag handle |
+| **Data Panel** | Right | 280-600px   | 350px   | Data table, row highlighting, violations                  | Drag handle |
 
-Both sidebars are toggle-able from the header. Charts resize to the remaining center width. In scroll mode, the left sidebar stays fixed while charts scroll.
+### Resize Implementation
+
+All resizable panels use `useResizablePanel(storageKey, min, max, default, side)` from `@variscout/hooks`:
+
+- **Right panels**: width = `window.innerWidth - e.clientX`
+- **Left panels**: width = `e.clientX`
+- Width persists in `localStorage` per panel
+- Drag handle: 1px vertical bar with `GripVertical` icon, highlights blue on hover/drag
+- Mobile: sidebars render as full-screen overlays (no resize)
+
+### Grid Adaptation When Sidebars Open
+
+The center chart grid **compresses naturally** via flexbox as sidebars take horizontal space:
+
+| State                    | Center width (1440px screen) | Grid behavior                                               |
+| ------------------------ | ---------------------------- | ----------------------------------------------------------- |
+| All sidebars closed      | ~1440px                      | Full 3-row grid with all 6 slots                            |
+| Stats sidebar open       | ~1120px                      | Stats summary removed from row 2, charts expand full-width  |
+| Findings panel open      | ~1060px                      | Grid compresses, charts resize via visx responsive wrappers |
+| Both sidebars open       | ~740px                       | Charts at minimum comfortable width                         |
+| Very compressed (<600px) | <600px                       | Consider auto-switching to scroll mode (future)             |
+
+When stats sidebar is **open**: the sidebar shows the full tabbed StatsPanelBase (Summary, Data, Histogram, Probability Plot). The grid drops the Stats Summary card from row 2, giving Boxplot + Pareto full width. Histogram and Probability Plot remain as grid cards in row 3.
+
+When stats sidebar is **closed**: Stats Summary appears as a compact card in the grid (row 2, right column). No tabs — Histogram and Probability Plot are their own grid cards in row 3.
 
 See [Dashboard Chrome Redesign spec](../../superpowers/specs/2026-03-28-dashboard-chrome-redesign.md) for the full workspace navigation model.
 
 ## Grid Slot Mapping
 
+### 3-Row Grid (default, sidebars closed)
+
+Histogram and Probability Plot are promoted to dedicated grid cards (not hidden in stats panel tabs). Stats Summary is a compact card with no tabs.
+
 ```
 Desktop (lg+):
-┌──────────────────────────────────────────────────┐
-│  I-Chart (full width)                      55fr  │
-├───────────────┬───────────────┬──────────────────┤
-│   Boxplot     │    Pareto     │  Stats (340px)   │
-│   (flex-1)    │    (flex-1)   │  flex-shrink-0   │
-└───────────────┴───────────────┘──────────────────┘
-                      45fr
+┌──────────────────────────────────────────────────────┐
+│  I-Chart (full width)                         40fr   │
+├───────────────┬───────────────┬───────────────── ────┤
+│   Boxplot     │    Pareto     │  Stats Summary  35fr │
+│   (flex-1)    │    (flex-1)   │  (280px, no tabs)    │
+├───────────────┴──────────┬───────────────────────────┤
+│   Probability Plot       │  Histogram           25fr │
+│   (flex-1)               │  (flex-1)                 │
+└──────────────────────────┴───────────────────────────┘
 
 Mobile (<640px):            Tablet (640-1024px):
 MobileChartCarousel         flex-col scroll
@@ -106,24 +142,67 @@ MobileChartCarousel         flex-col scroll
  swipe navigation)           natural overflow)
 ```
 
+Row distribution `40fr/35fr/25fr` on a typical 820px content area:
+
+- Row 1 (I-Chart): ~328px
+- Row 2 (Boxplot + Pareto + Stats): ~287px
+- Row 3 (Probability Plot + Histogram): ~205px
+
+All visx charts render well at these heights via responsive wrappers.
+
+### 2-Row Grid (stats sidebar open)
+
+When the stats sidebar is open, Stats Summary leaves the grid. Histogram and Probability Plot remain.
+
+```
+Desktop (lg+) with stats sidebar:
+┌──────────────────────────────────────────────────────┐
+│  I-Chart (full width)                         50fr   │
+├───────────────┬──────────────────────────────────────┤
+│   Boxplot     │    Pareto                     25fr   │
+│   (flex-1)    │    (flex-1)                          │
+├───────────────┴──────────┬───────────────────────────┤
+│   Probability Plot       │  Histogram           25fr │
+│   (flex-1)               │  (flex-1)                 │
+└──────────────────────────┴───────────────────────────┘
+```
+
+### Legacy 2-Row Grid (backward compatible)
+
+When histogram/probability-plot slots are not provided (e.g., embedded views), falls back to the original layout:
+
+```
+┌──────────────────────────────────────────────────┐
+│  I-Chart (full width)                      55fr  │
+├───────────────┬───────────────┬──────────────────┤
+│   Boxplot     │    Pareto     │  Stats (340px)   │
+│   (flex-1)    │    (flex-1)   │  flex-shrink-0   │
+└───────────────┴───────────────┴──────────────────┘
+                      45fr
+```
+
 ### Key files
 
-| Component           | File                                                               | Purpose                                              |
-| ------------------- | ------------------------------------------------------------------ | ---------------------------------------------------- |
-| DashboardGrid       | `packages/ui/src/components/DashboardBase/DashboardGrid.tsx`       | CSS Grid layout, responsive switching                |
-| DashboardChartCard  | `packages/ui/src/components/DashboardBase/DashboardChartCard.tsx`  | Card container with header, controls, export buttons |
-| DashboardLayoutBase | `packages/ui/src/components/DashboardBase/DashboardLayoutBase.tsx` | Orchestrates grid vs focused view, wires chart data  |
-| PWA Dashboard       | `apps/pwa/src/components/Dashboard.tsx`                            | App-level wrapper, sticky nav, view mode routing     |
-| Azure Dashboard     | `apps/azure/src/components/Dashboard.tsx`                          | Same + tab system (analysis/performance/yamazumi)    |
-| MobileDashboard     | `apps/pwa/src/components/MobileDashboard.tsx`                      | Carousel layout for phone                            |
+| Component           | File                                                               | Purpose                                                  |
+| ------------------- | ------------------------------------------------------------------ | -------------------------------------------------------- |
+| DashboardGrid       | `packages/ui/src/components/DashboardBase/DashboardGrid.tsx`       | CSS Grid layout (3-row / 2-row), responsive switching    |
+| DashboardChartCard  | `packages/ui/src/components/DashboardBase/DashboardChartCard.tsx`  | Card container with header, controls, export buttons     |
+| DashboardLayoutBase | `packages/ui/src/components/DashboardBase/DashboardLayoutBase.tsx` | Orchestrates grid vs focused view, wires chart data      |
+| StatsPanelBase      | `packages/ui/src/components/StatsPanel/StatsPanelBase.tsx`         | Tabbed stats (Summary/Histogram/Probability) for sidebar |
+| StatsSummaryPanel   | `packages/ui/src/components/StatsPanel/StatsSummaryPanel.tsx`      | Summary-only stats card for grid mode (no tabs)          |
+| useResizablePanel   | `packages/hooks/src/useResizablePanel.ts`                          | Drag-resize with localStorage persistence (left/right)   |
+| PWA Dashboard       | `apps/pwa/src/components/Dashboard.tsx`                            | App-level wrapper, sticky nav, view mode routing         |
+| Azure Dashboard     | `apps/azure/src/components/Dashboard.tsx`                          | Same + tab system (analysis/performance/yamazumi)        |
+| EditorDashboardView | `apps/azure/src/components/editor/EditorDashboardView.tsx`         | Panel sidebar orchestration (stats, findings, CoScout)   |
+| MobileDashboard     | `apps/pwa/src/components/MobileDashboard.tsx`                      | Carousel layout for phone                                |
 
 ## Responsive Breakpoints
 
-| Breakpoint              | Layout                   | Grid          | Charts             | Overflow          |
-| ----------------------- | ------------------------ | ------------- | ------------------ | ----------------- |
-| **< 640px** (phone)     | `MobileChartCarousel`    | No grid       | One at a time      | Natural scroll    |
-| **640-1023px** (tablet) | `DashboardGrid` flex-col | No grid       | Stacked vertically | `overflow-y-auto` |
-| **>= 1024px** (desktop) | `DashboardGrid` CSS Grid | `55fr / 45fr` | All visible        | `overflow-hidden` |
+| Breakpoint              | Layout                   | Grid                                                     | Charts             | Overflow          |
+| ----------------------- | ------------------------ | -------------------------------------------------------- | ------------------ | ----------------- |
+| **< 640px** (phone)     | `MobileChartCarousel`    | No grid                                                  | One at a time      | Natural scroll    |
+| **640-1023px** (tablet) | `DashboardGrid` flex-col | No grid                                                  | Stacked vertically | `overflow-y-auto` |
+| **>= 1024px** (desktop) | `DashboardGrid` CSS Grid | `40fr / 35fr / 25fr` (3-row) or `55fr / 45fr` (fallback) | All visible        | `overflow-hidden` |
 
 Breakpoints defined in `packages/ui/src/hooks/useMediaQuery.ts`:
 
@@ -151,26 +230,30 @@ Focused view is **not an overlay** — it replaces the grid in `DashboardLayoutB
 
 Panels that affect the dashboard layout:
 
-| Panel                                   | Where rendered                          | Effect on dashboard                            |
-| --------------------------------------- | --------------------------------------- | ---------------------------------------------- |
-| Sticky nav (FilterBreadcrumb + toolbar) | Inside Dashboard container              | `flex-shrink-0`, reduces grid available height |
-| SelectionPanel                          | Inside sticky nav (when points brushed) | Expands sticky nav height                      |
-| FindingsPanel                           | Parent (App.tsx / Editor.tsx)           | Beside dashboard, not inside it                |
-| CoScoutPanel                            | Parent                                  | Beside dashboard                               |
-| SettingsPanel                           | Parent                                  | Overlay, no layout shift                       |
-| SpecEditor                              | Inside Dashboard, absolute positioned   | Overlay, no layout shift                       |
+| Panel                                   | Where rendered                          | Effect on dashboard                                          |
+| --------------------------------------- | --------------------------------------- | ------------------------------------------------------------ |
+| Sticky nav (FilterBreadcrumb + toolbar) | Inside Dashboard container              | `flex-shrink-0`, reduces grid available height               |
+| SelectionPanel                          | Inside sticky nav (when points brushed) | Expands sticky nav height                                    |
+| Stats/Data sidebar                      | Parent (EditorDashboardView)            | Left of dashboard, resizable. Grid drops Stats Summary card. |
+| FindingsPanel                           | Parent (App.tsx / Editor.tsx)           | Right of dashboard, resizable. Grid compresses horizontally. |
+| CoScoutPanel                            | Parent                                  | Right of dashboard, resizable                                |
+| DataPanel                               | Parent                                  | Right of dashboard, resizable                                |
+| SettingsPanel                           | Parent                                  | Overlay, no layout shift                                     |
+| SpecEditor                              | Inside Dashboard, absolute positioned   | Overlay, no layout shift                                     |
 
 ## Chart Export
 
 Export uses fixed off-screen dimensions (from `EXPORT_SIZES` in `useChartCopy.ts`):
 
-| Chart     | Export Width | Export Height       |
-| --------- | ------------ | ------------------- |
-| I-Chart   | 1200px       | 540px               |
-| Boxplot   | 1200px       | 800px               |
-| Pareto    | 1200px       | 720px               |
-| Stats     | 1200px       | 400px               |
-| Dashboard | 1600px       | auto (scrollHeight) |
+| Chart            | Export Width | Export Height       |
+| ---------------- | ------------ | ------------------- |
+| I-Chart          | 1200px       | 540px               |
+| Boxplot          | 1200px       | 800px               |
+| Pareto           | 1200px       | 720px               |
+| Histogram        | 800px        | 600px               |
+| Probability Plot | 800px        | 700px               |
+| Stats            | 1200px       | 400px               |
+| Dashboard        | 1600px       | auto (scrollHeight) |
 
 Dashboard export temporarily enables `overflow: visible; height: auto` to capture full content, then restores the grid layout.
 

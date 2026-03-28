@@ -163,7 +163,14 @@ export interface ViewState {
   isFindingsOpen?: boolean;
   isWhatIfOpen?: boolean;
   isImprovementOpen?: boolean;
-  focusedChart?: 'ichart' | 'boxplot' | 'pareto' | 'yamazumi' | null;
+  focusedChart?:
+    | 'ichart'
+    | 'boxplot'
+    | 'pareto'
+    | 'yamazumi'
+    | 'histogram'
+    | 'probability-plot'
+    | null;
   boxplotFactor?: string;
   paretoFactor?: string;
   findingsViewMode?: 'list' | 'board' | 'tree';

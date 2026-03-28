@@ -20,11 +20,12 @@ import { useImprovementStore } from '../../features/improvement/improvementStore
 import { useAIStore } from '../../features/ai/aiStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
+import { useResizablePanel } from '@variscout/hooks';
 import type { AzureFindingsCallbacks } from '@variscout/ui';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
 import type { UseActionProposalsReturn } from '../../features/ai';
-import { X } from 'lucide-react';
+import { X, GripVertical } from 'lucide-react';
 
 const COSCOUT_RESIZE_CONFIG = {
   storageKey: 'variscout-azure-coscout-panel-width',
@@ -135,6 +136,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const isDataPanelOpen = usePanelsStore(s => s.isDataPanelOpen);
   const isDataTableOpen = usePanelsStore(s => s.isDataTableOpen);
   const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
+  const statsSidebar = useResizablePanel('variscout-stats-sidebar-width', 280, 500, 320, 'left');
   const highlightRowIndex = usePanelsStore(s => s.highlightRowIndex);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
 
@@ -399,19 +401,32 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   return (
     <>
       <div className="flex-1 flex overflow-hidden">
-        {/* Stats Sidebar (left) */}
+        {/* Stats Sidebar (left, resizable) */}
         {isStatsSidebarOpen && !isPhone && (
-          <div className="flex flex-col w-80 flex-shrink-0 border-r border-edge bg-surface-secondary overflow-y-auto">
-            <React.Suspense fallback={null}>
-              <StatsPanel
-                stats={stats}
-                specs={specs}
-                filteredData={filteredData}
-                outcome={outcome}
-                cpkTarget={cpkTarget}
-              />
-            </React.Suspense>
-          </div>
+          <>
+            <div
+              className="flex flex-col flex-shrink-0 bg-surface-secondary overflow-y-auto"
+              style={{ width: statsSidebar.width }}
+            >
+              <React.Suspense fallback={null}>
+                <StatsPanel
+                  stats={stats}
+                  specs={specs}
+                  filteredData={filteredData}
+                  outcome={outcome}
+                  cpkTarget={cpkTarget}
+                />
+              </React.Suspense>
+            </div>
+            <div
+              className={`w-1 flex-shrink-0 flex items-center justify-center cursor-col-resize transition-colors ${
+                statsSidebar.isDragging ? 'bg-blue-500' : 'bg-surface-tertiary hover:bg-blue-500'
+              }`}
+              onMouseDown={statsSidebar.handleMouseDown}
+            >
+              <GripVertical size={12} className="text-content-muted" />
+            </div>
+          </>
         )}
 
         <Dashboard

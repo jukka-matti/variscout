@@ -3,6 +3,8 @@ import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
+import CapabilityHistogram from './charts/CapabilityHistogram';
+import ProbabilityPlot from './charts/ProbabilityPlot';
 import MobileDashboard from './MobileDashboard';
 import SpecEditor from './settings/SpecEditor';
 import SpecsPopover from './settings/SpecsPopover';
@@ -14,6 +16,8 @@ import {
   SelectionPanel,
   CreateFactorModal,
   DashboardLayoutBase,
+  DashboardChartCard,
+  FocusedViewOverlay,
   CapabilityMetricToggle,
   SubgroupConfigPopover,
   useIsMobile,
@@ -260,6 +264,14 @@ const Dashboard = ({
     },
     [chartTitles, setChartTitles]
   );
+
+  // Histogram data for standalone chart cards (grid mode)
+  const histogramData = useMemo(() => {
+    if (!outcome || !filteredData || filteredData.length === 0) return [];
+    return filteredData
+      .map((d: Record<string, unknown>) => Number(d[outcome]))
+      .filter((v: number) => !isNaN(v));
+  }, [filteredData, outcome]);
 
   // Accessible live region text for screen readers
   const liveRegionText = useMemo(() => {
@@ -730,10 +742,48 @@ const Dashboard = ({
             </ErrorBoundary>
           )
         }
+        renderHistogramContent={
+          (displayOptions.dashboardLayout ?? 'grid') === 'grid' &&
+          histogramData.length > 0 &&
+          stats ? (
+            <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
+          ) : undefined
+        }
+        renderProbabilityPlotContent={
+          (displayOptions.dashboardLayout ?? 'grid') === 'grid' &&
+          histogramData.length > 0 &&
+          stats ? (
+            <ProbabilityPlot data={histogramData} mean={stats.mean} stdDev={stats.stdDev} />
+          ) : undefined
+        }
         renderFocusedView={
-          focusedChart ? (
+          focusedChart === 'histogram' || focusedChart === 'probability-plot' ? (
+            <FocusedViewOverlay onPrev={handlePrevChart} onNext={handleNextChart}>
+              <DashboardChartCard
+                id={`${focusedChart}-focused`}
+                testId={`chart-${focusedChart}-focused`}
+                chartName={focusedChart}
+                onMaximize={() => setFocusedChart(null)}
+                copyFeedback={copyFeedback}
+                onCopyChart={handleCopyChart}
+                onDownloadPng={handleDownloadPng}
+                onDownloadSvg={handleDownloadSvg}
+                title={
+                  <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
+                    {focusedChart === 'histogram' ? 'Histogram' : 'Probability Plot'}
+                  </h3>
+                }
+              >
+                {focusedChart === 'histogram' && histogramData.length > 0 && stats ? (
+                  <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
+                ) : focusedChart === 'probability-plot' && histogramData.length > 0 && stats ? (
+                  <ProbabilityPlot data={histogramData} mean={stats.mean} stdDev={stats.stdDev} />
+                ) : null}
+              </DashboardChartCard>
+            </FocusedViewOverlay>
+          ) : focusedChart ? (
             <FocusedChartView
-              focusedChart={focusedChart}
+              focusedChart={focusedChart as 'ichart' | 'boxplot' | 'pareto'}
               outcome={outcome}
               availableOutcomes={availableOutcomes}
               boxplotFactor={boxplotFactor}

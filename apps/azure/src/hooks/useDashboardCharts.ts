@@ -18,7 +18,7 @@ import type { ViewState } from '@variscout/hooks';
 import { useFilterNavigation } from '../hooks';
 import type { UseFilterNavigationReturn, FilterChipData } from '../hooks';
 
-const CHART_ORDER = ['ichart', 'boxplot', 'pareto'] as const;
+const CHART_ORDER = ['ichart', 'boxplot', 'pareto', 'histogram', 'probability-plot'] as const;
 export type FocusedChart = (typeof CHART_ORDER)[number] | null;
 
 export interface UseDashboardChartsProps {

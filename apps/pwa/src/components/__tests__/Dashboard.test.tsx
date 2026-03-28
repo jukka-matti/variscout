@@ -15,6 +15,12 @@ vi.mock('../charts/ParetoChart', () => ({
 vi.mock('../StatsPanel', () => ({
   default: () => <div data-testid="stats-panel">Stats Panel</div>,
 }));
+vi.mock('../charts/CapabilityHistogram', () => ({
+  default: () => <div data-testid="capability-histogram">Histogram</div>,
+}));
+vi.mock('../charts/ProbabilityPlot', () => ({
+  default: () => <div data-testid="probability-plot">Probability Plot</div>,
+}));
 vi.mock('../AnovaResults', () => ({
   default: () => <div data-testid="anova-results">ANOVA Results</div>,
 }));
