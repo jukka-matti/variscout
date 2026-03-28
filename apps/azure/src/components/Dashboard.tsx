@@ -39,6 +39,7 @@ import {
   useFilterHandlers,
   useCreateFactorModal,
   useDashboardInsights,
+  useProcessProjection,
 } from '@variscout/hooks';
 import type { AIContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
@@ -104,7 +105,7 @@ const Dashboard = ({
   onPinFinding,
   onShareChart,
   findingsCallbacks,
-  findings: _allFindings,
+  findings: allFindings,
   viewMode = {},
   performance = {},
   ai = {},
@@ -261,6 +262,22 @@ const Dashboard = ({
     }
   }, [focusedChart, hasRestoredFocusedChart, onViewStateChange]);
 
+  // Process projection intelligence (Phase 2)
+  const scopedFindings = useMemo(
+    () => allFindings?.filter(f => f.status === 'investigating' || f.status === 'analyzed'),
+    [allFindings]
+  );
+  const { drillProjection, centeringOpportunity, specSuggestion, activeProjection } =
+    useProcessProjection({
+      rawData: rawData ?? [],
+      filteredData: filteredData ?? [],
+      outcome,
+      specs,
+      stats,
+      filterChipData,
+      scopedFindings,
+    });
+
   // Annotations (right-click context menu for highlights, no mode toggle)
   const {
     hasAnnotations,
@@ -394,6 +411,14 @@ const Dashboard = ({
             onManageFactors={onManageFactors}
             onSetSpecs={() => setShowSpecEditor(true)}
             onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
+            drillProjection={drillProjection}
+            centeringOpportunity={centeringOpportunity}
+            specSuggestion={specSuggestion}
+            activeProjection={activeProjection}
+            onAcceptSpecSuggestion={(lsl, usl) => {
+              setSpecs({ ...specs, lsl, usl });
+              setShowSpecEditor(true);
+            }}
           />
         )}
 

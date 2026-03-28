@@ -63,6 +63,10 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   onEnterPresentationMode,
   onSetSpecs,
   onCpkClick,
+  centeringOpportunity,
+  specSuggestion,
+  activeProjection,
+  onAcceptSpecSuggestion,
 }) => {
   const { formatStat } = useTranslation();
 
@@ -153,7 +157,20 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
             <span className="text-content-muted">n</span>
             <span className="ml-1 font-mono">{n}</span>
           </span>
-          {onSetSpecs && (
+          {specSuggestion && onAcceptSpecSuggestion ? (
+            <>
+              <span className="text-content-muted">|</span>
+              <button
+                onClick={() =>
+                  onAcceptSpecSuggestion(specSuggestion.suggestedLsl, specSuggestion.suggestedUsl)
+                }
+                data-testid="btn-spec-suggestion"
+                className="text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap"
+              >
+                {specSuggestion.label} &rarr; Set specs
+              </button>
+            </>
+          ) : onSetSpecs ? (
             <>
               <span className="text-content-muted">|</span>
               <button
@@ -164,7 +181,7 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
                 Set specs &rarr;
               </button>
             </>
-          )}
+          ) : null}
         </div>
       );
     }
@@ -224,6 +241,21 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
             )
           ) : (
             <span className="ml-1 text-content-muted">/{cpkTarget}</span>
+          )}
+          {/* Projection: "→ Y if fixed" or centering opportunity */}
+          {activeProjection && (
+            <span className="ml-1.5 text-green-500 font-mono" data-testid="projection-display">
+              &rarr; {formatStat(activeProjection.projectedCpk, 2)}
+              <span className="ml-1 font-sans text-content-secondary">
+                {activeProjection.label}
+              </span>
+            </span>
+          )}
+          {!activeProjection && centeringOpportunity && (
+            <span className="ml-1.5 text-amber-500 font-mono" data-testid="centering-display">
+              &rarr; Cp {formatStat(centeringOpportunity.cp, 2)}
+              <span className="ml-1 font-sans text-content-secondary">by centering</span>
+            </span>
           )}
         </span>
         <span className="text-content-muted">|</span>

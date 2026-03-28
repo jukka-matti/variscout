@@ -418,6 +418,13 @@ vi.mock('@variscout/hooks', () => ({
     handleCreateFactor: vi.fn(),
   }),
   useJourneyPhase: () => 'scout',
+  useProcessProjection: () => ({
+    drillProjection: null,
+    centeringOpportunity: null,
+    specSuggestion: null,
+    cumulativeProjection: null,
+    activeProjection: null,
+  }),
 }));
 
 // Mock core functions

@@ -31,6 +31,7 @@ import {
   useFilterHandlers,
   useCreateFactorModal,
   useDashboardInsights,
+  useProcessProjection,
 } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
@@ -204,6 +205,17 @@ const Dashboard = ({
 
   // Responsive mobile detection
   const isMobile = useIsMobile(BREAKPOINTS.phone);
+
+  // Process projection intelligence (Phase 2)
+  const { drillProjection, centeringOpportunity, specSuggestion, activeProjection } =
+    useProcessProjection({
+      rawData: rawData ?? [],
+      filteredData: filteredData ?? [],
+      outcome,
+      specs,
+      stats,
+      filterChipData,
+    });
 
   // Handler for saving specs from SpecEditor
   const handleSaveSpecs = useCallback(
@@ -436,6 +448,14 @@ const Dashboard = ({
           onEnterPresentationMode={onEnterPresentationMode}
           onSetSpecs={() => setShowSpecEditor(true)}
           onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
+          drillProjection={drillProjection}
+          centeringOpportunity={centeringOpportunity}
+          specSuggestion={specSuggestion}
+          activeProjection={activeProjection}
+          onAcceptSpecSuggestion={(lsl, usl) => {
+            setSpecs({ ...specs, lsl, usl });
+            setShowSpecEditor(true);
+          }}
         />
 
         {/* Selection Panel - Shows when points are brushed in IChart */}

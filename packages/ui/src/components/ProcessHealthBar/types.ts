@@ -1,4 +1,9 @@
 import type { StatsResult, SpecLimits } from '@variscout/core';
+import type {
+  ProcessProjection,
+  CenteringOpportunity,
+  SpecSuggestion,
+} from '@variscout/core/variation';
 import type { FilterChipData } from '@variscout/hooks';
 
 export interface ProcessHealthBarProps {
@@ -44,4 +49,19 @@ export interface ProcessHealthBarProps {
   onSetSpecs?: () => void;
   /** Called when user clicks the Cpk stat to open capability editor */
   onCpkClick?: () => void;
+
+  // --- Phase 2: Projection props (all optional for backward compat) ---
+
+  /** Drill projection: "Cpk X → Y if fixed" */
+  drillProjection?: ProcessProjection | null;
+  /** Centering opportunity: "→ Cp X by centering" */
+  centeringOpportunity?: CenteringOpportunity | null;
+  /** Spec suggestion when no specs set */
+  specSuggestion?: SpecSuggestion | null;
+  /** Cumulative projection from multiple findings */
+  cumulativeProjection?: ProcessProjection | null;
+  /** The highest-priority projection to display */
+  activeProjection?: ProcessProjection | null;
+  /** Called when user accepts spec suggestion (pre-fills spec editor) */
+  onAcceptSpecSuggestion?: (lsl: number, usl: number) => void;
 }

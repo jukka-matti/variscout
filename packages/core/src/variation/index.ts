@@ -23,6 +23,9 @@ export type {
   DirectAdjustmentParams,
   DirectAdjustmentResult,
   OverallImpactResult,
+  ProcessProjection,
+  CenteringOpportunity,
+  SpecSuggestion,
 } from './types';
 
 // Drill variation
@@ -49,6 +52,14 @@ export {
   normalCDF,
   normalPDF,
 } from './simulation';
+
+// Projection (ProcessHealthBar Phase 2)
+export {
+  computeDrillProjection,
+  computeCenteringOpportunity,
+  computeSpecSuggestion,
+  computeCumulativeProjection,
+} from './projection';
 
 // Direction-aware category coloring
 export type { DirectionColor } from './directionColors';

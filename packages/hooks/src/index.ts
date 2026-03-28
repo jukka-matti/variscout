@@ -319,6 +319,18 @@ export {
   type UseDashboardInsightsReturn,
 } from './useDashboardInsights';
 
+// Process Projection (Phase 2 toolbar intelligence)
+export {
+  useProcessProjection,
+  type UseProcessProjectionOptions,
+  type UseProcessProjectionReturn,
+} from './useProcessProjection';
+export type {
+  ProcessProjection,
+  CenteringOpportunity,
+  SpecSuggestion,
+} from './useProcessProjection';
+
 // Async Stats Hook (Worker bridge)
 export {
   useAsyncStats,
