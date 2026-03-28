@@ -76,7 +76,6 @@ describe('StatsPanelBase', () => {
     expect(screen.getByTestId('stat-value-pass-rate')).toBeDefined();
     expect(screen.getByTestId('stat-value-cp')).toBeDefined();
     expect(screen.getByTestId('stat-value-cpk')).toBeDefined();
-    // Plus the 4 basic cards
     expect(screen.getByTestId('stat-value-mean')).toBeDefined();
   });
 
@@ -85,13 +84,11 @@ describe('StatsPanelBase', () => {
     expect(screen.queryByTestId('stat-value-cp')).toBeNull();
     expect(screen.queryByTestId('stat-value-cpk')).toBeNull();
     expect(screen.queryByTestId('stat-value-pass-rate')).toBeNull();
-    // Basic cards still shown
     expect(screen.getByTestId('stat-value-mean')).toBeDefined();
   });
 
   it('shows empty state when stats=null', () => {
     render(<StatsPanelBase {...defaultProps} stats={null} />);
-    // Mean should show N/A
     const mean = screen.getByTestId('stat-value-mean');
     expect(mean.textContent).toBe('N/A');
   });
@@ -110,44 +107,41 @@ describe('StatsPanelBase', () => {
       expect(screen.getByTestId('stat-value-mean')).toBeDefined();
     });
 
-    it('switches to Histogram tab', () => {
-      const renderHistogram = vi.fn().mockReturnValue(<div data-testid="histogram">Chart</div>);
-      render(<StatsPanelBase {...defaultProps} renderHistogram={renderHistogram} />);
+    it('switches to Data tab', () => {
+      const renderDataTable = vi.fn().mockReturnValue(<div data-testid="data-table">Table</div>);
+      render(<StatsPanelBase {...defaultProps} renderDataTable={renderDataTable} />);
 
-      fireEvent.click(screen.getByText('Histogram'));
-      expect(screen.getByTestId('histogram')).toBeDefined();
-      expect(renderHistogram).toHaveBeenCalled();
+      fireEvent.click(screen.getByText('Data'));
+      expect(screen.getByTestId('data-table')).toBeDefined();
+      expect(renderDataTable).toHaveBeenCalled();
     });
 
-    it('switches to Prob Plot tab', () => {
-      const renderProbPlot = vi.fn().mockReturnValue(<div data-testid="prob-plot">Plot</div>);
-      render(<StatsPanelBase {...defaultProps} renderProbabilityPlot={renderProbPlot} />);
+    it('switches to What-If tab', () => {
+      const renderWhatIf = vi.fn().mockReturnValue(<div data-testid="what-if">Simulator</div>);
+      render(<StatsPanelBase {...defaultProps} renderWhatIf={renderWhatIf} />);
 
-      fireEvent.click(screen.getByText('Probability Plot'));
-      expect(screen.getByTestId('prob-plot')).toBeDefined();
-      expect(renderProbPlot).toHaveBeenCalled();
+      fireEvent.click(screen.getByText('What-If'));
+      expect(screen.getByTestId('what-if')).toBeDefined();
+      expect(renderWhatIf).toHaveBeenCalled();
     });
 
-    it('shows empty state for histogram when no render function', () => {
+    it('shows empty state for Data tab when no render function', () => {
       render(<StatsPanelBase {...defaultProps} />);
-      fireEvent.click(screen.getByText('Histogram'));
+      fireEvent.click(screen.getByText('Data'));
       expect(screen.getByText('No data available')).toBeDefined();
+    });
+
+    it('shows empty state for What-If tab when no render function', () => {
+      render(<StatsPanelBase {...defaultProps} />);
+      fireEvent.click(screen.getByText('What-If'));
+      expect(screen.getByText('No What-If simulator available')).toBeDefined();
     });
   });
 
   describe('pencil link', () => {
-    it('shows "Edit specifications" when no specs and onEditSpecs provided', () => {
+    it('shows "Edit specifications" when onEditSpecs provided', () => {
       const onEditSpecs = vi.fn();
       render(<StatsPanelBase {...defaultProps} onEditSpecs={onEditSpecs} />);
-      expect(screen.getByTestId('edit-specs-link')).toBeDefined();
-      expect(screen.getByText('Edit specifications')).toBeDefined();
-    });
-
-    it('shows "Edit specifications" when specs exist and onEditSpecs provided', () => {
-      const onEditSpecs = vi.fn();
-      render(
-        <StatsPanelBase {...defaultProps} specs={specsWithLimits} onEditSpecs={onEditSpecs} />
-      );
       expect(screen.getByTestId('edit-specs-link')).toBeDefined();
       expect(screen.getByText('Edit specifications')).toBeDefined();
     });
@@ -165,23 +159,70 @@ describe('StatsPanelBase', () => {
     });
   });
 
+  describe('target discovery', () => {
+    it('shows prompt when no specs and not drilling', () => {
+      render(<StatsPanelBase {...defaultProps} specs={{}} isDrilling={false} />);
+      expect(screen.getByTestId('target-discovery-prompt')).toBeDefined();
+    });
+
+    it('shows complement insight when no specs and drilling', () => {
+      render(
+        <StatsPanelBase
+          {...defaultProps}
+          specs={{}}
+          isDrilling={true}
+          complement={{ mean: 10.92, stdDev: 0.31, count: 20 }}
+        />
+      );
+      expect(screen.getByTestId('target-discovery-complement')).toBeDefined();
+    });
+
+    it('shows centering opportunity when specs exist and not drilling', () => {
+      render(
+        <StatsPanelBase
+          {...defaultProps}
+          specs={specsWithLimits}
+          isDrilling={false}
+          centeringOpportunity={{ currentCpk: 0.26, cp: 1.01, gap: 0.75 }}
+        />
+      );
+      expect(screen.getByTestId('target-discovery-centering')).toBeDefined();
+    });
+
+    it('shows headroom check when specs exist and drilling', () => {
+      render(
+        <StatsPanelBase
+          {...defaultProps}
+          specs={specsWithLimits}
+          isDrilling={true}
+          activeProjection={{
+            currentCpk: 0.26,
+            projectedCpk: 1.85,
+            label: 'if fixed',
+            findingCount: 1,
+          }}
+          cpkTarget={1.33}
+        />
+      );
+      expect(screen.getByTestId('target-discovery-headroom')).toBeDefined();
+    });
+  });
+
   it('compact mode renders tab bar', () => {
     const { container } = render(<StatsPanelBase {...defaultProps} compact={true} />);
-    // Compact mode uses containerCompact class
     expect(container.querySelector('.scroll-touch')).not.toBeNull();
   });
 
   it('applies default styling classes', () => {
     const { container } = render(<StatsPanelBase {...defaultProps} />);
-    // Default uses bg-surface-secondary
     expect(container.querySelector('.bg-surface-secondary')).not.toBeNull();
   });
 
   it('respects defaultTab prop', () => {
-    const renderHistogram = vi.fn().mockReturnValue(<div data-testid="histogram">Chart</div>);
+    const renderDataTable = vi.fn().mockReturnValue(<div data-testid="data-table">Table</div>);
     render(
-      <StatsPanelBase {...defaultProps} defaultTab="histogram" renderHistogram={renderHistogram} />
+      <StatsPanelBase {...defaultProps} defaultTab="data" renderDataTable={renderDataTable} />
     );
-    expect(screen.getByTestId('histogram')).toBeDefined();
+    expect(screen.getByTestId('data-table')).toBeDefined();
   });
 });

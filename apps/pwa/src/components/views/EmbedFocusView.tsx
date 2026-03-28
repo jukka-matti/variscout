@@ -9,7 +9,7 @@ import { Activity } from 'lucide-react';
 import type { StatsResult, SpecLimits, DataRow } from '@variscout/core';
 
 export type EmbedFocusChart = 'ichart' | 'boxplot' | 'pareto' | 'stats';
-export type EmbedStatsTab = 'summary' | 'histogram' | 'normality';
+export type EmbedStatsTab = 'summary' | 'data' | 'whatif';
 
 export interface EmbedFocusViewProps {
   focusChart: EmbedFocusChart;

@@ -206,9 +206,7 @@ function AppMain() {
   const [embedFocusChart, setEmbedFocusChart] = useState<
     'ichart' | 'boxplot' | 'pareto' | 'stats' | null
   >(null);
-  const [embedStatsTab, setEmbedStatsTab] = useState<'summary' | 'histogram' | 'normality' | null>(
-    null
-  );
+  const [embedStatsTab, setEmbedStatsTab] = useState<'summary' | 'data' | 'whatif' | null>(null);
 
   // Embed messaging
   const { highlightedChart, highlightIntensity, notifyChartClicked } =
@@ -244,8 +242,8 @@ function AppMain() {
       setEmbedFocusChart(chartParam as 'ichart' | 'boxplot' | 'pareto' | 'stats');
     }
 
-    if (tabParam && ['summary', 'histogram', 'normality'].includes(tabParam)) {
-      setEmbedStatsTab(tabParam as 'summary' | 'histogram' | 'normality');
+    if (tabParam && ['summary', 'data', 'whatif'].includes(tabParam)) {
+      setEmbedStatsTab(tabParam as 'summary' | 'data' | 'whatif');
     }
 
     if (sampleKey && rawData.length === 0) {

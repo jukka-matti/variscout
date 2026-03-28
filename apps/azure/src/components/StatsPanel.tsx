@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
-import { StatsPanelBase, useGlossary } from '@variscout/ui';
-import CapabilityHistogram from './charts/CapabilityHistogram';
-import ProbabilityPlot from './charts/ProbabilityPlot';
+import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
+import type { ComplementInsight } from '@variscout/ui';
+import { StatsPanelBase, useGlossary, WhatIfSimulator } from '@variscout/ui';
 import SpecEditor from './settings/SpecEditor';
-import { WhatIfSimulator } from '@variscout/ui';
 
 interface StatsPanelProps {
   stats: StatsResult | null;
@@ -17,6 +16,14 @@ interface StatsPanelProps {
   onCpkClick?: () => void;
   subgroupsMeetingTarget?: number;
   subgroupCount?: number;
+  /** Target discovery props */
+  isDrilling?: boolean;
+  complement?: ComplementInsight | null;
+  activeProjection?: ProcessProjection | null;
+  centeringOpportunity?: CenteringOpportunity | null;
+  sampleCount?: number;
+  /** Data table render prop */
+  renderDataTable?: () => React.ReactNode;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({
@@ -30,6 +37,12 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   onCpkClick,
   subgroupsMeetingTarget,
   subgroupCount,
+  isDrilling,
+  complement,
+  activeProjection,
+  centeringOpportunity,
+  sampleCount,
+  renderDataTable,
 }) => {
   const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
@@ -62,26 +75,31 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         subgroupCount={subgroupCount}
         onEditSpecs={onSaveSpecs ? () => setIsEditingSpecs(true) : undefined}
         getTerm={getTerm}
-        renderHistogram={(data, specLimits, mean) => (
-          <CapabilityHistogram data={data} specs={specLimits} mean={mean} />
-        )}
-        renderProbabilityPlot={(data, mean, stdDev) => (
-          <ProbabilityPlot data={data} mean={mean} stdDev={stdDev} />
-        )}
-        renderSummaryFooter={(s, sp) =>
-          s && (sp.usl !== undefined || sp.lsl !== undefined) ? (
-            <div className="mt-4">
-              <WhatIfSimulator
-                currentStats={{
-                  mean: s.mean,
-                  stdDev: s.stdDev,
-                  cpk: s.cpk,
-                }}
-                specs={sp}
-                defaultExpanded={false}
-              />
-            </div>
-          ) : null
+        sampleCount={sampleCount}
+        isDrilling={isDrilling}
+        complement={complement}
+        activeProjection={activeProjection}
+        centeringOpportunity={centeringOpportunity}
+        onAcceptSpecs={
+          onSaveSpecs
+            ? (lsl, usl) => {
+                onSaveSpecs({ ...specs, lsl, usl });
+                setIsEditingSpecs(true);
+              }
+            : undefined
+        }
+        renderDataTable={renderDataTable}
+        renderWhatIf={
+          stats && (specs.usl !== undefined || specs.lsl !== undefined)
+            ? () => (
+                <WhatIfSimulator
+                  currentStats={{ mean: stats.mean, stdDev: stats.stdDev, cpk: stats.cpk }}
+                  specs={specs}
+                  defaultExpanded={true}
+                  cpkTarget={cpkTarget}
+                />
+              )
+            : undefined
         }
       />
     </>

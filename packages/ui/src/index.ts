@@ -113,9 +113,13 @@ export {
 export {
   StatsPanelBase,
   StatsSummaryPanel,
+  TargetDiscoveryCard,
   StagedComparisonCard,
   defaultStagedComparisonColorScheme,
   type StatsPanelBaseProps,
+  type StatsPanelTab,
+  type ComplementInsight,
+  type TargetDiscoveryCardProps,
   type StatsSummaryPanelProps,
   type StagedComparisonCardProps,
   type StagedComparisonColorScheme,

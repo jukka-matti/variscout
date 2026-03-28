@@ -87,7 +87,7 @@ describe('StatsPanel', () => {
     expect(screen.getByText('94.5%')).toBeInTheDocument(); // 100 - 5.5
   });
 
-  it('switches to Histogram tab on click', () => {
+  it('switches to What-If tab on click', () => {
     render(
       <StatsPanel
         stats={mockStats}
@@ -97,15 +97,12 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Click Histogram tab
-    fireEvent.click(screen.getByText('Histogram'));
+    // Click What-If tab
+    fireEvent.click(screen.getByText('What-If'));
 
-    // Histogram tab should now be active
-    const histogramTab = screen.getByText('Histogram');
-    expect(histogramTab).toHaveClass('bg-surface-tertiary');
-
-    // Should show histogram component
-    expect(screen.getByTestId('capability-histogram')).toBeInTheDocument();
+    // What-If tab should now be active
+    const whatIfTab = screen.getByText('What-If');
+    expect(whatIfTab).toHaveClass('bg-surface-tertiary');
   });
 
   it('displays Cp in the card grid', () => {

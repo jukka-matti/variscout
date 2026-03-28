@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
+import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
+import type { StatsPanelTab, ComplementInsight } from '@variscout/ui';
 import { StatsPanelBase, useGlossary } from '@variscout/ui';
 import { useData } from '../context/DataContext';
-import CapabilityHistogram from './charts/CapabilityHistogram';
-import ProbabilityPlot from './charts/ProbabilityPlot';
 import SpecEditor from './settings/SpecEditor';
 
 interface StatsPanelProps {
@@ -11,13 +11,19 @@ interface StatsPanelProps {
   specs: SpecLimits;
   filteredData?: DataRow[];
   outcome?: string | null;
-  defaultTab?: 'summary' | 'histogram' | 'normality';
+  defaultTab?: StatsPanelTab;
   className?: string;
   compact?: boolean;
   cpkTarget?: number;
   onCpkClick?: () => void;
   subgroupsMeetingTarget?: number;
   subgroupCount?: number;
+  /** Target discovery props */
+  isDrilling?: boolean;
+  complement?: ComplementInsight | null;
+  activeProjection?: ProcessProjection | null;
+  centeringOpportunity?: CenteringOpportunity | null;
+  sampleCount?: number;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({
@@ -32,6 +38,11 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   onCpkClick,
   subgroupsMeetingTarget,
   subgroupCount,
+  isDrilling,
+  complement,
+  activeProjection,
+  centeringOpportunity,
+  sampleCount,
 }) => {
   const { setSpecs } = useData();
   const { getTerm } = useGlossary();
@@ -43,7 +54,6 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
 
   return (
     <>
-      {/* Spec Editor Popover */}
       {isEditingSpecs && (
         <SpecEditor
           specs={specs}
@@ -67,12 +77,15 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         subgroupsMeetingTarget={subgroupsMeetingTarget}
         subgroupCount={subgroupCount}
         getTerm={getTerm}
-        renderHistogram={(data, specLimits, mean) => (
-          <CapabilityHistogram data={data} specs={specLimits} mean={mean} />
-        )}
-        renderProbabilityPlot={(data, mean, stdDev) => (
-          <ProbabilityPlot data={data} mean={mean} stdDev={stdDev} />
-        )}
+        sampleCount={sampleCount}
+        isDrilling={isDrilling}
+        complement={complement}
+        activeProjection={activeProjection}
+        centeringOpportunity={centeringOpportunity}
+        onAcceptSpecs={(lsl, usl) => {
+          setSpecs({ ...specs, lsl, usl });
+          setIsEditingSpecs(true);
+        }}
       />
     </>
   );

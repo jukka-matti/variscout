@@ -92,7 +92,7 @@ describe('StatsPanel', () => {
     expect(screen.getByText('94.5%')).toBeInTheDocument(); // 100 - 5.5
   });
 
-  it('switches to Histogram tab on click', () => {
+  it('switches to Data tab on click', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
     } as unknown as ReturnType<typeof DataContextModule.useData>);
@@ -106,15 +106,12 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Click Histogram tab
-    fireEvent.click(screen.getByText('Histogram'));
+    // Click Data tab
+    fireEvent.click(screen.getByText('Data'));
 
-    // Histogram tab should now be active
-    const histogramTab = screen.getByText('Histogram');
-    expect(histogramTab).toHaveClass('bg-surface-tertiary');
-
-    // Should show histogram component
-    expect(screen.getByTestId('capability-histogram')).toBeInTheDocument();
+    // Data tab should now be active
+    const dataTab = screen.getByText('Data');
+    expect(dataTab).toHaveClass('bg-surface-tertiary');
   });
 
   it('displays Cp when specs are set', () => {
@@ -286,8 +283,9 @@ describe('StatsPanel', () => {
         />
       );
 
-      fireEvent.click(screen.getByText('Histogram'));
-      expect(screen.getByTestId('capability-histogram')).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Data'));
+      // Data tab shows empty state since no renderDataTable is passed
+      expect(screen.getByText('No data available')).toBeInTheDocument();
     });
   });
 });
