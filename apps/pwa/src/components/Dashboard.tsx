@@ -12,7 +12,8 @@ import { PresentationView, EmbedFocusView, FocusedChartView } from './views';
 import { EditableChartTitle } from '@variscout/ui';
 import {
   ErrorBoundary,
-  FilterBreadcrumb,
+  ProcessHealthBar,
+  VerificationCard,
   SelectionPanel,
   CreateFactorModal,
   DashboardLayoutBase,
@@ -35,7 +36,7 @@ import {
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
-import { Activity, Settings2, LayoutGrid, List, Maximize2, FileDown } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { getColumnNames, type SpecLimits, type Finding } from '@variscout/core';
 
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
@@ -416,99 +417,28 @@ const Dashboard = ({
 
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
-        {/* Filter Breadcrumb Navigation with Variation Tracking */}
-        <div className="flex items-center">
-          <div className="flex-1 min-w-0">
-            <FilterBreadcrumb
-              filterChipData={filterChipData}
-              columnAliases={columnAliases}
-              onUpdateFilterValues={handleUpdateFilterValues}
-              onRemoveFilter={handleRemoveFilter}
-              onClearAll={handleClearAllFilters}
-              cumulativeVariationPct={cumulativeVariationPct}
-              onPinFinding={onPinFinding}
-            />
-          </div>
-          {/* Dashboard copy/download moved to toolbar (Export button) */}
-        </div>
-
-        {/* Toolbar — always visible when data loaded */}
-        <div className="flex items-center gap-2 px-4 pt-2 pb-1">
-          {/* Layout toggle — desktop only */}
-          <div
-            className="hidden lg:flex items-center bg-surface-tertiary rounded-lg p-0.5"
-            data-export-hide
-          >
-            <button
-              onClick={() => setDisplayOptions({ ...displayOptions, dashboardLayout: 'grid' })}
-              className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                (displayOptions.dashboardLayout ?? 'grid') === 'grid'
-                  ? 'bg-surface-elevated text-content font-medium shadow-sm'
-                  : 'text-content-muted hover:text-content'
-              }`}
-              title="Grid layout — all charts in viewport"
-              aria-label="Grid layout"
-            >
-              <LayoutGrid size={12} />
-              Grid
-            </button>
-            <button
-              onClick={() => setDisplayOptions({ ...displayOptions, dashboardLayout: 'scroll' })}
-              className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                displayOptions.dashboardLayout === 'scroll'
-                  ? 'bg-surface-elevated text-content font-medium shadow-sm'
-                  : 'text-content-muted hover:text-content'
-              }`}
-              title="Scroll layout — full-width stacked charts"
-              aria-label="Scroll layout"
-            >
-              <List size={12} />
-              Scroll
-            </button>
-          </div>
-
-          {/* Factors button (when factors exist) */}
-          {onManageFactors && factors.length > 0 && (
-            <button
-              onClick={onManageFactors}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-content-secondary hover:text-content hover:bg-surface-elevated transition-colors"
-              title="Manage analysis factors"
-              aria-label="Manage factors"
-              data-testid="btn-manage-factors"
-            >
-              <Settings2 size={12} />
-              Factors ({factors.length})
-            </button>
-          )}
-
-          <div className="flex-1" />
-
-          {/* Export + Presentation — right side */}
-          <div className="hidden sm:flex items-center gap-1" data-export-hide>
-            {onExportCSV && (
-              <button
-                onClick={onExportCSV}
-                className="flex items-center gap-1 px-2 py-1.5 rounded text-xs text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
-                title="Export CSV"
-                aria-label="Export CSV"
-              >
-                <FileDown size={12} />
-                <span className="hidden lg:inline">Export</span>
-              </button>
-            )}
-            {onEnterPresentationMode && (
-              <button
-                onClick={onEnterPresentationMode}
-                className="flex items-center gap-1 px-2 py-1.5 rounded text-xs text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
-                title="Presentation mode"
-                aria-label="Presentation mode"
-              >
-                <Maximize2 size={12} />
-                <span className="hidden lg:inline">Present</span>
-              </button>
-            )}
-          </div>
-        </div>
+        {/* Process Health Bar — replaces FilterBreadcrumb + Toolbar */}
+        <ProcessHealthBar
+          stats={stats}
+          specs={specs}
+          cpkTarget={cpkTarget}
+          sampleCount={filteredData?.length ?? 0}
+          filterChipData={filterChipData}
+          columnAliases={columnAliases}
+          onUpdateFilterValues={handleUpdateFilterValues}
+          onRemoveFilter={handleRemoveFilter}
+          onClearAll={handleClearAllFilters}
+          cumulativeVariationPct={cumulativeVariationPct}
+          onPinFinding={onPinFinding}
+          layout={displayOptions.dashboardLayout ?? 'grid'}
+          onLayoutChange={l => setDisplayOptions({ ...displayOptions, dashboardLayout: l })}
+          factorCount={factors.length}
+          onManageFactors={onManageFactors}
+          onExportCSV={onExportCSV}
+          onEnterPresentationMode={onEnterPresentationMode}
+          onSetSpecs={() => setShowSpecEditor(true)}
+          onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
+        />
 
         {/* Selection Panel - Shows when points are brushed in IChart */}
         {selectedPoints.size > 0 && (
@@ -742,18 +672,16 @@ const Dashboard = ({
             </ErrorBoundary>
           )
         }
-        renderHistogramContent={
-          (displayOptions.dashboardLayout ?? 'grid') === 'grid' &&
-          histogramData.length > 0 &&
-          stats ? (
-            <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
-          ) : undefined
-        }
-        renderProbabilityPlotContent={
-          (displayOptions.dashboardLayout ?? 'grid') === 'grid' &&
-          histogramData.length > 0 &&
-          stats ? (
-            <ProbabilityPlot data={histogramData} mean={stats.mean} stdDev={stats.stdDev} />
+        renderVerificationCard={
+          histogramData.length > 0 && stats ? (
+            <VerificationCard
+              renderHistogram={
+                <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
+              }
+              renderProbabilityPlot={
+                <ProbabilityPlot data={histogramData} mean={stats.mean} stdDev={stats.stdDev} />
+              }
+            />
           ) : undefined
         }
         renderFocusedView={

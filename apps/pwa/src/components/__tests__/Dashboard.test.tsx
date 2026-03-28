@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
@@ -24,6 +25,18 @@ vi.mock('../charts/ProbabilityPlot', () => ({
 vi.mock('../AnovaResults', () => ({
   default: () => <div data-testid="anova-results">ANOVA Results</div>,
 }));
+
+// Mock new dashboard chrome components
+vi.mock('@variscout/ui', async () => {
+  const actual = await vi.importActual('@variscout/ui');
+  return {
+    ...actual,
+    ProcessHealthBar: () => <div data-testid="process-health-bar">Health Bar</div>,
+    VerificationCard: ({ renderHistogram }: { renderHistogram: React.ReactNode }) => (
+      <div data-testid="verification-card">{renderHistogram}</div>
+    ),
+  };
+});
 
 // Mock html-to-image
 vi.mock('html-to-image', () => ({
