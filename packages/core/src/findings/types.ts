@@ -417,6 +417,17 @@ export interface FindingContext {
   stats?: { mean: number; median?: number; cpk?: number; samples: number };
 }
 
+/** Finding role: observation (default) or benchmark (best-of-best target) */
+export type FindingRole = 'observation' | 'benchmark';
+
+/** Stats snapshot for benchmark findings */
+export interface BenchmarkStats {
+  mean: number;
+  stdDev: number;
+  cpk?: number;
+  count: number;
+}
+
 /**
  * A single finding — a bookmarked filter state with analyst notes
  */
@@ -451,6 +462,12 @@ export interface Finding {
   actions?: ActionItem[];
   /** Outcome assessment after actions complete */
   outcome?: FindingOutcome;
+  /** Finding role: observation (default) or benchmark (Phase 3) */
+  role?: FindingRole;
+  /** Benchmark stats snapshot (only for benchmark findings) */
+  benchmarkStats?: BenchmarkStats;
+  /** Explicit scope override: true=forced in, false=forced out, undefined=auto from status */
+  scoped?: boolean;
 }
 
 // ============================================================================

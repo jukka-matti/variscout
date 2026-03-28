@@ -53,12 +53,13 @@ export {
   normalPDF,
 } from './simulation';
 
-// Projection (ProcessHealthBar Phase 2)
+// Projection (ProcessHealthBar Phase 2-3)
 export {
   computeDrillProjection,
   computeCenteringOpportunity,
   computeSpecSuggestion,
   computeCumulativeProjection,
+  computeBenchmarkProjection,
 } from './projection';
 
 // Direction-aware category coloring

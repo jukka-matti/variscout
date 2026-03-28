@@ -4,8 +4,10 @@ import {
   computeCenteringOpportunity,
   computeSpecSuggestion,
   computeCumulativeProjection,
+  computeBenchmarkProjection,
 } from '../variation/projection';
-import type { StatsResult } from '../types';
+import { isFindingScoped, getScopedFindings } from '../findings/helpers';
+import type { StatsResult, Finding } from '../types';
 
 describe('computeDrillProjection', () => {
   const specs = { usl: 12, lsl: 10 };
@@ -188,5 +190,123 @@ describe('computeCumulativeProjection', () => {
         specs
       )
     ).toBeNull();
+  });
+});
+
+describe('computeBenchmarkProjection', () => {
+  const specs = { usl: 12, lsl: 10 };
+
+  it('returns projection using benchmark stats as target', () => {
+    const subset = { mean: 13.2, stdDev: 0.5, count: 10 };
+    const benchmark = { mean: 11.0, stdDev: 0.2, count: 10 };
+    const complement = { mean: 11.5, stdDev: 0.4, count: 20 };
+
+    const result = computeBenchmarkProjection(subset, benchmark, complement, specs, 'Bed A, AM');
+
+    expect(result).not.toBeNull();
+    expect(result!.projectedCpk).toBeGreaterThan(result!.currentCpk);
+    expect(result!.label).toBe('benchmark: Bed A, AM');
+    expect(result!.findingCount).toBe(1);
+  });
+
+  it('returns better projection than complement when benchmark is better', () => {
+    const subset = { mean: 13.2, stdDev: 0.5, count: 10 };
+    const benchmark = { mean: 11.0, stdDev: 0.15, count: 10 }; // tighter than complement
+    const complement = { mean: 11.5, stdDev: 0.4, count: 20 };
+
+    const benchResult = computeBenchmarkProjection(subset, benchmark, complement, specs);
+    const compResult = computeDrillProjection(subset, complement, specs);
+
+    expect(benchResult).not.toBeNull();
+    expect(compResult).not.toBeNull();
+    expect(benchResult!.projectedCpk).toBeGreaterThan(compResult!.projectedCpk);
+  });
+
+  it('returns null when no specs', () => {
+    const subset = { mean: 13.2, stdDev: 0.5, count: 10 };
+    const benchmark = { mean: 11.0, stdDev: 0.2, count: 10 };
+    const complement = { mean: 11.5, stdDev: 0.4, count: 20 };
+
+    expect(computeBenchmarkProjection(subset, benchmark, complement)).toBeNull();
+  });
+
+  it('returns null when benchmark count < 2', () => {
+    const subset = { mean: 13.2, stdDev: 0.5, count: 10 };
+    const benchmark = { mean: 11.0, stdDev: 0.2, count: 1 };
+    const complement = { mean: 11.5, stdDev: 0.4, count: 20 };
+
+    expect(computeBenchmarkProjection(subset, benchmark, complement, specs)).toBeNull();
+  });
+
+  it('uses default label when benchmarkLabel not provided', () => {
+    const subset = { mean: 13.2, stdDev: 0.5, count: 10 };
+    const benchmark = { mean: 11.0, stdDev: 0.2, count: 10 };
+    const complement = { mean: 11.5, stdDev: 0.4, count: 20 };
+
+    const result = computeBenchmarkProjection(subset, benchmark, complement, specs);
+    expect(result!.label).toBe('benchmark');
+  });
+});
+
+describe('isFindingScoped', () => {
+  const baseFinding: Finding = {
+    id: '1',
+    text: 'test',
+    createdAt: Date.now(),
+    context: { activeFilters: {}, cumulativeScope: null },
+    status: 'observed',
+    comments: [],
+    statusChangedAt: Date.now(),
+  };
+
+  it('auto-scopes investigating and analyzed findings', () => {
+    expect(isFindingScoped({ ...baseFinding, status: 'investigating' })).toBe(true);
+    expect(isFindingScoped({ ...baseFinding, status: 'analyzed' })).toBe(true);
+  });
+
+  it('does not auto-scope observed, improving, or resolved findings', () => {
+    expect(isFindingScoped({ ...baseFinding, status: 'observed' })).toBe(false);
+    expect(isFindingScoped({ ...baseFinding, status: 'improving' })).toBe(false);
+    expect(isFindingScoped({ ...baseFinding, status: 'resolved' })).toBe(false);
+  });
+
+  it('respects explicit scoped=true override', () => {
+    expect(isFindingScoped({ ...baseFinding, status: 'observed', scoped: true })).toBe(true);
+  });
+
+  it('respects explicit scoped=false override', () => {
+    expect(isFindingScoped({ ...baseFinding, status: 'analyzed', scoped: false })).toBe(false);
+  });
+});
+
+describe('getScopedFindings', () => {
+  const baseFinding: Finding = {
+    id: '1',
+    text: 'test',
+    createdAt: Date.now(),
+    context: { activeFilters: {}, cumulativeScope: null },
+    status: 'analyzed',
+    comments: [],
+    statusChangedAt: Date.now(),
+  };
+
+  it('excludes benchmark findings', () => {
+    const findings = [
+      { ...baseFinding, id: '1', role: 'benchmark' as const },
+      { ...baseFinding, id: '2' },
+    ];
+    const scoped = getScopedFindings(findings);
+    expect(scoped).toHaveLength(1);
+    expect(scoped[0].id).toBe('2');
+  });
+
+  it('includes auto-scoped findings', () => {
+    const findings = [
+      { ...baseFinding, id: '1', status: 'investigating' as const },
+      { ...baseFinding, id: '2', status: 'observed' as const },
+    ];
+    const scoped = getScopedFindings(findings);
+    expect(scoped).toHaveLength(1);
+    expect(scoped[0].id).toBe('1');
   });
 });

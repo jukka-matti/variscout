@@ -6,6 +6,7 @@
  * - "How much could we gain just by centering the process?" (centering opportunity)
  * - "What spec limits would fit the good data?" (spec suggestion)
  * - "What if we fixed multiple findings?" (cumulative projection)
+ * - "What if all subsets performed like the benchmark?" (benchmark projection)
  */
 
 import type { StatsResult, SpecLimits, DataRow } from '../types';
@@ -205,5 +206,42 @@ export function computeCumulativeProjection(
     projectedCpk,
     label: findingFilters.length === 1 ? 'if fixed' : `if ${findingFilters.length} fixed`,
     findingCount: findingFilters.length,
+  };
+}
+
+/**
+ * Compute benchmark projection: "If all subsets performed like the benchmark → Cpk X"
+ *
+ * Instead of using complement stats as the "fix" target, uses the benchmark's stats.
+ * This answers the stronger question: "What if the problematic subset matched our best performer?"
+ */
+export function computeBenchmarkProjection(
+  subsetStats: { mean: number; stdDev: number; count: number },
+  benchmarkStats: { mean: number; stdDev: number; count: number },
+  complementStats: { mean: number; stdDev: number; count: number },
+  specs?: Pick<SpecLimits, 'usl' | 'lsl'>,
+  benchmarkLabel?: string
+): ProcessProjection | null {
+  if (benchmarkStats.count < MIN_COMPLEMENT_COUNT) return null;
+  if (complementStats.count < MIN_COMPLEMENT_COUNT) return null;
+  if (!specs || (specs.usl === undefined && specs.lsl === undefined)) return null;
+
+  const impact = simulateOverallImpact(
+    subsetStats,
+    complementStats,
+    // "Fix" = bring subset to benchmark performance (not complement)
+    { mean: benchmarkStats.mean, stdDev: benchmarkStats.stdDev },
+    specs
+  );
+
+  if (impact.currentOverall.cpk === undefined || impact.projectedOverall.cpk === undefined) {
+    return null;
+  }
+
+  return {
+    currentCpk: impact.currentOverall.cpk,
+    projectedCpk: impact.projectedOverall.cpk,
+    label: benchmarkLabel ? `benchmark: ${benchmarkLabel}` : 'benchmark',
+    findingCount: 1,
   };
 }

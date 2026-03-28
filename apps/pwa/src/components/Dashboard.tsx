@@ -206,16 +206,15 @@ const Dashboard = ({
   // Responsive mobile detection
   const isMobile = useIsMobile(BREAKPOINTS.phone);
 
-  // Process projection intelligence (Phase 2)
-  const { drillProjection, centeringOpportunity, specSuggestion, activeProjection } =
-    useProcessProjection({
-      rawData: rawData ?? [],
-      filteredData: filteredData ?? [],
-      outcome,
-      specs,
-      stats,
-      filterChipData,
-    });
+  // Process projection intelligence (Phase 2-3)
+  const { centeringOpportunity, specSuggestion, activeProjection } = useProcessProjection({
+    rawData: rawData ?? [],
+    filteredData: filteredData ?? [],
+    outcome,
+    specs,
+    stats,
+    filterChipData,
+  });
 
   // Handler for saving specs from SpecEditor
   const handleSaveSpecs = useCallback(
@@ -448,7 +447,6 @@ const Dashboard = ({
           onEnterPresentationMode={onEnterPresentationMode}
           onSetSpecs={() => setShowSpecEditor(true)}
           onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
-          drillProjection={drillProjection}
           centeringOpportunity={centeringOpportunity}
           specSuggestion={specSuggestion}
           activeProjection={activeProjection}

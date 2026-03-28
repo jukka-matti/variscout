@@ -477,6 +477,8 @@ export type {
   IdeaImpact,
   IdeaDirection,
   IdeaCategory,
+  FindingRole,
+  BenchmarkStats,
 } from './findings';
 export {
   DEFAULT_RISK_AXIS_CONFIG,
@@ -510,6 +512,8 @@ export {
   migrateFindingStatus,
   migrateFindings,
   migrateActionAssignee,
+  isFindingScoped,
+  getScopedFindings,
 } from './findings';
 
 // Yamazumi Analysis Mode

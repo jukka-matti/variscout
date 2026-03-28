@@ -240,6 +240,8 @@ export interface AnalysisState {
   // --- Findings (scouting report) ---
   /** Analyst findings — bookmarked filter states with notes */
   findings?: Finding[];
+  /** ID of the active benchmark finding (Phase 3) */
+  benchmarkFindingId?: string;
 
   // --- Hypotheses (causal theories linked to findings) ---
   /** Causal hypotheses for investigation workflow */

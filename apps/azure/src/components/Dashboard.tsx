@@ -32,6 +32,7 @@ import {
   BREAKPOINTS,
 } from '@variscout/ui';
 import { getColumnNames } from '@variscout/core';
+import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
 import type { Finding } from '@variscout/core';
 import type { AzureFindingsCallbacks } from '@variscout/ui';
 import {
@@ -262,21 +263,29 @@ const Dashboard = ({
     }
   }, [focusedChart, hasRestoredFocusedChart, onViewStateChange]);
 
-  // Process projection intelligence (Phase 2)
+  // Process projection intelligence (Phase 2-3)
   const scopedFindings = useMemo(
-    () => allFindings?.filter(f => f.status === 'investigating' || f.status === 'analyzed'),
+    () => (allFindings ? getScopedFindings(allFindings) : undefined),
     [allFindings]
   );
-  const { drillProjection, centeringOpportunity, specSuggestion, activeProjection } =
-    useProcessProjection({
-      rawData: rawData ?? [],
-      filteredData: filteredData ?? [],
-      outcome,
-      specs,
-      stats,
-      filterChipData,
-      scopedFindings,
-    });
+  const benchmarkData = useMemo(() => {
+    const bm = allFindings?.find(f => f.role === 'benchmark' && f.benchmarkStats);
+    if (!bm?.benchmarkStats) return null;
+    return {
+      stats: bm.benchmarkStats,
+      label: formatFindingFilters(bm.context, columnAliases),
+    };
+  }, [allFindings, columnAliases]);
+  const { centeringOpportunity, specSuggestion, activeProjection } = useProcessProjection({
+    rawData: rawData ?? [],
+    filteredData: filteredData ?? [],
+    outcome,
+    specs,
+    stats,
+    filterChipData,
+    scopedFindings,
+    benchmark: benchmarkData,
+  });
 
   // Annotations (right-click context menu for highlights, no mode toggle)
   const {
@@ -411,7 +420,6 @@ const Dashboard = ({
             onManageFactors={onManageFactors}
             onSetSpecs={() => setShowSpecEditor(true)}
             onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
-            drillProjection={drillProjection}
             centeringOpportunity={centeringOpportunity}
             specSuggestion={specSuggestion}
             activeProjection={activeProjection}

@@ -6,13 +6,14 @@
  */
 
 import { useMemo } from 'react';
-import type { DataRow, StatsResult, SpecLimits, Finding } from '@variscout/core';
+import type { DataRow, StatsResult, SpecLimits, Finding, BenchmarkStats } from '@variscout/core';
 import { toNumericValue } from '@variscout/core';
 import {
   computeDrillProjection,
   computeCenteringOpportunity,
   computeSpecSuggestion,
   computeCumulativeProjection,
+  computeBenchmarkProjection,
 } from '@variscout/core/variation';
 import type {
   ProcessProjection,
@@ -38,11 +39,15 @@ export interface UseProcessProjectionOptions {
   filterChipData: FilterChipData[];
   /** Scoped findings for cumulative projection (optional, Azure only) */
   scopedFindings?: Finding[];
+  /** Benchmark stats + label (Phase 3) */
+  benchmark?: { stats: BenchmarkStats; label: string } | null;
 }
 
 export interface UseProcessProjectionReturn {
   /** Auto-projection from complement data during drill */
   drillProjection: ProcessProjection | null;
+  /** Benchmark projection when benchmark is set */
+  benchmarkProjection: ProcessProjection | null;
   /** Centering opportunity (Cp vs Cpk gap) */
   centeringOpportunity: CenteringOpportunity | null;
   /** Spec suggestion when no specs set */
@@ -85,7 +90,16 @@ function computeComplement(
 export function useProcessProjection(
   options: UseProcessProjectionOptions
 ): UseProcessProjectionReturn {
-  const { rawData, filteredData, outcome, specs, stats, filterChipData, scopedFindings } = options;
+  const {
+    rawData,
+    filteredData,
+    outcome,
+    specs,
+    stats,
+    filterChipData,
+    scopedFindings,
+    benchmark,
+  } = options;
 
   const isDrilling = filterChipData.length > 0;
   const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
@@ -107,6 +121,18 @@ export function useProcessProjection(
     if (!isDrilling || !hasSpecs || !subsetStats || !complementStats) return null;
     return computeDrillProjection(subsetStats, complementStats, specs);
   }, [isDrilling, hasSpecs, subsetStats, complementStats, specs]);
+
+  // 3a: Benchmark projection ("benchmark: Bed A, AM")
+  const benchmarkProjection = useMemo(() => {
+    if (!benchmark || !isDrilling || !hasSpecs || !subsetStats || !complementStats) return null;
+    return computeBenchmarkProjection(
+      subsetStats,
+      benchmark.stats,
+      complementStats,
+      specs,
+      benchmark.label
+    );
+  }, [benchmark, isDrilling, hasSpecs, subsetStats, complementStats, specs]);
 
   // 2b: Centering opportunity (Cp vs Cpk gap)
   const centeringOpportunity = useMemo(() => {
@@ -131,14 +157,20 @@ export function useProcessProjection(
   }, [scopedFindings, rawData, outcome, hasSpecs, specs]);
 
   // Active projection: highest priority
+  // 1. cumulative (2+ scoped findings)
+  // 2. benchmark (when benchmark pinned and drilling)
+  // 3. drill complement ("if fixed")
+  // 4. null → centering shown separately
   const activeProjection = useMemo(() => {
     if (cumulativeProjection) return cumulativeProjection;
+    if (benchmarkProjection) return benchmarkProjection;
     if (drillProjection) return drillProjection;
     return null;
-  }, [cumulativeProjection, drillProjection]);
+  }, [cumulativeProjection, benchmarkProjection, drillProjection]);
 
   return {
     drillProjection,
+    benchmarkProjection,
     centeringOpportunity,
     specSuggestion,
     cumulativeProjection,

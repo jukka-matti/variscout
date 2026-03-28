@@ -420,6 +420,7 @@ vi.mock('@variscout/hooks', () => ({
   useJourneyPhase: () => 'scout',
   useProcessProjection: () => ({
     drillProjection: null,
+    benchmarkProjection: null,
     centeringOpportunity: null,
     specSuggestion: null,
     cumulativeProjection: null,
