@@ -250,16 +250,27 @@ The Stats sidebar shifts from "primary display" to "deep dive":
 ### Phase 2: Projection Engine (intelligence)
 
 - Auto-projection from complement data during drill ("if fixed → Cpk X")
-- Benchmark finding type (pin best-of-best subset)
-- Data-driven target suggestion from complement/benchmark
+- `simulateOverallImpact()` computes: "If this subset performed like the complement, overall Cpk → X"
+- Process entitlement display: Cp vs Cpk gap = centering opportunity ("free win")
+- Data-driven target suggestion: complement's natural tolerance (Mean ± 3σ) as suggested specs
 - Cumulative projection from multiple scoped findings
 
-### Phase 3: Journey Thread (integration)
+### Phase 3: Benchmark + Findings as Project Scope
 
-- Projection thread connecting SCOUT → INVESTIGATE → IMPROVE
-- Toolbar adapts by journey phase
-- Per-idea What-If projections aggregate into finding projections
-- Actual vs projected tracking as actions resolve
+- **Benchmark finding**: Analyst pins best-of-best subset (e.g., "Bed A, Morning Shift") as `Finding` with `role: 'benchmark'` and `benchmarkStats: { mean, stdDev, cpk, count }`
+- Benchmark overrides complement-based projection: "If all subsets performed like Bed A AM → Cpk 1.85"
+- **Findings as scope**: Selected findings define the improvement project. Each finding with source metadata (chart, category, factor) represents a fixable subset
+- Cumulative projection: "If findings 1+2+3 fixed → Cpk Y" (progressive `simulateOverallImpact()` chaining)
+- Toolbar becomes project scoreboard: `Cpk 0.26 → 1.62 (3 findings scoped) │ 0 fixed`
+
+### Phase 4: Journey Thread + What-If Integration
+
+- Projection thread connecting SCOUT → INVESTIGATE → IMPROVE through one consistent Cpk metric
+- Toolbar adapts by journey phase (current Cpk → complement projection → benchmark → idea projections → actual)
+- Per-idea What-If projections (from `ImprovementWorkspaceBase`) aggregate into per-finding projections via `projectedCpkMap`
+- Actual vs projected tracking as actions resolve: `Cpk 0.26 → 1.45 actual (1 of 3 resolved)`
+- What-If simulator inline in toolbar: collapsed by default, expand to adjust mean shift / σ reduction sliders
+- `ImprovementSummaryBar` already shows projected Cpk + delta — unify with toolbar projection
 
 ## Not In Scope
 
