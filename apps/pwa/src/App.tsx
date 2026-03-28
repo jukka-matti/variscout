@@ -19,6 +19,7 @@ import {
 import { Beaker, Settings, Download, Table2, RotateCcw } from 'lucide-react';
 import {
   useFindings,
+  useHypotheses,
   useDrillPath,
   buildFindingContext,
   buildFindingSource,
@@ -36,6 +37,9 @@ import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
 import { useFindingsStore } from './features/findings/findingsStore';
 import { useProjectionStore } from './features/projection/projectionStore';
+import { useInvestigationStore } from './features/investigation/investigationStore';
+import { useInvestigationOrchestration } from './features/investigation/useInvestigationOrchestration';
+import { useImprovementOrchestration } from './features/improvement/useImprovementOrchestration';
 
 // Lazy-loaded heavy components for code splitting
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
@@ -119,6 +123,8 @@ function AppMain() {
     stats,
     cpkTarget,
     setCpkTarget,
+    hypotheses,
+    setHypotheses,
   } = useData();
 
   // Data ingestion must be declared before importFlow since importFlow uses its callbacks.
@@ -179,6 +185,34 @@ function AppMain() {
   }, [findingsState.findings]);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
+
+  // Hypotheses + orchestration
+  const hypothesesState = useHypotheses({
+    initialHypotheses: hypotheses,
+    onHypothesesChange: setHypotheses,
+  });
+
+  const investigation = useInvestigationOrchestration({
+    hypothesesState,
+    findingsState: {
+      findings: findingsState.findings,
+      linkHypothesis: findingsState.linkHypothesis,
+      setFindingStatus: findingsState.setFindingStatus,
+      addAction: findingsState.addAction,
+    },
+    processContext: undefined,
+    stats,
+  });
+
+  useImprovementOrchestration({
+    hypothesesState,
+    findingsState: {
+      findings: findingsState.findings,
+      addAction: findingsState.addAction,
+    },
+  });
+
+  const investigationHypothesesMap = useInvestigationStore(s => s.hypothesesMap);
 
   // Mobile tab bar (phone only, <640px)
   const isPhone = useIsMobile(BREAKPOINTS.phone);
@@ -694,7 +728,7 @@ function AppMain() {
               onEditFinding={findingsState.editFinding}
               onDeleteFinding={findingsState.deleteFinding}
               onRestoreFinding={handleRestoreFinding}
-              onSetFindingStatus={findingsState.setFindingStatus}
+              onSetFindingStatus={investigation.handleSetFindingStatus}
               onSetFindingTag={findingsState.setFindingTag}
               onAddComment={(id, text) => findingsState.addFindingComment(id, text)}
               onEditComment={findingsState.editFindingComment}
@@ -704,6 +738,8 @@ function AppMain() {
               activeFindingId={highlightedFindingId}
               onPopout={handleOpenFindingsPopout}
               maxStatuses={5}
+              onCreateHypothesis={investigation.handleCreateHypothesis}
+              hypothesesMap={investigationHypothesesMap}
             />
           )}
         </Suspense>
