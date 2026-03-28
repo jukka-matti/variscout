@@ -34,6 +34,7 @@ import { computeCenteringOpportunity } from '@variscout/core/variation';
 import { useControlViolations } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
+import { useFindingsStore } from './features/findings/findingsStore';
 
 // Lazy-loaded heavy components for code splitting
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
@@ -170,9 +171,14 @@ function AppMain() {
     dismissWideFormat: importFlow.handleDismissWideFormat,
   });
 
-  // Findings state
+  // Findings state — useFindings is the CRUD engine, store is the read-side cache
   const findingsState = useFindings();
-  const [highlightedFindingId, setHighlightedFindingId] = useState<string | null>(null);
+  const syncFindings = useFindingsStore(s => s.syncFindings);
+  useEffect(() => {
+    syncFindings(findingsState.findings);
+  }, [findingsState.findings, syncFindings]);
+  const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
+  const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
 
   // Mobile tab bar (phone only, <640px)
   const isPhone = useIsMobile(BREAKPOINTS.phone);
