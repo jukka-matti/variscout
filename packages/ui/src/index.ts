@@ -155,6 +155,8 @@ export {
 
 export { ProbabilityPlot, type ProbabilityPlotProps } from './components/ProbabilityPlot';
 
+export { VerificationCard, type VerificationCardProps } from './components/VerificationCard';
+
 export { FilterContextBar, type FilterContextBarProps } from './components/FilterContextBar';
 
 export {
