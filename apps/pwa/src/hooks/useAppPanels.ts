@@ -1,10 +1,11 @@
-import { useReducer, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { WideFormatDetection } from '@variscout/core';
+import { usePanelsStore } from '../features/panels/panelsStore';
 
 /** Breakpoint for desktop panel (vs modal on mobile) */
 const DESKTOP_BREAKPOINT = 1024;
 
-// ── Reducer types ──────────────────────────────────────────────────────────
+// ── Legacy types (kept for test compatibility) ────────────────────────────
 
 export interface AppPanelState {
   isSettingsOpen: boolean;
@@ -21,6 +22,22 @@ export interface AppPanelState {
   isStatsSidebarOpen: boolean;
 }
 
+export const initialPanelState: AppPanelState = {
+  isSettingsOpen: false,
+  isDataTableOpen: false,
+  isDataPanelOpen: false,
+  isFindingsPanelOpen: false,
+  highlightRowIndex: null,
+  showExcludedOnly: false,
+  showResetConfirm: false,
+  isPresentationMode: false,
+  isWhatIfPageOpen: false,
+  openSpecEditorRequested: false,
+  highlightedChartPoint: null,
+  isStatsSidebarOpen: false,
+};
+
+/** Legacy reducer — kept for existing tests. Store is the source of truth. */
 export type AppPanelAction =
   | { type: 'SET_SETTINGS'; value: boolean }
   | { type: 'SET_DATA_TABLE'; value: boolean }
@@ -44,23 +61,9 @@ export type AppPanelAction =
   | { type: 'RESET_CONFIRM' }
   | { type: 'TOGGLE_STATS_SIDEBAR' };
 
-export const initialPanelState: AppPanelState = {
-  isSettingsOpen: false,
-  isDataTableOpen: false,
-  isDataPanelOpen: false,
-  isFindingsPanelOpen: false,
-  highlightRowIndex: null,
-  showExcludedOnly: false,
-  showResetConfirm: false,
-  isPresentationMode: false,
-  isWhatIfPageOpen: false,
-  openSpecEditorRequested: false,
-  highlightedChartPoint: null,
-  isStatsSidebarOpen: false,
-};
-
-/** Pure reducer — testable without React. */
+/** Legacy reducer — delegates to store. Kept for existing test imports. */
 export function appPanelReducer(state: AppPanelState, action: AppPanelAction): AppPanelState {
+  // Tests that import the reducer still work, but runtime uses the store
   switch (action.type) {
     case 'SET_SETTINGS':
       return state.isSettingsOpen === action.value
@@ -100,7 +103,6 @@ export function appPanelReducer(state: AppPanelState, action: AppPanelAction): A
       return { ...state, openSpecEditorRequested: action.value };
     case 'SET_HIGHLIGHT_POINT':
       return { ...state, highlightedChartPoint: action.index };
-    // Compound actions — set multiple fields atomically
     case 'OPEN_DATA_TABLE_AT_ROW_DESKTOP':
       return { ...state, highlightRowIndex: action.index, isDataPanelOpen: true };
     case 'OPEN_DATA_TABLE_AT_ROW_MOBILE':
@@ -122,7 +124,7 @@ export function appPanelReducer(state: AppPanelState, action: AppPanelAction): A
   }
 }
 
-// ── Hook interface ─────────────────────────────────────────────────────────
+// ── Hook interface (unchanged) ────────────────────────────────────────────
 
 export interface UseAppPanelsOptions {
   clearData: () => void;
@@ -170,13 +172,17 @@ export interface UseAppPanelsReturn {
 }
 
 /**
- * Manages panel visibility, desktop breakpoint tracking,
- * keyboard shortcuts, and reset confirmation for the PWA shell.
+ * Panel orchestration hook — now backed by Zustand store.
+ *
+ * Maintains the same return interface as the original useReducer version
+ * so App.tsx doesn't need to change. Side effects (keyboard, auto-clear,
+ * resize) stay here since Zustand stores are pure state.
  */
 export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   const { clearData, wideFormatDetection, dismissWideFormat } = options;
 
-  const [state, dispatch] = useReducer(appPanelReducer, initialPanelState);
+  // Read from Zustand store
+  const store = usePanelsStore();
 
   const [isDesktop, setIsDesktop] = useState(
     typeof window !== 'undefined' && window.innerWidth >= DESKTOP_BREAKPOINT
@@ -195,10 +201,9 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (wideFormatDetection) dismissWideFormat();
-        else if (state.showResetConfirm) dispatch({ type: 'SET_RESET_CONFIRM', value: false });
-        else if (state.isSettingsOpen) dispatch({ type: 'SET_SETTINGS', value: false });
-        else if (state.isDataTableOpen) dispatch({ type: 'SET_DATA_TABLE', value: false });
-        return;
+        else if (store.showResetConfirm) store.setShowResetConfirm(false);
+        else if (store.isSettingsOpen) store.setSettingsOpen(false);
+        else if (store.isDataTableOpen) store.setDataTableOpen(false);
       }
     };
 
@@ -206,156 +211,87 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     wideFormatDetection,
-    state.showResetConfirm,
-    state.isSettingsOpen,
-    state.isDataTableOpen,
+    store.showResetConfirm,
+    store.isSettingsOpen,
+    store.isDataTableOpen,
     dismissWideFormat,
+    store,
   ]);
 
   // Auto-clear highlighted chart point after 2 seconds
   useEffect(() => {
-    if (state.highlightedChartPoint === null) return;
-    const timer = setTimeout(() => dispatch({ type: 'SET_HIGHLIGHT_POINT', index: null }), 2000);
+    if (store.highlightedChartPoint === null) return;
+    const timer = setTimeout(() => store.setHighlightPoint(null), 2000);
     return () => clearTimeout(timer);
-  }, [state.highlightedChartPoint]);
+  }, [store.highlightedChartPoint, store]);
 
-  // ── Setter wrappers (compatible with existing App.tsx interface) ──────────
-
-  const setIsSettingsOpen = useCallback(
-    (v: boolean) => dispatch({ type: 'SET_SETTINGS', value: v }),
-    []
-  );
-  const setIsDataTableOpen = useCallback(
-    (v: boolean) => dispatch({ type: 'SET_DATA_TABLE', value: v }),
-    []
-  );
-  const setIsDataPanelOpen = useCallback(
-    (v: boolean) => dispatch({ type: 'SET_DATA_PANEL', value: v }),
-    []
-  );
-  const setIsFindingsPanelOpen = useCallback(
-    (v: boolean) => dispatch({ type: 'SET_FINDINGS_PANEL', value: v }),
-    []
-  );
-  const setHighlightRowIndex = useCallback(
-    (v: number | null) => dispatch({ type: 'SET_HIGHLIGHT_ROW', index: v }),
-    []
-  );
-  const setShowExcludedOnly = useCallback(
-    (v: boolean) => dispatch({ type: 'SET_EXCLUDED_ONLY', value: v }),
-    []
-  );
-  const setShowResetConfirm = useCallback(
-    (v: boolean) => dispatch({ type: 'SET_RESET_CONFIRM', value: v }),
-    []
-  );
-  const setIsPresentationMode = useCallback(
-    (v: boolean) => dispatch({ type: 'SET_PRESENTATION', value: v }),
-    []
-  );
-  const setIsWhatIfPageOpen = useCallback(
-    (v: boolean) => dispatch({ type: 'SET_WHAT_IF', value: v }),
-    []
-  );
-  const setOpenSpecEditorRequested = useCallback(
-    (v: boolean) => dispatch({ type: 'SET_SPEC_EDITOR_REQUESTED', value: v }),
-    []
-  );
-  const setHighlightedChartPoint = useCallback(
-    (v: number | null) => dispatch({ type: 'SET_HIGHLIGHT_POINT', index: v }),
-    []
-  );
-
-  // ── Compound action callbacks ────────────────────────────────────────────
-
+  // Compound actions that need isDesktop
   const openDataTableAtRow = useCallback(
     (index: number) => {
-      dispatch(
-        isDesktop
-          ? { type: 'OPEN_DATA_TABLE_AT_ROW_DESKTOP', index }
-          : { type: 'OPEN_DATA_TABLE_AT_ROW_MOBILE', index }
-      );
+      if (isDesktop) {
+        usePanelsStore.setState({ highlightRowIndex: index, isDataPanelOpen: true });
+      } else {
+        usePanelsStore.setState({ highlightRowIndex: index, isDataTableOpen: true });
+      }
     },
     [isDesktop]
   );
 
-  const handleDataPanelRowClick = useCallback((index: number) => {
-    dispatch({ type: 'SET_HIGHLIGHT_POINT', index });
-    // Auto-clear is handled by the useEffect above
-  }, []);
-
   const handleToggleDataPanel = useCallback(() => {
     if (isDesktop) {
-      dispatch({ type: 'TOGGLE_DATA_PANEL_DESKTOP' });
+      store.toggleDataPanel();
     } else {
-      dispatch({ type: 'SET_DATA_TABLE', value: true });
+      store.setDataTableOpen(true);
     }
-  }, [isDesktop]);
-
-  const handleToggleFindingsPanel = useCallback(
-    () => dispatch({ type: 'TOGGLE_FINDINGS_PANEL' }),
-    []
-  );
-
-  const handleToggleStatsSidebar = useCallback(
-    () => dispatch({ type: 'TOGGLE_STATS_SIDEBAR' }),
-    []
-  );
-
-  const handleCloseFindingsPanel = useCallback(
-    () => dispatch({ type: 'SET_FINDINGS_PANEL', value: false }),
-    []
-  );
-
-  const handleCloseDataTable = useCallback(() => dispatch({ type: 'CLOSE_DATA_TABLE' }), []);
-
-  const handleCloseDataPanel = useCallback(() => dispatch({ type: 'CLOSE_DATA_PANEL' }), []);
-
-  const openDataTableExcluded = useCallback(
-    () => dispatch({ type: 'OPEN_DATA_TABLE_EXCLUDED' }),
-    []
-  );
-
-  const openDataTableAll = useCallback(() => dispatch({ type: 'OPEN_DATA_TABLE_ALL' }), []);
-
-  const handleResetRequest = useCallback(
-    () => dispatch({ type: 'SET_RESET_CONFIRM', value: true }),
-    []
-  );
+  }, [isDesktop, store]);
 
   const handleResetConfirm = useCallback(() => {
     clearData();
-    dispatch({ type: 'RESET_CONFIRM' });
-  }, [clearData]);
+    store.confirmReset();
+  }, [clearData, store]);
 
+  // Map store fields to legacy interface
   return {
-    ...state,
+    // State (from store)
+    isSettingsOpen: store.isSettingsOpen,
+    isDataTableOpen: store.isDataTableOpen,
+    isDataPanelOpen: store.isDataPanelOpen,
+    isFindingsPanelOpen: store.isFindingsOpen,
+    highlightRowIndex: store.highlightRowIndex,
+    showExcludedOnly: store.showExcludedOnly,
+    showResetConfirm: store.showResetConfirm,
+    isPresentationMode: store.isPresentationMode,
+    isWhatIfPageOpen: store.isWhatIfOpen,
+    highlightedChartPoint: store.highlightedChartPoint,
     isDesktop,
-    // Setter wrappers
-    setIsSettingsOpen,
-    setIsDataTableOpen,
-    setIsDataPanelOpen,
-    setIsFindingsPanelOpen,
-    setHighlightRowIndex,
-    setShowExcludedOnly,
-    setShowResetConfirm,
-    setIsPresentationMode,
-    setIsWhatIfPageOpen,
-    setHighlightedChartPoint,
-    setOpenSpecEditorRequested,
-    // Compound action callbacks
+    openSpecEditorRequested: store.openSpecEditorRequested,
+    isStatsSidebarOpen: store.isStatsSidebarOpen,
+
+    // Setters (delegate to store)
+    setIsSettingsOpen: store.setSettingsOpen,
+    setIsDataTableOpen: store.setDataTableOpen,
+    setIsDataPanelOpen: store.setDataPanelOpen,
+    setIsFindingsPanelOpen: store.setFindingsOpen,
+    setHighlightRowIndex: store.setHighlightRow,
+    setShowExcludedOnly: store.setShowExcludedOnly,
+    setShowResetConfirm: store.setShowResetConfirm,
+    setIsPresentationMode: store.setPresentationMode,
+    setIsWhatIfPageOpen: store.setWhatIfOpen,
+    setHighlightedChartPoint: store.setHighlightPoint,
+    setOpenSpecEditorRequested: store.setOpenSpecEditorRequested,
+
+    // Compound actions
     openDataTableAtRow,
-    handleDataPanelRowClick,
+    handleDataPanelRowClick: store.handleRowClick,
     handleToggleDataPanel,
-    handleToggleFindingsPanel,
-    handleCloseFindingsPanel,
-    handleCloseDataTable,
-    handleCloseDataPanel,
-    openDataTableExcluded,
-    openDataTableAll,
-    handleResetRequest,
+    handleToggleFindingsPanel: store.toggleFindings,
+    handleCloseFindingsPanel: () => store.setFindingsOpen(false),
+    handleCloseDataTable: store.closeDataTable,
+    handleCloseDataPanel: store.closeDataPanel,
+    openDataTableExcluded: store.openDataTableExcluded,
+    openDataTableAll: store.openDataTableAll,
+    handleResetRequest: () => store.setShowResetConfirm(true),
     handleResetConfirm,
-    isStatsSidebarOpen: state.isStatsSidebarOpen,
-    handleToggleStatsSidebar,
+    handleToggleStatsSidebar: store.toggleStatsSidebar,
   };
 }
