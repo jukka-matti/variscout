@@ -174,10 +174,9 @@ function AppMain() {
 
   // Findings state — useFindings is the CRUD engine, store is the read-side cache
   const findingsState = useFindings();
-  const syncFindings = useFindingsStore(s => s.syncFindings);
   useEffect(() => {
-    syncFindings(findingsState.findings);
-  }, [findingsState.findings, syncFindings]);
+    useFindingsStore.getState().syncFindings(findingsState.findings);
+  }, [findingsState.findings]);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
 
@@ -300,24 +299,18 @@ function AppMain() {
   const centeringOpp = useMemo(() => (stats ? computeCenteringOpportunity(stats) : null), [stats]);
 
   // Sync complement + drilling state to projection store (sidebar reads from store)
-  const setProjectionComplement = useProjectionStore(s => s.setComplement);
-  const setProjectionDrilling = useProjectionStore(s => s.setIsDrilling);
-  const syncProjectionsFallback = useProjectionStore(s => s.syncProjections);
   useEffect(() => {
-    setProjectionComplement(complementInsight);
-    setProjectionDrilling(isDrilling);
-    // Also sync centering since it's computed here
-    syncProjectionsFallback({ centeringOpportunity: centeringOpp });
-  }, [
-    complementInsight,
-    isDrilling,
-    centeringOpp,
-    setProjectionComplement,
-    setProjectionDrilling,
-    syncProjectionsFallback,
-  ]);
+    useProjectionStore.setState({
+      complement: complementInsight,
+      isDrilling,
+      centeringOpportunity: centeringOpp,
+    });
+  }, [complementInsight, isDrilling, centeringOpp]);
 
-  const projectionState = useProjectionStore();
+  const projIsDrilling = useProjectionStore(s => s.isDrilling);
+  const projComplement = useProjectionStore(s => s.complement);
+  const projCentering = useProjectionStore(s => s.centeringOpportunity);
+  const projActive = useProjectionStore(s => s.activeProjection);
 
   // Capability suggestion: show when specs are set and no other detection modal is showing
   useEffect(() => {
@@ -582,10 +575,10 @@ function AppMain() {
                 outcome={outcome}
                 cpkTarget={cpkTarget}
                 sampleCount={filteredData?.length}
-                isDrilling={projectionState.isDrilling}
-                complement={projectionState.complement}
-                centeringOpportunity={projectionState.centeringOpportunity}
-                activeProjection={projectionState.activeProjection}
+                isDrilling={projIsDrilling}
+                complement={projComplement}
+                centeringOpportunity={projCentering}
+                activeProjection={projActive}
               />
             </Suspense>
           </div>

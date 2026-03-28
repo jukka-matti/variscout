@@ -222,9 +222,8 @@ const Dashboard = ({
   const { centeringOpportunity, specSuggestion, activeProjection } = projectionResult;
 
   // Sync projection data to store (consumed by sidebar)
-  const syncProjections = useProjectionStore(s => s.syncProjections);
   useEffect(() => {
-    syncProjections({
+    useProjectionStore.setState({
       activeProjection: projectionResult.activeProjection,
       drillProjection: projectionResult.drillProjection,
       benchmarkProjection: projectionResult.benchmarkProjection,
@@ -232,7 +231,14 @@ const Dashboard = ({
       centeringOpportunity: projectionResult.centeringOpportunity,
       specSuggestion: projectionResult.specSuggestion,
     });
-  }, [projectionResult, syncProjections]);
+  }, [
+    projectionResult.activeProjection,
+    projectionResult.drillProjection,
+    projectionResult.benchmarkProjection,
+    projectionResult.cumulativeProjection,
+    projectionResult.centeringOpportunity,
+    projectionResult.specSuggestion,
+  ]);
 
   // Handler for saving specs from SpecEditor
   const handleSaveSpecs = useCallback(
