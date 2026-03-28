@@ -284,8 +284,8 @@ describe('StatsPanel', () => {
       );
 
       fireEvent.click(screen.getByText('Data'));
-      // Data tab shows empty state since no renderDataTable is passed
-      expect(screen.getByText('No data available')).toBeInTheDocument();
+      // Data tab shows the inline data table
+      expect(screen.getByText('value')).toBeInTheDocument(); // column header
     });
   });
 });

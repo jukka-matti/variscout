@@ -28,8 +28,9 @@ import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
-import { type ExclusionReason } from '@variscout/core';
+import { type ExclusionReason, toNumericValue } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
+import { computeCenteringOpportunity } from '@variscout/core/variation';
 import { useControlViolations } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
@@ -271,6 +272,25 @@ function AppMain() {
 
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
+
+  // Complement stats for Target Discovery in sidebar
+  const isDrilling = Object.keys(filters).length > 0;
+  const complementInsight = useMemo(() => {
+    if (!isDrilling || !outcome || !filteredData || filteredData.length >= rawData.length)
+      return null;
+    const filteredSet = new Set(filteredData);
+    const compRows = rawData.filter(r => !filteredSet.has(r));
+    const values = compRows
+      .map(r => toNumericValue(r[outcome]))
+      .filter((v): v is number => v !== undefined);
+    if (values.length < 2) return null;
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
+    const stdDev = Math.sqrt(variance);
+    return { mean, stdDev, count: values.length };
+  }, [isDrilling, outcome, filteredData, rawData]);
+
+  const centeringOpp = useMemo(() => (stats ? computeCenteringOpportunity(stats) : null), [stats]);
 
   // Capability suggestion: show when specs are set and no other detection modal is showing
   useEffect(() => {
@@ -534,6 +554,10 @@ function AppMain() {
                 filteredData={filteredData}
                 outcome={outcome}
                 cpkTarget={cpkTarget}
+                sampleCount={filteredData?.length}
+                isDrilling={isDrilling}
+                complement={complementInsight}
+                centeringOpportunity={centeringOpp}
               />
             </Suspense>
           </div>

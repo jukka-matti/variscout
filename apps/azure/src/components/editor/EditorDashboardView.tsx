@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import Dashboard from '../Dashboard';
 import DataPanel from '../data/DataPanel';
 
@@ -8,7 +8,8 @@ import FindingsPanel from '../FindingsPanel';
 import { CoScoutPanelBase, AIOnboardingTooltip, SessionClosePrompt } from '@variscout/ui';
 import type { SessionClosePromptItem } from '@variscout/ui';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
-import { hasTeamFeatures } from '@variscout/core';
+import { hasTeamFeatures, toNumericValue } from '@variscout/core';
+import { computeCenteringOpportunity } from '@variscout/core/variation';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
 import type { UseHypothesesReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
 import { isAIAvailable } from '../../services/aiService';
@@ -115,6 +116,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     factors,
     aiEnabled,
     processContext,
+    rawData,
     filteredData,
     stats,
     filters,
@@ -139,6 +141,30 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const statsSidebar = useResizablePanel('variscout-stats-sidebar-width', 280, 500, 320, 'left');
   const highlightRowIndex = usePanelsStore(s => s.highlightRowIndex);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
+
+  // Target discovery: complement stats + centering opportunity for sidebar
+  const isDrilling = Object.keys(filters).length > 0;
+  const complementInsight = useMemo(() => {
+    if (
+      !isDrilling ||
+      !outcome ||
+      !filteredData ||
+      !rawData ||
+      filteredData.length >= rawData.length
+    )
+      return null;
+    const filteredSet = new Set(filteredData);
+    const compRows = rawData.filter(r => !filteredSet.has(r));
+    const values = compRows
+      .map(r => toNumericValue(r[outcome]))
+      .filter((v): v is number => v !== undefined);
+    if (values.length < 2) return null;
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
+    return { mean, stdDev: Math.sqrt(variance), count: values.length };
+  }, [isDrilling, outcome, filteredData, rawData]);
+
+  const centeringOpp = useMemo(() => (stats ? computeCenteringOpportunity(stats) : null), [stats]);
 
   // Findings highlight from Zustand
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
@@ -415,6 +441,10 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
                   filteredData={filteredData}
                   outcome={outcome}
                   cpkTarget={cpkTarget}
+                  sampleCount={filteredData?.length}
+                  isDrilling={isDrilling}
+                  complement={complementInsight}
+                  centeringOpportunity={centeringOpp}
                 />
               </React.Suspense>
             </div>
