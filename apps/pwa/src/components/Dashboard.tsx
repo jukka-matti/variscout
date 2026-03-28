@@ -31,7 +31,7 @@ import {
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
-import { Activity, Copy, Check, Download, Settings2, LayoutGrid, List } from 'lucide-react';
+import { Activity, Settings2, LayoutGrid, List, Maximize2, FileDown } from 'lucide-react';
 import { getColumnNames, type SpecLimits, type Finding } from '@variscout/core';
 
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
@@ -60,6 +60,12 @@ interface DashboardProps {
   findings?: Finding[];
   /** When true, omit stats panel from grid (rendered as sidebar instead) */
   hideStatsInGrid?: boolean;
+  /** Export CSV callback (for toolbar) */
+  onExportCSV?: () => void;
+  /** Export image callback (for toolbar) */
+  onExportImage?: () => void;
+  /** Enter presentation mode callback (for toolbar) */
+  onEnterPresentationMode?: () => void;
 }
 
 const Dashboard = ({
@@ -80,6 +86,9 @@ const Dashboard = ({
   findingsCallbacks,
   findings: _allFindings,
   hideStatsInGrid = false,
+  onExportCSV,
+  onExportImage: _onExportImage,
+  onEnterPresentationMode,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
     findingsCallbacks ?? {};
@@ -408,80 +417,86 @@ const Dashboard = ({
               onPinFinding={onPinFinding}
             />
           </div>
-          {!focusedChart && (
-            <div className="flex items-center gap-1 px-3 flex-shrink-0" data-export-hide>
-              <button
-                onClick={() => handleCopyChart('dashboard-export-container', 'dashboard')}
-                className={`p-1.5 rounded transition-all ${
-                  copyFeedback === 'dashboard'
-                    ? 'bg-green-500/20 text-green-400'
-                    : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
-                }`}
-                title="Copy dashboard to clipboard"
-                aria-label="Copy dashboard to clipboard"
-              >
-                {copyFeedback === 'dashboard' ? <Check size={14} /> : <Copy size={14} />}
-              </button>
-              <button
-                onClick={() => handleDownloadPng('dashboard-export-container', 'dashboard')}
-                className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
-                title="Download dashboard as PNG"
-                aria-label="Download dashboard as PNG"
-              >
-                <Download size={14} />
-              </button>
-            </div>
-          )}
+          {/* Dashboard copy/download moved to toolbar (Export button) */}
         </div>
 
-        {/* Toolbar */}
-        {onManageFactors && factors.length > 0 && (
-          <div className="flex items-center px-4 pt-3 pb-2">
-            {/* Layout toggle — desktop only */}
-            <div
-              className="hidden lg:flex items-center bg-surface-tertiary rounded-lg p-0.5"
-              data-export-hide
+        {/* Toolbar — always visible when data loaded */}
+        <div className="flex items-center gap-2 px-4 pt-2 pb-1">
+          {/* Layout toggle — desktop only */}
+          <div
+            className="hidden lg:flex items-center bg-surface-tertiary rounded-lg p-0.5"
+            data-export-hide
+          >
+            <button
+              onClick={() => setDisplayOptions({ ...displayOptions, dashboardLayout: 'grid' })}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                (displayOptions.dashboardLayout ?? 'grid') === 'grid'
+                  ? 'bg-surface-elevated text-content font-medium shadow-sm'
+                  : 'text-content-muted hover:text-content'
+              }`}
+              title="Grid layout — all charts in viewport"
+              aria-label="Grid layout"
             >
-              <button
-                onClick={() => setDisplayOptions({ ...displayOptions, dashboardLayout: 'grid' })}
-                className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                  (displayOptions.dashboardLayout ?? 'grid') === 'grid'
-                    ? 'bg-surface-elevated text-content font-medium shadow-sm'
-                    : 'text-content-muted hover:text-content'
-                }`}
-                title="Grid layout — all charts in viewport"
-                aria-label="Grid layout"
-              >
-                <LayoutGrid size={12} />
-                Grid
-              </button>
-              <button
-                onClick={() => setDisplayOptions({ ...displayOptions, dashboardLayout: 'scroll' })}
-                className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                  displayOptions.dashboardLayout === 'scroll'
-                    ? 'bg-surface-elevated text-content font-medium shadow-sm'
-                    : 'text-content-muted hover:text-content'
-                }`}
-                title="Scroll layout — full-width stacked charts"
-                aria-label="Scroll layout"
-              >
-                <List size={12} />
-                Scroll
-              </button>
-            </div>
+              <LayoutGrid size={12} />
+              Grid
+            </button>
+            <button
+              onClick={() => setDisplayOptions({ ...displayOptions, dashboardLayout: 'scroll' })}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                displayOptions.dashboardLayout === 'scroll'
+                  ? 'bg-surface-elevated text-content font-medium shadow-sm'
+                  : 'text-content-muted hover:text-content'
+              }`}
+              title="Scroll layout — full-width stacked charts"
+              aria-label="Scroll layout"
+            >
+              <List size={12} />
+              Scroll
+            </button>
+          </div>
 
+          {/* Factors button (when factors exist) */}
+          {onManageFactors && factors.length > 0 && (
             <button
               onClick={onManageFactors}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium ml-auto text-content-secondary hover:text-white hover:bg-surface-elevated transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-content-secondary hover:text-content hover:bg-surface-elevated transition-colors"
               title="Manage analysis factors"
               aria-label="Manage factors"
               data-testid="btn-manage-factors"
             >
-              <Settings2 size={14} />
+              <Settings2 size={12} />
               Factors ({factors.length})
             </button>
+          )}
+
+          <div className="flex-1" />
+
+          {/* Export + Presentation — right side */}
+          <div className="hidden sm:flex items-center gap-1" data-export-hide>
+            {onExportCSV && (
+              <button
+                onClick={onExportCSV}
+                className="flex items-center gap-1 px-2 py-1.5 rounded text-xs text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
+                title="Export CSV"
+                aria-label="Export CSV"
+              >
+                <FileDown size={12} />
+                <span className="hidden lg:inline">Export</span>
+              </button>
+            )}
+            {onEnterPresentationMode && (
+              <button
+                onClick={onEnterPresentationMode}
+                className="flex items-center gap-1 px-2 py-1.5 rounded text-xs text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
+                title="Presentation mode"
+                aria-label="Presentation mode"
+              >
+                <Maximize2 size={12} />
+                <span className="hidden lg:inline">Present</span>
+              </button>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Selection Panel - Shows when points are brushed in IChart */}
         {selectedPoints.size > 0 && (

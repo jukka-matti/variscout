@@ -609,6 +609,9 @@ function AppMain() {
                 isPresentationMode={panels.isPresentationMode}
                 onExitPresentation={() => panels.setIsPresentationMode(false)}
                 hideStatsInGrid={panels.isStatsSidebarOpen}
+                onExportCSV={handleExportCSV}
+                onExportImage={handleExport}
+                onEnterPresentationMode={() => panels.setIsPresentationMode(true)}
                 highlightedChart={highlightedChart}
                 highlightIntensity={highlightIntensity}
                 onChartClick={isEmbedMode ? notifyChartClicked : undefined}
