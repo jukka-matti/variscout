@@ -1,6 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import Dashboard from '../Dashboard';
 import DataPanel from '../data/DataPanel';
+
+const StatsPanel = React.lazy(() => import('../StatsPanel'));
 import DataTableModal from '../data/DataTableModal';
 import FindingsPanel from '../FindingsPanel';
 import { CoScoutPanelBase, AIOnboardingTooltip, SessionClosePrompt } from '@variscout/ui';
@@ -108,7 +110,17 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   excludedReasons,
   columnAliases,
 }) => {
-  const { factors, aiEnabled, processContext, filteredData, stats, filters } = useData();
+  const {
+    factors,
+    aiEnabled,
+    processContext,
+    filteredData,
+    stats,
+    filters,
+    specs,
+    outcome,
+    cpkTarget,
+  } = useData();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
 
   // Session-close prompt state (ADR-049)
@@ -122,6 +134,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const isPresentationMode = usePanelsStore(s => s.isPresentationMode);
   const isDataPanelOpen = usePanelsStore(s => s.isDataPanelOpen);
   const isDataTableOpen = usePanelsStore(s => s.isDataTableOpen);
+  const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
   const highlightRowIndex = usePanelsStore(s => s.highlightRowIndex);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
 
@@ -386,6 +399,21 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   return (
     <>
       <div className="flex-1 flex overflow-hidden">
+        {/* Stats Sidebar (left) */}
+        {isStatsSidebarOpen && !isPhone && (
+          <div className="flex flex-col w-80 flex-shrink-0 border-r border-edge bg-surface-secondary overflow-y-auto">
+            <React.Suspense fallback={null}>
+              <StatsPanel
+                stats={stats}
+                specs={specs}
+                filteredData={filteredData}
+                outcome={outcome}
+                cpkTarget={cpkTarget}
+              />
+            </React.Suspense>
+          </div>
+        )}
+
         <Dashboard
           onPointClick={isPhone ? undefined : usePanelsStore.getState().handlePointClick}
           highlightedPointIndex={isPhone ? undefined : highlightedChartPoint}

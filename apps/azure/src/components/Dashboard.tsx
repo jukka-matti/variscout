@@ -37,6 +37,7 @@ import {
   useDashboardInsights,
 } from '@variscout/hooks';
 import type { AIContext } from '@variscout/core';
+import { usePanelsStore } from '../features/panels/panelsStore';
 import type { ViewState } from '@variscout/hooks';
 import {
   Activity,
@@ -115,6 +116,7 @@ const Dashboard = ({
   performance = {},
   ai = {},
 }: DashboardProps) => {
+  const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
   const { isPresentationMode, onExitPresentation, isReportOpen, onCloseReport } = viewMode;
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
@@ -754,22 +756,24 @@ const Dashboard = ({
                   </ErrorBoundary>
                 }
                 renderStatsPanel={
-                  <StatsPanel
-                    stats={stats}
-                    specs={specs}
-                    filteredData={filteredData}
-                    outcome={outcome}
-                    onSaveSpecs={setSpecs}
-                    showCpk={displayOptions.showCpk !== false}
-                    cpkTarget={cpkTarget}
-                    onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
-                    subgroupsMeetingTarget={
-                      isCapabilityMode ? capabilityData.subgroupsMeetingTarget : undefined
-                    }
-                    subgroupCount={
-                      isCapabilityMode ? capabilityData.subgroupResults.length : undefined
-                    }
-                  />
+                  isStatsSidebarOpen ? undefined : (
+                    <StatsPanel
+                      stats={stats}
+                      specs={specs}
+                      filteredData={filteredData}
+                      outcome={outcome}
+                      onSaveSpecs={setSpecs}
+                      showCpk={displayOptions.showCpk !== false}
+                      cpkTarget={cpkTarget}
+                      onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
+                      subgroupsMeetingTarget={
+                        isCapabilityMode ? capabilityData.subgroupsMeetingTarget : undefined
+                      }
+                      subgroupCount={
+                        isCapabilityMode ? capabilityData.subgroupResults.length : undefined
+                      }
+                    />
+                  )
                 }
                 renderFocusedView={
                   focusedChart ? (
