@@ -184,12 +184,14 @@ The Stats sidebar shifts from "primary display" to "deep dive":
 - Histogram + Probability Plot in tabs
 - Only way to see process health without sidebar open
 
-**After**:
+**After (Process Intelligence Panel)**:
 
 - Key stats always visible in toolbar (no sidebar needed for glance)
-- Sidebar = detailed exploration: full metric grid (incl. Median, percentiles), data table, spec editor, What-If simulator (full sliders)
+- Sidebar = active intelligence panel: stats grid, target discovery, data table, What-If simulator
 - Sidebar still resizable (280–500px, left side)
-- Stats sidebar content unchanged — tabs: Summary, Data, Histogram, Probability Plot
+- Sidebar tabs: **Summary** (stats + target discovery + centering), **Data** (table), **What-If** (simulator with smart presets)
+- Histogram + Probability Plot removed from sidebar — handled by VerificationCard in grid row 2
+- See [Process Intelligence Panel spec](2026-03-28-process-intelligence-panel-design.md) for full design
 
 ## Adaptive Content Rules
 
@@ -269,7 +271,8 @@ The Stats sidebar shifts from "primary display" to "deep dive":
 - Toolbar adapts by journey phase (current Cpk → complement projection → benchmark → idea projections → actual)
 - Per-idea What-If projections (from `ImprovementWorkspaceBase`) aggregate into per-finding projections via `projectedCpkMap`
 - Actual vs projected tracking as actions resolve: `Cpk 0.26 → 1.45 actual (1 of 3 resolved)`
-- What-If simulator inline in toolbar: collapsed by default, expand to adjust mean shift / σ reduction sliders
+- What-If simulator in sidebar tab (Process Intelligence Panel) — accessible during any phase
+- Per-idea What-If round-trip: idea → sidebar What-If tab → projection saved to idea
 - `ImprovementSummaryBar` already shows projected Cpk + delta — unify with toolbar projection
 
 ## Not In Scope

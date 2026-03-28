@@ -196,10 +196,10 @@ The panel architecture is evolving toward a symmetric model with two cross-cutti
 └──────┴──────────────────────┴────────┘
 ```
 
-| Sidebar        | Side  | Width                 | Tabs                                         | Toggle      |
-| -------------- | ----- | --------------------- | -------------------------------------------- | ----------- |
-| **Stats/Data** | Left  | 280-320px             | Summary, Data, Histogram, Probability Plot   | Header icon |
-| **CoScout**    | Right | 320-600px (resizable) | AI conversation (adapts to active workspace) | Header icon |
+| Sidebar        | Side  | Width                 | Tabs                                              | Toggle      |
+| -------------- | ----- | --------------------- | ------------------------------------------------- | ----------- |
+| **Stats/Data** | Left  | 280-320px             | Summary (stats + target discovery), Data, What-If | Header icon |
+| **CoScout**    | Right | 320-600px (resizable) | AI conversation (adapts to active workspace)      | Header icon |
 
 **Key changes from current architecture:**
 

@@ -80,12 +80,12 @@ The dashboard supports cross-cutting sidebars that coexist with the chart grid. 
 └──────┴──────────────────────────────┴────────┘
 ```
 
-| Sidebar        | Side  | Width Range | Default | Content                                                   | Resize      |
-| -------------- | ----- | ----------- | ------- | --------------------------------------------------------- | ----------- |
-| **Stats/Data** | Left  | 280-500px   | 320px   | Summary, Data table, Histogram, Probability Plot (4 tabs) | Drag handle |
-| **Findings**   | Right | 320-600px   | 384px   | Finding cards, board view, hypothesis tree                | Drag handle |
-| **CoScout**    | Right | 320-600px   | 384px   | AI conversation, phase-adaptive coaching                  | Drag handle |
-| **Data Panel** | Right | 280-600px   | 350px   | Data table, row highlighting, violations                  | Drag handle |
+| Sidebar        | Side  | Width Range | Default | Content                                                                                                             | Resize      |
+| -------------- | ----- | ----------- | ------- | ------------------------------------------------------------------------------------------------------------------- | ----------- |
+| **Stats/Data** | Left  | 280-500px   | 320px   | Summary (stats + target discovery), Data table, What-If (3 tabs). Histogram/ProbPlot in VerificationCard grid slot. | Drag handle |
+| **Findings**   | Right | 320-600px   | 384px   | Finding cards, board view, hypothesis tree                                                                          | Drag handle |
+| **CoScout**    | Right | 320-600px   | 384px   | AI conversation, phase-adaptive coaching                                                                            | Drag handle |
+| **Data Panel** | Right | 280-600px   | 350px   | Data table, row highlighting, violations                                                                            | Drag handle |
 
 ### Resize Implementation
 
@@ -109,9 +109,9 @@ The center chart grid **compresses naturally** via flexbox as sidebars take hori
 | Both sidebars open       | ~740px                       | Charts at minimum comfortable width                         |
 | Very compressed (<600px) | <600px                       | Consider auto-switching to scroll mode (future)             |
 
-When stats sidebar is **open**: the sidebar shows the full tabbed StatsPanelBase (Summary, Data, Histogram, Probability Plot). The VerificationCard remains in row 2 (tabbed Histogram/ProbPlot). Key stats are always visible in ProcessHealthBar regardless of sidebar state.
+When stats sidebar is **open**: the sidebar shows the Process Intelligence Panel (3 tabs: Summary with stats + target discovery, Data table, What-If simulator). VerificationCard remains in grid row 2 (tabbed Histogram/ProbPlot). Key stats are always visible in ProcessHealthBar regardless of sidebar state. See [Process Intelligence Panel spec](../../superpowers/specs/2026-03-28-process-intelligence-panel-design.md).
 
-When stats sidebar is **closed**: ProcessHealthBar shows inline stats (Cpk, Pass, Mean, σ). The VerificationCard in row 2 provides Histogram/Probability Plot in a tabbed card.
+When stats sidebar is **closed**: ProcessHealthBar shows inline stats (Cpk, Pass, Mean, σ, projections). VerificationCard in row 2 provides Histogram/Probability Plot in a tabbed card.
 
 See [Dashboard Chrome Redesign spec](../../superpowers/specs/2026-03-28-dashboard-chrome-redesign.md) for the full workspace navigation model.
 
