@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -39,6 +39,7 @@ import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import { Activity } from 'lucide-react';
 import { getColumnNames, type SpecLimits, type Finding } from '@variscout/core';
+import { useProjectionStore } from '../features/projection/projectionStore';
 
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
 import type { FindingsCallbacks } from '@variscout/ui';
@@ -209,7 +210,7 @@ const Dashboard = ({
 
   // Process projection intelligence (Phase 2-4)
   const journeyPhase = useJourneyPhase(!!rawData?.length, _allFindings ?? []);
-  const { centeringOpportunity, specSuggestion, activeProjection } = useProcessProjection({
+  const projectionResult = useProcessProjection({
     rawData: rawData ?? [],
     filteredData: filteredData ?? [],
     outcome,
@@ -218,6 +219,20 @@ const Dashboard = ({
     filterChipData,
     journeyPhase,
   });
+  const { centeringOpportunity, specSuggestion, activeProjection } = projectionResult;
+
+  // Sync projection data to store (consumed by sidebar)
+  const syncProjections = useProjectionStore(s => s.syncProjections);
+  useEffect(() => {
+    syncProjections({
+      activeProjection: projectionResult.activeProjection,
+      drillProjection: projectionResult.drillProjection,
+      benchmarkProjection: projectionResult.benchmarkProjection,
+      cumulativeProjection: projectionResult.cumulativeProjection,
+      centeringOpportunity: projectionResult.centeringOpportunity,
+      specSuggestion: projectionResult.specSuggestion,
+    });
+  }, [projectionResult, syncProjections]);
 
   // Handler for saving specs from SpecEditor
   const handleSaveSpecs = useCallback(

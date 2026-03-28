@@ -35,6 +35,7 @@ import { useControlViolations } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
 import { useFindingsStore } from './features/findings/findingsStore';
+import { useProjectionStore } from './features/projection/projectionStore';
 
 // Lazy-loaded heavy components for code splitting
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
@@ -297,6 +298,26 @@ function AppMain() {
   }, [isDrilling, outcome, filteredData, rawData]);
 
   const centeringOpp = useMemo(() => (stats ? computeCenteringOpportunity(stats) : null), [stats]);
+
+  // Sync complement + drilling state to projection store (sidebar reads from store)
+  const setProjectionComplement = useProjectionStore(s => s.setComplement);
+  const setProjectionDrilling = useProjectionStore(s => s.setIsDrilling);
+  const syncProjectionsFallback = useProjectionStore(s => s.syncProjections);
+  useEffect(() => {
+    setProjectionComplement(complementInsight);
+    setProjectionDrilling(isDrilling);
+    // Also sync centering since it's computed here
+    syncProjectionsFallback({ centeringOpportunity: centeringOpp });
+  }, [
+    complementInsight,
+    isDrilling,
+    centeringOpp,
+    setProjectionComplement,
+    setProjectionDrilling,
+    syncProjectionsFallback,
+  ]);
+
+  const projectionState = useProjectionStore();
 
   // Capability suggestion: show when specs are set and no other detection modal is showing
   useEffect(() => {
@@ -561,9 +582,10 @@ function AppMain() {
                 outcome={outcome}
                 cpkTarget={cpkTarget}
                 sampleCount={filteredData?.length}
-                isDrilling={isDrilling}
-                complement={complementInsight}
-                centeringOpportunity={centeringOpp}
+                isDrilling={projectionState.isDrilling}
+                complement={projectionState.complement}
+                centeringOpportunity={projectionState.centeringOpportunity}
+                activeProjection={projectionState.activeProjection}
               />
             </Suspense>
           </div>
