@@ -426,6 +426,9 @@ export {
 } from './components/YamazumiDisplayToggle';
 export { YamazumiSummaryBar, type YamazumiSummaryBarProps } from './components/YamazumiSummaryBar';
 
+// Process Health Bar
+export { ProcessHealthBar, type ProcessHealthBarProps } from './components/ProcessHealthBar';
+
 // Data Panel
 export { DataPanelBase, type DataPanelBaseProps } from './components/DataPanel';
 
