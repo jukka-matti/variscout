@@ -61,6 +61,10 @@ vi.mock('@variscout/ui', () => ({
       ))}
     </select>
   ),
+  ProcessHealthBar: () => <div data-testid="process-health-bar">Health Bar</div>,
+  VerificationCard: ({ renderHistogram }: { renderHistogram: React.ReactNode }) => (
+    <div data-testid="verification-card">{renderHistogram}</div>
+  ),
   FilterBreadcrumb: () => <div data-testid="filter-breadcrumb">Breadcrumb</div>,
   EditableChartTitle: ({ defaultTitle }: { defaultTitle: string }) => (
     <span data-testid="editable-title">{defaultTitle}</span>
@@ -461,6 +465,8 @@ describe('Dashboard', () => {
     setDisplayOptions: vi.fn(),
     subgroupConfig: { method: 'fixed-size' as const, size: 5 },
     setSubgroupConfig: vi.fn(),
+    cpkTarget: 1.33,
+    setCpkTarget: vi.fn(),
     categoryContributions: new Map(),
     selectedPoints: new Set<number>(),
     clearSelection: vi.fn(),
@@ -549,7 +555,7 @@ describe('Dashboard', () => {
     expect(downloadMenus).toHaveLength(3); // I-Chart, Boxplot, Pareto
 
     const copyButtons = screen.getAllByLabelText(/^Copy .+ to clipboard$/);
-    expect(copyButtons).toHaveLength(4); // Dashboard + I-Chart + Boxplot + Pareto
+    expect(copyButtons).toHaveLength(3); // I-Chart + Boxplot + Pareto
   });
 
   it('renders editable chart titles', () => {
