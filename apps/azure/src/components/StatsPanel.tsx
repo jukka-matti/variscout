@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
 import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
 import type { ComplementInsight } from '@variscout/ui';
-import { StatsPanelBase, useGlossary, WhatIfSimulator } from '@variscout/ui';
+import { StatsPanelBase, useGlossary, WhatIfSimulator, computePresets } from '@variscout/ui';
 import SpecEditor from './settings/SpecEditor';
 
 interface StatsPanelProps {
@@ -52,6 +52,16 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
     setIsEditingSpecs(false);
   };
 
+  const presets = useMemo(() => {
+    if (!stats || !outcome) return undefined;
+    return computePresets(
+      { mean: stats.mean, stdDev: stats.stdDev, median: stats.median },
+      specs,
+      filteredData,
+      outcome
+    );
+  }, [stats, specs, filteredData, outcome]);
+
   return (
     <>
       {isEditingSpecs && onSaveSpecs && (
@@ -97,6 +107,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                   specs={specs}
                   defaultExpanded={true}
                   cpkTarget={cpkTarget}
+                  presets={presets}
                 />
               )
             : undefined

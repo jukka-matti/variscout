@@ -171,7 +171,7 @@ describe('StatsPanel', () => {
     expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows Samples count in the card grid', () => {
+  it('shows sample count inline', () => {
     render(
       <StatsPanel
         stats={mockStats}
@@ -181,8 +181,7 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.getByText('Samples')).toBeInTheDocument();
-    expect(screen.getByText('n=3')).toBeInTheDocument(); // 3 items in mockFilteredData
+    expect(screen.getByTestId('stat-value-samples')).toBeInTheDocument();
   });
 
   it('hides capability metrics when no specs provided', () => {
@@ -198,7 +197,7 @@ describe('StatsPanel', () => {
     // Basic stats should still be shown
     expect(screen.getAllByText('Mean').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Std Dev').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Samples')).toBeInTheDocument();
+    expect(screen.getByTestId('stat-value-samples')).toBeInTheDocument();
   });
 
   it('shows "Edit specifications" pencil link when onSaveSpecs provided and no specs', () => {

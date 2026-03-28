@@ -80,7 +80,7 @@ export interface WhatIfPageBaseProps {
 /**
  * Compute smart presets based on current stats, specs, and category data
  */
-function computePresets(
+export function computePresets(
   currentStats: { mean: number; stdDev: number; median: number },
   specs: SpecLimits,
   filteredData: DataRow[],

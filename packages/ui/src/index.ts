@@ -79,6 +79,7 @@ export {
 
 export {
   WhatIfPageBase,
+  computePresets,
   whatIfPageDefaultColorScheme,
   type WhatIfPageColorScheme,
   type WhatIfPageBaseProps,

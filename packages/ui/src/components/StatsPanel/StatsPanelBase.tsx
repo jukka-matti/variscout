@@ -43,16 +43,16 @@ const MetricCard = ({
 );
 
 const CONTAINER_CLASS =
-  'w-full lg:w-80 bg-surface-secondary rounded-xl border border-edge p-6 flex flex-col gap-4 shadow-lg relative';
+  'w-full lg:w-80 bg-surface-secondary rounded-xl border border-edge p-3 flex flex-col gap-3 shadow-lg relative';
 const CONTAINER_COMPACT_CLASS = 'flex flex-col h-full p-3 overflow-auto scroll-touch';
 const TAB_BAR_CLASS = 'flex bg-surface/50 p-1 rounded-lg border border-edge/50';
 const TAB_ACTIVE_CLASS = 'bg-surface-tertiary text-content shadow-sm';
 const TAB_INACTIVE_CLASS = 'text-content-secondary hover:text-content';
 const METRIC_CARD_BG_CLASS =
-  'bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 text-center';
+  'bg-surface-secondary/50 border border-edge/50 rounded-lg px-2 py-1.5 text-center';
 const METRIC_LABEL_CLASS =
-  'flex items-center justify-center gap-1 text-xs text-content-secondary mb-1';
-const METRIC_VALUE_CLASS = 'text-xl font-bold font-mono text-content';
+  'flex items-center justify-center gap-1 text-[10px] text-content-secondary mb-0.5';
+const METRIC_VALUE_CLASS = 'text-base font-semibold font-mono text-content';
 const EMPTY_STATE_CLASS =
   'flex items-center justify-center h-full text-content-muted italic text-sm';
 
@@ -121,7 +121,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     return (
       <div className="space-y-3">
         <div
-          className={compact ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-2 sm:grid-cols-3 gap-2'}
+          className={compact ? 'grid grid-cols-2 gap-1.5' : 'grid grid-cols-3 gap-1.5'}
           aria-live="polite"
           aria-label="Analysis statistics"
         >
@@ -218,25 +218,21 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
             labelClass={METRIC_LABEL_CLASS}
             valueClass={METRIC_VALUE_CLASS}
           />
-          <MetricCard
-            label={t('stats.samples')}
-            value={`n=${sampleCount ?? filteredData?.length ?? 0}`}
-            bgClass={METRIC_CARD_BG_CLASS}
-            labelClass={METRIC_LABEL_CLASS}
-            valueClass={METRIC_VALUE_CLASS}
-          />
         </div>
-        {onEditSpecs && (
-          <button
-            onClick={onEditSpecs}
-            className={editButtonClass}
-            type="button"
-            data-testid="edit-specs-link"
-          >
-            {pencilIcon}
-            <span>{t('stats.editSpecs')}</span>
-          </button>
-        )}
+        <div className="flex items-center gap-3 text-[10px] text-content-muted">
+          <span data-testid="stat-value-samples">n={sampleCount ?? filteredData?.length ?? 0}</span>
+          {onEditSpecs && (
+            <button
+              onClick={onEditSpecs}
+              className={editButtonClass}
+              type="button"
+              data-testid="edit-specs-link"
+            >
+              {pencilIcon}
+              <span>{t('stats.editSpecs')}</span>
+            </button>
+          )}
+        </div>
       </div>
     );
   };
@@ -247,7 +243,6 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     }
     return (
       <>
-        {renderMetricGrid()}
         <TargetDiscoveryCard
           stats={stats}
           specs={specs}
@@ -261,6 +256,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
           onOpenWhatIf={renderWhatIf ? () => setActiveTab('whatif') : undefined}
           sampleCount={sampleCount ?? filteredData?.length}
         />
+        {renderMetricGrid()}
       </>
     );
   };

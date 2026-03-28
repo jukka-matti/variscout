@@ -178,7 +178,7 @@ describe('StatsPanel', () => {
     expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows Samples count in the card grid', () => {
+  it('shows sample count inline', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
     } as unknown as ReturnType<typeof DataContextModule.useData>);
@@ -192,7 +192,7 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.getByText('Samples')).toBeInTheDocument();
+    expect(screen.getByTestId('stat-value-samples')).toBeInTheDocument();
     expect(screen.getByText('n=3')).toBeInTheDocument(); // 3 items in mockFilteredData
   });
 
