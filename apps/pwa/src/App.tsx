@@ -703,7 +703,7 @@ function AppMain() {
               drillPath={drillPath}
               activeFindingId={highlightedFindingId}
               onPopout={handleOpenFindingsPopout}
-              maxStatuses={3}
+              maxStatuses={5}
             />
           )}
         </Suspense>
