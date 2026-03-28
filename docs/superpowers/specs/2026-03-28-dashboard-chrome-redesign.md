@@ -4,209 +4,237 @@ date: 2026-03-28
 status: draft
 audience: [developer, designer]
 category: design-spec
-related: [header, toolbar, stats-panel, navigation, panels, layout]
+related: [header, toolbar, stats-panel, navigation, panels, layout, workspaces]
 ---
 
 # Dashboard Chrome Redesign
 
-Holistic redesign of the header, toolbar, stats panel, and panel architecture across PWA and Azure apps.
+Holistic redesign of header, toolbar, stats panel, and panel architecture. Introduces workspace-based navigation with cross-cutting panel sidebars.
 
 ## Problem
 
-The dashboard header/toolbar area has accumulated controls organically across feature additions:
+The header/toolbar area accumulated controls organically across features, creating 3 visual layers of scattered controls, wasting vertical space, and disconnecting related actions. The stats panel works well in grid mode but is disconnected in scroll mode. AI touch points (NarrativeBar, CoScout, ChartInsightChips) are bolted on rather than integrated. What-If is disconnected from the findings/improvement workflow.
 
-1. **3 visual layers** of scattered controls (header bar, copy/download row, toolbar row) waste vertical space
-2. **Stats panel** (320px sidebar) works well in grid mode but is disconnected at the bottom in scroll mode
-3. **No left panel** — right side has Findings + CoScout panels, left has nothing. Asymmetric layout.
-4. **AI mode elements** (NarrativeBar, problem statement, CoScout) are bolted on rather than integrated
-5. **What-If simulator** floats as standalone page, disconnected from the findings/improvement workflow
-6. **Performance/Yamazumi modes** change chart slots but header doesn't adapt
-7. **Controls scattered**: layout toggle in toolbar, presentation in header, export in header, Factors in toolbar — related actions are split across layers
+## Design: Workspace-Based Navigation
 
-## Current State
+### Navigation Model
 
-### Vertical space budget (everything above charts)
+The header provides two types of controls:
 
-| Layer                             | Height     | Condition                  |
-| --------------------------------- | ---------- | -------------------------- |
-| AppHeader                         | 56px       | Always                     |
-| Copy/Download buttons             | ~28px      | When no focused chart      |
-| FilterBreadcrumb                  | ~44px      | When filters active        |
-| VariationBar                      | ~24px      | When variation data exists |
-| Toolbar (layout toggle + Factors) | ~36px      | When factors exist         |
-| SelectionPanel                    | ~36px      | When points brushed        |
-| **Total possible**                | **~224px** | Before charts start        |
-
-### Panel architecture
-
-| Panel                | Side                     | App   | Toggle                |
-| -------------------- | ------------------------ | ----- | --------------------- |
-| FindingsPanel        | Right (inline)           | Both  | Header button         |
-| CoScoutPanel         | Right (sidebar)          | Azure | Header button         |
-| DataPanel            | Right (inline)           | Both  | Header button         |
-| Stats panel          | Bottom-right (grid slot) | Both  | Not toggle-able       |
-| ImprovementWorkspace | Full page                | Azure | Via findings workflow |
-
-### Header controls inventory
-
-**PWA AppHeader**: Logo, DataTable, Findings, What-If, Presentation, Share/Export, Settings
-**Azure EditorToolbar**: Back, Project name, Save, Add Data, Findings, Data, Share, Presentation, Report, Settings
-**Dashboard toolbar**: Layout toggle (Grid/Scroll), Factors button, copy/download icons
-
-## Decisions Made
-
-### 1. Stats panel becomes a toggle-able left sidebar
-
-Mirrors the Findings panel on the right. Creates a symmetric 3-panel layout:
+1. **Workspace tabs** — Switch the center content area (Analysis | Investigation | Improvement)
+2. **Panel toggles** — Open/close cross-cutting sidebars (Stats/Data left, CoScout right)
 
 ```
-┌──────┬──────────────────────┬──────────┐
-│Stats │   Charts (center)    │Findings/ │
-│Panel │                      │ CoScout  │
-│(left)│  I-Chart             │  (right) │
-│      │  Boxplot             │          │
-│ Cpk  │  Pareto              │          │
-│ Cp   │                      │          │
-│ Pass │                      │          │
-│ n=30 │                      │          │
-└──────┴──────────────────────┴──────────┘
+Header (56px):
+┌──────────────────────────────────────────────────────────────┐
+│ V VariScout · Coffee Moisture (30)                           │
+│   [Analysis v] [Investigation] [Improvement]  [Stats][AI][Settings] │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-- **Default**: Hidden (charts get full width)
-- **Toggle**: Stats icon in header opens the left sidebar
-- **Grid mode**: Left sidebar, charts resize to remaining width
-- **Scroll mode**: Left sidebar stays while scrolling through charts
-- **Content**: Same as current StatsPanelBase (Summary/Histogram/Probability Plot tabs)
-- **Width**: ~280-320px (consistent with Findings panel)
+- **Left**: Logo + case name + row count
+- **Center**: 3 workspace tabs (always visible, active highlighted)
+- **Right**: Stats/Data toggle (left sidebar) + AI toggle (right sidebar) + Settings
+- Analysis tab has dropdown for sub-modes (Standard / Performance / Yamazumi)
 
-### 2. Header becomes minimal navigation bar
+### Workspace Layouts
 
-```
-┌────────────────────────────────────────────────────┐
-│ V VariScout · Coffee Moisture (30)                 │
-│                        [Stats][Findings][AI][⚙]    │
-└────────────────────────────────────────────────────┘
-```
-
-- 56px, single line, navigation/panel-toggle only
-- Left: Logo + case name + row count
-- Right: Panel toggle icons + Settings
-- All content-specific controls (layout, filters, export, Factors) move to dashboard toolbar
-
-### 3. One comprehensive spec, implemented in phases
-
-Design holistically so decisions are coherent. Implement as independent commits:
-
-- Phase 1: Header simplification + stats panel as left sidebar
-- Phase 2: Toolbar consolidation
-- Phase 3: Scroll-mode stats integration
-- Phase 4: AI mode integration
-
-### 4. Layout toggle (Grid/Scroll) stays in dashboard toolbar
-
-Not in the header — it's a dashboard-specific control.
-
-## Open Questions
-
-### Q1: Where do What-If, Presentation, Export go?
-
-**Context**: Currently in the header. Header is being simplified to panel toggles only.
-
-**Options discussed**:
-
-- a) What-If → linked to findings/improvement workflow (Azure: already part of Improvement workspace ideas → What-If round-trip)
-- b) Export → into stats panel actions section or toolbar
-- c) Presentation → into Settings or toolbar
-- d) All into an overflow/actions menu in the toolbar
-
-**Consideration**: In Azure, What-If is connected to the IMPROVE phase — ideas get What-If projections attached. In PWA, it's standalone. Should PWA adopt the same findings-linked approach?
-
-### Q2: How does the header adapt across journey phases?
-
-**Context**: The four phases (FRAME → SCOUT → INVESTIGATE → IMPROVE) have different panel configurations.
-
-| Phase       | Relevant panels              | Header should show                   |
-| ----------- | ---------------------------- | ------------------------------------ |
-| FRAME       | (none — column mapping)      | Minimal                              |
-| SCOUT       | Stats, (Findings)            | Stats + Findings toggles             |
-| INVESTIGATE | Stats, Findings, CoScout     | All panel toggles                    |
-| IMPROVE     | Stats, Findings, Improvement | Improvement toggle replaces CoScout? |
-
-**Question**: Should panel toggles appear/disappear based on phase, or always be visible (greyed out when not applicable)?
-
-### Q3: Scroll mode stats integration
-
-**Context**: In scroll mode, the left stats sidebar stays while charts scroll. But the current stats content (Summary/Histogram/Probability Plot) may be too much for a persistent sidebar.
-
-**Options**:
-
-- a) Full stats panel stays as sidebar (consistent with grid mode)
-- b) Compact sticky bar with key metrics only (Cpk, Pass Rate, n=), expand to full on click
-- c) Stats interspersed between chart cards in the scroll flow
-
-### Q4: Performance/Yamazumi mode header adaptation
-
-**Context**: These modes change chart slots but the header currently doesn't reflect which mode is active. Azure has tabs (Analysis/Performance/Yamazumi) in the dashboard toolbar.
-
-**Question**: Should the mode be visible in the header? As a tab bar? As a badge on the logo area? Or just in the toolbar (current Azure approach)?
-
-### Q5: NarrativeBar integration
-
-**Context**: Currently a bottom-sticky bar (~40px) showing AI-generated summary. Only in Azure with AI active.
-
-**Options**:
-
-- a) Keep as bottom bar (current — works fine, doesn't conflict with header redesign)
-- b) Move into CoScout panel header
-- c) Show in the header bar as a subtitle under case name
-
-### Q6: Azure vs PWA divergence
-
-**Context**: Azure has project save, Teams, tabs, CoScout, Improvement, Report. PWA is simpler (no AI, no project save, limited findings statuses).
-
-**Question**: Should the header architecture be identical (shared component) with Azure features hidden in PWA? Or separate header components per app? Current: separate AppHeader (PWA) vs EditorToolbar (Azure).
-
-### Q7: Mobile panel behavior
-
-**Context**: On phone (<640px), panels go full-screen (Findings) or are hidden (Data). How do the new left stats panel and the simplified header work on mobile?
-
-**Options**:
-
-- a) Left stats panel → bottom sheet on mobile (like MobileCategorySheet)
-- b) Stats accessible via mobile tab bar (add a Stats tab)
-- c) Stats visible in a compact bar between header and chart carousel
-
-## Reference
-
-### Current navigation model
+**Analysis workspace (SCOUT/FRAME phase):**
 
 ```
-PWA:  HomeScreen → Dashboard (+ Findings panel, What-If page, Presentation)
-Azure: Portfolio → Project Dashboard → Editor (+ Findings, CoScout, Improvement, Report, What-If)
+┌──────┬──────────────────────────────┬────────┐
+│Stats │ Filter chips + Variation bar │CoScout │
+│/Data │ [Grid|Scroll] [Factors]      │(right, │
+│(left,│                              │ opt.)  │
+│ opt.)│ I-Chart                      │        │
+│      │ Boxplot    Pareto            │        │
+│ Tabs:│              + Stats slot    │        │
+│ Summ │ [Export v] [Present]         │        │
+│ Data │                              │        │
+│ Hist │ ─── NarrativeBar (bottom) ── │        │
+│ Prob └──────────────────────────────┘        │
+└──────┘                              └────────┘
 ```
 
-### Three-workspace model (Azure)
-
-1. **Analysis Workspace**: Dashboard charts, drill-down, filter navigation
-2. **Findings Workspace**: Board view (5 columns), hypothesis tree, investigation sidebar
-3. **Improvement Workspace**: Synthesis, idea groups, actions, staged verification
-
-### Journey phases
+**Investigation workspace (INVESTIGATE phase):**
 
 ```
-FRAME → SCOUT → INVESTIGATE → IMPROVE
-(data)   (charts)  (findings)    (actions)
+┌──────┬──────────────────────────────┬────────┐
+│Stats │ Findings Board               │CoScout │
+│/Data │ [Observed][Investigating]     │(right) │
+│(left)│ [Analyzed]                    │        │
+│      │                              │ Phase: │
+│      │ Hypothesis tree              │ Conv.  │
+│      │ Synthesis card               │        │
+│      │ Investigation sidebar        │ Ask... │
+│      │                              │        │
+│      │ ─── NarrativeBar (bottom) ── │        │
+└──────┴──────────────────────────────┴────────┘
 ```
 
-### Panel mutual exclusions (Azure)
+**Improvement workspace (IMPROVE phase):**
 
-- Improvement → closes: WhatIf, Report, Presentation
-- Report → closes: Presentation, Improvement, Findings, CoScout, DataPanel
-- Presentation → closes: Report, Improvement, Findings, CoScout
+```
+┌──────┬──────────────────────────────┬────────┐
+│Stats │ Synthesis card (editable)    │CoScout │
+│/Data │ Four Directions hint         │(right) │
+│(left)│                              │        │
+│      │ Idea groups (by hypothesis)  │ Idea   │
+│      │  - text, direction, time     │ advice │
+│      │  - cost, risk, What-If       │        │
+│      │                              │        │
+│      │ ────────────────────────     │        │
+│      │ [Convert selected → Actions] │        │
+└──────┴──────────────────────────────┴────────┘
+```
 
-## Next Steps
+### Cross-Cutting Panels
 
-1. Continue brainstorming to resolve Q1–Q7 in next session
-2. Create visual mockups for the 3-panel layout
-3. Finalize spec
-4. Create implementation plan (phased)
+| Panel            | Side   | Toggle                      | Content                                            | Adapts to workspace?                                            |
+| ---------------- | ------ | --------------------------- | -------------------------------------------------- | --------------------------------------------------------------- |
+| **Stats/Data**   | Left   | Header icon                 | 4 tabs: Summary, Data, Histogram, Probability Plot | No — same content in all workspaces                             |
+| **CoScout**      | Right  | Header icon                 | AI conversation, adapts coaching by phase          | Yes — reasoning effort + system prompt change per workspace     |
+| **NarrativeBar** | Bottom | Always visible (when AI on) | 1-line AI summary, adapts content by phase         | Yes — pattern discovery / investigation progress / verification |
+
+### Analysis Sub-Modes
+
+Analysis workspace tab has a dropdown for mode switching:
+
+```
+[Analysis v]
+├─ Standard (default)
+├─ Performance (if wide-format detected)
+└─ Yamazumi (if activity-type detected)
+```
+
+Each mode changes chart slot mapping but uses the same dashboard grid/scroll layout.
+
+### Analysis Workspace Toolbar
+
+Controls specific to the Analysis workspace (not in header):
+
+```
+[Grid|Scroll] [Factors(1)] ··· [Export v] [Present]
+```
+
+- Layout toggle (Grid/Scroll) — desktop only
+- Factors button
+- Export dropdown (CSV, PNG, Copy)
+- Presentation mode button
+- Filter chips + VariationBar above charts
+
+### What-If Integration
+
+What-If is no longer a standalone page. It's accessible from:
+
+1. **Improvement workspace** — "What-If" button on each idea (round-trip: idea → simulator → projection saved to idea)
+2. **Analysis workspace toolbar** — standalone access for quick projections
+3. **PWA** — standalone access (no improvement workspace in PWA)
+
+## Resolved Design Questions
+
+| #   | Question                                | Decision                                                                                                    |
+| --- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Q1  | Where do What-If, Presentation, Export? | What-If in Improvement + Analysis toolbar. Export/Presentation in Analysis toolbar.                         |
+| Q2  | Phase-adaptive header?                  | No — workspace tabs are always visible. Phase adapts AI coaching invisibly.                                 |
+| Q3  | Scroll mode stats?                      | Left sidebar works in both grid and scroll mode (stays while scrolling).                                    |
+| Q4  | Performance/Yamazumi in header?         | Sub-tabs under Analysis workspace dropdown.                                                                 |
+| Q5  | NarrativeBar?                           | Stays as bottom bar. Adapts content per workspace/phase.                                                    |
+| Q6  | Azure vs PWA divergence?                | Shared header component. PWA shows only Analysis tab + Stats. Azure shows all 3 workspace tabs + AI toggle. |
+| Q7  | Mobile stats?                           | Stats is 4th swipe in chart carousel (existing). Data table via More menu. No left sidebar on phone.        |
+
+## App Differences
+
+| Feature              | PWA                                         | Azure                                    |
+| -------------------- | ------------------------------------------- | ---------------------------------------- |
+| Workspace tabs       | Analysis only                               | Analysis + Investigation + Improvement   |
+| Stats/Data panel     | Left sidebar (Summary + Data + Hist + Prob) | Same                                     |
+| CoScout panel        | Hidden (no AI)                              | Right sidebar                            |
+| AI toggle in header  | Hidden                                      | Visible                                  |
+| NarrativeBar         | Hidden (no AI)                              | Bottom bar                               |
+| Performance/Yamazumi | No (Azure only)                             | Sub-modes under Analysis                 |
+| What-If              | Analysis toolbar (standalone)               | Analysis toolbar + Improvement workspace |
+
+## Mobile Layout
+
+```
+Mobile header (simplified):
+┌─────────────────────────────────┐
+│ [←] Coffee Moisture (30)   [⋮] │
+└─────────────────────────────────┘
+
+Chart carousel (Analysis tab):
+[◀] I-Chart | Boxplot | Pareto | Stats [▶]
+     •         •         •       •
+
+Bottom tab bar:
+[Analysis] [Findings] [Improve] [More]
+                                  │
+                                  ├─ Data Table
+                                  ├─ What-If
+                                  ├─ Export
+                                  ├─ Presentation
+                                  └─ Settings
+```
+
+- No left/right sidebars on phone (<640px)
+- Stats accessible as carousel swipe position
+- CoScout opens as full-screen overlay from Findings/Improve tabs
+- Bottom tab bar matches workspace model
+
+## Teams Integration
+
+Same navigation structure as desktop browser. Teams adds:
+
+- Native share dialog (replaces copy URL)
+- Deep links via `pages.shareDeepLink()`
+- Channel name in header (when channel tab)
+- Camera capture via Teams SDK
+- Theme sync (default/dark/contrast)
+
+No Teams-specific navigation changes needed.
+
+## Popout Windows
+
+Any workspace can be popped out to a separate browser window:
+
+- `?view=findings` — Findings workspace popout
+- `?view=improvement` — Improvement workspace popout
+- `?view=coscout` — CoScout conversation popout
+- Synchronization via `BroadcastChannel` (existing pattern)
+- Popout windows show workspace content without header tabs (single-purpose)
+
+## Implementation Phases
+
+### Phase 1: Header + Stats Sidebar
+
+- Shared header component with workspace tabs
+- Stats panel → left sidebar with Summary/Data/Histogram/Probability tabs
+- PWA: Analysis tab only + Stats toggle
+- Azure: All 3 tabs + Stats + AI toggles
+
+### Phase 2: Analysis Workspace Toolbar
+
+- Consolidate toolbar (layout toggle, Factors, Export, Presentation)
+- Move Performance/Yamazumi to Analysis dropdown
+- Remove scattered copy/download/presentation from header
+
+### Phase 3: CoScout Right Sidebar
+
+- AI toggle in header opens CoScout as right sidebar
+- Phase-adaptive coaching (already implemented in CoScout prompts)
+- Works alongside any workspace
+
+### Phase 4: What-If Integration
+
+- What-If accessible from Improvement workspace ideas
+- Keep standalone access in Analysis toolbar
+- Remove What-If from header
+
+## Related
+
+- [Navigation Patterns](../../06-design-system/patterns/navigation.md)
+- [Dashboard Layout Architecture](../../05-technical/architecture/dashboard-layout.md)
+- [Panels and Drawers](../../06-design-system/patterns/panels-and-drawers.md)
+- [IMPROVE Phase UX](2026-03-19-improve-phase-ux-design.md)
+- [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md)

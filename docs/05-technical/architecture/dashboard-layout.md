@@ -66,6 +66,28 @@ Layout choice persists in `displayOptions.dashboardLayout` (survives navigation)
 
 **Implementation**: `DashboardGrid` accepts a `layout: 'grid' | 'scroll'` prop. When `scroll`, it renders a `flex flex-col gap-4 overflow-y-auto` container with `min-h-[400px]` per chart card.
 
+## Panel Sidebars (Planned)
+
+The dashboard supports two cross-cutting sidebars that work in both grid and scroll modes:
+
+```
+┌──────┬──────────────────────┬────────┐
+│Stats │   Charts (center)    │CoScout │
+│/Data │                      │(right) │
+│(left)│   responsive grid    │        │
+│      │   or scroll stack    │        │
+└──────┴──────────────────────┴────────┘
+```
+
+| Sidebar        | Side  | Width                 | Content                                                   | Toggle      |
+| -------------- | ----- | --------------------- | --------------------------------------------------------- | ----------- |
+| **Stats/Data** | Left  | ~280-320px            | Summary, Data table, Histogram, Probability Plot (4 tabs) | Header icon |
+| **CoScout**    | Right | 320-600px (resizable) | AI conversation, phase-adaptive coaching                  | Header icon |
+
+Both sidebars are toggle-able from the header. Charts resize to the remaining center width. In scroll mode, the left sidebar stays fixed while charts scroll.
+
+See [Dashboard Chrome Redesign spec](../../superpowers/specs/2026-03-28-dashboard-chrome-redesign.md) for the full workspace navigation model.
+
 ## Grid Slot Mapping
 
 ```

@@ -183,6 +183,37 @@ Touch targets on phone use minimum 44×44px dimensions (`minWidth: 44, minHeight
 
 ---
 
+## Planned: Symmetric Sidebar Architecture
+
+The panel architecture is evolving toward a symmetric model with two cross-cutting sidebars toggled from the header:
+
+```
+┌──────┬──────────────────────┬────────┐
+│Stats │  Workspace content   │CoScout │
+│/Data │  (Analysis /         │(AI)    │
+│(left)│   Investigation /    │(right) │
+│      │   Improvement)       │        │
+└──────┴──────────────────────┴────────┘
+```
+
+| Sidebar        | Side  | Width                 | Tabs                                         | Toggle      |
+| -------------- | ----- | --------------------- | -------------------------------------------- | ----------- |
+| **Stats/Data** | Left  | 280-320px             | Summary, Data, Histogram, Probability Plot   | Header icon |
+| **CoScout**    | Right | 320-600px (resizable) | AI conversation (adapts to active workspace) | Header icon |
+
+**Key changes from current architecture:**
+
+- Stats panel moves from grid slot (320px card in bottom-right) to left sidebar
+- Data panel merges into Stats as a tab (reduces panel count)
+- CoScout becomes a cross-cutting right sidebar (works in any workspace, not just Investigation)
+- Both sidebars are independent toggles — any combination can be open simultaneously
+- Charts resize to remaining center width
+- Mobile: no sidebars — Stats is carousel position, CoScout is full-screen overlay
+
+**Findings panel:** Becomes the center content of the Investigation workspace tab (not a sidebar). Can still be popped out to a separate window.
+
+See [Dashboard Chrome Redesign spec](../../superpowers/specs/2026-03-28-dashboard-chrome-redesign.md) for the full design.
+
 ## Z-Index Scale
 
 Extended from the [Foundational Patterns](../components/foundational-patterns.md#backdrop--z-index) z-index table:

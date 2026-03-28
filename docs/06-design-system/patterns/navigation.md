@@ -35,6 +35,25 @@ VariScout organizes the analyst's workflow into three workspaces, mapped to the 
 | **Findings**           | Investigation tracking, hypothesis tree, actions | Panel + popout (`?view=findings`)                                 |
 | **Improvement**        | PDCA planning, idea synthesis, action tracking   | Components ready (`ImprovementWorkspaceBase`), app wiring pending |
 
+### Planned: Workspace-Tab Header Navigation
+
+The header will provide workspace tabs as the primary navigation mechanism, with cross-cutting panel sidebars:
+
+```
+Header:
+[Analysis v] [Investigation] [Improvement]   [Stats/Data] [AI] [Settings]
+  center: workspace tabs                      right: panel toggles
+```
+
+- **Workspace tabs** switch the center content area (charts / findings board / improvement workspace)
+- **Stats/Data** toggle opens a left sidebar (Summary, Data, Histogram, Probability tabs)
+- **AI** toggle opens CoScout as a right sidebar (adapts coaching to active workspace phase)
+- **Analysis** has a dropdown for sub-modes (Standard / Performance / Yamazumi)
+- PWA shows only Analysis tab + Stats. Azure shows all 3 tabs + AI.
+- Mobile uses bottom tab bar instead (Analysis | Findings | Improve | More)
+
+See [Dashboard Chrome Redesign spec](../../superpowers/specs/2026-03-28-dashboard-chrome-redesign.md) for full design.
+
 ### How workspace switching works today
 
 - **Analysis → Findings**: `isFindingsPanelOpen` boolean toggles a slide-in panel (PWA) or resizable inline panel (Azure)
