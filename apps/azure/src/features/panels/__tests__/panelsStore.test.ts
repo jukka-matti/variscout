@@ -16,6 +16,7 @@ beforeEach(() => {
     highlightRowIndex: null,
     highlightedChartPoint: null,
     pendingChartFocus: null,
+    isStatsSidebarOpen: false,
   });
 });
 

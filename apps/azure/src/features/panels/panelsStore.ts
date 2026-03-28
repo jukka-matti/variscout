@@ -16,6 +16,7 @@ interface PanelsState {
   highlightedChartPoint: number | null;
   /** Set by navigate_to tool; consumed by Editor to focus a chart via ViewState. */
   pendingChartFocus: string | null;
+  isStatsSidebarOpen: boolean;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -43,6 +44,7 @@ interface PanelsActions {
   handlePointClick: (index: number) => void;
   handleRowClick: (index: number) => void;
   setPendingChartFocus: (chart: string | null) => void;
+  toggleStatsSidebar: () => void;
   /** Initialize persisted panel state from a saved ViewState. */
   initFromViewState: (
     viewState?: {
@@ -72,6 +74,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   highlightRowIndex: null,
   highlightedChartPoint: null,
   pendingChartFocus: null,
+  isStatsSidebarOpen: false,
 
   // Dashboard/editor view toggle
   showDashboard: () =>
@@ -101,6 +104,9 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   // CoScout
   setCoScoutOpen: open => set({ isCoScoutOpen: open }),
   toggleCoScout: () => set(s => ({ isCoScoutOpen: !s.isCoScoutOpen })),
+
+  // Stats sidebar
+  toggleStatsSidebar: () => set(s => ({ isStatsSidebarOpen: !s.isStatsSidebarOpen })),
 
   // What-If
   setWhatIfOpen: open => set({ isWhatIfOpen: open }),

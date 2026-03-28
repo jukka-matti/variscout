@@ -25,6 +25,7 @@ import {
   Lightbulb,
   Share2,
   MessageSquare,
+  BarChart3,
 } from 'lucide-react';
 import { ShareDropdown } from './ShareDropdown';
 import type { SyncNotification } from '../services/storage';
@@ -52,6 +53,12 @@ export interface ToolbarPanelState {
   findingsCount: number;
   onToggleFindings: () => void;
   onToggleDataPanel: () => void;
+  /** CoScout AI panel toggle */
+  isCoScoutOpen?: boolean;
+  onToggleCoScout?: () => void;
+  /** Stats sidebar toggle */
+  isStatsSidebarOpen?: boolean;
+  onToggleStatsSidebar?: () => void;
 }
 
 export interface ToolbarDataActions {
@@ -99,6 +106,10 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     findingsCount,
     onToggleFindings,
     onToggleDataPanel,
+    isCoScoutOpen,
+    onToggleCoScout,
+    isStatsSidebarOpen,
+    onToggleStatsSidebar,
   },
   dataActions: {
     onAddPasteData,
@@ -369,6 +380,40 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   {t('panel.findings')}
                   {findingsCount > 0 && ` (${findingsCount})`}
                 </span>
+              </button>
+            )}
+
+            {/* Stats Sidebar Toggle */}
+            {hasActiveData && onToggleStatsSidebar && (
+              <button
+                onClick={onToggleStatsSidebar}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  isStatsSidebarOpen
+                    ? 'bg-blue-600 text-white'
+                    : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
+                }`}
+                title={isStatsSidebarOpen ? 'Hide stats panel' : 'Show stats panel'}
+                data-testid="btn-stats-sidebar"
+              >
+                <BarChart3 size={16} />
+                <span className="hidden lg:inline">Stats</span>
+              </button>
+            )}
+
+            {/* CoScout AI Toggle */}
+            {hasActiveData && onToggleCoScout && (
+              <button
+                onClick={onToggleCoScout}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  isCoScoutOpen
+                    ? 'bg-blue-600 text-white'
+                    : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
+                }`}
+                title={isCoScoutOpen ? 'Hide AI assistant' : 'Ask AI assistant'}
+                data-testid="btn-coscout"
+              >
+                <MessageSquare size={16} />
+                <span className="hidden lg:inline">AI</span>
               </button>
             )}
 

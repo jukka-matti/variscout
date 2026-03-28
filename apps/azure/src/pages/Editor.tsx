@@ -171,6 +171,7 @@ export const Editor: React.FC<EditorProps> = ({
   const isImprovementOpen = usePanelsStore(s => s.isImprovementOpen);
   const isReportOpen = usePanelsStore(s => s.isReportOpen);
   const isDataPanelOpen = usePanelsStore(s => s.isDataPanelOpen);
+  const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
 
   // Initialize from persisted ViewState (once, on mount)
   const viewStateInitRef = useRef(false);
@@ -1007,6 +1008,10 @@ export const Editor: React.FC<EditorProps> = ({
             usePanelsStore.getState().toggleFindings();
           },
           onToggleDataPanel: handleDataPanelToggle,
+          isCoScoutOpen,
+          onToggleCoScout: () => usePanelsStore.getState().toggleCoScout(),
+          isStatsSidebarOpen,
+          onToggleStatsSidebar: () => usePanelsStore.getState().toggleStatsSidebar(),
         }}
         dataActions={{
           onAddPasteData: () => dataFlow.startAppendPaste(),
