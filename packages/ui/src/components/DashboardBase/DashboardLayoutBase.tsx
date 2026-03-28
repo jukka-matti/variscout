@@ -145,12 +145,10 @@ export interface DashboardLayoutBaseProps {
   renderIChartContent: React.ReactNode;
   renderBoxplotContent: React.ReactNode;
   renderParetoContent: React.ReactNode;
-  renderStatsPanel: React.ReactNode;
+  renderStatsPanel?: React.ReactNode;
   renderFocusedView?: React.ReactNode;
-  /** Histogram chart content — when provided, renders as its own grid card in row 3 */
-  renderHistogramContent?: React.ReactNode;
-  /** Probability Plot chart content — when provided, renders as its own grid card in row 3 */
-  renderProbabilityPlotContent?: React.ReactNode;
+  /** Tabbed verification card (Histogram/ProbPlot) */
+  renderVerificationCard?: React.ReactNode;
 
   // ---- Spec editor ----
   renderSpecEditor?: React.ReactNode;
@@ -250,8 +248,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   renderParetoContent,
   renderStatsPanel,
   renderFocusedView,
-  renderHistogramContent,
-  renderProbabilityPlotContent,
+  renderVerificationCard,
   renderSpecEditor,
   ichartTitleSlot,
   ichartExtraControls,
@@ -592,13 +589,13 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
               {renderInsightChip(statsInsight, 'stats')}
             </div>
           }
-          histogramCard={
-            renderHistogramContent ? (
+          verificationCard={
+            renderVerificationCard ? (
               <DashboardChartCard
-                id="histogram-card"
-                testId="chart-histogram"
-                chartName="histogram"
-                className="flex-1 min-h-0"
+                id="verification-card"
+                testId="chart-verification"
+                chartName="verification"
+                className="flex-1 min-w-[250px] min-h-0"
                 onMaximize={() => setFocusedChart('histogram')}
                 copyFeedback={copyFeedback}
                 onCopyChart={onCopyChart}
@@ -607,34 +604,11 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
                 onShareChart={onShareChart}
                 title={
                   <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
-                    Histogram
+                    Verification
                   </h3>
                 }
               >
-                {renderHistogramContent}
-              </DashboardChartCard>
-            ) : undefined
-          }
-          probabilityPlotCard={
-            renderProbabilityPlotContent ? (
-              <DashboardChartCard
-                id="probability-plot-card"
-                testId="chart-probability-plot"
-                chartName="probability-plot"
-                className="flex-1 min-h-0"
-                onMaximize={() => setFocusedChart('probability-plot')}
-                copyFeedback={copyFeedback}
-                onCopyChart={onCopyChart}
-                onDownloadPng={onDownloadPng}
-                onDownloadSvg={onDownloadSvg}
-                onShareChart={onShareChart}
-                title={
-                  <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
-                    Probability Plot
-                  </h3>
-                }
-              >
-                {renderProbabilityPlotContent}
+                {renderVerificationCard}
               </DashboardChartCard>
             ) : undefined
           }

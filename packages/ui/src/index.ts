@@ -155,6 +155,8 @@ export {
 
 export { ProbabilityPlot, type ProbabilityPlotProps } from './components/ProbabilityPlot';
 
+export { VerificationCard, type VerificationCardProps } from './components/VerificationCard';
+
 export { FilterContextBar, type FilterContextBarProps } from './components/FilterContextBar';
 
 export {
@@ -423,6 +425,9 @@ export {
   type YamazumiParetoModeDropdownProps,
 } from './components/YamazumiDisplayToggle';
 export { YamazumiSummaryBar, type YamazumiSummaryBarProps } from './components/YamazumiSummaryBar';
+
+// Process Health Bar
+export { ProcessHealthBar, type ProcessHealthBarProps } from './components/ProcessHealthBar';
 
 // Data Panel
 export { DataPanelBase, type DataPanelBaseProps } from './components/DataPanel';

@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
-import StatsPanel from './StatsPanel';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
 import MobileChartCarousel from './MobileChartCarousel';
@@ -18,7 +17,8 @@ import { useDashboardCharts } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
 import {
   ErrorBoundary,
-  FilterBreadcrumb,
+  ProcessHealthBar,
+  VerificationCard,
   NarrativeBar,
   SelectionPanel,
   CreateFactorModal,
@@ -41,21 +41,8 @@ import {
   useDashboardInsights,
 } from '@variscout/hooks';
 import type { AIContext } from '@variscout/core';
-import { usePanelsStore } from '../features/panels/panelsStore';
 import type { ViewState } from '@variscout/hooks';
-import {
-  Activity,
-  BarChart3,
-  Gauge,
-  Timer,
-  ArrowLeft,
-  Copy,
-  Check,
-  Download,
-  Settings2,
-  LayoutGrid,
-  List,
-} from 'lucide-react';
+import { Activity, BarChart3, Gauge, Timer, ArrowLeft, Settings2 } from 'lucide-react';
 
 type DashboardTab = 'analysis' | 'performance' | 'yamazumi';
 
@@ -122,7 +109,7 @@ const Dashboard = ({
   performance = {},
   ai = {},
 }: DashboardProps) => {
-  const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
+  // isStatsSidebarOpen still read by EditorDashboardView — not needed in Dashboard itself now
   const { isPresentationMode, onExitPresentation, isReportOpen, onCloseReport } = viewMode;
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
@@ -168,6 +155,7 @@ const Dashboard = ({
     subgroupConfig,
     setSubgroupConfig,
     cpkTarget,
+    setCpkTarget,
     selectedPoints,
     clearSelection,
   } = useData();
@@ -336,7 +324,6 @@ const Dashboard = ({
     statsInsight,
     handleCpkClick,
     isCapabilityMode,
-    capabilityData,
   } = useDashboardInsights({
     stats,
     filteredData,
@@ -386,46 +373,29 @@ const Dashboard = ({
     >
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
-        <div className="flex items-center">
-          <div className="flex-1 min-w-0">
-            {/* On phone, FilterBreadcrumb is handled inside MobileChartCarousel */}
-            {!isPhone && (
-              <FilterBreadcrumb
-                filterChipData={filterChipData}
-                columnAliases={columnAliases}
-                onUpdateFilterValues={handleUpdateFilterValues}
-                onRemoveFilter={handleRemoveFilter}
-                onClearAll={handleClearAllFilters}
-                cumulativeVariationPct={cumulativeVariationPct}
-                onPinFinding={onPinFinding}
-              />
-            )}
-          </div>
-          {activeTab === 'analysis' && !focusedChart && !isPhone && (
-            <div className="flex items-center gap-1 px-3 flex-shrink-0" data-export-hide>
-              <button
-                onClick={() => handleCopyChart('dashboard-export-container', 'dashboard')}
-                className={`p-1.5 rounded transition-all ${
-                  copyFeedback === 'dashboard'
-                    ? 'bg-green-500/20 text-green-400'
-                    : 'text-content-muted hover:text-content hover:bg-surface-tertiary'
-                }`}
-                title="Copy dashboard to clipboard"
-                aria-label="Copy dashboard to clipboard"
-              >
-                {copyFeedback === 'dashboard' ? <Check size={14} /> : <Copy size={14} />}
-              </button>
-              <button
-                onClick={() => handleDownloadPng('dashboard-export-container', 'dashboard')}
-                className="p-1.5 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
-                title="Download dashboard as PNG"
-                aria-label="Download dashboard as PNG"
-              >
-                <Download size={14} />
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Process Health Bar — replaces FilterBreadcrumb + Toolbar */}
+        {!isPhone && (
+          <ProcessHealthBar
+            stats={stats}
+            specs={specs}
+            cpkTarget={cpkTarget}
+            onCpkTargetChange={setCpkTarget}
+            sampleCount={filteredData?.length ?? 0}
+            filterChipData={filterChipData}
+            columnAliases={columnAliases}
+            onUpdateFilterValues={handleUpdateFilterValues}
+            onRemoveFilter={handleRemoveFilter}
+            onClearAll={handleClearAllFilters}
+            cumulativeVariationPct={cumulativeVariationPct}
+            onPinFinding={onPinFinding}
+            layout={displayOptions.dashboardLayout ?? 'grid'}
+            onLayoutChange={l => setDisplayOptions({ ...displayOptions, dashboardLayout: l })}
+            factorCount={factors.length}
+            onManageFactors={onManageFactors}
+            onSetSpecs={() => setShowSpecEditor(true)}
+            onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
+          />
+        )}
 
         {/* Selection Panel (desktop only — multi-point selection is a desktop feature) */}
         {!isPhone && selectedPoints.size > 0 && (
@@ -490,39 +460,6 @@ const Dashboard = ({
               Yamazumi
             </button>
           )}
-
-          {/* Layout toggle — right side, desktop only */}
-          <div
-            className="hidden lg:flex items-center bg-surface-tertiary rounded-lg p-0.5 ml-auto"
-            data-export-hide
-          >
-            <button
-              onClick={() => setDisplayOptions({ ...displayOptions, dashboardLayout: 'grid' })}
-              className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                (displayOptions.dashboardLayout ?? 'grid') === 'grid'
-                  ? 'bg-surface-elevated text-content font-medium shadow-sm'
-                  : 'text-content-muted hover:text-content'
-              }`}
-              title="Grid layout"
-              aria-label="Grid layout"
-            >
-              <LayoutGrid size={12} />
-              Grid
-            </button>
-            <button
-              onClick={() => setDisplayOptions({ ...displayOptions, dashboardLayout: 'scroll' })}
-              className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                displayOptions.dashboardLayout === 'scroll'
-                  ? 'bg-surface-elevated text-content font-medium shadow-sm'
-                  : 'text-content-muted hover:text-content'
-              }`}
-              title="Scroll layout"
-              aria-label="Scroll layout"
-            >
-              <List size={12} />
-              Scroll
-            </button>
-          </div>
         </div>
       </div>
 
@@ -803,38 +740,22 @@ const Dashboard = ({
                     )}
                   </ErrorBoundary>
                 }
-                renderStatsPanel={
-                  isStatsSidebarOpen ? undefined : (
-                    <StatsPanel
-                      stats={stats}
-                      specs={specs}
-                      filteredData={filteredData}
-                      outcome={outcome}
-                      onSaveSpecs={setSpecs}
-                      showCpk={displayOptions.showCpk !== false}
-                      cpkTarget={cpkTarget}
-                      onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
-                      subgroupsMeetingTarget={
-                        isCapabilityMode ? capabilityData.subgroupsMeetingTarget : undefined
+                /* Stats panel removed from grid — key stats now in ProcessHealthBar toolbar.
+                   Stats sidebar (left) provides detailed view when toggled. */
+                renderVerificationCard={
+                  histogramData.length > 0 && stats ? (
+                    <VerificationCard
+                      renderHistogram={
+                        <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
                       }
-                      subgroupCount={
-                        isCapabilityMode ? capabilityData.subgroupResults.length : undefined
+                      renderProbabilityPlot={
+                        <ProbabilityPlot
+                          data={histogramData}
+                          mean={stats.mean}
+                          stdDev={stats.stdDev}
+                        />
                       }
                     />
-                  )
-                }
-                renderHistogramContent={
-                  (displayOptions.dashboardLayout ?? 'grid') === 'grid' &&
-                  histogramData.length > 0 &&
-                  stats ? (
-                    <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
-                  ) : undefined
-                }
-                renderProbabilityPlotContent={
-                  (displayOptions.dashboardLayout ?? 'grid') === 'grid' &&
-                  histogramData.length > 0 &&
-                  stats ? (
-                    <ProbabilityPlot data={histogramData} mean={stats.mean} stdDev={stats.stdDev} />
                   ) : undefined
                 }
                 renderFocusedView={
