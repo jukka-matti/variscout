@@ -18,6 +18,7 @@ export interface AppPanelState {
   isWhatIfPageOpen: boolean;
   openSpecEditorRequested: boolean;
   highlightedChartPoint: number | null;
+  isStatsSidebarOpen: boolean;
 }
 
 export type AppPanelAction =
@@ -40,7 +41,8 @@ export type AppPanelAction =
   | { type: 'CLOSE_DATA_PANEL' }
   | { type: 'OPEN_DATA_TABLE_EXCLUDED' }
   | { type: 'OPEN_DATA_TABLE_ALL' }
-  | { type: 'RESET_CONFIRM' };
+  | { type: 'RESET_CONFIRM' }
+  | { type: 'TOGGLE_STATS_SIDEBAR' };
 
 export const initialPanelState: AppPanelState = {
   isSettingsOpen: false,
@@ -54,6 +56,7 @@ export const initialPanelState: AppPanelState = {
   isWhatIfPageOpen: false,
   openSpecEditorRequested: false,
   highlightedChartPoint: null,
+  isStatsSidebarOpen: false,
 };
 
 /** Pure reducer — testable without React. */
@@ -112,6 +115,8 @@ export function appPanelReducer(state: AppPanelState, action: AppPanelAction): A
       return { ...state, showExcludedOnly: false, highlightRowIndex: null, isDataTableOpen: true };
     case 'RESET_CONFIRM':
       return { ...state, showResetConfirm: false };
+    case 'TOGGLE_STATS_SIDEBAR':
+      return { ...state, isStatsSidebarOpen: !state.isStatsSidebarOpen };
     default:
       return state;
   }
@@ -160,6 +165,8 @@ export interface UseAppPanelsReturn {
   openDataTableAll: () => void;
   handleResetRequest: () => void;
   handleResetConfirm: () => void;
+  isStatsSidebarOpen: boolean;
+  handleToggleStatsSidebar: () => void;
 }
 
 /**
@@ -290,6 +297,11 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     []
   );
 
+  const handleToggleStatsSidebar = useCallback(
+    () => dispatch({ type: 'TOGGLE_STATS_SIDEBAR' }),
+    []
+  );
+
   const handleCloseFindingsPanel = useCallback(
     () => dispatch({ type: 'SET_FINDINGS_PANEL', value: false }),
     []
@@ -343,5 +355,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     openDataTableAll,
     handleResetRequest,
     handleResetConfirm,
+    isStatsSidebarOpen: state.isStatsSidebarOpen,
+    handleToggleStatsSidebar,
   };
 }

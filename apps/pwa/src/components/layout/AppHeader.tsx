@@ -8,6 +8,7 @@ import {
   Share2,
   ClipboardList,
   Beaker,
+  BarChart3,
 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import MobileMenu from './MobileMenu';
@@ -68,6 +69,8 @@ interface AppHeaderProps {
   onOpenSpecEditor?: () => void;
   onOpenWhatIf?: () => void;
   isWhatIfOpen?: boolean;
+  isStatsSidebarOpen?: boolean;
+  onToggleStatsSidebar?: () => void;
 }
 
 /**
@@ -96,6 +99,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenSpecEditor,
   onOpenWhatIf,
   isWhatIfOpen = false,
+  isStatsSidebarOpen = false,
+  onToggleStatsSidebar,
 }) => {
   const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -138,6 +143,24 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             {/* Desktop: Icon toolbar */}
             <nav aria-label="Analysis tools">
               <div className="hidden sm:flex items-center gap-1">
+                {/* Stats Sidebar Toggle */}
+                {onToggleStatsSidebar && (
+                  <button
+                    onClick={onToggleStatsSidebar}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                      isStatsSidebarOpen
+                        ? 'text-blue-400 bg-blue-400/10'
+                        : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
+                    }`}
+                    title={isStatsSidebarOpen ? 'Hide stats panel' : 'Show stats panel'}
+                    aria-label={isStatsSidebarOpen ? 'Hide stats panel' : 'Show stats panel'}
+                    aria-pressed={isStatsSidebarOpen}
+                  >
+                    <BarChart3 size={16} />
+                    <span className="hidden lg:inline">Stats</span>
+                  </button>
+                )}
+
                 {/* Data Table Toggle */}
                 {onToggleDataPanel && (
                   <HeaderIconButton

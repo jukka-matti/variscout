@@ -26,6 +26,7 @@ describe('appPanelReducer', () => {
         isWhatIfPageOpen: false,
         openSpecEditorRequested: false,
         highlightedChartPoint: null,
+        isStatsSidebarOpen: false,
       });
     });
   });

@@ -45,6 +45,7 @@ const DataTableModal = React.lazy(() => import('./components/data/DataTableModal
 const DataPanel = React.lazy(() => import('./components/data/DataPanel'));
 const FindingsPanel = React.lazy(() => import('./components/FindingsPanel'));
 const YamazumiDashboard = React.lazy(() => import('./components/YamazumiDashboard'));
+const StatsPanel = React.lazy(() => import('./components/StatsPanel'));
 
 const LazyFallback = () => (
   <div className="flex items-center justify-center h-dvh">
@@ -492,6 +493,8 @@ function AppMain() {
           onOpenSpecEditor={() => panels.setOpenSpecEditorRequested(true)}
           onOpenWhatIf={rawData.length > 0 ? () => panels.setIsWhatIfPageOpen(true) : undefined}
           isWhatIfOpen={panels.isWhatIfPageOpen}
+          isStatsSidebarOpen={panels.isStatsSidebarOpen}
+          onToggleStatsSidebar={rawData.length > 0 ? panels.handleToggleStatsSidebar : undefined}
         />
       )}
 
@@ -523,6 +526,21 @@ function AppMain() {
 
       {/* Main Content */}
       <main id="main-content" className="flex-1 overflow-hidden relative flex">
+        {/* Stats Sidebar (left) */}
+        {panels.isStatsSidebarOpen && rawData.length > 0 && outcome && (
+          <div className="hidden lg:flex flex-col w-80 flex-shrink-0 border-r border-edge bg-surface-secondary overflow-y-auto">
+            <Suspense fallback={null}>
+              <StatsPanel
+                stats={stats}
+                specs={specs}
+                filteredData={filteredData}
+                outcome={outcome}
+                cpkTarget={cpkTarget}
+              />
+            </Suspense>
+          </div>
+        )}
+
         {/* Main content area */}
         <div className="flex-1 overflow-hidden flex flex-col">
           <Suspense fallback={<LazyFallback />}>
@@ -590,6 +608,7 @@ function AppMain() {
                 onPointClick={panels.openDataTableAtRow}
                 isPresentationMode={panels.isPresentationMode}
                 onExitPresentation={() => panels.setIsPresentationMode(false)}
+                hideStatsInGrid={panels.isStatsSidebarOpen}
                 highlightedChart={highlightedChart}
                 highlightIntensity={highlightIntensity}
                 onChartClick={isEmbedMode ? notifyChartClicked : undefined}

@@ -58,6 +58,8 @@ interface DashboardProps {
   findingsCallbacks?: FindingsCallbacks;
   /** All findings (for methodology coach phase detection) */
   findings?: Finding[];
+  /** When true, omit stats panel from grid (rendered as sidebar instead) */
+  hideStatsInGrid?: boolean;
 }
 
 const Dashboard = ({
@@ -77,6 +79,7 @@ const Dashboard = ({
   onPinFinding,
   findingsCallbacks,
   findings: _allFindings,
+  hideStatsInGrid = false,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
     findingsCallbacks ?? {};
@@ -695,20 +698,22 @@ const Dashboard = ({
           </ErrorBoundary>
         }
         renderStatsPanel={
-          <ErrorBoundary componentName="Stats Panel">
-            <StatsPanel
-              stats={stats}
-              specs={specs}
-              filteredData={filteredData}
-              outcome={outcome}
-              cpkTarget={cpkTarget}
-              onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
-              subgroupsMeetingTarget={
-                isCapabilityMode ? capabilityData.subgroupsMeetingTarget : undefined
-              }
-              subgroupCount={isCapabilityMode ? capabilityData.subgroupResults.length : undefined}
-            />
-          </ErrorBoundary>
+          hideStatsInGrid ? undefined : (
+            <ErrorBoundary componentName="Stats Panel">
+              <StatsPanel
+                stats={stats}
+                specs={specs}
+                filteredData={filteredData}
+                outcome={outcome}
+                cpkTarget={cpkTarget}
+                onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
+                subgroupsMeetingTarget={
+                  isCapabilityMode ? capabilityData.subgroupsMeetingTarget : undefined
+                }
+                subgroupCount={isCapabilityMode ? capabilityData.subgroupResults.length : undefined}
+              />
+            </ErrorBoundary>
+          )
         }
         renderFocusedView={
           focusedChart ? (
