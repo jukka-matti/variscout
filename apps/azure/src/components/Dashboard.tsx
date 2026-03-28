@@ -49,6 +49,8 @@ import {
   Check,
   Download,
   Settings2,
+  LayoutGrid,
+  List,
 } from 'lucide-react';
 
 type DashboardTab = 'analysis' | 'performance' | 'yamazumi';
@@ -476,6 +478,39 @@ const Dashboard = ({
               Yamazumi
             </button>
           )}
+
+          {/* Layout toggle — right side, desktop only */}
+          <div
+            className="hidden lg:flex items-center bg-surface-tertiary rounded-lg p-0.5 ml-auto"
+            data-export-hide
+          >
+            <button
+              onClick={() => setDisplayOptions({ ...displayOptions, dashboardLayout: 'grid' })}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                (displayOptions.dashboardLayout ?? 'grid') === 'grid'
+                  ? 'bg-surface-elevated text-content font-medium shadow-sm'
+                  : 'text-content-muted hover:text-content'
+              }`}
+              title="Grid layout"
+              aria-label="Grid layout"
+            >
+              <LayoutGrid size={12} />
+              Grid
+            </button>
+            <button
+              onClick={() => setDisplayOptions({ ...displayOptions, dashboardLayout: 'scroll' })}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                displayOptions.dashboardLayout === 'scroll'
+                  ? 'bg-surface-elevated text-content font-medium shadow-sm'
+                  : 'text-content-muted hover:text-content'
+              }`}
+              title="Scroll layout"
+              aria-label="Scroll layout"
+            >
+              <List size={12} />
+              Scroll
+            </button>
+          </div>
         </div>
       </div>
 
@@ -613,6 +648,7 @@ const Dashboard = ({
                 paretoFactor={paretoFactor}
                 setParetoFactor={setParetoFactor}
                 showParetoPanel={showParetoPanel}
+                layout={displayOptions.dashboardLayout ?? 'grid'}
                 focusedChart={focusedChart}
                 setFocusedChart={setFocusedChart}
                 filterChipData={filterChipData}
