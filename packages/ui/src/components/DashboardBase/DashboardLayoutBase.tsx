@@ -578,16 +578,20 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
             ) : undefined
           }
           statsPanel={
-            <div
-              data-testid="chart-stats"
-              onClick={onStatsPanelClick}
-              className={
-                statsPanelHighlightClass ? `transition-all ${statsPanelHighlightClass}` : undefined
-              }
-            >
-              {renderStatsPanel}
-              {renderInsightChip(statsInsight, 'stats')}
-            </div>
+            renderStatsPanel ? (
+              <div
+                data-testid="chart-stats"
+                onClick={onStatsPanelClick}
+                className={
+                  statsPanelHighlightClass
+                    ? `transition-all ${statsPanelHighlightClass}`
+                    : undefined
+                }
+              >
+                {renderStatsPanel}
+                {renderInsightChip(statsInsight, 'stats')}
+              </div>
+            ) : undefined
           }
           verificationCard={
             renderVerificationCard ? (
