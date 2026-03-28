@@ -424,8 +424,18 @@ vi.mock('@variscout/hooks', () => ({
     centeringOpportunity: null,
     specSuggestion: null,
     cumulativeProjection: null,
+    improvementProjection: null,
+    resolvedProjection: null,
     activeProjection: null,
   }),
+}));
+
+// Mock improvement store (Zustand)
+vi.mock('../../features/improvement/improvementStore', () => ({
+  useImprovementStore: (selector?: (s: Record<string, unknown>) => unknown) => {
+    const state = { projectedCpkMap: {} };
+    return selector ? selector(state) : state;
+  },
 }));
 
 // Mock core functions

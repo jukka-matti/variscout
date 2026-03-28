@@ -32,6 +32,7 @@ import {
   useCreateFactorModal,
   useDashboardInsights,
   useProcessProjection,
+  useJourneyPhase,
 } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
@@ -206,7 +207,8 @@ const Dashboard = ({
   // Responsive mobile detection
   const isMobile = useIsMobile(BREAKPOINTS.phone);
 
-  // Process projection intelligence (Phase 2-3)
+  // Process projection intelligence (Phase 2-4)
+  const journeyPhase = useJourneyPhase(!!rawData?.length, _allFindings ?? []);
   const { centeringOpportunity, specSuggestion, activeProjection } = useProcessProjection({
     rawData: rawData ?? [],
     filteredData: filteredData ?? [],
@@ -214,6 +216,7 @@ const Dashboard = ({
     specs,
     stats,
     filterChipData,
+    journeyPhase,
   });
 
   // Handler for saving specs from SpecEditor

@@ -41,7 +41,9 @@ import {
   useCreateFactorModal,
   useDashboardInsights,
   useProcessProjection,
+  useJourneyPhase,
 } from '@variscout/hooks';
+import { useImprovementStore } from '../features/improvement/improvementStore';
 import type { AIContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 import { Activity, BarChart3, Gauge, Timer, ArrowLeft, Settings2 } from 'lucide-react';
@@ -263,7 +265,10 @@ const Dashboard = ({
     }
   }, [focusedChart, hasRestoredFocusedChart, onViewStateChange]);
 
-  // Process projection intelligence (Phase 2-3)
+  // Process projection intelligence (Phase 2-4)
+  const journeyPhase = useJourneyPhase(!!rawData?.length, allFindings ?? []);
+  const projectedCpkMap = useImprovementStore(s => s.projectedCpkMap);
+
   const scopedFindings = useMemo(
     () => (allFindings ? getScopedFindings(allFindings) : undefined),
     [allFindings]
@@ -276,6 +281,12 @@ const Dashboard = ({
       label: formatFindingFilters(bm.context, columnAliases),
     };
   }, [allFindings, columnAliases]);
+  const improvementData = useMemo(() => {
+    const entries = Object.values(projectedCpkMap);
+    if (entries.length === 0) return { cpk: null, label: '' };
+    const bestCpk = Math.max(...entries);
+    return { cpk: bestCpk, label: `${entries.length} scoped` };
+  }, [projectedCpkMap]);
   const { centeringOpportunity, specSuggestion, activeProjection } = useProcessProjection({
     rawData: rawData ?? [],
     filteredData: filteredData ?? [],
@@ -285,6 +296,9 @@ const Dashboard = ({
     filterChipData,
     scopedFindings,
     benchmark: benchmarkData,
+    journeyPhase,
+    improvementProjectedCpk: improvementData.cpk,
+    improvementLabel: improvementData.label,
   });
 
   // Annotations (right-click context menu for highlights, no mode toggle)

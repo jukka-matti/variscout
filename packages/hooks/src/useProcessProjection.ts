@@ -2,7 +2,11 @@
  * useProcessProjection — orchestrates projection computation for ProcessHealthBar.
  *
  * Computes complement data from raw vs filtered, then calls projection functions
- * to determine what to display in the toolbar.
+ * to determine what to display in the toolbar. Adapts by journey phase:
+ *   SCOUT: drill projection / centering / spec suggestion
+ *   INVESTIGATE: cumulative from scoped findings
+ *   IMPROVE: aggregate from idea What-If projections
+ *   Resolved: actual measured Cpk from finding outcomes
  */
 
 import { useMemo } from 'react';
@@ -24,6 +28,8 @@ import type { FilterChipData } from './useVariationTracking';
 
 export type { ProcessProjection, CenteringOpportunity, SpecSuggestion };
 
+export type JourneyPhase = 'frame' | 'scout' | 'investigate' | 'improve';
+
 export interface UseProcessProjectionOptions {
   /** Full unfiltered dataset */
   rawData: DataRow[];
@@ -41,6 +47,12 @@ export interface UseProcessProjectionOptions {
   scopedFindings?: Finding[];
   /** Benchmark stats + label (Phase 3) */
   benchmark?: { stats: BenchmarkStats; label: string } | null;
+  /** Current journey phase (Phase 4) */
+  journeyPhase?: JourneyPhase;
+  /** Aggregate projected Cpk from improvement ideas (Phase 4, from projectedCpkMap) */
+  improvementProjectedCpk?: number | null;
+  /** Label for improvement projection (e.g. "3 scoped") */
+  improvementLabel?: string;
 }
 
 export interface UseProcessProjectionReturn {
@@ -54,6 +66,10 @@ export interface UseProcessProjectionReturn {
   specSuggestion: SpecSuggestion | null;
   /** Cumulative projection from multiple findings */
   cumulativeProjection: ProcessProjection | null;
+  /** Improvement phase projection from ideas */
+  improvementProjection: ProcessProjection | null;
+  /** Actual measured projection from resolved findings */
+  resolvedProjection: ProcessProjection | null;
   /** The highest-priority projection to display */
   activeProjection: ProcessProjection | null;
 }
@@ -71,7 +87,6 @@ function computeComplement(
 ): ComplementStats | null {
   if (filteredData.length >= rawData.length) return null;
 
-  // Build Set for fast lookup
   const filteredSet = new Set(filteredData);
   const complementRows = rawData.filter(row => !filteredSet.has(row));
 
@@ -99,6 +114,9 @@ export function useProcessProjection(
     filterChipData,
     scopedFindings,
     benchmark,
+    journeyPhase,
+    improvementProjectedCpk,
+    improvementLabel,
   } = options;
 
   const isDrilling = filterChipData.length > 0;
@@ -116,13 +134,13 @@ export function useProcessProjection(
     return { mean: stats.mean, stdDev: stats.stdDev, count: filteredData.length };
   }, [isDrilling, stats, filteredData.length]);
 
-  // 2a: Drill projection ("if fixed")
+  // SCOUT: Drill projection ("if fixed")
   const drillProjection = useMemo(() => {
     if (!isDrilling || !hasSpecs || !subsetStats || !complementStats) return null;
     return computeDrillProjection(subsetStats, complementStats, specs);
   }, [isDrilling, hasSpecs, subsetStats, complementStats, specs]);
 
-  // 3a: Benchmark projection ("benchmark: Bed A, AM")
+  // SCOUT: Benchmark projection ("benchmark: Bed A, AM")
   const benchmarkProjection = useMemo(() => {
     if (!benchmark || !isDrilling || !hasSpecs || !subsetStats || !complementStats) return null;
     return computeBenchmarkProjection(
@@ -134,19 +152,19 @@ export function useProcessProjection(
     );
   }, [benchmark, isDrilling, hasSpecs, subsetStats, complementStats, specs]);
 
-  // 2b: Centering opportunity (Cp vs Cpk gap)
+  // SCOUT: Centering opportunity (Cp vs Cpk gap)
   const centeringOpportunity = useMemo(() => {
     if (isDrilling || !hasSpecs || !stats) return null;
     return computeCenteringOpportunity(stats);
   }, [isDrilling, hasSpecs, stats]);
 
-  // 2c: Spec suggestion (no specs, drilling)
+  // SCOUT: Spec suggestion (no specs, drilling)
   const specSuggestion = useMemo(() => {
     if (!isDrilling || hasSpecs || !complementStats) return null;
     return computeSpecSuggestion(complementStats);
   }, [isDrilling, hasSpecs, complementStats]);
 
-  // 2d: Cumulative projection from multiple findings
+  // INVESTIGATE: Cumulative projection from multiple scoped findings
   const cumulativeProjection = useMemo(() => {
     if (!scopedFindings || scopedFindings.length < 2 || !outcome || !hasSpecs) return null;
     const findingFilters = scopedFindings
@@ -156,17 +174,54 @@ export function useProcessProjection(
     return computeCumulativeProjection(findingFilters, rawData, outcome, specs);
   }, [scopedFindings, rawData, outcome, hasSpecs, specs]);
 
+  // IMPROVE: Aggregate projection from idea What-If results
+  const improvementProjection = useMemo((): ProcessProjection | null => {
+    if (journeyPhase !== 'improve') return null;
+    if (improvementProjectedCpk == null || !hasSpecs || !stats?.cpk) return null;
+    return {
+      currentCpk: stats.cpk,
+      projectedCpk: improvementProjectedCpk,
+      label: improvementLabel ?? 'from ideas',
+      findingCount: 0,
+    };
+  }, [journeyPhase, improvementProjectedCpk, improvementLabel, hasSpecs, stats]);
+
+  // RESOLVED: Actual measured Cpk from finding outcomes
+  const resolvedProjection = useMemo((): ProcessProjection | null => {
+    if (!scopedFindings || !stats?.cpk) return null;
+    const resolved = scopedFindings.filter(f => f.outcome?.cpkAfter != null);
+    if (resolved.length === 0) return null;
+    // Use the latest resolved finding's actual Cpk
+    const latestCpk = resolved[resolved.length - 1].outcome!.cpkAfter!;
+    return {
+      currentCpk: stats.cpk,
+      projectedCpk: latestCpk,
+      label: `actual (${resolved.length} resolved)`,
+      findingCount: resolved.length,
+    };
+  }, [scopedFindings, stats]);
+
   // Active projection: highest priority
-  // 1. cumulative (2+ scoped findings)
-  // 2. benchmark (when benchmark pinned and drilling)
-  // 3. drill complement ("if fixed")
-  // 4. null → centering shown separately
+  // 1. resolved (actual measurements trump all projections)
+  // 2. improvement (IMPROVE phase, ideas have projections)
+  // 3. cumulative (2+ scoped findings, INVESTIGATE)
+  // 4. benchmark (benchmark pinned, drilling)
+  // 5. drill complement ("if fixed")
+  // 6. null → centering shown separately
   const activeProjection = useMemo(() => {
+    if (resolvedProjection) return resolvedProjection;
+    if (improvementProjection) return improvementProjection;
     if (cumulativeProjection) return cumulativeProjection;
     if (benchmarkProjection) return benchmarkProjection;
     if (drillProjection) return drillProjection;
     return null;
-  }, [cumulativeProjection, benchmarkProjection, drillProjection]);
+  }, [
+    resolvedProjection,
+    improvementProjection,
+    cumulativeProjection,
+    benchmarkProjection,
+    drillProjection,
+  ]);
 
   return {
     drillProjection,
@@ -174,6 +229,8 @@ export function useProcessProjection(
     centeringOpportunity,
     specSuggestion,
     cumulativeProjection,
+    improvementProjection,
+    resolvedProjection,
     activeProjection,
   };
 }
