@@ -129,6 +129,15 @@ When datasets have many categories (e.g., 80+ countries from stacked wide-form d
 
 **Pareto:** Top 20 categories shown, remainder aggregated into "Others" bar (muted color). `PARETO_MAX_CATEGORIES = 20` from `useParetoChartData`. The "Others" bar is styled with `othersKey` prop for muted fill.
 
+**Boxplot (adaptive):** Categories are limited based on container width (`MIN_BOX_STEP = 50px`). When there are more categories than fit, `selectBoxplotCategories()` selects the most relevant ones based on specs and sort:
+- `smaller-is-better` → highest median first (worst performers)
+- `larger-is-better` → lowest median first
+- `nominal/target` → farthest from target first
+- No specs → highest IQR first (most variation)
+- Sort override → sort criterion drives selection
+
+An overflow indicator ("⋯ +N") appears at the right edge when categories are truncated. The `visibleCategories` prop on `BoxplotBase` controls filtering. The `useBoxplotCategoryLimit` hook computes the visible set.
+
 **Boxplot + Pareto labels:** When categories > 10, X-axis labels rotate -45° and truncate to 12 chars + "…". This applies to both standard Pareto and Boxplot.
 
 **I-Chart tooltip:** Shows factor column values (e.g., "Month: Jul, Year: 2019") alongside the point value and index. Factor values are included in `IChartDataPoint.factorValues` via `useIChartData`.
