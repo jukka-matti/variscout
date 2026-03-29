@@ -73,7 +73,7 @@ const FactorPanel: React.FC<{ effect: FactorMainEffect; grandMean: number }> = (
         <text
           x={chartW - 2}
           y={grandMeanY - 4}
-          className="fill-content-muted text-[9px]"
+          className="fill-content-muted text-[0.5625rem]"
           textAnchor="end"
         >
           x̄
@@ -117,13 +117,18 @@ const FactorPanel: React.FC<{ effect: FactorMainEffect; grandMean: number }> = (
               <text
                 x={x}
                 y={y - 8}
-                className="fill-content-secondary text-[10px] font-mono"
+                className="fill-content-secondary text-[0.625rem] font-mono"
                 textAnchor="middle"
               >
                 {l.mean.toFixed(1)}
               </text>
               {/* Level label */}
-              <text x={x} y={chartH + 14} className="fill-content text-[10px]" textAnchor="middle">
+              <text
+                x={x}
+                y={chartH + 14}
+                className="fill-content text-[0.625rem]"
+                textAnchor="middle"
+              >
                 {l.level}
               </text>
             </g>

@@ -68,6 +68,11 @@
   --breakpoint-2xl: 1536px;
 }
 
+/* Display density: line-height scales with preset */
+html {
+  line-height: var(--density-line-height, 1.5);
+}
+
 :root,
 [data-theme='light'] {
   /* Surface colors (backgrounds) */

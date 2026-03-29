@@ -90,13 +90,18 @@ const InteractionPanel: React.FC<{ interaction: InteractionResult }> = ({ intera
         className="overflow-visible"
       >
         {/* Y-axis labels */}
-        <text x={marginLeft - 4} y={8} className="fill-content-muted text-[9px]" textAnchor="end">
+        <text
+          x={marginLeft - 4}
+          y={8}
+          className="fill-content-muted text-[0.5625rem]"
+          textAnchor="end"
+        >
           {yMax.toFixed(0)}
         </text>
         <text
           x={marginLeft - 4}
           y={chartH}
-          className="fill-content-muted text-[9px]"
+          className="fill-content-muted text-[0.5625rem]"
           textAnchor="end"
         >
           {yMin.toFixed(0)}
@@ -136,7 +141,7 @@ const InteractionPanel: React.FC<{ interaction: InteractionResult }> = ({ intera
             key={level}
             x={toX(idx)}
             y={chartH + 14}
-            className="fill-content text-[10px]"
+            className="fill-content text-[0.625rem]"
             textAnchor="middle"
           >
             {level}
