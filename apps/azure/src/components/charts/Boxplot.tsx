@@ -46,16 +46,20 @@ const Boxplot = ({ parentWidth, parentHeight, ...props }: BoxplotProps) => {
         parentHeight={parentHeight}
         filteredData={ctx.filteredData}
         outcome={ctx.outcome}
-        specs={ctx.specs}
+        specs={isCapabilityMode ? {} : ctx.specs}
         filters={ctx.filters}
         onFiltersChange={ctx.setFilters}
         columnAliases={ctx.columnAliases}
         onColumnAliasesChange={ctx.setColumnAliases}
         valueLabels={ctx.valueLabels}
         onValueLabelsChange={ctx.setValueLabels}
-        displayOptions={ctx.displayOptions}
-        yDomainMin={min}
-        yDomainMax={max}
+        displayOptions={
+          isCapabilityMode
+            ? { ...ctx.displayOptions, showContributionLabels: false }
+            : ctx.displayOptions
+        }
+        yDomainMin={isCapabilityMode ? 0 : min}
+        yDomainMax={isCapabilityMode ? 0 : max}
         showBranding={false}
         capabilityData={isCapabilityMode ? capabilityData : undefined}
         {...props}
