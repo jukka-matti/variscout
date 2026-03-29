@@ -167,19 +167,19 @@ const TargetDiscoveryCard: React.FC<TargetDiscoveryCardProps> = ({
         data-testid="target-discovery-centering"
       >
         <div className="text-[10px] uppercase tracking-wider text-amber-500 font-medium mb-1">
-          Quick win: Centering
+          Centering opportunity
         </div>
         <div className="text-xs text-content-secondary leading-relaxed">
-          Cpk{' '}
+          The process spread (Cp{' '}
+          <span className="font-mono text-amber-500">{formatStat(centeringOpportunity.cp, 2)}</span>
+          ) is better than the actual capability (Cpk{' '}
           <span className="font-mono text-red-400">
             {formatStat(centeringOpportunity.currentCpk, 2)}
-          </span>{' '}
-          &rarr; Cp{' '}
-          <span className="font-mono text-amber-500">{formatStat(centeringOpportunity.cp, 2)}</span>{' '}
-          just by centering the process.
+          </span>
+          ). The process is off-center by{' '}
+          <span className="font-mono">{formatStat(centeringOpportunity.gap, 2)}</span>.
           <span className="text-content-muted block mt-1">
-            Gap: {formatStat(centeringOpportunity.gap, 2)} &mdash; adjust process aim, no root cause
-            needed.
+            Drill into factors to find what&rsquo;s causing the shift.
           </span>
         </div>
       </div>
