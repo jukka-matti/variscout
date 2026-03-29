@@ -6,6 +6,7 @@ import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotWrapperBase } from '@variscout/ui';
+import { useCapabilityBoxplotData } from '@variscout/hooks';
 import type { HighlightColor } from '@variscout/hooks';
 import type { Finding } from '@variscout/core';
 
@@ -28,6 +29,17 @@ const Boxplot = ({ parentWidth, parentHeight, ...props }: BoxplotProps) => {
   const ctx = useData();
   const { min, max } = useChartScale();
 
+  const isCapabilityMode = ctx.displayOptions.standardIChartMetric === 'capability';
+
+  const capabilityData = useCapabilityBoxplotData({
+    filteredData: ctx.filteredData,
+    outcome: ctx.outcome ?? '',
+    specs: ctx.specs,
+    subgroupConfig: ctx.subgroupConfig,
+    factor: props.factor,
+    metric: 'cpk',
+  });
+
   return (
     <div className="relative h-full w-full">
       <BoxplotWrapperBase
@@ -45,6 +57,7 @@ const Boxplot = ({ parentWidth, parentHeight, ...props }: BoxplotProps) => {
         displayOptions={ctx.displayOptions}
         yDomainMin={min}
         yDomainMax={max}
+        capabilityData={isCapabilityMode ? capabilityData : undefined}
         {...props}
       />
       {ctx.isComputing && (

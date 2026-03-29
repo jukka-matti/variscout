@@ -70,6 +70,8 @@ export interface BoxplotWrapperBaseProps {
   onEditFinding?: (id: string, text: string) => void;
   /** Delete a finding from the annotation box */
   onDeleteFinding?: (id: string) => void;
+  /** Capability mode boxplot data (Cpk/Cp per subgroup, overrides standard data) */
+  capabilityData?: import('@variscout/core').BoxplotGroupData[];
 }
 
 export const BoxplotWrapperBase = ({
@@ -97,6 +99,7 @@ export const BoxplotWrapperBase = ({
   findings = [],
   onEditFinding,
   onDeleteFinding,
+  capabilityData,
 }: BoxplotWrapperBaseProps) => {
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const { data: rawData, violinData } = useBoxplotData(
@@ -105,11 +108,13 @@ export const BoxplotWrapperBase = ({
     outcome,
     displayOptions.showViolin
   );
-  const data = sortBoxplotData(
+  const standardData = sortBoxplotData(
     rawData,
     displayOptions.boxplotSortBy,
     displayOptions.boxplotSortDirection
   );
+  // In capability mode, use pre-computed Cpk boxplot data
+  const data = capabilityData && capabilityData.length > 0 ? capabilityData : standardData;
 
   const { categoryPositions, effectiveHighlights } = useBoxplotWrapperData({
     data,
