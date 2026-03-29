@@ -10,6 +10,7 @@ import {
   FINDINGS_ACTION_KEY,
   type FindingsAction,
   YamazumiDetectedModal,
+  PerformanceDetectedModal,
   CapabilitySuggestionModal,
   MobileTabBar,
   type MobileTab,
@@ -786,24 +787,16 @@ function AppMain() {
         <AppFooter filteredCount={filteredData.length} totalCount={rawData.length} />
       )}
 
-      {/* Wide Format Detection -- inform user Performance Mode is Azure-only */}
+      {/* Wide Format Detection — Performance Mode */}
       {importFlow.wideFormatDetection && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-secondary border border-edge rounded-xl shadow-xl p-5 w-full max-w-sm">
-            <p className="text-sm text-content mb-3">
-              {importFlow.wideFormatDetection.channels.length} measure columns detected —
-              Performance Mode is available in the Azure App.
-            </p>
-            <div className="flex justify-end">
-              <button
-                onClick={importFlow.handleDismissWideFormat}
-                className="px-4 py-2 text-sm font-medium text-white bg-surface-tertiary hover:bg-surface-elevated rounded-lg transition-colors"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
+        <PerformanceDetectedModal
+          detection={importFlow.wideFormatDetection}
+          onEnable={(_columns, _label) => {
+            setAnalysisMode('performance');
+            importFlow.handleDismissWideFormat();
+          }}
+          onDecline={importFlow.handleDismissWideFormat}
+        />
       )}
 
       {/* Yamazumi Detection Modal */}
