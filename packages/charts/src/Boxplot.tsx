@@ -14,6 +14,9 @@ import { interactionStyles } from './styles/interactionStyles';
 import { getBoxplotA11yProps, getInteractiveA11yProps } from './utils/accessibility';
 import { calculateKDE } from '@variscout/core';
 
+/** Minimum data points required to render a box-and-whisker; fewer renders jittered dots */
+export const MIN_BOXPLOT_VALUES = 7;
+
 /** Default threshold for high variation highlight (50%) */
 const DEFAULT_VARIATION_THRESHOLD = 50;
 
@@ -230,7 +233,44 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                 {/* Transparent capture rect for better clickability */}
                 <rect x={x - 5} y={0} width={barWidth + 10} height={height} fill="transparent" />
 
-                {showViolin && violinData.has(d.key) ? (
+                {d.values.length < MIN_BOXPLOT_VALUES ? (
+                  <>
+                    {/* Dot fallback mode: jittered dots for small sample sizes */}
+                    {d.values.map((v, j) => {
+                      const jitter =
+                        ((((j * 7 + Math.round(v * 13)) % 11) - 5) / 5) * barWidth * 0.2;
+                      const dotFill = highlightedCategories?.[d.key]
+                        ? highlightFillColors[highlightedCategories[d.key]]
+                        : fillOverrides?.[d.key]
+                          ? fillOverrides[d.key]
+                          : isSelected(d.key)
+                            ? colors.selected
+                            : chrome.labelSecondary;
+                      return (
+                        <circle
+                          key={j}
+                          cx={x + barWidth / 2 + jitter}
+                          cy={yScale(v)}
+                          r={4}
+                          fill={dotFill}
+                          opacity={0.8}
+                          data-testid={`dot-fallback-${d.key}-${j}`}
+                        />
+                      );
+                    })}
+
+                    {/* Mean marker (diamond) */}
+                    <polygon
+                      points={`
+                        ${x + barWidth / 2},${yScale(d.mean) - 4}
+                        ${x + barWidth / 2 + 4},${yScale(d.mean)}
+                        ${x + barWidth / 2},${yScale(d.mean) + 4}
+                        ${x + barWidth / 2 - 4},${yScale(d.mean)}
+                      `}
+                      fill={chrome.labelPrimary}
+                    />
+                  </>
+                ) : showViolin && violinData.has(d.key) ? (
                   <>
                     {/* Violin-primary mode: prominent density curve with thin inner box */}
                     <ViolinPlot
@@ -338,6 +378,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                             : chrome.boxBorder
                       }
                       rx={2}
+                      data-testid={`boxplot-box-${d.key}`}
                     />
 
                     {/* Median Line */}
