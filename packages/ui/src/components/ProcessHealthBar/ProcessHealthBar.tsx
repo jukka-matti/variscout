@@ -67,6 +67,8 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   specSuggestion,
   activeProjection,
   onAcceptSpecSuggestion,
+  isCapabilityMode = false,
+  capabilityStats,
 }) => {
   const { formatStat } = useTranslation();
 
@@ -186,21 +188,35 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
       );
     }
 
-    // Specs set: show Pass Rate, Cpk/target, Mean, σ, n
+    // Specs set: show Pass Rate (or subgroup target %), Cpk/target, Mean, σ, n
     const passRate =
       stats.outOfSpecPercentage !== undefined
         ? (100 - stats.outOfSpecPercentage).toFixed(1) + '%'
         : '—';
+    const subgroupPct =
+      isCapabilityMode && capabilityStats && capabilityStats.totalSubgroups > 0
+        ? Math.round(
+            (capabilityStats.subgroupsMeetingTarget / capabilityStats.totalSubgroups) * 100
+          )
+        : null;
     const cpk = stats.cpk;
     const cpkStr = cpk !== undefined ? formatStat(cpk, 2) : '—';
     const colorClass = cpk !== undefined ? cpkColor(cpk, cpkTarget) : 'text-content-muted';
 
     return (
       <div className="flex items-center gap-2 text-xs text-content-secondary">
-        <span>
-          <span className="text-content-muted">Pass</span>
-          <span className="ml-1 font-mono text-content">{passRate}</span>
-        </span>
+        {subgroupPct !== null ? (
+          <span data-testid="subgroup-target-pct">
+            <span className="text-content-muted">Subgroups</span>
+            <span className="ml-1 font-mono text-content">{subgroupPct}%</span>
+            <span className="ml-1 text-content-muted">&ge; {cpkTarget}</span>
+          </span>
+        ) : (
+          <span>
+            <span className="text-content-muted">Pass</span>
+            <span className="ml-1 font-mono text-content">{passRate}</span>
+          </span>
+        )}
         <span className="text-content-muted">|</span>
         <span>
           <button
@@ -270,8 +286,12 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
         </span>
         <span className="text-content-muted">|</span>
         <span>
-          <span className="text-content-muted">n</span>
-          <span className="ml-1 font-mono">{n}</span>
+          <span className="text-content-muted">
+            {isCapabilityMode && capabilityStats ? 'k' : 'n'}
+          </span>
+          <span className="ml-1 font-mono">
+            {isCapabilityMode && capabilityStats ? capabilityStats.totalSubgroups : n}
+          </span>
         </span>
       </div>
     );

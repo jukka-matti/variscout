@@ -252,4 +252,61 @@ describe('ProcessHealthBar', () => {
     const bar = screen.getByTestId('process-health-bar');
     expect(bar.textContent).toContain('Machinery');
   });
+
+  describe('capability mode', () => {
+    const capabilityProps: ProcessHealthBarProps = {
+      ...defaultProps,
+      specs: specsWithLimits,
+      stats: { ...baseStats, cpk: 1.45, cp: 1.5 },
+      isCapabilityMode: true,
+      capabilityStats: {
+        subgroupsMeetingTarget: 17,
+        totalSubgroups: 20,
+      },
+    };
+
+    it('shows subgroup target percentage instead of pass rate', () => {
+      render(<ProcessHealthBar {...capabilityProps} />);
+      const bar = screen.getByTestId('process-health-bar');
+      const subgroupEl = screen.getByTestId('subgroup-target-pct');
+      expect(subgroupEl.textContent).toContain('85%');
+      expect(subgroupEl.textContent).toContain('1.33');
+      // Should NOT show "Pass"
+      expect(bar.textContent).not.toContain('Pass');
+    });
+
+    it('shows subgroup count instead of sample count', () => {
+      render(<ProcessHealthBar {...capabilityProps} />);
+      const bar = screen.getByTestId('process-health-bar');
+      // Should show k (subgroup count label) with totalSubgroups value
+      expect(bar.textContent).toContain('k');
+      expect(bar.textContent).toContain('20');
+    });
+
+    it('still shows Cpk as primary KPI', () => {
+      render(<ProcessHealthBar {...capabilityProps} />);
+      expect(screen.getByTestId('stat-cpk')).toBeDefined();
+      const cpkBtn = screen.getByTestId('stat-cpk');
+      expect(cpkBtn.textContent).toContain('1.45');
+    });
+
+    it('uses custom cpkTarget in subgroup label', () => {
+      render(<ProcessHealthBar {...capabilityProps} cpkTarget={1.67} />);
+      const subgroupEl = screen.getByTestId('subgroup-target-pct');
+      expect(subgroupEl.textContent).toContain('1.67');
+    });
+
+    it('falls back to pass rate when capabilityStats is undefined', () => {
+      render(
+        <ProcessHealthBar
+          {...capabilityProps}
+          capabilityStats={undefined}
+          isCapabilityMode={true}
+        />
+      );
+      const bar = screen.getByTestId('process-health-bar');
+      expect(bar.textContent).toContain('Pass');
+      expect(bar.textContent).toContain('95.0%');
+    });
+  });
 });
