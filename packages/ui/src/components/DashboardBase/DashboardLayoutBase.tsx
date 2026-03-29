@@ -606,11 +606,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
                 onDownloadPng={onDownloadPng}
                 onDownloadSvg={onDownloadSvg}
                 onShareChart={onShareChart}
-                title={
-                  <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
-                    Verification
-                  </h3>
-                }
+                title={<></>}
               >
                 {renderVerificationCard}
               </DashboardChartCard>

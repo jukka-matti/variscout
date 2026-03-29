@@ -22,11 +22,11 @@ describe('VerificationCard', () => {
     renderProbabilityPlot: <div data-testid="prob-plot-content">Probability plot content</div>,
   };
 
-  it('renders histogram tab by default', () => {
+  it('renders probability plot tab by default', () => {
     render(<VerificationCard {...defaultProps} />);
 
-    expect(screen.getByTestId('histogram-content')).toBeTruthy();
-    expect(screen.queryByTestId('prob-plot-content')).toBeNull();
+    expect(screen.getByTestId('prob-plot-content')).toBeTruthy();
+    expect(screen.queryByTestId('histogram-content')).toBeNull();
   });
 
   it('renders both tab buttons', () => {
@@ -36,35 +36,35 @@ describe('VerificationCard', () => {
     expect(screen.getByText('Prob Plot')).toBeTruthy();
   });
 
-  it('histogram tab is active by default', () => {
+  it('probability plot tab is active by default', () => {
     render(<VerificationCard {...defaultProps} />);
-
-    const histogramButton = screen.getByText('Histogram').closest('button');
-    expect(histogramButton?.getAttribute('aria-pressed')).toBe('true');
-
-    const probPlotButton = screen.getByText('Prob Plot').closest('button');
-    expect(probPlotButton?.getAttribute('aria-pressed')).toBe('false');
-  });
-
-  it('switches to probability plot on tab click', () => {
-    render(<VerificationCard {...defaultProps} />);
-
-    fireEvent.click(screen.getByText('Prob Plot'));
-
-    expect(screen.getByTestId('prob-plot-content')).toBeTruthy();
-    expect(screen.queryByTestId('histogram-content')).toBeNull();
-  });
-
-  it('activates probability tab after click', () => {
-    render(<VerificationCard {...defaultProps} />);
-
-    fireEvent.click(screen.getByText('Prob Plot'));
 
     const probPlotButton = screen.getByText('Prob Plot').closest('button');
     expect(probPlotButton?.getAttribute('aria-pressed')).toBe('true');
 
     const histogramButton = screen.getByText('Histogram').closest('button');
     expect(histogramButton?.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('switches to histogram on tab click', () => {
+    render(<VerificationCard {...defaultProps} />);
+
+    fireEvent.click(screen.getByText('Histogram'));
+
+    expect(screen.getByTestId('histogram-content')).toBeTruthy();
+    expect(screen.queryByTestId('prob-plot-content')).toBeNull();
+  });
+
+  it('activates histogram tab after click', () => {
+    render(<VerificationCard {...defaultProps} />);
+
+    fireEvent.click(screen.getByText('Histogram'));
+
+    const histogramButton = screen.getByText('Histogram').closest('button');
+    expect(histogramButton?.getAttribute('aria-pressed')).toBe('true');
+
+    const probPlotButton = screen.getByText('Prob Plot').closest('button');
+    expect(probPlotButton?.getAttribute('aria-pressed')).toBe('false');
   });
 
   it('accepts custom defaultTab prop set to probability', () => {
@@ -81,14 +81,14 @@ describe('VerificationCard', () => {
     expect(screen.queryByTestId('prob-plot-content')).toBeNull();
   });
 
-  it('can switch back to histogram after switching to probability', () => {
+  it('can switch back to probability after switching to histogram', () => {
     render(<VerificationCard {...defaultProps} />);
 
-    fireEvent.click(screen.getByText('Prob Plot'));
     fireEvent.click(screen.getByText('Histogram'));
+    fireEvent.click(screen.getByText('Prob Plot'));
 
-    expect(screen.getByTestId('histogram-content')).toBeTruthy();
-    expect(screen.queryByTestId('prob-plot-content')).toBeNull();
+    expect(screen.getByTestId('prob-plot-content')).toBeTruthy();
+    expect(screen.queryByTestId('histogram-content')).toBeNull();
   });
 
   it('marks tab bar with data-export-hide', () => {

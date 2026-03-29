@@ -12,7 +12,7 @@ type Tab = 'histogram' | 'probability';
 const VerificationCard: React.FC<VerificationCardProps> = ({
   renderHistogram,
   renderProbabilityPlot,
-  defaultTab = 'histogram',
+  defaultTab = 'probability',
 }) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
