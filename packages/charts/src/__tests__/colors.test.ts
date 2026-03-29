@@ -23,6 +23,10 @@ describe('chartColors', () => {
     expect(chartColors.linear).toBe('#3b82f6');
     expect(chartColors.quadratic).toBe('#8b5cf6');
   });
+
+  it('exports cpPotential color for Cp series', () => {
+    expect(chartColors.cpPotential).toBe('#8b5cf6');
+  });
 });
 
 describe('chromeColors', () => {

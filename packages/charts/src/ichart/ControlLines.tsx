@@ -9,7 +9,7 @@ import React from 'react';
 import { Line } from '@visx/shape';
 import type { StatsResult, StageBoundary, SpecLimits, MessageCatalog } from '@variscout/core';
 import type { ChartFonts } from '@variscout/core';
-import { chartColors, operatorColors } from '../colors';
+import { chartColors } from '../colors';
 import { interactionStyles } from '../styles/interactionStyles';
 import { getInteractiveA11yProps } from '../utils/accessibility';
 
@@ -402,7 +402,7 @@ const ControlLines: React.FC<ControlLinesProps> = ({
           <Line
             from={{ x: 0, y: yScale(secondaryStats.ucl) }}
             to={{ x: width, y: yScale(secondaryStats.ucl) }}
-            stroke={operatorColors[1]}
+            stroke={chartColors.cpPotential}
             strokeWidth={0.8}
             strokeDasharray="3,3"
             strokeOpacity={0.5}
@@ -410,14 +410,14 @@ const ControlLines: React.FC<ControlLinesProps> = ({
           <Line
             from={{ x: 0, y: yScale(secondaryStats.mean) }}
             to={{ x: width, y: yScale(secondaryStats.mean) }}
-            stroke={operatorColors[1]}
+            stroke={chartColors.cpPotential}
             strokeWidth={1}
             strokeOpacity={0.6}
           />
           <Line
             from={{ x: 0, y: yScale(secondaryStats.lcl) }}
             to={{ x: width, y: yScale(secondaryStats.lcl) }}
-            stroke={operatorColors[1]}
+            stroke={chartColors.cpPotential}
             strokeWidth={0.8}
             strokeDasharray="3,3"
             strokeOpacity={0.5}
