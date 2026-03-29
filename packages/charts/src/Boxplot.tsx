@@ -265,8 +265,13 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                   <>
                     {/* Dot fallback mode: jittered dots for small sample sizes */}
                     {d.values.map((v, j) => {
-                      const jitter =
-                        ((((j * 7 + Math.round(v * 13)) % 11) - 5) / 5) * barWidth * 0.2;
+                      // Spread dots evenly across the band, with slight value-based offset
+                      const evenSpread =
+                        d.values.length > 1
+                          ? (j / (d.values.length - 1)) * 2 - 1 // -1 to +1
+                          : 0;
+                      const valueNoise = ((Math.round(v * 137) % 7) - 3) / 30; // tiny nudge
+                      const jitter = (evenSpread + valueNoise) * barWidth * 0.3;
                       const dotFill = highlightedCategories?.[d.key]
                         ? highlightFillColors[highlightedCategories[d.key]]
                         : fillOverrides?.[d.key]

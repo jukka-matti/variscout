@@ -235,8 +235,10 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
                   <>
                     {/* Dot fallback mode: jittered dots for small sample sizes */}
                     {channel.values.map((v, j) => {
-                      const jitter =
-                        ((((j * 7 + Math.round(v * 13)) % 11) - 5) / 5) * boxWidth * 0.2;
+                      const evenSpread =
+                        channel.values.length > 1 ? (j / (channel.values.length - 1)) * 2 - 1 : 0;
+                      const valueNoise = ((Math.round(v * 137) % 7) - 3) / 30;
+                      const jitter = (evenSpread + valueNoise) * boxWidth * 0.3;
                       return (
                         <circle
                           key={j}
