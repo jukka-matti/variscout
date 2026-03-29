@@ -261,7 +261,7 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
                       fill={chrome.labelPrimary}
                     />
                   </>
-                ) : showViolin && violinData.has(channel.id) ? (
+                ) : showViolin && violinData.has(channel.id) && stats ? (
                   <>
                     {/* Violin-primary mode: prominent density curve with thin inner box */}
                     <ViolinPlot
@@ -309,7 +309,7 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
                       fill={chrome.labelPrimary}
                     />
                   </>
-                ) : (
+                ) : stats ? (
                   <>
                     {/* Standard boxplot mode: full box, whiskers */}
 
@@ -368,7 +368,7 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
                       fill={chrome.labelPrimary}
                     />
                   </>
-                )}
+                ) : null}
               </Group>
             );
           })}

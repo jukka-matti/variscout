@@ -42,6 +42,7 @@ import {
   useDashboardInsights,
   useProcessProjection,
   useJourneyPhase,
+  useCapabilityIChartData,
 } from '@variscout/hooks';
 import { useImprovementStore } from '../features/improvement/improvementStore';
 import type { AIContext } from '@variscout/core';
@@ -382,6 +383,23 @@ const Dashboard = ({
     fetchChartInsight,
   });
 
+  // Capability I-Chart data for ProcessHealthBar stats
+  const capabilityIChartData = useCapabilityIChartData({
+    filteredData,
+    outcome: outcome ?? '',
+    specs,
+    subgroupConfig,
+    cpkTarget,
+  });
+
+  const capabilityStats =
+    isCapabilityMode && capabilityIChartData.subgroupResults.length > 0
+      ? {
+          subgroupsMeetingTarget: capabilityIChartData.subgroupsMeetingTarget ?? 0,
+          totalSubgroups: capabilityIChartData.subgroupResults.length,
+        }
+      : undefined;
+
   if (!outcome) return null;
 
   if (isReportOpen && onCloseReport) {
@@ -441,6 +459,8 @@ const Dashboard = ({
               setSpecs({ ...specs, lsl, usl });
               setShowSpecEditor(true);
             }}
+            isCapabilityMode={isCapabilityMode}
+            capabilityStats={capabilityStats}
           />
         )}
 
