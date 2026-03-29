@@ -668,8 +668,14 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             {t('chart.label.n')} {tooltipData.values.length}
           </div>
           {categoryContributions && categoryContributions.has(tooltipData.key) && (
-            <div style={{ color: '#f87171', fontWeight: 500, marginTop: 4 }}>
-              {Math.round(categoryContributions.get(tooltipData.key) ?? 0)}% of total variation
+            <div style={{ marginTop: 4 }}>
+              <div style={{ color: '#f87171', fontWeight: 500 }}>
+                Accounts for {Math.round(categoryContributions.get(tooltipData.key) ?? 0)}% of total
+                variation
+              </div>
+              <div style={{ color: '#94a3b8', fontSize: '0.75em' }}>
+                (mean shift + spread from this category)
+              </div>
             </div>
           )}
         </TooltipWithBounds>
