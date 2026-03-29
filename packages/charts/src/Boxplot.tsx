@@ -669,8 +669,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           </div>
           {categoryContributions && categoryContributions.has(tooltipData.key) && (
             <div style={{ color: '#f87171', fontWeight: 500, marginTop: 4 }}>
-              {t('report.kpi.variation')}:{' '}
-              {Math.round(categoryContributions.get(tooltipData.key) ?? 0)}%
+              {Math.round(categoryContributions.get(tooltipData.key) ?? 0)}% of total variation
             </div>
           )}
         </TooltipWithBounds>
