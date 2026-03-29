@@ -90,6 +90,8 @@ interface DashboardProps {
   onShareChart?: (chartType: string) => void;
   findingsCallbacks?: AzureFindingsCallbacks;
   findings?: Finding[];
+  /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
+  onInvestigateFactor?: (factorName: string) => void;
   // Persistence
   initialViewState?: ViewState;
   onViewStateChange?: (partial: Partial<ViewState>) => void;
@@ -110,6 +112,7 @@ const Dashboard = ({
   onShareChart,
   findingsCallbacks,
   findings: allFindings,
+  onInvestigateFactor,
   viewMode = {},
   performance = {},
   ai = {},
@@ -634,6 +637,7 @@ const Dashboard = ({
               boxplotData={boxplotData}
               findingsCallbacks={findingsCallbacks}
               onAskCoScout={onAskCoScoutFromCategory}
+              onInvestigateFactor={onInvestigateFactor}
             />
           ) : (
             <div className="flex flex-1 min-h-0">

@@ -9,13 +9,16 @@ import type { MainEffectsResult, FactorMainEffect } from '@variscout/core/stats'
 
 export interface MainEffectsPlotProps {
   result: MainEffectsResult | null;
+  /** Called when user clicks "Investigate" on a significant factor */
+  onInvestigateFactor?: (factorName: string) => void;
 }
 
 /** Single factor panel within the main effects plot. */
-const FactorPanel: React.FC<{ effect: FactorMainEffect; grandMean: number }> = ({
-  effect,
-  grandMean,
-}) => {
+const FactorPanel: React.FC<{
+  effect: FactorMainEffect;
+  grandMean: number;
+  onInvestigate?: (factorName: string) => void;
+}> = ({ effect, grandMean, onInvestigate }) => {
   const levels = effect.levels;
   if (levels.length === 0) return null;
 
@@ -136,17 +139,28 @@ const FactorPanel: React.FC<{ effect: FactorMainEffect; grandMean: number }> = (
         })}
       </svg>
 
-      {/* Summary text */}
-      <div className="text-[0.6875rem] text-content-secondary mt-1">
-        Best: <span className="text-green-500 font-semibold">{effect.bestLevel}</span>
-        {' · '}
-        Range: <span className="font-mono">{effect.effectRange.toFixed(1)}</span>
+      {/* Summary text + Investigate button */}
+      <div className="flex items-center justify-between mt-1">
+        <div className="text-[0.6875rem] text-content-secondary">
+          Best: <span className="text-green-500 font-semibold">{effect.bestLevel}</span>
+          {' · '}
+          Range: <span className="font-mono">{effect.effectRange.toFixed(1)}</span>
+        </div>
+        {effect.isSignificant && onInvestigate && (
+          <button
+            onClick={() => onInvestigate(effect.factor)}
+            className="text-[0.625rem] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors px-1.5 py-0.5 rounded hover:bg-indigo-500/10"
+            title={`Investigate ${effect.factor}: create a finding with target "${effect.worstLevel}" → "${effect.bestLevel}"`}
+          >
+            Investigate →
+          </button>
+        )}
       </div>
     </div>
   );
 };
 
-const MainEffectsPlot: React.FC<MainEffectsPlotProps> = ({ result }) => {
+const MainEffectsPlot: React.FC<MainEffectsPlotProps> = ({ result, onInvestigateFactor }) => {
   if (!result || result.factors.length === 0) return null;
 
   return (
@@ -156,7 +170,12 @@ const MainEffectsPlot: React.FC<MainEffectsPlotProps> = ({ result }) => {
       </div>
       <div className="flex gap-2 flex-wrap">
         {result.factors.map(effect => (
-          <FactorPanel key={effect.factor} effect={effect} grandMean={result.grandMean} />
+          <FactorPanel
+            key={effect.factor}
+            effect={effect}
+            grandMean={result.grandMean}
+            onInvestigate={onInvestigateFactor}
+          />
         ))}
       </div>
     </div>

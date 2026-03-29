@@ -530,6 +530,7 @@ export {
   createFindingOutcome,
   createHypothesis,
   createImprovementIdea,
+  createFactorFinding,
   createInvestigationCategory,
   getCategoryForFactor,
   getFindingStatus,

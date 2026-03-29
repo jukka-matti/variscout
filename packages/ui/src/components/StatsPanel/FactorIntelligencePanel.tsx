@@ -29,6 +29,8 @@ export interface FactorIntelligencePanelProps {
   interactionEffects: InteractionEffectsResult | null;
   /** Called when user clicks a factor subset for drill-down */
   onSubsetClick?: (factors: string[]) => void;
+  /** Called when user clicks "Investigate" on a significant factor */
+  onInvestigateFactor?: (factorName: string) => void;
 }
 
 /** Minimum R²adj to unlock Layer 2 */
@@ -42,6 +44,7 @@ const FactorIntelligencePanel: React.FC<FactorIntelligencePanelProps> = ({
   mainEffects,
   interactionEffects,
   onSubsetClick,
+  onInvestigateFactor,
 }) => {
   // Evidence gating
   const bestR2adj = bestSubsets?.subsets[0]?.rSquaredAdj ?? 0;
@@ -88,7 +91,9 @@ const FactorIntelligencePanel: React.FC<FactorIntelligencePanelProps> = ({
       <BestSubsetsCard result={bestSubsets} onSubsetClick={onSubsetClick} />
 
       {/* Layer 2: Main Effects (evidence-gated) */}
-      {showLayer2 && <MainEffectsPlot result={mainEffects} />}
+      {showLayer2 && (
+        <MainEffectsPlot result={mainEffects} onInvestigateFactor={onInvestigateFactor} />
+      )}
 
       {/* Layer 2 locked message */}
       {!showLayer2 && bestSubsets.subsets.length > 0 && (

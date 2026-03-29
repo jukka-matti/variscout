@@ -126,6 +126,8 @@ interface MobileChartCarouselProps {
     chartType: 'boxplot' | 'pareto';
     category: { name: string; mean?: number; contributionPct?: number };
   }) => void;
+  /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
+  onInvestigateFactor?: (factorName: string) => void;
 }
 
 const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
@@ -160,6 +162,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   boxplotData,
   findingsCallbacks,
   onAskCoScout,
+  onInvestigateFactor,
 }) => {
   const {
     onAddChartObservation,
@@ -546,6 +549,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
                 onSaveSpecs={onSaveSpecs}
                 showCpk={showCpk}
                 factors={factors}
+                onInvestigateFactor={onInvestigateFactor}
               />
             )}
           </ErrorBoundary>

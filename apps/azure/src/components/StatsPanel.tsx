@@ -35,6 +35,8 @@ interface StatsPanelProps {
   factors?: string[];
   /** Factor Intelligence: callback when user clicks a subset for drill-down */
   onFactorDrillDown?: (factors: string[]) => void;
+  /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
+  onInvestigateFactor?: (factorName: string) => void;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({
@@ -56,6 +58,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   renderDataTable,
   factors = [],
   onFactorDrillDown,
+  onInvestigateFactor,
 }) => {
   const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
@@ -152,6 +155,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
           mainEffects={mainEffects}
           interactionEffects={interactionEffects}
           onSubsetClick={onFactorDrillDown}
+          onInvestigateFactor={onInvestigateFactor}
         />
       )}
     </>
