@@ -17,6 +17,11 @@ import { calculateKDE } from '@variscout/core';
 /** Minimum data points required to render a box-and-whisker; fewer renders jittered dots */
 export const MIN_BOXPLOT_VALUES = 7;
 
+/** Category count above which X-axis labels are rotated */
+const BOXPLOT_ROTATE_THRESHOLD = 10;
+/** Maximum label length before truncation */
+const BOXPLOT_MAX_LABEL_LENGTH = 12;
+
 /** Default threshold for high variation highlight (50%) */
 const DEFAULT_VARIATION_THRESHOLD = 50;
 
@@ -517,13 +522,24 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             scale={xScale}
             stroke={chrome.axisPrimary}
             tickStroke={chrome.axisPrimary}
-            tickFormat={xTickFormat}
+            tickFormat={value => {
+              const formatted = xTickFormat ? xTickFormat(String(value)) : String(value);
+              if (
+                data.length > BOXPLOT_ROTATE_THRESHOLD &&
+                formatted.length > BOXPLOT_MAX_LABEL_LENGTH
+              ) {
+                return formatted.slice(0, BOXPLOT_MAX_LABEL_LENGTH) + '…';
+              }
+              return formatted;
+            }}
             tickLabelProps={() => ({
               fill: chrome.labelSecondary,
               fontSize: fonts.tickLabel,
-              textAnchor: 'middle',
-              dy: 2,
+              textAnchor: data.length > BOXPLOT_ROTATE_THRESHOLD ? 'end' : 'middle',
+              dy: data.length > BOXPLOT_ROTATE_THRESHOLD ? -2 : 2,
+              dx: data.length > BOXPLOT_ROTATE_THRESHOLD ? -4 : 0,
               fontWeight: 400,
+              angle: data.length > BOXPLOT_ROTATE_THRESHOLD ? -45 : 0,
             })}
           />
 

@@ -355,6 +355,10 @@ const Dashboard = ({
     setRawData,
     setFilters,
     clearSelection,
+    onFactorCreated: name => {
+      setBoxplotFactor(name);
+      setParetoFactor(name);
+    },
   });
 
   // --- Chart Insight Chips + Capability mode (shared hook) ---

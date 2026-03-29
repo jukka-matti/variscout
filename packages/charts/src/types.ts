@@ -198,6 +198,8 @@ export interface ParetoChartProps extends BaseChartProps {
   onBarContextMenu?: (key: string, event: React.MouseEvent) => void;
   /** Show rank change indicators when comparisonData is present */
   showRankChange?: boolean;
+  /** Key used for the "Others" aggregated bar (rendered in muted style) */
+  othersKey?: string;
 }
 
 /**

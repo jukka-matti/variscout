@@ -23,6 +23,8 @@ interface TooltipData {
   index: number;
   stage?: string;
   timeValue?: string;
+  /** Factor column values for this data point (e.g., {Month: "Jul", Year: "2019"}) */
+  factorValues?: Record<string, string>;
 }
 
 interface IChartTooltipProps {
@@ -234,6 +236,21 @@ const IChartTooltip: React.FC<IChartTooltipProps> = ({
             }}
           >
             {tooltipData.timeValue}
+          </div>
+        )}
+        {tooltipData.factorValues && Object.keys(tooltipData.factorValues).length > 0 && (
+          <div
+            style={{
+              color: chrome.labelSecondary,
+              fontSize: fonts.tooltipText - 1,
+              marginTop: 2,
+            }}
+          >
+            {Object.entries(tooltipData.factorValues).map(([name, value]) => (
+              <span key={name} style={{ marginRight: 8 }}>
+                {name}: <span style={{ color: chrome.tooltipText }}>{value}</span>
+              </span>
+            ))}
           </div>
         )}
       </div>

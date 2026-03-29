@@ -69,7 +69,13 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
   highlightedCategories,
   onBarContextMenu,
   showRankChange = false,
+  othersKey,
 }) => {
+  /** Threshold above which labels are rotated */
+  const ROTATE_THRESHOLD = 10;
+  /** Max label length before truncation */
+  const MAX_LABEL_LENGTH = 12;
+  const shouldRotateLabels = data.length > ROTATE_THRESHOLD;
   const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
     parentWidth,
     parentHeight,
@@ -157,11 +163,13 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
               width={xScale.bandwidth()}
               height={height - yScale(d.value)}
               fill={
-                highlightedCategories?.[d.key]
-                  ? highlightFillColors[highlightedCategories[d.key]]
-                  : isSelected(d.key)
-                    ? colors.selected
-                    : chrome.boxDefault
+                othersKey && d.key === othersKey
+                  ? chrome.axisSecondary
+                  : highlightedCategories?.[d.key]
+                    ? highlightFillColors[highlightedCategories[d.key]]
+                    : isSelected(d.key)
+                      ? colors.selected
+                      : chrome.boxDefault
               }
               fillOpacity={highlightedCategories?.[d.key] ? 0.7 : 1}
               rx={4}
@@ -291,10 +299,19 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
             tickLabelProps={() => ({
               fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
-              textAnchor: 'middle',
-              dy: 2,
+              textAnchor: shouldRotateLabels ? 'end' : 'middle',
+              dy: shouldRotateLabels ? -2 : 2,
+              dx: shouldRotateLabels ? -4 : 0,
               fontWeight: 400,
+              angle: shouldRotateLabels ? -45 : 0,
             })}
+            tickFormat={value => {
+              const label = String(value);
+              if (label.length > MAX_LABEL_LENGTH) {
+                return label.slice(0, MAX_LABEL_LENGTH) + '…';
+              }
+              return label;
+            }}
           />
 
           {/* Rank Change Indicators */}

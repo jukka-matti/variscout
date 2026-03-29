@@ -15,6 +15,9 @@ import { getResponsiveMargins } from '@variscout/core';
 import type { ParetoDataPoint } from '@variscout/core';
 import type { DataRow, DataCellValue, ParetoRow } from '@variscout/core';
 
+/** Maximum categories before aggregating remaining into "Others" */
+export const PARETO_MAX_CATEGORIES = 20;
+
 export interface UseParetoChartDataOptions {
   /** Full unfiltered data (for comparison ghost bars) */
   rawData: DataRow[];
@@ -36,6 +39,8 @@ export interface UseParetoChartDataOptions {
   filters: Record<string, (string | number)[]>;
   /** Chart container width in pixels */
   parentWidth: number;
+  /** Maximum categories before aggregating into "Others" (default: 20) */
+  maxCategories?: number;
 }
 
 export interface UseParetoChartDataResult {
@@ -55,6 +60,10 @@ export interface UseParetoChartDataResult {
   categoryPositions: Map<string, { x: number; y: number }>;
   /** True when every category has exactly 1 row (pre-aggregated data signal) */
   allSingleRow: boolean;
+  /** True when data was truncated and "Others" bucket was added */
+  hasOthers: boolean;
+  /** Original category count before truncation */
+  originalCategoryCount: number;
 }
 
 export function useParetoChartData({
@@ -68,6 +77,7 @@ export function useParetoChartData({
   separateParetoData,
   filters,
   parentWidth,
+  maxCategories = PARETO_MAX_CATEGORIES,
 }: UseParetoChartDataOptions): UseParetoChartDataResult {
   // Determine if using separate Pareto data
   const usingSeparateData =
@@ -100,7 +110,7 @@ export function useParetoChartData({
   }, [showComparison, hasActiveFilters, usingSeparateData, rawData, factor]);
 
   // Compute Pareto data from filtered data or separate file
-  const { data, totalCount } = useMemo(() => {
+  const { data, totalCount, originalCount } = useMemo(() => {
     let sorted: { key: string; value: number }[];
 
     if (usingSeparateData && separateParetoData) {
@@ -132,16 +142,33 @@ export function useParetoChartData({
       })).sort((a, b) => b.value - a.value);
     }
 
-    const total = sum(sorted, d => d.value);
+    // Aggregate into "Others" if too many categories
+    const originalCount = sorted.length;
+    let truncated = sorted;
+    if (sorted.length > maxCategories) {
+      const top = sorted.slice(0, maxCategories);
+      const othersValue = sum(sorted.slice(maxCategories), d => d.value);
+      truncated = [...top, { key: 'Others', value: othersValue }];
+    }
+
+    const total = sum(truncated, d => d.value);
     // Build cumulative sums via reduce (immutable — avoids react-hooks/immutability warning)
-    const withCumulative: ParetoDataPoint[] = sorted.reduce<ParetoDataPoint[]>((acc, d) => {
+    const withCumulative: ParetoDataPoint[] = truncated.reduce<ParetoDataPoint[]>((acc, d) => {
       const cumulative = (acc.length > 0 ? acc[acc.length - 1].cumulative : 0) + d.value;
       acc.push({ ...d, cumulative, cumulativePercentage: (cumulative / total) * 100 });
       return acc;
     }, []);
 
-    return { data: withCumulative, totalCount: total };
-  }, [filteredData, factor, aggregation, outcome, usingSeparateData, separateParetoData]);
+    return { data: withCumulative, totalCount: total, originalCount };
+  }, [
+    filteredData,
+    factor,
+    aggregation,
+    outcome,
+    usingSeparateData,
+    separateParetoData,
+    maxCategories,
+  ]);
 
   // Convert comparison percentages to expected values (same scale as bars)
   const ghostBarData = useMemo(() => {
@@ -189,5 +216,7 @@ export function useParetoChartData({
     ghostBarData,
     categoryPositions,
     allSingleRow,
+    hasOthers: originalCount > maxCategories,
+    originalCategoryCount: originalCount,
   };
 }

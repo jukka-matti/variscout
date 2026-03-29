@@ -62,6 +62,7 @@ This section captures key architectural decisions made during VariScout developm
 | [048](adr-048-eslint-boundaries.md)                  | ESLint Boundary Enforcement              | Accepted   | 2026-03-23 |
 | [049](adr-049-coscout-context-and-memory.md)         | CoScout Knowledge Catalyst               | Draft      | 2026-03-24 |
 | [050](adr-050-wide-form-stack-columns.md)            | Wide-Form Data Support — Stack Columns   | Accepted   | 2026-03-29 |
+| [051](adr-051-chart-many-categories.md)              | Chart Handling for Many Categories       | Accepted   | 2026-03-29 |
 
 ---
 

@@ -75,7 +75,14 @@ interface DataPointsProps {
   showTooltipAtCoords: (
     x: number,
     y: number,
-    data: { x: number; y: number; index: number; stage?: string; timeValue?: string }
+    data: {
+      x: number;
+      y: number;
+      index: number;
+      stage?: string;
+      timeValue?: string;
+      factorValues?: Record<string, string>;
+    }
   ) => void;
   /** Hide tooltip */
   hideTooltip: () => void;
@@ -239,6 +246,7 @@ const DataPoints: React.FC<DataPointsProps> = ({
                   y: d.y,
                   index: i,
                   stage: d.stage,
+                  factorValues: d.factorValues,
                 })
               }
               onMouseLeave={hideTooltip}
@@ -305,6 +313,7 @@ const DataPoints: React.FC<DataPointsProps> = ({
                   y: d.y,
                   index: i,
                   stage: d.stage,
+                  factorValues: d.factorValues,
                 })
               }
               onMouseLeave={hideTooltip}

@@ -524,6 +524,8 @@ export interface IChartDataPoint {
   stage?: string;
   /** Formatted time value for tooltip display */
   timeValue?: string | null;
+  /** Factor column values for tooltip display (e.g., {Month: "Jul", Year: "2019"}) */
+  factorValues?: Record<string, string>;
 }
 
 /**

@@ -291,6 +291,10 @@ const Dashboard = ({
     setRawData,
     setFilters,
     clearSelection,
+    onFactorCreated: name => {
+      setBoxplotFactor(name);
+      setParetoFactor(name);
+    },
   });
 
   // Helper to update chart titles (must be before early returns — rules-of-hooks)

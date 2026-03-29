@@ -123,6 +123,16 @@ Performance charts analyze multiple measurement channels (fill heads, cavities, 
 
 Both `Boxplot` and `PerformanceBoxplot` support `showViolin?: boolean` prop. When true, renders `@visx/stats` `<ViolinPlot>` behind box elements using KDE data from `calculateKDE()` in `@variscout/core`. Controlled via `displayOptions.showViolin` in the app wrappers.
 
+## Many Categories (ADR-051)
+
+When datasets have many categories (e.g., 80+ countries from stacked wide-form data):
+
+**Pareto:** Top 20 categories shown, remainder aggregated into "Others" bar (muted color). `PARETO_MAX_CATEGORIES = 20` from `useParetoChartData`. The "Others" bar is styled with `othersKey` prop for muted fill.
+
+**Boxplot + Pareto labels:** When categories > 10, X-axis labels rotate -45° and truncate to 12 chars + "…". This applies to both standard Pareto and Boxplot.
+
+**I-Chart tooltip:** Shows factor column values (e.g., "Month: Jul, Year: 2019") alongside the point value and index. Factor values are included in `IChartDataPoint.factorValues` via `useIChartData`.
+
 ## Dot Plot Fallback
 
 All boxplots (`BoxplotBase`, `PerformanceBoxplotBase`) automatically switch from box-and-whisker to jittered dots when a category has fewer than 7 data points (`MIN_BOXPLOT_VALUES`). This is a per-category decision — a single chart can show boxes for some categories and dots for others. The threshold is exported from `@variscout/charts`.

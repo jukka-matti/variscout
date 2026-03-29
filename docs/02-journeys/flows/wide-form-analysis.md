@@ -89,7 +89,7 @@ Alex drills into the top 5 countries (Germany, Sweden, Estonia, Russia, UK) usin
 
 ### 5. Pareto — Concentration
 
-Pareto chart ranked by arrival count:
+Pareto chart ranked by arrival count. With 15 countries, all bars are visible with rotated labels. With the full 82-country dataset, VariScout shows the top 20 countries + "Others" aggregated bar (ADR-051).
 
 - Germany + Sweden + Estonia = ~60% of arrivals from these 15 countries
 - Top 5 countries = ~80%
@@ -111,15 +111,16 @@ Switch factor to Year, keep Country filter on Germany:
 
 ## VariScout Features Demonstrated
 
-| Feature                     | How it's used                                        |
-| --------------------------- | ---------------------------------------------------- |
-| **Stack Columns** (ADR-050) | Transform 15 country columns into Country + Arrivals |
-| **I-Chart**                 | Reveal seasonality and trend breaks                  |
-| **Boxplot**                 | Compare distributions across countries and months    |
-| **ANOVA**                   | Quantify which factor explains the most variation    |
-| **Pareto**                  | Rank countries by contribution                       |
-| **Filter drill-down**       | Isolate top countries, then compare within them      |
-| **Factor switching**        | Toggle between Country and Month as primary factor   |
+| Feature                         | How it's used                                                   |
+| ------------------------------- | --------------------------------------------------------------- |
+| **Stack Columns** (ADR-050)     | Transform 15 country columns into Country + Arrivals            |
+| **I-Chart + factor tooltips**   | Reveal seasonality; hover shows Month + Year context per point  |
+| **Boxplot + rotated labels**    | Compare distributions across countries; labels readable at 15+  |
+| **ANOVA**                       | Quantify which factor explains the most variation               |
+| **Pareto Top N** (ADR-051)      | Top 20 countries + "Others"; readable even with 80+ categories  |
+| **Create Factor + auto-switch** | Select summer peaks → create "summer" factor → boxplot switches |
+| **Filter drill-down**           | Isolate top countries, then compare within them                 |
+| **Factor switching**            | Toggle between Country and Month as primary factor              |
 
 ---
 
