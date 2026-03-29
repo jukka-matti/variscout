@@ -18,6 +18,7 @@ import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { getWorstChannels, CPK_THRESHOLDS, calculateKDE, safeMin, safeMax } from '@variscout/core';
 import type { PerformanceBoxplotProps, ChannelResult } from './types';
 import { chartColors } from './colors';
+import { MIN_BOXPLOT_VALUES } from './Boxplot';
 import { useChartTheme } from './useChartTheme';
 import { getResponsiveMargins, getScaledFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
@@ -94,13 +95,20 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
   }, [channels, selectedMeasure, maxDisplayed]);
 
   // Calculate boxplot stats for each channel
+  // Channels with < MIN_BOXPLOT_VALUES use dot fallback (stats may be null for < 5 values)
   const boxplotData = useMemo(() => {
     return displayedChannels
       .map(channel => ({
         channel,
         stats: calculateBoxplotStats(channel.values),
+        usesDotFallback: channel.values.length < MIN_BOXPLOT_VALUES,
       }))
-      .filter((d): d is { channel: ChannelResult; stats: BoxplotStats } => d.stats !== null);
+      .filter(
+        (
+          d
+        ): d is { channel: ChannelResult; stats: BoxplotStats | null; usesDotFallback: boolean } =>
+          (d.stats !== null || d.usesDotFallback) && d.channel.values.length > 0
+      );
   }, [displayedChannels]);
 
   // X scale - channels
@@ -120,8 +128,11 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
       return scaleLinear({ range: [height, 0], domain: [0, 100] });
     }
 
-    let minVal = safeMin(boxplotData.map(d => d.stats.min));
-    let maxVal = safeMax(boxplotData.map(d => d.stats.max));
+    // Include both stats-based min/max and raw values from dot-fallback channels
+    const allMins = boxplotData.map(d => (d.stats ? d.stats.min : safeMin(d.channel.values)));
+    const allMaxes = boxplotData.map(d => (d.stats ? d.stats.max : safeMax(d.channel.values)));
+    let minVal = safeMin(allMins);
+    let maxVal = safeMax(allMaxes);
 
     // Include spec limits
     if (specs.usl !== undefined) maxVal = Math.max(maxVal, specs.usl);
@@ -206,7 +217,7 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
           )}
 
           {/* Boxplots */}
-          {boxplotData.map(({ channel, stats }) => {
+          {boxplotData.map(({ channel, stats, usesDotFallback }) => {
             const x = xScale(channel.id) ?? 0;
             const isSelected = selectedMeasure === channel.id;
 
@@ -215,10 +226,42 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
                 key={channel.id}
                 style={{ cursor: onChannelClick ? 'pointer' : 'default' }}
                 onClick={() => onChannelClick?.(channel.id)}
-                onMouseEnter={() => showTooltip({ channel, stats }, x + boxWidth / 2)}
+                onMouseEnter={() =>
+                  stats ? showTooltip({ channel, stats }, x + boxWidth / 2) : undefined
+                }
                 onMouseLeave={hideTooltip}
               >
-                {showViolin && violinData.has(channel.id) ? (
+                {usesDotFallback ? (
+                  <>
+                    {/* Dot fallback mode: jittered dots for small sample sizes */}
+                    {channel.values.map((v, j) => {
+                      const jitter =
+                        ((((j * 7 + Math.round(v * 13)) % 11) - 5) / 5) * boxWidth * 0.2;
+                      return (
+                        <circle
+                          key={j}
+                          cx={x + boxWidth / 2 + jitter}
+                          cy={yScale(v)}
+                          r={4}
+                          fill={isSelected ? chartColors.selected : chrome.labelSecondary}
+                          opacity={0.8}
+                          data-testid={`dot-fallback-${channel.id}-${j}`}
+                        />
+                      );
+                    })}
+
+                    {/* Mean marker (diamond) */}
+                    <polygon
+                      points={`
+                        ${x + boxWidth / 2},${yScale(channel.mean) - 4}
+                        ${x + boxWidth / 2 + 4},${yScale(channel.mean)}
+                        ${x + boxWidth / 2},${yScale(channel.mean) + 4}
+                        ${x + boxWidth / 2 - 4},${yScale(channel.mean)}
+                      `}
+                      fill={chrome.labelPrimary}
+                    />
+                  </>
+                ) : showViolin && violinData.has(channel.id) ? (
                   <>
                     {/* Violin-primary mode: prominent density curve with thin inner box */}
                     <ViolinPlot
@@ -551,7 +594,7 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
                       borderBottom: `1px solid ${chrome.gridLine}`,
                     }}
                   >
-                    {formatStat(stats.mean)}
+                    {formatStat(stats?.mean ?? channel.mean)}
                   </td>
                   <td
                     style={{
