@@ -29,6 +29,8 @@ export interface UseCapabilityIChartDataOptions {
   subgroupConfig: SubgroupConfig;
   /** Cpk target threshold (undefined = not set) */
   cpkTarget?: number;
+  /** When false, skip all computation and return defaults (default: true) */
+  enabled?: boolean;
 }
 
 export interface UseCapabilityIChartDataResult {
@@ -72,6 +74,7 @@ export function useCapabilityIChartData({
   specs,
   subgroupConfig,
   cpkTarget,
+  enabled = true,
 }: UseCapabilityIChartDataOptions): UseCapabilityIChartDataResult {
   const empty: UseCapabilityIChartDataResult = {
     cpkData: [],
@@ -81,6 +84,7 @@ export function useCapabilityIChartData({
     subgroupResults: [],
   };
 
+  if (!enabled) return empty;
   if (!outcome || filteredData.length === 0) return empty;
   if (specs.usl === undefined && specs.lsl === undefined) return empty;
 

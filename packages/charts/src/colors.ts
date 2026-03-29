@@ -30,6 +30,9 @@ export const chartColors = {
   cumulative: '#f97316', // orange-500 - cumulative line
   threshold80: '#f97316', // orange-500 - 80% threshold line
 
+  // Capability series
+  cpPotential: '#8b5cf6', // violet-500 — Cp (potential capability) series
+
   // Special
   star: '#fbbf24', // yellow-400 - rating stars
 } as const;

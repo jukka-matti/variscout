@@ -13,7 +13,7 @@ import React, { useMemo, useCallback } from 'react';
 import { LinePath, Circle } from '@visx/shape';
 import { inferCharacteristicType, type StatsResult, type SpecLimits } from '@variscout/core';
 import type { IChartDataPoint, StageBoundary } from '@variscout/core';
-import { chartColors, operatorColors } from '../colors';
+import { chartColors } from '../colors';
 import { interactionStyles } from '../styles/interactionStyles';
 import { getDataPointA11yProps } from '../utils/accessibility';
 import ViolationPoint from './ViolationShapes';
@@ -50,7 +50,7 @@ interface DataPointsProps {
     direction: 'increasing' | 'decreasing';
   }>;
   /** Chrome colors from theme */
-  chrome: { dataLine: string; pointStroke: string };
+  chrome: { dataLine: string; pointStroke: string; labelSecondary: string };
   /** Translation function */
   t: (key: keyof import('@variscout/core').MessageCatalog) => string;
   /** Click handler for a data point */
@@ -195,14 +195,31 @@ const DataPoints: React.FC<DataPointsProps> = ({
 
   return (
     <>
-      {/* Secondary series data line + dots */}
+      {/* Secondary series: connecting lines + data line + dots */}
       {hasSecondary && (
         <>
+          {/* Connecting lines between primary and secondary (centering gap) */}
+          {data.map((primary, i) => {
+            const secondary = secondaryData![i];
+            if (!secondary) return null;
+            return (
+              <line
+                key={`gap-${i}`}
+                x1={xScale(primary.x)}
+                y1={yScale(primary.y)}
+                x2={xScale(secondary.x)}
+                y2={yScale(secondary.y)}
+                stroke={chrome.labelSecondary}
+                strokeWidth={1.5}
+                opacity={0.5}
+              />
+            );
+          })}
           <LinePath
             data={secondaryData!}
             x={d => xScale(d.x)}
             y={d => yScale(d.y)}
-            stroke={operatorColors[1]}
+            stroke={chartColors.cpPotential}
             strokeWidth={1}
             strokeOpacity={0.4}
           />
@@ -211,8 +228,8 @@ const DataPoints: React.FC<DataPointsProps> = ({
               key={`sec-${i}`}
               cx={xScale(d.x)}
               cy={yScale(d.y)}
-              r={3}
-              fill={operatorColors[1]}
+              r={4}
+              fill={chartColors.cpPotential}
               stroke={chrome.pointStroke}
               strokeWidth={0.5}
               opacity={0.7}

@@ -33,6 +33,7 @@ import {
   useDashboardInsights,
   useProcessProjection,
   useJourneyPhase,
+  useCapabilityIChartData,
 } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
@@ -341,6 +342,24 @@ const Dashboard = ({
     subgroupConfig,
   });
 
+  // Capability I-Chart data for ProcessHealthBar stats
+  const capabilityIChartData = useCapabilityIChartData({
+    filteredData,
+    outcome: outcome ?? '',
+    specs,
+    subgroupConfig,
+    cpkTarget,
+    enabled: isCapabilityMode,
+  });
+
+  const capabilityStats =
+    isCapabilityMode && capabilityIChartData.subgroupResults.length > 0
+      ? {
+          subgroupsMeetingTarget: capabilityIChartData.subgroupsMeetingTarget ?? 0,
+          totalSubgroups: capabilityIChartData.subgroupResults.length,
+        }
+      : undefined;
+
   if (!outcome) return null;
 
   // Presentation Mode - Fullscreen overlay with all charts
@@ -478,6 +497,8 @@ const Dashboard = ({
             setSpecs({ ...specs, lsl, usl });
             setShowSpecEditor(true);
           }}
+          isCapabilityMode={isCapabilityMode}
+          capabilityStats={capabilityStats}
         />
 
         {/* Selection Panel - Shows when points are brushed in IChart */}

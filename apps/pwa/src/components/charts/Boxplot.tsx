@@ -62,6 +62,8 @@ const Boxplot = ({ parentWidth, parentHeight, ...props }: BoxplotProps) => {
         yDomainMin={isCapabilityMode ? 0 : min}
         yDomainMax={isCapabilityMode ? 0 : max}
         capabilityData={isCapabilityMode ? capabilityData : undefined}
+        isCapabilityMode={isCapabilityMode}
+        cpkTarget={ctx.cpkTarget}
         {...props}
       />
       {ctx.isComputing && (

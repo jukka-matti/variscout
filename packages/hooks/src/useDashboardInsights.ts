@@ -104,6 +104,7 @@ export function useDashboardInsights({
     specs,
     subgroupConfig,
     cpkTarget,
+    enabled: isCapabilityMode,
   });
 
   const handleCpkClick = useCallback(() => {

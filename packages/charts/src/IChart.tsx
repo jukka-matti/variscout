@@ -11,7 +11,7 @@ import type { IChartProps } from './types';
 import { getResponsiveTickCount } from './responsive';
 import ChartSourceBar from './ChartSourceBar';
 import ChartLegend from './ChartLegend';
-import { chartColors, operatorColors } from './colors';
+import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
 import { useChartLayout, useChartTooltip } from './hooks';
 import { useMultiSelection } from './hooks/useMultiSelection';
@@ -343,14 +343,26 @@ const IChartBase: React.FC<IChartProps> = ({
 
           {/* Dual-series legend (capability mode) */}
           {hasSecondary && primaryLabel && secondaryLabel && (
-            <g transform={`translate(${width - 120}, -12)`}>
+            <g transform={`translate(${width - 180}, -12)`}>
               <Circle cx={0} cy={0} r={4} fill={chartColors.mean} />
               <text x={8} y={4} fill={chrome.labelPrimary} fontSize={fonts.tickLabel}>
                 {primaryLabel}
               </text>
-              <Circle cx={60} cy={0} r={3} fill={operatorColors[1]} />
+              <Circle cx={60} cy={0} r={4} fill={chartColors.cpPotential} opacity={0.7} />
               <text x={68} y={4} fill={chrome.labelSecondary} fontSize={fonts.tickLabel}>
                 {secondaryLabel}
+              </text>
+              <line
+                x1={126}
+                y1={-4}
+                x2={126}
+                y2={4}
+                stroke={chrome.labelSecondary}
+                strokeWidth={1.5}
+                opacity={0.5}
+              />
+              <text x={136} y={4} fill={chrome.labelSecondary} fontSize={fonts.tickLabel}>
+                Gap
               </text>
             </g>
           )}

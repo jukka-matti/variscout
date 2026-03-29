@@ -64,4 +64,14 @@ export interface ProcessHealthBarProps {
   activeProjection?: ProcessProjection | null;
   /** Called when user accepts spec suggestion (pre-fills spec editor) */
   onAcceptSpecSuggestion?: (lsl: number, usl: number) => void;
+
+  // --- Capability mode props ---
+
+  /** Whether capability mode (Cpk I-Chart) is active */
+  isCapabilityMode?: boolean;
+  /** Capability mode stats — subgroup target metrics */
+  capabilityStats?: {
+    subgroupsMeetingTarget: number;
+    totalSubgroups: number;
+  };
 }

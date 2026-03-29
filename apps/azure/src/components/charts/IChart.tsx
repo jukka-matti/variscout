@@ -32,6 +32,7 @@ const IChart = ({ parentWidth, parentHeight, ...props }: IChartProps) => {
     specs: ctx.specs,
     subgroupConfig: ctx.subgroupConfig,
     cpkTarget: ctx.cpkTarget,
+    enabled: isCapabilityMode,
   });
 
   return (

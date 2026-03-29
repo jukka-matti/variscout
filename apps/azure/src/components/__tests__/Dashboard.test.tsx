@@ -418,6 +418,14 @@ vi.mock('@variscout/hooks', () => ({
     handleCreateFactor: vi.fn(),
   }),
   useJourneyPhase: () => 'scout',
+  useCapabilityIChartData: () => ({
+    cpkData: [],
+    cpData: [],
+    cpkStats: null,
+    cpStats: null,
+    subgroupResults: [],
+    subgroupsMeetingTarget: 0,
+  }),
   useProcessProjection: () => ({
     drillProjection: null,
     benchmarkProjection: null,

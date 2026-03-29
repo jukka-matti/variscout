@@ -655,14 +655,15 @@ export const Editor: React.FC<EditorProps> = ({
   const entryScenario = useMemo(() => detectEntryScenario(processContext), [processContext]);
 
   // Subgroup capability data for AI context
+  const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
   const capabilityIChartData = useCapabilityIChartData({
     filteredData,
     outcome: outcome ?? '',
     specs: specs ?? {},
     subgroupConfig: subgroupConfig ?? { method: 'fixed-size', size: 5 },
     cpkTarget,
+    enabled: isCapabilityMode,
   });
-  const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
   const aiCapabilityData = useMemo(() => {
     if (!isCapabilityMode || !capabilityIChartData.cpkStats) return undefined;
     return {
