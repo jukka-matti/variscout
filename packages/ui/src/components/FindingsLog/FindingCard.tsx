@@ -189,7 +189,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
                   e.stopPropagation();
                   onNavigateToChart?.(finding.source!);
                 }}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-500/10 text-[10px] text-blue-400 rounded hover:bg-blue-500/20 transition-colors"
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-500/10 text-[0.625rem] text-blue-400 rounded hover:bg-blue-500/20 transition-colors"
                 title={`Go to ${finding.source.chart} chart`}
               >
                 {finding.source.chart === 'ichart' && <Activity size={9} />}
@@ -213,7 +213,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
               return (
                 <span
                   key={factor}
-                  className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-surface-tertiary/50 text-[10px] text-content-secondary rounded"
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-surface-tertiary/50 text-[0.625rem] text-content-secondary rounded"
                 >
                   <span className="font-medium">{label}</span>
                   <span className="text-content-muted">=</span>
@@ -222,7 +222,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
               );
             })}
             {filterEntries.length === 0 && (
-              <span className="text-[10px] text-content-muted italic">No filters</span>
+              <span className="text-[0.625rem] text-content-muted italic">No filters</span>
             )}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -241,7 +241,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
         </div>
 
         {/* Stats line */}
-        <div className="flex items-center gap-2 text-[10px] text-content-muted">
+        <div className="flex items-center gap-2 text-[0.625rem] text-content-muted">
           {context.stats?.cpk !== undefined && (
             <span>
               Cpk{' '}
@@ -358,7 +358,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
         {/* Assignee chip */}
         {finding.assignee && (
           <div className="flex items-center gap-1.5 mt-1">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-500/10 text-[10px] text-purple-400 rounded-full">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-500/10 text-[0.625rem] text-purple-400 rounded-full">
               <UserPlus size={9} />
               {finding.assignee.displayName}
             </span>
@@ -403,7 +403,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
                   e.stopPropagation();
                   onProjectImprovement(finding.id);
                 }}
-                className="flex items-center gap-1.5 text-[10px] text-blue-400 hover:text-blue-300 transition-colors"
+                className="flex items-center gap-1.5 text-[0.625rem] text-blue-400 hover:text-blue-300 transition-colors"
                 data-testid="project-improvement-btn"
               >
                 <TrendingDown size={10} />

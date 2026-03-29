@@ -378,7 +378,7 @@ const WhatIfSimulator = ({
               {hasAdjustment && (
                 <button
                   onClick={handleReset}
-                  className={`flex items-center gap-1 text-[10px] ${c.mutedText} ${c.resetHoverText} transition-colors`}
+                  className={`flex items-center gap-1 text-[0.625rem] ${c.mutedText} ${c.resetHoverText} transition-colors`}
                   title={t('whatif.resetAdjustments')}
                 >
                   <RotateCcw size={10} />
@@ -490,7 +490,7 @@ const WhatIfSimulator = ({
           )}
 
           {/* Helper text */}
-          <p className={`text-[10px] ${c.mutedText} leading-relaxed`}>
+          <p className={`text-[0.625rem] ${c.mutedText} leading-relaxed`}>
             Explore process improvement by adjusting mean (shift toward target) and reducing
             variation (tighter control). Projections assume normal distribution.
           </p>

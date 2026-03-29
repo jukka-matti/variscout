@@ -34,6 +34,9 @@ export interface FactorIntelligencePanelProps {
 /** Minimum R²adj to unlock Layer 2 */
 const LAYER2_THRESHOLD = 0.05;
 
+const LAYER_COLORS = ['bg-indigo-500', 'bg-green-500', 'bg-amber-500'];
+const LAYER_COLORS_INACTIVE = 'bg-surface-tertiary';
+
 const FactorIntelligencePanel: React.FC<FactorIntelligencePanelProps> = ({
   bestSubsets,
   mainEffects,
@@ -53,61 +56,27 @@ const FactorIntelligencePanel: React.FC<FactorIntelligencePanelProps> = ({
   if (!bestSubsets || bestSubsets.subsets.length === 0) return null;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 12,
-        padding: '12px 0',
-      }}
-    >
+    <div className="flex flex-col gap-3 py-3" data-testid="factor-intelligence-panel">
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-content, #e0e0e0)' }}>
-            Factor Intelligence
-          </span>
-          <span
-            style={{
-              fontSize: 10,
-              padding: '2px 6px',
-              borderRadius: 4,
-              background: 'rgba(99, 102, 241, 0.15)',
-              color: '#818cf8',
-              fontWeight: 600,
-            }}
-          >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-content">Factor Intelligence</span>
+          <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-400 font-semibold">
             {bestSubsets.totalFactors} factors · {bestSubsets.n} obs
           </span>
         </div>
 
         {/* Layer progress indicator */}
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div className="flex gap-1">
           {[1, 2, 3].map(layer => {
             const active =
               layer === 1 || (layer === 2 && showLayer2) || (layer === 3 && showLayer3);
             return (
               <div
                 key={layer}
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: active
-                    ? layer === 1
-                      ? '#6366f1'
-                      : layer === 2
-                        ? '#22c55e'
-                        : '#f59e0b'
-                    : 'var(--color-edge, #2a2a3e)',
-                  transition: 'background 0.3s',
-                }}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  active ? LAYER_COLORS[layer - 1] : LAYER_COLORS_INACTIVE
+                }`}
                 title={`Layer ${layer}${active ? ' (active)' : ' (locked)'}`}
               />
             );
@@ -123,14 +92,7 @@ const FactorIntelligencePanel: React.FC<FactorIntelligencePanelProps> = ({
 
       {/* Layer 2 locked message */}
       {!showLayer2 && bestSubsets.subsets.length > 0 && (
-        <div
-          style={{
-            fontSize: 11,
-            color: 'var(--color-content-tertiary, #666)',
-            fontStyle: 'italic',
-            padding: '4px 0',
-          }}
-        >
+        <div className="text-[0.6875rem] text-content-muted italic py-1">
           Layer 2 (Main Effects) unlocks when R²adj {'>'} {(LAYER2_THRESHOLD * 100).toFixed(0)}%
           {bestR2adj > 0 && ` — currently ${(bestR2adj * 100).toFixed(1)}%`}
         </div>
@@ -147,14 +109,7 @@ const FactorIntelligencePanel: React.FC<FactorIntelligencePanelProps> = ({
 
       {/* Layer 3 locked message */}
       {showLayer2 && !showLayer3 && (
-        <div
-          style={{
-            fontSize: 11,
-            color: 'var(--color-content-tertiary, #666)',
-            fontStyle: 'italic',
-            padding: '4px 0',
-          }}
-        >
+        <div className="text-[0.6875rem] text-content-muted italic py-1">
           Layer 3 (Interactions) unlocks when ≥2 factors are significant
           {mainEffects && ` — currently ${mainEffects.significantCount} significant`}
         </div>

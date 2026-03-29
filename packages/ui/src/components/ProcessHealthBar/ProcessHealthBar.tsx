@@ -388,7 +388,7 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
                       className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
                     />
                     <span
-                      className={`px-1 rounded text-[10px] font-medium ${
+                      className={`px-1 rounded text-[0.625rem] font-medium ${
                         chipData.contributionPct >= 50
                           ? 'bg-green-500/20 text-green-400'
                           : chipData.contributionPct >= 30

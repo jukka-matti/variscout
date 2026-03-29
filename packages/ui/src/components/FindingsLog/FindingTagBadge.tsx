@@ -68,7 +68,7 @@ const FindingTagBadge: React.FC<FindingTagBadgeProps> = ({ tag, onTagChange }) =
     <div className="relative" ref={popoverRef}>
       <button
         onClick={handleToggle}
-        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${baseStyle} ${
+        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.625rem] font-medium transition-colors ${baseStyle} ${
           onTagChange ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
         }`}
         title={onTagChange ? 'Set classification' : label}
@@ -94,7 +94,9 @@ const FindingTagBadge: React.FC<FindingTagBadgeProps> = ({ tag, onTagChange }) =
             >
               <span className={`w-2 h-2 rounded-full ${TAG_DOT_COLORS[t]}`} />
               {FINDING_TAG_LABELS[t]}
-              {t === tag && <span className="ml-auto text-[10px] text-content-muted">(clear)</span>}
+              {t === tag && (
+                <span className="ml-auto text-[0.625rem] text-content-muted">(clear)</span>
+              )}
             </button>
           ))}
         </div>

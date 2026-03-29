@@ -86,7 +86,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
         <h3 className="text-sm font-semibold text-content leading-snug">{name}</h3>
         {phaseConfig && (
           <span
-            className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${phaseConfig.textColor} ${phaseConfig.bgColor} ${phaseConfig.borderColor}`}
+            className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[0.625rem] font-medium border ${phaseConfig.textColor} ${phaseConfig.bgColor} ${phaseConfig.borderColor}`}
             data-testid="project-card-phase-badge"
           >
             {phaseConfig.label}

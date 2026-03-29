@@ -17,7 +17,7 @@ const InvestigationPhaseBadge: React.FC<InvestigationPhaseBadgeProps> = ({ phase
   const config = phaseConfig[phase];
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full ${config.classes}`}
+      className={`inline-flex items-center px-2 py-0.5 text-[0.625rem] font-medium rounded-full ${config.classes}`}
       data-testid="investigation-phase-badge"
     >
       {config.label}

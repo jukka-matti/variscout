@@ -338,7 +338,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
           <div>
             <h2 className="text-sm font-semibold text-content">CoScout</h2>
             {providerLabel && (
-              <span className="text-[10px] text-content-muted">{providerLabel}</span>
+              <span className="text-[0.625rem] text-content-muted">{providerLabel}</span>
             )}
           </div>
           <div className="flex items-center gap-1">
@@ -406,7 +406,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
           <div className="px-3 pt-2">
             <button
               onClick={() => setContextExpanded(prev => !prev)}
-              className="flex items-center gap-1 text-[10px] text-content-muted hover:text-content-secondary transition-colors"
+              className="flex items-center gap-1 text-[0.625rem] text-content-muted hover:text-content-secondary transition-colors"
               aria-expanded={contextExpanded}
               data-testid="coscout-context-toggle"
             >
@@ -415,7 +415,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
             </button>
             {contextExpanded && (
               <div
-                className="mt-1 px-2 py-1.5 bg-surface-tertiary/50 rounded text-[10px] text-content-muted space-y-0.5"
+                className="mt-1 px-2 py-1.5 bg-surface-tertiary/50 rounded text-[0.625rem] text-content-muted space-y-0.5"
                 data-testid="coscout-context-details"
               >
                 <div>Stats: {aiContextSummary.stats}</div>
@@ -431,7 +431,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
         {messages.length === 0 && !isLoading && (
           <div className="px-4 py-6 text-center" data-testid="coscout-empty-state">
             <p className="text-xs font-medium text-content-secondary mb-3">I can help you:</p>
-            <ul className="text-[11px] text-content-muted space-y-1.5 text-left max-w-[240px] mx-auto">
+            <ul className="text-[0.6875rem] text-content-muted space-y-1.5 text-left max-w-[240px] mx-auto">
               <li>Understand patterns in your process data</li>
               <li>Investigate suspected causes using progressive stratification</li>
               <li>Interpret capability metrics and Contribution %</li>

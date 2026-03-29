@@ -105,7 +105,7 @@ const TargetDiscoveryCard: React.FC<TargetDiscoveryCardProps> = ({
         className="bg-gradient-to-br from-green-500/5 to-blue-500/5 border border-green-500/20 rounded-lg p-3"
         data-testid="target-discovery-complement"
       >
-        <div className="text-[10px] uppercase tracking-wider text-green-500 font-medium mb-2">
+        <div className="text-[0.625rem] uppercase tracking-wider text-green-500 font-medium mb-2">
           Achievable capability
         </div>
         <div className="text-xs text-content-secondary mb-2">
@@ -117,19 +117,19 @@ const TargetDiscoveryCard: React.FC<TargetDiscoveryCardProps> = ({
         </div>
         <div className="flex gap-2 mb-2">
           <div className="bg-green-500/10 rounded-md px-2 py-1.5 text-center flex-1">
-            <div className="text-[9px] text-green-500">Mean</div>
+            <div className="text-[0.5625rem] text-green-500">Mean</div>
             <div className="text-sm font-semibold font-mono text-green-400">
               {formatStat(complement.mean, 2)}
             </div>
           </div>
           <div className="bg-green-500/10 rounded-md px-2 py-1.5 text-center flex-1">
-            <div className="text-[9px] text-green-500">&sigma;</div>
+            <div className="text-[0.5625rem] text-green-500">&sigma;</div>
             <div className="text-sm font-semibold font-mono text-green-400">
               {formatStat(complement.stdDev, 2)}
             </div>
           </div>
           <div className="bg-blue-500/10 rounded-md px-2 py-1.5 text-center flex-1">
-            <div className="text-[9px] text-blue-400">Range</div>
+            <div className="text-[0.5625rem] text-blue-400">Range</div>
             <div className="text-xs font-semibold font-mono text-blue-400">
               {formatStat(suggestedLsl, 1)}&ndash;{formatStat(suggestedUsl, 1)}
             </div>
@@ -166,7 +166,7 @@ const TargetDiscoveryCard: React.FC<TargetDiscoveryCardProps> = ({
         className="bg-amber-500/5 border border-amber-500/15 rounded-lg p-3"
         data-testid="target-discovery-centering"
       >
-        <div className="text-[10px] uppercase tracking-wider text-amber-500 font-medium mb-1">
+        <div className="text-[0.625rem] uppercase tracking-wider text-amber-500 font-medium mb-1">
           Centering opportunity
         </div>
         <div className="text-xs text-content-secondary leading-relaxed">
@@ -196,7 +196,7 @@ const TargetDiscoveryCard: React.FC<TargetDiscoveryCardProps> = ({
         data-testid="target-discovery-headroom"
       >
         <div
-          className={`text-[10px] uppercase tracking-wider font-medium mb-1 ${meetsTarget ? 'text-green-500' : 'text-amber-500'}`}
+          className={`text-[0.625rem] uppercase tracking-wider font-medium mb-1 ${meetsTarget ? 'text-green-500' : 'text-amber-500'}`}
         >
           {meetsTarget ? 'Target achievable' : 'Gap to target'}
         </div>

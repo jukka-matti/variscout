@@ -6,7 +6,6 @@ import type { GlossaryTerm } from '@variscout/core';
 import type { StatsPanelBaseProps, StatsPanelTab } from './types';
 import { StagedComparisonCard } from './StagedComparisonCard';
 import TargetDiscoveryCard from './TargetDiscoveryCard';
-import BestSubsetsCard from './BestSubsetsCard';
 
 // MetricCard component for the summary grid
 interface MetricCardProps {
@@ -52,7 +51,7 @@ const TAB_INACTIVE_CLASS = 'text-content-secondary hover:text-content';
 const METRIC_CARD_BG_CLASS =
   'bg-surface-secondary/50 border border-edge/50 rounded-lg px-2 py-1.5 text-center';
 const METRIC_LABEL_CLASS =
-  'flex items-center justify-center gap-1 text-[10px] text-content-secondary mb-0.5';
+  'flex items-center justify-center gap-1 text-[0.625rem] text-content-secondary mb-0.5';
 const METRIC_VALUE_CLASS = 'text-base font-semibold font-mono text-content';
 const EMPTY_STATE_CLASS =
   'flex items-center justify-center h-full text-content-muted italic text-sm';
@@ -108,9 +107,9 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   // New tab render props
   renderDataTable,
   renderWhatIf,
-  // Best subsets
-  bestSubsetsResult,
-  onBestSubsetClick,
+  // Best subsets (consumed by FactorIntelligencePanel via Azure StatsPanel wrapper)
+  bestSubsetsResult: _bestSubsetsResult,
+  onBestSubsetClick: _onBestSubsetClick,
 }) => {
   const { t, formatStat } = useTranslation();
   const [activeTab, setActiveTab] = useState<StatsPanelTab>(defaultTab || 'summary');
@@ -171,7 +170,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
                 </div>
                 {cpkTarget !== undefined && (
                   <div
-                    className={`text-[10px] mt-0.5 ${
+                    className={`text-[0.625rem] mt-0.5 ${
                       stats?.cpk !== undefined && stats?.cpk !== null && stats.cpk >= cpkTarget
                         ? 'text-green-500'
                         : 'text-red-400'
@@ -223,7 +222,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
             valueClass={METRIC_VALUE_CLASS}
           />
         </div>
-        <div className="flex items-center gap-3 text-[10px] text-content-muted">
+        <div className="flex items-center gap-3 text-[0.625rem] text-content-muted">
           <span data-testid="stat-value-samples">n={sampleCount ?? filteredData?.length ?? 0}</span>
           {onEditSpecs && (
             <button
@@ -260,7 +259,6 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
           onOpenWhatIf={renderWhatIf ? () => setActiveTab('whatif') : undefined}
           sampleCount={sampleCount ?? filteredData?.length}
         />
-        <BestSubsetsCard result={bestSubsetsResult ?? null} onSubsetClick={onBestSubsetClick} />
         {renderMetricGrid()}
       </>
     );

@@ -16,7 +16,7 @@ import { GridRows } from '@visx/grid';
 import { withParentSize } from '@visx/responsive';
 import type { PerformanceCapabilityProps } from './types';
 import { chartColors } from './colors';
-import { useChartTheme } from './useChartTheme';
+import { useChartTheme, getDocumentFontScale } from './useChartTheme';
 import { getResponsiveMargins, getScaledFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import * as d3 from 'd3-array';
@@ -61,10 +61,10 @@ export const PerformanceCapabilityBase: React.FC<PerformanceCapabilityProps> = (
   specs,
   showBranding = true,
 }) => {
-  const { chrome, fontScale, formatStat } = useChartTheme();
+  const { chrome, formatStat } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'histogram', sourceBarHeight);
-  const fonts = getScaledFonts(parentWidth, fontScale);
+  const fonts = getScaledFonts(parentWidth, getDocumentFontScale());
 
   const width = Math.max(0, parentWidth - margin.left - margin.right);
   const height = Math.max(0, parentHeight - margin.top - margin.bottom);

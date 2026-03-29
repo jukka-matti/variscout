@@ -622,7 +622,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                     <ClipboardList size={16} />
                     {t('panel.findings')}
                     {findingsCount > 0 && (
-                      <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
+                      <span className="ml-auto px-1.5 py-0.5 text-[0.625rem] bg-blue-500/20 text-blue-400 rounded">
                         {findingsCount}
                       </span>
                     )}

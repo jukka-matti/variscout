@@ -201,7 +201,7 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
             </span>
           )}
           {alias && !isRenaming && (
-            <span className="text-[10px] text-slate-500 truncate">({column.name})</span>
+            <span className="text-[0.625rem] text-slate-500 truncate">({column.name})</span>
           )}
           {onRename && !isRenaming && (
             <button
@@ -217,7 +217,7 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
 
         {/* Type badge */}
         <span
-          className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 ${badgeStyle.bg} ${badgeStyle.text}`}
+          className={`text-[0.625rem] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 ${badgeStyle.bg} ${badgeStyle.text}`}
           data-testid={`type-badge-${column.name}`}
         >
           {t(badgeStyle.key)}
@@ -248,7 +248,7 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
             onDismiss={roleBadge.onDismiss}
           />
         )}
-        <span className="text-[10px] text-slate-600">{summaryParts.join(' \u00b7 ')}</span>
+        <span className="text-[0.625rem] text-slate-600">{summaryParts.join(' \u00b7 ')}</span>
       </div>
     </Wrapper>
   );

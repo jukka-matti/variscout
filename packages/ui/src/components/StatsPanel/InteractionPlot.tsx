@@ -54,50 +54,28 @@ const InteractionPanel: React.FC<{ interaction: InteractionResult }> = ({ intera
 
   return (
     <div
-      style={{
-        background: 'var(--color-surface-secondary, #1e1e2e)',
-        borderRadius: 8,
-        padding: '12px 16px',
-        border: `1px solid ${isSignificant ? 'rgba(245, 158, 11, 0.3)' : 'var(--color-edge, #2a2a3e)'}`,
-      }}
+      className={`bg-surface-secondary rounded-lg p-3 border ${
+        isSignificant ? 'border-amber-500/30' : 'border-edge'
+      }`}
     >
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 8,
-        }}
-      >
-        <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--color-content, #e0e0e0)' }}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-semibold text-[0.8125rem] text-content">
           {factorA} × {factorB}
         </span>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div className="flex gap-1.5 items-center">
           <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              padding: '2px 6px',
-              borderRadius: 4,
-              background: isSignificant ? 'rgba(245, 158, 11, 0.15)' : 'rgba(107, 114, 128, 0.15)',
-              color: isSignificant ? '#f59e0b' : '#6b7280',
-            }}
+            className={`text-[0.625rem] font-bold px-1.5 py-0.5 rounded ${
+              isSignificant
+                ? 'bg-amber-500/15 text-amber-500'
+                : 'bg-surface-tertiary text-content-muted'
+            }`}
           >
             ΔR²={deltaRSquared.toFixed(3)}
           </span>
           {isSignificant && (
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                padding: '2px 6px',
-                borderRadius: 4,
-                background: 'rgba(245, 158, 11, 0.15)',
-                color: '#f59e0b',
-              }}
-            >
-              p={'<'}
+            <span className="text-[0.625rem] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500">
+              p{'<'}
               {pValue < 0.001 ? '0.001' : pValue.toFixed(3)}
             </span>
           )}
@@ -109,23 +87,16 @@ const InteractionPanel: React.FC<{ interaction: InteractionResult }> = ({ intera
         width="100%"
         height={chartH + 24}
         viewBox={`0 0 ${chartW} ${chartH + 24}`}
-        style={{ overflow: 'visible' }}
+        className="overflow-visible"
       >
         {/* Y-axis labels */}
-        <text
-          x={marginLeft - 4}
-          y={8}
-          fill="var(--color-content-tertiary, #666)"
-          fontSize={9}
-          textAnchor="end"
-        >
+        <text x={marginLeft - 4} y={8} className="fill-content-muted text-[9px]" textAnchor="end">
           {yMax.toFixed(0)}
         </text>
         <text
           x={marginLeft - 4}
           y={chartH}
-          fill="var(--color-content-tertiary, #666)"
-          fontSize={9}
+          className="fill-content-muted text-[9px]"
           textAnchor="end"
         >
           {yMin.toFixed(0)}
@@ -165,8 +136,7 @@ const InteractionPanel: React.FC<{ interaction: InteractionResult }> = ({ intera
             key={level}
             x={toX(idx)}
             y={chartH + 14}
-            fill="var(--color-content, #e0e0e0)"
-            fontSize={10}
+            className="fill-content text-[10px]"
             textAnchor="middle"
           >
             {level}
@@ -175,26 +145,20 @@ const InteractionPanel: React.FC<{ interaction: InteractionResult }> = ({ intera
       </svg>
 
       {/* Legend */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 4 }}>
+      <div className="flex gap-3 flex-wrap mt-1">
         {levelsB.map((level, i) => (
-          <div key={level} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div key={level} className="flex items-center gap-1">
             <div
-              style={{
-                width: 12,
-                height: 3,
-                borderRadius: 1,
-                background: LINE_COLORS[i % LINE_COLORS.length],
-              }}
+              className="w-3 h-[3px] rounded-sm"
+              style={{ background: LINE_COLORS[i % LINE_COLORS.length] }}
             />
-            <span style={{ fontSize: 11, color: 'var(--color-content-secondary, #999)' }}>
-              {level}
-            </span>
+            <span className="text-[0.6875rem] text-content-secondary">{level}</span>
           </div>
         ))}
       </div>
 
       {/* Interaction interpretation */}
-      <div style={{ fontSize: 11, color: 'var(--color-content-secondary, #999)', marginTop: 6 }}>
+      <div className="text-[0.6875rem] text-content-secondary mt-1.5">
         {isSignificant
           ? `Interaction detected: ${factorA}'s effect depends on ${factorB} level.`
           : 'No significant interaction — effects are approximately additive.'}
@@ -207,19 +171,11 @@ const InteractionPlot: React.FC<InteractionPlotProps> = ({ interactions }) => {
   if (!interactions || interactions.length === 0) return null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          color: 'var(--color-content-secondary, #aaa)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-        }}
-      >
+    <div className="flex flex-col gap-2" data-testid="interaction-plot">
+      <div className="text-[0.75rem] font-semibold text-content-secondary uppercase tracking-wider">
         Layer 3 · Factor Interactions
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="flex flex-col gap-2">
         {interactions.map(interaction => (
           <InteractionPanel
             key={`${interaction.factorA}×${interaction.factorB}`}

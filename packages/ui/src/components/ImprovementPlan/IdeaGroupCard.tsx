@@ -307,12 +307,12 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-medium text-content">{hypothesis.text}</span>
           {hypothesis.causeRole === 'primary' && (
-            <span className="inline-flex items-center rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-500">
+            <span className="inline-flex items-center rounded-full bg-red-500/15 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-red-500">
               {t('hypothesis.primary')}
             </span>
           )}
           {hypothesis.causeRole === 'contributing' && (
-            <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-500">
+            <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-amber-500">
               {t('hypothesis.contributing')}
             </span>
           )}
@@ -354,7 +354,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
                   const val = e.target.value as IdeaTimeframe | '';
                   onUpdateTimeframe?.(hypothesis.id, idea.id, val === '' ? undefined : val);
                 }}
-                className={`rounded border border-edge bg-surface px-1.5 py-0.5 text-[11px] shrink-0 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                className={`rounded border border-edge bg-surface px-1.5 py-0.5 text-[0.6875rem] shrink-0 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                   idea.timeframe
                     ? `${TIMEFRAME_COLORS[idea.timeframe]} ${TIMEFRAME_BG[idea.timeframe]}`
                     : 'text-content/50'
@@ -380,7 +380,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
                     val === '' ? undefined : { category: val }
                   );
                 }}
-                className={`rounded border border-edge bg-surface px-1.5 py-0.5 text-[11px] shrink-0 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                className={`rounded border border-edge bg-surface px-1.5 py-0.5 text-[0.6875rem] shrink-0 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                   idea.cost?.category
                     ? `${COST_COLORS[idea.cost.category]} ${COST_BG[idea.cost.category]}`
                     : 'text-content/50'
@@ -417,7 +417,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
               {idea.projection?.projectedCpk != null && (
                 <span
                   data-testid={`idea-projection-${idea.id}`}
-                  className="inline-flex items-center rounded-full bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-500 shrink-0"
+                  className="inline-flex items-center rounded-full bg-blue-500/10 px-1.5 py-0.5 text-[0.625rem] font-medium text-blue-500 shrink-0"
                 >
                   {idea.projection.projectedCpk.toFixed(2)}
                 </span>
@@ -427,7 +427,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
               {isConverted && (
                 <span
                   data-testid={`idea-converted-${idea.id}`}
-                  className="text-[10px] text-green-500 font-medium shrink-0"
+                  className="text-[0.625rem] text-green-500 font-medium shrink-0"
                 >
                   {t('improve.convertedToAction')}
                 </span>

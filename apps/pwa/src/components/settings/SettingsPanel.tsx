@@ -19,8 +19,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
       onClose={onClose}
       displayOptions={displayOptions}
       setDisplayOptions={setDisplayOptions}
-      chartFontScale={theme.chartFontScale ?? 'normal'}
-      onChartFontScaleChange={scale => setTheme({ chartFontScale: scale })}
+      density={theme.density ?? 'M'}
+      onDensityChange={density => setTheme({ density })}
       idPrefix="pwa-setting"
       headerSections={
         <section>

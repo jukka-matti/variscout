@@ -198,10 +198,7 @@ export interface MessageCatalog {
 
   // Display/settings
   'display.preferences': string;
-  'display.chartTextSize': string;
-  'display.compact': string;
-  'display.normal': string;
-  'display.large': string;
+  'display.density': string;
   'display.lockYAxis': string;
   'display.filterContext': string;
   'display.showSpecs': string;

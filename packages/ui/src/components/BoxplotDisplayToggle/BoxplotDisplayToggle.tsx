@@ -294,7 +294,9 @@ const CategorySection: React.FC<{
             {isAutoMode ? `Auto: top by ${criterionLabel}` : 'Auto selection'}
           </div>
           {isAutoMode && (
-            <div className="text-[10px] text-content-muted">Fits {visibleCount} at this width</div>
+            <div className="text-[0.625rem] text-content-muted">
+              Fits {visibleCount} at this width
+            </div>
           )}
         </div>
         <div
@@ -366,7 +368,7 @@ const CategorySection: React.FC<{
                     >
                       {item.key}
                     </span>
-                    <span className="text-[10px] text-content-muted tabular-nums">
+                    <span className="text-[0.625rem] text-content-muted tabular-nums">
                       μ={fmtVal(item.mean)}
                     </span>
                   </label>
@@ -374,7 +376,7 @@ const CategorySection: React.FC<{
               </div>
 
               {/* Quick actions */}
-              <div className="flex gap-2 text-[10px] pt-1">
+              <div className="flex gap-2 text-[0.625rem] pt-1">
                 <button onClick={selectAll} className="text-purple-400 hover:text-purple-300">
                   All
                 </button>

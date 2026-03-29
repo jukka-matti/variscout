@@ -93,7 +93,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
           {observationCount != null && observationCount > 0 && (
             <span
               data-testid="observation-count-badge"
-              className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-medium"
+              className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-blue-500/20 text-blue-400 text-[0.625rem] font-medium"
             >
               {observationCount}
             </span>

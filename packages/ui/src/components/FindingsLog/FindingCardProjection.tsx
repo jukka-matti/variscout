@@ -30,12 +30,12 @@ const ProjectionSection: React.FC<ProjectionSectionProps> = ({ projection, hasSp
 
   return (
     <div className="mt-2 border-t border-edge/50 pt-2" data-testid="projection-section">
-      <div className="flex items-center gap-1 text-[10px] text-content-muted mb-1">
+      <div className="flex items-center gap-1 text-[0.625rem] text-content-muted mb-1">
         <TrendingDown size={10} />
         <span>Projected improvement</span>
-        <span className="ml-auto text-[9px]">{ageText}</span>
+        <span className="ml-auto text-[0.5625rem]">{ageText}</span>
       </div>
-      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px]">
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[0.6875rem]">
         <span className="text-content-secondary">
           Mean:{' '}
           <span className="text-green-400">

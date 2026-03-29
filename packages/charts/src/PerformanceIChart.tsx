@@ -22,7 +22,7 @@ import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { safeMin, safeMax } from '@variscout/core';
 import type { PerformanceIChartProps, ChannelResult } from './types';
 import { chartColors } from './colors';
-import { useChartTheme } from './useChartTheme';
+import { useChartTheme, getDocumentFontScale } from './useChartTheme';
 import { getResponsiveMargins, getScaledFonts, getResponsiveTickCount } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import { SpecLimitLine } from './components/SpecLimitLine';
@@ -62,10 +62,10 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
   cpkTarget = DEFAULT_CPK_TARGET,
   showLegend = false,
 }) => {
-  const { chrome, fontScale, formatStat, t } = useChartTheme();
+  const { chrome, formatStat, t } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'ichart', sourceBarHeight);
-  const fonts = getScaledFonts(parentWidth, fontScale);
+  const fonts = getScaledFonts(parentWidth, getDocumentFontScale());
 
   const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
   const [tooltipLeft, setTooltipLeft] = React.useState(0);
@@ -76,7 +76,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
 
   // Calculate control limits from capability values across channels
   // Use 'cpk' for control limits when in 'both' mode (can't show control limits for both metrics)
-  const controlLimitMetric = capabilityMetric === 'both' ? 'cpk' as const : capabilityMetric;
+  const controlLimitMetric = capabilityMetric === 'both' ? ('cpk' as const) : capabilityMetric;
   const controlLimits = calculateCapabilityControlLimits(channels, controlLimitMetric);
 
   // Determine control status for each channel

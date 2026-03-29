@@ -68,12 +68,12 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
               data-testid={`mobile-tab-${id}`}
             >
               <Icon size={20} />
-              <span className="text-[10px] leading-tight">{label}</span>
+              <span className="text-[0.625rem] leading-tight">{label}</span>
 
               {/* Findings badge */}
               {id === 'findings' && findingsCount != null && findingsCount > 0 && (
                 <span
-                  className="absolute top-0.5 right-1/4 flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full"
+                  className="absolute top-0.5 right-1/4 flex items-center justify-center min-w-[16px] h-4 px-1 text-[0.625rem] font-bold leading-none text-white bg-red-500 rounded-full"
                   aria-label={`${findingsCount} findings`}
                 >
                   {findingsCount > 99 ? '99+' : findingsCount}

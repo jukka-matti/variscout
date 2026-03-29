@@ -252,7 +252,7 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
                 {/* Contribution badge */}
                 <span
                   className={`
-                    px-1.5 py-0.5 rounded text-[10px] font-medium
+                    px-1.5 py-0.5 rounded text-[0.625rem] font-medium
                     ${
                       chipData.contributionPct >= 50
                         ? 'bg-green-500/20 text-green-400'

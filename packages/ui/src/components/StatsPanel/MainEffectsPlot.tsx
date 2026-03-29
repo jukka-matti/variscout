@@ -37,51 +37,17 @@ const FactorPanel: React.FC<{ effect: FactorMainEffect; grandMean: number }> = (
   const grandMeanY = toY(grandMean);
 
   return (
-    <div
-      style={{
-        flex: '1 1 160px',
-        minWidth: 140,
-        maxWidth: 280,
-        background: 'var(--color-surface-secondary, #1e1e2e)',
-        borderRadius: 8,
-        padding: '12px 16px',
-        border: '1px solid var(--color-edge, #2a2a3e)',
-      }}
-    >
+    <div className="flex-1 min-w-[140px] max-w-[280px] bg-surface-secondary rounded-lg p-3 border border-edge">
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 8,
-        }}
-      >
-        <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--color-content, #e0e0e0)' }}>
-          {effect.factor}
-        </span>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-semibold text-[0.8125rem] text-content">{effect.factor}</span>
+        <div className="flex gap-1.5 items-center">
           {effect.isSignificant && (
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                padding: '2px 6px',
-                borderRadius: 4,
-                background: 'rgba(34, 197, 94, 0.15)',
-                color: '#22c55e',
-              }}
-            >
+            <span className="text-[0.625rem] font-bold px-1.5 py-0.5 rounded bg-green-500/15 text-green-500">
               p {'<'} 0.05
             </span>
           )}
-          <span
-            style={{
-              fontSize: 11,
-              color: 'var(--color-content-tertiary, #888)',
-              fontFamily: 'monospace',
-            }}
-          >
+          <span className="text-[0.6875rem] text-content-muted font-mono">
             η²={effect.etaSquared.toFixed(2)}
           </span>
         </div>
@@ -92,7 +58,7 @@ const FactorPanel: React.FC<{ effect: FactorMainEffect; grandMean: number }> = (
         width="100%"
         height={chartH + 24}
         viewBox={`0 0 ${chartW} ${chartH + 24}`}
-        style={{ overflow: 'visible' }}
+        className="overflow-visible"
       >
         {/* Grand mean dashed line */}
         <line
@@ -100,15 +66,14 @@ const FactorPanel: React.FC<{ effect: FactorMainEffect; grandMean: number }> = (
           y1={grandMeanY}
           x2={chartW}
           y2={grandMeanY}
-          stroke="var(--color-content-tertiary, #555)"
+          className="stroke-content-muted"
           strokeDasharray="4 3"
           strokeWidth={1}
         />
         <text
           x={chartW - 2}
           y={grandMeanY - 4}
-          fill="var(--color-content-tertiary, #666)"
-          fontSize={9}
+          className="fill-content-muted text-[9px]"
           textAnchor="end"
         >
           x̄
@@ -124,7 +89,7 @@ const FactorPanel: React.FC<{ effect: FactorMainEffect; grandMean: number }> = (
               })
               .join(' ')}
             fill="none"
-            stroke="var(--color-accent, #6366f1)"
+            className="stroke-indigo-500"
             strokeWidth={2}
             strokeLinejoin="round"
           />
@@ -137,35 +102,28 @@ const FactorPanel: React.FC<{ effect: FactorMainEffect; grandMean: number }> = (
           const y = toY(l.mean);
           const isBest = l.level === effect.bestLevel;
           const isWorst = l.level === effect.worstLevel;
+          const dotColor = isBest ? '#22c55e' : isWorst ? '#ef4444' : '#6366f1';
           return (
             <g key={l.level}>
               <circle
                 cx={x}
                 cy={y}
                 r={isBest || isWorst ? 5 : 4}
-                fill={isBest ? '#22c55e' : isWorst ? '#ef4444' : 'var(--color-accent, #6366f1)'}
-                stroke={isBest ? '#22c55e' : isWorst ? '#ef4444' : 'var(--color-accent, #6366f1)'}
+                fill={dotColor}
+                stroke={dotColor}
                 strokeWidth={isBest || isWorst ? 2 : 1}
               />
               {/* Mean value label */}
               <text
                 x={x}
                 y={y - 8}
-                fill="var(--color-content-secondary, #aaa)"
-                fontSize={10}
+                className="fill-content-secondary text-[10px] font-mono"
                 textAnchor="middle"
-                fontFamily="monospace"
               >
                 {l.mean.toFixed(1)}
               </text>
               {/* Level label */}
-              <text
-                x={x}
-                y={chartH + 14}
-                fill="var(--color-content, #e0e0e0)"
-                fontSize={10}
-                textAnchor="middle"
-              >
+              <text x={x} y={chartH + 14} className="fill-content text-[10px]" textAnchor="middle">
                 {l.level}
               </text>
             </g>
@@ -174,10 +132,10 @@ const FactorPanel: React.FC<{ effect: FactorMainEffect; grandMean: number }> = (
       </svg>
 
       {/* Summary text */}
-      <div style={{ fontSize: 11, color: 'var(--color-content-secondary, #999)', marginTop: 4 }}>
-        Best: <span style={{ color: '#22c55e', fontWeight: 600 }}>{effect.bestLevel}</span>
+      <div className="text-[0.6875rem] text-content-secondary mt-1">
+        Best: <span className="text-green-500 font-semibold">{effect.bestLevel}</span>
         {' · '}
-        Range: <span style={{ fontFamily: 'monospace' }}>{effect.effectRange.toFixed(1)}</span>
+        Range: <span className="font-mono">{effect.effectRange.toFixed(1)}</span>
       </div>
     </div>
   );
@@ -187,19 +145,11 @@ const MainEffectsPlot: React.FC<MainEffectsPlotProps> = ({ result }) => {
   if (!result || result.factors.length === 0) return null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          color: 'var(--color-content-secondary, #aaa)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-        }}
-      >
+    <div className="flex flex-col gap-2" data-testid="main-effects-plot">
+      <div className="text-[0.75rem] font-semibold text-content-secondary uppercase tracking-wider">
         Layer 2 · Main Effects
       </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <div className="flex gap-2 flex-wrap">
         {result.factors.map(effect => (
           <FactorPanel key={effect.factor} effect={effect} grandMean={result.grandMean} />
         ))}

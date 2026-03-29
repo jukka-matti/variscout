@@ -40,7 +40,7 @@ const BestSubsetsCard: React.FC<BestSubsetsCardProps> = ({
       className="bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border border-indigo-500/15 rounded-lg p-3"
       data-testid="best-subsets-card"
     >
-      <div className="text-[10px] uppercase tracking-wider text-indigo-400 font-medium mb-2">
+      <div className="text-[0.625rem] uppercase tracking-wider text-indigo-400 font-medium mb-2">
         Factor ranking (R² adjusted)
       </div>
       <div className="space-y-1.5">
@@ -92,7 +92,7 @@ const BestSubsetsCard: React.FC<BestSubsetsCardProps> = ({
               </div>
               {/* Significance indicator */}
               {!subset.isSignificant && (
-                <div className="text-[9px] text-content-muted mt-0.5">
+                <div className="text-[0.5625rem] text-content-muted mt-0.5">
                   not significant (p={formatStat(subset.pValue, 3)})
                 </div>
               )}
@@ -101,7 +101,7 @@ const BestSubsetsCard: React.FC<BestSubsetsCardProps> = ({
         })}
       </div>
       {/* Summary line */}
-      <div className="text-[10px] text-content-muted mt-2 leading-relaxed">
+      <div className="text-[0.625rem] text-content-muted mt-2 leading-relaxed">
         {result.subsets[0].factors.length === 1 ? (
           <>
             <span className="text-indigo-400 font-medium">{result.subsets[0].factors[0]}</span>{' '}

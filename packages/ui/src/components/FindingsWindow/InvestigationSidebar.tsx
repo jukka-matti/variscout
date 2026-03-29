@@ -101,12 +101,12 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
         {phase && (
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[10px] uppercase tracking-wider text-content-muted font-medium">
+              <span className="text-[0.625rem] uppercase tracking-wider text-content-muted font-medium">
                 Phase
               </span>
               <InvestigationPhaseBadge phase={phase} />
             </div>
-            <p className="text-[11px] text-content-secondary leading-relaxed">
+            <p className="text-[0.6875rem] text-content-secondary leading-relaxed">
               {t(phaseDescriptionKeys[phase])}
             </p>
           </div>
@@ -115,14 +115,14 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
         {/* Verification checklist — shown when improving phase + staged data */}
         {phase === 'improving' && hasStagedData && (
           <div data-testid="verification-checklist">
-            <div className="text-[10px] uppercase tracking-wider text-content-muted font-medium mb-1.5">
+            <div className="text-[0.625rem] uppercase tracking-wider text-content-muted font-medium mb-1.5">
               {t('investigation.pdcaTitle')}
             </div>
             <ul className="space-y-1">
               {VERIFICATION_CHECKLIST_KEYS.map((key, i) => (
                 <li
                   key={i}
-                  className="flex items-start gap-1.5 text-[11px] text-content-secondary leading-relaxed"
+                  className="flex items-start gap-1.5 text-[0.6875rem] text-content-secondary leading-relaxed"
                 >
                   <span className="text-content-muted mt-0.5">&#9744;</span>
                   <span>{t(key)}</span>
@@ -135,17 +135,17 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
         {/* Uncovered factor roles */}
         {uncoveredRoles.length > 0 && (
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-content-muted font-medium mb-1.5">
+            <div className="text-[0.625rem] uppercase tracking-wider text-content-muted font-medium mb-1.5">
               {t('investigation.uninvestigated')}
             </div>
             <div className="space-y-1">
               {uncoveredRoles.map(({ factor, role }) => (
                 <div
                   key={factor}
-                  className="flex items-center gap-1.5 text-[11px]"
+                  className="flex items-center gap-1.5 text-[0.6875rem]"
                   data-testid={`uncovered-factor-${factor}`}
                 >
-                  <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 text-[10px] font-medium">
+                  <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 text-[0.625rem] font-medium">
                     {role}
                   </span>
                   <span className="text-content-secondary">{factor}</span>
@@ -158,7 +158,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
         {/* Suggested questions */}
         {suggestedQuestions && suggestedQuestions.length > 0 && (
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-content-muted font-medium mb-1.5">
+            <div className="text-[0.625rem] uppercase tracking-wider text-content-muted font-medium mb-1.5">
               Ask CoScout
             </div>
             <div className="space-y-1">
@@ -166,7 +166,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
                 <button
                   key={i}
                   onClick={() => handleCopyQuestion(q, i)}
-                  className="w-full text-left flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-surface text-[11px] text-content-secondary hover:bg-surface-tertiary hover:text-content transition-colors group"
+                  className="w-full text-left flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-surface text-[0.6875rem] text-content-secondary hover:bg-surface-tertiary hover:text-content transition-colors group"
                   title="Copy to clipboard — paste in main window CoScout"
                   data-testid={`sidebar-question-${i}`}
                 >
@@ -186,7 +186,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
         )}
 
         {!hasContent && (
-          <p className="text-[11px] text-content-muted italic">
+          <p className="text-[0.6875rem] text-content-muted italic">
             Investigation context will appear here when AI features are active.
           </p>
         )}
