@@ -166,6 +166,12 @@ export interface BoxplotProps extends BaseChartProps {
     color: string;
     label?: string;
   };
+  /** Subset of category keys to render (adaptive limit). When provided, data is filtered to these. */
+  visibleCategories?: string[];
+  /** Total number of categories before filtering (for overflow indicator) */
+  totalCategories?: number;
+  /** Callback when overflow indicator is clicked */
+  onOverflowClick?: () => void;
 }
 
 /**

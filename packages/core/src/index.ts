@@ -80,6 +80,10 @@ export {
   // Boxplot statistics
   calculateBoxplotStats,
   sortBoxplotData,
+  selectBoxplotCategories,
+  getMaxBoxplotCategories,
+  MIN_BOX_STEP,
+  type BoxplotPriorityCriterion,
   // Kernel density estimation (for violin plots)
   calculateKDE,
   // Point decimation for chart rendering

@@ -65,7 +65,16 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
   fillOverrides,
   groupSize,
   targetLine,
+  visibleCategories,
+  totalCategories,
+  onOverflowClick,
 }) => {
+  // Filter data to visible categories when adaptive limit is active
+  const displayData = visibleCategories
+    ? data.filter(d => visibleCategories.includes(d.key))
+    : data;
+  const overflowCount = totalCategories !== undefined ? totalCategories - displayData.length : 0;
+
   // Show contribution bars by default when categoryContributions is provided
   const shouldShowBars = showContributionBars ?? categoryContributions !== undefined;
   // Determine if this factor should be highlighted as a drill target
@@ -96,7 +105,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
     }
 
     // Priority 2: Auto-calculate from data
-    if (data.length === 0) return [0, 1] as [number, number];
+    if (displayData.length === 0) return [0, 1] as [number, number];
 
     let minVal = Infinity;
     let maxVal = -Infinity;
@@ -121,7 +130,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
     () =>
       scaleBand({
         range: [0, width],
-        domain: data.map(d => d.key),
+        domain: displayData.map(d => d.key),
         padding: 0.4,
       }),
     [data, width]
@@ -150,7 +159,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
     return map;
   }, [data, showViolin, violinDataProp]);
 
-  if (data.length === 0) return null;
+  if (displayData.length === 0) return null;
 
   const totalSampleSize = sampleSize ?? data.reduce((sum, d) => sum + d.values.length, 0);
 
@@ -236,7 +245,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           )}
 
           {/* Boxplots */}
-          {data.map((d, i) => {
+          {displayData.map((d, i) => {
             const x = xScale(d.key) || 0;
             const barWidth = xScale.bandwidth();
 
@@ -460,9 +469,9 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           {/* Group separator lines (for staged boxplot) */}
           {groupSize &&
             groupSize > 1 &&
-            data.map((_, i) => {
+            displayData.map((_, i) => {
               // Draw separator after every groupSize boxes (between groups)
-              if ((i + 1) % groupSize !== 0 || i === data.length - 1) return null;
+              if ((i + 1) % groupSize !== 0 || i === displayData.length - 1) return null;
               const nextKey = data[i + 1]?.key;
               if (!nextKey) return null;
               const x1Pos = (xScale(data[i].key) || 0) + xScale.bandwidth();
@@ -525,7 +534,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             tickFormat={value => {
               const formatted = xTickFormat ? xTickFormat(String(value)) : String(value);
               if (
-                data.length > BOXPLOT_ROTATE_THRESHOLD &&
+                displayData.length > BOXPLOT_ROTATE_THRESHOLD &&
                 formatted.length > BOXPLOT_MAX_LABEL_LENGTH
               ) {
                 return formatted.slice(0, BOXPLOT_MAX_LABEL_LENGTH) + '…';
@@ -535,18 +544,18 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             tickLabelProps={() => ({
               fill: chrome.labelSecondary,
               fontSize: fonts.tickLabel,
-              textAnchor: data.length > BOXPLOT_ROTATE_THRESHOLD ? 'end' : 'middle',
-              dy: data.length > BOXPLOT_ROTATE_THRESHOLD ? -2 : 2,
-              dx: data.length > BOXPLOT_ROTATE_THRESHOLD ? -4 : 0,
+              textAnchor: displayData.length > BOXPLOT_ROTATE_THRESHOLD ? 'end' : 'middle',
+              dy: displayData.length > BOXPLOT_ROTATE_THRESHOLD ? -2 : 2,
+              dx: displayData.length > BOXPLOT_ROTATE_THRESHOLD ? -4 : 0,
               fontWeight: 400,
-              angle: data.length > BOXPLOT_ROTATE_THRESHOLD ? -45 : 0,
+              angle: displayData.length > BOXPLOT_ROTATE_THRESHOLD ? -45 : 0,
             })}
           />
 
           {/* Contribution Labels (below X-axis) */}
           {showContributionLabels &&
             categoryContributions &&
-            data.map(d => {
+            displayData.map(d => {
               const contribution = categoryContributions.get(d.key);
               if (contribution === undefined) return null;
               const x = xScale(d.key) || 0;
@@ -567,7 +576,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             })}
 
           {/* n Labels (always visible below contribution labels or below x-axis) */}
-          {data.map(d => {
+          {displayData.map(d => {
             const x = xScale(d.key) || 0;
             const barWidth = xScale.bandwidth();
             return (
@@ -587,7 +596,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           {/* Contribution Bars (small horizontal bars under each box) */}
           {shouldShowBars &&
             categoryContributions &&
-            data.map(d => {
+            displayData.map(d => {
               const contribution = categoryContributions.get(d.key) ?? 0;
               const x = xScale(d.key) || 0;
               const boxWidth = xScale.bandwidth();
@@ -637,6 +646,46 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             </text>
           )}
         </Group>
+
+        {/* Overflow indicator (when categories are truncated) */}
+        {overflowCount > 0 && (
+          <g
+            transform={`translate(${margin.left + width - 2}, ${margin.top})`}
+            onClick={onOverflowClick}
+            style={onOverflowClick ? { cursor: 'pointer' } : undefined}
+          >
+            <line
+              x1={0}
+              y1={0}
+              x2={0}
+              y2={height}
+              stroke={chrome.axisSecondary}
+              strokeWidth={1}
+              strokeDasharray="4,4"
+              opacity={0.4}
+            />
+            <text
+              x={10}
+              y={height / 2 - 6}
+              fill={chrome.labelMuted}
+              fontSize={fonts.tickLabel}
+              textAnchor="start"
+              opacity={0.6}
+            >
+              ⋯
+            </text>
+            <text
+              x={10}
+              y={height / 2 + 8}
+              fill="#a855f7"
+              fontSize={fonts.tickLabel - 2}
+              textAnchor="start"
+              opacity={0.7}
+            >
+              +{overflowCount}
+            </text>
+          </g>
+        )}
 
         {/* Source Bar (branding) */}
         {showBranding && (

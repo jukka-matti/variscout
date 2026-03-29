@@ -72,7 +72,14 @@ export {
 } from './nelson';
 
 // Boxplot statistics
-export { calculateBoxplotStats, sortBoxplotData } from './boxplot';
+export {
+  calculateBoxplotStats,
+  sortBoxplotData,
+  selectBoxplotCategories,
+  getMaxBoxplotCategories,
+  MIN_BOX_STEP,
+} from './boxplot';
+export type { BoxplotPriorityCriterion } from './boxplot';
 
 // Kernel density estimation
 export { calculateKDE } from './kde';

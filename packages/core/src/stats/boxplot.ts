@@ -3,7 +3,9 @@ import type {
   BoxplotGroupData,
   BoxplotSortBy,
   BoxplotSortDirection,
+  SpecLimits,
 } from '../types';
+import { inferCharacteristicType } from '../types';
 
 /**
  * Calculate boxplot statistics from raw values
@@ -105,4 +107,85 @@ export function sortBoxplotData(
         return a.key.localeCompare(b.key) * dir;
     }
   });
+}
+
+/** Minimum pixels per boxplot category (box + padding) */
+export const MIN_BOX_STEP = 50;
+
+/**
+ * Calculate maximum visible boxplot categories from container width.
+ */
+export function getMaxBoxplotCategories(innerWidth: number): number {
+  return Math.max(2, Math.floor(innerWidth / MIN_BOX_STEP));
+}
+
+/**
+ * Priority criterion label for the current selection mode.
+ */
+export type BoxplotPriorityCriterion = 'mean' | 'spread' | 'distance' | 'name';
+
+/**
+ * Select which boxplot categories to show when there are more than maxCount.
+ *
+ * Uses specs-aware priority:
+ * - smaller-is-better (USL only): highest median first (worst performers)
+ * - larger-is-better (LSL only): lowest median first (worst performers)
+ * - nominal/target: farthest from target first
+ * - no specs: highest IQR first (most variation)
+ *
+ * Sort override: when sortBy is explicitly set, it takes precedence.
+ *
+ * @returns Ordered array of category keys to show
+ */
+export function selectBoxplotCategories(
+  data: BoxplotGroupData[],
+  maxCount: number,
+  specs: SpecLimits,
+  sortBy: BoxplotSortBy = 'name',
+  sortDirection: BoxplotSortDirection = 'desc'
+): { categories: string[]; criterion: BoxplotPriorityCriterion } {
+  if (data.length <= maxCount) {
+    return { categories: data.map(d => d.key), criterion: 'name' };
+  }
+
+  // Determine priority criterion
+  let criterion: BoxplotPriorityCriterion;
+  let ranked: BoxplotGroupData[];
+
+  if (sortBy !== 'name') {
+    // Sort override: user explicitly chose a sort criterion
+    criterion = sortBy === 'mean' ? 'mean' : 'spread';
+    ranked = sortBoxplotData(data, sortBy, sortDirection);
+  } else {
+    // Specs-aware priority
+    const charType = inferCharacteristicType(specs);
+    const target =
+      specs.target ??
+      (specs.lsl !== undefined && specs.usl !== undefined
+        ? (specs.lsl + specs.usl) / 2
+        : undefined);
+
+    if (charType === 'smaller') {
+      // Highest median = worst → sort descending by median
+      criterion = 'mean';
+      ranked = [...data].sort((a, b) => b.median - a.median);
+    } else if (charType === 'larger') {
+      // Lowest median = worst → sort ascending by median
+      criterion = 'mean';
+      ranked = [...data].sort((a, b) => a.median - b.median);
+    } else if (target !== undefined) {
+      // Farthest from target = worst
+      criterion = 'distance';
+      ranked = [...data].sort((a, b) => Math.abs(b.median - target) - Math.abs(a.median - target));
+    } else {
+      // No specs: most variation (IQR) first
+      criterion = 'spread';
+      ranked = [...data].sort((a, b) => b.q3 - b.q1 - (a.q3 - a.q1));
+    }
+  }
+
+  return {
+    categories: ranked.slice(0, maxCount).map(d => d.key),
+    criterion,
+  };
 }

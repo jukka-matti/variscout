@@ -115,6 +115,11 @@ export { useResizablePanel, type UseResizablePanelReturn } from './useResizableP
 // Chart Data Hooks (shared computation for app wrappers)
 export { useBoxplotData, STAGE_SEPARATOR } from './useBoxplotData';
 export type { ViolinDataMap, UseBoxplotDataResult, StageInfo } from './useBoxplotData';
+export { useBoxplotCategoryLimit } from './useBoxplotCategoryLimit';
+export type {
+  UseBoxplotCategoryLimitOptions,
+  UseBoxplotCategoryLimitReturn,
+} from './useBoxplotCategoryLimit';
 export { useIChartData } from './useIChartData';
 
 // Focused Chart Navigation
