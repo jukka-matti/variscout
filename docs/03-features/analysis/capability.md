@@ -126,6 +126,16 @@ When no specifications are configured, the StatsPanel shows only basic statistic
 | 1.00-1.33 | Marginal  | Barely capable |
 | <1.00     | Poor      | Not capable    |
 
+### Dashboard Behavior in Capability Mode
+
+When the analyst toggles to Capability mode:
+
+- **I-Chart**: Dual Cpk/Cp series with connecting lines showing centering gap
+- **Boxplot**: Shows Cpk distribution per factor with Cpk target reference line. Y-axis labeled "Cpk"
+- **Pareto**: Unchanged — shows variation contribution (complements capability boxplot)
+- **Process Health Bar**: Shows overall Cpk and % subgroups meeting Cpk target
+- **Histogram/Probability Plot**: Unchanged — shows raw measurement distribution as reality check
+
 ---
 
 ## Histogram Elements

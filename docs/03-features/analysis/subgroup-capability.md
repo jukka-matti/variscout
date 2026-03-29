@@ -31,7 +31,7 @@ See [Analysis Flow](../workflows/analysis-flow.md) for the complete two-thread a
 The I-Chart in Capability mode shows **both Cp and Cpk** as two series on the same chart:
 
 - **Cpk** (primary, blue dots): Actual capability accounting for centering
-- **Cp** (secondary, green dots): Potential capability assuming perfect centering
+- **Cp** (secondary, purple dots): Potential capability assuming perfect centering
 
 The gap between them directly visualizes centering loss:
 
@@ -39,6 +39,20 @@ The gap between them directly visualizes centering loss:
 - **Large gap**: Process is capable but off-center — investigate centering
 
 Each series has its own control limits (UCL/LCL) calculated from the series values.
+
+## Visual Design
+
+### Series Colors
+
+- **Cpk** (primary): Blue solid dots (`#3b82f6`) — actual capability accounting for centering
+- **Cp** (secondary): Purple solid dots (`#8b5cf6`, slightly smaller, opacity 0.7) — potential capability
+- **Centering gap**: Grey connecting line between each Cpk-Cp pair — length visualizes centering loss
+
+The gap between Cp and Cpk is rendered as a vertical grey line connecting each paired data point. Longer lines indicate greater centering loss — the process has potential capability (Cp) but is off-center, reducing actual capability (Cpk).
+
+### Small Dataset Handling
+
+When a boxplot category has fewer than 7 data points, individual dots are shown instead of a box-and-whisker plot. This applies to all boxplots across all analysis modes, but is especially relevant in capability mode where subgroup counts per factor level are often small.
 
 ## Subgroup Configuration
 
