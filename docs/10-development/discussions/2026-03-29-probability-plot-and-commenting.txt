@@ -1,0 +1,157 @@
+# Transcript: Probability plot and commenting feature 29.3.2026.m4a
+# Language: en
+# Duration: 994.6 seconds
+
+[00:07] So, if there is a probability plot, there should be multiple possibilities to make a
+[00:14] comment on it. Yes, and you should be able to relate the probability plot to rational
+[00:19] subgroups of the process flow. So, if you've got one straight line and it's predicting a function,
+[00:26] is that function within one process step? And if it is, that's interesting because now you've got
+[00:35] a problem because you've also identified that there are some losses between the process step
+[00:43] every time there's an excursion in those inflection points. So every time there's a
+[00:49] change in the inflection points there is a delay somewhere in the process because if you take a
+[00:55] a look at my hands so so i go up here and then i change okay well right at that change point
+[01:02] it's changed from this angle to that angle and that means it's not smooth flow so there's a loss
+[01:08] there and so if that isn't happening coincidentally yeah uh to a change in process that's where you
+[01:17] have a process loss or a process upset and you're losing productivity now that becomes very
+[01:24] interesting when you go to the next level so if you then take a look and you break that that curve
+[01:31] into each of the different rational subgroups for those lines you then get which i illustrated with a
+[01:40] high am production chart and and so we had all those six different lines
+[01:45] and then we broke it into the process steps and every one of them was normally distributed
+[01:51] so you're normally distributed within process which
+[01:54] makes sense why because industrial engineers design a process do they design between the processes no
+[02:05] they have buffers they have things happening they have things coming from other relationships
+[02:10] it's all outside the closed bottle of an individual process step so i can tell by looking
+[02:16] at those inflection points and how they occur across the process how was this line actually
+[02:21] designed
+[02:24] and something i'm trying to grasp is is the
+[02:29] what would be the
+[02:34] measure now from the for the probability plot
+[02:37] and then how how do we split it by the process okay so the probability plot
+[02:47] is based on what is the y measure yeah what what is the y measure
+[02:53] uh
+[02:54] theiable
+[02:56] out all your activity yeah okay
+[02:59] so what you're looking at is productivity across time yeah okay and so every time
+[03:06] that you have an inflection point what's happening you're shifting productivity
+[03:11] now in doe we would call that an effect main effectiveness if we take a look at uh
+[03:24] we see that we're actually measuring the effects of each of the different
+[03:30] variables or combinations of variables on as using the r-squared adjusted to
+[03:36] say that it's significantly explaining variation or not so throw all of that
+[03:41] together in your mind mix it up in the brown paper bag and what do you get you
+[03:46] get that the inflection points are actually giving you the indicators of
+[03:50] the points of change in the process and as a result if you can relate those to
+[03:57] the process steps you can say which process steps should be fixed in what
+[04:01] order now if you show you that whole set of individual process steps as a
+[04:08] multiple probability plot yeah and I start showing you something like this
+[04:13] right so where is the multiple probability plot what how do you use
+[04:20] that to prioritize steps process steps to fix first it's all using the same
+[04:28] outcome so the more vertical the step is the faster it works the more flat the
+[04:37] step is the slower it works so either eliminate the slow or change the slow so
+[04:43] they become faster and that's your priority for attacking the different
+[04:47] subsets
+[04:50] okay so see how fast I did yeah and for that you would need to have the output
+[04:59] of the individual process steps yes so that goes back to how do we manage the
+[05:06] data yeah and that goes back to auto filters and pivot plots yeah it makes
+[05:17] help
+[05:20] one thing I would want to do in greenbelt training just teach auto
+[05:26] filter pivot plots and rational subgroup breakdowns you know in order to
+[05:32] do that
+[05:38] and what else
+[05:42] well they need to understand why you don't use the data in minitab I mean in
+[05:48] Excel
+[05:50] these processes give them cuál
+[05:50] well who knows worms got this data
+[05:50] analysis thing yeah and people say well
+[05:53] if I use the pivot inform just use that
+[05:56] what's wrong with the data analysis either
+[06:03] not just averages but there is no II for variation yeah all one are squared
+[06:13] is not our squared adjusted so it always goes up for the more factors you put in
+[06:18] there without necessarily looking at is this significantly new information or not.
+[06:24] So R-squared adjusted only goes up if you are explaining
+[06:28] new combinations of the Venn diagram that were not included in the prior analysis.
+[06:37] I'm just thinking at what point of time should I have regression in the software?
+[06:56] In essence, you already have it because you've got the least squares fit model with the ANOVA.
+[07:04] Now, what regression do you need to have? What do you need to learn first?
+[07:11] Do you need to learn a function or do you need to learn about variables first?
+[07:17] Most of the time, you need to learn a function.
+[07:18] Most MBA students want an equation. They want a function and then they make mistakes as a result.
+[07:26] Don't search for the function first. Don't search for the equation first. Search for which variables
+[07:33] make a difference by contributing to the overall explanation of variation and which ones don't.
+[07:40] So that's best subsets regression. That's what you teach first.
+[07:48] Now, to teach that, you need to teach chi-square test.
+[07:57] Why? Well, to teach probability plot, you need to teach chi-square test.
+[08:02] Why? Because it's the regression line in any one of those periods is the ideal or the expected value.
+[08:15] And then the actual value is the data plots, or how they draw the probability line around.
+[08:21] So it's observed versus actual. Well, that ratio is chi-square test.
+[08:32] And same thing goes into ANOVA regression hypothesis test.
+[08:39] So the chi-square test is a fundamental aspect in building all statistical analysis.
+[08:45] But nobody ever told you that in statistics class.
+[08:54] And it's not normally taught in Six Sigma.
+[09:15] Cause there are lots of different places that you can introduce that concept.
+[09:21] So I like to do it with the example of the aspirin experiment.
+[09:27] Why? Because observed versus actual, or the ideal.
+[09:33] So the ideal is that there's no difference.
+[09:39] And the observed is that there is a difference.
+[09:42] and and so when you take a look at this how many heart attacks are occurring the
+[09:48] heart attack rate is the Y variable how many heart attacks occurring with
+[09:52] placebo versus with the aspirin and so when you start taking look you start
+[09:58] seeing 1.9 or 1.75 is the ratio between the two that means 1.75 more heart
+[10:08] attacks with people who don't take the placebo we're killing the doctors what
+[10:19] is Greg's problem with this oh selection of the the doctors yeah the samples
+[10:28] it's all about the samples so you have to go back and understand sampling so
+[10:33] who teaches you how to do sampling
+[10:38] we ignore it all the samples I said we got data we got lots of data and I can
+[10:43] give you spreadsheets of data and I can go to the IT department they'll give you
+[10:47] spreadsheets of data look we've got data really do you have observations or do
+[10:54] you have real data you just have lots of observations I think most cases I heard
+[11:01] a new term convenience
+[11:08] sampling yeah so opportunity sampling or convenience sampling so it's what you
+[11:15] can easily get yeah and and that's a convenient sample now opportunity
+[11:21] sampling also I started using that when I was teaching in Motorola
+[11:26] not Motorola
+[11:33] start with them
+[11:38] right now motion no no it's the people who do
+[11:48] genetics and seeds and stuff Mondelez well not Mondelez they
+[11:57] Mondelez is food yeah oh come on Greg I work with them for two years
+[12:08] was it the one where you were doing the field analysis stuff for growing stuff
+[12:13] you know we did growing stuff in Thailand and I actually taught there on
+[12:17] my honeymoon the second week of my honeymoon I was teaching at their
+[12:21] headquarters in Bangkok that's when we launched the golf ball through the
+[12:27] window and had all the papers fly out
+[12:30] great man not Monsanto yes Monsanto
+[12:38] I was thinking Monticello all the time and through that and that's the home the
+[12:42] name of the home of Thomas Jefferson so it was not Monticello anyhow but at Monsanto and and they
+[12:50] had a factory where they're making glyphosate which is the active pharmaceutical ingredient in
+[12:55] the roundup of their pesticide and what they were doing was they were testing the line and they were
+[13:03] going through and they were dipping into the different bats and just taking a little scoop
+[13:08] at each bat and that was their QA sampling and I asked the question you
+[13:12] know how stable is the bat you know and and I said is is this this bat got light
+[13:21] ends and heavy ends and I said what do you mean I said well is some part of
+[13:26] that sediment or particles that's floating to the bottom and when you
+[13:30] scoop at the top you're getting the light ends which is not representative
+[13:33] of the full thing
+[13:38] and I said let's scoop to the bottom and it comes up sludge
+[13:46] I guess that's not a very good sampling method it's not representative of the tank well how do
+[13:51] we do that I said you have to build your tank right so that you have the data sampling and
+[13:58] they said what does that mean I said impeller and the impeller that adds a mixture and then
+[14:04] the mixing allows you to have the right samples by the method that you want to
+[14:08] use yeah either that or you take your sampling spoon and move it up and down
+[14:13] so that you're mixing it itself it's just that's too much of an asshole
+[14:25] same solution went for nest egg in there
+[14:32] they had this step at the very beginning when they they take there's a preliminary
+[14:38] screening that they do and they add acid in there so they're adding citric
+[14:43] acid and then if that doesn't work they add another acid which is phosphoric acid
+[14:50] but the phosphoric acid in the next step phosphor in the solution will cause
+[14:57] the death of the catalyst because it corrupts the catalyst so if they add too
+[15:06] much phosphoric acid here they're killing the catalyst and mixing and that's the 25 million
+[15:11] dollars to change the catalyst big bill and and they were just doing this to increase the speed
+[15:18] of this pre-treatment system anyhow but they had diatomaceous earth and that they had acid
+[15:28] in there and then it was going around in this swirl and they had it moving in one direction but
+[15:36] didn't have it moving vertically as well so it didn't really mix it layered
+[15:40] so you really have to think about fluid dynamics and i hated fluid
+[15:51] do i be also otherwise but the thing is if you can visualize the actions in the process
+[16:00] at the particle level or at the lowest level that helps you at least understand
+[16:06] what is the situation needs to be accounted for that can create variation in something that you're
+[16:12] looking at and it's that ability to visualize the process i've been developing since the 1970s
+[16:22] i had to even visualize how do you detect a submarine
+[16:28] so we had a study that we did in the early 70s

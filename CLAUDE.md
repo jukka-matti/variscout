@@ -49,6 +49,7 @@ npx ruflo@3.5.42 security cve --check        # CVE check
 | docs/07-decisions/      | ADR-001 through ADR-049                                               |
 | docs/08-products/       | Azure, PWA, website specs, feature-parity matrix                      |
 | docs/09-tutorials/      | Planned step-by-step guides                                           |
+| docs/10-development/    | Feature backlog, user testing discussions, development notes          |
 | docs/superpowers/specs/ | Design specs from brainstorming sessions (see index.md)               |
 | docs/archive/           | HISTORICAL ONLY — removed features, do not reference for current work |
 

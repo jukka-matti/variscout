@@ -1,0 +1,43 @@
+# Transcript: Variscout data set analysis discussion.m4a
+# Language: en
+# Duration: 239.9 seconds
+
+[00:03] I don't know if I have, I still can't read it, a small font, yeah, yeah, yeah, I don't know if I have,
+[00:25] I guess the only, only thing is the others, and then, is there a total, yeah, there is total,
+[00:47] okay, so, let's do the eye chart on total, yeah, and then, I can select up to three factors,
+[01:06] and, well, let's go with the month, and we could set specification limits on part of the source,
+[01:14] but we don't have those, we don't,
+[01:19] so, so, yeah, okay, so, this is the data, and what month do you think that is, if I don't tell you?
+[01:32] December, summer, summer, so, what I could do is, let's see if I can,
+[01:44] I was able to,
+[01:48] browse these,
+[01:53] and then, select the,
+[01:56] determine my data points,
+[01:58] I could see which ones those were with the bad font,
+[02:02] and I could create a factor for that,
+[02:14] and the, the, I could give it a name,
+[02:17] so, summer visitors,
+[02:28] okay, now, it would only take those,
+[02:31] yeah, and then,
+[02:37] here, we would see the postplot out of those against month,
+[02:43] okay,
+[02:46] so,
+[02:47] , there's your probability clause,
+[02:52] yeah,
+[02:55] okay, now,
+[03:00] for those summer months, which countries have the highest amount?
+[03:10] That's a good question.
+[03:15] So,
+[03:23] for that,
+[03:29] I have a hunch, we are not able to answer,
+[03:34] with the current data structure,
+[03:40] yeah, I'm not able to do it,
+[03:42] okay, so, I'm not able to answer, with the current data structure, yeah, I'm not able to do it,
+[03:45] thank you.
+[03:49] So, easy to be,
+[03:51] and I can do it in Minitab.
+[03:52] I know.
+[03:55] But, this is the kind of test you have to do,
+[03:58] yeah,
+[03:58] to see, okay,
+[03:59] it's not that easy,
