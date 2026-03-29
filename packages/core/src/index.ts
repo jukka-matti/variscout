@@ -151,6 +151,7 @@ export type { ExportOptions } from './export';
 export type {
   ColumnAnalysis,
   DetectedColumns,
+  StackSuggestion,
   ExclusionReason,
   ExcludedRow,
   ColumnIssue,
@@ -444,6 +445,10 @@ export {
   CATEGORY_DISPLAY_NAMES,
   inferCategoryName,
 } from './parser';
+
+// Stack (unpivot) columns
+export { stackColumns, previewStack } from './parser';
+export type { StackConfig, StackResult } from './parser';
 
 // Findings (scouting report)
 export type {

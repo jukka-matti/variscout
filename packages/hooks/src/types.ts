@@ -20,6 +20,7 @@ import type {
   ProcessContext,
   InvestigationCategory,
   EntryScenario,
+  StackConfig,
 } from '@variscout/core';
 
 // Re-export for convenience
@@ -232,6 +233,10 @@ export interface AnalysisState {
   // --- Filter stack ordering (Phase 2) ---
   /** Ordered filter drill trail — reconstructs breadcrumbs on reload */
   filterStack?: FilterAction[];
+
+  // --- Stack (wide-form to long-form transform) ---
+  /** Stack config if data was reshaped from wide-form. Re-applied on project reload. */
+  stackConfig?: StackConfig;
 
   // --- View state (Phase 4) ---
   /** Where the analyst was working (tab, panels, focused chart) */

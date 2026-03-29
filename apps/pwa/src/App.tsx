@@ -663,6 +663,9 @@ function AppMain() {
                 hasTimeComponent={importFlow.timeExtractionPrompt?.hasTimeComponent}
                 onTimeExtractionChange={importFlow.setTimeExtractionConfig}
                 mode={importFlow.isMappingReEdit ? 'edit' : 'setup'}
+                suggestedStack={importFlow.suggestedStack}
+                onStackConfigChange={importFlow.handleStackConfigChange}
+                rowLimit={50000}
               />
             ) : resolveMode(analysisMode) === 'yamazumi' && yamazumiMapping ? (
               <Suspense fallback={null}>

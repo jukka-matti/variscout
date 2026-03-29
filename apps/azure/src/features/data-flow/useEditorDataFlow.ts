@@ -6,6 +6,7 @@ import {
   detectWideFormat,
   detectYamazumiFormat,
   augmentWithTimeColumns,
+  stackColumns,
 } from '@variscout/core';
 import type {
   AnalysisMode,
@@ -13,6 +14,7 @@ import type {
   DataQualityReport,
   TimeExtractionConfig,
   YamazumiDetection,
+  StackConfig,
 } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import type { ManualEntryConfig } from '../../components/data/ManualEntry';
@@ -228,6 +230,8 @@ export interface UseEditorDataFlowReturn {
   openFactorManager: () => void;
   // Computed
   mappingColumnAnalysis: ReturnType<typeof detectColumns>['columnAnalysis'] | undefined;
+  suggestedStack: ReturnType<typeof detectColumns>['suggestedStack'];
+  handleStackConfigChange: (config: StackConfig | null) => void;
   handleColumnRename: (originalName: string, alias: string) => void;
   existingConfig: ManualEntryConfig | undefined;
   // Flow handlers
@@ -300,6 +304,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   const [flowState, dispatch] = useReducer(editorFlowReducer, initialFlowState);
 
   // Independent state (not part of flow state machine)
+  const [pendingStackConfig, setPendingStackConfig] = useState<StackConfig | null>(null);
   const [timeExtractionPrompt, setTimeExtractionPrompt] = useState<{
     timeColumn: string;
     hasTimeComponent: boolean;
@@ -324,10 +329,13 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   const appendFileInputRef = useRef<HTMLInputElement>(null);
 
   // Column analysis for ColumnMapping rich cards
-  const mappingColumnAnalysis = useMemo(() => {
+  const detectedColumnsResult = useMemo(() => {
     if (rawData.length === 0) return undefined;
-    return detectColumns(rawData).columnAnalysis;
+    return detectColumns(rawData);
   }, [rawData]);
+
+  const mappingColumnAnalysis = detectedColumnsResult?.columnAnalysis;
+  const suggestedStack = detectedColumnsResult?.suggestedStack;
 
   // Column rename handler
   const handleColumnRename = useCallback(
@@ -546,6 +554,12 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         }
       }
 
+      // Apply stack transform if configured
+      if (pendingStackConfig && pendingStackConfig.columnsToStack.length > 0) {
+        const result = stackColumns(rawData, pendingStackConfig);
+        setRawData(result.data);
+      }
+
       setOutcome(newOutcome);
       setFactors(newFactors);
       if (newSpecs) setSpecs(newSpecs);
@@ -560,6 +574,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       setOutcome,
       setFactors,
       setSpecs,
+      setRawData,
+      rawData,
+      pendingStackConfig,
       flowState.isMappingReEdit,
       factors,
       applyTimeExtraction,
@@ -659,6 +676,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     openFactorManager,
     // Computed
     mappingColumnAnalysis,
+    suggestedStack,
+    handleStackConfigChange: setPendingStackConfig,
     handleColumnRename,
     existingConfig,
     // Flow handlers

@@ -18,6 +18,7 @@
 export type {
   ColumnAnalysis,
   DetectedColumns,
+  StackSuggestion,
   ExclusionReason,
   ExcludedRow,
   ColumnIssue,
@@ -49,3 +50,7 @@ export {
   CATEGORY_DISPLAY_NAMES,
   inferCategoryName,
 } from './keywords';
+
+// Stack (unpivot) columns — wide-to-long transform
+export { stackColumns, previewStack } from './stack';
+export type { StackConfig, StackResult } from './stack';

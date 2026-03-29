@@ -911,6 +911,9 @@ export const Editor: React.FC<EditorProps> = ({
         onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
         showBrief={true}
         initialProblemStatement={processContext?.problemStatement}
+        suggestedStack={dataFlow.suggestedStack}
+        onStackConfigChange={dataFlow.handleStackConfigChange}
+        rowLimit={250000}
       />
     );
   }
@@ -1161,6 +1164,8 @@ export const Editor: React.FC<EditorProps> = ({
             onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
             showBrief={true}
             initialProblemStatement={processContext?.problemStatement}
+            suggestedStack={dataFlow.suggestedStack}
+            rowLimit={250000}
           />
         )}
       </div>

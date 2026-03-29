@@ -20,6 +20,7 @@ import { DataPreviewTable } from './DataPreviewTable';
 import SpecsSection from './SpecsSection';
 import ParetoUpload from './ParetoUpload';
 import TimeExtractionPanel from './TimeExtractionPanel';
+import { StackSection } from './StackSection';
 import type {
   ColumnAnalysis,
   CharacteristicType,
@@ -28,6 +29,8 @@ import type {
   TimeExtractionConfig,
   InvestigationCategory,
   TargetMetric,
+  StackConfig,
+  StackSuggestion,
 } from '@variscout/core';
 import {
   inferCategoryName,
@@ -103,6 +106,14 @@ export interface ColumnMappingProps {
   showBrief?: boolean;
   /** Initial problem statement (from persisted ProcessContext) */
   initialProblemStatement?: string;
+  /** Stack suggestion from detectColumns() (shown when wide-form data detected) */
+  suggestedStack?: StackSuggestion;
+  /** Initial stack config (from persisted project state) */
+  initialStackConfig?: StackConfig | null;
+  /** Callback when stack config changes — parent uses this to re-run stackColumns() */
+  onStackConfigChange?: (config: StackConfig | null) => void;
+  /** Platform row limit for stack warning (default: 50000) */
+  rowLimit?: number;
 }
 
 /**
@@ -147,6 +158,10 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   initialCategories: initialCategoriesProp,
   showBrief = false,
   initialProblemStatement,
+  suggestedStack,
+  initialStackConfig,
+  onStackConfigChange,
+  rowLimit = 50000,
 }) => {
   const { t } = useTranslation();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
@@ -155,6 +170,37 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   const [showAllOutcome, setShowAllOutcome] = useState(false);
   const [showAllFactors, setShowAllFactors] = useState(false);
   const [dismissedRoles, setDismissedRoles] = useState<Set<string>>(new Set());
+
+  // Stack config state (internal — syncs to parent via onStackConfigChange)
+  const [stackConfig, setStackConfig] = useState<StackConfig | null>(() => {
+    if (initialStackConfig) return initialStackConfig;
+    if (
+      suggestedStack &&
+      (suggestedStack.confidence === 'high' || suggestedStack.confidence === 'medium')
+    ) {
+      return {
+        columnsToStack: suggestedStack.columnsToStack,
+        measureName: suggestedStack.measureName ?? '',
+        labelName: suggestedStack.labelName ?? '',
+      };
+    }
+    return null;
+  });
+
+  const handleStackConfigChange = useCallback(
+    (config: StackConfig | null) => {
+      setStackConfig(config);
+      onStackConfigChange?.(config);
+    },
+    [onStackConfigChange]
+  );
+
+  // Stack validation: both names required when stack is enabled
+  const isStackValid =
+    !stackConfig ||
+    (!!stackConfig.measureName.trim() &&
+      !!stackConfig.labelName.trim() &&
+      stackConfig.columnsToStack.length > 0);
 
   // Brief fields state
   const [problemStatement, setProblemStatement] = useState(initialProblemStatement || '');
@@ -288,7 +334,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     }
   };
 
-  const isValid = !!outcome;
+  const isValid = !!outcome && isStackValid;
 
   return (
     <div className="flex flex-col h-full items-center justify-center p-4 animate-in fade-in zoom-in duration-300">
@@ -494,6 +540,18 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                 data-testid="brief-problem-statement"
               />
             </div>
+          )}
+
+          {/* Stack Columns (wide-form data) */}
+          {suggestedStack && (
+            <StackSection
+              suggestedStack={suggestedStack}
+              columnAnalysis={columns}
+              totalRows={totalRows ?? 0}
+              rowLimit={rowLimit}
+              stackConfig={stackConfig}
+              onStackConfigChange={handleStackConfigChange}
+            />
           )}
 
           {/* Outcome Selection */}
