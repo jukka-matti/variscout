@@ -24,15 +24,34 @@ Features identified from user testing discussions (2026-03-29) and development s
 - [ ] **Brushing mode with smart selection** — Select all points above/below a value (e.g., target, control limit). Selection respects performance measure direction: if smaller-is-better, "select all above USL" highlights the failures. Could also support "select all outside control limits" as a one-click action.
   - _Source: User feedback — "select all above/below certain value depending on direction of performance measure"_
 
-## Statistical Features
+## Probability Plot Enhancement
 
-- [ ] **Chi-square test (simple)** — Observed vs expected distribution test. Foundation for probability plot regression, goodness-of-fit, and hypothesis testing. Could be shown alongside probability plot as a normality/distribution test.
+Detailed analysis: [discussions/2026-03-29-probability-plot-analysis.md](discussions/2026-03-29-probability-plot-analysis.md)
+
+### Phase A — Quick wins (UX polish)
+
+- [ ] **Signature block on probability plot** — Show N, Mean, StDev, Anderson-Darling p-value directly on the chart (Minitab-style). The `signatureElement` prop already exists but isn't used.
+- [ ] **Anderson-Darling normality test** — Compute and display p-value. "Is this data normally distributed?" with clear pass/fail.
+- [ ] **Cp/Cpk on probability plot** — When in capability mode, show Cp/Cpk on the chart itself, not hidden in stats panel.
+- [ ] **Easier focused view entry** — Double-click chart to expand, or more prominent expand button. User couldn't figure out how to enlarge.
+
+### Phase B — Multi-series probability plot
+
+- [ ] **Multiple probability plot by factor** — When a factor is selected, draw one line per factor level with different colors. Same axes. Each subgroup line shows its own distribution shape.
+- [ ] **Slope comparison for prioritization** — Steeper line = tighter distribution = better process step. Flatter = more variation = fix first. Visual ranking tool for process improvement.
+- [ ] **Per-level stats** — Show mean, StDev, N per subgroup line in legend or tooltip.
+
+### Phase C — Process diagnostics
+
+- [ ] **Inflection point detection** — Piecewise linear regression on the probability plot data. Detect where slope changes significantly. Mark change points with vertical indicators.
+- [ ] **Annotations on inflection points** — Create findings anchored to inflection locations. "Process loss between Step 2 and 3."
+
+## Other Statistical Features
+
+- [ ] **Chi-square goodness-of-fit test** — Observed vs expected distribution test. Foundation for probability plot, ANOVA, regression. Show alongside probability plot.
   - _Source: Methodology discussion — "chi-square test is a fundamental aspect in building all statistical analysis"_
 
-- [ ] **Multiple probability plots** — Overlay probability plots for each rational subgroup (process step) on the same axes. Steeper line = faster/better process. Enables visual prioritization of which process steps to fix first.
-  - _Source: Methodology discussion — "show you that whole set of individual process steps as a multiple probability plot"_
-
-- [ ] **Best subsets regression** — "Don't search for the function first. Search for which variables make a difference." Identifies which factors explain the most variation using R² adjusted. Natural extension of ANOVA. (Deferred per ADR-014.)
+- [ ] **Best subsets regression** — Identify which variables explain the most variation using R² adjusted. Natural extension of ANOVA. (Deferred per ADR-014.)
   - _Source: Methodology discussion — "that's best subsets regression, that's what you teach first"_
 
 ## Analysis Modes
