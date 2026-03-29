@@ -2,7 +2,14 @@ import React, { useMemo, useState } from 'react';
 import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
 import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
 import type { ComplementInsight } from '@variscout/ui';
-import { StatsPanelBase, useGlossary, WhatIfSimulator, computePresets } from '@variscout/ui';
+import {
+  StatsPanelBase,
+  useGlossary,
+  WhatIfSimulator,
+  computePresets,
+  FactorIntelligencePanel,
+} from '@variscout/ui';
+import { computeBestSubsets, computeMainEffects, computeInteractionEffects } from '@variscout/core';
 import SpecEditor from './settings/SpecEditor';
 
 interface StatsPanelProps {
@@ -24,6 +31,10 @@ interface StatsPanelProps {
   sampleCount?: number;
   /** Data table render prop */
   renderDataTable?: () => React.ReactNode;
+  /** Factor Intelligence: available factor column names */
+  factors?: string[];
+  /** Factor Intelligence: callback when user clicks a subset for drill-down */
+  onFactorDrillDown?: (factors: string[]) => void;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({
@@ -43,6 +54,8 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   centeringOpportunity,
   sampleCount,
   renderDataTable,
+  factors = [],
+  onFactorDrillDown,
 }) => {
   const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
@@ -61,6 +74,24 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
       outcome
     );
   }, [stats, specs, filteredData, outcome]);
+
+  // ── Factor Intelligence (Layers 1-3) ──
+  const hasFactorIntelligence = factors.length >= 2 && outcome && filteredData.length > 0;
+
+  const bestSubsets = useMemo(() => {
+    if (!hasFactorIntelligence) return null;
+    return computeBestSubsets(filteredData, outcome!, factors);
+  }, [filteredData, outcome, factors, hasFactorIntelligence]);
+
+  const mainEffects = useMemo(() => {
+    if (!hasFactorIntelligence) return null;
+    return computeMainEffects(filteredData, outcome!, factors);
+  }, [filteredData, outcome, factors, hasFactorIntelligence]);
+
+  const interactionEffects = useMemo(() => {
+    if (!hasFactorIntelligence) return null;
+    return computeInteractionEffects(filteredData, outcome!, factors);
+  }, [filteredData, outcome, factors, hasFactorIntelligence]);
 
   return (
     <>
@@ -113,6 +144,16 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             : undefined
         }
       />
+
+      {/* Factor Intelligence — shows when ≥2 factors available */}
+      {hasFactorIntelligence && bestSubsets && (
+        <FactorIntelligencePanel
+          bestSubsets={bestSubsets}
+          mainEffects={mainEffects}
+          interactionEffects={interactionEffects}
+          onSubsetClick={onFactorDrillDown}
+        />
+      )}
     </>
   );
 };

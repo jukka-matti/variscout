@@ -117,6 +117,7 @@ export {
   TargetDiscoveryCard,
   StagedComparisonCard,
   defaultStagedComparisonColorScheme,
+  FactorIntelligencePanel,
   type StatsPanelBaseProps,
   type StatsPanelTab,
   type ComplementInsight,
@@ -124,6 +125,7 @@ export {
   type StatsSummaryPanelProps,
   type StagedComparisonCardProps,
   type StagedComparisonColorScheme,
+  type FactorIntelligencePanelProps,
 } from './components/StatsPanel';
 
 export {

@@ -445,6 +445,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
                   isDrilling={isDrilling}
                   complement={complementInsight}
                   centeringOpportunity={centeringOpp}
+                  factors={factors}
                 />
               </React.Suspense>
             </div>

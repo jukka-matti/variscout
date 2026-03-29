@@ -545,6 +545,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
                 outcome={outcome}
                 onSaveSpecs={onSaveSpecs}
                 showCpk={showCpk}
+                factors={factors}
               />
             )}
           </ErrorBoundary>
