@@ -6,6 +6,7 @@ import type { GlossaryTerm } from '@variscout/core';
 import type { StatsPanelBaseProps, StatsPanelTab } from './types';
 import { StagedComparisonCard } from './StagedComparisonCard';
 import TargetDiscoveryCard from './TargetDiscoveryCard';
+import BestSubsetsCard from './BestSubsetsCard';
 
 // MetricCard component for the summary grid
 interface MetricCardProps {
@@ -107,6 +108,9 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   // New tab render props
   renderDataTable,
   renderWhatIf,
+  // Best subsets
+  bestSubsetsResult,
+  onBestSubsetClick,
 }) => {
   const { t, formatStat } = useTranslation();
   const [activeTab, setActiveTab] = useState<StatsPanelTab>(defaultTab || 'summary');
@@ -256,6 +260,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
           onOpenWhatIf={renderWhatIf ? () => setActiveTab('whatif') : undefined}
           sampleCount={sampleCount ?? filteredData?.length}
         />
+        <BestSubsetsCard result={bestSubsetsResult ?? null} onSubsetClick={onBestSubsetClick} />
         {renderMetricGrid()}
       </>
     );

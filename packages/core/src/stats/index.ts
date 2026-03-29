@@ -81,6 +81,10 @@ export {
 } from './boxplot';
 export type { BoxplotPriorityCriterion } from './boxplot';
 
+// Best subsets regression
+export type { BestSubsetResult, BestSubsetsResult } from './bestSubsets';
+export { computeBestSubsets, computeRSquaredAdjusted, getBestSingleFactor } from './bestSubsets';
+
 // Kernel density estimation
 export { calculateKDE } from './kde';
 

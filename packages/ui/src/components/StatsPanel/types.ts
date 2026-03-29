@@ -5,6 +5,7 @@ import type {
   GlossaryTerm,
   DataRow,
   StagedComparison,
+  BestSubsetsResult,
 } from '@variscout/core';
 import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
 import type { ComplementInsight } from './TargetDiscoveryCard';
@@ -52,6 +53,13 @@ export interface StatsPanelBaseProps {
   centeringOpportunity?: CenteringOpportunity | null;
   /** Called when user accepts suggested specs from target discovery */
   onAcceptSpecs?: (lsl: number, usl: number) => void;
+
+  // --- Best Subsets ---
+
+  /** Best subsets regression result (shown in Summary tab when available) */
+  bestSubsetsResult?: BestSubsetsResult | null;
+  /** Called when user clicks a factor subset for drill-down */
+  onBestSubsetClick?: (factors: string[]) => void;
 
   // --- Data Tab ---
 

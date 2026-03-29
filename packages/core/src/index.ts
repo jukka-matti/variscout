@@ -86,6 +86,10 @@ export {
   type BoxplotPriorityCriterion,
   // Kernel density estimation (for violin plots)
   calculateKDE,
+  // Best subsets regression
+  computeBestSubsets,
+  computeRSquaredAdjusted,
+  getBestSingleFactor,
   // Point decimation for chart rendering
   lttb,
   // Evidence interpretation
@@ -106,6 +110,9 @@ export type {
   CapabilitySeriesLimits,
   StandardIChartMetric,
 } from './stats';
+
+// Best subsets regression types
+export type { BestSubsetResult, BestSubsetsResult } from './stats';
 
 // Tier (Azure Marketplace multi-tier licensing) — primary module
 export type { LicenseTier, TierLimits, ChannelLimitResult, MarketplacePlan } from './tier';
