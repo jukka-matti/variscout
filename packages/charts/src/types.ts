@@ -160,6 +160,12 @@ export interface BoxplotProps extends BaseChartProps {
   fillOverrides?: Record<string, string>;
   /** Draw thin dashed vertical separator lines between every N boxes (for staged grouping) */
   groupSize?: number;
+  /** Optional horizontal reference line (e.g., Cpk target in capability mode) */
+  targetLine?: {
+    value: number;
+    color: string;
+    label?: string;
+  };
 }
 
 /**

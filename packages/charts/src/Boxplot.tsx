@@ -59,6 +59,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
   onBoxContextMenu,
   fillOverrides,
   groupSize,
+  targetLine,
 }) => {
   // Show contribution bars by default when categoryContributions is provided
   const shouldShowBars = showContributionBars ?? categoryContributions !== undefined;
@@ -167,6 +168,33 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
         aria-label={`Boxplot: ${yAxisLabel} distribution`}
       >
         <Group left={margin.left} top={margin.top}>
+          {/* Target reference line (e.g., Cpk target) */}
+          {targetLine && yScale(targetLine.value) >= 0 && yScale(targetLine.value) <= height && (
+            <>
+              <line
+                x1={0}
+                x2={width}
+                y1={yScale(targetLine.value)}
+                y2={yScale(targetLine.value)}
+                stroke={targetLine.color}
+                strokeWidth={1}
+                strokeDasharray="6,3"
+                opacity={0.6}
+              />
+              {targetLine.label && (
+                <text
+                  x={width + 4}
+                  y={yScale(targetLine.value) + 4}
+                  fill={targetLine.color}
+                  fontSize={fonts.tickLabel}
+                  opacity={0.7}
+                >
+                  {targetLine.label}
+                </text>
+              )}
+            </>
+          )}
+
           {/* Spec Lines */}
           {specs.usl !== undefined && (
             <line
