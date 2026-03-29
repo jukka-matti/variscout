@@ -1,4 +1,8 @@
-import type { BoxplotSortBy, BoxplotSortDirection } from '@variscout/core';
+import type {
+  BoxplotSortBy,
+  BoxplotSortDirection,
+  BoxplotPriorityCriterion,
+} from '@variscout/core';
 
 export interface BoxplotDisplayToggleColorScheme {
   trigger: string;
@@ -12,6 +16,13 @@ export interface BoxplotDisplayToggleColorScheme {
   sectionLabel?: string;
 }
 
+/** Per-category summary stats for the category picker */
+export interface CategoryPickerItem {
+  key: string;
+  mean: number;
+  isVisible: boolean;
+}
+
 export interface BoxplotDisplayToggleProps {
   showViolin: boolean;
   showContributionLabels: boolean;
@@ -21,4 +32,20 @@ export interface BoxplotDisplayToggleProps {
   sortDirection?: BoxplotSortDirection;
   onSortChange?: (sortBy: BoxplotSortBy, direction: BoxplotSortDirection) => void;
   colorScheme?: BoxplotDisplayToggleColorScheme;
+  /** Category picker: total categories available */
+  totalCategories?: number;
+  /** Category picker: currently visible categories */
+  visibleCount?: number;
+  /** Category picker: auto mode active */
+  isAutoMode?: boolean;
+  /** Category picker: auto selection criterion label */
+  priorityCriterion?: BoxplotPriorityCriterion;
+  /** Category picker: toggle auto/manual mode */
+  onAutoModeToggle?: (isAuto: boolean) => void;
+  /** Category picker: all categories with stats */
+  categoryItems?: CategoryPickerItem[];
+  /** Category picker: manual selection change */
+  onManualSelectionChange?: (keys: string[]) => void;
+  /** Format a stat value */
+  formatStat?: (value: number, decimals?: number) => string;
 }
