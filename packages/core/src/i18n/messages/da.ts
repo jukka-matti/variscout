@@ -86,10 +86,7 @@ export const da: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Præferencer',
-  'display.chartTextSize': 'Diagramtekststørrelse',
-  'display.compact': 'Kompakt',
-  'display.normal': 'Normal',
-  'display.large': 'Stor',
+  'display.density': 'Visningstæthed',
   'display.lockYAxis': 'Lås Y-akse',
   'display.filterContext': 'Filterkontekst',
   'display.showSpecs': 'Vis specifikationer',

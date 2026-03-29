@@ -86,10 +86,7 @@ export const nb: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Innstillinger',
-  'display.chartTextSize': 'Diagramtekststørrelse',
-  'display.compact': 'Kompakt',
-  'display.normal': 'Normal',
-  'display.large': 'Stor',
+  'display.density': 'Visningstetthet',
   'display.lockYAxis': 'Lås Y-akse',
   'display.filterContext': 'Filterkontekst',
   'display.showSpecs': 'Vis spesifikasjoner',

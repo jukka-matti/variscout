@@ -86,10 +86,7 @@ export const cs: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Předvolby',
-  'display.chartTextSize': 'Velikost textu grafu',
-  'display.compact': 'Kompaktní',
-  'display.normal': 'Normální',
-  'display.large': 'Velký',
+  'display.density': 'Hustota zobrazení',
   'display.lockYAxis': 'Zamknout osu Y',
   'display.filterContext': 'Kontext filtru',
   'display.showSpecs': 'Zobrazit specifikace',

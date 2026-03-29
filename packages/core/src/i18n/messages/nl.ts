@@ -88,10 +88,7 @@ export const nl: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Voorkeuren',
-  'display.chartTextSize': 'Tekst grafiek',
-  'display.compact': 'Compact',
-  'display.normal': 'Normaal',
-  'display.large': 'Groot',
+  'display.density': 'Weergavedichtheid',
   'display.lockYAxis': 'Y-as vergrendelen',
   'display.filterContext': 'Filtercontext',
   'display.showSpecs': 'Specificaties tonen',

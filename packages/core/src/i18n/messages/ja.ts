@@ -88,10 +88,7 @@ export const ja: MessageCatalog = {
 
   // Display/settings
   'display.preferences': '表示設定',
-  'display.chartTextSize': 'グラフの文字サイズ',
-  'display.compact': 'コンパクト',
-  'display.normal': '標準',
-  'display.large': '大',
+  'display.density': '表示密度',
   'display.lockYAxis': 'Y軸を固定',
   'display.filterContext': 'フィルターコンテキスト',
   'display.showSpecs': '規格を表示',

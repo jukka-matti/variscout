@@ -86,10 +86,7 @@ export const hi: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'प्राथमिकताएं',
-  'display.chartTextSize': 'चार्ट पाठ आकार',
-  'display.compact': 'संक्षिप्त',
-  'display.normal': 'सामान्य',
-  'display.large': 'बड़ा',
+  'display.density': 'प्रदर्शन घनत्व',
   'display.lockYAxis': 'Y-अक्ष लॉक करें',
   'display.filterContext': 'फ़िल्टर संदर्भ',
   'display.showSpecs': 'विनिर्देश दिखाएं',

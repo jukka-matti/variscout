@@ -86,10 +86,7 @@ export const th: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'การตั้งค่า',
-  'display.chartTextSize': 'ขนาดตัวอักษรแผนภูมิ',
-  'display.compact': 'กะทัดรัด',
-  'display.normal': 'ปกติ',
-  'display.large': 'ใหญ่',
+  'display.density': 'ความหนาแน่นของการแสดงผล',
   'display.lockYAxis': 'ล็อกแกน Y',
   'display.filterContext': 'บริบทตัวกรอง',
   'display.showSpecs': 'แสดงข้อกำหนด',

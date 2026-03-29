@@ -86,10 +86,7 @@ export const vi: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Tùy chọn',
-  'display.chartTextSize': 'Cỡ chữ biểu đồ',
-  'display.compact': 'Thu gọn',
-  'display.normal': 'Bình thường',
-  'display.large': 'Lớn',
+  'display.density': 'Mật độ hiển thị',
   'display.lockYAxis': 'Khóa trục Y',
   'display.filterContext': 'Ngữ cảnh bộ lọc',
   'display.showSpecs': 'Hiển thị thông số kỹ thuật',

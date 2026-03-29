@@ -86,10 +86,7 @@ export const bg: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Предпочитания',
-  'display.chartTextSize': 'Размер на текста в диаграмата',
-  'display.compact': 'Компактно',
-  'display.normal': 'Нормално',
-  'display.large': 'Голямо',
+  'display.density': 'Плътност на дисплея',
   'display.lockYAxis': 'Заключи ос Y',
   'display.filterContext': 'Контекст на филтъра',
   'display.showSpecs': 'Покажи спецификации',

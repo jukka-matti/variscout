@@ -88,10 +88,7 @@ export const tr: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Tercihler',
-  'display.chartTextSize': 'Grafik metin boyutu',
-  'display.compact': 'Sıkışık',
-  'display.normal': 'Normal',
-  'display.large': 'Büyük',
+  'display.density': 'Görüntü yoğunluğu',
   'display.lockYAxis': 'Y eksenini kilitle',
   'display.filterContext': 'Filtre bağlamı',
   'display.showSpecs': 'Spesifikasyonları göster',

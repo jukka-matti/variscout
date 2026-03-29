@@ -86,10 +86,7 @@ export const sk: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Predvoľby',
-  'display.chartTextSize': 'Veľkosť textu grafu',
-  'display.compact': 'Kompaktné',
-  'display.normal': 'Normálne',
-  'display.large': 'Veľké',
+  'display.density': 'Hustota zobrazenia',
   'display.lockYAxis': 'Zamknúť os Y',
   'display.filterContext': 'Kontext filtra',
   'display.showSpecs': 'Zobraziť špecifikácie',

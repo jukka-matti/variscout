@@ -88,10 +88,7 @@ export const zhHans: MessageCatalog = {
 
   // Display/settings
   'display.preferences': '偏好设置',
-  'display.chartTextSize': '图表文字大小',
-  'display.compact': '紧凑',
-  'display.normal': '标准',
-  'display.large': '大',
+  'display.density': '显示密度',
   'display.lockYAxis': '锁定 Y 轴',
   'display.filterContext': '筛选上下文',
   'display.showSpecs': '显示规格',

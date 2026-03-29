@@ -86,10 +86,7 @@ export const id: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Preferensi',
-  'display.chartTextSize': 'Ukuran teks grafik',
-  'display.compact': 'Ringkas',
-  'display.normal': 'Normal',
-  'display.large': 'Besar',
+  'display.density': 'Kepadatan tampilan',
   'display.lockYAxis': 'Kunci sumbu Y',
   'display.filterContext': 'Konteks filter',
   'display.showSpecs': 'Tampilkan spesifikasi',

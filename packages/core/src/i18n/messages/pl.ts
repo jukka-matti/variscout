@@ -88,10 +88,7 @@ export const pl: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Preferencje',
-  'display.chartTextSize': 'Rozmiar tekstu wykresu',
-  'display.compact': 'Kompaktowy',
-  'display.normal': 'Normalny',
-  'display.large': 'Duży',
+  'display.density': 'Gęstość wyświetlania',
   'display.lockYAxis': 'Zablokuj oś Y',
   'display.filterContext': 'Kontekst filtra',
   'display.showSpecs': 'Pokaż specyfikacje',

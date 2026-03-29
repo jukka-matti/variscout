@@ -88,10 +88,7 @@ export const zhHant: MessageCatalog = {
 
   // Display/settings
   'display.preferences': '偏好設定',
-  'display.chartTextSize': '圖表文字大小',
-  'display.compact': '精簡',
-  'display.normal': '標準',
-  'display.large': '大',
+  'display.density': '顯示密度',
   'display.lockYAxis': '鎖定 Y 軸',
   'display.filterContext': '篩選上下文',
   'display.showSpecs': '顯示規格',

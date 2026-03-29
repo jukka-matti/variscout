@@ -86,10 +86,7 @@ export const hu: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Beállítások',
-  'display.chartTextSize': 'Diagram szövegméret',
-  'display.compact': 'Kompakt',
-  'display.normal': 'Normál',
-  'display.large': 'Nagy',
+  'display.density': 'Megjelenítési sűrűség',
   'display.lockYAxis': 'Y-tengely zárolása',
   'display.filterContext': 'Szűrőkontextus',
   'display.showSpecs': 'Specifikációk megjelenítése',

@@ -86,10 +86,7 @@ export const ar: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'التفضيلات',
-  'display.chartTextSize': 'حجم نص الرسم البياني',
-  'display.compact': 'مضغوط',
-  'display.normal': 'عادي',
-  'display.large': 'كبير',
+  'display.density': 'كثافة العرض',
   'display.lockYAxis': 'قفل المحور ص',
   'display.filterContext': 'سياق التصفية',
   'display.showSpecs': 'عرض المواصفات',

@@ -86,10 +86,7 @@ export const ro: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Preferințe',
-  'display.chartTextSize': 'Dimensiune text grafic',
-  'display.compact': 'Compact',
-  'display.normal': 'Normal',
-  'display.large': 'Mare',
+  'display.density': 'Densitate afișare',
   'display.lockYAxis': 'Blocare axă Y',
   'display.filterContext': 'Context filtru',
   'display.showSpecs': 'Afișare specificații',

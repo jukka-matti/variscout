@@ -86,10 +86,7 @@ export const el: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Προτιμήσεις',
-  'display.chartTextSize': 'Μέγεθος κειμένου γραφήματος',
-  'display.compact': 'Συμπαγές',
-  'display.normal': 'Κανονικό',
-  'display.large': 'Μεγάλο',
+  'display.density': 'Πυκνότητα εμφάνισης',
   'display.lockYAxis': 'Κλείδωμα άξονα Υ',
   'display.filterContext': 'Πλαίσιο φίλτρου',
   'display.showSpecs': 'Εμφάνιση προδιαγραφών',

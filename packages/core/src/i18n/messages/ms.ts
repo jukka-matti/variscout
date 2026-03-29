@@ -86,10 +86,7 @@ export const ms: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Keutamaan',
-  'display.chartTextSize': 'Saiz teks carta',
-  'display.compact': 'Padat',
-  'display.normal': 'Normal',
-  'display.large': 'Besar',
+  'display.density': 'Ketumpatan paparan',
   'display.lockYAxis': 'Kunci paksi Y',
   'display.filterContext': 'Konteks penapis',
   'display.showSpecs': 'Tunjukkan spesifikasi',

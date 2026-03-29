@@ -88,10 +88,7 @@ export const ko: MessageCatalog = {
 
   // Display/settings
   'display.preferences': '환경설정',
-  'display.chartTextSize': '차트 텍스트 크기',
-  'display.compact': '간결',
-  'display.normal': '보통',
-  'display.large': '크게',
+  'display.density': '표시 밀도',
   'display.lockYAxis': 'Y축 잠금',
   'display.filterContext': '필터 컨텍스트',
   'display.showSpecs': '규격 표시',

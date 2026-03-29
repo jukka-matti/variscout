@@ -86,10 +86,7 @@ export const he: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'העדפות',
-  'display.chartTextSize': 'גודל טקסט תרשים',
-  'display.compact': 'צפוף',
-  'display.normal': 'רגיל',
-  'display.large': 'גדול',
+  'display.density': 'צפיפות תצוגה',
   'display.lockYAxis': 'נעל ציר Y',
   'display.filterContext': 'הקשר סינון',
   'display.showSpecs': 'הצג מפרטים',

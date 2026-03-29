@@ -86,10 +86,7 @@ export const uk: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Налаштування',
-  'display.chartTextSize': 'Розмір тексту діаграми',
-  'display.compact': 'Компактний',
-  'display.normal': 'Звичайний',
-  'display.large': 'Великий',
+  'display.density': 'Щільність відображення',
   'display.lockYAxis': 'Зафіксувати вісь Y',
   'display.filterContext': 'Контекст фільтра',
   'display.showSpecs': 'Показати специфікації',

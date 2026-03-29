@@ -86,10 +86,7 @@ export const hr: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Postavke prikaza',
-  'display.chartTextSize': 'Veličina teksta grafikona',
-  'display.compact': 'Kompaktno',
-  'display.normal': 'Normalno',
-  'display.large': 'Veliko',
+  'display.density': 'Gustoća prikaza',
   'display.lockYAxis': 'Zaključaj os Y',
   'display.filterContext': 'Kontekst filtera',
   'display.showSpecs': 'Prikaži specifikacije',

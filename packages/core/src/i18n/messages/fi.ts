@@ -88,10 +88,7 @@ export const fi: MessageCatalog = {
 
   // Display/settings
   'display.preferences': 'Asetukset',
-  'display.chartTextSize': 'Kaavion tekstikoko',
-  'display.compact': 'Tiivis',
-  'display.normal': 'Normaali',
-  'display.large': 'Suuri',
+  'display.density': 'Näyttötiheys',
   'display.lockYAxis': 'Lukitse Y-akseli',
   'display.filterContext': 'Suodatinkonteksti',
   'display.showSpecs': 'Näytä spesifikaatiot',
