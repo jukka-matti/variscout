@@ -76,7 +76,7 @@ describe('useBoxplotWrapperData', () => {
     expect(posA.x).toBeLessThan(posB.x);
   });
 
-  it('returns effectiveHighlights when specs are visible', () => {
+  it('returns no auto-colors — direction coloring removed', () => {
     const { result } = renderHook(() =>
       useBoxplotWrapperData({
         data: TWO_GROUPS,
@@ -86,26 +86,11 @@ describe('useBoxplotWrapperData', () => {
       })
     );
 
-    // computeCategoryDirectionColors should produce auto-colors
-    // The exact colors depend on mean vs target, but highlights should exist
-    expect(result.current.effectiveHighlights).toBeDefined();
-  });
-
-  it('returns no auto-colors when showSpecs is false', () => {
-    const { result } = renderHook(() =>
-      useBoxplotWrapperData({
-        data: TWO_GROUPS,
-        specs: SPECS_NOMINAL,
-        displayOptions: { showSpecs: false },
-        parentWidth: 800,
-      })
-    );
-
-    // No auto-colors, no manual highlights → undefined
+    // Auto direction coloring removed — no highlights without manual annotations
     expect(result.current.effectiveHighlights).toBeUndefined();
   });
 
-  it('manual highlights override auto-colors', () => {
+  it('manual highlights work without auto-colors', () => {
     const manualHighlights: Record<string, HighlightColor> = { A: 'red' };
 
     const { result } = renderHook(() =>
