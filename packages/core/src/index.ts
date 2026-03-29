@@ -99,6 +99,9 @@ export {
   groupDataIntoSubgroups,
   calculateSubgroupCapability,
   calculateSeriesControlLimits,
+  // Factor Intelligence (Layers 2-3)
+  computeMainEffects,
+  computeInteractionEffects,
 } from './stats';
 
 // Subgroup capability types
@@ -113,6 +116,16 @@ export type {
 
 // Best subsets regression types
 export type { BestSubsetResult, BestSubsetsResult } from './stats';
+
+// Factor effects types (Factor Intelligence Layers 2-3)
+export type {
+  LevelEffect,
+  FactorMainEffect,
+  MainEffectsResult,
+  CellMean,
+  InteractionResult,
+  InteractionEffectsResult,
+} from './stats';
 
 // Tier (Azure Marketplace multi-tier licensing) — primary module
 export type { LicenseTier, TierLimits, ChannelLimitResult, MarketplacePlan } from './tier';
