@@ -239,8 +239,8 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   onDownloadPng,
   onDownloadSvg,
   ichartInsight,
-  boxplotInsight,
-  paretoInsight,
+  boxplotInsight: _boxplotInsight,
+  paretoInsight: _paretoInsight,
   statsInsight,
   onInsightAction,
   renderIChartContent,
@@ -539,7 +539,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
               }
               controls={boxplotControls}
               filterBar={filterBar}
-              footer={renderInsightChip(boxplotInsight, 'boxplot')}
+              /* footer={renderInsightChip(boxplotInsight, 'boxplot')} — hidden: toolbar projection provides this insight */
             >
               {renderBoxplotContent}
             </DashboardChartCard>
@@ -571,7 +571,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
                 }
                 controls={paretoControls}
                 filterBar={filterBar}
-                footer={renderInsightChip(paretoInsight, 'pareto')}
+                /* footer={renderInsightChip(paretoInsight, 'pareto')} — hidden: toolbar projection provides this insight */
               >
                 {renderParetoContent}
               </DashboardChartCard>
