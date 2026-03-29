@@ -306,6 +306,9 @@ export {
   type UseYamazumiParetoDataReturn,
 } from './useYamazumiParetoData';
 
+// Probability Plot Data Hook
+export { useProbabilityPlotData } from './useProbabilityPlotData';
+
 // Subgroup Capability Data Hooks
 export {
   useCapabilityIChartData,

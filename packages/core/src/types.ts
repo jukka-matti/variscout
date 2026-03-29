@@ -224,6 +224,24 @@ export interface ProbabilityPlotPoint {
   upperCI: number;
 }
 
+/** Single series in a multi-series probability plot */
+export interface ProbabilityPlotSeries {
+  /** Factor level name (e.g. "Shift A") or "All" for single series */
+  key: string;
+  /** Probability plot data points */
+  points: ProbabilityPlotPoint[];
+  /** Group mean */
+  mean: number;
+  /** Group standard deviation */
+  stdDev: number;
+  /** Sample count */
+  n: number;
+  /** Anderson-Darling p-value (null when n < 7) */
+  adTestPValue: number | null;
+  /** Original row indices (for brush selection cross-chart highlighting) */
+  originalIndices: number[];
+}
+
 /**
  * Display options for capability metrics
  */

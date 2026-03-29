@@ -30,16 +30,18 @@ Detailed analysis: [discussions/2026-03-29-probability-plot-analysis.md](discuss
 
 ### Phase A — Quick wins (UX polish)
 
-- [ ] **Signature block on probability plot** — Show N, Mean, StDev, Anderson-Darling p-value directly on the chart (Minitab-style). The `signatureElement` prop already exists but isn't used.
-- [ ] **Anderson-Darling normality test** — Compute and display p-value. "Is this data normally distributed?" with clear pass/fail.
-- [ ] **Cp/Cpk on probability plot** — When in capability mode, show Cp/Cpk on the chart itself, not hidden in stats panel.
-- [ ] **Easier focused view entry** — Double-click chart to expand, or more prominent expand button. User couldn't figure out how to enlarge.
+- [x] **Anderson-Darling normality test** — `andersonDarlingTest()` in `@variscout/core/stats`. Per-series AD p-value in hover tooltip.
+- [x] **Hover card with per-series stats** — N, Mean, StDev, AD p-value shown on series hover via `ProbabilityPlotTooltip`.
+- [ ] **Cp/Cpk on histogram** — When in capability mode, show Cp/Cpk on the histogram chart itself.
+- [ ] **Easier focused view entry** — Double-click chart to expand, or more prominent expand button.
 
-### Phase B — Multi-series probability plot
+### Phase B — Multi-series probability plot ✅
 
-- [ ] **Multiple probability plot by factor** — When a factor is selected, draw one line per factor level with different colors. Same axes. Each subgroup line shows its own distribution shape.
-- [ ] **Slope comparison for prioritization** — Steeper line = tighter distribution = better process step. Flatter = more variation = fix first. Visual ranking tool for process improvement.
-- [ ] **Per-level stats** — Show mean, StDev, N per subgroup line in legend or tooltip.
+- [x] **Multiple probability plot by factor** — `useProbabilityPlotData` hook groups by factor, `ProbabilityPlotBase` renders multi-series with `operatorColors`.
+- [x] **Slope comparison for prioritization** — Visual slope = StDev. Steeper = tighter distribution. Parallel lines = location shift.
+- [x] **Per-level stats** — Hover card shows N, Mean, StDev, AD p-value per series.
+- [x] **Brush selection + factor creation** — Reuses `useMultiSelection` from I-Chart. Brush → cross-chart highlight → Create Factor.
+- [x] **Series-aware annotations** — `FindingSource` extended with `{ chart: 'probability'; anchorX; anchorY; seriesKey? }`.
 
 ### Phase C — Process diagnostics
 

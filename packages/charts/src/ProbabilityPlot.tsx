@@ -1,74 +1,80 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { Group } from '@visx/group';
 import { scaleLinear } from '@visx/scale';
 import { AxisLeft, AxisBottom } from '@visx/axis';
 import { LinePath, Circle } from '@visx/shape';
 import { withParentSize } from '@visx/responsive';
 import { GridRows } from '@visx/grid';
-import { calculateProbabilityPlotData, normalQuantile, safeMin, safeMax } from '@variscout/core';
+import { normalQuantile, safeMin, safeMax } from '@variscout/core';
 import type { ProbabilityPlotProps } from './types';
 import ChartSourceBar from './ChartSourceBar';
 import { useChartTheme } from './useChartTheme';
 import { useChartLayout } from './hooks';
+import { operatorColors } from './colors';
+import { useMultiSelection } from './hooks/useMultiSelection';
 
 /**
  * Standard percentile tick values for probability plots
- * These are the conventional percentiles used in Minitab/JMP probability plots
  */
 const PROB_TICK_PERCENTILES = [1, 5, 10, 25, 50, 75, 90, 95, 99];
 const PROB_TICK_PERCENTILES_COMPACT = [5, 25, 50, 75, 95];
 
-/**
- * Calculate CI width at a given percentile for the fitted distribution
- * Uses asymptotic formula for percentile CI based on sample statistics
- *
- * The CI for a percentile θ_p = μ + z_p * σ depends on:
- * - Uncertainty in the mean estimate (σ/√n)
- * - Uncertainty in the std dev estimate
- * - The z-score for that percentile
- */
-function calculateCIWidth(
-  p: number, // percentile as decimal (0-1)
-  n: number, // sample size
-  stdDev: number // sample standard deviation
-): number {
-  // Simplified CI calculation based on MLE variance propagation
-  // This gives symmetric, smooth CI bands that widen at extremes
-
-  const z = normalQuantile(p);
-
-  // Variance of the percentile estimate includes:
-  // 1. Variance from mean estimation: σ²/n
-  // 2. Variance from std dev estimation propagated through z: z² * σ²/(2n)
-  // Combined: σ² * (1/n + z²/(2n)) = σ²/n * (1 + z²/2)
-
-  const varPercentile = ((stdDev * stdDev) / n) * (1 + (z * z) / 2);
-  const sePercentile = Math.sqrt(varPercentile);
-
-  // 95% CI half-width
-  return 1.96 * sePercentile;
+/** Fine-grained percentiles for smooth fitted line and CI curves */
+const FITTED_PERCENTILES: number[] = [];
+for (let p = 1; p <= 99; p += 2) {
+  FITTED_PERCENTILES.push(p);
 }
 
 /**
- * Probability Plot - Props-based version
- * Shows normality assessment with 95% confidence intervals
+ * Calculate CI width at a given percentile for the fitted distribution
+ */
+function calculateCIWidth(p: number, n: number, stdDev: number): number {
+  const z = normalQuantile(p);
+  const varPercentile = ((stdDev * stdDev) / n) * (1 + (z * z) / 2);
+  const sePercentile = Math.sqrt(varPercentile);
+  return 1.96 * sePercentile;
+}
+
+/** Computed fitted line point with CI bounds */
+interface FittedPoint {
+  z: number;
+  x: number;
+  lowerCI: number;
+  upperCI: number;
+}
+
+function computeFittedLine(mean: number, stdDev: number, n: number): FittedPoint[] {
+  return FITTED_PERCENTILES.map(p => {
+    const pDecimal = p / 100;
+    const z = normalQuantile(pDecimal);
+    const expectedX = mean + z * stdDev;
+    const ciWidth = calculateCIWidth(pDecimal, n, stdDev);
+    return { z, x: expectedX, lowerCI: expectedX - ciWidth, upperCI: expectedX + ciWidth };
+  });
+}
+
+/**
+ * Multi-series Probability Plot
  *
- * Uses probability-transformed Y-axis (Minitab convention):
- * - Y-axis is scaled using inverse normal CDF (z-scores)
- * - This makes normally distributed data appear as a straight line
- * - Deviations from normality show as curves away from the fitted line
+ * Renders one or more series on shared axes with:
+ * - Per-series fitted lines and data points
+ * - CI bands on hover
+ * - Brush selection for cross-chart highlighting
+ * - Right-click for findings creation
+ * - Series hover tooltip
  */
 const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
-  data,
-  mean,
-  stdDev,
+  series,
   parentWidth,
   parentHeight,
   showBranding = true,
   brandingText,
   marginOverride,
   fontsOverride,
-  signatureElement,
+  selectedPoints,
+  onSelectionChange,
+  onChartContextMenu,
+  onSeriesHover,
 }) => {
   const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
     parentWidth,
@@ -80,48 +86,70 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
   });
 
   const { chrome, colors, t } = useChartTheme();
+  const [hoveredSeriesKey, setHoveredSeriesKey] = useState<string | null>(null);
 
-  // Calculate plot data for data points
-  const plotData = useMemo(() => calculateProbabilityPlotData(data), [data]);
-  const n = data.length;
+  // Compute fitted lines per series
+  const seriesFitted = useMemo(
+    () => series.map(s => ({ key: s.key, fitted: computeFittedLine(s.mean, s.stdDev, s.n) })),
+    [series]
+  );
 
-  // Percentiles for fitted line and CI bands (fine granularity for smooth curves)
-  const fittedPercentiles = useMemo(() => {
-    // Use more points for smoother CI curves
-    const percentiles: number[] = [];
-    for (let p = 1; p <= 99; p += 2) {
-      percentiles.push(p);
-    }
-    return percentiles;
-  }, []);
+  // Compute data points with z-scores per series
+  const seriesDataPoints = useMemo(
+    () =>
+      series.map(s => ({
+        key: s.key,
+        points: s.points.map(d => ({
+          x: d.value,
+          z: normalQuantile(d.expectedPercentile / 100),
+        })),
+      })),
+    [series]
+  );
 
-  // Fitted line with CI bands (calculated for theoretical distribution)
-  const fittedLineWithCI = useMemo(() => {
-    return fittedPercentiles.map(p => {
-      const pDecimal = p / 100;
-      const z = normalQuantile(pDecimal);
-      const expectedX = mean + z * stdDev;
-      const ciWidth = calculateCIWidth(pDecimal, n, stdDev);
-
-      return {
-        z,
-        x: expectedX,
-        lowerCI: expectedX - ciWidth,
-        upperCI: expectedX + ciWidth,
-      };
+  // Flat data points for brush selection (all series combined)
+  const allDataPoints = useMemo(() => {
+    const flat: {
+      x: number;
+      z: number;
+      seriesIndex: number;
+      pointIndex: number;
+      globalIndex: number;
+    }[] = [];
+    let globalIdx = 0;
+    series.forEach((s, si) => {
+      s.points.forEach((d, pi) => {
+        flat.push({
+          x: d.value,
+          z: normalQuantile(d.expectedPercentile / 100),
+          seriesIndex: si,
+          pointIndex: pi,
+          globalIndex: globalIdx++,
+        });
+      });
     });
-  }, [fittedPercentiles, mean, stdDev, n]);
+    return flat;
+  }, [series]);
 
-  // X Scale (data values) - include CI bounds
+  // X Scale (data values) — union of all series
   const xScale = useMemo(() => {
-    if (plotData.length === 0) return null;
+    if (series.length === 0) return null;
 
-    const dataValues = plotData.map(d => d.value);
-    const ciValues = fittedLineWithCI.flatMap(d => [d.lowerCI, d.upperCI]);
-    const allValues = [...dataValues, ...ciValues].filter(v => isFinite(v));
+    const allValues: number[] = [];
+    series.forEach(s => {
+      s.points.forEach(d => allValues.push(d.value));
+    });
+    seriesFitted.forEach(sf => {
+      sf.fitted.forEach(d => {
+        allValues.push(d.lowerCI, d.upperCI);
+      });
+    });
 
-    const min = safeMin(allValues);
-    const max = safeMax(allValues);
+    const finiteVals = allValues.filter(v => isFinite(v));
+    if (finiteVals.length === 0) return null;
+
+    const min = safeMin(finiteVals);
+    const max = safeMax(finiteVals);
     const padding = (max - min) * 0.1 || 1;
 
     return scaleLinear({
@@ -129,50 +157,102 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
       domain: [min - padding, max + padding],
       nice: true,
     });
-  }, [plotData, fittedLineWithCI, width]);
+  }, [series, seriesFitted, width]);
 
-  // Y Scale - Probability transformed (z-score based)
+  // Y Scale — probability-transformed z-scores
   const yScale = useMemo(() => {
     const zMin = normalQuantile(0.01);
     const zMax = normalQuantile(0.99);
-
-    return scaleLinear({
-      range: [height, 0],
-      domain: [zMin, zMax],
-    });
+    return scaleLinear({ range: [height, 0], domain: [zMin, zMax] });
   }, [height]);
 
-  // Z-scores for grid lines at standard percentiles
+  // Grid z-scores
   const gridZScores = useMemo(() => PROB_TICK_PERCENTILES.map(p => normalQuantile(p / 100)), []);
 
-  // Data points with z-scores
-  const dataPoints = useMemo(
-    () =>
-      plotData.map(d => ({
-        x: d.value,
-        z: normalQuantile(d.expectedPercentile / 100),
-      })),
-    [plotData]
+  // Brush selection
+  const brushSelection = useMultiSelection({
+    data: allDataPoints,
+    xScale: xScale as {
+      (v: number): number | undefined;
+      invert(v: number): number;
+      range(): number[];
+      domain(): number[];
+    },
+    yScale: yScale as {
+      (v: number): number | undefined;
+      invert(v: number): number;
+      range(): number[];
+      domain(): number[];
+    },
+    selectedPoints: selectedPoints ?? new Set<number>(),
+    onSelectionChange: onSelectionChange ?? (() => {}),
+    getX: d => d.x,
+    getY: d => d.z,
+    enableBrush: !!onSelectionChange,
+    margin: { left: margin.left, top: margin.top },
+  });
+
+  // Handle series hover
+  const handleSeriesEnter = useCallback(
+    (seriesKey: string, event: React.MouseEvent) => {
+      setHoveredSeriesKey(seriesKey);
+      const s = series.find(s => s.key === seriesKey);
+      if (s && onSeriesHover) {
+        onSeriesHover(s, { x: event.clientX, y: event.clientY });
+      }
+    },
+    [series, onSeriesHover]
   );
 
-  // Build CI band path - smooth curves based on fitted line CI
-  // (must be before early return — rules-of-hooks)
-  const bandPath = useMemo(() => {
-    if (!xScale || fittedLineWithCI.length === 0) return '';
+  const handleSeriesLeave = useCallback(() => {
+    setHoveredSeriesKey(null);
+    onSeriesHover?.(null, { x: 0, y: 0 });
+  }, [onSeriesHover]);
 
-    const lowerPath = fittedLineWithCI
-      .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(d.lowerCI)} ${yScale(d.z)}`)
-      .join(' ');
+  // Right-click context menu
+  const handleContextMenu = useCallback(
+    (event: React.MouseEvent<SVGElement>) => {
+      if (!onChartContextMenu) return;
+      event.preventDefault();
 
-    const upperPath = [...fittedLineWithCI]
-      .reverse()
-      .map(d => `L ${xScale(d.upperCI)} ${yScale(d.z)}`)
-      .join(' ');
+      const svg = event.currentTarget.closest('svg');
+      if (!svg) return;
+      const rect = svg.getBoundingClientRect();
+      const clickX = event.clientX - rect.left - margin.left;
+      const clickY = event.clientY - rect.top - margin.top;
 
-    return `${lowerPath} ${upperPath} Z`;
-  }, [fittedLineWithCI, xScale, yScale]);
+      // Normalize to 0-1
+      const anchorX = Math.max(0, Math.min(1, clickX / width));
+      const anchorY = Math.max(0, Math.min(1, clickY / height));
 
-  if (data.length === 0 || !xScale) {
+      // Check if near a series line for series-aware annotation
+      let nearestSeriesKey: string | undefined;
+      const hitThreshold = 15; // pixels
+
+      series.forEach((s, si) => {
+        const dp = seriesDataPoints[si];
+        if (!dp || !xScale) return;
+
+        for (const pt of dp.points) {
+          const px = xScale(pt.x);
+          const py = yScale(pt.z);
+          if (px === undefined || py === undefined) continue;
+          const dx = event.clientX - rect.left - margin.left - (px as number);
+          const dy = event.clientY - rect.top - margin.top - (py as number);
+          if (Math.sqrt(dx * dx + dy * dy) < hitThreshold) {
+            nearestSeriesKey = s.key;
+            break;
+          }
+        }
+      });
+
+      onChartContextMenu(anchorX, anchorY, nearestSeriesKey);
+    },
+    [onChartContextMenu, margin, width, height, series, seriesDataPoints, xScale, yScale]
+  );
+
+  // Empty state
+  if (series.length === 0 || !xScale) {
     return (
       <svg
         width={parentWidth}
@@ -194,15 +274,21 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
     );
   }
 
-  // Tick values for axis
   const tickPercentiles = parentWidth < 300 ? PROB_TICK_PERCENTILES_COMPACT : PROB_TICK_PERCENTILES;
+  const isMultiSeries = series.length > 1;
+  const hasSelection = (selectedPoints?.size ?? 0) > 0;
+  const totalN = series.reduce((sum, s) => sum + s.n, 0);
 
   return (
     <svg
       width={parentWidth}
       height={parentHeight}
       role="img"
-      aria-label="Probability plot: normality analysis"
+      aria-label={`Probability plot: ${series.length} series`}
+      onMouseDown={brushSelection.handleBrushStart}
+      onMouseMove={brushSelection.handleBrushMove}
+      onMouseUp={brushSelection.handleBrushEnd}
+      onContextMenu={handleContextMenu}
     >
       <Group left={margin.left} top={margin.top}>
         {/* Grid lines at standard percentile positions */}
@@ -214,53 +300,99 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
           tickValues={gridZScores}
         />
 
-        {/* CI Bands (shaded area) - now smooth and symmetric! */}
-        <path d={bandPath} fill={chrome.ciband} fillOpacity={0.15} />
+        {/* Render each series */}
+        {series.map((s, si) => {
+          const color = isMultiSeries ? operatorColors[si % operatorColors.length] : colors.mean;
+          const fitted = seriesFitted[si]?.fitted ?? [];
+          const dp = seriesDataPoints[si]?.points ?? [];
+          const isHovered = hoveredSeriesKey === s.key;
+          const isDimmed = hoveredSeriesKey !== null && !isHovered;
+          const seriesOpacity = isDimmed ? 0.3 : 1;
 
-        {/* Lower CI line */}
-        <LinePath
-          data={fittedLineWithCI}
-          x={d => xScale(d.lowerCI)}
-          y={d => yScale(d.z)}
-          stroke={chrome.labelMuted}
-          strokeWidth={1}
-          strokeDasharray="4,4"
-        />
+          // CI band path (only for hovered or single series)
+          const showCI = isHovered || (!isMultiSeries && hoveredSeriesKey === null);
+          const bandPath =
+            showCI && fitted.length > 0
+              ? [
+                  ...fitted.map(
+                    (d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(d.lowerCI)} ${yScale(d.z)}`
+                  ),
+                  ...[...fitted].reverse().map(d => `L ${xScale(d.upperCI)} ${yScale(d.z)}`),
+                  'Z',
+                ].join(' ')
+              : '';
 
-        {/* Upper CI line */}
-        <LinePath
-          data={fittedLineWithCI}
-          x={d => xScale(d.upperCI)}
-          y={d => yScale(d.z)}
-          stroke={chrome.labelMuted}
-          strokeWidth={1}
-          strokeDasharray="4,4"
-        />
+          // Compute global point offset for brush selection indexing
+          let globalOffset = 0;
+          for (let j = 0; j < si; j++) globalOffset += series[j].points.length;
 
-        {/* Fitted distribution line (straight) */}
-        <LinePath
-          data={fittedLineWithCI}
-          x={d => xScale(d.x)}
-          y={d => yScale(d.z)}
-          stroke={colors.linear}
-          strokeWidth={2}
-        />
+          return (
+            <g
+              key={s.key}
+              opacity={seriesOpacity}
+              onMouseEnter={e => handleSeriesEnter(s.key, e)}
+              onMouseLeave={handleSeriesLeave}
+            >
+              {/* CI Band (shown on hover or for single series) */}
+              {bandPath && (
+                <>
+                  <path d={bandPath} fill={color} fillOpacity={0.1} />
+                  <LinePath
+                    data={fitted}
+                    x={d => xScale(d.lowerCI)!}
+                    y={d => yScale(d.z)!}
+                    stroke={color}
+                    strokeWidth={1}
+                    strokeDasharray="4,4"
+                    strokeOpacity={0.5}
+                  />
+                  <LinePath
+                    data={fitted}
+                    x={d => xScale(d.upperCI)!}
+                    y={d => yScale(d.z)!}
+                    stroke={color}
+                    strokeWidth={1}
+                    strokeDasharray="4,4"
+                    strokeOpacity={0.5}
+                  />
+                </>
+              )}
 
-        {/* Data points */}
-        {dataPoints.map((d, i) => (
-          <Circle
-            key={i}
-            cx={xScale(d.x)}
-            cy={yScale(d.z)}
-            r={4}
-            fill={colors.pass}
-            stroke="#fff"
-            strokeWidth={1}
-            fillOpacity={1}
-          />
-        ))}
+              {/* Fitted line */}
+              <LinePath
+                data={fitted}
+                x={d => xScale(d.x)!}
+                y={d => yScale(d.z)!}
+                stroke={color}
+                strokeWidth={2}
+              />
 
-        {/* Y Axis (Percent) - custom tick formatting */}
+              {/* Data points */}
+              {dp.map((d, i) => {
+                const globalIdx = globalOffset + i;
+                const pointOpacity = hasSelection ? brushSelection.getPointOpacity(globalIdx) : 1;
+                const pointSize = hasSelection ? brushSelection.getPointSize(globalIdx) : 4;
+
+                return (
+                  <Circle
+                    key={i}
+                    cx={xScale(d.x)!}
+                    cy={yScale(d.z)!}
+                    r={pointSize}
+                    fill={color}
+                    stroke="#fff"
+                    strokeWidth={brushSelection.getPointStrokeWidth(globalIdx)}
+                    fillOpacity={pointOpacity}
+                    style={{ cursor: 'pointer' }}
+                    onClick={e => brushSelection.handlePointClick(globalIdx, e)}
+                  />
+                );
+              })}
+            </g>
+          );
+        })}
+
+        {/* Y Axis (Percent) */}
         <AxisLeft
           scale={yScale}
           stroke={chrome.labelMuted}
@@ -269,16 +401,14 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
           tickFormat={zValue => {
             const z = zValue as number;
             for (const p of PROB_TICK_PERCENTILES) {
-              if (Math.abs(normalQuantile(p / 100) - z) < 0.01) {
-                return String(p);
-              }
+              if (Math.abs(normalQuantile(p / 100) - z) < 0.01) return String(p);
             }
             return '';
           }}
           tickLabelProps={() => ({
             fill: chrome.labelSecondary,
             fontSize: fonts.tickLabel,
-            textAnchor: 'end',
+            textAnchor: 'end' as const,
             dy: '0.33em',
             dx: -4,
             fontFamily: 'monospace',
@@ -289,7 +419,7 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
           labelProps={{
             fill: chrome.labelSecondary,
             fontSize: fonts.axisLabel,
-            textAnchor: 'middle',
+            textAnchor: 'middle' as const,
           }}
         />
 
@@ -303,22 +433,49 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
           tickLabelProps={() => ({
             fill: chrome.labelSecondary,
             fontSize: fonts.tickLabel,
-            textAnchor: 'middle',
+            textAnchor: 'middle' as const,
             dy: 4,
             fontWeight: 400,
           })}
         />
-
-        {/* Optional signature element */}
-        {signatureElement}
       </Group>
+
+      {/* Brush rectangle (at SVG root, not inside Group) */}
+      {brushSelection.brushExtent && (
+        <rect
+          x={Math.min(brushSelection.brushExtent.x0, brushSelection.brushExtent.x1)}
+          y={Math.min(brushSelection.brushExtent.y0, brushSelection.brushExtent.y1)}
+          width={Math.abs(brushSelection.brushExtent.x1 - brushSelection.brushExtent.x0)}
+          height={Math.abs(brushSelection.brushExtent.y1 - brushSelection.brushExtent.y0)}
+          fill={colors.mean}
+          fillOpacity={0.1}
+          stroke={colors.mean}
+          strokeWidth={1}
+          strokeDasharray="4,2"
+          pointerEvents="none"
+        />
+      )}
+
+      {/* Legend (multi-series only) */}
+      {isMultiSeries && parentWidth > 300 && (
+        <g transform={`translate(${margin.left + width - series.length * 80}, ${margin.top - 8})`}>
+          {series.map((s, i) => (
+            <g key={s.key} transform={`translate(${i * 80}, 0)`}>
+              <circle r={4} cx={0} cy={0} fill={operatorColors[i % operatorColors.length]} />
+              <text x={8} y={4} fontSize={fonts.tickLabel} fill={chrome.labelPrimary}>
+                {s.key.length > 8 ? s.key.slice(0, 8) + '…' : s.key}
+              </text>
+            </g>
+          ))}
+        </g>
+      )}
 
       {/* Source Bar (branding) */}
       {showBranding && (
         <ChartSourceBar
           width={parentWidth}
           top={parentHeight - sourceBarHeight}
-          n={data.length}
+          n={totalN}
           brandingText={brandingText}
           fontSize={fonts.brandingText}
         />
@@ -330,6 +487,4 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
 // Export with responsive wrapper
 const ProbabilityPlot = withParentSize(ProbabilityPlotBase);
 export default ProbabilityPlot;
-
-// Also export the base component for custom sizing
 export { ProbabilityPlotBase };

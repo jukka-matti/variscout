@@ -20,6 +20,7 @@
 export type {
   StatsResult,
   ProbabilityPlotPoint,
+  ProbabilityPlotSeries,
   ConformanceResult,
   AnovaResult,
   AnovaGroup,
@@ -80,6 +81,10 @@ export {
   MIN_BOX_STEP,
 } from './boxplot';
 export type { BoxplotPriorityCriterion } from './boxplot';
+
+// Anderson-Darling normality test
+export { andersonDarlingTest, normalCDF } from './andersonDarling';
+export type { AndersonDarlingResult } from './andersonDarling';
 
 // Kernel density estimation
 export { calculateKDE } from './kde';

@@ -59,6 +59,7 @@ packages/
 │              #   useYamazumiParetoData - Pareto data with 5 switchable modes for Yamazumi
 │              #   useAsyncStats - Async stats computation via Web Worker with generation counter
 │              #   useTooltipPosition - Viewport-aware tooltip positioning (auto-flip)
+│              #   useProbabilityPlotData - Multi-series probability plot data (factor grouping + AD test)
 └── ui/        # @variscout/ui - Shared UI components:
                #   AnovaResults, FilterBreadcrumb, FilterChipDropdown, FilterContextBar,
                #   PerformanceSetupPanelBase, VariationBar,
@@ -71,7 +72,7 @@ packages/
                #   InvestigationPrompt, PasteScreenBase, BoxplotDisplayToggle,
                #   ChartAnnotationLayer, AnnotationContextMenu, MobileCategorySheet,
                #   ManualEntryBase, ManualEntrySetupBase, SpecsPopover, SpecEditor,
-               #   CapabilityHistogram, ProbabilityPlot, DataPanelBase, DataTableBase,
+               #   CapabilityHistogram, ProbabilityPlot, ProbabilityPlotTooltip, DataPanelBase, DataTableBase,
                #   ChartDownloadMenu, CharacteristicTypeSelector,
                #   EditableChartTitle, SettingsPanelBase, FocusedChartViewBase,
                #   DashboardBase (DashboardLayoutBase, FocusedViewOverlay, FocusedChartCard,

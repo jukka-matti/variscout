@@ -4,15 +4,15 @@ title: 'Probability Plot'
 
 # Probability Plot
 
-Normality assessment chart with 95% confidence intervals following Minitab conventions.
+Multi-series normality assessment chart with brush selection, annotations, and Anderson-Darling test.
 
 ## Overview
 
-The ProbabilityPlot component displays data against a theoretical normal distribution to assess normality. Points falling along the fitted line indicate normally distributed data.
+The ProbabilityPlot component displays data against a theoretical normal distribution to assess normality. Points falling along the fitted line indicate normally distributed data. Supports overlaying multiple factor levels for visual comparison of process steps, machines, or operators.
 
-| Component           | Purpose              | Data Source |
-| ------------------- | -------------------- | ----------- |
-| **ProbabilityPlot** | Normality assessment | `number[]`  |
+| Component           | Purpose                         | Data Source               |
+| ------------------- | ------------------------------- | ------------------------- |
+| **ProbabilityPlot** | Multi-series normality analysis | `ProbabilityPlotSeries[]` |
 
 **Source:** `packages/charts/src/ProbabilityPlot.tsx`
 
@@ -20,181 +20,166 @@ The ProbabilityPlot component displays data against a theoretical normal distrib
 
 ## ProbabilityPlot
 
-Shows data points plotted against expected percentiles with 95% confidence interval bands. Uses probability-transformed Y-axis (inverse normal CDF) following Minitab conventions.
+Shows one or more series plotted against expected percentiles with 95% confidence interval bands. Uses probability-transformed Y-axis (inverse normal CDF) following Minitab conventions.
 
 ### Props Interface
 
 ```typescript
 interface ProbabilityPlotProps extends BaseChartProps {
-  /** Raw numeric values */
-  data: number[];
-  /** Mean for theoretical line */
-  mean: number;
-  /** Standard deviation for theoretical line */
-  stdDev: number;
+  /** Series data (one per factor level, or single "All" series) */
+  series: ProbabilityPlotSeries[];
   /** Optional custom margin override */
-  marginOverride?: { top: number; right: number; bottom: number; left: number };
+  marginOverride?: ChartMargins;
   /** Optional custom font sizes override */
   fontsOverride?: ChartFonts;
-  /** Optional signature element to render */
-  signatureElement?: React.ReactNode;
+  /** Currently selected point indices (for brush selection) */
+  selectedPoints?: Set<number>;
+  /** Callback when brush selection changes */
+  onSelectionChange?: (indices: Set<number>) => void;
+  /** Right-click context menu callback */
+  onChartContextMenu?: (anchorX: number, anchorY: number, seriesKey?: string) => void;
+  /** Series hover callback for tooltip */
+  onSeriesHover?: (
+    series: ProbabilityPlotSeries | null,
+    position: { x: number; y: number }
+  ) => void;
+}
+```
+
+### Data Type
+
+```typescript
+interface ProbabilityPlotSeries {
+  key: string; // Factor level name or "All"
+  points: ProbabilityPlotPoint[];
+  mean: number;
+  stdDev: number;
+  n: number;
+  adTestPValue: number | null; // null when n < 7
+  originalIndices: number[]; // For brush → cross-chart highlight
 }
 ```
 
 ### Example
 
 ```tsx
-import ProbabilityPlot from '@variscout/charts/ProbabilityPlot';
+import { ProbabilityPlotBase } from '@variscout/charts';
+import { useProbabilityPlotData } from '@variscout/hooks';
 
-<ProbabilityPlot data={measurementValues} mean={stats.mean} stdDev={stats.stdDev} />;
+const series = useProbabilityPlotData({ values, factorColumn, rows });
+
+<ProbabilityPlotBase series={series} parentWidth={600} parentHeight={500} />;
 ```
+
+---
+
+## Multi-Series Overlay
+
+When a factor column is active, one colored line per factor level is rendered on shared axes.
+
+| Behavior    | Description                                                                      |
+| ----------- | -------------------------------------------------------------------------------- |
+| Colors      | `operatorColors` palette (up to 8), single series uses `chartColors.mean` (blue) |
+| Shared axes | X domain = union of all series min/max                                           |
+| Hover       | Hovered series highlighted, others dim to opacity 0.3                            |
+| CI bands    | Shown only for the hovered series (avoids clutter)                               |
+| Legend      | Color dot + series name, shown when multi-series                                 |
+
+**Slope interpretation:** Steeper line = smaller StDev = better capability. Parallel lines = same spread, different means (location shift). Different slopes = variability problem.
+
+---
+
+## Interactions
+
+### Brush Selection
+
+Drag to select a region. Points inside the brush highlight across all dashboard charts.
+
+- Reuses `useMultiSelection` hook from I-Chart
+- Ctrl/Cmd+drag to add to existing selection
+- "Create Factor" button appears (same `CreateFactorModal` as I-Chart)
+- Brush rectangle rendered at SVG root level (not inside Group)
+
+### Annotations (Findings)
+
+Right-click to create findings anchored to the probability plot.
+
+```typescript
+// FindingSource variant
+{ chart: 'probability'; anchorX: number; anchorY: number; seriesKey?: string }
+```
+
+- Free-floating (like I-Chart): right-click anywhere, normalized 0-1 coordinates
+- Series-aware: right-click on a series line, `seriesKey` captures which series
+- Multiple annotations supported
+- `ChartAnnotationLayer` renders findings filtered by `chart: 'probability'`
+
+### Hover Card (Tooltip)
+
+`ProbabilityPlotTooltip` component shows per-series stats on hover:
+
+- Series name
+- N (sample count)
+- Mean
+- StDev
+- AD p-value (or "—" when n < 7)
+
+Positioned by `useTooltipPosition` for viewport awareness.
+
+---
+
+## Anderson-Darling Test
+
+`andersonDarlingTest()` in `@variscout/core/stats/andersonDarling.ts`.
+
+Tests whether data comes from a normal distribution. Computed per series in `useProbabilityPlotData`.
+
+| p-value  | Interpretation                |
+| -------- | ----------------------------- |
+| p > 0.05 | No evidence against normality |
+| p < 0.05 | Data deviates from normal     |
+
+Requires n ≥ 7. Returns `{ statistic: number; pValue: number }`.
 
 ---
 
 ## Visual Elements
 
-| Element              | Description                                                      |
-| -------------------- | ---------------------------------------------------------------- |
-| **Data points**      | Green circles with white stroke                                  |
-| **Fitted line**      | Blue straight line (theoretical normal)                          |
-| **CI bands**         | Light blue shaded area with dashed boundaries                    |
-| **Grid**             | Horizontal lines at standard percentile positions                |
-| **Y-axis (Percent)** | Probability-transformed scale (1, 5, 10, 25, 50, 75, 90, 95, 99) |
-| **X-axis**           | Data values                                                      |
+| Element              | Description                                              |
+| -------------------- | -------------------------------------------------------- |
+| **Data points**      | Colored circles per series with white stroke             |
+| **Fitted line**      | Straight line per series (theoretical normal)            |
+| **CI bands**         | Shaded area with dashed boundaries (hovered series only) |
+| **Grid**             | Horizontal lines at standard percentile positions        |
+| **Y-axis (Percent)** | Probability-transformed scale                            |
+| **X-axis**           | Data values (shared across series)                       |
+| **Brush rectangle**  | Semi-transparent blue selection area                     |
+| **Legend**           | Color dots with series names (multi-series only)         |
 
 ### Probability Percentile Scale
 
-The Y-axis uses standard percentile tick values:
-
-- Full display: 1, 5, 10, 25, 50, 75, 90, 95, 99%
+- Full display (≥ 300px): 1, 5, 10, 25, 50, 75, 90, 95, 99%
 - Compact display (< 300px): 5, 25, 50, 75, 95%
-
-These percentiles are transformed using the inverse normal CDF (z-scores) to create a probability-scaled axis.
-
----
-
-## Confidence Interval Bands
-
-The 95% CI bands widen at the extremes (low and high percentiles) following MLE variance propagation:
-
-```typescript
-function calculateCIWidth(
-  p: number,      // percentile as decimal (0-1)
-  n: number,      // sample size
-  stdDev: number  // sample standard deviation
-): number {
-  const z = normalQuantile(p);
-
-  // Variance includes:
-  // 1. Uncertainty in mean estimation: σ²/n
-  // 2. Uncertainty in std dev propagated through z: z² * σ²/(2n)
-  const varPercentile = (stdDev² / n) * (1 + z² / 2);
-  const sePercentile = Math.sqrt(varPercentile);
-
-  // 95% CI half-width
-  return 1.96 * sePercentile;
-}
-```
-
-This creates smooth, symmetric CI bands that naturally widen at distribution tails.
-
----
-
-## Interpretation
-
-| Pattern                    | Meaning                      |
-| -------------------------- | ---------------------------- |
-| Points on fitted line      | Data is normally distributed |
-| Points curve away at ends  | Heavy tails (leptokurtic)    |
-| Points curve toward center | Light tails (platykurtic)    |
-| S-shaped deviation         | Skewed distribution          |
-| Points outside CI bands    | Significant non-normality    |
 
 ---
 
 ## Data Flow
 
 ```
-DataContext (PWA/Azure)
-    |
-StatsPanel.tsx
-    | data: number[], mean, stdDev from stats
-ProbabilityPlot (responsive wrapper)
-    | calculateProbabilityPlotData() from @variscout/core
-    | normalQuantile() for z-scores
-ProbabilityPlotBase (renders SVG)
+DataContext (values, factorColumn, rows)
+    │
+useProbabilityPlotData (hooks)
+    │ groups by factor, calculateProbabilityPlotData() per group
+    │ andersonDarlingTest() per group (n ≥ 7)
+    ↓
+ProbabilityPlotSeries[]
+    │
+ProbabilityPlotBase (charts)
+    │ renders multi-series SVG, brush, context menu
+    ↓
+ProbabilityPlotTooltip (ui) — hover card
+ChartAnnotationLayer (ui) — findings overlay
 ```
-
-### Plot Data Calculation
-
-Uses `calculateProbabilityPlotData()` from `@variscout/core`:
-
-```typescript
-// For each data point:
-// 1. Sort data ascending
-// 2. Calculate expected percentile using Benard formula: (i - 0.3) / (n + 0.4)
-// 3. Return { value, expectedPercentile }
-```
-
----
-
-## Cross-App Usage
-
-### PWA and Azure
-
-Use the responsive wrapper (auto-sizing with `withParentSize`):
-
-```tsx
-import ProbabilityPlot from '@variscout/charts/ProbabilityPlot';
-
-<div className="h-[400px]">
-  <ProbabilityPlot data={values} mean={stats.mean} stdDev={stats.stdDev} />
-</div>;
-```
-
-### Custom Margins and Fonts
-
-```tsx
-<ProbabilityPlot
-  data={values}
-  mean={mean}
-  stdDev={stdDev}
-  marginOverride={{ top: 20, right: 30, bottom: 50, left: 60 }}
-  fontsOverride={{ tickLabel: 10, axisLabel: 12, statLabel: 10, tooltipText: 11, brandingText: 9 }}
-/>
-```
-
----
-
-## Colors and Theming
-
-### Point Colors
-
-All data points use `chartColors.pass` (green) with white stroke.
-
-### Line Colors
-
-```typescript
-// Fitted distribution line
-stroke={chartColors.linear}       // blue-500
-
-// CI boundary lines
-stroke={chromeColors.labelMuted}  // gray, dashed
-```
-
-### CI Band Fill
-
-```typescript
-fill={chromeColors.ciband}        // blue-500 with 15% opacity
-```
-
-### Theme Colors
-
-Uses hardcoded dark theme colors from `chromeColors`:
-
-- Grid: `chromeColors.tooltipBorder`
-- Labels: `chromeColors.labelSecondary`
-- Axes: `chromeColors.labelMuted`
 
 ---
 
@@ -203,71 +188,31 @@ Uses hardcoded dark theme colors from `chromeColors`:
 | Width Range | Y-Axis Label | Tick Percentiles                 | X-Axis Ticks |
 | ----------- | ------------ | -------------------------------- | ------------ |
 | < 300px     | Hidden       | 5, 25, 50, 75, 95 (compact)      | 4            |
-| >= 300px    | "Percent"    | 1, 5, 10, 25, 50, 75, 90, 95, 99 | 6            |
-
----
-
-## Mathematical Background
-
-### Probability Transformation
-
-The Y-axis uses the inverse normal CDF (quantile function):
-
-```typescript
-const z = normalQuantile(p); // Convert percentile to z-score
-```
-
-This transformation makes normally distributed data appear as a straight line because:
-
-- For normal data: X_p = μ + z_p × σ
-- When plotted with z on Y-axis and X on X-axis, the relationship is linear
-
-### Fitted Line Points
-
-The fitted line represents the theoretical normal distribution:
-
-```typescript
-const fittedLineWithCI = percentiles.map(p => {
-  const pDecimal = p / 100;
-  const z = normalQuantile(pDecimal);
-  const expectedX = mean + z * stdDev; // Theoretical value
-  const ciWidth = calculateCIWidth(pDecimal, n, stdDev);
-
-  return {
-    z,
-    x: expectedX,
-    lowerCI: expectedX - ciWidth,
-    upperCI: expectedX + ciWidth,
-  };
-});
-```
-
----
-
-## Signature Element
-
-An optional `signatureElement` prop allows rendering custom content (like a logo or signature) within the chart:
-
-```tsx
-<ProbabilityPlot data={values} mean={mean} stdDev={stdDev} signatureElement={<CustomSignature />} />
-```
+| ≥ 300px     | "Percent"    | 1, 5, 10, 25, 50, 75, 90, 95, 99 | 6            |
 
 ---
 
 ## Exports
 
 ```typescript
-// Responsive wrapper (auto-sizing)
+// Charts package
+import { ProbabilityPlotBase } from '@variscout/charts';
 import ProbabilityPlot from '@variscout/charts/ProbabilityPlot';
 
-// Base component (manual sizing)
-import { ProbabilityPlotBase } from '@variscout/charts/ProbabilityPlot';
+// Core stats
+import {
+  calculateProbabilityPlotData,
+  normalQuantile,
+  andersonDarlingTest,
+  normalCDF,
+} from '@variscout/core/stats';
+import type { ProbabilityPlotSeries, ProbabilityPlotPoint } from '@variscout/core';
 
-// Types
-import type { ProbabilityPlotProps } from '@variscout/charts';
+// Hooks
+import { useProbabilityPlotData } from '@variscout/hooks';
 
-// Core functions
-import { calculateProbabilityPlotData, normalQuantile } from '@variscout/core';
+// UI
+import { ProbabilityPlotTooltip } from '@variscout/ui';
 ```
 
 ---
@@ -277,5 +222,4 @@ import { calculateProbabilityPlotData, normalQuantile } from '@variscout/core';
 - [Overview](./overview.md) - Chart design system overview and selection guide
 - [Colors](./colors.md) - Chart color constants
 - [Responsive](./responsive.md) - Breakpoints and scaling utilities
-- [Hooks](./hooks.md) - useChartLayout
 - [Capability](./capability.md) - Distribution histograms

@@ -159,6 +159,10 @@ export {
 } from './components/CapabilityHistogram';
 
 export { ProbabilityPlot, type ProbabilityPlotProps } from './components/ProbabilityPlot';
+export {
+  ProbabilityPlotTooltip,
+  type ProbabilityPlotTooltipProps,
+} from './components/ProbabilityPlotTooltip';
 
 export { VerificationCard, type VerificationCardProps } from './components/VerificationCard';
 

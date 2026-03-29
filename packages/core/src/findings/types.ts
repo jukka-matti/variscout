@@ -398,6 +398,7 @@ export interface FindingProjection {
 export type FindingSource =
   | { chart: 'boxplot' | 'pareto'; category: string }
   | { chart: 'ichart'; anchorX: number; anchorY: number }
+  | { chart: 'probability'; anchorX: number; anchorY: number; seriesKey?: string }
   | { chart: 'yamazumi'; category: string; activityType?: string }
   | { chart: 'coscout'; messageId: string };
 

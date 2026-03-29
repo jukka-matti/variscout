@@ -99,8 +99,8 @@ export const ChartAnnotationLayer: React.FC<ChartAnnotationLayerProps> = ({
   // Determine anchor key for a finding
   const getAnchorKey = (finding: Finding): string | null => {
     if (!finding.source) return null;
-    if (finding.source.chart === 'ichart') {
-      // I-Chart findings use their ID as anchor key (free-floating)
+    if (finding.source.chart === 'ichart' || finding.source.chart === 'probability') {
+      // Free-floating findings use their ID as anchor key
       return finding.id;
     }
     if (finding.source.chart === 'coscout') {

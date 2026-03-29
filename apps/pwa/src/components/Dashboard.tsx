@@ -4,6 +4,7 @@ import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
+import { useProbabilityPlotData } from '@variscout/hooks';
 import MobileDashboard from './MobileDashboard';
 import SpecEditor from './settings/SpecEditor';
 import SpecsPopover from './settings/SpecsPopover';
@@ -312,6 +313,9 @@ const Dashboard = ({
       .map((d: Record<string, unknown>) => Number(d[outcome]))
       .filter((v: number) => !isNaN(v));
   }, [filteredData, outcome]);
+
+  // Probability plot series (single series in PWA — no factor support)
+  const probabilitySeries = useProbabilityPlotData({ values: histogramData });
 
   // Accessible live region text for screen readers
   const liveRegionText = useMemo(() => {
@@ -727,9 +731,7 @@ const Dashboard = ({
               renderHistogram={
                 <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
               }
-              renderProbabilityPlot={
-                <ProbabilityPlot data={histogramData} mean={stats.mean} stdDev={stats.stdDev} />
-              }
+              renderProbabilityPlot={<ProbabilityPlot series={probabilitySeries} />}
             />
           ) : undefined
         }
@@ -754,7 +756,7 @@ const Dashboard = ({
                 {focusedChart === 'histogram' && histogramData.length > 0 && stats ? (
                   <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
                 ) : focusedChart === 'probability-plot' && histogramData.length > 0 && stats ? (
-                  <ProbabilityPlot data={histogramData} mean={stats.mean} stdDev={stats.stdDev} />
+                  <ProbabilityPlot series={probabilitySeries} />
                 ) : null}
               </DashboardChartCard>
             </FocusedViewOverlay>

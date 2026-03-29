@@ -196,11 +196,13 @@ const FindingCard: React.FC<FindingCardProps> = ({
                 {finding.source.chart === 'boxplot' && <BarChart3 size={9} />}
                 {finding.source.chart === 'pareto' && <Layers size={9} />}
                 <span>
-                  {finding.source.chart === 'ichart' || finding.source.chart === 'coscout'
-                    ? finding.source.chart === 'ichart'
-                      ? 'I-Chart'
-                      : 'CoScout'
-                    : finding.source.category}
+                  {finding.source.chart === 'ichart'
+                    ? 'I-Chart'
+                    : finding.source.chart === 'probability'
+                      ? 'Probability Plot'
+                      : finding.source.chart === 'coscout'
+                        ? 'CoScout'
+                        : (finding.source as { category: string }).category}
                 </span>
               </button>
             )}

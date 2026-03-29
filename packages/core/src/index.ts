@@ -13,6 +13,7 @@ export type {
   SpecLimits,
   CharacteristicType,
   ProbabilityPlotPoint,
+  ProbabilityPlotSeries,
   DisplayOptions,
   ConformanceResult,
   AnovaResult,

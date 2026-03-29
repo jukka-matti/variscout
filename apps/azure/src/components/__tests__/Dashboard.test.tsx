@@ -436,6 +436,7 @@ vi.mock('@variscout/hooks', () => ({
     resolvedProjection: null,
     activeProjection: null,
   }),
+  useProbabilityPlotData: () => [],
 }));
 
 // Mock improvement store (Zustand)

@@ -17,6 +17,7 @@ import type {
   ChartFonts,
   IChartDataPoint,
   ParetoDataPoint,
+  ProbabilityPlotSeries,
 } from '@variscout/core';
 
 // Re-export data point types from core (canonical source)
@@ -223,21 +224,26 @@ export interface CapabilityHistogramProps extends BaseChartProps {
 }
 
 /**
- * Probability plot props
+ * Probability plot props — multi-series with brush and annotation support
  */
 export interface ProbabilityPlotProps extends BaseChartProps {
-  /** Raw numeric values */
-  data: number[];
-  /** Mean for theoretical line */
-  mean: number;
-  /** Standard deviation for theoretical line */
-  stdDev: number;
+  /** Series data (one per factor level, or single "All" series) */
+  series: ProbabilityPlotSeries[];
   /** Optional custom margin override */
   marginOverride?: { top: number; right: number; bottom: number; left: number };
   /** Optional custom font sizes override */
   fontsOverride?: ChartFonts;
-  /** Optional signature element to render */
-  signatureElement?: React.ReactNode;
+  /** Currently selected point indices (for brush selection) */
+  selectedPoints?: Set<number>;
+  /** Callback when brush selection changes */
+  onSelectionChange?: (indices: Set<number>) => void;
+  /** Right-click context menu callback (anchorX 0-1, anchorY 0-1, optional series key) */
+  onChartContextMenu?: (anchorX: number, anchorY: number, seriesKey?: string) => void;
+  /** Series hover callback for tooltip */
+  onSeriesHover?: (
+    series: ProbabilityPlotSeries | null,
+    position: { x: number; y: number }
+  ) => void;
 }
 
 /**

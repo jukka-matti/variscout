@@ -219,7 +219,9 @@ export function useFindingsOrchestration({
   const handleNavigateToChart = useCallback(
     (source: FindingSource) => {
       if (source.chart === 'coscout') return; // CoScout findings have no chart to focus
-      onViewStateChange({ focusedChart: source.chart });
+      // Map FindingSource chart names to focusedChart tab names
+      const chartName = source.chart === 'probability' ? 'probability-plot' : source.chart;
+      onViewStateChange({ focusedChart: chartName });
     },
     [onViewStateChange]
   );
