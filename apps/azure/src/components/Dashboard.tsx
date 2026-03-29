@@ -390,6 +390,7 @@ const Dashboard = ({
     specs,
     subgroupConfig,
     cpkTarget,
+    enabled: isCapabilityMode,
   });
 
   const capabilityStats =

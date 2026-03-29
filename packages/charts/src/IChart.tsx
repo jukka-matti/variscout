@@ -353,10 +353,10 @@ const IChartBase: React.FC<IChartProps> = ({
                 {secondaryLabel}
               </text>
               <line
-                x1={120}
-                y1={0}
-                x2={132}
-                y2={0}
+                x1={126}
+                y1={-4}
+                x2={126}
+                y2={4}
                 stroke={chrome.labelSecondary}
                 strokeWidth={1.5}
                 opacity={0.5}
