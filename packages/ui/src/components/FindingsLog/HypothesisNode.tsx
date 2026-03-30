@@ -92,7 +92,10 @@ export interface HypothesisNodeProps {
   /** Ask CoScout about improvement options */
   onAskCoScout?: (question: string) => void;
   /** Set cause role on a hypothesis */
-  onSetCauseRole?: (hypothesisId: string, role: 'primary' | 'contributing' | undefined) => void;
+  onSetCauseRole?: (
+    hypothesisId: string,
+    role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined
+  ) => void;
 }
 
 const HypothesisNode: React.FC<HypothesisNodeProps> = ({
@@ -145,9 +148,10 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
     (e: React.MouseEvent) => {
       e.stopPropagation();
       if (!onSetCauseRole) return;
-      const cycle: Array<'primary' | 'contributing' | undefined> = [
-        'primary',
+      const cycle: Array<'suspected-cause' | 'contributing' | 'ruled-out' | undefined> = [
+        'suspected-cause',
         'contributing',
+        'ruled-out',
         undefined,
       ];
       const idx = cycle.indexOf(hypothesis.causeRole);
@@ -237,14 +241,19 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
             )}
 
             {/* Cause role badge */}
-            {hypothesis.causeRole === 'primary' && (
+            {hypothesis.causeRole === 'suspected-cause' && (
               <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 font-medium">
-                PRIMARY
+                SUSPECTED
               </span>
             )}
             {hypothesis.causeRole === 'contributing' && (
               <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-medium">
                 CONTRIBUTING
+              </span>
+            )}
+            {hypothesis.causeRole === 'ruled-out' && (
+              <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-400 font-medium">
+                RULED OUT
               </span>
             )}
 
@@ -262,28 +271,34 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
           (hypothesis.status === 'supported' || hypothesis.status === 'partial') && (
             <button
               className={`opacity-0 group-hover:opacity-100 touch-show transition-opacity text-xs mt-0.5 flex-shrink-0 ${
-                hypothesis.causeRole === 'primary'
+                hypothesis.causeRole === 'suspected-cause'
                   ? 'text-red-400 opacity-100'
                   : hypothesis.causeRole === 'contributing'
                     ? 'text-amber-400 opacity-100'
-                    : 'text-content-muted hover:text-content'
+                    : hypothesis.causeRole === 'ruled-out'
+                      ? 'text-slate-400 opacity-100'
+                      : 'text-content-muted hover:text-content'
               }`}
               onClick={handleCycleCauseRole}
               title={
-                hypothesis.causeRole === 'primary'
-                  ? 'Primary cause (click to change)'
+                hypothesis.causeRole === 'suspected-cause'
+                  ? 'Suspected cause (click to change)'
                   : hypothesis.causeRole === 'contributing'
                     ? 'Contributing factor (click to change)'
-                    : 'Mark as cause'
+                    : hypothesis.causeRole === 'ruled-out'
+                      ? 'Ruled out (click to change)'
+                      : 'Mark as cause'
               }
               aria-label="Set cause role"
               data-testid={`cause-role-${hypothesis.id}`}
             >
-              {hypothesis.causeRole === 'primary'
+              {hypothesis.causeRole === 'suspected-cause'
                 ? '\u{1F3AF}'
                 : hypothesis.causeRole === 'contributing'
                   ? '\u25C7'
-                  : '\u{1F3AF}'}
+                  : hypothesis.causeRole === 'ruled-out'
+                    ? '\u2717'
+                    : '\u{1F3AF}'}
             </button>
           )}
 

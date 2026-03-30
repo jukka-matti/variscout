@@ -77,18 +77,18 @@ describe('useJourneyPhase', () => {
 });
 
 describe('detectEntryScenario', () => {
-  it('returns "problem" when problemStatement and targetMetric present', () => {
-    expect(
-      detectEntryScenario({ problemStatement: 'Too much variation', targetMetric: 'cpk' })
-    ).toBe('problem');
+  it('returns "problem" when issueStatement and targetMetric present', () => {
+    expect(detectEntryScenario({ issueStatement: 'Too much variation', targetMetric: 'cpk' })).toBe(
+      'problem'
+    );
   });
 
-  it('returns "problem" when problemStatement and targetValue present', () => {
-    expect(detectEntryScenario({ problemStatement: 'Issue', targetValue: 1.33 })).toBe('problem');
+  it('returns "problem" when issueStatement and targetValue present', () => {
+    expect(detectEntryScenario({ issueStatement: 'Issue', targetValue: 1.33 })).toBe('problem');
   });
 
-  it('returns "hypothesis" when only problemStatement', () => {
-    expect(detectEntryScenario({ problemStatement: 'I think Machine A is the issue' })).toBe(
+  it('returns "hypothesis" when only issueStatement', () => {
+    expect(detectEntryScenario({ issueStatement: 'I think Machine A is the issue' })).toBe(
       'hypothesis'
     );
   });

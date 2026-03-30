@@ -34,8 +34,17 @@ export interface ProcessContext {
   product?: string;
   /** Measurement being analyzed */
   measurement?: string;
-  /** Problem statement: why this analysis is being done (max 500 chars) */
+  /** Issue statement: the initial concern being investigated (max 500 chars) */
+  issueStatement?: string;
+  /** Problem statement: precise output answering Watson's 3 questions (measure, direction, scope) */
   problemStatement?: string;
+  /** Suspected causes from question-driven investigation, ranked by evidence */
+  suspectedCauses?: Array<{
+    factor: string;
+    level?: string;
+    evidence: number;
+    role: 'suspected-cause' | 'contributing' | 'ruled-out';
+  }>;
   /** Target metric for improvement tracking */
   targetMetric?: TargetMetric;
   /** Target value for the chosen metric */

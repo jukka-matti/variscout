@@ -83,7 +83,7 @@ function buildEvidenceTrailTitle(hypotheses: Hypothesis[]): string {
   if (hypotheses.length === 0) return 'Why is this happening?';
 
   // Prefer the primary cause hypothesis if one is marked
-  const primary = hypotheses.find(h => h.causeRole === 'primary');
+  const primary = hypotheses.find(h => h.causeRole === 'suspected-cause');
   const subject = primary ? primary.text.trim() : hypotheses[0].text?.trim() || null;
 
   if (!subject) return 'Why is this happening?';

@@ -76,7 +76,10 @@ export interface HypothesisTreeViewProps {
   /** Ask CoScout about improvement options */
   onAskCoScout?: (question: string) => void;
   /** Set cause role on a hypothesis */
-  onSetCauseRole?: (hypothesisId: string, role: 'primary' | 'contributing' | undefined) => void;
+  onSetCauseRole?: (
+    hypothesisId: string,
+    role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined
+  ) => void;
 }
 
 /** Category group for tree rendering */

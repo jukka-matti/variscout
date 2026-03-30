@@ -152,9 +152,9 @@ export function buildSummaryPrompt(context: AIContext): string {
     parts.push(teamLine);
   }
 
-  // Problem statement
-  if (context.process?.problemStatement) {
-    parts.push(`Problem statement: ${context.process.problemStatement}`);
+  // Issue statement
+  if (context.process?.issueStatement) {
+    parts.push(`Issue statement: ${context.process.issueStatement}`);
   }
 
   // Convergence synthesis

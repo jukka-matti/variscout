@@ -134,7 +134,10 @@ export interface FindingsLogProps {
   onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
   onAskCoScout?: (question: string) => void;
   /** Set cause role on a hypothesis */
-  onSetCauseRole?: (hypothesisId: string, role: 'primary' | 'contributing' | undefined) => void;
+  onSetCauseRole?: (
+    hypothesisId: string,
+    role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined
+  ) => void;
   /** Ask CoScout about a specific finding (from FindingCard action button) */
   onAskCoScoutAboutFinding?: (focusContext: {
     finding: { text: string; status: string; hypothesis?: string };

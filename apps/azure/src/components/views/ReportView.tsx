@@ -412,7 +412,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   );
 
   // Process name for the report header
-  const processName = processContext?.problemStatement || outcome || 'Analysis';
+  const processName = processContext?.issueStatement || outcome || 'Analysis';
 
   // Publish to SharePoint (ADR-026)
   const canPublish = hasTeamFeatures();

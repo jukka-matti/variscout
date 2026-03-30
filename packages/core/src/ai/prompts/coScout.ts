@@ -677,7 +677,7 @@ Never invent data or statistics. If the context does not contain enough informat
     const invParts: string[] = [];
 
     if (investigation.problemStatement) {
-      invParts.push(`The analyst is investigating: "${investigation.problemStatement}".`);
+      invParts.push(`Issue statement: "${investigation.problemStatement}".`);
     }
 
     // Convergence synthesis — the analyst's suspected cause narrative

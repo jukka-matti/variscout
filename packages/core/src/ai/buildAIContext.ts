@@ -286,15 +286,15 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 
   // Add investigation context if problem statement or hypotheses exist
   if (
-    process.problemStatement ||
+    process.issueStatement ||
     (hypotheses && hypotheses.length > 0) ||
     investigationProgress ||
     selectedFinding
   ) {
     context.investigation = {};
 
-    if (process.problemStatement) {
-      context.investigation.problemStatement = process.problemStatement;
+    if (process.issueStatement) {
+      context.investigation.problemStatement = process.issueStatement;
     }
 
     if (selectedFinding) {
@@ -374,7 +374,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       context.investigation.phase = detectInvestigationPhase(hypotheses, findings);
 
       // Build suspected cause from hypotheses with causeRole
-      const primaryH = hypotheses.find(h => h.causeRole === 'primary');
+      const primaryH = hypotheses.find(h => h.causeRole === 'suspected-cause');
       const contributingH = hypotheses.filter(h => h.causeRole === 'contributing');
       if (primaryH || contributingH.length > 0) {
         context.investigation.suspectedCause = {

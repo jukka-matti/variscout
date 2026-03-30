@@ -74,7 +74,7 @@ export interface FindingCardProps {
       factor?: string;
       level?: string;
       ideas?: Array<{ text: string; selected?: boolean }>;
-      causeRole?: 'primary' | 'contributing';
+      causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
     }
   >;
   /** Callback to add an action item */

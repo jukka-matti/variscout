@@ -20,7 +20,7 @@ export interface HypothesisMapEntry {
   factor?: string;
   level?: string;
   ideas?: Array<{ text: string; selected?: boolean }>;
-  causeRole?: 'primary' | 'contributing';
+  causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
 }
 
 export interface HypothesisSectionProps {
@@ -120,14 +120,14 @@ export interface SuspectedCauseSectionProps {
       text: string;
       status: string;
       factor?: string;
-      causeRole?: 'primary' | 'contributing';
+      causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
     }
   >;
 }
 
 export const SuspectedCauseSection: React.FC<SuspectedCauseSectionProps> = ({ hypothesesMap }) => {
   const entries = Object.entries(hypothesesMap);
-  const primary = entries.find(([, h]) => h.causeRole === 'primary');
+  const primary = entries.find(([, h]) => h.causeRole === 'suspected-cause');
   const contributing = entries.filter(([, h]) => h.causeRole === 'contributing');
 
   if (!primary && contributing.length === 0) return null;

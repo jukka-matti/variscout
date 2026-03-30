@@ -75,7 +75,7 @@ export function useInvestigationOrchestration({
         status: string;
         factor?: string;
         level?: string;
-        causeRole?: 'primary' | 'contributing';
+        causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
       }
     > = {};
     for (const h of hypothesesState.hypotheses) {

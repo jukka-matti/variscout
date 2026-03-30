@@ -17,7 +17,7 @@ export interface SearchResult {
   etaSquared?: number;
   factor?: string;
   linkedFindingCount?: number;
-  causeRole?: 'primary' | 'contributing';
+  causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
   childCount?: number;
   tag?: 'key-driver' | 'low-impact';
   filterContext?: string;

@@ -6,7 +6,7 @@ import type { Hypothesis } from '@variscout/core';
 export interface ImprovementHypothesis {
   id: string;
   text: string;
-  causeRole?: 'primary' | 'contributing';
+  causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
   factor?: string;
   ideas: NonNullable<Hypothesis['ideas']>;
   linkedFindingName?: string;

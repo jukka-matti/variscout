@@ -516,7 +516,7 @@ describe('ColumnMapping', () => {
 
       const brief = onConfirm.mock.calls[0][4];
       expect(brief).toBeDefined();
-      expect(brief.problemStatement).toBe('Cpk is below target');
+      expect(brief.issueStatement).toBe('Cpk is below target');
     });
 
     it('passes undefined brief when no fields filled', () => {
@@ -529,12 +529,12 @@ describe('ColumnMapping', () => {
       expect(brief).toBeUndefined();
     });
 
-    it('pre-fills problem statement from initialProblemStatement', () => {
+    it('pre-fills issue statement from initialIssueStatement', () => {
       render(
         <ColumnMapping
           {...richProps}
           showBrief={true}
-          initialProblemStatement="Customer complaints up"
+          initialIssueStatement="Customer complaints up"
         />
       );
 

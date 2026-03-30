@@ -4,7 +4,7 @@ import BriefHeader from '../BriefHeader';
 import type { ProcessContext } from '@variscout/core';
 
 const makeProcessContext = (overrides?: Partial<ProcessContext>): ProcessContext => ({
-  problemStatement: 'Reduce mean fill weight',
+  issueStatement: 'Reduce mean fill weight',
   targetMetric: 'mean',
   targetValue: 15,
   targetDirection: 'minimize',

@@ -25,13 +25,13 @@ export function useJourneyPhase(hasData: boolean, findings: Finding[]): JourneyP
  * Azure: derive from analysis brief. PWA: defaults to 'problem'.
  */
 export function detectEntryScenario(processContext?: {
-  problemStatement?: string;
+  issueStatement?: string;
   targetMetric?: string;
   targetValue?: number;
 }): EntryScenario {
   if (!processContext) return 'problem';
-  const { problemStatement, targetMetric, targetValue } = processContext;
-  if (problemStatement && (targetMetric || targetValue !== undefined)) return 'problem';
-  if (problemStatement) return 'hypothesis';
+  const { issueStatement, targetMetric, targetValue } = processContext;
+  if (issueStatement && (targetMetric || targetValue !== undefined)) return 'problem';
+  if (issueStatement) return 'hypothesis';
   return 'routine';
 }
