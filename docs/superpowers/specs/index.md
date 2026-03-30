@@ -34,6 +34,7 @@ Once a feature stabilizes, the ADR is the canonical reference.
 | [2026-03-28-dashboard-chrome-redesign.md](2026-03-28-dashboard-chrome-redesign.md)                                     | Dashboard Chrome Redesign (header/toolbar/stats/panels) | —       | Draft     |
 | [2026-03-28-process-intelligence-panel-design.md](2026-03-28-process-intelligence-panel-design.md)                     | Process Intelligence Panel (sidebar target discovery)   | —       | Design    |
 | [2026-03-28-benchmark-findings-scope-design.md](2026-03-28-benchmark-findings-scope-design.md)                         | Benchmark Findings + Project Scope (Phase 3)            | —       | Delivered |
+| [2026-03-30-holistic-evaluation-vqi.md](2026-03-30-holistic-evaluation-vqi.md)                                         | Holistic Evaluation: VQI Framework + Maturity Model     | —       | Active    |
 | [scouting-report-design.md](../../archive/specs/scouting-report-design.md)                                             | Report View (superseded)                                | ADR-024 | Archived  |
 | [report-verification-upgrade-design.md](../../archive/specs/report-verification-upgrade-design.md)                     | Staged Verification                                     | ADR-023 | Archived  |
 | [hypothesis-investigation-design.md](../../archive/specs/hypothesis-investigation-design.md)                           | Investigation Workflow                                  | ADR-020 | Archived  |
