@@ -63,7 +63,7 @@ packages/ui/src/components/StatsPanel/
 ### Negative
 
 - Limited to categorical factors (no continuous X regression yet)
-- Combinatorial explosion above 10 factors (2^10 = 1024 subsets)
+- **Hard limit: MAX_FACTORS = 10** — Factor Intelligence returns `null` when more than 10 factors are available (2^10 = 1024 subsets is the combinatorial ceiling). Users with 11+ factors should reduce factor count via column mapping.
 - Interaction analysis requires ≥2 significant factors with sufficient observations per cell
 
 ### Future

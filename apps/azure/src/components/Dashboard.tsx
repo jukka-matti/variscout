@@ -91,7 +91,7 @@ interface DashboardProps {
   findingsCallbacks?: AzureFindingsCallbacks;
   findings?: Finding[];
   /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
-  onInvestigateFactor?: (factorName: string) => void;
+  onInvestigateFactor?: (effect: import('@variscout/core/stats').FactorMainEffect) => void;
   // Persistence
   initialViewState?: ViewState;
   onViewStateChange?: (partial: Partial<ViewState>) => void;

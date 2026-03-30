@@ -15,7 +15,9 @@ import type {
   BestSubsetsResult,
   MainEffectsResult,
   InteractionEffectsResult,
+  FactorMainEffect,
 } from '@variscout/core/stats';
+import { useTranslation } from '@variscout/hooks';
 import BestSubsetsCard from './BestSubsetsCard';
 import MainEffectsPlot from './MainEffectsPlot';
 import InteractionPlot from './InteractionPlot';
@@ -30,7 +32,7 @@ export interface FactorIntelligencePanelProps {
   /** Called when user clicks a factor subset for drill-down */
   onSubsetClick?: (factors: string[]) => void;
   /** Called when user clicks "Investigate" on a significant factor */
-  onInvestigateFactor?: (factorName: string) => void;
+  onInvestigateFactor?: (effect: FactorMainEffect) => void;
 }
 
 /** Minimum R²adj to unlock Layer 2 */
@@ -55,6 +57,8 @@ const FactorIntelligencePanel: React.FC<FactorIntelligencePanelProps> = ({
     interactionEffects !== null &&
     interactionEffects.interactions.length > 0;
 
+  const { t, tf } = useTranslation();
+
   // Nothing to show
   if (!bestSubsets || bestSubsets.subsets.length === 0) return null;
 
@@ -63,7 +67,7 @@ const FactorIntelligencePanel: React.FC<FactorIntelligencePanelProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-content">Factor Intelligence</span>
+          <span className="text-sm font-bold text-content">{t('fi.title')}</span>
           <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-400 font-semibold">
             {bestSubsets.totalFactors} factors · {bestSubsets.n} obs
           </span>
@@ -98,8 +102,8 @@ const FactorIntelligencePanel: React.FC<FactorIntelligencePanelProps> = ({
       {/* Layer 2 locked message */}
       {!showLayer2 && bestSubsets.subsets.length > 0 && (
         <div className="text-[0.6875rem] text-content-muted italic py-1">
-          Layer 2 (Main Effects) unlocks when R²adj {'>'} {(LAYER2_THRESHOLD * 100).toFixed(0)}%
-          {bestR2adj > 0 && ` — currently ${(bestR2adj * 100).toFixed(1)}%`}
+          {tf('fi.layer2Locked', { threshold: (LAYER2_THRESHOLD * 100).toFixed(0) })}
+          {bestR2adj > 0 && tf('fi.layer2Current', { value: (bestR2adj * 100).toFixed(1) })}
         </div>
       )}
 
@@ -115,8 +119,8 @@ const FactorIntelligencePanel: React.FC<FactorIntelligencePanelProps> = ({
       {/* Layer 3 locked message */}
       {showLayer2 && !showLayer3 && (
         <div className="text-[0.6875rem] text-content-muted italic py-1">
-          Layer 3 (Interactions) unlocks when ≥2 factors are significant
-          {mainEffects && ` — currently ${mainEffects.significantCount} significant`}
+          {t('fi.layer3Locked')}
+          {mainEffects && tf('fi.layer3Current', { count: String(mainEffects.significantCount) })}
         </div>
       )}
     </div>

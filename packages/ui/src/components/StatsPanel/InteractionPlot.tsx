@@ -7,17 +7,20 @@
  */
 import React from 'react';
 import type { InteractionResult } from '@variscout/core/stats';
+import { operatorColors } from '@variscout/charts';
+import { useTranslation } from '@variscout/hooks';
 
 export interface InteractionPlotProps {
   /** Interaction results (typically only the top 1-2 significant ones) */
   interactions: InteractionResult[];
 }
 
-/** Color palette for interaction lines. */
-const LINE_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+/** Color palette for interaction lines — reuses the shared operator palette. */
+const LINE_COLORS = operatorColors;
 
 /** Single interaction panel for one factor pair. */
 const InteractionPanel: React.FC<{ interaction: InteractionResult }> = ({ interaction }) => {
+  const { t, tf } = useTranslation();
   const { factorA, factorB, levelsA, levelsB, cellMeans, deltaRSquared, isSignificant, pValue } =
     interaction;
 
@@ -164,21 +167,20 @@ const InteractionPanel: React.FC<{ interaction: InteractionResult }> = ({ intera
 
       {/* Interaction interpretation */}
       <div className="text-[0.6875rem] text-content-secondary mt-1.5">
-        {isSignificant
-          ? `Interaction detected: ${factorA}'s effect depends on ${factorB} level.`
-          : 'No significant interaction — effects are approximately additive.'}
+        {isSignificant ? tf('fi.interactionDetected', { factorA, factorB }) : t('fi.noInteraction')}
       </div>
     </div>
   );
 };
 
 const InteractionPlot: React.FC<InteractionPlotProps> = ({ interactions }) => {
+  const { t } = useTranslation();
   if (!interactions || interactions.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-2" data-testid="interaction-plot">
       <div className="text-[0.75rem] font-semibold text-content-secondary uppercase tracking-wider">
-        Layer 3 · Factor Interactions
+        {t('fi.layer3')}
       </div>
       <div className="flex flex-col gap-2">
         {interactions.map(interaction => (

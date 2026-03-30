@@ -127,7 +127,7 @@ interface MobileChartCarouselProps {
     category: { name: string; mean?: number; contributionPct?: number };
   }) => void;
   /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
-  onInvestigateFactor?: (factorName: string) => void;
+  onInvestigateFactor?: (effect: import('@variscout/core/stats').FactorMainEffect) => void;
 }
 
 const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({

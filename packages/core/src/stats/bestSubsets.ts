@@ -114,7 +114,7 @@ function computeSubsetSS(
   const groups = new Map<string, number[]>();
 
   for (let i = 0; i < n; i++) {
-    const key = factorColumns.map(col => col[i]).join('|');
+    const key = factorColumns.map(col => col[i]).join('\x00');
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(values[i]);
   }

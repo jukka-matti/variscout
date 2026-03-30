@@ -532,6 +532,9 @@ export {
   createImprovementIdea,
   createFactorFinding,
   createInvestigationCategory,
+} from './findings';
+export type { FactorFindingInput, FactorFindingBundle } from './findings';
+export {
   getCategoryForFactor,
   getFindingStatus,
   groupFindingsByStatus,

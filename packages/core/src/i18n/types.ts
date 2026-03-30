@@ -842,6 +842,24 @@ export interface MessageCatalog {
   'yamazumi.mode.label': string;
   'yamazumi.mode.switch': string;
 
+  // Factor Intelligence
+  'fi.title': string;
+  'fi.ranking': string;
+  'fi.layer2': string;
+  'fi.layer3': string;
+  'fi.investigate': string;
+  'fi.notSignificant': string;
+  'fi.explainsSingle': string;
+  'fi.explainsMultiple': string;
+  'fi.layer2Locked': string;
+  'fi.layer2Current': string;
+  'fi.layer3Locked': string;
+  'fi.layer3Current': string;
+  'fi.best': string;
+  'fi.range': string;
+  'fi.interactionDetected': string;
+  'fi.noInteraction': string;
+
   // Report workspace view
   'report.cpkLearningLoop': string;
   'report.verdict.effective': string;

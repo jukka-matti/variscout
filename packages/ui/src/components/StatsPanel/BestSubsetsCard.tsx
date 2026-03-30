@@ -24,7 +24,7 @@ const BestSubsetsCard: React.FC<BestSubsetsCardProps> = ({
   maxRows = 5,
   onSubsetClick,
 }) => {
-  const { formatStat } = useTranslation();
+  const { t, tf, formatStat } = useTranslation();
 
   if (!result || result.subsets.length === 0) return null;
 
@@ -41,7 +41,7 @@ const BestSubsetsCard: React.FC<BestSubsetsCardProps> = ({
       data-testid="best-subsets-card"
     >
       <div className="text-[0.625rem] uppercase tracking-wider text-indigo-400 font-medium mb-2">
-        Factor ranking (R² adjusted)
+        {t('fi.ranking')}
       </div>
       <div className="space-y-1.5">
         {topSubsets.map((subset, i) => {
@@ -93,7 +93,7 @@ const BestSubsetsCard: React.FC<BestSubsetsCardProps> = ({
               {/* Significance indicator */}
               {!subset.isSignificant && (
                 <div className="text-[0.5625rem] text-content-muted mt-0.5">
-                  not significant (p={formatStat(subset.pValue, 3)})
+                  {tf('fi.notSignificant', { value: formatStat(subset.pValue, 3) })}
                 </div>
               )}
             </button>
@@ -102,19 +102,15 @@ const BestSubsetsCard: React.FC<BestSubsetsCardProps> = ({
       </div>
       {/* Summary line */}
       <div className="text-[0.625rem] text-content-muted mt-2 leading-relaxed">
-        {result.subsets[0].factors.length === 1 ? (
-          <>
-            <span className="text-indigo-400 font-medium">{result.subsets[0].factors[0]}</span>{' '}
-            explains {formatStat(result.subsets[0].rSquaredAdj * 100, 1)}% of variation alone.
-          </>
-        ) : (
-          <>
-            <span className="text-indigo-400 font-medium">
-              {result.subsets[0].factors.join(' + ')}
-            </span>{' '}
-            together explain {formatStat(result.subsets[0].rSquaredAdj * 100, 1)}% of variation.
-          </>
-        )}
+        {result.subsets[0].factors.length === 1
+          ? tf('fi.explainsSingle', {
+              factor: result.subsets[0].factors[0],
+              pct: formatStat(result.subsets[0].rSquaredAdj * 100, 1),
+            })
+          : tf('fi.explainsMultiple', {
+              factors: result.subsets[0].factors.join(' + '),
+              pct: formatStat(result.subsets[0].rSquaredAdj * 100, 1),
+            })}
       </div>
     </div>
   );

@@ -6,19 +6,22 @@
  */
 import React from 'react';
 import type { MainEffectsResult, FactorMainEffect } from '@variscout/core/stats';
+import { chartColors, operatorColors } from '@variscout/charts';
+import { useTranslation } from '@variscout/hooks';
 
 export interface MainEffectsPlotProps {
   result: MainEffectsResult | null;
   /** Called when user clicks "Investigate" on a significant factor */
-  onInvestigateFactor?: (factorName: string) => void;
+  onInvestigateFactor?: (effect: FactorMainEffect) => void;
 }
 
 /** Single factor panel within the main effects plot. */
 const FactorPanel: React.FC<{
   effect: FactorMainEffect;
   grandMean: number;
-  onInvestigate?: (factorName: string) => void;
+  onInvestigate?: (effect: FactorMainEffect) => void;
 }> = ({ effect, grandMean, onInvestigate }) => {
+  const { t } = useTranslation();
   const levels = effect.levels;
   if (levels.length === 0) return null;
 
@@ -105,7 +108,11 @@ const FactorPanel: React.FC<{
           const y = toY(l.mean);
           const isBest = l.level === effect.bestLevel;
           const isWorst = l.level === effect.worstLevel;
-          const dotColor = isBest ? '#22c55e' : isWorst ? '#ef4444' : '#6366f1';
+          const dotColor = isBest
+            ? chartColors.pass
+            : isWorst
+              ? chartColors.fail
+              : operatorColors[0];
           return (
             <g key={l.level}>
               <circle
@@ -142,17 +149,17 @@ const FactorPanel: React.FC<{
       {/* Summary text + Investigate button */}
       <div className="flex items-center justify-between mt-1">
         <div className="text-[0.6875rem] text-content-secondary">
-          Best: <span className="text-green-500 font-semibold">{effect.bestLevel}</span>
+          {t('fi.best')}: <span className="text-green-500 font-semibold">{effect.bestLevel}</span>
           {' · '}
-          Range: <span className="font-mono">{effect.effectRange.toFixed(1)}</span>
+          {t('fi.range')}: <span className="font-mono">{effect.effectRange.toFixed(1)}</span>
         </div>
         {effect.isSignificant && onInvestigate && (
           <button
-            onClick={() => onInvestigate(effect.factor)}
+            onClick={() => onInvestigate(effect)}
             className="text-[0.625rem] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors px-1.5 py-0.5 rounded hover:bg-indigo-500/10"
             title={`Investigate ${effect.factor}: create a finding with target "${effect.worstLevel}" → "${effect.bestLevel}"`}
           >
-            Investigate →
+            {t('fi.investigate')}
           </button>
         )}
       </div>
@@ -161,12 +168,13 @@ const FactorPanel: React.FC<{
 };
 
 const MainEffectsPlot: React.FC<MainEffectsPlotProps> = ({ result, onInvestigateFactor }) => {
+  const { t } = useTranslation();
   if (!result || result.factors.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-2" data-testid="main-effects-plot">
       <div className="text-[0.75rem] font-semibold text-content-secondary uppercase tracking-wider">
-        Layer 2 · Main Effects
+        {t('fi.layer2')}
       </div>
       <div className="flex gap-2 flex-wrap">
         {result.factors.map(effect => (

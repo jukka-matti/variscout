@@ -10,7 +10,6 @@ import type { SessionClosePromptItem } from '@variscout/ui';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { hasTeamFeatures, toNumericValue, createFactorFinding } from '@variscout/core';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
-import { computeMainEffects } from '@variscout/core/stats';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
 import type { UseHypothesesReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
 import { isAIAvailable } from '../../services/aiService';
@@ -202,13 +201,8 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
 
   // ── Factor Intelligence → Findings bridge ──────────────────────────────
   const handleInvestigateFactor = useCallback(
-    (factorName: string) => {
+    (effect: import('@variscout/core/stats').FactorMainEffect) => {
       if (!outcome || !filteredData || filteredData.length === 0) return;
-
-      // Compute main effects to find the factor's data
-      const mainEffects = computeMainEffects(filteredData, outcome, factors);
-      const effect = mainEffects?.factors.find(f => f.factor === factorName);
-      if (!effect) return;
 
       // Create the bundle: Finding + Hypothesis + ImprovementIdea
       const bundle = createFactorFinding({
@@ -227,20 +221,26 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
         undefined // no chart source
       );
 
-      // Link hypothesis to finding and add via hypothesesState
-      bundle.hypothesis.linkedFindingIds = [addedFinding.id];
-      hypothesesState.addHypothesis(
+      // Add hypothesis and apply pre-validated status from Factor Intelligence
+      const addedHypothesis = hypothesesState.addHypothesis(
         bundle.hypothesis.text,
         bundle.hypothesis.factor,
         bundle.hypothesis.level
       );
+      hypothesesState.setManualStatus(addedHypothesis.id, 'supported');
+
+      // Link finding ↔ hypothesis
+      findingsState.linkHypothesis(addedFinding.id, addedHypothesis.id, 'supports');
+
+      // Add improvement idea to the hypothesis
+      hypothesesState.addIdea(addedHypothesis.id, bundle.idea.text);
 
       // Set finding status to 'investigating' and open Findings panel
       handleSetFindingStatus(addedFinding.id, 'investigating');
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(addedFinding.id);
     },
-    [outcome, filteredData, factors, findingsState, hypothesesState, handleSetFindingStatus]
+    [outcome, filteredData, findingsState, hypothesesState, handleSetFindingStatus]
   );
 
   // Build shared FindingsPanel props to avoid duplication between phone/desktop

@@ -36,7 +36,7 @@ interface StatsPanelProps {
   /** Factor Intelligence: callback when user clicks a subset for drill-down */
   onFactorDrillDown?: (factors: string[]) => void;
   /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
-  onInvestigateFactor?: (factorName: string) => void;
+  onInvestigateFactor?: (effect: import('@variscout/core/stats').FactorMainEffect) => void;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({

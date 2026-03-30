@@ -10,14 +10,13 @@ export const DENSITY_CONFIG: Record<
   DensityPreset,
   {
     rootFontSize: number;
-    scale: number;
     lineHeight: number;
   }
 > = {
-  S: { rootFontSize: 14, scale: 0.875, lineHeight: 1.35 },
-  M: { rootFontSize: 16, scale: 1.0, lineHeight: 1.5 },
-  L: { rootFontSize: 18, scale: 1.125, lineHeight: 1.5 },
-  XL: { rootFontSize: 21, scale: 1.3125, lineHeight: 1.6 },
+  S: { rootFontSize: 14, lineHeight: 1.35 },
+  M: { rootFontSize: 16, lineHeight: 1.5 },
+  L: { rootFontSize: 18, lineHeight: 1.5 },
+  XL: { rootFontSize: 21, lineHeight: 1.6 },
 };
 
 export interface ThemeConfig {

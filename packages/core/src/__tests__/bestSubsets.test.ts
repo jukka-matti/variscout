@@ -4,6 +4,7 @@ import {
   computeRSquaredAdjusted,
   getBestSingleFactor,
 } from '../stats/bestSubsets';
+import { getEtaSquared } from '../stats';
 
 describe('Best Subsets Regression', () => {
   // =========================================================================
@@ -146,16 +147,21 @@ describe('Best Subsets Regression', () => {
       expect(result!.ssTotal).toBeGreaterThan(0);
     });
 
-    it('should compute R² that is consistent with η² for single factors', () => {
+    it('should compute R² that matches η² (getEtaSquared) for single factors', () => {
       const result = computeBestSubsets(data, 'Y', ['A', 'B', 'C']);
 
       expect(result).not.toBeNull();
 
       // For a single-factor model, R² should equal η² (eta-squared)
-      // because both are SSB/SST for one-way grouping
-      const justA = result!.subsets.find(s => s.factors.length === 1 && s.factors[0] === 'A');
-      expect(justA!.rSquared).toBeGreaterThan(0);
-      expect(justA!.rSquared).toBeLessThanOrEqual(1);
+      // because both are SSB/SST for one-way grouping.
+      // Cross-validate against getEtaSquared() from the stats module.
+      for (const factorName of ['A', 'B', 'C']) {
+        const subset = result!.subsets.find(
+          s => s.factors.length === 1 && s.factors[0] === factorName
+        );
+        const etaSquared = getEtaSquared(data, factorName, 'Y');
+        expect(subset!.rSquared).toBeCloseTo(etaSquared, 10);
+      }
     });
 
     // -----------------------------------------------------------------------
