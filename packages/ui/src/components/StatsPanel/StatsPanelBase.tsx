@@ -107,9 +107,6 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   // New tab render props
   renderDataTable,
   renderWhatIf,
-  // Best subsets (consumed by FactorIntelligencePanel via Azure StatsPanel wrapper)
-  bestSubsetsResult: _bestSubsetsResult,
-  onBestSubsetClick: _onBestSubsetClick,
 }) => {
   const { t, formatStat } = useTranslation();
   const [activeTab, setActiveTab] = useState<StatsPanelTab>(defaultTab || 'summary');
