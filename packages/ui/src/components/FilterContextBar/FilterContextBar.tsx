@@ -45,7 +45,7 @@ const FilterContextBar: React.FC<FilterContextBarProps> = ({
 
   return (
     <div
-      className="flex items-center gap-1 px-1 py-0.5 text-[11px] leading-tight overflow-hidden"
+      className="flex items-center gap-1 px-1 py-0.5 text-[0.6875rem] leading-tight overflow-hidden"
       aria-label="Active filter context"
     >
       {filterChipData.map((chip, i) => {

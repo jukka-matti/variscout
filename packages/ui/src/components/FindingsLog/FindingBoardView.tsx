@@ -139,11 +139,11 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                 <span className="text-xs font-medium text-content block">
                   {FINDING_STATUS_LABELS[status]}
                 </span>
-                <span className="text-[9px] text-content-muted font-normal block leading-tight">
+                <span className="text-[0.5625rem] text-content-muted font-normal block leading-tight">
                   {FINDING_STATUS_DESCRIPTIONS[status]}
                 </span>
               </span>
-              <span className="text-[10px] text-content-muted px-1.5 py-0.5 bg-surface-tertiary rounded">
+              <span className="text-[0.625rem] text-content-muted px-1.5 py-0.5 bg-surface-tertiary rounded">
                 {items.length}
               </span>
             </button>

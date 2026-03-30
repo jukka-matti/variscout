@@ -178,7 +178,7 @@ const RiskPopover: React.FC<RiskPopoverProps> = ({
                       key={`${a1}-${a2}`}
                       onClick={() => handleCellClick(a1, a2)}
                       className={`
-                        px-1 py-2 rounded text-[10px] font-medium text-content-secondary
+                        px-1 py-2 rounded text-[0.625rem] font-medium text-content-secondary
                         transition-all cursor-pointer
                         ${RISK_CELL_COLORS[computed]}
                         ${isSelected ? 'ring-2 ring-blue-500 border border-blue-500' : 'border border-transparent hover:border-edge-secondary'}
@@ -195,7 +195,10 @@ const RiskPopover: React.FC<RiskPopoverProps> = ({
             {/* X-axis labels */}
             <div className="grid grid-cols-3 gap-1 mt-1">
               {AXIS_LEVELS.map(level => (
-                <div key={level} className="text-[9px] text-content-muted text-center truncate">
+                <div
+                  key={level}
+                  className="text-[0.5625rem] text-content-muted text-center truncate"
+                >
                   {t(AXIS2_LABEL_KEYS[level])}
                 </div>
               ))}
@@ -230,7 +233,7 @@ const RiskPopover: React.FC<RiskPopoverProps> = ({
             {AXIS1_ROWS.map(level => (
               <div
                 key={level}
-                className="text-[9px] text-content-muted text-right flex-1 flex items-center justify-end"
+                className="text-[0.5625rem] text-content-muted text-right flex-1 flex items-center justify-end"
               >
                 {t(AXIS1_LABEL_KEYS[level])}
               </div>
@@ -274,7 +277,7 @@ const AxisLabel: React.FC<{
     onClick={onToggle}
     disabled={disabled}
     className={`
-      flex items-center gap-0.5 text-[10px] font-medium text-content-secondary
+      flex items-center gap-0.5 text-[0.625rem] font-medium text-content-secondary
       transition-colors rounded px-1 py-0.5
       ${disabled ? 'cursor-default' : 'hover:text-content hover:bg-surface-tertiary cursor-pointer'}
       ${vertical ? '[writing-mode:vertical-rl] rotate-180' : ''}

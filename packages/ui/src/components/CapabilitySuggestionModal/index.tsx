@@ -216,7 +216,7 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
             <div className="grid grid-cols-3 gap-2 mb-3">
               <label className="flex flex-col gap-1">
                 <span
-                  className="text-[10px] font-medium text-content-muted uppercase tracking-wider"
+                  className="text-[0.625rem] font-medium text-content-muted uppercase tracking-wider"
                   title="Upper Specification Limit — maximum acceptable value"
                 >
                   USL
@@ -232,7 +232,7 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
               </label>
               <label className="flex flex-col gap-1">
                 <span
-                  className="text-[10px] font-medium text-content-muted uppercase tracking-wider"
+                  className="text-[0.625rem] font-medium text-content-muted uppercase tracking-wider"
                   title="Nominal target value — the ideal process center"
                 >
                   Target
@@ -248,7 +248,7 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
               </label>
               <label className="flex flex-col gap-1">
                 <span
-                  className="text-[10px] font-medium text-content-muted uppercase tracking-wider"
+                  className="text-[0.625rem] font-medium text-content-muted uppercase tracking-wider"
                   title="Lower Specification Limit — minimum acceptable value"
                 >
                   LSL
@@ -339,18 +339,18 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                 className="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-center"
               >
                 <div className="text-sm font-medium">Start Capability View</div>
-                <div className="text-[10px] opacity-75">Cpk trend per subgroup</div>
+                <div className="text-[0.625rem] opacity-75">Cpk trend per subgroup</div>
               </button>
               <button
                 onClick={handleDismiss}
                 className="flex-1 px-4 py-2.5 bg-surface-tertiary hover:bg-surface-elevated text-content border border-edge rounded-lg transition-colors text-center"
               >
                 <div className="text-sm font-medium">Standard View</div>
-                <div className="text-[10px] text-content-muted">Individual values chart</div>
+                <div className="text-[0.625rem] text-content-muted">Individual values chart</div>
               </button>
             </div>
 
-            <p className="text-[10px] text-content-muted text-center mt-3">
+            <p className="text-[0.625rem] text-content-muted text-center mt-3">
               You can switch anytime using the toggle in the I-Chart header.
             </p>
           </div>

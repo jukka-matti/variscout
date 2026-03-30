@@ -86,6 +86,21 @@ export type { BoxplotPriorityCriterion } from './boxplot';
 export { andersonDarlingTest, normalCDF } from './andersonDarling';
 export type { AndersonDarlingResult } from './andersonDarling';
 
+// Best subsets regression
+export type { BestSubsetResult, BestSubsetsResult } from './bestSubsets';
+export { computeBestSubsets, computeRSquaredAdjusted, getBestSingleFactor } from './bestSubsets';
+
+// Factor effects (Factor Intelligence Layers 2-3)
+export type {
+  LevelEffect,
+  FactorMainEffect,
+  MainEffectsResult,
+  CellMean,
+  InteractionResult,
+  InteractionEffectsResult,
+} from './factorEffects';
+export { computeMainEffects, computeInteractionEffects } from './factorEffects';
+
 // Kernel density estimation
 export { calculateKDE } from './kde';
 

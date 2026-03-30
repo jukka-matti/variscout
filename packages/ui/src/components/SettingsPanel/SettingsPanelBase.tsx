@@ -1,10 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
+import type { DensityPreset } from '@variscout/hooks';
 import type { RiskAxisConfig, RiskAxisPreset, MessageCatalog } from '@variscout/core';
 import { DEFAULT_RISK_AXIS_CONFIG } from '@variscout/core';
 
-type ChartFontScale = 'compact' | 'normal' | 'large';
+const DENSITY_OPTIONS: { value: DensityPreset; label: string }[] = [
+  { value: 'S', label: 'S' },
+  { value: 'M', label: 'M' },
+  { value: 'L', label: 'L' },
+  { value: 'XL', label: 'XL' },
+];
 
 const RISK_AXIS_PRESETS: RiskAxisPreset[] = [
   'process',
@@ -25,8 +31,8 @@ export interface SettingsPanelBaseProps<
   onClose: () => void;
   displayOptions: T;
   setDisplayOptions: (opts: T) => void;
-  chartFontScale: ChartFontScale;
-  onChartFontScaleChange: (scale: ChartFontScale) => void;
+  density: DensityPreset;
+  onDensityChange: (density: DensityPreset) => void;
   /** Rendered before Display Preferences (e.g. Theme toggle, Accent picker) */
   headerSections?: React.ReactNode;
   /** Rendered after the shared toggles inside Display Preferences */
@@ -43,12 +49,6 @@ export interface SettingsPanelBaseProps<
   onBudgetChange?: (budget: number | undefined) => void;
 }
 
-const FONT_SCALE_OPTIONS: { value: ChartFontScale; label: string }[] = [
-  { value: 'compact', label: 'Compact' },
-  { value: 'normal', label: 'Normal' },
-  { value: 'large', label: 'Large' },
-];
-
 function SettingsPanelBase<
   T extends { lockYAxisToFullData?: boolean; showFilterContext?: boolean },
 >({
@@ -56,8 +56,8 @@ function SettingsPanelBase<
   onClose,
   displayOptions,
   setDisplayOptions,
-  chartFontScale,
-  onChartFontScaleChange,
+  density,
+  onDensityChange,
   headerSections,
   extraToggles,
   idPrefix = 'settings',
@@ -178,30 +178,23 @@ function SettingsPanelBase<
             </div>
           </section>
 
-          {/* Chart Text Size */}
+          {/* Display density */}
           <section>
-            <h3 className="text-sm font-medium text-content mb-3">{t('display.chartTextSize')}</h3>
+            <h3 className="text-sm font-medium text-content mb-3">{t('display.density')}</h3>
             <div className="flex gap-2">
-              {FONT_SCALE_OPTIONS.map(({ value }) => {
-                const fontScaleLabels: Record<ChartFontScale, string> = {
-                  compact: t('display.compact'),
-                  normal: t('display.normal'),
-                  large: t('display.large'),
-                };
-                return (
-                  <button
-                    key={value}
-                    onClick={() => onChartFontScaleChange(value)}
-                    className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors border ${
-                      chartFontScale === value
-                        ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
-                        : 'bg-surface-secondary border-edge text-content-secondary hover:text-content hover:border-edge-secondary'
-                    }`}
-                  >
-                    {fontScaleLabels[value]}
-                  </button>
-                );
-              })}
+              {DENSITY_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => onDensityChange(value)}
+                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors border ${
+                    density === value
+                      ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
+                      : 'bg-surface-secondary border-edge text-content-secondary hover:text-content hover:border-edge-secondary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </section>
 

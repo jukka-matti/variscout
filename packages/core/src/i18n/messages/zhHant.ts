@@ -88,10 +88,7 @@ export const zhHant: MessageCatalog = {
 
   // Display/settings
   'display.preferences': '偏好設定',
-  'display.chartTextSize': '圖表文字大小',
-  'display.compact': '精簡',
-  'display.normal': '標準',
-  'display.large': '大',
+  'display.density': '顯示密度',
   'display.lockYAxis': '鎖定 Y 軸',
   'display.filterContext': '篩選上下文',
   'display.showSpecs': '顯示規格',
@@ -734,6 +731,24 @@ export const zhHant: MessageCatalog = {
   'report.costCategory': '{category} cost',
   'report.noCost': 'No cost',
   'report.riskLevel': '{level} risk',
+
+  // Factor Intelligence
+  'fi.title': 'Factor Intelligence',
+  'fi.ranking': 'Factor ranking (R² adjusted)',
+  'fi.layer2': 'Layer 2 · Main Effects',
+  'fi.layer3': 'Layer 3 · Factor Interactions',
+  'fi.investigate': 'Investigate →',
+  'fi.notSignificant': 'not significant (p={value})',
+  'fi.explainsSingle': '{factor} explains {pct}% of variation alone.',
+  'fi.explainsMultiple': '{factors} together explain {pct}% of variation.',
+  'fi.layer2Locked': 'Layer 2 (Main Effects) unlocks when R²adj > {threshold}%',
+  'fi.layer2Current': ' — currently {value}%',
+  'fi.layer3Locked': 'Layer 3 (Interactions) unlocks when ≥2 factors are significant',
+  'fi.layer3Current': ' — currently {count} significant',
+  'fi.best': 'Best',
+  'fi.range': 'Range',
+  'fi.interactionDetected': "Interaction detected: {factorA}'s effect depends on {factorB} level.",
+  'fi.noInteraction': 'No significant interaction — effects are approximately additive.',
 
   // Capability suggestion modal
   'capability.suggestion.title': 'Specification limits set',

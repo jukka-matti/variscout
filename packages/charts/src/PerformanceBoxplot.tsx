@@ -19,7 +19,7 @@ import { getWorstChannels, CPK_THRESHOLDS, calculateKDE, safeMin, safeMax } from
 import type { PerformanceBoxplotProps, ChannelResult } from './types';
 import { chartColors } from './colors';
 import { MIN_BOXPLOT_VALUES } from './Boxplot';
-import { useChartTheme } from './useChartTheme';
+import { useChartTheme, getDocumentFontScale } from './useChartTheme';
 import { getResponsiveMargins, getScaledFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import ViolinPlot from '@visx/stats/lib/ViolinPlot';
@@ -68,10 +68,10 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
   cpkThresholds = CPK_THRESHOLDS,
   showViolin = false,
 }) => {
-  const { chrome, fontScale, formatStat, t } = useChartTheme();
+  const { chrome, formatStat, t } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'boxplot', sourceBarHeight);
-  const fonts = getScaledFonts(parentWidth, fontScale);
+  const fonts = getScaledFonts(parentWidth, getDocumentFontScale());
 
   const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
   const [tooltipLeft, setTooltipLeft] = React.useState(0);

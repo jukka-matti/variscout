@@ -8,7 +8,7 @@ import FindingsPanel from '../FindingsPanel';
 import { CoScoutPanelBase, AIOnboardingTooltip, SessionClosePrompt } from '@variscout/ui';
 import type { SessionClosePromptItem } from '@variscout/ui';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
-import { hasTeamFeatures, toNumericValue } from '@variscout/core';
+import { hasTeamFeatures, toNumericValue, createFactorFinding } from '@variscout/core';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
 import type { UseHypothesesReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
@@ -198,6 +198,50 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     usePanelsStore.getState().setFindingsOpen(false);
     setHighlightedFindingId(null);
   }, [setHighlightedFindingId]);
+
+  // ── Factor Intelligence → Findings bridge ──────────────────────────────
+  const handleInvestigateFactor = useCallback(
+    (effect: import('@variscout/core/stats').FactorMainEffect) => {
+      if (!outcome || !filteredData || filteredData.length === 0) return;
+
+      // Create the bundle: Finding + Hypothesis + ImprovementIdea
+      const bundle = createFactorFinding({
+        factor: effect.factor,
+        bestLevel: effect.bestLevel,
+        worstLevel: effect.worstLevel,
+        etaSquared: effect.etaSquared,
+        effectRange: effect.effectRange,
+        pValue: effect.pValue,
+      });
+
+      // Add finding via findingsState
+      const addedFinding = findingsState.addFinding(
+        bundle.finding.text,
+        bundle.finding.context,
+        undefined // no chart source
+      );
+
+      // Add hypothesis and apply pre-validated status from Factor Intelligence
+      const addedHypothesis = hypothesesState.addHypothesis(
+        bundle.hypothesis.text,
+        bundle.hypothesis.factor,
+        bundle.hypothesis.level
+      );
+      hypothesesState.setManualStatus(addedHypothesis.id, 'supported');
+
+      // Link finding ↔ hypothesis
+      findingsState.linkHypothesis(addedFinding.id, addedHypothesis.id, 'supports');
+
+      // Add improvement idea to the hypothesis
+      hypothesesState.addIdea(addedHypothesis.id, bundle.idea.text);
+
+      // Set finding status to 'investigating' and open Findings panel
+      handleSetFindingStatus(addedFinding.id, 'investigating');
+      usePanelsStore.getState().setFindingsOpen(true);
+      useFindingsStore.getState().setHighlightedFindingId(addedFinding.id);
+    },
+    [outcome, filteredData, findingsState, hypothesesState, handleSetFindingStatus]
+  );
 
   // Build shared FindingsPanel props to avoid duplication between phone/desktop
   const sharedFindingsProps = {
@@ -445,6 +489,8 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
                   isDrilling={isDrilling}
                   complement={complementInsight}
                   centeringOpportunity={centeringOpp}
+                  factors={factors}
+                  onInvestigateFactor={handleInvestigateFactor}
                 />
               </React.Suspense>
             </div>
@@ -470,6 +516,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           onShareChart={handleShareChart}
           findingsCallbacks={findingsCallbacks}
           findings={findingsState.findings}
+          onInvestigateFactor={handleInvestigateFactor}
           viewMode={{
             isReportOpen,
             onCloseReport: () => usePanelsStore.getState().closeReport(),

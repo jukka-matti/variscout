@@ -85,7 +85,7 @@ const FindingStatusBadge: React.FC<FindingStatusBadgeProps> = ({
     <div className="relative" ref={popoverRef}>
       <button
         onClick={handleToggle}
-        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${STATUS_STYLES[status]} ${
+        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.625rem] font-medium transition-colors ${STATUS_STYLES[status]} ${
           onStatusChange ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
         }`}
         title={onStatusChange ? 'Change status' : FINDING_STATUS_DESCRIPTIONS[status]}

@@ -126,6 +126,8 @@ interface MobileChartCarouselProps {
     chartType: 'boxplot' | 'pareto';
     category: { name: string; mean?: number; contributionPct?: number };
   }) => void;
+  /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
+  onInvestigateFactor?: (effect: import('@variscout/core/stats').FactorMainEffect) => void;
 }
 
 const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
@@ -160,6 +162,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   boxplotData,
   findingsCallbacks,
   onAskCoScout,
+  onInvestigateFactor,
 }) => {
   const {
     onAddChartObservation,
@@ -545,6 +548,8 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
                 outcome={outcome}
                 onSaveSpecs={onSaveSpecs}
                 showCpk={showCpk}
+                factors={factors}
+                onInvestigateFactor={onInvestigateFactor}
               />
             )}
           </ErrorBoundary>

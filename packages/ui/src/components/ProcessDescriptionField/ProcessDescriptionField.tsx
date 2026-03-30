@@ -42,7 +42,7 @@ const ProcessDescriptionField: React.FC<ProcessDescriptionFieldProps> = ({
       />
       <div className="flex justify-end mt-1">
         <span
-          className={`text-[10px] ${draft.length >= maxLength ? 'text-amber-400' : 'text-content-muted'}`}
+          className={`text-[0.625rem] ${draft.length >= maxLength ? 'text-amber-400' : 'text-content-muted'}`}
         >
           {draft.length}/{maxLength}
         </span>

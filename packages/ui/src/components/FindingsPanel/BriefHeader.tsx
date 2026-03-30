@@ -138,12 +138,12 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
           {processContext?.problemStatement || t('investigation.brief')}
         </span>
         {hypotheses.length > 0 && (
-          <span className="text-[10px] text-content-muted">
+          <span className="text-[0.625rem] text-content-muted">
             {hypotheses.length} hypothesis{hypotheses.length !== 1 ? 'es' : ''}
           </span>
         )}
         {progressPercent !== undefined && (
-          <span className="text-[10px] text-content-muted">{Math.round(progressPercent)}%</span>
+          <span className="text-[0.625rem] text-content-muted">{Math.round(progressPercent)}%</span>
         )}
       </button>
 
@@ -160,7 +160,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
           {processContext?.targetMetric && processContext?.targetValue !== undefined && (
             <div className="flex items-center gap-2" data-testid="target-progress">
               <Target size={12} className="text-content-muted flex-shrink-0" />
-              <span className="text-[10px] text-content-muted whitespace-nowrap">
+              <span className="text-[0.625rem] text-content-muted whitespace-nowrap">
                 {METRIC_LABELS[processContext.targetMetric]}{' '}
                 {processContext.targetDirection === 'minimize'
                   ? '≤'
@@ -186,7 +186,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
                   )}
               </div>
               {currentValue !== undefined && (
-                <span className="text-[10px] text-content-muted">
+                <span className="text-[0.625rem] text-content-muted">
                   now {formatStat(currentValue)}
                 </span>
               )}
@@ -202,7 +202,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
                 .map(([status, count]) => (
                   <span
                     key={status}
-                    className="flex items-center gap-1 text-[10px] text-content-muted"
+                    className="flex items-center gap-1 text-[0.625rem] text-content-muted"
                   >
                     <span className={`w-2 h-2 rounded-full ${STATUS_COLORS[status]}`} />
                     {count} {status}

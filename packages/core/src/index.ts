@@ -87,6 +87,10 @@ export {
   type BoxplotPriorityCriterion,
   // Kernel density estimation (for violin plots)
   calculateKDE,
+  // Best subsets regression
+  computeBestSubsets,
+  computeRSquaredAdjusted,
+  getBestSingleFactor,
   // Point decimation for chart rendering
   lttb,
   // Evidence interpretation
@@ -96,6 +100,9 @@ export {
   groupDataIntoSubgroups,
   calculateSubgroupCapability,
   calculateSeriesControlLimits,
+  // Factor Intelligence (Layers 2-3)
+  computeMainEffects,
+  computeInteractionEffects,
 } from './stats';
 
 // Subgroup capability types
@@ -106,6 +113,19 @@ export type {
   SubgroupData,
   CapabilitySeriesLimits,
   StandardIChartMetric,
+} from './stats';
+
+// Best subsets regression types
+export type { BestSubsetResult, BestSubsetsResult } from './stats';
+
+// Factor effects types (Factor Intelligence Layers 2-3)
+export type {
+  LevelEffect,
+  FactorMainEffect,
+  MainEffectsResult,
+  CellMean,
+  InteractionResult,
+  InteractionEffectsResult,
 } from './stats';
 
 // Tier (Azure Marketplace multi-tier licensing) — primary module
@@ -511,7 +531,11 @@ export {
   createFindingOutcome,
   createHypothesis,
   createImprovementIdea,
+  createFactorFinding,
   createInvestigationCategory,
+} from './findings';
+export type { FactorFindingInput, FactorFindingBundle } from './findings';
+export {
   getCategoryForFactor,
   getFindingStatus,
   groupFindingsByStatus,

@@ -20,7 +20,7 @@ export const defaultStagedComparisonColorScheme: StagedComparisonColorScheme = {
   container: 'space-y-3',
   header: 'text-xs font-medium text-content-secondary uppercase tracking-wider',
   stageLabel: 'text-xs font-medium text-content-secondary',
-  metricLabel: 'text-[11px] text-content-muted',
+  metricLabel: 'text-[0.6875rem] text-content-muted',
   metricValue: 'text-sm font-mono font-bold text-content',
   deltaRow: 'text-xs font-mono font-medium',
 };
@@ -241,11 +241,13 @@ const StagedComparisonCard: React.FC<StagedComparisonCardProps> = ({
         </div>
 
         {cpkTarget !== undefined && deltas.cpkDelta !== null && (
-          <div className="text-[10px] text-content-muted">Target Cpk: {formatStat(cpkTarget)}</div>
+          <div className="text-[0.625rem] text-content-muted">
+            Target Cpk: {formatStat(cpkTarget)}
+          </div>
         )}
 
         {insightText && (
-          <div className="text-[10px] text-content-secondary mt-1" data-testid="staged-insight">
+          <div className="text-[0.625rem] text-content-secondary mt-1" data-testid="staged-insight">
             {insightText}
           </div>
         )}
@@ -303,11 +305,13 @@ const StagedComparisonCard: React.FC<StagedComparisonCardProps> = ({
       </div>
 
       {cpkTarget !== undefined && deltas.cpkDelta !== null && (
-        <div className="text-[10px] text-content-muted">Target Cpk: {formatStat(cpkTarget)}</div>
+        <div className="text-[0.625rem] text-content-muted">
+          Target Cpk: {formatStat(cpkTarget)}
+        </div>
       )}
 
       {insightText && (
-        <div className="text-[10px] text-content-secondary mt-1" data-testid="staged-insight">
+        <div className="text-[0.625rem] text-content-secondary mt-1" data-testid="staged-insight">
           {insightText}
         </div>
       )}

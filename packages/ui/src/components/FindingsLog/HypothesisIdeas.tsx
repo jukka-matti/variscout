@@ -75,10 +75,10 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
   return (
     <div className="ml-6 mt-1.5" data-testid={`ideas-section-${hypothesisId}`}>
       <button
-        className="text-[11px] text-content-muted hover:text-content flex items-center gap-1"
+        className="text-[0.6875rem] text-content-muted hover:text-content flex items-center gap-1"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="text-[9px]">{isOpen ? '\u25BC' : '\u25B6'}</span>
+        <span className="text-[0.5625rem]">{isOpen ? '\u25BC' : '\u25B6'}</span>
         Improvement Ideas{ideas.length > 0 ? ` (${ideas.length})` : ''}
       </button>
 
@@ -113,7 +113,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                     {/* Impact badge */}
                     {impact && (
                       <span
-                        className={`text-[10px] px-1 py-0.5 rounded ${IMPACT_COLORS[impact]}`}
+                        className={`text-[0.625rem] px-1 py-0.5 rounded ${IMPACT_COLORS[impact]}`}
                         data-testid={`idea-impact-${idea.id}`}
                       >
                         {impact.toUpperCase()} \u2191
@@ -123,7 +123,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                     {/* Direction badge */}
                     {(idea.direction ?? idea.category) && (
                       <span
-                        className={`text-[10px] px-1 py-0.5 rounded ${DIRECTION_BADGE_COLORS[idea.direction ?? idea.category!] ?? ''}`}
+                        className={`text-[0.625rem] px-1 py-0.5 rounded ${DIRECTION_BADGE_COLORS[idea.direction ?? idea.category!] ?? ''}`}
                         data-testid={`idea-direction-${idea.id}`}
                       >
                         {(idea.direction ?? idea.category) === 'prevent'
@@ -138,7 +138,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
 
                     {/* Timeframe dropdown (always visible, color-coded) */}
                     <select
-                      className={`text-[10px] bg-transparent border border-edge rounded px-1 py-0.5 focus:outline-none focus:border-blue-400 cursor-pointer ${
+                      className={`text-[0.625rem] bg-transparent border border-edge rounded px-1 py-0.5 focus:outline-none focus:border-blue-400 cursor-pointer ${
                         idea.timeframe ? TIMEFRAME_COLORS[idea.timeframe] : 'text-content-muted'
                       }`}
                       value={idea.timeframe ?? ''}
@@ -159,7 +159,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
 
                     {/* Projection summary */}
                     {idea.projection && (
-                      <span className="text-[10px] text-content-muted">
+                      <span className="text-[0.625rem] text-content-muted">
                         Mean: {formatStat(idea.projection.baselineMean, 1)}&rarr;
                         {formatStat(idea.projection.projectedMean, 1)} &sigma;:{' '}
                         {formatStat(idea.projection.baselineSigma, 1)}&rarr;
@@ -170,7 +170,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
 
                   {/* Notes */}
                   {idea.notes && (
-                    <p className="text-[10px] text-content-muted mt-0.5 italic">{idea.notes}</p>
+                    <p className="text-[0.625rem] text-content-muted mt-0.5 italic">{idea.notes}</p>
                   )}
                 </div>
 
@@ -179,7 +179,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                   {/* Project button */}
                   {onProjectIdea && (
                     <button
-                      className="text-[10px] text-content-muted hover:text-content"
+                      className="text-[0.625rem] text-content-muted hover:text-content"
                       onClick={() => onProjectIdea(hypothesisId, idea.id)}
                       title="Project with What-If"
                       aria-label="Project idea with What-If simulator"
@@ -189,7 +189,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                   )}
                   {/* Remove button */}
                   <button
-                    className="text-[10px] text-content-muted hover:text-red-400"
+                    className="text-[0.625rem] text-content-muted hover:text-red-400"
                     onClick={() => onRemoveIdea?.(hypothesisId, idea.id)}
                     title="Remove idea"
                     aria-label="Remove idea"
@@ -224,7 +224,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
           {/* Ask CoScout */}
           {onAskCoScout && (
             <button
-              className="text-[11px] text-blue-400 hover:text-blue-300 mt-0.5"
+              className="text-[0.6875rem] text-blue-400 hover:text-blue-300 mt-0.5"
               onClick={() =>
                 onAskCoScout(`What improvement options could address "${hypothesisText}"?`)
               }

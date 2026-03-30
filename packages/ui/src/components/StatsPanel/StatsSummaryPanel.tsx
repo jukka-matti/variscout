@@ -146,7 +146,7 @@ const StatsSummaryPanel: React.FC<StatsSummaryPanelProps> = ({
               </div>
               {cpkTarget !== undefined && (
                 <div
-                  className={`text-[10px] mt-0.5 ${
+                  className={`text-[0.625rem] mt-0.5 ${
                     stats?.cpk !== undefined && stats?.cpk !== null && stats.cpk >= cpkTarget
                       ? 'text-green-500'
                       : 'text-red-400'

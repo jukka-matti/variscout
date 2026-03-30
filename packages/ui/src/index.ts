@@ -117,6 +117,7 @@ export {
   TargetDiscoveryCard,
   StagedComparisonCard,
   defaultStagedComparisonColorScheme,
+  FactorIntelligencePanel,
   type StatsPanelBaseProps,
   type StatsPanelTab,
   type ComplementInsight,
@@ -124,6 +125,7 @@ export {
   type StatsSummaryPanelProps,
   type StagedComparisonCardProps,
   type StagedComparisonColorScheme,
+  type FactorIntelligencePanelProps,
 } from './components/StatsPanel';
 
 export {
@@ -461,8 +463,8 @@ export {
 export {
   ThemeProvider,
   useTheme,
-  CHART_FONT_SCALES,
+  DENSITY_CONFIG,
   type ThemeMode,
-  type ChartFontScale,
+  type DensityPreset,
   type ThemeConfig,
 } from './context/ThemeContext';

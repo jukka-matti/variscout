@@ -2,12 +2,12 @@
  * Tests for useThemeState hook
  *
  * Validates theme persistence, system preference detection,
- * document attribute application, and chart font scale values.
+ * document attribute application, and density preset values.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useThemeState, CHART_FONT_SCALES } from '../useThemeState';
+import { useThemeState, DENSITY_CONFIG } from '../useThemeState';
 
 // Mock matchMedia to control system preference
 let matchMediaMatches = false;
@@ -18,9 +18,10 @@ beforeEach(() => {
   matchMediaMatches = false;
   matchMediaListeners = [];
 
-  // Reset document attributes
+  // Reset document attributes and styles
   document.documentElement.removeAttribute('data-theme');
-  document.documentElement.removeAttribute('data-chart-scale');
+  document.documentElement.style.fontSize = '';
+  document.documentElement.style.removeProperty('--density-line-height');
 
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -87,23 +88,21 @@ describe('useThemeState', () => {
     expect(stored.mode).toBe('light');
   });
 
-  it('chartFontScaleValue returns correct values for each preset', () => {
+  it('density defaults to M and returns correct preset for each value', () => {
     const { result } = renderHook(() => useThemeState({ themingEnabled: true }));
 
-    // Default (no chartFontScale set) should be 'normal' = 1.0
-    expect(result.current.chartFontScaleValue).toBe(CHART_FONT_SCALES.normal);
+    // Default (no density set) should be 'M'
+    expect(result.current.density).toBe('M');
 
     act(() => {
-      result.current.setTheme({ chartFontScale: 'compact' });
+      result.current.setTheme({ density: 'S' });
     });
-    expect(result.current.chartFontScaleValue).toBe(CHART_FONT_SCALES.compact);
-    expect(result.current.chartFontScaleValue).toBe(0.85);
+    expect(result.current.density).toBe('S');
 
     act(() => {
-      result.current.setTheme({ chartFontScale: 'large' });
+      result.current.setTheme({ density: 'XL' });
     });
-    expect(result.current.chartFontScaleValue).toBe(CHART_FONT_SCALES.large);
-    expect(result.current.chartFontScaleValue).toBe(1.15);
+    expect(result.current.density).toBe('XL');
   });
 
   it('sets data-theme attribute on document.documentElement', () => {
@@ -113,15 +112,15 @@ describe('useThemeState', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
   });
 
-  it('sets data-chart-scale attribute on document.documentElement', () => {
-    localStorage.setItem(
-      'variscout_theme',
-      JSON.stringify({ mode: 'dark', chartFontScale: 'large' })
-    );
+  it('sets root font size and line height CSS variable from density preset', () => {
+    localStorage.setItem('variscout_theme', JSON.stringify({ mode: 'dark', density: 'L' }));
 
     renderHook(() => useThemeState({ themingEnabled: true }));
 
-    expect(document.documentElement.getAttribute('data-chart-scale')).toBe('1.15');
+    expect(document.documentElement.style.fontSize).toBe(DENSITY_CONFIG.L.rootFontSize + 'px');
+    expect(document.documentElement.style.getPropertyValue('--density-line-height')).toBe(
+      String(DENSITY_CONFIG.L.lineHeight)
+    );
   });
 
   it('resolves to light when mode is light and themingEnabled is true', () => {

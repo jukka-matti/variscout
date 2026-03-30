@@ -388,7 +388,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                 <h3 className="text-sm font-semibold text-slate-200">
                   {t('data.analysisSection')}
                 </h3>
-                <span className="text-[10px] text-slate-500 ml-1">({t('data.optional')})</span>
+                <span className="text-[0.625rem] text-slate-500 ml-1">({t('data.optional')})</span>
                 <span className="ml-auto text-slate-500 text-xs">{briefExpanded ? '−' : '+'}</span>
               </button>
 
@@ -405,7 +405,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                       maxLength={500}
                       data-testid="brief-problem-statement"
                     />
-                    <span className="text-[10px] text-slate-600 float-right">
+                    <span className="text-[0.625rem] text-slate-600 float-right">
                       {problemStatement.length}/500
                     </span>
                   </div>

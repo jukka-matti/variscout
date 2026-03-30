@@ -35,7 +35,7 @@ Detailed analysis: [discussions/2026-03-29-probability-plot-analysis.md](discuss
 - [ ] **Cp/Cpk on histogram** — When in capability mode, show Cp/Cpk on the histogram chart itself.
 - [ ] **Easier focused view entry** — Double-click chart to expand, or more prominent expand button.
 
-### Phase B — Multi-series probability plot ✅
+### Phase B — Multi-series probability plot
 
 - [x] **Multiple probability plot by factor** — `useProbabilityPlotData` hook groups by factor, `ProbabilityPlotBase` renders multi-series with `operatorColors`.
 - [x] **Slope comparison for prioritization** — Visual slope = StDev. Steeper = tighter distribution. Parallel lines = location shift.

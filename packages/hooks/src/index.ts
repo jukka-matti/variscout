@@ -198,9 +198,9 @@ export { useTranslation, type UseTranslationReturn } from './useTranslation';
 // Theme State
 export {
   useThemeState,
-  CHART_FONT_SCALES,
+  DENSITY_CONFIG,
   type ThemeMode,
-  type ChartFontScale,
+  type DensityPreset,
   type ThemeConfig,
   type UseThemeStateOptions,
   type UseThemeStateReturn,

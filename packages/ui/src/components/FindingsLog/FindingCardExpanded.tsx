@@ -50,7 +50,7 @@ export const HypothesisSection: React.FC<HypothesisSectionProps> = ({
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="flex items-center gap-1 text-[10px] text-content-muted hover:text-content transition-colors w-full text-left"
+        className="flex items-center gap-1 text-[0.625rem] text-content-muted hover:text-content transition-colors w-full text-left"
       >
         {isOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
         <Target size={10} />
@@ -66,9 +66,9 @@ export const HypothesisSection: React.FC<HypothesisSectionProps> = ({
       {isOpen && (
         <div className="mt-1">
           {hypothesis ? (
-            <div className="text-[11px] space-y-1" onClick={e => e.stopPropagation()}>
+            <div className="text-[0.6875rem] space-y-1" onClick={e => e.stopPropagation()}>
               <p className="text-content-secondary italic">&ldquo;{hypothesis.text}&rdquo;</p>
-              <div className="flex items-center gap-2 text-[10px]">
+              <div className="flex items-center gap-2 text-[0.625rem]">
                 <span
                   className={HYPOTHESIS_STATUS_COLORS[hypothesis.status] ?? 'text-content-muted'}
                 >
@@ -97,7 +97,7 @@ export const HypothesisSection: React.FC<HypothesisSectionProps> = ({
                     }
                   }}
                   placeholder="What do you think is causing this? (Enter to create)"
-                  className="w-full text-[11px] bg-surface-tertiary/50 border border-edge/50 rounded px-2 py-1.5 text-content placeholder:text-content-muted resize-none focus:outline-none focus:border-blue-500/50"
+                  className="w-full text-[0.6875rem] bg-surface-tertiary/50 border border-edge/50 rounded px-2 py-1.5 text-content placeholder:text-content-muted resize-none focus:outline-none focus:border-blue-500/50"
                   rows={2}
                 />
               </div>
@@ -134,17 +134,17 @@ export const SuspectedCauseSection: React.FC<SuspectedCauseSectionProps> = ({ hy
 
   return (
     <div className="mt-2 border-t border-edge/50 pt-2" data-testid="suspected-cause-section">
-      <div className="flex items-center gap-1 text-[10px] text-content-muted mb-1">
+      <div className="flex items-center gap-1 text-[0.625rem] text-content-muted mb-1">
         <Target size={10} />
         <span className="font-medium">Suspected cause</span>
       </div>
       <div className="space-y-1">
         {primary && (
-          <div className="flex items-start gap-1.5 text-[11px]">
+          <div className="flex items-start gap-1.5 text-[0.6875rem]">
             <span className="text-red-400 mt-0.5 flex-shrink-0">{'\u{25CF}'}</span>
             <div className="flex-1 min-w-0">
               <span className="text-content-secondary">{primary[1].text}</span>
-              <div className="flex items-center gap-2 text-[10px] mt-0.5">
+              <div className="flex items-center gap-2 text-[0.625rem] mt-0.5">
                 <span className="text-red-400 font-medium">PRIMARY</span>
                 <span
                   className={HYPOTHESIS_STATUS_COLORS[primary[1].status] ?? 'text-content-muted'}
@@ -159,11 +159,11 @@ export const SuspectedCauseSection: React.FC<SuspectedCauseSectionProps> = ({ hy
           </div>
         )}
         {contributing.map(([id, h]) => (
-          <div key={id} className="flex items-start gap-1.5 text-[11px]">
+          <div key={id} className="flex items-start gap-1.5 text-[0.6875rem]">
             <span className="text-amber-400 mt-0.5 flex-shrink-0">{'\u25C7'}</span>
             <div className="flex-1 min-w-0">
               <span className="text-content-secondary">{h.text}</span>
-              <div className="flex items-center gap-2 text-[10px] mt-0.5">
+              <div className="flex items-center gap-2 text-[0.625rem] mt-0.5">
                 <span className="text-amber-400 font-medium">CONTRIBUTING</span>
                 <span className={HYPOTHESIS_STATUS_COLORS[h.status] ?? 'text-content-muted'}>
                   {h.status}
@@ -223,7 +223,7 @@ export const OutcomeSection: React.FC<OutcomeSectionProps> = ({
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="flex items-center gap-1 text-[10px] text-content-muted hover:text-content transition-colors w-full text-left"
+        className="flex items-center gap-1 text-[0.625rem] text-content-muted hover:text-content transition-colors w-full text-left"
       >
         {isOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
         <Activity size={10} />
@@ -244,7 +244,7 @@ export const OutcomeSection: React.FC<OutcomeSectionProps> = ({
                   onClick={() =>
                     onSetOutcome(findingId, { effective: eff, verifiedAt: Date.now() })
                   }
-                  className={`px-2 py-1 text-[10px] rounded border border-edge/50 hover:border-blue-500/50 transition-colors ${effectiveColors[eff]}`}
+                  className={`px-2 py-1 text-[0.625rem] rounded border border-edge/50 hover:border-blue-500/50 transition-colors ${effectiveColors[eff]}`}
                 >
                   {effectiveLabels[eff]}
                 </button>
@@ -252,7 +252,7 @@ export const OutcomeSection: React.FC<OutcomeSectionProps> = ({
             </div>
           )}
           {outcome && (
-            <div className="text-[11px]">
+            <div className="text-[0.6875rem]">
               <span className={effectiveColors[outcome.effective]}>
                 {effectiveLabels[outcome.effective]}
               </span>
@@ -263,7 +263,7 @@ export const OutcomeSection: React.FC<OutcomeSectionProps> = ({
               )}
               {projectedCpk !== undefined && outcome.cpkAfter !== undefined && (
                 <span
-                  className={`ml-2 text-[10px] ${
+                  className={`ml-2 text-[0.625rem] ${
                     outcome.cpkAfter >= projectedCpk ? 'text-green-400' : 'text-red-400'
                   }`}
                   data-testid={`projected-vs-actual-${findingId}`}

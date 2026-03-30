@@ -47,7 +47,7 @@ export {
 } from './colors';
 
 // Theme hook
-export { useChartTheme, type ChartThemeColors } from './useChartTheme';
+export { useChartTheme, getDocumentFontScale, type ChartThemeColors } from './useChartTheme';
 
 // Responsive utilities
 export {

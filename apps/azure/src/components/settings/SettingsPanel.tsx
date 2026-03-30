@@ -35,8 +35,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
       onClose={onClose}
       displayOptions={displayOptions}
       setDisplayOptions={setDisplayOptions}
-      chartFontScale={theme.chartFontScale ?? 'normal'}
-      onChartFontScaleChange={scale => setTheme({ chartFontScale: scale })}
+      density={theme.density ?? 'M'}
+      onDensityChange={density => setTheme({ density })}
       idPrefix="az-setting"
       headerSections={
         <section>
@@ -160,7 +160,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                     </label>
                   </div>
                   <div>
-                    <label className="text-[11px] text-content-muted mb-1 block">
+                    <label className="text-[0.6875rem] text-content-muted mb-1 block">
                       Process Description
                     </label>
                     <ProcessDescriptionField
@@ -257,7 +257,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                         label="Browse SharePoint"
                         size="sm"
                       />
-                      <details className="text-[10px]">
+                      <details className="text-[0.625rem]">
                         <summary className="text-content-muted cursor-pointer hover:text-content-secondary">
                           Enter URL manually
                         </summary>
@@ -273,7 +273,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                       </details>
                     </div>
                   )}
-                  <p className="text-[11px] text-content-muted">
+                  <p className="text-[0.6875rem] text-content-muted">
                     Only documents you have access to will appear in search results.
                   </p>
                   {(() => {
@@ -283,7 +283,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                         href={folderUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 mt-1"
+                        className="inline-flex items-center gap-1 text-[0.6875rem] text-blue-400 hover:text-blue-300 mt-1"
                       >
                         <ExternalLink size={10} />
                         Open folder in SharePoint

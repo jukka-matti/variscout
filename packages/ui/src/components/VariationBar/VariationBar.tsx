@@ -193,7 +193,7 @@ const VariationBar: React.FC<VariationBarProps> = ({
 
       {/* Labels */}
       {showLabels && (
-        <div className={`flex justify-between text-[10px] ${colorScheme.mutedText}`}>
+        <div className={`flex justify-between text-[0.625rem] ${colorScheme.mutedText}`}>
           <span className={textColor}>{Math.round(isolatedPct)}% in focus</span>
           <span>{Math.round(unexplainedPct)}% outside scope</span>
         </div>

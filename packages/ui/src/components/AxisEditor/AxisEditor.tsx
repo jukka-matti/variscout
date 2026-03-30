@@ -124,7 +124,7 @@ const AxisEditor = ({
         <div>
           <label
             htmlFor="axis-display-name"
-            className={`text-[10px] ${colorScheme.label} uppercase block mb-1`}
+            className={`text-[0.625rem] ${colorScheme.label} uppercase block mb-1`}
           >
             Display Name
           </label>
@@ -142,7 +142,7 @@ const AxisEditor = ({
             />
           </div>
           {originalName !== newAlias && (
-            <div className={`text-[10px] ${colorScheme.muted} mt-1 pl-1`}>
+            <div className={`text-[0.625rem] ${colorScheme.muted} mt-1 pl-1`}>
               Original: {originalName}
             </div>
           )}
@@ -151,13 +151,16 @@ const AxisEditor = ({
         {/* Category Value Labels (if provided) */}
         {values.length > 0 && (
           <div className={`border-t ${colorScheme.sectionBorder} pt-2`}>
-            <label className={`text-[10px] ${colorScheme.label} uppercase block mb-1`}>
+            <label className={`text-[0.625rem] ${colorScheme.label} uppercase block mb-1`}>
               Category Labels
             </label>
             <div className="space-y-1">
               {values.map(val => (
                 <div key={val} className="flex items-center gap-2">
-                  <span className={`text-[10px] ${colorScheme.muted} w-1/3 truncate`} title={val}>
+                  <span
+                    className={`text-[0.625rem] ${colorScheme.muted} w-1/3 truncate`}
+                    title={val}
+                  >
                     {val}
                   </span>
                   <span className={colorScheme.arrow}>&rarr;</span>

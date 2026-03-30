@@ -1,6 +1,6 @@
 import React from 'react';
 import { chartColors } from './colors';
-import { useChartTheme } from './useChartTheme';
+import { useChartTheme, getDocumentFontScale } from './useChartTheme';
 
 /**
  * Chart Legend Component
@@ -28,11 +28,11 @@ const ChartLegend: React.FC<ChartLegendProps> = ({
   top,
   show = true,
 }) => {
-  const { chrome, fontScale, t } = useChartTheme();
+  const { chrome, t } = useChartTheme();
 
   if (!show) return null;
 
-  const fontSize = 11 * (fontScale || 1);
+  const fontSize = 11 * getDocumentFontScale();
   const dotSize = 6;
   const spacing = Math.min(width / 3, 180); // Adaptive spacing
 

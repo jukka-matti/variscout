@@ -130,7 +130,7 @@ const ProjectStatusCard: React.FC<ProjectStatusCardProps> = ({
                   }`}
                 />
                 <span
-                  className={`text-[10px] font-medium ${
+                  className={`text-[0.625rem] font-medium ${
                     phase === journeyPhase ? config.textColor : 'text-content-secondary'
                   }`}
                 >

@@ -35,6 +35,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
 }) => {
   const {
     outcome,
+    factors,
     stats,
     specs,
     setSpecs,
@@ -82,6 +83,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
           filteredData={filteredData}
           outcome={outcome}
           onSaveSpecs={setSpecs}
+          factors={factors}
         />
       )}
     />

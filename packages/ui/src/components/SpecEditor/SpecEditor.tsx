@@ -7,7 +7,7 @@ import CharacteristicTypeSelector from '../CharacteristicTypeSelector';
 import type { SpecEditorColorScheme, SpecEditorProps } from './types';
 
 export const specEditorDefaultColorScheme: SpecEditorColorScheme = {
-  label: 'block text-[10px] sm:text-xs text-content-secondary mb-1',
+  label: 'block text-[0.625rem] sm:text-xs text-content-secondary mb-1',
   input:
     'w-full bg-surface border border-edge rounded px-2 py-2 sm:py-1 text-sm sm:text-xs text-white outline-none focus:border-blue-500',
   mobileSheet:
@@ -105,7 +105,7 @@ const SpecEditor = ({
                 className="flex justify-center gap-1 mt-1.5"
               />
               {!typeSelection && (localSpecs.usl || localSpecs.lsl) && (
-                <p className="mt-1 text-[10px] text-content-muted text-center">
+                <p className="mt-1 text-[0.625rem] text-content-muted text-center">
                   detected: <span className="text-content-secondary">{autoInferred}</span>
                 </p>
               )}
