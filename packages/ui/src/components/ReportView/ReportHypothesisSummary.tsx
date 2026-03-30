@@ -89,7 +89,7 @@ const HypothesisRow: React.FC<{
           {/* Cause role badge */}
           {hypothesis.causeRole && (
             <span
-              className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${CAUSE_ROLE_COLORS[hypothesis.causeRole]}`}
+              className={`px-1.5 py-0.5 rounded text-[0.625rem] font-medium ${CAUSE_ROLE_COLORS[hypothesis.causeRole]}`}
             >
               {hypothesis.causeRole}
             </span>

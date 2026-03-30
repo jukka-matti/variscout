@@ -110,7 +110,7 @@ const CoScoutInline: React.FC<CoScoutInlineProps> = ({
         className="flex items-center gap-2 px-3 py-2 w-full text-left hover:bg-surface-tertiary/50 transition-colors"
         data-testid="coscout-inline-toggle"
       >
-        <span className="text-[11px] font-medium text-content-secondary">CoScout</span>
+        <span className="text-[0.6875rem] font-medium text-content-secondary">CoScout</span>
         {phase && <InvestigationPhaseBadge phase={phase} />}
         <span className="flex-1" />
         {isExpanded ? (
@@ -131,7 +131,7 @@ const CoScoutInline: React.FC<CoScoutInlineProps> = ({
               key={i}
               data-testid={`coscout-inline-suggestion-${i}`}
               onClick={() => handleChipClick(q)}
-              className="bg-surface-tertiary text-content-secondary text-[10px] px-2.5 py-1 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
+              className="bg-surface-tertiary text-content-secondary text-[0.625rem] px-2.5 py-1 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
             >
               {q}
             </button>
@@ -165,7 +165,7 @@ const CoScoutInline: React.FC<CoScoutInlineProps> = ({
                   key={i}
                   data-testid={`coscout-inline-suggestion-${i}`}
                   onClick={() => handleChipClick(q)}
-                  className="bg-surface-tertiary text-content-secondary text-[10px] px-2.5 py-1 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
+                  className="bg-surface-tertiary text-content-secondary text-[0.625rem] px-2.5 py-1 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
                 >
                   {q}
                 </button>

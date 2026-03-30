@@ -192,7 +192,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
       {/* Toggle button */}
       <button
         onClick={handleToggle}
-        className="flex items-center gap-1 text-[10px] text-content-muted hover:text-content-secondary transition-colors"
+        className="flex items-center gap-1 text-[0.625rem] text-content-muted hover:text-content-secondary transition-colors"
       >
         <MessageSquare size={10} />
         {comments.length > 0 ? (
@@ -220,7 +220,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
               ) : (
                 <div className="flex items-start gap-1 pl-2 border-l-2 border-edge">
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] text-content-secondary leading-relaxed">
+                    <p className="text-[0.6875rem] text-content-secondary leading-relaxed">
                       {comment.text}
                     </p>
                     {/* Photo thumbnails */}
@@ -252,7 +252,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                               </div>
                             )}
                             {photo.uploadStatus === 'failed' && (
-                              <div className="absolute bottom-0 left-0 right-0 bg-red-600/80 text-white text-[8px] text-center py-0.5">
+                              <div className="absolute bottom-0 left-0 right-0 bg-red-600/80 text-white text-[0.5rem] text-center py-0.5">
                                 Failed
                               </div>
                             )}
@@ -266,7 +266,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                         {comment.attachments.map((att: CommentAttachment) => (
                           <div
                             key={att.id}
-                            className="flex items-center gap-1 text-[10px] text-content-secondary"
+                            className="flex items-center gap-1 text-[0.625rem] text-content-secondary"
                             data-testid={`comment-attachment-${att.id}`}
                           >
                             <AttachmentIcon size={10} />
@@ -295,7 +295,9 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                               />
                             )}
                             {att.uploadStatus === 'failed' && (
-                              <span className="text-red-400 flex-shrink-0 text-[9px]">Failed</span>
+                              <span className="text-red-400 flex-shrink-0 text-[0.5625rem]">
+                                Failed
+                              </span>
                             )}
                           </div>
                         ))}
@@ -303,7 +305,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                     )}
                   </div>
                   <div className="flex items-center gap-0.5 flex-shrink-0">
-                    <span className="text-[9px] text-content-muted whitespace-nowrap">
+                    <span className="text-[0.5625rem] text-content-muted whitespace-nowrap">
                       {showAuthors && comment.author && (
                         <span className="text-blue-400 mr-1">{comment.author}</span>
                       )}
@@ -355,7 +357,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
               {/* Pending attachment preview */}
               {pendingAttachment && (
                 <div
-                  className="flex items-center gap-1 px-1.5 py-1 rounded bg-surface-secondary border border-edge/50 text-[10px] text-content-secondary"
+                  className="flex items-center gap-1 px-1.5 py-1 rounded bg-surface-secondary border border-edge/50 text-[0.625rem] text-content-secondary"
                   data-testid="pending-attachment-preview"
                 >
                   {isImageMime(pendingAttachment.type) ? (
@@ -381,7 +383,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
               )}
               {/* Validation error */}
               {attachmentError && (
-                <p className="text-[10px] text-red-400" role="alert">
+                <p className="text-[0.625rem] text-red-400" role="alert">
                   {attachmentError}
                 </p>
               )}
@@ -412,7 +414,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                   e.stopPropagation();
                   setIsAdding(true);
                 }}
-                className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors"
+                className="text-[0.625rem] text-blue-400 hover:text-blue-300 transition-colors"
               >
                 + Add comment
               </button>

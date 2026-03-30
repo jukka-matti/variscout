@@ -72,7 +72,7 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
         {onRetry && (
           <button
             onClick={onRetry}
-            className="flex items-center gap-1 px-2 py-1 text-[11px] text-content-secondary hover:text-content rounded hover:bg-surface-tertiary transition-colors flex-shrink-0"
+            className="flex items-center gap-1 px-2 py-1 text-[0.6875rem] text-content-secondary hover:text-content rounded hover:bg-surface-tertiary transition-colors flex-shrink-0"
             title={t('action.retry')}
           >
             <RefreshCw size={12} />
@@ -112,15 +112,17 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
       >
         {narrative}
         {isCached ? (
-          <span className="ml-1.5 text-[10px] text-content-muted">({t('status.cached')})</span>
+          <span className="ml-1.5 text-[0.625rem] text-content-muted">({t('status.cached')})</span>
         ) : (
-          <span className="ml-1.5 text-[10px] text-purple-400 font-medium">{t('status.ai')}</span>
+          <span className="ml-1.5 text-[0.625rem] text-purple-400 font-medium">
+            {t('status.ai')}
+          </span>
         )}
       </p>
       {onAsk && (
         <button
           onClick={onAsk}
-          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded transition-colors flex-shrink-0"
+          className="flex items-center gap-1 px-2.5 py-1 text-[0.6875rem] font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded transition-colors flex-shrink-0"
           data-testid="narrative-ask-button"
           title="Ask about this analysis"
         >

@@ -20,6 +20,7 @@ import type {
   ProcessContext,
   InvestigationCategory,
   EntryScenario,
+  StackConfig,
 } from '@variscout/core';
 
 // Re-export for convenience
@@ -163,7 +164,14 @@ export interface ViewState {
   isFindingsOpen?: boolean;
   isWhatIfOpen?: boolean;
   isImprovementOpen?: boolean;
-  focusedChart?: 'ichart' | 'boxplot' | 'pareto' | 'yamazumi' | null;
+  focusedChart?:
+    | 'ichart'
+    | 'boxplot'
+    | 'pareto'
+    | 'yamazumi'
+    | 'histogram'
+    | 'probability-plot'
+    | null;
   boxplotFactor?: string;
   paretoFactor?: string;
   findingsViewMode?: 'list' | 'board' | 'tree';
@@ -226,6 +234,10 @@ export interface AnalysisState {
   /** Ordered filter drill trail — reconstructs breadcrumbs on reload */
   filterStack?: FilterAction[];
 
+  // --- Stack (wide-form to long-form transform) ---
+  /** Stack config if data was reshaped from wide-form. Re-applied on project reload. */
+  stackConfig?: StackConfig;
+
   // --- View state (Phase 4) ---
   /** Where the analyst was working (tab, panels, focused chart) */
   viewState?: ViewState;
@@ -233,6 +245,8 @@ export interface AnalysisState {
   // --- Findings (scouting report) ---
   /** Analyst findings — bookmarked filter states with notes */
   findings?: Finding[];
+  /** ID of the active benchmark finding (Phase 3) */
+  benchmarkFindingId?: string;
 
   // --- Hypotheses (causal theories linked to findings) ---
   /** Causal hypotheses for investigation workflow */

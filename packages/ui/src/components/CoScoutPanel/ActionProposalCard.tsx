@@ -233,12 +233,12 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
       {/* Header */}
       <div className="flex items-center gap-1.5 mb-2">
         <Icon size={12} className="text-blue-400 flex-shrink-0" />
-        <span className="text-[11px] font-medium text-content-secondary">
+        <span className="text-[0.6875rem] font-medium text-content-secondary">
           CoScout suggests: {t(config.labelKey)}
         </span>
         {proposal.status === 'applied' && <Check size={10} className="text-green-400 ml-auto" />}
         {proposal.status === 'expired' && (
-          <span className="text-[9px] text-amber-400 ml-auto">{t('ai.expired')}</span>
+          <span className="text-[0.5625rem] text-amber-400 ml-auto">{t('ai.expired')}</span>
         )}
       </div>
 
@@ -247,7 +247,7 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
         <textarea
           value={editText}
           onChange={e => setEditText(e.target.value)}
-          className="w-full text-[11px] text-content bg-surface border border-edge rounded p-2 mb-2 resize-none focus:outline-none focus:border-blue-500"
+          className="w-full text-[0.6875rem] text-content bg-surface border border-edge rounded p-2 mb-2 resize-none focus:outline-none focus:border-blue-500"
           rows={2}
           data-testid={`action-proposal-edit-${proposal.id}`}
         />
@@ -255,7 +255,7 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
 
       {/* Preview lines */}
       {previewLines.length > 0 && (
-        <div className="text-[10px] text-content-muted space-y-0.5 mb-2">
+        <div className="text-[0.625rem] text-content-muted space-y-0.5 mb-2">
           {previewLines.map((line, i) => (
             <div key={i}>{line}</div>
           ))}
@@ -267,7 +267,7 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={handleApply}
-            className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 text-[0.6875rem] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors"
             data-testid={`action-proposal-apply-${proposal.id}`}
           >
             <Check size={10} />
@@ -275,7 +275,7 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
           </button>
           <button
             onClick={handleDismiss}
-            className="flex items-center gap-1 px-2.5 py-1 text-[11px] text-content-muted hover:text-content-secondary rounded hover:bg-surface-tertiary transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 text-[0.6875rem] text-content-muted hover:text-content-secondary rounded hover:bg-surface-tertiary transition-colors"
             data-testid={`action-proposal-dismiss-${proposal.id}`}
           >
             <X size={10} />
@@ -286,7 +286,7 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
 
       {/* Applied state */}
       {proposal.status === 'applied' && (
-        <div className="text-[10px] text-green-400 flex items-center gap-1">
+        <div className="text-[0.625rem] text-green-400 flex items-center gap-1">
           <Check size={10} />
           {t('ai.applied')}
         </div>
@@ -294,7 +294,7 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
 
       {/* Dismissed state */}
       {proposal.status === 'dismissed' && (
-        <div className="text-[10px] text-content-muted">{t('ai.dismissed')}</div>
+        <div className="text-[0.625rem] text-content-muted">{t('ai.dismissed')}</div>
       )}
     </div>
   );

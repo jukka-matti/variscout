@@ -13,7 +13,7 @@
  * and spreads the result as props.
  */
 import React, { useState } from 'react';
-import { BoxplotBase, getScaledFonts } from '@variscout/charts';
+import { BoxplotBase, getScaledFonts, chartColors } from '@variscout/charts';
 import { useBoxplotData, useBoxplotWrapperData } from '@variscout/hooks';
 import { sortBoxplotData, shouldShowBranding, getBrandingText } from '@variscout/core';
 import { ChartAnnotationLayer } from '../ChartAnnotationLayer';
@@ -70,6 +70,12 @@ export interface BoxplotWrapperBaseProps {
   onEditFinding?: (id: string, text: string) => void;
   /** Delete a finding from the annotation box */
   onDeleteFinding?: (id: string) => void;
+  /** Capability mode boxplot data (Cpk/Cp per subgroup, overrides standard data) */
+  capabilityData?: import('@variscout/core').BoxplotGroupData[];
+  /** Whether boxplot is in capability mode (Cpk distribution) */
+  isCapabilityMode?: boolean;
+  /** Cpk target value for reference line in capability mode */
+  cpkTarget?: number;
 }
 
 export const BoxplotWrapperBase = ({
@@ -97,6 +103,9 @@ export const BoxplotWrapperBase = ({
   findings = [],
   onEditFinding,
   onDeleteFinding,
+  capabilityData,
+  isCapabilityMode,
+  cpkTarget,
 }: BoxplotWrapperBaseProps) => {
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const { data: rawData, violinData } = useBoxplotData(
@@ -105,11 +114,13 @@ export const BoxplotWrapperBase = ({
     outcome,
     displayOptions.showViolin
   );
-  const data = sortBoxplotData(
+  const standardData = sortBoxplotData(
     rawData,
     displayOptions.boxplotSortBy,
     displayOptions.boxplotSortDirection
   );
+  // In capability mode, use pre-computed Cpk boxplot data
+  const data = capabilityData && capabilityData.length > 0 ? capabilityData : standardData;
 
   const { categoryPositions, effectiveHighlights } = useBoxplotWrapperData({
     data,
@@ -151,7 +162,7 @@ export const BoxplotWrapperBase = ({
       <BoxplotBase
         data={data}
         specs={displayOptions.showSpecs !== false ? specs : {}}
-        yAxisLabel={columnAliases[outcome] || outcome}
+        yAxisLabel={isCapabilityMode ? 'Cpk' : columnAliases[outcome] || outcome}
         xAxisLabel={alias}
         yDomainOverride={{ min: yDomainMin, max: yDomainMax }}
         selectedGroups={selectedGroups}
@@ -171,6 +182,15 @@ export const BoxplotWrapperBase = ({
         xTickFormat={(val: string) => factorLabels[val] || val}
         highlightedCategories={effectiveHighlights}
         onBoxContextMenu={onContextMenu}
+        targetLine={
+          isCapabilityMode && cpkTarget !== undefined
+            ? {
+                value: cpkTarget,
+                color: chartColors.target,
+                label: `Target ${cpkTarget}`,
+              }
+            : undefined
+        }
       />
 
       {findings.length > 0 && onEditFinding && onDeleteFinding && (

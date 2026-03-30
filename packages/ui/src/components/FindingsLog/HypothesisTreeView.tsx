@@ -356,7 +356,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
                 />
                 <span className="text-sm font-semibold text-content truncate">{category.name}</span>
                 {!hasContent && (
-                  <span className="text-[10px] text-content-muted italic ml-auto shrink-0">
+                  <span className="text-[0.625rem] text-content-muted italic ml-auto shrink-0">
                     no factors assigned
                   </span>
                 )}
@@ -390,11 +390,11 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
                           {factorName}
                         </span>
                         {factorEta !== undefined && (
-                          <span className="text-[10px] text-content-muted ml-auto shrink-0">
+                          <span className="text-[0.625rem] text-content-muted ml-auto shrink-0">
                             {formatStat(factorEta, 1)}%
                           </span>
                         )}
-                        <span className="text-[10px] text-content-muted shrink-0">
+                        <span className="text-[0.625rem] text-content-muted shrink-0">
                           ({factorHypotheses.length})
                         </span>
                       </button>

@@ -115,6 +115,11 @@ export { useResizablePanel, type UseResizablePanelReturn } from './useResizableP
 // Chart Data Hooks (shared computation for app wrappers)
 export { useBoxplotData, STAGE_SEPARATOR } from './useBoxplotData';
 export type { ViolinDataMap, UseBoxplotDataResult, StageInfo } from './useBoxplotData';
+export { useBoxplotCategoryLimit } from './useBoxplotCategoryLimit';
+export type {
+  UseBoxplotCategoryLimitOptions,
+  UseBoxplotCategoryLimitReturn,
+} from './useBoxplotCategoryLimit';
 export { useIChartData } from './useIChartData';
 
 // Focused Chart Navigation
@@ -193,9 +198,9 @@ export { useTranslation, type UseTranslationReturn } from './useTranslation';
 // Theme State
 export {
   useThemeState,
-  CHART_FONT_SCALES,
+  DENSITY_CONFIG,
   type ThemeMode,
-  type ChartFontScale,
+  type DensityPreset,
   type ThemeConfig,
   type UseThemeStateOptions,
   type UseThemeStateReturn,
@@ -318,6 +323,18 @@ export {
   type UseDashboardInsightsOptions,
   type UseDashboardInsightsReturn,
 } from './useDashboardInsights';
+
+// Process Projection (Phase 2 toolbar intelligence)
+export {
+  useProcessProjection,
+  type UseProcessProjectionOptions,
+  type UseProcessProjectionReturn,
+} from './useProcessProjection';
+export type {
+  ProcessProjection,
+  CenteringOpportunity,
+  SpecSuggestion,
+} from './useProcessProjection';
 
 // Async Stats Hook (Worker bridge)
 export {

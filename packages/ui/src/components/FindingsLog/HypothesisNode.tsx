@@ -201,7 +201,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             {/* Factor badge */}
             {hypothesis.factor && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">
+              <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">
                 {hypothesis.factor}
                 {hypothesis.level ? `=${hypothesis.level}` : ''}
               </span>
@@ -209,7 +209,10 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
 
             {/* Validation type icon */}
             {hypothesis.validationType && (
-              <span className="text-[10px]" title={`Validated by: ${hypothesis.validationType}`}>
+              <span
+                className="text-[0.625rem]"
+                title={`Validated by: ${hypothesis.validationType}`}
+              >
                 {VALIDATION_ICONS[hypothesis.validationType] || ''}
               </span>
             )}
@@ -219,7 +222,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
               hypothesis.validationType !== 'data' &&
               hypothesis.validationTask && (
                 <span
-                  className={`text-[10px] ${hypothesis.taskCompleted ? 'text-green-400' : 'text-amber-400'}`}
+                  className={`text-[0.625rem] ${hypothesis.taskCompleted ? 'text-green-400' : 'text-amber-400'}`}
                 >
                   {hypothesis.taskCompleted ? 'Done' : 'Pending'}
                 </span>
@@ -227,7 +230,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
 
             {/* Linked findings count */}
             {hypothesis.linkedFindingIds.length > 0 && (
-              <span className="text-[10px] text-content-muted">
+              <span className="text-[0.625rem] text-content-muted">
                 {hypothesis.linkedFindingIds.length} finding
                 {hypothesis.linkedFindingIds.length > 1 ? 's' : ''}
               </span>
@@ -235,19 +238,19 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
 
             {/* Cause role badge */}
             {hypothesis.causeRole === 'primary' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 font-medium">
+              <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 font-medium">
                 PRIMARY
               </span>
             )}
             {hypothesis.causeRole === 'contributing' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-medium">
+              <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-medium">
                 CONTRIBUTING
               </span>
             )}
 
             {/* Children summary */}
             {childrenSummary && childrenSummary.total > 0 && (
-              <span className="text-[10px] text-content-muted">
+              <span className="text-[0.625rem] text-content-muted">
                 {childrenSummary.supported}/{childrenSummary.total} supported
               </span>
             )}
@@ -372,7 +375,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             {factors && factors.length > 0 && (
               <select
-                className="text-[11px] bg-transparent border border-edge rounded px-1.5 py-0.5 text-content focus:outline-none focus:border-blue-400"
+                className="text-[0.6875rem] bg-transparent border border-edge rounded px-1.5 py-0.5 text-content focus:outline-none focus:border-blue-400"
                 value={childFactor}
                 onChange={e => setChildFactor(e.target.value)}
                 data-testid={`add-child-factor-${hypothesis.id}`}
@@ -385,7 +388,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
                 ))}
               </select>
             )}
-            <div className="flex items-center gap-1.5 text-[10px]">
+            <div className="flex items-center gap-1.5 text-[0.625rem]">
               {(['data', 'gemba', 'expert'] as const).map(vt => (
                 <label
                   key={vt}

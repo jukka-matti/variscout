@@ -45,7 +45,7 @@ export default function OverallImpactSummary({
     >
       <div className="flex items-center justify-between mb-2">
         <span className={`text-xs font-medium ${c.secondaryText}`}>Overall Impact</span>
-        <span className={`text-[10px] ${c.mutedText}`}>{pctLabel}</span>
+        <span className={`text-[0.625rem] ${c.mutedText}`}>{pctLabel}</span>
       </div>
 
       <div className="space-y-1.5 text-xs font-mono">

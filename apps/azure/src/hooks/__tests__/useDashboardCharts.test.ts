@@ -282,6 +282,16 @@ describe('useDashboardCharts', () => {
       act(() => {
         result.current.handleNextChart();
       });
+      expect(result.current.focusedChart).toBe('histogram');
+
+      act(() => {
+        result.current.handleNextChart();
+      });
+      expect(result.current.focusedChart).toBe('probability-plot');
+
+      act(() => {
+        result.current.handleNextChart();
+      });
       expect(result.current.focusedChart).toBe('ichart');
     });
 
@@ -295,12 +305,17 @@ describe('useDashboardCharts', () => {
       act(() => {
         result.current.handlePrevChart();
       });
-      expect(result.current.focusedChart).toBe('pareto');
+      expect(result.current.focusedChart).toBe('probability-plot');
 
       act(() => {
         result.current.handlePrevChart();
       });
-      expect(result.current.focusedChart).toBe('boxplot');
+      expect(result.current.focusedChart).toBe('histogram');
+
+      act(() => {
+        result.current.handlePrevChart();
+      });
+      expect(result.current.focusedChart).toBe('pareto');
     });
 
     it('handleNextChart does nothing when focusedChart is null', () => {

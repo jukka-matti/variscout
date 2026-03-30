@@ -139,6 +139,44 @@ export interface OverallImpactResult {
 }
 
 /**
+ * Toolbar projection — compact result for the ProcessHealthBar
+ */
+export interface ProcessProjection {
+  /** Current Cpk (from overall or filtered stats) */
+  currentCpk: number;
+  /** Projected Cpk after fix */
+  projectedCpk: number;
+  /** Description label: "if fixed", "if 3 fixed" */
+  label: string;
+  /** Number of findings contributing to this projection */
+  findingCount: number;
+}
+
+/**
+ * Centering opportunity (Cp vs Cpk gap)
+ */
+export interface CenteringOpportunity {
+  /** Current Cpk (accounting for centering) */
+  currentCpk: number;
+  /** Process Capability (spread only, perfect centering) */
+  cp: number;
+  /** Gap (Cp - Cpk) — the "free win" from centering */
+  gap: number;
+}
+
+/**
+ * Data-driven specification suggestion from complement data
+ */
+export interface SpecSuggestion {
+  /** Suggested lower specification limit */
+  suggestedLsl: number;
+  /** Suggested upper specification limit */
+  suggestedUsl: number;
+  /** Display label e.g. "Achievable: 10.0–11.8" */
+  label: string;
+}
+
+/**
  * Result of direct adjustment simulation
  */
 export interface DirectAdjustmentResult {

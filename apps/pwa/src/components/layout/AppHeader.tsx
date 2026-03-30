@@ -124,7 +124,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             VariScout
           </h1>
           {hasData && dataFilename && (
-            <span className="text-[10px] sm:text-xs text-content-muted truncate max-w-[150px] sm:max-w-none flex items-center gap-1.5">
+            <span className="text-[0.625rem] sm:text-xs text-content-muted truncate max-w-[150px] sm:max-w-none flex items-center gap-1.5">
               {dataFilename}
               {rowCount > 0 && (
                 <span className="text-content-muted">({rowCount.toLocaleString()} rows)</span>

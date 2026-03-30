@@ -37,6 +37,7 @@ chartColors.fail; // #ef4444 - above USL
 chartColors.warning; // #f59e0b - below LSL
 chartColors.mean; // #3b82f6 - center line
 chartColors.spec; // #ef4444 - specification limits
+chartColors.cpPotential; // #8b5cf6 - Cp (potential capability) series in capability I-Chart
 
 // UI chrome colors
 chromeColors.tooltipBg; // #1e293b
@@ -122,6 +123,20 @@ Performance charts analyze multiple measurement channels (fill heads, cavities, 
 
 Both `Boxplot` and `PerformanceBoxplot` support `showViolin?: boolean` prop. When true, renders `@visx/stats` `<ViolinPlot>` behind box elements using KDE data from `calculateKDE()` in `@variscout/core`. Controlled via `displayOptions.showViolin` in the app wrappers.
 
+## Many Categories (ADR-051)
+
+When datasets have many categories (e.g., 80+ countries from stacked wide-form data):
+
+**Pareto:** Top 20 categories shown, remainder aggregated into "Others" bar (muted color). `PARETO_MAX_CATEGORIES = 20` from `useParetoChartData`. The "Others" bar is styled with `othersKey` prop for muted fill.
+
+**Boxplot + Pareto labels:** When categories > 10, X-axis labels rotate -45° and truncate to 12 chars + "…". This applies to both standard Pareto and Boxplot.
+
+**I-Chart tooltip:** Shows factor column values (e.g., "Month: Jul, Year: 2019") alongside the point value and index. Factor values are included in `IChartDataPoint.factorValues` via `useIChartData`.
+
+## Dot Plot Fallback
+
+All boxplots (`BoxplotBase`, `PerformanceBoxplotBase`) automatically switch from box-and-whisker to jittered dots when a category has fewer than 7 data points (`MIN_BOXPLOT_VALUES`). This is a per-category decision — a single chart can show boxes for some categories and dots for others. The threshold is exported from `@variscout/charts`.
+
 ## Boxplot Sorting
 
 Categories in the standard Boxplot can be sorted via `sortBoxplotData()` from `@variscout/core`:
@@ -166,6 +181,14 @@ Three chart types support annotations via right-click context menu. Text observa
 State managed by `useAnnotations` hook from `@variscout/hooks`. UI components: `ChartAnnotationLayer` and `AnnotationContextMenu` from `@variscout/ui`.
 
 **Mobile (<640px)**: Tap on boxplot box or Pareto bar opens `MobileCategorySheet` bottom action sheet (from `@variscout/ui`) with category stats, drill-down, highlight, and pin-as-finding actions. "Pin as Finding" includes `source` metadata (chart type and category). Draggable text annotations (`ChartAnnotationLayer`) remain desktop-only. I-Chart annotations are desktop-only on all platforms.
+
+## Target Reference Line
+
+`BoxplotBase` accepts an optional `targetLine` prop for rendering a horizontal dashed reference line (e.g., Cpk target in capability mode):
+
+| Prop | Type | Purpose |
+|------|------|---------|
+| `targetLine` | `{ value: number; color: string; label?: string }` | Horizontal dashed line at the given value |
 
 ## Chart Export
 

@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
@@ -15,9 +16,27 @@ vi.mock('../charts/ParetoChart', () => ({
 vi.mock('../StatsPanel', () => ({
   default: () => <div data-testid="stats-panel">Stats Panel</div>,
 }));
+vi.mock('../charts/CapabilityHistogram', () => ({
+  default: () => <div data-testid="capability-histogram">Histogram</div>,
+}));
+vi.mock('../charts/ProbabilityPlot', () => ({
+  default: () => <div data-testid="probability-plot">Probability Plot</div>,
+}));
 vi.mock('../AnovaResults', () => ({
   default: () => <div data-testid="anova-results">ANOVA Results</div>,
 }));
+
+// Mock new dashboard chrome components
+vi.mock('@variscout/ui', async () => {
+  const actual = await vi.importActual('@variscout/ui');
+  return {
+    ...actual,
+    ProcessHealthBar: () => <div data-testid="process-health-bar">Health Bar</div>,
+    VerificationCard: ({ renderHistogram }: { renderHistogram: React.ReactNode }) => (
+      <div data-testid="verification-card">{renderHistogram}</div>
+    ),
+  };
+});
 
 // Mock html-to-image
 vi.mock('html-to-image', () => ({
@@ -123,10 +142,10 @@ describe('Dashboard', () => {
 
     render(<Dashboard />);
 
-    // Dashboard view shows I-Chart, Boxplot, and Stats Panel
+    // Dashboard view shows I-Chart, Boxplot, and ProcessHealthBar
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
     expect(screen.getByTestId('boxplot')).toBeInTheDocument();
-    expect(screen.getByTestId('stats-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('process-health-bar')).toBeInTheDocument();
   });
 
   it('does not render AnovaResults when calculation returns null', () => {

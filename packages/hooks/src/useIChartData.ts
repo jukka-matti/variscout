@@ -13,7 +13,9 @@ export function useIChartData(
   /** Chart container width for LTTB threshold. If provided, decimates large datasets. */
   chartWidth?: number,
   /** Stats with control limits — used to force-include violation points in decimation */
-  stats?: StatsResult | null
+  stats?: StatsResult | null,
+  /** Factor column names — values included in tooltip display */
+  factors?: string[]
 ): IChartDataPoint[] {
   const fullData = (() => {
     if (!outcome) return [];
@@ -25,6 +27,10 @@ export function useIChartData(
           stage: stageColumn ? String(d[stageColumn] ?? '') : undefined,
           timeValue: timeColumn ? formatTimeValue(d[timeColumn] as DataCellValue) : undefined,
           originalIndex: i,
+          factorValues:
+            factors && factors.length > 0
+              ? Object.fromEntries(factors.map(f => [f, d[f] != null ? String(d[f]) : '']))
+              : undefined,
         })
       )
       .filter(d => !isNaN(d.y));

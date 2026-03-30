@@ -49,6 +49,7 @@ npx ruflo@3.5.42 security cve --check        # CVE check
 | docs/07-decisions/      | ADR-001 through ADR-049                                               |
 | docs/08-products/       | Azure, PWA, website specs, feature-parity matrix                      |
 | docs/09-tutorials/      | Planned step-by-step guides                                           |
+| docs/10-development/    | Feature backlog, user testing discussions, development notes          |
 | docs/superpowers/specs/ | Design specs from brainstorming sessions (see index.md)               |
 | docs/archive/           | HISTORICAL ONLY — removed features, do not reference for current work |
 
@@ -61,6 +62,7 @@ npx ruflo@3.5.42 security cve --check        # CVE check
 | Charts                     | docs/06-design-system/charts/, docs/06-design-system/charts/chart-sizing-guide.md, .claude/rules/charts.md                                                                                                                                                                                        |
 | Azure app / Auth / Storage | docs/08-products/azure/                                                                                                                                                                                                                                                                           |
 | Data input / Parser        | docs/03-features/data/, packages/core/src/parser/                                                                                                                                                                                                                                                 |
+| Wide-form / Stack columns  | adr-050, docs/superpowers/specs/2026-03-29-wide-form-stack-columns-design.md, packages/core/src/parser/stack.ts, packages/ui/src/components/ColumnMapping/StackSection.tsx                                                                                                                        |
 | Design system / UI         | docs/06-design-system/                                                                                                                                                                                                                                                                            |
 | Workflows / Analysis       | docs/03-features/workflows/                                                                                                                                                                                                                                                                       |
 | Journey model / Phases     | docs/05-technical/architecture/mental-model-hierarchy.md, journey-phase-screen-mapping.md                                                                                                                                                                                                         |

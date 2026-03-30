@@ -5,11 +5,13 @@ import {
   detectColumns,
   detectWideFormat,
   detectYamazumiFormat,
+  stackColumns,
   type DataRow,
   type DataQualityReport,
   type WideFormatDetection,
   type TimeExtractionConfig,
   type YamazumiDetection,
+  type StackConfig,
 } from '@variscout/core';
 
 // ── Reducer types ──────────────────────────────────────────────────────────
@@ -126,6 +128,8 @@ export interface UsePasteImportFlowReturn {
   timeExtractionConfig: TimeExtractionConfig;
   setTimeExtractionConfig: React.Dispatch<React.SetStateAction<TimeExtractionConfig>>;
   mappingColumnAnalysis: ReturnType<typeof detectColumns>['columnAnalysis'] | undefined;
+  suggestedStack: ReturnType<typeof detectColumns>['suggestedStack'];
+  handleStackConfigChange: (config: StackConfig | null) => void;
   handleColumnRename: (originalName: string, alias: string) => void;
   handleWideFormatDetected: (result: WideFormatDetection) => void;
   handlePasteAnalyze: (text: string) => Promise<void>;
@@ -181,6 +185,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
   const [flowState, dispatch] = useReducer(pasteFlowReducer, initialPasteFlowState);
 
   // Independent lifecycle — not part of the flow state machine
+  const [pendingStackConfig, setPendingStackConfig] = useState<StackConfig | null>(null);
   const [timeExtractionPrompt, setTimeExtractionPrompt] = useState<{
     timeColumn: string;
     hasTimeComponent: boolean;
@@ -203,10 +208,13 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
   }, []);
 
   // Column analysis for ColumnMapping rich cards
-  const mappingColumnAnalysis = useMemo(() => {
+  const detectedColumnsResult = useMemo(() => {
     if (rawData.length === 0) return undefined;
-    return detectColumns(rawData).columnAnalysis;
+    return detectColumns(rawData);
   }, [rawData]);
+
+  const mappingColumnAnalysis = detectedColumnsResult?.columnAnalysis;
+  const suggestedStack = detectedColumnsResult?.suggestedStack;
 
   const handleColumnRename = useCallback(
     (originalName: string, alias: string) => {
@@ -331,6 +339,12 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       newFactors: string[],
       newSpecs?: { target?: number; lsl?: number; usl?: number }
     ) => {
+      // Apply stack transform if configured
+      if (pendingStackConfig && pendingStackConfig.columnsToStack.length > 0) {
+        const result = stackColumns(rawData, pendingStackConfig);
+        setRawData(result.data);
+      }
+
       setOutcome(newOutcome);
       setFactors(newFactors);
       if (newSpecs) {
@@ -348,6 +362,9 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       setOutcome,
       setFactors,
       setSpecs,
+      setRawData,
+      rawData,
+      pendingStackConfig,
       applyTimeExtraction,
       timeExtractionPrompt,
       timeExtractionConfig,
@@ -388,6 +405,8 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     timeExtractionConfig,
     setTimeExtractionConfig,
     mappingColumnAnalysis,
+    suggestedStack,
+    handleStackConfigChange: setPendingStackConfig,
     handleColumnRename,
     handleWideFormatDetected,
     handlePasteAnalyze,

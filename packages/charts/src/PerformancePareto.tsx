@@ -18,7 +18,7 @@ import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { sortChannels, CPK_THRESHOLDS } from '@variscout/core';
 import type { PerformanceParetoProps, ChannelResult } from './types';
 import { chartColors } from './colors';
-import { useChartTheme } from './useChartTheme';
+import { useChartTheme, getDocumentFontScale } from './useChartTheme';
 import { getResponsiveMargins, getScaledFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 
@@ -40,10 +40,10 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
   showBranding = true,
   cpkThresholds = CPK_THRESHOLDS,
 }) => {
-  const { chrome, fontScale, formatStat } = useChartTheme();
+  const { chrome, formatStat } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'pareto', sourceBarHeight);
-  const fonts = getScaledFonts(parentWidth, fontScale);
+  const fonts = getScaledFonts(parentWidth, getDocumentFontScale());
 
   const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
   const [tooltipLeft, setTooltipLeft] = React.useState(0);

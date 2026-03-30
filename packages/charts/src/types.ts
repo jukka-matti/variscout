@@ -160,6 +160,18 @@ export interface BoxplotProps extends BaseChartProps {
   fillOverrides?: Record<string, string>;
   /** Draw thin dashed vertical separator lines between every N boxes (for staged grouping) */
   groupSize?: number;
+  /** Optional horizontal reference line (e.g., Cpk target in capability mode) */
+  targetLine?: {
+    value: number;
+    color: string;
+    label?: string;
+  };
+  /** Subset of category keys to render (adaptive limit). When provided, data is filtered to these. */
+  visibleCategories?: string[];
+  /** Total number of categories before filtering (for overflow indicator) */
+  totalCategories?: number;
+  /** Callback when overflow indicator is clicked */
+  onOverflowClick?: () => void;
 }
 
 /**
@@ -192,6 +204,8 @@ export interface ParetoChartProps extends BaseChartProps {
   onBarContextMenu?: (key: string, event: React.MouseEvent) => void;
   /** Show rank change indicators when comparisonData is present */
   showRankChange?: boolean;
+  /** Key used for the "Others" aggregated bar (rendered in muted style) */
+  othersKey?: string;
 }
 
 /**

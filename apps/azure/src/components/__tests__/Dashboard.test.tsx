@@ -14,6 +14,12 @@ vi.mock('../charts/ParetoChart', () => ({
 vi.mock('../StatsPanel', () => ({
   default: () => <div data-testid="stats-panel">Stats Panel</div>,
 }));
+vi.mock('../charts/CapabilityHistogram', () => ({
+  default: () => <div data-testid="capability-histogram">Histogram</div>,
+}));
+vi.mock('../charts/ProbabilityPlot', () => ({
+  default: () => <div data-testid="probability-plot">Probability Plot</div>,
+}));
 vi.mock('../PerformanceDashboard', () => ({
   default: () => <div data-testid="performance-dashboard">Performance Dashboard</div>,
 }));
@@ -54,6 +60,10 @@ vi.mock('@variscout/ui', () => ({
         </option>
       ))}
     </select>
+  ),
+  ProcessHealthBar: () => <div data-testid="process-health-bar">Health Bar</div>,
+  VerificationCard: ({ renderHistogram }: { renderHistogram: React.ReactNode }) => (
+    <div data-testid="verification-card">{renderHistogram}</div>
   ),
   FilterBreadcrumb: () => <div data-testid="filter-breadcrumb">Breadcrumb</div>,
   EditableChartTitle: ({ defaultTitle }: { defaultTitle: string }) => (
@@ -408,6 +418,32 @@ vi.mock('@variscout/hooks', () => ({
     handleCreateFactor: vi.fn(),
   }),
   useJourneyPhase: () => 'scout',
+  useCapabilityIChartData: () => ({
+    cpkData: [],
+    cpData: [],
+    cpkStats: null,
+    cpStats: null,
+    subgroupResults: [],
+    subgroupsMeetingTarget: 0,
+  }),
+  useProcessProjection: () => ({
+    drillProjection: null,
+    benchmarkProjection: null,
+    centeringOpportunity: null,
+    specSuggestion: null,
+    cumulativeProjection: null,
+    improvementProjection: null,
+    resolvedProjection: null,
+    activeProjection: null,
+  }),
+}));
+
+// Mock improvement store (Zustand)
+vi.mock('../../features/improvement/improvementStore', () => ({
+  useImprovementStore: (selector?: (s: Record<string, unknown>) => unknown) => {
+    const state = { projectedCpkMap: {} };
+    return selector ? selector(state) : state;
+  },
 }));
 
 // Mock core functions
@@ -455,6 +491,8 @@ describe('Dashboard', () => {
     setDisplayOptions: vi.fn(),
     subgroupConfig: { method: 'fixed-size' as const, size: 5 },
     setSubgroupConfig: vi.fn(),
+    cpkTarget: 1.33,
+    setCpkTarget: vi.fn(),
     categoryContributions: new Map(),
     selectedPoints: new Set<number>(),
     clearSelection: vi.fn(),
@@ -470,7 +508,7 @@ describe('Dashboard', () => {
     expect(screen.getByText('Analysis')).toHaveClass('bg-blue-600'); // Active
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
     expect(screen.getByTestId('boxplot')).toBeInTheDocument();
-    expect(screen.getByTestId('stats-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('process-health-bar')).toBeInTheDocument();
   });
 
   it('does not render AnovaResults when calculation returns null', () => {
@@ -543,7 +581,7 @@ describe('Dashboard', () => {
     expect(downloadMenus).toHaveLength(3); // I-Chart, Boxplot, Pareto
 
     const copyButtons = screen.getAllByLabelText(/^Copy .+ to clipboard$/);
-    expect(copyButtons).toHaveLength(4); // Dashboard + I-Chart + Boxplot + Pareto
+    expect(copyButtons).toHaveLength(3); // I-Chart + Boxplot + Pareto
   });
 
   it('renders editable chart titles', () => {

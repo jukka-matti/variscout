@@ -72,7 +72,29 @@ export {
 } from './nelson';
 
 // Boxplot statistics
-export { calculateBoxplotStats, sortBoxplotData } from './boxplot';
+export {
+  calculateBoxplotStats,
+  sortBoxplotData,
+  selectBoxplotCategories,
+  getMaxBoxplotCategories,
+  MIN_BOX_STEP,
+} from './boxplot';
+export type { BoxplotPriorityCriterion } from './boxplot';
+
+// Best subsets regression
+export type { BestSubsetResult, BestSubsetsResult } from './bestSubsets';
+export { computeBestSubsets, computeRSquaredAdjusted, getBestSingleFactor } from './bestSubsets';
+
+// Factor effects (Factor Intelligence Layers 2-3)
+export type {
+  LevelEffect,
+  FactorMainEffect,
+  MainEffectsResult,
+  CellMean,
+  InteractionResult,
+  InteractionEffectsResult,
+} from './factorEffects';
+export { computeMainEffects, computeInteractionEffects } from './factorEffects';
 
 // Kernel density estimation
 export { calculateKDE } from './kde';

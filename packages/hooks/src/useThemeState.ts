@@ -2,19 +2,26 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-/** Chart font scale presets */
-export type ChartFontScale = 'compact' | 'normal' | 'large';
+/** Display density presets */
+export type DensityPreset = 'S' | 'M' | 'L' | 'XL';
 
-/** Scale values for each preset */
-export const CHART_FONT_SCALES: Record<ChartFontScale, number> = {
-  compact: 0.85,
-  normal: 1.0,
-  large: 1.15,
+/** Configuration for each density preset */
+export const DENSITY_CONFIG: Record<
+  DensityPreset,
+  {
+    rootFontSize: number;
+    lineHeight: number;
+  }
+> = {
+  S: { rootFontSize: 14, lineHeight: 1.35 },
+  M: { rootFontSize: 16, lineHeight: 1.5 },
+  L: { rootFontSize: 18, lineHeight: 1.5 },
+  XL: { rootFontSize: 21, lineHeight: 1.6 },
 };
 
 export interface ThemeConfig {
   mode: ThemeMode;
-  chartFontScale?: ChartFontScale;
+  density?: DensityPreset;
 }
 
 export interface UseThemeStateOptions {
@@ -26,7 +33,7 @@ export interface UseThemeStateReturn {
   theme: ThemeConfig;
   resolvedTheme: 'light' | 'dark';
   isThemingEnabled: boolean;
-  chartFontScaleValue: number;
+  density: DensityPreset;
   setTheme: (config: Partial<ThemeConfig>) => void;
 }
 
@@ -93,19 +100,18 @@ export function useThemeState({ themingEnabled }: UseThemeStateOptions): UseThem
     return theme.mode;
   }, [theme.mode, systemPreference, themingEnabled]);
 
-  // Calculate chart font scale value
-  const chartFontScaleValue = useMemo(() => {
-    const preset = theme.chartFontScale ?? 'normal';
-    return CHART_FONT_SCALES[preset];
-  }, [theme.chartFontScale]);
+  // Resolve density preset
+  const density = theme.density ?? 'M';
 
-  // Apply theme to document
+  // Apply theme and density to document
   useEffect(() => {
     const root = document.documentElement;
+    const config = DENSITY_CONFIG[density];
 
     root.setAttribute('data-theme', resolvedTheme);
-    root.setAttribute('data-chart-scale', String(chartFontScaleValue));
-  }, [resolvedTheme, chartFontScaleValue]);
+    root.style.fontSize = config.rootFontSize + 'px';
+    root.style.setProperty('--density-line-height', String(config.lineHeight));
+  }, [resolvedTheme, density]);
 
   // Update theme configuration
   const setTheme = useCallback((config: Partial<ThemeConfig>) => {
@@ -121,9 +127,9 @@ export function useThemeState({ themingEnabled }: UseThemeStateOptions): UseThem
       theme,
       resolvedTheme,
       isThemingEnabled: themingEnabled,
-      chartFontScaleValue,
+      density,
       setTheme,
     }),
-    [theme, resolvedTheme, themingEnabled, chartFontScaleValue, setTheme]
+    [theme, resolvedTheme, themingEnabled, density, setTheme]
   );
 }

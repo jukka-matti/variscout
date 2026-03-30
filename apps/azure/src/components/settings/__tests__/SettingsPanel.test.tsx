@@ -25,10 +25,7 @@ vi.mock('@variscout/hooks', async importOriginal => {
         const map: Record<string, string> = {
           'nav.settings': 'Settings',
           'display.preferences': 'Display Preferences',
-          'display.chartTextSize': 'Chart Text Size',
-          'display.compact': 'Compact',
-          'display.normal': 'Normal',
-          'display.large': 'Large',
+          'display.density': 'Display density',
           'display.lockYAxis': 'Lock Y-axis',
           'display.filterContext': 'Filter context',
           'display.showSpecs': 'Show specifications',
@@ -96,7 +93,7 @@ describe('SettingsPanel', () => {
     // Dialog should be open
     expect(screen.getByText('Settings')).toBeInTheDocument();
     expect(screen.getByText('Appearance')).toBeInTheDocument();
-    expect(screen.getByText('Chart Text Size')).toBeInTheDocument();
+    expect(screen.getByText('Display density')).toBeInTheDocument();
   });
 
   it('shows Display Preferences section with 2 global toggles', () => {
@@ -137,12 +134,13 @@ describe('SettingsPanel', () => {
     expect(screen.getByLabelText('Switch to Dark theme')).not.toHaveClass('bg-blue-600');
   });
 
-  it('shows chart font scale options (Compact/Normal/Large)', () => {
+  it('shows display density options (S/M/L/XL)', () => {
     renderPanel(true);
 
-    expect(screen.getByText('Compact')).toBeInTheDocument();
-    expect(screen.getByText('Normal')).toBeInTheDocument();
-    expect(screen.getByText('Large')).toBeInTheDocument();
+    expect(screen.getByText('S')).toBeInTheDocument();
+    expect(screen.getByText('M')).toBeInTheDocument();
+    expect(screen.getByText('L')).toBeInTheDocument();
+    expect(screen.getByText('XL')).toBeInTheDocument();
   });
 
   it('calls onClose when close button is clicked', () => {

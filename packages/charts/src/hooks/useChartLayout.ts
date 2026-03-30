@@ -11,7 +11,7 @@
 
 import { useMemo } from 'react';
 import type { ChartMargins, ChartFonts } from '../types';
-import { useChartTheme } from '../useChartTheme';
+import { useChartTheme, getDocumentFontScale } from '../useChartTheme';
 import { getSourceBarHeight } from '../ChartSourceBar';
 import { getResponsiveMargins, getScaledFonts, type ChartType } from '../responsive';
 
@@ -41,8 +41,6 @@ export interface ChartLayout {
   width: number;
   /** Inner chart height (parentHeight - margins) */
   height: number;
-  /** Font scale multiplier from theme */
-  fontScale: number;
 }
 
 /**
@@ -69,7 +67,9 @@ export function useChartLayout(options: UseChartLayoutOptions): ChartLayout {
     fontsOverride,
   } = options;
 
-  const { fontScale } = useChartTheme();
+  // Subscribe to useChartTheme so we re-render when root font-size changes
+  useChartTheme();
+  const fontScale = getDocumentFontScale();
 
   return useMemo(() => {
     const sourceBarHeight = getSourceBarHeight(showBranding);
@@ -84,7 +84,6 @@ export function useChartLayout(options: UseChartLayoutOptions): ChartLayout {
       sourceBarHeight,
       width,
       height,
-      fontScale,
     };
   }, [
     parentWidth,

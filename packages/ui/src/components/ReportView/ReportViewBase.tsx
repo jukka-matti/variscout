@@ -184,7 +184,9 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
               <div key={group.workspace}>
                 {/* Workspace group header */}
                 <div className={`px-4 py-1.5 mt-2 first:mt-0 border-l-2 ${wsColors.border}`}>
-                  <span className={`text-[10px] font-semibold tracking-widest ${wsColors.text}`}>
+                  <span
+                    className={`text-[0.625rem] font-semibold tracking-widest ${wsColors.text}`}
+                  >
                     {t(WORKSPACE_I18N_KEYS[group.workspace])}
                   </span>
                 </div>

@@ -22,8 +22,6 @@ export interface ChartThemeColors {
   chrome: ChromeColorValues;
   /** Data colors */
   colors: Record<ChartColor, string>;
-  /** Font scale multiplier (from data-chart-scale attribute) */
-  fontScale: number;
   /** Current locale for number formatting in charts */
   locale: Locale;
   /** Format a statistic value with locale-correct decimal separator */
@@ -37,14 +35,13 @@ export interface ChartThemeColors {
 }
 
 /**
- * Get the current chart font scale from document attribute
+ * Get the current chart font scale derived from root font-size.
+ * Returns ratio of computed font-size to the 16px baseline.
  */
-function getDocumentFontScale(): number {
+export function getDocumentFontScale(): number {
   if (typeof document === 'undefined') return 1;
-  const scale = document.documentElement.getAttribute('data-chart-scale');
-  if (!scale) return 1;
-  const parsed = parseFloat(scale);
-  return isNaN(parsed) ? 1 : parsed;
+  const px = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  return isNaN(px) ? 1 : px / 16;
 }
 
 /**
@@ -76,7 +73,7 @@ export function useChartTheme(): ChartThemeColors {
 
     setLocale(getDocumentLocale());
 
-    // Watch for theme, font scale, and locale changes
+    // Watch for theme, font scale (via inline style), and locale changes
     const observer = new MutationObserver(() => {
       setTheme(getDocumentTheme());
       setFontScale(getDocumentFontScale());
@@ -85,18 +82,21 @@ export function useChartTheme(): ChartThemeColors {
 
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-theme', 'data-chart-scale', 'data-locale'],
+      attributeFilter: ['data-theme', 'style', 'data-locale'],
     });
 
     return () => observer.disconnect();
   }, []);
+
+  // fontScale is tracked as state to trigger re-renders when root font-size changes,
+  // but is not returned. Consumers call getDocumentFontScale() directly in render.
+  void fontScale;
 
   return useMemo(
     () => ({
       isDark: theme === 'dark',
       chrome: getChromeColors(theme === 'dark'),
       colors: getChartColors(),
-      fontScale,
       locale,
       formatStat: (value: number, decimals: number = 2) => formatStatistic(value, locale, decimals),
       formatPct: (value: number, decimals: number = 1) => formatPercent(value, locale, decimals),

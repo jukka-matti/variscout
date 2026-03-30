@@ -11,12 +11,30 @@ export interface ColumnAnalysis {
   sampleValues: string[];
 }
 
+/**
+ * Suggestion for stacking (unpivoting) wide-form columns.
+ */
+export interface StackSuggestion {
+  /** Columns suggested for stacking */
+  columnsToStack: string[];
+  /** Columns to keep as-is (factors/metadata) */
+  keepColumns: string[];
+  /** Confidence in the suggestion */
+  confidence: 'high' | 'medium' | 'low';
+  /** AI-suggested measure name (only when AI available) */
+  measureName?: string;
+  /** AI-suggested label name (only when AI available) */
+  labelName?: string;
+}
+
 export interface DetectedColumns {
   outcome: string | null;
   factors: string[];
   timeColumn: string | null;
   confidence: 'high' | 'medium' | 'low';
   columnAnalysis: ColumnAnalysis[];
+  /** Suggestion for stacking wide-form data (present when 5+ numeric columns detected) */
+  suggestedStack?: StackSuggestion;
 }
 
 export interface ExclusionReason {

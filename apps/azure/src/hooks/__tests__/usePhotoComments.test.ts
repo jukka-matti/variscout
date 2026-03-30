@@ -79,6 +79,9 @@ function createMockFindingsState(): UseFindingsReturn {
     setOutcome: vi.fn(),
     addAttachmentToComment: vi.fn(),
     updateAttachmentStatus: vi.fn(),
+    setBenchmark: vi.fn(),
+    clearBenchmark: vi.fn(),
+    toggleScope: vi.fn(),
   };
 }
 

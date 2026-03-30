@@ -1,8 +1,8 @@
 import React, { createContext, useContext, type ReactNode } from 'react';
 import { useThemeState, type UseThemeStateReturn } from '@variscout/hooks';
 
-export type { ThemeMode, ChartFontScale, ThemeConfig } from '@variscout/hooks';
-export { CHART_FONT_SCALES } from '@variscout/hooks';
+export type { ThemeMode, DensityPreset, ThemeConfig } from '@variscout/hooks';
+export { DENSITY_CONFIG } from '@variscout/hooks';
 
 const ThemeContext = createContext<UseThemeStateReturn | undefined>(undefined);
 

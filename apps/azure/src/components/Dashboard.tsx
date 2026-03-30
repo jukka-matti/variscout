@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
-import StatsPanel from './StatsPanel';
+import CapabilityHistogram from './charts/CapabilityHistogram';
+import ProbabilityPlot from './charts/ProbabilityPlot';
 import MobileChartCarousel from './MobileChartCarousel';
 import PerformanceDashboard from './PerformanceDashboard';
 import YamazumiDashboard from './YamazumiDashboard';
@@ -16,11 +17,14 @@ import { useDashboardCharts } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
 import {
   ErrorBoundary,
-  FilterBreadcrumb,
+  ProcessHealthBar,
+  VerificationCard,
   NarrativeBar,
   SelectionPanel,
   CreateFactorModal,
   DashboardLayoutBase,
+  DashboardChartCard,
+  FocusedViewOverlay,
   CapabilityMetricToggle,
   SubgroupConfigPopover,
   useIsMobile,
@@ -28,6 +32,7 @@ import {
   BREAKPOINTS,
 } from '@variscout/ui';
 import { getColumnNames } from '@variscout/core';
+import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
 import type { Finding } from '@variscout/core';
 import type { AzureFindingsCallbacks } from '@variscout/ui';
 import {
@@ -35,23 +40,14 @@ import {
   useFilterHandlers,
   useCreateFactorModal,
   useDashboardInsights,
+  useProcessProjection,
+  useJourneyPhase,
+  useCapabilityIChartData,
 } from '@variscout/hooks';
+import { useImprovementStore } from '../features/improvement/improvementStore';
 import type { AIContext } from '@variscout/core';
-import { usePanelsStore } from '../features/panels/panelsStore';
 import type { ViewState } from '@variscout/hooks';
-import {
-  Activity,
-  BarChart3,
-  Gauge,
-  Timer,
-  ArrowLeft,
-  Copy,
-  Check,
-  Download,
-  Settings2,
-  LayoutGrid,
-  List,
-} from 'lucide-react';
+import { Activity, BarChart3, Gauge, Timer, ArrowLeft, Settings2 } from 'lucide-react';
 
 type DashboardTab = 'analysis' | 'performance' | 'yamazumi';
 
@@ -94,6 +90,8 @@ interface DashboardProps {
   onShareChart?: (chartType: string) => void;
   findingsCallbacks?: AzureFindingsCallbacks;
   findings?: Finding[];
+  /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
+  onInvestigateFactor?: (effect: import('@variscout/core/stats').FactorMainEffect) => void;
   // Persistence
   initialViewState?: ViewState;
   onViewStateChange?: (partial: Partial<ViewState>) => void;
@@ -113,12 +111,13 @@ const Dashboard = ({
   onPinFinding,
   onShareChart,
   findingsCallbacks,
-  findings: _allFindings,
+  findings: allFindings,
+  onInvestigateFactor,
   viewMode = {},
   performance = {},
   ai = {},
 }: DashboardProps) => {
-  const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
+  // isStatsSidebarOpen still read by EditorDashboardView — not needed in Dashboard itself now
   const { isPresentationMode, onExitPresentation, isReportOpen, onCloseReport } = viewMode;
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
@@ -164,6 +163,7 @@ const Dashboard = ({
     subgroupConfig,
     setSubgroupConfig,
     cpkTarget,
+    setCpkTarget,
     selectedPoints,
     clearSelection,
   } = useData();
@@ -269,6 +269,42 @@ const Dashboard = ({
     }
   }, [focusedChart, hasRestoredFocusedChart, onViewStateChange]);
 
+  // Process projection intelligence (Phase 2-4)
+  const journeyPhase = useJourneyPhase(!!rawData?.length, allFindings ?? []);
+  const projectedCpkMap = useImprovementStore(s => s.projectedCpkMap);
+
+  const scopedFindings = useMemo(
+    () => (allFindings ? getScopedFindings(allFindings) : undefined),
+    [allFindings]
+  );
+  const benchmarkData = useMemo(() => {
+    const bm = allFindings?.find(f => f.role === 'benchmark' && f.benchmarkStats);
+    if (!bm?.benchmarkStats) return null;
+    return {
+      stats: bm.benchmarkStats,
+      label: formatFindingFilters(bm.context, columnAliases),
+    };
+  }, [allFindings, columnAliases]);
+  const improvementData = useMemo(() => {
+    const entries = Object.values(projectedCpkMap);
+    if (entries.length === 0) return { cpk: null, label: '' };
+    const bestCpk = Math.max(...entries);
+    return { cpk: bestCpk, label: `${entries.length} scoped` };
+  }, [projectedCpkMap]);
+  const { centeringOpportunity, specSuggestion, activeProjection } = useProcessProjection({
+    rawData: rawData ?? [],
+    filteredData: filteredData ?? [],
+    outcome,
+    specs,
+    stats,
+    filterChipData,
+    scopedFindings,
+    benchmark: benchmarkData,
+    journeyPhase,
+    improvementProjectedCpk: improvementData.cpk,
+    improvementLabel: improvementData.label,
+  });
+
   // Annotations (right-click context menu for highlights, no mode toggle)
   const {
     hasAnnotations,
@@ -280,6 +316,14 @@ const Dashboard = ({
     paretoHighlights,
     setHighlight,
   } = useAnnotations({ displayOptions, setDisplayOptions });
+
+  // Histogram data for standalone chart cards (grid mode)
+  const histogramData = useMemo(() => {
+    if (!outcome || !filteredData || filteredData.length === 0) return [];
+    return filteredData
+      .map((d: Record<string, unknown>) => Number(d[outcome]))
+      .filter((v: number) => !isNaN(v));
+  }, [filteredData, outcome]);
 
   // Keyboard: clear selection on Escape (complement to hook's focused-mode ESC)
   useEffect(() => {
@@ -314,6 +358,10 @@ const Dashboard = ({
     setRawData,
     setFilters,
     clearSelection,
+    onFactorCreated: name => {
+      setBoxplotFactor(name);
+      setParetoFactor(name);
+    },
   });
 
   // --- Chart Insight Chips + Capability mode (shared hook) ---
@@ -324,7 +372,6 @@ const Dashboard = ({
     statsInsight,
     handleCpkClick,
     isCapabilityMode,
-    capabilityData,
   } = useDashboardInsights({
     stats,
     filteredData,
@@ -342,6 +389,24 @@ const Dashboard = ({
     aiContext,
     fetchChartInsight,
   });
+
+  // Capability I-Chart data for ProcessHealthBar stats
+  const capabilityIChartData = useCapabilityIChartData({
+    filteredData,
+    outcome: outcome ?? '',
+    specs,
+    subgroupConfig,
+    cpkTarget,
+    enabled: isCapabilityMode,
+  });
+
+  const capabilityStats =
+    isCapabilityMode && capabilityIChartData.subgroupResults.length > 0
+      ? {
+          subgroupsMeetingTarget: capabilityIChartData.subgroupsMeetingTarget ?? 0,
+          totalSubgroups: capabilityIChartData.subgroupResults.length,
+        }
+      : undefined;
 
   if (!outcome) return null;
 
@@ -374,46 +439,38 @@ const Dashboard = ({
     >
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
-        <div className="flex items-center">
-          <div className="flex-1 min-w-0">
-            {/* On phone, FilterBreadcrumb is handled inside MobileChartCarousel */}
-            {!isPhone && (
-              <FilterBreadcrumb
-                filterChipData={filterChipData}
-                columnAliases={columnAliases}
-                onUpdateFilterValues={handleUpdateFilterValues}
-                onRemoveFilter={handleRemoveFilter}
-                onClearAll={handleClearAllFilters}
-                cumulativeVariationPct={cumulativeVariationPct}
-                onPinFinding={onPinFinding}
-              />
-            )}
-          </div>
-          {activeTab === 'analysis' && !focusedChart && !isPhone && (
-            <div className="flex items-center gap-1 px-3 flex-shrink-0" data-export-hide>
-              <button
-                onClick={() => handleCopyChart('dashboard-export-container', 'dashboard')}
-                className={`p-1.5 rounded transition-all ${
-                  copyFeedback === 'dashboard'
-                    ? 'bg-green-500/20 text-green-400'
-                    : 'text-content-muted hover:text-content hover:bg-surface-tertiary'
-                }`}
-                title="Copy dashboard to clipboard"
-                aria-label="Copy dashboard to clipboard"
-              >
-                {copyFeedback === 'dashboard' ? <Check size={14} /> : <Copy size={14} />}
-              </button>
-              <button
-                onClick={() => handleDownloadPng('dashboard-export-container', 'dashboard')}
-                className="p-1.5 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
-                title="Download dashboard as PNG"
-                aria-label="Download dashboard as PNG"
-              >
-                <Download size={14} />
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Process Health Bar — replaces FilterBreadcrumb + Toolbar */}
+        {!isPhone && (
+          <ProcessHealthBar
+            stats={stats}
+            specs={specs}
+            cpkTarget={cpkTarget}
+            onCpkTargetChange={setCpkTarget}
+            sampleCount={filteredData?.length ?? 0}
+            filterChipData={filterChipData}
+            columnAliases={columnAliases}
+            onUpdateFilterValues={handleUpdateFilterValues}
+            onRemoveFilter={handleRemoveFilter}
+            onClearAll={handleClearAllFilters}
+            cumulativeVariationPct={cumulativeVariationPct}
+            onPinFinding={onPinFinding}
+            layout={displayOptions.dashboardLayout ?? 'grid'}
+            onLayoutChange={l => setDisplayOptions({ ...displayOptions, dashboardLayout: l })}
+            factorCount={factors.length}
+            onManageFactors={onManageFactors}
+            onSetSpecs={() => setShowSpecEditor(true)}
+            onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
+            centeringOpportunity={centeringOpportunity}
+            specSuggestion={specSuggestion}
+            activeProjection={activeProjection}
+            onAcceptSpecSuggestion={(lsl, usl) => {
+              setSpecs({ ...specs, lsl, usl });
+              setShowSpecEditor(true);
+            }}
+            isCapabilityMode={isCapabilityMode}
+            capabilityStats={capabilityStats}
+          />
+        )}
 
         {/* Selection Panel (desktop only — multi-point selection is a desktop feature) */}
         {!isPhone && selectedPoints.size > 0 && (
@@ -478,39 +535,6 @@ const Dashboard = ({
               Yamazumi
             </button>
           )}
-
-          {/* Layout toggle — right side, desktop only */}
-          <div
-            className="hidden lg:flex items-center bg-surface-tertiary rounded-lg p-0.5 ml-auto"
-            data-export-hide
-          >
-            <button
-              onClick={() => setDisplayOptions({ ...displayOptions, dashboardLayout: 'grid' })}
-              className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                (displayOptions.dashboardLayout ?? 'grid') === 'grid'
-                  ? 'bg-surface-elevated text-content font-medium shadow-sm'
-                  : 'text-content-muted hover:text-content'
-              }`}
-              title="Grid layout"
-              aria-label="Grid layout"
-            >
-              <LayoutGrid size={12} />
-              Grid
-            </button>
-            <button
-              onClick={() => setDisplayOptions({ ...displayOptions, dashboardLayout: 'scroll' })}
-              className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                displayOptions.dashboardLayout === 'scroll'
-                  ? 'bg-surface-elevated text-content font-medium shadow-sm'
-                  : 'text-content-muted hover:text-content'
-              }`}
-              title="Scroll layout"
-              aria-label="Scroll layout"
-            >
-              <List size={12} />
-              Scroll
-            </button>
-          </div>
         </div>
       </div>
 
@@ -613,6 +637,7 @@ const Dashboard = ({
               boxplotData={boxplotData}
               findingsCallbacks={findingsCallbacks}
               onAskCoScout={onAskCoScoutFromCategory}
+              onInvestigateFactor={onInvestigateFactor}
             />
           ) : (
             <div className="flex flex-1 min-h-0">
@@ -791,30 +816,62 @@ const Dashboard = ({
                     )}
                   </ErrorBoundary>
                 }
-                renderStatsPanel={
-                  isStatsSidebarOpen ? undefined : (
-                    <StatsPanel
-                      stats={stats}
-                      specs={specs}
-                      filteredData={filteredData}
-                      outcome={outcome}
-                      onSaveSpecs={setSpecs}
-                      showCpk={displayOptions.showCpk !== false}
-                      cpkTarget={cpkTarget}
-                      onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
-                      subgroupsMeetingTarget={
-                        isCapabilityMode ? capabilityData.subgroupsMeetingTarget : undefined
+                /* Stats panel removed from grid — key stats now in ProcessHealthBar toolbar.
+                   Stats sidebar (left) provides detailed view when toggled. */
+                renderVerificationCard={
+                  histogramData.length > 0 && stats ? (
+                    <VerificationCard
+                      renderHistogram={
+                        <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
                       }
-                      subgroupCount={
-                        isCapabilityMode ? capabilityData.subgroupResults.length : undefined
+                      renderProbabilityPlot={
+                        <ProbabilityPlot
+                          data={histogramData}
+                          mean={stats.mean}
+                          stdDev={stats.stdDev}
+                        />
                       }
                     />
-                  )
+                  ) : undefined
                 }
                 renderFocusedView={
-                  focusedChart ? (
+                  focusedChart === 'histogram' || focusedChart === 'probability-plot' ? (
+                    <FocusedViewOverlay onPrev={handlePrevChart} onNext={handleNextChart}>
+                      <DashboardChartCard
+                        id={`${focusedChart}-focused`}
+                        testId={`chart-${focusedChart}-focused`}
+                        chartName={focusedChart}
+                        onMaximize={() => setFocusedChart(null)}
+                        copyFeedback={copyFeedback}
+                        onCopyChart={handleCopyChart}
+                        onDownloadPng={handleDownloadPng}
+                        onDownloadSvg={handleDownloadSvg}
+                        title={
+                          <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
+                            {focusedChart === 'histogram' ? 'Histogram' : 'Probability Plot'}
+                          </h3>
+                        }
+                      >
+                        {focusedChart === 'histogram' && histogramData.length > 0 && stats ? (
+                          <CapabilityHistogram
+                            data={histogramData}
+                            specs={specs}
+                            mean={stats.mean}
+                          />
+                        ) : focusedChart === 'probability-plot' &&
+                          histogramData.length > 0 &&
+                          stats ? (
+                          <ProbabilityPlot
+                            data={histogramData}
+                            mean={stats.mean}
+                            stdDev={stats.stdDev}
+                          />
+                        ) : null}
+                      </DashboardChartCard>
+                    </FocusedViewOverlay>
+                  ) : focusedChart ? (
                     <FocusedChartView
-                      focusedChart={focusedChart}
+                      focusedChart={focusedChart as 'ichart' | 'boxplot' | 'pareto'}
                       onPrev={handlePrevChart}
                       onNext={handleNextChart}
                       onExit={() => setFocusedChart(null)}

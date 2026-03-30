@@ -87,7 +87,7 @@ describe('StatsPanel', () => {
     expect(screen.getByText('94.5%')).toBeInTheDocument(); // 100 - 5.5
   });
 
-  it('switches to Histogram tab on click', () => {
+  it('switches to What-If tab on click', () => {
     render(
       <StatsPanel
         stats={mockStats}
@@ -97,15 +97,12 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Click Histogram tab
-    fireEvent.click(screen.getByText('Histogram'));
+    // Click What-If tab
+    fireEvent.click(screen.getByText('What-If'));
 
-    // Histogram tab should now be active
-    const histogramTab = screen.getByText('Histogram');
-    expect(histogramTab).toHaveClass('bg-surface-tertiary');
-
-    // Should show histogram component
-    expect(screen.getByTestId('capability-histogram')).toBeInTheDocument();
+    // What-If tab should now be active
+    const whatIfTab = screen.getByText('What-If');
+    expect(whatIfTab).toHaveClass('bg-surface-tertiary');
   });
 
   it('displays Cp in the card grid', () => {
@@ -174,7 +171,7 @@ describe('StatsPanel', () => {
     expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows Samples count in the card grid', () => {
+  it('shows sample count inline', () => {
     render(
       <StatsPanel
         stats={mockStats}
@@ -184,8 +181,7 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.getByText('Samples')).toBeInTheDocument();
-    expect(screen.getByText('n=3')).toBeInTheDocument(); // 3 items in mockFilteredData
+    expect(screen.getByTestId('stat-value-samples')).toBeInTheDocument();
   });
 
   it('hides capability metrics when no specs provided', () => {
@@ -201,7 +197,7 @@ describe('StatsPanel', () => {
     // Basic stats should still be shown
     expect(screen.getAllByText('Mean').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Std Dev').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Samples')).toBeInTheDocument();
+    expect(screen.getByTestId('stat-value-samples')).toBeInTheDocument();
   });
 
   it('shows "Edit specifications" pencil link when onSaveSpecs provided and no specs', () => {

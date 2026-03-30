@@ -10,6 +10,7 @@ import {
   FINDINGS_ACTION_KEY,
   type FindingsAction,
   YamazumiDetectedModal,
+  PerformanceDetectedModal,
   CapabilitySuggestionModal,
   MobileTabBar,
   type MobileTab,
@@ -19,6 +20,7 @@ import {
 import { Beaker, Settings, Download, Table2, RotateCcw } from 'lucide-react';
 import {
   useFindings,
+  useHypotheses,
   useDrillPath,
   buildFindingContext,
   buildFindingSource,
@@ -28,11 +30,17 @@ import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
-import { type ExclusionReason } from '@variscout/core';
+import { type ExclusionReason, toNumericValue } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
+import { computeCenteringOpportunity } from '@variscout/core/variation';
 import { useControlViolations } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
+import { useFindingsStore } from './features/findings/findingsStore';
+import { useProjectionStore } from './features/projection/projectionStore';
+import { useInvestigationStore } from './features/investigation/investigationStore';
+import { useInvestigationOrchestration } from './features/investigation/useInvestigationOrchestration';
+import { useImprovementOrchestration } from './features/improvement/useImprovementOrchestration';
 
 // Lazy-loaded heavy components for code splitting
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
@@ -116,6 +124,8 @@ function AppMain() {
     stats,
     cpkTarget,
     setCpkTarget,
+    hypotheses,
+    setHypotheses,
   } = useData();
 
   // Data ingestion must be declared before importFlow since importFlow uses its callbacks.
@@ -169,9 +179,41 @@ function AppMain() {
     dismissWideFormat: importFlow.handleDismissWideFormat,
   });
 
-  // Findings state
+  // Findings state — useFindings is the CRUD engine, store is the read-side cache
   const findingsState = useFindings();
-  const [highlightedFindingId, setHighlightedFindingId] = useState<string | null>(null);
+  useEffect(() => {
+    useFindingsStore.getState().syncFindings(findingsState.findings);
+  }, [findingsState.findings]);
+  const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
+  const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
+
+  // Hypotheses + orchestration
+  const hypothesesState = useHypotheses({
+    initialHypotheses: hypotheses,
+    onHypothesesChange: setHypotheses,
+  });
+
+  const investigation = useInvestigationOrchestration({
+    hypothesesState,
+    findingsState: {
+      findings: findingsState.findings,
+      linkHypothesis: findingsState.linkHypothesis,
+      setFindingStatus: findingsState.setFindingStatus,
+      addAction: findingsState.addAction,
+    },
+    processContext: undefined,
+    stats,
+  });
+
+  useImprovementOrchestration({
+    hypothesesState,
+    findingsState: {
+      findings: findingsState.findings,
+      addAction: findingsState.addAction,
+    },
+  });
+
+  const investigationHypothesesMap = useInvestigationStore(s => s.hypothesesMap);
 
   // Mobile tab bar (phone only, <640px)
   const isPhone = useIsMobile(BREAKPOINTS.phone);
@@ -206,9 +248,7 @@ function AppMain() {
   const [embedFocusChart, setEmbedFocusChart] = useState<
     'ichart' | 'boxplot' | 'pareto' | 'stats' | null
   >(null);
-  const [embedStatsTab, setEmbedStatsTab] = useState<'summary' | 'histogram' | 'normality' | null>(
-    null
-  );
+  const [embedStatsTab, setEmbedStatsTab] = useState<'summary' | 'data' | 'whatif' | null>(null);
 
   // Embed messaging
   const { highlightedChart, highlightIntensity, notifyChartClicked } =
@@ -244,8 +284,8 @@ function AppMain() {
       setEmbedFocusChart(chartParam as 'ichart' | 'boxplot' | 'pareto' | 'stats');
     }
 
-    if (tabParam && ['summary', 'histogram', 'normality'].includes(tabParam)) {
-      setEmbedStatsTab(tabParam as 'summary' | 'histogram' | 'normality');
+    if (tabParam && ['summary', 'data', 'whatif'].includes(tabParam)) {
+      setEmbedStatsTab(tabParam as 'summary' | 'data' | 'whatif');
     }
 
     if (sampleKey && rawData.length === 0) {
@@ -273,6 +313,39 @@ function AppMain() {
 
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
+
+  // Complement stats for Target Discovery in sidebar
+  const isDrilling = Object.keys(filters).length > 0;
+  const complementInsight = useMemo(() => {
+    if (!isDrilling || !outcome || !filteredData || filteredData.length >= rawData.length)
+      return null;
+    const filteredSet = new Set(filteredData);
+    const compRows = rawData.filter(r => !filteredSet.has(r));
+    const values = compRows
+      .map(r => toNumericValue(r[outcome]))
+      .filter((v): v is number => v !== undefined);
+    if (values.length < 2) return null;
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
+    const stdDev = Math.sqrt(variance);
+    return { mean, stdDev, count: values.length };
+  }, [isDrilling, outcome, filteredData, rawData]);
+
+  const centeringOpp = useMemo(() => (stats ? computeCenteringOpportunity(stats) : null), [stats]);
+
+  // Sync complement + drilling state to projection store (sidebar reads from store)
+  useEffect(() => {
+    useProjectionStore.setState({
+      complement: complementInsight,
+      isDrilling,
+      centeringOpportunity: centeringOpp,
+    });
+  }, [complementInsight, isDrilling, centeringOpp]);
+
+  const projIsDrilling = useProjectionStore(s => s.isDrilling);
+  const projComplement = useProjectionStore(s => s.complement);
+  const projCentering = useProjectionStore(s => s.centeringOpportunity);
+  const projActive = useProjectionStore(s => s.activeProjection);
 
   // Capability suggestion: show when specs are set and no other detection modal is showing
   useEffect(() => {
@@ -536,6 +609,11 @@ function AppMain() {
                 filteredData={filteredData}
                 outcome={outcome}
                 cpkTarget={cpkTarget}
+                sampleCount={filteredData?.length}
+                isDrilling={projIsDrilling}
+                complement={projComplement}
+                centeringOpportunity={projCentering}
+                activeProjection={projActive}
               />
             </Suspense>
           </div>
@@ -585,6 +663,9 @@ function AppMain() {
                 hasTimeComponent={importFlow.timeExtractionPrompt?.hasTimeComponent}
                 onTimeExtractionChange={importFlow.setTimeExtractionConfig}
                 mode={importFlow.isMappingReEdit ? 'edit' : 'setup'}
+                suggestedStack={importFlow.suggestedStack}
+                onStackConfigChange={importFlow.handleStackConfigChange}
+                rowLimit={50000}
               />
             ) : resolveMode(analysisMode) === 'yamazumi' && yamazumiMapping ? (
               <Suspense fallback={null}>
@@ -651,7 +732,7 @@ function AppMain() {
               onEditFinding={findingsState.editFinding}
               onDeleteFinding={findingsState.deleteFinding}
               onRestoreFinding={handleRestoreFinding}
-              onSetFindingStatus={findingsState.setFindingStatus}
+              onSetFindingStatus={investigation.handleSetFindingStatus}
               onSetFindingTag={findingsState.setFindingTag}
               onAddComment={(id, text) => findingsState.addFindingComment(id, text)}
               onEditComment={findingsState.editFindingComment}
@@ -660,7 +741,9 @@ function AppMain() {
               drillPath={drillPath}
               activeFindingId={highlightedFindingId}
               onPopout={handleOpenFindingsPopout}
-              maxStatuses={3}
+              maxStatuses={5}
+              onCreateHypothesis={investigation.handleCreateHypothesis}
+              hypothesesMap={investigationHypothesesMap}
             />
           )}
         </Suspense>
@@ -707,24 +790,16 @@ function AppMain() {
         <AppFooter filteredCount={filteredData.length} totalCount={rawData.length} />
       )}
 
-      {/* Wide Format Detection -- inform user Performance Mode is Azure-only */}
+      {/* Wide Format Detection — Performance Mode */}
       {importFlow.wideFormatDetection && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-secondary border border-edge rounded-xl shadow-xl p-5 w-full max-w-sm">
-            <p className="text-sm text-content mb-3">
-              {importFlow.wideFormatDetection.channels.length} measure columns detected —
-              Performance Mode is available in the Azure App.
-            </p>
-            <div className="flex justify-end">
-              <button
-                onClick={importFlow.handleDismissWideFormat}
-                className="px-4 py-2 text-sm font-medium text-white bg-surface-tertiary hover:bg-surface-elevated rounded-lg transition-colors"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
+        <PerformanceDetectedModal
+          detection={importFlow.wideFormatDetection}
+          onEnable={(_columns, _label) => {
+            setAnalysisMode('performance');
+            importFlow.handleDismissWideFormat();
+          }}
+          onDecline={importFlow.handleDismissWideFormat}
+        />
       )}
 
       {/* Yamazumi Detection Modal */}

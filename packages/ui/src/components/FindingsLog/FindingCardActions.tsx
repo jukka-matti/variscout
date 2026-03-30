@@ -54,7 +54,7 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="flex items-center gap-1 text-[10px] text-content-muted hover:text-content transition-colors w-full text-left"
+        className="flex items-center gap-1 text-[0.625rem] text-content-muted hover:text-content transition-colors w-full text-left"
       >
         {isOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
         <CheckCircle2 size={10} />
@@ -62,7 +62,7 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
           Actions ({completed.length}/{actions.length})
         </span>
         {overdue.length > 0 && (
-          <span className="ml-1 text-red-400 text-[9px]">{overdue.length} overdue</span>
+          <span className="ml-1 text-red-400 text-[0.5625rem]">{overdue.length} overdue</span>
         )}
       </button>
       {isOpen && (
@@ -91,12 +91,12 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
               </button>
               <div className="flex-1 min-w-0">
                 <span
-                  className={`text-[11px] ${action.completedAt ? 'line-through text-content-muted' : 'text-content-secondary'}`}
+                  className={`text-[0.6875rem] ${action.completedAt ? 'line-through text-content-muted' : 'text-content-secondary'}`}
                 >
                   {action.text}
                 </span>
                 {(action.assignee || action.dueDate) && (
-                  <div className="flex items-center gap-2 text-[9px] text-content-muted mt-0.5">
+                  <div className="flex items-center gap-2 text-[0.5625rem] text-content-muted mt-0.5">
                     {action.assignee && <span>{action.assignee.displayName}</span>}
                     {action.dueDate && (
                       <span
@@ -154,11 +154,11 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
                     }
                   }}
                   placeholder="Add action..."
-                  className="flex-1 text-[11px] bg-surface-tertiary/50 border border-edge/50 rounded px-2 py-1 text-content placeholder:text-content-muted focus:outline-none focus:border-blue-500/50"
+                  className="flex-1 text-[0.6875rem] bg-surface-tertiary/50 border border-edge/50 rounded px-2 py-1 text-content placeholder:text-content-muted focus:outline-none focus:border-blue-500/50"
                 />
               </div>
               {pendingAssignee && (
-                <div className="flex items-center gap-1 text-[10px] text-purple-400">
+                <div className="flex items-center gap-1 text-[0.625rem] text-purple-400">
                   <UserPlus size={9} />
                   <span>{pendingAssignee.displayName}</span>
                   <button

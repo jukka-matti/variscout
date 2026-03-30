@@ -17,6 +17,7 @@ export { sachets } from './sachets';
 export { largeScale } from './large-scale';
 export { ovenZonesData } from './ovenZones';
 export { assemblyLine } from './assembly-line';
+export { finlandArrivals } from './finland-arrivals';
 
 // Re-export types
 export type { SampleDataset, SampleConfig, SpecLimits } from '../types';
@@ -40,6 +41,7 @@ import { sachets } from './sachets';
 import { largeScale } from './large-scale';
 import { ovenZonesData } from './ovenZones';
 import { assemblyLine } from './assembly-line';
+import { finlandArrivals } from './finland-arrivals';
 import type { SampleDataset } from '../types';
 
 /**
@@ -67,6 +69,8 @@ export const SAMPLES: SampleDataset[] = [
   ovenZonesData,
   // Yamazumi (Time Study)
   assemblyLine,
+  // Wide-Form (Stack Columns)
+  finlandArrivals,
   // Journey/Training
   journey,
   journeyBefore,

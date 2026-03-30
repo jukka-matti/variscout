@@ -168,6 +168,78 @@ export function createImprovementIdea(text: string): ImprovementIdea {
   };
 }
 
+// ============================================================================
+// Factor Intelligence → Findings bridge
+// ============================================================================
+
+/** Input from FactorMainEffect for creating a factor-based finding. */
+export interface FactorFindingInput {
+  factor: string;
+  bestLevel: string;
+  worstLevel: string;
+  etaSquared: number;
+  effectRange: number;
+  pValue: number;
+}
+
+/** Bundle returned by createFactorFinding. */
+export interface FactorFindingBundle {
+  finding: Finding;
+  hypothesis: Hypothesis;
+  idea: ImprovementIdea;
+}
+
+/**
+ * Create a Finding + Hypothesis + ImprovementIdea from Factor Intelligence output.
+ *
+ * The hypothesis is auto-set to:
+ *   - factor: the factor column name
+ *   - level: the worst-performing level (the one to change)
+ *   - status: 'supported' (statistically validated by η²)
+ *   - validationType: 'data' (evidence is from data analysis)
+ *
+ * The improvement idea targets the factor change: worst → best.
+ */
+export function createFactorFinding(input: FactorFindingInput): FactorFindingBundle {
+  const { factor, bestLevel, worstLevel, etaSquared, effectRange, pValue } = input;
+
+  const etaPct = (etaSquared * 100).toFixed(1);
+  const findingText = `${factor} explains ${etaPct}% of variation (η²=${etaSquared.toFixed(3)}, p=${pValue < 0.001 ? '<0.001' : pValue.toFixed(3)}). Effect range: ${effectRange.toFixed(1)}.`;
+
+  const finding = createFinding(
+    findingText,
+    {}, // no active filters — observation comes from Factor Intelligence
+    null,
+    undefined,
+    'investigating' // skip 'observed' — Factor Intelligence already validated statistically
+  );
+
+  const hypothesis = createHypothesis(
+    `${factor} level "${worstLevel}" causes worse outcome — target: change to "${bestLevel}"`,
+    factor,
+    worstLevel,
+    undefined,
+    'data' // validated by data analysis, not gemba/expert
+  );
+  hypothesis.status = 'supported'; // Factor Intelligence provides statistical evidence
+  hypothesis.linkedFindingIds = [finding.id];
+
+  // Link finding to hypothesis
+  finding.hypothesisId = hypothesis.id;
+  finding.validationStatus = 'supports';
+
+  // Seed improvement idea
+  const idea = createImprovementIdea(
+    `Change ${factor} from "${worstLevel}" to "${bestLevel}" (expected improvement: ${effectRange.toFixed(1)} units)`
+  );
+  idea.direction = 'eliminate';
+
+  // Attach idea to hypothesis
+  hypothesis.ideas = [idea];
+
+  return { finding, hypothesis, idea };
+}
+
 /**
  * Create a new InvestigationCategory with a unique ID and auto-assigned color.
  */

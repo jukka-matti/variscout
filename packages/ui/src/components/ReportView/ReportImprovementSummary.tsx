@@ -102,7 +102,7 @@ const IdeaRow: React.FC<{ idea: ImprovementIdea }> = ({ idea }) => {
           {/* Direction badge */}
           {idea.direction && (
             <span
-              className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${DIRECTION_COLORS[idea.direction]}`}
+              className={`px-1.5 py-0.5 rounded text-[0.625rem] font-medium ${DIRECTION_COLORS[idea.direction]}`}
             >
               {t(DIRECTION_I18N_KEYS[idea.direction])}
             </span>
@@ -232,7 +232,7 @@ export const ReportImprovementSummary: React.FC<ReportImprovementSummaryProps> =
               </span>
               {h.causeRole && (
                 <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                  className={`px-1.5 py-0.5 rounded text-[0.625rem] font-medium ${
                     h.causeRole === 'primary'
                       ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                       : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'

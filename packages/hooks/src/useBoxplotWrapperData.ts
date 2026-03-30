@@ -10,7 +10,7 @@
  * then renders BoxplotBase + ChartAnnotationLayer + AxisEditor with the results.
  */
 import { useMemo } from 'react';
-import { getResponsiveMargins, stageColors, computeCategoryDirectionColors } from '@variscout/core';
+import { getResponsiveMargins, stageColors } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/core';
 import type { SpecLimits } from '@variscout/core';
 import type { HighlightColor, DisplayOptions } from './types';
@@ -45,8 +45,8 @@ export interface UseBoxplotWrapperDataResult {
 
 export function useBoxplotWrapperData({
   data,
-  specs,
-  displayOptions,
+  specs: _specs,
+  displayOptions: _displayOptions,
   parentWidth,
   highlightedCategories,
   stageInfo,
@@ -72,18 +72,11 @@ export function useBoxplotWrapperData({
     return positions;
   }, [data, parentWidth]);
 
-  // Direction-aware auto-coloring: color boxes by how well each category
-  // aligns with the characteristic type (nominal/smaller/larger)
-  const autoColors = useMemo(() => {
-    if (displayOptions.showSpecs === false || !specs) return null;
-    return computeCategoryDirectionColors(data, specs);
-  }, [data, specs, displayOptions.showSpecs]);
-
-  // Manual annotation highlights always override auto-colors
+  // Manual annotation highlights only (auto direction coloring removed)
   const effectiveHighlights = useMemo(() => {
-    if (!autoColors && !highlightedCategories) return undefined;
-    return { ...autoColors, ...highlightedCategories };
-  }, [autoColors, highlightedCategories]);
+    if (!highlightedCategories) return undefined;
+    return { ...highlightedCategories };
+  }, [highlightedCategories]);
 
   // Stage fill color overrides (maps composite keys to stage colors)
   const fillOverrides = useMemo(() => {

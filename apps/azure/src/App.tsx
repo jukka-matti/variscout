@@ -10,7 +10,7 @@ import { Dashboard as ProjectDashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
 
 import { AdminHub, type AdminTab } from './components/admin/AdminHub';
-import { useAdminAccess } from './hooks/useAdminAccess';
+import { useAdminAccess, type AdminGatingMode } from './hooks/useAdminAccess';
 import SettingsPanel from './components/settings/SettingsPanel';
 import { SyncToastContainer } from './components/SyncToast';
 import { ErrorBoundary, FindingsWindow } from '@variscout/ui';
@@ -74,57 +74,9 @@ function mapTeamsTheme(teamsTheme: string): 'light' | 'dark' {
 function AppMain() {
   const [user, setUser] = useState<EasyAuthUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [currentView, setCurrentView] = useState<View>('dashboard');
-  const [currentProject, setCurrentProject] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const teams = useTeamsContext();
   const { isAdmin, gatingMode } = useAdminAccess(user);
-
-  // Resolve deep link from URL params or Teams subPageId
-  const deepLink = useMemo<DeepLinkParams>(() => {
-    const fromUrl = parseDeepLink(window.location.search);
-    if (fromUrl.project) return fromUrl;
-    if (teams.subPageId) return parseSubPageId(teams.subPageId);
-    return {
-      project: null,
-      findingId: null,
-      hypothesisId: null,
-      chart: null,
-      mode: null,
-      tab: null,
-    };
-  }, [teams.subPageId]);
-
-  // Deep link validation state
-  const [deepLinkError, setDeepLinkError] = useState<string | null>(null);
-
-  // Auto-navigate to editor when a deep link specifies a project (with validation)
-  const { listProjects } = useStorage();
-  useEffect(() => {
-    if (!deepLink.project || currentView !== 'dashboard') return;
-
-    // Validate: check if the project exists before navigating
-    listProjects()
-      .then(projects => {
-        const projectExists = (id: string) => projects.some(p => p.id === id || p.name === id);
-        const isStandard = !hasTeamFeatures();
-        const validation = validateDeepLink(deepLink, projectExists, isStandard);
-
-        if (!validation.valid) {
-          setDeepLinkError(validation.errorMessage ?? 'Project not found.');
-          return;
-        }
-
-        // tab=overview means stay on the project overview (dashboard) after navigating
-        // The Editor handles this via its own activeView logic
-        navigateToEditor(deepLink.project!);
-      })
-      .catch(() => {
-        // Failed to list projects — navigate anyway, Editor handles load errors
-        navigateToEditor(deepLink.project!);
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deepLink.project]);
 
   useEffect(() => {
     getEasyAuthUser()
@@ -137,16 +89,6 @@ function AppMain() {
         setAuthChecked(true);
       });
   }, []);
-
-  const navigateToEditor = (projectId?: string) => {
-    setCurrentProject(projectId || null);
-    setCurrentView('editor');
-  };
-
-  const navigateToDashboard = () => {
-    setCurrentProject(null);
-    setCurrentView('dashboard');
-  };
 
   // Notify Teams host when a render error crashes the app
   // (must be before early returns to satisfy rules-of-hooks)
@@ -202,7 +144,7 @@ function AppMain() {
     );
   }
 
-  // Authenticated
+  // Authenticated — render provider tree with AppContent inside StorageProvider
   return (
     <LocaleProvider>
       <ThemeProvider>
@@ -218,150 +160,15 @@ function AppMain() {
               </a>
               <ErrorBoundary onError={handleAppError}>
                 <DataProvider>
-                  {/* Header */}
-                  <header className="h-14 border-b border-edge flex items-center justify-between px-4 sm:px-6 bg-surface/50 backdrop-blur-md sticky top-0 z-50">
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="flex items-center gap-2 cursor-pointer"
-                        role="button"
-                        aria-label="Go to dashboard"
-                        tabIndex={0}
-                        onClick={navigateToDashboard}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' || e.key === ' ') navigateToDashboard();
-                        }}
-                      >
-                        <div className="p-1.5 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
-                          <Activity className="text-white" size={18} />
-                        </div>
-                        <h1 className="text-lg font-bold text-content">VariScout</h1>
-                      </div>
-
-                      {teams.isTeams && teams.channelName && currentView !== 'editor' && (
-                        <>
-                          <span className="text-content-muted">/</span>
-                          <span className="text-sm text-content-secondary truncate max-w-[200px]">
-                            {teams.channelName}
-                          </span>
-                        </>
-                      )}
-
-                      {currentView === 'editor' && (
-                        <>
-                          <span className="text-content-muted">/</span>
-                          <span className="text-content-secondary">
-                            {currentProject ? `Analysis ${currentProject}` : 'New Analysis'}
-                          </span>
-                        </>
-                      )}
-                    </div>
-
-                    <nav aria-label="App actions" className="flex items-center gap-1">
-                      <span className="text-sm text-content-secondary mr-2 hidden sm:inline">
-                        {user.name}
-                      </span>
-                      {isAdmin && (
-                        <button
-                          onClick={() => setCurrentView('admin')}
-                          aria-label="Admin"
-                          title="Admin"
-                          className={`p-2 rounded-lg transition-colors ${
-                            currentView === 'admin'
-                              ? 'text-blue-400 bg-blue-400/10'
-                              : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
-                          }`}
-                          style={{ minWidth: 44, minHeight: 44 }}
-                        >
-                          <Shield size={18} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setIsSettingsOpen(true)}
-                        aria-label="Settings"
-                        title="Settings"
-                        className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
-                        style={{ minWidth: 44, minHeight: 44 }}
-                      >
-                        <Settings size={18} />
-                      </button>
-                      {/* Hide sign-out in Teams — Teams manages the session */}
-                      {!teams.isTeams && (
-                        <button
-                          onClick={handleLogout}
-                          aria-label="Sign out"
-                          title="Sign Out"
-                          className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
-                          style={{ minWidth: 44, minHeight: 44 }}
-                        >
-                          <LogOut size={18} />
-                        </button>
-                      )}
-                    </nav>
-                  </header>
-
-                  {/* Main Content */}
-                  <main id="main-content" className="p-6">
-                    {/* Deep link error — shown instead of normal content */}
-                    {deepLinkError && currentView === 'dashboard' && (
-                      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-                        <p className="text-lg font-medium text-content mb-2">Link error</p>
-                        <p className="text-sm text-content-secondary mb-6 max-w-md">
-                          {deepLinkError}
-                        </p>
-                        <button
-                          onClick={() => {
-                            setDeepLinkError(null);
-                            navigateToDashboard();
-                          }}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                        >
-                          Go to Portfolio
-                        </button>
-                      </div>
-                    )}
-                    {currentView === 'dashboard' && !deepLinkError && (
-                      <ProjectDashboard onOpenProject={id => navigateToEditor(id)} />
-                    )}
-                    {currentView === 'editor' && (
-                      <Editor
-                        projectId={currentProject}
-                        onBack={navigateToDashboard}
-                        initialFindingId={
-                          deepLink.project === currentProject
-                            ? (deepLink.findingId ?? undefined)
-                            : undefined
-                        }
-                        initialChart={
-                          deepLink.project === currentProject
-                            ? (deepLink.chart ?? undefined)
-                            : undefined
-                        }
-                        initialHypothesisId={
-                          deepLink.project === currentProject
-                            ? (deepLink.hypothesisId ?? undefined)
-                            : undefined
-                        }
-                        initialMode={
-                          deepLink.project === currentProject
-                            ? (deepLink.mode ?? undefined)
-                            : undefined
-                        }
-                      />
-                    )}
-                    {currentView === 'admin' && (
-                      <AdminHub
-                        initialTab={
-                          (new URLSearchParams(window.location.search).get('admin') as AdminTab) ||
-                          undefined
-                        }
-                        onBack={navigateToDashboard}
-                        gatingMode={gatingMode}
-                      />
-                    )}
-                  </main>
-
-                  {/* Settings Panel */}
-                  <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+                  <AppContent
+                    user={user}
+                    teams={teams}
+                    isAdmin={isAdmin}
+                    gatingMode={gatingMode}
+                    isSettingsOpen={isSettingsOpen}
+                    setIsSettingsOpen={setIsSettingsOpen}
+                    onLogout={handleLogout}
+                  />
                 </DataProvider>
               </ErrorBoundary>
               <SyncToasts />
@@ -370,6 +177,223 @@ function AppMain() {
         </StorageProvider>
       </ThemeProvider>
     </LocaleProvider>
+  );
+}
+
+/**
+ * AppContent — rendered inside StorageProvider so useStorage() is safe.
+ * Owns navigation state, deep-link resolution, header, and view rendering.
+ */
+function AppContent({
+  user,
+  teams,
+  isAdmin,
+  gatingMode,
+  isSettingsOpen,
+  setIsSettingsOpen,
+  onLogout,
+}: {
+  user: EasyAuthUser;
+  teams: ReturnType<typeof useTeamsContext>;
+  isAdmin: boolean;
+  gatingMode: AdminGatingMode;
+  isSettingsOpen: boolean;
+  setIsSettingsOpen: (v: boolean) => void;
+  onLogout: () => void;
+}) {
+  const [currentView, setCurrentView] = useState<View>('dashboard');
+  const [currentProject, setCurrentProject] = useState<string | null>(null);
+
+  // Resolve deep link from URL params or Teams subPageId
+  const deepLink = useMemo<DeepLinkParams>(() => {
+    const fromUrl = parseDeepLink(window.location.search);
+    if (fromUrl.project) return fromUrl;
+    if (teams.subPageId) return parseSubPageId(teams.subPageId);
+    return {
+      project: null,
+      findingId: null,
+      hypothesisId: null,
+      chart: null,
+      mode: null,
+      tab: null,
+    };
+  }, [teams.subPageId]);
+
+  // Deep link validation state
+  const [deepLinkError, setDeepLinkError] = useState<string | null>(null);
+
+  // Auto-navigate to editor when a deep link specifies a project (with validation)
+  const { listProjects } = useStorage();
+  useEffect(() => {
+    if (!deepLink.project || currentView !== 'dashboard') return;
+
+    // Validate: check if the project exists before navigating
+    listProjects()
+      .then(projects => {
+        const projectExists = (id: string) => projects.some(p => p.id === id || p.name === id);
+        const isStandard = !hasTeamFeatures();
+        const validation = validateDeepLink(deepLink, projectExists, isStandard);
+
+        if (!validation.valid) {
+          setDeepLinkError(validation.errorMessage ?? 'Project not found.');
+          return;
+        }
+
+        // tab=overview means stay on the project overview (dashboard) after navigating
+        // The Editor handles this via its own activeView logic
+        navigateToEditor(deepLink.project!);
+      })
+      .catch(() => {
+        // Failed to list projects — navigate anyway, Editor handles load errors
+        navigateToEditor(deepLink.project!);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLink.project]);
+
+  const navigateToEditor = (projectId?: string) => {
+    setCurrentProject(projectId || null);
+    setCurrentView('editor');
+  };
+
+  const navigateToDashboard = () => {
+    setCurrentProject(null);
+    setCurrentView('dashboard');
+  };
+
+  return (
+    <>
+      {/* Header */}
+      <header className="h-14 border-b border-edge flex items-center justify-between px-4 sm:px-6 bg-surface/50 backdrop-blur-md sticky top-0 z-50">
+        <div className="flex items-center gap-4">
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            role="button"
+            aria-label="Go to dashboard"
+            tabIndex={0}
+            onClick={navigateToDashboard}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') navigateToDashboard();
+            }}
+          >
+            <div className="p-1.5 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
+              <Activity className="text-white" size={18} />
+            </div>
+            <h1 className="text-lg font-bold text-content">VariScout</h1>
+          </div>
+
+          {teams.isTeams && teams.channelName && currentView !== 'editor' && (
+            <>
+              <span className="text-content-muted">/</span>
+              <span className="text-sm text-content-secondary truncate max-w-[200px]">
+                {teams.channelName}
+              </span>
+            </>
+          )}
+
+          {currentView === 'editor' && (
+            <>
+              <span className="text-content-muted">/</span>
+              <span className="text-content-secondary">
+                {currentProject ? `Analysis ${currentProject}` : 'New Analysis'}
+              </span>
+            </>
+          )}
+        </div>
+
+        <nav aria-label="App actions" className="flex items-center gap-1">
+          <span className="text-sm text-content-secondary mr-2 hidden sm:inline">{user.name}</span>
+          {isAdmin && (
+            <button
+              onClick={() => setCurrentView('admin')}
+              aria-label="Admin"
+              title="Admin"
+              className={`p-2 rounded-lg transition-colors ${
+                currentView === 'admin'
+                  ? 'text-blue-400 bg-blue-400/10'
+                  : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
+              }`}
+              style={{ minWidth: 44, minHeight: 44 }}
+            >
+              <Shield size={18} />
+            </button>
+          )}
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            aria-label="Settings"
+            title="Settings"
+            className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
+            style={{ minWidth: 44, minHeight: 44 }}
+          >
+            <Settings size={18} />
+          </button>
+          {/* Hide sign-out in Teams — Teams manages the session */}
+          {!teams.isTeams && (
+            <button
+              onClick={onLogout}
+              aria-label="Sign out"
+              title="Sign Out"
+              className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
+              style={{ minWidth: 44, minHeight: 44 }}
+            >
+              <LogOut size={18} />
+            </button>
+          )}
+        </nav>
+      </header>
+
+      {/* Main Content */}
+      <main id="main-content" className="p-6">
+        {/* Deep link error — shown instead of normal content */}
+        {deepLinkError && currentView === 'dashboard' && (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+            <p className="text-lg font-medium text-content mb-2">Link error</p>
+            <p className="text-sm text-content-secondary mb-6 max-w-md">{deepLinkError}</p>
+            <button
+              onClick={() => {
+                setDeepLinkError(null);
+                navigateToDashboard();
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            >
+              Go to Portfolio
+            </button>
+          </div>
+        )}
+        {currentView === 'dashboard' && !deepLinkError && (
+          <ProjectDashboard onOpenProject={id => navigateToEditor(id)} />
+        )}
+        {currentView === 'editor' && (
+          <Editor
+            projectId={currentProject}
+            onBack={navigateToDashboard}
+            initialFindingId={
+              deepLink.project === currentProject ? (deepLink.findingId ?? undefined) : undefined
+            }
+            initialChart={
+              deepLink.project === currentProject ? (deepLink.chart ?? undefined) : undefined
+            }
+            initialHypothesisId={
+              deepLink.project === currentProject ? (deepLink.hypothesisId ?? undefined) : undefined
+            }
+            initialMode={
+              deepLink.project === currentProject ? (deepLink.mode ?? undefined) : undefined
+            }
+          />
+        )}
+        {currentView === 'admin' && (
+          <AdminHub
+            initialTab={
+              (new URLSearchParams(window.location.search).get('admin') as AdminTab) || undefined
+            }
+            onBack={navigateToDashboard}
+            gatingMode={gatingMode}
+          />
+        )}
+      </main>
+
+      {/* Settings Panel */}
+      <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+    </>
   );
 }
 

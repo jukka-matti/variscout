@@ -8,6 +8,7 @@ import { toNumericValue } from '../types';
 import type {
   ColumnAnalysis,
   DetectedColumns,
+  StackSuggestion,
   DetectChannelsOptions,
   DetectWideFormatOptions,
 } from './types';
@@ -170,12 +171,151 @@ export function detectColumns(data: DataRow[]): DetectedColumns {
     confidence = 'medium';
   }
 
+  // Detect stack suggestion for wide-form data
+  const suggestedStack = detectStackSuggestion(data, columnAnalysis, timeColumn);
+
   return {
     outcome: outcome?.name || null,
     factors,
     timeColumn,
     confidence,
     columnAnalysis,
+    suggestedStack,
+  };
+}
+
+/** Minimum number of numeric columns to trigger a stack suggestion */
+const MIN_STACK_COLUMNS = 5;
+
+/**
+ * Detect whether wide-form data should be suggested for stacking.
+ *
+ * Heuristic:
+ * 1. Trigger when 5+ numeric columns exist
+ * 2. Exclude: date/time columns, year-like columns, keyword-matched factor/outcome columns
+ * 3. Group remaining by value-range similarity (within 2 orders of magnitude)
+ * 4. Largest cluster becomes the stack suggestion
+ */
+function detectStackSuggestion(
+  data: DataRow[],
+  columnAnalysis: ColumnAnalysis[],
+  timeColumn: string | null
+): StackSuggestion | undefined {
+  if (data.length === 0) return undefined;
+
+  const numericCols = columnAnalysis.filter(c => c.type === 'numeric');
+  if (numericCols.length < MIN_STACK_COLUMNS) return undefined;
+
+  // Classify each numeric column as "stackable" or "keep"
+  const stackCandidates: ColumnAnalysis[] = [];
+  const keepColumns: string[] = [];
+
+  for (const col of numericCols) {
+    const nameLower = col.name.toLowerCase();
+
+    // Exclude time column
+    if (col.name === timeColumn) {
+      keepColumns.push(col.name);
+      continue;
+    }
+
+    // Exclude columns matching time keywords
+    if (TIME_KEYWORDS.some(kw => nameLower.includes(kw))) {
+      keepColumns.push(col.name);
+      continue;
+    }
+
+    // Exclude year-like columns: sequential integers where unique count ≈ row count
+    // and values look like years (1900-2100 range)
+    if (col.uniqueCount <= data.length && col.uniqueCount > 0) {
+      const sampleNums = col.sampleValues.map(Number).filter(n => !isNaN(n));
+      const allYearLike = sampleNums.length > 0 && sampleNums.every(n => n >= 1900 && n <= 2100);
+      if (allYearLike && col.uniqueCount <= 200) {
+        keepColumns.push(col.name);
+        continue;
+      }
+    }
+
+    // Exclude columns with very strong keyword matches (single-word exact matches)
+    const hasStrongOutcomeMatch = OUTCOME_KEYWORDS.some(kw => nameLower === kw);
+    const hasStrongFactorMatch = FACTOR_KEYWORDS.some(kw => nameLower === kw);
+    if (hasStrongOutcomeMatch || hasStrongFactorMatch) {
+      keepColumns.push(col.name);
+      continue;
+    }
+
+    // Exclude "total"/"sum"/"count" aggregation columns
+    if (/\b(total|sum|count|avg|average|grand)\b/i.test(col.name)) {
+      keepColumns.push(col.name);
+      continue;
+    }
+
+    stackCandidates.push(col);
+  }
+
+  // Also keep non-numeric columns
+  const nonNumericKeep = columnAnalysis.filter(c => c.type !== 'numeric').map(c => c.name);
+  keepColumns.push(...nonNumericKeep);
+
+  if (stackCandidates.length < MIN_STACK_COLUMNS) return undefined;
+
+  // Compute mean values per candidate column for range-similarity clustering
+  const colMeans: { col: ColumnAnalysis; mean: number }[] = [];
+  for (const col of stackCandidates) {
+    const values = data
+      .map(row => toNumericValue(row[col.name]))
+      .filter((v): v is number => v !== undefined);
+    const mean = values.length > 0 ? (d3.mean(values) ?? 0) : 0;
+    colMeans.push({ col, mean: Math.abs(mean) || 1 }); // Use abs, avoid 0
+  }
+
+  // Cluster by order of magnitude (within 2 orders = 100x)
+  // Sort by mean, then group adjacent columns within 100x of each other
+  colMeans.sort((a, b) => a.mean - b.mean);
+
+  const clusters: (typeof colMeans)[] = [];
+  let currentCluster: typeof colMeans = [colMeans[0]];
+
+  for (let i = 1; i < colMeans.length; i++) {
+    const ratio = colMeans[i].mean / currentCluster[0].mean;
+    if (ratio <= 100) {
+      currentCluster.push(colMeans[i]);
+    } else {
+      clusters.push(currentCluster);
+      currentCluster = [colMeans[i]];
+    }
+  }
+  clusters.push(currentCluster);
+
+  // Find the largest cluster
+  const largestCluster = clusters.reduce((a, b) => (a.length >= b.length ? a : b));
+
+  if (largestCluster.length < MIN_STACK_COLUMNS) return undefined;
+
+  const columnsToStack = largestCluster.map(c => c.col.name);
+
+  // Columns not in the largest cluster go to keepColumns
+  const stackSet = new Set(columnsToStack);
+  for (const candidate of stackCandidates) {
+    if (!stackSet.has(candidate.name)) {
+      keepColumns.push(candidate.name);
+    }
+  }
+
+  // Determine confidence
+  let confidence: 'high' | 'medium' | 'low';
+  if (largestCluster.length >= 10) {
+    confidence = 'high';
+  } else if (largestCluster.length >= MIN_STACK_COLUMNS) {
+    confidence = 'medium';
+  } else {
+    confidence = 'low';
+  }
+
+  return {
+    columnsToStack,
+    keepColumns,
+    confidence,
   };
 }
 

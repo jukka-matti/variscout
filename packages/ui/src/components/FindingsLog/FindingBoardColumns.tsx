@@ -111,7 +111,7 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
               <span className="text-xs font-medium text-content flex-1">
                 {FINDING_STATUS_LABELS[status]}
               </span>
-              <span className="text-[10px] text-content-muted px-1.5 py-0.5 bg-surface-tertiary rounded">
+              <span className="text-[0.625rem] text-content-muted px-1.5 py-0.5 bg-surface-tertiary rounded">
                 {items.length}
               </span>
             </div>
@@ -152,7 +152,7 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
                 </div>
               ))}
               {items.length === 0 && (
-                <div className="text-[10px] text-content-muted text-center py-4 italic">
+                <div className="text-[0.625rem] text-content-muted text-center py-4 italic">
                   Drop here
                 </div>
               )}

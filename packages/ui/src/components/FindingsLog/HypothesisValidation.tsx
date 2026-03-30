@@ -96,21 +96,21 @@ export const ValidationTaskSection: React.FC<ValidationTaskSectionProps> = ({
       />
       <div className="flex items-center gap-1.5">
         <button
-          className="text-[10px] px-2 py-0.5 rounded bg-green-500/15 text-green-400 hover:bg-green-500/25"
+          className="text-[0.625rem] px-2 py-0.5 rounded bg-green-500/15 text-green-400 hover:bg-green-500/25"
           onClick={() => onSetManualStatus?.(hypothesisId, 'supported', noteInput || undefined)}
           data-testid={`validation-status-supported-${hypothesisId}`}
         >
           Supported
         </button>
         <button
-          className="text-[10px] px-2 py-0.5 rounded bg-red-500/15 text-red-400 hover:bg-red-500/25"
+          className="text-[0.625rem] px-2 py-0.5 rounded bg-red-500/15 text-red-400 hover:bg-red-500/25"
           onClick={() => onSetManualStatus?.(hypothesisId, 'contradicted', noteInput || undefined)}
           data-testid={`validation-status-contradicted-${hypothesisId}`}
         >
           Contradicted
         </button>
         <button
-          className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 hover:bg-amber-500/25"
+          className="text-[0.625rem] px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 hover:bg-amber-500/25"
           onClick={() => onSetManualStatus?.(hypothesisId, 'partial', noteInput || undefined)}
           data-testid={`validation-status-partial-${hypothesisId}`}
         >

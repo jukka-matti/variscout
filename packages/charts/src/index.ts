@@ -47,7 +47,7 @@ export {
 } from './colors';
 
 // Theme hook
-export { useChartTheme, type ChartThemeColors } from './useChartTheme';
+export { useChartTheme, getDocumentFontScale, type ChartThemeColors } from './useChartTheme';
 
 // Responsive utilities
 export {
@@ -98,7 +98,7 @@ export { default as ChartSignature, type ChartSignatureProps } from './ChartSign
 
 // Chart components
 export { default as IChart, IChartBase } from './IChart';
-export { default as Boxplot, BoxplotBase } from './Boxplot';
+export { default as Boxplot, BoxplotBase, MIN_BOXPLOT_VALUES } from './Boxplot';
 export { default as BoxplotStatsTable, type BoxplotStatsTableProps } from './BoxplotStatsTable';
 export { default as ParetoChart, ParetoChartBase, computeRankDeltas } from './ParetoChart';
 export { default as CapabilityHistogram, CapabilityHistogramBase } from './CapabilityHistogram';

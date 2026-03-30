@@ -1,0 +1,70 @@
+# Transcript: Propability plot discussion 29.3.2026.m4a
+# Language: en
+# Duration: 378.2 seconds
+
+[00:00] Fixing happening but
+[00:01] Okay, so up above is an eye charge
+[00:19] With spec limits control limits
+[00:31] Then we can switch it's the capability
+[00:35] Okay
+[00:37] Now do we have that segmented by process?
+[00:41] that is
+[00:45] Basically by fixed size or by column of the data set
+[00:52] Now we don't well now we have like the batch we have in the data set
+[01:00] So to do this with rational subgroups of process
+[01:05] Each step would have to be one column
+[01:11] They are each step would need to have like just the in the
+[01:18] Column like the process step, okay
+[01:42] Okay
+[01:43] Okay, so what's this down here
+[01:46] box plot of
+[01:48] Of the different batches, okay, and this is
+[01:54] Just a Pareto, but it doesn't have good data now
+[02:00] And what's that?
+[02:04] The
+[02:07] Commodity some of the old guys
+[02:09] And this is the probability plot, yeah
+[02:20] Now is it me or I can't really see
+[02:24] any
+[02:26] dashed lines for outer limits there I
+[02:28] Now it is so small if we click here
+[02:37] Yeah, I should open straight away
+[02:41] This would be the size of the window
+[02:51] You can't do that, okay
+[03:00] so I can't see what you're clicking up here it would help for old men to have
+[03:05] bigger fonts I guess my my current setting is just chart text size but it
+[03:13] should be everything yeah
+[03:22] so there's another something over here
+[03:33] so it's a histogram
+[03:37] so it's a histogram
+[03:38] and
+[03:39] and
+[03:43] and
+[03:44] and
+[03:45] you can see that one
+[03:55] and
+[03:55] and
+[03:55] I'm missing something
+[03:57] where am I missing
+[04:01] probably
+[04:02] capability CPCPK
+[04:07] yeah it should be here
+[04:09] chart itself
+[04:11] oh
+[04:12] yeah
+[04:13] yeah
+[04:14] oh
+[04:15] I'm gonna have to
+[04:15] so there should be something or it ideally would be right now if you click
+[04:21] stats
+[04:31] Apple never seen this before actually
+[04:38] just open them
+[04:49] you
+[05:33] how do I close this
+[05:36] stats
+[05:37] oh so just get rid of stats
+[06:02] and get rid of stats
+[06:02] okay now what does this look like with real data instead of this sort of
+[06:08] let's try
+[06:10] make believe okay I'll let you do this since I don't know what I'm doing
+[06:15] I don't know.

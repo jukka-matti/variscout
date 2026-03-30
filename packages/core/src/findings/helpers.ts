@@ -119,3 +119,19 @@ export function formatFindingFilters(
   }
   return parts.join(' · ');
 }
+
+/**
+ * Determine if a finding is in scope for cumulative projection.
+ * Auto-scope: investigating or analyzed status. Manual override via scoped field.
+ */
+export function isFindingScoped(finding: Finding): boolean {
+  if (finding.scoped !== undefined) return finding.scoped;
+  return finding.status === 'investigating' || finding.status === 'analyzed';
+}
+
+/**
+ * Get all scoped findings (excluding benchmarks).
+ */
+export function getScopedFindings(findings: Finding[]): Finding[] {
+  return findings.filter(f => f.role !== 'benchmark' && isFindingScoped(f));
+}

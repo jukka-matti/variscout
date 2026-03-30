@@ -34,7 +34,7 @@ export const CategoryBadge: React.FC<CategoryBadgeProps> = ({
 
   return (
     <span
-      className="inline-flex items-center gap-1 h-6 px-2 rounded-full text-[10px] font-medium"
+      className="inline-flex items-center gap-1 h-6 px-2 rounded-full text-[0.625rem] font-medium"
       style={{
         backgroundColor: hexToRgba(color, 0.2),
         color: color,

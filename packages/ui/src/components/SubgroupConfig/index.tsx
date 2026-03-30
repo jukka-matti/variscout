@@ -75,7 +75,7 @@ export const SubgroupConfigPopover: React.FC<SubgroupConfigProps> = ({
               name="sg-method"
               checked={config.method === 'fixed-size'}
               onChange={() => onConfigChange({ method: 'fixed-size', size: config.size ?? 5 })}
-              className="accent-blue-500"
+              className="w-4 h-4 border-edge-secondary bg-surface-secondary text-blue-500 accent-blue-500 focus:ring-blue-500 focus:ring-offset-surface"
             />
             <span className="text-xs text-content">Fixed size</span>
           </label>
@@ -112,7 +112,7 @@ export const SubgroupConfigPopover: React.FC<SubgroupConfigProps> = ({
                 })
               }
               disabled={availableColumns.length === 0}
-              className="accent-blue-500"
+              className="w-4 h-4 border-edge-secondary bg-surface-secondary text-blue-500 accent-blue-500 focus:ring-blue-500 focus:ring-offset-surface"
             />
             <span
               className={`text-xs ${availableColumns.length === 0 ? 'text-content-secondary opacity-50' : 'text-content'}`}

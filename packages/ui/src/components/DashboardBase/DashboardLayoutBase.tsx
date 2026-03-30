@@ -107,8 +107,10 @@ export interface DashboardLayoutBaseProps {
   showParetoPanel: boolean;
 
   // ---- Focus mode ----
-  focusedChart: 'ichart' | 'boxplot' | 'pareto' | string | null;
-  setFocusedChart: (c: 'ichart' | 'boxplot' | 'pareto' | null) => void;
+  focusedChart: 'ichart' | 'boxplot' | 'pareto' | 'histogram' | 'probability-plot' | string | null;
+  setFocusedChart: (
+    c: 'ichart' | 'boxplot' | 'pareto' | 'histogram' | 'probability-plot' | null
+  ) => void;
 
   // ---- Filter context bar data ----
   filterChipData: FilterChipData[];
@@ -143,8 +145,10 @@ export interface DashboardLayoutBaseProps {
   renderIChartContent: React.ReactNode;
   renderBoxplotContent: React.ReactNode;
   renderParetoContent: React.ReactNode;
-  renderStatsPanel: React.ReactNode;
+  renderStatsPanel?: React.ReactNode;
   renderFocusedView?: React.ReactNode;
+  /** Tabbed verification card (Histogram/ProbPlot) */
+  renderVerificationCard?: React.ReactNode;
 
   // ---- Spec editor ----
   renderSpecEditor?: React.ReactNode;
@@ -235,8 +239,8 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   onDownloadPng,
   onDownloadSvg,
   ichartInsight,
-  boxplotInsight,
-  paretoInsight,
+  boxplotInsight: _boxplotInsight,
+  paretoInsight: _paretoInsight,
   statsInsight,
   onInsightAction,
   renderIChartContent,
@@ -244,6 +248,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   renderParetoContent,
   renderStatsPanel,
   renderFocusedView,
+  renderVerificationCard,
   renderSpecEditor,
   ichartTitleSlot,
   ichartExtraControls,
@@ -534,7 +539,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
               }
               controls={boxplotControls}
               filterBar={filterBar}
-              footer={renderInsightChip(boxplotInsight, 'boxplot')}
+              /* footer={renderInsightChip(boxplotInsight, 'boxplot')} — hidden: toolbar projection provides this insight */
             >
               {renderBoxplotContent}
             </DashboardChartCard>
@@ -566,23 +571,46 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
                 }
                 controls={paretoControls}
                 filterBar={filterBar}
-                footer={renderInsightChip(paretoInsight, 'pareto')}
+                /* footer={renderInsightChip(paretoInsight, 'pareto')} — hidden: toolbar projection provides this insight */
               >
                 {renderParetoContent}
               </DashboardChartCard>
             ) : undefined
           }
           statsPanel={
-            <div
-              data-testid="chart-stats"
-              onClick={onStatsPanelClick}
-              className={
-                statsPanelHighlightClass ? `transition-all ${statsPanelHighlightClass}` : undefined
-              }
-            >
-              {renderStatsPanel}
-              {renderInsightChip(statsInsight, 'stats')}
-            </div>
+            renderStatsPanel ? (
+              <div
+                data-testid="chart-stats"
+                onClick={onStatsPanelClick}
+                className={
+                  statsPanelHighlightClass
+                    ? `transition-all ${statsPanelHighlightClass}`
+                    : undefined
+                }
+              >
+                {renderStatsPanel}
+                {renderInsightChip(statsInsight, 'stats')}
+              </div>
+            ) : undefined
+          }
+          verificationCard={
+            renderVerificationCard ? (
+              <DashboardChartCard
+                id="verification-card"
+                testId="chart-verification"
+                chartName="verification"
+                className="flex-1 min-w-[250px] min-h-0"
+                onMaximize={() => setFocusedChart('histogram')}
+                copyFeedback={copyFeedback}
+                onCopyChart={onCopyChart}
+                onDownloadPng={onDownloadPng}
+                onDownloadSvg={onDownloadSvg}
+                onShareChart={onShareChart}
+                title={<></>}
+              >
+                {renderVerificationCard}
+              </DashboardChartCard>
+            ) : undefined
           }
         />
       )}

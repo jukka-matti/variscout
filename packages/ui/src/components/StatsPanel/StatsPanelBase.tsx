@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import { HelpTooltip } from '../HelpTooltip';
 import type { GlossaryTerm } from '@variscout/core';
-import type { StatsPanelBaseProps } from './types';
+import type { StatsPanelBaseProps, StatsPanelTab } from './types';
 import { StagedComparisonCard } from './StagedComparisonCard';
+import TargetDiscoveryCard from './TargetDiscoveryCard';
 
 // MetricCard component for the summary grid
 interface MetricCardProps {
@@ -42,27 +43,27 @@ const MetricCard = ({
 );
 
 const CONTAINER_CLASS =
-  'w-full lg:w-80 bg-surface-secondary rounded-xl border border-edge p-6 flex flex-col gap-4 shadow-lg relative';
+  'w-full lg:w-80 bg-surface-secondary rounded-xl border border-edge p-3 flex flex-col gap-3 shadow-lg relative';
 const CONTAINER_COMPACT_CLASS = 'flex flex-col h-full p-3 overflow-auto scroll-touch';
 const TAB_BAR_CLASS = 'flex bg-surface/50 p-1 rounded-lg border border-edge/50';
 const TAB_ACTIVE_CLASS = 'bg-surface-tertiary text-content shadow-sm';
 const TAB_INACTIVE_CLASS = 'text-content-secondary hover:text-content';
 const METRIC_CARD_BG_CLASS =
-  'bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 text-center';
+  'bg-surface-secondary/50 border border-edge/50 rounded-lg px-2 py-1.5 text-center';
 const METRIC_LABEL_CLASS =
-  'flex items-center justify-center gap-1 text-xs text-content-secondary mb-1';
-const METRIC_VALUE_CLASS = 'text-xl font-bold font-mono text-content';
+  'flex items-center justify-center gap-1 text-[0.625rem] text-content-secondary mb-0.5';
+const METRIC_VALUE_CLASS = 'text-base font-semibold font-mono text-content';
 const EMPTY_STATE_CLASS =
   'flex items-center justify-center h-full text-content-muted italic text-sm';
 
 const pencilIcon = <Pencil size={12} />;
 
 interface TabButtonProps {
-  tab: 'summary' | 'histogram' | 'normality';
+  tab: StatsPanelTab;
   label: string;
   helpTerm?: GlossaryTerm;
-  activeTab: 'summary' | 'histogram' | 'normality';
-  onTabChange: (tab: 'summary' | 'histogram' | 'normality') => void;
+  activeTab: StatsPanelTab;
+  onTabChange: (tab: StatsPanelTab) => void;
   compact?: boolean;
 }
 
@@ -83,7 +84,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   stats,
   specs,
   filteredData = [],
-  outcome,
+  outcome: _outcome,
   defaultTab,
   className,
   compact = false,
@@ -94,23 +95,24 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   onCpkClick,
   subgroupsMeetingTarget,
   subgroupCount,
-  renderHistogram,
-  renderProbabilityPlot,
   renderSummaryFooter,
   getTerm,
+  sampleCount,
+  // Target Discovery props
+  isDrilling = false,
+  complement,
+  activeProjection,
+  centeringOpportunity,
+  onAcceptSpecs,
+  // New tab render props
+  renderDataTable,
+  renderWhatIf,
+  // Best subsets (consumed by FactorIntelligencePanel via Azure StatsPanel wrapper)
+  bestSubsetsResult: _bestSubsetsResult,
+  onBestSubsetClick: _onBestSubsetClick,
 }) => {
   const { t, formatStat } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'summary' | 'histogram' | 'normality'>(
-    defaultTab || 'summary'
-  );
-
-  // Extract numeric values for histogram
-  const histogramData = useMemo(() => {
-    if (!outcome || filteredData.length === 0) return [];
-    return filteredData
-      .map((d: Record<string, unknown>) => Number(d[outcome]))
-      .filter((v: number) => !isNaN(v));
-  }, [filteredData, outcome]);
+  const [activeTab, setActiveTab] = useState<StatsPanelTab>(defaultTab || 'summary');
 
   const emptyState = (message: string) => <div className={EMPTY_STATE_CLASS}>{message}</div>;
 
@@ -122,7 +124,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     return (
       <div className="space-y-3">
         <div
-          className={compact ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-2 sm:grid-cols-3 gap-2'}
+          className={compact ? 'grid grid-cols-2 gap-1.5' : 'grid grid-cols-3 gap-1.5'}
           aria-live="polite"
           aria-label="Analysis statistics"
         >
@@ -168,7 +170,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
                 </div>
                 {cpkTarget !== undefined && (
                   <div
-                    className={`text-[10px] mt-0.5 ${
+                    className={`text-[0.625rem] mt-0.5 ${
                       stats?.cpk !== undefined && stats?.cpk !== null && stats.cpk >= cpkTarget
                         ? 'text-green-500'
                         : 'text-red-400'
@@ -219,25 +221,21 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
             labelClass={METRIC_LABEL_CLASS}
             valueClass={METRIC_VALUE_CLASS}
           />
-          <MetricCard
-            label={t('stats.samples')}
-            value={`n=${filteredData?.length ?? 0}`}
-            bgClass={METRIC_CARD_BG_CLASS}
-            labelClass={METRIC_LABEL_CLASS}
-            valueClass={METRIC_VALUE_CLASS}
-          />
         </div>
-        {onEditSpecs && (
-          <button
-            onClick={onEditSpecs}
-            className={editButtonClass}
-            type="button"
-            data-testid="edit-specs-link"
-          >
-            {pencilIcon}
-            <span>{t('stats.editSpecs')}</span>
-          </button>
-        )}
+        <div className="flex items-center gap-3 text-[0.625rem] text-content-muted">
+          <span data-testid="stat-value-samples">n={sampleCount ?? filteredData?.length ?? 0}</span>
+          {onEditSpecs && (
+            <button
+              onClick={onEditSpecs}
+              className={editButtonClass}
+              type="button"
+              data-testid="edit-specs-link"
+            >
+              {pencilIcon}
+              <span>{t('stats.editSpecs')}</span>
+            </button>
+          )}
+        </div>
       </div>
     );
   };
@@ -246,61 +244,82 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     if (stagedComparison) {
       return <StagedComparisonCard comparison={stagedComparison} cpkTarget={cpkTarget} />;
     }
-    return renderMetricGrid();
+    return (
+      <>
+        <TargetDiscoveryCard
+          stats={stats}
+          specs={specs}
+          isDrilling={isDrilling}
+          complement={complement}
+          activeProjection={activeProjection}
+          centeringOpportunity={centeringOpportunity}
+          cpkTarget={cpkTarget}
+          onAcceptSpecs={onAcceptSpecs}
+          onCustomize={onEditSpecs}
+          onOpenWhatIf={renderWhatIf ? () => setActiveTab('whatif') : undefined}
+          sampleCount={sampleCount ?? filteredData?.length}
+        />
+        {renderMetricGrid()}
+      </>
+    );
   };
 
-  const renderHistogramContent = () => {
-    if (histogramData.length > 0 && stats && renderHistogram) {
-      return renderHistogram(histogramData, specs, stats.mean);
-    }
-    return emptyState(t('empty.noData'));
-  };
+  const renderTabs = () => (
+    <div className={`${TAB_BAR_CLASS} ${compact ? 'mb-4' : ''}`}>
+      <TabButton
+        tab="summary"
+        label={t('stats.summary')}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        compact={compact}
+      />
+      <TabButton
+        tab="data"
+        label="Data"
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        compact={compact}
+      />
+      <TabButton
+        tab="whatif"
+        label="What-If"
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        compact={compact}
+      />
+    </div>
+  );
 
-  const renderProbPlotContent = () => {
-    if (histogramData.length > 0 && stats && renderProbabilityPlot) {
-      return renderProbabilityPlot(histogramData, stats.mean, stats.stdDev);
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'summary':
+        return (
+          <>
+            <div className="flex-1">{renderSummaryContent()}</div>
+            {stats && renderSummaryFooter?.(stats, specs)}
+          </>
+        );
+      case 'data':
+        return (
+          <div className="flex-1 min-h-0 overflow-auto">
+            {renderDataTable ? renderDataTable() : emptyState('No data available')}
+          </div>
+        );
+      case 'whatif':
+        return (
+          <div className="flex-1 min-h-0 overflow-auto">
+            {renderWhatIf ? renderWhatIf() : emptyState('No What-If simulator available')}
+          </div>
+        );
     }
-    return emptyState(t('empty.noData'));
   };
 
   // Compact layout (mobile)
   if (compact) {
     return (
       <div className={CONTAINER_COMPACT_CLASS}>
-        <div className={`${TAB_BAR_CLASS} mb-4`}>
-          <TabButton
-            tab="summary"
-            label={t('stats.summary')}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            compact={compact}
-          />
-          <TabButton
-            tab="histogram"
-            label={t('stats.histogram')}
-            helpTerm={getTerm('capabilityAnalysis')}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            compact={compact}
-          />
-          <TabButton
-            tab="normality"
-            label={t('stats.probPlot')}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            compact={compact}
-          />
-        </div>
-
-        <div className="flex-1 min-h-0">
-          {activeTab === 'summary' && <div className="space-y-3">{renderSummaryContent()}</div>}
-          {activeTab === 'histogram' && (
-            <div className="h-full min-h-[200px]">{renderHistogramContent()}</div>
-          )}
-          {activeTab === 'normality' && (
-            <div className="h-full min-h-[200px]">{renderProbPlotContent()}</div>
-          )}
-        </div>
+        {renderTabs()}
+        <div className="flex-1 min-h-0">{renderTabContent()}</div>
       </div>
     );
   }
@@ -308,48 +327,10 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   // Desktop layout
   return (
     <div className={className ? `${CONTAINER_CLASS} ${className}` : CONTAINER_CLASS}>
-      {/* Header / Tab buttons */}
       <div className="flex justify-between items-center border-b border-inherit pb-4">
-        <div className={TAB_BAR_CLASS}>
-          <TabButton
-            tab="summary"
-            label={t('stats.summary')}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            compact={compact}
-          />
-          <TabButton
-            tab="histogram"
-            label={t('stats.histogram')}
-            helpTerm={getTerm('capabilityAnalysis')}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            compact={compact}
-          />
-          <TabButton
-            tab="normality"
-            label={t('stats.probPlot')}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            compact={compact}
-          />
-        </div>
+        {renderTabs()}
       </div>
-
-      {activeTab === 'summary' ? (
-        <>
-          <div className="flex-1">{renderSummaryContent()}</div>
-          {stats && renderSummaryFooter?.(stats, specs)}
-        </>
-      ) : activeTab === 'histogram' ? (
-        <div className={compact ? 'flex-1 min-h-[200px]' : 'h-[300px] w-full'}>
-          {renderHistogramContent()}
-        </div>
-      ) : (
-        <div className={compact ? 'flex-1 min-h-[200px]' : 'h-[300px] w-full'}>
-          {renderProbPlotContent()}
-        </div>
-      )}
+      {renderTabContent()}
     </div>
   );
 };

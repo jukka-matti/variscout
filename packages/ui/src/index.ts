@@ -79,6 +79,7 @@ export {
 
 export {
   WhatIfPageBase,
+  computePresets,
   whatIfPageDefaultColorScheme,
   type WhatIfPageColorScheme,
   type WhatIfPageBaseProps,
@@ -112,11 +113,19 @@ export {
 
 export {
   StatsPanelBase,
+  StatsSummaryPanel,
+  TargetDiscoveryCard,
   StagedComparisonCard,
   defaultStagedComparisonColorScheme,
+  FactorIntelligencePanel,
   type StatsPanelBaseProps,
+  type StatsPanelTab,
+  type ComplementInsight,
+  type TargetDiscoveryCardProps,
+  type StatsSummaryPanelProps,
   type StagedComparisonCardProps,
   type StagedComparisonColorScheme,
+  type FactorIntelligencePanelProps,
 } from './components/StatsPanel';
 
 export {
@@ -152,6 +161,8 @@ export {
 } from './components/CapabilityHistogram';
 
 export { ProbabilityPlot, type ProbabilityPlotProps } from './components/ProbabilityPlot';
+
+export { VerificationCard, type VerificationCardProps } from './components/VerificationCard';
 
 export { FilterContextBar, type FilterContextBarProps } from './components/FilterContextBar';
 
@@ -422,6 +433,9 @@ export {
 } from './components/YamazumiDisplayToggle';
 export { YamazumiSummaryBar, type YamazumiSummaryBarProps } from './components/YamazumiSummaryBar';
 
+// Process Health Bar
+export { ProcessHealthBar, type ProcessHealthBarProps } from './components/ProcessHealthBar';
+
 // Data Panel
 export { DataPanelBase, type DataPanelBaseProps } from './components/DataPanel';
 
@@ -445,8 +459,8 @@ export {
 export {
   ThemeProvider,
   useTheme,
-  CHART_FONT_SCALES,
+  DENSITY_CONFIG,
   type ThemeMode,
-  type ChartFontScale,
+  type DensityPreset,
   type ThemeConfig,
 } from './context/ThemeContext';

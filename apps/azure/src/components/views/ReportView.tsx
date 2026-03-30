@@ -172,11 +172,12 @@ const ReportView: React.FC<ReportViewProps> = ({
   // Capability mode data
   // ---------------------------------------------------------------------------
   const capabilityIChartData = useCapabilityIChartData({
-    filteredData: isCapabilityMode ? filteredData : [],
+    filteredData,
     outcome: outcome ?? '',
     specs: specs ?? {},
     subgroupConfig: subgroupConfig ?? { method: 'fixed-size', size: 5 },
     cpkTarget,
+    enabled: isCapabilityMode,
   });
 
   const capabilityKPIs = useMemo(() => {

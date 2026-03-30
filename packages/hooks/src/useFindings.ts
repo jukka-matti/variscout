@@ -19,6 +19,7 @@ import {
   type FindingTag,
   type PhotoAttachment,
   type PhotoUploadStatus,
+  type BenchmarkStats,
 } from '@variscout/core';
 
 export interface UseFindingsOptions {
@@ -116,6 +117,12 @@ export interface UseFindingsReturn {
   deleteAction: (id: string, actionId: string) => void;
   /** Set outcome assessment */
   setOutcome: (id: string, outcome: FindingOutcome) => void;
+  /** Mark a finding as the project benchmark (clears previous benchmark) */
+  setBenchmark: (id: string, benchmarkStats: BenchmarkStats) => void;
+  /** Clear benchmark marking (reverts finding to observation) */
+  clearBenchmark: (id: string) => void;
+  /** Toggle scope override: undefined → true → false → undefined */
+  toggleScope: (id: string) => void;
 }
 
 /**
@@ -560,6 +567,56 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [onFindingsChange, onStatusChange]
   );
 
+  const setBenchmark = useCallback(
+    (id: string, stats: BenchmarkStats) => {
+      setFindings(prev => {
+        const next = prev.map(f => {
+          if (f.id === id) {
+            return { ...f, role: 'benchmark' as const, benchmarkStats: stats };
+          }
+          // Clear previous benchmark
+          if (f.role === 'benchmark') {
+            return { ...f, role: undefined, benchmarkStats: undefined };
+          }
+          return f;
+        });
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const clearBenchmark = useCallback(
+    (id: string) => {
+      setFindings(prev => {
+        const next = prev.map(f => {
+          if (f.id !== id) return f;
+          return { ...f, role: undefined, benchmarkStats: undefined };
+        });
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const toggleScope = useCallback(
+    (id: string) => {
+      setFindings(prev => {
+        const next = prev.map(f => {
+          if (f.id !== id) return f;
+          // Cycle: undefined → true → false → undefined
+          const nextScoped = f.scoped === undefined ? true : f.scoped === true ? false : undefined;
+          return { ...f, scoped: nextScoped };
+        });
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
   return {
     findings,
     addFinding,
@@ -588,5 +645,8 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     completeAction,
     deleteAction,
     setOutcome,
+    setBenchmark,
+    clearBenchmark,
+    toggleScope,
   };
 }

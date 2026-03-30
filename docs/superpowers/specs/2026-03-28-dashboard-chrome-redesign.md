@@ -90,11 +90,11 @@ Header (56px):
 
 ### Cross-Cutting Panels
 
-| Panel            | Side   | Toggle                      | Content                                            | Adapts to workspace?                                            |
-| ---------------- | ------ | --------------------------- | -------------------------------------------------- | --------------------------------------------------------------- |
-| **Stats/Data**   | Left   | Header icon                 | 4 tabs: Summary, Data, Histogram, Probability Plot | No — same content in all workspaces                             |
-| **CoScout**      | Right  | Header icon                 | AI conversation, adapts coaching by phase          | Yes — reasoning effort + system prompt change per workspace     |
-| **NarrativeBar** | Bottom | Always visible (when AI on) | 1-line AI summary, adapts content by phase         | Yes — pattern discovery / investigation progress / verification |
+| Panel            | Side   | Toggle                      | Content                                                                                                                                                                                               | Adapts to workspace?                                            |
+| ---------------- | ------ | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **Stats/Data**   | Left   | Header icon                 | 3 tabs: Summary (stats + target discovery), Data, What-If. Histogram/ProbPlot handled by VerificationCard in grid. See [Process Intelligence Panel](2026-03-28-process-intelligence-panel-design.md). | No — same content in all workspaces                             |
+| **CoScout**      | Right  | Header icon                 | AI conversation, adapts coaching by phase                                                                                                                                                             | Yes — reasoning effort + system prompt change per workspace     |
+| **NarrativeBar** | Bottom | Always visible (when AI on) | 1-line AI summary, adapts content by phase                                                                                                                                                            | Yes — pattern discovery / investigation progress / verification |
 
 ### Analysis Sub-Modes
 
@@ -145,15 +145,15 @@ What-If is no longer a standalone page. It's accessible from:
 
 ## App Differences
 
-| Feature              | PWA                                         | Azure                                    |
-| -------------------- | ------------------------------------------- | ---------------------------------------- |
-| Workspace tabs       | Analysis only                               | Analysis + Investigation + Improvement   |
-| Stats/Data panel     | Left sidebar (Summary + Data + Hist + Prob) | Same                                     |
-| CoScout panel        | Hidden (no AI)                              | Right sidebar                            |
-| AI toggle in header  | Hidden                                      | Visible                                  |
-| NarrativeBar         | Hidden (no AI)                              | Bottom bar                               |
-| Performance/Yamazumi | No (Azure only)                             | Sub-modes under Analysis                 |
-| What-If              | Analysis toolbar (standalone)               | Analysis toolbar + Improvement workspace |
+| Feature              | PWA                                     | Azure                                    |
+| -------------------- | --------------------------------------- | ---------------------------------------- |
+| Workspace tabs       | Analysis only                           | Analysis + Investigation + Improvement   |
+| Stats/Data panel     | Left sidebar (Summary + Data + What-If) | Same                                     |
+| CoScout panel        | Hidden (no AI)                          | Right sidebar                            |
+| AI toggle in header  | Hidden                                  | Visible                                  |
+| NarrativeBar         | Hidden (no AI)                          | Bottom bar                               |
+| Performance/Yamazumi | No (Azure only)                         | Sub-modes under Analysis                 |
+| What-If              | Analysis toolbar (standalone)           | Analysis toolbar + Improvement workspace |
 
 ## Mobile Layout
 
@@ -209,7 +209,7 @@ Any workspace can be popped out to a separate browser window:
 ### Phase 1: Header + Stats Sidebar
 
 - Shared header component with workspace tabs
-- Stats panel → left sidebar with Summary/Data/Histogram/Probability tabs
+- Stats panel → left sidebar with Summary/Data/What-If tabs (Process Intelligence Panel)
 - PWA: Analysis tab only + Stats toggle
 - Azure: All 3 tabs + Stats + AI toggles
 

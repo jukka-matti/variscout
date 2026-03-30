@@ -74,11 +74,11 @@ const ChartInsightChip: React.FC<ChartInsightChipProps> = ({
       {isAI && (
         <>
           <Sparkles size={10} className="text-purple-400 flex-shrink-0" />
-          <span className="text-[10px] text-purple-400 flex-shrink-0 font-medium">AI</span>
+          <span className="text-[0.625rem] text-purple-400 flex-shrink-0 font-medium">AI</span>
         </>
       )}
       <span
-        className={`flex-1 text-xs sm:text-xs text-[11px] ${style.text} truncate leading-tight ${onAction ? 'cursor-pointer hover:underline' : ''}`}
+        className={`flex-1 text-xs sm:text-xs text-[0.6875rem] ${style.text} truncate leading-tight ${onAction ? 'cursor-pointer hover:underline' : ''}`}
         title={text}
         onClick={
           onAction

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import Dashboard from '../Dashboard';
 import DataPanel from '../data/DataPanel';
 
@@ -8,7 +8,8 @@ import FindingsPanel from '../FindingsPanel';
 import { CoScoutPanelBase, AIOnboardingTooltip, SessionClosePrompt } from '@variscout/ui';
 import type { SessionClosePromptItem } from '@variscout/ui';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
-import { hasTeamFeatures } from '@variscout/core';
+import { hasTeamFeatures, toNumericValue, createFactorFinding } from '@variscout/core';
+import { computeCenteringOpportunity } from '@variscout/core/variation';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
 import type { UseHypothesesReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
 import { isAIAvailable } from '../../services/aiService';
@@ -20,11 +21,12 @@ import { useImprovementStore } from '../../features/improvement/improvementStore
 import { useAIStore } from '../../features/ai/aiStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
+import { useResizablePanel } from '@variscout/hooks';
 import type { AzureFindingsCallbacks } from '@variscout/ui';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
 import type { UseActionProposalsReturn } from '../../features/ai';
-import { X } from 'lucide-react';
+import { X, GripVertical } from 'lucide-react';
 
 const COSCOUT_RESIZE_CONFIG = {
   storageKey: 'variscout-azure-coscout-panel-width',
@@ -114,6 +116,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     factors,
     aiEnabled,
     processContext,
+    rawData,
     filteredData,
     stats,
     filters,
@@ -135,8 +138,33 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const isDataPanelOpen = usePanelsStore(s => s.isDataPanelOpen);
   const isDataTableOpen = usePanelsStore(s => s.isDataTableOpen);
   const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
+  const statsSidebar = useResizablePanel('variscout-stats-sidebar-width', 280, 500, 320, 'left');
   const highlightRowIndex = usePanelsStore(s => s.highlightRowIndex);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
+
+  // Target discovery: complement stats + centering opportunity for sidebar
+  const isDrilling = Object.keys(filters).length > 0;
+  const complementInsight = useMemo(() => {
+    if (
+      !isDrilling ||
+      !outcome ||
+      !filteredData ||
+      !rawData ||
+      filteredData.length >= rawData.length
+    )
+      return null;
+    const filteredSet = new Set(filteredData);
+    const compRows = rawData.filter(r => !filteredSet.has(r));
+    const values = compRows
+      .map(r => toNumericValue(r[outcome]))
+      .filter((v): v is number => v !== undefined);
+    if (values.length < 2) return null;
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
+    return { mean, stdDev: Math.sqrt(variance), count: values.length };
+  }, [isDrilling, outcome, filteredData, rawData]);
+
+  const centeringOpp = useMemo(() => (stats ? computeCenteringOpportunity(stats) : null), [stats]);
 
   // Findings highlight from Zustand
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
@@ -170,6 +198,50 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     usePanelsStore.getState().setFindingsOpen(false);
     setHighlightedFindingId(null);
   }, [setHighlightedFindingId]);
+
+  // ── Factor Intelligence → Findings bridge ──────────────────────────────
+  const handleInvestigateFactor = useCallback(
+    (effect: import('@variscout/core/stats').FactorMainEffect) => {
+      if (!outcome || !filteredData || filteredData.length === 0) return;
+
+      // Create the bundle: Finding + Hypothesis + ImprovementIdea
+      const bundle = createFactorFinding({
+        factor: effect.factor,
+        bestLevel: effect.bestLevel,
+        worstLevel: effect.worstLevel,
+        etaSquared: effect.etaSquared,
+        effectRange: effect.effectRange,
+        pValue: effect.pValue,
+      });
+
+      // Add finding via findingsState
+      const addedFinding = findingsState.addFinding(
+        bundle.finding.text,
+        bundle.finding.context,
+        undefined // no chart source
+      );
+
+      // Add hypothesis and apply pre-validated status from Factor Intelligence
+      const addedHypothesis = hypothesesState.addHypothesis(
+        bundle.hypothesis.text,
+        bundle.hypothesis.factor,
+        bundle.hypothesis.level
+      );
+      hypothesesState.setManualStatus(addedHypothesis.id, 'supported');
+
+      // Link finding ↔ hypothesis
+      findingsState.linkHypothesis(addedFinding.id, addedHypothesis.id, 'supports');
+
+      // Add improvement idea to the hypothesis
+      hypothesesState.addIdea(addedHypothesis.id, bundle.idea.text);
+
+      // Set finding status to 'investigating' and open Findings panel
+      handleSetFindingStatus(addedFinding.id, 'investigating');
+      usePanelsStore.getState().setFindingsOpen(true);
+      useFindingsStore.getState().setHighlightedFindingId(addedFinding.id);
+    },
+    [outcome, filteredData, findingsState, hypothesesState, handleSetFindingStatus]
+  );
 
   // Build shared FindingsPanel props to avoid duplication between phone/desktop
   const sharedFindingsProps = {
@@ -399,19 +471,38 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   return (
     <>
       <div className="flex-1 flex overflow-hidden">
-        {/* Stats Sidebar (left) */}
+        {/* Stats Sidebar (left, resizable) */}
         {isStatsSidebarOpen && !isPhone && (
-          <div className="flex flex-col w-80 flex-shrink-0 border-r border-edge bg-surface-secondary overflow-y-auto">
-            <React.Suspense fallback={null}>
-              <StatsPanel
-                stats={stats}
-                specs={specs}
-                filteredData={filteredData}
-                outcome={outcome}
-                cpkTarget={cpkTarget}
-              />
-            </React.Suspense>
-          </div>
+          <>
+            <div
+              className="flex flex-col flex-shrink-0 bg-surface-secondary overflow-y-auto"
+              style={{ width: statsSidebar.width }}
+            >
+              <React.Suspense fallback={null}>
+                <StatsPanel
+                  stats={stats}
+                  specs={specs}
+                  filteredData={filteredData}
+                  outcome={outcome}
+                  cpkTarget={cpkTarget}
+                  sampleCount={filteredData?.length}
+                  isDrilling={isDrilling}
+                  complement={complementInsight}
+                  centeringOpportunity={centeringOpp}
+                  factors={factors}
+                  onInvestigateFactor={handleInvestigateFactor}
+                />
+              </React.Suspense>
+            </div>
+            <div
+              className={`w-1 flex-shrink-0 flex items-center justify-center cursor-col-resize transition-colors ${
+                statsSidebar.isDragging ? 'bg-blue-500' : 'bg-surface-tertiary hover:bg-blue-500'
+              }`}
+              onMouseDown={statsSidebar.handleMouseDown}
+            >
+              <GripVertical size={12} className="text-content-muted" />
+            </div>
+          </>
         )}
 
         <Dashboard
@@ -425,6 +516,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           onShareChart={handleShareChart}
           findingsCallbacks={findingsCallbacks}
           findings={findingsState.findings}
+          onInvestigateFactor={handleInvestigateFactor}
           viewMode={{
             isReportOpen,
             onCloseReport: () => usePanelsStore.getState().closeReport(),

@@ -353,7 +353,7 @@ const FindingsWindow: React.FC = () => {
             <h1 className="text-sm font-semibold text-content">
               {t('panel.investigation')}
               {findings.length > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
+                <span className="ml-1.5 px-1.5 py-0.5 text-[0.625rem] bg-blue-500/20 text-blue-400 rounded">
                   {findings.length}
                 </span>
               )}
@@ -421,7 +421,7 @@ const FindingsWindow: React.FC = () => {
                 onClick={() => {
                   navigator.clipboard.writeText(q).catch(() => {});
                 }}
-                className="inline-flex items-center gap-1 bg-surface-tertiary text-content-secondary text-[10px] px-2.5 py-1 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
+                className="inline-flex items-center gap-1 bg-surface-tertiary text-content-secondary text-[0.625rem] px-2.5 py-1 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
                 title="Copy to clipboard"
               >
                 {q}
@@ -504,14 +504,14 @@ const FindingsWindow: React.FC = () => {
       {/* Drill path footer */}
       {drillPath.length > 0 && (
         <div className="px-4 py-3 border-t border-edge flex-shrink-0">
-          <div className="text-[10px] text-content-muted uppercase tracking-wider mb-1.5">
+          <div className="text-[0.625rem] text-content-muted uppercase tracking-wider mb-1.5">
             {t('panel.drillPath')}
           </div>
           <div className="flex flex-wrap gap-1">
             {drillPath.map((step, i) => (
               <span
                 key={step.factor}
-                className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[11px] rounded-full"
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[0.6875rem] rounded-full"
               >
                 {columnAliases?.[step.factor] || step.factor}
                 <span className="text-blue-300/60">{formatStat(step.scopeFraction * 100, 0)}%</span>

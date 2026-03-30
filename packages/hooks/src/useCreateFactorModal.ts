@@ -8,6 +8,8 @@ export interface UseCreateFactorModalOptions {
   setRawData: (data: DataRow[]) => void;
   setFilters: (filters: Record<string, (string | number)[]>) => void;
   clearSelection: () => void;
+  /** Called after factor is created — use to auto-switch boxplot/pareto factor */
+  onFactorCreated?: (factorName: string) => void;
 }
 
 export interface UseCreateFactorModalReturn {
@@ -28,6 +30,7 @@ export function useCreateFactorModal({
   setRawData,
   setFilters,
   clearSelection,
+  onFactorCreated,
 }: UseCreateFactorModalOptions): UseCreateFactorModalReturn {
   const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
 
@@ -44,10 +47,11 @@ export function useCreateFactorModal({
       const updatedData = createFactorFromSelection(rawData, selectedPoints, factorName);
       setRawData(updatedData);
       setFilters({ ...filters, [factorName]: [factorName] });
+      onFactorCreated?.(factorName);
       clearSelection();
       setShowCreateFactorModal(false);
     },
-    [rawData, selectedPoints, filters, setRawData, setFilters, clearSelection]
+    [rawData, selectedPoints, filters, setRawData, setFilters, clearSelection, onFactorCreated]
   );
 
   return {

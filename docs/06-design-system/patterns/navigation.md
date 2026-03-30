@@ -46,7 +46,7 @@ Header:
 ```
 
 - **Workspace tabs** switch the center content area (charts / findings board / improvement workspace)
-- **Stats/Data** toggle opens a left sidebar (Summary, Data, Histogram, Probability tabs)
+- **Stats/Data** toggle opens a left sidebar (Summary, Data, What-If tabs — Process Intelligence Panel)
 - **AI** toggle opens CoScout as a right sidebar (adapts coaching to active workspace phase)
 - **Analysis** has a dropdown for sub-modes (Standard / Performance / Yamazumi)
 - PWA shows only Analysis tab + Stats. Azure shows all 3 tabs + AI.

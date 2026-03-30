@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { getChromeColors, getDocumentTheme, chartColors, chromeColors } from '../colors';
-import { useChartTheme } from '../useChartTheme';
+import { useChartTheme, getDocumentFontScale } from '../useChartTheme';
 
 describe('getDocumentTheme', () => {
   afterEach(() => {
@@ -43,21 +43,43 @@ describe('getChromeColors', () => {
   });
 });
 
+describe('getDocumentFontScale', () => {
+  afterEach(() => {
+    document.documentElement.style.fontSize = '';
+  });
+
+  it('returns 1 when no custom font-size is set', () => {
+    // jsdom default font-size is 16px
+    expect(getDocumentFontScale()).toBe(1);
+  });
+
+  it('returns correct scale for larger font-size', () => {
+    document.documentElement.style.fontSize = '20px';
+    // 20 / 16 = 1.25
+    expect(getDocumentFontScale()).toBe(1.25);
+  });
+
+  it('returns correct scale for smaller font-size', () => {
+    document.documentElement.style.fontSize = '14px';
+    // 14 / 16 = 0.875
+    expect(getDocumentFontScale()).toBe(0.875);
+  });
+});
+
 describe('useChartTheme', () => {
   beforeEach(() => {
     document.documentElement.removeAttribute('data-theme');
-    document.documentElement.removeAttribute('data-chart-scale');
+    document.documentElement.style.fontSize = '';
   });
 
   afterEach(() => {
     document.documentElement.removeAttribute('data-theme');
-    document.documentElement.removeAttribute('data-chart-scale');
+    document.documentElement.style.fontSize = '';
   });
 
-  it('returns default values (dark theme, scale 1)', () => {
+  it('returns default values (dark theme)', () => {
     const { result } = renderHook(() => useChartTheme());
     expect(result.current.isDark).toBe(true);
-    expect(result.current.fontScale).toBe(1);
   });
 
   it('responds to data-theme attribute change', async () => {
@@ -69,18 +91,6 @@ describe('useChartTheme', () => {
 
     await waitFor(() => {
       expect(result.current.isDark).toBe(false);
-    });
-  });
-
-  it('responds to data-chart-scale attribute change', async () => {
-    const { result } = renderHook(() => useChartTheme());
-
-    expect(result.current.fontScale).toBe(1);
-
-    document.documentElement.setAttribute('data-chart-scale', '1.5');
-
-    await waitFor(() => {
-      expect(result.current.fontScale).toBe(1.5);
     });
   });
 

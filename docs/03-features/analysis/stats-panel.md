@@ -96,7 +96,7 @@ Best for: Process improvement, ongoing monitoring, supplier qualification.
 
 ## Capability Histogram
 
-Available via the Histogram tab in the Stats Panel.
+Available via the VerificationCard (tabbed Histogram/Probability Plot) in the dashboard grid row 2.
 
 ```
 ┌─────────────────────────────────────┐

@@ -14,6 +14,14 @@ import { interactionStyles } from './styles/interactionStyles';
 import { getBoxplotA11yProps, getInteractiveA11yProps } from './utils/accessibility';
 import { calculateKDE } from '@variscout/core';
 
+/** Minimum data points required to render a box-and-whisker; fewer renders jittered dots */
+export const MIN_BOXPLOT_VALUES = 7;
+
+/** Category count above which X-axis labels are rotated */
+const BOXPLOT_ROTATE_THRESHOLD = 10;
+/** Maximum label length before truncation */
+const BOXPLOT_MAX_LABEL_LENGTH = 12;
+
 /** Default threshold for high variation highlight (50%) */
 const DEFAULT_VARIATION_THRESHOLD = 50;
 
@@ -56,7 +64,17 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
   onBoxContextMenu,
   fillOverrides,
   groupSize,
+  targetLine,
+  visibleCategories,
+  totalCategories,
+  onOverflowClick,
 }) => {
+  // Filter data to visible categories when adaptive limit is active
+  const displayData = visibleCategories
+    ? data.filter(d => visibleCategories.includes(d.key))
+    : data;
+  const overflowCount = totalCategories !== undefined ? totalCategories - displayData.length : 0;
+
   // Show contribution bars by default when categoryContributions is provided
   const shouldShowBars = showContributionBars ?? categoryContributions !== undefined;
   // Determine if this factor should be highlighted as a drill target
@@ -87,7 +105,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
     }
 
     // Priority 2: Auto-calculate from data
-    if (data.length === 0) return [0, 1] as [number, number];
+    if (displayData.length === 0) return [0, 1] as [number, number];
 
     let minVal = Infinity;
     let maxVal = -Infinity;
@@ -112,7 +130,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
     () =>
       scaleBand({
         range: [0, width],
-        domain: data.map(d => d.key),
+        domain: displayData.map(d => d.key),
         padding: 0.4,
       }),
     [data, width]
@@ -141,7 +159,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
     return map;
   }, [data, showViolin, violinDataProp]);
 
-  if (data.length === 0) return null;
+  if (displayData.length === 0) return null;
 
   const totalSampleSize = sampleSize ?? data.reduce((sum, d) => sum + d.values.length, 0);
 
@@ -164,6 +182,33 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
         aria-label={`Boxplot: ${yAxisLabel} distribution`}
       >
         <Group left={margin.left} top={margin.top}>
+          {/* Target reference line (e.g., Cpk target) */}
+          {targetLine && yScale(targetLine.value) >= 0 && yScale(targetLine.value) <= height && (
+            <>
+              <line
+                x1={0}
+                x2={width}
+                y1={yScale(targetLine.value)}
+                y2={yScale(targetLine.value)}
+                stroke={targetLine.color}
+                strokeWidth={1}
+                strokeDasharray="6,3"
+                opacity={0.6}
+              />
+              {targetLine.label && (
+                <text
+                  x={width + 4}
+                  y={yScale(targetLine.value) + 4}
+                  fill={targetLine.color}
+                  fontSize={fonts.tickLabel}
+                  opacity={0.7}
+                >
+                  {targetLine.label}
+                </text>
+              )}
+            </>
+          )}
+
           {/* Spec Lines */}
           {specs.usl !== undefined && (
             <line
@@ -200,7 +245,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           )}
 
           {/* Boxplots */}
-          {data.map((d, i) => {
+          {displayData.map((d, i) => {
             const x = xScale(d.key) || 0;
             const barWidth = xScale.bandwidth();
 
@@ -230,7 +275,49 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                 {/* Transparent capture rect for better clickability */}
                 <rect x={x - 5} y={0} width={barWidth + 10} height={height} fill="transparent" />
 
-                {showViolin && violinData.has(d.key) ? (
+                {d.values.length < MIN_BOXPLOT_VALUES ? (
+                  <>
+                    {/* Dot fallback mode: jittered dots for small sample sizes */}
+                    {d.values.map((v, j) => {
+                      // Spread dots evenly across the band, with slight value-based offset
+                      const evenSpread =
+                        d.values.length > 1
+                          ? (j / (d.values.length - 1)) * 2 - 1 // -1 to +1
+                          : 0;
+                      const valueNoise = ((Math.round(v * 137) % 7) - 3) / 30; // tiny nudge
+                      const jitter = (evenSpread + valueNoise) * barWidth * 0.3;
+                      const dotFill = highlightedCategories?.[d.key]
+                        ? highlightFillColors[highlightedCategories[d.key]]
+                        : fillOverrides?.[d.key]
+                          ? fillOverrides[d.key]
+                          : isSelected(d.key)
+                            ? colors.selected
+                            : chrome.labelSecondary;
+                      return (
+                        <circle
+                          key={j}
+                          cx={x + barWidth / 2 + jitter}
+                          cy={yScale(v)}
+                          r={4}
+                          fill={dotFill}
+                          opacity={0.8}
+                          data-testid={`dot-fallback-${d.key}-${j}`}
+                        />
+                      );
+                    })}
+
+                    {/* Mean marker (diamond) */}
+                    <polygon
+                      points={`
+                        ${x + barWidth / 2},${yScale(d.mean) - 4}
+                        ${x + barWidth / 2 + 4},${yScale(d.mean)}
+                        ${x + barWidth / 2},${yScale(d.mean) + 4}
+                        ${x + barWidth / 2 - 4},${yScale(d.mean)}
+                      `}
+                      fill={chrome.labelPrimary}
+                    />
+                  </>
+                ) : showViolin && violinData.has(d.key) ? (
                   <>
                     {/* Violin-primary mode: prominent density curve with thin inner box */}
                     <ViolinPlot
@@ -338,6 +425,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                             : chrome.boxBorder
                       }
                       rx={2}
+                      data-testid={`boxplot-box-${d.key}`}
                     />
 
                     {/* Median Line */}
@@ -381,9 +469,9 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           {/* Group separator lines (for staged boxplot) */}
           {groupSize &&
             groupSize > 1 &&
-            data.map((_, i) => {
+            displayData.map((_, i) => {
               // Draw separator after every groupSize boxes (between groups)
-              if ((i + 1) % groupSize !== 0 || i === data.length - 1) return null;
+              if ((i + 1) % groupSize !== 0 || i === displayData.length - 1) return null;
               const nextKey = data[i + 1]?.key;
               if (!nextKey) return null;
               const x1Pos = (xScale(data[i].key) || 0) + xScale.bandwidth();
@@ -443,20 +531,31 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             scale={xScale}
             stroke={chrome.axisPrimary}
             tickStroke={chrome.axisPrimary}
-            tickFormat={xTickFormat}
+            tickFormat={value => {
+              const formatted = xTickFormat ? xTickFormat(String(value)) : String(value);
+              if (
+                displayData.length > BOXPLOT_ROTATE_THRESHOLD &&
+                formatted.length > BOXPLOT_MAX_LABEL_LENGTH
+              ) {
+                return formatted.slice(0, BOXPLOT_MAX_LABEL_LENGTH) + '…';
+              }
+              return formatted;
+            }}
             tickLabelProps={() => ({
               fill: chrome.labelSecondary,
               fontSize: fonts.tickLabel,
-              textAnchor: 'middle',
-              dy: 2,
+              textAnchor: displayData.length > BOXPLOT_ROTATE_THRESHOLD ? 'end' : 'middle',
+              dy: displayData.length > BOXPLOT_ROTATE_THRESHOLD ? -2 : 2,
+              dx: displayData.length > BOXPLOT_ROTATE_THRESHOLD ? -4 : 0,
               fontWeight: 400,
+              angle: displayData.length > BOXPLOT_ROTATE_THRESHOLD ? -45 : 0,
             })}
           />
 
           {/* Contribution Labels (below X-axis) */}
           {showContributionLabels &&
             categoryContributions &&
-            data.map(d => {
+            displayData.map(d => {
               const contribution = categoryContributions.get(d.key);
               if (contribution === undefined) return null;
               const x = xScale(d.key) || 0;
@@ -477,7 +576,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             })}
 
           {/* n Labels (always visible below contribution labels or below x-axis) */}
-          {data.map(d => {
+          {displayData.map(d => {
             const x = xScale(d.key) || 0;
             const barWidth = xScale.bandwidth();
             return (
@@ -497,7 +596,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           {/* Contribution Bars (small horizontal bars under each box) */}
           {shouldShowBars &&
             categoryContributions &&
-            data.map(d => {
+            displayData.map(d => {
               const contribution = categoryContributions.get(d.key) ?? 0;
               const x = xScale(d.key) || 0;
               const boxWidth = xScale.bandwidth();
@@ -548,6 +647,46 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           )}
         </Group>
 
+        {/* Overflow indicator (when categories are truncated) */}
+        {overflowCount > 0 && (
+          <g
+            transform={`translate(${margin.left + width - 2}, ${margin.top})`}
+            onClick={onOverflowClick}
+            style={onOverflowClick ? { cursor: 'pointer' } : undefined}
+          >
+            <line
+              x1={0}
+              y1={0}
+              x2={0}
+              y2={height}
+              stroke={chrome.axisSecondary}
+              strokeWidth={1}
+              strokeDasharray="4,4"
+              opacity={0.4}
+            />
+            <text
+              x={10}
+              y={height / 2 - 6}
+              fill={chrome.labelMuted}
+              fontSize={fonts.tickLabel}
+              textAnchor="start"
+              opacity={0.6}
+            >
+              ⋯
+            </text>
+            <text
+              x={10}
+              y={height / 2 + 8}
+              fill="#a855f7"
+              fontSize={fonts.tickLabel - 2}
+              textAnchor="start"
+              opacity={0.7}
+            >
+              +{overflowCount}
+            </text>
+          </g>
+        )}
+
         {/* Source Bar (branding) */}
         {showBranding && (
           <ChartSourceBar
@@ -594,9 +733,14 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             {t('chart.label.n')} {tooltipData.values.length}
           </div>
           {categoryContributions && categoryContributions.has(tooltipData.key) && (
-            <div style={{ color: '#f87171', fontWeight: 500, marginTop: 4 }}>
-              {t('report.kpi.variation')}:{' '}
-              {Math.round(categoryContributions.get(tooltipData.key) ?? 0)}%
+            <div style={{ marginTop: 4 }}>
+              <div style={{ color: '#f87171', fontWeight: 500 }}>
+                Accounts for {Math.round(categoryContributions.get(tooltipData.key) ?? 0)}% of total
+                variation
+              </div>
+              <div style={{ color: '#94a3b8', fontSize: '0.75em' }}>
+                (mean shift + spread from this category)
+              </div>
             </div>
           )}
         </TooltipWithBounds>
