@@ -16,7 +16,7 @@ How VariScout implements Exploratory Data Analysis as a structured, question-dri
 
 ### 1.1 The EDA Mental Model
 
-This document is grounded in Turtiainen's Master's thesis _"Exploratory Data Analysis Mental Model for Quality Improvement"_ (LUT University, 2019). The thesis synthesizes decades of quality methodology — Shewhart's control charts (1924), Tukey's exploratory data analysis (1977), Juran's Pareto principle (1950s), and Watson's structured EDA approach — into a coherent mental model that was validated by nine Lean Six Sigma Master Black Belt experts across multiple industries.
+This document is grounded in Turtiainen's Master's thesis _"Mental Model for Exploratory Data Analysis Applications for Structured Problem-Solving"_ (LUT University, 2019). The thesis synthesizes decades of quality methodology — Shewhart's control charts (1924), Tukey's exploratory data analysis (1977), Juran's Pareto principle (1950s), and Watson's structured EDA approach — into a coherent mental model that was validated by nine Lean Six Sigma Master Black Belt experts across multiple industries.
 
 The central insight of the thesis is that EDA in quality contexts is not an open-ended fishing expedition. It is a structured investigation that begins with a vague concern and progressively sharpens it into a precise, actionable problem statement through iterative analysis loops. Each loop answers specific questions, and each answer makes the next question more focused.
 
@@ -585,7 +585,7 @@ The EDA Mental Model is not a feature — it is the analytical philosophy that i
 
 ### 8.1 Academic Sources
 
-- Turtiainen, J.-M. (2019). _Exploratory Data Analysis Mental Model for Quality Improvement_. Master's thesis, LUT University, Lappeenranta, Finland.
+- Turtiainen, J.-M. (2019). _Mental Model for Exploratory Data Analysis Applications for Structured Problem-Solving_. Master's thesis, Lappeenranta-Lahti University of Technology LUT, School of Engineering Science.
 - Watson, G.H. (2015b). _Statistical Thinking for Quality Improvement_. [Referenced in thesis for the principle "Statistical Thinking seeks answers to process questions."]
 - Watson, G.H. (2019a). _Six Sigma EDA and the issue/problem statement framework_. [Referenced in thesis for Issue Statement and Problem Statement definitions.]
 - Shewhart, W.A. (1924). Control chart methodology. [Origin of the Individuals Chart.]
