@@ -54,6 +54,8 @@ export type {
   // Chart Data Point Types
   IChartDataPoint,
   ParetoDataPoint,
+  // Complement Insight (Target Discovery)
+  ComplementInsight,
 } from './types';
 
 // Statistics

@@ -53,6 +53,11 @@ function computeFittedLine(mean: number, stdDev: number, n: number): FittedPoint
   });
 }
 
+/** Empty set reused as default for selectedPoints to avoid re-renders */
+const EMPTY_SET = new Set<number>();
+/** No-op reused as default for onSelectionChange */
+const NOOP_SELECTION = () => {};
+
 /**
  * Multi-series Probability Plot
  *
@@ -184,8 +189,8 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
       range(): number[];
       domain(): number[];
     },
-    selectedPoints: selectedPoints ?? new Set<number>(),
-    onSelectionChange: onSelectionChange ?? (() => {}),
+    selectedPoints: selectedPoints ?? EMPTY_SET,
+    onSelectionChange: onSelectionChange ?? NOOP_SELECTION,
     getX: d => d.x,
     getY: d => d.z,
     enableBrush: !!onSelectionChange,
@@ -380,7 +385,7 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
                     cy={yScale(d.z)!}
                     r={pointSize}
                     fill={color}
-                    stroke="#fff"
+                    stroke={chrome.pointStroke}
                     strokeWidth={brushSelection.getPointStrokeWidth(globalIdx)}
                     fillOpacity={pointOpacity}
                     style={{ cursor: 'pointer' }}

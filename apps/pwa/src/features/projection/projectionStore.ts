@@ -4,7 +4,7 @@ import type {
   CenteringOpportunity,
   SpecSuggestion,
 } from '@variscout/core/variation';
-import type { ComplementInsight } from '@variscout/ui';
+import type { ComplementInsight } from '@variscout/core';
 
 // ── State ────────────────────────────────────────────────────────────────────
 

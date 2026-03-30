@@ -120,7 +120,4 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   setShowResetConfirm: v => set({ showResetConfirm: v }),
   setOpenSpecEditorRequested: v => set({ openSpecEditorRequested: v }),
   confirmReset: () => set({ showResetConfirm: false }),
-
-  // getInitialState for test resets
-  ...({ getInitialState: () => initialPanelsState } as Record<string, unknown>),
 }));

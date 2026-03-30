@@ -7,7 +7,7 @@ import type {
   StagedComparison,
 } from '@variscout/core';
 import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
-import type { ComplementInsight } from './TargetDiscoveryCard';
+import type { ComplementInsight } from '@variscout/core';
 
 export type StatsPanelTab = 'summary' | 'data' | 'whatif';
 

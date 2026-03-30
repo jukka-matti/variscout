@@ -1,18 +1,10 @@
 import React from 'react';
 import { useTranslation } from '@variscout/hooks';
-import type { StatsResult, SpecLimits } from '@variscout/core';
+import type { StatsResult, SpecLimits, ComplementInsight } from '@variscout/core';
 import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
 
-export interface ComplementInsight {
-  mean: number;
-  stdDev: number;
-  count: number;
-  /** Label describing the complement, e.g. "Bed A, B" */
-  label?: string;
-  /** Suggested spec limits derived from complement */
-  suggestedLsl?: number;
-  suggestedUsl?: number;
-}
+// Re-export for backward compatibility
+export type { ComplementInsight } from '@variscout/core';
 
 export interface TargetDiscoveryCardProps {
   stats: StatsResult | null;

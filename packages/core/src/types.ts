@@ -555,3 +555,19 @@ export interface ParetoDataPoint {
   cumulative: number;
   cumulativePercentage: number;
 }
+
+// ============================================================================
+// Complement Insight (Target Discovery / Process Intelligence)
+// ============================================================================
+
+/** Complement data insight when drilling into a subset. */
+export interface ComplementInsight {
+  mean: number;
+  stdDev: number;
+  count: number;
+  /** Label describing the complement, e.g. "Bed A, B" */
+  label?: string;
+  /** Suggested spec limits derived from complement */
+  suggestedLsl?: number;
+  suggestedUsl?: number;
+}
