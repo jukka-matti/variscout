@@ -10,7 +10,7 @@ related: [eda-mental-model, methodology, investigation]
 
 ## Citation
 
-Turtiainen, J.-M. (2019). _Exploratory Data Analysis Mental Model for Quality Improvement_. Master's thesis, LUT University, Lappeenranta, Finland.
+Turtiainen, J.-M. (2019). _Mental Model for Exploratory Data Analysis Applications for Structured Problem-Solving_. Master's thesis, Lappeenranta-Lahti University of Technology LUT, School of Engineering Science.
 
 ---
 
