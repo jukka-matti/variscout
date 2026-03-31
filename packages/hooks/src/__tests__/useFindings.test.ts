@@ -1208,4 +1208,32 @@ describe('useFindings', () => {
       expect(onStatusChange).not.toHaveBeenCalled();
     });
   });
+
+  describe('questionId linking', () => {
+    it('addFinding with questionId sets hypothesisId on the created finding', () => {
+      const { result } = renderHook(() => useFindings());
+      const ctx = makeContext();
+
+      let finding: Finding;
+      act(() => {
+        finding = result.current.addFinding('Answer to question', ctx, undefined, 'q-42');
+      });
+
+      expect(finding!.hypothesisId).toBe('q-42');
+      expect(result.current.findings[0].hypothesisId).toBe('q-42');
+    });
+
+    it('addFinding without questionId leaves hypothesisId undefined', () => {
+      const { result } = renderHook(() => useFindings());
+      const ctx = makeContext();
+
+      let finding: Finding;
+      act(() => {
+        finding = result.current.addFinding('Regular observation', ctx);
+      });
+
+      expect(finding!.hypothesisId).toBeUndefined();
+      expect(result.current.findings[0].hypothesisId).toBeUndefined();
+    });
+  });
 });
