@@ -173,23 +173,25 @@ const FindingCard: React.FC<FindingCardProps> = ({
           : 'border-edge hover:border-edge-hover bg-surface-secondary'
       }`}
     >
-      {/* Clickable header — restores filters */}
-      <button
-        onClick={() => onRestore(finding.id)}
-        className="w-full text-left px-3 pt-2.5 pb-1.5"
-        title="Click to restore these filters"
-        aria-label={`Restore finding: ${finding.text || 'No note'}`}
-      >
+      {/* Clickable header — restores filters (Fluent UI focusMode="off" pattern) */}
+      <div className="relative px-3 pt-2.5 pb-1.5">
+        {/* Primary action: restore filters — ::after expands click area to full card header */}
+        <button
+          onClick={() => onRestore(finding.id)}
+          className="text-left after:absolute after:inset-0 after:content-['']"
+          title="Click to restore these filters"
+          aria-label={`Restore finding: ${finding.text || 'No note'}`}
+        >
+          <span className="sr-only">Restore filters</span>
+        </button>
+
         {/* Status badge + filter chips row */}
         <div className="flex items-start gap-1.5 mb-1.5">
           <div className="flex flex-wrap gap-1 flex-1">
             {finding.source && (
               <button
-                onClick={e => {
-                  e.stopPropagation();
-                  onNavigateToChart?.(finding.source!);
-                }}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-500/10 text-[0.625rem] text-blue-400 rounded hover:bg-blue-500/20 transition-colors"
+                onClick={() => onNavigateToChart?.(finding.source!)}
+                className="relative z-10 inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-500/10 text-[0.625rem] text-blue-400 rounded hover:bg-blue-500/20 transition-colors"
                 title={`Go to ${finding.source.chart} chart`}
               >
                 {finding.source.chart === 'ichart' && <Activity size={9} />}
@@ -227,7 +229,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
               <span className="text-[0.625rem] text-content-muted italic">No filters</span>
             )}
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="relative z-10 flex items-center gap-1 flex-shrink-0">
             <FindingStatusBadge
               status={status}
               onStatusChange={onSetStatus ? s => onSetStatus(finding.id, s) : undefined}
@@ -257,7 +259,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
             <span>{Math.round(context.cumulativeScope)}% in focus</span>
           )}
         </div>
-      </button>
+      </div>
 
       {/* Note + actions */}
       <div className="px-3 pb-2.5">

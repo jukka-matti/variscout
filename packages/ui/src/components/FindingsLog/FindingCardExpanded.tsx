@@ -67,7 +67,9 @@ export const HypothesisSection: React.FC<HypothesisSectionProps> = ({
         <div className="mt-1">
           {hypothesis ? (
             <div className="text-[0.6875rem] space-y-1" onClick={e => e.stopPropagation()}>
-              <p className="text-content-secondary italic">&ldquo;{hypothesis.text}&rdquo;</p>
+              <span className="block text-content-secondary italic">
+                &ldquo;{hypothesis.text}&rdquo;
+              </span>
               <div className="flex items-center gap-2 text-[0.625rem]">
                 <span
                   className={HYPOTHESIS_STATUS_COLORS[hypothesis.status] ?? 'text-content-muted'}

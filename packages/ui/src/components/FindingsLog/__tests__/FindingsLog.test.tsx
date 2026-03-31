@@ -96,8 +96,8 @@ describe('FindingsLog', () => {
 
     render(<FindingsLog {...defaultProps} findings={findings} onRestoreFinding={onRestore} />);
 
-    // Find the restore button (the card area that triggers restore)
-    const restoreBtn = screen.getByRole('button', { name: /restore/i });
+    // Find the restore button (primary action with ::after overlay)
+    const restoreBtn = screen.getByRole('button', { name: /restore finding/i });
     fireEvent.click(restoreBtn);
     expect(onRestore).toHaveBeenCalledWith('f-42');
   });
