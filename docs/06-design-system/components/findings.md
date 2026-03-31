@@ -68,6 +68,10 @@ interface FindingCardProps {
 }
 ```
 
+#### Accessible Card Pattern
+
+FindingCard follows the [Fluent UI focusMode="off" pattern](../../patterns/interactions.md#clickable-cards-with-actions): the card container is a non-interactive `<div>`, the primary "restore filters" action uses a `::after` pseudo-element for full-card click area, and secondary actions (chart source navigation, status controls) are independently focusable buttons above the overlay.
+
 ### Progressive Disclosure
 
 Sections appear based on the finding's status:

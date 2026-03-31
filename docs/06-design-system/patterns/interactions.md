@@ -120,6 +120,45 @@ Native HTML5 drag-and-drop (no library dependency).
 
 ---
 
+## 7. Clickable Cards with Actions
+
+Following [Microsoft Fluent UI's card accessibility pattern](https://fluent2.microsoft.design/components/web/react/core/card/usage), cards with multiple interactive elements use the `focusMode="off"` approach:
+
+**Structure:**
+
+- **Card container**: non-interactive `<div>` (no click handler on wrapper)
+- **Primary action**: `<button>` inside the card with `::after` pseudo-element covering the card area for click convenience
+- **Secondary actions**: independent `<button>` elements with `position: relative; z-index: 1` above the overlay
+- **Keyboard**: Tab navigates between individual buttons naturally
+
+**Why not wrap the card in `<button>`:**
+
+- Nested `<button>` elements violate HTML spec
+- Screen readers announce the entire card text as one label
+- Keyboard navigation breaks (can't Tab to individual actions)
+- `e.stopPropagation()` hacks are fragile
+
+**CSS pattern for click area expansion:**
+
+```css
+.card {
+  position: relative;
+}
+.card .primary-action::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.card .secondary-action {
+  position: relative;
+  z-index: 1;
+}
+```
+
+**Reference:** [Fluent UI Card focusMode](https://fluent2.microsoft.design/components/web/react/core/card/usage), [Adrian Roselli: Block Links, Cards, Clickable Regions](https://adrianroselli.com/2020/02/block-links-cards-clickable-regions-etc.html)
+
+---
+
 ## Cross-Cutting Conventions
 
 | Convention        | Pattern                                                       | Where Used                      |
