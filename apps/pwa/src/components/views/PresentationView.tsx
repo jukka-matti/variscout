@@ -17,7 +17,6 @@ export interface PresentationViewProps {
   stats: StatsResult | null;
   specs: SpecLimits;
   filteredData: DataRow[];
-  factorVariations: Map<string, number>;
   showParetoComparison: boolean;
   onToggleParetoComparison: () => void;
   paretoAggregation?: 'count' | 'value';
@@ -39,7 +38,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({
   stats,
   specs,
   filteredData,
-  factorVariations,
   showParetoComparison,
   onToggleParetoComparison,
   paretoAggregation = 'count',
@@ -55,11 +53,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
     chartTitles={chartTitles}
     onChartTitleChange={onChartTitleChange}
     renderIChart={() => <IChart onSpecClick={onSpecClick} />}
-    renderBoxplot={() =>
-      boxplotFactor ? (
-        <Boxplot factor={boxplotFactor} variationPct={factorVariations.get(boxplotFactor)} />
-      ) : null
-    }
+    renderBoxplot={() => (boxplotFactor ? <Boxplot factor={boxplotFactor} /> : null)}
     renderPareto={() =>
       paretoFactor ? (
         <ParetoChart

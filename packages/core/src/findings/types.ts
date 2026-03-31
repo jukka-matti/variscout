@@ -336,8 +336,15 @@ export interface Hypothesis {
   manualNote?: string;
   /** Improvement ideas for supported/partial hypotheses */
   ideas?: ImprovementIdea[];
-  /** Role in root cause analysis — 'primary' (the main cause) or 'contributing' (secondary factor) */
-  causeRole?: 'primary' | 'contributing';
+  /** Role in investigation conclusion — multiple 'suspected-cause' allowed per tree */
+  causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
+  /** Source of this question: how it was generated */
+  questionSource?: 'factor-intel' | 'heuristic' | 'coscout' | 'analyst';
+  /** Statistical evidence for auto-answered questions */
+  evidence?: {
+    rSquaredAdj?: number;
+    etaSquared?: number;
+  };
 }
 
 // ============================================================================
@@ -469,6 +476,8 @@ export interface Finding {
   benchmarkStats?: BenchmarkStats;
   /** Explicit scope override: true=forced in, false=forced out, undefined=auto from status */
   scoped?: boolean;
+  /** Whether this finding's text annotation should be visible on the chart. Default: undefined (shown for backward compat). */
+  showOnChart?: boolean;
 }
 
 // ============================================================================

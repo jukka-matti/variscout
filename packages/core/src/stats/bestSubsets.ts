@@ -252,6 +252,95 @@ export function computeBestSubsets(
  * existing getEtaSquared() function already computes per-factor.
  * Best subsets extends this to factor *combinations*.
  */
+// ============================================================================
+// Question generation (Layer 1 → investigation questions)
+// ============================================================================
+
+/**
+ * A generated investigation question from Factor Intelligence analysis.
+ */
+export interface GeneratedQuestion {
+  /** Question text, e.g., "Does Shift explain variation?" */
+  text: string;
+  /** Factor(s) this question is about */
+  factors: string[];
+  /** R²adj evidence for ranking */
+  rSquaredAdj: number;
+  /** Whether this question is auto-answered (R²adj below threshold) */
+  autoAnswered: boolean;
+  /** Auto-answer status if applicable */
+  autoStatus?: 'ruled-out';
+  /** Question source */
+  source: 'factor-intel';
+  /** Question type */
+  type: 'single-factor' | 'combination' | 'main-effect' | 'interaction';
+}
+
+/** Maximum number of multi-factor combination questions to generate */
+const MAX_COMBINATION_QUESTIONS = 5;
+
+/**
+ * Generate investigation questions from best subsets ranking.
+ * Each factor/combination becomes a question, ranked by R²adj.
+ * Factors with R²adj < threshold are auto-answered as 'ruled-out'.
+ */
+export function generateQuestionsFromRanking(
+  result: BestSubsetsResult,
+  options?: { autoRuleOutThreshold?: number }
+): GeneratedQuestion[] {
+  const threshold = options?.autoRuleOutThreshold ?? 0.05;
+  const questions: GeneratedQuestion[] = [];
+
+  // Separate single-factor and multi-factor subsets
+  const singles: BestSubsetResult[] = [];
+  const combos: BestSubsetResult[] = [];
+
+  for (const subset of result.subsets) {
+    // Skip subsets with R²adj <= 0
+    if (subset.rSquaredAdj <= 0) continue;
+
+    if (subset.factorCount === 1) {
+      singles.push(subset);
+    } else {
+      combos.push(subset);
+    }
+  }
+
+  // Generate all single-factor questions
+  for (const subset of singles) {
+    const isRuledOut = subset.rSquaredAdj < threshold;
+    questions.push({
+      text: `Does ${subset.factors[0]} explain variation?`,
+      factors: subset.factors,
+      rSquaredAdj: subset.rSquaredAdj,
+      autoAnswered: isRuledOut,
+      ...(isRuledOut ? { autoStatus: 'ruled-out' as const } : {}),
+      source: 'factor-intel',
+      type: 'single-factor',
+    });
+  }
+
+  // Generate top N multi-factor combination questions
+  for (const subset of combos.slice(0, MAX_COMBINATION_QUESTIONS)) {
+    const isRuledOut = subset.rSquaredAdj < threshold;
+    const factorList = subset.factors.join(' + ');
+    questions.push({
+      text: `Does ${factorList} together explain more variation?`,
+      factors: subset.factors,
+      rSquaredAdj: subset.rSquaredAdj,
+      autoAnswered: isRuledOut,
+      ...(isRuledOut ? { autoStatus: 'ruled-out' as const } : {}),
+      source: 'factor-intel',
+      type: 'combination',
+    });
+  }
+
+  // Sort by R²adj descending
+  questions.sort((a, b) => b.rSquaredAdj - a.rSquaredAdj);
+
+  return questions;
+}
+
 export function getBestSingleFactor(
   data: DataRow[],
   outcome: string,

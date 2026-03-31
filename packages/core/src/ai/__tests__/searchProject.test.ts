@@ -331,14 +331,14 @@ describe('searchProjectArtifacts — result shape', () => {
       status: 'supported',
       factor: 'Die',
       linkedFindingIds: ['f1', 'f2'],
-      causeRole: 'primary',
+      causeRole: 'suspected-cause',
     });
     const results = searchProjectArtifacts({ query: 'worn die', findings: [], hypotheses: [h] });
     expect(results).toHaveLength(1);
     const r = results[0];
     expect(r.factor).toBe('Die');
     expect(r.linkedFindingCount).toBe(2);
-    expect(r.causeRole).toBe('primary');
+    expect(r.causeRole).toBe('suspected-cause');
   });
 
   it('idea result includes parentHypothesisText and timeframe', () => {

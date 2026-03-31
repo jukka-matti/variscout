@@ -5,6 +5,7 @@ import {
   type AnovaResult,
   type Finding,
   type FindingProjection,
+  type GeneratedQuestion,
   type Hypothesis,
   type HypothesisStatus,
   type HypothesisValidationType,
@@ -113,8 +114,27 @@ export interface UseHypothesesReturn {
   setIdeaProjection: (hypothesisId: string, ideaId: string, projection: FindingProjection) => void;
   /** Toggle the selected flag on an idea */
   selectIdea: (hypothesisId: string, ideaId: string, selected: boolean) => void;
-  /** Set cause role on a hypothesis (enforces single primary per root tree) */
-  setCauseRole: (hypothesisId: string, role: 'primary' | 'contributing' | undefined) => void;
+  /** Set cause role on a hypothesis (multiple suspected-cause allowed per tree) */
+  setCauseRole: (
+    hypothesisId: string,
+    role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined
+  ) => void;
+  // --- Question Lifecycle ---
+  /** Generate initial questions from Factor Intelligence ranking + heuristic context */
+  generateInitialQuestions: (
+    generatedQuestions: GeneratedQuestion[],
+    issueStatement?: string
+  ) => Hypothesis[];
+  /** Mark a question as answered by linking it to a finding */
+  answerQuestion: (
+    questionId: string,
+    findingId: string,
+    answer: 'supported' | 'contradicted' | 'partial'
+  ) => void;
+  /** Currently focused question (last clicked in checklist) */
+  focusedQuestionId: string | null;
+  /** Set the focused question */
+  setFocusedQuestion: (id: string | null) => void;
 }
 
 /** Eta-squared thresholds for auto-validation */
@@ -131,6 +151,12 @@ function computeStatus(
 ): HypothesisStatus {
   // Non-data validation types keep their manually set status
   if (hypothesis.validationType && hypothesis.validationType !== 'data') {
+    return hypothesis.status;
+  }
+
+  // Question-sourced hypotheses that already have a non-untested status
+  // (auto-ruled-out or manually answered) keep their status
+  if (hypothesis.questionSource && hypothesis.status !== 'untested') {
     return hypothesis.status;
   }
 
@@ -186,6 +212,7 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
   const { initialHypotheses, onHypothesesChange, anovaByFactor } = options;
 
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>(initialHypotheses ?? []);
+  const [focusedQuestionId, setFocusedQuestion] = useState<string | null>(null);
 
   // Auto-validate statuses when ANOVA changes (data-validated only)
   // Then propagate children statuses upward to parents (bottom-up).
@@ -570,45 +597,60 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
   );
 
   const setCauseRole = useCallback(
-    (hypothesisId: string, role: 'primary' | 'contributing' | undefined) => {
+    (hypothesisId: string, role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined) => {
       update(prev => {
-        // Find the root tree for this hypothesis
-        const target = prev.find(h => h.id === hypothesisId);
-        if (!target) return prev;
-
-        // Walk up to find the root
-        let rootId = target.id;
-        let current: Hypothesis | undefined = target;
-        while (current?.parentId) {
-          rootId = current.parentId;
-          current = prev.find(h => h.id === current!.parentId);
-        }
-
-        // Collect all IDs in this root tree
-        const treeIds = new Set<string>([rootId]);
-        let changed = true;
-        while (changed) {
-          changed = false;
-          for (const h of prev) {
-            if (h.parentId && treeIds.has(h.parentId) && !treeIds.has(h.id)) {
-              treeIds.add(h.id);
-              changed = true;
-            }
-          }
-        }
-
         const now = new Date().toISOString();
         return prev.map(h => {
           if (h.id === hypothesisId) {
             return { ...h, causeRole: role, updatedAt: now };
           }
-          // When setting primary, clear any other primary in the same tree
-          if (role === 'primary' && treeIds.has(h.id) && h.causeRole === 'primary') {
-            return { ...h, causeRole: undefined, updatedAt: now };
-          }
           return h;
         });
       });
+    },
+    [update]
+  );
+
+  // --- Question Lifecycle ---
+
+  const generateInitialQuestions = useCallback(
+    (generatedQuestions: GeneratedQuestion[], _issueStatement?: string): Hypothesis[] => {
+      const created: Hypothesis[] = [];
+      for (const q of generatedQuestions) {
+        const h = createHypothesis(q.text, q.factors.length === 1 ? q.factors[0] : undefined);
+        // Enrich with question-specific fields
+        const enriched: Hypothesis = {
+          ...h,
+          questionSource: q.source,
+          evidence: { rSquaredAdj: q.rSquaredAdj },
+          status: q.autoAnswered ? 'contradicted' : 'untested',
+        };
+        created.push(enriched);
+      }
+      if (created.length > 0) {
+        update(prev => [...prev, ...created]);
+      }
+      return created;
+    },
+    [update]
+  );
+
+  const answerQuestion = useCallback(
+    (questionId: string, findingId: string, answer: 'supported' | 'contradicted' | 'partial') => {
+      update(prev =>
+        prev.map(h => {
+          if (h.id !== questionId) return h;
+          const alreadyLinked = h.linkedFindingIds.includes(findingId);
+          return {
+            ...h,
+            status: answer,
+            linkedFindingIds: alreadyLinked
+              ? h.linkedFindingIds
+              : [...h.linkedFindingIds, findingId],
+            updatedAt: new Date().toISOString(),
+          };
+        })
+      );
     },
     [update]
   );
@@ -638,5 +680,9 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     setIdeaProjection,
     selectIdea,
     setCauseRole,
+    generateInitialQuestions,
+    answerQuestion,
+    focusedQuestionId,
+    setFocusedQuestion,
   };
 }

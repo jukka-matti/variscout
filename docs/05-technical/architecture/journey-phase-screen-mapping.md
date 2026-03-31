@@ -46,7 +46,7 @@ Store actions: `panelsStore.showDashboard()` / `panelsStore.showEditor()`. See [
 | ManualEntry   | `ManualEntryBase`, `ManualEntrySetupBase`              | All  | Full-screen overlay                         |
 | ColumnMapping | `ColumnMapping` column cards, type badges, spec editor | All  | Azure adds Analysis Brief via `BriefHeader` |
 
-**Entry scenario affects FRAME:** "Problem to Solve" fills problemStatement + targetMetric in Azure Brief. "Routine Check" skips straight to data.
+**Entry scenario affects FRAME:** "Problem to Solve" fills issueStatement (analyst's input; AI-derived problemStatement is the output) + targetMetric in Azure Brief. "Routine Check" skips straight to data.
 
 ### SCOUT (data loaded, exploring patterns)
 

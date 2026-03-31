@@ -758,7 +758,7 @@ export const Editor: React.FC<EditorProps> = ({
       if (newCategories) setCategories(newCategories);
       if (brief) {
         const updatedContext = { ...processContext };
-        if (brief.problemStatement) updatedContext.problemStatement = brief.problemStatement;
+        if (brief.issueStatement) updatedContext.issueStatement = brief.issueStatement;
         if (brief.target) {
           updatedContext.targetMetric = brief.target.metric;
           updatedContext.targetValue = brief.target.value;
@@ -910,7 +910,7 @@ export const Editor: React.FC<EditorProps> = ({
         hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
         onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
         showBrief={true}
-        initialProblemStatement={processContext?.problemStatement}
+        initialIssueStatement={processContext?.issueStatement}
         suggestedStack={dataFlow.suggestedStack}
         onStackConfigChange={dataFlow.handleStackConfigChange}
         rowLimit={250000}
@@ -1163,7 +1163,7 @@ export const Editor: React.FC<EditorProps> = ({
             hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
             onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
             showBrief={true}
-            initialProblemStatement={processContext?.problemStatement}
+            initialIssueStatement={processContext?.issueStatement}
             suggestedStack={dataFlow.suggestedStack}
             rowLimit={250000}
           />

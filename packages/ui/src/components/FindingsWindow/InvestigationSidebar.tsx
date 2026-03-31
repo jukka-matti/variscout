@@ -3,6 +3,8 @@ import { Copy, Check, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import type { Hypothesis, InvestigationPhase } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
+import { QuestionChecklist } from './QuestionChecklist';
+import { InvestigationConclusion } from './InvestigationConclusion';
 
 export interface InvestigationSidebarProps {
   phase?: InvestigationPhase;
@@ -13,6 +15,24 @@ export interface InvestigationSidebarProps {
   onToggle: () => void;
   /** When true and phase is 'improving', shows a verification checklist */
   hasStagedData?: boolean;
+  /** Factor Intelligence questions (Hypothesis objects with questionSource set) */
+  questions?: Hypothesis[];
+  /** Current issue statement text */
+  issueStatement?: string;
+  /** Callback when issue statement is edited */
+  onIssueStatementChange?: (text: string) => void;
+  /** Callback when a question is clicked — should switch dashboard to show evidence */
+  onQuestionClick?: (question: Hypothesis) => void;
+  /** CoScout-suggested sharpened issue statement */
+  suggestedIssueStatement?: string;
+  /** Callback when user accepts the suggested sharpening */
+  onAcceptSuggestion?: () => void;
+  /** Callback when user dismisses the suggestion */
+  onDismissSuggestion?: () => void;
+  /** Formulated problem statement */
+  problemStatement?: string;
+  /** Whether problem statement is complete */
+  isProblemStatementComplete?: boolean;
 }
 
 const phaseDescriptionKeys: Record<string, keyof import('@variscout/core').MessageCatalog> = {
@@ -43,6 +63,15 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
   collapsed,
   onToggle,
   hasStagedData,
+  questions,
+  issueStatement,
+  onIssueStatementChange,
+  onQuestionClick,
+  suggestedIssueStatement,
+  onAcceptSuggestion,
+  onDismissSuggestion,
+  problemStatement,
+  isProblemStatementComplete,
 }) => {
   const { t } = useTranslation();
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -61,6 +90,27 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
       .filter(([factor]) => !coveredFactors.has(factor))
       .map(([factor, role]) => ({ factor, role }));
   }, [factorRoles, hypotheses]);
+
+  // Compute conclusion data from questions (must be before early return)
+  const suspectedCauses = React.useMemo(
+    () => (questions ?? []).filter(q => q.causeRole === 'suspected-cause'),
+    [questions]
+  );
+  const ruledOut = React.useMemo(
+    () =>
+      (questions ?? []).filter(
+        q =>
+          q.causeRole === 'ruled-out' ||
+          (q.status === 'contradicted' && q.questionSource === 'factor-intel')
+      ),
+    [questions]
+  );
+  const contributing = React.useMemo(
+    () => (questions ?? []).filter(q => q.causeRole === 'contributing'),
+    [questions]
+  );
+  const hasConclusionData = suspectedCauses.length > 0 || ruledOut.length > 0;
+  const hasQuestions = questions && questions.length > 0;
 
   // Toggle button (always visible)
   const toggleButton = (
@@ -86,6 +136,8 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
   const hasContent =
     phase ||
     uncoveredRoles.length > 0 ||
+    hasQuestions ||
+    hasConclusionData ||
     (suggestedQuestions && suggestedQuestions.length > 0) ||
     (phase === 'improving' && hasStagedData);
 
@@ -155,8 +207,34 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
           </div>
         )}
 
-        {/* Suggested questions */}
-        {suggestedQuestions && suggestedQuestions.length > 0 && (
+        {/* Factor Intelligence question checklist */}
+        {hasQuestions && (
+          <QuestionChecklist
+            questions={questions!}
+            issueStatement={issueStatement}
+            onIssueStatementChange={onIssueStatementChange}
+            onQuestionClick={onQuestionClick}
+            suggestedIssueStatement={suggestedIssueStatement}
+            onAcceptSuggestion={onAcceptSuggestion}
+            onDismissSuggestion={onDismissSuggestion}
+            problemStatement={problemStatement}
+            isProblemStatementComplete={isProblemStatementComplete}
+          />
+        )}
+
+        {/* Investigation conclusions (suspected causes, ruled out) */}
+        {hasConclusionData && (
+          <InvestigationConclusion
+            suspectedCauses={suspectedCauses}
+            ruledOut={ruledOut}
+            contributing={contributing}
+            problemStatement={problemStatement}
+            hasConclusions={hasConclusionData}
+          />
+        )}
+
+        {/* Suggested questions — fallback when no Factor Intelligence questions */}
+        {!hasQuestions && suggestedQuestions && suggestedQuestions.length > 0 && (
           <div>
             <div className="text-[0.625rem] uppercase tracking-wider text-content-muted font-medium mb-1.5">
               Ask CoScout

@@ -25,7 +25,7 @@ export interface ReportImprovementSummaryProps {
   hypotheses: Array<{
     id: string;
     text: string;
-    causeRole?: 'primary' | 'contributing';
+    causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
     ideas: ImprovementIdea[];
   }>;
   /** Show only the summary bar (for summary audience mode) */
@@ -233,9 +233,11 @@ export const ReportImprovementSummary: React.FC<ReportImprovementSummaryProps> =
               {h.causeRole && (
                 <span
                   className={`px-1.5 py-0.5 rounded text-[0.625rem] font-medium ${
-                    h.causeRole === 'primary'
+                    h.causeRole === 'suspected-cause'
                       ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                      : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+                      : h.causeRole === 'ruled-out'
+                        ? 'bg-slate-100 dark:bg-slate-900/30 text-slate-700 dark:text-slate-300'
+                        : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                   }`}
                 >
                   {h.causeRole}

@@ -109,6 +109,10 @@ export {
   type FindingsAction,
   InvestigationSidebar,
   type InvestigationSidebarProps,
+  QuestionChecklist,
+  type QuestionChecklistProps,
+  InvestigationConclusion,
+  type InvestigationConclusionProps,
 } from './components/FindingsWindow';
 
 export {
@@ -358,6 +362,8 @@ export {
   type ReportPerformanceKPIGridProps,
   ReportActivityBreakdown,
   type ReportActivityBreakdownProps,
+  ReportInvestigationSummary,
+  type ReportInvestigationSummaryProps,
 } from './components/ReportView';
 
 // Services

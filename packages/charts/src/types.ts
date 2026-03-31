@@ -133,16 +133,6 @@ export interface BoxplotProps extends BaseChartProps {
   onBoxClick?: (key: string) => void;
   /** Sample size for branding bar */
   sampleSize?: number;
-  /** Max category contribution % for this factor (for drill suggestion indicator) */
-  variationPct?: number;
-  /** Threshold for "high variation" highlight (default: 50) */
-  variationThreshold?: number;
-  /** Category contributions - Map from category key to % of total variation */
-  categoryContributions?: Map<string | number, number>;
-  /** Show contribution labels below boxes (default: false) */
-  showContributionLabels?: boolean;
-  /** Show contribution bars below boxes (default: true when categoryContributions provided) */
-  showContributionBars?: boolean;
   /** Callback when Y-axis label area is clicked (for editing) */
   onYAxisClick?: () => void;
   /** Callback when X-axis label area is clicked (for editing) */

@@ -97,10 +97,10 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
     parts.push('');
   }
 
-  if (processContext?.problemStatement) {
-    parts.push('## Problem Statement');
+  if (processContext?.issueStatement) {
+    parts.push('## Issue Statement');
     parts.push('');
-    parts.push(processContext.problemStatement);
+    parts.push(processContext.issueStatement);
     parts.push('');
   }
 

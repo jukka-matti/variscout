@@ -79,28 +79,53 @@ Progressive stratification converts a multidimensional variation problem into a 
 
 **The endpoint** is specific and actionable: "Operator Kim on Machine C during Night Shift accounts for 46% of all variation" — not a vague recommendation.
 
-### 3. Hypothesis Investigation
+### 3. Question-Driven Investigation
 
-Once variation drivers are identified through drill-down, the investigation moves into structured root cause exploration. VariScout uses a **diamond pattern**:
+Once variation drivers are identified through drill-down, the investigation moves into structured exploration. VariScout uses a **question-driven** approach grounded in Turtiainen's EDA Mental Model (2019) — where questions come first, and evidence answers them.
 
-| Phase          | Purpose                                       | Analyst Activity                                                                   |
-| -------------- | --------------------------------------------- | ---------------------------------------------------------------------------------- |
-| **Initial**    | Variation found, driver identified            | Pin finding; upfront hypothesis (from FRAME) or new observation becomes tree root  |
-| **Diverging**  | Generate possible causes                      | Add sub-hypotheses — break the broad cause into testable theories. The tree grows. |
-| **Validating** | Gather evidence                               | Test each theory — Data (ANOVA auto-validate), Gemba (go inspect), Expert input    |
-| **Converging** | Build understanding, identify suspected cause | Prune contradicted branches; promote supported hypothesis as suspected root cause  |
+#### Issue Statement vs. Problem Statement
 
-The diamond is a **structured learning** process — a disciplined way to build understanding of the cause through multiple evidence types. It is not pure hypothesis testing; the three validation types (data, Gemba, expert) reflect that understanding comes from statistical evidence, physical observation, and domain knowledge alike. The exit is confidence-based: the analyst has sufficient understanding of the cause to move to improvement.
+A critical distinction underpins the investigation flow:
+
+- **Issue Statement** (the input): A vague concern that initiates the investigation. Example: _"Fill weight on line 3 seems too variable."_ Watson (2019a) defines an issue as a concern arising from a gap between customer expectation and observation.
+- **Problem Statement** (the output): A precise declaration answering Watson's three questions: (1) What measure needs to change? (2) How should it change? (3) What is the scope? Example: _"Reduce fill weight variation on line 3, night shift, heads 5-8, from Cpk 0.62 to target Cpk 1.33."_
+
+The gap between the two is the entire EDA journey. Every question asked and answered in VariScout exists to close this gap.
+
+#### Question Generation
+
+Questions are generated from two complementary sources:
+
+1. **Factor Intelligence** (deterministic, always available) — R²adj ranking from Best Subsets analysis generates evidence-ranked questions automatically. Factors with R²adj < 5% are auto-answered as "ruled out" — negative learnings captured without analyst effort. Follow-up questions emerge as earlier questions are answered (Layer 2 main effects, Layer 3 interactions).
+
+2. **CoScout** (AI layer, Azure only) — generates additional questions from the issue statement text, upfront hypotheses in the Analysis Brief, factor role detection, and data patterns. These complement the statistical questions with contextual questions that the numbers alone cannot generate.
+
+#### The Diamond Pattern
+
+Investigation follows the same **diamond pattern** as before, reframed around questions:
+
+| Phase          | Purpose                                                 | Analyst Activity                                                                           |
+| -------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Initial**    | Variation found, questions generated                    | Factor Intelligence generates ranked questions; analyst reviews the question checklist     |
+| **Diverging**  | Explore possible causes                                 | Answer questions, spawn follow-up questions — the question tree grows                      |
+| **Validating** | Gather evidence                                         | Answer each question — Data (ANOVA auto-validate), Gemba (go inspect), Expert input        |
+| **Converging** | Build understanding, identify multiple suspected causes | Mark suspected causes (multiple allowed); formulate the Problem Statement from the answers |
+
+The diamond is a **structured learning** process — a disciplined way to build understanding through multiple evidence types. It is not pure hypothesis testing; the three validation types (data, Gemba, expert) reflect that understanding comes from statistical evidence, physical observation, and domain knowledge alike. The exit is when enough questions are answered to formulate a Problem Statement with suspected causes.
+
+**Multiple suspected causes** are the natural outcome of real investigations. When a process has multiple independent sources of variation, forcing a single root cause oversimplifies the problem. Each suspected cause becomes an improvement target in the IMPROVE phase. Ruled-out factors are preserved as negative learnings (essential for audit trails and preventing re-investigation of dead ends).
 
 After the diamond converges, the investigation is complete. What follows — ideating improvements, selecting corrective actions, implementing, and verifying — belongs to the **IMPROVE** phase, which follows PDCA (Plan-Do-Check-Act). See [Analysis Journey Map § Phase 4: IMPROVE](../03-features/workflows/analysis-journey-map.md#phase-4-improve).
 
-**Three validation types** reflect that not every hypothesis can be tested with data:
+**Three validation types** reflect that not every question can be answered with data:
 
 | Validation | When to Use                                    | How It Works                                                                |
 | ---------- | ---------------------------------------------- | --------------------------------------------------------------------------- |
-| Data       | Hypothesis links to a factor in the dataset    | ANOVA η² auto-sets status (≥15% supported, <5% contradicted, 5–15% partial) |
+| Data       | Question links to a factor in the dataset      | ANOVA η² auto-sets status (≥15% supported, <5% contradicted, 5–15% partial) |
 | Gemba      | Requires physical inspection on the shop floor | Define task, inspect, record findings, set status manually                  |
 | Expert     | Requires domain knowledge beyond the data      | Consult expert, record assessment, set status manually                      |
+
+For the full methodology behind this approach, see [EDA Mental Model](eda-mental-model.md).
 
 ---
 
@@ -150,7 +175,7 @@ Each mode reuses the same chart infrastructure with different data pipelines and
 
 **Contribution, Not Causation.** ANOVA η² quantifies how much of the total variation a factor explains. It does not prove that factor causes the variation. Causation requires domain knowledge and further investigation.
 
-**Iterative Exploration.** Each analysis cycle reveals new questions. A finding triggers a sub-hypothesis, which may need new data or a Gemba visit. The loop continues until the solution space is bounded.
+**Iterative Exploration.** Each analysis cycle reveals new questions. A finding answers a question and may spawn follow-up questions, which may need new data or a Gemba visit. The loop continues until the solution space is bounded.
 
 **AI Augments, Never Replaces (Azure App only).** VariScout's statistical engine computes the conclusion. AI translates it into language and adds context — it does not generate competing statistics. The conclusion is reproducible and auditable. The PWA stays AI-free by design; the "guided frustration" pedagogy requires the analyst to do the thinking.
 
@@ -171,6 +196,7 @@ VariScout is **the first step** — finding where to focus before investing in d
 
 ## See Also
 
+- [EDA Mental Model](eda-mental-model.md) — Full question-driven methodology grounded in Turtiainen (2019)
 - [Philosophy](philosophy.md) — EDA mindset, guided frustration pedagogy, AI philosophy
 - [Four Lenses](four-lenses/index.md) — Detailed lens descriptions, system dynamics diagram
 - [Two Voices](two-voices/index.md) — Control limits vs spec limits, four scenarios

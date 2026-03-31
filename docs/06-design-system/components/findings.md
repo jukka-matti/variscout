@@ -554,6 +554,16 @@ Uses the same palette as HypothesisStatus (distinct from FindingStatus):
 
 ---
 
+### Question-Linked Findings
+
+When a finding is created while a question is focused in the investigation panel, it auto-links to that question (`hypothesisId` = focused question ID). The finding card shows the linked question text as a reference.
+
+**Auto-generated text:** Question-linked findings receive auto-generated initial text based on statistical evidence ("Shift: η²=34%, Night is worst"). This text is editable and can be enriched by CoScout when available.
+
+**Show on chart toggle:** A "Show on chart" toggle (eye icon) on the finding card controls chart annotation visibility. Default: hidden. When enabled, the finding's text appears as a draggable annotation box on the relevant chart via ChartAnnotationLayer.
+
+---
+
 ## "Ask CoScout About This" Action
 
 Context-aware entry point for AI assistance from investigation UI elements. Azure App only.

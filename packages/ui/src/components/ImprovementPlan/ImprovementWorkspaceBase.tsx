@@ -20,7 +20,7 @@ export interface ImprovementWorkspaceBaseProps {
   hypotheses: Array<{
     id: string;
     text: string;
-    causeRole?: 'primary' | 'contributing';
+    causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
     factor?: string;
     ideas: ImprovementIdea[];
     linkedFindingName?: string;

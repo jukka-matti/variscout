@@ -272,7 +272,6 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
               <Boxplot
                 factor={boxplotFactor}
                 onDrillDown={handleBoxplotDrillIntercept}
-                variationPct={factorVariations?.get(boxplotFactor)}
                 findings={findings?.filter(f => f.source?.chart === 'boxplot')}
                 onEditFinding={onEditFinding}
                 onDeleteFinding={onDeleteFinding}

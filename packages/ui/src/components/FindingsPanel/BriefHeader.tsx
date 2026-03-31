@@ -1,7 +1,7 @@
 /**
  * BriefHeader — Collapsible investigation brief header.
  *
- * Shows problem statement, target progress bar, and hypothesis summary rows.
+ * Shows issue statement, target progress bar, and hypothesis summary rows.
  * Used in the Investigation page (popout window evolution).
  */
 
@@ -12,7 +12,7 @@ import type { Hypothesis, ProcessContext } from '@variscout/core';
 import type { TargetMetric } from '@variscout/core';
 
 export interface BriefHeaderProps {
-  /** Process context with problem statement and target */
+  /** Process context with issue statement and target */
   processContext?: ProcessContext;
   /** All hypotheses for summary display */
   hypotheses?: Hypothesis[];
@@ -50,7 +50,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   const hasBrief = !!(
-    processContext?.problemStatement ||
+    processContext?.issueStatement ||
     processContext?.targetMetric ||
     hypotheses.length > 0
   );
@@ -135,7 +135,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
       >
         {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
         <span className="text-sm font-medium text-content truncate flex-1">
-          {processContext?.problemStatement || t('investigation.brief')}
+          {processContext?.issueStatement || t('investigation.brief')}
         </span>
         {hypotheses.length > 0 && (
           <span className="text-[0.625rem] text-content-muted">
@@ -149,11 +149,9 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
 
       {!collapsed && (
         <div className="px-4 pb-3 space-y-2" data-testid="brief-header-content">
-          {/* Problem statement */}
-          {processContext?.problemStatement && (
-            <p className="text-xs text-content-secondary italic">
-              {processContext.problemStatement}
-            </p>
+          {/* Issue statement */}
+          {processContext?.issueStatement && (
+            <p className="text-xs text-content-secondary italic">{processContext.issueStatement}</p>
           )}
 
           {/* Target progress bar */}

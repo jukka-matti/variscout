@@ -52,7 +52,11 @@ describe('investigationStore', () => {
     it('sets map of hypothesis display data', () => {
       const map = {
         h1: { text: 'Head 3 causes variation', status: 'testing', factor: 'Head', level: '3' },
-        h2: { text: 'Temperature drift', status: 'confirmed', causeRole: 'primary' as const },
+        h2: {
+          text: 'Temperature drift',
+          status: 'confirmed',
+          causeRole: 'suspected-cause' as const,
+        },
       };
       useInvestigationStore.getState().syncHypothesesMap(map as never);
       const result = useInvestigationStore.getState().hypothesesMap;

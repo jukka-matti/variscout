@@ -206,7 +206,7 @@ describe('buildAIContext', () => {
     const root = createHypothesis('Root cause', 'Machine');
     const child = createHypothesis('Sub cause', 'Shift', undefined, root.id, 'gemba');
     const ctx = buildAIContext({
-      process: { problemStatement: 'Cpk below target' },
+      process: { issueStatement: 'Cpk below target' },
       hypotheses: [root, child],
     });
     expect(ctx.investigation?.hypothesisTree).toHaveLength(1);
@@ -237,7 +237,7 @@ describe('buildAIContext', () => {
       },
     ];
     const ctx = buildAIContext({
-      process: { problemStatement: 'Test' },
+      process: { issueStatement: 'Test' },
       hypotheses: [root],
     });
     expect(ctx.investigation?.allHypotheses?.[0].ideas).toHaveLength(1);
@@ -358,7 +358,7 @@ describe('buildAIContext', () => {
 
   it('includes selectedFinding in investigation context', () => {
     const ctx = buildAIContext({
-      process: { problemStatement: 'Cpk below target' },
+      process: { issueStatement: 'Cpk below target' },
       selectedFinding: {
         text: 'Head 3 drift',
         hypothesis: 'Worn nozzle',
@@ -375,7 +375,7 @@ describe('buildAIContext', () => {
     const child = createHypothesis('Child', undefined, undefined, root.id);
     child.status = 'supported';
     const ctx = buildAIContext({
-      process: { problemStatement: 'Test' },
+      process: { issueStatement: 'Test' },
       hypotheses: [root, child],
     });
     expect(ctx.investigation?.phase).toBe('converging');

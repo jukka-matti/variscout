@@ -17,11 +17,9 @@ export interface FocusedChartViewProps {
   paretoFactor: string;
   factors: string[];
   filters: Record<string, (string | number)[]>;
-  factorVariations: Map<string, number>;
   showParetoComparison: boolean;
   anovaResult: AnovaResult | null;
   boxplotData?: BoxplotGroupData[];
-  boxplotCategoryContributions?: Map<string | number, number>;
   stats?: StatsResult | null;
   stagedStats?: StagedStatsResult | null;
   stageColumn?: string | null;
@@ -83,11 +81,9 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
     paretoFactor,
     factors,
     filters,
-    factorVariations,
     showParetoComparison,
     anovaResult,
     boxplotData,
-    boxplotCategoryContributions,
     stats,
     stagedStats,
     stageColumn,
@@ -180,10 +176,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
           boxplotData && boxplotData.length > 0
             ? () => (
                 <div className="mt-2 max-h-[200px] overflow-y-auto">
-                  <BoxplotStatsTable
-                    data={boxplotData}
-                    categoryContributions={boxplotCategoryContributions}
-                  />
+                  <BoxplotStatsTable data={boxplotData} />
                 </div>
               )
             : undefined,
@@ -192,8 +185,6 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
             <Boxplot
               factor={boxplotFactor}
               onDrillDown={onDrillDown}
-              variationPct={factorVariations.get(boxplotFactor)}
-              categoryContributions={boxplotCategoryContributions}
               highlightedCategories={boxplotHighlights}
               onContextMenu={onBoxplotContextMenu}
               findings={boxplotFindings}

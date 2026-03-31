@@ -8,39 +8,39 @@ journey-phase: investigate
 
 > State machine view of the investigation diamond. For the narrative walkthrough, see [Analysis Journey Map § INVESTIGATE](analysis-journey-map.md#phase-3-investigate). For tree UI interaction, see [Hypothesis Investigation](hypothesis-investigation.md).
 
-State diagrams for investigation diamond phases, Finding status transitions, and hypothesis validation — showing how CoScout adapts its behavior at each stage.
+State diagrams for investigation diamond phases, Finding status transitions, and question answering — showing how CoScout adapts its behavior at each stage.
 
 ## Overview
 
-The investigation diamond maps the INVESTIGATE phase lifecycle as a 4-phase pattern: Initial → Diverging → Validating → Converging. Each phase changes CoScout's behavior, UI presentation, and suggested questions. After the diamond closes (suspected root cause identified), the IMPROVE phase follows with PDCA (Plan-Do-Check-Act).
+The investigation diamond maps the INVESTIGATE phase lifecycle as a 4-phase pattern: Initial → Diverging → Validating → Converging. Each phase changes CoScout's behavior, UI presentation, and suggested questions. After the diamond closes (multiple suspected causes identified), the IMPROVE phase follows with PDCA (Plan-Do-Check-Act).
 
 The framework connects three moving parts:
 
 1. **Investigation diamond phases** — the analyst's cognitive stage in the investigation
 2. **Finding statuses** — the lifecycle of individual observations
-3. **Hypothesis validation** — the evidence-gathering sub-flow within Diverging/Validating
+3. **Question answering** — the evidence-gathering sub-flow within Diverging/Validating
 
 ## Investigation Diamond State Diagram
 
 ```mermaid
 stateDiagram-v2
     [*] --> Initial
-    Initial --> Diverging : First hypothesis created
-    Diverging --> Validating : Hypothesis selected for testing
-    Validating --> Diverging : Need more hypotheses
-    Validating --> Converging : Evidence supports/refutes
+    Initial --> Diverging : First question generated
+    Diverging --> Validating : Question selected for answering
+    Validating --> Diverging : Need more questions
+    Validating --> Converging : Evidence answers question
     Converging --> Diverging : Insufficient evidence, explore more
-    Converging --> [*] : Suspected cause identified — move to IMPROVE
+    Converging --> [*] : Suspected causes identified — move to IMPROVE
 
     state Initial {
-        [*] --> ScanningData
-        ScanningData --> PinningFindings
-        PinningFindings --> ScanningData
+        [*] --> ScanningPatterns
+        ScanningPatterns --> GeneratingQuestions
+        GeneratingQuestions --> ScanningPatterns
     }
 
     state Diverging {
-        [*] --> GeneratingHypotheses
-        GeneratingHypotheses --> AddingSubHypotheses
+        [*] --> ExploringQuestions
+        ExploringQuestions --> AddingFollowUpQuestions
     }
 
     state Validating {
@@ -52,7 +52,7 @@ stateDiagram-v2
     state Converging {
         [*] --> ReviewingEvidence
         ReviewingEvidence --> MarkingCauseRoles
-        MarkingCauseRoles --> IdentifyingSuspectedCause
+        MarkingCauseRoles --> SynthesizingSuspectedCauses
     }
 ```
 
@@ -60,12 +60,12 @@ stateDiagram-v2
 
 Each investigation diamond phase triggers distinct CoScout behavior and UI changes.
 
-| Phase          | Trigger In                   | CoScout Behavior                                                               | UI Changes                                                                          | Suggested Questions                                                  |
-| -------------- | ---------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| **Initial**    | Data loaded, scanning charts | Suggests patterns in data                                                      | Dashboard with Four Lenses                                                          | "What patterns do you see in the I-Chart?"                           |
-| **Diverging**  | First finding pinned         | Suggests possible hypotheses                                                   | Findings panel opens, hypothesis form                                               | "Could [factor] be driving this?"                                    |
-| **Validating** | Hypothesis selected          | Provides data evidence for/against                                             | Validation checklist, ANOVA highlights                                              | "eta-squared for [factor] is X% — significant?"                      |
-| **Converging** | Evidence collected           | Summarizes evidence, promotes suspected root cause, suggests causeRole marking | Finding cards show validation status, suspected cause section with causeRole badges | "Evidence points to [factor] as suspected cause — ready to improve?" |
+| Phase          | Trigger In                   | CoScout Behavior                                                                       | UI Changes                                                                       | Suggested Questions                                                  |
+| -------------- | ---------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Initial**    | Data loaded, scanning charts | Scan patterns + generate questions (Factor Intelligence ranking)                       | Dashboard with Four Lenses, question checklist                                   | "Which factors should we check first?"                               |
+| **Diverging**  | First question generated     | Encourage exploring open questions, suggest follow-ups                                 | Investigation panel opens, question checklist with status dots                   | "Does [factor] explain variation? (R²adj = X%)"                      |
+| **Validating** | Question selected            | Help interpret evidence for/against (eta-squared, R²adj)                               | Validation checklist, ANOVA highlights                                           | "eta-squared for [factor] is X% — does this answer the question?"    |
+| **Converging** | Evidence collected           | Synthesize multiple suspected causes into problem statement, suggest causeRole marking | Finding cards show answer status, suspected causes section with causeRole badges | "Evidence points to [factor] as suspected cause — ready to improve?" |
 
 > **Note:** For CoScout behavior during IMPROVE (suggesting corrective actions, monitoring Cpk), see [Analysis Journey Map § Phase 4](analysis-journey-map.md#phase-4-improve).
 
@@ -98,29 +98,29 @@ stateDiagram-v2
 | `improving`     | Teal        | Action planned, in progress           | Azure only   |
 | `resolved`      | Green       | Verification passed, closed           | Azure only   |
 
-## Hypothesis Validation Sub-flow
+## Question Answering Sub-flow
 
-Within the Validating phase, each hypothesis goes through an evidence-gathering loop with three validation paths.
+Within the Validating phase, each question goes through an evidence-gathering loop with three validation paths. Questions have statuses: `open` (not yet checked), `answered` (finding linked with evidence), `auto-answered` (Factor Intelligence determined the answer), and `ruled-out` (explicitly ruled out).
 
 ```mermaid
 flowchart TD
-    A[Hypothesis created] --> B{Choose validation path}
+    A[Question open] --> B{Choose validation path}
     B --> C[Data validation]
     B --> D[Gemba validation]
     B --> E[Expert validation]
     C --> F[Check ANOVA eta-squared, filter and compare]
     D --> G[Go to the process, observe]
     E --> H[Consult domain expert]
-    F --> I[Record evidence]
+    F --> I[Record evidence as Finding]
     G --> I
     H --> I
     I --> J{Evidence outcome}
-    J -->|Supports| K[Mark hypothesis supported]
-    J -->|Refutes| L[Mark hypothesis contradicted]
+    J -->|Answers yes| K[Mark question answered]
+    J -->|Answers no| L[Mark question ruled-out]
     J -->|Inconclusive| M[Gather more evidence]
     M --> B
     K --> O{Assign cause role?}
-    O -->|Primary| P[Set causeRole: primary]
+    O -->|Suspected cause| P[Set causeRole: suspected-cause]
     O -->|Contributing| Q[Set causeRole: contributing]
     O -->|Skip| N
     P --> N
@@ -136,6 +136,8 @@ flowchart TD
 | 0.06 - 0.14 | Moderate | Factor contributes, investigate further |
 | < 0.06      | Weak     | Factor unlikely to be root cause        |
 
+**Auto-answered questions:** Factor Intelligence auto-answers questions where R²adj < 5% as "ruled out" — these are negative learnings captured without analyst effort. Factors with R²adj > 5% generate follow-up questions (Layer 2-3).
+
 ## Hooks and Components
 
 Each investigation concept maps to a specific hook or component in the codebase.
@@ -143,7 +145,7 @@ Each investigation concept maps to a specific hook or component in the codebase.
 | Concept                       | Hook / Component                          | Package            |
 | ----------------------------- | ----------------------------------------- | ------------------ |
 | Finding CRUD                  | `useFindings`                             | `@variscout/hooks` |
-| Hypothesis CRUD               | `useHypotheses`                           | `@variscout/hooks` |
+| Question/Hypothesis CRUD      | `useHypotheses`                           | `@variscout/hooks` |
 | Investigation phase detection | `detectInvestigationPhase()`              | `@variscout/core`  |
 | CoScout phase context         | `getCoScoutPhase()`                       | `@variscout/core`  |
 | Finding cards                 | `FindingCard`                             | `@variscout/ui`    |

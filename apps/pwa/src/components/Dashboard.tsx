@@ -381,7 +381,6 @@ const Dashboard = ({
         stats={stats}
         specs={specs}
         filteredData={filteredData}
-        factorVariations={factorVariations}
         showParetoComparison={showParetoComparison}
         onToggleParetoComparison={() => toggleParetoComparison()}
         paretoAggregation={paretoAggregation}
@@ -408,7 +407,6 @@ const Dashboard = ({
         specs={specs}
         filteredData={filteredData}
         filters={filters}
-        factorVariations={factorVariations}
         showParetoComparison={showParetoComparison}
         onToggleParetoComparison={() => toggleParetoComparison()}
         paretoAggregation={paretoAggregation}
@@ -541,7 +539,6 @@ const Dashboard = ({
         filters={filters}
         showFilterContext={displayOptions.showFilterContext !== false}
         showViolin={displayOptions.showViolin ?? false}
-        showContributionLabels={displayOptions.showContributionLabels ?? false}
         boxplotSortBy={displayOptions.boxplotSortBy ?? 'name'}
         boxplotSortDirection={displayOptions.boxplotSortDirection ?? 'asc'}
         onDisplayOptionChange={(key, value) =>
@@ -686,8 +683,6 @@ const Dashboard = ({
               <Boxplot
                 factor={boxplotFactor}
                 onDrillDown={handleDrillDown}
-                variationPct={factorVariations.get(boxplotFactor)}
-                categoryContributions={categoryContributions?.get(boxplotFactor)}
                 showBranding={false}
                 highlightedCategories={boxplotHighlights}
                 onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
@@ -769,11 +764,9 @@ const Dashboard = ({
               paretoFactor={paretoFactor}
               factors={factors}
               filters={filters}
-              factorVariations={factorVariations}
               showParetoComparison={showParetoComparison}
               anovaResult={anovaResult}
               boxplotData={boxplotData}
-              boxplotCategoryContributions={categoryContributions?.get(boxplotFactor)}
               stats={stats}
               stagedStats={stagedStats}
               stageColumn={stageColumn}

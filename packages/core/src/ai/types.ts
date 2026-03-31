@@ -34,8 +34,17 @@ export interface ProcessContext {
   product?: string;
   /** Measurement being analyzed */
   measurement?: string;
-  /** Problem statement: why this analysis is being done (max 500 chars) */
+  /** Issue statement: the initial concern being investigated (max 500 chars) */
+  issueStatement?: string;
+  /** Problem statement: precise output answering Watson's 3 questions (measure, direction, scope) */
   problemStatement?: string;
+  /** Suspected causes from question-driven investigation, ranked by evidence */
+  suspectedCauses?: Array<{
+    factor: string;
+    level?: string;
+    evidence: number;
+    role: 'suspected-cause' | 'contributing' | 'ruled-out';
+  }>;
   /** Target metric for improvement tracking */
   targetMetric?: TargetMetric;
   /** Target value for the chosen metric */
@@ -96,7 +105,7 @@ export interface AIContext {
   };
   /** Investigation context (for investigation page CoScout) */
   investigation?: {
-    problemStatement?: string;
+    issueStatement?: string;
     targetMetric?: TargetMetric;
     targetValue?: number;
     currentValue?: number;
@@ -118,6 +127,10 @@ export interface AIContext {
       text: string;
       status: string;
       contribution?: number;
+      /** Source of this question/hypothesis */
+      questionSource?: 'factor-intel' | 'heuristic' | 'coscout' | 'analyst';
+      /** Cause role from question-driven investigation */
+      causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
       ideas?: Array<{
         text: string;
         selected?: boolean;
@@ -149,11 +162,15 @@ export interface AIContext {
     phase?: 'initial' | 'diverging' | 'validating' | 'converging' | 'improving';
     /** Investigation categories for completeness prompting */
     categories?: Array<{ name: string; factorNames: string[] }>;
-    /** Suspected root cause (primary + contributing hypotheses with causeRole) */
-    suspectedCause?: {
-      primary?: { text: string; factor?: string; status: string };
-      contributing: Array<{ text: string; factor?: string; status: string }>;
-    };
+    /** Suspected causes from hypotheses with causeRole (supports multiple) */
+    suspectedCauses?: Array<{
+      id: string;
+      text: string;
+      causeRole: 'suspected-cause' | 'contributing' | 'ruled-out';
+      factor?: string;
+      status: string;
+      evidence?: { rSquaredAdj?: number; etaSquared?: number };
+    }>;
   };
   /** Focus context from "Ask CoScout about this" actions */
   focusContext?: {

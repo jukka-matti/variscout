@@ -46,10 +46,10 @@ describe('ReportHypothesisSummary', () => {
 
   it('renders cause role badge', () => {
     const hypotheses: Hypothesis[] = [
-      makeHypothesis({ id: 'h1', text: 'Primary cause', causeRole: 'primary' }),
+      makeHypothesis({ id: 'h1', text: 'Suspected cause', causeRole: 'suspected-cause' }),
     ];
     render(<ReportHypothesisSummary hypotheses={hypotheses} />);
-    expect(screen.getByText('primary')).toBeDefined();
+    expect(screen.getByText('suspected-cause')).toBeDefined();
   });
 
   it('renders factor link', () => {

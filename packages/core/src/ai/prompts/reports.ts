@@ -36,8 +36,8 @@ export function buildReportPrompt(
   if (context.process?.description) {
     parts.push(`## Process\n${context.process.description}`);
   }
-  if (context.process?.problemStatement) {
-    parts.push(`## Problem Statement\n${context.process.problemStatement}`);
+  if (context.process?.issueStatement) {
+    parts.push(`## Issue Statement\n${context.process.issueStatement}`);
   }
 
   // Stats

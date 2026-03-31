@@ -42,19 +42,6 @@ export const Default: Story = {
   },
 };
 
-export const WithContributions: Story = {
-  args: {
-    data: mockData,
-    categoryContributions: new Map<string | number, number>([
-      ['Monday', 12],
-      ['Tuesday', 38],
-      ['Wednesday', 8],
-      ['Thursday', 32],
-      ['Friday', 10],
-    ]),
-  },
-};
-
 export const Compact: Story = {
   args: {
     data: mockData,

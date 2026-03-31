@@ -14,7 +14,7 @@ export interface IdeaGroupCardProps {
   hypothesis: {
     id: string;
     text: string;
-    causeRole?: 'primary' | 'contributing';
+    causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
     factor?: string;
   };
   ideas: ImprovementIdea[];
@@ -306,7 +306,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
       <div className="px-4 py-3 border-b border-edge">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-medium text-content">{hypothesis.text}</span>
-          {hypothesis.causeRole === 'primary' && (
+          {hypothesis.causeRole === 'suspected-cause' && (
             <span className="inline-flex items-center rounded-full bg-red-500/15 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-red-500">
               {t('hypothesis.primary')}
             </span>

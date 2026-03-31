@@ -170,7 +170,7 @@ export const fi: MessageCatalog = {
   'data.selectFactors': 'Valitse tekijät',
   'data.analysisSection': 'Analyysikuvaus',
   'data.optional': 'valinnainen',
-  'data.problemPlaceholder': 'Kuvaile tutkittava ongelma…',
+  'data.issueStatementPlaceholder': 'Kuvaile mitä haluat tutkia…',
   'data.outcomeDesc': 'Mittaus, jota haluat analysoida',
   'data.factorsDesc': 'Kategoriat, jotka voivat vaikuttaa tulokseen',
   'data.alreadyOutcome': 'Jo valittu tulosmuuttujaksi',

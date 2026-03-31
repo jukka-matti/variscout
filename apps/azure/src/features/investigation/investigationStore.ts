@@ -8,7 +8,7 @@ export interface HypothesisDisplayData {
   status: string;
   factor?: string;
   level?: string;
-  causeRole?: 'primary' | 'contributing';
+  causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
 }
 
 export interface ProjectionTarget {

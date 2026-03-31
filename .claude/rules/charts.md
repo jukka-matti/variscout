@@ -191,6 +191,8 @@ State managed by `useAnnotations` hook from `@variscout/hooks`. UI components: `
 
 **Mobile (<640px)**: Tap on boxplot box or Pareto bar opens `MobileCategorySheet` bottom action sheet (from `@variscout/ui`) with category stats, drill-down, highlight, and pin-as-finding actions. "Pin as Finding" includes `source` metadata (chart type and category). Draggable text annotations (`ChartAnnotationLayer`) remain desktop-only. I-Chart annotations are desktop-only on all platforms.
 
+**Opt-in visibility for question-linked findings:** Findings created via the question auto-link mechanism have `showOnChart: false` by default. The analyst can toggle "Show on chart" on the finding card to render the annotation box. This keeps charts clean during question-driven investigation — the spotlight (selectedGroups) provides visual feedback without annotation clutter.
+
 ## Target Reference Line
 
 `BoxplotBase` accepts an optional `targetLine` prop for rendering a horizontal dashed reference line (e.g., Cpk target in capability mode):

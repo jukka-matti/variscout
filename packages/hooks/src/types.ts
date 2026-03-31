@@ -105,8 +105,6 @@ export interface DisplayOptions {
   lockYAxisToFullData?: boolean;
   /** Show control limits (UCL/Mean/LCL) on I-Chart (default: true) */
   showControlLimits?: boolean;
-  /** Show category contribution labels below boxplot boxes (default: false) */
-  showContributionLabels?: boolean;
   /** Show violin (density) overlay on boxplot charts (default: false) */
   showViolin?: boolean;
   /** Show filter context bar inside chart cards for copy-to-clipboard (default: true) */

@@ -34,8 +34,13 @@ export interface UseFindingsOptions {
 export interface UseFindingsReturn {
   /** Current findings list */
   findings: Finding[];
-  /** Add a new finding with the given note and context, optionally linked to a chart source */
-  addFinding: (text: string, context: FindingContext, source?: FindingSource) => Finding;
+  /** Add a new finding with the given note and context, optionally linked to a chart source and/or question */
+  addFinding: (
+    text: string,
+    context: FindingContext,
+    source?: FindingSource,
+    questionId?: string
+  ) => Finding;
   /** Update an existing finding's note text */
   editFinding: (id: string, text: string) => void;
   /** Delete a finding */
@@ -140,7 +145,12 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
   );
 
   const addFinding = useCallback(
-    (text: string, context: FindingContext, source?: FindingSource): Finding => {
+    (
+      text: string,
+      context: FindingContext,
+      source?: FindingSource,
+      questionId?: string
+    ): Finding => {
       const finding = createFinding(
         text,
         context.activeFilters,
@@ -149,6 +159,9 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
         undefined,
         source
       );
+      if (questionId) {
+        finding.hypothesisId = questionId;
+      }
       setFindings(prev => {
         const next = [finding, ...prev];
         onFindingsChange?.(next);

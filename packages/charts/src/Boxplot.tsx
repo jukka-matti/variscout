@@ -22,9 +22,6 @@ const BOXPLOT_ROTATE_THRESHOLD = 10;
 /** Maximum label length before truncation */
 const BOXPLOT_MAX_LABEL_LENGTH = 12;
 
-/** Default threshold for high variation highlight (50%) */
-const DEFAULT_VARIATION_THRESHOLD = 50;
-
 /** Map highlight color name to hex fill color */
 /** Map highlight color name to hex fill color */
 const getHighlightFillColors = (colors: Record<string, string>) => ({
@@ -50,11 +47,6 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
   brandingText,
   onBoxClick,
   sampleSize,
-  variationPct,
-  variationThreshold = DEFAULT_VARIATION_THRESHOLD,
-  categoryContributions,
-  showContributionLabels = false,
-  showContributionBars,
   onYAxisClick,
   onXAxisClick,
   xTickFormat,
@@ -74,11 +66,6 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
     ? data.filter(d => visibleCategories.includes(d.key))
     : data;
   const overflowCount = totalCategories !== undefined ? totalCategories - displayData.length : 0;
-
-  // Show contribution bars by default when categoryContributions is provided
-  const shouldShowBars = showContributionBars ?? categoryContributions !== undefined;
-  // Determine if this factor should be highlighted as a drill target
-  const isHighVariation = variationPct !== undefined && variationPct >= variationThreshold;
 
   const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
     parentWidth,
@@ -163,15 +150,8 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
 
   const totalSampleSize = sampleSize ?? data.reduce((sum, d) => sum + d.values.length, 0);
 
-  // Calculate the n label vertical offset based on whether contribution labels are shown
-  const nLabelOffset =
-    showContributionLabels && categoryContributions
-      ? parentWidth < 400
-        ? 36
-        : 42
-      : parentWidth < 400
-        ? 24
-        : 28;
+  // Calculate the n label vertical offset
+  const nLabelOffset = parentWidth < 400 ? 24 : 28;
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -552,30 +532,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             })}
           />
 
-          {/* Contribution Labels (below X-axis) */}
-          {showContributionLabels &&
-            categoryContributions &&
-            displayData.map(d => {
-              const contribution = categoryContributions.get(d.key);
-              if (contribution === undefined) return null;
-              const x = xScale(d.key) || 0;
-              const barWidth = xScale.bandwidth();
-              return (
-                <text
-                  key={`contrib-${d.key}`}
-                  x={x + barWidth / 2}
-                  y={height + (parentWidth < 400 ? 24 : 28)}
-                  textAnchor="middle"
-                  fill={contribution >= variationThreshold ? '#f87171' : chrome.labelSecondary}
-                  fontSize={fonts.statLabel}
-                  fontWeight={contribution >= variationThreshold ? 600 : 400}
-                >
-                  {Math.round(contribution)}%
-                </text>
-              );
-            })}
-
-          {/* n Labels (always visible below contribution labels or below x-axis) */}
+          {/* n Labels (below x-axis) */}
           {displayData.map(d => {
             const x = xScale(d.key) || 0;
             const barWidth = xScale.bandwidth();
@@ -593,39 +550,14 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             );
           })}
 
-          {/* Contribution Bars (small horizontal bars under each box) */}
-          {shouldShowBars &&
-            categoryContributions &&
-            displayData.map(d => {
-              const contribution = categoryContributions.get(d.key) ?? 0;
-              const x = xScale(d.key) || 0;
-              const boxWidth = xScale.bandwidth();
-              // Bar width proportional to contribution (max 100%)
-              const contribBarWidth = Math.min(contribution / 100, 1) * boxWidth;
-              const barY = height + nLabelOffset + 6;
-              const isHighContrib = contribution >= variationThreshold;
-
-              return (
-                <rect
-                  key={`bar-${d.key}`}
-                  x={x}
-                  y={barY}
-                  width={contribBarWidth}
-                  height={4}
-                  fill={isHighContrib ? '#f87171' : chrome.labelSecondary}
-                  rx={2}
-                />
-              );
-            })}
-
-          {/* X-Axis Label with Variation Indicator */}
+          {/* X-Axis Label */}
           <text
             x={width / 2}
             y={height + (parentWidth < 400 ? 35 : 50)}
             textAnchor="middle"
-            fill={isHighVariation ? '#f87171' : chrome.labelSecondary}
+            fill={chrome.labelSecondary}
             fontSize={fonts.axisLabel}
-            fontWeight={isHighVariation ? 600 : 500}
+            fontWeight={500}
             onClick={onXAxisClick}
             className={onXAxisClick ? interactionStyles.clickableSubtle : ''}
             {...getInteractiveA11yProps(t('chart.edit.axisLabel'), onXAxisClick)}
@@ -633,18 +565,6 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             {onXAxisClick && <title>{t('chart.edit.axisLabel')}</title>}
             {xAxisLabel}
           </text>
-          {/* Drill suggestion indicator */}
-          {isHighVariation && (
-            <text
-              x={width / 2}
-              y={height + (parentWidth < 400 ? 35 : 50) + 14}
-              textAnchor="middle"
-              fill="#f87171"
-              fontSize={fonts.statLabel}
-            >
-              {t('chart.drillHere')}
-            </text>
-          )}
         </Group>
 
         {/* Overflow indicator (when categories are truncated) */}
@@ -732,17 +652,6 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           <div>
             {t('chart.label.n')} {tooltipData.values.length}
           </div>
-          {categoryContributions && categoryContributions.has(tooltipData.key) && (
-            <div style={{ marginTop: 4 }}>
-              <div style={{ color: '#f87171', fontWeight: 500 }}>
-                Accounts for {Math.round(categoryContributions.get(tooltipData.key) ?? 0)}% of total
-                variation
-              </div>
-              <div style={{ color: '#94a3b8', fontSize: '0.75em' }}>
-                (mean shift + spread from this category)
-              </div>
-            </div>
-          )}
         </TooltipWithBounds>
       )}
     </div>

@@ -676,8 +676,8 @@ Never invent data or statistics. If the context does not contain enough informat
   if (investigation) {
     const invParts: string[] = [];
 
-    if (investigation.problemStatement) {
-      invParts.push(`The analyst is investigating: "${investigation.problemStatement}".`);
+    if (investigation.issueStatement) {
+      invParts.push(`Issue statement: "${investigation.issueStatement}".`);
     }
 
     // Convergence synthesis — the analyst's suspected cause narrative
@@ -688,10 +688,28 @@ Never invent data or statistics. If the context does not contain enough informat
     }
 
     if (investigation.allHypotheses && investigation.allHypotheses.length > 0) {
+      const sourceTag = (h: NonNullable<typeof investigation.allHypotheses>[number]) => {
+        switch (h.questionSource) {
+          case 'factor-intel':
+            return '[FI]';
+          case 'coscout':
+            return '[AI]';
+          case 'heuristic':
+            return '[H]';
+          case 'analyst':
+            return '[A]';
+          default:
+            return '';
+        }
+      };
       const hypothesisList = investigation.allHypotheses
-        .map(h => `- [${h.id}] "${h.text}" (${h.status})`)
+        .map(h => {
+          const tag = sourceTag(h);
+          const causeInfo = h.causeRole ? ` {${h.causeRole}}` : '';
+          return `- [${h.id}] ${tag ? tag + ' ' : ''}"${h.text}" (${h.status})${causeInfo}`;
+        })
         .join('\n');
-      invParts.push(`Known hypotheses:\n${hypothesisList}`);
+      invParts.push(`Investigation questions:\n${hypothesisList}`);
     }
 
     if (investigation.targetMetric && investigation.targetValue !== undefined) {
@@ -713,14 +731,14 @@ Never invent data or statistics. If the context does not contain enough informat
 
       const phaseInstructions: Record<string, string> = {
         initial:
-          'The investigation is just starting. Tell the user: "You\'re in the first look phase — let\'s identify which chart to examine first and what patterns to look for."',
+          'The investigation is just starting — Factor Intelligence has ranked which factors to check first. Tell the user: "You\'re in the first look phase — let\'s look at the top-ranked questions and see which factors explain the most variation."',
         diverging:
-          'The investigation is exploring possible causes. Tell the user: "You\'re exploring possible causes — let\'s cast a wide net across different factor categories."',
+          'The investigation is exploring questions — some have been answered, new follow-up questions are emerging. Tell the user: "You\'re exploring questions — let\'s check the open questions systematically, starting with the highest-ranked ones."',
         validating:
-          'The investigation is gathering evidence. Tell the user: "You\'re gathering evidence — data, gemba, and expert input all contribute to understanding. Let\'s see what the data shows."',
+          'Evidence is building — some questions are answered, some ruled out. Tell the user: "Evidence is building — let\'s see which suspected causes the answered questions point to."',
         converging: hasSupportedHypotheses
-          ? 'The investigation is narrowing down. Tell the user: "You\'re identifying the suspected cause — supported hypotheses found. Let\'s brainstorm improvement ideas."'
-          : 'The investigation is narrowing down. Tell the user: "You\'re identifying the suspected cause — let\'s synthesize findings into a coherent story."',
+          ? 'The investigation is narrowing down. Tell the user: "You\'re identifying suspected causes — supported questions found. Let\'s brainstorm improvement ideas."'
+          : 'The investigation is narrowing down. Tell the user: "You\'re identifying suspected causes — let\'s synthesize findings into a coherent story."',
         improving: (() => {
           const sf = investigation?.selectedFinding;
           const hasActions = sf?.actions && sf.actions.length > 0;
@@ -731,25 +749,39 @@ Never invent data or statistics. If the context does not contain enough informat
           } else if (hasActions) {
             return 'PDCA: Do — Corrective actions are in progress. Track progress, flag overdue items, and keep the team focused on execution. Do not suggest new actions unless asked.';
           } else {
-            return 'PDCA: Plan — No corrective actions yet. Help the analyst brainstorm improvement ideas, search the Knowledge Base for similar past fixes, and convert selected ideas into executable action items.';
+            return 'PDCA: Plan — No corrective actions yet. Help the analyst brainstorm improvement ideas targeting the suspected causes identified from answered questions, search the Knowledge Base for similar past fixes, and convert selected ideas into executable action items.';
           }
         })(),
       };
 
       // Override converging/improving with suspected cause context when available
-      if (investigation.suspectedCause) {
-        const sc = investigation.suspectedCause;
-        const primaryText = sc.primary ? `"${sc.primary.text}"` : 'not yet identified';
-        const contribTexts = sc.contributing.map(c => `"${c.text}"`).join(', ');
-        const contribSuffix =
-          sc.contributing.length > 0 ? `, with ${contribTexts} contributing` : '';
+      // Supports multiple suspected causes from question-driven investigation
+      if (investigation.suspectedCauses && investigation.suspectedCauses.length > 0) {
+        const causes = investigation.suspectedCauses;
+
+        // Group by causeRole
+        const suspected = causes.filter(c => c.causeRole === 'suspected-cause');
+        const contributing = causes.filter(c => c.causeRole === 'contributing');
+        const ruledOut = causes.filter(c => c.causeRole === 'ruled-out');
+
+        const parts: string[] = [];
+        if (suspected.length > 0) {
+          parts.push(`Suspected causes: ${suspected.map(c => `"${c.text}"`).join(', ')}`);
+        }
+        if (contributing.length > 0) {
+          parts.push(`Contributing: ${contributing.map(c => `"${c.text}"`).join(', ')}`);
+        }
+        if (ruledOut.length > 0) {
+          parts.push(`Ruled out: ${ruledOut.map(c => `"${c.text}"`).join(', ')}`);
+        }
+        const causesSummary = parts.join('. ') + '.';
 
         if (investigation.phase === 'converging') {
-          phaseInstructions.converging = `The investigation is narrowing down. Your suspected root cause is ${primaryText}${contribSuffix}. Let's brainstorm improvement ideas targeting the primary cause.`;
+          phaseInstructions.converging = `The investigation is narrowing down. ${causesSummary} Let's brainstorm improvement ideas targeting each suspected cause.`;
         }
         if (investigation.phase === 'improving') {
           const basePdca = phaseInstructions.improving;
-          phaseInstructions.improving = `The process is in the improvement phase. You're addressing ${primaryText}${contribSuffix}. ${basePdca}`;
+          phaseInstructions.improving = `The process is in the improvement phase. ${causesSummary} ${basePdca}`;
         }
       }
 
@@ -1163,13 +1195,16 @@ function buildToolRoutingInstructions(): string {
 - Use switch_factor after apply_filter to show remaining factors within the filtered subset. Call get_available_factors first to verify the factor name.
 - Prefer compare_categories over apply_filter when the user is exploring (SCOUT phase).
 
-Hypothesis guidance (Investigation Diamond):
-- Root hypothesis: use create_hypothesis with parent_id=null when starting an investigation or when the user states a new causal theory.
-- Sub-hypothesis: use create_hypothesis with parent_id="<existing_id>" when breaking a root cause into testable branches. Ask the user what sub-causes might explain the root hypothesis.
-- Never create sub-hypotheses more than 3 levels deep or more than 8 siblings per parent.
-- When factor and level are specified, VariScout auto-validates using ANOVA (Contribution % >=15% supported, <5% contradicted, 5-15% partial). Recommend linking hypotheses to factors whenever possible.
-- When a data-validated hypothesis has weak evidence (p ≥ 0.05), suggest gemba or expert validation. Never advise 'collect more data and wait.'
-- When a hypothesis cannot be tested with data (physical wear, alignment, contamination), set validation_type to "gemba" or "expert" and provide a clear validation_task.
+Question/Hypothesis guidance (Investigation Diamond):
+- Use create_hypothesis to create investigation questions OR hypotheses.
+- Root question: use with parent_id=null when starting a new line of inquiry or when the analyst raises a new question to check.
+- Follow-up question: use with parent_id="<existing_id>" when an answered question spawns deeper questions.
+- When the analyst has a specific causal theory, frame as a hypothesis. When exploring, frame as a question.
+- Factor-linked questions get auto-answered by Factor Intelligence (R²adj ranking). Recommend linking to factors whenever possible.
+- When a question can't be tested with data (physical inspection needed), set validation_type to "gemba" or "expert" and provide a clear validation_task.
+- Never create sub-questions more than 3 levels deep or more than 8 siblings per parent.
+- When factor and level are specified, VariScout auto-validates using ANOVA (Contribution % >=15% supported, <5% contradicted, 5-15% partial).
+- When a data-validated question has weak evidence (p >= 0.05), suggest gemba or expert validation. Never advise 'collect more data and wait.'
 
 Finding guidance:
 - Use create_finding when the user identifies a notable pattern worth recording.
@@ -1241,6 +1276,19 @@ Sharing guidance (Team plan only):
 - Use notify_action_owners when the analyst has finalized improvement actions (PDCA "Do" phase).
 - These tools send content externally. Always include clear preview.
 
+Issue statement sharpening:
+- After significant findings (Contribution % > 15%, Cpk gap identified), suggest updating the issue statement.
+- Format suggestion as: "Based on what we've found, your issue statement could be sharpened to: '[updated text]'"
+- The issue statement should get more specific with each answered question.
+- Do NOT suggest sharpening after every minor observation — only after key insights.
+
+Multiple suspected causes:
+- Real investigations often identify multiple contributing factors, not a single root cause.
+- When setting causeRole, use 'suspected-cause' for factors with strong evidence (eta-squared > 15% or R²adj contribution), 'contributing' for moderate, 'ruled-out' for tested and eliminated.
+- Multiple 'suspected-cause' entries are valid — each becomes an improvement target.
+- Ruled-out factors are valuable negative learnings. Always acknowledge what was checked and eliminated.
+- When synthesizing results, list suspected causes ranked by evidence strength.
+
 The entry scenario may have changed since the previous turn. Always reference the current scenario in your tool decisions.`;
 }
 
@@ -1250,19 +1298,19 @@ The entry scenario may have changed since the previous turn. Always reference th
 function buildEntryScenarioGuidance(scenario: EntryScenario): string {
   switch (scenario) {
     case 'problem':
-      return `Entry scenario: Problem to solve — The analyst has a specific problem (e.g., Cpk below target).
-- SCOUT: Proactively use compare_categories to scan all factors for the biggest contributor. Suggest apply_filter to drill into the top contributor. Propose create_finding for the key observation.
-- INVESTIGATE: Guide the analyst to create hypotheses linked to the top-contributing factors.
-- IMPROVE: Check whether Cpk has reached the original target. In PLAN sub-state, suggest ideas targeting the confirmed root cause. In CHECK, compare before/after Cpk against the stated problem threshold. In ACT, assess whether the original problem is resolved.`;
+      return `Entry scenario: Problem to solve — The analyst has a specific problem (e.g., Cpk below target). Factor Intelligence has ranked the most likely factor combinations.
+- SCOUT: Start by reviewing the top-ranked questions from Factor Intelligence. Use compare_categories to verify the top contributors. Suggest apply_filter to drill into the highest-ranked factor. Propose create_finding for key observations.
+- INVESTIGATE: Guide the analyst to check open questions systematically, starting with the highest-ranked ones. Create follow-up questions as answers emerge.
+- IMPROVE: Check whether Cpk has reached the original target. In PLAN sub-state, suggest ideas targeting the suspected causes from answered questions. In CHECK, compare before/after Cpk against the stated problem threshold. In ACT, assess whether the original problem is resolved.`;
 
     case 'hypothesis':
-      return `Entry scenario: Hypothesis to check — The analyst entered with an upfront hypothesis.
-- SCOUT: Immediately use compare_categories on the factor named in the hypothesis. Report Contribution % and per-category stats. If supported (>=15%), suggest apply_filter and create_finding.
-- INVESTIGATE: Propose create_hypothesis with the upfront hypothesis as the root node. Then suggest sub-hypotheses.
-- IMPROVE: After addressing the confirmed cause, compare before/after on the metric linked to the original hypothesis. In PLAN, search KB for fixes to the confirmed hypothesis factor. In ACT, verify whether the hypothesis-specific metric improved.`;
+      return `Entry scenario: Hypothesis to check — The analyst entered with an upfront hypothesis. The upfront hypothesis becomes the first question to check.
+- SCOUT: Immediately use compare_categories on the factor named in the hypothesis to verify it. Report Contribution % and per-category stats. If supported (>=15%), suggest apply_filter and create_finding.
+- INVESTIGATE: Propose create_hypothesis with the upfront hypothesis as the root question. Then suggest follow-up questions based on answers.
+- IMPROVE: After addressing the suspected causes, compare before/after on the metric linked to the original hypothesis. In PLAN, search KB for fixes to the confirmed factor. In ACT, verify whether the hypothesis-specific metric improved.`;
 
     case 'routine':
-      return `Entry scenario: Routine check — No specific problem or hypothesis. Scanning for signals.
+      return `Entry scenario: Routine check — No specific problem or hypothesis. Scanning for signals. Factor Intelligence questions are available for proactive scanning.
 - SCOUT: Use compare_categories conservatively. Only suggest apply_filter if a notable signal is found (Contribution % > 10%). Do NOT proactively suggest findings unless a clear anomaly is detected.
 - INVESTIGATE: Only reached if the analyst manually creates a finding. Follow their lead.
 - IMPROVE: Signal has been addressed — help evaluate whether sustaining controls prevent recurrence. In PLAN, suggest preventive actions and SOP updates. In ACT, recommend scheduling a follow-up check in 30 days.`;

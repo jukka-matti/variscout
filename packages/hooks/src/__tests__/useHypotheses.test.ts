@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useHypotheses, MAX_CHILDREN_PER_PARENT, MAX_TOTAL_HYPOTHESES } from '../useHypotheses';
 import { createHypothesis } from '@variscout/core';
-import type { AnovaResult, FindingProjection } from '@variscout/core';
+import type { AnovaResult, FindingProjection, GeneratedQuestion } from '@variscout/core';
 
 const makeAnova = (etaSquared: number): AnovaResult => ({
   groups: [],
@@ -646,6 +646,212 @@ describe('useHypotheses', () => {
         result.current.removeIdea(h.id, ideaId);
       });
       expect(onChange).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('question lifecycle', () => {
+    const makeQuestion = (overrides: Partial<GeneratedQuestion> = {}): GeneratedQuestion => ({
+      text: 'Does Shift explain variation?',
+      factors: ['Shift'],
+      rSquaredAdj: 0.25,
+      autoAnswered: false,
+      source: 'factor-intel',
+      type: 'single-factor',
+      ...overrides,
+    });
+
+    describe('generateInitialQuestions', () => {
+      it('creates hypotheses from 3 generated questions with correct fields', () => {
+        const questions: GeneratedQuestion[] = [
+          makeQuestion({
+            text: 'Does Shift explain variation?',
+            factors: ['Shift'],
+            rSquaredAdj: 0.25,
+          }),
+          makeQuestion({
+            text: 'Does Machine explain variation?',
+            factors: ['Machine'],
+            rSquaredAdj: 0.15,
+          }),
+          makeQuestion({
+            text: 'Does Operator explain variation?',
+            factors: ['Operator'],
+            rSquaredAdj: 0.08,
+          }),
+        ];
+        const { result } = renderHook(() => useHypotheses());
+
+        let created: ReturnType<typeof result.current.generateInitialQuestions> = [];
+        act(() => {
+          created = result.current.generateInitialQuestions(questions);
+        });
+
+        expect(created).toHaveLength(3);
+        expect(result.current.hypotheses).toHaveLength(3);
+
+        // Check questionSource and evidence on each
+        for (let i = 0; i < 3; i++) {
+          expect(created[i].questionSource).toBe('factor-intel');
+          expect(created[i].evidence).toEqual({ rSquaredAdj: questions[i].rSquaredAdj });
+        }
+
+        // Check factor mapping for single-factor questions
+        expect(created[0].factor).toBe('Shift');
+        expect(created[1].factor).toBe('Machine');
+        expect(created[2].factor).toBe('Operator');
+      });
+
+      it('sets status to contradicted for auto-ruled-out questions', () => {
+        const questions: GeneratedQuestion[] = [
+          makeQuestion({ rSquaredAdj: 0.03, autoAnswered: true, autoStatus: 'ruled-out' }),
+        ];
+        const { result } = renderHook(() => useHypotheses());
+
+        let created: ReturnType<typeof result.current.generateInitialQuestions> = [];
+        act(() => {
+          created = result.current.generateInitialQuestions(questions);
+        });
+
+        expect(created[0].status).toBe('contradicted');
+        expect(result.current.hypotheses[0].status).toBe('contradicted');
+      });
+
+      it('sets status to untested for non-auto questions', () => {
+        const questions: GeneratedQuestion[] = [
+          makeQuestion({ rSquaredAdj: 0.2, autoAnswered: false }),
+        ];
+        const { result } = renderHook(() => useHypotheses());
+
+        let created: ReturnType<typeof result.current.generateInitialQuestions> = [];
+        act(() => {
+          created = result.current.generateInitialQuestions(questions);
+        });
+
+        expect(created[0].status).toBe('untested');
+        expect(result.current.hypotheses[0].status).toBe('untested');
+      });
+
+      it('leaves factor undefined for multi-factor combination questions', () => {
+        const questions: GeneratedQuestion[] = [
+          makeQuestion({
+            text: 'Does Shift + Machine combination explain variation?',
+            factors: ['Shift', 'Machine'],
+            rSquaredAdj: 0.35,
+            type: 'combination',
+          }),
+        ];
+        const { result } = renderHook(() => useHypotheses());
+
+        let created: ReturnType<typeof result.current.generateInitialQuestions> = [];
+        act(() => {
+          created = result.current.generateInitialQuestions(questions);
+        });
+
+        expect(created[0].factor).toBeUndefined();
+      });
+
+      it('returns empty array and does not update state for empty input', () => {
+        const onChange = vi.fn();
+        const { result } = renderHook(() => useHypotheses({ onHypothesesChange: onChange }));
+
+        let created: ReturnType<typeof result.current.generateInitialQuestions> = [];
+        act(() => {
+          created = result.current.generateInitialQuestions([]);
+        });
+
+        expect(created).toHaveLength(0);
+        expect(result.current.hypotheses).toHaveLength(0);
+        expect(onChange).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('answerQuestion', () => {
+      it('transitions status and links finding', () => {
+        const { result } = renderHook(() => useHypotheses());
+
+        let questionId: string;
+        act(() => {
+          const created = result.current.generateInitialQuestions([makeQuestion()]);
+          questionId = created[0].id;
+        });
+
+        act(() => {
+          result.current.answerQuestion(questionId!, 'finding-1', 'supported');
+        });
+
+        const answered = result.current.hypotheses[0];
+        expect(answered.status).toBe('supported');
+        expect(answered.linkedFindingIds).toContain('finding-1');
+      });
+
+      it('does not duplicate finding in linkedFindingIds', () => {
+        const { result } = renderHook(() => useHypotheses());
+
+        let questionId: string;
+        act(() => {
+          const created = result.current.generateInitialQuestions([makeQuestion()]);
+          questionId = created[0].id;
+        });
+
+        act(() => {
+          result.current.answerQuestion(questionId!, 'finding-1', 'supported');
+        });
+        act(() => {
+          result.current.answerQuestion(questionId!, 'finding-1', 'partial');
+        });
+
+        const answered = result.current.hypotheses[0];
+        expect(answered.status).toBe('partial');
+        expect(answered.linkedFindingIds).toEqual(['finding-1']);
+      });
+
+      it('does nothing for non-existent question ID (no crash)', () => {
+        const { result } = renderHook(() => useHypotheses());
+
+        // Should not throw
+        act(() => {
+          result.current.answerQuestion('nonexistent-id', 'finding-1', 'contradicted');
+        });
+
+        expect(result.current.hypotheses).toHaveLength(0);
+      });
+    });
+
+    describe('focusedQuestionId', () => {
+      it('starts as null', () => {
+        const { result } = renderHook(() => useHypotheses());
+        expect(result.current.focusedQuestionId).toBeNull();
+      });
+
+      it('can be set to a question ID', () => {
+        const { result } = renderHook(() => useHypotheses());
+
+        let questionId: string;
+        act(() => {
+          const created = result.current.generateInitialQuestions([makeQuestion()]);
+          questionId = created[0].id;
+        });
+
+        act(() => {
+          result.current.setFocusedQuestion(questionId!);
+        });
+
+        expect(result.current.focusedQuestionId).toBe(questionId!);
+      });
+
+      it('can be cleared by setting to null', () => {
+        const { result } = renderHook(() => useHypotheses());
+
+        act(() => {
+          result.current.setFocusedQuestion('some-question-id');
+        });
+        expect(result.current.focusedQuestionId).toBe('some-question-id');
+
+        act(() => {
+          result.current.setFocusedQuestion(null);
+        });
+        expect(result.current.focusedQuestionId).toBeNull();
+      });
     });
   });
 });

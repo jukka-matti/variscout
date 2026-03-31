@@ -47,17 +47,13 @@ export interface BoxplotWrapperBaseProps {
   /** Display options */
   displayOptions: Pick<
     DisplayOptions,
-    'showSpecs' | 'boxplotSortBy' | 'boxplotSortDirection' | 'showContributionLabels' | 'showViolin'
+    'showSpecs' | 'boxplotSortBy' | 'boxplotSortDirection' | 'showViolin'
   >;
   /** Y-axis domain override from useChartScale */
   yDomainMin: number;
   yDomainMax: number;
   /** Drill-down callback (overrides filter toggle when provided) */
   onDrillDown?: (factor: string, value: string) => void;
-  /** Variation percentage for this factor */
-  variationPct?: number;
-  /** Category-level contribution values */
-  categoryContributions?: Map<string | number, number>;
   /** Override branding display (undefined = auto-detect via tier) */
   showBranding?: boolean;
   /** Annotation highlights */
@@ -95,8 +91,6 @@ export const BoxplotWrapperBase = ({
   yDomainMin,
   yDomainMax,
   onDrillDown,
-  variationPct,
-  categoryContributions,
   showBranding: showBrandingProp,
   highlightedCategories,
   onContextMenu,
@@ -168,9 +162,6 @@ export const BoxplotWrapperBase = ({
         selectedGroups={selectedGroups}
         onBoxClick={handleBoxClick}
         sampleSize={filteredData.length}
-        variationPct={variationPct}
-        categoryContributions={categoryContributions}
-        showContributionLabels={displayOptions.showContributionLabels}
         showViolin={displayOptions.showViolin}
         violinData={violinData}
         parentWidth={parentWidth}

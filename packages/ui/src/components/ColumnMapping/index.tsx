@@ -42,7 +42,7 @@ import {
 /** Analysis brief data for investigation context (optional) */
 export interface AnalysisBrief {
   /** What is being investigated (max 500 chars) */
-  problemStatement?: string;
+  issueStatement?: string;
   /** Upfront hypothesis entries */
   hypotheses?: Array<{ text: string; factor?: string; level?: string }>;
   /** Improvement target */
@@ -102,10 +102,10 @@ export interface ColumnMappingProps {
   maxFactors?: number;
   /** Mode: 'setup' for first-time mapping, 'edit' for mid-analysis re-edit */
   mode?: 'setup' | 'edit';
-  /** Show analysis brief fields (problem statement, hypothesis, target). Default: false (PWA). */
+  /** Show analysis brief fields (issue statement, hypothesis, target). Default: false (PWA). */
   showBrief?: boolean;
-  /** Initial problem statement (from persisted ProcessContext) */
-  initialProblemStatement?: string;
+  /** Initial issue statement (from persisted ProcessContext) */
+  initialIssueStatement?: string;
   /** Stack suggestion from detectColumns() (shown when wide-form data detected) */
   suggestedStack?: StackSuggestion;
   /** Initial stack config (from persisted project state) */
@@ -157,7 +157,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   mode = 'setup',
   initialCategories: initialCategoriesProp,
   showBrief = false,
-  initialProblemStatement,
+  initialIssueStatement,
   suggestedStack,
   initialStackConfig,
   onStackConfigChange,
@@ -203,11 +203,11 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
       stackConfig.columnsToStack.length > 0);
 
   // Brief fields state
-  const [problemStatement, setProblemStatement] = useState(initialProblemStatement || '');
+  const [issueStatement, setIssueStatement] = useState(initialIssueStatement || '');
   const [briefHypotheses, setBriefHypotheses] = useState<
     Array<{ text: string; factor: string; level: string }>
   >([]);
-  const [briefExpanded, setBriefExpanded] = useState(!!initialProblemStatement);
+  const [briefExpanded, setBriefExpanded] = useState(!!initialIssueStatement);
   const [targetMetric, setTargetMetric] = useState<TargetMetric | ''>('');
   const [targetDirection, setTargetDirection] = useState<'minimize' | 'maximize' | 'target'>(
     'minimize'
@@ -394,19 +394,19 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
 
               {briefExpanded && (
                 <div className="space-y-3 pl-1" data-testid="brief-fields">
-                  {/* Problem statement */}
+                  {/* Issue statement */}
                   <div>
                     <textarea
-                      value={problemStatement}
-                      onChange={e => setProblemStatement(e.target.value.slice(0, 500))}
-                      placeholder={t('data.problemPlaceholder')}
+                      value={issueStatement}
+                      onChange={e => setIssueStatement(e.target.value.slice(0, 500))}
+                      placeholder={t('data.issueStatementPlaceholder')}
                       className="w-full text-sm bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder:text-slate-500 resize-none focus:outline-none focus:border-blue-500/50"
                       rows={2}
                       maxLength={500}
-                      data-testid="brief-problem-statement"
+                      data-testid="brief-issue-statement"
                     />
                     <span className="text-[0.625rem] text-slate-600 float-right">
-                      {problemStatement.length}/500
+                      {issueStatement.length}/500
                     </span>
                   </div>
 
@@ -527,17 +527,17 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             </div>
           )}
 
-          {/* Problem statement only (PWA mode — showBrief=false but problemStatement always available in setup) */}
+          {/* Issue statement (PWA mode — showBrief=false but issueStatement always available in setup) */}
           {!showBrief && mode === 'setup' && (
-            <div data-testid="problem-statement-simple">
+            <div data-testid="issue-statement-simple">
               <textarea
-                value={problemStatement}
-                onChange={e => setProblemStatement(e.target.value.slice(0, 500))}
+                value={issueStatement}
+                onChange={e => setIssueStatement(e.target.value.slice(0, 500))}
                 placeholder="What are you investigating? (optional)"
                 className="w-full text-sm bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder:text-slate-500 resize-none focus:outline-none focus:border-blue-500/50"
                 rows={1}
                 maxLength={500}
-                data-testid="brief-problem-statement"
+                data-testid="brief-issue-statement"
               />
             </div>
           )}
@@ -748,8 +748,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
               }
               // Build analysis brief from state
               const brief: AnalysisBrief = {};
-              if (problemStatement.trim()) {
-                brief.problemStatement = problemStatement.trim();
+              if (issueStatement.trim()) {
+                brief.issueStatement = issueStatement.trim();
               }
               const validHypotheses = briefHypotheses.filter(h => h.text.trim());
               if (validHypotheses.length > 0) {
@@ -767,7 +767,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                   value: tv,
                 };
               }
-              const hasBrief = brief.problemStatement || brief.hypotheses || brief.target;
+              const hasBrief = brief.issueStatement || brief.hypotheses || brief.target;
               onConfirm(outcome, factors, specs, categories, hasBrief ? brief : undefined);
             }}
             disabled={!isValid}

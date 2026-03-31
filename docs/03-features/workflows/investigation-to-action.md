@@ -112,6 +112,10 @@ Use the dashboard's drill-down workflow to progressively filter the data by fact
 
 The Findings panel can be popped out to a separate window for dual-monitor setups — keep findings visible on one screen while drilling on the other.
 
+#### Question-Focused Finding Creation
+
+When the analyst clicks a question in the Investigation panel's question checklist, the relevant factor is spotlighted on the dashboard (boxplot selectedGroups). Any finding created during this focused state automatically links to the question. The question status updates based on the finding's evidence strength.
+
 ### Chart Observations
 
 There are two ways to create findings:

@@ -87,8 +87,13 @@ export { andersonDarlingTest, normalCDF } from './andersonDarling';
 export type { AndersonDarlingResult } from './andersonDarling';
 
 // Best subsets regression
-export type { BestSubsetResult, BestSubsetsResult } from './bestSubsets';
-export { computeBestSubsets, computeRSquaredAdjusted, getBestSingleFactor } from './bestSubsets';
+export type { BestSubsetResult, BestSubsetsResult, GeneratedQuestion } from './bestSubsets';
+export {
+  computeBestSubsets,
+  computeRSquaredAdjusted,
+  getBestSingleFactor,
+  generateQuestionsFromRanking,
+} from './bestSubsets';
 
 // Factor effects (Factor Intelligence Layers 2-3)
 export type {
@@ -99,13 +104,21 @@ export type {
   InteractionResult,
   InteractionEffectsResult,
 } from './factorEffects';
-export { computeMainEffects, computeInteractionEffects } from './factorEffects';
+export {
+  computeMainEffects,
+  computeInteractionEffects,
+  generateFollowUpQuestions,
+} from './factorEffects';
 
 // Kernel density estimation
 export { calculateKDE } from './kde';
 
 // Point decimation for chart rendering
 export { lttb } from './lttb';
+
+// Finding text generation
+export type { FindingTextInput } from './findingText';
+export { generateFindingText } from './findingText';
 
 // Evidence interpretation
 export type { EvidenceLevel, EvidenceInterpretation } from './evidence';

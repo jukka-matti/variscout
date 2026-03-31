@@ -401,3 +401,60 @@ export function computeInteractionEffects(
     significantCount: interactions.filter(i => i.isSignificant).length,
   };
 }
+
+// ============================================================================
+// Question generation (Layers 2-3 → follow-up questions)
+// ============================================================================
+
+// Import GeneratedQuestion from bestSubsets to keep the type in one place
+import type { GeneratedQuestion } from './bestSubsets';
+
+/**
+ * Generate follow-up questions from main effects and interactions.
+ * Layer 2: "Is [level] specifically the worst for [factor]?"
+ * Layer 3: "Do [Factor A] and [Factor B] interact?"
+ *
+ * These are gated — only generated when prerequisites are met.
+ */
+export function generateFollowUpQuestions(
+  mainEffects: MainEffectsResult | null,
+  interactions: InteractionEffectsResult | null,
+  options?: { minEtaSquared?: number }
+): GeneratedQuestion[] {
+  const minEta = options?.minEtaSquared ?? 0.05;
+  const questions: GeneratedQuestion[] = [];
+
+  // Layer 2: main effect follow-ups
+  if (mainEffects) {
+    for (const factor of mainEffects.factors) {
+      if (factor.etaSquared < minEta) continue;
+
+      questions.push({
+        text: `Is ${factor.worstLevel} specifically the worst for ${factor.factor}? (effect range: ${factor.effectRange.toFixed(2)})`,
+        factors: [factor.factor],
+        rSquaredAdj: factor.etaSquared, // Use eta-squared as evidence strength
+        autoAnswered: false,
+        source: 'factor-intel',
+        type: 'main-effect',
+      });
+    }
+  }
+
+  // Layer 3: interaction follow-ups — gated on >= 2 significant main effects
+  if (interactions && mainEffects && mainEffects.significantCount >= 2) {
+    for (const interaction of interactions.interactions) {
+      if (!interaction.isSignificant) continue;
+
+      questions.push({
+        text: `Do ${interaction.factorA} and ${interaction.factorB} interact \u2014 does the combination matter more than expected?`,
+        factors: [interaction.factorA, interaction.factorB],
+        rSquaredAdj: interaction.deltaRSquared, // Use deltaR² as evidence strength
+        autoAnswered: false,
+        source: 'factor-intel',
+        type: 'interaction',
+      });
+    }
+  }
+
+  return questions;
+}

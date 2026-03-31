@@ -229,7 +229,7 @@ describe('buildSummaryPrompt', () => {
 
   it('includes problem statement when present', () => {
     const ctx: AIContext = {
-      process: { problemStatement: 'Yield dropping in Q1' },
+      process: { issueStatement: 'Yield dropping in Q1' },
       filters: [],
     };
     const prompt = buildSummaryPrompt(ctx);
@@ -331,12 +331,12 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).toContain('Cp');
   });
 
-  it('includes problem statement when investigation context provided', () => {
+  it('includes issue statement when investigation context provided', () => {
     const prompt = buildCoScoutSystemPrompt({
-      investigation: { problemStatement: 'Customer complaints up 30%' },
+      investigation: { issueStatement: 'Customer complaints up 30%' },
     });
     expect(prompt).toContain('Customer complaints up 30%');
-    expect(prompt).toContain('investigating');
+    expect(prompt).toContain('Issue statement');
   });
 
   it('includes hypotheses when investigation context has them', () => {
@@ -371,8 +371,8 @@ describe('buildCoScoutSystemPrompt', () => {
     const prompt = buildCoScoutSystemPrompt({
       investigation: { phase: 'diverging' },
     });
-    expect(prompt).toContain('exploring possible causes');
-    expect(prompt).toContain('cast a wide net');
+    expect(prompt).toContain('exploring questions');
+    expect(prompt).toContain('check the open questions systematically');
   });
 
   it('does not add investigation section when no investigation context', () => {
@@ -1193,14 +1193,14 @@ describe('buildReportPrompt', () => {
     expect(prompt).toContain('## Process');
   });
 
-  it('includes problem statement when provided', () => {
+  it('includes issue statement when provided', () => {
     const ctx: AIContext = {
-      process: { problemStatement: 'Yield dropping in Q1' },
+      process: { issueStatement: 'Yield dropping in Q1' },
       filters: [],
     };
     const prompt = buildReportPrompt(ctx, [], []);
     expect(prompt).toContain('Yield dropping in Q1');
-    expect(prompt).toContain('## Problem Statement');
+    expect(prompt).toContain('## Issue Statement');
   });
 
   it('includes statistics when provided', () => {
