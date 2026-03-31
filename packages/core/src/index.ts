@@ -93,6 +93,7 @@ export {
   computeBestSubsets,
   computeRSquaredAdjusted,
   getBestSingleFactor,
+  generateQuestionsFromRanking,
   // Point decimation for chart rendering
   lttb,
   // Evidence interpretation
@@ -105,6 +106,7 @@ export {
   // Factor Intelligence (Layers 2-3)
   computeMainEffects,
   computeInteractionEffects,
+  generateFollowUpQuestions,
 } from './stats';
 
 // Subgroup capability types
@@ -118,7 +120,7 @@ export type {
 } from './stats';
 
 // Best subsets regression types
-export type { BestSubsetResult, BestSubsetsResult } from './stats';
+export type { BestSubsetResult, BestSubsetsResult, GeneratedQuestion } from './stats';
 
 // Factor effects types (Factor Intelligence Layers 2-3)
 export type {
