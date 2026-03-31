@@ -676,8 +676,8 @@ Never invent data or statistics. If the context does not contain enough informat
   if (investigation) {
     const invParts: string[] = [];
 
-    if (investigation.problemStatement) {
-      invParts.push(`Issue statement: "${investigation.problemStatement}".`);
+    if (investigation.issueStatement) {
+      invParts.push(`Issue statement: "${investigation.issueStatement}".`);
     }
 
     // Convergence synthesis — the analyst's suspected cause narrative
@@ -756,33 +756,25 @@ Never invent data or statistics. If the context does not contain enough informat
 
       // Override converging/improving with suspected cause context when available
       // Supports multiple suspected causes from question-driven investigation
-      if (investigation.suspectedCause) {
-        const sc = investigation.suspectedCause;
+      if (investigation.suspectedCauses && investigation.suspectedCauses.length > 0) {
+        const causes = investigation.suspectedCauses;
 
-        // Build lists from allHypotheses causeRole (question-driven) or fall back to legacy primary/contributing
-        const suspectedCauses =
-          investigation.allHypotheses?.filter(h => h.causeRole === 'suspected-cause') ?? [];
-        const ruledOut =
-          investigation.allHypotheses?.filter(
-            h => h.causeRole === 'ruled-out' || h.status === 'contradicted'
-          ) ?? [];
+        // Group by causeRole
+        const suspected = causes.filter(c => c.causeRole === 'suspected-cause');
+        const contributing = causes.filter(c => c.causeRole === 'contributing');
+        const ruledOut = causes.filter(c => c.causeRole === 'ruled-out');
 
-        let causesSummary: string;
-        if (suspectedCauses.length > 0) {
-          const causeTexts = suspectedCauses.map(c => `"${c.text}"`).join(', ');
-          const ruledOutTexts =
-            ruledOut.length > 0
-              ? ` Ruled out: ${ruledOut.map(r => `"${r.text}"`).join(', ')}.`
-              : '';
-          causesSummary = `Suspected causes: ${causeTexts}.${ruledOutTexts}`;
-        } else {
-          // Legacy fallback: single primary + contributing
-          const primaryText = sc.primary ? `"${sc.primary.text}"` : 'not yet identified';
-          const contribTexts = sc.contributing.map(c => `"${c.text}"`).join(', ');
-          const contribSuffix =
-            sc.contributing.length > 0 ? `, with ${contribTexts} contributing` : '';
-          causesSummary = `Suspected cause: ${primaryText}${contribSuffix}`;
+        const parts: string[] = [];
+        if (suspected.length > 0) {
+          parts.push(`Suspected causes: ${suspected.map(c => `"${c.text}"`).join(', ')}`);
         }
+        if (contributing.length > 0) {
+          parts.push(`Contributing: ${contributing.map(c => `"${c.text}"`).join(', ')}`);
+        }
+        if (ruledOut.length > 0) {
+          parts.push(`Ruled out: ${ruledOut.map(c => `"${c.text}"`).join(', ')}`);
+        }
+        const causesSummary = parts.join('. ') + '.';
 
         if (investigation.phase === 'converging') {
           phaseInstructions.converging = `The investigation is narrowing down. ${causesSummary} Let's brainstorm improvement ideas targeting each suspected cause.`;

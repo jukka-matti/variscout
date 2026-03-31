@@ -149,7 +149,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'initial',
-          problemStatement: 'Cpk is below target',
+          issueStatement: 'Cpk is below target',
         },
       };
       const result = buildSuggestedQuestions(context);

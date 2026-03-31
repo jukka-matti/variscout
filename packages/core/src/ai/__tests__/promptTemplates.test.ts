@@ -333,7 +333,7 @@ describe('buildCoScoutSystemPrompt', () => {
 
   it('includes issue statement when investigation context provided', () => {
     const prompt = buildCoScoutSystemPrompt({
-      investigation: { problemStatement: 'Customer complaints up 30%' },
+      investigation: { issueStatement: 'Customer complaints up 30%' },
     });
     expect(prompt).toContain('Customer complaints up 30%');
     expect(prompt).toContain('Issue statement');

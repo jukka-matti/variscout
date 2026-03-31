@@ -294,7 +294,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     context.investigation = {};
 
     if (process.issueStatement) {
-      context.investigation.problemStatement = process.issueStatement;
+      context.investigation.issueStatement = process.issueStatement;
     }
 
     if (selectedFinding) {
@@ -375,20 +375,19 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       // Detect investigation phase
       context.investigation.phase = detectInvestigationPhase(hypotheses, findings);
 
-      // Build suspected cause from hypotheses with causeRole
-      const primaryH = hypotheses.find(h => h.causeRole === 'suspected-cause');
-      const contributingH = hypotheses.filter(h => h.causeRole === 'contributing');
-      if (primaryH || contributingH.length > 0) {
-        context.investigation.suspectedCause = {
-          primary: primaryH
-            ? { text: primaryH.text, factor: primaryH.factor, status: primaryH.status }
-            : undefined,
-          contributing: contributingH.map(h => ({
-            text: h.text,
-            factor: h.factor,
-            status: h.status,
-          })),
-        };
+      // Collect ALL hypotheses with a causeRole (suspected-cause, contributing, ruled-out)
+      const suspectedCauses = hypotheses
+        .filter(h => h.causeRole)
+        .map(h => ({
+          id: h.id,
+          text: h.text,
+          causeRole: h.causeRole!,
+          factor: h.factor,
+          status: h.status,
+          evidence: h.evidence,
+        }));
+      if (suspectedCauses.length > 0) {
+        context.investigation.suspectedCauses = suspectedCauses;
       }
     }
   }
