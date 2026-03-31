@@ -19,6 +19,12 @@
 - Utilities: `camelCase.ts` (e.g., `persistence.ts`)
 - Types: `PascalCase` (e.g., `StatsResult`)
 
+## Accessibility
+
+- Never nest `<button>` inside `<button>` or `<a>` inside `<a>` — violates HTML spec
+- For clickable cards with secondary actions: use Fluent UI focusMode pattern (non-interactive container, primary button with `::after` overlay, secondary buttons with `z-index`)
+- See `docs/06-design-system/patterns/interactions.md` for the full pattern
+
 ## Colors (Tailwind)
 
 - Green (`text-green-500`): Pass/in-spec values
