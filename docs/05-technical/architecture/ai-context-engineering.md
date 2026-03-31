@@ -40,13 +40,13 @@ The static prefix exceeds 1,024 tokens when glossary + concepts are both include
 
 Changes when the investigation progresses (new hypotheses, status changes, ideas added).
 
-| Content                     | Source                                          | Tokens (~) |
-| --------------------------- | ----------------------------------------------- | ---------- |
-| Problem statement           | `ProcessContext.problemStatement`               | ~20        |
-| Hypothesis tree             | `AIContext.investigation.hypothesisTree`        | ~50-200    |
-| Improvement ideas           | `AIContext.investigation.allHypotheses[].ideas` | ~30-100    |
-| Phase-specific instructions | Phase detection in prompt template              | ~50        |
-| Investigation categories    | `AIContext.investigation.categories`            | ~30        |
+| Content                     | Source                                                                           | Tokens (~) |
+| --------------------------- | -------------------------------------------------------------------------------- | ---------- |
+| Issue statement             | `ProcessContext.issueStatement` (input; AI-derived `problemStatement` is output) | ~20        |
+| Question tree               | `AIContext.investigation.questionTree`                                           | ~50-200    |
+| Improvement ideas           | `AIContext.investigation.allHypotheses[].ideas`                                  | ~30-100    |
+| Phase-specific instructions | Phase detection in prompt template                                               | ~50        |
+| Investigation categories    | `AIContext.investigation.categories`                                             | ~30        |
 
 ### Tier 3 — Dynamic: Stats + Filters
 

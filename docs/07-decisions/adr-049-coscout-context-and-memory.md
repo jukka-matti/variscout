@@ -13,7 +13,7 @@ CoScout conversations are session-only — closing the browser loses everything.
 
 A 5-perspective evaluation (AI practices, UX, architecture, security, domain fit) identified 9 must-fix issues: prompt injection via document text, pdf.js CVE risk, token budget overflow, `store:true` image retention, Team merge conflicts, undefined store ownership, and missing negative learnings.
 
-Through systematic brainstorming, we discovered a fundamental insight: **VariScout's investigation model (findings, hypotheses, synthesis, actions, outcomes) already serves as CoScout's durable memory.** Every session, CoScout receives the full investigation context via `buildCoScoutInput()`. Conversation persistence saves the chat log, not the knowledge.
+Through systematic brainstorming, we discovered a fundamental insight: **VariScout's investigation model (findings, questions/hypotheses, synthesis, actions, outcomes) already serves as CoScout's durable memory.** Every session, CoScout receives the full question/investigation context via `buildCoScoutInput()`. Conversation persistence saves the chat log, not the knowledge.
 
 Industry research validated this direction:
 
@@ -25,7 +25,7 @@ Industry research validated this direction:
 
 ### Related decisions
 
-- ADR-019: AI Integration (ProcessContext, factor roles, phase-aware coaching)
+- ADR-019: AI Integration (ProcessContext with issueStatement, factor roles, phase-aware coaching)
 - ADR-026: Knowledge Base (SharePoint + Azure AI Search for Team plan)
 - ADR-029: AI Action Tools (proposal pattern, phase gating)
 - ADR-041: Zustand Feature Stores (aiStore for AI state)

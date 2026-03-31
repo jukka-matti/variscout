@@ -47,7 +47,7 @@ Ten new tools organized by type:
 | `apply_filter`         | Propose drilling into a factor/category               | `factor`, `category`                          |
 | `clear_filters`        | Propose removing all active filters                   | —                                             |
 | `create_finding`       | Propose a new finding with title, description, status | `title`, `description`, `status`, `severity`  |
-| `create_hypothesis`    | Propose a hypothesis linked to a finding              | `finding_id`, `statement`, `mechanism`        |
+| `create_hypothesis`    | Propose a question or hypothesis linked to a finding  | `finding_id`, `statement`, `mechanism`        |
 | `suggest_action`       | Propose an action item on a finding                   | `finding_id`, `title`, `owner`, `due_date`    |
 | `share_finding`        | Propose sharing a finding to a Teams channel          | `finding_id`, `channel`, `message`            |
 | `publish_report`       | Propose publishing the current report to SharePoint   | `title`, `include_charts`, `include_findings` |
@@ -63,7 +63,7 @@ Tool availability follows the journey phase model, ensuring tools match the anal
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | **FRAME**       | `get_chart_data`, `get_statistical_summary`, `suggest_knowledge_search`, `get_available_factors`, `compare_categories` (read-only) |
 | **SCOUT**       | + `apply_filter`, `clear_filters`, `create_finding`                                                                                |
-| **INVESTIGATE** | + `create_hypothesis`, `suggest_action`, `share_finding`                                                                           |
+| **INVESTIGATE** | + `create_hypothesis` (questions or hypotheses), `suggest_action`, `share_finding`                                                 |
 | **IMPROVE**     | + `publish_report`, `notify_action_owners`                                                                                         |
 
 Sharing tools (`share_finding`, `publish_report`, `notify_action_owners`) are additionally gated to Team plan or higher via `isTeamPlan()`.
@@ -73,7 +73,7 @@ Sharing tools (`share_finding`, `publish_report`, `notify_action_owners`) are ad
 The system prompt adjusts tool emphasis based on the detected entry scenario (from `detectEntryScenario()`):
 
 - **Problem**: Emphasize `create_finding` and `apply_filter` — help isolate the issue
-- **Hypothesis**: Emphasize `create_hypothesis` and `compare_categories` — help validate the theory
+- **Hypothesis**: Emphasize `create_hypothesis` (questions or hypotheses) and `compare_categories` — help validate the theory
 - **Routine**: Emphasize `get_statistical_summary` and read tools — support monitoring
 
 ## Implementation
@@ -130,7 +130,7 @@ graph LR
         H[create_finding]
     end
 
-    subgraph INVESTIGATE["INVESTIGATE (+Hypothesis, Actions)"]
+    subgraph INVESTIGATE["INVESTIGATE (+Questions/Hypotheses, Actions)"]
         I[create_hypothesis]
         J[suggest_action]
         K[share_finding]
