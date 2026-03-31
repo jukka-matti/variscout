@@ -170,7 +170,7 @@ export const pt: MessageCatalog = {
   'data.selectFactors': 'Selecionar fatores',
   'data.analysisSection': 'Resumo da análise',
   'data.optional': 'opcional',
-  'data.problemPlaceholder': 'Descreva o problema que você está investigando…',
+  'data.issueStatementPlaceholder': 'Descreva o que você deseja investigar…',
   'data.outcomeDesc': 'A medição que você deseja analisar',
   'data.factorsDesc': 'Categorias que podem influenciar o resultado',
   'data.alreadyOutcome': 'Já selecionado como resultado',

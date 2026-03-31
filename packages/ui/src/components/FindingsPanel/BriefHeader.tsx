@@ -1,7 +1,7 @@
 /**
  * BriefHeader — Collapsible investigation brief header.
  *
- * Shows problem statement, target progress bar, and hypothesis summary rows.
+ * Shows issue statement, target progress bar, and hypothesis summary rows.
  * Used in the Investigation page (popout window evolution).
  */
 
@@ -12,7 +12,7 @@ import type { Hypothesis, ProcessContext } from '@variscout/core';
 import type { TargetMetric } from '@variscout/core';
 
 export interface BriefHeaderProps {
-  /** Process context with problem statement and target */
+  /** Process context with issue statement and target */
   processContext?: ProcessContext;
   /** All hypotheses for summary display */
   hypotheses?: Hypothesis[];
@@ -149,7 +149,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
 
       {!collapsed && (
         <div className="px-4 pb-3 space-y-2" data-testid="brief-header-content">
-          {/* Problem statement */}
+          {/* Issue statement */}
           {processContext?.issueStatement && (
             <p className="text-xs text-content-secondary italic">{processContext.issueStatement}</p>
           )}

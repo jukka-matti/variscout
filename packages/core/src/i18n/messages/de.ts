@@ -170,7 +170,7 @@ export const de: MessageCatalog = {
   'data.selectFactors': 'Faktoren auswählen',
   'data.analysisSection': 'Analysebeschreibung',
   'data.optional': 'optional',
-  'data.problemPlaceholder': 'Beschreiben Sie das Problem, das Sie untersuchen…',
+  'data.issueStatementPlaceholder': 'Beschreiben Sie, was Sie untersuchen möchten…',
   'data.outcomeDesc': 'Die Messgröße, die Sie analysieren möchten',
   'data.factorsDesc': 'Kategorien, die das Ergebnis beeinflussen könnten',
   'data.alreadyOutcome': 'Bereits als Zielgröße ausgewählt',

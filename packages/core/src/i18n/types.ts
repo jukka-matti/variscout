@@ -284,7 +284,7 @@ export interface MessageCatalog {
   'data.selectFactors': string;
   'data.analysisSection': string;
   'data.optional': string;
-  'data.problemPlaceholder': string;
+  'data.issueStatementPlaceholder': string;
   'data.outcomeDesc': string;
   'data.factorsDesc': string;
   'data.alreadyOutcome': string;

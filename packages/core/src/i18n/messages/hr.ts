@@ -168,7 +168,7 @@ export const hr: MessageCatalog = {
   'data.selectFactors': 'Select Factors',
   'data.analysisSection': 'Analysis Brief',
   'data.optional': 'optional',
-  'data.problemPlaceholder': 'Describe the problem you are investigating…',
+  'data.issueStatementPlaceholder': 'Describe what you want to investigate…',
   'data.outcomeDesc': 'The measurement you want to analyze',
   'data.factorsDesc': 'Categories that might influence the outcome',
   'data.alreadyOutcome': 'Already selected as outcome',

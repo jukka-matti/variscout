@@ -102,9 +102,9 @@ export interface ColumnMappingProps {
   maxFactors?: number;
   /** Mode: 'setup' for first-time mapping, 'edit' for mid-analysis re-edit */
   mode?: 'setup' | 'edit';
-  /** Show analysis brief fields (problem statement, hypothesis, target). Default: false (PWA). */
+  /** Show analysis brief fields (issue statement, hypothesis, target). Default: false (PWA). */
   showBrief?: boolean;
-  /** Initial problem statement (from persisted ProcessContext) */
+  /** Initial issue statement (from persisted ProcessContext) */
   initialIssueStatement?: string;
   /** Stack suggestion from detectColumns() (shown when wide-form data detected) */
   suggestedStack?: StackSuggestion;
@@ -394,16 +394,16 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
 
               {briefExpanded && (
                 <div className="space-y-3 pl-1" data-testid="brief-fields">
-                  {/* Problem statement */}
+                  {/* Issue statement */}
                   <div>
                     <textarea
                       value={issueStatement}
                       onChange={e => setIssueStatement(e.target.value.slice(0, 500))}
-                      placeholder={t('data.problemPlaceholder')}
+                      placeholder={t('data.issueStatementPlaceholder')}
                       className="w-full text-sm bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder:text-slate-500 resize-none focus:outline-none focus:border-blue-500/50"
                       rows={2}
                       maxLength={500}
-                      data-testid="brief-problem-statement"
+                      data-testid="brief-issue-statement"
                     />
                     <span className="text-[0.625rem] text-slate-600 float-right">
                       {issueStatement.length}/500
@@ -527,9 +527,9 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             </div>
           )}
 
-          {/* Problem statement only (PWA mode — showBrief=false but issueStatement always available in setup) */}
+          {/* Issue statement (PWA mode — showBrief=false but issueStatement always available in setup) */}
           {!showBrief && mode === 'setup' && (
-            <div data-testid="problem-statement-simple">
+            <div data-testid="issue-statement-simple">
               <textarea
                 value={issueStatement}
                 onChange={e => setIssueStatement(e.target.value.slice(0, 500))}
@@ -537,7 +537,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                 className="w-full text-sm bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder:text-slate-500 resize-none focus:outline-none focus:border-blue-500/50"
                 rows={1}
                 maxLength={500}
-                data-testid="brief-problem-statement"
+                data-testid="brief-issue-statement"
               />
             </div>
           )}

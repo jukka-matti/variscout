@@ -14,7 +14,7 @@ vi.mock('@variscout/hooks', () => {
     'data.showAllColumns': 'All columns',
     'data.analysisSection': 'Analysis Brief',
     'data.optional': 'optional',
-    'data.problemPlaceholder': 'Describe the problem you are investigating\u2026',
+    'data.issueStatementPlaceholder': 'Describe what you want to investigate…',
     'data.improvementTarget': 'Improvement target',
     'data.metric': 'Metric',
     'data.startAnalysis': 'Start Analysis',
@@ -479,10 +479,10 @@ describe('ColumnMapping', () => {
   });
 
   describe('analysis brief', () => {
-    it('shows problem statement field in non-brief mode (PWA)', () => {
+    it('shows issue statement field in non-brief mode (PWA)', () => {
       render(<ColumnMapping {...richProps} />);
 
-      expect(screen.getByTestId('problem-statement-simple')).toBeTruthy();
+      expect(screen.getByTestId('issue-statement-simple')).toBeTruthy();
       expect(screen.getByPlaceholderText(/What are you investigating/)).toBeTruthy();
     });
 
@@ -490,7 +490,7 @@ describe('ColumnMapping', () => {
       render(<ColumnMapping {...richProps} showBrief={true} />);
 
       expect(screen.getByTestId('analysis-brief')).toBeTruthy();
-      expect(screen.queryByTestId('problem-statement-simple')).toBeNull();
+      expect(screen.queryByTestId('issue-statement-simple')).toBeNull();
     });
 
     it('expands brief and shows hypothesis/target fields', () => {
@@ -499,7 +499,7 @@ describe('ColumnMapping', () => {
       fireEvent.click(screen.getByTestId('brief-toggle'));
 
       expect(screen.getByTestId('brief-fields')).toBeTruthy();
-      expect(screen.getByTestId('brief-problem-statement')).toBeTruthy();
+      expect(screen.getByTestId('brief-issue-statement')).toBeTruthy();
       expect(screen.getByTestId('brief-add-hypothesis')).toBeTruthy();
       expect(screen.getByTestId('brief-target-metric')).toBeTruthy();
     });
@@ -509,7 +509,7 @@ describe('ColumnMapping', () => {
       render(<ColumnMapping {...richProps} showBrief={true} onConfirm={onConfirm} />);
 
       fireEvent.click(screen.getByTestId('brief-toggle'));
-      fireEvent.change(screen.getByTestId('brief-problem-statement'), {
+      fireEvent.change(screen.getByTestId('brief-issue-statement'), {
         target: { value: 'Cpk is below target' },
       });
       fireEvent.click(screen.getByText('Start Analysis'));
@@ -538,9 +538,9 @@ describe('ColumnMapping', () => {
         />
       );
 
-      // Brief should auto-expand when initial problem statement provided
+      // Brief should auto-expand when initial issue statement provided
       expect(screen.getByTestId('brief-fields')).toBeTruthy();
-      const textarea = screen.getByTestId('brief-problem-statement') as HTMLTextAreaElement;
+      const textarea = screen.getByTestId('brief-issue-statement') as HTMLTextAreaElement;
       expect(textarea.value).toBe('Customer complaints up');
     });
   });
