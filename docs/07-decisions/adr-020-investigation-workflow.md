@@ -125,3 +125,21 @@ Implement a complete Problem -> Hypothesis -> Evidence -> Projection -> Action -
 - `packages/ui/src/components/FindingsPanel/` — Updated props
 - `packages/core/src/findings.ts` — ImprovementIdea type, Hypothesis.ideas field
 - `packages/hooks/src/useHypotheses.ts` — addIdea, updateIdea, removeIdea, selectIdea, attachProjection operations
+
+## Semantic Reframing: Question-Driven Investigation (ADR-053)
+
+The investigation model has been reframed from hypothesis-first to question-driven (see ADR-053). Key changes:
+
+- **Issue Statement** replaces Problem Statement as input (vague concern, evolves)
+- **Problem Statement** becomes output (Watson's 3 questions: measure, direction, scope)
+- **Questions** replace hypotheses as the primary investigation unit (same data model, different semantics)
+- **Multiple suspected causes** allowed (causeRole constraint relaxed)
+- **Factor Intelligence** generates evidence-ranked questions automatically
+- **Findings link to questions** they answer
+
+The Hypothesis data type and tree mechanics remain unchanged. The semantic mapping:
+
+- Hypothesis text → Question text
+- supported/contradicted/partial → answered-yes/answered-no/partial
+- causeRole 'primary' → 'suspected-cause' (multiple allowed)
+- New fields: questionSource, evidence (rSquaredAdj, etaSquared)

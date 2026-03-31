@@ -1,134 +1,136 @@
 ---
-title: Hypothesis Investigation Flow
+title: Question-Driven Investigation Flow
 audience: [analyst, engineer]
 category: workflow
 status: stable
-related: [hypothesis, root-cause, investigation-phases, investigation-diamond]
+related: [question-tree, investigation-phases, investigation-diamond, factor-intelligence]
 ---
 
-# Hypothesis Investigation Flow
+# Question-Driven Investigation Flow
 
-> How to use the hypothesis tree and validation UI. For the diamond lifecycle, see [Investigation Lifecycle Map](investigation-lifecycle-map.md). For the narrative walkthrough, see [Analysis Journey Map § INVESTIGATE](analysis-journey-map.md#phase-3-investigate).
+> How to use the question tree and validation UI. For the diamond lifecycle, see [Investigation Lifecycle Map](investigation-lifecycle-map.md). For the narrative walkthrough, see [Analysis Journey Map § INVESTIGATE](analysis-journey-map.md#phase-3-investigate). For the full EDA methodology, see [EDA Mental Model](../../01-vision/eda-mental-model.md).
 
-Structured investigation using the diamond pattern — diverge, validate, converge on a suspected cause.
+Structured investigation using the question-driven diamond pattern — generate questions, answer them with evidence, converge on suspected causes.
 
 ## Overview
 
-When you identify a key variation driver through drill-down analysis, the next question is _why_. The Hypothesis Investigation Flow provides a structured way to explore possible causes, test them against data and real-world evidence, and converge on a suspected root cause.
+When you identify a key variation driver through drill-down analysis, the next question is _why_. The Question-Driven Investigation Flow provides a structured way to explore possible causes by generating questions from evidence (Factor Intelligence + context), answering them with data and real-world evidence, and converging on multiple suspected causes.
 
-The investigation follows a **diamond pattern** — four phases of structured learning:
+The investigation follows a **question-driven diamond pattern** — four phases of structured learning:
 
-1. **Initial** — The upfront hypothesis (from FRAME's analysis brief) or a new observation becomes the root node of the hypothesis tree
-2. **Diverge** — The tree grows — break the broad cause into testable sub-hypotheses
-3. **Validate** — Test each leaf — data (ANOVA auto-validate), Gemba (go inspect), expert input
-4. **Converge** — The tree narrows — prune contradicted branches, promote the suspected root cause
+1. **Initial** — Upfront questions from the issue statement + Factor Intelligence generate evidence-ranked questions; these form the root nodes of the question tree
+2. **Diverge** — The question tree grows — answered questions spawn follow-up questions at deeper levels
+3. **Validate** — Answer each question — data (ANOVA auto-validate), Gemba (go inspect), expert input
+4. **Converge** — The tree narrows — rule out answered-no branches, mark multiple suspected causes
 
 The diamond closes at Converging. What follows — improvement ideation, corrective actions, implementation, and verification — belongs to the **IMPROVE** phase (PDCA). See [Analysis Journey Map § Phase 4: IMPROVE](analysis-journey-map.md#phase-4-improve).
 
-This mirrors how experienced quality engineers think: cast a wide net, then narrow down. VariScout structures this natural process so nothing is lost and the reasoning trail is documented.
+This mirrors how experienced quality engineers think: cast a wide net of questions, then narrow down through evidence. VariScout structures this natural process so nothing is lost and the reasoning trail is documented.
 
 ## Data Validation vs Gemba/Expert Validation
 
-Not every hypothesis can be tested with data. VariScout supports three validation types:
+Not every question can be answered with data alone. VariScout supports three validation types:
 
-| Validation Type | When to Use                                      | How It Works                                             |
-| --------------- | ------------------------------------------------ | -------------------------------------------------------- |
-| **Data**        | The hypothesis links to a factor in your dataset | ANOVA eta-squared automatically validates the hypothesis |
-| **Gemba**       | You need to physically inspect something         | Define a task, go look, record what you find             |
-| **Expert**      | You need domain knowledge beyond the data        | Consult an expert, record their assessment               |
+| Validation Type | When to Use                                    | How It Works                                         |
+| --------------- | ---------------------------------------------- | ---------------------------------------------------- |
+| **Data**        | The question links to a factor in your dataset | ANOVA eta-squared automatically answers the question |
+| **Gemba**       | You need to physically inspect something       | Define a task, go look, record what you find         |
+| **Expert**      | You need domain knowledge beyond the data      | Consult an expert, record their assessment           |
 
 ### Data Validation (Automatic)
 
-Link a hypothesis to a factor column and value. VariScout runs ANOVA and automatically sets the hypothesis status based on eta-squared thresholds:
+Link a question to a factor column and value. VariScout runs ANOVA and automatically sets the question status based on eta-squared thresholds:
 
-- **Supported** (>= 15% eta-squared) — the factor explains meaningful variation
-- **Contradicted** (< 5% eta-squared) — the factor explains negligible variation
+- **Answered yes** (>= 15% eta-squared) — the factor explains meaningful variation
+- **Ruled out** (< 5% eta-squared) — the factor explains negligible variation
 - **Partial** (5-15% eta-squared) — inconclusive, may warrant further investigation
 
-This is the same auto-validation from the existing hypothesis feature, now extended to work within a tree structure.
+This is the same auto-validation from the existing question/hypothesis feature, now extended to work within a tree structure. Questions with R²adj < 5% from Factor Intelligence are auto-answered as "ruled out" without analyst effort.
 
 ### Gemba Validation (Go and See)
 
-For hypotheses like "the nozzle tip is worn" or "the conveyor belt is misaligned," you cannot validate from data alone. Create a gemba task:
+For questions like "is the nozzle tip worn?" or "is the conveyor belt misaligned?", you cannot answer from data alone. Create a gemba task:
 
 1. Write what to check ("Inspect nozzle tip wear on Machine 5")
 2. Go to the shop floor and inspect
 3. Mark the task as completed
 4. Record what you found ("Nozzle tip worn 0.3mm beyond tolerance")
-5. Set the hypothesis status manually (supported/contradicted/partial)
+5. Set the question status manually (answered-yes/ruled-out/partial)
 
 ### Expert Validation (Domain Knowledge)
 
-Similar to gemba, but for questions that require expertise rather than physical inspection. "Could the resin batch variation cause this pattern?" — consult the materials engineer, record their assessment.
+Similar to gemba, but for questions that require expertise rather than physical inspection. "Could resin batch variation cause this pattern?" — consult the materials engineer, record their assessment.
 
-## Using the Tree View
+## Using the Question Tree
 
 ### In the Findings Panel
 
-When a finding has hypotheses with sub-hypotheses, the Findings panel can display them in tree view mode. Toggle between List, Board, and Tree views using the view mode selector.
+When a finding has questions with sub-questions, the Findings panel can display them in tree view mode. Toggle between List, Board, and Tree views using the view mode selector.
 
-Tree view shows one finding at a time with its full hypothesis tree:
+Tree view shows one finding at a time with its full question tree:
 
 ```
-Hypotheses                                [+ Add]
+Questions                                 [+ Add]
 
-● Machine 5 is causing drift               [data]
-  ├── ● Worn nozzle tip                   [gemba]  🎯 PRIMARY
+● Does Machine 5 cause drift?              [data]
+  ├── ● Is nozzle tip worn?               [gemba]  🎯 SUSPECTED
   │     Task: Check nozzle wear           [Done]
   │     "Worn 0.3mm beyond spec"
-  ├── ● Temperature instability             [data]  CONTRIBUTING
+  ├── ● Does temperature drift?             [data]  CONTRIBUTING
   │     Factor: Temperature  eta=23%
-  └── ✗ Operator technique variance         [data]
+  └── ✗ Does operator technique vary?       [data]
         Factor: Operator  eta=3%
 
-Progress: 2/3 tested, 1 contradicted
+Progress: 2/3 answered, 1 ruled out
 ```
 
-- **Status dots** use the standard colors (amber = untested, blue = partial, green = supported, red = contradicted)
+- **Status dots** use the standard colors (amber = open, blue = partial, green = answered-yes, red = ruled-out)
 - **Factor badges** show the linked factor name and eta-squared percentage
 - **Validation type icons** distinguish data, gemba, and expert hypotheses
-- **Contradicted hypotheses** are dimmed (50% opacity) with strikethrough text — visible but clearly eliminated
-- **Children summaries** show "N children (M supported)" when a node is collapsed
+- **Ruled-out questions** are dimmed (50% opacity) with strikethrough text — visible but clearly eliminated (negative learnings)
+- **Children summaries** show "N children (M answered)" when a node is collapsed
 
-### Inline Sub-Hypothesis Creation
+### Inline Sub-Question Creation
 
-The **"+" button** on a hypothesis node no longer uses `window.prompt()`. Clicking "+" expands an inline form directly within the tree node:
+The **"+" button** on a question node no longer uses `window.prompt()`. Clicking "+" expands an inline form directly within the tree node:
 
-- **Text input** — hypothesis statement (required, 5–200 chars)
+- **Text input** — question text (required, 5-200 chars)
 - **Factor dropdown** (optional) — link to a factor column for automatic data validation
 - **Validation type radio buttons** — `data` / `gemba` / `expert` (defaults to `data` when a factor is selected, `gemba` otherwise)
 
-Pressing Enter or clicking "Add" creates the sub-hypothesis and collapses the form. Pressing Escape cancels without saving. Validation errors are shown inline (e.g., "Text is required" or tree depth/width limit warnings).
+Pressing Enter or clicking "Add" creates the sub-question and collapses the form. Pressing Escape cancels without saving. Validation errors are shown inline (e.g., "Text is required" or tree depth/width limit warnings).
+
+**Note:** Factor Intelligence automatically generates initial questions ranked by R²adj evidence. The analyst can also add questions manually at any level of the tree.
 
 ### Cause Role Marking
 
-When a hypothesis reaches `supported` or `partial` status, a **🎯 button** appears on its `HypothesisNode` row. Clicking it cycles the hypothesis through three cause roles:
+When a question reaches `answered-yes` or `partial` status, a **🎯 button** appears on its node row. Clicking it cycles the question through three cause roles:
 
 ```
-none → primary → contributing → none → …
+none → suspected-cause → contributing → none → …
 ```
 
 Constraints:
 
-- Only **one primary** is allowed per root hypothesis tree. Marking a second hypothesis as primary automatically demotes the previous primary to `contributing`.
-- `contributing` has no uniqueness limit — any number of hypotheses in the tree can be marked as contributing.
-- The cycle button is only available on supported/partial hypotheses; contradicted hypotheses cannot carry a cause role.
+- **Multiple suspected causes** are allowed per question tree. Real quality problems rarely have a single root cause — multiple independent sources of variation are common.
+- `contributing` has no uniqueness limit — any number of questions in the tree can be marked as contributing.
+- The cycle button is only available on answered/partial questions; ruled-out questions cannot carry a cause role.
 
 **Visual badges on the node:**
 
-| Role           | Badge                  |
-| -------------- | ---------------------- |
-| `primary`      | `PRIMARY` (blue)       |
-| `contributing` | `CONTRIBUTING` (slate) |
-| _(none)_       | — (no badge)           |
+| Role              | Badge                  |
+| ----------------- | ---------------------- |
+| `suspected-cause` | `SUSPECTED` (blue)     |
+| `contributing`    | `CONTRIBUTING` (slate) |
+| _(none)_          | — (no badge)           |
 
-Once any cause role is set and the finding is at `analyzed` status or higher, the **FindingCard** (outside the tree view) renders a "Suspected cause" section showing the primary hypothesis prominently and listing contributing hypotheses beneath it. This surfaces the convergence conclusion without requiring the analyst to expand the full tree.
+Once any cause role is set and the finding is at `analyzed` status or higher, the **FindingCard** (outside the tree view) renders a "Suspected causes" section listing all suspected causes ranked by evidence (η²/R²adj), with contributing factors beneath. This surfaces the convergence conclusion without requiring the analyst to expand the full tree.
 
 ### In the Popout Window
 
 The FindingsWindow popout adds two features for investigation:
 
-**Problem Brief Header** — When you have set a problem statement (in Settings or column mapping), it appears as a compact header at the top of the popout window, keeping the investigation goal visible.
+**Issue Statement Header** — When you have set an issue statement (in Settings or column mapping), it appears as a compact header at the top of the popout window, keeping the investigation goal visible. As the investigation progresses, the emerging Problem Statement appears below it.
 
 **CoScout Sidebar** — A collapsible sidebar on the right shows the current investigation phase, suggests uncovered factor categories, and provides a link to open CoScout with investigation context pre-loaded.
 
@@ -139,31 +141,31 @@ To keep investigations focused and manageable:
 | Constraint   | Limit | Why                                                                    |
 | ------------ | ----- | ---------------------------------------------------------------------- |
 | Max depth    | 3     | Root, child, grandchild. Deeper means you should decompose differently |
-| Max children | 8     | Per parent. More than 8 sub-hypotheses = too broad                     |
+| Max children | 8     | Per parent. More than 8 sub-questions = too broad                      |
 | Max total    | 30    | Per finding. Hard cap across the entire tree                           |
 
-## Upfront Hypothesis Thread
+## Upfront Questions Thread
 
-When the analyst enters with a hypothesis (hypothesis-driven entry path), the analysis brief captures it during FRAME. This upfront hypothesis becomes the root node of the hypothesis tree when investigation begins, creating a continuous thread from initial theory through validated understanding.
+When the analyst enters with a hypothesis (hypothesis-driven entry path), the analysis brief captures it during FRAME as an upfront question. This becomes a root node in the question tree when investigation begins, alongside questions generated by Factor Intelligence.
 
-For example: "I think Machine 5 has drifted" → captured in FRAME → confirmed in SCOUT (eta-squared shows Machine 5 at 47%) → becomes tree root in INVESTIGATE → diverge into sub-hypotheses (worn nozzle, temperature drift, operator technique) → validate → converge on suspected root cause.
+For example: "I think Machine 5 has drifted" → captured as upfront question in FRAME → Factor Intelligence confirms in SCOUT (eta-squared shows Machine 5 at 47%) → becomes tree root in INVESTIGATE → spawn follow-up questions (is nozzle worn? does temperature drift? does operator technique vary?) → answer each → converge on suspected causes.
 
-The thread is currently conceptual — the analysis brief captures upfront hypotheses as text, but the hypothesis tree starts fresh. See [Journey Model § Known Gaps](../../05-technical/architecture/mental-model-hierarchy.md#known-gaps) for the opportunity to connect them programmatically.
+Factor Intelligence also generates its own questions ranked by R²adj evidence. These merge with upfront questions into a single ranked checklist, ensuring that both analyst intuition and statistical evidence drive the investigation.
 
 ## CoScout Investigation Prompts
 
 When AI is configured, CoScout adapts its suggestions to the current investigation phase:
 
-| Phase      | What CoScout Helps With                                                 |
-| ---------- | ----------------------------------------------------------------------- |
-| Initial    | Suggests possible causes based on the problem and data                  |
-| Diverging  | Suggests additional sub-hypotheses, highlights uncovered factor roles   |
-| Validating | Suggests how to validate untested hypotheses (data checks, gemba tasks) |
-| Converging | Helps evaluate which supported hypotheses are most likely root cause    |
+| Phase      | What CoScout Helps With                                           |
+| ---------- | ----------------------------------------------------------------- |
+| Initial    | Generates additional questions from issue statement + context     |
+| Diverging  | Suggests follow-up questions, highlights uncovered factor roles   |
+| Validating | Suggests how to answer open questions (data checks, gemba tasks)  |
+| Converging | Helps evaluate which answered questions point to suspected causes |
 
 > **Note:** CoScout also assists during IMPROVE — suggesting corrective actions, assisting with What-If parameter selection, and summarising before/after comparison — but this is part of the IMPROVE phase's PDCA cycle, not the investigation diamond.
 
-CoScout also checks which factor categories (equipment, temporal, operator, material, location) have been covered by hypotheses and nudges the analyst to consider uncovered categories. For example, if you have equipment and temporal hypotheses but no material hypothesis, CoScout might suggest: "Have you considered whether raw material batch variation could explain the drift?"
+CoScout also checks which factor categories (equipment, temporal, operator, material, location) have been covered by questions and nudges the analyst to consider uncovered categories. For example, if you have equipment and temporal questions but no material question, CoScout might suggest: "Have you considered whether raw material batch variation could explain the drift?"
 
 ## Example: Machine 5 Packaging Line
 
@@ -173,25 +175,25 @@ Fill weight variation on a packaging line exceeds the +/-2g specification. I-Cha
 
 ### Investigation
 
-**1. Root hypothesis:** "Machine 5 mechanical issue is causing fill weight drift"
+**1. Root question:** "Does Machine 5 have a mechanical issue causing fill weight drift?"
 
-**2. Diverge — generate sub-hypotheses:**
+**2. Diverge — generate sub-questions:**
 
-- "Worn nozzle tip" (gemba — needs physical inspection)
-- "Temperature controller drift" (data — temperature factor in dataset)
-- "Operator technique variance" (data — operator factor in dataset)
-- "Vibration from adjacent line" (expert — ask maintenance engineer)
+- "Is the nozzle tip worn?" (gemba — needs physical inspection)
+- "Does the temperature controller drift?" (data — temperature factor in dataset)
+- "Does operator technique vary?" (data — operator factor in dataset)
+- "Is there vibration from the adjacent line?" (expert — ask maintenance engineer)
 
-**3. Validate each:**
+**3. Answer each:**
 
-- **Worn nozzle tip** [gemba]: Go to Machine 5, inspect nozzle. Result: "Tip worn 0.3mm beyond tolerance." Status: **Supported**.
-- **Temperature drift** [data]: Link to Temperature factor. eta-squared = 23%. Status: **Supported**.
-- **Operator variance** [data]: Link to Operator factor. eta-squared = 3%. Status: **Contradicted**.
-- **Vibration** [expert]: Ask maintenance. Result: "Adjacent line was offline during the drift period, no vibration." Status: **Contradicted**.
+- **Nozzle tip worn?** [gemba]: Go to Machine 5, inspect nozzle. Result: "Tip worn 0.3mm beyond tolerance." Status: **Answered yes**.
+- **Temperature drift?** [data]: Link to Temperature factor. eta-squared = 23%. Status: **Answered yes**.
+- **Operator variance?** [data]: Link to Operator factor. eta-squared = 3%. Status: **Ruled out**.
+- **Vibration?** [expert]: Ask maintenance. Result: "Adjacent line was offline during the drift period, no vibration." Status: **Ruled out**.
 
 **4. Converge:**
 
-Two hypotheses supported (worn nozzle + temperature drift), two contradicted. The worn nozzle is the suspected root cause — it directly explains the mechanical drift and the temperature instability (worn nozzle affects heat transfer). The investigation diamond closes here.
+Two questions answered yes (worn nozzle + temperature drift), two ruled out. Both are marked as suspected causes — the worn nozzle directly explains the mechanical drift, and the temperature instability is an independent contributor (worn nozzle also affects heat transfer). The investigation diamond closes here.
 
 **→ IMPROVE phase (PDCA):**
 
@@ -215,22 +217,25 @@ With the suspected root cause identified, the analyst moves to IMPROVE:
 
 ## Terminology
 
-VariScout uses deliberate terminology to maintain the distinction between theory and proof:
+VariScout uses deliberate terminology to maintain the distinction between question and proof:
 
-| Stage                | Term                        | Meaning                                               |
-| -------------------- | --------------------------- | ----------------------------------------------------- |
-| Created              | **Hypothesis**              | A testable theory about cause                         |
-| Evidence supports it | **Supported Hypothesis**    | Data, gemba, or expert evidence supports this         |
-| Tree converges on it | **Suspected Root Cause**    | Best-supported theory, confident enough to act        |
-| Improvement works    | **Confirmed** (via outcome) | Process improved to target — the theory was effective |
+| Stage                | Term                        | Meaning                                                         |
+| -------------------- | --------------------------- | --------------------------------------------------------------- |
+| Generated            | **Question** (open)         | A question about a potential cause, ranked by evidence          |
+| Evidence answers yes | **Answered question**       | Data, gemba, or expert evidence confirms the factor matters     |
+| Evidence answers no  | **Ruled out**               | Factor checked and found not relevant (negative learning)       |
+| Tree converges       | **Suspected cause**         | Answered question promoted to suspected cause, confident to act |
+| Improvement works    | **Confirmed** (via outcome) | Process improved to target — the suspected cause was correct    |
 
-VariScout never auto-labels anything as "root cause." The analyst explicitly promotes a supported hypothesis to **suspected root cause** when they are confident enough to act on it. Confirmation is outcome-based: it only happens when the process improves to target (outcome = effective at "Resolved" status), not when the investigation converges.
+VariScout never auto-labels anything as "root cause." The analyst explicitly marks an answered question as a **suspected cause** when they are confident enough to act on it. Multiple suspected causes are allowed — real processes often have multiple independent sources of variation. Confirmation is outcome-based: it only happens when the process improves to target (outcome = effective at "Resolved" status), not when the investigation converges.
+
+**Semantic mapping from previous terminology:** The underlying data model uses the Hypothesis type. The semantic mapping is: hypothesis text = question text; supported = answered-yes; contradicted = ruled-out; untested = open; causeRole 'primary' = 'suspected-cause' (multiple allowed).
 
 ## Platform Availability
 
 | Capability                    | PWA (Free)        | Azure Standard        | Azure Team            |
 | ----------------------------- | ----------------- | --------------------- | --------------------- |
-| Hypotheses per finding        | 1 (flat, no tree) | Up to 30 (tree)       | Up to 30 (tree)       |
+| Questions per finding         | 1 (flat, no tree) | Up to 30 (tree)       | Up to 30 (tree)       |
 | Validation types              | Data only (auto)  | Data + gemba + expert | Data + gemba + expert |
 | Gemba/expert tasks            | -                 | Task + completion     | + task assignment     |
 | Tree view                     | -                 | Yes                   | Yes                   |
@@ -239,6 +244,7 @@ VariScout never auto-labels anything as "root cause." The analyst explicitly pro
 
 ## Related Documentation
 
+- [EDA Mental Model](../../01-vision/eda-mental-model.md) — Full question-driven methodology grounded in Turtiainen (2019)
 - [Investigation to Action](investigation-to-action.md) — Full investigation workflow (findings, actions, outcomes)
 - [Drill-Down Workflow](drill-down-workflow.md) — ANOVA drill-down mechanics
 - [Deep Dive](deep-dive.md) — 30-minute investigation pattern

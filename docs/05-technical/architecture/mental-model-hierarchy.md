@@ -26,7 +26,7 @@ FRAME (Blue #3b82f6)
   Goal: Parse data, map columns, set specs, capture process context
   Method: Data validation, column type detection, factor role inference
   No AI active · Seeds AI context for later phases
-  Hypothesis thread: upfront hypothesis captured in analysis brief (Azure)
+  Investigation thread: issue statement + upfront questions captured in analysis brief (Azure)
   Exit: Analysis ready to explore
 
 SCOUT (Green #22c55e)
@@ -34,17 +34,18 @@ SCOUT (Green #22c55e)
   Method: Watson's EDA — I-Chart → Boxplot → Pareto → Capability
          Progressive drill-down using η² (Total SS contribution)
   AI: NarrativeBar, ChartInsightChips, CoScout active
-  Hypothesis thread: hypothesis-driven → drill to suspect; discovery → explore freely
+  Factor Intelligence: generates evidence-ranked questions from R²adj
+  Investigation thread: questions from Factor Intelligence + upfront questions; drill to answer
   Exit: Variation drivers quantified, findings pinned (or: process fine → done)
 
 INVESTIGATE (Amber #f59e0b)
   Goal: Build understanding through structured learning
   Method: Investigation Diamond (4 phases)
     Initial → Diverging → Validating → Converging
-  Tools: Hypothesis tree, auto-validation (η²), gemba tasks, expert input
+  Tools: Question tree, auto-validation (η²), gemba tasks, expert input
   AI: Phase-aware diamond prompts in CoScout
-  Hypothesis thread: upfront hypothesis seeds tree root; tree grows, validates, converges
-  Exit: Suspected cause identified
+  Investigation thread: questions answered, follow-ups spawned, multiple suspected causes identified
+  Exit: Suspected causes identified, Problem Statement formulated
 
 IMPROVE (Purple #8b5cf6)
   Goal: Improve to target through PDCA
@@ -54,7 +55,7 @@ IMPROVE (Purple #8b5cf6)
     Do: Implement improvement actions
     Check: Staged analysis (before vs after)
     Act: Standardize fix or loop (new PDCA cycle / re-investigate)
-  Hypothesis thread: suspected cause drives improvement ideas
+  Investigation thread: suspected causes drive improvement ideas (multiple targets)
   Exit: Outcome verified, finding resolved
 
 × 3 ENTRY PATHS (modify each phase's behavior)
@@ -69,18 +70,20 @@ IMPROVE (Purple #8b5cf6)
 
 ---
 
-## Hypothesis Thread
+## Investigation Thread
 
-The upfront hypothesis flows through all 4 phases as a continuous thread:
+The investigation flows through all 4 phases as a continuous thread, driven by questions rather than hypotheses:
 
-| Phase       | Hypothesis Thread Role                                                                                   |
-| ----------- | -------------------------------------------------------------------------------------------------------- |
-| FRAME       | Analyst captures upfront hypothesis in analysis brief (Azure) or enters with prior knowledge             |
-| SCOUT       | Hypothesis-driven: drill to suspect factor. Discovery: explore freely, form hypotheses from observations |
-| INVESTIGATE | Upfront hypothesis (or Scout observation) seeds the tree root. Tree grows, validates, converges          |
-| IMPROVE     | Suspected cause drives improvement ideas. Confirmation only comes when the fix works (outcome-based)     |
+| Phase       | Investigation Thread Role                                                                                                         |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| FRAME       | Analyst captures issue statement + upfront questions in analysis brief (Azure) or enters with prior knowledge                     |
+| SCOUT       | Factor Intelligence generates evidence-ranked questions from R²adj; analyst answers questions through drill-down                  |
+| INVESTIGATE | Questions from SCOUT seed the question tree. Tree grows with follow-up questions, answers accumulate, suspected causes identified |
+| IMPROVE     | Multiple suspected causes drive improvement ideas. Confirmation only comes when the fix works (outcome-based)                     |
 
-The thread is not always linear — Routine Check entries may never reach INVESTIGATE, and Discovery entries form hypotheses during SCOUT rather than before.
+The thread is not always linear — Routine Check entries may never reach INVESTIGATE, and Discovery entries generate questions during SCOUT rather than before.
+
+**Issue Statement vs. Problem Statement:** The issue statement (vague concern) is the INPUT captured during FRAME. The problem statement (precise: what measure, how to change, what scope) is the OUTPUT that emerges when enough questions are answered during SCOUT/INVESTIGATE. See [EDA Mental Model](../../01-vision/eda-mental-model.md) for details.
 
 ---
 
@@ -123,11 +126,11 @@ Each mode is a view configuration, not a separate workflow. The analyst switches
 
 | Aspect   | Detail                                                                                          |
 | -------- | ----------------------------------------------------------------------------------------------- |
-| Goal     | Understand why — structured learning through the investigation diamond                          |
+| Goal     | Understand why — structured learning through question answering in the investigation diamond    |
 | Method   | Investigation Diamond: Initial → Diverging → Validating → Converging (see detail below)         |
 | AI       | Phase-aware diamond prompts in CoScout; investigation sidebar with uncovered factor suggestions |
 | Key Code | `useFindings`, `useHypotheses`, `FindingsLog`, `FindingBoardView`, `InvestigationPhaseBadge`    |
-| Exit     | Suspected cause identified, finding marked `analyzed`                                           |
+| Exit     | Multiple suspected causes identified, finding marked `analyzed`                                 |
 
 **Knowledge Base (Mode 3):** "Search Knowledge Base?" button in CoScout triggers Foundry IQ (Remote SharePoint via Azure AI Search). Returns folder-scoped documents using the user's own token (per-user security). Results injected as Layer 4 context for CoScout re-synthesis.
 
@@ -157,20 +160,20 @@ Each mode is a view configuration, not a separate workflow. The analyst switches
 
 ## Investigation Diamond (4 Phases)
 
-The diamond is a **structured learning** process within the INVESTIGATE phase:
+The diamond is a **structured learning** process within the INVESTIGATE phase, driven by questions:
 
-| Phase      | Purpose                                       | Analyst Activity                                                                            |
-| ---------- | --------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Initial    | Variation found, driver identified            | Pin finding; upfront hypothesis (from FRAME) or new observation becomes tree root           |
-| Diverging  | Generate possible causes                      | Add sub-hypotheses — the tree grows, break broad cause into testable theories               |
-| Validating | Gather evidence                               | Test each leaf — Data (ANOVA auto-validate), Gemba (go inspect), Expert input               |
-| Converging | Build understanding, identify suspected cause | Prune contradicted branches; mark causeRole (primary/contributing); promote suspected cause |
+| Phase      | Purpose                                                 | Analyst Activity                                                                                          |
+| ---------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Initial    | Variation found, questions generated                    | Factor Intelligence generates ranked questions; upfront questions from FRAME seed the question tree       |
+| Diverging  | Explore possible causes                                 | Answer questions, spawn follow-up questions — the question tree grows                                     |
+| Validating | Gather evidence                                         | Answer each question — Data (ANOVA auto-validate), Gemba (go inspect), Expert input                       |
+| Converging | Build understanding, identify multiple suspected causes | Rule out answered-no branches; mark causeRole (suspected-cause/contributing); formulate Problem Statement |
 
 The diamond closes at Converging. What follows — improvement ideation, actions, implementation, and verification — belongs to the IMPROVE phase (PDCA).
 
 **In code:** `InvestigationPhase` type (4 diamond phases + `'improving'` for IMPROVE), `InvestigationPhaseBadge` component, CoScout phase-aware prompts.
 
-**Hypothesis validation** within the diamond uses `ValidationStatus`: `untested → supported / partial / contradicted`. Auto-validation triggers when η² exceeds thresholds.
+**Question answering** within the diamond uses `ValidationStatus`: `open → answered-yes / partial / ruled-out`. Auto-validation triggers when η² exceeds thresholds. Factor Intelligence auto-answers questions where R²adj < 5% as "ruled out."
 
 ---
 
@@ -287,13 +290,13 @@ Entry paths describe WHY the analyst started. They modify the behavior and coach
 
 These are product/business concepts that were previously listed as mental models. They are explicitly NOT part of the journey model:
 
-| Concept             | What it is                                                           | Where it lives                                   |
-| ------------------- | -------------------------------------------------------------------- | ------------------------------------------------ |
-| Value Levers        | Business capability tiers (L1–L5)                                    | `docs/01-vision/business-bible.md`               |
-| Experience Spectrum | Product tiers (PWA → Standard → Team)                                | `core/tier.ts`                                   |
-| Two Speeds          | Quick Check (~5 min) / Deep Dive (~30 min)                           | Report auto-detection; absorbed by Entry Paths   |
-| Three Contributions | Parallel Views, Progressive Stratification, Hypothesis Investigation | Marketing/methodology copy, not a separate model |
-| Four Lenses         | CHANGE/FLOW/FAILURE/VALUE teaching labels                            | Docs and marketing only (intentional)            |
+| Concept             | What it is                                                                | Where it lives                                   |
+| ------------------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
+| Value Levers        | Business capability tiers (L1–L5)                                         | `docs/01-vision/business-bible.md`               |
+| Experience Spectrum | Product tiers (PWA → Standard → Team)                                     | `core/tier.ts`                                   |
+| Two Speeds          | Quick Check (~5 min) / Deep Dive (~30 min)                                | Report auto-detection; absorbed by Entry Paths   |
+| Three Contributions | Parallel Views, Progressive Stratification, Question-Driven Investigation | Marketing/methodology copy, not a separate model |
+| Four Lenses         | CHANGE/FLOW/FAILURE/VALUE teaching labels                                 | Docs and marketing only (intentional)            |
 
 ---
 
@@ -309,7 +312,7 @@ These are product/business concepts that were previously listed as mental models
 | Report Steps          | YES      | `useReportSections`, `ReportStepMarker`                                                                      |
 | Two Voices            | YES      | Control limits (calculated) vs spec limits (user-entered)                                                    |
 | Three Entry Paths     | YES      | `EntryScenario` type, `detectEntryScenario()` (AI context)                                                   |
-| Hypothesis Validation | YES      | `ValidationStatus` type                                                                                      |
+| Question Validation   | YES      | `ValidationStatus` type (semantic: open/answered-yes/ruled-out/partial)                                      |
 | Knowledge Layer       | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup` (Team only, preview-gated)                   |
 | Value Levers          | Indirect | Tier gating                                                                                                  |
 | Four Lenses           | NO       | Teaching/marketing only (intentional)                                                                        |
@@ -334,9 +337,9 @@ The Knowledge Layer (Foundry IQ) can search SharePoint docs, but only from INVES
 
 A future enhancement could allow process document references during FRAME, so the AI context includes SOP knowledge from the earliest analysis phases. This was identified in the AI readiness review as a "Level 2 proactive extraction" capability.
 
-### 4. Upfront Hypothesis → Tree Connection (ADR-027)
+### 4. Upfront Questions → Question Tree Connection (ADR-027, ADR-053)
 
-The analysis brief captures upfront hypotheses during FRAME. With the AI collaborator model (ADR-027), the upfront hypothesis is referenced by AI during SCOUT ("Your hypothesis about Machine A is supported — it accounts for 47% of variation") and can auto-seed the investigation tree root in INVESTIGATE. This closes the gap between the brief and the tree — the analyst no longer needs to manually re-enter their upfront hypothesis.
+The analysis brief captures upfront questions (formerly "upfront hypotheses") during FRAME. With the question-driven model (ADR-053), upfront questions merge with Factor Intelligence-generated questions into a ranked checklist during SCOUT. Factor Intelligence adds evidence (R²adj) to upfront questions when the factor matches, confirming or ruling out the analyst's initial intuition with data. This closes the gap between the brief and the question tree — upfront questions flow naturally into the investigation.
 
 ---
 
