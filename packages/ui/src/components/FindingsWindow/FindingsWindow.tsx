@@ -45,6 +45,16 @@ export interface FindingsSyncData {
   factorRoles?: Record<string, string>;
   /** Whether AI features are available */
   aiAvailable?: boolean;
+  /** Factor Intelligence questions (Hypothesis objects with questionSource) */
+  questions?: Hypothesis[];
+  /** Current issue statement */
+  issueStatement?: string;
+  /** CoScout-suggested sharpened issue statement */
+  suggestedIssueStatement?: string;
+  /** Formulated problem statement */
+  problemStatement?: string;
+  /** Whether problem statement is complete */
+  isProblemStatementComplete?: boolean;
 }
 
 export interface FindingsAction {
@@ -328,6 +338,11 @@ const FindingsWindow: React.FC = () => {
     suggestedQuestions,
     factorRoles,
     aiAvailable,
+    questions,
+    issueStatement: syncIssueStatement,
+    suggestedIssueStatement,
+    problemStatement,
+    isProblemStatementComplete,
   } = syncData;
   const selectedFinding = selectedFindingId
     ? (findings.find(f => f.id === selectedFindingId) ?? null)
@@ -497,6 +512,11 @@ const FindingsWindow: React.FC = () => {
             suggestedQuestions={suggestedQuestions}
             collapsed={sidebarCollapsed}
             onToggle={handleSidebarToggle}
+            questions={questions}
+            issueStatement={syncIssueStatement}
+            suggestedIssueStatement={suggestedIssueStatement}
+            problemStatement={problemStatement}
+            isProblemStatementComplete={isProblemStatementComplete}
           />
         )}
       </div>
@@ -545,6 +565,11 @@ export interface PopoutSyncOptions {
   suggestedQuestions?: string[];
   factorRoles?: Record<string, string>;
   aiAvailable?: boolean;
+  questions?: Hypothesis[];
+  issueStatement?: string;
+  suggestedIssueStatement?: string;
+  problemStatement?: string;
+  isProblemStatementComplete?: boolean;
 }
 
 export function openFindingsPopout(
@@ -566,6 +591,11 @@ export function openFindingsPopout(
     suggestedQuestions: options?.suggestedQuestions,
     factorRoles: options?.factorRoles,
     aiAvailable: options?.aiAvailable,
+    questions: options?.questions,
+    issueStatement: options?.issueStatement,
+    suggestedIssueStatement: options?.suggestedIssueStatement,
+    problemStatement: options?.problemStatement,
+    isProblemStatementComplete: options?.isProblemStatementComplete,
   };
   localStorage.setItem(FINDINGS_SYNC_KEY, JSON.stringify(syncData));
 
@@ -601,6 +631,11 @@ export function updateFindingsPopout(
     suggestedQuestions: options?.suggestedQuestions,
     factorRoles: options?.factorRoles,
     aiAvailable: options?.aiAvailable,
+    questions: options?.questions,
+    issueStatement: options?.issueStatement,
+    suggestedIssueStatement: options?.suggestedIssueStatement,
+    problemStatement: options?.problemStatement,
+    isProblemStatementComplete: options?.isProblemStatementComplete,
   };
   localStorage.setItem(FINDINGS_SYNC_KEY, JSON.stringify(syncData));
 }

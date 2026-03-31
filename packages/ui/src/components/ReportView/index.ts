@@ -53,3 +53,7 @@ export {
   ReportActivityBreakdown,
   type ReportActivityBreakdownProps,
 } from './ReportActivityBreakdown';
+export {
+  ReportInvestigationSummary,
+  type ReportInvestigationSummaryProps,
+} from './ReportInvestigationSummary';

@@ -4,6 +4,7 @@ import type { Hypothesis, InvestigationPhase } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
 import { QuestionChecklist } from './QuestionChecklist';
+import { InvestigationConclusion } from './InvestigationConclusion';
 
 export interface InvestigationSidebarProps {
   phase?: InvestigationPhase;
@@ -22,6 +23,16 @@ export interface InvestigationSidebarProps {
   onIssueStatementChange?: (text: string) => void;
   /** Callback when a question is clicked — should switch dashboard to show evidence */
   onQuestionClick?: (question: Hypothesis) => void;
+  /** CoScout-suggested sharpened issue statement */
+  suggestedIssueStatement?: string;
+  /** Callback when user accepts the suggested sharpening */
+  onAcceptSuggestion?: () => void;
+  /** Callback when user dismisses the suggestion */
+  onDismissSuggestion?: () => void;
+  /** Formulated problem statement */
+  problemStatement?: string;
+  /** Whether problem statement is complete */
+  isProblemStatementComplete?: boolean;
 }
 
 const phaseDescriptionKeys: Record<string, keyof import('@variscout/core').MessageCatalog> = {
@@ -56,6 +67,11 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
   issueStatement,
   onIssueStatementChange,
   onQuestionClick,
+  suggestedIssueStatement,
+  onAcceptSuggestion,
+  onDismissSuggestion,
+  problemStatement,
+  isProblemStatementComplete,
 }) => {
   const { t } = useTranslation();
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -74,6 +90,27 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
       .filter(([factor]) => !coveredFactors.has(factor))
       .map(([factor, role]) => ({ factor, role }));
   }, [factorRoles, hypotheses]);
+
+  // Compute conclusion data from questions (must be before early return)
+  const suspectedCauses = React.useMemo(
+    () => (questions ?? []).filter(q => q.causeRole === 'suspected-cause'),
+    [questions]
+  );
+  const ruledOut = React.useMemo(
+    () =>
+      (questions ?? []).filter(
+        q =>
+          q.causeRole === 'ruled-out' ||
+          (q.status === 'contradicted' && q.questionSource === 'factor-intel')
+      ),
+    [questions]
+  );
+  const contributing = React.useMemo(
+    () => (questions ?? []).filter(q => q.causeRole === 'contributing'),
+    [questions]
+  );
+  const hasConclusionData = suspectedCauses.length > 0 || ruledOut.length > 0;
+  const hasQuestions = questions && questions.length > 0;
 
   // Toggle button (always visible)
   const toggleButton = (
@@ -96,12 +133,11 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
     );
   }
 
-  const hasQuestions = questions && questions.length > 0;
-
   const hasContent =
     phase ||
     uncoveredRoles.length > 0 ||
     hasQuestions ||
+    hasConclusionData ||
     (suggestedQuestions && suggestedQuestions.length > 0) ||
     (phase === 'improving' && hasStagedData);
 
@@ -178,6 +214,22 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
             issueStatement={issueStatement}
             onIssueStatementChange={onIssueStatementChange}
             onQuestionClick={onQuestionClick}
+            suggestedIssueStatement={suggestedIssueStatement}
+            onAcceptSuggestion={onAcceptSuggestion}
+            onDismissSuggestion={onDismissSuggestion}
+            problemStatement={problemStatement}
+            isProblemStatementComplete={isProblemStatementComplete}
+          />
+        )}
+
+        {/* Investigation conclusions (suspected causes, ruled out) */}
+        {hasConclusionData && (
+          <InvestigationConclusion
+            suspectedCauses={suspectedCauses}
+            ruledOut={ruledOut}
+            contributing={contributing}
+            problemStatement={problemStatement}
+            hasConclusions={hasConclusionData}
           />
         )}
 

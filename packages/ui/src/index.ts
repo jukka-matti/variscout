@@ -362,6 +362,8 @@ export {
   type ReportPerformanceKPIGridProps,
   ReportActivityBreakdown,
   type ReportActivityBreakdownProps,
+  ReportInvestigationSummary,
+  type ReportInvestigationSummaryProps,
 } from './components/ReportView';
 
 // Services
