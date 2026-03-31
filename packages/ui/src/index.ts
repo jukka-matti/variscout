@@ -111,6 +111,8 @@ export {
   type InvestigationSidebarProps,
   QuestionChecklist,
   type QuestionChecklistProps,
+  InvestigationConclusion,
+  type InvestigationConclusionProps,
 } from './components/FindingsWindow';
 
 export {

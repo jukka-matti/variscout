@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { Check, ChevronDown, ChevronRight, X } from 'lucide-react';
 import type { Hypothesis } from '@variscout/core';
 
 export interface QuestionChecklistProps {
@@ -13,6 +13,16 @@ export interface QuestionChecklistProps {
   onQuestionClick?: (question: Hypothesis) => void;
   /** Callback to answer a question (link finding) */
   onAnswerQuestion?: (questionId: string) => void;
+  /** CoScout-suggested sharpened issue statement (shown when available) */
+  suggestedIssueStatement?: string;
+  /** Callback when user accepts the suggested sharpening */
+  onAcceptSuggestion?: () => void;
+  /** Callback when user dismisses the suggestion */
+  onDismissSuggestion?: () => void;
+  /** Formulated problem statement (shown when enough questions answered) */
+  problemStatement?: string;
+  /** Whether the problem statement is complete (Watson's 3 questions answered) */
+  isProblemStatementComplete?: boolean;
 }
 
 const ISSUE_STATEMENT_MAX = 500;
@@ -44,10 +54,33 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
   onIssueStatementChange,
   onQuestionClick,
   onAnswerQuestion,
+  suggestedIssueStatement,
+  onAcceptSuggestion,
+  onDismissSuggestion,
+  problemStatement,
+  isProblemStatementComplete,
 }) => {
   const [answeredExpanded, setAnsweredExpanded] = useState(false);
+  const [suggestionDismissed, setSuggestionDismissed] = useState(false);
   const [localIssue, setLocalIssue] = useState(issueStatement ?? '');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Reset dismissed state when a new suggestion arrives
+  useEffect(() => {
+    if (suggestedIssueStatement) {
+      setSuggestionDismissed(false);
+    }
+  }, [suggestedIssueStatement]);
+
+  const handleAcceptSuggestion = useCallback(() => {
+    onAcceptSuggestion?.();
+    setSuggestionDismissed(true);
+  }, [onAcceptSuggestion]);
+
+  const handleDismissSuggestion = useCallback(() => {
+    onDismissSuggestion?.();
+    setSuggestionDismissed(true);
+  }, [onDismissSuggestion]);
 
   const handleIssueBlur = useCallback(() => {
     const trimmed = localIssue.trim();
@@ -87,6 +120,39 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
           <div className="text-[0.5625rem] text-content-muted text-right">
             {localIssue.length}/{ISSUE_STATEMENT_MAX}
           </div>
+
+          {/* Suggested sharpening */}
+          {suggestedIssueStatement && !suggestionDismissed && (
+            <div
+              className="mt-1.5 bg-amber-500/5 border-l-2 border-amber-500/30 rounded-r-lg px-2.5 py-2"
+              data-testid="suggested-sharpening"
+            >
+              <div className="text-[0.5625rem] uppercase tracking-wider text-content-muted font-medium mb-1">
+                Suggested update
+              </div>
+              <p className="text-[0.6875rem] leading-relaxed text-content-secondary italic mb-2">
+                {suggestedIssueStatement}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleAcceptSuggestion}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[0.625rem] font-medium bg-green-500/10 text-green-600 hover:bg-green-500/20 transition-colors"
+                  data-testid="accept-suggestion"
+                >
+                  <Check size={10} />
+                  Accept
+                </button>
+                <button
+                  onClick={handleDismissSuggestion}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[0.625rem] font-medium bg-surface-secondary text-content-muted hover:text-content-secondary transition-colors"
+                  data-testid="dismiss-suggestion"
+                >
+                  <X size={10} />
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -139,6 +205,37 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
         <p className="text-[0.6875rem] text-content-muted italic">
           No investigation questions yet.
         </p>
+      )}
+
+      {/* Problem Statement */}
+      {problemStatement && (
+        <div
+          className={`border-l-2 rounded-r-lg px-2.5 py-2 ${
+            isProblemStatementComplete
+              ? 'border-green-500/40 bg-green-500/5'
+              : 'border-amber-500/30 bg-amber-500/5'
+          }`}
+          data-testid="problem-statement"
+        >
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-[0.625rem] uppercase tracking-wider text-content font-bold">
+              Problem Statement
+            </span>
+            {isProblemStatementComplete ? (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 text-[0.5625rem] font-medium">
+                <Check size={8} />
+                Complete
+              </span>
+            ) : (
+              <span className="text-[0.5625rem] text-content-muted italic">
+                Emerging — answer more questions to refine
+              </span>
+            )}
+          </div>
+          <p className="text-[0.6875rem] leading-relaxed text-content-secondary">
+            {problemStatement}
+          </p>
+        </div>
       )}
     </div>
   );
