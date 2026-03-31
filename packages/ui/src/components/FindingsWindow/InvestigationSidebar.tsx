@@ -3,6 +3,7 @@ import { Copy, Check, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import type { Hypothesis, InvestigationPhase } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
+import { QuestionChecklist } from './QuestionChecklist';
 
 export interface InvestigationSidebarProps {
   phase?: InvestigationPhase;
@@ -13,6 +14,14 @@ export interface InvestigationSidebarProps {
   onToggle: () => void;
   /** When true and phase is 'improving', shows a verification checklist */
   hasStagedData?: boolean;
+  /** Factor Intelligence questions (Hypothesis objects with questionSource set) */
+  questions?: Hypothesis[];
+  /** Current issue statement text */
+  issueStatement?: string;
+  /** Callback when issue statement is edited */
+  onIssueStatementChange?: (text: string) => void;
+  /** Callback when a question is clicked — should switch dashboard to show evidence */
+  onQuestionClick?: (question: Hypothesis) => void;
 }
 
 const phaseDescriptionKeys: Record<string, keyof import('@variscout/core').MessageCatalog> = {
@@ -43,6 +52,10 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
   collapsed,
   onToggle,
   hasStagedData,
+  questions,
+  issueStatement,
+  onIssueStatementChange,
+  onQuestionClick,
 }) => {
   const { t } = useTranslation();
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -83,9 +96,12 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
     );
   }
 
+  const hasQuestions = questions && questions.length > 0;
+
   const hasContent =
     phase ||
     uncoveredRoles.length > 0 ||
+    hasQuestions ||
     (suggestedQuestions && suggestedQuestions.length > 0) ||
     (phase === 'improving' && hasStagedData);
 
@@ -155,8 +171,18 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
           </div>
         )}
 
-        {/* Suggested questions */}
-        {suggestedQuestions && suggestedQuestions.length > 0 && (
+        {/* Factor Intelligence question checklist */}
+        {hasQuestions && (
+          <QuestionChecklist
+            questions={questions!}
+            issueStatement={issueStatement}
+            onIssueStatementChange={onIssueStatementChange}
+            onQuestionClick={onQuestionClick}
+          />
+        )}
+
+        {/* Suggested questions — fallback when no Factor Intelligence questions */}
+        {!hasQuestions && suggestedQuestions && suggestedQuestions.length > 0 && (
           <div>
             <div className="text-[0.625rem] uppercase tracking-wider text-content-muted font-medium mb-1.5">
               Ask CoScout

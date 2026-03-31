@@ -9,3 +9,5 @@ export {
 } from './FindingsWindow';
 
 export { InvestigationSidebar, type InvestigationSidebarProps } from './InvestigationSidebar';
+
+export { QuestionChecklist, type QuestionChecklistProps } from './QuestionChecklist';

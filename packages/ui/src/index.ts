@@ -109,6 +109,8 @@ export {
   type FindingsAction,
   InvestigationSidebar,
   type InvestigationSidebarProps,
+  QuestionChecklist,
+  type QuestionChecklistProps,
 } from './components/FindingsWindow';
 
 export {
