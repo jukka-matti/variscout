@@ -320,6 +320,10 @@ Text annotations are rendered by `ChartAnnotationLayer` (from `@variscout/ui`) a
 
 See [Chart Annotations](./overview.md#chart-annotations) for full component details.
 
+#### Question Spotlight
+
+When the analyst clicks a question in the Investigation panel, the boxplot applies `selectedGroups` for the question's factor/level — selected boxes at full opacity, others dim to 30%. If the question references a different factor, the boxplot factor switches automatically. This provides instant visual feedback showing the evidence for the question.
+
 ### Mobile Tap Interaction
 
 On mobile (<640px), tapping a boxplot box opens a `MobileCategorySheet` bottom action sheet (from `@variscout/ui`) showing category stats: n, mean, median, IQR, and contribution %. The `onBoxContextMenu` right-click handler is desktop-only; on mobile, the `MobileChartCarousel` intercepts taps and uses the `onDrillDown` callback to open the sheet instead. Available actions in the sheet: drill-down into the category, highlight (red/amber/green), and pin as finding with an optional note.

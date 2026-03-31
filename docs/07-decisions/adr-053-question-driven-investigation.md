@@ -49,6 +49,8 @@ Factor Intelligence Layer 1 (Best Subsets R²adj) generates evidence-ranked ques
 
 Findings link to the question they answer. Each finding sharpens the issue statement. Follow-up questions spawn from answered questions (the thesis's inner PDCA loop: Analysis Planning → Data Organizing → Exploratory Analysis → Evaluation).
 
+**Auto-link mechanism:** When a finding is created while a question is "in focus" (last clicked in the question checklist), the finding automatically links to that question. No explicit "answer" button — the question model is invisible infrastructure, not a user-facing action. Chart annotations from question-linked findings are opt-in via "Show on chart" toggle.
+
 ### 4. Hypothesis tree → Question tree
 
 Same data model (`parentId`, `linkedFindingIds`, `factor`/`level`, validation types), different semantics. Questions have states: `open`, `answered`, `auto-answered`, `ruled-out`.

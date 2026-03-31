@@ -334,6 +334,8 @@ When the analyst discovers something worth recording — a pattern, a significan
 
 When a finding is linked to a question, the question's status updates: answered-yes (the factor matters), answered-no (it does not), or partial (inconclusive, needs more investigation). This linking is what transforms the question checklist from a to-do list into an evidence trail.
 
+Findings auto-link to the currently focused question — no explicit "answer" action needed. The analyst pins observations using the familiar chart interaction (right-click → Add observation), and the system detects which question the finding relates to based on the focused question context. Chart annotations from findings are opt-in (not shown by default) to keep dashboards clean.
+
 Each finding also sharpens the issue statement. After pinning a finding about night shift variation, the issue statement can be updated from "fill weight is too variable" to "fill weight variation is driven by night shift." With CoScout, this sharpening is suggested automatically. Without CoScout, the analyst edits the statement manually.
 
 ### 4.5 Follow-Up Questions

@@ -231,6 +231,20 @@ The question model works without AI because Factor Intelligence is deterministic
 
 **Staged Analysis (IMPROVE):** Before/after comparison verifies whether the suspected causes were actually addressed. Multiple suspected causes means multiple verification targets.
 
+### 9. Question-Finding Auto-Link UX
+
+The question model is an invisible thinking structure — the analyst interacts with charts and findings (familiar patterns). Questions organize their thinking; linking happens automatically.
+
+**Click question → spotlight:** Clicking a question in the checklist applies `selectedGroups` on the boxplot for the question's factor/level (full opacity, others dim to 30%). If the question is about a different factor, the boxplot switches factors. This is the same visual as clicking a boxplot category directly.
+
+**Auto-link finding to focused question:** When the analyst pins a finding (via chart context menu, CoScout proposal, or any existing creation path) while a question is "in focus" (last clicked), the finding automatically links to that question via `hypothesisId`. The question status updates based on evidence (η² ≥15% → supported, <5% → contradicted, 5-15% → partial).
+
+**Auto-generated finding text (both-layered):** When a finding is created from a question context, the system generates deterministic text first ("Shift: η²=34%, Night is worst"). CoScout enriches it asynchronously when available — same pattern as ChartInsightChips (deterministic-first, AI-enhanced). The analyst can always edit the text.
+
+**Chart annotations are opt-in:** Findings appear in the findings list and question checklist. A "Show on chart" toggle (eye icon) on the finding card controls whether ChartAnnotationLayer renders it. Default: hidden. This keeps charts clean — the analyst curates which observations appear visually.
+
+**No "Answer" button:** There is no explicit "answer question" button on question rows. The question row is a single click target (spotlight/navigate). Answering happens through the natural finding creation flow.
+
 ## Implementation Phases
 
 ### Phase 1: Question Model Foundation
