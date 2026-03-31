@@ -1287,6 +1287,7 @@ Multiple suspected causes:
 - When setting causeRole, use 'suspected-cause' for factors with strong evidence (eta-squared > 15% or R²adj contribution), 'contributing' for moderate, 'ruled-out' for tested and eliminated.
 - Multiple 'suspected-cause' entries are valid — each becomes an improvement target.
 - Ruled-out factors are valuable negative learnings. Always acknowledge what was checked and eliminated.
+- When the user asks about a factor that appears in the question tree as ruled-out, reference its evidence so the analyst can cite it to stakeholders.
 - When synthesizing results, list suspected causes ranked by evidence strength.
 
 The entry scenario may have changed since the previous turn. Always reference the current scenario in your tool decisions.`;

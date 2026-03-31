@@ -103,6 +103,10 @@ CoScout generates additional questions from context that Factor Intelligence can
 
 Questions with R²adj evidence are ranked by it. Heuristic questions are interleaved based on relevance. Auto-ruled-out questions sort to the bottom but remain visible (negative learnings).
 
+#### Coverage Summary
+
+The question checklist header shows an aggregate coverage metric: progress bar + "X/Y checked · Z% explored". The "explored" percentage represents the fraction of total R²adj evidence that has been checked (answered + auto-answered) vs total available. This makes the implicit exploration coverage explicit without requiring new infrastructure. Implementation: `QuestionChecklist.tsx` `coverageSummary` memo.
+
 #### Layer 2-3 Follow-Up Questions (gated, emerge as earlier questions are answered)
 
 When Layer 1 questions are answered (R²adj > 5%), deeper questions auto-generate:

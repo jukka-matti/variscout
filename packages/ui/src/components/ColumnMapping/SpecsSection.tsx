@@ -33,6 +33,15 @@ const SpecsSection: React.FC<SpecsSectionProps> = ({
     lsl: lsl ? parseFloat(lsl) : undefined,
   });
 
+  const lslNum = lsl ? parseFloat(lsl) : undefined;
+  const uslNum = usl ? parseFloat(usl) : undefined;
+  const specError =
+    lslNum !== undefined &&
+    uslNum !== undefined &&
+    !isNaN(lslNum) &&
+    !isNaN(uslNum) &&
+    lslNum >= uslNum;
+
   return (
     <div>
       <button
@@ -99,8 +108,9 @@ const SpecsSection: React.FC<SpecsSectionProps> = ({
               value={lsl}
               onChange={e => onLslChange(e.target.value)}
               placeholder="Lower limit"
-              className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white font-mono focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 placeholder-slate-600"
+              className={`flex-1 bg-slate-900 border rounded px-2 py-1.5 text-sm text-white font-mono focus:outline-none focus:ring-1 placeholder-slate-600 ${specError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30' : 'border-slate-600 focus:border-amber-500 focus:ring-amber-500/30'}`}
               aria-label="LSL specification"
+              aria-invalid={specError || undefined}
             />
           </div>
           <div className="flex items-center gap-3">
@@ -118,10 +128,16 @@ const SpecsSection: React.FC<SpecsSectionProps> = ({
               value={usl}
               onChange={e => onUslChange(e.target.value)}
               placeholder="Upper limit"
-              className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white font-mono focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 placeholder-slate-600"
+              className={`flex-1 bg-slate-900 border rounded px-2 py-1.5 text-sm text-white font-mono focus:outline-none focus:ring-1 placeholder-slate-600 ${specError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30' : 'border-slate-600 focus:border-amber-500 focus:ring-amber-500/30'}`}
               aria-label="USL specification"
+              aria-invalid={specError || undefined}
             />
           </div>
+          {specError && (
+            <p className="text-xs text-red-400" role="alert">
+              LSL must be less than USL.
+            </p>
+          )}
           <p className="text-xs text-slate-500">You can always change these later.</p>
         </div>
       )}

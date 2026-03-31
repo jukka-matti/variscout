@@ -24,3 +24,6 @@ export { computeYamazumiData, computeYamazumiSummary } from './aggregation';
 
 // Detection
 export { detectYamazumiFormat } from './detection';
+
+// Question generation
+export { generateYamazumiQuestions } from './questions';

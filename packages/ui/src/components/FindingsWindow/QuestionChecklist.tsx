@@ -23,6 +23,8 @@ export interface QuestionChecklistProps {
   problemStatement?: string;
   /** Whether the problem statement is complete (Watson's 3 questions answered) */
   isProblemStatementComplete?: boolean;
+  /** Mode-specific evidence label (e.g., "R²adj", "Cpk impact", "Waste %") */
+  evidenceLabel?: string;
 }
 
 const ISSUE_STATEMENT_MAX = 500;
@@ -59,6 +61,7 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
   onDismissSuggestion,
   problemStatement,
   isProblemStatementComplete,
+  evidenceLabel,
 }) => {
   const [answeredExpanded, setAnsweredExpanded] = useState(false);
   const [suggestionDismissed, setSuggestionDismissed] = useState(false);
@@ -97,6 +100,19 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
   const answeredQuestions = questions
     .filter(q => q.status === 'supported' || q.status === 'contradicted')
     .sort(sortByEvidence);
+
+  // Aggregate coverage: sum R²adj of answered/auto-answered questions
+  const coverageSummary = React.useMemo(() => {
+    if (questions.length === 0) return null;
+    const checked = questions.filter(q => q.status === 'supported' || q.status === 'contradicted');
+    const totalR2 = questions.reduce((sum, q) => sum + (q.evidence?.rSquaredAdj ?? 0), 0);
+    const checkedR2 = checked.reduce((sum, q) => sum + (q.evidence?.rSquaredAdj ?? 0), 0);
+    return {
+      checked: checked.length,
+      total: questions.length,
+      explainedPct: totalR2 > 0 ? Math.round((checkedR2 / totalR2) * 100) : null,
+    };
+  }, [questions]);
 
   return (
     <div className="space-y-3">
@@ -156,6 +172,27 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
         </div>
       )}
 
+      {/* Coverage summary */}
+      {coverageSummary && coverageSummary.total > 0 && (
+        <div
+          className="flex items-center gap-2 text-[0.625rem] text-content-muted"
+          data-testid="coverage-summary"
+        >
+          <div className="flex-1 h-1 rounded-full bg-surface-secondary overflow-hidden">
+            <div
+              className="h-full rounded-full bg-blue-500/60 transition-all"
+              style={{
+                width: `${(coverageSummary.checked / coverageSummary.total) * 100}%`,
+              }}
+            />
+          </div>
+          <span className="shrink-0 tabular-nums">
+            {coverageSummary.checked}/{coverageSummary.total} checked
+            {coverageSummary.explainedPct != null && ` · ${coverageSummary.explainedPct}% explored`}
+          </span>
+        </div>
+      )}
+
       {/* Open questions */}
       {openQuestions.length > 0 && (
         <div>
@@ -169,6 +206,7 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
                 question={q}
                 onQuestionClick={onQuestionClick}
                 onAnswerQuestion={onAnswerQuestion}
+                evidenceLabel={evidenceLabel}
               />
             ))}
           </div>
@@ -194,6 +232,7 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
                   question={q}
                   onQuestionClick={onQuestionClick}
                   onAnswerQuestion={onAnswerQuestion}
+                  evidenceLabel={evidenceLabel}
                 />
               ))}
             </div>
@@ -246,7 +285,8 @@ const QuestionRow: React.FC<{
   question: Hypothesis;
   onQuestionClick?: (question: Hypothesis) => void;
   onAnswerQuestion?: (questionId: string) => void;
-}> = ({ question, onQuestionClick }) => {
+  evidenceLabel?: string;
+}> = ({ question, onQuestionClick, evidenceLabel }) => {
   const isRuledOut = question.status === 'contradicted';
   const r2Pct =
     question.evidence?.rSquaredAdj != null ? Math.round(question.evidence.rSquaredAdj * 100) : null;
@@ -279,7 +319,7 @@ const QuestionRow: React.FC<{
       {/* Evidence badge */}
       {r2Pct != null && (
         <span className="flex-shrink-0 mt-0.5 px-1.5 py-0.5 rounded-full bg-surface-secondary text-[0.5625rem] text-content-muted font-medium">
-          {r2Pct}%
+          {r2Pct}%{evidenceLabel && evidenceLabel !== 'R²adj' ? ` ${evidenceLabel}` : ''}
         </span>
       )}
     </button>

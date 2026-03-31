@@ -180,6 +180,60 @@ describe('generateQuestionsFromRanking', () => {
     expect(questions).toEqual([]);
   });
 
+  it('uses capability mode wording for single-factor questions', () => {
+    const data = buildTestData(60);
+    const result = computeBestSubsets(data, 'Weight', ['Machine', 'Shift']);
+    expect(result).not.toBeNull();
+
+    const questions = generateQuestionsFromRanking(result!, { mode: 'capability' });
+
+    const singles = questions.filter(q => q.type === 'single-factor');
+    for (const q of singles) {
+      expect(q.text).toContain('affect Cpk');
+      expect(q.text).not.toContain('explain variation');
+    }
+
+    const combos = questions.filter(q => q.type === 'combination');
+    for (const q of combos) {
+      expect(q.text).toContain('affect Cpk more');
+    }
+  });
+
+  it('uses performance mode wording for questions', () => {
+    const data = buildTestData(60);
+    const result = computeBestSubsets(data, 'Weight', ['Machine', 'Shift']);
+    expect(result).not.toBeNull();
+
+    const questions = generateQuestionsFromRanking(result!, { mode: 'performance' });
+
+    const singles = questions.filter(q => q.type === 'single-factor');
+    for (const q of singles) {
+      expect(q.text).toContain('affect channel performance');
+    }
+
+    const combos = questions.filter(q => q.type === 'combination');
+    for (const q of combos) {
+      expect(q.text).toContain('affect channel performance more');
+    }
+  });
+
+  it('keeps default wording for standard mode', () => {
+    const data = buildTestData(60);
+    const result = computeBestSubsets(data, 'Weight', ['Machine', 'Shift']);
+    expect(result).not.toBeNull();
+
+    const questionsDefault = generateQuestionsFromRanking(result!);
+    const questionsStandard = generateQuestionsFromRanking(result!, { mode: 'standard' });
+
+    // Both should use the same "explain variation" wording
+    for (const q of questionsDefault.filter(q => q.type === 'single-factor')) {
+      expect(q.text).toContain('explain variation');
+    }
+    for (const q of questionsStandard.filter(q => q.type === 'single-factor')) {
+      expect(q.text).toContain('explain variation');
+    }
+  });
+
   it('uses default threshold of 0.05', () => {
     const mockResult: BestSubsetsResult = {
       subsets: [

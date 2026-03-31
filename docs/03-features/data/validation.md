@@ -18,14 +18,15 @@ Quality checks applied to uploaded data.
 
 ## Validation Rules
 
-| Check             | Severity | Description                |
-| ----------------- | -------- | -------------------------- |
-| Empty file        | Error    | File has no data rows      |
-| No measure column | Error    | No numeric column detected |
-| All values same   | Warning  | Zero variation             |
-| Too few points    | Warning  | <10 data points            |
-| Outlier detected  | Info     | Values >3σ from mean       |
-| Missing values    | Info     | Nulls in measure column    |
+| Check             | Severity | Description                                         |
+| ----------------- | -------- | --------------------------------------------------- |
+| Empty file        | Error    | File has no data rows                               |
+| No measure column | Error    | No numeric column detected                          |
+| All values same   | Warning  | Zero variation                                      |
+| Too few points    | Warning  | <10 data points                                     |
+| Outlier detected  | Info     | Values >3σ from mean                                |
+| Missing values    | Info     | Nulls in measure column                             |
+| LSL ≥ USL         | Error    | Lower spec limit exceeds or equals upper spec limit |
 
 ---
 

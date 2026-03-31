@@ -234,6 +234,8 @@ Respect user preferences:
 }
 ```
 
+**Implementation status:** Global `prefers-reduced-motion` override is active in `packages/ui/src/styles/components.css` — covers all animations, transitions, and scroll behavior on universal selector with `!important`. Both apps import this via `@import '@variscout/ui/styles/components.css'`. Additional mode-specific overrides exist in `index.css` (PWA chart pulse) and `theme.css` (scroll behavior).
+
 ### Safe Animations
 
 - Avoid flashing content (max 3 flashes/second)

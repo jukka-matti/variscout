@@ -18,6 +18,7 @@ import * as d3 from 'd3-array';
 import type { DataRow } from '../types';
 import { toNumericValue } from '../types';
 import { fDistributionPValue } from './distributions';
+import type { ResolvedMode } from '../analysisStrategy';
 
 // ============================================================================
 // Types
@@ -284,11 +285,40 @@ const MAX_COMBINATION_QUESTIONS = 5;
  * Each factor/combination becomes a question, ranked by R²adj.
  * Factors with R²adj < threshold are auto-answered as 'ruled-out'.
  */
+/**
+ * Format a single-factor question based on analysis mode.
+ */
+function formatSingleFactorQuestion(factor: string, mode?: ResolvedMode): string {
+  switch (mode) {
+    case 'capability':
+      return `Does ${factor} affect Cpk?`;
+    case 'performance':
+      return `Does ${factor} affect channel performance?`;
+    default:
+      return `Does ${factor} explain variation?`;
+  }
+}
+
+/**
+ * Format a combination question based on analysis mode.
+ */
+function formatCombinationQuestion(factorList: string, mode?: ResolvedMode): string {
+  switch (mode) {
+    case 'capability':
+      return `Does ${factorList} together affect Cpk more?`;
+    case 'performance':
+      return `Does ${factorList} together affect channel performance more?`;
+    default:
+      return `Does ${factorList} together explain more variation?`;
+  }
+}
+
 export function generateQuestionsFromRanking(
   result: BestSubsetsResult,
-  options?: { autoRuleOutThreshold?: number }
+  options?: { autoRuleOutThreshold?: number; mode?: ResolvedMode }
 ): GeneratedQuestion[] {
   const threshold = options?.autoRuleOutThreshold ?? 0.05;
+  const mode = options?.mode;
   const questions: GeneratedQuestion[] = [];
 
   // Separate single-factor and multi-factor subsets
@@ -310,7 +340,7 @@ export function generateQuestionsFromRanking(
   for (const subset of singles) {
     const isRuledOut = subset.rSquaredAdj < threshold;
     questions.push({
-      text: `Does ${subset.factors[0]} explain variation?`,
+      text: formatSingleFactorQuestion(subset.factors[0], mode),
       factors: subset.factors,
       rSquaredAdj: subset.rSquaredAdj,
       autoAnswered: isRuledOut,
@@ -325,7 +355,7 @@ export function generateQuestionsFromRanking(
     const isRuledOut = subset.rSquaredAdj < threshold;
     const factorList = subset.factors.join(' + ');
     questions.push({
-      text: `Does ${factorList} together explain more variation?`,
+      text: formatCombinationQuestion(factorList, mode),
       factors: subset.factors,
       rSquaredAdj: subset.rSquaredAdj,
       autoAnswered: isRuledOut,

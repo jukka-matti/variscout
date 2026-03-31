@@ -2,6 +2,14 @@ import type { AnalysisMode } from './types';
 
 export type ResolvedMode = 'standard' | 'capability' | 'performance' | 'yamazumi';
 
+export interface QuestionStrategy {
+  generator: 'bestSubsets' | 'bestSubsetsWithSpecs' | 'wasteComposition' | 'channelRanking';
+  evidenceMetric: 'rSquaredAdj' | 'cpkImpact' | 'wasteContribution' | 'channelCpk';
+  evidenceLabel: string;
+  validationMethod: 'anova' | 'anovaWithSpecs' | 'taktCompliance';
+  questionFocus: string;
+}
+
 export type ChartSlotType =
   | 'ichart'
   | 'capability-ichart'
@@ -31,6 +39,7 @@ export interface AnalysisModeStrategy {
   formatMetricValue?: (v: number) => string;
   aiChartInsightKeys: string[];
   aiToolSet: 'standard' | 'performance' | 'yamazumi';
+  questionStrategy: QuestionStrategy;
 }
 
 export function resolveMode(
@@ -53,6 +62,13 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
     metricLabel: hasSpecs => (hasSpecs ? 'Cpk' : 'σ'),
     aiChartInsightKeys: ['ichart', 'boxplot', 'pareto'],
     aiToolSet: 'standard',
+    questionStrategy: {
+      generator: 'bestSubsets',
+      evidenceMetric: 'rSquaredAdj',
+      evidenceLabel: 'R²adj',
+      validationMethod: 'anova',
+      questionFocus: 'Which factor explains most variation?',
+    },
   },
   capability: {
     chartSlots: { slot1: 'capability-ichart', slot2: 'boxplot', slot3: 'pareto', slot4: 'stats' },
@@ -62,6 +78,13 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
     metricLabel: () => 'Mean Cpk',
     aiChartInsightKeys: ['capability-ichart', 'boxplot', 'pareto'],
     aiToolSet: 'standard',
+    questionStrategy: {
+      generator: 'bestSubsetsWithSpecs',
+      evidenceMetric: 'cpkImpact',
+      evidenceLabel: 'Cpk impact',
+      validationMethod: 'anovaWithSpecs',
+      questionFocus: 'Which factor most affects Cpk?',
+    },
   },
   performance: {
     chartSlots: {
@@ -76,6 +99,13 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
     metricLabel: () => 'Worst Channel Cpk',
     aiChartInsightKeys: ['cpk-scatter', 'distribution-boxplot', 'cpk-pareto'],
     aiToolSet: 'performance',
+    questionStrategy: {
+      generator: 'channelRanking',
+      evidenceMetric: 'channelCpk',
+      evidenceLabel: 'Channel Cpk',
+      validationMethod: 'anova',
+      questionFocus: 'Which channel performs worst?',
+    },
   },
   yamazumi: {
     chartSlots: {
@@ -91,6 +121,13 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
     formatMetricValue: (v: number) => `${Math.round(v * 100)}%`,
     aiChartInsightKeys: ['yamazumi', 'yamazumi-ichart', 'yamazumi-pareto'],
     aiToolSet: 'yamazumi',
+    questionStrategy: {
+      generator: 'wasteComposition',
+      evidenceMetric: 'wasteContribution',
+      evidenceLabel: 'Waste %',
+      validationMethod: 'taktCompliance',
+      questionFocus: 'Which step has the most waste?',
+    },
   },
 };
 
