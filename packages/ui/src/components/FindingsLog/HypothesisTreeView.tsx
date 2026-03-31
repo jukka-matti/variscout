@@ -307,13 +307,13 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   if (hypotheses.length === 0 && (!categories || categories.length === 0)) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
-        <p className="text-sm text-content-secondary mb-1 flex items-center gap-1">
+        <span className="block text-sm text-content-secondary mb-1 flex items-center gap-1">
           No hypotheses yet
           <HelpTooltip term={getTerm('hypothesis')} iconSize={12} />
-        </p>
-        <p className="text-xs text-content-muted leading-relaxed max-w-[240px]">
+        </span>
+        <span className="block text-xs text-content-muted leading-relaxed max-w-[240px]">
           Create hypotheses from finding cards to build a causal investigation tree.
-        </p>
+        </span>
       </div>
     );
   }
