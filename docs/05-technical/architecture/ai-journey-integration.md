@@ -60,7 +60,7 @@ FRAME seeds the `ProcessContext` used by AI in later phases.
 
 ### SCOUT — Discovery (AI Active)
 
-Watson's EDA chart sequence: I-Chart → Boxplot → Pareto → Capability. AI explains what you see and suggests what to do.
+Watson's EDA chart sequence: I-Chart → Boxplot → Pareto → Capability. AI explains what you see and suggests what to do. CoScout generates additional questions from context that Factor Intelligence cannot derive — from the issue statement text, upfront hypotheses, factor roles, spec limits, and data patterns. These complement the deterministic Factor Intelligence questions (R²adj ranking) to form a merged question checklist.
 
 | Component            | No AI                      | AI Enabled                                                                      | AI + Knowledge Base                                        | Reasoning Effort |
 | -------------------- | -------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------- | ---------------- |
@@ -76,18 +76,24 @@ Watson's EDA chart sequence: I-Chart → Boxplot → Pareto → Capability. AI e
 
 The Investigation Diamond (Initial → Diverging → Validating → Converging) with phase-specific AI coaching:
 
-| Diamond Phase | AI Role        | CoScout Behavior                                             | Reasoning Effort |
-| ------------- | -------------- | ------------------------------------------------------------ | ---------------- |
-| Initial       | Orientation    | Help identify which chart to examine first                   | `'none'`         |
-| Diverging     | Exploration    | Encourage testing hypotheses across factor categories        | `'low'`          |
-| Validating    | Interpretation | Help interpret η² (contribution, not causation)              | `'medium'`       |
-| Converging    | Synthesis      | Help evaluate suspected causes, brainstorm improvement ideas | `'medium'`       |
+| Diamond Phase | AI Role        | CoScout Behavior                                                                          | Reasoning Effort |
+| ------------- | -------------- | ----------------------------------------------------------------------------------------- | ---------------- |
+| Initial       | Orientation    | Help identify which questions to check first (Factor Intelligence ranking)                | `'none'`         |
+| Diverging     | Exploration    | Encourage exploring open questions, suggest follow-ups                                    | `'low'`          |
+| Validating    | Interpretation | Help interpret evidence for/against (eta-squared, R²adj — contribution, not causation)    | `'medium'`       |
+| Converging    | Synthesis      | Help synthesize multiple suspected causes into problem statement, brainstorm improvements | `'medium'`       |
 
 > **Note on reasoning effort:** Investigation Diamond phases map to journey phases for reasoning effort: Initial/Diverging → SCOUT (`'low'`), Validating/Converging → INVESTIGATE (`'medium'`). The effort level is set by `getCoScoutReasoningEffort(journeyPhase)` from `@variscout/core`.
 
 **Knowledge Base (Mode 3):** "Search Knowledge Base?" button in CoScout triggers Foundry IQ (Remote SharePoint via Azure AI Search). Returns folder-scoped documents using the user's own token (per-user security).
 
 **Investigation Sidebar:** Shows deterministic suggested questions from `buildSuggestedQuestions()` (works in all modes). With AI, adds AI-generated follow-up questions.
+
+**Question Generation Sources:** Questions come from three complementary sources:
+
+1. **Factor Intelligence L1-3** (deterministic, always available) — R²adj ranking of factors and combinations. Auto-answers questions where R²adj < 5% as "ruled out". Generates Layer 2-3 follow-ups when earlier questions are answered.
+2. **Heuristic** (deterministic, always available) — Stability questions (I-Chart), capability questions (when specs exist), temporal trend questions.
+3. **CoScout** (AI layer, Azure with CoScout only) — Natural language questions from issue statement text, upfront hypotheses, factor role inference, and data pattern recognition.
 
 ### IMPROVE — PDCA Cycle (Verification AI)
 

@@ -62,7 +62,7 @@ flowchart TD
 1. **Upload or paste data** -- CSV, Excel, or clipboard paste. The parser (`parseText` / `parseFile`) detects delimiters and validates structure.
 2. **Map columns** -- Assign one measurement column and up to N factor columns. The `ColumnMapping` component provides data-rich cards with type badges and preview values.
 3. **Set specification limits** -- Enter USL, LSL, and optional target via `SpecsPopover`. These flow through to capability calculations.
-4. **Describe process context** -- Optional but valuable for CoScout. Process name, characteristic type, and any known constraints.
+4. **Describe process context** -- Optional but valuable for CoScout. Process name, characteristic type, and any known constraints. The process description field captures an **Issue Statement** -- a vague concern that initiates investigation (e.g., "Fill weight on line 3 is too variable"). This evolves into a precise **Problem Statement** as analysis progresses.
 
 ### Data Shapes at Boundary
 
@@ -125,9 +125,10 @@ flowchart TD
 
 1. **Scan I-Chart for stability** -- Look for points outside control limits, runs, and trends. Red dots signal special causes.
 2. **Compare factors in Boxplot** -- Read ANOVA eta-squared to identify which factor explains the most variation.
-3. **Rank in Pareto** -- See which categories within a factor contribute most to failures or out-of-spec results.
-4. **Check Cpk** -- After filtering, assess whether the isolated subset meets specification requirements.
-5. **Toggle Capability Mode** -- The I-Chart supports a "Values | Capability" toggle switching between raw measurements and per-subgroup Cp/Cpk. This checks whether subgroups consistently meet the Cpk target. See [Analysis Flow](analysis-flow.md) for the complete two-thread analysis journey.
+3. **Factor Intelligence generates ranked questions** -- Best Subsets R²adj ranking runs automatically, turning each factor and factor combination into a question ("Does Shift explain variation?" with R²adj %). Factors with R²adj < 5% are auto-answered as "ruled out" (negative learnings). See [Question-Driven EDA Design](../../superpowers/specs/2026-03-30-question-driven-eda-design.md) for the full question model.
+4. **Rank in Pareto** -- See which categories within a factor contribute most to failures or out-of-spec results.
+5. **Check Cpk** -- After filtering, assess whether the isolated subset meets specification requirements.
+6. **Toggle Capability Mode** -- The I-Chart supports a "Values | Capability" toggle switching between raw measurements and per-subgroup Cp/Cpk. This checks whether subgroups consistently meet the Cpk target. See [Analysis Flow](analysis-flow.md) for the complete two-thread analysis journey.
 
 At any point, the analyst can **pin a finding** to capture an observation for later investigation.
 
@@ -173,27 +174,26 @@ See [quick-check.md](quick-check.md) and [deep-dive.md](deep-dive.md) for detail
 
 ## Phase 3: INVESTIGATE
 
-**Purpose:** Understand why variation exists through structured learning — diverge, validate, converge.
+**Purpose:** Understand why variation exists through structured question-answering — generate questions, answer with evidence, synthesize suspected causes.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Initial: Pin finding
-    Initial --> Diverging: Generate sub-hypotheses
-    Diverging --> Validating: Select hypothesis to test
-    Validating --> Diverging: Needs more hypotheses
-    Validating --> Converging: Evidence confirms
-    Converging --> [*]: Suspected cause identified — move to Improve
+    Initial --> Diverging: Generate and explore questions
+    Diverging --> Validating: Select question to answer
+    Validating --> Diverging: Needs more questions
+    Validating --> Converging: Evidence answers question
+    Converging --> [*]: Suspected causes identified — move to Improve
 
     note right of Diverging
-        Brainstorm possible causes
-        The hypothesis tree grows
-        (CoScout suggests)
+        Generate and explore questions
+        The question tree grows
+        (Factor Intelligence + CoScout)
     end note
 
     note right of Validating
-        Data evidence (ANOVA)
-        Gemba observation
-        Expert input
+        Answer questions with evidence:
+        Data (ANOVA), Gemba, Expert
     end note
 ```
 
@@ -203,31 +203,31 @@ stateDiagram-v2
 
 The investigation follows the diamond pattern within each finding — a structured learning process:
 
-| Phase          | Status          | Activity                                                                          |
-| -------------- | --------------- | --------------------------------------------------------------------------------- |
-| **I**nitial    | `observed`      | Pin finding; upfront hypothesis (from FRAME) or new observation becomes tree root |
-| **D**iverging  | `investigating` | Generate sub-hypotheses as a tree — break broad cause into testable theories      |
-| **V**alidating | `investigating` | Test each leaf with evidence (data, Gemba, expert)                                |
-| **C**onverging | `analyzed`      | Prune contradicted branches, promote suspected root cause                         |
+| Phase          | Status          | Activity                                                                                 |
+| -------------- | --------------- | ---------------------------------------------------------------------------------------- |
+| **I**nitial    | `observed`      | Pin finding; scan patterns + generate questions from Factor Intelligence ranking         |
+| **D**iverging  | `investigating` | Generate and explore questions as a tree — break broad concern into answerable questions |
+| **V**alidating | `investigating` | Answer questions with data/gemba/expert evidence                                         |
+| **C**onverging | `analyzed`      | Synthesize problem statement from answered questions, identify multiple suspected causes |
 
 The diamond closes at Converging. What follows — improvement ideation, corrective actions, implementation, and verification — belongs to the IMPROVE phase (PDCA).
 
 ### Steps
 
-1. **Formulate hypotheses** -- Based on Scout observations, propose why the variation exists. The upfront hypothesis from FRAME's analysis brief (if present) seeds the tree root. CoScout can suggest hypotheses grounded in the data.
-2. **Test with data** -- Use ANOVA results and drill-down filtering to validate or reject each hypothesis. Auto-validation uses eta-squared thresholds.
+1. **Generate questions** -- Factor Intelligence generates ranked questions from R²adj analysis. Upfront hypotheses from FRAME's analysis brief become questions in the checklist. CoScout (when available) adds context-derived questions from the issue statement and factor roles.
+2. **Answer with data** -- Use ANOVA results and drill-down filtering to answer each question. Auto-answering uses eta-squared thresholds (R²adj < 5% = ruled out). Clicking any question switches the dashboard to show the relevant evidence.
 3. **Gemba observation** -- Go to the process and observe. Azure Team plan supports photo evidence (EXIF-stripped).
 4. **Expert input** -- Add comments and notes from domain experts to findings.
-5. **Converge** -- Identify the suspected root cause — the analyst has sufficient understanding to move to IMPROVE. Classify the finding (key-driver vs low-impact).
+5. **Converge** -- Synthesize a problem statement from answered questions. Multiple suspected causes are identified and ranked by evidence (eta-squared/R²adj). Ruled-out factors are preserved as negative learnings. Classify findings (key-driver vs low-impact).
 
 ### Data Shapes
 
-| Type            | Purpose                                                                                        |
-| --------------- | ---------------------------------------------------------------------------------------------- |
-| `Finding`       | Core investigation record with status progression                                              |
-| `Hypothesis`    | Sub-hypothesis linked to a finding, with validation state and causeRole (primary/contributing) |
-| `FindingStatus` | `observed` / `investigating` / `analyzed` / `improving` / `resolved`                           |
-| `FindingTag`    | `key-driver` or `low-impact` classification                                                    |
+| Type            | Purpose                                                                                                |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
+| `Finding`       | Core investigation record with status progression                                                      |
+| `Hypothesis`    | Question linked to a finding, with answer state and causeRole (suspected-cause/contributing/ruled-out) |
+| `FindingStatus` | `observed` / `investigating` / `analyzed` / `improving` / `resolved`                                   |
+| `FindingTag`    | `key-driver` or `low-impact` classification                                                            |
 
 ### Tier Differences
 
@@ -240,9 +240,10 @@ The diamond closes at Converging. What follows — improvement ideation, correct
 
 ### CoScout in Investigate
 
-- Suggests hypotheses based on data patterns and process context
-- Validates hypotheses against statistical evidence
-- Links related findings across investigation sessions
+- Generates additional questions from issue statement, upfront hypotheses, and factor roles
+- Helps interpret evidence for/against questions (eta-squared contribution, R²adj)
+- Encourages exploring open questions and suggests follow-ups
+- Helps synthesize multiple suspected causes into a problem statement
 
 ### Key Code References
 
@@ -279,7 +280,7 @@ flowchart TD
 
 ### PDCA Steps
 
-1. **Plan: Ideate** -- Brainstorm improvement options based on the suspected root cause. Each idea gets a timeframe estimate (just-do/days/weeks/months) and a What-If projection (projected Cpk/yield impact).
+1. **Plan: Ideate** -- Brainstorm improvement options based on multiple suspected causes from answered questions. Each suspected cause becomes an improvement target, ranked by evidence strength (eta-squared/R²adj). Each idea gets a timeframe estimate (just-do/days/weeks/months) and a What-If projection (projected Cpk/yield impact).
 2. **Plan: Select** -- Compare projected impact across ideas. Selected ideas become corrective actions. Use the What-If Simulator (`directAdjustment`) to model scenarios.
 3. **Do** -- Define and execute corrective actions (owners, dates, completion tracking). Implementation happens mostly outside VariScout. When the first action is added, the finding transitions to `improving`.
 4. **Check** -- Load new data into staged analysis. Compare before vs after (control limits, Cpk, mean shift, σ change). Did the process improve to target?
@@ -361,7 +362,7 @@ flowchart TD
 
 How the analyst entered the journey shapes what each phase needs to accomplish. See [Entry-Path-Dependent Phase Goals](../../05-technical/architecture/mental-model-hierarchy.md#entry-path-dependent-phase-goals) for the full matrix.
 
-The upfront hypothesis (hypothesis-driven path) seeds the hypothesis tree root when investigation begins, creating a continuous thread from initial theory through validated understanding.
+The upfront hypothesis (hypothesis-driven path) becomes a question in the question checklist when investigation begins, creating a continuous thread from initial theory through answered questions to validated understanding.
 
 ---
 
@@ -421,8 +422,8 @@ flowchart TD
     %% Drill-down loop (Scout)
     SCOUT -- "Drill-down loop\n(filter, read, repeat)" --> SCOUT
 
-    %% Hypothesis validation loop (Investigate)
-    INVESTIGATE -- "Hypothesis loop\n(diverge, validate, converge)" --> INVESTIGATE
+    %% Question answering loop (Investigate)
+    INVESTIGATE -- "Question loop\n(generate, answer, converge)" --> INVESTIGATE
 
     %% What-If iteration loop (Improve)
     IMPROVE -- "What-If loop\n(project, adjust, re-project)" --> IMPROVE
@@ -439,13 +440,13 @@ flowchart TD
     style IMPROVE fill:#8b5cf6,color:#fff
 ```
 
-| Loop                  | Phase            | Trigger                                            | Exit Condition                              |
-| --------------------- | ---------------- | -------------------------------------------------- | ------------------------------------------- |
-| Drill-down            | Scout            | eta-squared suggests deeper factor                 | >50% variation explained or no more factors |
-| Hypothesis validation | Investigate      | Hypothesis not yet confirmed                       | Suspected cause validated with evidence     |
-| What-If iteration     | Improve          | Projected Cpk below target                         | Projection meets target or approach revised |
-| PDCA re-entry         | Improve to Frame | Staged verification fails or new improvement cycle | Verification passes                         |
-| Add Data              | Scout to Frame   | Dataset missing factors or insufficient samples    | Data reloaded with additional columns/rows  |
+| Loop               | Phase            | Trigger                                            | Exit Condition                              |
+| ------------------ | ---------------- | -------------------------------------------------- | ------------------------------------------- |
+| Drill-down         | Scout            | eta-squared suggests deeper factor                 | >50% variation explained or no more factors |
+| Question answering | Investigate      | Questions not yet answered                         | Suspected causes identified with evidence   |
+| What-If iteration  | Improve          | Projected Cpk below target                         | Projection meets target or approach revised |
+| PDCA re-entry      | Improve to Frame | Staged verification fails or new improvement cycle | Verification passes                         |
+| Add Data           | Scout to Frame   | Dataset missing factors or insufficient samples    | Data reloaded with additional columns/rows  |
 
 ---
 
