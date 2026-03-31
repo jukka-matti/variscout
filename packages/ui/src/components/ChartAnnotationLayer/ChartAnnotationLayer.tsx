@@ -111,7 +111,9 @@ export const ChartAnnotationLayer: React.FC<ChartAnnotationLayerProps> = ({
   };
 
   // Only render visible findings (those whose anchor category exists in positions)
+  // showOnChart: true → show, false → hide, undefined → show (backward compat)
   const visibleFindings = findings.filter(f => {
+    if (f.showOnChart === false) return false;
     const key = getAnchorKey(f);
     return key !== null && categoryPositions.has(key);
   });

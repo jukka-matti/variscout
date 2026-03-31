@@ -816,5 +816,42 @@ describe('useHypotheses', () => {
         expect(result.current.hypotheses).toHaveLength(0);
       });
     });
+
+    describe('focusedQuestionId', () => {
+      it('starts as null', () => {
+        const { result } = renderHook(() => useHypotheses());
+        expect(result.current.focusedQuestionId).toBeNull();
+      });
+
+      it('can be set to a question ID', () => {
+        const { result } = renderHook(() => useHypotheses());
+
+        let questionId: string;
+        act(() => {
+          const created = result.current.generateInitialQuestions([makeQuestion()]);
+          questionId = created[0].id;
+        });
+
+        act(() => {
+          result.current.setFocusedQuestion(questionId!);
+        });
+
+        expect(result.current.focusedQuestionId).toBe(questionId!);
+      });
+
+      it('can be cleared by setting to null', () => {
+        const { result } = renderHook(() => useHypotheses());
+
+        act(() => {
+          result.current.setFocusedQuestion('some-question-id');
+        });
+        expect(result.current.focusedQuestionId).toBe('some-question-id');
+
+        act(() => {
+          result.current.setFocusedQuestion(null);
+        });
+        expect(result.current.focusedQuestionId).toBeNull();
+      });
+    });
   });
 });

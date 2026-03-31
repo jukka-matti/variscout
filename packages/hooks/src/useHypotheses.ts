@@ -131,6 +131,10 @@ export interface UseHypothesesReturn {
     findingId: string,
     answer: 'supported' | 'contradicted' | 'partial'
   ) => void;
+  /** Currently focused question (last clicked in checklist) */
+  focusedQuestionId: string | null;
+  /** Set the focused question */
+  setFocusedQuestion: (id: string | null) => void;
 }
 
 /** Eta-squared thresholds for auto-validation */
@@ -208,6 +212,7 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
   const { initialHypotheses, onHypothesesChange, anovaByFactor } = options;
 
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>(initialHypotheses ?? []);
+  const [focusedQuestionId, setFocusedQuestion] = useState<string | null>(null);
 
   // Auto-validate statuses when ANOVA changes (data-validated only)
   // Then propagate children statuses upward to parents (bottom-up).
@@ -677,5 +682,7 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     setCauseRole,
     generateInitialQuestions,
     answerQuestion,
+    focusedQuestionId,
+    setFocusedQuestion,
   };
 }

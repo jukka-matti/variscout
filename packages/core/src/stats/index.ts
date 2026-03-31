@@ -116,6 +116,10 @@ export { calculateKDE } from './kde';
 // Point decimation for chart rendering
 export { lttb } from './lttb';
 
+// Finding text generation
+export type { FindingTextInput } from './findingText';
+export { generateFindingText } from './findingText';
+
 // Evidence interpretation
 export type { EvidenceLevel, EvidenceInterpretation } from './evidence';
 export { interpretEvidence, generateAnovaInsightLine } from './evidence';

@@ -107,7 +107,12 @@ export {
   computeMainEffects,
   computeInteractionEffects,
   generateFollowUpQuestions,
+  // Finding text generation
+  generateFindingText,
 } from './stats';
+
+// Finding text generation types
+export type { FindingTextInput } from './stats';
 
 // Subgroup capability types
 export type {

@@ -476,6 +476,8 @@ export interface Finding {
   benchmarkStats?: BenchmarkStats;
   /** Explicit scope override: true=forced in, false=forced out, undefined=auto from status */
   scoped?: boolean;
+  /** Whether this finding's text annotation should be visible on the chart. Default: undefined (shown for backward compat). */
+  showOnChart?: boolean;
 }
 
 // ============================================================================
