@@ -10,9 +10,9 @@ import { useTranslation } from '@variscout/hooks';
 import ImprovementIdeasSection from './HypothesisIdeas';
 import { ValidationTaskSection, buildStatusTooltip } from './HypothesisValidation';
 
-/** Status dot colors matching hypothesis statuses */
+/** Status dot colors matching hypothesis answer states */
 const STATUS_COLORS: Record<HypothesisStatus, string> = {
-  untested: 'bg-gray-400',
+  untested: 'border-2 border-gray-400 bg-transparent',
   supported: 'bg-green-500',
   contradicted: 'bg-red-400',
   partial: 'bg-amber-500',
@@ -126,7 +126,9 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
 }) => {
   const { formatStat } = useTranslation();
   const isContradicted = hypothesis.status === 'contradicted';
-  const dimmed = isContradicted && !showContradicted;
+  const isRuledOut = hypothesis.causeRole === 'ruled-out';
+  // Dim ruled-out questions and contradicted nodes (when shown)
+  const dimmed = isRuledOut || (isContradicted && !showContradicted);
   const [showAddChild, setShowAddChild] = useState(false);
   const [childText, setChildText] = useState('');
   const [childFactor, setChildFactor] = useState('');
@@ -242,18 +244,35 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
 
             {/* Cause role badge */}
             {hypothesis.causeRole === 'suspected-cause' && (
-              <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 font-medium">
-                SUSPECTED
+              <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-medium">
+                SUSPECT
               </span>
             )}
             {hypothesis.causeRole === 'contributing' && (
-              <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-medium">
+              <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-medium">
                 CONTRIBUTING
               </span>
             )}
             {hypothesis.causeRole === 'ruled-out' && (
               <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-400 font-medium">
                 RULED OUT
+              </span>
+            )}
+
+            {/* Evidence R²adj badge */}
+            {hypothesis.evidence?.rSquaredAdj != null && (
+              <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400">
+                R²adj: {Math.round(hypothesis.evidence.rSquaredAdj * 100)}%
+              </span>
+            )}
+
+            {/* Factor Intelligence source indicator */}
+            {hypothesis.questionSource === 'factor-intel' && (
+              <span
+                className="text-[0.5625rem] px-1 py-0.5 rounded bg-surface-secondary text-content-muted"
+                title="Auto-generated from Factor Intelligence"
+              >
+                FI
               </span>
             )}
 
@@ -272,9 +291,9 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
             <button
               className={`opacity-0 group-hover:opacity-100 touch-show transition-opacity text-xs mt-0.5 flex-shrink-0 ${
                 hypothesis.causeRole === 'suspected-cause'
-                  ? 'text-red-400 opacity-100'
+                  ? 'text-amber-400 opacity-100'
                   : hypothesis.causeRole === 'contributing'
-                    ? 'text-amber-400 opacity-100'
+                    ? 'text-blue-400 opacity-100'
                     : hypothesis.causeRole === 'ruled-out'
                       ? 'text-slate-400 opacity-100'
                       : 'text-content-muted hover:text-content'
