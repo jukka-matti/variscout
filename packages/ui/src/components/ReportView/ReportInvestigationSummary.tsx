@@ -61,9 +61,7 @@ function renderEvidence(evidence?: { rSquaredAdj?: number; etaSquared?: number }
 
   if (parts.length === 0) return null;
 
-  return (
-    <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">({parts.join(', ')})</span>
-  );
+  return <span className="text-xs text-content-muted ml-1">({parts.join(', ')})</span>;
 }
 
 // ============================================================================
@@ -88,40 +86,36 @@ export const ReportInvestigationSummary: React.FC<ReportInvestigationSummaryProp
     <div data-testid="report-investigation-summary" className="space-y-4">
       {/* Issue Statement */}
       {issueStatement && (
-        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+        <div className="rounded-lg border border-edge bg-surface-elevated p-4">
+          <p className="text-xs font-medium text-content-muted uppercase tracking-wider mb-2">
             Issue Statement
           </p>
-          <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
-            {issueStatement}
-          </p>
+          <p className="text-sm text-content leading-relaxed">{issueStatement}</p>
         </div>
       )}
 
       {/* Problem Statement */}
       {problemStatement && (
-        <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4">
+        <div className="rounded-lg border border-green-500/20 bg-green-500/5 p-4">
           <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider mb-2">
             Problem Statement
           </p>
-          <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
-            {problemStatement}
-          </p>
+          <p className="text-sm text-content leading-relaxed">{problemStatement}</p>
         </div>
       )}
 
       {/* Suspected Causes */}
       {suspectedCauses && suspectedCauses.length > 0 && (
-        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+        <div className="rounded-lg border border-edge bg-surface-elevated p-4">
+          <p className="text-xs font-medium text-content-muted uppercase tracking-wider mb-2">
             Suspected Causes
           </p>
           <ol className="space-y-1.5 list-decimal list-inside">
             {suspectedCauses.map((cause, index) => (
-              <li key={index} className="text-sm text-slate-800 dark:text-slate-200">
+              <li key={index} className="text-sm text-content">
                 <span>{cause.text}</span>
                 {cause.factor && (
-                  <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">
+                  <span className="text-xs text-content-muted ml-1">
                     ({cause.factor}
                     {cause.level ? `: ${cause.level}` : ''})
                   </span>
@@ -135,26 +129,21 @@ export const ReportInvestigationSummary: React.FC<ReportInvestigationSummaryProp
 
       {/* Negative Learnings (Ruled Out) */}
       {ruledOut && ruledOut.length > 0 && (
-        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+        <div className="rounded-lg border border-edge bg-surface-elevated p-4">
+          <p className="text-xs font-medium text-content-muted uppercase tracking-wider mb-2">
             Negative Learnings
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+          <p className="text-xs text-content-muted mb-2">
             The following factors were investigated and found to not significantly contribute:
           </p>
           <ul className="space-y-1.5">
             {ruledOut.map((item, index) => (
-              <li
-                key={index}
-                className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 flex-shrink-0 mt-1.5" />
+              <li key={index} className="flex items-start gap-2 text-sm text-content-secondary">
+                <span className="w-1.5 h-1.5 rounded-full bg-edge-secondary flex-shrink-0 mt-1.5" />
                 <span>
                   {item.text}
                   {item.factor && (
-                    <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">
-                      ({item.factor})
-                    </span>
+                    <span className="text-xs text-content-muted ml-1">({item.factor})</span>
                   )}
                   {renderEvidence(item.evidence)}
                 </span>
