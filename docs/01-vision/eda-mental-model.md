@@ -561,7 +561,60 @@ Both arrive at the same conclusion. Both have the same evidence trail. The diffe
 
 ---
 
-## 7. Summary
+## 7. EDA Across Analysis Modes
+
+> See [ADR-054: Mode-Aware Question Strategy](../07-decisions/adr-054-mode-aware-question-strategy.md) for the architectural decision.
+
+The EDA mental model described above assumes Standard mode — continuous measurement, categorical factors, ANOVA decomposition. VariScout supports four analysis modes, each requiring the methodology to adapt while preserving its core principles.
+
+### 7.1 How the Issue Statement Adapts
+
+| Mode            | Issue Statement Focus                     | Example                                   |
+| --------------- | ----------------------------------------- | ----------------------------------------- |
+| **Standard**    | Variation in outcome                      | "Fill weight on line 3 is too variable"   |
+| **Capability**  | Gap between performance and specification | "Cpk on line 3 is 0.62, target is 1.33"   |
+| **Yamazumi**    | Waste in process flow                     | "Assembly line 2 cycle time exceeds takt" |
+| **Performance** | Channel-level inconsistency               | "Channels 5-8 have lower Cpk than 1-4"    |
+
+The sharpening process is the same (vague → precise through evidence), but the language and metrics differ.
+
+### 7.2 How the Four Lenses Map to Modes
+
+| Lens                      | Standard                         | Capability                 | Yamazumi                     | Performance                       |
+| ------------------------- | -------------------------------- | -------------------------- | ---------------------------- | --------------------------------- |
+| **CHANGE** (I-Chart)      | Time-based stability             | Cpk trend across subgroups | Waste metric trend over time | Per-channel Cpk trend             |
+| **FLOW** (Boxplot)        | Factor comparison                | Cpk by factor level        | Activity composition by step | Channel distribution              |
+| **FAILURE** (Pareto)      | Category ranking by count/impact | Cpk ranking by factor      | Waste type ranking           | Channel Cpk ranking (worst first) |
+| **VALUE** (Stats/Summary) | Statistical overview             | Capability indices         | VA ratio, takt compliance    | Worst-channel summary             |
+
+In Yamazumi mode, the **VALUE** lens is primary — lean practitioners start with "are we meeting takt?" and "what is our VA ratio?" before drilling into specific waste types. In Capability mode, the **CHANGE** lens is primary — the Cpk trend reveals whether the process is improving or degrading.
+
+### 7.3 How Factor Intelligence Adapts
+
+Factor Intelligence Layer 1 (Best Subsets R²adj) applies to Standard, Capability, and Performance modes — the data structure is the same (continuous outcome × categorical factors). For Capability mode, the adapter rewords questions: "Which factor affects Cpk?" instead of "Which factor explains variation?"
+
+**Yamazumi mode requires a different approach.** The data is time composition by activity type, not continuous measurements. R²adj ranking does not apply. Instead, a waste composition generator produces lean-specific questions:
+
+1. "Which steps exceed takt time?" (from takt compliance analysis)
+2. "Which waste type dominates?" (from Pareto of waste reasons)
+3. "Is waste increasing over time?" (from I-Chart of waste metric)
+
+The evidence metric changes too: waste contribution percentage replaces R²adj. The question checklist shows "Waste %" badges instead of "R²adj" badges.
+
+### 7.4 Principle Preservation
+
+Despite these adaptations, the core EDA principles hold across all modes:
+
+- **Questions before answers** — generated from data, not hunches
+- **Evidence-ranked** — prioritized by the mode's relevant metric
+- **Progressive sharpening** — issue statement evolves through answered questions
+- **Multiple causes** — lean investigations often find multiple waste sources
+- **Negative learnings** — steps confirmed as within takt are documented
+- **AI amplifies** — CoScout already coaches in mode-specific language
+
+---
+
+## 8. Summary
 
 The EDA Mental Model is not a feature — it is the analytical philosophy that informs every design decision in VariScout. The key principles are:
 

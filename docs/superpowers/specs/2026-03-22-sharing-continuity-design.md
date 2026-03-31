@@ -1,3 +1,7 @@
+---
+title: 'Sharing & Continuity UX Design'
+---
+
 # Sharing & Continuity UX Design
 
 ## Context

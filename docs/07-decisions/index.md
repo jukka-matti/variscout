@@ -64,7 +64,8 @@ This section captures key architectural decisions made during VariScout developm
 | [050](adr-050-wide-form-stack-columns.md)            | Wide-Form Data Support — Stack Columns            | Accepted   | 2026-03-29 |
 | [051](adr-051-chart-many-categories.md)              | Chart Handling for Many Categories                | Accepted   | 2026-03-29 |
 | [052](adr-052-factor-intelligence.md)                | Factor Intelligence — Progressive Factor Analysis | Accepted   | 2026-03-29 |
-| [053](adr-053-question-driven-investigation.md)      | Question-Driven Investigation                     | Proposed   | 2026-03-30 |
+| [053](adr-053-question-driven-investigation.md)      | Question-Driven Investigation                     | Accepted   | 2026-03-30 |
+| [054](adr-054-mode-aware-question-strategy.md)       | Mode-Aware Question Strategy                      | Accepted   | 2026-03-31 |
 
 ---
 

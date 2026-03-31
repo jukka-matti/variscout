@@ -1,3 +1,7 @@
+---
+title: 'Teams Entry Experience Redesign'
+---
+
 # Teams Entry Experience Redesign
 
 ## Context

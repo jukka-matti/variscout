@@ -1,3 +1,7 @@
+---
+title: 'ADR-050: Wide-Form Data Support — Stack Columns'
+---
+
 # ADR-050: Wide-Form Data Support — Stack Columns
 
 **Status:** Accepted

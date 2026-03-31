@@ -1,3 +1,7 @@
+---
+title: 'Factor Intelligence Design Discussion'
+---
+
 # The Ideal Factor Analysis Experience in VariScout
 
 ## The Teaching Progression as Design Principle

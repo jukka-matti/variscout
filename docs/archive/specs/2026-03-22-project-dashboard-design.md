@@ -1,3 +1,7 @@
+---
+title: 'Design: Project Dashboard + Hypothesis Navigation + CoScout Search'
+---
+
 # Design: Project Dashboard + Hypothesis Navigation + CoScout Search
 
 ## Context

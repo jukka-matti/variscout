@@ -149,4 +149,4 @@ Every modal includes footer text indicating the user can change their choice lat
 - [Dashboard Design Principles](dashboard-design.md)
 - [Navigation Patterns](navigation.md)
 - [Tooltip Positioning](tooltip-positioning.md)
-- [Capability Modal Redesign Spec](../../superpowers/specs/2026-03-27-capability-modal-redesign.md)
+- [Capability Modal Redesign Spec](../../archive/specs/2026-03-27-capability-modal-redesign.md)

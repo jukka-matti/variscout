@@ -2,7 +2,7 @@
 title: Yamazumi Analysis
 audience: [analyst, engineer]
 category: analysis
-status: draft
+status: stable
 related: [yamazumi, lean, time-study, takt-time, waste]
 ---
 
@@ -212,6 +212,42 @@ flowchart TD
     N --> O[Staged before/after comparison]
     H -->|No| P[Document baseline, monitor]
 ```
+
+---
+
+## Question-Driven Investigation
+
+> See [ADR-054: Mode-Aware Question Strategy](../../07-decisions/adr-054-mode-aware-question-strategy.md) and [Hypothesis Investigation](../workflows/hypothesis-investigation.md#yamazumi-lean-investigation-workflow).
+
+Standard Factor Intelligence (R²adj ranking) does **not** apply to Yamazumi data. Yamazumi is aggregated time composition by activity type — not a continuous outcome suitable for regression. Instead, Yamazumi mode uses a **waste composition generator** that produces lean-specific investigation questions.
+
+### Lean Investigation Questions
+
+| Step                  | Question                           | Evidence             | Chart Source                            |
+| --------------------- | ---------------------------------- | -------------------- | --------------------------------------- |
+| 1. Takt compliance    | "Which steps exceed takt time?"    | Time above takt line | Yamazumi Chart (bars above dashed line) |
+| 2. Waste composition  | "Is the bottleneck VA or waste?"   | VA ratio per step    | Yamazumi Chart (green vs red segments)  |
+| 3. Waste drivers      | "Which waste type dominates?"      | Waste % by reason    | Pareto (Reasons mode)                   |
+| 4. Temporal stability | "Is waste increasing over time?"   | Waste metric trend   | I-Chart (waste metric toggle)           |
+| 5. Kaizen target      | "Where should kaizen focus first?" | Waste × takt gap     | Summary Panel metrics                   |
+
+### How Findings Connect to Charts
+
+- **Step → Yamazumi bar**: A finding about a specific step anchors to that bar via `FindingSource.chart = 'yamazumi'` with `category` = step name
+- **Activity type → segment**: Findings can reference activity type via `FindingSource.activityType` (e.g., `'waste'`)
+- **Waste reason → Pareto bar**: Waste reason findings anchor to Pareto in "Reasons" mode
+
+### Evidence Metrics
+
+Yamazumi questions use **waste contribution %** instead of R²adj as the evidence metric. The QuestionChecklist badge shows "Waste %" rather than "R²adj". Validation uses takt compliance checks (step time vs takt time) rather than ANOVA significance.
+
+### Finding Outcomes
+
+Yamazumi improvement outcomes track lean metrics alongside standard ones:
+
+- VA ratio before/after (the lean counterpart to Cpk)
+- Takt compliance before/after (% of steps within takt)
+- Waste reduction % (total waste time removed)
 
 ---
 

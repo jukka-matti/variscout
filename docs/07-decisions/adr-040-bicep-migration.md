@@ -1,3 +1,7 @@
+---
+title: 'ADR-040: Migrate Infrastructure from ARM JSON to Bicep'
+---
+
 # ADR-040: Migrate Infrastructure from ARM JSON to Bicep
 
 **Status**: Accepted

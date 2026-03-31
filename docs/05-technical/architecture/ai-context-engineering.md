@@ -99,6 +99,23 @@ Mode-specific blocks are injected by `buildCoScoutSystemPrompt()` based on `AICo
 
 See [ADR-047 Implementation Status](../../07-decisions/adr-047-analysis-mode-strategy.md#implementation-status) for the strategy pattern adoption roadmap.
 
+### Question Generation Pipeline
+
+> See [ADR-054: Mode-Aware Question Strategy](../../07-decisions/adr-054-mode-aware-question-strategy.md)
+
+The mode-aware context described above covers CoScout's **coaching** (terminology, chart interpretation, workflow). ADR-054 extends this to **question generation** — the deterministic pipeline that produces investigation questions from Factor Intelligence.
+
+Currently, `generateQuestionsFromRanking()` in `bestSubsets.ts` produces mode-agnostic questions ("Does [Factor] explain variation?"). ADR-054 introduces `getStrategy().questionStrategy` to route question generation per mode:
+
+| Mode        | Question Source             | Evidence Badge | CoScout Coaching Alignment     |
+| ----------- | --------------------------- | -------------- | ------------------------------ |
+| Standard    | Best subsets R²adj          | R²adj          | SPC terminology                |
+| Capability  | Best subsets + spec adapter | Cpk impact     | Centering vs spread diagnostic |
+| Yamazumi    | Waste composition generator | Waste %        | Lean 5-step workflow           |
+| Performance | Channel ranking             | Channel Cpk    | Channel health methodology     |
+
+**Key principle:** Deterministic questions must align with CoScout coaching. When CoScout says "check which steps exceed takt" (yamazumi coaching), the question checklist should already show "Which steps exceed takt time?" (yamazumi question generator). The two layers tell the same story.
+
 ---
 
 ## 3. Token Budget Management

@@ -103,6 +103,6 @@ When the analyst sets an improvement budget (in Settings) and enters precise eur
 ## Related
 
 - [Investigation to Action Workflow](investigation-to-action.md) — full improvement methodology
-- [IMPROVE Phase UX Design](../../superpowers/specs/2026-03-19-improve-phase-ux-design.md) — workspace design
+- [IMPROVE Phase UX Design](../../archive/specs/2026-03-19-improve-phase-ux-design.md) — workspace design
 - [Improvement Prioritization Design](../../superpowers/specs/2026-03-20-improvement-prioritization-design.md) — detailed spec
 - [ADR-035](../../07-decisions/adr-035-improvement-prioritization.md) — decision record

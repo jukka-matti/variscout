@@ -1,3 +1,7 @@
+---
+title: 'Design: CoScout Conversation Context & Process Memory'
+---
+
 # Design: CoScout Conversation Context & Process Memory
 
 ## Context

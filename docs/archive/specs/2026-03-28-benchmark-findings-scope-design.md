@@ -1,3 +1,7 @@
+---
+title: 'Phase 3: Benchmark Finding + Findings as Project Scope'
+---
+
 # Phase 3: Benchmark Finding + Findings as Project Scope
 
 **Date:** 2026-03-28

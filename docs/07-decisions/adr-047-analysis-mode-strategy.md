@@ -174,6 +174,7 @@ No other files need to change.
 - `chartSlots` — Used by reports; intentionally NOT consumed for chart rendering (render-props pattern is correct; different chart types need different props)
 - `aiChartInsightKeys` — Defined per mode; low-impact (wrong-mode charts aren't rendered)
 - `aiToolSet` — Consumed by `buildCoScoutSystemPrompt()` to route mode-specific coaching
+- `questionStrategy` — Planned ([ADR-054](adr-054-mode-aware-question-strategy.md)). Will be consumed by `useHypotheses.generateInitialQuestions()`, `QuestionChecklist`, and `buildSuggestedQuestions()` to route mode-specific question generation, evidence metrics, and validation methods.
 
 ## Related
 

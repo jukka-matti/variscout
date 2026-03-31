@@ -274,6 +274,24 @@ The question model is an invisible thinking structure — the analyst interacts 
 - Ruled-out factors as negative learnings section
 - Question trail as investigation audit record
 
+## Mode-Aware Extension (Phase 2)
+
+> See [ADR-054: Mode-Aware Question Strategy](../../07-decisions/adr-054-mode-aware-question-strategy.md)
+
+The question model above covers Standard mode. Phase 2 extends question generation to adapt across all analysis modes via `getStrategy().questionStrategy`:
+
+**Integration point:** `AnalysisModeStrategy` in `analysisStrategy.ts` gains a `questionStrategy` field defining the generator, evidence metric, and validation method per mode.
+
+**Implementation sequence:**
+
+1. **Capability adapter** (easiest) — Same data model as Standard. Wraps `generateQuestionsFromRanking()` to reword "variation" → "Cpk" when specs are present. Adds centering-vs-spread diagnostic questions. No new statistical model needed.
+
+2. **Yamazumi generator** (new model) — Create `packages/core/src/yamazumi/questions.ts`. Generates lean questions from `YamazumiBarData[]`: takt compliance, waste composition, waste drivers, temporal trends, kaizen targeting. Evidence: waste contribution %, not R²adj.
+
+3. **Performance adapter** — Wraps questions to focus on channel health ranking. Evidence: channel Cpk.
+
+**Key design constraint:** All changes are additive. The existing Standard mode question pipeline is untouched. Mode routing uses the strategy pattern (ADR-047), not scattered ternaries.
+
 ## Key Files to Modify
 
 | File                                                            | Change                                                                      |

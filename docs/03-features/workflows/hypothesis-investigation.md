@@ -167,6 +167,45 @@ When AI is configured, CoScout adapts its suggestions to the current investigati
 
 CoScout also checks which factor categories (equipment, temporal, operator, material, location) have been covered by questions and nudges the analyst to consider uncovered categories. For example, if you have equipment and temporal questions but no material question, CoScout might suggest: "Have you considered whether raw material batch variation could explain the drift?"
 
+## Mode-Specific Investigation
+
+> See [ADR-054: Mode-Aware Question Strategy](../../07-decisions/adr-054-mode-aware-question-strategy.md) for the architectural decision.
+
+The question-driven investigation adapts to the active analysis mode. Each mode has different question types, evidence metrics, and validation approaches:
+
+### Question Examples by Mode
+
+| Mode            | Example Questions                                                                             | Evidence Badge | Validation                 |
+| --------------- | --------------------------------------------------------------------------------------------- | -------------- | -------------------------- |
+| **Standard**    | "Does Shift explain variation?" / "Do Machine + Operator together explain more?"              | R²adj          | ANOVA η² ≥ 15%             |
+| **Capability**  | "Which factor most affects Cpk?" / "Does Shift shift the process center from target?"         | Cpk impact     | ANOVA η² + spec comparison |
+| **Yamazumi**    | "Which steps exceed takt?" / "Which waste type dominates?" / "Is waste increasing over time?" | Waste %        | Takt compliance            |
+| **Performance** | "Which channel has worst Cpk?" / "Is the worst channel a centering or spread problem?"        | Channel Cpk    | ANOVA η² per channel       |
+
+### Capability: Centering vs Spread Diagnostic
+
+When specification limits are set, capability questions diagnose the root cause type:
+
+- **Low Cpk + High Cp** → centering drift → "Which factor shifts the process mean from target?"
+- **Low Cpk + Low Cp** → excess spread → "Which factor increases process variation?"
+- **Subgroup drill-down** → "Why is Cpk lower in Shift=Night subgroups?"
+
+### Yamazumi: Lean Investigation Workflow
+
+Yamazumi mode replaces statistical decomposition with a lean waste elimination flow:
+
+1. **Takt compliance scan** — "Which steps exceed takt time?" (prioritize by flow impact)
+2. **Waste composition** — "Is the bottleneck value-adding work or waste?"
+3. **Waste driver ranking** — "Which waste type dominates?" (Pareto of waste reasons)
+4. **Temporal stability** — "Is waste increasing over time?" (I-Chart of waste metric)
+5. **Kaizen targeting** — "Where should kaizen focus first?" (highest waste × takt gap)
+
+R²adj does not apply to Yamazumi data. Evidence is expressed as waste contribution percentage.
+
+### CoScout Alignment
+
+The deterministic question pipeline produces questions matching CoScout's mode-specific coaching (`coScout.ts`). In Yamazumi mode, CoScout uses lean terminology (VA ratio, takt, waste types) and the 5-step workflow above. In Capability mode, CoScout references Cpk/Cp and centering-vs-spread diagnostics. The two layers tell the same story.
+
 ## Example: Machine 5 Packaging Line
 
 ### Scenario

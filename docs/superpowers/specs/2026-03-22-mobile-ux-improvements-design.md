@@ -1,3 +1,7 @@
+---
+title: 'Mobile UX Improvements — Design Spec'
+---
+
 # Mobile UX Improvements — Design Spec
 
 **Date:** 2026-03-22

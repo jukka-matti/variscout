@@ -1,3 +1,11 @@
+---
+title: 'ADR-052: Factor Intelligence — Progressive Factor Analysis'
+audience: [developer, architect]
+category: architecture
+status: stable
+related: [statistics, factor-analysis, best-subsets, strategy-pattern]
+---
+
 # ADR-052: Factor Intelligence — Progressive Factor Analysis
 
 **Status:** Accepted  
@@ -33,6 +41,23 @@ Implement **Factor Intelligence** as a 3-layer progressive feature in the SCOUT 
 3. **ANOVA-based, not regression-based.** Layers 1-3 use sum-of-squares decomposition on categorical factors. This avoids the heavier GLM engine while providing the factor prioritization analysts need. Full regression (Layer 4) is deferred to Phase 2.
 
 4. **X-level targets.** Optimal factor settings from the analysis become improvement targets (`ImprovementIdea` with specific factor levels), converting statistical findings into actionable process changes.
+
+### Mode-Specific Factor Analysis
+
+> See [ADR-054: Mode-Aware Question Strategy](adr-054-mode-aware-question-strategy.md) for the full mode-aware extension.
+
+Factor Intelligence Layers 1-3 use ANOVA/sum-of-squares decomposition on categorical factors. This model applies differently across analysis modes:
+
+| Mode            | R²adj Applicable? | Metric Adaptation                                | Question Framing                       |
+| --------------- | ----------------- | ------------------------------------------------ | -------------------------------------- |
+| **Standard**    | Yes               | R²adj as-is                                      | "Which factor explains variation?"     |
+| **Capability**  | Yes               | R²adj + Cpk impact when specs present            | "Which factor most affects Cpk?"       |
+| **Performance** | Yes               | Per-channel R²adj                                | "Which factor varies across channels?" |
+| **Yamazumi**    | **No**            | Waste contribution % (from aggregated time data) | "Which step has the most waste?"       |
+
+**Yamazumi limitation:** Yamazumi data is aggregated time composition by activity type — not a continuous outcome suitable for regression. R²adj-based ranking does not apply. ADR-054 introduces a separate `wasteComposition` generator that ranks steps by waste contribution percentage and takt compliance instead of R²adj.
+
+**Capability enhancement:** When specification limits (USL/LSL) are set, the capability adapter wraps existing best subsets output to reword questions: "variation" → "Cpk", and adds centering-vs-spread diagnostic questions based on the Cp/Cpk relationship.
 
 ## Architecture
 
@@ -72,8 +97,22 @@ packages/ui/src/components/StatsPanel/
 - **Layer 5 (Optimization):** Constrained optimization → What-If Simulator pipeline
 - **Regression analysis mode:** When Layers 4-5 are implemented, add `'regression'` as a proper `AnalysisMode` via ADR-047 strategy pattern
 
+## Implementation Status
+
+| Component                      | File                                                                | Status                   |
+| ------------------------------ | ------------------------------------------------------------------- | ------------------------ |
+| Layer 1: Best Subsets R²adj    | `packages/core/src/stats/bestSubsets.ts`                            | Complete                 |
+| Layer 2: Main Effects          | `packages/core/src/stats/factorEffects.ts`                          | Complete                 |
+| Layer 3: Interactions          | `packages/core/src/stats/factorEffects.ts`                          | Complete                 |
+| Question generation            | `packages/core/src/stats/bestSubsets.ts`                            | Complete (Standard mode) |
+| FactorIntelligencePanel UI     | `packages/ui/src/components/StatsPanel/FactorIntelligencePanel.tsx` | Complete                 |
+| MainEffectsPlot                | `packages/ui/src/components/StatsPanel/MainEffectsPlot.tsx`         | Complete                 |
+| InteractionPlot                | `packages/ui/src/components/StatsPanel/InteractionPlot.tsx`         | Complete                 |
+| Mode-aware question generation | See [ADR-054](adr-054-mode-aware-question-strategy.md)              | Planned                  |
+
 ## References
 
-- [ADR-047: Analysis Mode Strategy Pattern](file:///Users/jukka-mattiturtiainen/Projects/VariScout_lite/docs/07-decisions/adr-047-analysis-mode-strategy.md)
-- [Factor Intelligence Design Document](file:///Users/jukka-mattiturtiainen/Projects/VariScout_lite/docs/10-development/discussions/2026-03-29-factor-intelligence-design.md)
-- [Analysis Journey Map](file:///Users/jukka-mattiturtiainen/Projects/VariScout_lite/docs/03-features/workflows/analysis-journey-map.md)
+- [ADR-047: Analysis Mode Strategy Pattern](adr-047-analysis-mode-strategy.md)
+- [ADR-054: Mode-Aware Question Strategy](adr-054-mode-aware-question-strategy.md)
+- [Factor Intelligence Design Document](../10-development/discussions/2026-03-29-factor-intelligence-design.md)
+- [Analysis Journey Map](../03-features/workflows/analysis-journey-map.md)

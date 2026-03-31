@@ -1,3 +1,7 @@
+---
+title: 'Probability Plot Enhancement Design'
+---
+
 # Probability Plot Enhancement Design
 
 Multi-series overlay, brush selection with factor creation, annotations, and Anderson-Darling normality test.

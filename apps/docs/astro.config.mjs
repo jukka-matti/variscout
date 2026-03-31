@@ -869,6 +869,118 @@ export default defineConfig({
               slug: '07-decisions/adr-025-internationalization',
             },
             {
+              label: 'ADR-026 Knowledge Base',
+              slug: '07-decisions/adr-026-knowledge-base-sharepoint-first',
+            },
+            {
+              label: 'ADR-028 Responses API',
+              slug: '07-decisions/adr-028-responses-api-migration',
+            },
+            {
+              label: 'ADR-029 AI Action Tools',
+              slug: '07-decisions/adr-029-ai-action-tools',
+            },
+            {
+              label: 'ADR-030 File Picker',
+              slug: '07-decisions/adr-030-unified-file-picker',
+            },
+            {
+              label: 'ADR-031 Report Export',
+              slug: '07-decisions/adr-031-report-export',
+            },
+            {
+              label: 'ADR-032 Evidence Communication',
+              slug: '07-decisions/adr-032-evidence-communication',
+            },
+            {
+              label: 'ADR-033 Pricing',
+              slug: '07-decisions/adr-033-pricing-simplification',
+            },
+            {
+              label: 'ADR-034 Yamazumi',
+              slug: '07-decisions/adr-034-yamazumi-analysis-mode',
+            },
+            {
+              label: 'ADR-035 Improvement Prioritization',
+              slug: '07-decisions/adr-035-improvement-prioritization',
+            },
+            {
+              label: 'ADR-036 No Russian',
+              slug: '07-decisions/adr-036-no-russian-language',
+            },
+            {
+              label: 'ADR-037 Reporting Workspaces',
+              slug: '07-decisions/adr-037-reporting-workspaces',
+            },
+            {
+              label: 'ADR-038 Subgroup Capability',
+              slug: '07-decisions/adr-038-subgroup-capability',
+            },
+            {
+              label: 'ADR-039 Mobile Performance',
+              slug: '07-decisions/adr-039-mobile-performance-architecture',
+            },
+            {
+              label: 'ADR-040 Bicep Migration',
+              slug: '07-decisions/adr-040-bicep-migration',
+            },
+            {
+              label: 'ADR-041 Zustand Stores',
+              slug: '07-decisions/adr-041-zustand-feature-stores',
+            },
+            {
+              label: 'ADR-042 Project Dashboard',
+              slug: '07-decisions/adr-042-project-dashboard',
+            },
+            {
+              label: 'ADR-043 Teams Entry',
+              slug: '07-decisions/adr-043-teams-entry-experience',
+            },
+            {
+              label: 'ADR-044 Architectural Review',
+              slug: '07-decisions/adr-044-architectural-review',
+            },
+            {
+              label: 'ADR-045 Modular Architecture',
+              slug: '07-decisions/adr-045-modular-architecture',
+            },
+            {
+              label: 'ADR-046 Event-Driven',
+              slug: '07-decisions/adr-046-event-driven-architecture',
+            },
+            {
+              label: 'ADR-047 Strategy Pattern',
+              slug: '07-decisions/adr-047-analysis-mode-strategy',
+            },
+            {
+              label: 'ADR-048 ESLint Boundaries',
+              slug: '07-decisions/adr-048-eslint-boundaries',
+            },
+            {
+              label: 'ADR-049 Knowledge Catalyst',
+              slug: '07-decisions/adr-049-coscout-context-and-memory',
+            },
+            {
+              label: 'ADR-050 Wide-Form Stack',
+              slug: '07-decisions/adr-050-wide-form-stack-columns',
+            },
+            {
+              label: 'ADR-051 Many Categories',
+              slug: '07-decisions/adr-051-chart-many-categories',
+            },
+            {
+              label: 'ADR-052 Factor Intelligence',
+              slug: '07-decisions/adr-052-factor-intelligence',
+            },
+            {
+              label: 'ADR-053 Question-Driven EDA',
+              slug: '07-decisions/adr-053-question-driven-investigation',
+            },
+            {
+              label: 'ADR-054 Mode-Aware Questions',
+              slug: '07-decisions/adr-054-mode-aware-question-strategy',
+            },
+            {
               label: 'Product Audit Feb 2026',
               slug: '07-decisions/audit-2026-02-state-of-product',
             },

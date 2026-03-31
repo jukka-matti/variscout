@@ -1,6 +1,14 @@
+---
+title: 'ADR-053: Question-Driven Investigation'
+audience: [developer, architect]
+category: architecture
+status: stable
+related: [investigation, eda-mental-model, factor-intelligence, question-driven-eda]
+---
+
 # ADR-053: Question-Driven Investigation
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-03-30
 **Decision Makers:** Development team
 **Tags:** investigation, eda-mental-model, findings, questions, factor-intelligence
@@ -89,6 +97,34 @@ Factor Intelligence is deterministic — PWA and Azure without CoScout get evide
 - Tree data structures largely unchanged (`parentId`, `linkedFindingIds`, validation types)
 - CoScout prompt updates needed but architecture stays the same (3-tier prompt, phase-aware)
 - Factor Intelligence is already implemented — question generation is a new consumer, not a new engine
+
+## Mode Awareness
+
+> Extended by [ADR-054: Mode-Aware Question Strategy](adr-054-mode-aware-question-strategy.md)
+
+The current implementation covers **Standard mode** — questions generated from R²adj ranking, validated by ANOVA η². ADR-054 extends the question pipeline to adapt across all analysis modes:
+
+| Mode            | Question Source                       | Evidence Metric      | Validation       | Status          |
+| --------------- | ------------------------------------- | -------------------- | ---------------- | --------------- |
+| **Standard**    | Factor Intelligence L1 (best subsets) | R²adj                | ANOVA η²         | Implemented     |
+| **Capability**  | Best subsets + spec-aware adapter     | Cpk impact           | ANOVA η² + specs | ADR-054 Phase 1 |
+| **Yamazumi**    | Waste composition generator           | Waste contribution % | Takt compliance  | ADR-054 Phase 2 |
+| **Performance** | Channel ranking                       | Channel Cpk          | ANOVA η²         | ADR-054 Phase 3 |
+
+**Key principle:** Questions must match the terminology and metrics users see in charts and reports for the active mode. In Yamazumi mode, "Which factor explains variation?" is replaced by "Which step has the most waste?"
+
+## Implementation Status
+
+| Component                                | File                                                              | Status   |
+| ---------------------------------------- | ----------------------------------------------------------------- | -------- |
+| Issue Statement field                    | `packages/hooks/src/useHypotheses.ts`                             | Complete |
+| Question generation (Standard)           | `packages/core/src/stats/bestSubsets.ts`                          | Complete |
+| Auto-link mechanism                      | `packages/hooks/src/useHypotheses.ts`                             | Complete |
+| Question tree (reframed hypothesis tree) | `packages/hooks/src/useHypotheses.ts`                             | Complete |
+| Multiple suspected causes                | `packages/hooks/src/useHypotheses.ts`                             | Complete |
+| QuestionChecklist UI                     | `packages/ui/src/components/FindingsWindow/QuestionChecklist.tsx` | Complete |
+| Investigation Panel wiring               | `packages/ui/src/components/FindingsWindow/`                      | Complete |
+| Mode-aware question generation           | See [ADR-054](adr-054-mode-aware-question-strategy.md)            | Planned  |
 
 ## References
 

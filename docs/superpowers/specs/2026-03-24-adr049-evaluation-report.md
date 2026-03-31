@@ -1,3 +1,7 @@
+---
+title: 'Evaluation Report: PR #33 — ADR-049 CoScout Context & Process Memory'
+---
+
 # Evaluation Report: PR #33 — ADR-049 CoScout Context & Process Memory
 
 **Date:** 2026-03-24
