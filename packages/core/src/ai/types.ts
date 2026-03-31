@@ -127,6 +127,10 @@ export interface AIContext {
       text: string;
       status: string;
       contribution?: number;
+      /** Source of this question/hypothesis */
+      questionSource?: 'factor-intel' | 'heuristic' | 'coscout' | 'analyst';
+      /** Cause role from question-driven investigation */
+      causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
       ideas?: Array<{
         text: string;
         selected?: boolean;

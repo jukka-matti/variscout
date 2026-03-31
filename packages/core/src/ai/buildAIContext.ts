@@ -313,6 +313,8 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
         id: h.id,
         text: h.text,
         status: h.status,
+        questionSource: h.questionSource,
+        causeRole: h.causeRole,
         ideas:
           h.ideas && h.ideas.length > 0
             ? h.ideas.map(idea => ({

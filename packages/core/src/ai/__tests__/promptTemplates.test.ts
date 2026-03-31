@@ -371,8 +371,8 @@ describe('buildCoScoutSystemPrompt', () => {
     const prompt = buildCoScoutSystemPrompt({
       investigation: { phase: 'diverging' },
     });
-    expect(prompt).toContain('exploring possible causes');
-    expect(prompt).toContain('cast a wide net');
+    expect(prompt).toContain('exploring questions');
+    expect(prompt).toContain('check the open questions systematically');
   });
 
   it('does not add investigation section when no investigation context', () => {
