@@ -46,7 +46,6 @@ const baseProps: DashboardLayoutBaseProps = {
   filters: {},
   showFilterContext: true,
   showViolin: false,
-  showContributionLabels: false,
   boxplotSortBy: 'name',
   boxplotSortDirection: 'asc',
   onDisplayOptionChange: noop,

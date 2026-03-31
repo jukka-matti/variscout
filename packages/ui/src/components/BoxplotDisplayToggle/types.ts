@@ -25,9 +25,7 @@ export interface CategoryPickerItem {
 
 export interface BoxplotDisplayToggleProps {
   showViolin: boolean;
-  showContributionLabels: boolean;
   onToggleViolin: (value: boolean) => void;
-  onToggleContributionLabels: (value: boolean) => void;
   sortBy?: BoxplotSortBy;
   sortDirection?: BoxplotSortDirection;
   onSortChange?: (sortBy: BoxplotSortBy, direction: BoxplotSortDirection) => void;

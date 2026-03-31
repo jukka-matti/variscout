@@ -14,8 +14,6 @@ interface PresentationViewProps {
   onExit: () => void;
   boxplotFactor: string;
   paretoFactor: string;
-  factorVariations: Map<string, number>;
-  categoryContributions?: Map<string, Map<string | number, number>>;
   showParetoComparison: boolean;
   onToggleParetoComparison: () => void;
   paretoAggregation: 'count' | 'value';
@@ -26,8 +24,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({
   onExit,
   boxplotFactor,
   paretoFactor,
-  factorVariations,
-  categoryContributions,
   showParetoComparison,
   onToggleParetoComparison,
   paretoAggregation,
@@ -56,15 +52,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
       onChartTitleChange={(chart, title) => setChartTitles({ ...chartTitles, [chart]: title })}
       onExit={onExit}
       renderIChart={() => <IChart />}
-      renderBoxplot={() =>
-        boxplotFactor ? (
-          <Boxplot
-            factor={boxplotFactor}
-            variationPct={factorVariations.get(boxplotFactor)}
-            categoryContributions={categoryContributions?.get(boxplotFactor)}
-          />
-        ) : null
-      }
+      renderBoxplot={() => (boxplotFactor ? <Boxplot factor={boxplotFactor} /> : null)}
       renderPareto={() =>
         paretoFactor ? (
           <ParetoChart

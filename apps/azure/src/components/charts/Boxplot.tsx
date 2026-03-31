@@ -15,8 +15,6 @@ interface BoxplotProps {
   parentWidth: number;
   parentHeight: number;
   onDrillDown?: (factor: string, value: string) => void;
-  variationPct?: number;
-  categoryContributions?: Map<string | number, number>;
   highlightedCategories?: Record<string, HighlightColor>;
   onContextMenu?: (key: string, event: React.MouseEvent) => void;
   findings?: Finding[];
@@ -53,11 +51,7 @@ const Boxplot = ({ parentWidth, parentHeight, ...props }: BoxplotProps) => {
         onColumnAliasesChange={ctx.setColumnAliases}
         valueLabels={ctx.valueLabels}
         onValueLabelsChange={ctx.setValueLabels}
-        displayOptions={
-          isCapabilityMode
-            ? { ...ctx.displayOptions, showContributionLabels: false }
-            : ctx.displayOptions
-        }
+        displayOptions={ctx.displayOptions}
         yDomainMin={isCapabilityMode ? 0 : min}
         yDomainMax={isCapabilityMode ? 0 : max}
         showBranding={false}

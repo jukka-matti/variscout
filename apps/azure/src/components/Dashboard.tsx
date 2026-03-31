@@ -424,8 +424,6 @@ const Dashboard = ({
         onExit={onExitPresentation}
         boxplotFactor={boxplotFactor}
         paretoFactor={paretoFactor}
-        factorVariations={factorVariations}
-        categoryContributions={categoryContributions}
         showParetoComparison={showParetoComparison}
         onToggleParetoComparison={() => setShowParetoComparison(!showParetoComparison)}
         paretoAggregation={paretoAggregation}
@@ -628,8 +626,6 @@ const Dashboard = ({
                 onSetHighlight: setHighlight,
               }}
               onDrillDown={handleDrillDown}
-              factorVariations={factorVariations}
-              categoryContributions={categoryContributions}
               stats={stats}
               specs={specs}
               filteredData={filteredData}
@@ -652,7 +648,6 @@ const Dashboard = ({
                 filters={filters}
                 showFilterContext={displayOptions.showFilterContext !== false}
                 showViolin={displayOptions.showViolin ?? false}
-                showContributionLabels={displayOptions.showContributionLabels ?? false}
                 boxplotSortBy={displayOptions.boxplotSortBy ?? 'name'}
                 boxplotSortDirection={displayOptions.boxplotSortDirection ?? 'asc'}
                 onDisplayOptionChange={(key, value) =>
@@ -785,8 +780,6 @@ const Dashboard = ({
                       <Boxplot
                         factor={boxplotFactor}
                         onDrillDown={handleDrillDown}
-                        variationPct={factorVariations.get(boxplotFactor)}
-                        categoryContributions={categoryContributions?.get(boxplotFactor)}
                         highlightedCategories={boxplotHighlights}
                         onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
                         findings={chartFindings?.boxplot}
@@ -901,7 +894,6 @@ const Dashboard = ({
                       boxplotFactor={boxplotFactor}
                       factors={factors}
                       filters={filters}
-                      factorVariations={factorVariations}
                       anovaResult={anovaResult}
                       boxplotData={boxplotData}
                       boxplotChartTitle={chartTitles.boxplot || ''}
@@ -913,7 +905,6 @@ const Dashboard = ({
                         handleContextMenu('boxplot', key, event)
                       }
                       boxplotFindings={chartFindings?.boxplot}
-                      categoryContributions={categoryContributions?.get(boxplotFactor)}
                       paretoFactor={paretoFactor}
                       showParetoComparison={showParetoComparison}
                       paretoAggregation={paretoAggregation}

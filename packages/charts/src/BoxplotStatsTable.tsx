@@ -5,27 +5,16 @@ import { useChartTheme } from './useChartTheme';
 export interface BoxplotStatsTableProps {
   /** Boxplot data with pre-calculated statistics */
   data: BoxplotGroupData[];
-  /** Category contributions - Map from category key to % of total variation */
-  categoryContributions?: Map<string | number, number>;
-  /** Threshold for "high variation" highlight (default: 50) */
-  variationThreshold?: number;
   /** Compact mode for space-constrained layouts */
   compact?: boolean;
 }
 
 /**
  * Shared stats table for boxplot charts
- * Displays: Group | n | Mean | Median | StdDev | Variation %
- * Highlights:
- * - Row with highest StdDev (★ indicator)
- * - Row with highest variation contribution (red text)
+ * Displays: Group | n | Mean | Median | StdDev
+ * Highlights: Row with highest StdDev (★ indicator)
  */
-const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
-  data,
-  categoryContributions,
-  variationThreshold = 50,
-  compact = false,
-}) => {
+const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({ data, compact = false }) => {
   const { formatStat, t } = useChartTheme();
 
   // Find the row with highest StdDev
@@ -42,23 +31,7 @@ const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
     return maxKey;
   }, [data]);
 
-  // Find the row with highest variation contribution
-  const highestVariationKey = useMemo(() => {
-    if (!categoryContributions || categoryContributions.size === 0) return null;
-    let maxContribution = -Infinity;
-    let maxKey: string | number | null = null;
-    categoryContributions.forEach((contribution, key) => {
-      if (contribution > maxContribution) {
-        maxContribution = contribution;
-        maxKey = key;
-      }
-    });
-    return maxKey;
-  }, [categoryContributions]);
-
   if (data.length === 0) return null;
-
-  const showVariation = categoryContributions && categoryContributions.size > 0;
 
   // Theme-aware colors using semantic tokens
   const headerBg = 'bg-surface-tertiary';
@@ -67,7 +40,6 @@ const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
   const borderColor = 'border-edge';
   const textPrimary = 'text-content';
   const textSecondary = 'text-content-secondary';
-  const highlightText = 'text-red-400';
   const starColor = 'text-amber-400';
 
   const fontSize = compact ? 'text-xs' : 'text-sm';
@@ -103,22 +75,11 @@ const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
             >
               {t('stats.stdDev')}
             </th>
-            {showVariation && (
-              <th
-                className={`${padding} text-right font-semibold ${textPrimary} border ${borderColor}`}
-              >
-                {t('report.kpi.variation')} %
-              </th>
-            )}
           </tr>
         </thead>
         <tbody>
           {data.map((d, i) => {
             const isHighestStdDev = d.key === highestStdDevKey;
-            const contribution = categoryContributions?.get(d.key);
-            const isHighestVariation = d.key === highestVariationKey;
-            const isHighVariation =
-              contribution !== undefined && contribution >= variationThreshold;
             const rowBg = i % 2 === 0 ? rowEvenBg : rowOddBg;
 
             return (
@@ -149,17 +110,6 @@ const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
                   {isHighestStdDev && <span className={`${starColor} mr-1`}>★</span>}
                   {formatStat(d.stdDev, 3)}
                 </td>
-                {showVariation && (
-                  <td
-                    className={`${padding} text-right border ${borderColor} tabular-nums ${
-                      isHighVariation || isHighestVariation
-                        ? `font-semibold ${highlightText}`
-                        : textSecondary
-                    }`}
-                  >
-                    {contribution !== undefined ? `${Math.round(contribution)}%` : '-'}
-                  </td>
-                )}
               </tr>
             );
           })}

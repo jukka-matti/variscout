@@ -63,20 +63,6 @@ export const WithViolin: Story = {
   },
 };
 
-export const WithContributions: Story = {
-  args: {
-    ...Default.args,
-    categoryContributions: new Map([
-      ['Line A', 15],
-      ['Line B', 45],
-      ['Line C', 10],
-      ['Line D', 30],
-    ]),
-    showContributionLabels: true,
-    showContributionBars: true,
-  },
-};
-
 export const WithHighlights: Story = {
   args: {
     ...Default.args,

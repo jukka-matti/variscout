@@ -21,7 +21,6 @@ export interface EmbedFocusViewProps {
   specs: SpecLimits;
   filteredData: DataRow[];
   filters: Record<string, (string | number)[]>;
-  factorVariations: Map<string, number>;
   showParetoComparison: boolean;
   onToggleParetoComparison: () => void;
   paretoAggregation?: 'count' | 'value';
@@ -55,7 +54,6 @@ const EmbedFocusView: React.FC<EmbedFocusViewProps> = ({
   specs,
   filteredData,
   filters,
-  factorVariations,
   showParetoComparison,
   onToggleParetoComparison,
   paretoAggregation = 'count',
@@ -111,13 +109,7 @@ const EmbedFocusView: React.FC<EmbedFocusViewProps> = ({
           </div>
           <div className="flex-1 min-h-0">
             <ErrorBoundary componentName="Boxplot">
-              {boxplotFactor && (
-                <Boxplot
-                  factor={boxplotFactor}
-                  onDrillDown={onDrillDown}
-                  variationPct={factorVariations.get(boxplotFactor)}
-                />
-              )}
+              {boxplotFactor && <Boxplot factor={boxplotFactor} onDrillDown={onDrillDown} />}
             </ErrorBoundary>
           </div>
         </div>

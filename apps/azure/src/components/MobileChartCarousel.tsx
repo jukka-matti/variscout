@@ -103,9 +103,6 @@ interface MobileChartCarouselProps {
   highlights: CarouselHighlights;
   // Drill down
   onDrillDown: (factor: string, value: string) => void;
-  // Variation tracking
-  factorVariations: Map<string, number>;
-  categoryContributions?: Map<string, Map<string | number, number>>;
   // Stats
   stats: StatsResult | null;
   specs: SpecLimits;
@@ -149,8 +146,6 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   },
   highlights: { boxplotHighlights, paretoHighlights, onSetHighlight },
   onDrillDown,
-  factorVariations,
-  categoryContributions,
   stats,
   specs,
   filteredData,
@@ -226,7 +221,6 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   const handleBoxplotDrillDown = useCallback(
     (factor: string, value: string) => {
       const group = boxplotData.find(g => g.key === value);
-      const contributions = categoryContributions?.get(factor);
       const sheetData: MobileCategorySheetData = {
         categoryKey: value,
         chartType: 'boxplot',
@@ -235,30 +229,24 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
         median: group?.median,
         iqr: group ? group.q3 - group.q1 : undefined,
         stdDev: group?.stdDev,
-        contributionPct: contributions?.get(value),
       };
       setCategorySheet(sheetData);
       setSheetFactor(factor);
       setSheetChartType('boxplot');
     },
-    [boxplotData, categoryContributions]
+    [boxplotData]
   );
 
   // Pareto drill-down interceptor: opens sheet with contribution % (Option A)
-  const handleParetoDrillDown = useCallback(
-    (factor: string, value: string) => {
-      const contributions = categoryContributions?.get(factor);
-      const sheetData: MobileCategorySheetData = {
-        categoryKey: value,
-        chartType: 'pareto',
-        contributionPct: contributions?.get(value),
-      };
-      setCategorySheet(sheetData);
-      setSheetFactor(factor);
-      setSheetChartType('pareto');
-    },
-    [categoryContributions]
-  );
+  const handleParetoDrillDown = useCallback((factor: string, value: string) => {
+    const sheetData: MobileCategorySheetData = {
+      categoryKey: value,
+      chartType: 'pareto',
+    };
+    setCategorySheet(sheetData);
+    setSheetFactor(factor);
+    setSheetChartType('pareto');
+  }, []);
 
   const handleSheetClose = useCallback(() => {
     setCategorySheet(null);
@@ -524,8 +512,6 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
               <Boxplot
                 factor={boxplotFactor}
                 onDrillDown={handleBoxplotDrillDown}
-                variationPct={factorVariations.get(boxplotFactor)}
-                categoryContributions={categoryContributions?.get(boxplotFactor)}
                 highlightedCategories={boxplotHighlights}
               />
             )}

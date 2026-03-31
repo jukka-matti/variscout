@@ -70,7 +70,6 @@ export interface DashboardLayoutBaseProps {
   // ---- Display options ----
   showFilterContext: boolean;
   showViolin: boolean;
-  showContributionLabels: boolean;
   boxplotSortBy: string;
   boxplotSortDirection: string;
   onDisplayOptionChange: (key: string, value: unknown) => void;
@@ -204,7 +203,6 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   filters,
   showFilterContext,
   showViolin,
-  showContributionLabels,
   boxplotSortBy,
   boxplotSortDirection,
   onDisplayOptionChange,
@@ -409,9 +407,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
       {wrappedBoxplotFactor}
       <BoxplotDisplayToggle
         showViolin={showViolin}
-        showContributionLabels={showContributionLabels}
         onToggleViolin={value => onDisplayOptionChange('showViolin', value)}
-        onToggleContributionLabels={value => onDisplayOptionChange('showContributionLabels', value)}
         sortBy={boxplotSortBy as 'name' | 'mean' | 'spread'}
         sortDirection={boxplotSortDirection as 'asc' | 'desc'}
         onSortChange={(sortBy, direction) => {

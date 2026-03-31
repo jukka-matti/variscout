@@ -26,9 +26,7 @@ const SORT_OPTIONS: { value: BoxplotSortBy; label: string }[] = [
 
 const BoxplotDisplayToggle: React.FC<BoxplotDisplayToggleProps> = ({
   showViolin,
-  showContributionLabels,
   onToggleViolin,
-  onToggleContributionLabels,
   sortBy = 'name',
   sortDirection = 'asc',
   onSortChange,
@@ -133,21 +131,6 @@ const BoxplotDisplayToggle: React.FC<BoxplotDisplayToggleProps> = ({
                 <span className={`block ${cs.description}`}>{t('display.violinDesc')}</span>
               </div>
             </label>
-            <label htmlFor="boxplot-contribution" className="flex items-start gap-3 cursor-pointer">
-              <input
-                id="boxplot-contribution"
-                name="boxplot-contribution"
-                type="checkbox"
-                checked={showContributionLabels}
-                onChange={e => onToggleContributionLabels(e.target.checked)}
-                className={`mt-0.5 ${cs.checkbox}`}
-              />
-              <div>
-                <span className={cs.checkboxLabel}>{t('display.contribution')}</span>
-                <span className={`block ${cs.description}`}>{t('display.contributionDesc')}</span>
-              </div>
-            </label>
-
             {onSortChange && (
               <>
                 <div className={`pt-1 border-t border-edge ${cs.sectionLabel ?? ''}`}>

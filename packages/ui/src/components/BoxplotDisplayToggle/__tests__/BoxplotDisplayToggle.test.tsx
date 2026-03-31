@@ -37,9 +37,7 @@ vi.mock('lucide-react', () => ({
 describe('BoxplotDisplayToggle', () => {
   const defaultProps = {
     showViolin: false,
-    showContributionLabels: false,
     onToggleViolin: vi.fn(),
-    onToggleContributionLabels: vi.fn(),
   };
 
   it('renders trigger button', () => {
@@ -54,7 +52,6 @@ describe('BoxplotDisplayToggle', () => {
     fireEvent.click(screen.getByLabelText('Boxplot display options'));
 
     expect(screen.getByText('Violin plot')).toBeTruthy();
-    expect(screen.getByText('Contribution')).toBeTruthy();
   });
 
   it('closes popover on second click', () => {
@@ -68,27 +65,23 @@ describe('BoxplotDisplayToggle', () => {
     expect(screen.queryByText('Violin plot')).toBeNull();
   });
 
-  it('renders both toggles with correct checked state', () => {
-    render(
-      <BoxplotDisplayToggle {...defaultProps} showViolin={true} showContributionLabels={true} />
-    );
+  it('renders violin toggle with correct checked state', () => {
+    render(<BoxplotDisplayToggle {...defaultProps} showViolin={true} />);
 
     fireEvent.click(screen.getByLabelText('Boxplot display options'));
 
     const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes).toHaveLength(2);
+    expect(checkboxes).toHaveLength(1);
     expect((checkboxes[0] as HTMLInputElement).checked).toBe(true);
-    expect((checkboxes[1] as HTMLInputElement).checked).toBe(true);
   });
 
-  it('renders unchecked when both false', () => {
+  it('renders unchecked when violin false', () => {
     render(<BoxplotDisplayToggle {...defaultProps} />);
 
     fireEvent.click(screen.getByLabelText('Boxplot display options'));
 
     const checkboxes = screen.getAllByRole('checkbox');
     expect((checkboxes[0] as HTMLInputElement).checked).toBe(false);
-    expect((checkboxes[1] as HTMLInputElement).checked).toBe(false);
   });
 
   it('fires onToggleViolin when distribution shape is toggled', () => {
@@ -101,23 +94,6 @@ describe('BoxplotDisplayToggle', () => {
     fireEvent.click(checkboxes[0]);
 
     expect(onToggleViolin).toHaveBeenCalledWith(true);
-  });
-
-  it('fires onToggleContributionLabels when contribution labels is toggled', () => {
-    const onToggleContributionLabels = vi.fn();
-    render(
-      <BoxplotDisplayToggle
-        {...defaultProps}
-        onToggleContributionLabels={onToggleContributionLabels}
-      />
-    );
-
-    fireEvent.click(screen.getByLabelText('Boxplot display options'));
-
-    const checkboxes = screen.getAllByRole('checkbox');
-    fireEvent.click(checkboxes[1]);
-
-    expect(onToggleContributionLabels).toHaveBeenCalledWith(true);
   });
 
   it('applies custom color scheme', () => {
