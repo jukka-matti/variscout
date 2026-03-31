@@ -5,6 +5,7 @@ import {
   type AnovaResult,
   type Finding,
   type FindingProjection,
+  type GeneratedQuestion,
   type Hypothesis,
   type HypothesisStatus,
   type HypothesisValidationType,
@@ -118,6 +119,18 @@ export interface UseHypothesesReturn {
     hypothesisId: string,
     role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined
   ) => void;
+  // --- Question Lifecycle ---
+  /** Generate initial questions from Factor Intelligence ranking + heuristic context */
+  generateInitialQuestions: (
+    generatedQuestions: GeneratedQuestion[],
+    issueStatement?: string
+  ) => Hypothesis[];
+  /** Mark a question as answered by linking it to a finding */
+  answerQuestion: (
+    questionId: string,
+    findingId: string,
+    answer: 'supported' | 'contradicted' | 'partial'
+  ) => void;
 }
 
 /** Eta-squared thresholds for auto-validation */
@@ -134,6 +147,12 @@ function computeStatus(
 ): HypothesisStatus {
   // Non-data validation types keep their manually set status
   if (hypothesis.validationType && hypothesis.validationType !== 'data') {
+    return hypothesis.status;
+  }
+
+  // Question-sourced hypotheses that already have a non-untested status
+  // (auto-ruled-out or manually answered) keep their status
+  if (hypothesis.questionSource && hypothesis.status !== 'untested') {
     return hypothesis.status;
   }
 
@@ -587,6 +606,50 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     [update]
   );
 
+  // --- Question Lifecycle ---
+
+  const generateInitialQuestions = useCallback(
+    (generatedQuestions: GeneratedQuestion[], _issueStatement?: string): Hypothesis[] => {
+      const created: Hypothesis[] = [];
+      for (const q of generatedQuestions) {
+        const h = createHypothesis(q.text, q.factors.length === 1 ? q.factors[0] : undefined);
+        // Enrich with question-specific fields
+        const enriched: Hypothesis = {
+          ...h,
+          questionSource: q.source,
+          evidence: { rSquaredAdj: q.rSquaredAdj },
+          status: q.autoAnswered ? 'contradicted' : 'untested',
+        };
+        created.push(enriched);
+      }
+      if (created.length > 0) {
+        update(prev => [...prev, ...created]);
+      }
+      return created;
+    },
+    [update]
+  );
+
+  const answerQuestion = useCallback(
+    (questionId: string, findingId: string, answer: 'supported' | 'contradicted' | 'partial') => {
+      update(prev =>
+        prev.map(h => {
+          if (h.id !== questionId) return h;
+          const alreadyLinked = h.linkedFindingIds.includes(findingId);
+          return {
+            ...h,
+            status: answer,
+            linkedFindingIds: alreadyLinked
+              ? h.linkedFindingIds
+              : [...h.linkedFindingIds, findingId],
+            updatedAt: new Date().toISOString(),
+          };
+        })
+      );
+    },
+    [update]
+  );
+
   return {
     hypotheses: validatedHypotheses,
     addHypothesis,
@@ -612,5 +675,7 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     setIdeaProjection,
     selectIdea,
     setCauseRole,
+    generateInitialQuestions,
+    answerQuestion,
   };
 }
