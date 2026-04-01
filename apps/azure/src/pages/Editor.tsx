@@ -37,6 +37,7 @@ import { useLocale } from '../context/LocaleContext';
 import { usePanelsStore } from '../features/panels/panelsStore';
 import { usePanelsPersistence } from '../features/panels/usePanelsPersistence';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
+import { useAutoSave } from '../hooks/useAutoSave';
 import { useTeamsShare } from '../hooks/useTeamsShare';
 import { useShareFinding } from '../hooks/useShareFinding';
 import { useFindingsOrchestration } from '../features/findings';
@@ -753,6 +754,13 @@ export const Editor: React.FC<EditorProps> = ({
       setTimeout(() => setSaveStatus('idle'), 3000);
     }
   }, [currentProjectName, saveProject]);
+
+  // Auto-save on key state changes (Phase 3)
+  useAutoSave(
+    handleSave,
+    [persistedFindings, persistedHypotheses, processContext, specs, displayOptions],
+    rawData.length > 0 && !!projectId
+  );
 
   // Save As to SharePoint
   const handleSaveAsToSharePoint = useCallback(
