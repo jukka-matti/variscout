@@ -48,6 +48,7 @@ import { setBeforeUnloadHandler } from '../teams';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 import WorkspaceTabs from '../components/editor/WorkspaceTabs';
+import { InvestigationWorkspace } from '../components/editor/InvestigationWorkspace';
 import { EditorModals } from '../components/editor/EditorModals';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
 import ProjectDashboard from '../components/ProjectDashboard';
@@ -1058,10 +1059,29 @@ export const Editor: React.FC<EditorProps> = ({
                 />
               </div>
             ) : activeView === 'investigation' ? (
-              /* TODO: Phase 3 — InvestigationWorkspace component */
-              <div className="flex-1 flex items-center justify-center text-content-secondary text-sm">
-                Investigation workspace — coming soon
-              </div>
+              <InvestigationWorkspace
+                findingsState={findingsState}
+                handleRestoreFinding={handleRestoreFinding}
+                handleSetFindingStatus={handleSetFindingStatus}
+                handleNavigateToChart={handleNavigateToChart}
+                handleShareFinding={handleShareFinding}
+                drillPath={drillPath}
+                hypothesesState={hypothesesState}
+                handleCreateHypothesis={handleCreateHypothesis}
+                handleProjectIdea={handleProjectIdea}
+                handleAddCommentWithAuthor={handleAddCommentWithAuthor}
+                handleAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
+                handleCaptureFromTeams={
+                  hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined
+                }
+                isTeamsCamera={isTeamsCamera}
+                aiOrch={aiOrch}
+                columnAliases={columnAliases}
+                viewMode={viewState?.findingsViewMode}
+                onViewModeChange={(mode: 'list' | 'board' | 'tree') =>
+                  handleViewStateChange({ findingsViewMode: mode })
+                }
+              />
             ) : activeView === 'improvement' ? (
               <ImprovementWorkspaceBase
                 synthesis={processContext?.synthesis}

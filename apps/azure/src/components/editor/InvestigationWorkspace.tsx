@@ -1,0 +1,304 @@
+import React, { useMemo, useState } from 'react';
+import {
+  QuestionChecklist,
+  InvestigationPhaseBadge,
+  InvestigationConclusion,
+  FindingsLog,
+  CoScoutPanelBase,
+} from '@variscout/ui';
+import {
+  useResizablePanel,
+  useQuestionGeneration,
+  type UseFindingsReturn,
+  type UseHypothesesReturn,
+} from '@variscout/hooks';
+import type { FindingStatus, Hypothesis, InvestigationPhase } from '@variscout/core';
+import { hasTeamFeatures } from '@variscout/core';
+import { resolveMode, getStrategy } from '@variscout/core/strategy';
+import { GripVertical } from 'lucide-react';
+import { useData } from '../../context/DataContext';
+import { usePanelsStore } from '../../features/panels/panelsStore';
+import { useInvestigationStore } from '../../features/investigation/investigationStore';
+import { useFindingsStore } from '../../features/findings/findingsStore';
+import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
+import type { UseAIOrchestrationReturn } from '../../features/ai';
+
+// Resize panel config (individual args for useResizablePanel)
+
+interface InvestigationWorkspaceProps {
+  // Findings
+  findingsState: UseFindingsReturn;
+  handleRestoreFinding: UseFindingsOrchestrationReturn['handleRestoreFinding'];
+  handleSetFindingStatus: (id: string, status: FindingStatus) => void;
+  handleNavigateToChart: UseFindingsOrchestrationReturn['handleNavigateToChart'];
+  handleShareFinding: UseFindingsOrchestrationReturn['handleShareFinding'];
+  drillPath: UseFindingsOrchestrationReturn['drillPath'];
+  // Hypotheses
+  hypothesesState: UseHypothesesReturn;
+  handleCreateHypothesis: (
+    findingId: string,
+    text: string,
+    factor?: string,
+    level?: string
+  ) => void;
+  handleProjectIdea: (hypothesisId: string, ideaId: string) => void;
+  // Comments
+  handleAddCommentWithAuthor: (
+    findingId: string,
+    text: string,
+    attachment?: File
+  ) => void | Promise<void>;
+  handleAddPhoto: ((findingId: string, commentId: string, file: File) => Promise<void>) | undefined;
+  handleCaptureFromTeams: ((findingId: string, commentId: string) => Promise<void>) | undefined;
+  isTeamsCamera: boolean;
+  // Investigation phase
+  investigationPhase?: InvestigationPhase;
+  // AI
+  aiOrch: UseAIOrchestrationReturn;
+  // Column aliases
+  columnAliases: Record<string, string>;
+  // View state
+  viewMode?: 'list' | 'board' | 'tree';
+  onViewModeChange?: (mode: 'list' | 'board' | 'tree') => void;
+}
+
+/**
+ * Investigation workspace (ADR-055): Three-column layout for question-driven EDA.
+ *
+ * Left: QuestionChecklist + PhaseBadge + InvestigationConclusion
+ * Center: FindingsLog (list / board / tree)
+ * Right: CoScout (optional)
+ */
+export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
+  findingsState,
+  handleRestoreFinding,
+  handleSetFindingStatus,
+  handleNavigateToChart,
+  handleShareFinding,
+  drillPath,
+  hypothesesState,
+  handleCreateHypothesis,
+  handleProjectIdea,
+  handleAddCommentWithAuthor,
+  handleAddPhoto,
+  handleCaptureFromTeams,
+  isTeamsCamera,
+  investigationPhase,
+  aiOrch,
+  columnAliases,
+  viewMode: externalViewMode,
+  onViewModeChange,
+}) => {
+  const { filteredData, outcome, factors, processContext, setProcessContext, analysisMode } =
+    useData();
+
+  const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
+  const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
+  const hypothesesMap = useInvestigationStore(s => s.hypothesesMap);
+  const ideaImpacts = useInvestigationStore(s => s.ideaImpacts);
+
+  // Question generation (ADR-053) — computed from data context
+  const resolved = resolveMode(analysisMode ?? 'standard');
+  const strategy = getStrategy(resolved);
+  const { questions: factorIntelQuestions, handleQuestionClick } = useQuestionGeneration({
+    filteredData: filteredData ?? [],
+    outcome,
+    factors,
+    hypothesesState,
+    mode: resolved,
+  });
+
+  // Left panel resizable
+  const leftPanel = useResizablePanel('variscout-investigation-left-width', 260, 420, 320, 'left');
+
+  // Internal view mode (if not controlled)
+  const [internalViewMode, setInternalViewMode] = useState<'list' | 'board' | 'tree'>('board');
+  const viewMode = externalViewMode ?? internalViewMode;
+  const handleViewMode = onViewModeChange ?? setInternalViewMode;
+
+  // Categorize hypotheses for InvestigationConclusion
+  const { suspectedCauses, contributing, ruledOut } = useMemo(() => {
+    const suspected: Hypothesis[] = [];
+    const contrib: Hypothesis[] = [];
+    const ruled: Hypothesis[] = [];
+    for (const h of hypothesesState.hypotheses) {
+      if (h.causeRole === 'suspected-cause') suspected.push(h);
+      else if (h.causeRole === 'contributing') contrib.push(h);
+      else if (h.causeRole === 'ruled-out') ruled.push(h);
+    }
+    return { suspectedCauses: suspected, contributing: contrib, ruledOut: ruled };
+  }, [hypothesesState.hypotheses]);
+
+  const { coscout } = aiOrch;
+
+  const drillFactors = useMemo(() => drillPath.map(d => d.factor), [drillPath]);
+
+  // Issue statement handlers
+  const handleIssueStatementChange = (text: string) => {
+    setProcessContext({ ...processContext, issueStatement: text });
+  };
+
+  // Question click: switch to Analysis workspace with factor focused (round-trip pattern)
+  const handleQuestionClickWithSwitch = (question: Hypothesis) => {
+    handleQuestionClick(question);
+    usePanelsStore.getState().showAnalysis();
+  };
+
+  return (
+    <div className="flex flex-1 min-h-0 relative">
+      {/* Left panel: Question checklist + phase + conclusions */}
+      <div
+        className="relative flex flex-col border-r border-edge overflow-hidden bg-surface flex-shrink-0"
+        style={{ width: leftPanel.width }}
+      >
+        {/* Phase badge */}
+        {investigationPhase && (
+          <div className="px-3 pt-3 pb-1 flex-shrink-0">
+            <InvestigationPhaseBadge phase={investigationPhase} />
+          </div>
+        )}
+
+        {/* Question checklist */}
+        <div className="flex-1 overflow-y-auto px-3 py-2">
+          <QuestionChecklist
+            questions={factorIntelQuestions}
+            issueStatement={processContext?.issueStatement}
+            onIssueStatementChange={handleIssueStatementChange}
+            onQuestionClick={handleQuestionClickWithSwitch}
+            problemStatement={processContext?.problemStatement}
+            evidenceLabel={strategy.questionStrategy.evidenceLabel}
+          />
+        </div>
+
+        {/* Investigation conclusion */}
+        {(suspectedCauses.length > 0 || ruledOut.length > 0) && (
+          <div className="border-t border-edge px-3 py-2 flex-shrink-0">
+            <InvestigationConclusion
+              suspectedCauses={suspectedCauses}
+              ruledOut={ruledOut}
+              contributing={contributing}
+              problemStatement={processContext?.problemStatement}
+              hasConclusions={suspectedCauses.length > 0}
+            />
+          </div>
+        )}
+
+        {/* Resize handle */}
+        <div
+          className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/30 transition-colors z-10"
+          onMouseDown={leftPanel.handleMouseDown}
+        >
+          <GripVertical
+            size={12}
+            className="absolute top-1/2 -translate-y-1/2 -right-1.5 text-content-tertiary"
+          />
+        </div>
+      </div>
+
+      {/* Center: Findings (list/board/tree) */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
+        {/* View mode toggle */}
+        <div className="flex items-center gap-1 px-3 py-2 border-b border-edge bg-surface flex-shrink-0">
+          {(['list', 'board', 'tree'] as const).map(mode => (
+            <button
+              key={mode}
+              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                viewMode === mode
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                  : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
+              }`}
+              onClick={() => handleViewMode(mode)}
+            >
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </button>
+          ))}
+          <span className="ml-auto text-xs text-content-tertiary">
+            {findingsState.findings.length} finding
+            {findingsState.findings.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+
+        {/* Findings content */}
+        <div className="flex-1 overflow-y-auto px-3 py-2">
+          <FindingsLog
+            findings={findingsState.findings}
+            onEditFinding={findingsState.editFinding}
+            onDeleteFinding={findingsState.deleteFinding}
+            onRestoreFinding={handleRestoreFinding}
+            viewMode={viewMode}
+            hypotheses={hypothesesState.hypotheses}
+            onSelectHypothesis={h => useInvestigationStore.getState().expandToHypothesis(h.id)}
+            onAddSubHypothesis={hypothesesState.addSubHypothesis}
+            factors={drillFactors}
+            getChildrenSummary={hypothesesState.getChildrenSummary}
+            onSetFindingStatus={handleSetFindingStatus}
+            onSetFindingTag={findingsState.setFindingTag}
+            onAddComment={(id: string, text: string) => handleAddCommentWithAuthor(id, text)}
+            columnAliases={columnAliases}
+            activeFindingId={highlightedFindingId}
+            onAddPhoto={
+              hasTeamFeatures() && handleAddPhoto
+                ? (fId: string, cId: string, file: File) => {
+                    handleAddPhoto(fId, cId, file);
+                  }
+                : undefined
+            }
+            onCaptureFromTeams={
+              hasTeamFeatures() && isTeamsCamera && handleCaptureFromTeams
+                ? (fId: string, cId: string) => {
+                    handleCaptureFromTeams(fId, cId);
+                  }
+                : undefined
+            }
+            onCreateHypothesis={handleCreateHypothesis}
+            hypothesesMap={hypothesesMap}
+            onSetValidationTask={hypothesesState.setValidationTask}
+            onCompleteTask={hypothesesState.completeTask}
+            onSetManualStatus={hypothesesState.setManualStatus}
+            onAddAction={findingsState.addAction}
+            onCompleteAction={findingsState.completeAction}
+            onDeleteAction={findingsState.deleteAction}
+            onSetOutcome={findingsState.setOutcome}
+            ideaImpacts={ideaImpacts}
+            onAddIdea={hypothesesState.addIdea}
+            onUpdateIdea={hypothesesState.updateIdea}
+            onRemoveIdea={hypothesesState.removeIdea}
+            onSelectIdea={hypothesesState.selectIdea}
+            onProjectIdea={handleProjectIdea}
+            onSetCauseRole={hypothesesState.setCauseRole}
+            onShareFinding={handleShareFinding}
+            onNavigateToChart={handleNavigateToChart}
+            showAuthors
+          />
+        </div>
+      </div>
+
+      {/* Right: CoScout panel (optional, self-managing resize) */}
+      {coscout && (
+        <CoScoutPanelBase
+          isOpen={isCoScoutOpen}
+          onClose={() => usePanelsStore.getState().setCoScoutOpen(false)}
+          resizeConfig={{
+            storageKey: 'variscout-azure-coscout-panel-width',
+            min: 320,
+            max: 600,
+            defaultWidth: 384,
+          }}
+          messages={coscout.messages}
+          onSend={
+            coscout.send as (
+              text: string,
+              images?: { id: string; dataUrl: string; mimeType?: string }[]
+            ) => void
+          }
+          isLoading={coscout.isLoading}
+          isStreaming={coscout.isStreaming}
+          onStopStreaming={coscout.stopStreaming}
+          error={coscout.error}
+          onRetry={coscout.retry}
+          suggestedQuestions={aiOrch.suggestedQuestions}
+        />
+      )}
+    </div>
+  );
+};
