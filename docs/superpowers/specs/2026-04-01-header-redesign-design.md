@@ -1,7 +1,7 @@
 ---
 title: Header Redesign — Merged Toolbar + Workspace Tabs
 date: 2026-04-01
-status: draft
+status: delivered
 audience: [developer, designer]
 category: design-spec
 related: [header, toolbar, workspace-tabs, auto-save, report-workspace, navigation, panels]
