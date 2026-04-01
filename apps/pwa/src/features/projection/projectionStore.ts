@@ -1,3 +1,9 @@
+/**
+ * PWA-only projection store. Azure uses useProcessProjection hook directly
+ * in Dashboard and passes results as props. PWA needs this store as a
+ * cross-component bus because its flat architecture requires sidebar/toolbar
+ * to read projection data computed in Dashboard.
+ */
 import { create } from 'zustand';
 import type {
   ProcessProjection,

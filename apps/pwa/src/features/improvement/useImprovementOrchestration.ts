@@ -49,7 +49,7 @@ export function useImprovementOrchestration({
         h => (h.status === 'supported' || h.status === 'partial') && h.ideas && h.ideas.length > 0
       )
       .map(h => {
-        const linkedFinding = findingsState.findings.find(f => h.linkedFindingIds.includes(f.id));
+        const linkedFinding = findingsState.findings.find(f => f.hypothesisId === h.id);
         return {
           id: h.id,
           text: h.text,
@@ -62,18 +62,11 @@ export function useImprovementOrchestration({
   }, [hypothesesState.hypotheses, findingsState.findings]);
 
   const improvementLinkedFindings = useMemo(() => {
-    const findingIds = new Set<string>();
-    for (const h of hypothesesState.hypotheses) {
-      if (h.ideas && h.ideas.length > 0) {
-        for (const fid of h.linkedFindingIds) {
-          findingIds.add(fid);
-        }
-      }
-    }
+    const hypothesisIds = new Set(improvementHypotheses.map(h => h.id));
     return findingsState.findings
-      .filter(f => findingIds.has(f.id))
+      .filter(f => f.hypothesisId && hypothesisIds.has(f.hypothesisId))
       .map(f => ({ id: f.id, text: f.text }));
-  }, [hypothesesState.hypotheses, findingsState.findings]);
+  }, [improvementHypotheses, findingsState.findings]);
 
   const selectedIdeaIds = useMemo(() => {
     const ids = new Set<string>();
@@ -89,7 +82,7 @@ export function useImprovementOrchestration({
     const map: Record<string, number> = {};
     for (const h of hypothesesState.hypotheses) {
       if (!h.ideas || h.ideas.length === 0) continue;
-      const linkedFinding = findingsState.findings.find(f => h.linkedFindingIds.includes(f.id));
+      const linkedFinding = findingsState.findings.find(f => f.hypothesisId === h.id);
       if (!linkedFinding) continue;
       const selectedWithProjection = h.ideas.find(
         i => i.selected && i.projection?.projectedCpk != null
@@ -138,7 +131,7 @@ export function useImprovementOrchestration({
   const handleConvertIdeasToActions = useCallback(() => {
     for (const h of hypothesesState.hypotheses) {
       if (!h.ideas || h.ideas.length === 0) continue;
-      const linkedFinding = findingsState.findings.find(f => h.linkedFindingIds.includes(f.id));
+      const linkedFinding = findingsState.findings.find(f => f.hypothesisId === h.id);
       if (!linkedFinding) continue;
 
       for (const idea of h.ideas) {
