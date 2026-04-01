@@ -2,7 +2,7 @@
 title: Wide-Form Data Support — Stack Columns
 audience: [developer, analyst]
 category: architecture
-status: draft
+status: delivered
 related: [column-mapping, parser, data-ingestion, performance-mode]
 ---
 

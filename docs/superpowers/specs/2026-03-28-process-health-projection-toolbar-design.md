@@ -1,7 +1,7 @@
 ---
 title: Process Health & Projection Toolbar
 date: 2026-03-28
-status: implementing
+status: delivered
 audience: [developer, designer]
 category: design-spec
 related: [dashboard, toolbar, stats, variation, what-if, findings, improvement, projection]

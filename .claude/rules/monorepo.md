@@ -75,7 +75,7 @@ packages/
 │              #   useProcessProjection - Process projection and optimization intelligence
 │              #   useAsyncStats - Async stats computation via Web Worker with generation counter
 │              #   copySectionAsHTML - Rich clipboard copy utility
-└── ui/        # @variscout/ui - Shared UI components (110+):
+└── ui/        # @variscout/ui - Shared UI components (70+ modules):
                #   AnovaResults, FilterBreadcrumb, FilterChipDropdown, FilterContextBar,
                #   PerformanceSetupPanelBase, VariationBar,
                #   YAxisPopover, ChartCard, ColumnMapping, MeasureColumnSelector,
@@ -112,6 +112,7 @@ packages/
                #   ReportYamazumiKPIGrid, ReportActivityBreakdown,
                #   VerificationEvidenceBase,
                #   SynthesisCard, IdeaGroupCard, ImprovementSummaryBar, ImprovementWorkspaceBase,
+               #   RiskPopover, PrioritizationMatrix,
                #   ProcessHealthBar,
                #   YamazumiDetectedModal, YamazumiIChartMetricToggle, YamazumiParetoModeDropdown,
                #   YamazumiSummaryBar,

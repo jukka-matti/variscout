@@ -2,7 +2,7 @@
 title: Mode-Aware Reports
 audience: [analyst, engineer]
 category: workflow
-status: draft
+status: delivered
 related: [report-view, analysis-mode, capability, performance, yamazumi, two-voices]
 ---
 

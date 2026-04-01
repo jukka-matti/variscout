@@ -2,7 +2,7 @@
 title: Yamazumi Analysis Mode
 audience: [analyst, engineer]
 category: analysis
-status: draft
+status: delivered
 related: [yamazumi, lean, time-study, waste, value-stream, takt-time, activity-type]
 ---
 

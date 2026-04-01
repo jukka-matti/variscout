@@ -1,7 +1,7 @@
 ---
 title: Process Intelligence Panel
 date: 2026-03-28
-status: design-approved
+status: delivered
 audience: [developer, designer]
 category: design-spec
 related: [stats-panel, what-if, target-discovery, sidebar, process-health-bar]

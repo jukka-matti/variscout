@@ -49,6 +49,14 @@ Hook errors are logged to `/tmp/ruflo-hooks.log`. Check if hooks are failing sil
 tail -20 /tmp/ruflo-hooks.log
 ```
 
+## Documentation Health (integrated with docs:check)
+
+- After feature delivery: run `bash scripts/check-doc-health.sh` to verify doc consistency
+- After adding hooks/components: run `scripts/generate-monorepo-lists.ts` to sync lists (when available)
+- After major changes: `npx ruflo@3.5.42 hooks pretrain` to reindex
+- Store documentation conventions in ruflo memory for semantic search
+- `document` worker in `.ruflo/config.yaml` monitors doc drift periodically
+
 ## Version
 
 Ruflo is pinned to `3.5.42` in `.mcp.json`. `.claude/settings.json` contains hooks and statusline only (ruflo runtime config lives in `.ruflo/config.yaml`). Update monthly.

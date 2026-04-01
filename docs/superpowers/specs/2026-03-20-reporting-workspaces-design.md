@@ -2,7 +2,7 @@
 title: Reporting Workspaces Design
 audience: [engineer, analyst, manager]
 category: workflow
-status: draft
+status: delivered
 related:
   [report, workspaces, analysis, findings, improvement, audience, two-voices, adr-024, adr-031]
 ---

@@ -2,7 +2,7 @@
 title: Adaptive Boxplot Category Limits
 audience: [developer, analyst]
 category: architecture
-status: draft
+status: delivered
 related: [boxplot, charts, wide-form, responsive]
 ---
 

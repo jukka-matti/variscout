@@ -2,7 +2,7 @@
 title: Question-Driven EDA — CoScout Analysis Planning
 audience: [analyst, engineer]
 category: workflow
-status: draft
+status: delivered
 related: [eda-mental-model, coscout, factor-intelligence, investigation, findings]
 ---
 
