@@ -67,6 +67,7 @@ This section captures key architectural decisions made during VariScout developm
 | [053](adr-053-question-driven-investigation.md)      | Question-Driven Investigation                     | Accepted   | 2026-03-30 |
 | [054](adr-054-mode-aware-question-strategy.md)       | Mode-Aware Question Strategy                      | Accepted   | 2026-03-31 |
 | [055](adr-055-workspace-navigation.md)               | Workspace-Based Navigation                        | Accepted   | 2026-04-01 |
+| [056](adr-056-pi-panel-redesign.md)                  | Process Intelligence Panel Redesign               | Accepted   | 2026-04-01 |
 
 ---
 

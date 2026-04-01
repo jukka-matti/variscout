@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
 import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
-import type { StatsPanelTab, ComplementInsight } from '@variscout/ui';
+import type { StatsPanelTab, ComplementInsight, PIOverflowView } from '@variscout/ui';
 import { StatsPanelBase, WhatIfSimulator, computePresets, useGlossary } from '@variscout/ui';
 import { useData } from '../context/DataContext';
 import SpecEditor from './settings/SpecEditor';
@@ -24,6 +24,16 @@ interface StatsPanelProps {
   activeProjection?: ProcessProjection | null;
   centeringOpportunity?: CenteringOpportunity | null;
   sampleCount?: number;
+  /** PI panel: Questions tab render prop */
+  renderQuestionsTab?: () => React.ReactNode;
+  /** PI panel: Journal tab render prop */
+  renderJournalTab?: () => React.ReactNode;
+  /** PI panel: open question count for badge */
+  openQuestionCount?: number;
+  /** PI panel: overflow view state (controlled by parent) */
+  overflowView?: PIOverflowView;
+  /** PI panel: overflow view change handler */
+  onOverflowViewChange?: (view: PIOverflowView) => void;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({
@@ -43,6 +53,11 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   activeProjection,
   centeringOpportunity,
   sampleCount,
+  renderQuestionsTab,
+  renderJournalTab,
+  openQuestionCount,
+  overflowView,
+  onOverflowViewChange,
 }) => {
   const { setSpecs } = useData();
   const { getTerm } = useGlossary();
@@ -96,6 +111,11 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
           setSpecs({ ...specs, lsl, usl });
           setIsEditingSpecs(true);
         }}
+        renderQuestionsTab={renderQuestionsTab}
+        renderJournalTab={renderJournalTab}
+        openQuestionCount={openQuestionCount}
+        overflowView={overflowView}
+        onOverflowViewChange={onOverflowViewChange}
         renderDataTable={
           filteredData.length > 0 && outcome
             ? () => (
