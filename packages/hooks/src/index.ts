@@ -352,3 +352,6 @@ export {
   type UseQuestionGenerationOptions,
   type UseQuestionGenerationReturn,
 } from './useQuestionGeneration';
+
+// Question Reactivity (drill-down factor → active question lookup)
+export { useQuestionReactivity } from './useQuestionReactivity';
