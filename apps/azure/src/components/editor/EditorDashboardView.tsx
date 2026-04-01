@@ -54,30 +54,15 @@ interface EditorDashboardViewProps {
   findingsState: UseFindingsReturn;
   findingsCallbacks: AzureFindingsCallbacks;
   handlePinFinding: UseFindingsOrchestrationReturn['handlePinFinding'];
-  handleRestoreFinding: UseFindingsOrchestrationReturn['handleRestoreFinding'];
-  handleNavigateToChart: UseFindingsOrchestrationReturn['handleNavigateToChart'];
-  handleShareFinding: UseFindingsOrchestrationReturn['handleShareFinding'];
-  handleOpenFindingsPopout: UseFindingsOrchestrationReturn['handleOpenFindingsPopout'];
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
-  drillPath: UseFindingsOrchestrationReturn['drillPath'];
   // Hypotheses
   hypothesesState: UseHypothesesReturn;
-  handleCreateHypothesis: (
-    findingId: string,
-    text: string,
-    factor?: string,
-    level?: string
-  ) => void;
-  handleProjectIdea: (hypothesisId: string, ideaId: string) => void;
   // Photo comments
   handleAddCommentWithAuthor: (
     findingId: string,
     text: string,
     attachment?: File
   ) => void | Promise<void>;
-  handleAddPhoto: ((findingId: string, commentId: string, file: File) => Promise<void>) | undefined;
-  handleCaptureFromTeams: ((findingId: string, commentId: string) => Promise<void>) | undefined;
-  isTeamsCamera: boolean;
   // AI (from useAIOrchestration)
   aiOrch: UseAIOrchestrationReturn;
   // Action proposals (from useActionProposals)
@@ -88,8 +73,6 @@ interface EditorDashboardViewProps {
   controlViolations: Map<number, string[]> | undefined;
   excludedRowIndices: Set<number> | undefined;
   excludedReasons: Map<number, ExclusionReason[]> | undefined;
-  // Column aliases
-  columnAliases: Record<string, string>;
 }
 
 export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
@@ -100,19 +83,9 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   findingsState,
   findingsCallbacks,
   handlePinFinding,
-  handleRestoreFinding: _handleRestoreFinding,
-  handleNavigateToChart: _handleNavigateToChart,
-  handleShareFinding: _handleShareFinding,
-  handleOpenFindingsPopout: _handleOpenFindingsPopout,
   handleSetFindingStatus,
-  drillPath: _drillPath,
   hypothesesState,
-  handleCreateHypothesis: _handleCreateHypothesis,
-  handleProjectIdea: _handleProjectIdea,
   handleAddCommentWithAuthor,
-  handleAddPhoto: _handleAddPhoto,
-  handleCaptureFromTeams: _handleCaptureFromTeams,
-  isTeamsCamera: _isTeamsCamera,
   aiOrch,
   actionProposalsState,
   handleSearchKnowledge,
@@ -120,7 +93,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   controlViolations,
   excludedRowIndices,
   excludedReasons,
-  columnAliases: _columnAliases,
 }) => {
   const {
     factors,

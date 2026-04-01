@@ -401,7 +401,6 @@ export const Editor: React.FC<EditorProps> = ({
     handlePinFinding,
     handleRestoreFinding,
     findingsCallbacks,
-    handleOpenFindingsPopout,
     handleNavigateToChart,
     handleShareFinding,
     drillPath,
@@ -1045,21 +1044,9 @@ export const Editor: React.FC<EditorProps> = ({
                 findingsState={findingsState}
                 findingsCallbacks={findingsCallbacks}
                 handlePinFinding={handlePinFinding}
-                handleRestoreFinding={handleRestoreFinding}
-                handleNavigateToChart={handleNavigateToChart}
-                handleShareFinding={handleShareFinding}
-                handleOpenFindingsPopout={handleOpenFindingsPopout}
                 handleSetFindingStatus={handleSetFindingStatus}
-                drillPath={drillPath}
                 hypothesesState={hypothesesState}
-                handleCreateHypothesis={handleCreateHypothesis}
-                handleProjectIdea={handleProjectIdea}
                 handleAddCommentWithAuthor={handleAddCommentWithAuthor}
-                handleAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
-                handleCaptureFromTeams={
-                  hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined
-                }
-                isTeamsCamera={isTeamsCamera}
                 aiOrch={aiOrch}
                 actionProposalsState={actionProposalsState}
                 handleSearchKnowledge={handleSearchKnowledge}
@@ -1067,7 +1054,6 @@ export const Editor: React.FC<EditorProps> = ({
                 controlViolations={controlViolations}
                 excludedRowIndices={excludedRowIndices}
                 excludedReasons={excludedReasons}
-                columnAliases={columnAliases}
               />
             )}
           </>
