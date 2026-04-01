@@ -21,6 +21,7 @@ import {
   useQuestionReactivity,
   useJournalEntries,
   useJourneyPhase,
+  useVisualGrounding,
 } from '@variscout/hooks';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { isAIAvailable } from '../../services/aiService';
@@ -202,6 +203,25 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
   const statsSidebar = useResizablePanel('variscout-stats-sidebar-width', 280, 500, 320, 'left');
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
+
+  // Visual grounding for CoScout REF markers (ADR-050)
+  const { highlight: visualGroundingHighlight } = useVisualGrounding({
+    onFocusChart: chartType => {
+      usePanelsStore.getState().setPendingChartFocus(chartType);
+    },
+    onExpandPanel: (panelId, targetId) => {
+      if (panelId === 'stats') {
+        if (!usePanelsStore.getState().isStatsSidebarOpen) {
+          usePanelsStore.getState().toggleStatsSidebar();
+        }
+      } else if (panelId === 'finding' || panelId === 'hypothesis') {
+        usePanelsStore.getState().setFindingsOpen(true);
+        if (targetId) {
+          useFindingsStore.getState().setHighlightedFindingId(targetId);
+        }
+      }
+    },
+  });
 
   // Target discovery: complement stats + centering opportunity for sidebar
   const isDrilling = Object.keys(filters).length > 0;
@@ -447,6 +467,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     onAddCommentToHypothesis: handleAddCommentToHypothesis,
     insightFindings,
     insightHypotheses,
+    onRefActivate: visualGroundingHighlight,
   };
 
   const aiAvailable = aiEnabled && isAIAvailable();

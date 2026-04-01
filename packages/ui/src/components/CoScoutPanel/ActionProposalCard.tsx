@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Check,
   X,
@@ -21,6 +21,8 @@ export interface ActionProposalCardProps {
   proposal: ActionProposal;
   onExecute: (proposal: ActionProposal, editedText?: string) => void;
   onDismiss: (proposalId: string) => void;
+  /** ADR-050 visual grounding: auto-highlight relevant chart element on render */
+  onHighlight?: (targetType: string, targetId?: string) => void;
 }
 
 /** Tool display config — labels resolved via t() at render time */
@@ -207,6 +209,7 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
   proposal,
   onExecute,
   onDismiss,
+  onHighlight,
 }) => {
   const { t } = useTranslation();
   const config = TOOL_CONFIG[proposal.tool];
@@ -214,6 +217,19 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
   const isPending = proposal.status === 'pending';
   const isEditable = config.editable && isPending;
   const [editText, setEditText] = useState(proposal.editableText ?? '');
+
+  // Auto-highlight relevant chart element on mount (ADR-050)
+  useEffect(() => {
+    if (!onHighlight) return;
+    const toolName = proposal.tool;
+    if (toolName === 'apply_filter' && proposal.params.value) {
+      onHighlight('boxplot', String(proposal.params.value));
+    } else if (toolName === 'switch_factor') {
+      onHighlight('boxplot');
+    } else if (toolName === 'create_finding' || toolName === 'suggest_save_finding') {
+      onHighlight('finding');
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- only on mount
 
   const handleApply = useCallback(() => {
     onExecute(proposal, isEditable ? editText : undefined);

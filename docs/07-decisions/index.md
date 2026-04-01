@@ -68,6 +68,7 @@ This section captures key architectural decisions made during VariScout developm
 | [054](adr-054-mode-aware-question-strategy.md)       | Mode-Aware Question Strategy                      | Accepted   | 2026-03-31 |
 | [055](adr-055-workspace-navigation.md)               | Workspace-Based Navigation                        | Accepted   | 2026-04-01 |
 | [056](adr-056-pi-panel-redesign.md)                  | Process Intelligence Panel Redesign               | Accepted   | 2026-04-01 |
+| [057](adr-057-coscout-visual-grounding.md)           | CoScout Visual Grounding                          | Accepted   | 2026-04-01 |
 
 ---
 
