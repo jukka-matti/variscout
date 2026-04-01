@@ -91,20 +91,20 @@ First login → first saved analysis (activation).
 
 Open saved project → dashboard → analysis. Repeat analysis, Performance Mode, investigation, exports.
 
-| Step                      | Action                             | Package                              | Key Components                                                  |
-| ------------------------- | ---------------------------------- | ------------------------------------ | --------------------------------------------------------------- |
-| 1. Open saved analysis    | Load from list                     | `@variscout/hooks`                   | `useProjectPersistence`                                         |
-| 1a. Dashboard orientation | Scan findings/hypotheses/actions   | `apps/azure/src/components`          | `ProjectDashboard`, `ProjectStatusCard`, `DashboardSummaryCard` |
-| 1b. Switch to Analysis    | "Analysis" workspace tab           | `apps/azure/src/features/panels`     | `panelsStore.showAnalysis()` (ADR-055)                          |
-| 2. Quick check            | Scan I-Chart + Stats               | `@variscout/charts`, `@variscout/ui` | `IChart`, `StatsPanelBase`                                      |
-| 3. AI narration           | Read NarrativeBar summary          | `@variscout/hooks`, `@variscout/ui`  | `useNarration`, `NarrativeBar`                                  |
-| 4. Drill with AI hints    | Follow ChartInsightChip suggestion | `@variscout/hooks`, `@variscout/ui`  | `useChartInsights`, `ChartInsightChip`                          |
-| 5. Ask CoScout            | Open panel, ask question           | `@variscout/hooks`, `@variscout/ui`  | `useAICoScout`, `CoScoutPanelBase`                              |
-| 6. Performance Mode       | Multi-channel analysis             | `@variscout/charts`                  | `PerformanceIChart`, `PerformancePareto`, `PerformanceBoxplot`  |
-| 7. Investigate            | Finding → hypothesis → action      | `@variscout/hooks`, `@variscout/ui`  | `useFindings`, `useHypotheses`, `InvestigationSidebar`          |
-| 8. What-If                | Simulate improvement               | `@variscout/ui`                      | `WhatIfSimulator`                                               |
-| 9. Verify                 | Staged analysis, Cpk comparison    | `@variscout/ui`, `@variscout/hooks`  | `StagedComparisonCard`, `useVerificationCharts`                 |
-| 10. Export                | Copy chart, download, report       | `@variscout/hooks`, `@variscout/ui`  | `useChartCopy`, `ChartDownloadMenu`, `ReportViewBase`           |
+| Step                      | Action                             | Package                              | Key Components                                                        |
+| ------------------------- | ---------------------------------- | ------------------------------------ | --------------------------------------------------------------------- |
+| 1. Open saved analysis    | Load from list                     | `@variscout/hooks`                   | `useProjectPersistence`                                               |
+| 1a. Dashboard orientation | Scan findings/hypotheses/actions   | `apps/azure/src/components`          | `ProjectDashboard`, `ProjectStatusCard`, `DashboardSummaryCard`       |
+| 1b. Switch to Analysis    | "Analysis" workspace tab           | `apps/azure/src/features/panels`     | `panelsStore.showAnalysis()` (ADR-055)                                |
+| 2. Quick check            | Scan I-Chart + Stats               | `@variscout/charts`, `@variscout/ui` | `IChart`, `StatsPanelBase`                                            |
+| 3. AI narration           | Read NarrativeBar summary          | `@variscout/hooks`, `@variscout/ui`  | `useNarration`, `NarrativeBar`                                        |
+| 4. Drill with AI hints    | Follow ChartInsightChip suggestion | `@variscout/hooks`, `@variscout/ui`  | `useChartInsights`, `ChartInsightChip`                                |
+| 5. Ask CoScout            | Open panel, ask question           | `@variscout/hooks`, `@variscout/ui`  | `useAICoScout`, `CoScoutPanelBase`                                    |
+| 6. Performance Mode       | Multi-channel analysis             | `@variscout/charts`                  | `PerformanceIChart`, `PerformancePareto`, `PerformanceBoxplot`        |
+| 7. Investigate            | Finding → hypothesis → action      | `@variscout/hooks`, `@variscout/ui`  | `useFindings`, `useHypotheses`, `InvestigationSidebar`                |
+| 8. What-If                | Simulate improvement               | `@variscout/ui`                      | `WhatIfSimulator`                                                     |
+| 9. Verify                 | Staged analysis, Cpk comparison    | `@variscout/ui`, `@variscout/hooks`  | `StagedComparisonCard`, `useVerificationCharts`                       |
+| 10. Report / Export       | Report workspace, copy chart, PDF  | `@variscout/hooks`, `@variscout/ui`  | `useChartCopy`, `ChartDownloadMenu`, `ReportViewBase`, `showReport()` |
 
 ### Flow 8: Azure Team Collaboration
 

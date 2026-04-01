@@ -31,7 +31,8 @@ Once a feature stabilizes, the ADR is the canonical reference.
 | [2026-03-24-coscout-context-and-memory-design.md](../../archive/specs/2026-03-24-coscout-context-and-memory-design.md) | CoScout Context & Memory (superseded)                   | ADR-049 | Archived  |
 | [2026-03-24-coscout-knowledge-catalyst-design.md](2026-03-24-coscout-knowledge-catalyst-design.md)                     | CoScout Knowledge Catalyst                              | ADR-049 | Draft     |
 | [2026-03-27-capability-modal-redesign.md](../../archive/specs/2026-03-27-capability-modal-redesign.md)                 | Capability Suggestion Modal Redesign                    | —       | Archived  |
-| [2026-03-28-dashboard-chrome-redesign.md](2026-03-28-dashboard-chrome-redesign.md)                                     | Dashboard Chrome Redesign (header/toolbar/stats/panels) | —       | Draft     |
+| [2026-03-28-dashboard-chrome-redesign.md](2026-03-28-dashboard-chrome-redesign.md)                                     | Dashboard Chrome Redesign (header/toolbar/stats/panels) | —       | Delivered |
+| [2026-04-01-header-redesign-design.md](2026-04-01-header-redesign-design.md)                                           | Header Redesign — ProjectHeader + 5 workspace tabs      | ADR-055 | Delivered |
 | [2026-03-28-process-intelligence-panel-design.md](2026-03-28-process-intelligence-panel-design.md)                     | Process Intelligence Panel (sidebar target discovery)   | —       | Design    |
 | [2026-03-28-benchmark-findings-scope-design.md](../../archive/specs/2026-03-28-benchmark-findings-scope-design.md)     | Benchmark Findings + Project Scope (Phase 3)            | —       | Archived  |
 | [2026-03-30-holistic-evaluation-vqi.md](2026-03-30-holistic-evaluation-vqi.md)                                         | Holistic Evaluation: VQI Framework + Maturity Model     | —       | Active    |

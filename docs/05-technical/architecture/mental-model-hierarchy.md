@@ -227,19 +227,21 @@ This table is mirrored in [Analysis Journey Map § Entry-Path-Dependent Phase Go
 
 ---
 
-## Three-Workspace Model
+## Five-Workspace Model
 
-The analyst's cognitive task shifts across the journey. Three workspaces match this:
+The analyst's cognitive task shifts across the journey. Five workspace tabs in the `ProjectHeader` match this:
 
-| Workspace       | Purpose                        | Primary Phase         | Layout               |
-| --------------- | ------------------------------ | --------------------- | -------------------- |
-| **Analysis**    | See data, discover patterns    | SCOUT, IMPROVE/Check  | Full page (main)     |
-| **Findings**    | Build understanding of causes  | INVESTIGATE           | Side panel or popout |
-| **Improvement** | Plan, act, verify improvements | IMPROVE/Plan, Do, Act | Full page or popout  |
+| Workspace         | Purpose                        | Primary Phase         | Layout               |
+| ----------------- | ------------------------------ | --------------------- | -------------------- |
+| **Overview**      | Project orientation and status | All                   | Full page (landing)  |
+| **Analysis**      | See data, discover patterns    | SCOUT, IMPROVE/Check  | Full page (main)     |
+| **Investigation** | Build understanding of causes  | INVESTIGATE           | Full page (3-column) |
+| **Improvement**   | Plan, act, verify improvements | IMPROVE/Plan, Do, Act | Full page            |
+| **Report**        | Share the story, export/PDF    | All                   | Full page            |
 
-Navigation tabs in header: Analysis | Findings | Improvement. Journey phase dots remain separate (WHERE you are vs WHAT you're doing). Multi-screen via popout: `?view=findings`, `?view=improvement` URL params.
+Navigation tabs in header: Overview | Analysis | Investigation | Improvement | Report. The Analysis tab has a dropdown for sub-modes (Standard / Performance / Yamazumi). Report is a workspace tab (not a modal overlay). Report/export/PDF actions live within the Report workspace. Journey phase dots remain separate (WHERE you are vs WHAT you're doing). Multi-screen via popout: `?view=findings`, `?view=improvement` URL params.
 
-**In code:** `ImprovementWorkspaceBase` (full-page layout), `SynthesisCard` (convergence narrative), `IdeaGroupCard` (hypothesis-grouped ideas), `ImprovementSummaryBar` (selection aggregation). All in `@variscout/ui`. App-level wiring (workspace navigation tabs, URL routing) is future work.
+**In code:** `ProjectHeader` (single 44px header with 3 zones), `ImprovementWorkspaceBase` (full-page layout), `SynthesisCard` (convergence narrative), `IdeaGroupCard` (hypothesis-grouped ideas), `ImprovementSummaryBar` (selection aggregation), `ReportViewBase` (workspace-aligned report). All in `@variscout/ui`. `useAutoSave` debounces saves on state changes.
 
 ---
 

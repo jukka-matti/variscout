@@ -1,7 +1,7 @@
 ---
 title: Dashboard Chrome Redesign
 date: 2026-03-28
-status: in-progress
+status: delivered
 audience: [developer, designer]
 category: design-spec
 related: [header, toolbar, stats-panel, navigation, panels, layout, workspaces]

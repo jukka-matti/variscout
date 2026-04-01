@@ -33,7 +33,7 @@ The Project Dashboard is a **peer view** alongside the analysis Editor, availabl
 | **Components**       | `ProjectDashboard`, `ProjectStatusCard`, `DashboardSummaryCard` in `apps/azure/src/components/`  |
 | **AI summary**       | Fast tier (gpt-5.4-nano, reasoning: none). State-aware cache key. Hidden when AI unavailable.    |
 
-Store actions: `panelsStore.showDashboard()` / `showAnalysis()` / `showInvestigation()` / `showImprovement()`. See [ADR-042](../../07-decisions/adr-042-project-dashboard.md), [ADR-055](../../07-decisions/adr-055-workspace-navigation.md).
+Store actions: `panelsStore.showDashboard()` / `showAnalysis()` / `showInvestigation()` / `showImprovement()` / `showReport()`. See [ADR-042](../../07-decisions/adr-042-project-dashboard.md), [ADR-055](../../07-decisions/adr-055-workspace-navigation.md).
 
 ## Phase Mapping
 
@@ -80,13 +80,13 @@ Store actions: `panelsStore.showDashboard()` / `showAnalysis()` / `showInvestiga
 
 ### IMPROVE (actions exist, PDCA cycle)
 
-| Screen                | Components                                                                            | Tier  | Notes                          |
-| --------------------- | ------------------------------------------------------------------------------------- | ----- | ------------------------------ |
-| Dashboard + actions   | `ActionItem` in `FindingCard`                                                         | Azure | PWA stops at Analyzed          |
-| Improvement Workspace | `ImprovementWorkspaceBase`, `SynthesisCard`, `IdeaGroupCard`, `ImprovementSummaryBar` | Azure | Full-page improvement planning |
-| What-If Simulator     | `WhatIfPageBase`, scenario sliders                                                    | All   | Project Cpk impact             |
-| Staged Analysis       | `StagedComparisonCard`, per-stage stats                                               | Azure | Before/After verification      |
-| Report View           | `ReportViewBase`, 5-step story via `ReportSection`                                    | Azure | Shares investigation narrative |
+| Screen                | Components                                                                            | Tier  | Notes                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------- | ----- | ----------------------------------------------------------------------------- |
+| Dashboard + actions   | `ActionItem` in `FindingCard`                                                         | Azure | PWA stops at Analyzed                                                         |
+| Improvement Workspace | `ImprovementWorkspaceBase`, `SynthesisCard`, `IdeaGroupCard`, `ImprovementSummaryBar` | Azure | Full-page improvement planning                                                |
+| What-If Simulator     | `WhatIfPageBase`, scenario sliders                                                    | All   | Project Cpk impact                                                            |
+| Staged Analysis       | `StagedComparisonCard`, per-stage stats                                               | Azure | Before/After verification                                                     |
+| Report View           | `ReportViewBase`, 5-step story via `ReportSection`                                    | Azure | Report workspace tab (`activeView: 'report'`); shares investigation narrative |
 
 **New UI elements added in IMPROVE (2026-03-19):**
 

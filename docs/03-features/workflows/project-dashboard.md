@@ -46,14 +46,14 @@ Contextual buttons based on project state:
 | ------------------ | -------------------------- | ---------------------------------------------------- |
 | Go to analysis     | Always                     | Switch to Editor at current ViewState                |
 | Add new data batch | Always                     | Switch to Editor in data append flow                 |
-| View report        | When findings exist        | Switch to Editor with report view open               |
+| View report        | When findings exist        | `showReport()` — switches to Report workspace        |
 | Review actions     | When overdue actions exist | Opens Improvement workspace (replaces "View report") |
 
 ---
 
 ## Navigation model
 
-The dashboard is a **peer view** alongside the analysis Editor within a loaded project. The active view is controlled by `panelsStore.activeView: 'dashboard' | 'editor'`.
+The dashboard is a **peer view** alongside the analysis Editor within a loaded project. The active view is controlled by `panelsStore.activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report'`.
 
 ```
 Project List → [select project] → loadProject()
@@ -145,17 +145,17 @@ Stale filter handling: if a filter category no longer exists in current data (e.
 
 ## Implementation references
 
-| File                                                          | Purpose                                                                                                                   |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `apps/azure/src/components/ProjectDashboard.tsx`              | Full dashboard view                                                                                                       |
-| `apps/azure/src/components/ProjectStatusCard.tsx`             | Status summary component                                                                                                  |
-| `apps/azure/src/components/DashboardSummaryCard.tsx`          | AI summary card + quick-ask                                                                                               |
-| `packages/core/src/ai/searchProject.ts`                       | `searchProjectArtifacts()` pure function                                                                                  |
-| `packages/core/src/ai/prompts/dashboardSummary.ts`            | Dashboard summary prompt builder                                                                                          |
-| `apps/azure/src/features/panels/panelsStore.ts`               | `activeView` field + `showDashboard()` / `showAnalysis()` / `showInvestigation()` / `showImprovement()` actions (ADR-055) |
-| `apps/azure/src/features/findings/findingsStore.ts`           | `statusFilter` field + `setStatusFilter()` action                                                                         |
-| `apps/azure/src/features/investigation/investigationStore.ts` | `expandedHypothesisId` + `expandToHypothesis()` action                                                                    |
-| `apps/azure/src/features/ai/aiStore.ts`                       | `pendingDashboardQuestion` + `setPendingDashboardQuestion()` action                                                       |
+| File                                                          | Purpose                                                                                                                                    |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `apps/azure/src/components/ProjectDashboard.tsx`              | Full dashboard view                                                                                                                        |
+| `apps/azure/src/components/ProjectStatusCard.tsx`             | Status summary component                                                                                                                   |
+| `apps/azure/src/components/DashboardSummaryCard.tsx`          | AI summary card + quick-ask                                                                                                                |
+| `packages/core/src/ai/searchProject.ts`                       | `searchProjectArtifacts()` pure function                                                                                                   |
+| `packages/core/src/ai/prompts/dashboardSummary.ts`            | Dashboard summary prompt builder                                                                                                           |
+| `apps/azure/src/features/panels/panelsStore.ts`               | `activeView` field + `showDashboard()` / `showAnalysis()` / `showInvestigation()` / `showImprovement()` / `showReport()` actions (ADR-055) |
+| `apps/azure/src/features/findings/findingsStore.ts`           | `statusFilter` field + `setStatusFilter()` action                                                                                          |
+| `apps/azure/src/features/investigation/investigationStore.ts` | `expandedHypothesisId` + `expandToHypothesis()` action                                                                                     |
+| `apps/azure/src/features/ai/aiStore.ts`                       | `pendingDashboardQuestion` + `setPendingDashboardQuestion()` action                                                                        |
 
 See [ADR-042](../../07-decisions/adr-042-project-dashboard.md) for design decisions and consequences.
 

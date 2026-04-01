@@ -25,47 +25,52 @@ Key principles:
 
 ---
 
-## 2. Three-Workspace Model
+## 2. Five-Workspace Model
 
-VariScout organizes the analyst's workflow into three workspaces, mapped to the PDCA journey:
+VariScout organizes the analyst's workflow into five workspaces, controlled by a single 44px `ProjectHeader` with three zones (left: back + project name, center: workspace tabs, right: panel toggles + save):
 
 | Workspace              | Purpose                                        | State                                                                                    |
 | ---------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| **Analysis** (default) | Dashboard with charts, stats, filters          | Fully implemented                                                                        |
+| **Overview**           | Project Dashboard landing page                 | `activeView: 'dashboard'`                                                                |
+| **Analysis** (default) | Dashboard with charts, stats, filters          | `activeView: 'analysis'`; dropdown for sub-modes (Standard / Performance / Yamazumi)     |
 | **Investigation**      | Question-driven EDA, findings board, tree      | Workspace tab (ADR-055); also available as sidebar in Analysis + popout `?view=findings` |
 | **Improvement**        | PDCA planning, idea synthesis, action tracking | Workspace tab (ADR-055); replaces full-screen takeover                                   |
+| **Report**             | Workspace-aligned report view with export      | `activeView: 'report'`; report/export/PDF actions live here (not in header)              |
 
-### Workspace-Tab Header Navigation (ADR-055)
+### ProjectHeader Navigation (ADR-055)
 
-The header provides workspace tabs as the primary navigation mechanism, with cross-cutting panel sidebars:
+A single 44px `ProjectHeader` replaces the previous EditorToolbar (48px) + WorkspaceTabs (45px), organized in three zones:
 
 ```
-Header:
-[Analysis v] [Investigation] [Improvement]   [Stats/Data] [AI] [Settings]
-  center: workspace tabs                      right: panel toggles
+ProjectHeader (44px):
+[< Portfolio] [Project Name]   [Overview] [Analysis v] [Investigation] [Improvement] [Report]   [PI] [AI] [Save] [Settings]
+  left: back + name              center: 5 workspace tabs                                        right: panel toggles + save
 ```
 
-- **Workspace tabs** switch the center content area (charts / findings board / improvement workspace)
-- **Stats/Data** toggle opens a left sidebar (Summary, Data, What-If tabs — Process Intelligence Panel)
+- **Workspace tabs** switch the center content area (dashboard / charts / findings board / improvement workspace / report view)
+- **PI toggle** (Process Intelligence) opens a left sidebar (Summary, Data, What-If tabs) — visible in all workspaces (not gated to Analysis)
 - **AI** toggle opens CoScout as a right sidebar (adapts coaching to active workspace phase)
 - **Analysis** has a dropdown for sub-modes (Standard / Performance / Yamazumi)
-- PWA shows only Analysis tab + Stats. Azure shows all 3 tabs + AI.
+- **Report** workspace contains the report view, export, and PDF actions (no report/export/present buttons in header)
+- **Save** button stays in header; auto-save (`useAutoSave`) also runs alongside, debouncing saves on state changes
+- PWA shows only Analysis tab + Stats. Azure shows all 5 tabs + AI.
 - Mobile uses bottom tab bar instead (Analysis | Findings | Improve | More)
 
-See [Dashboard Chrome Redesign spec](../../superpowers/specs/2026-03-28-dashboard-chrome-redesign.md) for full design.
+See [Header Redesign spec](../../superpowers/specs/2026-04-01-header-redesign-design.md) for full design.
 
 ### Workspace switching (ADR-055)
 
 The panels store manages workspace state via `activeView`:
 
 ```typescript
-activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement';
+activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
 ```
 
+- `showDashboard()` — Project Dashboard (Overview landing page)
 - `showAnalysis()` — Chart dashboard with stats, filters, drill-down
 - `showInvestigation()` — Full-width investigation workspace (closes Findings sidebar — the workspace IS the findings view)
 - `showImprovement()` — Improvement workspace (synthesis, ideas, actions)
-- `showDashboard()` — Project Dashboard (landing page, not a workspace tab)
+- `showReport()` — Report workspace (workspace-aligned report view with export/PDF actions)
 
 **Investigation workspace layout** (three columns):
 
@@ -99,6 +104,7 @@ activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement';
 | `?hypothesis=<id>`         | Deep link to hypothesis in Investigation sidebar | Implemented (Azure) |
 | `?workspace=investigation` | Deep link to Investigation workspace             | Implemented (Azure) |
 | `?workspace=improve`       | Deep link to Improvement workspace               | Implemented (Azure) |
+| `?workspace=report`        | Deep link to Report workspace                    | Implemented (Azure) |
 | `?mode=performance`        | Performance mode                                 | Implemented (Azure) |
 
 > `tab=` is distinct from `view=`. `view=` opens a popout window (separate browser tab). `tab=` selects which project tab (Overview vs Analysis) to show within the main app window.
@@ -133,13 +139,11 @@ Manages workspace navigation and panel state (ADR-055):
 
 ```typescript
 interface PanelsState {
-  activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement';
+  activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
   isDataTableOpen: boolean;
   isFindingsOpen: boolean; // Sidebar in Analysis workspace only
   isCoScoutOpen: boolean; // Available in all workspaces
   isWhatIfOpen: boolean; // Modal overlay across workspaces
-  isPresentationMode: boolean;
-  isReportOpen: boolean;
   isStatsSidebarOpen: boolean;
   // + highlight state
 }
@@ -362,7 +366,7 @@ Escape priority is handled by `useAppPanels` — it dismisses panels in reverse-
 
 ## 8. Portfolio and Dashboard Navigation (Azure)
 
-The Azure app has three navigation layers: **Portfolio** (project selection), **Project Dashboard** (Overview landing page), and **Workspace tabs** (Analysis / Investigation / Improvement). The Portfolio is the app entry point. Within a loaded project, the Dashboard and workspaces are controlled by `panelsStore.activeView` (ADR-055).
+The Azure app has three navigation layers: **Portfolio** (project selection), **Project Dashboard** (Overview landing page), and **Workspace tabs** (Overview | Analysis | Investigation | Improvement | Report). The Portfolio is the app entry point. Within a loaded project, the Dashboard and workspaces are controlled by `panelsStore.activeView` (ADR-055).
 
 ### Portfolio → Project selection
 
@@ -390,6 +394,7 @@ App entry
 | Deep link `?hypothesis=<id>`         | Investigation workspace         | Scrolls to hypothesis                     |
 | Deep link `?workspace=investigation` | Investigation workspace         | `activeView: 'investigation'`             |
 | Deep link `?workspace=improve`       | Improvement workspace           | `activeView: 'improvement'`               |
+| Deep link `?workspace=report`        | Report workspace                | `activeView: 'report'`                    |
 
 For saved Azure projects with data, the project shell contains the Dashboard landing page and three workspace tabs. Navigation is controlled by `panelsStore.activeView` (ADR-055):
 
@@ -398,7 +403,8 @@ Project Shell
 ├── Overview (landing)   → activeView: 'dashboard'     → ProjectDashboard
 ├── Analysis tab         → activeView: 'analysis'      → Chart dashboard
 ├── Investigation tab    → activeView: 'investigation'  → Question-driven EDA workspace
-└── Improvement tab      → activeView: 'improvement'    → Synthesis + ideas + actions
+├── Improvement tab      → activeView: 'improvement'    → Synthesis + ideas + actions
+└── Report tab           → activeView: 'report'         → Workspace-aligned report view
 ```
 
 ### Entry rules
@@ -412,6 +418,7 @@ Project Shell
 | User clicks "Analysis" tab         | Analysis workspace      | `panelsStore.showAnalysis()`                                     |
 | User clicks "Investigation" tab    | Investigation workspace | `panelsStore.showInvestigation()`                                |
 | User clicks "Improvement" tab      | Improvement workspace   | `panelsStore.showImprovement()`                                  |
+| User clicks "Report" tab           | Report workspace        | `panelsStore.showReport()`                                       |
 | User clicks any dashboard item     | Relevant workspace      | Dashboard item calls appropriate `show*()` action + panel action |
 
 ### Dashboard quick actions → Editor
@@ -425,7 +432,7 @@ Each clickable item on the dashboard navigates to the appropriate workspace:
 | Question tree row        | Investigation workspace, `investigationStore.expandedHypothesisId` set       |
 | Action progress bar      | Improvement workspace                                                        |
 | "Add new data batch"     | Analysis workspace in data append flow (`useEditorDataFlow`)                 |
-| "View report"            | Report view open (forces Analysis workspace)                                 |
+| "View report"            | `showReport()` — switches to Report workspace                                |
 
 ### CoScout navigate_to tool
 
@@ -454,6 +461,7 @@ Deep links always bypass the Dashboard and land directly in the Editor at the ta
 | `?hypothesis=<id>`                 | Investigation workspace + hypothesis scrolled to   |
 | `?workspace=investigation`         | Investigation workspace                            |
 | `?workspace=improve`               | Improvement workspace                              |
+| `?workspace=report`                | Report workspace                                   |
 | Teams Adaptive Card "View Finding" | Investigation workspace + finding highlighted      |
 | Teams channel tab initial load     | Analysis workspace (teams users start in analysis) |
 

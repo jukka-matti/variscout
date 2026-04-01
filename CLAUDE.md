@@ -55,7 +55,7 @@ npx ruflo@3.5.42 security cve --check        # CVE check
 | docs/04-cases/          | 8 case studies with demo data                                         |
 | docs/05-technical/      | Architecture, implementation, integrations                            |
 | docs/06-design-system/  | Colors, typography, components, charts, patterns                      |
-| docs/07-decisions/      | ADR-001 through ADR-049                                               |
+| docs/07-decisions/      | ADR-001 through ADR-055                                               |
 | docs/08-products/       | Azure, PWA, website specs, feature-parity matrix                      |
 | docs/09-tutorials/      | Planned step-by-step guides                                           |
 | docs/10-development/    | Feature backlog, user testing discussions, development notes          |
@@ -106,7 +106,7 @@ npx ruflo@3.5.42 security cve --check        # CVE check
 | IMPROVE Phase / Workspaces | docs/archive/specs/2026-03-19-improve-phase-ux-design.md, packages/ui/src/components/ImprovementPlan/                                                                                                                                                                                             |
 | Improvement Prioritization | adr-035, docs/03-features/workflows/improvement-prioritization.md, docs/superpowers/specs/2026-03-20-improvement-prioritization-design.md                                                                                                                                                         |
 | Yamazumi / Time Study      | adr-034, docs/03-features/analysis/yamazumi.md, packages/core/src/yamazumi/                                                                                                                                                                                                                       |
-| Navigation / Views         | docs/06-design-system/patterns/navigation.md, apps/pwa/src/hooks/useAppPanels.ts, apps/azure/src/hooks/useEditorPanels.ts                                                                                                                                                                         |
+| Navigation / Views         | docs/06-design-system/patterns/navigation.md, apps/azure/src/components/ProjectHeader.tsx, apps/azure/src/features/panels/panelsStore.ts, apps/azure/src/hooks/useAutoSave.ts                                                                                                                     |
 | Performance / Mobile       | adr-039, docs/05-technical/implementation/system-limits.md, .claude/rules/charts.md                                                                                                                                                                                                               |
 | State management / Stores  | adr-041, apps/azure/src/features/\*/ (stores co-located per feature)                                                                                                                                                                                                                              |
 | Project Dashboard / Reopen | adr-042, adr-043, docs/03-features/workflows/project-dashboard.md, docs/02-journeys/flows/project-reopen.md, apps/azure/src/components/ProjectDashboard.tsx, apps/azure/src/components/ProjectCard.tsx                                                                                            |

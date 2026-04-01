@@ -79,6 +79,10 @@ Markdown export always uses Technical mode, as archived documents need full deta
 - Old report types (`quick-check`, `deep-dive`, `full-cycle`) only existed in documentation — no code migration needed
 - `useReportSections` hook now returns `ReportWorkspace` and `AudienceMode` types
 
+## Implementation Note (April 2026)
+
+Report is now a **workspace tab** (`activeView: 'report'`) rather than a modal overlay. The `isReportOpen` and `isPresentationMode` state flags have been removed. Report/export/PDF actions live within the Report workspace. See [ADR-055](adr-055-workspace-navigation.md) for the workspace navigation model.
+
 ## References
 
 - [Design spec](../superpowers/specs/2026-03-20-reporting-workspaces-design.md)

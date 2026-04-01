@@ -9,6 +9,8 @@ related:
 
 # Reporting Workspaces Design
 
+> **Implementation note (April 2026):** Report is now a workspace tab (`activeView: 'report'`) in the `ProjectHeader`, not a modal overlay. The `isReportOpen` and `isPresentationMode` state flags have been removed. Report/export/PDF actions live within the Report workspace.
+
 The reporting view evolves from a flat 5-step narrative into **workspace-aligned report types** with an **audience toggle**, creating reports that naturally tell the story of the analyst's current workspace at the right level of detail for the reader.
 
 ## Motivation

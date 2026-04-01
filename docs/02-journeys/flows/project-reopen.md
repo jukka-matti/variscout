@@ -93,8 +93,10 @@ Dismissed by clicking "Got it" or switching to the Editor tab. Dismissal writes 
 
 - "Go to analysis" (always) — switches to Editor at current `ViewState`
 - "Add new data batch" (always) — switches to Editor in data append flow
-- "View report" (when findings exist) — switches to Editor with report view open
+- "View report" (when findings exist) — `showReport()` switches to Report workspace
 - "Review actions" (when overdue actions exist) — replaces "View report", opens Improvement workspace
+
+**Auto-save:** `useAutoSave` debounces saves on state changes, so project state is continuously persisted without explicit user action. The manual Save button remains available in the header.
 
 ---
 
@@ -190,20 +192,20 @@ The "Ask CoScout..." input collapses to a tap-to-expand bottom sheet. All naviga
 
 ## Implementation Reference
 
-| Component / Store                         | File                                                          | Role in flow                             |
-| ----------------------------------------- | ------------------------------------------------------------- | ---------------------------------------- |
-| `ProjectDashboard`                        | `apps/azure/src/components/ProjectDashboard.tsx`              | Full dashboard view                      |
-| `ProjectStatusCard`                       | `apps/azure/src/components/ProjectStatusCard.tsx`             | Left column status summary               |
-| `DashboardSummaryCard`                    | `apps/azure/src/components/DashboardSummaryCard.tsx`          | AI summary + quick-ask input             |
-| `panelsStore.activeView`                  | `apps/azure/src/features/panels/panelsStore.ts`               | `'dashboard' \| 'editor'` toggle         |
-| `panelsStore.showDashboard()`             | `apps/azure/src/features/panels/panelsStore.ts`               | Sets `activeView: 'dashboard'`           |
-| `panelsStore.showAnalysis()`              | `apps/azure/src/features/panels/panelsStore.ts`               | Sets `activeView: 'analysis'` (ADR-055)  |
-| `findingsStore.statusFilter`              | `apps/azure/src/features/findings/findingsStore.ts`           | Pre-filter findings panel from dashboard |
-| `investigationStore.expandedHypothesisId` | `apps/azure/src/features/investigation/investigationStore.ts` | Scroll-to hypothesis from dashboard      |
-| `aiStore.pendingDashboardQuestion`        | `apps/azure/src/features/ai/aiStore.ts`                       | Dashboard → CoScout question handoff     |
-| `buildDashboardSummaryPrompt()`           | `packages/core/src/ai/prompts/dashboardSummary.ts`            | AI summary prompt builder                |
-| `search_project` tool                     | `packages/core/src/ai/searchProject.ts`                       | CoScout artifact search                  |
-| `navigate_to` tool                        | `apps/azure/src/features/ai/useAIOrchestration.ts`            | CoScout navigation handler               |
+| Component / Store                         | File                                                          | Role in flow                                                                |
+| ----------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `ProjectDashboard`                        | `apps/azure/src/components/ProjectDashboard.tsx`              | Full dashboard view                                                         |
+| `ProjectStatusCard`                       | `apps/azure/src/components/ProjectStatusCard.tsx`             | Left column status summary                                                  |
+| `DashboardSummaryCard`                    | `apps/azure/src/components/DashboardSummaryCard.tsx`          | AI summary + quick-ask input                                                |
+| `panelsStore.activeView`                  | `apps/azure/src/features/panels/panelsStore.ts`               | `'dashboard' \| 'analysis' \| 'investigation' \| 'improvement' \| 'report'` |
+| `panelsStore.showDashboard()`             | `apps/azure/src/features/panels/panelsStore.ts`               | Sets `activeView: 'dashboard'`                                              |
+| `panelsStore.showAnalysis()`              | `apps/azure/src/features/panels/panelsStore.ts`               | Sets `activeView: 'analysis'` (ADR-055)                                     |
+| `findingsStore.statusFilter`              | `apps/azure/src/features/findings/findingsStore.ts`           | Pre-filter findings panel from dashboard                                    |
+| `investigationStore.expandedHypothesisId` | `apps/azure/src/features/investigation/investigationStore.ts` | Scroll-to hypothesis from dashboard                                         |
+| `aiStore.pendingDashboardQuestion`        | `apps/azure/src/features/ai/aiStore.ts`                       | Dashboard → CoScout question handoff                                        |
+| `buildDashboardSummaryPrompt()`           | `packages/core/src/ai/prompts/dashboardSummary.ts`            | AI summary prompt builder                                                   |
+| `search_project` tool                     | `packages/core/src/ai/searchProject.ts`                       | CoScout artifact search                                                     |
+| `navigate_to` tool                        | `apps/azure/src/features/ai/useAIOrchestration.ts`            | CoScout navigation handler                                                  |
 
 ---
 

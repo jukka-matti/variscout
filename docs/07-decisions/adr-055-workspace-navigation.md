@@ -27,30 +27,33 @@ The three-workspace model (Analysis | Investigation | Improvement) is already do
 
 ## Decision
 
-Adopt workspace-based navigation with 3 tabs replacing the current 2-tab toggle.
+Adopt workspace-based navigation with 5 tabs (Overview | Analysis | Investigation | Improvement | Report) replacing the current 2-tab toggle.
 
 ### 1. State model: `activeView` expands to workspace types
 
-Replace `activeView: 'dashboard' | 'editor'` with `activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement'`:
+Replace `activeView: 'dashboard' | 'editor'` with `activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report'`:
 
-- `'dashboard'` — Project Dashboard (Overview). Stays as landing page for saved projects, not a workspace tab.
+- `'dashboard'` — Project Dashboard (Overview). Landing page for saved projects, also a workspace tab.
 - `'analysis'` — Chart dashboard with stats, filters, drill-down. Replaces `'editor'`.
 - `'investigation'` — Full-width investigation workspace with question-driven EDA layout.
 - `'improvement'` — Improvement workspace (synthesis, ideas, actions). Replaces `isImprovementOpen` takeover.
+- `'report'` — Report workspace. Report is a workspace tab (not a modal overlay). Report/export/PDF actions live within this workspace. Replaces `isReportOpen` and `isPresentationMode`.
 
 Backward compatibility: `'editor'` maps to `'analysis'` on read. `setImprovementOpen(true)` maps to `showImprovement()`.
 
-### 2. Workspace tab header
+### 2. ProjectHeader with workspace tabs
 
-Three tabs render below the toolbar when data is mapped:
+A single 44px `ProjectHeader` replaces EditorToolbar (48px) + WorkspaceTabs (45px). Five workspace tabs render in the center zone:
 
 ```
-[Analysis] [Investigation (3)] [Improvement (2)]
+[Overview] [Analysis v] [Investigation (3)] [Improvement (2)] [Report]
 ```
 
 - Investigation badge shows open question count
 - Improvement badge shows selected idea count
-- Analysis sub-mode dropdown (Standard / Performance / Yamazumi) deferred to a later phase
+- Analysis tab has dropdown for sub-modes (Standard / Performance / Yamazumi)
+- Report tab replaces the report modal overlay and presentation mode
+- Auto-save (`useAutoSave`) debounces saves on state changes alongside the manual Save button
 
 ### 3. Investigation workspace layout
 
@@ -92,14 +95,13 @@ This round-trip replaces the current pattern of drilling down within the sidebar
 
 ### 5. Cross-cutting panel behavior per workspace
 
-| Panel               | Analysis                  | Investigation        | Improvement     |
-| ------------------- | ------------------------- | -------------------- | --------------- |
-| Stats/Data (left)   | Toggle                    | Hidden               | Hidden          |
-| Findings (right)    | Toggle (sidebar)          | N/A (center content) | Hidden          |
-| CoScout (right)     | Toggle                    | Toggle (alongside)   | Toggle          |
-| NarrativeBar        | Visible                   | Hidden               | Hidden          |
-| What-If             | Modal overlay             | Modal overlay        | Modal overlay   |
-| Presentation/Report | Overlay (forces Analysis) | Forces Analysis      | Forces Analysis |
+| Panel            | Analysis         | Investigation        | Improvement   | Report        |
+| ---------------- | ---------------- | -------------------- | ------------- | ------------- |
+| PI Panel (left)  | Toggle           | Toggle               | Toggle        | Toggle        |
+| Findings (right) | Toggle (sidebar) | N/A (center content) | Hidden        | Hidden        |
+| CoScout (right)  | Toggle           | Toggle (alongside)   | Toggle        | Toggle        |
+| NarrativeBar     | Visible          | Hidden               | Hidden        | Hidden        |
+| What-If          | Modal overlay    | Modal overlay        | Modal overlay | Modal overlay |
 
 ### 6. Findings sidebar remains in Analysis
 
@@ -121,19 +123,19 @@ PWA shows only the Analysis workspace. No workspace tabs render. `useAppPanels` 
 
 ### State changes (`panelsStore.ts`)
 
-- `activeView` type: `'dashboard' | 'analysis' | 'investigation' | 'improvement'`
-- New actions: `showAnalysis()`, `showInvestigation()`, `showImprovement()`
-- `showEditor()` kept as alias for `showAnalysis()` (backward compat, removed in cleanup)
-- `setImprovementOpen()` kept as shim (backward compat, removed in cleanup)
+- `activeView` type: `'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report'`
+- New actions: `showAnalysis()`, `showInvestigation()`, `showImprovement()`, `showReport()`
+- Removed actions: `openReport()`, `closeReport()`, `openPresentation()`, `closePresentation()`, `showEditor()`, `setImprovementOpen()`
+- Removed state: `isPresentationMode`, `isReportOpen`
 - `showInvestigation()` closes `isFindingsOpen` (workspace IS the findings view)
 - `toggleFindings()` is a no-op when `activeView === 'investigation'`
-- `openPresentation()` / `openReport()` force `activeView: 'analysis'`
 - `initFromViewState()` maps `'editor'` → `'analysis'` and `isImprovementOpen: true` → `activeView: 'improvement'`
 
 ### New components
 
-- `WorkspaceTabs.tsx` — 3-tab component (Analysis | Investigation | Improvement)
+- `ProjectHeader.tsx` — Single 44px header with 3 zones (left: back + project name, center: 5 workspace tabs, right: panel toggles + save). Replaces EditorToolbar (48px) + WorkspaceTabs (45px).
 - `InvestigationWorkspace.tsx` — Three-column layout composing existing UI components
+- `useAutoSave` — Debounces saves on state changes
 
 ### Reused components (no changes)
 
