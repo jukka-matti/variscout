@@ -3,8 +3,10 @@ import { Search, Loader2, FileText, ExternalLink, AlertTriangle, Bookmark } from
 import { useTranslation } from '@variscout/hooks';
 import type { CoScoutMessage, CoScoutError, ActionProposal } from '@variscout/core';
 import { parseActionMarkers, stripActionMarkers } from '@variscout/core';
+import { parseRefMarkers } from '@variscout/core/ai';
 import { ActionProposalCard } from './ActionProposalCard';
 import { SaveInsightDialog } from './SaveInsightDialog';
+import { RefLink } from './RefLink';
 
 /**
  * Parse [Source: name] markers in assistant text and render as styled inline badges.
@@ -36,6 +38,63 @@ function renderWithSourceBadges(text: string): React.ReactNode {
   }
 
   return parts.length > 0 ? parts : text;
+}
+
+/**
+ * Parse REF markers in text, then apply source badge rendering to non-ref segments.
+ * Returns React nodes with RefLink components for visual grounding (ADR-050).
+ */
+function renderWithRefs(
+  text: string,
+  onRefActivate?: (targetType: string, targetId?: string) => void
+): React.ReactNode {
+  const { cleanText, refs } = parseRefMarkers(text);
+
+  if (refs.length === 0) {
+    return renderWithSourceBadges(cleanText);
+  }
+
+  const parts: React.ReactNode[] = [];
+  let lastEnd = 0;
+
+  for (const ref of refs) {
+    // Text segment before this ref
+    if (ref.startIndex > lastEnd) {
+      const segment = cleanText.slice(lastEnd, ref.startIndex);
+      parts.push(
+        <React.Fragment key={`text-${lastEnd}`}>{renderWithSourceBadges(segment)}</React.Fragment>
+      );
+    }
+
+    // RefLink component
+    if (onRefActivate) {
+      parts.push(
+        <RefLink
+          key={`ref-${ref.startIndex}`}
+          targetType={ref.targetType}
+          targetId={ref.targetId}
+          displayText={ref.displayText}
+          onActivate={onRefActivate}
+        />
+      );
+    } else {
+      // Graceful degradation: render display text as plain text
+      parts.push(<span key={`ref-${ref.startIndex}`}>{ref.displayText}</span>);
+    }
+
+    lastEnd = ref.endIndex;
+  }
+
+  // Remaining text after last ref
+  if (lastEnd < cleanText.length) {
+    parts.push(
+      <React.Fragment key={`text-${lastEnd}`}>
+        {renderWithSourceBadges(cleanText.slice(lastEnd))}
+      </React.Fragment>
+    );
+  }
+
+  return parts;
 }
 
 export interface KnowledgeDocumentResult {
@@ -94,6 +153,8 @@ export interface CoScoutMessagesProps {
   knowledgeSearchTimestamp?: number;
   /** Show warning when SharePoint admin consent is missing */
   knowledgePermissionWarning?: boolean;
+  /** ADR-050 visual grounding: activate a REF marker (highlight chart element) */
+  onRefActivate?: (targetType: string, targetId?: string) => void;
   /** ADR-029: Action proposals for inline confirmation */
   actionProposals?: ActionProposal[];
   onExecuteAction?: (proposal: ActionProposal, editedText?: string) => void;
@@ -126,6 +187,7 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
   knowledgeSearchScope,
   knowledgeSearchTimestamp,
   knowledgePermissionWarning,
+  onRefActivate,
   actionProposals,
   onExecuteAction,
   onDismissAction,
@@ -159,6 +221,25 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
   }, [messages.length, isLoading, lastMessageContent]);
+
+  // Auto-highlight first REF in new assistant message (ADR-050)
+  const prevMessageCountRef = useRef(messages.length);
+  useEffect(() => {
+    if (!onRefActivate) return;
+    if (messages.length <= prevMessageCountRef.current) {
+      prevMessageCountRef.current = messages.length;
+      return;
+    }
+    prevMessageCountRef.current = messages.length;
+    const lastMsg = messages[messages.length - 1];
+    if (!lastMsg || lastMsg.role !== 'assistant') return;
+    const { refs } = parseRefMarkers(lastMsg.content);
+    if (refs.length === 0) return;
+    const timer = setTimeout(() => {
+      onRefActivate(refs[0].targetType, refs[0].targetId);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [messages.length, messages, onRefActivate]);
 
   const showLoadingDots =
     isLoading &&
@@ -242,7 +323,7 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
                     {cleanText && (
                       <div className="border border-edge rounded-lg p-3">
                         <p className="text-xs text-content-secondary leading-relaxed whitespace-pre-wrap">
-                          {renderWithSourceBadges(cleanText)}
+                          {renderWithRefs(cleanText, onRefActivate)}
                         </p>
                       </div>
                     )}
@@ -260,6 +341,7 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
                           proposal={matchingProposal}
                           onExecute={onExecuteAction}
                           onDismiss={onDismissAction}
+                          onHighlight={onRefActivate}
                         />
                       );
                     })}

@@ -358,3 +358,13 @@ export {
 
 // Question Reactivity (drill-down factor → active question lookup)
 export { useQuestionReactivity } from './useQuestionReactivity';
+
+// Visual Grounding (CoScout REF marker highlight lifecycle)
+export {
+  useVisualGrounding,
+  resolveHighlightTarget,
+  GLOW_DURATION_MS,
+  SETTLED_DURATION_MS,
+  type HighlightPhase,
+  type HighlightAction,
+} from './useVisualGrounding';

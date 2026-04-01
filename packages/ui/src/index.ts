@@ -425,6 +425,9 @@ export {
 // CoScout Inline
 export { CoScoutInline, type CoScoutInlineProps } from './components/CoScoutInline';
 
+// CoScout Visual Grounding
+export { RefLink, type RefLinkProps } from './components/CoScoutPanel/RefLink';
+
 // Investigation Phase Badge
 export {
   InvestigationPhaseBadge,

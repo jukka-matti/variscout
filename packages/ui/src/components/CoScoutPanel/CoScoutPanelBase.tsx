@@ -78,6 +78,8 @@ export interface CoScoutPanelBaseProps {
   insightFindings?: Array<{ id: string; text: string }>;
   /** Existing hypotheses for insight dialog target selection */
   insightHypotheses?: Array<{ id: string; text: string }>;
+  /** ADR-050 visual grounding: activate a REF marker (highlight chart element) */
+  onRefActivate?: (targetType: string, targetId?: string) => void;
 }
 
 const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
@@ -113,6 +115,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   onAddCommentToHypothesis,
   insightFindings,
   insightHypotheses,
+  onRefActivate,
 }) => {
   const { t } = useTranslation();
   const [input, setInput] = useState('');
@@ -453,6 +456,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
           knowledgeSearchScope={knowledgeSearchScope}
           knowledgeSearchTimestamp={knowledgeSearchTimestamp}
           knowledgePermissionWarning={knowledgePermissionWarning}
+          onRefActivate={onRefActivate}
           actionProposals={actionProposals}
           onExecuteAction={onExecuteAction}
           onDismissAction={onDismissAction}
