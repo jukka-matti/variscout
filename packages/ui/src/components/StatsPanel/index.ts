@@ -33,3 +33,7 @@ export { default as ConclusionCard } from './ConclusionCard';
 export type { ConclusionCardProps, SuspectedCause } from './ConclusionCard';
 export { default as QuestionsTabView } from './QuestionsTabView';
 export type { QuestionsTabViewProps } from './QuestionsTabView';
+export { QuestionInputModal } from './QuestionInputModal';
+export type { QuestionInputModalProps } from './QuestionInputModal';
+export { QuestionLinkModal } from './QuestionLinkModal';
+export type { QuestionLinkModalProps } from './QuestionLinkModal';

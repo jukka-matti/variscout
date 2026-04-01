@@ -194,46 +194,28 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     [factorIntelQuestions]
   );
 
-  const handleAddQuestion = useCallback(() => {
-    const text = window.prompt('Enter your question:');
-    if (text?.trim()) {
-      hypothesesState.addHypothesis(text.trim());
-    }
-  }, [hypothesesState]);
+  const handleAddQuestion = (text: string): void => {
+    hypothesesState.addHypothesis(text);
+  };
 
-  const handleAddObservation = useCallback(() => {
-    const text = window.prompt('Describe what you observed:');
-    if (text?.trim()) {
-      findingsState.addFinding(text.trim(), {
-        activeFilters: filters,
-        cumulativeScope: null,
-        stats: stats
-          ? {
-              mean: stats.mean,
-              median: stats.median,
-              cpk: stats.cpk,
-              samples: filteredData?.length ?? 0,
-            }
-          : undefined,
-      });
-    }
-  }, [findingsState, filters, stats]);
+  const handleAddObservation = (text: string): void => {
+    findingsState.addFinding(text, {
+      activeFilters: filters,
+      cumulativeScope: null,
+      stats: stats
+        ? {
+            mean: stats.mean,
+            median: stats.median,
+            cpk: stats.cpk,
+            samples: filteredData?.length ?? 0,
+          }
+        : undefined,
+    });
+  };
 
-  const handleLinkObservation = useCallback(
-    (findingId: string) => {
-      const questions = factorIntelQuestions.filter(q => q.factor);
-      if (questions.length === 0) return;
-      const labels = questions.map((q, i) => `${i + 1}. ${q.factor ?? q.text}`).join('\n');
-      const choice = window.prompt(`Link to which question?\n${labels}`);
-      if (choice) {
-        const idx = parseInt(choice, 10) - 1;
-        if (idx >= 0 && idx < questions.length) {
-          hypothesesState.linkFinding(questions[idx].id, findingId);
-        }
-      }
-    },
-    [factorIntelQuestions, hypothesesState]
-  );
+  const handleLinkObservation = (findingId: string, questionId: string): void => {
+    hypothesesState.linkFinding(questionId, findingId);
+  };
 
   const piOverflowView = usePanelsStore(s => s.piOverflowView);
   const setPIOverflowView = usePanelsStore(s => s.setPIOverflowView);

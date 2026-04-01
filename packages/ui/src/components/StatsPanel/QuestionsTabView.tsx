@@ -8,6 +8,8 @@ import QuestionRowExpanded from './QuestionRowExpanded';
 import ObservationsSection from './ObservationsSection';
 import ConclusionCard from './ConclusionCard';
 import type { SuspectedCause } from './ConclusionCard';
+import { QuestionInputModal } from './QuestionInputModal';
+import { QuestionLinkModal } from './QuestionLinkModal';
 
 // Re-export SuspectedCause so consumers can import it from this module
 export type { SuspectedCause };
@@ -28,9 +30,9 @@ export interface QuestionsTabViewProps {
   evidenceLabel?: string;
   onQuestionClick?: (question: Hypothesis) => void;
   onAddNote?: (findingId: string, text: string) => void;
-  onAddQuestion?: () => void;
-  onAddObservation?: () => void;
-  onLinkObservation?: (findingId: string) => void;
+  onAddQuestion?: (text: string) => void;
+  onAddObservation?: (text: string) => void;
+  onLinkObservation?: (findingId: string, questionId: string) => void;
 }
 
 /** Display order for question groups */
@@ -77,6 +79,11 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
 
   // Ruled-out group is collapsed by default
   const [showRuledOut, setShowRuledOut] = useState(false);
+
+  // Modal state for inline dialogs (replaces window.prompt)
+  const [addQuestionOpen, setAddQuestionOpen] = useState(false);
+  const [addObservationOpen, setAddObservationOpen] = useState(false);
+  const [linkTarget, setLinkTarget] = useState<string | null>(null);
 
   const handleToggleExpand = (questionId: string): void => {
     setExpandedIds(prev => {
@@ -294,7 +301,7 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
       {onAddQuestion && (
         <button
           type="button"
-          onClick={onAddQuestion}
+          onClick={() => setAddQuestionOpen(true)}
           className="flex items-center gap-1 px-2 py-1 text-xs text-content-muted hover:text-content transition-colors"
           data-testid="add-question-button"
         >
@@ -306,8 +313,8 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
       {/* Observations section */}
       <ObservationsSection
         observations={unlinkedFindings}
-        onLink={onLinkObservation}
-        onAddObservation={onAddObservation}
+        onLink={onLinkObservation ? (findingId: string) => setLinkTarget(findingId) : undefined}
+        onAddObservation={onAddObservation ? () => setAddObservationOpen(true) : undefined}
       />
 
       {/* Conclusion card */}
@@ -316,6 +323,41 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
         currentCpk={currentCpk}
         combinedProjectedCpk={combinedProjectedCpk}
         targetCpk={targetCpk}
+      />
+
+      {/* Modals (replaces window.prompt) */}
+      <QuestionInputModal
+        isOpen={addQuestionOpen}
+        onClose={() => setAddQuestionOpen(false)}
+        onSubmit={text => {
+          onAddQuestion?.(text);
+          setAddQuestionOpen(false);
+        }}
+        title="Add Question"
+        placeholder="What do you want to investigate?"
+      />
+      <QuestionInputModal
+        isOpen={addObservationOpen}
+        onClose={() => setAddObservationOpen(false)}
+        onSubmit={text => {
+          onAddObservation?.(text);
+          setAddObservationOpen(false);
+        }}
+        title="Add Observation"
+        placeholder="Describe what you observed..."
+      />
+      <QuestionLinkModal
+        isOpen={linkTarget !== null}
+        onClose={() => setLinkTarget(null)}
+        onLink={questionId => {
+          if (linkTarget) {
+            onLinkObservation?.(linkTarget, questionId);
+          }
+          setLinkTarget(null);
+        }}
+        questions={questions
+          .filter(q => q.factor)
+          .map(q => ({ id: q.id, factor: q.factor, text: q.text }))}
       />
     </div>
   );
