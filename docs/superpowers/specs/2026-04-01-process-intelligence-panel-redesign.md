@@ -51,6 +51,18 @@ Implemented via `getQuestionDisplayStatus()`, `QUESTION_STATUS_LABELS`, `QUESTIO
 
 The Questions tab highlights questions linked to the currently active drill-down factor via `useQuestionReactivity`. When a factor is selected in the Boxplot/I-Chart, relevant questions surface at the top of the list with a visual indicator.
 
+### Auto-Linking: Finding → Question
+
+When a finding is created while a question is focused (clicked in the Questions tab), the finding automatically links to that question. This completes the question-driven investigation loop:
+
+1. Click question in Questions tab → drills to that factor in charts
+2. Investigate the chart, spot a pattern
+3. Pin finding or add observation → **auto-links to the focused question**
+4. Question status updates via ANOVA auto-validation
+5. Progress bar advances
+
+The `focusedQuestionId` from `useHypotheses` is consumed by `useFindingsOrchestration` and `EditorDashboardView` during finding creation. Both `handlePinFinding` and `handleAddChartObservation` auto-link when a question is focused.
+
 ### Journal
 
 The Journal tab shows a chronological stream of investigation events: findings created, questions answered, drill-downs taken, filter changes. In the PWA, the journal is session-only (cleared on page reload). In Azure, journal entries persist with the project.

@@ -281,6 +281,26 @@ VariScout never auto-labels anything as "root cause." The analyst explicitly mar
 | CoScout investigation sidebar | -                 | Yes (with AI)         | Yes (with AI)         |
 | Teams posting on convergence  | -                 | -                     | Yes                   |
 
+## PI Panel Integration (ADR-056)
+
+The Questions tab in the Process Intelligence panel (left sidebar) provides a persistent, cross-workspace view of the investigation state:
+
+- **All questions visible** across Analysis, Investigation, Improvement, and Report workspaces
+- **Context-reactive**: drilling into a factor highlights the corresponding question
+- **Auto-linking**: findings created while investigating a question auto-link to it
+- **Observations inbox**: unlinked gemba/expert findings can be linked to questions later
+- **Conclusion card**: suspected causes with Cpk projections appear when converging
+
+The Journal tab records the chronological investigation timeline — every question generated, status change, finding, and comment — providing an audit trail that feeds into reports.
+
+### Visual Grounding
+
+When CoScout references a question via `[REF:hypothesis:ID]text[/REF]`, clicking the link:
+
+1. Opens the PI panel if closed
+2. Switches to the Questions tab
+3. Highlights and auto-expands the referenced question
+
 ## Related Documentation
 
 - [EDA Mental Model](../../01-vision/eda-mental-model.md) — Full question-driven methodology grounded in Turtiainen (2019)
@@ -290,3 +310,4 @@ VariScout never auto-labels anything as "root cause." The analyst explicitly mar
 - [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md) — CoScout and AI features
 - [Findings Components](../../06-design-system/components/findings.md) — Design system specs
 - [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Architectural decisions
+- [PI Panel Redesign](../../superpowers/specs/2026-04-01-process-intelligence-panel-redesign.md) — Stats/Questions/Journal tab design (ADR-056)

@@ -42,6 +42,16 @@ When CoScout mentions a chart element (e.g., a boxplot category or a Pareto bar)
 - When `onRefActivate` is not provided (e.g., PWA), RefLink display text renders without interactivity
 - Source badges (`[Source: name]`) continue to work alongside REF markers
 
+## Questions Tab Navigation
+
+When CoScout references a hypothesis/question via `[REF:hypothesis:H-002]question text[/REF]`:
+
+1. Clicking the RefLink opens the PI panel's Questions tab
+2. The referenced question is highlighted and auto-expanded
+3. The analyst can see the question's linked findings and status
+
+This connects CoScout's AI-generated narrative to the structured investigation view, allowing the analyst to follow the AI's reasoning in the Questions tab.
+
 ## Architecture
 
 - **Parser**: `parseRefMarkers()` in `@variscout/core/ai` (refMarkers.ts)

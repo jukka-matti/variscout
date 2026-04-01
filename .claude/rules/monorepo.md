@@ -76,6 +76,7 @@ packages/
 │              #   useAsyncStats - Async stats computation via Web Worker with generation counter
 │              #   useJournalEntries - Journal state and event recording for PI panel Journal tab
 │              #   useQuestionReactivity - Factor-to-question highlight mapping for PI panel context reactivity
+│              #   useVisualGrounding - CoScout visual grounding highlight lifecycle
 │              #   copySectionAsHTML - Rich clipboard copy utility
 └── ui/        # @variscout/ui - Shared UI components (70+ modules):
                #   AnovaResults, FilterBreadcrumb, FilterChipDropdown, FilterContextBar,
