@@ -108,6 +108,18 @@ Implemented via `useJournalEntries` in `@variscout/hooks`.
 
 Both Questions and Journal tabs are available in the PWA. The journal is session-only (no persistence). Question status changes persist only in memory (no IndexedDB in PWA).
 
+### Problem Statement Generation
+
+When the investigation converges (suspected causes identified), the system auto-generates a problem statement draft using Watson's 3 Questions framework:
+
+1. **What measure needs to change?** — from the outcome column (Y-measure)
+2. **How should it change?** — from Cpk target and direction
+3. **What is the scope?** — from suspected causes (factor names + levels + evidence %)
+
+`buildProblemStatement()` in `@variscout/core/findings` generates the template. `useProblemStatement` hook manages the lifecycle (generate → edit → accept).
+
+InvestigationConclusion shows a "Generate Problem Statement" button when suspected causes exist. Clicking generates an editable draft that the analyst reviews before accepting.
+
 ## ADR Reference
 
 See [ADR-056](../../07-decisions/adr-056-pi-panel-redesign.md) for the architectural decision record.

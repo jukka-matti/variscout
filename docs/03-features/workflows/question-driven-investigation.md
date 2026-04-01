@@ -301,6 +301,27 @@ When CoScout references a question via `[REF:hypothesis:ID]text[/REF]`, clicking
 2. Switches to the Questions tab
 3. Highlights and auto-expands the referenced question
 
+## Problem Statement Formulation
+
+The Problem Statement is the **output** of INVESTIGATE, not the input. It emerges when the analyst converges on suspected causes.
+
+### Watson's 3 Questions
+
+The auto-generated draft answers:
+
+1. **What measure?** → outcome column name
+2. **How change?** → target Cpk/value + direction (increase/decrease/reduce-variation)
+3. **What scope?** → suspected causes with evidence percentages
+
+### Flow
+
+1. Analyst marks hypotheses as "suspected cause" (cause role assignment)
+2. "Generate Problem Statement" button appears in InvestigationConclusion
+3. System generates draft: "Reduce variation in [outcome] (Cpk X → target Y) driven by [cause 1] and [cause 2]."
+4. Analyst edits draft if needed
+5. Accept → saved to processContext.problemStatement
+6. Appears in PI panel Questions tab conclusion card + Report workspace
+
 ## Related Documentation
 
 - [EDA Mental Model](../../01-vision/eda-mental-model.md) — Full question-driven methodology grounded in Turtiainen (2019)

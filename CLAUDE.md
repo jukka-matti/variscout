@@ -117,6 +117,7 @@ npx ruflo@3.5.42 security cve --check        # CVE check
 | Token Exchange / OBO Flow       | docs/08-products/azure/authentication.md, apps/azure/server.js (/api/token-exchange proxy), infra/functions/token-exchange/                                                                                                                                                                       |
 | Sub-path exports                | .claude/rules/monorepo.md, packages/core/package.json                                                                                                                                                                                                                                             |
 | PI Panel / Questions / Journal  | adr-056, docs/superpowers/specs/2026-04-01-process-intelligence-panel-redesign.md                                                                                                                                                                                                                 |
+| Problem Statement / Watson      | docs/03-features/workflows/question-driven-investigation.md, packages/core/src/findings/problemStatement.ts                                                                                                                                                                                       |
 
 ## Repository Structure
 

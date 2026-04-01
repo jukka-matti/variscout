@@ -73,6 +73,7 @@ packages/
 │              #   useCapabilityBoxplotData - Capability boxplot (Cpk by factor level)
 │              #   useDashboardInsights - Dashboard chart insights orchestration
 │              #   useProcessProjection - Process projection and optimization intelligence
+#   useProblemStatement - Problem statement auto-synthesis from suspected causes (Watson's 3 questions)
 │              #   useAsyncStats - Async stats computation via Web Worker with generation counter
 │              #   useJournalEntries - Journal state and event recording for PI panel Journal tab
 │              #   useQuestionReactivity - Factor-to-question highlight mapping for PI panel context reactivity

@@ -318,6 +318,14 @@ interface ActionItem {
 When the first action is added to an "analyzed" finding, the status automatically
 transitions to "improving."
 
+### Implementation Status (Apr 2026)
+
+- ✅ Idea → Action conversion fully implemented (`handleConvertIdeasToActions`)
+- ✅ ActionItem type with ideaId FK for traceability
+- ✅ Auto-transition: first action triggers `analyzed → improving` status
+- ✅ "→ Action" badge on converted ideas in IdeaGroupCard
+- ✅ Popout sync for dual-screen workflows
+
 **Overdue indicators:** When a due date has passed and the action is not completed,
 the action row shows a red border and "Overdue" label. No notifications are sent —
 this is a visual indicator on the card and in Teams postings.
