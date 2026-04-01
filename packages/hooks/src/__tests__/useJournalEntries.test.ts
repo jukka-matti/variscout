@@ -156,4 +156,15 @@ describe('useJournalEntries', () => {
     const entry = result.current.find(e => e.type === 'question-answered');
     expect(entry!.detail).toBeUndefined();
   });
+
+  it('uses stable timestamp for problem statement', () => {
+    const { result, rerender } = renderHook(
+      ({ ps }) => useJournalEntries({ findings: [], questions: [], problemStatement: ps }),
+      { initialProps: { ps: 'Test problem' } }
+    );
+    const ts1 = result.current.find(e => e.type === 'problem-statement')?.timestamp;
+    rerender({ ps: 'Test problem' });
+    const ts2 = result.current.find(e => e.type === 'problem-statement')?.timestamp;
+    expect(ts1).toBe(ts2);
+  });
 });

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { MessageCircle } from 'lucide-react';
 import type { Hypothesis, Finding } from '@variscout/core/findings';
 import { FINDING_STATUS_LABELS } from '@variscout/core/findings';
 
@@ -81,10 +82,11 @@ const QuestionRowExpanded: React.FC<QuestionRowExpandedProps> = ({
               </span>
               {commentCount > 0 && (
                 <span
-                  className="text-[0.5625rem] text-content-muted shrink-0"
+                  className="text-[0.5625rem] text-content-muted shrink-0 flex items-center"
                   aria-label={`${commentCount} comment${commentCount !== 1 ? 's' : ''}`}
                 >
-                  {commentCount}💬
+                  <MessageCircle size={10} className="inline" />
+                  <span className="ml-0.5">{commentCount}</span>
                 </span>
               )}
             </div>

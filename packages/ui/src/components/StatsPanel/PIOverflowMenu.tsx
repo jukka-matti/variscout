@@ -28,6 +28,15 @@ const PIOverflowMenu: React.FC<PIOverflowMenuProps> = ({ activeOverflow, onSelec
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    if (open) document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
+
   // When an overflow is active, show the active label with a close (×) button
   if (activeOverflow !== null) {
     return (

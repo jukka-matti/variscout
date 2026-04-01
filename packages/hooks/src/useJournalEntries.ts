@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import type { Finding, Hypothesis } from '@variscout/core';
 
 export interface JournalEntry {
@@ -30,6 +30,13 @@ export function useJournalEntries({
   questions,
   problemStatement,
 }: UseJournalEntriesOptions): JournalEntry[] {
+  const problemTimestampRef = useRef<string | null>(null);
+  if (problemStatement && !problemTimestampRef.current) {
+    problemTimestampRef.current = new Date().toISOString();
+  } else if (!problemStatement) {
+    problemTimestampRef.current = null;
+  }
+
   return useMemo(() => {
     const entries: JournalEntry[] = [];
 
@@ -80,7 +87,7 @@ export function useJournalEntries({
     if (problemStatement) {
       entries.push({
         id: 'j-ps',
-        timestamp: new Date().toISOString(),
+        timestamp: problemTimestampRef.current ?? new Date().toISOString(),
         type: 'problem-statement',
         text: 'Problem statement formed',
         detail: problemStatement,
