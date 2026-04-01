@@ -31,6 +31,7 @@ Detailed architecture documents for VariScout's technical design.
 | [Store Interactions](store-interactions.md)                     | Zustand cross-store coupling analysis (ADR-041)    |
 | [Sub-Path Exports](sub-path-exports.md)                         | 17 sub-path export API for @variscout/core         |
 | [Component Map](component-map.md)                               | L3 component views per package                     |
+| [Tier & Plan Gating](tier-gating.md)                            | Tier/plan gating system for feature access control |
 
 ## See Also
 

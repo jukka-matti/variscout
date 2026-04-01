@@ -219,7 +219,7 @@ When a finding reaches "Analyzed" status, document why the variation is happenin
 
 A hypothesis links to a specific factor and is automatically validated via ANOVA eta-squared thresholds. For causes that cannot be validated with data (physical inspection, domain expertise), gemba and expert validation types are available.
 
-For structured investigation with multiple competing theories, use the **Hypothesis Investigation Flow** — a diamond pattern of diverge (generate sub-hypotheses), validate (test each), and converge (eliminate contradicted, confirm supported). See [Hypothesis Investigation](hypothesis-investigation.md) for the full workflow.
+For structured investigation with multiple competing theories, use the **Question-Driven Investigation Flow** — a diamond pattern of diverge (generate questions), validate (test each), and converge (eliminate contradicted, confirm supported). See [Question-Driven Investigation](question-driven-investigation.md) for the full workflow.
 
 ### Cause Role Model (Azure only)
 
@@ -230,11 +230,11 @@ Once hypotheses are validated, the analyst can mark which hypothesis is the **pr
 causeRole?: 'primary' | 'contributing'
 ```
 
-- **Primary** — the main suspected cause driving the variation. Only one primary is allowed per root hypothesis tree (enforced by `setCauseRole`).
+- **Primary** — the main suspected cause driving the variation. Only one primary is allowed per root question tree (enforced by `setCauseRole`).
 - **Contributing** — a secondary factor that amplifies or enables the primary cause but is not the main driver.
 - _(none)_ — not yet classified.
 
-The cause role is set from the `HypothesisNode` UI (see [Hypothesis Investigation](hypothesis-investigation.md) for the button interaction). When any hypothesis in the tree carries a causeRole and the finding is at `analyzed` status or higher, the **FindingCard** shows a "Suspected cause" section listing the primary hypothesis prominently, with contributing hypotheses listed beneath it. This makes the convergence conclusion visible directly on the finding card without opening the full tree view.
+The cause role is set from the `HypothesisNode` UI (see [Question-Driven Investigation](question-driven-investigation.md) for the button interaction). When any hypothesis in the tree carries a causeRole and the finding is at `analyzed` status or higher, the **FindingCard** shows a "Suspected cause" section listing the primary hypothesis prominently, with contributing hypotheses listed beneath it. This makes the convergence conclusion visible directly on the finding card without opening the full tree view.
 
 **"Hypothesis" vs "root cause":** VariScout finds _where_ variation is hiding
 (the key factors), but identifying a factor (Machine A explains 47%) is not proving
@@ -623,7 +623,7 @@ Every step works without AI. CoScout enhances but never gates:
 - [Four Lenses Workflow](four-lenses-workflow.md) — Foundational methodology
 - [Findings Components](../../06-design-system/components/findings.md) — Design system specs
 - [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CoScoutPanel specs
-- [Hypothesis Investigation](hypothesis-investigation.md) — Diamond pattern root cause investigation
+- [Question-Driven Investigation](question-driven-investigation.md) — Diamond pattern root cause investigation
 - [Improvement Prioritization](improvement-prioritization.md) — Prioritization matrix, cost/risk assessment, idea comparison
 - [ADR-015: Investigation Board](../../07-decisions/adr-015-investigation-board.md) — Architectural decisions
 - [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Hypothesis model decisions

@@ -169,7 +169,7 @@ Analyze hundreds of measurement channels simultaneously:
 ### Pricing
 
 **Standard — €79/month** — Full analysis with AI-assisted CoScout, unlimited users in your tenant.
-**Team — €199/month** — Everything in Standard, plus Teams, OneDrive, SharePoint, Knowledge Base, mobile, and photo evidence.
+**Team — €199/month** — Everything in Standard, plus Teams, OneDrive, SharePoint, Knowledge Base & Catalyst, mobile, and photo evidence.
 
 ### Integration
 

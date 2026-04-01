@@ -15,7 +15,7 @@ related: [investigation, eda-mental-model, factor-intelligence, question-driven-
 
 ## Context
 
-The current investigation model is hypothesis-first: analysts create a formal hypothesis, build a tree of sub-hypotheses, and validate each with data/gemba/expert evidence. This creates a gap between FRAME (where the analyst enters a problem statement and upfront hypotheses) and INVESTIGATE (where hypotheses are formally structured).
+The current investigation model is hypothesis-first: analysts create a formal hypothesis, build a tree of sub-hypotheses, and validate each with data/gemba/expert evidence. This creates a gap between FRAME (where the analyst enters an issue statement and upfront hypotheses) and INVESTIGATE (where hypotheses are formally structured).
 
 Key problems:
 

@@ -202,5 +202,5 @@ VariScout is **the first step** — finding where to focus before investing in d
 - [Two Voices](two-voices/index.md) — Control limits vs spec limits, four scenarios
 - [Progressive Stratification](progressive-stratification.md) — Design rationale for filter chip drill-down, tensions, alternative patterns
 - [Investigation to Action](../03-features/workflows/investigation-to-action.md) — Findings panel, What-If Simulator, full analyst workflow
-- [Hypothesis Investigation](../03-features/workflows/hypothesis-investigation.md) — Diamond pattern, validation types, tree view
+- [Question-Driven Investigation](../03-features/workflows/question-driven-investigation.md) — Diamond pattern, validation types, tree view
 - [Mental Model Hierarchy](../05-technical/architecture/mental-model-hierarchy.md) — How all conceptual frameworks (journey, investigation diamond, lenses, report steps) relate and nest

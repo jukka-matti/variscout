@@ -20,3 +20,4 @@ End-to-end journey flows from discovery through daily use.
 - [Flow 9: Azure App — AI Setup](azure-ai-setup.md)
 - [Flow 10: Azure App — Admin Operations](azure-admin-operations.md)
 - [Azure Teams Mobile Flow](azure-teams-mobile.md)
+- [Wide-Form Data Analysis](wide-form-analysis.md)

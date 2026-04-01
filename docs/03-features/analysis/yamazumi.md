@@ -217,7 +217,7 @@ flowchart TD
 
 ## Question-Driven Investigation
 
-> See [ADR-054: Mode-Aware Question Strategy](../../07-decisions/adr-054-mode-aware-question-strategy.md) and [Hypothesis Investigation](../workflows/hypothesis-investigation.md#yamazumi-lean-investigation-workflow).
+> See [ADR-054: Mode-Aware Question Strategy](../../07-decisions/adr-054-mode-aware-question-strategy.md) and [Question-Driven Investigation](../workflows/question-driven-investigation.md#yamazumi-lean-investigation-workflow).
 
 Standard Factor Intelligence (R²adj ranking) does **not** apply to Yamazumi data. Yamazumi is aggregated time composition by activity type — not a continuous outcome suitable for regression. Instead, Yamazumi mode uses a **waste composition generator** that produces lean-specific investigation questions.
 

@@ -107,3 +107,9 @@ Phase 2 implementation can re-export core math files and rebuild UI layer on the
 - Core math files (regression.ts, multiRegression.ts, etc.) stay in the repository, unexported -- no maintenance cost, no build cost
 - ScatterPlot chart component continues to work for general-purpose use
 - WhatIfSimulator direct mode is unaffected
+
+---
+
+## Post-Decision Update (February 2026)
+
+Regression analysis was permanently removed from both apps in February 2026. The UI components, hooks, and app wiring listed in the removal table above have all been deleted. Core regression math files remain in `@variscout/core` (regression.ts, multiRegression.ts, interaction.ts, modelReduction.ts, matrix.ts) but are not exported or exposed in the UI. Market validation through the Azure Marketplace launch confirmed no customer demand for regression modelling in the variation analysis context. The re-enablement criteria defined above remain valid should demand emerge in the future.

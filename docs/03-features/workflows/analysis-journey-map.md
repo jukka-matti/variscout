@@ -199,7 +199,7 @@ stateDiagram-v2
 
 ### Investigation Diamond (4 Phases)
 
-> **Diamond views:** [Architecture definition](../../05-technical/architecture/mental-model-hierarchy.md#investigation-diamond-4-phases) · [State machine](investigation-lifecycle-map.md) · [Tree UI & validation](hypothesis-investigation.md)
+> **Diamond views:** [Architecture definition](../../05-technical/architecture/mental-model-hierarchy.md#investigation-diamond-4-phases) · [State machine](investigation-lifecycle-map.md) · [Tree UI & validation](question-driven-investigation.md)
 
 The investigation follows the diamond pattern within each finding — a structured learning process:
 

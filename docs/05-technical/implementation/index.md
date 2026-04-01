@@ -17,3 +17,6 @@ Build, deploy, test, and operational guides.
 - [Security Scanning](security-scanning.md)
 - [System Limits](system-limits.md)
 - [Testing Strategy](testing.md)
+- [Build System & CI/CD](build-system.md)
+- [Feature Module Guide](feature-module-guide.md)
+- [Component Extraction Guide](component-extraction-guide.md)

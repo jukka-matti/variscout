@@ -11,7 +11,7 @@ title: 'Hypothesis Investigation Flow: Diamond Pattern for Root Cause Analysis'
 **Scope:** Extend Hypothesis model with sub-hypotheses, validation types, tree view UI, and CoScout investigation integration
 **Related:** Investigation Workflow Enhancement (2026-03-14), ADR-020, ADR-019 (AI Integration)
 
-> **Note (2026-03-18):** This spec was written before the INVESTIGATE/IMPROVE boundary was redefined. The diamond pattern described here included an "Acting" phase (step 5) which now belongs to the IMPROVE phase (PDCA). The current model has 4 diamond phases (Initial → Diverging → Validating → Converging). See [hypothesis-investigation.md](../../03-features/workflows/hypothesis-investigation.md) for the current model.
+> **Note (2026-03-18):** This spec was written before the INVESTIGATE/IMPROVE boundary was redefined. The diamond pattern described here included an "Acting" phase (step 5) which now belongs to the IMPROVE phase (PDCA). The current model has 4 diamond phases (Initial → Diverging → Validating → Converging). See [question-driven-investigation.md](../../03-features/workflows/question-driven-investigation.md) for the current model.
 
 ## Context
 

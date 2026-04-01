@@ -29,11 +29,11 @@ Key principles:
 
 VariScout organizes the analyst's workflow into three workspaces, mapped to the PDCA journey:
 
-| Workspace                                      | Purpose                                                          | Current State                                                     |
-| ---------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------- |
-| **Analysis** (default)                         | Dashboard with charts, stats, filters                            | Fully implemented                                                 |
-| **Findings** (also called Investigation panel) | Investigation tracking, question tree (hypothesis tree), actions | Panel + popout (`?view=findings`)                                 |
-| **Improvement**                                | PDCA planning, idea synthesis, action tracking                   | Components ready (`ImprovementWorkspaceBase`), app wiring pending |
+| Workspace                                      | Purpose                                        | Current State                                                     |
+| ---------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------- |
+| **Analysis** (default)                         | Dashboard with charts, stats, filters          | Fully implemented                                                 |
+| **Findings** (also called Investigation panel) | Investigation tracking, question tree, actions | Panel + popout (`?view=findings`)                                 |
+| **Improvement**                                | PDCA planning, idea synthesis, action tracking | Components ready (`ImprovementWorkspaceBase`), app wiring pending |
 
 ### Planned: Workspace-Tab Header Navigation
 
@@ -387,14 +387,14 @@ Project Shell
 
 Each clickable item on the dashboard navigates to the Editor with a pre-configured view:
 
-| Dashboard item                      | Editor destination                                                        |
-| ----------------------------------- | ------------------------------------------------------------------------- |
-| "Go to analysis" button             | Current `ViewState` (last focused chart, active filters)                  |
-| Findings count by status            | Findings panel open, `findingsStore.statusFilter` set                     |
-| Question tree (hypothesis tree) row | Investigation sidebar open, `investigationStore.expandedHypothesisId` set |
-| Action progress bar                 | Improvement workspace open                                                |
-| "Add new data batch"                | Editor in data append flow (`useEditorDataFlow`)                          |
-| "View report"                       | Report view open                                                          |
+| Dashboard item           | Editor destination                                                        |
+| ------------------------ | ------------------------------------------------------------------------- |
+| "Go to analysis" button  | Current `ViewState` (last focused chart, active filters)                  |
+| Findings count by status | Findings panel open, `findingsStore.statusFilter` set                     |
+| Question tree row        | Investigation sidebar open, `investigationStore.expandedHypothesisId` set |
+| Action progress bar      | Improvement workspace open                                                |
+| "Add new data batch"     | Editor in data append flow (`useEditorDataFlow`)                          |
+| "View report"            | Report view open                                                          |
 
 ### CoScout navigate_to tool
 

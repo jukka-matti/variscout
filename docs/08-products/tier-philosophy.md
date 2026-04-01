@@ -38,14 +38,15 @@ VariScout has two paid plans, each targeting a different maturity level:
 │  + Teams integration (SSO, channel tabs, Adaptive Cards)        │
 │  + OneDrive + SharePoint channel file storage                   │
 │  + Mobile gemba access, photo evidence in findings              │
-│  + AI Knowledge Base (Azure AI Search + organizational learning)│
+│  + Knowledge Base (Azure AI Search on SharePoint documents)     │
+│  + Knowledge Catalyst (organizational learning from findings)   │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ### AI Included in All Plans
 
-Per [ADR-033](../07-decisions/adr-033-pricing-simplification.md), AI features (NarrativeBar, ChartInsightChips, CoScout) are **included in all Azure plans** when the customer deploys Azure AI Foundry resources in their tenant. The Team plan adds the **Knowledge Base layer** — the organizational memory that makes AI progressively smarter from resolved findings.
+Per [ADR-033](../07-decisions/adr-033-pricing-simplification.md), AI features (NarrativeBar, ChartInsightChips, CoScout) are **included in all Azure plans** when the customer deploys Azure AI Foundry resources in their tenant. The Team plan adds the **Knowledge Base** (SharePoint team file search via Azure AI Search) and the **Knowledge Catalyst** — the organizational memory that makes AI progressively smarter from resolved findings.
 
 This means:
 
@@ -74,9 +75,9 @@ The Standard-to-Team upgrade is about **who** uses the tool, not **what** it doe
 
 ### Principle 3: Knowledge Compounds at Scale
 
-Organizational learning only delivers value when multiple people contribute findings over time. Gating the knowledge base to the Team plan ensures the feature reaches customers who have the team structure to generate enough resolved findings (target: 50+) for meaningful AI knowledge.
+Organizational learning only delivers value when multiple people contribute findings over time. Gating knowledge features to the Team plan ensures they reach customers who have the team structure to generate enough resolved findings (target: 50+) for meaningful AI knowledge.
 
-**Applied:** AI Knowledge Base, organizational learning, and cross-project queries are Team only. Core AI (narration, chips, CoScout) is available on any Azure plan.
+**Applied:** Knowledge Base (SharePoint search), Knowledge Catalyst (organizational learning), and cross-project queries are Team only. Core AI (narration, chips, CoScout) is available on any Azure plan.
 
 ### Principle 4: Never Gate Core Analysis
 

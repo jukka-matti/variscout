@@ -21,50 +21,50 @@ VariScout Azure App pricing structure — two plans differentiated by storage, c
 
 ## Feature Comparison
 
-| Feature                        | Standard | Team  |
-| ------------------------------ | :------: | :---: |
-| **Core Analysis**              |          |       |
-| I-Chart                        |    ✓     |   ✓   |
-| Boxplot                        |    ✓     |   ✓   |
-| Pareto                         |    ✓     |   ✓   |
-| Capability (Cp/Cpk)            |    ✓     |   ✓   |
-| Probability Plot               |    ✓     |   ✓   |
-| ANOVA                          |    ✓     |   ✓   |
-| **Performance Mode**           |          |       |
-| Multi-channel analysis         |    ✓     |   ✓   |
-| Channel limit                  |  1,500   | 1,500 |
-| **Data Input**                 |          |       |
-| CSV / Excel upload             |    ✓     |   ✓   |
-| Copy-paste from spreadsheets   |    ✓     |   ✓   |
-| Manual data entry              |    ✓     |   ✓   |
-| **Storage**                    |          |       |
-| Local file save/load (.vrs)    |    ✓     |   ✓   |
-| IndexedDB fallback             |    ✓     |   ✓   |
-| OneDrive personal sync         |    —     |   ✓   |
-| SharePoint channel storage     |    —     |   ✓   |
-| **Authentication**             |          |       |
-| EasyAuth SSO (Microsoft Entra) |    ✓     |   ✓   |
-| Admin consent required         |    No    |  Yes  |
-| **Investigation Workflow**     |          |       |
-| Findings log                   |    ✓     |   ✓   |
-| What-If simulation             |    ✓     |   ✓   |
-| Photo evidence in findings     |    —     |   ✓   |
-| **Collaboration**              |          |       |
-| Teams channel tabs             |    —     |   ✓   |
-| Teams SSO                      |    —     |   ✓   |
-| Adaptive Cards                 |    —     |   ✓   |
-| **AI**                         |          |       |
-| NarrativeBar & ChartInsights   |    ✓     |   ✓   |
-| CoScout assistant              |    ✓     |   ✓   |
-| AI Knowledge Base              |    —     |   ✓   |
-| Organizational learning        |    —     |   ✓   |
-| **Mobile**                     |          |       |
-| Mobile gemba companion (Teams) |    —     |   ✓   |
-| **Admin**                      |          |       |
-| Admin Hub                      |    ✓     |   ✓   |
-| **Support**                    |          |       |
-| Email support                  |    ✓     |   ✓   |
-| Response time                  |   24h    |  24h  |
+| Feature                         | Standard | Team  |
+| ------------------------------- | :------: | :---: |
+| **Core Analysis**               |          |       |
+| I-Chart                         |    ✓     |   ✓   |
+| Boxplot                         |    ✓     |   ✓   |
+| Pareto                          |    ✓     |   ✓   |
+| Capability (Cp/Cpk)             |    ✓     |   ✓   |
+| Probability Plot                |    ✓     |   ✓   |
+| ANOVA                           |    ✓     |   ✓   |
+| **Performance Mode**            |          |       |
+| Multi-channel analysis          |    ✓     |   ✓   |
+| Channel limit                   |  1,500   | 1,500 |
+| **Data Input**                  |          |       |
+| CSV / Excel upload              |    ✓     |   ✓   |
+| Copy-paste from spreadsheets    |    ✓     |   ✓   |
+| Manual data entry               |    ✓     |   ✓   |
+| **Storage**                     |          |       |
+| Local file save/load (.vrs)     |    ✓     |   ✓   |
+| IndexedDB fallback              |    ✓     |   ✓   |
+| OneDrive personal sync          |    —     |   ✓   |
+| SharePoint channel storage      |    —     |   ✓   |
+| **Authentication**              |          |       |
+| EasyAuth SSO (Microsoft Entra)  |    ✓     |   ✓   |
+| Admin consent required          |    No    |  Yes  |
+| **Investigation Workflow**      |          |       |
+| Findings log                    |    ✓     |   ✓   |
+| What-If simulation              |    ✓     |   ✓   |
+| Photo evidence in findings      |    —     |   ✓   |
+| **Collaboration**               |          |       |
+| Teams channel tabs              |    —     |   ✓   |
+| Teams SSO                       |    —     |   ✓   |
+| Adaptive Cards                  |    —     |   ✓   |
+| **AI**                          |          |       |
+| NarrativeBar & ChartInsights    |    ✓     |   ✓   |
+| CoScout assistant               |    ✓     |   ✓   |
+| Knowledge Base (SP search)      |    —     |   ✓   |
+| Knowledge Catalyst (org memory) |    —     |   ✓   |
+| **Mobile**                      |          |       |
+| Mobile gemba companion (Teams)  |    —     |   ✓   |
+| **Admin**                       |          |       |
+| Admin Hub                       |    ✓     |   ✓   |
+| **Support**                     |          |       |
+| Email support                   |    ✓     |   ✓   |
+| Response time                   |   24h    |  24h  |
 
 ---
 
@@ -74,13 +74,13 @@ VariScout Azure App pricing structure — two plans differentiated by storage, c
 
 Standard is the complete SPC analysis tool for individuals and small teams who work from a desktop browser. Local file storage via the File System Access API means projects live on the user's machine — no cloud permissions, no admin consent, no IT involvement. At €79/month for unlimited users, it undercuts per-seat competitors at any team size above one. AI features (NarrativeBar, ChartInsightChips, CoScout) are included when the customer deploys Azure AI Foundry resources.
 
-### Team — Collaboration + Knowledge Base
+### Team — Collaboration + Knowledge Base & Catalyst
 
-Team adds everything needed for shared quality workflows: OneDrive and SharePoint channel storage so projects live where the team works, Teams integration for embedding analysis in channels, mobile access through the Teams app for gemba investigations with photo evidence, and the AI Knowledge Base for organizational learning from resolved findings. The `Files.ReadWrite.All` and `Channel.ReadBasic.All` permissions require one-time admin consent, justified by the collaborative storage and Teams features they unlock.
+Team adds everything needed for shared quality workflows: OneDrive and SharePoint channel storage so projects live where the team works, Teams integration for embedding analysis in channels, mobile access through the Teams app for gemba investigations with photo evidence, the Knowledge Base for searching team documents on SharePoint via Azure AI Search, and the Knowledge Catalyst for organizational learning from resolved findings. The `Files.ReadWrite.All` and `Channel.ReadBasic.All` permissions require one-time admin consent, justified by the collaborative storage and Teams features they unlock.
 
 ### Why Two Plans
 
-Per [ADR-033](../../07-decisions/adr-033-pricing-simplification.md), the original three-plan model was simplified to two plans. AI is included in all plans (removing the Team AI upsell friction), and the Knowledge Base moved to Team where it pairs naturally with team collaboration features.
+Per [ADR-033](../../07-decisions/adr-033-pricing-simplification.md), the original three-plan model was simplified to two plans. AI is included in all plans (removing the Team AI upsell friction), and the knowledge features (Knowledge Base + Knowledge Catalyst) moved to Team where they pair naturally with team collaboration features.
 
 - Standard at €79 removes the "do I really need OneDrive?" hesitation — now includes AI
 - Team at €199 captures the collaboration + knowledge value that teams are willing to pay for
@@ -165,7 +165,7 @@ Users outgrow the PWA when they need file upload, project save/load, Performance
 
 ### Standard to Team
 
-Teams outgrow Standard when they need shared project storage, mobile gemba access, Teams channel integration, or the AI Knowledge Base for organizational learning. Upgrading from Standard to Team is a plan change in the Azure portal — same deployment, same data, new capabilities.
+Teams outgrow Standard when they need shared project storage, mobile gemba access, Teams channel integration, or the Knowledge Base and Knowledge Catalyst for organizational learning. Upgrading from Standard to Team is a plan change in the Azure portal — same deployment, same data, new capabilities.
 
 The ARM template uses a `VARISCOUT_PLAN` environment variable (`standard` or `team`) to control which features are available. All plans deploy as `enterprise` tier.
 
@@ -182,14 +182,14 @@ The ARM template uses a `VARISCOUT_PLAN` environment variable (`standard` or `te
 
 ## Competitor Comparison
 
-| Product            | Entry Price | Team of 10     | Collaboration          | Deployment      |
-| ------------------ | ----------- | -------------- | ---------------------- | --------------- |
-| VariScout Standard | €79/month   | €79/month      | Local files + AI       | Customer Azure  |
-| VariScout Team     | €199/month  | €199/month     | OneDrive/Teams + AI KB | Customer Azure  |
-| Minitab            | ~€150/month | ~€1,500/month  | Minitab Cloud          | Minitab Cloud   |
-| JMP                | ~€200/month | ~€2,000/month  | SAS Cloud              | Local/SAS Cloud |
-| SigmaXL            | ~€21/month  | ~€83/month     | None                   | Excel Add-in    |
-| InfinityQS         | Custom      | ~$4,000+/month | SaaS                   | SaaS            |
+| Product            | Entry Price | Team of 10     | Collaboration       | Deployment      |
+| ------------------ | ----------- | -------------- | ------------------- | --------------- |
+| VariScout Standard | €79/month   | €79/month      | Local files + AI    | Customer Azure  |
+| VariScout Team     | €199/month  | €199/month     | OneDrive/Teams + AI | Customer Azure  |
+| Minitab            | ~€150/month | ~€1,500/month  | Minitab Cloud       | Minitab Cloud   |
+| JMP                | ~€200/month | ~€2,000/month  | SAS Cloud           | Local/SAS Cloud |
+| SigmaXL            | ~€21/month  | ~€83/month     | None                | Excel Add-in    |
+| InfinityQS         | Custom      | ~$4,000+/month | SaaS                | SaaS            |
 
 ### VariScout Advantages
 

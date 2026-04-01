@@ -423,4 +423,4 @@ All P1–P4 roadmap items are fully delivered as of 2026-03-19.
 - [AI Action Tools Design](2026-03-19-ai-action-tools-design.md) — CoScout tool schemas including `suggest_improvement_idea`
 - [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — hypothesis model and finding status decisions
 - [ADR-029: AI Action Tools](../../07-decisions/adr-029-ai-action-tools.md) — tool definitions and phase gating
-- [Hypothesis Investigation](../../03-features/workflows/hypothesis-investigation.md) — diamond pattern for root cause investigation
+- [Question-Driven Investigation](../../03-features/workflows/question-driven-investigation.md) — diamond pattern for root cause investigation

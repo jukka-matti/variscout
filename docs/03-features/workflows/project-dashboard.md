@@ -135,11 +135,11 @@ Stale filter handling: if a filter category no longer exists in current data (e.
 
 ## Persona mapping
 
-| Persona             | How they use the dashboard                                                                                                            |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **OpEx Olivia**     | Primary entry for KPI monitoring across sessions. Checks findings-by-status and action progress before jumping into the Editor.       |
-| **Green Belt Gary** | Uses hypothesis tree summary to re-orient after a break. Asks CoScout "have we tested X?" before starting a new investigation thread. |
-| **Field Fiona**     | Single-column mobile layout. Quick status check from phone before a shift review meeting. Taps "Go to analysis" to dig in.            |
+| Persona             | How they use the dashboard                                                                                                          |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **OpEx Olivia**     | Primary entry for KPI monitoring across sessions. Checks findings-by-status and action progress before jumping into the Editor.     |
+| **Green Belt Gary** | Uses question tree summary to re-orient after a break. Asks CoScout "have we tested X?" before starting a new investigation thread. |
+| **Field Fiona**     | Single-column mobile layout. Quick status check from phone before a shift review meeting. Taps "Go to analysis" to dig in.          |
 
 ---
 

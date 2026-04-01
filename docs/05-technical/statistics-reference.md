@@ -641,7 +641,7 @@ The `simulateFromModel()` function and `getFactorBaselines()` exist in the codeb
 ## Part 14 — Investigation & Findings System
 
 > Sources: `packages/hooks/src/useFindings.ts`, `packages/hooks/src/useHypotheses.ts`, `packages/ui/src/components/FindingsWindow/`, `packages/ui/src/components/FindingsLog/`
-> User docs: [Investigation to Action](../03-features/workflows/investigation-to-action.md), [Hypothesis Investigation](../03-features/workflows/hypothesis-investigation.md)
+> User docs: [Investigation to Action](../03-features/workflows/investigation-to-action.md), [Hypothesis Investigation](../03-features/workflows/question-driven-investigation.md)
 
 ### Architecture
 
@@ -649,7 +649,7 @@ The Investigation & Findings system replaced the earlier Mindmap visualization (
 
 | Component              | Purpose                                                   |
 | ---------------------- | --------------------------------------------------------- |
-| `FindingsWindow`       | Popout window for findings (board view, hypothesis tree)  |
+| `FindingsWindow`       | Popout window for findings (board view, question tree)    |
 | `FindingsLog`          | Inline findings list with cards and status management     |
 | `FindingCard`          | Individual finding with status badge, comments, actions   |
 | `FindingBoardView`     | Horizontal drag-and-drop board (5 status columns)         |
@@ -732,7 +732,7 @@ Findings connect to charts via `FindingSource` metadata:
 
 **`useFindings`** — CRUD for findings plus:
 
-- `linkHypothesis`, `unlinkHypothesis` — connect findings to hypothesis tree
+- `linkHypothesis`, `unlinkHypothesis` — connect findings to question tree
 - `setProjection` — attach What-If projection result
 - `addAction`, `updateAction`, `completeAction`, `deleteAction` — improvement actions
 - `setOutcome` — record measured result

@@ -89,9 +89,9 @@ The two-phase analyst workflow: **Investigate → Project**
 1. Findings — drill into factors, pin observations, track investigation status
 2. What-If — scenario modeling for projected improvement
 
-### [Hypothesis Investigation](hypothesis-investigation.md)
+### [Question-Driven Investigation](question-driven-investigation.md)
 
-The hypothesis tree workflow — form hypotheses, validate with data, track evidence, refine or reject.
+The question tree workflow — form questions, validate with data, track evidence, refine or reject.
 
 ### [Knowledge Base Search](knowledge-base-search.md)
 

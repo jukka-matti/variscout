@@ -139,7 +139,7 @@ The **Project Dashboard** (Azure-only) is a persistent overview view that sits o
 | **When active** | When user opens a saved project (`activeView: 'dashboard'` in `panelsStore`). Also accessible as "Overview" tab from within the Editor.       |
 | **AI summary**  | 1-3 sentence contextual summary: current investigation status, overdue items, suggested next step. Fast tier (gpt-5.4-nano, reasoning: none). |
 | **Cache key**   | `variscout-dashboard` — state-aware, invalidates when `findingCount`, `hypothesisStatusCounts`, or `actionCompletionCount` changes.           |
-| **No-AI mode**  | Dashboard shows status counts and hypothesis tree without the AI summary card. Left column expands to full width.                             |
+| **No-AI mode**  | Dashboard shows status counts and question tree without the AI summary card. Left column expands to full width.                               |
 | **Refresh**     | Checks cache staleness when the user returns to the dashboard mid-session — not just on first project load.                                   |
 
 The dashboard also exposes a **"Ask CoScout..." input** which stores the question in `aiStore.pendingDashboardQuestion`, switches to the Editor, and pre-loads the question into the CoScout panel. The CoScout panel auto-calls `search_project` to answer "have we checked X?" questions.
