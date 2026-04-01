@@ -418,3 +418,31 @@ button:active:not(:disabled),
     scroll-behavior: auto !important;
   }
 }
+
+/* ========================================
+   CoScout Visual Grounding — highlight lifecycle
+   ======================================== */
+.coscout-highlight {
+  border: 2px solid rgb(59, 130, 246) !important;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+  background-color: rgba(59, 130, 246, 0.06);
+  transition:
+    box-shadow 500ms ease-out,
+    border-color 500ms ease-out,
+    background-color 500ms ease-out;
+}
+
+.coscout-highlight--settled {
+  box-shadow: none;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  background-color: transparent;
+}
+
+[data-theme='light'] .coscout-highlight {
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+  background-color: rgba(59, 130, 246, 0.04);
+}
+
+[data-theme='light'] .coscout-highlight--settled {
+  box-shadow: none;
+}

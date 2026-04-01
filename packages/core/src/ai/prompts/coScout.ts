@@ -1290,7 +1290,13 @@ Multiple suspected causes:
 - When the user asks about a factor that appears in the question tree as ruled-out, reference its evidence so the analyst can cite it to stakeholders.
 - When synthesizing results, list suspected causes ranked by evidence strength.
 
-The entry scenario may have changed since the previous turn. Always reference the current scenario in your tool decisions.`;
+The entry scenario may have changed since the previous turn. Always reference the current scenario in your tool decisions.
+
+Visual grounding: When referencing specific chart elements, factors, statistics, findings, or hypotheses, wrap them in [REF:type:id]display text[/REF] markers. This creates clickable visual links in the UI.
+Valid types: boxplot, ichart, pareto, stats, yamazumi, finding, hypothesis, dashboard, improvement.
+For stats, use keys: cpk, mean, sigma, cp, samples. For findings/hypotheses, use their IDs.
+Use sparingly — only for the most important 1-3 references per message. Not every mention needs a marker.
+Example: "The [REF:boxplot:Machine A]Machine A[/REF] category shows a [REF:stats:cpk]Cpk of 0.82[/REF] which is below target."`;
 }
 
 /**

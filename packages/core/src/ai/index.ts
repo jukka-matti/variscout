@@ -131,3 +131,11 @@ export type { SearchProjectOptions, SearchResult } from './searchProject';
 
 export { budgetContext } from './budgetContext';
 export type { ContextComponent, BudgetResult } from './budgetContext';
+
+export {
+  parseRefMarkers,
+  stripRefMarkers,
+  type RefMarker,
+  type RefTargetType,
+  type ParseRefResult,
+} from './refMarkers';
