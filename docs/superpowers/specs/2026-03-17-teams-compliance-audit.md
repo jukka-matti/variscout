@@ -2,7 +2,7 @@
 title: Teams App Store + Microsoft Patterns Compliance Audit
 audience: [developer]
 category: compliance
-status: draft
+status: active
 related: [teams, accessibility, azure, navigation]
 date: 2026-03-17
 ---

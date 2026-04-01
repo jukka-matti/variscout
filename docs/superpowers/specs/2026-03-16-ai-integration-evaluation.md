@@ -1,5 +1,6 @@
 ---
 title: 'AI Integration Quality Evaluation'
+status: delivered
 ---
 
 # AI Integration Quality Evaluation — VariScout

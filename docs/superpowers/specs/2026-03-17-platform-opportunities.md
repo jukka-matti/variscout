@@ -2,7 +2,7 @@
 title: Azure / AI Foundry / Teams Platform Opportunities
 audience: [developer, product]
 category: strategy
-status: draft
+status: active
 related: [azure, ai, teams, platform]
 date: 2026-03-17
 ---

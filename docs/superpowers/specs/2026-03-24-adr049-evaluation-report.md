@@ -1,5 +1,6 @@
 ---
 title: 'Evaluation Report: PR #33 — ADR-049 CoScout Context & Process Memory'
+status: active
 ---
 
 # Evaluation Report: PR #33 — ADR-049 CoScout Context & Process Memory

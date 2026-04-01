@@ -2,7 +2,7 @@
 title: 'Architecture Design Exploration'
 audience: [developer]
 category: architecture
-status: stable
+status: delivered
 related: [adr-045, ddd, feature-sliced-design, strategy-pattern, domain-events]
 ---
 

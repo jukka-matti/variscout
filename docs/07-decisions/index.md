@@ -33,7 +33,7 @@ This section captures key architectural decisions made during VariScout developm
 | [019](adr-019-ai-integration.md)                     | AI Integration (Azure App)                        | Accepted   | 2026-03-14 |
 | [020](adr-020-investigation-workflow.md)             | Investigation Workflow                            | Accepted   | 2026-03-15 |
 | [021](adr-021-security-evaluation.md)                | Security Evaluation (Teams)                       | Accepted   | 2026-02-27 |
-| [022](adr-022-knowledge-layer-architecture.md)       | Knowledge Layer Architecture                      | Accepted   | 2026-03-16 |
+| [022](adr-022-knowledge-layer-architecture.md)       | Knowledge Layer Architecture                      | Amended    | 2026-03-16 |
 | [023](adr-023-data-lifecycle.md)                     | Verification Experience & Data Lifecycle          | Accepted   | 2026-03-16 |
 | [024](adr-024-scouting-report.md)                    | Scouting Report — Dynamic Report View             | Superseded | 2026-03-16 |
 | [025](adr-025-internationalization.md)               | Internationalization Architecture                 | Accepted   | 2026-03-17 |
@@ -60,7 +60,7 @@ This section captures key architectural decisions made during VariScout developm
 | [046](adr-046-event-driven-architecture.md)          | Event-Driven Architecture (mitt bus)              | Superseded | 2026-03-23 |
 | [047](adr-047-analysis-mode-strategy.md)             | Analysis Mode Strategy Pattern                    | Accepted   | 2026-03-23 |
 | [048](adr-048-eslint-boundaries.md)                  | ESLint Boundary Enforcement                       | Accepted   | 2026-03-23 |
-| [049](adr-049-coscout-context-and-memory.md)         | CoScout Knowledge Catalyst                        | Draft      | 2026-03-24 |
+| [049](adr-049-coscout-context-and-memory.md)         | CoScout Knowledge Catalyst                        | Accepted   | 2026-03-24 |
 | [050](adr-050-wide-form-stack-columns.md)            | Wide-Form Data Support — Stack Columns            | Accepted   | 2026-03-29 |
 | [051](adr-051-chart-many-categories.md)              | Chart Handling for Many Categories                | Accepted   | 2026-03-29 |
 | [052](adr-052-factor-intelligence.md)                | Factor Intelligence — Progressive Factor Analysis | Accepted   | 2026-03-29 |

@@ -236,5 +236,5 @@ Any workspace can be popped out to a separate browser window:
 - [Navigation Patterns](../../06-design-system/patterns/navigation.md)
 - [Dashboard Layout Architecture](../../05-technical/architecture/dashboard-layout.md)
 - [Panels and Drawers](../../06-design-system/patterns/panels-and-drawers.md)
-- [IMPROVE Phase UX](2026-03-19-improve-phase-ux-design.md)
+- [IMPROVE Phase UX](../../archive/specs/2026-03-19-improve-phase-ux-design.md) (archived)
 - [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md)

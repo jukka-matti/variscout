@@ -1,5 +1,6 @@
 ---
 title: 'Capability Mode: Time-Based Subgrouping + Journey Integration'
+status: draft
 ---
 
 # Capability Mode: Time-Based Subgrouping + Journey Integration

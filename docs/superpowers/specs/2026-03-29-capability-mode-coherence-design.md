@@ -2,7 +2,7 @@
 title: Capability Mode Coherence
 audience: [engineer]
 category: analysis
-status: approved
+status: delivered
 related: [capability, cpk, boxplot, i-chart, process-health-bar]
 ---
 

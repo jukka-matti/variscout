@@ -2,7 +2,7 @@
 title: Navigation Audit — Findings & Action Items
 audience: [developer, designer]
 category: architecture
-status: stable
+status: delivered
 related: [navigation, mobile, teams, accessibility, onboarding]
 date: 2026-03-17
 ---

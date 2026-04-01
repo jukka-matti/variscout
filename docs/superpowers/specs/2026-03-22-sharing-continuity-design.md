@@ -1,5 +1,6 @@
 ---
 title: 'Sharing & Continuity UX Design'
+status: draft
 ---
 
 # Sharing & Continuity UX Design

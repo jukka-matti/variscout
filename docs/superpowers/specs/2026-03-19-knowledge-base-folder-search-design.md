@@ -2,7 +2,7 @@
 title: 'Knowledge Base: Document Upload, Folder Selection & Permissions Design'
 audience: [engineer, analyst]
 category: architecture
-status: Active
+status: delivered
 related: [knowledge-base, sharepoint, coscout, adr-026]
 ---
 

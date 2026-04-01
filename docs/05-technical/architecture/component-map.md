@@ -39,7 +39,7 @@ flowchart LR
         ch2["4 Performance Charts (+ Base)"]
     end
 
-    subgraph hooks["@variscout/hooks (41+ hooks)"]
+    subgraph hooks["@variscout/hooks (57+ hooks)"]
         direction TB
         h1["8 State & Data"]
         h2["9 Chart Data & Visualization"]
@@ -50,7 +50,7 @@ flowchart LR
         h7["3 Reporting & Export"]
     end
 
-    subgraph ui["@variscout/ui (60+ components)"]
+    subgraph ui["@variscout/ui (73+ components)"]
         direction TB
         u1["10 Input"]
         u2["4 Data Display"]
@@ -252,7 +252,7 @@ flowchart TB
 
 ## @variscout/ui
 
-60+ shared UI components across 14 categories. Uses the `colorScheme` pattern with `defaultScheme` semantic tokens. Depends on core, hooks, and charts.
+73+ shared UI components across 14 categories. Uses the `colorScheme` pattern with `defaultScheme` semantic tokens. Depends on core, hooks, and charts.
 
 ```mermaid
 flowchart TB
@@ -377,7 +377,7 @@ The UI package composes all three lower-level packages:
 
 ```mermaid
 flowchart LR
-    ui["@variscout/ui<br/>(72+ components)"]
+    ui["@variscout/ui<br/>(73+ components)"]
     core["@variscout/core<br/>types, tier"]
     hooks["@variscout/hooks<br/>state, navigation, data"]
     charts["@variscout/charts<br/>chart components"]

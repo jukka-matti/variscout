@@ -1,5 +1,6 @@
 ---
 title: 'Design: CoScout Knowledge Catalyst'
+status: draft
 ---
 
 # Design: CoScout Knowledge Catalyst

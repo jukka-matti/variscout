@@ -28,7 +28,7 @@ Type guards: `isConcept(entry)` and `isGlossaryTerm(entry)` disambiguate the uni
 packages/core/src/glossary/
 ├── types.ts              — Type definitions (GlossaryTerm, Concept, KnowledgeEntry)
 ├── terms.ts              — ~47 vocabulary terms (6 categories)
-├── concepts.ts           — 11 methodology concepts (3 categories)
+├── concepts.ts           — 14 methodology concepts (3 categories)
 ├── knowledge.ts          — Unified lookup (getEntry, getRelated, getReferencedBy)
 ├── buildGlossaryPrompt.ts — AI prompt builder (terms + optional concepts)
 ├── index.ts              — Public API

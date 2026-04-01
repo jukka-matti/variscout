@@ -2,7 +2,7 @@
 title: 'Holistic Evaluation: VariScout Quality Index (VQI)'
 audience: [analyst, engineer]
 category: reference
-status: Active
+status: active
 related: [evaluation, ai-experience, maturity-model, competitive-analysis, architecture]
 ---
 

@@ -204,4 +204,4 @@ These tests run as part of `pnpm --filter @variscout/core test`.
 - [AI Safety Report](../../08-products/azure/ai-safety-report.md) — Marketplace certification
 - [EU AI Act Mapping](eu-ai-act-mapping.md) — Classification analysis
 - [ADR-029](../../07-decisions/adr-029-ai-action-tools.md) — Action tool architecture
-- [ADR-028](../../07-decisions/adr-028-responses-api.md) — Responses API migration
+- [ADR-028](../../07-decisions/adr-028-responses-api-migration.md) — Responses API migration

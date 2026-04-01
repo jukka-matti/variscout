@@ -2,7 +2,7 @@
 title: Improvement Prioritization Design
 audience: [engineer, analyst]
 category: workflow
-status: stable
+status: delivered
 related: [improve, prioritization, risk, timeframe, cost, matrix, ideas, actions, adr-035]
 ---
 
@@ -223,5 +223,5 @@ ActionProposalCard renders previews with timeframe and cost labels.
 
 - [ADR-035: Improvement Prioritization](../../07-decisions/adr-035-improvement-prioritization.md) — decision record
 - [Improvement Prioritization Workflow](../../03-features/workflows/improvement-prioritization.md) — user-facing methodology
-- [IMPROVE Phase UX Design](2026-03-19-improve-phase-ux-design.md) — workspace design
+- [IMPROVE Phase UX Design](../../archive/specs/2026-03-19-improve-phase-ux-design.md) — workspace design (archived)
 - [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — full improvement methodology
