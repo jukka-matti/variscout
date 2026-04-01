@@ -3,22 +3,25 @@ import Dashboard from '../Dashboard';
 
 const StatsPanel = React.lazy(() => import('../StatsPanel'));
 import DataTableModal from '../data/DataTableModal';
-import FindingsPanel from '../FindingsPanel';
-import { CoScoutPanelBase, AIOnboardingTooltip, SessionClosePrompt } from '@variscout/ui';
+import {
+  CoScoutPanelBase,
+  AIOnboardingTooltip,
+  SessionClosePrompt,
+  QuestionsTabView,
+  JournalTabView,
+} from '@variscout/ui';
 import type { SessionClosePromptItem } from '@variscout/ui';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
-import { hasTeamFeatures, toNumericValue, createFactorFinding } from '@variscout/core';
+import { toNumericValue, createFactorFinding } from '@variscout/core';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
 import type { UseHypothesesReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
-import { useQuestionGeneration } from '@variscout/hooks';
-import { resolveMode, getStrategy } from '@variscout/core/strategy';
+import { useQuestionGeneration, useQuestionReactivity, useJournalEntries } from '@variscout/hooks';
+import { resolveMode } from '@variscout/core/strategy';
 import { isAIAvailable } from '../../services/aiService';
 import { useData } from '../../context/DataContext';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
-import { useInvestigationStore } from '../../features/investigation/investigationStore';
-import { useImprovementStore } from '../../features/improvement/improvementStore';
 import { useAIStore } from '../../features/ai/aiStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
@@ -91,19 +94,19 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   findingsState,
   findingsCallbacks,
   handlePinFinding,
-  handleRestoreFinding,
-  handleNavigateToChart,
-  handleShareFinding,
-  handleOpenFindingsPopout,
+  handleRestoreFinding: _handleRestoreFinding,
+  handleNavigateToChart: _handleNavigateToChart,
+  handleShareFinding: _handleShareFinding,
+  handleOpenFindingsPopout: _handleOpenFindingsPopout,
   handleSetFindingStatus,
-  drillPath,
+  drillPath: _drillPath,
   hypothesesState,
-  handleCreateHypothesis,
-  handleProjectIdea,
+  handleCreateHypothesis: _handleCreateHypothesis,
+  handleProjectIdea: _handleProjectIdea,
   handleAddCommentWithAuthor,
-  handleAddPhoto,
-  handleCaptureFromTeams,
-  isTeamsCamera,
+  handleAddPhoto: _handleAddPhoto,
+  handleCaptureFromTeams: _handleCaptureFromTeams,
+  isTeamsCamera: _isTeamsCamera,
   aiOrch,
   actionProposalsState,
   handleSearchKnowledge,
@@ -111,7 +114,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   controlViolations,
   excludedRowIndices,
   excludedReasons,
-  columnAliases,
+  columnAliases: _columnAliases,
 }) => {
   const {
     factors,
@@ -143,12 +146,38 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     mode: resolved,
   });
 
+  // ── PI Panel: Questions + Journal wiring ─────────────────────────────
+  const activeFactor = useMemo(() => {
+    const filterKeys = Object.keys(filters);
+    return filterKeys.length > 0 ? filterKeys[filterKeys.length - 1] : null;
+  }, [filters]);
+
+  const { activeQuestionId } = useQuestionReactivity({
+    questions: factorIntelQuestions,
+    activeFactor,
+  });
+
+  const journalEntries = useJournalEntries({
+    findings: findingsState.findings,
+    questions: factorIntelQuestions,
+    issueStatement: processContext?.issueStatement,
+    problemStatement: processContext?.problemStatement,
+  });
+
+  const openQuestionCount = useMemo(
+    () =>
+      factorIntelQuestions.filter(q => q.status === 'untested' || q.status === 'partial').length,
+    [factorIntelQuestions]
+  );
+
+  const piOverflowView = usePanelsStore(s => s.piOverflowView);
+  const setPIOverflowView = usePanelsStore(s => s.setPIOverflowView);
+
   // Session-close prompt state (ADR-049)
   const [showClosePrompt, setShowClosePrompt] = useState(false);
   const [closePromptItems, setClosePromptItems] = useState<SessionClosePromptItem[]>([]);
 
   // Panel state from Zustand
-  const isFindingsOpen = usePanelsStore(s => s.isFindingsOpen);
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isDataTableOpen = usePanelsStore(s => s.isDataTableOpen);
   const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
@@ -179,18 +208,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
 
   const centeringOpp = useMemo(() => (stats ? computeCenteringOpportunity(stats) : null), [stats]);
 
-  // Findings highlight from Zustand
-  const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
-  const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
-
-  // Investigation store
-  const hypothesesMap = useInvestigationStore(s => s.hypothesesMap);
-  const ideaImpacts = useInvestigationStore(s => s.ideaImpacts);
-
-  // Improvement store
-  const projectedCpkMap = useImprovementStore(s => s.projectedCpkMap);
-  const improvementLinkedFindings = useImprovementStore(s => s.improvementLinkedFindings);
-
   // Destructure AI orchestration
   const {
     aiContext,
@@ -201,16 +218,9 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     fetchChartInsight: fetchChartInsightFromAI,
     handleNarrativeAsk,
     handleAskCoScoutFromCategory,
-    handleAskCoScoutFromIdeas,
-    handleAskCoScoutFromFinding,
   } = aiOrch;
 
   const { actionProposals, handleExecuteAction, handleDismissAction } = actionProposalsState;
-
-  const handleCloseFindingsPanel = useCallback(() => {
-    usePanelsStore.getState().setFindingsOpen(false);
-    setHighlightedFindingId(null);
-  }, [setHighlightedFindingId]);
 
   // ── Factor Intelligence → Findings bridge ──────────────────────────────
   const handleInvestigateFactor = useCallback(
@@ -255,70 +265,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     },
     [outcome, filteredData, findingsState, hypothesesState, handleSetFindingStatus]
   );
-
-  // Build shared FindingsPanel props to avoid duplication between phone/desktop
-  const sharedFindingsProps = {
-    findings: findingsState.findings,
-    onEditFinding: findingsState.editFinding,
-    onDeleteFinding: findingsState.deleteFinding,
-    onRestoreFinding: handleRestoreFinding,
-    onSetFindingStatus: handleSetFindingStatus,
-    onSetFindingTag: findingsState.setFindingTag,
-    onAddComment: handleAddCommentWithAuthor,
-    onEditComment: findingsState.editFindingComment,
-    onDeleteComment: findingsState.deleteFindingComment,
-    onAddPhoto: hasTeamFeatures() ? handleAddPhoto : undefined,
-    onCaptureFromTeams: hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined,
-    onCreateHypothesis: handleCreateHypothesis,
-    hypothesesMap,
-    hypotheses: hypothesesState.hypotheses,
-    onAddSubHypothesis: hypothesesState.addSubHypothesis,
-    factors,
-    getChildrenSummary: hypothesesState.getChildrenSummary,
-    onSetValidationTask: hypothesesState.setValidationTask,
-    onCompleteTask: hypothesesState.completeTask,
-    onSetManualStatus: hypothesesState.setManualStatus,
-    onAddAction: findingsState.addAction,
-    onCompleteAction: findingsState.completeAction,
-    onDeleteAction: findingsState.deleteAction,
-    onSetOutcome: findingsState.setOutcome,
-    ideaImpacts,
-    onAddIdea: hypothesesState.addIdea,
-    onUpdateIdea: hypothesesState.updateIdea,
-    onRemoveIdea: hypothesesState.removeIdea,
-    onSelectIdea: hypothesesState.selectIdea,
-    onProjectIdea: handleProjectIdea,
-    onSetCauseRole: hypothesesState.setCauseRole,
-    onAskCoScout: handleAskCoScoutFromIdeas,
-    onAskCoScoutAboutFinding: handleAskCoScoutFromFinding,
-    showAuthors: true,
-    columnAliases,
-    drillPath,
-    activeFindingId: highlightedFindingId,
-    onShareFinding: handleShareFinding,
-    onSetFindingAssignee: findingsState.setFindingAssignee,
-    onNavigateToChart: handleNavigateToChart,
-    viewMode: viewState?.findingsViewMode,
-    onViewModeChange: (mode: 'list' | 'board' | 'tree') =>
-      onViewStateChange({ findingsViewMode: mode }),
-    coScoutMessages: coscout.messages,
-    coScoutOnSend: coscout.send,
-    coScoutIsLoading: coscout.isLoading,
-    coScoutIsStreaming: coscout.isStreaming,
-    coScoutOnStopStreaming: coscout.stopStreaming,
-    coScoutError: coscout.error,
-    coScoutOnRetry: coscout.retry,
-    investigationPhase: aiContext.context?.investigation?.phase,
-    coScoutSuggestedQuestions: suggestedQuestions,
-    projectedCpkMap,
-    synthesis: processContext?.synthesis,
-    // Question-driven investigation (ADR-053)
-    questions: factorIntelQuestions,
-    issueStatement: processContext?.issueStatement,
-    evidenceLabel: getStrategy(resolved).questionStrategy.evidenceLabel,
-    onQuestionClick: handleQuestionClick,
-    linkedFindings: improvementLinkedFindings,
-  };
 
   // Insight capture callbacks for SaveInsightDialog (ADR-049)
   const handleSaveAsNewFinding = useCallback(
@@ -510,6 +456,24 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
                   factors={factors}
                   onInvestigateFactor={handleInvestigateFactor}
                   precomputedBestSubsets={bestSubsets}
+                  renderQuestionsTab={() => (
+                    <QuestionsTabView
+                      questions={factorIntelQuestions}
+                      findings={findingsState.findings}
+                      issueStatement={processContext?.issueStatement}
+                      currentCpk={stats?.cpk ?? undefined}
+                      targetCpk={cpkTarget}
+                      activeQuestionId={activeQuestionId}
+                      onQuestionClick={handleQuestionClick}
+                      onAddNote={(findingId, text) =>
+                        findingsState.addFindingComment(findingId, text)
+                      }
+                    />
+                  )}
+                  renderJournalTab={() => <JournalTabView entries={journalEntries} />}
+                  openQuestionCount={openQuestionCount}
+                  overflowView={piOverflowView}
+                  onOverflowViewChange={setPIOverflowView}
                 />
               </React.Suspense>
             </div>
@@ -560,37 +524,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           isAIAvailable={aiAvailable}
           anchorSelector='[data-testid="narrative-ask-button"]'
         />
-        {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
-        {isPhone && isFindingsOpen ? (
-          <div className="fixed inset-0 z-[60] bg-surface flex flex-col animate-slide-up safe-area-bottom">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
-              <h2 className="text-sm font-semibold text-content">Findings</h2>
-              <button
-                onClick={handleCloseFindingsPanel}
-                className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
-                style={{ minWidth: 44, minHeight: 44 }}
-                aria-label="Close findings"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <FindingsPanel
-              isOpen={true}
-              onClose={handleCloseFindingsPanel}
-              {...sharedFindingsProps}
-            />
-          </div>
-        ) : (
-          <FindingsPanel
-            isOpen={isFindingsOpen}
-            onClose={handleCloseFindingsPanel}
-            onPopout={handleOpenFindingsPopout}
-            onSelectHypothesis={_h => {
-              // Hypothesis drill-down — currently handled via filter navigation at parent level
-            }}
-            {...sharedFindingsProps}
-          />
-        )}
         {/* CoScoutPanel: full-screen overlay on phone, inline sidebar on desktop */}
         {isPhone && isCoScoutOpen ? (
           <div className="fixed inset-0 z-[60] bg-surface flex flex-col animate-slide-up safe-area-bottom">

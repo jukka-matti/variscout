@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
 import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
 import type { ComplementInsight } from '@variscout/ui';
+import type { PIOverflowView } from '@variscout/ui';
 import {
   StatsPanelBase,
   useGlossary,
@@ -39,6 +40,16 @@ interface StatsPanelProps {
   onInvestigateFactor?: (effect: import('@variscout/core/stats').FactorMainEffect) => void;
   /** Pre-computed best subsets (from useQuestionGeneration) to avoid double computation */
   precomputedBestSubsets?: import('@variscout/core/stats').BestSubsetsResult | null;
+  /** PI panel: Questions tab render prop */
+  renderQuestionsTab?: () => React.ReactNode;
+  /** PI panel: Journal tab render prop */
+  renderJournalTab?: () => React.ReactNode;
+  /** PI panel: open question count for badge */
+  openQuestionCount?: number;
+  /** PI panel: overflow view state (controlled) */
+  overflowView?: PIOverflowView;
+  /** PI panel: overflow view change handler */
+  onOverflowViewChange?: (view: PIOverflowView) => void;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({
@@ -62,6 +73,11 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   onFactorDrillDown,
   onInvestigateFactor,
   precomputedBestSubsets,
+  renderQuestionsTab,
+  renderJournalTab,
+  openQuestionCount,
+  overflowView,
+  onOverflowViewChange,
 }) => {
   const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
@@ -137,6 +153,11 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             : undefined
         }
         renderDataTable={renderDataTable}
+        renderQuestionsTab={renderQuestionsTab}
+        renderJournalTab={renderJournalTab}
+        openQuestionCount={openQuestionCount}
+        overflowView={overflowView}
+        onOverflowViewChange={onOverflowViewChange}
         renderWhatIf={
           stats && (specs.usl !== undefined || specs.lsl !== undefined)
             ? () => (

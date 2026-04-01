@@ -169,7 +169,6 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Panel visibility and chart/table sync (Zustand store)
   const activeView = usePanelsStore(s => s.activeView);
-  const isFindingsOpen = usePanelsStore(s => s.isFindingsOpen);
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
   const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
@@ -198,15 +197,6 @@ export const Editor: React.FC<EditorProps> = ({
   // Focus return refs for mobile overlays (F-19)
   const findingsTriggerRef = useRef<Element | null>(null);
   const coScoutTriggerRef = useRef<Element | null>(null);
-
-  // Restore focus when mobile findings overlay closes
-  useEffect(() => {
-    if (!isPhone || isFindingsOpen) return;
-    if (findingsTriggerRef.current instanceof HTMLElement) {
-      findingsTriggerRef.current.focus();
-      findingsTriggerRef.current = null;
-    }
-  }, [isPhone, isFindingsOpen]);
 
   // Restore focus when mobile CoScout overlay closes
   useEffect(() => {
@@ -958,7 +948,7 @@ export const Editor: React.FC<EditorProps> = ({
       <div
         ref={el => {
           if (!el) return;
-          if (isPhone && (isFindingsOpen || isCoScoutOpen)) {
+          if (isPhone && isCoScoutOpen) {
             el.setAttribute('inert', '');
           } else {
             el.removeAttribute('inert');

@@ -5,6 +5,7 @@ import { create } from 'zustand';
 interface PanelsState {
   activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
   isDataTableOpen: boolean;
+  /** @deprecated Findings are moving to the Investigation workspace. Kept for backward compat; always false. Task 10 will remove consumers. */
   isFindingsOpen: boolean;
   isCoScoutOpen: boolean;
   isWhatIfOpen: boolean;
@@ -13,6 +14,10 @@ interface PanelsState {
   /** Set by navigate_to tool; consumed by Editor to focus a chart via ViewState. */
   pendingChartFocus: string | null;
   isStatsSidebarOpen: boolean;
+  /** Active tab in the PI (Point Investigation) panel. */
+  piActiveTab: 'stats' | 'questions' | 'journal';
+  /** Secondary overflow view within the PI panel (Data or What-If). Cleared when tab changes. */
+  piOverflowView: 'data' | 'whatif' | null;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -36,6 +41,8 @@ interface PanelsActions {
   handleRowClick: (index: number) => void;
   setPendingChartFocus: (chart: string | null) => void;
   toggleStatsSidebar: () => void;
+  setPIActiveTab: (tab: 'stats' | 'questions' | 'journal') => void;
+  setPIOverflowView: (view: 'data' | 'whatif' | null) => void;
   /** Initialize persisted panel state from a saved ViewState. */
   initFromViewState: (
     viewState?: {
@@ -54,13 +61,15 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   // Initial state
   activeView: 'analysis',
   isDataTableOpen: false,
-  isFindingsOpen: false,
+  isFindingsOpen: false, // deprecated — always false; Task 10 will remove consumers
   isCoScoutOpen: false,
   isWhatIfOpen: false,
   highlightRowIndex: null,
   highlightedChartPoint: null,
   pendingChartFocus: null,
   isStatsSidebarOpen: false,
+  piActiveTab: 'stats',
+  piOverflowView: null,
 
   // Workspace navigation (ADR-055 + header-redesign spec)
   showDashboard: () => set(() => ({ activeView: 'dashboard' })),
@@ -93,6 +102,10 @@ export const usePanelsStore = create<PanelsStore>(set => ({
 
   // Stats sidebar
   toggleStatsSidebar: () => set(s => ({ isStatsSidebarOpen: !s.isStatsSidebarOpen })),
+
+  // PI panel tab + overflow
+  setPIActiveTab: tab => set({ piActiveTab: tab, piOverflowView: null }),
+  setPIOverflowView: view => set({ piOverflowView: view }),
 
   // What-If
   setWhatIfOpen: open => set({ isWhatIfOpen: open }),
