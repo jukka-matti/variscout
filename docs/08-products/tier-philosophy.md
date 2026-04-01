@@ -65,7 +65,7 @@ Seven rules that determine which features belong in which tier.
 
 The PWA is a learning tool. Everything needed to understand variation analysis methodology is free. Everything needed to do production work (file upload, save, >3 factors) is paid.
 
-**Applied:** PWA has all 4 chart types, drill-down, linked filtering, capability metrics — but only copy-paste input, session-only storage, and 3 factors maximum.
+**Applied:** PWA has all 4 chart types, drill-down, linked filtering, capability metrics, and the complete FRAME → SCOUT → INVESTIGATE → IMPROVE → REPORT journey — but only copy-paste input, session-only storage, and 3 factors maximum. The full journey teaches methodology; production work (persistence, collaboration, file upload) requires Azure.
 
 ### Principle 2: Individual vs. Team Is the Primary Split
 

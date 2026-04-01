@@ -53,7 +53,7 @@ ProjectHeader (44px):
 - **Analysis** has a dropdown for sub-modes (Standard / Performance / Yamazumi)
 - **Report** workspace contains the report view, export, and PDF actions (no report/export/present buttons in header)
 - **Save** button stays in header; auto-save (`useAutoSave`) also runs alongside, debouncing saves on state changes
-- PWA shows only Analysis tab + Stats. Azure shows all 5 tabs + AI.
+- PWA: full journey tabs planned (Analysis + Investigation + Improvement + Report, session-only). Azure shows all 5 tabs + AI.
 - Mobile uses bottom tab bar instead (Analysis | Findings | Improve | More)
 
 See [Header Redesign spec](../../superpowers/specs/2026-04-01-header-redesign-design.md) for full design.
