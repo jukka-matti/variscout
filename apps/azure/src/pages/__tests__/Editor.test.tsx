@@ -279,7 +279,7 @@ describe('Editor', () => {
     vi.restoreAllMocks();
 
     // Reset panelsStore activeView to default state
-    usePanelsStore.setState({ activeView: 'editor' });
+    usePanelsStore.setState({ activeView: 'analysis' });
 
     // Re-apply storage mock after restoreAllMocks
     vi.mocked(StorageModule.useStorage).mockReturnValue({

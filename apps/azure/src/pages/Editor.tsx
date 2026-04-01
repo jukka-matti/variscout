@@ -168,7 +168,6 @@ export const Editor: React.FC<EditorProps> = ({
   const isFindingsOpen = usePanelsStore(s => s.isFindingsOpen);
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
-  const isImprovementOpen = usePanelsStore(s => s.isImprovementOpen);
   const isReportOpen = usePanelsStore(s => s.isReportOpen);
   const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
 
@@ -227,12 +226,11 @@ export const Editor: React.FC<EditorProps> = ({
       const ps = usePanelsStore.getState();
       if (tab === 'findings') {
         if (isPhone) findingsTriggerRef.current = document.activeElement;
-        ps.setFindingsOpen(true);
+        ps.showInvestigation();
       } else if (tab === 'improve') {
-        ps.setImprovementOpen(true);
+        ps.showImprovement();
       } else if (tab === 'analysis') {
-        ps.setFindingsOpen(false);
-        ps.setImprovementOpen(false);
+        ps.showAnalysis();
       }
     },
     [isPhone]
@@ -351,36 +349,38 @@ export const Editor: React.FC<EditorProps> = ({
   const baseUrl = window.location.origin + window.location.pathname;
   const projectName = currentProjectName || 'New Analysis';
 
-  // Dashboard → Editor navigation handler
+  // Dashboard → workspace navigation handler (ADR-055)
   const handleDashboardNavigate = useCallback((target: string, targetId?: string) => {
-    usePanelsStore.getState().showEditor();
+    const ps = usePanelsStore.getState();
     if (target === 'finding' && targetId) {
-      usePanelsStore.getState().setFindingsOpen(true);
+      ps.showInvestigation();
       useFindingsStore.getState().setHighlightedFindingId(targetId);
     } else if (target === 'findings' && targetId) {
-      // Navigate to findings filtered by status
-      usePanelsStore.getState().setFindingsOpen(true);
+      ps.showInvestigation();
       useFindingsStore.getState().setStatusFilter(targetId);
     } else if (target === 'hypothesis' && targetId) {
-      usePanelsStore.getState().setFindingsOpen(true);
+      ps.showInvestigation();
       useInvestigationStore.getState().expandToHypothesis(targetId);
     } else if (target === 'improvement' || target === 'actions') {
-      usePanelsStore.getState().setImprovementOpen(true);
+      ps.showImprovement();
     } else if (target === 'report') {
-      usePanelsStore.getState().openReport();
+      ps.showAnalysis();
+      ps.openReport();
     } else if (target === 'coscout') {
-      // Pending question is already set in aiStore by ProjectDashboard
-      usePanelsStore.getState().setCoScoutOpen(true);
+      ps.showAnalysis();
+      ps.setCoScoutOpen(true);
+    } else {
+      ps.showAnalysis();
     }
   }, []);
 
   const handleDashboardAddData = useCallback(() => {
-    usePanelsStore.getState().showEditor();
+    usePanelsStore.getState().showAnalysis();
     dataFlow.startAppendPaste();
   }, [dataFlow]);
 
   const handleDashboardResumeAnalysis = useCallback(() => {
-    usePanelsStore.getState().showEditor();
+    usePanelsStore.getState().showAnalysis();
   }, []);
 
   // Share handlers
@@ -483,7 +483,7 @@ export const Editor: React.FC<EditorProps> = ({
       }
     }
     if (initialMode === 'improvement') {
-      usePanelsStore.getState().setImprovementOpen(true);
+      usePanelsStore.getState().showImprovement();
     } else if (initialMode === 'report') {
       usePanelsStore.getState().openReport();
     }
@@ -491,13 +491,14 @@ export const Editor: React.FC<EditorProps> = ({
     if (hasDeepLink) {
       const cleanUrl = window.location.origin + window.location.pathname;
       window.history.replaceState({}, '', cleanUrl);
-      // Deep-linked: stay in editor view
-      usePanelsStore.getState().showEditor();
+      // Deep-linked: stay in analysis view (or investigation/improvement set above)
+      if (!initialMode) usePanelsStore.getState().showAnalysis();
     } else if (projectId) {
       // Project loaded with data, no deep link: honor persisted view or default to dashboard
       const persistedView = viewState?.activeView;
-      if (persistedView === 'editor') {
-        usePanelsStore.getState().showEditor();
+      if (persistedView && persistedView !== 'dashboard') {
+        // Restore persisted workspace (analysis/investigation/improvement)
+        usePanelsStore.getState().initFromViewState(viewState ?? undefined);
       } else {
         usePanelsStore.getState().showDashboard();
       }
@@ -943,36 +944,6 @@ export const Editor: React.FC<EditorProps> = ({
     );
   }
 
-  if (isImprovementOpen) {
-    return (
-      <ImprovementWorkspaceBase
-        synthesis={processContext?.synthesis}
-        onSynthesisChange={handleSynthesisChange}
-        hypotheses={improvementHypotheses}
-        linkedFindings={improvementLinkedFindings}
-        onToggleSelect={(hId, iId, sel) => hypothesesState.selectIdea(hId, iId, sel)}
-        onUpdateTimeframe={(hId, iId, timeframe) =>
-          hypothesesState.updateIdea(hId, iId, { timeframe })
-        }
-        onUpdateDirection={(hId, iId, dir) =>
-          hypothesesState.updateIdea(hId, iId, { direction: dir })
-        }
-        onUpdateCost={(hId, iId, cost) => hypothesesState.updateIdea(hId, iId, { cost })}
-        onOpenRisk={() => {}}
-        onRemoveIdea={hypothesesState.removeIdea}
-        onOpenWhatIf={handleProjectIdea}
-        onAddIdea={(hId, text) => hypothesesState.addIdea(hId, text)}
-        onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
-        onConvertToActions={handleConvertIdeasToActions}
-        onBack={() => usePanelsStore.getState().setImprovementOpen(false)}
-        onPopout={handleOpenImprovementPopout}
-        selectedIdeaIds={selectedIdeaIds}
-        convertedIdeaIds={convertedIdeaIds}
-        targetCpk={processContext?.targetValue}
-      />
-    );
-  }
-
   // ── Main editor layout ───────────────────────────────────────────────────
 
   return (
@@ -999,7 +970,7 @@ export const Editor: React.FC<EditorProps> = ({
         }}
         panelState={{
           isFindingsOpen,
-          isImprovementOpen,
+          isImprovementOpen: activeView === 'improvement',
           findingsCount: findingsState.findings.length,
           onToggleFindings: () => {
             if (isPhone && !isFindingsOpen) findingsTriggerRef.current = document.activeElement;
@@ -1017,7 +988,7 @@ export const Editor: React.FC<EditorProps> = ({
           onAddManualData: dataFlow.handleAddMoreData,
           onOpenDataTable: () => usePanelsStore.getState().openDataTable(),
           onOpenWhatIf: () => usePanelsStore.getState().setWhatIfOpen(true),
-          onOpenImprovement: () => usePanelsStore.getState().setImprovementOpen(true),
+          onOpenImprovement: () => usePanelsStore.getState().showImprovement(),
           onOpenReport: () => usePanelsStore.getState().openReport(),
           onOpenPresentation: () => usePanelsStore.getState().openPresentation(),
         }}
@@ -1062,7 +1033,7 @@ export const Editor: React.FC<EditorProps> = ({
           />
         ) : outcome ? (
           <>
-            {/* Overview / Analysis tab bar */}
+            {/* Overview / Workspace tab bar (ADR-055) */}
             <div className="flex border-b border-edge flex-shrink-0" data-testid="view-toggle">
               <button
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
@@ -1077,18 +1048,40 @@ export const Editor: React.FC<EditorProps> = ({
               </button>
               <button
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeView === 'editor'
+                  activeView === 'analysis'
                     ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
                     : 'text-content-secondary hover:text-content'
                 }`}
-                onClick={() => usePanelsStore.getState().showEditor()}
+                onClick={() => usePanelsStore.getState().showAnalysis()}
                 data-testid="view-toggle-analysis"
               >
                 Analysis
               </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeView === 'investigation'
+                    ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'text-content-secondary hover:text-content'
+                }`}
+                onClick={() => usePanelsStore.getState().showInvestigation()}
+                data-testid="view-toggle-investigation"
+              >
+                Investigation
+              </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeView === 'improvement'
+                    ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'text-content-secondary hover:text-content'
+                }`}
+                onClick={() => usePanelsStore.getState().showImprovement()}
+                data-testid="view-toggle-improvement"
+              >
+                Improvement
+              </button>
             </div>
 
-            {/* View content */}
+            {/* Workspace content (ADR-055) */}
             {activeView === 'dashboard' ? (
               <div className="flex-1 overflow-y-auto">
                 <ProjectDashboard
@@ -1102,6 +1095,37 @@ export const Editor: React.FC<EditorProps> = ({
                   onUpdateLastViewed={handleUpdateLastViewed}
                 />
               </div>
+            ) : activeView === 'investigation' ? (
+              /* TODO: Phase 3 — InvestigationWorkspace component */
+              <div className="flex-1 flex items-center justify-center text-content-secondary text-sm">
+                Investigation workspace — coming soon
+              </div>
+            ) : activeView === 'improvement' ? (
+              <ImprovementWorkspaceBase
+                synthesis={processContext?.synthesis}
+                onSynthesisChange={handleSynthesisChange}
+                hypotheses={improvementHypotheses}
+                linkedFindings={improvementLinkedFindings}
+                onToggleSelect={(hId, iId, sel) => hypothesesState.selectIdea(hId, iId, sel)}
+                onUpdateTimeframe={(hId, iId, timeframe) =>
+                  hypothesesState.updateIdea(hId, iId, { timeframe })
+                }
+                onUpdateDirection={(hId, iId, dir) =>
+                  hypothesesState.updateIdea(hId, iId, { direction: dir })
+                }
+                onUpdateCost={(hId, iId, cost) => hypothesesState.updateIdea(hId, iId, { cost })}
+                onOpenRisk={() => {}}
+                onRemoveIdea={hypothesesState.removeIdea}
+                onOpenWhatIf={handleProjectIdea}
+                onAddIdea={(hId, text) => hypothesesState.addIdea(hId, text)}
+                onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
+                onConvertToActions={handleConvertIdeasToActions}
+                onBack={() => usePanelsStore.getState().showAnalysis()}
+                onPopout={handleOpenImprovementPopout}
+                selectedIdeaIds={selectedIdeaIds}
+                convertedIdeaIds={convertedIdeaIds}
+                targetCpk={processContext?.targetValue}
+              />
             ) : (
               <EditorDashboardView
                 dataFlow={dataFlow}

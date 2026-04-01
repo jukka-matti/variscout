@@ -82,31 +82,28 @@ export function buildNavTeamToolHandlers({
           panels.showDashboard();
           break;
         case 'finding':
-          panels.showEditor();
-          panels.setFindingsOpen(true);
+          panels.showInvestigation();
           if (targetId) {
             useFindingsStore.getState().setHighlightedFindingId(targetId);
           }
           break;
         case 'hypothesis':
-          panels.showEditor();
-          panels.setFindingsOpen(true);
+          panels.showInvestigation();
           if (targetId) {
             useInvestigationStore.getState().expandToHypothesis(targetId);
           }
           break;
         case 'chart':
-          panels.showEditor();
+          panels.showAnalysis();
           if (chartType) {
             panels.setPendingChartFocus(chartType);
           }
           break;
         case 'improvement_workspace':
-          panels.showEditor();
-          panels.setImprovementOpen(true);
+          panels.showImprovement();
           break;
         case 'report':
-          panels.showEditor();
+          panels.showAnalysis();
           panels.openReport();
           break;
       }

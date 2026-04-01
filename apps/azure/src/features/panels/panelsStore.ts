@@ -3,12 +3,11 @@ import { create } from 'zustand';
 // ── State ────────────────────────────────────────────────────────────────────
 
 interface PanelsState {
-  activeView: 'dashboard' | 'editor';
+  activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement';
   isDataTableOpen: boolean;
   isFindingsOpen: boolean;
   isCoScoutOpen: boolean;
   isWhatIfOpen: boolean;
-  isImprovementOpen: boolean;
   isPresentationMode: boolean;
   isReportOpen: boolean;
   highlightRowIndex: number | null;
@@ -22,7 +21,11 @@ interface PanelsState {
 
 interface PanelsActions {
   showDashboard: () => void;
+  /** @deprecated Use showAnalysis() instead */
   showEditor: () => void;
+  showAnalysis: () => void;
+  showInvestigation: () => void;
+  showImprovement: () => void;
   openDataTable: () => void;
   closeDataTable: () => void;
   setFindingsOpen: (open: boolean) => void;
@@ -30,6 +33,7 @@ interface PanelsActions {
   setCoScoutOpen: (open: boolean) => void;
   toggleCoScout: () => void;
   setWhatIfOpen: (open: boolean) => void;
+  /** @deprecated Use showImprovement() / showAnalysis() instead */
   setImprovementOpen: (open: boolean) => void;
   openPresentation: () => void;
   closePresentation: () => void;
@@ -44,10 +48,9 @@ interface PanelsActions {
   /** Initialize persisted panel state from a saved ViewState. */
   initFromViewState: (
     viewState?: {
-      activeView?: 'dashboard' | 'editor';
+      activeView?: 'dashboard' | 'analysis' | 'investigation' | 'improvement';
       isFindingsOpen?: boolean;
       isWhatIfOpen?: boolean;
-      isImprovementOpen?: boolean;
     } | null
   ) => void;
 }
@@ -58,12 +61,11 @@ export type PanelsStore = PanelsState & PanelsActions;
 
 export const usePanelsStore = create<PanelsStore>(set => ({
   // Initial state
-  activeView: 'editor',
+  activeView: 'analysis',
   isDataTableOpen: false,
   isFindingsOpen: false,
   isCoScoutOpen: false,
   isWhatIfOpen: false,
-  isImprovementOpen: false,
   isPresentationMode: false,
   isReportOpen: false,
   highlightRowIndex: null,
@@ -71,7 +73,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   pendingChartFocus: null,
   isStatsSidebarOpen: false,
 
-  // Dashboard/editor view toggle
+  // Workspace navigation (ADR-055)
   showDashboard: () =>
     set(() => ({
       activeView: 'dashboard',
@@ -80,16 +82,34 @@ export const usePanelsStore = create<PanelsStore>(set => ({
     })),
   showEditor: () =>
     set(() => ({
-      activeView: 'editor',
+      activeView: 'analysis',
+    })),
+  showAnalysis: () =>
+    set(() => ({
+      activeView: 'analysis',
+    })),
+  showInvestigation: () =>
+    set(() => ({
+      activeView: 'investigation',
+      isFindingsOpen: false, // workspace IS the findings view
+    })),
+  showImprovement: () =>
+    set(() => ({
+      activeView: 'improvement',
+      isWhatIfOpen: false,
+      isReportOpen: false,
+      isPresentationMode: false,
     })),
 
   // Data table
   openDataTable: () => set({ isDataTableOpen: true }),
   closeDataTable: () => set({ isDataTableOpen: false }),
 
-  // Findings
-  setFindingsOpen: open => set({ isFindingsOpen: open }),
-  toggleFindings: () => set(s => ({ isFindingsOpen: !s.isFindingsOpen })),
+  // Findings — no-op in investigation workspace (workspace IS the findings view)
+  setFindingsOpen: open =>
+    set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: open })),
+  toggleFindings: () =>
+    set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: !s.isFindingsOpen })),
 
   // CoScout
   setCoScoutOpen: open => set({ isCoScoutOpen: open }),
@@ -101,38 +121,39 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   // What-If
   setWhatIfOpen: open => set({ isWhatIfOpen: open }),
 
-  // Improvement — mutual exclusion: closes whatIf, report, presentation
+  // Improvement — backward compat shim, delegates to workspace actions
   setImprovementOpen: open =>
     set(s => {
-      if (s.isImprovementOpen === open) return s;
+      if (open && s.activeView === 'improvement') return s;
+      if (!open && s.activeView !== 'improvement') return s;
       if (open) {
         return {
-          isImprovementOpen: true,
+          activeView: 'improvement',
           isWhatIfOpen: false,
           isReportOpen: false,
           isPresentationMode: false,
         };
       }
-      return { isImprovementOpen: false };
+      return { activeView: 'analysis' };
     }),
 
-  // Presentation — closes report, improvement, findings, coScout
+  // Presentation — forces analysis workspace, closes other overlays
   openPresentation: () =>
     set({
+      activeView: 'analysis',
       isPresentationMode: true,
       isReportOpen: false,
-      isImprovementOpen: false,
       isFindingsOpen: false,
       isCoScoutOpen: false,
     }),
   closePresentation: () => set({ isPresentationMode: false }),
 
-  // Report — closes presentation, improvement, findings, coScout
+  // Report — forces analysis workspace, closes other overlays
   openReport: () =>
     set({
+      activeView: 'analysis',
       isReportOpen: true,
       isPresentationMode: false,
-      isImprovementOpen: false,
       isFindingsOpen: false,
       isCoScoutOpen: false,
     }),
@@ -151,12 +172,17 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   // Pending chart focus (consumed by Editor to set focusedChart in ViewState)
   setPendingChartFocus: chart => set({ pendingChartFocus: chart }),
 
-  // ViewState initialization
-  initFromViewState: viewState =>
+  // ViewState initialization — maps legacy 'editor' to 'analysis', legacy isImprovementOpen to workspace
+  initFromViewState: viewState => {
+    let activeView = viewState?.activeView ?? 'analysis';
+    // Backward compat: map legacy 'editor' value
+    if ((activeView as string) === 'editor') activeView = 'analysis';
+    // Backward compat: map legacy isImprovementOpen flag
+    if ((viewState as Record<string, unknown>)?.isImprovementOpen) activeView = 'improvement';
     set({
-      activeView: viewState?.activeView ?? 'editor',
+      activeView,
       isFindingsOpen: viewState?.isFindingsOpen ?? false,
       isWhatIfOpen: viewState?.isWhatIfOpen ?? false,
-      isImprovementOpen: viewState?.isImprovementOpen ?? false,
-    }),
+    });
+  },
 }));

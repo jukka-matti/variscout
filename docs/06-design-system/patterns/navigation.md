@@ -29,15 +29,15 @@ Key principles:
 
 VariScout organizes the analyst's workflow into three workspaces, mapped to the PDCA journey:
 
-| Workspace                                      | Purpose                                        | Current State                                                     |
-| ---------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------- |
-| **Analysis** (default)                         | Dashboard with charts, stats, filters          | Fully implemented                                                 |
-| **Findings** (also called Investigation panel) | Investigation tracking, question tree, actions | Panel + popout (`?view=findings`)                                 |
-| **Improvement**                                | PDCA planning, idea synthesis, action tracking | Components ready (`ImprovementWorkspaceBase`), app wiring pending |
+| Workspace              | Purpose                                        | State                                                                                    |
+| ---------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **Analysis** (default) | Dashboard with charts, stats, filters          | Fully implemented                                                                        |
+| **Investigation**      | Question-driven EDA, findings board, tree      | Workspace tab (ADR-055); also available as sidebar in Analysis + popout `?view=findings` |
+| **Improvement**        | PDCA planning, idea synthesis, action tracking | Workspace tab (ADR-055); replaces full-screen takeover                                   |
 
-### Planned: Workspace-Tab Header Navigation
+### Workspace-Tab Header Navigation (ADR-055)
 
-The header will provide workspace tabs as the primary navigation mechanism, with cross-cutting panel sidebars:
+The header provides workspace tabs as the primary navigation mechanism, with cross-cutting panel sidebars:
 
 ```
 Header:
@@ -54,27 +54,52 @@ Header:
 
 See [Dashboard Chrome Redesign spec](../../superpowers/specs/2026-03-28-dashboard-chrome-redesign.md) for full design.
 
-### How workspace switching works today
+### Workspace switching (ADR-055)
 
-- **Analysis → Findings**: `isFindingsPanelOpen` boolean toggles a slide-in panel (PWA) or resizable inline panel (Azure)
-- **Findings popout**: `?view=findings` opens Findings in a separate browser window
-- **Analysis → Improvement**: Not yet wired — `ImprovementWorkspaceBase`, `SynthesisCard`, `IdeaGroupCard`, and `ImprovementSummaryBar` components exist in `@variscout/ui` but app-level navigation, URL routing, and board-to-workspace synthesis remain as future work
+The panels store manages workspace state via `activeView`:
+
+```typescript
+activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement';
+```
+
+- `showAnalysis()` — Chart dashboard with stats, filters, drill-down
+- `showInvestigation()` — Full-width investigation workspace (closes Findings sidebar — the workspace IS the findings view)
+- `showImprovement()` — Improvement workspace (synthesis, ideas, actions)
+- `showDashboard()` — Project Dashboard (landing page, not a workspace tab)
+
+**Investigation workspace layout** (three columns):
+
+| Left (280-400px, resizable)                              | Center (flex-1)                   | Right (optional)              |
+| -------------------------------------------------------- | --------------------------------- | ----------------------------- |
+| QuestionChecklist + PhaseBadge + InvestigationConclusion | FindingsLog (list / board / tree) | CoScout (no mutual exclusion) |
+
+**Question click round-trip** — the core interaction loop of question-driven EDA (ADR-053):
+
+1. Investigation workspace → click question → sets focused question for auto-linking
+2. Switches to Analysis workspace with factor chart focused
+3. User creates finding → auto-links to focused question
+4. Switch back to Investigation → updated tree shows the answer
+
+**Findings sidebar in Analysis** — The 320-600px Findings sidebar remains available in the Analysis workspace for quick investigation without switching workspaces.
+
+**Findings popout** — `?view=findings` opens FindingsWindow in a separate browser window (localStorage sync, independent of workspace state)
 
 ### URL parameters
 
-| Parameter            | Purpose                                          | Status              |
-| -------------------- | ------------------------------------------------ | ------------------- |
-| `?view=findings`     | Popout findings window                           | Implemented         |
-| `?view=improvement`  | Improvement workspace popout                     | Future              |
-| `?embed=true`        | Embed mode (hides chrome)                        | Implemented (PWA)   |
-| `?project=<id>`      | Deep link to project (UUID or legacy name)       | Implemented (Azure) |
-| `?tab=overview`      | Land on Dashboard (Overview tab) within project  | Implemented (Azure) |
-| `?tab=analysis`      | Land on Editor (Analysis tab) within project     | Implemented (Azure) |
-| `?finding=<id>`      | Deep link to finding                             | Implemented (Azure) |
-| `?chart=<type>`      | Deep link to chart                               | Implemented (Azure) |
-| `?hypothesis=<id>`   | Deep link to hypothesis in Investigation sidebar | Implemented (Azure) |
-| `?workspace=improve` | Deep link to Improvement workspace               | Implemented (Azure) |
-| `?mode=performance`  | Performance mode                                 | Implemented (Azure) |
+| Parameter                  | Purpose                                          | Status              |
+| -------------------------- | ------------------------------------------------ | ------------------- |
+| `?view=findings`           | Popout findings window                           | Implemented         |
+| `?view=improvement`        | Improvement workspace popout                     | Future              |
+| `?embed=true`              | Embed mode (hides chrome)                        | Implemented (PWA)   |
+| `?project=<id>`            | Deep link to project (UUID or legacy name)       | Implemented (Azure) |
+| `?tab=overview`            | Land on Dashboard (Overview tab) within project  | Implemented (Azure) |
+| `?tab=analysis`            | Land on Editor (Analysis tab) within project     | Implemented (Azure) |
+| `?finding=<id>`            | Deep link to finding                             | Implemented (Azure) |
+| `?chart=<type>`            | Deep link to chart                               | Implemented (Azure) |
+| `?hypothesis=<id>`         | Deep link to hypothesis in Investigation sidebar | Implemented (Azure) |
+| `?workspace=investigation` | Deep link to Investigation workspace             | Implemented (Azure) |
+| `?workspace=improve`       | Deep link to Improvement workspace               | Implemented (Azure) |
+| `?mode=performance`        | Performance mode                                 | Implemented (Azure) |
 
 > `tab=` is distinct from `view=`. `view=` opens a popout window (separate browser tab). `tab=` selects which project tab (Overview vs Analysis) to show within the main app window.
 
@@ -104,22 +129,23 @@ Desktop/mobile behavior splits at 1024px. Compound actions handle cross-panel co
 
 ### Azure: `usePanelsStore()`
 
-Manages a richer panel set including CoScout, reports, and presentation mode:
+Manages workspace navigation and panel state (ADR-055):
 
 ```typescript
-interface EditorPanelState {
-  isDataPanelOpen: boolean;
+interface PanelsState {
+  activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement';
   isDataTableOpen: boolean;
-  isFindingsOpen: boolean;
-  isCoScoutOpen: boolean;
-  isWhatIfOpen: boolean;
+  isFindingsOpen: boolean; // Sidebar in Analysis workspace only
+  isCoScoutOpen: boolean; // Available in all workspaces
+  isWhatIfOpen: boolean; // Modal overlay across workspaces
   isPresentationMode: boolean;
   isReportOpen: boolean;
+  isStatsSidebarOpen: boolean;
   // + highlight state
 }
 ```
 
-Findings and What-If state are persisted to `ViewState` via a side-effect, surviving project reload. `BoolSetter`-compatible wrappers support both `setState(true)` and `setState(prev => !prev)` patterns.
+Workspace and panel state are persisted to `ViewState` via `usePanelsPersistence`, surviving project reload.
 
 **Source**: `apps/azure/src/features/panels/panelsStore.ts`
 
@@ -336,7 +362,7 @@ Escape priority is handled by `useAppPanels` — it dismisses panels in reverse-
 
 ## 8. Portfolio and Dashboard Navigation (Azure)
 
-The Azure app has three navigation layers: **Portfolio** (project selection), **Project Dashboard** (Overview tab), and **analysis Editor** (Analysis tab). The Portfolio is the app entry point. Within a loaded project, the Dashboard and Editor are peer views controlled by `panelsStore.activeView`.
+The Azure app has three navigation layers: **Portfolio** (project selection), **Project Dashboard** (Overview landing page), and **Workspace tabs** (Analysis / Investigation / Improvement). The Portfolio is the app entry point. Within a loaded project, the Dashboard and workspaces are controlled by `panelsStore.activeView` (ADR-055).
 
 ### Portfolio → Project selection
 
@@ -354,59 +380,64 @@ App entry
                          Project Shell (DataContext)
 ```
 
-| Situation                          | Next screen                    | Mechanism                               |
-| ---------------------------------- | ------------------------------ | --------------------------------------- |
-| Project has data                   | Project Dashboard (Overview)   | `activeView: 'dashboard'`               |
-| New project (no data)              | Editor (FRAME mode)            | `activeView: 'editor'` — skip Dashboard |
-| Deep link `?tab=overview`          | Project Dashboard              | `tab` param parsed before shell renders |
-| Deep link `?tab=analysis`          | Editor                         | `tab` param parsed before shell renders |
-| Deep link `?finding=` or `?chart=` | Editor at target               | Existing deep link bypass               |
-| Deep link `?hypothesis=<id>`       | Editor + Investigation sidebar | New; scrolls to hypothesis              |
-| Deep link `?workspace=improve`     | Editor + Improvement workspace | New target                              |
+| Situation                            | Next screen                     | Mechanism                                 |
+| ------------------------------------ | ------------------------------- | ----------------------------------------- |
+| Project has data                     | Project Dashboard (Overview)    | `activeView: 'dashboard'`                 |
+| New project (no data)                | Analysis workspace (FRAME mode) | `activeView: 'analysis'` — skip Dashboard |
+| Deep link `?tab=overview`            | Project Dashboard               | `tab` param parsed before shell renders   |
+| Deep link `?tab=analysis`            | Analysis workspace              | `tab` param parsed before shell renders   |
+| Deep link `?finding=` or `?chart=`   | Analysis workspace at target    | Existing deep link bypass                 |
+| Deep link `?hypothesis=<id>`         | Investigation workspace         | Scrolls to hypothesis                     |
+| Deep link `?workspace=investigation` | Investigation workspace         | `activeView: 'investigation'`             |
+| Deep link `?workspace=improve`       | Improvement workspace           | `activeView: 'improvement'`               |
 
-For saved Azure projects with data, the project shell contains two peer views: **Project Dashboard** (Overview tab) and **analysis Editor** (Analysis tab). Navigation between them is controlled by `panelsStore.activeView`.
+For saved Azure projects with data, the project shell contains the Dashboard landing page and three workspace tabs. Navigation is controlled by `panelsStore.activeView` (ADR-055):
 
 ```
 Project Shell
-├── Overview tab  → activeView: 'dashboard' → ProjectDashboard component
-└── Analysis tab  → activeView: 'editor'   → Editor component (full analysis view)
+├── Overview (landing)   → activeView: 'dashboard'     → ProjectDashboard
+├── Analysis tab         → activeView: 'analysis'      → Chart dashboard
+├── Investigation tab    → activeView: 'investigation'  → Question-driven EDA workspace
+└── Improvement tab      → activeView: 'improvement'    → Synthesis + ideas + actions
 ```
 
 ### Entry rules
 
-| Situation                          | Landing view     | Mechanism                                                      |
-| ---------------------------------- | ---------------- | -------------------------------------------------------------- |
-| Open saved project with data       | Dashboard        | `loadProject()` sets `activeView: 'dashboard'`                 |
-| New project (no data)              | Editor (FRAME)   | Skip dashboard — no data to summarize                          |
-| Deep link (`?finding=`, `?chart=`) | Editor at target | `activeView: 'editor'` set before render                       |
-| User clicks "Overview" tab         | Dashboard        | `panelsStore.showDashboard()`                                  |
-| User clicks "Analysis" tab         | Editor           | `panelsStore.showEditor()`                                     |
-| User clicks any dashboard item     | Editor (focused) | Dashboard item calls `panelsStore.showEditor()` + panel action |
+| Situation                          | Landing view            | Mechanism                                                        |
+| ---------------------------------- | ----------------------- | ---------------------------------------------------------------- |
+| Open saved project with data       | Dashboard               | `loadProject()` sets `activeView: 'dashboard'`                   |
+| New project (no data)              | Analysis (FRAME)        | Skip dashboard — no data to summarize                            |
+| Deep link (`?finding=`, `?chart=`) | Analysis at target      | `activeView: 'analysis'` set before render                       |
+| User clicks "Overview" tab         | Dashboard               | `panelsStore.showDashboard()`                                    |
+| User clicks "Analysis" tab         | Analysis workspace      | `panelsStore.showAnalysis()`                                     |
+| User clicks "Investigation" tab    | Investigation workspace | `panelsStore.showInvestigation()`                                |
+| User clicks "Improvement" tab      | Improvement workspace   | `panelsStore.showImprovement()`                                  |
+| User clicks any dashboard item     | Relevant workspace      | Dashboard item calls appropriate `show*()` action + panel action |
 
 ### Dashboard quick actions → Editor
 
-Each clickable item on the dashboard navigates to the Editor with a pre-configured view:
+Each clickable item on the dashboard navigates to the appropriate workspace:
 
-| Dashboard item           | Editor destination                                                        |
-| ------------------------ | ------------------------------------------------------------------------- |
-| "Go to analysis" button  | Current `ViewState` (last focused chart, active filters)                  |
-| Findings count by status | Findings panel open, `findingsStore.statusFilter` set                     |
-| Question tree row        | Investigation sidebar open, `investigationStore.expandedHypothesisId` set |
-| Action progress bar      | Improvement workspace open                                                |
-| "Add new data batch"     | Editor in data append flow (`useEditorDataFlow`)                          |
-| "View report"            | Report view open                                                          |
+| Dashboard item           | Destination                                                                  |
+| ------------------------ | ---------------------------------------------------------------------------- |
+| "Go to analysis" button  | Analysis workspace, current `ViewState` (last focused chart, active filters) |
+| Findings count by status | Investigation workspace, `findingsStore.statusFilter` set                    |
+| Question tree row        | Investigation workspace, `investigationStore.expandedHypothesisId` set       |
+| Action progress bar      | Improvement workspace                                                        |
+| "Add new data batch"     | Analysis workspace in data append flow (`useEditorDataFlow`)                 |
+| "View report"            | Report view open (forces Analysis workspace)                                 |
 
 ### CoScout navigate_to tool
 
 CoScout's `navigate_to` tool (ADR-042) extends dashboard navigation into conversation:
 
 - `navigate_to({target: 'dashboard'})` — Switches to the Project Dashboard from anywhere
-- `navigate_to({target: 'finding', target_id: '...'})` — Auto-executes: opens findings panel, switches to Editor
+- `navigate_to({target: 'finding', target_id: '...'})` — Auto-executes: switches to Investigation workspace
 - `navigate_to({target: 'finding', target_id: '...', restore_filters: true})` — Shows proposal card (filter mutation requires confirmation)
 
 ### "← Portfolio" back link
 
-The project shell header always shows a "← Portfolio" back link that returns the user to the Portfolio home screen. This unloads the current project (clears DataContext) and renders the portfolio grid. The back link is visible from both the Dashboard and the Editor.
+The project shell header always shows a "← Portfolio" back link that returns the user to the Portfolio home screen. This unloads the current project (clears DataContext) and renders the portfolio grid. The back link is visible from the Dashboard and all workspace tabs.
 
 On Teams channel tab, the "← Portfolio" link is hidden (Teams users always operate within a shared channel project — there is no personal portfolio in the channel tab context).
 
@@ -414,22 +445,23 @@ On Teams channel tab, the "← Portfolio" link is hidden (Teams users always ope
 
 Deep links always bypass the Dashboard and land directly in the Editor at the target. The `tab=` parameter is the only way to intentionally target the Dashboard via a link:
 
-| Link type                          | Landing                                               |
-| ---------------------------------- | ----------------------------------------------------- |
-| `?tab=overview`                    | Dashboard (Overview tab)                              |
-| `?tab=analysis`                    | Editor (Analysis tab)                                 |
-| `?finding=<id>`                    | Editor + findings panel + finding highlighted         |
-| `?chart=<type>`                    | Editor + focused chart                                |
-| `?hypothesis=<id>`                 | Editor + Investigation sidebar scrolled to hypothesis |
-| `?workspace=improve`               | Editor + Improvement workspace                        |
-| Teams Adaptive Card "View Finding" | Editor + finding highlighted                          |
-| Teams channel tab initial load     | Editor (teams users start in analysis)                |
+| Link type                          | Landing                                            |
+| ---------------------------------- | -------------------------------------------------- |
+| `?tab=overview`                    | Dashboard (Overview landing page)                  |
+| `?tab=analysis`                    | Analysis workspace                                 |
+| `?finding=<id>`                    | Investigation workspace + finding highlighted      |
+| `?chart=<type>`                    | Analysis workspace + focused chart                 |
+| `?hypothesis=<id>`                 | Investigation workspace + hypothesis scrolled to   |
+| `?workspace=investigation`         | Investigation workspace                            |
+| `?workspace=improve`               | Improvement workspace                              |
+| Teams Adaptive Card "View Finding" | Investigation workspace + finding highlighted      |
+| Teams channel tab initial load     | Analysis workspace (teams users start in analysis) |
 
-After a deep link lands in the Editor, the user can always navigate to the Dashboard via the "Overview" tab in the project shell.
+After a deep link lands in a workspace, the user can always navigate to the Dashboard via the "Overview" tab or switch workspaces via the workspace tabs.
 
 ### Persistence
 
-`activeView` is included in `ViewState` and restored on project reopen. If a user was on the dashboard when they last saved, they return to the dashboard.
+`activeView` is included in `ViewState` and restored on project reopen. If a user was on the Investigation workspace when they last saved, they return to the Investigation workspace. Legacy `'editor'` values map to `'analysis'` on read.
 
 ---
 
@@ -488,6 +520,7 @@ This is **designed but not implemented** on main. The branch code is 38+ commits
 - [Project Reopen Flow](../../02-journeys/flows/project-reopen.md) — Full flow: Portfolio → Dashboard → Analysis
 - [ADR-042: Project Dashboard](../../07-decisions/adr-042-project-dashboard.md) — Dashboard ↔ Editor design decisions
 - [ADR-043: Teams Entry Experience](../../07-decisions/adr-043-teams-entry-experience.md) — Portfolio, ProjectCard, deep links design decisions
+- [ADR-055: Workspace-Based Navigation](../../07-decisions/adr-055-workspace-navigation.md) — Workspace tabs, investigation workspace, state model
 - [Accessibility Foundations](../foundations/accessibility.md) — full accessibility guidelines
 - [Filter Chips](../../03-features/navigation/breadcrumbs.md) — detailed filter chip design
 - [Drill-Down](../../03-features/navigation/drill-down.md) — drill-down methodology and decision thresholds

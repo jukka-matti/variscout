@@ -1,7 +1,7 @@
 ---
 title: Dashboard Chrome Redesign
 date: 2026-03-28
-status: draft
+status: in-progress
 audience: [developer, designer]
 category: design-spec
 related: [header, toolbar, stats-panel, navigation, panels, layout, workspaces]
@@ -238,3 +238,4 @@ Any workspace can be popped out to a separate browser window:
 - [Panels and Drawers](../../06-design-system/patterns/panels-and-drawers.md)
 - [IMPROVE Phase UX](../../archive/specs/2026-03-19-improve-phase-ux-design.md) (archived)
 - [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md)
+- [ADR-055: Workspace-Based Navigation](../../07-decisions/adr-055-workspace-navigation.md) — Decision record for workspace tabs implementation

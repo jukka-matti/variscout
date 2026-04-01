@@ -15,7 +15,6 @@ export function usePanelsPersistence(
 ): void {
   const isFindingsOpen = usePanelsStore(s => s.isFindingsOpen);
   const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
-  const isImprovementOpen = usePanelsStore(s => s.isImprovementOpen);
   const activeView = usePanelsStore(s => s.activeView);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
 
@@ -26,8 +25,8 @@ export function usePanelsPersistence(
       isFirstRender.current = false;
       return;
     }
-    onViewStateChange?.({ isFindingsOpen, isWhatIfOpen, isImprovementOpen, activeView });
-  }, [isFindingsOpen, isWhatIfOpen, isImprovementOpen, activeView, onViewStateChange]);
+    onViewStateChange?.({ isFindingsOpen, isWhatIfOpen, activeView });
+  }, [isFindingsOpen, isWhatIfOpen, activeView, onViewStateChange]);
 
   // Highlight timeout
   useEffect(() => {

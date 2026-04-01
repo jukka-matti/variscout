@@ -66,6 +66,7 @@ This section captures key architectural decisions made during VariScout developm
 | [052](adr-052-factor-intelligence.md)                | Factor Intelligence — Progressive Factor Analysis | Accepted   | 2026-03-29 |
 | [053](adr-053-question-driven-investigation.md)      | Question-Driven Investigation                     | Accepted   | 2026-03-30 |
 | [054](adr-054-mode-aware-question-strategy.md)       | Mode-Aware Question Strategy                      | Accepted   | 2026-03-31 |
+| [055](adr-055-workspace-navigation.md)               | Workspace-Based Navigation                        | Accepted   | 2026-04-01 |
 
 ---
 
