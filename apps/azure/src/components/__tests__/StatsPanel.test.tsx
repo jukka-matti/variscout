@@ -78,16 +78,16 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Summary tab should be active
-    const summaryTab = screen.getByText('Summary Statistics');
-    expect(summaryTab).toHaveClass('bg-surface-tertiary');
+    // Stats tab should be active
+    const statsTab = screen.getByText('Stats');
+    expect(statsTab).toHaveClass('bg-surface-tertiary');
 
     // Should show pass rate (use getAllByText since HelpTooltip may also contain the term)
     expect(screen.getAllByText('Pass Rate').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('94.5%')).toBeInTheDocument(); // 100 - 5.5
   });
 
-  it('switches to What-If tab on click', () => {
+  it('switches to Questions tab on click', () => {
     render(
       <StatsPanel
         stats={mockStats}
@@ -97,12 +97,12 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Click What-If tab
-    fireEvent.click(screen.getByText('What-If'));
+    // Click Questions tab
+    fireEvent.click(screen.getByText('Questions'));
 
-    // What-If tab should now be active
-    const whatIfTab = screen.getByText('What-If');
-    expect(whatIfTab).toHaveClass('bg-surface-tertiary');
+    // Questions tab should now be active
+    const questionsTab = screen.getByText('Questions');
+    expect(questionsTab).toHaveClass('bg-surface-tertiary');
   });
 
   it('displays Cp in the card grid', () => {

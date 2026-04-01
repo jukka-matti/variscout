@@ -83,16 +83,16 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Summary tab should be active (surface-tertiary background)
-    const summaryTab = screen.getByText('Summary Statistics');
-    expect(summaryTab).toHaveClass('bg-surface-tertiary');
+    // Stats tab should be active (surface-tertiary background)
+    const statsTab = screen.getByText('Stats');
+    expect(statsTab).toHaveClass('bg-surface-tertiary');
 
     // Should show pass rate (use getAllByText since HelpTooltip may also contain the term)
     expect(screen.getAllByText('Pass Rate').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('94.5%')).toBeInTheDocument(); // 100 - 5.5
   });
 
-  it('switches to Data tab on click', () => {
+  it('switches to Questions tab on click', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
     } as unknown as ReturnType<typeof DataContextModule.useData>);
@@ -106,12 +106,12 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Click Data tab
-    fireEvent.click(screen.getByText('Data'));
+    // Click Questions tab
+    fireEvent.click(screen.getByText('Questions'));
 
-    // Data tab should now be active
-    const dataTab = screen.getByText('Data');
-    expect(dataTab).toHaveClass('bg-surface-tertiary');
+    // Questions tab should now be active
+    const questionsTab = screen.getByText('Questions');
+    expect(questionsTab).toHaveClass('bg-surface-tertiary');
   });
 
   it('displays Cp when specs are set', () => {
@@ -283,9 +283,10 @@ describe('StatsPanel', () => {
         />
       );
 
-      fireEvent.click(screen.getByText('Data'));
-      // Data tab shows the inline data table
-      expect(screen.getByText('value')).toBeInTheDocument(); // column header
+      fireEvent.click(screen.getByText('Questions'));
+      // Questions tab should be active
+      const questionsTab = screen.getByText('Questions');
+      expect(questionsTab).toHaveClass('bg-surface-tertiary');
     });
   });
 });

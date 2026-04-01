@@ -5,10 +5,21 @@ import ParetoChart from '../charts/ParetoChart';
 import StatsPanel from '../StatsPanel';
 import { ErrorBoundary, FactorSelector } from '@variscout/ui';
 import { EditableChartTitle } from '@variscout/ui';
+import type { StatsPanelTab } from '@variscout/ui';
 import { Activity } from 'lucide-react';
 import type { StatsResult, SpecLimits, DataRow } from '@variscout/core';
 
+/** Maps legacy embed stats tab values to current StatsPanelTab names */
+function toStatsPanelTab(embedTab: EmbedStatsTab | null | undefined): StatsPanelTab | undefined {
+  if (!embedTab) return undefined;
+  // 'summary' was the old name for the main stats tab (now 'stats')
+  if (embedTab === 'summary') return 'stats';
+  // 'data' and 'whatif' are now overflow views — default to stats tab
+  return 'stats';
+}
+
 export type EmbedFocusChart = 'ichart' | 'boxplot' | 'pareto' | 'stats';
+/** Legacy embed stats tab values — 'summary' maps to 'stats', 'data'/'whatif' open overflow */
 export type EmbedStatsTab = 'summary' | 'data' | 'whatif';
 
 export interface EmbedFocusViewProps {
@@ -158,7 +169,7 @@ const EmbedFocusView: React.FC<EmbedFocusViewProps> = ({
             specs={specs}
             filteredData={filteredData}
             outcome={outcome}
-            defaultTab={embedStatsTab || undefined}
+            defaultTab={toStatsPanelTab(embedStatsTab)}
             className="w-full h-full lg:w-full border-none shadow-none rounded-none"
           />
         </div>

@@ -1,11 +1,13 @@
 export { default as StatsPanelBase } from './StatsPanelBase';
+export { default as PIOverflowMenu } from './PIOverflowMenu';
+export type { PIOverflowMenuProps } from './PIOverflowMenu';
 export { default as StatsSummaryPanel } from './StatsSummaryPanel';
 export { default as TargetDiscoveryCard } from './TargetDiscoveryCard';
 export { default as BestSubsetsCard } from './BestSubsetsCard';
 export { default as MainEffectsPlot } from './MainEffectsPlot';
 export { default as InteractionPlot } from './InteractionPlot';
 export { default as FactorIntelligencePanel } from './FactorIntelligencePanel';
-export type { StatsPanelBaseProps, StatsPanelTab } from './types';
+export type { StatsPanelBaseProps, StatsPanelTab, PIOverflowView } from './types';
 export type { ComplementInsight, TargetDiscoveryCardProps } from './TargetDiscoveryCard';
 export type { BestSubsetsCardProps } from './BestSubsetsCard';
 export type { MainEffectsPlotProps } from './MainEffectsPlot';
@@ -17,3 +19,21 @@ export type {
   StagedComparisonCardProps,
   StagedComparisonColorScheme,
 } from './StagedComparisonCard';
+export { default as JournalTabView } from './JournalTabView';
+export type { JournalTabViewProps } from './JournalTabView';
+export { default as JournalEntryRow } from './JournalEntryRow';
+export type { JournalEntryRowProps } from './JournalEntryRow';
+export { default as QuestionRow } from './QuestionRow';
+export type { QuestionRowProps } from './QuestionRow';
+export { default as QuestionRowExpanded } from './QuestionRowExpanded';
+export type { QuestionRowExpandedProps } from './QuestionRowExpanded';
+export { default as ObservationsSection } from './ObservationsSection';
+export type { ObservationsSectionProps } from './ObservationsSection';
+export { default as ConclusionCard } from './ConclusionCard';
+export type { ConclusionCardProps, SuspectedCause } from './ConclusionCard';
+export { default as QuestionsTabView } from './QuestionsTabView';
+export type { QuestionsTabViewProps } from './QuestionsTabView';
+export { QuestionInputModal } from './QuestionInputModal';
+export type { QuestionInputModalProps } from './QuestionInputModal';
+export { QuestionLinkModal } from './QuestionLinkModal';
+export type { QuestionLinkModalProps } from './QuestionLinkModal';

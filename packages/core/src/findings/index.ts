@@ -11,3 +11,9 @@ export * from './types';
 export * from './factories';
 export * from './helpers';
 export * from './migration';
+export {
+  getQuestionDisplayStatus,
+  QUESTION_STATUS_LABELS,
+  QUESTION_STATUS_COLORS,
+} from './questionStatus';
+export type { QuestionDisplayStatus } from './types';

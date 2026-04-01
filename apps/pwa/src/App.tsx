@@ -16,6 +16,9 @@ import {
   type MobileTab,
   useIsMobile,
   BREAKPOINTS,
+  QuestionsTabView,
+  JournalTabView,
+  type PIOverflowView,
 } from '@variscout/ui';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
@@ -24,6 +27,7 @@ import {
   useDrillPath,
   buildFindingContext,
   buildFindingSource,
+  useJournalEntries,
 } from '@variscout/hooks';
 import AppHeader from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
@@ -206,6 +210,22 @@ function AppMain() {
     hypothesesState,
     mode: resolved,
   });
+
+  // PI Panel: journal entries (session-only; clears on refresh — PWA has no persistence)
+  const journalEntries = useJournalEntries({
+    findings: findingsState.findings,
+    questions: factorIntelQuestions,
+  });
+
+  // PI Panel: open question count for badge
+  const openQuestionCount = useMemo(
+    () =>
+      factorIntelQuestions.filter(q => q.status === 'untested' || q.status === 'partial').length,
+    [factorIntelQuestions]
+  );
+
+  // PI Panel: overflow view state (local — PWA has no Zustand panels store for this)
+  const [piOverflowView, setPIOverflowView] = useState<PIOverflowView>(null);
 
   const investigation = useInvestigationOrchestration({
     hypothesesState,
@@ -626,6 +646,18 @@ function AppMain() {
                 complement={projComplement}
                 centeringOpportunity={projCentering}
                 activeProjection={projActive}
+                renderQuestionsTab={() => (
+                  <QuestionsTabView
+                    questions={factorIntelQuestions}
+                    findings={findingsState.findings}
+                    onQuestionClick={handleQuestionClick}
+                    evidenceLabel={getStrategy(resolved).questionStrategy.evidenceLabel}
+                  />
+                )}
+                renderJournalTab={() => <JournalTabView entries={journalEntries} />}
+                openQuestionCount={openQuestionCount}
+                overflowView={piOverflowView}
+                onOverflowViewChange={setPIOverflowView}
               />
             </Suspense>
           </div>

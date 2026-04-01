@@ -74,6 +74,8 @@ packages/
 │              #   useDashboardInsights - Dashboard chart insights orchestration
 │              #   useProcessProjection - Process projection and optimization intelligence
 │              #   useAsyncStats - Async stats computation via Web Worker with generation counter
+│              #   useJournalEntries - Journal state and event recording for PI panel Journal tab
+│              #   useQuestionReactivity - Factor-to-question highlight mapping for PI panel context reactivity
 │              #   copySectionAsHTML - Rich clipboard copy utility
 └── ui/        # @variscout/ui - Shared UI components (70+ modules):
                #   AnovaResults, FilterBreadcrumb, FilterChipDropdown, FilterContextBar,
@@ -116,6 +118,8 @@ packages/
                #   ProcessHealthBar,
                #   YamazumiDetectedModal, YamazumiIChartMetricToggle, YamazumiParetoModeDropdown,
                #   YamazumiSummaryBar,
+               #   QuestionsTabView, QuestionRow, QuestionRowExpanded, ObservationsSection, ConclusionCard,
+               #   JournalTabView, JournalEntryRow, PIOverflowMenu,
                #   useGlossary, useIsMobile, useTheme, errorService, BREAKPOINTS
 
 apps/

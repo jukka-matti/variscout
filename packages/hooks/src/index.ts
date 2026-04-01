@@ -142,6 +142,9 @@ export {
 // Findings (scouting report)
 export { useFindings, type UseFindingsOptions, type UseFindingsReturn } from './useFindings';
 
+// Journal Entries (chronological investigation timeline)
+export { useJournalEntries, type JournalEntry } from './useJournalEntries';
+
 // Hypotheses (causal theories linked to findings)
 export {
   useHypotheses,
@@ -352,3 +355,6 @@ export {
   type UseQuestionGenerationOptions,
   type UseQuestionGenerationReturn,
 } from './useQuestionGeneration';
+
+// Question Reactivity (drill-down factor → active question lookup)
+export { useQuestionReactivity } from './useQuestionReactivity';

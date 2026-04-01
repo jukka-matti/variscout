@@ -9,7 +9,8 @@ import type {
 import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
 import type { ComplementInsight } from '@variscout/core';
 
-export type StatsPanelTab = 'summary' | 'data' | 'whatif';
+export type StatsPanelTab = 'stats' | 'questions' | 'journal';
+export type PIOverflowView = 'data' | 'whatif' | null;
 
 export interface StatsPanelBaseProps {
   stats: StatsResult | null;
@@ -53,13 +54,32 @@ export interface StatsPanelBaseProps {
   /** Called when user accepts suggested specs from target discovery */
   onAcceptSpecs?: (lsl: number, usl: number) => void;
 
-  // --- Data Tab ---
+  // --- Data Tab (overflow) ---
 
-  /** Render data table content */
+  /** Render data table content (accessed via overflow menu) */
   renderDataTable?: () => React.ReactNode;
 
-  // --- What-If Tab ---
+  // --- What-If Tab (overflow) ---
 
-  /** Render What-If simulator content */
+  /** Render What-If simulator content (accessed via overflow menu) */
   renderWhatIf?: () => React.ReactNode;
+
+  // --- Questions Tab ---
+
+  /** Render Questions tab content */
+  renderQuestionsTab?: () => React.ReactNode;
+  /** Badge count for open questions on the Questions tab */
+  openQuestionCount?: number;
+
+  // --- Journal Tab ---
+
+  /** Render Journal tab content */
+  renderJournalTab?: () => React.ReactNode;
+
+  // --- Overflow menu ---
+
+  /** Active overflow view (data or whatif), controlled by parent */
+  overflowView?: PIOverflowView;
+  /** Called when the overflow view changes */
+  onOverflowViewChange?: (view: PIOverflowView) => void;
 }

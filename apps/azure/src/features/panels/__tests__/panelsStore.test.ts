@@ -13,6 +13,8 @@ beforeEach(() => {
     highlightedChartPoint: null,
     pendingChartFocus: null,
     isStatsSidebarOpen: false,
+    piActiveTab: 'stats',
+    piOverflowView: null,
   });
 });
 
@@ -26,6 +28,8 @@ describe('panelsStore', () => {
       expect(s.isWhatIfOpen).toBe(false);
       expect(s.highlightRowIndex).toBeNull();
       expect(s.highlightedChartPoint).toBeNull();
+      expect(s.piActiveTab).toBe('stats');
+      expect(s.piOverflowView).toBeNull();
     });
   });
 
@@ -264,6 +268,45 @@ describe('panelsStore', () => {
       usePanelsStore.getState().showReport();
       usePanelsStore.getState().showAnalysis();
       expect(usePanelsStore.getState().activeView).toBe('analysis');
+    });
+  });
+
+  describe('PI panel tab and overflow', () => {
+    it('defaults piActiveTab to stats', () => {
+      expect(usePanelsStore.getState().piActiveTab).toBe('stats');
+    });
+
+    it('defaults piOverflowView to null', () => {
+      expect(usePanelsStore.getState().piOverflowView).toBeNull();
+    });
+
+    it('should set PI active tab', () => {
+      usePanelsStore.getState().setPIActiveTab('questions');
+      expect(usePanelsStore.getState().piActiveTab).toBe('questions');
+    });
+
+    it('should clear overflow when switching PI tabs', () => {
+      usePanelsStore.getState().setPIOverflowView('data');
+      usePanelsStore.getState().setPIActiveTab('journal');
+      expect(usePanelsStore.getState().piOverflowView).toBeNull();
+    });
+
+    it('should set PI overflow view', () => {
+      usePanelsStore.getState().setPIOverflowView('whatif');
+      expect(usePanelsStore.getState().piOverflowView).toBe('whatif');
+    });
+
+    it('setPIOverflowView null clears overflow', () => {
+      usePanelsStore.getState().setPIOverflowView('data');
+      usePanelsStore.getState().setPIOverflowView(null);
+      expect(usePanelsStore.getState().piOverflowView).toBeNull();
+    });
+
+    it('switching tab preserves other state', () => {
+      usePanelsStore.getState().setPIActiveTab('questions');
+      usePanelsStore.getState().setCoScoutOpen(true);
+      usePanelsStore.getState().setPIActiveTab('journal');
+      expect(usePanelsStore.getState().isCoScoutOpen).toBe(true);
     });
   });
 
