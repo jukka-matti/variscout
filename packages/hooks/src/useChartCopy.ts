@@ -124,7 +124,7 @@ export function useChartCopy(options?: UseChartCopyOptions): UseChartCopyReturn 
           showFeedback(chartName);
         }
       } catch (err) {
-        console.error('Failed to copy chart', err);
+        console.error('[useChartCopy] Failed to copy chart', err);
       } finally {
         cleanupAfterExport(node);
       }
@@ -150,7 +150,7 @@ export function useChartCopy(options?: UseChartCopyOptions): UseChartCopyReturn 
         link.click();
         showFeedback(chartName);
       } catch (err) {
-        console.error('Failed to download chart PNG', err);
+        console.error('[useChartCopy] Failed to download chart PNG', err);
       } finally {
         cleanupAfterExport(node);
       }

@@ -597,7 +597,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             <text
               x={10}
               y={height / 2 + 8}
-              fill="#a855f7"
+              fill={chartColors.meanAlt}
               fontSize={fonts.tickLabel - 2}
               textAnchor="start"
               opacity={0.7}

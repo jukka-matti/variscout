@@ -8,6 +8,7 @@
 import { useCallback, useRef } from 'react';
 import type { Finding, FindingStatus, Hypothesis } from '@variscout/core';
 import { hasTeamFeatures } from '@variscout/core';
+import { errorService } from '@variscout/ui';
 import { isChannelTab, getTeamsContext } from '../teams/teamsContext';
 import { buildFindingLink } from '../services/deepLinks';
 import { buildAnalyzedCard, buildResolvedCard } from '../services/adaptiveCards';
@@ -95,7 +96,10 @@ export function useStatusUpdateCards({
 
       addNotification?.(`Status update posted to channel`, 'success');
     } catch (err) {
-      console.warn('[StatusUpdateCards] Failed to post card:', err);
+      errorService.logWarning('Failed to post status update card', {
+        component: 'StatusUpdateCards',
+        metadata: { error: err },
+      });
       addNotification?.(`Failed to post status update to channel`, 'error');
     }
   }

@@ -2,7 +2,6 @@
  * CSV and text parsing — uses PapaParse for delimiter detection
  */
 
-import Papa from 'papaparse';
 import type { DataRow } from '../types';
 
 /**
@@ -19,6 +18,7 @@ export async function parseCSV(file: File): Promise<DataRow[]> {
     );
   }
 
+  const Papa = (await import('papaparse')).default;
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,
@@ -48,6 +48,7 @@ export async function parseText(text: string): Promise<DataRow[]> {
     throw new Error('No data to parse. Paste rows from Excel or a CSV file.');
   }
 
+  const Papa = (await import('papaparse')).default;
   return new Promise((resolve, reject) => {
     Papa.parse(trimmed, {
       header: true,
