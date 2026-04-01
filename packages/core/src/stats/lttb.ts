@@ -70,12 +70,13 @@ export function lttb<T extends { x: number; y: number; originalIndex?: number }>
 
   sampled.push(data[len - 1]); // Always keep last
 
-  // Force-include violation points
+  // Force-include violation points (O(m) via index map, not O(n*m) via linear search)
   if (forceInclude?.size) {
     const sampledOriginalIndices = new Set(sampled.map(p => p.originalIndex));
+    const indexMap = new Map(data.map(p => [p.originalIndex, p]));
     for (const idx of forceInclude) {
       if (!sampledOriginalIndices.has(idx)) {
-        const point = data.find(p => p.originalIndex === idx);
+        const point = indexMap.get(idx);
         if (point) sampled.push(point);
       }
     }

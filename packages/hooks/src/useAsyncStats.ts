@@ -88,6 +88,13 @@ export function useAsyncStats(options: UseAsyncStatsOptions): UseAsyncStatsResul
         if (thisGeneration !== generationRef.current) return;
         setIsComputing(false);
       });
+
+    // Cleanup: clear stale computing state when deps change or unmount.
+    // The generation counter already prevents stale results from being applied,
+    // but without cleanup isComputing stays true until the promise resolves.
+    return () => {
+      setIsComputing(false);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valuesKey, specsKey, workerApi, computeKDE]);
 

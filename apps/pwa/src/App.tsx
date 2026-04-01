@@ -756,7 +756,7 @@ function AppMain() {
               drillPath={drillPath}
               activeFindingId={highlightedFindingId}
               onPopout={handleOpenFindingsPopout}
-              maxStatuses={5}
+              maxStatuses={3}
               onCreateHypothesis={investigation.handleCreateHypothesis}
               hypothesesMap={investigationHypothesesMap}
               questions={factorIntelQuestions}

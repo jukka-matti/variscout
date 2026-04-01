@@ -119,8 +119,8 @@ export default [
             // core → nothing (no internal package imports allowed)
             // charts → core
             { from: { type: 'charts' }, allow: { to: { type: ['core'] } } },
-            // hooks → core
-            { from: { type: 'hooks' }, allow: { to: { type: ['core'] } } },
+            // hooks → core, data (type import for SampleDataset)
+            { from: { type: 'hooks' }, allow: { to: { type: ['core', 'data'] } } },
             // data → core
             { from: { type: 'data' }, allow: { to: { type: ['core'] } } },
             // ui → core, charts, hooks
