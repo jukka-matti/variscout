@@ -47,6 +47,7 @@ import { useToast } from '../context/ToastContext';
 import { setBeforeUnloadHandler } from '../teams';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
+import WorkspaceTabs from '../components/editor/WorkspaceTabs';
 import { EditorModals } from '../components/editor/EditorModals';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
 import ProjectDashboard from '../components/ProjectDashboard';
@@ -1033,53 +1034,14 @@ export const Editor: React.FC<EditorProps> = ({
           />
         ) : outcome ? (
           <>
-            {/* Overview / Workspace tab bar (ADR-055) */}
-            <div className="flex border-b border-edge flex-shrink-0" data-testid="view-toggle">
-              <button
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeView === 'dashboard'
-                    ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'text-content-secondary hover:text-content'
-                }`}
-                onClick={() => usePanelsStore.getState().showDashboard()}
-                data-testid="view-toggle-overview"
-              >
-                Overview
-              </button>
-              <button
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeView === 'analysis'
-                    ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'text-content-secondary hover:text-content'
-                }`}
-                onClick={() => usePanelsStore.getState().showAnalysis()}
-                data-testid="view-toggle-analysis"
-              >
-                Analysis
-              </button>
-              <button
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeView === 'investigation'
-                    ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'text-content-secondary hover:text-content'
-                }`}
-                onClick={() => usePanelsStore.getState().showInvestigation()}
-                data-testid="view-toggle-investigation"
-              >
-                Investigation
-              </button>
-              <button
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeView === 'improvement'
-                    ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'text-content-secondary hover:text-content'
-                }`}
-                onClick={() => usePanelsStore.getState().showImprovement()}
-                data-testid="view-toggle-improvement"
-              >
-                Improvement
-              </button>
-            </div>
+            <WorkspaceTabs
+              activeView={activeView}
+              openQuestionCount={
+                hypothesesState.hypotheses.filter(h => h.questionSource && h.status === 'untested')
+                  .length
+              }
+              selectedIdeaCount={selectedIdeaIds.size}
+            />
 
             {/* Workspace content (ADR-055) */}
             {activeView === 'dashboard' ? (
