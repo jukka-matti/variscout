@@ -651,6 +651,7 @@ function AppMain() {
                     questions={factorIntelQuestions}
                     findings={findingsState.findings}
                     onQuestionClick={handleQuestionClick}
+                    evidenceLabel={getStrategy(resolved).questionStrategy.evidenceLabel}
                   />
                 )}
                 renderJournalTab={() => <JournalTabView entries={journalEntries} />}

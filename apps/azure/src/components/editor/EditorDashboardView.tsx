@@ -16,13 +16,19 @@ import { toNumericValue, createFactorFinding } from '@variscout/core';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
 import type { UseHypothesesReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
-import { useQuestionGeneration, useQuestionReactivity, useJournalEntries } from '@variscout/hooks';
-import { resolveMode } from '@variscout/core/strategy';
+import {
+  useQuestionGeneration,
+  useQuestionReactivity,
+  useJournalEntries,
+  useJourneyPhase,
+} from '@variscout/hooks';
+import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { isAIAvailable } from '../../services/aiService';
 import { useData } from '../../context/DataContext';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import { useAIStore } from '../../features/ai/aiStore';
+import { useImprovementStore } from '../../features/improvement/improvementStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
 import { useResizablePanel } from '@variscout/hooks';
@@ -146,6 +152,24 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     mode: resolved,
   });
 
+  const strategy = getStrategy(resolved);
+  const projectedCpkMap = useImprovementStore(s => s.projectedCpkMap);
+  const journeyPhase = useJourneyPhase(!!rawData?.length, findingsState.findings);
+
+  const suspectedCauses = useMemo(() => {
+    return hypothesesState.hypotheses
+      .filter(h => h.causeRole === 'suspected-cause' && h.factor)
+      .map(h => ({
+        factor: h.factor!,
+        projectedCpk: projectedCpkMap[h.factor!],
+      }));
+  }, [hypothesesState.hypotheses, projectedCpkMap]);
+
+  const combinedProjectedCpk = useMemo(() => {
+    const values = Object.values(projectedCpkMap);
+    return values.length > 0 ? Math.max(...values) : undefined;
+  }, [projectedCpkMap]);
+
   // ── PI Panel: Questions + Journal wiring ─────────────────────────────
   const activeFactor = useMemo(() => {
     const filterKeys = Object.keys(filters);
@@ -168,6 +192,47 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     () =>
       factorIntelQuestions.filter(q => q.status === 'untested' || q.status === 'partial').length,
     [factorIntelQuestions]
+  );
+
+  const handleAddQuestion = useCallback(() => {
+    const text = window.prompt('Enter your question:');
+    if (text?.trim()) {
+      hypothesesState.addHypothesis(text.trim());
+    }
+  }, [hypothesesState]);
+
+  const handleAddObservation = useCallback(() => {
+    const text = window.prompt('Describe what you observed:');
+    if (text?.trim()) {
+      findingsState.addFinding(text.trim(), {
+        activeFilters: filters,
+        cumulativeScope: null,
+        stats: stats
+          ? {
+              mean: stats.mean,
+              median: stats.median,
+              cpk: stats.cpk,
+              samples: filteredData?.length ?? 0,
+            }
+          : undefined,
+      });
+    }
+  }, [findingsState, filters, stats]);
+
+  const handleLinkObservation = useCallback(
+    (findingId: string) => {
+      const questions = factorIntelQuestions.filter(q => q.factor);
+      if (questions.length === 0) return;
+      const labels = questions.map((q, i) => `${i + 1}. ${q.factor ?? q.text}`).join('\n');
+      const choice = window.prompt(`Link to which question?\n${labels}`);
+      if (choice) {
+        const idx = parseInt(choice, 10) - 1;
+        if (idx >= 0 && idx < questions.length) {
+          hypothesesState.linkFinding(questions[idx].id, findingId);
+        }
+      }
+    },
+    [factorIntelQuestions, hypothesesState]
   );
 
   const piOverflowView = usePanelsStore(s => s.piOverflowView);
@@ -468,6 +533,14 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
                       onAddNote={(findingId, text) =>
                         findingsState.addFindingComment(findingId, text)
                       }
+                      suspectedCauses={suspectedCauses}
+                      combinedProjectedCpk={combinedProjectedCpk}
+                      projectedCpkMap={projectedCpkMap}
+                      onAddQuestion={handleAddQuestion}
+                      onAddObservation={handleAddObservation}
+                      onLinkObservation={handleLinkObservation}
+                      evidenceLabel={strategy.questionStrategy.evidenceLabel}
+                      phaseBadge={journeyPhase ?? undefined}
                     />
                   )}
                   renderJournalTab={() => <JournalTabView entries={journalEntries} />}
