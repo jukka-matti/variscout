@@ -3,13 +3,11 @@ import { create } from 'zustand';
 // ── State ────────────────────────────────────────────────────────────────────
 
 interface PanelsState {
-  activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement';
+  activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
   isDataTableOpen: boolean;
   isFindingsOpen: boolean;
   isCoScoutOpen: boolean;
   isWhatIfOpen: boolean;
-  isPresentationMode: boolean;
-  isReportOpen: boolean;
   highlightRowIndex: number | null;
   highlightedChartPoint: number | null;
   /** Set by navigate_to tool; consumed by Editor to focus a chart via ViewState. */
@@ -21,11 +19,10 @@ interface PanelsState {
 
 interface PanelsActions {
   showDashboard: () => void;
-  /** @deprecated Use showAnalysis() instead */
-  showEditor: () => void;
   showAnalysis: () => void;
   showInvestigation: () => void;
   showImprovement: () => void;
+  showReport: () => void;
   openDataTable: () => void;
   closeDataTable: () => void;
   setFindingsOpen: (open: boolean) => void;
@@ -33,12 +30,6 @@ interface PanelsActions {
   setCoScoutOpen: (open: boolean) => void;
   toggleCoScout: () => void;
   setWhatIfOpen: (open: boolean) => void;
-  /** @deprecated Use showImprovement() / showAnalysis() instead */
-  setImprovementOpen: (open: boolean) => void;
-  openPresentation: () => void;
-  closePresentation: () => void;
-  openReport: () => void;
-  closeReport: () => void;
   setHighlightRow: (index: number | null) => void;
   setHighlightPoint: (index: number | null) => void;
   handlePointClick: (index: number) => void;
@@ -48,7 +39,7 @@ interface PanelsActions {
   /** Initialize persisted panel state from a saved ViewState. */
   initFromViewState: (
     viewState?: {
-      activeView?: 'dashboard' | 'analysis' | 'investigation' | 'improvement';
+      activeView?: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
       isFindingsOpen?: boolean;
       isWhatIfOpen?: boolean;
     } | null
@@ -66,28 +57,14 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   isFindingsOpen: false,
   isCoScoutOpen: false,
   isWhatIfOpen: false,
-  isPresentationMode: false,
-  isReportOpen: false,
   highlightRowIndex: null,
   highlightedChartPoint: null,
   pendingChartFocus: null,
   isStatsSidebarOpen: false,
 
-  // Workspace navigation (ADR-055)
-  showDashboard: () =>
-    set(() => ({
-      activeView: 'dashboard',
-      isReportOpen: false,
-      isPresentationMode: false,
-    })),
-  showEditor: () =>
-    set(() => ({
-      activeView: 'analysis',
-    })),
-  showAnalysis: () =>
-    set(() => ({
-      activeView: 'analysis',
-    })),
+  // Workspace navigation (ADR-055 + header-redesign spec)
+  showDashboard: () => set(() => ({ activeView: 'dashboard' })),
+  showAnalysis: () => set(() => ({ activeView: 'analysis' })),
   showInvestigation: () =>
     set(() => ({
       activeView: 'investigation',
@@ -97,9 +74,8 @@ export const usePanelsStore = create<PanelsStore>(set => ({
     set(() => ({
       activeView: 'improvement',
       isWhatIfOpen: false,
-      isReportOpen: false,
-      isPresentationMode: false,
     })),
+  showReport: () => set(() => ({ activeView: 'report' })),
 
   // Data table
   openDataTable: () => set({ isDataTableOpen: true }),
@@ -121,44 +97,6 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   // What-If
   setWhatIfOpen: open => set({ isWhatIfOpen: open }),
 
-  // Improvement — backward compat shim, delegates to workspace actions
-  setImprovementOpen: open =>
-    set(s => {
-      if (open && s.activeView === 'improvement') return s;
-      if (!open && s.activeView !== 'improvement') return s;
-      if (open) {
-        return {
-          activeView: 'improvement',
-          isWhatIfOpen: false,
-          isReportOpen: false,
-          isPresentationMode: false,
-        };
-      }
-      return { activeView: 'analysis' };
-    }),
-
-  // Presentation — forces analysis workspace, closes other overlays
-  openPresentation: () =>
-    set({
-      activeView: 'analysis',
-      isPresentationMode: true,
-      isReportOpen: false,
-      isFindingsOpen: false,
-      isCoScoutOpen: false,
-    }),
-  closePresentation: () => set({ isPresentationMode: false }),
-
-  // Report — forces analysis workspace, closes other overlays
-  openReport: () =>
-    set({
-      activeView: 'analysis',
-      isReportOpen: true,
-      isPresentationMode: false,
-      isFindingsOpen: false,
-      isCoScoutOpen: false,
-    }),
-  closeReport: () => set({ isReportOpen: false }),
-
   // Highlights
   setHighlightRow: index => set({ highlightRowIndex: index }),
   setHighlightPoint: index => set({ highlightedChartPoint: index }),
@@ -172,13 +110,15 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   // Pending chart focus (consumed by Editor to set focusedChart in ViewState)
   setPendingChartFocus: chart => set({ pendingChartFocus: chart }),
 
-  // ViewState initialization — maps legacy 'editor' to 'analysis', legacy isImprovementOpen to workspace
+  // ViewState initialization — maps legacy values
   initFromViewState: viewState => {
     let activeView = viewState?.activeView ?? 'analysis';
     // Backward compat: map legacy 'editor' value
     if ((activeView as string) === 'editor') activeView = 'analysis';
     // Backward compat: map legacy isImprovementOpen flag
     if ((viewState as Record<string, unknown>)?.isImprovementOpen) activeView = 'improvement';
+    // Backward compat: map legacy isReportOpen flag
+    if ((viewState as Record<string, unknown>)?.isReportOpen) activeView = 'report';
     set({
       activeView,
       isFindingsOpen: viewState?.isFindingsOpen ?? false,

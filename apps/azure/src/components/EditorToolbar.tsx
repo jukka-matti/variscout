@@ -18,8 +18,6 @@ import {
   Beaker,
   Download,
   ChevronDown,
-  FileText,
-  Maximize2,
   EllipsisVertical,
   FolderUp,
   Share2,
@@ -47,7 +45,7 @@ export interface ToolbarSyncState {
 
 export interface ToolbarPanelState {
   /** Current workspace — hides irrelevant toggles per workspace (ADR-055) */
-  activeView?: 'dashboard' | 'analysis' | 'investigation' | 'improvement';
+  activeView?: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
   isFindingsOpen: boolean;
   findingsCount: number;
   onToggleFindings: () => void;
@@ -66,8 +64,6 @@ export interface ToolbarDataActions {
   onAddManualData: () => void;
   onOpenDataTable: () => void;
   onOpenWhatIf: () => void;
-  onOpenReport: () => void;
-  onOpenPresentation: () => void;
 }
 
 interface EditorToolbarProps {
@@ -108,15 +104,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     isStatsSidebarOpen,
     onToggleStatsSidebar,
   },
-  dataActions: {
-    onAddPasteData,
-    onAddFileData,
-    onAddManualData,
-    onOpenDataTable,
-    onOpenWhatIf,
-    onOpenReport,
-    onOpenPresentation,
-  },
+  dataActions: { onAddPasteData, onAddFileData, onAddManualData, onOpenDataTable, onOpenWhatIf },
   showOverflowMenu = true,
   shareState,
 }) => {
@@ -314,31 +302,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               </button>
             )}
 
-            {/* Scouting Report */}
-            {hasActiveData && (
-              <button
-                onClick={onOpenReport}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-                title={t('report.scouting')}
-                data-testid="btn-report"
-              >
-                <FileText size={16} />
-                <span>{t('report.scouting')}</span>
-              </button>
-            )}
-
-            {/* Presentation Mode */}
-            {hasActiveData && (
-              <button
-                onClick={onOpenPresentation}
-                className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-                title={t('nav.presentationMode')}
-                data-testid="btn-presentation"
-              >
-                <Maximize2 size={18} />
-              </button>
-            )}
-
             {/* Share */}
             {hasActiveData && shareState && <ShareDropdown {...shareState} />}
 
@@ -501,26 +464,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                 >
                   <Beaker size={16} />
                   {t('panel.whatIf')}
-                </button>
-                <button
-                  onClick={() => {
-                    setOverflowOpen(false);
-                    onOpenReport();
-                  }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
-                >
-                  <FileText size={16} />
-                  {t('report.scouting')}
-                </button>
-                <button
-                  onClick={() => {
-                    setOverflowOpen(false);
-                    onOpenPresentation();
-                  }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
-                >
-                  <Maximize2 size={16} />
-                  {t('nav.presentationMode')}
                 </button>
                 {/* Share */}
                 {shareState && (

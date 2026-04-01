@@ -150,8 +150,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   // Panel state from Zustand
   const isFindingsOpen = usePanelsStore(s => s.isFindingsOpen);
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
-  const isReportOpen = usePanelsStore(s => s.isReportOpen);
-  const isPresentationMode = usePanelsStore(s => s.isPresentationMode);
   const isDataTableOpen = usePanelsStore(s => s.isDataTableOpen);
   const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
   const statsSidebar = useResizablePanel('variscout-stats-sidebar-width', 280, 500, 320, 'left');
@@ -539,12 +537,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           findingsCallbacks={findingsCallbacks}
           findings={findingsState.findings}
           onInvestigateFactor={handleInvestigateFactor}
-          viewMode={{
-            isReportOpen,
-            onCloseReport: () => usePanelsStore.getState().closeReport(),
-            isPresentationMode,
-            onExitPresentation: () => usePanelsStore.getState().closePresentation(),
-          }}
           performance={{
             drillFromPerformance: dataFlow.drillFromPerformance,
             onBackToPerformance: dataFlow.handleBackToPerformance,

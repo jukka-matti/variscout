@@ -1,7 +1,7 @@
 import React from 'react';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 
-type WorkspaceView = 'dashboard' | 'analysis' | 'investigation' | 'improvement';
+type WorkspaceView = 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
 
 interface WorkspaceTabsProps {
   activeView: WorkspaceView;
@@ -21,9 +21,9 @@ const tabClass = (isActive: boolean) =>
 /**
  * Workspace tab navigation for the Azure app (ADR-055).
  *
- * Renders: Overview | Analysis | Investigation | Improvement
+ * Renders: Overview | Analysis | Investigation | Improvement | Report
  * Overview is the project dashboard landing page.
- * The three workspace tabs switch the center content area.
+ * The four workspace tabs switch the center content area.
  */
 const WorkspaceTabs: React.FC<WorkspaceTabsProps> = ({
   activeView,
@@ -69,6 +69,13 @@ const WorkspaceTabs: React.FC<WorkspaceTabsProps> = ({
             {selectedIdeaCount}
           </span>
         )}
+      </button>
+      <button
+        className={tabClass(activeView === 'report')}
+        onClick={() => usePanelsStore.getState().showReport()}
+        data-testid="view-toggle-report"
+      >
+        Report
       </button>
     </div>
   );

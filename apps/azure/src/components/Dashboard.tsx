@@ -10,8 +10,6 @@ import PerformanceDashboard from './PerformanceDashboard';
 import YamazumiDashboard from './YamazumiDashboard';
 import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
-import PresentationView from './views/PresentationView';
-import ReportView from './views/ReportView';
 import { useData } from '../context/DataContext';
 import { resolveMode } from '@variscout/core/strategy';
 import { useDashboardCharts } from '../hooks';
@@ -51,13 +49,6 @@ import type { ViewState } from '@variscout/hooks';
 import { Activity, BarChart3, Gauge, Timer, ArrowLeft, Settings2 } from 'lucide-react';
 
 type DashboardTab = 'analysis' | 'performance' | 'yamazumi';
-
-interface DashboardViewModeProps {
-  isPresentationMode?: boolean;
-  onExitPresentation?: () => void;
-  isReportOpen?: boolean;
-  onCloseReport?: () => void;
-}
 
 interface DashboardPerformanceProps {
   drillFromPerformance?: string | null;
@@ -99,7 +90,6 @@ interface DashboardProps {
   initialViewState?: ViewState;
   onViewStateChange?: (partial: Partial<ViewState>) => void;
   // Domain groups
-  viewMode?: DashboardViewModeProps;
   performance?: DashboardPerformanceProps;
   ai?: DashboardAIProps;
 }
@@ -117,12 +107,9 @@ const Dashboard = ({
   findings: allFindings,
   onInvestigateFactor,
   requestedFactor,
-  viewMode = {},
   performance = {},
   ai = {},
 }: DashboardProps) => {
-  // isStatsSidebarOpen still read by EditorDashboardView — not needed in Dashboard itself now
-  const { isPresentationMode, onExitPresentation, isReportOpen, onCloseReport } = viewMode;
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
     fetchChartInsight,
@@ -424,26 +411,6 @@ const Dashboard = ({
       : undefined;
 
   if (!outcome) return null;
-
-  if (isReportOpen && onCloseReport) {
-    return <ReportView onClose={onCloseReport} aiEnabled={aiEnabled} narrative={narrative} />;
-  }
-
-  if (isPresentationMode && onExitPresentation) {
-    return (
-      <PresentationView
-        onExit={onExitPresentation}
-        boxplotFactor={boxplotFactor}
-        paretoFactor={paretoFactor}
-        showParetoComparison={showParetoComparison}
-        onToggleParetoComparison={() => setShowParetoComparison(!showParetoComparison)}
-        paretoAggregation={paretoAggregation}
-        onToggleParetoAggregation={() =>
-          setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
-        }
-      />
-    );
-  }
 
   return (
     <div

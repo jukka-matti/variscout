@@ -103,8 +103,7 @@ export function buildNavTeamToolHandlers({
           panels.showImprovement();
           break;
         case 'report':
-          panels.showAnalysis();
-          panels.openReport();
+          panels.showReport();
           break;
       }
       return JSON.stringify({

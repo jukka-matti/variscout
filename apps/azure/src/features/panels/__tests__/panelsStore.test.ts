@@ -9,8 +9,6 @@ beforeEach(() => {
     isFindingsOpen: false,
     isCoScoutOpen: false,
     isWhatIfOpen: false,
-    isPresentationMode: false,
-    isReportOpen: false,
     highlightRowIndex: null,
     highlightedChartPoint: null,
     pendingChartFocus: null,
@@ -26,8 +24,6 @@ describe('panelsStore', () => {
       expect(s.isFindingsOpen).toBe(false);
       expect(s.isCoScoutOpen).toBe(false);
       expect(s.isWhatIfOpen).toBe(false);
-      expect(s.isPresentationMode).toBe(false);
-      expect(s.isReportOpen).toBe(false);
       expect(s.highlightRowIndex).toBeNull();
       expect(s.highlightedChartPoint).toBeNull();
     });
@@ -110,67 +106,6 @@ describe('panelsStore', () => {
       usePanelsStore.getState().setWhatIfOpen(true);
       usePanelsStore.getState().setWhatIfOpen(false);
       expect(usePanelsStore.getState().isWhatIfOpen).toBe(false);
-    });
-  });
-
-  describe('improvement workspace (via setImprovementOpen shim)', () => {
-    it('setImprovementOpen(true) switches to improvement workspace', () => {
-      usePanelsStore.getState().setImprovementOpen(true);
-      expect(usePanelsStore.getState().activeView).toBe('improvement');
-    });
-
-    it('setImprovementOpen(false) switches back to analysis', () => {
-      usePanelsStore.getState().setImprovementOpen(true);
-      usePanelsStore.getState().setImprovementOpen(false);
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
-    });
-
-    it('opening improvement closes report, presentation, and what-if', () => {
-      usePanelsStore.setState({
-        isReportOpen: true,
-        isPresentationMode: true,
-        isWhatIfOpen: true,
-      });
-      usePanelsStore.getState().setImprovementOpen(true);
-      const s = usePanelsStore.getState();
-      expect(s.activeView).toBe('improvement');
-      expect(s.isReportOpen).toBe(false);
-      expect(s.isPresentationMode).toBe(false);
-      expect(s.isWhatIfOpen).toBe(false);
-    });
-
-    it('opening report forces analysis workspace', () => {
-      usePanelsStore.getState().setImprovementOpen(true);
-      usePanelsStore.getState().openReport();
-      const s = usePanelsStore.getState();
-      expect(s.isReportOpen).toBe(true);
-      expect(s.activeView).toBe('analysis');
-    });
-
-    it('opening presentation forces analysis workspace', () => {
-      usePanelsStore.getState().setImprovementOpen(true);
-      usePanelsStore.getState().openPresentation();
-      const s = usePanelsStore.getState();
-      expect(s.isPresentationMode).toBe(true);
-      expect(s.activeView).toBe('analysis');
-    });
-
-    it('no-op when value is unchanged', () => {
-      usePanelsStore.getState().setImprovementOpen(false);
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
-    });
-  });
-
-  describe('presentation mode', () => {
-    it('openPresentation enters presentation mode', () => {
-      usePanelsStore.getState().openPresentation();
-      expect(usePanelsStore.getState().isPresentationMode).toBe(true);
-    });
-
-    it('closePresentation exits presentation mode', () => {
-      usePanelsStore.getState().openPresentation();
-      usePanelsStore.getState().closePresentation();
-      expect(usePanelsStore.getState().isPresentationMode).toBe(false);
     });
   });
 
@@ -274,29 +209,61 @@ describe('panelsStore', () => {
       expect(s.isStatsSidebarOpen).toBe(true);
       expect(s.highlightRowIndex).toBe(5);
     });
+  });
 
-    it('openPresentation closes findings and CoScout (F-09)', () => {
-      usePanelsStore.setState({
-        isFindingsOpen: true,
-        isCoScoutOpen: true,
-      });
-      usePanelsStore.getState().openPresentation();
-      const s = usePanelsStore.getState();
-      expect(s.isFindingsOpen).toBe(false);
-      expect(s.isCoScoutOpen).toBe(false);
-      expect(s.isPresentationMode).toBe(true);
+  describe('workspace navigation (ADR-055)', () => {
+    it('defaults to analysis', () => {
+      expect(usePanelsStore.getState().activeView).toBe('analysis');
     });
 
-    it('openReport closes findings and CoScout (F-09)', () => {
-      usePanelsStore.setState({
-        isFindingsOpen: true,
-        isCoScoutOpen: true,
-      });
-      usePanelsStore.getState().openReport();
-      const s = usePanelsStore.getState();
-      expect(s.isReportOpen).toBe(true);
-      expect(s.isFindingsOpen).toBe(false);
-      expect(s.isCoScoutOpen).toBe(false);
+    it('showDashboard sets activeView to dashboard', () => {
+      usePanelsStore.getState().showDashboard();
+      expect(usePanelsStore.getState().activeView).toBe('dashboard');
+    });
+
+    it('showAnalysis sets activeView to analysis', () => {
+      usePanelsStore.getState().showDashboard();
+      usePanelsStore.getState().showAnalysis();
+      expect(usePanelsStore.getState().activeView).toBe('analysis');
+    });
+
+    it('showInvestigation sets activeView to investigation', () => {
+      usePanelsStore.getState().showInvestigation();
+      expect(usePanelsStore.getState().activeView).toBe('investigation');
+    });
+
+    it('showInvestigation closes findings sidebar', () => {
+      usePanelsStore.setState({ isFindingsOpen: true });
+      usePanelsStore.getState().showInvestigation();
+      expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
+    });
+
+    it('showImprovement sets activeView to improvement', () => {
+      usePanelsStore.getState().showImprovement();
+      expect(usePanelsStore.getState().activeView).toBe('improvement');
+    });
+
+    it('showImprovement closes whatIf', () => {
+      usePanelsStore.setState({ isWhatIfOpen: true });
+      usePanelsStore.getState().showImprovement();
+      expect(usePanelsStore.getState().isWhatIfOpen).toBe(false);
+    });
+
+    it('showReport sets activeView to report', () => {
+      usePanelsStore.getState().showReport();
+      expect(usePanelsStore.getState().activeView).toBe('report');
+    });
+
+    it('showReport from any workspace', () => {
+      usePanelsStore.getState().showImprovement();
+      usePanelsStore.getState().showReport();
+      expect(usePanelsStore.getState().activeView).toBe('report');
+    });
+
+    it('showAnalysis returns from report workspace', () => {
+      usePanelsStore.getState().showReport();
+      usePanelsStore.getState().showAnalysis();
+      expect(usePanelsStore.getState().activeView).toBe('analysis');
     });
   });
 
@@ -331,106 +298,42 @@ describe('panelsStore', () => {
     });
 
     it('maps legacy isImprovementOpen to improvement workspace', () => {
-      // Simulate legacy persisted data with isImprovementOpen flag
       usePanelsStore.getState().initFromViewState({
         isImprovementOpen: true,
       } as never);
       expect(usePanelsStore.getState().activeView).toBe('improvement');
     });
-  });
 
-  describe('workspace navigation (ADR-055)', () => {
-    it('defaults to analysis', () => {
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
-    });
-
-    it('showDashboard sets activeView to dashboard', () => {
-      usePanelsStore.getState().showDashboard();
-      expect(usePanelsStore.getState().activeView).toBe('dashboard');
-    });
-
-    it('showAnalysis sets activeView to analysis', () => {
-      usePanelsStore.getState().showDashboard();
-      usePanelsStore.getState().showAnalysis();
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
-    });
-
-    it('showEditor (deprecated alias) sets activeView to analysis', () => {
-      usePanelsStore.getState().showDashboard();
-      usePanelsStore.getState().showEditor();
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
-    });
-
-    it('showInvestigation sets activeView to investigation', () => {
-      usePanelsStore.getState().showInvestigation();
-      expect(usePanelsStore.getState().activeView).toBe('investigation');
-    });
-
-    it('showInvestigation closes findings sidebar', () => {
-      usePanelsStore.setState({ isFindingsOpen: true });
-      usePanelsStore.getState().showInvestigation();
-      expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
-    });
-
-    it('showImprovement sets activeView to improvement', () => {
-      usePanelsStore.getState().showImprovement();
-      expect(usePanelsStore.getState().activeView).toBe('improvement');
-    });
-
-    it('showImprovement closes whatIf, report, presentation', () => {
-      usePanelsStore.setState({
-        isWhatIfOpen: true,
-        isReportOpen: true,
-        isPresentationMode: true,
-      });
-      usePanelsStore.getState().showImprovement();
-      const s = usePanelsStore.getState();
-      expect(s.isWhatIfOpen).toBe(false);
-      expect(s.isReportOpen).toBe(false);
-      expect(s.isPresentationMode).toBe(false);
-    });
-
-    it('showDashboard closes report and presentation', () => {
-      usePanelsStore.setState({ isReportOpen: true, isPresentationMode: true });
-      usePanelsStore.getState().showDashboard();
-      const s = usePanelsStore.getState();
-      expect(s.activeView).toBe('dashboard');
-      expect(s.isReportOpen).toBe(false);
-      expect(s.isPresentationMode).toBe(false);
-    });
-
-    it('openPresentation forces analysis workspace', () => {
-      usePanelsStore.getState().showInvestigation();
-      usePanelsStore.getState().openPresentation();
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
-      expect(usePanelsStore.getState().isPresentationMode).toBe(true);
-    });
-
-    it('openReport forces analysis workspace', () => {
-      usePanelsStore.getState().showImprovement();
-      usePanelsStore.getState().openReport();
-      expect(usePanelsStore.getState().activeView).toBe('analysis');
-      expect(usePanelsStore.getState().isReportOpen).toBe(true);
-    });
-
-    it('initFromViewState restores activeView', () => {
+    it('restores activeView', () => {
       usePanelsStore.getState().initFromViewState({ activeView: 'dashboard' });
       expect(usePanelsStore.getState().activeView).toBe('dashboard');
     });
 
-    it('initFromViewState restores investigation workspace', () => {
+    it('restores investigation workspace', () => {
       usePanelsStore.getState().initFromViewState({ activeView: 'investigation' });
       expect(usePanelsStore.getState().activeView).toBe('investigation');
     });
 
-    it('initFromViewState restores improvement workspace', () => {
+    it('restores improvement workspace', () => {
       usePanelsStore.getState().initFromViewState({ activeView: 'improvement' });
       expect(usePanelsStore.getState().activeView).toBe('improvement');
     });
 
-    it('initFromViewState defaults to analysis when activeView missing', () => {
+    it('restores report workspace', () => {
+      usePanelsStore.getState().initFromViewState({ activeView: 'report' });
+      expect(usePanelsStore.getState().activeView).toBe('report');
+    });
+
+    it('defaults to analysis when activeView missing', () => {
       usePanelsStore.getState().initFromViewState({});
       expect(usePanelsStore.getState().activeView).toBe('analysis');
+    });
+
+    it('maps legacy isReportOpen to report workspace', () => {
+      usePanelsStore.getState().initFromViewState({
+        isReportOpen: true,
+      } as never);
+      expect(usePanelsStore.getState().activeView).toBe('report');
     });
   });
 });

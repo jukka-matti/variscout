@@ -55,6 +55,7 @@ import ProjectDashboard from '../components/ProjectDashboard';
 import { useAIStore } from '../features/ai/aiStore';
 
 const WhatIfPage = lazy(() => import('../components/WhatIfPage'));
+const ReportView = lazy(() => import('../components/views/ReportView'));
 
 interface EditorProps {
   projectId: string | null;
@@ -170,7 +171,6 @@ export const Editor: React.FC<EditorProps> = ({
   const isFindingsOpen = usePanelsStore(s => s.isFindingsOpen);
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
-  const isReportOpen = usePanelsStore(s => s.isReportOpen);
   const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
 
   // Initialize from persisted ViewState (once, on mount)
@@ -273,13 +273,10 @@ export const Editor: React.FC<EditorProps> = ({
       const ps = usePanelsStore.getState();
       switch (action) {
         case 'report':
-          ps.openReport();
+          ps.showReport();
           break;
         case 'whatif':
           ps.setWhatIfOpen(true);
-          break;
-        case 'presentation':
-          ps.openPresentation();
           break;
         case 'datatable':
           ps.openDataTable();
@@ -366,8 +363,7 @@ export const Editor: React.FC<EditorProps> = ({
     } else if (target === 'improvement' || target === 'actions') {
       ps.showImprovement();
     } else if (target === 'report') {
-      ps.showAnalysis();
-      ps.openReport();
+      ps.showReport();
     } else if (target === 'coscout') {
       ps.showAnalysis();
       ps.setCoScoutOpen(true);
@@ -488,7 +484,7 @@ export const Editor: React.FC<EditorProps> = ({
     } else if (initialMode === 'improvement') {
       usePanelsStore.getState().showImprovement();
     } else if (initialMode === 'report') {
-      usePanelsStore.getState().openReport();
+      usePanelsStore.getState().showReport();
     }
 
     if (hasDeepLink) {
@@ -531,9 +527,9 @@ export const Editor: React.FC<EditorProps> = ({
     return buildCurrentViewLink(baseUrl, projectName, {
       focusedChart: viewState?.focusedChart ?? undefined,
       findingId: highlightedFindingId ?? undefined,
-      mode: isReportOpen ? 'report' : undefined,
+      mode: activeView === 'report' ? 'report' : undefined,
     });
-  }, [baseUrl, projectName, viewState?.focusedChart, highlightedFindingId, isReportOpen]);
+  }, [baseUrl, projectName, viewState?.focusedChart, highlightedFindingId, activeView]);
 
   // Share via Teams native dialog with toast feedback
   const handleShareTeams = useCallback(() => {
@@ -557,14 +553,14 @@ export const Editor: React.FC<EditorProps> = ({
     () => ({
       deepLinkUrl,
       isInTeams: isTeams,
-      showPublishReport: isReportOpen && hasTeamFeatures(),
+      showPublishReport: activeView === 'report' && hasTeamFeatures(),
       onShareTeams: handleShareTeams,
       onPublishReport: () => {
         /* P3 -- wired later */
       },
       onToast: showToast,
     }),
-    [deepLinkUrl, isTeams, isReportOpen, handleShareTeams, showToast]
+    [deepLinkUrl, isTeams, activeView, handleShareTeams, showToast]
   );
 
   // Current user (for comment author attribution)
@@ -991,8 +987,6 @@ export const Editor: React.FC<EditorProps> = ({
           onAddManualData: dataFlow.handleAddMoreData,
           onOpenDataTable: () => usePanelsStore.getState().openDataTable(),
           onOpenWhatIf: () => usePanelsStore.getState().setWhatIfOpen(true),
-          onOpenReport: () => usePanelsStore.getState().openReport(),
-          onOpenPresentation: () => usePanelsStore.getState().openPresentation(),
         }}
         showOverflowMenu={!isPhone}
         shareState={shareState}
@@ -1108,6 +1102,14 @@ export const Editor: React.FC<EditorProps> = ({
                 convertedIdeaIds={convertedIdeaIds}
                 targetCpk={processContext?.targetValue}
               />
+            ) : activeView === 'report' ? (
+              <Suspense fallback={null}>
+                <ReportView
+                  onClose={() => usePanelsStore.getState().showAnalysis()}
+                  aiEnabled={aiEnabled && isAIAvailable()}
+                  narrative={aiOrch.narration.narrative}
+                />
+              </Suspense>
             ) : (
               <EditorDashboardView
                 dataFlow={dataFlow}
