@@ -991,7 +991,6 @@ export const Editor: React.FC<EditorProps> = ({
           onAddManualData: dataFlow.handleAddMoreData,
           onOpenDataTable: () => usePanelsStore.getState().openDataTable(),
           onOpenWhatIf: () => usePanelsStore.getState().setWhatIfOpen(true),
-          onOpenImprovement: () => usePanelsStore.getState().showImprovement(),
           onOpenReport: () => usePanelsStore.getState().openReport(),
           onOpenPresentation: () => usePanelsStore.getState().openPresentation(),
         }}

@@ -22,7 +22,6 @@ import {
   Maximize2,
   EllipsisVertical,
   FolderUp,
-  Lightbulb,
   Share2,
   MessageSquare,
   BarChart3,
@@ -67,7 +66,6 @@ export interface ToolbarDataActions {
   onAddManualData: () => void;
   onOpenDataTable: () => void;
   onOpenWhatIf: () => void;
-  onOpenImprovement: () => void;
   onOpenReport: () => void;
   onOpenPresentation: () => void;
 }
@@ -116,7 +114,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     onAddManualData,
     onOpenDataTable,
     onOpenWhatIf,
-    onOpenImprovement,
     onOpenReport,
     onOpenPresentation,
   },
@@ -317,19 +314,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               </button>
             )}
 
-            {/* Improvement Workspace — hidden when already in improvement workspace */}
-            {hasActiveData && hasFactors && activeView !== 'improvement' && (
-              <button
-                onClick={onOpenImprovement}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-                title={t('improve.title')}
-                data-testid="btn-improvement"
-              >
-                <Lightbulb size={16} />
-                <span className="hidden lg:inline">{t('improve.title')}</span>
-              </button>
-            )}
-
             {/* Scouting Report */}
             {hasActiveData && (
               <button
@@ -518,18 +502,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   <Beaker size={16} />
                   {t('panel.whatIf')}
                 </button>
-                {hasFactors && (
-                  <button
-                    onClick={() => {
-                      setOverflowOpen(false);
-                      onOpenImprovement();
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] text-sm text-content hover:bg-surface-tertiary transition-colors"
-                  >
-                    <Lightbulb size={16} />
-                    {t('improve.title')}
-                  </button>
-                )}
                 <button
                   onClick={() => {
                     setOverflowOpen(false);
