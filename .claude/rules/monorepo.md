@@ -139,6 +139,8 @@ apps/
 │              #     WhatsNewSection - "What's new since last visit" summary on Dashboard
 │              #     OtherProjectsList - Cross-project compact list on Dashboard Overview
 │              #     SampleDataPicker - Guided sample data entry for empty portfolio state
+│              #     editor/WorkspaceTabs - Workspace tab navigation (ADR-055)
+│              #     editor/InvestigationWorkspace - Question-driven EDA layout (ADR-055)
 └── website/      # @variscout/website - Marketing website (Astro + React Islands)
 ```
 

@@ -108,12 +108,12 @@ User clicks "Go to analysis", the "Analysis" tab, or any chart-related item.
 
 | Action                           | Implementation                                            |
 | -------------------------------- | --------------------------------------------------------- |
-| `panelsStore.showEditor()`       | Sets `activeView: 'editor'`                               |
+| `panelsStore.showAnalysis()`     | Sets `activeView: 'analysis'` (ADR-055)                   |
 | Editor renders at last ViewState | Saved `activeTab`, `focusedChart`, `filterStack` restored |
 
 #### Option B: Navigate to a Specific Item
 
-Clicking a status item on the dashboard switches to the Editor with a targeted panel/view:
+Clicking a status item on the dashboard switches to the appropriate workspace (ADR-055):
 
 | Dashboard item                           | What happens in Editor                                                                                  |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
@@ -128,7 +128,7 @@ User types in the "Ask CoScout..." input on the Dashboard AI Summary Card.
 | Action                                           | Implementation                                                  |
 | ------------------------------------------------ | --------------------------------------------------------------- |
 | User submits question                            | `aiStore.setPendingDashboardQuestion(question)`                 |
-| Dashboard switches to Editor                     | `panelsStore.showEditor()`                                      |
+| Dashboard switches to Analysis                   | `panelsStore.showAnalysis()`                                    |
 | Editor opens CoScout panel                       | `panelsStore.openCoScout()`                                     |
 | CoScout panel detects `pendingDashboardQuestion` | Auto-sends question on mount; clears `pendingDashboardQuestion` |
 | CoScout auto-calls `search_project`              | Searches findings/hypotheses/ideas/actions for query text       |
@@ -140,7 +140,7 @@ User clicks "Add new data batch".
 
 | Action                | Implementation                                          |
 | --------------------- | ------------------------------------------------------- |
-| Switch to Editor      | `panelsStore.showEditor()`                              |
+| Switch to Analysis    | `panelsStore.showAnalysis()`                            |
 | Open data append flow | `useEditorDataFlow` triggers the data ingestion overlay |
 
 ---
@@ -197,7 +197,7 @@ The "Ask CoScout..." input collapses to a tap-to-expand bottom sheet. All naviga
 | `DashboardSummaryCard`                    | `apps/azure/src/components/DashboardSummaryCard.tsx`          | AI summary + quick-ask input             |
 | `panelsStore.activeView`                  | `apps/azure/src/features/panels/panelsStore.ts`               | `'dashboard' \| 'editor'` toggle         |
 | `panelsStore.showDashboard()`             | `apps/azure/src/features/panels/panelsStore.ts`               | Sets `activeView: 'dashboard'`           |
-| `panelsStore.showEditor()`                | `apps/azure/src/features/panels/panelsStore.ts`               | Sets `activeView: 'editor'`              |
+| `panelsStore.showAnalysis()`              | `apps/azure/src/features/panels/panelsStore.ts`               | Sets `activeView: 'analysis'` (ADR-055)  |
 | `findingsStore.statusFilter`              | `apps/azure/src/features/findings/findingsStore.ts`           | Pre-filter findings panel from dashboard |
 | `investigationStore.expandedHypothesisId` | `apps/azure/src/features/investigation/investigationStore.ts` | Scroll-to hypothesis from dashboard      |
 | `aiStore.pendingDashboardQuestion`        | `apps/azure/src/features/ai/aiStore.ts`                       | Dashboard → CoScout question handoff     |

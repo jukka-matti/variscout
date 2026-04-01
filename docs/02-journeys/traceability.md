@@ -65,7 +65,7 @@ Bookmark/history → resume work. Azure users land on the Project Dashboard; PWA
 | 2. Restore analysis    | Load from IndexedDB/OneDrive                     | `@variscout/hooks`                 | `useProjectPersistence`                                     |
 | 3. Land on Dashboard   | Project Dashboard loads (Azure only)             | `apps/azure/src/components`        | `ProjectDashboard`, `panelsStore.activeView`                |
 | 4. Scan project status | Review findings, hypotheses, actions at a glance | `apps/azure/src/components`        | `ProjectStatusCard`, `DashboardSummaryCard`                 |
-| 5a. Continue analysis  | Click "Go to analysis" or "Overview" tab         | `apps/azure/src/features/panels`   | `panelsStore.showEditor()`                                  |
+| 5a. Continue analysis  | Click "Analysis" workspace tab                   | `apps/azure/src/features/panels`   | `panelsStore.showAnalysis()` (ADR-055)                      |
 | 5b. Ask CoScout        | Type question in quick-ask input                 | `apps/azure/src/features/ai`       | `aiStore.setPendingDashboardQuestion()`, `CoScoutPanelBase` |
 | 5c. Add new data       | Click "Add new data batch"                       | `apps/azure/src/hooks`             | `useEditorDataFlow`                                         |
 | 6. Hit PWA ceiling     | See upgrade prompt (PWA only)                    | `@variscout/ui`, `@variscout/core` | `UpgradePrompt`, `tier.ts`                                  |
@@ -95,7 +95,7 @@ Open saved project → dashboard → analysis. Repeat analysis, Performance Mode
 | ------------------------- | ---------------------------------- | ------------------------------------ | --------------------------------------------------------------- |
 | 1. Open saved analysis    | Load from list                     | `@variscout/hooks`                   | `useProjectPersistence`                                         |
 | 1a. Dashboard orientation | Scan findings/hypotheses/actions   | `apps/azure/src/components`          | `ProjectDashboard`, `ProjectStatusCard`, `DashboardSummaryCard` |
-| 1b. Switch to Editor      | "Go to analysis" or tab click      | `apps/azure/src/features/panels`     | `panelsStore.showEditor()`                                      |
+| 1b. Switch to Analysis    | "Analysis" workspace tab           | `apps/azure/src/features/panels`     | `panelsStore.showAnalysis()` (ADR-055)                          |
 | 2. Quick check            | Scan I-Chart + Stats               | `@variscout/charts`, `@variscout/ui` | `IChart`, `StatsPanelBase`                                      |
 | 3. AI narration           | Read NarrativeBar summary          | `@variscout/hooks`, `@variscout/ui`  | `useNarration`, `NarrativeBar`                                  |
 | 4. Drill with AI hints    | Follow ChartInsightChip suggestion | `@variscout/hooks`, `@variscout/ui`  | `useChartInsights`, `ChartInsightChip`                          |

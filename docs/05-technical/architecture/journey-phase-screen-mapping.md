@@ -23,17 +23,17 @@ Azure saved projects: loadProject() → Project Dashboard (activeView: 'dashboar
 
 The Project Dashboard is a **peer view** alongside the analysis Editor, available for saved Azure projects that have data. It is the default landing when opening a saved project.
 
-| Field                | Detail                                                                                                   |
-| -------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| **Navigation model** | `panelsStore.activeView: 'dashboard'                                                                     | 'editor'` — toggled by "Overview" / "Analysis" tab bar in the project shell |
-| **Default landing**  | Set to `'dashboard'` after `loadProject()` for projects with data (unless deep link is present)          |
-| **New projects**     | Skip dashboard; go straight to Editor in FRAME mode (no data yet)                                        |
-| **Deep links**       | Teams task links, `?finding=<id>`, `?chart=<type>` bypass the dashboard and land in Editor at the target |
-| **Persistence**      | `activeView` is included in `ViewState` and restored on project reopen                                   |
-| **Components**       | `ProjectDashboard`, `ProjectStatusCard`, `DashboardSummaryCard` in `apps/azure/src/components/`          |
-| **AI summary**       | Fast tier (gpt-5.4-nano, reasoning: none). State-aware cache key. Hidden when AI unavailable.            |
+| Field                | Detail                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| **Navigation model** | `panelsStore.activeView: 'dashboard'                                                             | 'editor'` — toggled by "Overview" / "Analysis" tab bar in the project shell |
+| **Default landing**  | Set to `'dashboard'` after `loadProject()` for projects with data (unless deep link is present)  |
+| **New projects**     | Skip dashboard; go straight to Analysis workspace in FRAME mode (no data yet)                    |
+| **Deep links**       | `?finding=<id>`, `?hypothesis=<id>` open Investigation workspace; `?chart=<type>` opens Analysis |
+| **Persistence**      | `activeView` is included in `ViewState` and restored on project reopen                           |
+| **Components**       | `ProjectDashboard`, `ProjectStatusCard`, `DashboardSummaryCard` in `apps/azure/src/components/`  |
+| **AI summary**       | Fast tier (gpt-5.4-nano, reasoning: none). State-aware cache key. Hidden when AI unavailable.    |
 
-Store actions: `panelsStore.showDashboard()` / `panelsStore.showEditor()`. See [ADR-042](../../07-decisions/adr-042-project-dashboard.md).
+Store actions: `panelsStore.showDashboard()` / `showAnalysis()` / `showInvestigation()` / `showImprovement()`. See [ADR-042](../../07-decisions/adr-042-project-dashboard.md), [ADR-055](../../07-decisions/adr-055-workspace-navigation.md).
 
 ## Phase Mapping
 

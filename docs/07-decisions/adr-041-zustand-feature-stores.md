@@ -76,7 +76,7 @@ React hooks that watch Zustand stores and notify DataContext for persistence.
 
 **Current instances:**
 
-- `usePanelsPersistence` — watches `isFindingsOpen`, `isWhatIfOpen`, `isImprovementOpen`, `activeView` from panelsStore
+- `usePanelsPersistence` — watches `isFindingsOpen`, `isWhatIfOpen`, `activeView` from panelsStore (ADR-055: `isImprovementOpen` replaced by `activeView: 'improvement'`)
 
 **Pattern:**
 
