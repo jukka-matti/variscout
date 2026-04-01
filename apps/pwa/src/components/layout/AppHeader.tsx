@@ -3,7 +3,6 @@ import {
   Activity,
   Settings,
   MoreVertical,
-  Maximize,
   Share2,
   ClipboardList,
   Beaker,
@@ -13,7 +12,6 @@ import { useTranslation } from '@variscout/hooks';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 
-const maximizeIcon = <Maximize size={18} />;
 const share2Icon = <Share2 size={18} />;
 const settingsIcon = <Settings size={18} />;
 
@@ -59,7 +57,6 @@ interface AppHeaderProps {
   onOpenDataTable: () => void;
   onExportCSV: () => void;
   onExportImage: () => void;
-  onEnterPresentationMode: () => void;
   onOpenSettings: () => void;
   onReset: () => void;
   onOpenSpecEditor?: () => void;
@@ -89,7 +86,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenDataTable,
   onExportCSV,
   onExportImage,
-  onEnterPresentationMode,
   onOpenSettings,
   onReset,
   onOpenSpecEditor,
@@ -194,12 +190,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 )}
 
                 {/* Fullscreen / Presentation Mode */}
-                <HeaderIconButton
-                  icon={maximizeIcon}
-                  title={t('nav.presentationMode')}
-                  onClick={onEnterPresentationMode}
-                />
-
                 {/* Export */}
                 <HeaderIconButton
                   icon={share2Icon}
@@ -246,7 +236,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               onClose={() => setIsMobileMenuOpen(false)}
               onExportCSV={onExportCSV}
               onExportImage={onExportImage}
-              onEnterPresentationMode={onEnterPresentationMode}
               onOpenSettings={onOpenSettings}
               onReset={onReset}
               onOpenDataTable={onOpenDataTable}

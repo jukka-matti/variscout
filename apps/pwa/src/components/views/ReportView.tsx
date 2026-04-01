@@ -25,7 +25,6 @@ interface ReportViewProps {
   // Data
   stats: StatsResult | null;
   specs: SpecLimits;
-  cpkTarget?: number;
   findings: Finding[];
   hypotheses: Hypothesis[];
   columnAliases: Record<string, string>;
@@ -38,7 +37,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   onClose,
   stats,
   specs,
-  cpkTarget: _cpkTarget,
   findings,
   hypotheses,
   columnAliases,

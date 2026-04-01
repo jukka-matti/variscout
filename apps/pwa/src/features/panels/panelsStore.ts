@@ -2,17 +2,14 @@ import { create } from 'zustand';
 
 // ── State ────────────────────────────────────────────────────────────────────
 
-export type Workspace = 'analysis' | 'investigation' | 'improvement' | 'report';
-
 interface PanelsState {
-  // Workspace navigation
-  activeWorkspace: Workspace;
+  // Workspace navigation (aligned with Azure's activeView naming per ADR-055)
+  activeView: 'analysis' | 'investigation' | 'improvement' | 'report';
 
   // Panel visibility
   isSettingsOpen: boolean;
   isDataTableOpen: boolean;
   isFindingsOpen: boolean;
-  isPresentationMode: boolean;
   isWhatIfOpen: boolean;
   isStatsSidebarOpen: boolean;
 
@@ -40,7 +37,6 @@ interface PanelsActions {
   setDataTableOpen: (open: boolean) => void;
   setFindingsOpen: (open: boolean) => void;
   toggleFindings: () => void;
-  setPresentationMode: (on: boolean) => void;
   setWhatIfOpen: (open: boolean) => void;
   toggleStatsSidebar: () => void;
 
@@ -67,11 +63,10 @@ export type PanelsStore = PanelsState & PanelsActions;
 // ── Initial state (exported for testing) ────────────────────────────────────
 
 export const initialPanelsState: PanelsState = {
-  activeWorkspace: 'analysis',
+  activeView: 'analysis',
   isSettingsOpen: false,
   isDataTableOpen: false,
   isFindingsOpen: false,
-  isPresentationMode: false,
   isWhatIfOpen: false,
   isStatsSidebarOpen: false,
   highlightRowIndex: null,
@@ -87,19 +82,18 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   ...initialPanelsState,
 
   // Workspace navigation
-  showAnalysis: () => set({ activeWorkspace: 'analysis' }),
-  showInvestigation: () => set({ activeWorkspace: 'investigation', isFindingsOpen: false }),
-  showImprovement: () => set({ activeWorkspace: 'improvement' }),
-  showReport: () => set({ activeWorkspace: 'report' }),
+  showAnalysis: () => set({ activeView: 'analysis' }),
+  showInvestigation: () => set({ activeView: 'investigation', isFindingsOpen: false }),
+  showImprovement: () => set({ activeView: 'improvement' }),
+  showReport: () => set({ activeView: 'report' }),
 
   // Simple toggles
   setSettingsOpen: open => set({ isSettingsOpen: open }),
   setDataTableOpen: open => set({ isDataTableOpen: open }),
   setFindingsOpen: open =>
-    set(s => (s.activeWorkspace === 'investigation' ? s : { isFindingsOpen: open })),
+    set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: open })),
   toggleFindings: () =>
-    set(s => (s.activeWorkspace === 'investigation' ? s : { isFindingsOpen: !s.isFindingsOpen })),
-  setPresentationMode: on => set({ isPresentationMode: on }),
+    set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: !s.isFindingsOpen })),
   setWhatIfOpen: open => set({ isWhatIfOpen: open }),
   toggleStatsSidebar: () => set(s => ({ isStatsSidebarOpen: !s.isStatsSidebarOpen })),
 

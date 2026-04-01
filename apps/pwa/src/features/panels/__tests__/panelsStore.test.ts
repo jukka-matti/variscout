@@ -11,7 +11,6 @@ describe('panelsStore', () => {
       const s = usePanelsStore.getState();
       expect(s.isFindingsOpen).toBe(false);
       expect(s.isDataTableOpen).toBe(false);
-      expect(s.isPresentationMode).toBe(false);
       expect(s.isStatsSidebarOpen).toBe(false);
       expect(s.highlightRowIndex).toBeNull();
       expect(s.highlightedChartPoint).toBeNull();
@@ -68,31 +67,31 @@ describe('panelsStore', () => {
 
   describe('workspace navigation', () => {
     it('defaults to analysis workspace', () => {
-      expect(usePanelsStore.getState().activeWorkspace).toBe('analysis');
+      expect(usePanelsStore.getState().activeView).toBe('analysis');
     });
 
     it('showAnalysis sets workspace to analysis', () => {
       usePanelsStore.getState().showInvestigation();
       usePanelsStore.getState().showAnalysis();
-      expect(usePanelsStore.getState().activeWorkspace).toBe('analysis');
+      expect(usePanelsStore.getState().activeView).toBe('analysis');
     });
 
     it('showInvestigation sets workspace and closes findings panel', () => {
       usePanelsStore.setState({ isFindingsOpen: true });
       usePanelsStore.getState().showInvestigation();
       const s = usePanelsStore.getState();
-      expect(s.activeWorkspace).toBe('investigation');
+      expect(s.activeView).toBe('investigation');
       expect(s.isFindingsOpen).toBe(false);
     });
 
     it('showImprovement sets workspace to improvement', () => {
       usePanelsStore.getState().showImprovement();
-      expect(usePanelsStore.getState().activeWorkspace).toBe('improvement');
+      expect(usePanelsStore.getState().activeView).toBe('improvement');
     });
 
     it('showReport sets workspace to report', () => {
       usePanelsStore.getState().showReport();
-      expect(usePanelsStore.getState().activeWorkspace).toBe('report');
+      expect(usePanelsStore.getState().activeView).toBe('report');
     });
 
     it('toggleFindings is no-op in investigation workspace', () => {

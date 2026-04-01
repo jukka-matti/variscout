@@ -18,6 +18,8 @@ export function useAutoSave(
 ): void {
   const isInitializedRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const onSaveRef = useRef(onSave);
+  onSaveRef.current = onSave;
 
   useEffect(() => {
     if (!enabled) return;
@@ -32,7 +34,7 @@ export function useAutoSave(
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     timeoutRef.current = setTimeout(() => {
-      onSave();
+      onSaveRef.current();
     }, debounceMs);
 
     return () => {

@@ -572,7 +572,6 @@ function AppMain() {
           }}
           onExportCSV={handleExportCSV}
           onExportImage={handleExport}
-          onEnterPresentationMode={() => panels.setIsPresentationMode(true)}
           onOpenSettings={() => panels.setIsSettingsOpen(true)}
           onReset={panels.handleResetRequest}
           onOpenSpecEditor={() => panels.setOpenSpecEditorRequested(true)}
@@ -580,7 +579,7 @@ function AppMain() {
           isWhatIfOpen={panels.isWhatIfPageOpen}
           isStatsSidebarOpen={panels.isStatsSidebarOpen}
           onToggleStatsSidebar={rawData.length > 0 ? panels.handleToggleStatsSidebar : undefined}
-          hideFindings={panels.activeWorkspace === 'investigation'}
+          hideFindings={panels.activeView === 'investigation'}
         />
       )}
 
@@ -653,7 +652,7 @@ function AppMain() {
                   <button
                     key={ws.id}
                     className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
-                      panels.activeWorkspace === ws.id
+                      panels.activeView === ws.id
                         ? 'border-blue-500 text-blue-500'
                         : 'border-transparent text-content-secondary hover:text-content hover:border-content-tertiary'
                     }`}
@@ -716,7 +715,7 @@ function AppMain() {
                 onStackConfigChange={importFlow.handleStackConfigChange}
                 rowLimit={50000}
               />
-            ) : panels.activeWorkspace === 'investigation' ? (
+            ) : panels.activeView === 'investigation' ? (
               <InvestigationView
                 filteredData={filteredData ?? []}
                 outcome={outcome}
@@ -732,18 +731,17 @@ function AppMain() {
                 columnAliases={columnAliases}
                 resolvedMode={resolved}
               />
-            ) : panels.activeWorkspace === 'improvement' ? (
+            ) : panels.activeView === 'improvement' ? (
               <ImprovementView
                 hypothesesState={hypothesesState}
                 onBack={panels.showAnalysis}
                 handleConvertIdeasToActions={improvementOrch.handleConvertIdeasToActions}
               />
-            ) : panels.activeWorkspace === 'report' ? (
+            ) : panels.activeView === 'report' ? (
               <ReportView
                 onClose={panels.showAnalysis}
                 stats={stats}
                 specs={specs}
-                cpkTarget={cpkTarget}
                 findings={findingsState.findings}
                 hypotheses={hypothesesState.hypotheses}
                 columnAliases={columnAliases}
@@ -771,12 +769,9 @@ function AppMain() {
             ) : (
               <Dashboard
                 onPointClick={panels.openDataTableAtRow}
-                isPresentationMode={panels.isPresentationMode}
-                onExitPresentation={() => panels.setIsPresentationMode(false)}
                 hideStatsInGrid={panels.isStatsSidebarOpen}
                 onExportCSV={handleExportCSV}
                 onExportImage={handleExport}
-                onEnterPresentationMode={() => panels.setIsPresentationMode(true)}
                 highlightedChart={highlightedChart}
                 highlightIntensity={highlightIntensity}
                 onChartClick={isEmbedMode ? notifyChartClicked : undefined}
@@ -804,7 +799,7 @@ function AppMain() {
         {/* Findings Panel (inline desktop, or mobile when findings tab active) */}
         {/* Hidden when in investigation workspace — the workspace IS the findings view */}
         <Suspense fallback={null}>
-          {panels.activeWorkspace !== 'investigation' &&
+          {panels.activeView !== 'investigation' &&
             (panels.isDesktop || (isPhone && mobileActiveTab === 'findings')) &&
             outcome && (
               <FindingsPanel

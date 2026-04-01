@@ -115,9 +115,9 @@ What-If moves from a full-screen takeover to a modal overlay accessible from all
 
 The `isImprovementOpen` boolean and its full-screen takeover pattern are replaced by `activeView: 'improvement'`. The Improvement workspace renders within the normal layout (with optional CoScout sidebar), not as a takeover that bypasses the toolbar and tabs.
 
-### 9. PWA unaffected
+### 9. PWA full journey (updated April 2026)
 
-PWA shows only the Analysis workspace. No workspace tabs render. `useAppPanels` remains unchanged.
+Per constitution principle 2 ("Same analysis everywhere, the full journey"), PWA has 4 workspace tabs: Analysis, Investigation, Improvement, Report. All session-only (no persistence). No Overview tab (PWA has no project dashboard). PWA uses `activeView` in its panelsStore, aligned with Azure naming.
 
 ## Implementation
 

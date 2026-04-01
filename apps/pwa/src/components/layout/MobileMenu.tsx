@@ -1,20 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  FileSpreadsheet,
-  Image,
-  Presentation,
-  Settings,
-  Plus,
-  X,
-  Table,
-  Target,
-} from 'lucide-react';
+import { FileSpreadsheet, Image, Settings, Plus, X, Table, Target } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 
 const fileSpreadsheetIcon = <FileSpreadsheet size={18} />;
 const imageIcon = <Image size={18} />;
 const tableIcon = <Table size={18} />;
-const presentationIcon = <Presentation size={18} />;
 const targetIcon = <Target size={18} />;
 const plusIcon = <Plus size={18} />;
 const settingsIcon = <Settings size={18} />;
@@ -64,7 +54,6 @@ interface MobileMenuProps {
   onClose: () => void;
   onExportCSV: () => void;
   onExportImage: () => void;
-  onEnterPresentationMode: () => void;
   onOpenSettings: () => void;
   onReset: () => void;
   onOpenDataTable: () => void;
@@ -79,7 +68,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   onClose,
   onExportCSV,
   onExportImage,
-  onEnterPresentationMode,
   onOpenSettings,
   onReset,
   onOpenDataTable,
@@ -164,15 +152,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
             onClick={onOpenDataTable}
             onClose={onClose}
           />
-          <MobileMenuItem
-            icon={presentationIcon}
-            label={t('nav.presentationMode')}
-            onClick={onEnterPresentationMode}
-            onClose={onClose}
-          />
-
-          <div className="h-px bg-surface-tertiary my-2" />
-
           {/* Analysis Section */}
           <SectionHeader title="Analysis" />
           {onOpenSpecEditor && (
@@ -183,7 +162,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
               onClose={onClose}
             />
           )}
-          <MobileMenuItem icon={plusIcon} label={t('nav.newAnalysis')} onClick={onReset} onClose={onClose} />
+          <MobileMenuItem
+            icon={plusIcon}
+            label={t('nav.newAnalysis')}
+            onClick={onReset}
+            onClose={onClose}
+          />
 
           <div className="h-px bg-surface-tertiary my-2" />
 

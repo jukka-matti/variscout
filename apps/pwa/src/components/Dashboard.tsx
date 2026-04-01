@@ -8,7 +8,7 @@ import { useProbabilityPlotData } from '@variscout/hooks';
 import MobileDashboard from './MobileDashboard';
 import SpecEditor from './settings/SpecEditor';
 import SpecsPopover from './settings/SpecsPopover';
-import { PresentationView, EmbedFocusView, FocusedChartView } from './views';
+import { EmbedFocusView, FocusedChartView } from './views';
 import { EditableChartTitle } from '@variscout/ui';
 import {
   ErrorBoundary,
@@ -48,8 +48,6 @@ import type { FindingsCallbacks } from '@variscout/ui';
 
 interface DashboardProps {
   onPointClick?: (index: number) => void;
-  isPresentationMode?: boolean;
-  onExitPresentation?: () => void;
   // Embed mode highlight props
   highlightedChart?: ChartId | null;
   highlightIntensity?: HighlightIntensity;
@@ -73,16 +71,12 @@ interface DashboardProps {
   onExportCSV?: () => void;
   /** Export image callback (for toolbar) */
   onExportImage?: () => void;
-  /** Enter presentation mode callback (for toolbar) */
-  onEnterPresentationMode?: () => void;
   /** External factor switch request (from question click) — sets boxplot + pareto factor */
   requestedFactor?: { factor: string; seq: number } | null;
 }
 
 const Dashboard = ({
   onPointClick,
-  isPresentationMode,
-  onExitPresentation,
   highlightedChart,
   highlightIntensity = 'pulse',
   onChartClick,
@@ -99,7 +93,6 @@ const Dashboard = ({
   hideStatsInGrid: _hideStatsInGrid = false,
   onExportCSV,
   onExportImage: _onExportImage,
-  onEnterPresentationMode,
   requestedFactor,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
@@ -269,12 +262,6 @@ const Dashboard = ({
     onEscape: () => setFocusedChart(null),
   });
 
-  // Keyboard handler for Presentation Mode
-  useKeyboardNavigation({
-    focusedItem: isPresentationMode ? 'presentation' : null,
-    onEscape: onExitPresentation,
-  });
-
   // Keyboard handler for Selection clearing (Phase 5: Polish)
   useKeyboardNavigation({
     focusedItem: selectedPoints.size > 0 ? 'selection' : null,
@@ -381,30 +368,6 @@ const Dashboard = ({
 
   if (!outcome) return null;
 
-  // Presentation Mode - Fullscreen overlay with all charts
-  if (isPresentationMode) {
-    return (
-      <PresentationView
-        outcome={outcome}
-        boxplotFactor={boxplotFactor}
-        paretoFactor={paretoFactor}
-        factors={factors}
-        stats={stats}
-        specs={specs}
-        filteredData={filteredData}
-        showParetoComparison={showParetoComparison}
-        onToggleParetoComparison={() => toggleParetoComparison()}
-        paretoAggregation={paretoAggregation}
-        onToggleParetoAggregation={() =>
-          setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
-        }
-        chartTitles={chartTitles}
-        onChartTitleChange={handleChartTitleChange}
-        onSpecClick={() => setShowSpecEditor(true)}
-      />
-    );
-  }
-
   // Embed Focus Mode - render only the specified chart (for iframe embeds)
   if (embedFocusChart) {
     return (
@@ -504,7 +467,6 @@ const Dashboard = ({
           factorCount={factors.length}
           onManageFactors={onManageFactors}
           onExportCSV={onExportCSV}
-          onEnterPresentationMode={onEnterPresentationMode}
           onSetSpecs={() => setShowSpecEditor(true)}
           onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
           centeringOpportunity={centeringOpportunity}

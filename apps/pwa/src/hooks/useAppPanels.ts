@@ -1,117 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { WideFormatDetection } from '@variscout/core';
-import { usePanelsStore, type Workspace } from '../features/panels/panelsStore';
+import { usePanelsStore } from '../features/panels/panelsStore';
 
 /** Breakpoint for desktop panel (vs modal on mobile) */
 const DESKTOP_BREAKPOINT = 1024;
 
-// ── Legacy types (kept for test compatibility) ────────────────────────────
-
-export interface AppPanelState {
-  isSettingsOpen: boolean;
-  isDataTableOpen: boolean;
-  isFindingsPanelOpen: boolean;
-  highlightRowIndex: number | null;
-  showExcludedOnly: boolean;
-  showResetConfirm: boolean;
-  isPresentationMode: boolean;
-  isWhatIfPageOpen: boolean;
-  openSpecEditorRequested: boolean;
-  highlightedChartPoint: number | null;
-  isStatsSidebarOpen: boolean;
-}
-
-export const initialPanelState: AppPanelState = {
-  isSettingsOpen: false,
-  isDataTableOpen: false,
-  isFindingsPanelOpen: false,
-  highlightRowIndex: null,
-  showExcludedOnly: false,
-  showResetConfirm: false,
-  isPresentationMode: false,
-  isWhatIfPageOpen: false,
-  openSpecEditorRequested: false,
-  highlightedChartPoint: null,
-  isStatsSidebarOpen: false,
-};
-
-/** Legacy reducer — kept for existing tests. Store is the source of truth. */
-export type AppPanelAction =
-  | { type: 'SET_SETTINGS'; value: boolean }
-  | { type: 'SET_DATA_TABLE'; value: boolean }
-  | { type: 'SET_FINDINGS_PANEL'; value: boolean }
-  | { type: 'TOGGLE_FINDINGS_PANEL' }
-  | { type: 'SET_HIGHLIGHT_ROW'; index: number | null }
-  | { type: 'SET_EXCLUDED_ONLY'; value: boolean }
-  | { type: 'SET_RESET_CONFIRM'; value: boolean }
-  | { type: 'SET_PRESENTATION'; value: boolean }
-  | { type: 'SET_WHAT_IF'; value: boolean }
-  | { type: 'SET_SPEC_EDITOR_REQUESTED'; value: boolean }
-  | { type: 'SET_HIGHLIGHT_POINT'; index: number | null }
-  | { type: 'OPEN_DATA_TABLE_AT_ROW_DESKTOP'; index: number }
-  | { type: 'OPEN_DATA_TABLE_AT_ROW_MOBILE'; index: number }
-  | { type: 'CLOSE_DATA_TABLE' }
-  | { type: 'OPEN_DATA_TABLE_EXCLUDED' }
-  | { type: 'OPEN_DATA_TABLE_ALL' }
-  | { type: 'RESET_CONFIRM' }
-  | { type: 'TOGGLE_STATS_SIDEBAR' };
-
-/** Legacy reducer — delegates to store. Kept for existing test imports. */
-export function appPanelReducer(state: AppPanelState, action: AppPanelAction): AppPanelState {
-  // Tests that import the reducer still work, but runtime uses the store
-  switch (action.type) {
-    case 'SET_SETTINGS':
-      return state.isSettingsOpen === action.value
-        ? state
-        : { ...state, isSettingsOpen: action.value };
-    case 'SET_DATA_TABLE':
-      return state.isDataTableOpen === action.value
-        ? state
-        : { ...state, isDataTableOpen: action.value };
-    case 'SET_FINDINGS_PANEL':
-      return state.isFindingsPanelOpen === action.value
-        ? state
-        : { ...state, isFindingsPanelOpen: action.value };
-    case 'TOGGLE_FINDINGS_PANEL':
-      return { ...state, isFindingsPanelOpen: !state.isFindingsPanelOpen };
-    case 'SET_HIGHLIGHT_ROW':
-      return { ...state, highlightRowIndex: action.index };
-    case 'SET_EXCLUDED_ONLY':
-      return { ...state, showExcludedOnly: action.value };
-    case 'SET_RESET_CONFIRM':
-      return { ...state, showResetConfirm: action.value };
-    case 'SET_PRESENTATION':
-      return state.isPresentationMode === action.value
-        ? state
-        : { ...state, isPresentationMode: action.value };
-    case 'SET_WHAT_IF':
-      return state.isWhatIfPageOpen === action.value
-        ? state
-        : { ...state, isWhatIfPageOpen: action.value };
-    case 'SET_SPEC_EDITOR_REQUESTED':
-      return { ...state, openSpecEditorRequested: action.value };
-    case 'SET_HIGHLIGHT_POINT':
-      return { ...state, highlightedChartPoint: action.index };
-    case 'OPEN_DATA_TABLE_AT_ROW_DESKTOP':
-      return { ...state, highlightRowIndex: action.index, isStatsSidebarOpen: true };
-    case 'OPEN_DATA_TABLE_AT_ROW_MOBILE':
-      return { ...state, highlightRowIndex: action.index, isDataTableOpen: true };
-    case 'CLOSE_DATA_TABLE':
-      return { ...state, isDataTableOpen: false, highlightRowIndex: null, showExcludedOnly: false };
-    case 'OPEN_DATA_TABLE_EXCLUDED':
-      return { ...state, showExcludedOnly: true, highlightRowIndex: null, isDataTableOpen: true };
-    case 'OPEN_DATA_TABLE_ALL':
-      return { ...state, showExcludedOnly: false, highlightRowIndex: null, isDataTableOpen: true };
-    case 'RESET_CONFIRM':
-      return { ...state, showResetConfirm: false };
-    case 'TOGGLE_STATS_SIDEBAR':
-      return { ...state, isStatsSidebarOpen: !state.isStatsSidebarOpen };
-    default:
-      return state;
-  }
-}
-
-// ── Hook interface (unchanged) ────────────────────────────────────────────
+// ── Hook interface ────────────────────────────────────────────────────────
 
 export interface UseAppPanelsOptions {
   clearData: () => void;
@@ -120,7 +14,7 @@ export interface UseAppPanelsOptions {
 }
 
 export interface UseAppPanelsReturn {
-  activeWorkspace: Workspace;
+  activeView: 'analysis' | 'investigation' | 'improvement' | 'report';
   showAnalysis: () => void;
   showInvestigation: () => void;
   showImprovement: () => void;
@@ -137,8 +31,6 @@ export interface UseAppPanelsReturn {
   setShowExcludedOnly: (v: boolean) => void;
   showResetConfirm: boolean;
   setShowResetConfirm: (v: boolean) => void;
-  isPresentationMode: boolean;
-  setIsPresentationMode: (v: boolean) => void;
   isWhatIfPageOpen: boolean;
   setIsWhatIfPageOpen: (v: boolean) => void;
   highlightedChartPoint: number | null;
@@ -232,7 +124,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   // Map store fields to legacy interface
   return {
     // Workspace navigation
-    activeWorkspace: store.activeWorkspace,
+    activeView: store.activeView,
     showAnalysis: store.showAnalysis,
     showInvestigation: store.showInvestigation,
     showImprovement: store.showImprovement,
@@ -245,7 +137,6 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     highlightRowIndex: store.highlightRowIndex,
     showExcludedOnly: store.showExcludedOnly,
     showResetConfirm: store.showResetConfirm,
-    isPresentationMode: store.isPresentationMode,
     isWhatIfPageOpen: store.isWhatIfOpen,
     highlightedChartPoint: store.highlightedChartPoint,
     isDesktop,
@@ -259,7 +150,6 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     setHighlightRowIndex: store.setHighlightRow,
     setShowExcludedOnly: store.setShowExcludedOnly,
     setShowResetConfirm: store.setShowResetConfirm,
-    setIsPresentationMode: store.setPresentationMode,
     setIsWhatIfPageOpen: store.setWhatIfOpen,
     setHighlightedChartPoint: store.setHighlightPoint,
     setOpenSpecEditorRequested: store.setOpenSpecEditorRequested,
