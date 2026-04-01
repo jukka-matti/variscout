@@ -17,3 +17,11 @@ export type {
   StagedComparisonCardProps,
   StagedComparisonColorScheme,
 } from './StagedComparisonCard';
+export { default as JournalTabView } from './JournalTabView';
+export type { JournalTabViewProps } from './JournalTabView';
+export { default as JournalEntryRow } from './JournalEntryRow';
+export type { JournalEntryRowProps } from './JournalEntryRow';
+export { default as QuestionRow } from './QuestionRow';
+export type { QuestionRowProps } from './QuestionRow';
+export { default as QuestionRowExpanded } from './QuestionRowExpanded';
+export type { QuestionRowExpandedProps } from './QuestionRowExpanded';
