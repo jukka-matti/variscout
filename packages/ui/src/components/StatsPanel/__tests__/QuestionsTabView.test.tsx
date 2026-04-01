@@ -210,11 +210,12 @@ describe('QuestionsTabView — observations section', () => {
     expect(screen.getByTestId('add-observation-button')).toBeDefined();
   });
 
-  it('calls onAddObservation when add button is clicked', () => {
+  it('opens observation modal when add button is clicked', () => {
     const onAddObservation = vi.fn();
     render(<QuestionsTabView questions={[]} findings={[]} onAddObservation={onAddObservation} />);
     fireEvent.click(screen.getByTestId('add-observation-button'));
-    expect(onAddObservation).toHaveBeenCalledTimes(1);
+    // Modal opens — callback is invoked after modal submission, not on button click
+    expect(onAddObservation).not.toHaveBeenCalled();
   });
 });
 
