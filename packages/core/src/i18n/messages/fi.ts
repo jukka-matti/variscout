@@ -283,6 +283,7 @@ export const fi: MessageCatalog = {
   'table.deleteRow': 'Poista rivi',
   'table.addRow': 'Lisää rivi',
   'table.unsavedChanges': 'Tallentamattomia muutoksia',
+  'table.showAll': 'Näytä kaikki',
 
   // Specs
   'specs.title': 'Spesifikaatiorajat',

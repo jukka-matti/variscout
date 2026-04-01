@@ -397,6 +397,7 @@ export interface MessageCatalog {
   'table.deleteRow': string;
   'table.addRow': string;
   'table.unsavedChanges': string;
+  'table.showAll': string;
 
   // Specs
   'specs.title': string;

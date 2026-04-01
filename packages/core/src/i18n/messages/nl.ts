@@ -259,6 +259,7 @@ export const nl: MessageCatalog = {
   'table.deleteRow': 'Delete row',
   'table.addRow': 'Add row',
   'table.unsavedChanges': 'Unsaved changes',
+  'table.showAll': 'Show all',
   'specs.title': 'Specification Limits',
   'specs.advancedSettings': 'Advanced settings',
   'specs.apply': 'Apply specifications',

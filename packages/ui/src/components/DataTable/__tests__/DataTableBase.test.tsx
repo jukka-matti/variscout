@@ -12,6 +12,7 @@ vi.mock('@variscout/hooks', async importOriginal => {
     'table.deleteRow': 'Delete row',
     'table.addRow': 'Add row',
     'table.unsavedChanges': 'Unsaved changes',
+    'table.showAll': 'Show all',
   };
   return {
     ...actual,
@@ -521,6 +522,63 @@ describe('DataTableBase', () => {
       fireEvent.paste(input, {
         clipboardData: { getData: () => 'A\tB\nC\tD' },
       });
+    });
+  });
+
+  describe('selection filter', () => {
+    const makeData = (n: number) =>
+      Array.from({ length: n }, (_, i) => ({ value: i * 10, factor: `F${i % 3}` }));
+
+    it('shows "Show selected" toggle when selectedRowIndices provided', () => {
+      render(
+        <DataTableBase
+          data={makeData(20)}
+          columns={['value', 'factor']}
+          outcome="value"
+          specs={{}}
+          onCellChange={vi.fn()}
+          onDeleteRow={vi.fn()}
+          selectedRowIndices={new Set([2, 5, 8])}
+          filterToSelection={false}
+          onToggleFilterSelection={vi.fn()}
+        />
+      );
+      expect(screen.getByText(/Show selected \(3\)/)).toBeTruthy();
+    });
+
+    it('filters to only selected rows when filterToSelection is true', () => {
+      const { container } = render(
+        <DataTableBase
+          data={makeData(20)}
+          columns={['value', 'factor']}
+          outcome="value"
+          specs={{}}
+          onCellChange={vi.fn()}
+          onDeleteRow={vi.fn()}
+          selectedRowIndices={new Set([0, 1, 2])}
+          filterToSelection={true}
+          onToggleFilterSelection={vi.fn()}
+        />
+      );
+      const rows = container.querySelectorAll('tbody tr');
+      expect(rows).toHaveLength(3);
+    });
+
+    it('does not show toggle when selectedRowIndices is empty', () => {
+      render(
+        <DataTableBase
+          data={makeData(5)}
+          columns={['value', 'factor']}
+          outcome="value"
+          specs={{}}
+          onCellChange={vi.fn()}
+          onDeleteRow={vi.fn()}
+          selectedRowIndices={new Set()}
+          filterToSelection={false}
+          onToggleFilterSelection={vi.fn()}
+        />
+      );
+      expect(screen.queryByText(/Show selected/)).toBeNull();
     });
   });
 });

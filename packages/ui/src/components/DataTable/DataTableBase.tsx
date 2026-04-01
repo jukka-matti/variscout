@@ -20,6 +20,12 @@ export interface DataTableBaseProps {
   excludedReasons?: Map<number, ExclusionReason[]>;
   controlViolations?: Map<number, string[]>;
   filterExcluded?: boolean;
+  /** Indices of rows selected/highlighted from chart interaction */
+  selectedRowIndices?: Set<number>;
+  /** When true, show only selected rows */
+  filterToSelection?: boolean;
+  /** Callback when user toggles the selection filter */
+  onToggleFilterSelection?: () => void;
   highlightRowIndex?: number;
   rowsPerPage?: number;
 }
@@ -38,6 +44,9 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
   excludedReasons,
   controlViolations,
   filterExcluded = false,
+  selectedRowIndices,
+  filterToSelection = false,
+  onToggleFilterSelection,
   highlightRowIndex,
   rowsPerPage = DEFAULT_ROWS_PER_PAGE,
 }) => {
@@ -53,13 +62,15 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
 
   // Apply filter to get display data with original indices
   const displayData = useMemo(() => {
-    if (!filterExcluded || !excludedRowIndices) {
-      return data.map((row, i) => ({ row, originalIndex: i }));
+    let items = data.map((row, i) => ({ row, originalIndex: i }));
+    if (filterExcluded && excludedRowIndices) {
+      items = items.filter(item => excludedRowIndices.has(item.originalIndex));
     }
-    return data
-      .map((row, i) => ({ row, originalIndex: i }))
-      .filter(item => excludedRowIndices.has(item.originalIndex));
-  }, [data, filterExcluded, excludedRowIndices]);
+    if (filterToSelection && selectedRowIndices?.size) {
+      items = items.filter(item => selectedRowIndices.has(item.originalIndex));
+    }
+    return items;
+  }, [data, filterExcluded, excludedRowIndices, filterToSelection, selectedRowIndices]);
 
   // Pagination
   const { currentPage, setCurrentPage, totalPages, needsPagination, pageData } =
@@ -276,6 +287,23 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
   return (
     <>
       <div className="flex-1 overflow-auto p-4">
+        {selectedRowIndices && selectedRowIndices.size > 0 && onToggleFilterSelection && (
+          <div className="flex items-center gap-2 mb-2">
+            <button
+              type="button"
+              className={`text-xs px-2 py-1 rounded-full border transition-colors ${
+                filterToSelection
+                  ? 'bg-blue-500/20 border-blue-500 text-blue-400'
+                  : 'border-edge text-content-muted hover:text-content'
+              }`}
+              onClick={onToggleFilterSelection}
+            >
+              {filterToSelection
+                ? t('table.showAll')
+                : `Show selected (${selectedRowIndices.size})`}
+            </button>
+          </div>
+        )}
         <table className="w-full border-collapse text-sm">
           <thead className="sticky top-0 bg-surface-secondary z-10">
             <tr>

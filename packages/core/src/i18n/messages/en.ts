@@ -288,6 +288,7 @@ export const en: MessageCatalog = {
   'table.deleteRow': 'Delete row',
   'table.addRow': 'Add row',
   'table.unsavedChanges': 'Unsaved changes',
+  'table.showAll': 'Show all',
 
   // Specs
   'specs.title': 'Specification Limits',

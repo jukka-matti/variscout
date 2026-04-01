@@ -284,6 +284,7 @@ export const fr: MessageCatalog = {
   'table.deleteRow': 'Supprimer la ligne',
   'table.addRow': 'Ajouter une ligne',
   'table.unsavedChanges': 'Modifications non enregistrées',
+  'table.showAll': 'Afficher tout',
 
   // Specs
   'specs.title': 'Limites de spécification',

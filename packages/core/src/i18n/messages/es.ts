@@ -283,6 +283,7 @@ export const es: MessageCatalog = {
   'table.deleteRow': 'Eliminar fila',
   'table.addRow': 'Agregar fila',
   'table.unsavedChanges': 'Cambios sin guardar',
+  'table.showAll': 'Mostrar todo',
 
   // Specs
   'specs.title': 'Límites de especificación',
