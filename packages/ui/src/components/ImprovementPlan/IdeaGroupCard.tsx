@@ -427,9 +427,9 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
               {isConverted && (
                 <span
                   data-testid={`idea-converted-${idea.id}`}
-                  className="text-[0.625rem] text-green-500 font-medium shrink-0"
+                  className="text-[9px] text-green-500 bg-green-500/10 px-1.5 rounded-full shrink-0"
                 >
-                  {t('improve.convertedToAction')}
+                  → Action
                 </span>
               )}
 
