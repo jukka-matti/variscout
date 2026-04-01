@@ -5,7 +5,6 @@ import { usePanelsStore } from '../panelsStore';
 beforeEach(() => {
   usePanelsStore.setState({
     activeView: 'editor',
-    isDataPanelOpen: false,
     isDataTableOpen: false,
     isFindingsOpen: false,
     isCoScoutOpen: false,
@@ -24,7 +23,6 @@ describe('panelsStore', () => {
   describe('initial state', () => {
     it('has all booleans false and nullable fields null', () => {
       const s = usePanelsStore.getState();
-      expect(s.isDataPanelOpen).toBe(false);
       expect(s.isDataTableOpen).toBe(false);
       expect(s.isFindingsOpen).toBe(false);
       expect(s.isCoScoutOpen).toBe(false);
@@ -34,27 +32,6 @@ describe('panelsStore', () => {
       expect(s.isReportOpen).toBe(false);
       expect(s.highlightRowIndex).toBeNull();
       expect(s.highlightedChartPoint).toBeNull();
-    });
-  });
-
-  describe('data panel', () => {
-    it('openDataPanel opens the data panel', () => {
-      usePanelsStore.getState().openDataPanel();
-      expect(usePanelsStore.getState().isDataPanelOpen).toBe(true);
-    });
-
-    it('closeDataPanel closes the data panel', () => {
-      usePanelsStore.getState().openDataPanel();
-      usePanelsStore.getState().closeDataPanel();
-      expect(usePanelsStore.getState().isDataPanelOpen).toBe(false);
-    });
-
-    it('toggleDataPanel toggles the data panel', () => {
-      usePanelsStore.getState().toggleDataPanel();
-      expect(usePanelsStore.getState().isDataPanelOpen).toBe(true);
-
-      usePanelsStore.getState().toggleDataPanel();
-      expect(usePanelsStore.getState().isDataPanelOpen).toBe(false);
     });
   });
 
@@ -213,19 +190,19 @@ describe('panelsStore', () => {
   });
 
   describe('handlePointClick (compound action)', () => {
-    it('sets highlight row AND opens data panel', () => {
+    it('sets highlight row AND opens stats sidebar', () => {
       usePanelsStore.getState().handlePointClick(15);
       const s = usePanelsStore.getState();
       expect(s.highlightRowIndex).toBe(15);
-      expect(s.isDataPanelOpen).toBe(true);
+      expect(s.isStatsSidebarOpen).toBe(true);
     });
 
-    it('keeps data panel open if already open', () => {
-      usePanelsStore.getState().openDataPanel();
+    it('keeps stats sidebar open if already open', () => {
+      usePanelsStore.setState({ isStatsSidebarOpen: true });
       usePanelsStore.getState().handlePointClick(3);
       const s = usePanelsStore.getState();
       expect(s.highlightRowIndex).toBe(3);
-      expect(s.isDataPanelOpen).toBe(true);
+      expect(s.isStatsSidebarOpen).toBe(true);
     });
   });
 
@@ -279,40 +256,36 @@ describe('panelsStore', () => {
   });
 
   describe('multi-step sequences', () => {
-    it('open findings -> point click -> close findings preserves data panel', () => {
+    it('open findings -> point click -> close findings preserves stats sidebar', () => {
       usePanelsStore.getState().setFindingsOpen(true);
       usePanelsStore.getState().handlePointClick(5);
       usePanelsStore.getState().setFindingsOpen(false);
       const s = usePanelsStore.getState();
       expect(s.isFindingsOpen).toBe(false);
-      expect(s.isDataPanelOpen).toBe(true);
+      expect(s.isStatsSidebarOpen).toBe(true);
       expect(s.highlightRowIndex).toBe(5);
     });
 
     it('openPresentation closes findings and CoScout (F-09)', () => {
       usePanelsStore.setState({
-        isDataPanelOpen: true,
         isFindingsOpen: true,
         isCoScoutOpen: true,
       });
       usePanelsStore.getState().openPresentation();
       const s = usePanelsStore.getState();
-      expect(s.isDataPanelOpen).toBe(true);
       expect(s.isFindingsOpen).toBe(false);
       expect(s.isCoScoutOpen).toBe(false);
       expect(s.isPresentationMode).toBe(true);
     });
 
-    it('openReport closes findings, CoScout, and data panel (F-09)', () => {
+    it('openReport closes findings and CoScout (F-09)', () => {
       usePanelsStore.setState({
-        isDataPanelOpen: true,
         isFindingsOpen: true,
         isCoScoutOpen: true,
       });
       usePanelsStore.getState().openReport();
       const s = usePanelsStore.getState();
       expect(s.isReportOpen).toBe(true);
-      expect(s.isDataPanelOpen).toBe(false);
       expect(s.isFindingsOpen).toBe(false);
       expect(s.isCoScoutOpen).toBe(false);
     });

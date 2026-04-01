@@ -48,7 +48,6 @@ export interface ToolbarSyncState {
 
 export interface ToolbarPanelState {
   isFindingsOpen: boolean;
-  isDataPanelOpen: boolean;
   isImprovementOpen?: boolean;
   findingsCount: number;
   onToggleFindings: () => void;
@@ -101,7 +100,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   syncState: { syncStatus, saveStatus, onSave, onSaveAs },
   panelState: {
     isFindingsOpen,
-    isDataPanelOpen,
     isImprovementOpen,
     findingsCount,
     onToggleFindings,
@@ -417,16 +415,12 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               </button>
             )}
 
-            {/* Data Panel Toggle */}
+            {/* Data Table Toggle */}
             {hasActiveData && (
               <button
                 onClick={onToggleDataPanel}
-                className={`p-2 rounded-lg transition-colors ${
-                  isDataPanelOpen
-                    ? 'bg-blue-600 text-white'
-                    : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
-                }`}
-                title={isDataPanelOpen ? t('data.hideDataTable') : t('data.showDataTable')}
+                className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
+                title={t('data.showDataTable')}
                 data-testid="btn-data-panel"
               >
                 <Table2 size={18} />

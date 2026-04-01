@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import Dashboard from '../Dashboard';
-import DataPanel from '../data/DataPanel';
 
 const StatsPanel = React.lazy(() => import('../StatsPanel'));
 import DataTableModal from '../data/DataTableModal';
@@ -153,11 +152,9 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isReportOpen = usePanelsStore(s => s.isReportOpen);
   const isPresentationMode = usePanelsStore(s => s.isPresentationMode);
-  const isDataPanelOpen = usePanelsStore(s => s.isDataPanelOpen);
   const isDataTableOpen = usePanelsStore(s => s.isDataTableOpen);
   const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
   const statsSidebar = useResizablePanel('variscout-stats-sidebar-width', 280, 500, 320, 'left');
-  const highlightRowIndex = usePanelsStore(s => s.highlightRowIndex);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
 
   // Target discovery: complement stats + centering opportunity for sidebar
@@ -623,17 +620,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
             isOpen={isCoScoutOpen}
             onClose={handleCoScoutClose}
             {...sharedCoScoutProps}
-          />
-        )}
-        {/* DataPanel: hidden on phone (use DataTableModal instead) */}
-        {!isPhone && (
-          <DataPanel
-            isOpen={isDataPanelOpen}
-            onClose={() => usePanelsStore.getState().closeDataPanel()}
-            highlightRowIndex={highlightRowIndex}
-            onRowClick={usePanelsStore.getState().handleRowClick}
-            controlViolations={controlViolations}
-            onOpenEditor={() => usePanelsStore.getState().openDataTable()}
           />
         )}
       </div>

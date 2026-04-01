@@ -4,7 +4,6 @@ import { create } from 'zustand';
 
 interface PanelsState {
   activeView: 'dashboard' | 'editor';
-  isDataPanelOpen: boolean;
   isDataTableOpen: boolean;
   isFindingsOpen: boolean;
   isCoScoutOpen: boolean;
@@ -24,9 +23,6 @@ interface PanelsState {
 interface PanelsActions {
   showDashboard: () => void;
   showEditor: () => void;
-  openDataPanel: () => void;
-  closeDataPanel: () => void;
-  toggleDataPanel: () => void;
   openDataTable: () => void;
   closeDataTable: () => void;
   setFindingsOpen: (open: boolean) => void;
@@ -63,7 +59,6 @@ export type PanelsStore = PanelsState & PanelsActions;
 export const usePanelsStore = create<PanelsStore>(set => ({
   // Initial state
   activeView: 'editor',
-  isDataPanelOpen: false,
   isDataTableOpen: false,
   isFindingsOpen: false,
   isCoScoutOpen: false,
@@ -87,11 +82,6 @@ export const usePanelsStore = create<PanelsStore>(set => ({
     set(() => ({
       activeView: 'editor',
     })),
-
-  // Data panel
-  openDataPanel: () => set({ isDataPanelOpen: true }),
-  closeDataPanel: () => set({ isDataPanelOpen: false }),
-  toggleDataPanel: () => set(s => ({ isDataPanelOpen: !s.isDataPanelOpen })),
 
   // Data table
   openDataTable: () => set({ isDataTableOpen: true }),
@@ -137,7 +127,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
     }),
   closePresentation: () => set({ isPresentationMode: false }),
 
-  // Report — closes presentation, improvement, findings, coScout, dataPanel
+  // Report — closes presentation, improvement, findings, coScout
   openReport: () =>
     set({
       isReportOpen: true,
@@ -145,7 +135,6 @@ export const usePanelsStore = create<PanelsStore>(set => ({
       isImprovementOpen: false,
       isFindingsOpen: false,
       isCoScoutOpen: false,
-      isDataPanelOpen: false,
     }),
   closeReport: () => set({ isReportOpen: false }),
 
@@ -153,8 +142,8 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   setHighlightRow: index => set({ highlightRowIndex: index }),
   setHighlightPoint: index => set({ highlightedChartPoint: index }),
 
-  // Compound: point click → set highlight row + open data panel
-  handlePointClick: index => set({ highlightRowIndex: index, isDataPanelOpen: true }),
+  // Compound: point click → set highlight row + open stats sidebar (PI Panel)
+  handlePointClick: index => set({ highlightRowIndex: index, isStatsSidebarOpen: true }),
 
   // Compound: row click → highlight chart point
   handleRowClick: index => set({ highlightedChartPoint: index }),

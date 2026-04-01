@@ -11,10 +11,6 @@ vi.mock('../../components/Dashboard', () => ({
   default: () => <div data-testid="dashboard">Dashboard</div>,
 }));
 
-vi.mock('../../components/data/DataPanel', () => ({
-  default: () => <div data-testid="data-panel">DataPanel</div>,
-}));
-
 vi.mock('../../components/FindingsPanel', () => ({
   default: () => <div data-testid="findings-panel">FindingsPanel</div>,
 }));

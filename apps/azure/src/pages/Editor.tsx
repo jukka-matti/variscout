@@ -170,7 +170,6 @@ export const Editor: React.FC<EditorProps> = ({
   const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
   const isImprovementOpen = usePanelsStore(s => s.isImprovementOpen);
   const isReportOpen = usePanelsStore(s => s.isReportOpen);
-  const isDataPanelOpen = usePanelsStore(s => s.isDataPanelOpen);
   const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
 
   // Initialize from persisted ViewState (once, on mount)
@@ -194,14 +193,10 @@ export const Editor: React.FC<EditorProps> = ({
     usePanelsStore.getState().setPendingChartFocus(null);
   }, [pendingChartFocus, handleViewStateChange]);
 
-  // Phone: data panel opens DataTableModal instead of inline panel
-  const handleDataPanelToggle = useCallback(() => {
-    if (isPhone) {
-      usePanelsStore.getState().openDataTable();
-    } else {
-      usePanelsStore.getState().toggleDataPanel();
-    }
-  }, [isPhone]);
+  // Phone: data table opens DataTableModal instead of inline panel
+  const handleDataTableToggle = useCallback(() => {
+    usePanelsStore.getState().openDataTable();
+  }, []);
 
   // Focus return refs for mobile overlays (F-19)
   const findingsTriggerRef = useRef<Element | null>(null);
@@ -626,7 +621,7 @@ export const Editor: React.FC<EditorProps> = ({
   const selectedIdeaIds = useImprovementStore(s => s.selectedIdeaIds);
   const convertedIdeaIds = useImprovementStore(s => s.convertedIdeaIds);
 
-  // Control violations for DataPanel annotations (must be called unconditionally for hook order)
+  // Control violations for chart annotations (must be called unconditionally for hook order)
   const controlViolations = useControlViolations(filteredData, outcome, specs);
 
   // Capability suggestion: show when specs are set
@@ -1004,14 +999,13 @@ export const Editor: React.FC<EditorProps> = ({
         }}
         panelState={{
           isFindingsOpen,
-          isDataPanelOpen,
           isImprovementOpen,
           findingsCount: findingsState.findings.length,
           onToggleFindings: () => {
             if (isPhone && !isFindingsOpen) findingsTriggerRef.current = document.activeElement;
             usePanelsStore.getState().toggleFindings();
           },
-          onToggleDataPanel: handleDataPanelToggle,
+          onToggleDataPanel: handleDataTableToggle,
           isCoScoutOpen,
           onToggleCoScout: () => usePanelsStore.getState().toggleCoScout(),
           isStatsSidebarOpen,
