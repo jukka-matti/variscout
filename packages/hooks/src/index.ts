@@ -356,6 +356,13 @@ export {
   type UseQuestionGenerationReturn,
 } from './useQuestionGeneration';
 
+// Problem Statement (Watson's 3 questions auto-synthesis)
+export {
+  useProblemStatement,
+  type UseProblemStatementOptions,
+  type UseProblemStatementReturn,
+} from './useProblemStatement';
+
 // Question Reactivity (drill-down factor → active question lookup)
 export { useQuestionReactivity } from './useQuestionReactivity';
 

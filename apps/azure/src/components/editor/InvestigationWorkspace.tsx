@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   QuestionChecklist,
   InvestigationPhaseBadge,
@@ -9,6 +9,7 @@ import {
 import {
   useResizablePanel,
   useQuestionGeneration,
+  useProblemStatement,
   type UseFindingsReturn,
   type UseHypothesesReturn,
 } from '@variscout/hooks';
@@ -87,8 +88,16 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   viewMode: externalViewMode,
   onViewModeChange,
 }) => {
-  const { filteredData, outcome, factors, processContext, setProcessContext, analysisMode } =
-    useData();
+  const {
+    filteredData,
+    outcome,
+    factors,
+    processContext,
+    setProcessContext,
+    analysisMode,
+    stats,
+    cpkTarget,
+  } = useData();
 
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
@@ -137,6 +146,23 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
   const drillFactors = useMemo(() => drillPath.map(d => d.factor), [drillPath]);
 
+  // Problem statement auto-synthesis (Watson's 3 questions)
+  const handleProblemStatementChange = useCallback(
+    (text: string) => {
+      setProcessContext({ ...processContext, problemStatement: text });
+    },
+    [processContext, setProcessContext]
+  );
+
+  const problemStatement = useProblemStatement({
+    outcome,
+    targetCpk: cpkTarget,
+    currentCpk: stats?.cpk ?? undefined,
+    hypotheses: hypothesesState.hypotheses,
+    existingStatement: processContext?.problemStatement,
+    onStatementChange: handleProblemStatementChange,
+  });
+
   // Issue statement handlers
   const handleIssueStatementChange = (text: string) => {
     setProcessContext({ ...processContext, issueStatement: text });
@@ -183,6 +209,11 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               contributing={contributing}
               problemStatement={processContext?.problemStatement}
               hasConclusions={suspectedCauses.length > 0}
+              problemStatementDraft={problemStatement.draft}
+              isProblemStatementReady={problemStatement.isReady}
+              onGenerateProblemStatement={problemStatement.generate}
+              onAcceptProblemStatement={problemStatement.accept}
+              onDismissProblemStatement={problemStatement.dismiss}
             />
           </div>
         )}

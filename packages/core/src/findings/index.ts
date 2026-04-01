@@ -17,3 +17,5 @@ export {
   QUESTION_STATUS_COLORS,
 } from './questionStatus';
 export type { QuestionDisplayStatus } from './types';
+export { buildProblemStatement } from './problemStatement';
+export type { ProblemStatementInput } from './problemStatement';

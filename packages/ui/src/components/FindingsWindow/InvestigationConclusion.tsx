@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, ClipboardCheck } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronDown, ChevronRight, ClipboardCheck, Sparkles, Check, X } from 'lucide-react';
 import type { Hypothesis } from '@variscout/core';
 
 export interface InvestigationConclusionProps {
@@ -13,6 +13,16 @@ export interface InvestigationConclusionProps {
   problemStatement?: string;
   /** Whether the investigation has enough evidence for conclusions */
   hasConclusions: boolean;
+  /** Auto-generated problem statement draft (editable before accepting) */
+  problemStatementDraft?: string | null;
+  /** Whether there are enough suspected causes to generate a statement */
+  isProblemStatementReady?: boolean;
+  /** Trigger draft generation */
+  onGenerateProblemStatement?: () => void;
+  /** Accept the edited draft */
+  onAcceptProblemStatement?: (text: string) => void;
+  /** Dismiss the draft */
+  onDismissProblemStatement?: () => void;
 }
 
 /** Format evidence percentage from a hypothesis */
@@ -38,8 +48,24 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
   contributing,
   problemStatement,
   hasConclusions,
+  problemStatementDraft,
+  isProblemStatementReady,
+  onGenerateProblemStatement,
+  onAcceptProblemStatement,
+  onDismissProblemStatement,
 }) => {
   const [ruledOutExpanded, setRuledOutExpanded] = useState(false);
+  const [editedDraft, setEditedDraft] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Sync edited draft when a new generated draft arrives
+  useEffect(() => {
+    if (problemStatementDraft) {
+      setEditedDraft(problemStatementDraft);
+      // Focus textarea on next tick
+      requestAnimationFrame(() => textareaRef.current?.focus());
+    }
+  }, [problemStatementDraft]);
 
   if (!hasConclusions) return null;
 
@@ -134,8 +160,8 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
         </div>
       )}
 
-      {/* Problem Statement */}
-      {problemStatement && (
+      {/* Problem Statement — three states: accepted, draft editing, or generate button */}
+      {problemStatement && !problemStatementDraft && (
         <div className="border-l-2 border-green-500 pl-2.5 py-1.5" data-testid="problem-statement">
           <div className="text-[0.5625rem] uppercase tracking-wider text-content-muted font-medium mb-0.5">
             Problem Statement
@@ -145,6 +171,59 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
           </p>
         </div>
       )}
+
+      {/* Draft editing mode */}
+      {problemStatementDraft && (
+        <div
+          className="border-l-2 border-blue-500 pl-2.5 py-1.5 space-y-1.5"
+          data-testid="problem-statement-draft"
+        >
+          <div className="text-[0.5625rem] uppercase tracking-wider text-content-muted font-medium">
+            Problem Statement Draft
+          </div>
+          <textarea
+            ref={textareaRef}
+            className="w-full text-[0.6875rem] leading-relaxed text-content-secondary bg-surface-secondary border border-edge rounded px-2 py-1.5 resize-y min-h-[3rem]"
+            value={editedDraft}
+            onChange={e => setEditedDraft(e.target.value)}
+            rows={3}
+            data-testid="problem-statement-textarea"
+          />
+          <div className="flex items-center gap-1.5">
+            <button
+              className="flex items-center gap-1 px-2 py-1 rounded text-[0.625rem] font-medium bg-green-500/10 text-green-600 hover:bg-green-500/20 transition-colors"
+              onClick={() => onAcceptProblemStatement?.(editedDraft)}
+              data-testid="problem-statement-accept"
+            >
+              <Check size={10} />
+              Accept
+            </button>
+            <button
+              className="flex items-center gap-1 px-2 py-1 rounded text-[0.625rem] font-medium bg-surface-secondary text-content-muted hover:text-content transition-colors"
+              onClick={onDismissProblemStatement}
+              data-testid="problem-statement-dismiss"
+            >
+              <X size={10} />
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Generate button — shown when ready, no existing statement, and no draft */}
+      {isProblemStatementReady &&
+        !problemStatement &&
+        !problemStatementDraft &&
+        onGenerateProblemStatement && (
+          <button
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[0.625rem] font-medium bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 transition-colors w-full"
+            onClick={onGenerateProblemStatement}
+            data-testid="generate-problem-statement"
+          >
+            <Sparkles size={10} />
+            Generate Problem Statement
+          </button>
+        )}
     </div>
   );
 };
