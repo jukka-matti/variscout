@@ -4,11 +4,12 @@ Lightweight, offline-first variation analysis tool for quality professionals.
 
 ## Principles ([full constitution](docs/01-vision/constitution.md))
 
-- **Offline-first** — all processing in browser, data stays local
-- **Deterministic first, AI enhances** — core analysis works without CoScout
-- **Question-first investigation** — questions before theories (Turtiainen 2019)
-- **Props-based components** — no context dependency in shared packages
-- **Derive, don't duplicate** — generate docs from code where possible
+- **Journey-driven variation analysis** — FRAME → SCOUT → INVESTIGATE → IMPROVE; discovery, understanding, verification
+- **Same analysis everywhere, AI optional** — PWA and Azure share identical analytical power; CoScout adds depth
+- **Customer-owned data** — browser processing; when data moves (Teams, OneDrive, AI) it stays in customer's tenant
+- **Question-first investigation** — questions before theories, multiple suspected causes (Turtiainen 2019)
+- **Deterministic first, AI enhances** — statistical engine is authority, CoScout adds context
+- **Three evidence types** — data (auto η²), gemba (go-see + photos), expert knowledge; tasks flow through Teams
 
 ## Quick Reference
 

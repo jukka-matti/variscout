@@ -3,35 +3,35 @@ title: 'VariScout Constitution'
 audience: [developer, analyst]
 category: architecture
 status: stable
-related: [philosophy, methodology, architecture]
+related: [philosophy, methodology, architecture, journey]
 ---
 
 # VariScout Constitution
 
 Non-negotiable principles that govern every architectural decision and implementation.
 
-## Product Principles
+## Product Identity
 
-1. **Offline-first** — All processing happens in the browser. Data never leaves the user's device unless they choose cloud sync (Azure Team).
+1. **Journey-driven variation analysis** — FRAME → SCOUT → INVESTIGATE → IMPROVE is the spine. At each phase, the same tool serves a different purpose: discovery (where does variation live?), understanding (why is this factor significant?), and verification (did the fix work?). Every feature — AI coaching, reports, question generation, collaboration — aligns to the current journey phase. Contribution, not causation.
 
-2. **Deterministic first, AI enhances** — Core analysis (statistics, charts, Factor Intelligence, question generation) works without AI or network. CoScout adds conversational depth but is never required.
+2. **Same analysis everywhere, AI optional** — PWA and Azure share identical analytical power (Four Lenses, Factor Intelligence, question-driven investigation, the full journey). CoScout adds conversational depth for Azure users. Core UX is the same across products.
 
-3. **30-second answers** — An analyst should see where to focus within 30 seconds of pasting data. Speed of insight, not depth of configuration.
+3. **Customer-owned data** — All processing happens in the browser. When data moves (Teams sharing, OneDrive sync, AI calls), it stays in the customer's Azure tenant. No VariScout-owned service touches customer data.
 
-## Methodology Principles
+## Methodology
 
-4. **Question-first investigation** (Turtiainen 2019) — Investigation starts from questions, not theories. Issue Statement sharpens into Problem Statement through answered questions. Hypotheses emerge from evidence, not assumptions.
+4. **Four Lenses simultaneously** — I-Chart, Boxplot, Pareto, and Stats are shown together with linked filtering. Each lens reveals what the others miss. The analyst's eye does the integration.
 
-5. **Four Lenses simultaneously** — I-Chart, Boxplot, Pareto, and Stats are shown together, not sequentially. Each lens reveals what the others miss. The analyst's eye does the integration.
+5. **Question-first investigation** (Turtiainen 2019) — Investigation starts from questions, not theories. Issue Statement sharpens into Problem Statement through answered questions. Multiple suspected causes are correct outcomes, not failures.
 
-6. **Progressive stratification** — Drill into data iteratively, guided by statistical evidence (η², R²adj). Each drill narrows scope and spawns new questions.
+6. **Progressive stratification** — Drill into data iteratively, guided by statistical evidence (η², R²adj). Each drill narrows scope. Contribution to TOTAL keeps the analyst anchored to the original problem.
 
-## Architecture Principles
+7. **Three evidence types** — Investigation questions are validated by data (auto η²/R²adj), gemba (go-and-see with photo evidence), or expert knowledge. Tasks flow to the right people through Teams. No variation problem is solved from a desk alone.
 
-7. **Props-based shared components** — `@variscout/ui` and `@variscout/charts` accept data via props, never depend on app context. This enables reuse across PWA and Azure without coupling.
+## Architecture
 
-8. **Strategy pattern for modes** — `resolveMode()` + `getStrategy()` is the sole source of truth for mode-specific behavior (chart slots, KPI type, question strategy, AI coaching). No cascading mode ternaries.
+8. **Deterministic first, AI enhances** — The statistical engine computes the answer. CoScout adds language, context, and suggestions. The analyst confirms before any action executes. Conclusions are reproducible and auditable.
 
-9. **Derive, don't duplicate** — Information derivable from code (hook lists, component counts, export paths) should be generated automatically, not maintained manually. One fact, one place.
+9. **Shared packages, props-based** — `@variscout/core` (pure TypeScript, no React), `@variscout/charts` and `@variscout/ui` (React, props-only, no context dependency). Apps wire context. Dependencies flow strictly downward.
 
-10. **Spec-anchored development** — Design specs are living documents that evolve with the feature. They capture the "why" that ADRs and code comments don't. Update the spec first, then implement.
+10. **Strategy pattern for modes** — `resolveMode()` + `getStrategy()` is the sole source of truth for mode-specific behavior (chart slots, KPI type, question strategy, AI coaching). No cascading mode ternaries.
