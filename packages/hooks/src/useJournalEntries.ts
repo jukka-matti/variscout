@@ -8,6 +8,8 @@ export interface JournalEntry {
     | 'finding-created'
     | 'question-answered'
     | 'question-ruled-out'
+    | 'question-investigating'
+    | 'questions-generated'
     | 'note-added'
     | 'gemba-observation'
     | 'observation-linked'
@@ -61,6 +63,23 @@ export function useJournalEntries({
       }
     }
 
+    if (questions.length > 0) {
+      const earliest = questions.reduce(
+        (min, q) => (q.createdAt < min ? q.createdAt : min),
+        questions[0].createdAt
+      );
+      entries.push({
+        id: 'j-qg',
+        timestamp: earliest,
+        type: 'questions-generated',
+        text: `${questions.length} questions generated`,
+        detail: questions
+          .slice(0, 3)
+          .map(q => q.factor ?? q.text)
+          .join(', '),
+      });
+    }
+
     for (const q of questions) {
       if (q.status === 'supported') {
         entries.push({
@@ -79,6 +98,14 @@ export function useJournalEntries({
           timestamp: q.updatedAt,
           type: 'question-ruled-out',
           text: `${q.factor ?? q.text} → Ruled out`,
+          relatedQuestionId: q.id,
+        });
+      } else if (q.status === 'partial') {
+        entries.push({
+          id: `j-qi-${q.id}`,
+          timestamp: q.updatedAt,
+          type: 'question-investigating',
+          text: `${q.factor ?? q.text} → Investigating`,
           relatedQuestionId: q.id,
         });
       }

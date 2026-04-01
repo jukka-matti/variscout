@@ -710,6 +710,10 @@ Never invent data or statistics. If the context does not contain enough informat
         })
         .join('\n');
       invParts.push(`Investigation questions:\n${hypothesisList}`);
+      invParts.push(
+        'The analyst can see their investigation questions in the "Questions" tab of the Process Intelligence panel (left sidebar). ' +
+          'When referencing a question, use [REF:hypothesis:QUESTION_ID]question text[/REF] to create a clickable link that highlights it in the Questions tab.'
+      );
     }
 
     if (investigation.targetMetric && investigation.targetValue !== undefined) {

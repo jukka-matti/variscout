@@ -93,14 +93,39 @@ describe('useJournalEntries', () => {
     expect(entry!.text).toContain('Speed');
   });
 
-  it('does not create entries for untested questions', () => {
+  it('does not create entries for untested questions (except questions-generated)', () => {
     const { result } = renderHook(() =>
       useJournalEntries({
         findings: [],
         questions: [makeQuestion({ status: 'untested' })],
       })
     );
-    expect(result.current).toHaveLength(0);
+    // Only the questions-generated entry, no status-based entry
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].type).toBe('questions-generated');
+  });
+
+  it('creates entry for investigating questions', () => {
+    const { result } = renderHook(() =>
+      useJournalEntries({
+        findings: [],
+        questions: [makeQuestion({ status: 'partial' })],
+      })
+    );
+    const entry = result.current.find(e => e.type === 'question-investigating');
+    expect(entry).toBeDefined();
+  });
+
+  it('creates questions-generated entry when questions exist', () => {
+    const { result } = renderHook(() =>
+      useJournalEntries({
+        findings: [],
+        questions: [makeQuestion()],
+      })
+    );
+    const entry = result.current.find(e => e.type === 'questions-generated');
+    expect(entry).toBeDefined();
+    expect(entry!.text).toContain('1 questions generated');
   });
 
   it('creates problem-statement entry when provided', () => {

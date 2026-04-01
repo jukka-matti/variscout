@@ -392,6 +392,11 @@ export const Editor: React.FC<EditorProps> = ({
     return undefined;
   }, [persistedHypotheses, processContext, stats]);
 
+  // Question auto-link refs: updated after hypothesesState is created (below),
+  // read lazily inside useFindingsOrchestration callbacks via internal refs
+  const focusedQuestionIdRef = React.useRef<string | null>(null);
+  const linkFindingRef = React.useRef<((hId: string, fId: string) => void) | undefined>(undefined);
+
   // Findings orchestration
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
@@ -424,6 +429,8 @@ export const Editor: React.FC<EditorProps> = ({
     projectedValue: projectedFromIdeas,
     factorRoles: processContext?.factorRoles,
     aiAvailable: aiEnabled && isAIAvailable(),
+    focusedQuestionId: focusedQuestionIdRef.current,
+    linkFinding: linkFindingRef.current,
   });
 
   // Deep link: auto-open findings panel and highlight target finding (one-shot)
@@ -536,6 +543,10 @@ export const Editor: React.FC<EditorProps> = ({
     onHypothesesChange: setPersistedHypotheses,
     findings: findingsState.findings,
   });
+
+  // Update question auto-link refs (consumed by useFindingsOrchestration callbacks)
+  focusedQuestionIdRef.current = hypothesesState.focusedQuestionId;
+  linkFindingRef.current = hypothesesState.linkFinding;
 
   // Investigation workflow
   const {

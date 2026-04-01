@@ -14,6 +14,10 @@ function getDotClass(type: JournalEntry['type']): string {
       return 'bg-green-500';
     case 'question-ruled-out':
       return 'bg-red-400';
+    case 'question-investigating':
+      return 'bg-blue-500';
+    case 'questions-generated':
+      return 'bg-blue-500';
     case 'note-added':
       return 'bg-slate-400';
     case 'gemba-observation':

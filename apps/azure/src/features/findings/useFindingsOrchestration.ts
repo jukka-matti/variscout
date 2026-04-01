@@ -7,7 +7,7 @@
  * as hook return values since they need filter/data context.
  */
 
-import { useMemo, useCallback, useEffect } from 'react';
+import { useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   useFindings,
   useDrillPath,
@@ -73,6 +73,10 @@ export interface UseFindingsOrchestrationOptions {
   addNotification?: (message: string, type: 'success' | 'error') => void;
   /** Current project name for deep link construction */
   projectName?: string;
+  /** Currently focused question ID (for auto-linking new findings) */
+  focusedQuestionId?: string | null;
+  /** Link a finding to a hypothesis/question */
+  linkFinding?: (hypothesisId: string, findingId: string) => void;
 }
 
 export interface UseFindingsOrchestrationReturn {
@@ -124,7 +128,16 @@ export function useFindingsOrchestration({
   aiAvailable,
   addNotification,
   projectName,
+  focusedQuestionId,
+  linkFinding,
 }: UseFindingsOrchestrationOptions): UseFindingsOrchestrationReturn {
+  // Refs for question auto-linking: read latest values in callbacks
+  // without adding them to dependency arrays (avoids circular hook ordering)
+  const focusedQuestionIdRef = useRef(focusedQuestionId);
+  focusedQuestionIdRef.current = focusedQuestionId;
+  const linkFindingRef = useRef(linkFinding);
+  linkFindingRef.current = linkFinding;
+
   // Status update cards (Teams channel integration)
   const { onStatusChanged } = useStatusUpdateCards({
     hypotheses,
@@ -174,6 +187,9 @@ export function useFindingsOrchestration({
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(noteText || '', context);
+      if (focusedQuestionIdRef.current && linkFindingRef.current) {
+        linkFindingRef.current(focusedQuestionIdRef.current, newFinding.id);
+      }
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
     },
@@ -208,6 +224,9 @@ export function useFindingsOrchestration({
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(noteText ?? '', context, source);
+      if (focusedQuestionIdRef.current && linkFindingRef.current) {
+        linkFindingRef.current(focusedQuestionIdRef.current, newFinding.id);
+      }
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
       return newFinding;

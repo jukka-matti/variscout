@@ -172,7 +172,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   };
 
   const handleAddObservation = (text: string): void => {
-    findingsState.addFinding(text, {
+    const newFinding = findingsState.addFinding(text, {
       activeFilters: filters,
       cumulativeScope: null,
       stats: stats
@@ -184,6 +184,9 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           }
         : undefined,
     });
+    if (hypothesesState.focusedQuestionId) {
+      hypothesesState.linkFinding(hypothesesState.focusedQuestionId, newFinding.id);
+    }
   };
 
   const handleLinkObservation = (findingId: string, questionId: string): void => {
@@ -210,15 +213,22 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
       usePanelsStore.getState().setPendingChartFocus(chartType);
     },
     onExpandPanel: (panelId, targetId) => {
-      if (panelId === 'stats') {
+      if (panelId === 'hypothesis' || panelId === 'finding') {
+        // Navigate to Questions tab in PI panel
+        usePanelsStore.getState().setPIActiveTab('questions');
         if (!usePanelsStore.getState().isStatsSidebarOpen) {
           usePanelsStore.getState().toggleStatsSidebar();
         }
-      } else if (panelId === 'finding' || panelId === 'hypothesis') {
-        usePanelsStore.getState().setFindingsOpen(true);
-        if (targetId) {
-          useFindingsStore.getState().setHighlightedFindingId(targetId);
+        if (panelId === 'hypothesis' && targetId) {
+          hypothesesState.setFocusedQuestion(targetId);
         }
+      } else if (panelId === 'stats') {
+        usePanelsStore.getState().setPIActiveTab('stats');
+        if (!usePanelsStore.getState().isStatsSidebarOpen) {
+          usePanelsStore.getState().toggleStatsSidebar();
+        }
+      } else if (panelId === 'improvement') {
+        usePanelsStore.getState().showImprovement();
       }
     },
   });
