@@ -311,7 +311,8 @@ describe('Editor', () => {
     expect(screen.queryByText('Synced')).not.toBeInTheDocument();
   });
 
-  it('shows CSV export button when data is loaded', () => {
+  it('shows Stats sidebar toggle when data is loaded in analysis view', () => {
+    usePanelsStore.setState({ activeView: 'analysis' });
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       filteredData: [{ Weight: 10, Machine: 'A' }],
@@ -319,10 +320,10 @@ describe('Editor', () => {
       factors: ['Machine'],
     });
 
-    expect(screen.getByTitle('Export filtered data as CSV')).toBeInTheDocument();
+    expect(screen.getByTestId('btn-stats-sidebar')).toBeInTheDocument();
   });
 
-  it('shows What-If Simulator button when data is loaded', () => {
+  it('shows CoScout toggle when data is loaded', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       filteredData: [{ Weight: 10, Machine: 'A' }],
@@ -330,40 +331,7 @@ describe('Editor', () => {
       factors: ['Machine'],
     });
 
-    expect(screen.getByTitle('What If')).toBeInTheDocument();
-  });
-
-  it('shows Findings toggle when data and factors are loaded', () => {
-    renderEditor({
-      rawData: [{ Weight: 10, Machine: 'A' }],
-      filteredData: [{ Weight: 10, Machine: 'A' }],
-      outcome: 'Weight',
-      factors: ['Machine'],
-    });
-
-    expect(screen.getByTitle('Findings')).toBeInTheDocument();
-  });
-
-  it('does not show Findings toggle when factors are empty', () => {
-    renderEditor({
-      rawData: [{ Weight: 10 }],
-      filteredData: [{ Weight: 10 }],
-      outcome: 'Weight',
-      factors: [],
-    });
-
-    expect(screen.queryByTitle('Findings')).not.toBeInTheDocument();
-  });
-
-  it('shows Data Panel toggle when data is loaded', () => {
-    renderEditor({
-      rawData: [{ Weight: 10, Machine: 'A' }],
-      filteredData: [{ Weight: 10, Machine: 'A' }],
-      outcome: 'Weight',
-      factors: ['Machine'],
-    });
-
-    expect(screen.getByTitle('Show data table')).toBeInTheDocument();
+    expect(screen.getByTestId('btn-coscout')).toBeInTheDocument();
   });
 
   it('shows Save button', () => {
@@ -417,7 +385,7 @@ describe('Editor', () => {
     expect(screen.getByTestId('dashboard')).toBeInTheDocument();
   });
 
-  it('shows Add Data button when data is loaded', () => {
+  it('shows Add Data button when data is loaded in analysis view', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       filteredData: [{ Weight: 10, Machine: 'A' }],
@@ -425,7 +393,10 @@ describe('Editor', () => {
       factors: ['Machine'],
     });
 
-    expect(screen.getByText('Add Data')).toBeInTheDocument();
+    // Switch to analysis view (may start in dashboard due to deep link logic)
+    fireEvent.click(screen.getByTestId('view-toggle-analysis'));
+
+    expect(screen.getByTestId('btn-add-data')).toBeInTheDocument();
   });
 
   it('renders sample dataset tiles in empty state', () => {

@@ -5,7 +5,7 @@ import { useProjectOverview } from '../hooks/useProjectOverview';
 import { useData } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
 import { useFilterNavigation } from '../hooks';
-import { EditorToolbar } from '../components/EditorToolbar';
+import { ProjectHeader } from '../components/ProjectHeader';
 import PasteScreen from '../components/data/PasteScreen';
 import ManualEntry from '../components/data/ManualEntry';
 import { ColumnMapping, ImprovementWorkspaceBase, type AnalysisBrief } from '@variscout/ui';
@@ -41,13 +41,13 @@ import { useTeamsShare } from '../hooks/useTeamsShare';
 import { useShareFinding } from '../hooks/useShareFinding';
 import { useFindingsOrchestration } from '../features/findings';
 import { useFindingsStore } from '../features/findings/findingsStore';
-import { buildChartSharePayload, buildReportSharePayload } from '../services/shareContent';
-import { buildSubPageId, buildCurrentViewLink } from '../services/deepLinks';
+import { buildChartSharePayload } from '../services/shareContent';
+import { buildSubPageId } from '../services/deepLinks';
 import { useToast } from '../context/ToastContext';
 import { setBeforeUnloadHandler } from '../teams';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
-import WorkspaceTabs from '../components/editor/WorkspaceTabs';
+// WorkspaceTabs merged into ProjectHeader (ADR-055 header redesign)
 import { InvestigationWorkspace } from '../components/editor/InvestigationWorkspace';
 import { EditorModals } from '../components/editor/EditorModals';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
@@ -194,11 +194,6 @@ export const Editor: React.FC<EditorProps> = ({
     usePanelsStore.getState().setPendingChartFocus(null);
   }, [pendingChartFocus, handleViewStateChange]);
 
-  // Phone: data table opens DataTableModal instead of inline panel
-  const handleDataTableToggle = useCallback(() => {
-    usePanelsStore.getState().openDataTable();
-  }, []);
-
   // Focus return refs for mobile overlays (F-19)
   const findingsTriggerRef = useRef<Element | null>(null);
   const coScoutTriggerRef = useRef<Element | null>(null);
@@ -344,7 +339,7 @@ export const Editor: React.FC<EditorProps> = ({
   });
 
   // Teams share integration
-  const { share, setDeepLink, isTeams } = useTeamsShare();
+  const { share, setDeepLink } = useTeamsShare();
   const baseUrl = window.location.origin + window.location.pathname;
   const projectName = currentProjectName || 'New Analysis';
 
@@ -521,47 +516,7 @@ export const Editor: React.FC<EditorProps> = ({
     [projectName, baseUrl, share]
   );
 
-  // Deep link URL for the current editor view (used by ShareDropdown)
-  const deepLinkUrl = useMemo(() => {
-    if (!projectName) return '';
-    return buildCurrentViewLink(baseUrl, projectName, {
-      focusedChart: viewState?.focusedChart ?? undefined,
-      findingId: highlightedFindingId ?? undefined,
-      mode: activeView === 'report' ? 'report' : undefined,
-    });
-  }, [baseUrl, projectName, viewState?.focusedChart, highlightedFindingId, activeView]);
-
-  // Share via Teams native dialog with toast feedback
-  const handleShareTeams = useCallback(() => {
-    const payload = buildReportSharePayload(
-      processContext?.description || projectName,
-      projectName,
-      baseUrl,
-      outcome ? stats?.cpk : undefined
-    );
-    share(payload).then(success => {
-      if (success) {
-        showToast({ type: 'success', message: 'Shared in Teams', dismissAfter: 3000 });
-      } else {
-        showToast({ type: 'error', message: "Couldn't share. Try again.", dismissAfter: 5000 });
-      }
-    });
-  }, [share, projectName, processContext?.description, outcome, stats?.cpk, baseUrl, showToast]);
-
-  // Share state for EditorToolbar's ShareDropdown
-  const shareState = useMemo(
-    () => ({
-      deepLinkUrl,
-      isInTeams: isTeams,
-      showPublishReport: activeView === 'report' && hasTeamFeatures(),
-      onShareTeams: handleShareTeams,
-      onPublishReport: () => {
-        /* P3 -- wired later */
-      },
-      onToast: showToast,
-    }),
-    [deepLinkUrl, isTeams, activeView, handleShareTeams, showToast]
-  );
+  // TODO: Phase 3 — deepLinkUrl and handleShareTeams move to ProjectNameMenu
 
   // Current user (for comment author attribution)
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
@@ -947,49 +902,31 @@ export const Editor: React.FC<EditorProps> = ({
 
   return (
     <div
-      className={`flex flex-col ${isPhone ? 'h-[calc(100vh-64px)]' : 'h-[calc(100vh-120px)]'} ${isPhone && rawData.length > 0 ? 'pb-[62px]' : ''}`}
+      className={`flex flex-col ${isPhone ? 'h-[calc(100vh-64px)]' : 'h-[calc(100vh-56px)]'} ${isPhone && rawData.length > 0 ? 'pb-[62px]' : ''}`}
     >
-      <EditorToolbar
+      <ProjectHeader
         onBack={onBack}
         projectName={currentProjectName || (projectId ? `Analysis ${projectId}` : 'New Analysis')}
-        hasUnsavedChanges={hasUnsavedChanges}
-        dataState={{
-          hasData: rawData.length > 0,
-          hasOutcome: !!outcome,
-          hasFactors: factors.length > 0,
-          filteredData,
-          outcome,
-          specs,
-        }}
-        syncState={{
-          syncStatus,
-          saveStatus,
-          onSave: handleSave,
-          onSaveAs: hasTeamFeatures() ? handleSaveAs : undefined,
-        }}
-        panelState={{
-          activeView,
-          isFindingsOpen,
-          findingsCount: findingsState.findings.length,
-          onToggleFindings: () => {
-            if (isPhone && !isFindingsOpen) findingsTriggerRef.current = document.activeElement;
-            usePanelsStore.getState().toggleFindings();
-          },
-          onToggleDataPanel: handleDataTableToggle,
-          isCoScoutOpen,
-          onToggleCoScout: () => usePanelsStore.getState().toggleCoScout(),
-          isStatsSidebarOpen,
-          onToggleStatsSidebar: () => usePanelsStore.getState().toggleStatsSidebar(),
-        }}
-        dataActions={{
-          onAddPasteData: () => dataFlow.startAppendPaste(),
-          onAddFileData: () => dataFlow.startAppendFileUpload(),
-          onAddManualData: dataFlow.handleAddMoreData,
-          onOpenDataTable: () => usePanelsStore.getState().openDataTable(),
-          onOpenWhatIf: () => usePanelsStore.getState().setWhatIfOpen(true),
-        }}
-        showOverflowMenu={!isPhone}
-        shareState={shareState}
+        rowCount={rawData.length}
+        syncStatus={syncStatus}
+        saveStatus={saveStatus}
+        onSave={handleSave}
+        onSaveAs={hasTeamFeatures() ? handleSaveAs : undefined}
+        hasData={rawData.length > 0}
+        activeView={activeView}
+        openQuestionCount={
+          hypothesesState.hypotheses.filter(h => h.questionSource && h.status === 'untested').length
+        }
+        selectedIdeaCount={selectedIdeaIds.size}
+        isStatsSidebarOpen={isStatsSidebarOpen}
+        onToggleStatsSidebar={() => usePanelsStore.getState().toggleStatsSidebar()}
+        isCoScoutOpen={isCoScoutOpen}
+        onToggleCoScout={() => usePanelsStore.getState().toggleCoScout()}
+        onAddPasteData={() => dataFlow.startAppendPaste()}
+        onAddFileData={() => dataFlow.startAppendFileUpload()}
+        onAddManualData={dataFlow.handleAddMoreData}
+        onConvertToActions={handleConvertIdeasToActions}
+        hasSelectedIdeas={selectedIdeaIds.size > 0}
       />
 
       {/* Hidden file input for append-mode file upload */}
@@ -1029,16 +966,7 @@ export const Editor: React.FC<EditorProps> = ({
           />
         ) : outcome ? (
           <>
-            <WorkspaceTabs
-              activeView={activeView}
-              openQuestionCount={
-                hypothesesState.hypotheses.filter(h => h.questionSource && h.status === 'untested')
-                  .length
-              }
-              selectedIdeaCount={selectedIdeaIds.size}
-            />
-
-            {/* Workspace content (ADR-055) */}
+            {/* Workspace content (ADR-055) — tabs are in ProjectHeader */}
             {activeView === 'dashboard' ? (
               <div className="flex-1 overflow-y-auto">
                 <ProjectDashboard
