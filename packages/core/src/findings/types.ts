@@ -282,6 +282,9 @@ export type IdeaCategory = IdeaDirection;
 /** Status of a hypothesis based on evidence */
 export type HypothesisStatus = 'untested' | 'supported' | 'contradicted' | 'partial';
 
+/** Display-layer question status — maps from HypothesisStatus for question-driven UI */
+export type QuestionDisplayStatus = 'open' | 'investigating' | 'answered' | 'ruled-out';
+
 /** Ordered list of hypothesis statuses */
 export const HYPOTHESIS_STATUSES: HypothesisStatus[] = [
   'untested',
