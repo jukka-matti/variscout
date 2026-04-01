@@ -19,7 +19,10 @@ registerLocaleLoaders(
 loadRuntimeConfig().then(config => {
   // Fire-and-forget: SDK loads as async chunk in background, doesn't block first paint.
   // All call sites guard with appInsights?. — safe before SDK finishes loading.
-  initAppInsights(config.appInsightsConnectionString);
+  initAppInsights({
+    connectionString: config.appInsightsConnectionString,
+    plan: config.plan,
+  });
 
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>

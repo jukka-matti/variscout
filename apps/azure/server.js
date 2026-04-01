@@ -22,6 +22,14 @@ if (aiEndpoint) {
 if (searchEndpoint) {
   try { connectSrc += ` ${new URL(searchEndpoint).origin}`; } catch { /* ignore */ }
 }
+// App Insights ingestion endpoint — connection string is write-only (telemetry ingestion,
+// not a secret). The browser SDK requires it to send telemetry. Each customer's telemetry
+// goes to their own App Insights instance via their Azure deployment.
+const aiConnString = process.env.APPINSIGHTS_CONNECTION_STRING || process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '';
+const aiIngestMatch = aiConnString.match(/IngestionEndpoint=(https:\/\/[^;]+)/);
+if (aiIngestMatch) {
+  try { connectSrc += ` ${new URL(aiIngestMatch[1]).origin}`; } catch { /* ignore */ }
+}
 
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [

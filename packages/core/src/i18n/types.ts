@@ -902,4 +902,44 @@ export interface MessageCatalog {
   'report.costCategory': string;
   'report.noCost': string;
   'report.riskLevel': string;
+
+  // Annotations (context menu)
+  'annotations.redHighlight': string;
+  'annotations.amberHighlight': string;
+  'annotations.greenHighlight': string;
+  'annotations.active': string;
+
+  // Subgroup configuration
+  'subgroup.method': string;
+  'subgroup.fixedSize': string;
+  'subgroup.byColumn': string;
+  'subgroup.configuration': string;
+  'subgroup.configureSubgroups': string;
+
+  // Capability suggestion modal
+  'capability.specsDetected': string;
+  'capability.startCapabilityView': string;
+  'capability.cpkTrendSubgroup': string;
+  'capability.standardView': string;
+  'capability.individualValuesChart': string;
+  'capability.switchAnytime': string;
+  'capability.type': string;
+  'capability.cpkTarget': string;
+  'capability.insufficientData': string;
+  'capability.meetsTarget': string;
+  'capability.marginal': string;
+  'capability.belowTarget': string;
+
+  // Data quality
+  'quality.dataFile': string;
+
+  // Finding actions
+  'finding.addObservation': string;
+
+  // Actions (additional)
+  'action.continue': string;
+
+  // Upgrade (additional)
+  'upgrade.freeTierLimitation': string;
+  'upgrade.fromPrice': string;
 }

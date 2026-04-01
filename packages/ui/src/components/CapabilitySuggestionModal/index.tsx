@@ -82,7 +82,13 @@ function getCpkDotColor(cpk: number | undefined, target: number): string {
 function getCpkVerdict(
   cpk: number | undefined,
   target: number,
-  t: (key: string) => string
+  t: (
+    key:
+      | 'capability.insufficientData'
+      | 'capability.meetsTarget'
+      | 'capability.marginal'
+      | 'capability.belowTarget'
+  ) => string
 ): string {
   if (cpk === undefined) return t('capability.insufficientData');
   if (cpk >= target) return t('capability.meetsTarget');

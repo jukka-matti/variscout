@@ -24,7 +24,14 @@ let lastFlushedTraceId: string | null = null;
  *
  * Sets up: SDK init, periodic AI trace flushing, beforeunload handler.
  */
-export async function initAppInsights(connectionString: string): Promise<void> {
+export interface AppInsightsOptions {
+  connectionString: string;
+  /** Azure plan tier for deployment context filtering */
+  plan?: string;
+}
+
+export async function initAppInsights(options: AppInsightsOptions): Promise<void> {
+  const { connectionString, plan } = options;
   if (!connectionString || appInsights) return;
 
   // Dynamic import — SDK loads as async chunk after first paint.
@@ -40,10 +47,31 @@ export async function initAppInsights(connectionString: string): Promise<void> {
       enableCorsCorrelation: true,
       enableRequestHeaderTracking: true,
       enableResponseHeaderTracking: true,
+      // Fixed-rate sampling (80%) — prevents quota exhaustion at scale.
+      // Customer can override via Azure Portal > App Insights > Sampling.
+      samplingPercentage: 80,
     },
   });
 
   appInsights.loadAppInsights();
+
+  // Deployment context — enables filtering by plan tier in Azure Portal
+  appInsights.addTelemetryInitializer(envelope => {
+    if (envelope.tags) {
+      envelope.tags['ai.cloud.role'] = 'variscout-browser';
+    }
+    const baseData = envelope.data?.baseData;
+    if (baseData) {
+      baseData.properties = {
+        ...baseData.properties,
+        'deployment.plan': plan ?? 'unknown',
+      };
+    }
+    return true;
+  });
+
+  // Web Vitals — real user experience metrics
+  trackWebVitals();
 
   // Set up periodic AI trace flush every 5 minutes
   flushIntervalId = setInterval(flushTraces, 5 * 60 * 1000);
@@ -53,6 +81,26 @@ export async function initAppInsights(connectionString: string): Promise<void> {
 
   // Send an initial summary after 30 seconds to confirm connectivity
   setTimeout(() => flushSummary(), 30_000);
+}
+
+/**
+ * Track Core Web Vitals (CLS, LCP, FCP, TTFB) as custom metrics.
+ * Uses the web-vitals library for standardized measurement.
+ */
+async function trackWebVitals(): Promise<void> {
+  if (!appInsights) return;
+  try {
+    const { onCLS, onFCP, onLCP, onTTFB } = await import('web-vitals');
+    const track = (name: string) => (metric: { value: number }) => {
+      appInsights?.trackMetric({ name, average: metric.value });
+    };
+    onCLS(track('Web.Vitals.CLS'));
+    onFCP(track('Web.Vitals.FCP'));
+    onLCP(track('Web.Vitals.LCP'));
+    onTTFB(track('Web.Vitals.TTFB'));
+  } catch {
+    // web-vitals not available — skip silently
+  }
 }
 
 /**
