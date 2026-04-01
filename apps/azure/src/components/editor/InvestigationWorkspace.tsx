@@ -12,8 +12,9 @@ import {
   type UseFindingsReturn,
   type UseHypothesesReturn,
 } from '@variscout/hooks';
-import type { FindingStatus, Hypothesis, InvestigationPhase } from '@variscout/core';
+import type { FindingStatus, Hypothesis } from '@variscout/core';
 import { hasTeamFeatures } from '@variscout/core';
+import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { GripVertical } from 'lucide-react';
 import { useData } from '../../context/DataContext';
@@ -51,8 +52,6 @@ interface InvestigationWorkspaceProps {
   handleAddPhoto: ((findingId: string, commentId: string, file: File) => Promise<void>) | undefined;
   handleCaptureFromTeams: ((findingId: string, commentId: string) => Promise<void>) | undefined;
   isTeamsCamera: boolean;
-  // Investigation phase
-  investigationPhase?: InvestigationPhase;
   // AI
   aiOrch: UseAIOrchestrationReturn;
   // Column aliases
@@ -83,7 +82,6 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   handleAddPhoto,
   handleCaptureFromTeams,
   isTeamsCamera,
-  investigationPhase,
   aiOrch,
   columnAliases,
   viewMode: externalViewMode,
@@ -96,6 +94,12 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const hypothesesMap = useInvestigationStore(s => s.hypothesesMap);
   const ideaImpacts = useInvestigationStore(s => s.ideaImpacts);
+
+  // Investigation phase (deterministic, from hypothesis/findings state)
+  const investigationPhase = useMemo(
+    () => detectInvestigationPhase(hypothesesState.hypotheses, findingsState.findings),
+    [hypothesesState.hypotheses, findingsState.findings]
+  );
 
   // Question generation (ADR-053) — computed from data context
   const resolved = resolveMode(analysisMode ?? 'standard');

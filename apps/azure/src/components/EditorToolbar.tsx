@@ -602,7 +602,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                     )}
                   </>
                 )}
-                {hasFactors && (
+                {hasFactors && activeView !== 'investigation' && (
                   <button
                     onClick={() => {
                       setOverflowOpen(false);
