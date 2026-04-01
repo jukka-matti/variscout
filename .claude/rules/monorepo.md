@@ -17,77 +17,105 @@ packages/
 ├── core/      # @variscout/core - Pure logic, glossary, tier system, i18n (no React)
 ├── charts/    # @variscout/charts - React + Visx (standard + Performance + Yamazumi charts), useChartTheme
 ├── data/      # @variscout/data - Sample datasets with pre-computed chart data
-├── hooks/     # @variscout/hooks - Shared React hooks:
+├── hooks/     # @variscout/hooks - Shared React hooks (45+ hooks + utilities):
+│              #   useDataState - Shared DataContext state management
 │              #   useChartScale - Y-axis scale calculation
+│              #   useResponsiveChartMargins - Dynamic chart margins
+│              #   useResponsiveChartFonts - Responsive chart font sizing
+│              #   useResponsiveTickCount - Responsive axis tick count
+│              #   useResponsiveBreakpoints - Responsive breakpoint detection
 │              #   useFilterNavigation - Filter navigation with breadcrumbs
 │              #   useVariationTracking - Cumulative Total SS scope tracking
-│              #   useDataState - Shared DataContext state management
-│              #   useDataIngestion - File upload and data parsing
 │              #   useKeyboardNavigation - Arrow key focus management
-│              #   useResponsiveChartMargins - Dynamic chart margins
+│              #   useColumnClassification - Column data type classification
+│              #   useDataIngestion - File upload and data parsing
+│              #   useDrillPath - Drill-down path navigation state
 │              #   useTier - License tier state and limits
+│              #   useDataTablePagination - Data table page/sort/filter state
+│              #   useHighlightFade - Chart element highlight fade animation
+│              #   useResizablePanel - Draggable panel width with localStorage
 │              #   useBoxplotData - Shared d3 boxplot computation
+│              #   useBoxplotCategoryLimit - Adaptive boxplot category limit (MIN_BOX_STEP)
 │              #   useIChartData - Shared I-Chart data transform
+│              #   useFocusedChartNav - Focused chart carousel navigation
+│              #   useControlViolations - Control/spec violation detection
 │              #   useAnnotations - Chart annotation state (highlights, text notes)
+│              #   useChartCopy - Chart export (clipboard, PNG, SVG)
 │              #   useFindings - Finding CRUD, status, actions, outcomes
 │              #   useHypotheses - Hypothesis tree CRUD, auto-validation
-│              #   useControlViolations - Control/spec violation detection
-│              #   useFocusedChartNav - Focused chart carousel navigation
-│              #   useChartCopy - Chart export (clipboard, PNG, SVG)
+│              #   useQuestionGeneration - Factor Intelligence → question pipeline
 │              #   useBoxplotWrapperData - Shared boxplot wrapper data prep
 │              #   useIChartWrapperData - Shared I-Chart wrapper data prep
 │              #   useParetoChartData - Shared Pareto chart data prep
 │              #   useDashboardComputedData - Shared dashboard computed stats
 │              #   useDashboardChartsBase - Shared dashboard chart state composition
+│              #   useLocaleState - Locale state (localStorage + data-locale attribute)
+│              #   useTranslation - Component-level translation hook (MutationObserver)
+│              #   useThemeState - Light/dark/system theme state
 │              #   useAIContext - AI context building hook
 │              #   useNarration - NarrativeBar state
 │              #   useChartInsights - Per-chart insight orchestration
 │              #   useAICoScout - CoScout conversation state
-│              #   useKnowledgeSearch - Knowledge Base search wrapper (returns lastSearchTimestamp)
-│              #   useFilterHandlers - Dashboard filter handler callbacks
-│              #   useCreateFactorModal - Dashboard create-factor modal state
-│              #   useVerificationCharts - Verification chart toggle state + availability
+│              #   useKnowledgeSearch - Knowledge Base search wrapper
 │              #   useReportSections - Report type detection + section composition
 │              #   useScrollSpy - IntersectionObserver TOC tracking
-│              #   useJourneyPhase - Journey phase detection + entry scenario (AI tool gating)
+│              #   useTooltipPosition - Viewport-aware tooltip positioning (auto-flip)
 │              #   useSnapshotData - Per-finding filtered data + stats
-│              #   copySectionAsHTML - Rich clipboard copy utility
-│              #   useLocaleState - Locale state (localStorage + data-locale attribute)
-│              #   useTranslation - Component-level translation hook (MutationObserver)
+│              #   useFilterHandlers - Dashboard filter handler callbacks
+│              #   useCreateFactorModal - Dashboard create-factor modal state
+│              #   useJourneyPhase - Journey phase detection + entry scenario
+│              #   useVerificationCharts - Verification chart toggle state + availability
 │              #   useYamazumiChartData - Yamazumi stacked bar data from filtered rows
 │              #   useYamazumiIChartData - I-Chart data with switchable metric for Yamazumi
 │              #   useYamazumiParetoData - Pareto data with 5 switchable modes for Yamazumi
-│              #   useAsyncStats - Async stats computation via Web Worker with generation counter
-│              #   useTooltipPosition - Viewport-aware tooltip positioning (auto-flip)
 │              #   useProbabilityPlotData - Multi-series probability plot data (factor grouping + AD test)
-└── ui/        # @variscout/ui - Shared UI components:
+│              #   useCapabilityIChartData - Capability I-Chart Cpk/Cp series data
+│              #   useCapabilityBoxplotData - Capability boxplot (Cpk by factor level)
+│              #   useDashboardInsights - Dashboard chart insights orchestration
+│              #   useProcessProjection - Process projection and optimization intelligence
+│              #   useAsyncStats - Async stats computation via Web Worker with generation counter
+│              #   copySectionAsHTML - Rich clipboard copy utility
+└── ui/        # @variscout/ui - Shared UI components (110+):
                #   AnovaResults, FilterBreadcrumb, FilterChipDropdown, FilterContextBar,
                #   PerformanceSetupPanelBase, VariationBar,
                #   YAxisPopover, ChartCard, ColumnMapping, MeasureColumnSelector,
-               #   PerformanceDetectedModal, DataQualityBanner, HelpTooltip,
-               #   SelectionPanel, CreateFactorModal, UpgradePrompt,
+               #   PerformanceDetectedModal, CapabilitySuggestionModal, DataQualityBanner,
+               #   HelpTooltip, SelectionPanel, CreateFactorModal, UpgradePrompt,
                #   Slider, WhatIfSimulator, WhatIfPageBase,
-               #   ErrorBoundary, AxisEditor, FactorSelector, StatsPanelBase,
+               #   ErrorBoundary, AxisEditor, FactorSelector,
+               #   StatsPanelBase, StatsSummaryPanel, TargetDiscoveryCard,
+               #   FactorIntelligencePanel, VerificationCard,
                #   FindingsWindow, FindingsLog, FindingCard, FindingEditor,
+               #   FindingStatusBadge, FindingComments, FindingBoardView, FindingsExportMenu,
+               #   HypothesisTreeView, HypothesisNode, QuestionChecklist, InvestigationConclusion,
                #   InvestigationPrompt, PasteScreenBase, BoxplotDisplayToggle,
-               #   ChartAnnotationLayer, AnnotationContextMenu, MobileCategorySheet,
+               #   ChartAnnotationLayer, AnnotationContextMenu, MobileCategorySheet, MobileTabBar,
                #   ManualEntryBase, ManualEntrySetupBase, SpecsPopover, SpecEditor,
-               #   CapabilityHistogram, ProbabilityPlot, ProbabilityPlotTooltip, DataPanelBase, DataTableBase,
-               #   ChartDownloadMenu, CharacteristicTypeSelector,
-               #   EditableChartTitle, SettingsPanelBase, FocusedChartViewBase,
-               #   DashboardBase (DashboardLayoutBase, FocusedViewOverlay, FocusedChartCard,
-               #     DashboardChartCard, DashboardGrid),
-               #   CoScoutInline, CoScoutMessages, InvestigationPhaseBadge,
-               #   AIOnboardingTooltip, InvestigationSidebar, StagedComparisonCard,
+               #   CharacteristicTypeSelector, SubgroupConfigPopover, CapabilityMetricToggle,
+               #   CapabilityHistogram, ProbabilityPlot, ProbabilityPlotTooltip,
+               #   DataPanelBase, DataTableBase, DataTableModalBase,
+               #   ChartDownloadMenu, EditableChartTitle, SettingsPanelBase, ThemeToggle,
+               #   FocusedChartViewBase, FocusedViewOverlay, FocusedChartCard,
+               #   DashboardLayoutBase, DashboardChartCard, DashboardGrid,
+               #   FindingsPanelBase, BriefHeader, FindingDetailPanel,
+               #   IChartWrapperBase, BoxplotWrapperBase, ParetoChartWrapperBase,
+               #   PresentationViewBase, PreviewBadge,
+               #   NarrativeBar, ProcessDescriptionField, ChartInsightChip,
+               #   CoScoutPanelBase, CoScoutMessages, CoScoutInline,
+               #   ActionProposalCard, SessionClosePrompt,
+               #   InvestigationPhaseBadge, AIOnboardingTooltip,
+               #   InvestigationSidebar, StagedComparisonCard,
                #   ReportViewBase, ReportSection, ReportStepMarker, ReportKPIGrid,
                #   ReportChartSnapshot, ReportCpkLearningLoop, ReportHypothesisSummary,
-               #   ReportImprovementSummary, ReportCapabilityKPIGrid, ReportPerformanceKPIGrid,
+               #   ReportImprovementSummary, ReportInvestigationSummary,
+               #   ReportCapabilityKPIGrid, ReportPerformanceKPIGrid,
+               #   ReportYamazumiKPIGrid, ReportActivityBreakdown,
                #   VerificationEvidenceBase,
                #   SynthesisCard, IdeaGroupCard, ImprovementSummaryBar, ImprovementWorkspaceBase,
-               #   RiskPopover, PrioritizationMatrix,
+               #   ProcessHealthBar,
                #   YamazumiDetectedModal, YamazumiIChartMetricToggle, YamazumiParetoModeDropdown,
                #   YamazumiSummaryBar,
-               #   useGlossary, useIsMobile, errorService
+               #   useGlossary, useIsMobile, useTheme, errorService, BREAKPOINTS
 
 apps/
 ├── pwa/          # @variscout/pwa - PWA website
@@ -135,7 +163,7 @@ When adding a new shared package that uses Tailwind classes, add a corresponding
 - `@variscout/core` has no React dependencies (exports stats, parser, glossary, tier)
 - `@variscout/charts` depends on `@variscout/core`
 - `@variscout/hooks` depends on `@variscout/core` (for types, utilities, and tier)
-- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `PerformanceSetupPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `FindingsWindow`, `FindingsLog`, `FindingCard`, `FindingEditor`, `FindingStatusBadge`, `FindingComments`, `FindingBoardView`, `FindingsExportMenu`, `HypothesisTreeView`, `HypothesisNode`, `InvestigationPrompt`, `PasteScreenBase`, `ManualEntryBase`, `ManualEntrySetupBase`, `SpecsPopover`, `SpecEditor`, `CapabilityHistogram`, `ProbabilityPlot`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `MobileCategorySheet`, `DataPanelBase`, `DataTableBase`, `DataTableModalBase`, `ChartDownloadMenu`, `CharacteristicTypeSelector`, `EditableChartTitle`, `SettingsPanelBase`, `FocusedChartViewBase`, `FocusedViewOverlay`, `FocusedChartCard`, `DashboardChartCard`, `DashboardGrid`, `DashboardLayoutBase`, `IChartWrapperBase`, `BoxplotWrapperBase`, `ParetoChartWrapperBase`, `FindingsPanelBase`, `BriefHeader`, `FindingDetailPanel`, `NarrativeBar`, `ProcessDescriptionField`, `ChartInsightChip`, `CoScoutInline`, `CoScoutMessages`, `CoScoutPanelBase`, `InvestigationPhaseBadge`, `AIOnboardingTooltip`, `InvestigationSidebar`, `StagedComparisonCard`, `PresentationViewBase`, `PreviewBadge`, `ReportViewBase`, `ReportSection`, `ReportStepMarker`, `ReportKPIGrid`, `ReportChartSnapshot`, `ReportCpkLearningLoop`, `ReportHypothesisSummary`, `ReportImprovementSummary`, `ReportCapabilityKPIGrid`, `ReportPerformanceKPIGrid`, `SynthesisCard`, `IdeaGroupCard`, `ImprovementSummaryBar`, `ImprovementWorkspaceBase`, `RiskPopover`, `PrioritizationMatrix`, `BREAKPOINTS`, `useGlossary`, `useIsMobile`, `errorService`
+- `@variscout/ui` — See component list in Package Structure above. Key exports include 110+ components, `useGlossary`, `useIsMobile`, `useTheme`, `errorService`, `BREAKPOINTS`
 
 ## @variscout/core Sub-Path Exports
 
