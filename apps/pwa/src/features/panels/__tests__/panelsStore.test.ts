@@ -11,7 +11,6 @@ describe('panelsStore', () => {
       const s = usePanelsStore.getState();
       expect(s.isFindingsOpen).toBe(false);
       expect(s.isDataTableOpen).toBe(false);
-      expect(s.isDataPanelOpen).toBe(false);
       expect(s.isPresentationMode).toBe(false);
       expect(s.isStatsSidebarOpen).toBe(false);
       expect(s.highlightRowIndex).toBeNull();
@@ -27,11 +26,6 @@ describe('panelsStore', () => {
       expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
     });
 
-    it('toggleDataPanel flips isDataPanelOpen', () => {
-      usePanelsStore.getState().toggleDataPanel();
-      expect(usePanelsStore.getState().isDataPanelOpen).toBe(true);
-    });
-
     it('toggleStatsSidebar flips isStatsSidebarOpen', () => {
       usePanelsStore.getState().toggleStatsSidebar();
       expect(usePanelsStore.getState().isStatsSidebarOpen).toBe(true);
@@ -39,11 +33,11 @@ describe('panelsStore', () => {
   });
 
   describe('compound actions', () => {
-    it('handlePointClick sets highlight row and opens data panel', () => {
+    it('handlePointClick sets highlight row and opens stats sidebar', () => {
       usePanelsStore.getState().handlePointClick(42);
       const s = usePanelsStore.getState();
       expect(s.highlightRowIndex).toBe(42);
-      expect(s.isDataPanelOpen).toBe(true);
+      expect(s.isStatsSidebarOpen).toBe(true);
     });
 
     it('handleRowClick sets highlighted chart point', () => {
@@ -62,14 +56,6 @@ describe('panelsStore', () => {
       expect(s.isDataTableOpen).toBe(false);
       expect(s.highlightRowIndex).toBeNull();
       expect(s.showExcludedOnly).toBe(false);
-    });
-
-    it('closeDataPanel clears highlight', () => {
-      usePanelsStore.setState({ isDataPanelOpen: true, highlightRowIndex: 3 });
-      usePanelsStore.getState().closeDataPanel();
-      const s = usePanelsStore.getState();
-      expect(s.isDataPanelOpen).toBe(false);
-      expect(s.highlightRowIndex).toBeNull();
     });
 
     it('openDataTableExcluded opens table with excluded filter', () => {

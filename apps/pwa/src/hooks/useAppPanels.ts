@@ -10,7 +10,6 @@ const DESKTOP_BREAKPOINT = 1024;
 export interface AppPanelState {
   isSettingsOpen: boolean;
   isDataTableOpen: boolean;
-  isDataPanelOpen: boolean;
   isFindingsPanelOpen: boolean;
   highlightRowIndex: number | null;
   showExcludedOnly: boolean;
@@ -25,7 +24,6 @@ export interface AppPanelState {
 export const initialPanelState: AppPanelState = {
   isSettingsOpen: false,
   isDataTableOpen: false,
-  isDataPanelOpen: false,
   isFindingsPanelOpen: false,
   highlightRowIndex: null,
   showExcludedOnly: false,
@@ -41,8 +39,6 @@ export const initialPanelState: AppPanelState = {
 export type AppPanelAction =
   | { type: 'SET_SETTINGS'; value: boolean }
   | { type: 'SET_DATA_TABLE'; value: boolean }
-  | { type: 'SET_DATA_PANEL'; value: boolean }
-  | { type: 'TOGGLE_DATA_PANEL_DESKTOP' }
   | { type: 'SET_FINDINGS_PANEL'; value: boolean }
   | { type: 'TOGGLE_FINDINGS_PANEL' }
   | { type: 'SET_HIGHLIGHT_ROW'; index: number | null }
@@ -55,7 +51,6 @@ export type AppPanelAction =
   | { type: 'OPEN_DATA_TABLE_AT_ROW_DESKTOP'; index: number }
   | { type: 'OPEN_DATA_TABLE_AT_ROW_MOBILE'; index: number }
   | { type: 'CLOSE_DATA_TABLE' }
-  | { type: 'CLOSE_DATA_PANEL' }
   | { type: 'OPEN_DATA_TABLE_EXCLUDED' }
   | { type: 'OPEN_DATA_TABLE_ALL' }
   | { type: 'RESET_CONFIRM' }
@@ -73,12 +68,6 @@ export function appPanelReducer(state: AppPanelState, action: AppPanelAction): A
       return state.isDataTableOpen === action.value
         ? state
         : { ...state, isDataTableOpen: action.value };
-    case 'SET_DATA_PANEL':
-      return state.isDataPanelOpen === action.value
-        ? state
-        : { ...state, isDataPanelOpen: action.value };
-    case 'TOGGLE_DATA_PANEL_DESKTOP':
-      return { ...state, isDataPanelOpen: !state.isDataPanelOpen };
     case 'SET_FINDINGS_PANEL':
       return state.isFindingsPanelOpen === action.value
         ? state
@@ -104,13 +93,11 @@ export function appPanelReducer(state: AppPanelState, action: AppPanelAction): A
     case 'SET_HIGHLIGHT_POINT':
       return { ...state, highlightedChartPoint: action.index };
     case 'OPEN_DATA_TABLE_AT_ROW_DESKTOP':
-      return { ...state, highlightRowIndex: action.index, isDataPanelOpen: true };
+      return { ...state, highlightRowIndex: action.index, isStatsSidebarOpen: true };
     case 'OPEN_DATA_TABLE_AT_ROW_MOBILE':
       return { ...state, highlightRowIndex: action.index, isDataTableOpen: true };
     case 'CLOSE_DATA_TABLE':
       return { ...state, isDataTableOpen: false, highlightRowIndex: null, showExcludedOnly: false };
-    case 'CLOSE_DATA_PANEL':
-      return { ...state, isDataPanelOpen: false, highlightRowIndex: null };
     case 'OPEN_DATA_TABLE_EXCLUDED':
       return { ...state, showExcludedOnly: true, highlightRowIndex: null, isDataTableOpen: true };
     case 'OPEN_DATA_TABLE_ALL':
@@ -137,8 +124,6 @@ export interface UseAppPanelsReturn {
   setIsSettingsOpen: (v: boolean) => void;
   isDataTableOpen: boolean;
   setIsDataTableOpen: (v: boolean) => void;
-  isDataPanelOpen: boolean;
-  setIsDataPanelOpen: (v: boolean) => void;
   isFindingsPanelOpen: boolean;
   setIsFindingsPanelOpen: (v: boolean) => void;
   highlightRowIndex: number | null;
@@ -157,12 +142,9 @@ export interface UseAppPanelsReturn {
   openSpecEditorRequested: boolean;
   setOpenSpecEditorRequested: (v: boolean) => void;
   openDataTableAtRow: (index: number) => void;
-  handleDataPanelRowClick: (index: number) => void;
-  handleToggleDataPanel: () => void;
   handleToggleFindingsPanel: () => void;
   handleCloseFindingsPanel: () => void;
   handleCloseDataTable: () => void;
-  handleCloseDataPanel: () => void;
   openDataTableExcluded: () => void;
   openDataTableAll: () => void;
   handleResetRequest: () => void;
@@ -229,21 +211,13 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   const openDataTableAtRow = useCallback(
     (index: number) => {
       if (isDesktop) {
-        usePanelsStore.setState({ highlightRowIndex: index, isDataPanelOpen: true });
+        usePanelsStore.setState({ highlightRowIndex: index, isStatsSidebarOpen: true });
       } else {
         usePanelsStore.setState({ highlightRowIndex: index, isDataTableOpen: true });
       }
     },
     [isDesktop]
   );
-
-  const handleToggleDataPanel = useCallback(() => {
-    if (isDesktop) {
-      store.toggleDataPanel();
-    } else {
-      store.setDataTableOpen(true);
-    }
-  }, [isDesktop, store]);
 
   const handleResetConfirm = useCallback(() => {
     clearData();
@@ -255,7 +229,6 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     // State (from store)
     isSettingsOpen: store.isSettingsOpen,
     isDataTableOpen: store.isDataTableOpen,
-    isDataPanelOpen: store.isDataPanelOpen,
     isFindingsPanelOpen: store.isFindingsOpen,
     highlightRowIndex: store.highlightRowIndex,
     showExcludedOnly: store.showExcludedOnly,
@@ -270,7 +243,6 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     // Setters (delegate to store)
     setIsSettingsOpen: store.setSettingsOpen,
     setIsDataTableOpen: store.setDataTableOpen,
-    setIsDataPanelOpen: store.setDataPanelOpen,
     setIsFindingsPanelOpen: store.setFindingsOpen,
     setHighlightRowIndex: store.setHighlightRow,
     setShowExcludedOnly: store.setShowExcludedOnly,
@@ -282,12 +254,9 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
 
     // Compound actions
     openDataTableAtRow,
-    handleDataPanelRowClick: store.handleRowClick,
-    handleToggleDataPanel,
     handleToggleFindingsPanel: store.toggleFindings,
     handleCloseFindingsPanel: () => store.setFindingsOpen(false),
     handleCloseDataTable: store.closeDataTable,
-    handleCloseDataPanel: store.closeDataPanel,
     openDataTableExcluded: store.openDataTableExcluded,
     openDataTableAll: store.openDataTableAll,
     handleResetRequest: () => store.setShowResetConfirm(true),

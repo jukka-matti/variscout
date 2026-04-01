@@ -33,7 +33,7 @@ import { SAMPLES } from '@variscout/data';
 import { type ExclusionReason, toNumericValue } from '@variscout/core';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
-import { useControlViolations, useQuestionGeneration } from '@variscout/hooks';
+import { useQuestionGeneration } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
 import { useFindingsStore } from './features/findings/findingsStore';
@@ -50,7 +50,6 @@ const ManualEntry = React.lazy(() => import('./components/data/ManualEntry'));
 const WhatIfPage = React.lazy(() => import('./components/WhatIfPage'));
 const SettingsPanel = React.lazy(() => import('./components/settings/SettingsPanel'));
 const DataTableModal = React.lazy(() => import('./components/data/DataTableModal'));
-const DataPanel = React.lazy(() => import('./components/data/DataPanel'));
 const FindingsPanel = React.lazy(() => import('./components/FindingsPanel'));
 const YamazumiDashboard = React.lazy(() => import('./components/YamazumiDashboard'));
 const StatsPanel = React.lazy(() => import('./components/StatsPanel'));
@@ -111,8 +110,6 @@ function AppMain() {
     setFilters,
     columnAliases,
     setColumnAliases,
-    selectedPoints,
-    togglePointSelection,
     clearSelection,
     analysisMode,
     yamazumiMapping,
@@ -324,9 +321,6 @@ function AppMain() {
     });
     return map;
   }, [dataQualityReport]);
-
-  // Control violations for DataPanel annotations
-  const controlViolations = useControlViolations(filteredData, outcome, specs);
 
   // Complement stats for Target Discovery in sidebar
   const isDrilling = Object.keys(filters).length > 0;
@@ -563,10 +557,8 @@ function AppMain() {
           hasData={rawData.length > 0}
           dataFilename={dataFilename}
           rowCount={rawData.length}
-          isDataPanelOpen={panels.isDataPanelOpen}
           isFindingsPanelOpen={panels.isFindingsPanelOpen}
           onNewAnalysis={panels.handleResetRequest}
-          onToggleDataPanel={panels.handleToggleDataPanel}
           onToggleFindingsPanel={panels.handleToggleFindingsPanel}
           onOpenDataTable={() => {
             panels.setHighlightRowIndex(null);
@@ -762,23 +754,6 @@ function AppMain() {
               questions={factorIntelQuestions}
               evidenceLabel={getStrategy(resolved).questionStrategy.evidenceLabel}
               onQuestionClick={handleQuestionClick}
-            />
-          )}
-        </Suspense>
-
-        {/* Data Panel (desktop only, when open) */}
-        <Suspense fallback={null}>
-          {panels.isDesktop && rawData.length > 0 && !importFlow.isMapping && (
-            <DataPanel
-              isOpen={panels.isDataPanelOpen}
-              onClose={panels.handleCloseDataPanel}
-              highlightRowIndex={panels.highlightRowIndex}
-              onRowClick={panels.handleDataPanelRowClick}
-              excludedRowIndices={excludedRowIndices}
-              excludedReasons={excludedReasons}
-              controlViolations={controlViolations}
-              selectedIndices={selectedPoints}
-              onToggleSelection={togglePointSelection}
             />
           )}
         </Suspense>

@@ -4,7 +4,6 @@ import {
   Settings,
   MoreVertical,
   Maximize,
-  Table2,
   Share2,
   ClipboardList,
   Beaker,
@@ -14,7 +13,6 @@ import { useTranslation } from '@variscout/hooks';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 
-const table2Icon = <Table2 size={18} />;
 const maximizeIcon = <Maximize size={18} />;
 const share2Icon = <Share2 size={18} />;
 const settingsIcon = <Settings size={18} />;
@@ -55,10 +53,8 @@ interface AppHeaderProps {
   hasData: boolean;
   dataFilename: string | null;
   rowCount: number;
-  isDataPanelOpen?: boolean;
   isFindingsPanelOpen?: boolean;
   onNewAnalysis: () => void;
-  onToggleDataPanel?: () => void;
   onToggleFindingsPanel?: () => void;
   onOpenDataTable: () => void;
   onExportCSV: () => void;
@@ -85,10 +81,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   hasData,
   dataFilename,
   rowCount,
-  isDataPanelOpen = false,
   isFindingsPanelOpen = false,
   onNewAnalysis,
-  onToggleDataPanel,
   onToggleFindingsPanel,
   onOpenDataTable,
   onExportCSV,
@@ -159,16 +153,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     <BarChart3 size={16} />
                     <span className="hidden lg:inline">Stats</span>
                   </button>
-                )}
-
-                {/* Data Table Toggle */}
-                {onToggleDataPanel && (
-                  <HeaderIconButton
-                    icon={table2Icon}
-                    title={isDataPanelOpen ? t('data.hideDataTable') : t('data.showDataTable')}
-                    onClick={onToggleDataPanel}
-                    isActive={isDataPanelOpen}
-                  />
                 )}
 
                 {/* Findings Toggle */}

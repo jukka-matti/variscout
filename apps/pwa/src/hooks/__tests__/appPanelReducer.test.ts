@@ -17,7 +17,6 @@ describe('appPanelReducer', () => {
       expect(initialPanelState).toEqual({
         isSettingsOpen: false,
         isDataTableOpen: false,
-        isDataPanelOpen: false,
         isFindingsPanelOpen: false,
         highlightRowIndex: null,
         showExcludedOnly: false,
@@ -47,11 +46,6 @@ describe('appPanelReducer', () => {
     it('SET_DATA_TABLE opens/closes data table', () => {
       const s1 = appPanelReducer(initialPanelState, { type: 'SET_DATA_TABLE', value: true });
       expect(s1.isDataTableOpen).toBe(true);
-    });
-
-    it('SET_DATA_PANEL opens/closes data panel', () => {
-      const s1 = appPanelReducer(initialPanelState, { type: 'SET_DATA_PANEL', value: true });
-      expect(s1.isDataPanelOpen).toBe(true);
     });
 
     it('SET_FINDINGS_PANEL opens/closes findings panel', () => {
@@ -111,13 +105,6 @@ describe('appPanelReducer', () => {
   });
 
   describe('toggle actions', () => {
-    it('TOGGLE_DATA_PANEL_DESKTOP toggles data panel', () => {
-      const s1 = appPanelReducer(initialPanelState, { type: 'TOGGLE_DATA_PANEL_DESKTOP' });
-      expect(s1.isDataPanelOpen).toBe(true);
-      const s2 = appPanelReducer(s1, { type: 'TOGGLE_DATA_PANEL_DESKTOP' });
-      expect(s2.isDataPanelOpen).toBe(false);
-    });
-
     it('TOGGLE_FINDINGS_PANEL toggles findings panel', () => {
       const s1 = appPanelReducer(initialPanelState, { type: 'TOGGLE_FINDINGS_PANEL' });
       expect(s1.isFindingsPanelOpen).toBe(true);
@@ -127,13 +114,13 @@ describe('appPanelReducer', () => {
   });
 
   describe('compound actions', () => {
-    it('OPEN_DATA_TABLE_AT_ROW_DESKTOP sets highlight and opens data panel', () => {
+    it('OPEN_DATA_TABLE_AT_ROW_DESKTOP sets highlight and opens stats sidebar', () => {
       const state = appPanelReducer(initialPanelState, {
         type: 'OPEN_DATA_TABLE_AT_ROW_DESKTOP',
         index: 7,
       });
       expect(state.highlightRowIndex).toBe(7);
-      expect(state.isDataPanelOpen).toBe(true);
+      expect(state.isStatsSidebarOpen).toBe(true);
       expect(state.isDataTableOpen).toBe(false); // not mobile
     });
 
@@ -144,7 +131,6 @@ describe('appPanelReducer', () => {
       });
       expect(state.highlightRowIndex).toBe(3);
       expect(state.isDataTableOpen).toBe(true);
-      expect(state.isDataPanelOpen).toBe(false);
     });
 
     it('CLOSE_DATA_TABLE clears table, highlight, and excluded filter', () => {
@@ -157,16 +143,6 @@ describe('appPanelReducer', () => {
       expect(state.isDataTableOpen).toBe(false);
       expect(state.highlightRowIndex).toBeNull();
       expect(state.showExcludedOnly).toBe(false);
-    });
-
-    it('CLOSE_DATA_PANEL clears panel and highlight', () => {
-      const state = applyActions([
-        { type: 'SET_DATA_PANEL', value: true },
-        { type: 'SET_HIGHLIGHT_ROW', index: 2 },
-        { type: 'CLOSE_DATA_PANEL' },
-      ]);
-      expect(state.isDataPanelOpen).toBe(false);
-      expect(state.highlightRowIndex).toBeNull();
     });
 
     it('OPEN_DATA_TABLE_EXCLUDED opens table with excluded filter', () => {
@@ -215,15 +191,6 @@ describe('appPanelReducer', () => {
   });
 
   describe('coexisting panels', () => {
-    it('findings and data panel can both be open', () => {
-      const state = applyActions([
-        { type: 'SET_FINDINGS_PANEL', value: true },
-        { type: 'SET_DATA_PANEL', value: true },
-      ]);
-      expect(state.isFindingsPanelOpen).toBe(true);
-      expect(state.isDataPanelOpen).toBe(true);
-    });
-
     it('settings does not close other panels', () => {
       const state = applyActions([
         { type: 'SET_FINDINGS_PANEL', value: true },
