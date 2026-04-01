@@ -65,7 +65,7 @@ Stores have been moved from `apps/azure/src/stores/` into their respective `apps
 
 ### Migration path
 
-- PWA app retains its simpler architecture (fewer features, no investigation/improvement). Zustand adoption is Azure-only for now.
+- PWA now uses the same Zustand feature stores (findings, investigation, improvement, panels) with simplified orchestration hooks (no Teams, no popout sync, no AI store). Updated April 2026 per constitution principle 2 (full journey in PWA).
 - Shared hooks in `@variscout/hooks` are unchanged — no migration needed for the packages layer.
 
 ### Bridge Hook Pattern

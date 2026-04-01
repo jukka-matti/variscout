@@ -366,7 +366,7 @@ Components (via selectors — granular re-renders)
 - **Orchestration hooks are the bridge** — thin `useEffect` hooks that sync from shared hooks into stores, keeping both layers decoupled.
 - **Cross-store access via `getState()`** — explicit, traceable. See [Store Interactions](store-interactions.md) for coupling analysis.
 
-PWA uses a simpler pattern (DataContext → Hooks → Components) without the orchestration/store layer.
+PWA follows the same pattern (DataContext → Hooks → Zustand stores → Components) with simplified orchestration hooks (no Teams, no popout sync, no AI). Both apps share identical feature stores (findings, investigation, improvement).
 
 ---
 
