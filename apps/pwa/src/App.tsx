@@ -17,7 +17,7 @@ import {
   useIsMobile,
   BREAKPOINTS,
 } from '@variscout/ui';
-import { Beaker, Settings, Download, Table2, RotateCcw } from 'lucide-react';
+import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
   useFindings,
   useHypotheses,
@@ -53,6 +53,9 @@ const DataTableModal = React.lazy(() => import('./components/data/DataTableModal
 const FindingsPanel = React.lazy(() => import('./components/FindingsPanel'));
 const YamazumiDashboard = React.lazy(() => import('./components/YamazumiDashboard'));
 const StatsPanel = React.lazy(() => import('./components/StatsPanel'));
+const InvestigationView = React.lazy(() => import('./components/views/InvestigationView'));
+const ImprovementView = React.lazy(() => import('./components/views/ImprovementView'));
+const ReportView = React.lazy(() => import('./components/views/ReportView'));
 
 const LazyFallback = () => (
   <div className="flex items-center justify-center h-dvh">
@@ -216,7 +219,7 @@ function AppMain() {
     stats,
   });
 
-  useImprovementOrchestration({
+  const improvementOrch = useImprovementOrchestration({
     hypothesesState,
     findingsState: {
       findings: findingsState.findings,
@@ -230,20 +233,23 @@ function AppMain() {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('analysis');
 
-  // Reset mobile tab when data is cleared
+  // Reset mobile tab and workspace when data is cleared
   useEffect(() => {
     if (rawData.length === 0) {
       setMobileActiveTab('analysis');
+      panels.showAnalysis();
     }
-  }, [rawData.length]);
+  }, [rawData.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMobileTabChange = useCallback(
     (tab: MobileTab) => {
       setMobileActiveTab(tab);
       if (tab === 'findings') {
-        panels.setIsFindingsPanelOpen(true);
+        panels.showInvestigation();
       } else if (tab === 'analysis') {
-        panels.setIsFindingsPanelOpen(false);
+        panels.showAnalysis();
+      } else if (tab === 'improve') {
+        panels.showImprovement();
       }
       // 'more' is handled by the bottom sheet overlay
     },
@@ -574,6 +580,7 @@ function AppMain() {
           isWhatIfOpen={panels.isWhatIfPageOpen}
           isStatsSidebarOpen={panels.isStatsSidebarOpen}
           onToggleStatsSidebar={rawData.length > 0 ? panels.handleToggleStatsSidebar : undefined}
+          hideFindings={panels.activeWorkspace === 'investigation'}
         />
       )}
 
@@ -627,6 +634,42 @@ function AppMain() {
 
         {/* Main content area */}
         <div className="flex-1 overflow-hidden flex flex-col">
+          {/* Workspace tabs — visible when data is loaded and past mapping */}
+          {rawData.length > 0 &&
+            !importFlow.isPasteMode &&
+            !importFlow.isManualEntry &&
+            !importFlow.isMapping &&
+            !isEmbedMode &&
+            !isPhone && (
+              <div className="flex border-b border-edge flex-shrink-0 bg-surface">
+                {(
+                  [
+                    { id: 'analysis', label: 'Analysis' },
+                    { id: 'investigation', label: 'Investigation' },
+                    { id: 'improvement', label: 'Improvement' },
+                    { id: 'report', label: 'Report' },
+                  ] as const
+                ).map(ws => (
+                  <button
+                    key={ws.id}
+                    className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+                      panels.activeWorkspace === ws.id
+                        ? 'border-blue-500 text-blue-500'
+                        : 'border-transparent text-content-secondary hover:text-content hover:border-content-tertiary'
+                    }`}
+                    onClick={() => {
+                      if (ws.id === 'analysis') panels.showAnalysis();
+                      else if (ws.id === 'investigation') panels.showInvestigation();
+                      else if (ws.id === 'improvement') panels.showImprovement();
+                      else if (ws.id === 'report') panels.showReport();
+                    }}
+                  >
+                    {ws.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
           <Suspense fallback={<LazyFallback />}>
             {importFlow.isPasteMode ? (
               <PasteScreen
@@ -672,6 +715,41 @@ function AppMain() {
                 suggestedStack={importFlow.suggestedStack}
                 onStackConfigChange={importFlow.handleStackConfigChange}
                 rowLimit={50000}
+              />
+            ) : panels.activeWorkspace === 'investigation' ? (
+              <InvestigationView
+                filteredData={filteredData ?? []}
+                outcome={outcome}
+                factors={factors}
+                findingsState={findingsState}
+                handleRestoreFinding={handleRestoreFinding}
+                handleSetFindingStatus={investigation.handleSetFindingStatus}
+                drillPath={drillPath}
+                hypothesesState={hypothesesState}
+                handleCreateHypothesis={investigation.handleCreateHypothesis}
+                factorIntelQuestions={factorIntelQuestions}
+                handleQuestionClick={handleQuestionClick}
+                columnAliases={columnAliases}
+                resolvedMode={resolved}
+              />
+            ) : panels.activeWorkspace === 'improvement' ? (
+              <ImprovementView
+                hypothesesState={hypothesesState}
+                onBack={panels.showAnalysis}
+                handleConvertIdeasToActions={improvementOrch.handleConvertIdeasToActions}
+              />
+            ) : panels.activeWorkspace === 'report' ? (
+              <ReportView
+                onClose={panels.showAnalysis}
+                stats={stats}
+                specs={specs}
+                cpkTarget={cpkTarget}
+                findings={findingsState.findings}
+                hypotheses={hypothesesState.hypotheses}
+                columnAliases={columnAliases}
+                dataFilename={dataFilename}
+                sampleCount={filteredData?.length ?? 0}
+                analysisMode={analysisMode}
               />
             ) : resolveMode(analysisMode) === 'yamazumi' && yamazumiMapping ? (
               <Suspense fallback={null}>
@@ -724,38 +802,41 @@ function AppMain() {
         </div>
 
         {/* Findings Panel (inline desktop, or mobile when findings tab active) */}
+        {/* Hidden when in investigation workspace — the workspace IS the findings view */}
         <Suspense fallback={null}>
-          {(panels.isDesktop || (isPhone && mobileActiveTab === 'findings')) && outcome && (
-            <FindingsPanel
-              isOpen={panels.isDesktop ? panels.isFindingsPanelOpen : true}
-              onClose={() => {
-                if (isPhone) {
-                  setMobileActiveTab('analysis');
-                }
-                panels.handleCloseFindingsPanel();
-                setHighlightedFindingId(null);
-              }}
-              findings={findingsState.findings}
-              onEditFinding={findingsState.editFinding}
-              onDeleteFinding={findingsState.deleteFinding}
-              onRestoreFinding={handleRestoreFinding}
-              onSetFindingStatus={investigation.handleSetFindingStatus}
-              onSetFindingTag={findingsState.setFindingTag}
-              onAddComment={(id, text) => findingsState.addFindingComment(id, text)}
-              onEditComment={findingsState.editFindingComment}
-              onDeleteComment={findingsState.deleteFindingComment}
-              columnAliases={columnAliases}
-              drillPath={drillPath}
-              activeFindingId={highlightedFindingId}
-              onPopout={handleOpenFindingsPopout}
-              maxStatuses={3}
-              onCreateHypothesis={investigation.handleCreateHypothesis}
-              hypothesesMap={investigationHypothesesMap}
-              questions={factorIntelQuestions}
-              evidenceLabel={getStrategy(resolved).questionStrategy.evidenceLabel}
-              onQuestionClick={handleQuestionClick}
-            />
-          )}
+          {panels.activeWorkspace !== 'investigation' &&
+            (panels.isDesktop || (isPhone && mobileActiveTab === 'findings')) &&
+            outcome && (
+              <FindingsPanel
+                isOpen={panels.isDesktop ? panels.isFindingsPanelOpen : true}
+                onClose={() => {
+                  if (isPhone) {
+                    setMobileActiveTab('analysis');
+                  }
+                  panels.handleCloseFindingsPanel();
+                  setHighlightedFindingId(null);
+                }}
+                findings={findingsState.findings}
+                onEditFinding={findingsState.editFinding}
+                onDeleteFinding={findingsState.deleteFinding}
+                onRestoreFinding={handleRestoreFinding}
+                onSetFindingStatus={investigation.handleSetFindingStatus}
+                onSetFindingTag={findingsState.setFindingTag}
+                onAddComment={(id, text) => findingsState.addFindingComment(id, text)}
+                onEditComment={findingsState.editFindingComment}
+                onDeleteComment={findingsState.deleteFindingComment}
+                columnAliases={columnAliases}
+                drillPath={drillPath}
+                activeFindingId={highlightedFindingId}
+                onPopout={handleOpenFindingsPopout}
+                maxStatuses={3}
+                onCreateHypothesis={investigation.handleCreateHypothesis}
+                hypothesesMap={investigationHypothesesMap}
+                questions={factorIntelQuestions}
+                evidenceLabel={getStrategy(resolved).questionStrategy.evidenceLabel}
+                onQuestionClick={handleQuestionClick}
+              />
+            )}
         </Suspense>
       </main>
 
@@ -849,7 +930,7 @@ function AppMain() {
           activeTab={mobileActiveTab}
           onTabChange={handleMobileTabChange}
           findingsCount={findingsState.findings.length}
-          showImproveTab={false}
+          showImproveTab={true}
         />
       )}
 
@@ -862,6 +943,16 @@ function AppMain() {
           />
           <div className="fixed bottom-[50px] left-0 right-0 bg-surface-primary border-t border-edge rounded-t-2xl z-50 animate-slide-up safe-area-bottom">
             <div className="py-2">
+              <button
+                className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
+                onClick={() => {
+                  setMobileActiveTab('analysis');
+                  panels.showReport();
+                }}
+              >
+                <FileText size={18} className="text-content-secondary" />
+                Report
+              </button>
               <button
                 className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
                 onClick={() => {

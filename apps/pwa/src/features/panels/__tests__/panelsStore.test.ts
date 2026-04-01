@@ -66,6 +66,54 @@ describe('panelsStore', () => {
     });
   });
 
+  describe('workspace navigation', () => {
+    it('defaults to analysis workspace', () => {
+      expect(usePanelsStore.getState().activeWorkspace).toBe('analysis');
+    });
+
+    it('showAnalysis sets workspace to analysis', () => {
+      usePanelsStore.getState().showInvestigation();
+      usePanelsStore.getState().showAnalysis();
+      expect(usePanelsStore.getState().activeWorkspace).toBe('analysis');
+    });
+
+    it('showInvestigation sets workspace and closes findings panel', () => {
+      usePanelsStore.setState({ isFindingsOpen: true });
+      usePanelsStore.getState().showInvestigation();
+      const s = usePanelsStore.getState();
+      expect(s.activeWorkspace).toBe('investigation');
+      expect(s.isFindingsOpen).toBe(false);
+    });
+
+    it('showImprovement sets workspace to improvement', () => {
+      usePanelsStore.getState().showImprovement();
+      expect(usePanelsStore.getState().activeWorkspace).toBe('improvement');
+    });
+
+    it('showReport sets workspace to report', () => {
+      usePanelsStore.getState().showReport();
+      expect(usePanelsStore.getState().activeWorkspace).toBe('report');
+    });
+
+    it('toggleFindings is no-op in investigation workspace', () => {
+      usePanelsStore.getState().showInvestigation();
+      usePanelsStore.getState().toggleFindings();
+      expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
+    });
+
+    it('setFindingsOpen is no-op in investigation workspace', () => {
+      usePanelsStore.getState().showInvestigation();
+      usePanelsStore.getState().setFindingsOpen(true);
+      expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
+    });
+
+    it('toggleFindings works in analysis workspace', () => {
+      usePanelsStore.getState().showAnalysis();
+      usePanelsStore.getState().toggleFindings();
+      expect(usePanelsStore.getState().isFindingsOpen).toBe(true);
+    });
+  });
+
   describe('PWA-specific actions', () => {
     it('confirmReset clears showResetConfirm', () => {
       usePanelsStore.setState({ showResetConfirm: true });

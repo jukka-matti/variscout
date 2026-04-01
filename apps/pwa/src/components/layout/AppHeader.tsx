@@ -67,6 +67,8 @@ interface AppHeaderProps {
   isWhatIfOpen?: boolean;
   isStatsSidebarOpen?: boolean;
   onToggleStatsSidebar?: () => void;
+  /** Hide findings toggle when in Investigation workspace (workspace IS findings) */
+  hideFindings?: boolean;
 }
 
 /**
@@ -95,6 +97,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   isWhatIfOpen = false,
   isStatsSidebarOpen = false,
   onToggleStatsSidebar,
+  hideFindings = false,
 }) => {
   const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -155,8 +158,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   </button>
                 )}
 
-                {/* Findings Toggle */}
-                {onToggleFindingsPanel && (
+                {/* Findings Toggle (hidden when in Investigation workspace) */}
+                {onToggleFindingsPanel && !hideFindings && (
                   <button
                     onClick={onToggleFindingsPanel}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${

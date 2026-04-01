@@ -2,7 +2,12 @@ import { create } from 'zustand';
 
 // ── State ────────────────────────────────────────────────────────────────────
 
+export type Workspace = 'analysis' | 'investigation' | 'improvement' | 'report';
+
 interface PanelsState {
+  // Workspace navigation
+  activeWorkspace: Workspace;
+
   // Panel visibility
   isSettingsOpen: boolean;
   isDataTableOpen: boolean;
@@ -24,6 +29,12 @@ interface PanelsState {
 // ── Actions ──────────────────────────────────────────────────────────────────
 
 interface PanelsActions {
+  // Workspace navigation
+  showAnalysis: () => void;
+  showInvestigation: () => void;
+  showImprovement: () => void;
+  showReport: () => void;
+
   // Simple toggles
   setSettingsOpen: (open: boolean) => void;
   setDataTableOpen: (open: boolean) => void;
@@ -56,6 +67,7 @@ export type PanelsStore = PanelsState & PanelsActions;
 // ── Initial state (exported for testing) ────────────────────────────────────
 
 export const initialPanelsState: PanelsState = {
+  activeWorkspace: 'analysis',
   isSettingsOpen: false,
   isDataTableOpen: false,
   isFindingsOpen: false,
@@ -74,11 +86,19 @@ export const initialPanelsState: PanelsState = {
 export const usePanelsStore = create<PanelsStore>(set => ({
   ...initialPanelsState,
 
+  // Workspace navigation
+  showAnalysis: () => set({ activeWorkspace: 'analysis' }),
+  showInvestigation: () => set({ activeWorkspace: 'investigation', isFindingsOpen: false }),
+  showImprovement: () => set({ activeWorkspace: 'improvement' }),
+  showReport: () => set({ activeWorkspace: 'report' }),
+
   // Simple toggles
   setSettingsOpen: open => set({ isSettingsOpen: open }),
   setDataTableOpen: open => set({ isDataTableOpen: open }),
-  setFindingsOpen: open => set({ isFindingsOpen: open }),
-  toggleFindings: () => set(s => ({ isFindingsOpen: !s.isFindingsOpen })),
+  setFindingsOpen: open =>
+    set(s => (s.activeWorkspace === 'investigation' ? s : { isFindingsOpen: open })),
+  toggleFindings: () =>
+    set(s => (s.activeWorkspace === 'investigation' ? s : { isFindingsOpen: !s.isFindingsOpen })),
   setPresentationMode: on => set({ isPresentationMode: on }),
   setWhatIfOpen: open => set({ isWhatIfOpen: open }),
   toggleStatsSidebar: () => set(s => ({ isStatsSidebarOpen: !s.isStatsSidebarOpen })),

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { WideFormatDetection } from '@variscout/core';
-import { usePanelsStore } from '../features/panels/panelsStore';
+import { usePanelsStore, type Workspace } from '../features/panels/panelsStore';
 
 /** Breakpoint for desktop panel (vs modal on mobile) */
 const DESKTOP_BREAKPOINT = 1024;
@@ -120,6 +120,11 @@ export interface UseAppPanelsOptions {
 }
 
 export interface UseAppPanelsReturn {
+  activeWorkspace: Workspace;
+  showAnalysis: () => void;
+  showInvestigation: () => void;
+  showImprovement: () => void;
+  showReport: () => void;
   isSettingsOpen: boolean;
   setIsSettingsOpen: (v: boolean) => void;
   isDataTableOpen: boolean;
@@ -226,6 +231,13 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
 
   // Map store fields to legacy interface
   return {
+    // Workspace navigation
+    activeWorkspace: store.activeWorkspace,
+    showAnalysis: store.showAnalysis,
+    showInvestigation: store.showInvestigation,
+    showImprovement: store.showImprovement,
+    showReport: store.showReport,
+
     // State (from store)
     isSettingsOpen: store.isSettingsOpen,
     isDataTableOpen: store.isDataTableOpen,
