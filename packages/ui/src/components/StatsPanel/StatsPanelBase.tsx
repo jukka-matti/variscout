@@ -3,9 +3,10 @@ import { Pencil } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import { HelpTooltip } from '../HelpTooltip';
 import type { GlossaryTerm } from '@variscout/core';
-import type { StatsPanelBaseProps, StatsPanelTab } from './types';
+import type { StatsPanelBaseProps, StatsPanelTab, PIOverflowView } from './types';
 import { StagedComparisonCard } from './StagedComparisonCard';
 import TargetDiscoveryCard from './TargetDiscoveryCard';
+import PIOverflowMenu from './PIOverflowMenu';
 
 // MetricCard component for the summary grid
 interface MetricCardProps {
@@ -65,9 +66,18 @@ interface TabButtonProps {
   activeTab: StatsPanelTab;
   onTabChange: (tab: StatsPanelTab) => void;
   compact?: boolean;
+  badge?: number;
 }
 
-const TabButton = ({ tab, label, helpTerm, activeTab, onTabChange, compact }: TabButtonProps) => (
+const TabButton = ({
+  tab,
+  label,
+  helpTerm,
+  activeTab,
+  onTabChange,
+  compact,
+  badge,
+}: TabButtonProps) => (
   <button
     onClick={() => onTabChange(tab)}
     className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1 ${
@@ -76,6 +86,11 @@ const TabButton = ({ tab, label, helpTerm, activeTab, onTabChange, compact }: Ta
     style={compact ? { minHeight: 44 } : undefined}
   >
     {label}
+    {badge !== undefined && badge > 0 && (
+      <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[0.5rem] font-semibold rounded-full bg-blue-500/20 text-blue-400 leading-none">
+        {badge}
+      </span>
+    )}
     {helpTerm && <HelpTooltip term={helpTerm} iconSize={10} />}
   </button>
 );
@@ -104,12 +119,29 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   activeProjection,
   centeringOpportunity,
   onAcceptSpecs,
-  // New tab render props
+  // Tab render props
   renderDataTable,
   renderWhatIf,
+  renderQuestionsTab,
+  renderJournalTab,
+  openQuestionCount,
+  // Overflow menu props
+  overflowView: overflowViewProp,
+  onOverflowViewChange,
 }) => {
   const { t, formatStat } = useTranslation();
-  const [activeTab, setActiveTab] = useState<StatsPanelTab>(defaultTab || 'summary');
+  const [activeTab, setActiveTab] = useState<StatsPanelTab>(defaultTab || 'stats');
+
+  // Overflow view can be controlled (via prop) or uncontrolled (local state)
+  const [overflowViewLocal, setOverflowViewLocal] = useState<PIOverflowView>(null);
+  const overflowView = overflowViewProp !== undefined ? overflowViewProp : overflowViewLocal;
+  const setOverflowView = (view: PIOverflowView) => {
+    if (onOverflowViewChange) {
+      onOverflowViewChange(view);
+    } else {
+      setOverflowViewLocal(view);
+    }
+  };
 
   const emptyState = (message: string) => <div className={EMPTY_STATE_CLASS}>{message}</div>;
 
@@ -253,7 +285,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
           cpkTarget={cpkTarget}
           onAcceptSpecs={onAcceptSpecs}
           onCustomize={onEditSpecs}
-          onOpenWhatIf={renderWhatIf ? () => setActiveTab('whatif') : undefined}
+          onOpenWhatIf={renderWhatIf ? () => setOverflowView('whatif') : undefined}
           sampleCount={sampleCount ?? filteredData?.length}
         />
         {renderMetricGrid()}
@@ -262,50 +294,68 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   };
 
   const renderTabs = () => (
-    <div className={`${TAB_BAR_CLASS} ${compact ? 'mb-4' : ''}`}>
+    <div className={`${TAB_BAR_CLASS} ${compact ? 'mb-4' : ''} items-center`}>
       <TabButton
-        tab="summary"
-        label={t('stats.summary')}
+        tab="stats"
+        label="Stats"
         activeTab={activeTab}
         onTabChange={setActiveTab}
         compact={compact}
       />
       <TabButton
-        tab="data"
-        label="Data"
+        tab="questions"
+        label="Questions"
         activeTab={activeTab}
         onTabChange={setActiveTab}
         compact={compact}
+        badge={openQuestionCount}
       />
       <TabButton
-        tab="whatif"
-        label="What-If"
+        tab="journal"
+        label="Journal"
         activeTab={activeTab}
         onTabChange={setActiveTab}
         compact={compact}
       />
+      <PIOverflowMenu activeOverflow={overflowView} onSelect={setOverflowView} />
     </div>
   );
 
   const renderTabContent = () => {
+    // Overflow views take priority over tab selection
+    if (overflowView === 'data') {
+      return (
+        <div className="flex-1 min-h-0 overflow-auto">
+          {renderDataTable ? renderDataTable() : emptyState('No data available')}
+        </div>
+      );
+    }
+    if (overflowView === 'whatif') {
+      return (
+        <div className="flex-1 min-h-0 overflow-auto">
+          {renderWhatIf ? renderWhatIf() : emptyState('No What-If simulator available')}
+        </div>
+      );
+    }
+
     switch (activeTab) {
-      case 'summary':
+      case 'stats':
         return (
           <>
             <div className="flex-1">{renderSummaryContent()}</div>
             {stats && renderSummaryFooter?.(stats, specs)}
           </>
         );
-      case 'data':
+      case 'questions':
         return (
           <div className="flex-1 min-h-0 overflow-auto">
-            {renderDataTable ? renderDataTable() : emptyState('No data available')}
+            {renderQuestionsTab ? renderQuestionsTab() : emptyState('No questions yet')}
           </div>
         );
-      case 'whatif':
+      case 'journal':
         return (
           <div className="flex-1 min-h-0 overflow-auto">
-            {renderWhatIf ? renderWhatIf() : emptyState('No What-If simulator available')}
+            {renderJournalTab ? renderJournalTab() : emptyState('No journal entries yet')}
           </div>
         );
     }

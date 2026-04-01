@@ -13,6 +13,9 @@ vi.mock('@variscout/hooks', () => {
     'stats.samples': 'Samples',
     'stats.passRate': 'Pass Rate',
     'empty.noData': 'No data available',
+    'stats.stats': 'Stats',
+    'stats.questions': 'Questions',
+    'stats.journal': 'Journal',
   };
   return {
     useTranslation: () => ({
@@ -102,39 +105,129 @@ describe('StatsPanelBase', () => {
   });
 
   describe('tab switching', () => {
-    it('starts on Summary tab by default', () => {
+    it('starts on Stats tab by default', () => {
       render(<StatsPanelBase {...defaultProps} />);
       expect(screen.getByTestId('stat-value-mean')).toBeDefined();
     });
 
-    it('switches to Data tab', () => {
-      const renderDataTable = vi.fn().mockReturnValue(<div data-testid="data-table">Table</div>);
-      render(<StatsPanelBase {...defaultProps} renderDataTable={renderDataTable} />);
+    it('renders Stats, Questions, Journal tabs', () => {
+      render(<StatsPanelBase {...defaultProps} />);
+      expect(screen.getByText('Stats')).toBeDefined();
+      expect(screen.getByText('Questions')).toBeDefined();
+      expect(screen.getByText('Journal')).toBeDefined();
+    });
 
-      fireEvent.click(screen.getByText('Data'));
+    it('switches to Questions tab and renders content', () => {
+      const renderQuestionsTab = vi
+        .fn()
+        .mockReturnValue(<div data-testid="questions-content">Q</div>);
+      render(<StatsPanelBase {...defaultProps} renderQuestionsTab={renderQuestionsTab} />);
+
+      fireEvent.click(screen.getByText('Questions'));
+      expect(screen.getByTestId('questions-content')).toBeDefined();
+      expect(renderQuestionsTab).toHaveBeenCalled();
+    });
+
+    it('shows empty state for Questions tab when no render function', () => {
+      render(<StatsPanelBase {...defaultProps} />);
+      fireEvent.click(screen.getByText('Questions'));
+      expect(screen.getByText('No questions yet')).toBeDefined();
+    });
+
+    it('switches to Journal tab and renders content', () => {
+      const renderJournalTab = vi.fn().mockReturnValue(<div data-testid="journal-content">J</div>);
+      render(<StatsPanelBase {...defaultProps} renderJournalTab={renderJournalTab} />);
+
+      fireEvent.click(screen.getByText('Journal'));
+      expect(screen.getByTestId('journal-content')).toBeDefined();
+      expect(renderJournalTab).toHaveBeenCalled();
+    });
+
+    it('shows empty state for Journal tab when no render function', () => {
+      render(<StatsPanelBase {...defaultProps} />);
+      fireEvent.click(screen.getByText('Journal'));
+      expect(screen.getByText('No journal entries yet')).toBeDefined();
+    });
+
+    it('shows badge on Questions tab when openQuestionCount > 0', () => {
+      render(<StatsPanelBase {...defaultProps} openQuestionCount={3} />);
+      expect(screen.getByText('3')).toBeDefined();
+    });
+
+    it('does not show badge when openQuestionCount is 0', () => {
+      render(<StatsPanelBase {...defaultProps} openQuestionCount={0} />);
+      // Badge with value 0 should not render
+      const badges = screen.queryAllByText('0');
+      expect(badges.length).toBe(0);
+    });
+  });
+
+  describe('overflow menu', () => {
+    it('renders overflow (⋯) button', () => {
+      render(<StatsPanelBase {...defaultProps} />);
+      expect(screen.getByLabelText('More options')).toBeDefined();
+    });
+
+    it('shows Data Table via overflowView prop', () => {
+      const renderDataTable = vi.fn().mockReturnValue(<div data-testid="data-table">Table</div>);
+      render(
+        <StatsPanelBase
+          {...defaultProps}
+          renderDataTable={renderDataTable}
+          overflowView="data"
+          onOverflowViewChange={vi.fn()}
+        />
+      );
       expect(screen.getByTestId('data-table')).toBeDefined();
       expect(renderDataTable).toHaveBeenCalled();
     });
 
-    it('switches to What-If tab', () => {
+    it('shows What-If via overflowView prop', () => {
       const renderWhatIf = vi.fn().mockReturnValue(<div data-testid="what-if">Simulator</div>);
-      render(<StatsPanelBase {...defaultProps} renderWhatIf={renderWhatIf} />);
-
-      fireEvent.click(screen.getByText('What-If'));
+      render(
+        <StatsPanelBase
+          {...defaultProps}
+          renderWhatIf={renderWhatIf}
+          overflowView="whatif"
+          onOverflowViewChange={vi.fn()}
+        />
+      );
       expect(screen.getByTestId('what-if')).toBeDefined();
       expect(renderWhatIf).toHaveBeenCalled();
     });
 
-    it('shows empty state for Data tab when no render function', () => {
-      render(<StatsPanelBase {...defaultProps} />);
-      fireEvent.click(screen.getByText('Data'));
+    it('shows empty state for Data overflow when no render function', () => {
+      render(
+        <StatsPanelBase {...defaultProps} overflowView="data" onOverflowViewChange={vi.fn()} />
+      );
       expect(screen.getByText('No data available')).toBeDefined();
     });
 
-    it('shows empty state for What-If tab when no render function', () => {
-      render(<StatsPanelBase {...defaultProps} />);
-      fireEvent.click(screen.getByText('What-If'));
+    it('shows empty state for What-If overflow when no render function', () => {
+      render(
+        <StatsPanelBase {...defaultProps} overflowView="whatif" onOverflowViewChange={vi.fn()} />
+      );
       expect(screen.getByText('No What-If simulator available')).toBeDefined();
+    });
+
+    it('shows active overflow label as dismissible button', () => {
+      render(
+        <StatsPanelBase {...defaultProps} overflowView="data" onOverflowViewChange={vi.fn()} />
+      );
+      expect(screen.getByLabelText('Close Data Table')).toBeDefined();
+    });
+
+    it('calls onOverflowViewChange(null) when active overflow button is clicked', () => {
+      const onOverflowViewChange = vi.fn();
+      render(
+        <StatsPanelBase
+          {...defaultProps}
+          overflowView="data"
+          onOverflowViewChange={onOverflowViewChange}
+        />
+      );
+      fireEvent.click(screen.getByLabelText('Close Data Table'));
+      expect(onOverflowViewChange).toHaveBeenCalledWith(null);
     });
   });
 
@@ -219,10 +312,16 @@ describe('StatsPanelBase', () => {
   });
 
   it('respects defaultTab prop', () => {
-    const renderDataTable = vi.fn().mockReturnValue(<div data-testid="data-table">Table</div>);
+    const renderQuestionsTab = vi
+      .fn()
+      .mockReturnValue(<div data-testid="questions-content">Q</div>);
     render(
-      <StatsPanelBase {...defaultProps} defaultTab="data" renderDataTable={renderDataTable} />
+      <StatsPanelBase
+        {...defaultProps}
+        defaultTab="questions"
+        renderQuestionsTab={renderQuestionsTab}
+      />
     );
-    expect(screen.getByTestId('data-table')).toBeDefined();
+    expect(screen.getByTestId('questions-content')).toBeDefined();
   });
 });
