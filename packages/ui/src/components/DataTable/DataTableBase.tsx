@@ -4,7 +4,7 @@ import { getSpecStatus } from '@variscout/core';
 import type { DataCellValue, ExclusionReason, SpecLimits } from '@variscout/core';
 import { useDataTablePagination, useHighlightFade, useTranslation } from '@variscout/hooks';
 
-const DEFAULT_ROWS_PER_PAGE = 500;
+const DEFAULT_ROWS_PER_PAGE = 100;
 
 export interface DataTableBaseProps {
   data: Record<string, DataCellValue>[];
