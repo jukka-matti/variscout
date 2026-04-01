@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from '@variscout/hooks';
 import type { SubgroupConfig as SubgroupConfigType } from '@variscout/core';
 
 export interface SubgroupConfigProps {
@@ -28,6 +29,7 @@ export const SubgroupConfigPopover: React.FC<SubgroupConfigProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   // Close on outside click
   useEffect(() => {
@@ -66,7 +68,7 @@ export const SubgroupConfigPopover: React.FC<SubgroupConfigProps> = ({
 
       {isOpen && (
         <div className="absolute right-0 top-full mt-1 z-50 bg-surface-primary border border-edge rounded-lg shadow-lg p-3 w-56">
-          <div className="text-xs font-medium text-content mb-2">Subgroup Method</div>
+          <div className="text-xs font-medium text-content mb-2">{t('subgroup.method')}</div>
 
           {/* Fixed-size radio */}
           <label className="flex items-center gap-2 py-1 cursor-pointer">
@@ -77,7 +79,7 @@ export const SubgroupConfigPopover: React.FC<SubgroupConfigProps> = ({
               onChange={() => onConfigChange({ method: 'fixed-size', size: config.size ?? 5 })}
               className="w-4 h-4 border-edge-secondary bg-surface-secondary text-blue-500 accent-blue-500 focus:ring-blue-500 focus:ring-offset-surface"
             />
-            <span className="text-xs text-content">Fixed size</span>
+            <span className="text-xs text-content">{t('subgroup.fixedSize')}</span>
           </label>
 
           {config.method === 'fixed-size' && (
@@ -117,7 +119,7 @@ export const SubgroupConfigPopover: React.FC<SubgroupConfigProps> = ({
             <span
               className={`text-xs ${availableColumns.length === 0 ? 'text-content-secondary opacity-50' : 'text-content'}`}
             >
-              By column
+              {t('subgroup.byColumn')}
             </span>
           </label>
 

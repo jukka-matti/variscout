@@ -10,6 +10,8 @@ vi.mock('@variscout/hooks', () => {
     'upgrade.limitReached': 'Limit Reached',
     'upgrade.upgrade': 'Upgrade',
     'upgrade.viewOptions': 'View options',
+    'upgrade.freeTierLimitation': 'Free tier limitation',
+    'upgrade.fromPrice': 'From \u20ac79/month',
   };
   return {
     useTranslation: () => ({

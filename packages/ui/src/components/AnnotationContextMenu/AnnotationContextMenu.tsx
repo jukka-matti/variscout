@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from '@variscout/hooks';
 import type { HighlightColor } from '../ChartAnnotationLayer/types';
 
 export interface AnnotationContextMenuProps {
@@ -16,12 +17,6 @@ export interface AnnotationContextMenuProps {
   onClose: () => void;
 }
 
-const highlightOptions: { color: HighlightColor; label: string; dot: string }[] = [
-  { color: 'red', label: 'Red highlight', dot: '#ef4444' },
-  { color: 'amber', label: 'Amber highlight', dot: '#f59e0b' },
-  { color: 'green', label: 'Green highlight', dot: '#22c55e' },
-];
-
 /**
  * AnnotationContextMenu - Right-click context menu for chart annotations
  *
@@ -37,6 +32,13 @@ export const AnnotationContextMenu: React.FC<AnnotationContextMenuProps> = ({
   onClose,
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
+
+  const highlightOptions: { color: HighlightColor; label: string; dot: string }[] = [
+    { color: 'red', label: t('annotations.redHighlight'), dot: '#ef4444' },
+    { color: 'amber', label: t('annotations.amberHighlight'), dot: '#f59e0b' },
+    { color: 'green', label: t('annotations.greenHighlight'), dot: '#22c55e' },
+  ];
 
   // Close on click-outside
   useEffect(() => {
@@ -99,7 +101,7 @@ export const AnnotationContextMenu: React.FC<AnnotationContextMenuProps> = ({
           />
           {label}
           {currentHighlight === color && (
-            <span className="ml-auto text-xs text-slate-400">active</span>
+            <span className="ml-auto text-xs text-slate-400">{t('annotations.active')}</span>
           )}
         </button>
       ))}
@@ -114,7 +116,7 @@ export const AnnotationContextMenu: React.FC<AnnotationContextMenuProps> = ({
         className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-slate-700 transition-colors"
       >
         <span className="inline-block w-3 h-3 rounded-full flex-shrink-0 border border-slate-500" />
-        Clear highlight
+        {t('chart.clearHighlight')}
       </button>
 
       {/* Divider */}
@@ -131,7 +133,7 @@ export const AnnotationContextMenu: React.FC<AnnotationContextMenuProps> = ({
           className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-slate-700 transition-colors"
         >
           <span className="text-slate-400">+</span>
-          Add observation
+          {t('finding.addObservation')}
         </button>
       )}
     </div>

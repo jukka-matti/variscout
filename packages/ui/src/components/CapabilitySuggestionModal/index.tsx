@@ -9,6 +9,7 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { X } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import type { SpecLimits, StatsResult } from '@variscout/core';
 
 export interface CapabilitySuggestionModalProps {
@@ -78,11 +79,15 @@ function getCpkDotColor(cpk: number | undefined, target: number): string {
   return 'bg-red-400';
 }
 
-function getCpkVerdict(cpk: number | undefined, target: number): string {
-  if (cpk === undefined) return 'insufficient data';
-  if (cpk >= target) return `meets ${target} target`;
-  if (cpk >= 1.0) return `marginal (below ${target})`;
-  return `below ${target} target`;
+function getCpkVerdict(
+  cpk: number | undefined,
+  target: number,
+  t: (key: string) => string
+): string {
+  if (cpk === undefined) return t('capability.insufficientData');
+  if (cpk >= target) return t('capability.meetsTarget');
+  if (cpk >= 1.0) return t('capability.marginal');
+  return t('capability.belowTarget');
 }
 
 export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps> = ({
@@ -99,6 +104,7 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
   onCpkTargetChange,
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const { t } = useTranslation();
 
   // Local editable state (synced to DataContext on confirm)
   const [localUsl, setLocalUsl] = useState(specs.usl?.toString() ?? '');
@@ -199,7 +205,7 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
             {/* Header */}
             <div className="flex justify-between items-start mb-1">
               <h2 className="text-base font-semibold text-content">
-                Specification limits detected
+                {t('capability.specsDetected')}
               </h2>
               <button
                 onClick={handleDismiss}
@@ -271,7 +277,7 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                   className="text-content-muted"
                   title="How specs are applied: Nominal (both limits), Smaller-is-better (USL only), Larger-is-better (LSL only)"
                 >
-                  Type:
+                  {t('capability.type')}
                 </span>
                 <select
                   value={localCharType}
@@ -290,7 +296,7 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                   className="text-content-muted"
                   title="Process capability target. Common: 1.33 (general), 1.67 (safety-critical), 2.00 (aerospace)"
                 >
-                  Cpk target:
+                  {t('capability.cpkTarget')}
                 </span>
                 <input
                   type="number"
@@ -319,7 +325,7 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                   {liveCpk.cpk !== undefined ? liveCpk.cpk.toFixed(2) : '—'}
                 </span>
                 <span className="text-xs text-content-muted">
-                  — {getCpkVerdict(liveCpk.cpk, parsedCpkTarget)}
+                  — {getCpkVerdict(liveCpk.cpk, parsedCpkTarget, t)}
                 </span>
               </div>
               {liveCpk.cp !== undefined && (
@@ -338,20 +344,22 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                 onClick={handleStartCapability}
                 className="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-center"
               >
-                <div className="text-sm font-medium">Start Capability View</div>
-                <div className="text-[0.625rem] opacity-75">Cpk trend per subgroup</div>
+                <div className="text-sm font-medium">{t('capability.startCapabilityView')}</div>
+                <div className="text-[0.625rem] opacity-75">{t('capability.cpkTrendSubgroup')}</div>
               </button>
               <button
                 onClick={handleDismiss}
                 className="flex-1 px-4 py-2.5 bg-surface-tertiary hover:bg-surface-elevated text-content border border-edge rounded-lg transition-colors text-center"
               >
-                <div className="text-sm font-medium">Standard View</div>
-                <div className="text-[0.625rem] text-content-muted">Individual values chart</div>
+                <div className="text-sm font-medium">{t('capability.standardView')}</div>
+                <div className="text-[0.625rem] text-content-muted">
+                  {t('capability.individualValuesChart')}
+                </div>
               </button>
             </div>
 
             <p className="text-[0.625rem] text-content-muted text-center mt-3">
-              You can switch anytime using the toggle in the I-Chart header.
+              {t('capability.switchAnytime')}
             </p>
           </div>
         </div>

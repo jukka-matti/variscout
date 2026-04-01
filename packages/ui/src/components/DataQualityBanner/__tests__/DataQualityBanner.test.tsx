@@ -18,6 +18,8 @@ vi.mock('@variscout/hooks', () => {
     'quality.noVariationWarning': 'This column has no variation \u2014 all values are identical',
     'quality.viewExcluded': 'View excluded',
     'quality.viewAll': 'View all',
+    'quality.dataFile': 'Data File',
+    'action.continue': 'Continue',
   };
   return {
     useTranslation: () => ({

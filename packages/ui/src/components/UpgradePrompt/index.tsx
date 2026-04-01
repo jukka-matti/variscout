@@ -105,7 +105,7 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
           <div>
             <h3 className="text-lg font-semibold text-white">{displayTitle}</h3>
             <p className="text-sm text-slate-400">
-              {tier === 'free' ? 'Free tier limitation' : 'Tier limit'}
+              {tier === 'free' ? t('upgrade.freeTierLimitation') : 'Tier limit'}
             </p>
           </div>
         </div>
@@ -124,7 +124,7 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
             {t('upgrade.viewOptions')}
             <ArrowRight size={14} />
           </a>
-          <span className="text-xs text-slate-500">From €79/month with Azure App</span>
+          <span className="text-xs text-slate-500">{t('upgrade.fromPrice')}</span>
         </div>
       </div>
     );

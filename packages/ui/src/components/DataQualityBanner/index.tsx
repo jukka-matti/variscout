@@ -72,7 +72,7 @@ export const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
       <div className="flex items-center justify-between p-4 border-b border-edge">
         <div className="flex items-center gap-3">
           <FileText size={20} className="text-blue-400" />
-          <span className="text-content font-medium">{filename || 'Data File'}</span>
+          <span className="text-content font-medium">{filename || t('quality.dataFile')}</span>
           <span className="text-content-secondary text-sm">{totalRows} rows</span>
         </div>
         {!hasIssues && (
@@ -152,7 +152,7 @@ export const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
               onClick={onContinue}
               className="ml-auto px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors"
             >
-              Continue
+              {t('action.continue')}
             </button>
           )}
         </div>

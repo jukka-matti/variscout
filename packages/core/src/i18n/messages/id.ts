@@ -758,4 +758,44 @@ export const id: MessageCatalog = {
   'capability.suggestion.startCapability': 'Start with Capability View',
   'capability.suggestion.standardView': 'Standard View',
   'capability.suggestion.footer': 'You can switch anytime using the toggle in the I-Chart header.',
+
+  // Annotations
+  'annotations.redHighlight': 'Red highlight',
+  'annotations.amberHighlight': 'Amber highlight',
+  'annotations.greenHighlight': 'Green highlight',
+  'annotations.active': 'active',
+
+  // Subgroup
+  'subgroup.method': 'Subgroup Method',
+  'subgroup.fixedSize': 'Fixed size',
+  'subgroup.byColumn': 'By column',
+  'subgroup.configuration': 'Subgroup Configuration',
+  'subgroup.configureSubgroups': 'Configure subgroups',
+
+  // Capability
+  'capability.specsDetected': 'Specification limits detected',
+  'capability.startCapabilityView': 'Start Capability View',
+  'capability.cpkTrendSubgroup': 'Cpk trend per subgroup',
+  'capability.standardView': 'Standard View',
+  'capability.individualValuesChart': 'Individual values chart',
+  'capability.switchAnytime': 'You can switch anytime using the toggle in the I-Chart header.',
+  'capability.type': 'Type:',
+  'capability.cpkTarget': 'Cpk target:',
+  'capability.insufficientData': 'Insufficient data',
+  'capability.meetsTarget': 'Meets target',
+  'capability.marginal': 'Marginal',
+  'capability.belowTarget': 'Below target',
+
+  // Quality (additional)
+  'quality.dataFile': 'Data File',
+
+  // Finding (additional)
+  'finding.addObservation': 'Add observation',
+
+  // Action (additional)
+  'action.continue': 'Continue',
+
+  // Upgrade (additional)
+  'upgrade.freeTierLimitation': 'Free tier limitation',
+  'upgrade.fromPrice': 'From \u20ac79/month',
 };
