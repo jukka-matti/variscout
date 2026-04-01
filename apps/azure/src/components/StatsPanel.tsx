@@ -37,6 +37,8 @@ interface StatsPanelProps {
   onFactorDrillDown?: (factors: string[]) => void;
   /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
   onInvestigateFactor?: (effect: import('@variscout/core/stats').FactorMainEffect) => void;
+  /** Pre-computed best subsets (from useQuestionGeneration) to avoid double computation */
+  precomputedBestSubsets?: import('@variscout/core/stats').BestSubsetsResult | null;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({
@@ -59,6 +61,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   factors = [],
   onFactorDrillDown,
   onInvestigateFactor,
+  precomputedBestSubsets,
 }) => {
   const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
@@ -82,9 +85,10 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   const hasFactorIntelligence = factors.length >= 2 && outcome && filteredData.length > 0;
 
   const bestSubsets = useMemo(() => {
+    if (precomputedBestSubsets !== undefined) return precomputedBestSubsets;
     if (!hasFactorIntelligence) return null;
     return computeBestSubsets(filteredData, outcome!, factors);
-  }, [filteredData, outcome, factors, hasFactorIntelligence]);
+  }, [precomputedBestSubsets, filteredData, outcome, factors, hasFactorIntelligence]);
 
   const mainEffects = useMemo(() => {
     if (!hasFactorIntelligence) return null;

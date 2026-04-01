@@ -12,6 +12,8 @@ import { hasTeamFeatures, toNumericValue, createFactorFinding } from '@variscout
 import { computeCenteringOpportunity } from '@variscout/core/variation';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
 import type { UseHypothesesReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
+import { useQuestionGeneration } from '@variscout/hooks';
+import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { isAIAvailable } from '../../services/aiService';
 import { useData } from '../../context/DataContext';
 import { usePanelsStore } from '../../features/panels/panelsStore';
@@ -123,8 +125,24 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     specs,
     outcome,
     cpkTarget,
+    analysisMode,
   } = useData();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
+
+  // Question-driven investigation (ADR-053)
+  const resolved = resolveMode(analysisMode ?? 'standard');
+  const {
+    questions: factorIntelQuestions,
+    bestSubsets,
+    handleQuestionClick,
+    factorRequest,
+  } = useQuestionGeneration({
+    filteredData: filteredData ?? [],
+    outcome,
+    factors,
+    hypothesesState,
+    mode: resolved,
+  });
 
   // Session-close prompt state (ADR-049)
   const [showClosePrompt, setShowClosePrompt] = useState(false);
@@ -299,6 +317,11 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     coScoutSuggestedQuestions: suggestedQuestions,
     projectedCpkMap,
     synthesis: processContext?.synthesis,
+    // Question-driven investigation (ADR-053)
+    questions: factorIntelQuestions,
+    issueStatement: processContext?.issueStatement,
+    evidenceLabel: getStrategy(resolved).questionStrategy.evidenceLabel,
+    onQuestionClick: handleQuestionClick,
     linkedFindings: improvementLinkedFindings,
   };
 
@@ -491,6 +514,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
                   centeringOpportunity={centeringOpp}
                   factors={factors}
                   onInvestigateFactor={handleInvestigateFactor}
+                  precomputedBestSubsets={bestSubsets}
                 />
               </React.Suspense>
             </div>
@@ -512,6 +536,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           initialViewState={viewState ?? undefined}
           onViewStateChange={onViewStateChange}
           onManageFactors={dataFlow.openFactorManager}
+          requestedFactor={factorRequest}
           onPinFinding={handlePinFinding}
           onShareChart={handleShareChart}
           findingsCallbacks={findingsCallbacks}

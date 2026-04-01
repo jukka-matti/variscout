@@ -93,6 +93,8 @@ interface DashboardProps {
   findings?: Finding[];
   /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
   onInvestigateFactor?: (effect: import('@variscout/core/stats').FactorMainEffect) => void;
+  /** External factor switch request (from question click) — sets boxplot + pareto factor */
+  requestedFactor?: { factor: string; seq: number } | null;
   // Persistence
   initialViewState?: ViewState;
   onViewStateChange?: (partial: Partial<ViewState>) => void;
@@ -114,6 +116,7 @@ const Dashboard = ({
   findingsCallbacks,
   findings: allFindings,
   onInvestigateFactor,
+  requestedFactor,
   viewMode = {},
   performance = {},
   ai = {},
@@ -247,6 +250,14 @@ const Dashboard = ({
     initialParetoFactor: initialViewState?.paretoFactor,
     onViewStateChange,
   });
+
+  // Apply external factor switch (from question click)
+  useEffect(() => {
+    if (requestedFactor && factors.includes(requestedFactor.factor)) {
+      setBoxplotFactor(requestedFactor.factor);
+      setParetoFactor(requestedFactor.factor);
+    }
+  }, [requestedFactor, factors, setBoxplotFactor, setParetoFactor]);
 
   // Restore persisted focused chart (one-time after hook initializes)
   useEffect(() => {

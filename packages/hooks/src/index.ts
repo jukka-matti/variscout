@@ -345,3 +345,10 @@ export {
   type UseAsyncStatsOptions,
   type UseAsyncStatsResult,
 } from './useAsyncStats';
+
+// Question Generation (Factor Intelligence → questions pipeline)
+export {
+  useQuestionGeneration,
+  type UseQuestionGenerationOptions,
+  type UseQuestionGenerationReturn,
+} from './useQuestionGeneration';

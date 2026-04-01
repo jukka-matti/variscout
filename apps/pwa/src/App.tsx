@@ -31,9 +31,9 @@ import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
 import { type ExclusionReason, toNumericValue } from '@variscout/core';
-import { resolveMode } from '@variscout/core/strategy';
+import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
-import { useControlViolations } from '@variscout/hooks';
+import { useControlViolations, useQuestionGeneration } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
 import { useFindingsStore } from './features/findings/findingsStore';
@@ -191,6 +191,20 @@ function AppMain() {
   const hypothesesState = useHypotheses({
     initialHypotheses: hypotheses,
     onHypothesesChange: setHypotheses,
+  });
+
+  // Question-driven investigation (ADR-053)
+  const resolved = resolveMode(analysisMode ?? 'standard');
+  const {
+    questions: factorIntelQuestions,
+    handleQuestionClick,
+    factorRequest,
+  } = useQuestionGeneration({
+    filteredData: filteredData ?? [],
+    outcome,
+    factors,
+    hypothesesState,
+    mode: resolved,
   });
 
   const investigation = useInvestigationOrchestration({
@@ -704,6 +718,7 @@ function AppMain() {
                 highlightedPointIndex={panels.highlightedChartPoint}
                 filterNav={filterNav}
                 onPinFinding={handlePinFinding}
+                requestedFactor={factorRequest}
                 findingsCallbacks={{
                   onAddChartObservation: handleAddChartObservation,
                   chartFindings,
@@ -744,6 +759,9 @@ function AppMain() {
               maxStatuses={5}
               onCreateHypothesis={investigation.handleCreateHypothesis}
               hypothesesMap={investigationHypothesesMap}
+              questions={factorIntelQuestions}
+              evidenceLabel={getStrategy(resolved).questionStrategy.evidenceLabel}
+              onQuestionClick={handleQuestionClick}
             />
           )}
         </Suspense>

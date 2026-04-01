@@ -75,6 +75,8 @@ interface DashboardProps {
   onExportImage?: () => void;
   /** Enter presentation mode callback (for toolbar) */
   onEnterPresentationMode?: () => void;
+  /** External factor switch request (from question click) — sets boxplot + pareto factor */
+  requestedFactor?: { factor: string; seq: number } | null;
 }
 
 const Dashboard = ({
@@ -98,6 +100,7 @@ const Dashboard = ({
   onExportCSV,
   onExportImage: _onExportImage,
   onEnterPresentationMode,
+  requestedFactor,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
     findingsCallbacks ?? {};
@@ -206,6 +209,14 @@ const Dashboard = ({
     highlightIntensity,
     onChartClick,
   });
+
+  // Apply external factor switch (from question click)
+  useEffect(() => {
+    if (requestedFactor && factors.includes(requestedFactor.factor)) {
+      setBoxplotFactor(requestedFactor.factor);
+      setParetoFactor(requestedFactor.factor);
+    }
+  }, [requestedFactor, factors, setBoxplotFactor, setParetoFactor]);
 
   // Responsive mobile detection
   const isMobile = useIsMobile(BREAKPOINTS.phone);

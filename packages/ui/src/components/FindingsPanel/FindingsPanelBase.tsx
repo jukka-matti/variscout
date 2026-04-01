@@ -15,6 +15,7 @@ import type {
   FindingSource,
   FindingStatus,
   FindingTag,
+  Hypothesis,
   ImprovementIdea,
   IdeaImpact,
   CoScoutMessage,
@@ -25,6 +26,7 @@ import type { DrillStep } from '@variscout/hooks';
 import { useResizablePanel, useTranslation } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '../FindingsLog';
 import { CoScoutInline } from '../CoScoutInline';
+import { QuestionChecklist } from '../FindingsWindow/QuestionChecklist';
 
 export interface FindingsPanelResizeConfig {
   storageKey: string;
@@ -164,6 +166,28 @@ export interface FindingsPanelBaseProps {
   synthesis?: string;
   /** Linked findings for board view synthesis card */
   linkedFindings?: Array<{ id: string; text: string }>;
+
+  // --- Question-driven investigation (ADR-053) ---
+  /** Factor Intelligence questions (Hypothesis objects with questionSource) */
+  questions?: Hypothesis[];
+  /** Current issue statement */
+  issueStatement?: string;
+  /** Callback when issue statement is edited */
+  onIssueStatementChange?: (text: string) => void;
+  /** Callback when a question is clicked — switch dashboard to show evidence */
+  onQuestionClick?: (question: Hypothesis) => void;
+  /** CoScout-suggested sharpened issue statement */
+  suggestedIssueStatement?: string;
+  /** Accept the suggested issue statement */
+  onAcceptIssueSuggestion?: () => void;
+  /** Dismiss the suggested issue statement */
+  onDismissIssueSuggestion?: () => void;
+  /** Formulated problem statement */
+  problemStatement?: string;
+  /** Whether the problem statement is complete */
+  isProblemStatementComplete?: boolean;
+  /** Mode-specific evidence label (e.g., "R²adj", "Cpk impact", "Waste %") */
+  evidenceLabel?: string;
 }
 
 const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
@@ -231,6 +255,16 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   projectedCpkMap,
   synthesis,
   linkedFindings,
+  questions,
+  issueStatement,
+  onIssueStatementChange,
+  onQuestionClick,
+  suggestedIssueStatement,
+  onAcceptIssueSuggestion,
+  onDismissIssueSuggestion,
+  problemStatement,
+  isProblemStatementComplete,
+  evidenceLabel,
 }) => {
   const { t, formatStat } = useTranslation();
   const [copyFeedback, setCopyFeedback] = useState(false);
@@ -401,6 +435,24 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Question checklist (ADR-053) — shows when Factor Intelligence questions exist */}
+        {questions && questions.length > 0 && (
+          <div className="px-3 py-2 border-b border-edge">
+            <QuestionChecklist
+              questions={questions}
+              issueStatement={issueStatement}
+              onIssueStatementChange={onIssueStatementChange}
+              onQuestionClick={onQuestionClick}
+              suggestedIssueStatement={suggestedIssueStatement}
+              onAcceptSuggestion={onAcceptIssueSuggestion}
+              onDismissSuggestion={onDismissIssueSuggestion}
+              problemStatement={problemStatement}
+              isProblemStatementComplete={isProblemStatementComplete}
+              evidenceLabel={evidenceLabel}
+            />
+          </div>
+        )}
 
         {/* Findings list/board */}
         <FindingsLog
