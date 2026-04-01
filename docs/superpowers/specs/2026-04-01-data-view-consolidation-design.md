@@ -1,6 +1,6 @@
 ---
 title: Data View Consolidation
-status: draft
+status: delivered
 related: [data-table, process-intelligence-panel, dashboard-layout, performance]
 ---
 
