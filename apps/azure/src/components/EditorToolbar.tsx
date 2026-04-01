@@ -47,8 +47,9 @@ export interface ToolbarSyncState {
 }
 
 export interface ToolbarPanelState {
+  /** Current workspace — hides irrelevant toggles per workspace (ADR-055) */
+  activeView?: 'dashboard' | 'analysis' | 'investigation' | 'improvement';
   isFindingsOpen: boolean;
-  isImprovementOpen?: boolean;
   findingsCount: number;
   onToggleFindings: () => void;
   onToggleDataPanel: () => void;
@@ -99,8 +100,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   dataState: { hasData, hasOutcome, hasFactors, filteredData, outcome, specs },
   syncState: { syncStatus, saveStatus, onSave, onSaveAs },
   panelState: {
+    activeView,
     isFindingsOpen,
-    isImprovementOpen,
     findingsCount,
     onToggleFindings,
     onToggleDataPanel,
@@ -316,15 +317,11 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               </button>
             )}
 
-            {/* Improvement Workspace */}
-            {hasActiveData && hasFactors && (
+            {/* Improvement Workspace — hidden when already in improvement workspace */}
+            {hasActiveData && hasFactors && activeView !== 'improvement' && (
               <button
                 onClick={onOpenImprovement}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                  isImprovementOpen
-                    ? 'bg-purple-600 text-white'
-                    : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
-                }`}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
                 title={t('improve.title')}
                 data-testid="btn-improvement"
               >
@@ -361,8 +358,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
             {/* Share */}
             {hasActiveData && shareState && <ShareDropdown {...shareState} />}
 
-            {/* Findings Toggle */}
-            {hasActiveData && hasFactors && (
+            {/* Findings Toggle — hidden in investigation workspace (workspace IS findings) */}
+            {hasActiveData && hasFactors && activeView !== 'investigation' && (
               <button
                 onClick={onToggleFindings}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
@@ -381,8 +378,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               </button>
             )}
 
-            {/* Stats Sidebar Toggle */}
-            {hasActiveData && onToggleStatsSidebar && (
+            {/* Stats Sidebar Toggle — only in Analysis workspace */}
+            {hasActiveData && onToggleStatsSidebar && activeView === 'analysis' && (
               <button
                 onClick={onToggleStatsSidebar}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${

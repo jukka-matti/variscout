@@ -462,7 +462,7 @@ export const Editor: React.FC<EditorProps> = ({
           dismissAfter: 5000,
         });
       } else {
-        usePanelsStore.getState().setFindingsOpen(true);
+        usePanelsStore.getState().showInvestigation();
         setHighlightedFindingId(initialFindingId);
       }
     }
@@ -479,12 +479,13 @@ export const Editor: React.FC<EditorProps> = ({
           dismissAfter: 5000,
         });
       } else {
-        // Open findings/investigation sidebar and expand to the target hypothesis
-        usePanelsStore.getState().setFindingsOpen(true);
+        usePanelsStore.getState().showInvestigation();
         useInvestigationStore.getState().expandToHypothesis(initialHypothesisId);
       }
     }
-    if (initialMode === 'improvement') {
+    if (initialMode === 'investigation') {
+      usePanelsStore.getState().showInvestigation();
+    } else if (initialMode === 'improvement') {
       usePanelsStore.getState().showImprovement();
     } else if (initialMode === 'report') {
       usePanelsStore.getState().openReport();
@@ -971,8 +972,8 @@ export const Editor: React.FC<EditorProps> = ({
           onSaveAs: hasTeamFeatures() ? handleSaveAs : undefined,
         }}
         panelState={{
+          activeView,
           isFindingsOpen,
-          isImprovementOpen: activeView === 'improvement',
           findingsCount: findingsState.findings.length,
           onToggleFindings: () => {
             if (isPhone && !isFindingsOpen) findingsTriggerRef.current = document.activeElement;

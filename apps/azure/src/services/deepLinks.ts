@@ -11,7 +11,7 @@
 
 export type DeepLinkChart = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
-export type DeepLinkMode = 'dashboard' | 'report' | 'improvement';
+export type DeepLinkMode = 'dashboard' | 'report' | 'improvement' | 'investigation';
 
 export type DeepLinkTab = 'overview';
 
@@ -31,7 +31,7 @@ export interface DeepLinkValidation {
 }
 
 const VALID_CHARTS = new Set<string>(['ichart', 'boxplot', 'pareto', 'stats']);
-const VALID_MODES = new Set<string>(['dashboard', 'report', 'improvement']);
+const VALID_MODES = new Set<string>(['dashboard', 'report', 'improvement', 'investigation']);
 const VALID_TABS = new Set<string>(['overview']);
 
 /** Parse deep link params from a URL search string (e.g. "?project=foo&finding=abc") */
@@ -42,7 +42,7 @@ export function parseDeepLink(search: string): DeepLinkParams {
   const hypothesisId = params.get('hypothesis');
   const chartRaw = params.get('chart');
   const chart = chartRaw && VALID_CHARTS.has(chartRaw) ? (chartRaw as DeepLinkChart) : null;
-  const modeRaw = params.get('mode');
+  const modeRaw = params.get('mode') ?? params.get('workspace');
   const mode = modeRaw && VALID_MODES.has(modeRaw) ? (modeRaw as DeepLinkMode) : null;
   const tabRaw = params.get('tab');
   const tab = tabRaw && VALID_TABS.has(tabRaw) ? (tabRaw as DeepLinkTab) : null;
