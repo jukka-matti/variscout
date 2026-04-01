@@ -368,19 +368,19 @@ Time-based subgrouping is better handled through column extraction during FRAME 
 
 Add to SCOUT section after step 4:
 
-> **Capability Mode Toggle:** The I-Chart supports a "Values | Capability" toggle that switches between raw measurements and per-subgroup Cp/Cpk. This enables checking whether subgroups consistently meet the Cpk target. See [Analysis Flow](analysis-flow.md) for the complete two-thread analysis journey.
+> **Capability Mode Toggle:** The I-Chart supports a "Values | Capability" toggle that switches between raw measurements and per-subgroup Cp/Cpk. This enables checking whether subgroups consistently meet the Cpk target. See [Analysis Flow](../../03-features/workflows/analysis-flow.md) for the complete two-thread analysis journey.
 
 ### methodology.md
 
 Update Analysis Modes section to add journey context:
 
-> Each mode answers a different analytical question within the SCOUT phase. Standard mode asks "Where does variation come from?", while Capability mode asks "Are we meeting our Cpk target?" Analysts switch freely between modes at any drill level. See [Analysis Flow](../03-features/workflows/analysis-flow.md) for how these modes interleave through the full journey.
+> Each mode answers a different analytical question within the SCOUT phase. Standard mode asks "Where does variation come from?", while Capability mode asks "Are we meeting our Cpk target?" Analysts switch freely between modes at any drill level. See [Analysis Flow](../../03-features/workflows/analysis-flow.md) for how these modes interleave through the full journey.
 
 ### subgroup-capability.md
 
 Add "Journey Context" section:
 
-> Capability mode is a view toggle within the SCOUT phase. The analyst switches between Values (variation analysis) and Capability (target compliance) at any point. Time-based subgrouping uses extracted time columns from FRAME (TimeExtractionPanel), ensuring subgroups are Boxplot-filterable and work with findings. See [Analysis Flow](../workflows/analysis-flow.md).
+> Capability mode is a view toggle within the SCOUT phase. The analyst switches between Values (variation analysis) and Capability (target compliance) at any point. Time-based subgrouping uses extracted time columns from FRAME (TimeExtractionPanel), ensuring subgroups are Boxplot-filterable and work with findings. See [Analysis Flow](../../03-features/workflows/analysis-flow.md).
 
 ### mental-model-hierarchy.md
 
