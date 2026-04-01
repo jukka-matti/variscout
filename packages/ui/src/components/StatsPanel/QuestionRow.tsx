@@ -82,15 +82,9 @@ const QuestionRow: React.FC<QuestionRowProps> = ({
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      aria-pressed={isActive}
-      aria-expanded={isExpanded}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
       data-testid={`question-row-${question.id}`}
       className={[
-        'flex items-center gap-1.5 px-2 py-1 border-l-2 cursor-pointer',
+        'relative flex items-center gap-1.5 px-2 py-1 border-l-2',
         'text-xs select-none transition-colors',
         borderColor,
         isActive ? 'bg-surface-tertiary' : 'hover:bg-surface-secondary',
@@ -102,10 +96,15 @@ const QuestionRow: React.FC<QuestionRowProps> = ({
       {/* Status icon */}
       <StatusIcon status={displayStatus} />
 
-      {/* Factor label */}
-      <span
+      {/* Primary click target: factor label with ::after overlay */}
+      <button
+        type="button"
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        aria-pressed={isActive}
         className={[
-          'flex-1 truncate text-content',
+          'flex-1 truncate text-content text-left bg-transparent border-none p-0 cursor-pointer',
+          'after:absolute after:inset-0',
           isRuledOut ? 'line-through' : '',
           isActive ? 'font-medium' : '',
         ]
@@ -114,7 +113,7 @@ const QuestionRow: React.FC<QuestionRowProps> = ({
         title={factorLabel}
       >
         {factorLabel}
-      </span>
+      </button>
 
       {/* Evidence % */}
       {evidencePct !== null && (
@@ -143,13 +142,12 @@ const QuestionRow: React.FC<QuestionRowProps> = ({
         </span>
       )}
 
-      {/* Expand/collapse chevron */}
+      {/* Expand/collapse chevron — z-10 to sit above ::after overlay */}
       <button
         type="button"
         onClick={handleExpandClick}
         aria-label={isExpanded ? 'Collapse findings' : 'Expand findings'}
-        className="shrink-0 text-content-muted hover:text-content transition-colors p-0.5 rounded"
-        tabIndex={-1}
+        className="relative z-10 shrink-0 text-content-muted hover:text-content transition-colors p-0.5 rounded"
       >
         {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
       </button>

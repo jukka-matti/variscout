@@ -72,19 +72,19 @@ describe('QuestionRow', () => {
     expect(screen.queryByText('0')).toBeNull();
   });
 
-  it('calls onClick with the question when the row is clicked', () => {
+  it('calls onClick with the question when the factor label is clicked', () => {
     const onClick = vi.fn();
     const q = makeHypothesis();
     render(<QuestionRow question={q} findings={[]} onClick={onClick} />);
-    fireEvent.click(screen.getByTestId('question-row-h1'));
+    fireEvent.click(screen.getByRole('button', { name: /Operator\?/i }));
     expect(onClick).toHaveBeenCalledWith(q);
   });
 
-  it('calls onClick on Enter key press', () => {
+  it('calls onClick on Enter key press on factor label', () => {
     const onClick = vi.fn();
     const q = makeHypothesis();
     render(<QuestionRow question={q} findings={[]} onClick={onClick} />);
-    fireEvent.keyDown(screen.getByTestId('question-row-h1'), { key: 'Enter' });
+    fireEvent.keyDown(screen.getByRole('button', { name: /Operator\?/i }), { key: 'Enter' });
     expect(onClick).toHaveBeenCalledWith(q);
   });
 
