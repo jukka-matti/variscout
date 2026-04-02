@@ -204,38 +204,49 @@ The Marketplace deployment package contains the compiled `mainTemplate.json` (au
 
 ### Azure App — Staging (CI/CD)
 
-The staging environment deploys automatically on push to `main` via GitHub Actions with OIDC authentication (no long-lived secrets).
+The staging environment is deployed via GitHub Actions with OIDC authentication (no long-lived secrets). **Auto-deploy on push is currently disabled** during active development — use manual trigger when ready to deploy.
 
 **URL**: `https://variscout-staging.azurewebsites.net`
 
-**Architecture**: The Vite build output (`apps/azure/dist/`) is served by a zero-dependency Node.js static server (`apps/azure/server.js`) running on App Service Linux (Node 22). The server provides:
+**Architecture**: The Vite build output (`apps/azure/dist/`) is served by an Express server (`apps/azure/server.js`) running on App Service Linux (Node 22). The server provides:
 
 - SPA fallback routing (all non-file paths → `index.html`)
 - Cache headers (hashed `/assets/*` get 1-year immutable, rest `no-cache`)
 - Security headers on every response: CSP, HSTS (1 year, includeSubDomains), X-Content-Type-Options, Referrer-Policy, Permissions-Policy
-- Dynamic `connect-src` in CSP: includes `graph.microsoft.com`, AI endpoint, and AI Search endpoint
-- OBO token exchange proxy (`POST /api/token-exchange`): forwards requests to Azure Function with server-side Function key injection — keeps `FUNCTION_KEY` out of client bundle
+- Dynamic `connect-src` in CSP: includes AI endpoint and AI Search endpoint
 - Runtime config endpoint (`GET /config`): serves plan, AI endpoints, App Insights connection string
+- SAS token endpoint (`POST /api/storage-token`): Blob Storage access for Team plan
+- KB endpoints (`POST /api/kb-upload`, `POST /api/kb-search`, `GET /api/kb-list`, `DELETE /api/kb-delete`, `GET /api/kb-download`): Knowledge Base management (Team plan, ADR-060)
 - Health endpoint (`GET /health` → 200)
 - SIGTERM graceful shutdown (closes server, exits cleanly)
 - Listens on `process.env.PORT` (set by App Service)
 
-EasyAuth intercepts `/.auth/*` at the platform level before the Node server — no conflict.
+EasyAuth intercepts `/.auth/*` at the platform level before the Express server — no conflict.
 
 **Pipeline** (`.github/workflows/deploy-azure-staging.yml`):
 
+**Trigger**: Manual only (`workflow_dispatch`). Auto-deploy on push disabled during active development.
+
+```bash
+# Deploy manually when ready:
+gh workflow run deploy-azure-staging.yml
+```
+
+**Steps**:
+
 1. pnpm install (with Turborepo cache restore via `actions/cache`)
-2. `pnpm audit --audit-level=high` — fail on high/critical vulnerabilities
-3. `lockfile-lint` — enforce HTTPS-only npm registry
+2. `pnpm audit --audit-level=high` — fail on high/critical vulnerabilities (see [security-scanning.md](security-scanning.md) for override documentation)
+3. Validate lockfile integrity
 4. `pnpm test` — all packages
 5. Build Azure app
 6. Generate CycloneDX SBOM (`sbom.json`) and upload as build artifact
 7. Assemble zip: `dist/` + `server.js` + minimal `package.json`
 8. OIDC login → direct deploy to App Service (`azure/webapps-deploy@v3`, no slot)
 9. Health check on production URL
-10. (Conditional, separate job) Deploy OBO token-exchange Azure Function
 
 > **Note**: The staging environment runs on B1 (Basic) tier without deployment slots. Brief downtime (~10-30s) during deploy is acceptable for dev/test. Customer deployments will use S1 with slot swap (see [ADR-058](../../07-decisions/adr-058-deployment-lifecycle.md)).
+>
+> **Re-enabling auto-deploy**: When ready for continuous integration testing, uncomment the `push` trigger in `deploy-azure-staging.yml`.
 
 ### Azure App — Release Pipeline (ADR-058)
 

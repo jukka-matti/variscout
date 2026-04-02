@@ -1,14 +1,15 @@
 name: Deploy Azure Staging
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'apps/azure/**'
-      - 'packages/**'
-      - 'infra/functions/**'
-      - 'pnpm-lock.yaml'
   workflow_dispatch:
+  # push trigger disabled during active development (re-enable for integration testing)
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'apps/azure/**'
+  #     - 'packages/**'
+  #     - 'infra/functions/**'
+  #     - 'pnpm-lock.yaml'
 
 permissions:
   id-token: write # OIDC token for Azure login
