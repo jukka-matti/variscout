@@ -9,7 +9,7 @@ import type {
 import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
 import type { ComplementInsight } from '@variscout/core';
 
-export type PITab = 'stats' | 'questions' | 'journal';
+export type PITab = 'stats' | 'questions' | 'journal' | 'docs';
 export type PIOverflowView = 'data' | 'whatif' | null;
 
 export interface PIPanelBaseProps {
@@ -75,6 +75,15 @@ export interface PIPanelBaseProps {
 
   /** Render Journal tab content */
   renderJournalTab?: () => React.ReactNode;
+
+  // --- Docs Tab (Team tier only) ---
+
+  /** When true, shows the Docs tab (Team tier feature) */
+  showDocsTab?: boolean;
+  /** Render Docs tab content */
+  renderDocsTab?: () => React.ReactNode;
+  /** Badge count for documents on the Docs tab */
+  docsCount?: number;
 
   // --- Overflow menu ---
 

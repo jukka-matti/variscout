@@ -530,3 +530,17 @@ export {
   type DensityPreset,
   type ThemeConfig,
 } from './context/ThemeContext';
+
+// Document Shelf (Team tier — PI panel Docs tab)
+export {
+  DocumentShelfBase,
+  DocumentRow,
+  DocumentDropZone,
+  AutoIndexSummary,
+  type DocumentShelfBaseProps,
+  type DocumentRowProps,
+  type DocumentDropZoneProps,
+  type AutoIndexSummaryProps,
+  type DocumentInfo,
+  type AutoIndexSummaryData,
+} from './components/DocumentShelf';

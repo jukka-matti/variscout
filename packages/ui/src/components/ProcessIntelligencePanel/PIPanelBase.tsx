@@ -125,6 +125,10 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
   renderQuestionsTab,
   renderJournalTab,
   openQuestionCount,
+  // Docs tab props
+  showDocsTab,
+  renderDocsTab,
+  docsCount,
   // Overflow menu props
   overflowView: overflowViewProp,
   onOverflowViewChange,
@@ -317,6 +321,16 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
         onTabChange={setActiveTab}
         compact={compact}
       />
+      {showDocsTab && (
+        <TabButton
+          tab="docs"
+          label="Docs"
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          compact={compact}
+          badge={docsCount}
+        />
+      )}
       <PIOverflowMenu activeOverflow={overflowView} onSelect={setOverflowView} />
     </div>
   );
@@ -356,6 +370,12 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
         return (
           <div className="flex-1 min-h-0 overflow-auto">
             {renderJournalTab ? renderJournalTab() : emptyState('No journal entries yet')}
+          </div>
+        );
+      case 'docs':
+        return (
+          <div className="flex-1 min-h-0 overflow-auto">
+            {renderDocsTab ? renderDocsTab() : emptyState('No documents uploaded yet')}
           </div>
         );
     }
