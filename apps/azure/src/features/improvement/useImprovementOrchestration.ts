@@ -7,7 +7,7 @@
  * reads, and provides DataContext-dependent action callbacks (popout sync,
  * synthesis change, idea-to-action conversion).
  */
-import React, { useMemo, useCallback, useEffect } from 'react';
+import React, { useMemo, useCallback, useEffect, useRef } from 'react';
 import type { Finding, FindingAssignee, Question, ProcessContext } from '@variscout/core';
 import type { UseQuestionsReturn } from '@variscout/hooks';
 import {
@@ -241,6 +241,15 @@ export function useImprovementOrchestration({
     },
     [processContext, setProcessContext]
   );
+
+  // Pre-fill synthesis from problem statement on first visit to Improvement workspace
+  const hasPreFilled = useRef(false);
+  useEffect(() => {
+    if (!hasPreFilled.current && processContext?.problemStatement && !processContext?.synthesis) {
+      hasPreFilled.current = true;
+      handleSynthesisChange(processContext.problemStatement);
+    }
+  }, [processContext?.problemStatement, processContext?.synthesis, handleSynthesisChange]);
 
   return {
     handleConvertIdeasToActions,

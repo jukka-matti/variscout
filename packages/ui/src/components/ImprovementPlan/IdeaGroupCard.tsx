@@ -17,6 +17,7 @@ export interface IdeaGroupCardProps {
     causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
     factor?: string;
   };
+  evidence?: { rSquaredAdj?: number; etaSquared?: number };
   ideas: ImprovementIdea[];
   linkedFindingName?: string;
   onToggleSelect?: (questionId: string, ideaId: string, selected: boolean) => void;
@@ -264,6 +265,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
   question,
   ideas,
   linkedFindingName,
+  evidence,
   onToggleSelect,
   onUpdateTimeframe,
   onUpdateDirection,
@@ -313,6 +315,22 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
             </span>
           )}
           {question.factor && <span className="text-xs text-content/50">({question.factor})</span>}
+          {evidence?.rSquaredAdj != null && (
+            <span
+              data-testid="evidence-badge"
+              className="text-[10px] px-1.5 py-0.5 rounded bg-surface-tertiary text-content-muted"
+            >
+              R²adj {Math.round(evidence.rSquaredAdj * 100)}%
+            </span>
+          )}
+          {evidence?.rSquaredAdj == null && evidence?.etaSquared != null && (
+            <span
+              data-testid="evidence-badge"
+              className="text-[10px] px-1.5 py-0.5 rounded bg-surface-tertiary text-content-muted"
+            >
+              η² {Math.round(evidence.etaSquared * 100)}%
+            </span>
+          )}
         </div>
         {linkedFindingName && <p className="text-xs text-content/50 mt-1">{linkedFindingName}</p>}
       </div>

@@ -453,6 +453,9 @@ export {
   type ImprovementSummaryBarProps,
   ImprovementWorkspaceBase,
   type ImprovementWorkspaceBaseProps,
+  ImprovementContextPanel,
+  type ImprovementContextPanelProps,
+  type CauseSummary,
 } from './components/ImprovementPlan';
 
 // Yamazumi Components

@@ -24,6 +24,7 @@ export interface ImprovementWorkspaceBaseProps {
     factor?: string;
     ideas: ImprovementIdea[];
     linkedFindingName?: string;
+    evidence?: { rSquaredAdj?: number; etaSquared?: number };
   }>;
   linkedFindings?: Array<{ id: string; text: string }>;
   onToggleSelect?: (questionId: string, ideaId: string, selected: boolean) => void;
@@ -198,6 +199,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
                 question={h}
                 ideas={h.ideas}
                 linkedFindingName={h.linkedFindingName}
+                evidence={h.evidence}
                 onToggleSelect={onToggleSelect}
                 onUpdateTimeframe={onUpdateTimeframe}
                 onUpdateDirection={onUpdateDirection}

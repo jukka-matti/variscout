@@ -15,3 +15,5 @@ export type {
   MatrixPreset,
   PrioritizationMatrixProps,
 } from './PrioritizationMatrix';
+export { ImprovementContextPanel } from './ImprovementContextPanel';
+export type { ImprovementContextPanelProps, CauseSummary } from './ImprovementContextPanel';
