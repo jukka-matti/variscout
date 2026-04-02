@@ -82,6 +82,17 @@ module appService 'modules/app-service.bicep' = {
     appInsightsConnectionString: hasAI ? aiServices.outputs.appInsightsConnectionString : ''
     searchServiceName: searchServiceName
     aiSearchIndex: aiSearchIndex
+    storageAccountName: hasTeamFeatures ? 'variscout${uniqueString(resourceGroup().id)}' : ''
+    storageContainerName: 'variscout-projects'
+  }
+}
+
+// --- Blob Storage (conditional: team only) ---
+module storage 'modules/storage.bicep' = if (hasTeamFeatures) {
+  name: 'storage'
+  params: {
+    location: location
+    appServicePrincipalId: appService.outputs.principalId
   }
 }
 

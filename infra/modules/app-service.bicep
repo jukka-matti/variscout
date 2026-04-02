@@ -41,6 +41,12 @@ param searchServiceName string
 @description('AI Search index name')
 param aiSearchIndex string
 
+@description('Storage Account name for Blob Storage (Team plan)')
+param storageAccountName string = ''
+
+@description('Storage container name')
+param storageContainerName string = 'variscout-projects'
+
 var tags = {
   product: 'VariScout'
   plan: variscoutPlan
@@ -109,6 +115,14 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
         {
           name: 'FUNCTION_URL'
           value: hasAI ? 'https://${functionAppName}.azurewebsites.net' : ''
+        }
+        {
+          name: 'STORAGE_ACCOUNT_NAME'
+          value: storageAccountName
+        }
+        {
+          name: 'STORAGE_CONTAINER_NAME'
+          value: storageContainerName
         }
         {
           name: 'VITE_APPINSIGHTS_CONNECTION_STRING'
