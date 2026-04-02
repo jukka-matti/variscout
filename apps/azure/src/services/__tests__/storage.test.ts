@@ -320,6 +320,12 @@ describe('storage service', () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
       const cloudData = { data: [42], specs: { usl: 100 } };
+      // db.syncState.get returns a cloudId so loadFromCloud can resolve the project
+      mockSyncState.get.mockResolvedValueOnce({
+        cloudId: 'uuid-remote-proj',
+        lastSynced: '',
+        etag: '',
+      });
       // db.projects.get for conflict detection (no local record)
       mockProjects.get.mockResolvedValueOnce(null);
       // loadBlobProject returns cloud data

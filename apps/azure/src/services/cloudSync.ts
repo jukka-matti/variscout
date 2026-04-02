@@ -124,18 +124,6 @@ export class GraphError extends Error {
   }
 }
 
-// ── Project ID derivation ──────────────────────────────────────────────
-
-/** Sanitize a project name into a URL-safe slug for use as blob path prefix. */
-function toProjectId(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
 /** Wrap blobClient calls: convert 503 (not configured) into CloudSyncUnavailableError. */
 async function wrapBlobCall<T>(fn: () => Promise<T>): Promise<T> {
   try {
@@ -145,8 +133,21 @@ async function wrapBlobCall<T>(fn: () => Promise<T>): Promise<T> {
     if (/503/.test(msg)) {
       throw new CloudSyncUnavailableError();
     }
+    // Strip SAS tokens from error messages before propagating
+    if (error instanceof Error && error.message.includes('sig=')) {
+      error.message = error.message.replace(/\?.*$/, '?[SAS_REDACTED]');
+    }
     throw error;
   }
+}
+
+/** Fire-and-forget index update — data is safe even if this fails. */
+async function updateIndex(projectId: string, metadata: BlobProjectMetadata): Promise<void> {
+  const index = await listBlobProjects();
+  const existing = index.findIndex(p => p.projectId === projectId);
+  if (existing >= 0) index[existing] = metadata;
+  else index.push(metadata);
+  await updateBlobIndex(index);
 }
 
 // ── Cloud operations (backed by Blob Storage) ──────────────────────────
@@ -157,7 +158,9 @@ export async function saveToCloud(
   name: string,
   _location: StorageLocation
 ): Promise<{ id: string; etag: string }> {
-  const projectId = toProjectId(name);
+  // Use stable UUID from syncState, or generate a new one (C-1)
+  const syncState = await db.syncState.get(name);
+  const projectId = syncState?.cloudId ?? crypto.randomUUID();
   const now = new Date().toISOString();
 
   const metadata: BlobProjectMetadata = {
@@ -168,16 +171,11 @@ export async function saveToCloud(
 
   await wrapBlobCall(async () => {
     await saveBlobProject(project, projectId, metadata);
+  });
 
-    // Update the central index
-    const index = await listBlobProjects();
-    const existing = index.findIndex(p => p.projectId === projectId);
-    if (existing >= 0) {
-      index[existing] = metadata;
-    } else {
-      index.push(metadata);
-    }
-    await updateBlobIndex(index);
+  // Fire-and-forget index update — data is safe even if this fails (C-2)
+  updateIndex(projectId, metadata).catch(err => {
+    if (import.meta.env.DEV) console.warn('[cloudSync] Index update failed:', err);
   });
 
   return { id: projectId, etag: now };
@@ -188,8 +186,9 @@ export async function loadFromCloud(
   name: string,
   _location: StorageLocation
 ): Promise<Project | null> {
-  const projectId = toProjectId(name);
-  return wrapBlobCall(() => loadBlobProject(projectId));
+  const syncState = await db.syncState.get(name);
+  if (!syncState?.cloudId) return null;
+  return wrapBlobCall(() => loadBlobProject(syncState.cloudId));
 }
 
 export async function listFromCloud(
@@ -211,8 +210,9 @@ export async function getCloudModifiedDate(
   name: string,
   _location: StorageLocation
 ): Promise<string | null> {
-  const projectId = toProjectId(name);
-  const meta = await wrapBlobCall(() => loadBlobMetadata(projectId));
+  const syncState = await db.syncState.get(name);
+  if (!syncState?.cloudId) return null;
+  const meta = await wrapBlobCall(() => loadBlobMetadata(syncState.cloudId));
   return meta?.updated ?? null;
 }
 

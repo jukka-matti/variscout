@@ -5,6 +5,13 @@
 import type { ProjectMetadata } from '@variscout/core';
 import type { Project } from './localDb';
 
+// ── Helpers ───────────────────────────────────────────────────────────
+
+/** Strip SAS query strings from blob URLs to avoid leaking tokens in logs/errors. */
+function sanitizeBlobUrl(url: string): string {
+  return url.split('?')[0];
+}
+
 // ── Types ──────────────────────────────────────────────────────────────
 
 interface SasTokenResponse {
@@ -30,21 +37,16 @@ export interface BlobProjectMetadata {
 const SAS_REFRESH_MARGIN_MS = 5 * 60 * 1000; // Re-fetch when <5 min until expiry
 
 let cachedSas: CachedSasToken | null = null;
+let inflightFetch: Promise<string> | null = null;
 
 /** Reset the SAS cache (for testing). */
 export function _resetSasCache(): void {
   cachedSas = null;
+  inflightFetch = null;
 }
 
-/**
- * Get a SAS token for Blob Storage operations.
- * Caches the result and re-fetches when <5 min until expiry.
- */
-export async function getSasToken(): Promise<string> {
-  if (cachedSas && Date.now() < cachedSas.expiresOn - SAS_REFRESH_MARGIN_MS) {
-    return cachedSas.sasUrl;
-  }
-
+/** Fetch a fresh SAS token from the server and cache it. */
+async function fetchAndCacheSasToken(): Promise<string> {
   const res = await fetch('/api/storage-token', { method: 'POST' });
 
   if (res.status === 401) {
@@ -64,6 +66,27 @@ export async function getSasToken(): Promise<string> {
   };
 
   return cachedSas.sasUrl;
+}
+
+/**
+ * Get a SAS token for Blob Storage operations.
+ * Caches the result and re-fetches when <5 min until expiry.
+ * Deduplicates concurrent in-flight requests (C-3).
+ */
+export async function getSasToken(): Promise<string> {
+  if (cachedSas && Date.now() < cachedSas.expiresOn - SAS_REFRESH_MARGIN_MS) {
+    return cachedSas.sasUrl;
+  }
+
+  if (inflightFetch) {
+    return inflightFetch;
+  }
+
+  inflightFetch = fetchAndCacheSasToken().finally(() => {
+    inflightFetch = null;
+  });
+
+  return inflightFetch;
 }
 
 // ── URL helper ─────────────────────────────────────────────────────────
@@ -225,8 +248,7 @@ export async function saveBlobPhoto(
   }
 
   // Return the blob URL without SAS query string (for display/reference)
-  const qIndex = url.indexOf('?');
-  return qIndex === -1 ? url : url.slice(0, qIndex);
+  return sanitizeBlobUrl(url);
 }
 
 /**
