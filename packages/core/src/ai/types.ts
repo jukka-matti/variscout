@@ -102,6 +102,21 @@ export interface AIContext {
     keyDrivers: string[];
     /** Insights previously saved from CoScout conversations (source.chart === 'coscout') */
     coscoutInsights?: Array<{ text: string; status: string }>;
+    /** Top findings with full detail for CoScout context */
+    topFindings?: Array<{
+      id: string;
+      text: string;
+      status: string;
+      commentCount: number;
+      outcome?: { effective: 'yes' | 'no' | 'partial'; cpkDelta?: number };
+    }>;
+    /** Actions that are past their due date */
+    overdueActions?: Array<{
+      text: string;
+      assignee?: string;
+      daysOverdue: number;
+      findingId: string;
+    }>;
   };
   /** Investigation context (for investigation page CoScout) */
   investigation?: {
@@ -131,11 +146,19 @@ export interface AIContext {
       questionSource?: 'factor-intel' | 'heuristic' | 'coscout' | 'analyst';
       /** Cause role from question-driven investigation */
       causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
+      /** Free-text note added by the analyst */
+      manualNote?: string;
+      /** IDs of findings linked to this question */
+      linkedFindingIds?: string[];
       ideas?: Array<{
         text: string;
         selected?: boolean;
         projection?: { meanDelta: number; sigmaDelta: number };
         direction?: 'prevent' | 'detect' | 'simplify' | 'eliminate';
+        /** Implementation timeframe category */
+        timeframe?: string;
+        /** Risk level category */
+        riskLevel?: string;
       }>;
     }>;
     /** Question tree structure for investigation phase detection */
@@ -171,6 +194,17 @@ export interface AIContext {
       status: string;
       evidence?: { rSquaredAdj?: number; etaSquared?: number };
     }>;
+    /** Structured problem statement synthesized from Watson's 3 questions */
+    problemStatement?: {
+      measure?: string;
+      direction?: string;
+      scope?: string;
+      fullText?: string;
+    };
+    /** ID of the question currently in focus in the PI panel */
+    focusedQuestionId?: string;
+    /** Text of the question currently in focus in the PI panel */
+    focusedQuestionText?: string;
   };
   /** Focus context from "Ask CoScout about this" actions */
   focusContext?: {
