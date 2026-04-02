@@ -14,6 +14,8 @@ const testGlobals = {
   expect: 'readonly',
   beforeEach: 'readonly',
   afterEach: 'readonly',
+  beforeAll: 'readonly',
+  afterAll: 'readonly',
   vi: 'readonly',
 };
 
@@ -77,12 +79,24 @@ export default [
       'no-unused-vars': 'off', // Let TypeScript handle this
     },
   },
-  // Test files configuration
+  // Test files configuration (browser environment — most tests)
   {
     files: ['**/src/**/*.test.{ts,tsx}', '**/src/**/__tests__/**/*.{ts,tsx}'],
     languageOptions: {
       globals: {
         ...globals.browser,
+        ...globals.es2021,
+        ...testGlobals,
+      },
+    },
+  },
+  // Node.js test files — integration tests that run in the Node environment
+  // (marked with // @vitest-environment node, e.g. server integration tests)
+  {
+    files: ['**/src/**/__tests__/**/*.integration.test.{ts,tsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
         ...globals.es2021,
         ...testGlobals,
       },

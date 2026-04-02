@@ -206,15 +206,19 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-// Shared middleware: require EasyAuth token + Team plan
+// Shared middleware: require EasyAuth token + Team plan.
+// Reads VITE_VARISCOUT_PLAN at request time (not module load time) so that
+// integration tests can change the plan via process.env without reloading the module.
 function requireTeamPlan(req, res, next) {
   const principal = req.headers['x-ms-client-principal'];
-  if (!principal && !LOCAL_DEV) {
+  const isLocalDevReq = process.env.LOCAL_DEV && !process.env.WEBSITE_SITE_NAME;
+  if (!principal && !isLocalDevReq) {
     res.setHeader('Content-Type', 'application/json');
     res.status(401).end(JSON.stringify({ error: 'Authentication required' }));
     return;
   }
-  if (PLAN !== 'team') {
+  const currentPlan = process.env.VITE_VARISCOUT_PLAN || 'standard';
+  if (currentPlan !== 'team') {
     res.setHeader('Content-Type', 'application/json');
     res.status(403).end(JSON.stringify({ error: 'Team plan required' }));
     return;
@@ -509,7 +513,8 @@ app.get('/api/kb-download', requireTeamPlan, async (req, res) => {
 // Express static middleware is not used here because we need the exact same routing logic
 // as the original: files with extensions that don't exist → 404 (not SPA fallback),
 // paths without extensions → SPA fallback.
-app.get('*', async (req, res) => {
+// Express 5 requires named wildcards: '/*path' instead of bare '*'.
+app.get('/*path', async (req, res) => {
   const pathname = req.path;
   const ext = extname(pathname);
   const filePath = ext ? join(DIST, pathname) : null;
@@ -541,10 +546,16 @@ app.get('*', async (req, res) => {
   }
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`VariScout serving from ${DIST} on port ${PORT}`);
-});
+// Export app for integration tests (supertest). The listen() call is skipped
+// when NODE_ENV=test so tests can import the app without binding to a port.
+export { app };
 
-process.on('SIGTERM', () => {
-  server.close(() => process.exit(0));
-});
+if (process.env.NODE_ENV !== 'test') {
+  const server = app.listen(PORT, () => {
+    console.log(`VariScout serving from ${DIST} on port ${PORT}`);
+  });
+
+  process.on('SIGTERM', () => {
+    server.close(() => process.exit(0));
+  });
+}
