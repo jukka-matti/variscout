@@ -26,9 +26,6 @@ param hasAI bool
 @description('Whether Team plan features are enabled')
 param hasTeamFeatures bool
 
-@description('Function App name (for URL construction)')
-param functionAppName string
-
 @description('AI endpoint URL (empty if AI disabled)')
 param aiEndpoint string
 
@@ -97,10 +94,6 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
           value: variscoutPlan
         }
         {
-          name: 'VITE_FUNCTION_URL'
-          value: hasAI ? 'https://${functionAppName}.azurewebsites.net' : ''
-        }
-        {
           name: 'AI_ENDPOINT'
           value: aiEndpoint
         }
@@ -111,10 +104,6 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
         {
           name: 'AI_SEARCH_INDEX'
           value: aiSearchIndex
-        }
-        {
-          name: 'FUNCTION_URL'
-          value: hasAI ? 'https://${functionAppName}.azurewebsites.net' : ''
         }
         {
           name: 'STORAGE_ACCOUNT_NAME'
@@ -162,8 +151,8 @@ resource authSettings 'Microsoft.Web/sites/config@2024-04-01' = {
         login: {
           loginParameters: [
             hasTeamFeatures
-              ? 'scope=openid profile email User.Read Files.ReadWrite Files.ReadWrite.All Channel.ReadBasic.All People.Read ChannelMessage.Send'
-              : 'scope=openid profile email User.Read https://cognitiveservices.azure.com/.default'
+              ? 'scope=openid profile email User.Read People.Read'
+              : 'scope=openid profile email User.Read'
           ]
         }
       }

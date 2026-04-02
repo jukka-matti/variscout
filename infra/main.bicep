@@ -18,7 +18,7 @@ param clientSecret string
 @description('URL to the VariScout application deployment package')
 param packageUrl string = 'https://variscout.blob.${environment().suffixes.storage}/releases/variscout-azure-latest.zip'
 
-@description('VariScout plan: \'standard\' (local files, AI included), \'team\' (+ OneDrive, Teams collaboration, Knowledge Base)')
+@description('VariScout plan: \'standard\' (local files, AI included), \'team\' (+ Blob Storage cloud sync)')
 @allowed([
   'standard'
   'team'
@@ -28,9 +28,6 @@ param variscoutPlan string = 'standard'
 // --- Derived names ---
 var appServicePlanName = '${appName}-plan'
 var webAppName = appName
-var functionAppName = '${appName}-func'
-var functionStorageName = 'vsf${uniqueString(resourceGroup().id)}'
-var functionPlanName = '${appName}-func-plan'
 var appInsightsName = '${appName}-insights'
 var aiServicesName = '${appName}-ai'
 var searchServiceName = '${appName}-search'
@@ -77,7 +74,6 @@ module appService 'modules/app-service.bicep' = {
     packageUrl: packageUrl
     hasAI: hasAI
     hasTeamFeatures: hasTeamFeatures
-    functionAppName: functionAppName
     aiEndpoint: hasAI ? aiServices.outputs.aiEndpoint : ''
     appInsightsConnectionString: hasAI ? aiServices.outputs.appInsightsConnectionString : ''
     searchServiceName: searchServiceName
@@ -96,27 +92,7 @@ module storage 'modules/storage.bicep' = if (hasTeamFeatures) {
   }
 }
 
-// --- Functions (conditional: standard + team) ---
-// Function App uses @Microsoft.KeyVault() references in app settings,
-// which resolve at runtime — no deploy-time dependency on Key Vault.
-module functions 'modules/functions.bicep' = if (hasAI) {
-  name: 'functions'
-  params: {
-    location: location
-    functionAppName: functionAppName
-    functionPlanName: functionPlanName
-    functionStorageName: functionStorageName
-    variscoutPlan: variscoutPlan
-    hasAI: hasAI
-    clientId: clientId
-    keyVaultName: keyVaultName
-    aiEndpoint: hasAI ? aiServices.outputs.aiEndpoint : ''
-    webAppDefaultHostName: appService.outputs.defaultHostName
-  }
-}
-
 // --- Key Vault (conditional: standard + team) ---
-// Deployed after Functions so we can store the function key as a secret.
 module keyVault 'modules/key-vault.bicep' = if (hasAI) {
   name: 'keyVault'
   params: {
@@ -127,18 +103,12 @@ module keyVault 'modules/key-vault.bicep' = if (hasAI) {
     clientSecret: clientSecret
     aiServicesApiKey: hasAI ? aiServices.outputs.aiServicesApiKey : ''
     searchApiKey: hasTeamFeatures ? search.outputs.searchAdminKey : ''
-    // Function key is passed when hasAI (standard + team) but only stored as a KV secret
-    // when hasTeamFeatures (team only). Standard plan Functions don't need KV-stored keys
-    // because they're only accessed internally by the App Service.
-    functionKey: hasAI ? functions.outputs.defaultFunctionKey : ''
     webAppPrincipalId: appService.outputs.principalId
-    functionAppPrincipalId: hasAI ? functions.outputs.principalId : ''
   }
 }
 
 // --- Outputs ---
 output appUrl string = 'https://${appService.outputs.defaultHostName}'
-output functionUrl string = hasAI ? 'https://${functionAppName}.azurewebsites.net' : ''
 output aiEndpoint string = hasAI ? aiServices.outputs.aiEndpoint : ''
 output searchEndpoint string = hasTeamFeatures ? 'https://${searchServiceName}.search.windows.net' : ''
 output appInsightsConnectionString string = hasAI ? aiServices.outputs.appInsightsConnectionString : ''
