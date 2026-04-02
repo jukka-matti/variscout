@@ -120,7 +120,9 @@ const server = createServer(async (req, res) => {
   // SAS token generation for Blob Storage (Team plan cloud sync)
   if (pathname === '/api/storage-token' && req.method === 'POST') {
     const principal = req.headers['x-ms-client-principal'];
-    if (!principal && !process.env.LOCAL_DEV) {
+    // LOCAL_DEV bypass blocked on App Service (WEBSITE_SITE_NAME is set by Azure)
+    const isLocalDev = process.env.LOCAL_DEV && !process.env.WEBSITE_SITE_NAME;
+    if (!principal && !isLocalDev) {
       writeResponse(res, 401, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Not authenticated' }));
       return;
