@@ -4,7 +4,7 @@
 [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](CHANGELOG.md)
 [![PWA](https://img.shields.io/badge/PWA-ready-purple.svg)](#install-as-app)
 
-A lightweight, offline-first variation analysis tool for quality professionals. No AI, no subscriptions, no API keys — just fast, linked charts that reveal hidden variation.
+Structured investigation for process improvement — question-driven, evidence-based, AI-assisted. Offline-first, browser-based. Fast, linked charts that reveal hidden variation and guide you from concern to measured result.
 
 > _"Cut through your watermelons — without the cloud."_
 

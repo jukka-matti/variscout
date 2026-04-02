@@ -22,11 +22,11 @@ VariScout plays in the intersection of **quality analytics software**, **Lean Si
 
 ## TAM: Three Addressable Layers
 
-### Layer 1 — Lightweight Quality Analytics (Primary)
+### Layer 1 — Structured Process Investigation (Primary)
 
-**Who:** Manufacturing companies currently using Minitab, InfinityQS, PQ Systems, or Excel for variation analysis.
+**Who:** Organizations using Minitab, InfinityQS, PQ Systems, or Excel for variation analysis and process improvement.
 
-VariScout doesn't compete with the full Minitab suite (DOE, hypothesis testing, predictive). It competes for the **"I just need to see my variation"** segment — quality engineers who use 20% of Minitab's features but pay 100% of the price. The reference market is "SPC Software" (~$1.05B) in industry reports, but VariScout targets the variation investigation slice, not the full SPC category.
+VariScout occupies a distinct category from the full Minitab suite (DOE, hypothesis testing, predictive). It serves the **"I need to investigate my process and fix it"** segment — quality engineers, operations managers, and improvement teams who need structured investigation, not just statistical tests. The reference market is "SPC Software" (~$1.05B) in industry reports, but VariScout targets the variation investigation slice with a question-driven methodology that no competitor offers.
 
 | Assumption                    | Value              | Rationale                          |
 | ----------------------------- | ------------------ | ---------------------------------- |
@@ -152,12 +152,12 @@ Minitab added AI that interprets existing statistics — "AI you can trust." AI 
 
 ## Key Risks
 
-| Risk                                  | Impact                    | Mitigation                          |
-| ------------------------------------- | ------------------------- | ----------------------------------- |
-| Azure Marketplace low discoverability | SOM shrinks significantly | Content marketing, direct outreach  |
-| Minitab launches lightweight tier     | TAM Layer 1 compresses    | Speed to market, UX differentiation |
-| Buyers expect per-user pricing        | Lose enterprise deals     | Consider metered add-on later       |
-| Free tools (R/Python) good enough     | Training TAM shrinks      | Focus on non-technical users        |
+| Risk                                    | Impact                    | Mitigation                            |
+| --------------------------------------- | ------------------------- | ------------------------------------- |
+| Azure Marketplace low discoverability   | SOM shrinks significantly | Content marketing, direct outreach    |
+| Minitab launches investigation features | TAM Layer 1 compresses    | Methodology depth, question-driven UX |
+| Buyers expect per-user pricing          | Lose enterprise deals     | Consider metered add-on later         |
+| Free tools (R/Python) good enough       | Training TAM shrinks      | Focus on non-technical users          |
 
 ---
 

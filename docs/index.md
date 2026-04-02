@@ -1,13 +1,13 @@
 ---
 title: VariScout Documentation
-description: Lightweight, offline-first variation analysis for quality professionals
+description: Structured investigation for process improvement — question-driven, evidence-based, AI-assisted
 ---
 
 # VariScout Documentation
 
-**Lightweight, offline-first variation analysis for quality professionals.**
+**Structured investigation for process improvement — question-driven, evidence-based, AI-assisted.**
 
-VariScout helps quality engineers, operations managers, and Lean Six Sigma practitioners find and fix the sources of process variation. No backend required - all analysis happens in your browser.
+VariScout guides structured investigations that turn process data into measurable improvement. Quality engineers, operations managers, and Lean Six Sigma practitioners investigate process variation through data analysis, gemba observations, and expert knowledge. Offline-first — all analysis happens in your browser.
 
 ---
 

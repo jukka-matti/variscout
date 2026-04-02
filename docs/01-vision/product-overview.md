@@ -6,9 +6,9 @@ title: 'VariScout: Product Overview'
 
 ## Philosophy
 
-**Stay Lite.** VariScout Lite is a focused analysis tool, not a platform.
+**Methodology is the product.** VariScout is structured investigation for process improvement — question-driven, evidence-based, AI-assisted.
 
-We deliberately chose simplicity over feature richness. Instead of building a complex multi-mode system with separate UIs for different use cases, we enhanced the core tool to handle the most important workflows.
+We deliberately chose investigation depth over statistical breadth. Instead of competing with Minitab on test coverage, we built the investigation methodology (Turtiainen 2019) into the product: FRAME → SCOUT → INVESTIGATE → IMPROVE → REPORT as workspace tabs, question-driven EDA as the core workflow, and three evidence types (data, gemba, expert) as the investigation backbone.
 
 ---
 
@@ -150,7 +150,7 @@ variscout-lite/
 
 ### The Opportunity
 
-VaRiScout Lite is positioned as a lightweight alternative to Minitab for Lean Six Sigma training programs. Rather than competing on statistical test coverage (a battle Minitab wins after 30 years), we differentiate through superior UX, plain-language insights, and zero-friction deployment.
+VariScout occupies a distinct category from Minitab: structured investigation for process improvement. Rather than competing on statistical test coverage, we differentiate through the investigation methodology itself — question-driven EDA (Turtiainen 2019), three evidence types (data, gemba, expert), and workspace navigation that mirrors the investigation journey. LSS trainers adopt VariScout because it teaches the methodology, not just the statistics.
 
 ### Trainer Pain Points We Solve
 

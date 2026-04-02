@@ -158,19 +158,19 @@ When a deep dive reveals a significant pattern, Gary captures it as a finding an
 
 Gary can pin multiple findings in one session. Each captures a distinct observation with its drill-down context preserved.
 
-### Phase 2 — Investigation: Hypotheses and Validation
+### Phase 2 — Investigation: Questions and Validation
 
-5. Open a Finding → change status to **Investigating** → click **"Add hypothesis"**
-6. Type the suspected cause (e.g., "Operator B lacks training on Product Variant C")
-7. The hypothesis **auto-validates via η²** — if the factor's contribution exceeds the threshold, it shows as "Supported"; otherwise "Not supported"
-8. Create **sub-hypotheses** to explore branches: diverge (cast wide), validate each (data, gemba walk, or expert input), converge on the supported ones
-9. _(If AI enabled)_ **CoScout** suggests validation approaches when asked; the **Investigation Sidebar** shows phase-aware questions (e.g., "Have you explored [uncovered category]?")
+5. Open a Finding → change status to **Investigating** → click **"Add question"**
+6. Type the suspected cause as a question (e.g., "Does Operator B lack training on Product Variant C?")
+7. The question **auto-validates via η²** — if the factor's contribution exceeds the threshold, it shows as "Answered"; otherwise "Ruled out"
+8. Create **follow-up questions** to explore branches: diverge (cast wide), validate each (data, gemba walk, or expert input), converge on the answered ones
+9. _(If AI enabled)_ **CoScout** suggests validation approaches when asked; the **PI Panel** shows phase-aware guidance (e.g., "Have you explored [uncovered category]?")
 
-The investigation phase badge updates automatically: Initial → Diverging → Validating → Converging, based on hypothesis count and validation status.
+The investigation phase badge updates automatically: Initial → Diverging → Validating → Converging, based on question count and validation status.
 
 ### Phase 3 — Ideation: Improvement Ideas and Actions
 
-10. For each supported hypothesis, add **improvement ideas** — describe potential fixes with optional What-If projections
+10. For each answered question with a confirmed cause, add **improvement ideas** — describe potential fixes with optional What-If projections
 11. **Compare ideas** using the What-If Simulator: adjust contribution percentages to see projected Cpk impact
 12. Select the best idea → create **corrective actions** with description, assignee, and due date
 13. Change Finding status to **Improving** — the action plan is now active

@@ -16,7 +16,7 @@ title: 'JMP Competitive Benchmark'
 | **Pricing**         | $1,785+/year (Pro: $14,900+/year)                               | From €79/month (Azure) or free (PWA)                    |
 | **Distribution**    | SAS direct sales, academic licenses                             | Azure Marketplace, AppSource, public URL                |
 | **Target audience** | Scientists, engineers, advanced analysts                        | Quality practitioners, Green Belts, learners            |
-| **Market position** | Premium visual analytics + statistics (SAS product)             | Lightweight variation analysis tool                     |
+| **Market position** | Premium visual analytics + statistics (SAS product)             | Structured investigation for process improvement        |
 | **Analysis model**  | Platform-based: Graph Builder, Fit Model, specialized platforms | Four Lenses: 4 coordinated charts with linked filtering |
 | **Navigation**      | Launch platforms from menu, each opens in own window            | Progressive stratification drill-down                   |
 | **Parent company**  | SAS Institute                                                   | Independent                                             |

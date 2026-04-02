@@ -22,7 +22,7 @@ Each hypothesis has a statement, supporting evidence, invalidation criteria, and
 
 **Evidence for:**
 
-- Market analysis confirms VariScout targets the "lightweight quality analytics" segment (~10-15% of $1.05B SPC market)
+- Market analysis confirms VariScout targets the "structured process investigation" segment (~10-15% of $1.05B SPC market)
 - Minitab pricing (~€135-155/user/month) vs VariScout unlimited users from €79/month
 - Grace Mwangi persona: "I calculate averages, standard deviations, make charts... I need maybe 20% of what Minitab offers"
 

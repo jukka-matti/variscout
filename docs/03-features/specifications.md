@@ -16,7 +16,7 @@ related: [product-overview, features, pricing]
 
 ## What Is It?
 
-A lightweight, offline variation analysis tool for quality professionals. Fast, linked charts that reveal hidden variation.
+Structured investigation for process improvement. Question-driven analysis that guides teams from concern to measured result — combining data analysis, gemba observations, and expert knowledge in one investigation flow, assisted by AI.
 
 - **PWA (Free):** No AI, no API keys — a pure training tool where the struggle is the point.
 - **Azure App:** Optional AI-assisted analysis via customer-deployed Azure AI Foundry. AI augments investigation, never replaces statistical analysis.
@@ -170,6 +170,6 @@ AI is always optional, dismissable, and controlled by a user-visible Settings to
 
 ## Summary
 
-> **VariScout** is a fast, offline variation analysis tool for people who know what they're doing but need better tools than Excel. Linked charts that reveal hidden variation — with optional AI-assisted analysis for Azure App customers who want natural language guidance.
+> **VariScout** guides structured investigations that turn process data into measurable improvement. Question-driven analysis with four linked views reveals hidden variation — with AI-assisted investigation for Azure App customers who want collaborative intelligence.
 >
-> Perfect for quality professionals and LSS trainers: free PWA for training, Azure App for real work.
+> Perfect for anyone improving a process: free PWA for learning the methodology, Azure App for professional investigations.

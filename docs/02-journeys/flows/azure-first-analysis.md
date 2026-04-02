@@ -239,7 +239,7 @@ After the first drill-down, Gary has identified a factor that explains significa
 ### Starting an Investigation
 
 5. Click the Finding to open it → change status to **Investigating**
-6. **Create a hypothesis:** type the suspected cause (e.g., "Machine A has worn bearings") — the hypothesis auto-links to the current factor
+6. **Create a question:** type the suspected cause (e.g., "Does Machine A have worn bearings?") — the question auto-links to the current factor
 7. _(If AI enabled)_ The **NarrativeBar** updates to reflect the investigation state; clicking **"Ask →"** opens CoScout with the finding's context pre-loaded
 
 For a first-time user, this brief interaction introduces the investigation workflow without overwhelming. The finding persists in IndexedDB (and syncs to OneDrive on Team plan), so Gary can return to it later.

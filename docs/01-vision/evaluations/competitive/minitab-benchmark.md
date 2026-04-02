@@ -16,7 +16,7 @@ title: 'Minitab Competitive Benchmark'
 | **Pricing**         | ~$1,700/year single user, ~$700/year academic                    | From €79/month (Azure) or free (PWA)                    |
 | **Distribution**    | Direct sales, site licenses, academic programs                   | Azure Marketplace, AppSource, public URL                |
 | **Target audience** | Statisticians, quality engineers, Black Belts                    | Quality practitioners, Green Belts, learners            |
-| **Market position** | Industry standard for statistical analysis (30+ years)           | Lightweight variation analysis alternative              |
+| **Market position** | Industry standard for statistical analysis (30+ years)           | Structured investigation for process improvement        |
 | **Analysis model**  | Menu-driven: select analysis type, configure dialog, view output | Four Lenses: 4 coordinated charts with linked filtering |
 | **Navigation**      | 200+ analysis types across deeply nested menus                   | Progressive stratification drill-down                   |
 

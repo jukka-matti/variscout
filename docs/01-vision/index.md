@@ -87,7 +87,7 @@ Strategic hypotheses, value levers, growth flywheel, and competitive landscape â
 
 ### Market Analysis & TAM
 
-Total Addressable Market estimate across three segments: lightweight quality analytics, LSS training funnel, and Excel-native variation analysis.
+Total Addressable Market estimate across three segments: structured process investigation, LSS training funnel, and Excel-native variation analysis.
 
 [:octicons-arrow-right-24: Market Analysis](market-analysis.md)
 

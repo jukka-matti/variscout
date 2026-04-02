@@ -28,7 +28,7 @@ no structured way to track the analysis that happens between pinning and acting.
 
 ## Decision
 
-Add lightweight investigation tracking to findings: analysis-focused statuses,
+Add focused investigation tracking to findings: analysis-focused statuses,
 optional classification tags, comment threads, and a grouped board view. This is
 NOT project management — no assignees, no due dates, no priority levels.
 

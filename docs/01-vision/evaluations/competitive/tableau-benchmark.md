@@ -16,7 +16,7 @@ title: 'Tableau Competitive Benchmark'
 | **Pricing**         | $75/user/month (Creator), $42/user/month (Explorer), $15/user/month (Viewer)  | From €79/month (Azure) or free (PWA)                    |
 | **Distribution**    | Salesforce direct sales, cloud and on-premise                                 | Azure Marketplace, AppSource, public URL                |
 | **Target audience** | Business analysts, data teams, executives                                     | Quality practitioners, Green Belts, learners            |
-| **Market position** | Dominant BI and visual analytics platform                                     | Specialized variation analysis tool                     |
+| **Market position** | Dominant BI and visual analytics platform                                     | Structured investigation for process improvement        |
 | **Analysis model**  | Dashboard-centric: drag fields onto shelves, build views, assemble dashboards | Four Lenses: 4 coordinated charts with linked filtering |
 | **Navigation**      | Sidebar filters, cross-filtering between sheets                               | Progressive stratification drill-down                   |
 | **Parent company**  | Salesforce                                                                    | Independent                                             |

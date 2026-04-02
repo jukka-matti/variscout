@@ -18,7 +18,7 @@ C4Context
 
     Person(analyst, "Quality Analyst", "Analyses process variation using control charts, capability indices, and Pareto rankings")
 
-    System(variscout, "VariScout", "Offline-first variation analysis tool (PWA + Azure App)")
+    System(variscout, "VariScout", "Offline-first structured investigation platform (PWA + Azure App)")
 
     System_Ext(azuread, "Azure AD", "EasyAuth identity provider")
     System_Ext(onedrive, "Microsoft OneDrive", "Cloud file sync via Graph API")

@@ -16,7 +16,7 @@ title: 'Power BI Competitive Benchmark'
 | **Pricing**         | $10/user/month (Pro), $20/user/month (Premium per user), Free (Desktop) | From €79/month (Azure) or free (PWA)                    |
 | **Distribution**    | Microsoft 365 ecosystem, Azure integration                              | Azure Marketplace, AppSource, public URL                |
 | **Target audience** | Business analysts, report builders, enterprise IT                       | Quality practitioners, Green Belts, learners            |
-| **Market position** | Microsoft's enterprise BI platform                                      | Specialized variation analysis tool                     |
+| **Market position** | Microsoft's enterprise BI platform                                      | Structured investigation for process improvement        |
 | **Analysis model**  | Report-centric: build visuals, assemble pages, publish reports          | Four Lenses: 4 coordinated charts with linked filtering |
 | **Navigation**      | Slicers, cross-filtering between visuals                                | Progressive stratification drill-down                   |
 | **Parent company**  | Microsoft                                                               | Independent                                             |

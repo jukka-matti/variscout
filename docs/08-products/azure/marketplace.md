@@ -121,20 +121,20 @@ Microsoft handles currency conversion and VAT.
 ### Offer Name
 
 ```
-VariScout - Statistical Process Control for Quality Teams
+VariScout - Structured Investigation for Process Improvement
 ```
 
 ### Short Description (100 chars)
 
 ```
-Offline-first variation analysis with I-Charts, Boxplots, Pareto, and process capability analysis.
+Question-driven investigation combining data analysis, gemba observations, and expert knowledge for process improvement.
 ```
 
 ### Long Description (3000 chars)
 
 ```markdown
-**VariScout** is a variation analysis tool designed for quality professionals
-who need to understand process variation without complex setup or cloud dependencies.
+**VariScout** is a structured investigation platform for process improvement —
+guiding teams from concern to measured result through question-driven analysis, without complex setup or cloud dependencies.
 
 ### Key Features
 
@@ -161,10 +161,10 @@ Analyze hundreds of measurement channels simultaneously:
 
 ### Who Is It For?
 
-- Quality engineers analyzing production data
-- Manufacturing teams tracking process capability
-- Consultants conducting capability assessments
-- Students learning statistical quality control
+- Quality engineers investigating process variation
+- Operations teams driving measurable improvement
+- Consultants guiding structured investigations
+- Anyone improving a process with data, gemba observations, and team expertise
 
 ### Pricing
 
@@ -173,8 +173,8 @@ Analyze hundreds of measurement channels simultaneously:
 
 ### Integration
 
-Try the FREE VariScout Web App for training and learning SPC fundamentals
-before upgrading to the full Azure App for team use.
+Try the FREE VariScout Web App to learn the investigation methodology
+before upgrading to the full Azure App for professional team investigations.
 ```
 
 ### Screenshots (Required: 5-10)

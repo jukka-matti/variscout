@@ -701,7 +701,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'when-to-use-minitab',
         title: 'When to Use Specialized Tools',
         content:
-          'VariScout uses industry-standard moving range methods for control limits and capability. For advanced SPC requiring X̄-R charts, CUSUM, EWMA, or rational subgroups, consider Minitab, JMP, or similar statistical software. VariScout excels at quick visual exploration and hypothesis generation.',
+          'VariScout uses industry-standard moving range methods for control limits and capability. For advanced SPC requiring X̄-R charts, CUSUM, EWMA, or rational subgroups, consider Minitab, JMP, or similar statistical software. VariScout excels at structured investigation — generating questions from data, tracking evidence, and guiding teams to measured improvement.',
       },
     ],
     relatedTools: ['i-chart'],
@@ -1171,19 +1171,19 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'quick-answer',
         title: 'Quick Answer',
         content:
-          'VariScout excels at visual exploration, hypothesis generation, and teaching quality concepts. For formal SPC, certification requirements, or specialized control charts, use Minitab, JMP, or similar statistical software.',
+          'VariScout excels at structured investigation — generating questions from data, guiding evidence-based answers, and teaching process improvement methodology. For formal SPC, certification requirements, or specialized control charts, use Minitab, JMP, or similar statistical software.',
       },
       {
         id: 'what-variscout-is',
         title: 'What VariScout Is For',
         content:
-          'VariScout is an exploration and teaching tool. It makes quality analysis accessible without statistical software expertise. The Four Lenses framework helps users ask the right questions. Cross-chart filtering enables rapid hypothesis testing.',
+          'VariScout is a structured investigation tool for process improvement. It makes question-driven analysis accessible without statistical software expertise. The Four Lenses framework generates questions from data. Cross-chart filtering guides evidence-based investigation.',
         visual: {
           type: 'list',
           data: {
             items: [
               { title: 'Quick Exploration', description: 'Paste data, see charts instantly' },
-              { title: 'Hypothesis Generation', description: 'Find where to focus investigation' },
+              { title: 'Question Generation', description: 'Find where to focus investigation' },
               { title: 'Teaching Tool', description: 'Learn Lean Six Sigma concepts visually' },
               { title: 'Communication', description: 'Share visual insights with stakeholders' },
             ],

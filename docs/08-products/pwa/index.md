@@ -4,7 +4,7 @@ title: 'PWA (Free Training Tool)'
 
 # PWA (Free Training Tool)
 
-> **Role**: Free variation analysis training and education tool for quality professionals, students, and developing countries.
+> **Role**: Free structured investigation methodology training for quality professionals, students, and developing countries.
 >
 > Per [ADR-007](../../07-decisions/adr-007-azure-marketplace-distribution.md), the PWA provides free access to core analysis features. The [Azure App](../azure/index.md) adds file upload (alongside paste), save/persistence, Performance Mode, and team features.
 
@@ -12,7 +12,7 @@ title: 'PWA (Free Training Tool)'
 
 ## Purpose: Free Training & Education
 
-The PWA is a **free variation analysis training tool** that provides:
+The PWA is a **free structured investigation training tool** that provides:
 
 1. **Core analysis for everyone** — I-Chart, Boxplot, Pareto, Capability, ANOVA
 2. **Pre-loaded case study datasets** — Same datasets as documentation

@@ -21,7 +21,7 @@ export function buildNarrationSystemPrompt(glossaryFragment?: string, locale?: L
   const hint = buildLocaleHint(locale);
   if (hint) parts.push(hint);
   parts.push(
-    `You are a quality engineering assistant for VariScout, a variation analysis tool.
+    `You are a quality engineering assistant for VariScout, a structured investigation tool for process improvement.
 You explain statistical analysis results in clear, actionable language for quality professionals.
 Keep responses concise (1-2 sentences for summaries). Use the provided terminology definitions.
 Never invent data — only describe what is provided in the context.`

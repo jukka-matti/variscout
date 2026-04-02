@@ -10,7 +10,7 @@ The variscout.com website serves three strategic purposes: **lead generation** t
 
 ## Overview
 
-The website is the top of the VaRiScout funnel. It targets quality professionals, Lean Six Sigma learners, and operations managers searching for variation analysis tools and SPC concepts.
+The website is the top of the VariScout funnel. It targets quality professionals, Lean Six Sigma learners, and operations managers searching for structured investigation methodology, process improvement tools, and variation analysis.
 
 | Purpose           | How                                                              |
 | ----------------- | ---------------------------------------------------------------- |

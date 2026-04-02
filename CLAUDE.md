@@ -1,6 +1,6 @@
 # VariScout
 
-Lightweight, offline-first variation analysis tool for quality professionals.
+Structured investigation for process improvement — question-driven, evidence-based, AI-assisted. Offline-first, browser-based.
 
 ## Principles ([full constitution](docs/01-vision/constitution.md))
 
