@@ -772,6 +772,39 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).not.toContain('Multi-Channel Performance');
   });
 
+  // Strategy-aware validation method coaching (ADR-060 Pillar 5)
+  it('includes validation method coaching for yamazumi mode', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      analysisMode: 'yamazumi',
+      investigation: { allQuestions: [] },
+    });
+    expect(prompt).toContain('taktCompliance');
+    expect(prompt).toContain('Waste %');
+    expect(prompt).toContain('Which step has the most waste');
+  });
+
+  it('includes validation method coaching for performance mode', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      analysisMode: 'performance',
+      investigation: { allQuestions: [] },
+    });
+    expect(prompt).toContain('Channel Cpk');
+    expect(prompt).toContain('Which channel performs worst');
+  });
+
+  it('uses standard validation for default mode', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: { allQuestions: [] },
+    });
+    expect(prompt).toContain('R²adj');
+    expect(prompt).toContain('anova');
+  });
+
+  it('does not include validation coaching when no investigation context', () => {
+    const prompt = buildCoScoutSystemPrompt({ analysisMode: 'yamazumi' });
+    expect(prompt).not.toContain('primary evidence metric');
+  });
+
   // Insight capture guidance (ADR-049)
   it('includes insight capture guidance in system prompt for INVESTIGATE phase', () => {
     const prompt = buildCoScoutSystemPrompt({

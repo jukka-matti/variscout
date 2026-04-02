@@ -1058,6 +1058,18 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
     );
   }
 
+  // Strategy-aware validation method coaching (ADR-060 Pillar 5)
+  // Only emitted when investigation context exists — irrelevant for frame-only prompts
+  if (investigation) {
+    const strategy = getStrategy(resolveMode(options.analysisMode ?? 'standard'));
+    const qs = strategy.questionStrategy;
+    parts.push(
+      `For this analysis mode, the primary evidence metric is ${qs.evidenceLabel}. ` +
+        `Questions are validated using ${qs.validationMethod}. ` +
+        `Focus on: ${qs.questionFocus}`
+    );
+  }
+
   parts.push(TERMINOLOGY_INSTRUCTION);
 
   parts.push(
