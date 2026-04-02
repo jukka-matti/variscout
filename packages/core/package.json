@@ -30,7 +30,7 @@
   "dependencies": {
     "d3-array": "^3.2.4",
     "papaparse": "^5.5.3",
-    "read-excel-file": "7.0.2"
+    "read-excel-file": "8.0.3"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.1",
