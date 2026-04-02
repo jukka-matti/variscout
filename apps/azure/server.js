@@ -1,8 +1,9 @@
-// Zero-dependency static file server for Azure App Service.
+// Static file server for Azure App Service built on Express.
 // Serves the Vite build output from ./dist/ with SPA fallback routing.
-// Uses only Node.js built-in modules — no npm install needed at runtime.
+// Migrated from raw Node HTTP to Express in ADR-060 to support upcoming KB endpoints
+// (file upload via multer, JSON body parsing, cleaner route definitions).
 
-import { createServer } from 'node:http';
+import express from 'express';
 import { readFile } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -58,10 +59,6 @@ const SECURITY_HEADERS = {
   'Permissions-Policy': 'camera=(self), microphone=(), geolocation=(), payment=()',
 };
 
-function writeResponse(res, statusCode, headers) {
-  res.writeHead(statusCode, { ...SECURITY_HEADERS, ...headers });
-}
-
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
@@ -83,153 +80,154 @@ function cacheHeader(urlPath) {
   return 'no-cache';
 }
 
-const server = createServer(async (req, res) => {
-  const url = new URL(req.url, `http://localhost:${PORT}`);
-  const pathname = url.pathname;
+const app = express();
+app.use(express.json());
 
-  // Health endpoint for App Service health checks
-  if (pathname === '/health') {
-    writeResponse(res, 200, { 'Content-Type': 'text/plain' });
-    res.end('ok');
+// Apply security headers to every response
+app.use((_req, res, next) => {
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    res.setHeader(key, value);
+  }
+  next();
+});
+
+// Health endpoint for App Service health checks
+app.get('/health', (_req, res) => {
+  res.setHeader('Content-Type', 'text/plain');
+  res.status(200).end('ok');
+});
+
+// OBO token exchange proxy removed per ADR-059 (Graph API removed, EasyAuth only)
+
+// Runtime configuration endpoint — serves env vars as JSON.
+// Required for Marketplace deployments where Vite env vars are baked at build time.
+app.get('/config', (_req, res) => {
+  const config = {
+    plan: process.env.VITE_VARISCOUT_PLAN || 'standard',
+    // functionUrl removed — token exchange now proxied through /api/token-exchange (same-origin)
+    aiEndpoint: process.env.AI_ENDPOINT || '',
+    aiSearchEndpoint: process.env.AI_SEARCH_ENDPOINT || '',
+    aiSearchIndex: process.env.AI_SEARCH_INDEX || 'findings',
+    appInsightsConnectionString: process.env.APPINSIGHTS_CONNECTION_STRING || process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '',
+    storageAccountName: process.env.STORAGE_ACCOUNT_NAME || '',
+    storageContainerName: process.env.STORAGE_CONTAINER_NAME || 'variscout-projects',
+  };
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.status(200).end(JSON.stringify(config));
+});
+
+// SAS token generation for Blob Storage (Team plan cloud sync)
+app.post('/api/storage-token', async (req, res) => {
+  const principal = req.headers['x-ms-client-principal'];
+  // LOCAL_DEV bypass blocked on App Service (WEBSITE_SITE_NAME is set by Azure)
+  const isLocalDev = process.env.LOCAL_DEV && !process.env.WEBSITE_SITE_NAME;
+  if (!principal && !isLocalDev) {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(401).end(JSON.stringify({ error: 'Not authenticated' }));
     return;
   }
 
-  // OBO token exchange proxy removed per ADR-059 (Graph API removed, EasyAuth only)
+  try {
+    const acctName = process.env.STORAGE_ACCOUNT_NAME;
+    const containerName = process.env.STORAGE_CONTAINER_NAME || 'variscout-projects';
 
-  // Runtime configuration endpoint — serves env vars as JSON.
-  // Required for Marketplace deployments where Vite env vars are baked at build time.
-  if (pathname === '/config') {
-    const config = {
-      plan: process.env.VITE_VARISCOUT_PLAN || 'standard',
-      // functionUrl removed — token exchange now proxied through /api/token-exchange (same-origin)
-      aiEndpoint: process.env.AI_ENDPOINT || '',
-      aiSearchEndpoint: process.env.AI_SEARCH_ENDPOINT || '',
-      aiSearchIndex: process.env.AI_SEARCH_INDEX || 'findings',
-      appInsightsConnectionString: process.env.APPINSIGHTS_CONNECTION_STRING || process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '',
-      storageAccountName: process.env.STORAGE_ACCOUNT_NAME || '',
-      storageContainerName: process.env.STORAGE_CONTAINER_NAME || 'variscout-projects',
-    };
-    writeResponse(res, 200, {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache',
-    });
-    res.end(JSON.stringify(config));
-    return;
-  }
-
-  // SAS token generation for Blob Storage (Team plan cloud sync)
-  if (pathname === '/api/storage-token' && req.method === 'POST') {
-    const principal = req.headers['x-ms-client-principal'];
-    // LOCAL_DEV bypass blocked on App Service (WEBSITE_SITE_NAME is set by Azure)
-    const isLocalDev = process.env.LOCAL_DEV && !process.env.WEBSITE_SITE_NAME;
-    if (!principal && !isLocalDev) {
-      writeResponse(res, 401, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Not authenticated' }));
+    if (!acctName) {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(503).end(JSON.stringify({ error: 'Blob Storage not configured' }));
       return;
     }
 
-    try {
-      const acctName = process.env.STORAGE_ACCOUNT_NAME;
-      const containerName = process.env.STORAGE_CONTAINER_NAME || 'variscout-projects';
+    const { BlobServiceClient, generateBlobSASQueryParameters, ContainerSASPermissions, StorageSharedKeyCredential, SASProtocol } = await import('@azure/storage-blob');
+    const { DefaultAzureCredential } = await import('@azure/identity');
 
-      if (!acctName) {
-        writeResponse(res, 503, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Blob Storage not configured' }));
-        return;
-      }
+    const blobServiceUrl = `https://${acctName}.blob.core.windows.net`;
+    const expiresOn = new Date(Date.now() + 60 * 60 * 1000);
+    const startsOn = new Date(Date.now() - 5 * 60 * 1000);
 
-      const { BlobServiceClient, generateBlobSASQueryParameters, ContainerSASPermissions, StorageSharedKeyCredential, SASProtocol } = await import('@azure/storage-blob');
-      const { DefaultAzureCredential } = await import('@azure/identity');
+    let sasUrl;
+    const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
 
-      const blobServiceUrl = `https://${acctName}.blob.core.windows.net`;
-      const expiresOn = new Date(Date.now() + 60 * 60 * 1000);
-      const startsOn = new Date(Date.now() - 5 * 60 * 1000);
+    if (connectionString) {
+      // Local dev: use connection string
+      const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+      const keyMatch = connectionString.match(/AccountKey=([^;]+)/);
+      if (!keyMatch) throw new Error('AccountKey not found in connection string');
+      const sharedKeyCredential = new StorageSharedKeyCredential(blobServiceClient.accountName, keyMatch[1]);
 
-      let sasUrl;
-      const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+      const sasToken = generateBlobSASQueryParameters({
+        containerName,
+        permissions: ContainerSASPermissions.parse('rwl'),
+        startsOn,
+        expiresOn,
+        protocol: SASProtocol.Https,
+      }, sharedKeyCredential).toString();
 
-      if (connectionString) {
-        // Local dev: use connection string
-        const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
-        const keyMatch = connectionString.match(/AccountKey=([^;]+)/);
-        if (!keyMatch) throw new Error('AccountKey not found in connection string');
-        const sharedKeyCredential = new StorageSharedKeyCredential(blobServiceClient.accountName, keyMatch[1]);
+      sasUrl = `${blobServiceUrl}/${containerName}?${sasToken}`;
+    } else {
+      // Production: managed identity + user delegation key
+      const credential = new DefaultAzureCredential();
+      const blobServiceClient = new BlobServiceClient(blobServiceUrl, credential);
+      const delegationKey = await blobServiceClient.getUserDelegationKey(startsOn, expiresOn);
 
-        const sasToken = generateBlobSASQueryParameters({
-          containerName,
-          permissions: ContainerSASPermissions.parse('rwl'),
-          startsOn,
-          expiresOn,
-          protocol: SASProtocol.Https,
-        }, sharedKeyCredential).toString();
+      const sasToken = generateBlobSASQueryParameters({
+        containerName,
+        permissions: ContainerSASPermissions.parse('rwl'),
+        startsOn,
+        expiresOn,
+        protocol: SASProtocol.Https,
+      }, delegationKey, acctName).toString();
 
-        sasUrl = `${blobServiceUrl}/${containerName}?${sasToken}`;
-      } else {
-        // Production: managed identity + user delegation key
-        const credential = new DefaultAzureCredential();
-        const blobServiceClient = new BlobServiceClient(blobServiceUrl, credential);
-        const delegationKey = await blobServiceClient.getUserDelegationKey(startsOn, expiresOn);
-
-        const sasToken = generateBlobSASQueryParameters({
-          containerName,
-          permissions: ContainerSASPermissions.parse('rwl'),
-          startsOn,
-          expiresOn,
-          protocol: SASProtocol.Https,
-        }, delegationKey, acctName).toString();
-
-        sasUrl = `${blobServiceUrl}/${containerName}?${sasToken}`;
-      }
-
-      writeResponse(res, 200, {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-store',
-      });
-      res.end(JSON.stringify({ sasUrl, expiresOn: expiresOn.toISOString() }));
-    } catch (err) {
-      console.error('[storage-token]', err.message || err);
-      writeResponse(res, 500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Failed to generate storage token' }));
+      sasUrl = `${blobServiceUrl}/${containerName}?${sasToken}`;
     }
-    return;
-  }
 
-  // Try to serve the exact file, fall back to index.html for SPA routing
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(200).end(JSON.stringify({ sasUrl, expiresOn: expiresOn.toISOString() }));
+  } catch (err) {
+    console.error('[storage-token]', err.message || err);
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).end(JSON.stringify({ error: 'Failed to generate storage token' }));
+  }
+});
+
+// Static file serving + SPA fallback
+// Express static middleware is not used here because we need the exact same routing logic
+// as the original: files with extensions that don't exist → 404 (not SPA fallback),
+// paths without extensions → SPA fallback.
+app.get('*', async (req, res) => {
+  const pathname = req.path;
   const ext = extname(pathname);
   const filePath = ext ? join(DIST, pathname) : null;
 
   try {
     if (filePath) {
       const data = await readFile(filePath);
-      writeResponse(res, 200, {
-        'Content-Type': MIME[ext] || 'application/octet-stream',
-        'Cache-Control': cacheHeader(pathname),
-      });
-      res.end(data);
+      res.setHeader('Content-Type', MIME[ext] || 'application/octet-stream');
+      res.setHeader('Cache-Control', cacheHeader(pathname));
+      res.status(200).end(data);
       return;
     }
   } catch {
     // File with extension not found → 404 (don't serve index.html for missing .js/.css/etc)
-    writeResponse(res, 404, { 'Content-Type': 'text/plain' });
-    res.end('Not Found');
+    res.setHeader('Content-Type', 'text/plain');
+    res.status(404).end('Not Found');
     return;
   }
 
   // SPA fallback: serve index.html for all non-file routes (no extension)
   try {
     const html = await readFile(join(DIST, 'index.html'));
-    writeResponse(res, 200, {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'no-cache',
-    });
-    res.end(html);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.status(200).end(html);
   } catch {
-    writeResponse(res, 500, { 'Content-Type': 'text/plain' });
-    res.end('index.html not found');
+    res.setHeader('Content-Type', 'text/plain');
+    res.status(500).end('index.html not found');
   }
 });
 
-server.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`VariScout serving from ${DIST} on port ${PORT}`);
 });
 
