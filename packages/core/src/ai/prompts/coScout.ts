@@ -554,6 +554,7 @@ export function buildCoScoutInput(
     capabilityStability: context.capabilityStability,
     analysisMode: context.analysisMode,
     coscoutInsights: context.findings?.coscoutInsights,
+    findings: context.findings,
   });
 
   const input: Array<{ role: 'user' | 'assistant' | 'system'; content: MessageContent }> = [];

@@ -41,6 +41,7 @@ import {
 import { isTeamPlan } from '@variscout/core';
 import { useAIDerivedState } from './useAIDerivedState';
 import { useToolHandlers } from './useToolHandlers';
+import { useInvestigationStore } from '../investigation/investigationStore';
 import { useAIStore, type AIContextSummary } from './aiStore';
 import type { ResponsesApiConfig } from '@variscout/core';
 import {
@@ -195,6 +196,9 @@ export function useAIOrchestration({
   // Focus context state for "Ask CoScout about this" actions
   const [focusContext, setFocusContext] = useState<AIContext['focusContext']>(undefined);
 
+  // Read focused question ID from investigation store (ADR-060 Pillar 1)
+  const focusedQuestionId = useInvestigationStore(s => s.expandedQuestionId ?? undefined);
+
   // AI context
   const aiContext = useAIContext({
     enabled: aiAvailable,
@@ -218,6 +222,7 @@ export function useAIOrchestration({
     entryScenario,
     capabilityData,
     analysisMode,
+    focusedQuestionId,
   });
 
   // AI narration (disabled when per-component toggle is off)
