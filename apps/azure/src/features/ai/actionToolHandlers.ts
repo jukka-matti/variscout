@@ -250,6 +250,50 @@ export function buildActionToolHandlers({
       return JSON.stringify({ proposal: true, ...proposal });
     },
 
+    answer_question: async (args: Record<string, unknown>) => {
+      const questionId = args.question_id as string;
+      const status = args.status as 'answered' | 'ruled-out';
+      const note = args.note as string;
+      const findingId = (args.finding_id as string | undefined) ?? undefined;
+
+      if (!questionId || !status || !note) {
+        return JSON.stringify({ error: 'Missing question_id, status, or note' });
+      }
+
+      const question = questions.find(q => q.id === questionId);
+      if (!question) return JSON.stringify({ error: `Question not found: ${questionId}` });
+
+      if (findingId) {
+        const supportingFinding = findings.find(f => f.id === findingId);
+        if (!supportingFinding) {
+          return JSON.stringify({ error: `Finding not found: ${findingId}` });
+        }
+      }
+
+      const proposal: ActionProposal = {
+        id: generateProposalId(),
+        tool: 'answer_question',
+        params: {
+          question_id: questionId,
+          status,
+          note,
+          finding_id: findingId,
+        },
+        preview: {
+          questionText: question.text,
+          proposedStatus: status,
+          note,
+          findingId,
+          currentStatus: question.status,
+        },
+        status: 'pending',
+        filterStackHash: hashFilterStack(filterStack),
+        timestamp: Date.now(),
+        editableText: note,
+      };
+      return JSON.stringify({ proposal: true, ...proposal });
+    },
+
     suggest_action: async (args: Record<string, unknown>) => {
       const findingId = args.finding_id as string;
       const text = args.text as string;

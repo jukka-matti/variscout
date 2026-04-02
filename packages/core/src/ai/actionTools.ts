@@ -22,6 +22,7 @@ export type ActionToolName =
   | 'clear_filters'
   | 'switch_factor'
   | 'create_question'
+  | 'answer_question'
   | 'create_finding'
   | 'suggest_action'
   | 'suggest_improvement_idea'

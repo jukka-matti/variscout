@@ -454,6 +454,37 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
           additionalProperties: false,
           strict: true,
         },
+      },
+      {
+        type: 'function',
+        name: 'answer_question',
+        description:
+          'Propose marking an investigation question as answered or ruled-out based on evidence. The analyst will review and confirm before the status changes.',
+        parameters: {
+          type: 'object',
+          properties: {
+            question_id: {
+              type: 'string',
+              description: 'ID of the question to answer',
+            },
+            status: {
+              type: 'string',
+              enum: ['answered', 'ruled-out'],
+              description: 'Proposed status based on evidence',
+            },
+            note: {
+              type: 'string',
+              description: 'Evidence-based explanation for the proposed answer',
+            },
+            finding_id: {
+              type: 'string',
+              description: 'ID of supporting finding (recommended when evidence exists)',
+            },
+          },
+          required: ['question_id', 'status', 'note'],
+          additionalProperties: false,
+          strict: true,
+        },
       }
     );
 

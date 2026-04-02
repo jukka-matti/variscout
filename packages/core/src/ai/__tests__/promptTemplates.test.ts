@@ -1594,9 +1594,9 @@ describe('buildCoScoutTools', () => {
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
   });
 
-  it('never exceeds 19 tools (IMPROVE + Team plan)', () => {
+  it('never exceeds 20 tools (IMPROVE + Team plan)', () => {
     const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
-    expect(tools.length).toBeLessThanOrEqual(19);
+    expect(tools.length).toBeLessThanOrEqual(20);
   });
 
   it('includes get_finding_attachment in all phases', () => {
@@ -1656,6 +1656,35 @@ describe('buildCoScoutTools', () => {
   it('excludes suggest_save_finding when no phase specified', () => {
     const tools = buildCoScoutTools();
     expect(tools.find(t => t.name === 'suggest_save_finding')).toBeUndefined();
+  });
+
+  it('includes answer_question tool in INVESTIGATE phase', () => {
+    const tools = buildCoScoutTools({ phase: 'investigate' });
+    const tool = tools.find(t => t.name === 'answer_question');
+    expect(tool).toBeDefined();
+    expect(tool?.parameters?.properties).toHaveProperty('question_id');
+    expect(tool?.parameters?.properties).toHaveProperty('status');
+    expect(tool?.parameters?.properties).toHaveProperty('note');
+  });
+
+  it('excludes answer_question in SCOUT phase', () => {
+    const tools = buildCoScoutTools({ phase: 'scout' });
+    expect(tools.find(t => t.name === 'answer_question')).toBeUndefined();
+  });
+
+  it('includes answer_question in IMPROVE phase', () => {
+    const tools = buildCoScoutTools({ phase: 'improve' });
+    expect(tools.find(t => t.name === 'answer_question')).toBeDefined();
+  });
+
+  it('excludes answer_question in FRAME phase', () => {
+    const tools = buildCoScoutTools({ phase: 'frame' });
+    expect(tools.find(t => t.name === 'answer_question')).toBeUndefined();
+  });
+
+  it('excludes answer_question when no phase specified', () => {
+    const tools = buildCoScoutTools();
+    expect(tools.find(t => t.name === 'answer_question')).toBeUndefined();
   });
 });
 
