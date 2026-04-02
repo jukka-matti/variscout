@@ -22,6 +22,11 @@ if (aiEndpoint) {
 if (searchEndpoint) {
   try { connectSrc += ` ${new URL(searchEndpoint).origin}`; } catch { /* ignore */ }
 }
+// Blob Storage endpoint for Team plan cloud sync
+const storageAccountForCsp = process.env.STORAGE_ACCOUNT_NAME || '';
+if (storageAccountForCsp) {
+  connectSrc += ` https://${storageAccountForCsp}.blob.core.windows.net`;
+}
 // App Insights ingestion endpoint — connection string is write-only (telemetry ingestion,
 // not a secret). The browser SDK requires it to send telemetry. Each customer's telemetry
 // goes to their own App Insights instance via their Azure deployment.
@@ -101,12 +106,89 @@ const server = createServer(async (req, res) => {
       aiSearchEndpoint: process.env.AI_SEARCH_ENDPOINT || '',
       aiSearchIndex: process.env.AI_SEARCH_INDEX || 'findings',
       appInsightsConnectionString: process.env.APPINSIGHTS_CONNECTION_STRING || process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '',
+      storageAccountName: process.env.STORAGE_ACCOUNT_NAME || '',
+      storageContainerName: process.env.STORAGE_CONTAINER_NAME || 'variscout-projects',
     };
     writeResponse(res, 200, {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache',
     });
     res.end(JSON.stringify(config));
+    return;
+  }
+
+  // SAS token generation for Blob Storage (Team plan cloud sync)
+  if (pathname === '/api/storage-token' && req.method === 'POST') {
+    const principal = req.headers['x-ms-client-principal'];
+    if (!principal && !process.env.LOCAL_DEV) {
+      writeResponse(res, 401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Not authenticated' }));
+      return;
+    }
+
+    try {
+      const acctName = process.env.STORAGE_ACCOUNT_NAME;
+      const containerName = process.env.STORAGE_CONTAINER_NAME || 'variscout-projects';
+
+      if (!acctName) {
+        writeResponse(res, 503, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Blob Storage not configured' }));
+        return;
+      }
+
+      const { BlobServiceClient, generateBlobSASQueryParameters, ContainerSASPermissions, StorageSharedKeyCredential, SASProtocol } = await import('@azure/storage-blob');
+      const { DefaultAzureCredential } = await import('@azure/identity');
+
+      const blobServiceUrl = `https://${acctName}.blob.core.windows.net`;
+      const expiresOn = new Date(Date.now() + 60 * 60 * 1000);
+      const startsOn = new Date(Date.now() - 5 * 60 * 1000);
+
+      let sasUrl;
+      const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+
+      if (connectionString) {
+        // Local dev: use connection string
+        const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+        const keyMatch = connectionString.match(/AccountKey=([^;]+)/);
+        if (!keyMatch) throw new Error('AccountKey not found in connection string');
+        const sharedKeyCredential = new StorageSharedKeyCredential(blobServiceClient.accountName, keyMatch[1]);
+
+        const sasToken = generateBlobSASQueryParameters({
+          containerName,
+          permissions: ContainerSASPermissions.parse('rwl'),
+          startsOn,
+          expiresOn,
+          protocol: SASProtocol.Https,
+        }, sharedKeyCredential).toString();
+
+        sasUrl = `${blobServiceUrl}/${containerName}?${sasToken}`;
+      } else {
+        // Production: managed identity + user delegation key
+        const credential = new DefaultAzureCredential();
+        const blobServiceClient = new BlobServiceClient(blobServiceUrl, credential);
+        const delegationKey = await blobServiceClient.getUserDelegationKey(startsOn, expiresOn);
+
+        const sasToken = generateBlobSASQueryParameters({
+          containerName,
+          permissions: ContainerSASPermissions.parse('rwl'),
+          startsOn,
+          expiresOn,
+          protocol: SASProtocol.Https,
+        }, delegationKey, acctName).toString();
+
+        sasUrl = `${blobServiceUrl}/${containerName}?${sasToken}`;
+      }
+
+      writeResponse(res, 200, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+      });
+      res.end(JSON.stringify({ sasUrl, expiresOn: expiresOn.toISOString() }));
+    } catch (err) {
+      console.error('[storage-token]', err.message || err);
+      writeResponse(res, 500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Failed to generate storage token' }));
+    }
     return;
   }
 
