@@ -33,17 +33,11 @@ describe('searchService', () => {
   });
 
   describe('isKnowledgeBaseAvailable', () => {
-    it('returns false — Knowledge Base disabled pending Blob Storage migration (ADR-059)', () => {
-      // KNOWLEDGE_BASE_ENABLED = false gates all availability checks
-      expect(isKnowledgeBaseAvailable()).toBe(false);
-    });
-
-    it('returns false even when all other conditions are met', () => {
+    it('returns true when all conditions are met (Team plan + endpoint + preview toggle)', () => {
       mockHasKnowledgeBase.mockReturnValue(true);
       mockIsPreviewEnabled.mockReturnValue(true);
       import.meta.env.VITE_AI_SEARCH_ENDPOINT = 'https://search.example.com';
-      // Still false because KNOWLEDGE_BASE_ENABLED = false
-      expect(isKnowledgeBaseAvailable()).toBe(false);
+      expect(isKnowledgeBaseAvailable()).toBe(true);
     });
 
     it('returns false when not Team plan', () => {
@@ -55,20 +49,16 @@ describe('searchService', () => {
       import.meta.env.VITE_AI_SEARCH_ENDPOINT = '';
       expect(isKnowledgeBaseAvailable()).toBe(false);
     });
+
+    it('returns false when preview toggle is off', () => {
+      mockHasKnowledgeBase.mockReturnValue(true);
+      mockIsPreviewEnabled.mockReturnValue(false);
+      import.meta.env.VITE_AI_SEARCH_ENDPOINT = 'https://search.example.com';
+      expect(isKnowledgeBaseAvailable()).toBe(false);
+    });
   });
 
   describe('searchDocuments', () => {
-    it('returns empty array immediately — Knowledge Base disabled (ADR-059)', async () => {
-      const mockFetch = vi.fn();
-      globalThis.fetch = mockFetch;
-
-      const results = await searchDocuments('nozzle maintenance');
-
-      // KNOWLEDGE_BASE_ENABLED = false short-circuits before any fetch
-      expect(results).toEqual([]);
-      expect(mockFetch).not.toHaveBeenCalled();
-    });
-
     it('returns empty array when not Team plan', async () => {
       mockHasKnowledgeBase.mockReturnValue(false);
 
@@ -83,14 +73,27 @@ describe('searchService', () => {
       expect(results).toEqual([]);
     });
 
-    it('returns empty array without network calls regardless of conditions (ADR-059)', async () => {
-      // Even with all conditions met, KNOWLEDGE_BASE_ENABLED = false prevents any fetch
-      const mockFetch = vi.fn();
+    it('returns empty array when preview toggle is off', async () => {
+      mockIsPreviewEnabled.mockReturnValue(false);
+
+      const results = await searchDocuments('nozzle maintenance');
+      expect(results).toEqual([]);
+    });
+
+    it('calls fetch when all conditions are met', async () => {
+      mockHasKnowledgeBase.mockReturnValue(true);
+      mockIsPreviewEnabled.mockReturnValue(true);
+      import.meta.env.VITE_AI_SEARCH_ENDPOINT = 'https://search.example.com';
+
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ response: [] }),
+      });
       globalThis.fetch = mockFetch;
 
-      const results = await searchDocuments('test');
+      const results = await searchDocuments('nozzle maintenance');
+      expect(mockFetch).toHaveBeenCalledOnce();
       expect(results).toEqual([]);
-      expect(mockFetch).not.toHaveBeenCalled();
     });
   });
 });

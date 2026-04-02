@@ -1567,11 +1567,11 @@ describe('buildCoScoutTools', () => {
     expect(statsTool).toBeDefined();
   });
 
-  it('includes suggest_knowledge_search tool', () => {
+  it('includes search_knowledge_base tool', () => {
     const tools = buildCoScoutTools();
-    const kbTool = tools.find(t => t.name === 'suggest_knowledge_search');
+    const kbTool = tools.find(t => t.name === 'search_knowledge_base');
     expect(kbTool).toBeDefined();
-    expect(kbTool!.description).toContain('Knowledge Base');
+    expect(kbTool!.description).toContain('knowledge base');
     expect(kbTool!.parameters.required).toContain('query');
   });
 

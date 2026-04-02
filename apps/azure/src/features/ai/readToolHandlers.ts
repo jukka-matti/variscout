@@ -72,7 +72,7 @@ export function buildReadToolHandlers({
       });
     },
 
-    suggest_knowledge_search: async (args: Record<string, unknown>) => {
+    search_knowledge_base: async (args: Record<string, unknown>) => {
       const query = args.query as string;
       if (!query) return JSON.stringify({ error: 'No query provided' });
       const { findings: kbFindings, documents } = await knowledgeSearch.search(query);

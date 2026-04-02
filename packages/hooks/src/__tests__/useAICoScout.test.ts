@@ -253,7 +253,7 @@ describe('useAICoScout', () => {
 
       const toolHandlers = {
         get_chart_data: vi.fn(async () => '{}'),
-        suggest_knowledge_search: vi.fn(async () => '[]'),
+        search_knowledge_base: vi.fn(async () => '[]'),
       };
 
       const { result } = renderHook(() =>

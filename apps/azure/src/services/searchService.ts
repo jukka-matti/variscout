@@ -11,8 +11,9 @@ import { hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
 import { getAccessToken } from '../auth/easyAuth';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
 
-/** Feature gate: Knowledge Base disabled pending Blob Storage migration (ADR-059) */
-const KNOWLEDGE_BASE_ENABLED = false;
+// Knowledge Base is enabled when the preview toggle is on (controlled by admin UI).
+// The actual availability check (isKnowledgeBaseAvailable) validates Team tier + search endpoint.
+const KNOWLEDGE_BASE_ENABLED = true;
 
 export interface DocumentResult {
   title: string;

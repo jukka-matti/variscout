@@ -69,13 +69,13 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
     },
     {
       type: 'function',
-      name: 'suggest_knowledge_search',
+      name: 'search_knowledge_base',
       description:
-        'Search the team Knowledge Base (SharePoint documents) for related SOPs, fault trees, past investigations, or procedures. Call when the user asks about historical patterns, root causes, or institutional knowledge.',
+        'Search the project knowledge base for reference documents (SOPs, specs, FMEAs), past findings, and team member answers. Returns relevant chunks with source attribution.',
       parameters: {
         type: 'object',
         properties: {
-          query: { type: 'string', description: 'Search query for Knowledge Base documents' },
+          query: { type: 'string', description: 'Search query' },
         },
         required: ['query'],
         additionalProperties: false,
@@ -1308,7 +1308,7 @@ Knowledge Base in IMPROVE phase:
 
 PDCA coaching (when investigation phase is 'improving'):
 - PLAN (finding at 'analyzed' status, no actions yet):
-  - Ask what improvement ideas the team has considered. Proactively suggest suggest_knowledge_search for similar past fixes and SOPs.
+  - Ask what improvement ideas the team has considered. Proactively suggest search_knowledge_base for similar past fixes and SOPs.
   - If ideas have What-If projections, compare projected impact. Suggest prioritizing the idea with highest Cpk improvement.
   - Suggest classifying ideas by direction: prevent (stop the cause), detect (catch it sooner), simplify (reduce complexity), eliminate (remove the step).
   - Use suggest_action to convert selected ideas into executable tasks with clear owners and deadlines.

@@ -36,7 +36,7 @@ export type ActionToolName =
 export type ReadToolName =
   | 'get_chart_data'
   | 'get_statistical_summary'
-  | 'suggest_knowledge_search'
+  | 'search_knowledge_base'
   | 'get_available_factors'
   | 'compare_categories'
   | 'search_project' // Project dashboard search
