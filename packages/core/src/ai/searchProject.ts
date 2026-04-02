@@ -1,16 +1,16 @@
-import type { Finding, Hypothesis } from '../findings';
+import type { Finding, Question } from '../findings';
 
 export interface SearchProjectOptions {
   query: string;
   findings: Finding[];
-  hypotheses: Hypothesis[];
-  artifactType?: 'finding' | 'hypothesis' | 'idea' | 'action' | 'all';
+  questions: Question[];
+  artifactType?: 'finding' | 'question' | 'idea' | 'action' | 'all';
   findingStatus?: string;
-  hypothesisStatus?: string;
+  questionStatus?: string;
 }
 
 export interface SearchResult {
-  type: 'finding' | 'hypothesis' | 'idea' | 'action';
+  type: 'finding' | 'question' | 'idea' | 'action';
   id: string;
   text: string;
   status: string;
@@ -21,7 +21,7 @@ export interface SearchResult {
   childCount?: number;
   tag?: 'key-driver' | 'low-impact';
   filterContext?: string;
-  parentHypothesisText?: string;
+  parentQuestionText?: string;
   timeframe?: string;
   dueDate?: string;
   completed?: boolean;
@@ -35,10 +35,10 @@ export function searchProjectArtifacts(options: SearchProjectOptions): SearchRes
   const {
     query,
     findings,
-    hypotheses,
+    questions,
     artifactType = 'all',
     findingStatus,
-    hypothesisStatus,
+    questionStatus,
   } = options;
 
   const q = query.toLowerCase();
@@ -61,38 +61,39 @@ export function searchProjectArtifacts(options: SearchProjectOptions): SearchRes
     }
   }
 
-  // Search hypotheses
-  if (artifactType === 'all' || artifactType === 'hypothesis') {
-    for (const h of hypotheses) {
-      if (hypothesisStatus && hypothesisStatus !== 'any' && h.status !== hypothesisStatus) continue;
-      if (q && !h.text.toLowerCase().includes(q)) continue;
+  // Search questions
+  if (artifactType === 'all' || artifactType === 'question') {
+    for (const question of questions) {
+      if (questionStatus && questionStatus !== 'any' && question.status !== questionStatus)
+        continue;
+      if (q && !question.text.toLowerCase().includes(q)) continue;
       results.push({
-        type: 'hypothesis',
-        id: h.id,
-        text: h.text,
-        status: h.status,
-        factor: h.factor,
-        linkedFindingCount: h.linkedFindingIds?.length ?? 0,
-        causeRole: h.causeRole,
+        type: 'question',
+        id: question.id,
+        text: question.text,
+        status: question.status,
+        factor: question.factor,
+        linkedFindingCount: question.linkedFindingIds?.length ?? 0,
+        causeRole: question.causeRole,
         childCount: 0,
-        createdAt: new Date(h.createdAt).getTime(),
+        createdAt: new Date(question.createdAt).getTime(),
       });
     }
   }
 
-  // Search improvement ideas (nested in hypotheses)
+  // Search improvement ideas (nested in questions)
   if (artifactType === 'all' || artifactType === 'idea') {
-    for (const h of hypotheses) {
-      for (const idea of h.ideas ?? []) {
+    for (const question of questions) {
+      for (const idea of question.ideas ?? []) {
         if (q && !idea.text.toLowerCase().includes(q)) continue;
         results.push({
           type: 'idea',
           id: idea.id,
           text: idea.text,
           status: idea.selected ? 'selected' : 'proposed',
-          parentHypothesisText: h.text,
+          parentQuestionText: question.text,
           timeframe: idea.timeframe,
-          createdAt: new Date(h.createdAt).getTime(),
+          createdAt: new Date(question.createdAt).getTime(),
         });
       }
     }

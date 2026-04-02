@@ -13,7 +13,7 @@
  * SharePoint folder, forming the team's knowledge base.
  */
 
-import type { Finding, Hypothesis, ProcessContext, StatsResult, Locale } from '@variscout/core';
+import type { Finding, Question, ProcessContext, StatsResult, Locale } from '@variscout/core';
 import { formatStatistic } from '@variscout/core/i18n';
 import type { ReportSectionDescriptor, ReportType, ReportWorkspace } from '@variscout/hooks';
 
@@ -56,7 +56,7 @@ const WORKSPACE_HEADING: Record<ReportWorkspace, string> = {
  * - YAML-style metadata block at the top
  * - Workspace group headings (## Analysis, ## Findings, ## Improvement)
  * - Section headings matching step numbers
- * - Findings formatted with status tags, hypotheses, and outcomes
+ * - Findings formatted with status tags, questions, and outcomes
  */
 export function renderReportMarkdown(options: RenderReportOptions): string {
   const { metadata, sections, processContext, stats, aiNarrative, locale = 'en' } = options;
@@ -124,14 +124,14 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
       parts.push('');
     }
 
-    // Render hypotheses for evidence-trail and improvement-plan sections
+    // Render questions for evidence-trail and improvement-plan sections
     if (
       (section.id === 'evidence-trail' || section.id === 'improvement-plan') &&
-      section.hypotheses.length > 0
+      section.questions.length > 0
     ) {
-      parts.push('**Hypotheses:**');
+      parts.push('**Questions:**');
       parts.push('');
-      for (const h of section.hypotheses) {
+      for (const h of section.questions) {
         const roleTag = h.causeRole ? ` [${h.causeRole}]` : '';
         parts.push(`- **${h.text}** (${h.status})${roleTag}`);
 
@@ -151,23 +151,23 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
       }
       parts.push('');
 
-      // Skip orphan hypothesis rendering for improvement-plan (already covered above)
+      // Skip orphan question rendering for improvement-plan (already covered above)
       if (section.id === 'improvement-plan') continue;
     }
 
     // Render findings
     for (const finding of section.findings) {
-      parts.push(renderFinding(finding, section.hypotheses, locale));
+      parts.push(renderFinding(finding, section.questions, locale));
     }
 
-    // Render standalone hypotheses (not already covered by findings)
-    const orphanHypotheses = section.hypotheses.filter(
-      h => !section.findings.some(f => f.hypothesisId === h.id)
+    // Render standalone questions (not already covered by findings)
+    const orphanQuestions = section.questions.filter(
+      h => !section.findings.some(f => f.questionId === h.id)
     );
-    if (orphanHypotheses.length > 0 && section.id !== 'improvement-plan') {
-      parts.push('**Hypotheses:**');
+    if (orphanQuestions.length > 0 && section.id !== 'improvement-plan') {
+      parts.push('**Questions:**');
       parts.push('');
-      for (const h of orphanHypotheses) {
+      for (const h of orphanQuestions) {
         parts.push(`- **${h.text}** (${h.status})`);
       }
       parts.push('');
@@ -191,7 +191,7 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
-function renderFinding(finding: Finding, hypotheses: Hypothesis[], locale: Locale = 'en'): string {
+function renderFinding(finding: Finding, questions: Question[], locale: Locale = 'en'): string {
   const fmt = (n: number, d: number = 2) => formatStatistic(n, locale, d);
   const lines: string[] = [];
   const statusTag = `[${finding.status.toUpperCase()}]`;
@@ -200,11 +200,11 @@ function renderFinding(finding: Finding, hypotheses: Hypothesis[], locale: Local
   lines.push(`#### ${statusTag}${tagSuffix} ${finding.text}`);
   lines.push('');
 
-  // Linked hypothesis
-  if (finding.hypothesisId) {
-    const hypothesis = hypotheses.find(h => h.id === finding.hypothesisId);
-    if (hypothesis) {
-      lines.push(`**Hypothesis:** "${hypothesis.text}" (${hypothesis.status})`);
+  // Linked question
+  if (finding.questionId) {
+    const question = questions.find(h => h.id === finding.questionId);
+    if (question) {
+      lines.push(`**Question:** "${question.text}" (${question.status})`);
       lines.push('');
     }
   }

@@ -1,13 +1,13 @@
 /**
  * useReportSections — Dynamic section composition for workspace-aligned reports.
  *
- * Reads findings, hypotheses, and staged data to derive:
+ * Reads findings, questions, and staged data to derive:
  *   - Report type: analysis-snapshot | investigation-report | improvement-story
  *   - Ordered section descriptors with workspace grouping and audience mode support
  */
 
 import { useMemo } from 'react';
-import type { Finding, Hypothesis, AnalysisMode } from '@variscout/core';
+import type { Finding, Question, AnalysisMode } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import type { ResolvedMode } from '@variscout/core/strategy';
 
@@ -38,13 +38,13 @@ export interface ReportSectionDescriptor {
   status: SectionStatus;
   workspace: ReportWorkspace;
   findings: Finding[];
-  hypotheses: Hypothesis[];
+  questions: Question[];
   hasAIContent: boolean;
 }
 
 export interface UseReportSectionsOptions {
   findings: Finding[];
-  hypotheses: Hypothesis[];
+  questions: Question[];
   /** True when staged comparison data is present */
   stagedComparison: boolean;
   /** Whether AI narration/insights are available */
@@ -78,13 +78,13 @@ function deriveReportType(findings: Finding[]): ReportType {
   return 'investigation-report';
 }
 
-/** Build the title for the evidence trail section, adapting to primary cause or first hypothesis text. */
-function buildEvidenceTrailTitle(hypotheses: Hypothesis[]): string {
-  if (hypotheses.length === 0) return 'Why is this happening?';
+/** Build the title for the evidence trail section, adapting to primary cause or first question text. */
+function buildEvidenceTrailTitle(questions: Question[]): string {
+  if (questions.length === 0) return 'Why is this happening?';
 
-  // Prefer the primary cause hypothesis if one is marked
-  const primary = hypotheses.find(h => h.causeRole === 'suspected-cause');
-  const subject = primary ? primary.text.trim() : hypotheses[0].text?.trim() || null;
+  // Prefer the primary cause question if one is marked
+  const primary = questions.find(q => q.causeRole === 'suspected-cause');
+  const subject = primary ? primary.text.trim() : questions[0].text?.trim() || null;
 
   if (!subject) return 'Why is this happening?';
   return `What causes ${subject}?`;
@@ -149,7 +149,7 @@ const driversTitles: Record<ResolvedMode, string> = {
 
 export function useReportSections({
   findings,
-  hypotheses,
+  questions,
   stagedComparison,
   aiEnabled,
   audienceMode = 'technical',
@@ -173,8 +173,8 @@ export function useReportSections({
       title: currentConditionTitles[resolved],
       status: sectionStatus('current-condition', reportType),
       workspace: sectionWorkspace('current-condition'),
-      findings: findings.filter(f => !f.hypothesisId),
-      hypotheses: [],
+      findings: findings.filter(f => !f.questionId),
+      questions: [],
       hasAIContent: aiEnabled,
     });
 
@@ -187,8 +187,8 @@ export function useReportSections({
           : driversTitles[resolved],
       status: sectionStatus('drivers', reportType),
       workspace: sectionWorkspace('drivers'),
-      findings: findings.filter(f => !f.hypothesisId),
-      hypotheses: [],
+      findings: findings.filter(f => !f.questionId),
+      questions: [],
       hasAIContent: aiEnabled || stagedComparison,
     });
 
@@ -200,11 +200,11 @@ export function useReportSections({
         title:
           reportType === 'improvement-story'
             ? 'What did we find?'
-            : buildEvidenceTrailTitle(hypotheses),
+            : buildEvidenceTrailTitle(questions),
         status: sectionStatus('evidence-trail', reportType),
         workspace: sectionWorkspace('evidence-trail'),
-        findings: findings.filter(f => f.hypothesisId != null),
-        hypotheses,
+        findings: findings.filter(f => f.questionId != null),
+        questions,
         hasAIContent: aiEnabled,
       });
     }
@@ -220,7 +220,7 @@ export function useReportSections({
         findings: findings.filter(
           f => f.actions && f.actions.length > 0 && f.actions.some(a => a.ideaId)
         ),
-        hypotheses: hypotheses.filter(h => h.ideas && h.ideas.length > 0),
+        questions: questions.filter(q => q.ideas && q.ideas.length > 0),
         hasAIContent: false,
       });
 
@@ -231,7 +231,7 @@ export function useReportSections({
         status: sectionStatus('actions-taken', reportType),
         workspace: sectionWorkspace('actions-taken'),
         findings: findings.filter(f => f.actions && f.actions.length > 0),
-        hypotheses: [],
+        questions: [],
         hasAIContent: false,
       });
 
@@ -242,7 +242,7 @@ export function useReportSections({
         status: sectionStatus('verification', reportType),
         workspace: sectionWorkspace('verification'),
         findings: findings.filter(f => f.outcome != null),
-        hypotheses: [],
+        questions: [],
         hasAIContent: aiEnabled || stagedComparison,
       });
     }
@@ -250,7 +250,7 @@ export function useReportSections({
     return { reportType, sections: allSections, audienceMode };
   }, [
     findings,
-    hypotheses,
+    questions,
     stagedComparison,
     aiEnabled,
     audienceMode,

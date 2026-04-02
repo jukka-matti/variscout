@@ -27,8 +27,8 @@ vi.mock('../charts/ParetoChart', () => ({
     <div data-testid="pareto-chart">Pareto: {factor}</div>
   ),
 }));
-vi.mock('../StatsPanel', () => ({
-  default: () => <div data-testid="stats-panel">Stats Panel</div>,
+vi.mock('../ProcessIntelligencePanel', () => ({
+  default: () => <div data-testid="stats-panel">Process Intelligence Panel</div>,
 }));
 
 describe('PresentationView', () => {

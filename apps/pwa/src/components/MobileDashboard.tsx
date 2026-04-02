@@ -4,7 +4,7 @@ import { useTranslation } from '@variscout/hooks';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
-import StatsPanel from './StatsPanel';
+import ProcessIntelligencePanel from './ProcessIntelligencePanel';
 import {
   AnovaResults,
   ErrorBoundary,
@@ -292,7 +292,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
               />
             )}
             {activeView === 'stats' && (
-              <StatsPanel
+              <ProcessIntelligencePanel
                 stats={stats}
                 specs={specs}
                 filteredData={filteredData}

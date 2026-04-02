@@ -10,7 +10,7 @@ import {
   createFindingComment,
   createActionItem,
   createFindingOutcome,
-  createHypothesis,
+  createQuestion,
   createImprovementIdea,
   getFindingStatus,
   groupFindingsByStatus,
@@ -467,7 +467,7 @@ describe('Finding 5-status extensions', () => {
 
   it('new fields default to undefined (backward compat)', () => {
     const f = createFinding('test', {}, null);
-    expect(f.hypothesisId).toBeUndefined();
+    expect(f.questionId).toBeUndefined();
     expect(f.actions).toBeUndefined();
     expect(f.outcome).toBeUndefined();
   });
@@ -477,31 +477,31 @@ describe('Finding 5-status extensions', () => {
 // createHypothesis Tests
 // ============================================================================
 
-describe('createHypothesis', () => {
-  it('creates a hypothesis with required fields', () => {
-    const h = createHypothesis('Worn bearing on head 3');
-    expect(h.id).toBeTruthy();
-    expect(h.text).toBe('Worn bearing on head 3');
-    expect(h.createdAt).toBeTruthy();
-    expect(h.updatedAt).toBeTruthy();
-    expect(h.linkedFindingIds).toEqual([]);
+describe('createQuestion', () => {
+  it('creates a question with required fields', () => {
+    const q = createQuestion('Worn bearing on head 3');
+    expect(q.id).toBeTruthy();
+    expect(q.text).toBe('Worn bearing on head 3');
+    expect(q.createdAt).toBeTruthy();
+    expect(q.updatedAt).toBeTruthy();
+    expect(q.linkedFindingIds).toEqual([]);
   });
 
-  it('generates unique ids for each hypothesis', () => {
-    const h1 = createHypothesis('Cause A');
-    const h2 = createHypothesis('Cause B');
-    expect(h1.id).not.toBe(h2.id);
+  it('generates unique ids for each question', () => {
+    const q1 = createQuestion('Cause A');
+    const q2 = createQuestion('Cause B');
+    expect(q1.id).not.toBe(q2.id);
   });
 
   it('accepts optional factor and level', () => {
-    const h = createHypothesis('Tool wear', 'Machine', 'A');
-    expect(h.factor).toBe('Machine');
-    expect(h.level).toBe('A');
+    const q = createQuestion('Tool wear', 'Machine', 'A');
+    expect(q.factor).toBe('Machine');
+    expect(q.level).toBe('A');
   });
 
-  it('defaults status to untested', () => {
-    const h = createHypothesis('Vibration');
-    expect(h.status).toBe('untested');
+  it('defaults status to open', () => {
+    const q = createQuestion('Vibration');
+    expect(q.status).toBe('open');
   });
 });
 

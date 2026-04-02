@@ -1,25 +1,25 @@
 import { create } from 'zustand';
-import type { Hypothesis } from '@variscout/core';
+import type { Question } from '@variscout/core';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-export interface ImprovementHypothesis {
+export interface ImprovementQuestion {
   id: string;
   text: string;
   causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
   factor?: string;
-  ideas: NonNullable<Hypothesis['ideas']>;
+  ideas: NonNullable<Question['ideas']>;
   linkedFindingName?: string;
 }
 
 // ── State ───────────────────────────────────────────────────────────────────
 
 interface ImprovementStoreState {
-  /** Hypotheses with supported/partial status that have ideas */
-  improvementHypotheses: ImprovementHypothesis[];
-  /** Findings linked to any hypothesis with ideas */
+  /** Questions with answered/investigating status that have ideas */
+  improvementQuestions: ImprovementQuestion[];
+  /** Findings linked to any question with ideas */
   improvementLinkedFindings: Array<{ id: string; text: string }>;
-  /** Set of selected idea IDs across all hypotheses */
+  /** Set of selected idea IDs across all questions */
   selectedIdeaIds: Set<string>;
   /** Projected Cpk map: finding ID -> projected Cpk */
   projectedCpkMap: Record<string, number>;
@@ -35,7 +35,7 @@ interface ImprovementStoreActions {
    * Called by useImprovementOrchestration whenever dependencies change.
    */
   syncState: (state: {
-    improvementHypotheses: ImprovementHypothesis[];
+    improvementQuestions: ImprovementQuestion[];
     improvementLinkedFindings: Array<{ id: string; text: string }>;
     selectedIdeaIds: Set<string>;
     projectedCpkMap: Record<string, number>;
@@ -49,7 +49,7 @@ export type ImprovementStore = ImprovementStoreState & ImprovementStoreActions;
 
 export const useImprovementStore = create<ImprovementStore>(set => ({
   // Initial state
-  improvementHypotheses: [],
+  improvementQuestions: [],
   improvementLinkedFindings: [],
   selectedIdeaIds: new Set<string>(),
   projectedCpkMap: {},

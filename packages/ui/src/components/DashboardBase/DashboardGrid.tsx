@@ -7,7 +7,7 @@ export interface DashboardGridProps {
   /** Tabbed Histogram/ProbPlot card (replaces separate histogram/probability slots) */
   verificationCard?: React.ReactNode;
   /** Stats panel (only when sidebar is closed) */
-  statsPanel?: React.ReactNode;
+  piPanel?: React.ReactNode;
   layout?: 'grid' | 'scroll';
 }
 
@@ -16,7 +16,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({
   boxplotCard,
   paretoCard,
   verificationCard,
-  statsPanel,
+  piPanel,
   layout = 'grid',
 }) => {
   if (layout === 'scroll') {
@@ -26,7 +26,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({
         <div className="min-h-[400px] rounded-2xl">{boxplotCard}</div>
         {paretoCard && <div className="min-h-[400px] rounded-2xl">{paretoCard}</div>}
         {verificationCard && <div className="min-h-[400px] rounded-2xl">{verificationCard}</div>}
-        {statsPanel && <div className="rounded-2xl">{statsPanel}</div>}
+        {piPanel && <div className="rounded-2xl">{piPanel}</div>}
       </div>
     );
   }
@@ -40,8 +40,8 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({
           {paretoCard}
           {verificationCard}
         </div>
-        {statsPanel && (
-          <div className="min-h-0 overflow-hidden lg:w-[280px] lg:flex-shrink-0">{statsPanel}</div>
+        {piPanel && (
+          <div className="min-h-0 overflow-hidden lg:w-[280px] lg:flex-shrink-0">{piPanel}</div>
         )}
       </div>
     </div>

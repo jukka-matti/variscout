@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useEffect, useRef, useMemo } from 'react';
-import type { Finding, Hypothesis, ProcessContext } from '@variscout/core';
+import type { Finding, Question, ProcessContext } from '@variscout/core';
 import type { UseFindingsReturn, DrillStep } from '@variscout/hooks';
 import {
   openFindingsPopout,
@@ -24,8 +24,8 @@ export interface UsePopoutSyncOptions {
   drillPath: DrillStep[];
   /** Findings CRUD state (for handling actions from popout) */
   findingsState: UseFindingsReturn;
-  /** Hypotheses for popout sync */
-  hypotheses?: Hypothesis[];
+  /** Questions for popout sync */
+  questions?: Question[];
   /** Process context for popout sync */
   processContext?: ProcessContext;
   /** Current Cpk or mean value for popout sync */
@@ -48,7 +48,7 @@ export function usePopoutSync({
   columnAliases,
   drillPath,
   findingsState,
-  hypotheses,
+  questions,
   processContext,
   currentValue,
   projectedValue,
@@ -58,8 +58,8 @@ export function usePopoutSync({
   const popupRef = useRef<Window | null>(null);
 
   const popoutOptions = useMemo(
-    () => ({ hypotheses, processContext, currentValue, projectedValue, factorRoles, aiAvailable }),
-    [hypotheses, processContext, currentValue, projectedValue, factorRoles, aiAvailable]
+    () => ({ questions, processContext, currentValue, projectedValue, factorRoles, aiAvailable }),
+    [questions, processContext, currentValue, projectedValue, factorRoles, aiAvailable]
   );
 
   const handleOpenFindingsPopout = useCallback(() => {

@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import Dashboard from '../Dashboard';
 
-const StatsPanel = React.lazy(() => import('../StatsPanel'));
+const ProcessIntelligencePanel = React.lazy(() => import('../ProcessIntelligencePanel'));
 import DataTableModal from '../data/DataTableModal';
 import {
   CoScoutPanelBase,
@@ -15,7 +15,7 @@ import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { toNumericValue, createFactorFinding } from '@variscout/core';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
-import type { UseHypothesesReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
+import type { UseQuestionsReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
 import {
   useQuestionGeneration,
   useQuestionReactivity,
@@ -56,8 +56,8 @@ interface EditorDashboardViewProps {
   findingsCallbacks: AzureFindingsCallbacks;
   handlePinFinding: UseFindingsOrchestrationReturn['handlePinFinding'];
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
-  // Hypotheses
-  hypothesesState: UseHypothesesReturn;
+  // Questions
+  questionsState: UseQuestionsReturn;
   // Photo comments
   handleAddCommentWithAuthor: (
     findingId: string,
@@ -85,7 +85,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   findingsCallbacks,
   handlePinFinding,
   handleSetFindingStatus,
-  hypothesesState,
+  questionsState,
   handleAddCommentWithAuthor,
   aiOrch,
   actionProposalsState,
@@ -121,7 +121,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     filteredData: filteredData ?? [],
     outcome,
     factors,
-    hypothesesState,
+    questionsState,
     mode: resolved,
   });
 
@@ -130,13 +130,13 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const journeyPhase = useJourneyPhase(!!rawData?.length, findingsState.findings);
 
   const suspectedCauses = useMemo(() => {
-    return hypothesesState.hypotheses
+    return questionsState.questions
       .filter(h => h.causeRole === 'suspected-cause' && h.factor)
       .map(h => ({
         factor: h.factor!,
         projectedCpk: projectedCpkMap[h.factor!],
       }));
-  }, [hypothesesState.hypotheses, projectedCpkMap]);
+  }, [questionsState.questions, projectedCpkMap]);
 
   const combinedProjectedCpk = useMemo(() => {
     const values = Object.values(projectedCpkMap);
@@ -163,12 +163,12 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
 
   const openQuestionCount = useMemo(
     () =>
-      factorIntelQuestions.filter(q => q.status === 'untested' || q.status === 'partial').length,
+      factorIntelQuestions.filter(q => q.status === 'open' || q.status === 'investigating').length,
     [factorIntelQuestions]
   );
 
   const handleAddQuestion = (text: string): void => {
-    hypothesesState.addHypothesis(text);
+    questionsState.addQuestion(text);
   };
 
   const handleAddObservation = (text: string): void => {
@@ -184,13 +184,13 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           }
         : undefined,
     });
-    if (hypothesesState.focusedQuestionId) {
-      hypothesesState.linkFinding(hypothesesState.focusedQuestionId, newFinding.id);
+    if (questionsState.focusedQuestionId) {
+      questionsState.linkFinding(questionsState.focusedQuestionId, newFinding.id);
     }
   };
 
   const handleLinkObservation = (findingId: string, questionId: string): void => {
-    hypothesesState.linkFinding(questionId, findingId);
+    questionsState.linkFinding(questionId, findingId);
   };
 
   const piOverflowView = usePanelsStore(s => s.piOverflowView);
@@ -203,7 +203,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   // Panel state from Zustand
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isDataTableOpen = usePanelsStore(s => s.isDataTableOpen);
-  const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
+  const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
   const statsSidebar = useResizablePanel('variscout-stats-sidebar-width', 280, 500, 320, 'left');
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
 
@@ -213,19 +213,19 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
       usePanelsStore.getState().setPendingChartFocus(chartType);
     },
     onExpandPanel: (panelId, targetId) => {
-      if (panelId === 'hypothesis' || panelId === 'finding') {
+      if (panelId === 'question' || panelId === 'finding') {
         // Navigate to Questions tab in PI panel
         usePanelsStore.getState().setPIActiveTab('questions');
-        if (!usePanelsStore.getState().isStatsSidebarOpen) {
-          usePanelsStore.getState().toggleStatsSidebar();
+        if (!usePanelsStore.getState().isPISidebarOpen) {
+          usePanelsStore.getState().togglePISidebar();
         }
-        if (panelId === 'hypothesis' && targetId) {
-          hypothesesState.setFocusedQuestion(targetId);
+        if (panelId === 'question' && targetId) {
+          questionsState.setFocusedQuestion(targetId);
         }
       } else if (panelId === 'stats') {
         usePanelsStore.getState().setPIActiveTab('stats');
-        if (!usePanelsStore.getState().isStatsSidebarOpen) {
-          usePanelsStore.getState().toggleStatsSidebar();
+        if (!usePanelsStore.getState().isPISidebarOpen) {
+          usePanelsStore.getState().togglePISidebar();
         }
       } else if (panelId === 'improvement') {
         usePanelsStore.getState().showImprovement();
@@ -293,26 +293,26 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
         undefined // no chart source
       );
 
-      // Add hypothesis and apply pre-validated status from Factor Intelligence
-      const addedHypothesis = hypothesesState.addHypothesis(
-        bundle.hypothesis.text,
-        bundle.hypothesis.factor,
-        bundle.hypothesis.level
+      // Add question and apply pre-validated status from Factor Intelligence
+      const addedQuestion = questionsState.addQuestion(
+        bundle.question.text,
+        bundle.question.factor,
+        bundle.question.level
       );
-      hypothesesState.setManualStatus(addedHypothesis.id, 'supported');
+      questionsState.setManualStatus(addedQuestion.id, 'answered');
 
-      // Link finding ↔ hypothesis
-      findingsState.linkHypothesis(addedFinding.id, addedHypothesis.id, 'supports');
+      // Link finding ↔ question
+      findingsState.linkQuestion(addedFinding.id, addedQuestion.id, 'supports');
 
-      // Add improvement idea to the hypothesis
-      hypothesesState.addIdea(addedHypothesis.id, bundle.idea.text);
+      // Add improvement idea to the question
+      questionsState.addIdea(addedQuestion.id, bundle.idea.text);
 
       // Set finding status to 'investigating' and open Findings panel
       handleSetFindingStatus(addedFinding.id, 'investigating');
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(addedFinding.id);
     },
-    [outcome, filteredData, findingsState, hypothesesState, handleSetFindingStatus]
+    [outcome, filteredData, findingsState, questionsState, handleSetFindingStatus]
   );
 
   // Insight capture callbacks for SaveInsightDialog (ADR-049)
@@ -439,17 +439,17 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     [findingsState, handleAddCommentWithAuthor]
   );
 
-  const handleAddCommentToHypothesis = useCallback(
-    (hypothesisId: string, text: string) => {
-      // Add as idea to hypothesis (hypotheses don't have a comment system)
-      hypothesesState.addIdea(hypothesisId, text);
+  const handleAddCommentToQuestion = useCallback(
+    (questionId: string, text: string) => {
+      // Add as idea to question (questions don't have a comment system)
+      questionsState.addIdea(questionId, text);
     },
-    [hypothesesState]
+    [questionsState]
   );
 
   // Insight targets for SaveInsightDialog
   const insightFindings = findingsState.findings.map(f => ({ id: f.id, text: f.text }));
-  const insightHypotheses = hypothesesState.hypotheses.map(h => ({ id: h.id, text: h.text }));
+  const insightQuestions = questionsState.questions.map(h => ({ id: h.id, text: h.text }));
 
   // Shared CoScoutPanel props
   const sharedCoScoutProps = {
@@ -474,9 +474,9 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     onDismissAction: handleDismissAction,
     onSaveAsNewFinding: handleSaveAsNewFinding,
     onAddCommentToFinding: handleAddCommentToFinding,
-    onAddCommentToHypothesis: handleAddCommentToHypothesis,
+    onAddCommentToHypothesis: handleAddCommentToQuestion,
     insightFindings,
-    insightHypotheses,
+    insightQuestions,
     onRefActivate: visualGroundingHighlight,
   };
 
@@ -486,14 +486,14 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     <>
       <div className="flex-1 flex overflow-hidden">
         {/* Stats Sidebar (left, resizable) */}
-        {isStatsSidebarOpen && !isPhone && (
+        {isPISidebarOpen && !isPhone && (
           <>
             <div
               className="flex flex-col flex-shrink-0 bg-surface-secondary overflow-y-auto"
               style={{ width: statsSidebar.width }}
             >
               <React.Suspense fallback={null}>
-                <StatsPanel
+                <ProcessIntelligencePanel
                   stats={stats}
                   specs={specs}
                   filteredData={filteredData}

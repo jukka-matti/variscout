@@ -52,7 +52,7 @@ describe('parseRefMarkers', () => {
       'stats',
       'yamazumi',
       'finding',
-      'hypothesis',
+      'question',
       'dashboard',
       'improvement',
     ];

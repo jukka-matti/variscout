@@ -145,16 +145,16 @@ export { useFindings, type UseFindingsOptions, type UseFindingsReturn } from './
 // Journal Entries (chronological investigation timeline)
 export { useJournalEntries, type JournalEntry } from './useJournalEntries';
 
-// Hypotheses (causal theories linked to findings)
+// Questions (investigation questions linked to findings)
 export {
-  useHypotheses,
-  MAX_HYPOTHESIS_DEPTH,
+  useQuestions,
+  MAX_QUESTION_DEPTH,
   MAX_CHILDREN_PER_PARENT,
-  MAX_TOTAL_HYPOTHESES,
+  MAX_TOTAL_QUESTIONS,
   type ChildrenSummary,
-  type UseHypothesesOptions,
-  type UseHypothesesReturn,
-} from './useHypotheses';
+  type UseQuestionsOptions,
+  type UseQuestionsReturn,
+} from './useQuestions';
 
 // Chart Wrapper Data Hooks (shared computation for app chart wrappers)
 export {

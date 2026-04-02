@@ -1,7 +1,7 @@
 export { useInvestigationStore } from './investigationStore';
 export type {
   InvestigationStore,
-  HypothesisDisplayData,
+  QuestionDisplayData,
   ProjectionTarget,
 } from './investigationStore';
 export { useInvestigationOrchestration } from './useInvestigationOrchestration';

@@ -15,7 +15,7 @@ import type {
   FindingSource,
   FindingStatus,
   FindingTag,
-  Hypothesis,
+  Question,
   ImprovementIdea,
   IdeaImpact,
   CoScoutMessage,
@@ -61,9 +61,9 @@ export interface FindingsPanelBaseProps {
 
   // 5-status investigation (Azure only)
   maxStatuses?: number;
-  onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
-  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
-  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
+  onLinkQuestion?: (findingId: string, questionId: string) => void;
+  onCreateQuestion?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  questionsMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   onAddAction?: (
     id: string,
     text: string,
@@ -95,53 +95,53 @@ export interface FindingsPanelBaseProps {
   viewMode?: 'list' | 'board' | 'tree';
   onViewModeChange?: (mode: 'list' | 'board' | 'tree') => void;
 
-  // Tree view props (passed through to FindingsLog → HypothesisTreeView)
-  hypotheses?: import('@variscout/core').Hypothesis[];
-  onSelectHypothesis?: (hypothesis: import('@variscout/core').Hypothesis) => void;
-  onAddSubHypothesis?: (
+  // Tree view props (passed through to FindingsLog → QuestionTreeView)
+  treeQuestions?: import('@variscout/core').Question[];
+  onSelectQuestion?: (question: import('@variscout/core').Question) => void;
+  onAddSubQuestion?: (
     parentId: string,
     text: string,
     factor?: string,
     validationType?: 'data' | 'gemba' | 'expert'
   ) => void;
-  /** Available factor columns for sub-hypothesis factor picker */
+  /** Available factor columns for sub-question factor picker */
   factors?: string[];
   getChildrenSummary?: (parentId: string) => {
-    supported: number;
-    contradicted: number;
-    untested: number;
-    partial: number;
+    answered: number;
+    'ruled-out': number;
+    open: number;
+    investigating: number;
     total: number;
   };
 
-  // --- Validation Task (passed through to FindingsLog → HypothesisTreeView) ---
+  // --- Validation Task (passed through to FindingsLog → QuestionTreeView) ---
   onSetValidationTask?: (id: string, task: string) => void;
   onCompleteTask?: (id: string) => void;
   onSetManualStatus?: (
     id: string,
-    status: import('@variscout/core').HypothesisStatus,
+    status: import('@variscout/core').QuestionStatus,
     note?: string
   ) => void;
-  // --- Improvement Ideas (passed through to FindingsLog → HypothesisTreeView) ---
+  // --- Improvement Ideas (passed through to FindingsLog → QuestionTreeView) ---
   ideaImpacts?: Record<string, IdeaImpact | undefined>;
-  onAddIdea?: (hypothesisId: string, text: string) => void;
+  onAddIdea?: (questionId: string, text: string) => void;
   onUpdateIdea?: (
-    hypothesisId: string,
+    questionId: string,
     ideaId: string,
     updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
   ) => void;
-  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
-  onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
-  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
+  onRemoveIdea?: (questionId: string, ideaId: string) => void;
+  onSelectIdea?: (questionId: string, ideaId: string, selected: boolean) => void;
+  onProjectIdea?: (questionId: string, ideaId: string) => void;
   onAskCoScout?: (question: string) => void;
-  /** Set cause role on a hypothesis */
+  /** Set cause role on a question */
   onSetCauseRole?: (
-    hypothesisId: string,
+    questionId: string,
     role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined
   ) => void;
   /** Ask CoScout about a specific finding (from FindingCard action button) */
   onAskCoScoutAboutFinding?: (focusContext: {
-    finding: { text: string; status: string; hypothesis?: string };
+    finding: { text: string; status: string; question?: string };
   }) => void;
 
   // Resize config
@@ -168,14 +168,14 @@ export interface FindingsPanelBaseProps {
   linkedFindings?: Array<{ id: string; text: string }>;
 
   // --- Question-driven investigation (ADR-053) ---
-  /** Factor Intelligence questions (Hypothesis objects with questionSource) */
-  questions?: Hypothesis[];
+  /** Factor Intelligence questions (Question objects with questionSource) */
+  questions?: Question[];
   /** Current issue statement */
   issueStatement?: string;
   /** Callback when issue statement is edited */
   onIssueStatementChange?: (text: string) => void;
   /** Callback when a question is clicked — switch dashboard to show evidence */
-  onQuestionClick?: (question: Hypothesis) => void;
+  onQuestionClick?: (question: Question) => void;
   /** CoScout-suggested sharpened issue statement */
   suggestedIssueStatement?: string;
   /** Accept the suggested issue statement */
@@ -214,9 +214,9 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   renderAssignSlot,
   onNavigateToChart,
   maxStatuses,
-  onLinkHypothesis,
-  onCreateHypothesis,
-  hypothesesMap,
+  onLinkQuestion,
+  onCreateQuestion,
+  questionsMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -224,9 +224,9 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   renderActionAssigneePicker,
   viewMode: externalViewMode,
   onViewModeChange,
-  hypotheses,
-  onSelectHypothesis,
-  onAddSubHypothesis,
+  treeQuestions,
+  onSelectQuestion,
+  onAddSubQuestion,
   factors,
   getChildrenSummary,
   onSetValidationTask,
@@ -385,7 +385,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
                 >
                   <LayoutGrid size={12} />
                 </button>
-                {hypotheses && hypotheses.length > 0 && (
+                {treeQuestions && treeQuestions.length > 0 && (
                   <button
                     onClick={() => handleViewModeChange('tree')}
                     className={`p-1.5 transition-colors ${
@@ -475,18 +475,18 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           renderAssignSlot={renderAssignSlot}
           onNavigateToChart={onNavigateToChart}
           viewMode={viewMode}
-          hypotheses={hypotheses}
-          onSelectHypothesis={onSelectHypothesis}
-          onAddSubHypothesis={onAddSubHypothesis}
+          questions={treeQuestions}
+          onSelectQuestion={onSelectQuestion}
+          onAddSubQuestion={onAddSubQuestion}
           factors={factors}
           getChildrenSummary={getChildrenSummary}
           onSetValidationTask={onSetValidationTask}
           onCompleteTask={onCompleteTask}
           onSetManualStatus={onSetManualStatus}
           maxStatuses={maxStatuses}
-          onLinkHypothesis={onLinkHypothesis}
-          onCreateHypothesis={onCreateHypothesis}
-          hypothesesMap={hypothesesMap}
+          onLinkQuestion={onLinkQuestion}
+          onCreateQuestion={onCreateQuestion}
+          questionsMap={questionsMap}
           onAddAction={onAddAction}
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}

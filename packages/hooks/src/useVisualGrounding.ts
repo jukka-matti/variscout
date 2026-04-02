@@ -34,7 +34,7 @@ export function resolveHighlightTarget(
         ? { action: 'highlightCategories', categories: [targetId], chartFocus: 'yamazumi' }
         : { action: 'focusChart', chartFocus: 'yamazumi' };
     case 'finding':
-    case 'hypothesis':
+    case 'question':
       return targetId
         ? { action: 'expandPanel', panelId: targetType, categories: [targetId] }
         : null;

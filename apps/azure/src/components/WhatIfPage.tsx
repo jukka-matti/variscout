@@ -8,7 +8,7 @@ interface WhatIfPageProps {
   filterCount?: number;
   filterStack?: FilterAction[];
   /** Context for idea→What-If round-trip */
-  projectionContext?: { ideaText: string; hypothesisText: string };
+  projectionContext?: { ideaText: string; questionText: string };
   /** Save projection back to idea */
   onSaveProjection?: (projection: FindingProjection) => void;
 }

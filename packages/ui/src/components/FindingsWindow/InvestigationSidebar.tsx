@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Copy, Check, PanelRightClose, PanelRightOpen } from 'lucide-react';
-import type { Hypothesis, InvestigationPhase } from '@variscout/core';
+import type { Question, InvestigationPhase } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
 import { QuestionChecklist } from './QuestionChecklist';
@@ -8,21 +8,21 @@ import { InvestigationConclusion } from './InvestigationConclusion';
 
 export interface InvestigationSidebarProps {
   phase?: InvestigationPhase;
-  hypotheses?: Hypothesis[];
+  treeQuestions?: Question[];
   factorRoles?: Record<string, string>;
   suggestedQuestions?: string[];
   collapsed: boolean;
   onToggle: () => void;
   /** When true and phase is 'improving', shows a verification checklist */
   hasStagedData?: boolean;
-  /** Factor Intelligence questions (Hypothesis objects with questionSource set) */
-  questions?: Hypothesis[];
+  /** Factor Intelligence questions (Question objects with questionSource set) */
+  questions?: Question[];
   /** Current issue statement text */
   issueStatement?: string;
   /** Callback when issue statement is edited */
   onIssueStatementChange?: (text: string) => void;
   /** Callback when a question is clicked — should switch dashboard to show evidence */
-  onQuestionClick?: (question: Hypothesis) => void;
+  onQuestionClick?: (question: Question) => void;
   /** CoScout-suggested sharpened issue statement */
   suggestedIssueStatement?: string;
   /** Callback when user accepts the suggested sharpening */
@@ -57,7 +57,7 @@ const VERIFICATION_CHECKLIST_KEYS: Array<keyof import('@variscout/core').Message
 
 const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
   phase,
-  hypotheses,
+  treeQuestions,
   factorRoles,
   suggestedQuestions,
   collapsed,
@@ -82,14 +82,14 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
     setTimeout(() => setCopiedIndex(null), 2000);
   }, []);
 
-  // Find uncovered factor roles (roles with no hypothesis linked)
+  // Find uncovered factor roles (roles with no question linked)
   const uncoveredRoles = React.useMemo(() => {
     if (!factorRoles) return [];
-    const coveredFactors = new Set((hypotheses ?? []).filter(h => h.factor).map(h => h.factor!));
+    const coveredFactors = new Set((treeQuestions ?? []).filter(h => h.factor).map(h => h.factor!));
     return Object.entries(factorRoles)
       .filter(([factor]) => !coveredFactors.has(factor))
       .map(([factor, role]) => ({ factor, role }));
-  }, [factorRoles, hypotheses]);
+  }, [factorRoles, treeQuestions]);
 
   // Compute conclusion data from questions (must be before early return)
   const suspectedCauses = React.useMemo(
@@ -101,7 +101,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
       (questions ?? []).filter(
         q =>
           q.causeRole === 'ruled-out' ||
-          (q.status === 'contradicted' && q.questionSource === 'factor-intel')
+          (q.status === 'ruled-out' && q.questionSource === 'factor-intel')
       ),
     [questions]
   );

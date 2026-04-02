@@ -15,7 +15,7 @@ const FALLBACK_QUESTIONS = [
 const INVESTIGATION_FALLBACK_QUESTIONS = [
   'Summarize the investigation progress',
   'What should we investigate next?',
-  'Are any hypotheses contradicted by the data?',
+  'Are any questions ruled out by the data?',
 ];
 
 /** Verification-grounded question templates (metric-aware) */
@@ -31,7 +31,7 @@ const VERIFICATION_QUESTIONS = {
     `${formatStatistic(reduction, 'en', 0)}% fewer out-of-spec — is this enough to meet requirements?`,
 };
 
-/** Phase-specific questions for hypothesis investigation */
+/** Phase-specific questions for question-driven investigation */
 const PHASE_QUESTIONS: Record<string, string[]> = {
   initial: [
     'Which chart should I examine first?',
@@ -43,11 +43,11 @@ const PHASE_QUESTIONS: Record<string, string[]> = {
     'What gemba checks would help narrow things down?',
   ],
   validating: [
-    'Which untested hypotheses are highest priority?',
-    'How can we validate the remaining hypotheses?',
+    'Which open questions are highest priority?',
+    'How can we answer the remaining questions?',
   ],
   converging: [
-    'Do the supported hypotheses form a coherent story?',
+    'Do the answered questions form a coherent story?',
     'What improvement options could reduce this variation?',
     "What's the simplest change to improve process capability?",
   ],
@@ -161,17 +161,17 @@ function buildInvestigationQuestions(context: AIContext): string[] {
     questions.push(`We're at ${Math.round(inv.progressPercent)}% of the target — what's missing?`);
   }
 
-  // Hypothesis-aware — converging with supported hypotheses gets improvement ideation questions
-  if (inv.allHypotheses && inv.allHypotheses.length > 0) {
-    const supported = inv.allHypotheses.filter(h => h.status === 'supported');
-    const untested = inv.allHypotheses.filter(h => h.status === 'untested');
+  // Question-aware — converging with answered questions gets improvement ideation questions
+  if (inv.allQuestions && inv.allQuestions.length > 0) {
+    const answered = inv.allQuestions.filter(q => q.status === 'answered');
+    const open = inv.allQuestions.filter(q => q.status === 'open');
 
-    if (supported.length > 0 && inv.phase === 'converging') {
-      // Improvement ideation for supported hypotheses
-      const ideasOnSupported = supported[0].ideas;
-      if (ideasOnSupported && ideasOnSupported.length > 0) {
+    if (answered.length > 0 && inv.phase === 'converging') {
+      // Improvement ideation for answered questions
+      const ideasOnAnswered = answered[0].ideas;
+      if (ideasOnAnswered && ideasOnAnswered.length > 0) {
         // Idea-aware questions when ideas exist
-        const firstIdea = ideasOnSupported[0];
+        const firstIdea = ideasOnAnswered[0];
         if (questions.length < 4) {
           questions.push(`Is the projected improvement from "${firstIdea.text}" realistic?`);
         }
@@ -181,26 +181,26 @@ function buildInvestigationQuestions(context: AIContext): string[] {
       } else {
         // No ideas yet — prompt for ideation
         if (questions.length < 4) {
-          questions.push(`What improvement options could address "${supported[0].text}"?`);
+          questions.push(`What improvement options could address "${answered[0].text}"?`);
         }
-        if (supported[0].contribution !== undefined && questions.length < 5) {
+        if (answered[0].contribution !== undefined && questions.length < 5) {
           questions.push('How might we reduce variation from this factor?');
         }
       }
-    } else if (supported.length > 0 && questions.length < 4) {
-      questions.push(`What actions would address "${supported[0].text}"?`);
+    } else if (answered.length > 0 && questions.length < 4) {
+      questions.push(`What actions would address "${answered[0].text}"?`);
     }
 
-    if (untested.length > 0 && questions.length < 4) {
-      questions.push(`How can we test the hypothesis: "${untested[0].text}"?`);
+    if (open.length > 0 && questions.length < 4) {
+      questions.push(`How can we check: "${open[0].text}"?`);
     }
   }
 
   // Uncovered investigation categories (diverge assistant)
-  if (inv.phase === 'diverging' && inv.hypothesisTree) {
+  if (inv.phase === 'diverging' && inv.questionTree) {
     // Prefer dynamic categories from investigation context
     const coveredCategories = new Set(
-      inv.hypothesisTree.filter(h => h.category).map(h => h.category!)
+      inv.questionTree.filter(q => q.category).map(q => q.category!)
     );
     const allCategories = inv.categories
       ? inv.categories.map(c => c.name)

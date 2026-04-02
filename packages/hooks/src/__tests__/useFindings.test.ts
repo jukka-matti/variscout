@@ -681,10 +681,10 @@ describe('useFindings', () => {
     });
   });
 
-  // --- Hypothesis linking ---
+  // --- Question linking ---
 
-  describe('linkHypothesis', () => {
-    it('sets hypothesisId on a finding', () => {
+  describe('linkQuestion', () => {
+    it('sets questionId on a finding', () => {
       const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
       const onChange = vi.fn();
       const { result } = renderHook(() =>
@@ -692,22 +692,22 @@ describe('useFindings', () => {
       );
 
       act(() => {
-        result.current.linkHypothesis('f-1', 'hyp-42');
+        result.current.linkQuestion('f-1', 'hyp-42');
       });
 
-      expect(result.current.findings[0].hypothesisId).toBe('hyp-42');
+      expect(result.current.findings[0].questionId).toBe('hyp-42');
       expect(onChange).toHaveBeenCalled();
     });
 
-    it('sets hypothesisId and validationStatus together', () => {
+    it('sets questionId and validationStatus together', () => {
       const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
 
       act(() => {
-        result.current.linkHypothesis('f-1', 'hyp-99', 'supports');
+        result.current.linkQuestion('f-1', 'hyp-99', 'supports');
       });
 
-      expect(result.current.findings[0].hypothesisId).toBe('hyp-99');
+      expect(result.current.findings[0].questionId).toBe('hyp-99');
       expect(result.current.findings[0].validationStatus).toBe('supports');
     });
 
@@ -720,13 +720,13 @@ describe('useFindings', () => {
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
 
       act(() => {
-        result.current.linkHypothesis('f-1', 'h-1', 'supports');
+        result.current.linkQuestion('f-1', 'h-1', 'supports');
       });
       act(() => {
-        result.current.linkHypothesis('f-2', 'h-1', 'contradicts');
+        result.current.linkQuestion('f-2', 'h-1', 'contradicts');
       });
       act(() => {
-        result.current.linkHypothesis('f-3', 'h-1', 'inconclusive');
+        result.current.linkQuestion('f-3', 'h-1', 'inconclusive');
       });
 
       expect(result.current.findings[0].validationStatus).toBe('supports');
@@ -735,16 +735,16 @@ describe('useFindings', () => {
     });
   });
 
-  describe('unlinkHypothesis', () => {
-    it('clears hypothesisId and validationStatus from a finding', () => {
+  describe('unlinkQuestion', () => {
+    it('clears questionId and validationStatus from a finding', () => {
       const initial = [
         makeFinding({
           id: 'f-1',
           text: 'Test',
           context: makeContext(),
-          hypothesisId: 'hyp-10',
+          questionId: 'hyp-10',
           validationStatus: 'supports',
-        } as Finding & { hypothesisId: string; validationStatus: 'supports' }),
+        } as Finding & { questionId: string; validationStatus: 'supports' }),
       ];
       const onChange = vi.fn();
       const { result } = renderHook(() =>
@@ -752,15 +752,15 @@ describe('useFindings', () => {
       );
 
       act(() => {
-        result.current.unlinkHypothesis('f-1');
+        result.current.unlinkQuestion('f-1');
       });
 
-      expect(result.current.findings[0].hypothesisId).toBeUndefined();
+      expect(result.current.findings[0].questionId).toBeUndefined();
       expect(result.current.findings[0].validationStatus).toBeUndefined();
       expect(onChange).toHaveBeenCalled();
     });
 
-    it('is a no-op for finding without a hypothesis link', () => {
+    it('is a no-op for finding without a question link', () => {
       const initial = [makeFinding({ id: 'f-1', text: 'No link', context: makeContext() })];
       const onChange = vi.fn();
       const { result } = renderHook(() =>
@@ -768,10 +768,10 @@ describe('useFindings', () => {
       );
 
       act(() => {
-        result.current.unlinkHypothesis('f-1');
+        result.current.unlinkQuestion('f-1');
       });
 
-      expect(result.current.findings[0].hypothesisId).toBeUndefined();
+      expect(result.current.findings[0].questionId).toBeUndefined();
       expect(onChange).toHaveBeenCalled();
     });
   });
@@ -1210,7 +1210,7 @@ describe('useFindings', () => {
   });
 
   describe('questionId linking', () => {
-    it('addFinding with questionId sets hypothesisId on the created finding', () => {
+    it('addFinding with questionId sets questionId on the created finding', () => {
       const { result } = renderHook(() => useFindings());
       const ctx = makeContext();
 
@@ -1219,11 +1219,11 @@ describe('useFindings', () => {
         finding = result.current.addFinding('Answer to question', ctx, undefined, 'q-42');
       });
 
-      expect(finding!.hypothesisId).toBe('q-42');
-      expect(result.current.findings[0].hypothesisId).toBe('q-42');
+      expect(finding!.questionId).toBe('q-42');
+      expect(result.current.findings[0].questionId).toBe('q-42');
     });
 
-    it('addFinding without questionId leaves hypothesisId undefined', () => {
+    it('addFinding without questionId leaves questionId undefined', () => {
       const { result } = renderHook(() => useFindings());
       const ctx = makeContext();
 
@@ -1232,8 +1232,8 @@ describe('useFindings', () => {
         finding = result.current.addFinding('Regular observation', ctx);
       });
 
-      expect(finding!.hypothesisId).toBeUndefined();
-      expect(result.current.findings[0].hypothesisId).toBeUndefined();
+      expect(finding!.questionId).toBeUndefined();
+      expect(result.current.findings[0].questionId).toBeUndefined();
     });
   });
 });

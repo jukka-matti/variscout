@@ -9,7 +9,7 @@ import type {
   SpecLimits,
   DataRow,
   Finding,
-  Hypothesis,
+  Question,
   FilterAction,
   ActionProposal,
 } from '@variscout/core';
@@ -28,7 +28,7 @@ export interface ActionToolDeps {
   outcome?: string | null;
   specs?: SpecLimits;
   findings: Finding[];
-  hypotheses: Hypothesis[];
+  questions: Question[];
   filters: Record<string, (string | number)[]>;
   filterStack: FilterAction[];
 }
@@ -40,7 +40,7 @@ export function buildActionToolHandlers({
   outcome,
   specs,
   findings,
-  hypotheses,
+  questions,
   filters,
   filterStack,
 }: ActionToolDeps): Partial<ToolHandlerMap> {
@@ -110,7 +110,7 @@ export function buildActionToolHandlers({
       return JSON.stringify({ proposal: true, ...proposal });
     },
 
-    create_hypothesis: async (args: Record<string, unknown>) => {
+    create_question: async (args: Record<string, unknown>) => {
       const text = args.text as string;
       const factor = (args.factor as string | null) ?? undefined;
       const level = (args.level as string | null) ?? undefined;
@@ -118,22 +118,22 @@ export function buildActionToolHandlers({
       const validationType = (args.validation_type as string) || 'data';
       const validationTask = (args.validation_task as string | null) ?? undefined;
 
-      if (!text) return JSON.stringify({ error: 'Missing hypothesis text' });
+      if (!text) return JSON.stringify({ error: 'Missing question text' });
 
       let predictedStatus: string | undefined;
       let etaSquared: number | undefined;
       if (factor && outcome && filteredData.length > 0) {
         etaSquared = getEtaSquared(filteredData, factor, outcome);
-        if (etaSquared >= 0.15) predictedStatus = 'supported';
-        else if (etaSquared < 0.05) predictedStatus = 'contradicted';
-        else predictedStatus = 'partial';
+        if (etaSquared >= 0.15) predictedStatus = 'answered';
+        else if (etaSquared < 0.05) predictedStatus = 'ruled-out';
+        else predictedStatus = 'investigating';
       }
 
-      const parentHypo = parentId ? hypotheses.find(h => h.id === parentId) : undefined;
+      const parentQuestion = parentId ? questions.find(h => h.id === parentId) : undefined;
 
       const proposal: ActionProposal = {
         id: generateProposalId(),
-        tool: 'create_hypothesis',
+        tool: 'create_question',
         params: {
           text,
           factor,
@@ -145,8 +145,8 @@ export function buildActionToolHandlers({
         preview: {
           predictedStatus,
           etaSquared: etaSquared !== undefined ? Math.round(etaSquared * 1000) / 1000 : undefined,
-          parentText: parentHypo?.text,
-          depth: parentHypo ? 2 : 1,
+          parentText: parentQuestion?.text,
+          depth: parentQuestion ? 2 : 1,
           validationType,
           validationTask,
         },
@@ -159,7 +159,7 @@ export function buildActionToolHandlers({
     },
 
     suggest_improvement_idea: async (args: Record<string, unknown>) => {
-      const hypothesisId = args.hypothesis_id as string;
+      const questionId = args.question_id as string;
       const text = args.text as string;
       const direction = args.direction as string;
       const timeframe = args.timeframe as string;
@@ -167,17 +167,17 @@ export function buildActionToolHandlers({
       const riskAxis1 = args.risk_axis1 as number | null | undefined;
       const riskAxis2 = args.risk_axis2 as number | null | undefined;
 
-      if (!hypothesisId || !text || !direction) {
-        return JSON.stringify({ error: 'Missing hypothesis_id, text, or direction' });
+      if (!questionId || !text || !direction) {
+        return JSON.stringify({ error: 'Missing question_id, text, or direction' });
       }
 
-      const targetHypothesis = hypotheses.find(h => h.id === hypothesisId);
-      if (!targetHypothesis) {
-        return JSON.stringify({ error: `Hypothesis not found: ${hypothesisId}` });
+      const targetQuestion = questions.find(h => h.id === questionId);
+      if (!targetQuestion) {
+        return JSON.stringify({ error: `Question not found: ${questionId}` });
       }
-      if (targetHypothesis.status !== 'supported' && targetHypothesis.status !== 'partial') {
+      if (targetQuestion.status !== 'answered' && targetQuestion.status !== 'investigating') {
         return JSON.stringify({
-          error: `Hypothesis must be 'supported' or 'partial', currently '${targetHypothesis.status}'`,
+          error: `Question must be 'answered' or 'investigating', currently '${targetQuestion.status}'`,
         });
       }
 
@@ -185,7 +185,7 @@ export function buildActionToolHandlers({
         id: generateProposalId(),
         tool: 'suggest_improvement_idea',
         params: {
-          hypothesis_id: hypothesisId,
+          question_id: questionId,
           text,
           direction,
           timeframe,
@@ -194,8 +194,8 @@ export function buildActionToolHandlers({
           risk_axis2: riskAxis2 ?? undefined,
         },
         preview: {
-          hypothesisText: targetHypothesis.text,
-          existingIdeasCount: targetHypothesis.ideas?.length ?? 0,
+          questionText: targetQuestion.text,
+          existingIdeasCount: targetQuestion.ideas?.length ?? 0,
           direction,
           timeframe,
           cost: cost ?? undefined,
@@ -210,15 +210,15 @@ export function buildActionToolHandlers({
 
     suggest_save_finding: async (args: Record<string, unknown>) => {
       const insightText = args.insight_text as string;
-      const suggestedHypothesisId = (args.suggested_hypothesis_id as string | null) ?? undefined;
+      const suggestedQuestionId = (args.suggested_question_id as string | null) ?? undefined;
       const category = (args.category as string | null) ?? undefined;
 
       if (!insightText) return JSON.stringify({ error: 'Missing insight_text' });
 
-      if (suggestedHypothesisId) {
-        const targetHypo = hypotheses.find(h => h.id === suggestedHypothesisId);
-        if (!targetHypo) {
-          return JSON.stringify({ error: `Hypothesis not found: ${suggestedHypothesisId}` });
+      if (suggestedQuestionId) {
+        const targetQuestion = questions.find(h => h.id === suggestedQuestionId);
+        if (!targetQuestion) {
+          return JSON.stringify({ error: `Question not found: ${suggestedQuestionId}` });
         }
       }
 
@@ -227,7 +227,7 @@ export function buildActionToolHandlers({
         tool: 'suggest_save_finding',
         params: {
           insight_text: insightText,
-          suggested_hypothesis_id: suggestedHypothesisId,
+          suggested_question_id: suggestedQuestionId,
           category: category,
         },
         preview: {
@@ -237,8 +237,8 @@ export function buildActionToolHandlers({
             mean: stats?.mean,
             cpk: stats?.cpk,
           },
-          suggestedHypothesisText: suggestedHypothesisId
-            ? hypotheses.find(h => h.id === suggestedHypothesisId)?.text
+          suggestedQuestionText: suggestedQuestionId
+            ? questions.find(h => h.id === suggestedQuestionId)?.text
             : undefined,
           category,
         },

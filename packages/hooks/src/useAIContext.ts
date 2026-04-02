@@ -19,7 +19,7 @@ import type {
   StatsResult,
   SpecLimits,
   Finding,
-  Hypothesis,
+  Question,
   AnalysisMode,
   YamazumiSummary,
 } from '@variscout/core';
@@ -49,8 +49,8 @@ export interface UseAIContextOptions {
   };
   /** Current findings */
   findings?: Finding[];
-  /** Current hypotheses for investigation context */
-  hypotheses?: Hypothesis[];
+  /** Current questions for investigation context */
+  questions?: Question[];
   /** Currently active/focused chart */
   activeChart?: InsightChartType;
   /** Variation contributions per factor (η²) */
@@ -100,7 +100,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     categories,
     violations,
     findings,
-    hypotheses,
+    questions,
     activeChart,
     variationContributions,
     drillPath,
@@ -126,7 +126,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       categories,
       violations,
       findings,
-      hypotheses,
+      questions,
       activeChart,
       variationContributions,
       drillPath,
@@ -168,7 +168,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     categories,
     violations,
     findings,
-    hypotheses,
+    questions,
     activeChart,
     variationContributions,
     drillPath,

@@ -54,7 +54,7 @@ vi.mock('@variscout/core', () => ({
   buildProjectMetadata: () => ({
     phase: 'scout',
     findingCounts: {},
-    hypothesisCounts: {},
+    questionCounts: {},
     actionCounts: { total: 0, completed: 0, overdue: 0 },
     assignedTaskCount: 0,
     hasOverdueTasks: false,

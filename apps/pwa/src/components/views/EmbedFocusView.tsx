@@ -2,15 +2,15 @@ import React from 'react';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
-import StatsPanel from '../StatsPanel';
+import ProcessIntelligencePanel from '../ProcessIntelligencePanel';
 import { ErrorBoundary, FactorSelector } from '@variscout/ui';
 import { EditableChartTitle } from '@variscout/ui';
-import type { StatsPanelTab } from '@variscout/ui';
+import type { PITab } from '@variscout/ui';
 import { Activity } from 'lucide-react';
 import type { StatsResult, SpecLimits, DataRow } from '@variscout/core';
 
-/** Maps legacy embed stats tab values to current StatsPanelTab names */
-function toStatsPanelTab(embedTab: EmbedStatsTab | null | undefined): StatsPanelTab | undefined {
+/** Maps legacy embed stats tab values to current PITab names */
+function toPITab(embedTab: EmbedStatsTab | null | undefined): PITab | undefined {
   if (!embedTab) return undefined;
   // 'summary' was the old name for the main stats tab (now 'stats')
   if (embedTab === 'summary') return 'stats';
@@ -164,12 +164,12 @@ const EmbedFocusView: React.FC<EmbedFocusViewProps> = ({
 
       {focusChart === 'stats' && (
         <div className="flex-1 min-h-0">
-          <StatsPanel
+          <ProcessIntelligencePanel
             stats={stats}
             specs={specs}
             filteredData={filteredData}
             outcome={outcome}
-            defaultTab={toStatsPanelTab(embedStatsTab)}
+            defaultTab={toPITab(embedStatsTab)}
             className="w-full h-full lg:w-full border-none shadow-none rounded-none"
           />
         </div>

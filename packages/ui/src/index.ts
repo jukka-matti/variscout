@@ -116,7 +116,7 @@ export {
 } from './components/FindingsWindow';
 
 export {
-  StatsPanelBase,
+  PIPanelBase,
   StatsSummaryPanel,
   TargetDiscoveryCard,
   StagedComparisonCard,
@@ -130,8 +130,8 @@ export {
   JournalTabView,
   JournalEntryRow,
   PIOverflowMenu,
-  type StatsPanelBaseProps,
-  type StatsPanelTab,
+  type PIPanelBaseProps,
+  type PITab,
   type ComplementInsight,
   type TargetDiscoveryCardProps,
   type StatsSummaryPanelProps,
@@ -152,7 +152,7 @@ export {
   type JournalEntryRowProps,
   type PIOverflowMenuProps,
   type PIOverflowView,
-} from './components/StatsPanel';
+} from './components/ProcessIntelligencePanel';
 
 export {
   ManualEntryBase,
@@ -243,8 +243,8 @@ export {
   FindingComments,
   FindingBoardView,
   FindingsExportMenu,
-  HypothesisTreeView,
-  HypothesisNode,
+  QuestionTreeView,
+  QuestionNode,
   copyFindingsToClipboard,
   formatFindingsText,
   type FindingsLogProps,
@@ -254,8 +254,8 @@ export {
   type FindingCommentsProps,
   type FindingBoardViewProps,
   type FindingsExportMenuProps,
-  type HypothesisTreeViewProps,
-  type HypothesisNodeProps,
+  type QuestionTreeViewProps,
+  type QuestionNodeProps,
 } from './components/FindingsLog';
 
 export {
@@ -370,8 +370,8 @@ export {
   type ReportChartSnapshotColorScheme,
   type VerificationEvidenceBaseProps,
   type VerificationEvidenceColorScheme,
-  ReportHypothesisSummary,
-  type ReportHypothesisSummaryProps,
+  ReportQuestionSummary,
+  type ReportQuestionSummaryProps,
   ReportImprovementSummary,
   type ReportImprovementSummaryProps,
   ReportCpkLearningLoop,

@@ -11,7 +11,7 @@ import ManualEntry from '../components/data/ManualEntry';
 import { ColumnMapping, ImprovementWorkspaceBase, type AnalysisBrief } from '@variscout/ui';
 import {
   useControlViolations,
-  useHypotheses,
+  useQuestions,
   useJourneyPhase,
   detectEntryScenario,
   useCapabilityIChartData,
@@ -65,8 +65,8 @@ interface EditorProps {
   initialFindingId?: string;
   /** Deep link: auto-focus this chart type */
   initialChart?: string;
-  /** Deep link: auto-select this hypothesis in investigation view */
-  initialHypothesisId?: string;
+  /** Deep link: auto-select this question in investigation view */
+  initialQuestionId?: string;
   /** Deep link: auto-open a specific mode (e.g. 'improvement', 'report') */
   initialMode?: string;
 }
@@ -76,7 +76,7 @@ export const Editor: React.FC<EditorProps> = ({
   onBack,
   initialFindingId,
   initialChart,
-  initialHypothesisId,
+  initialQuestionId,
   initialMode,
 }) => {
   const { syncStatus, listProjects } = useStorage();
@@ -115,8 +115,8 @@ export const Editor: React.FC<EditorProps> = ({
     setViewState,
     findings: persistedFindings,
     setFindings: setPersistedFindings,
-    hypotheses: persistedHypotheses,
-    setHypotheses: setPersistedHypotheses,
+    questions: persistedQuestions,
+    setQuestions: setPersistedQuestions,
     currentProjectLocation,
     saveProject,
     loadProject,
@@ -171,7 +171,7 @@ export const Editor: React.FC<EditorProps> = ({
   const activeView = usePanelsStore(s => s.activeView);
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isWhatIfOpen = usePanelsStore(s => s.isWhatIfOpen);
-  const isStatsSidebarOpen = usePanelsStore(s => s.isStatsSidebarOpen);
+  const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
 
   // Initialize from persisted ViewState (once, on mount)
   const viewStateInitRef = useRef(false);
@@ -343,9 +343,9 @@ export const Editor: React.FC<EditorProps> = ({
     } else if (target === 'findings' && targetId) {
       ps.showInvestigation();
       useFindingsStore.getState().setStatusFilter(targetId);
-    } else if (target === 'hypothesis' && targetId) {
+    } else if (target === 'question' && targetId) {
       ps.showInvestigation();
-      useInvestigationStore.getState().expandToHypothesis(targetId);
+      useInvestigationStore.getState().expandToQuestion(targetId);
     } else if (target === 'improvement' || target === 'actions') {
       ps.showImprovement();
     } else if (target === 'report') {
@@ -377,7 +377,7 @@ export const Editor: React.FC<EditorProps> = ({
     if (!stats) return undefined;
     let totalMeanShift = 0;
     let totalSigmaReduction = 0;
-    for (const h of persistedHypotheses ?? []) {
+    for (const h of persistedQuestions ?? []) {
       for (const idea of h.ideas ?? []) {
         if (idea.selected && idea.projection) {
           totalMeanShift += idea.projection.meanDelta;
@@ -390,9 +390,9 @@ export const Editor: React.FC<EditorProps> = ({
     if (metric === 'mean') return stats.mean + totalMeanShift;
     if (metric === 'sigma') return stats.stdDev + totalSigmaReduction;
     return undefined;
-  }, [persistedHypotheses, processContext, stats]);
+  }, [persistedQuestions, processContext, stats]);
 
-  // Question auto-link refs: updated after hypothesesState is created (below),
+  // Question auto-link refs: updated after questionsState is created (below),
   // read lazily inside useFindingsOrchestration callbacks via internal refs
   const focusedQuestionIdRef = React.useRef<string | null>(null);
   const linkFindingRef = React.useRef<((hId: string, fId: string) => void) | undefined>(undefined);
@@ -423,7 +423,7 @@ export const Editor: React.FC<EditorProps> = ({
     shareFinding,
     canMentionInChannel,
     onViewStateChange: handleViewStateChange,
-    hypotheses: persistedHypotheses,
+    questions: persistedQuestions,
     processContext,
     currentValue: stats?.cpk ?? stats?.mean,
     projectedValue: projectedFromIdeas,
@@ -440,7 +440,7 @@ export const Editor: React.FC<EditorProps> = ({
     if (deepLinkConsumedRef.current || !rawData.length || !outcome) return;
 
     const hasDeepLink =
-      !!initialFindingId || !!initialChart || !!initialHypothesisId || !!initialMode;
+      !!initialFindingId || !!initialChart || !!initialQuestionId || !!initialMode;
 
     if (initialFindingId) {
       if (!findingsState.findings.some(f => f.id === initialFindingId)) {
@@ -459,16 +459,16 @@ export const Editor: React.FC<EditorProps> = ({
         focusedChart: initialChart as 'ichart' | 'boxplot' | 'pareto' | null,
       });
     }
-    if (initialHypothesisId) {
-      if (!hypothesesState.hypotheses.some(h => h.id === initialHypothesisId)) {
+    if (initialQuestionId) {
+      if (!questionsState.questions.some(h => h.id === initialQuestionId)) {
         showToast({
           type: 'warning',
-          message: 'The linked hypothesis was not found',
+          message: 'The linked question was not found',
           dismissAfter: 5000,
         });
       } else {
         usePanelsStore.getState().showInvestigation();
-        useInvestigationStore.getState().expandToHypothesis(initialHypothesisId);
+        useInvestigationStore.getState().expandToQuestion(initialQuestionId);
       }
     }
     if (initialMode === 'investigation') {
@@ -496,7 +496,7 @@ export const Editor: React.FC<EditorProps> = ({
     }
     deepLinkConsumedRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rawData.length, outcome, initialFindingId, initialChart, initialHypothesisId, initialMode]);
+  }, [rawData.length, outcome, initialFindingId, initialChart, initialQuestionId, initialMode]);
 
   // Update Teams deep link context when project/view changes
   useEffect(() => {
@@ -537,26 +537,26 @@ export const Editor: React.FC<EditorProps> = ({
       location: currentProjectLocation,
     });
 
-  // Hypothesis CRUD
-  const hypothesesState = useHypotheses({
-    initialHypotheses: persistedHypotheses,
-    onHypothesesChange: setPersistedHypotheses,
+  // Question CRUD
+  const questionsState = useQuestions({
+    initialQuestions: persistedQuestions,
+    onQuestionsChange: setPersistedQuestions,
     findings: findingsState.findings,
   });
 
   // Update question auto-link refs (consumed by useFindingsOrchestration callbacks)
-  focusedQuestionIdRef.current = hypothesesState.focusedQuestionId;
-  linkFindingRef.current = hypothesesState.linkFinding;
+  focusedQuestionIdRef.current = questionsState.focusedQuestionId;
+  linkFindingRef.current = questionsState.linkFinding;
 
   // Investigation workflow
   const {
-    handleCreateHypothesis,
+    handleCreateQuestion,
     handleProjectIdea,
     handleSaveIdeaProjection,
     clearProjectionTarget,
     handleSetFindingStatus,
   } = useInvestigationOrchestration({
-    hypothesesState,
+    questionsState,
     findingsState,
     processContext,
     stats,
@@ -566,13 +566,13 @@ export const Editor: React.FC<EditorProps> = ({
   // Improvement workspace
   const { handleConvertIdeasToActions, handleOpenImprovementPopout, handleSynthesisChange } =
     useImprovementOrchestration({
-      hypothesesState,
+      questionsState,
       findingsState,
-      persistedHypotheses,
+      persistedQuestions: persistedQuestions,
       processContext,
       setProcessContext,
     });
-  const improvementHypotheses = useImprovementStore(s => s.improvementHypotheses);
+  const improvementQuestions = useImprovementStore(s => s.improvementQuestions);
   const improvementLinkedFindings = useImprovementStore(s => s.improvementLinkedFindings);
   const selectedIdeaIds = useImprovementStore(s => s.selectedIdeaIds);
   const convertedIdeaIds = useImprovementStore(s => s.convertedIdeaIds);
@@ -641,7 +641,7 @@ export const Editor: React.FC<EditorProps> = ({
     outcome,
     specs,
     findings: findingsState.findings,
-    hypotheses: hypothesesState.hypotheses,
+    questions: questionsState.questions,
     factors,
     filters,
     filterStack: filterNav.filterStack,
@@ -652,7 +652,7 @@ export const Editor: React.FC<EditorProps> = ({
     categories,
     stagedStats,
     drillPath,
-    persistedHypotheses,
+    persistedQuestions,
     locale,
     knowledgeSearchFolder,
     journeyPhase,
@@ -680,7 +680,7 @@ export const Editor: React.FC<EditorProps> = ({
     messages: aiOrch.coscout.messages,
     filterNav,
     findingsState,
-    hypothesesState,
+    questionsState,
     filters,
     stats,
     filteredDataLength: filteredData.length,
@@ -716,15 +716,15 @@ export const Editor: React.FC<EditorProps> = ({
           updatedContext.targetDirection = brief.target.direction;
         }
         setProcessContext(updatedContext);
-        if (brief.hypotheses) {
-          for (const h of brief.hypotheses) {
-            hypothesesState.addHypothesis(h.text, h.factor, h.level);
+        if (brief.questions) {
+          for (const h of brief.questions) {
+            questionsState.addQuestion(h.text, h.factor, h.level);
           }
         }
       }
       dataFlow.handleMappingConfirm(newOutcome, newFactors, newSpecs);
     },
-    [dataFlow, setCategories, processContext, setProcessContext, hypothesesState]
+    [dataFlow, setCategories, processContext, setProcessContext, questionsState]
   );
 
   // Compute excluded row data for DataTableModal
@@ -758,7 +758,7 @@ export const Editor: React.FC<EditorProps> = ({
   // Auto-save on key state changes (Phase 3)
   useAutoSave(
     handleSave,
-    [persistedFindings, persistedHypotheses, processContext, specs, displayOptions],
+    [persistedFindings, persistedQuestions, processContext, specs, displayOptions],
     rawData.length > 0 && !!projectId
   );
 
@@ -896,7 +896,7 @@ export const Editor: React.FC<EditorProps> = ({
             projectionTarget
               ? {
                   ideaText: projectionTarget.ideaText,
-                  hypothesisText: projectionTarget.hypothesisText,
+                  questionText: projectionTarget.questionText,
                 }
               : undefined
           }
@@ -923,11 +923,11 @@ export const Editor: React.FC<EditorProps> = ({
         hasData={rawData.length > 0}
         activeView={activeView}
         openQuestionCount={
-          hypothesesState.hypotheses.filter(h => h.questionSource && h.status === 'untested').length
+          questionsState.questions.filter(h => h.questionSource && h.status === 'open').length
         }
         selectedIdeaCount={selectedIdeaIds.size}
-        isStatsSidebarOpen={isStatsSidebarOpen}
-        onToggleStatsSidebar={() => usePanelsStore.getState().toggleStatsSidebar()}
+        isPISidebarOpen={isPISidebarOpen}
+        onTogglePISidebar={() => usePanelsStore.getState().togglePISidebar()}
         isCoScoutOpen={isCoScoutOpen}
         onToggleCoScout={() => usePanelsStore.getState().toggleCoScout()}
         onAddPasteData={() => dataFlow.startAppendPaste()}
@@ -996,8 +996,8 @@ export const Editor: React.FC<EditorProps> = ({
                 handleNavigateToChart={handleNavigateToChart}
                 handleShareFinding={handleShareFinding}
                 drillPath={drillPath}
-                hypothesesState={hypothesesState}
-                handleCreateHypothesis={handleCreateHypothesis}
+                questionsState={questionsState}
+                handleCreateQuestion={handleCreateQuestion}
                 handleProjectIdea={handleProjectIdea}
                 handleAddCommentWithAuthor={handleAddCommentWithAuthor}
                 handleAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
@@ -1016,20 +1016,20 @@ export const Editor: React.FC<EditorProps> = ({
               <ImprovementWorkspaceBase
                 synthesis={processContext?.synthesis}
                 onSynthesisChange={handleSynthesisChange}
-                hypotheses={improvementHypotheses}
+                questions={improvementQuestions}
                 linkedFindings={improvementLinkedFindings}
-                onToggleSelect={(hId, iId, sel) => hypothesesState.selectIdea(hId, iId, sel)}
+                onToggleSelect={(hId, iId, sel) => questionsState.selectIdea(hId, iId, sel)}
                 onUpdateTimeframe={(hId, iId, timeframe) =>
-                  hypothesesState.updateIdea(hId, iId, { timeframe })
+                  questionsState.updateIdea(hId, iId, { timeframe })
                 }
                 onUpdateDirection={(hId, iId, dir) =>
-                  hypothesesState.updateIdea(hId, iId, { direction: dir })
+                  questionsState.updateIdea(hId, iId, { direction: dir })
                 }
-                onUpdateCost={(hId, iId, cost) => hypothesesState.updateIdea(hId, iId, { cost })}
+                onUpdateCost={(hId, iId, cost) => questionsState.updateIdea(hId, iId, { cost })}
                 onOpenRisk={() => {}}
-                onRemoveIdea={hypothesesState.removeIdea}
+                onRemoveIdea={questionsState.removeIdea}
                 onOpenWhatIf={handleProjectIdea}
-                onAddIdea={(hId, text) => hypothesesState.addIdea(hId, text)}
+                onAddIdea={(hId, text) => questionsState.addIdea(hId, text)}
                 onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
                 onConvertToActions={handleConvertIdeasToActions}
                 onBack={() => usePanelsStore.getState().showAnalysis()}
@@ -1056,7 +1056,7 @@ export const Editor: React.FC<EditorProps> = ({
                 findingsCallbacks={findingsCallbacks}
                 handlePinFinding={handlePinFinding}
                 handleSetFindingStatus={handleSetFindingStatus}
-                hypothesesState={hypothesesState}
+                questionsState={questionsState}
                 handleAddCommentWithAuthor={handleAddCommentWithAuthor}
                 aiOrch={aiOrch}
                 actionProposalsState={actionProposalsState}

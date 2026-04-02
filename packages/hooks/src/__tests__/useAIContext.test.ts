@@ -143,7 +143,7 @@ describe('useAIContext', () => {
   });
 
   it('passes teamContributors to context', () => {
-    const team = { count: 3, hypothesisAreas: ['Machine', 'Operator'] };
+    const team = { count: 3, questionAreas: ['Machine', 'Operator'] };
     const { result } = renderHook(() => useAIContext({ enabled: true, teamContributors: team }));
     expect(result.current.context!.teamContributors).toEqual(team);
   });
@@ -198,7 +198,7 @@ describe('useAIContext', () => {
     const { result } = renderHook(() =>
       useAIContext({
         enabled: true,
-        selectedFinding: { text: 'Machine A is worst', hypothesis: 'Worn bearings' },
+        selectedFinding: { text: 'Machine A is worst', question: 'Worn bearings' },
       })
     );
     expect(result.current.context!.investigation?.selectedFinding?.text).toBe('Machine A is worst');

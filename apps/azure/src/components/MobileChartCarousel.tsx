@@ -26,7 +26,7 @@ import {
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
-import StatsPanel from './StatsPanel';
+import ProcessIntelligencePanel from './ProcessIntelligencePanel';
 import PeoplePicker from './PeoplePicker';
 import {
   AnovaResults,
@@ -527,7 +527,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
               />
             )}
             {activeView === 'stats' && (
-              <StatsPanel
+              <ProcessIntelligencePanel
                 stats={stats}
                 specs={specs}
                 filteredData={filteredData}

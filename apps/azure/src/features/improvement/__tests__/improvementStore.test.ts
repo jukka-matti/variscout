@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useImprovementStore } from '../improvementStore';
-import type { ImprovementHypothesis } from '../improvementStore';
+import type { ImprovementQuestion } from '../improvementStore';
 
 /** Reset store to defaults before each test. */
 beforeEach(() => {
   useImprovementStore.setState({
-    improvementHypotheses: [],
+    improvementQuestions: [],
     improvementLinkedFindings: [],
     selectedIdeaIds: new Set<string>(),
     projectedCpkMap: {},
@@ -17,7 +17,7 @@ describe('improvementStore', () => {
   describe('initial state', () => {
     it('has empty arrays, empty Sets, and empty map', () => {
       const s = useImprovementStore.getState();
-      expect(s.improvementHypotheses).toEqual([]);
+      expect(s.improvementQuestions).toEqual([]);
       expect(s.improvementLinkedFindings).toEqual([]);
       expect(s.selectedIdeaIds).toEqual(new Set());
       expect(s.projectedCpkMap).toEqual({});
@@ -33,7 +33,7 @@ describe('improvementStore', () => {
 
   describe('syncState', () => {
     it('updates all fields with a full state sync', () => {
-      const hypotheses: ImprovementHypothesis[] = [
+      const questions: ImprovementQuestion[] = [
         { id: 'h1', text: 'Root cause A', ideas: [] },
         { id: 'h2', text: 'Root cause B', ideas: [] },
       ];
@@ -43,7 +43,7 @@ describe('improvementStore', () => {
       const convertedIdeaIds = new Set(['idea-1']);
 
       useImprovementStore.getState().syncState({
-        improvementHypotheses: hypotheses,
+        improvementQuestions: questions,
         improvementLinkedFindings: linkedFindings,
         selectedIdeaIds,
         projectedCpkMap,
@@ -51,8 +51,8 @@ describe('improvementStore', () => {
       });
 
       const s = useImprovementStore.getState();
-      expect(s.improvementHypotheses).toBe(hypotheses);
-      expect(s.improvementHypotheses).toHaveLength(2);
+      expect(s.improvementQuestions).toBe(questions);
+      expect(s.improvementQuestions).toHaveLength(2);
       expect(s.improvementLinkedFindings).toBe(linkedFindings);
       expect(s.selectedIdeaIds).toBe(selectedIdeaIds);
       expect(s.selectedIdeaIds.size).toBe(2);
@@ -66,7 +66,7 @@ describe('improvementStore', () => {
       const convertedIdeaIds = new Set(['idea-b']);
 
       useImprovementStore.getState().syncState({
-        improvementHypotheses: [],
+        improvementQuestions: [],
         improvementLinkedFindings: [],
         selectedIdeaIds,
         projectedCpkMap: {},
@@ -82,17 +82,17 @@ describe('improvementStore', () => {
 
     it('overwrites previous state on subsequent sync', () => {
       useImprovementStore.getState().syncState({
-        improvementHypotheses: [{ id: 'h1', text: 'First', ideas: [] }],
+        improvementQuestions: [{ id: 'h1', text: 'First', ideas: [] }],
         improvementLinkedFindings: [{ id: 'f1', text: 'Finding 1' }],
         selectedIdeaIds: new Set(['old-idea']),
         projectedCpkMap: { f1: 1.0 },
         convertedIdeaIds: new Set(['old-converted']),
       });
 
-      const newHypotheses: ImprovementHypothesis[] = [{ id: 'h2', text: 'Second', ideas: [] }];
+      const newHypotheses: ImprovementQuestion[] = [{ id: 'h2', text: 'Second', ideas: [] }];
 
       useImprovementStore.getState().syncState({
-        improvementHypotheses: newHypotheses,
+        improvementQuestions: newHypotheses,
         improvementLinkedFindings: [],
         selectedIdeaIds: new Set(['new-idea']),
         projectedCpkMap: { f2: 2.0 },
@@ -100,9 +100,9 @@ describe('improvementStore', () => {
       });
 
       const s = useImprovementStore.getState();
-      expect(s.improvementHypotheses).toBe(newHypotheses);
-      expect(s.improvementHypotheses).toHaveLength(1);
-      expect(s.improvementHypotheses[0].id).toBe('h2');
+      expect(s.improvementQuestions).toBe(newHypotheses);
+      expect(s.improvementQuestions).toHaveLength(1);
+      expect(s.improvementQuestions[0].id).toBe('h2');
       expect(s.improvementLinkedFindings).toEqual([]);
       expect(s.selectedIdeaIds.has('old-idea')).toBe(false);
       expect(s.selectedIdeaIds.has('new-idea')).toBe(true);
@@ -113,7 +113,7 @@ describe('improvementStore', () => {
     it('handles empty collections', () => {
       // First set some data
       useImprovementStore.getState().syncState({
-        improvementHypotheses: [{ id: 'h1', text: 'test', ideas: [] }],
+        improvementQuestions: [{ id: 'h1', text: 'test', ideas: [] }],
         improvementLinkedFindings: [{ id: 'f1', text: 'test' }],
         selectedIdeaIds: new Set(['idea-1']),
         projectedCpkMap: { f1: 1.5 },
@@ -122,7 +122,7 @@ describe('improvementStore', () => {
 
       // Then sync empty state
       useImprovementStore.getState().syncState({
-        improvementHypotheses: [],
+        improvementQuestions: [],
         improvementLinkedFindings: [],
         selectedIdeaIds: new Set(),
         projectedCpkMap: {},
@@ -130,7 +130,7 @@ describe('improvementStore', () => {
       });
 
       const s = useImprovementStore.getState();
-      expect(s.improvementHypotheses).toEqual([]);
+      expect(s.improvementQuestions).toEqual([]);
       expect(s.improvementLinkedFindings).toEqual([]);
       expect(s.selectedIdeaIds.size).toBe(0);
       expect(s.projectedCpkMap).toEqual({});

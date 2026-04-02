@@ -1,40 +1,40 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import HypothesisTreeView from '../HypothesisTreeView';
-import HypothesisNode from '../HypothesisNode';
-import { createHypothesis, createInvestigationCategory } from '@variscout/core';
+import QuestionTreeView from '../QuestionTreeView';
+import QuestionNode from '../QuestionNode';
+import { createQuestion, createInvestigationCategory } from '@variscout/core';
 
-const makeHypothesis = (text: string, parentId?: string, factor?: string) => {
-  return createHypothesis(text, factor, undefined, parentId);
+const makeQuestion = (text: string, parentId?: string, factor?: string) => {
+  return createQuestion(text, factor, undefined, parentId);
 };
 
-describe('HypothesisTreeView', () => {
-  it('renders empty state when no hypotheses', () => {
-    render(<HypothesisTreeView hypotheses={[]} findings={[]} />);
-    expect(screen.getByText('No hypotheses yet')).toBeTruthy();
+describe('QuestionTreeView', () => {
+  it('renders empty state when no questions', () => {
+    render(<QuestionTreeView questions={[]} findings={[]} />);
+    expect(screen.getByText('No questions yet')).toBeTruthy();
   });
 
-  it('renders root hypotheses', () => {
-    const h1 = makeHypothesis('Machine issue');
-    const h2 = makeHypothesis('Shift issue');
-    render(<HypothesisTreeView hypotheses={[h1, h2]} findings={[]} />);
+  it('renders root questions', () => {
+    const h1 = makeQuestion('Machine issue');
+    const h2 = makeQuestion('Shift issue');
+    render(<QuestionTreeView questions={[h1, h2]} findings={[]} />);
     expect(screen.getByText('Machine issue')).toBeTruthy();
     expect(screen.getByText('Shift issue')).toBeTruthy();
   });
 
   it('renders tree structure with children', () => {
-    const root = makeHypothesis('Root cause');
-    const child = makeHypothesis('Sub cause', root.id);
-    render(<HypothesisTreeView hypotheses={[root, child]} findings={[]} />);
+    const root = makeQuestion('Root cause');
+    const child = makeQuestion('Sub cause', root.id);
+    render(<QuestionTreeView questions={[root, child]} findings={[]} />);
     expect(screen.getByText('Root cause')).toBeTruthy();
     // Child is not visible until expanded
     expect(screen.queryByText('Sub cause')).toBeNull();
   });
 
   it('expands/collapses nodes on toggle click', () => {
-    const root = makeHypothesis('Root cause');
-    const child = makeHypothesis('Sub cause', root.id);
-    render(<HypothesisTreeView hypotheses={[root, child]} findings={[]} />);
+    const root = makeQuestion('Root cause');
+    const child = makeQuestion('Sub cause', root.id);
+    render(<QuestionTreeView questions={[root, child]} findings={[]} />);
 
     // Click expand button (▶)
     const expandBtn = screen.getByLabelText('Expand');
@@ -47,26 +47,26 @@ describe('HypothesisTreeView', () => {
     expect(screen.queryByText('Sub cause')).toBeNull();
   });
 
-  it('calls onSelectHypothesis when clicking a node', () => {
+  it('calls onSelectQuestion when clicking a node', () => {
     const onSelect = vi.fn();
-    const h = makeHypothesis('Test');
-    render(<HypothesisTreeView hypotheses={[h]} findings={[]} onSelectHypothesis={onSelect} />);
+    const h = makeQuestion('Test');
+    render(<QuestionTreeView questions={[h]} findings={[]} onSelectQuestion={onSelect} />);
     fireEvent.click(screen.getByText('Test'));
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ text: 'Test' }));
   });
 
   it('shows linked findings count', () => {
-    const h = makeHypothesis('Test');
+    const h = makeQuestion('Test');
     h.linkedFindingIds = ['f-1', 'f-2'];
-    render(<HypothesisTreeView hypotheses={[h]} findings={[]} />);
+    render(<QuestionTreeView questions={[h]} findings={[]} />);
     expect(screen.getByText('2 findings')).toBeTruthy();
   });
 
-  it('shows inline sub-hypothesis form on "+" click and calls onAddSubHypothesis on submit', () => {
+  it('shows inline sub-question form on "+" click and calls onAddSubQuestion on submit', () => {
     const onAdd = vi.fn();
-    const h = makeHypothesis('Root');
-    render(<HypothesisTreeView hypotheses={[h]} findings={[]} onAddSubHypothesis={onAdd} />);
-    const addBtn = screen.getByTitle('Add sub-hypothesis');
+    const h = makeQuestion('Root');
+    render(<QuestionTreeView questions={[h]} findings={[]} onAddSubQuestion={onAdd} />);
+    const addBtn = screen.getByTitle('Add sub-question');
     fireEvent.click(addBtn);
     // Inline form should appear
     const input = screen.getByPlaceholderText('What might cause this?');
@@ -75,20 +75,20 @@ describe('HypothesisTreeView', () => {
     expect(onAdd).toHaveBeenCalledWith(h.id, 'Sub cause', undefined, 'data');
   });
 
-  it('applies strikethrough to contradicted hypotheses', () => {
-    const h = makeHypothesis('Bad idea');
-    h.status = 'contradicted';
-    render(<HypothesisTreeView hypotheses={[h]} findings={[]} showContradicted />);
+  it('applies strikethrough to contradicted questions', () => {
+    const h = makeQuestion('Bad idea');
+    h.status = 'ruled-out';
+    render(<QuestionTreeView questions={[h]} findings={[]} showContradicted />);
     const text = screen.getByText('Bad idea');
     expect(text.className).toContain('line-through');
   });
 
-  it('hides contradicted hypotheses by default', () => {
-    const root = makeHypothesis('Root');
-    const okChild = makeHypothesis('Good child', root.id);
-    const badChild = makeHypothesis('Contradicted child', root.id);
-    badChild.status = 'contradicted';
-    render(<HypothesisTreeView hypotheses={[root, okChild, badChild]} findings={[]} />);
+  it('hides contradicted questions by default', () => {
+    const root = makeQuestion('Root');
+    const okChild = makeQuestion('Good child', root.id);
+    const badChild = makeQuestion('Contradicted child', root.id);
+    badChild.status = 'ruled-out';
+    render(<QuestionTreeView questions={[root, okChild, badChild]} findings={[]} />);
     // Expand root (visible because okChild exists)
     const expandBtn = screen.getByLabelText('Expand');
     fireEvent.click(expandBtn);
@@ -97,11 +97,11 @@ describe('HypothesisTreeView', () => {
     expect(screen.queryByText('Contradicted child')).toBeNull();
   });
 
-  it('shows contradicted hypotheses when showContradicted is true', () => {
-    const root = makeHypothesis('Root');
-    const child = makeHypothesis('Contradicted child', root.id);
-    child.status = 'contradicted';
-    render(<HypothesisTreeView hypotheses={[root, child]} findings={[]} showContradicted />);
+  it('shows contradicted questions when showContradicted is true', () => {
+    const root = makeQuestion('Root');
+    const child = makeQuestion('Contradicted child', root.id);
+    child.status = 'ruled-out';
+    render(<QuestionTreeView questions={[root, child]} findings={[]} showContradicted />);
     // Expand root
     const expandBtn = screen.getByLabelText('Expand');
     fireEvent.click(expandBtn);
@@ -109,8 +109,8 @@ describe('HypothesisTreeView', () => {
   });
 
   it('has tree role for accessibility', () => {
-    const h = makeHypothesis('Test');
-    render(<HypothesisTreeView hypotheses={[h]} findings={[]} />);
+    const h = makeQuestion('Test');
+    render(<QuestionTreeView questions={[h]} findings={[]} />);
     expect(screen.getByRole('tree')).toBeTruthy();
   });
 
@@ -120,24 +120,20 @@ describe('HypothesisTreeView', () => {
     const emptyCat = createInvestigationCategory('Material', [], 2);
 
     it('renders category headers when categories provided', () => {
-      const h = makeHypothesis('Machine worn out', undefined, 'Machine');
+      const h = makeQuestion('Machine worn out', undefined, 'Machine');
       render(
-        <HypothesisTreeView
-          hypotheses={[h]}
-          findings={[]}
-          categories={[equipmentCat, temporalCat]}
-        />
+        <QuestionTreeView questions={[h]} findings={[]} categories={[equipmentCat, temporalCat]} />
       );
       expect(screen.getByText('Equipment')).toBeTruthy();
       expect(screen.getByText('Temporal')).toBeTruthy();
     });
 
-    it('groups hypotheses under their category', () => {
-      const h1 = makeHypothesis('Machine worn out', undefined, 'Machine');
-      const h2 = makeHypothesis('Night shift drift', undefined, 'Shift');
+    it('groups questions under their category', () => {
+      const h1 = makeQuestion('Machine worn out', undefined, 'Machine');
+      const h2 = makeQuestion('Night shift drift', undefined, 'Shift');
       render(
-        <HypothesisTreeView
-          hypotheses={[h1, h2]}
+        <QuestionTreeView
+          questions={[h1, h2]}
           findings={[]}
           categories={[equipmentCat, temporalCat]}
         />
@@ -148,22 +144,22 @@ describe('HypothesisTreeView', () => {
     });
 
     it('renders empty category as exploration prompt', () => {
-      render(<HypothesisTreeView hypotheses={[]} findings={[]} categories={[emptyCat]} />);
+      render(<QuestionTreeView questions={[]} findings={[]} categories={[emptyCat]} />);
       expect(screen.getByText('no factors assigned')).toBeTruthy();
     });
 
-    it('shows uncategorized hypotheses under "Other"', () => {
-      const h = makeHypothesis('Unknown cause', undefined, 'UnknownFactor');
-      render(<HypothesisTreeView hypotheses={[h]} findings={[]} categories={[equipmentCat]} />);
+    it('shows uncategorized questions under "Other"', () => {
+      const h = makeQuestion('Unknown cause', undefined, 'UnknownFactor');
+      render(<QuestionTreeView questions={[h]} findings={[]} categories={[equipmentCat]} />);
       expect(screen.getByTestId('category-group-other')).toBeTruthy();
       expect(screen.getByText('Other')).toBeTruthy();
     });
 
     it('does not show aggregated eta squared on category headers (avoids misleading sums)', () => {
-      const h = makeHypothesis('Machine issue', undefined, 'Machine');
+      const h = makeQuestion('Machine issue', undefined, 'Machine');
       render(
-        <HypothesisTreeView
-          hypotheses={[h]}
+        <QuestionTreeView
+          questions={[h]}
           findings={[]}
           categories={[equipmentCat]}
           factorVariations={{ Machine: 42.5 }}
@@ -175,10 +171,10 @@ describe('HypothesisTreeView', () => {
     });
 
     it('shows factor-level eta squared', () => {
-      const h = makeHypothesis('Machine issue', undefined, 'Machine');
+      const h = makeQuestion('Machine issue', undefined, 'Machine');
       render(
-        <HypothesisTreeView
-          hypotheses={[h]}
+        <QuestionTreeView
+          questions={[h]}
           findings={[]}
           categories={[equipmentCat]}
           factorVariations={{ Machine: 15.3 }}
@@ -189,15 +185,15 @@ describe('HypothesisTreeView', () => {
     });
 
     it('falls back to flat rendering when categories not provided', () => {
-      const h = makeHypothesis('Test');
-      render(<HypothesisTreeView hypotheses={[h]} findings={[]} />);
+      const h = makeQuestion('Test');
+      render(<QuestionTreeView questions={[h]} findings={[]} />);
       expect(screen.getByText('Test')).toBeTruthy();
       expect(screen.queryByTestId(/category-group/)).toBeNull();
     });
 
-    it('expands factor to show hypothesis nodes', () => {
-      const h = makeHypothesis('Machine worn out', undefined, 'Machine');
-      render(<HypothesisTreeView hypotheses={[h]} findings={[]} categories={[equipmentCat]} />);
+    it('expands factor to show question nodes', () => {
+      const h = makeQuestion('Machine worn out', undefined, 'Machine');
+      render(<QuestionTreeView questions={[h]} findings={[]} categories={[equipmentCat]} />);
       // Category is expanded by default, but factor is collapsed
       expect(screen.queryByText('Machine worn out')).toBeNull();
       // Click factor header to expand
@@ -208,10 +204,10 @@ describe('HypothesisTreeView', () => {
 
   describe('ValidationTaskSection (gemba/expert)', () => {
     it('renders task input for gemba type without validationTask', () => {
-      const h = createHypothesis('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      const h = createQuestion('Check nozzle', 'Machine', undefined, undefined, 'gemba');
       render(
-        <HypothesisNode
-          hypothesis={h}
+        <QuestionNode
+          question={h}
           depth={0}
           children={[]}
           linkedFindings={[]}
@@ -227,10 +223,10 @@ describe('HypothesisTreeView', () => {
 
     it('calls onSetValidationTask on Enter', () => {
       const onSet = vi.fn();
-      const h = createHypothesis('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      const h = createQuestion('Check nozzle', 'Machine', undefined, undefined, 'gemba');
       render(
-        <HypothesisNode
-          hypothesis={h}
+        <QuestionNode
+          question={h}
           depth={0}
           children={[]}
           linkedFindings={[]}
@@ -248,11 +244,11 @@ describe('HypothesisTreeView', () => {
     });
 
     it('shows complete checkbox when task exists', () => {
-      const h = createHypothesis('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      const h = createQuestion('Check nozzle', 'Machine', undefined, undefined, 'gemba');
       h.validationTask = 'Go check Machine 5';
       render(
-        <HypothesisNode
-          hypothesis={h}
+        <QuestionNode
+          question={h}
           depth={0}
           children={[]}
           linkedFindings={[]}
@@ -268,11 +264,11 @@ describe('HypothesisTreeView', () => {
 
     it('calls onCompleteTask when checkbox clicked', () => {
       const onComplete = vi.fn();
-      const h = createHypothesis('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      const h = createQuestion('Check nozzle', 'Machine', undefined, undefined, 'gemba');
       h.validationTask = 'Go check Machine 5';
       render(
-        <HypothesisNode
-          hypothesis={h}
+        <QuestionNode
+          question={h}
           depth={0}
           children={[]}
           linkedFindings={[]}
@@ -288,12 +284,12 @@ describe('HypothesisTreeView', () => {
     });
 
     it('shows status buttons after task completed', () => {
-      const h = createHypothesis('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      const h = createQuestion('Check nozzle', 'Machine', undefined, undefined, 'gemba');
       h.validationTask = 'Go check Machine 5';
       h.taskCompleted = true;
       render(
-        <HypothesisNode
-          hypothesis={h}
+        <QuestionNode
+          question={h}
           depth={0}
           children={[]}
           linkedFindings={[]}
@@ -308,12 +304,12 @@ describe('HypothesisTreeView', () => {
       expect(screen.getByTestId(`validation-status-partial-${h.id}`)).toBeTruthy();
     });
 
-    it('does NOT render for data-validated hypotheses', () => {
-      const h = createHypothesis('Data check', 'Machine');
+    it('does NOT render for data-validated questions', () => {
+      const h = createQuestion('Data check', 'Machine');
       // validationType is undefined (defaults to data)
       render(
-        <HypothesisNode
-          hypothesis={h}
+        <QuestionNode
+          question={h}
           depth={0}
           children={[]}
           linkedFindings={[]}

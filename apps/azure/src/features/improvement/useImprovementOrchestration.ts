@@ -1,15 +1,15 @@
 /**
  * useImprovementOrchestration - Improvement workspace orchestration for Azure Editor
  *
- * Owns the improvement workspace data assembly: filters hypotheses with ideas,
+ * Owns the improvement workspace data assembly: filters questions with ideas,
  * computes linked findings, selected idea IDs, projected Cpk map, and converted
  * idea IDs. Syncs computed state to the Zustand improvementStore for selector-based
  * reads, and provides DataContext-dependent action callbacks (popout sync,
  * synthesis change, idea-to-action conversion).
  */
 import React, { useMemo, useCallback, useEffect } from 'react';
-import type { Finding, FindingAssignee, Hypothesis, ProcessContext } from '@variscout/core';
-import type { UseHypothesesReturn } from '@variscout/hooks';
+import type { Finding, FindingAssignee, Question, ProcessContext } from '@variscout/core';
+import type { UseQuestionsReturn } from '@variscout/hooks';
 import {
   openImprovementPopout,
   updateImprovementPopout,
@@ -19,7 +19,7 @@ import {
 } from '../../components/ImprovementWindow';
 import { useImprovementStore } from './improvementStore';
 
-export type { ImprovementHypothesis } from './improvementStore';
+export type { ImprovementQuestion } from './improvementStore';
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -35,9 +35,9 @@ interface FindingsStateSlice {
 }
 
 export interface UseImprovementOrchestrationOptions {
-  hypothesesState: UseHypothesesReturn;
+  questionsState: UseQuestionsReturn;
   findingsState: FindingsStateSlice;
-  persistedHypotheses: Hypothesis[] | undefined;
+  persistedQuestions: Question[] | undefined;
   processContext: ProcessContext | undefined;
   setProcessContext: (ctx: ProcessContext) => void;
 }
@@ -54,16 +54,16 @@ export interface UseImprovementOrchestrationReturn {
 // ── Hook ──────────────────────────────────────────────────────────────────
 
 export function useImprovementOrchestration({
-  hypothesesState,
+  questionsState,
   findingsState,
-  persistedHypotheses,
+  persistedQuestions,
   processContext,
   setProcessContext,
 }: UseImprovementOrchestrationOptions): UseImprovementOrchestrationReturn {
-  // Hypotheses with supported/partial status that have ideas -> feed workspace
-  const improvementHypotheses = useMemo(() => {
-    return (persistedHypotheses ?? [])
-      .filter(h => (h.status === 'supported' || h.status === 'partial') && h.ideas?.length)
+  // Questions with answered/investigating status that have ideas -> feed workspace
+  const improvementQuestions = useMemo(() => {
+    return (persistedQuestions ?? [])
+      .filter(h => (h.status === 'answered' || h.status === 'investigating') && h.ideas?.length)
       .map(h => ({
         id: h.id,
         text: h.text,
@@ -71,35 +71,35 @@ export function useImprovementOrchestration({
         factor: h.factor,
         ideas: h.ideas ?? [],
         linkedFindingName: findingsState.findings
-          .find(f => f.hypothesisId === h.id)
+          .find(f => f.questionId === h.id)
           ?.text?.slice(0, 60),
       }));
-  }, [persistedHypotheses, findingsState.findings]);
+  }, [persistedQuestions, findingsState.findings]);
 
-  // Findings linked to any hypothesis with ideas
+  // Findings linked to any question with ideas
   const improvementLinkedFindings = useMemo(() => {
-    const hypothesisIds = new Set(improvementHypotheses.map(h => h.id));
+    const questionIds = new Set(improvementQuestions.map(h => h.id));
     return findingsState.findings
-      .filter(f => f.hypothesisId && hypothesisIds.has(f.hypothesisId))
+      .filter(f => f.questionId && questionIds.has(f.questionId))
       .map(f => ({ id: f.id, text: f.text }));
-  }, [improvementHypotheses, findingsState.findings]);
+  }, [improvementQuestions, findingsState.findings]);
 
-  // Set of selected idea IDs across all hypotheses
+  // Set of selected idea IDs across all questions
   const selectedIdeaIds = useMemo(() => {
     const ids = new Set<string>();
-    for (const h of persistedHypotheses ?? []) {
+    for (const h of persistedQuestions ?? []) {
       for (const idea of h.ideas ?? []) {
         if (idea.selected) ids.add(idea.id);
       }
     }
     return ids;
-  }, [persistedHypotheses]);
+  }, [persistedQuestions]);
 
   // Projected Cpk map: finding ID -> projected Cpk from linked improvement idea
   const projectedCpkMap = useMemo(() => {
     const map: Record<string, number> = {};
-    for (const h of persistedHypotheses ?? []) {
-      const linkedFinding = findingsState.findings.find(f => f.hypothesisId === h.id);
+    for (const h of persistedQuestions ?? []) {
+      const linkedFinding = findingsState.findings.find(f => f.questionId === h.id);
       if (!linkedFinding) continue;
       const projectedIdea =
         (h.ideas ?? []).find(i => i.selected && i.projection?.projectedCpk != null) ??
@@ -109,7 +109,7 @@ export function useImprovementOrchestration({
       }
     }
     return map;
-  }, [persistedHypotheses, findingsState.findings]);
+  }, [persistedQuestions, findingsState.findings]);
 
   // Ideas that already have matching action items
   const convertedIdeaIds = useMemo(() => {
@@ -126,14 +126,14 @@ export function useImprovementOrchestration({
   const syncState = useImprovementStore.getState().syncState;
   useEffect(() => {
     syncState({
-      improvementHypotheses,
+      improvementQuestions,
       improvementLinkedFindings,
       selectedIdeaIds,
       projectedCpkMap,
       convertedIdeaIds,
     });
   }, [
-    improvementHypotheses,
+    improvementQuestions,
     improvementLinkedFindings,
     selectedIdeaIds,
     projectedCpkMap,
@@ -143,8 +143,8 @@ export function useImprovementOrchestration({
 
   // Convert all selected ideas to action items on their linked findings
   const handleConvertIdeasToActions = useCallback(() => {
-    for (const h of persistedHypotheses ?? []) {
-      const linkedFinding = findingsState.findings.find(f => f.hypothesisId === h.id);
+    for (const h of persistedQuestions ?? []) {
+      const linkedFinding = findingsState.findings.find(f => f.questionId === h.id);
       if (!linkedFinding) continue;
       for (const idea of h.ideas ?? []) {
         if (!idea.selected) continue;
@@ -152,7 +152,7 @@ export function useImprovementOrchestration({
         findingsState.addAction(linkedFinding.id, idea.text, undefined, undefined, idea.id);
       }
     }
-  }, [persistedHypotheses, findingsState]);
+  }, [persistedQuestions, findingsState]);
 
   // ── Improvement Popout ─────────────────────────────────────────────────
   const improvementPopoutRef = React.useRef<Window | null>(null);
@@ -160,7 +160,7 @@ export function useImprovementOrchestration({
   const buildImprovementSyncData = useCallback(
     (): ImprovementSyncData => ({
       synthesis: processContext?.synthesis,
-      hypotheses: improvementHypotheses,
+      questions: improvementQuestions,
       linkedFindings: improvementLinkedFindings,
       selectedIdeaIds: Array.from(selectedIdeaIds),
       convertedIdeaIds: Array.from(convertedIdeaIds),
@@ -169,7 +169,7 @@ export function useImprovementOrchestration({
     }),
     [
       processContext,
-      improvementHypotheses,
+      improvementQuestions,
       improvementLinkedFindings,
       selectedIdeaIds,
       convertedIdeaIds,
@@ -198,28 +198,28 @@ export function useImprovementOrchestration({
             setProcessContext({ ...processContext, synthesis: action.text });
             break;
           case 'toggle-select':
-            hypothesesState.selectIdea(action.hypothesisId, action.ideaId, action.selected);
+            questionsState.selectIdea(action.questionId, action.ideaId, action.selected);
             break;
           case 'update-timeframe':
-            hypothesesState.updateIdea(action.hypothesisId, action.ideaId, {
+            questionsState.updateIdea(action.questionId, action.ideaId, {
               timeframe: action.timeframe,
             });
             break;
           case 'update-direction':
-            hypothesesState.updateIdea(action.hypothesisId, action.ideaId, {
+            questionsState.updateIdea(action.questionId, action.ideaId, {
               direction: action.direction,
             });
             break;
           case 'update-cost':
-            hypothesesState.updateIdea(action.hypothesisId, action.ideaId, {
+            questionsState.updateIdea(action.questionId, action.ideaId, {
               cost: action.cost,
             });
             break;
           case 'remove-idea':
-            hypothesesState.removeIdea(action.hypothesisId, action.ideaId);
+            questionsState.removeIdea(action.questionId, action.ideaId);
             break;
           case 'add-idea':
-            hypothesesState.addIdea(action.hypothesisId, action.text);
+            questionsState.addIdea(action.questionId, action.text);
             break;
           case 'convert-to-actions':
             handleConvertIdeasToActions();
@@ -232,7 +232,7 @@ export function useImprovementOrchestration({
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [processContext, setProcessContext, hypothesesState, handleConvertIdeasToActions]);
+  }, [processContext, setProcessContext, questionsState, handleConvertIdeasToActions]);
 
   // Synthesis text change handler
   const handleSynthesisChange = useCallback(

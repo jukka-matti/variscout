@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
-import type { Hypothesis, Finding } from '@variscout/core/findings';
+import type { Question, Finding } from '@variscout/core/findings';
 import { FINDING_STATUS_LABELS } from '@variscout/core/findings';
 
 export interface QuestionRowExpandedProps {
-  question: Hypothesis;
+  question: Question;
   findings: Finding[];
   projectedCpk?: number;
   currentCpk?: number;

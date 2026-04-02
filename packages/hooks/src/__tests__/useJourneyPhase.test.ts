@@ -87,9 +87,9 @@ describe('detectEntryScenario', () => {
     expect(detectEntryScenario({ issueStatement: 'Issue', targetValue: 1.33 })).toBe('problem');
   });
 
-  it('returns "hypothesis" when only issueStatement', () => {
+  it('returns "exploration" when only issueStatement', () => {
     expect(detectEntryScenario({ issueStatement: 'I think Machine A is the issue' })).toBe(
-      'hypothesis'
+      'exploration'
     );
   });
 

@@ -38,7 +38,7 @@ const TOOL_CONFIG: Record<
   clear_filters: { labelKey: 'ai.tool.clearFilters', icon: Filter, editable: false },
   switch_factor: { labelKey: 'ai.tool.switchFactor', icon: Filter, editable: false },
   create_finding: { labelKey: 'ai.tool.createFinding', icon: FileText, editable: true },
-  create_hypothesis: { labelKey: 'ai.tool.createHypothesis', icon: GitBranch, editable: true },
+  create_question: { labelKey: 'ai.tool.createQuestion', icon: GitBranch, editable: true },
   suggest_action: { labelKey: 'ai.tool.suggestAction', icon: Zap, editable: true },
   suggest_improvement_idea: { labelKey: 'ai.tool.suggestIdea', icon: Lightbulb, editable: true },
   suggest_save_finding: {
@@ -80,7 +80,7 @@ function formatPreview(
       lines.push(`Switch Boxplot to: ${params.factor}`);
       break;
 
-    case 'create_hypothesis': {
+    case 'create_question': {
       if (preview.parentText) lines.push(`Under: "${preview.parentText}"`);
       if (preview.predictedStatus) {
         lines.push(`Predicted: ${preview.predictedStatus}`);
@@ -104,8 +104,8 @@ function formatPreview(
       break;
 
     case 'suggest_improvement_idea': {
-      if (preview.hypothesisText)
-        lines.push(`Hypothesis: "${(preview.hypothesisText as string).slice(0, 60)}..."`);
+      if (preview.questionText)
+        lines.push(`Question: "${(preview.questionText as string).slice(0, 60)}..."`);
       if (preview.direction) {
         const directionLabels: Record<string, string> = {
           prevent: 'Prevent (stop the cause)',
@@ -151,8 +151,8 @@ function formatPreview(
     }
 
     case 'suggest_save_finding': {
-      if (preview.suggestedHypothesisText)
-        lines.push(`Related: "${(preview.suggestedHypothesisText as string).slice(0, 60)}..."`);
+      if (preview.suggestedQuestionText)
+        lines.push(`Related: "${(preview.suggestedQuestionText as string).slice(0, 60)}..."`);
       if (preview.contextSnapshot) {
         const snap = preview.contextSnapshot as Record<string, unknown>;
         if (snap.cpk !== undefined) lines.push(`Cpk=${formatNum(snap.cpk as number)}`);

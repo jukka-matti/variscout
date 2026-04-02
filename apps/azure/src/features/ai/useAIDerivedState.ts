@@ -15,7 +15,7 @@ import {
   type SpecLimits,
   type DataRow,
   type Finding,
-  type Hypothesis,
+  type Question,
   type AIContext,
   type StagedStatsResult,
 } from '@variscout/core';
@@ -26,7 +26,7 @@ export interface UseAIDerivedStateOptions {
   outcome?: string | null;
   specs?: SpecLimits;
   findings: Finding[];
-  hypotheses: Hypothesis[];
+  questions: Question[];
   factors: string[];
   highlightedFindingId?: string | null;
   stagedStats?: StagedStatsResult | null;
@@ -46,7 +46,7 @@ export function useAIDerivedState({
   outcome,
   specs,
   findings,
-  hypotheses,
+  questions,
   factors,
   highlightedFindingId,
   stagedStats,
@@ -91,7 +91,7 @@ export function useAIDerivedState({
     if (!highlightedFindingId || !findings) return undefined;
     const f = findings.find(fi => fi.id === highlightedFindingId);
     if (!f) return undefined;
-    const hypothesis = f.hypothesisId ? hypotheses.find(h => h.id === f.hypothesisId) : undefined;
+    const question = f.questionId ? questions.find(h => h.id === f.questionId) : undefined;
 
     // eslint-disable-next-line react-hooks/purity -- Date.now() intentional for overdue calculation
     const now = Date.now();
@@ -108,7 +108,7 @@ export function useAIDerivedState({
     return {
       text: f.text,
       status: f.status,
-      hypothesis: hypothesis?.text,
+      question: question?.text,
       projection: f.projection
         ? {
             meanDelta: f.projection.projectedMean - f.projection.baselineMean,
@@ -118,7 +118,7 @@ export function useAIDerivedState({
       actions,
       actionProgress: total > 0 ? { total, done, overdueCount } : undefined,
     };
-  }, [highlightedFindingId, findings, hypotheses]);
+  }, [highlightedFindingId, findings, questions]);
 
   // Team contributors for AI context (Teams plan only)
   const aiTeamContributors = useMemo(() => {
@@ -130,14 +130,14 @@ export function useAIDerivedState({
       for (const c of f.comments ?? []) {
         if (c.author) authors.add(c.author);
       }
-      if (f.hypothesisId) {
-        const h = hypotheses.find(hy => hy.id === f.hypothesisId);
+      if (f.questionId) {
+        const h = questions.find(hy => hy.id === f.questionId);
         if (h?.factor) areas.add(h.factor);
       }
     }
     if (authors.size === 0) return undefined;
-    return { count: authors.size, hypothesisAreas: Array.from(areas) };
-  }, [findings, hypotheses]);
+    return { count: authors.size, questionAreas: Array.from(areas) };
+  }, [findings, questions]);
 
   // Staged comparison for AI verification narrative
   const stagedComparison = useMemo(

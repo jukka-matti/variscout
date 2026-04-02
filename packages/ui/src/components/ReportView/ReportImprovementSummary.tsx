@@ -1,7 +1,7 @@
 /**
  * ReportImprovementSummary — Read-only improvement plan summary for report context.
  *
- * Renders improvement ideas grouped by hypothesis with:
+ * Renders improvement ideas grouped by question with:
  * - Direction badges (Prevent/Detect/Simplify/Eliminate)
  * - Timeframe/cost/risk indicators
  * - Projected Cpk from What-If
@@ -22,7 +22,7 @@ import type {
 // ============================================================================
 
 export interface ReportImprovementSummaryProps {
-  hypotheses: Array<{
+  questions: Array<{
     id: string;
     text: string;
     causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
@@ -150,12 +150,12 @@ const IdeaRow: React.FC<{ idea: ImprovementIdea }> = ({ idea }) => {
 };
 
 export const ReportImprovementSummary: React.FC<ReportImprovementSummaryProps> = ({
-  hypotheses,
+  questions,
   summaryOnly,
   targetCpk,
 }) => {
   const { t, tf } = useTranslation();
-  const allIdeas = useMemo(() => hypotheses.flatMap(h => h.ideas), [hypotheses]);
+  const allIdeas = useMemo(() => questions.flatMap(h => h.ideas), [questions]);
   const selectedIdeas = useMemo(() => allIdeas.filter(i => i.selected), [allIdeas]);
 
   const timeframeBreakdown = useMemo(() => {
@@ -214,17 +214,17 @@ export const ReportImprovementSummary: React.FC<ReportImprovementSummaryProps> =
 
   if (summaryOnly) return summaryBar;
 
-  const hypothesesWithIdeas = hypotheses.filter(h => h.ideas.length > 0);
-  if (hypothesesWithIdeas.length === 0) return null;
+  const questionsWithIdeas = questions.filter(h => h.ideas.length > 0);
+  if (questionsWithIdeas.length === 0) return null;
 
   return (
     <div data-testid="report-improvement-summary" className="space-y-3">
-      {hypothesesWithIdeas.map(h => (
+      {questionsWithIdeas.map(h => (
         <div
           key={h.id}
           className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden"
         >
-          {/* Hypothesis header */}
+          {/* Question header */}
           <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">

@@ -56,23 +56,23 @@ describe('buildDashboardSummaryPrompt', () => {
     expect(prompt).toContain('2 key drivers');
   });
 
-  it('includes hypothesis summary with supported hypothesis names when present', () => {
+  it('includes question summary with answered question names when present', () => {
     const prompt = buildDashboardSummaryPrompt(
       makeContext({
         investigation: {
-          allHypotheses: [
-            { id: 'h1', text: 'Machine vibration', status: 'supported' },
-            { id: 'h2', text: 'Raw material batch', status: 'untested' },
-            { id: 'h3', text: 'Operator technique', status: 'contradicted' },
+          allQuestions: [
+            { id: 'h1', text: 'Machine vibration', status: 'answered' },
+            { id: 'h2', text: 'Raw material batch', status: 'open' },
+            { id: 'h3', text: 'Operator technique', status: 'ruled-out' },
           ],
         },
       })
     );
     expect(prompt).toContain('3 total');
-    expect(prompt).toContain('1 supported');
+    expect(prompt).toContain('1 answered');
     expect(prompt).toContain('Machine vibration');
-    expect(prompt).toContain('1 untested');
-    expect(prompt).toContain('1 contradicted');
+    expect(prompt).toContain('1 open');
+    expect(prompt).toContain('1 ruled out');
   });
 
   it('includes investigation phase when present', () => {
@@ -106,7 +106,7 @@ describe('buildDashboardSummaryPrompt', () => {
     expect(prompt).not.toContain('overdue actions');
   });
 
-  it('handles empty project gracefully with no stats, findings, or hypotheses', () => {
+  it('handles empty project gracefully with no stats, findings, or questions', () => {
     const prompt = buildDashboardSummaryPrompt(makeContext());
     expect(typeof prompt).toBe('string');
     expect(prompt.length).toBeGreaterThan(0);

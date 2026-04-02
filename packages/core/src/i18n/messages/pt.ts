@@ -96,8 +96,8 @@ export const pt: MessageCatalog = {
   // Investigation
   'investigation.brief': 'Resumo da investigação',
   'investigation.assignedToMe': 'Atribuído a mim',
-  'investigation.hypothesis': 'Hipótese',
-  'investigation.hypotheses': 'Hipóteses',
+  'investigation.question': 'Question',
+  'investigation.questions': 'Questions',
   'investigation.pinAsFinding': 'Fixar como constatação',
   'investigation.addObservation': 'Adicionar observação',
 
@@ -181,8 +181,8 @@ export const pt: MessageCatalog = {
   'data.metric': 'Métrica',
   'data.startAnalysis': 'Iniciar análise',
   'data.applyChanges': 'Aplicar alterações',
-  'data.addHypothesis': 'Adicionar hipótese',
-  'data.removeHypothesis': 'Remover hipótese',
+  'data.addQuestion': 'Adicionar hipótese',
+  'data.removeQuestion': 'Remover hipótese',
   'data.back': 'Voltar',
 
   // Paste screen
@@ -262,7 +262,7 @@ export const pt: MessageCatalog = {
   'ai.tool.clearFilters': 'Limpar filtros',
   'ai.tool.switchFactor': 'Trocar fator',
   'ai.tool.createFinding': 'Criar constatação',
-  'ai.tool.createHypothesis': 'Criar hipótese',
+  'ai.tool.createQuestion': 'Criar hipótese',
   'ai.tool.suggestAction': 'Sugerir ação',
   'ai.tool.shareFinding': 'Compartilhar constatação',
   'ai.tool.publishReport': 'Publicar relatório',
@@ -612,7 +612,7 @@ export const pt: MessageCatalog = {
   'improve.emptyNoFindings':
     'Pin findings from the Analysis view, then brainstorm improvement ideas here.',
   'improve.emptyNoSupported':
-    'Validate your hypotheses in the Findings view. Supported hypotheses unlock improvement brainstorming.',
+    'Answer your questions in the investigation. Answered questions unlock improvement brainstorming.',
   'improve.selectedCount': '{count} selected',
   'improve.timeframeBreakdown': '{low} low · {medium} med · {high} high',
   'improve.projectedCpk': 'Best projected Cpk: {value}',
@@ -698,9 +698,9 @@ export const pt: MessageCatalog = {
   'idea.moreOptions': 'More options',
   'idea.riskAssessment': 'Risk assessment',
 
-  // Hypothesis role labels
-  'hypothesis.primary': 'Primary',
-  'hypothesis.contributing': 'Contributing',
+  // Question role labels
+  'question.primary': 'Primary',
+  'question.contributing': 'Contributing',
 
   // Projected vs actual
   'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
@@ -752,11 +752,11 @@ export const pt: MessageCatalog = {
   'report.cpk.pendingVerification': 'Pending verification',
   'report.cpk.metProjection': 'Met projection',
   'report.cpk.fromProjection': '{delta} from projection',
-  'report.hypothesisTree': 'Hypothesis Tree',
-  'report.hypothesis.supported': 'Supported',
-  'report.hypothesis.partial': 'Partial',
-  'report.hypothesis.contradicted': 'Contradicted',
-  'report.hypothesis.untested': 'Untested',
+  'report.questionTree': 'Question Tree',
+  'report.question.answered': 'Answered',
+  'report.question.investigating': 'Investigating',
+  'report.question.ruledOut': 'Ruled Out',
+  'report.question.open': 'Open',
   'report.type.analysisSnapshot': 'Analysis Snapshot',
   'report.type.investigationReport': 'Investigation Report',
   'report.type.improvementStory': 'Improvement Story',

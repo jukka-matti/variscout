@@ -1,21 +1,21 @@
 import React, { useState, useCallback } from 'react';
 import type {
-  Hypothesis,
-  HypothesisStatus,
+  Question,
+  QuestionStatus,
   Finding,
   ImprovementIdea,
   IdeaImpact,
 } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
-import ImprovementIdeasSection from './HypothesisIdeas';
-import { ValidationTaskSection, buildStatusTooltip } from './HypothesisValidation';
+import ImprovementIdeasSection from './ImprovementIdeasSection';
+import { ValidationTaskSection, buildStatusTooltip } from './QuestionValidation';
 
-/** Status dot colors matching hypothesis answer states */
-const STATUS_COLORS: Record<HypothesisStatus, string> = {
-  untested: 'border-2 border-gray-400 bg-transparent',
-  supported: 'bg-green-500',
-  contradicted: 'bg-red-400',
-  partial: 'bg-amber-500',
+/** Status dot colors matching question answer states */
+const STATUS_COLORS: Record<QuestionStatus, string> = {
+  open: 'border-2 border-gray-400 bg-transparent',
+  answered: 'bg-green-500',
+  'ruled-out': 'bg-red-400',
+  investigating: 'bg-amber-500',
 };
 
 /** Validation type icons */
@@ -25,27 +25,27 @@ const VALIDATION_ICONS: Record<string, string> = {
   expert: '\u{1F464}', // bust in silhouette
 };
 
-export interface HypothesisNodeProps {
-  hypothesis: Hypothesis;
+export interface QuestionNodeProps {
+  question: Question;
   depth: number;
-  children: Hypothesis[];
+  children: Question[];
   linkedFindings: Finding[];
   /** Whether this node is expanded */
   isExpanded: boolean;
   /** Toggle expand/collapse */
   onToggle: (id: string) => void;
-  /** Click to filter dashboard to this hypothesis's factor+level */
-  onSelect?: (hypothesis: Hypothesis) => void;
-  /** Add a sub-hypothesis with text, optional factor, and validation type */
+  /** Click to filter dashboard to this question's factor+level */
+  onSelect?: (question: Question) => void;
+  /** Add a sub-question with text, optional factor, and validation type */
   onAddChild?: (
     parentId: string,
     text: string,
     factor?: string,
     validationType?: 'data' | 'gemba' | 'expert'
   ) => void;
-  /** Available factor columns for sub-hypothesis factor picker */
+  /** Available factor columns for sub-question factor picker */
   factors?: string[];
-  /** ANOVA evidence for this hypothesis's factor (for hover tooltip) */
+  /** ANOVA evidence for this question's factor (for hover tooltip) */
   anovaEvidence?: {
     etaSquared: number;
     pValue: number;
@@ -55,53 +55,53 @@ export interface HypothesisNodeProps {
   };
   /** Children summary for display */
   childrenSummary?: {
-    supported: number;
-    contradicted: number;
-    untested: number;
-    partial: number;
+    answered: number;
+    'ruled-out': number;
+    open: number;
+    investigating: number;
     total: number;
   };
   /** Whether adding children is allowed (depth/count constraints) */
   canAddChild: boolean;
-  /** Whether this hypothesis is contradicted (dims the node) */
+  /** Whether this question is ruled-out (dims the node) */
   showContradicted: boolean;
   // --- Validation Task (gemba/expert) ---
   /** Set a validation task description */
   onSetValidationTask?: (id: string, task: string) => void;
   /** Mark a validation task as complete */
   onCompleteTask?: (id: string) => void;
-  /** Manually set hypothesis status with optional note */
-  onSetManualStatus?: (id: string, status: HypothesisStatus, note?: string) => void;
+  /** Manually set question status with optional note */
+  onSetManualStatus?: (id: string, status: QuestionStatus, note?: string) => void;
   // --- Improvement Ideas ---
   /** Computed impact for each idea (keyed by idea.id) */
   ideaImpacts?: Record<string, IdeaImpact | undefined>;
   /** Add an improvement idea */
-  onAddIdea?: (hypothesisId: string, text: string) => void;
+  onAddIdea?: (questionId: string, text: string) => void;
   /** Update an improvement idea */
   onUpdateIdea?: (
-    hypothesisId: string,
+    questionId: string,
     ideaId: string,
     updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
   ) => void;
   /** Remove an improvement idea */
-  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
+  onRemoveIdea?: (questionId: string, ideaId: string) => void;
   /** Toggle idea selected state */
-  onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  onSelectIdea?: (questionId: string, ideaId: string, selected: boolean) => void;
   /** Open What-If simulator pre-loaded for this idea */
-  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
+  onProjectIdea?: (questionId: string, ideaId: string) => void;
   /** Ask CoScout about improvement options */
   onAskCoScout?: (question: string) => void;
-  /** Set cause role on a hypothesis */
+  /** Set cause role on a question */
   onSetCauseRole?: (
-    hypothesisId: string,
+    questionId: string,
     role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined
   ) => void;
 }
 
-const HypothesisNode: React.FC<HypothesisNodeProps> = ({
-  hypothesis,
+const QuestionNode: React.FC<QuestionNodeProps> = ({
+  question,
   depth,
-  children: childHypotheses,
+  children: childQuestions,
   linkedFindings,
   isExpanded,
   onToggle,
@@ -125,10 +125,10 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
   onSetCauseRole,
 }) => {
   const { formatStat } = useTranslation();
-  const isContradicted = hypothesis.status === 'contradicted';
-  const isRuledOut = hypothesis.causeRole === 'ruled-out';
-  // Dim ruled-out questions and contradicted nodes (when shown)
-  const dimmed = isRuledOut || (isContradicted && !showContradicted);
+  const isRuledOut = question.status === 'ruled-out';
+  const isCauseRuledOut = question.causeRole === 'ruled-out';
+  // Dim ruled-out questions (when shown)
+  const dimmed = isCauseRuledOut || (isRuledOut && !showContradicted);
   const [showAddChild, setShowAddChild] = useState(false);
   const [childText, setChildText] = useState('');
   const [childFactor, setChildFactor] = useState('');
@@ -139,12 +139,12 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
   const handleAddChildSubmit = useCallback(() => {
     const trimmed = childText.trim();
     if (!trimmed || !onAddChild) return;
-    onAddChild(hypothesis.id, trimmed, childFactor || undefined, childValidationType);
+    onAddChild(question.id, trimmed, childFactor || undefined, childValidationType);
     setChildText('');
     setChildFactor('');
     setChildValidationType('data');
     setShowAddChild(false);
-  }, [hypothesis.id, childText, childFactor, childValidationType, onAddChild]);
+  }, [question.id, childText, childFactor, childValidationType, onAddChild]);
 
   const handleCycleCauseRole = useCallback(
     (e: React.MouseEvent) => {
@@ -156,32 +156,32 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
         'ruled-out',
         undefined,
       ];
-      const idx = cycle.indexOf(hypothesis.causeRole);
+      const idx = cycle.indexOf(question.causeRole);
       const next = cycle[(idx + 1) % cycle.length];
-      onSetCauseRole(hypothesis.id, next);
+      onSetCauseRole(question.id, next);
     },
-    [hypothesis.id, hypothesis.causeRole, onSetCauseRole]
+    [question.id, question.causeRole, onSetCauseRole]
   );
 
   return (
     <div
       className={`${dimmed ? 'opacity-50' : ''}`}
       style={{ marginLeft: depth * 20 }}
-      data-testid={`hypothesis-node-${hypothesis.id}`}
+      data-testid={`question-node-${question.id}`}
     >
       <div
         className="flex items-start gap-2 py-1.5 px-2 rounded-md hover:bg-surface-secondary cursor-pointer group"
-        onClick={() => onSelect?.(hypothesis)}
+        onClick={() => onSelect?.(question)}
         role="treeitem"
-        aria-expanded={childHypotheses.length > 0 ? isExpanded : undefined}
+        aria-expanded={childQuestions.length > 0 ? isExpanded : undefined}
       >
         {/* Expand/collapse toggle */}
-        {childHypotheses.length > 0 ? (
+        {childQuestions.length > 0 ? (
           <button
             className="mt-0.5 text-content-muted hover:text-content text-xs flex-shrink-0 w-4"
             onClick={e => {
               e.stopPropagation();
-              onToggle(hypothesis.id);
+              onToggle(question.id);
             }}
             aria-label={isExpanded ? 'Collapse' : 'Expand'}
           >
@@ -193,81 +193,78 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
 
         {/* Status dot */}
         <span
-          className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${STATUS_COLORS[hypothesis.status]}${anovaEvidence ? ' cursor-help' : ''}`}
-          title={buildStatusTooltip(hypothesis.status, anovaEvidence, formatStat)}
+          className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${STATUS_COLORS[question.status]}${anovaEvidence ? ' cursor-help' : ''}`}
+          title={buildStatusTooltip(question.status, anovaEvidence, formatStat)}
         />
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <span className={`text-sm text-content ${isContradicted ? 'line-through' : ''}`}>
-            {hypothesis.text}
+          <span className={`text-sm text-content ${isRuledOut ? 'line-through' : ''}`}>
+            {question.text}
           </span>
 
           {/* Badges row */}
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             {/* Factor badge */}
-            {hypothesis.factor && (
+            {question.factor && (
               <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">
-                {hypothesis.factor}
-                {hypothesis.level ? `=${hypothesis.level}` : ''}
+                {question.factor}
+                {question.level ? `=${question.level}` : ''}
               </span>
             )}
 
             {/* Validation type icon */}
-            {hypothesis.validationType && (
-              <span
-                className="text-[0.625rem]"
-                title={`Validated by: ${hypothesis.validationType}`}
-              >
-                {VALIDATION_ICONS[hypothesis.validationType] || ''}
+            {question.validationType && (
+              <span className="text-[0.625rem]" title={`Validated by: ${question.validationType}`}>
+                {VALIDATION_ICONS[question.validationType] || ''}
               </span>
             )}
 
             {/* Task status for gemba/expert */}
-            {hypothesis.validationType &&
-              hypothesis.validationType !== 'data' &&
-              hypothesis.validationTask && (
+            {question.validationType &&
+              question.validationType !== 'data' &&
+              question.validationTask && (
                 <span
-                  className={`text-[0.625rem] ${hypothesis.taskCompleted ? 'text-green-400' : 'text-amber-400'}`}
+                  className={`text-[0.625rem] ${question.taskCompleted ? 'text-green-400' : 'text-amber-400'}`}
                 >
-                  {hypothesis.taskCompleted ? 'Done' : 'Pending'}
+                  {question.taskCompleted ? 'Done' : 'Pending'}
                 </span>
               )}
 
             {/* Linked findings count */}
-            {hypothesis.linkedFindingIds.length > 0 && (
+            {question.linkedFindingIds.length > 0 && (
               <span className="text-[0.625rem] text-content-muted">
-                {hypothesis.linkedFindingIds.length} finding
-                {hypothesis.linkedFindingIds.length > 1 ? 's' : ''}
+                {question.linkedFindingIds.length} finding
+                {question.linkedFindingIds.length > 1 ? 's' : ''}
               </span>
             )}
 
             {/* Cause role badge */}
-            {hypothesis.causeRole === 'suspected-cause' && (
+            {question.causeRole === 'suspected-cause' && (
               <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-medium">
                 SUSPECT
               </span>
             )}
-            {hypothesis.causeRole === 'contributing' && (
+            {question.causeRole === 'contributing' && (
               <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-medium">
                 CONTRIBUTING
               </span>
             )}
-            {hypothesis.causeRole === 'ruled-out' && (
+            {question.causeRole === 'ruled-out' && (
               <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-400 font-medium">
                 RULED OUT
               </span>
             )}
 
-            {/* Evidence R²adj badge */}
-            {hypothesis.evidence?.rSquaredAdj != null && (
+            {/* Evidence R-squared-adj badge */}
+            {question.evidence?.rSquaredAdj != null && (
               <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400">
-                R²adj: {Math.round(hypothesis.evidence.rSquaredAdj * 100)}%
+                R²adj: {Math.round(question.evidence.rSquaredAdj * 100)}%
               </span>
             )}
 
             {/* Factor Intelligence source indicator */}
-            {hypothesis.questionSource === 'factor-intel' && (
+            {question.questionSource === 'factor-intel' && (
               <span
                 className="text-[0.5625rem] px-1 py-0.5 rounded bg-surface-secondary text-content-muted"
                 title="Auto-generated from Factor Intelligence"
@@ -279,43 +276,43 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
             {/* Children summary */}
             {childrenSummary && childrenSummary.total > 0 && (
               <span className="text-[0.625rem] text-content-muted">
-                {childrenSummary.supported}/{childrenSummary.total} supported
+                {childrenSummary.answered}/{childrenSummary.total} answered
               </span>
             )}
           </div>
         </div>
 
-        {/* Cause role button (visible for supported/partial hypotheses) */}
+        {/* Cause role button (visible for answered/investigating questions) */}
         {onSetCauseRole &&
-          (hypothesis.status === 'supported' || hypothesis.status === 'partial') && (
+          (question.status === 'answered' || question.status === 'investigating') && (
             <button
               className={`opacity-0 group-hover:opacity-100 touch-show transition-opacity text-xs mt-0.5 flex-shrink-0 ${
-                hypothesis.causeRole === 'suspected-cause'
+                question.causeRole === 'suspected-cause'
                   ? 'text-amber-400 opacity-100'
-                  : hypothesis.causeRole === 'contributing'
+                  : question.causeRole === 'contributing'
                     ? 'text-blue-400 opacity-100'
-                    : hypothesis.causeRole === 'ruled-out'
+                    : question.causeRole === 'ruled-out'
                       ? 'text-slate-400 opacity-100'
                       : 'text-content-muted hover:text-content'
               }`}
               onClick={handleCycleCauseRole}
               title={
-                hypothesis.causeRole === 'suspected-cause'
+                question.causeRole === 'suspected-cause'
                   ? 'Suspected cause (click to change)'
-                  : hypothesis.causeRole === 'contributing'
+                  : question.causeRole === 'contributing'
                     ? 'Contributing factor (click to change)'
-                    : hypothesis.causeRole === 'ruled-out'
+                    : question.causeRole === 'ruled-out'
                       ? 'Ruled out (click to change)'
                       : 'Mark as cause'
               }
               aria-label="Set cause role"
-              data-testid={`cause-role-${hypothesis.id}`}
+              data-testid={`cause-role-${question.id}`}
             >
-              {hypothesis.causeRole === 'suspected-cause'
+              {question.causeRole === 'suspected-cause'
                 ? '\u{1F3AF}'
-                : hypothesis.causeRole === 'contributing'
+                : question.causeRole === 'contributing'
                   ? '\u25C7'
-                  : hypothesis.causeRole === 'ruled-out'
+                  : question.causeRole === 'ruled-out'
                     ? '\u2717'
                     : '\u{1F3AF}'}
             </button>
@@ -329,8 +326,8 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
               e.stopPropagation();
               setShowAddChild(true);
             }}
-            title="Add sub-hypothesis"
-            aria-label="Add sub-hypothesis"
+            title="Add sub-question"
+            aria-label="Add sub-question"
           >
             +
           </button>
@@ -351,24 +348,24 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
         </div>
       )}
 
-      {/* Validation task section — for gemba/expert hypotheses */}
-      {isExpanded && hypothesis.validationType && hypothesis.validationType !== 'data' && (
+      {/* Validation task section — for gemba/expert questions */}
+      {isExpanded && question.validationType && question.validationType !== 'data' && (
         <ValidationTaskSection
-          hypothesisId={hypothesis.id}
-          validationTask={hypothesis.validationTask}
-          taskCompleted={hypothesis.taskCompleted}
-          manualNote={hypothesis.manualNote}
+          questionId={question.id}
+          validationTask={question.validationTask}
+          taskCompleted={question.taskCompleted}
+          manualNote={question.manualNote}
           onSetValidationTask={onSetValidationTask}
           onCompleteTask={onCompleteTask}
           onSetManualStatus={onSetManualStatus}
         />
       )}
 
-      {/* Improvement Ideas section — visible for supported/partial hypotheses */}
-      {isExpanded && (hypothesis.status === 'supported' || hypothesis.status === 'partial') && (
+      {/* Improvement Ideas section — visible for answered/investigating questions */}
+      {isExpanded && (question.status === 'answered' || question.status === 'investigating') && (
         <ImprovementIdeasSection
-          hypothesisId={hypothesis.id}
-          ideas={hypothesis.ideas ?? []}
+          questionId={question.id}
+          ideas={question.ideas ?? []}
           ideaImpacts={ideaImpacts}
           onAddIdea={onAddIdea}
           onUpdateIdea={onUpdateIdea}
@@ -376,16 +373,16 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
           onSelectIdea={onSelectIdea}
           onProjectIdea={onProjectIdea}
           onAskCoScout={onAskCoScout}
-          hypothesisText={hypothesis.text}
+          questionText={question.text}
         />
       )}
 
-      {/* Inline sub-hypothesis form */}
+      {/* Inline sub-question form */}
       {showAddChild && (
         <div
           className="ml-6 mt-1.5 p-2 rounded border border-edge bg-surface-secondary space-y-1.5 min-w-0"
           onClick={e => e.stopPropagation()}
-          data-testid={`add-child-form-${hypothesis.id}`}
+          data-testid={`add-child-form-${question.id}`}
         >
           <input
             type="text"
@@ -404,7 +401,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
               }
             }}
             autoFocus
-            data-testid={`add-child-text-${hypothesis.id}`}
+            data-testid={`add-child-text-${question.id}`}
           />
           <div className="flex items-center gap-2 flex-wrap">
             {factors && factors.length > 0 && (
@@ -412,7 +409,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
                 className="text-[0.6875rem] bg-transparent border border-edge rounded px-1.5 py-0.5 text-content focus:outline-none focus:border-blue-400"
                 value={childFactor}
                 onChange={e => setChildFactor(e.target.value)}
-                data-testid={`add-child-factor-${hypothesis.id}`}
+                data-testid={`add-child-factor-${question.id}`}
               >
                 <option value="">Factor (optional)</option>
                 {factors.map(f => (
@@ -430,7 +427,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
                 >
                   <input
                     type="radio"
-                    name={`vtype-${hypothesis.id}`}
+                    name={`vtype-${question.id}`}
                     value={vt}
                     checked={childValidationType === vt}
                     onChange={() => setChildValidationType(vt)}
@@ -446,7 +443,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
               className="text-xs px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 disabled:opacity-50"
               onClick={handleAddChildSubmit}
               disabled={!childText.trim()}
-              data-testid={`add-child-submit-${hypothesis.id}`}
+              data-testid={`add-child-submit-${question.id}`}
             >
               Add
             </button>
@@ -466,4 +463,4 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
   );
 };
 
-export default HypothesisNode;
+export default QuestionNode;

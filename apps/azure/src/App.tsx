@@ -212,7 +212,7 @@ function AppContent({
     return {
       project: null,
       findingId: null,
-      hypothesisId: null,
+      questionId: null,
       chart: null,
       mode: null,
       tab: null,
@@ -372,8 +372,8 @@ function AppContent({
             initialChart={
               deepLink.project === currentProject ? (deepLink.chart ?? undefined) : undefined
             }
-            initialHypothesisId={
-              deepLink.project === currentProject ? (deepLink.hypothesisId ?? undefined) : undefined
+            initialQuestionId={
+              deepLink.project === currentProject ? (deepLink.questionId ?? undefined) : undefined
             }
             initialMode={
               deepLink.project === currentProject ? (deepLink.mode ?? undefined) : undefined

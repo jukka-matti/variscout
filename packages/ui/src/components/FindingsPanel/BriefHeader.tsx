@@ -1,21 +1,21 @@
 /**
  * BriefHeader — Collapsible investigation brief header.
  *
- * Shows issue statement, target progress bar, and hypothesis summary rows.
+ * Shows issue statement, target progress bar, and question summary rows.
  * Used in the Investigation page (popout window evolution).
  */
 
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Target, Beaker } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
-import type { Hypothesis, ProcessContext } from '@variscout/core';
+import type { Question, ProcessContext } from '@variscout/core';
 import type { TargetMetric } from '@variscout/core';
 
 export interface BriefHeaderProps {
   /** Process context with issue statement and target */
   processContext?: ProcessContext;
-  /** All hypotheses for summary display */
-  hypotheses?: Hypothesis[];
+  /** All questions for summary display */
+  questions?: Question[];
   /** Current metric value for progress computation */
   currentValue?: number;
   /** Projected metric value from selected improvement ideas */
@@ -33,15 +33,15 @@ const METRIC_LABELS: Record<TargetMetric, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  untested: 'bg-slate-400',
-  supported: 'bg-green-400',
-  contradicted: 'bg-red-400',
-  partial: 'bg-amber-400',
+  open: 'bg-slate-400',
+  answered: 'bg-green-400',
+  'ruled-out': 'bg-red-400',
+  investigating: 'bg-amber-400',
 };
 
 const BriefHeader: React.FC<BriefHeaderProps> = ({
   processContext,
-  hypotheses = [],
+  questions = [],
   currentValue,
   projectedValue,
   defaultCollapsed = false,
@@ -52,7 +52,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
   const hasBrief = !!(
     processContext?.issueStatement ||
     processContext?.targetMetric ||
-    hypotheses.length > 0
+    questions.length > 0
   );
 
   if (!hasBrief) return null;
@@ -118,12 +118,12 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
     }
   }
 
-  // Hypothesis summary counts
+  // Question summary counts
   const hCounts = {
-    supported: hypotheses.filter(h => h.status === 'supported').length,
-    contradicted: hypotheses.filter(h => h.status === 'contradicted').length,
-    untested: hypotheses.filter(h => h.status === 'untested').length,
-    partial: hypotheses.filter(h => h.status === 'partial').length,
+    supported: questions.filter(h => h.status === 'answered').length,
+    contradicted: questions.filter(h => h.status === 'ruled-out').length,
+    untested: questions.filter(h => h.status === 'open').length,
+    partial: questions.filter(h => h.status === 'investigating').length,
   };
 
   return (
@@ -137,9 +137,9 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
         <span className="text-sm font-medium text-content truncate flex-1">
           {processContext?.issueStatement || t('investigation.brief')}
         </span>
-        {hypotheses.length > 0 && (
+        {questions.length > 0 && (
           <span className="text-[0.625rem] text-content-muted">
-            {hypotheses.length} hypothesis{hypotheses.length !== 1 ? 'es' : ''}
+            {questions.length} question{questions.length !== 1 ? 's' : ''}
           </span>
         )}
         {progressPercent !== undefined && (
@@ -191,9 +191,9 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
             </div>
           )}
 
-          {/* Hypothesis summary */}
-          {hypotheses.length > 0 && (
-            <div className="flex items-center gap-3" data-testid="hypothesis-summary">
+          {/* Question summary */}
+          {questions.length > 0 && (
+            <div className="flex items-center gap-3" data-testid="question-summary">
               <Beaker size={12} className="text-content-muted flex-shrink-0" />
               {Object.entries(hCounts)
                 .filter(([, count]) => count > 0)

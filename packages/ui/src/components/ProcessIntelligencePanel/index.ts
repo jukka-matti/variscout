@@ -1,4 +1,4 @@
-export { default as StatsPanelBase } from './StatsPanelBase';
+export { default as PIPanelBase } from './PIPanelBase';
 export { default as PIOverflowMenu } from './PIOverflowMenu';
 export type { PIOverflowMenuProps } from './PIOverflowMenu';
 export { default as StatsSummaryPanel } from './StatsSummaryPanel';
@@ -7,7 +7,7 @@ export { default as BestSubsetsCard } from './BestSubsetsCard';
 export { default as MainEffectsPlot } from './MainEffectsPlot';
 export { default as InteractionPlot } from './InteractionPlot';
 export { default as FactorIntelligencePanel } from './FactorIntelligencePanel';
-export type { StatsPanelBaseProps, StatsPanelTab, PIOverflowView } from './types';
+export type { PIPanelBaseProps, PITab, PIOverflowView } from './types';
 export type { ComplementInsight, TargetDiscoveryCardProps } from './TargetDiscoveryCard';
 export type { BestSubsetsCardProps } from './BestSubsetsCard';
 export type { MainEffectsPlotProps } from './MainEffectsPlot';

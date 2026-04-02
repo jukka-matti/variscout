@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import type {
   Finding,
   FindingStatus,
-  Hypothesis,
+  Question,
   FilterAction,
-  HypothesisStatus,
+  QuestionStatus,
 } from '@variscout/core';
 import { FINDING_STATUSES, FINDING_STATUS_LABELS } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
@@ -18,11 +18,11 @@ export interface ProjectStatusCardProps {
   lastEdited?: string;
   journeyPhase: 'frame' | 'scout' | 'investigate' | 'improve';
   findings: Finding[];
-  hypotheses: Hypothesis[];
+  questions: Question[];
   filterStack: FilterAction[];
   viewState?: ViewState | null;
   onNavigateToFindings: (status?: string) => void;
-  onNavigateToHypothesis: (id: string) => void;
+  onNavigateToQuestion: (id: string) => void;
   onNavigateToActions: () => void;
   onResumeAnalysis: () => void;
 }
@@ -39,13 +39,13 @@ const STATUS_DOT_COLORS: Record<FindingStatus, string> = {
   resolved: 'bg-green-500',
 };
 
-// ── Hypothesis status icons ──────────────────────────────────────────────────
+// ── Question status icons ────────────────────────────────────────────────────
 
-const HYPOTHESIS_STATUS_ICONS: Record<HypothesisStatus, string> = {
-  supported: '\u2713',
-  contradicted: '\u2717',
-  untested: '?',
-  partial: '\u25D0',
+const QUESTION_STATUS_ICONS: Record<QuestionStatus, string> = {
+  answered: '\u2713',
+  'ruled-out': '\u2717',
+  open: '?',
+  investigating: '\u25D0',
 };
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -55,10 +55,10 @@ const ProjectStatusCard: React.FC<ProjectStatusCardProps> = ({
   lastEdited,
   journeyPhase,
   findings,
-  hypotheses,
+  questions,
   filterStack,
   onNavigateToFindings,
-  onNavigateToHypothesis,
+  onNavigateToQuestion,
   onNavigateToActions,
   onResumeAnalysis,
 }) => {
@@ -74,8 +74,8 @@ const ProjectStatusCard: React.FC<ProjectStatusCardProps> = ({
     return counts;
   }, [findings]);
 
-  // Root hypotheses (no parentId)
-  const rootHypotheses = useMemo(() => hypotheses.filter(h => !h.parentId), [hypotheses]);
+  // Root questions (no parentId)
+  const rootQuestions = useMemo(() => questions.filter(h => !h.parentId), [questions]);
 
   // Action progress across all findings
   const actionProgress = useMemo(() => {
@@ -182,23 +182,23 @@ const ProjectStatusCard: React.FC<ProjectStatusCardProps> = ({
         </div>
       )}
 
-      {/* Root hypotheses */}
-      {rootHypotheses.length > 0 && (
+      {/* Root questions */}
+      {rootQuestions.length > 0 && (
         <div>
-          <p className="text-xs text-content-secondary mb-2">Hypotheses</p>
+          <p className="text-xs text-content-secondary mb-2">Questions</p>
           <ul className="space-y-1">
-            {rootHypotheses.map(h => (
+            {rootQuestions.map(h => (
               <li key={h.id}>
                 <button
-                  onClick={() => onNavigateToHypothesis(h.id)}
+                  onClick={() => onNavigateToQuestion(h.id)}
                   className="flex items-center gap-2 w-full text-left px-2 py-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors cursor-pointer text-sm"
-                  data-testid={`hypothesis-${h.id}`}
+                  data-testid={`question-${h.id}`}
                 >
                   <span
                     className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 text-xs font-mono"
                     title={h.status}
                   >
-                    {HYPOTHESIS_STATUS_ICONS[h.status]}
+                    {QUESTION_STATUS_ICONS[h.status]}
                   </span>
                   <span className="text-content flex-1 truncate">{h.text}</span>
                   {h.factor && (

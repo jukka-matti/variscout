@@ -40,7 +40,7 @@ describe('buildAnalyzedCard', () => {
     expect(mentions).toEqual([]);
   });
 
-  it('includes hypothesis text when provided', () => {
+  it('includes question text when provided', () => {
     const { card } = buildAnalyzedCard(
       makeFinding(),
       'Worn bearing on head 3',

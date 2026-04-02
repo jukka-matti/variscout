@@ -232,8 +232,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Findings
       findings: state.findings,
 
-      // Hypotheses
-      hypotheses: state.hypotheses,
+      // Questions
+      questions: state.questions,
 
       // Investigation categories
       categories: state.categories,
@@ -304,11 +304,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearSelection: actions.clearSelection,
       togglePointSelection: actions.togglePointSelection,
 
-      // Filter stack / view state / findings / hypotheses / categories setters
+      // Filter stack / view state / findings / questions / categories setters
       setFilterStack: actions.setFilterStack,
       setViewState: actions.setViewState,
       setFindings: actions.setFindings,
-      setHypotheses: actions.setHypotheses,
+      setQuestions: actions.setQuestions,
       setCategories: actions.setCategories,
 
       // AI

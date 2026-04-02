@@ -43,8 +43,8 @@ vi.mock('../charts/ParetoChart', () => ({
     </div>
   ),
 }));
-vi.mock('../StatsPanel', () => ({
-  default: () => <div data-testid="stats-mock">Stats Panel</div>,
+vi.mock('../ProcessIntelligencePanel', () => ({
+  default: () => <div data-testid="stats-mock">Process Intelligence Panel</div>,
 }));
 vi.mock('../PeoplePicker', () => ({
   default: ({

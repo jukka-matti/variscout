@@ -206,8 +206,8 @@ export interface MessageCatalog {
   // Investigation
   'investigation.brief': string;
   'investigation.assignedToMe': string;
-  'investigation.hypothesis': string;
-  'investigation.hypotheses': string;
+  'investigation.question': string;
+  'investigation.questions': string;
   'investigation.pinAsFinding': string;
   'investigation.addObservation': string;
 
@@ -295,8 +295,8 @@ export interface MessageCatalog {
   'data.metric': string;
   'data.startAnalysis': string;
   'data.applyChanges': string;
-  'data.addHypothesis': string;
-  'data.removeHypothesis': string;
+  'data.addQuestion': string;
+  'data.removeQuestion': string;
   'data.back': string;
 
   // Paste screen
@@ -376,7 +376,7 @@ export interface MessageCatalog {
   'ai.tool.clearFilters': string;
   'ai.tool.switchFactor': string;
   'ai.tool.createFinding': string;
-  'ai.tool.createHypothesis': string;
+  'ai.tool.createQuestion': string;
   'ai.tool.suggestAction': string;
   'ai.tool.shareFinding': string;
   'ai.tool.publishReport': string;
@@ -800,9 +800,9 @@ export interface MessageCatalog {
   'capability.suggestion.standardView': string;
   'capability.suggestion.footer': string;
 
-  // Hypothesis role labels
-  'hypothesis.primary': string;
-  'hypothesis.contributing': string;
+  // Question role labels
+  'question.primary': string;
+  'question.contributing': string;
 
   // Projected vs actual
   'outcome.projectedVsActual': string;
@@ -872,11 +872,11 @@ export interface MessageCatalog {
   'report.cpk.pendingVerification': string;
   'report.cpk.metProjection': string;
   'report.cpk.fromProjection': string;
-  'report.hypothesisTree': string;
-  'report.hypothesis.supported': string;
-  'report.hypothesis.partial': string;
-  'report.hypothesis.contradicted': string;
-  'report.hypothesis.untested': string;
+  'report.questionTree': string;
+  'report.question.answered': string;
+  'report.question.investigating': string;
+  'report.question.ruledOut': string;
+  'report.question.open': string;
   'report.type.analysisSnapshot': string;
   'report.type.investigationReport': string;
   'report.type.improvementStory': string;

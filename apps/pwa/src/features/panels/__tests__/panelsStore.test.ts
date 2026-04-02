@@ -11,7 +11,7 @@ describe('panelsStore', () => {
       const s = usePanelsStore.getState();
       expect(s.isFindingsOpen).toBe(false);
       expect(s.isDataTableOpen).toBe(false);
-      expect(s.isStatsSidebarOpen).toBe(false);
+      expect(s.isPISidebarOpen).toBe(false);
       expect(s.highlightRowIndex).toBeNull();
       expect(s.highlightedChartPoint).toBeNull();
     });
@@ -25,18 +25,18 @@ describe('panelsStore', () => {
       expect(usePanelsStore.getState().isFindingsOpen).toBe(false);
     });
 
-    it('toggleStatsSidebar flips isStatsSidebarOpen', () => {
-      usePanelsStore.getState().toggleStatsSidebar();
-      expect(usePanelsStore.getState().isStatsSidebarOpen).toBe(true);
+    it('togglePISidebar flips isPISidebarOpen', () => {
+      usePanelsStore.getState().togglePISidebar();
+      expect(usePanelsStore.getState().isPISidebarOpen).toBe(true);
     });
   });
 
   describe('compound actions', () => {
-    it('handlePointClick sets highlight row and opens stats sidebar', () => {
+    it('handlePointClick sets highlight row and opens PI sidebar', () => {
       usePanelsStore.getState().handlePointClick(42);
       const s = usePanelsStore.getState();
       expect(s.highlightRowIndex).toBe(42);
-      expect(s.isStatsSidebarOpen).toBe(true);
+      expect(s.isPISidebarOpen).toBe(true);
     });
 
     it('handleRowClick sets highlighted chart point', () => {

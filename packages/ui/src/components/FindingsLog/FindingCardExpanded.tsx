@@ -4,17 +4,17 @@ import { Activity, ChevronDown, ChevronRight, Target } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 
 // ============================================================================
-// Hypothesis Section
+// Question Section
 // ============================================================================
 
-const HYPOTHESIS_STATUS_COLORS: Record<string, string> = {
+const QUESTION_STATUS_COLORS: Record<string, string> = {
   untested: 'text-content-muted',
   supported: 'text-green-400',
   contradicted: 'text-red-400',
   partial: 'text-amber-400',
 };
 
-export interface HypothesisMapEntry {
+export interface QuestionMapEntry {
   text: string;
   status: string;
   factor?: string;
@@ -23,24 +23,24 @@ export interface HypothesisMapEntry {
   causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
 }
 
-export interface HypothesisSectionProps {
+export interface QuestionSectionProps {
   findingId: string;
-  hypothesisId?: string;
-  hypothesesMap?: Record<string, HypothesisMapEntry>;
-  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  questionId?: string;
+  questionsMap?: Record<string, QuestionMapEntry>;
+  onCreateQuestion?: (findingId: string, text: string, factor?: string, level?: string) => void;
   readOnly?: boolean;
 }
 
-export const HypothesisSection: React.FC<HypothesisSectionProps> = ({
+export const QuestionSection: React.FC<QuestionSectionProps> = ({
   findingId,
-  hypothesisId,
-  hypothesesMap,
-  onCreateHypothesis,
+  questionId,
+  questionsMap,
+  onCreateQuestion,
   readOnly,
 }) => {
   const { t } = useTranslation();
-  const hypothesis = hypothesisId ? hypothesesMap?.[hypothesisId] : undefined;
-  const [isOpen, setIsOpen] = useState(!!hypothesis);
+  const question = questionId ? questionsMap?.[questionId] : undefined;
+  const [isOpen, setIsOpen] = useState(!!question);
   const [draft, setDraft] = useState('');
 
   return (
@@ -54,39 +54,37 @@ export const HypothesisSection: React.FC<HypothesisSectionProps> = ({
       >
         {isOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
         <Target size={10} />
-        <span>{t('investigation.hypothesis')}</span>
-        {hypothesis && !isOpen && (
+        <span>{t('investigation.question')}</span>
+        {question && !isOpen && (
           <span
-            className={`ml-1 truncate flex-1 ${HYPOTHESIS_STATUS_COLORS[hypothesis.status] ?? 'text-content-secondary'}`}
+            className={`ml-1 truncate flex-1 ${QUESTION_STATUS_COLORS[question.status] ?? 'text-content-secondary'}`}
           >
-            &mdash; {hypothesis.text}
+            &mdash; {question.text}
           </span>
         )}
       </button>
       {isOpen && (
         <div className="mt-1">
-          {hypothesis ? (
+          {question ? (
             <div className="text-[0.6875rem] space-y-1" onClick={e => e.stopPropagation()}>
               <span className="block text-content-secondary italic">
-                &ldquo;{hypothesis.text}&rdquo;
+                &ldquo;{question.text}&rdquo;
               </span>
               <div className="flex items-center gap-2 text-[0.625rem]">
-                <span
-                  className={HYPOTHESIS_STATUS_COLORS[hypothesis.status] ?? 'text-content-muted'}
-                >
-                  {hypothesis.status.charAt(0).toUpperCase() + hypothesis.status.slice(1)}
+                <span className={QUESTION_STATUS_COLORS[question.status] ?? 'text-content-muted'}>
+                  {question.status.charAt(0).toUpperCase() + question.status.slice(1)}
                 </span>
-                {hypothesis.factor && (
+                {question.factor && (
                   <span className="text-content-muted">
-                    {hypothesis.factor}
-                    {hypothesis.level ? `=${hypothesis.level}` : ''}
+                    {question.factor}
+                    {question.level ? `=${question.level}` : ''}
                   </span>
                 )}
               </div>
             </div>
           ) : (
             !readOnly &&
-            onCreateHypothesis && (
+            onCreateQuestion && (
               <div onClick={e => e.stopPropagation()}>
                 <textarea
                   value={draft}
@@ -94,7 +92,7 @@ export const HypothesisSection: React.FC<HypothesisSectionProps> = ({
                   onKeyDown={e => {
                     if (e.key === 'Enter' && !e.shiftKey && draft.trim()) {
                       e.preventDefault();
-                      onCreateHypothesis(findingId, draft.trim());
+                      onCreateQuestion(findingId, draft.trim());
                       setDraft('');
                     }
                   }}
@@ -112,11 +110,11 @@ export const HypothesisSection: React.FC<HypothesisSectionProps> = ({
 };
 
 // ============================================================================
-// Suspected Cause Section (primary + contributing hypotheses)
+// Suspected Cause Section (primary + contributing questions)
 // ============================================================================
 
 export interface SuspectedCauseSectionProps {
-  hypothesesMap: Record<
+  questionsMap: Record<
     string,
     {
       text: string;
@@ -127,8 +125,8 @@ export interface SuspectedCauseSectionProps {
   >;
 }
 
-export const SuspectedCauseSection: React.FC<SuspectedCauseSectionProps> = ({ hypothesesMap }) => {
-  const entries = Object.entries(hypothesesMap);
+export const SuspectedCauseSection: React.FC<SuspectedCauseSectionProps> = ({ questionsMap }) => {
+  const entries = Object.entries(questionsMap);
   const primary = entries.find(([, h]) => h.causeRole === 'suspected-cause');
   const contributing = entries.filter(([, h]) => h.causeRole === 'contributing');
 
@@ -148,9 +146,7 @@ export const SuspectedCauseSection: React.FC<SuspectedCauseSectionProps> = ({ hy
               <span className="text-content-secondary">{primary[1].text}</span>
               <div className="flex items-center gap-2 text-[0.625rem] mt-0.5">
                 <span className="text-red-400 font-medium">PRIMARY</span>
-                <span
-                  className={HYPOTHESIS_STATUS_COLORS[primary[1].status] ?? 'text-content-muted'}
-                >
+                <span className={QUESTION_STATUS_COLORS[primary[1].status] ?? 'text-content-muted'}>
                   {primary[1].status}
                 </span>
                 {primary[1].factor && (
@@ -167,7 +163,7 @@ export const SuspectedCauseSection: React.FC<SuspectedCauseSectionProps> = ({ hy
               <span className="text-content-secondary">{h.text}</span>
               <div className="flex items-center gap-2 text-[0.625rem] mt-0.5">
                 <span className="text-amber-400 font-medium">CONTRIBUTING</span>
-                <span className={HYPOTHESIS_STATUS_COLORS[h.status] ?? 'text-content-muted'}>
+                <span className={QUESTION_STATUS_COLORS[h.status] ?? 'text-content-muted'}>
                   {h.status}
                 </span>
                 {h.factor && <span className="text-content-muted">{h.factor}</span>}

@@ -23,7 +23,7 @@ import {
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
   useFindings,
-  useHypotheses,
+  useQuestions,
   useDrillPath,
   buildFindingContext,
   buildFindingSource,
@@ -56,7 +56,7 @@ const SettingsPanel = React.lazy(() => import('./components/settings/SettingsPan
 const DataTableModal = React.lazy(() => import('./components/data/DataTableModal'));
 const FindingsPanel = React.lazy(() => import('./components/FindingsPanel'));
 const YamazumiDashboard = React.lazy(() => import('./components/YamazumiDashboard'));
-const StatsPanel = React.lazy(() => import('./components/StatsPanel'));
+const ProcessIntelligencePanel = React.lazy(() => import('./components/ProcessIntelligencePanel'));
 const InvestigationView = React.lazy(() => import('./components/views/InvestigationView'));
 const ImprovementView = React.lazy(() => import('./components/views/ImprovementView'));
 const ReportView = React.lazy(() => import('./components/views/ReportView'));
@@ -128,8 +128,8 @@ function AppMain() {
     stats,
     cpkTarget,
     setCpkTarget,
-    hypotheses,
-    setHypotheses,
+    questions,
+    setQuestions,
   } = useData();
 
   // Data ingestion must be declared before importFlow since importFlow uses its callbacks.
@@ -191,10 +191,10 @@ function AppMain() {
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
 
-  // Hypotheses + orchestration
-  const hypothesesState = useHypotheses({
-    initialHypotheses: hypotheses,
-    onHypothesesChange: setHypotheses,
+  // Questions + orchestration
+  const questionsState = useQuestions({
+    initialQuestions: questions,
+    onQuestionsChange: setQuestions,
   });
 
   // Question-driven investigation (ADR-053)
@@ -207,7 +207,7 @@ function AppMain() {
     filteredData: filteredData ?? [],
     outcome,
     factors,
-    hypothesesState,
+    questionsState,
     mode: resolved,
   });
 
@@ -220,7 +220,7 @@ function AppMain() {
   // PI Panel: open question count for badge
   const openQuestionCount = useMemo(
     () =>
-      factorIntelQuestions.filter(q => q.status === 'untested' || q.status === 'partial').length,
+      factorIntelQuestions.filter(q => q.status === 'open' || q.status === 'investigating').length,
     [factorIntelQuestions]
   );
 
@@ -228,10 +228,10 @@ function AppMain() {
   const [piOverflowView, setPIOverflowView] = useState<PIOverflowView>(null);
 
   const investigation = useInvestigationOrchestration({
-    hypothesesState,
+    questionsState,
     findingsState: {
       findings: findingsState.findings,
-      linkHypothesis: findingsState.linkHypothesis,
+      linkQuestion: findingsState.linkQuestion,
       setFindingStatus: findingsState.setFindingStatus,
       addAction: findingsState.addAction,
     },
@@ -240,14 +240,14 @@ function AppMain() {
   });
 
   const improvementOrch = useImprovementOrchestration({
-    hypothesesState,
+    questionsState,
     findingsState: {
       findings: findingsState.findings,
       addAction: findingsState.addAction,
     },
   });
 
-  const investigationHypothesesMap = useInvestigationStore(s => s.hypothesesMap);
+  const investigationQuestionsMap = useInvestigationStore(s => s.questionsMap);
 
   // Mobile tab bar (phone only, <640px)
   const isPhone = useIsMobile(BREAKPOINTS.phone);
@@ -597,8 +597,8 @@ function AppMain() {
           onOpenSpecEditor={() => panels.setOpenSpecEditorRequested(true)}
           onOpenWhatIf={rawData.length > 0 ? () => panels.setIsWhatIfPageOpen(true) : undefined}
           isWhatIfOpen={panels.isWhatIfPageOpen}
-          isStatsSidebarOpen={panels.isStatsSidebarOpen}
-          onToggleStatsSidebar={rawData.length > 0 ? panels.handleToggleStatsSidebar : undefined}
+          isPISidebarOpen={panels.isPISidebarOpen}
+          onTogglePISidebar={rawData.length > 0 ? panels.handleTogglePISidebar : undefined}
           hideFindings={panels.activeView === 'investigation'}
         />
       )}
@@ -632,10 +632,10 @@ function AppMain() {
       {/* Main Content */}
       <main id="main-content" className="flex-1 overflow-hidden relative flex">
         {/* Stats Sidebar (left) */}
-        {panels.isStatsSidebarOpen && rawData.length > 0 && outcome && (
+        {panels.isPISidebarOpen && rawData.length > 0 && outcome && (
           <div className="hidden lg:flex flex-col w-80 flex-shrink-0 border-r border-edge bg-surface-secondary overflow-y-auto">
             <Suspense fallback={null}>
-              <StatsPanel
+              <ProcessIntelligencePanel
                 stats={stats}
                 specs={specs}
                 filteredData={filteredData}
@@ -756,8 +756,8 @@ function AppMain() {
                 handleRestoreFinding={handleRestoreFinding}
                 handleSetFindingStatus={investigation.handleSetFindingStatus}
                 drillPath={drillPath}
-                hypothesesState={hypothesesState}
-                handleCreateHypothesis={investigation.handleCreateHypothesis}
+                questionsState={questionsState}
+                handleCreateQuestion={investigation.handleCreateQuestion}
                 factorIntelQuestions={factorIntelQuestions}
                 handleQuestionClick={handleQuestionClick}
                 columnAliases={columnAliases}
@@ -765,7 +765,7 @@ function AppMain() {
               />
             ) : panels.activeView === 'improvement' ? (
               <ImprovementView
-                hypothesesState={hypothesesState}
+                questionsState={questionsState}
                 onBack={panels.showAnalysis}
                 handleConvertIdeasToActions={improvementOrch.handleConvertIdeasToActions}
               />
@@ -775,7 +775,7 @@ function AppMain() {
                 stats={stats}
                 specs={specs}
                 findings={findingsState.findings}
-                hypotheses={hypothesesState.hypotheses}
+                questions={questionsState.questions}
                 columnAliases={columnAliases}
                 dataFilename={dataFilename}
                 sampleCount={filteredData?.length ?? 0}
@@ -801,7 +801,7 @@ function AppMain() {
             ) : (
               <Dashboard
                 onPointClick={panels.openDataTableAtRow}
-                hideStatsInGrid={panels.isStatsSidebarOpen}
+                hideStatsInGrid={panels.isPISidebarOpen}
                 onExportCSV={handleExportCSV}
                 onExportImage={handleExport}
                 highlightedChart={highlightedChart}
@@ -857,8 +857,8 @@ function AppMain() {
                 activeFindingId={highlightedFindingId}
                 onPopout={handleOpenFindingsPopout}
                 maxStatuses={3}
-                onCreateHypothesis={investigation.handleCreateHypothesis}
-                hypothesesMap={investigationHypothesesMap}
+                onCreateQuestion={investigation.handleCreateQuestion}
+                questionsMap={investigationQuestionsMap}
                 questions={factorIntelQuestions}
                 evidenceLabel={getStrategy(resolved).questionStrategy.evidenceLabel}
                 onQuestionClick={handleQuestionClick}

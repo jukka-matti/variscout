@@ -8,8 +8,8 @@ export interface SaveInsightDialogProps {
   messageImages?: Array<{ dataUrl: string; mimeType: string }>;
   /** Existing findings to add comments to */
   findings?: Array<{ id: string; text: string }>;
-  /** Existing hypotheses to add comments to */
-  hypotheses?: Array<{ id: string; text: string }>;
+  /** Existing questions to add comments to */
+  questions?: Array<{ id: string; text: string }>;
   /** Called when saving as new finding */
   onSaveAsNewFinding: (
     text: string,
@@ -18,12 +18,12 @@ export interface SaveInsightDialogProps {
   ) => void;
   /** Called when adding comment to existing finding */
   onAddCommentToFinding?: (findingId: string, text: string) => void;
-  /** Called when adding comment to existing hypothesis */
-  onAddCommentToHypothesis?: (hypothesisId: string, text: string) => void;
+  /** Called when adding comment to existing question */
+  onAddCommentToQuestion?: (questionId: string, text: string) => void;
   onClose: () => void;
 }
 
-type SaveMode = 'new-finding' | 'comment-finding' | 'comment-hypothesis';
+type SaveMode = 'new-finding' | 'comment-finding' | 'comment-question';
 
 function truncateText(text: string, maxLen: number): string {
   return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;
@@ -35,10 +35,10 @@ const SaveInsightDialog: React.FC<SaveInsightDialogProps> = ({
   messageId,
   messageImages,
   findings,
-  hypotheses,
+  questions,
   onSaveAsNewFinding,
   onAddCommentToFinding,
-  onAddCommentToHypothesis,
+  onAddCommentToQuestion,
   onClose,
 }) => {
   // Derive initial values from props (reset when messageId changes)
@@ -46,7 +46,7 @@ const SaveInsightDialog: React.FC<SaveInsightDialogProps> = ({
   const [text, setText] = useState(initialText);
   const [mode, setMode] = useState<SaveMode>('new-finding');
   const [selectedFindingId, setSelectedFindingId] = useState(findings?.[0]?.id ?? '');
-  const [selectedHypothesisId, setSelectedHypothesisId] = useState(hypotheses?.[0]?.id ?? '');
+  const [selectedQuestionId, setSelectedQuestionId] = useState(questions?.[0]?.id ?? '');
   const dialogRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const prevMessageIdRef = useRef(messageId);
@@ -57,7 +57,7 @@ const SaveInsightDialog: React.FC<SaveInsightDialogProps> = ({
     setText(initialText);
     setMode('new-finding');
     setSelectedFindingId(findings?.[0]?.id ?? '');
-    setSelectedHypothesisId(hypotheses?.[0]?.id ?? '');
+    setSelectedQuestionId(questions?.[0]?.id ?? '');
   }
 
   // Focus textarea when dialog opens
@@ -115,9 +115,9 @@ const SaveInsightDialog: React.FC<SaveInsightDialogProps> = ({
           onAddCommentToFinding(selectedFindingId, trimmed);
         }
         break;
-      case 'comment-hypothesis':
-        if (selectedHypothesisId && onAddCommentToHypothesis) {
-          onAddCommentToHypothesis(selectedHypothesisId, trimmed);
+      case 'comment-question':
+        if (selectedQuestionId && onAddCommentToQuestion) {
+          onAddCommentToQuestion(selectedQuestionId, trimmed);
         }
         break;
     }
@@ -128,17 +128,17 @@ const SaveInsightDialog: React.FC<SaveInsightDialogProps> = ({
     messageId,
     messageImages,
     selectedFindingId,
-    selectedHypothesisId,
+    selectedQuestionId,
     onSaveAsNewFinding,
     onAddCommentToFinding,
-    onAddCommentToHypothesis,
+    onAddCommentToQuestion,
     onClose,
   ]);
 
   if (!isOpen) return null;
 
   const hasFindings = findings && findings.length > 0 && onAddCommentToFinding;
-  const hasHypotheses = hypotheses && hypotheses.length > 0 && onAddCommentToHypothesis;
+  const hasQuestions = questions && questions.length > 0 && onAddCommentToQuestion;
 
   return (
     <div
@@ -213,28 +213,28 @@ const SaveInsightDialog: React.FC<SaveInsightDialogProps> = ({
             </div>
           )}
 
-          {/* Comment on hypothesis option */}
-          {hasHypotheses && (
+          {/* Comment on question option */}
+          {hasQuestions && (
             <div className="space-y-1">
               <label className="flex items-center gap-2 text-xs text-content cursor-pointer">
                 <input
                   type="radio"
                   name="save-mode"
-                  value="comment-hypothesis"
-                  checked={mode === 'comment-hypothesis'}
-                  onChange={() => setMode('comment-hypothesis')}
+                  value="comment-question"
+                  checked={mode === 'comment-question'}
+                  onChange={() => setMode('comment-question')}
                   className="accent-blue-500"
                 />
-                Add as comment to hypothesis
+                Add as comment to question
               </label>
-              {mode === 'comment-hypothesis' && (
+              {mode === 'comment-question' && (
                 <select
-                  value={selectedHypothesisId}
-                  onChange={e => setSelectedHypothesisId(e.target.value)}
+                  value={selectedQuestionId}
+                  onChange={e => setSelectedQuestionId(e.target.value)}
                   className="ml-6 w-[calc(100%-1.5rem)] bg-surface border border-edge rounded-lg px-2 py-1 text-xs text-content focus:outline-none focus:border-blue-500"
-                  data-testid="save-insight-hypothesis-select"
+                  data-testid="save-insight-question-select"
                 >
-                  {hypotheses!.map(h => (
+                  {questions!.map(h => (
                     <option key={h.id} value={h.id}>
                       {h.text.length > 60 ? h.text.slice(0, 60) + '...' : h.text}
                     </option>

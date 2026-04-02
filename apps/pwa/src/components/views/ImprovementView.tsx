@@ -7,35 +7,35 @@
  */
 import React from 'react';
 import { ImprovementWorkspaceBase } from '@variscout/ui';
-import type { UseHypothesesReturn } from '@variscout/hooks';
+import type { UseQuestionsReturn } from '@variscout/hooks';
 import { useImprovementStore } from '../../features/improvement/improvementStore';
 import type { UseImprovementOrchestrationReturn } from '../../features/improvement/useImprovementOrchestration';
 
 interface ImprovementViewProps {
-  hypothesesState: UseHypothesesReturn;
+  questionsState: UseQuestionsReturn;
   onBack: () => void;
   handleConvertIdeasToActions: UseImprovementOrchestrationReturn['handleConvertIdeasToActions'];
 }
 
 const ImprovementView: React.FC<ImprovementViewProps> = ({
-  hypothesesState,
+  questionsState,
   onBack,
   handleConvertIdeasToActions,
 }) => {
-  const improvementHypotheses = useImprovementStore(s => s.improvementHypotheses);
+  const improvementQuestions = useImprovementStore(s => s.improvementQuestions);
   const improvementLinkedFindings = useImprovementStore(s => s.improvementLinkedFindings);
   const selectedIdeaIds = useImprovementStore(s => s.selectedIdeaIds);
   const convertedIdeaIds = useImprovementStore(s => s.convertedIdeaIds);
 
-  if (improvementHypotheses.length === 0) {
+  if (improvementQuestions.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 text-center">
         <div className="max-w-md space-y-3">
           <h2 className="text-lg font-semibold text-content">Improvement Workspace</h2>
           <p className="text-sm text-content-secondary">
             No improvement ideas yet. Start by investigating findings in the Investigation
-            workspace, then add improvement ideas to your hypotheses. Supported hypotheses with
-            ideas will appear here.
+            workspace, then add improvement ideas to your questions. Answered questions with ideas
+            will appear here.
           </p>
           <button
             onClick={onBack}
@@ -50,18 +50,18 @@ const ImprovementView: React.FC<ImprovementViewProps> = ({
 
   return (
     <ImprovementWorkspaceBase
-      hypotheses={improvementHypotheses}
+      questions={improvementQuestions}
       linkedFindings={improvementLinkedFindings}
-      onToggleSelect={(hId, iId, selected) => hypothesesState.selectIdea(hId, iId, selected)}
-      onUpdateTimeframe={(hId, iId, timeframe) =>
-        hypothesesState.updateIdea(hId, iId, { timeframe })
+      onToggleSelect={(qId, iId, selected) => questionsState.selectIdea(qId, iId, selected)}
+      onUpdateTimeframe={(qId, iId, timeframe) =>
+        questionsState.updateIdea(qId, iId, { timeframe })
       }
-      onUpdateDirection={(hId, iId, direction) =>
-        hypothesesState.updateIdea(hId, iId, { direction })
+      onUpdateDirection={(qId, iId, direction) =>
+        questionsState.updateIdea(qId, iId, { direction })
       }
-      onUpdateCost={(hId, iId, cost) => hypothesesState.updateIdea(hId, iId, { cost })}
-      onRemoveIdea={hypothesesState.removeIdea}
-      onAddIdea={hypothesesState.addIdea}
+      onUpdateCost={(qId, iId, cost) => questionsState.updateIdea(qId, iId, { cost })}
+      onRemoveIdea={questionsState.removeIdea}
+      onAddIdea={questionsState.addIdea}
       onConvertToActions={handleConvertIdeasToActions}
       onBack={onBack}
       selectedIdeaIds={selectedIdeaIds}

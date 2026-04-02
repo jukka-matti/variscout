@@ -35,8 +35,8 @@ export interface ProjectHeaderProps {
   openQuestionCount?: number;
   selectedIdeaCount?: number;
   // Cross-cutting panel toggles
-  isStatsSidebarOpen?: boolean;
-  onToggleStatsSidebar?: () => void;
+  isPISidebarOpen?: boolean;
+  onTogglePISidebar?: () => void;
   isCoScoutOpen?: boolean;
   onToggleCoScout?: () => void;
   // Primary action: Analysis
@@ -90,8 +90,8 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
   activeView,
   openQuestionCount,
   selectedIdeaCount,
-  isStatsSidebarOpen,
-  onToggleStatsSidebar,
+  isPISidebarOpen,
+  onTogglePISidebar,
   isCoScoutOpen,
   onToggleCoScout,
   onAddPasteData,
@@ -166,11 +166,11 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
               />
             </div>
           )}
-          {hasData && onToggleStatsSidebar && (
+          {hasData && onTogglePISidebar && (
             <button
-              onClick={onToggleStatsSidebar}
-              className={toggleBtnClass(!!isStatsSidebarOpen)}
-              title="Stats panel"
+              onClick={onTogglePISidebar}
+              className={toggleBtnClass(!!isPISidebarOpen)}
+              title="Process Intelligence"
               data-testid="btn-stats-sidebar"
             >
               <BarChart3 size={16} />
@@ -317,11 +317,11 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
       {/* ── Right zone: panel toggles + primary action + save ── */}
       <div className="flex items-center gap-1.5 flex-shrink-0">
         {/* Stats Sidebar Toggle */}
-        {hasData && onToggleStatsSidebar && (
+        {hasData && onTogglePISidebar && (
           <button
-            onClick={onToggleStatsSidebar}
-            className={toggleBtnClass(!!isStatsSidebarOpen)}
-            title={isStatsSidebarOpen ? 'Hide stats panel' : 'Show stats panel'}
+            onClick={onTogglePISidebar}
+            className={toggleBtnClass(!!isPISidebarOpen)}
+            title={isPISidebarOpen ? 'Hide Process Intelligence' : 'Show Process Intelligence'}
             data-testid="btn-stats-sidebar"
           >
             <BarChart3 size={16} />

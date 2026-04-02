@@ -2,7 +2,7 @@
 // IndexedDB operations for project persistence (Dexie wrapper)
 
 import { buildProjectMetadata } from '@variscout/core';
-import type { ProjectMetadata, Finding, Hypothesis } from '@variscout/core';
+import type { ProjectMetadata, Finding, Question } from '@variscout/core';
 import { db } from '../db/schema';
 import type { StorageLocation, CloudProject } from './cloudSync';
 
@@ -13,7 +13,7 @@ export type Project = unknown;
 // ── Metadata extraction ─────────────────────────────────────────────────
 
 /**
- * Extract findings, hypotheses, and data presence from an opaque project object.
+ * Extract findings, questions, and data presence from an opaque project object.
  * The storage layer treats project data as `unknown`; this peeks at the shape
  * to pull out the fields needed for metadata building.
  */
@@ -26,9 +26,9 @@ export function extractMetadataInputs(
     const p = project as Record<string, unknown> | null;
     if (!p || typeof p !== 'object') return null;
     const findings = (Array.isArray(p.findings) ? p.findings : []) as Finding[];
-    const hypotheses = (Array.isArray(p.hypotheses) ? p.hypotheses : []) as Hypothesis[];
+    const questions = (Array.isArray(p.questions) ? p.questions : []) as Question[];
     const hasData = Array.isArray(p.rawData) && p.rawData.length > 0;
-    return buildProjectMetadata(findings, hypotheses, hasData, userId, existingLastViewedAt);
+    return buildProjectMetadata(findings, questions, hasData, userId, existingLastViewedAt);
   } catch {
     return null;
   }

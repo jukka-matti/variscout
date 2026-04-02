@@ -10,7 +10,7 @@ export type RefTargetType =
   | 'stats'
   | 'yamazumi'
   | 'finding'
-  | 'hypothesis'
+  | 'question'
   | 'dashboard'
   | 'improvement';
 

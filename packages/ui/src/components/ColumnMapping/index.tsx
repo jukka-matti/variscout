@@ -43,8 +43,8 @@ import {
 export interface AnalysisBrief {
   /** What is being investigated (max 500 chars) */
   issueStatement?: string;
-  /** Upfront hypothesis entries */
-  hypotheses?: Array<{ text: string; factor?: string; level?: string }>;
+  /** Upfront question entries */
+  questions?: Array<{ text: string; factor?: string; level?: string }>;
   /** Improvement target */
   target?: {
     metric: TargetMetric;
@@ -102,7 +102,7 @@ export interface ColumnMappingProps {
   maxFactors?: number;
   /** Mode: 'setup' for first-time mapping, 'edit' for mid-analysis re-edit */
   mode?: 'setup' | 'edit';
-  /** Show analysis brief fields (issue statement, hypothesis, target). Default: false (PWA). */
+  /** Show analysis brief fields (issue statement, question, target). Default: false (PWA). */
   showBrief?: boolean;
   /** Initial issue statement (from persisted ProcessContext) */
   initialIssueStatement?: string;
@@ -204,7 +204,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
 
   // Brief fields state
   const [issueStatement, setIssueStatement] = useState(initialIssueStatement || '');
-  const [briefHypotheses, setBriefHypotheses] = useState<
+  const [briefQuestions, setBriefQuestions] = useState<
     Array<{ text: string; factor: string; level: string }>
   >([]);
   const [briefExpanded, setBriefExpanded] = useState(!!initialIssueStatement);
@@ -261,14 +261,14 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     return colorMap;
   }, [inferredCategories, initialCategories]);
 
-  // Brief hypothesis helpers
-  const addBriefHypothesis = useCallback(() => {
-    setBriefHypotheses(prev => [...prev, { text: '', factor: '', level: '' }]);
+  // Brief question helpers
+  const addBriefQuestion = useCallback(() => {
+    setBriefQuestions(prev => [...prev, { text: '', factor: '', level: '' }]);
   }, []);
 
-  const updateBriefHypothesis = useCallback(
+  const updateBriefQuestion = useCallback(
     (index: number, field: 'text' | 'factor' | 'level', value: string) => {
-      setBriefHypotheses(prev => {
+      setBriefQuestions(prev => {
         const next = [...prev];
         next[index] = { ...next[index], [field]: value };
         return next;
@@ -277,8 +277,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     []
   );
 
-  const removeBriefHypothesis = useCallback((index: number) => {
-    setBriefHypotheses(prev => prev.filter((_, i) => i !== index));
+  const removeBriefQuestion = useCallback((index: number) => {
+    setBriefQuestions(prev => prev.filter((_, i) => i !== index));
   }, []);
 
   // Optional specs state
@@ -410,30 +410,28 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                     </span>
                   </div>
 
-                  {/* Hypotheses */}
+                  {/* Questions */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-400">
-                        {t('investigation.hypotheses')}
-                      </span>
+                      <span className="text-xs text-slate-400">{t('investigation.questions')}</span>
                     </div>
-                    {briefHypotheses.map((hyp, idx) => (
+                    {briefQuestions.map((hyp, idx) => (
                       <div
                         key={idx}
                         className="flex flex-col gap-1.5 mb-2 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50"
-                        data-testid={`brief-hypothesis-${idx}`}
+                        data-testid={`brief-question-${idx}`}
                       >
                         <input
                           type="text"
                           value={hyp.text}
-                          onChange={e => updateBriefHypothesis(idx, 'text', e.target.value)}
+                          onChange={e => updateBriefQuestion(idx, 'text', e.target.value)}
                           placeholder="e.g., Night shift has higher variation"
                           className="w-full text-sm bg-slate-900/50 border border-slate-700 rounded px-2 py-1.5 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50"
                         />
                         <div className="flex gap-2">
                           <select
                             value={hyp.factor}
-                            onChange={e => updateBriefHypothesis(idx, 'factor', e.target.value)}
+                            onChange={e => updateBriefQuestion(idx, 'factor', e.target.value)}
                             className="flex-1 text-xs bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none focus:border-blue-500/50"
                           >
                             <option value="">Factor (optional)</option>
@@ -447,7 +445,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                           </select>
                           <select
                             value={hyp.level}
-                            onChange={e => updateBriefHypothesis(idx, 'level', e.target.value)}
+                            onChange={e => updateBriefQuestion(idx, 'level', e.target.value)}
                             className="flex-1 text-xs bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none focus:border-blue-500/50"
                             disabled={!hyp.factor}
                           >
@@ -460,10 +458,10 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                               ))}
                           </select>
                           <button
-                            onClick={() => removeBriefHypothesis(idx)}
+                            onClick={() => removeBriefQuestion(idx)}
                             className="text-slate-500 hover:text-red-400 text-xs px-1"
                             type="button"
-                            aria-label="Remove hypothesis"
+                            aria-label="Remove question"
                           >
                             ×
                           </button>
@@ -471,12 +469,12 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                       </div>
                     ))}
                     <button
-                      onClick={addBriefHypothesis}
+                      onClick={addBriefQuestion}
                       className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
                       type="button"
-                      data-testid="brief-add-hypothesis"
+                      data-testid="brief-add-question"
                     >
-                      + {t('data.addHypothesis')}
+                      + {t('data.addQuestion')}
                     </button>
                   </div>
 
@@ -751,9 +749,9 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
               if (issueStatement.trim()) {
                 brief.issueStatement = issueStatement.trim();
               }
-              const validHypotheses = briefHypotheses.filter(h => h.text.trim());
-              if (validHypotheses.length > 0) {
-                brief.hypotheses = validHypotheses.map(h => ({
+              const validQuestions = briefQuestions.filter(h => h.text.trim());
+              if (validQuestions.length > 0) {
+                brief.questions = validQuestions.map(h => ({
                   text: h.text.trim(),
                   ...(h.factor ? { factor: h.factor } : {}),
                   ...(h.level ? { level: h.level } : {}),
@@ -767,7 +765,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                   value: tv,
                 };
               }
-              const hasBrief = brief.issueStatement || brief.hypotheses || brief.target;
+              const hasBrief = brief.issueStatement || brief.questions || brief.target;
               onConfirm(outcome, factors, specs, categories, hasBrief ? brief : undefined);
             }}
             disabled={!isValid}

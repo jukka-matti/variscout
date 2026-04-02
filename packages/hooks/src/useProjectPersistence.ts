@@ -15,7 +15,7 @@ import type {
   StageOrderMode,
   FilterAction,
   Finding,
-  Hypothesis,
+  Question,
   InvestigationCategory,
   AnalysisMode,
   YamazumiColumnMapping,
@@ -85,8 +85,8 @@ export interface ProjectPersistenceInputs {
   // Findings getter
   findings: Finding[];
 
-  // Hypotheses getter
-  hypotheses: Hypothesis[];
+  // Questions getter
+  questions: Question[];
 
   // Categories getter
   categories: InvestigationCategory[];
@@ -132,8 +132,8 @@ export interface ProjectPersistenceInputs {
   // Findings setter
   setFindings: (findings: Finding[]) => void;
 
-  // Hypotheses setter
-  setHypotheses: (hypotheses: Hypothesis[]) => void;
+  // Questions setter
+  setQuestions: (questions: Question[]) => void;
 
   // Categories setter
   setCategories: (categories: InvestigationCategory[]) => void;
@@ -229,8 +229,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setViewState,
     findings,
     setFindings,
-    hypotheses,
-    setHypotheses,
+    questions,
+    setQuestions,
     categories,
     setCategories,
   } = inputs;
@@ -286,8 +286,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     // Findings — only include if non-empty
     if (findings.length > 0) state.findings = findings;
 
-    // Hypotheses — only include if non-empty
-    if (hypotheses.length > 0) state.hypotheses = hypotheses;
+    // Questions — only include if non-empty
+    if (questions.length > 0) state.questions = questions;
 
     // Categories — only include if non-empty
     if (categories.length > 0) state.categories = categories;
@@ -321,7 +321,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     filterStack,
     viewState,
     findings,
-    hypotheses,
+    questions,
     categories,
   ]);
 
@@ -407,8 +407,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
         // Findings
         setFindings(state.findings ?? []);
 
-        // Hypotheses
-        setHypotheses(state.hypotheses ?? []);
+        // Questions
+        setQuestions(state.questions ?? []);
 
         // Categories
         setCategories(state.categories ?? []);
@@ -450,7 +450,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setFilterStack,
       setViewState,
       setFindings,
-      setHypotheses,
+      setQuestions,
       setCategories,
     ]
   );
@@ -551,7 +551,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setFindings(state.findings ?? []);
 
       // Hypotheses
-      setHypotheses(state.hypotheses ?? []);
+      setQuestions(state.questions ?? []);
 
       // Categories
       setCategories(state.categories ?? []);
@@ -592,7 +592,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setFilterStack,
       setViewState,
       setFindings,
-      setHypotheses,
+      setQuestions,
       setCategories,
     ]
   );
@@ -632,11 +632,11 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setAnalysisMode('standard');
     setYamazumiMapping(null);
     setSubgroupConfig({ method: 'fixed-size', size: 5 });
-    // Reset filter stack, view state, findings, hypotheses, and categories
+    // Reset filter stack, view state, findings, questions, and categories
     setFilterStack([]);
     setViewState(null);
     setFindings([]);
-    setHypotheses([]);
+    setQuestions([]);
     setCategories([]);
   }, [
     setRawData,
@@ -672,7 +672,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setFilterStack,
     setViewState,
     setFindings,
-    setHypotheses,
+    setQuestions,
     setCategories,
   ]);
 

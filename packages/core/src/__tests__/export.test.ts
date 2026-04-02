@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getSpecStatus, generateCSV, generateFindingsCSV, generateFindingsJSON } from '../export';
-import type { Finding, Hypothesis } from '../findings';
+import type { Finding, Question } from '../findings';
 
 describe('export module', () => {
   describe('getSpecStatus', () => {
@@ -237,14 +237,14 @@ describe('findings export', () => {
     tag: 'key-driver',
     comments: [],
     statusChangedAt: Date.now(),
-    hypothesisId: 'h1',
+    questionId: 'q1',
   };
 
-  const mockHypothesis: Hypothesis = {
-    id: 'h1',
+  const mockQuestion: Question = {
+    id: 'q1',
     text: 'Machine B calibration drift',
     factor: 'Machine',
-    status: 'supported',
+    status: 'answered',
     linkedFindingIds: ['f1'],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -256,7 +256,7 @@ describe('findings export', () => {
     });
 
     it('generates CSV with headers and finding data', () => {
-      const csv = generateFindingsCSV([mockFinding], [mockHypothesis]);
+      const csv = generateFindingsCSV([mockFinding], [mockQuestion]);
       const lines = csv.split('\n');
       expect(lines[0]).toContain('id,text,status,tag');
       expect(lines[1]).toContain('f1');
@@ -264,14 +264,14 @@ describe('findings export', () => {
       expect(lines[1]).toContain('Key Driver');
     });
 
-    it('resolves hypothesis text from hypothesisId', () => {
-      const csv = generateFindingsCSV([mockFinding], [mockHypothesis]);
+    it('resolves question text from questionId', () => {
+      const csv = generateFindingsCSV([mockFinding], [mockQuestion]);
       expect(csv).toContain('Machine B calibration drift');
     });
 
-    it('handles findings without hypothesis', () => {
-      const noHypothesis = { ...mockFinding, hypothesisId: undefined };
-      const csv = generateFindingsCSV([noHypothesis]);
+    it('handles findings without question', () => {
+      const noQuestion = { ...mockFinding, questionId: undefined };
+      const csv = generateFindingsCSV([noQuestion]);
       const lines = csv.split('\n');
       expect(lines.length).toBe(2); // header + 1 row
     });
@@ -279,7 +279,7 @@ describe('findings export', () => {
 
   describe('generateFindingsJSON', () => {
     it('generates valid JSON with findings and summary', () => {
-      const json = generateFindingsJSON([mockFinding], [mockHypothesis]);
+      const json = generateFindingsJSON([mockFinding], [mockQuestion]);
       const parsed = JSON.parse(json);
       expect(parsed.version).toBe('1.0');
       expect(parsed.findings).toHaveLength(1);

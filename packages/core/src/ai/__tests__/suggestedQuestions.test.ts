@@ -98,7 +98,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'diverging',
-          allHypotheses: [{ id: 'h-1', text: 'Root cause', status: 'untested' }],
+          allQuestions: [{ id: 'h-1', text: 'Root cause', status: 'open' }],
         },
       };
       const result = buildSuggestedQuestions(context);
@@ -110,14 +110,14 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'converging',
-          allHypotheses: [
-            { id: 'h-1', text: 'Supported', status: 'supported' },
-            { id: 'h-2', text: 'Contradicted', status: 'contradicted' },
+          allQuestions: [
+            { id: 'h-1', text: 'Supported', status: 'answered' },
+            { id: 'h-2', text: 'Contradicted', status: 'ruled-out' },
           ],
         },
       };
       const result = buildSuggestedQuestions(context);
-      expect(result).toContain('Do the supported hypotheses form a coherent story?');
+      expect(result).toContain('Do the answered questions form a coherent story?');
     });
 
     it('suggests uncovered categories during diverging', () => {
@@ -125,16 +125,16 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'diverging',
-          hypothesisTree: [
+          questionTree: [
             {
               id: 'h-1',
               text: 'Machine issue',
-              status: 'untested',
+              status: 'open',
               factor: 'Machine',
               category: 'Equipment',
             },
           ],
-          allHypotheses: [{ id: 'h-1', text: 'Machine issue', status: 'untested' }],
+          allQuestions: [{ id: 'h-1', text: 'Machine issue', status: 'open' }],
         },
       };
       const result = buildSuggestedQuestions(context);
@@ -161,7 +161,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'improving',
-          allHypotheses: [{ id: 'h-1', text: 'Root cause', status: 'supported' }],
+          allQuestions: [{ id: 'h-1', text: 'Root cause', status: 'answered' }],
         },
       };
       const result = buildSuggestedQuestions(context);
@@ -177,7 +177,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'improving',
-          allHypotheses: [{ id: 'h-1', text: 'Root cause', status: 'supported' }],
+          allQuestions: [{ id: 'h-1', text: 'Root cause', status: 'answered' }],
         },
         stagedComparison: {
           stageNames: ['Before', 'After'],
@@ -204,7 +204,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'improving',
-          allHypotheses: [{ id: 'h-1', text: 'Root cause', status: 'supported' }],
+          allQuestions: [{ id: 'h-1', text: 'Root cause', status: 'answered' }],
         },
         stagedComparison: {
           stageNames: ['Before', 'After'],
@@ -231,7 +231,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'converging',
-          allHypotheses: [{ id: 'h-1', text: 'Root cause', status: 'supported' }],
+          allQuestions: [{ id: 'h-1', text: 'Root cause', status: 'answered' }],
         },
         stagedComparison: {
           stageNames: ['Before', 'After'],
@@ -250,7 +250,7 @@ describe('buildSuggestedQuestions', () => {
       const result = buildSuggestedQuestions(context);
       // Should not contain verification questions (those are only for acting phase)
       expect(result.some(q => q.includes('sustained across categories'))).toBe(false);
-      expect(result).toContain('Do the supported hypotheses form a coherent story?');
+      expect(result).toContain('Do the answered questions form a coherent story?');
     });
 
     it('returns idea-aware questions when converging with ideas', () => {
@@ -258,11 +258,11 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'converging',
-          allHypotheses: [
+          allQuestions: [
             {
               id: 'h-1',
               text: 'Night shift training gap',
-              status: 'supported',
+              status: 'answered',
               ideas: [
                 { text: 'Simplify setup (visual guides)', selected: true },
                 { text: 'Train night shift operators' },
@@ -283,7 +283,7 @@ describe('buildSuggestedQuestions', () => {
         ...baseContext,
         investigation: {
           phase: 'converging',
-          allHypotheses: [{ id: 'h-1', text: 'Root cause confirmed', status: 'supported' }],
+          allQuestions: [{ id: 'h-1', text: 'Root cause confirmed', status: 'answered' }],
         },
       };
       const result = buildSuggestedQuestions(context);

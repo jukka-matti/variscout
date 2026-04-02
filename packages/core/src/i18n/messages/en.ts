@@ -97,8 +97,8 @@ export const en: MessageCatalog = {
   // Investigation
   'investigation.brief': 'Investigation Brief',
   'investigation.assignedToMe': 'Assigned to me',
-  'investigation.hypothesis': 'Hypothesis',
-  'investigation.hypotheses': 'Hypotheses',
+  'investigation.question': 'Question',
+  'investigation.questions': 'Questions',
   'investigation.pinAsFinding': 'Pin as finding',
   'investigation.addObservation': 'Add observation',
 
@@ -186,8 +186,8 @@ export const en: MessageCatalog = {
   'data.metric': 'Metric',
   'data.startAnalysis': 'Start Analysis',
   'data.applyChanges': 'Apply Changes',
-  'data.addHypothesis': 'Add hypothesis',
-  'data.removeHypothesis': 'Remove hypothesis',
+  'data.addQuestion': 'Add question',
+  'data.removeQuestion': 'Remove question',
   'data.back': 'Back',
 
   // Paste screen
@@ -250,8 +250,8 @@ export const en: MessageCatalog = {
 
   // Investigation sidebar
   'investigation.phaseInitial': 'Gather initial observations',
-  'investigation.phaseDiverging': 'Explore multiple hypotheses',
-  'investigation.phaseValidating': 'Test and validate hypotheses',
+  'investigation.phaseDiverging': 'Explore multiple questions',
+  'investigation.phaseValidating': 'Test and validate questions',
   'investigation.phaseConverging': 'Narrow to root cause',
   'investigation.phaseImproving': 'Implement and verify changes',
   'investigation.pdcaTitle': 'Verification Checklist',
@@ -267,7 +267,7 @@ export const en: MessageCatalog = {
   'ai.tool.clearFilters': 'Clear filters',
   'ai.tool.switchFactor': 'Switch factor',
   'ai.tool.createFinding': 'Create finding',
-  'ai.tool.createHypothesis': 'Create hypothesis',
+  'ai.tool.createQuestion': 'Create question',
   'ai.tool.suggestAction': 'Suggest action',
   'ai.tool.shareFinding': 'Share finding',
   'ai.tool.publishReport': 'Publish report',
@@ -613,7 +613,7 @@ export const en: MessageCatalog = {
   'improve.emptyNoFindings':
     'Pin findings from the Analysis view, then brainstorm improvement ideas here.',
   'improve.emptyNoSupported':
-    'Validate your hypotheses in the Findings view. Supported hypotheses unlock improvement brainstorming.',
+    'Answer your questions in the investigation. Answered questions unlock improvement brainstorming.',
   'improve.selectedCount': '{count} selected',
   'improve.timeframeBreakdown':
     '{justDo} just do \u00b7 {days} days \u00b7 {weeks} wks \u00b7 {months} mo',
@@ -702,9 +702,9 @@ export const en: MessageCatalog = {
   'idea.moreOptions': 'More options',
   'idea.riskAssessment': 'Risk assessment',
 
-  // Hypothesis role labels
-  'hypothesis.primary': 'Primary',
-  'hypothesis.contributing': 'Contributing',
+  // Question role labels
+  'question.primary': 'Primary',
+  'question.contributing': 'Contributing',
 
   // Projected vs actual
   'outcome.projectedVsActual': 'Projected {projected} \u2192 Actual {actual}',
@@ -758,11 +758,11 @@ export const en: MessageCatalog = {
   'report.cpk.pendingVerification': 'Pending verification',
   'report.cpk.metProjection': 'Met projection',
   'report.cpk.fromProjection': '{delta} from projection',
-  'report.hypothesisTree': 'Hypothesis Tree',
-  'report.hypothesis.supported': 'Supported',
-  'report.hypothesis.partial': 'Partial',
-  'report.hypothesis.contradicted': 'Contradicted',
-  'report.hypothesis.untested': 'Untested',
+  'report.questionTree': 'Question Tree',
+  'report.question.answered': 'Answered',
+  'report.question.investigating': 'Investigating',
+  'report.question.ruledOut': 'Ruled Out',
+  'report.question.open': 'Open',
   'report.type.analysisSnapshot': 'Analysis Snapshot',
   'report.type.investigationReport': 'Investigation Report',
   'report.type.improvementStory': 'Improvement Story',

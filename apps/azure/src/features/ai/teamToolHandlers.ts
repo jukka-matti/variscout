@@ -20,7 +20,7 @@ import { useInvestigationStore } from '../investigation/investigationStore';
 export type NavigationTarget =
   | 'dashboard'
   | 'finding'
-  | 'hypothesis'
+  | 'question'
   | 'chart'
   | 'improvement_workspace'
   | 'report';
@@ -67,7 +67,7 @@ export function buildNavTeamToolHandlers({
       const validTargets: NavigationTarget[] = [
         'dashboard',
         'finding',
-        'hypothesis',
+        'question',
         'chart',
         'improvement_workspace',
         'report',
@@ -87,10 +87,10 @@ export function buildNavTeamToolHandlers({
             useFindingsStore.getState().setHighlightedFindingId(targetId);
           }
           break;
-        case 'hypothesis':
+        case 'question':
           panels.showInvestigation();
           if (targetId) {
-            useInvestigationStore.getState().expandToHypothesis(targetId);
+            useInvestigationStore.getState().expandToQuestion(targetId);
           }
           break;
         case 'chart':

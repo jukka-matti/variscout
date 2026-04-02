@@ -3,7 +3,7 @@ import { Pencil } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import { HelpTooltip } from '../HelpTooltip';
 import type { GlossaryTerm } from '@variscout/core';
-import type { StatsPanelBaseProps, StatsPanelTab, PIOverflowView } from './types';
+import type { PIPanelBaseProps, PITab, PIOverflowView } from './types';
 import { StagedComparisonCard } from './StagedComparisonCard';
 import TargetDiscoveryCard from './TargetDiscoveryCard';
 import PIOverflowMenu from './PIOverflowMenu';
@@ -60,11 +60,11 @@ const EMPTY_STATE_CLASS =
 const pencilIcon = <Pencil size={12} />;
 
 interface TabButtonProps {
-  tab: StatsPanelTab;
+  tab: PITab;
   label: string;
   helpTerm?: GlossaryTerm;
-  activeTab: StatsPanelTab;
-  onTabChange: (tab: StatsPanelTab) => void;
+  activeTab: PITab;
+  onTabChange: (tab: PITab) => void;
   compact?: boolean;
   badge?: number;
 }
@@ -95,7 +95,7 @@ const TabButton = ({
   </button>
 );
 
-const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
+const PIPanelBase: React.FC<PIPanelBaseProps> = ({
   stats,
   specs,
   filteredData = [],
@@ -130,7 +130,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   onOverflowViewChange,
 }) => {
   const { t, formatStat } = useTranslation();
-  const [activeTab, setActiveTab] = useState<StatsPanelTab>(defaultTab || 'stats');
+  const [activeTab, setActiveTab] = useState<PITab>(defaultTab || 'stats');
 
   // Overflow view can be controlled (via prop) or uncontrolled (local state)
   const [overflowViewLocal, setOverflowViewLocal] = useState<PIOverflowView>(null);
@@ -382,4 +382,4 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   );
 };
 
-export default StatsPanelBase;
+export default PIPanelBase;

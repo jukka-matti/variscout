@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { QuestionChecklist } from '../QuestionChecklist';
-import type { Hypothesis } from '@variscout/core';
+import type { Question } from '@variscout/core';
 
-const makeQuestion = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
+const makeQuestion = (overrides: Partial<Question> = {}): Question => ({
   id: 'q1',
   text: 'Is Shift a significant factor?',
-  status: 'untested' as const,
+  status: 'open' as const,
   linkedFindingIds: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -21,7 +21,7 @@ describe('QuestionChecklist', () => {
   });
 
   it('renders questions sorted by R2adj', () => {
-    const questions: Hypothesis[] = [
+    const questions: Question[] = [
       makeQuestion({ id: 'q1', text: 'Low evidence', evidence: { rSquaredAdj: 0.1 } }),
       makeQuestion({ id: 'q2', text: 'High evidence', evidence: { rSquaredAdj: 0.8 } }),
       makeQuestion({ id: 'q3', text: 'Mid evidence', evidence: { rSquaredAdj: 0.4 } }),
@@ -36,11 +36,11 @@ describe('QuestionChecklist', () => {
   });
 
   it('shows auto-answered badge for factor-intel ruled-out questions', () => {
-    const questions: Hypothesis[] = [
+    const questions: Question[] = [
       makeQuestion({
         id: 'q1',
         text: 'Operator is not significant',
-        status: 'contradicted',
+        status: 'ruled-out',
         questionSource: 'factor-intel',
         evidence: { rSquaredAdj: 0.02 },
       }),

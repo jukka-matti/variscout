@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, ChevronDown, ChevronRight } from 'lucide-react';
-import type { Hypothesis, Finding } from '@variscout/core/findings';
-import { getQuestionDisplayStatus } from '@variscout/core/findings';
-import type { QuestionDisplayStatus } from '@variscout/core/findings';
+import type { Question, Finding } from '@variscout/core/findings';
+import type { QuestionStatus } from '@variscout/core/findings';
 import QuestionRow from './QuestionRow';
 import QuestionRowExpanded from './QuestionRowExpanded';
 import ObservationsSection from './ObservationsSection';
@@ -15,7 +14,7 @@ import { QuestionLinkModal } from './QuestionLinkModal';
 export type { SuspectedCause };
 
 export interface QuestionsTabViewProps {
-  questions: Hypothesis[];
+  questions: Question[];
   findings: Finding[];
   issueStatement?: string;
   currentCpk?: number;
@@ -28,7 +27,7 @@ export interface QuestionsTabViewProps {
   projectedCpkMap?: Record<string, number>;
   /** Mode-aware evidence label (default: R²adj) */
   evidenceLabel?: string;
-  onQuestionClick?: (question: Hypothesis) => void;
+  onQuestionClick?: (question: Question) => void;
   onAddNote?: (findingId: string, text: string) => void;
   onAddQuestion?: (text: string) => void;
   onAddObservation?: (text: string) => void;
@@ -36,10 +35,10 @@ export interface QuestionsTabViewProps {
 }
 
 /** Display order for question groups */
-const GROUP_ORDER: QuestionDisplayStatus[] = ['answered', 'investigating', 'open', 'ruled-out'];
+const GROUP_ORDER: QuestionStatus[] = ['answered', 'investigating', 'open', 'ruled-out'];
 
 /** Human-readable group labels */
-const GROUP_LABELS: Record<QuestionDisplayStatus, string> = {
+const GROUP_LABELS: Record<QuestionStatus, string> = {
   answered: 'Answered',
   investigating: 'Investigating',
   open: 'Open',
@@ -98,7 +97,7 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
   };
 
   // Group questions by display status, sorted by R²adj descending within each group
-  const grouped: Record<QuestionDisplayStatus, Hypothesis[]> = {
+  const grouped: Record<QuestionStatus, Question[]> = {
     answered: [],
     investigating: [],
     open: [],
@@ -106,7 +105,7 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
   };
 
   for (const q of questions) {
-    const ds = getQuestionDisplayStatus(q.status);
+    const ds = q.status;
     grouped[ds].push(q);
   }
 
@@ -139,7 +138,7 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
   const findingCount = findings.length;
 
   // Helper: get findings linked to a question
-  const getLinkedFindings = (q: Hypothesis): Finding[] =>
+  const getLinkedFindings = (q: Question): Finding[] =>
     q.linkedFindingIds.map(id => findingById.get(id)).filter((f): f is Finding => f !== undefined);
 
   const hasQuestions = questions.length > 0;

@@ -144,7 +144,7 @@ export interface DashboardLayoutBaseProps {
   renderIChartContent: React.ReactNode;
   renderBoxplotContent: React.ReactNode;
   renderParetoContent: React.ReactNode;
-  renderStatsPanel?: React.ReactNode;
+  renderPIPanel?: React.ReactNode;
   renderFocusedView?: React.ReactNode;
   /** Tabbed verification card (Histogram/ProbPlot) */
   renderVerificationCard?: React.ReactNode;
@@ -164,9 +164,9 @@ export interface DashboardLayoutBaseProps {
   /** Share chart callback (Azure only) */
   onShareChart?: (chartName: string) => void;
   /** Stats panel click handler (PWA embed mode) */
-  onStatsPanelClick?: () => void;
+  onPIPanelClick?: () => void;
   /** Stats panel highlight class (PWA embed mode) */
-  statsPanelHighlightClass?: string;
+  piPanelHighlightClass?: string;
   /** I-Chart card highlight class (PWA embed mode) */
   ichartHighlightClass?: string;
   /** I-Chart card click (PWA embed mode) */
@@ -244,7 +244,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   renderIChartContent,
   renderBoxplotContent,
   renderParetoContent,
-  renderStatsPanel,
+  renderPIPanel,
   renderFocusedView,
   renderVerificationCard,
   renderSpecEditor,
@@ -253,8 +253,8 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   ichartHeaderExtra,
   boxplotFactorWrapper,
   onShareChart,
-  onStatsPanelClick,
-  statsPanelHighlightClass,
+  onPIPanelClick,
+  piPanelHighlightClass,
   ichartHighlightClass,
   onIChartCardClick,
   boxplotHighlightClass,
@@ -574,17 +574,15 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
             ) : undefined
           }
           statsPanel={
-            renderStatsPanel ? (
+            renderPIPanel ? (
               <div
                 data-testid="chart-stats"
-                onClick={onStatsPanelClick}
+                onClick={onPIPanelClick}
                 className={
-                  statsPanelHighlightClass
-                    ? `transition-all ${statsPanelHighlightClass}`
-                    : undefined
+                  piPanelHighlightClass ? `transition-all ${piPanelHighlightClass}` : undefined
                 }
               >
-                {renderStatsPanel}
+                {renderPIPanel}
                 {renderInsightChip(statsInsight, 'stats')}
               </div>
             ) : undefined

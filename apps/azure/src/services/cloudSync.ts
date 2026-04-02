@@ -540,7 +540,7 @@ export async function updateLastViewedAt(
         : {
             phase: 'frame',
             findingCounts: {},
-            hypothesisCounts: {},
+            questionCounts: {},
             actionCounts: { total: 0, completed: 0, overdue: 0 },
             assignedTaskCount: 0,
             hasOverdueTasks: false,

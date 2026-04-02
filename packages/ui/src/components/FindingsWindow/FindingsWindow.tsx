@@ -5,7 +5,7 @@ import type {
   Finding,
   FindingStatus,
   FindingTag,
-  Hypothesis,
+  Question,
   ProcessContext,
   InvestigationPhase,
 } from '@variscout/core';
@@ -29,8 +29,8 @@ export interface FindingsSyncData {
   columnAliases?: Record<string, string>;
   drillPath: DrillStep[];
   timestamp: number;
-  /** Hypotheses for investigation page */
-  hypotheses?: Hypothesis[];
+  /** Questions for investigation page tree view */
+  treeQuestions?: Question[];
   /** Process context for brief header */
   processContext?: ProcessContext;
   /** Current metric value for progress bar */
@@ -45,8 +45,8 @@ export interface FindingsSyncData {
   factorRoles?: Record<string, string>;
   /** Whether AI features are available */
   aiAvailable?: boolean;
-  /** Factor Intelligence questions (Hypothesis objects with questionSource) */
-  questions?: Hypothesis[];
+  /** Factor Intelligence questions (Question objects with questionSource) */
+  questions?: Question[];
   /** Current issue statement */
   issueStatement?: string;
   /** CoScout-suggested sharpened issue statement */
@@ -331,7 +331,7 @@ const FindingsWindow: React.FC = () => {
     findings,
     columnAliases,
     drillPath,
-    hypotheses,
+    treeQuestions,
     processContext,
     currentValue,
     investigationPhase,
@@ -356,7 +356,7 @@ const FindingsWindow: React.FC = () => {
       {/* Zone 1: Brief Header */}
       <BriefHeader
         processContext={processContext}
-        hypotheses={hypotheses}
+        questions={treeQuestions}
         currentValue={currentValue}
         projectedValue={syncData.projectedValue}
       />
@@ -507,7 +507,7 @@ const FindingsWindow: React.FC = () => {
         {aiAvailable && (
           <InvestigationSidebar
             phase={investigationPhase}
-            hypotheses={hypotheses}
+            treeQuestions={treeQuestions}
             factorRoles={factorRoles}
             suggestedQuestions={suggestedQuestions}
             collapsed={sidebarCollapsed}
@@ -557,7 +557,7 @@ export interface PopoutSyncOptions {
   findings: Finding[];
   columnAliases?: Record<string, string>;
   drillPath?: DrillStep[];
-  hypotheses?: Hypothesis[];
+  treeQuestions?: Question[];
   processContext?: ProcessContext;
   currentValue?: number;
   projectedValue?: number;
@@ -565,7 +565,7 @@ export interface PopoutSyncOptions {
   suggestedQuestions?: string[];
   factorRoles?: Record<string, string>;
   aiAvailable?: boolean;
-  questions?: Hypothesis[];
+  questions?: Question[];
   issueStatement?: string;
   suggestedIssueStatement?: string;
   problemStatement?: string;
@@ -583,7 +583,7 @@ export function openFindingsPopout(
     columnAliases,
     drillPath: drillPath ?? [],
     timestamp: Date.now(),
-    hypotheses: options?.hypotheses,
+    treeQuestions: options?.treeQuestions,
     processContext: options?.processContext,
     currentValue: options?.currentValue,
     projectedValue: options?.projectedValue,
@@ -623,7 +623,7 @@ export function updateFindingsPopout(
     columnAliases,
     drillPath: drillPath ?? [],
     timestamp: Date.now(),
-    hypotheses: options?.hypotheses,
+    treeQuestions: options?.treeQuestions,
     processContext: options?.processContext,
     currentValue: options?.currentValue,
     projectedValue: options?.projectedValue,

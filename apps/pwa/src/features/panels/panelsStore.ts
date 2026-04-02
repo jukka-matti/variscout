@@ -11,7 +11,7 @@ interface PanelsState {
   isDataTableOpen: boolean;
   isFindingsOpen: boolean;
   isWhatIfOpen: boolean;
-  isStatsSidebarOpen: boolean;
+  isPISidebarOpen: boolean;
 
   // Highlight state
   highlightRowIndex: number | null;
@@ -38,7 +38,7 @@ interface PanelsActions {
   setFindingsOpen: (open: boolean) => void;
   toggleFindings: () => void;
   setWhatIfOpen: (open: boolean) => void;
-  toggleStatsSidebar: () => void;
+  togglePISidebar: () => void;
 
   // Highlights
   setHighlightRow: (index: number | null) => void;
@@ -68,7 +68,7 @@ export const initialPanelsState: PanelsState = {
   isDataTableOpen: false,
   isFindingsOpen: false,
   isWhatIfOpen: false,
-  isStatsSidebarOpen: false,
+  isPISidebarOpen: false,
   highlightRowIndex: null,
   highlightedChartPoint: null,
   showExcludedOnly: false,
@@ -95,14 +95,14 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   toggleFindings: () =>
     set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: !s.isFindingsOpen })),
   setWhatIfOpen: open => set({ isWhatIfOpen: open }),
-  toggleStatsSidebar: () => set(s => ({ isStatsSidebarOpen: !s.isStatsSidebarOpen })),
+  togglePISidebar: () => set(s => ({ isPISidebarOpen: !s.isPISidebarOpen })),
 
   // Highlights
   setHighlightRow: index => set({ highlightRowIndex: index }),
   setHighlightPoint: index => set({ highlightedChartPoint: index }),
 
-  // Compound: point click → set highlight row + open stats sidebar
-  handlePointClick: index => set({ highlightRowIndex: index, isStatsSidebarOpen: true }),
+  // Compound: point click → set highlight row + open PI sidebar
+  handlePointClick: index => set({ highlightRowIndex: index, isPISidebarOpen: true }),
 
   // Compound: row click → highlight chart point
   handleRowClick: index => set({ highlightedChartPoint: index }),

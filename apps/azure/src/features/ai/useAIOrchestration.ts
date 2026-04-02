@@ -34,7 +34,7 @@ import {
   type SpecLimits,
   type DataRow,
   type Finding,
-  type Hypothesis,
+  type Question,
   type ProcessContext,
   type StagedStatsResult,
 } from '@variscout/core';
@@ -71,7 +71,7 @@ export interface UseAIOrchestrationOptions {
   outcome?: string | null;
   specs?: SpecLimits;
   findings: Finding[];
-  hypotheses: Hypothesis[];
+  questions: Question[];
   factors: string[];
   filters: Record<string, (string | number)[]>;
   filterStack: FilterAction[];
@@ -82,7 +82,7 @@ export interface UseAIOrchestrationOptions {
   categories?: import('@variscout/core').InvestigationCategory[];
   stagedStats?: StagedStatsResult | null;
   drillPath: DrillStep[];
-  persistedHypotheses?: Hypothesis[];
+  persistedQuestions?: Question[];
   locale?: Locale;
   knowledgeSearchFolder?: string;
   journeyPhase?: JourneyPhase;
@@ -125,7 +125,7 @@ export function useAIOrchestration({
   outcome,
   specs,
   findings,
-  hypotheses,
+  questions,
   factors,
   filters,
   filterStack,
@@ -136,7 +136,7 @@ export function useAIOrchestration({
   categories,
   stagedStats,
   drillPath,
-  persistedHypotheses,
+  persistedQuestions,
   locale,
   knowledgeSearchFolder,
   journeyPhase,
@@ -165,7 +165,7 @@ export function useAIOrchestration({
     outcome,
     specs,
     findings,
-    hypotheses,
+    questions,
     factors,
     highlightedFindingId,
     stagedStats,
@@ -232,7 +232,7 @@ export function useAIOrchestration({
     categories,
     violations: violationCounts,
     findings,
-    hypotheses,
+    questions,
     activeChart: viewState?.focusedChart as InsightChartType | undefined,
     variationContributions: aiVariationContributions,
     drillPath: filterStack.filter(a => a.type === 'filter' && a.factor).map(a => a.factor!),
@@ -269,7 +269,7 @@ export function useAIOrchestration({
     outcome,
     specs,
     findings,
-    hypotheses,
+    questions,
     factors,
     filters,
     filterStack,
@@ -304,7 +304,7 @@ export function useAIOrchestration({
     const phase = aiContext.context?.investigation?.phase;
     if (!phase && suggestedQuestions.length === 0) return;
     updateFindingsPopout(findings, columnAliases, drillPath, {
-      hypotheses: persistedHypotheses,
+      questions: persistedQuestions,
       processContext,
       currentValue: stats?.cpk ?? stats?.mean,
       investigationPhase: phase,
@@ -318,7 +318,7 @@ export function useAIOrchestration({
     findings,
     columnAliases,
     drillPath,
-    persistedHypotheses,
+    persistedQuestions,
     processContext,
     stats,
     aiAvailable,

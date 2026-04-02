@@ -3,20 +3,20 @@
  *
  * Composes ReportViewBase from @variscout/ui with PWA-specific data.
  * Simplified: no SharePoint publish, no Teams share, no AI narratives.
- * Renders basic section content (KPI grids, finding summaries, hypothesis summaries).
+ * Renders basic section content (KPI grids, finding summaries, question summaries).
  */
 import React, { useCallback, useRef, useState } from 'react';
 import {
   ReportViewBase,
   ReportSection,
   ReportKPIGrid,
-  ReportHypothesisSummary,
+  ReportQuestionSummary,
   ReportImprovementSummary,
   ReportCpkLearningLoop,
 } from '@variscout/ui';
 import { useReportSections, useScrollSpy, copySectionAsHTML } from '@variscout/hooks';
 import type { AudienceMode } from '@variscout/hooks';
-import type { Finding, Hypothesis, SpecLimits, StatsResult, AnalysisMode } from '@variscout/core';
+import type { Finding, Question, SpecLimits, StatsResult, AnalysisMode } from '@variscout/core';
 import { formatFindingFilters } from '@variscout/core';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 
@@ -26,7 +26,7 @@ interface ReportViewProps {
   stats: StatsResult | null;
   specs: SpecLimits;
   findings: Finding[];
-  hypotheses: Hypothesis[];
+  questions: Question[];
   columnAliases: Record<string, string>;
   dataFilename: string | null;
   sampleCount: number;
@@ -38,7 +38,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   stats,
   specs,
   findings,
-  hypotheses,
+  questions,
   columnAliases,
   dataFilename,
   sampleCount,
@@ -51,7 +51,7 @@ const ReportView: React.FC<ReportViewProps> = ({
 
   const { reportType, sections } = useReportSections({
     findings,
-    hypotheses,
+    questions,
     stagedComparison: false,
     aiEnabled: false,
     audienceMode,
@@ -88,7 +88,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     window.print();
   }, []);
 
-  // Build a lookup from section ID to the full descriptor (with findings/hypotheses)
+  // Build a lookup from section ID to the full descriptor (with findings/questions)
   const sectionMap = new Map(sections.map(s => [s.id, s]));
 
   // Render section content based on section descriptor
@@ -152,8 +152,8 @@ const ReportView: React.FC<ReportViewProps> = ({
         );
       }
 
-      // Evidence trail: hypothesis summary
-      if (sectionId === 'evidence-trail' && hypotheses.length > 0) {
+      // Evidence trail: question summary
+      if (sectionId === 'evidence-trail' && questions.length > 0) {
         return (
           <ReportSection
             key={sectionId}
@@ -164,15 +164,18 @@ const ReportView: React.FC<ReportViewProps> = ({
             workspace={section.workspace}
             sectionRef={ref}
           >
-            <ReportHypothesisSummary hypotheses={hypotheses} />
+            <ReportQuestionSummary questions={questions} />
           </ReportSection>
         );
       }
 
       // Improvement plan
       if (sectionId === 'improvement-plan') {
-        const withIdeas = hypotheses.filter(
-          h => (h.status === 'supported' || h.status === 'partial') && h.ideas && h.ideas.length > 0
+        const withIdeas = questions.filter(
+          q =>
+            (q.status === 'answered' || q.status === 'investigating') &&
+            q.ideas &&
+            q.ideas.length > 0
         );
         if (withIdeas.length > 0) {
           return (
@@ -186,11 +189,11 @@ const ReportView: React.FC<ReportViewProps> = ({
               sectionRef={ref}
             >
               <ReportImprovementSummary
-                hypotheses={withIdeas.map(h => ({
-                  id: h.id,
-                  text: h.text,
-                  causeRole: h.causeRole,
-                  ideas: h.ideas ?? [],
+                questions={withIdeas.map(q => ({
+                  id: q.id,
+                  text: q.text,
+                  causeRole: q.causeRole,
+                  ideas: q.ideas ?? [],
                 }))}
               />
             </ReportSection>
@@ -241,7 +244,7 @@ const ReportView: React.FC<ReportViewProps> = ({
       specs,
       sampleCount,
       findings,
-      hypotheses,
+      questions,
       columnAliases,
       strategy,
       sectionRefs,

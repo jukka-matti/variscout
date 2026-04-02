@@ -2,15 +2,15 @@
  * useImprovementOrchestration - Improvement workspace orchestration for PWA
  *
  * Simplified version of Azure's orchestration (no popout sync, no Teams).
- * Filters hypotheses with ideas, computes selected idea IDs, projected Cpk map,
+ * Filters questions with ideas, computes selected idea IDs, projected Cpk map,
  * and syncs to Zustand improvementStore.
  */
 import { useMemo, useCallback, useEffect } from 'react';
 import type { Finding } from '@variscout/core';
-import type { UseHypothesesReturn } from '@variscout/hooks';
-import { useImprovementStore, type ImprovementHypothesis } from './improvementStore';
+import type { UseQuestionsReturn } from '@variscout/hooks';
+import { useImprovementStore, type ImprovementQuestion } from './improvementStore';
 
-export type { ImprovementHypothesis };
+export type { ImprovementQuestion };
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ interface FindingsStateSlice {
 }
 
 export interface UseImprovementOrchestrationOptions {
-  hypothesesState: UseHypothesesReturn;
+  questionsState: UseQuestionsReturn;
   findingsState: FindingsStateSlice;
 }
 
@@ -38,63 +38,64 @@ export interface UseImprovementOrchestrationReturn {
 // ── Hook ──────────────────────────────────────────────────────────────────
 
 export function useImprovementOrchestration({
-  hypothesesState,
+  questionsState,
   findingsState,
 }: UseImprovementOrchestrationOptions): UseImprovementOrchestrationReturn {
   // ── Compute improvement data ────────────────────────────────────────
 
-  const improvementHypotheses = useMemo((): ImprovementHypothesis[] => {
-    return hypothesesState.hypotheses
+  const improvementQuestions = useMemo((): ImprovementQuestion[] => {
+    return questionsState.questions
       .filter(
-        h => (h.status === 'supported' || h.status === 'partial') && h.ideas && h.ideas.length > 0
+        q =>
+          (q.status === 'answered' || q.status === 'investigating') && q.ideas && q.ideas.length > 0
       )
-      .map(h => {
-        const linkedFinding = findingsState.findings.find(f => f.hypothesisId === h.id);
+      .map(q => {
+        const linkedFinding = findingsState.findings.find(f => f.questionId === q.id);
         return {
-          id: h.id,
-          text: h.text,
-          causeRole: h.causeRole,
-          factor: h.factor,
-          ideas: h.ideas ?? [],
+          id: q.id,
+          text: q.text,
+          causeRole: q.causeRole,
+          factor: q.factor,
+          ideas: q.ideas ?? [],
           linkedFindingName: linkedFinding?.text,
         };
       });
-  }, [hypothesesState.hypotheses, findingsState.findings]);
+  }, [questionsState.questions, findingsState.findings]);
 
   const improvementLinkedFindings = useMemo(() => {
-    const hypothesisIds = new Set(improvementHypotheses.map(h => h.id));
+    const questionIds = new Set(improvementQuestions.map(q => q.id));
     return findingsState.findings
-      .filter(f => f.hypothesisId && hypothesisIds.has(f.hypothesisId))
+      .filter(f => f.questionId && questionIds.has(f.questionId))
       .map(f => ({ id: f.id, text: f.text }));
-  }, [improvementHypotheses, findingsState.findings]);
+  }, [improvementQuestions, findingsState.findings]);
 
   const selectedIdeaIds = useMemo(() => {
     const ids = new Set<string>();
-    for (const h of improvementHypotheses) {
-      for (const idea of h.ideas) {
+    for (const q of improvementQuestions) {
+      for (const idea of q.ideas) {
         if (idea.selected) ids.add(idea.id);
       }
     }
     return ids;
-  }, [improvementHypotheses]);
+  }, [improvementQuestions]);
 
   const projectedCpkMap = useMemo(() => {
     const map: Record<string, number> = {};
-    for (const h of hypothesesState.hypotheses) {
-      if (!h.ideas || h.ideas.length === 0) continue;
-      const linkedFinding = findingsState.findings.find(f => f.hypothesisId === h.id);
+    for (const q of questionsState.questions) {
+      if (!q.ideas || q.ideas.length === 0) continue;
+      const linkedFinding = findingsState.findings.find(f => f.questionId === q.id);
       if (!linkedFinding) continue;
-      const selectedWithProjection = h.ideas.find(
+      const selectedWithProjection = q.ideas.find(
         i => i.selected && i.projection?.projectedCpk != null
       );
-      const anyWithProjection = h.ideas.find(i => i.projection?.projectedCpk != null);
+      const anyWithProjection = q.ideas.find(i => i.projection?.projectedCpk != null);
       const best = selectedWithProjection ?? anyWithProjection;
       if (best?.projection?.projectedCpk != null) {
         map[linkedFinding.id] = best.projection.projectedCpk;
       }
     }
     return map;
-  }, [hypothesesState.hypotheses, findingsState.findings]);
+  }, [questionsState.questions, findingsState.findings]);
 
   const convertedIdeaIds = useMemo(() => {
     const ids = new Set<string>();
@@ -112,14 +113,14 @@ export function useImprovementOrchestration({
 
   useEffect(() => {
     useImprovementStore.getState().syncState({
-      improvementHypotheses,
+      improvementQuestions,
       improvementLinkedFindings,
       selectedIdeaIds,
       projectedCpkMap,
       convertedIdeaIds,
     });
   }, [
-    improvementHypotheses,
+    improvementQuestions,
     improvementLinkedFindings,
     selectedIdeaIds,
     projectedCpkMap,
@@ -129,18 +130,18 @@ export function useImprovementOrchestration({
   // ── Actions ────────────────────────────────────────────────────────
 
   const handleConvertIdeasToActions = useCallback(() => {
-    for (const h of hypothesesState.hypotheses) {
-      if (!h.ideas || h.ideas.length === 0) continue;
-      const linkedFinding = findingsState.findings.find(f => f.hypothesisId === h.id);
+    for (const q of questionsState.questions) {
+      if (!q.ideas || q.ideas.length === 0) continue;
+      const linkedFinding = findingsState.findings.find(f => f.questionId === q.id);
       if (!linkedFinding) continue;
 
-      for (const idea of h.ideas) {
+      for (const idea of q.ideas) {
         if (idea.selected && !convertedIdeaIds.has(idea.id)) {
           findingsState.addAction(linkedFinding.id, idea.text, undefined, undefined, idea.id);
         }
       }
     }
-  }, [hypothesesState.hypotheses, findingsState, convertedIdeaIds]);
+  }, [questionsState.questions, findingsState, convertedIdeaIds]);
 
   return {
     handleConvertIdeasToActions,

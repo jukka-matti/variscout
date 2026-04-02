@@ -11,8 +11,8 @@ vi.mock('../charts/Boxplot', () => ({ default: () => <div data-testid="boxplot">
 vi.mock('../charts/ParetoChart', () => ({
   default: () => <div data-testid="pareto-chart">Pareto</div>,
 }));
-vi.mock('../StatsPanel', () => ({
-  default: () => <div data-testid="stats-panel">Stats Panel</div>,
+vi.mock('../ProcessIntelligencePanel', () => ({
+  default: () => <div data-testid="stats-panel">Process Intelligence Panel</div>,
 }));
 vi.mock('../charts/CapabilityHistogram', () => ({
   default: () => <div data-testid="capability-histogram">Histogram</div>,
@@ -156,7 +156,7 @@ vi.mock('@variscout/ui', () => ({
       renderIChartContent,
       renderBoxplotContent,
       renderParetoContent,
-      renderStatsPanel,
+      renderPIPanel,
       renderFocusedView,
       renderSpecEditor,
       focusedChart,
@@ -291,7 +291,7 @@ vi.mock('@variscout/ui', () => ({
                 {renderParetoContent}
               </div>
             )}
-            <div data-testid="chart-stats">{renderStatsPanel}</div>
+            <div data-testid="chart-stats">{renderPIPanel}</div>
           </div>
         )}
         {renderSpecEditor}

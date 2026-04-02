@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useQuestionReactivity } from '../useQuestionReactivity';
-import type { Hypothesis } from '@variscout/core';
+import type { Question } from '@variscout/core';
 
-const makeQuestion = (factor: string, status = 'untested' as const): Hypothesis => ({
+const makeQuestion = (factor: string, status = 'open' as const): Question => ({
   id: `q-${factor}`,
   text: `Does ${factor} affect outcome?`,
   factor,

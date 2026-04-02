@@ -11,7 +11,7 @@ import { isInTeams } from '../teams';
 import type { SharePayload } from '../services/shareContent';
 import type { SyncNotification } from '../services/storage';
 import {
-  buildHypothesisLink,
+  buildQuestionLink,
   buildImprovementLink,
   buildOverviewLink,
   buildSubPageId,
@@ -80,7 +80,7 @@ export function useTeamsShare(options?: UseTeamsShareOptions) {
       label: string,
       target?: {
         findingId?: string;
-        hypothesisId?: string;
+        questionId?: string;
         chart?: string;
         mode?: DeepLinkMode;
         tab?: DeepLinkTab;
@@ -103,9 +103,9 @@ export function useTeamsShare(options?: UseTeamsShareOptions) {
 
   const linkBuilders = useMemo(
     () => ({
-      /** Build a URL linking to a specific hypothesis in the investigation view */
-      buildHypothesisLink: (projectId: string, hypothesisId: string) =>
-        buildHypothesisLink(baseUrl, projectId, hypothesisId),
+      /** Build a URL linking to a specific question in the investigation view */
+      buildQuestionLink: (projectId: string, questionId: string) =>
+        buildQuestionLink(baseUrl, projectId, questionId),
       /** Build a URL linking directly to the improvement workspace */
       buildImprovementLink: (projectId: string) => buildImprovementLink(baseUrl, projectId),
       /** Build a URL linking to the project overview tab */

@@ -5,7 +5,7 @@ import { useReportSections } from '../useReportSections';
 describe('useReportSections with yamazumi mode', () => {
   const baseOptions = {
     findings: [],
-    hypotheses: [],
+    questions: [],
     stagedComparison: false,
     aiEnabled: false,
   };

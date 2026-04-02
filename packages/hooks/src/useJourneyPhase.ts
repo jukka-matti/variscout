@@ -32,6 +32,6 @@ export function detectEntryScenario(processContext?: {
   if (!processContext) return 'problem';
   const { issueStatement, targetMetric, targetValue } = processContext;
   if (issueStatement && (targetMetric || targetValue !== undefined)) return 'problem';
-  if (issueStatement) return 'hypothesis';
+  if (issueStatement) return 'exploration';
   return 'routine';
 }

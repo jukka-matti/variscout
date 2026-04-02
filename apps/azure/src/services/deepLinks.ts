@@ -18,7 +18,7 @@ export type DeepLinkTab = 'overview';
 export interface DeepLinkParams {
   project: string | null;
   findingId: string | null;
-  hypothesisId: string | null;
+  questionId: string | null;
   chart: DeepLinkChart | null;
   mode: DeepLinkMode | null;
   tab: DeepLinkTab | null;
@@ -39,7 +39,7 @@ export function parseDeepLink(search: string): DeepLinkParams {
   const params = new URLSearchParams(search);
   const project = params.get('project');
   const findingId = params.get('finding');
-  const hypothesisId = params.get('hypothesis');
+  const questionId = params.get('question');
   const chartRaw = params.get('chart');
   const chart = chartRaw && VALID_CHARTS.has(chartRaw) ? (chartRaw as DeepLinkChart) : null;
   const modeRaw = params.get('mode') ?? params.get('workspace');
@@ -47,7 +47,7 @@ export function parseDeepLink(search: string): DeepLinkParams {
   const tabRaw = params.get('tab');
   const tab = tabRaw && VALID_TABS.has(tabRaw) ? (tabRaw as DeepLinkTab) : null;
 
-  return { project, findingId, hypothesisId, chart, mode, tab };
+  return { project, findingId, questionId, chart, mode, tab };
 }
 
 /** Build a deep link URL for a finding */
@@ -81,15 +81,11 @@ export function buildProjectLink(baseUrl: string, projectId: string): string {
   return url.toString();
 }
 
-/** Build a deep link URL that opens a specific hypothesis in the investigation view */
-export function buildHypothesisLink(
-  baseUrl: string,
-  projectId: string,
-  hypothesisId: string
-): string {
+/** Build a deep link URL that opens a specific question in the investigation view */
+export function buildQuestionLink(baseUrl: string, projectId: string, questionId: string): string {
   const url = new URL(baseUrl);
   url.searchParams.set('project', projectId);
-  url.searchParams.set('hypothesis', hypothesisId);
+  url.searchParams.set('question', questionId);
   return url.toString();
 }
 
@@ -114,7 +110,7 @@ export function buildSubPageId(
   project: string,
   target: {
     findingId?: string;
-    hypothesisId?: string;
+    questionId?: string;
     chart?: string;
     mode?: DeepLinkMode;
     tab?: DeepLinkTab;
@@ -123,7 +119,7 @@ export function buildSubPageId(
   const params = new URLSearchParams();
   params.set('project', project);
   if (target.findingId) params.set('finding', target.findingId);
-  if (target.hypothesisId) params.set('hypothesis', target.hypothesisId);
+  if (target.questionId) params.set('question', target.questionId);
   if (target.chart) params.set('chart', target.chart);
   if (target.mode) params.set('mode', target.mode);
   if (target.tab) params.set('tab', target.tab);

@@ -1,7 +1,7 @@
 /**
  * Azure ReportView - Workspace-aligned report with audience toggle.
  *
- * Composes the report from current analysis state, findings, hypotheses,
+ * Composes the report from current analysis state, findings, questions,
  * and improvement data. Supports 3 report types (Analysis Snapshot,
  * Investigation Report, Improvement Story) with Technical/Summary audience modes.
  */
@@ -18,7 +18,7 @@ import {
   CapabilityHistogram,
   VerificationEvidenceBase,
   SynthesisCard,
-  ReportHypothesisSummary,
+  ReportQuestionSummary,
   ReportImprovementSummary,
   ReportCpkLearningLoop,
   ReportYamazumiKPIGrid,
@@ -123,7 +123,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     stats,
     filteredData,
     findings: persistedFindings,
-    hypotheses: persistedHypotheses,
+    questions: persistedQuestions,
     columnAliases,
     processContext,
     stageColumn,
@@ -137,7 +137,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   } = useData();
 
   const findings = useMemo(() => persistedFindings ?? [], [persistedFindings]);
-  const hypotheses = useMemo(() => persistedHypotheses ?? [], [persistedHypotheses]);
+  const questions = useMemo(() => persistedQuestions ?? [], [persistedQuestions]);
 
   // ---------------------------------------------------------------------------
   // Resolved analysis mode + strategy
@@ -331,7 +331,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   // ---------------------------------------------------------------------------
   const bestProjectedCpk = useMemo(() => {
     const projections: number[] = [];
-    for (const h of hypotheses) {
+    for (const h of questions) {
       if (h.ideas) {
         for (const idea of h.ideas) {
           if (idea.selected && idea.projection?.projectedCpk != null) {
@@ -341,7 +341,7 @@ const ReportView: React.FC<ReportViewProps> = ({
       }
     }
     return projections.length > 0 ? Math.max(...projections) : undefined;
-  }, [hypotheses]);
+  }, [questions]);
 
   // ---------------------------------------------------------------------------
   // First finding with outcome (for learning loop verdict)
@@ -371,7 +371,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   // Derive report sections from analysis state
   const { reportType, sections } = useReportSections({
     findings,
-    hypotheses,
+    questions,
     stagedComparison: hasStagedComparison,
     aiEnabled: aiEnabled ?? false,
     audienceMode,
@@ -428,7 +428,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     processName: processContext?.description,
     reportType,
     sections,
-    hypotheses,
+    questions,
     processContext,
     stats: stats ?? undefined,
     sampleCount: filteredData.length,
@@ -837,9 +837,9 @@ const ReportView: React.FC<ReportViewProps> = ({
               </div>
             )}
 
-            {/* Hypothesis tree (technical only) */}
-            {!isSummary && (extendedSection?.hypotheses ?? []).length > 0 && (
-              <ReportHypothesisSummary hypotheses={extendedSection?.hypotheses ?? []} />
+            {/* Question tree (technical only) */}
+            {!isSummary && (extendedSection?.questions ?? []).length > 0 && (
+              <ReportQuestionSummary questions={extendedSection?.questions ?? []} />
             )}
 
             {/* Finding snapshots (technical only) */}
@@ -856,7 +856,7 @@ const ReportView: React.FC<ReportViewProps> = ({
               ))
             ) : !isSummary ? (
               <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-                No hypotheses have been linked to findings yet.
+                No questions have been linked to findings yet.
               </p>
             ) : null}
           </div>
@@ -865,9 +865,9 @@ const ReportView: React.FC<ReportViewProps> = ({
         {/* Step 4: Improvement Plan (Improvement Story only) */}
         {section.id === 'improvement-plan' && (
           <div className="space-y-3">
-            {(extendedSection?.hypotheses ?? []).length > 0 ? (
+            {(extendedSection?.questions ?? []).length > 0 ? (
               <ReportImprovementSummary
-                hypotheses={(extendedSection?.hypotheses ?? []).map(h => ({
+                questions={(extendedSection?.questions ?? []).map(h => ({
                   id: h.id,
                   text: h.text,
                   causeRole: h.causeRole,

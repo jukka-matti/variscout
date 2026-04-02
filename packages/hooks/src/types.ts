@@ -16,7 +16,7 @@ import type {
   FilterAction,
   StageOrderMode,
   Finding,
-  Hypothesis,
+  Question,
   ProcessContext,
   InvestigationCategory,
   EntryScenario,
@@ -245,9 +245,9 @@ export interface AnalysisState {
   /** ID of the active benchmark finding (Phase 3) */
   benchmarkFindingId?: string;
 
-  // --- Hypotheses (causal theories linked to findings) ---
-  /** Causal hypotheses for investigation workflow */
-  hypotheses?: Hypothesis[];
+  // --- Questions (causal theories linked to findings) ---
+  /** Investigation questions for investigation workflow */
+  questions?: Question[];
 
   // --- Investigation categories (dynamic factor grouping) ---
   /** User-defined categories grouping factor columns */

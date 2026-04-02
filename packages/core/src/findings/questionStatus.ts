@@ -1,26 +1,13 @@
-import type { HypothesisStatus, QuestionDisplayStatus } from './types';
+import type { QuestionStatus } from './types';
 
-export function getQuestionDisplayStatus(status: HypothesisStatus): QuestionDisplayStatus {
-  switch (status) {
-    case 'untested':
-      return 'open';
-    case 'partial':
-      return 'investigating';
-    case 'supported':
-      return 'answered';
-    case 'contradicted':
-      return 'ruled-out';
-  }
-}
-
-export const QUESTION_STATUS_LABELS: Record<QuestionDisplayStatus, string> = {
+export const QUESTION_STATUS_LABELS: Record<QuestionStatus, string> = {
   open: 'Open',
   investigating: 'Investigating',
   answered: 'Answered',
   'ruled-out': 'Ruled out',
 };
 
-export const QUESTION_STATUS_COLORS: Record<QuestionDisplayStatus, string> = {
+export const QUESTION_STATUS_COLORS: Record<QuestionStatus, string> = {
   open: 'text-amber-500',
   investigating: 'text-blue-500',
   answered: 'text-green-500',

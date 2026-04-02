@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useQuestionGeneration } from '../useQuestionGeneration';
-import type { Hypothesis, DataRow } from '@variscout/core';
-import { createHypothesis } from '@variscout/core';
+import type { Question, DataRow } from '@variscout/core';
+import { createQuestion } from '@variscout/core';
 
 // Mock @variscout/core/stats to avoid real computation in tests
 vi.mock('@variscout/core/stats', () => ({
@@ -70,14 +70,14 @@ function makeData(n: number): DataRow[] {
   }));
 }
 
-function makeMockHypothesesState(initialHypotheses: Hypothesis[] = []) {
-  let hypotheses = [...initialHypotheses];
+function makeMockQuestionsState(initialQuestions: Question[] = []) {
+  let questions = [...initialQuestions];
   return {
-    get hypotheses() {
-      return hypotheses;
+    get questions() {
+      return questions;
     },
-    generateInitialQuestions: vi.fn(questions => {
-      const created: Hypothesis[] = questions.map(
+    generateInitialQuestions: vi.fn(generatedQuestions => {
+      const created: Question[] = generatedQuestions.map(
         (q: {
           text: string;
           factors: string[];
@@ -85,13 +85,13 @@ function makeMockHypothesesState(initialHypotheses: Hypothesis[] = []) {
           autoAnswered?: boolean;
           source: string;
         }) => ({
-          ...createHypothesis(q.text, q.factors.length === 1 ? q.factors[0] : undefined),
+          ...createQuestion(q.text, q.factors.length === 1 ? q.factors[0] : undefined),
           questionSource: q.source,
           evidence: { rSquaredAdj: q.rSquaredAdj },
-          status: q.autoAnswered ? 'contradicted' : 'untested',
+          status: q.autoAnswered ? 'ruled-out' : 'open',
         })
       );
-      hypotheses = [...hypotheses, ...created];
+      questions = [...questions, ...created];
       return created;
     }),
     setFocusedQuestion: vi.fn(),
@@ -101,13 +101,13 @@ function makeMockHypothesesState(initialHypotheses: Hypothesis[] = []) {
 describe('useQuestionGeneration', () => {
   describe('hasFactorIntelligence', () => {
     it('returns false when fewer than 2 factors', () => {
-      const state = makeMockHypothesesState();
+      const state = makeMockQuestionsState();
       const { result } = renderHook(() =>
         useQuestionGeneration({
           filteredData: makeData(50),
           outcome: 'value',
           factors: ['Shift'],
-          hypothesesState: state,
+          questionsState: state,
         })
       );
 
@@ -117,13 +117,13 @@ describe('useQuestionGeneration', () => {
     });
 
     it('returns false when no outcome', () => {
-      const state = makeMockHypothesesState();
+      const state = makeMockQuestionsState();
       const { result } = renderHook(() =>
         useQuestionGeneration({
           filteredData: makeData(50),
           outcome: null,
           factors: ['Shift', 'Machine'],
-          hypothesesState: state,
+          questionsState: state,
         })
       );
 
@@ -131,13 +131,13 @@ describe('useQuestionGeneration', () => {
     });
 
     it('returns false when no data', () => {
-      const state = makeMockHypothesesState();
+      const state = makeMockQuestionsState();
       const { result } = renderHook(() =>
         useQuestionGeneration({
           filteredData: [],
           outcome: 'value',
           factors: ['Shift', 'Machine'],
-          hypothesesState: state,
+          questionsState: state,
         })
       );
 
@@ -145,13 +145,13 @@ describe('useQuestionGeneration', () => {
     });
 
     it('returns false when enabled is false', () => {
-      const state = makeMockHypothesesState();
+      const state = makeMockQuestionsState();
       const { result } = renderHook(() =>
         useQuestionGeneration({
           filteredData: makeData(50),
           outcome: 'value',
           factors: ['Shift', 'Machine'],
-          hypothesesState: state,
+          questionsState: state,
           enabled: false,
         })
       );
@@ -161,13 +161,13 @@ describe('useQuestionGeneration', () => {
     });
 
     it('returns true with ≥2 factors + outcome + data', () => {
-      const state = makeMockHypothesesState();
+      const state = makeMockQuestionsState();
       const { result } = renderHook(() =>
         useQuestionGeneration({
           filteredData: makeData(50),
           outcome: 'value',
           factors: ['Shift', 'Machine'],
-          hypothesesState: state,
+          questionsState: state,
         })
       );
 
@@ -178,13 +178,13 @@ describe('useQuestionGeneration', () => {
 
   describe('question generation', () => {
     it('generates questions from Factor Intelligence on first render', () => {
-      const state = makeMockHypothesesState();
+      const state = makeMockQuestionsState();
       renderHook(() =>
         useQuestionGeneration({
           filteredData: makeData(50),
           outcome: 'value',
           factors: ['Shift', 'Machine'],
-          hypothesesState: state,
+          questionsState: state,
         })
       );
 
@@ -192,14 +192,14 @@ describe('useQuestionGeneration', () => {
     });
 
     it('does not regenerate on subsequent renders with same data', () => {
-      const state = makeMockHypothesesState();
+      const state = makeMockQuestionsState();
       const data = makeData(50);
       const { rerender } = renderHook(() =>
         useQuestionGeneration({
           filteredData: data,
           outcome: 'value',
           factors: ['Shift', 'Machine'],
-          hypothesesState: state,
+          questionsState: state,
         })
       );
 
@@ -212,18 +212,18 @@ describe('useQuestionGeneration', () => {
 
     it('skips generation when persisted questions already exist', () => {
       const existingQuestion = {
-        ...createHypothesis('Does Shift explain variation?', 'Shift'),
+        ...createQuestion('Does Shift explain variation?', 'Shift'),
         questionSource: 'factor-intel' as const,
         evidence: { rSquaredAdj: 0.34 },
       };
-      const state = makeMockHypothesesState([existingQuestion]);
+      const state = makeMockQuestionsState([existingQuestion]);
 
       renderHook(() =>
         useQuestionGeneration({
           filteredData: makeData(50),
           outcome: 'value',
           factors: ['Shift', 'Machine'],
-          hypothesesState: state,
+          questionsState: state,
         })
       );
 
@@ -232,19 +232,19 @@ describe('useQuestionGeneration', () => {
     });
 
     it('filters questions to factor-intel source only', () => {
-      const manualHypothesis = createHypothesis('Manual theory', 'Operator');
+      const manualQuestion = createQuestion('Manual theory', 'Operator');
       const fiQuestion = {
-        ...createHypothesis('Does Shift explain variation?', 'Shift'),
+        ...createQuestion('Does Shift explain variation?', 'Shift'),
         questionSource: 'factor-intel' as const,
       };
-      const state = makeMockHypothesesState([manualHypothesis, fiQuestion]);
+      const state = makeMockQuestionsState([manualQuestion, fiQuestion]);
 
       const { result } = renderHook(() =>
         useQuestionGeneration({
           filteredData: makeData(50),
           outcome: 'value',
           factors: ['Shift', 'Machine'],
-          hypothesesState: state,
+          questionsState: state,
         })
       );
 
@@ -256,18 +256,18 @@ describe('useQuestionGeneration', () => {
 
   describe('handleQuestionClick', () => {
     it('sets factorRequest with factor and incrementing seq', () => {
-      const state = makeMockHypothesesState();
+      const state = makeMockQuestionsState();
       const { result } = renderHook(() =>
         useQuestionGeneration({
           filteredData: makeData(50),
           outcome: 'value',
           factors: ['Shift', 'Machine'],
-          hypothesesState: state,
+          questionsState: state,
         })
       );
 
       const question = {
-        ...createHypothesis('Does Shift explain variation?', 'Shift'),
+        ...createQuestion('Does Shift explain variation?', 'Shift'),
         questionSource: 'factor-intel' as const,
       };
 
@@ -280,18 +280,18 @@ describe('useQuestionGeneration', () => {
     });
 
     it('increments seq on repeated clicks (same factor still triggers)', () => {
-      const state = makeMockHypothesesState();
+      const state = makeMockQuestionsState();
       const { result } = renderHook(() =>
         useQuestionGeneration({
           filteredData: makeData(50),
           outcome: 'value',
           factors: ['Shift', 'Machine'],
-          hypothesesState: state,
+          questionsState: state,
         })
       );
 
       const question = {
-        ...createHypothesis('Does Shift explain variation?', 'Shift'),
+        ...createQuestion('Does Shift explain variation?', 'Shift'),
         questionSource: 'factor-intel' as const,
       };
 
@@ -304,18 +304,18 @@ describe('useQuestionGeneration', () => {
     });
 
     it('does not set factorRequest for questions without a factor', () => {
-      const state = makeMockHypothesesState();
+      const state = makeMockQuestionsState();
       const { result } = renderHook(() =>
         useQuestionGeneration({
           filteredData: makeData(50),
           outcome: 'value',
           factors: ['Shift', 'Machine'],
-          hypothesesState: state,
+          questionsState: state,
         })
       );
 
       const question = {
-        ...createHypothesis('Is the process in control?'),
+        ...createQuestion('Is the process in control?'),
         questionSource: 'factor-intel' as const,
       };
 
@@ -329,13 +329,13 @@ describe('useQuestionGeneration', () => {
 
   describe('isFollowUpAlreadyPresent (via deduplication)', () => {
     it('returns empty questions when not enough factors', () => {
-      const state = makeMockHypothesesState();
+      const state = makeMockQuestionsState();
       const { result } = renderHook(() =>
         useQuestionGeneration({
           filteredData: makeData(50),
           outcome: 'value',
           factors: ['Shift'],
-          hypothesesState: state,
+          questionsState: state,
         })
       );
 

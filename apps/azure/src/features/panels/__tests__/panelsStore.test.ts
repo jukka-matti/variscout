@@ -12,7 +12,7 @@ beforeEach(() => {
     highlightRowIndex: null,
     highlightedChartPoint: null,
     pendingChartFocus: null,
-    isStatsSidebarOpen: false,
+    isPISidebarOpen: false,
     piActiveTab: 'stats',
     piOverflowView: null,
   });
@@ -138,19 +138,19 @@ describe('panelsStore', () => {
   });
 
   describe('handlePointClick (compound action)', () => {
-    it('sets highlight row AND opens stats sidebar', () => {
+    it('sets highlight row AND opens PI sidebar', () => {
       usePanelsStore.getState().handlePointClick(15);
       const s = usePanelsStore.getState();
       expect(s.highlightRowIndex).toBe(15);
-      expect(s.isStatsSidebarOpen).toBe(true);
+      expect(s.isPISidebarOpen).toBe(true);
     });
 
-    it('keeps stats sidebar open if already open', () => {
-      usePanelsStore.setState({ isStatsSidebarOpen: true });
+    it('keeps PI sidebar open if already open', () => {
+      usePanelsStore.setState({ isPISidebarOpen: true });
       usePanelsStore.getState().handlePointClick(3);
       const s = usePanelsStore.getState();
       expect(s.highlightRowIndex).toBe(3);
-      expect(s.isStatsSidebarOpen).toBe(true);
+      expect(s.isPISidebarOpen).toBe(true);
     });
   });
 
@@ -204,13 +204,13 @@ describe('panelsStore', () => {
   });
 
   describe('multi-step sequences', () => {
-    it('open findings -> point click -> close findings preserves stats sidebar', () => {
+    it('open findings -> point click -> close findings preserves PI sidebar', () => {
       usePanelsStore.getState().setFindingsOpen(true);
       usePanelsStore.getState().handlePointClick(5);
       usePanelsStore.getState().setFindingsOpen(false);
       const s = usePanelsStore.getState();
       expect(s.isFindingsOpen).toBe(false);
-      expect(s.isStatsSidebarOpen).toBe(true);
+      expect(s.isPISidebarOpen).toBe(true);
       expect(s.highlightRowIndex).toBe(5);
     });
   });

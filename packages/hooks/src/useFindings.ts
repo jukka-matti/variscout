@@ -90,14 +90,14 @@ export interface UseFindingsReturn {
     driveItemId?: string,
     webUrl?: string
   ) => void;
-  /** Link a finding to a hypothesis */
-  linkHypothesis: (
+  /** Link a finding to a question */
+  linkQuestion: (
     id: string,
-    hypothesisId: string,
+    questionId: string,
     validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
   ) => void;
-  /** Unlink a finding from its hypothesis */
-  unlinkHypothesis: (id: string) => void;
+  /** Unlink a finding from its question */
+  unlinkQuestion: (id: string) => void;
   /** Set a projection on a finding */
   setProjection: (id: string, projection: FindingProjection) => void;
   /** Clear a finding's projection */
@@ -160,7 +160,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
         source
       );
       if (questionId) {
-        finding.hypothesisId = questionId;
+        finding.questionId = questionId;
       }
       setFindings(prev => {
         const next = [finding, ...prev];
@@ -427,16 +427,16 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [onFindingsChange]
   );
 
-  const linkHypothesis = useCallback(
+  const linkQuestion = useCallback(
     (
       id: string,
-      hypothesisId: string,
+      questionId: string,
       validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
     ) => {
       setFindings(prev => {
         const next = prev.map(f =>
           f.id === id
-            ? { ...f, hypothesisId, validationStatus: validationStatus ?? f.validationStatus }
+            ? { ...f, questionId, validationStatus: validationStatus ?? f.validationStatus }
             : f
         );
         onFindingsChange?.(next);
@@ -446,11 +446,11 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [onFindingsChange]
   );
 
-  const unlinkHypothesis = useCallback(
+  const unlinkQuestion = useCallback(
     (id: string) => {
       setFindings(prev => {
         const next = prev.map(f =>
-          f.id === id ? { ...f, hypothesisId: undefined, validationStatus: undefined } : f
+          f.id === id ? { ...f, questionId: undefined, validationStatus: undefined } : f
         );
         onFindingsChange?.(next);
         return next;
@@ -649,8 +649,8 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     updatePhotoStatus,
     addAttachmentToComment,
     updateAttachmentStatus,
-    linkHypothesis,
-    unlinkHypothesis,
+    linkQuestion,
+    unlinkQuestion,
     setProjection,
     clearProjection,
     addAction,

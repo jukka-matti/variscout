@@ -23,24 +23,24 @@ const DIRECTION_BADGE_COLORS: Record<string, string> = {
 };
 
 export interface ImprovementIdeasSectionProps {
-  hypothesisId: string;
+  questionId: string;
   ideas: ImprovementIdea[];
   ideaImpacts?: Record<string, IdeaImpact | undefined>;
-  onAddIdea?: (hypothesisId: string, text: string) => void;
+  onAddIdea?: (questionId: string, text: string) => void;
   onUpdateIdea?: (
-    hypothesisId: string,
+    questionId: string,
     ideaId: string,
     updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
   ) => void;
-  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
-  onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
-  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
+  onRemoveIdea?: (questionId: string, ideaId: string) => void;
+  onSelectIdea?: (questionId: string, ideaId: string, selected: boolean) => void;
+  onProjectIdea?: (questionId: string, ideaId: string) => void;
   onAskCoScout?: (question: string) => void;
-  hypothesisText: string;
+  questionText: string;
 }
 
 const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
-  hypothesisId,
+  questionId,
   ideas,
   ideaImpacts,
   onAddIdea,
@@ -49,7 +49,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
   onSelectIdea,
   onProjectIdea,
   onAskCoScout,
-  hypothesisText,
+  questionText,
 }) => {
   const { formatStat } = useTranslation();
   const [isOpen, setIsOpen] = useState(ideas.length > 0);
@@ -58,9 +58,9 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
   const handleAdd = useCallback(() => {
     const trimmed = newIdeaText.trim();
     if (!trimmed || !onAddIdea) return;
-    onAddIdea(hypothesisId, trimmed);
+    onAddIdea(questionId, trimmed);
     setNewIdeaText('');
-  }, [hypothesisId, newIdeaText, onAddIdea]);
+  }, [questionId, newIdeaText, onAddIdea]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -73,7 +73,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
   );
 
   return (
-    <div className="ml-6 mt-1.5" data-testid={`ideas-section-${hypothesisId}`}>
+    <div className="ml-6 mt-1.5" data-testid={`ideas-section-${questionId}`}>
       <button
         className="text-[0.6875rem] text-content-muted hover:text-content flex items-center gap-1"
         onClick={() => setIsOpen(!isOpen)}
@@ -95,7 +95,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                 {/* Selected toggle */}
                 <button
                   className="mt-0.5 flex-shrink-0 text-content-muted hover:text-content"
-                  onClick={() => onSelectIdea?.(hypothesisId, idea.id, !idea.selected)}
+                  onClick={() => onSelectIdea?.(questionId, idea.id, !idea.selected)}
                   title={idea.selected ? 'Deselect' : 'Select to try'}
                   aria-label={idea.selected ? 'Deselect idea' : 'Select idea'}
                 >
@@ -144,7 +144,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                       value={idea.timeframe ?? ''}
                       onChange={e => {
                         const val = e.target.value as IdeaTimeframe | '';
-                        onUpdateIdea?.(hypothesisId, idea.id, { timeframe: val || undefined });
+                        onUpdateIdea?.(questionId, idea.id, { timeframe: val || undefined });
                       }}
                       onClick={e => e.stopPropagation()}
                       data-testid={`idea-timeframe-${idea.id}`}
@@ -180,7 +180,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                   {onProjectIdea && (
                     <button
                       className="text-[0.625rem] text-content-muted hover:text-content"
-                      onClick={() => onProjectIdea(hypothesisId, idea.id)}
+                      onClick={() => onProjectIdea(questionId, idea.id)}
                       title="Project with What-If"
                       aria-label="Project idea with What-If simulator"
                     >
@@ -190,7 +190,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                   {/* Remove button */}
                   <button
                     className="text-[0.625rem] text-content-muted hover:text-red-400"
-                    onClick={() => onRemoveIdea?.(hypothesisId, idea.id)}
+                    onClick={() => onRemoveIdea?.(questionId, idea.id)}
                     title="Remove idea"
                     aria-label="Remove idea"
                   >
@@ -211,7 +211,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                 value={newIdeaText}
                 onChange={e => setNewIdeaText(e.target.value)}
                 onKeyDown={handleKeyDown}
-                data-testid={`add-idea-input-${hypothesisId}`}
+                data-testid={`add-idea-input-${questionId}`}
               />
               {newIdeaText.trim() && (
                 <button className="text-xs text-blue-400 hover:text-blue-300" onClick={handleAdd}>
@@ -226,9 +226,9 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
             <button
               className="text-[0.6875rem] text-blue-400 hover:text-blue-300 mt-0.5"
               onClick={() =>
-                onAskCoScout(`What improvement options could address "${hypothesisText}"?`)
+                onAskCoScout(`What improvement options could address "${questionText}"?`)
               }
-              data-testid={`ask-coscout-ideas-${hypothesisId}`}
+              data-testid={`ask-coscout-ideas-${questionId}`}
             >
               Ask CoScout
             </button>

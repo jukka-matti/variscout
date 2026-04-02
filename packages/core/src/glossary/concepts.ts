@@ -7,7 +7,7 @@
  *
  * Grounded in Watson's EDA methodology (Turtiainen, 2019) with three
  * VariScout-original contributions: parallel views, progressive stratification,
- * and hypothesis investigation.
+ * and question-driven investigation.
  */
 
 import type { Concept } from './types';
@@ -109,12 +109,12 @@ export const concepts: readonly Concept[] = [
     id: 'iterativeExploration',
     label: 'Iterative Exploration',
     definition:
-      'Each analysis cycle reveals new questions. A finding triggers a sub-hypothesis, which may need new data or a Gemba visit.',
+      'Each analysis cycle reveals new questions. A finding triggers follow-up questions, which may need new data or a Gemba visit.',
     description:
-      "EDA is inherently iterative. VariScout's investigation workflow formalizes this: findings spawn hypotheses, hypotheses require validation (data, Gemba, expert), validation results spawn new questions. The loop continues until the solution space is bounded and actionable improvements are identified.",
+      "EDA is inherently iterative. VariScout's investigation workflow formalizes this: findings spawn questions, questions require answers (data, Gemba, expert), answers spawn new questions. The loop continues until the solution space is bounded and actionable improvements are identified.",
     conceptCategory: 'principle',
     relations: [
-      { targetId: 'hypothesis', type: 'uses' },
+      { targetId: 'question', type: 'uses' },
       { targetId: 'finding', type: 'uses' },
     ],
   },
@@ -143,7 +143,7 @@ export const concepts: readonly Concept[] = [
     id: 'phaseInitial',
     label: 'Initial Phase',
     definition:
-      'Starting point — no hypotheses yet. Examine the charts to identify patterns and potential causes.',
+      'Starting point — no questions yet. Examine the charts to identify patterns and potential causes.',
     conceptCategory: 'phase',
     relations: [
       { targetId: 'fourLenses', type: 'uses' },
@@ -154,7 +154,7 @@ export const concepts: readonly Concept[] = [
     id: 'phaseDiverging',
     label: 'Diverging Phase',
     definition:
-      'Exploring broadly — generating hypotheses across multiple factor categories. Cast a wide net before narrowing.',
+      'Exploring broadly — generating questions across multiple factor categories. Cast a wide net before narrowing.',
     conceptCategory: 'phase',
     relations: [
       { targetId: 'stratification', type: 'uses' },
@@ -165,7 +165,7 @@ export const concepts: readonly Concept[] = [
     id: 'phaseValidating',
     label: 'Validating Phase',
     definition:
-      'Testing hypotheses against data, Gemba observations, or expert input. Supported, contradicted, or partial.',
+      'Testing questions against data, Gemba observations, or expert input. Supported, contradicted, or partial.',
     conceptCategory: 'phase',
     relations: [
       { targetId: 'etaSquared', type: 'uses' },

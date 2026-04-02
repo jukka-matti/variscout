@@ -13,7 +13,7 @@ export type AITier = 'fast' | 'reasoning';
 export type TargetMetric = 'mean' | 'sigma' | 'cpk' | 'yield' | 'passRate';
 
 /** What prompted the analyst to start this analysis */
-export type EntryScenario = 'problem' | 'hypothesis' | 'routine';
+export type EntryScenario = 'problem' | 'exploration' | 'routine';
 
 /** Investigation phase for CoScout context (deterministic detection) */
 export type InvestigationPhase =
@@ -113,7 +113,7 @@ export interface AIContext {
     selectedFinding?: {
       text: string;
       status?: string;
-      hypothesis?: string;
+      question?: string;
       projection?: { meanDelta: number; sigmaDelta: number };
       actions?: Array<{ text: string; status: string; overdue?: boolean }>;
       actionProgress?: {
@@ -122,12 +122,12 @@ export interface AIContext {
         overdueCount: number;
       };
     };
-    allHypotheses?: Array<{
+    allQuestions?: Array<{
       id: string;
       text: string;
       status: string;
       contribution?: number;
-      /** Source of this question/hypothesis */
+      /** Source of this question */
       questionSource?: 'factor-intel' | 'heuristic' | 'coscout' | 'analyst';
       /** Cause role from question-driven investigation */
       causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
@@ -138,8 +138,8 @@ export interface AIContext {
         direction?: 'prevent' | 'detect' | 'simplify' | 'eliminate';
       }>;
     }>;
-    /** Hypothesis tree structure for investigation phase detection */
-    hypothesisTree?: Array<{
+    /** Question tree structure for investigation phase detection */
+    questionTree?: Array<{
       id: string;
       text: string;
       status: string;
@@ -162,7 +162,7 @@ export interface AIContext {
     phase?: 'initial' | 'diverging' | 'validating' | 'converging' | 'improving';
     /** Investigation categories for completeness prompting */
     categories?: Array<{ name: string; factorNames: string[] }>;
-    /** Suspected causes from hypotheses with causeRole (supports multiple) */
+    /** Suspected causes from questions with causeRole (supports multiple) */
     suspectedCauses?: Array<{
       id: string;
       text: string;
@@ -179,14 +179,14 @@ export interface AIContext {
     finding?: {
       text: string;
       status: string;
-      hypothesis?: string;
+      question?: string;
       ideas?: Array<{ text: string; selected?: boolean }>;
     };
   };
   /** Team contributor awareness (Teams plan only) */
   teamContributors?: {
     count: number;
-    hypothesisAreas: string[];
+    questionAreas: string[];
   };
   /** Glossary terms for grounding */
   glossaryFragment?: string;

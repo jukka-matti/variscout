@@ -13,8 +13,8 @@ interface PanelsState {
   highlightedChartPoint: number | null;
   /** Set by navigate_to tool; consumed by Editor to focus a chart via ViewState. */
   pendingChartFocus: string | null;
-  isStatsSidebarOpen: boolean;
-  /** Active tab in the PI (Point Investigation) panel. */
+  isPISidebarOpen: boolean;
+  /** Active tab in the PI (Process Intelligence) panel. */
   piActiveTab: 'stats' | 'questions' | 'journal';
   /** Secondary overflow view within the PI panel (Data or What-If). Cleared when tab changes. */
   piOverflowView: 'data' | 'whatif' | null;
@@ -40,7 +40,7 @@ interface PanelsActions {
   handlePointClick: (index: number) => void;
   handleRowClick: (index: number) => void;
   setPendingChartFocus: (chart: string | null) => void;
-  toggleStatsSidebar: () => void;
+  togglePISidebar: () => void;
   setPIActiveTab: (tab: 'stats' | 'questions' | 'journal') => void;
   setPIOverflowView: (view: 'data' | 'whatif' | null) => void;
   /** Initialize persisted panel state from a saved ViewState. */
@@ -67,7 +67,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   highlightRowIndex: null,
   highlightedChartPoint: null,
   pendingChartFocus: null,
-  isStatsSidebarOpen: false,
+  isPISidebarOpen: false,
   piActiveTab: 'stats',
   piOverflowView: null,
 
@@ -100,8 +100,8 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   setCoScoutOpen: open => set({ isCoScoutOpen: open }),
   toggleCoScout: () => set(s => ({ isCoScoutOpen: !s.isCoScoutOpen })),
 
-  // Stats sidebar
-  toggleStatsSidebar: () => set(s => ({ isStatsSidebarOpen: !s.isStatsSidebarOpen })),
+  // Process Intelligence sidebar
+  togglePISidebar: () => set(s => ({ isPISidebarOpen: !s.isPISidebarOpen })),
 
   // PI panel tab + overflow
   setPIActiveTab: tab => set({ piActiveTab: tab, piOverflowView: null }),
@@ -114,8 +114,8 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   setHighlightRow: index => set({ highlightRowIndex: index }),
   setHighlightPoint: index => set({ highlightedChartPoint: index }),
 
-  // Compound: point click → set highlight row + open stats sidebar (PI Panel)
-  handlePointClick: index => set({ highlightRowIndex: index, isStatsSidebarOpen: true }),
+  // Compound: point click → set highlight row + open PI sidebar
+  handlePointClick: index => set({ highlightRowIndex: index, isPISidebarOpen: true }),
 
   // Compound: row click → highlight chart point
   handleRowClick: index => set({ highlightedChartPoint: index }),

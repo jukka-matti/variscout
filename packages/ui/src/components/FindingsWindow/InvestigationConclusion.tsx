@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronRight, ClipboardCheck, Sparkles, Check, X } from 'lucide-react';
-import type { Hypothesis } from '@variscout/core';
+import type { Question } from '@variscout/core';
 
 export interface InvestigationConclusionProps {
   /** Questions marked as suspected causes */
-  suspectedCauses: Hypothesis[];
+  suspectedCauses: Question[];
   /** Questions marked as ruled out (negative learnings) */
-  ruledOut: Hypothesis[];
+  ruledOut: Question[];
   /** Questions marked as contributing */
-  contributing: Hypothesis[];
+  contributing: Question[];
   /** Synthesized problem statement */
   problemStatement?: string;
   /** Whether the investigation has enough evidence for conclusions */
@@ -25,8 +25,8 @@ export interface InvestigationConclusionProps {
   onDismissProblemStatement?: () => void;
 }
 
-/** Format evidence percentage from a hypothesis */
-function evidencePercent(h: Hypothesis): string | null {
+/** Format evidence percentage from a question */
+function evidencePercent(h: Question): string | null {
   const r2 = h.evidence?.rSquaredAdj;
   const eta = h.evidence?.etaSquared;
   const value = r2 ?? eta;
@@ -35,8 +35,8 @@ function evidencePercent(h: Hypothesis): string | null {
   return `${label} ${Math.round(value * 100)}%`;
 }
 
-/** Sort hypotheses by evidence strength (highest first) */
-function sortByEvidenceDesc(a: Hypothesis, b: Hypothesis): number {
+/** Sort questions by evidence strength (highest first) */
+function sortByEvidenceDesc(a: Question, b: Question): number {
   const aVal = a.evidence?.rSquaredAdj ?? a.evidence?.etaSquared ?? -1;
   const bVal = b.evidence?.rSquaredAdj ?? b.evidence?.etaSquared ?? -1;
   return bVal - aVal;
@@ -96,7 +96,7 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
           </div>
           <div className="space-y-0.5">
             {sortedCauses.map(h => (
-              <CauseRow key={h.id} hypothesis={h} dotClass="bg-amber-500" />
+              <CauseRow key={h.id} question={h} dotClass="bg-amber-500" />
             ))}
           </div>
         </div>
@@ -113,7 +113,7 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
           </div>
           <div className="space-y-0.5">
             {sortedContributing.map(h => (
-              <CauseRow key={h.id} hypothesis={h} dotClass="bg-blue-500" compact />
+              <CauseRow key={h.id} question={h} dotClass="bg-blue-500" compact />
             ))}
           </div>
         </div>
@@ -230,16 +230,16 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
 
 /** Single cause/contributing row */
 const CauseRow: React.FC<{
-  hypothesis: Hypothesis;
+  question: Question;
   dotClass: string;
   compact?: boolean;
-}> = ({ hypothesis, dotClass, compact }) => {
-  const badge = evidencePercent(hypothesis);
+}> = ({ question, dotClass, compact }) => {
+  const badge = evidencePercent(question);
 
   return (
     <div
       className={`flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-surface ${compact ? 'py-1' : ''}`}
-      data-testid={`cause-${hypothesis.id}`}
+      data-testid={`cause-${question.id}`}
     >
       {/* Status dot */}
       <span className={`flex-shrink-0 mt-1 w-2 h-2 rounded-full ${dotClass}`} />
@@ -248,13 +248,13 @@ const CauseRow: React.FC<{
         <span
           className={`text-content-secondary leading-relaxed ${compact ? 'text-[0.625rem]' : 'text-[0.6875rem]'}`}
         >
-          {hypothesis.text}
+          {question.text}
         </span>
         {/* Factor + level */}
-        {hypothesis.factor && (
+        {question.factor && (
           <span className="ml-1 text-[0.5625rem] text-content-muted">
-            {hypothesis.factor}
-            {hypothesis.level ? ` = ${hypothesis.level}` : ''}
+            {question.factor}
+            {question.level ? ` = ${question.level}` : ''}
           </span>
         )}
       </div>

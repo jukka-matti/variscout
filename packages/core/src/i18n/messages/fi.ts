@@ -96,8 +96,8 @@ export const fi: MessageCatalog = {
   // Investigation
   'investigation.brief': 'Tutkimusraportti',
   'investigation.assignedToMe': 'Minulle osoitetut',
-  'investigation.hypothesis': 'Hypoteesi',
-  'investigation.hypotheses': 'Hypoteesit',
+  'investigation.question': 'Question',
+  'investigation.questions': 'Questions',
   'investigation.pinAsFinding': 'Kiinnitä havainnoksi',
   'investigation.addObservation': 'Lisää havainto',
 
@@ -181,8 +181,8 @@ export const fi: MessageCatalog = {
   'data.metric': 'Mittari',
   'data.startAnalysis': 'Aloita analyysi',
   'data.applyChanges': 'Ota muutokset käyttöön',
-  'data.addHypothesis': 'Lisää hypoteesi',
-  'data.removeHypothesis': 'Poista hypoteesi',
+  'data.addQuestion': 'Lisää hypoteesi',
+  'data.removeQuestion': 'Poista hypoteesi',
   'data.back': 'Takaisin',
 
   // Paste screen
@@ -262,7 +262,7 @@ export const fi: MessageCatalog = {
   'ai.tool.clearFilters': 'Tyhjennä suodattimet',
   'ai.tool.switchFactor': 'Vaihda tekijä',
   'ai.tool.createFinding': 'Luo havainto',
-  'ai.tool.createHypothesis': 'Luo hypoteesi',
+  'ai.tool.createQuestion': 'Luo hypoteesi',
   'ai.tool.suggestAction': 'Ehdota toimenpidettä',
   'ai.tool.shareFinding': 'Jaa havainto',
   'ai.tool.publishReport': 'Julkaise raportti',
@@ -610,7 +610,7 @@ export const fi: MessageCatalog = {
   'improve.emptyNoFindings':
     'Pin findings from the Analysis view, then brainstorm improvement ideas here.',
   'improve.emptyNoSupported':
-    'Validate your hypotheses in the Findings view. Supported hypotheses unlock improvement brainstorming.',
+    'Answer your questions in the investigation. Answered questions unlock improvement brainstorming.',
   'improve.selectedCount': '{count} selected',
   'improve.timeframeBreakdown': '{low} low · {medium} med · {high} high',
   'improve.projectedCpk': 'Best projected Cpk: {value}',
@@ -696,9 +696,9 @@ export const fi: MessageCatalog = {
   'idea.moreOptions': 'More options',
   'idea.riskAssessment': 'Risk assessment',
 
-  // Hypothesis role labels
-  'hypothesis.primary': 'Primary',
-  'hypothesis.contributing': 'Contributing',
+  // Question role labels
+  'question.primary': 'Primary',
+  'question.contributing': 'Contributing',
   // Projected vs actual
   'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
   'outcome.delta': '({sign}{delta})',
@@ -749,11 +749,11 @@ export const fi: MessageCatalog = {
   'report.cpk.pendingVerification': 'Pending verification',
   'report.cpk.metProjection': 'Met projection',
   'report.cpk.fromProjection': '{delta} from projection',
-  'report.hypothesisTree': 'Hypothesis Tree',
-  'report.hypothesis.supported': 'Supported',
-  'report.hypothesis.partial': 'Partial',
-  'report.hypothesis.contradicted': 'Contradicted',
-  'report.hypothesis.untested': 'Untested',
+  'report.questionTree': 'Question Tree',
+  'report.question.answered': 'Answered',
+  'report.question.investigating': 'Investigating',
+  'report.question.ruledOut': 'Ruled Out',
+  'report.question.open': 'Open',
   'report.type.analysisSnapshot': 'Analysis Snapshot',
   'report.type.investigationReport': 'Investigation Report',
   'report.type.improvementStory': 'Improvement Story',

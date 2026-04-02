@@ -25,7 +25,7 @@ import type {
   FindingSource,
   SpecLimits,
   DataRow,
-  Hypothesis,
+  Question,
   ProcessContext,
 } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
@@ -57,8 +57,8 @@ export interface UseFindingsOrchestrationOptions {
   canMentionInChannel: boolean;
   /** View state change handler (for navigate-to-chart) */
   onViewStateChange: (partial: Partial<ViewState>) => void;
-  /** Hypotheses for popout sync */
-  hypotheses?: Hypothesis[];
+  /** Questions for popout sync */
+  questions?: Question[];
   /** Process context for popout sync */
   processContext?: ProcessContext;
   /** Current Cpk or mean value for popout sync */
@@ -75,8 +75,8 @@ export interface UseFindingsOrchestrationOptions {
   projectName?: string;
   /** Currently focused question ID (for auto-linking new findings) */
   focusedQuestionId?: string | null;
-  /** Link a finding to a hypothesis/question */
-  linkFinding?: (hypothesisId: string, findingId: string) => void;
+  /** Link a finding to a question */
+  linkFinding?: (questionId: string, findingId: string) => void;
 }
 
 export interface UseFindingsOrchestrationReturn {
@@ -120,7 +120,7 @@ export function useFindingsOrchestration({
   shareFinding,
   canMentionInChannel,
   onViewStateChange,
-  hypotheses,
+  questions,
   processContext,
   currentValue,
   projectedValue,
@@ -140,7 +140,7 @@ export function useFindingsOrchestration({
 
   // Status update cards (Teams channel integration)
   const { onStatusChanged } = useStatusUpdateCards({
-    hypotheses,
+    questions,
     addNotification,
     projectName,
   });
@@ -275,7 +275,7 @@ export function useFindingsOrchestration({
     columnAliases,
     drillPath,
     findingsState,
-    hypotheses,
+    questions,
     processContext,
     currentValue,
     projectedValue,

@@ -4,7 +4,7 @@ import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/va
 import type { ComplementInsight } from '@variscout/ui';
 import type { PIOverflowView } from '@variscout/ui';
 import {
-  StatsPanelBase,
+  PIPanelBase,
   useGlossary,
   WhatIfSimulator,
   computePresets,
@@ -13,7 +13,7 @@ import {
 import { computeBestSubsets, computeMainEffects, computeInteractionEffects } from '@variscout/core';
 import SpecEditor from './settings/SpecEditor';
 
-interface StatsPanelProps {
+interface ProcessIntelligencePanelProps {
   stats: StatsResult | null;
   specs: SpecLimits;
   filteredData?: DataRow[];
@@ -52,7 +52,7 @@ interface StatsPanelProps {
   onOverflowViewChange?: (view: PIOverflowView) => void;
 }
 
-const StatsPanel: React.FC<StatsPanelProps> = ({
+const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
   stats,
   specs,
   filteredData = [],
@@ -127,7 +127,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         />
       )}
 
-      <StatsPanelBase
+      <PIPanelBase
         stats={stats}
         specs={specs}
         filteredData={filteredData}
@@ -187,4 +187,4 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   );
 };
 
-export default StatsPanel;
+export default ProcessIntelligencePanel;

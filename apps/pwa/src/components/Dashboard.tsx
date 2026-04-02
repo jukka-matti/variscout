@@ -577,8 +577,8 @@ const Dashboard = ({
         onBoxplotCardClick={() => handleChartWrapperClick('boxplot')}
         paretoHighlightClass={getHighlightClass('pareto')}
         onParetoCardClick={() => handleChartWrapperClick('pareto')}
-        onStatsPanelClick={() => handleChartWrapperClick('stats')}
-        statsPanelHighlightClass={getHighlightClass('stats')}
+        onPIPanelClick={() => handleChartWrapperClick('stats')}
+        piPanelHighlightClass={getHighlightClass('stats')}
         ichartObservationCount={chartFindings?.ichart?.length}
         boxplotObservationCount={chartFindings?.boxplot?.length}
         paretoObservationCount={chartFindings?.pareto?.length}

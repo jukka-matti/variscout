@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import type { Finding, Hypothesis } from '@variscout/core';
+import type { Finding, Question } from '@variscout/core';
 
 export interface JournalEntry {
   id: string;
@@ -22,7 +22,7 @@ export interface JournalEntry {
 
 interface UseJournalEntriesOptions {
   findings: Finding[];
-  questions: Hypothesis[];
+  questions: Question[];
   issueStatement?: string;
   problemStatement?: string;
 }
@@ -81,7 +81,7 @@ export function useJournalEntries({
     }
 
     for (const q of questions) {
-      if (q.status === 'supported') {
+      if (q.status === 'answered') {
         entries.push({
           id: `j-qa-${q.id}`,
           timestamp: q.updatedAt,
@@ -92,7 +92,7 @@ export function useJournalEntries({
             : undefined,
           relatedQuestionId: q.id,
         });
-      } else if (q.status === 'contradicted') {
+      } else if (q.status === 'ruled-out') {
         entries.push({
           id: `j-qr-${q.id}`,
           timestamp: q.updatedAt,
@@ -100,7 +100,7 @@ export function useJournalEntries({
           text: `${q.factor ?? q.text} → Ruled out`,
           relatedQuestionId: q.id,
         });
-      } else if (q.status === 'partial') {
+      } else if (q.status === 'investigating') {
         entries.push({
           id: `j-qi-${q.id}`,
           timestamp: q.updatedAt,

@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import type { Hypothesis, IdeaImpact } from '@variscout/core';
+import type { Question, IdeaImpact } from '@variscout/core';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-export interface HypothesisDisplayData {
+export interface QuestionDisplayData {
   text: string;
   status: string;
   factor?: string;
@@ -12,43 +12,43 @@ export interface HypothesisDisplayData {
 }
 
 export interface ProjectionTarget {
-  hypothesisId: string;
+  questionId: string;
   ideaId: string;
   ideaText: string;
-  hypothesisText: string;
+  questionText: string;
 }
 
 // ── State ───────────────────────────────────────────────────────────────────
 
 interface InvestigationStoreState {
-  /** All hypotheses (synced from useHypotheses hook) */
-  hypotheses: Hypothesis[];
-  /** Map of hypothesis ID to display data for FindingCard */
-  hypothesesMap: Record<string, HypothesisDisplayData>;
+  /** All questions (synced from useQuestions hook) */
+  questions: Question[];
+  /** Map of question ID to display data for FindingCard */
+  questionsMap: Record<string, QuestionDisplayData>;
   /** Computed idea impacts keyed by idea ID */
   ideaImpacts: Record<string, IdeaImpact | undefined>;
   /** Current projection target for What-If round-trip */
   projectionTarget: ProjectionTarget | null;
-  /** Hypothesis ID to expand/scroll-to in the investigation tree (null = none) */
-  expandedHypothesisId: string | null;
+  /** Question ID to expand/scroll-to in the investigation tree (null = none) */
+  expandedQuestionId: string | null;
 }
 
 // ── Actions ─────────────────────────────────────────────────────────────────
 
 interface InvestigationStoreActions {
   /**
-   * Sync hypotheses from the useHypotheses hook into the store.
-   * Called by useInvestigationOrchestration whenever hypotheses change.
+   * Sync questions from the useQuestions hook into the store.
+   * Called by useInvestigationOrchestration whenever questions change.
    */
-  syncHypotheses: (hypotheses: Hypothesis[]) => void;
-  /** Sync the pre-computed hypotheses display map */
-  syncHypothesesMap: (map: Record<string, HypothesisDisplayData>) => void;
+  syncQuestions: (questions: Question[]) => void;
+  /** Sync the pre-computed questions display map */
+  syncQuestionsMap: (map: Record<string, QuestionDisplayData>) => void;
   /** Sync the pre-computed idea impacts */
   syncIdeaImpacts: (impacts: Record<string, IdeaImpact | undefined>) => void;
   /** Set or clear the projection target for What-If round-trip */
   setProjectionTarget: (target: ProjectionTarget | null) => void;
-  /** Expand and scroll-to a hypothesis in the investigation tree (null = clear) */
-  expandToHypothesis: (id: string | null) => void;
+  /** Expand and scroll-to a question in the investigation tree (null = clear) */
+  expandToQuestion: (id: string | null) => void;
 }
 
 export type InvestigationStore = InvestigationStoreState & InvestigationStoreActions;
@@ -57,17 +57,17 @@ export type InvestigationStore = InvestigationStoreState & InvestigationStoreAct
 
 export const useInvestigationStore = create<InvestigationStore>(set => ({
   // Initial state
-  hypotheses: [],
-  hypothesesMap: {},
+  questions: [],
+  questionsMap: {},
   ideaImpacts: {},
   projectionTarget: null,
-  expandedHypothesisId: null,
+  expandedQuestionId: null,
 
   // Actions
-  syncHypotheses: (hypotheses: Hypothesis[]) => set({ hypotheses }),
-  syncHypothesesMap: (map: Record<string, HypothesisDisplayData>) => set({ hypothesesMap: map }),
+  syncQuestions: (questions: Question[]) => set({ questions }),
+  syncQuestionsMap: (map: Record<string, QuestionDisplayData>) => set({ questionsMap: map }),
   syncIdeaImpacts: (impacts: Record<string, IdeaImpact | undefined>) =>
     set({ ideaImpacts: impacts }),
   setProjectionTarget: (target: ProjectionTarget | null) => set({ projectionTarget: target }),
-  expandToHypothesis: id => set({ expandedHypothesisId: id }),
+  expandToQuestion: id => set({ expandedQuestionId: id }),
 }));

@@ -43,7 +43,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
   onUpdateLastViewed,
 }) => {
   // Data context
-  const { findings, hypotheses, filterStack, viewState, rawData, aiEnabled } = useDataStateCtx();
+  const { findings, questions, filterStack, viewState, rawData, aiEnabled } = useDataStateCtx();
 
   // Journey phase
   const hasData = rawData != null && rawData.length > 0;
@@ -61,9 +61,9 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
     [onNavigate]
   );
 
-  const handleNavigateToHypothesis = useCallback(
+  const handleNavigateToQuestion = useCallback(
     (id: string) => {
-      onNavigate('hypothesis', id);
+      onNavigate('question', id);
     },
     [onNavigate]
   );
@@ -101,11 +101,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
       {/* What's New — top on mobile for maximum visibility */}
       {lastViewedAt != null && lastViewedAt > 0 && (
         <div className="lg:hidden">
-          <WhatsNewSection
-            findings={findings}
-            hypotheses={hypotheses}
-            lastViewedAt={lastViewedAt}
-          />
+          <WhatsNewSection findings={findings} questions={questions} lastViewedAt={lastViewedAt} />
         </div>
       )}
 
@@ -116,7 +112,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
           <div className="hidden lg:block">
             <WhatsNewSection
               findings={findings}
-              hypotheses={hypotheses}
+              questions={questions}
               lastViewedAt={lastViewedAt}
             />
           </div>
@@ -127,11 +123,11 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
           lastEdited={lastEdited}
           journeyPhase={journeyPhase}
           findings={findings}
-          hypotheses={hypotheses}
+          questions={questions}
           filterStack={filterStack}
           viewState={viewState}
           onNavigateToFindings={handleNavigateToFindings}
-          onNavigateToHypothesis={handleNavigateToHypothesis}
+          onNavigateToQuestion={handleNavigateToQuestion}
           onNavigateToActions={handleNavigateToActions}
           onResumeAnalysis={onResumeAnalysis}
         />

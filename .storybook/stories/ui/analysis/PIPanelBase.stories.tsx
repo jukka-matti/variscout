@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { StatsPanelBase } from '../../../../packages/ui/src/index';
+import { PIPanelBase } from '../../../../packages/ui/src/index';
 import type { StatsResult } from '../../../../packages/core/src/types';
 
 const mockStats: StatsResult = {
@@ -16,11 +16,11 @@ const mockStats: StatsResult = {
 };
 
 const meta = {
-  title: 'UI/Analysis/StatsPanelBase',
-  component: StatsPanelBase,
+  title: 'UI/Analysis/PIPanelBase',
+  component: PIPanelBase,
   tags: ['autodocs'],
   parameters: { layout: 'padded' },
-} satisfies Meta<typeof StatsPanelBase>;
+} satisfies Meta<typeof PIPanelBase>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

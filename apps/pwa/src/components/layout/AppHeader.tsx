@@ -62,8 +62,8 @@ interface AppHeaderProps {
   onOpenSpecEditor?: () => void;
   onOpenWhatIf?: () => void;
   isWhatIfOpen?: boolean;
-  isStatsSidebarOpen?: boolean;
-  onToggleStatsSidebar?: () => void;
+  isPISidebarOpen?: boolean;
+  onTogglePISidebar?: () => void;
   /** Hide findings toggle when in Investigation workspace (workspace IS findings) */
   hideFindings?: boolean;
 }
@@ -91,8 +91,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenSpecEditor,
   onOpenWhatIf,
   isWhatIfOpen = false,
-  isStatsSidebarOpen = false,
-  onToggleStatsSidebar,
+  isPISidebarOpen = false,
+  onTogglePISidebar,
   hideFindings = false,
 }) => {
   const { t } = useTranslation();
@@ -137,17 +137,21 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <nav aria-label="Analysis tools">
               <div className="hidden sm:flex items-center gap-1">
                 {/* Stats Sidebar Toggle */}
-                {onToggleStatsSidebar && (
+                {onTogglePISidebar && (
                   <button
-                    onClick={onToggleStatsSidebar}
+                    onClick={onTogglePISidebar}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                      isStatsSidebarOpen
+                      isPISidebarOpen
                         ? 'text-blue-400 bg-blue-400/10'
                         : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
                     }`}
-                    title={isStatsSidebarOpen ? 'Hide stats panel' : 'Show stats panel'}
-                    aria-label={isStatsSidebarOpen ? 'Hide stats panel' : 'Show stats panel'}
-                    aria-pressed={isStatsSidebarOpen}
+                    title={
+                      isPISidebarOpen ? 'Hide Process Intelligence' : 'Show Process Intelligence'
+                    }
+                    aria-label={
+                      isPISidebarOpen ? 'Hide Process Intelligence' : 'Show Process Intelligence'
+                    }
+                    aria-pressed={isPISidebarOpen}
                   >
                     <BarChart3 size={16} />
                     <span className="hidden lg:inline">Stats</span>

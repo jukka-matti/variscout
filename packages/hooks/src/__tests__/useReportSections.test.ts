@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useReportSections } from '../useReportSections';
-import type { Finding, Hypothesis } from '@variscout/core';
+import type { Finding, Question } from '@variscout/core';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -20,11 +20,11 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   };
 }
 
-function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
+function makeQuestion(overrides: Partial<Question> = {}): Question {
   return {
-    id: 'h-1',
-    text: 'Test hypothesis',
-    status: 'untested',
+    id: 'q-1',
+    text: 'Test question',
+    status: 'open',
     linkedFindingIds: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -34,7 +34,7 @@ function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
 
 const baseOptions = {
   findings: [] as Finding[],
-  hypotheses: [] as Hypothesis[],
+  questions: [] as Question[],
   stagedComparison: false,
   aiEnabled: false,
 };
@@ -246,19 +246,17 @@ describe('useReportSections — section ordering', () => {
 // ---------------------------------------------------------------------------
 
 describe('useReportSections — evidence trail title', () => {
-  it('uses default title when no hypotheses', () => {
+  it('uses default title when no questions', () => {
     const findings = [makeFinding()];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
     const evidenceSection = result.current.sections.find(s => s.id === 'evidence-trail');
     expect(evidenceSection?.title).toBe('Why is this happening?');
   });
 
-  it('uses hypothesis text in title when hypotheses exist', () => {
+  it('uses question text in title when questions exist', () => {
     const findings = [makeFinding()];
-    const hypotheses = [makeHypothesis({ text: 'machine vibration' })];
-    const { result } = renderHook(() =>
-      useReportSections({ ...baseOptions, findings, hypotheses })
-    );
+    const questions = [makeQuestion({ text: 'machine vibration' })];
+    const { result } = renderHook(() => useReportSections({ ...baseOptions, findings, questions }));
     const evidenceSection = result.current.sections.find(s => s.id === 'evidence-trail');
     expect(evidenceSection?.title).toMatch(/^What causes/);
     expect(evidenceSection?.title).toContain('machine vibration');

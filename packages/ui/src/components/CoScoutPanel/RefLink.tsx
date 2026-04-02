@@ -22,7 +22,7 @@ const CHART_LABELS: Record<string, string> = {
   ichart: 'I-Chart',
   stats: 'Stats panel',
   finding: 'Finding',
-  hypothesis: 'Hypothesis',
+  question: 'Question',
   dashboard: 'Dashboard',
   improvement: 'Improvement workspace',
 };
@@ -39,7 +39,7 @@ function getIcon(targetType: string): React.ReactElement {
       return <Hash size={11} />;
     case 'finding':
       return <BookmarkPlus size={11} />;
-    case 'hypothesis':
+    case 'question':
       return <GitBranch size={11} />;
     default:
       return <LayoutDashboard size={11} />;

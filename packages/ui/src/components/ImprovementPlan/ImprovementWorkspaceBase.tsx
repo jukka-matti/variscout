@@ -17,7 +17,7 @@ import { ImprovementSummaryBar } from './ImprovementSummaryBar';
 export interface ImprovementWorkspaceBaseProps {
   synthesis?: string;
   onSynthesisChange?: (text: string) => void;
-  hypotheses: Array<{
+  questions: Array<{
     id: string;
     text: string;
     causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
@@ -26,31 +26,27 @@ export interface ImprovementWorkspaceBaseProps {
     linkedFindingName?: string;
   }>;
   linkedFindings?: Array<{ id: string; text: string }>;
-  onToggleSelect?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  onToggleSelect?: (questionId: string, ideaId: string, selected: boolean) => void;
   onUpdateTimeframe?: (
-    hypothesisId: string,
+    questionId: string,
     ideaId: string,
     timeframe: IdeaTimeframe | undefined
   ) => void;
   onUpdateDirection?: (
-    hypothesisId: string,
+    questionId: string,
     ideaId: string,
     direction: IdeaDirection | undefined
   ) => void;
   onUpdateCost?: (
-    hypothesisId: string,
+    questionId: string,
     ideaId: string,
     cost: { category: IdeaCostCategory } | undefined
   ) => void;
-  onUpdateRisk?: (
-    hypothesisId: string,
-    ideaId: string,
-    risk: IdeaRiskAssessment | undefined
-  ) => void;
-  onOpenRisk?: (hypothesisId: string, ideaId: string) => void;
-  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
-  onOpenWhatIf?: (hypothesisId: string, ideaId: string) => void;
-  onAddIdea?: (hypothesisId: string, text: string) => void;
+  onUpdateRisk?: (questionId: string, ideaId: string, risk: IdeaRiskAssessment | undefined) => void;
+  onOpenRisk?: (questionId: string, ideaId: string) => void;
+  onRemoveIdea?: (questionId: string, ideaId: string) => void;
+  onOpenWhatIf?: (questionId: string, ideaId: string) => void;
+  onAddIdea?: (questionId: string, text: string) => void;
   onAskCoScout?: (question: string) => void;
   onConvertToActions?: () => void;
   onBack?: () => void;
@@ -68,7 +64,7 @@ export interface ImprovementWorkspaceBaseProps {
 export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> = ({
   synthesis,
   onSynthesisChange,
-  hypotheses,
+  questions,
   linkedFindings,
   onToggleSelect,
   onUpdateTimeframe,
@@ -90,8 +86,8 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
 }) => {
   const { t } = useTranslation();
 
-  // Collect all ideas across hypotheses for summary calculations
-  const allIdeas = useMemo(() => hypotheses.flatMap(h => h.ideas), [hypotheses]);
+  // Collect all ideas across questions for summary calculations
+  const allIdeas = useMemo(() => questions.flatMap(h => h.ideas), [questions]);
 
   const selectedIdeas = useMemo(() => {
     if (!selectedIdeaIds || selectedIdeaIds.size === 0) return [];
@@ -141,7 +137,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
     return Math.max(...withProjection.map(i => i.projection!.projectedCpk!));
   }, [selectedIdeas]);
 
-  const hasIdeas = hypotheses.some(h => h.ideas.length > 0);
+  const hasIdeas = questions.some(h => h.ideas.length > 0);
 
   return (
     <div data-testid="improvement-workspace" className="flex h-full flex-col bg-surface">
@@ -192,14 +188,14 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
           {t('improve.fourDirections')}
         </p>
 
-        {/* Hypothesis groups */}
+        {/* Question groups */}
         {hasIdeas ? (
-          hypotheses
+          questions
             .filter(h => h.ideas.length > 0)
             .map(h => (
               <IdeaGroupCard
                 key={h.id}
-                hypothesis={h}
+                question={h}
                 ideas={h.ideas}
                 linkedFindingName={h.linkedFindingName}
                 onToggleSelect={onToggleSelect}
@@ -219,7 +215,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
             data-testid="improvement-empty-state"
             className="flex flex-col items-center justify-center py-12 text-sm text-content/50 text-center px-6 gap-2"
           >
-            {hypotheses.length === 0 ? (
+            {questions.length === 0 ? (
               <>
                 <p className="font-medium text-content/60">
                   {!linkedFindings || linkedFindings.length === 0

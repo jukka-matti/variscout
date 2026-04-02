@@ -11,7 +11,7 @@ import type {
 import { useTranslation } from '@variscout/hooks';
 
 export interface IdeaGroupCardProps {
-  hypothesis: {
+  question: {
     id: string;
     text: string;
     causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
@@ -19,31 +19,27 @@ export interface IdeaGroupCardProps {
   };
   ideas: ImprovementIdea[];
   linkedFindingName?: string;
-  onToggleSelect?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  onToggleSelect?: (questionId: string, ideaId: string, selected: boolean) => void;
   onUpdateTimeframe?: (
-    hypothesisId: string,
+    questionId: string,
     ideaId: string,
     timeframe: IdeaTimeframe | undefined
   ) => void;
   onUpdateDirection?: (
-    hypothesisId: string,
+    questionId: string,
     ideaId: string,
     direction: IdeaDirection | undefined
   ) => void;
   onUpdateCost?: (
-    hypothesisId: string,
+    questionId: string,
     ideaId: string,
     cost: { category: IdeaCostCategory } | undefined
   ) => void;
-  onUpdateRisk?: (
-    hypothesisId: string,
-    ideaId: string,
-    risk: IdeaRiskAssessment | undefined
-  ) => void;
-  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
-  onOpenWhatIf?: (hypothesisId: string, ideaId: string) => void;
-  onOpenRisk?: (hypothesisId: string, ideaId: string) => void;
-  onAddIdea?: (hypothesisId: string, text: string) => void;
+  onUpdateRisk?: (questionId: string, ideaId: string, risk: IdeaRiskAssessment | undefined) => void;
+  onRemoveIdea?: (questionId: string, ideaId: string) => void;
+  onOpenWhatIf?: (questionId: string, ideaId: string) => void;
+  onOpenRisk?: (questionId: string, ideaId: string) => void;
+  onAddIdea?: (questionId: string, text: string) => void;
   onAskCoScout?: (question: string) => void;
   convertedIdeaIds?: Set<string>;
 }
@@ -123,8 +119,8 @@ const DIRECTION_OPTIONS: Array<{
 /** Overflow menu for secondary idea controls */
 const IdeaOverflowMenu: React.FC<{
   idea: ImprovementIdea;
-  hypothesisId: string;
-  hypothesisText: string;
+  questionId: string;
+  questionText: string;
   isConverted: boolean;
   onUpdateDirection?: IdeaGroupCardProps['onUpdateDirection'];
   onOpenRisk?: IdeaGroupCardProps['onOpenRisk'];
@@ -133,8 +129,8 @@ const IdeaOverflowMenu: React.FC<{
   onRemoveIdea?: IdeaGroupCardProps['onRemoveIdea'];
 }> = ({
   idea,
-  hypothesisId,
-  hypothesisText,
+  questionId,
+  questionText,
   isConverted,
   onUpdateDirection,
   onOpenRisk,
@@ -179,7 +175,7 @@ const IdeaOverflowMenu: React.FC<{
               value={direction ?? ''}
               onChange={e => {
                 const val = e.target.value as IdeaDirection | '';
-                onUpdateDirection?.(hypothesisId, idea.id, val === '' ? undefined : val);
+                onUpdateDirection?.(questionId, idea.id, val === '' ? undefined : val);
               }}
               className={`text-xs bg-transparent border-none focus:outline-none cursor-pointer ${
                 direction ? DIRECTION_STYLES[direction].split(' ')[1] : 'text-content/50'
@@ -198,7 +194,7 @@ const IdeaOverflowMenu: React.FC<{
           {onOpenRisk && (
             <button
               onClick={() => {
-                onOpenRisk(hypothesisId, idea.id);
+                onOpenRisk(questionId, idea.id);
                 setOpen(false);
               }}
               className="w-full px-3 py-1.5 text-left text-xs text-content hover:bg-surface-secondary flex items-center gap-2"
@@ -221,7 +217,7 @@ const IdeaOverflowMenu: React.FC<{
           {onOpenWhatIf && !isConverted && (
             <button
               onClick={() => {
-                onOpenWhatIf(hypothesisId, idea.id);
+                onOpenWhatIf(questionId, idea.id);
                 setOpen(false);
               }}
               className="w-full px-3 py-1.5 text-left text-xs text-content hover:bg-surface-secondary"
@@ -234,7 +230,7 @@ const IdeaOverflowMenu: React.FC<{
           {onAskCoScout && (
             <button
               onClick={() => {
-                onAskCoScout(`Suggest improvement ideas for: ${hypothesisText}`);
+                onAskCoScout(`Suggest improvement ideas for: ${questionText}`);
                 setOpen(false);
               }}
               className="w-full px-3 py-1.5 text-left text-xs text-content hover:bg-surface-secondary"
@@ -249,7 +245,7 @@ const IdeaOverflowMenu: React.FC<{
               <div className="border-t border-edge my-1" />
               <button
                 onClick={() => {
-                  onRemoveIdea(hypothesisId, idea.id);
+                  onRemoveIdea(questionId, idea.id);
                   setOpen(false);
                 }}
                 className="w-full px-3 py-1.5 text-left text-xs text-red-400 hover:bg-red-500/10"
@@ -265,7 +261,7 @@ const IdeaOverflowMenu: React.FC<{
 };
 
 export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
-  hypothesis,
+  question,
   ideas,
   linkedFindingName,
   onToggleSelect,
@@ -285,7 +281,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
   const handleAddIdea = () => {
     const trimmed = newIdeaText.trim();
     if (trimmed && onAddIdea) {
-      onAddIdea(hypothesis.id, trimmed);
+      onAddIdea(question.id, trimmed);
       setNewIdeaText('');
     }
   };
@@ -299,26 +295,24 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
 
   return (
     <div
-      data-testid={`idea-group-${hypothesis.id}`}
+      data-testid={`idea-group-${question.id}`}
       className="rounded-lg border border-edge bg-surface-secondary"
     >
       {/* Header */}
       <div className="px-4 py-3 border-b border-edge">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-content">{hypothesis.text}</span>
-          {hypothesis.causeRole === 'suspected-cause' && (
+          <span className="text-sm font-medium text-content">{question.text}</span>
+          {question.causeRole === 'suspected-cause' && (
             <span className="inline-flex items-center rounded-full bg-red-500/15 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-red-500">
-              {t('hypothesis.primary')}
+              {t('question.primary')}
             </span>
           )}
-          {hypothesis.causeRole === 'contributing' && (
+          {question.causeRole === 'contributing' && (
             <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-amber-500">
-              {t('hypothesis.contributing')}
+              {t('question.contributing')}
             </span>
           )}
-          {hypothesis.factor && (
-            <span className="text-xs text-content/50">({hypothesis.factor})</span>
-          )}
+          {question.factor && <span className="text-xs text-content/50">({question.factor})</span>}
         </div>
         {linkedFindingName && <p className="text-xs text-content/50 mt-1">{linkedFindingName}</p>}
       </div>
@@ -339,7 +333,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
                 type="checkbox"
                 data-testid={`idea-select-${idea.id}`}
                 checked={idea.selected ?? false}
-                onChange={e => onToggleSelect?.(hypothesis.id, idea.id, e.target.checked)}
+                onChange={e => onToggleSelect?.(question.id, idea.id, e.target.checked)}
                 className="h-4 w-4 rounded border-edge text-blue-500 focus:ring-blue-500 shrink-0"
               />
 
@@ -352,7 +346,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
                 value={idea.timeframe ?? ''}
                 onChange={e => {
                   const val = e.target.value as IdeaTimeframe | '';
-                  onUpdateTimeframe?.(hypothesis.id, idea.id, val === '' ? undefined : val);
+                  onUpdateTimeframe?.(question.id, idea.id, val === '' ? undefined : val);
                 }}
                 className={`rounded border border-edge bg-surface px-1.5 py-0.5 text-[0.6875rem] shrink-0 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                   idea.timeframe
@@ -374,11 +368,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
                 value={idea.cost?.category ?? ''}
                 onChange={e => {
                   const val = e.target.value as IdeaCostCategory | '';
-                  onUpdateCost?.(
-                    hypothesis.id,
-                    idea.id,
-                    val === '' ? undefined : { category: val }
-                  );
+                  onUpdateCost?.(question.id, idea.id, val === '' ? undefined : { category: val });
                 }}
                 className={`rounded border border-edge bg-surface px-1.5 py-0.5 text-[0.6875rem] shrink-0 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                   idea.cost?.category
@@ -397,7 +387,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
               {/* Risk dot (clickable) */}
               <button
                 data-testid={`idea-risk-${idea.id}`}
-                onClick={() => onOpenRisk?.(hypothesis.id, idea.id)}
+                onClick={() => onOpenRisk?.(question.id, idea.id)}
                 className="shrink-0 p-0.5"
                 title={
                   idea.risk
@@ -436,8 +426,8 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
               {/* Overflow menu */}
               <IdeaOverflowMenu
                 idea={idea}
-                hypothesisId={hypothesis.id}
-                hypothesisText={hypothesis.text}
+                questionId={question.id}
+                questionText={question.text}
                 isConverted={isConverted}
                 onUpdateDirection={onUpdateDirection}
                 onOpenRisk={onOpenRisk}
@@ -454,7 +444,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
       {onAddIdea && (
         <div className="px-4 py-2.5 border-t border-edge flex items-center gap-2">
           <input
-            data-testid={`idea-add-input-${hypothesis.id}`}
+            data-testid={`idea-add-input-${question.id}`}
             type="text"
             className="flex-1 rounded border border-edge bg-surface px-2 py-1.5 text-sm text-content placeholder:text-content/40 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder={t('idea.addPlaceholder')}
@@ -463,7 +453,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
             onKeyDown={handleKeyDown}
           />
           <button
-            data-testid={`idea-add-btn-${hypothesis.id}`}
+            data-testid={`idea-add-btn-${question.id}`}
             onClick={handleAddIdea}
             disabled={!newIdeaText.trim()}
             className="rounded px-3 py-1.5 text-xs font-medium text-white bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
@@ -477,8 +467,8 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
       {onAskCoScout && (
         <div className="px-4 py-2 border-t border-edge">
           <button
-            data-testid={`idea-ask-coscout-${hypothesis.id}`}
-            onClick={() => onAskCoScout(`Suggest improvement ideas for: ${hypothesis.text}`)}
+            data-testid={`idea-ask-coscout-${question.id}`}
+            onClick={() => onAskCoScout(`Suggest improvement ideas for: ${question.text}`)}
             className="text-xs text-blue-500 hover:underline"
           >
             {t('idea.askCoScoutForIdeas')}

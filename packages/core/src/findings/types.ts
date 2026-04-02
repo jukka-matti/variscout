@@ -1,6 +1,6 @@
 /**
  * Findings domain types — data model for analyst-captured findings,
- * hypotheses, improvement ideas, and investigation workflow.
+ * questions, improvement ideas, and investigation workflow.
  */
 
 // ============================================================================
@@ -31,7 +31,7 @@ export const FINDING_STATUS_LABELS: Record<FindingStatus, string> = {
 /** Descriptions for finding statuses (used in tooltips and board column headers) */
 export const FINDING_STATUS_DESCRIPTIONS: Record<FindingStatus, string> = {
   observed: 'Pattern spotted — not yet investigated.',
-  investigating: 'Actively drilling into data and testing hypotheses.',
+  investigating: 'Actively drilling into data and testing questions.',
   analyzed: 'Suspected cause identified — ready to plan improvements.',
   improving: 'Corrective actions in progress. Collect After data to verify.',
   resolved: 'Actions complete, outcome verified. Standardize or iterate.',
@@ -239,7 +239,7 @@ export function computeRiskLevel(axis1: RiskLevel, axis2: RiskLevel): ComputedRi
 }
 
 /**
- * An improvement idea attached to a supported/partial hypothesis.
+ * An improvement idea attached to an answered/investigating question.
  * Bridges validated suspected cause and corrective actions.
  */
 export interface ImprovementIdea {
@@ -276,68 +276,68 @@ export type IdeaDirection = 'prevent' | 'detect' | 'simplify' | 'eliminate';
 export type IdeaCategory = IdeaDirection;
 
 // ============================================================================
-// Hypothesis Types
+// Question Types (formerly "Hypothesis" — renamed per ADR-053 question-driven model)
 // ============================================================================
 
-/** Status of a hypothesis based on evidence */
-export type HypothesisStatus = 'untested' | 'supported' | 'contradicted' | 'partial';
+/** Investigation question status */
+export type QuestionStatus = 'open' | 'investigating' | 'answered' | 'ruled-out';
 
-/** Display-layer question status — maps from HypothesisStatus for question-driven UI */
-export type QuestionDisplayStatus = 'open' | 'investigating' | 'answered' | 'ruled-out';
-
-/** Ordered list of hypothesis statuses */
-export const HYPOTHESIS_STATUSES: HypothesisStatus[] = [
-  'untested',
-  'supported',
-  'contradicted',
-  'partial',
+/** Ordered list of question statuses */
+export const QUESTION_STATUSES: QuestionStatus[] = [
+  'open',
+  'investigating',
+  'answered',
+  'ruled-out',
 ];
 
-/** Human-readable labels for hypothesis statuses */
-export const HYPOTHESIS_STATUS_LABELS: Record<HypothesisStatus, string> = {
-  untested: 'Untested',
-  supported: 'Supported',
-  contradicted: 'Contradicted',
-  partial: 'Partial',
+/** Human-readable labels for question statuses */
+export const QUESTION_STATUS_LABELS: Record<QuestionStatus, string> = {
+  open: 'Open',
+  investigating: 'Investigating',
+  answered: 'Answered',
+  'ruled-out': 'Ruled out',
 };
 
-/** Validation type for hypothesis evidence gathering */
-export type HypothesisValidationType = 'data' | 'gemba' | 'expert';
+/** Validation type for question evidence gathering */
+export type QuestionValidationType = 'data' | 'gemba' | 'expert';
 
 /**
- * A causal hypothesis — a shared theory that multiple findings can reference.
- * Supports tree structure via parentId for sub-hypothesis investigation.
+ * An investigation question — a testable claim about a factor's role in variation.
+ *
+ * In the question-driven model (ADR-053), questions are generated from Factor Intelligence
+ * and form a tree structure. The analyst investigates by linking findings as evidence.
+ * Supports tree structure via parentId for sub-questions.
  */
-export interface Hypothesis {
+export interface Question {
   /** Unique identifier */
   id: string;
-  /** Hypothesis text (e.g., "New operators lack system training") */
+  /** Question text (e.g., "Does shift affect fill weight?") */
   text: string;
   /** Linked factor column name */
   factor?: string;
   /** Specific factor level (e.g., "Night") */
   level?: string;
-  /** Validation status based on evidence */
-  status: HypothesisStatus;
-  /** IDs of findings that link to this hypothesis */
+  /** Investigation status */
+  status: QuestionStatus;
+  /** IDs of findings that link to this question */
   linkedFindingIds: string[];
   /** Timestamp of creation */
   createdAt: string;
   /** Timestamp of last update */
   updatedAt: string;
 
-  // --- Tree structure (sub-hypotheses) ---
-  /** Parent hypothesis ID — enables tree (sub-hypotheses). Undefined for root hypotheses. */
+  // --- Tree structure (sub-questions) ---
+  /** Parent question ID — enables tree (sub-questions). Undefined for root questions. */
   parentId?: string;
-  /** How this hypothesis is validated: data (auto η²), gemba (go-and-see), or expert opinion */
-  validationType?: HypothesisValidationType;
+  /** How this question is validated: data (auto η²), gemba (go-and-see), or expert opinion */
+  validationType?: QuestionValidationType;
   /** Task description for gemba/expert validation */
   validationTask?: string;
   /** Whether the gemba/expert task has been completed */
   taskCompleted?: boolean;
   /** Analyst's note when manually setting status (gemba/expert validation) */
   manualNote?: string;
-  /** Improvement ideas for supported/partial hypotheses */
+  /** Improvement ideas for answered/investigating questions */
   ideas?: ImprovementIdea[];
   /** Role in investigation conclusion — multiple 'suspected-cause' allowed per tree */
   causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
@@ -463,9 +463,9 @@ export interface Finding {
   source?: FindingSource;
   /** Optional assignee for Team plan @mention workflow */
   assignee?: FindingAssignee;
-  /** Link to a hypothesis (replaces deprecated suspectedCause) */
-  hypothesisId?: string;
-  /** How this finding relates to its linked hypothesis */
+  /** Link to a question (replaces deprecated suspectedCause) */
+  questionId?: string;
+  /** How this finding relates to its linked question */
   validationStatus?: 'supports' | 'contradicts' | 'inconclusive';
   /** What-If projection attached to this finding */
   projection?: FindingProjection;
@@ -490,7 +490,7 @@ export interface Finding {
 /**
  * A user-defined investigation category that groups factor columns.
  *
- * Three-level investigation tree: Category → Factor → Hypothesis
+ * Three-level investigation tree: Category → Factor → Question
  */
 export interface InvestigationCategory {
   id: string;

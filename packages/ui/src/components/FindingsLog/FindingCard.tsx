@@ -25,7 +25,7 @@ import FindingTagBadge from './FindingTagBadge';
 import FindingComments from './FindingComments';
 import ActionItemsSection from './FindingCardActions';
 import ProjectionSection from './FindingCardProjection';
-import { HypothesisSection, SuspectedCauseSection, OutcomeSection } from './FindingCardExpanded';
+import { QuestionSection, SuspectedCauseSection, OutcomeSection } from './FindingCardExpanded';
 
 export interface FindingCardProps {
   finding: Finding;
@@ -61,12 +61,12 @@ export interface FindingCardProps {
   renderAssignSlot?: React.ReactNode;
   /** Maximum number of statuses to show in status badge dropdown (PWA=3, Azure=5). Default: all. */
   maxStatuses?: number;
-  /** Callback to link a hypothesis to a finding */
-  onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
-  /** Callback to create a new hypothesis and link to a finding */
-  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
-  /** Map of hypothesis IDs to hypothesis objects for display */
-  hypothesesMap?: Record<
+  /** Callback to link a question to a finding */
+  onLinkQuestion?: (findingId: string, questionId: string) => void;
+  /** Callback to create a new question and link to a finding */
+  onCreateQuestion?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  /** Map of question IDs to question objects for display */
+  questionsMap?: Record<
     string,
     {
       text: string;
@@ -106,7 +106,7 @@ export interface FindingCardProps {
     finding: {
       text: string;
       status: string;
-      hypothesis?: string;
+      question?: string;
       ideas?: Array<{ text: string; selected?: boolean }>;
     };
   }) => void;
@@ -138,9 +138,9 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onAssign,
   renderAssignSlot,
   maxStatuses,
-  onLinkHypothesis: _onLinkHypothesis,
-  onCreateHypothesis,
-  hypothesesMap,
+  onLinkQuestion: _onLinkQuestion,
+  onCreateQuestion,
+  questionsMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -311,14 +311,12 @@ const FindingCard: React.FC<FindingCardProps> = ({
                 <button
                   onClick={e => {
                     e.stopPropagation();
-                    const hyp = finding.hypothesisId
-                      ? hypothesesMap?.[finding.hypothesisId]
-                      : undefined;
+                    const hyp = finding.questionId ? questionsMap?.[finding.questionId] : undefined;
                     onAskCoScout({
                       finding: {
                         text: finding.text || 'Untitled finding',
                         status,
-                        hypothesis: hyp?.text,
+                        question: hyp?.text,
                         ideas: (
                           hyp as { ideas?: Array<{ text: string; selected?: boolean }> } | undefined
                         )?.ideas,
@@ -372,23 +370,23 @@ const FindingCard: React.FC<FindingCardProps> = ({
         {/* Inline assign slot (e.g., PeoplePicker) */}
         {renderAssignSlot}
 
-        {/* Hypothesis (visible from 'investigating' onward) */}
-        {(onCreateHypothesis || finding.hypothesisId) &&
+        {/* Question (visible from 'investigating' onward) */}
+        {(onCreateQuestion || finding.questionId) &&
           ['investigating', 'analyzed', 'improving', 'resolved'].includes(status) && (
-            <HypothesisSection
+            <QuestionSection
               findingId={finding.id}
-              hypothesisId={finding.hypothesisId}
-              hypothesesMap={hypothesesMap}
-              onCreateHypothesis={onCreateHypothesis}
+              questionId={finding.questionId}
+              questionsMap={questionsMap}
+              onCreateQuestion={onCreateQuestion}
               readOnly={status === 'resolved'}
             />
           )}
 
-        {/* Suspected cause (visible when any hypothesis has causeRole and finding is analyzed+) */}
-        {hypothesesMap &&
+        {/* Suspected cause (visible when any question has causeRole and finding is analyzed+) */}
+        {questionsMap &&
           ['analyzed', 'improving', 'resolved'].includes(status) &&
-          Object.values(hypothesesMap).some(h => h.causeRole) && (
-            <SuspectedCauseSection hypothesesMap={hypothesesMap} />
+          Object.values(questionsMap).some(h => h.causeRole) && (
+            <SuspectedCauseSection questionsMap={questionsMap} />
           )}
 
         {/* Projection display (visible when projection exists) */}

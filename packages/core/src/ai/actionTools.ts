@@ -1,7 +1,7 @@
 /**
  * Action Tools for CoScout — types, parsing, and preview computation.
  *
- * Action tools let CoScout propose UI state changes (filters, hypotheses, findings)
+ * Action tools let CoScout propose UI state changes (filters, questions, findings)
  * that the analyst confirms via ActionProposalCard. No state mutation happens during
  * the tool loop — proposals are computed from rawData and returned as previews.
  *
@@ -21,7 +21,7 @@ export type ActionToolName =
   | 'apply_filter'
   | 'clear_filters'
   | 'switch_factor'
-  | 'create_hypothesis'
+  | 'create_question'
   | 'create_finding'
   | 'suggest_action'
   | 'suggest_improvement_idea'
@@ -63,7 +63,7 @@ export interface ActionProposal {
   filterStackHash: string;
   /** Timestamp of creation */
   timestamp: number;
-  /** Editable text (for create_finding, create_hypothesis, suggest_action) */
+  /** Editable text (for create_finding, create_question, suggest_action) */
   editableText?: string;
 }
 

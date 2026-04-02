@@ -16,7 +16,7 @@ import type {
   Finding,
   FindingComment,
 } from '@variscout/core';
-import type { UseHypothesesReturn } from '@variscout/hooks';
+import type { UseQuestionsReturn } from '@variscout/hooks';
 
 // ── Interfaces ────────────────────────────────────────────────────────────
 
@@ -46,9 +46,9 @@ interface FindingsStateSlice {
     source?: FindingSource
   ) => Finding;
   addAction: (findingId: string, text: string) => void;
-  linkHypothesis: (
+  linkQuestion: (
     findingId: string,
-    hypothesisId: string,
+    questionId: string,
     validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
   ) => void;
   addFindingComment: (findingId: string, text: string, author?: string) => FindingComment;
@@ -67,8 +67,8 @@ export interface UseActionProposalsOptions {
   filterNav: FilterNavSlice;
   /** Findings state for create_finding / suggest_action actions */
   findingsState: FindingsStateSlice;
-  /** Hypotheses state for create_hypothesis / suggest_improvement_idea actions */
-  hypothesesState: UseHypothesesReturn;
+  /** Questions state for create_question / suggest_improvement_idea actions */
+  questionsState: UseQuestionsReturn;
   /** Current filters for finding context */
   filters: Record<string, (string | number)[]>;
   /** Current stats for finding context */
@@ -92,7 +92,7 @@ export function useActionProposals({
   messages,
   filterNav,
   findingsState,
-  hypothesesState,
+  questionsState,
   filters,
   stats,
   filteredDataLength,
@@ -169,7 +169,7 @@ export function useActionProposals({
           }
           break;
         }
-        case 'create_hypothesis': {
+        case 'create_question': {
           const text = editedText || (proposal.params.text as string);
           const factor = proposal.params.factor as string | undefined;
           const level = proposal.params.level as string | undefined;
@@ -177,7 +177,7 @@ export function useActionProposals({
           const validationType = (proposal.params.validation_type as string) || 'data';
           if (text) {
             if (parentId) {
-              hypothesesState.addSubHypothesis(
+              questionsState.addSubQuestion(
                 parentId,
                 text,
                 factor,
@@ -185,7 +185,7 @@ export function useActionProposals({
                 validationType as 'data' | 'gemba' | 'expert'
               );
             } else {
-              hypothesesState.addHypothesis(text, factor, level);
+              questionsState.addQuestion(text, factor, level);
             }
           }
           break;
@@ -198,9 +198,7 @@ export function useActionProposals({
         }
         case 'suggest_save_finding': {
           const text = editedText || (proposal.params.insight_text as string);
-          const suggestedHypothesisId = proposal.params.suggested_hypothesis_id as
-            | string
-            | undefined;
+          const suggestedQuestionId = proposal.params.suggested_question_id as string | undefined;
           if (text) {
             const findingContext = {
               activeFilters: filters,
@@ -221,22 +219,22 @@ export function useActionProposals({
               messageId: `tool-${proposal.id}`,
             };
             const newFinding = findingsState.addFinding(text, findingContext, source);
-            // Link to hypothesis if suggested
-            if (suggestedHypothesisId && newFinding) {
-              findingsState.linkHypothesis(newFinding.id, suggestedHypothesisId);
+            // Link to question if suggested
+            if (suggestedQuestionId && newFinding) {
+              findingsState.linkQuestion(newFinding.id, suggestedQuestionId);
             }
           }
           break;
         }
         case 'suggest_improvement_idea': {
-          const hypothesisId = proposal.params.hypothesis_id as string;
+          const questionId = proposal.params.question_id as string;
           const ideaText = editedText || (proposal.params.text as string);
           const direction = proposal.params.direction as string;
           const timeframe = proposal.params.timeframe as string;
-          if (hypothesisId && ideaText) {
-            const idea = hypothesesState.addIdea(hypothesisId, ideaText);
+          if (questionId && ideaText) {
+            const idea = questionsState.addIdea(questionId, ideaText);
             if (idea) {
-              hypothesesState.updateIdea(hypothesisId, idea.id, {
+              questionsState.updateIdea(questionId, idea.id, {
                 ...(direction && {
                   direction: direction as 'prevent' | 'detect' | 'simplify' | 'eliminate',
                 }),
@@ -257,7 +255,7 @@ export function useActionProposals({
         prev.map(p => (p.id === proposal.id ? { ...p, status: 'applied' as const } : p))
       );
     },
-    [filterNav, findingsState, hypothesesState, filters, stats, filteredDataLength]
+    [filterNav, findingsState, questionsState, filters, stats, filteredDataLength]
   );
 
   const handleDismissAction = useCallback((proposalId: string) => {

@@ -366,7 +366,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Systematic method to identify the fundamental reason a defect or variation occurred, not just its symptoms.',
     description:
-      'Root cause analysis goes beyond the immediate trigger to find the underlying system failure. VariScout identifies WHERE variation concentrates (contribution, not causation) — root cause analysis answers WHY. The investigation workflow supports this through hypothesis validation, Gemba checks, and findings tracking.',
+      'Root cause analysis goes beyond the immediate trigger to find the underlying system failure. VariScout identifies WHERE variation concentrates (contribution, not causation) — root cause analysis answers WHY. The investigation workflow supports this through question-driven investigation, Gemba checks, and findings tracking.',
     category: 'investigation',
     relatedTerms: ['specialCause', 'finding', 'correctiveAction'],
   },
@@ -511,12 +511,12 @@ export const glossaryTerms: GlossaryTerm[] = [
 
   // Investigation (additions)
   {
-    id: 'hypothesis',
-    label: 'Hypothesis',
+    id: 'question',
+    label: 'Question',
     definition:
-      'A proposed explanation for observed variation, linked to a specific factor. Validated through data, Gemba observation, or expert input.',
+      'An investigation question linked to a specific factor, driving systematic root cause exploration. Answered through data, Gemba observation, or expert input.',
     description:
-      'Hypotheses are the building blocks of investigation in VariScout. Each hypothesis proposes why a particular factor drives variation. Validation can be automatic (η² thresholds: ≥15% supported, <5% contradicted, 5-15% partial), manual via Gemba inspection, or by expert assessment. Multiple hypotheses form a tree structure for systematic root cause exploration.',
+      'Questions are the building blocks of investigation in VariScout. Each question probes why a particular factor drives variation. Answers can be automatic (η² thresholds: ≥15% answered, <5% ruled out, 5-15% investigating), manual via Gemba inspection, or by expert assessment. Multiple questions form a tree structure for systematic root cause exploration.',
     category: 'investigation',
     learnMorePath: '/learn/investigation',
     relatedTerms: ['finding', 'etaSquared', 'rootCauseAnalysis'],

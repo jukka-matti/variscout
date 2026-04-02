@@ -81,7 +81,7 @@ const baseProps: DashboardLayoutBaseProps = {
   renderIChartContent: <div data-testid="ichart-content">I-Chart</div>,
   renderBoxplotContent: <div data-testid="boxplot-content">Boxplot</div>,
   renderParetoContent: <div data-testid="pareto-content">Pareto</div>,
-  renderStatsPanel: <div data-testid="stats-content">Stats</div>,
+  renderPIPanel: <div data-testid="stats-content">Stats</div>,
 };
 
 describe('DashboardLayoutBase', () => {

@@ -4,14 +4,14 @@ import type {
   Finding,
   FindingStatus,
   FindingTag,
-  Hypothesis,
+  Question,
   ImprovementIdea,
   IdeaImpact,
   ProcessContext,
 } from '@variscout/core';
 import FindingCard from './FindingCard';
 import FindingBoardView from './FindingBoardView';
-import HypothesisTreeView from './HypothesisTreeView';
+import QuestionTreeView from './QuestionTreeView';
 import FindingsExportMenu from './FindingsExportMenu';
 
 export interface FindingsLogProps {
@@ -29,27 +29,27 @@ export interface FindingsLogProps {
   columnAliases?: Record<string, string>;
   /** ID of the finding that matches current active filters (if any) */
   activeFindingId?: string | null;
-  /** View mode: 'list' (flat), 'board' (grouped by status), or 'tree' (hypothesis tree) */
+  /** View mode: 'list' (flat), 'board' (grouped by status), or 'tree' (question tree) */
   viewMode?: 'list' | 'board' | 'tree';
-  /** All hypotheses for tree view */
-  hypotheses?: Hypothesis[];
-  /** Callback when a hypothesis node is selected in tree view */
-  onSelectHypothesis?: (hypothesis: Hypothesis) => void;
-  /** Add a sub-hypothesis under a parent */
-  onAddSubHypothesis?: (
+  /** All questions for tree view */
+  questions?: Question[];
+  /** Callback when a question node is selected in tree view */
+  onSelectQuestion?: (question: Question) => void;
+  /** Add a sub-question under a parent */
+  onAddSubQuestion?: (
     parentId: string,
     text: string,
     factor?: string,
     validationType?: 'data' | 'gemba' | 'expert'
   ) => void;
-  /** Available factor columns for sub-hypothesis factor picker */
+  /** Available factor columns for sub-question factor picker */
   factors?: string[];
   /** Get children summary for tree display */
   getChildrenSummary?: (parentId: string) => {
-    supported: number;
-    contradicted: number;
-    untested: number;
-    partial: number;
+    answered: number;
+    'ruled-out': number;
+    open: number;
+    investigating: number;
     total: number;
   };
   /** Change finding investigation status */
@@ -78,12 +78,12 @@ export interface FindingsLogProps {
   onNavigateToChart?: (source: import('@variscout/core').FindingSource) => void;
   /** Maximum statuses to show in status badge dropdown (3=PWA, 5=Azure). Default: all. */
   maxStatuses?: number;
-  /** Link a hypothesis to a finding */
-  onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
-  /** Create a new hypothesis and link to a finding */
-  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
-  /** Map of hypothesis IDs to hypothesis objects for display */
-  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
+  /** Link a question to a finding */
+  onLinkQuestion?: (findingId: string, questionId: string) => void;
+  /** Create a new question and link to a finding */
+  onCreateQuestion?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  /** Map of question IDs to question objects for display */
+  questionsMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   /** Add an action item */
   onAddAction?: (
     id: string,
@@ -113,34 +113,34 @@ export interface FindingsLogProps {
   onProjectImprovement?: (findingId: string) => void;
   /** Whether spec limits exist (affects projection display metrics) */
   hasSpecs?: boolean;
-  // --- Validation Task (passed through to HypothesisTreeView) ---
+  // --- Validation Task (passed through to QuestionTreeView) ---
   onSetValidationTask?: (id: string, task: string) => void;
   onCompleteTask?: (id: string) => void;
   onSetManualStatus?: (
     id: string,
-    status: import('@variscout/core').HypothesisStatus,
+    status: import('@variscout/core').QuestionStatus,
     note?: string
   ) => void;
-  // --- Improvement Ideas (passed through to HypothesisTreeView) ---
+  // --- Improvement Ideas (passed through to QuestionTreeView) ---
   ideaImpacts?: Record<string, IdeaImpact | undefined>;
-  onAddIdea?: (hypothesisId: string, text: string) => void;
+  onAddIdea?: (questionId: string, text: string) => void;
   onUpdateIdea?: (
-    hypothesisId: string,
+    questionId: string,
     ideaId: string,
     updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
   ) => void;
-  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
-  onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
-  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
+  onRemoveIdea?: (questionId: string, ideaId: string) => void;
+  onSelectIdea?: (questionId: string, ideaId: string, selected: boolean) => void;
+  onProjectIdea?: (questionId: string, ideaId: string) => void;
   onAskCoScout?: (question: string) => void;
-  /** Set cause role on a hypothesis */
+  /** Set cause role on a question */
   onSetCauseRole?: (
-    hypothesisId: string,
+    questionId: string,
     role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined
   ) => void;
   /** Ask CoScout about a specific finding (from FindingCard action button) */
   onAskCoScoutAboutFinding?: (focusContext: {
-    finding: { text: string; status: string; hypothesis?: string };
+    finding: { text: string; status: string; question?: string };
   }) => void;
   /** Process context for JSON export */
   processContext?: ProcessContext;
@@ -168,9 +168,9 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   columnAliases,
   activeFindingId,
   viewMode = 'list',
-  hypotheses,
-  onSelectHypothesis,
-  onAddSubHypothesis,
+  questions,
+  onSelectQuestion,
+  onAddSubQuestion,
   factors,
   getChildrenSummary,
   onSetFindingStatus,
@@ -186,9 +186,9 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   renderAssignSlot,
   onNavigateToChart,
   maxStatuses,
-  onLinkHypothesis,
-  onCreateHypothesis,
-  hypothesesMap,
+  onLinkQuestion,
+  onCreateQuestion,
+  questionsMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -229,14 +229,14 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
     );
   }
 
-  if (viewMode === 'tree' && hypotheses) {
+  if (viewMode === 'tree' && questions) {
     return (
       <div className={`flex-1 min-h-0 flex flex-col ${className ?? ''}`}>
-        <HypothesisTreeView
-          hypotheses={hypotheses}
+        <QuestionTreeView
+          questions={questions}
           findings={findings}
-          onSelectHypothesis={onSelectHypothesis}
-          onAddSubHypothesis={onAddSubHypothesis}
+          onSelectQuestion={onSelectQuestion}
+          onAddSubQuestion={onAddSubQuestion}
           factors={factors}
           getChildrenSummary={getChildrenSummary}
           onSetValidationTask={onSetValidationTask}
@@ -277,9 +277,9 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           renderAssignSlot={renderAssignSlot}
           onNavigateToChart={onNavigateToChart}
           maxStatuses={maxStatuses}
-          onLinkHypothesis={onLinkHypothesis}
-          onCreateHypothesis={onCreateHypothesis}
-          hypothesesMap={hypothesesMap}
+          onLinkQuestion={onLinkQuestion}
+          onCreateQuestion={onCreateQuestion}
+          questionsMap={questionsMap}
           synthesis={synthesis}
           linkedFindings={linkedFindings}
           projectedCpkMap={projectedCpkMap}
@@ -297,7 +297,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
       <div className="flex items-center justify-end px-3 pt-2 pb-0">
         <FindingsExportMenu
           findings={findings}
-          hypotheses={hypotheses}
+          questions={questions}
           processContext={processContext}
           onGenerateAIReport={onGenerateAIReport}
           columnAliases={columnAliases}
@@ -326,9 +326,9 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
             renderAssignSlot={renderAssignSlot?.(finding.id)}
             onNavigateToChart={onNavigateToChart}
             maxStatuses={maxStatuses}
-            onLinkHypothesis={onLinkHypothesis}
-            onCreateHypothesis={onCreateHypothesis}
-            hypothesesMap={hypothesesMap}
+            onLinkQuestion={onLinkQuestion}
+            onCreateQuestion={onCreateQuestion}
+            questionsMap={questionsMap}
             onAddAction={onAddAction}
             onCompleteAction={onCompleteAction}
             onDeleteAction={onDeleteAction}

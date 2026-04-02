@@ -15,7 +15,7 @@ import {
 } from '../promptTemplates';
 import { narrationResponseSchema, chartInsightResponseSchema } from '../schemas';
 import type { AIContext, CoScoutMessage } from '../types';
-import type { Finding, Hypothesis } from '../../findings';
+import type { Finding, Question } from '../../findings';
 
 describe('buildNarrationSystemPrompt', () => {
   it('returns a system prompt string', () => {
@@ -167,7 +167,7 @@ describe('buildSummaryPrompt', () => {
     const ctx: AIContext = {
       process: {},
       filters: [],
-      teamContributors: { count: 3, hypothesisAreas: ['Machine', 'Shift'] },
+      teamContributors: { count: 3, questionAreas: ['Machine', 'Shift'] },
     };
     const prompt = buildSummaryPrompt(ctx);
     expect(prompt).toContain('Team: 3 contributors');
@@ -178,7 +178,7 @@ describe('buildSummaryPrompt', () => {
     const ctx: AIContext = {
       process: {},
       filters: [],
-      teamContributors: { count: 2, hypothesisAreas: [] },
+      teamContributors: { count: 2, questionAreas: [] },
     };
     const prompt = buildSummaryPrompt(ctx);
     expect(prompt).toContain('Team: 2 contributors');
@@ -339,17 +339,17 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).toContain('Issue statement');
   });
 
-  it('includes hypotheses when investigation context has them', () => {
+  it('includes questions when investigation context has them', () => {
     const prompt = buildCoScoutSystemPrompt({
       investigation: {
-        allHypotheses: [
-          { id: 'h-1', text: 'Night shift training gap', status: 'supported' },
-          { id: 'h-2', text: 'Material batch variation', status: 'untested' },
+        allQuestions: [
+          { id: 'h-1', text: 'Night shift training gap', status: 'answered' },
+          { id: 'h-2', text: 'Material batch variation', status: 'open' },
         ],
       },
     });
     expect(prompt).toContain('Night shift training gap');
-    expect(prompt).toContain('supported');
+    expect(prompt).toContain('answered');
     expect(prompt).toContain('Material batch variation');
   });
 
@@ -397,15 +397,15 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).not.toContain('Stability before capability');
   });
 
-  it('includes improvement ideas when converging with supported hypotheses', () => {
+  it('includes improvement ideas when converging with answered questions', () => {
     const prompt = buildCoScoutSystemPrompt({
       investigation: {
         phase: 'converging',
-        allHypotheses: [
+        allQuestions: [
           {
             id: 'h-1',
             text: 'Night shift training gap',
-            status: 'supported',
+            status: 'answered',
             ideas: [
               {
                 text: 'Simplify setup (visual guides)',
@@ -429,7 +429,7 @@ describe('buildCoScoutSystemPrompt', () => {
     const prompt = buildCoScoutSystemPrompt({
       investigation: {
         phase: 'converging',
-        allHypotheses: [{ id: 'h-1', text: 'Root cause', status: 'supported' }],
+        allQuestions: [{ id: 'h-1', text: 'Root cause', status: 'answered' }],
       },
     });
     expect(prompt).not.toContain('Existing improvement ideas');
@@ -440,7 +440,7 @@ describe('buildCoScoutSystemPrompt', () => {
       investigation: {
         selectedFinding: {
           text: 'Head 3 shows high variation',
-          hypothesis: 'Nozzle wear',
+          question: 'Nozzle wear',
           projection: { meanDelta: -0.5, sigmaDelta: -0.12 },
           actions: [
             { text: 'Replace nozzle', status: 'done' },
@@ -450,7 +450,7 @@ describe('buildCoScoutSystemPrompt', () => {
       },
     });
     expect(prompt).toContain('Currently focused finding: "Head 3 shows high variation"');
-    expect(prompt).toContain('hypothesis: "Nozzle wear"');
+    expect(prompt).toContain('question: "Nozzle wear"');
     expect(prompt).toContain('mean -0.50');
     expect(prompt).toContain('sigma -0.12');
     expect(prompt).toContain('Actions (1/2 complete):');
@@ -463,14 +463,14 @@ describe('buildCoScoutSystemPrompt', () => {
       investigation: { selectedFinding: { text: 'Simple finding' } },
     });
     expect(prompt).toContain('Currently focused finding: "Simple finding"');
-    expect(prompt).not.toContain('hypothesis');
+    expect(prompt).not.toContain('(question: "');
     expect(prompt).not.toContain('Projected');
     expect(prompt).not.toContain('Actions');
   });
 
   it('includes team collaboration when count > 1', () => {
     const prompt = buildCoScoutSystemPrompt({
-      teamContributors: { count: 3, hypothesisAreas: ['Machine', 'Shift'] },
+      teamContributors: { count: 3, questionAreas: ['Machine', 'Shift'] },
     });
     expect(prompt).toContain('Team collaboration: 3 investigators');
     expect(prompt).toContain('Areas being investigated: Machine, Shift');
@@ -508,7 +508,7 @@ describe('buildCoScoutSystemPrompt', () => {
 
   it('does not include team collaboration when count is 1', () => {
     const prompt = buildCoScoutSystemPrompt({
-      teamContributors: { count: 1, hypothesisAreas: [] },
+      teamContributors: { count: 1, questionAreas: [] },
     });
     expect(prompt).not.toContain('Team collaboration');
   });
@@ -535,12 +535,12 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).toContain('compare_categories');
   });
 
-  it('includes entry scenario guidance for hypothesis scenario', () => {
+  it('includes entry scenario guidance for exploration scenario', () => {
     const prompt = buildCoScoutSystemPrompt({
       hasActionTools: true,
-      entryScenario: 'hypothesis',
+      entryScenario: 'exploration',
     });
-    expect(prompt).toContain('Hypothesis to check');
+    expect(prompt).toContain('Exploration');
   });
 
   it('includes entry scenario guidance for routine scenario', () => {
@@ -561,13 +561,13 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).toContain('Cpk has reached the original target');
   });
 
-  it('includes IMPROVE guidance in hypothesis entry scenario', () => {
+  it('includes IMPROVE guidance in exploration entry scenario', () => {
     const prompt = buildCoScoutSystemPrompt({
       hasActionTools: true,
-      entryScenario: 'hypothesis',
+      entryScenario: 'exploration',
     });
     expect(prompt).toContain('IMPROVE:');
-    expect(prompt).toContain('original hypothesis');
+    expect(prompt).toContain('original theory');
   });
 
   it('includes IMPROVE guidance in routine entry scenario', () => {
@@ -586,11 +586,11 @@ describe('buildCoScoutSystemPrompt', () => {
   });
 
   // Workstream B: Enriched AIContext in prompt
-  it('includes hypothesis IDs in investigation context', () => {
+  it('includes question IDs in investigation context', () => {
     const prompt = buildCoScoutSystemPrompt({
       investigation: {
-        allHypotheses: [
-          { id: 'hyp-1', text: 'Night shift training gap', status: 'supported' },
+        allQuestions: [
+          { id: 'hyp-1', text: 'Night shift training gap', status: 'answered' },
           { id: 'hyp-2', text: 'Material batch', status: 'partial' },
         ],
       },
@@ -633,11 +633,11 @@ describe('buildCoScoutSystemPrompt', () => {
     const prompt = buildCoScoutSystemPrompt({
       investigation: {
         phase: 'converging',
-        allHypotheses: [
+        allQuestions: [
           {
             id: 'hyp-1',
             text: 'Root cause',
-            status: 'supported',
+            status: 'answered',
             ideas: [
               { text: 'Fix nozzle', direction: 'prevent', selected: true },
               { text: 'Temporary shim', direction: 'detect' },
@@ -1170,14 +1170,14 @@ describe('buildReportPrompt', () => {
     tag: 'key-driver',
     comments: [],
     statusChangedAt: Date.now(),
-    hypothesisId: 'h1',
+    questionId: 'q1',
   };
 
-  const mockHypothesis: Hypothesis = {
-    id: 'h1',
+  const mockQuestion: Question = {
+    id: 'q1',
     text: 'Machine B calibration drift',
     factor: 'Machine',
-    status: 'supported',
+    status: 'answered',
     linkedFindingIds: ['f1'],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -1217,18 +1217,18 @@ describe('buildReportPrompt', () => {
 
   it('includes findings in the prompt', () => {
     const ctx: AIContext = { process: {}, filters: [] };
-    const prompt = buildReportPrompt(ctx, [mockFinding], [mockHypothesis]);
+    const prompt = buildReportPrompt(ctx, [mockFinding], [mockQuestion]);
     expect(prompt).toContain('High variation in Machine B');
     expect(prompt).toContain('ANALYZED');
     expect(prompt).toContain('key-driver');
     expect(prompt).toContain('## Findings');
   });
 
-  it('resolves hypothesis text for findings', () => {
+  it('resolves question text for findings', () => {
     const ctx: AIContext = { process: {}, filters: [] };
-    const prompt = buildReportPrompt(ctx, [mockFinding], [mockHypothesis]);
+    const prompt = buildReportPrompt(ctx, [mockFinding], [mockQuestion]);
     expect(prompt).toContain('Machine B calibration drift');
-    expect(prompt).toContain('supported');
+    expect(prompt).toContain('answered');
   });
 
   it('includes cpk from finding context', () => {
@@ -1272,7 +1272,7 @@ describe('buildReportPrompt', () => {
     expect(prompt).toContain('Recommendations');
   });
 
-  it('handles empty findings and hypotheses gracefully', () => {
+  it('handles empty findings and questions gracefully', () => {
     const ctx: AIContext = { process: {}, filters: [] };
     const prompt = buildReportPrompt(ctx, [], []);
     expect(typeof prompt).toBe('string');
@@ -1409,13 +1409,13 @@ describe('buildCoScoutTools', () => {
     expect(tools.find(t => t.name === 'apply_filter')).toBeDefined();
     expect(tools.find(t => t.name === 'clear_filters')).toBeDefined();
     expect(tools.find(t => t.name === 'create_finding')).toBeDefined();
-    // Hypothesis tools should NOT be available in SCOUT
-    expect(tools.find(t => t.name === 'create_hypothesis')).toBeUndefined();
+    // Question tools should NOT be available in SCOUT
+    expect(tools.find(t => t.name === 'create_question')).toBeUndefined();
   });
 
-  it('adds hypothesis and action tools in INVESTIGATE phase', () => {
+  it('adds question and action tools in INVESTIGATE phase', () => {
     const tools = buildCoScoutTools({ phase: 'investigate' });
-    expect(tools.find(t => t.name === 'create_hypothesis')).toBeDefined();
+    expect(tools.find(t => t.name === 'create_question')).toBeDefined();
     expect(tools.find(t => t.name === 'suggest_action')).toBeDefined();
     // Sharing tools should NOT be available without Team plan
     expect(tools.find(t => t.name === 'share_finding')).toBeUndefined();
@@ -1490,7 +1490,7 @@ describe('buildCoScoutTools', () => {
     expect(tool).toBeDefined();
     expect(tool!.parameters.properties).toHaveProperty('insight_text');
     expect(tool!.parameters.properties).toHaveProperty('reasoning');
-    expect(tool!.parameters.properties).toHaveProperty('suggested_hypothesis_id');
+    expect(tool!.parameters.properties).toHaveProperty('suggested_question_id');
   });
 
   it('includes suggest_save_finding tool in IMPROVE phase', () => {

@@ -48,12 +48,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   const phase = metadata?.phase;
   const phaseConfig = phase ? PHASE_CONFIG[phase] : undefined;
 
-  // Finding + hypothesis + action counts for footer
+  // Finding + question + action counts for footer
   const findingTotal = metadata
     ? Object.values(metadata.findingCounts).reduce((sum, n) => sum + n, 0)
     : 0;
-  const hypothesisTotal = metadata
-    ? Object.values(metadata.hypothesisCounts).reduce((sum, n) => sum + n, 0)
+  const questionTotal = metadata
+    ? Object.values(metadata.questionCounts).reduce((sum, n) => sum + n, 0)
     : 0;
   const overdueActions = metadata?.actionCounts.overdue ?? 0;
 
@@ -128,13 +128,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               {findingTotal} finding{findingTotal !== 1 ? 's' : ''}
             </span>
           )}
-          {hypothesisTotal > 0 && (
+          {questionTotal > 0 && (
             <span>
-              {hypothesisTotal} {hypothesisTotal !== 1 ? 'hypotheses' : 'hypothesis'}
+              {questionTotal} {questionTotal !== 1 ? 'questions' : 'question'}
             </span>
           )}
           {overdueActions > 0 && <span className="text-amber-500">{overdueActions} overdue</span>}
-          {findingTotal === 0 && hypothesisTotal === 0 && overdueActions === 0 && (
+          {findingTotal === 0 && questionTotal === 0 && overdueActions === 0 && (
             <span>No findings yet</span>
           )}
         </div>

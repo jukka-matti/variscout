@@ -17,7 +17,7 @@ export interface BestSubsetsCardProps {
  * Displays the top factor subsets that explain the most variation in the outcome.
  * Bar visualization shows relative R² adjusted for quick comparison.
  *
- * Appears in the Summary tab of the StatsPanel when multiple factors are available.
+ * Appears in the Summary tab of the PI Panel when multiple factors are available.
  */
 const BestSubsetsCard: React.FC<BestSubsetsCardProps> = ({
   result,

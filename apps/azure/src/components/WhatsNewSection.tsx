@@ -1,18 +1,18 @@
 import React, { useMemo } from 'react';
-import type { Finding, Hypothesis } from '@variscout/core';
+import type { Finding, Question } from '@variscout/core';
 import { FINDING_STATUS_LABELS } from '@variscout/core';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface WhatsNewSectionProps {
   findings: Finding[];
-  hypotheses: Hypothesis[];
+  questions: Question[];
   /** Epoch ms — show items newer than this timestamp */
   lastViewedAt: number;
 }
 
 interface WhatsNewItem {
-  type: 'finding-new' | 'finding-status' | 'hypothesis-status' | 'action-completed' | 'comment-new';
+  type: 'finding-new' | 'finding-status' | 'question-status' | 'action-completed' | 'comment-new';
   text: string;
   timestamp: number;
 }
@@ -45,11 +45,7 @@ function truncate(text: string, maxLength: number = 40): string {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const WhatsNewSection: React.FC<WhatsNewSectionProps> = ({
-  findings,
-  hypotheses,
-  lastViewedAt,
-}) => {
+const WhatsNewSection: React.FC<WhatsNewSectionProps> = ({ findings, questions, lastViewedAt }) => {
   const items = useMemo<WhatsNewItem[]>(() => {
     const result: WhatsNewItem[] = [];
 
@@ -98,14 +94,14 @@ const WhatsNewSection: React.FC<WhatsNewSectionProps> = ({
       }
     }
 
-    // Hypothesis status changes
-    // NOTE: Hypothesis.createdAt and updatedAt are ISO strings — use Date.parse()
-    for (const h of hypotheses) {
+    // Question status changes
+    // NOTE: Question.createdAt and updatedAt are ISO strings — use Date.parse()
+    for (const h of questions) {
       const updatedAtMs = Date.parse(h.updatedAt);
       if (updatedAtMs > lastViewedAt) {
         result.push({
-          type: 'hypothesis-status',
-          text: `\u2018${truncate(h.text)}\u2019 hypothesis \u2192 ${h.status}`,
+          type: 'question-status',
+          text: `\u2018${truncate(h.text)}\u2019 question \u2192 ${h.status}`,
           timestamp: updatedAtMs,
         });
       }
@@ -114,7 +110,7 @@ const WhatsNewSection: React.FC<WhatsNewSectionProps> = ({
     // Sort newest first, cap at MAX_ITEMS
     result.sort((a, b) => b.timestamp - a.timestamp);
     return result.slice(0, MAX_ITEMS);
-  }, [findings, hypotheses, lastViewedAt]);
+  }, [findings, questions, lastViewedAt]);
 
   const sinceLabel = formatShortDate(lastViewedAt);
 

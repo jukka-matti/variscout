@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import type { Finding, Hypothesis } from '@variscout/core';
+import type { Finding, Question } from '@variscout/core';
 
 // vi.mock MUST come before component imports to prevent import ordering issues
 
@@ -71,11 +71,11 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   };
 }
 
-function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
+function makeQuestion(overrides: Partial<Question> = {}): Question {
   return {
     id: 'h-1',
     text: 'Night shift causes drift',
-    status: 'untested',
+    status: 'open',
     linkedFindingIds: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -85,7 +85,7 @@ function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
 
 const defaultDataState = {
   findings: [] as Finding[],
-  hypotheses: [] as Hypothesis[],
+  questions: [] as Question[],
   filterStack: [],
   viewState: {},
   rawData: [{ Weight: 10 }],
@@ -100,11 +100,11 @@ describe('ProjectStatusCard', () => {
     lastEdited: '2 hours ago',
     journeyPhase: 'scout' as const,
     findings: [] as Finding[],
-    hypotheses: [] as Hypothesis[],
+    questions: [] as Question[],
     filterStack: [],
     viewState: {},
     onNavigateToFindings: vi.fn(),
-    onNavigateToHypothesis: vi.fn(),
+    onNavigateToQuestion: vi.fn(),
     onNavigateToActions: vi.fn(),
     onResumeAnalysis: vi.fn(),
   };
@@ -151,34 +151,34 @@ describe('ProjectStatusCard', () => {
     expect(onNavigateToFindings).toHaveBeenCalledWith('observed');
   });
 
-  it('renders root hypotheses with status icons', () => {
-    const hypotheses = [
-      makeHypothesis({ id: 'h-1', text: 'Night shift causes drift', status: 'supported' }),
-      makeHypothesis({
+  it('renders root questions with status icons', () => {
+    const questions = [
+      makeQuestion({ id: 'h-1', text: 'Night shift causes drift', status: 'answered' }),
+      makeQuestion({
         id: 'h-2',
         text: 'Temperature variation',
-        status: 'untested',
+        status: 'open',
         parentId: 'h-1',
       }),
     ];
-    render(<ProjectStatusCard {...defaultProps} hypotheses={hypotheses} />);
-    // Only root hypothesis (h-1) should appear, not child (h-2)
+    render(<ProjectStatusCard {...defaultProps} questions={questions} />);
+    // Only root question (h-1) should appear, not child (h-2)
     expect(screen.getByText('Night shift causes drift')).toBeInTheDocument();
     expect(screen.queryByText('Temperature variation')).not.toBeInTheDocument();
   });
 
-  it('calls onNavigateToHypothesis when clicking a hypothesis', () => {
-    const onNavigateToHypothesis = vi.fn();
-    const hypotheses = [makeHypothesis({ id: 'h-1', text: 'Night shift drift' })];
+  it('calls onNavigateToQuestion when clicking a question', () => {
+    const onNavigateToQuestion = vi.fn();
+    const questions = [makeQuestion({ id: 'h-1', text: 'Night shift drift' })];
     render(
       <ProjectStatusCard
         {...defaultProps}
-        hypotheses={hypotheses}
-        onNavigateToHypothesis={onNavigateToHypothesis}
+        questions={questions}
+        onNavigateToQuestion={onNavigateToQuestion}
       />
     );
     fireEvent.click(screen.getByText('Night shift drift'));
-    expect(onNavigateToHypothesis).toHaveBeenCalledWith('h-1');
+    expect(onNavigateToQuestion).toHaveBeenCalledWith('h-1');
   });
 
   it('renders action progress bar when actions exist', () => {

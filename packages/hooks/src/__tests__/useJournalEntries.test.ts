@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useJournalEntries } from '../useJournalEntries';
-import type { Finding, FindingContext, Hypothesis } from '@variscout/core';
+import type { Finding, FindingContext, Question } from '@variscout/core';
 
 const makeContext = (): FindingContext => ({
   activeFilters: {},
@@ -19,10 +19,10 @@ const makeFinding = (overrides: Partial<Finding> = {}): Finding => ({
   ...overrides,
 });
 
-const makeQuestion = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
+const makeQuestion = (overrides: Partial<Question> = {}): Question => ({
   id: 'q1',
   text: 'Does Shift affect fill weight?',
-  status: 'supported',
+  status: 'answered',
   linkedFindingIds: ['f1'],
   createdAt: '2026-04-01T10:20:00Z',
   updatedAt: '2026-04-01T10:45:00Z',
@@ -83,7 +83,7 @@ describe('useJournalEntries', () => {
           makeQuestion({
             id: 'q2',
             text: 'Does Speed matter?',
-            status: 'contradicted',
+            status: 'ruled-out',
           }),
         ],
       })
@@ -97,7 +97,7 @@ describe('useJournalEntries', () => {
     const { result } = renderHook(() =>
       useJournalEntries({
         findings: [],
-        questions: [makeQuestion({ status: 'untested' })],
+        questions: [makeQuestion({ status: 'open' })],
       })
     );
     // Only the questions-generated entry, no status-based entry
@@ -109,7 +109,7 @@ describe('useJournalEntries', () => {
     const { result } = renderHook(() =>
       useJournalEntries({
         findings: [],
-        questions: [makeQuestion({ status: 'partial' })],
+        questions: [makeQuestion({ status: 'investigating' })],
       })
     );
     const entry = result.current.find(e => e.type === 'question-investigating');

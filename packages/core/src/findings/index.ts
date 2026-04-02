@@ -3,7 +3,7 @@
  *
  * Split from monolithic findings.ts (828 LOC) into:
  *   types.ts      — All type definitions, interfaces, constants
- *   factories.ts  — Object creation functions (createFinding, createHypothesis, etc.)
+ *   factories.ts  — Object creation functions (createFinding, createQuestion, etc.)
  *   helpers.ts    — Status helpers, filter comparison, duplicate detection
  *   migration.ts  — Schema migration functions
  */
@@ -11,11 +11,6 @@ export * from './types';
 export * from './factories';
 export * from './helpers';
 export * from './migration';
-export {
-  getQuestionDisplayStatus,
-  QUESTION_STATUS_LABELS,
-  QUESTION_STATUS_COLORS,
-} from './questionStatus';
-export type { QuestionDisplayStatus } from './types';
+export { QUESTION_STATUS_LABELS, QUESTION_STATUS_COLORS } from './questionStatus';
 export { buildProblemStatement } from './problemStatement';
 export type { ProblemStatementInput } from './problemStatement';

@@ -72,7 +72,7 @@ export interface WhatIfPageBaseProps {
   /** Active factor from boxplot (enables category-based presets) */
   activeFactor?: string | null;
   /** Context for idea→What-If round-trip (shows banner + save button) */
-  projectionContext?: { ideaText: string; hypothesisText: string };
+  projectionContext?: { ideaText: string; questionText: string };
   /** Save projection back to idea */
   onSaveProjection?: (projection: FindingProjection) => void;
 }
@@ -443,7 +443,7 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
             <span className="font-medium">Projecting:</span>{' '}
             <span className="text-content-secondary">{projectionContext.ideaText}</span>
             <span className="text-content-muted"> for </span>
-            <span className="text-content-secondary">{projectionContext.hypothesisText}</span>
+            <span className="text-content-secondary">{projectionContext.questionText}</span>
           </div>
           {onSaveProjection && (
             <button

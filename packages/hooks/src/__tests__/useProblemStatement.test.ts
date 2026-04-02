@@ -1,13 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useProblemStatement } from '../useProblemStatement';
-import type { Hypothesis } from '@variscout/core';
+import type { Question } from '@variscout/core';
 
-function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
+function makeQuestion(overrides: Partial<Question> = {}): Question {
   return {
     id: 'h-1',
-    text: 'Test hypothesis',
-    status: 'supported',
+    text: 'Test question',
+    status: 'answered',
     linkedFindingIds: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -24,7 +24,7 @@ describe('useProblemStatement', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Fill Weight',
-        hypotheses: [makeHypothesis()],
+        questions: [makeQuestion()],
       })
     );
     expect(result.current.isReady).toBe(true);
@@ -35,7 +35,7 @@ describe('useProblemStatement', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: null,
-        hypotheses: [makeHypothesis()],
+        questions: [makeQuestion()],
       })
     );
     expect(result.current.isReady).toBe(false);
@@ -46,17 +46,17 @@ describe('useProblemStatement', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Weight',
-        hypotheses: [makeHypothesis({ causeRole: 'ruled-out' })],
+        questions: [makeQuestion({ causeRole: 'ruled-out' })],
       })
     );
     expect(result.current.isReady).toBe(false);
   });
 
-  it('filters hypotheses without factor', () => {
+  it('filters questions without factor', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Weight',
-        hypotheses: [makeHypothesis({ factor: undefined })],
+        questions: [makeQuestion({ factor: undefined })],
       })
     );
     expect(result.current.isReady).toBe(false);
@@ -66,7 +66,7 @@ describe('useProblemStatement', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Fill Weight',
-        hypotheses: [makeHypothesis()],
+        questions: [makeQuestion()],
       })
     );
     expect(result.current.draft).toBeNull();
@@ -80,7 +80,7 @@ describe('useProblemStatement', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Fill Weight',
-        hypotheses: [makeHypothesis()],
+        questions: [makeQuestion()],
         onStatementChange: onChange,
       })
     );
@@ -96,7 +96,7 @@ describe('useProblemStatement', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Fill Weight',
-        hypotheses: [makeHypothesis()],
+        questions: [makeQuestion()],
         onStatementChange: onChange,
       })
     );
@@ -112,7 +112,7 @@ describe('useProblemStatement', () => {
         outcome: 'Weight',
         currentCpk: 0.62,
         targetCpk: 1.33,
-        hypotheses: [makeHypothesis()],
+        questions: [makeQuestion()],
       })
     );
     expect(result.current.generatedDraft).toContain('0.62');
@@ -123,8 +123,8 @@ describe('useProblemStatement', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Weight',
-        hypotheses: [
-          makeHypothesis({
+        questions: [
+          makeQuestion({
             evidence: { rSquaredAdj: 0.5, etaSquared: 0.3 },
           }),
         ],

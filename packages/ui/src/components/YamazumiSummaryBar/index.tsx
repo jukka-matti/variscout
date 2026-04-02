@@ -4,7 +4,7 @@
  * Displays: VA Ratio, Process Efficiency, Total Lead Time, Waste Breakdown, Takt Compliance.
  * Replaces the Stats Panel in slot 4 of the dashboard grid.
  *
- * Props-based (no context dependency), follows StatsPanelBase pattern.
+ * Props-based (no context dependency), follows PIPanelBase pattern.
  */
 
 import React, { useState } from 'react';

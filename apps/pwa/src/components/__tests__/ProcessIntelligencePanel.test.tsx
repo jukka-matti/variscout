@@ -36,14 +36,15 @@ vi.mock('@variscout/hooks', async () => {
 });
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import StatsPanel from '../StatsPanel';
+import ProcessIntelligencePanel from '../ProcessIntelligencePanel';
+import * as DataContextModule from '../../context/DataContext';
 
 // Mock the CapabilityHistogram component
 vi.mock('../charts/CapabilityHistogram', () => ({
   default: () => <div data-testid="capability-histogram">Histogram Mock</div>,
 }));
 
-describe('StatsPanel', () => {
+describe('ProcessIntelligencePanel', () => {
   const mockStats = {
     mean: 10.5,
     median: 10.4,
@@ -69,8 +70,12 @@ describe('StatsPanel', () => {
   });
 
   it('shows Summary tab by default', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+      setSpecs: vi.fn(),
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
+
     render(
-      <StatsPanel
+      <ProcessIntelligencePanel
         stats={mockStats}
         specs={mockSpecs}
         filteredData={mockFilteredData}
@@ -78,7 +83,7 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Stats tab should be active
+    // Stats tab should be active (surface-tertiary background)
     const statsTab = screen.getByText('Stats');
     expect(statsTab).toHaveClass('bg-surface-tertiary');
 
@@ -88,8 +93,12 @@ describe('StatsPanel', () => {
   });
 
   it('switches to Questions tab on click', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+      setSpecs: vi.fn(),
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
+
     render(
-      <StatsPanel
+      <ProcessIntelligencePanel
         stats={mockStats}
         specs={mockSpecs}
         filteredData={mockFilteredData}
@@ -105,9 +114,13 @@ describe('StatsPanel', () => {
     expect(questionsTab).toHaveClass('bg-surface-tertiary');
   });
 
-  it('displays Cp in the card grid', () => {
+  it('displays Cp when specs are set', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+      setSpecs: vi.fn(),
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
+
     render(
-      <StatsPanel
+      <ProcessIntelligencePanel
         stats={mockStats}
         specs={mockSpecs}
         filteredData={mockFilteredData}
@@ -120,9 +133,13 @@ describe('StatsPanel', () => {
     expect(screen.getByText('1.50')).toBeInTheDocument();
   });
 
-  it('always shows Cp in the card grid', () => {
+  it('always shows Cp and Cpk in the card grid when specs are set', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+      setSpecs: vi.fn(),
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
+
     render(
-      <StatsPanel
+      <ProcessIntelligencePanel
         stats={mockStats}
         specs={mockSpecs}
         filteredData={mockFilteredData}
@@ -130,30 +147,20 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Cp is always shown in the new card grid
+    // Both Cp and Cpk always shown when specs exist
     expect(screen.getAllByText('Cp').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('1.50')).toBeInTheDocument();
-  });
-
-  it('displays Cpk in the card grid', () => {
-    render(
-      <StatsPanel
-        stats={mockStats}
-        specs={mockSpecs}
-        filteredData={mockFilteredData}
-        outcome="value"
-      />
-    );
-
-    // Cpk label appears multiple times due to HelpTooltip
     expect(screen.getAllByText('Cpk').length).toBeGreaterThanOrEqual(1);
-    // Cpk value (1.20) may appear multiple times if Std Dev is same, use getAllByText
     expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows Mean, Median, and Std Dev in the card grid', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+      setSpecs: vi.fn(),
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
+
     render(
-      <StatsPanel
+      <ProcessIntelligencePanel
         stats={mockStats}
         specs={mockSpecs}
         filteredData={mockFilteredData}
@@ -172,8 +179,12 @@ describe('StatsPanel', () => {
   });
 
   it('shows sample count inline', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+      setSpecs: vi.fn(),
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
+
     render(
-      <StatsPanel
+      <ProcessIntelligencePanel
         stats={mockStats}
         specs={mockSpecs}
         filteredData={mockFilteredData}
@@ -182,59 +193,35 @@ describe('StatsPanel', () => {
     );
 
     expect(screen.getByTestId('stat-value-samples')).toBeInTheDocument();
+    expect(screen.getByText('n=3')).toBeInTheDocument(); // 3 items in mockFilteredData
   });
 
-  it('hides capability metrics when no specs provided', () => {
+  it('shows "Edit specifications" pencil link when no specs provided', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+      setSpecs: vi.fn(),
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
+
     render(
-      <StatsPanel stats={mockStats} specs={{}} filteredData={mockFilteredData} outcome="value" />
-    );
-
-    // Capability metrics should not be shown without specs
-    expect(screen.queryByText('Pass Rate')).not.toBeInTheDocument();
-    expect(screen.queryByText('Cp')).not.toBeInTheDocument();
-    expect(screen.queryByText('Cpk')).not.toBeInTheDocument();
-
-    // Basic stats should still be shown
-    expect(screen.getAllByText('Mean').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Std Dev').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByTestId('stat-value-samples')).toBeInTheDocument();
-  });
-
-  it('shows "Edit specifications" pencil link when onSaveSpecs provided and no specs', () => {
-    const onSaveSpecs = vi.fn();
-    render(
-      <StatsPanel
+      <ProcessIntelligencePanel
         stats={mockStats}
         specs={{}}
         filteredData={mockFilteredData}
         outcome="value"
-        onSaveSpecs={onSaveSpecs}
       />
     );
 
+    // Should show pencil link to set specs
     expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
     expect(screen.getByText('Edit specifications')).toBeInTheDocument();
   });
 
-  it('shows "Edit specifications" pencil link when specs exist and onSaveSpecs provided', () => {
-    const onSaveSpecs = vi.fn();
-    render(
-      <StatsPanel
-        stats={mockStats}
-        specs={mockSpecs}
-        filteredData={mockFilteredData}
-        outcome="value"
-        onSaveSpecs={onSaveSpecs}
-      />
-    );
+  it('shows "Edit specifications" pencil link when specs are set', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+      setSpecs: vi.fn(),
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
-    expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
-    expect(screen.getByText('Edit specifications')).toBeInTheDocument();
-  });
-
-  it('does not show pencil link when onSaveSpecs not provided', () => {
     render(
-      <StatsPanel
+      <ProcessIntelligencePanel
         stats={mockStats}
         specs={mockSpecs}
         filteredData={mockFilteredData}
@@ -242,6 +229,69 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.queryByTestId('edit-specs-link')).not.toBeInTheDocument();
+    expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
+    expect(screen.getByText('Edit specifications')).toBeInTheDocument();
+  });
+
+  describe('compact mode', () => {
+    it('shows pencil link in compact mode', () => {
+      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+        setSpecs: vi.fn(),
+      } as unknown as ReturnType<typeof DataContextModule.useData>);
+
+      render(
+        <ProcessIntelligencePanel
+          stats={mockStats}
+          specs={mockSpecs}
+          filteredData={mockFilteredData}
+          outcome="value"
+          compact
+        />
+      );
+
+      expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
+      expect(screen.getByText('Edit specifications')).toBeInTheDocument();
+    });
+
+    it('shows metrics in compact mode', () => {
+      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+        setSpecs: vi.fn(),
+      } as unknown as ReturnType<typeof DataContextModule.useData>);
+
+      render(
+        <ProcessIntelligencePanel
+          stats={mockStats}
+          specs={mockSpecs}
+          filteredData={mockFilteredData}
+          outcome="value"
+          compact
+        />
+      );
+
+      expect(screen.getAllByText('Mean').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('10.50')).toBeInTheDocument();
+      expect(screen.getByText('n=3')).toBeInTheDocument();
+    });
+
+    it('switches tabs in compact mode', () => {
+      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+        setSpecs: vi.fn(),
+      } as unknown as ReturnType<typeof DataContextModule.useData>);
+
+      render(
+        <ProcessIntelligencePanel
+          stats={mockStats}
+          specs={mockSpecs}
+          filteredData={mockFilteredData}
+          outcome="value"
+          compact
+        />
+      );
+
+      fireEvent.click(screen.getByText('Questions'));
+      // Questions tab should be active
+      const questionsTab = screen.getByText('Questions');
+      expect(questionsTab).toHaveClass('bg-surface-tertiary');
+    });
   });
 });

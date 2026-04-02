@@ -4,7 +4,7 @@
 
 import type { AIContext, ProcessContext, TargetMetric, InvestigationPhase } from './types';
 import type { InsightChartType } from './chartInsights';
-import type { Finding, Hypothesis, InvestigationCategory } from '../findings';
+import type { Finding, Question, InvestigationCategory } from '../findings';
 import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { buildGlossaryPrompt } from '../glossary/buildGlossaryPrompt';
@@ -42,8 +42,8 @@ export interface BuildAIContextOptions {
     nelsonRule3Count?: number;
   };
   findings?: Finding[];
-  /** Hypotheses for investigation context */
-  hypotheses?: Hypothesis[];
+  /** Questions for investigation context */
+  questions?: Question[];
   /** Investigation progress data */
   investigationProgress?: {
     targetMetric: TargetMetric;
@@ -65,7 +65,7 @@ export interface BuildAIContextOptions {
   selectedFinding?: {
     text: string;
     status?: string;
-    hypothesis?: string;
+    question?: string;
     projection?: { meanDelta: number; sigmaDelta: number };
     actions?: Array<{ text: string; status: string; overdue?: boolean }>;
     actionProgress?: {
@@ -110,7 +110,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     categories: categoriesOpt,
     violations,
     findings,
-    hypotheses,
+    questions,
     investigationProgress,
     activeChart,
     variationContributions,
@@ -284,10 +284,10 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     };
   }
 
-  // Add investigation context if problem statement or hypotheses exist
+  // Add investigation context if problem statement or questions exist
   if (
     process.issueStatement ||
-    (hypotheses && hypotheses.length > 0) ||
+    (questions && questions.length > 0) ||
     investigationProgress ||
     selectedFinding
   ) {
@@ -308,16 +308,16 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       context.investigation.progressPercent = investigationProgress.progressPercent;
     }
 
-    if (hypotheses && hypotheses.length > 0) {
-      context.investigation.allHypotheses = hypotheses.map(h => ({
-        id: h.id,
-        text: h.text,
-        status: h.status,
-        questionSource: h.questionSource,
-        causeRole: h.causeRole,
+    if (questions && questions.length > 0) {
+      context.investigation.allQuestions = questions.map(q => ({
+        id: q.id,
+        text: q.text,
+        status: q.status,
+        questionSource: q.questionSource,
+        causeRole: q.causeRole,
         ideas:
-          h.ideas && h.ideas.length > 0
-            ? h.ideas.map(idea => ({
+          q.ideas && q.ideas.length > 0
+            ? q.ideas.map(idea => ({
                 text: idea.text,
                 selected: idea.selected,
                 projection: idea.projection
@@ -328,11 +328,11 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
             : undefined,
       }));
 
-      // Build hypothesis tree for root hypotheses with children
-      const roots = hypotheses.filter(h => !h.parentId);
+      // Build question tree for root questions with children
+      const roots = questions.filter(q => !q.parentId);
       if (roots.length > 0) {
-        context.investigation.hypothesisTree = roots.map(root => {
-          const children = hypotheses.filter(h => h.parentId === root.id);
+        context.investigation.questionTree = roots.map(root => {
+          const children = questions.filter(q => q.parentId === root.id);
           const cat =
             root.factor && categoriesOpt
               ? getCategoryForFactor(categoriesOpt, root.factor)
@@ -357,7 +357,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
                         ? c.ideas.map(idea => ({ text: idea.text, selected: idea.selected }))
                         : undefined,
                     validationTask: c.validationTask,
-                    taskCompleted: c.validationTask ? c.status !== 'untested' : undefined,
+                    taskCompleted: c.validationTask ? c.status !== 'open' : undefined,
                   }))
                 : undefined,
           };
@@ -373,18 +373,18 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       }
 
       // Detect investigation phase
-      context.investigation.phase = detectInvestigationPhase(hypotheses, findings);
+      context.investigation.phase = detectInvestigationPhase(questions, findings);
 
-      // Collect ALL hypotheses with a causeRole (suspected-cause, contributing, ruled-out)
-      const suspectedCauses = hypotheses
-        .filter(h => h.causeRole)
-        .map(h => ({
-          id: h.id,
-          text: h.text,
-          causeRole: h.causeRole!,
-          factor: h.factor,
-          status: h.status,
-          evidence: h.evidence,
+      // Collect ALL questions with a causeRole (suspected-cause, contributing, ruled-out)
+      const suspectedCauses = questions
+        .filter(q => q.causeRole)
+        .map(q => ({
+          id: q.id,
+          text: q.text,
+          causeRole: q.causeRole!,
+          factor: q.factor,
+          status: q.status,
+          evidence: q.evidence,
         }));
       if (suspectedCauses.length > 0) {
         context.investigation.suspectedCauses = suspectedCauses;
@@ -407,24 +407,24 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 }
 
 /**
- * Deterministic investigation phase detection based on hypothesis tree state.
+ * Deterministic investigation phase detection based on question tree state.
  */
 export function detectInvestigationPhase(
-  hypotheses: Hypothesis[],
+  questions: Question[],
   findings?: Finding[]
 ): InvestigationPhase {
-  if (hypotheses.length === 0) return 'initial';
+  if (questions.length === 0) return 'initial';
 
-  const hasChildren = hypotheses.some(h => h.parentId);
-  const tested = hypotheses.filter(h => h.status !== 'untested');
-  const untested = hypotheses.filter(h => h.status === 'untested');
+  const hasChildren = questions.some(q => q.parentId);
+  const answered = questions.filter(q => q.status !== 'open');
+  const open = questions.filter(q => q.status === 'open');
   const hasActions = findings?.some(f => f.actions && f.actions.length > 0) ?? false;
 
   if (hasActions) return 'improving';
-  if (tested.length > untested.length) return 'converging';
-  if (hasChildren && untested.length >= tested.length) return 'diverging';
-  if (tested.length > 0 && untested.length > 0) return 'validating';
+  if (answered.length > open.length) return 'converging';
+  if (hasChildren && open.length >= answered.length) return 'diverging';
+  if (answered.length > 0 && open.length > 0) return 'validating';
 
-  // Roots only, mostly untested
+  // Roots only, mostly open
   return hasChildren ? 'diverging' : 'initial';
 }

@@ -15,7 +15,7 @@ const makeIdea = (overrides: Partial<ImprovementIdea> = {}): ImprovementIdea => 
 const makeProps = (
   overrides: Partial<ReportImprovementSummaryProps> = {}
 ): ReportImprovementSummaryProps => ({
-  hypotheses: [
+  questions: [
     {
       id: 'h1',
       text: 'Temperature causes defects',
@@ -30,7 +30,7 @@ const makeProps = (
 });
 
 describe('ReportImprovementSummary', () => {
-  it('renders grouped ideas with hypothesis header', () => {
+  it('renders grouped ideas with question header', () => {
     render(<ReportImprovementSummary {...makeProps()} />);
     expect(screen.getByTestId('report-improvement-summary')).toBeDefined();
     expect(screen.getByText('Temperature causes defects')).toBeDefined();
@@ -56,9 +56,9 @@ describe('ReportImprovementSummary', () => {
     expect(screen.queryByTestId('report-improvement-summary')).toBeNull();
   });
 
-  it('returns null when no hypotheses have ideas', () => {
+  it('returns null when no questions have ideas', () => {
     const { container } = render(
-      <ReportImprovementSummary hypotheses={[{ id: 'h1', text: 'Empty', ideas: [] }]} />
+      <ReportImprovementSummary questions={[{ id: 'h1', text: 'Empty', ideas: [] }]} />
     );
     expect(container.innerHTML).toBe('');
   });
@@ -71,7 +71,7 @@ describe('ReportImprovementSummary', () => {
 
   it('renders timeframe and cost metadata', () => {
     const props = makeProps({
-      hypotheses: [
+      questions: [
         {
           id: 'h1',
           text: 'Cause',
@@ -93,7 +93,7 @@ describe('ReportImprovementSummary', () => {
 
   it('renders best projected Cpk in summary bar', () => {
     const props = makeProps({
-      hypotheses: [
+      questions: [
         {
           id: 'h1',
           text: 'Cause',

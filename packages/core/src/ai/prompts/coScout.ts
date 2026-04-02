@@ -206,18 +206,18 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
         type: 'function',
         name: 'search_project',
         description:
-          'Search findings, hypotheses, improvement ideas, and actions in the current project by text and optional filters. Use when the user asks about past analysis, whether something was investigated, or what was found.',
+          'Search findings, questions, improvement ideas, and actions in the current project by text and optional filters. Use when the user asks about past analysis, whether something was investigated, or what was found.',
         parameters: {
           type: 'object',
           properties: {
             query: {
               type: 'string',
               description:
-                'Search text (matched against text of findings, hypotheses, ideas, actions, and comments)',
+                'Search text (matched against text of findings, questions, ideas, actions, and comments)',
             },
             artifact_type: {
               type: 'string',
-              enum: ['finding', 'hypothesis', 'idea', 'action', 'all'],
+              enum: ['finding', 'question', 'idea', 'action', 'all'],
               description: 'Type of artifact to search. Use "all" for all types.',
             },
             finding_status: {
@@ -226,14 +226,14 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
               description:
                 'Filter findings by status. Use "any" for no filter. Only applies to findings.',
             },
-            hypothesis_status: {
+            question_status: {
               type: 'string',
-              enum: ['untested', 'supported', 'contradicted', 'partial', 'any'],
+              enum: ['open', 'answered', 'ruled-out', 'investigating', 'any'],
               description:
-                'Filter hypotheses by validation status. Use "any" for no filter. Only applies to hypotheses.',
+                'Filter questions by status. Use "any" for no filter. Only applies to questions.',
             },
           },
-          required: ['query', 'artifact_type', 'finding_status', 'hypothesis_status'],
+          required: ['query', 'artifact_type', 'finding_status', 'question_status'],
           additionalProperties: false,
           strict: true,
         },
@@ -242,7 +242,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
         type: 'function',
         name: 'navigate_to',
         description:
-          'Navigate to a specific finding, hypothesis, chart view, or workspace. Auto-executes for panel navigation. Set restore_filters to true when restoring filter context from a finding (requires user confirmation).',
+          'Navigate to a specific finding, question, chart view, or workspace. Auto-executes for panel navigation. Set restore_filters to true when restoring filter context from a finding (requires user confirmation).',
         parameters: {
           type: 'object',
           properties: {
@@ -250,7 +250,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
               type: 'string',
               enum: [
                 'finding',
-                'hypothesis',
+                'question',
                 'chart',
                 'improvement_workspace',
                 'report',
@@ -260,7 +260,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
             },
             target_id: {
               type: 'string',
-              description: 'ID of the finding or hypothesis. Empty string if not applicable.',
+              description: 'ID of the finding or question. Empty string if not applicable.',
             },
             chart_type: {
               type: 'string',
@@ -291,20 +291,20 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
     tools.push(
       {
         type: 'function',
-        name: 'create_hypothesis',
+        name: 'create_question',
         description:
-          'Propose adding a hypothesis to the investigation tree. Root hypothesis (parent_id=null) for new theories; sub-hypothesis (parent_id=existing_id) for breaking down causes. The user can edit the text before confirming.',
+          'Propose adding a question to the investigation tree. Root question (parent_id=null) for new lines of inquiry; sub-question (parent_id=existing_id) for breaking down causes. The user can edit the text before confirming.',
         parameters: {
           type: 'object',
           properties: {
             text: {
               type: 'string',
-              description: 'Hypothesis text describing the suspected cause',
+              description: 'Question text describing the suspected cause to investigate',
             },
             factor: {
               type: ['string', 'null'],
               description:
-                'Factor column linked to this hypothesis (for auto-validation via eta-squared). Null if not data-testable.',
+                'Factor column linked to this question (for auto-answering via eta-squared). Null if not data-testable.',
             },
             level: {
               type: ['string', 'null'],
@@ -313,18 +313,18 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
             },
             parent_id: {
               type: ['string', 'null'],
-              description: 'Parent hypothesis ID for sub-hypotheses. Null for root hypotheses.',
+              description: 'Parent question ID for sub-questions. Null for root questions.',
             },
             validation_type: {
               type: 'string',
               enum: ['data', 'gemba', 'expert'],
               description:
-                'How this hypothesis should be validated: "data" = auto-validate with ANOVA, "gemba" = physical inspection needed, "expert" = expert opinion needed.',
+                'How this question should be answered: "data" = auto-answer with ANOVA, "gemba" = physical inspection needed, "expert" = expert opinion needed.',
             },
             validation_task: {
               type: ['string', 'null'],
               description:
-                'For gemba/expert: description of what to check. Null for data-testable hypotheses.',
+                'For gemba/expert: description of what to check. Null for data-testable questions.',
             },
           },
           required: ['text', 'factor', 'level', 'parent_id', 'validation_type', 'validation_task'],
@@ -364,13 +364,13 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
         type: 'function',
         name: 'suggest_improvement_idea',
         description:
-          'Propose an improvement idea for a supported hypothesis. Ideas bridge root cause analysis and corrective actions. The analyst can edit, run What-If simulation, and select for implementation. Use the Four Ideation Directions to classify the approach. Prefer lean improvements — simplest fix that addresses the root cause.',
+          'Propose an improvement idea for an answered question. Ideas bridge root cause analysis and corrective actions. The analyst can edit, run What-If simulation, and select for implementation. Use the Four Ideation Directions to classify the approach. Prefer lean improvements — simplest fix that addresses the root cause.',
         parameters: {
           type: 'object',
           properties: {
-            hypothesis_id: {
+            question_id: {
               type: 'string',
-              description: 'ID of the supported hypothesis to attach the idea to',
+              description: 'ID of the answered question to attach the idea to',
             },
             text: {
               type: 'string',
@@ -409,7 +409,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
             },
           },
           required: [
-            'hypothesis_id',
+            'question_id',
             'text',
             'direction',
             'timeframe',
@@ -426,7 +426,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
         name: 'suggest_save_finding',
         description:
           'Proactively suggest saving a key insight as a finding. Use when the conversation ' +
-          'reveals a significant process observation, a validated hypothesis conclusion, ' +
+          'reveals a significant process observation, a validated question conclusion, ' +
           'or a negative learning (approach tried and found ineffective). ' +
           'The analyst sees a confirmation card and can edit before saving.',
         parameters: {
@@ -444,13 +444,13 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
                 'Why this insight is worth saving — helps analyst decide. ' +
                 'E.g., "This explains 42% of total variation and directly informs the improvement plan."',
             },
-            suggested_hypothesis_id: {
+            suggested_question_id: {
               type: ['string', 'null'],
               description:
-                'If the insight relates to a specific hypothesis, provide its ID to link them. Null otherwise.',
+                'If the insight relates to a specific question, provide its ID to link them. Null otherwise.',
             },
           },
-          required: ['insight_text', 'reasoning', 'suggested_hypothesis_id'],
+          required: ['insight_text', 'reasoning', 'suggested_question_id'],
           additionalProperties: false,
           strict: true,
         },
@@ -632,7 +632,7 @@ export interface BuildCoScoutSystemPromptOptions {
 /**
  * Build the system prompt for conversational CoScout assistant.
  * Includes glossary grounding as static prefix for prompt caching.
- * When investigation context is provided, adds problem statement and hypothesis awareness.
+ * When investigation context is provided, adds problem statement and question awareness.
  */
 export function buildCoScoutSystemPrompt(options: BuildCoScoutSystemPromptOptions = {}): string {
   const {
@@ -687,8 +687,8 @@ Never invent data or statistics. If the context does not contain enough informat
       );
     }
 
-    if (investigation.allHypotheses && investigation.allHypotheses.length > 0) {
-      const sourceTag = (h: NonNullable<typeof investigation.allHypotheses>[number]) => {
+    if (investigation.allQuestions && investigation.allQuestions.length > 0) {
+      const sourceTag = (h: NonNullable<typeof investigation.allQuestions>[number]) => {
         switch (h.questionSource) {
           case 'factor-intel':
             return '[FI]';
@@ -702,17 +702,17 @@ Never invent data or statistics. If the context does not contain enough informat
             return '';
         }
       };
-      const hypothesisList = investigation.allHypotheses
+      const questionList = investigation.allQuestions
         .map(h => {
           const tag = sourceTag(h);
           const causeInfo = h.causeRole ? ` {${h.causeRole}}` : '';
           return `- [${h.id}] ${tag ? tag + ' ' : ''}"${h.text}" (${h.status})${causeInfo}`;
         })
         .join('\n');
-      invParts.push(`Investigation questions:\n${hypothesisList}`);
+      invParts.push(`Investigation questions:\n${questionList}`);
       invParts.push(
         'The analyst can see their investigation questions in the "Questions" tab of the Process Intelligence panel (left sidebar). ' +
-          'When referencing a question, use [REF:hypothesis:QUESTION_ID]question text[/REF] to create a clickable link that highlights it in the Questions tab.'
+          'When referencing a question, use [REF:question:QUESTION_ID]question text[/REF] to create a clickable link that highlights it in the Questions tab.'
       );
     }
 
@@ -729,9 +729,9 @@ Never invent data or statistics. If the context does not contain enough informat
     }
 
     if (investigation.phase) {
-      // Check if there are supported hypotheses for phase-specific instructions
-      const hasSupportedHypotheses =
-        investigation.allHypotheses?.some(h => h.status === 'supported') ?? false;
+      // Check if there are answered questions for phase-specific instructions
+      const hasAnsweredQuestions =
+        investigation.allQuestions?.some(q => q.status === 'answered') ?? false;
 
       const phaseInstructions: Record<string, string> = {
         initial:
@@ -740,8 +740,8 @@ Never invent data or statistics. If the context does not contain enough informat
           'The investigation is exploring questions — some have been answered, new follow-up questions are emerging. Tell the user: "You\'re exploring questions — let\'s check the open questions systematically, starting with the highest-ranked ones."',
         validating:
           'Evidence is building — some questions are answered, some ruled out. Tell the user: "Evidence is building — let\'s see which suspected causes the answered questions point to."',
-        converging: hasSupportedHypotheses
-          ? 'The investigation is narrowing down. Tell the user: "You\'re identifying suspected causes — supported questions found. Let\'s brainstorm improvement ideas."'
+        converging: hasAnsweredQuestions
+          ? 'The investigation is narrowing down. Tell the user: "You\'re identifying suspected causes — answered questions found. Let\'s brainstorm improvement ideas."'
           : 'The investigation is narrowing down. Tell the user: "You\'re identifying suspected causes — let\'s synthesize findings into a coherent story."',
         improving: (() => {
           const sf = investigation?.selectedFinding;
@@ -806,15 +806,15 @@ Never invent data or statistics. If the context does not contain enough informat
         invParts.push(phaseInstructions[investigation.phase]);
       }
 
-      // Include improvement ideas when converging with supported hypotheses
+      // Include improvement ideas when converging with answered questions
       if (
         investigation.phase === 'converging' &&
-        hasSupportedHypotheses &&
-        investigation.allHypotheses
+        hasAnsweredQuestions &&
+        investigation.allQuestions
       ) {
         const ideasParts: string[] = [];
-        for (const h of investigation.allHypotheses) {
-          if (h.status === 'supported' && h.ideas && h.ideas.length > 0) {
+        for (const h of investigation.allQuestions) {
+          if (h.status === 'answered' && h.ideas && h.ideas.length > 0) {
             const ideaLines = h.ideas.map(idea => {
               let line = `  - "${idea.text}"`;
               if (idea.direction) line += ` [${idea.direction}]`;
@@ -839,7 +839,7 @@ Never invent data or statistics. If the context does not contain enough informat
       const sf = investigation.selectedFinding;
       let findingLine = `Currently focused finding: "${sf.text}"`;
       if (sf.status) findingLine += ` [status: ${sf.status}]`;
-      if (sf.hypothesis) findingLine += ` (hypothesis: "${sf.hypothesis}")`;
+      if (sf.question) findingLine += ` (question: "${sf.question}")`;
       if (sf.projection) {
         findingLine += `. Projected impact: mean ${sf.projection.meanDelta > 0 ? '+' : ''}${formatStatistic(sf.projection.meanDelta, 'en', 2)}, sigma ${sf.projection.sigmaDelta > 0 ? '+' : ''}${formatStatistic(sf.projection.sigmaDelta, 'en', 2)}`;
       }
@@ -1004,8 +1004,8 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
   if (teamContributors && teamContributors.count > 1) {
     parts.push(
       `Team collaboration: ${teamContributors.count} investigators are working on this analysis` +
-        (teamContributors.hypothesisAreas.length > 0
-          ? `. Areas being investigated: ${teamContributors.hypothesisAreas.join(', ')}`
+        (teamContributors.questionAreas.length > 0
+          ? `. Areas being investigated: ${teamContributors.questionAreas.join(', ')}`
           : '') +
         `. Avoid suggesting investigation steps already covered by team members.`
     );
@@ -1025,7 +1025,7 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
       parts.push(
         `Insight capture guidance (INVESTIGATE/IMPROVE phases):
 - Use suggest_save_finding when the conversation reveals:
-  - A validated hypothesis conclusion (supported or refuted)
+  - A validated question conclusion (answered or ruled out)
   - A quantitative process insight (specific eta-squared, Cpk shift, or defect rate)
   - A negative learning (approach tried and found ineffective — equally valuable)
   - A root cause identification with supporting evidence
@@ -1193,22 +1193,21 @@ function buildToolRoutingInstructions(): string {
   return `Tool usage guidance:
 - Call get_available_factors before apply_filter to verify factor and category names exist.
 - Use compare_categories to identify which categories show the most variation before suggesting filters.
-- Action tools (apply_filter, clear_filters, create_hypothesis, create_finding, suggest_action) return PROPOSALS, not executions. The user must confirm.
+- Action tools (apply_filter, clear_filters, create_question, create_finding, suggest_action) return PROPOSALS, not executions. The user must confirm.
 - When an action tool returns a proposal, include the [ACTION:tool_name:params_json] marker in your response so the UI can render a confirmation card.
 - Propose one action at a time — do not chain multiple action tools in one turn.
 - Use switch_factor after apply_filter to show remaining factors within the filtered subset. Call get_available_factors first to verify the factor name.
 - Prefer compare_categories over apply_filter when the user is exploring (SCOUT phase).
 
-Question/Hypothesis guidance (Investigation Diamond):
-- Use create_hypothesis to create investigation questions OR hypotheses.
+Question guidance (Investigation Diamond):
+- Use create_question to create investigation questions.
 - Root question: use with parent_id=null when starting a new line of inquiry or when the analyst raises a new question to check.
 - Follow-up question: use with parent_id="<existing_id>" when an answered question spawns deeper questions.
-- When the analyst has a specific causal theory, frame as a hypothesis. When exploring, frame as a question.
 - Factor-linked questions get auto-answered by Factor Intelligence (R²adj ranking). Recommend linking to factors whenever possible.
 - When a question can't be tested with data (physical inspection needed), set validation_type to "gemba" or "expert" and provide a clear validation_task.
 - Never create sub-questions more than 3 levels deep or more than 8 siblings per parent.
-- When factor and level are specified, VariScout auto-validates using ANOVA (Contribution % >=15% supported, <5% contradicted, 5-15% partial).
-- When a data-validated question has weak evidence (p >= 0.05), suggest gemba or expert validation. Never advise 'collect more data and wait.'
+- When factor and level are specified, VariScout auto-answers using ANOVA (Contribution % >=15% answered, <5% ruled out, 5-15% investigating).
+- When a data-answered question has weak evidence (p >= 0.05), suggest gemba or expert validation. Never advise 'collect more data and wait.'
 
 Finding guidance:
 - Use create_finding when the user identifies a notable pattern worth recording.
@@ -1232,7 +1231,7 @@ PDCA coaching (when investigation phase is 'improving'):
   - If ideas have What-If projections, compare projected impact. Suggest prioritizing the idea with highest Cpk improvement.
   - Suggest classifying ideas by direction: prevent (stop the cause), detect (catch it sooner), simplify (reduce complexity), eliminate (remove the step).
   - Use suggest_action to convert selected ideas into executable tasks with clear owners and deadlines.
-  - Use suggest_improvement_idea to propose ideas for supported hypotheses based on the suspected cause and KB results.
+  - Use suggest_improvement_idea to propose ideas for answered questions based on the suspected cause and KB results.
 
 - DO (finding at 'improving' status, actions in progress):
   - Acknowledge action progress: "N of M actions complete."
@@ -1259,7 +1258,7 @@ PDCA coaching (when investigation phase is 'improving'):
   - For partial/not effective: suggest which factors to re-investigate, whether the root cause was actually addressed.
 
 Improvement idea guidance (converging/IMPROVE):
-- Use suggest_improvement_idea when a hypothesis is supported and the analyst needs ideas for what to try.
+- Use suggest_improvement_idea when a question is answered and the analyst needs ideas for what to try.
 - When asked for ideas, suggest 2-4 covering different Ideation Directions and timeframe levels.
 - Classify each idea using the Four Ideation Directions:
   - prevent: stop the cause from occurring (poka-yoke, maintenance schedule, SOP update)
@@ -1272,7 +1271,7 @@ Improvement idea guidance (converging/IMPROVE):
 - Prefer lean improvements — the simplest fix that addresses the root cause. Suggest just-do and days timeframe ideas first.
 - Assess feasibility: Does it remove the root cause? Can the team do it themselves? Can they try small first? Can they measure the result?
 - If Knowledge Base search revealed a past fix for a similar cause, suggest it as an improvement idea with the source cited.
-- suggest_improvement_idea only works on hypotheses with 'supported' or 'partial' status.
+- suggest_improvement_idea only works on questions with 'answered' or 'investigating' status.
 
 Sharing guidance (Team plan only):
 - Use share_finding at investigation milestones, not during active investigation.
@@ -1296,9 +1295,9 @@ Multiple suspected causes:
 
 The entry scenario may have changed since the previous turn. Always reference the current scenario in your tool decisions.
 
-Visual grounding: When referencing specific chart elements, factors, statistics, findings, or hypotheses, wrap them in [REF:type:id]display text[/REF] markers. This creates clickable visual links in the UI.
-Valid types: boxplot, ichart, pareto, stats, yamazumi, finding, hypothesis, dashboard, improvement.
-For stats, use keys: cpk, mean, sigma, cp, samples. For findings/hypotheses, use their IDs.
+Visual grounding: When referencing specific chart elements, factors, statistics, findings, or questions, wrap them in [REF:type:id]display text[/REF] markers. This creates clickable visual links in the UI.
+Valid types: boxplot, ichart, pareto, stats, yamazumi, finding, question, dashboard, improvement.
+For stats, use keys: cpk, mean, sigma, cp, samples. For findings/questions, use their IDs.
 Use sparingly — only for the most important 1-3 references per message. Not every mention needs a marker.
 Example: "The [REF:boxplot:Machine A]Machine A[/REF] category shows a [REF:stats:cpk]Cpk of 0.82[/REF] which is below target."`;
 }
@@ -1314,14 +1313,14 @@ function buildEntryScenarioGuidance(scenario: EntryScenario): string {
 - INVESTIGATE: Guide the analyst to check open questions systematically, starting with the highest-ranked ones. Create follow-up questions as answers emerge.
 - IMPROVE: Check whether Cpk has reached the original target. In PLAN sub-state, suggest ideas targeting the suspected causes from answered questions. In CHECK, compare before/after Cpk against the stated problem threshold. In ACT, assess whether the original problem is resolved.`;
 
-    case 'hypothesis':
-      return `Entry scenario: Hypothesis to check — The analyst entered with an upfront hypothesis. The upfront hypothesis becomes the first question to check.
-- SCOUT: Immediately use compare_categories on the factor named in the hypothesis to verify it. Report Contribution % and per-category stats. If supported (>=15%), suggest apply_filter and create_finding.
-- INVESTIGATE: Propose create_hypothesis with the upfront hypothesis as the root question. Then suggest follow-up questions based on answers.
-- IMPROVE: After addressing the suspected causes, compare before/after on the metric linked to the original hypothesis. In PLAN, search KB for fixes to the confirmed factor. In ACT, verify whether the hypothesis-specific metric improved.`;
+    case 'exploration':
+      return `Entry scenario: Exploration — The analyst entered with an upfront theory to check. The upfront theory becomes the first question to check.
+- SCOUT: Immediately use compare_categories on the factor named in the theory to verify it. Report Contribution % and per-category stats. If answered (>=15%), suggest apply_filter and create_finding.
+- INVESTIGATE: Propose create_question with the upfront theory as the root question. Then suggest follow-up questions based on answers.
+- IMPROVE: After addressing the suspected causes, compare before/after on the metric linked to the original theory. In PLAN, search KB for fixes to the confirmed factor. In ACT, verify whether the theory-specific metric improved.`;
 
     case 'routine':
-      return `Entry scenario: Routine check — No specific problem or hypothesis. Scanning for signals. Factor Intelligence questions are available for proactive scanning.
+      return `Entry scenario: Routine check — No specific problem or theory. Scanning for signals. Factor Intelligence questions are available for proactive scanning.
 - SCOUT: Use compare_categories conservatively. Only suggest apply_filter if a notable signal is found (Contribution % > 10%). Do NOT proactively suggest findings unless a clear anomaly is detected.
 - INVESTIGATE: Only reached if the analyst manually creates a finding. Follow their lead.
 - IMPROVE: Signal has been addressed — help evaluate whether sustaining controls prevent recurrence. In PLAN, suggest preventive actions and SOP updates. In ACT, recommend scheduling a follow-up check in 30 days.`;

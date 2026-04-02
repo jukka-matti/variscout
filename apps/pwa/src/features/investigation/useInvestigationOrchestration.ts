@@ -1,8 +1,8 @@
 /**
- * useInvestigationOrchestration - Investigation/hypothesis orchestration for Azure Editor
+ * useInvestigationOrchestration - Investigation/question orchestration for Azure Editor
  *
- * Owns the investigation workflow: calls useHypotheses (CRUD engine from @variscout/hooks),
- * syncs computed state (hypothesesMap, ideaImpacts) to the Zustand investigationStore
+ * Owns the investigation workflow: calls useQuestions (CRUD engine from @variscout/hooks),
+ * syncs computed state (questionsMap, ideaImpacts) to the Zustand investigationStore
  * for selector-based reads, and provides DataContext-dependent action callbacks.
  */
 import { useMemo, useCallback, useEffect } from 'react';
@@ -16,34 +16,29 @@ import type {
   ProcessContext,
   StatsResult,
 } from '@variscout/core';
-import type { UseHypothesesReturn } from '@variscout/hooks';
+import type { UseQuestionsReturn } from '@variscout/hooks';
 
 // ── Interfaces ────────────────────────────────────────────────────────────
 
 interface FindingsStateSlice {
   findings: Finding[];
-  linkHypothesis: (findingId: string, hypothesisId: string) => void;
+  linkQuestion: (findingId: string, questionId: string) => void;
   setFindingStatus: (id: string, status: FindingStatus) => void;
   addAction: (findingId: string, text: string) => void;
 }
 
 export interface UseInvestigationOrchestrationOptions {
-  hypothesesState: UseHypothesesReturn;
+  questionsState: UseQuestionsReturn;
   findingsState: FindingsStateSlice;
   processContext: ProcessContext | undefined;
   stats: StatsResult | null;
 }
 
 export interface UseInvestigationOrchestrationReturn {
-  /** Create hypothesis and link to finding */
-  handleCreateHypothesis: (
-    findingId: string,
-    text: string,
-    factor?: string,
-    level?: string
-  ) => void;
+  /** Create question and link to finding */
+  handleCreateQuestion: (findingId: string, text: string, factor?: string, level?: string) => void;
   /** Open What-If pre-loaded for a specific improvement idea */
-  handleProjectIdea: (hypothesisId: string, ideaId: string) => void;
+  handleProjectIdea: (questionId: string, ideaId: string) => void;
   /** Save projection from What-If back to idea */
   handleSaveIdeaProjection: (projection: FindingProjection) => void;
   /** Clear the projection target (e.g., when closing What-If without saving) */
@@ -55,19 +50,19 @@ export interface UseInvestigationOrchestrationReturn {
 // ── Hook ──────────────────────────────────────────────────────────────────
 
 export function useInvestigationOrchestration({
-  hypothesesState,
+  questionsState,
   findingsState,
   processContext,
   stats,
 }: UseInvestigationOrchestrationOptions): UseInvestigationOrchestrationReturn {
-  // ── Sync hypotheses to Zustand store ──────────────────────────────────
-  const syncHypotheses = useInvestigationStore.getState().syncHypotheses;
+  // ── Sync questions to Zustand store ──────────────────────────────────
+  const syncQuestions = useInvestigationStore.getState().syncQuestions;
   useEffect(() => {
-    syncHypotheses(hypothesesState.hypotheses);
-  }, [hypothesesState.hypotheses, syncHypotheses]);
+    syncQuestions(questionsState.questions);
+  }, [questionsState.questions, syncQuestions]);
 
-  // ── Sync hypothesesMap to store ───────────────────────────────────────
-  const hypothesesMap = useMemo(() => {
+  // ── Sync questionsMap to store ───────────────────────────────────────
+  const questionsMap = useMemo(() => {
     const map: Record<
       string,
       {
@@ -78,22 +73,22 @@ export function useInvestigationOrchestration({
         causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
       }
     > = {};
-    for (const h of hypothesesState.hypotheses) {
-      map[h.id] = {
-        text: h.text,
-        status: h.status,
-        factor: h.factor,
-        level: h.level,
-        causeRole: h.causeRole,
+    for (const q of questionsState.questions) {
+      map[q.id] = {
+        text: q.text,
+        status: q.status,
+        factor: q.factor,
+        level: q.level,
+        causeRole: q.causeRole,
       };
     }
     return map;
-  }, [hypothesesState.hypotheses]);
+  }, [questionsState.questions]);
 
-  const syncHypothesesMap = useInvestigationStore.getState().syncHypothesesMap;
+  const syncQuestionsMap = useInvestigationStore.getState().syncQuestionsMap;
   useEffect(() => {
-    syncHypothesesMap(hypothesesMap);
-  }, [hypothesesMap, syncHypothesesMap]);
+    syncQuestionsMap(questionsMap);
+  }, [questionsMap, syncQuestionsMap]);
 
   // ── Sync ideaImpacts to store ─────────────────────────────────────────
   const ideaImpacts = useMemo(() => {
@@ -110,15 +105,15 @@ export function useInvestigationOrchestration({
       ? { mean: stats.mean, sigma: stats.stdDev, cpk: stats.cpk }
       : undefined;
 
-    for (const h of hypothesesState.hypotheses) {
-      if (h.ideas) {
-        for (const idea of h.ideas) {
+    for (const q of questionsState.questions) {
+      if (q.ideas) {
+        for (const idea of q.ideas) {
           impacts[idea.id] = computeIdeaImpact(idea, target, currentStats);
         }
       }
     }
     return impacts;
-  }, [hypothesesState.hypotheses, processContext, stats]);
+  }, [questionsState.questions, processContext, stats]);
 
   const syncIdeaImpacts = useInvestigationStore.getState().syncIdeaImpacts;
   useEffect(() => {
@@ -127,32 +122,32 @@ export function useInvestigationOrchestration({
 
   // ── DataContext-dependent actions ─────────────────────────────────────
 
-  // Hypothesis creation from finding cards
-  const handleCreateHypothesis = useCallback(
+  // Question creation from finding cards
+  const handleCreateQuestion = useCallback(
     (findingId: string, text: string, factor?: string, level?: string) => {
-      const hypothesis = hypothesesState.addHypothesis(text, factor, level);
-      hypothesesState.linkFinding(hypothesis.id, findingId);
-      findingsState.linkHypothesis(findingId, hypothesis.id);
+      const question = questionsState.addQuestion(text, factor, level);
+      questionsState.linkFinding(question.id, findingId);
+      findingsState.linkQuestion(findingId, question.id);
     },
-    [hypothesesState, findingsState]
+    [questionsState, findingsState]
   );
 
   // Open What-If pre-loaded for a specific improvement idea
   const handleProjectIdea = useCallback(
-    (hypothesisId: string, ideaId: string) => {
-      const hypothesis = hypothesesState.getHypothesis(hypothesisId);
-      const idea = hypothesis?.ideas?.find(i => i.id === ideaId);
-      if (hypothesis && idea) {
+    (questionId: string, ideaId: string) => {
+      const question = questionsState.getQuestion(questionId);
+      const idea = question?.ideas?.find(i => i.id === ideaId);
+      if (question && idea) {
         useInvestigationStore.getState().setProjectionTarget({
-          hypothesisId,
+          questionId,
           ideaId,
           ideaText: idea.text,
-          hypothesisText: hypothesis.text,
+          questionText: question.text,
         });
       }
       usePanelsStore.getState().setWhatIfOpen(true);
     },
-    [hypothesesState]
+    [questionsState]
   );
 
   // Clear the projection target
@@ -165,12 +160,12 @@ export function useInvestigationOrchestration({
     (projection: FindingProjection) => {
       const target = useInvestigationStore.getState().projectionTarget;
       if (target) {
-        hypothesesState.setIdeaProjection(target.hypothesisId, target.ideaId, projection);
+        questionsState.setIdeaProjection(target.questionId, target.ideaId, projection);
         useInvestigationStore.getState().setProjectionTarget(null);
         usePanelsStore.getState().setWhatIfOpen(false);
       }
     },
-    [hypothesesState]
+    [questionsState]
   );
 
   // Idea -> Action conversion: when a finding moves to 'improving', convert selected ideas
@@ -178,9 +173,9 @@ export function useInvestigationOrchestration({
     (id: string, status: FindingStatus) => {
       if (status === 'improving') {
         const finding = findingsState.findings.find(f => f.id === id);
-        if (finding?.hypothesisId) {
-          const hypothesis = hypothesesState.getHypothesis(finding.hypothesisId);
-          const selectedIdeas = hypothesis?.ideas?.filter(i => i.selected) ?? [];
+        if (finding?.questionId) {
+          const question = questionsState.getQuestion(finding.questionId);
+          const selectedIdeas = question?.ideas?.filter(i => i.selected) ?? [];
           if (selectedIdeas.length > 0) {
             findingsState.setFindingStatus(id, status);
             for (const idea of selectedIdeas) {
@@ -192,11 +187,11 @@ export function useInvestigationOrchestration({
       }
       findingsState.setFindingStatus(id, status);
     },
-    [findingsState, hypothesesState]
+    [findingsState, questionsState]
   );
 
   return {
-    handleCreateHypothesis,
+    handleCreateQuestion,
     handleProjectIdea,
     handleSaveIdeaProjection,
     clearProjectionTarget,

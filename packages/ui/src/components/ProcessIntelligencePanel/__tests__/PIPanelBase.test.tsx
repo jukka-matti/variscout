@@ -37,8 +37,8 @@ vi.mock('@variscout/hooks', () => {
   };
 });
 
-import StatsPanelBase from '../StatsPanelBase';
-import type { StatsPanelBaseProps } from '../types';
+import PIPanelBase from '../PIPanelBase';
+import type { PIPanelBaseProps } from '../types';
 
 const mockGetTerm = vi.fn().mockReturnValue(undefined);
 
@@ -57,7 +57,7 @@ const baseStats = {
 
 const specsWithLimits = { lsl: 8, usl: 13, target: 10.5 };
 
-const defaultProps: StatsPanelBaseProps = {
+const defaultProps: PIPanelBaseProps = {
   stats: baseStats,
   specs: {},
   filteredData: Array.from({ length: 50 }, (_, i) => ({ value: 10 + i * 0.1 })),
@@ -65,9 +65,9 @@ const defaultProps: StatsPanelBaseProps = {
   getTerm: mockGetTerm,
 };
 
-describe('StatsPanelBase', () => {
+describe('PIPanelBase', () => {
   it('renders 4 basic metric cards without specs', () => {
-    render(<StatsPanelBase {...defaultProps} />);
+    render(<PIPanelBase {...defaultProps} />);
     expect(screen.getByTestId('stat-value-mean')).toBeDefined();
     expect(screen.getByTestId('stat-value-median')).toBeDefined();
     expect(screen.getByTestId('stat-value-std-dev')).toBeDefined();
@@ -75,7 +75,7 @@ describe('StatsPanelBase', () => {
   });
 
   it('renders 7 cards (+ Pass Rate, Cp, Cpk) with specs', () => {
-    render(<StatsPanelBase {...defaultProps} specs={specsWithLimits} />);
+    render(<PIPanelBase {...defaultProps} specs={specsWithLimits} />);
     expect(screen.getByTestId('stat-value-pass-rate')).toBeDefined();
     expect(screen.getByTestId('stat-value-cp')).toBeDefined();
     expect(screen.getByTestId('stat-value-cpk')).toBeDefined();
@@ -83,7 +83,7 @@ describe('StatsPanelBase', () => {
   });
 
   it('hides Cp/Cpk/Pass Rate cards when showCpk=false', () => {
-    render(<StatsPanelBase {...defaultProps} specs={specsWithLimits} showCpk={false} />);
+    render(<PIPanelBase {...defaultProps} specs={specsWithLimits} showCpk={false} />);
     expect(screen.queryByTestId('stat-value-cp')).toBeNull();
     expect(screen.queryByTestId('stat-value-cpk')).toBeNull();
     expect(screen.queryByTestId('stat-value-pass-rate')).toBeNull();
@@ -91,13 +91,13 @@ describe('StatsPanelBase', () => {
   });
 
   it('shows empty state when stats=null', () => {
-    render(<StatsPanelBase {...defaultProps} stats={null} />);
+    render(<PIPanelBase {...defaultProps} stats={null} />);
     const mean = screen.getByTestId('stat-value-mean');
     expect(mean.textContent).toBe('N/A');
   });
 
   it('displays correct stat values', () => {
-    render(<StatsPanelBase {...defaultProps} />);
+    render(<PIPanelBase {...defaultProps} />);
     expect(screen.getByTestId('stat-value-mean').textContent).toBe('10.50');
     expect(screen.getByTestId('stat-value-median').textContent).toBe('10.30');
     expect(screen.getByTestId('stat-value-std-dev').textContent).toBe('1.20');
@@ -106,12 +106,12 @@ describe('StatsPanelBase', () => {
 
   describe('tab switching', () => {
     it('starts on Stats tab by default', () => {
-      render(<StatsPanelBase {...defaultProps} />);
+      render(<PIPanelBase {...defaultProps} />);
       expect(screen.getByTestId('stat-value-mean')).toBeDefined();
     });
 
     it('renders Stats, Questions, Journal tabs', () => {
-      render(<StatsPanelBase {...defaultProps} />);
+      render(<PIPanelBase {...defaultProps} />);
       expect(screen.getByText('Stats')).toBeDefined();
       expect(screen.getByText('Questions')).toBeDefined();
       expect(screen.getByText('Journal')).toBeDefined();
@@ -121,7 +121,7 @@ describe('StatsPanelBase', () => {
       const renderQuestionsTab = vi
         .fn()
         .mockReturnValue(<div data-testid="questions-content">Q</div>);
-      render(<StatsPanelBase {...defaultProps} renderQuestionsTab={renderQuestionsTab} />);
+      render(<PIPanelBase {...defaultProps} renderQuestionsTab={renderQuestionsTab} />);
 
       fireEvent.click(screen.getByText('Questions'));
       expect(screen.getByTestId('questions-content')).toBeDefined();
@@ -129,14 +129,14 @@ describe('StatsPanelBase', () => {
     });
 
     it('shows empty state for Questions tab when no render function', () => {
-      render(<StatsPanelBase {...defaultProps} />);
+      render(<PIPanelBase {...defaultProps} />);
       fireEvent.click(screen.getByText('Questions'));
       expect(screen.getByText('No questions yet')).toBeDefined();
     });
 
     it('switches to Journal tab and renders content', () => {
       const renderJournalTab = vi.fn().mockReturnValue(<div data-testid="journal-content">J</div>);
-      render(<StatsPanelBase {...defaultProps} renderJournalTab={renderJournalTab} />);
+      render(<PIPanelBase {...defaultProps} renderJournalTab={renderJournalTab} />);
 
       fireEvent.click(screen.getByText('Journal'));
       expect(screen.getByTestId('journal-content')).toBeDefined();
@@ -144,18 +144,18 @@ describe('StatsPanelBase', () => {
     });
 
     it('shows empty state for Journal tab when no render function', () => {
-      render(<StatsPanelBase {...defaultProps} />);
+      render(<PIPanelBase {...defaultProps} />);
       fireEvent.click(screen.getByText('Journal'));
       expect(screen.getByText('No journal entries yet')).toBeDefined();
     });
 
     it('shows badge on Questions tab when openQuestionCount > 0', () => {
-      render(<StatsPanelBase {...defaultProps} openQuestionCount={3} />);
+      render(<PIPanelBase {...defaultProps} openQuestionCount={3} />);
       expect(screen.getByText('3')).toBeDefined();
     });
 
     it('does not show badge when openQuestionCount is 0', () => {
-      render(<StatsPanelBase {...defaultProps} openQuestionCount={0} />);
+      render(<PIPanelBase {...defaultProps} openQuestionCount={0} />);
       // Badge with value 0 should not render
       const badges = screen.queryAllByText('0');
       expect(badges.length).toBe(0);
@@ -164,14 +164,14 @@ describe('StatsPanelBase', () => {
 
   describe('overflow menu', () => {
     it('renders overflow (⋯) button', () => {
-      render(<StatsPanelBase {...defaultProps} />);
+      render(<PIPanelBase {...defaultProps} />);
       expect(screen.getByLabelText('More options')).toBeDefined();
     });
 
     it('shows Data Table via overflowView prop', () => {
       const renderDataTable = vi.fn().mockReturnValue(<div data-testid="data-table">Table</div>);
       render(
-        <StatsPanelBase
+        <PIPanelBase
           {...defaultProps}
           renderDataTable={renderDataTable}
           overflowView="data"
@@ -185,7 +185,7 @@ describe('StatsPanelBase', () => {
     it('shows What-If via overflowView prop', () => {
       const renderWhatIf = vi.fn().mockReturnValue(<div data-testid="what-if">Simulator</div>);
       render(
-        <StatsPanelBase
+        <PIPanelBase
           {...defaultProps}
           renderWhatIf={renderWhatIf}
           overflowView="whatif"
@@ -197,30 +197,26 @@ describe('StatsPanelBase', () => {
     });
 
     it('shows empty state for Data overflow when no render function', () => {
-      render(
-        <StatsPanelBase {...defaultProps} overflowView="data" onOverflowViewChange={vi.fn()} />
-      );
+      render(<PIPanelBase {...defaultProps} overflowView="data" onOverflowViewChange={vi.fn()} />);
       expect(screen.getByText('No data available')).toBeDefined();
     });
 
     it('shows empty state for What-If overflow when no render function', () => {
       render(
-        <StatsPanelBase {...defaultProps} overflowView="whatif" onOverflowViewChange={vi.fn()} />
+        <PIPanelBase {...defaultProps} overflowView="whatif" onOverflowViewChange={vi.fn()} />
       );
       expect(screen.getByText('No What-If simulator available')).toBeDefined();
     });
 
     it('shows active overflow label as dismissible button', () => {
-      render(
-        <StatsPanelBase {...defaultProps} overflowView="data" onOverflowViewChange={vi.fn()} />
-      );
+      render(<PIPanelBase {...defaultProps} overflowView="data" onOverflowViewChange={vi.fn()} />);
       expect(screen.getByLabelText('Close Data Table')).toBeDefined();
     });
 
     it('calls onOverflowViewChange(null) when active overflow button is clicked', () => {
       const onOverflowViewChange = vi.fn();
       render(
-        <StatsPanelBase
+        <PIPanelBase
           {...defaultProps}
           overflowView="data"
           onOverflowViewChange={onOverflowViewChange}
@@ -234,33 +230,33 @@ describe('StatsPanelBase', () => {
   describe('pencil link', () => {
     it('shows "Edit specifications" when onEditSpecs provided', () => {
       const onEditSpecs = vi.fn();
-      render(<StatsPanelBase {...defaultProps} onEditSpecs={onEditSpecs} />);
+      render(<PIPanelBase {...defaultProps} onEditSpecs={onEditSpecs} />);
       expect(screen.getByTestId('edit-specs-link')).toBeDefined();
       expect(screen.getByText('Edit specifications')).toBeDefined();
     });
 
     it('calls onEditSpecs when pencil link is clicked', () => {
       const onEditSpecs = vi.fn();
-      render(<StatsPanelBase {...defaultProps} onEditSpecs={onEditSpecs} />);
+      render(<PIPanelBase {...defaultProps} onEditSpecs={onEditSpecs} />);
       fireEvent.click(screen.getByTestId('edit-specs-link'));
       expect(onEditSpecs).toHaveBeenCalledOnce();
     });
 
     it('does not show pencil link without onEditSpecs', () => {
-      render(<StatsPanelBase {...defaultProps} />);
+      render(<PIPanelBase {...defaultProps} />);
       expect(screen.queryByTestId('edit-specs-link')).toBeNull();
     });
   });
 
   describe('target discovery', () => {
     it('shows prompt when no specs and not drilling', () => {
-      render(<StatsPanelBase {...defaultProps} specs={{}} isDrilling={false} />);
+      render(<PIPanelBase {...defaultProps} specs={{}} isDrilling={false} />);
       expect(screen.getByTestId('target-discovery-prompt')).toBeDefined();
     });
 
     it('shows complement insight when no specs and drilling', () => {
       render(
-        <StatsPanelBase
+        <PIPanelBase
           {...defaultProps}
           specs={{}}
           isDrilling={true}
@@ -272,7 +268,7 @@ describe('StatsPanelBase', () => {
 
     it('shows centering opportunity when specs exist and not drilling', () => {
       render(
-        <StatsPanelBase
+        <PIPanelBase
           {...defaultProps}
           specs={specsWithLimits}
           isDrilling={false}
@@ -284,7 +280,7 @@ describe('StatsPanelBase', () => {
 
     it('shows headroom check when specs exist and drilling', () => {
       render(
-        <StatsPanelBase
+        <PIPanelBase
           {...defaultProps}
           specs={specsWithLimits}
           isDrilling={true}
@@ -302,12 +298,12 @@ describe('StatsPanelBase', () => {
   });
 
   it('compact mode renders tab bar', () => {
-    const { container } = render(<StatsPanelBase {...defaultProps} compact={true} />);
+    const { container } = render(<PIPanelBase {...defaultProps} compact={true} />);
     expect(container.querySelector('.scroll-touch')).not.toBeNull();
   });
 
   it('applies default styling classes', () => {
-    const { container } = render(<StatsPanelBase {...defaultProps} />);
+    const { container } = render(<PIPanelBase {...defaultProps} />);
     expect(container.querySelector('.bg-surface-secondary')).not.toBeNull();
   });
 
@@ -316,7 +312,7 @@ describe('StatsPanelBase', () => {
       .fn()
       .mockReturnValue(<div data-testid="questions-content">Q</div>);
     render(
-      <StatsPanelBase
+      <PIPanelBase
         {...defaultProps}
         defaultTab="questions"
         renderQuestionsTab={renderQuestionsTab}

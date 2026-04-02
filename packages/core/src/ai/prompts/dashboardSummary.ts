@@ -43,19 +43,19 @@ export function buildDashboardSummaryPrompt(context: AIContext): string {
     );
   }
 
-  // Hypotheses
-  if (context.investigation?.allHypotheses && context.investigation.allHypotheses.length > 0) {
-    const hyps = context.investigation.allHypotheses;
-    const supported = hyps.filter(h => h.status === 'supported');
-    const untested = hyps.filter(h => h.status === 'untested');
-    const contradicted = hyps.filter(h => h.status === 'contradicted');
+  // Questions
+  if (context.investigation?.allQuestions && context.investigation.allQuestions.length > 0) {
+    const qs = context.investigation.allQuestions;
+    const answered = qs.filter(q => q.status === 'answered');
+    const open = qs.filter(q => q.status === 'open');
+    const ruledOut = qs.filter(q => q.status === 'ruled-out');
 
-    let hypSummary = `Hypotheses: ${hyps.length} total`;
-    if (supported.length > 0)
-      hypSummary += `, ${supported.length} supported (${supported.map(h => h.text).join(', ')})`;
-    if (untested.length > 0) hypSummary += `, ${untested.length} untested`;
-    if (contradicted.length > 0) hypSummary += `, ${contradicted.length} contradicted`;
-    parts.push(hypSummary);
+    let qSummary = `Questions: ${qs.length} total`;
+    if (answered.length > 0)
+      qSummary += `, ${answered.length} answered (${answered.map(q => q.text).join(', ')})`;
+    if (open.length > 0) qSummary += `, ${open.length} open`;
+    if (ruledOut.length > 0) qSummary += `, ${ruledOut.length} ruled out`;
+    parts.push(qSummary);
   }
 
   // Investigation phase

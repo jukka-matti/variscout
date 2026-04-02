@@ -11,9 +11,9 @@ import {
   useQuestionGeneration,
   useProblemStatement,
   type UseFindingsReturn,
-  type UseHypothesesReturn,
+  type UseQuestionsReturn,
 } from '@variscout/hooks';
-import type { FindingStatus, Hypothesis } from '@variscout/core';
+import type { FindingStatus, Question } from '@variscout/core';
 import { hasTeamFeatures } from '@variscout/core';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
@@ -35,15 +35,10 @@ interface InvestigationWorkspaceProps {
   handleNavigateToChart: UseFindingsOrchestrationReturn['handleNavigateToChart'];
   handleShareFinding: UseFindingsOrchestrationReturn['handleShareFinding'];
   drillPath: UseFindingsOrchestrationReturn['drillPath'];
-  // Hypotheses
-  hypothesesState: UseHypothesesReturn;
-  handleCreateHypothesis: (
-    findingId: string,
-    text: string,
-    factor?: string,
-    level?: string
-  ) => void;
-  handleProjectIdea: (hypothesisId: string, ideaId: string) => void;
+  // Questions
+  questionsState: UseQuestionsReturn;
+  handleCreateQuestion: (findingId: string, text: string, factor?: string, level?: string) => void;
+  handleProjectIdea: (questionId: string, ideaId: string) => void;
   // Comments
   handleAddCommentWithAuthor: (
     findingId: string,
@@ -76,8 +71,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   handleNavigateToChart,
   handleShareFinding,
   drillPath,
-  hypothesesState,
-  handleCreateHypothesis,
+  questionsState,
+  handleCreateQuestion,
   handleProjectIdea,
   handleAddCommentWithAuthor,
   handleAddPhoto,
@@ -101,13 +96,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
-  const hypothesesMap = useInvestigationStore(s => s.hypothesesMap);
+  const questionsMap = useInvestigationStore(s => s.questionsMap);
   const ideaImpacts = useInvestigationStore(s => s.ideaImpacts);
 
-  // Investigation phase (deterministic, from hypothesis/findings state)
+  // Investigation phase (deterministic, from question/findings state)
   const investigationPhase = useMemo(
-    () => detectInvestigationPhase(hypothesesState.hypotheses, findingsState.findings),
-    [hypothesesState.hypotheses, findingsState.findings]
+    () => detectInvestigationPhase(questionsState.questions, findingsState.findings),
+    [questionsState.questions, findingsState.findings]
   );
 
   // Question generation (ADR-053) — computed from data context
@@ -117,7 +112,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     filteredData: filteredData ?? [],
     outcome,
     factors,
-    hypothesesState,
+    questionsState,
     mode: resolved,
   });
 
@@ -129,18 +124,18 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const viewMode = externalViewMode ?? internalViewMode;
   const handleViewMode = onViewModeChange ?? setInternalViewMode;
 
-  // Categorize hypotheses for InvestigationConclusion
+  // Categorize questions for InvestigationConclusion
   const { suspectedCauses, contributing, ruledOut } = useMemo(() => {
-    const suspected: Hypothesis[] = [];
-    const contrib: Hypothesis[] = [];
-    const ruled: Hypothesis[] = [];
-    for (const h of hypothesesState.hypotheses) {
+    const suspected: Question[] = [];
+    const contrib: Question[] = [];
+    const ruled: Question[] = [];
+    for (const h of questionsState.questions) {
       if (h.causeRole === 'suspected-cause') suspected.push(h);
       else if (h.causeRole === 'contributing') contrib.push(h);
       else if (h.causeRole === 'ruled-out') ruled.push(h);
     }
     return { suspectedCauses: suspected, contributing: contrib, ruledOut: ruled };
-  }, [hypothesesState.hypotheses]);
+  }, [questionsState.questions]);
 
   const { coscout } = aiOrch;
 
@@ -158,7 +153,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     outcome,
     targetCpk: cpkTarget,
     currentCpk: stats?.cpk ?? undefined,
-    hypotheses: hypothesesState.hypotheses,
+    questions: questionsState.questions,
     existingStatement: processContext?.problemStatement,
     onStatementChange: handleProblemStatementChange,
   });
@@ -169,7 +164,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   };
 
   // Question click: switch to Analysis workspace with factor focused (round-trip pattern)
-  const handleQuestionClickWithSwitch = (question: Hypothesis) => {
+  const handleQuestionClickWithSwitch = (question: Question) => {
     handleQuestionClick(question);
     usePanelsStore.getState().showAnalysis();
   };
@@ -261,11 +256,11 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             onDeleteFinding={findingsState.deleteFinding}
             onRestoreFinding={handleRestoreFinding}
             viewMode={viewMode}
-            hypotheses={hypothesesState.hypotheses}
-            onSelectHypothesis={h => useInvestigationStore.getState().expandToHypothesis(h.id)}
-            onAddSubHypothesis={hypothesesState.addSubHypothesis}
+            questions={questionsState.questions}
+            onSelectQuestion={h => useInvestigationStore.getState().expandToQuestion(h.id)}
+            onAddSubQuestion={questionsState.addSubQuestion}
             factors={drillFactors}
-            getChildrenSummary={hypothesesState.getChildrenSummary}
+            getChildrenSummary={questionsState.getChildrenSummary}
             onSetFindingStatus={handleSetFindingStatus}
             onSetFindingTag={findingsState.setFindingTag}
             onAddComment={(id: string, text: string) => handleAddCommentWithAuthor(id, text)}
@@ -285,22 +280,22 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   }
                 : undefined
             }
-            onCreateHypothesis={handleCreateHypothesis}
-            hypothesesMap={hypothesesMap}
-            onSetValidationTask={hypothesesState.setValidationTask}
-            onCompleteTask={hypothesesState.completeTask}
-            onSetManualStatus={hypothesesState.setManualStatus}
+            onCreateQuestion={handleCreateQuestion}
+            questionsMap={questionsMap}
+            onSetValidationTask={questionsState.setValidationTask}
+            onCompleteTask={questionsState.completeTask}
+            onSetManualStatus={questionsState.setManualStatus}
             onAddAction={findingsState.addAction}
             onCompleteAction={findingsState.completeAction}
             onDeleteAction={findingsState.deleteAction}
             onSetOutcome={findingsState.setOutcome}
             ideaImpacts={ideaImpacts}
-            onAddIdea={hypothesesState.addIdea}
-            onUpdateIdea={hypothesesState.updateIdea}
-            onRemoveIdea={hypothesesState.removeIdea}
-            onSelectIdea={hypothesesState.selectIdea}
+            onAddIdea={questionsState.addIdea}
+            onUpdateIdea={questionsState.updateIdea}
+            onRemoveIdea={questionsState.removeIdea}
+            onSelectIdea={questionsState.selectIdea}
             onProjectIdea={handleProjectIdea}
-            onSetCauseRole={hypothesesState.setCauseRole}
+            onSetCauseRole={questionsState.setCauseRole}
             onShareFinding={handleShareFinding}
             onNavigateToChart={handleNavigateToChart}
             showAuthors

@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useRef } from 'react';
-import type { Finding, FindingStatus, Hypothesis } from '@variscout/core';
+import type { Finding, FindingStatus, Question } from '@variscout/core';
 import { hasTeamFeatures } from '@variscout/core';
 import { errorService } from '@variscout/ui';
 import { isChannelTab, getTeamsContext } from '../teams/teamsContext';
@@ -21,7 +21,7 @@ const CARD_STATUSES: Set<FindingStatus> = new Set(['analyzed', 'resolved']);
 const DEBOUNCE_MS = 5000;
 
 export interface UseStatusUpdateCardsOptions {
-  hypotheses?: Hypothesis[];
+  questions?: Question[];
   addNotification?: (message: string, type: 'success' | 'error') => void;
   /** Base URL for deep links (defaults to window.location.origin) */
   baseUrl?: string;
@@ -34,7 +34,7 @@ export interface UseStatusUpdateCardsReturn {
 }
 
 export function useStatusUpdateCards({
-  hypotheses,
+  questions,
   addNotification,
   baseUrl,
   projectName,
@@ -60,7 +60,7 @@ export function useStatusUpdateCards({
       void postCard(finding, newStatus);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [hypotheses, addNotification, baseUrl, projectName]
+    [questions, addNotification, baseUrl, projectName]
   );
 
   async function postCard(finding: Finding, status: FindingStatus) {
@@ -76,10 +76,10 @@ export function useStatusUpdateCards({
       let summaryText: string;
 
       if (status === 'analyzed') {
-        const hypothesis = finding.hypothesisId
-          ? hypotheses?.find(h => h.id === finding.hypothesisId)
+        const question = finding.questionId
+          ? questions?.find(h => h.id === finding.questionId)
           : undefined;
-        cardResult = buildAnalyzedCard(finding, hypothesis?.text, deepLinkUrl);
+        cardResult = buildAnalyzedCard(finding, question?.text, deepLinkUrl);
         summaryText = `Finding analyzed: ${finding.text || 'Untitled'}`;
       } else {
         cardResult = buildResolvedCard(finding, deepLinkUrl);

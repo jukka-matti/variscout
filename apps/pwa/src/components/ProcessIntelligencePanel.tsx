@@ -1,17 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
 import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
-import type { StatsPanelTab, ComplementInsight, PIOverflowView } from '@variscout/ui';
-import { StatsPanelBase, WhatIfSimulator, computePresets, useGlossary } from '@variscout/ui';
+import type { PITab, ComplementInsight, PIOverflowView } from '@variscout/ui';
+import { PIPanelBase, WhatIfSimulator, computePresets, useGlossary } from '@variscout/ui';
 import { useData } from '../context/DataContext';
 import SpecEditor from './settings/SpecEditor';
 
-interface StatsPanelProps {
+interface ProcessIntelligencePanelProps {
   stats: StatsResult | null;
   specs: SpecLimits;
   filteredData?: DataRow[];
   outcome?: string | null;
-  defaultTab?: StatsPanelTab;
+  defaultTab?: PITab;
   className?: string;
   compact?: boolean;
   cpkTarget?: number;
@@ -36,7 +36,7 @@ interface StatsPanelProps {
   onOverflowViewChange?: (view: PIOverflowView) => void;
 }
 
-const StatsPanel: React.FC<StatsPanelProps> = ({
+const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
   stats,
   specs,
   filteredData = [],
@@ -88,7 +88,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         />
       )}
 
-      <StatsPanelBase
+      <PIPanelBase
         stats={stats}
         specs={specs}
         filteredData={filteredData}
@@ -168,4 +168,4 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   );
 };
 
-export default StatsPanel;
+export default ProcessIntelligencePanel;

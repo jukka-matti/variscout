@@ -54,12 +54,12 @@ function statusColor(status: string): string {
 /**
  * Build an Adaptive Card for a finding that reached 'analyzed' status.
  *
- * Shows: finding text, status, suspected cause (hypothesis), action items
+ * Shows: finding text, status, suspected cause (question), action items
  * with assignee @mentions, and a deep link button.
  */
 export function buildAnalyzedCard(
   finding: Finding,
-  hypothesisText: string | undefined,
+  questionText: string | undefined,
   deepLinkUrl: string,
   actionAssignees?: FindingAssignee[]
 ): AdaptiveCardResult {
@@ -127,11 +127,11 @@ export function buildAnalyzedCard(
     });
   }
 
-  // Suspected cause (hypothesis)
-  if (hypothesisText) {
+  // Suspected cause (question)
+  if (questionText) {
     body.push({
       type: 'TextBlock',
-      text: `**Suspected cause:** ${hypothesisText}`,
+      text: `**Suspected cause:** ${questionText}`,
       wrap: true,
       spacing: 'medium',
     });

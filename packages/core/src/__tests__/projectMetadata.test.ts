@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { buildProjectMetadata } from '../projectMetadata';
 import type { ProjectMetadata } from '../projectMetadata';
-import { createFinding, createHypothesis, createActionItem } from '../findings';
-import type { Finding, Hypothesis, ActionItem } from '../findings';
+import { createFinding, createQuestion, createActionItem } from '../findings';
+import type { Finding, Question, ActionItem } from '../findings';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -13,8 +13,8 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   return { ...base, ...overrides };
 }
 
-function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
-  const base = createHypothesis('Test hypothesis');
+function makeQuestion(overrides: Partial<Question> = {}): Question {
+  const base = createQuestion('Test question');
   return { ...base, ...overrides };
 }
 
@@ -107,45 +107,45 @@ describe('buildProjectMetadata — findingCounts', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Hypothesis counts by status (root only)
+// Question counts by status (root only)
 // ---------------------------------------------------------------------------
 
-describe('buildProjectMetadata — hypothesisCounts', () => {
-  it('returns empty counts when no hypotheses', () => {
+describe('buildProjectMetadata — questionCounts', () => {
+  it('returns empty counts when no questions', () => {
     const result = buildProjectMetadata([], [], true, 'local');
-    expect(result.hypothesisCounts).toEqual({});
+    expect(result.questionCounts).toEqual({});
   });
 
-  it('counts root hypotheses by status', () => {
-    const hypotheses = [
-      makeHypothesis({ status: 'untested' }),
-      makeHypothesis({ status: 'supported' }),
-      makeHypothesis({ status: 'supported' }),
-      makeHypothesis({ status: 'contradicted' }),
+  it('counts root questions by status', () => {
+    const questions = [
+      makeQuestion({ status: 'open' }),
+      makeQuestion({ status: 'answered' }),
+      makeQuestion({ status: 'answered' }),
+      makeQuestion({ status: 'ruled-out' }),
     ];
-    const result = buildProjectMetadata([], hypotheses, true, 'local');
-    expect(result.hypothesisCounts).toEqual({
-      untested: 1,
-      supported: 2,
-      contradicted: 1,
+    const result = buildProjectMetadata([], questions, true, 'local');
+    expect(result.questionCounts).toEqual({
+      open: 1,
+      answered: 2,
+      'ruled-out': 1,
     });
   });
 
-  it('excludes sub-hypotheses (parentId set)', () => {
-    const root = makeHypothesis({ status: 'untested' });
-    const child = makeHypothesis({ status: 'supported', parentId: root.id });
+  it('excludes sub-questions (parentId set)', () => {
+    const root = makeQuestion({ status: 'open' });
+    const child = makeQuestion({ status: 'answered', parentId: root.id });
     const result = buildProjectMetadata([], [root, child], true, 'local');
     // Only root should be counted
-    expect(result.hypothesisCounts).toEqual({ untested: 1 });
+    expect(result.questionCounts).toEqual({ open: 1 });
   });
 
-  it('counts only root hypotheses when mix of root and child', () => {
-    const root1 = makeHypothesis({ status: 'supported' });
-    const root2 = makeHypothesis({ status: 'partial' });
-    const child1 = makeHypothesis({ status: 'untested', parentId: root1.id });
-    const child2 = makeHypothesis({ status: 'contradicted', parentId: root2.id });
+  it('counts only root questions when mix of root and child', () => {
+    const root1 = makeQuestion({ status: 'answered' });
+    const root2 = makeQuestion({ status: 'investigating' });
+    const child1 = makeQuestion({ status: 'open', parentId: root1.id });
+    const child2 = makeQuestion({ status: 'ruled-out', parentId: root2.id });
     const result = buildProjectMetadata([], [root1, root2, child1, child2], true, 'local');
-    expect(result.hypothesisCounts).toEqual({ supported: 1, partial: 1 });
+    expect(result.questionCounts).toEqual({ answered: 1, investigating: 1 });
   });
 });
 
@@ -349,11 +349,11 @@ describe('buildProjectMetadata — lastViewedAt', () => {
 // ---------------------------------------------------------------------------
 
 describe('buildProjectMetadata — empty inputs', () => {
-  it('handles empty findings and hypotheses without error', () => {
+  it('handles empty findings and questions without error', () => {
     const result: ProjectMetadata = buildProjectMetadata([], [], true, 'local');
     expect(result.phase).toBe('scout');
     expect(result.findingCounts).toEqual({});
-    expect(result.hypothesisCounts).toEqual({});
+    expect(result.questionCounts).toEqual({});
     expect(result.actionCounts).toEqual({ total: 0, completed: 0, overdue: 0 });
     expect(result.assignedTaskCount).toBe(0);
     expect(result.hasOverdueTasks).toBe(false);

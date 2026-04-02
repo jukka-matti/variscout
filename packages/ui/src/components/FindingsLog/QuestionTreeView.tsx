@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import type {
-  Hypothesis,
-  HypothesisStatus,
+  Question,
+  QuestionStatus,
   Finding,
   InvestigationCategory,
   ImprovementIdea,
@@ -9,27 +9,27 @@ import type {
 } from '@variscout/core';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
-import HypothesisNode from './HypothesisNode';
+import QuestionNode from './QuestionNode';
 import { HelpTooltip } from '../HelpTooltip';
 import { useGlossary } from '../../hooks';
 
-export interface HypothesisTreeViewProps {
-  /** All hypotheses (flat list with parentId tree structure) */
-  hypotheses: Hypothesis[];
+export interface QuestionTreeViewProps {
+  /** All questions (flat list with parentId tree structure) */
+  questions: Question[];
   /** All findings (for linking display) */
   findings: Finding[];
-  /** Click a hypothesis node to filter the dashboard */
-  onSelectHypothesis?: (hypothesis: Hypothesis) => void;
-  /** Add a sub-hypothesis under a parent */
-  onAddSubHypothesis?: (
+  /** Click a question node to filter the dashboard */
+  onSelectQuestion?: (question: Question) => void;
+  /** Add a sub-question under a parent */
+  onAddSubQuestion?: (
     parentId: string,
     text: string,
     factor?: string,
     validationType?: 'data' | 'gemba' | 'expert'
   ) => void;
-  /** Available factor columns for sub-hypothesis factor picker */
+  /** Available factor columns for sub-question factor picker */
   factors?: string[];
-  /** Whether to show contradicted hypotheses (default: false) */
+  /** Whether to show ruled-out questions (default: false) */
   showContradicted?: boolean;
   /** Max depth allowed for new children */
   maxDepth?: number;
@@ -37,47 +37,47 @@ export interface HypothesisTreeViewProps {
   maxChildrenPerParent?: number;
   /** Get children summary for a parent */
   getChildrenSummary?: (parentId: string) => {
-    supported: number;
-    contradicted: number;
-    untested: number;
-    partial: number;
+    answered: number;
+    'ruled-out': number;
+    open: number;
+    investigating: number;
     total: number;
   };
   /** Search filter text */
   searchFilter?: string;
-  /** Investigation categories for three-level grouping (Category → Factor → Hypothesis) */
+  /** Investigation categories for three-level grouping (Category -> Factor -> Question) */
   categories?: InvestigationCategory[];
-  /** Factor name → η² percentage (for variation display on factor/category headers) */
+  /** Factor name -> eta-squared percentage (for variation display on factor/category headers) */
   factorVariations?: Record<string, number>;
-  // --- Validation Task (passed through to HypothesisNode) ---
+  // --- Validation Task (passed through to QuestionNode) ---
   /** Set a validation task description */
   onSetValidationTask?: (id: string, task: string) => void;
   /** Mark a validation task as complete */
   onCompleteTask?: (id: string) => void;
-  /** Manually set hypothesis status with optional note */
-  onSetManualStatus?: (id: string, status: HypothesisStatus, note?: string) => void;
-  // --- Improvement Ideas (passed through to HypothesisNode) ---
+  /** Manually set question status with optional note */
+  onSetManualStatus?: (id: string, status: QuestionStatus, note?: string) => void;
+  // --- Improvement Ideas (passed through to QuestionNode) ---
   /** Computed impact for each idea (keyed by idea.id) */
   ideaImpacts?: Record<string, IdeaImpact | undefined>;
   /** Add an improvement idea */
-  onAddIdea?: (hypothesisId: string, text: string) => void;
+  onAddIdea?: (questionId: string, text: string) => void;
   /** Update an improvement idea */
   onUpdateIdea?: (
-    hypothesisId: string,
+    questionId: string,
     ideaId: string,
     updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
   ) => void;
   /** Remove an improvement idea */
-  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
+  onRemoveIdea?: (questionId: string, ideaId: string) => void;
   /** Toggle idea selected state */
-  onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  onSelectIdea?: (questionId: string, ideaId: string, selected: boolean) => void;
   /** Open What-If simulator pre-loaded for this idea */
-  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
+  onProjectIdea?: (questionId: string, ideaId: string) => void;
   /** Ask CoScout about improvement options */
   onAskCoScout?: (question: string) => void;
-  /** Set cause role on a hypothesis */
+  /** Set cause role on a question */
   onSetCauseRole?: (
-    hypothesisId: string,
+    questionId: string,
     role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined
   ) => void;
 }
@@ -85,20 +85,20 @@ export interface HypothesisTreeViewProps {
 /** Category group for tree rendering */
 interface CategoryGroup {
   category: InvestigationCategory;
-  factorGroups: Map<string, Hypothesis[]>;
+  factorGroups: Map<string, Question[]>;
 }
 
 /**
- * Tree view for hypothesis investigation.
+ * Tree view for question-driven investigation.
  * When `categories` are provided, renders a three-level tree:
- *   Category (structural header) → Factor (sub-header) → Hypothesis nodes
- * Without categories, renders a flat hypothesis tree (PWA compatibility).
+ *   Category (structural header) -> Factor (sub-header) -> Question nodes
+ * Without categories, renders a flat question tree (PWA compatibility).
  */
-const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
-  hypotheses,
+const QuestionTreeView: React.FC<QuestionTreeViewProps> = ({
+  questions,
   findings,
-  onSelectHypothesis,
-  onAddSubHypothesis,
+  onSelectQuestion,
+  onAddSubQuestion,
   factors,
   showContradicted = false,
   maxDepth = 3,
@@ -168,8 +168,8 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   }, [findings]);
 
   const childrenByParent = useMemo(() => {
-    const map = new Map<string, Hypothesis[]>();
-    for (const h of hypotheses) {
+    const map = new Map<string, Question[]>();
+    for (const h of questions) {
       if (h.parentId) {
         const siblings = map.get(h.parentId) || [];
         siblings.push(h);
@@ -177,64 +177,64 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
       }
     }
     return map;
-  }, [hypotheses]);
+  }, [questions]);
 
-  // Filter hypotheses
-  const filteredHypotheses = useMemo(() => {
-    if (!searchFilter) return hypotheses;
+  // Filter questions
+  const filteredQuestions = useMemo(() => {
+    if (!searchFilter) return questions;
     const lower = searchFilter.toLowerCase();
-    return hypotheses.filter(h => h.text.toLowerCase().includes(lower));
-  }, [hypotheses, searchFilter]);
+    return questions.filter(h => h.text.toLowerCase().includes(lower));
+  }, [questions, searchFilter]);
 
-  // Get root hypotheses
+  // Get root questions
   const roots = useMemo(() => {
-    return filteredHypotheses.filter(h => !h.parentId);
-  }, [filteredHypotheses]);
+    return filteredQuestions.filter(h => !h.parentId);
+  }, [filteredQuestions]);
 
-  // Compute depth for a hypothesis
+  // Compute depth for a question
   const getDepth = useCallback(
     (id: string): number => {
       let depth = 0;
-      let current = hypotheses.find(h => h.id === id);
+      let current = questions.find(h => h.id === id);
       while (current?.parentId) {
         depth++;
-        current = hypotheses.find(h => h.id === current!.parentId);
+        current = questions.find(h => h.id === current!.parentId);
         if (depth > maxDepth + 1) break;
       }
       return depth;
     },
-    [hypotheses, maxDepth]
+    [questions, maxDepth]
   );
 
-  // Render a hypothesis and its children recursively
+  // Render a question and its children recursively
   const renderNode = useCallback(
-    (hypothesis: Hypothesis, extraDepth: number = 0): React.ReactNode => {
-      const depth = getDepth(hypothesis.id) + extraDepth;
-      const children = childrenByParent.get(hypothesis.id) || [];
+    (question: Question, extraDepth: number = 0): React.ReactNode => {
+      const depth = getDepth(question.id) + extraDepth;
+      const children = childrenByParent.get(question.id) || [];
       const visibleChildren = showContradicted
         ? children
-        : children.filter(c => c.status !== 'contradicted');
+        : children.filter(c => c.status !== 'ruled-out');
 
-      const linkedFindings = hypothesis.linkedFindingIds
+      const linkedFindings = question.linkedFindingIds
         .map(fid => findingsById.get(fid))
         .filter(Boolean) as Finding[];
-      const childCount = childrenByParent.get(hypothesis.id)?.length ?? 0;
+      const childCount = childrenByParent.get(question.id)?.length ?? 0;
       const canAddChild = depth < maxDepth - 1 && childCount < maxChildrenPerParent;
-      const isExpanded = expandedIds.has(hypothesis.id);
+      const isExpanded = expandedIds.has(question.id);
 
       return (
-        <React.Fragment key={hypothesis.id}>
-          <HypothesisNode
-            hypothesis={hypothesis}
+        <React.Fragment key={question.id}>
+          <QuestionNode
+            question={question}
             depth={depth}
             children={visibleChildren}
             linkedFindings={linkedFindings}
             isExpanded={isExpanded}
             onToggle={toggleNode}
-            onSelect={onSelectHypothesis}
-            onAddChild={onAddSubHypothesis}
+            onSelect={onSelectQuestion}
+            onAddChild={onAddSubQuestion}
             factors={factors}
-            childrenSummary={getChildrenSummary?.(hypothesis.id)}
+            childrenSummary={getChildrenSummary?.(question.id)}
             canAddChild={canAddChild}
             showContradicted={showContradicted}
             onSetValidationTask={onSetValidationTask}
@@ -260,8 +260,8 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
       findingsById,
       expandedIds,
       toggleNode,
-      onSelectHypothesis,
-      onAddSubHypothesis,
+      onSelectQuestion,
+      onAddSubQuestion,
       factors,
       getChildrenSummary,
       showContradicted,
@@ -286,7 +286,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
     if (!categories || categories.length === 0) return null;
 
     return categories.map(cat => {
-      const factorGroups = new Map<string, Hypothesis[]>();
+      const factorGroups = new Map<string, Question[]>();
       for (const factorName of cat.factorNames) {
         const matching = roots.filter(h => h.factor === factorName);
         if (matching.length > 0) {
@@ -304,15 +304,15 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
     return roots.filter(h => !h.factor || !allCategorizedFactors.has(h.factor));
   }, [categories, roots]);
 
-  if (hypotheses.length === 0 && (!categories || categories.length === 0)) {
+  if (questions.length === 0 && (!categories || categories.length === 0)) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
         <span className="block text-sm text-content-secondary mb-1 flex items-center gap-1">
-          No hypotheses yet
-          <HelpTooltip term={getTerm('hypothesis')} iconSize={12} />
+          No questions yet
+          <HelpTooltip term={getTerm('question')} iconSize={12} />
         </span>
         <span className="block text-xs text-content-muted leading-relaxed max-w-[240px]">
-          Create hypotheses from finding cards to build a causal investigation tree.
+          Create questions from finding cards to build a causal investigation tree.
         </span>
       </div>
     );
@@ -321,12 +321,12 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   // Three-level rendering when categories are provided
   if (categoryGroups) {
     return (
-      <div className="flex-1 overflow-y-auto px-2 py-2" role="tree" data-testid="hypothesis-tree">
+      <div className="flex-1 overflow-y-auto px-2 py-2" role="tree" data-testid="question-tree">
         <div className="flex items-center gap-1 px-1 pb-1 mb-1 border-b border-edge/30">
           <span className="text-xs font-semibold text-content-secondary uppercase tracking-wider">
-            Hypotheses
+            Questions
           </span>
-          <HelpTooltip term={getTerm('hypothesis')} iconSize={12} />
+          <HelpTooltip term={getTerm('question')} iconSize={12} />
         </div>
         {categoryGroups.map(({ category, factorGroups }) => {
           const isCatExpanded = expandedCategories.has(category.id);
@@ -365,10 +365,10 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
                 )}
               </button>
 
-              {/* Factor sub-headers and hypotheses */}
+              {/* Factor sub-headers and questions */}
               {isCatExpanded &&
                 hasContent &&
-                [...factorGroups.entries()].map(([factorName, factorHypotheses]) => {
+                [...factorGroups.entries()].map(([factorName, factorQuestions]) => {
                   const isFactorExpanded = expandedFactors.has(factorName);
                   const factorEta = factorVariations?.[factorName];
 
@@ -398,14 +398,14 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
                           </span>
                         )}
                         <span className="text-[0.625rem] text-content-muted shrink-0">
-                          ({factorHypotheses.length})
+                          ({factorQuestions.length})
                         </span>
                       </button>
 
-                      {/* Hypothesis nodes under this factor */}
+                      {/* Question nodes under this factor */}
                       {isFactorExpanded && (
                         <div className="ml-3 sm:ml-4">
-                          {factorHypotheses.map(h => renderNode(h, 2))}
+                          {factorQuestions.map(h => renderNode(h, 2))}
                         </div>
                       )}
                     </div>
@@ -415,7 +415,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
           );
         })}
 
-        {/* Uncategorized hypotheses under "Other" group */}
+        {/* Uncategorized questions under "Other" group */}
         {uncategorizedRoots.length > 0 && (
           <div data-testid="category-group-other">
             <div className="flex items-center gap-2 py-2 px-1">
@@ -431,16 +431,16 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
 
   // Flat rendering (no categories — PWA compatibility)
   return (
-    <div className="flex-1 overflow-y-auto px-2 py-2" role="tree" data-testid="hypothesis-tree">
+    <div className="flex-1 overflow-y-auto px-2 py-2" role="tree" data-testid="question-tree">
       <div className="flex items-center gap-1 px-1 pb-1 mb-1 border-b border-edge/30">
         <span className="text-xs font-semibold text-content-secondary uppercase tracking-wider">
-          Hypotheses
+          Questions
         </span>
-        <HelpTooltip term={getTerm('hypothesis')} iconSize={12} />
+        <HelpTooltip term={getTerm('question')} iconSize={12} />
       </div>
       {roots.map(root => renderNode(root))}
     </div>
   );
 };
 
-export default HypothesisTreeView;
+export default QuestionTreeView;

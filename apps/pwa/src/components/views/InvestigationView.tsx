@@ -18,9 +18,9 @@ import {
 import {
   useResizablePanel,
   type UseFindingsReturn,
-  type UseHypothesesReturn,
+  type UseQuestionsReturn,
 } from '@variscout/hooks';
-import type { FindingStatus, Hypothesis } from '@variscout/core';
+import type { FindingStatus, Question } from '@variscout/core';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { getStrategy } from '@variscout/core/strategy';
 import type { ResolvedMode } from '@variscout/core/strategy';
@@ -40,17 +40,12 @@ interface InvestigationViewProps {
   handleRestoreFinding: (id: string) => void;
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
   drillPath: DrillStep[];
-  // Hypotheses
-  hypothesesState: UseHypothesesReturn;
-  handleCreateHypothesis: (
-    findingId: string,
-    text: string,
-    factor?: string,
-    level?: string
-  ) => void;
+  // Questions
+  questionsState: UseQuestionsReturn;
+  handleCreateQuestion: (findingId: string, text: string, factor?: string, level?: string) => void;
   // Question generation
-  factorIntelQuestions: Hypothesis[];
-  handleQuestionClick: (question: Hypothesis) => void;
+  factorIntelQuestions: Question[];
+  handleQuestionClick: (question: Question) => void;
   // Column aliases
   columnAliases: Record<string, string>;
   // Strategy
@@ -62,21 +57,21 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   handleRestoreFinding,
   handleSetFindingStatus,
   drillPath,
-  hypothesesState,
-  handleCreateHypothesis,
+  questionsState,
+  handleCreateQuestion,
   factorIntelQuestions,
   handleQuestionClick,
   columnAliases,
   resolvedMode,
 }) => {
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
-  const hypothesesMap = useInvestigationStore(s => s.hypothesesMap);
+  const questionsMap = useInvestigationStore(s => s.questionsMap);
   const ideaImpacts = useInvestigationStore(s => s.ideaImpacts);
 
   // Investigation phase detection (deterministic)
   const investigationPhase = useMemo(
-    () => detectInvestigationPhase(hypothesesState.hypotheses, findingsState.findings),
-    [hypothesesState.hypotheses, findingsState.findings]
+    () => detectInvestigationPhase(questionsState.questions, findingsState.findings),
+    [questionsState.questions, findingsState.findings]
   );
 
   const strategy = getStrategy(resolvedMode);
@@ -93,23 +88,23 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   // View mode (list/board/tree)
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'tree'>('board');
 
-  // Categorize hypotheses for InvestigationConclusion
+  // Categorize questions for InvestigationConclusion
   const { suspectedCauses, contributing, ruledOut } = useMemo(() => {
-    const suspected: Hypothesis[] = [];
-    const contrib: Hypothesis[] = [];
-    const ruled: Hypothesis[] = [];
-    for (const h of hypothesesState.hypotheses) {
-      if (h.causeRole === 'suspected-cause') suspected.push(h);
-      else if (h.causeRole === 'contributing') contrib.push(h);
-      else if (h.causeRole === 'ruled-out') ruled.push(h);
+    const suspected: Question[] = [];
+    const contrib: Question[] = [];
+    const ruled: Question[] = [];
+    for (const q of questionsState.questions) {
+      if (q.causeRole === 'suspected-cause') suspected.push(q);
+      else if (q.causeRole === 'contributing') contrib.push(q);
+      else if (q.causeRole === 'ruled-out') ruled.push(q);
     }
     return { suspectedCauses: suspected, contributing: contrib, ruledOut: ruled };
-  }, [hypothesesState.hypotheses]);
+  }, [questionsState.questions]);
 
   const drillFactors = useMemo(() => drillPath.map(d => d.factor), [drillPath]);
 
   // Question click: switch back to Analysis workspace with factor focused
-  const handleQuestionClickWithSwitch = (question: Hypothesis) => {
+  const handleQuestionClickWithSwitch = (question: Question) => {
     handleQuestionClick(question);
     usePanelsStore.getState().showAnalysis();
   };
@@ -192,31 +187,33 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
             onDeleteFinding={findingsState.deleteFinding}
             onRestoreFinding={handleRestoreFinding}
             viewMode={viewMode}
-            hypotheses={hypothesesState.hypotheses}
-            onSelectHypothesis={h => useInvestigationStore.getState().expandToHypothesis(h.id)}
-            onAddSubHypothesis={hypothesesState.addSubHypothesis}
+            questions={questionsState.questions}
+            onSelectQuestion={(q: Question) =>
+              useInvestigationStore.getState().expandToQuestion(q.id)
+            }
+            onAddSubQuestion={questionsState.addSubQuestion}
             factors={drillFactors}
-            getChildrenSummary={hypothesesState.getChildrenSummary}
+            getChildrenSummary={questionsState.getChildrenSummary}
             onSetFindingStatus={handleSetFindingStatus}
             onSetFindingTag={findingsState.setFindingTag}
             onAddComment={(id: string, text: string) => findingsState.addFindingComment(id, text)}
             columnAliases={columnAliases}
             activeFindingId={highlightedFindingId}
-            onCreateHypothesis={handleCreateHypothesis}
-            hypothesesMap={hypothesesMap}
-            onSetValidationTask={hypothesesState.setValidationTask}
-            onCompleteTask={hypothesesState.completeTask}
-            onSetManualStatus={hypothesesState.setManualStatus}
+            onCreateQuestion={handleCreateQuestion}
+            questionsMap={questionsMap}
+            onSetValidationTask={questionsState.setValidationTask}
+            onCompleteTask={questionsState.completeTask}
+            onSetManualStatus={questionsState.setManualStatus}
             onAddAction={findingsState.addAction}
             onCompleteAction={findingsState.completeAction}
             onDeleteAction={findingsState.deleteAction}
             onSetOutcome={findingsState.setOutcome}
             ideaImpacts={ideaImpacts}
-            onAddIdea={hypothesesState.addIdea}
-            onUpdateIdea={hypothesesState.updateIdea}
-            onRemoveIdea={hypothesesState.removeIdea}
-            onSelectIdea={hypothesesState.selectIdea}
-            onSetCauseRole={hypothesesState.setCauseRole}
+            onAddIdea={questionsState.addIdea}
+            onUpdateIdea={questionsState.updateIdea}
+            onRemoveIdea={questionsState.removeIdea}
+            onSelectIdea={questionsState.selectIdea}
+            onSetCauseRole={questionsState.setCauseRole}
           />
         </div>
       </div>

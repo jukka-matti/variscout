@@ -6,7 +6,7 @@ import {
   buildSubPageId,
   parseSubPageId,
   buildProjectLink,
-  buildHypothesisLink,
+  buildQuestionLink,
   buildImprovementLink,
   buildOverviewLink,
   validateDeepLink,
@@ -19,7 +19,7 @@ describe('deepLinks', () => {
       expect(result).toEqual({
         project: 'MyAnalysis',
         findingId: 'abc123',
-        hypothesisId: null,
+        questionId: null,
         chart: null,
         mode: null,
         tab: null,
@@ -31,7 +31,7 @@ describe('deepLinks', () => {
       expect(result).toEqual({
         project: 'Test',
         findingId: null,
-        hypothesisId: null,
+        questionId: null,
         chart: 'boxplot',
         mode: null,
         tab: null,
@@ -43,7 +43,7 @@ describe('deepLinks', () => {
       expect(result).toEqual({
         project: null,
         findingId: null,
-        hypothesisId: null,
+        questionId: null,
         chart: null,
         mode: null,
         tab: null,
@@ -55,7 +55,7 @@ describe('deepLinks', () => {
       expect(result).toEqual({
         project: 'X',
         findingId: null,
-        hypothesisId: null,
+        questionId: null,
         chart: null,
         mode: null,
         tab: null,
@@ -79,9 +79,9 @@ describe('deepLinks', () => {
       expect(result.findingId).toBe('abc-123_def');
     });
 
-    it('parses hypothesis param', () => {
-      const result = parseDeepLink('?project=P&hypothesis=abc123');
-      expect(result.hypothesisId).toBe('abc123');
+    it('parses question param', () => {
+      const result = parseDeepLink('?project=P&question=abc123');
+      expect(result.questionId).toBe('abc123');
       expect(result.findingId).toBeNull();
     });
 
@@ -149,14 +149,14 @@ describe('deepLinks', () => {
     });
   });
 
-  describe('buildHypothesisLink', () => {
-    it('builds a URL with project and hypothesis params', () => {
-      const url = buildHypothesisLink('https://app.example.com/', 'proj-001', 'hyp-42');
-      expect(url).toBe('https://app.example.com/?project=proj-001&hypothesis=hyp-42');
+  describe('buildQuestionLink', () => {
+    it('builds a URL with project and question params', () => {
+      const url = buildQuestionLink('https://app.example.com/', 'proj-001', 'q-42');
+      expect(url).toBe('https://app.example.com/?project=proj-001&question=q-42');
     });
 
     it('does not include view param', () => {
-      const url = buildHypothesisLink('https://app.example.com/', 'p', 'h');
+      const url = buildQuestionLink('https://app.example.com/', 'p', 'q');
       expect(url).not.toContain('view=');
     });
   });
@@ -197,9 +197,9 @@ describe('deepLinks', () => {
       expect(id).toBe('project=Project');
     });
 
-    it('builds subPageId with hypothesis', () => {
-      const id = buildSubPageId('Project', { hypothesisId: 'hyp-99' });
-      expect(id).toBe('project=Project&hypothesis=hyp-99');
+    it('builds subPageId with question', () => {
+      const id = buildSubPageId('Project', { questionId: 'q-99' });
+      expect(id).toBe('project=Project&question=q-99');
     });
 
     it('builds subPageId with mode=improvement', () => {
@@ -220,7 +220,7 @@ describe('deepLinks', () => {
       expect(parsed).toEqual({
         project: 'MyProject',
         findingId: 'abc',
-        hypothesisId: null,
+        questionId: null,
         chart: null,
         mode: null,
         tab: null,
@@ -233,7 +233,7 @@ describe('deepLinks', () => {
       expect(parsed).toEqual({
         project: 'P',
         findingId: null,
-        hypothesisId: null,
+        questionId: null,
         chart: 'pareto',
         mode: null,
         tab: null,
@@ -252,10 +252,10 @@ describe('deepLinks', () => {
       expect(parsed.chart).toBe('stats');
     });
 
-    it('round-trips with buildSubPageId for hypothesis', () => {
-      const id = buildSubPageId('Proj', { hypothesisId: 'hyp-7' });
+    it('round-trips with buildSubPageId for question', () => {
+      const id = buildSubPageId('Proj', { questionId: 'q-7' });
       const parsed = parseSubPageId(id);
-      expect(parsed.hypothesisId).toBe('hyp-7');
+      expect(parsed.questionId).toBe('q-7');
       expect(parsed.findingId).toBeNull();
     });
 
@@ -278,7 +278,7 @@ describe('deepLinks', () => {
 
     it('returns valid when params have no project', () => {
       const result = validateDeepLink(
-        { project: null, findingId: null, hypothesisId: null, chart: null, mode: null, tab: null },
+        { project: null, findingId: null, questionId: null, chart: null, mode: null, tab: null },
         projectExists,
         false
       );
@@ -291,7 +291,7 @@ describe('deepLinks', () => {
         {
           project: 'proj-001',
           findingId: null,
-          hypothesisId: null,
+          questionId: null,
           chart: null,
           mode: null,
           tab: null,
@@ -308,7 +308,7 @@ describe('deepLinks', () => {
         {
           project: 'proj-002',
           findingId: null,
-          hypothesisId: null,
+          questionId: null,
           chart: null,
           mode: null,
           tab: null,
@@ -324,7 +324,7 @@ describe('deepLinks', () => {
         {
           project: 'proj-missing',
           findingId: null,
-          hypothesisId: null,
+          questionId: null,
           chart: null,
           mode: null,
           tab: null,
@@ -342,7 +342,7 @@ describe('deepLinks', () => {
         {
           project: 'proj-missing',
           findingId: null,
-          hypothesisId: null,
+          questionId: null,
           chart: null,
           mode: null,
           tab: null,

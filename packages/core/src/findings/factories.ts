@@ -11,8 +11,8 @@ import {
   type FindingOutcome,
   type FindingAssignee,
   type ActionItem,
-  type Hypothesis,
-  type HypothesisValidationType,
+  type Question,
+  type QuestionValidationType,
   type ImprovementIdea,
   type PhotoAttachment,
   type InvestigationCategory,
@@ -26,22 +26,22 @@ export function generateId(): string {
 }
 
 /**
- * Create a new Hypothesis with a unique ID
+ * Create a new Question with a unique ID
  */
-export function createHypothesis(
+export function createQuestion(
   text: string,
   factor?: string,
   level?: string,
   parentId?: string,
-  validationType?: HypothesisValidationType
-): Hypothesis {
+  validationType?: QuestionValidationType
+): Question {
   const now = new Date().toISOString();
   return {
     id: generateId(),
     text,
     factor,
     level,
-    status: 'untested',
+    status: 'open',
     linkedFindingIds: [],
     createdAt: now,
     updatedAt: now,
@@ -185,17 +185,17 @@ export interface FactorFindingInput {
 /** Bundle returned by createFactorFinding. */
 export interface FactorFindingBundle {
   finding: Finding;
-  hypothesis: Hypothesis;
+  question: Question;
   idea: ImprovementIdea;
 }
 
 /**
- * Create a Finding + Hypothesis + ImprovementIdea from Factor Intelligence output.
+ * Create a Finding + Question + ImprovementIdea from Factor Intelligence output.
  *
- * The hypothesis is auto-set to:
+ * The question is auto-set to:
  *   - factor: the factor column name
  *   - level: the worst-performing level (the one to change)
- *   - status: 'supported' (statistically validated by η²)
+ *   - status: 'answered' (statistically validated by η²)
  *   - validationType: 'data' (evidence is from data analysis)
  *
  * The improvement idea targets the factor change: worst → best.
@@ -214,18 +214,18 @@ export function createFactorFinding(input: FactorFindingInput): FactorFindingBun
     'investigating' // skip 'observed' — Factor Intelligence already validated statistically
   );
 
-  const hypothesis = createHypothesis(
+  const question = createQuestion(
     `${factor} level "${worstLevel}" causes worse outcome — target: change to "${bestLevel}"`,
     factor,
     worstLevel,
     undefined,
     'data' // validated by data analysis, not gemba/expert
   );
-  hypothesis.status = 'supported'; // Factor Intelligence provides statistical evidence
-  hypothesis.linkedFindingIds = [finding.id];
+  question.status = 'answered'; // Factor Intelligence provides statistical evidence
+  question.linkedFindingIds = [finding.id];
 
-  // Link finding to hypothesis
-  finding.hypothesisId = hypothesis.id;
+  // Link finding to question
+  finding.questionId = question.id;
   finding.validationStatus = 'supports';
 
   // Seed improvement idea
@@ -234,10 +234,10 @@ export function createFactorFinding(input: FactorFindingInput): FactorFindingBun
   );
   idea.direction = 'eliminate';
 
-  // Attach idea to hypothesis
-  hypothesis.ideas = [idea];
+  // Attach idea to question
+  question.ideas = [idea];
 
-  return { finding, hypothesis, idea };
+  return { finding, question, idea };
 }
 
 /**

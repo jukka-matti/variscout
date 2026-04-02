@@ -42,7 +42,7 @@ packages/
 │              #   useAnnotations - Chart annotation state (highlights, text notes)
 │              #   useChartCopy - Chart export (clipboard, PNG, SVG)
 │              #   useFindings - Finding CRUD, status, actions, outcomes
-│              #   useHypotheses - Hypothesis tree CRUD, auto-validation
+│              #   useQuestions - Question tree CRUD, auto-validation
 │              #   useQuestionGeneration - Factor Intelligence → question pipeline
 │              #   useBoxplotWrapperData - Shared boxplot wrapper data prep
 │              #   useIChartWrapperData - Shared I-Chart wrapper data prep
@@ -87,11 +87,11 @@ packages/
                #   HelpTooltip, SelectionPanel, CreateFactorModal, UpgradePrompt,
                #   Slider, WhatIfSimulator, WhatIfPageBase,
                #   ErrorBoundary, AxisEditor, FactorSelector,
-               #   StatsPanelBase, StatsSummaryPanel, TargetDiscoveryCard,
+               #   PIPanelBase, StatsSummaryPanel, TargetDiscoveryCard,
                #   FactorIntelligencePanel, VerificationCard,
                #   FindingsWindow, FindingsLog, FindingCard, FindingEditor,
                #   FindingStatusBadge, FindingComments, FindingBoardView, FindingsExportMenu,
-               #   HypothesisTreeView, HypothesisNode, QuestionChecklist, InvestigationConclusion,
+               #   QuestionTreeView, QuestionNode, QuestionChecklist, InvestigationConclusion,
                #   InvestigationPrompt, PasteScreenBase, BoxplotDisplayToggle,
                #   ChartAnnotationLayer, AnnotationContextMenu, MobileCategorySheet, MobileTabBar,
                #   ManualEntryBase, ManualEntrySetupBase, SpecsPopover, SpecEditor,
@@ -110,7 +110,7 @@ packages/
                #   InvestigationPhaseBadge, AIOnboardingTooltip,
                #   InvestigationSidebar, StagedComparisonCard,
                #   ReportViewBase, ReportSection, ReportStepMarker, ReportKPIGrid,
-               #   ReportChartSnapshot, ReportCpkLearningLoop, ReportHypothesisSummary,
+               #   ReportChartSnapshot, ReportCpkLearningLoop, ReportQuestionSummary,
                #   ReportImprovementSummary, ReportInvestigationSummary,
                #   ReportCapabilityKPIGrid, ReportPerformanceKPIGrid,
                #   ReportYamazumiKPIGrid, ReportActivityBreakdown,
@@ -218,6 +218,6 @@ pnpm -r build           # Build recursively
 
 ## Naming Conventions
 
-- **`*Base`** — Shared primitive component in `@variscout/ui` (e.g., `StatsPanelBase`, `DashboardGrid`). Accepts data/callbacks via props, no app-specific logic.
+- **`*Base`** — Shared primitive component in `@variscout/ui` (e.g., `PIPanelBase`, `DashboardGrid`). Accepts data/callbacks via props, no app-specific logic.
 - **`*WrapperBase`** — App-level chart wrapper in `@variscout/ui` (e.g., `IChartWrapperBase`, `BoxplotWrapperBase`). Composes shared hooks + Base chart + app UI (display toggles, context menu). Each app imports WrapperBase and adds ~50 lines of app-specific wiring.
 - App wrappers (in `apps/*/`) import `*WrapperBase` or `*Base` and add app-specific context, persistence, and keyboard navigation.

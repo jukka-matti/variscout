@@ -1,14 +1,14 @@
 import React from 'react';
 import { ChevronRight, ChevronDown, Check, X } from 'lucide-react';
-import type { Hypothesis, Finding } from '@variscout/core/findings';
-import { getQuestionDisplayStatus, QUESTION_STATUS_COLORS } from '@variscout/core/findings';
+import type { Question, Finding } from '@variscout/core/findings';
+import { QUESTION_STATUS_COLORS } from '@variscout/core/findings';
 
 export interface QuestionRowProps {
-  question: Hypothesis;
+  question: Question;
   findings: Finding[];
   isActive?: boolean;
   isExpanded?: boolean;
-  onClick?: (question: Hypothesis) => void;
+  onClick?: (question: Question) => void;
   onToggleExpand?: (questionId: string) => void;
   /** Mode-aware evidence label (default: R²adj) */
   evidenceLabel?: string;
@@ -52,7 +52,7 @@ const QuestionRow: React.FC<QuestionRowProps> = ({
   onToggleExpand,
   evidenceLabel = 'R²adj',
 }) => {
-  const displayStatus = getQuestionDisplayStatus(question.status);
+  const displayStatus = question.status;
   const statusColor = QUESTION_STATUS_COLORS[displayStatus];
   const borderColor = STATUS_BORDER[displayStatus] ?? 'border-l-slate-500';
   const isRuledOut = displayStatus === 'ruled-out';

@@ -9,15 +9,15 @@ import type {
 import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
 import type { ComplementInsight } from '@variscout/core';
 
-export type StatsPanelTab = 'stats' | 'questions' | 'journal';
+export type PITab = 'stats' | 'questions' | 'journal';
 export type PIOverflowView = 'data' | 'whatif' | null;
 
-export interface StatsPanelBaseProps {
+export interface PIPanelBaseProps {
   stats: StatsResult | null;
   specs: SpecLimits;
   filteredData?: DataRow[];
   outcome?: string | null;
-  defaultTab?: StatsPanelTab;
+  defaultTab?: PITab;
   className?: string;
   compact?: boolean;
   /** Called when user clicks the pencil link to edit/set spec limits */

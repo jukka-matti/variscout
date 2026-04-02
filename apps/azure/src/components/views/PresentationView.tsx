@@ -6,7 +6,7 @@ import React from 'react';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
-import StatsPanel from '../StatsPanel';
+import ProcessIntelligencePanel from '../ProcessIntelligencePanel';
 import { PresentationViewBase } from '@variscout/ui';
 import { useData } from '../../context/DataContext';
 
@@ -65,7 +65,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
         ) : null
       }
       renderStats={() => (
-        <StatsPanel
+        <ProcessIntelligencePanel
           stats={stats}
           specs={specs}
           filteredData={filteredData}

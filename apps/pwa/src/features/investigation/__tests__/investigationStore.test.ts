@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useInvestigationStore } from '../investigationStore';
-import type { Hypothesis } from '@variscout/core';
+import type { Question } from '@variscout/core';
 
-const makeHypothesis = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
-  id: `h-${Math.random()}`,
-  text: 'test hypothesis',
-  status: 'untested',
+const makeQuestion = (overrides: Partial<Question> = {}): Question => ({
+  id: `q-${Math.random()}`,
+  text: 'test question',
+  status: 'open',
   linkedFindingIds: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -14,33 +14,33 @@ const makeHypothesis = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
 
 beforeEach(() => {
   useInvestigationStore.setState({
-    hypotheses: [],
-    hypothesesMap: {},
+    questions: [],
+    questionsMap: {},
     ideaImpacts: {},
     projectionTarget: null,
-    expandedHypothesisId: null,
+    expandedQuestionId: null,
   });
 });
 
 describe('investigationStore', () => {
-  it('syncHypotheses updates hypotheses', () => {
-    const hypotheses = [makeHypothesis({ text: 'Shift effect' })];
-    useInvestigationStore.getState().syncHypotheses(hypotheses);
-    expect(useInvestigationStore.getState().hypotheses).toHaveLength(1);
+  it('syncQuestions updates questions', () => {
+    const questions = [makeQuestion({ text: 'Shift effect' })];
+    useInvestigationStore.getState().syncQuestions(questions);
+    expect(useInvestigationStore.getState().questions).toHaveLength(1);
   });
 
-  it('syncHypothesesMap updates display map', () => {
-    const map = { 'h-1': { text: 'Test', status: 'supported', factor: 'Shift' } };
-    useInvestigationStore.getState().syncHypothesesMap(map);
-    expect(useInvestigationStore.getState().hypothesesMap).toEqual(map);
+  it('syncQuestionsMap updates display map', () => {
+    const map = { 'q-1': { text: 'Test', status: 'answered', factor: 'Shift' } };
+    useInvestigationStore.getState().syncQuestionsMap(map);
+    expect(useInvestigationStore.getState().questionsMap).toEqual(map);
   });
 
   it('setProjectionTarget sets and clears', () => {
     const target = {
-      hypothesisId: 'h-1',
+      questionId: 'q-1',
       ideaId: 'i-1',
       ideaText: 'Change shift',
-      hypothesisText: 'Shift effect',
+      questionText: 'Shift effect',
     };
     useInvestigationStore.getState().setProjectionTarget(target);
     expect(useInvestigationStore.getState().projectionTarget).toEqual(target);
@@ -48,8 +48,8 @@ describe('investigationStore', () => {
     expect(useInvestigationStore.getState().projectionTarget).toBeNull();
   });
 
-  it('expandToHypothesis sets expanded ID', () => {
-    useInvestigationStore.getState().expandToHypothesis('h-42');
-    expect(useInvestigationStore.getState().expandedHypothesisId).toBe('h-42');
+  it('expandToQuestion sets expanded ID', () => {
+    useInvestigationStore.getState().expandToQuestion('q-42');
+    expect(useInvestigationStore.getState().expandedQuestionId).toBe('q-42');
   });
 });

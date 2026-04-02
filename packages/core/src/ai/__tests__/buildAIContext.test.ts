@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildAIContext, detectInvestigationPhase } from '../buildAIContext';
 import type { AIStatsInput } from '../buildAIContext';
-import { createHypothesis, type Finding } from '../../findings';
+import { createQuestion, type Finding } from '../../findings';
 import type { ProcessContext } from '../types';
 
 const mockStats: AIStatsInput = {
@@ -202,21 +202,21 @@ describe('buildAIContext', () => {
     expect(ctx.stats!.passRate).toBe(95);
   });
 
-  it('populates hypothesisTree with root hypotheses and children', () => {
-    const root = createHypothesis('Root cause', 'Machine');
-    const child = createHypothesis('Sub cause', 'Shift', undefined, root.id, 'gemba');
+  it('populates questionTree with root questions and children', () => {
+    const root = createQuestion('Root cause', 'Machine');
+    const child = createQuestion('Sub cause', 'Shift', undefined, root.id, 'gemba');
     const ctx = buildAIContext({
       process: { issueStatement: 'Cpk below target' },
-      hypotheses: [root, child],
+      questions: [root, child],
     });
-    expect(ctx.investigation?.hypothesisTree).toHaveLength(1);
-    expect(ctx.investigation?.hypothesisTree?.[0].children).toHaveLength(1);
-    expect(ctx.investigation?.hypothesisTree?.[0].children?.[0].validationType).toBe('gemba');
+    expect(ctx.investigation?.questionTree).toHaveLength(1);
+    expect(ctx.investigation?.questionTree?.[0].children).toHaveLength(1);
+    expect(ctx.investigation?.questionTree?.[0].children?.[0].validationType).toBe('gemba');
   });
 
-  it('populates ideas from hypotheses', () => {
-    const root = createHypothesis('Root cause', 'Machine');
-    root.status = 'supported';
+  it('populates ideas from questions', () => {
+    const root = createQuestion('Root cause', 'Machine');
+    root.status = 'answered';
     root.ideas = [
       {
         id: 'idea-1',
@@ -238,12 +238,12 @@ describe('buildAIContext', () => {
     ];
     const ctx = buildAIContext({
       process: { issueStatement: 'Test' },
-      hypotheses: [root],
+      questions: [root],
     });
-    expect(ctx.investigation?.allHypotheses?.[0].ideas).toHaveLength(1);
-    expect(ctx.investigation?.allHypotheses?.[0].ideas?.[0].text).toBe('Simplify setup');
-    expect(ctx.investigation?.allHypotheses?.[0].ideas?.[0].selected).toBe(true);
-    expect(ctx.investigation?.allHypotheses?.[0].ideas?.[0].projection).toBeDefined();
+    expect(ctx.investigation?.allQuestions?.[0].ideas).toHaveLength(1);
+    expect(ctx.investigation?.allQuestions?.[0].ideas?.[0].text).toBe('Simplify setup');
+    expect(ctx.investigation?.allQuestions?.[0].ideas?.[0].selected).toBe(true);
+    expect(ctx.investigation?.allQuestions?.[0].ideas?.[0].projection).toBeDefined();
   });
 
   it('includes methodology concepts in glossary fragment', () => {
@@ -343,7 +343,7 @@ describe('buildAIContext', () => {
 
   it('includes teamContributors when count > 0', () => {
     const ctx = buildAIContext({
-      teamContributors: { count: 3, hypothesisAreas: ['Machine', 'Shift'] },
+      teamContributors: { count: 3, questionAreas: ['Machine', 'Shift'] },
     });
     expect(ctx.teamContributors).toBeDefined();
     expect(ctx.teamContributors!.count).toBe(3);
@@ -351,7 +351,7 @@ describe('buildAIContext', () => {
 
   it('omits teamContributors when count is 0', () => {
     const ctx = buildAIContext({
-      teamContributors: { count: 0, hypothesisAreas: [] },
+      teamContributors: { count: 0, questionAreas: [] },
     });
     expect(ctx.teamContributors).toBeUndefined();
   });
@@ -361,22 +361,22 @@ describe('buildAIContext', () => {
       process: { issueStatement: 'Cpk below target' },
       selectedFinding: {
         text: 'Head 3 drift',
-        hypothesis: 'Worn nozzle',
+        question: 'Worn nozzle',
       },
     });
     expect(ctx.investigation?.selectedFinding).toBeDefined();
     expect(ctx.investigation!.selectedFinding!.text).toBe('Head 3 drift');
-    expect(ctx.investigation!.selectedFinding!.hypothesis).toBe('Worn nozzle');
+    expect(ctx.investigation!.selectedFinding!.question).toBe('Worn nozzle');
   });
 
   it('detects investigation phase', () => {
-    const root = createHypothesis('Root');
-    root.status = 'supported';
-    const child = createHypothesis('Child', undefined, undefined, root.id);
-    child.status = 'supported';
+    const root = createQuestion('Root');
+    root.status = 'answered';
+    const child = createQuestion('Child', undefined, undefined, root.id);
+    child.status = 'answered';
     const ctx = buildAIContext({
       process: { issueStatement: 'Test' },
-      hypotheses: [root, child],
+      questions: [root, child],
     });
     expect(ctx.investigation?.phase).toBe('converging');
   });
@@ -460,33 +460,33 @@ describe('buildAIContext stagedComparison', () => {
 });
 
 describe('detectInvestigationPhase', () => {
-  it('returns initial when no hypotheses', () => {
+  it('returns initial when no questions', () => {
     expect(detectInvestigationPhase([])).toBe('initial');
   });
 
-  it('returns initial for root-only untested hypotheses', () => {
-    const h = createHypothesis('Test');
-    expect(detectInvestigationPhase([h])).toBe('initial');
+  it('returns initial for root-only open questions', () => {
+    const q = createQuestion('Test');
+    expect(detectInvestigationPhase([q])).toBe('initial');
   });
 
-  it('returns diverging when children exist and mostly untested', () => {
-    const root = createHypothesis('Root');
-    const c1 = createHypothesis('C1', undefined, undefined, root.id);
-    const c2 = createHypothesis('C2', undefined, undefined, root.id);
+  it('returns diverging when children exist and mostly open', () => {
+    const root = createQuestion('Root');
+    const c1 = createQuestion('C1', undefined, undefined, root.id);
+    const c2 = createQuestion('C2', undefined, undefined, root.id);
     expect(detectInvestigationPhase([root, c1, c2])).toBe('diverging');
   });
 
-  it('returns converging when most are tested', () => {
-    const root = createHypothesis('Root');
-    root.status = 'supported';
-    const child = createHypothesis('Child', undefined, undefined, root.id);
-    child.status = 'contradicted';
+  it('returns converging when most are answered', () => {
+    const root = createQuestion('Root');
+    root.status = 'answered';
+    const child = createQuestion('Child', undefined, undefined, root.id);
+    child.status = 'ruled-out';
     expect(detectInvestigationPhase([root, child])).toBe('converging');
   });
 
   it('returns acting when findings have actions', () => {
-    const h = createHypothesis('Test');
-    h.status = 'supported';
+    const q = createQuestion('Test');
+    q.status = 'answered';
     const findings = [
       {
         id: 'f1',
@@ -499,43 +499,43 @@ describe('detectInvestigationPhase', () => {
         actions: [{ id: 'a1', text: 'Fix it', createdAt: 0 }],
       },
     ];
-    expect(detectInvestigationPhase([h], findings)).toBe('improving');
+    expect(detectInvestigationPhase([q], findings)).toBe('improving');
   });
 
-  it('returns validating when 1 root supported and 1 root untested (no children)', () => {
-    const h1 = createHypothesis('Supported root');
-    h1.status = 'supported';
-    const h2 = createHypothesis('Untested root');
-    // h2 is untested by default
-    expect(detectInvestigationPhase([h1, h2])).toBe('validating');
+  it('returns validating when 1 root answered and 1 root open (no children)', () => {
+    const q1 = createQuestion('Answered root');
+    q1.status = 'answered';
+    const q2 = createQuestion('Open root');
+    // q2 is open by default
+    expect(detectInvestigationPhase([q1, q2])).toBe('validating');
   });
 
-  it('returns validating at 50/50 boundary (2 tested + 2 untested, no children)', () => {
-    const h1 = createHypothesis('Tested 1');
-    h1.status = 'supported';
-    const h2 = createHypothesis('Tested 2');
-    h2.status = 'contradicted';
-    const h3 = createHypothesis('Untested 1');
-    const h4 = createHypothesis('Untested 2');
-    // 2 tested vs 2 untested — not strictly more tested, so falls through to validating
-    expect(detectInvestigationPhase([h1, h2, h3, h4])).toBe('validating');
+  it('returns validating at 50/50 boundary (2 answered + 2 open, no children)', () => {
+    const q1 = createQuestion('Answered 1');
+    q1.status = 'answered';
+    const q2 = createQuestion('Answered 2');
+    q2.status = 'ruled-out';
+    const q3 = createQuestion('Open 1');
+    const q4 = createQuestion('Open 2');
+    // 2 answered vs 2 open — not strictly more answered, so falls through to validating
+    expect(detectInvestigationPhase([q1, q2, q3, q4])).toBe('validating');
   });
 
-  it('does not return acting with empty findings array and supported hypotheses', () => {
-    const h = createHypothesis('Test');
-    h.status = 'supported';
-    const phase = detectInvestigationPhase([h], []);
+  it('does not return acting with empty findings array and answered questions', () => {
+    const q = createQuestion('Test');
+    q.status = 'answered';
+    const phase = detectInvestigationPhase([q], []);
     expect(phase).not.toBe('improving');
-    // With 1 tested (supported) and 0 untested → converging
+    // With 1 answered and 0 open → converging
     expect(phase).toBe('converging');
   });
 
-  it('returns converging when all hypotheses are contradicted', () => {
-    const h1 = createHypothesis('Hypothesis A');
-    h1.status = 'contradicted';
-    const h2 = createHypothesis('Hypothesis B');
-    h2.status = 'contradicted';
-    expect(detectInvestigationPhase([h1, h2])).toBe('converging');
+  it('returns converging when all questions are ruled out', () => {
+    const q1 = createQuestion('Question A');
+    q1.status = 'ruled-out';
+    const q2 = createQuestion('Question B');
+    q2.status = 'ruled-out';
+    expect(detectInvestigationPhase([q1, q2])).toBe('converging');
   });
 });
 

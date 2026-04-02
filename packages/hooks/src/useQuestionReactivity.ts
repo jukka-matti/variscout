@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import type { Hypothesis } from '@variscout/core';
+import type { Question } from '@variscout/core';
 
 interface UseQuestionReactivityOptions {
-  questions: Hypothesis[];
+  questions: Question[];
   activeFactor: string | null;
 }
 

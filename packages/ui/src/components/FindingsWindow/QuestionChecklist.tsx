@@ -1,16 +1,16 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Check, ChevronDown, ChevronRight, X } from 'lucide-react';
-import type { Hypothesis } from '@variscout/core';
+import type { Question } from '@variscout/core';
 
 export interface QuestionChecklistProps {
-  /** Questions (Hypothesis objects with questionSource set) */
-  questions: Hypothesis[];
+  /** Questions (Question objects with questionSource set) */
+  questions: Question[];
   /** Current issue statement text */
   issueStatement?: string;
   /** Callback when issue statement is edited */
   onIssueStatementChange?: (text: string) => void;
   /** Callback when a question is clicked — should switch dashboard to show evidence */
-  onQuestionClick?: (question: Hypothesis) => void;
+  onQuestionClick?: (question: Question) => void;
   /** Callback to answer a question (link finding) */
   onAnswerQuestion?: (questionId: string) => void;
   /** CoScout-suggested sharpened issue statement (shown when available) */
@@ -30,13 +30,13 @@ export interface QuestionChecklistProps {
 const ISSUE_STATEMENT_MAX = 500;
 
 /** Status dot color classes */
-function statusDotClass(status: Hypothesis['status']): string {
+function statusDotClass(status: Question['status']): string {
   switch (status) {
-    case 'supported':
+    case 'answered':
       return 'bg-green-500';
-    case 'contradicted':
+    case 'ruled-out':
       return 'bg-red-400';
-    case 'partial':
+    case 'investigating':
       return 'bg-amber-500';
     default:
       return 'border border-content/30 bg-transparent';
@@ -44,7 +44,7 @@ function statusDotClass(status: Hypothesis['status']): string {
 }
 
 /** Sort questions: by R²adj descending, then untested last */
-function sortByEvidence(a: Hypothesis, b: Hypothesis): number {
+function sortByEvidence(a: Question, b: Question): number {
   const aR2 = a.evidence?.rSquaredAdj ?? -1;
   const bR2 = b.evidence?.rSquaredAdj ?? -1;
   return bR2 - aR2;
@@ -92,19 +92,19 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
     }
   }, [localIssue, issueStatement, onIssueStatementChange]);
 
-  // Split into open (untested/partial) and answered (supported/contradicted)
+  // Split into open (open/investigating) and answered (answered/ruled-out)
   const openQuestions = questions
-    .filter(q => q.status === 'untested' || q.status === 'partial')
+    .filter(q => q.status === 'open' || q.status === 'investigating')
     .sort(sortByEvidence);
 
   const answeredQuestions = questions
-    .filter(q => q.status === 'supported' || q.status === 'contradicted')
+    .filter(q => q.status === 'answered' || q.status === 'ruled-out')
     .sort(sortByEvidence);
 
   // Aggregate coverage: sum R²adj of answered/auto-answered questions
   const coverageSummary = React.useMemo(() => {
     if (questions.length === 0) return null;
-    const checked = questions.filter(q => q.status === 'supported' || q.status === 'contradicted');
+    const checked = questions.filter(q => q.status === 'answered' || q.status === 'ruled-out');
     const totalR2 = questions.reduce((sum, q) => sum + (q.evidence?.rSquaredAdj ?? 0), 0);
     const checkedR2 = checked.reduce((sum, q) => sum + (q.evidence?.rSquaredAdj ?? 0), 0);
     return {
@@ -282,12 +282,12 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
 
 /** Single question row */
 const QuestionRow: React.FC<{
-  question: Hypothesis;
-  onQuestionClick?: (question: Hypothesis) => void;
+  question: Question;
+  onQuestionClick?: (question: Question) => void;
   onAnswerQuestion?: (questionId: string) => void;
   evidenceLabel?: string;
 }> = ({ question, onQuestionClick, evidenceLabel }) => {
-  const isRuledOut = question.status === 'contradicted';
+  const isRuledOut = question.status === 'ruled-out';
   const r2Pct =
     question.evidence?.rSquaredAdj != null ? Math.round(question.evidence.rSquaredAdj * 100) : null;
   const isAutoAnswered = isRuledOut && question.questionSource === 'factor-intel';

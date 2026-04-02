@@ -2,11 +2,11 @@
  * Project Metadata Builder
  *
  * Lightweight metadata structure that summarizes project health
- * (phase, finding counts, hypothesis counts, action progress)
+ * (phase, finding counts, question counts, action progress)
  * for the Portfolio view. Pure function — no React, no storage.
  */
 
-import type { Finding, FindingStatus, Hypothesis, HypothesisStatus } from './findings';
+import type { Finding, FindingStatus, Question, QuestionStatus } from './findings';
 import type { JourneyPhase } from './ai/types';
 
 export interface ProjectMetadata {
@@ -14,8 +14,8 @@ export interface ProjectMetadata {
   phase: JourneyPhase;
   /** Finding counts keyed by FindingStatus values */
   findingCounts: Partial<Record<FindingStatus, number>>;
-  /** Hypothesis counts keyed by HypothesisStatus values (root hypotheses only) */
-  hypothesisCounts: Partial<Record<HypothesisStatus, number>>;
+  /** Question counts keyed by QuestionStatus values (root questions only) */
+  questionCounts: Partial<Record<QuestionStatus, number>>;
   /** Action item progress across all findings */
   actionCounts: { total: number; completed: number; overdue: number };
   /** Number of tasks assigned to the requesting userId */
@@ -50,14 +50,14 @@ function detectPhase(hasData: boolean, findings: Finding[]): JourneyPhase {
  * Build a ProjectMetadata snapshot from current project state.
  *
  * @param findings - All findings for the project
- * @param hypotheses - All hypotheses for the project
+ * @param questions - All questions for the project
  * @param hasData - Whether the project has data loaded
  * @param userId - The requesting user's ID (UPN or 'local')
  * @param existingLastViewedAt - Existing lastViewedAt map to preserve
  */
 export function buildProjectMetadata(
   findings: Finding[],
-  hypotheses: Hypothesis[],
+  questions: Question[],
   hasData: boolean,
   userId: string,
   existingLastViewedAt?: Record<string, number>
@@ -73,11 +73,11 @@ export function buildProjectMetadata(
     findingCounts[finding.status] = (findingCounts[finding.status] ?? 0) + 1;
   }
 
-  // --- Hypothesis counts by status (root hypotheses only) ---
-  const hypothesisCounts: Partial<Record<HypothesisStatus, number>> = {};
-  for (const hypothesis of hypotheses) {
-    if (hypothesis.parentId === undefined) {
-      hypothesisCounts[hypothesis.status] = (hypothesisCounts[hypothesis.status] ?? 0) + 1;
+  // --- Question counts by status (root questions only) ---
+  const questionCounts: Partial<Record<QuestionStatus, number>> = {};
+  for (const question of questions) {
+    if (question.parentId === undefined) {
+      questionCounts[question.status] = (questionCounts[question.status] ?? 0) + 1;
     }
   }
 
@@ -121,15 +121,15 @@ export function buildProjectMetadata(
     }
   }
 
-  // Note: Hypothesis validation tasks (validationTask field) do not carry an
+  // Note: Question validation tasks (validationTask field) do not carry an
   // assignee reference in the current data model, so they are not counted here.
-  // When a hypothesisAssignee field is added in a future iteration, this is
-  // where per-user hypothesis task counting should be wired in.
+  // When a questionAssignee field is added in a future iteration, this is
+  // where per-user question task counting should be wired in.
 
   return {
     phase,
     findingCounts,
-    hypothesisCounts,
+    questionCounts,
     actionCounts: { total: totalActions, completed: completedActions, overdue: overdueActions },
     assignedTaskCount,
     hasOverdueTasks,

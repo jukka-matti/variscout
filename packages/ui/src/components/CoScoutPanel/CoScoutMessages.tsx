@@ -166,11 +166,11 @@ export interface CoScoutMessagesProps {
     images?: Array<{ dataUrl: string; mimeType: string }>
   ) => void;
   onAddCommentToFinding?: (findingId: string, text: string) => void;
-  onAddCommentToHypothesis?: (hypothesisId: string, text: string) => void;
+  onAddCommentToQuestion?: (questionId: string, text: string) => void;
   /** Existing findings for comment target selection */
   insightFindings?: Array<{ id: string; text: string }>;
-  /** Existing hypotheses for comment target selection */
-  insightHypotheses?: Array<{ id: string; text: string }>;
+  /** Existing questions for comment target selection */
+  insightQuestions?: Array<{ id: string; text: string }>;
 }
 
 const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
@@ -193,9 +193,9 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
   onDismissAction,
   onSaveAsNewFinding,
   onAddCommentToFinding,
-  onAddCommentToHypothesis,
+  onAddCommentToQuestion,
   insightFindings,
-  insightHypotheses,
+  insightQuestions,
 }) => {
   const { t } = useTranslation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -500,10 +500,10 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
           messageId={insightDialogMessage?.id ?? ''}
           messageImages={insightDialogMessage?.images}
           findings={insightFindings}
-          hypotheses={insightHypotheses}
+          questions={insightQuestions}
           onSaveAsNewFinding={onSaveAsNewFinding}
           onAddCommentToFinding={onAddCommentToFinding}
-          onAddCommentToHypothesis={onAddCommentToHypothesis}
+          onAddCommentToQuestion={onAddCommentToQuestion}
           onClose={() => setInsightDialogMessage(null)}
         />
       )}

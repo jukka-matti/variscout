@@ -47,15 +47,15 @@ describe('SaveInsightDialog', () => {
     expect(screen.getByText(/comment to finding/i)).toBeInTheDocument();
   });
 
-  it('shows hypothesis dropdown when hypotheses are provided', () => {
+  it('shows question dropdown when questions are provided', () => {
     render(
       <SaveInsightDialog
         {...defaultProps}
-        hypotheses={[{ id: 'h1', text: 'Some hypothesis' }]}
-        onAddCommentToHypothesis={vi.fn()}
+        questions={[{ id: 'h1', text: 'Some question' }]}
+        onAddCommentToQuestion={vi.fn()}
       />
     );
-    expect(screen.getByText(/comment to hypothesis/i)).toBeInTheDocument();
+    expect(screen.getByText(/comment to question/i)).toBeInTheDocument();
   });
 
   it('truncates long message text to 200 chars', () => {

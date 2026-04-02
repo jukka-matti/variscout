@@ -13,7 +13,7 @@ function makeMetadata(overrides: Partial<ProjectMetadata> = {}): ProjectMetadata
   return {
     phase: 'scout',
     findingCounts: {},
-    hypothesisCounts: {},
+    questionCounts: {},
     actionCounts: { total: 0, completed: 0, overdue: 0 },
     assignedTaskCount: 0,
     hasOverdueTasks: false,
@@ -74,13 +74,13 @@ describe('ProjectCard', () => {
     const project = makeProject({
       metadata: makeMetadata({
         findingCounts: { observed: 3, investigating: 2 },
-        hypothesisCounts: { untested: 1 },
+        questionCounts: { open: 1 },
       }),
     });
     render(<ProjectCard {...defaultProps} project={project} />);
     const footer = screen.getByTestId('project-card-footer');
     expect(footer).toHaveTextContent('5 findings');
-    expect(footer).toHaveTextContent('1 hypothesis');
+    expect(footer).toHaveTextContent('1 question');
   });
 
   it('shows Your tasks section when assignedTaskCount > 0', () => {

@@ -1,6 +1,6 @@
 export {
   useImprovementOrchestration,
-  type ImprovementHypothesis,
+  type ImprovementQuestion,
   type UseImprovementOrchestrationOptions,
   type UseImprovementOrchestrationReturn,
 } from './useImprovementOrchestration';

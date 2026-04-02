@@ -24,7 +24,7 @@ import type {
   ChannelPerformanceData,
   FilterAction,
   Finding,
-  Hypothesis,
+  Question,
   InvestigationCategory,
   AnalysisMode,
   YamazumiColumnMapping,
@@ -132,8 +132,8 @@ export interface DataState {
   // Findings (analyst's scouting report — bookmarked filter states with notes)
   findings: Finding[];
 
-  // Hypotheses (causal theories linked to findings)
-  hypotheses: Hypothesis[];
+  // Questions (investigation questions linked to findings)
+  questions: Question[];
 
   // Investigation categories (dynamic factor grouping)
   categories: InvestigationCategory[];
@@ -199,8 +199,8 @@ export interface DataActions {
   // Findings
   setFindings: (findings: Finding[]) => void;
 
-  // Hypotheses
-  setHypotheses: (hypotheses: Hypothesis[]) => void;
+  // Questions
+  setQuestions: (questions: Question[]) => void;
 
   // Investigation categories
   setCategories: (categories: InvestigationCategory[]) => void;
@@ -294,8 +294,8 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   // Findings (scouting report — persisted with project)
   const [findings, setFindings] = useState<Finding[]>([]);
 
-  // Hypotheses (causal theories — persisted with project)
-  const [hypotheses, setHypotheses] = useState<Hypothesis[]>([]);
+  // Questions (investigation questions — persisted with project)
+  const [questions, setQuestions] = useState<Question[]>([]);
 
   // Investigation categories (dynamic factor grouping — persisted with project)
   const [categories, setCategories] = useState<InvestigationCategory[]>([]);
@@ -457,7 +457,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     filterStack,
     viewState,
     findings,
-    hypotheses,
+    questions,
     categories,
     setRawData,
     setOutcome,
@@ -492,7 +492,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     setFilterStack,
     setViewState,
     setFindings,
-    setHypotheses,
+    setQuestions,
     setCategories,
   });
 
@@ -545,7 +545,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       filterStack,
       viewState,
       findings,
-      hypotheses,
+      questions,
       categories,
       isComputing,
     }),
@@ -593,7 +593,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       filterStack,
       viewState,
       findings,
-      hypotheses,
+      questions,
       categories,
       isComputing,
     ]
@@ -633,7 +633,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setFilterStack,
       setViewState,
       setFindings,
-      setHypotheses,
+      setQuestions,
       setCategories,
       setSelectedPoints,
       addToSelection,
@@ -682,7 +682,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setFilterStack,
       setViewState,
       setFindings,
-      setHypotheses,
+      setQuestions,
       setCategories,
       setSelectedPoints,
       addToSelection,

@@ -11,7 +11,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import type { StatsResult, ProcessContext, Hypothesis } from '@variscout/core';
+import type { StatsResult, ProcessContext, Question } from '@variscout/core';
 import type { ReportSectionDescriptor, ReportType } from '@variscout/hooks';
 import {
   renderReportMarkdown,
@@ -30,7 +30,7 @@ export interface UsePublishReportOptions {
   analyst?: string;
   reportType: ReportType;
   sections: ReportSectionDescriptor[];
-  hypotheses: Hypothesis[];
+  questions: Question[];
   processContext?: ProcessContext;
   stats?: StatsResult;
   sampleCount?: number;

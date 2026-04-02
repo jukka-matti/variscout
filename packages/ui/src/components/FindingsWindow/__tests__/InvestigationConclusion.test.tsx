@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { InvestigationConclusion } from '../InvestigationConclusion';
-import type { Hypothesis } from '@variscout/core';
+import type { Question } from '@variscout/core';
 
-const makeHypothesis = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
+const makeQuestion = (overrides: Partial<Question> = {}): Question => ({
   id: 'h1',
   text: 'Temperature causes defects',
-  status: 'supported' as const,
+  status: 'answered' as const,
   linkedFindingIds: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -17,7 +17,7 @@ describe('InvestigationConclusion', () => {
   it('returns null when hasConclusions is false', () => {
     const { container } = render(
       <InvestigationConclusion
-        suspectedCauses={[makeHypothesis()]}
+        suspectedCauses={[makeQuestion()]}
         ruledOut={[]}
         contributing={[]}
         hasConclusions={false}
@@ -28,7 +28,7 @@ describe('InvestigationConclusion', () => {
 
   it('renders suspected causes section', () => {
     const causes = [
-      makeHypothesis({
+      makeQuestion({
         id: 'h1',
         text: 'Shift changeover procedure',
         factor: 'Shift',
@@ -49,10 +49,10 @@ describe('InvestigationConclusion', () => {
 
   it('renders ruled-out section collapsed by default', () => {
     const ruledOut = [
-      makeHypothesis({
+      makeQuestion({
         id: 'h2',
         text: 'Material batch variation',
-        status: 'contradicted',
+        status: 'ruled-out',
         evidence: { rSquaredAdj: 0.01 },
       }),
     ];
@@ -89,7 +89,7 @@ describe('InvestigationConclusion', () => {
 
   it('renders contributing factors section', () => {
     const contributing = [
-      makeHypothesis({
+      makeQuestion({
         id: 'h3',
         text: 'Ambient temperature',
         factor: 'Temp',

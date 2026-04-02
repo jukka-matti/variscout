@@ -146,8 +146,8 @@ export function buildSummaryPrompt(context: AIContext): string {
   // Team contributors
   if (context.teamContributors && context.teamContributors.count > 0) {
     let teamLine = `Team: ${context.teamContributors.count} contributors`;
-    if (context.teamContributors.hypothesisAreas.length > 0) {
-      teamLine += ` investigating ${context.teamContributors.hypothesisAreas.join(', ')}`;
+    if (context.teamContributors.questionAreas.length > 0) {
+      teamLine += ` investigating ${context.teamContributors.questionAreas.join(', ')}`;
     }
     parts.push(teamLine);
   }

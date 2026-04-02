@@ -16,7 +16,7 @@ import type {
   SpecLimits,
   DataRow,
   Finding,
-  Hypothesis,
+  Question,
   FilterAction,
 } from '@variscout/core';
 import type { UseKnowledgeSearchReturn } from '@variscout/hooks';
@@ -35,7 +35,7 @@ export interface UseToolHandlersOptions {
   outcome?: string | null;
   specs?: SpecLimits;
   findings: Finding[];
-  hypotheses: Hypothesis[];
+  questions: Question[];
   factors: string[];
   filters: Record<string, (string | number)[]>;
   filterStack: FilterAction[];
@@ -51,7 +51,7 @@ export function useToolHandlers({
   outcome,
   specs,
   findings,
-  hypotheses,
+  questions,
   factors,
   filters,
   filterStack,
@@ -66,7 +66,7 @@ export function useToolHandlers({
       outcome,
       specs,
       findings,
-      hypotheses,
+      questions,
       factors,
       filters,
       knowledgeSearch,
@@ -79,7 +79,7 @@ export function useToolHandlers({
       outcome,
       specs,
       findings,
-      hypotheses,
+      questions,
       filters,
       filterStack,
     });
@@ -104,7 +104,7 @@ export function useToolHandlers({
     filterStack,
     specs,
     findings,
-    hypotheses,
+    questions,
     knowledgeSearch,
   ]);
 }

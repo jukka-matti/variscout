@@ -5,7 +5,7 @@
  */
 
 import type { AIContext } from '../types';
-import type { Finding, Hypothesis } from '../../findings';
+import type { Finding, Question } from '../../findings';
 import type { Locale } from '../../i18n/types';
 import { formatStatistic } from '../../i18n/format';
 import { buildLocaleHint } from './shared';
@@ -28,7 +28,7 @@ Use professional quality engineering language. Use evidence-calibrated language:
 export function buildReportPrompt(
   context: AIContext,
   findings: Finding[],
-  hypotheses: Hypothesis[]
+  questions: Question[]
 ): string {
   const parts: string[] = [];
 
@@ -58,12 +58,12 @@ export function buildReportPrompt(
   });
 
   const top = sorted.slice(0, 20);
-  const hypothesisMap = new Map(hypotheses.map(h => [h.id, h]));
+  const questionMap = new Map(questions.map(q => [q.id, q]));
 
   const findingLines = top.map((f, i) => {
-    const h = f.hypothesisId ? hypothesisMap.get(f.hypothesisId) : undefined;
+    const q = f.questionId ? questionMap.get(f.questionId) : undefined;
     let line = `${i + 1}. [${f.status.toUpperCase()}${f.tag ? ` · ${f.tag}` : ''}] ${f.text}`;
-    if (h) line += `\n   Hypothesis: "${h.text}" (${h.status})`;
+    if (q) line += `\n   Question: "${q.text}" (${q.status})`;
     if (f.context.stats?.cpk !== undefined)
       line += `\n   Cpk: ${formatStatistic(f.context.stats.cpk, 'en', 2)}`;
     if (f.outcome) {
@@ -83,7 +83,7 @@ export function buildReportPrompt(
   parts.push(`Generate a quality engineering report with these sections:
 1. Executive Summary (2-3 sentences)
 2. Key Findings (bullet points)
-3. Root Causes (from hypotheses)
+3. Root Causes (from questions)
 4. Actions Taken (from action items)
 5. Outcomes (effectiveness)
 6. Recommendations (next steps)`);

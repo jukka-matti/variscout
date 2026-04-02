@@ -19,9 +19,9 @@ vi.mock('@variscout/hooks', () => {
     'data.metric': 'Metric',
     'data.startAnalysis': 'Start Analysis',
     'data.applyChanges': 'Apply Changes',
-    'data.addHypothesis': 'Add hypothesis',
+    'data.addQuestion': 'Add question',
     'data.back': 'Back',
-    'investigation.hypotheses': 'Hypotheses',
+    'investigation.questions': 'Questions',
     'quality.allValid': 'All data valid',
     'quality.rowsReady': '{count} rows ready for analysis',
     'quality.rowsExcluded': '{count} rows excluded',
@@ -493,14 +493,14 @@ describe('ColumnMapping', () => {
       expect(screen.queryByTestId('issue-statement-simple')).toBeNull();
     });
 
-    it('expands brief and shows hypothesis/target fields', () => {
+    it('expands brief and shows question/target fields', () => {
       render(<ColumnMapping {...richProps} showBrief={true} />);
 
       fireEvent.click(screen.getByTestId('brief-toggle'));
 
       expect(screen.getByTestId('brief-fields')).toBeTruthy();
       expect(screen.getByTestId('brief-issue-statement')).toBeTruthy();
-      expect(screen.getByTestId('brief-add-hypothesis')).toBeTruthy();
+      expect(screen.getByTestId('brief-add-question')).toBeTruthy();
       expect(screen.getByTestId('brief-target-metric')).toBeTruthy();
     });
 

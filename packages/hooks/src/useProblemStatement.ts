@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import { buildProblemStatement } from '@variscout/core/findings';
-import type { Hypothesis } from '@variscout/core';
+import type { Question } from '@variscout/core';
 
 export interface UseProblemStatementOptions {
   /** The outcome measure column name */
@@ -9,8 +9,8 @@ export interface UseProblemStatementOptions {
   targetCpk?: number;
   /** Current Cpk value */
   currentCpk?: number;
-  /** All hypotheses (filtered to suspected-cause internally) */
-  hypotheses: Hypothesis[];
+  /** All questions (filtered to suspected-cause internally) */
+  questions: Question[];
   /** Existing accepted problem statement */
   existingStatement?: string;
   /** Callback when the analyst accepts a statement */
@@ -44,7 +44,7 @@ export function useProblemStatement({
   outcome,
   targetCpk,
   currentCpk,
-  hypotheses,
+  questions,
   existingStatement,
   onStatementChange,
 }: UseProblemStatementOptions): UseProblemStatementReturn {
@@ -52,14 +52,14 @@ export function useProblemStatement({
 
   const suspectedCauses = useMemo(
     () =>
-      hypotheses
-        .filter(h => h.causeRole === 'suspected-cause' && h.factor)
-        .map(h => ({
-          factor: h.factor!,
-          level: h.level,
-          evidence: h.evidence?.rSquaredAdj ?? h.evidence?.etaSquared,
+      questions
+        .filter(q => q.causeRole === 'suspected-cause' && q.factor)
+        .map(q => ({
+          factor: q.factor!,
+          level: q.level,
+          evidence: q.evidence?.rSquaredAdj ?? q.evidence?.etaSquared,
         })),
-    [hypotheses]
+    [questions]
   );
 
   const isReady = suspectedCauses.length > 0 && outcome != null;

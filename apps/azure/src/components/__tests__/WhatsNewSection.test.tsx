@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import WhatsNewSection from '../WhatsNewSection';
-import type { Finding, Hypothesis } from '@variscout/core';
+import type { Finding, Question } from '@variscout/core';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -22,11 +22,11 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   };
 }
 
-function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
+function makeQuestion(overrides: Partial<Question> = {}): Question {
   return {
     id: 'h-1',
     text: 'Night shift causes drift',
-    status: 'untested',
+    status: 'open',
     linkedFindingIds: [],
     createdAt: new Date(LAST_VIEWED - 5000).toISOString(),
     updatedAt: new Date(LAST_VIEWED - 5000).toISOString(), // before lastViewed by default
@@ -38,15 +38,15 @@ function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
 
 describe('WhatsNewSection', () => {
   it('shows empty state when nothing is new', () => {
-    render(<WhatsNewSection findings={[]} hypotheses={[]} lastViewedAt={LAST_VIEWED} />);
+    render(<WhatsNewSection findings={[]} questions={[]} lastViewedAt={LAST_VIEWED} />);
     expect(screen.getByTestId('whats-new-empty')).toBeInTheDocument();
     expect(screen.getByText(/Nothing new since your last visit/)).toBeInTheDocument();
     expect(screen.queryByTestId('whats-new-list')).not.toBeInTheDocument();
   });
 
-  it('handles empty findings and hypotheses arrays without error', () => {
+  it('handles empty findings and questions arrays without error', () => {
     const { container } = render(
-      <WhatsNewSection findings={[]} hypotheses={[]} lastViewedAt={LAST_VIEWED} />
+      <WhatsNewSection findings={[]} questions={[]} lastViewedAt={LAST_VIEWED} />
     );
     expect(container).toBeTruthy();
     expect(screen.getByTestId('whats-new-section')).toBeInTheDocument();
@@ -58,14 +58,14 @@ describe('WhatsNewSection', () => {
       statusChangedAt: LAST_VIEWED + 1000,
       text: 'Shift B outlier',
     });
-    render(<WhatsNewSection findings={[finding]} hypotheses={[]} lastViewedAt={LAST_VIEWED} />);
+    render(<WhatsNewSection findings={[finding]} questions={[]} lastViewedAt={LAST_VIEWED} />);
     expect(screen.getByTestId('whats-new-list')).toBeInTheDocument();
     expect(screen.getByText(/New finding.*Shift B outlier/)).toBeInTheDocument();
   });
 
   it('does not show findings created before lastViewedAt', () => {
     const finding = makeFinding({ createdAt: LAST_VIEWED - 1000 });
-    render(<WhatsNewSection findings={[finding]} hypotheses={[]} lastViewedAt={LAST_VIEWED} />);
+    render(<WhatsNewSection findings={[finding]} questions={[]} lastViewedAt={LAST_VIEWED} />);
     expect(screen.queryByText(/New finding/)).not.toBeInTheDocument();
   });
 
@@ -76,7 +76,7 @@ describe('WhatsNewSection', () => {
       status: 'investigating',
       statusChangedAt: LAST_VIEWED + 2000, // status changed after
     });
-    render(<WhatsNewSection findings={[finding]} hypotheses={[]} lastViewedAt={LAST_VIEWED} />);
+    render(<WhatsNewSection findings={[finding]} questions={[]} lastViewedAt={LAST_VIEWED} />);
     expect(screen.getByText(/Pressure spike/)).toBeInTheDocument();
     expect(screen.getByText(/Investigating/)).toBeInTheDocument();
   });
@@ -88,28 +88,28 @@ describe('WhatsNewSection', () => {
       createdAt: LAST_VIEWED + 1000,
       statusChangedAt: LAST_VIEWED + 1000, // same as createdAt
     });
-    render(<WhatsNewSection findings={[finding]} hypotheses={[]} lastViewedAt={LAST_VIEWED} />);
+    render(<WhatsNewSection findings={[finding]} questions={[]} lastViewedAt={LAST_VIEWED} />);
     // Should show "New finding" but NOT a duplicate status-change entry
     const items = screen.getAllByTestId('whats-new-item-finding-new');
     expect(items).toHaveLength(1);
     expect(screen.queryByTestId('whats-new-item-finding-status')).not.toBeInTheDocument();
   });
 
-  it('shows hypothesis status changes using Date.parse for ISO strings', () => {
-    const hypothesis = makeHypothesis({
+  it('shows question status changes using Date.parse for ISO strings', () => {
+    const question = makeQuestion({
       text: 'Operator training gap',
-      status: 'supported',
+      status: 'answered',
       updatedAt: new Date(LAST_VIEWED + 3000).toISOString(), // ISO string, after lastViewed
     });
-    render(<WhatsNewSection findings={[]} hypotheses={[hypothesis]} lastViewedAt={LAST_VIEWED} />);
-    expect(screen.getByText(/Operator training gap.*supported/)).toBeInTheDocument();
+    render(<WhatsNewSection findings={[]} questions={[question]} lastViewedAt={LAST_VIEWED} />);
+    expect(screen.getByText(/Operator training gap.*answered/)).toBeInTheDocument();
   });
 
-  it('does not show hypotheses updated before lastViewedAt', () => {
-    const hypothesis = makeHypothesis({
+  it('does not show questions updated before lastViewedAt', () => {
+    const question = makeQuestion({
       updatedAt: new Date(LAST_VIEWED - 1000).toISOString(),
     });
-    render(<WhatsNewSection findings={[]} hypotheses={[hypothesis]} lastViewedAt={LAST_VIEWED} />);
+    render(<WhatsNewSection findings={[]} questions={[question]} lastViewedAt={LAST_VIEWED} />);
     expect(screen.getByTestId('whats-new-empty')).toBeInTheDocument();
   });
 
@@ -125,7 +125,7 @@ describe('WhatsNewSection', () => {
         },
       ],
     });
-    render(<WhatsNewSection findings={[finding]} hypotheses={[]} lastViewedAt={LAST_VIEWED} />);
+    render(<WhatsNewSection findings={[finding]} questions={[]} lastViewedAt={LAST_VIEWED} />);
     expect(screen.getByText(/Action completed.*Retrain operators/)).toBeInTheDocument();
   });
 
@@ -140,7 +140,7 @@ describe('WhatsNewSection', () => {
         },
       ],
     });
-    render(<WhatsNewSection findings={[finding]} hypotheses={[]} lastViewedAt={LAST_VIEWED} />);
+    render(<WhatsNewSection findings={[finding]} questions={[]} lastViewedAt={LAST_VIEWED} />);
     expect(screen.queryByText(/Action completed/)).not.toBeInTheDocument();
   });
 
@@ -149,7 +149,7 @@ describe('WhatsNewSection', () => {
       text: 'Temperature spike',
       comments: [{ id: 'c-1', text: 'Checked with ops team', createdAt: LAST_VIEWED + 1000 }],
     });
-    render(<WhatsNewSection findings={[finding]} hypotheses={[]} lastViewedAt={LAST_VIEWED} />);
+    render(<WhatsNewSection findings={[finding]} questions={[]} lastViewedAt={LAST_VIEWED} />);
     expect(screen.getByText(/New comment on.*Temperature spike/)).toBeInTheDocument();
   });
 
@@ -169,7 +169,7 @@ describe('WhatsNewSection', () => {
     render(
       <WhatsNewSection
         findings={[olderFinding, newerFinding]}
-        hypotheses={[]}
+        questions={[]}
         lastViewedAt={LAST_VIEWED}
       />
     );
@@ -189,13 +189,13 @@ describe('WhatsNewSection', () => {
         statusChangedAt: LAST_VIEWED + (i + 1) * 1000,
       })
     );
-    render(<WhatsNewSection findings={findings} hypotheses={[]} lastViewedAt={LAST_VIEWED} />);
+    render(<WhatsNewSection findings={findings} questions={[]} lastViewedAt={LAST_VIEWED} />);
     const items = within(screen.getByTestId('whats-new-list')).getAllByRole('listitem');
     expect(items).toHaveLength(10);
   });
 
   it('renders header with last-viewed date', () => {
-    render(<WhatsNewSection findings={[]} hypotheses={[]} lastViewedAt={LAST_VIEWED} />);
+    render(<WhatsNewSection findings={[]} questions={[]} lastViewedAt={LAST_VIEWED} />);
     // Should contain "What's new since" text
     expect(screen.getByText(/What.s new since/)).toBeInTheDocument();
   });

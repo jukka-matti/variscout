@@ -1,7 +1,7 @@
 /**
  * FindingDetailPanel — Right-side detail panel for the Investigation page.
  *
- * Shows full finding detail with sections for hypothesis, projection, actions, outcome.
+ * Shows full finding detail with sections for question, projection, actions, outcome.
  * Rendered alongside FindingBoardColumns in the 3-zone investigation layout.
  */
 
@@ -30,8 +30,8 @@ export interface FindingDetailPanelProps {
   onAddComment?: (id: string, text: string, attachment?: File) => void;
   onEditComment?: (findingId: string, commentId: string, text: string) => void;
   onDeleteComment?: (findingId: string, commentId: string) => void;
-  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
-  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
+  onCreateQuestion?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  questionsMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   onAddAction?: (
     id: string,
     text: string,
@@ -69,8 +69,8 @@ const FindingDetailPanel: React.FC<FindingDetailPanelProps> = ({
   onAddComment,
   onEditComment,
   onDeleteComment,
-  onCreateHypothesis,
-  hypothesesMap,
+  onCreateQuestion,
+  questionsMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -143,8 +143,8 @@ const FindingDetailPanel: React.FC<FindingDetailPanelProps> = ({
           onEditComment={onEditComment}
           onDeleteComment={onDeleteComment}
           columnAliases={columnAliases}
-          onCreateHypothesis={onCreateHypothesis}
-          hypothesesMap={hypothesesMap}
+          onCreateQuestion={onCreateQuestion}
+          questionsMap={questionsMap}
           onAddAction={onAddAction}
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}

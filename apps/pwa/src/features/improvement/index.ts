@@ -1,3 +1,3 @@
 export { useImprovementStore } from './improvementStore';
-export type { ImprovementStore, ImprovementHypothesis } from './improvementStore';
+export type { ImprovementStore, ImprovementQuestion } from './improvementStore';
 export { useImprovementOrchestration } from './useImprovementOrchestration';

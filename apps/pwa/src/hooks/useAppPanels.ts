@@ -46,8 +46,8 @@ export interface UseAppPanelsReturn {
   openDataTableAll: () => void;
   handleResetRequest: () => void;
   handleResetConfirm: () => void;
-  isStatsSidebarOpen: boolean;
-  handleToggleStatsSidebar: () => void;
+  isPISidebarOpen: boolean;
+  handleTogglePISidebar: () => void;
 }
 
 /**
@@ -108,7 +108,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   const openDataTableAtRow = useCallback(
     (index: number) => {
       if (isDesktop) {
-        usePanelsStore.setState({ highlightRowIndex: index, isStatsSidebarOpen: true });
+        usePanelsStore.setState({ highlightRowIndex: index, isPISidebarOpen: true });
       } else {
         usePanelsStore.setState({ highlightRowIndex: index, isDataTableOpen: true });
       }
@@ -141,7 +141,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     highlightedChartPoint: store.highlightedChartPoint,
     isDesktop,
     openSpecEditorRequested: store.openSpecEditorRequested,
-    isStatsSidebarOpen: store.isStatsSidebarOpen,
+    isPISidebarOpen: store.isPISidebarOpen,
 
     // Setters (delegate to store)
     setIsSettingsOpen: store.setSettingsOpen,
@@ -163,6 +163,6 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     openDataTableAll: store.openDataTableAll,
     handleResetRequest: () => store.setShowResetConfirm(true),
     handleResetConfirm,
-    handleToggleStatsSidebar: store.toggleStatsSidebar,
+    handleTogglePISidebar: store.togglePISidebar,
   };
 }

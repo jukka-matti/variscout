@@ -15,7 +15,7 @@ export const IMPROVEMENT_ACTION_KEY = 'variscout_improvement_action';
 
 export interface ImprovementSyncData {
   synthesis?: string;
-  hypotheses: Array<{
+  questions: Array<{
     id: string;
     text: string;
     causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
@@ -34,34 +34,34 @@ export type ImprovementAction =
   | { type: 'synthesis-change'; text: string; timestamp: number }
   | {
       type: 'toggle-select';
-      hypothesisId: string;
+      questionId: string;
       ideaId: string;
       selected: boolean;
       timestamp: number;
     }
   | {
       type: 'update-timeframe';
-      hypothesisId: string;
+      questionId: string;
       ideaId: string;
       timeframe: IdeaTimeframe | undefined;
       timestamp: number;
     }
   | {
       type: 'update-direction';
-      hypothesisId: string;
+      questionId: string;
       ideaId: string;
       direction: IdeaDirection | undefined;
       timestamp: number;
     }
   | {
       type: 'update-cost';
-      hypothesisId: string;
+      questionId: string;
       ideaId: string;
       cost: { category: IdeaCostCategory } | undefined;
       timestamp: number;
     }
-  | { type: 'remove-idea'; hypothesisId: string; ideaId: string; timestamp: number }
-  | { type: 'add-idea'; hypothesisId: string; text: string; timestamp: number }
+  | { type: 'remove-idea'; questionId: string; ideaId: string; timestamp: number }
+  | { type: 'add-idea'; questionId: string; text: string; timestamp: number }
   | { type: 'convert-to-actions'; timestamp: number };
 
 /**
@@ -125,8 +125,8 @@ const ImprovementWindow: React.FC = () => {
   );
 
   const handleToggleSelect = useCallback(
-    (hypothesisId: string, ideaId: string, selected: boolean) => {
-      sendAction({ type: 'toggle-select', hypothesisId, ideaId, selected, timestamp: Date.now() });
+    (questionId: string, ideaId: string, selected: boolean) => {
+      sendAction({ type: 'toggle-select', questionId, ideaId, selected, timestamp: Date.now() });
       setSyncData(prev => {
         if (!prev) return prev;
         const selectedSet = new Set(prev.selectedIdeaIds);
@@ -135,8 +135,8 @@ const ImprovementWindow: React.FC = () => {
         return {
           ...prev,
           selectedIdeaIds: Array.from(selectedSet),
-          hypotheses: prev.hypotheses.map(h =>
-            h.id === hypothesisId
+          questions: prev.questions.map(h =>
+            h.id === questionId
               ? {
                   ...h,
                   ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, selected } : i)),
@@ -151,10 +151,10 @@ const ImprovementWindow: React.FC = () => {
   );
 
   const handleUpdateTimeframe = useCallback(
-    (hypothesisId: string, ideaId: string, timeframe: IdeaTimeframe | undefined) => {
+    (questionId: string, ideaId: string, timeframe: IdeaTimeframe | undefined) => {
       sendAction({
         type: 'update-timeframe',
-        hypothesisId,
+        questionId,
         ideaId,
         timeframe,
         timestamp: Date.now(),
@@ -163,8 +163,8 @@ const ImprovementWindow: React.FC = () => {
         if (!prev) return prev;
         return {
           ...prev,
-          hypotheses: prev.hypotheses.map(h =>
-            h.id === hypothesisId
+          questions: prev.questions.map(h =>
+            h.id === questionId
               ? { ...h, ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, timeframe } : i)) }
               : h
           ),
@@ -176,10 +176,10 @@ const ImprovementWindow: React.FC = () => {
   );
 
   const handleUpdateDirection = useCallback(
-    (hypothesisId: string, ideaId: string, direction: IdeaDirection | undefined) => {
+    (questionId: string, ideaId: string, direction: IdeaDirection | undefined) => {
       sendAction({
         type: 'update-direction',
-        hypothesisId,
+        questionId,
         ideaId,
         direction,
         timestamp: Date.now(),
@@ -188,8 +188,8 @@ const ImprovementWindow: React.FC = () => {
         if (!prev) return prev;
         return {
           ...prev,
-          hypotheses: prev.hypotheses.map(h =>
-            h.id === hypothesisId
+          questions: prev.questions.map(h =>
+            h.id === questionId
               ? { ...h, ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, direction } : i)) }
               : h
           ),
@@ -201,10 +201,10 @@ const ImprovementWindow: React.FC = () => {
   );
 
   const handleUpdateCost = useCallback(
-    (hypothesisId: string, ideaId: string, cost: { category: IdeaCostCategory } | undefined) => {
+    (questionId: string, ideaId: string, cost: { category: IdeaCostCategory } | undefined) => {
       sendAction({
         type: 'update-cost',
-        hypothesisId,
+        questionId,
         ideaId,
         cost,
         timestamp: Date.now(),
@@ -213,8 +213,8 @@ const ImprovementWindow: React.FC = () => {
         if (!prev) return prev;
         return {
           ...prev,
-          hypotheses: prev.hypotheses.map(h =>
-            h.id === hypothesisId
+          questions: prev.questions.map(h =>
+            h.id === questionId
               ? { ...h, ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, cost } : i)) }
               : h
           ),
@@ -226,14 +226,14 @@ const ImprovementWindow: React.FC = () => {
   );
 
   const handleRemoveIdea = useCallback(
-    (hypothesisId: string, ideaId: string) => {
-      sendAction({ type: 'remove-idea', hypothesisId, ideaId, timestamp: Date.now() });
+    (questionId: string, ideaId: string) => {
+      sendAction({ type: 'remove-idea', questionId, ideaId, timestamp: Date.now() });
       setSyncData(prev => {
         if (!prev) return prev;
         return {
           ...prev,
-          hypotheses: prev.hypotheses.map(h =>
-            h.id === hypothesisId ? { ...h, ideas: h.ideas.filter(i => i.id !== ideaId) } : h
+          questions: prev.questions.map(h =>
+            h.id === questionId ? { ...h, ideas: h.ideas.filter(i => i.id !== ideaId) } : h
           ),
           selectedIdeaIds: prev.selectedIdeaIds.filter(id => id !== ideaId),
           timestamp: Date.now(),
@@ -244,15 +244,15 @@ const ImprovementWindow: React.FC = () => {
   );
 
   const handleAddIdea = useCallback(
-    (hypothesisId: string, text: string) => {
-      sendAction({ type: 'add-idea', hypothesisId, text, timestamp: Date.now() });
+    (questionId: string, text: string) => {
+      sendAction({ type: 'add-idea', questionId, text, timestamp: Date.now() });
       // Optimistic add with temp ID — will be reconciled on next sync
       setSyncData(prev => {
         if (!prev) return prev;
         return {
           ...prev,
-          hypotheses: prev.hypotheses.map(h =>
-            h.id === hypothesisId
+          questions: prev.questions.map(h =>
+            h.id === questionId
               ? {
                   ...h,
                   ideas: [
@@ -305,7 +305,7 @@ const ImprovementWindow: React.FC = () => {
       <ImprovementWorkspaceBase
         synthesis={syncData.synthesis}
         onSynthesisChange={handleSynthesisChange}
-        hypotheses={syncData.hypotheses}
+        questions={syncData.questions}
         linkedFindings={syncData.linkedFindings}
         onToggleSelect={handleToggleSelect}
         onUpdateTimeframe={handleUpdateTimeframe}
