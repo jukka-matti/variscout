@@ -1,7 +1,7 @@
 ---
 title: Unified Header — App + Project Merge
 date: 2026-04-02
-status: draft
+status: delivered
 audience: [developer, designer]
 category: design-spec
 related: [header, navigation, auto-save, settings, responsive, workspace-tabs]

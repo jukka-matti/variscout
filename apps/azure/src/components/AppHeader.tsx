@@ -14,6 +14,8 @@ import {
   MessageSquare,
   BarChart3,
   Settings,
+  Download,
+  FolderUp,
 } from 'lucide-react';
 import { usePanelsStore } from '../features/panels/panelsStore';
 
@@ -46,6 +48,12 @@ export interface AppHeaderProps {
   // Primary action: Improvement
   onConvertToActions?: () => void;
   hasSelectedIdeas?: boolean;
+  /** Rename the project */
+  onRenameProject?: () => void;
+  /** Export data as CSV */
+  onExportCSV?: () => void;
+  /** Save As to a different location (Team only) */
+  onSaveAs?: () => void;
 }
 
 /** Save status dot color */
@@ -100,6 +108,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onAddManualData,
   onConvertToActions,
   hasSelectedIdeas,
+  onRenameProject,
+  onExportCSV,
+  onSaveAs,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const { t } = useTranslation();
@@ -107,6 +118,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   // Add Data dropdown state (must be before any early returns — Rules of Hooks)
   const [addDataOpen, setAddDataOpen] = useState(false);
   const addDataRef = React.useRef<HTMLDivElement>(null);
+
+  // Project name dropdown state (must be before any early returns — Rules of Hooks)
+  const [projectMenuOpen, setProjectMenuOpen] = useState(false);
+  const projectMenuRef = React.useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -119,6 +134,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [addDataOpen]);
+
+  // Close project menu on outside click
+  useEffect(() => {
+    if (!projectMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (projectMenuRef.current && !projectMenuRef.current.contains(e.target as Node)) {
+        setProjectMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [projectMenuOpen]);
 
   // ── Portfolio mode ────────────────────────────────────────────────────
   if (mode === 'portfolio') {
@@ -248,7 +275,73 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       {/* ── Left zone: Logo mark + Project name + row count + status dot ── */}
       <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
         {logoMark}
-        <h2 className="text-sm font-semibold text-content truncate max-w-[200px]">{projectName}</h2>
+        {onRenameProject || onExportCSV ? (
+          <div ref={projectMenuRef} className="relative">
+            <button
+              onClick={() => setProjectMenuOpen(prev => !prev)}
+              className="text-sm font-semibold text-content truncate max-w-[200px] hover:text-blue-400 transition-colors flex items-center gap-1"
+              title="Project menu"
+            >
+              {projectName}
+              <ChevronDown
+                size={12}
+                className={`text-content-muted transition-transform ${projectMenuOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+            {projectMenuOpen && (
+              <div
+                className="absolute left-0 top-full mt-1 w-48 bg-surface-secondary border border-edge rounded-lg shadow-xl z-50 py-1"
+                onKeyDown={e => {
+                  if (e.key === 'Escape') setProjectMenuOpen(false);
+                }}
+              >
+                {onRenameProject && (
+                  <button
+                    onClick={() => {
+                      setProjectMenuOpen(false);
+                      onRenameProject();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  >
+                    <PenLine size={14} />
+                    Rename...
+                  </button>
+                )}
+                {onExportCSV && (
+                  <button
+                    onClick={() => {
+                      setProjectMenuOpen(false);
+                      onExportCSV();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  >
+                    <Download size={14} />
+                    Export CSV
+                  </button>
+                )}
+                {onSaveAs && (
+                  <>
+                    <div className="my-1 border-t border-edge" />
+                    <button
+                      onClick={() => {
+                        setProjectMenuOpen(false);
+                        onSaveAs();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                    >
+                      <FolderUp size={14} />
+                      Save As...
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <h2 className="text-sm font-semibold text-content truncate max-w-[200px]">
+            {projectName}
+          </h2>
+        )}
         {hasData && <span className="text-xs text-content-muted flex-shrink-0">({rowCount})</span>}
         <span
           className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`}

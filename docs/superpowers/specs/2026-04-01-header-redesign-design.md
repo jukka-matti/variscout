@@ -1,11 +1,13 @@
 ---
 title: Header Redesign — Merged Toolbar + Workspace Tabs
 date: 2026-04-01
-status: delivered
+status: superseded
 audience: [developer, designer]
 category: design-spec
 related: [header, toolbar, workspace-tabs, auto-save, report-workspace, navigation, panels]
 ---
+
+> **Superseded by [Unified Header](2026-04-02-unified-header-design.md)** — extends this spec by additionally merging the App header into a single adaptive bar.
 
 # Header Redesign — Merged Toolbar + Workspace Tabs
 

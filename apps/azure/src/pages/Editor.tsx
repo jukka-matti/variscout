@@ -67,6 +67,19 @@ import { useAIStore } from '../features/ai/aiStore';
 const WhatIfPage = lazy(() => import('../components/WhatIfPage'));
 const ReportView = lazy(() => import('../components/views/ReportView'));
 
+/** Derive a clean project name from a data filename */
+function cleanProjectName(filename: string | null): string {
+  if (!filename || filename === 'Pasted Data') {
+    const d = new Date();
+    return `Analysis ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  }
+  return filename
+    .replace(/\.(csv|xlsx?|json|tsv)$/i, '')
+    .replace(/[_-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 interface EditorProps {
   projectId: string | null;
   onBack: () => void;
@@ -134,6 +147,7 @@ export const Editor: React.FC<EditorProps> = ({
     currentProjectLocation,
     saveProject,
     loadProject,
+    renameProject,
     stats,
     stagedStats,
     processContext,
@@ -803,7 +817,7 @@ export const Editor: React.FC<EditorProps> = ({
   // Save
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const handleSave = useCallback(async () => {
-    const name = currentProjectName || 'New Analysis';
+    const name = currentProjectName || cleanProjectName(dataFilename);
     setSaveStatus('saving');
     try {
       await saveProject(name);
@@ -813,7 +827,20 @@ export const Editor: React.FC<EditorProps> = ({
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 3000);
     }
-  }, [currentProjectName, saveProject]);
+  }, [currentProjectName, dataFilename, saveProject]);
+
+  const handleRenameProject = useCallback(() => {
+    const newName = window.prompt('Rename project', currentProjectName || '');
+    if (newName && newName !== currentProjectName && currentProjectName) {
+      renameProject(currentProjectName, newName).then(() => handleSave());
+    }
+  }, [currentProjectName, renameProject, handleSave]);
+
+  const handleExportCSV = useCallback(() => {
+    if (outcome && filteredData.length > 0) {
+      downloadCSV(filteredData, outcome, specs);
+    }
+  }, [filteredData, outcome, specs]);
 
   // Auto-save on key state changes (Phase 3)
   useAutoSave(
@@ -945,6 +972,8 @@ export const Editor: React.FC<EditorProps> = ({
         onNavigateToPortfolio={onBack}
         onOpenSettings={onOpenSettings}
         canNavigateBack={overviewProjects.length > 0}
+        onRenameProject={currentProjectName ? handleRenameProject : undefined}
+        onExportCSV={rawData.length > 0 ? handleExportCSV : undefined}
       />
 
       {/* Hidden file input for append-mode file upload */}
