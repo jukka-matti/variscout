@@ -627,6 +627,8 @@ export interface BuildCoScoutSystemPromptOptions {
   analysisMode?: AnalysisMode;
   /** Insights previously saved from CoScout conversations — used to avoid repetition (ADR-049) */
   coscoutInsights?: Array<{ text: string; status: string }>;
+  /** Findings summary including topFindings and overdueActions (ADR-060 Pillar 1) */
+  findings?: AIContext['findings'];
 }
 
 /**
@@ -638,6 +640,7 @@ export function buildCoScoutSystemPrompt(options: BuildCoScoutSystemPromptOption
   const {
     glossaryFragment,
     investigation,
+    findings,
     teamContributors,
     sampleCount,
     stagedComparison,
@@ -678,6 +681,16 @@ Never invent data or statistics. If the context does not contain enough informat
 
     if (investigation.issueStatement) {
       invParts.push(`Issue statement: "${investigation.issueStatement}".`);
+    }
+
+    // Position-aware: problem statement at the START (highest attention position, ADR-060 Pillar 1)
+    if (investigation.problemStatement?.fullText) {
+      invParts.push(`**Problem Statement:** ${investigation.problemStatement.fullText}`);
+    }
+
+    // Focused question immediately after problem statement (still near the start)
+    if (investigation.focusedQuestionId && investigation.focusedQuestionText) {
+      invParts.push(`**Currently investigating:** ${investigation.focusedQuestionText}`);
     }
 
     // Convergence synthesis — the analyst's suspected cause narrative
@@ -861,6 +874,30 @@ Never invent data or statistics. If the context does not contain enough informat
         }
       }
       invParts.push(findingLine);
+    }
+
+    // Position-aware: topFindings and overdueActions at the END (second-highest attention, ADR-060 Pillar 1)
+    if (findings?.topFindings && findings.topFindings.length > 0) {
+      const topLines = findings.topFindings.slice(0, 5).map(f => {
+        let line = `- "${f.text}" [${f.status}] ${f.commentCount} comments`;
+        if (f.outcome) {
+          line += ` outcome: ${f.outcome.effective}`;
+          if (f.outcome.cpkDelta !== undefined) {
+            line += ` cpkDelta: ${f.outcome.cpkDelta > 0 ? '+' : ''}${f.outcome.cpkDelta.toFixed(2)}`;
+          }
+        }
+        return line;
+      });
+      invParts.push(`**Recent findings:**\n${topLines.join('\n')}`);
+    }
+
+    if (findings?.overdueActions && findings.overdueActions.length > 0) {
+      const overdueLines = findings.overdueActions.slice(0, 3).map(a => {
+        let line = `- "${a.text}" (${a.daysOverdue}d overdue)`;
+        if (a.assignee) line = `- "${a.text}" (${a.assignee}, ${a.daysOverdue}d overdue)`;
+        return line;
+      });
+      invParts.push(`**\u26a0 Overdue actions:**\n${overdueLines.join('\n')}`);
     }
 
     if (invParts.length > 0) {

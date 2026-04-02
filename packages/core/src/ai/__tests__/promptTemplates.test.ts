@@ -829,6 +829,151 @@ describe('buildCoScoutSystemPrompt', () => {
     const prompt = buildCoScoutSystemPrompt({ coscoutInsights: [] });
     expect(prompt).not.toContain('Previous CoScout insights saved as findings:');
   });
+
+  // ADR-060 Pillar 1: Position-aware context rendering
+  it('renders problem statement before questions in investigation context', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        problemStatement: { fullText: 'Fill weight is drifting above USL on night shift' },
+        allQuestions: [{ id: 'q-1', text: 'Is shift timing a factor?', status: 'open' }],
+      },
+    });
+    const psIndex = prompt.indexOf('Fill weight is drifting above USL on night shift');
+    const qIndex = prompt.indexOf('Is shift timing a factor?');
+    expect(psIndex).toBeGreaterThan(-1);
+    expect(qIndex).toBeGreaterThan(-1);
+    expect(psIndex).toBeLessThan(qIndex);
+    expect(prompt).toContain('**Problem Statement:**');
+  });
+
+  it('renders focused question after problem statement', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        problemStatement: { fullText: 'Yield dropping on line 3' },
+        focusedQuestionId: 'q-2',
+        focusedQuestionText: 'Is material batch a factor?',
+      },
+    });
+    const psIndex = prompt.indexOf('Yield dropping on line 3');
+    const fqIndex = prompt.indexOf('Is material batch a factor?');
+    expect(psIndex).toBeGreaterThan(-1);
+    expect(fqIndex).toBeGreaterThan(-1);
+    expect(psIndex).toBeLessThan(fqIndex);
+    expect(prompt).toContain('**Currently investigating:** Is material batch a factor?');
+  });
+
+  it('does not render focused question when focusedQuestionText is missing', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        focusedQuestionId: 'q-3',
+        // no focusedQuestionText
+      },
+    });
+    expect(prompt).not.toContain('**Currently investigating:**');
+  });
+
+  it('renders topFindings at the end of investigation context', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        issueStatement: 'Test issue',
+      },
+      findings: {
+        total: 2,
+        byStatus: { observed: 1, resolved: 1 },
+        keyDrivers: [],
+        topFindings: [
+          {
+            id: 'f1',
+            text: 'Nozzle 3 blocked',
+            status: 'resolved',
+            commentCount: 2,
+            outcome: { effective: 'yes', cpkDelta: 0.45 },
+          },
+          { id: 'f2', text: 'Temperature spike', status: 'observed', commentCount: 0 },
+        ],
+      },
+    });
+    expect(prompt).toContain('**Recent findings:**');
+    expect(prompt).toContain('"Nozzle 3 blocked" [resolved] 2 comments');
+    expect(prompt).toContain('outcome: yes cpkDelta: +0.45');
+    expect(prompt).toContain('"Temperature spike" [observed] 0 comments');
+    // topFindings should appear after issue statement (end of investigation context)
+    const issueIndex = prompt.indexOf('Test issue');
+    const findingsIndex = prompt.indexOf('**Recent findings:**');
+    expect(issueIndex).toBeGreaterThan(-1);
+    expect(findingsIndex).toBeGreaterThan(-1);
+    expect(issueIndex).toBeLessThan(findingsIndex);
+  });
+
+  it('renders overdue actions at the end of investigation context', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        issueStatement: 'Test issue',
+      },
+      findings: {
+        total: 1,
+        byStatus: { improving: 1 },
+        keyDrivers: [],
+        overdueActions: [
+          { text: 'Replace nozzle', assignee: 'Jane', daysOverdue: 5, findingId: 'f1' },
+          { text: 'Calibrate sensor', daysOverdue: 3, findingId: 'f2' },
+        ],
+      },
+    });
+    expect(prompt).toContain('Overdue actions:');
+    expect(prompt).toContain('"Replace nozzle" (Jane, 5d overdue)');
+    expect(prompt).toContain('"Calibrate sensor" (3d overdue)');
+    // overdue actions after issue statement
+    const issueIndex = prompt.indexOf('Test issue');
+    const overdueIndex = prompt.indexOf('Overdue actions:');
+    expect(issueIndex).toBeLessThan(overdueIndex);
+  });
+
+  it('does not render topFindings when findings is undefined', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: { issueStatement: 'Test issue' },
+    });
+    expect(prompt).not.toContain('**Recent findings:**');
+  });
+
+  it('does not render overdueActions when array is empty', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: { issueStatement: 'Test issue' },
+      findings: {
+        total: 0,
+        byStatus: {},
+        keyDrivers: [],
+        overdueActions: [],
+      },
+    });
+    expect(prompt).not.toContain('Overdue actions:');
+  });
+
+  it('caps topFindings at 5 entries', () => {
+    const topFindings = Array.from({ length: 8 }, (_, i) => ({
+      id: `f${i}`,
+      text: `Finding ${i}`,
+      status: 'observed',
+      commentCount: 0,
+    }));
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: { issueStatement: 'Test' },
+      findings: { total: 8, byStatus: {}, keyDrivers: [], topFindings },
+    });
+    // Only first 5 should appear
+    expect(prompt).toContain('"Finding 0"');
+    expect(prompt).toContain('"Finding 4"');
+    expect(prompt).not.toContain('"Finding 5"');
+  });
+
+  it('does not render problem statement when fullText is absent', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        problemStatement: { measure: 'Fill weight', direction: 'above', scope: 'night shift' },
+      },
+    });
+    expect(prompt).not.toContain('**Problem Statement:**');
+  });
 });
 
 describe('formatKnowledgeContext', () => {
