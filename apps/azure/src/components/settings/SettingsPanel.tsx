@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { FolderOpen, ExternalLink } from 'lucide-react';
-import { FileBrowseButton, type FilePickerResult } from '../FileBrowseButton';
 import { SettingsPanelBase, ProcessDescriptionField, PreviewBadge, useTheme } from '@variscout/ui';
 import { hasTeamFeatures, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { useData } from '../../context/DataContext';
 import ThemeToggle from './ThemeToggle';
 import { isAIAvailable } from '../../services/aiService';
-import { getCachedChannelFolderUrl } from '../../services/channelDrive';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -249,14 +247,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                           </span>
                         </div>
                       )}
-                      <FileBrowseButton
-                        mode="folders"
-                        onPick={(items: FilePickerResult[]) =>
-                          setKnowledgeSearchFolder(items[0]?.webUrl ?? '')
-                        }
-                        label="Browse SharePoint"
-                        size="sm"
-                      />
+                      {/* SharePoint folder picker removed per ADR-059 — use manual URL entry below */}
                       <details className="text-[0.625rem]">
                         <summary className="text-content-muted cursor-pointer hover:text-content-secondary">
                           Enter URL manually
@@ -277,7 +268,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                     Only documents you have access to will appear in search results.
                   </p>
                   {(() => {
-                    const folderUrl = knowledgeSearchFolder || getCachedChannelFolderUrl();
+                    const folderUrl = knowledgeSearchFolder || undefined;
                     return folderUrl ? (
                       <a
                         href={folderUrl}

@@ -16,11 +16,6 @@ vi.mock('../../auth/easyAuth', () => ({
   getAccessToken: vi.fn(() => Promise.resolve('mock-token')),
 }));
 
-vi.mock('../../services/graphFetch', () => ({
-  graphFetch: vi.fn(),
-  GRAPH_BASE: 'https://graph.microsoft.com/v1.0',
-}));
-
 vi.mock('../../services/searchService', () => ({
   searchDocuments: vi.fn(),
 }));
@@ -35,7 +30,6 @@ vi.mock('../../lib/runtimeConfig', () => ({
 import { useAdminHealthChecks } from '../useAdminHealthChecks';
 import { hasTeamFeatures } from '@variscout/core';
 import { isLocalDev } from '../../auth/easyAuth';
-import { graphFetch } from '../../services/graphFetch';
 import { searchDocuments } from '../../services/searchService';
 
 describe('useAdminHealthChecks', () => {
@@ -47,7 +41,7 @@ describe('useAdminHealthChecks', () => {
 
   it('initializes all checks as idle when all plans are applicable', () => {
     const { result } = renderHook(() => useAdminHealthChecks());
-    expect(result.current.checks).toHaveLength(6);
+    expect(result.current.checks).toHaveLength(4);
     expect(result.current.checks.every(c => c.status === 'idle')).toBe(true);
     expect(result.current.isRunning).toBe(false);
   });
@@ -106,9 +100,7 @@ describe('useAdminHealthChecks', () => {
     expect(authCheck?.status).toBe('pass');
   });
 
-  it('runOne sets pass on successful graph-profile check', async () => {
-    vi.mocked(graphFetch).mockResolvedValue({ ok: true } as Response);
-
+  it('runOne sets pass on graph-profile check (Graph API stubbed per ADR-059)', async () => {
     const { result } = renderHook(() => useAdminHealthChecks());
     await act(async () => {
       await result.current.runOne('graph-profile');
@@ -116,18 +108,6 @@ describe('useAdminHealthChecks', () => {
 
     const check = result.current.checks.find(c => c.id === 'graph-profile');
     expect(check?.status).toBe('pass');
-  });
-
-  it('runOne sets fail on graph-profile 403', async () => {
-    vi.mocked(graphFetch).mockResolvedValue({ ok: false, status: 403 } as Response);
-
-    const { result } = renderHook(() => useAdminHealthChecks());
-    await act(async () => {
-      await result.current.runOne('graph-profile');
-    });
-
-    const check = result.current.checks.find(c => c.id === 'graph-profile');
-    expect(check?.status).toBe('fail');
   });
 
   it('runOne skips na checks when plan lacks team features', async () => {
@@ -147,7 +127,6 @@ describe('useAdminHealthChecks', () => {
       ok: true,
       json: () => Promise.resolve([{ user_claims: [{ typ: 'name', val: 'Test' }] }]),
     });
-    vi.mocked(graphFetch).mockResolvedValue({ ok: true } as Response);
     vi.mocked(searchDocuments).mockResolvedValue([]);
 
     const { result } = renderHook(() => useAdminHealthChecks());
@@ -171,7 +150,6 @@ describe('useAdminHealthChecks', () => {
       // AI endpoint check
       return Promise.resolve({ ok: true });
     });
-    vi.mocked(graphFetch).mockResolvedValue({ ok: false, status: 403 } as Response);
     vi.mocked(searchDocuments).mockRejectedValue(new Error('Search failed'));
 
     const { result } = renderHook(() => useAdminHealthChecks());
@@ -182,7 +160,8 @@ describe('useAdminHealthChecks', () => {
     const authCheck = result.current.checks.find(c => c.id === 'auth');
     expect(authCheck?.status).toBe('pass');
 
+    // Graph checks now always pass (stubbed per ADR-059)
     const graphCheck = result.current.checks.find(c => c.id === 'graph-profile');
-    expect(graphCheck?.status).toBe('fail');
+    expect(graphCheck?.status).toBe('pass');
   });
 });

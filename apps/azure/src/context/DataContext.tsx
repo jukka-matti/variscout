@@ -27,8 +27,6 @@ import type {
   StageOrderMode,
   ProcessContext,
 } from '@variscout/core';
-import { hasTeamFeatures } from '@variscout/core';
-import { getTeamsContext } from '../teams/teamsContext';
 
 // Re-export types for backwards compatibility
 export type { DisplayOptions, ParetoMode, DataQualityReport, ParetoRow, StorageLocation };
@@ -102,11 +100,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [aiPreferences, setAIPreferences] = useState<AIPreferences>(DEFAULT_AI_PREFERENCES);
   const [knowledgeSearchFolder, setKnowledgeSearchFolder] = useState<string | undefined>(undefined);
 
-  // Azure-specific state — default location based on Teams context
-  const defaultLocation = useMemo<StorageLocation>(() => {
-    const ctx = getTeamsContext();
-    return ctx.tabType === 'channel' && hasTeamFeatures() ? 'team' : 'personal';
-  }, []);
+  // Azure-specific state — always personal (Teams channel tabs removed per ADR-059)
+  const defaultLocation = useMemo<StorageLocation>(() => 'personal', []);
   const [currentProjectLocation, setCurrentProjectLocation] =
     useState<StorageLocation>(defaultLocation);
 

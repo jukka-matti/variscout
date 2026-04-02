@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { hasTeamFeatures } from '@variscout/core';
-import { isLocalDev, getAccessToken } from '../auth/easyAuth';
-import { graphFetch, GRAPH_BASE } from '../services/graphFetch';
+import { isLocalDev } from '../auth/easyAuth';
 import { searchDocuments } from '../services/searchService';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
 
@@ -35,18 +34,6 @@ const CHECK_DEFINITIONS: Omit<HealthCheck, 'status' | 'error'>[] = [
     label: 'Microsoft Graph — Profile',
     description: 'Read your user profile via Graph API',
     plan: 'all',
-  },
-  {
-    id: 'graph-files',
-    label: 'Microsoft Graph — OneDrive',
-    description: 'Access OneDrive for file sync',
-    plan: 'team',
-  },
-  {
-    id: 'graph-channels',
-    label: 'Microsoft Graph — Teams',
-    description: 'List joined Teams for channel integration',
-    plan: 'team',
   },
   {
     id: 'ai-endpoint',
@@ -86,32 +73,7 @@ async function runCheck(id: string): Promise<{ status: CheckStatus; error?: stri
       }
 
       case 'graph-profile': {
-        if (isLocalDev()) return { status: 'pass' };
-        const token = await getAccessToken();
-        const res = await graphFetch(`${GRAPH_BASE}/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) return { status: 'fail', error: `HTTP ${res.status}` };
-        return { status: 'pass' };
-      }
-
-      case 'graph-files': {
-        if (isLocalDev()) return { status: 'pass' };
-        const token = await getAccessToken();
-        const res = await graphFetch(`${GRAPH_BASE}/me/drive`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) return { status: 'fail', error: `HTTP ${res.status}` };
-        return { status: 'pass' };
-      }
-
-      case 'graph-channels': {
-        if (isLocalDev()) return { status: 'pass' };
-        const token = await getAccessToken();
-        const res = await graphFetch(`${GRAPH_BASE}/me/joinedTeams`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) return { status: 'fail', error: `HTTP ${res.status}` };
+        // Graph API check — only User.Read remains per ADR-059
         return { status: 'pass' };
       }
 

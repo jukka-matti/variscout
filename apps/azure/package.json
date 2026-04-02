@@ -13,8 +13,9 @@
     "lint": "eslint src"
   },
   "dependencies": {
+    "@azure/identity": "^4.13.1",
+    "@azure/storage-blob": "^12.31.0",
     "@microsoft/applicationinsights-web": "^3.3.11",
-    "@microsoft/teams-js": "^2.50.0",
     "@variscout/charts": "workspace:*",
     "@variscout/core": "workspace:*",
     "@variscout/data": "workspace:*",

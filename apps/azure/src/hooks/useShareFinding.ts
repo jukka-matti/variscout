@@ -1,17 +1,11 @@
 /**
- * useShareFinding — compose channel @mention with fallback chain.
+ * useShareFinding — share a finding via clipboard deep link.
  *
- * Fallback chain:
- * 1. isChannelTab() && hasTeamFeatures() → POST @mention to channel
- * 2. isInTeams() → shareWebContent() (Teams share dialog)
- * 3. Otherwise → copy deep link to clipboard
+ * Teams channel @mentions removed per ADR-059. Always copies deep link to clipboard.
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import type { Finding, FindingAssignee } from '@variscout/core';
-import { isChannelTab, getTeamsContext } from '../teams';
-import { hasTeamFeatures } from '@variscout/core';
-import { postChannelMention } from '../services/graphChannelMessage';
 import { buildFindingSharePayload } from '../services/shareContent';
 import { useTeamsShare } from './useTeamsShare';
 import type { SyncNotification } from '../services/storage';
@@ -23,43 +17,14 @@ interface UseShareFindingOptions {
 }
 
 export function useShareFinding({ projectName, baseUrl, onToast }: UseShareFindingOptions) {
-  // Do NOT pass onToast here — useShareFinding handles its own toasts to avoid double-firing
   const { share } = useTeamsShare();
 
-  const canMentionInChannel = useMemo(() => isChannelTab() && hasTeamFeatures(), []);
-
   /**
-   * Share a finding, optionally @mentioning an assignee in the channel.
+   * Share a finding by copying a deep link to clipboard.
    * Returns true if the share succeeded.
    */
   const shareFinding = useCallback(
-    async (finding: Finding, assignee?: FindingAssignee): Promise<boolean> => {
-      // Fast path: channel @mention with assignee
-      if (canMentionInChannel && assignee?.userId) {
-        try {
-          const ctx = getTeamsContext();
-          if (ctx.teamId && ctx.channelId) {
-            await postChannelMention(
-              ctx.teamId,
-              ctx.channelId,
-              finding,
-              assignee,
-              baseUrl,
-              projectName
-            );
-            onToast?.({
-              type: 'success',
-              message: 'Finding shared to channel',
-              dismissAfter: 3000,
-            });
-            return true;
-          }
-        } catch (err) {
-          console.warn('[ShareFinding] Channel mention failed, falling back:', err);
-        }
-      }
-
-      // Fallback: Teams share dialog or clipboard
+    async (finding: Finding, _assignee?: FindingAssignee): Promise<boolean> => {
       const payload = buildFindingSharePayload(finding, projectName, baseUrl);
       const result = await share(payload);
       if (result) {
@@ -69,8 +34,8 @@ export function useShareFinding({ projectName, baseUrl, onToast }: UseShareFindi
       }
       return result;
     },
-    [canMentionInChannel, baseUrl, projectName, share, onToast]
+    [baseUrl, projectName, share, onToast]
   );
 
-  return { shareFinding, canMentionInChannel };
+  return { shareFinding, canMentionInChannel: false };
 }

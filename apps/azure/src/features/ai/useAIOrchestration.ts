@@ -56,8 +56,6 @@ import {
   isKnowledgeBaseAvailable,
   checkKnowledgeBasePermissions,
 } from '../../services/searchService';
-import { getChannelDriveInfo } from '../../services/channelDrive';
-import { getGraphToken } from '../../auth/graphToken';
 import { updateFindingsPopout } from '@variscout/ui';
 
 // ── Options ─────────────────────────────────────────────────────────────────
@@ -108,7 +106,6 @@ export interface UseAIOrchestrationReturn {
   handleAskCoScoutFromCategory: (ctx: AIContext['focusContext']) => void;
   providerLabel: string | null;
   aiContextSummary: AIContextSummary | null;
-  resolvedChannelFolderUrl?: string;
   knowledgeSearchScope?: string;
   knowledgeSearchTimestamp?: number;
   kbPermissionWarning: boolean;
@@ -184,28 +181,6 @@ export function useAIOrchestration({
     };
   }, [aiAvailable]);
 
-  // Auto-resolve channel folder URL for default knowledge search scope (ADR-026)
-  const [resolvedChannelFolderUrl, setResolvedChannelFolderUrl] = useState<string | undefined>(
-    undefined
-  );
-  useEffect(() => {
-    if (!aiAvailable || knowledgeSearchFolder !== undefined) return;
-    let cancelled = false;
-    getGraphToken()
-      .then(token => getChannelDriveInfo(token))
-      .then(info => {
-        if (!cancelled && info?.folderWebUrl) {
-          setResolvedChannelFolderUrl(info.folderWebUrl);
-        }
-      })
-      .catch(() => {
-        // Non-critical — search will work without folder scope
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [aiAvailable, knowledgeSearchFolder]);
-
   // Admin consent runtime check for KB (Item 4)
   const [kbPermissionWarning, setKbPermissionWarning] = useState(false);
   useEffect(() => {
@@ -215,8 +190,7 @@ export function useAIOrchestration({
     });
   }, []);
 
-  // Effective folder scope: explicit user setting > auto-resolved channel folder
-  const effectiveFolderScope = knowledgeSearchFolder ?? resolvedChannelFolderUrl;
+  const effectiveFolderScope = knowledgeSearchFolder;
 
   // Focus context state for "Ask CoScout about this" actions
   const [focusContext, setFocusContext] = useState<AIContext['focusContext']>(undefined);
@@ -441,10 +415,6 @@ export function useAIOrchestration({
   }, [kbPermissionWarning, store]);
 
   useEffect(() => {
-    store.getState().setResolvedChannelFolderUrl(resolvedChannelFolderUrl);
-  }, [resolvedChannelFolderUrl, store]);
-
-  useEffect(() => {
     store.getState().setKnowledgeSearchScope(knowledgeSearchScope);
   }, [knowledgeSearchScope, store]);
 
@@ -476,7 +446,6 @@ export function useAIOrchestration({
     handleAskCoScoutFromCategory,
     providerLabel,
     aiContextSummary,
-    resolvedChannelFolderUrl,
     knowledgeSearchScope,
     knowledgeSearchTimestamp: knowledgeSearch.lastSearchTimestamp,
     kbPermissionWarning,

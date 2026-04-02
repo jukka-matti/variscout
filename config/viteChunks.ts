@@ -18,7 +18,6 @@ export function variscoutManualChunks(id: string): string | undefined {
     return 'vendor-react';
   }
   if (id.includes('node_modules/lucide-react')) return 'vendor-icons';
-  if (id.includes('node_modules/@microsoft/teams-js')) return 'vendor-teams';
   if (id.includes('node_modules/dexie')) return 'vendor-storage';
   return undefined;
 }

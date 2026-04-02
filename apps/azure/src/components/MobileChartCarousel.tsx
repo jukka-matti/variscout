@@ -27,7 +27,7 @@ import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import ProcessIntelligencePanel from './ProcessIntelligencePanel';
-import PeoplePicker from './PeoplePicker';
+import { AssigneeInput } from './AssigneeInput';
 import {
   AnovaResults,
   FactorSelector,
@@ -352,7 +352,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
           {/* People Picker */}
           <div>
             <label className="text-xs text-content-secondary mb-1 block">Assign to:</label>
-            <PeoplePicker
+            <AssigneeInput
               selected={assignee}
               onSelect={setAssignee}
               onClear={() => setAssignee(null)}

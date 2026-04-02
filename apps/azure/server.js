@@ -12,8 +12,8 @@ const DIST = join(__dirname, 'dist');
 const PORT = parseInt(process.env.PORT || '8080', 10);
 
 // Build dynamic connect-src for external services.
-// Token exchange goes through same-origin /api/token-exchange proxy (no external Function URL needed in CSP).
-let connectSrc = "'self' https://graph.microsoft.com https://*.sharepoint.com https://login.microsoftonline.com";
+// Graph API and SharePoint removed per ADR-059.
+let connectSrc = "'self' https://login.microsoftonline.com";
 const aiEndpoint = process.env.AI_ENDPOINT || '';
 const searchEndpoint = process.env.AI_SEARCH_ENDPOINT || '';
 if (aiEndpoint) {
@@ -21,6 +21,11 @@ if (aiEndpoint) {
 }
 if (searchEndpoint) {
   try { connectSrc += ` ${new URL(searchEndpoint).origin}`; } catch { /* ignore */ }
+}
+// Blob Storage endpoint for Team plan cloud sync
+const storageAccountForCsp = process.env.STORAGE_ACCOUNT_NAME || '';
+if (storageAccountForCsp) {
+  connectSrc += ` https://${storageAccountForCsp}.blob.core.windows.net`;
 }
 // App Insights ingestion endpoint — connection string is write-only (telemetry ingestion,
 // not a secret). The browser SDK requires it to send telemetry. Each customer's telemetry
@@ -89,49 +94,7 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  // Proxy for OBO token exchange — keeps Function key server-side (not in client bundle).
-  // The client calls /api/token-exchange (same-origin), this server injects the Function key
-  // and forwards to the actual Azure Function.
-  if (pathname === '/api/token-exchange' && req.method === 'POST') {
-    const functionUrlEnv = process.env.FUNCTION_URL;
-    if (!functionUrlEnv) {
-      writeResponse(res, 503, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Token exchange not configured' }));
-      return;
-    }
-
-    // Read request body
-    const chunks = [];
-    for await (const chunk of req) chunks.push(chunk);
-    const body = Buffer.concat(chunks);
-
-    // Forward to Azure Function with server-side Function key
-    const targetUrl = new URL('/api/token-exchange', functionUrlEnv);
-    const proxyHeaders = {
-      'Content-Type': 'application/json',
-      'Content-Length': body.length.toString(),
-    };
-    const functionKey = process.env.FUNCTION_KEY || '';
-    if (functionKey) proxyHeaders['x-functions-key'] = functionKey;
-
-    try {
-      const proxyRes = await fetch(targetUrl, {
-        method: 'POST',
-        headers: proxyHeaders,
-        body,
-      });
-      const responseBody = await proxyRes.text();
-      writeResponse(res, proxyRes.status, {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-store',
-      });
-      res.end(responseBody);
-    } catch (err) {
-      writeResponse(res, 502, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Token exchange proxy failed' }));
-    }
-    return;
-  }
+  // OBO token exchange proxy removed per ADR-059 (Graph API removed, EasyAuth only)
 
   // Runtime configuration endpoint — serves env vars as JSON.
   // Required for Marketplace deployments where Vite env vars are baked at build time.
@@ -143,12 +106,91 @@ const server = createServer(async (req, res) => {
       aiSearchEndpoint: process.env.AI_SEARCH_ENDPOINT || '',
       aiSearchIndex: process.env.AI_SEARCH_INDEX || 'findings',
       appInsightsConnectionString: process.env.APPINSIGHTS_CONNECTION_STRING || process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '',
+      storageAccountName: process.env.STORAGE_ACCOUNT_NAME || '',
+      storageContainerName: process.env.STORAGE_CONTAINER_NAME || 'variscout-projects',
     };
     writeResponse(res, 200, {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache',
     });
     res.end(JSON.stringify(config));
+    return;
+  }
+
+  // SAS token generation for Blob Storage (Team plan cloud sync)
+  if (pathname === '/api/storage-token' && req.method === 'POST') {
+    const principal = req.headers['x-ms-client-principal'];
+    // LOCAL_DEV bypass blocked on App Service (WEBSITE_SITE_NAME is set by Azure)
+    const isLocalDev = process.env.LOCAL_DEV && !process.env.WEBSITE_SITE_NAME;
+    if (!principal && !isLocalDev) {
+      writeResponse(res, 401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Not authenticated' }));
+      return;
+    }
+
+    try {
+      const acctName = process.env.STORAGE_ACCOUNT_NAME;
+      const containerName = process.env.STORAGE_CONTAINER_NAME || 'variscout-projects';
+
+      if (!acctName) {
+        writeResponse(res, 503, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Blob Storage not configured' }));
+        return;
+      }
+
+      const { BlobServiceClient, generateBlobSASQueryParameters, ContainerSASPermissions, StorageSharedKeyCredential, SASProtocol } = await import('@azure/storage-blob');
+      const { DefaultAzureCredential } = await import('@azure/identity');
+
+      const blobServiceUrl = `https://${acctName}.blob.core.windows.net`;
+      const expiresOn = new Date(Date.now() + 60 * 60 * 1000);
+      const startsOn = new Date(Date.now() - 5 * 60 * 1000);
+
+      let sasUrl;
+      const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+
+      if (connectionString) {
+        // Local dev: use connection string
+        const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+        const keyMatch = connectionString.match(/AccountKey=([^;]+)/);
+        if (!keyMatch) throw new Error('AccountKey not found in connection string');
+        const sharedKeyCredential = new StorageSharedKeyCredential(blobServiceClient.accountName, keyMatch[1]);
+
+        const sasToken = generateBlobSASQueryParameters({
+          containerName,
+          permissions: ContainerSASPermissions.parse('rwl'),
+          startsOn,
+          expiresOn,
+          protocol: SASProtocol.Https,
+        }, sharedKeyCredential).toString();
+
+        sasUrl = `${blobServiceUrl}/${containerName}?${sasToken}`;
+      } else {
+        // Production: managed identity + user delegation key
+        const credential = new DefaultAzureCredential();
+        const blobServiceClient = new BlobServiceClient(blobServiceUrl, credential);
+        const delegationKey = await blobServiceClient.getUserDelegationKey(startsOn, expiresOn);
+
+        const sasToken = generateBlobSASQueryParameters({
+          containerName,
+          permissions: ContainerSASPermissions.parse('rwl'),
+          startsOn,
+          expiresOn,
+          protocol: SASProtocol.Https,
+        }, delegationKey, acctName).toString();
+
+        sasUrl = `${blobServiceUrl}/${containerName}?${sasToken}`;
+      }
+
+      writeResponse(res, 200, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+      });
+      res.end(JSON.stringify({ sasUrl, expiresOn: expiresOn.toISOString() }));
+    } catch (err) {
+      console.error('[storage-token]', err.message || err);
+      writeResponse(res, 500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Failed to generate storage token' }));
+    }
     return;
   }
 

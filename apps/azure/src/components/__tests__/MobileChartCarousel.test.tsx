@@ -46,17 +46,17 @@ vi.mock('../charts/ParetoChart', () => ({
 vi.mock('../ProcessIntelligencePanel', () => ({
   default: () => <div data-testid="stats-mock">Process Intelligence Panel</div>,
 }));
-vi.mock('../PeoplePicker', () => ({
-  default: ({
+vi.mock('../AssigneeInput', () => ({
+  AssigneeInput: ({
     onSelect,
   }: {
-    onSelect: (assignee: { upn: string; displayName: string; userId: string }) => void;
+    onSelect: (assignee: { upn: string; displayName: string }) => void;
   }) => (
     <button
-      data-testid="people-picker-mock"
-      onClick={() => onSelect({ upn: 'jane@co.com', displayName: 'Jane', userId: 'u-1' })}
+      data-testid="assignee-input-mock"
+      onClick={() => onSelect({ upn: 'jane@co.com', displayName: 'Jane' })}
     >
-      Pick person
+      Assign person
     </button>
   ),
 }));
@@ -621,8 +621,8 @@ describe('MobileChartCarousel', () => {
     fireEvent.click(screen.getByTestId('boxplot-tap'));
     fireEvent.click(screen.getByTestId('sheet-pin-finding'));
 
-    // Select a person via mock PeoplePicker
-    fireEvent.click(screen.getByTestId('people-picker-mock'));
+    // Select a person via mock AssigneeInput
+    fireEvent.click(screen.getByTestId('assignee-input-mock'));
 
     // Click share
     fireEvent.click(screen.getByTestId('share-to-channel'));
@@ -632,7 +632,6 @@ describe('MobileChartCarousel', () => {
       expect(onShareFinding).toHaveBeenCalledWith(mockFinding, {
         upn: 'jane@co.com',
         displayName: 'Jane',
-        userId: 'u-1',
       });
     });
   });
