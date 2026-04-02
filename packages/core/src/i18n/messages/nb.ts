@@ -577,6 +577,14 @@ export const nb: MessageCatalog = {
   'improve.maxRisk': 'Max risk: {level}',
   'improve.totalCost': '€{amount}',
   'improve.budgetStatus': '€{spent} / €{budget}',
+  'improve.actionsDone': 'actions done',
+  'improve.overdue': 'overdue',
+  'improve.addVerification': 'Add verification',
+  'improve.assessOutcome': 'Assess outcome',
+  'improve.viewActions': 'View Actions',
+  'improve.actions': 'actions',
+  'improve.done': 'done',
+
   'timeframe.label': 'Effort',
 
   // Idea direction labels (Four Ideation Directions)

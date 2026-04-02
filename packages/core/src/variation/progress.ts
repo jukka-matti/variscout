@@ -215,8 +215,18 @@ export function computeImprovementProgress(
     });
   }
 
-  const projectedValue = applyImprovementToValue(currentValue, totalProjected, target.direction);
-  const verifiedValue = applyImprovementToValue(currentValue, totalVerified, target.direction);
+  const projectedValue = applyImprovementToValue(
+    currentValue,
+    totalProjected,
+    target.direction,
+    target.value
+  );
+  const verifiedValue = applyImprovementToValue(
+    currentValue,
+    totalVerified,
+    target.direction,
+    target.value
+  );
   const percentCovered = gap !== 0 ? Math.min(100, (totalProjected / gap) * 100) : 0;
   const percentAchieved = gap !== 0 ? Math.min(100, (totalVerified / gap) * 100) : 0;
 
@@ -283,16 +293,21 @@ function computeGap(
 function applyImprovementToValue(
   current: number,
   improvement: number,
-  direction: 'minimize' | 'maximize' | 'target'
+  direction: 'minimize' | 'maximize' | 'target',
+  targetValue?: number
 ): number {
   switch (direction) {
     case 'minimize':
       return current - improvement;
     case 'maximize':
       return current + improvement;
-    case 'target':
-      // For bidirectional, improvement reduces the gap
-      return current; // Simplified — actual projection uses per-finding computation
+    case 'target': {
+      // Move current toward target by the improvement amount
+      if (targetValue == null) return current;
+      return current < targetValue
+        ? Math.min(targetValue, current + improvement)
+        : Math.max(targetValue, current - improvement);
+    }
   }
 }
 

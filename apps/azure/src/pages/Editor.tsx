@@ -584,12 +584,16 @@ export const Editor: React.FC<EditorProps> = ({
     matrixIdeas,
     aggregatedActions,
     selectedIdeasForRecap,
+    projectionReferenceContext,
   } = useImprovementOrchestration({
     questionsState,
     findingsState,
     persistedQuestions: persistedQuestions,
     processContext,
     setProcessContext,
+    rawData,
+    outcome,
+    specs,
   });
   const improvementQuestions = useImprovementStore(s => s.improvementQuestions);
   const improvementLinkedFindings = useImprovementStore(s => s.improvementLinkedFindings);
@@ -1089,6 +1093,7 @@ export const Editor: React.FC<EditorProps> = ({
                           questionText: projectionTarget.questionText,
                         }}
                         onSaveProjection={handleSaveIdeaProjection}
+                        referenceContext={projectionReferenceContext}
                       />
                     );
                   }
@@ -1165,7 +1170,7 @@ export const Editor: React.FC<EditorProps> = ({
                     }
                     actions={aggregatedActions}
                     onToggleComplete={(actionId, findingId) => {
-                      findingsState.completeAction(findingId, actionId);
+                      findingsState.toggleActionComplete(findingId, actionId);
                     }}
                     hasVerification={false}
                   />

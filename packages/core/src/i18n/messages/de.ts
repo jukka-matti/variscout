@@ -669,6 +669,13 @@ export const de: MessageCatalog = {
   'improve.maxRisk': 'Max risk: {level}',
   'improve.totalCost': '€{amount}',
   'improve.budgetStatus': '€{spent} / €{budget}',
+  'improve.actionsDone': 'Maßnahmen erledigt',
+  'improve.overdue': 'überfällig',
+  'improve.addVerification': 'Verifizierungsdaten hinzufügen',
+  'improve.assessOutcome': 'Ergebnis bewerten',
+  'improve.viewActions': 'Maßnahmen anzeigen',
+  'improve.actions': 'Maßnahmen',
+  'improve.done': 'erledigt',
   'timeframe.label': 'Zeitrahmen',
 
   // Idea direction labels (Four Ideation Directions)

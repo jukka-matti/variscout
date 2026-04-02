@@ -482,6 +482,8 @@ export {
   CauseSummaryCards,
   type CauseSummaryCardsProps,
   type CauseSummaryCardData,
+  AddActionDialog,
+  type AddActionDialogProps,
 } from './components/ImprovementPlan';
 
 // Yamazumi Components

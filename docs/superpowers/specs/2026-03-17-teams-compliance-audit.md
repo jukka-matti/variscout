@@ -2,12 +2,14 @@
 title: Teams App Store + Microsoft Patterns Compliance Audit
 audience: [developer]
 category: compliance
-status: active
+status: archived
 related: [teams, accessibility, azure, navigation]
 date: 2026-03-17
 ---
 
 # Teams App Store + Microsoft Patterns Compliance Audit
+
+> **ARCHIVED (2026-04-02):** This spec is no longer relevant. ADR-059 (Web-First Deployment Architecture) removes Teams SDK dependency. VariScout is no longer submitted to the Teams App Store.
 
 Systematic audit of VariScout against Microsoft's Teams app store validation guidelines and recommended coding patterns. Goal: pass submission on the first try.
 

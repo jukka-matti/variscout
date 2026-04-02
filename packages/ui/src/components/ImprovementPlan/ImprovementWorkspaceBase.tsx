@@ -4,7 +4,6 @@ import type {
   IdeaTimeframe,
   IdeaDirection,
   IdeaCostCategory,
-  IdeaRiskAssessment,
   ComputedRiskLevel,
   RiskAxisConfig,
 } from '@variscout/core';
@@ -43,7 +42,6 @@ export interface ImprovementWorkspaceBaseProps {
     ideaId: string,
     cost: { category: IdeaCostCategory } | undefined
   ) => void;
-  onUpdateRisk?: (questionId: string, ideaId: string, risk: IdeaRiskAssessment | undefined) => void;
   onOpenRisk?: (questionId: string, ideaId: string) => void;
   onRemoveIdea?: (questionId: string, ideaId: string) => void;
   onOpenWhatIf?: (questionId: string, ideaId: string) => void;

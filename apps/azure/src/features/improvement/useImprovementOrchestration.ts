@@ -8,8 +8,17 @@
  * synthesis change, idea-to-action conversion).
  */
 import React, { useMemo, useCallback, useEffect, useRef } from 'react';
-import type { Finding, FindingAssignee, Question, ProcessContext } from '@variscout/core';
+import type {
+  Finding,
+  FindingAssignee,
+  Question,
+  ProcessContext,
+  DataRow,
+  SpecLimits,
+} from '@variscout/core';
+import { calculateStats, toNumericValue } from '@variscout/core';
 import { assignCauseColors } from '@variscout/core/findings';
+import { useInvestigationStore } from '../investigation/investigationStore';
 import type { UseQuestionsReturn } from '@variscout/hooks';
 import type { MatrixIdea, CauseSummary, TrackedAction, SelectedIdea } from '@variscout/ui';
 import {
@@ -42,6 +51,12 @@ export interface UseImprovementOrchestrationOptions {
   persistedQuestions: Question[] | undefined;
   processContext: ProcessContext | undefined;
   setProcessContext: (ctx: ProcessContext) => void;
+  /** Raw (unfiltered) data rows for reference context computation */
+  rawData: DataRow[];
+  /** Outcome column name */
+  outcome: string | null;
+  /** Spec limits (USL/LSL) */
+  specs: SpecLimits;
 }
 
 export interface UseImprovementOrchestrationReturn {
@@ -63,6 +78,15 @@ export interface UseImprovementOrchestrationReturn {
   aggregatedActions: TrackedAction[];
   /** Selected ideas recap (for TrackView PlanRecap) */
   selectedIdeasForRecap: SelectedIdea[];
+  /** Reference context for What-If subset vs reference stats */
+  projectionReferenceContext?: {
+    subsetLabel: string;
+    subsetCount: number;
+    subsetCpk?: number;
+    referenceLabel: string;
+    referenceCount: number;
+    referenceCpk?: number;
+  };
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────
@@ -73,6 +97,9 @@ export function useImprovementOrchestration({
   persistedQuestions,
   processContext,
   setProcessContext,
+  rawData,
+  outcome,
+  specs,
 }: UseImprovementOrchestrationOptions): UseImprovementOrchestrationReturn {
   // Questions with answered/investigating status that have ideas -> feed workspace
   const improvementQuestions = useMemo(() => {
@@ -361,6 +388,44 @@ export function useImprovementOrchestration({
     [processContext, setProcessContext]
   );
 
+  // ── Projection reference context (subset vs complement stats) ───────────
+  const projectionReferenceContext = useMemo(() => {
+    const projTarget = useInvestigationStore.getState().projectionTarget;
+    if (!projTarget || !rawData?.length || !outcome) return undefined;
+
+    const question = (persistedQuestions ?? []).find(q => q.id === projTarget.questionId);
+    if (!question?.factor || !question?.level) return undefined;
+
+    const factor = question.factor;
+    const level = question.level;
+
+    const subset = rawData.filter(row => String(row[factor]) === String(level));
+    const complement = rawData.filter(row => String(row[factor]) !== String(level));
+
+    if (!subset.length || !complement.length) return undefined;
+
+    const subsetVals = subset
+      .map(r => toNumericValue(r[outcome]))
+      .filter((v): v is number => v !== undefined);
+    const compVals = complement
+      .map(r => toNumericValue(r[outcome]))
+      .filter((v): v is number => v !== undefined);
+
+    if (subsetVals.length < 2 || compVals.length < 2) return undefined;
+
+    const subStats = calculateStats(subsetVals, specs?.usl, specs?.lsl);
+    const compStats = calculateStats(compVals, specs?.usl, specs?.lsl);
+
+    return {
+      subsetLabel: `${factor} = ${level}`,
+      subsetCount: subset.length,
+      subsetCpk: subStats.cpk,
+      referenceLabel: `${factor} ≠ ${level}`,
+      referenceCount: complement.length,
+      referenceCpk: compStats.cpk,
+    };
+  }, [rawData, outcome, specs, persistedQuestions]);
+
   // Pre-fill synthesis from problem statement on first visit to Improvement workspace
   const hasPreFilled = useRef(false);
   useEffect(() => {
@@ -380,5 +445,6 @@ export function useImprovementOrchestration({
     matrixIdeas,
     aggregatedActions,
     selectedIdeasForRecap,
+    projectionReferenceContext,
   };
 }

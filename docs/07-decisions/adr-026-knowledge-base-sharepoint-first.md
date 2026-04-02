@@ -4,10 +4,12 @@ title: 'ADR-026: Knowledge Base Strategy — SharePoint-First with Remote Retrie
 
 # ADR-026: Knowledge Base Strategy — SharePoint-First with Remote Retrieval
 
-**Status**: Accepted
+**Status**: Deferred (see [ADR-059](adr-059-web-first-deployment-architecture.md))
 **Date**: 2026-03-17
-**Deciders**: Product team
-**Amends**: [ADR-022: Knowledge Layer Architecture](adr-022-knowledge-layer-architecture.md)
+
+> **Note (2026-04-02):** This ADR is deferred. ADR-059 (Web-First Deployment Architecture) removes `Sites.Read.All` and all admin-consent Graph API permissions. The Knowledge Base feature needs a new backend approach that doesn't require SharePoint access. Options include Azure AI Search on Blob Storage documents, or customer-managed knowledge indexing. The Knowledge Catalyst (organizational learning from findings) continues to work without SharePoint — it uses local finding data fed into CoScout context.
+> **Deciders**: Product team
+> **Amends**: [ADR-022: Knowledge Layer Architecture](adr-022-knowledge-layer-architecture.md)
 
 ---
 

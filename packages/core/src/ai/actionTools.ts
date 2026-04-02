@@ -117,7 +117,8 @@ export function parseActionMarkers(text: string): ParsedActionMarker[] {
  * Strip [ACTION:...] markers from text, returning clean display text.
  */
 export function stripActionMarkers(text: string): string {
-  return text.replace(ACTION_MARKER_REGEX, '').trim();
+  const regex = new RegExp(ACTION_MARKER_REGEX.source, ACTION_MARKER_REGEX.flags);
+  return text.replace(regex, '').trim();
 }
 
 // ── Preview Computation ──────────────────────────────────────────────────

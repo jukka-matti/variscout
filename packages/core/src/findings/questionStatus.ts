@@ -1,12 +1,5 @@
 import type { QuestionStatus } from './types';
 
-export const QUESTION_STATUS_LABELS: Record<QuestionStatus, string> = {
-  open: 'Open',
-  investigating: 'Investigating',
-  answered: 'Answered',
-  'ruled-out': 'Ruled out',
-};
-
 export const QUESTION_STATUS_COLORS: Record<QuestionStatus, string> = {
   open: 'text-amber-500',
   investigating: 'text-blue-500',

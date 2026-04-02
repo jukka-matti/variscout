@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { QUESTION_STATUS_LABELS } from '../questionStatus';
+import { QUESTION_STATUS_LABELS } from '../types';
 
 describe('QUESTION_STATUS_LABELS', () => {
   it('has labels for all statuses', () => {

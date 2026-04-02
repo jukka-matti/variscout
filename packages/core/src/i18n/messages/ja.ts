@@ -629,6 +629,13 @@ export const ja: MessageCatalog = {
   'improve.maxRisk': 'Max risk: {level}',
   'improve.totalCost': '€{amount}',
   'improve.budgetStatus': '€{spent} / €{budget}',
+  'improve.actionsDone': 'アクション完了',
+  'improve.overdue': '期限超過',
+  'improve.addVerification': '検証データを追加',
+  'improve.assessOutcome': '結果を評価',
+  'improve.viewActions': 'アクションを表示',
+  'improve.actions': 'アクション',
+  'improve.done': '完了',
   'timeframe.label': 'Effort',
 
   // Idea direction labels (Four Ideation Directions)

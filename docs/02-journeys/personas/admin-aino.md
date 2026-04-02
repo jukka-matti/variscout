@@ -8,7 +8,7 @@ title: 'Admin Aino'
 | ----------------- | ----------------------------------------------------------------------------------------------------------------- |
 | **Role**          | IT Admin / Azure Platform Engineer                                                                                |
 | **Goal**          | Deploy, maintain, and troubleshoot VariScout for the organization                                                 |
-| **Knowledge**     | Azure Portal, Entra ID, App Registrations, RBAC, Teams Admin                                                      |
+| **Knowledge**     | Azure Portal, Entra ID, App Registrations, RBAC, Storage Accounts                                                 |
 | **Pain points**   | Unclear what's app-side vs Azure-side, no health visibility, support tickets from users she can't diagnose in-app |
 | **Decision mode** | Needs diagnostics, clear error messages, Azure Portal deep links                                                  |
 
@@ -34,15 +34,14 @@ journey
       Run ARM template: 4: Aino
       Verify app loads: 4: Aino
     section Configure
-      Teams manifest setup: 4: Aino
-      Knowledge Base folder: 4: Aino
+      Storage Account RBAC: 4: Aino
       RBAC role assignments: 3: Aino
     section Monitor
       Check integration health: 4: Aino
       Review Azure cost reports: 3: Aino
     section Troubleshoot
       Diagnose auth failures: 3: Aino
-      Fix Graph API permissions: 4: Aino
+      Fix Storage Account RBAC: 4: Aino
       Resolve AI endpoint issues: 3: Aino
 ```
 
@@ -53,7 +52,7 @@ journey
 | Source             | Context                                 | Lands On                   |
 | ------------------ | --------------------------------------- | -------------------------- |
 | Deployment ticket  | "Deploy VariScout for the quality team" | Azure Marketplace          |
-| Support ticket     | "OneDrive sync stopped working"         | In-app admin → Status tab  |
+| Support ticket     | "Team storage not syncing"              | In-app admin → Status tab  |
 | Olivia's request   | "Can we upgrade to Team?"               | In-app admin → Plan tab    |
 | Azure Portal alert | "App Service health degraded"           | Azure Portal → App Service |
 
@@ -71,16 +70,16 @@ journey
 
 ## Aino's Diagnostic Checklist
 
-| Question                         | How to check                                   | Where                                       |
-| -------------------------------- | ---------------------------------------------- | ------------------------------------------- |
-| Is EasyAuth configured?          | `GET /.auth/me` returns user claims            | In-app admin → Status                       |
-| Are Graph API permissions right? | Test User.Read, Files.ReadWrite.All scopes     | In-app admin → Status                       |
-| Is AI endpoint reachable?        | Test connectivity to AI Services               | In-app admin → Status                       |
-| Is Knowledge Base connected?     | Test AI Search query                           | In-app admin → Knowledge Base               |
-| What plan are we on?             | Check `VITE_VARISCOUT_PLAN` and feature matrix | In-app admin → Plan & Features              |
-| Is client secret expiring?       | Check Entra ID → Certificates & secrets        | Azure Portal (not checkable from browser)   |
-| Why can't a user sign in?        | Check EasyAuth config + user assignment        | Azure Portal → App Service → Authentication |
-| Is the App Service healthy?      | Check App Service health + metrics             | Azure Portal → App Service → Health check   |
+| Question                        | How to check                                   | Where                                       |
+| ------------------------------- | ---------------------------------------------- | ------------------------------------------- |
+| Is EasyAuth configured?         | `GET /.auth/me` returns user claims            | In-app admin → Status                       |
+| Is Blob Storage working?        | Test SAS token generation                      | In-app admin → Status                       |
+| Is AI endpoint reachable?       | Test connectivity to AI Services               | In-app admin → Status                       |
+| What plan are we on?            | Check `VITE_VARISCOUT_PLAN` and feature matrix | In-app admin → Plan & Features              |
+| Is client secret expiring?      | Check Entra ID → Certificates & secrets        | Azure Portal (not checkable from browser)   |
+| Why can't a user sign in?       | Check EasyAuth config + user assignment        | Azure Portal → App Service → Authentication |
+| Is the App Service healthy?     | Check App Service health + metrics             | Azure Portal → App Service → Health check   |
+| Can a user access team storage? | Check Storage Account RBAC role assignments    | Azure Portal → Storage Account → IAM        |
 
 ---
 
@@ -92,7 +91,7 @@ journey
 2. **Current plan and features** — What's enabled, what requires upgrade?
 3. **Troubleshooting guides** — Common issues with diagnostic steps
 4. **Azure Portal deep links** — Jump to the right blade for fixes
-5. **Teams manifest setup** — Generate and deploy the Teams app package
+5. **Storage Account access** — Manage RBAC roles for team Blob Storage
 
 ### In-App Admin Structure
 
@@ -100,12 +99,9 @@ journey
 Admin Hub (shield icon)
 ├── Status (health checks)
 │   ├── Authentication
-│   ├── Graph API scopes
-│   ├── AI endpoint
-│   └── Knowledge Base
+│   ├── Blob Storage (Team plan)
+│   └── AI endpoint
 ├── Plan & Features (feature matrix)
-├── Teams Setup (manifest generation)
-├── Knowledge Base (KB config)
 └── Troubleshooting (diagnostics + Portal links)
 ```
 

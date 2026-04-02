@@ -1021,6 +1021,65 @@ describe('useFindings', () => {
     });
   });
 
+  describe('toggleActionComplete', () => {
+    it('sets completedAt when action is not completed', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          context: makeContext(),
+          actions: [{ id: 'a-1', text: 'Do it', createdAt: 1000 }],
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.toggleActionComplete('f-1', 'a-1');
+      });
+
+      expect(result.current.findings[0].actions![0].completedAt).toBeGreaterThan(0);
+    });
+
+    it('clears completedAt when action is already completed', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          context: makeContext(),
+          actions: [{ id: 'a-1', text: 'Do it', createdAt: 1000, completedAt: 5000 }],
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.toggleActionComplete('f-1', 'a-1');
+      });
+
+      expect(result.current.findings[0].actions![0].completedAt).toBeUndefined();
+    });
+
+    it('calls onFindingsChange after toggle', () => {
+      const onChange = vi.fn();
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          context: makeContext(),
+          actions: [{ id: 'a-1', text: 'Do it', createdAt: 1000 }],
+        }),
+      ];
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onFindingsChange: onChange })
+      );
+
+      act(() => {
+        result.current.toggleActionComplete('f-1', 'a-1');
+      });
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('deleteAction', () => {
     it('removes an action by id', () => {
       const initial = [

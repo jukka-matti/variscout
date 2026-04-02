@@ -118,6 +118,8 @@ export interface UseFindingsReturn {
   ) => void;
   /** Mark an action item as completed */
   completeAction: (id: string, actionId: string) => void;
+  /** Toggle an action item's completion (sets completedAt if unset, clears it if set) */
+  toggleActionComplete: (id: string, actionId: string) => void;
   /** Delete an action item */
   deleteAction: (id: string, actionId: string) => void;
   /** Set outcome assessment */
@@ -541,6 +543,26 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [onFindingsChange]
   );
 
+  const toggleActionComplete = useCallback(
+    (id: string, actionId: string) => {
+      setFindings(prev => {
+        const next = prev.map(f => {
+          if (f.id !== id) return f;
+          const updatedActions = f.actions?.map(a => {
+            if (a.id !== actionId) return a;
+            return a.completedAt
+              ? { ...a, completedAt: undefined }
+              : { ...a, completedAt: Date.now() };
+          });
+          return { ...f, actions: updatedActions };
+        });
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
   const deleteAction = useCallback(
     (id: string, actionId: string) => {
       setFindings(prev => {
@@ -656,6 +678,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     addAction,
     updateAction,
     completeAction,
+    toggleActionComplete,
     deleteAction,
     setOutcome,
     setBenchmark,

@@ -31,3 +31,5 @@ export { VerificationPrompt } from './VerificationPrompt';
 export type { VerificationPromptProps } from './VerificationPrompt';
 export { CauseSummaryCards } from './CauseSummaryCards';
 export type { CauseSummaryCardsProps, CauseSummaryCardData } from './CauseSummaryCards';
+export { AddActionDialog } from './AddActionDialog';
+export type { AddActionDialogProps } from './AddActionDialog';

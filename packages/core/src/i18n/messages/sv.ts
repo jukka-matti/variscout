@@ -628,6 +628,13 @@ export const sv: MessageCatalog = {
   'improve.maxRisk': 'Max risk: {level}',
   'improve.totalCost': '€{amount}',
   'improve.budgetStatus': '€{spent} / €{budget}',
+  'improve.actionsDone': 'åtgärder klara',
+  'improve.overdue': 'försenad',
+  'improve.addVerification': 'Lägg till verifieringsdata',
+  'improve.assessOutcome': 'Bedöm resultat',
+  'improve.viewActions': 'Visa åtgärder',
+  'improve.actions': 'åtgärder',
+  'improve.done': 'klar',
   'timeframe.label': 'Tidsram',
 
   // Idea direction labels (Four Ideation Directions)

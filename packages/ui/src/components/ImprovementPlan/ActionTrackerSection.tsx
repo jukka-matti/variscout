@@ -113,31 +113,25 @@ export const ActionTrackerSection: React.FC<ActionTrackerSectionProps> = ({
             <div
               key={action.id}
               data-testid={`action-card-${action.id}`}
-              className={`rounded-lg border bg-surface px-3 py-2.5 flex items-start gap-3 ${
+              className={`relative rounded-lg border bg-surface px-3 py-2.5 flex items-start gap-3 ${
                 overdue ? 'border-red-500/30' : 'border-edge'
               }`}
-              onClick={() => onActionClick?.(action.id, action.findingId)}
-              role={onActionClick ? 'button' : undefined}
-              tabIndex={onActionClick ? 0 : undefined}
-              onKeyDown={
-                onActionClick
-                  ? e => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        onActionClick(action.id, action.findingId);
-                      }
-                    }
-                  : undefined
-              }
             >
+              {/* Primary click target — ::after overlay (Fluent focusMode pattern) */}
+              {onActionClick && (
+                <button
+                  className="absolute inset-0 z-0 rounded-lg bg-transparent after:absolute after:inset-0 after:rounded-lg hover:bg-surface-secondary/50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+                  onClick={() => onActionClick(action.id, action.findingId)}
+                  aria-label={`View action: ${action.text}`}
+                  tabIndex={0}
+                />
+              )}
+
               {/* Completion circle */}
               <button
                 data-testid={`action-toggle-${action.id}`}
-                onClick={e => {
-                  e.stopPropagation();
-                  onToggleComplete(action.id, action.findingId);
-                }}
-                className={`mt-0.5 w-5 h-5 shrink-0 rounded-full flex items-center justify-center transition-colors ${
+                onClick={() => onToggleComplete(action.id, action.findingId)}
+                className={`relative z-10 mt-0.5 w-5 h-5 shrink-0 rounded-full flex items-center justify-center transition-colors ${
                   completed
                     ? 'bg-green-500 border-green-500 border-2'
                     : 'border-2 border-edge hover:border-green-400'
@@ -189,11 +183,8 @@ export const ActionTrackerSection: React.FC<ActionTrackerSectionProps> = ({
                     onAssign && (
                       <button
                         data-testid={`action-assign-btn-${action.id}`}
-                        onClick={e => {
-                          e.stopPropagation();
-                          onAssign(action.id, action.findingId);
-                        }}
-                        className="text-xs text-content-muted hover:text-content transition-colors"
+                        onClick={() => onAssign(action.id, action.findingId)}
+                        className="relative z-10 text-xs text-content-muted hover:text-content transition-colors"
                       >
                         + Assign
                       </button>
@@ -212,11 +203,8 @@ export const ActionTrackerSection: React.FC<ActionTrackerSectionProps> = ({
                     onSetDueDate && (
                       <button
                         data-testid={`action-due-date-btn-${action.id}`}
-                        onClick={e => {
-                          e.stopPropagation();
-                          onSetDueDate(action.id, action.findingId);
-                        }}
-                        className="text-xs text-content-muted hover:text-content transition-colors"
+                        onClick={() => onSetDueDate(action.id, action.findingId)}
+                        className="relative z-10 text-xs text-content-muted hover:text-content transition-colors"
                       >
                         + Due date
                       </button>

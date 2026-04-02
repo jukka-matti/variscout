@@ -418,7 +418,11 @@ export function detectInvestigationPhase(
   const hasChildren = questions.some(q => q.parentId);
   const answered = questions.filter(q => q.status !== 'open');
   const open = questions.filter(q => q.status === 'open');
-  const hasActions = findings?.some(f => f.actions && f.actions.length > 0) ?? false;
+  const hasActions =
+    findings?.some(
+      f =>
+        (f.status === 'improving' || f.status === 'resolved') && f.actions && f.actions.length > 0
+    ) ?? false;
 
   if (hasActions) return 'improving';
   if (answered.length > open.length) return 'converging';

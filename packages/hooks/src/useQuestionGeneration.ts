@@ -64,7 +64,7 @@ export function useQuestionGeneration({
   // Extract stable references from questionsState to avoid object-identity deps
   const { questions: allQuestions, generateInitialQuestions } = questionsState;
 
-  // Compute best subsets (independent computation — Azure's StatsPanel avoids
+  // Compute best subsets (independent computation — Azure's PIPanel avoids
   // double work via precomputedBestSubsets prop; PWA may compute twice but
   // the cost is negligible with ≤3 factors)
   const bestSubsets = useMemo(() => {

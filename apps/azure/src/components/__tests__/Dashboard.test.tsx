@@ -136,18 +136,18 @@ vi.mock('@variscout/ui', () => ({
     ichartCard,
     boxplotCard,
     paretoCard,
-    statsPanel,
+    piPanel,
   }: {
     ichartCard: React.ReactNode;
     boxplotCard: React.ReactNode;
     paretoCard?: React.ReactNode;
-    statsPanel: React.ReactNode;
+    piPanel: React.ReactNode;
   }) => (
     <div data-testid="dashboard-grid">
       {ichartCard}
       {boxplotCard}
       {paretoCard}
-      {statsPanel}
+      {piPanel}
     </div>
   ),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

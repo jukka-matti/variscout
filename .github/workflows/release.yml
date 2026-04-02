@@ -1,0 +1,174 @@
+name: Release
+
+# Publish a versioned release artifact to Azure Blob Storage and GitHub Releases.
+# Triggered by pushing a semver tag: git tag v1.0.0 && git push --tags
+#
+# Prerequisites:
+#   - Azure Storage Account with 'releases' container (see deployment.md)
+#   - OIDC service principal with Storage Blob Data Contributor role
+#   - GitHub var: STORAGE_ACCOUNT_NAME
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  id-token: write # OIDC token for Azure login
+  contents: write # Create GitHub Release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0 # Full history for release notes generation
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore Turborepo cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            turbo-${{ runner.os }}-
+
+      - name: Audit dependencies
+        run: pnpm audit --audit-level=high
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build Azure app
+        run: pnpm --filter @variscout/azure-app build
+
+      - name: Generate SBOM
+        run: npx @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-file sbom.json
+
+      - name: Assemble deployment package
+        run: |
+          mkdir -p deploy/dist
+          cp -r apps/azure/dist/* deploy/dist/
+          cp apps/azure/server.js deploy/server.js
+          echo '{"type":"module","scripts":{"start":"node server.js"}}' > deploy/package.json
+          cd deploy && zip -r ../variscout-azure.zip .
+
+      - name: Compute checksum
+        id: checksum
+        run: |
+          SHA256=$(sha256sum variscout-azure.zip | cut -d' ' -f1)
+          echo "sha256=${SHA256}" >> "$GITHUB_OUTPUT"
+          echo "Checksum: sha256:${SHA256}"
+
+      - name: Extract version from tag
+        id: version
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          VERSION="${TAG_NAME#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Version: ${VERSION}"
+
+      - name: Generate release notes
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          # Get previous tag
+          PREV_TAG=$(git tag --sort=-version:refname | head -2 | tail -1)
+          if [ "${PREV_TAG}" = "${TAG_NAME}" ]; then
+            # First release — use all commits
+            git log --oneline --no-merges | head -20 > release-notes.txt
+          else
+            git log --oneline --no-merges "${PREV_TAG}..${TAG_NAME}" > release-notes.txt
+          fi
+          echo "Generated release notes from ${PREV_TAG:-initial}..${TAG_NAME}"
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Upload ZIP to blob storage
+        env:
+          STORAGE_ACCOUNT: ${{ vars.STORAGE_ACCOUNT_NAME }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          az storage blob upload \
+            --account-name "${STORAGE_ACCOUNT}" \
+            --container-name releases \
+            --name "v${VERSION}/variscout-azure.zip" \
+            --file variscout-azure.zip \
+            --auth-mode login \
+            --overwrite
+
+      - name: Generate SAS token and update manifest
+        env:
+          STORAGE_ACCOUNT: ${{ vars.STORAGE_ACCOUNT_NAME }}
+          VERSION: ${{ steps.version.outputs.version }}
+          CHECKSUM: ${{ steps.checksum.outputs.sha256 }}
+          REPO: ${{ github.repository }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          # Generate read-only SAS token valid for 2 years
+          EXPIRY=$(date -u -d "+2 years" '+%Y-%m-%dT%H:%MZ')
+          SAS=$(az storage blob generate-sas \
+            --account-name "${STORAGE_ACCOUNT}" \
+            --container-name releases \
+            --name "v${VERSION}/variscout-azure.zip" \
+            --permissions r \
+            --expiry "${EXPIRY}" \
+            --auth-mode login \
+            --as-user \
+            --output tsv)
+
+          BLOB_URL="https://${STORAGE_ACCOUNT}.blob.core.windows.net/releases/v${VERSION}/variscout-azure.zip?${SAS}"
+          RELEASED=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+
+          # Create manifest.json
+          cat > manifest.json <<MANIFEST_EOF
+          {
+            "latest": "${VERSION}",
+            "released": "${RELEASED}",
+            "url": "${BLOB_URL}",
+            "checksum": "sha256:${CHECKSUM}",
+            "releaseNotesUrl": "https://github.com/${REPO}/releases/tag/${TAG_NAME}",
+            "minVersion": "1.0.0",
+            "security": false
+          }
+          MANIFEST_EOF
+
+          # Upload manifest (public read via container access policy)
+          az storage blob upload \
+            --account-name "${STORAGE_ACCOUNT}" \
+            --container-name releases \
+            --name manifest.json \
+            --file manifest.json \
+            --auth-mode login \
+            --overwrite
+
+          echo "Manifest updated: v${VERSION}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          gh release create "${TAG_NAME}" \
+            variscout-azure.zip \
+            sbom.json \
+            --title "VariScout ${TAG_NAME}" \
+            --notes-file release-notes.txt

@@ -34,7 +34,7 @@ beforeEach(() => {
 
 describe('useScrollSpy', () => {
   it('returns a refs object with a key for each section id', () => {
-    const sectionIds = ['current-condition', 'drivers', 'hypotheses'];
+    const sectionIds = ['current-condition', 'drivers', 'questions'];
     const { result } = renderHook(() => useScrollSpy({ sectionIds }));
 
     expect(Object.keys(result.current.refs)).toEqual(expect.arrayContaining(sectionIds));
@@ -42,7 +42,7 @@ describe('useScrollSpy', () => {
   });
 
   it('initial activeId is the first section id', () => {
-    const sectionIds = ['current-condition', 'drivers', 'hypotheses'];
+    const sectionIds = ['current-condition', 'drivers', 'questions'];
     const { result } = renderHook(() => useScrollSpy({ sectionIds }));
     expect(result.current.activeId).toBe('current-condition');
   });

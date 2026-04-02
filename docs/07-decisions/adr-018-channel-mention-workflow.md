@@ -4,11 +4,13 @@ title: 'ADR-018: Channel @Mention Workflow — Mobile Finding to Team Action'
 
 # ADR-018: Channel @Mention Workflow — Mobile Finding to Team Action
 
-**Status**: Accepted
+**Status**: Superseded by [ADR-059](adr-059-web-first-deployment-architecture.md)
 
 **Date**: 2026-03-02
 
 **Related**: ADR-016 (Teams integration), ADR-015 (investigation board), ADR-007 (marketplace distribution)
+
+> **Note (2026-04-02):** This ADR has been superseded by ADR-059. The channel @mention workflow via Graph API `ChannelMessage.Send` is removed as part of the web-first architecture shift. Notifications will be reimplemented via Teams Incoming Webhooks (customer-configured, zero Graph API permissions) in a future phase.
 
 ---
 

@@ -550,7 +550,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       // Findings
       setFindings(state.findings ?? []);
 
-      // Hypotheses
+      // Questions
       setQuestions(state.questions ?? []);
 
       // Categories
