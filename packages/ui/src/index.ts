@@ -477,6 +477,11 @@ export {
   type SelectedIdea,
   TrackView,
   type TrackViewProps,
+  VerificationPrompt,
+  type VerificationPromptProps,
+  CauseSummaryCards,
+  type CauseSummaryCardsProps,
+  type CauseSummaryCardData,
 } from './components/ImprovementPlan';
 
 // Yamazumi Components
