@@ -22,6 +22,7 @@ vi.mock('@variscout/core', () => ({
     size,
     uploadStatus: 'pending' as const,
   })),
+  hasTeamFeatures: vi.fn(() => false),
 }));
 
 // Mock photo processing
@@ -33,6 +34,11 @@ vi.mock('../../utils/photoProcessing', () => ({
       filename: 'processed_photo.jpg',
     })
   ),
+}));
+
+// Mock blobClient (not called when hasTeamFeatures returns false)
+vi.mock('../../services/blobClient', () => ({
+  saveBlobPhoto: vi.fn(() => Promise.resolve('https://blob.example.com/photo.jpg')),
 }));
 
 import { usePhotoComments } from '../usePhotoComments';
