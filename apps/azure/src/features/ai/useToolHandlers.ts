@@ -85,8 +85,6 @@ export function useToolHandlers({
     });
 
     const navTeamTools = buildNavTeamToolHandlers({
-      stats,
-      filteredData,
       findings,
       filterStack,
     });

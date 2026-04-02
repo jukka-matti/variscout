@@ -1,23 +1,13 @@
 /**
- * Hook for sharing content via Teams native share dialog or clipboard fallback.
+ * Hook for sharing content via clipboard copy.
  *
- * In Teams: uses sharing.shareWebContent() for rich link cards.
- * Outside Teams: copies the deep link URL to clipboard.
+ * Teams SDK removed per ADR-059. Always uses clipboard fallback.
  */
 
 import { useCallback, useMemo, useRef } from 'react';
-import { sharing, pages } from '@microsoft/teams-js';
-import { isInTeams } from '../teams';
 import type { SharePayload } from '../services/shareContent';
 import type { SyncNotification } from '../services/storage';
-import {
-  buildQuestionLink,
-  buildImprovementLink,
-  buildOverviewLink,
-  buildSubPageId,
-  type DeepLinkMode,
-  type DeepLinkTab,
-} from '../services/deepLinks';
+import { buildQuestionLink, buildImprovementLink, buildOverviewLink } from '../services/deepLinks';
 
 interface UseTeamsShareOptions {
   onToast?: (notif: Omit<SyncNotification, 'id'>) => void;
@@ -30,30 +20,10 @@ export function useTeamsShare(options?: UseTeamsShareOptions) {
   onToastRef.current = options?.onToast;
 
   /**
-   * Share a payload via Teams share dialog, or copy URL to clipboard as fallback.
-   * Returns true if the share/copy succeeded.
+   * Share a payload by copying the URL to clipboard.
+   * Returns true if the copy succeeded.
    */
   const share = useCallback(async (payload: SharePayload): Promise<boolean> => {
-    if (isInTeams()) {
-      try {
-        await sharing.shareWebContent({
-          content: [
-            {
-              type: 'URL',
-              url: payload.url,
-              message: payload.previewText,
-              preview: true,
-            },
-          ],
-        });
-        onToastRef.current?.({ type: 'success', message: 'Shared in Teams', dismissAfter: 3000 });
-        return true;
-      } catch {
-        // Teams share dialog failed or was dismissed — fall through to clipboard
-      }
-    }
-
-    // Non-Teams or fallback: copy URL to clipboard
     try {
       await navigator.clipboard.writeText(payload.url);
       onToastRef.current?.({
@@ -68,32 +38,10 @@ export function useTeamsShare(options?: UseTeamsShareOptions) {
     }
   }, []);
 
-  /**
-   * Set the Teams deep link for the current view.
-   * This allows Teams to resolve deep links natively when sharing the tab.
-   *
-   * Accepts either a raw subPageId string or a structured target object.
-   */
+  /** No-op — Teams deep link registration removed per ADR-059. */
   const setDeepLink = useCallback(
-    (
-      subPageIdOrProject: string,
-      label: string,
-      target?: {
-        findingId?: string;
-        questionId?: string;
-        chart?: string;
-        mode?: DeepLinkMode;
-        tab?: DeepLinkTab;
-      }
-    ) => {
-      if (!isInTeams()) return;
-      try {
-        // If a target object is provided, build the subPageId from project + target
-        const subPageId = target ? buildSubPageId(subPageIdOrProject, target) : subPageIdOrProject;
-        pages.shareDeepLink({ subPageId, subPageLabel: label });
-      } catch {
-        // Non-critical — deep link registration is best-effort
-      }
+    (_subPageIdOrProject: string, _label: string, _target?: Record<string, string>) => {
+      // No-op: Teams deep links removed
     },
     []
   );
@@ -114,5 +62,5 @@ export function useTeamsShare(options?: UseTeamsShareOptions) {
     [baseUrl]
   );
 
-  return { share, setDeepLink, isTeams: isInTeams(), ...linkBuilders };
+  return { share, setDeepLink, isTeams: false, ...linkBuilders };
 }

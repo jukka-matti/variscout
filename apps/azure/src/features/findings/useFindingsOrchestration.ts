@@ -16,7 +16,6 @@ import {
 } from '@variscout/hooks';
 import { useFindingsStore } from './findingsStore';
 import { usePanelsStore } from '../panels/panelsStore';
-import { useStatusUpdateCards } from '../../hooks/useStatusUpdateCards';
 import { usePopoutSync } from './usePopoutSync';
 import type { UseFilterNavigationReturn } from '../../hooks/useFilterNavigation';
 import type { AzureFindingsCallbacks } from '@variscout/ui';
@@ -126,8 +125,8 @@ export function useFindingsOrchestration({
   projectedValue,
   factorRoles,
   aiAvailable,
-  addNotification,
-  projectName,
+  addNotification: _addNotification,
+  projectName: _projectName,
   focusedQuestionId,
   linkFinding,
 }: UseFindingsOrchestrationOptions): UseFindingsOrchestrationReturn {
@@ -138,18 +137,10 @@ export function useFindingsOrchestration({
   const linkFindingRef = useRef(linkFinding);
   linkFindingRef.current = linkFinding;
 
-  // Status update cards (Teams channel integration)
-  const { onStatusChanged } = useStatusUpdateCards({
-    questions,
-    addNotification,
-    projectName,
-  });
-
   // Core findings state (CRUD engine from @variscout/hooks)
   const findingsState = useFindings({
     initialFindings: persistedFindings,
     onFindingsChange: setPersistedFindings,
-    onStatusChange: onStatusChanged,
   });
 
   // Drill path for context building

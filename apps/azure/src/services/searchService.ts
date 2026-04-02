@@ -7,9 +7,12 @@
  */
 
 import { hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
-import { getGraphTokenWithScopes } from '../auth/graphToken';
+// getGraphTokenWithScopes removed per ADR-059 (Graph API removed)
 import { getAccessToken } from '../auth/easyAuth';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
+
+/** Feature gate: Knowledge Base disabled pending Blob Storage migration (ADR-059) */
+const KNOWLEDGE_BASE_ENABLED = false;
 
 export interface DocumentResult {
   title: string;
@@ -28,6 +31,7 @@ function getSearchEndpoint(): string | null {
  * Requires Team plan (with KB access), configured search endpoint, and preview toggle enabled.
  */
 export function isKnowledgeBaseAvailable(): boolean {
+  if (!KNOWLEDGE_BASE_ENABLED) return false;
   return hasKnowledgeBase() && getSearchEndpoint() !== null && isPreviewEnabled('knowledge-base');
 }
 
@@ -40,12 +44,8 @@ export async function checkKnowledgeBasePermissions(): Promise<{
   hasSharePointAccess: boolean;
 }> {
   if (!isKnowledgeBaseAvailable()) return { available: false, hasSharePointAccess: false };
-  try {
-    await getGraphTokenWithScopes(['Sites.Read.All']);
-    return { available: true, hasSharePointAccess: true };
-  } catch {
-    return { available: true, hasSharePointAccess: false };
-  }
+  // Graph token exchange removed per ADR-059 — SharePoint access check disabled
+  return { available: true, hasSharePointAccess: false };
 }
 
 /**
@@ -64,16 +64,15 @@ export async function searchDocuments(
     folderScope?: string;
   }
 ): Promise<DocumentResult[]> {
+  if (!KNOWLEDGE_BASE_ENABLED) return [];
   if (!hasKnowledgeBase() || !isPreviewEnabled('knowledge-base')) return [];
 
   const endpoint = getSearchEndpoint();
   if (!endpoint) return [];
 
-  // Get tokens: service token for AI Search, user token for SharePoint passthrough
-  const [serviceToken, userToken] = await Promise.all([
-    getAccessToken(),
-    getGraphTokenWithScopes(['Sites.Read.All']).catch(() => null),
-  ]);
+  // Get service token for AI Search (SharePoint passthrough removed per ADR-059)
+  const serviceToken = await getAccessToken();
+  const userToken: string | null = null;
 
   const body: Record<string, unknown> = {
     messages: [{ role: 'user', content: [{ type: 'text', text: query }] }],

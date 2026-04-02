@@ -10,8 +10,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import type { MessageCatalog } from '@variscout/core';
-import { isLocalDev, getAccessToken } from '../../auth/easyAuth';
-import { graphFetch, GRAPH_BASE } from '../../services/graphFetch';
+import { isLocalDev } from '../../auth/easyAuth';
 import { searchDocuments } from '../../services/searchService';
 import { getRuntimeConfig } from '../../lib/runtimeConfig';
 
@@ -46,14 +45,8 @@ const ISSUES: TroubleshootIssue[] = [
     id: 'onedrive',
     titleKey: 'admin.issue.onedrive',
     descKey: 'admin.issue.onedriveDesc',
-    checkFn: async () => {
-      if (isLocalDev()) return true;
-      const token = await getAccessToken();
-      const res = await graphFetch(`${GRAPH_BASE}/me/drive`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return res.ok;
-    },
+    // Graph API check removed per ADR-059 (OneDrive replaced by Blob Storage)
+    checkFn: null,
     stepsKey: 'admin.issue.onedriveSteps',
     portalLink: {
       label: 'App Registration \u2192 API permissions',

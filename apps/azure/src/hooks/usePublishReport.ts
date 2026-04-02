@@ -1,24 +1,13 @@
 /**
- * usePublishReport — Orchestrates publishing a scouting report to SharePoint.
+ * usePublishReport — Report publishing hook.
  *
- * Flow:
- *   1. Render report sections → Markdown document
- *   2. Upload to channel's SharePoint folder (alongside .vrs files)
- *   3. Handle versioning (ask user if file exists)
- *
- * ADR-026: Reports are published to the same folder as .vrs files.
- * Uses getGraphTokenWithScopes() for SharePoint write access.
+ * SharePoint upload removed per ADR-059. Returns an error status
+ * directing users to use local export instead.
  */
 
 import { useState, useCallback } from 'react';
 import type { StatsResult, ProcessContext, Question } from '@variscout/core';
 import type { ReportSectionDescriptor, ReportType } from '@variscout/hooks';
-import {
-  renderReportMarkdown,
-  generateReportFilename,
-  type ReportMetadata,
-} from '../services/reportExport';
-import { uploadReportToSharePoint } from '../services/reportUpload';
 
 // ── Types ───────────────────────────────────────────────────────────────
 
@@ -49,69 +38,24 @@ export interface UsePublishReportReturn {
 
 // ── Hook ────────────────────────────────────────────────────────────────
 
-export function usePublishReport(options: UsePublishReportOptions): UsePublishReportReturn {
+export function usePublishReport(_options: UsePublishReportOptions): UsePublishReportReturn {
   const [status, setStatus] = useState<PublishStatus>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
 
-  const doPublish = useCallback(
-    async (replaceExisting: boolean) => {
-      try {
-        // 1. Render
-        setStatus('rendering');
-        setError(null);
+  const publish = useCallback(async () => {
+    setStatus('error');
+    setError('SharePoint upload removed — use local export');
+  }, []);
 
-        const date = new Date().toISOString().substring(0, 10);
-        const metadata: ReportMetadata = {
-          projectName: options.projectName,
-          processName: options.processName,
-          analyst: options.analyst,
-          date,
-          reportType: options.reportType,
-          cpk: options.stats?.cpk,
-          mean: options.stats?.mean,
-          sampleCount: options.sampleCount,
-        };
-
-        const markdown = renderReportMarkdown({
-          metadata,
-          sections: options.sections,
-          processContext: options.processContext,
-          stats: options.stats,
-          aiNarrative: options.aiNarrative,
-        });
-
-        const filename = generateReportFilename(options.projectName, date);
-
-        // 2. Upload
-        setStatus('uploading');
-
-        const result = await uploadReportToSharePoint(markdown, filename, replaceExisting);
-
-        if (result.exists && !replaceExisting) {
-          setStatus('exists');
-          return;
-        }
-
-        setStatus('success');
-        setPublishedUrl(result.webUrl ?? null);
-      } catch (err) {
-        console.error('[PublishReport] Failed:', err);
-        setError(err instanceof Error ? err.message : 'Failed to publish report');
-        setStatus('error');
-      }
-    },
-    [options]
-  );
-
-  const publish = useCallback(() => doPublish(false), [doPublish]);
-  const publishReplace = useCallback(() => doPublish(true), [doPublish]);
+  const publishReplace = useCallback(async () => {
+    setStatus('error');
+    setError('SharePoint upload removed — use local export');
+  }, []);
 
   const reset = useCallback(() => {
     setStatus('idle');
     setError(null);
-    setPublishedUrl(null);
   }, []);
 
-  return { publish, publishReplace, status, error, publishedUrl, reset };
+  return { publish, publishReplace, status, error, publishedUrl: null, reset };
 }

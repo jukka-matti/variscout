@@ -14,9 +14,7 @@ afterAll(() => {
 describe('ShareDropdown', () => {
   const defaultProps = {
     deepLinkUrl: 'https://example.com/?project=Test',
-    isInTeams: false,
     showPublishReport: false,
-    onShareTeams: vi.fn(),
     onPublishReport: vi.fn(),
     onToast: vi.fn(),
   };
@@ -36,16 +34,10 @@ describe('ShareDropdown', () => {
     expect(screen.getByText('Copy link')).toBeInTheDocument();
   });
 
-  it('hides "Share in Teams" when not in Teams', () => {
+  it('does not show "Share in Teams" (removed per ADR-059)', () => {
     render(<ShareDropdown {...defaultProps} />);
     fireEvent.click(screen.getByTestId('btn-share'));
     expect(screen.queryByText('Share in Teams')).not.toBeInTheDocument();
-  });
-
-  it('shows "Share in Teams" when in Teams', () => {
-    render(<ShareDropdown {...defaultProps} isInTeams={true} />);
-    fireEvent.click(screen.getByTestId('btn-share'));
-    expect(screen.getByText('Share in Teams')).toBeInTheDocument();
   });
 
   it('hides "Publish report" when not in report view', () => {
@@ -72,12 +64,7 @@ describe('ShareDropdown', () => {
     });
   });
 
-  it('calls onShareTeams when Share in Teams clicked', () => {
-    render(<ShareDropdown {...defaultProps} isInTeams={true} />);
-    fireEvent.click(screen.getByTestId('btn-share'));
-    fireEvent.click(screen.getByText('Share in Teams'));
-    expect(defaultProps.onShareTeams).toHaveBeenCalled();
-  });
+  // onShareTeams test removed per ADR-059 (Teams SDK removed)
 
   it('closes dropdown after action', () => {
     render(<ShareDropdown {...defaultProps} />);

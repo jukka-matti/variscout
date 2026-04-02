@@ -99,9 +99,6 @@ importers:
       '@microsoft/applicationinsights-web':
         specifier: ^3.3.11
         version: 3.3.11(tslib@2.8.1)
-      '@microsoft/teams-js':
-        specifier: ^2.50.0
-        version: 2.50.0
       '@variscout/charts':
         specifier: workspace:*
         version: link:../../packages/charts
@@ -2090,9 +2087,6 @@ packages:
   '@microsoft/dynamicproto-js@2.0.3':
     resolution: {integrity: sha512-JTWTU80rMy3mdxOjjpaiDQsTLZ6YSGGqsjURsY6AUQtIj0udlF/jYmhdLZu8693ZIC0T1IwYnFa0+QeiMnziBA==}
 
-  '@microsoft/teams-js@2.50.0':
-    resolution: {integrity: sha512-XFebLYmixEXn2fu681PVyU+4ygZSRQ9oMLy11IiIwkEPGssUDzT6sHaoS8rgHg7P8hvfhMIiWdAYu8dkS0sA+Q==}
-
   '@microsoft/tsdoc-config@0.18.1':
     resolution: {integrity: sha512-9brPoVdfN9k9g0dcWkFeA7IH9bbcttzDJlXvkf8b2OBzd5MueR1V2wkKBL0abn0otvmkHJC6aapBOTJDDeMCZg==}
 
@@ -3399,9 +3393,6 @@ packages:
 
   base-64@1.0.0:
     resolution: {integrity: sha512-kwDPIFCGx0NZHog36dj+tHiwP4QMzsZ3AgMViUBKI0+V5n4U0ufTCUMhnQ04diaRI8EX/QcPfql7zlhZ7j4zgg==}
-
-  base64-js@1.5.1:
-    resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
 
   baseline-browser-mapping@2.9.11:
     resolution: {integrity: sha512-Sg0xJUNDU1sJNGdfGWhVHX0kkZ+HWcvmVymJbj6NSgZZmW/8S9Y2HQ5euytnIgakgxN6papOAWiwDo1ctFDcoQ==}
@@ -8907,13 +8898,6 @@ snapshots:
     dependencies:
       '@nevware21/ts-utils': 0.13.0
 
-  '@microsoft/teams-js@2.50.0':
-    dependencies:
-      base64-js: 1.5.1
-      debug: 4.4.3
-    transitivePeerDependencies:
-      - supports-color
-
   '@microsoft/tsdoc-config@0.18.1':
     dependencies:
       '@microsoft/tsdoc': 0.16.0
@@ -10433,8 +10417,6 @@ snapshots:
   balanced-match@4.0.4: {}
 
   base-64@1.0.0: {}
-
-  base64-js@1.5.1: {}
 
   baseline-browser-mapping@2.9.11: {}
 

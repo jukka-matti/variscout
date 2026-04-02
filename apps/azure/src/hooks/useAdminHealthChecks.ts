@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { hasTeamFeatures } from '@variscout/core';
-import { isLocalDev, getAccessToken } from '../auth/easyAuth';
-import { graphFetch, GRAPH_BASE } from '../services/graphFetch';
+import { isLocalDev } from '../auth/easyAuth';
 import { searchDocuments } from '../services/searchService';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
 
@@ -85,33 +84,10 @@ async function runCheck(id: string): Promise<{ status: CheckStatus; error?: stri
         return { status: 'pass' };
       }
 
-      case 'graph-profile': {
-        if (isLocalDev()) return { status: 'pass' };
-        const token = await getAccessToken();
-        const res = await graphFetch(`${GRAPH_BASE}/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) return { status: 'fail', error: `HTTP ${res.status}` };
-        return { status: 'pass' };
-      }
-
-      case 'graph-files': {
-        if (isLocalDev()) return { status: 'pass' };
-        const token = await getAccessToken();
-        const res = await graphFetch(`${GRAPH_BASE}/me/drive`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) return { status: 'fail', error: `HTTP ${res.status}` };
-        return { status: 'pass' };
-      }
-
+      case 'graph-profile':
+      case 'graph-files':
       case 'graph-channels': {
-        if (isLocalDev()) return { status: 'pass' };
-        const token = await getAccessToken();
-        const res = await graphFetch(`${GRAPH_BASE}/me/joinedTeams`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) return { status: 'fail', error: `HTTP ${res.status}` };
+        // Graph API checks removed per ADR-059
         return { status: 'pass' };
       }
 

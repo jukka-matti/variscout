@@ -1,17 +1,26 @@
 /**
  * Tests for usePhotoComments hook
+ *
+ * Teams camera and OneDrive upload removed per ADR-059.
+ * Photos are now processed locally only.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
-// Mock @variscout/core — hasTeamFeatures defaults to true (photo comments are Team-only)
+// Mock @variscout/core
 vi.mock('@variscout/core', () => ({
-  hasTeamFeatures: () => true,
   createPhotoAttachment: vi.fn((filename: string) => ({
     id: `photo-${Date.now()}`,
     filename,
     uploadStatus: 'pending' as const,
     thumbnailDataUrl: undefined,
+  })),
+  createCommentAttachment: vi.fn((filename: string, mimeType: string, size: number) => ({
+    id: `att-${Date.now()}`,
+    filename,
+    mimeType,
+    size,
+    uploadStatus: 'pending' as const,
   })),
 }));
 
@@ -24,26 +33,6 @@ vi.mock('../../utils/photoProcessing', () => ({
       filename: 'processed_photo.jpg',
     })
   ),
-}));
-
-// Mock photo upload
-vi.mock('../../services/photoUpload', () => ({
-  uploadPhoto: vi.fn(() =>
-    Promise.resolve({ driveItemId: 'drive-item-abc', webUrl: 'https://...' })
-  ),
-}));
-
-// Mock easyAuth
-vi.mock('../../auth/easyAuth', () => ({
-  isLocalDev: vi.fn(() => true),
-}));
-
-// Mock teamsMedia
-const mockIsTeamsMediaAvailable = vi.fn(() => false);
-const mockCapturePhotoFromTeams = vi.fn();
-vi.mock('../../teams/teamsMedia', () => ({
-  isTeamsMediaAvailable: () => mockIsTeamsMediaAvailable(),
-  capturePhotoFromTeams: (...args: unknown[]) => mockCapturePhotoFromTeams(...args),
 }));
 
 import { usePhotoComments } from '../usePhotoComments';
@@ -123,13 +112,13 @@ describe('usePhotoComments', () => {
       })
     );
 
-    // In local dev, should mark as uploaded immediately
+    // Should mark as uploaded (local only)
     expect(mockFindings.updatePhotoStatus).toHaveBeenCalledWith(
       'f-1',
       'c-1',
       expect.any(String),
       'uploaded',
-      expect.stringMatching(/^local-dev-/)
+      expect.stringMatching(/^local-/)
     );
   });
 
@@ -168,94 +157,23 @@ describe('usePhotoComments', () => {
     expect(mockFindings.addFindingComment).toHaveBeenCalledWith('f-1', 'Note', undefined);
   });
 
-  describe('Teams camera integration', () => {
-    it('isTeamsCamera reflects isTeamsMediaAvailable', () => {
-      mockIsTeamsMediaAvailable.mockReturnValue(true);
-      const { result } = renderHook(() =>
-        usePhotoComments({
-          findingsState: mockFindings,
-          analysisId: 'test-analysis',
-        })
-      );
-      expect(result.current.isTeamsCamera).toBe(true);
-    });
+  it('isTeamsCamera is always false (Teams removed per ADR-059)', () => {
+    const { result } = renderHook(() =>
+      usePhotoComments({
+        findingsState: mockFindings,
+        analysisId: 'test-analysis',
+      })
+    );
+    expect(result.current.isTeamsCamera).toBe(false);
+  });
 
-    it('isTeamsCamera is false when Teams media unavailable', () => {
-      mockIsTeamsMediaAvailable.mockReturnValue(false);
-      const { result } = renderHook(() =>
-        usePhotoComments({
-          findingsState: mockFindings,
-          analysisId: 'test-analysis',
-        })
-      );
-      expect(result.current.isTeamsCamera).toBe(false);
-    });
-
-    it('handleCaptureFromTeams captures and processes photo', async () => {
-      const teamsFile = new File(['teams-img'], 'teams_photo.jpg', { type: 'image/jpeg' });
-      mockCapturePhotoFromTeams.mockResolvedValueOnce(teamsFile);
-
-      const { result } = renderHook(() =>
-        usePhotoComments({
-          findingsState: mockFindings,
-          analysisId: 'test-analysis',
-        })
-      );
-
-      await act(async () => {
-        await result.current.handleCaptureFromTeams('f-1', 'c-1');
-      });
-
-      // Should have called Teams camera
-      expect(mockCapturePhotoFromTeams).toHaveBeenCalledOnce();
-
-      // Should have processed the returned file
-      expect(processPhoto).toHaveBeenCalledWith(teamsFile);
-
-      // Should have added photo optimistically
-      expect(mockFindings.addPhotoToComment).toHaveBeenCalled();
-    });
-
-    it('handleCaptureFromTeams does nothing when user cancels', async () => {
-      mockCapturePhotoFromTeams.mockResolvedValueOnce(null);
-
-      const { result } = renderHook(() =>
-        usePhotoComments({
-          findingsState: mockFindings,
-          analysisId: 'test-analysis',
-        })
-      );
-
-      await act(async () => {
-        await result.current.handleCaptureFromTeams('f-1', 'c-1');
-      });
-
-      expect(mockCapturePhotoFromTeams).toHaveBeenCalledOnce();
-      expect(processPhoto).not.toHaveBeenCalled();
-      expect(mockFindings.addPhotoToComment).not.toHaveBeenCalled();
-    });
-
-    it('handleCaptureFromTeams handles errors gracefully', async () => {
-      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      mockCapturePhotoFromTeams.mockRejectedValueOnce(new Error('Camera denied'));
-
-      const { result } = renderHook(() =>
-        usePhotoComments({
-          findingsState: mockFindings,
-          analysisId: 'test-analysis',
-        })
-      );
-
-      await act(async () => {
-        await result.current.handleCaptureFromTeams('f-1', 'c-1');
-      });
-
-      expect(consoleWarn).toHaveBeenCalledWith(
-        '[PhotoComments] Teams camera failed:',
-        expect.any(Error)
-      );
-      expect(mockFindings.addPhotoToComment).not.toHaveBeenCalled();
-      consoleWarn.mockRestore();
-    });
+  it('handleCaptureFromTeams is undefined (Teams removed per ADR-059)', () => {
+    const { result } = renderHook(() =>
+      usePhotoComments({
+        findingsState: mockFindings,
+        analysisId: 'test-analysis',
+      })
+    );
+    expect(result.current.handleCaptureFromTeams).toBeUndefined();
   });
 });

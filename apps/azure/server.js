@@ -12,8 +12,8 @@ const DIST = join(__dirname, 'dist');
 const PORT = parseInt(process.env.PORT || '8080', 10);
 
 // Build dynamic connect-src for external services.
-// Token exchange goes through same-origin /api/token-exchange proxy (no external Function URL needed in CSP).
-let connectSrc = "'self' https://graph.microsoft.com https://*.sharepoint.com https://login.microsoftonline.com";
+// Graph API and SharePoint removed per ADR-059.
+let connectSrc = "'self' https://login.microsoftonline.com";
 const aiEndpoint = process.env.AI_ENDPOINT || '';
 const searchEndpoint = process.env.AI_SEARCH_ENDPOINT || '';
 if (aiEndpoint) {
@@ -89,49 +89,7 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  // Proxy for OBO token exchange — keeps Function key server-side (not in client bundle).
-  // The client calls /api/token-exchange (same-origin), this server injects the Function key
-  // and forwards to the actual Azure Function.
-  if (pathname === '/api/token-exchange' && req.method === 'POST') {
-    const functionUrlEnv = process.env.FUNCTION_URL;
-    if (!functionUrlEnv) {
-      writeResponse(res, 503, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Token exchange not configured' }));
-      return;
-    }
-
-    // Read request body
-    const chunks = [];
-    for await (const chunk of req) chunks.push(chunk);
-    const body = Buffer.concat(chunks);
-
-    // Forward to Azure Function with server-side Function key
-    const targetUrl = new URL('/api/token-exchange', functionUrlEnv);
-    const proxyHeaders = {
-      'Content-Type': 'application/json',
-      'Content-Length': body.length.toString(),
-    };
-    const functionKey = process.env.FUNCTION_KEY || '';
-    if (functionKey) proxyHeaders['x-functions-key'] = functionKey;
-
-    try {
-      const proxyRes = await fetch(targetUrl, {
-        method: 'POST',
-        headers: proxyHeaders,
-        body,
-      });
-      const responseBody = await proxyRes.text();
-      writeResponse(res, proxyRes.status, {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-store',
-      });
-      res.end(responseBody);
-    } catch (err) {
-      writeResponse(res, 502, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Token exchange proxy failed' }));
-    }
-    return;
-  }
+  // OBO token exchange proxy removed per ADR-059 (Graph API removed, EasyAuth only)
 
   // Runtime configuration endpoint — serves env vars as JSON.
   // Required for Marketplace deployments where Vite env vars are baked at build time.

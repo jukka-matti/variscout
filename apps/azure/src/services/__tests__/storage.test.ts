@@ -266,10 +266,8 @@ describe('storage service', () => {
       expect(result.current.syncStatus.message).toContain('offline');
     });
 
-    it('syncs to cloud immediately when online', async () => {
+    it('gracefully degrades when cloud sync unavailable (ADR-059)', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
-
-      fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'cloud-id-1', eTag: 'etag-1' }));
 
       const { result } = renderHook(() => useStorage(), { wrapper });
 
@@ -277,104 +275,28 @@ describe('storage service', () => {
         await result.current.saveProject(sampleProject, 'cloud-proj', 'personal');
       });
 
-      // Should call Graph API PUT
-      expect(fetchSpy).toHaveBeenCalledWith(
-        expect.stringContaining('graph.microsoft.com'),
-        expect.objectContaining({ method: 'PUT' })
-      );
-      expect(result.current.syncStatus.status).toBe('synced');
-      expect(result.current.syncStatus.lastSynced).toBeInstanceOf(Date);
+      // Cloud sync stubs throw CloudSyncUnavailableError, so save falls back to local
+      expect(mockProjects.put).toHaveBeenCalled();
+      expect(result.current.syncStatus.status).toBe('saved');
+      expect(result.current.syncStatus.message).toBe('Saved locally');
+      // Should NOT have called Graph API
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
 
-    it('appends .vrs to filenames in Graph API call', async () => {
+    it('emits info notification about cloud sync unavailability when online', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
-
-      fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'id-1', eTag: 'etag-1' }));
 
       const { result } = renderHook(() => useStorage(), { wrapper });
 
       await act(async () => {
-        await result.current.saveProject(sampleProject, 'my-project', 'personal');
+        await result.current.saveProject(sampleProject, 'notif-cloud', 'personal');
       });
 
-      expect(fetchSpy).toHaveBeenCalledWith(
-        expect.stringContaining('my-project.vrs'),
-        expect.anything()
-      );
-    });
-
-    it('does not double-append .vrs when name already has extension', async () => {
-      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
-
-      fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'id-2', eTag: 'etag-2' }));
-
-      const { result } = renderHook(() => useStorage(), { wrapper });
-
-      await act(async () => {
-        await result.current.saveProject(sampleProject, 'already.vrs', 'personal');
-      });
-
-      const url = fetchSpy.mock.calls[0][0] as string;
-      expect(url).toContain('already.vrs');
-      expect(url).not.toContain('already.vrs.vrs');
-    });
-
-    it('marks project as synced in IndexedDB after cloud save', async () => {
-      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
-
-      // First get: metadata extraction reads existing record for lastViewedAt
-      mockProjects.get.mockResolvedValueOnce({
-        name: 'synced-proj',
-        location: 'personal',
-        synced: false,
-        data: sampleProject,
-      });
-      // Second get: markAsSynced reads record to update synced flag
-      mockProjects.get.mockResolvedValueOnce({
-        name: 'synced-proj',
-        location: 'personal',
-        synced: false,
-        data: sampleProject,
-      });
-
-      // Cloud .vrs save response
-      fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'cloud-99', eTag: 'etag-99' }));
-      // Cloud .meta.json sidecar write response (fire-and-forget)
-      fetchSpy.mockResolvedValueOnce(createFetchResponse({}));
-
-      const { result } = renderHook(() => useStorage(), { wrapper });
-
-      await act(async () => {
-        await result.current.saveProject(sampleProject, 'synced-proj', 'personal');
-      });
-
-      expect(mockProjects.update).toHaveBeenCalledWith('synced-proj', { synced: true });
-      expect(mockSyncState.put).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'synced-proj',
-          cloudId: 'cloud-99',
-          etag: 'etag-99',
-        })
-      );
-    });
-
-    it('falls back to offline queue when cloud save fails', async () => {
-      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
-
-      fetchSpy.mockResolvedValueOnce(
-        createFetchResponse({ error: { message: 'Throttled' } }, false, 429)
-      );
-
-      const { result } = renderHook(() => useStorage(), { wrapper });
-
-      await act(async () => {
-        await result.current.saveProject(sampleProject, 'fail-proj', 'personal');
-      });
-
-      expect(mockAddToSyncQueue).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'fail-proj' })
-      );
-      expect(result.current.syncStatus.status).toBe('offline');
+      expect(
+        result.current.notifications.some(
+          n => n.type === 'info' && n.message.includes('Cloud sync unavailable')
+        )
+      ).toBe(true);
     });
   });
 
@@ -382,13 +304,14 @@ describe('storage service', () => {
   // loadProject
   // -------------------------------------------------------------------------
   describe('loadProject', () => {
-    it('loads from cloud when online and caches locally', async () => {
+    it('falls back to IndexedDB when cloud sync unavailable (ADR-059)', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
-      // db.projects.get for conflict detection (no local record → skip conflict check)
+      // db.projects.get for conflict detection (no local record)
       mockProjects.get.mockResolvedValueOnce(null);
-      // Only loadFromCloud fetch (no conflict metadata fetch since no local record)
-      fetchSpy.mockResolvedValueOnce(createFetchResponse(sampleProject));
+      // loadFromCloud throws CloudSyncUnavailableError → fallback to IndexedDB
+      const localData = { data: [42], specs: { usl: 100 } };
+      mockProjects.get.mockResolvedValueOnce({ data: localData });
 
       const { result } = renderHook(() => useStorage(), { wrapper });
       let loaded: unknown;
@@ -397,14 +320,9 @@ describe('storage service', () => {
         loaded = await result.current.loadProject('remote-proj', 'personal');
       });
 
-      expect(loaded).toEqual(sampleProject);
-      // Should cache to IndexedDB
-      expect(mockProjects.put).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'remote-proj',
-          data: sampleProject,
-        })
-      );
+      expect(loaded).toEqual(localData);
+      // Should NOT have called Graph API fetch
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
 
     it('falls back to IndexedDB when offline', async () => {
@@ -492,7 +410,7 @@ describe('storage service', () => {
       expect(fetchSpy).not.toHaveBeenCalled();
     });
 
-    it('merges cloud and local projects when online, preferring cloud', async () => {
+    it('returns only local projects when cloud returns empty (ADR-059)', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
       mockProjects.toArray.mockResolvedValueOnce([
@@ -500,25 +418,6 @@ describe('storage service', () => {
         { name: 'local-only', location: 'personal', modified: new Date('2026-02-01') },
       ]);
 
-      fetchSpy.mockResolvedValueOnce(
-        createFetchResponse({
-          value: [
-            {
-              id: 'cloud-1',
-              name: 'shared.vrs',
-              lastModifiedDateTime: '2026-02-10T12:00:00Z',
-              lastModifiedBy: { user: { displayName: 'Alice' } },
-            },
-            {
-              id: 'cloud-2',
-              name: 'cloud-new.vrs',
-              lastModifiedDateTime: '2026-02-15T08:00:00Z',
-              lastModifiedBy: { user: { displayName: 'Bob' } },
-            },
-          ],
-        })
-      );
-
       const { result } = renderHook(() => useStorage(), { wrapper });
       let projects: CloudProject[] = [];
 
@@ -526,101 +425,16 @@ describe('storage service', () => {
         projects = await result.current.listProjects();
       });
 
-      // 3 unique: shared (cloud wins), local-only, cloud-new
-      expect(projects).toHaveLength(3);
+      // listFromCloud returns [] (stubbed), so only local projects remain
+      expect(projects).toHaveLength(2);
 
-      // The cloud version of 'shared' should have modifiedBy from cloud
-      const shared = projects.find(p => p.name === 'shared');
-      expect(shared?.modifiedBy).toBe('Alice');
-
-      // local-only should be marked as Local
-      const localOnly = projects.find(p => p.name === 'local-only');
-      expect(localOnly?.modifiedBy).toBe('Local');
+      // All projects should be marked as Local
+      expect(projects.every(p => p.modifiedBy === 'Local')).toBe(true);
 
       // Results should be sorted newest first
       expect(new Date(projects[0].modified).getTime()).toBeGreaterThanOrEqual(
         new Date(projects[1].modified).getTime()
       );
-    });
-
-    it('filters out non-.vrs files from cloud listing', async () => {
-      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
-      mockProjects.toArray.mockResolvedValueOnce([]);
-
-      fetchSpy.mockResolvedValueOnce(
-        createFetchResponse({
-          value: [
-            { id: '1', name: 'project.vrs', lastModifiedDateTime: '2026-01-01T00:00:00Z' },
-            { id: '2', name: 'readme.txt', lastModifiedDateTime: '2026-01-02T00:00:00Z' },
-            { id: '3', name: 'data.csv', lastModifiedDateTime: '2026-01-03T00:00:00Z' },
-          ],
-        })
-      );
-
-      const { result } = renderHook(() => useStorage(), { wrapper });
-      let projects: CloudProject[] = [];
-
-      await act(async () => {
-        projects = await result.current.listProjects();
-      });
-
-      expect(projects).toHaveLength(1);
-      expect(projects[0].name).toBe('project');
-    });
-
-    it('returns empty list and creates folder on 404 (first use)', async () => {
-      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
-      mockProjects.toArray.mockResolvedValueOnce([]);
-
-      // listFromCloud returns 404
-      fetchSpy.mockResolvedValueOnce(createFetchResponse(null, false, 404));
-      // ensureFolderExists: two POST calls for folder creation
-      fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'folder-1' }));
-      fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'folder-2' }));
-
-      const { result } = renderHook(() => useStorage(), { wrapper });
-      let projects: CloudProject[] = [];
-
-      await act(async () => {
-        projects = await result.current.listProjects();
-      });
-
-      expect(projects).toHaveLength(0);
-
-      // Verify folder creation POST calls were made
-      const postCalls = fetchSpy.mock.calls.filter(
-        (call: [string, Record<string, unknown>?]) => call[1]?.method === 'POST'
-      );
-      expect(postCalls).toHaveLength(2);
-      expect(postCalls[0][0]).toContain('/me/drive/root/children');
-      expect(postCalls[1][0]).toContain('/me/drive/root:/VariScout:/children');
-    });
-
-    it('still logs warning for non-404 cloud errors (e.g. 500)', async () => {
-      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
-      mockProjects.toArray.mockResolvedValueOnce([
-        { name: 'local-safe', location: 'personal', modified: new Date('2026-01-01') },
-      ]);
-
-      // listFromCloud returns 500
-      fetchSpy.mockResolvedValueOnce(createFetchResponse(null, false, 500));
-
-      const { result } = renderHook(() => useStorage(), { wrapper });
-      let projects: CloudProject[] = [];
-
-      await act(async () => {
-        projects = await result.current.listProjects();
-      });
-
-      // Should fall back to local projects
-      expect(projects).toHaveLength(1);
-      expect(projects[0].name).toBe('local-safe');
-
-      // Should NOT have made folder creation POST calls
-      const postCalls = fetchSpy.mock.calls.filter(
-        (call: [string, Record<string, unknown>?]) => call[1]?.method === 'POST'
-      );
-      expect(postCalls).toHaveLength(0);
     });
 
     it('returns local projects when cloud listing fails', async () => {
@@ -648,8 +462,8 @@ describe('storage service', () => {
   // Background sync (online event)
   // -------------------------------------------------------------------------
   describe('background sync', () => {
-    it('syncs pending items when online event fires', async () => {
-      // Start online so mount sync runs (with empty queue)
+    it('sync fails gracefully when saveToCloud throws CloudSyncUnavailableError (ADR-059)', async () => {
+      // Start online so mount sync runs
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
       const pendingItems = [
@@ -660,104 +474,32 @@ describe('storage service', () => {
           project: { d: 1 },
           queuedAt: '2026-02-01T00:00:00Z',
         },
-        {
-          id: 2,
-          name: 'queued-2',
-          location: 'personal' as const,
-          project: { d: 2 },
-          queuedAt: '2026-02-01T01:00:00Z',
-        },
       ];
 
-      // First call: mount sync finds nothing; second call: online event finds items; third: post-sync check
+      // Mount sync: empty; online event: pending items; post-sync: still pending
       mockGetPending
-        .mockResolvedValueOnce([]) // mount sync (online at mount)
+        .mockResolvedValueOnce([]) // mount sync
         .mockResolvedValueOnce(pendingItems) // online event handler
-        .mockResolvedValueOnce([]); // post-sync check
-
-      fetchSpy
-        .mockResolvedValueOnce(createFetchResponse({ id: 'c1', eTag: 'e1' }))
-        .mockResolvedValueOnce(createFetchResponse({ id: 'c2', eTag: 'e2' }));
-
-      // Need project records for markAsSynced
-      mockProjects.get
-        .mockResolvedValueOnce({ name: 'queued-1', synced: false })
-        .mockResolvedValueOnce({ name: 'queued-2', synced: false });
+        .mockResolvedValueOnce(pendingItems); // post-sync check (item not removed)
 
       vi.useFakeTimers();
       renderHook(() => useStorage(), { wrapper });
 
-      // Wait for mount sync to settle
       await act(async () => {
         await vi.advanceTimersByTimeAsync(50);
       });
 
-      // Clear call counts from mount sync so we only assert on the online event
       mockRemoveFromQueue.mockClear();
 
-      // Fire online event (simulating reconnection)
+      // Fire online event — saveToCloud throws CloudSyncUnavailableError
       await act(async () => {
         window.dispatchEvent(new Event('online'));
         await vi.advanceTimersByTimeAsync(100);
       });
       vi.useRealTimers();
 
-      expect(mockRemoveFromQueue).toHaveBeenCalledWith('queued-1');
-      expect(mockRemoveFromQueue).toHaveBeenCalledWith('queued-2');
-    });
-
-    it('reports remaining items when partial sync fails', async () => {
-      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
-
-      const pendingItems = [
-        {
-          id: 1,
-          name: 'ok-item',
-          location: 'personal' as const,
-          project: {},
-          queuedAt: '2026-02-01T00:00:00Z',
-        },
-        {
-          id: 2,
-          name: 'fail-item',
-          location: 'personal' as const,
-          project: {},
-          queuedAt: '2026-02-01T01:00:00Z',
-        },
-      ];
-
-      // Mount sync: empty queue; online event: pending items; post-sync check: one remaining
-      mockGetPending
-        .mockResolvedValueOnce([]) // mount sync
-        .mockResolvedValueOnce(pendingItems) // online event
-        .mockResolvedValueOnce([pendingItems[1]]); // one remaining
-
-      // First save succeeds, second fails
-      fetchSpy
-        .mockResolvedValueOnce(createFetchResponse({ id: 'c1', eTag: 'e1' }))
-        .mockResolvedValueOnce(
-          createFetchResponse({ error: { message: 'Server error' } }, false, 500)
-        );
-
-      mockProjects.get.mockResolvedValueOnce({ name: 'ok-item', synced: false });
-
-      vi.useFakeTimers();
-      const { result } = renderHook(() => useStorage(), { wrapper });
-
-      // Wait for mount sync to settle
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(50);
-      });
-
-      // Fire online event to trigger partial sync
-      await act(async () => {
-        window.dispatchEvent(new Event('online'));
-        await vi.advanceTimersByTimeAsync(100);
-      });
-      vi.useRealTimers();
-
-      expect(result.current.syncStatus.status).toBe('offline');
-      expect(result.current.syncStatus.pendingChanges).toBe(1);
+      // Items should NOT have been removed (sync failed)
+      expect(mockRemoveFromQueue).not.toHaveBeenCalled();
     });
   });
 
@@ -765,10 +507,8 @@ describe('storage service', () => {
   // Notifications
   // -------------------------------------------------------------------------
   describe('notifications', () => {
-    it('emits notification on successful cloud save', async () => {
+    it('emits info notification when cloud sync unavailable (ADR-059)', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
-
-      fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'id-1', eTag: 'etag-1' }));
 
       const { result } = renderHook(() => useStorage(), { wrapper });
 
@@ -777,7 +517,12 @@ describe('storage service', () => {
       });
 
       expect(result.current.notifications.length).toBeGreaterThan(0);
-      expect(result.current.notifications.some(n => n.type === 'success')).toBe(true);
+      // Cloud sync stubs throw, so notification is info (not success)
+      expect(
+        result.current.notifications.some(
+          n => n.type === 'info' && n.message.includes('Cloud sync unavailable')
+        )
+      ).toBe(true);
     });
 
     it('emits notification on offline save', async () => {

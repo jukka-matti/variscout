@@ -56,8 +56,6 @@ import {
   isKnowledgeBaseAvailable,
   checkKnowledgeBasePermissions,
 } from '../../services/searchService';
-import { getChannelDriveInfo } from '../../services/channelDrive';
-import { getGraphToken } from '../../auth/graphToken';
 import { updateFindingsPopout } from '@variscout/ui';
 
 // ── Options ─────────────────────────────────────────────────────────────────
@@ -184,27 +182,8 @@ export function useAIOrchestration({
     };
   }, [aiAvailable]);
 
-  // Auto-resolve channel folder URL for default knowledge search scope (ADR-026)
-  const [resolvedChannelFolderUrl, setResolvedChannelFolderUrl] = useState<string | undefined>(
-    undefined
-  );
-  useEffect(() => {
-    if (!aiAvailable || knowledgeSearchFolder !== undefined) return;
-    let cancelled = false;
-    getGraphToken()
-      .then(token => getChannelDriveInfo(token))
-      .then(info => {
-        if (!cancelled && info?.folderWebUrl) {
-          setResolvedChannelFolderUrl(info.folderWebUrl);
-        }
-      })
-      .catch(() => {
-        // Non-critical — search will work without folder scope
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [aiAvailable, knowledgeSearchFolder]);
+  // Channel folder URL resolution removed per ADR-059 (Graph API removed)
+  const resolvedChannelFolderUrl = undefined;
 
   // Admin consent runtime check for KB (Item 4)
   const [kbPermissionWarning, setKbPermissionWarning] = useState(false);

@@ -4,15 +4,8 @@
  * navigate_to is hybrid (auto-execute or proposal). Team tools are
  * conditionally included when isTeamPlan() is true.
  */
-import type {
-  StatsResult,
-  DataRow,
-  Finding,
-  FilterAction,
-  ActionProposal,
-  ToolHandlerMap,
-} from '@variscout/core';
-import { isTeamPlan, hashFilterStack, generateProposalId } from '@variscout/core';
+import type { Finding, FilterAction, ActionProposal, ToolHandlerMap } from '@variscout/core';
+import { hashFilterStack, generateProposalId } from '@variscout/core';
 import { usePanelsStore } from '../panels/panelsStore';
 import { useFindingsStore } from '../findings/findingsStore';
 import { useInvestigationStore } from '../investigation/investigationStore';
@@ -26,15 +19,11 @@ export type NavigationTarget =
   | 'report';
 
 export interface NavTeamToolDeps {
-  stats?: StatsResult;
-  filteredData: DataRow[];
   findings: Finding[];
   filterStack: FilterAction[];
 }
 
 export function buildNavTeamToolHandlers({
-  stats,
-  filteredData,
   findings,
   filterStack,
 }: NavTeamToolDeps): Partial<ToolHandlerMap> {
@@ -114,74 +103,7 @@ export function buildNavTeamToolHandlers({
     },
   };
 
-  // Team-only sharing tools
-  if (isTeamPlan()) {
-    handlers.share_finding = async (args: Record<string, unknown>) => {
-      const findingId = args.finding_id as string;
-      if (!findingId) return JSON.stringify({ error: 'Missing finding_id' });
-      const targetFinding = findings.find(f => f.id === findingId);
-      if (!targetFinding) return JSON.stringify({ error: `Finding not found: ${findingId}` });
-
-      const proposal: ActionProposal = {
-        id: generateProposalId(),
-        tool: 'share_finding',
-        params: { finding_id: findingId },
-        preview: {
-          findingText: targetFinding.text,
-          stats: { mean: stats?.mean, cpk: stats?.cpk, samples: filteredData.length },
-        },
-        status: 'pending',
-        filterStackHash: hashFilterStack(filterStack),
-        timestamp: Date.now(),
-      };
-      return JSON.stringify({ proposal: true, ...proposal });
-    };
-
-    handlers.publish_report = async () => {
-      const proposal: ActionProposal = {
-        id: generateProposalId(),
-        tool: 'publish_report',
-        params: {},
-        preview: {
-          findingCount: findings.length,
-        },
-        status: 'pending',
-        filterStackHash: hashFilterStack(filterStack),
-        timestamp: Date.now(),
-      };
-      return JSON.stringify({ proposal: true, ...proposal });
-    };
-
-    handlers.notify_action_owners = async (args: Record<string, unknown>) => {
-      const findingId = args.finding_id as string;
-      if (!findingId) return JSON.stringify({ error: 'Missing finding_id' });
-      const targetFinding = findings.find(f => f.id === findingId);
-      if (!targetFinding) return JSON.stringify({ error: `Finding not found: ${findingId}` });
-
-      const actions = targetFinding.actions ?? [];
-      const assignedActions = actions.filter(a => a.assignee);
-      const unassignedCount = actions.length - assignedActions.length;
-
-      const proposal: ActionProposal = {
-        id: generateProposalId(),
-        tool: 'notify_action_owners',
-        params: { finding_id: findingId },
-        preview: {
-          findingText: targetFinding.text,
-          actions: assignedActions.map(a => ({
-            text: a.text,
-            assigneeDisplayName: a.assignee?.displayName,
-            dueDate: a.dueDate,
-          })),
-          unassignedCount,
-        },
-        status: 'pending',
-        filterStackHash: hashFilterStack(filterStack),
-        timestamp: Date.now(),
-      };
-      return JSON.stringify({ proposal: true, ...proposal });
-    };
-  }
+  // Team-only sharing tools removed per ADR-059 (Teams SDK removed)
 
   return handlers;
 }
