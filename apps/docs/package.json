@@ -12,6 +12,6 @@
     "@astrojs/starlight": "^0.34.0",
     "astro": "^5.17.3",
     "rehype-mermaid": "^3.0.0",
-    "sharp": "^0.33.0"
+    "sharp": "^0.34.5"
   }
 }
