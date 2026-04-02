@@ -271,6 +271,7 @@ export const de: MessageCatalog = {
   'ai.tool.suggestIdea': 'Verbesserungsidee vorschlagen',
   'ai.tool.suggestSaveFinding': 'Erkenntnis speichern',
   'ai.tool.navigateTo': 'Navigate to',
+  'ai.tool.answerQuestion': 'Answer question',
 
   // Report
   'report.kpi.inSpec': 'Innerhalb Spezifikation',
