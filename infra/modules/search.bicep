@@ -39,6 +39,70 @@ resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
   }
 }
 
+resource knowledgeIndex 'Microsoft.Search/searchServices/indexes@2025-05-01' = {
+  parent: searchService
+  name: 'knowledge-base'
+  properties: {
+    fields: [
+      { name: 'id', type: 'Edm.String', key: true, filterable: true, retrievable: true, searchable: false, sortable: false, facetable: false }
+      { name: 'content', type: 'Edm.String', searchable: true, analyzerName: 'standard.lucene', filterable: false, retrievable: true, sortable: false, facetable: false, key: false }
+      { name: 'title', type: 'Edm.String', searchable: true, filterable: true, retrievable: true, sortable: false, facetable: false, key: false }
+      { name: 'sourceType', type: 'Edm.String', searchable: false, filterable: true, facetable: true, retrievable: true, sortable: false, key: false }
+      { name: 'sourceId', type: 'Edm.String', searchable: false, filterable: true, retrievable: true, sortable: false, facetable: false, key: false }
+      { name: 'projectId', type: 'Edm.String', searchable: false, filterable: true, retrievable: true, sortable: false, facetable: false, key: false }
+      { name: 'fileName', type: 'Edm.String', searchable: false, filterable: true, retrievable: true, sortable: false, facetable: false, key: false }
+      { name: 'uploadedBy', type: 'Edm.String', searchable: false, filterable: true, retrievable: true, sortable: false, facetable: false, key: false }
+      { name: 'uploadedAt', type: 'Edm.DateTimeOffset', filterable: true, sortable: true, retrievable: true, searchable: false, facetable: false, key: false }
+      {
+        name: 'embedding'
+        type: 'Collection(Edm.Single)'
+        searchable: true
+        retrievable: false
+        filterable: false
+        sortable: false
+        facetable: false
+        key: false
+        dimensions: 1536
+        vectorSearchProfile: 'default-profile'
+      }
+    ]
+    vectorSearch: {
+      algorithms: [
+        {
+          name: 'hnsw-algorithm'
+          kind: 'hnsw'
+          hnswParameters: {
+            metric: 'cosine'
+            m: 4
+            efConstruction: 400
+            efSearch: 500
+          }
+        }
+      ]
+      profiles: [
+        {
+          name: 'default-profile'
+          algorithm: 'hnsw-algorithm'
+        }
+      ]
+    }
+    semantic: {
+      defaultConfiguration: 'default-semantic'
+      configurations: [
+        {
+          name: 'default-semantic'
+          prioritizedFields: {
+            titleField: { fieldName: 'title' }
+            contentFields: [
+              { fieldName: 'content' }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
+
 @description('Resource ID of the Search service')
 output searchServiceId string = searchService.id
 

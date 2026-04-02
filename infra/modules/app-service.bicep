@@ -106,6 +106,14 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
           value: aiSearchIndex
         }
         {
+          name: 'AI_SEARCH_KB_INDEX'
+          value: hasTeamFeatures ? 'knowledge-base' : ''
+        }
+        {
+          name: 'AI_EMBEDDING_DEPLOYMENT'
+          value: hasTeamFeatures ? 'embeddings' : ''
+        }
+        {
           name: 'STORAGE_ACCOUNT_NAME'
           value: storageAccountName
         }

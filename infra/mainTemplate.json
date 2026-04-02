@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.41.2.15936",
-      "templateHash": "1248603464213203570"
+      "templateHash": "12153852212273664232"
     },
     "description": "Deploys VariScout Azure App as a Managed Application with App Service and EasyAuth"
   },
@@ -97,7 +97,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "4198521691278681829"
+              "templateHash": "9998799619300140152"
             }
           },
           "parameters": {
@@ -211,6 +211,28 @@
                 "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]",
                 "[resourceId('Microsoft.CognitiveServices/accounts/deployments', parameters('aiServicesName'), 'fast')]"
               ]
+            },
+            {
+              "condition": "[equals(parameters('variscoutPlan'), 'team')]",
+              "type": "Microsoft.CognitiveServices/accounts/deployments",
+              "apiVersion": "2025-09-01",
+              "name": "[format('{0}/{1}', parameters('aiServicesName'), 'embeddings')]",
+              "sku": {
+                "name": "Standard",
+                "capacity": 20
+              },
+              "properties": {
+                "model": {
+                  "format": "OpenAI",
+                  "name": "text-embedding-3-small",
+                  "version": "1"
+                },
+                "raiPolicyName": "Microsoft.DefaultV2"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]",
+                "[resourceId('Microsoft.CognitiveServices/accounts/deployments', parameters('aiServicesName'), 'reasoning')]"
+              ]
             }
           ],
           "outputs": {
@@ -274,7 +296,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "1509274814155354089"
+              "templateHash": "14559692104416700257"
             }
           },
           "parameters": {
@@ -331,6 +353,159 @@
                   "bypass": "AzureServices"
                 }
               }
+            },
+            {
+              "type": "Microsoft.Search/searchServices/indexes",
+              "apiVersion": "2025-05-01",
+              "name": "[format('{0}/{1}', parameters('searchServiceName'), 'knowledge-base')]",
+              "properties": {
+                "fields": [
+                  {
+                    "name": "id",
+                    "type": "Edm.String",
+                    "key": true,
+                    "filterable": true,
+                    "retrievable": true,
+                    "searchable": false,
+                    "sortable": false,
+                    "facetable": false
+                  },
+                  {
+                    "name": "content",
+                    "type": "Edm.String",
+                    "searchable": true,
+                    "analyzerName": "standard.lucene",
+                    "filterable": false,
+                    "retrievable": true,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "title",
+                    "type": "Edm.String",
+                    "searchable": true,
+                    "filterable": true,
+                    "retrievable": true,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "sourceType",
+                    "type": "Edm.String",
+                    "searchable": false,
+                    "filterable": true,
+                    "facetable": true,
+                    "retrievable": true,
+                    "sortable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "sourceId",
+                    "type": "Edm.String",
+                    "searchable": false,
+                    "filterable": true,
+                    "retrievable": true,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "projectId",
+                    "type": "Edm.String",
+                    "searchable": false,
+                    "filterable": true,
+                    "retrievable": true,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "fileName",
+                    "type": "Edm.String",
+                    "searchable": false,
+                    "filterable": true,
+                    "retrievable": true,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "uploadedBy",
+                    "type": "Edm.String",
+                    "searchable": false,
+                    "filterable": true,
+                    "retrievable": true,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "uploadedAt",
+                    "type": "Edm.DateTimeOffset",
+                    "filterable": true,
+                    "sortable": true,
+                    "retrievable": true,
+                    "searchable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "embedding",
+                    "type": "Collection(Edm.Single)",
+                    "searchable": true,
+                    "retrievable": false,
+                    "filterable": false,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false,
+                    "dimensions": 1536,
+                    "vectorSearchProfile": "default-profile"
+                  }
+                ],
+                "vectorSearch": {
+                  "algorithms": [
+                    {
+                      "name": "hnsw-algorithm",
+                      "kind": "hnsw",
+                      "hnswParameters": {
+                        "metric": "cosine",
+                        "m": 4,
+                        "efConstruction": 400,
+                        "efSearch": 500
+                      }
+                    }
+                  ],
+                  "profiles": [
+                    {
+                      "name": "default-profile",
+                      "algorithm": "hnsw-algorithm"
+                    }
+                  ]
+                },
+                "semantic": {
+                  "defaultConfiguration": "default-semantic",
+                  "configurations": [
+                    {
+                      "name": "default-semantic",
+                      "prioritizedFields": {
+                        "titleField": {
+                          "fieldName": "title"
+                        },
+                        "contentFields": [
+                          {
+                            "fieldName": "content"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Search/searchServices', parameters('searchServiceName'))]"
+              ]
             }
           ],
           "outputs": {
@@ -409,7 +584,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "17165669865203410878"
+              "templateHash": "15202335362362110931"
             }
           },
           "parameters": {
@@ -571,6 +746,14 @@
                     {
                       "name": "AI_SEARCH_INDEX",
                       "value": "[parameters('aiSearchIndex')]"
+                    },
+                    {
+                      "name": "AI_SEARCH_KB_INDEX",
+                      "value": "[if(parameters('hasTeamFeatures'), 'knowledge-base', '')]"
+                    },
+                    {
+                      "name": "AI_EMBEDDING_DEPLOYMENT",
+                      "value": "[if(parameters('hasTeamFeatures'), 'embeddings', '')]"
                     },
                     {
                       "name": "STORAGE_ACCOUNT_NAME",
