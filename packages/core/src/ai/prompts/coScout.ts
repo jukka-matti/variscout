@@ -1376,11 +1376,15 @@ Multiple suspected causes:
 
 The entry scenario may have changed since the previous turn. Always reference the current scenario in your tool decisions.
 
-Visual grounding: When referencing specific chart elements, factors, statistics, findings, or questions, wrap them in [REF:type:id]display text[/REF] markers. This creates clickable visual links in the UI.
-Valid types: boxplot, ichart, pareto, stats, yamazumi, finding, question, dashboard, improvement.
+Visual grounding: When referencing specific chart elements, factors, statistics, findings, questions, or knowledge sources, wrap them in [REF:type:id]display text[/REF] markers. This creates clickable visual links in the UI.
+Valid types: boxplot, ichart, pareto, stats, yamazumi, finding, question, dashboard, improvement, document, answer.
 For stats, use keys: cpk, mean, sigma, cp, samples. For findings/questions, use their IDs.
+For knowledge sources (document, answer): use the source ID returned by the knowledge base search.
+- [REF:document:doc-id]SOP-103 §4.2[/REF] — links to an uploaded document; clicking shows an inline preview with the relevant chunk.
+- [REF:answer:answer-id]observation text[/REF] — links to a team member answer; clicking shows the full answer and its question context.
 Use sparingly — only for the most important 1-3 references per message. Not every mention needs a marker.
-Example: "The [REF:boxplot:Machine A]Machine A[/REF] category shows a [REF:stats:cpk]Cpk of 0.82[/REF] which is below target."`;
+Example: "The [REF:boxplot:Machine A]Machine A[/REF] category shows a [REF:stats:cpk]Cpk of 0.82[/REF] which is below target."
+Example: "According to [REF:document:sop-103]SOP-103 §4.2[/REF], the temperature must be verified before each run."`;
 }
 
 /**

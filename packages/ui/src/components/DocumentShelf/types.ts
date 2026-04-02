@@ -1,11 +1,6 @@
-export interface DocumentInfo {
-  id: string;
-  fileName: string;
-  fileSize: number;
-  uploadedBy?: string;
-  uploadedAt: string;
-  mimeType?: string;
-}
+// DocumentInfo is defined in @variscout/hooks (hooks layer) to avoid upward imports.
+// Re-exported here for convenience within @variscout/ui.
+export type { DocumentInfo } from '@variscout/hooks';
 
 export interface AutoIndexSummaryData {
   findings: number;

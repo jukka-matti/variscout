@@ -6,7 +6,8 @@ import { parseActionMarkers, stripActionMarkers } from '@variscout/core';
 import { parseRefMarkers } from '@variscout/core/ai';
 import { ActionProposalCard } from './ActionProposalCard';
 import { SaveInsightDialog } from './SaveInsightDialog';
-import { RefLink } from './RefLink';
+import { RefLink, CITATION_TYPES } from './RefLink';
+import { KnowledgeCitationCard, type KnowledgeCitationData } from './KnowledgeCitationCard';
 
 /**
  * Parse [Source: name] markers in assistant text and render as styled inline badges.
@@ -155,6 +156,10 @@ export interface CoScoutMessagesProps {
   knowledgePermissionWarning?: boolean;
   /** ADR-050 visual grounding: activate a REF marker (highlight chart element) */
   onRefActivate?: (targetType: string, targetId?: string) => void;
+  /** ADR-060: Citation data map — keyed by "${refType}:${refId}" */
+  citationDataMap?: Record<string, KnowledgeCitationData>;
+  /** ADR-060: Download handler for document citations */
+  onCitationDownload?: (refType: string, refId: string) => void;
   /** ADR-029: Action proposals for inline confirmation */
   actionProposals?: ActionProposal[];
   onExecuteAction?: (proposal: ActionProposal, editedText?: string) => void;
@@ -188,6 +193,8 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
   knowledgeSearchTimestamp,
   knowledgePermissionWarning,
   onRefActivate,
+  citationDataMap,
+  onCitationDownload,
   actionProposals,
   onExecuteAction,
   onDismissAction,
@@ -203,6 +210,13 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
     id: string;
     text: string;
     images?: Array<{ dataUrl: string; mimeType: string }>;
+  } | null>(null);
+
+  /** ADR-060: Tracks which citation card is expanded (one at a time). */
+  const [expandedCitation, setExpandedCitation] = useState<{
+    messageId: string;
+    refType: string;
+    refId: string;
   } | null>(null);
 
   const getTranslatedErrorText = (error: CoScoutError): string => {
@@ -318,14 +332,56 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
                 const markers = parseActionMarkers(msg.content);
                 const cleanText =
                   markers.length > 0 ? stripActionMarkers(msg.content) : msg.content;
+
+                // Build a ref activate handler that routes citation types to the inline card
+                // and delegates chart types to the parent onRefActivate.
+                const handleRefActivate = (targetType: string, targetId?: string): void => {
+                  if (CITATION_TYPES.has(targetType)) {
+                    const key = `${targetType}:${targetId ?? ''}`;
+                    setExpandedCitation(prev =>
+                      prev?.messageId === msg.id &&
+                      prev.refType === targetType &&
+                      prev.refId === (targetId ?? '')
+                        ? null
+                        : { messageId: msg.id, refType: targetType, refId: targetId ?? '' }
+                    );
+                    // Suppress key usage warning
+                    void key;
+                    return;
+                  }
+                  onRefActivate?.(targetType, targetId);
+                };
+
+                // Determine whether to show a citation card for this message
+                const activeCitation =
+                  expandedCitation?.messageId === msg.id ? expandedCitation : null;
+
                 return (
                   <>
                     {cleanText && (
                       <div className="border border-edge rounded-lg p-3">
                         <p className="text-xs text-content-secondary leading-relaxed whitespace-pre-wrap">
-                          {renderWithRefs(cleanText, onRefActivate)}
+                          {renderWithRefs(cleanText, handleRefActivate)}
                         </p>
                       </div>
+                    )}
+                    {/* ADR-060: Inline citation preview card */}
+                    {activeCitation && (
+                      <KnowledgeCitationCard
+                        refType={activeCitation.refType as 'document' | 'finding' | 'answer'}
+                        refId={activeCitation.refId}
+                        displayText={activeCitation.refId}
+                        citationData={
+                          citationDataMap?.[`${activeCitation.refType}:${activeCitation.refId}`] ??
+                          {}
+                        }
+                        onDownload={
+                          activeCitation.refType === 'document' && onCitationDownload
+                            ? () => onCitationDownload(activeCitation.refType, activeCitation.refId)
+                            : undefined
+                        }
+                        onClose={() => setExpandedCitation(null)}
+                      />
                     )}
                     {/* Inline action proposal cards */}
                     {markers.map(marker => {

@@ -18,3 +18,9 @@ export {
   type SessionClosePromptProps,
   type SessionClosePromptItem,
 } from './SessionClosePrompt';
+
+export {
+  KnowledgeCitationCard,
+  type KnowledgeCitationCardProps,
+  type KnowledgeCitationData,
+} from './KnowledgeCitationCard';
