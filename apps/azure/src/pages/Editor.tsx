@@ -1151,6 +1151,7 @@ export const Editor: React.FC<EditorProps> = ({
                 filterNav={filterNav}
                 viewState={viewState ?? undefined}
                 onViewStateChange={handleViewStateChange}
+                projectId={projectId ?? undefined}
                 findingsState={findingsState}
                 findingsCallbacks={findingsCallbacks}
                 handlePinFinding={handlePinFinding}

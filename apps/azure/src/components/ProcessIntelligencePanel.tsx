@@ -50,6 +50,12 @@ interface ProcessIntelligencePanelProps {
   overflowView?: PIOverflowView;
   /** PI panel: overflow view change handler */
   onOverflowViewChange?: (view: PIOverflowView) => void;
+  /** PI panel: show Documents tab (Team tier + KB preview gate) */
+  showDocsTab?: boolean;
+  /** PI panel: render prop for Documents tab content */
+  renderDocsTab?: () => React.ReactNode;
+  /** PI panel: document count for badge */
+  docsCount?: number;
 }
 
 const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
@@ -78,6 +84,9 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
   openQuestionCount,
   overflowView,
   onOverflowViewChange,
+  showDocsTab,
+  renderDocsTab,
+  docsCount,
 }) => {
   const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
@@ -158,6 +167,9 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
         openQuestionCount={openQuestionCount}
         overflowView={overflowView}
         onOverflowViewChange={onOverflowViewChange}
+        showDocsTab={showDocsTab}
+        renderDocsTab={renderDocsTab}
+        docsCount={docsCount}
         renderWhatIf={
           stats && (specs.usl !== undefined || specs.lsl !== undefined)
             ? () => (

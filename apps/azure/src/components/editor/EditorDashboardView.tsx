@@ -22,7 +22,10 @@ import {
   useJournalEntries,
   useJourneyPhase,
   useVisualGrounding,
+  useDocumentShelf,
 } from '@variscout/hooks';
+import { DocumentShelfBase } from '@variscout/ui';
+import { hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { isAIAvailable } from '../../services/aiService';
 import { useData } from '../../context/DataContext';
@@ -51,6 +54,8 @@ interface EditorDashboardViewProps {
   filterNav: UseFilterNavigationReturn;
   viewState: ViewState | undefined;
   onViewStateChange: (partial: Partial<ViewState>) => void;
+  /** Project ID for Document Shelf scoping */
+  projectId?: string;
   // Findings (from useFindingsOrchestration)
   findingsState: UseFindingsReturn;
   findingsCallbacks: AzureFindingsCallbacks;
@@ -81,6 +86,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   filterNav,
   viewState,
   onViewStateChange,
+  projectId,
   findingsState,
   findingsCallbacks,
   handlePinFinding,
@@ -127,6 +133,13 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
 
   const strategy = getStrategy(resolved);
   const projectedCpkMap = useImprovementStore(s => s.projectedCpkMap);
+
+  // ── Document Shelf (Team tier + KB preview gate) ─────────────────────
+  const isTeamWithKB = hasKnowledgeBase() && isPreviewEnabled('knowledge-base');
+  const documentShelf = useDocumentShelf({
+    projectId: projectId ?? undefined,
+    enabled: isTeamWithKB,
+  });
   const journeyPhase = useJourneyPhase(!!rawData?.length, findingsState.findings);
 
   const suspectedCauses = useMemo(() => {
@@ -531,6 +544,19 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
                   openQuestionCount={openQuestionCount}
                   overflowView={piOverflowView}
                   onOverflowViewChange={setPIOverflowView}
+                  showDocsTab={isTeamWithKB}
+                  docsCount={documentShelf.documents.length}
+                  renderDocsTab={() => (
+                    <DocumentShelfBase
+                      documents={documentShelf.documents}
+                      onUpload={documentShelf.upload}
+                      onDelete={documentShelf.remove}
+                      onDownload={documentShelf.download}
+                      isUploading={documentShelf.isUploading}
+                      uploadProgress={documentShelf.uploadProgress}
+                      error={documentShelf.error}
+                    />
+                  )}
                 />
               </React.Suspense>
             </div>
