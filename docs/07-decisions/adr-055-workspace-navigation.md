@@ -41,9 +41,9 @@ Replace `activeView: 'dashboard' | 'editor'` with `activeView: 'dashboard' | 'an
 
 Backward compatibility: `'editor'` maps to `'analysis'` on read. `setImprovementOpen(true)` maps to `showImprovement()`.
 
-### 2. ProjectHeader with workspace tabs
+### 2. AppHeader with workspace tabs
 
-A single 44px `ProjectHeader` replaces EditorToolbar (48px) + WorkspaceTabs (45px). Five workspace tabs render in the center zone:
+A single 44px `AppHeader` replaces the App header (56px) + EditorToolbar (48px) + WorkspaceTabs (45px). Five workspace tabs render in the center zone:
 
 ```
 [Overview] [Analysis v] [Investigation (3)] [Improvement (2)] [Report]
@@ -133,7 +133,7 @@ Per constitution principle 2 ("Same analysis everywhere, the full journey"), PWA
 
 ### New components
 
-- `ProjectHeader.tsx` — Single 44px header with 3 zones (left: back + project name, center: 5 workspace tabs, right: panel toggles + save). Replaces EditorToolbar (48px) + WorkspaceTabs (45px).
+- `AppHeader.tsx` — Single 44px adaptive header with portfolio/project modes. Project mode: logo mark + project name + workspace tabs + PI/AI toggles + primary action + settings gear. Replaces both App header (56px) and EditorToolbar (48px) + WorkspaceTabs (45px). Auto-save replaces explicit Save button.
 - `InvestigationWorkspace.tsx` — Three-column layout composing existing UI components
 - `useAutoSave` — Debounces saves on state changes
 

@@ -64,6 +64,11 @@ describe('useResizablePanel', () => {
     act(() => {
       result.current.handleMouseDown({
         preventDefault: vi.fn(),
+        currentTarget: {
+          parentElement: {
+            getBoundingClientRect: () => ({ left: 0, right: window.innerWidth }),
+          },
+        },
       } as unknown as React.MouseEvent);
     });
 

@@ -15,8 +15,8 @@ Single reference for how the dashboard fits all charts into the viewport on desk
 Every container from the root to the chart SVG must have a **definite height**. If any link breaks (becomes `auto`), `withParentSize` measures unconstrained content and the chart expands infinitely.
 
 ```
-h-dvh (100dvh)                            ← App.tsx root div (dvh adapts to mobile browser chrome)
-  ├─ h-14 (header)                        ← AppHeader, flex-shrink-0
+h-screen (flex layout)                     ← App.tsx root div
+  ├─ h-11 (44px header)                   ← AppHeader, flex-shrink-0
   ├─ flex-1 overflow-hidden               ← <main>, computed height
   │  └─ flex-1 overflow-hidden flex-col   ← content wrapper
   │     └─ h-full flex-col                ← Dashboard container
@@ -40,15 +40,15 @@ h-dvh (100dvh)                            ← App.tsx root div (dvh adapts to mo
 
 ### Why each property matters
 
-| Property                | Purpose                                                                                                           |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `h-dvh`                 | Establishes the viewport constraint at the root (dvh adapts to mobile browser chrome, identical to vh on desktop) |
-| `flex-1`                | Distributes remaining space after fixed-height siblings                                                           |
-| `min-h-0`               | Overrides flex default `min-height: auto` so children can shrink below content size                               |
-| `overflow-hidden`       | Prevents content from expanding its container; breaks circular sizing with `withParentSize`                       |
-| `h-full`                | Gives the grid a definite height (100% of flex-computed parent) so `fr` units can compute pixel values            |
-| `flex-shrink-0`         | Prevents ProcessHealthBar from being compressed by flex algorithm                                                 |
-| `grid-rows-[55fr_45fr]` | Splits available height: 55% I-Chart, 45% bottom row (Boxplot + Pareto + VerificationCard)                        |
+| Property                | Purpose                                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| `h-screen`              | Establishes the viewport constraint at the root                                                        |
+| `flex-1`                | Distributes remaining space after fixed-height siblings                                                |
+| `min-h-0`               | Overrides flex default `min-height: auto` so children can shrink below content size                    |
+| `overflow-hidden`       | Prevents content from expanding its container; breaks circular sizing with `withParentSize`            |
+| `h-full`                | Gives the grid a definite height (100% of flex-computed parent) so `fr` units can compute pixel values |
+| `flex-shrink-0`         | Prevents ProcessHealthBar from being compressed by flex algorithm                                      |
+| `grid-rows-[55fr_45fr]` | Splits available height: 55% I-Chart, 45% bottom row (Boxplot + Pareto + VerificationCard)             |
 
 ## Layout Modes
 

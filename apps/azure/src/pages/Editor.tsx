@@ -5,7 +5,7 @@ import { useProjectOverview } from '../hooks/useProjectOverview';
 import { useData } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
 import { useFilterNavigation } from '../hooks';
-import { ProjectHeader } from '../components/ProjectHeader';
+import { AppHeader } from '../components/AppHeader';
 import PasteScreen from '../components/data/PasteScreen';
 import ManualEntry from '../components/data/ManualEntry';
 import {
@@ -56,7 +56,7 @@ import { buildSubPageId } from '../services/deepLinks';
 import { useToast } from '../context/ToastContext';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
-// WorkspaceTabs merged into ProjectHeader (ADR-055 header redesign)
+// WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
 import { InvestigationWorkspace } from '../components/editor/InvestigationWorkspace';
 import { EditorModals } from '../components/editor/EditorModals';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
@@ -69,6 +69,8 @@ const ReportView = lazy(() => import('../components/views/ReportView'));
 interface EditorProps {
   projectId: string | null;
   onBack: () => void;
+  /** Open the Settings panel (managed by App.tsx) */
+  onOpenSettings?: () => void;
   /** Deep link: auto-open findings panel and highlight this finding */
   initialFindingId?: string;
   /** Deep link: auto-focus this chart type */
@@ -82,6 +84,7 @@ interface EditorProps {
 export const Editor: React.FC<EditorProps> = ({
   projectId,
   onBack,
+  onOpenSettings,
   initialFindingId,
   initialChart,
   initialQuestionId,
@@ -901,17 +904,13 @@ export const Editor: React.FC<EditorProps> = ({
   // ── Main editor layout ───────────────────────────────────────────────────
 
   return (
-    <div
-      className={`flex flex-col ${isPhone ? 'h-[calc(100vh-64px)]' : 'h-[calc(100vh-56px)]'} ${isPhone && rawData.length > 0 ? 'pb-[62px]' : ''}`}
-    >
-      <ProjectHeader
-        onBack={onBack}
+    <div className={`flex flex-col h-screen ${isPhone && rawData.length > 0 ? 'pb-[62px]' : ''}`}>
+      <AppHeader
+        mode="project"
         projectName={currentProjectName || (projectId ? `Analysis ${projectId}` : 'New Analysis')}
         rowCount={rawData.length}
         syncStatus={syncStatus}
         saveStatus={saveStatus}
-        onSave={handleSave}
-        onSaveAs={undefined}
         hasData={rawData.length > 0}
         activeView={activeView}
         openQuestionCount={
@@ -930,6 +929,9 @@ export const Editor: React.FC<EditorProps> = ({
           useImprovementStore.getState().setActiveImprovementView('track');
         }}
         hasSelectedIdeas={selectedIdeaIds.size > 0}
+        onNavigateToPortfolio={onBack}
+        onOpenSettings={onOpenSettings}
+        canNavigateBack={overviewProjects.length > 0}
       />
 
       {/* Hidden file input for append-mode file upload */}
@@ -969,7 +971,7 @@ export const Editor: React.FC<EditorProps> = ({
           />
         ) : outcome ? (
           <>
-            {/* Workspace content (ADR-055) — tabs are in ProjectHeader */}
+            {/* Workspace content (ADR-055) — tabs are in AppHeader */}
             {activeView === 'dashboard' ? (
               <div className="flex-1 overflow-y-auto">
                 <ProjectDashboard

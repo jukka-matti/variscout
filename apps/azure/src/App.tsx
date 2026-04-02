@@ -15,7 +15,8 @@ import SettingsPanel from './components/settings/SettingsPanel';
 import { SyncToastContainer } from './components/SyncToast';
 import { ErrorBoundary, FindingsWindow } from '@variscout/ui';
 import ImprovementWindow from './components/ImprovementWindow';
-import { Activity, LogOut, Settings, Shield } from 'lucide-react';
+import { AppHeader } from './components/AppHeader';
+import { Activity } from 'lucide-react';
 import { parseDeepLink, validateDeepLink, type DeepLinkParams } from './services/deepLinks';
 import { hasTeamFeatures } from '@variscout/core';
 import { trackException } from './lib/appInsights';
@@ -230,75 +231,13 @@ function AppContent({
 
   return (
     <>
-      {/* Header */}
-      <header className="h-14 border-b border-edge flex items-center justify-between px-4 sm:px-6 bg-surface/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-4">
-          <div
-            className="flex items-center gap-2 cursor-pointer"
-            role="button"
-            aria-label="Go to dashboard"
-            tabIndex={0}
-            onClick={navigateToDashboard}
-            onKeyDown={e => {
-              if (e.key === 'Enter' || e.key === ' ') navigateToDashboard();
-            }}
-          >
-            <div className="p-1.5 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
-              <Activity className="text-white" size={18} />
-            </div>
-            <h1 className="text-lg font-bold text-content">VariScout</h1>
-          </div>
-
-          {currentView === 'editor' && (
-            <>
-              <span className="text-content-muted">/</span>
-              <span className="text-content-secondary">
-                {currentProject ? `Analysis ${currentProject}` : 'New Analysis'}
-              </span>
-            </>
-          )}
-        </div>
-
-        <nav aria-label="App actions" className="flex items-center gap-1">
-          <span className="text-sm text-content-secondary mr-2 hidden sm:inline">{user.name}</span>
-          {isAdmin && (
-            <button
-              onClick={() => setCurrentView('admin')}
-              aria-label="Admin"
-              title="Admin"
-              className={`p-2 rounded-lg transition-colors ${
-                currentView === 'admin'
-                  ? 'text-blue-400 bg-blue-400/10'
-                  : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
-              }`}
-              style={{ minWidth: 44, minHeight: 44 }}
-            >
-              <Shield size={18} />
-            </button>
-          )}
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            aria-label="Settings"
-            title="Settings"
-            className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
-            style={{ minWidth: 44, minHeight: 44 }}
-          >
-            <Settings size={18} />
-          </button>
-          <button
-            onClick={onLogout}
-            aria-label="Sign out"
-            title="Sign Out"
-            className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
-            style={{ minWidth: 44, minHeight: 44 }}
-          >
-            <LogOut size={18} />
-          </button>
-        </nav>
-      </header>
+      {/* Unified header — portfolio/admin views only (editor renders its own AppHeader) */}
+      {currentView !== 'editor' && (
+        <AppHeader mode="portfolio" onOpenSettings={() => setIsSettingsOpen(true)} />
+      )}
 
       {/* Main Content */}
-      <main id="main-content" className="p-6">
+      <main id="main-content" className={currentView === 'editor' ? '' : 'p-6'}>
         {/* Deep link error — shown instead of normal content */}
         {deepLinkError && currentView === 'dashboard' && (
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
@@ -322,6 +261,7 @@ function AppContent({
           <Editor
             projectId={currentProject}
             onBack={navigateToDashboard}
+            onOpenSettings={() => setIsSettingsOpen(true)}
             initialFindingId={
               deepLink.project === currentProject ? (deepLink.findingId ?? undefined) : undefined
             }
@@ -348,7 +288,18 @@ function AppContent({
       </main>
 
       {/* Settings Panel */}
-      <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        userName={user.name}
+        userEmail={user.email}
+        isAdmin={isAdmin}
+        onAdminHub={() => {
+          setCurrentView('admin');
+          setIsSettingsOpen(false);
+        }}
+        onSignOut={onLogout}
+      />
     </>
   );
 }

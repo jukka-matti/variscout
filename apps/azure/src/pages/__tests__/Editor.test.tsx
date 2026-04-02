@@ -298,10 +298,9 @@ describe('Editor', () => {
     expect(screen.getByText('Sample Datasets')).toBeInTheDocument();
   });
 
-  it('shows Back button and project name in header', () => {
+  it('shows logo mark and project name in header', () => {
     renderEditor({ currentProjectName: 'My Analysis' });
 
-    expect(screen.getByLabelText('Back to Dashboard')).toBeInTheDocument();
     expect(screen.getByText('My Analysis')).toBeInTheDocument();
   });
 
@@ -334,18 +333,10 @@ describe('Editor', () => {
     expect(screen.getByTestId('btn-coscout')).toBeInTheDocument();
   });
 
-  it('shows Save button', () => {
+  it('does not render a Save button (auto-save only)', () => {
     renderEditor();
 
-    const saveButton = screen.getByRole('button', { name: /save/i });
-    expect(saveButton).toBeInTheDocument();
-  });
-
-  it('disables Save button when no data is loaded', () => {
-    renderEditor();
-
-    const saveButton = screen.getByRole('button', { name: /save/i });
-    expect(saveButton).toBeDisabled();
+    expect(screen.queryByRole('button', { name: /save/i })).not.toBeInTheDocument();
   });
 
   it('shows ColumnMapping when data is loaded but no outcome selected', () => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FolderOpen, ExternalLink } from 'lucide-react';
+import { FolderOpen, ExternalLink, LogOut, Shield } from 'lucide-react';
 import { SettingsPanelBase, ProcessDescriptionField, PreviewBadge, useTheme } from '@variscout/ui';
 import { hasTeamFeatures, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { useData } from '../../context/DataContext';
@@ -9,9 +9,27 @@ import { isAIAvailable } from '../../services/aiService';
 interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  /** User display name */
+  userName?: string;
+  /** User email */
+  userEmail?: string;
+  /** Whether user has admin access */
+  isAdmin?: boolean;
+  /** Navigate to admin hub */
+  onAdminHub?: () => void;
+  /** Sign out of the application */
+  onSignOut?: () => void;
 }
 
-const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
+const SettingsPanel: React.FC<SettingsPanelProps> = ({
+  isOpen,
+  onClose,
+  userName,
+  userEmail,
+  isAdmin,
+  onAdminHub,
+  onSignOut,
+}) => {
   const [, setForceUpdate] = useState(0);
   const { theme, setTheme } = useTheme();
   const {
@@ -37,10 +55,47 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
       onDensityChange={density => setTheme({ density })}
       idPrefix="az-setting"
       headerSections={
-        <section>
-          <h3 className="text-sm font-medium text-content mb-3">Appearance</h3>
-          <ThemeToggle />
-        </section>
+        <>
+          {/* Account section — user info, admin, sign out */}
+          {(userName || onSignOut) && (
+            <section className="pb-4 border-b border-edge">
+              <h3 className="text-sm font-medium text-content mb-3">Account</h3>
+              {userName && (
+                <div className="mb-3">
+                  <p className="text-sm text-content">{userName}</p>
+                  {userEmail && <p className="text-xs text-content-muted">{userEmail}</p>}
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                {isAdmin && onAdminHub && (
+                  <button
+                    onClick={() => {
+                      onAdminHub();
+                      onClose();
+                    }}
+                    className="flex items-center gap-2 text-sm text-content-secondary hover:text-content transition-colors"
+                  >
+                    <Shield size={14} />
+                    Admin Hub
+                  </button>
+                )}
+                {onSignOut && (
+                  <button
+                    onClick={onSignOut}
+                    className="flex items-center gap-2 text-sm text-content-secondary hover:text-content transition-colors"
+                  >
+                    <LogOut size={14} />
+                    Sign out
+                  </button>
+                )}
+              </div>
+            </section>
+          )}
+          <section>
+            <h3 className="text-sm font-medium text-content mb-3">Appearance</h3>
+            <ThemeToggle />
+          </section>
+        </>
       }
       extraToggles={
         <>

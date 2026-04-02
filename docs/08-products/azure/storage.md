@@ -159,12 +159,12 @@ Stale sync queue items (older than 30 days) are pruned on app mount via `pruneSy
 
 The Team plan uses OneDrive File Picker v8 for SharePoint browsing:
 
-| Use Case             | Component                        | Available On |
-| -------------------- | -------------------------------- | ------------ |
-| KB folder selection  | SettingsPanel → FileBrowseButton | Team         |
-| Import .csv/.xlsx    | Editor → FileBrowseButton        | Team         |
-| Open .vrs project    | Dashboard → FileBrowseButton     | Team         |
-| Save As to SP folder | EditorToolbar → useFilePicker    | Team         |
+| Use Case             | Component                         | Available On |
+| -------------------- | --------------------------------- | ------------ |
+| KB folder selection  | SettingsPanel → FileBrowseButton  | Team         |
+| Import .csv/.xlsx    | Editor → FileBrowseButton         | Team         |
+| Open .vrs project    | Dashboard → FileBrowseButton      | Team         |
+| Save As to SP folder | Project name menu → useFilePicker | Team         |
 
 Standard plan users see only local file browsing.
 

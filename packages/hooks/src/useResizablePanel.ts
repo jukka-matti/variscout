@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 
 export interface UseResizablePanelReturn {
   width: number;
@@ -27,22 +27,35 @@ export function useResizablePanel(
     return saved ? Math.min(Math.max(parseInt(saved, 10), min), max) : defaultWidth;
   });
   const [isDragging, setIsDragging] = useState(false);
+  const containerOffsetRef = useRef(0);
 
   // Persist width to localStorage
   useEffect(() => {
     localStorage.setItem(storageKey, width.toString());
   }, [storageKey, width]);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      const parentRect = e.currentTarget.parentElement?.getBoundingClientRect();
+      if (side === 'left') {
+        containerOffsetRef.current = parentRect?.left ?? 0;
+      } else {
+        containerOffsetRef.current = parentRect ? window.innerWidth - parentRect.right : 0;
+      }
+      setIsDragging(true);
+    },
+    [side]
+  );
 
   useEffect(() => {
     if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = side === 'left' ? e.clientX : window.innerWidth - e.clientX;
+      const newWidth =
+        side === 'left'
+          ? e.clientX - containerOffsetRef.current
+          : window.innerWidth - e.clientX - containerOffsetRef.current;
       setWidth(Math.min(Math.max(newWidth, min), max));
     };
 

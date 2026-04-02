@@ -310,6 +310,7 @@ const IChartBase: React.FC<IChartProps> = ({
             stroke={chrome.axisPrimary}
             tickStroke={chrome.axisPrimary}
             numTicks={xTickCount}
+            tickFormat={v => (Number.isInteger(v as number) ? String(Math.round(v as number)) : '')}
             tickLabelProps={() => ({
               fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
