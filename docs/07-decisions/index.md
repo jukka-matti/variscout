@@ -33,11 +33,11 @@ This section captures key architectural decisions made during VariScout developm
 | [019](adr-019-ai-integration.md)                     | AI Integration (Azure App)                        | Accepted   | 2026-03-14 |
 | [020](adr-020-investigation-workflow.md)             | Investigation Workflow                            | Accepted   | 2026-03-15 |
 | [021](adr-021-security-evaluation.md)                | Security Evaluation (Teams)                       | Accepted   | 2026-02-27 |
-| [022](adr-022-knowledge-layer-architecture.md)       | Knowledge Layer Architecture                      | Amended    | 2026-03-16 |
+| [022](adr-022-knowledge-layer-architecture.md)       | Knowledge Layer Architecture                      | Superseded | 2026-03-16 |
 | [023](adr-023-data-lifecycle.md)                     | Verification Experience & Data Lifecycle          | Accepted   | 2026-03-16 |
 | [024](adr-024-scouting-report.md)                    | Scouting Report — Dynamic Report View             | Superseded | 2026-03-16 |
 | [025](adr-025-internationalization.md)               | Internationalization Architecture                 | Accepted   | 2026-03-17 |
-| [026](adr-026-knowledge-base-sharepoint-first.md)    | Knowledge Base — SharePoint-First                 | Deferred   | 2026-03-17 |
+| [026](adr-026-knowledge-base-sharepoint-first.md)    | Knowledge Base — SharePoint-First                 | Superseded | 2026-03-17 |
 | [027](adr-027-ai-collaborator-evolution.md)          | AI Collaborator Evolution                         | Accepted   | 2026-03-19 |
 | [028](adr-028-responses-api-migration.md)            | Responses API Migration                           | Accepted   | 2026-03-19 |
 | [029](adr-029-ai-action-tools.md)                    | AI Action Tools for CoScout                       | Accepted   | 2026-03-19 |
@@ -71,6 +71,7 @@ This section captures key architectural decisions made during VariScout developm
 | [057](adr-057-coscout-visual-grounding.md)           | CoScout Visual Grounding                          | Accepted   | 2026-04-01 |
 | [058](adr-058-deployment-lifecycle.md)               | Deployment Lifecycle & Self-Service Updates       | Accepted   | 2026-04-02 |
 | [059](adr-059-web-first-deployment-architecture.md)  | Web-First Deployment Architecture                 | Accepted   | 2026-04-02 |
+| [060](adr-060-coscout-intelligence-architecture.md)  | CoScout Intelligence Architecture                 | Accepted   | 2026-04-02 |
 
 ---
 

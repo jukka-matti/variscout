@@ -103,3 +103,14 @@ Design spec: [2026-03-24-coscout-knowledge-catalyst-design.md](../superpowers/sp
 - `packages/ui/src/components/FindingsWindow/FindingComments.tsx` — file attachments
 - `packages/hooks/src/useAICoScout.ts` — multimodal send, insight tracking
 - `apps/azure/src/services/photoUpload.ts` — extend for non-image files
+
+---
+
+## Extended by ADR-060 (2026-04-02)
+
+ADR-060 extends this decision by:
+
+- Adding `answer_question` tool (complements `suggest_save_finding`)
+- Embedding investigation artifacts into Foundry IQ unified knowledge index
+- Creating external document upload paths (Knowledge tab, CoScout panel, finding comments)
+- All 7 capabilities of ADR-049 are preserved and enhanced.
