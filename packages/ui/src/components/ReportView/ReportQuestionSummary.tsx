@@ -39,8 +39,9 @@ const STATUS_I18N_KEYS: Record<QuestionStatus, keyof MessageCatalog> = {
 };
 
 const CAUSE_ROLE_COLORS: Record<string, string> = {
-  primary: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+  'suspected-cause': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
   contributing: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  'ruled-out': 'bg-slate-100 dark:bg-slate-900/30 text-slate-500 dark:text-slate-400',
 };
 
 /** Build a tree structure from flat question array. */

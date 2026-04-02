@@ -23,7 +23,6 @@ export interface JournalEntry {
 interface UseJournalEntriesOptions {
   findings: Finding[];
   questions: Question[];
-  issueStatement?: string;
   problemStatement?: string;
 }
 

@@ -157,7 +157,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const journalEntries = useJournalEntries({
     findings: findingsState.findings,
     questions: factorIntelQuestions,
-    issueStatement: processContext?.issueStatement,
     problemStatement: processContext?.problemStatement,
   });
 

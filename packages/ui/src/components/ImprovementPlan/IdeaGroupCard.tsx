@@ -5,7 +5,6 @@ import type {
   IdeaTimeframe,
   IdeaDirection,
   IdeaCostCategory,
-  IdeaRiskAssessment,
   ComputedRiskLevel,
 } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
@@ -36,7 +35,6 @@ export interface IdeaGroupCardProps {
     ideaId: string,
     cost: { category: IdeaCostCategory } | undefined
   ) => void;
-  onUpdateRisk?: (questionId: string, ideaId: string, risk: IdeaRiskAssessment | undefined) => void;
   onRemoveIdea?: (questionId: string, ideaId: string) => void;
   onOpenWhatIf?: (questionId: string, ideaId: string) => void;
   onOpenRisk?: (questionId: string, ideaId: string) => void;

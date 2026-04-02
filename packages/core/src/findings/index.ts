@@ -11,7 +11,7 @@ export * from './types';
 export * from './factories';
 export * from './helpers';
 export * from './migration';
-export { QUESTION_STATUS_LABELS, QUESTION_STATUS_COLORS } from './questionStatus';
+export { QUESTION_STATUS_COLORS } from './questionStatus';
 export { buildProblemStatement } from './problemStatement';
 export type { ProblemStatementInput } from './problemStatement';
 export { assignCauseColors } from './causeColors';
