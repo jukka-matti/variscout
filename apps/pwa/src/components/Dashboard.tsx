@@ -54,7 +54,7 @@ interface DashboardProps {
   onChartClick?: (chartId: ChartId) => void;
   // Embed focus: when set, render only this single chart (for iframe embeds)
   embedFocusChart?: 'ichart' | 'boxplot' | 'pareto' | 'stats' | null;
-  // Embed stats tab: when set, auto-selects this tab in StatsPanel
+  // Embed stats tab: when set, auto-selects this tab in PI Panel
   embedStatsTab?: 'summary' | 'data' | 'whatif' | null;
   onManageFactors?: () => void;
   openSpecEditorRequested?: boolean;

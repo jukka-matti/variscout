@@ -231,22 +231,48 @@ EasyAuth intercepts `/.auth/*` at the platform level before the Node server — 
 5. Build Azure app
 6. Generate CycloneDX SBOM (`sbom.json`) and upload as build artifact
 7. Assemble zip: `dist/` + `server.js` + minimal `package.json`
-8. OIDC login → deploy to **staging slot** (`azure/webapps-deploy@v3` with `slot-name: staging`)
-9. Health check on staging slot URL
+8. OIDC login → direct deploy to App Service (`azure/webapps-deploy@v3`, no slot)
+9. Health check on production URL
 10. (Conditional, separate job) Deploy OBO token-exchange Azure Function
 
-### Azure App — Production (Slot Swap)
+> **Note**: The staging environment runs on B1 (Basic) tier without deployment slots. Brief downtime (~10-30s) during deploy is acceptable for dev/test. Customer deployments will use S1 with slot swap (see [ADR-058](../../07-decisions/adr-058-deployment-lifecycle.md)).
 
-Production deployment uses a **zero-downtime slot swap** pattern (`.github/workflows/deploy-azure-production.yml`):
+### Azure App — Release Pipeline (ADR-058)
 
-1. **Manual trigger** (`workflow_dispatch`) with GitHub environment `production` (requires approval)
-2. Health check on staging slot — verify app is stable before swap
-3. `az webapp deployment slot swap --slot staging --target-slot production` — instant traffic switch
-4. Health check on production URL
-5. **Automatic rollback**: if any step fails, a rollback job swaps back to the previous production version
+Versioned releases are published via a tag-triggered workflow (`.github/workflows/release.yml`):
 
-**Advantages**: Zero downtime, instant rollback, warm-up before traffic switch.
-**Requirement**: App Service Standard tier (S1+) for deployment slots.
+1. Push a semver tag: `git tag v1.0.0 && git push --tags`
+2. Same build + test steps as staging (install, audit, test, build, SBOM)
+3. Assemble deployment ZIP + compute SHA-256 checksum
+4. Generate release notes from commits since last tag
+5. OIDC login → upload ZIP to Azure Blob Storage (`releases/v{version}/variscout-azure.zip`)
+6. Generate read-only SAS token (2-year expiry) for the ZIP
+7. Update `releases/manifest.json` with version, SAS URL, checksum, release notes URL
+8. Create GitHub Release with ZIP asset + SBOM + release notes
+
+**Manifest format** (`releases/manifest.json`):
+
+```json
+{
+  "latest": "1.3.0",
+  "released": "2026-04-15T10:00:00Z",
+  "url": "https://<storage>.blob.core.windows.net/releases/v1.3.0/variscout-azure.zip?<sas>",
+  "checksum": "sha256:a1b2c3...",
+  "releaseNotesUrl": "https://github.com/<repo>/releases/tag/v1.3.0",
+  "minVersion": "1.0.0",
+  "security": false
+}
+```
+
+**Required setup:**
+
+- Azure Storage Account with `releases` container (see [Release Storage Setup](#release-storage-setup) below)
+- GitHub Actions variable: `STORAGE_ACCOUNT_NAME`
+- OIDC service principal needs `Storage Blob Data Contributor` role on the storage account
+
+### Customer Update Flow (Phase 2)
+
+Customer deployments will include an Update Handler Function that enables self-service updates from within the app. See [ADR-058](../../07-decisions/adr-058-deployment-lifecycle.md) and the [design spec](../../../docs/superpowers/specs/2026-04-02-deployment-lifecycle-design.md) for the full Phase 2 design.
 
 ### Supply Chain Security
 
@@ -510,11 +536,96 @@ Trigger via `workflow_dispatch` or push a change to `main`.
 
 ---
 
+## Release Storage Setup
+
+One-time setup for the release artifact storage account. Run with `az cli` authenticated to the Perus-RDMAIC subscription.
+
+### 1. Create Storage Account
+
+```bash
+az storage account create \
+  --name variscoutrelease \
+  --resource-group rg-variscout-staging \
+  --location northeurope \
+  --sku Standard_LRS \
+  --kind StorageV2 \
+  --min-tls-version TLS1_2 \
+  --https-only true
+
+az storage container create \
+  --account-name variscoutrelease \
+  --name releases \
+  --public-access blob  # manifest.json needs public read
+```
+
+### 2. Grant CI/CD access
+
+The OIDC service principal (same one used for staging deploy) needs blob upload permissions:
+
+```bash
+az role assignment create \
+  --role "Storage Blob Data Contributor" \
+  --assignee $CICD_CLIENT_ID \
+  --scope /subscriptions/f6766ade-aab2-4f13-845a-30eda447e379/resourceGroups/rg-variscout-staging/providers/Microsoft.Storage/storageAccounts/variscoutrelease
+```
+
+### 3. Add federated credential for tags
+
+The existing OIDC federated credential only covers `refs/heads/main`. Add one for tag pushes:
+
+```bash
+az ad app federated-credential create --id $CICD_CLIENT_ID \
+  --parameters '{
+    "name": "github-actions-tags",
+    "issuer": "https://token.actions.githubusercontent.com",
+    "subject": "repo:jukka-matti/variscout:ref:refs/tags/*",
+    "audiences": ["api://AzureADTokenExchange"]
+  }'
+```
+
+### 4. Configure GitHub variable
+
+```bash
+gh variable set STORAGE_ACCOUNT_NAME --repo jukka-matti/variscout --body "variscoutrelease"
+```
+
+### 5. Test release
+
+```bash
+git tag v0.0.1-test && git push --tags
+# Verify: release.yml triggers, ZIP uploaded, manifest.json updated, GitHub Release created
+# Clean up: git tag -d v0.0.1-test && git push --delete origin v0.0.1-test
+```
+
+### Retention
+
+Configure lifecycle management to delete old release blobs:
+
+```bash
+az storage account management-policy create \
+  --account-name variscoutrelease \
+  --resource-group rg-variscout-staging \
+  --policy '{
+    "rules": [{
+      "name": "cleanup-old-releases",
+      "enabled": true,
+      "type": "Lifecycle",
+      "definition": {
+        "filters": { "blobTypes": ["blockBlob"], "prefixMatch": ["releases/v"] },
+        "actions": { "baseBlob": { "delete": { "daysAfterModificationGreaterThan": 365 } } }
+      }
+    }]
+  }'
+```
+
+---
+
 ## Next Steps
 
 1. Complete Azure Marketplace Partner Center setup
 2. Submit Azure App offer for certification
 3. Configure production telemetry
+4. Implement Phase 2: customer self-service updates ([ADR-058](../../07-decisions/adr-058-deployment-lifecycle.md))
 
 ---
 
@@ -524,3 +635,5 @@ Trigger via `workflow_dispatch` or push a change to `main`.
 - [ARM Template](../../08-products/azure/arm-template.md)
 - [ADR-007: Distribution Strategy](../../07-decisions/adr-007-azure-marketplace-distribution.md)
 - [ADR-040: Bicep Migration](../../07-decisions/adr-040-bicep-migration.md)
+- [ADR-058: Deployment Lifecycle](../../07-decisions/adr-058-deployment-lifecycle.md)
+- [Deployment Lifecycle Design Spec](../../superpowers/specs/2026-04-02-deployment-lifecycle-design.md)

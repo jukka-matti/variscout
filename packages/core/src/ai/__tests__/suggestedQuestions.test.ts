@@ -144,7 +144,7 @@ describe('buildSuggestedQuestions', () => {
       ).toBe(true);
     });
 
-    it('returns initial questions when no hypotheses', () => {
+    it('returns initial questions when no questions exist', () => {
       const context: AIContext = {
         ...baseContext,
         investigation: {

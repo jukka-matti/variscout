@@ -204,7 +204,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const isDataTableOpen = usePanelsStore(s => s.isDataTableOpen);
   const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
-  const statsSidebar = useResizablePanel('variscout-stats-sidebar-width', 280, 500, 320, 'left');
+  const piSidebar = useResizablePanel('variscout-stats-sidebar-width', 280, 500, 320, 'left');
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
 
   // Visual grounding for CoScout REF markers (ADR-050)
@@ -490,7 +490,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           <>
             <div
               className="flex flex-col flex-shrink-0 bg-surface-secondary overflow-y-auto"
-              style={{ width: statsSidebar.width }}
+              style={{ width: piSidebar.width }}
             >
               <React.Suspense fallback={null}>
                 <ProcessIntelligencePanel
@@ -537,9 +537,9 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
             </div>
             <div
               className={`w-1 flex-shrink-0 flex items-center justify-center cursor-col-resize transition-colors ${
-                statsSidebar.isDragging ? 'bg-blue-500' : 'bg-surface-tertiary hover:bg-blue-500'
+                piSidebar.isDragging ? 'bg-blue-500' : 'bg-surface-tertiary hover:bg-blue-500'
               }`}
-              onMouseDown={statsSidebar.handleMouseDown}
+              onMouseDown={piSidebar.handleMouseDown}
             >
               <GripVertical size={12} className="text-content-muted" />
             </div>

@@ -5,7 +5,7 @@
  * - Slot 1: I-Chart (with switchable metric via useYamazumiIChartData)
  * - Slot 2: Yamazumi stacked bar chart
  * - Slot 3: Pareto (with switchable mode via useYamazumiParetoData)
- * - Slot 4: YamazumiSummaryBar (replaces StatsPanel)
+ * - Slot 4: YamazumiSummaryBar (replaces PI Panel)
  */
 import React, { useMemo, useState } from 'react';
 import {
