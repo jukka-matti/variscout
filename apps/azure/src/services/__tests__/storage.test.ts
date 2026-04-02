@@ -12,7 +12,6 @@ const {
   mockGetPending,
   mockRemoveFromQueue,
   mockPruneSyncQueue,
-  mockGetGraphToken,
   mockSaveBlobProject,
   mockLoadBlobProject,
   mockLoadBlobMetadata,
@@ -34,7 +33,6 @@ const {
   mockGetPending: vi.fn().mockResolvedValue([]),
   mockRemoveFromQueue: vi.fn().mockResolvedValue(undefined),
   mockPruneSyncQueue: vi.fn().mockResolvedValue(0),
-  mockGetGraphToken: vi.fn().mockResolvedValue('mock-token-123'),
   mockSaveBlobProject: vi.fn().mockResolvedValue(undefined),
   mockLoadBlobProject: vi.fn().mockResolvedValue(null),
   mockLoadBlobMetadata: vi.fn().mockResolvedValue(null),
@@ -88,13 +86,6 @@ vi.mock('../../auth/easyAuth', () => ({
       this.code = code;
     }
   },
-}));
-
-// ---------------------------------------------------------------------------
-// Mock: ../auth/graphToken (kept for backwards compat, no longer imported by storage.ts)
-// ---------------------------------------------------------------------------
-vi.mock('../../auth/graphToken', () => ({
-  getGraphToken: mockGetGraphToken,
 }));
 
 // ---------------------------------------------------------------------------

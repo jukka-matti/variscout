@@ -137,7 +137,7 @@ describe('useKnowledgeSearch', () => {
     title: 'SOP: Nozzle Maintenance',
     snippet: 'Clean nozzles every 8 hours',
     source: 'SOPs',
-    url: 'https://sharepoint.example.com/sop-1',
+    url: 'https://variscout.blob.core.windows.net/projects/sop-1',
     relevanceScore: 0.88,
   };
 

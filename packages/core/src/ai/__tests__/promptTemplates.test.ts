@@ -1125,12 +1125,12 @@ describe('formatKnowledgeContext', () => {
         {
           title: 'Work Instruction: Calibration',
           snippet: 'Calibrate every Monday morning.',
-          source: 'SharePoint',
+          source: 'Blob Storage',
         },
       ]
     );
     expect(result).toContain('Knowledge Base');
-    expect(result).toContain('[Source: SharePoint]');
+    expect(result).toContain('[Source: Blob Storage]');
     expect(result).toContain('Work Instruction: Calibration');
     expect(result).toContain('Calibrate every Monday morning.');
   });
@@ -1296,7 +1296,7 @@ describe('buildCoScoutMessages', () => {
         {
           title: 'Work Instruction: Calibration',
           snippet: 'Calibrate weekly.',
-          source: 'SharePoint',
+          source: 'Blob Storage',
         },
       ],
     };
@@ -1305,7 +1305,7 @@ describe('buildCoScoutMessages', () => {
     expect(messages.length).toBe(4);
     const knowledgeMsg = messages[2];
     expect(knowledgeMsg.role).toBe('system');
-    expect(knowledgeMsg.content).toContain('[Source: SharePoint]');
+    expect(knowledgeMsg.content).toContain('[Source: Blob Storage]');
     expect(knowledgeMsg.content).toContain('Work Instruction: Calibration');
   });
 });
@@ -1755,7 +1755,7 @@ describe('buildCoScoutInput', () => {
   it('includes knowledge context when available', () => {
     const ctx: AIContext = {
       ...baseCtx,
-      knowledgeDocuments: [{ title: 'SOP', snippet: 'Clean nozzles.', source: 'SharePoint' }],
+      knowledgeDocuments: [{ title: 'SOP', snippet: 'Clean nozzles.', source: 'Blob Storage' }],
     };
     const result = buildCoScoutInput(ctx, [], 'Question');
     const kbMsg = result.input.find(

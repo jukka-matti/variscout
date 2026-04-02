@@ -19,12 +19,12 @@
 
 | Package                | Test Type            | What to Test                                                        |
 | ---------------------- | -------------------- | ------------------------------------------------------------------- |
-| `@variscout/core`      | Unit                 | stats, parser, tier, export, performance, yamazumi, lttb            |
+| `@variscout/core`      | Unit                 | stats, parser, tier, export, performance, yamazumi, lttb, buildAIContext, channelQuestions |
 | `@variscout/charts`    | Unit                 | colors, accessibility, multi-selection hook                         |
-| `@variscout/hooks`     | Unit                 | useTier, useChartScale, useColumnClassification, useDrillPath, useVariationTracking, useAnnotations, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState, useHighlightFade, useResizablePanel, useDataTablePagination, useBoxplotWrapperData, useIChartWrapperData, useParetoChartData, useDashboardComputedData, useDashboardChartsBase, useQuestions, useQuestionGeneration, useFindings, useAIContext, useChartInsights, useAICoScout, useKnowledgeSearch, useNarration, useProjectPersistence, useVerificationCharts, useFilterHandlers, useCreateFactorModal, useLocaleState, useTranslation, useReportSections, useScrollSpy, useJourneyPhase, useSnapshotData, copySectionAsHTML, useYamazumiChartData, useYamazumiIChartData, useYamazumiParetoData, useProbabilityPlotData, useAsyncStats |
-| `@variscout/ui`        | Unit                 | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle, DataTableBase |
+| `@variscout/hooks`     | Unit                 | useTier, useChartScale, useColumnClassification, useDrillPath, useVariationTracking, useAnnotations, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useDocumentShelf, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState, useHighlightFade, useResizablePanel, useDataTablePagination, useBoxplotWrapperData, useIChartWrapperData, useParetoChartData, useDashboardComputedData, useDashboardChartsBase, useQuestions, useQuestionGeneration, useFindings, useAIContext, useChartInsights, useAICoScout, useKnowledgeSearch, useNarration, useProjectPersistence, useVerificationCharts, useFilterHandlers, useCreateFactorModal, useLocaleState, useTranslation, useReportSections, useScrollSpy, useJourneyPhase, useSnapshotData, copySectionAsHTML, useYamazumiChartData, useYamazumiIChartData, useYamazumiParetoData, useProbabilityPlotData, useAsyncStats |
+| `@variscout/ui`        | Unit                 | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle, DataTableBase, DocumentShelf, KnowledgeCitationCard, QuestionsTabView |
 | `@variscout/pwa`       | Component + E2E      | UI components, context, full user flows                             |
-| `@variscout/azure-app` | Component + E2E      | UI components, auth, storage, editor flows                          |
+| `@variscout/azure-app` | Component + E2E      | UI components, auth, storage, editor flows, actionToolHandlers, investigationSerializer |
 
 ## Commands
 

@@ -32,6 +32,7 @@ packages/
 │              #   useDrillPath - Drill-down path navigation state
 │              #   useTier - License tier state and limits
 │              #   useDataTablePagination - Data table page/sort/filter state
+│              #   useDocumentShelf - KB document list, upload, delete, filter
 │              #   useHighlightFade - Chart element highlight fade animation
 │              #   useResizablePanel - Draggable panel width with localStorage
 │              #   useBoxplotData - Shared d3 boxplot computation
