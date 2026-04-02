@@ -3,7 +3,7 @@ title: Web-First Implementation Design
 audience: [developer, architect]
 category: architecture
 status: draft
-related: [adr-059, adr-026, adr-049, adr-033, web-first, knowledge-base, blob-storage]
+related: [adr-059, adr-060, adr-026, adr-049, adr-033, web-first, knowledge-base, blob-storage]
 ---
 
 # Web-First Implementation Design
@@ -96,6 +96,8 @@ variscout-projects/
 - **"On Your Data" mode not used** — incompatible with function calling (disables all 18 CoScout tools)
 
 ## 4. Unified Knowledge System (Team Tier)
+
+> **See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md)** for the full CoScout Intelligence Architecture that implements and extends this section.
 
 ### Core Concept
 
