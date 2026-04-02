@@ -255,6 +255,169 @@ describe('QuestionsTabView — conclusion card', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Tests: evidence sorting (ADR-060 Pillar 5)
+// ---------------------------------------------------------------------------
+
+describe('QuestionsTabView — evidence sorting', () => {
+  it('sorts questions within a group by rSquaredAdj descending', () => {
+    // Three open questions with different evidence values
+    const q1 = makeQuestion({
+      id: 'q-low',
+      status: 'open',
+      factor: 'Material',
+      evidence: { rSquaredAdj: 0.12 },
+    });
+    const q2 = makeQuestion({
+      id: 'q-high',
+      status: 'open',
+      factor: 'Operator',
+      evidence: { rSquaredAdj: 0.45 },
+    });
+    const q3 = makeQuestion({
+      id: 'q-mid',
+      status: 'open',
+      factor: 'Machine',
+      evidence: { rSquaredAdj: 0.28 },
+    });
+
+    render(<QuestionsTabView questions={[q1, q2, q3]} findings={[]} />);
+
+    const group = screen.getByTestId('question-group-open');
+    const rows = group.querySelectorAll('[data-testid^="question-row-"]');
+    const ids = Array.from(rows).map(r =>
+      r.getAttribute('data-testid')?.replace('question-row-', '')
+    );
+
+    // Expected order: q-high (0.45) → q-mid (0.28) → q-low (0.12)
+    expect(ids).toEqual(['q-high', 'q-mid', 'q-low']);
+  });
+
+  it('places questions without evidence at the end of the group', () => {
+    const qWithEvidence = makeQuestion({
+      id: 'q-evidence',
+      status: 'open',
+      factor: 'Operator',
+      evidence: { rSquaredAdj: 0.3 },
+    });
+    const qNoEvidence = makeQuestion({
+      id: 'q-no-evidence',
+      status: 'open',
+      factor: 'Material',
+      evidence: undefined,
+    });
+
+    render(<QuestionsTabView questions={[qNoEvidence, qWithEvidence]} findings={[]} />);
+
+    const group = screen.getByTestId('question-group-open');
+    const rows = group.querySelectorAll('[data-testid^="question-row-"]');
+    const ids = Array.from(rows).map(r =>
+      r.getAttribute('data-testid')?.replace('question-row-', '')
+    );
+
+    // q-evidence (0.3) should come before q-no-evidence (-1 sentinel)
+    expect(ids).toEqual(['q-evidence', 'q-no-evidence']);
+  });
+
+  it('sorts each group independently', () => {
+    const answeredLow = makeQuestion({
+      id: 'a-low',
+      status: 'answered',
+      factor: 'Speed',
+      evidence: { rSquaredAdj: 0.1 },
+    });
+    const answeredHigh = makeQuestion({
+      id: 'a-high',
+      status: 'answered',
+      factor: 'Pressure',
+      evidence: { rSquaredAdj: 0.9 },
+    });
+    const openMid = makeQuestion({
+      id: 'o-mid',
+      status: 'open',
+      factor: 'Temperature',
+      evidence: { rSquaredAdj: 0.5 },
+    });
+
+    render(<QuestionsTabView questions={[answeredLow, answeredHigh, openMid]} findings={[]} />);
+
+    const answeredGroup = screen.getByTestId('question-group-answered');
+    const answeredRows = answeredGroup.querySelectorAll('[data-testid^="question-row-"]');
+    const answeredIds = Array.from(answeredRows).map(r =>
+      r.getAttribute('data-testid')?.replace('question-row-', '')
+    );
+
+    // Within answered group: a-high (0.9) before a-low (0.1)
+    expect(answeredIds).toEqual(['a-high', 'a-low']);
+
+    // Open group should still render its own question
+    expect(screen.getByTestId('question-row-o-mid')).toBeDefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests: evidenceLabel prop (ADR-060 Pillar 5)
+// ---------------------------------------------------------------------------
+
+describe('QuestionsTabView — evidenceLabel prop', () => {
+  it('passes default evidenceLabel "R²adj" to QuestionRow aria-label', () => {
+    const q = makeQuestion({
+      id: 'q1',
+      status: 'open',
+      factor: 'Operator',
+      evidence: { rSquaredAdj: 0.42 },
+    });
+
+    render(<QuestionsTabView questions={[q]} findings={[]} />);
+
+    // QuestionRow renders evidence as aria-label="<evidenceLabel> <pct>%"
+    const evidenceEl = screen.getByLabelText('R²adj 42%');
+    expect(evidenceEl).toBeDefined();
+  });
+
+  it('passes custom evidenceLabel to QuestionRow aria-label for performance mode', () => {
+    const q = makeQuestion({
+      id: 'q1',
+      status: 'open',
+      factor: 'Channel',
+      evidence: { rSquaredAdj: 0.67 },
+    });
+
+    render(<QuestionsTabView questions={[q]} findings={[]} evidenceLabel="Cpk gap" />);
+
+    const evidenceEl = screen.getByLabelText('Cpk gap 67%');
+    expect(evidenceEl).toBeDefined();
+  });
+
+  it('passes custom evidenceLabel for yamazumi mode', () => {
+    const q = makeQuestion({
+      id: 'q1',
+      status: 'open',
+      factor: 'Step',
+      evidence: { rSquaredAdj: 0.55 },
+    });
+
+    render(<QuestionsTabView questions={[q]} findings={[]} evidenceLabel="Waste%" />);
+
+    const evidenceEl = screen.getByLabelText('Waste% 55%');
+    expect(evidenceEl).toBeDefined();
+  });
+
+  it('does not render evidence span when question has no evidence', () => {
+    const q = makeQuestion({
+      id: 'q1',
+      status: 'open',
+      factor: 'Operator',
+      evidence: undefined,
+    });
+
+    render(<QuestionsTabView questions={[q]} findings={[]} evidenceLabel="R²adj" />);
+
+    // No aria-label containing the evidence label should be present
+    expect(screen.queryByLabelText(/R²adj/)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Tests: vitals bar
 // ---------------------------------------------------------------------------
 
