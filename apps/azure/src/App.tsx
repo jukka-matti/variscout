@@ -19,6 +19,7 @@ import { Activity, LogOut, Settings, Shield } from 'lucide-react';
 import { parseDeepLink, validateDeepLink, type DeepLinkParams } from './services/deepLinks';
 import { hasTeamFeatures } from '@variscout/core';
 import { trackException } from './lib/appInsights';
+import type { SampleDataset } from '@variscout/data';
 
 type View = 'dashboard' | 'editor' | 'admin';
 
@@ -170,8 +171,9 @@ function AppContent({
   setIsSettingsOpen: (v: boolean) => void;
   onLogout: () => void;
 }) {
-  const [currentView, setCurrentView] = useState<View>('dashboard');
+  const [currentView, setCurrentView] = useState<View>('editor');
   const [currentProject, setCurrentProject] = useState<string | null>(null);
+  const [pendingSample, setPendingSample] = useState<SampleDataset | null>(null);
 
   // Resolve deep link from URL params
   const deepLink = useMemo<DeepLinkParams>(() => {
@@ -218,6 +220,17 @@ function AppContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deepLink.project]);
 
+  // Auto-redirect to portfolio if saved projects exist (first-run users stay on editor)
+  useEffect(() => {
+    if (deepLink.project) return; // Deep links handle their own navigation
+    listProjects()
+      .then(projects => {
+        if (projects.length > 0) setCurrentView('dashboard');
+      })
+      .catch(() => {}); // Stay on editor if listing fails
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const navigateToEditor = (projectId?: string) => {
     setCurrentProject(projectId || null);
     setCurrentView('editor');
@@ -226,6 +239,11 @@ function AppContent({
   const navigateToDashboard = () => {
     setCurrentProject(null);
     setCurrentView('dashboard');
+  };
+
+  const handleLoadSample = (sample: SampleDataset) => {
+    setPendingSample(sample);
+    navigateToEditor();
   };
 
   return (
@@ -316,12 +334,16 @@ function AppContent({
           </div>
         )}
         {currentView === 'dashboard' && !deepLinkError && (
-          <ProjectDashboard onOpenProject={id => navigateToEditor(id)} />
+          <ProjectDashboard
+            onOpenProject={id => navigateToEditor(id)}
+            onLoadSample={handleLoadSample}
+          />
         )}
         {currentView === 'editor' && (
           <Editor
             projectId={currentProject}
             onBack={navigateToDashboard}
+            initialSample={pendingSample}
             initialFindingId={
               deepLink.project === currentProject ? (deepLink.findingId ?? undefined) : undefined
             }

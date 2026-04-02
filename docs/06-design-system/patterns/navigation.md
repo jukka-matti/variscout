@@ -380,35 +380,43 @@ Escape priority is handled by `useAppPanels` — it dismisses panels in reverse-
 
 ## 8. Portfolio and Dashboard Navigation (Azure)
 
-The Azure app has three navigation layers: **Portfolio** (project selection), **Project Dashboard** (Overview landing page), and **Workspace tabs** (Overview | Analysis | Investigation | Improvement | Report). The Portfolio is the app entry point. Within a loaded project, the Dashboard and workspaces are controlled by `panelsStore.activeView` (ADR-055).
+The Azure app has three navigation layers: **Portfolio** (project selection), **Project Dashboard** (Overview landing page), and **Workspace tabs** (Overview | Analysis | Investigation | Improvement | Report). Within a loaded project, the Dashboard and workspaces are controlled by `panelsStore.activeView` (ADR-055).
+
+### First-run experience (zero saved projects)
+
+When there are no saved analyses, the app skips the portfolio and opens the **Editor empty state** directly. This avoids a redundant empty portfolio screen. The portfolio appears once the user has saved at least one project. Workspace tabs are also hidden until data is loaded, since they serve no function without data. The back arrow is hidden when there are no projects to return to.
+
+Selecting a sample dataset from the portfolio's "Try a Sample" modal passes the sample through to the Editor via `initialSample` prop, loading it immediately.
 
 ### Portfolio → Project selection
 
 ```
 App entry
-└── Portfolio home screen
+├── [zero saved projects] → Editor empty state (upload / paste / sample)
+└── [has saved projects]  → Portfolio home screen
     ├── ProjectCard × N  (reads .meta.json sidecars)
     │   ├── Phase indicator
     │   ├── Finding counts by status
     │   ├── Overdue action badge
     │   └── "What's new" indicator dot
-    ├── SampleDataPicker  (shown when no projects exist)
+    ├── SampleDataPicker  ("Try a Sample" → loads sample into Editor)
     └── [select project] → loadProject()
                                ↓
                          Project Shell (DataContext)
 ```
 
-| Situation                            | Next screen                     | Mechanism                                 |
-| ------------------------------------ | ------------------------------- | ----------------------------------------- |
-| Project has data                     | Project Dashboard (Overview)    | `activeView: 'dashboard'`                 |
-| New project (no data)                | Analysis workspace (FRAME mode) | `activeView: 'analysis'` — skip Dashboard |
-| Deep link `?tab=overview`            | Project Dashboard               | `tab` param parsed before shell renders   |
-| Deep link `?tab=analysis`            | Analysis workspace              | `tab` param parsed before shell renders   |
-| Deep link `?finding=` or `?chart=`   | Analysis workspace at target    | Existing deep link bypass                 |
-| Deep link `?hypothesis=<id>`         | Investigation workspace         | Scrolls to hypothesis                     |
-| Deep link `?workspace=investigation` | Investigation workspace         | `activeView: 'investigation'`             |
-| Deep link `?workspace=improve`       | Improvement workspace           | `activeView: 'improvement'`               |
-| Deep link `?workspace=report`        | Report workspace                | `activeView: 'report'`                    |
+| Situation                            | Next screen                     | Mechanism                                                                 |
+| ------------------------------------ | ------------------------------- | ------------------------------------------------------------------------- |
+| Zero saved projects                  | Editor empty state              | App defaults to `'editor'` view; redirects to portfolio if projects exist |
+| Project has data                     | Project Dashboard (Overview)    | `activeView: 'dashboard'`                                                 |
+| New project (no data)                | Analysis workspace (FRAME mode) | `activeView: 'analysis'` — skip Dashboard                                 |
+| Deep link `?tab=overview`            | Project Dashboard               | `tab` param parsed before shell renders                                   |
+| Deep link `?tab=analysis`            | Analysis workspace              | `tab` param parsed before shell renders                                   |
+| Deep link `?finding=` or `?chart=`   | Analysis workspace at target    | Existing deep link bypass                                                 |
+| Deep link `?hypothesis=<id>`         | Investigation workspace         | Scrolls to hypothesis                                                     |
+| Deep link `?workspace=investigation` | Investigation workspace         | `activeView: 'investigation'`                                             |
+| Deep link `?workspace=improve`       | Improvement workspace           | `activeView: 'improvement'`                                               |
+| Deep link `?workspace=report`        | Report workspace                | `activeView: 'report'`                                                    |
 
 For saved Azure projects with data, the project shell contains the Dashboard landing page and three workspace tabs. Navigation is controlled by `panelsStore.activeView` (ADR-055):
 
@@ -425,6 +433,7 @@ Project Shell
 
 | Situation                          | Landing view            | Mechanism                                                        |
 | ---------------------------------- | ----------------------- | ---------------------------------------------------------------- |
+| Zero saved projects (first run)    | Editor empty state      | App defaults to editor; portfolio bypassed                       |
 | Open saved project with data       | Dashboard               | `loadProject()` sets `activeView: 'dashboard'`                   |
 | New project (no data)              | Analysis (FRAME)        | Skip dashboard — no data to summarize                            |
 | Deep link (`?finding=`, `?chart=`) | Analysis at target      | `activeView: 'analysis'` set before render                       |

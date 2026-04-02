@@ -46,6 +46,8 @@ export interface ProjectHeaderProps {
   // Primary action: Improvement
   onConvertToActions?: () => void;
   hasSelectedIdeas?: boolean;
+  /** Hide back arrow when there are no projects to return to */
+  showBackButton?: boolean;
 }
 
 /** Save status dot color */
@@ -99,6 +101,7 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
   onAddManualData,
   onConvertToActions,
   hasSelectedIdeas,
+  showBackButton = true,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const { t } = useTranslation();
@@ -141,13 +144,15 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
       <div className="flex items-center justify-between h-11 px-2 border-b border-edge bg-surface flex-shrink-0">
         {/* Left: back + title + dot */}
         <div className="flex items-center gap-2 min-w-0">
-          <button
-            onClick={onBack}
-            aria-label={t('nav.backToDashboard')}
-            className="p-1 text-content-muted hover:text-content transition-colors flex-shrink-0"
-          >
-            <ArrowLeft size={18} />
-          </button>
+          {showBackButton && (
+            <button
+              onClick={onBack}
+              aria-label={t('nav.backToDashboard')}
+              className="p-1 text-content-muted hover:text-content transition-colors flex-shrink-0"
+            >
+              <ArrowLeft size={18} />
+            </button>
+          )}
           <h2 className="text-sm font-semibold text-content truncate">{projectName}</h2>
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
         </div>
@@ -210,13 +215,15 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
     <div className="flex items-center h-11 px-3 border-b border-edge bg-surface flex-shrink-0 gap-1">
       {/* ── Left zone: Back + Project name + row count + status dot ── */}
       <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
-        <button
-          onClick={onBack}
-          aria-label={t('nav.backToDashboard')}
-          className="p-1 text-content-muted hover:text-content transition-colors flex-shrink-0"
-        >
-          <ArrowLeft size={16} />
-        </button>
+        {showBackButton && (
+          <button
+            onClick={onBack}
+            aria-label={t('nav.backToDashboard')}
+            className="p-1 text-content-muted hover:text-content transition-colors flex-shrink-0"
+          >
+            <ArrowLeft size={16} />
+          </button>
+        )}
         <h2 className="text-sm font-semibold text-content truncate max-w-[200px]">{projectName}</h2>
         {hasData && <span className="text-xs text-content-muted flex-shrink-0">({rowCount})</span>}
         <span
@@ -259,57 +266,62 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
           ))}
       </div>
 
-      {/* ── Separator ── */}
-      <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
-
-      {/* ── Center zone: Workspace tabs ── */}
-      <nav className="flex items-center flex-1 min-w-0 overflow-x-auto" data-testid="view-toggle">
-        <button
-          className={tabClass(activeView === 'dashboard')}
-          onClick={() => usePanelsStore.getState().showDashboard()}
-          data-testid="view-toggle-overview"
-        >
-          Overview
-        </button>
-        <button
-          className={tabClass(activeView === 'analysis')}
-          onClick={() => usePanelsStore.getState().showAnalysis()}
-          data-testid="view-toggle-analysis"
-        >
-          Analysis
-        </button>
-        <button
-          className={tabClass(activeView === 'investigation')}
-          onClick={() => usePanelsStore.getState().showInvestigation()}
-          data-testid="view-toggle-investigation"
-        >
-          Investigation
-          {openQuestionCount != null && openQuestionCount > 0 && (
-            <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-              {openQuestionCount}
-            </span>
-          )}
-        </button>
-        <button
-          className={tabClass(activeView === 'improvement')}
-          onClick={() => usePanelsStore.getState().showImprovement()}
-          data-testid="view-toggle-improvement"
-        >
-          Improvement
-          {selectedIdeaCount != null && selectedIdeaCount > 0 && (
-            <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-              {selectedIdeaCount}
-            </span>
-          )}
-        </button>
-        <button
-          className={tabClass(activeView === 'report')}
-          onClick={() => usePanelsStore.getState().showReport()}
-          data-testid="view-toggle-report"
-        >
-          Report
-        </button>
-      </nav>
+      {/* ── Separator + Center zone: Workspace tabs (hidden when no data) ── */}
+      {hasData && (
+        <>
+          <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
+          <nav
+            className="flex items-center flex-1 min-w-0 overflow-x-auto"
+            data-testid="view-toggle"
+          >
+            <button
+              className={tabClass(activeView === 'dashboard')}
+              onClick={() => usePanelsStore.getState().showDashboard()}
+              data-testid="view-toggle-overview"
+            >
+              Overview
+            </button>
+            <button
+              className={tabClass(activeView === 'analysis')}
+              onClick={() => usePanelsStore.getState().showAnalysis()}
+              data-testid="view-toggle-analysis"
+            >
+              Analysis
+            </button>
+            <button
+              className={tabClass(activeView === 'investigation')}
+              onClick={() => usePanelsStore.getState().showInvestigation()}
+              data-testid="view-toggle-investigation"
+            >
+              Investigation
+              {openQuestionCount != null && openQuestionCount > 0 && (
+                <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                  {openQuestionCount}
+                </span>
+              )}
+            </button>
+            <button
+              className={tabClass(activeView === 'improvement')}
+              onClick={() => usePanelsStore.getState().showImprovement()}
+              data-testid="view-toggle-improvement"
+            >
+              Improvement
+              {selectedIdeaCount != null && selectedIdeaCount > 0 && (
+                <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                  {selectedIdeaCount}
+                </span>
+              )}
+            </button>
+            <button
+              className={tabClass(activeView === 'report')}
+              onClick={() => usePanelsStore.getState().showReport()}
+              data-testid="view-toggle-report"
+            >
+              Report
+            </button>
+          </nav>
+        </>
+      )}
 
       {/* ── Separator ── */}
       <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />

@@ -1,4 +1,5 @@
 import React, { useMemo, useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react';
+import type { SampleDataset } from '@variscout/data';
 import { useStorage } from '../services/storage';
 import { useProjectLoader } from '../hooks/useProjectLoader';
 import { useProjectOverview } from '../hooks/useProjectOverview';
@@ -77,6 +78,8 @@ interface EditorProps {
   initialQuestionId?: string;
   /** Deep link: auto-open a specific mode (e.g. 'improvement', 'report') */
   initialMode?: string;
+  /** Sample dataset to load immediately (from portfolio "Try a Sample") */
+  initialSample?: SampleDataset | null;
 }
 
 export const Editor: React.FC<EditorProps> = ({
@@ -86,6 +89,7 @@ export const Editor: React.FC<EditorProps> = ({
   initialChart,
   initialQuestionId,
   initialMode,
+  initialSample,
 }) => {
   const { syncStatus, listProjects } = useStorage();
   const { locale } = useLocale();
@@ -297,6 +301,15 @@ export const Editor: React.FC<EditorProps> = ({
   // Ref to allow ingestion callbacks to reach dataFlow setters
   const dataFlowRef = React.useRef(dataFlow);
   dataFlowRef.current = dataFlow;
+
+  // Load sample passed from portfolio "Try a Sample"
+  const initialSampleConsumedRef = useRef(false);
+  useEffect(() => {
+    if (initialSample && !initialSampleConsumedRef.current) {
+      initialSampleConsumedRef.current = true;
+      dataFlow.handleLoadSample(initialSample);
+    }
+  }, [initialSample, dataFlow]);
 
   // Manual data analyze with append-mode merge
   const { handleManualDataAnalyze } = useDataMerge({
@@ -930,6 +943,7 @@ export const Editor: React.FC<EditorProps> = ({
           useImprovementStore.getState().setActiveImprovementView('track');
         }}
         hasSelectedIdeas={selectedIdeaIds.size > 0}
+        showBackButton={overviewProjects.length > 0}
       />
 
       {/* Hidden file input for append-mode file upload */}

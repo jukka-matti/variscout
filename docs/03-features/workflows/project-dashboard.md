@@ -208,7 +208,7 @@ The Project Dashboard (Overview tab) is reached via the Portfolio home screen. T
 - Assigned task count and overdue flag
 - "What's new" indicator dot when `lastModified > lastViewedAt`
 
-Opening a project from the Portfolio sets `panelsStore.activeView` to `'dashboard'` (for projects with data) or `'editor'` (for new empty projects). The Dashboard then loads synchronously from already-hydrated `AnalysisState`.
+When there are zero saved analyses (first-run experience), the app bypasses the Portfolio entirely and opens the Editor empty state directly, where users can upload data, paste from Excel, or load a sample dataset. The Portfolio appears once the user has saved at least one project. Opening a project from the Portfolio sets `panelsStore.activeView` to `'dashboard'` (for projects with data) or `'editor'` (for new empty projects). The Dashboard then loads synchronously from already-hydrated `AnalysisState`.
 
 Deep links can target the Dashboard directly via `?tab=overview`, or bypass it to land in the Editor via `?tab=analysis`, `?finding=<id>`, `?chart=<type>`, `?hypothesis=<id>`, or `?workspace=improve`.
 
