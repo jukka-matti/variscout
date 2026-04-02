@@ -21,14 +21,6 @@ export interface SyncStateRecord {
   baseStateJson?: string;
 }
 
-export interface ChannelDriveCacheRecord {
-  channelId: string;
-  driveId: string;
-  folderId: string;
-  folderWebUrl?: string;
-  resolvedAt: string;
-}
-
 export interface SyncItem {
   id?: number;
   name: string;
@@ -37,26 +29,14 @@ export interface SyncItem {
   queuedAt: string;
 }
 
-export interface PhotoQueueItem {
-  id?: number;
-  photoId: string;
-  findingId: string;
-  commentId: string;
-  analysisId: string;
-  filename: string;
-  blob: Blob;
-  queuedAt: string;
-}
-
 class VariScoutDatabase extends Dexie {
   projects!: Dexie.Table<ProjectRecord, string>;
   syncQueue!: Dexie.Table<SyncItem, number>;
   syncState!: Dexie.Table<SyncStateRecord, string>;
-  photoQueue!: Dexie.Table<PhotoQueueItem, number>;
-  channelDriveCache!: Dexie.Table<ChannelDriveCacheRecord, string>;
 
   constructor() {
     super('VaRiScoutAzure');
+    // Tables retained for Dexie schema version compatibility (ADR-059)
     // Version 1: original schema
     this.version(1).stores({
       projects: 'name, location, modified, synced',
@@ -107,20 +87,4 @@ export async function removeFromSyncQueue(name: string) {
 export async function pruneSyncQueue(daysOld = 30): Promise<number> {
   const cutoff = new Date(Date.now() - daysOld * 86_400_000).toISOString();
   return db.syncQueue.where('queuedAt').below(cutoff).delete();
-}
-
-// Photo queue operations
-export async function addToPhotoQueue(item: Omit<PhotoQueueItem, 'id' | 'queuedAt'>) {
-  await db.photoQueue.put({
-    ...item,
-    queuedAt: new Date().toISOString(),
-  });
-}
-
-export async function getPendingPhotos(): Promise<PhotoQueueItem[]> {
-  return await db.photoQueue.toArray();
-}
-
-export async function removeFromPhotoQueue(photoId: string) {
-  await db.photoQueue.where('photoId').equals(photoId).delete();
 }

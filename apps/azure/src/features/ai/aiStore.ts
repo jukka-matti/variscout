@@ -35,8 +35,6 @@ interface AIStoreState {
   kbPermissionWarning: boolean;
   /** Provider label for CoScout header */
   providerLabel: string | null;
-  /** Resolved channel folder SharePoint URL */
-  resolvedChannelFolderUrl: string | undefined;
   /** Friendly label for KB search scope */
   knowledgeSearchScope: string | undefined;
   /** Timestamp of last KB search */
@@ -66,7 +64,6 @@ interface AIStoreActions {
   syncAIContext: (summary: AIContextSummary | null) => void;
   setKbPermissionWarning: (value: boolean) => void;
   setProviderLabel: (label: string | null) => void;
-  setResolvedChannelFolderUrl: (url: string | undefined) => void;
   setKnowledgeSearchScope: (scope: string | undefined) => void;
   setKnowledgeSearchTimestamp: (ts: number | undefined) => void;
   syncKnowledgeSearch: (state: {
@@ -101,7 +98,6 @@ export const useAIStore = create<AIStore>((set, get) => ({
   aiContextSummary: null,
   kbPermissionWarning: false,
   providerLabel: null,
-  resolvedChannelFolderUrl: undefined,
   knowledgeSearchScope: undefined,
   knowledgeSearchTimestamp: undefined,
   knowledgeAvailable: false,
@@ -120,7 +116,6 @@ export const useAIStore = create<AIStore>((set, get) => ({
   syncAIContext: summary => set({ aiContextSummary: summary }),
   setKbPermissionWarning: value => set({ kbPermissionWarning: value }),
   setProviderLabel: label => set({ providerLabel: label }),
-  setResolvedChannelFolderUrl: url => set({ resolvedChannelFolderUrl: url }),
   setKnowledgeSearchScope: scope => set({ knowledgeSearchScope: scope }),
   setKnowledgeSearchTimestamp: ts => set({ knowledgeSearchTimestamp: ts }),
   syncKnowledgeSearch: state =>

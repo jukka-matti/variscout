@@ -12,7 +12,6 @@ beforeEach(() => {
     aiContextSummary: null,
     kbPermissionWarning: false,
     providerLabel: null,
-    resolvedChannelFolderUrl: undefined,
     knowledgeSearchScope: undefined,
     knowledgeSearchTimestamp: undefined,
     knowledgeAvailable: false,
@@ -27,7 +26,7 @@ beforeEach(() => {
 
 describe('aiStore', () => {
   describe('initial state', () => {
-    it('has correct defaults for all 18 fields', () => {
+    it('has correct defaults for all 17 fields', () => {
       const s = useAIStore.getState();
       expect(s.pendingDashboardQuestion).toBeNull();
       expect(s.narration).toBeNull();
@@ -37,7 +36,6 @@ describe('aiStore', () => {
       expect(s.aiContextSummary).toBeNull();
       expect(s.kbPermissionWarning).toBe(false);
       expect(s.providerLabel).toBeNull();
-      expect(s.resolvedChannelFolderUrl).toBeUndefined();
       expect(s.knowledgeSearchScope).toBeUndefined();
       expect(s.knowledgeSearchTimestamp).toBeUndefined();
       expect(s.knowledgeAvailable).toBe(false);
@@ -153,21 +151,6 @@ describe('aiStore', () => {
       useAIStore.getState().setProviderLabel('GPT-4o');
       useAIStore.getState().setProviderLabel(null);
       expect(useAIStore.getState().providerLabel).toBeNull();
-    });
-  });
-
-  describe('setResolvedChannelFolderUrl', () => {
-    it('sets URL', () => {
-      useAIStore.getState().setResolvedChannelFolderUrl('https://graph.microsoft.com/folder/123');
-      expect(useAIStore.getState().resolvedChannelFolderUrl).toBe(
-        'https://graph.microsoft.com/folder/123'
-      );
-    });
-
-    it('clears with undefined', () => {
-      useAIStore.getState().setResolvedChannelFolderUrl('https://example.com');
-      useAIStore.getState().setResolvedChannelFolderUrl(undefined);
-      expect(useAIStore.getState().resolvedChannelFolderUrl).toBeUndefined();
     });
   });
 

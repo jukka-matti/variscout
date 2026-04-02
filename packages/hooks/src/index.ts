@@ -375,3 +375,11 @@ export {
   type HighlightPhase,
   type HighlightAction,
 } from './useVisualGrounding';
+
+// Document Shelf (KB document management — Team tier + preview gate)
+export {
+  useDocumentShelf,
+  type DocumentInfo,
+  type UseDocumentShelfOptions,
+  type UseDocumentShelfReturn,
+} from './useDocumentShelf';

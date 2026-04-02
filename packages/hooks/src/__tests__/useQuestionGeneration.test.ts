@@ -1,8 +1,31 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useQuestionGeneration } from '../useQuestionGeneration';
 import type { Question, DataRow } from '@variscout/core';
 import { createQuestion } from '@variscout/core';
+import type { YamazumiBarData } from '@variscout/core/yamazumi';
+
+// Mock @variscout/core/yamazumi to control yamazumi question output in tests
+vi.mock('@variscout/core/yamazumi', () => ({
+  generateYamazumiQuestions: vi.fn(() => [
+    {
+      text: 'Is the bottleneck in Assembly real work or waste?',
+      factors: ['Assembly'],
+      rSquaredAdj: 0.45,
+      autoAnswered: false,
+      source: 'factor-intel' as const,
+      type: 'single-factor' as const,
+    },
+    {
+      text: 'Which waste type dominates? (30% total waste)',
+      factors: ['Assembly', 'Packaging'],
+      rSquaredAdj: 0.3,
+      autoAnswered: false,
+      source: 'factor-intel' as const,
+      type: 'single-factor' as const,
+    },
+  ]),
+}));
 
 // Mock @variscout/core/stats to avoid real computation in tests
 vi.mock('@variscout/core/stats', () => ({
@@ -60,6 +83,16 @@ vi.mock('@variscout/core/stats', () => ({
     },
   ]),
   generateFollowUpQuestions: vi.fn(() => []),
+  generateChannelRankingQuestions: vi.fn(() => [
+    {
+      text: 'Why does Head 1 have Cpk=0.85?',
+      factors: ['Head 1'],
+      rSquaredAdj: 0.85,
+      autoAnswered: false,
+      source: 'factor-intel' as const,
+      type: 'single-factor' as const,
+    },
+  ]),
 }));
 
 function makeData(n: number): DataRow[] {
@@ -340,6 +373,165 @@ describe('useQuestionGeneration', () => {
       );
 
       expect(result.current.questions).toEqual([]);
+    });
+  });
+
+  describe('yamazumi mode routing', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    function makeYamazumiData(): YamazumiBarData[] {
+      return [
+        {
+          key: 'Assembly',
+          totalTime: 120,
+          segments: [
+            { activityType: 'va', totalTime: 66, percentage: 55, count: 10 },
+            { activityType: 'waste', totalTime: 54, percentage: 45, count: 10 },
+          ],
+        },
+        {
+          key: 'Packaging',
+          totalTime: 80,
+          segments: [
+            { activityType: 'va', totalTime: 56, percentage: 70, count: 10 },
+            { activityType: 'nva-required', totalTime: 24, percentage: 30, count: 10 },
+          ],
+        },
+      ];
+    }
+
+    it('calls generateYamazumiQuestions when mode is yamazumi and yamazumiData is provided', async () => {
+      const { generateYamazumiQuestions } = await import('@variscout/core/yamazumi');
+      const state = makeMockQuestionsState();
+
+      renderHook(() =>
+        useQuestionGeneration({
+          filteredData: makeData(50),
+          outcome: 'value',
+          factors: ['Shift', 'Machine'],
+          questionsState: state,
+          mode: 'yamazumi',
+          yamazumiData: makeYamazumiData(),
+          taktTime: 100,
+        })
+      );
+
+      expect(generateYamazumiQuestions).toHaveBeenCalledWith(makeYamazumiData(), 100);
+      expect(state.generateInitialQuestions).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to generateQuestionsFromRanking when mode is yamazumi but yamazumiData is empty', async () => {
+      const { generateYamazumiQuestions } = await import('@variscout/core/yamazumi');
+      const { generateQuestionsFromRanking } = await import('@variscout/core/stats');
+      const state = makeMockQuestionsState();
+
+      renderHook(() =>
+        useQuestionGeneration({
+          filteredData: makeData(50),
+          outcome: 'value',
+          factors: ['Shift', 'Machine'],
+          questionsState: state,
+          mode: 'yamazumi',
+          yamazumiData: [],
+        })
+      );
+
+      expect(generateYamazumiQuestions).not.toHaveBeenCalled();
+      expect(generateQuestionsFromRanking).toHaveBeenCalled();
+    });
+
+    it('ignores yamazumiData when mode is not yamazumi', async () => {
+      const { generateYamazumiQuestions } = await import('@variscout/core/yamazumi');
+      const { generateQuestionsFromRanking } = await import('@variscout/core/stats');
+      const state = makeMockQuestionsState();
+
+      renderHook(() =>
+        useQuestionGeneration({
+          filteredData: makeData(50),
+          outcome: 'value',
+          factors: ['Shift', 'Machine'],
+          questionsState: state,
+          mode: 'standard',
+          yamazumiData: makeYamazumiData(),
+        })
+      );
+
+      expect(generateYamazumiQuestions).not.toHaveBeenCalled();
+      expect(generateQuestionsFromRanking).toHaveBeenCalled();
+    });
+  });
+
+  describe('performance channel ranking routing', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    function makeChannelData() {
+      return [
+        { name: 'Head 1', cpk: 0.85 },
+        { name: 'Head 2', cpk: 1.42 },
+      ];
+    }
+
+    it('calls generateChannelRankingQuestions when mode is performance and channelData is provided', async () => {
+      const { generateChannelRankingQuestions } = await import('@variscout/core/stats');
+      const state = makeMockQuestionsState();
+
+      renderHook(() =>
+        useQuestionGeneration({
+          filteredData: makeData(50),
+          outcome: 'value',
+          factors: ['Shift', 'Machine'],
+          questionsState: state,
+          mode: 'performance',
+          channelData: makeChannelData(),
+        })
+      );
+
+      expect(generateChannelRankingQuestions).toHaveBeenCalledWith(makeChannelData());
+      expect(state.generateInitialQuestions).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to generateQuestionsFromRanking when mode is performance but channelData is empty', async () => {
+      const { generateChannelRankingQuestions } = await import('@variscout/core/stats');
+      const { generateQuestionsFromRanking } = await import('@variscout/core/stats');
+      const state = makeMockQuestionsState();
+
+      renderHook(() =>
+        useQuestionGeneration({
+          filteredData: makeData(50),
+          outcome: 'value',
+          factors: ['Shift', 'Machine'],
+          questionsState: state,
+          mode: 'performance',
+          channelData: [],
+        })
+      );
+
+      expect(generateChannelRankingQuestions).not.toHaveBeenCalled();
+      expect(generateQuestionsFromRanking).toHaveBeenCalled();
+    });
+
+    it('ignores channelData when mode is not performance', async () => {
+      const { generateChannelRankingQuestions } = await import('@variscout/core/stats');
+      const { generateQuestionsFromRanking } = await import('@variscout/core/stats');
+      const state = makeMockQuestionsState();
+
+      renderHook(() =>
+        useQuestionGeneration({
+          filteredData: makeData(50),
+          outcome: 'value',
+          factors: ['Shift', 'Machine'],
+          questionsState: state,
+          mode: 'standard',
+          channelData: makeChannelData(),
+        })
+      );
+
+      expect(generateChannelRankingQuestions).not.toHaveBeenCalled();
+      expect(generateQuestionsFromRanking).toHaveBeenCalled();
     });
   });
 });

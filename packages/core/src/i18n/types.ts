@@ -384,6 +384,7 @@ export interface MessageCatalog {
   'ai.tool.suggestIdea': string;
   'ai.tool.suggestSaveFinding': string;
   'ai.tool.navigateTo': string;
+  'ai.tool.answerQuestion': string;
 
   // Report
   'report.kpi.inSpec': string;

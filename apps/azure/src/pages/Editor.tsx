@@ -35,10 +35,8 @@ import { useDataMerge } from '../hooks/useDataMerge';
 import type { ExclusionReason } from '@variscout/core';
 import { Check } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
-import { downloadFileFromGraph } from '../services/storage';
-import { useFilePicker } from '../hooks/useFilePicker';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
-import { useAIOrchestration, useActionProposals } from '../features/ai';
+import { useAIOrchestration, useActionProposals, useInvestigationIndexing } from '../features/ai';
 import { useInvestigationOrchestration } from '../features/investigation';
 import { useInvestigationStore } from '../features/investigation/investigationStore';
 import { useImprovementOrchestration } from '../features/improvement';
@@ -53,9 +51,9 @@ import { useShareFinding } from '../hooks/useShareFinding';
 import { useFindingsOrchestration } from '../features/findings';
 import { useFindingsStore } from '../features/findings/findingsStore';
 import { buildChartSharePayload } from '../services/shareContent';
+import { isKnowledgeBaseAvailable } from '../services/searchService';
 import { buildSubPageId } from '../services/deepLinks';
 import { useToast } from '../context/ToastContext';
-import { setBeforeUnloadHandler } from '../teams';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 // WorkspaceTabs merged into ProjectHeader (ADR-055 header redesign)
@@ -96,7 +94,6 @@ export const Editor: React.FC<EditorProps> = ({
     rawData,
     filteredData,
     currentProjectName,
-    hasUnsavedChanges,
     outcome,
     factors,
     specs,
@@ -538,13 +535,12 @@ export const Editor: React.FC<EditorProps> = ({
     currentProjectLocation,
   });
 
-  // Photo comments (Team plan only)
+  // Photo comments
   const { handleAddPhoto, handleCaptureFromTeams, isTeamsCamera, handleAddCommentWithAuthor } =
     usePhotoComments({
       findingsState,
       analysisId: currentProjectName || 'default',
       author: currentUser?.name,
-      location: currentProjectLocation,
     });
 
   // Question CRUD
@@ -572,6 +568,23 @@ export const Editor: React.FC<EditorProps> = ({
     stats,
   });
   const projectionTarget = useInvestigationStore(s => s.projectionTarget);
+
+  // Investigation indexing for Foundry IQ (ADR-060 Pillar 2)
+  // Active only when Team plan + KB preview enabled + project is open
+  const { onFindingsChange: indexFindings, onQuestionsChange: indexQuestions } =
+    useInvestigationIndexing({
+      projectId: projectId ?? undefined,
+      enabled: isKnowledgeBaseAvailable(),
+    });
+
+  // Trigger indexing side-effects whenever findings or questions change
+  useEffect(() => {
+    indexFindings(findingsState.findings);
+  }, [findingsState.findings, indexFindings]);
+
+  useEffect(() => {
+    indexQuestions(questionsState.questions);
+  }, [questionsState.questions, indexQuestions]);
 
   // Improvement workspace
   const {
@@ -793,62 +806,10 @@ export const Editor: React.FC<EditorProps> = ({
     rawData.length > 0 && !!projectId
   );
 
-  // Save As to SharePoint
-  const handleSaveAsToSharePoint = useCallback(
-    async (items: FilePickerResult[]) => {
-      const folder = items[0];
-      if (!folder) return;
-      setSaveStatus('saving');
-      try {
-        const name = currentProjectName || 'New Analysis';
-        await saveProject(name);
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
-      } catch {
-        setSaveStatus('error');
-        setTimeout(() => setSaveStatus('idle'), 3000);
-      }
-    },
-    [currentProjectName, saveProject]
-  );
-
-  const projectFileName = `${currentProjectName || 'New Analysis'}.vrs`;
-  const saveAsPicker = useFilePicker({
-    mode: 'folders',
-    saveAs: { fileName: projectFileName },
-    pickLabel: 'Save Here',
-    onPick: handleSaveAsToSharePoint,
-  });
-  const handleSaveAs = useCallback(() => saveAsPicker.open(), [saveAsPicker]);
-
-  // Handle file import from SharePoint
-  const handleSharePointFileImport = useCallback(
-    async (items: FilePickerResult[]) => {
-      const item = items[0];
-      if (!item) return;
-      try {
-        const file = await downloadFileFromGraph(
-          item['@sharePoint.endpoint'],
-          item.parentReference.driveId,
-          item.id
-        );
-        dataFlow.handleFile(file);
-      } catch (err) {
-        console.error('[Editor] SharePoint file import failed:', err);
-      }
-    },
-    [dataFlow]
-  );
-
-  // Register Teams beforeUnload handler for data loss prevention
-  useEffect(() => {
-    setBeforeUnloadHandler(async () => {
-      if (hasUnsavedChanges) {
-        const name = currentProjectName || 'New Analysis';
-        await saveProject(name);
-      }
-    });
-  }, [hasUnsavedChanges, currentProjectName, saveProject]);
+  // SharePoint file picker and save-as removed per ADR-059
+  const handleSharePointFileImport = useCallback((_items: FilePickerResult[]) => {
+    // No-op: SharePoint file import removed per ADR-059
+  }, []);
 
   // ── Mode routing (full-screen takeover views) ────────────────────────────
 
@@ -950,7 +911,7 @@ export const Editor: React.FC<EditorProps> = ({
         syncStatus={syncStatus}
         saveStatus={saveStatus}
         onSave={handleSave}
-        onSaveAs={hasTeamFeatures() ? handleSaveAs : undefined}
+        onSaveAs={undefined}
         hasData={rawData.length > 0}
         activeView={activeView}
         openQuestionCount={

@@ -10,6 +10,8 @@ status: draft
 **Replaces:** `2026-03-24-coscout-context-and-memory-design.md` (previous approach)
 **Related ADRs:** ADR-019, ADR-026, ADR-029, ADR-041, ADR-047, ADR-049
 
+> **Extended by [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md)** (2026-04-02): Investigation artifacts now also feed a Foundry IQ knowledge index. `answer_question` tool added. All 7 capabilities preserved and enhanced.
+
 ---
 
 ## Key Insight

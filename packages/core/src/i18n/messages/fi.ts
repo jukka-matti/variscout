@@ -270,6 +270,7 @@ export const fi: MessageCatalog = {
   'ai.tool.suggestIdea': 'Ehdota parannusideaa',
   'ai.tool.suggestSaveFinding': 'Tallenna havainto',
   'ai.tool.navigateTo': 'Navigate to',
+  'ai.tool.answerQuestion': 'Answer question',
 
   // Report
   'report.kpi.inSpec': 'Toleranssissa',

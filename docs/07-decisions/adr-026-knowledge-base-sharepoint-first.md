@@ -4,10 +4,11 @@ title: 'ADR-026: Knowledge Base Strategy — SharePoint-First with Remote Retrie
 
 # ADR-026: Knowledge Base Strategy — SharePoint-First with Remote Retrieval
 
-**Status**: Deferred (see [ADR-059](adr-059-web-first-deployment-architecture.md))
+**Status**: Superseded by [ADR-060](adr-060-coscout-intelligence-architecture.md)
 **Date**: 2026-03-17
 
-> **Note (2026-04-02):** This ADR is deferred. ADR-059 (Web-First Deployment Architecture) removes `Sites.Read.All` and all admin-consent Graph API permissions. The Knowledge Base feature needs a new backend approach that doesn't require SharePoint access. Options include Azure AI Search on Blob Storage documents, or customer-managed knowledge indexing. The Knowledge Catalyst (organizational learning from findings) continues to work without SharePoint — it uses local finding data fed into CoScout context.
+> **Status: Superseded by [ADR-060](adr-060-coscout-intelligence-architecture.md)** (2026-04-02)
+> The SharePoint-first approach is replaced by Foundry IQ with Blob Storage knowledge source. Documents are uploaded directly to Blob Storage and auto-indexed by Foundry IQ. The Knowledge Catalyst (ADR-049) continues to capture investigation insights into findings.
 > **Deciders**: Product team
 > **Amends**: [ADR-022: Knowledge Layer Architecture](adr-022-knowledge-layer-architecture.md)
 

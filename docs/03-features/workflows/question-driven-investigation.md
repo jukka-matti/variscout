@@ -332,3 +332,12 @@ The auto-generated draft answers:
 - [Findings Components](../../06-design-system/components/findings.md) — Design system specs
 - [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Architectural decisions
 - [PI Panel Redesign](../../superpowers/specs/2026-04-01-process-intelligence-panel-redesign.md) — Stats/Questions/Journal tab design (ADR-056)
+
+## Related: ADR-060 (CoScout Intelligence Architecture)
+
+ADR-060 completes the mode-aware question generation pipeline:
+
+- Yamazumi mode: lean-specific questions (takt compliance, waste composition)
+- Performance mode: channel ranking questions (worst Cpk first)
+- Evidence sorting uses mode-appropriate metrics
+- CoScout can propose answering questions via the `answer_question` action tool

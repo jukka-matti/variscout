@@ -91,6 +91,26 @@ resource reasoningDeployment 'Microsoft.CognitiveServices/accounts/deployments@2
   ]
 }
 
+resource embeddingDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-09-01' = if (variscoutPlan == 'team') {
+  parent: aiServices
+  name: 'embeddings'
+  sku: {
+    name: 'Standard'
+    capacity: 20
+  }
+  properties: {
+    model: {
+      format: 'OpenAI'
+      name: 'text-embedding-3-small'
+      version: '1'
+    }
+    raiPolicyName: 'Microsoft.DefaultV2'
+  }
+  dependsOn: [
+    reasoningDeployment
+  ]
+}
+
 @description('Resource ID of the OpenAI account')
 output aiServicesId string = aiServices.id
 

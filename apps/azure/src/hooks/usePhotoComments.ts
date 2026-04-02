@@ -1,12 +1,9 @@
 /**
- * usePhotoComments — Azure-specific hook wiring photo processing,
- * upload, and findings state for photo comments.
+ * usePhotoComments — Azure-specific hook wiring photo processing
+ * and findings state for photo comments.
  *
- * Team plan only. Handles:
- * 1. processPhoto() → EXIF strip + thumbnail
- * 2. Optimistic UI update via addPhotoToComment
- * 3. Background upload to OneDrive
- * 4. Status update on success/failure
+ * OneDrive upload and Teams camera removed per ADR-059.
+ * Photos are stored locally only (processed for EXIF strip + thumbnail).
  */
 
 import { useCallback } from 'react';
@@ -18,30 +15,17 @@ import {
 } from '@variscout/core/ai';
 import type { UseFindingsReturn } from '@variscout/hooks';
 import { processPhoto } from '../utils/photoProcessing';
-import { uploadPhoto, uploadAttachment } from '../services/photoUpload';
-import { isLocalDev } from '../auth/easyAuth';
-import type { StorageLocation } from '../services/storage';
-import { isTeamsMediaAvailable, capturePhotoFromTeams } from '../teams/teamsMedia';
+import { saveBlobPhoto } from '../services/blobClient';
 
 interface UsePhotoCommentsOptions {
   findingsState: UseFindingsReturn;
   analysisId: string;
   author?: string;
-  /** Storage location — photos go to same drive as the project */
-  location?: StorageLocation;
 }
 
-export function usePhotoComments({
-  findingsState,
-  analysisId,
-  author,
-  location = 'personal',
-}: UsePhotoCommentsOptions) {
+export function usePhotoComments({ findingsState, analysisId, author }: UsePhotoCommentsOptions) {
   const handleAddPhoto = useCallback(
     async (findingId: string, commentId: string, file: File) => {
-      // Photo upload requires Team plan (OneDrive storage)
-      if (!hasTeamFeatures()) return;
-
       try {
         // 1. Process photo (EXIF strip + thumbnail)
         const processed = await processPhoto(file);
@@ -50,67 +34,45 @@ export function usePhotoComments({
         const photo = createPhotoAttachment(processed.filename);
         photo.thumbnailDataUrl = processed.thumbnailDataUrl;
 
-        // 3. Optimistic UI update
+        // 3. Add to UI
         findingsState.addPhotoToComment(findingId, commentId, photo);
 
-        // 4. Upload to OneDrive (skip in local dev — processPhoto already works)
-        if (!isLocalDev()) {
+        // 4. Upload to Blob Storage for Team plan (if online)
+        if (hasTeamFeatures() && navigator.onLine && analysisId) {
           try {
-            const result = await uploadPhoto(
-              processed.fullResBlob,
-              processed.filename,
+            const remoteUrl = await saveBlobPhoto(
               analysisId,
               findingId,
-              location
-            );
-
-            // 5. Update status to uploaded
-            findingsState.updatePhotoStatus(
-              findingId,
-              commentId,
               photo.id,
-              'uploaded',
-              result.driveItemId
+              processed.fullResBlob
             );
+            findingsState.updatePhotoStatus(findingId, commentId, photo.id, 'uploaded', remoteUrl);
+            return;
           } catch (uploadErr) {
-            console.warn('[PhotoComments] Upload failed:', uploadErr);
-            findingsState.updatePhotoStatus(findingId, commentId, photo.id, 'failed');
+            if (import.meta.env.DEV)
+              console.warn('[PhotoComments] Blob upload failed, falling back to local:', uploadErr);
           }
-        } else {
-          // Local dev: mark as uploaded immediately
-          findingsState.updatePhotoStatus(
-            findingId,
-            commentId,
-            photo.id,
-            'uploaded',
-            `local-dev-${Date.now()}`
-          );
         }
+
+        // 5. Fallback: mark as local-only upload
+        findingsState.updatePhotoStatus(
+          findingId,
+          commentId,
+          photo.id,
+          'uploaded',
+          `local-${Date.now()}`
+        );
       } catch (err) {
         console.error('[PhotoComments] Photo processing failed:', err);
       }
     },
-    [findingsState, analysisId, location]
-  );
-
-  const handleCaptureFromTeams = useCallback(
-    async (findingId: string, commentId: string) => {
-      if (!hasTeamFeatures()) return;
-      try {
-        const file = await capturePhotoFromTeams();
-        if (!file) return; // User cancelled
-        await handleAddPhoto(findingId, commentId, file);
-      } catch (err) {
-        console.warn('[PhotoComments] Teams camera failed:', err);
-      }
-    },
-    [handleAddPhoto]
+    [findingsState, analysisId]
   );
 
   /**
    * Add a comment, optionally with a file attachment.
-   * - Image files (JPEG/PNG): routed through the existing photo-upload path.
-   * - Non-image files (PDF, XLSX, CSV, TXT): use the generic attachment upload path.
+   * - Image files (JPEG/PNG): routed through the photo-processing path.
+   * - Non-image files (PDF, XLSX, CSV, TXT): recorded as local-only references.
    * - Files that fail validation are silently dropped (validation happens in the UI before this).
    */
   const handleAddCommentWithAuthor = useCallback(
@@ -130,64 +92,27 @@ export function usePhotoComments({
       }
 
       if (isImage) {
-        // Route image through the existing photo upload path
+        // Route image through the photo processing path
         await handleAddPhoto(findingId, comment.id, attachmentFile);
         return;
       }
 
-      // Non-image attachment — Team plan only for upload; Standard gets a local reference
-      if (!hasTeamFeatures()) {
-        // Standard plan: record the filename as a local-only reference (no upload)
-        const att = createCommentAttachment(
-          sanitizeFilename(attachmentFile.name),
-          mimeType,
-          attachmentFile.size
-        );
-        // Mark as uploaded (local only — no actual upload)
-        att.uploadStatus = 'uploaded';
-        findingsState.addAttachmentToComment(findingId, comment.id, att);
-        return;
-      }
-
-      // Team plan: upload to OneDrive and track status
-      const sanitized = sanitizeFilename(attachmentFile.name);
-      const att = createCommentAttachment(sanitized, mimeType, attachmentFile.size);
-      // Optimistic add with pending status
+      // Non-image attachment — record the filename as a local-only reference (no upload)
+      const att = createCommentAttachment(
+        sanitizeFilename(attachmentFile.name),
+        mimeType,
+        attachmentFile.size
+      );
+      att.uploadStatus = 'uploaded';
       findingsState.addAttachmentToComment(findingId, comment.id, att);
-
-      if (isLocalDev()) {
-        findingsState.updateAttachmentStatus(findingId, comment.id, att.id, 'uploaded');
-        return;
-      }
-
-      try {
-        const result = await uploadAttachment(
-          attachmentFile,
-          sanitized,
-          analysisId,
-          findingId,
-          location
-        );
-        findingsState.updateAttachmentStatus(
-          findingId,
-          comment.id,
-          att.id,
-          'uploaded',
-          result.driveItemId,
-          result.webUrl
-        );
-      } catch (err) {
-        console.warn('[PhotoComments] Attachment upload failed:', err);
-        findingsState.updateAttachmentStatus(findingId, comment.id, att.id, 'failed');
-      }
     },
-    [findingsState, author, analysisId, location, handleAddPhoto]
+    [findingsState, author, handleAddPhoto]
   );
 
   return {
     handleAddPhoto,
-    handleCaptureFromTeams,
-    isTeamsCamera: isTeamsMediaAvailable(),
+    handleCaptureFromTeams: undefined,
+    isTeamsCamera: false,
     handleAddCommentWithAuthor,
   };
 }

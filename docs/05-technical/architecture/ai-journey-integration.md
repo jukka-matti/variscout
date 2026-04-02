@@ -35,12 +35,12 @@ The journey behaves differently depending on which AI mode is active. Modes are 
 
 ## Four Context Layers
 
-| Layer   | What                | Source                                                | When                            |
-| ------- | ------------------- | ----------------------------------------------------- | ------------------------------- |
-| Layer 1 | Analysis state      | `buildAIContext()` from DataContext                   | Always (Mode 2+)                |
-| Layer 2 | Process context     | User-entered description + auto-inferred factor roles | Optional (Mode 2+)              |
-| Layer 3 | Knowledge grounding | ~47 glossary terms + 11 methodology concepts          | Always (Mode 2+)                |
-| Layer 4 | Team documents      | Remote SharePoint via Foundry IQ                      | On-demand, SCOUT+ (Mode 3 only) |
+| Layer   | What                | Source                                                                                  | When                            |
+| ------- | ------------------- | --------------------------------------------------------------------------------------- | ------------------------------- |
+| Layer 1 | Analysis state      | `buildAIContext()` from DataContext                                                     | Always (Mode 2+)                |
+| Layer 2 | Process context     | User-entered description + auto-inferred factor roles                                   | Optional (Mode 2+)              |
+| Layer 3 | Knowledge grounding | ~47 glossary terms + 11 methodology concepts                                            | Always (Mode 2+)                |
+| Layer 4 | Team documents      | Foundry IQ unified knowledge index (Blob Storage — documents + investigation artifacts) | On-demand, SCOUT+ (Mode 3 only) |
 
 Layers 1-3 are always in the prompt. Layer 4 is injected only when the user clicks "Search Knowledge Base?" in CoScout. See [AI Context Engineering](ai-context-engineering.md) for token budgets and prompt tier structure.
 
@@ -85,7 +85,7 @@ The Investigation Diamond (Initial → Diverging → Validating → Converging) 
 
 > **Note on reasoning effort:** Investigation Diamond phases map to journey phases for reasoning effort: Initial/Diverging → SCOUT (`'low'`), Validating/Converging → INVESTIGATE (`'medium'`). The effort level is set by `getCoScoutReasoningEffort(journeyPhase)` from `@variscout/core`.
 
-**Knowledge Base (Mode 3):** "Search Knowledge Base?" button in CoScout triggers Foundry IQ (Remote SharePoint via Azure AI Search). Returns folder-scoped documents using the user's own token (per-user security).
+**Knowledge Base (Mode 3):** "Search Knowledge Base?" button in CoScout triggers Foundry IQ (unified knowledge index — Blob Storage documents + investigation artifacts, per ADR-060). Returns project-scoped results with source attribution. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for knowledge features (beta).
 
 **Investigation Sidebar:** Shows deterministic suggested questions from `buildSuggestedQuestions()` (works in all modes). With AI, adds AI-generated follow-up questions.
 
@@ -294,7 +294,7 @@ VariScout's Finding system builds a measurement-backed knowledge base from norma
 | Occurrence (1-10 guess)              | η² contribution % (actual)              |
 | Recommended action (rarely verified) | Corrective action with Cpk before/after |
 
-After 50+ resolved findings published as scouting reports, the AI has genuine organizational knowledge. Published reports are searchable via Remote SharePoint knowledge sources — no dedicated index needed.
+After 50+ investigations, the AI has genuine organizational knowledge. Investigation artifacts (findings, questions, ideas) are indexed automatically in Foundry IQ (Blob Storage) — no manual publishing step needed. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md).
 
 ---
 
@@ -339,13 +339,13 @@ After 50+ resolved findings published as scouting reports, the AI has genuine or
 
 ## Implementation Details
 
-| Topic                                                                           | Document                                                                                                                                                                                              |
-| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| System architecture, packages, auth, data flow, hook composition, cost controls | [AI Architecture](ai-architecture.md)                                                                                                                                                                 |
-| Prompt tiers, context layers, token budgets, phase-aware filtering, caching     | [AI Context Engineering](ai-context-engineering.md)                                                                                                                                                   |
-| Governance, tone, confidence calibration, interaction patterns                  | [AIX Design System](aix-design-system.md)                                                                                                                                                             |
-| Knowledge model, glossary, methodology concepts                                 | [Knowledge Model](knowledge-model.md)                                                                                                                                                                 |
-| Architecture decisions                                                          | [ADR-019](../../07-decisions/adr-019-ai-integration.md), [ADR-026](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md), [ADR-027](../../07-decisions/adr-027-ai-collaborator-evolution.md) |
-| Investigation workflow                                                          | [Investigation to Action](../../03-features/workflows/investigation-to-action.md)                                                                                                                     |
-| AI component UX specs                                                           | [AI Components](../../06-design-system/components/ai-components.md)                                                                                                                                   |
-| CoScout Knowledge Catalyst (image paste, insight capture, session nudge)        | [ADR-049](../../07-decisions/adr-049-coscout-context-and-memory.md), [Knowledge Catalyst Design Spec](../../superpowers/specs/2026-03-24-coscout-knowledge-catalyst-design.md)                        |
+| Topic                                                                           | Document                                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| System architecture, packages, auth, data flow, hook composition, cost controls | [AI Architecture](ai-architecture.md)                                                                                                                                                                                     |
+| Prompt tiers, context layers, token budgets, phase-aware filtering, caching     | [AI Context Engineering](ai-context-engineering.md)                                                                                                                                                                       |
+| Governance, tone, confidence calibration, interaction patterns                  | [AIX Design System](aix-design-system.md)                                                                                                                                                                                 |
+| Knowledge model, glossary, methodology concepts                                 | [Knowledge Model](knowledge-model.md)                                                                                                                                                                                     |
+| Architecture decisions                                                          | [ADR-019](../../07-decisions/adr-019-ai-integration.md), [ADR-027](../../07-decisions/adr-027-ai-collaborator-evolution.md), [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) (knowledge layer) |
+| Investigation workflow                                                          | [Investigation to Action](../../03-features/workflows/investigation-to-action.md)                                                                                                                                         |
+| AI component UX specs                                                           | [AI Components](../../06-design-system/components/ai-components.md)                                                                                                                                                       |
+| CoScout Knowledge Catalyst (image paste, insight capture, session nudge)        | [ADR-049](../../07-decisions/adr-049-coscout-context-and-memory.md), [Knowledge Catalyst Design Spec](../../superpowers/specs/2026-03-24-coscout-knowledge-catalyst-design.md)                                            |

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { getEasyAuthUser, login, logout, type EasyAuthUser } from './auth/easyAuth';
 import { clearGraphTokenCache } from './auth/graphToken';
 import { DataProvider } from './context/DataContext';
-import { ThemeProvider, useTheme } from '@variscout/ui';
+import { ThemeProvider } from '@variscout/ui';
 import { LocaleProvider } from './context/LocaleContext';
 import { StorageProvider, useStorage } from './services/storage';
 import { ToastProvider, useToast } from './context/ToastContext';
@@ -16,14 +16,7 @@ import { SyncToastContainer } from './components/SyncToast';
 import { ErrorBoundary, FindingsWindow } from '@variscout/ui';
 import ImprovementWindow from './components/ImprovementWindow';
 import { Activity, LogOut, Settings, Shield } from 'lucide-react';
-import { useTeamsContext, notifyTeamsFailure } from './teams';
-import { TeamsTabConfig } from './teams/TeamsTabConfig';
-import {
-  parseDeepLink,
-  parseSubPageId,
-  validateDeepLink,
-  type DeepLinkParams,
-} from './services/deepLinks';
+import { parseDeepLink, validateDeepLink, type DeepLinkParams } from './services/deepLinks';
 import { hasTeamFeatures } from '@variscout/core';
 import { trackException } from './lib/appInsights';
 
@@ -52,30 +45,13 @@ function App() {
     );
   }
 
-  // Teams tab configuration page (shown when adding VariScout to a channel)
-  if (urlParams.get('teamsConfig') === 'true') {
-    return (
-      <ThemeProvider>
-        <TeamsTabConfig />
-      </ThemeProvider>
-    );
-  }
-
   return <AppMain />;
-}
-
-/** Map Teams theme name to our ThemeMode */
-function mapTeamsTheme(teamsTheme: string): 'light' | 'dark' {
-  if (teamsTheme === 'dark') return 'dark';
-  // 'default' (light) and 'contrast' (high-contrast) → light is the closest safe match
-  return 'light';
 }
 
 function AppMain() {
   const [user, setUser] = useState<EasyAuthUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const teams = useTeamsContext();
   const { isAdmin, gatingMode } = useAdminAccess(user);
 
   useEffect(() => {
@@ -90,11 +66,8 @@ function AppMain() {
       });
   }, []);
 
-  // Notify Teams host when a render error crashes the app
-  // (must be before early returns to satisfy rules-of-hooks)
   const handleAppError = useCallback((error: Error) => {
     trackException(error);
-    notifyTeamsFailure(error.message || 'Application render error');
   }, []);
 
   const handleLogout = useCallback(() => {
@@ -148,7 +121,6 @@ function AppMain() {
   return (
     <LocaleProvider>
       <ThemeProvider>
-        {teams.isTeams && <TeamsThemeSync teamsTheme={teams.theme} />}
         <StorageProvider>
           <ToastProvider>
             <div className="min-h-screen bg-surface text-content">
@@ -162,7 +134,6 @@ function AppMain() {
                 <DataProvider>
                   <AppContent
                     user={user}
-                    teams={teams}
                     isAdmin={isAdmin}
                     gatingMode={gatingMode}
                     isSettingsOpen={isSettingsOpen}
@@ -186,7 +157,6 @@ function AppMain() {
  */
 function AppContent({
   user,
-  teams,
   isAdmin,
   gatingMode,
   isSettingsOpen,
@@ -194,7 +164,6 @@ function AppContent({
   onLogout,
 }: {
   user: EasyAuthUser;
-  teams: ReturnType<typeof useTeamsContext>;
   isAdmin: boolean;
   gatingMode: AdminGatingMode;
   isSettingsOpen: boolean;
@@ -204,11 +173,10 @@ function AppContent({
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [currentProject, setCurrentProject] = useState<string | null>(null);
 
-  // Resolve deep link from URL params or Teams subPageId
+  // Resolve deep link from URL params
   const deepLink = useMemo<DeepLinkParams>(() => {
     const fromUrl = parseDeepLink(window.location.search);
     if (fromUrl.project) return fromUrl;
-    if (teams.subPageId) return parseSubPageId(teams.subPageId);
     return {
       project: null,
       findingId: null,
@@ -217,7 +185,7 @@ function AppContent({
       mode: null,
       tab: null,
     };
-  }, [teams.subPageId]);
+  }, []);
 
   // Deep link validation state
   const [deepLinkError, setDeepLinkError] = useState<string | null>(null);
@@ -281,15 +249,6 @@ function AppContent({
             <h1 className="text-lg font-bold text-content">VariScout</h1>
           </div>
 
-          {teams.isTeams && teams.channelName && currentView !== 'editor' && (
-            <>
-              <span className="text-content-muted">/</span>
-              <span className="text-sm text-content-secondary truncate max-w-[200px]">
-                {teams.channelName}
-              </span>
-            </>
-          )}
-
           {currentView === 'editor' && (
             <>
               <span className="text-content-muted">/</span>
@@ -326,18 +285,15 @@ function AppContent({
           >
             <Settings size={18} />
           </button>
-          {/* Hide sign-out in Teams — Teams manages the session */}
-          {!teams.isTeams && (
-            <button
-              onClick={onLogout}
-              aria-label="Sign out"
-              title="Sign Out"
-              className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
-              style={{ minWidth: 44, minHeight: 44 }}
-            >
-              <LogOut size={18} />
-            </button>
-          )}
+          <button
+            onClick={onLogout}
+            aria-label="Sign out"
+            title="Sign Out"
+            className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
+            style={{ minWidth: 44, minHeight: 44 }}
+          >
+            <LogOut size={18} />
+          </button>
         </nav>
       </header>
 
@@ -395,36 +351,6 @@ function AppContent({
       <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </>
   );
-}
-
-/** Syncs Teams theme into ThemeContext on initial load and theme changes. */
-function TeamsThemeSync({ teamsTheme }: { teamsTheme: string | null }) {
-  const { setTheme } = useTheme();
-  const synced = useRef(false);
-
-  useEffect(() => {
-    if (!teamsTheme) return;
-
-    // Sync on initial load and subsequent Teams theme changes.
-    // Skip if already synced with same value to avoid overriding user's manual choice.
-    const mapped = mapTeamsTheme(teamsTheme);
-    if (!synced.current) {
-      setTheme({ mode: mapped });
-      synced.current = true;
-    } else {
-      // Teams actively changed the theme — follow it
-      setTheme({ mode: mapped });
-    }
-
-    // Signal Teams high-contrast mode for CSS targeting (F-13)
-    if (teamsTheme === 'contrast') {
-      document.documentElement.dataset.teamsContrast = 'true';
-    } else {
-      delete document.documentElement.dataset.teamsContrast;
-    }
-  }, [teamsTheme, setTheme]);
-
-  return null;
 }
 
 /** Bridges storage notifications into ToastContext and renders them via SyncToastContainer. */

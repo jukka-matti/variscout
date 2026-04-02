@@ -79,6 +79,8 @@ export interface UseAIContextOptions {
   drillPathEnriched?: Array<{ factor: string; values: string[]; scopeFraction: number }>;
   /** Subgroup capability data (when capability mode is active) */
   capabilityData?: BuildAIContextOptions['capabilityData'];
+  /** ID of the question currently focused in the PI panel (ADR-060 Pillar 1) */
+  focusedQuestionId?: string;
 }
 
 export interface UseAIContextReturn {
@@ -115,6 +117,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     cumulativeScope,
     drillPathEnriched,
     capabilityData,
+    focusedQuestionId,
   } = options;
 
   const context = useMemo<AIContext | null>(() => {
@@ -127,6 +130,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       violations,
       findings,
       questions,
+      focusedQuestionId,
       activeChart,
       variationContributions,
       drillPath,
@@ -183,6 +187,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     cumulativeScope,
     drillPathEnriched,
     capabilityData,
+    focusedQuestionId,
   ]);
 
   return { context };

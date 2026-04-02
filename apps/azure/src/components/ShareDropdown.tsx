@@ -1,21 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Share2, Link, MessageSquare, Upload } from 'lucide-react';
+import { Share2, Link, Upload } from 'lucide-react';
 import type { SyncNotification } from '../services/storage';
 
 interface ShareDropdownProps {
   deepLinkUrl: string;
-  isInTeams: boolean;
   showPublishReport: boolean;
-  onShareTeams: () => void;
   onPublishReport: () => void;
   onToast: (notif: Omit<SyncNotification, 'id'>) => void;
 }
 
 export const ShareDropdown: React.FC<ShareDropdownProps> = ({
   deepLinkUrl,
-  isInTeams,
   showPublishReport,
-  onShareTeams,
   onPublishReport,
   onToast,
 }) => {
@@ -43,11 +39,6 @@ export const ShareDropdown: React.FC<ShareDropdownProps> = ({
     }
   };
 
-  const handleShareTeams = () => {
-    setOpen(false);
-    onShareTeams();
-  };
-
   const handlePublishReport = () => {
     setOpen(false);
     onPublishReport();
@@ -72,15 +63,6 @@ export const ShareDropdown: React.FC<ShareDropdownProps> = ({
             <Link size={15} />
             Copy link
           </button>
-          {isInTeams && (
-            <button
-              onClick={handleShareTeams}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:bg-surface-tertiary transition-colors"
-            >
-              <MessageSquare size={15} />
-              Share in Teams
-            </button>
-          )}
           {showPublishReport && (
             <button
               onClick={handlePublishReport}

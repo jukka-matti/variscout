@@ -48,6 +48,7 @@ Once a feature stabilizes, the ADR is the canonical reference.
 | [2026-03-29-display-density-design.md](2026-03-29-display-density-design.md)                                           | Display Density — Global UI Scaling                     | —       | Draft     |
 | [2026-03-29-probability-plot-enhancement-design.md](2026-03-29-probability-plot-enhancement-design.md)                 | Probability Plot Enhancement                            | —       | Draft     |
 | [2026-03-31-vqi-rescore-design.md](2026-03-31-vqi-rescore-design.md)                                                   | VQI Re-Evaluation & Activation Improvements             | ADR-054 | Active    |
+| [2026-04-02-coscout-intelligence-architecture-design.md](2026-04-02-coscout-intelligence-architecture-design.md)       | CoScout Intelligence Architecture                       | ADR-060 | Draft     |
 
 ## Lifecycle
 

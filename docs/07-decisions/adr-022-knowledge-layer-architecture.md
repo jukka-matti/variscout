@@ -4,9 +4,12 @@ title: 'ADR-022: Knowledge Layer Architecture'
 
 # ADR-022: Knowledge Layer Architecture
 
-**Status**: Amended by [ADR-026](adr-026-knowledge-base-sharepoint-first.md)
+**Status**: Superseded by [ADR-060](adr-060-coscout-intelligence-architecture.md)
 **Date**: 2026-03-16
 **Deciders**: Product team
+
+> **Status: Superseded by [ADR-060](adr-060-coscout-intelligence-architecture.md)** (2026-04-02)
+> The Azure AI Search findings indexer is replaced by Foundry IQ unified knowledge index that covers both investigation artifacts and external documents.
 
 > [!IMPORTANT]
 > **Amended by ADR-026 (2026-03-17)**: The dedicated findings index and indexed SharePoint approach

@@ -270,6 +270,7 @@ export const es: MessageCatalog = {
   'ai.tool.suggestIdea': 'Sugerir idea de mejora',
   'ai.tool.suggestSaveFinding': 'Save insight',
   'ai.tool.navigateTo': 'Navigate to',
+  'ai.tool.answerQuestion': 'Answer question',
 
   // Report
   'report.kpi.inSpec': 'Dentro de espec.',

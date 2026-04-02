@@ -4,7 +4,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { getEasyAuthUser, isLocalDev } from '../auth/easyAuth';
-import { getGraphToken } from '../auth/graphToken';
 import { errorService } from '@variscout/ui';
 import { hasTeamFeatures } from '@variscout/core';
 import {
@@ -32,12 +31,14 @@ export {
   saveToCustomLocation,
   updateLastViewedAt,
   GraphError,
+  CloudSyncUnavailableError,
 } from './cloudSync';
 
 // Internal imports (not re-exported)
 import type { StorageLocation, SyncStatus, SyncNotification, CloudProject } from './cloudSync';
 import {
   classifySyncError,
+  CloudSyncUnavailableError as CloudSyncUnavailableErrorClass,
   GraphError as GraphErrorClass,
   saveToCloud,
   loadFromCloud,
@@ -138,7 +139,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const item = retryQueue.current[0];
     try {
-      const token = await getGraphToken();
+      const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
       const { id, etag } = await saveToCloud(token, item.project, item.name, item.location);
       await markAsSynced(item.name, id, etag);
       await removeFromSyncQueue(item.name);
@@ -157,6 +158,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         retryTimerRef.current = setTimeout(processRetryQueue, delay);
       }
     } catch (error) {
+      if (error instanceof CloudSyncUnavailableErrorClass) {
+        // Cloud sync not yet available — clear queue, don't retry
+        retryQueue.current = [];
+        return;
+      }
       const classified = classifySyncError(error);
       if (!classified.retryable || item.attempt >= MAX_RETRIES) {
         // Give up on this item
@@ -248,7 +254,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       try {
         setSyncStatus({ status: 'syncing', message: 'Saving to cloud...' });
 
-        const token = await getGraphToken();
+        const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
         let projectToSave = project;
         let baseStateForSync: string | undefined;
 
@@ -303,6 +309,17 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
         addNotification({ type: 'success', message: 'Saved to cloud', dismissAfter: 3000 });
       } catch (error) {
+        if (error instanceof CloudSyncUnavailableErrorClass) {
+          // Cloud sync not yet available (ADR-059 Phase 2 pending)
+          setSyncStatus({ status: 'saved', message: 'Saved locally' });
+          addNotification({
+            type: 'info',
+            message: 'Cloud sync unavailable — Blob Storage migration pending. Data saved locally.',
+            dismissAfter: 5000,
+          });
+          return;
+        }
+
         if (import.meta.env.DEV) console.error('Cloud save failed:', error);
         const classified = classifySyncError(error);
 
@@ -352,7 +369,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       if (navigator.onLine) {
         try {
-          const token = await getGraphToken();
+          const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
 
           // Conflict detection: check if local has unsynced changes AND cloud is newer
           const localRecord = await db.projects.get(name);
@@ -392,11 +409,13 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
             return project;
           }
         } catch (error) {
-          errorService.logWarning('Cloud load failed, falling back to local', {
-            component: 'storage',
-            action: 'loadProject',
-            metadata: { error: error instanceof Error ? error.message : String(error) },
-          });
+          if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+            errorService.logWarning('Cloud load failed, falling back to local', {
+              component: 'storage',
+              action: 'loadProject',
+              metadata: { error: error instanceof Error ? error.message : String(error) },
+            });
+          }
         }
       }
 
@@ -421,20 +440,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      const token = await getGraphToken();
+      const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
       const personalProjects = await listFromCloud(token, 'personal').catch(() => []);
-
-      // In a channel tab with team plan, also list channel projects
-      let teamProjects: CloudProject[] = [];
-      const { isChannelTab } = await import('../teams/teamsContext');
-      const { hasTeamFeatures } = await import('@variscout/core');
-      if (isChannelTab() && hasTeamFeatures()) {
-        teamProjects = await listFromCloud(token, 'team').catch(() => []);
-      }
 
       // Merge: use location:name as key to avoid name collisions across locations
       const projectMap = new Map<string, CloudProject>();
-      teamProjects.forEach(p => projectMap.set(`team:${p.name}`, p));
       personalProjects.forEach(p => projectMap.set(`personal:${p.name}`, p));
       localProjects.forEach(p => {
         const key = `${p.location}:${p.name}`;
@@ -447,6 +457,10 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime()
       );
     } catch (error) {
+      if (error instanceof CloudSyncUnavailableErrorClass) {
+        // Cloud sync not yet available (ADR-059 Phase 2 pending)
+        return localProjects;
+      }
       errorService.logWarning('Failed to list cloud projects', {
         component: 'storage',
         action: 'listProjects',
@@ -485,7 +499,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
 
         try {
-          const token = await getGraphToken();
+          const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
           for (const item of pending) {
             try {
               const { id, etag } = await saveToCloud(token, item.project, item.name, item.location);

@@ -10,6 +10,10 @@ import {
   generateFollowUpQuestions,
 } from '@variscout/core/stats';
 import type { GeneratedQuestion } from '@variscout/core/stats';
+import type { YamazumiBarData } from '@variscout/core/yamazumi';
+import { generateYamazumiQuestions } from '@variscout/core/yamazumi';
+import type { ChannelInput } from '@variscout/core/stats';
+import { generateChannelRankingQuestions } from '@variscout/core/stats';
 import type { UseQuestionsReturn } from './useQuestions';
 
 export interface UseQuestionGenerationOptions {
@@ -28,6 +32,12 @@ export interface UseQuestionGenerationOptions {
   mode?: ResolvedMode;
   /** Whether question generation is enabled (e.g., false during FRAME) */
   enabled?: boolean;
+  /** Yamazumi bar data — when mode is 'yamazumi' and this is provided, routes to yamazumi generator */
+  yamazumiData?: YamazumiBarData[];
+  /** Optional takt time for takt compliance questions (yamazumi mode only) */
+  taktTime?: number;
+  /** Channel capability data — when mode is 'performance' and this is provided, routes to channel ranking generator */
+  channelData?: ChannelInput[];
 }
 
 export interface UseQuestionGenerationReturn {
@@ -57,6 +67,9 @@ export function useQuestionGeneration({
   questionsState,
   mode,
   enabled = true,
+  yamazumiData,
+  taktTime,
+  channelData,
 }: UseQuestionGenerationOptions): UseQuestionGenerationReturn {
   const hasFactorIntelligence =
     enabled && factors.length >= 2 && !!outcome && filteredData.length > 0;
@@ -94,8 +107,15 @@ export function useQuestionGeneration({
       return;
     }
 
-    // Generate questions from best subsets ranking
-    const generated = generateQuestionsFromRanking(bestSubsets, { mode });
+    // Route question generation based on analysis mode
+    let generated: GeneratedQuestion[];
+    if (mode === 'performance' && channelData?.length) {
+      generated = generateChannelRankingQuestions(channelData);
+    } else if (mode === 'yamazumi' && yamazumiData?.length) {
+      generated = generateYamazumiQuestions(yamazumiData, taktTime);
+    } else {
+      generated = generateQuestionsFromRanking(bestSubsets, { mode });
+    }
     if (generated.length > 0) {
       generateInitialQuestions(generated);
     }
@@ -108,6 +128,9 @@ export function useQuestionGeneration({
     filteredData.length,
     outcome,
     mode,
+    yamazumiData,
+    taktTime,
+    channelData,
     allQuestions,
     generateInitialQuestions,
   ]);

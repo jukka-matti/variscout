@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildAIContext, detectInvestigationPhase } from '../buildAIContext';
 import type { AIStatsInput } from '../buildAIContext';
-import { createQuestion, type Finding } from '../../findings';
+import { createQuestion, type Finding, type Question } from '../../findings';
 import type { ProcessContext } from '../types';
 
 const mockStats: AIStatsInput = {
@@ -605,5 +605,371 @@ describe('buildAIContext capabilityStability', () => {
       },
     });
     expect(ctx.capabilityStability).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Helpers for ADR-060 tests
+// ---------------------------------------------------------------------------
+
+function makeFinding(overrides: Partial<Finding> & { id: string; createdAt: number }): Finding {
+  return {
+    text: 'Test finding',
+    status: 'observed',
+    context: { activeFilters: {}, cumulativeScope: null },
+    comments: [],
+    statusChangedAt: overrides.createdAt,
+    ...overrides,
+  };
+}
+
+function makeQuestion(overrides: Partial<Question> & { id: string }): Question {
+  return {
+    text: 'Does factor X affect Y?',
+    status: 'open',
+    linkedFindingIds: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// ADR-060 Pillar 1 tests
+// ---------------------------------------------------------------------------
+
+describe('ADR-060 Pillar 1', () => {
+  // Task 2: problemStatement
+  describe('Task 2: problemStatement', () => {
+    it('wraps a string problemStatement as { fullText }', () => {
+      const ctx = buildAIContext({
+        process: { problemStatement: 'Reduce cycle time by 20% in shift B' },
+      });
+      expect(ctx.investigation?.problemStatement?.fullText).toBe(
+        'Reduce cycle time by 20% in shift B'
+      );
+    });
+
+    it('does not set problemStatement when not provided', () => {
+      const ctx = buildAIContext({ process: { issueStatement: 'Something' } });
+      expect(ctx.investigation?.problemStatement).toBeUndefined();
+    });
+
+    it('sets investigation context even when only problemStatement is present', () => {
+      const ctx = buildAIContext({
+        process: { problemStatement: 'Measure X is drifting' },
+      });
+      expect(ctx.investigation).toBeDefined();
+      expect(ctx.investigation?.problemStatement?.fullText).toBe('Measure X is drifting');
+    });
+  });
+
+  // Task 3: topFindings
+  describe('Task 3: topFindings', () => {
+    it('takes top 5 findings sorted by createdAt descending', () => {
+      const findings: Finding[] = Array.from({ length: 8 }, (_, i) =>
+        makeFinding({ id: `f${i}`, createdAt: i * 1000, text: `Finding ${i}` })
+      );
+
+      const ctx = buildAIContext({ findings });
+      expect(ctx.findings?.topFindings).toHaveLength(5);
+      expect(ctx.findings?.topFindings![0].id).toBe('f7');
+      expect(ctx.findings?.topFindings![4].id).toBe('f3');
+    });
+
+    it('includes commentCount based on comments array length', () => {
+      const finding = makeFinding({
+        id: 'f1',
+        createdAt: 1000,
+        comments: [
+          { id: 'c1', text: 'Comment 1', createdAt: 1 },
+          { id: 'c2', text: 'Comment 2', createdAt: 2 },
+        ],
+      });
+
+      const ctx = buildAIContext({ findings: [finding] });
+      expect(ctx.findings?.topFindings![0].commentCount).toBe(2);
+    });
+
+    it('computes cpkDelta from outcome cpkAfter - cpkBefore', () => {
+      const finding = makeFinding({
+        id: 'f1',
+        createdAt: 1000,
+        status: 'resolved',
+        outcome: { effective: 'yes', cpkBefore: 0.8, cpkAfter: 1.4, verifiedAt: Date.now() },
+      });
+
+      const ctx = buildAIContext({ findings: [finding] });
+      const top = ctx.findings?.topFindings![0];
+      expect(top?.outcome?.effective).toBe('yes');
+      expect(top?.outcome?.cpkDelta).toBeCloseTo(0.6);
+    });
+
+    it('omits cpkDelta when cpkBefore or cpkAfter is missing', () => {
+      const finding = makeFinding({
+        id: 'f1',
+        createdAt: 1000,
+        status: 'resolved',
+        outcome: { effective: 'partial', verifiedAt: Date.now() },
+      });
+
+      const ctx = buildAIContext({ findings: [finding] });
+      expect(ctx.findings?.topFindings![0].outcome?.cpkDelta).toBeUndefined();
+    });
+
+    it('omits outcome when not present on finding', () => {
+      const finding = makeFinding({ id: 'f1', createdAt: 1000 });
+      const ctx = buildAIContext({ findings: [finding] });
+      expect(ctx.findings?.topFindings![0].outcome).toBeUndefined();
+    });
+
+    it('returns all findings when fewer than 5', () => {
+      const findings = [
+        makeFinding({ id: 'f1', createdAt: 1000 }),
+        makeFinding({ id: 'f2', createdAt: 2000 }),
+      ];
+      const ctx = buildAIContext({ findings });
+      expect(ctx.findings?.topFindings).toHaveLength(2);
+    });
+  });
+
+  // Task 4: overdueActions
+  describe('Task 4: overdueActions', () => {
+    it('extracts overdue actions sorted by most overdue first', () => {
+      const now = Date.now();
+      const msPerDay = 86400000;
+
+      const findings: Finding[] = [
+        makeFinding({
+          id: 'f1',
+          createdAt: 1000,
+          actions: [
+            {
+              id: 'a1',
+              text: 'Fix the bearing',
+              dueDate: new Date(now - 5 * msPerDay).toISOString().slice(0, 10),
+              createdAt: 1000,
+            },
+          ],
+        }),
+        makeFinding({
+          id: 'f2',
+          createdAt: 2000,
+          actions: [
+            {
+              id: 'a2',
+              text: 'Retrain operators',
+              dueDate: new Date(now - 10 * msPerDay).toISOString().slice(0, 10),
+              createdAt: 1000,
+            },
+            {
+              id: 'a3',
+              text: 'Inspect tooling',
+              dueDate: new Date(now - 2 * msPerDay).toISOString().slice(0, 10),
+              createdAt: 1000,
+            },
+          ],
+        }),
+      ];
+
+      const ctx = buildAIContext({ findings });
+      const overdue = ctx.findings?.overdueActions ?? [];
+      expect(overdue).toHaveLength(3);
+      expect(overdue[0].text).toBe('Retrain operators');
+      expect(overdue[0].daysOverdue).toBeGreaterThanOrEqual(9);
+      expect(overdue[1].text).toBe('Fix the bearing');
+      expect(overdue[2].text).toBe('Inspect tooling');
+      expect(overdue[0].findingId).toBe('f2');
+      expect(overdue[1].findingId).toBe('f1');
+    });
+
+    it('caps overdueActions at top 3', () => {
+      const now = Date.now();
+      const msPerDay = 86400000;
+
+      const finding = makeFinding({
+        id: 'f1',
+        createdAt: 1000,
+        actions: Array.from({ length: 5 }, (_, i) => ({
+          id: `a${i}`,
+          text: `Action ${i}`,
+          dueDate: new Date(now - (i + 1) * msPerDay).toISOString().slice(0, 10),
+          createdAt: 1000,
+        })),
+      });
+
+      const ctx = buildAIContext({ findings: [finding] });
+      expect(ctx.findings?.overdueActions).toHaveLength(3);
+    });
+
+    it('excludes completed actions', () => {
+      const now = Date.now();
+      const msPerDay = 86400000;
+
+      const finding = makeFinding({
+        id: 'f1',
+        createdAt: 1000,
+        actions: [
+          {
+            id: 'a1',
+            text: 'Completed action',
+            dueDate: new Date(now - 5 * msPerDay).toISOString().slice(0, 10),
+            completedAt: now - msPerDay,
+            createdAt: 1000,
+          },
+        ],
+      });
+
+      const ctx = buildAIContext({ findings: [finding] });
+      expect(ctx.findings?.overdueActions ?? []).toHaveLength(0);
+    });
+
+    it('excludes future due dates', () => {
+      const now = Date.now();
+      const msPerDay = 86400000;
+
+      const finding = makeFinding({
+        id: 'f1',
+        createdAt: 1000,
+        actions: [
+          {
+            id: 'a1',
+            text: 'Future action',
+            dueDate: new Date(now + 5 * msPerDay).toISOString().slice(0, 10),
+            createdAt: 1000,
+          },
+        ],
+      });
+
+      const ctx = buildAIContext({ findings: [finding] });
+      expect(ctx.findings?.overdueActions ?? []).toHaveLength(0);
+    });
+
+    it('includes assignee displayName', () => {
+      const now = Date.now();
+      const msPerDay = 86400000;
+
+      const finding = makeFinding({
+        id: 'f1',
+        createdAt: 1000,
+        actions: [
+          {
+            id: 'a1',
+            text: 'Calibrate gauge',
+            dueDate: new Date(now - 3 * msPerDay).toISOString().slice(0, 10),
+            assignee: { upn: 'jane@example.com', displayName: 'Jane Smith' },
+            createdAt: 1000,
+          },
+        ],
+      });
+
+      const ctx = buildAIContext({ findings: [finding] });
+      expect(ctx.findings?.overdueActions![0].assignee).toBe('Jane Smith');
+    });
+  });
+
+  describe('Task 4: focusedQuestionId', () => {
+    it('sets focusedQuestionId and focusedQuestionText from questions array', () => {
+      const questions: Question[] = [
+        makeQuestion({ id: 'q1', text: 'Does shift affect fill weight?' }),
+        makeQuestion({ id: 'q2', text: 'Is material batch a factor?' }),
+      ];
+
+      const ctx = buildAIContext({ questions, focusedQuestionId: 'q2' });
+
+      expect(ctx.investigation?.focusedQuestionId).toBe('q2');
+      expect(ctx.investigation?.focusedQuestionText).toBe('Is material batch a factor?');
+    });
+
+    it('sets focusedQuestionId even when question text not found', () => {
+      const questions: Question[] = [makeQuestion({ id: 'q1', text: 'Test' })];
+
+      const ctx = buildAIContext({ questions, focusedQuestionId: 'q-unknown' });
+
+      expect(ctx.investigation?.focusedQuestionId).toBe('q-unknown');
+      expect(ctx.investigation?.focusedQuestionText).toBeUndefined();
+    });
+
+    it('does not set focusedQuestionId when not provided', () => {
+      const questions: Question[] = [makeQuestion({ id: 'q1', text: 'Test' })];
+      const ctx = buildAIContext({ questions });
+      expect(ctx.investigation?.focusedQuestionId).toBeUndefined();
+    });
+  });
+
+  // Task 5: question answer visibility
+  describe('Task 5: question answer visibility', () => {
+    it('includes manualNote in allQuestions', () => {
+      const questions: Question[] = [
+        makeQuestion({
+          id: 'q1',
+          manualNote: 'Confirmed by operator interview on site visit',
+          linkedFindingIds: [],
+        }),
+      ];
+
+      const ctx = buildAIContext({ questions });
+      expect(ctx.investigation?.allQuestions![0].manualNote).toBe(
+        'Confirmed by operator interview on site visit'
+      );
+    });
+
+    it('includes linkedFindingIds in allQuestions', () => {
+      const questions: Question[] = [makeQuestion({ id: 'q1', linkedFindingIds: ['f1', 'f2'] })];
+
+      const ctx = buildAIContext({ questions });
+      expect(ctx.investigation?.allQuestions![0].linkedFindingIds).toEqual(['f1', 'f2']);
+    });
+
+    it('includes idea direction and timeframe', () => {
+      const questions: Question[] = [
+        makeQuestion({
+          id: 'q1',
+          status: 'answered',
+          linkedFindingIds: [],
+          ideas: [
+            {
+              id: 'idea1',
+              text: 'Standardize setup procedure',
+              direction: 'prevent',
+              timeframe: 'days',
+              createdAt: new Date().toISOString(),
+            },
+          ],
+        }),
+      ];
+
+      const ctx = buildAIContext({ questions });
+      const idea = ctx.investigation?.allQuestions![0].ideas![0];
+      expect(idea?.direction).toBe('prevent');
+      expect(idea?.timeframe).toBe('days');
+    });
+
+    it('includes idea riskLevel from risk.computed', () => {
+      const questions: Question[] = [
+        makeQuestion({
+          id: 'q1',
+          status: 'answered',
+          linkedFindingIds: [],
+          ideas: [
+            {
+              id: 'idea1',
+              text: 'Change supplier',
+              risk: { axis1: 3, axis2: 2, computed: 'high' },
+              createdAt: new Date().toISOString(),
+            },
+          ],
+        }),
+      ];
+
+      const ctx = buildAIContext({ questions });
+      expect(ctx.investigation?.allQuestions![0].ideas![0].riskLevel).toBe('high');
+    });
+
+    it('does not set manualNote when undefined', () => {
+      const questions: Question[] = [makeQuestion({ id: 'q1', linkedFindingIds: [] })];
+      const ctx = buildAIContext({ questions });
+      expect(ctx.investigation?.allQuestions![0].manualNote).toBeUndefined();
+    });
   });
 });

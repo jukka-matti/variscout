@@ -1,15 +1,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { ArrowLeft, Activity, Cpu, Users, BookOpen, Wrench } from 'lucide-react';
+import { ArrowLeft, Activity, Cpu, BookOpen, Wrench } from 'lucide-react';
 import { hasTeamFeatures } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import type { AdminGatingMode } from '../../hooks/useAdminAccess';
 import { AdminStatusTab } from './AdminStatusTab';
 import { AdminPlanTab } from './AdminPlanTab';
-import { AdminTeamsSetup } from './AdminTeamsSetup';
 import { AdminKnowledgeSetup } from './AdminKnowledgeSetup';
 import { AdminTroubleshootTab } from './AdminTroubleshootTab';
 
-export type AdminTab = 'status' | 'plan' | 'teams' | 'knowledge' | 'troubleshooting';
+export type AdminTab = 'status' | 'plan' | 'knowledge' | 'troubleshooting';
 
 interface AdminHubProps {
   initialTab?: AdminTab;
@@ -33,7 +32,7 @@ function getInitialTab(initialTab?: AdminTab): AdminTab {
   // Then localStorage
   try {
     const stored = localStorage.getItem(STORAGE_KEY) as AdminTab | null;
-    if (stored && ['status', 'plan', 'teams', 'knowledge', 'troubleshooting'].includes(stored)) {
+    if (stored && ['status', 'plan', 'knowledge', 'troubleshooting'].includes(stored)) {
       // Don't restore to knowledge tab if plan doesn't support it
       if (stored === 'knowledge' && !hasTeamFeatures()) return 'status';
       return stored;
@@ -52,7 +51,6 @@ export function AdminHub({ initialTab, onBack, gatingMode }: AdminHubProps) {
   const tabs: TabDef[] = [
     { id: 'status', label: t('admin.status'), icon: <Activity size={14} />, visible: true },
     { id: 'plan', label: t('admin.plan'), icon: <Cpu size={14} />, visible: true },
-    { id: 'teams', label: t('admin.teams'), icon: <Users size={14} />, visible: true },
     {
       id: 'knowledge',
       label: t('admin.knowledge'),
@@ -130,7 +128,6 @@ export function AdminHub({ initialTab, onBack, gatingMode }: AdminHubProps) {
       <div role="tabpanel">
         {activeTab === 'status' && <AdminStatusTab gatingMode={gatingMode} />}
         {activeTab === 'plan' && <AdminPlanTab />}
-        {activeTab === 'teams' && <AdminTeamsSetup />}
         {activeTab === 'knowledge' && <AdminKnowledgeSetup />}
         {activeTab === 'troubleshooting' && <AdminTroubleshootTab />}
       </div>

@@ -22,6 +22,7 @@ export type ActionToolName =
   | 'clear_filters'
   | 'switch_factor'
   | 'create_question'
+  | 'answer_question'
   | 'create_finding'
   | 'suggest_action'
   | 'suggest_improvement_idea'
@@ -35,7 +36,7 @@ export type ActionToolName =
 export type ReadToolName =
   | 'get_chart_data'
   | 'get_statistical_summary'
-  | 'suggest_knowledge_search'
+  | 'search_knowledge_base'
   | 'get_available_factors'
   | 'compare_categories'
   | 'search_project' // Project dashboard search

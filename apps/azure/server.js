@@ -1,19 +1,25 @@
-// Zero-dependency static file server for Azure App Service.
+// Static file server for Azure App Service built on Express.
 // Serves the Vite build output from ./dist/ with SPA fallback routing.
-// Uses only Node.js built-in modules — no npm install needed at runtime.
+// Migrated from raw Node HTTP to Express in ADR-060 to support upcoming KB endpoints
+// (file upload via multer, JSON body parsing, cleaner route definitions).
 
-import { createServer } from 'node:http';
+import express from 'express';
+import multer from 'multer';
 import { readFile } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { randomUUID } from 'node:crypto';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const DIST = join(__dirname, 'dist');
 const PORT = parseInt(process.env.PORT || '8080', 10);
+const PLAN = process.env.VITE_VARISCOUT_PLAN || 'standard';
+// LOCAL_DEV bypass is blocked on App Service (WEBSITE_SITE_NAME set by Azure)
+const LOCAL_DEV = process.env.LOCAL_DEV && !process.env.WEBSITE_SITE_NAME;
 
 // Build dynamic connect-src for external services.
-// Token exchange goes through same-origin /api/token-exchange proxy (no external Function URL needed in CSP).
-let connectSrc = "'self' https://graph.microsoft.com https://*.sharepoint.com https://login.microsoftonline.com";
+// Graph API and SharePoint removed per ADR-059.
+let connectSrc = "'self' https://login.microsoftonline.com";
 const aiEndpoint = process.env.AI_ENDPOINT || '';
 const searchEndpoint = process.env.AI_SEARCH_ENDPOINT || '';
 if (aiEndpoint) {
@@ -21,6 +27,11 @@ if (aiEndpoint) {
 }
 if (searchEndpoint) {
   try { connectSrc += ` ${new URL(searchEndpoint).origin}`; } catch { /* ignore */ }
+}
+// Blob Storage endpoint for Team plan cloud sync
+const storageAccountForCsp = process.env.STORAGE_ACCOUNT_NAME || '';
+if (storageAccountForCsp) {
+  connectSrc += ` https://${storageAccountForCsp}.blob.core.windows.net`;
 }
 // App Insights ingestion endpoint — connection string is write-only (telemetry ingestion,
 // not a secret). The browser SDK requires it to send telemetry. Each customer's telemetry
@@ -53,10 +64,6 @@ const SECURITY_HEADERS = {
   'Permissions-Policy': 'camera=(self), microphone=(), geolocation=(), payment=()',
 };
 
-function writeResponse(res, statusCode, headers) {
-  res.writeHead(statusCode, { ...SECURITY_HEADERS, ...headers });
-}
-
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
@@ -78,116 +85,463 @@ function cacheHeader(urlPath) {
   return 'no-cache';
 }
 
-const server = createServer(async (req, res) => {
-  const url = new URL(req.url, `http://localhost:${PORT}`);
-  const pathname = url.pathname;
+const app = express();
+app.use(express.json());
 
-  // Health endpoint for App Service health checks
-  if (pathname === '/health') {
-    writeResponse(res, 200, { 'Content-Type': 'text/plain' });
-    res.end('ok');
+// Apply security headers to every response
+app.use((_req, res, next) => {
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    res.setHeader(key, value);
+  }
+  next();
+});
+
+// Health endpoint for App Service health checks
+app.get('/health', (_req, res) => {
+  res.setHeader('Content-Type', 'text/plain');
+  res.status(200).end('ok');
+});
+
+// OBO token exchange proxy removed per ADR-059 (Graph API removed, EasyAuth only)
+
+// Runtime configuration endpoint — serves env vars as JSON.
+// Required for Marketplace deployments where Vite env vars are baked at build time.
+app.get('/config', (_req, res) => {
+  const config = {
+    plan: process.env.VITE_VARISCOUT_PLAN || 'standard',
+    // functionUrl removed — token exchange now proxied through /api/token-exchange (same-origin)
+    aiEndpoint: process.env.AI_ENDPOINT || '',
+    aiSearchEndpoint: process.env.AI_SEARCH_ENDPOINT || '',
+    aiSearchIndex: process.env.AI_SEARCH_INDEX || 'findings',
+    appInsightsConnectionString: process.env.APPINSIGHTS_CONNECTION_STRING || process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '',
+    storageAccountName: process.env.STORAGE_ACCOUNT_NAME || '',
+    storageContainerName: process.env.STORAGE_CONTAINER_NAME || 'variscout-projects',
+  };
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.status(200).end(JSON.stringify(config));
+});
+
+// SAS token generation for Blob Storage (Team plan cloud sync)
+app.post('/api/storage-token', async (req, res) => {
+  const principal = req.headers['x-ms-client-principal'];
+  // LOCAL_DEV bypass blocked on App Service (WEBSITE_SITE_NAME is set by Azure)
+  const isLocalDev = process.env.LOCAL_DEV && !process.env.WEBSITE_SITE_NAME;
+  if (!principal && !isLocalDev) {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(401).end(JSON.stringify({ error: 'Not authenticated' }));
     return;
   }
 
-  // Proxy for OBO token exchange — keeps Function key server-side (not in client bundle).
-  // The client calls /api/token-exchange (same-origin), this server injects the Function key
-  // and forwards to the actual Azure Function.
-  if (pathname === '/api/token-exchange' && req.method === 'POST') {
-    const functionUrlEnv = process.env.FUNCTION_URL;
-    if (!functionUrlEnv) {
-      writeResponse(res, 503, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Token exchange not configured' }));
+  try {
+    const acctName = process.env.STORAGE_ACCOUNT_NAME;
+    const containerName = process.env.STORAGE_CONTAINER_NAME || 'variscout-projects';
+
+    if (!acctName) {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(503).end(JSON.stringify({ error: 'Blob Storage not configured' }));
       return;
     }
 
-    // Read request body
-    const chunks = [];
-    for await (const chunk of req) chunks.push(chunk);
-    const body = Buffer.concat(chunks);
+    const { BlobServiceClient, generateBlobSASQueryParameters, ContainerSASPermissions, StorageSharedKeyCredential, SASProtocol } = await import('@azure/storage-blob');
+    const { DefaultAzureCredential } = await import('@azure/identity');
 
-    // Forward to Azure Function with server-side Function key
-    const targetUrl = new URL('/api/token-exchange', functionUrlEnv);
-    const proxyHeaders = {
-      'Content-Type': 'application/json',
-      'Content-Length': body.length.toString(),
-    };
-    const functionKey = process.env.FUNCTION_KEY || '';
-    if (functionKey) proxyHeaders['x-functions-key'] = functionKey;
+    const blobServiceUrl = `https://${acctName}.blob.core.windows.net`;
+    const expiresOn = new Date(Date.now() + 60 * 60 * 1000);
+    const startsOn = new Date(Date.now() - 5 * 60 * 1000);
 
-    try {
-      const proxyRes = await fetch(targetUrl, {
-        method: 'POST',
-        headers: proxyHeaders,
-        body,
-      });
-      const responseBody = await proxyRes.text();
-      writeResponse(res, proxyRes.status, {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-store',
-      });
-      res.end(responseBody);
-    } catch (err) {
-      writeResponse(res, 502, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Token exchange proxy failed' }));
+    let sasUrl;
+    const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+
+    if (connectionString) {
+      // Local dev: use connection string
+      const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+      const keyMatch = connectionString.match(/AccountKey=([^;]+)/);
+      if (!keyMatch) throw new Error('AccountKey not found in connection string');
+      const sharedKeyCredential = new StorageSharedKeyCredential(blobServiceClient.accountName, keyMatch[1]);
+
+      const sasToken = generateBlobSASQueryParameters({
+        containerName,
+        permissions: ContainerSASPermissions.parse('rwl'),
+        startsOn,
+        expiresOn,
+        protocol: SASProtocol.Https,
+      }, sharedKeyCredential).toString();
+
+      sasUrl = `${blobServiceUrl}/${containerName}?${sasToken}`;
+    } else {
+      // Production: managed identity + user delegation key
+      const credential = new DefaultAzureCredential();
+      const blobServiceClient = new BlobServiceClient(blobServiceUrl, credential);
+      const delegationKey = await blobServiceClient.getUserDelegationKey(startsOn, expiresOn);
+
+      const sasToken = generateBlobSASQueryParameters({
+        containerName,
+        permissions: ContainerSASPermissions.parse('rwl'),
+        startsOn,
+        expiresOn,
+        protocol: SASProtocol.Https,
+      }, delegationKey, acctName).toString();
+
+      sasUrl = `${blobServiceUrl}/${containerName}?${sasToken}`;
     }
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(200).end(JSON.stringify({ sasUrl, expiresOn: expiresOn.toISOString() }));
+  } catch (err) {
+    console.error('[storage-token]', err.message || err);
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).end(JSON.stringify({ error: 'Failed to generate storage token' }));
+  }
+});
+
+// ── Knowledge Base API (Team plan only, ADR-060) ──────────────────────────────
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Multer: store uploads in memory (max 10 MB), single file field named 'file'
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+// Shared middleware: require EasyAuth token + Team plan
+function requireTeamPlan(req, res, next) {
+  const principal = req.headers['x-ms-client-principal'];
+  if (!principal && !LOCAL_DEV) {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(401).end(JSON.stringify({ error: 'Authentication required' }));
+    return;
+  }
+  if (PLAN !== 'team') {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(403).end(JSON.stringify({ error: 'Team plan required' }));
+    return;
+  }
+  next();
+}
+
+// Helper: resolve Blob Storage client + container name
+async function getBlobContainerClient() {
+  const { BlobServiceClient } = await import('@azure/storage-blob');
+  const { DefaultAzureCredential } = await import('@azure/identity');
+
+  const acctName = process.env.STORAGE_ACCOUNT_NAME;
+  const containerName = process.env.STORAGE_CONTAINER_NAME || 'variscout-projects';
+  const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+
+  let blobServiceClient;
+  if (connectionString) {
+    blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+  } else {
+    if (!acctName) throw new Error('STORAGE_ACCOUNT_NAME not configured');
+    blobServiceClient = new BlobServiceClient(
+      `https://${acctName}.blob.core.windows.net`,
+      new DefaultAzureCredential()
+    );
+  }
+  return blobServiceClient.getContainerClient(containerName);
+}
+
+// POST /api/kb-upload — upload a reference document to Blob Storage
+app.post('/api/kb-upload', requireTeamPlan, upload.single('file'), async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+
+  if (!req.file) {
+    res.status(400).end(JSON.stringify({ error: 'No file provided' }));
+    return;
+  }
+  const { projectId } = req.body;
+  if (!projectId) {
+    res.status(400).end(JSON.stringify({ error: 'projectId is required' }));
+    return;
+  }
+  if (!UUID_REGEX.test(projectId)) {
+    res.status(400).end(JSON.stringify({ error: 'Invalid projectId format' }));
     return;
   }
 
-  // Runtime configuration endpoint — serves env vars as JSON.
-  // Required for Marketplace deployments where Vite env vars are baked at build time.
-  if (pathname === '/config') {
-    const config = {
-      plan: process.env.VITE_VARISCOUT_PLAN || 'standard',
-      // functionUrl removed — token exchange now proxied through /api/token-exchange (same-origin)
-      aiEndpoint: process.env.AI_ENDPOINT || '',
-      aiSearchEndpoint: process.env.AI_SEARCH_ENDPOINT || '',
-      aiSearchIndex: process.env.AI_SEARCH_INDEX || 'findings',
-      appInsightsConnectionString: process.env.APPINSIGHTS_CONNECTION_STRING || process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '',
-    };
-    writeResponse(res, 200, {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache',
+  try {
+    const docId = randomUUID();
+    const blobPath = `${projectId}/documents/${docId}-${req.file.originalname}`;
+    const containerClient = await getBlobContainerClient();
+    const blockBlobClient = containerClient.getBlockBlobClient(blobPath);
+
+    await blockBlobClient.uploadData(req.file.buffer, {
+      blobHTTPHeaders: { blobContentType: req.file.mimetype },
     });
-    res.end(JSON.stringify(config));
+
+    const uploadedBy = (() => {
+      try {
+        const raw = req.headers['x-ms-client-principal'];
+        if (!raw) return 'unknown';
+        const decoded = JSON.parse(Buffer.from(raw, 'base64').toString('utf8'));
+        return decoded.userId || decoded.userDetails || 'unknown';
+      } catch {
+        return 'unknown';
+      }
+    })();
+
+    res.status(200).end(JSON.stringify({
+      id: docId,
+      fileName: req.file.originalname,
+      blobPath,
+      uploadedAt: new Date().toISOString(),
+      uploadedBy,
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype,
+    }));
+  } catch (err) {
+    console.error('[kb-upload]', err.message || err);
+    res.status(500).end(JSON.stringify({ error: 'Upload failed' }));
+  }
+});
+
+// POST /api/kb-search — full-text search against Foundry IQ knowledge index
+app.post('/api/kb-search', requireTeamPlan, async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store');
+
+  const { projectId, query, topK } = req.body;
+  if (!projectId || !query) {
+    res.status(400).end(JSON.stringify({ error: 'projectId and query are required' }));
+    return;
+  }
+  if (!UUID_REGEX.test(projectId)) {
+    res.status(400).end(JSON.stringify({ error: 'Invalid projectId format' }));
     return;
   }
 
-  // Try to serve the exact file, fall back to index.html for SPA routing
+  const searchEndpoint = process.env.AI_SEARCH_ENDPOINT;
+  const searchAdminKey = process.env.AI_SEARCH_ADMIN_KEY;
+
+  if (!searchEndpoint || !searchAdminKey) {
+    // Graceful degradation: KB search not yet configured
+    res.status(200).end(JSON.stringify({ results: [] }));
+    return;
+  }
+
+  try {
+    const top = typeof topK === 'number' && topK > 0 ? topK : 5;
+    const url = `${searchEndpoint}/knowledgebases/variscout-kb/retrieve?api-version=2025-11-01-preview`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': searchAdminKey,
+      },
+      body: JSON.stringify({
+        search: query,
+        top,
+        filter: `projectId eq '${projectId}'`,
+      }),
+    });
+
+    if (!response.ok) {
+      // Foundry IQ unavailable — return empty results rather than erroring
+      console.warn('[kb-search] Search endpoint returned', response.status);
+      res.status(200).end(JSON.stringify({ results: [] }));
+      return;
+    }
+
+    const data = await response.json();
+    res.status(200).end(JSON.stringify({ results: data.value ?? data.results ?? [] }));
+  } catch (err) {
+    console.error('[kb-search]', err.message || err);
+    // Graceful degradation: return empty results so CoScout still works
+    res.status(200).end(JSON.stringify({ results: [] }));
+  }
+});
+
+// GET /api/kb-list — list uploaded documents for a project
+app.get('/api/kb-list', requireTeamPlan, async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store');
+
+  const { projectId } = req.query;
+  if (!projectId) {
+    res.status(400).end(JSON.stringify({ error: 'projectId query param is required' }));
+    return;
+  }
+  if (!UUID_REGEX.test(projectId)) {
+    res.status(400).end(JSON.stringify({ error: 'Invalid projectId format' }));
+    return;
+  }
+
+  try {
+    const containerClient = await getBlobContainerClient();
+    const prefix = `${projectId}/documents/`;
+    const documents = [];
+
+    for await (const blob of containerClient.listBlobsFlat({ prefix })) {
+      // Blob name pattern: {projectId}/documents/{docId}-{fileName}
+      const blobName = blob.name.slice(prefix.length); // strip prefix
+      const dashIdx = blobName.indexOf('-');
+      const id = dashIdx >= 0 ? blobName.slice(0, dashIdx) : blobName;
+      const fileName = dashIdx >= 0 ? blobName.slice(dashIdx + 1) : blobName;
+
+      documents.push({
+        id,
+        fileName,
+        blobPath: blob.name,
+        fileSize: blob.properties.contentLength ?? 0,
+        uploadedAt: blob.properties.createdOn?.toISOString() ?? null,
+      });
+    }
+
+    res.status(200).end(JSON.stringify({ documents }));
+  } catch (err) {
+    console.error('[kb-list]', err.message || err);
+    res.status(500).end(JSON.stringify({ error: 'Failed to list documents' }));
+  }
+});
+
+// DELETE /api/kb-delete — remove a document from Blob Storage
+app.delete('/api/kb-delete', requireTeamPlan, async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+
+  const { projectId, documentId, fileName } = req.body;
+  if (!projectId || !documentId || !fileName) {
+    res.status(400).end(JSON.stringify({ error: 'projectId, documentId and fileName are required' }));
+    return;
+  }
+  if (!UUID_REGEX.test(projectId)) {
+    res.status(400).end(JSON.stringify({ error: 'Invalid projectId format' }));
+    return;
+  }
+
+  try {
+    const blobPath = `${projectId}/documents/${documentId}-${fileName}`;
+    const containerClient = await getBlobContainerClient();
+    const blockBlobClient = containerClient.getBlockBlobClient(blobPath);
+    await blockBlobClient.delete();
+
+    res.status(200).end(JSON.stringify({ deleted: true }));
+  } catch (err) {
+    console.error('[kb-delete]', err.message || err);
+    res.status(500).end(JSON.stringify({ error: 'Delete failed' }));
+  }
+});
+
+// GET /api/kb-download — generate a read-only SAS URL for a document download
+app.get('/api/kb-download', requireTeamPlan, async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store');
+
+  const { projectId, documentId, fileName } = req.query;
+  if (!projectId || !documentId || !fileName) {
+    res.status(400).end(JSON.stringify({ error: 'projectId, documentId and fileName are required' }));
+    return;
+  }
+  if (!UUID_REGEX.test(projectId)) {
+    res.status(400).end(JSON.stringify({ error: 'Invalid projectId format' }));
+    return;
+  }
+  if (!UUID_REGEX.test(documentId)) {
+    res.status(400).end(JSON.stringify({ error: 'Invalid documentId format' }));
+    return;
+  }
+
+  try {
+    const acctName = process.env.STORAGE_ACCOUNT_NAME;
+    const containerName = process.env.STORAGE_CONTAINER_NAME || 'variscout-projects';
+
+    if (!acctName) {
+      res.status(503).end(JSON.stringify({ error: 'Blob Storage not configured' }));
+      return;
+    }
+
+    const { BlobServiceClient, generateBlobSASQueryParameters, BlobSASPermissions, StorageSharedKeyCredential, SASProtocol } = await import('@azure/storage-blob');
+    const { DefaultAzureCredential } = await import('@azure/identity');
+
+    const blobServiceUrl = `https://${acctName}.blob.core.windows.net`;
+    const blobName = `${projectId}/documents/${documentId}-${fileName}`;
+    const expiresOn = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    const startsOn = new Date(Date.now() - 5 * 60 * 1000);
+
+    let sasUrl;
+    const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+
+    if (connectionString) {
+      // Local dev: use connection string
+      const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+      const keyMatch = connectionString.match(/AccountKey=([^;]+)/);
+      if (!keyMatch) throw new Error('AccountKey not found in connection string');
+      const sharedKeyCredential = new StorageSharedKeyCredential(blobServiceClient.accountName, keyMatch[1]);
+
+      const sasToken = generateBlobSASQueryParameters({
+        containerName,
+        blobName,
+        permissions: BlobSASPermissions.parse('r'),
+        startsOn,
+        expiresOn,
+        protocol: SASProtocol.Https,
+      }, sharedKeyCredential).toString();
+
+      sasUrl = `${blobServiceUrl}/${containerName}/${blobName}?${sasToken}`;
+    } else {
+      // Production: managed identity + user delegation key
+      const credential = new DefaultAzureCredential();
+      const blobServiceClient = new BlobServiceClient(blobServiceUrl, credential);
+      const delegationKey = await blobServiceClient.getUserDelegationKey(startsOn, expiresOn);
+
+      const sasToken = generateBlobSASQueryParameters({
+        containerName,
+        blobName,
+        permissions: BlobSASPermissions.parse('r'),
+        startsOn,
+        expiresOn,
+        protocol: SASProtocol.Https,
+      }, delegationKey, acctName).toString();
+
+      sasUrl = `${blobServiceUrl}/${containerName}/${blobName}?${sasToken}`;
+    }
+
+    res.status(200).end(JSON.stringify({ url: sasUrl }));
+  } catch (err) {
+    console.error('[kb-download]', err.message || err);
+    res.status(500).end(JSON.stringify({ error: 'Failed to generate download URL' }));
+  }
+});
+
+// Static file serving + SPA fallback
+// Express static middleware is not used here because we need the exact same routing logic
+// as the original: files with extensions that don't exist → 404 (not SPA fallback),
+// paths without extensions → SPA fallback.
+app.get('*', async (req, res) => {
+  const pathname = req.path;
   const ext = extname(pathname);
   const filePath = ext ? join(DIST, pathname) : null;
 
   try {
     if (filePath) {
       const data = await readFile(filePath);
-      writeResponse(res, 200, {
-        'Content-Type': MIME[ext] || 'application/octet-stream',
-        'Cache-Control': cacheHeader(pathname),
-      });
-      res.end(data);
+      res.setHeader('Content-Type', MIME[ext] || 'application/octet-stream');
+      res.setHeader('Cache-Control', cacheHeader(pathname));
+      res.status(200).end(data);
       return;
     }
   } catch {
     // File with extension not found → 404 (don't serve index.html for missing .js/.css/etc)
-    writeResponse(res, 404, { 'Content-Type': 'text/plain' });
-    res.end('Not Found');
+    res.setHeader('Content-Type', 'text/plain');
+    res.status(404).end('Not Found');
     return;
   }
 
   // SPA fallback: serve index.html for all non-file routes (no extension)
   try {
     const html = await readFile(join(DIST, 'index.html'));
-    writeResponse(res, 200, {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'no-cache',
-    });
-    res.end(html);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.status(200).end(html);
   } catch {
-    writeResponse(res, 500, { 'Content-Type': 'text/plain' });
-    res.end('index.html not found');
+    res.setHeader('Content-Type', 'text/plain');
+    res.status(500).end('index.html not found');
   }
 });
 
-server.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`VariScout serving from ${DIST} on port ${PORT}`);
 });
 

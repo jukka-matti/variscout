@@ -29,20 +29,26 @@ Storage Account: variscout{uniquestring}
     ├── {projectId}/
     │   ├── analysis.json        (project data + stats)
     │   ├── metadata.json        (name, owner, updated, phase)
-    │   └── photos/
-    │       └── {findingId}/
-    │           └── {photoId}.jpg
+    │   ├── knowledge-index.json (Foundry IQ unified knowledge index — ADR-060)
+    │   ├── photos/
+    │   │   └── {findingId}/
+    │   │       └── {photoId}.jpg
+    │   ├── documents/           (uploaded reference documents: SOPs, specs, FMEAs)
+    │   └── investigation/       (serialized findings, questions, ideas, conclusions — JSONL for Foundry IQ indexing)
     └── _index.json              (project listing cache)
 ```
 
 ### File Formats
 
-| File            | Content                                                                        | Size (typical) |
-| --------------- | ------------------------------------------------------------------------------ | -------------- |
-| `analysis.json` | Full project data (parsed rows, stats, findings, questions, improvement state) | 100KB – 5MB    |
-| `metadata.json` | Lightweight project metadata (name, owner, updated, phase, finding counts)     | <1KB           |
-| `_index.json`   | Array of project metadata for fast listing                                     | <10KB          |
-| `{photoId}.jpg` | EXIF/GPS-stripped photo evidence                                               | 100KB – 2MB    |
+| File                    | Content                                                                        | Size (typical) |
+| ----------------------- | ------------------------------------------------------------------------------ | -------------- |
+| `analysis.json`         | Full project data (parsed rows, stats, findings, questions, improvement state) | 100KB – 5MB    |
+| `metadata.json`         | Lightweight project metadata (name, owner, updated, phase, finding counts)     | <1KB           |
+| `knowledge-index.json`  | Foundry IQ unified knowledge index (chunks + embeddings, ADR-060)              | 1MB – 20MB     |
+| `_index.json`           | Array of project metadata for fast listing                                     | <10KB          |
+| `{photoId}.jpg`         | EXIF/GPS-stripped photo evidence                                               | 100KB – 2MB    |
+| `documents/{file}`      | Uploaded reference documents (SOPs, specs, FMEAs) for Foundry IQ indexing      | Varies         |
+| `investigation/*.jsonl` | Serialized findings, questions, ideas, conclusions (JSONL for Foundry IQ)      | <500KB         |
 
 ---
 

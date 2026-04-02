@@ -119,6 +119,7 @@ npx ruflo@3.5.42 security cve --check        # CVE check
 | Sub-path exports                | .claude/rules/monorepo.md, packages/core/package.json                                                                                                                                                                                                                                             |
 | PI Panel / Questions / Journal  | adr-056, docs/superpowers/specs/2026-04-01-process-intelligence-panel-redesign.md                                                                                                                                                                                                                 |
 | Problem Statement / Watson      | docs/03-features/workflows/question-driven-investigation.md, packages/core/src/findings/problemStatement.ts                                                                                                                                                                                       |
+| AI knowledge architecture       | adr-060, docs/superpowers/specs/2026-04-02-coscout-intelligence-architecture-design.md, docs/05-technical/architecture/ai-context-engineering.md                                                                                                                                                  |
 
 ## Repository Structure
 

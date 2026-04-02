@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.41.2.15936",
-      "templateHash": "5088387156692704870"
+      "templateHash": "12153852212273664232"
     },
     "description": "Deploys VariScout Azure App as a Managed Application with App Service and EasyAuth"
   },
@@ -50,16 +50,13 @@
       "defaultValue": "standard",
       "allowedValues": ["standard", "team"],
       "metadata": {
-        "description": "VariScout plan: 'standard' (local files, AI included), 'team' (+ OneDrive, Teams collaboration, Knowledge Base)"
+        "description": "VariScout plan: 'standard' (local files, AI included), 'team' (+ Blob Storage cloud sync)"
       }
     }
   },
   "variables": {
     "appServicePlanName": "[format('{0}-plan', parameters('appName'))]",
     "webAppName": "[parameters('appName')]",
-    "functionAppName": "[format('{0}-func', parameters('appName'))]",
-    "functionStorageName": "[format('vsf{0}', uniqueString(resourceGroup().id))]",
-    "functionPlanName": "[format('{0}-func-plan', parameters('appName'))]",
     "appInsightsName": "[format('{0}-insights', parameters('appName'))]",
     "aiServicesName": "[format('{0}-ai', parameters('appName'))]",
     "searchServiceName": "[format('{0}-search', parameters('appName'))]",
@@ -100,7 +97,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "4198521691278681829"
+              "templateHash": "9998799619300140152"
             }
           },
           "parameters": {
@@ -214,6 +211,28 @@
                 "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]",
                 "[resourceId('Microsoft.CognitiveServices/accounts/deployments', parameters('aiServicesName'), 'fast')]"
               ]
+            },
+            {
+              "condition": "[equals(parameters('variscoutPlan'), 'team')]",
+              "type": "Microsoft.CognitiveServices/accounts/deployments",
+              "apiVersion": "2025-09-01",
+              "name": "[format('{0}/{1}', parameters('aiServicesName'), 'embeddings')]",
+              "sku": {
+                "name": "Standard",
+                "capacity": 20
+              },
+              "properties": {
+                "model": {
+                  "format": "OpenAI",
+                  "name": "text-embedding-3-small",
+                  "version": "1"
+                },
+                "raiPolicyName": "Microsoft.DefaultV2"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]",
+                "[resourceId('Microsoft.CognitiveServices/accounts/deployments', parameters('aiServicesName'), 'reasoning')]"
+              ]
             }
           ],
           "outputs": {
@@ -277,7 +296,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "1509274814155354089"
+              "templateHash": "14559692104416700257"
             }
           },
           "parameters": {
@@ -334,6 +353,159 @@
                   "bypass": "AzureServices"
                 }
               }
+            },
+            {
+              "type": "Microsoft.Search/searchServices/indexes",
+              "apiVersion": "2025-05-01",
+              "name": "[format('{0}/{1}', parameters('searchServiceName'), 'knowledge-base')]",
+              "properties": {
+                "fields": [
+                  {
+                    "name": "id",
+                    "type": "Edm.String",
+                    "key": true,
+                    "filterable": true,
+                    "retrievable": true,
+                    "searchable": false,
+                    "sortable": false,
+                    "facetable": false
+                  },
+                  {
+                    "name": "content",
+                    "type": "Edm.String",
+                    "searchable": true,
+                    "analyzerName": "standard.lucene",
+                    "filterable": false,
+                    "retrievable": true,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "title",
+                    "type": "Edm.String",
+                    "searchable": true,
+                    "filterable": true,
+                    "retrievable": true,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "sourceType",
+                    "type": "Edm.String",
+                    "searchable": false,
+                    "filterable": true,
+                    "facetable": true,
+                    "retrievable": true,
+                    "sortable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "sourceId",
+                    "type": "Edm.String",
+                    "searchable": false,
+                    "filterable": true,
+                    "retrievable": true,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "projectId",
+                    "type": "Edm.String",
+                    "searchable": false,
+                    "filterable": true,
+                    "retrievable": true,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "fileName",
+                    "type": "Edm.String",
+                    "searchable": false,
+                    "filterable": true,
+                    "retrievable": true,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "uploadedBy",
+                    "type": "Edm.String",
+                    "searchable": false,
+                    "filterable": true,
+                    "retrievable": true,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "uploadedAt",
+                    "type": "Edm.DateTimeOffset",
+                    "filterable": true,
+                    "sortable": true,
+                    "retrievable": true,
+                    "searchable": false,
+                    "facetable": false,
+                    "key": false
+                  },
+                  {
+                    "name": "embedding",
+                    "type": "Collection(Edm.Single)",
+                    "searchable": true,
+                    "retrievable": false,
+                    "filterable": false,
+                    "sortable": false,
+                    "facetable": false,
+                    "key": false,
+                    "dimensions": 1536,
+                    "vectorSearchProfile": "default-profile"
+                  }
+                ],
+                "vectorSearch": {
+                  "algorithms": [
+                    {
+                      "name": "hnsw-algorithm",
+                      "kind": "hnsw",
+                      "hnswParameters": {
+                        "metric": "cosine",
+                        "m": 4,
+                        "efConstruction": 400,
+                        "efSearch": 500
+                      }
+                    }
+                  ],
+                  "profiles": [
+                    {
+                      "name": "default-profile",
+                      "algorithm": "hnsw-algorithm"
+                    }
+                  ]
+                },
+                "semantic": {
+                  "defaultConfiguration": "default-semantic",
+                  "configurations": [
+                    {
+                      "name": "default-semantic",
+                      "prioritizedFields": {
+                        "titleField": {
+                          "fieldName": "title"
+                        },
+                        "contentFields": [
+                          {
+                            "fieldName": "content"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Search/searchServices', parameters('searchServiceName'))]"
+              ]
             }
           ],
           "outputs": {
@@ -392,9 +564,6 @@
           "hasTeamFeatures": {
             "value": "[variables('hasTeamFeatures')]"
           },
-          "functionAppName": {
-            "value": "[variables('functionAppName')]"
-          },
           "aiEndpoint": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiEndpoint.value), createObject('value', ''))]",
           "appInsightsConnectionString": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.appInsightsConnectionString.value), createObject('value', ''))]",
           "searchServiceName": {
@@ -402,6 +571,10 @@
           },
           "aiSearchIndex": {
             "value": "[variables('aiSearchIndex')]"
+          },
+          "storageAccountName": "[if(variables('hasTeamFeatures'), createObject('value', format('variscout{0}', uniqueString(resourceGroup().id))), createObject('value', ''))]",
+          "storageContainerName": {
+            "value": "variscout-projects"
           }
         },
         "template": {
@@ -411,7 +584,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "496426149177660577"
+              "templateHash": "15202335362362110931"
             }
           },
           "parameters": {
@@ -469,12 +642,6 @@
                 "description": "Whether Team plan features are enabled"
               }
             },
-            "functionAppName": {
-              "type": "string",
-              "metadata": {
-                "description": "Function App name (for URL construction)"
-              }
-            },
             "aiEndpoint": {
               "type": "string",
               "metadata": {
@@ -497,6 +664,20 @@
               "type": "string",
               "metadata": {
                 "description": "AI Search index name"
+              }
+            },
+            "storageAccountName": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Storage Account name for Blob Storage (Team plan)"
+              }
+            },
+            "storageContainerName": {
+              "type": "string",
+              "defaultValue": "variscout-projects",
+              "metadata": {
+                "description": "Storage container name"
               }
             }
           },
@@ -555,10 +736,6 @@
                       "value": "[parameters('variscoutPlan')]"
                     },
                     {
-                      "name": "VITE_FUNCTION_URL",
-                      "value": "[if(parameters('hasAI'), format('https://{0}.azurewebsites.net', parameters('functionAppName')), '')]"
-                    },
-                    {
                       "name": "AI_ENDPOINT",
                       "value": "[parameters('aiEndpoint')]"
                     },
@@ -571,8 +748,20 @@
                       "value": "[parameters('aiSearchIndex')]"
                     },
                     {
-                      "name": "FUNCTION_URL",
-                      "value": "[if(parameters('hasAI'), format('https://{0}.azurewebsites.net', parameters('functionAppName')), '')]"
+                      "name": "AI_SEARCH_KB_INDEX",
+                      "value": "[if(parameters('hasTeamFeatures'), 'knowledge-base', '')]"
+                    },
+                    {
+                      "name": "AI_EMBEDDING_DEPLOYMENT",
+                      "value": "[if(parameters('hasTeamFeatures'), 'embeddings', '')]"
+                    },
+                    {
+                      "name": "STORAGE_ACCOUNT_NAME",
+                      "value": "[parameters('storageAccountName')]"
+                    },
+                    {
+                      "name": "STORAGE_CONTAINER_NAME",
+                      "value": "[parameters('storageContainerName')]"
                     },
                     {
                       "name": "VITE_APPINSIGHTS_CONNECTION_STRING",
@@ -611,7 +800,7 @@
                     },
                     "login": {
                       "loginParameters": [
-                        "[if(parameters('hasTeamFeatures'), 'scope=openid profile email User.Read Files.ReadWrite Files.ReadWrite.All Channel.ReadBasic.All People.Read ChannelMessage.Send', 'scope=openid profile email User.Read https://cognitiveservices.azure.com/.default')]"
+                        "[if(parameters('hasTeamFeatures'), 'scope=openid profile email User.Read People.Read', 'scope=openid profile email User.Read')]"
                       ]
                     }
                   }
@@ -653,10 +842,10 @@
       "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'aiServices')]"]
     },
     {
-      "condition": "[variables('hasAI')]",
+      "condition": "[variables('hasTeamFeatures')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
-      "name": "functions",
+      "name": "storage",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -666,30 +855,8 @@
           "location": {
             "value": "[parameters('location')]"
           },
-          "functionAppName": {
-            "value": "[variables('functionAppName')]"
-          },
-          "functionPlanName": {
-            "value": "[variables('functionPlanName')]"
-          },
-          "functionStorageName": {
-            "value": "[variables('functionStorageName')]"
-          },
-          "variscoutPlan": {
-            "value": "[parameters('variscoutPlan')]"
-          },
-          "hasAI": {
-            "value": "[variables('hasAI')]"
-          },
-          "clientId": {
-            "value": "[parameters('clientId')]"
-          },
-          "keyVaultName": {
-            "value": "[variables('keyVaultName')]"
-          },
-          "aiEndpoint": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiEndpoint.value), createObject('value', ''))]",
-          "webAppDefaultHostName": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'appService'), '2025-04-01').outputs.defaultHostName.value]"
+          "appServicePrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'appService'), '2025-04-01').outputs.principalId.value]"
           }
         },
         "template": {
@@ -699,214 +866,93 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "14170450424861749463"
-            }
+              "templateHash": "7600228412422081284"
+            },
+            "description": "Storage Account + Blob container for Team plan project sync"
           },
           "parameters": {
             "location": {
               "type": "string",
+              "defaultValue": "[resourceGroup().location]",
               "metadata": {
-                "description": "Azure region for deployment"
+                "description": "Azure region"
               }
             },
-            "functionAppName": {
+            "appServicePrincipalId": {
               "type": "string",
               "metadata": {
-                "description": "Name for the Function App"
-              }
-            },
-            "functionPlanName": {
-              "type": "string",
-              "metadata": {
-                "description": "Name for the Function App plan"
-              }
-            },
-            "functionStorageName": {
-              "type": "string",
-              "metadata": {
-                "description": "Name for the Function storage account"
-              }
-            },
-            "variscoutPlan": {
-              "type": "string",
-              "metadata": {
-                "description": "VariScout plan identifier"
-              }
-            },
-            "hasAI": {
-              "type": "bool",
-              "metadata": {
-                "description": "Whether AI features are enabled"
-              }
-            },
-            "clientId": {
-              "type": "string",
-              "metadata": {
-                "description": "Client ID of the Azure AD App Registration"
-              }
-            },
-            "keyVaultName": {
-              "type": "string",
-              "metadata": {
-                "description": "Key Vault name for secret references"
-              }
-            },
-            "aiEndpoint": {
-              "type": "string",
-              "metadata": {
-                "description": "AI endpoint URL"
-              }
-            },
-            "webAppDefaultHostName": {
-              "type": "string",
-              "metadata": {
-                "description": "Default hostname of the Web App (for CORS)"
+                "description": "App Service principal ID for RBAC assignment"
               }
             }
           },
           "variables": {
-            "tags": {
-              "product": "VariScout",
-              "plan": "[parameters('variscoutPlan')]",
-              "managedBy": "AzureMarketplace"
-            }
+            "storageAccountName": "[format('variscout{0}', uniqueString(resourceGroup().id))]",
+            "containerName": "variscout-projects"
           },
           "resources": [
             {
               "type": "Microsoft.Storage/storageAccounts",
-              "apiVersion": "2025-01-01",
-              "name": "[parameters('functionStorageName')]",
+              "apiVersion": "2023-05-01",
+              "name": "[variables('storageAccountName')]",
               "location": "[parameters('location')]",
-              "tags": "[variables('tags')]",
-              "kind": "StorageV2",
               "sku": {
                 "name": "Standard_LRS"
               },
+              "kind": "StorageV2",
               "properties": {
+                "minimumTlsVersion": "TLS1_2",
+                "allowBlobPublicAccess": false,
                 "supportsHttpsTrafficOnly": true,
-                "minimumTlsVersion": "TLS1_2"
+                "accessTier": "Hot"
               }
             },
             {
-              "type": "Microsoft.Web/serverfarms",
-              "apiVersion": "2024-04-01",
-              "name": "[parameters('functionPlanName')]",
-              "location": "[parameters('location')]",
-              "tags": "[variables('tags')]",
-              "sku": {
-                "name": "Y1",
-                "tier": "Dynamic"
-              },
-              "properties": {}
+              "type": "Microsoft.Storage/storageAccounts/blobServices",
+              "apiVersion": "2023-05-01",
+              "name": "[format('{0}/{1}', variables('storageAccountName'), 'default')]",
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+              ]
             },
             {
-              "type": "Microsoft.Web/sites",
-              "apiVersion": "2024-04-01",
-              "name": "[parameters('functionAppName')]",
-              "location": "[parameters('location')]",
-              "tags": "[variables('tags')]",
-              "kind": "functionapp",
-              "identity": {
-                "type": "SystemAssigned"
-              },
+              "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+              "apiVersion": "2023-05-01",
+              "name": "[format('{0}/{1}/{2}', variables('storageAccountName'), 'default', variables('containerName'))]",
               "properties": {
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('functionPlanName'))]",
-                "httpsOnly": true,
-                "siteConfig": {
-                  "appSettings": [
-                    {
-                      "name": "AzureWebJobsStorage",
-                      "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', parameters('functionStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('functionStorageName')), '2025-01-01').keys[0].value)]"
-                    },
-                    {
-                      "name": "FUNCTIONS_EXTENSION_VERSION",
-                      "value": "~4"
-                    },
-                    {
-                      "name": "FUNCTIONS_WORKER_RUNTIME",
-                      "value": "node"
-                    },
-                    {
-                      "name": "WEBSITE_NODE_DEFAULT_VERSION",
-                      "value": "~22"
-                    },
-                    {
-                      "name": "CLIENT_ID",
-                      "value": "[parameters('clientId')]"
-                    },
-                    {
-                      "name": "CLIENT_SECRET",
-                      "value": "[format('@Microsoft.KeyVault(VaultName={0};SecretName=client-secret)', parameters('keyVaultName'))]"
-                    },
-                    {
-                      "name": "TENANT_ID",
-                      "value": "[subscription().tenantId]"
-                    },
-                    {
-                      "name": "AI_ENDPOINT",
-                      "value": "[if(parameters('hasAI'), parameters('aiEndpoint'), '')]"
-                    },
-                    {
-                      "name": "AI_SERVICES_API_KEY",
-                      "value": "[if(parameters('hasAI'), format('@Microsoft.KeyVault(VaultName={0};SecretName=ai-services-api-key)', parameters('keyVaultName')), '')]"
-                    },
-                    {
-                      "name": "ALLOWED_ORIGIN",
-                      "value": "[format('https://{0}', parameters('webAppDefaultHostName'))]"
-                    },
-                    {
-                      "name": "FUNCTION_KEY",
-                      "value": "[format('@Microsoft.KeyVault(VaultName={0};SecretName=function-key)', parameters('keyVaultName'))]"
-                    },
-                    {
-                      "name": "MSAL_CACHE_LOCATION",
-                      "value": "[if(parameters('hasAI'), '/home/data/msal-cache', '')]"
-                    }
-                  ],
-                  "cors": {
-                    "allowedOrigins": [
-                      "[format('https://{0}', parameters('webAppDefaultHostName'))]"
-                    ]
-                  },
-                  "minTlsVersion": "1.2",
-                  "ftpsState": "Disabled"
-                }
+                "publicAccess": "None"
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', parameters('functionPlanName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('functionStorageName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageAccountName'), 'default')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+              "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), parameters('appServicePrincipalId'), 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+                "principalId": "[parameters('appServicePrincipalId')]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
               ]
             }
           ],
           "outputs": {
-            "functionAppId": {
+            "storageAccountName": {
               "type": "string",
-              "metadata": {
-                "description": "Resource ID of the Function App"
-              },
-              "value": "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]"
+              "value": "[variables('storageAccountName')]"
             },
-            "principalId": {
+            "containerName": {
               "type": "string",
-              "metadata": {
-                "description": "Principal ID of the Function App managed identity"
-              },
-              "value": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2024-04-01', 'full').identity.principalId]"
-            },
-            "defaultFunctionKey": {
-              "type": "string",
-              "metadata": {
-                "description": "Default function key"
-              },
-              "value": "[listKeys(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2024-04-01').functionKeys.default]"
+              "value": "[variables('containerName')]"
             }
           }
         }
       },
-      "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', 'aiServices')]",
-        "[resourceId('Microsoft.Resources/deployments', 'appService')]"
-      ]
+      "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'appService')]"]
     },
     {
       "condition": "[variables('hasAI')]",
@@ -936,11 +982,9 @@
           },
           "aiServicesApiKey": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'aiServices'), '2025-04-01').outputs.aiServicesApiKey.value), createObject('value', ''))]",
           "searchApiKey": "[if(variables('hasTeamFeatures'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'search'), '2025-04-01').outputs.searchAdminKey.value), createObject('value', ''))]",
-          "functionKey": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'functions'), '2025-04-01').outputs.defaultFunctionKey.value), createObject('value', ''))]",
           "webAppPrincipalId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'appService'), '2025-04-01').outputs.principalId.value]"
-          },
-          "functionAppPrincipalId": "[if(variables('hasAI'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'functions'), '2025-04-01').outputs.principalId.value), createObject('value', ''))]"
+          }
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -949,7 +993,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "6220342521848020537"
+              "templateHash": "13218944735884948703"
             }
           },
           "parameters": {
@@ -995,22 +1039,10 @@
                 "description": "Search admin key to store (empty if not Team plan)"
               }
             },
-            "functionKey": {
-              "type": "securestring",
-              "metadata": {
-                "description": "Function App default key to store (empty if not Team plan)"
-              }
-            },
             "webAppPrincipalId": {
               "type": "string",
               "metadata": {
                 "description": "Principal ID of the Web App managed identity"
-              }
-            },
-            "functionAppPrincipalId": {
-              "type": "string",
-              "metadata": {
-                "description": "Principal ID of the Function App managed identity"
               }
             }
           },
@@ -1053,18 +1085,6 @@
               "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"]
             },
             {
-              "type": "Microsoft.Authorization/roleAssignments",
-              "apiVersion": "2022-04-01",
-              "scope": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
-              "name": "[guid(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), variables('keyVaultSecretsUserRole'), parameters('functionAppPrincipalId'))]",
-              "properties": {
-                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('keyVaultSecretsUserRole'))]",
-                "principalId": "[parameters('functionAppPrincipalId')]",
-                "principalType": "ServicePrincipal"
-              },
-              "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"]
-            },
-            {
               "type": "Microsoft.KeyVault/vaults/secrets",
               "apiVersion": "2024-11-01",
               "name": "[format('{0}/{1}', parameters('keyVaultName'), 'ai-services-api-key')]",
@@ -1091,16 +1111,6 @@
                 "value": "[parameters('searchApiKey')]"
               },
               "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"]
-            },
-            {
-              "condition": "[parameters('hasTeamFeatures')]",
-              "type": "Microsoft.KeyVault/vaults/secrets",
-              "apiVersion": "2024-11-01",
-              "name": "[format('{0}/{1}', parameters('keyVaultName'), 'function-key')]",
-              "properties": {
-                "value": "[parameters('functionKey')]"
-              },
-              "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"]
             }
           ],
           "outputs": {
@@ -1117,7 +1127,6 @@
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'aiServices')]",
         "[resourceId('Microsoft.Resources/deployments', 'appService')]",
-        "[resourceId('Microsoft.Resources/deployments', 'functions')]",
         "[resourceId('Microsoft.Resources/deployments', 'search')]"
       ]
     }
@@ -1126,10 +1135,6 @@
     "appUrl": {
       "type": "string",
       "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'appService'), '2025-04-01').outputs.defaultHostName.value)]"
-    },
-    "functionUrl": {
-      "type": "string",
-      "value": "[if(variables('hasAI'), format('https://{0}.azurewebsites.net', variables('functionAppName')), '')]"
     },
     "aiEndpoint": {
       "type": "string",

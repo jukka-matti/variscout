@@ -40,14 +40,6 @@ const PORTAL_LINKS: Record<string, { label: string; href: string }> = {
     label: 'App Registration → API permissions',
     href: 'https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps',
   },
-  'graph-files': {
-    label: 'App Registration → API permissions',
-    href: 'https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps',
-  },
-  'graph-channels': {
-    label: 'App Registration → API permissions',
-    href: 'https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps',
-  },
   'ai-endpoint': {
     label: 'Azure AI Services',
     href: 'https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub',

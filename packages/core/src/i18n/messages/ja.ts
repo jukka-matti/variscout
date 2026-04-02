@@ -250,6 +250,7 @@ export const ja: MessageCatalog = {
   'ai.tool.suggestIdea': 'Suggest improvement idea',
   'ai.tool.suggestSaveFinding': 'インサイトを保存',
   'ai.tool.navigateTo': 'Navigate to',
+  'ai.tool.answerQuestion': 'Answer question',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
   'table.page': 'Page {page} of {total}',

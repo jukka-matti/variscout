@@ -44,6 +44,8 @@ export interface BuildAIContextOptions {
   findings?: Finding[];
   /** Questions for investigation context */
   questions?: Question[];
+  /** ID of the question currently focused in the PI panel */
+  focusedQuestionId?: string;
   /** Investigation progress data */
   investigationProgress?: {
     targetMetric: TargetMetric;
@@ -111,6 +113,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     violations,
     findings,
     questions,
+    focusedQuestionId,
     investigationProgress,
     activeChart,
     variationContributions,
@@ -274,6 +277,57 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       .filter(f => f.source?.chart === 'coscout')
       .map(f => ({ text: f.text, status: f.status }));
 
+    // Top 5 findings by recency (most recent first)
+    const topFindings = [...findings]
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 5)
+      .map(f => {
+        const cpkDelta =
+          f.outcome?.cpkBefore !== undefined && f.outcome?.cpkAfter !== undefined
+            ? f.outcome.cpkAfter - f.outcome.cpkBefore
+            : undefined;
+        return {
+          id: f.id,
+          text: f.text,
+          status: f.status,
+          commentCount: f.comments.length,
+          ...(f.outcome
+            ? {
+                outcome: {
+                  effective: f.outcome.effective,
+                  ...(cpkDelta !== undefined ? { cpkDelta } : {}),
+                },
+              }
+            : {}),
+        };
+      });
+
+    // Overdue actions: uncompleted + past dueDate, top 3 most overdue
+    const now = Date.now();
+    const overdueActions: Array<{
+      text: string;
+      assignee?: string;
+      daysOverdue: number;
+      findingId: string;
+    }> = [];
+
+    for (const finding of findings) {
+      for (const action of finding.actions ?? []) {
+        if (!action.dueDate || action.completedAt) continue;
+        const dueMs = new Date(action.dueDate).getTime();
+        if (dueMs >= now) continue;
+        const daysOverdue = Math.floor((now - dueMs) / 86400000);
+        overdueActions.push({
+          text: action.text,
+          ...(action.assignee ? { assignee: action.assignee.displayName } : {}),
+          daysOverdue,
+          findingId: finding.id,
+        });
+      }
+    }
+    overdueActions.sort((a, b) => b.daysOverdue - a.daysOverdue);
+    const top3Overdue = overdueActions.slice(0, 3);
+
     context.findings = {
       total: findings.length,
       byStatus: Object.fromEntries(
@@ -281,20 +335,28 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       ),
       keyDrivers,
       ...(coscoutInsights.length > 0 ? { coscoutInsights } : {}),
+      topFindings,
+      ...(top3Overdue.length > 0 ? { overdueActions: top3Overdue } : {}),
     };
   }
 
-  // Add investigation context if problem statement or questions exist
+  // Add investigation context if issue/problem statement or questions exist
   if (
     process.issueStatement ||
+    process.problemStatement ||
     (questions && questions.length > 0) ||
     investigationProgress ||
-    selectedFinding
+    selectedFinding ||
+    focusedQuestionId
   ) {
     context.investigation = {};
 
     if (process.issueStatement) {
       context.investigation.issueStatement = process.issueStatement;
+    }
+
+    if (process.problemStatement) {
+      context.investigation.problemStatement = { fullText: process.problemStatement };
     }
 
     if (selectedFinding) {
@@ -315,6 +377,8 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
         status: q.status,
         questionSource: q.questionSource,
         causeRole: q.causeRole,
+        manualNote: q.manualNote,
+        linkedFindingIds: q.linkedFindingIds,
         ideas:
           q.ideas && q.ideas.length > 0
             ? q.ideas.map(idea => ({
@@ -324,6 +388,9 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
                   ? { meanDelta: idea.projection.meanDelta, sigmaDelta: idea.projection.sigmaDelta }
                   : undefined,
                 category: idea.category,
+                direction: idea.direction,
+                timeframe: idea.timeframe,
+                riskLevel: idea.risk?.computed,
               }))
             : undefined,
       }));
@@ -389,6 +456,18 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       if (suspectedCauses.length > 0) {
         context.investigation.suspectedCauses = suspectedCauses;
       }
+
+      // Wire focused question from PI panel
+      if (focusedQuestionId) {
+        context.investigation.focusedQuestionId = focusedQuestionId;
+        const focusedQuestion = questions.find(q => q.id === focusedQuestionId);
+        if (focusedQuestion) {
+          context.investigation.focusedQuestionText = focusedQuestion.text;
+        }
+      }
+    } else if (focusedQuestionId) {
+      // focusedQuestionId provided without a questions list
+      context.investigation.focusedQuestionId = focusedQuestionId;
     }
   }
 

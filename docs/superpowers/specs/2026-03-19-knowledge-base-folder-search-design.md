@@ -11,6 +11,8 @@ related: [knowledge-base, sharepoint, coscout, adr-026]
 **Date**: 2026-03-19
 **ADR**: [ADR-026](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
 
+> **Update (2026-04-02):** ADR-026 is superseded by [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md). The backend now uses Foundry IQ with Blob Storage instead of Remote SharePoint. The UI/UX patterns described here are preserved.
+
 ---
 
 ## Context

@@ -22,15 +22,8 @@ param aiServicesApiKey string
 @secure()
 param searchApiKey string
 
-@description('Function App default key to store (empty if not Team plan)')
-@secure()
-param functionKey string
-
 @description('Principal ID of the Web App managed identity')
 param webAppPrincipalId string
-
-@description('Principal ID of the Function App managed identity')
-param functionAppPrincipalId string
 
 var tags = {
   product: 'VariScout'
@@ -66,16 +59,6 @@ resource webAppRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-0
   }
 }
 
-resource functionAppRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: keyVault
-  name: guid(keyVault.id, keyVaultSecretsUserRole, functionAppPrincipalId)
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', keyVaultSecretsUserRole)
-    principalId: functionAppPrincipalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
 resource aiServicesApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2024-11-01' = {
   parent: keyVault
   name: 'ai-services-api-key'
@@ -99,14 +82,6 @@ resource searchApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2024-11-01' = if 
   name: 'search-api-key'
   properties: {
     value: searchApiKey
-  }
-}
-
-resource functionKeySecret 'Microsoft.KeyVault/vaults/secrets@2024-11-01' = if (hasTeamFeatures) {
-  parent: keyVault
-  name: 'function-key'
-  properties: {
-    value: functionKey
   }
 }
 

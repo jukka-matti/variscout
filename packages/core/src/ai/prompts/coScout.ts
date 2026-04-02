@@ -69,13 +69,13 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
     },
     {
       type: 'function',
-      name: 'suggest_knowledge_search',
+      name: 'search_knowledge_base',
       description:
-        'Search the team Knowledge Base (SharePoint documents) for related SOPs, fault trees, past investigations, or procedures. Call when the user asks about historical patterns, root causes, or institutional knowledge.',
+        'Search the project knowledge base for reference documents (SOPs, specs, FMEAs), past findings, and team member answers. Returns relevant chunks with source attribution.',
       parameters: {
         type: 'object',
         properties: {
-          query: { type: 'string', description: 'Search query for Knowledge Base documents' },
+          query: { type: 'string', description: 'Search query' },
         },
         required: ['query'],
         additionalProperties: false,
@@ -454,6 +454,37 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
           additionalProperties: false,
           strict: true,
         },
+      },
+      {
+        type: 'function',
+        name: 'answer_question',
+        description:
+          'Propose marking an investigation question as answered or ruled-out based on evidence. The analyst will review and confirm before the status changes.',
+        parameters: {
+          type: 'object',
+          properties: {
+            question_id: {
+              type: 'string',
+              description: 'ID of the question to answer',
+            },
+            status: {
+              type: 'string',
+              enum: ['answered', 'ruled-out'],
+              description: 'Proposed status based on evidence',
+            },
+            note: {
+              type: 'string',
+              description: 'Evidence-based explanation for the proposed answer',
+            },
+            finding_id: {
+              type: ['string', 'null'] as const,
+              description: 'ID of supporting finding (recommended when evidence exists)',
+            },
+          },
+          required: ['question_id', 'status', 'note', 'finding_id'],
+          additionalProperties: false,
+          strict: true,
+        },
       }
     );
 
@@ -554,6 +585,7 @@ export function buildCoScoutInput(
     capabilityStability: context.capabilityStability,
     analysisMode: context.analysisMode,
     coscoutInsights: context.findings?.coscoutInsights,
+    findings: context.findings,
   });
 
   const input: Array<{ role: 'user' | 'assistant' | 'system'; content: MessageContent }> = [];
@@ -627,6 +659,8 @@ export interface BuildCoScoutSystemPromptOptions {
   analysisMode?: AnalysisMode;
   /** Insights previously saved from CoScout conversations — used to avoid repetition (ADR-049) */
   coscoutInsights?: Array<{ text: string; status: string }>;
+  /** Findings summary including topFindings and overdueActions (ADR-060 Pillar 1) */
+  findings?: AIContext['findings'];
 }
 
 /**
@@ -638,6 +672,7 @@ export function buildCoScoutSystemPrompt(options: BuildCoScoutSystemPromptOption
   const {
     glossaryFragment,
     investigation,
+    findings,
     teamContributors,
     sampleCount,
     stagedComparison,
@@ -678,6 +713,16 @@ Never invent data or statistics. If the context does not contain enough informat
 
     if (investigation.issueStatement) {
       invParts.push(`Issue statement: "${investigation.issueStatement}".`);
+    }
+
+    // Position-aware: problem statement at the START (highest attention position, ADR-060 Pillar 1)
+    if (investigation.problemStatement?.fullText) {
+      invParts.push(`**Problem Statement:** ${investigation.problemStatement.fullText}`);
+    }
+
+    // Focused question immediately after problem statement (still near the start)
+    if (investigation.focusedQuestionId && investigation.focusedQuestionText) {
+      invParts.push(`**Currently investigating:** ${investigation.focusedQuestionText}`);
     }
 
     // Convergence synthesis — the analyst's suspected cause narrative
@@ -863,6 +908,30 @@ Never invent data or statistics. If the context does not contain enough informat
       invParts.push(findingLine);
     }
 
+    // Position-aware: topFindings and overdueActions at the END (second-highest attention, ADR-060 Pillar 1)
+    if (findings?.topFindings && findings.topFindings.length > 0) {
+      const topLines = findings.topFindings.slice(0, 5).map(f => {
+        let line = `- "${f.text}" [${f.status}] ${f.commentCount} comments`;
+        if (f.outcome) {
+          line += ` outcome: ${f.outcome.effective}`;
+          if (f.outcome.cpkDelta !== undefined) {
+            line += ` cpkDelta: ${f.outcome.cpkDelta > 0 ? '+' : ''}${f.outcome.cpkDelta.toFixed(2)}`;
+          }
+        }
+        return line;
+      });
+      invParts.push(`**Recent findings:**\n${topLines.join('\n')}`);
+    }
+
+    if (findings?.overdueActions && findings.overdueActions.length > 0) {
+      const overdueLines = findings.overdueActions.slice(0, 3).map(a => {
+        let line = `- "${a.text}" (${a.daysOverdue}d overdue)`;
+        if (a.assignee) line = `- "${a.text}" (${a.assignee}, ${a.daysOverdue}d overdue)`;
+        return line;
+      });
+      invParts.push(`**\u26a0 Overdue actions:**\n${overdueLines.join('\n')}`);
+    }
+
     if (invParts.length > 0) {
       parts.push('Investigation context:\n' + invParts.join('\n'));
     }
@@ -986,6 +1055,18 @@ Coaching workflow:
 4. "What should I do?" → Click the worst channel to switch to standard analysis. Add factors (Shift, Operator) to investigate root cause.
 
 Never use standard SPC terminology (control limits, Nelson rules) for the channel comparison view. Those apply after drilling into a single channel.`
+    );
+  }
+
+  // Strategy-aware validation method coaching (ADR-060 Pillar 5)
+  // Only emitted when investigation context exists — irrelevant for frame-only prompts
+  if (investigation) {
+    const strategy = getStrategy(resolveMode(options.analysisMode ?? 'standard'));
+    const qs = strategy.questionStrategy;
+    parts.push(
+      `For this analysis mode, the primary evidence metric is ${qs.evidenceLabel}. ` +
+        `Questions are validated using ${qs.validationMethod}. ` +
+        `Focus on: ${qs.questionFocus}`
     );
   }
 
@@ -1227,7 +1308,7 @@ Knowledge Base in IMPROVE phase:
 
 PDCA coaching (when investigation phase is 'improving'):
 - PLAN (finding at 'analyzed' status, no actions yet):
-  - Ask what improvement ideas the team has considered. Proactively suggest suggest_knowledge_search for similar past fixes and SOPs.
+  - Ask what improvement ideas the team has considered. Proactively suggest search_knowledge_base for similar past fixes and SOPs.
   - If ideas have What-If projections, compare projected impact. Suggest prioritizing the idea with highest Cpk improvement.
   - Suggest classifying ideas by direction: prevent (stop the cause), detect (catch it sooner), simplify (reduce complexity), eliminate (remove the step).
   - Use suggest_action to convert selected ideas into executable tasks with clear owners and deadlines.
@@ -1295,11 +1376,15 @@ Multiple suspected causes:
 
 The entry scenario may have changed since the previous turn. Always reference the current scenario in your tool decisions.
 
-Visual grounding: When referencing specific chart elements, factors, statistics, findings, or questions, wrap them in [REF:type:id]display text[/REF] markers. This creates clickable visual links in the UI.
-Valid types: boxplot, ichart, pareto, stats, yamazumi, finding, question, dashboard, improvement.
+Visual grounding: When referencing specific chart elements, factors, statistics, findings, questions, or knowledge sources, wrap them in [REF:type:id]display text[/REF] markers. This creates clickable visual links in the UI.
+Valid types: boxplot, ichart, pareto, stats, yamazumi, finding, question, dashboard, improvement, document, answer.
 For stats, use keys: cpk, mean, sigma, cp, samples. For findings/questions, use their IDs.
+For knowledge sources (document, answer): use the source ID returned by the knowledge base search.
+- [REF:document:doc-id]SOP-103 §4.2[/REF] — links to an uploaded document; clicking shows an inline preview with the relevant chunk.
+- [REF:answer:answer-id]observation text[/REF] — links to a team member answer; clicking shows the full answer and its question context.
 Use sparingly — only for the most important 1-3 references per message. Not every mention needs a marker.
-Example: "The [REF:boxplot:Machine A]Machine A[/REF] category shows a [REF:stats:cpk]Cpk of 0.82[/REF] which is below target."`;
+Example: "The [REF:boxplot:Machine A]Machine A[/REF] category shows a [REF:stats:cpk]Cpk of 0.82[/REF] which is below target."
+Example: "According to [REF:document:sop-103]SOP-103 §4.2[/REF], the temperature must be verified before each run."`;
 }
 
 /**

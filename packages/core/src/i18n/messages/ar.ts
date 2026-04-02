@@ -268,6 +268,7 @@ export const ar: MessageCatalog = {
   'ai.tool.suggestIdea': 'Suggest improvement idea',
   'ai.tool.suggestSaveFinding': 'Save insight',
   'ai.tool.navigateTo': 'Navigate to',
+  'ai.tool.answerQuestion': 'Answer question',
 
   // Report
   'report.kpi.inSpec': 'In Spec',

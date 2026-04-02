@@ -29,6 +29,9 @@ vi.mock('lucide-react', () => ({
     <span data-testid="bookmarkplus-icon" {...props} />
   ),
   Navigation: (props: Record<string, unknown>) => <span data-testid="navigation-icon" {...props} />,
+  CircleCheck: (props: Record<string, unknown>) => (
+    <span data-testid="circlecheck-icon" {...props} />
+  ),
 }));
 
 import { CoScoutInline } from '../CoScoutInline';

@@ -772,6 +772,39 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).not.toContain('Multi-Channel Performance');
   });
 
+  // Strategy-aware validation method coaching (ADR-060 Pillar 5)
+  it('includes validation method coaching for yamazumi mode', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      analysisMode: 'yamazumi',
+      investigation: { allQuestions: [] },
+    });
+    expect(prompt).toContain('taktCompliance');
+    expect(prompt).toContain('Waste %');
+    expect(prompt).toContain('Which step has the most waste');
+  });
+
+  it('includes validation method coaching for performance mode', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      analysisMode: 'performance',
+      investigation: { allQuestions: [] },
+    });
+    expect(prompt).toContain('Channel Cpk');
+    expect(prompt).toContain('Which channel performs worst');
+  });
+
+  it('uses standard validation for default mode', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: { allQuestions: [] },
+    });
+    expect(prompt).toContain('R²adj');
+    expect(prompt).toContain('anova');
+  });
+
+  it('does not include validation coaching when no investigation context', () => {
+    const prompt = buildCoScoutSystemPrompt({ analysisMode: 'yamazumi' });
+    expect(prompt).not.toContain('primary evidence metric');
+  });
+
   // Insight capture guidance (ADR-049)
   it('includes insight capture guidance in system prompt for INVESTIGATE phase', () => {
     const prompt = buildCoScoutSystemPrompt({
@@ -828,6 +861,151 @@ describe('buildCoScoutSystemPrompt', () => {
   it('excludes CoScout finding nudge when coscoutInsights is empty', () => {
     const prompt = buildCoScoutSystemPrompt({ coscoutInsights: [] });
     expect(prompt).not.toContain('Previous CoScout insights saved as findings:');
+  });
+
+  // ADR-060 Pillar 1: Position-aware context rendering
+  it('renders problem statement before questions in investigation context', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        problemStatement: { fullText: 'Fill weight is drifting above USL on night shift' },
+        allQuestions: [{ id: 'q-1', text: 'Is shift timing a factor?', status: 'open' }],
+      },
+    });
+    const psIndex = prompt.indexOf('Fill weight is drifting above USL on night shift');
+    const qIndex = prompt.indexOf('Is shift timing a factor?');
+    expect(psIndex).toBeGreaterThan(-1);
+    expect(qIndex).toBeGreaterThan(-1);
+    expect(psIndex).toBeLessThan(qIndex);
+    expect(prompt).toContain('**Problem Statement:**');
+  });
+
+  it('renders focused question after problem statement', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        problemStatement: { fullText: 'Yield dropping on line 3' },
+        focusedQuestionId: 'q-2',
+        focusedQuestionText: 'Is material batch a factor?',
+      },
+    });
+    const psIndex = prompt.indexOf('Yield dropping on line 3');
+    const fqIndex = prompt.indexOf('Is material batch a factor?');
+    expect(psIndex).toBeGreaterThan(-1);
+    expect(fqIndex).toBeGreaterThan(-1);
+    expect(psIndex).toBeLessThan(fqIndex);
+    expect(prompt).toContain('**Currently investigating:** Is material batch a factor?');
+  });
+
+  it('does not render focused question when focusedQuestionText is missing', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        focusedQuestionId: 'q-3',
+        // no focusedQuestionText
+      },
+    });
+    expect(prompt).not.toContain('**Currently investigating:**');
+  });
+
+  it('renders topFindings at the end of investigation context', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        issueStatement: 'Test issue',
+      },
+      findings: {
+        total: 2,
+        byStatus: { observed: 1, resolved: 1 },
+        keyDrivers: [],
+        topFindings: [
+          {
+            id: 'f1',
+            text: 'Nozzle 3 blocked',
+            status: 'resolved',
+            commentCount: 2,
+            outcome: { effective: 'yes', cpkDelta: 0.45 },
+          },
+          { id: 'f2', text: 'Temperature spike', status: 'observed', commentCount: 0 },
+        ],
+      },
+    });
+    expect(prompt).toContain('**Recent findings:**');
+    expect(prompt).toContain('"Nozzle 3 blocked" [resolved] 2 comments');
+    expect(prompt).toContain('outcome: yes cpkDelta: +0.45');
+    expect(prompt).toContain('"Temperature spike" [observed] 0 comments');
+    // topFindings should appear after issue statement (end of investigation context)
+    const issueIndex = prompt.indexOf('Test issue');
+    const findingsIndex = prompt.indexOf('**Recent findings:**');
+    expect(issueIndex).toBeGreaterThan(-1);
+    expect(findingsIndex).toBeGreaterThan(-1);
+    expect(issueIndex).toBeLessThan(findingsIndex);
+  });
+
+  it('renders overdue actions at the end of investigation context', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        issueStatement: 'Test issue',
+      },
+      findings: {
+        total: 1,
+        byStatus: { improving: 1 },
+        keyDrivers: [],
+        overdueActions: [
+          { text: 'Replace nozzle', assignee: 'Jane', daysOverdue: 5, findingId: 'f1' },
+          { text: 'Calibrate sensor', daysOverdue: 3, findingId: 'f2' },
+        ],
+      },
+    });
+    expect(prompt).toContain('Overdue actions:');
+    expect(prompt).toContain('"Replace nozzle" (Jane, 5d overdue)');
+    expect(prompt).toContain('"Calibrate sensor" (3d overdue)');
+    // overdue actions after issue statement
+    const issueIndex = prompt.indexOf('Test issue');
+    const overdueIndex = prompt.indexOf('Overdue actions:');
+    expect(issueIndex).toBeLessThan(overdueIndex);
+  });
+
+  it('does not render topFindings when findings is undefined', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: { issueStatement: 'Test issue' },
+    });
+    expect(prompt).not.toContain('**Recent findings:**');
+  });
+
+  it('does not render overdueActions when array is empty', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: { issueStatement: 'Test issue' },
+      findings: {
+        total: 0,
+        byStatus: {},
+        keyDrivers: [],
+        overdueActions: [],
+      },
+    });
+    expect(prompt).not.toContain('Overdue actions:');
+  });
+
+  it('caps topFindings at 5 entries', () => {
+    const topFindings = Array.from({ length: 8 }, (_, i) => ({
+      id: `f${i}`,
+      text: `Finding ${i}`,
+      status: 'observed',
+      commentCount: 0,
+    }));
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: { issueStatement: 'Test' },
+      findings: { total: 8, byStatus: {}, keyDrivers: [], topFindings },
+    });
+    // Only first 5 should appear
+    expect(prompt).toContain('"Finding 0"');
+    expect(prompt).toContain('"Finding 4"');
+    expect(prompt).not.toContain('"Finding 5"');
+  });
+
+  it('does not render problem statement when fullText is absent', () => {
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        problemStatement: { measure: 'Fill weight', direction: 'above', scope: 'night shift' },
+      },
+    });
+    expect(prompt).not.toContain('**Problem Statement:**');
   });
 });
 
@@ -1389,11 +1567,11 @@ describe('buildCoScoutTools', () => {
     expect(statsTool).toBeDefined();
   });
 
-  it('includes suggest_knowledge_search tool', () => {
+  it('includes search_knowledge_base tool', () => {
     const tools = buildCoScoutTools();
-    const kbTool = tools.find(t => t.name === 'suggest_knowledge_search');
+    const kbTool = tools.find(t => t.name === 'search_knowledge_base');
     expect(kbTool).toBeDefined();
-    expect(kbTool!.description).toContain('Knowledge Base');
+    expect(kbTool!.description).toContain('knowledge base');
     expect(kbTool!.parameters.required).toContain('query');
   });
 
@@ -1449,9 +1627,9 @@ describe('buildCoScoutTools', () => {
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
   });
 
-  it('never exceeds 19 tools (IMPROVE + Team plan)', () => {
+  it('never exceeds 20 tools (IMPROVE + Team plan)', () => {
     const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
-    expect(tools.length).toBeLessThanOrEqual(19);
+    expect(tools.length).toBeLessThanOrEqual(20);
   });
 
   it('includes get_finding_attachment in all phases', () => {
@@ -1511,6 +1689,35 @@ describe('buildCoScoutTools', () => {
   it('excludes suggest_save_finding when no phase specified', () => {
     const tools = buildCoScoutTools();
     expect(tools.find(t => t.name === 'suggest_save_finding')).toBeUndefined();
+  });
+
+  it('includes answer_question tool in INVESTIGATE phase', () => {
+    const tools = buildCoScoutTools({ phase: 'investigate' });
+    const tool = tools.find(t => t.name === 'answer_question');
+    expect(tool).toBeDefined();
+    expect(tool?.parameters?.properties).toHaveProperty('question_id');
+    expect(tool?.parameters?.properties).toHaveProperty('status');
+    expect(tool?.parameters?.properties).toHaveProperty('note');
+  });
+
+  it('excludes answer_question in SCOUT phase', () => {
+    const tools = buildCoScoutTools({ phase: 'scout' });
+    expect(tools.find(t => t.name === 'answer_question')).toBeUndefined();
+  });
+
+  it('includes answer_question in IMPROVE phase', () => {
+    const tools = buildCoScoutTools({ phase: 'improve' });
+    expect(tools.find(t => t.name === 'answer_question')).toBeDefined();
+  });
+
+  it('excludes answer_question in FRAME phase', () => {
+    const tools = buildCoScoutTools({ phase: 'frame' });
+    expect(tools.find(t => t.name === 'answer_question')).toBeUndefined();
+  });
+
+  it('excludes answer_question when no phase specified', () => {
+    const tools = buildCoScoutTools();
+    expect(tools.find(t => t.name === 'answer_question')).toBeUndefined();
   });
 });
 

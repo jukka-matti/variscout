@@ -12,6 +12,7 @@ import {
   Lightbulb,
   BookmarkPlus,
   Navigation,
+  CircleCheck,
 } from 'lucide-react';
 import type { ActionProposal, ActionToolName, ProposalStatus, Locale } from '@variscout/core';
 import { formatStatistic } from '@variscout/core/i18n';
@@ -50,6 +51,7 @@ const TOOL_CONFIG: Record<
   publish_report: { labelKey: 'ai.tool.publishReport', icon: FileUp, editable: false },
   notify_action_owners: { labelKey: 'ai.tool.notifyOwners', icon: Bell, editable: false },
   navigate_to: { labelKey: 'ai.tool.navigateTo', icon: Navigation, editable: false },
+  answer_question: { labelKey: 'ai.tool.answerQuestion', icon: CircleCheck, editable: true },
 };
 
 /** Format preview data for display */

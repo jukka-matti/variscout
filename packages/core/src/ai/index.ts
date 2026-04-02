@@ -139,3 +139,11 @@ export {
   type RefTargetType,
   type ParseRefResult,
 } from './refMarkers';
+
+export type {
+  KnowledgeAdapter,
+  KnowledgeDocumentEntry,
+  KnowledgeSearchResult,
+  KnowledgeSearchOptions,
+  KnowledgeSourceType,
+} from './knowledgeAdapter';

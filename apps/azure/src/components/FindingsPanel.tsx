@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { FindingsPanelBase, type FindingsPanelBaseProps } from '@variscout/ui';
 import type { FindingAssignee, FindingSource } from '@variscout/core';
 import { hasTeamFeatures } from '@variscout/core';
-import PeoplePicker from './PeoplePicker';
+import { AssigneeInput } from './AssigneeInput';
 import { getEasyAuthUser } from '../auth/easyAuth';
 
 const RESIZE_CONFIG = {
@@ -56,7 +56,7 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
           data-testid="assign-inline"
         >
           <div className="text-xs text-content-secondary mb-1.5">Assign to:</div>
-          <PeoplePicker
+          <AssigneeInput
             selected={null}
             onSelect={handlePersonSelect}
             onClear={() => setAssigningFindingId(null)}
@@ -71,7 +71,7 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
   const renderActionAssigneePicker = useCallback(
     (onSelect: (a: FindingAssignee) => void) => (
       <div className="mt-0.5">
-        <PeoplePicker
+        <AssigneeInput
           selected={null}
           onSelect={onSelect}
           onClear={() => {}}
