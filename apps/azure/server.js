@@ -4,13 +4,18 @@
 // (file upload via multer, JSON body parsing, cleaner route definitions).
 
 import express from 'express';
+import multer from 'multer';
 import { readFile } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { randomUUID } from 'node:crypto';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const DIST = join(__dirname, 'dist');
 const PORT = parseInt(process.env.PORT || '8080', 10);
+const PLAN = process.env.VITE_VARISCOUT_PLAN || 'standard';
+// LOCAL_DEV bypass is blocked on App Service (WEBSITE_SITE_NAME set by Azure)
+const LOCAL_DEV = process.env.LOCAL_DEV && !process.env.WEBSITE_SITE_NAME;
 
 // Build dynamic connect-src for external services.
 // Graph API and SharePoint removed per ADR-059.
@@ -188,6 +193,216 @@ app.post('/api/storage-token', async (req, res) => {
     console.error('[storage-token]', err.message || err);
     res.setHeader('Content-Type', 'application/json');
     res.status(500).end(JSON.stringify({ error: 'Failed to generate storage token' }));
+  }
+});
+
+// ── Knowledge Base API (Team plan only, ADR-060) ──────────────────────────────
+
+// Multer: store uploads in memory (max 10 MB), single file field named 'file'
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+// Shared middleware: require EasyAuth token + Team plan
+function requireTeamPlan(req, res, next) {
+  const principal = req.headers['x-ms-client-principal'];
+  if (!principal && !LOCAL_DEV) {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(401).end(JSON.stringify({ error: 'Authentication required' }));
+    return;
+  }
+  if (PLAN !== 'team') {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(403).end(JSON.stringify({ error: 'Team plan required' }));
+    return;
+  }
+  next();
+}
+
+// Helper: resolve Blob Storage client + container name
+async function getBlobContainerClient() {
+  const { BlobServiceClient } = await import('@azure/storage-blob');
+  const { DefaultAzureCredential } = await import('@azure/identity');
+
+  const acctName = process.env.STORAGE_ACCOUNT_NAME;
+  const containerName = process.env.STORAGE_CONTAINER_NAME || 'variscout-projects';
+  const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+
+  let blobServiceClient;
+  if (connectionString) {
+    blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+  } else {
+    if (!acctName) throw new Error('STORAGE_ACCOUNT_NAME not configured');
+    blobServiceClient = new BlobServiceClient(
+      `https://${acctName}.blob.core.windows.net`,
+      new DefaultAzureCredential()
+    );
+  }
+  return blobServiceClient.getContainerClient(containerName);
+}
+
+// POST /api/kb-upload — upload a reference document to Blob Storage
+app.post('/api/kb-upload', requireTeamPlan, upload.single('file'), async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+
+  if (!req.file) {
+    res.status(400).end(JSON.stringify({ error: 'No file provided' }));
+    return;
+  }
+  const { projectId } = req.body;
+  if (!projectId) {
+    res.status(400).end(JSON.stringify({ error: 'projectId is required' }));
+    return;
+  }
+
+  try {
+    const docId = randomUUID();
+    const blobPath = `${projectId}/documents/${docId}-${req.file.originalname}`;
+    const containerClient = await getBlobContainerClient();
+    const blockBlobClient = containerClient.getBlockBlobClient(blobPath);
+
+    await blockBlobClient.uploadData(req.file.buffer, {
+      blobHTTPHeaders: { blobContentType: req.file.mimetype },
+    });
+
+    const uploadedBy = (() => {
+      try {
+        const raw = req.headers['x-ms-client-principal'];
+        if (!raw) return 'unknown';
+        const decoded = JSON.parse(Buffer.from(raw, 'base64').toString('utf8'));
+        return decoded.userId || decoded.userDetails || 'unknown';
+      } catch {
+        return 'unknown';
+      }
+    })();
+
+    res.status(200).end(JSON.stringify({
+      id: docId,
+      fileName: req.file.originalname,
+      blobPath,
+      uploadedAt: new Date().toISOString(),
+      uploadedBy,
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype,
+    }));
+  } catch (err) {
+    console.error('[kb-upload]', err.message || err);
+    res.status(500).end(JSON.stringify({ error: 'Upload failed' }));
+  }
+});
+
+// POST /api/kb-search — full-text search against Foundry IQ knowledge index
+app.post('/api/kb-search', requireTeamPlan, async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store');
+
+  const { projectId, query, topK } = req.body;
+  if (!projectId || !query) {
+    res.status(400).end(JSON.stringify({ error: 'projectId and query are required' }));
+    return;
+  }
+
+  const searchEndpoint = process.env.AI_SEARCH_ENDPOINT;
+  const searchAdminKey = process.env.AI_SEARCH_ADMIN_KEY;
+
+  if (!searchEndpoint || !searchAdminKey) {
+    // Graceful degradation: KB search not yet configured
+    res.status(200).end(JSON.stringify({ results: [] }));
+    return;
+  }
+
+  try {
+    const top = typeof topK === 'number' && topK > 0 ? topK : 5;
+    const url = `${searchEndpoint}/knowledgebases/variscout-kb/retrieve?api-version=2025-11-01-preview`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': searchAdminKey,
+      },
+      body: JSON.stringify({
+        search: query,
+        top,
+        filter: `projectId eq '${projectId}'`,
+      }),
+    });
+
+    if (!response.ok) {
+      // Foundry IQ unavailable — return empty results rather than erroring
+      console.warn('[kb-search] Search endpoint returned', response.status);
+      res.status(200).end(JSON.stringify({ results: [] }));
+      return;
+    }
+
+    const data = await response.json();
+    res.status(200).end(JSON.stringify({ results: data.value ?? data.results ?? [] }));
+  } catch (err) {
+    console.error('[kb-search]', err.message || err);
+    // Graceful degradation: return empty results so CoScout still works
+    res.status(200).end(JSON.stringify({ results: [] }));
+  }
+});
+
+// GET /api/kb-list — list uploaded documents for a project
+app.get('/api/kb-list', requireTeamPlan, async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store');
+
+  const { projectId } = req.query;
+  if (!projectId) {
+    res.status(400).end(JSON.stringify({ error: 'projectId query param is required' }));
+    return;
+  }
+
+  try {
+    const containerClient = await getBlobContainerClient();
+    const prefix = `${projectId}/documents/`;
+    const documents = [];
+
+    for await (const blob of containerClient.listBlobsFlat({ prefix })) {
+      // Blob name pattern: {projectId}/documents/{docId}-{fileName}
+      const blobName = blob.name.slice(prefix.length); // strip prefix
+      const dashIdx = blobName.indexOf('-');
+      const id = dashIdx >= 0 ? blobName.slice(0, dashIdx) : blobName;
+      const fileName = dashIdx >= 0 ? blobName.slice(dashIdx + 1) : blobName;
+
+      documents.push({
+        id,
+        fileName,
+        blobPath: blob.name,
+        fileSize: blob.properties.contentLength ?? 0,
+        uploadedAt: blob.properties.createdOn?.toISOString() ?? null,
+      });
+    }
+
+    res.status(200).end(JSON.stringify({ documents }));
+  } catch (err) {
+    console.error('[kb-list]', err.message || err);
+    res.status(500).end(JSON.stringify({ error: 'Failed to list documents' }));
+  }
+});
+
+// DELETE /api/kb-delete — remove a document from Blob Storage
+app.delete('/api/kb-delete', requireTeamPlan, async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+
+  const { projectId, documentId, fileName } = req.body;
+  if (!projectId || !documentId || !fileName) {
+    res.status(400).end(JSON.stringify({ error: 'projectId, documentId and fileName are required' }));
+    return;
+  }
+
+  try {
+    const blobPath = `${projectId}/documents/${documentId}-${fileName}`;
+    const containerClient = await getBlobContainerClient();
+    const blockBlobClient = containerClient.getBlockBlobClient(blobPath);
+    await blockBlobClient.delete();
+
+    res.status(200).end(JSON.stringify({ deleted: true }));
+  } catch (err) {
+    console.error('[kb-delete]', err.message || err);
+    res.status(500).end(JSON.stringify({ error: 'Delete failed' }));
   }
 });
 
