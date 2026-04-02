@@ -75,7 +75,7 @@ export const ImprovementSummaryBar: React.FC<ImprovementSummaryBarProps> = ({
         {/* Left: actions done */}
         <span data-testid="summary-actions-done" className="text-sm font-medium text-content">
           {actionsDone != null && actionsTotal != null
-            ? `${actionsDone}/${actionsTotal} ${t('improve.actionsDone')}`
+            ? `${actionsDone}/${actionsTotal} ${'actions done'}`
             : null}
         </span>
 
@@ -113,7 +113,7 @@ export const ImprovementSummaryBar: React.FC<ImprovementSummaryBarProps> = ({
               onClick={onAssessOutcome}
               className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
             >
-              {t('improve.assessOutcome')}
+              {'Assess outcome'}
             </button>
           )}
         </div>
@@ -131,13 +131,13 @@ export const ImprovementSummaryBar: React.FC<ImprovementSummaryBarProps> = ({
         <div className="flex items-center gap-3 text-sm">
           {actionsDone != null && actionsTotal != null && (
             <span data-testid="summary-actions-done" className="font-medium text-content">
-              {`${actionsDone}/${actionsTotal} ${t('improve.actionsDone')}`}
+              {`${actionsDone}/${actionsTotal} ${'actions done'}`}
             </span>
           )}
 
           {overdueCount != null && overdueCount > 0 && (
             <span data-testid="summary-overdue" className="text-red-400 font-semibold">
-              {`\u26A0 ${overdueCount} ${t('improve.overdue')}`}
+              {`\u26A0 ${overdueCount} ${'overdue'}`}
             </span>
           )}
         </div>
@@ -166,7 +166,7 @@ export const ImprovementSummaryBar: React.FC<ImprovementSummaryBarProps> = ({
               onClick={onAddVerification}
               className="rounded-lg border border-edge px-4 py-2 text-sm font-medium text-content hover:bg-surface-secondary transition-colors"
             >
-              {`+ ${t('improve.addVerification')}`}
+              {`+ ${'Add verification'}`}
             </button>
           )}
         </div>
@@ -188,12 +188,12 @@ export const ImprovementSummaryBar: React.FC<ImprovementSummaryBarProps> = ({
 
           {actionsDone != null && actionsTotal != null && (
             <span data-testid="summary-actions-count" className="text-content/60">
-              {`${actionsTotal} ${t('improve.actions')}`}
+              {`${actionsTotal} ${'actions'}`}
               {' ('}
-              <span className="text-content">{`${actionsDone}/${actionsTotal} ${t('improve.done')}`}</span>
+              <span className="text-content">{`${actionsDone}/${actionsTotal} ${'done'}`}</span>
               {overdueCount != null && overdueCount > 0 && (
                 <span data-testid="summary-overdue" className="text-red-400 font-semibold">
-                  {` \u00B7 \u26A0 ${overdueCount} ${t('improve.overdue')}`}
+                  {` \u00B7 \u26A0 ${overdueCount} ${'overdue'}`}
                 </span>
               )}
               {')'}
@@ -228,7 +228,7 @@ export const ImprovementSummaryBar: React.FC<ImprovementSummaryBarProps> = ({
               onClick={onViewActions}
               className="rounded-lg border border-edge px-4 py-2 text-sm font-medium text-content hover:bg-surface-secondary transition-colors"
             >
-              {t('improve.viewActions')}
+              {'View Actions'}
             </button>
           )}
 
