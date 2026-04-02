@@ -88,6 +88,10 @@ export type { AndersonDarlingResult } from './andersonDarling';
 
 // Best subsets regression
 export type { BestSubsetResult, BestSubsetsResult, GeneratedQuestion } from './bestSubsets';
+
+// Performance channel ranking questions
+export type { ChannelInput } from './channelQuestions';
+export { generateChannelRankingQuestions, CPK_EXCELLENT } from './channelQuestions';
 export {
   computeBestSubsets,
   computeRSquaredAdjusted,

@@ -83,6 +83,16 @@ vi.mock('@variscout/core/stats', () => ({
     },
   ]),
   generateFollowUpQuestions: vi.fn(() => []),
+  generateChannelRankingQuestions: vi.fn(() => [
+    {
+      text: 'Why does Head 1 have Cpk=0.85?',
+      factors: ['Head 1'],
+      rSquaredAdj: 0.85,
+      autoAnswered: false,
+      source: 'factor-intel' as const,
+      type: 'single-factor' as const,
+    },
+  ]),
 }));
 
 function makeData(n: number): DataRow[] {
@@ -449,6 +459,78 @@ describe('useQuestionGeneration', () => {
       );
 
       expect(generateYamazumiQuestions).not.toHaveBeenCalled();
+      expect(generateQuestionsFromRanking).toHaveBeenCalled();
+    });
+  });
+
+  describe('performance channel ranking routing', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    function makeChannelData() {
+      return [
+        { name: 'Head 1', cpk: 0.85 },
+        { name: 'Head 2', cpk: 1.42 },
+      ];
+    }
+
+    it('calls generateChannelRankingQuestions when mode is performance and channelData is provided', async () => {
+      const { generateChannelRankingQuestions } = await import('@variscout/core/stats');
+      const state = makeMockQuestionsState();
+
+      renderHook(() =>
+        useQuestionGeneration({
+          filteredData: makeData(50),
+          outcome: 'value',
+          factors: ['Shift', 'Machine'],
+          questionsState: state,
+          mode: 'performance',
+          channelData: makeChannelData(),
+        })
+      );
+
+      expect(generateChannelRankingQuestions).toHaveBeenCalledWith(makeChannelData());
+      expect(state.generateInitialQuestions).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to generateQuestionsFromRanking when mode is performance but channelData is empty', async () => {
+      const { generateChannelRankingQuestions } = await import('@variscout/core/stats');
+      const { generateQuestionsFromRanking } = await import('@variscout/core/stats');
+      const state = makeMockQuestionsState();
+
+      renderHook(() =>
+        useQuestionGeneration({
+          filteredData: makeData(50),
+          outcome: 'value',
+          factors: ['Shift', 'Machine'],
+          questionsState: state,
+          mode: 'performance',
+          channelData: [],
+        })
+      );
+
+      expect(generateChannelRankingQuestions).not.toHaveBeenCalled();
+      expect(generateQuestionsFromRanking).toHaveBeenCalled();
+    });
+
+    it('ignores channelData when mode is not performance', async () => {
+      const { generateChannelRankingQuestions } = await import('@variscout/core/stats');
+      const { generateQuestionsFromRanking } = await import('@variscout/core/stats');
+      const state = makeMockQuestionsState();
+
+      renderHook(() =>
+        useQuestionGeneration({
+          filteredData: makeData(50),
+          outcome: 'value',
+          factors: ['Shift', 'Machine'],
+          questionsState: state,
+          mode: 'standard',
+          channelData: makeChannelData(),
+        })
+      );
+
+      expect(generateChannelRankingQuestions).not.toHaveBeenCalled();
       expect(generateQuestionsFromRanking).toHaveBeenCalled();
     });
   });
