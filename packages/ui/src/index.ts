@@ -456,6 +456,12 @@ export {
   ImprovementContextPanel,
   type ImprovementContextPanelProps,
   type CauseSummary,
+  PrioritizationMatrix,
+  DEFAULT_PRESETS,
+  type PrioritizationMatrixProps,
+  type MatrixIdea,
+  type MatrixDimension,
+  type MatrixPreset,
 } from './components/ImprovementPlan';
 
 // Yamazumi Components

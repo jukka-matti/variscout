@@ -8,7 +8,15 @@ import { useFilterNavigation } from '../hooks';
 import { ProjectHeader } from '../components/ProjectHeader';
 import PasteScreen from '../components/data/PasteScreen';
 import ManualEntry from '../components/data/ManualEntry';
-import { ColumnMapping, ImprovementWorkspaceBase, type AnalysisBrief } from '@variscout/ui';
+import {
+  ColumnMapping,
+  ImprovementWorkspaceBase,
+  ImprovementContextPanel,
+  PrioritizationMatrix,
+  DEFAULT_PRESETS,
+  type AnalysisBrief,
+  type MatrixDimension,
+} from '@variscout/ui';
 import {
   useControlViolations,
   useQuestions,
@@ -564,18 +572,32 @@ export const Editor: React.FC<EditorProps> = ({
   const projectionTarget = useInvestigationStore(s => s.projectionTarget);
 
   // Improvement workspace
-  const { handleConvertIdeasToActions, handleOpenImprovementPopout, handleSynthesisChange } =
-    useImprovementOrchestration({
-      questionsState,
-      findingsState,
-      persistedQuestions: persistedQuestions,
-      processContext,
-      setProcessContext,
-    });
+  const {
+    handleConvertIdeasToActions,
+    handleOpenImprovementPopout,
+    handleSynthesisChange,
+    causeColors,
+    causeLabels,
+    causeSummaries,
+    matrixIdeas,
+  } = useImprovementOrchestration({
+    questionsState,
+    findingsState,
+    persistedQuestions: persistedQuestions,
+    processContext,
+    setProcessContext,
+  });
   const improvementQuestions = useImprovementStore(s => s.improvementQuestions);
   const improvementLinkedFindings = useImprovementStore(s => s.improvementLinkedFindings);
   const selectedIdeaIds = useImprovementStore(s => s.selectedIdeaIds);
   const convertedIdeaIds = useImprovementStore(s => s.convertedIdeaIds);
+  const activeImprovementView = useImprovementStore(s => s.activeImprovementView);
+
+  // Matrix axis state (local — not persisted)
+  const [matrixXAxis, setMatrixXAxis] = useState<MatrixDimension>('benefit');
+  const [matrixYAxis, setMatrixYAxis] = useState<MatrixDimension>('timeframe');
+  const [matrixColorBy, setMatrixColorBy] = useState<MatrixDimension>('cost');
+  const [matrixPreset, setMatrixPreset] = useState<string>('benefit-time');
 
   // Control violations for chart annotations (must be called unconditionally for hook order)
   const controlViolations = useControlViolations(filteredData, outcome, specs);
@@ -1037,6 +1059,57 @@ export const Editor: React.FC<EditorProps> = ({
                 selectedIdeaIds={selectedIdeaIds}
                 convertedIdeaIds={convertedIdeaIds}
                 targetCpk={processContext?.targetValue}
+                activeView={activeImprovementView}
+                showLeftPanel={true}
+                renderLeftPanel={() => (
+                  <ImprovementContextPanel
+                    problemStatement={processContext?.problemStatement}
+                    targetCpk={processContext?.targetValue}
+                    currentCpk={stats?.cpk}
+                    causes={causeSummaries}
+                    synthesis={processContext?.synthesis}
+                  />
+                )}
+                renderMatrix={() => (
+                  <div className="p-4">
+                    <PrioritizationMatrix
+                      ideas={matrixIdeas}
+                      xAxis={matrixXAxis}
+                      yAxis={matrixYAxis}
+                      colorBy={matrixColorBy}
+                      causeColors={causeColors}
+                      causeLabels={causeLabels}
+                      presets={DEFAULT_PRESETS}
+                      activePreset={matrixPreset}
+                      onPresetChange={setMatrixPreset}
+                      onAxisChange={(axis, value) => {
+                        if (axis === 'x') setMatrixXAxis(value);
+                        else if (axis === 'y') setMatrixYAxis(value);
+                        else setMatrixColorBy(value);
+                      }}
+                      onToggleSelect={ideaId => {
+                        const question = improvementQuestions.find(q =>
+                          q.ideas?.some(i => i.id === ideaId)
+                        );
+                        if (question) {
+                          questionsState.selectIdea(
+                            question.id,
+                            ideaId,
+                            !selectedIdeaIds.has(ideaId)
+                          );
+                        }
+                      }}
+                      onGhostDotClick={ideaId => {
+                        const question = improvementQuestions.find(q =>
+                          q.ideas?.some(i => i.id === ideaId)
+                        );
+                        if (question) {
+                          handleProjectIdea(question.id, ideaId);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
               />
             ) : activeView === 'report' ? (
               <Suspense fallback={null}>

@@ -9,7 +9,9 @@
  */
 import React, { useMemo, useCallback, useEffect, useRef } from 'react';
 import type { Finding, FindingAssignee, Question, ProcessContext } from '@variscout/core';
+import { assignCauseColors } from '@variscout/core/findings';
 import type { UseQuestionsReturn } from '@variscout/hooks';
+import type { MatrixIdea, CauseSummary } from '@variscout/ui';
 import {
   openImprovementPopout,
   updateImprovementPopout,
@@ -49,6 +51,14 @@ export interface UseImprovementOrchestrationReturn {
   handleOpenImprovementPopout: () => void;
   /** Synthesis text change handler */
   handleSynthesisChange: (text: string) => void;
+  /** Map of questionId → hex color for cause grouping */
+  causeColors: Map<string, string>;
+  /** Labels for cause legend (questionId → display name) */
+  causeLabels: Map<string, string>;
+  /** Cause summaries for context panel */
+  causeSummaries: CauseSummary[];
+  /** Matrix-shaped ideas for PrioritizationMatrix */
+  matrixIdeas: MatrixIdea[];
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────
@@ -121,6 +131,69 @@ export function useImprovementOrchestration({
     }
     return ids;
   }, [findingsState.findings]);
+
+  // ── Cause colors, labels, summaries for split layout ────────────────────
+
+  // Cause colors for matrix dots and context panel
+  const causeColors = useMemo(() => {
+    const ids = (persistedQuestions ?? [])
+      .filter(q => q.causeRole === 'suspected-cause' || q.causeRole === 'contributing')
+      .map(q => q.id);
+    return assignCauseColors(ids);
+  }, [persistedQuestions]);
+
+  // Cause labels for matrix legend
+  const causeLabels = useMemo(() => {
+    const map = new Map<string, string>();
+    (persistedQuestions ?? [])
+      .filter(q => q.causeRole === 'suspected-cause' || q.causeRole === 'contributing')
+      .forEach(q => {
+        map.set(q.id, q.factor ?? q.text);
+      });
+    return map;
+  }, [persistedQuestions]);
+
+  // Cause summaries for context panel
+  const causeSummaries: CauseSummary[] = useMemo(() => {
+    return (persistedQuestions ?? [])
+      .filter(q => q.causeRole === 'suspected-cause' || q.causeRole === 'contributing')
+      .map(q => ({
+        id: q.id,
+        factor: q.factor ?? q.text,
+        evidence:
+          q.evidence?.rSquaredAdj != null
+            ? `R\u00B2adj ${Math.round(q.evidence.rSquaredAdj * 100)}%`
+            : q.evidence?.etaSquared != null
+              ? `\u03B7\u00B2 ${Math.round(q.evidence.etaSquared * 100)}%`
+              : '',
+        role: (q.causeRole ?? 'suspected-cause') as
+          | 'suspected-cause'
+          | 'contributing'
+          | 'ruled-out',
+        ideaCount: q.ideas?.length ?? 0,
+        actionCount: findingsState.findings
+          .filter(f => f.questionId === q.id)
+          .reduce((sum, f) => sum + (f.actions?.length ?? 0), 0),
+        color: causeColors.get(q.id) ?? '#94a3b8',
+      }));
+  }, [persistedQuestions, causeColors, findingsState.findings]);
+
+  // Matrix ideas (transform improvement questions to MatrixIdea shape)
+  const matrixIdeas: MatrixIdea[] = useMemo(() => {
+    return improvementQuestions.flatMap(q =>
+      (q.ideas ?? []).map(idea => ({
+        id: idea.id,
+        text: idea.text,
+        questionId: q.id,
+        timeframe: idea.timeframe,
+        cost: idea.cost,
+        risk: idea.risk,
+        projection: idea.projection,
+        impactOverride: idea.impactOverride,
+        selected: selectedIdeaIds.has(idea.id),
+      }))
+    );
+  }, [improvementQuestions, selectedIdeaIds]);
 
   // ── Sync computed state to Zustand store ────────────────────────────────
   const syncState = useImprovementStore.getState().syncState;
@@ -255,5 +328,9 @@ export function useImprovementOrchestration({
     handleConvertIdeasToActions,
     handleOpenImprovementPopout,
     handleSynthesisChange,
+    causeColors,
+    causeLabels,
+    causeSummaries,
+    matrixIdeas,
   };
 }

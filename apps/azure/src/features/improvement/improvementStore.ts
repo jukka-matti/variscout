@@ -25,6 +25,8 @@ interface ImprovementStoreState {
   projectedCpkMap: Record<string, number>;
   /** Ideas that already have matching action items */
   convertedIdeaIds: Set<string>;
+  /** Active improvement view: plan (default) or track */
+  activeImprovementView: 'plan' | 'track';
 }
 
 // ── Actions ─────────────────────────────────────────────────────────────────
@@ -41,6 +43,8 @@ interface ImprovementStoreActions {
     projectedCpkMap: Record<string, number>;
     convertedIdeaIds: Set<string>;
   }) => void;
+  /** Switch between plan and track views */
+  setActiveImprovementView: (view: 'plan' | 'track') => void;
 }
 
 export type ImprovementStore = ImprovementStoreState & ImprovementStoreActions;
@@ -54,7 +58,9 @@ export const useImprovementStore = create<ImprovementStore>(set => ({
   selectedIdeaIds: new Set<string>(),
   projectedCpkMap: {},
   convertedIdeaIds: new Set<string>(),
+  activeImprovementView: 'plan',
 
   // Actions
   syncState: state => set(state),
+  setActiveImprovementView: view => set({ activeImprovementView: view }),
 }));

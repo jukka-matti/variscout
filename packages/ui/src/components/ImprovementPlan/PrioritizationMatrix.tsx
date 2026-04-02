@@ -21,6 +21,7 @@ export type MatrixDimension = 'benefit' | 'timeframe' | 'cost' | 'risk';
 export interface MatrixIdea {
   id: string;
   text: string;
+  questionId?: string;
   timeframe?: IdeaTimeframe;
   cost?: IdeaCost;
   risk?: IdeaRiskAssessment;
@@ -48,6 +49,16 @@ export interface PrioritizationMatrixProps {
   presets?: MatrixPreset[];
   activePreset?: string;
   onPresetChange?: (presetId: string) => void;
+  /** Map of questionId → hex color for cause grouping */
+  causeColors?: Map<string, string>;
+  /** Labels for cause legend (questionId → display name) */
+  causeLabels?: Map<string, string>;
+  /** ID of idea being actively projected (pulsing dot) */
+  projectingIdeaId?: string;
+  /** ID of idea to highlight (bidirectional navigation) */
+  highlightedIdeaId?: string;
+  /** Callback when clicking a ghost dot (to open What-If) */
+  onGhostDotClick?: (ideaId: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -441,6 +452,11 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
   presets = DEFAULT_PRESETS,
   activePreset,
   onPresetChange,
+  causeColors,
+  causeLabels,
+  projectingIdeaId,
+  highlightedIdeaId,
+  onGhostDotClick,
 }) => {
   const { t } = useTranslation();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -457,12 +473,15 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
         const xFrac = getPosition(xAxis, idea, xRange);
         const yFrac = getPosition(yAxis, idea, yRange);
         if (xFrac == null || yFrac == null) return null;
+        const isGhost = !idea.projection && !idea.impactOverride;
+        const resolvedColor = causeColors?.get(idea.questionId ?? '') ?? getColor(colorBy, idea);
         return {
           idea,
           index: index + 1,
           cx: MARGIN.left + xFrac * CHART_W,
           cy: MARGIN.top + yFrac * CHART_H,
-          color: getColor(colorBy, idea),
+          color: resolvedColor,
+          isGhost,
         };
       })
       .filter(Boolean) as Array<{
@@ -471,12 +490,18 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
       cx: number;
       cy: number;
       color: string;
+      isGhost: boolean;
     }>;
-  }, [ideas, xAxis, yAxis, colorBy, xRange, yRange]);
+  }, [ideas, xAxis, yAxis, colorBy, xRange, yRange, causeColors]);
 
   const xTicks = useMemo(() => getTickLabels(xAxis, false), [xAxis]);
   const yTicks = useMemo(() => getTickLabels(yAxis, true), [yAxis]);
   const legendEntries = useMemo(() => getLegendEntries(colorBy), [colorBy]);
+
+  const unprojectedCount = useMemo(
+    () => ideas.filter(i => !i.projection && !i.impactOverride).length,
+    [ideas]
+  );
 
   const showQuickWins = yAxis === 'benefit' && (xAxis === 'timeframe' || xAxis === 'cost');
 
@@ -648,68 +673,127 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
           )}
 
           {/* Dots */}
-          {dots.map(({ idea, index, cx, cy, color }) => (
-            <g
-              key={idea.id}
-              data-testid={`matrix-dot-${idea.id}`}
-              className="cursor-pointer"
-              onClick={() => onToggleSelect(idea.id)}
-              onMouseEnter={() => setHoveredId(idea.id)}
-              onMouseLeave={() => setHoveredId(null)}
-            >
-              <title>{buildTooltip(idea, t)}</title>
+          {dots.map(({ idea, index, cx, cy, color, isGhost }) => {
+            const isProjecting = projectingIdeaId === idea.id;
+            const isHighlighted = highlightedIdeaId === idea.id;
 
-              {/* Selection ring */}
-              {idea.selected && (
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r={DOT_R + 3}
-                  fill="none"
-                  stroke="white"
-                  strokeWidth={2}
-                  opacity={0.9}
-                />
-              )}
-
-              {/* Hover ring */}
-              {hoveredId === idea.id && !idea.selected && (
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r={DOT_R + 2}
-                  fill="none"
-                  stroke="white"
-                  strokeWidth={1}
-                  opacity={0.4}
-                />
-              )}
-
-              {/* Main dot */}
-              <circle
-                cx={cx}
-                cy={cy}
-                r={DOT_R}
-                fill={color}
-                opacity={0.85}
-                stroke={idea.selected ? 'white' : 'none'}
-                strokeWidth={idea.selected ? 2 : 0}
-              />
-
-              {/* Number label */}
-              <text
-                x={cx}
-                y={cy + 3.5}
-                textAnchor="middle"
-                fill="white"
-                fontSize={10}
-                fontWeight={600}
-                pointerEvents="none"
+            return (
+              <g
+                key={idea.id}
+                data-testid={isGhost ? `dot-ghost-${idea.id}` : `matrix-dot-${idea.id}`}
+                className="cursor-pointer"
+                onClick={() => (isGhost ? onGhostDotClick?.(idea.id) : onToggleSelect(idea.id))}
+                onMouseEnter={() => setHoveredId(idea.id)}
+                onMouseLeave={() => setHoveredId(null)}
               >
-                {index}
-              </text>
-            </g>
-          ))}
+                <title>{buildTooltip(idea, t)}</title>
+
+                {/* Pulsing animation for actively projecting idea */}
+                {isProjecting && (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={DOT_R + 4}
+                    fill="none"
+                    stroke="#3b82f6"
+                    strokeWidth={1.5}
+                    opacity={0.5}
+                  >
+                    <animate
+                      attributeName="r"
+                      values={`${DOT_R + 2};${DOT_R + 6};${DOT_R + 2}`}
+                      dur="1.5s"
+                      repeatCount="indefinite"
+                    />
+                    <animate
+                      attributeName="opacity"
+                      values="0.6;0.2;0.6"
+                      dur="1.5s"
+                      repeatCount="indefinite"
+                    />
+                  </circle>
+                )}
+
+                {/* Highlight ring (bidirectional navigation) */}
+                {isHighlighted && !idea.selected && (
+                  <circle
+                    data-testid={`dot-highlight-${idea.id}`}
+                    cx={cx}
+                    cy={cy}
+                    r={DOT_R + 3}
+                    fill="none"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    opacity={0.8}
+                  />
+                )}
+
+                {/* Selection ring */}
+                {idea.selected && (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={DOT_R + 3}
+                    fill="none"
+                    stroke="white"
+                    strokeWidth={2}
+                    opacity={0.9}
+                  />
+                )}
+
+                {/* Hover ring */}
+                {hoveredId === idea.id && !idea.selected && !isHighlighted && (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={DOT_R + 2}
+                    fill="none"
+                    stroke="white"
+                    strokeWidth={1}
+                    opacity={0.4}
+                  />
+                )}
+
+                {/* Main dot — ghost (dashed outline) or solid */}
+                {isGhost ? (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={DOT_R}
+                    fill="none"
+                    stroke={color}
+                    strokeWidth={2}
+                    strokeDasharray="4,3"
+                    opacity={0.4}
+                  />
+                ) : (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={DOT_R}
+                    fill={color}
+                    opacity={0.85}
+                    stroke={idea.selected ? 'white' : 'none'}
+                    strokeWidth={idea.selected ? 2 : 0}
+                  />
+                )}
+
+                {/* Number label */}
+                <text
+                  x={cx}
+                  y={cy + 3.5}
+                  textAnchor="middle"
+                  fill={isGhost ? color : 'white'}
+                  fontSize={10}
+                  fontWeight={600}
+                  pointerEvents="none"
+                  opacity={isGhost ? 0.5 : 1}
+                >
+                  {index}
+                </text>
+              </g>
+            );
+          })}
         </svg>
 
         <div ref={tooltipRef} />
@@ -717,20 +801,40 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
 
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-content/60">
-        {legendEntries.map(entry => (
-          <span key={entry.i18nKey} className="flex items-center gap-1">
-            <span
-              className="inline-block w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: entry.color }}
-            />
-            {t(entry.i18nKey)}
-          </span>
-        ))}
+        {causeColors && causeLabels
+          ? /* Cause-based legend */
+            Array.from(causeLabels.entries()).map(([qId, label]) => (
+              <span key={qId} className="flex items-center gap-1">
+                <span
+                  className="inline-block w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: causeColors.get(qId) ?? GRAY_DOT }}
+                />
+                {label}
+              </span>
+            ))
+          : /* Default dimension-based legend */
+            legendEntries.map(entry => (
+              <span key={entry.i18nKey} className="flex items-center gap-1">
+                <span
+                  className="inline-block w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: entry.color }}
+                />
+                {t(entry.i18nKey)}
+              </span>
+            ))}
         <span className="flex items-center gap-1 ml-2">
           <span className="inline-block w-2.5 h-2.5 rounded-full border-2 border-white/80 bg-transparent" />
           {t('matrix.selected')}
         </span>
       </div>
+
+      {/* Ghost dot nudge */}
+      {unprojectedCount > 0 && (
+        <div data-testid="matrix-ghost-nudge" className="text-[10px] text-content/50 italic mt-1.5">
+          {unprojectedCount} idea{unprojectedCount !== 1 ? 's have' : ' has'} no projection — click
+          dashed dot to simulate
+        </div>
+      )}
     </div>
   );
 };
