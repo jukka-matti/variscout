@@ -135,19 +135,19 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## AI Features
 
-| Feature                         | Azure Standard | Azure Team | PWA (Free) | Notes                                                                              |
-| ------------------------------- | :------------: | :--------: | :--------: | ---------------------------------------------------------------------------------- |
-| **NarrativeBar**                |    Optional    |  Optional  |     -      | Plain-language analysis summary at dashboard bottom                                |
-| **ChartInsightChip**            |    Optional    |  Optional  |     -      | Per-chart contextual suggestions                                                   |
-| **CoScoutPanel**                |    Optional    |  Enhanced  |     -      | Team: methodology-grounded, knowledge-base-aware                                   |
-| **Knowledge Base**              |       -        |  Deferred  |     -      | Deferred pending new backend approach (ADR-059). Previously SharePoint search.     |
-| **Knowledge Catalyst**          |       -        |     ✓      |     -      | Organizational learning — resolved findings feed back into AI memory (Team only)   |
-| **Process description field**   |    Optional    |  Optional  |     -      | Free-text process context for AI grounding                                         |
-| **AI visibility toggle**        |    Optional    |  Optional  |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists             |
-| **Knowledge Base Search**       |       -        |  Deferred  |     -      | Deferred (ADR-059). Will use new backend approach when reimplemented.              |
-| **Findings Export (CSV/JSON)**  |       ✓        |     ✓      |     -      | Download findings as CSV (Excel-compatible) or structured JSON                     |
-| **Findings Export (AI Report)** |    Optional    |  Optional  |     -      | AI-generated quality engineering report from findings data                         |
-| **Admin Hub**                   |       ✓        |     ✓      |     -      | Health checks, plan overview, Teams setup (Team), KB setup (Team), troubleshooting |
+| Feature                         | Azure Standard |   Azure Team   | PWA (Free) | Notes                                                                                                        |
+| ------------------------------- | :------------: | :------------: | :--------: | ------------------------------------------------------------------------------------------------------------ |
+| **NarrativeBar**                |    Optional    |    Optional    |     -      | Plain-language analysis summary at dashboard bottom                                                          |
+| **ChartInsightChip**            |    Optional    |    Optional    |     -      | Per-chart contextual suggestions                                                                             |
+| **CoScoutPanel**                |    Optional    |    Enhanced    |     -      | Team: methodology-grounded, knowledge-base-aware                                                             |
+| **Knowledge Base**              |       -        | Beta (ADR-060) |     -      | Foundry IQ unified knowledge index (ADR-060). Per-project Blob Storage embeddings replace SharePoint search. |
+| **Knowledge Catalyst**          |       -        |       ✓        |     -      | Organizational learning — resolved findings feed back into AI memory (Team only)                             |
+| **Process description field**   |    Optional    |    Optional    |     -      | Free-text process context for AI grounding                                                                   |
+| **AI visibility toggle**        |    Optional    |    Optional    |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists                                       |
+| **Knowledge Base Search**       |       -        | Beta (ADR-060) |     -      | Foundry IQ semantic search over per-project knowledge index (ADR-060).                                       |
+| **Findings Export (CSV/JSON)**  |       ✓        |       ✓        |     -      | Download findings as CSV (Excel-compatible) or structured JSON                                               |
+| **Findings Export (AI Report)** |    Optional    |    Optional    |     -      | AI-generated quality engineering report from findings data                                                   |
+| **Admin Hub**                   |       ✓        |       ✓        |     -      | Health checks, plan overview, Teams setup (Team), KB setup (Team), troubleshooting                           |
 
 > AI features require customer-deployed Azure AI Foundry resources (optional ARM deployment checkbox). AI is included in all Azure plans per [ADR-033](../07-decisions/adr-033-pricing-simplification.md). See [ADR-019](../07-decisions/adr-019-ai-integration.md). PWA never has AI.
 

@@ -18,9 +18,9 @@ The ARM template (compiled from Bicep) deploys VariScout to a customer's Azure s
 - App Service Authentication (EasyAuth) with Azure AD
 - Configuration settings (all features enabled)
 
-The customer provides their own App Registration (created before deployment) so that VariScout can authenticate users and access OneDrive via Graph API (Team plan).
+The customer provides their own App Registration (created before deployment) so that VariScout can authenticate users via EasyAuth (Standard: `User.Read`; Team: `User.Read` + `People.Read`). No Graph API scopes are needed — the Function App and OBO token exchange were removed in ADR-059.
 
-**Minimal backend resources** -- Standard and Team plans run entirely in the browser. Both plans include Azure AI Services (model hosting), Key Vault (secure secret storage), Function App (OBO token exchange), and App Insights (telemetry). The Team plan additionally provisions Azure AI Search for Knowledge Base orchestration. The App Service uses a system-assigned managed identity for RBAC-based access to Key Vault.
+**Minimal backend resources** — Standard and Team plans run entirely in the browser. Both plans include Azure AI Services (model hosting), Key Vault (secure secret storage), and App Insights (telemetry). The Team plan additionally provisions Azure Blob Storage (project sync + Foundry IQ knowledge index) and `text-embedding-3-small` deployment for Foundry IQ (ADR-060). The App Service uses a system-assigned managed identity for RBAC-based access to Key Vault and Blob Storage.
 
 **Conditional variables:**
 
@@ -68,11 +68,9 @@ Before deploying VariScout, the customer must create an App Registration in Azur
    - `User.Read` — sign-in and read user profile
 
    **Team plan (€199/month) — add all of the above, plus:**
-   - `Files.ReadWrite` — read and write user's OneDrive files (for project sync)
-   - `Files.ReadWrite.All` — channel SharePoint access (for shared projects)
-   - `Channel.ReadBasic.All` — channel listing (for Teams integration)
+   - `People.Read` — people picker for action assignment
 
-3. Click **Grant admin consent** (optional for Standard; recommended for Team plan, otherwise users consent on first login)
+3. Click **Grant admin consent** (optional — user consent is sufficient for both plans per ADR-059)
 
 ### Create Client Secret
 
@@ -94,11 +92,11 @@ Before deploying VariScout, the customer must create an App Registration in Azur
 
 ### Optional Parameters
 
-| Parameter       | Type   | Default                 | Description                                                                  |
-| --------------- | ------ | ----------------------- | ---------------------------------------------------------------------------- |
-| `location`      | string | Resource group location | Azure region for deployment                                                  |
-| `appName`       | string | `variscout-{unique}`    | Name for App Service (3-24)                                                  |
-| `variscoutPlan` | string | `standard`              | Plan: `standard` (local files) or `team` (+ OneDrive, Teams, Knowledge Base) |
+| Parameter       | Type   | Default                 | Description                                                                               |
+| --------------- | ------ | ----------------------- | ----------------------------------------------------------------------------------------- |
+| `location`      | string | Resource group location | Azure region for deployment                                                               |
+| `appName`       | string | `variscout-{unique}`    | Name for App Service (3-24)                                                               |
+| `variscoutPlan` | string | `standard`              | Plan: `standard` (local files) or `team` (+ Blob Storage sync, Foundry IQ Knowledge Base) |
 
 ---
 
@@ -183,9 +181,9 @@ App Service Authentication configured for Azure AD, referencing the customer-pro
           "clientSecretSettingName": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
         },
         "login": {
-          "loginParameters": ["scope=openid profile email User.Read Files.ReadWrite"]
+          "loginParameters": ["scope=openid profile email User.Read"]
           // Actual template uses conditional: Standard = "User.Read" only,
-          // Team = "User.Read Files.ReadWrite"
+          // Team = "User.Read People.Read"
         }
       }
     },
@@ -204,12 +202,13 @@ Key configuration:
 
 ### 4. AI Services (all plans)
 
-| Resource          | SKU   | Purpose                                     | Monthly Cost | Plan      |
-| ----------------- | ----- | ------------------------------------------- | ------------ | --------- |
-| Azure AI Services | S0    | Model hosting (gpt-5.4-nano + gpt-5.4-mini) | ~€15-25      | All plans |
-| Azure AI Search   | Basic | Knowledge base orchestration                | ~EUR50-60    | Team only |
+| Resource                 | SKU   | Purpose                                                    | Monthly Cost | Plan                  |
+| ------------------------ | ----- | ---------------------------------------------------------- | ------------ | --------------------- |
+| Azure AI Services        | S0    | Model hosting (gpt-5.4-nano + gpt-5.4-mini)                | ~€15-25      | All plans             |
+| `text-embedding-3-small` | —     | Foundry IQ knowledge index embeddings (1536 dims, ADR-060) | ~€0-1        | Team only             |
+| Azure AI Search Basic    | Basic | Reserved for future cross-project search (not used in v1)  | ~€50-60      | Not provisioned in v1 |
 
-AI resources (Azure AI Services, Key Vault, Function App, App Insights) are provisioned for both Standard and Team plans via the `hasAI` variable. Azure AI Search is provisioned only for the Team plan (Knowledge Base feature) via the `hasTeamFeatures` variable.
+AI resources (Azure AI Services, Key Vault, App Insights) are provisioned for both Standard and Team plans via the `hasAI` variable. `text-embedding-3-small` is deployed as part of the Azure AI Services resource for the Team plan via the `hasTeamFeatures` variable. Azure AI Search Basic is listed for reference — Foundry IQ v1 uses embeddings in Blob Storage (brute-force cosine) and does not require Azure AI Search.
 
 #### AI Deployment Guardrails
 
@@ -230,12 +229,11 @@ See [Responsible AI Policy](../../05-technical/architecture/responsible-ai-polic
 
 The Node.js server (`server.js`) serves a `/config` endpoint that returns runtime settings from environment variables. This allows Marketplace deployments to configure AI endpoints without rebuilding.
 
-| Variable             | Description                             | Plan      |
-| -------------------- | --------------------------------------- | --------- |
-| `AI_ENDPOINT`        | Azure AI Foundry endpoint               | All plans |
-| `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint                | Team      |
-| `AI_SEARCH_INDEX`    | Search index name                       | Team      |
-| `FUNCTION_URL`       | Function App URL for OBO token exchange | All plans |
+| Variable             | Description                                                 | Plan      |
+| -------------------- | ----------------------------------------------------------- | --------- |
+| `AI_ENDPOINT`        | Azure AI Foundry endpoint                                   | All plans |
+| `AI_EMBEDDING_MODEL` | Embedding deployment name (text-embedding-3-small, ADR-060) | Team      |
+| `STORAGE_ACCOUNT`    | Blob Storage account name for Foundry IQ knowledge index    | Team      |
 
 The client fetches `/config` on startup via `runtimeConfig.ts` and uses the returned values to configure AI service clients. Environment variables without the `VITE_` prefix are invisible to the Vite build — the `/config` endpoint is the only way they reach the client.
 
@@ -269,9 +267,9 @@ The customer provides an app name and selects a region.
 The customer selects their VariScout plan:
 
 - **Standard (€79/month)** — Full analysis, local file storage
-- **Team (€199/month)** — Teams, OneDrive, SharePoint, Knowledge Base, mobile, photos
+- **Team (€199/month)** — + Blob Storage sync, Foundry IQ Knowledge Base, photo evidence, people picker
 
-The selected `variscoutPlan` parameter is passed to the ARM template, which conditionally provisions Team plan resources (Function App, Storage Account) and adjusts EasyAuth login scopes.
+The selected `variscoutPlan` parameter is passed to the ARM template, which conditionally provisions Team plan resources (Blob Storage, `text-embedding-3-small` deployment) and adjusts EasyAuth login scopes.
 
 ### Authentication Step
 
@@ -322,7 +320,7 @@ az deployment group show \
 After deployment, EasyAuth is fully configured:
 
 - Users visit the app URL and are redirected to Azure AD sign-in
-- Consent for `User.Read` (Standard) or `User.Read` + `Files.ReadWrite` (Team) is requested on first login
+- Consent for `User.Read` (Standard) or `User.Read` + `People.Read` (Team) is requested on first login
 - Tokens are stored in the EasyAuth token store and accessible via `/.auth/me`
 
 ### Verify Redirect URI
@@ -394,9 +392,9 @@ The template requests only necessary permissions:
 
 **Team plan adds:**
 
-| Permission        | Scope     | Purpose               |
-| ----------------- | --------- | --------------------- |
-| `Files.ReadWrite` | Delegated | OneDrive project sync |
+| Permission    | Scope     | Purpose                             |
+| ------------- | --------- | ----------------------------------- |
+| `People.Read` | Delegated | People picker for action assignment |
 
 ### Secret Handling
 
