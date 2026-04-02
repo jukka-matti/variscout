@@ -42,15 +42,17 @@ Technical architecture for optional AI integration in the Azure App.
 ┌──────────────────────▼──────────────────────────────┐
 │  AZURE (customer's tenant — optional)                │
 │                                                      │
-│  Azure AI Foundry          Azure AI Search            │
-│  (gpt-5.4-nano / mini)    (knowledge orchestration)  │
+│  Azure AI Foundry          Foundry IQ                 │
+│  (gpt-5.4-nano / mini)    (unified knowledge index — │
+│                            Blob Storage + agentic     │
+│                            retrieval)                 │
 │                                                      │
-│  SharePoint                OneDrive                   │
-│  (published reports,       (.vrs projects)            │
-│   SOPs, fault trees)                                 │
+│  Blob Storage              OneDrive                   │
+│  (documents, investigation (.vrs projects)            │
+│   artifacts)                                         │
 │                                                      │
-│  Azure Function            ARM Template               │
-│  (OBO token exchange)      (deploys conditionally)    │
+│  ARM Template                                         │
+│  (deploys conditionally)                              │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -149,15 +151,15 @@ CoScout supports image input for visual evidence analysis:
 
 Images are budget-managed as part of the degradation priority pipeline (see [AI Context Engineering](ai-context-engineering.md)).
 
-### Layer 4 -- Team Documents (SharePoint, ADR-026)
+### Layer 4 -- Team Documents (Foundry IQ, ADR-060)
 
-Published scouting reports, fault trees, process maps, SOPs, and control plans from the team's SharePoint folder. Accessed on demand via Azure AI Search **Remote SharePoint** knowledge sources with per-user permissions (user token passthrough).
+Uploaded SOPs, investigation artifacts (findings, questions, improvement ideas), and team-contributed answers stored in Blob Storage. Accessed on demand via **Foundry IQ** (unified knowledge index — three-layer hot/warm/cold architecture: hot = real-time investigation artifacts, warm = recent findings, cold = historical documents).
 
 **On-demand, not auto-fire:** Knowledge search is triggered when the user clicks the "Search Knowledge Base?" button in CoScout, not automatically on every message. This reduces latency and cost.
 
-**Report publishing:** Scouting reports are published as Markdown files to the same SharePoint folder as `.vrs` files, making them searchable by future investigations.
+**Investigation artifacts as knowledge:** Findings, questions, and improvement ideas are automatically indexed as investigation artifacts — no manual publishing step required. Documents (SOPs, procedures) are uploaded once and remain searchable.
 
-See [ADR-026](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md) for the architecture decision.
+See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for the architecture decision. (Supersedes ADR-026 SharePoint approach.)
 
 ---
 
@@ -258,57 +260,69 @@ The config is fetched once on app startup and merged with environment variables.
 
 ---
 
-## Knowledge Layer: Azure AI Search + Remote SharePoint
+## Knowledge Layer: Foundry IQ + Blob Storage
 
-> **Status:** Implemented (March 2026). See [ADR-026](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md).
+> **Status:** Beta (ADR-060, April 2026). See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md). Supersedes ADR-026 (SharePoint approach).
 
-Azure AI Search is a managed service -- not a custom RAG pipeline. **Remote SharePoint** knowledge sources access documents on demand with user credentials, requiring no indexer, no crawl schedule, and no additional storage costs.
+Foundry IQ is a unified knowledge index backed by Blob Storage — not a Remote SharePoint pipeline. Investigation artifacts (findings, questions, ideas) are indexed automatically; documents (SOPs, procedures) are uploaded once. No M365 Copilot license required.
 
-### Architecture (ADR-026)
+### Architecture (ADR-060)
 
 ```
-Publish Report --> reportExport.ts --> reportUpload.ts --> SharePoint folder
-                                                            |
+Investigation artifacts --> findings, questions, ideas --> Blob Storage (hot layer)
+Document upload         --> SOPs, procedures           --> Blob Storage (cold layer)
+                                                              |
 CoScout question --> User clicks "Search KB?" --> searchDocuments()
-                                                            |
-                                                  Azure AI Search (Foundry IQ)
-                                                  --> Remote SharePoint knowledge source
-                                                  --> User token passthrough (OBO)
-                                                            |
-                                                  formatKnowledgeContext() --> CoScout prompt
+                                                              |
+                                                    server.js --> projectId filter
+                                                              |
+                                                    Foundry IQ (unified index)
+                                                    --> Blob Storage agentic retrieval
+                                                              |
+                                                    top-5 results with source attribution
+                                                              |
+                                                    formatKnowledgeContext() --> CoScout prompt
 ```
+
+### Three-Layer Index Architecture
+
+| Layer | Content                                                                | Update Frequency       |
+| ----- | ---------------------------------------------------------------------- | ---------------------- |
+| Hot   | Real-time investigation artifacts (current findings, questions, ideas) | On change              |
+| Warm  | Recent findings from completed investigations                          | On investigation close |
+| Cold  | Historical documents (SOPs, fault trees, procedures)                   | On upload              |
 
 ### Key Design Decisions
 
-1. **Remote SharePoint (not indexed)**: No indexer, no crawl schedule, no storage duplication. Documents accessed on demand with user credentials. Requires at least 1 M365 Copilot license in tenant.
+1. **Blob Storage (not SharePoint)**: Documents and artifacts stored in customer's Blob Storage container (already provisioned for `.vrs` sync). No M365 Copilot license required.
 
 2. **On-demand search (not auto-fire)**: Knowledge search is triggered by user click, not on every CoScout message. Reduces latency, cost, and noise.
 
-3. **Per-user permissions**: User's delegated token is passed via `x-ms-query-source-authorization` header. Users can only find documents they have access to in SharePoint.
+3. **Project-scoped search**: `server.js` computes `projectId` filter before querying Foundry IQ, limiting results to the active project's artifact space.
 
-4. **Report publishing**: Scouting reports are published as Markdown to the team's SharePoint folder (same location as `.vrs` files), making them searchable by future investigations.
+4. **Investigation artifacts as knowledge**: Findings, questions, and improvement ideas are indexed automatically — no manual publishing step. The investigation process builds organizational memory as a side effect.
 
-5. **Folder-scoped search**: KQL filter limits search to the team's SharePoint folder path, avoiding cross-team results.
+5. **Source attribution**: Results include source type (document / investigation artifact / answer) and metadata for `[Source: name]` citation badges in CoScout responses.
 
 6. **ExtractedData output mode**: Foundry IQ returns raw chunks rather than synthesized answers. CoScout reasons over the raw context.
 
 ### Searchable Content
 
-| Source                     | How It Gets There                      | What's Searchable                           |
-| -------------------------- | -------------------------------------- | ------------------------------------------- |
-| Published scouting reports | "Publish to SharePoint" in Report view | Markdown: KPIs, findings, actions, outcomes |
-| SOPs, procedures           | Already in SharePoint folder           | Any document format SharePoint supports     |
-| Fault trees, 8D reports    | Already in SharePoint folder           | Document content with citations             |
-| Past investigation reports | Published by other team members        | Cross-investigation knowledge               |
+| Source                    | How It Gets There                         | What's Searchable                        |
+| ------------------------- | ----------------------------------------- | ---------------------------------------- |
+| Investigation artifacts   | Auto-indexed (findings, questions, ideas) | Titles, descriptions, statuses, comments |
+| Uploaded SOPs, procedures | Admin uploads via Knowledge Base UI       | Full document text with citations        |
+| Fault trees, 8D reports   | Admin uploads via Knowledge Base UI       | Document content with citations          |
+| Team answers              | Team members contribute via CoScout       | Recorded answers with author attribution |
 
 ### Findings as Knowledge Base
 
-When findings are published as scouting reports to SharePoint, they become searchable by future investigations. The 8-step investigation workflow maps directly to where AI adds value:
+Investigation artifacts (findings, questions, improvement ideas) are indexed automatically as the investigation progresses. The 8-step investigation workflow maps directly to where AI adds value:
 
-- **Step 5 (investigate):** CoScout searches team documents for related causes and procedures
-- **Step 7 (derive action):** CoScout references SOPs and past corrective actions
+- **Step 5 (investigate):** CoScout searches artifacts and documents for related causes and procedures
+- **Step 7 (derive action):** CoScout references SOPs and past corrective actions from the knowledge index
 
-After 50+ published reports, the AI has genuine organizational knowledge -- measurement-backed, closed-loop, and continuously evolving.
+After 50+ investigations, the AI has genuine organizational knowledge — measurement-backed, closed-loop, and continuously evolving.
 
 ---
 
@@ -321,8 +335,7 @@ All AI resources are conditional on `parameters('enableAI')`:
 | AI Services account        | `Microsoft.CognitiveServices/accounts` (kind: OpenAI, SKU: S0) | Azure AI Foundry host                                |
 | Fast model deployment      | `Microsoft.CognitiveServices/accounts/deployments`             | gpt-5.4-nano for narration + chips (reasoning: none) |
 | Reasoning model deployment | `Microsoft.CognitiveServices/accounts/deployments`             | gpt-5.4-mini for CoScout + reports (reasoning: low)  |
-| AI Search service          | `Microsoft.Search/searchServices` (2025-05-01 API)             | Knowledge base orchestration (Foundry IQ)            |
-| Azure Function             | `Microsoft.Web/sites`                                          | OBO token exchange (SharePoint access)               |
+| AI Search service          | `Microsoft.Search/searchServices` (2025-05-01 API)             | Foundry IQ unified knowledge index (Team plan only)  |
 
 `createUiDefinition.json` additions:
 

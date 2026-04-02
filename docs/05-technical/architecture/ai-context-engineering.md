@@ -38,15 +38,35 @@ The static prefix exceeds 1,024 tokens when glossary + concepts are both include
 
 ### Tier 2 — Semi-Static: Investigation State + Ideas
 
-Changes when the investigation progresses (new hypotheses, status changes, ideas added).
+Changes when the investigation progresses (new hypotheses, status changes, ideas added). Fields are ordered by position-aware priority: start (framing context), middle (evidence), end (action state). See §2c below.
 
-| Content                     | Source                                                                           | Tokens (~) |
-| --------------------------- | -------------------------------------------------------------------------------- | ---------- |
-| Issue statement             | `ProcessContext.issueStatement` (input; AI-derived `problemStatement` is output) | ~20        |
-| Question tree               | `AIContext.investigation.questionTree`                                           | ~50-200    |
-| Improvement ideas           | `AIContext.investigation.allHypotheses[].ideas`                                  | ~30-100    |
-| Phase-specific instructions | Phase detection in prompt template                                               | ~50        |
-| Investigation categories    | `AIContext.investigation.categories`                                             | ~30        |
+| Content                     | Source                                                                            | Tokens (~) |
+| --------------------------- | --------------------------------------------------------------------------------- | ---------- |
+| Issue statement             | `ProcessContext.issueStatement` (input; AI-derived `problemStatement` is output)  | ~20        |
+| Problem statement           | `AIContext.investigation.problemStatement` (Watson's 3 questions output, ADR-060) | ~30        |
+| Focused question            | `AIContext.investigation.focusedQuestionId` + `focusedQuestionText`               | ~20        |
+| Question tree               | `AIContext.investigation.questionTree`                                            | ~50-200    |
+| Top findings                | `AIContext.investigation.topFindings` (up to 5, with evidence type + status)      | ~200       |
+| Improvement ideas           | `AIContext.investigation.allHypotheses[].ideas` (enriched with effort/impact)     | ~40        |
+| Outcome summaries           | `AIContext.investigation.outcomeSummaries`                                        | ~50        |
+| Comment signal              | `AIContext.investigation.recentComments` (latest comment per finding)             | ~20        |
+| Overdue actions             | `AIContext.investigation.overdueActions`                                          | ~60        |
+| Phase-specific instructions | Phase detection in prompt template                                                | ~50        |
+| Investigation categories    | `AIContext.investigation.categories`                                              | ~30        |
+
+**Total Tier 2 estimate:** ~570–790 tokens (up from ~180–370 before ADR-060 enrichment).
+
+### 2c. Position-Aware Ordering (ADR-060)
+
+Fields within Tier 2 are ordered to exploit the LLM's primacy/recency bias:
+
+| Position   | Fields                                                       | Rationale                                                                                 |
+| ---------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| **Start**  | Problem statement, suspected causes, focused question        | Frames the conversation — CoScout knows what we're trying to solve before seeing evidence |
+| **Middle** | Findings (with evidence type + status), question tree, ideas | Evidence layer — bulk of investigation context                                            |
+| **End**    | Overdue actions, outcome summaries, comment signal           | Action state — recency bias keeps these salient for next-step suggestions                 |
+
+This ordering is enforced in `buildCoScoutSystemPrompt()` via the `buildInvestigationContext()` helper in `@variscout/core/ai`. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for the full Pillar 1 specification.
 
 ### Tier 3 — Dynamic: Stats + Filters
 
@@ -456,3 +476,4 @@ Cache keys use `djb2Hash` from `@variscout/core`.
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)
 - [ADR-027: AI Collaborator Evolution](../../07-decisions/adr-027-ai-collaborator-evolution.md)
 - [ADR-049: CoScout Knowledge Catalyst](../../07-decisions/adr-049-coscout-context-and-memory.md)
+- [ADR-060: CoScout Intelligence Architecture](../../07-decisions/adr-060-coscout-intelligence-architecture.md) — Pillar 1 (investigation context enrichment), position-aware ordering, Foundry IQ knowledge index

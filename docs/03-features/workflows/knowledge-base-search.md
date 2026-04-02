@@ -5,73 +5,53 @@ journey-phase: [scout, investigate, improve]
 
 # Knowledge Base Search
 
-Search your team's SharePoint documents from CoScout to accelerate investigations with institutional knowledge — SOPs, fault trees, past reports, and more.
+Search your team's documents and investigation artifacts from CoScout to accelerate investigations with institutional knowledge — SOPs, fault trees, past findings, and more.
 
 ---
 
 ## Overview
 
-The Knowledge Base feature allows CoScout to search your team's SharePoint folder for relevant documents when answering questions. This brings institutional knowledge into every investigation.
+The Knowledge Base feature allows CoScout to search a unified knowledge index for relevant documents and investigation artifacts when answering questions. This brings both institutional documents and the team's accumulated investigation knowledge into every conversation.
 
 **Plan requirement**: Team (€199/month)
-**Status**: Preview (opt-in via Admin > Knowledge Base)
-**Architecture**: [ADR-026](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
+**Status**: Beta (opt-in via Admin > Knowledge Base)
+**Architecture**: [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md)
 
 ---
 
 ## How It Works
 
-1. **Publish reports** — when you publish a scouting report from the Report view, it's saved to the team's SharePoint folder alongside `.vrs` files
-2. **On-demand search** — when you ask CoScout a question, a "💡 Search Knowledge Base?" button appears after the response. Click it to search your team's SharePoint documents
-3. **Document results** — results appear as cards with document title, snippet preview, source path, and direct link to the original document
-4. **Enriched responses** — CoScout cites sources naturally with `[Source: name]` badges, combining your analysis data with institutional knowledge
+1. **Automatic indexing** — findings, questions, and improvement ideas are automatically indexed as investigation artifacts as your investigation progresses
+2. **Document upload** — admins can upload SOPs, procedures, and reference documents via the Knowledge Base admin UI
+3. **On-demand search** — when you ask CoScout a question, a "Search Knowledge Base?" button appears after the response. Click it to search your team's knowledge index
+4. **Source-attributed results** — results appear as cards with title, snippet preview, source type (document / investigation artifact / answer), and a direct link
+5. **Enriched responses** — CoScout cites sources naturally with `[Source: name]` badges, combining your analysis data with institutional knowledge
 
 ---
 
 ## Search Scope
 
-By default, CoScout searches the same SharePoint folder where your `.vrs` project files are stored (your Teams channel folder).
+CoScout searches the Foundry IQ unified knowledge index, scoped to the active project via a `projectId` filter computed server-side (`server.js → /api/knowledge-search`). This ensures results are relevant to the current investigation context.
 
-### Custom Search Folder
-
-For advanced scenarios (e.g., a shared "Quality Library" across multiple channels):
-
-1. Open **Settings → Knowledge Base**
-2. Select **Custom folder**
-3. Enter the SharePoint folder URL
-
-The custom folder is saved per-project — different analyses can search different document libraries.
-
-> Only documents you have access to will appear in search results.
-
-### Scope Resolution
-
-| Context      | Default Search Scope                 | Override                  |
-| ------------ | ------------------------------------ | ------------------------- |
-| Channel tab  | Channel's SharePoint folder          | Custom folder in Settings |
-| Personal tab | User's OneDrive `/VariScout/` folder | Custom folder in Settings |
+> Results include both project-specific investigation artifacts and shared organizational documents (SOPs, procedures) uploaded by admins.
 
 ---
 
 ## Data Sources
 
-### SharePoint Documents (Remote SharePoint)
+### Foundry IQ Unified Knowledge Index (ADR-060)
 
-Documents in the team's SharePoint folder are searchable via Azure AI Search's **Remote SharePoint** knowledge sources:
+The knowledge index is backed by Blob Storage and organized into three source types:
 
-- Published scouting reports
-- SOPs, work instructions, procedures
-- Past 8D reports, fault tree documents
-- Any document the user has access to in SharePoint
+| Source Type                 | Content                                                                    | How It Gets There                        |
+| --------------------------- | -------------------------------------------------------------------------- | ---------------------------------------- |
+| **Documents**               | SOPs, work instructions, procedures, fault trees, 8D reports               | Admin uploads via Knowledge Base UI      |
+| **Investigation artifacts** | Findings, questions, improvement ideas from active and past investigations | Auto-indexed as investigation progresses |
+| **Answers**                 | Team member contributions and recorded answers                             | Contributed via CoScout conversation     |
 
-**Access control**: Uses per-user SharePoint permissions via user token passthrough — users can only find documents they have access to.
+**Search flow**: CoScout calls `search_knowledge_base` tool → `server.js` computes `projectId` filter → queries Foundry IQ → returns top-5 results with source type attribution → formatted via `formatKnowledgeContext()` into CoScout prompt.
 
-**No indexer required**: Remote SharePoint accesses documents on demand with user credentials, so there are no indexer costs or crawl delays.
-
-### Findings (Deprecated)
-
-> [!NOTE]
-> The dedicated findings index from ADR-022 has been replaced by published reports in SharePoint (ADR-026). The `searchRelatedFindings()` function returns an empty array.
+**No M365 Copilot license required**: Foundry IQ connects to Blob Storage directly — no Remote SharePoint knowledge source needed.
 
 ---
 
@@ -91,19 +71,18 @@ The Knowledge Base search degrades gracefully:
 1. Navigate to **Admin > Knowledge Base** (BookOpen icon in header)
 2. Verify all status checks are green:
    - Team plan active
-   - Search endpoint configured (via ARM template)
-   - Preview feature enabled
-3. Click **Test Search Connectivity** to verify the Remote SharePoint knowledge source
-4. Toggle the preview on/off as needed
-
-For setting up the Remote SharePoint knowledge source, follow Microsoft's documentation:
-[Remote SharePoint Knowledge Source Setup](https://learn.microsoft.com/en-us/azure/search/agentic-knowledge-source-how-to-sharepoint-remote)
+   - Search endpoint configured (via ARM template — Foundry IQ service)
+   - Beta feature enabled
+3. Upload organizational documents (SOPs, procedures, reference docs) via the document upload UI — Foundry IQ connects to Blob Storage automatically; no Remote SharePoint knowledge source configuration needed
+4. Click **Test Search Connectivity** to verify the Foundry IQ index
+5. Toggle the beta feature on/off as needed
 
 ---
 
 ## See Also
 
 - [AI Architecture](../../05-technical/architecture/ai-architecture.md)
-- [ADR-022: Knowledge Layer Architecture](../../07-decisions/adr-022-knowledge-layer-architecture.md) (original, amended by ADR-026)
-- [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
+- [ADR-060: CoScout Intelligence Architecture](../../07-decisions/adr-060-coscout-intelligence-architecture.md) (current knowledge architecture)
+- [ADR-022: Knowledge Layer Architecture](../../07-decisions/adr-022-knowledge-layer-architecture.md) (original)
+- [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md) (superseded by ADR-060)
 - [ARM Template — AI Services](../../08-products/azure/arm-template.md#4-ai-services-all-plans)
