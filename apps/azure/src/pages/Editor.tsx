@@ -12,6 +12,7 @@ import {
   ColumnMapping,
   ImprovementWorkspaceBase,
   ImprovementContextPanel,
+  WhatIfPageBase,
   PrioritizationMatrix,
   DEFAULT_PRESETS,
   type AnalysisBrief,
@@ -1050,7 +1051,7 @@ export const Editor: React.FC<EditorProps> = ({
                 onUpdateCost={(hId, iId, cost) => questionsState.updateIdea(hId, iId, { cost })}
                 onOpenRisk={() => {}}
                 onRemoveIdea={questionsState.removeIdea}
-                onOpenWhatIf={handleProjectIdea}
+                onOpenWhatIf={(questionId, ideaId) => handleProjectIdea(questionId, ideaId, true)}
                 onAddIdea={(hId, text) => questionsState.addIdea(hId, text)}
                 onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
                 onConvertToActions={handleConvertIdeasToActions}
@@ -1061,15 +1062,36 @@ export const Editor: React.FC<EditorProps> = ({
                 targetCpk={processContext?.targetValue}
                 activeView={activeImprovementView}
                 showLeftPanel={true}
-                renderLeftPanel={() => (
-                  <ImprovementContextPanel
-                    problemStatement={processContext?.problemStatement}
-                    targetCpk={processContext?.targetValue}
-                    currentCpk={stats?.cpk}
-                    causes={causeSummaries}
-                    synthesis={processContext?.synthesis}
-                  />
-                )}
+                renderLeftPanel={() => {
+                  if (projectionTarget) {
+                    return (
+                      <WhatIfPageBase
+                        filteredData={filteredData}
+                        rawData={rawData}
+                        outcome={outcome}
+                        specs={specs}
+                        filterCount={0}
+                        onBack={() => clearProjectionTarget()}
+                        cpkTarget={cpkTarget}
+                        activeFactor={viewState?.boxplotFactor}
+                        projectionContext={{
+                          ideaText: projectionTarget.ideaText,
+                          questionText: projectionTarget.questionText,
+                        }}
+                        onSaveProjection={handleSaveIdeaProjection}
+                      />
+                    );
+                  }
+                  return (
+                    <ImprovementContextPanel
+                      problemStatement={processContext?.problemStatement}
+                      targetCpk={processContext?.targetValue}
+                      currentCpk={stats?.cpk}
+                      causes={causeSummaries}
+                      synthesis={processContext?.synthesis}
+                    />
+                  );
+                }}
                 renderMatrix={() => (
                   <div className="p-4">
                     <PrioritizationMatrix
@@ -1104,7 +1126,7 @@ export const Editor: React.FC<EditorProps> = ({
                           q.ideas?.some(i => i.id === ideaId)
                         );
                         if (question) {
-                          handleProjectIdea(question.id, ideaId);
+                          handleProjectIdea(question.id, ideaId, true);
                         }
                       }}
                     />

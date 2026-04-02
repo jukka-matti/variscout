@@ -48,6 +48,22 @@ export const whatIfPageDefaultColorScheme: WhatIfPageColorScheme = {
   mutedText: 'text-content-muted',
 };
 
+/** Reference context for contextual preset labels and context header */
+export interface WhatIfReferenceContext {
+  /** Label for the problem subset (e.g., "Head 5-8") */
+  subsetLabel: string;
+  /** Number of rows in the problem subset */
+  subsetCount: number;
+  /** Cpk for the problem subset */
+  subsetCpk?: number;
+  /** Label for the reference subset (e.g., "Head 1-4") */
+  referenceLabel: string;
+  /** Number of rows in the reference subset */
+  referenceCount: number;
+  /** Cpk for the reference subset */
+  referenceCpk?: number;
+}
+
 export interface WhatIfPageBaseProps {
   /** Filtered data rows */
   filteredData: DataRow[];
@@ -75,6 +91,8 @@ export interface WhatIfPageBaseProps {
   projectionContext?: { ideaText: string; questionText: string };
   /** Save projection back to idea */
   onSaveProjection?: (projection: FindingProjection) => void;
+  /** Reference context for subset vs reference stats and contextual presets */
+  referenceContext?: WhatIfReferenceContext;
 }
 
 /**
@@ -86,7 +104,8 @@ export function computePresets(
   filteredData: DataRow[],
   outcome: string,
   activeFactor?: string | null,
-  fmt: (v: number, d?: number) => string = (v, d = 2) => formatStatistic(v, 'en', d)
+  fmt: (v: number, d?: number) => string = (v, d = 2) => formatStatistic(v, 'en', d),
+  referenceLabel?: string
 ): SimulatorPreset[] {
   const presets: SimulatorPreset[] = [];
   const type = inferCharacteristicType(specs);
@@ -217,8 +236,9 @@ export function computePresets(
 
       const matchBestShift = bestCategory.mean - currentStats.mean;
       if (Math.abs(matchBestShift) > currentStats.stdDev * 0.05) {
+        const bestLabel = referenceLabel ?? bestCategory.value;
         presets.push({
-          label: 'Match best',
+          label: `Match ${bestLabel} mean`,
           description: `Shift mean to match "${bestCategory.value}" (mean ${fmt(bestCategory.mean, 1)})`,
           meanShift: matchBestShift,
           variationReduction: 0,
@@ -232,8 +252,9 @@ export function computePresets(
       if (tightestCategory.stdDev > 0 && tightestCategory.stdDev < currentStats.stdDev) {
         const reduction = Math.min(1 - tightestCategory.stdDev / currentStats.stdDev, 0.5);
         if (reduction > 0.02) {
+          const tightenLabel = referenceLabel ?? tightestCategory.value;
           presets.push({
-            label: 'Tighten spread',
+            label: `Match ${tightenLabel} spread`,
             description: `Reduce variation to match "${tightestCategory.value}" (sigma ${fmt(tightestCategory.stdDev)})`,
             meanShift: 0,
             variationReduction: reduction,
@@ -249,8 +270,9 @@ export function computePresets(
       ) {
         const reduction = Math.min(1 - tightestCategory.stdDev / currentStats.stdDev, 0.5);
         if (reduction > 0.02) {
+          const bothLabel = referenceLabel ?? 'best';
           presets.push({
-            label: 'Best of both',
+            label: `Match ${bothLabel} fully`,
             description: `Combine best mean ("${bestCategory.value}") + tightest spread ("${tightestCategory.value}")`,
             meanShift: matchBestShift,
             variationReduction: reduction,
@@ -278,6 +300,7 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
   activeFactor,
   projectionContext,
   onSaveProjection,
+  referenceContext,
 }) => {
   const { formatStat } = useTranslation();
   const c = colorScheme;
@@ -321,10 +344,19 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
       filteredData,
       outcome,
       activeFactor,
-      formatStat
+      formatStat,
+      referenceContext?.referenceLabel
     );
     return result.length > 0 ? result : undefined;
-  }, [currentStats, specs, filteredData, outcome, activeFactor, formatStat]);
+  }, [
+    currentStats,
+    specs,
+    filteredData,
+    outcome,
+    activeFactor,
+    formatStat,
+    referenceContext?.referenceLabel,
+  ]);
 
   // Track simulation parameters for save-to-idea (must be before early return)
   const [simParams, setSimParams] = useState<{ meanShift: number; variationReduction: number }>({
@@ -456,6 +488,29 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
               Save to idea
             </button>
           )}
+        </div>
+      )}
+
+      {/* Reference context header */}
+      {referenceContext && (
+        <div className={`px-4 py-2 border-b ${c.border} text-xs space-y-1`}>
+          <div className={`font-medium ${c.secondaryText}`}>Context</div>
+          <div className="flex justify-between gap-2">
+            <div className={c.mutedText}>
+              <span className="font-medium">Problem:</span> {referenceContext.subsetLabel} (n=
+              {referenceContext.subsetCount}
+              {referenceContext.subsetCpk != null &&
+                `, Cpk ${formatStat(referenceContext.subsetCpk, 2)}`}
+              )
+            </div>
+            <div className={c.mutedText}>
+              <span className="font-medium">Reference:</span> {referenceContext.referenceLabel} (n=
+              {referenceContext.referenceCount}
+              {referenceContext.referenceCpk != null &&
+                `, Cpk ${formatStat(referenceContext.referenceCpk, 2)}`}
+              )
+            </div>
+          </div>
         </div>
       )}
 

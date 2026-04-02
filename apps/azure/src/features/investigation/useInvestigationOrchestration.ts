@@ -37,8 +37,8 @@ export interface UseInvestigationOrchestrationOptions {
 export interface UseInvestigationOrchestrationReturn {
   /** Create question and link to finding */
   handleCreateQuestion: (findingId: string, text: string, factor?: string, level?: string) => void;
-  /** Open What-If pre-loaded for a specific improvement idea */
-  handleProjectIdea: (questionId: string, ideaId: string) => void;
+  /** Open What-If pre-loaded for a specific improvement idea. When inline=true, sets projection target without opening full-page What-If (for left panel embedding). */
+  handleProjectIdea: (questionId: string, ideaId: string, inline?: boolean) => void;
   /** Save projection from What-If back to idea */
   handleSaveIdeaProjection: (projection: FindingProjection) => void;
   /** Clear the projection target (e.g., when closing What-If without saving) */
@@ -133,8 +133,9 @@ export function useInvestigationOrchestration({
   );
 
   // Open What-If pre-loaded for a specific improvement idea
+  // When inline=true, sets projection target without opening full-page What-If (for left panel embedding)
   const handleProjectIdea = useCallback(
-    (questionId: string, ideaId: string) => {
+    (questionId: string, ideaId: string, inline?: boolean) => {
       const question = questionsState.getQuestion(questionId);
       const idea = question?.ideas?.find(i => i.id === ideaId);
       if (question && idea) {
@@ -145,7 +146,9 @@ export function useInvestigationOrchestration({
           questionText: question.text,
         });
       }
-      usePanelsStore.getState().setWhatIfOpen(true);
+      if (!inline) {
+        usePanelsStore.getState().setWhatIfOpen(true);
+      }
     },
     [questionsState]
   );

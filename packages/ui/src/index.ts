@@ -83,6 +83,7 @@ export {
   whatIfPageDefaultColorScheme,
   type WhatIfPageColorScheme,
   type WhatIfPageBaseProps,
+  type WhatIfReferenceContext,
 } from './components/WhatIfPage';
 
 export { ErrorBoundary, type ErrorBoundaryProps } from './components/ErrorBoundary';
