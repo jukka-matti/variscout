@@ -29,13 +29,13 @@ Key principles:
 
 VariScout organizes the analyst's workflow into five workspaces, controlled by a single 44px `ProjectHeader` with three zones (left: back + project name, center: workspace tabs, right: panel toggles + save):
 
-| Workspace              | Purpose                                        | State                                                                                    |
-| ---------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| **Overview**           | Project Dashboard landing page                 | `activeView: 'dashboard'`                                                                |
-| **Analysis** (default) | Dashboard with charts, stats, filters          | `activeView: 'analysis'`; dropdown for sub-modes (Standard / Performance / Yamazumi)     |
-| **Investigation**      | Question-driven EDA, findings board, tree      | Workspace tab (ADR-055); also available as sidebar in Analysis + popout `?view=findings` |
-| **Improvement**        | PDCA planning, idea synthesis, action tracking | Workspace tab (ADR-055); replaces full-screen takeover                                   |
-| **Report**             | Workspace-aligned report view with export      | `activeView: 'report'`; report/export/PDF actions live here (not in header)              |
+| Workspace              | Purpose                                               | State                                                                                    |
+| ---------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **Overview**           | Project Dashboard landing page                        | `activeView: 'dashboard'`                                                                |
+| **Analysis** (default) | Dashboard with charts, stats, filters                 | `activeView: 'analysis'`; dropdown for sub-modes (Standard / Performance / Yamazumi)     |
+| **Investigation**      | Question-driven EDA, findings board, tree             | Workspace tab (ADR-055); also available as sidebar in Analysis + popout `?view=findings` |
+| **Improvement**        | PDCA planning, action tracking, verification, outcome | Workspace tab (ADR-055); split layout with context panel, hub, and CoScout               |
+| **Report**             | Workspace-aligned report view with export             | `activeView: 'report'`; report/export/PDF actions live here (not in header)              |
 
 ### ProjectHeader Navigation (ADR-055)
 
@@ -84,6 +84,20 @@ activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report
 2. Switches to Analysis workspace with factor chart focused
 3. User creates finding → auto-links to focused question
 4. Switch back to Investigation → updated tree shows the answer
+
+**Improvement workspace layout** (three columns, hub-centric):
+
+| Left (280px, context panel)                                 | Center (flex-1, hub)                                         | Right (optional)              |
+| ----------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------- |
+| ImprovementContextPanel (problem statement, target, causes) | Plan view or Track view (toggle via `activeImprovementView`) | CoScout (no mutual exclusion) |
+
+The left context panel transitions to What-If when the analyst clicks a cause's What-If button — the panel slides to show `WhatIfSimulator` with presets scoped to that cause, then slides back to context on dismiss.
+
+**Plan view** — `activeImprovementView: 'plan'`: prioritization matrix (4 axis presets, cause-colored ghost dots) + idea cards grouped by suspected cause. Ideas carry evidence strength (R²adj/η²) from Factor Intelligence. "Convert to Actions" moves selected ideas to Track view.
+
+**Track view** — `activeImprovementView: 'track'`: action tracking (assignee, due date, completion checkbox) + VerificationSection (KPI grid, staged comparison trigger) + OutcomeSection (outcome assessment, resolution). Finding status progresses `improving` → `resolved` as actions complete and outcome is recorded.
+
+State: `activeImprovementView: 'plan' | 'track'` in `improvementStore`. See [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) for the full feature doc.
 
 **Findings sidebar in Analysis** — The 320-600px Findings sidebar remains available in the Analysis workspace for quick investigation without switching workspaces.
 
@@ -523,7 +537,8 @@ This is **designed but not implemented** on main. The branch code is 38+ commits
 - [Journey Phase → Screen Mapping](../../05-technical/architecture/journey-phase-screen-mapping.md) — phase-to-component-to-tier mapping
 - [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) — conceptual navigation layers
 - [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — INVESTIGATE phase workflow
-- [IMPROVE Phase UX Design](../../archive/specs/2026-03-19-improve-phase-ux-design.md) — three-workspace model detail
+- [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — full Improvement Hub feature doc (Plan/Track views, context panel, What-If integration)
+- [IMPROVE Phase UX Design](../../archive/specs/2026-03-19-improve-phase-ux-design.md) — three-workspace model detail (historical)
 - [Project Dashboard](../../03-features/workflows/project-dashboard.md) — Dashboard feature (What's New, OtherProjectsList, Portfolio integration)
 - [Project Reopen Flow](../../02-journeys/flows/project-reopen.md) — Full flow: Portfolio → Dashboard → Analysis
 - [ADR-042: Project Dashboard](../../07-decisions/adr-042-project-dashboard.md) — Dashboard ↔ Editor design decisions

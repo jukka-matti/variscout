@@ -136,13 +136,17 @@ Each mode is a view configuration, not a separate workflow. The analyst switches
 
 ### IMPROVE
 
-| Aspect   | Detail                                                                                           |
-| -------- | ------------------------------------------------------------------------------------------------ |
-| Goal     | Fix the process through PDCA cycle                                                               |
-| Method   | Plan (ideate + select with What-If) → Do (actions) → Check (staged analysis) → Act (standardize) |
-| AI       | Suggests improvement actions; assists What-If; summarizes before/after comparison                |
-| Key Code | `WhatIfSimulator`, `WhatIfPageBase`, `simulation.ts`, staged analysis                            |
-| Exit     | Outcome verified, finding `resolved`                                                             |
+| Aspect   | Detail                                                                                                                         |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Goal     | Fix the process through PDCA cycle                                                                                             |
+| Method   | Plan (ideate + select with What-If) → Do (actions) → Check (staged analysis) → Act (standardize)                               |
+| AI       | Suggests improvement actions; assists What-If; summarizes before/after comparison                                              |
+| Key Code | `ImprovementWorkspaceBase`, `ImprovementContextPanel`, `PrioritizationMatrix`, `TrackView`, `WhatIfSimulator`, `simulation.ts` |
+| Exit     | Outcome verified, finding `resolved`                                                                                           |
+
+Finding status progression in IMPROVE: `improving` (actions assigned) → actions completed → verification passed → `resolved` (outcome recorded). The Improvement workspace provides a single hub for the full PDCA cycle: Plan view (prioritization + ideas) and Track view (actions + verification + outcome) without requiring the analyst to switch workspaces.
+
+See [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) for the full feature doc.
 
 **Verification Evidence (Check phase):**
 
@@ -231,17 +235,17 @@ This table is mirrored in [Analysis Journey Map § Entry-Path-Dependent Phase Go
 
 The analyst's cognitive task shifts across the journey. Five workspace tabs in the `ProjectHeader` match this:
 
-| Workspace         | Purpose                        | Primary Phase         | Layout               |
-| ----------------- | ------------------------------ | --------------------- | -------------------- |
-| **Overview**      | Project orientation and status | All                   | Full page (landing)  |
-| **Analysis**      | See data, discover patterns    | SCOUT, IMPROVE/Check  | Full page (main)     |
-| **Investigation** | Build understanding of causes  | INVESTIGATE           | Full page (3-column) |
-| **Improvement**   | Plan, act, verify improvements | IMPROVE/Plan, Do, Act | Full page            |
-| **Report**        | Share the story, export/PDF    | All                   | Full page            |
+| Workspace         | Purpose                        | Primary Phase         | Layout                   |
+| ----------------- | ------------------------------ | --------------------- | ------------------------ |
+| **Overview**      | Project orientation and status | All                   | Full page (landing)      |
+| **Analysis**      | See data, discover patterns    | SCOUT, IMPROVE/Check  | Full page (main)         |
+| **Investigation** | Build understanding of causes  | INVESTIGATE           | Full page (3-column)     |
+| **Improvement**   | Plan, act, verify improvements | IMPROVE/Plan, Do, Act | Full page (3-column hub) |
+| **Report**        | Share the story, export/PDF    | All                   | Full page                |
 
 Navigation tabs in header: Overview | Analysis | Investigation | Improvement | Report. The Analysis tab has a dropdown for sub-modes (Standard / Performance / Yamazumi). Report is a workspace tab (not a modal overlay). Report/export/PDF actions live within the Report workspace. Journey phase dots remain separate (WHERE you are vs WHAT you're doing). Multi-screen via popout: `?view=findings`, `?view=improvement` URL params.
 
-**In code:** `ProjectHeader` (single 44px header with 3 zones), `ImprovementWorkspaceBase` (full-page layout), `SynthesisCard` (convergence narrative), `IdeaGroupCard` (hypothesis-grouped ideas), `ImprovementSummaryBar` (selection aggregation), `ReportViewBase` (workspace-aligned report). All in `@variscout/ui`. `useAutoSave` debounces saves on state changes.
+**In code:** `ProjectHeader` (single 44px header with 3 zones), `ImprovementWorkspaceBase` (3-column hub layout), `ImprovementContextPanel` (left panel: problem statement, target, causes), `PrioritizationMatrix` (Plan view: 4 axis presets, cause-colored dots), `TrackView` (Do/Check/Act: actions + verification + outcome), `SynthesisCard` (convergence narrative), `IdeaGroupCard` (hypothesis-grouped ideas), `ImprovementSummaryBar` (selection aggregation), `ReportViewBase` (workspace-aligned report). All in `@variscout/ui`. `useAutoSave` debounces saves on state changes. `activeImprovementView: 'plan' | 'track'` in `improvementStore`.
 
 ---
 

@@ -2,11 +2,14 @@
 title: Improvement Workspace PDCA Extension
 audience: [developer, analyst]
 category: architecture
-status: draft
+status: superseded
+superseded-by: 2026-04-02-improvement-hub-design.md
 related: [improvement, pdca, actions, verification, outcome]
 ---
 
 # Improvement Workspace PDCA Extension
+
+**Superseded by [Improvement Hub Redesign](2026-04-02-improvement-hub-design.md)** which incorporates all PDCA content within a broader workspace redesign.
 
 ## Context
 
