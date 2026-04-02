@@ -463,6 +463,20 @@ export {
   type MatrixIdea,
   type MatrixDimension,
   type MatrixPreset,
+  VerificationSection,
+  type VerificationSectionProps,
+  type VerificationData,
+  OutcomeSection,
+  type OutcomeSectionProps,
+  type OutcomeValue,
+  ActionTrackerSection,
+  type ActionTrackerSectionProps,
+  type TrackedAction,
+  PlanRecap,
+  type PlanRecapProps,
+  type SelectedIdea,
+  TrackView,
+  type TrackViewProps,
 } from './components/ImprovementPlan';
 
 // Yamazumi Components

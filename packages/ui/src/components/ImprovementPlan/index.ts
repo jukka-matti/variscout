@@ -17,3 +17,13 @@ export type {
 } from './PrioritizationMatrix';
 export { ImprovementContextPanel } from './ImprovementContextPanel';
 export type { ImprovementContextPanelProps, CauseSummary } from './ImprovementContextPanel';
+export { VerificationSection } from './VerificationSection';
+export type { VerificationSectionProps, VerificationData } from './VerificationSection';
+export { OutcomeSection } from './OutcomeSection';
+export type { OutcomeSectionProps, OutcomeValue } from './OutcomeSection';
+export { ActionTrackerSection } from './ActionTrackerSection';
+export type { ActionTrackerSectionProps, TrackedAction } from './ActionTrackerSection';
+export { PlanRecap } from './PlanRecap';
+export type { PlanRecapProps, SelectedIdea } from './PlanRecap';
+export { TrackView } from './TrackView';
+export type { TrackViewProps } from './TrackView';
