@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { Editor } from '../Editor';
 import * as DataContextModule from '../../context/DataContext';
 import * as StorageModule from '../../services/storage';
@@ -298,22 +298,8 @@ describe('Editor', () => {
     expect(screen.getByText('Sample Datasets')).toBeInTheDocument();
   });
 
-  it('shows Back button and project name in header when projects exist', async () => {
-    // Mock having saved projects so back button appears
-    vi.mocked(StorageModule.useStorage).mockReturnValue({
-      saveProject: vi.fn(),
-      listProjects: vi.fn(() =>
-        Promise.resolve([{ id: 'p1', name: 'Test', modified: new Date().toISOString() }])
-      ),
-      syncStatus: { status: 'synced', message: 'Synced' },
-    } as unknown as ReturnType<typeof StorageModule.useStorage>);
-
+  it('shows logo mark and project name in header', () => {
     renderEditor({ currentProjectName: 'My Analysis' });
-
-    // Back button appears after projects are fetched (async)
-    await waitFor(() => {
-      expect(screen.getByLabelText('Back to Dashboard')).toBeInTheDocument();
-    });
     expect(screen.getByText('My Analysis')).toBeInTheDocument();
   });
 
@@ -346,18 +332,10 @@ describe('Editor', () => {
     expect(screen.getByTestId('btn-coscout')).toBeInTheDocument();
   });
 
-  it('shows Save button', () => {
+  it('does not render a Save button (auto-save only)', () => {
     renderEditor();
 
-    const saveButton = screen.getByRole('button', { name: /save/i });
-    expect(saveButton).toBeInTheDocument();
-  });
-
-  it('disables Save button when no data is loaded', () => {
-    renderEditor();
-
-    const saveButton = screen.getByRole('button', { name: /save/i });
-    expect(saveButton).toBeDisabled();
+    expect(screen.queryByRole('button', { name: /save/i })).not.toBeInTheDocument();
   });
 
   it('shows ColumnMapping when data is loaded but no outcome selected', () => {

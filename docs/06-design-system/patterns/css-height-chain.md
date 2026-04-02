@@ -32,7 +32,7 @@ Every container from root to chart must have a **definite height** and allow shr
   {' '}
   {/* dvh adapts to mobile browser chrome */}
   {/* 2. Fixed elements: flex-shrink-0 */}
-  <header className="h-14 flex-shrink-0" />
+  <header className="h-11 flex-shrink-0" />
   {/* 3. Content area: flex-1 + overflow-hidden */}
   <main className="flex-1 overflow-hidden flex flex-col">
     {/* 4. Scrollable/constrained container: h-full */}

@@ -3,8 +3,7 @@ import { hasTeamFeatures } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import {
-  ArrowLeft,
-  Save,
+  Activity,
   Cloud,
   CloudOff,
   Plus,
@@ -14,24 +13,25 @@ import {
   PenLine,
   MessageSquare,
   BarChart3,
-  FolderUp,
+  Settings,
 } from 'lucide-react';
 import { usePanelsStore } from '../features/panels/panelsStore';
 
 type WorkspaceView = 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
 
-export interface ProjectHeaderProps {
-  onBack: () => void;
-  projectName: string;
-  rowCount: number;
+export interface AppHeaderProps {
+  mode: 'portfolio' | 'project';
+  onNavigateToPortfolio?: () => void;
+  onOpenSettings?: () => void;
+  canNavigateBack?: boolean;
+  projectName?: string;
+  rowCount?: number;
   // Sync & save
-  syncStatus: { status: string; message?: string };
-  saveStatus: 'idle' | 'saving' | 'saved' | 'error';
-  onSave: () => void;
-  onSaveAs?: () => void;
-  hasData: boolean;
+  syncStatus?: { status: string; message?: string };
+  saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
+  hasData?: boolean;
   // Workspace
-  activeView: WorkspaceView;
+  activeView?: WorkspaceView;
   openQuestionCount?: number;
   selectedIdeaCount?: number;
   // Cross-cutting panel toggles
@@ -46,8 +46,6 @@ export interface ProjectHeaderProps {
   // Primary action: Improvement
   onConvertToActions?: () => void;
   hasSelectedIdeas?: boolean;
-  /** Hide back arrow when there are no projects to return to */
-  showBackButton?: boolean;
 }
 
 /** Save status dot color */
@@ -80,16 +78,17 @@ const toggleBtnClass = (isActive: boolean) =>
       : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
   }`;
 
-export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
-  onBack,
-  projectName,
-  rowCount,
-  syncStatus,
-  saveStatus,
-  onSave,
-  onSaveAs,
-  hasData,
-  activeView,
+export const AppHeader: React.FC<AppHeaderProps> = ({
+  mode,
+  onNavigateToPortfolio,
+  onOpenSettings,
+  canNavigateBack,
+  projectName = '',
+  rowCount = 0,
+  syncStatus = { status: 'idle' },
+  saveStatus = 'idle',
+  hasData = false,
+  activeView = 'analysis',
   openQuestionCount,
   selectedIdeaCount,
   isPISidebarOpen,
@@ -101,12 +100,11 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
   onAddManualData,
   onConvertToActions,
   hasSelectedIdeas,
-  showBackButton = true,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const { t } = useTranslation();
 
-  // Add Data dropdown state
+  // Add Data dropdown state (must be before any early returns — Rules of Hooks)
   const [addDataOpen, setAddDataOpen] = useState(false);
   const addDataRef = React.useRef<HTMLDivElement>(null);
 
@@ -121,6 +119,31 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [addDataOpen]);
+
+  // ── Portfolio mode ────────────────────────────────────────────────────
+  if (mode === 'portfolio') {
+    return (
+      <div className="flex items-center h-11 px-4 border-b border-edge bg-surface flex-shrink-0 sticky top-0 z-50">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Activity className="text-white" size={14} />
+          </div>
+          <h1 className="text-lg font-bold text-content">VariScout</h1>
+        </div>
+        <div className="flex-1" />
+        {onOpenSettings && (
+          <button
+            onClick={onOpenSettings}
+            className="p-1.5 rounded-md text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+            title={t('nav.settings')}
+            aria-label={t('nav.settings')}
+          >
+            <Settings size={16} />
+          </button>
+        )}
+      </div>
+    );
+  }
 
   // Sync status icon (Team plan only, desktop)
   const SyncIcon =
@@ -138,26 +161,38 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
 
   const dotColor = statusDotColor(saveStatus, syncStatus);
 
+  // Logo mark element (reused in phone and desktop)
+  const logoMark = (
+    <div
+      role={canNavigateBack ? 'button' : undefined}
+      tabIndex={canNavigateBack ? 0 : undefined}
+      onClick={canNavigateBack ? onNavigateToPortfolio : undefined}
+      onKeyDown={
+        canNavigateBack
+          ? e => {
+              if (e.key === 'Enter' || e.key === ' ') onNavigateToPortfolio?.();
+            }
+          : undefined
+      }
+      aria-label={canNavigateBack ? t('nav.backToDashboard') : undefined}
+      className={`w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 ${canNavigateBack ? 'cursor-pointer hover:bg-blue-700 transition-colors' : ''}`}
+    >
+      <Activity className="text-white" size={14} />
+    </div>
+  );
+
   // ── Phone layout ────────────────────────────────────────────────────────
   if (isPhone) {
     return (
-      <div className="flex items-center justify-between h-11 px-2 border-b border-edge bg-surface flex-shrink-0">
-        {/* Left: back + title + dot */}
+      <div className="flex items-center justify-between h-11 px-2 border-b border-edge bg-surface flex-shrink-0 sticky top-0 z-50">
+        {/* Left: logo mark + title + dot */}
         <div className="flex items-center gap-2 min-w-0">
-          {showBackButton && (
-            <button
-              onClick={onBack}
-              aria-label={t('nav.backToDashboard')}
-              className="p-1 text-content-muted hover:text-content transition-colors flex-shrink-0"
-            >
-              <ArrowLeft size={18} />
-            </button>
-          )}
+          {logoMark}
           <h2 className="text-sm font-semibold text-content truncate">{projectName}</h2>
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
         </div>
 
-        {/* Right: panel toggles + save */}
+        {/* Right: panel toggles + settings */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {/* Sync icon on phone — Team plan only */}
           {hasTeamFeatures() && (
@@ -191,20 +226,17 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
               <MessageSquare size={16} />
             </button>
           )}
-          <button
-            onClick={onSave}
-            disabled={!hasData || saveStatus === 'saving'}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-              saveStatus === 'saved'
-                ? 'bg-green-600 text-white'
-                : saveStatus === 'error'
-                  ? 'bg-red-600 text-white'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
-            data-testid="btn-save"
-          >
-            <Save size={14} />
-          </button>
+          {onOpenSettings && (
+            <button
+              onClick={onOpenSettings}
+              className="p-1.5 rounded-md text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+              title={t('nav.settings')}
+              aria-label={t('nav.settings')}
+              data-testid="btn-settings"
+            >
+              <Settings size={16} />
+            </button>
+          )}
         </div>
       </div>
     );
@@ -212,18 +244,10 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
 
   // ── Desktop layout ──────────────────────────────────────────────────────
   return (
-    <div className="flex items-center h-11 px-3 border-b border-edge bg-surface flex-shrink-0 gap-1">
-      {/* ── Left zone: Back + Project name + row count + status dot ── */}
+    <div className="flex items-center h-11 px-3 border-b border-edge bg-surface flex-shrink-0 gap-1 sticky top-0 z-50">
+      {/* ── Left zone: Logo mark + Project name + row count + status dot ── */}
       <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
-        {showBackButton && (
-          <button
-            onClick={onBack}
-            aria-label={t('nav.backToDashboard')}
-            className="p-1 text-content-muted hover:text-content transition-colors flex-shrink-0"
-          >
-            <ArrowLeft size={16} />
-          </button>
-        )}
+        {logoMark}
         <h2 className="text-sm font-semibold text-content truncate max-w-[200px]">{projectName}</h2>
         {hasData && <span className="text-xs text-content-muted flex-shrink-0">({rowCount})</span>}
         <span
@@ -266,67 +290,67 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
           ))}
       </div>
 
-      {/* ── Separator + Center zone: Workspace tabs (hidden when no data) ── */}
+      {/* ── Separator ── */}
+      <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
+
+      {/* ── Center zone: Workspace tabs ── */}
       {hasData && (
-        <>
-          <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
-          <nav
-            className="flex items-center flex-1 min-w-0 overflow-x-auto"
-            data-testid="view-toggle"
+        <nav className="flex items-center flex-1 min-w-0 overflow-x-auto" data-testid="view-toggle">
+          <button
+            className={tabClass(activeView === 'dashboard')}
+            onClick={() => usePanelsStore.getState().showDashboard()}
+            data-testid="view-toggle-overview"
           >
-            <button
-              className={tabClass(activeView === 'dashboard')}
-              onClick={() => usePanelsStore.getState().showDashboard()}
-              data-testid="view-toggle-overview"
-            >
-              Overview
-            </button>
-            <button
-              className={tabClass(activeView === 'analysis')}
-              onClick={() => usePanelsStore.getState().showAnalysis()}
-              data-testid="view-toggle-analysis"
-            >
-              Analysis
-            </button>
-            <button
-              className={tabClass(activeView === 'investigation')}
-              onClick={() => usePanelsStore.getState().showInvestigation()}
-              data-testid="view-toggle-investigation"
-            >
-              Investigation
-              {openQuestionCount != null && openQuestionCount > 0 && (
-                <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                  {openQuestionCount}
-                </span>
-              )}
-            </button>
-            <button
-              className={tabClass(activeView === 'improvement')}
-              onClick={() => usePanelsStore.getState().showImprovement()}
-              data-testid="view-toggle-improvement"
-            >
-              Improvement
-              {selectedIdeaCount != null && selectedIdeaCount > 0 && (
-                <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                  {selectedIdeaCount}
-                </span>
-              )}
-            </button>
-            <button
-              className={tabClass(activeView === 'report')}
-              onClick={() => usePanelsStore.getState().showReport()}
-              data-testid="view-toggle-report"
-            >
-              Report
-            </button>
-          </nav>
-        </>
+            Overview
+          </button>
+          <button
+            className={tabClass(activeView === 'analysis')}
+            onClick={() => usePanelsStore.getState().showAnalysis()}
+            data-testid="view-toggle-analysis"
+          >
+            Analysis
+          </button>
+          <button
+            className={tabClass(activeView === 'investigation')}
+            onClick={() => usePanelsStore.getState().showInvestigation()}
+            data-testid="view-toggle-investigation"
+          >
+            Investigation
+            {openQuestionCount != null && openQuestionCount > 0 && (
+              <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                {openQuestionCount}
+              </span>
+            )}
+          </button>
+          <button
+            className={tabClass(activeView === 'improvement')}
+            onClick={() => usePanelsStore.getState().showImprovement()}
+            data-testid="view-toggle-improvement"
+          >
+            Improvement
+            {selectedIdeaCount != null && selectedIdeaCount > 0 && (
+              <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                {selectedIdeaCount}
+              </span>
+            )}
+          </button>
+          <button
+            className={tabClass(activeView === 'report')}
+            onClick={() => usePanelsStore.getState().showReport()}
+            data-testid="view-toggle-report"
+          >
+            Report
+          </button>
+        </nav>
       )}
+
+      {/* Spacer when no data (tabs hidden) */}
+      {!hasData && <div className="flex-1" />}
 
       {/* ── Separator ── */}
       <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
 
-      {/* ── Right zone: panel toggles + primary action + save ── */}
+      {/* ── Right zone: panel toggles + primary action + settings ── */}
       <div className="flex items-center gap-1.5 flex-shrink-0">
         {/* Stats Sidebar Toggle */}
         {hasData && onTogglePISidebar && (
@@ -354,7 +378,13 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
 
         {/* Primary action: Analysis — Add Data dropdown */}
         {activeView === 'analysis' && hasData && onAddPasteData && (
-          <div ref={addDataRef} className="relative">
+          <div
+            ref={addDataRef}
+            className="relative"
+            onKeyDown={e => {
+              if (e.key === 'Escape') setAddDataOpen(false);
+            }}
+          >
             <button
               onClick={() => setAddDataOpen(prev => !prev)}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
@@ -424,41 +454,21 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
           </button>
         )}
 
-        {/* Save Button */}
-        <button
-          onClick={onSave}
-          disabled={!hasData || saveStatus === 'saving'}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-            saveStatus === 'saved'
-              ? 'bg-green-600 text-white'
-              : saveStatus === 'error'
-                ? 'bg-red-600 text-white'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
-          data-testid="btn-save"
-        >
-          <Save size={14} />
-          {saveStatus === 'saving'
-            ? t('toolbar.saving')
-            : saveStatus === 'saved'
-              ? t('toolbar.saved')
-              : saveStatus === 'error'
-                ? t('toolbar.saveFailed')
-                : t('action.save')}
-        </button>
-
-        {/* Save As — Team plan only */}
-        {hasTeamFeatures() && onSaveAs && hasData && (
+        {/* Settings gear */}
+        {onOpenSettings && (
           <button
-            onClick={onSaveAs}
-            className="flex items-center gap-1 px-2 py-1.5 text-xs text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-md transition-colors"
-            title="Save to SharePoint folder..."
+            onClick={onOpenSettings}
+            className="p-1.5 rounded-md text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+            title={t('nav.settings')}
+            aria-label={t('nav.settings')}
+            data-testid="btn-settings"
           >
-            <FolderUp size={14} />
-            {t('toolbar.saveAs')}
+            <Settings size={16} />
           </button>
         )}
       </div>
     </div>
   );
 };
+
+export { AppHeader as default };

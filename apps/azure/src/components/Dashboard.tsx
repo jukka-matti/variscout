@@ -639,7 +639,11 @@ const Dashboard = ({
                 stageOrderMode={stageOrderMode}
                 setStageOrderMode={setStageOrderMode}
                 stagedStats={stagedStats}
-                controlStats={stats}
+                controlStats={
+                  isCapabilityMode && capabilityIChartData?.cpkStats
+                    ? capabilityIChartData.cpkStats
+                    : stats
+                }
                 getTermUcl={getTerm('ucl')}
                 getTermMean={getTerm('mean')}
                 getTermLcl={getTerm('lcl')}

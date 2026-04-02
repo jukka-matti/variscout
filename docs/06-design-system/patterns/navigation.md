@@ -27,7 +27,12 @@ Key principles:
 
 ## 2. Five-Workspace Model
 
-VariScout organizes the analyst's workflow into five workspaces, controlled by a single 44px `ProjectHeader` with three zones (left: back + project name, center: workspace tabs, right: panel toggles + save):
+VariScout organizes the analyst's workflow into five workspaces, controlled by a single 44px `AppHeader` with two modes:
+
+- **Portfolio mode**: logo + "VariScout" title + settings gear (when no project is loaded)
+- **Project mode**: logo mark [V] + project name (with auto-save status dot) + workspace tabs + panel toggles + settings gear
+
+Three zones in project mode (left: logo mark + project name, center: workspace tabs, right: panel toggles + settings gear):
 
 | Workspace              | Purpose                                               | State                                                                                    |
 | ---------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
@@ -37,26 +42,31 @@ VariScout organizes the analyst's workflow into five workspaces, controlled by a
 | **Improvement**        | PDCA planning, action tracking, verification, outcome | Workspace tab (ADR-055); split layout with context panel, hub, and CoScout               |
 | **Report**             | Workspace-aligned report view with export             | `activeView: 'report'`; report/export/PDF actions live here (not in header)              |
 
-### ProjectHeader Navigation (ADR-055)
+### AppHeader Navigation (ADR-055)
 
-A single 44px `ProjectHeader` replaces the previous EditorToolbar (48px) + WorkspaceTabs (45px), organized in three zones:
+A single 44px `AppHeader` replaces the previous App header (56px) + ProjectHeader (44px), organized in two modes:
 
 ```
-ProjectHeader (44px):
-[< Portfolio] [Project Name]   [Overview] [Analysis v] [Investigation] [Improvement] [Report]   [PI] [AI] [Save] [Settings]
-  left: back + name              center: 5 workspace tabs                                        right: panel toggles + save
+AppHeader — portfolio mode (44px):
+[V logo] [VariScout]                                                                            [Settings gear]
+
+AppHeader — project mode (44px):
+[V] [Project Name •]   [Overview] [Analysis v] [Investigation] [Improvement] [Report]   [PI] [AI] [Settings gear]
+  left: logo mark + name  center: 5 workspace tabs                                      right: panel toggles + settings
+  (• = auto-save status dot)
 ```
 
+- **Logo mark [V]** (Activity icon in blue square) replaces the back arrow — clicking returns to portfolio
+- **Project name** shows an auto-save status dot (no Save button — auto-save only via `useAutoSave`)
 - **Workspace tabs** switch the center content area (dashboard / charts / findings board / improvement workspace / report view)
 - **PI toggle** (Process Intelligence) opens a left sidebar (Summary, Data, What-If tabs) — visible in all workspaces (not gated to Analysis)
 - **AI** toggle opens CoScout as a right sidebar (adapts coaching to active workspace phase)
 - **Analysis** has a dropdown for sub-modes (Standard / Performance / Yamazumi)
 - **Report** workspace contains the report view, export, and PDF actions (no report/export/present buttons in header)
-- **Save** button stays in header; auto-save (`useAutoSave`) also runs alongside, debouncing saves on state changes
+- **Settings gear** opens SettingsPanel (includes Account section with user name, logout)
+- **User name, logout, admin button** live in Settings panel Account section (not in the header bar)
 - PWA: 4 workspace tabs (Analysis + Investigation + Improvement + Report, session-only). Azure: 5 tabs (+ Overview) + AI.
 - Mobile uses bottom tab bar instead (Analysis | Findings | Improve | More)
-
-See [Header Redesign spec](../../superpowers/specs/2026-04-01-header-redesign-design.md) for full design.
 
 ### Workspace switching (ADR-055)
 
@@ -465,11 +475,9 @@ CoScout's `navigate_to` tool (ADR-042) extends dashboard navigation into convers
 - `navigate_to({target: 'finding', target_id: '...'})` — Auto-executes: switches to Investigation workspace
 - `navigate_to({target: 'finding', target_id: '...', restore_filters: true})` — Shows proposal card (filter mutation requires confirmation)
 
-### "← Portfolio" back link
+### Logo mark back navigation
 
-The project shell header always shows a "← Portfolio" back link that returns the user to the Portfolio home screen. This unloads the current project (clears DataContext) and renders the portfolio grid. The back link is visible from the Dashboard and all workspace tabs.
-
-On Teams channel tab, the "← Portfolio" link is hidden (Teams users always operate within a shared channel project — there is no personal portfolio in the channel tab context).
+The AppHeader logo mark [V] (Activity icon in blue square) returns the user to the Portfolio home screen. This unloads the current project (clears DataContext) and renders the portfolio grid. The logo mark is visible from the Dashboard and all workspace tabs.
 
 ### Deep link bypass
 
