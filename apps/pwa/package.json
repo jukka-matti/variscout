@@ -24,7 +24,7 @@
     "d3-array": "^3.2.4",
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.577.0",
-    "react": "^19.0.0",
+    "react": "^19.2.4",
     "react-dom": "^19.0.0",
     "zustand": "^5.0.12"
   },
@@ -35,7 +35,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/d3-array": "^3.2.1",
-    "@types/react": "^19.0.0",
+    "@types/react": "^19.2.14",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^6.0.0",
     "jsdom": "^29.0.1",
