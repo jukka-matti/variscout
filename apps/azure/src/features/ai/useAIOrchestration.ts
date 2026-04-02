@@ -106,7 +106,6 @@ export interface UseAIOrchestrationReturn {
   handleAskCoScoutFromCategory: (ctx: AIContext['focusContext']) => void;
   providerLabel: string | null;
   aiContextSummary: AIContextSummary | null;
-  resolvedChannelFolderUrl?: string;
   knowledgeSearchScope?: string;
   knowledgeSearchTimestamp?: number;
   kbPermissionWarning: boolean;
@@ -182,9 +181,6 @@ export function useAIOrchestration({
     };
   }, [aiAvailable]);
 
-  // Channel folder URL resolution removed per ADR-059 (Graph API removed)
-  const resolvedChannelFolderUrl = undefined;
-
   // Admin consent runtime check for KB (Item 4)
   const [kbPermissionWarning, setKbPermissionWarning] = useState(false);
   useEffect(() => {
@@ -194,8 +190,7 @@ export function useAIOrchestration({
     });
   }, []);
 
-  // Effective folder scope: explicit user setting > auto-resolved channel folder
-  const effectiveFolderScope = knowledgeSearchFolder ?? resolvedChannelFolderUrl;
+  const effectiveFolderScope = knowledgeSearchFolder;
 
   // Focus context state for "Ask CoScout about this" actions
   const [focusContext, setFocusContext] = useState<AIContext['focusContext']>(undefined);
@@ -420,10 +415,6 @@ export function useAIOrchestration({
   }, [kbPermissionWarning, store]);
 
   useEffect(() => {
-    store.getState().setResolvedChannelFolderUrl(resolvedChannelFolderUrl);
-  }, [resolvedChannelFolderUrl, store]);
-
-  useEffect(() => {
     store.getState().setKnowledgeSearchScope(knowledgeSearchScope);
   }, [knowledgeSearchScope, store]);
 
@@ -455,7 +446,6 @@ export function useAIOrchestration({
     handleAskCoScoutFromCategory,
     providerLabel,
     aiContextSummary,
-    resolvedChannelFolderUrl,
     knowledgeSearchScope,
     knowledgeSearchTimestamp: knowledgeSearch.lastSearchTimestamp,
     kbPermissionWarning,

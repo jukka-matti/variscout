@@ -36,18 +36,6 @@ const CHECK_DEFINITIONS: Omit<HealthCheck, 'status' | 'error'>[] = [
     plan: 'all',
   },
   {
-    id: 'graph-files',
-    label: 'Microsoft Graph — OneDrive',
-    description: 'Access OneDrive for file sync',
-    plan: 'team',
-  },
-  {
-    id: 'graph-channels',
-    label: 'Microsoft Graph — Teams',
-    description: 'List joined Teams for channel integration',
-    plan: 'team',
-  },
-  {
     id: 'ai-endpoint',
     label: 'AI Endpoint',
     description: 'Verify the AI service endpoint is reachable',
@@ -84,10 +72,8 @@ async function runCheck(id: string): Promise<{ status: CheckStatus; error?: stri
         return { status: 'pass' };
       }
 
-      case 'graph-profile':
-      case 'graph-files':
-      case 'graph-channels': {
-        // Graph API checks removed per ADR-059
+      case 'graph-profile': {
+        // Graph API check — only User.Read remains per ADR-059
         return { status: 'pass' };
       }
 

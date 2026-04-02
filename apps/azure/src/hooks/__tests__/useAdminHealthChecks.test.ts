@@ -41,7 +41,7 @@ describe('useAdminHealthChecks', () => {
 
   it('initializes all checks as idle when all plans are applicable', () => {
     const { result } = renderHook(() => useAdminHealthChecks());
-    expect(result.current.checks).toHaveLength(6);
+    expect(result.current.checks).toHaveLength(4);
     expect(result.current.checks.every(c => c.status === 'idle')).toBe(true);
     expect(result.current.isRunning).toBe(false);
   });
