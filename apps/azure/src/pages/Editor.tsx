@@ -36,7 +36,7 @@ import type { ExclusionReason } from '@variscout/core';
 import { Check } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
-import { useAIOrchestration, useActionProposals } from '../features/ai';
+import { useAIOrchestration, useActionProposals, useInvestigationIndexing } from '../features/ai';
 import { useInvestigationOrchestration } from '../features/investigation';
 import { useInvestigationStore } from '../features/investigation/investigationStore';
 import { useImprovementOrchestration } from '../features/improvement';
@@ -51,6 +51,7 @@ import { useShareFinding } from '../hooks/useShareFinding';
 import { useFindingsOrchestration } from '../features/findings';
 import { useFindingsStore } from '../features/findings/findingsStore';
 import { buildChartSharePayload } from '../services/shareContent';
+import { isKnowledgeBaseAvailable } from '../services/searchService';
 import { buildSubPageId } from '../services/deepLinks';
 import { useToast } from '../context/ToastContext';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
@@ -567,6 +568,23 @@ export const Editor: React.FC<EditorProps> = ({
     stats,
   });
   const projectionTarget = useInvestigationStore(s => s.projectionTarget);
+
+  // Investigation indexing for Foundry IQ (ADR-060 Pillar 2)
+  // Active only when Team plan + KB preview enabled + project is open
+  const { onFindingsChange: indexFindings, onQuestionsChange: indexQuestions } =
+    useInvestigationIndexing({
+      projectId: projectId ?? undefined,
+      enabled: isKnowledgeBaseAvailable(),
+    });
+
+  // Trigger indexing side-effects whenever findings or questions change
+  useEffect(() => {
+    indexFindings(findingsState.findings);
+  }, [findingsState.findings, indexFindings]);
+
+  useEffect(() => {
+    indexQuestions(questionsState.questions);
+  }, [questionsState.questions, indexQuestions]);
 
   // Improvement workspace
   const {

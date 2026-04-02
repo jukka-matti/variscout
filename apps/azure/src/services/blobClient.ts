@@ -252,6 +252,28 @@ export async function saveBlobPhoto(
 }
 
 /**
+ * Upload arbitrary text content to a blob path.
+ * Used by the investigation serializer to write JSONL artifacts for Foundry IQ indexing.
+ */
+export async function uploadTextBlob(path: string, content: string): Promise<void> {
+  const sasUrl = await getSasToken();
+  const url = blobUrl(sasUrl, path);
+
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'x-ms-blob-type': 'BlockBlob',
+      'Content-Type': 'application/x-ndjson',
+    },
+    body: content,
+  });
+
+  if (!res.ok) {
+    throw new Error(`${res.status} Failed to upload text blob: ${sanitizeBlobUrl(url)}`);
+  }
+}
+
+/**
  * Get the ETag for a project's metadata blob.
  * Returns null if the blob doesn't exist (404).
  */
