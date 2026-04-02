@@ -667,6 +667,13 @@ export const fi: MessageCatalog = {
   'improve.maxRisk': 'Max risk: {level}',
   'improve.totalCost': '€{amount}',
   'improve.budgetStatus': '€{spent} / €{budget}',
+  'improve.actionsDone': 'toimenpidettä tehty',
+  'improve.overdue': 'myöhässä',
+  'improve.addVerification': 'Lisää todennusdata',
+  'improve.assessOutcome': 'Arvioi tulos',
+  'improve.viewActions': 'Näytä toimenpiteet',
+  'improve.actions': 'toimenpidettä',
+  'improve.done': 'tehty',
   'timeframe.label': 'Aikajänne',
 
   // Idea direction labels (Four Ideation Directions)

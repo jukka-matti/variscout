@@ -710,6 +710,13 @@ export interface MessageCatalog {
   'improve.maxRisk': string;
   'improve.totalCost': string;
   'improve.budgetStatus': string;
+  'improve.actionsDone': string;
+  'improve.overdue': string;
+  'improve.addVerification': string;
+  'improve.assessOutcome': string;
+  'improve.viewActions': string;
+  'improve.actions': string;
+  'improve.done': string;
 
   // Timeframe labels (replaces effort)
   'timeframe.label': string;
