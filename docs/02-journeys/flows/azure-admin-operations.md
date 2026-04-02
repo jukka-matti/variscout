@@ -100,14 +100,12 @@ After the ARM template deploys and the app is live, Aino verifies that all integ
 
 **In-app (Admin Hub → Status tab):**
 
-| Check                | Method                | What it proves                               |
-| -------------------- | --------------------- | -------------------------------------------- |
-| Authentication       | `GET /.auth/me`       | EasyAuth configured, user has valid session  |
-| Graph API — Profile  | `GET /me`             | User.Read permission granted                 |
-| Graph API — Files    | `GET /me/drive`       | Files.ReadWrite.All permission (Team plan)   |
-| Graph API — Channels | `GET /me/joinedTeams` | Channel.ReadBasic.All permission (Team plan) |
-| AI Endpoint          | `GET {endpoint}`      | AI Services reachable                        |
-| AI Search            | Test query            | Knowledge Base connectivity (Team plan)      |
+| Check          | Method                    | What it proves                              |
+| -------------- | ------------------------- | ------------------------------------------- |
+| Authentication | `GET /.auth/me`           | EasyAuth configured, user has valid session |
+| User Profile   | `GET /me`                 | User.Read permission granted                |
+| Blob Storage   | `POST /api/storage-token` | SAS token generation working (Team plan)    |
+| AI Endpoint    | `GET {endpoint}`          | AI Services reachable                       |
 
 Each check shows: green (pass), red (fail with error message), or grey (not applicable for current plan).
 
@@ -137,16 +135,14 @@ Aino periodically checks the Status tab to ensure integrations remain healthy. C
 
 The Troubleshooting tab provides a structured diagnostic flow for common support tickets:
 
-| Issue                            | Diagnostic                                                                          | Fix Location                                      |
-| -------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------- |
-| "Users can't sign in"            | Check EasyAuth config — does `/.auth/me` return a token?                            | Azure Portal → App Service → Authentication       |
-| "OneDrive sync not working"      | Test Graph API Files scope — does `/me/drive` return?                               | Azure Portal → App Registration → API Permissions |
-| "CoScout not responding"         | Test AI endpoint connectivity — is the endpoint reachable?                          | Azure Portal → AI Services → Keys and Endpoint    |
-| "Knowledge Base empty"           | Test AI Search query + verify SharePoint folder path                                | Azure Portal → AI Search → Indexes                |
-| "Teams tab not showing"          | Check manifest app ID matches App Registration                                      | Teams Admin Center → Manage apps                  |
-| "New user can't access"          | User not assigned to Enterprise Application                                         | Azure Portal → Entra ID → Enterprise Applications |
-| "AI responses are slow"          | Check AI model deployment — throttling or cold start?                               | Azure Portal → AI Services → Model deployments    |
-| "KB works for me but not others" | Conditional Access policies may block SharePoint access for certain users/locations | Azure Portal → Entra ID → Conditional Access      |
+| Issue                       | Diagnostic                                                                | Fix Location                                      |
+| --------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------- |
+| "Users can't sign in"       | Check EasyAuth config — does `/.auth/me` return a token?                  | Azure Portal → App Service → Authentication       |
+| "Team projects not syncing" | Test SAS token endpoint — does `/api/storage-token` return?               | Azure Portal → Storage Account → Access control   |
+| "CoScout not responding"    | Test AI endpoint connectivity — is the endpoint reachable?                | Azure Portal → AI Services → Keys and Endpoint    |
+| "New user can't access"     | User not assigned to Enterprise Application                               | Azure Portal → Entra ID → Enterprise Applications |
+| "AI responses are slow"     | Check AI model deployment — throttling or cold start?                     | Azure Portal → AI Services → Model deployments    |
+| "User can't save to team"   | Check Blob Storage RBAC — does user have `Storage Blob Data Contributor`? | Azure Portal → Storage Account → Access control   |
 
 Each row provides:
 
@@ -166,10 +162,10 @@ The Plan & Features tab shows the current plan and what each tier unlocks:
 | Local file storage (IndexedDB) | ✓        | ✓    |
 | AI narration & insights        | ✓        | ✓    |
 | CoScout assistant              | ✓        | ✓    |
-| OneDrive sync                  | —        | ✓    |
-| Teams integration              | —        | ✓    |
-| SharePoint file picker         | —        | ✓    |
-| Knowledge Base                 | —        | ✓    |
+| Shared Blob Storage            | —        | ✓    |
+| Photo evidence                 | —        | ✓    |
+| Team assignment                | —        | ✓    |
+| Knowledge Catalyst             | —        | ✓    |
 
 Current plan is highlighted. Upgrade links point to Azure Marketplace subscription management.
 
@@ -181,17 +177,16 @@ After a plan upgrade:
 
 ### 5. Integration Lifecycle
 
-**Teams manifest updates:**
+**Blob Storage access (Team plan):**
 
-- Regenerate manifest when App Registration client ID changes
-- Upload new `.zip` to Teams Admin Center
-- Existing tab installations auto-update
+- New team members need `Storage Blob Data Contributor` RBAC role on the Storage Account
+- Assign via Azure Portal → Storage Account → Access control (IAM)
+- Verify via Status tab health check
 
-**Knowledge Base folder changes:**
+**Optional Teams static tab:**
 
-- Update SharePoint folder path in Admin Hub → Knowledge Base tab
-- Run AI Search indexer to pick up new folder
-- Verify via health check
+- If customers want VariScout in the Teams app bar, provide the static tab manifest (see [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md))
+- No permissions required — just a URL bookmark in Teams
 
 ---
 

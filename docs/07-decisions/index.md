@@ -27,9 +27,9 @@ This section captures key architectural decisions made during VariScout developm
 | [013](adr-013-architecture-evaluation-ddd-swarms.md) | Architecture Evaluation (DDD/Swarms)              | Accepted   | 2026-02-18 |
 | [014](adr-014-regression-deferral.md)                | Defer Regression to Phase 2                       | Accepted   | 2026-02-25 |
 | [015](adr-015-investigation-board.md)                | Investigation Board                               | Accepted   | 2026-02-26 |
-| [016](adr-016-teams-integration.md)                  | Teams Integration                                 | Accepted   | 2026-02-27 |
+| [016](adr-016-teams-integration.md)                  | Microsoft Teams Integration                       | Superseded | 2026-02-27 |
 | [017](adr-017-fluent-design-alignment.md)            | Fluent 2 Design Principle Alignment               | Accepted   | 2026-03-02 |
-| [018](adr-018-channel-mention-workflow.md)           | Channel @Mention Workflow                         | Accepted   | 2026-03-05 |
+| [018](adr-018-channel-mention-workflow.md)           | Channel @Mention Workflow                         | Superseded | 2026-03-05 |
 | [019](adr-019-ai-integration.md)                     | AI Integration (Azure App)                        | Accepted   | 2026-03-14 |
 | [020](adr-020-investigation-workflow.md)             | Investigation Workflow                            | Accepted   | 2026-03-15 |
 | [021](adr-021-security-evaluation.md)                | Security Evaluation (Teams)                       | Accepted   | 2026-02-27 |
@@ -37,7 +37,7 @@ This section captures key architectural decisions made during VariScout developm
 | [023](adr-023-data-lifecycle.md)                     | Verification Experience & Data Lifecycle          | Accepted   | 2026-03-16 |
 | [024](adr-024-scouting-report.md)                    | Scouting Report — Dynamic Report View             | Superseded | 2026-03-16 |
 | [025](adr-025-internationalization.md)               | Internationalization Architecture                 | Accepted   | 2026-03-17 |
-| [026](adr-026-knowledge-base-sharepoint-first.md)    | Knowledge Base — SharePoint-First                 | Accepted   | 2026-03-17 |
+| [026](adr-026-knowledge-base-sharepoint-first.md)    | Knowledge Base — SharePoint-First                 | Deferred   | 2026-03-17 |
 | [027](adr-027-ai-collaborator-evolution.md)          | AI Collaborator Evolution                         | Accepted   | 2026-03-19 |
 | [028](adr-028-responses-api-migration.md)            | Responses API Migration                           | Accepted   | 2026-03-19 |
 | [029](adr-029-ai-action-tools.md)                    | AI Action Tools for CoScout                       | Accepted   | 2026-03-19 |
@@ -69,6 +69,8 @@ This section captures key architectural decisions made during VariScout developm
 | [055](adr-055-workspace-navigation.md)               | Workspace-Based Navigation                        | Accepted   | 2026-04-01 |
 | [056](adr-056-pi-panel-redesign.md)                  | Process Intelligence Panel Redesign               | Accepted   | 2026-04-01 |
 | [057](adr-057-coscout-visual-grounding.md)           | CoScout Visual Grounding                          | Accepted   | 2026-04-01 |
+| [058](adr-058-deployment-lifecycle.md)               | Deployment Lifecycle & Self-Service Updates       | Accepted   | 2026-04-02 |
+| [059](adr-059-web-first-deployment-architecture.md)  | Web-First Deployment Architecture                 | Accepted   | 2026-04-02 |
 
 ---
 

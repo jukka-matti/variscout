@@ -35,18 +35,18 @@ VariScout has two paid plans, each targeting a different maturity level:
 │  Azure Team           "Collaborate and build knowledge"         │
 │  (€199/month)                                                   │
 │  ────────────────────────────────────────────                   │
-│  + Teams integration (SSO, channel tabs, Adaptive Cards)        │
-│  + OneDrive + SharePoint channel file storage                   │
-│  + Mobile gemba access, photo evidence in findings              │
-│  + Knowledge Base (Azure AI Search on SharePoint documents)     │
+│  + Shared Azure Blob Storage (team project collaboration)       │
+│  + Photo evidence in findings (browser camera + Blob Storage)   │
+│  + Team assignment, sync notifications                          │
 │  + Knowledge Catalyst (organizational learning from findings)   │
+│  + Zero admin consent — `User.Read` + `People.Read` only        │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ### AI Included in All Plans
 
-Per [ADR-033](../07-decisions/adr-033-pricing-simplification.md), AI features (NarrativeBar, ChartInsightChips, CoScout) are **included in all Azure plans** when the customer deploys Azure AI Foundry resources in their tenant. The Team plan adds the **Knowledge Base** (SharePoint team file search via Azure AI Search) and the **Knowledge Catalyst** — the organizational memory that makes AI progressively smarter from resolved findings.
+Per [ADR-033](../07-decisions/adr-033-pricing-simplification.md), AI features (NarrativeBar, ChartInsightChips, CoScout) are **included in all Azure plans** when the customer deploys Azure AI Foundry resources in their tenant. The Team plan adds the **Knowledge Catalyst** — the organizational memory that makes AI progressively smarter from resolved findings. Knowledge Base (team file search) is deferred pending a new backend approach (ADR-059).
 
 This means:
 
@@ -71,13 +71,13 @@ The PWA is a learning tool. Everything needed to understand variation analysis m
 
 The Standard-to-Team upgrade is about **who** uses the tool, not **what** it does. Standard is for a single analyst working alone. Team is for a quality team working together.
 
-**Applied:** Standard has all analysis features including closed-loop investigations. Team adds collaboration infrastructure: shared storage, Teams integration, mobile access, photo evidence.
+**Applied:** Standard has all analysis features including closed-loop investigations. Team adds collaboration infrastructure: shared Blob Storage, team assignment, photo evidence, sync notifications.
 
 ### Principle 3: Knowledge Compounds at Scale
 
 Organizational learning only delivers value when multiple people contribute findings over time. Gating knowledge features to the Team plan ensures they reach customers who have the team structure to generate enough resolved findings (target: 50+) for meaningful AI knowledge.
 
-**Applied:** Knowledge Base (SharePoint search), Knowledge Catalyst (organizational learning), and cross-project queries are Team only. Core AI (narration, chips, CoScout) is available on any Azure plan.
+**Applied:** Knowledge Catalyst (organizational learning) and cross-project queries are Team only. Core AI (narration, chips, CoScout) is available on any Azure plan.
 
 ### Principle 4: Never Gate Core Analysis
 
@@ -87,20 +87,21 @@ No chart type, statistical calculation, or analytical capability is tier-gated (
 
 ### Principle 5: Infrastructure Reflects Value
 
-Features that require Azure infrastructure (SSO, Graph API, AI Foundry) naturally belong in Azure tiers. Features that require team infrastructure (SharePoint, Teams SDK) naturally belong in Team tiers.
+Features that require Azure infrastructure (SSO, AI Foundry, Blob Storage) naturally belong in Azure tiers. Features that require shared infrastructure (team storage, sync) naturally belong in Team tiers. Critically, no feature should require admin-consent Graph API permissions — enterprise trust is a prerequisite, not a tax.
 
-**Applied:** EasyAuth → Standard+. Graph API (OneDrive/SharePoint) → Team. Azure AI Search → Team.
+**Applied:** EasyAuth → Standard+. Azure Blob Storage → Team. Zero admin-consent permissions for any tier (ADR-059).
 
 ### Principle 6: Upgrade Triggers Should Be Natural
 
 Users shouldn't feel manipulated. They should hit a genuine ceiling that makes the upgrade obvious:
 
-| Trigger                        | Feels like         | Upgrade to |
-| ------------------------------ | ------------------ | ---------- |
-| "I need to upload a CSV file"  | Natural limitation | Standard   |
-| "I need to save my analysis"   | Natural limitation | Standard   |
-| "I need my team to see this"   | Collaboration need | Team       |
-| "What did we learn last time?" | Knowledge need     | Team       |
+| Trigger                        | Feels like          | Upgrade to |
+| ------------------------------ | ------------------- | ---------- |
+| "I need to upload a CSV file"  | Natural limitation  | Standard   |
+| "I need to save my analysis"   | Natural limitation  | Standard   |
+| "I need my team to see this"   | Collaboration need  | Team       |
+| "What did we learn last time?" | Knowledge need      | Team       |
+| "Show me evidence photos"      | Field investigation | Team       |
 
 ### Principle 7: PWA and Azure Must Feel Like the Same Product
 
@@ -129,12 +130,11 @@ The specific moments where each ceiling becomes visible.
 
 ### Standard → Team
 
-| Ceiling              | User Experience                                  | Frequency            |
-| -------------------- | ------------------------------------------------ | -------------------- |
-| No shared storage    | Must email .vrs files to colleagues              | Team handoffs        |
-| No Teams integration | Quality reviews happen outside the analysis tool | Team meetings        |
-| No mobile access     | Can't review charts during gemba walks           | Shop floor visits    |
-| No photo evidence    | Can't attach photos to findings                  | Field investigations |
+| Ceiling            | User Experience                                 | Frequency            |
+| ------------------ | ----------------------------------------------- | -------------------- |
+| No shared storage  | Must email .vrs files to colleagues             | Team handoffs        |
+| No photo evidence  | Can't attach photos to findings                 | Field investigations |
+| No team assignment | Can't assign corrective actions to team members | Improvement tracking |
 
 ---
 

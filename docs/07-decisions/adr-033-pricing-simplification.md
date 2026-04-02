@@ -26,15 +26,15 @@ Several factors make this three-tier model suboptimal:
 
 Collapse to two Azure plans:
 
-|                | Standard — €79/mo                       | Team — €199/mo                             |
-| -------------- | --------------------------------------- | ------------------------------------------ |
-| Tagline        | "Analyze your data with CoScout AI"     | "Collaborate with CoScout Knowledge"       |
-| Core analysis  | All charts, stats, drill-down           | Same                                       |
-| AI             | CoScout AI, NarrativeBar, ChartInsights | Same                                       |
-| Investigation  | 5-status closed-loop                    | Same + team assignment                     |
-| Storage        | Local files (IndexedDB)                 | + OneDrive + SharePoint                    |
-| Teams          | —                                       | SSO, channel tabs, mobile, photos          |
-| Knowledge Base | —                                       | CoScout Knowledge Base (Remote SharePoint) |
+|               | Standard — €79/mo                       | Team — €199/mo                               |
+| ------------- | --------------------------------------- | -------------------------------------------- |
+| Tagline       | "Analyze your data with CoScout AI"     | "Collaborate with CoScout Knowledge"         |
+| Core analysis | All charts, stats, drill-down           | Same                                         |
+| AI            | CoScout AI, NarrativeBar, ChartInsights | Same                                         |
+| Investigation | 5-status closed-loop                    | Same + team assignment                       |
+| Storage       | Local files (IndexedDB)                 | + Azure Blob Storage (shared team projects)  |
+| Collaboration | —                                       | Photo evidence, team assignment, sync        |
+| Knowledge     | —                                       | Knowledge Catalyst (organizational learning) |
 
 Key changes:
 
@@ -44,16 +44,12 @@ Key changes:
 - **`isAIAvailable()` simplified** — checks for configured endpoint only, not plan level
 - **CoScout becomes the unified AI brand** across both tiers
 
-### Permission model
+### Permission model (updated per ADR-059)
 
-- Standard (€79): `User.Read` + `cognitiveservices/.default`
-- Team (€199): above + `Files.ReadWrite`, `Files.ReadWrite.All`, `Channel.ReadBasic.All`, `People.Read`, `ChannelMessage.Send`, `Sites.Read.All`
+- Standard (€79): `User.Read` + `cognitiveservices/.default` (optional)
+- Team (€199): above + `People.Read` + Azure Blob Storage RBAC (no Graph admin-consent scopes)
 
-### Knowledge Base licensing (verified 2026-03-19)
-
-- Copilot Retrieval API requires `Files.Read.All` + `Sites.Read.All` (delegated) — `Sites.Selected` is NOT sufficient
-- Pay-as-you-go (preview): 1 Copilot license in tenant + $0.10/API call for non-licensed users
-- Remote SharePoint knowledge source: queries SharePoint live via user token passthrough (`x-ms-query-source-authorization`)
+> **Note (2026-04-02):** ADR-059 (Web-First Architecture) replaced the previous Team tier permissions. `Files.ReadWrite.All`, `Channel.ReadBasic.All`, `ChannelMessage.Send`, and `Sites.Read.All` have been removed. Team storage uses Azure Blob Storage with RBAC instead of OneDrive/SharePoint via Graph API. Knowledge Base (SharePoint search) is deferred.
 
 ## Consequences
 
@@ -72,4 +68,4 @@ Key changes:
 
 ### Future opportunity
 
-- Migrate `Files.ReadWrite.All` → `Sites.Selected` for improved IT acceptance (separate engineering task)
+- ~~Migrate `Files.ReadWrite.All` → `Sites.Selected` for improved IT acceptance~~ — Resolved by ADR-059: Graph API permissions removed entirely

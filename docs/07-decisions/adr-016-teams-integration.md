@@ -4,11 +4,13 @@ title: 'ADR-016: Microsoft Teams Integration'
 
 # ADR-016: Microsoft Teams Integration
 
-**Status**: Accepted
+**Status**: Superseded by [ADR-059](adr-059-web-first-deployment-architecture.md)
 
 **Date**: 2026-02-27
 
 **Related**: ADR-007 (marketplace distribution), ADR-015 (investigation board)
+
+> **Note (2026-04-02):** This ADR has been superseded by ADR-059 (Web-First Deployment Architecture). VariScout has shifted from a Teams-first to a web-first deployment model. Teams SDK, OBO token exchange, and admin-consent Graph API permissions are removed. Team tier collaboration uses Azure Blob Storage instead of OneDrive/SharePoint. See ADR-059 for the current architecture.
 
 ---
 

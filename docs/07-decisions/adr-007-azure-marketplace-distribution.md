@@ -59,12 +59,11 @@ These findings led to a simplified model: one paid product (Azure App as Managed
 │                                                             │
 │  Plan: "VariScout Team"        €199/month                  │
 │    Everything in Standard, plus:                            │
-│    - OneDrive + SharePoint channel file storage            │
-│    - Teams integration (SSO, sidebar, Adaptive Cards)      │
-│    - Mobile gemba companion (Field View + photo comments)  │
-│    - AI Knowledge Base (Azure AI Search)                   │
+│    - Shared Azure Blob Storage for team projects           │
+│    - Photo evidence (browser camera + Blob Storage)        │
+│    - Team assignment and sync notifications                │
 │    - Organizational learning from resolved findings        │
-│    - Requires: admin consent for Files.ReadWrite.All        │
+│    - Zero admin consent — User.Read + People.Read only     │
 │                                                             │
 │  Offer type: Managed Application                           │
 │  Billing: Microsoft (3% fee, monthly)                      │
@@ -75,11 +74,11 @@ These findings led to a simplified model: one paid product (Azure App as Managed
 
 ### Product Hierarchy
 
-| Product                  | Role                                                 | Distribution      | Price                                                                     |
-| ------------------------ | ---------------------------------------------------- | ----------------- | ------------------------------------------------------------------------- |
-| **Azure App (Standard)** | Full analysis, local files, CoScout AI               | Azure Marketplace | €79/month (Managed Application)                                           |
-| **Azure App (Team)**     | + Teams, cloud collaboration, mobile, Knowledge Base | Azure Marketplace | €199/month (Managed Application)                                          |
-| **PWA**                  | FREE (training & education)                          | Public website    | Free forever (core analysis + Green Belt, copy-paste input, session-only) |
+| Product                  | Role                                              | Distribution      | Price                                                                     |
+| ------------------------ | ------------------------------------------------- | ----------------- | ------------------------------------------------------------------------- |
+| **Azure App (Standard)** | Full analysis, local files, CoScout AI            | Azure Marketplace | €79/month (Managed Application)                                           |
+| **Azure App (Team)**     | + Collaboration, Blob Storage, Knowledge Catalyst | Azure Marketplace | €199/month (Managed Application)                                          |
+| **PWA**                  | FREE (training & education)                       | Public website    | Free forever (core analysis + Green Belt, copy-paste input, session-only) |
 
 > **Note (Feb 2026):** Excel Add-in shelved — cost with no revenue, unproven funnel. The PWA serves the same funnel role (free, no friction, shows the methodology) at zero marginal cost. See original 3-product strategy below for historical context.
 
@@ -89,29 +88,26 @@ The ARM template passes a `VARISCOUT_PLAN` environment variable (`standard` or `
 
 Same ARM template is reused across both plans (Azure Marketplace supports up to 100 plans per offer). The plan variable controls:
 
-- Storage mode: Standard = File System Access API (local `.vrs` files, fallback to IndexedDB); Team = + OneDrive personal + SharePoint channel storage
-- Teams SDK initialization (Team plan only)
-- Channel file storage UI (Team plan only)
-- Mobile Field View route (Team plan only)
-- Photo capture in findings (Team plan only)
-- Admin consent guidance in settings (Team plan only)
-- AI Knowledge Base via Remote SharePoint knowledge source (Team plan only)
-- Report publishing to SharePoint for organizational learning (Team plan only)
+- Storage mode: Standard = File System Access API (local `.vrs` files, fallback to IndexedDB); Team = + Azure Blob Storage (shared team projects)
+- Blob Storage SAS token endpoint (Team plan only)
+- Photo capture in findings via browser camera (Team plan only)
+- Team assignment with people picker (Team plan only)
+- Knowledge Catalyst — organizational learning from resolved findings (Team plan only)
 - AI-powered CoScout with methodology grounding (both plans)
 
-See [ADR-016](adr-016-teams-integration.md) for full Teams integration technical design. See [ADR-019](adr-019-ai-integration.md) for AI integration design.
+See [ADR-059](adr-059-web-first-deployment-architecture.md) for the web-first deployment architecture. See [ADR-019](adr-019-ai-integration.md) for AI integration design.
 
 ### Pricing Rationale
 
-| Aspect         | Standard                             | Team                                                |
-| -------------- | ------------------------------------ | --------------------------------------------------- |
-| Price          | €79/month                            | €199/month                                          |
-| Net (after 3%) | €76.63/month                         | €193.03/month                                       |
-| Annual net     | €919.56/year                         | €2,316.36/year                                      |
-| Storage        | Local files (File System Access API) | + OneDrive + SharePoint                             |
-| Auth scopes    | `User.Read` only                     | + `Files.ReadWrite.All`                             |
-| Admin consent  | None                                 | Required (one-time)                                 |
-| AI             | CoScout (customer-deployed)          | + AI Knowledge Base, enhanced CoScout, org learning |
+| Aspect         | Standard                             | Team                                                 |
+| -------------- | ------------------------------------ | ---------------------------------------------------- |
+| Price          | €79/month                            | €199/month                                           |
+| Net (after 3%) | €76.63/month                         | €193.03/month                                        |
+| Annual net     | €919.56/year                         | €2,316.36/year                                       |
+| Storage        | Local files (File System Access API) | + Azure Blob Storage (shared team projects)          |
+| Auth scopes    | `User.Read` only                     | + `People.Read` + Azure RBAC                         |
+| Admin consent  | None                                 | **None** (zero admin-consent per ADR-059)            |
+| AI             | CoScout (customer-deployed)          | + Knowledge Catalyst, enhanced CoScout, org learning |
 
 | Aspect  | Value                                              |
 | ------- | -------------------------------------------------- |
@@ -314,7 +310,7 @@ The codebase (`apps/excel-addin/`) was removed. Historical documentation preserv
 
 - [ADR-006: Edition System](adr-006-edition-system.md) - Superseded, kept for historical context
 - [ADR-004: Offline-First](adr-004-offline-first.md) - Unchanged, still applies
-- [ADR-016: Teams Integration](adr-016-teams-integration.md) - Technical design for Team plan capabilities
+- [ADR-059: Web-First Deployment Architecture](adr-059-web-first-deployment-architecture.md) - Web-first architecture (supersedes ADR-016)
 
 ---
 

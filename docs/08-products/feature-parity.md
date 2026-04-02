@@ -10,13 +10,13 @@ Complete feature availability across VariScout platforms.
 
 ## Platform Overview
 
-| Platform           | Primary Use                                               | Status      | Distribution      | Price      |
-| ------------------ | --------------------------------------------------------- | ----------- | ----------------- | ---------- |
-| **Azure Standard** | Full analysis with CoScout AI, local file storage         | **PRIMARY** | Azure Marketplace | €79/month  |
-| **Azure Team**     | + Teams, cloud storage, mobile, Knowledge Base & Catalyst | **PRIMARY** | Azure Marketplace | €199/month |
-| **PWA**            | Training & education                                      | Production  | Direct URL        | FREE       |
+| Platform           | Primary Use                                                | Status      | Distribution      | Price      |
+| ------------------ | ---------------------------------------------------------- | ----------- | ----------------- | ---------- |
+| **Azure Standard** | Full analysis with CoScout AI, local file storage          | **PRIMARY** | Azure Marketplace | €79/month  |
+| **Azure Team**     | + Collaboration, cloud storage, mobile, Knowledge Catalyst | **PRIMARY** | Azure Marketplace | €199/month |
+| **PWA**            | Training & education                                       | Production  | Direct URL        | FREE       |
 
-> Per [ADR-033](../07-decisions/adr-033-pricing-simplification.md), Azure App is the only paid product with a two-plan model: Standard (€79/month) and Team (€199/month). AI is included in all plans. Knowledge Base and Knowledge Catalyst are Team features. All are Azure Marketplace Managed Applications. PWA is free forever. See [ADR-016](../07-decisions/adr-016-teams-integration.md) for Teams integration design and [ADR-019](../07-decisions/adr-019-ai-integration.md) for AI integration design.
+> Per [ADR-033](../07-decisions/adr-033-pricing-simplification.md), Azure App is the only paid product with a two-plan model: Standard (€79/month) and Team (€199/month). AI is included in all plans. Knowledge Catalyst is a Team feature. All are Azure Marketplace Managed Applications. PWA is free forever. See [ADR-059](../07-decisions/adr-059-web-first-deployment-architecture.md) for the web-first deployment architecture and [ADR-019](../07-decisions/adr-019-ai-integration.md) for AI integration design.
 
 ---
 
@@ -118,19 +118,18 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Persistence & Storage
 
-| Feature                    |            Azure Standard            |             Azure Team              | PWA (Free) | Notes                                         |
-| -------------------------- | :----------------------------------: | :---------------------------------: | :--------: | --------------------------------------------- |
-| **Local storage**          |              IndexedDB               |              IndexedDB              |     -      | PWA is session-only                           |
-| **File storage**           | Local files (File System Access API) | Local files + OneDrive + SharePoint |     -      | Team adds cloud sync                          |
-| **Channel storage**        |                  -                   |      SharePoint (per channel)       |     -      | Team plan only                                |
-| **Offline support**        |                Cached                |               Cached                |     ✓      | Azure caches for offline                      |
-| **Analysis save/load**     |                  ✓                   |                  ✓                  |     -      | PWA is session-only                           |
-| **Export CSV**             |                  ✓                   |                  ✓                  |     ✓      |                                               |
-| **Export JSON**            |                  ✓                   |                  ✓                  |     -      | Azure App only                                |
-| **Screenshot export**      |                  ✓                   |                  ✓                  |     ✓      |                                               |
-| **Sync notifications**     |                  -                   |                  ✓                  |     -      | Toast feedback for sync status, errors, auth  |
-| **SharePoint file picker** |                  -                   |                  ✓                  |     -      | Browse SP for import, open, save-as (ADR-030) |
-| **Report publish URL**     |                  -                   |                  ✓                  |     -      | Clickable "Open in SharePoint" after publish  |
+| Feature                 |            Azure Standard            |            Azure Team            | PWA (Free) | Notes                                  |
+| ----------------------- | :----------------------------------: | :------------------------------: | :--------: | -------------------------------------- |
+| **Local storage**       |              IndexedDB               |            IndexedDB             |     -      | PWA is session-only                    |
+| **File storage**        | Local files (File System Access API) | Local files + Azure Blob Storage |     -      | Team adds shared cloud storage         |
+| **Shared team storage** |                  -                   |        Azure Blob Storage        |     -      | Team plan only (ADR-059)               |
+| **Offline support**     |                Cached                |              Cached              |     ✓      | Azure caches for offline               |
+| **Analysis save/load**  |                  ✓                   |                ✓                 |     -      | PWA is session-only                    |
+| **Export CSV**          |                  ✓                   |                ✓                 |     ✓      |                                        |
+| **Export JSON**         |                  ✓                   |                ✓                 |     -      | Azure App only                         |
+| **Screenshot export**   |                  ✓                   |                ✓                 |     ✓      |                                        |
+| **Sync notifications**  |                  -                   |                ✓                 |     -      | Toast feedback for sync status, errors |
+| **Photo evidence**      |                  -                   |                ✓                 |     -      | Browser camera, stored in Blob Storage |
 
 ---
 
@@ -141,13 +140,11 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **NarrativeBar**                |    Optional    |  Optional  |     -      | Plain-language analysis summary at dashboard bottom                                |
 | **ChartInsightChip**            |    Optional    |  Optional  |     -      | Per-chart contextual suggestions                                                   |
 | **CoScoutPanel**                |    Optional    |  Enhanced  |     -      | Team: methodology-grounded, knowledge-base-aware                                   |
-| **Knowledge Base**              |       -        |     ✓      |     -      | SharePoint team file search via Azure AI Search (Team only)                        |
+| **Knowledge Base**              |       -        |  Deferred  |     -      | Deferred pending new backend approach (ADR-059). Previously SharePoint search.     |
 | **Knowledge Catalyst**          |       -        |     ✓      |     -      | Organizational learning — resolved findings feed back into AI memory (Team only)   |
 | **Process description field**   |    Optional    |  Optional  |     -      | Free-text process context for AI grounding                                         |
 | **AI visibility toggle**        |    Optional    |  Optional  |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists             |
-| **Knowledge Base Search**       |       -        |  Preview   |     -      | On-demand search via Remote SharePoint knowledge source (Team only)                |
-| **KB Freshness Indicator**      |       -        |     ✓      |     -      | Scope label + relative timestamp below KB results                                  |
-| **KB Permission Warning**       |       -        |     ✓      |     -      | Amber warning when admin consent missing for SharePoint                            |
+| **Knowledge Base Search**       |       -        |  Deferred  |     -      | Deferred (ADR-059). Will use new backend approach when reimplemented.              |
 | **Findings Export (CSV/JSON)**  |       ✓        |     ✓      |     -      | Download findings as CSV (Excel-compatible) or structured JSON                     |
 | **Findings Export (AI Report)** |    Optional    |  Optional  |     -      | AI-generated quality engineering report from findings data                         |
 | **Admin Hub**                   |       ✓        |     ✓      |     -      | Health checks, plan overview, Teams setup (Team), KB setup (Team), troubleshooting |
@@ -156,34 +153,34 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ---
 
-## Teams Integration
+## Collaboration & Teams Presence
 
-| Feature                               | Azure Standard | Azure Team | PWA (Free) | Notes                                                               |
-| ------------------------------------- | :------------: | :--------: | :--------: | ------------------------------------------------------------------- |
-| **Teams channel tab**                 |       -        |     ✓      |     -      | Shared analysis in team channels                                    |
-| **Teams personal tab**                |       -        |     ✓      |     -      | Personal analysis within Teams                                      |
-| **Teams SSO**                         |       -        |     ✓      |     -      | On-Behalf-Of token exchange                                         |
-| **Channel file storage (SharePoint)** |       -        |     ✓      |     -      | .vrs files in channel document library                              |
-| **Photo evidence in findings**        |       -        |     ✓      |     -      | Teams SDK `media.selectMedia()` + HTML5 fallback; channel storage   |
-| **Deep links to charts**              |       -        |     ✓      |     -      | Share chart URLs via Teams chat                                     |
-| **Adaptive Cards sharing**            |       -        |     ✓      |     -      | Auto-post on analyzed/resolved status with @mentions and deep links |
-| **Teams mobile access**               |       -        |     ✓      |     -      | Full analysis via Teams mobile app                                  |
-| **Phone-responsive carousel**         |       -        |     ✓      |     -      | Responsive mobile layout within Editor                              |
+| Feature                         | Azure Standard | Azure Team | PWA (Free) | Notes                                                                   |
+| ------------------------------- | :------------: | :--------: | :--------: | ----------------------------------------------------------------------- |
+| **Shared Blob Storage**         |       -        |     ✓      |     -      | Projects stored in customer's Azure Blob Storage (ADR-059)              |
+| **Project sharing**             |       -        |     ✓      |     -      | Browse team projects, concurrent access with conflict notification      |
+| **Photo evidence in findings**  |       -        |     ✓      |     -      | Browser camera `<input capture>`, stored in Blob Storage                |
+| **Team assignment**             |       -        |     ✓      |     -      | People picker for corrective action assignment                          |
+| **Deep links**                  |       ✓        |     ✓      |     -      | Shareable URLs to findings, charts, workspaces                          |
+| **Phone-responsive carousel**   |       ✓        |     ✓      |     -      | Responsive mobile layout within Editor (browser-based)                  |
+| **Teams static tab (optional)** |       -        |  Optional  |     -      | Minimal manifest for Teams app bar presence (docs, not code dependency) |
+| **Webhook notifications**       |       -        |  Planned   |     -      | Teams Incoming Webhook for channel alerts (future)                      |
 
-> See [ADR-016](../07-decisions/adr-016-teams-integration.md) for full Teams integration technical design.
+> ADR-059 replaces the previous Teams SDK integration (ADR-016, superseded). VariScout is now a web-first application. Teams presence is optional via static tab — zero Graph API permissions required.
 
 ---
 
 ## Authentication & Security
 
-| Feature                     | Azure Standard |                  Azure Team                  | PWA (Free) | Notes                                          |
-| --------------------------- | :------------: | :------------------------------------------: | :--------: | ---------------------------------------------- |
-| **Microsoft SSO**           |       ✓        |                      ✓                       |     -      | EasyAuth redirect (Standard), Teams SSO (Team) |
-| **Azure AD / Entra ID**     |       ✓        |                      ✓                       |     -      |                                                |
-| **Data in customer tenant** |       ✓        |                      ✓                       |    N/A     | PWA is local only                              |
-| **No data transmission**    |       ✓        |                      ✓                       |     ✓      | All client-side                                |
-| **Permissions scope**       |   User.Read    | + Files.ReadWrite.All, Channel.ReadBasic.All |     -      | Team requires admin consent                    |
-| **Admin consent required**  |       -        |                      ✓                       |     -      | One-time tenant admin approval                 |
+| Feature                     | Azure Standard |        Azure Team         | PWA (Free) | Notes                                          |
+| --------------------------- | :------------: | :-----------------------: | :--------: | ---------------------------------------------- |
+| **Microsoft SSO**           |       ✓        |             ✓             |     -      | EasyAuth redirect (both tiers)                 |
+| **Azure AD / Entra ID**     |       ✓        |             ✓             |     -      |                                                |
+| **Data in customer tenant** |       ✓        |             ✓             |    N/A     | PWA is local only                              |
+| **No data transmission**    |       ✓        |             ✓             |     ✓      | All client-side                                |
+| **Permissions scope**       |   User.Read    |  User.Read + People.Read  |     -      | Zero admin-consent permissions (ADR-059)       |
+| **Admin consent required**  |       -        |             -             |     -      | **No admin consent required for either tier**  |
+| **Storage access**          |       -        | Azure RBAC (Blob Storage) |     -      | Standard Azure role assignments, not Graph API |
 
 ---
 
@@ -237,16 +234,16 @@ Features that behave differently on phone (<640px) versus desktop.
 
 ## Licensing & Pricing
 
-| Aspect            | Azure Standard                       | Azure Team                                                                | PWA (Free)                                                |
-| ----------------- | ------------------------------------ | ------------------------------------------------------------------------- | --------------------------------------------------------- |
-| **Distribution**  | Azure Marketplace                    | Azure Marketplace                                                         | Direct URL                                                |
-| **Pricing**       | €79/month                            | €199/month                                                                | FREE (forever)                                            |
-| **Billing**       | Monthly (Managed Application)        | Monthly (Managed Application)                                             | N/A                                                       |
-| **Users**         | Unlimited (per-deployment)           | Unlimited (per-deployment)                                                | N/A                                                       |
-| **Features**      | All analysis + CoScout AI            | All analysis + Teams + cloud storage + mobile + Knowledge Base & Catalyst | Core analysis + Green Belt (no Performance Mode, no save) |
-| **Auth**          | EasyAuth / Entra (User.Read)         | EasyAuth + Teams SSO (+ Files, Channels)                                  | None                                                      |
-| **Storage**       | Local files (File System Access API) | + OneDrive + SharePoint channels + AI Search                              | Session-only                                              |
-| **Admin consent** | None                                 | Required (one-time)                                                       | N/A                                                       |
+| Aspect            | Azure Standard                       | Azure Team                                                        | PWA (Free)                                                |
+| ----------------- | ------------------------------------ | ----------------------------------------------------------------- | --------------------------------------------------------- |
+| **Distribution**  | Azure Marketplace                    | Azure Marketplace                                                 | Direct URL                                                |
+| **Pricing**       | €79/month                            | €199/month                                                        | FREE (forever)                                            |
+| **Billing**       | Monthly (Managed Application)        | Monthly (Managed Application)                                     | N/A                                                       |
+| **Users**         | Unlimited (per-deployment)           | Unlimited (per-deployment)                                        | N/A                                                       |
+| **Features**      | All analysis + CoScout AI            | All analysis + collaboration + cloud storage + Knowledge Catalyst | Core analysis + Green Belt (no Performance Mode, no save) |
+| **Auth**          | EasyAuth / Entra (User.Read)         | EasyAuth / Entra (User.Read + People.Read)                        | None                                                      |
+| **Storage**       | Local files (File System Access API) | + Azure Blob Storage (shared team projects)                       | Session-only                                              |
+| **Admin consent** | None                                 | None                                                              | N/A                                                       |
 
 ---
 
@@ -269,21 +266,15 @@ Features that behave differently on phone (<640px) versus desktop.
 
 ### Azure Team Only (vs Standard)
 
-- OneDrive personal file sync
-- SharePoint channel file storage
-- Teams channel tab and personal tab
-- Teams SSO (On-Behalf-Of token exchange)
-- Phone-responsive carousel for gemba investigations (responsive layout within Editor)
-- Photo evidence capture in findings (camera + channel storage)
-- Adaptive Cards for status updates (analyzed/resolved findings)
-- Teams mobile access
+- Shared Azure Blob Storage for team projects (customer's resource group)
+- Project sharing with concurrent access and conflict notification
+- Photo evidence capture in findings (browser camera + Blob Storage)
 - Sync notifications (toast feedback for cloud operations)
 - Team assignment on corrective actions (people picker for team members)
-- Teams auto-posting on finding analyzed + resolved status changes
-- Knowledge Base via Azure AI Search (SharePoint team file search)
 - Knowledge Catalyst (organizational learning from resolved findings)
 - AI-enhanced CoScout with methodology-grounded assistant
-- Report publishing to SharePoint (searchable by future investigations)
+- Optional Teams presence via static tab (zero permissions)
+- Webhook notifications for channel alerts (planned)
 
 ### PWA Only
 
@@ -316,6 +307,6 @@ Features that behave differently on phone (<640px) versus desktop.
 - [PWA (Free Training Tool)](pwa/index.md)
 - [ADR-007: Distribution Strategy](../07-decisions/adr-007-azure-marketplace-distribution.md)
 - [ADR-015: Investigation Board](../07-decisions/adr-015-investigation-board.md)
-- [ADR-016: Teams Integration](../07-decisions/adr-016-teams-integration.md)
+- [ADR-059: Web-First Deployment Architecture](../07-decisions/adr-059-web-first-deployment-architecture.md)
 - [ADR-019: AI Integration](../07-decisions/adr-019-ai-integration.md)
 - [AI Components](../06-design-system/components/ai-components.md)

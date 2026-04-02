@@ -1,10 +1,12 @@
 ---
-title: 'Azure Teams Mobile Flow'
+title: 'Azure Mobile Flow'
 ---
 
-# Azure Teams Mobile Flow
+# Azure Mobile Flow
 
-How quality engineers use VariScout on their phones via the Teams mobile app.
+How quality engineers use VariScout on their phones via the mobile browser.
+
+> **Updated (ADR-059):** VariScout is now a web-first application. Mobile access is via the browser (not Teams mobile app). All mobile features work identically in any mobile browser — Safari, Chrome, Edge.
 
 ---
 
@@ -18,7 +20,7 @@ How quality engineers use VariScout on their phones via the Teams mobile app.
 
 ```mermaid
 flowchart TD
-    A[Open Teams Mobile] --> B[Tap VariScout Tab]
+    A[Open VariScout URL in browser] --> B[EasyAuth Login]
     B --> C{Phone or Tablet?}
     C -->|Phone < 640px| D[Carousel View]
     C -->|Tablet 640px+| E[Grid View]
@@ -34,7 +36,7 @@ flowchart TD
 
     K -->|Yes| L[Tap ⋮ Overflow Menu]
     L --> M[Findings / What-If / Export / Data Table / Ask AI]
-    K -->|No| N[Done - Close Teams]
+    K -->|No| N[Done]
 
     E --> O[Full Desktop Layout]
     O --> P[All Charts Visible, Full Toolbar]
