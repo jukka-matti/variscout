@@ -1,18 +1,25 @@
 // src/services/cloudSync.ts
-// Cloud sync stub — Graph API / OneDrive removed per ADR-059.
-// All async operations throw CloudSyncUnavailableError or return safe defaults.
-// Blob Storage implementation will replace this in Phase 2.
+// Cloud sync via Blob Storage (ADR-059 Phase 2).
+// Wraps blobClient.ts operations for the storage.ts orchestrator.
 
 import type { ProjectMetadata } from '@variscout/core';
 import { AuthError } from '../auth/easyAuth';
 import { db } from '../db/schema';
 import type { Project } from './localDb';
+import {
+  saveBlobProject,
+  loadBlobProject,
+  loadBlobMetadata,
+  listBlobProjects,
+  updateBlobIndex,
+} from './blobClient';
+import type { BlobProjectMetadata } from './blobClient';
 
-// ── Stub error ─────────────────────────────────────────────────────────
+// ── Fallback error ─────────────────────────────────────────────────────
 
-/** Thrown when cloud sync is called before Blob Storage migration (ADR-059 Phase 2). */
+/** Thrown when Blob Storage is not configured (503 from server) or feature not applicable. */
 export class CloudSyncUnavailableError extends Error {
-  constructor(message = 'Cloud sync unavailable — Blob Storage migration pending') {
+  constructor(message = 'Cloud sync unavailable — Blob Storage not configured') {
     super(message);
     this.name = 'CloudSyncUnavailableError';
   }
@@ -117,38 +124,96 @@ export class GraphError extends Error {
   }
 }
 
-// ── Stubbed async operations ───────────────────────────────────────────
+// ── Project ID derivation ──────────────────────────────────────────────
+
+/** Sanitize a project name into a URL-safe slug for use as blob path prefix. */
+function toProjectId(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+/** Wrap blobClient calls: convert 503 (not configured) into CloudSyncUnavailableError. */
+async function wrapBlobCall<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (/503/.test(msg)) {
+      throw new CloudSyncUnavailableError();
+    }
+    throw error;
+  }
+}
+
+// ── Cloud operations (backed by Blob Storage) ──────────────────────────
 
 export async function saveToCloud(
   _token: string,
-  _project: Project,
-  _name: string,
+  project: Project,
+  name: string,
   _location: StorageLocation
 ): Promise<{ id: string; etag: string }> {
-  throw new CloudSyncUnavailableError();
+  const projectId = toProjectId(name);
+  const now = new Date().toISOString();
+
+  const metadata: BlobProjectMetadata = {
+    projectId,
+    name,
+    updated: now,
+  };
+
+  await wrapBlobCall(async () => {
+    await saveBlobProject(project, projectId, metadata);
+
+    // Update the central index
+    const index = await listBlobProjects();
+    const existing = index.findIndex(p => p.projectId === projectId);
+    if (existing >= 0) {
+      index[existing] = metadata;
+    } else {
+      index.push(metadata);
+    }
+    await updateBlobIndex(index);
+  });
+
+  return { id: projectId, etag: now };
 }
 
 export async function loadFromCloud(
   _token: string,
-  _name: string,
+  name: string,
   _location: StorageLocation
 ): Promise<Project | null> {
-  throw new CloudSyncUnavailableError();
+  const projectId = toProjectId(name);
+  return wrapBlobCall(() => loadBlobProject(projectId));
 }
 
 export async function listFromCloud(
   _token: string,
   _location: StorageLocation
 ): Promise<CloudProject[]> {
-  return [];
+  const entries = await wrapBlobCall(() => listBlobProjects());
+  return entries.map(entry => ({
+    id: entry.projectId,
+    name: entry.name,
+    modified: entry.updated,
+    location: 'personal' as StorageLocation,
+    metadata: entry.metadata,
+  }));
 }
 
 export async function getCloudModifiedDate(
   _token: string,
-  _name: string,
+  name: string,
   _location: StorageLocation
 ): Promise<string | null> {
-  return null;
+  const projectId = toProjectId(name);
+  const meta = await wrapBlobCall(() => loadBlobMetadata(projectId));
+  return meta?.updated ?? null;
 }
 
 export async function saveSidecarToCloud(
@@ -157,7 +222,7 @@ export async function saveSidecarToCloud(
   _name: string,
   _location: StorageLocation
 ): Promise<void> {
-  // no-op
+  // No-op: metadata is written atomically alongside analysis in saveBlobProject
 }
 
 export async function loadSidecarFromCloud(
@@ -165,6 +230,7 @@ export async function loadSidecarFromCloud(
   _name: string,
   _location: StorageLocation
 ): Promise<ProjectMetadata | null> {
+  // No-op: metadata is part of the metadata blob, read via loadBlobMetadata
   return null;
 }
 
@@ -173,7 +239,7 @@ export async function downloadFileFromGraph(
   _driveId: string,
   _itemId: string
 ): Promise<File> {
-  throw new CloudSyncUnavailableError();
+  throw new CloudSyncUnavailableError('downloadFileFromGraph not applicable to Blob Storage');
 }
 
 export async function saveToCustomLocation(
@@ -182,7 +248,7 @@ export async function saveToCustomLocation(
   _fileName: string,
   _data: string | Blob
 ): Promise<{ webUrl: string }> {
-  throw new CloudSyncUnavailableError();
+  throw new CloudSyncUnavailableError('saveToCustomLocation not applicable to Blob Storage');
 }
 
 export async function updateLastViewedAt(
@@ -190,7 +256,7 @@ export async function updateLastViewedAt(
   _location: StorageLocation,
   userId: string
 ): Promise<void> {
-  // Update IndexedDB only (cloud sidecar unavailable)
+  // Update IndexedDB only (lightweight operation, no cloud round-trip)
   try {
     const record = await db.projects.get(projectName);
     if (record) {
@@ -215,7 +281,7 @@ export async function updateLastViewedAt(
 }
 
 export async function ensureFolderExists(_token: string, _apiBase: unknown): Promise<void> {
-  throw new CloudSyncUnavailableError();
+  // No-op: Blob Storage creates paths implicitly on PUT
 }
 
 // ── Retry constants (used by storage.ts StorageProvider) ───────────────

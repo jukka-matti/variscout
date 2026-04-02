@@ -13,6 +13,11 @@ const {
   mockRemoveFromQueue,
   mockPruneSyncQueue,
   mockGetGraphToken,
+  mockSaveBlobProject,
+  mockLoadBlobProject,
+  mockLoadBlobMetadata,
+  mockListBlobProjects,
+  mockUpdateBlobIndex,
 } = vi.hoisted(() => ({
   mockProjects: {
     put: vi.fn().mockResolvedValue(undefined),
@@ -30,6 +35,11 @@ const {
   mockRemoveFromQueue: vi.fn().mockResolvedValue(undefined),
   mockPruneSyncQueue: vi.fn().mockResolvedValue(0),
   mockGetGraphToken: vi.fn().mockResolvedValue('mock-token-123'),
+  mockSaveBlobProject: vi.fn().mockResolvedValue(undefined),
+  mockLoadBlobProject: vi.fn().mockResolvedValue(null),
+  mockLoadBlobMetadata: vi.fn().mockResolvedValue(null),
+  mockListBlobProjects: vi.fn().mockResolvedValue([]),
+  mockUpdateBlobIndex: vi.fn().mockResolvedValue(undefined),
 }));
 
 // ---------------------------------------------------------------------------
@@ -81,10 +91,21 @@ vi.mock('../../auth/easyAuth', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Mock: ../auth/graphToken
+// Mock: ../auth/graphToken (kept for backwards compat, no longer imported by storage.ts)
 // ---------------------------------------------------------------------------
 vi.mock('../../auth/graphToken', () => ({
   getGraphToken: mockGetGraphToken,
+}));
+
+// ---------------------------------------------------------------------------
+// Mock: ../services/blobClient (Blob Storage operations used by cloudSync)
+// ---------------------------------------------------------------------------
+vi.mock('../blobClient', () => ({
+  saveBlobProject: mockSaveBlobProject,
+  loadBlobProject: mockLoadBlobProject,
+  loadBlobMetadata: mockLoadBlobMetadata,
+  listBlobProjects: mockListBlobProjects,
+  updateBlobIndex: mockUpdateBlobIndex,
 }));
 
 // ---------------------------------------------------------------------------
@@ -97,14 +118,6 @@ import type { SyncStatus, CloudProject, StorageLocation } from '../storage';
 // Helpers
 // ---------------------------------------------------------------------------
 const sampleProject = { data: [1, 2, 3], specs: { usl: 10, lsl: 0 } };
-
-function createFetchResponse(body: unknown, ok = true, status = 200) {
-  return {
-    ok,
-    status,
-    json: vi.fn().mockResolvedValue(body),
-  } as unknown as Response;
-}
 
 /** Wrapper that provides StorageProvider context for hook tests. */
 function wrapper({ children }: { children: React.ReactNode }) {
@@ -266,8 +279,9 @@ describe('storage service', () => {
       expect(result.current.syncStatus.message).toContain('offline');
     });
 
-    it('gracefully degrades when cloud sync unavailable (ADR-059)', async () => {
+    it('saves to cloud via Blob Storage when online', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockListBlobProjects.mockResolvedValueOnce([]);
 
       const { result } = renderHook(() => useStorage(), { wrapper });
 
@@ -275,28 +289,26 @@ describe('storage service', () => {
         await result.current.saveProject(sampleProject, 'cloud-proj', 'personal');
       });
 
-      // Cloud sync stubs throw CloudSyncUnavailableError, so save falls back to local
+      // Should save to both IndexedDB and Blob Storage
       expect(mockProjects.put).toHaveBeenCalled();
-      expect(result.current.syncStatus.status).toBe('saved');
-      expect(result.current.syncStatus.message).toBe('Saved locally');
-      // Should NOT have called Graph API
-      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(mockSaveBlobProject).toHaveBeenCalled();
+      expect(result.current.syncStatus.status).toBe('synced');
     });
 
-    it('emits info notification about cloud sync unavailability when online', async () => {
+    it('gracefully degrades when Blob Storage not configured (503)', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockSaveBlobProject.mockRejectedValueOnce(new Error('503 Blob Storage not configured'));
 
       const { result } = renderHook(() => useStorage(), { wrapper });
 
       await act(async () => {
-        await result.current.saveProject(sampleProject, 'notif-cloud', 'personal');
+        await result.current.saveProject(sampleProject, 'no-blob', 'personal');
       });
 
-      expect(
-        result.current.notifications.some(
-          n => n.type === 'info' && n.message.includes('Cloud sync unavailable')
-        )
-      ).toBe(true);
+      // Falls back to local-only
+      expect(mockProjects.put).toHaveBeenCalled();
+      expect(result.current.syncStatus.status).toBe('saved');
+      expect(result.current.syncStatus.message).toBe('Saved locally');
     });
   });
 
@@ -304,12 +316,33 @@ describe('storage service', () => {
   // loadProject
   // -------------------------------------------------------------------------
   describe('loadProject', () => {
-    it('falls back to IndexedDB when cloud sync unavailable (ADR-059)', async () => {
+    it('loads from Blob Storage when online', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+
+      const cloudData = { data: [42], specs: { usl: 100 } };
+      // db.projects.get for conflict detection (no local record)
+      mockProjects.get.mockResolvedValueOnce(null);
+      // loadBlobProject returns cloud data
+      mockLoadBlobProject.mockResolvedValueOnce(cloudData);
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let loaded: unknown;
+
+      await act(async () => {
+        loaded = await result.current.loadProject('remote-proj', 'personal');
+      });
+
+      expect(loaded).toEqual(cloudData);
+      expect(mockLoadBlobProject).toHaveBeenCalled();
+    });
+
+    it('falls back to IndexedDB when Blob Storage not configured (503)', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
       // db.projects.get for conflict detection (no local record)
       mockProjects.get.mockResolvedValueOnce(null);
-      // loadFromCloud throws CloudSyncUnavailableError → fallback to IndexedDB
+      // loadBlobProject throws 503 → CloudSyncUnavailableError → fallback
+      mockLoadBlobProject.mockRejectedValueOnce(new Error('503 Blob Storage not configured'));
       const localData = { data: [42], specs: { usl: 100 } };
       mockProjects.get.mockResolvedValueOnce({ data: localData });
 
@@ -321,8 +354,6 @@ describe('storage service', () => {
       });
 
       expect(loaded).toEqual(localData);
-      // Should NOT have called Graph API fetch
-      expect(fetchSpy).not.toHaveBeenCalled();
     });
 
     it('falls back to IndexedDB when offline', async () => {
@@ -342,16 +373,14 @@ describe('storage service', () => {
       expect(fetchSpy).not.toHaveBeenCalled();
     });
 
-    it('falls back to IndexedDB when cloud load fails', async () => {
+    it('falls back to IndexedDB when cloud load fails (network error)', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
       const localFallback = { data: [99] };
       // First db.projects.get: conflict detection (returns null — no local record)
       mockProjects.get.mockResolvedValueOnce(null);
-      // getCloudModifiedDate fetch fails
-      fetchSpy.mockRejectedValueOnce(new Error('Network error'));
-      // loadFromCloud fetch also fails
-      fetchSpy.mockRejectedValueOnce(new Error('Network error'));
+      // loadBlobProject throws network error
+      mockLoadBlobProject.mockRejectedValueOnce(new Error('Network error'));
       // Second db.projects.get: fallback loadFromIndexedDB
       mockProjects.get.mockResolvedValueOnce({ data: localFallback });
 
@@ -370,8 +399,8 @@ describe('storage service', () => {
 
       // db.projects.get for conflict detection (no local record → skip conflict check)
       mockProjects.get.mockResolvedValueOnce(null);
-      // loadFromCloud returns 404
-      fetchSpy.mockResolvedValueOnce(createFetchResponse(null, false, 404));
+      // loadBlobProject returns null (404)
+      mockLoadBlobProject.mockResolvedValueOnce(null);
       // db.projects.get for fallback loadFromIndexedDB
       mockProjects.get.mockResolvedValueOnce(null);
 
@@ -410,13 +439,15 @@ describe('storage service', () => {
       expect(fetchSpy).not.toHaveBeenCalled();
     });
 
-    it('returns only local projects when cloud returns empty (ADR-059)', async () => {
+    it('merges local and cloud projects when online', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
       mockProjects.toArray.mockResolvedValueOnce([
         { name: 'shared', location: 'personal', modified: new Date('2026-01-01') },
         { name: 'local-only', location: 'personal', modified: new Date('2026-02-01') },
       ]);
+      // listBlobProjects returns an empty index (no cloud projects yet)
+      mockListBlobProjects.mockResolvedValueOnce([]);
 
       const { result } = renderHook(() => useStorage(), { wrapper });
       let projects: CloudProject[] = [];
@@ -425,10 +456,8 @@ describe('storage service', () => {
         projects = await result.current.listProjects();
       });
 
-      // listFromCloud returns [] (stubbed), so only local projects remain
+      // Cloud returned [], so only local projects remain (marked as Local)
       expect(projects).toHaveLength(2);
-
-      // All projects should be marked as Local
       expect(projects.every(p => p.modifiedBy === 'Local')).toBe(true);
 
       // Results should be sorted newest first
@@ -444,7 +473,7 @@ describe('storage service', () => {
         { name: 'safe-local', location: 'personal', modified: new Date('2026-02-01') },
       ]);
 
-      mockGetGraphToken.mockRejectedValueOnce(new Error('Auth expired'));
+      mockListBlobProjects.mockRejectedValueOnce(new Error('Network error'));
 
       const { result } = renderHook(() => useStorage(), { wrapper });
       let projects: CloudProject[] = [];
@@ -462,7 +491,7 @@ describe('storage service', () => {
   // Background sync (online event)
   // -------------------------------------------------------------------------
   describe('background sync', () => {
-    it('sync fails gracefully when saveToCloud throws CloudSyncUnavailableError (ADR-059)', async () => {
+    it('sync fails gracefully when Blob Storage not configured (503)', async () => {
       // Start online so mount sync runs
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
@@ -475,6 +504,10 @@ describe('storage service', () => {
           queuedAt: '2026-02-01T00:00:00Z',
         },
       ];
+
+      // saveBlobProject throws 503 → CloudSyncUnavailableError
+      mockSaveBlobProject.mockRejectedValue(new Error('503 Blob Storage not configured'));
+      mockListBlobProjects.mockRejectedValue(new Error('503 Blob Storage not configured'));
 
       // Mount sync: empty; online event: pending items; post-sync: still pending
       mockGetPending
@@ -491,7 +524,7 @@ describe('storage service', () => {
 
       mockRemoveFromQueue.mockClear();
 
-      // Fire online event — saveToCloud throws CloudSyncUnavailableError
+      // Fire online event — saveToCloud converts 503 to CloudSyncUnavailableError
       await act(async () => {
         window.dispatchEvent(new Event('online'));
         await vi.advanceTimersByTimeAsync(100);
@@ -500,6 +533,10 @@ describe('storage service', () => {
 
       // Items should NOT have been removed (sync failed)
       expect(mockRemoveFromQueue).not.toHaveBeenCalled();
+
+      // Reset mocks for other tests
+      mockSaveBlobProject.mockResolvedValue(undefined);
+      mockListBlobProjects.mockResolvedValue([]);
     });
   });
 
@@ -507,8 +544,9 @@ describe('storage service', () => {
   // Notifications
   // -------------------------------------------------------------------------
   describe('notifications', () => {
-    it('emits info notification when cloud sync unavailable (ADR-059)', async () => {
+    it('emits success notification when cloud save succeeds', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockListBlobProjects.mockResolvedValueOnce([]);
 
       const { result } = renderHook(() => useStorage(), { wrapper });
 
@@ -517,10 +555,9 @@ describe('storage service', () => {
       });
 
       expect(result.current.notifications.length).toBeGreaterThan(0);
-      // Cloud sync stubs throw, so notification is info (not success)
       expect(
         result.current.notifications.some(
-          n => n.type === 'info' && n.message.includes('Cloud sync unavailable')
+          n => n.type === 'success' && n.message.includes('Saved to cloud')
         )
       ).toBe(true);
     });

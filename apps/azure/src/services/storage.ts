@@ -4,7 +4,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { getEasyAuthUser, isLocalDev } from '../auth/easyAuth';
-import { getGraphToken } from '../auth/graphToken';
 import { errorService } from '@variscout/ui';
 import { hasTeamFeatures } from '@variscout/core';
 import {
@@ -140,7 +139,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const item = retryQueue.current[0];
     try {
-      const token = await getGraphToken();
+      const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
       const { id, etag } = await saveToCloud(token, item.project, item.name, item.location);
       await markAsSynced(item.name, id, etag);
       await removeFromSyncQueue(item.name);
@@ -255,7 +254,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       try {
         setSyncStatus({ status: 'syncing', message: 'Saving to cloud...' });
 
-        const token = await getGraphToken();
+        const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
         let projectToSave = project;
         let baseStateForSync: string | undefined;
 
@@ -370,7 +369,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       if (navigator.onLine) {
         try {
-          const token = await getGraphToken();
+          const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
 
           // Conflict detection: check if local has unsynced changes AND cloud is newer
           const localRecord = await db.projects.get(name);
@@ -441,7 +440,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      const token = await getGraphToken();
+      const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
       const personalProjects = await listFromCloud(token, 'personal').catch(() => []);
 
       // Merge: use location:name as key to avoid name collisions across locations
@@ -500,7 +499,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
 
         try {
-          const token = await getGraphToken();
+          const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
           for (const item of pending) {
             try {
               const { id, etag } = await saveToCloud(token, item.project, item.name, item.location);
