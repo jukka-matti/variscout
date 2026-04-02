@@ -198,6 +198,8 @@ app.post('/api/storage-token', async (req, res) => {
 
 // ── Knowledge Base API (Team plan only, ADR-060) ──────────────────────────────
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // Multer: store uploads in memory (max 10 MB), single file field named 'file'
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -255,6 +257,10 @@ app.post('/api/kb-upload', requireTeamPlan, upload.single('file'), async (req, r
     res.status(400).end(JSON.stringify({ error: 'projectId is required' }));
     return;
   }
+  if (!UUID_REGEX.test(projectId)) {
+    res.status(400).end(JSON.stringify({ error: 'Invalid projectId format' }));
+    return;
+  }
 
   try {
     const docId = randomUUID();
@@ -300,6 +306,10 @@ app.post('/api/kb-search', requireTeamPlan, async (req, res) => {
   const { projectId, query, topK } = req.body;
   if (!projectId || !query) {
     res.status(400).end(JSON.stringify({ error: 'projectId and query are required' }));
+    return;
+  }
+  if (!UUID_REGEX.test(projectId)) {
+    res.status(400).end(JSON.stringify({ error: 'Invalid projectId format' }));
     return;
   }
 
@@ -354,6 +364,10 @@ app.get('/api/kb-list', requireTeamPlan, async (req, res) => {
     res.status(400).end(JSON.stringify({ error: 'projectId query param is required' }));
     return;
   }
+  if (!UUID_REGEX.test(projectId)) {
+    res.status(400).end(JSON.stringify({ error: 'Invalid projectId format' }));
+    return;
+  }
 
   try {
     const containerClient = await getBlobContainerClient();
@@ -392,6 +406,10 @@ app.delete('/api/kb-delete', requireTeamPlan, async (req, res) => {
     res.status(400).end(JSON.stringify({ error: 'projectId, documentId and fileName are required' }));
     return;
   }
+  if (!UUID_REGEX.test(projectId)) {
+    res.status(400).end(JSON.stringify({ error: 'Invalid projectId format' }));
+    return;
+  }
 
   try {
     const blobPath = `${projectId}/documents/${documentId}-${fileName}`;
@@ -403,6 +421,87 @@ app.delete('/api/kb-delete', requireTeamPlan, async (req, res) => {
   } catch (err) {
     console.error('[kb-delete]', err.message || err);
     res.status(500).end(JSON.stringify({ error: 'Delete failed' }));
+  }
+});
+
+// GET /api/kb-download — generate a read-only SAS URL for a document download
+app.get('/api/kb-download', requireTeamPlan, async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store');
+
+  const { projectId, documentId, fileName } = req.query;
+  if (!projectId || !documentId || !fileName) {
+    res.status(400).end(JSON.stringify({ error: 'projectId, documentId and fileName are required' }));
+    return;
+  }
+  if (!UUID_REGEX.test(projectId)) {
+    res.status(400).end(JSON.stringify({ error: 'Invalid projectId format' }));
+    return;
+  }
+  if (!UUID_REGEX.test(documentId)) {
+    res.status(400).end(JSON.stringify({ error: 'Invalid documentId format' }));
+    return;
+  }
+
+  try {
+    const acctName = process.env.STORAGE_ACCOUNT_NAME;
+    const containerName = process.env.STORAGE_CONTAINER_NAME || 'variscout-projects';
+
+    if (!acctName) {
+      res.status(503).end(JSON.stringify({ error: 'Blob Storage not configured' }));
+      return;
+    }
+
+    const { BlobServiceClient, generateBlobSASQueryParameters, BlobSASPermissions, StorageSharedKeyCredential, SASProtocol } = await import('@azure/storage-blob');
+    const { DefaultAzureCredential } = await import('@azure/identity');
+
+    const blobServiceUrl = `https://${acctName}.blob.core.windows.net`;
+    const blobName = `${projectId}/documents/${documentId}-${fileName}`;
+    const expiresOn = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    const startsOn = new Date(Date.now() - 5 * 60 * 1000);
+
+    let sasUrl;
+    const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+
+    if (connectionString) {
+      // Local dev: use connection string
+      const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+      const keyMatch = connectionString.match(/AccountKey=([^;]+)/);
+      if (!keyMatch) throw new Error('AccountKey not found in connection string');
+      const sharedKeyCredential = new StorageSharedKeyCredential(blobServiceClient.accountName, keyMatch[1]);
+
+      const sasToken = generateBlobSASQueryParameters({
+        containerName,
+        blobName,
+        permissions: BlobSASPermissions.parse('r'),
+        startsOn,
+        expiresOn,
+        protocol: SASProtocol.Https,
+      }, sharedKeyCredential).toString();
+
+      sasUrl = `${blobServiceUrl}/${containerName}/${blobName}?${sasToken}`;
+    } else {
+      // Production: managed identity + user delegation key
+      const credential = new DefaultAzureCredential();
+      const blobServiceClient = new BlobServiceClient(blobServiceUrl, credential);
+      const delegationKey = await blobServiceClient.getUserDelegationKey(startsOn, expiresOn);
+
+      const sasToken = generateBlobSASQueryParameters({
+        containerName,
+        blobName,
+        permissions: BlobSASPermissions.parse('r'),
+        startsOn,
+        expiresOn,
+        protocol: SASProtocol.Https,
+      }, delegationKey, acctName).toString();
+
+      sasUrl = `${blobServiceUrl}/${containerName}/${blobName}?${sasToken}`;
+    }
+
+    res.status(200).end(JSON.stringify({ url: sasUrl }));
+  } catch (err) {
+    console.error('[kb-download]', err.message || err);
+    res.status(500).end(JSON.stringify({ error: 'Failed to generate download URL' }));
   }
 });
 

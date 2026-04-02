@@ -477,11 +477,11 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
               description: 'Evidence-based explanation for the proposed answer',
             },
             finding_id: {
-              type: 'string',
+              type: ['string', 'null'] as const,
               description: 'ID of supporting finding (recommended when evidence exists)',
             },
           },
-          required: ['question_id', 'status', 'note'],
+          required: ['question_id', 'status', 'note', 'finding_id'],
           additionalProperties: false,
           strict: true,
         },

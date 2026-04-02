@@ -1,13 +1,12 @@
 /**
  * Azure AI Search client for Knowledge Base feature.
  *
- * ADR-026: SharePoint-first strategy with Remote SharePoint knowledge sources.
- * - searchDocuments() uses Foundry IQ agentic retrieval with user token passthrough
- * - Folder-scoped via KQL filter on the channel's SharePoint path
+ * ADR-060: Foundry IQ agentic retrieval for project-scoped knowledge search.
+ * - searchDocuments() uses Foundry IQ agentic retrieval via the server-side proxy
+ * - Folder-scoped search available via KQL filter when folderScope is provided
  */
 
 import { hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
-// getGraphTokenWithScopes removed per ADR-059 (Graph API removed)
 import { getAccessToken } from '../auth/easyAuth';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
 
@@ -38,23 +37,20 @@ export function isKnowledgeBaseAvailable(): boolean {
 
 /**
  * Check if Knowledge Base permissions are available.
- * Tests whether SharePoint access (Sites.Read.All) can be obtained.
  */
 export async function checkKnowledgeBasePermissions(): Promise<{
   available: boolean;
   hasSharePointAccess: boolean;
 }> {
   if (!isKnowledgeBaseAvailable()) return { available: false, hasSharePointAccess: false };
-  // Graph token exchange removed per ADR-059 — SharePoint access check disabled
   return { available: true, hasSharePointAccess: false };
 }
 
 /**
  * Search documents via Foundry IQ agentic retrieval (Knowledge Base).
  *
- * ADR-026 changes:
- * - Passes user's delegated token via xMsQuerySourceAuthorization for per-user permissions
- * - Supports folder-scoped search via KQL filter on SharePoint path
+ * ADR-060: Foundry IQ agentic retrieval.
+ * - Supports folder-scoped search via KQL filter when folderScope is provided
  * - Uses maxOutputSize and maxRuntimeInSeconds for operational control
  */
 export async function searchDocuments(
@@ -71,9 +67,7 @@ export async function searchDocuments(
   const endpoint = getSearchEndpoint();
   if (!endpoint) return [];
 
-  // Get service token for AI Search (SharePoint passthrough removed per ADR-059)
   const serviceToken = await getAccessToken();
-  const userToken: string | null = null;
 
   const body: Record<string, unknown> = {
     messages: [{ role: 'user', content: [{ type: 'text', text: query }] }],
@@ -94,11 +88,6 @@ export async function searchDocuments(
     Authorization: `Bearer ${serviceToken}`,
     'Content-Type': 'application/json',
   };
-
-  // Pass user's delegated token for per-user SharePoint permissions (ADR-026)
-  if (userToken) {
-    headers['x-ms-query-source-authorization'] = `Bearer ${userToken}`;
-  }
 
   try {
     const res = await fetch(

@@ -97,8 +97,8 @@ export function useDocumentShelf({
       if (!res.ok) {
         throw new Error(`Failed to fetch documents: ${res.status}`);
       }
-      const data = (await res.json()) as DocumentInfo[];
-      setDocuments(data);
+      const data = (await res.json()) as { documents: DocumentInfo[] };
+      setDocuments(data.documents ?? []);
       setError(undefined);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch documents';

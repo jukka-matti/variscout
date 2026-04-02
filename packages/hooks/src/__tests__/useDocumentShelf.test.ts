@@ -18,7 +18,7 @@ beforeEach(() => {
   vi.stubGlobal('fetch', mockFetch);
   mockFetch.mockResolvedValue({
     ok: true,
-    json: async () => [] as DocumentInfo[],
+    json: async () => ({ documents: [] as DocumentInfo[] }),
   });
 });
 
@@ -53,7 +53,7 @@ describe('useDocumentShelf', () => {
 
   it('fetches documents on mount when enabled', async () => {
     const docs = [makeDoc({ id: 'doc-1', fileName: 'alpha.pdf' })];
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => docs });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ documents: docs }) });
 
     const { result } = renderHook(() => useDocumentShelf({ projectId: 'proj-1', enabled: true }));
 
@@ -88,7 +88,7 @@ describe('useDocumentShelf', () => {
       makeDoc({ id: '2', fileName: 'Beta Summary.docx' }),
       makeDoc({ id: '3', fileName: 'alpha summary.txt' }),
     ];
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => docs });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ documents: docs }) });
 
     const { result } = renderHook(() => useDocumentShelf({ projectId: 'proj-1', enabled: true }));
 
@@ -109,7 +109,7 @@ describe('useDocumentShelf', () => {
       makeDoc({ id: '1', fileName: 'Alpha.pdf' }),
       makeDoc({ id: '2', fileName: 'Beta.pdf' }),
     ];
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => docs });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ documents: docs }) });
 
     const { result } = renderHook(() => useDocumentShelf({ projectId: 'proj-1', enabled: true }));
 
@@ -128,7 +128,7 @@ describe('useDocumentShelf', () => {
       makeDoc({ id: '2', fileName: 'alpha.pdf' }),
       makeDoc({ id: '3', fileName: 'Mango.pdf' }),
     ];
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => docs });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ documents: docs }) });
 
     const { result } = renderHook(() => useDocumentShelf({ projectId: 'proj-1', enabled: true }));
 
@@ -147,9 +147,9 @@ describe('useDocumentShelf', () => {
     const afterUpload: DocumentInfo[] = [makeDoc({ id: 'new-1', fileName: 'new.pdf' })];
 
     mockFetch
-      .mockResolvedValueOnce({ ok: true, json: async () => initialDocs }) // initial fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ documents: initialDocs }) }) // initial fetch
       .mockResolvedValueOnce({ ok: true, json: async () => ({}) }) // upload POST
-      .mockResolvedValueOnce({ ok: true, json: async () => afterUpload }); // refresh fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ documents: afterUpload }) }); // refresh fetch
 
     const { result } = renderHook(() => useDocumentShelf({ projectId: 'proj-1', enabled: true }));
 
@@ -173,7 +173,7 @@ describe('useDocumentShelf', () => {
 
   it('upload sets error on failure', async () => {
     mockFetch
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // initial fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ documents: [] }) }) // initial fetch
       .mockResolvedValueOnce({ ok: false, status: 413 }); // upload fail
 
     const { result } = renderHook(() => useDocumentShelf({ projectId: 'proj-1', enabled: true }));
@@ -205,10 +205,10 @@ describe('useDocumentShelf', () => {
     ];
 
     mockFetch
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // initial fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ documents: [] }) }) // initial fetch
       .mockResolvedValueOnce({ ok: true, json: async () => ({}) }) // upload 1
       .mockResolvedValueOnce({ ok: true, json: async () => ({}) }) // upload 2
-      .mockResolvedValueOnce({ ok: true, json: async () => afterUpload }); // refresh
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ documents: afterUpload }) }); // refresh
 
     const { result } = renderHook(() => useDocumentShelf({ projectId: 'proj-1', enabled: true }));
 
@@ -245,7 +245,7 @@ describe('useDocumentShelf', () => {
     ];
 
     mockFetch
-      .mockResolvedValueOnce({ ok: true, json: async () => docs }) // initial fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ documents: docs }) }) // initial fetch
       .mockResolvedValueOnce({ ok: true, json: async () => ({}) }); // delete
 
     const { result } = renderHook(() => useDocumentShelf({ projectId: 'proj-1', enabled: true }));
@@ -269,9 +269,9 @@ describe('useDocumentShelf', () => {
     const docs: DocumentInfo[] = [makeDoc({ id: 'doc-1', fileName: 'a.pdf' })];
 
     mockFetch
-      .mockResolvedValueOnce({ ok: true, json: async () => docs }) // initial fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ documents: docs }) }) // initial fetch
       .mockResolvedValueOnce({ ok: false, status: 500 }) // delete fail
-      .mockResolvedValueOnce({ ok: true, json: async () => docs }); // re-fetch on rollback
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ documents: docs }) }); // re-fetch on rollback
 
     const { result } = renderHook(() => useDocumentShelf({ projectId: 'proj-1', enabled: true }));
 
@@ -306,8 +306,8 @@ describe('useDocumentShelf', () => {
     ];
 
     mockFetch
-      .mockResolvedValueOnce({ ok: true, json: async () => initialDocs })
-      .mockResolvedValueOnce({ ok: true, json: async () => refreshedDocs });
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ documents: initialDocs }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ documents: refreshedDocs }) });
 
     const { result } = renderHook(() => useDocumentShelf({ projectId: 'proj-1', enabled: true }));
 
@@ -328,7 +328,7 @@ describe('useDocumentShelf', () => {
   it('error is cleared on next successful fetch', async () => {
     mockFetch
       .mockResolvedValueOnce({ ok: false, status: 500 }) // first fetch fails
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }); // refresh succeeds
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ documents: [] }) }); // refresh succeeds
 
     const { result } = renderHook(() => useDocumentShelf({ projectId: 'proj-1', enabled: true }));
 
