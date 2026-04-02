@@ -57,6 +57,8 @@ export interface PrioritizationMatrixProps {
   projectingIdeaId?: string;
   /** ID of idea to highlight (bidirectional navigation) */
   highlightedIdeaId?: string;
+  /** Callback when clicking a non-ghost dot (bidirectional navigation) */
+  onIdeaClick?: (ideaId: string) => void;
   /** Callback when clicking a ghost dot (to open What-If) */
   onGhostDotClick?: (ideaId: string) => void;
 }
@@ -456,6 +458,7 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
   causeLabels,
   projectingIdeaId,
   highlightedIdeaId,
+  onIdeaClick,
   onGhostDotClick,
 }) => {
   const { t } = useTranslation();
@@ -682,7 +685,14 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
                 key={idea.id}
                 data-testid={isGhost ? `dot-ghost-${idea.id}` : `matrix-dot-${idea.id}`}
                 className="cursor-pointer"
-                onClick={() => (isGhost ? onGhostDotClick?.(idea.id) : onToggleSelect(idea.id))}
+                onClick={() => {
+                  if (isGhost) {
+                    onGhostDotClick?.(idea.id);
+                  } else {
+                    onIdeaClick?.(idea.id);
+                    onToggleSelect(idea.id);
+                  }
+                }}
                 onMouseEnter={() => setHoveredId(idea.id)}
                 onMouseLeave={() => setHoveredId(null)}
               >

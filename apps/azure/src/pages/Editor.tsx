@@ -14,6 +14,7 @@ import {
   ImprovementContextPanel,
   WhatIfPageBase,
   PrioritizationMatrix,
+  TrackView,
   DEFAULT_PRESETS,
   type AnalysisBrief,
   type MatrixDimension,
@@ -581,6 +582,8 @@ export const Editor: React.FC<EditorProps> = ({
     causeLabels,
     causeSummaries,
     matrixIdeas,
+    aggregatedActions,
+    selectedIdeasForRecap,
   } = useImprovementOrchestration({
     questionsState,
     findingsState,
@@ -593,6 +596,7 @@ export const Editor: React.FC<EditorProps> = ({
   const selectedIdeaIds = useImprovementStore(s => s.selectedIdeaIds);
   const convertedIdeaIds = useImprovementStore(s => s.convertedIdeaIds);
   const activeImprovementView = useImprovementStore(s => s.activeImprovementView);
+  const highlightedIdeaId = useImprovementStore(s => s.highlightedIdeaId);
 
   // Matrix axis state (local — not persisted)
   const [matrixXAxis, setMatrixXAxis] = useState<MatrixDimension>('benefit');
@@ -956,7 +960,10 @@ export const Editor: React.FC<EditorProps> = ({
         onAddPasteData={() => dataFlow.startAppendPaste()}
         onAddFileData={() => dataFlow.startAppendFileUpload()}
         onAddManualData={dataFlow.handleAddMoreData}
-        onConvertToActions={handleConvertIdeasToActions}
+        onConvertToActions={() => {
+          handleConvertIdeasToActions();
+          useImprovementStore.getState().setActiveImprovementView('track');
+        }}
         hasSelectedIdeas={selectedIdeaIds.size > 0}
       />
 
@@ -1054,7 +1061,10 @@ export const Editor: React.FC<EditorProps> = ({
                 onOpenWhatIf={(questionId, ideaId) => handleProjectIdea(questionId, ideaId, true)}
                 onAddIdea={(hId, text) => questionsState.addIdea(hId, text)}
                 onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
-                onConvertToActions={handleConvertIdeasToActions}
+                onConvertToActions={() => {
+                  handleConvertIdeasToActions();
+                  useImprovementStore.getState().setActiveImprovementView('track');
+                }}
                 onBack={() => usePanelsStore.getState().showAnalysis()}
                 onPopout={handleOpenImprovementPopout}
                 selectedIdeaIds={selectedIdeaIds}
@@ -1121,6 +1131,16 @@ export const Editor: React.FC<EditorProps> = ({
                           );
                         }
                       }}
+                      highlightedIdeaId={highlightedIdeaId ?? undefined}
+                      onIdeaClick={ideaId => {
+                        const card = document.querySelector(`[data-testid="idea-row-${ideaId}"]`);
+                        card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        useImprovementStore.getState().setHighlightedIdeaId(ideaId);
+                        setTimeout(
+                          () => useImprovementStore.getState().setHighlightedIdeaId(null),
+                          2000
+                        );
+                      }}
                       onGhostDotClick={ideaId => {
                         const question = improvementQuestions.find(q =>
                           q.ideas?.some(i => i.id === ideaId)
@@ -1131,6 +1151,24 @@ export const Editor: React.FC<EditorProps> = ({
                       }}
                     />
                   </div>
+                )}
+                onIdeaHover={ideaId => useImprovementStore.getState().setHighlightedIdeaId(ideaId)}
+                highlightedIdeaId={highlightedIdeaId}
+                renderTrackView={() => (
+                  <TrackView
+                    selectedIdeas={selectedIdeasForRecap}
+                    onEditSelection={() =>
+                      useImprovementStore.getState().setActiveImprovementView('plan')
+                    }
+                    onBackToPlan={() =>
+                      useImprovementStore.getState().setActiveImprovementView('plan')
+                    }
+                    actions={aggregatedActions}
+                    onToggleComplete={(actionId, findingId) => {
+                      findingsState.completeAction(findingId, actionId);
+                    }}
+                    hasVerification={false}
+                  />
                 )}
               />
             ) : activeView === 'report' ? (

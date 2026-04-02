@@ -11,7 +11,7 @@ import React, { useMemo, useCallback, useEffect, useRef } from 'react';
 import type { Finding, FindingAssignee, Question, ProcessContext } from '@variscout/core';
 import { assignCauseColors } from '@variscout/core/findings';
 import type { UseQuestionsReturn } from '@variscout/hooks';
-import type { MatrixIdea, CauseSummary } from '@variscout/ui';
+import type { MatrixIdea, CauseSummary, TrackedAction, SelectedIdea } from '@variscout/ui';
 import {
   openImprovementPopout,
   updateImprovementPopout,
@@ -59,6 +59,10 @@ export interface UseImprovementOrchestrationReturn {
   causeSummaries: CauseSummary[];
   /** Matrix-shaped ideas for PrioritizationMatrix */
   matrixIdeas: MatrixIdea[];
+  /** Aggregated actions from all findings (for TrackView) */
+  aggregatedActions: TrackedAction[];
+  /** Selected ideas recap (for TrackView PlanRecap) */
+  selectedIdeasForRecap: SelectedIdea[];
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────
@@ -194,6 +198,48 @@ export function useImprovementOrchestration({
       }))
     );
   }, [improvementQuestions, selectedIdeaIds]);
+
+  // ── Aggregated actions for Track view ────────────────────────────────────
+
+  const aggregatedActions = useMemo((): TrackedAction[] => {
+    return findingsState.findings
+      .filter(f => f.actions && f.actions.length > 0)
+      .flatMap(f =>
+        f.actions!.map(a => {
+          const q = (persistedQuestions ?? []).find(q => q.id === f.questionId);
+          return {
+            id: a.id,
+            text: a.text,
+            assignee: a.assignee
+              ? { name: a.assignee.displayName, email: a.assignee.upn }
+              : undefined,
+            dueDate: a.dueDate,
+            completedAt: a.completedAt,
+            createdAt: a.createdAt,
+            ideaId: a.ideaId,
+            findingId: f.id,
+            causeColor: q ? causeColors.get(q.id) : undefined,
+            causeName: q?.factor ?? undefined,
+            projectedCpk: projectedCpkMap[f.id],
+          };
+        })
+      );
+  }, [findingsState.findings, persistedQuestions, causeColors, projectedCpkMap]);
+
+  // ── Selected ideas recap for Track view PlanRecap ──────────────────────
+
+  const selectedIdeasForRecap = useMemo((): SelectedIdea[] => {
+    return improvementQuestions.flatMap(q =>
+      (q.ideas ?? [])
+        .filter(i => selectedIdeaIds.has(i.id))
+        .map(i => ({
+          id: i.id,
+          text: i.text,
+          causeColor: causeColors.get(q.id),
+          projectedCpk: i.projection?.projectedCpk,
+        }))
+    );
+  }, [improvementQuestions, selectedIdeaIds, causeColors]);
 
   // ── Sync computed state to Zustand store ────────────────────────────────
   const syncState = useImprovementStore.getState().syncState;
@@ -332,5 +378,7 @@ export function useImprovementOrchestration({
     causeLabels,
     causeSummaries,
     matrixIdeas,
+    aggregatedActions,
+    selectedIdeasForRecap,
   };
 }

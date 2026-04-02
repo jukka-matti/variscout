@@ -72,6 +72,10 @@ export interface ImprovementWorkspaceBaseProps {
   renderTrackView?: () => React.ReactNode;
   /** Callback when analyst navigates back to plan from track */
   onBackToPlan?: () => void;
+  /** Callback when hovering over an idea (for bidirectional matrix highlight) */
+  onIdeaHover?: (ideaId: string | null) => void;
+  /** ID of idea highlighted from matrix click (for scroll-to + ring animation) */
+  highlightedIdeaId?: string | null;
 }
 
 export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> = ({
@@ -102,6 +106,8 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
   activeView = 'plan',
   renderTrackView,
   onBackToPlan: _onBackToPlan,
+  onIdeaHover,
+  highlightedIdeaId,
 }) => {
   const { t } = useTranslation();
 
@@ -198,6 +204,8 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
               onAddIdea={onAddIdea}
               onAskCoScout={onAskCoScout}
               convertedIdeaIds={convertedIdeaIds}
+              onIdeaHover={onIdeaHover}
+              highlightedIdeaId={highlightedIdeaId}
             />
           ))
       ) : (

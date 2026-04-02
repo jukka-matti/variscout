@@ -27,6 +27,8 @@ interface ImprovementStoreState {
   convertedIdeaIds: Set<string>;
   /** Active improvement view: plan (default) or track */
   activeImprovementView: 'plan' | 'track';
+  /** ID of idea highlighted via matrix↔card bidirectional navigation */
+  highlightedIdeaId: string | null;
 }
 
 // ── Actions ─────────────────────────────────────────────────────────────────
@@ -45,6 +47,8 @@ interface ImprovementStoreActions {
   }) => void;
   /** Switch between plan and track views */
   setActiveImprovementView: (view: 'plan' | 'track') => void;
+  /** Set highlighted idea ID for bidirectional matrix↔card navigation */
+  setHighlightedIdeaId: (id: string | null) => void;
 }
 
 export type ImprovementStore = ImprovementStoreState & ImprovementStoreActions;
@@ -59,8 +63,10 @@ export const useImprovementStore = create<ImprovementStore>(set => ({
   projectedCpkMap: {},
   convertedIdeaIds: new Set<string>(),
   activeImprovementView: 'plan',
+  highlightedIdeaId: null,
 
   // Actions
   syncState: state => set(state),
   setActiveImprovementView: view => set({ activeImprovementView: view }),
+  setHighlightedIdeaId: id => set({ highlightedIdeaId: id }),
 }));

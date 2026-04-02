@@ -41,6 +41,10 @@ export interface IdeaGroupCardProps {
   onOpenWhatIf?: (questionId: string, ideaId: string) => void;
   onOpenRisk?: (questionId: string, ideaId: string) => void;
   onAddIdea?: (questionId: string, text: string) => void;
+  /** Callback when hovering an idea row (for matrix dot highlight) */
+  onIdeaHover?: (ideaId: string | null) => void;
+  /** ID of idea highlighted from matrix click (ring animation) */
+  highlightedIdeaId?: string | null;
   onAskCoScout?: (question: string) => void;
   convertedIdeaIds?: Set<string>;
 }
@@ -276,6 +280,8 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
   onAddIdea,
   onAskCoScout,
   convertedIdeaIds,
+  onIdeaHover,
+  highlightedIdeaId,
 }) => {
   const { t } = useTranslation();
   const [newIdeaText, setNewIdeaText] = useState('');
@@ -340,11 +346,15 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
         {ideas.map(idea => {
           const isConverted = convertedIdeaIds?.has(idea.id) ?? false;
 
+          const isHighlighted = highlightedIdeaId === idea.id;
+
           return (
             <div
               key={idea.id}
               data-testid={`idea-row-${idea.id}`}
-              className="flex items-center gap-2 px-4 py-2.5"
+              className={`flex items-center gap-2 px-4 py-2.5 transition-all duration-300 ${isHighlighted ? 'ring-2 ring-blue-500/60 bg-blue-500/5 rounded-lg' : ''}`}
+              onMouseEnter={() => onIdeaHover?.(idea.id)}
+              onMouseLeave={() => onIdeaHover?.(null)}
             >
               {/* Checkbox */}
               <input
