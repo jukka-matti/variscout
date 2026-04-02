@@ -119,7 +119,7 @@ const YamazumiDashboard: React.FC<YamazumiDashboardProps> = ({
           <ParetoChart data={paretoData} totalCount={totalCount} showBranding={showBranding} />
         </DashboardChartCard>
       }
-      statsPanel={
+      piPanel={
         <DashboardChartCard
           id="yamazumi-summary"
           testId="chart-stats"

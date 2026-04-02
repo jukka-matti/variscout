@@ -221,7 +221,7 @@ const YamazumiDashboard: React.FC<YamazumiDashboardProps> = ({
           </ErrorBoundary>
         </DashboardChartCard>
       }
-      statsPanel={
+      piPanel={
         <div data-testid="yamazumi-summary-panel" className="p-2">
           <YamazumiSummaryBar summary={summary} onTaktTimeChange={onTaktTimeChange} />
         </div>

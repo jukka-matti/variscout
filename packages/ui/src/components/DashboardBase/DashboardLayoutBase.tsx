@@ -573,7 +573,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
               </DashboardChartCard>
             ) : undefined
           }
-          statsPanel={
+          piPanel={
             renderPIPanel ? (
               <div
                 data-testid="chart-stats"
