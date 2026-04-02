@@ -15,7 +15,7 @@ import {
   buildCoScoutTools,
   buildSummaryPrompt,
   TERMINOLOGY_INSTRUCTION,
-} from '../promptTemplates';
+} from '../prompts';
 import { buildAIContext } from '../buildAIContext';
 import type { AIContext } from '../types';
 

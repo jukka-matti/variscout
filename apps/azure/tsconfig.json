@@ -19,7 +19,8 @@
       "@variscout/data/*": ["../../packages/data/src/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "server.d.ts"],
+  "exclude": ["src/__tests__/server.integration.test.ts"],
   "references": [
     {
       "path": "./tsconfig.node.json"

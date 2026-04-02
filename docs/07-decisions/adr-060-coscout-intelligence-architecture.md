@@ -1,3 +1,10 @@
+---
+title: 'ADR-060: CoScout Intelligence Architecture'
+audience: [developer, architect]
+category: architecture
+status: stable
+---
+
 # ADR-060: CoScout Intelligence Architecture
 
 **Status:** Accepted

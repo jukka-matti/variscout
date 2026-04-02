@@ -102,7 +102,7 @@ beforeAll(async () => {
     'DefaultEndpointsProtocol=https;AccountName=teststorage;AccountKey=dGVzdGtleQ==;EndpointSuffix=core.windows.net';
 
   // Dynamically import so mocks are active before server.js runs
-  const { app } = (await import('../../../server.js')) as { app: Express };
+  const { app } = (await import('../../server.js')) as { app: Express };
   request = supertest(app);
 });
 

@@ -12,7 +12,7 @@ import {
   buildReportSystemPrompt,
   buildReportPrompt,
   buildLocaleHint,
-} from '../promptTemplates';
+} from '../prompts';
 import { narrationResponseSchema, chartInsightResponseSchema } from '../schemas';
 import type { AIContext, CoScoutMessage } from '../types';
 import type { Finding, Question } from '../../findings';

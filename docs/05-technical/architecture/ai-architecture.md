@@ -638,7 +638,7 @@ How AI context changes across investigation phases:
 
 > **IMPROVE phase:** CoScout shifts to action planning and Cpk monitoring. Action items, projections, and outcomes are injected as context. See [AIX Design System § Verification Sub-pattern](aix-design-system.md).
 
-> **`buildSuggestedQuestions()`** is a pure function — no AI call. It selects phase-appropriate questions from the `AIContext` state. These appear in the Investigation Sidebar and work in all modes.
+> **`buildSuggestedQuestions()`** is a pure function — no AI call. It selects phase-appropriate questions from the `AIContext` state. These appear in the Investigation Sidebar and work in all modes. `formatForMobile()` (same file) truncates chip display text at word boundaries on mobile screens (< 640px). The full question text is always sent to CoScout.
 
 ## Analysis Mode Awareness
 

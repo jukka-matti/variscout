@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from '@variscout/hooks';
+import { formatForMobile } from '@variscout/core/ai';
 import { ClipboardCopy, Check, List, LayoutGrid, Copy } from 'lucide-react';
+import { useIsMobile } from '../../hooks';
 import type {
   Finding,
   FindingStatus,
@@ -87,6 +89,7 @@ export interface FindingsAction {
  */
 const FindingsWindow: React.FC = () => {
   const { t, formatStat } = useTranslation();
+  const isMobile = useIsMobile();
   const [syncData, setSyncData] = useState<FindingsSyncData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
@@ -439,7 +442,7 @@ const FindingsWindow: React.FC = () => {
                 className="inline-flex items-center gap-1 bg-surface-tertiary text-content-secondary text-[0.625rem] px-2.5 py-1 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
                 title="Copy to clipboard"
               >
-                {q}
+                {isMobile ? formatForMobile(q) : q}
                 <Copy size={8} className="opacity-50" />
               </button>
             ))}

@@ -1,3 +1,10 @@
+---
+title: 'ADR-058: Deployment Lifecycle & Self-Service Update System'
+audience: [developer, architect]
+category: architecture
+status: stable
+---
+
 # ADR-058: Deployment Lifecycle & Self-Service Update System
 
 **Status:** Accepted

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronDown, ChevronUp, Send, Square } from 'lucide-react';
 import type { CoScoutMessage, CoScoutError, InvestigationPhase } from '@variscout/core';
+import { formatForMobile } from '@variscout/core/ai';
 import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
 import { CoScoutMessages, type KnowledgeDocumentResult } from '../CoScoutPanel/CoScoutMessages';
+import { useIsMobile } from '../../hooks';
 
 export interface CoScoutInlineProps {
   messages: CoScoutMessage[];
@@ -40,6 +42,7 @@ const CoScoutInline: React.FC<CoScoutInlineProps> = ({
   knowledgeDocuments,
   onSearchKnowledge,
 }) => {
+  const isMobile = useIsMobile();
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const prevMessageCount = useRef(messages.length);
@@ -133,7 +136,7 @@ const CoScoutInline: React.FC<CoScoutInlineProps> = ({
               onClick={() => handleChipClick(q)}
               className="bg-surface-tertiary text-content-secondary text-[0.625rem] px-2.5 py-1 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
             >
-              {q}
+              {isMobile ? formatForMobile(q) : q}
             </button>
           ))}
         </div>

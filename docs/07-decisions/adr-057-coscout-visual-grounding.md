@@ -1,3 +1,10 @@
+---
+title: 'ADR-057: CoScout Visual Grounding'
+audience: [developer, architect]
+category: architecture
+status: stable
+---
+
 # ADR-057: CoScout Visual Grounding
 
 **Status:** Accepted

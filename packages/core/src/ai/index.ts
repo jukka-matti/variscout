@@ -44,7 +44,7 @@ export type {
   ChartInsightData,
   BuildCoScoutSystemPromptOptions,
   BuildCoScoutToolsOptions,
-} from './promptTemplates';
+} from './prompts';
 export {
   buildNarrationSystemPrompt,
   buildSummaryPrompt,
@@ -59,7 +59,7 @@ export {
   buildReportPrompt,
   buildLocaleHint,
   buildDashboardSummaryPrompt,
-} from './promptTemplates';
+} from './prompts';
 
 // Action Tools (ADR-029)
 export type {

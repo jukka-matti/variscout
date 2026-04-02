@@ -1,3 +1,10 @@
+---
+title: 'ADR-059: Web-First Deployment Architecture'
+audience: [developer, architect]
+category: architecture
+status: stable
+---
+
 # ADR-059: Web-First Deployment Architecture
 
 **Status**: Accepted

@@ -13,6 +13,8 @@ import {
   ClipboardCopy,
   Paperclip,
 } from 'lucide-react';
+import { formatForMobile } from '@variscout/core/ai';
+import { useIsMobile } from '../../hooks';
 import type { CoScoutMessage, CoScoutError, ActionProposal } from '@variscout/core';
 import { validateImageFile, fileToDataUrl, MAX_IMAGES_PER_MESSAGE } from '@variscout/core/ai';
 import { useResizablePanel, useTranslation } from '@variscout/hooks';
@@ -118,6 +120,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   onRefActivate,
 }) => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [input, setInput] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
@@ -480,7 +483,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
                 onClick={() => onSuggestedQuestionClick?.(q)}
                 className="bg-surface-tertiary text-content-secondary text-xs px-3 py-1.5 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
               >
-                {q}
+                {isMobile ? formatForMobile(q) : q}
               </button>
             ))}
           </div>

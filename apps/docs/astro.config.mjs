@@ -408,8 +408,8 @@ export default defineConfig({
                   slug: '03-features/workflows/investigation-to-action',
                 },
                 {
-                  label: 'Hypothesis Investigation',
-                  slug: '03-features/workflows/hypothesis-investigation',
+                  label: 'Question-Driven Investigation',
+                  slug: '03-features/workflows/question-driven-investigation',
                 },
                 {
                   label: 'AI Journey Integration',
@@ -721,8 +721,8 @@ export default defineConfig({
                       slug: '08-products/azure/authentication',
                     },
                     {
-                      label: 'OneDrive Sync',
-                      slug: '08-products/azure/onedrive-sync',
+                      label: 'Blob Storage Sync',
+                      slug: '08-products/azure/blob-storage-sync',
                     },
                     {
                       label: 'Marketplace',

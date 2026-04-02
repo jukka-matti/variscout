@@ -359,7 +359,9 @@ Chips are per-card — each carousel view has its own chip(s). Chips swipe toget
 └──────────────────────────────┘
 ```
 
-**Chip expansion:** Tap on a truncated chip expands it inline (max 2 lines). Second tap collapses. Only one chip can be expanded at a time on phone.
+**Chip expansion (ChartInsightChip):** Tap on a truncated insight chip expands it inline (max 2 lines). Second tap collapses. Only one chip can be expanded at a time on phone.
+
+**Suggested question chips:** Truncated via `formatForMobile()` on mobile (60 chars, word-boundary). Unlike ChartInsightChip, these do not expand on tap — tapping sends the full question text to CoScout. The truncated display is visual-only; click handlers always pass the original untruncated question.
 
 **Swipe-to-dismiss:** Horizontal swipe-left on a chip triggers dismiss animation (opacity 0, translateX -100%, 200ms). The `onDismiss` callback fires after animation completes. Swipe direction is left-only to avoid conflict with carousel navigation (which also uses horizontal swipes — chips consume the gesture when touch starts on a chip element).
 
@@ -387,16 +389,16 @@ Full-screen overlay following the same pattern as FindingsPanel on phone (`fixed
 └──────────────────────────────┘
 ```
 
-| Element             | Spec                                                                                                                         |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Back button (←)     | Top-left, 44px touch target. Closes panel (same as FindingsPanel close)                                                      |
-| Header              | "CoScout" title, centered. Height 44px.                                                                                      |
-| Message bubbles     | Full-width layout (no left/right alignment waste on narrow screens)                                                          |
-| Suggested questions | Horizontal scroll chips above input field. 3-5 context-aware suggestions.                                                    |
-| Input field         | Fixed at bottom, above keyboard (`position: fixed; bottom: env(safe-area-inset-bottom)`). Full width minus 48px send button. |
-| Send button         | 44px square, right of input. Icon only (arrow-up).                                                                           |
-| Stop button         | Replaces send button during streaming. Red square icon, 44px. Calls `onStopStreaming()`.                                     |
-| z-index             | `z-40` (same as FindingsPanel overlay)                                                                                       |
+| Element             | Spec                                                                                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Back button (←)     | Top-left, 44px touch target. Closes panel (same as FindingsPanel close)                                                                                                        |
+| Header              | "CoScout" title, centered. Height 44px.                                                                                                                                        |
+| Message bubbles     | Full-width layout (no left/right alignment waste on narrow screens)                                                                                                            |
+| Suggested questions | Horizontal scroll chips above input field. 3-5 context-aware suggestions. On mobile, truncated to 60 chars at word boundary via `formatForMobile()` — full text sent on click. |
+| Input field         | Fixed at bottom, above keyboard (`position: fixed; bottom: env(safe-area-inset-bottom)`). Full width minus 48px send button.                                                   |
+| Send button         | 44px square, right of input. Icon only (arrow-up).                                                                                                                             |
+| Stop button         | Replaces send button during streaming. Red square icon, 44px. Calls `onStopStreaming()`.                                                                                       |
+| z-index             | `z-40` (same as FindingsPanel overlay)                                                                                                                                         |
 
 **Keyboard handling:**
 
