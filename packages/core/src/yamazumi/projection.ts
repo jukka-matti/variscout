@@ -3,6 +3,9 @@ import type { LeanProjectionResult } from '../findings/types';
 /**
  * Project cycle time after eliminating a waste component.
  * Lean domain equivalent of simulateDirectAdjustment.
+ *
+ * Assumes wasteToEliminate is the ENTIRE waste amount for this component.
+ * For partial waste reduction, use projectVAImprovement instead.
  */
 export function projectWasteElimination(
   currentCycleTime: number,

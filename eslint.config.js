@@ -56,7 +56,7 @@ export default [
       // TypeScript rules
       ...typescript.configs.recommended.rules,
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
 
       // React rules
       'react/react-in-jsx-scope': 'off',

@@ -64,8 +64,9 @@ export function deserializeInvestigationState(raw: SerializedInvestigationState)
     // Data already has hubs — apply field-level migration then return
     const migratedHubs = (raw.suspectedCauses as LegacyStoredHub[]).map(
       (stored): SuspectedCause => {
+        const { totalContribution: _legacy, ...clean } = stored;
         const hub: SuspectedCause = {
-          ...stored,
+          ...clean,
           evidence: stored.evidence,
           selectedForImprovement: stored.selectedForImprovement,
         };
