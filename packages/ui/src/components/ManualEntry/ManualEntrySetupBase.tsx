@@ -1,8 +1,158 @@
 import React, { useState, useMemo } from 'react';
+import type { ReactElement } from 'react';
 import { ArrowRight, Plus, Trash2 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
+import type { MessageCatalog } from '@variscout/core';
 
 type EntryMode = 'standard' | 'performance';
+
+/** Mode-dispatched validation (ADR-047 pattern). */
+const modeValidators: Record<
+  EntryMode,
+  (state: { outcomeName: string; measureLabel: string; channelCount: number }) => boolean
+> = {
+  standard: ({ outcomeName }) => outcomeName.trim() !== '',
+  performance: ({ measureLabel, channelCount }) =>
+    measureLabel.trim() !== '' && channelCount >= 3 && channelCount <= 20,
+};
+
+/** Props passed to mode-specific config renderers. */
+interface ConfigRenderProps {
+  outcomeName: string;
+  factors: string[];
+  measureLabel: string;
+  channelCount: number;
+  columnPreview: string;
+  onOutcomeChange: (value: string) => void;
+  onMeasureLabelChange?: (label: string) => void;
+  onChannelCountChange?: (count: number) => void;
+  addFactor: () => void;
+  removeFactor: (idx: number) => void;
+  updateFactor: (idx: number, val: string) => void;
+  t: (key: keyof MessageCatalog) => string;
+  tf: (key: keyof MessageCatalog, params: Record<string, string | number>) => string;
+}
+
+function renderStandardConfig({
+  outcomeName,
+  factors,
+  onOutcomeChange,
+  addFactor,
+  removeFactor,
+  updateFactor,
+  t,
+}: ConfigRenderProps): ReactElement {
+  return (
+    <>
+      <div className="mb-6">
+        <label className="block text-sm font-semibold text-content-secondary mb-2">
+          {t('manual.outcome')}
+        </label>
+        <input
+          type="text"
+          className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content focus:ring-2 focus:ring-blue-500 outline-none"
+          value={outcomeName}
+          onChange={e => onOutcomeChange(e.target.value)}
+          placeholder={t('manual.outcomeExample')}
+        />
+      </div>
+
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <label className="block text-sm font-semibold text-content-secondary">
+            {t('manual.factors')}
+          </label>
+          <button
+            onClick={addFactor}
+            className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1"
+          >
+            <Plus size={14} /> {t('manual.addFactor')}
+          </button>
+        </div>
+        <div className="space-y-3 max-h-32 overflow-y-auto pr-2">
+          {factors.map((f, i) => (
+            <div key={i} className="flex gap-2">
+              <input
+                type="text"
+                className="flex-1 bg-surface border border-edge rounded-lg px-4 py-2 text-content text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                value={f}
+                onChange={e => updateFactor(i, e.target.value)}
+                placeholder={`Factor ${i + 1}`}
+              />
+              {factors.length > 1 && (
+                <button
+                  onClick={() => removeFactor(i)}
+                  className="text-content-muted hover:text-red-400 p-2"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function renderPerformanceConfig({
+  measureLabel,
+  channelCount,
+  columnPreview,
+  onMeasureLabelChange,
+  onChannelCountChange,
+  t,
+  tf,
+}: ConfigRenderProps): ReactElement {
+  return (
+    <>
+      <div className="mb-6">
+        <label className="block text-sm font-semibold text-content-secondary mb-2">
+          {t('manual.measureLabel')}
+        </label>
+        <input
+          type="text"
+          className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content focus:ring-2 focus:ring-blue-500 outline-none"
+          value={measureLabel}
+          onChange={e => onMeasureLabelChange?.(e.target.value)}
+          placeholder={t('manual.measureExample')}
+        />
+        <p className="text-xs text-content-muted mt-1">{t('manual.measureLabel')}</p>
+      </div>
+
+      <div className="mb-6">
+        <label className="block text-sm font-semibold text-content-secondary mb-2">
+          {t('manual.channelCount')}
+        </label>
+        <input
+          type="number"
+          min={3}
+          max={20}
+          className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content focus:ring-2 focus:ring-blue-500 outline-none"
+          value={channelCount}
+          onChange={e => onChannelCountChange?.(parseInt(e.target.value) || 3)}
+        />
+        <p className="text-xs text-content-muted mt-1">
+          {tf('manual.channelRange', { min: 3, max: 20 })}
+        </p>
+      </div>
+
+      {/* Column Preview */}
+      <div className="mb-6 p-3 bg-surface rounded-lg border border-edge">
+        <label className="block text-xs font-semibold text-content-muted mb-1">
+          Columns will be:
+        </label>
+        <p className="text-sm text-blue-400 font-mono">{columnPreview}</p>
+      </div>
+    </>
+  );
+}
+
+/** Mode-dispatched config section renderers. */
+const modeConfigRenderers: Record<EntryMode, (props: ConfigRenderProps) => ReactElement> = {
+  standard: renderStandardConfig,
+  performance: renderPerformanceConfig,
+};
 
 export interface ManualEntrySetupBaseProps {
   outcomeName: string;
@@ -82,14 +232,8 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
     return cols.join(', ');
   }, [mode, measureLabel, channelCount]);
 
-  // Validate Performance Mode configuration
-  const isPerformanceValid =
-    mode === 'performance' && measureLabel.trim() !== '' && channelCount >= 3 && channelCount <= 20;
-
-  // Validate Standard Mode configuration
-  const isStandardValid = mode === 'standard' && outcomeName.trim() !== '';
-
-  const canContinue = mode === 'performance' ? isPerformanceValid : isStandardValid;
+  // Mode-dispatched validation (ADR-047 pattern)
+  const canContinue = modeValidators[mode]({ outcomeName, measureLabel, channelCount });
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-surface text-content p-8">
@@ -147,102 +291,22 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
           </div>
         )}
 
-        {/* Standard Mode Configuration */}
-        {mode === 'standard' && (
-          <>
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-content-secondary mb-2">
-                {t('manual.outcome')}
-              </label>
-              <input
-                type="text"
-                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content focus:ring-2 focus:ring-blue-500 outline-none"
-                value={outcomeName}
-                onChange={e => onOutcomeChange(e.target.value)}
-                placeholder={t('manual.outcomeExample')}
-              />
-            </div>
-
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-semibold text-content-secondary">
-                  {t('manual.factors')}
-                </label>
-                <button
-                  onClick={addFactor}
-                  className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1"
-                >
-                  <Plus size={14} /> {t('manual.addFactor')}
-                </button>
-              </div>
-              <div className="space-y-3 max-h-32 overflow-y-auto pr-2">
-                {factors.map((f, i) => (
-                  <div key={i} className="flex gap-2">
-                    <input
-                      type="text"
-                      className="flex-1 bg-surface border border-edge rounded-lg px-4 py-2 text-content text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                      value={f}
-                      onChange={e => updateFactor(i, e.target.value)}
-                      placeholder={`Factor ${i + 1}`}
-                    />
-                    {factors.length > 1 && (
-                      <button
-                        onClick={() => removeFactor(i)}
-                        className="text-content-muted hover:text-red-400 p-2"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Performance Mode Configuration */}
-        {mode === 'performance' && (
-          <>
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-content-secondary mb-2">
-                {t('manual.measureLabel')}
-              </label>
-              <input
-                type="text"
-                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content focus:ring-2 focus:ring-blue-500 outline-none"
-                value={measureLabel}
-                onChange={e => onMeasureLabelChange?.(e.target.value)}
-                placeholder={t('manual.measureExample')}
-              />
-              <p className="text-xs text-content-muted mt-1">{t('manual.measureLabel')}</p>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-content-secondary mb-2">
-                {t('manual.channelCount')}
-              </label>
-              <input
-                type="number"
-                min={3}
-                max={20}
-                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content focus:ring-2 focus:ring-blue-500 outline-none"
-                value={channelCount}
-                onChange={e => onChannelCountChange?.(parseInt(e.target.value) || 3)}
-              />
-              <p className="text-xs text-content-muted mt-1">
-                {tf('manual.channelRange', { min: 3, max: 20 })}
-              </p>
-            </div>
-
-            {/* Column Preview */}
-            <div className="mb-6 p-3 bg-surface rounded-lg border border-edge">
-              <label className="block text-xs font-semibold text-content-muted mb-1">
-                Columns will be:
-              </label>
-              <p className="text-sm text-blue-400 font-mono">{columnPreview}</p>
-            </div>
-          </>
-        )}
+        {/* Mode-specific configuration (dispatched by mode) */}
+        {modeConfigRenderers[mode]({
+          outcomeName,
+          factors,
+          measureLabel,
+          channelCount,
+          columnPreview,
+          onOutcomeChange,
+          onMeasureLabelChange,
+          onChannelCountChange,
+          addFactor,
+          removeFactor,
+          updateFactor,
+          t,
+          tf,
+        })}
 
         {/* Spec Limits - shown for both modes */}
         <div className="mb-8">

@@ -385,7 +385,7 @@ describe('deserializeInvestigationState', () => {
       questions: [
         makeQuestion({ id: 'q-1', factor: 'Machine', causeRole: 'suspected-cause' }),
         makeQuestion({ id: 'q-2', factor: 'Shift', causeRole: 'suspected-cause' }),
-        makeQuestion({ id: 'q-3', factor: 'Nozzle', causeRole: 'ruling-out' }),
+        makeQuestion({ id: 'q-3', factor: 'Nozzle', causeRole: 'ruled-out' }),
       ],
     };
     const result = deserializeInvestigationState(raw);

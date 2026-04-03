@@ -179,22 +179,33 @@ const ManualEntryBase = ({
     return 'none';
   };
 
+  // Mode-dispatched row creation (ADR-047 pattern)
+  const emptyRowCreators: Record<EntryMode, () => Record<string, string>> = {
+    standard: () => {
+      const row: Record<string, string> = { [outcomeName]: '' };
+      factors.forEach(f => (row[f] = ''));
+      return row;
+    },
+    performance: () => {
+      const row: Record<string, string> = {};
+      measureColumns.forEach(col => (row[col] = ''));
+      return row;
+    },
+  };
+
+  const firstColumnByMode: Record<EntryMode, () => string> = {
+    standard: () => (factors.length > 0 ? factors[0] : outcomeName),
+    performance: () => measureColumns[0],
+  };
+
   // Grid Helpers
   const addRow = () => {
-    const newRow: Record<string, string> = {};
-    if (mode === 'standard') {
-      newRow[outcomeName] = '';
-      factors.forEach(f => (newRow[f] = ''));
-    } else {
-      measureColumns.forEach(col => (newRow[col] = ''));
-    }
+    const newRow = emptyRowCreators[mode]();
     setRows([...rows, newRow]);
 
     // Auto-focus first input of new row after render
     setTimeout(() => {
-      const firstCol =
-        mode === 'standard' ? (factors.length > 0 ? factors[0] : outcomeName) : measureColumns[0];
-      const key = `${rows.length}-${firstCol}`;
+      const key = `${rows.length}-${firstColumnByMode[mode]()}`;
       inputRefs.current.get(key)?.focus();
     }, 0);
   };
@@ -254,28 +265,31 @@ const ManualEntryBase = ({
     setRows(rows.filter((_, i) => i !== idx));
   };
 
+  // Mode-dispatched paste column mapping
+  const pasteMappers: Record<EntryMode, (values: string[]) => Record<string, string>> = {
+    standard: values => {
+      const row: Record<string, string> = {};
+      const cols = [...factors, outcomeName];
+      cols.forEach((col, i) => {
+        row[col] = values[i]?.trim() ?? '';
+      });
+      return row;
+    },
+    performance: values => {
+      const row: Record<string, string> = {};
+      measureColumns.forEach((col, i) => {
+        row[col] = values[i]?.trim() ?? '';
+      });
+      return row;
+    },
+  };
+
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
       const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
-      const newRows = lines.map(line => {
-        const values = line.split(/\t/);
-        const row: Record<string, string> = {};
-
-        if (mode === 'standard') {
-          const cols = [...factors, outcomeName];
-          cols.forEach((col, i) => {
-            if (values[i]) row[col] = values[i].trim();
-            else row[col] = '';
-          });
-        } else {
-          measureColumns.forEach((col, i) => {
-            if (values[i]) row[col] = values[i].trim();
-            else row[col] = '';
-          });
-        }
-        return row;
-      });
+      const mapper = pasteMappers[mode];
+      const newRows = lines.map(line => mapper(line.split(/\t/)));
       setRows([...rows, ...newRows]);
     } catch (err) {
       console.error('Failed to paste:', err);
@@ -283,8 +297,15 @@ const ManualEntryBase = ({
     }
   };
 
-  const handleAnalyze = () => {
-    if (mode === 'standard') {
+  // Shared spec parsing
+  const parseSpecs = () =>
+    usl || lsl
+      ? { usl: usl ? parseFloat(usl) : undefined, lsl: lsl ? parseFloat(lsl) : undefined }
+      : undefined;
+
+  // Mode-dispatched analyze logic
+  const analyzers: Record<EntryMode, () => void> = {
+    standard: () => {
       const validRows = rows.filter(r => r[outcomeName] && r[outcomeName] !== '');
 
       // Detect which factor columns are numeric continuous predictors
@@ -309,16 +330,9 @@ const ManualEntryBase = ({
         return row;
       });
 
-      const specs =
-        usl || lsl
-          ? {
-              usl: usl ? parseFloat(usl) : undefined,
-              lsl: lsl ? parseFloat(lsl) : undefined,
-            }
-          : undefined;
-
-      onAnalyze(formattedData, { outcome: outcomeName, factors, specs });
-    } else {
+      onAnalyze(formattedData, { outcome: outcomeName, factors, specs: parseSpecs() });
+    },
+    performance: () => {
       const validRows = rows.filter(r =>
         measureColumns.some(col => r[col] && r[col] !== '' && !isNaN(parseFloat(r[col])))
       );
@@ -332,24 +346,18 @@ const ManualEntryBase = ({
         return newRow;
       });
 
-      const specs =
-        usl || lsl
-          ? {
-              usl: usl ? parseFloat(usl) : undefined,
-              lsl: lsl ? parseFloat(lsl) : undefined,
-            }
-          : undefined;
-
       onAnalyze(formattedData, {
         outcome: measureColumns[0],
         factors: [],
-        specs,
+        specs: parseSpecs(),
         analysisMode: 'performance' as const,
         measureColumns,
         measureLabel,
       });
-    }
+    },
   };
+
+  const handleAnalyze = () => analyzers[mode]();
 
   const handleContinue = () => {
     if (rows.length === 0) addRow();

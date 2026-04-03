@@ -13,6 +13,24 @@ import type {
 } from '@variscout/core';
 import { toNumericValue, classifyActivityType } from '@variscout/core';
 
+/** Row fields needed by category extractors. */
+interface RowContext {
+  step: string;
+  activityType: ReturnType<typeof classifyActivityType>;
+  rawType: string;
+  activity: string;
+  reason: string;
+}
+
+/** Mode-dispatched category extractors (ADR-047 pattern). */
+const categoryExtractors: Record<YamazumiParetoMode, (ctx: RowContext) => string | null> = {
+  'steps-total': ctx => ctx.step || null,
+  'steps-waste': ctx => (ctx.step && ctx.activityType === 'waste' ? ctx.step : null),
+  'steps-nva': ctx => (ctx.step && ctx.activityType === 'nva-required' ? ctx.step : null),
+  activities: ctx => ctx.activity || null,
+  reasons: ctx => (ctx.activityType === 'waste' && ctx.reason ? ctx.reason : null),
+};
+
 export interface UseYamazumiParetoDataOptions {
   /** Filtered data rows */
   filteredData: DataRow[];
@@ -44,8 +62,9 @@ export function useYamazumiParetoData({
     const { stepColumn, activityTypeColumn, cycleTimeColumn, activityColumn, reasonColumn } =
       mapping;
 
-    // Aggregate by category based on mode
+    // Aggregate by category based on mode (dispatch resolved once before loop)
     const aggregated = new Map<string, number>();
+    const extract = categoryExtractors[mode];
 
     for (const row of filteredData) {
       const time = toNumericValue(row[cycleTimeColumn]);
@@ -54,36 +73,12 @@ export function useYamazumiParetoData({
       const rawType = String(row[activityTypeColumn] ?? '');
       const activityType = classifyActivityType(rawType);
       const step = String(row[stepColumn] ?? '');
+      const activity = activityColumn ? String(row[activityColumn] ?? '') : rawType;
+      const reason = reasonColumn ? String(row[reasonColumn] ?? '') : '';
 
-      switch (mode) {
-        case 'steps-total': {
-          if (!step) break;
-          aggregated.set(step, (aggregated.get(step) ?? 0) + time);
-          break;
-        }
-        case 'steps-waste': {
-          if (!step || activityType !== 'waste') break;
-          aggregated.set(step, (aggregated.get(step) ?? 0) + time);
-          break;
-        }
-        case 'steps-nva': {
-          if (!step || activityType !== 'nva-required') break;
-          aggregated.set(step, (aggregated.get(step) ?? 0) + time);
-          break;
-        }
-        case 'activities': {
-          const activity = activityColumn ? String(row[activityColumn] ?? '') : rawType;
-          if (!activity) break;
-          aggregated.set(activity, (aggregated.get(activity) ?? 0) + time);
-          break;
-        }
-        case 'reasons': {
-          if (activityType !== 'waste') break;
-          const reason = reasonColumn ? String(row[reasonColumn] ?? '') : '';
-          if (!reason) break;
-          aggregated.set(reason, (aggregated.get(reason) ?? 0) + time);
-          break;
-        }
+      const key = extract({ step, activityType, rawType, activity, reason });
+      if (key) {
+        aggregated.set(key, (aggregated.get(key) ?? 0) + time);
       }
     }
 

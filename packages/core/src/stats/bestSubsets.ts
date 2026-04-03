@@ -285,32 +285,27 @@ const MAX_COMBINATION_QUESTIONS = 5;
  * Each factor/combination becomes a question, ranked by R²adj.
  * Factors with R²adj < threshold are auto-answered as 'ruled-out'.
  */
-/**
- * Format a single-factor question based on analysis mode.
- */
+/** Mode-dispatched question formatters (ADR-047 pattern). */
+const singleFactorFormatters: Record<ResolvedMode, (factor: string) => string> = {
+  standard: f => `Does ${f} explain variation?`,
+  capability: f => `Does ${f} affect Cpk?`,
+  yamazumi: f => `Does ${f} explain variation?`,
+  performance: f => `Does ${f} affect channel performance?`,
+};
+
+const combinationFormatters: Record<ResolvedMode, (factorList: string) => string> = {
+  standard: fl => `Does ${fl} together explain more variation?`,
+  capability: fl => `Does ${fl} together affect Cpk more?`,
+  yamazumi: fl => `Does ${fl} together explain more variation?`,
+  performance: fl => `Does ${fl} together affect channel performance more?`,
+};
+
 function formatSingleFactorQuestion(factor: string, mode?: ResolvedMode): string {
-  switch (mode) {
-    case 'capability':
-      return `Does ${factor} affect Cpk?`;
-    case 'performance':
-      return `Does ${factor} affect channel performance?`;
-    default:
-      return `Does ${factor} explain variation?`;
-  }
+  return singleFactorFormatters[mode ?? 'standard'](factor);
 }
 
-/**
- * Format a combination question based on analysis mode.
- */
 function formatCombinationQuestion(factorList: string, mode?: ResolvedMode): string {
-  switch (mode) {
-    case 'capability':
-      return `Does ${factorList} together affect Cpk more?`;
-    case 'performance':
-      return `Does ${factorList} together affect channel performance more?`;
-    default:
-      return `Does ${factorList} together explain more variation?`;
-  }
+  return combinationFormatters[mode ?? 'standard'](factorList);
 }
 
 export function generateQuestionsFromRanking(

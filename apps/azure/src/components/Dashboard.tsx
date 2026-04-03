@@ -12,6 +12,7 @@ import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
 import { useData } from '../context/DataContext';
 import { resolveMode } from '@variscout/core/strategy';
+import type { ResolvedMode } from '@variscout/core/strategy';
 import { useDashboardCharts } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
 import {
@@ -49,6 +50,35 @@ import type { ViewState } from '@variscout/hooks';
 import { Activity, BarChart3, Gauge, Timer, ArrowLeft, Settings2 } from 'lucide-react';
 
 type DashboardTab = 'analysis' | 'performance' | 'yamazumi';
+
+/** Mode-dispatched tab configuration (ADR-047 pattern). */
+interface ModeTab {
+  id: DashboardTab;
+  label: string;
+  icon: React.ComponentType<{ size: number }>;
+  activeColor: string;
+}
+
+const modeTabs: Record<ResolvedMode, ModeTab[]> = {
+  standard: [{ id: 'analysis', label: 'Analysis', icon: BarChart3, activeColor: 'bg-blue-600' }],
+  capability: [{ id: 'analysis', label: 'Analysis', icon: BarChart3, activeColor: 'bg-blue-600' }],
+  performance: [
+    { id: 'analysis', label: 'Analysis', icon: BarChart3, activeColor: 'bg-blue-600' },
+    { id: 'performance', label: 'Performance', icon: Gauge, activeColor: 'bg-blue-600' },
+  ],
+  yamazumi: [
+    { id: 'analysis', label: 'Analysis', icon: BarChart3, activeColor: 'bg-blue-600' },
+    { id: 'yamazumi', label: 'Yamazumi', icon: Timer, activeColor: 'bg-amber-600' },
+  ],
+};
+
+/** Default tab when switching to a mode (undefined = keep current). */
+const modeDefaultTab: Record<ResolvedMode, DashboardTab | undefined> = {
+  standard: undefined,
+  capability: undefined,
+  performance: undefined,
+  yamazumi: 'yamazumi',
+};
 
 interface DashboardPerformanceProps {
   drillFromPerformance?: string | null;
@@ -191,11 +221,12 @@ const Dashboard = ({
     }
   }, [drillFromPerformance, setActiveTab]);
 
-  // Auto-switch to yamazumi tab when analysis mode becomes yamazumi
+  // Auto-switch tab when analysis mode changes (e.g., yamazumi → yamazumi tab)
   useEffect(() => {
-    if (resolvedMode === 'yamazumi') {
+    const defaultTab = modeDefaultTab[resolvedMode];
+    if (defaultTab) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- responding to external analysis mode change
-      setActiveTab('yamazumi');
+      setActiveTab(defaultTab);
     }
   }, [resolvedMode, setActiveTab]);
 
@@ -472,49 +503,22 @@ const Dashboard = ({
           role="tablist"
           aria-label="Dashboard tabs"
         >
-          <button
-            role="tab"
-            aria-selected={activeTab === 'analysis'}
-            onClick={() => setActiveTab('analysis')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'analysis'
-                ? 'bg-blue-600 text-white'
-                : 'bg-surface-secondary text-content-secondary hover:text-content hover:bg-surface-tertiary'
-            }`}
-          >
-            <BarChart3 size={16} />
-            Analysis
-          </button>
-          {resolvedMode === 'performance' && (
+          {modeTabs[resolvedMode].map(({ id, label, icon: Icon, activeColor }) => (
             <button
+              key={id}
               role="tab"
-              aria-selected={activeTab === 'performance'}
-              onClick={() => setActiveTab('performance')}
+              aria-selected={activeTab === id}
+              onClick={() => setActiveTab(id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'performance'
-                  ? 'bg-blue-600 text-white'
+                activeTab === id
+                  ? `${activeColor} text-white`
                   : 'bg-surface-secondary text-content-secondary hover:text-content hover:bg-surface-tertiary'
               }`}
             >
-              <Gauge size={16} />
-              Performance
+              <Icon size={16} />
+              {label}
             </button>
-          )}
-          {resolvedMode === 'yamazumi' && (
-            <button
-              role="tab"
-              aria-selected={activeTab === 'yamazumi'}
-              onClick={() => setActiveTab('yamazumi')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'yamazumi'
-                  ? 'bg-amber-600 text-white'
-                  : 'bg-surface-secondary text-content-secondary hover:text-content hover:bg-surface-tertiary'
-              }`}
-            >
-              <Timer size={16} />
-              Yamazumi
-            </button>
-          )}
+          ))}
         </div>
       </div>
 
