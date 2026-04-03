@@ -55,6 +55,7 @@ export {
   calculateStatsByStage,
   getStageBoundaries,
   calculateStagedComparison,
+  toVerificationData,
 } from './staged';
 
 export type {

@@ -11,12 +11,15 @@ import React, { useMemo, useCallback, useEffect, useRef } from 'react';
 import type {
   Finding,
   FindingAssignee,
+  FindingOutcome,
   Question,
   ProcessContext,
   DataRow,
   SpecLimits,
+  StagedStatsResult,
 } from '@variscout/core';
 import { calculateStats, toNumericValue } from '@variscout/core';
+import { calculateStagedComparison, toVerificationData } from '@variscout/core/stats';
 import { assignCauseColors } from '@variscout/core/findings';
 import { useInvestigationStore } from '../investigation/investigationStore';
 import type { UseQuestionsReturn } from '@variscout/hooks';
@@ -43,6 +46,7 @@ interface FindingsStateSlice {
     dueDate?: string,
     ideaId?: string
   ) => void;
+  setOutcome: (findingId: string, outcome: FindingOutcome) => void;
 }
 
 export interface UseImprovementOrchestrationOptions {
@@ -57,6 +61,8 @@ export interface UseImprovementOrchestrationOptions {
   outcome: string | null;
   /** Spec limits (USL/LSL) */
   specs: SpecLimits;
+  /** Staged stats for verification data (when stage column is set) */
+  stagedStats?: StagedStatsResult | null;
 }
 
 export interface UseImprovementOrchestrationReturn {
@@ -87,6 +93,26 @@ export interface UseImprovementOrchestrationReturn {
     referenceCount: number;
     referenceCpk?: number;
   };
+  /** Verification data from staged comparison */
+  verificationData?: {
+    cpkBefore: number;
+    cpkAfter: number;
+    passRateBefore: number;
+    passRateAfter: number;
+    meanShift: number;
+    sigmaRatio: number;
+    dataDate: string;
+  };
+  /** Whether verification data exists */
+  hasVerification: boolean;
+  /** Current outcome from focus finding */
+  currentOutcome?: FindingOutcome;
+  /** Outcome notes */
+  outcomeNotes?: string;
+  /** Set outcome on focus finding */
+  handleOutcomeChange: (outcome: 'effective' | 'partial' | 'not-effective') => void;
+  /** Update outcome notes */
+  handleOutcomeNotesChange: (notes: string) => void;
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────
@@ -100,6 +126,7 @@ export function useImprovementOrchestration({
   rawData,
   outcome,
   specs,
+  stagedStats,
 }: UseImprovementOrchestrationOptions): UseImprovementOrchestrationReturn {
   // Questions with answered/investigating status that have ideas -> feed workspace
   const improvementQuestions = useMemo(() => {
@@ -267,6 +294,62 @@ export function useImprovementOrchestration({
         }))
     );
   }, [improvementQuestions, selectedIdeaIds, causeColors]);
+
+  // ── Focus finding, verification data, and outcome state ─────────────────
+
+  // Focus finding: the improving finding we're tracking
+  const focusFinding = useMemo(() => {
+    return (
+      findingsState.findings.find(
+        f => f.status === 'improving' && f.actions && f.actions.length > 0
+      ) ?? null
+    );
+  }, [findingsState.findings]);
+
+  // Verification data from staged comparison
+  const verificationData = useMemo(() => {
+    if (!stagedStats) return undefined;
+    const comparison = calculateStagedComparison(stagedStats);
+    if (!comparison) return undefined;
+    return toVerificationData(comparison) ?? undefined;
+  }, [stagedStats]);
+
+  const hasVerification = !!verificationData;
+
+  // Current outcome from focus finding
+  const currentOutcome = focusFinding?.outcome;
+  const outcomeNotes = currentOutcome?.notes;
+
+  // Outcome callbacks
+  const handleOutcomeChange = useCallback(
+    (outcome: 'effective' | 'partial' | 'not-effective') => {
+      if (!focusFinding) return;
+      const effectiveMap = {
+        effective: 'yes',
+        partial: 'partial',
+        'not-effective': 'no',
+      } as const;
+      findingsState.setOutcome(focusFinding.id, {
+        effective: effectiveMap[outcome],
+        cpkBefore: verificationData?.cpkBefore,
+        cpkAfter: verificationData?.cpkAfter,
+        notes: currentOutcome?.notes,
+        verifiedAt: Date.now(),
+      });
+    },
+    [focusFinding, findingsState, verificationData, currentOutcome]
+  );
+
+  const handleOutcomeNotesChange = useCallback(
+    (notes: string) => {
+      if (!focusFinding || !currentOutcome) return;
+      findingsState.setOutcome(focusFinding.id, {
+        ...currentOutcome,
+        notes,
+      });
+    },
+    [focusFinding, findingsState, currentOutcome]
+  );
 
   // ── Sync computed state to Zustand store ────────────────────────────────
   const syncState = useImprovementStore.getState().syncState;
@@ -446,5 +529,11 @@ export function useImprovementOrchestration({
     aggregatedActions,
     selectedIdeasForRecap,
     projectionReferenceContext,
+    verificationData,
+    hasVerification,
+    currentOutcome,
+    outcomeNotes,
+    handleOutcomeChange,
+    handleOutcomeNotesChange,
   };
 }

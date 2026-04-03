@@ -367,3 +367,36 @@ export function getStageBoundaries(
 
   return boundaries;
 }
+
+/**
+ * Convert a StagedComparison to the VerificationData shape for the UI.
+ * Returns null if the comparison doesn't have at least 2 stages or if no
+ * spec limits were set (cpk undefined on either boundary stage).
+ */
+export function toVerificationData(comparison: StagedComparison): {
+  cpkBefore: number;
+  cpkAfter: number;
+  passRateBefore: number;
+  passRateAfter: number;
+  meanShift: number;
+  sigmaRatio: number;
+  dataDate: string;
+} | null {
+  if (comparison.stages.length < 2) return null;
+
+  const first = comparison.stages[0].stats;
+  const last = comparison.stages[comparison.stages.length - 1].stats;
+
+  // cpk is optional — only defined when spec limits are present
+  if (first.cpk == null || last.cpk == null) return null;
+
+  return {
+    cpkBefore: first.cpk,
+    cpkAfter: last.cpk,
+    passRateBefore: 100 - (first.outOfSpecPercentage ?? 0),
+    passRateAfter: 100 - (last.outOfSpecPercentage ?? 0),
+    meanShift: comparison.deltas.meanShift,
+    sigmaRatio: comparison.deltas.variationRatio,
+    dataDate: new Date().toISOString(),
+  };
+}
