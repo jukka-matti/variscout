@@ -5,7 +5,6 @@ import {
   calculateStats,
   toNumericValue,
   inferCharacteristicType,
-  getCategoryStats,
   findBestSubgroup,
   findTightestSubgroup,
   normalQuantile,
@@ -13,7 +12,40 @@ import {
   type DataRow,
   type SpecLimits,
   type FindingProjection,
+  type CategoryStats,
 } from '@variscout/core';
+
+/**
+ * Compute per-category stats for a factor column.
+ * Replaces the deleted getCategoryStats from core.
+ */
+function getCategoryStats(
+  data: DataRow[],
+  factor: string,
+  outcome: string
+): CategoryStats[] | null {
+  if (data.length === 0) return null;
+  const groups = new Map<string | number, number[]>();
+  for (const row of data) {
+    const cat = row[factor];
+    if (cat === undefined || cat === null || cat === '') continue;
+    const num = toNumericValue(row[outcome]);
+    if (num === undefined) continue;
+    const key = cat as string | number;
+    const arr = groups.get(key);
+    if (arr) arr.push(num);
+    else groups.set(key, [num]);
+  }
+  if (groups.size === 0) return null;
+  const result: CategoryStats[] = [];
+  for (const [value, values] of groups) {
+    const count = values.length;
+    const mean = values.reduce((s, v) => s + v, 0) / count;
+    const variance = count > 1 ? values.reduce((s, v) => s + (v - mean) ** 2, 0) / (count - 1) : 0;
+    result.push({ value, count, mean, stdDev: Math.sqrt(variance), contributionPct: 0 });
+  }
+  return result;
+}
 import { formatStatistic } from '@variscout/core/i18n';
 import WhatIfSimulator from '../WhatIfSimulator/WhatIfSimulator';
 import type {

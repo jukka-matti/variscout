@@ -43,12 +43,7 @@ export {
   type PerformanceSetupPanelTierProps,
   type ChannelValidation,
 } from './components/PerformanceSetupPanel';
-export {
-  VariationBar,
-  variationBarDefaultColorScheme,
-  type VariationBarProps,
-  type VariationBarColorScheme,
-} from './components/VariationBar';
+export type { FilterChipData } from './components/filterTypes';
 export {
   FilterChipDropdown,
   filterChipDropdownDefaultColorScheme,

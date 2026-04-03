@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import type { ProcessHealthBarProps } from './types';
 import { FilterChipDropdown } from '../FilterChipDropdown';
-import { VariationBar } from '../VariationBar';
 import { useTranslation } from '@variscout/hooks';
 
 /**
@@ -39,7 +38,7 @@ function cpkColor(cpk: number, target: number): string {
  * filter chips, variation bar, and controls in a single compact line.
  *
  * Layout (left → right):
- *   [Layout toggle] [Factors(n)] | [Stats] | [Filter chips] [VariationBar] | [Cpk target] [Export] [Present]
+ *   [Layout toggle] [Factors(n)] | [Stats] | [Filter chips (n=X)] | [Cpk target] [Export] [Present]
  */
 const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   stats,
@@ -52,8 +51,6 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   onUpdateFilterValues,
   onRemoveFilter,
   onClearAll,
-  cumulativeVariationPct,
-  onVariationBarClick,
   onPinFinding,
   layout,
   onLayoutChange,
@@ -75,8 +72,6 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   const hasSpecs = !!(specs.usl !== undefined || specs.lsl !== undefined);
   const chips = filterChipData ?? [];
   const isDrilling = chips.length > 0;
-  const showVariationBar =
-    isDrilling && cumulativeVariationPct !== undefined && cumulativeVariationPct !== null;
 
   // Filter chip dropdown state
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -387,17 +382,16 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
                       size={10}
                       className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
                     />
-                    <span
-                      className={`px-1 rounded text-[0.625rem] font-medium ${
-                        chipData.contributionPct >= 50
-                          ? 'bg-green-500/20 text-green-400'
-                          : chipData.contributionPct >= 30
-                            ? 'bg-amber-500/20 text-amber-400'
-                            : 'bg-blue-500/20 text-blue-400'
-                      }`}
-                    >
-                      {Math.round(chipData.contributionPct)}%
-                    </span>
+                    {(() => {
+                      const totalCount = chipData.availableValues
+                        .filter(v => chipData.values.map(String).includes(String(v.value)))
+                        .reduce((sum, v) => sum + v.count, 0);
+                      return (
+                        <span className="px-1 rounded text-[0.625rem] font-medium bg-blue-500/20 text-blue-400">
+                          n={totalCount}
+                        </span>
+                      );
+                    })()}
                   </button>
                   <button
                     onClick={e => handleRemoveChip(chipData.factor, e)}
@@ -438,18 +432,6 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
             )}
           </div>
         </>
-      )}
-
-      {/* Variation bar — compact, shown when drilling */}
-      {showVariationBar && (
-        <div className="flex items-center shrink-0" style={{ minWidth: '120px' }}>
-          <VariationBar
-            isolatedPct={cumulativeVariationPct!}
-            showLabels={false}
-            className="w-[120px]"
-            onClick={onVariationBarClick}
-          />
-        </div>
       )}
 
       {/* Right: actions */}

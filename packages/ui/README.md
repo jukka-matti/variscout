@@ -30,7 +30,7 @@ Shared UI components for VariScout applications (PWA, Azure).
 
 ### Navigation & Filters
 
-`FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `VariationBar`, `YAxisPopover`, `AxisEditor`
+`FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `YAxisPopover`, `AxisEditor`
 
 ### Investigation & Findings
 

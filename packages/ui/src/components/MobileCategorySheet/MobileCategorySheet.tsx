@@ -25,8 +25,6 @@ export interface MobileCategorySheetData {
   // Pareto stats
   count?: number;
   cumulativePct?: number;
-  // Shared
-  contributionPct?: number;
 }
 
 export interface MobileCategorySheetProps {
@@ -43,7 +41,7 @@ export interface MobileCategorySheetProps {
   /** Callback to ask CoScout about this category. When provided, shows "Ask CoScout" action row. */
   onAskCoScout?: (focusContext: {
     chartType: 'boxplot' | 'pareto';
-    category: { name: string; mean?: number; contributionPct?: number };
+    category: { name: string; mean?: number };
   }) => void;
 }
 
@@ -199,25 +197,17 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
                   <span className="text-content-secondary">IQR: </span>
                   <span className="text-content font-medium">{formatNum(data.iqr)}</span>
                 </div>
-                {data.contributionPct !== undefined && (
-                  <div>
-                    <span className="text-content-secondary">Contribution: </span>
-                    <span className="text-blue-400 font-medium">
-                      {Math.round(data.contributionPct)}%
-                    </span>
-                  </div>
-                )}
+                <div>
+                  <span className="text-content-secondary">SD: </span>
+                  <span className="text-content font-medium">{formatNum(data.stdDev)}</span>
+                </div>
               </div>
             ) : (
               <div className="flex gap-6 text-sm">
-                {data.contributionPct !== undefined && (
-                  <div>
-                    <span className="text-content-secondary">Contribution: </span>
-                    <span className="text-blue-400 font-medium">
-                      {Math.round(data.contributionPct)}%
-                    </span>
-                  </div>
-                )}
+                <div>
+                  <span className="text-content-secondary">{t('chart.label.n')} </span>
+                  <span className="text-content font-medium">{formatNum(data.count)}</span>
+                </div>
               </div>
             )}
           </div>
@@ -332,7 +322,6 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
                       category: {
                         name: data.categoryKey,
                         mean: data.mean,
-                        contributionPct: data.contributionPct,
                       },
                     });
                     onClose();

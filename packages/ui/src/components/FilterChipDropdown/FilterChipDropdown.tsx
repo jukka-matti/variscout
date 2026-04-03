@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { X, Check } from 'lucide-react';
 import { useIsMobile, BREAKPOINTS } from '../../hooks';
-import type { FilterChipData } from '@variscout/hooks';
+import type { FilterChipData } from '../filterTypes';
 
 /**
  * Color scheme for FilterChipDropdown component
@@ -65,8 +65,8 @@ export interface FilterChipDropdownProps {
  *
  * Shows all available values for a factor with:
  * - Checkboxes for each value
- * - Contribution bars showing % of total variation
- * - Combined contribution of selected values
+ * - Sample count (n=X) per value
+ * - Combined sample count of selected values
  *
  * On mobile: renders as a bottom sheet
  * On desktop: renders as a positioned dropdown
@@ -104,10 +104,10 @@ const FilterChipDropdown: React.FC<FilterChipDropdownProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [localValues, setLocalValues] = useState<Set<string>>(new Set(chipData.values.map(String)));
 
-  // Calculate combined contribution of currently selected values
-  const combinedContribution = chipData.availableValues
+  // Calculate combined sample count of currently selected values
+  const combinedCount = chipData.availableValues
     .filter(v => localValues.has(String(v.value)))
-    .reduce((sum, v) => sum + v.contributionPct, 0);
+    .reduce((sum, v) => sum + v.count, 0);
 
   // Handle clicking outside to close
   useEffect(() => {
@@ -160,7 +160,7 @@ const FilterChipDropdown: React.FC<FilterChipDropdownProps> = ({
   // Render the value list
   const renderValueList = () => (
     <div className="max-h-64 overflow-y-auto">
-      {chipData.availableValues.map(({ value, contributionPct }) => {
+      {chipData.availableValues.map(({ value, count }) => {
         const valueStr = String(value);
         const isChecked = localValues.has(valueStr);
 
@@ -187,18 +187,8 @@ const FilterChipDropdown: React.FC<FilterChipDropdownProps> = ({
             {/* Value label */}
             <span className="flex-1 text-sm text-white truncate">{valueStr}</span>
 
-            {/* Contribution bar and percentage */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <div className={`w-16 h-1.5 ${colorScheme.progressBg} rounded-full overflow-hidden`}>
-                <div
-                  className="h-full bg-blue-500 rounded-full transition-all"
-                  style={{ width: `${Math.min(contributionPct, 100)}%` }}
-                />
-              </div>
-              <span className={`text-xs ${colorScheme.textSecondary} w-8 text-right`}>
-                {Math.round(contributionPct)}%
-              </span>
-            </div>
+            {/* Sample count */}
+            <span className={`text-xs ${colorScheme.textSecondary} flex-shrink-0`}>n={count}</span>
           </button>
         );
       })}
@@ -240,15 +230,12 @@ const FilterChipDropdown: React.FC<FilterChipDropdownProps> = ({
           {/* Value list */}
           {renderValueList()}
 
-          {/* Footer with combined contribution */}
+          {/* Footer with selected count */}
           <div className={`px-4 py-3 border-t ${colorScheme.border} ${colorScheme.surfaceBg}`}>
             <div className="flex items-center justify-between text-sm">
-              <span className={colorScheme.textSecondary}>Selected contribution:</span>
-              <span className="text-blue-400 font-medium">{Math.round(combinedContribution)}%</span>
+              <span className={colorScheme.textSecondary}>Selected:</span>
+              <span className="text-blue-400 font-medium">n={combinedCount}</span>
             </div>
-            <p className={`text-xs ${colorScheme.textMuted} mt-1`}>
-              Combined contribution is approximate due to factor interactions.
-            </p>
           </div>
         </div>
       </>
@@ -293,13 +280,11 @@ const FilterChipDropdown: React.FC<FilterChipDropdownProps> = ({
         {/* Value list */}
         {renderValueList()}
 
-        {/* Footer with combined contribution */}
+        {/* Footer with selected count */}
         <div className={`px-3 py-2 border-t ${colorScheme.border} ${colorScheme.surfaceBg}/50`}>
           <div className="flex items-center justify-between text-xs">
             <span className={colorScheme.textSecondary}>Selected:</span>
-            <span className="text-blue-400 font-medium">
-              {Math.round(combinedContribution)}% combined
-            </span>
+            <span className="text-blue-400 font-medium">n={combinedCount}</span>
           </div>
         </div>
       </div>

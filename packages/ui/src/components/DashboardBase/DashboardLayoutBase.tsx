@@ -11,7 +11,8 @@ import { AnnotationContextMenu } from '../AnnotationContextMenu';
 import DashboardChartCard from './DashboardChartCard';
 import DashboardGrid from './DashboardGrid';
 import type { HighlightColor } from '../ChartAnnotationLayer/types';
-import type { UseChartInsightsReturn, FilterChipData, ChartTitles } from '@variscout/hooks';
+import type { UseChartInsightsReturn, ChartTitles } from '@variscout/hooks';
+import type { FilterChipData } from '../filterTypes';
 import type { GlossaryTerm } from '@variscout/core';
 
 // ---------- Annotations shape ----------
@@ -113,7 +114,6 @@ export interface DashboardLayoutBaseProps {
 
   // ---- Filter context bar data ----
   filterChipData: FilterChipData[];
-  cumulativeVariationPct: number | null;
 
   // ---- Annotations ----
   annotations: DashboardAnnotations;
@@ -228,7 +228,6 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   focusedChart,
   setFocusedChart,
   filterChipData,
-  cumulativeVariationPct,
   annotations,
   chartFindings,
   onAddChartObservation,
@@ -282,7 +281,6 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
     <FilterContextBar
       filterChipData={filterChipData}
       columnAliases={columnAliases}
-      cumulativeVariationPct={cumulativeVariationPct}
       show={showFilterContext}
     />
   );

@@ -2,7 +2,7 @@ import React from 'react';
 import { Minimize2, Copy, Check } from 'lucide-react';
 import { ChartDownloadMenu, type ChartDownloadMenuColorScheme } from '../ChartExportMenu';
 import { FilterContextBar } from '../FilterContextBar';
-import type { FilterChipData } from '@variscout/hooks';
+import type { FilterChipData } from '../filterTypes';
 
 export interface FocusedChartCardProps {
   /** Container ID (e.g. "ichart-focus") */
@@ -30,7 +30,6 @@ export interface FocusedChartCardProps {
   /** Filter context bar props */
   filterChipData?: FilterChipData[];
   columnAliases?: Record<string, string>;
-  cumulativeVariationPct?: number | null;
   showFilterContext?: boolean;
   /** ColorScheme */
   chartDownloadMenuColorScheme?: ChartDownloadMenuColorScheme;
@@ -61,7 +60,6 @@ const FocusedChartCard: React.FC<FocusedChartCardProps> = ({
   onDownloadSvg,
   filterChipData,
   columnAliases,
-  cumulativeVariationPct,
   showFilterContext = true,
   chartDownloadMenuColorScheme,
   className = '',
@@ -118,7 +116,6 @@ const FocusedChartCard: React.FC<FocusedChartCardProps> = ({
         <FilterContextBar
           filterChipData={filterChipData}
           columnAliases={columnAliases}
-          cumulativeVariationPct={cumulativeVariationPct}
           show={showFilterContext}
         />
       )}
