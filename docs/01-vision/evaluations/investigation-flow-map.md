@@ -211,15 +211,15 @@ The drill trail is complete: Start → Store South → Time_Slot: Dinner. Two no
 
 ## Summary: Guidance Coverage by Step
 
-| Step | Description              | Existing Guidance                        | Gaps                                     | Phase 1 (Factor Suggestion)                      | Phase 2 (Interaction Heatmap)               | Phase 3 (Mindmap/Narrative)              |
-| ---- | ------------------------ | ---------------------------------------- | ---------------------------------------- | ------------------------------------------------ | ------------------------------------------- | ---------------------------------------- |
-| 1    | Data loaded              | Boxplot "↓ drill here"                   | No "start here" for novices              | Add suggestion chip with η² value                | —                                           | Mindmap shows factor landscape           |
-| 2    | First drill (Store)      | Contribution %, Boxplot label            | No "suggested next factor"               | Suggestion chip: "Try Time_Slot — 25% remaining" | —                                           | Drill trail begins                       |
-| 3    | Funnel opened            | Rich: ranking, Cpk, cumulative           | Funnel is hidden, covers charts          | Surface key metrics in main view                 | —                                           | Mindmap provides always-visible overview |
-| 4    | Second drill (Time_Slot) | Contribution %, InteractionGuidance      | Interaction guidance is text-only        | —                                                | Heatmap shows Store × Time_Slot interaction | Mindmap shows interaction edges          |
-| 5    | Consider Day (weak)      | Boxplot label (no weak-signal indicator) | No diminishing returns signal            | Muted suggestion styling for weak factors        | —                                           | Small/dim Day node signals weakness      |
-| 6    | Check interactions       | Regression coefficients table            | Results require expert interpretation    | —                                                | Heatmap pre-computes and visualizes         | —                                        |
-| 7    | Investigation complete   | Cumulative bar (if Funnel open)          | No narrative summary, no stopping prompt | Stopping signal: "You've explained X%"           | —                                           | Narrative mode generates presentation    |
+| Step | Description              | Existing Guidance                        | Gaps                                     | Phase 1 (Factor Suggestion)                | Phase 2 (Interaction Heatmap)               | Phase 3 (Mindmap/Narrative)              |
+| ---- | ------------------------ | ---------------------------------------- | ---------------------------------------- | ------------------------------------------ | ------------------------------------------- | ---------------------------------------- |
+| 1    | Data loaded              | Boxplot "↓ drill here"                   | No "start here" for novices              | Add suggestion chip with η² value          | —                                           | Mindmap shows factor landscape           |
+| 2    | First drill (Store)      | η², Boxplot label                        | No "suggested next factor"               | Suggestion chip: "Try Time_Slot — η²=0.25" | —                                           | Drill trail begins                       |
+| 3    | Funnel opened            | Rich: ranking, Cpk, cumulative           | Funnel is hidden, covers charts          | Surface key metrics in main view           | —                                           | Mindmap provides always-visible overview |
+| 4    | Second drill (Time_Slot) | η², InteractionGuidance                  | Interaction guidance is text-only        | —                                          | Heatmap shows Store × Time_Slot interaction | Mindmap shows interaction edges          |
+| 5    | Consider Day (weak)      | Boxplot label (no weak-signal indicator) | No diminishing returns signal            | Muted suggestion styling for weak factors  | —                                           | Small/dim Day node signals weakness      |
+| 6    | Check interactions       | Regression coefficients table            | Results require expert interpretation    | —                                          | Heatmap pre-computes and visualizes         | —                                        |
+| 7    | Investigation complete   | Cumulative bar (if Funnel open)          | No narrative summary, no stopping prompt | Stopping signal: "You've explained X%"     | —                                           | Narrative mode generates presentation    |
 
 ---
 

@@ -47,13 +47,6 @@ interface BoxplotProps extends BaseChartProps {
   variationPct?: number;
   /** Threshold for high variation highlight (default: 50) */
   variationThreshold?: number;
-  /** Category Total SS contributions - Map from key to % of total variation
-   * Uses Total SS (captures both mean shift AND spread), not between-group only
-   * Sum of all category contributions = 100%
-   */
-  categoryContributions?: Map<string | number, number>;
-  /** Show contribution labels below boxes (default: false) */
-  showContributionLabels?: boolean;
   /** Show violin (density) overlay behind box elements (default: false) */
   showViolin?: boolean;
 }
@@ -253,19 +246,18 @@ import PerformanceBoxplot from '@variscout/charts/PerformanceBoxplot';
 
 ## Statistical Elements
 
-| Element            | Standard Boxplot          | PerformanceBoxplot    |
-| ------------------ | ------------------------- | --------------------- |
-| **Whiskers**       | Min/Max (within 1.5×IQR)  | Min to Max            |
-| **Whisker caps**   | Horizontal at min/max     | Horizontal at min/max |
-| **Box**            | Q1 to Q3 (IQR)            | Q1 to Q3 (IQR)        |
-| **Median**         | Thick line                | Thick line            |
-| **Mean**           | Diamond marker            | Diamond marker        |
-| **Outliers**       | Red circles beyond fences | Not shown separately  |
-| **n label**        | Below each box            | Below each box        |
-| **Contribution %** | Below n (optional)        | Not applicable        |
-| **Spec lines**     | USL/LSL (dashed red)      | USL/LSL (dashed red)  |
-| **Target line**    | Dashed green              | Not shown             |
-| **Grid**           | Not shown                 | Not shown             |
+| Element          | Standard Boxplot          | PerformanceBoxplot    |
+| ---------------- | ------------------------- | --------------------- |
+| **Whiskers**     | Min/Max (within 1.5×IQR)  | Min to Max            |
+| **Whisker caps** | Horizontal at min/max     | Horizontal at min/max |
+| **Box**          | Q1 to Q3 (IQR)            | Q1 to Q3 (IQR)        |
+| **Median**       | Thick line                | Thick line            |
+| **Mean**         | Diamond marker            | Diamond marker        |
+| **Outliers**     | Red circles beyond fences | Not shown separately  |
+| **n label**      | Below each box            | Below each box        |
+| **Spec lines**   | USL/LSL (dashed red)      | USL/LSL (dashed red)  |
+| **Target line**  | Dashed green              | Not shown             |
+| **Grid**         | Not shown                 | Not shown             |
 
 ---
 

@@ -141,7 +141,7 @@ The analyst removes the Step 3 filter to return to the full 150-point dataset.
 
 - ANOVA provides the statistical confirmation.
 - The Boxplot's visual structure tells the whole story if the analyst knows how to read it.
-- Contribution % on the "↓ drill here" label quantifies Step's importance.
+- η² on the "↓ drill here" label quantifies Step's importance.
 
 **Gap — no investigation summary:**
 The analyst has now drilled into Step 2 (chaotic), drilled into Step 3 (stable), and returned to the overview. But there's no record of this journey and no synthesis. The breadcrumbs are gone (filters removed). The investigation exists only in the analyst's memory. There is no "You investigated 2 of 5 steps and found that Step 2's variation (std=10) dominates the process" summary.

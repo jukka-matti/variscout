@@ -200,32 +200,32 @@ These statistical issues are significant because:
 
 ## Feature Comparison Matrix
 
-| Feature                         | EDAScout v9               | VariScout                           |
-| ------------------------------- | ------------------------- | ----------------------------------- |
-| **I-Chart**                     | Yes (Recharts)            | Yes (Visx)                          |
-| **Boxplot**                     | Yes (Plotly.js)           | Yes (Visx)                          |
-| **Pareto**                      | Yes                       | Yes                                 |
-| **Capability analysis**         | Yes                       | Yes (Cp, Cpk, Pp, Ppk)              |
-| **Regression**                  | No                        | Yes                                 |
-| **Gage R&R**                    | No                        | No                                  |
-| **ANOVA**                       | Yes (flawed p-value)      | Yes (proper F-distribution)         |
-| **Nelson rules**                | Limited                   | Full 8-rule implementation          |
-| **Multi-measure (Performance)** | No                        | Yes (Azure/Excel)                   |
-| **Simultaneous chart views**    | 1 per page                | 4 (Four Lenses)                     |
-| **Linked filtering**            | No (per-page filters)     | Yes (cross-chart)                   |
-| **Contribution %**              | Within-group SS (flawed)  | Between-group eta-squared (correct) |
-| **Cumulative tracking**         | No                        | Variation funnel                    |
-| **Brush selection**             | Yes (I-Chart)             | No                                  |
-| **AI guidance**                 | Gemini 2.0 Flash          | None (methodology-driven)           |
-| **Offline operation**           | Requires server           | Full offline (PWA)                  |
-| **Spec limits**                 | Yes                       | Yes                                 |
-| **Performance direction**       | Yes (ColumnSpecification) | No (inferred from spec limits)      |
-| **Dark theme**                  | No                        | Yes (charts + Excel content pane)   |
-| **Mobile support**              | Responsive grid           | Responsive + mobile-first hooks     |
-| **European decimal handling**   | Yes                       | Yes                                 |
-| **Case studies / sample data**  | No                        | Yes (7 case studies)                |
-| **Glossary / help tooltips**    | No                        | Yes (20+ terms)                     |
-| **Export (CSV/clipboard)**      | Limited                   | Yes                                 |
+| Feature                         | EDAScout v9               | VariScout                         |
+| ------------------------------- | ------------------------- | --------------------------------- |
+| **I-Chart**                     | Yes (Recharts)            | Yes (Visx)                        |
+| **Boxplot**                     | Yes (Plotly.js)           | Yes (Visx)                        |
+| **Pareto**                      | Yes                       | Yes                               |
+| **Capability analysis**         | Yes                       | Yes (Cp, Cpk, Pp, Ppk)            |
+| **Regression**                  | No                        | Yes                               |
+| **Gage R&R**                    | No                        | No                                |
+| **ANOVA**                       | Yes (flawed p-value)      | Yes (proper F-distribution)       |
+| **Nelson rules**                | Limited                   | Full 8-rule implementation        |
+| **Multi-measure (Performance)** | No                        | Yes (Azure/Excel)                 |
+| **Simultaneous chart views**    | 1 per page                | 4 (Four Lenses)                   |
+| **Linked filtering**            | No (per-page filters)     | Yes (cross-chart)                 |
+| **Effect size (η²)**            | Within-group SS (flawed)  | ANOVA eta-squared (correct)       |
+| **Cumulative tracking**         | No                        | Variation funnel                  |
+| **Brush selection**             | Yes (I-Chart)             | No                                |
+| **AI guidance**                 | Gemini 2.0 Flash          | None (methodology-driven)         |
+| **Offline operation**           | Requires server           | Full offline (PWA)                |
+| **Spec limits**                 | Yes                       | Yes                               |
+| **Performance direction**       | Yes (ColumnSpecification) | No (inferred from spec limits)    |
+| **Dark theme**                  | No                        | Yes (charts + Excel content pane) |
+| **Mobile support**              | Responsive grid           | Responsive + mobile-first hooks   |
+| **European decimal handling**   | Yes                       | Yes                               |
+| **Case studies / sample data**  | No                        | Yes (7 case studies)              |
+| **Glossary / help tooltips**    | No                        | Yes (20+ terms)                   |
+| **Export (CSV/clipboard)**      | Limited                   | Yes                               |
 
 ---
 

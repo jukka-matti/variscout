@@ -164,59 +164,6 @@ goToLevel(1); // Go back to first drill level
 
 ---
 
-## useVariationTracking
-
-**Tracks cumulative variation explained through drill-down path.**
-
-### Input
-
-| Parameter   | Type           | Description         |
-| ----------- | -------------- | ------------------- |
-| `data`      | `DataRow[]`    | Dataset             |
-| `outcome`   | `string`       | Outcome column name |
-| `drillPath` | `DrillLevel[]` | Current drill path  |
-
-### Output
-
-| Property                 | Type               | Description                   |
-| ------------------------ | ------------------ | ----------------------------- |
-| `cumulativeVariationPct` | `number \| null`   | Cumulative Total SS scope (%) |
-| `filterChipData`         | `FilterChipData[]` | Per-filter contribution       |
-| `impactLevel`            | `string \| null`   | high / moderate / low         |
-
-### FilterChipData Shape
-
-```typescript
-interface FilterChipData {
-  factor: string; // Factor name
-  values: (string | number)[]; // Selected values
-  contributionPct: number; // Total SS contribution %
-  availableValues: AvailableValue[]; // All values with contribution %
-}
-```
-
-### Usage Example
-
-```tsx
-const { cumulativeVariationPct, filterChipData, impactLevel } = useVariationTracking(
-  rawData,
-  filterStack,
-  outcome,
-  factors
-);
-
-// Display in filter chips
-filterChipData.map(chip => (
-  <FilterChip
-    key={chip.factor}
-    label={`${chip.factor}: ${chip.values.join(', ')}`}
-    contribution={`${(chip.contribution * 100).toFixed(0)}%`}
-  />
-));
-```
-
----
-
 ## useChartScale
 
 **Calculates optimal Y-axis scale for charts.**
@@ -368,33 +315,21 @@ function Dashboard() {
   const [state, actions] = useDataState({ persistence });
 
   // 2. Filter navigation
-  const { filters, breadcrumbs, addFilter } = useFilterNavigation(state.rawData, state.filters);
+  const { filterStack, updateFilterValues, removeFilter } = useFilterNavigation(context);
 
-  // 3. Variation tracking (Total SS scope)
-  const { filterChipData, cumulativeVariationPct } = useVariationTracking(
-    state.rawData,
-    state.filterStack,
-    'Weight',
-    factors
-  );
-
-  // 4. Chart scale
+  // 3. Chart scale
   const { domain } = useChartScale(
     state.filteredData.map(d => d.Weight),
     state.specs,
     stats
   );
 
-  // 5. Theme
+  // 4. Theme
   const { chrome, isDark } = useChartTheme();
 
   return (
     <>
-      <FilterBreadcrumb
-        chips={filterChipData}
-        onRemove={removeFilter}
-        cumulativeVariationPct={cumulativeVariationPct}
-      />
+      <FilterBreadcrumb chips={filterStack} onRemove={removeFilter} />
       <IChart
         data={state.filteredData}
         specs={state.specs}

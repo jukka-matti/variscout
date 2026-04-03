@@ -144,7 +144,7 @@ The analyst removes the Afternoon filter to return to the full 672-point dataset
 
 - ANOVA provides statistical confirmation.
 - The Boxplot structure remains visible and revealing.
-- Contribution % on the "↓ drill here" label quantifies Time_Period's importance.
+- η² on the "↓ drill here" label quantifies Time_Period's importance.
 
 **Gap — no "before and after understanding" contrast:**
 The analyst now knows that "69% average" is a fiction. But the dashboard looks exactly the same as when they started. There is no visual marker of the analyst's changed understanding. No "you've now seen that this 69% mean hides a 94% crisis (Night) and 48% waste (Afternoon)" summary. The investigation has transformed the analyst's understanding, but the product's display is unchanged.
