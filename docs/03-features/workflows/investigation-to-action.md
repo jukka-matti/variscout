@@ -278,6 +278,8 @@ VariScout's improvement ideation follows the RDMAIC framework, which structures 
 
 Working through all four directions before evaluating prevents premature convergence on the first idea that comes to mind.
 
+> **UI implementation:** The Four Ideation Directions are presented as structured HMW ("How Might We") prompts in the Brainstorm Modal, not as a dropdown. Each cause gets 4 auto-generated HMW questions. See [Improvement Workspace](improvement-workspace.md#brainstorm-modal).
+
 **Four Feasibility Criteria** — quality filter applied to each idea. The best improvement says "yes" to all four:
 
 | Criterion                   | Why it matters                                       |

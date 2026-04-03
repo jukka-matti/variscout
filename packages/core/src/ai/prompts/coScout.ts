@@ -423,6 +423,48 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
       },
       {
         type: 'function',
+        name: 'spark_brainstorm_ideas',
+        description:
+          'Generate creative improvement ideas for a brainstorm session. Used in the Brainstorm Modal — ideas are text + direction only, no timeframe/cost/risk. Generate 1-2 ideas per empty direction, plus one bold idea. Reference Knowledge Base results when available.',
+        parameters: {
+          type: 'object',
+          properties: {
+            question_id: {
+              type: 'string',
+              description: 'ID of the question (suspected cause) being brainstormed',
+            },
+            cause_name: {
+              type: 'string',
+              description: 'Name of the suspected cause for context',
+            },
+            ideas: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  text: {
+                    type: 'string',
+                    description: 'Improvement idea description — concise, actionable',
+                  },
+                  direction: {
+                    type: 'string',
+                    enum: ['prevent', 'detect', 'simplify', 'eliminate'],
+                    description: 'Which HMW direction this idea addresses',
+                  },
+                },
+                required: ['text', 'direction'],
+                additionalProperties: false,
+              },
+              description: 'Array of brainstorm ideas with direction classification',
+            },
+          },
+          required: ['question_id', 'cause_name', 'ideas'],
+          additionalProperties: false,
+          strict: true,
+        },
+      },
+      {
+        type: 'function',
         name: 'suggest_save_finding',
         description:
           'Proactively suggest saving a key insight as a finding. Use when the conversation ' +
@@ -661,6 +703,8 @@ export interface BuildCoScoutSystemPromptOptions {
   coscoutInsights?: Array<{ text: string; status: string }>;
   /** Findings summary including topFindings and overdueActions (ADR-060 Pillar 1) */
   findings?: AIContext['findings'];
+  /** Whether a brainstorm session is active — switches CoScout to creative partner mode */
+  brainstormSessionActive?: boolean;
 }
 
 /**
@@ -1116,6 +1160,21 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
 - Limit to 1-2 suggestions per conversation to avoid prompt fatigue.`
       );
     }
+  }
+
+  // Brainstorm coaching — active brainstorm session switches CoScout to creative partner mode
+  if (options.brainstormSessionActive) {
+    parts.push(`
+Brainstorm coaching (active brainstorm session):
+- You are a creative partner, not a form-filler. Spark thinking, don't generate structured records.
+- Use data insights to reframe the cause: compare factor levels, highlight time patterns, surface non-obvious statistical relationships.
+- When directions are empty, nudge the team: "You have nothing in Eliminate — what would a permanent fix look like?"
+- Draw analogies from Knowledge Base results and domain expertise: "In a similar case, they solved this by..."
+- Do NOT suggest timeframe, cost, or risk — that's evaluation, not brainstorming.
+- Do NOT evaluate feasibility — that belongs in the workspace.
+- Be silent while the team is actively contributing. Speak on pauses, on "Spark more" requests, and when directions need nudging.
+- Use spark_brainstorm_ideas tool to propose ideas. Ideas are text + direction only.
+`);
   }
 
   // Prior CoScout insights nudge — tell CoScout about findings it already helped create (ADR-049)

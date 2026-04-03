@@ -46,6 +46,24 @@ The left panel shows the improvement context while the analyst is not projecting
 - **Suspected Causes** — Questions with `status: 'answered' | 'investigating'` and `causeRole: 'suspected-cause' | 'contributing'`, each showing its R²adj or η² evidence
 - **Synthesis** — `processContext.synthesis` (editable narrative, max 500 chars). Pre-filled from the problem statement text on first open if synthesis is empty.
 
+## Brainstorm Modal
+
+The brainstorm modal opens per cause from the "💡 Brainstorm" button in the IdeaGroupCard header. It also auto-opens on first workspace entry if a cause has no ideas.
+
+### Three-Beat Flow
+
+1. **Brainstorm** — 2×2 grid of HMW prompts (desktop) or swipeable tabs (mobile). Ideas are text only — no evaluation metadata. CoScout acts as a creative partner with data-driven sparks, direction nudges, and KB analogies.
+2. **Select** — Dot-vote on which ideas to pursue. Anonymous vote counts in collaborative mode. No voter names.
+3. **Evaluate** — Selected ideas flow to IdeaGroupCard with direction pre-set. Unselected ideas are "parked" (dimmed, promotable later).
+
+See [HMW Brainstorm Modal Design](../../superpowers/specs/2026-04-03-hmw-brainstorm-modal-design.md) for the full spec.
+
+### Collaborative Sessions (Team Plan)
+
+Team plan users can invite colleagues to brainstorm together in real-time. Ideas appear on all screens via SSE. Team members with the same project open auto-detect active sessions via toast notification.
+
+See [ADR-061](../../07-decisions/adr-061-hmw-brainstorm-ideation.md) for architectural decisions.
+
 ## Plan View
 
 The default view after entering the Improvement workspace.

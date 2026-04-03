@@ -72,6 +72,7 @@ This section captures key architectural decisions made during VariScout developm
 | [058](adr-058-deployment-lifecycle.md)               | Deployment Lifecycle & Self-Service Updates       | Accepted   | 2026-04-02 |
 | [059](adr-059-web-first-deployment-architecture.md)  | Web-First Deployment Architecture                 | Accepted   | 2026-04-02 |
 | [060](adr-060-coscout-intelligence-architecture.md)  | CoScout Intelligence Architecture                 | Accepted   | 2026-04-02 |
+| [061](adr-061-hmw-brainstorm-ideation.md)            | HMW Brainstorm & Collaborative Ideation           | Accepted   | 2026-04-03 |
 
 ---
 

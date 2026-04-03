@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Lightbulb } from 'lucide-react';
 import type {
   ImprovementIdea,
   IdeaTimeframe,
@@ -45,6 +45,12 @@ export interface IdeaGroupCardProps {
   highlightedIdeaId?: string | null;
   onAskCoScout?: (question: string) => void;
   convertedIdeaIds?: Set<string>;
+  /** Open brainstorm modal for this cause */
+  onOpenBrainstorm?: (questionId: string) => void;
+  /** Ideas that were brainstormed but not selected — shown dimmed as "parked" */
+  parkedIdeas?: Array<{ id: string; text: string; direction?: IdeaDirection }>;
+  /** Promote a parked idea to the active list */
+  onPromoteIdea?: (ideaId: string) => void;
 }
 
 const TIMEFRAME_OPTIONS: Array<{
@@ -280,6 +286,9 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
   convertedIdeaIds,
   onIdeaHover,
   highlightedIdeaId,
+  onOpenBrainstorm,
+  parkedIdeas,
+  onPromoteIdea,
 }) => {
   const { t } = useTranslation();
   const [newIdeaText, setNewIdeaText] = useState('');
@@ -335,6 +344,16 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
               η² {Math.round(evidence.etaSquared * 100)}%
             </span>
           )}
+          {onOpenBrainstorm && (
+            <button
+              data-testid="brainstorm-trigger"
+              onClick={() => onOpenBrainstorm(question.id)}
+              className="ml-auto text-xs px-2 py-1 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors flex-shrink-0"
+            >
+              <Lightbulb size={12} className="inline mr-1" />
+              Brainstorm
+            </button>
+          )}
         </div>
         {linkedFindingName && <p className="text-xs text-content/50 mt-1">{linkedFindingName}</p>}
       </div>
@@ -365,6 +384,9 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
 
               {/* Text */}
               <span className="text-sm text-content flex-1 min-w-0 line-clamp-2">{idea.text}</span>
+              {idea.aiGenerated && (
+                <span className="text-[10px] text-content/30 flex-shrink-0">✨</span>
+              )}
 
               {/* Timeframe dropdown (inline) */}
               <select
@@ -499,6 +521,30 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
           >
             {t('idea.askCoScoutForIdeas')}
           </button>
+        </div>
+      )}
+
+      {/* Parked ideas */}
+      {parkedIdeas && parkedIdeas.length > 0 && (
+        <div className="px-4 pb-3 mt-2 pt-2 border-t border-edge/50">
+          <p className="text-[10px] text-content/30 uppercase tracking-wider mb-1">Parked ideas</p>
+          {parkedIdeas.map(idea => (
+            <div
+              key={idea.id}
+              data-testid={`parked-idea-${idea.id}`}
+              className="flex items-center gap-2 px-2 py-1 text-xs text-content/30 group"
+            >
+              <span className="flex-1 line-through">{idea.text}</span>
+              {onPromoteIdea && (
+                <button
+                  onClick={() => onPromoteIdea(idea.id)}
+                  className="opacity-0 group-hover:opacity-100 text-[10px] text-blue-400 hover:text-blue-300 transition-opacity"
+                >
+                  Promote
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>

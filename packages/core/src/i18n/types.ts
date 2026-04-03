@@ -382,6 +382,7 @@ export interface MessageCatalog {
   'ai.tool.publishReport': string;
   'ai.tool.notifyOwners': string;
   'ai.tool.suggestIdea': string;
+  'ai.tool.sparkBrainstorm': string;
   'ai.tool.suggestSaveFinding': string;
   'ai.tool.navigateTo': string;
   'ai.tool.answerQuestion': string;
@@ -718,6 +719,26 @@ export interface MessageCatalog {
   'improve.viewActions': string;
   'improve.actions': string;
   'improve.done': string;
+
+  // Brainstorm modal
+  'brainstorm.title': string;
+  'brainstorm.subtitle': string;
+  'brainstorm.selectSubtitle': string;
+  'brainstorm.inputPlaceholder': string;
+  'brainstorm.doneBrainstorming': string;
+  'brainstorm.addToPlan': string;
+  'brainstorm.back': string;
+  'brainstorm.sparkMore': string;
+  'brainstorm.inviteTeam': string;
+  'brainstorm.copyLink': string;
+  'brainstorm.ideaCount': string;
+  'brainstorm.selectedCount': string;
+  'brainstorm.parkedLabel': string;
+  'brainstorm.triggerButton': string;
+  'brainstorm.joinToast.title': string;
+  'brainstorm.joinToast.body': string;
+  'brainstorm.joinToast.join': string;
+  'brainstorm.joinToast.later': string;
 
   // Timeframe labels (replaces effort)
   'timeframe.label': string;

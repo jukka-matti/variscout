@@ -42,6 +42,7 @@ const TOOL_CONFIG: Record<
   create_question: { labelKey: 'ai.tool.createQuestion', icon: GitBranch, editable: true },
   suggest_action: { labelKey: 'ai.tool.suggestAction', icon: Zap, editable: true },
   suggest_improvement_idea: { labelKey: 'ai.tool.suggestIdea', icon: Lightbulb, editable: true },
+  spark_brainstorm_ideas: { labelKey: 'ai.tool.sparkBrainstorm', icon: Lightbulb, editable: true },
   suggest_save_finding: {
     labelKey: 'ai.tool.suggestSaveFinding',
     icon: BookmarkPlus,
