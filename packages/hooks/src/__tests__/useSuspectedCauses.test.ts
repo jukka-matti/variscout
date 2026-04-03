@@ -56,6 +56,45 @@ describe('useSuspectedCauses', () => {
     });
   });
 
+  describe('resetHubs', () => {
+    it('replaces all hubs with the provided list', () => {
+      const initial = [createSuspectedCause('Old hub', '')];
+      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      const replacement = [
+        createSuspectedCause('New hub A', 'synthesis A'),
+        createSuspectedCause('New hub B', 'synthesis B'),
+      ];
+      act(() => {
+        result.current.resetHubs(replacement);
+      });
+      expect(result.current.hubs).toHaveLength(2);
+      expect(result.current.hubs[0].name).toBe('New hub A');
+      expect(result.current.hubs[1].name).toBe('New hub B');
+    });
+
+    it('calls onHubsChange with the new hubs', () => {
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        useSuspectedCauses({ initialHubs: [], onHubsChange: onChange })
+      );
+      const newHubs = [createSuspectedCause('Migrated hub', 'from legacy causeRole')];
+      act(() => {
+        result.current.resetHubs(newHubs);
+      });
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(newHubs);
+    });
+
+    it('replaces existing hubs with an empty list', () => {
+      const initial = [createSuspectedCause('Hub', '')];
+      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      act(() => {
+        result.current.resetHubs([]);
+      });
+      expect(result.current.hubs).toEqual([]);
+    });
+  });
+
   describe('updateHub', () => {
     it('updates name and synthesis', () => {
       const initial = [createSuspectedCause('Old name', 'Old synthesis')];

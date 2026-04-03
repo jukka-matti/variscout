@@ -57,6 +57,7 @@ export interface UseInvestigationOrchestrationReturn {
       updates: Partial<Pick<SuspectedCause, 'name' | 'synthesis'>>
     ) => void;
     deleteHub: (hubId: string) => void;
+    resetHubs: (newHubs: SuspectedCause[]) => void;
     connectQuestion: (hubId: string, questionId: string) => void;
     disconnectQuestion: (hubId: string, questionId: string) => void;
     connectFinding: (hubId: string, findingId: string) => void;
@@ -76,14 +77,16 @@ export function useInvestigationOrchestration({
   stats,
 }: UseInvestigationOrchestrationOptions): UseInvestigationOrchestrationReturn {
   // ── Suspected cause hubs ──────────────────────────────────────────────
-  const syncSuspectedCauses = useInvestigationStore.getState().syncSuspectedCauses;
   const suspectedCausesState = useSuspectedCauses({
     initialHubs: [],
-    onHubsChange: syncSuspectedCauses,
+    onHubsChange: useInvestigationStore.getState().syncSuspectedCauses,
   });
 
   // One-time migration: if hubs are empty and questions have legacy causeRole markers,
   // create hubs from those questions. Runs only once per orchestration mount.
+  // Uses resetHubs() so that hook state + store are updated atomically — avoiding
+  // the race where the subsequent onHubsChange sync effect would overwrite the store
+  // with the stale empty array from hook state.
   const migrationDoneRef = useRef(false);
   useEffect(() => {
     if (migrationDoneRef.current) return;
@@ -97,7 +100,7 @@ export function useInvestigationOrchestration({
     if (questionsWithCauseRole.length > 0) {
       const migratedHubs = migrateCauseRolesToHubs(questionsWithCauseRole);
       if (migratedHubs.length > 0) {
-        syncSuspectedCauses(migratedHubs);
+        suspectedCausesState.resetHubs(migratedHubs);
       }
     }
     migrationDoneRef.current = true;
@@ -105,11 +108,9 @@ export function useInvestigationOrchestration({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep the store in sync whenever hubs change via the onHubsChange callback above.
-  // The initial sync ensures the store reflects the current hubs on first render.
-  useEffect(() => {
-    syncSuspectedCauses(suspectedCausesState.hubs);
-  }, [suspectedCausesState.hubs, syncSuspectedCauses]);
+  // Store sync is handled entirely by the onHubsChange: syncSuspectedCauses callback
+  // passed to useSuspectedCauses above. No separate effect needed — a second effect
+  // would cause a double-sync and overwrite migrated hubs with stale empty state.
 
   // ── Sync questions to Zustand store ──────────────────────────────────
   const syncQuestions = useInvestigationStore.getState().syncQuestions;

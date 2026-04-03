@@ -156,16 +156,19 @@ export function useProblemStatement({
   ]);
 
   // Legacy generatedDraft (for the manual generate() flow)
+  // Pass characteristicType so direction is derived consistently with liveStatement.
+  // targetDirection is omitted here — buildProblemStatement derives it from characteristicType
+  // when not explicitly set, so both formation modes produce the same directional language.
   const generatedDraft = useMemo(() => {
     if (!isReady || !outcome) return null;
     return buildProblemStatement({
       outcome,
       targetValue: targetCpk,
-      targetDirection: 'reduce-variation',
+      characteristicType,
       currentCpk,
       suspectedCauses,
     });
-  }, [isReady, outcome, targetCpk, currentCpk, suspectedCauses]);
+  }, [isReady, outcome, targetCpk, characteristicType, currentCpk, suspectedCauses]);
 
   const generate = useCallback(() => {
     if (generatedDraft) setDraft(generatedDraft);

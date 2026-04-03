@@ -22,6 +22,11 @@ export interface UseSuspectedCausesReturn {
   updateHub: (hubId: string, updates: Partial<Pick<SuspectedCause, 'name' | 'synthesis'>>) => void;
   /** Delete a hub by id */
   deleteHub: (hubId: string) => void;
+  /**
+   * Replace the entire hub list atomically (e.g. after migration).
+   * Updates hook state and fires onHubsChange so the store stays in sync.
+   */
+  resetHubs: (newHubs: SuspectedCause[]) => void;
   /** Connect a question to a hub (no-op if already connected) */
   connectQuestion: (hubId: string, questionId: string) => void;
   /** Disconnect a question from a hub */
@@ -163,6 +168,14 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
     [update]
   );
 
+  const resetHubs = useCallback(
+    (newHubs: SuspectedCause[]): void => {
+      setHubs(newHubs);
+      onHubsChange?.(newHubs);
+    },
+    [onHubsChange]
+  );
+
   const setHubStatus = useCallback(
     (hubId: string, status: SuspectedCause['status']): void => {
       update(prev =>
@@ -189,6 +202,7 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
     createHub,
     updateHub,
     deleteHub,
+    resetHubs,
     connectQuestion,
     disconnectQuestion,
     connectFinding,
