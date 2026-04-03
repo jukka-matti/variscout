@@ -386,3 +386,9 @@ export {
 
 // HMW Prompts (How Might We prompt generation for brainstorm modal)
 export { useHMWPrompts } from './useHMWPrompts';
+
+// Brainstorm Session (collaborative HMW brainstorm — SSE client + lifecycle)
+export { useBrainstormSession, type UseBrainstormSessionReturn } from './useBrainstormSession';
+
+// Brainstorm Detect (poll for active sessions — Team plan auto-detect)
+export { useBrainstormDetect, type UseBrainstormDetectReturn } from './useBrainstormDetect';
