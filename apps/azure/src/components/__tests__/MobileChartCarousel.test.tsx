@@ -144,10 +144,8 @@ const defaultProps = {
     filterChipData: [] as {
       factor: string;
       values: (string | number)[];
-      contributionPct: number;
-      availableValues: { value: string | number; contributionPct: number; isSelected: boolean }[];
+      availableValues: { value: string | number; count: number; isSelected: boolean }[];
     }[],
-    cumulativeVariationPct: 0,
     onUpdateFilterValues: vi.fn(),
     onRemoveFilter: vi.fn(),
     onClearAllFilters: vi.fn(),
@@ -164,7 +162,6 @@ const defaultProps = {
     onSetHighlight: vi.fn(),
   },
   onDrillDown: vi.fn(),
-  factorVariations: new Map<string, number>(),
   stats: null,
   specs: {},
   filteredData: [],
@@ -301,10 +298,9 @@ describe('MobileChartCarousel', () => {
       {
         factor: 'Machine',
         values: ['A'] as (string | number)[],
-        contributionPct: 45,
         availableValues: [
-          { value: 'A', contributionPct: 45, isSelected: true },
-          { value: 'B', contributionPct: 30, isSelected: false },
+          { value: 'A', count: 45, isSelected: true },
+          { value: 'B', count: 30, isSelected: false },
         ],
       },
     ];

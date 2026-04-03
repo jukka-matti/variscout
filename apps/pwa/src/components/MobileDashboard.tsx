@@ -13,7 +13,7 @@ import {
   MobileCategorySheet,
 } from '@variscout/ui';
 import type { StatsResult, AnovaResult, DataRow, Finding } from '@variscout/core';
-import type { FilterChipData } from '@variscout/hooks';
+import type { FilterChipData } from '@variscout/ui';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
@@ -36,13 +36,10 @@ interface MobileDashboardProps {
   onClearAllFilters?: () => void;
   // Filter chip props for enhanced breadcrumb
   filterChipData?: FilterChipData[];
-  cumulativeVariationPct?: number | null;
   onUpdateFilterValues?: (factor: string, newValues: (string | number)[]) => void;
   // Pareto empty state actions
   onHideParetoPanel?: () => void;
   onUploadPareto?: () => void;
-  // Variation tracking for drill hints
-  factorVariations?: Map<string, number>;
   // Pareto aggregation
   paretoAggregation?: 'count' | 'value';
   onToggleParetoAggregation?: () => void;
@@ -71,11 +68,9 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   onRemoveFilter,
   onClearAllFilters,
   filterChipData = [],
-  cumulativeVariationPct,
   onUpdateFilterValues,
   onHideParetoPanel,
   onUploadPareto,
-  factorVariations,
   paretoAggregation = 'count',
   onToggleParetoAggregation,
   onPinFinding,
@@ -94,18 +89,13 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   } | null>(null);
   const [sheetFactor, setSheetFactor] = useState('');
 
-  const handleBoxplotDrillIntercept = useCallback(
-    (factor: string, value: string) => {
-      const variationPct = factorVariations?.get(factor);
-      setSheetFactor(factor);
-      setSheetData({
-        categoryKey: value,
-        chartType: 'boxplot',
-        contributionPct: variationPct ? variationPct * 100 : undefined,
-      });
-    },
-    [factorVariations]
-  );
+  const handleBoxplotDrillIntercept = useCallback((factor: string, value: string) => {
+    setSheetFactor(factor);
+    setSheetData({
+      categoryKey: value,
+      chartType: 'boxplot',
+    });
+  }, []);
 
   const handleParetoDrillIntercept = useCallback((factor: string, value: string) => {
     setSheetFactor(factor);
@@ -230,18 +220,15 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
       </div>
 
       {/* Filter Breadcrumb (chip-based for mobile) */}
-      {(filterChipData.length > 0 || cumulativeVariationPct !== undefined) &&
-        onUpdateFilterValues &&
-        onRemoveFilter && (
-          <FilterBreadcrumb
-            filterChipData={filterChipData}
-            columnAliases={columnAliases}
-            onUpdateFilterValues={onUpdateFilterValues}
-            onRemoveFilter={onRemoveFilter}
-            onClearAll={onClearAllFilters}
-            cumulativeVariationPct={cumulativeVariationPct}
-          />
-        )}
+      {filterChipData.length > 0 && onUpdateFilterValues && onRemoveFilter && (
+        <FilterBreadcrumb
+          filterChipData={filterChipData}
+          columnAliases={columnAliases}
+          onUpdateFilterValues={onUpdateFilterValues}
+          onRemoveFilter={onRemoveFilter}
+          onClearAll={onClearAllFilters}
+        />
+      )}
 
       {/* Factor Selector (for boxplot/pareto) */}
       {(activeView === 'boxplot' || activeView === 'pareto') && factors.length > 0 && (

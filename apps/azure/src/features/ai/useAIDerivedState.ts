@@ -9,7 +9,7 @@ import {
   hasTeamFeatures,
   getNelsonRule2Sequences,
   getNelsonRule3Sequences,
-  calculateFactorVariations,
+  getEtaSquared,
   calculateStagedComparison,
   type StatsResult,
   type SpecLimits,
@@ -82,8 +82,10 @@ export function useAIDerivedState({
   // Variation contributions for AI context (factor-level eta-squared)
   const aiVariationContributions = useMemo(() => {
     if (!outcome || filteredData.length < 2 || factors.length === 0) return undefined;
-    const fv = calculateFactorVariations(filteredData, factors, outcome, []);
-    return Array.from(fv.entries()).map(([factor, etaSquared]) => ({ factor, etaSquared }));
+    return factors.map(factor => ({
+      factor,
+      etaSquared: getEtaSquared(filteredData, factor, outcome),
+    }));
   }, [filteredData, factors, outcome]);
 
   // Selected finding for AI context (when highlighted in FindingsPanel)

@@ -58,6 +58,7 @@ export interface UseDashboardChartsResult {
   clearFilters: UseFilterNavigationReturn['clearFilters'];
   updateFilterValues: UseFilterNavigationReturn['updateFilterValues'];
   removeFilter: UseFilterNavigationReturn['removeFilter'];
+  handleDrillDown: (factor: string, value: string) => void;
 }
 
 export function useDashboardCharts({

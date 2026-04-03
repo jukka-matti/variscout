@@ -37,7 +37,6 @@ describe('PresentationView', () => {
     onExit,
     boxplotFactor: 'Machine',
     paretoFactor: 'Machine',
-    factorVariations: new Map<string, number>([['Machine', 0.45]]),
     showParetoComparison: false,
     onToggleParetoComparison: vi.fn(),
     paretoAggregation: 'count' as const,
