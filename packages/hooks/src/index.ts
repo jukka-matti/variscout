@@ -364,6 +364,13 @@ export {
   type LocationFactor,
 } from './useProblemStatement';
 
+// Suspected Cause Hubs (named mechanism groupings for investigation synthesis)
+export {
+  useSuspectedCauses,
+  type UseSuspectedCausesOptions,
+  type UseSuspectedCausesReturn,
+} from './useSuspectedCauses';
+
 // Question Reactivity (drill-down factor → active question lookup)
 export { useQuestionReactivity } from './useQuestionReactivity';
 
