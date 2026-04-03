@@ -105,4 +105,52 @@ describe('buildProblemStatement', () => {
     });
     expect(result).toContain('Reduce variation in Length');
   });
+
+  describe('characteristicType direction derivation', () => {
+    it('derives reduce-variation from nominal characteristicType', () => {
+      const result = buildProblemStatement({
+        outcome: 'Fill Weight',
+        characteristicType: 'nominal',
+        suspectedCauses: [],
+      });
+      expect(result).toContain('Reduce variation in Fill Weight');
+    });
+
+    it('derives decrease from smaller characteristicType', () => {
+      const result = buildProblemStatement({
+        outcome: 'Defect Rate',
+        characteristicType: 'smaller',
+        suspectedCauses: [],
+      });
+      expect(result).toContain('Decrease Defect Rate');
+    });
+
+    it('derives increase from larger characteristicType', () => {
+      const result = buildProblemStatement({
+        outcome: 'Yield',
+        characteristicType: 'larger',
+        suspectedCauses: [],
+      });
+      expect(result).toContain('Increase Yield');
+    });
+
+    it('explicit targetDirection takes precedence over characteristicType', () => {
+      const result = buildProblemStatement({
+        outcome: 'Cycle Time',
+        targetDirection: 'decrease',
+        characteristicType: 'nominal',
+        suspectedCauses: [],
+      });
+      expect(result).toContain('Decrease Cycle Time');
+      expect(result).not.toContain('Reduce variation in');
+    });
+
+    it('defaults to reduce-variation when neither targetDirection nor characteristicType is provided', () => {
+      const result = buildProblemStatement({
+        outcome: 'Pressure',
+        suspectedCauses: [],
+      });
+      expect(result).toContain('Reduce variation in Pressure');
+    });
+  });
 });

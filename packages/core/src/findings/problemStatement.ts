@@ -7,13 +7,24 @@
  *   3. What is the scope? (suspected causes)
  */
 
+import type { CharacteristicType } from '../types';
+
 export interface ProblemStatementInput {
   /** The outcome measure (e.g., "Fill Weight") */
   outcome: string;
   /** Target value (e.g., target Cpk) */
   targetValue?: number;
-  /** Direction of desired change */
+  /**
+   * Direction of desired change. Takes precedence over characteristicType when both are provided.
+   */
   targetDirection?: 'increase' | 'decrease' | 'reduce-variation';
+  /**
+   * Characteristic type used to derive direction when targetDirection is not explicitly set.
+   * - 'nominal' → reduce-variation
+   * - 'smaller' → decrease
+   * - 'larger' → increase
+   */
+  characteristicType?: CharacteristicType;
   /** Current Cpk (shown alongside target for context) */
   currentCpk?: number;
   /** Suspected causes identified during investigation */
@@ -26,6 +37,25 @@ export interface ProblemStatementInput {
 }
 
 /**
+ * Resolve the target direction from explicit targetDirection, then characteristicType,
+ * falling back to 'reduce-variation' when neither is provided.
+ */
+function resolveDirection(
+  input: Pick<ProblemStatementInput, 'targetDirection' | 'characteristicType'>
+): 'increase' | 'decrease' | 'reduce-variation' {
+  if (input.targetDirection != null) {
+    return input.targetDirection;
+  }
+  if (input.characteristicType === 'smaller') {
+    return 'decrease';
+  }
+  if (input.characteristicType === 'larger') {
+    return 'increase';
+  }
+  return 'reduce-variation';
+}
+
+/**
  * Build a problem statement draft answering Watson's 3 questions.
  *
  * Output format: "{direction verb} {outcome} ({Cpk current → target}) driven by {causes}."
@@ -34,10 +64,11 @@ export function buildProblemStatement(input: ProblemStatementInput): string {
   const parts: string[] = [];
 
   // Q1 + Q2: What measure, how should it change
+  const direction = resolveDirection(input);
   const directionVerb =
-    input.targetDirection === 'increase'
+    direction === 'increase'
       ? 'Increase'
-      : input.targetDirection === 'decrease'
+      : direction === 'decrease'
         ? 'Decrease'
         : 'Reduce variation in';
 
