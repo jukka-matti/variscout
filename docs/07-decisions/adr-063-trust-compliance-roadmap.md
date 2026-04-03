@@ -1,11 +1,11 @@
 ---
-title: 'ADR-062: Trust & Compliance Roadmap'
+title: 'ADR-063: Trust & Compliance Roadmap'
 audience: [business, architect]
 category: compliance
 status: accepted
 ---
 
-# ADR-062: Trust & Compliance Roadmap
+# ADR-063: Trust & Compliance Roadmap
 
 ## Status
 
@@ -33,15 +33,15 @@ However, formal certification requires significant investment (EUR 30-50K for SO
 
 Unlike traditional SaaS where the vendor hosts data on shared infrastructure, VariScout deploys entirely into the customer's own Azure tenant. This fundamentally changes the ISO 27001 control ownership:
 
-| ISO 27001 Annex A Domain | Traditional SaaS | VariScout |
-|---|---|---|
-| A.8 Asset Management | Vendor responsibility | **Customer-inherited** (customer's Azure subscription) |
-| A.9 Access Control | Vendor responsibility | **Customer-inherited** (Azure AD + RBAC) |
-| A.10 Cryptography | Vendor responsibility | **Customer-inherited** (Azure-managed encryption) |
-| A.12 Operations Security | Vendor responsibility | **Customer-inherited** (customer's Azure governance) |
-| A.13 Communications Security | Vendor responsibility | **Customer-inherited** (Azure networking) |
-| A.14 System Development | Vendor responsibility | **Publisher responsibility** (secure SDLC) |
-| A.18 Compliance | Shared | **Publisher responsibility** (regulatory mapping) |
+| ISO 27001 Annex A Domain     | Traditional SaaS      | VariScout                                              |
+| ---------------------------- | --------------------- | ------------------------------------------------------ |
+| A.8 Asset Management         | Vendor responsibility | **Customer-inherited** (customer's Azure subscription) |
+| A.9 Access Control           | Vendor responsibility | **Customer-inherited** (Azure AD + RBAC)               |
+| A.10 Cryptography            | Vendor responsibility | **Customer-inherited** (Azure-managed encryption)      |
+| A.12 Operations Security     | Vendor responsibility | **Customer-inherited** (customer's Azure governance)   |
+| A.13 Communications Security | Vendor responsibility | **Customer-inherited** (Azure networking)              |
+| A.14 System Development      | Vendor responsibility | **Publisher responsibility** (secure SDLC)             |
+| A.18 Compliance              | Shared                | **Publisher responsibility** (regulatory mapping)      |
 
 The majority of Annex A controls are automatically covered by the customer's existing Azure governance. The publisher's scope is limited to secure development practices (A.14) and regulatory compliance documentation (A.18).
 
@@ -101,11 +101,11 @@ Pursue **ISO 27001 certification** with ISMS establishment and certification aud
 
 ### Phase 1 Deliverables
 
-| Document | Path | Audience |
-|---|---|---|
-| Security Whitepaper | `docs/08-products/azure/security-whitepaper.md` | IT procurement, InfoSec |
-| ISO 9001:2026 Alignment Guide | `docs/08-products/iso-9001-alignment.md` | Quality managers, auditors |
-| This ADR | `docs/07-decisions/adr-062-trust-compliance-roadmap.md` | Internal stakeholders |
+| Document                      | Path                                                    | Audience                   |
+| ----------------------------- | ------------------------------------------------------- | -------------------------- |
+| Security Whitepaper           | `docs/08-products/azure/security-whitepaper.md`         | IT procurement, InfoSec    |
+| ISO 9001:2026 Alignment Guide | `docs/08-products/iso-9001-alignment.md`                | Quality managers, auditors |
+| This ADR                      | `docs/07-decisions/adr-062-trust-compliance-roadmap.md` | Internal stakeholders      |
 
 ### Versioning
 
@@ -120,11 +120,11 @@ The security whitepaper should be reviewed and updated when:
 
 Phase triggers are reviewed quarterly:
 
-| Phase | Trigger | Metric |
-|---|---|---|
-| 2 | 10+ corporate customers | Customer count in CRM |
-| 3 | Revenue justifies EUR 30-50K | Monthly recurring revenue |
-| 4 | Contract requires ISO 27001 | Deal pipeline analysis |
+| Phase | Trigger                      | Metric                    |
+| ----- | ---------------------------- | ------------------------- |
+| 2     | 10+ corporate customers      | Customer count in CRM     |
+| 3     | Revenue justifies EUR 30-50K | Monthly recurring revenue |
+| 4     | Contract requires ISO 27001  | Deal pipeline analysis    |
 
 ---
 

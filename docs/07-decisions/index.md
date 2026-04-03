@@ -74,6 +74,7 @@ This section captures key architectural decisions made during VariScout developm
 | [060](adr-060-coscout-intelligence-architecture.md)  | CoScout Intelligence Architecture                  | Accepted   | 2026-04-02 |
 | [061](adr-061-hmw-brainstorm-ideation.md)            | HMW Brainstorm & Collaborative Ideation            | Accepted   | 2026-04-03 |
 | [062](adr-062-standard-anova-metrics.md)             | Standard ANOVA Metrics & Category Total SS Removal | Accepted   | 2026-04-03 |
+| [063](adr-063-trust-compliance-roadmap.md)           | Trust & Compliance Roadmap                         | Accepted   | 2026-04-03 |
 
 ---
 
