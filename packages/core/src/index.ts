@@ -521,6 +521,14 @@ export type {
   FindingRole,
   BenchmarkStats,
   SuspectedCause,
+  // Projection types (SuspectedCause evidence model)
+  ProjectionSource,
+  ProjectionMethod,
+  StatisticalProjectionResult,
+  LeanProjectionResult,
+  ProjectionResult,
+  ProjectionScenario,
+  SuspectedCauseEvidence,
 } from './findings';
 export {
   DEFAULT_RISK_AXIS_CONFIG,
@@ -562,6 +570,7 @@ export {
   isFindingScoped,
   getScopedFindings,
   computeHubContribution,
+  computeHubEvidence,
   migrateCauseRolesToHubs,
 } from './findings';
 
@@ -585,6 +594,9 @@ export {
   computeYamazumiData,
   computeYamazumiSummary,
   detectYamazumiFormat,
+  // Lean projection engine
+  projectWasteElimination,
+  projectVAImprovement,
 } from './yamazumi';
 
 // Worker types (for app-level Worker integration)
