@@ -145,7 +145,7 @@ Identify what factors explain the variation.
 
 3. **Track your path**
    - Note each filter applied
-   - Record contribution percentages (shown in filter chips)
+   - Record η² effect sizes from ANOVA panel
    - Monitor cumulative effect on variation explained
 
 ### Drill-Down Record

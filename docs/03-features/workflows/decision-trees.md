@@ -24,7 +24,7 @@ flowchart TD
     B -->|"Compare multiple channels?"| I[Performance Mode]
 
     C --> C1["Shows: Control limits, trends, outliers"]
-    D --> D1["Shows: η² contribution, medians, spread"]
+    D --> D1["Shows: η² effect size, medians, spread"]
     E --> E1["Shows: Ranked categories, 80/20"]
     F --> F1["Shows: Cp, Cpk, histogram vs specs"]
     I --> I1["Shows: All channels ranked by Cpk"]

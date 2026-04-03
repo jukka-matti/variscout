@@ -152,7 +152,7 @@ Gary clicks a bar in the Boxplot (e.g., "Machine A"). The dashboard:
 
 - Applies a filter (breadcrumb appears: `Machine A`)
 - Recalculates all charts for the filtered subset
-- Shows the variation contribution (eta-squared %) in the filter chip
+- Shows η² (effect size) in the ANOVA panel; filter chips show sample count (n=X)
 - Enables deeper drilling into sub-factors
 
 This is the "aha moment" — seeing how variation hides inside aggregated data.

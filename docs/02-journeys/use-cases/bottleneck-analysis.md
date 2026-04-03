@@ -93,7 +93,7 @@ The data exists in the MES or a cycle time spreadsheet, but it's displayed as av
 
 Once Station 2's setup procedure is identified as the root cause, the investigation continues in VariScout:
 
-1. **Finding pinned:** "Station 2 dominates cycle time spread (28% contribution)" — captured via right-click on the Boxplot category with full filter context
+1. **Finding pinned:** "Station 2 dominates cycle time spread (η² = 28%)" — captured via right-click on the Boxplot category with full filter context
 2. **Hypothesis created:** "Station 2 changeover procedure causes inconsistency" — auto-validated via η² (Station explains 28%, supported)
 3. **Improvement idea added:** "Standardize Station 2 setup with new checklist" — What-If projection shows Cpk improving from 0.85 to 1.3 if Station 2 variation is halved
 4. **Corrective action assigned:** "Recalibrate Station 2 motor and retrain Operator B on setup procedure" — with assignee and due date
