@@ -22,12 +22,7 @@ export {
 export { SelectionPanel, type SelectionPanelProps } from './components/SelectionPanel';
 export { CreateFactorModal, type CreateFactorModalProps } from './components/CreateFactorModal';
 export { UpgradePrompt, type UpgradePromptProps } from './components/UpgradePrompt';
-export {
-  AnovaResults,
-  anovaDefaultColorScheme,
-  type AnovaResultsProps,
-  type AnovaResultsColorScheme,
-} from './components/AnovaResults';
+export { AnovaResults, type AnovaResultsProps } from './components/AnovaResults';
 export {
   YAxisPopover,
   yAxisPopoverDefaultColorScheme,

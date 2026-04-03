@@ -67,5 +67,5 @@ Components that read this attribute will respond automatically.
 Some UI components (~24) still accept a `colorScheme` prop with a default preset (being phased out). Priority components (FilterContextBar, StatsPanelBase, CoScoutPanelBase, FindingsPanelBase, ErrorBoundary) use semantic tokens directly. For components that still use colorScheme, import the exported default:
 
 ```tsx
-import { AnovaResults, anovaDefaultColorScheme } from '@variscout/ui';
+import { FilterContextBar, filterContextBarDefaultColorScheme } from '@variscout/ui';
 ```

@@ -8,8 +8,6 @@ export interface AnovaResultsProps {
   result: AnovaResult | null;
   /** Display label for the factor being analyzed */
   factorLabel: string;
-  /** @deprecated Kept for backward compatibility — no longer used */
-  colorScheme?: unknown;
 }
 
 /**
