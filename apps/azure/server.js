@@ -509,6 +509,135 @@ app.get('/api/kb-download', requireTeamPlan, async (req, res) => {
   }
 });
 
+// ─── Brainstorm Sessions (Team plan, SSE-based collaboration) ────────────────
+
+const brainstormSessions = new Map(); // sessionId → session object
+const brainstormClients = new Map();  // sessionId → Set<res>
+
+// Create a new brainstorm session
+app.post('/api/brainstorm/create', express.json(), (req, res) => {
+  const principal = req.headers['x-ms-client-principal'];
+  if (!principal && !LOCAL_DEV) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  const { projectId, questionId, causeName } = req.body;
+  if (!projectId || !questionId) {
+    return res.status(400).json({ error: 'projectId and questionId required' });
+  }
+  const sessionId = randomUUID();
+  const userId = principal
+    ? JSON.parse(Buffer.from(principal, 'base64').toString()).userId || 'local'
+    : 'local-dev';
+  const session = {
+    sessionId,
+    projectId,
+    questionId,
+    causeName: causeName || '',
+    createdBy: userId,
+    ideas: [],
+    phase: 'brainstorm',
+    participants: [userId],
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+  };
+  brainstormSessions.set(sessionId, session);
+  brainstormClients.set(sessionId, new Set());
+  res.json({ sessionId, projectId });
+});
+
+// Add or update an idea in a session
+app.post('/api/brainstorm/idea', express.json(), (req, res) => {
+  const { sessionId, id, text, direction, aiGenerated } = req.body;
+  const session = brainstormSessions.get(sessionId);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+
+  const existing = session.ideas.find(i => i.id === id);
+  if (existing) {
+    existing.text = text;
+  } else {
+    session.ideas.push({
+      id: id || randomUUID(),
+      text,
+      direction,
+      aiGenerated: aiGenerated || false,
+      votes: [],
+      voteCount: 0,
+    });
+  }
+
+  // Broadcast to all SSE clients
+  const clients = brainstormClients.get(sessionId);
+  if (clients) {
+    const event = JSON.stringify({ type: 'idea', idea: session.ideas.at(-1) || existing });
+    for (const client of clients) {
+      client.write(`data: ${event}\n\n`);
+    }
+  }
+  res.json({ ok: true });
+});
+
+// SSE stream for live updates
+app.get('/api/brainstorm/stream', (req, res) => {
+  const sessionId = req.query.sessionId;
+  const session = brainstormSessions.get(sessionId);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  // Send current state
+  res.write(`data: ${JSON.stringify({ type: 'init', session })}\n\n`);
+
+  // Add to client set
+  const clients = brainstormClients.get(sessionId);
+  if (clients) clients.add(res);
+
+  // Add participant
+  const principal = req.headers['x-ms-client-principal'];
+  if (principal) {
+    try {
+      const userId = JSON.parse(Buffer.from(principal, 'base64').toString()).userId;
+      if (userId && !session.participants.includes(userId)) {
+        session.participants.push(userId);
+      }
+    } catch { /* ignore parse errors */ }
+  }
+
+  req.on('close', () => {
+    if (clients) clients.delete(res);
+  });
+});
+
+// Check for active session on a project
+app.get('/api/brainstorm/active', (req, res) => {
+  const projectId = req.query.projectId;
+  const now = Date.now();
+  for (const [, session] of brainstormSessions) {
+    if (session.projectId === projectId && session.expiresAt > now) {
+      return res.json({
+        sessionId: session.sessionId,
+        causeName: session.causeName,
+        participantCount: session.participants.length,
+        phase: session.phase,
+      });
+    }
+  }
+  res.json(null);
+});
+
+// Cleanup expired sessions periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, session] of brainstormSessions) {
+    if (session.expiresAt < now) {
+      brainstormSessions.delete(id);
+      brainstormClients.delete(id);
+    }
+  }
+}, 60 * 60 * 1000); // Every hour
+
 // Static file serving + SPA fallback
 // Express static middleware is not used here because we need the exact same routing logic
 // as the original: files with extensions that don't exist → 404 (not SPA fallback),
