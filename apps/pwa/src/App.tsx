@@ -47,7 +47,9 @@ import { useInvestigationOrchestration } from './features/investigation/useInves
 import { useImprovementOrchestration } from './features/improvement/useImprovementOrchestration';
 
 // Lazy-loaded heavy components for code splitting
-const Dashboard = React.lazy(() => import('./components/Dashboard'));
+const dashboardImport = () => import('./components/Dashboard');
+const Dashboard = React.lazy(dashboardImport);
+void dashboardImport(); // Prefetch so sample→Dashboard transition is instant
 const HomeScreen = React.lazy(() => import('./components/HomeScreen'));
 const PasteScreen = React.lazy(() => import('./components/data/PasteScreen'));
 const ManualEntry = React.lazy(() => import('./components/data/ManualEntry'));

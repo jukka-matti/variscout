@@ -325,9 +325,9 @@ export const Editor: React.FC<EditorProps> = ({
   useEffect(() => {
     if (initialSample && !initialSampleConsumedRef.current) {
       initialSampleConsumedRef.current = true;
-      dataFlow.handleLoadSample(initialSample);
+      dataFlowRef.current.handleLoadSample(initialSample);
     }
-  }, [initialSample, dataFlow]);
+  }, [initialSample]);
 
   // Manual data analyze with append-mode merge
   const { handleManualDataAnalyze } = useDataMerge({

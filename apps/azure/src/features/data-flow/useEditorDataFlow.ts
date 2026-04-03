@@ -529,12 +529,17 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
 
   const handlePasteCancel = useCallback(() => dispatch({ type: 'CANCEL_PASTE' }), []);
 
-  // Handle sample load -> show ColumnMapping (with replace confirmation)
+  // Handle sample load (with replace confirmation)
   const handleLoadSample = useCallback(
     (sample: SampleDataset) => {
       if (!confirmReplaceIfNeeded()) return;
       loadSample(sample);
-      dispatch({ type: 'OPEN_MAPPING' });
+      // Pre-configured samples already have outcome/factors — skip ColumnMapping
+      const hasPreconfigured =
+        sample.config?.outcome && sample.config.factors && sample.config.factors.length > 0;
+      if (!hasPreconfigured) {
+        dispatch({ type: 'OPEN_MAPPING' });
+      }
     },
     [confirmReplaceIfNeeded, loadSample]
   );

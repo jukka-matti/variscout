@@ -413,11 +413,12 @@ describe('Editor', () => {
     expect(screen.getByTestId('column-mapping')).toBeInTheDocument();
   });
 
-  it('shows ColumnMapping after sample load', () => {
+  it('skips ColumnMapping for pre-configured samples', () => {
     renderEditor();
 
     fireEvent.click(screen.getByTestId('sample-coffee'));
 
-    expect(screen.getByTestId('column-mapping')).toBeInTheDocument();
+    // Pre-configured samples (with outcome + factors) skip ColumnMapping
+    expect(screen.queryByTestId('column-mapping')).not.toBeInTheDocument();
   });
 });
