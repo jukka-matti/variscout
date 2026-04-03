@@ -42,7 +42,7 @@ export interface UseDrillPathReturn {
   /** Ordered list of drill steps */
   drillPath: DrillStep[];
   /** Cumulative variation percentage (0–100) or null if no drills */
-  cumulativeVariationPct: number | null;
+  cumulativeScopePct: number | null;
 }
 
 /**
@@ -79,7 +79,7 @@ export function useDrillPath(
 ): UseDrillPathReturn {
   return useMemo(() => {
     if (!outcome || rawData.length < 2 || filterStack.length === 0) {
-      return { drillPath: [], cumulativeVariationPct: null };
+      return { drillPath: [], cumulativeScopePct: null };
     }
 
     const drillPath: DrillStep[] = [];
@@ -135,10 +135,10 @@ export function useDrillPath(
       currentData = nextData;
     }
 
-    const cumulativeVariationPct =
+    const cumulativeScopePct =
       drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null;
 
-    return { drillPath, cumulativeVariationPct };
+    return { drillPath, cumulativeScopePct };
   }, [rawData, filterStack, outcome, specs]);
 }
 

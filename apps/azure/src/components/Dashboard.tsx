@@ -31,7 +31,7 @@ import {
   useGlossary,
   BREAKPOINTS,
 } from '@variscout/ui';
-import { getColumnNames } from '@variscout/core';
+import { getColumnNames, getEtaSquared } from '@variscout/core';
 import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
 import type { Finding } from '@variscout/core';
 import type { AzureFindingsCallbacks, FilterChipData } from '@variscout/ui';
@@ -98,7 +98,7 @@ interface DashboardAIProps {
   onNarrativeRetry?: () => void;
   onAskCoScoutFromCategory?: (focusContext: {
     chartType: 'boxplot' | 'pareto';
-    category: { name: string; mean?: number; contributionPct?: number };
+    category: { name: string; mean?: number; etaSquaredPct?: number };
   }) => void;
 }
 
@@ -412,6 +412,12 @@ const Dashboard = ({
     },
   });
 
+  // Compute η² per factor for insight chips (replaces deleted useVariationTracking)
+  const factorVariations = useMemo(() => {
+    if (!outcome || !filteredData?.length || !factors?.length) return new Map<string, number>();
+    return new Map(factors.map(f => [f, getEtaSquared(filteredData, f, outcome) * 100]));
+  }, [filteredData, factors, outcome]);
+
   // --- Chart Insight Chips + Capability mode (shared hook) ---
   const {
     ichartInsight,
@@ -426,10 +432,9 @@ const Dashboard = ({
     outcome,
     specs,
     cpkTarget,
-    factorVariations: new Map(),
+    factorVariations,
     boxplotFactor,
     paretoFactor,
-    categoryContributions: new Map(),
     displayOptions,
     setDisplayOptions,
     subgroupConfig,

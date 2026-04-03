@@ -41,7 +41,7 @@ import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import { Activity } from 'lucide-react';
-import { getColumnNames, type SpecLimits, type Finding } from '@variscout/core';
+import { getColumnNames, getEtaSquared, type SpecLimits, type Finding } from '@variscout/core';
 import { useProjectionStore } from '../features/projection/projectionStore';
 
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
@@ -341,6 +341,12 @@ const Dashboard = ({
     return parts.join('. ');
   }, [filteredData.length, rawData.length, filters]);
 
+  // Compute η² per factor for insight chips (replaces deleted useVariationTracking)
+  const factorVariations = useMemo(() => {
+    if (!outcome || !filteredData?.length || !factors?.length) return new Map<string, number>();
+    return new Map(factors.map(f => [f, getEtaSquared(filteredData, f, outcome) * 100]));
+  }, [filteredData, factors, outcome]);
+
   // --- Chart Insight Chips + Capability mode (shared hook) ---
   const {
     ichartInsight,
@@ -355,10 +361,9 @@ const Dashboard = ({
     outcome,
     specs,
     cpkTarget,
-    factorVariations: new Map(),
+    factorVariations,
     boxplotFactor,
     paretoFactor,
-    categoryContributions: new Map(),
     displayOptions,
     setDisplayOptions,
     subgroupConfig,

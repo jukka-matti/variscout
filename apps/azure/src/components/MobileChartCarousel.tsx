@@ -121,7 +121,7 @@ interface MobileChartCarouselProps {
   // Ask CoScout about a category
   onAskCoScout?: (focusContext: {
     chartType: 'boxplot' | 'pareto';
-    category: { name: string; mean?: number; contributionPct?: number };
+    category: { name: string; mean?: number; etaSquaredPct?: number };
   }) => void;
   /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
   onInvestigateFactor?: (effect: import('@variscout/core/stats').FactorMainEffect) => void;

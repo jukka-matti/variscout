@@ -85,7 +85,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   const [sheetData, setSheetData] = useState<{
     categoryKey: string;
     chartType: 'boxplot' | 'pareto';
-    contributionPct?: number;
+    etaSquaredPct?: number;
   } | null>(null);
   const [sheetFactor, setSheetFactor] = useState('');
 

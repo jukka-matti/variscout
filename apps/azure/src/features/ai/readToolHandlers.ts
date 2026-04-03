@@ -127,7 +127,7 @@ export function buildReadToolHandlers({
       return JSON.stringify({
         factor,
         etaSquared: Math.round(etaSquared * 1000) / 1000,
-        contributionPct: Math.round(etaSquared * 100),
+        etaSquaredPct: Math.round(etaSquared * 100),
         categories: categoryStats,
       });
     },

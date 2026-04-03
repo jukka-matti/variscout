@@ -96,7 +96,7 @@ describe('Pipeline Integration: Coffee Washing Station', () => {
       expect(step.cpkAfter).toBeCloseTo(-0.5324, 2);
 
       // Cumulative scope percentage = scopeFraction * 100
-      expect(result.current.cumulativeVariationPct).toBeCloseTo(step.scopeFraction * 100, 5);
+      expect(result.current.cumulativeScopePct).toBeCloseTo(step.scopeFraction * 100, 5);
     });
 
     it('should compute correct stats for Bed A drill (good bed)', () => {
@@ -115,7 +115,7 @@ describe('Pipeline Integration: Coffee Washing Station', () => {
       const { result } = renderHook(() => useDrillPath(data, [], 'Moisture_pct', specs));
 
       expect(result.current.drillPath).toEqual([]);
-      expect(result.current.cumulativeVariationPct).toBeNull();
+      expect(result.current.cumulativeScopePct).toBeNull();
     });
   });
 });
