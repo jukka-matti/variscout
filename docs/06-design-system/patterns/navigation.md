@@ -84,9 +84,11 @@ activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report
 
 **Investigation workspace layout** (three columns):
 
-| Left (280-400px, resizable)                              | Center (flex-1)                   | Right (optional)              |
-| -------------------------------------------------------- | --------------------------------- | ----------------------------- |
-| QuestionChecklist + PhaseBadge + InvestigationConclusion | FindingsLog (list / board / tree) | CoScout (no mutual exclusion) |
+| Left (280-400px, resizable)                              | Center (flex-1)                                                                     | Right (optional)              |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------- |
+| QuestionChecklist + PhaseBadge + InvestigationConclusion | FindingsLog (list / board / tree) + **SuspectedCause hub panel** (Converging phase) | CoScout (no mutual exclusion) |
+
+The Investigation workspace is the **exclusive surface for SuspectedCause hub creation**. During the Converging phase, the center area expands to include a hub management view: create named hubs, connect questions and findings to hubs, write synthesis text, and review aggregate evidence. CoScout assists with hub synthesis from the right panel. The PI panel (available in Analysis workspace) shows hub summaries in read-only mode.
 
 **Question click round-trip** — the core interaction loop of question-driven EDA (ADR-053):
 

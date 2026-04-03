@@ -90,7 +90,7 @@ Data sources:
 - Problem statement: `processContext.problemStatement`
 - Target: `processContext.targetValue` (existing)
 - Current Cpk: from stats pipeline
-- Causes: filtered `questions` with `status: 'answered' | 'investigating'` and `causeRole: 'suspected-cause' | 'contributing'`
+- Causes: **SuspectedCause hub entities** from the investigation store (each hub has a name, synthesis summary, evidence strength, and connected questions/findings). Previously modeled as `causeRole`-tagged questions; now each hub is the primary unit. See the investigation reframing spec.
 - Synthesis: `processContext.synthesis`
 
 **Projecting state — What-If Simulator:**
@@ -150,7 +150,7 @@ Each `IdeaGroupCard` header gains an evidence strength badge:
 Before: `Shift (Night) → Suspected cause`
 After: `▌ Shift (Night)  R²adj 34%  suspected cause`
 
-The badge shows `R²adj` or `η²` from `question.evidence`. The cause color bar on the left matches the matrix legend color.
+The badge shows `R²adj` or `η²` from the SuspectedCause hub's aggregate evidence (combined across connected questions). The cause color bar on the left matches the matrix legend color. Each `IdeaGroupCard` corresponds to one SuspectedCause hub — one hub = one idea group = one HMW brainstorm session. The hub provides full evidence context (connected questions, supporting findings, gemba notes) to seed the brainstorm session.
 
 **Implementation:** `IdeaGroupCard` already receives the question object. Extract `question.evidence?.rSquaredAdj` or `question.evidence?.etaSquared`. Render as a small muted badge next to the factor name.
 

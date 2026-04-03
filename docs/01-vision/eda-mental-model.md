@@ -140,13 +140,17 @@ This is the thesis's case study pattern in action. In the supplier delivery case
 
 Real quality problems rarely have a single root cause. The EDA Mental Model explicitly supports multiple suspected causes as the natural conclusion of investigation — not as a failure to find "the" root cause, but as an accurate reflection of how processes work.
 
-After the SCOUT phase, the analyst typically identifies:
+After the SCOUT and INVESTIGATE phases, the analyst typically identifies:
 
-- **Suspected causes** — factors with strong evidence of contribution (e.g., Night shift technique, eta-squared=34%; Heads 5-8 mechanical wear, eta-squared=22%)
-- **Contributing factors** — factors that interact with suspected causes (e.g., Shift x Head interaction, delta-R-squared=4%)
+- **Suspected causes** — mechanisms with strong evidence of contribution (e.g., "Night shift technique drift", eta-squared=34%; "Heads 5-8 mechanical wear", eta-squared=22%)
+- **Contributing factors** — evidence threads that amplify or enable a suspected cause (e.g., Shift x Head interaction, delta-R-squared=4%)
 - **Ruled-out factors** — factors checked and found not relevant (e.g., Material batch, R-squared-adjusted=2%)
 
-All three categories are valuable. The suspected causes drive improvement actions. The contributing factors refine those actions. The ruled-out factors are negative learnings — they document what was checked and dismissed, which is essential for audit trails and for preventing future teams from re-investigating the same dead ends.
+VariScout implements this as **SuspectedCause hubs**: named entities that group related questions and findings into one coherent causal story. A hub is not a label on a single question — it is the "connected story" that collects all the evidence threads pointing toward the same mechanism. Multiple independent hubs coexist in one investigation, each driving its own improvement focus.
+
+This grouping mechanism is the key difference between "we found three significant factors" and "we understand that nozzle wear and temperature drift are two independent mechanisms, each needing its own corrective action."
+
+All three categories are valuable. The suspected cause hubs drive improvement actions. The contributing evidence refines those actions. The ruled-out factors are negative learnings — they document what was checked and dismissed, which is essential for audit trails and for preventing future teams from re-investigating the same dead ends.
 
 This is a deliberate departure from the traditional "single root cause" model. When a process has multiple independent sources of variation, forcing a single root cause oversimplifies the problem and leads to incomplete solutions.
 
@@ -350,25 +354,29 @@ The question tree grows as the investigation progresses. Initial questions spawn
 
 ### 4.6 Problem Statement Emergence
 
-The Problem Statement is not entered by the analyst — it emerges when enough questions have been answered to satisfy Watson's three elements:
+The Problem Statement forms progressively — it is not produced in a single step at the end of investigation. Watson's three questions are answered at different points in the journey:
 
-1. **What measure needs to change?** — identified during FRAME (the Y-measure)
-2. **How should it change?** — direction and target (from capability findings and the improvement target)
-3. **What is the scope?** — the intersection of all suspected causes (factors and levels identified through the question-driven investigation)
+1. **What measure needs to change?** — answered during FRAME when the measure column is mapped
+2. **How should it change?** — answered during FRAME/SCOUT when characteristic type and target direction are set
+3. **What is the scope?** — answered at SCOUT Loop 1 when the first SuspectedCause hub is created and named
 
-The problem statement is the synthesis of all answered questions. It is not a summary of findings — it is a declaration of what needs to change, by how much, and where.
+The problem statement is assembled live from these three answers and is visible in the PI panel conclusion card from the moment Q1+Q2 are answered. Q3 fills in as SuspectedCause hubs are created. The statement sharpens with each new hub — not only at investigation end.
 
-### 4.7 Suspected Causes as Investigation Output
+This is a direct implementation of the thesis's progressive sharpening pattern (Section 2.3): each EDA loop adds precision to the scope, but the measure and direction are stable from the moment the analysis is framed.
+
+### 4.7 SuspectedCause Hubs as Investigation Output
 
 The complete investigation output includes:
 
-1. **Problem Statement** — precise, answering all three questions
-2. **Suspected causes** — multiple, ranked by evidence strength (eta-squared or R-squared-adjusted)
-3. **Contributing factors** — factors that interact with or modify the suspected causes
+1. **Problem Statement** — precise, answering all three questions (assembled progressively)
+2. **SuspectedCause hubs** — named mechanisms, each grouping multiple evidence threads; ranked by total evidence strength (eta-squared or R-squared-adjusted)
+3. **Contributing evidence** — questions and findings that amplify or enable each hub mechanism
 4. **Ruled-out factors** — negative learnings, documented for audit and future reference
 5. **Issue Statement evolution** — the trail from vague concern to precise understanding
 
-This output becomes the input to the INVESTIGATE and IMPROVE phases. Each suspected cause is a target for hypothesis validation (INVESTIGATE) and improvement action (IMPROVE).
+Each hub is a named causal story — not just a factor name, but a mechanism description (e.g., "Worn nozzle tip" rather than "Fill Head"). This naming step is what transforms statistical evidence into actionable understanding.
+
+This output becomes the input to the IMPROVE phase. Each SuspectedCause hub is a target for improvement brainstorming (one HMW session per hub). Hub confirmation only comes when the corresponding improvement is verified effective — the hub transitions from "suspected" to "confirmed" at `resolved` finding status.
 
 ### 4.8 Example: Fill Weight Investigation
 

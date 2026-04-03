@@ -8,6 +8,8 @@ title: Improvement Hub Redesign Implementation Plan
 
 **Goal:** Redesign the Improvement workspace into a cohesive hub with split layout (matrix top + cards bottom), integrated What-If panel on left, progressive Plan→Track evolution, cause-colored prioritization, and mobile support.
 
+> **Note (Apr 2026):** Improvement hubs work with SuspectedCause entities — each IdeaGroupCard is scoped to a SuspectedCause hub, and the context panel renders hub evidence strength (R²adj/η²) and Problem Statement fragments to ground improvement planning. See [Investigation Workspace Reframing](../specs/2026-04-03-investigation-workspace-reframing-design.md).
+
 **Architecture:** Split the hub into a left context/What-If panel, center matrix+cards zone, and right CoScout panel. The workspace evolves from Plan view (brainstorm/prioritize) to Track view (actions/verification/outcome) without tabs — triggered by "Convert → Actions". New `ImprovementContextPanel` replaces PI Panel in this workspace. What-If moves to the left panel with contextual presets.
 
 **Tech Stack:** React + TypeScript, Zustand stores, Tailwind v4, Vitest, existing @variscout/\* packages.

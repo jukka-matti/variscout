@@ -278,6 +278,8 @@ export {
   normalCDF,
   normalPDF,
   computeCategoryDirectionColors,
+  findBestSubgroup,
+  findTightestSubgroup,
   DRILL_SWITCH_THRESHOLD,
 } from './variation';
 
@@ -518,6 +520,15 @@ export type {
   IdeaCategory,
   FindingRole,
   BenchmarkStats,
+  SuspectedCause,
+  // Projection types (SuspectedCause evidence model)
+  ProjectionSource,
+  ProjectionMethod,
+  StatisticalProjectionResult,
+  LeanProjectionResult,
+  ProjectionResult,
+  ProjectionScenario,
+  SuspectedCauseEvidence,
 } from './findings';
 export {
   DEFAULT_RISK_AXIS_CONFIG,
@@ -542,6 +553,7 @@ export {
   createImprovementIdea,
   createFactorFinding,
   createInvestigationCategory,
+  createSuspectedCause,
 } from './findings';
 export type { FactorFindingInput, FactorFindingBundle } from './findings';
 export {
@@ -557,6 +569,9 @@ export {
   migrateActionAssignee,
   isFindingScoped,
   getScopedFindings,
+  computeHubContribution,
+  computeHubEvidence,
+  migrateCauseRolesToHubs,
 } from './findings';
 
 // Yamazumi Analysis Mode
@@ -579,6 +594,9 @@ export {
   computeYamazumiData,
   computeYamazumiSummary,
   detectYamazumiFormat,
+  // Lean projection engine
+  projectWasteElimination,
+  projectVAImprovement,
 } from './yamazumi';
 
 // Worker types (for app-level Worker integration)

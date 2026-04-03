@@ -102,29 +102,41 @@ Pressing Enter or clicking "Add" creates the sub-question and collapses the form
 
 **Note:** Factor Intelligence automatically generates initial questions ranked by R²adj evidence. The analyst can also add questions manually at any level of the tree.
 
-### Cause Role Marking
+### Creating SuspectedCause Hubs
 
-When a question reaches `answered-yes` or `partial` status, a **🎯 button** appears on its node row. Clicking it cycles the question through three cause roles:
+When the investigation converges, the analyst creates a **SuspectedCause hub** — a named entity that connects multiple related questions and findings into one coherent causal story. A hub is not a tag on a single question; it is a grouping mechanism that collects the evidence threads that point toward the same underlying mechanism.
 
-```
-none → suspected-cause → contributing → none → …
-```
+**Creating a hub:**
 
-Constraints:
+1. In the Converging phase, click "Create Suspected Cause" in the `InvestigationConclusion` bar
+2. Give the hub a name that describes the mechanism (e.g., "Worn nozzle tip" or "Night shift technique drift")
+3. Link the answered questions whose evidence supports this mechanism
+4. Optionally mark questions as "contributing" within the hub
 
-- **Multiple suspected causes** are allowed per question tree. Real quality problems rarely have a single root cause — multiple independent sources of variation are common.
-- `contributing` has no uniqueness limit — any number of questions in the tree can be marked as contributing.
-- The cycle button is only available on answered/partial questions; ruled-out questions cannot carry a cause role.
+**Hub structure:**
 
-**Visual badges on the node:**
+Each `SuspectedCauseHub` groups evidence under a single named mechanism:
 
-| Role              | Badge                  |
-| ----------------- | ---------------------- |
-| `suspected-cause` | `SUSPECTED` (blue)     |
-| `contributing`    | `CONTRIBUTING` (slate) |
-| _(none)_          | — (no badge)           |
+- **Hub name** — A short description of the suspected mechanism (not just the factor name)
+- **Primary questions** — Answered questions with direct evidence for this mechanism
+- **Contributing questions** — Questions whose evidence amplifies or enables this mechanism
+- **Evidence summary** — η²/R²adj aggregated across linked questions
 
-Once any cause role is set and the finding is at `analyzed` status or higher, the **FindingCard** (outside the tree view) renders a "Suspected causes" section listing all suspected causes ranked by evidence (η²/R²adj), with contributing factors beneath. This surfaces the convergence conclusion without requiring the analyst to expand the full tree.
+Multiple hubs are allowed per investigation. Real quality problems often have two or three independent mechanisms. Creating separate hubs for each keeps the stories distinct and ensures each receives its own improvement focus in the IMPROVE phase.
+
+Ruled-out questions cannot be linked to a hub. They remain in the tree as negative learnings — visible but not part of any causal story.
+
+**Visual badges on hub-linked question nodes:**
+
+| Hub membership   | Badge                  |
+| ---------------- | ---------------------- |
+| Primary evidence | `SUSPECTED` (blue)     |
+| Contributing     | `CONTRIBUTING` (slate) |
+| _(not linked)_   | — (no badge)           |
+
+Once any hub exists and the finding is at `analyzed` status or higher, the **FindingCard** (outside the tree view) renders a "Suspected causes" section listing all hubs ranked by total evidence (η²/R²adj), with contributing questions beneath each hub name. This surfaces the convergence conclusion without requiring the analyst to expand the full tree.
+
+See also [investigation-workspace-reframing-design.md](../../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md) for the full SuspectedCause hub model and data type.
 
 ### In the Popout Window
 
@@ -268,7 +280,7 @@ VariScout uses deliberate terminology to maintain the distinction between questi
 
 VariScout never auto-labels anything as "root cause." The analyst explicitly marks an answered question as a **suspected cause** when they are confident enough to act on it. Multiple suspected causes are allowed — real processes often have multiple independent sources of variation. Confirmation is outcome-based: it only happens when the process improves to target (outcome = effective at "Resolved" status), not when the investigation converges.
 
-**Semantic mapping from previous terminology:** The underlying data model uses the Hypothesis type. The semantic mapping is: hypothesis text = question text; supported = answered-yes; contradicted = ruled-out; untested = open; causeRole 'primary' = 'suspected-cause' (multiple allowed).
+**Semantic mapping from previous terminology:** The underlying data model uses the Hypothesis type. The semantic mapping is: hypothesis text = question text; supported = answered-yes; contradicted = ruled-out; untested = open. The old `causeRole 'primary'` field is superseded by `SuspectedCauseHub` entities (Apr 2026) — see the SuspectedCause hub section above.
 
 ## Platform Availability
 
@@ -303,24 +315,29 @@ When CoScout references a question via `[REF:hypothesis:ID]text[/REF]`, clicking
 
 ## Problem Statement Formulation
 
-The Problem Statement is the **output** of INVESTIGATE, not the input. It emerges when the analyst converges on suspected causes.
+The Problem Statement forms **progressively** — it is not a single event at investigation end. Watson's 3 questions are answered at different points in the journey:
 
-### Watson's 3 Questions
+### Watson's 3 Questions and When They Are Answered
 
-The auto-generated draft answers:
+| Question                          | Answered When                                                | Source                                                  |
+| --------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
+| **What measure needs to change?** | FRAME — when the measure column is mapped                    | `columnMapping.measureColumn`                           |
+| **How should it change?**         | FRAME/SCOUT — when characteristic type and direction are set | `processContext.characteristicType` + `targetDirection` |
+| **What is the scope?**            | SCOUT Loop 1 — when the first SuspectedCause hub is created  | First `SuspectedCauseHub` during Converging             |
 
-1. **What measure?** → outcome column name
-2. **How change?** → target Cpk/value + direction (increase/decrease/reduce-variation)
-3. **What scope?** → suspected causes with evidence percentages
+Q1 and Q2 are answered as soon as the analyst maps data and sets specification context. Q3 is answered when the first suspected cause hub is created. The Problem Statement is a **live view** assembled from these three answers — it is always visible in the PI panel conclusion card and updates as hubs are created or edited.
 
-### Flow
+### Live Problem Statement
 
-1. Analyst marks hypotheses as "suspected cause" (cause role assignment)
-2. "Generate Problem Statement" button appears in InvestigationConclusion
-3. System generates draft: "Reduce variation in [outcome] (Cpk X → target Y) driven by [cause 1] and [cause 2]."
-4. Analyst edits draft if needed
-5. Accept → saved to processContext.problemStatement
-6. Appears in PI panel Questions tab conclusion card + Report workspace
+The system assembles the draft automatically:
+
+"Reduce variation in [measure] (Cpk [current] → target [targetValue]) driven by [hub 1 name] and [hub 2 name]."
+
+The analyst can edit the assembled text at any time. Edits are saved to `processContext.problemStatement`. There is no "Generate" button — the statement is always present, updating as evidence accumulates.
+
+- Appears in the PI panel Questions tab conclusion card from the moment Q1+Q2 are answered
+- Scope section updates each time a new SuspectedCause hub is created
+- Appears in the Report workspace without requiring any explicit export step
 
 ## Related Documentation
 

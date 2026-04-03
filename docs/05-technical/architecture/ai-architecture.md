@@ -159,6 +159,8 @@ Uploaded SOPs, investigation artifacts (findings, questions, improvement ideas),
 
 **Investigation artifacts as knowledge:** Findings, questions, and improvement ideas are automatically indexed as investigation artifacts — no manual publishing step required. Documents (SOPs, procedures) are uploaded once and remain searchable.
 
+**SuspectedCause hub serialization:** When hubs are created or updated in the Investigation workspace, they are serialized to the Blob Storage investigation artifacts (alongside findings and questions) as structured JSON. The hub record includes: `{ id, name, synthesis, evidenceMetric, evidenceValue, connectedQuestionIds, connectedFindingIds, status, createdAt, updatedAt }`. Foundry IQ indexes hub records so CoScout can retrieve full hub detail (including linked evidence) via `search_knowledge_base` when context requires more depth than the hot context carries.
+
 See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for the architecture decision. (Supersedes ADR-026 SharePoint approach.)
 
 ---

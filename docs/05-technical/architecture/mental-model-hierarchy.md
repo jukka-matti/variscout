@@ -74,12 +74,12 @@ IMPROVE (Purple #8b5cf6)
 
 The investigation flows through all 4 phases as a continuous thread, driven by questions rather than hypotheses:
 
-| Phase       | Investigation Thread Role                                                                                                         |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| FRAME       | Analyst captures issue statement + upfront questions in analysis brief (Azure) or enters with prior knowledge                     |
-| SCOUT       | Factor Intelligence generates evidence-ranked questions from R²adj; analyst answers questions through drill-down                  |
-| INVESTIGATE | Questions from SCOUT seed the question tree. Tree grows with follow-up questions, answers accumulate, suspected causes identified |
-| IMPROVE     | Multiple suspected causes drive improvement ideas. Confirmation only comes when the fix works (outcome-based)                     |
+| Phase       | Investigation Thread Role                                                                                                                                                                                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| FRAME       | Analyst captures issue statement + upfront questions in analysis brief (Azure). Q1 (measure) and Q2 (direction) of Problem Statement answered here                                                                                                                                   |
+| SCOUT       | Factor Intelligence generates evidence-ranked questions from R²adj; analyst answers questions through drill-down                                                                                                                                                                     |
+| INVESTIGATE | Questions from SCOUT seed the question tree. Tree grows with follow-up questions, answers accumulate. Converging phase: analyst creates `SuspectedCauseHub` entities grouping evidence threads into named mechanisms. Q3 (scope) of Problem Statement fills in as each hub is named. |
+| IMPROVE     | Each SuspectedCause hub drives one HMW brainstorm. Confirmation only comes when the fix works (hub transitions from suspected → confirmed at `resolved`).                                                                                                                            |
 
 The thread is not always linear — Routine Check entries may never reach INVESTIGATE, and Discovery entries generate questions during SCOUT rather than before.
 
@@ -166,12 +166,12 @@ See [Improvement Workspace](../../03-features/workflows/improvement-workspace.md
 
 The diamond is a **structured learning** process within the INVESTIGATE phase, driven by questions:
 
-| Phase      | Purpose                                                 | Analyst Activity                                                                                          |
-| ---------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Initial    | Variation found, questions generated                    | Factor Intelligence generates ranked questions; upfront questions from FRAME seed the question tree       |
-| Diverging  | Explore possible causes                                 | Answer questions, spawn follow-up questions — the question tree grows                                     |
-| Validating | Gather evidence                                         | Answer each question — Data (ANOVA auto-validate), Gemba (go inspect), Expert input                       |
-| Converging | Build understanding, identify multiple suspected causes | Rule out answered-no branches; mark causeRole (suspected-cause/contributing); formulate Problem Statement |
+| Phase      | Purpose                                                 | Analyst Activity                                                                                                                             |
+| ---------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Initial    | Variation found, questions generated                    | Factor Intelligence generates ranked questions; upfront questions from FRAME seed the question tree                                          |
+| Diverging  | Explore possible causes                                 | Answer questions, spawn follow-up questions — the question tree grows                                                                        |
+| Validating | Gather evidence                                         | Answer each question — Data (ANOVA auto-validate), Gemba (go inspect), Expert input                                                          |
+| Converging | Build understanding, identify multiple suspected causes | Rule out answered-no branches; create `SuspectedCauseHub` entities linking evidence threads; Problem Statement assembles live from hub names |
 
 The diamond closes at Converging. What follows — improvement ideation, actions, implementation, and verification — belongs to the IMPROVE phase (PDCA).
 

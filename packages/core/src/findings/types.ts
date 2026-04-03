@@ -343,7 +343,12 @@ export interface Question {
   manualNote?: string;
   /** Improvement ideas for answered/investigating questions */
   ideas?: ImprovementIdea[];
-  /** Role in investigation conclusion — multiple 'suspected-cause' allowed per tree */
+  /**
+   * Role in investigation conclusion — multiple 'suspected-cause' allowed per tree.
+   * @deprecated Use SuspectedCause hub membership instead. Retained for backward
+   * compatibility and migration. New investigations should create SuspectedCause
+   * hubs and connect questions via questionIds.
+   */
   causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
   /** Source of this question: how it was generated */
   questionSource?: 'factor-intel' | 'heuristic' | 'coscout' | 'analyst';
@@ -506,6 +511,124 @@ export interface InvestigationCategory {
   color?: string;
   /** Keyword that triggered inference, if any (for tooltip display) */
   inferredFrom?: string;
+}
+
+// ============================================================================
+// Unified Projection Model
+// ============================================================================
+
+/** Source of a projection scenario — what mechanism is being addressed */
+export type ProjectionSource =
+  | { type: 'drill'; factors: string[]; levels: string[] }
+  | { type: 'suspected-cause'; causeId: string; factors: string[] }
+  | { type: 'centering' }
+  | { type: 'idea'; ideaId: string }
+  | { type: 'measured'; stageIndex: number };
+
+/** Method for computing the projection adjustment */
+export type ProjectionMethod =
+  | { type: 'match-best' }
+  | { type: 'target'; target: number }
+  | { type: 'eliminate-waste' }
+  | { type: 'direct'; meanShift: number; variationReduction: number }
+  | { type: 'actual' };
+
+/** Statistical domain projection result */
+export interface StatisticalProjectionResult {
+  currentMean: number;
+  currentSigma: number;
+  currentCpk?: number;
+  currentYield?: number;
+  projectedMean: number;
+  projectedSigma: number;
+  projectedCpk?: number;
+  projectedYield?: number;
+}
+
+/** Lean domain projection result (yamazumi) */
+export interface LeanProjectionResult {
+  currentCycleTime: number;
+  currentWaste: number;
+  currentVARatio: number;
+  taktTime?: number;
+  projectedCycleTime: number;
+  projectedWaste: number;
+  projectedVARatio: number;
+  meetsTakt: boolean;
+}
+
+/** Unified projection result — domain-specific */
+export interface ProjectionResult {
+  domain: 'statistical' | 'lean';
+  statistical?: StatisticalProjectionResult;
+  lean?: LeanProjectionResult;
+  overallImpact?: {
+    projectedMean?: number;
+    projectedSigma?: number;
+    projectedCpk?: number;
+    projectedVARatio?: number;
+  };
+}
+
+/** Unified projection scenario */
+export interface ProjectionScenario {
+  source: ProjectionSource;
+  method: ProjectionMethod;
+  result: ProjectionResult;
+}
+
+// ============================================================================
+// Suspected Cause Evidence
+// ============================================================================
+
+/** Mode-aware evidence on a suspected cause */
+export interface SuspectedCauseEvidence {
+  /** Mode active when evidence was computed */
+  mode: 'standard' | 'capability' | 'performance' | 'yamazumi';
+  /** How much of the problem this mechanism explains */
+  contribution: {
+    /** Numeric value: R²adj (0-1), waste % (0-1), Cpk delta, channel Cpk */
+    value: number;
+    /** From strategy: 'R²adj', 'Waste %', 'Cpk impact', 'Channel Cpk' */
+    label: string;
+    /** Human-readable: "Explains 52% of variation" */
+    description: string;
+  };
+}
+
+// ============================================================================
+// Suspected Cause Hub (Investigation Reframing)
+// ============================================================================
+
+/**
+ * A suspected cause hub — a named mechanism that connects multiple evidence
+ * threads (questions, findings) into one coherent story.
+ *
+ * This is the primary output of the Investigation Diamond. Each hub drives
+ * one HMW brainstorm session in the IMPROVE phase.
+ *
+ * See: docs/superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md
+ */
+export interface SuspectedCause {
+  id: string;
+  /** Analyst-chosen name: "Nozzle wear on night shift" */
+  name: string;
+  /** Analyst's synthesis: how the evidence connects */
+  synthesis: string;
+  /** Connected question IDs */
+  questionIds: string[];
+  /** Connected finding IDs */
+  findingIds: string[];
+  /** Mode-aware evidence — contribution stored, projection computed live */
+  evidence?: SuspectedCauseEvidence;
+  /** Whether this cause is selected for the current improvement round */
+  selectedForImprovement?: boolean;
+  /** Status: suspected → confirmed (outcome-based) */
+  status: 'suspected' | 'confirmed' | 'not-confirmed';
+  /** Created timestamp */
+  createdAt: string;
+  /** Updated timestamp */
+  updatedAt: string;
 }
 
 /**

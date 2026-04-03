@@ -247,3 +247,22 @@ Uses existing ADR-018 @mention workflow infrastructure.
 ### Migration
 
 All new fields (`suspectedCause`, `actions`, `outcome`) are optional on the `Finding` type. Existing persisted `.vrs` files with 3-status findings load without changes. The two new statuses ("improving", "resolved") are only reached through explicit user actions or auto-transitions.
+
+---
+
+## Revision: SuspectedCause Hub Convergence (Apr 2026)
+
+### Change
+
+The convergence mechanism for suspected causes has been extended from individual `causeRole` tags on hypotheses to `SuspectedCauseHub` entities that group multiple evidence threads.
+
+### What Changed
+
+| Aspect              | Before                                                          | After                                                         |
+| ------------------- | --------------------------------------------------------------- | ------------------------------------------------------------- |
+| Convergence unit    | `causeRole: 'primary' \| 'contributing'` tag on Hypothesis      | `SuspectedCauseHub` entity with linked questions and findings |
+| Multiple causes     | Multiple `suspected-cause` roles allowed (from ADR-053)         | Multiple hubs allowed, each named and independently scoped    |
+| Improvement link    | Ideas attached to individual hypotheses                         | Ideas attached to hubs (one HMW brainstorm session per hub)   |
+| FindingCard display | Suspected cause section lists primary hypothesis + contributing | Suspected causes section lists hub names + evidence totals    |
+
+The board view and finding status lifecycle remain unchanged. The hub entities are a layer above the hypothesis tree, not a replacement for it. See [Investigation Workspace Reframing Design](../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md) for the full specification.

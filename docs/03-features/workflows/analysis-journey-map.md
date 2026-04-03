@@ -203,12 +203,12 @@ stateDiagram-v2
 
 The investigation follows the diamond pattern within each finding — a structured learning process:
 
-| Phase          | Status          | Activity                                                                                 |
-| -------------- | --------------- | ---------------------------------------------------------------------------------------- |
-| **I**nitial    | `observed`      | Pin finding; scan patterns + generate questions from Factor Intelligence ranking         |
-| **D**iverging  | `investigating` | Generate and explore questions as a tree — break broad concern into answerable questions |
-| **V**alidating | `investigating` | Answer questions with data/gemba/expert evidence                                         |
-| **C**onverging | `analyzed`      | Synthesize problem statement from answered questions, identify multiple suspected causes |
+| Phase          | Status          | Activity                                                                                                       |
+| -------------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
+| **I**nitial    | `observed`      | Pin finding; scan patterns + generate questions from Factor Intelligence ranking                               |
+| **D**iverging  | `investigating` | Generate and explore questions as a tree — break broad concern into answerable questions                       |
+| **V**alidating | `investigating` | Answer questions with data/gemba/expert evidence                                                               |
+| **C**onverging | `analyzed`      | Create SuspectedCause hubs grouping related evidence threads; Problem Statement updates live as hubs are named |
 
 The diamond closes at Converging. What follows — improvement ideation, corrective actions, implementation, and verification — belongs to the IMPROVE phase (PDCA).
 
@@ -218,16 +218,17 @@ The diamond closes at Converging. What follows — improvement ideation, correct
 2. **Answer with data** -- Use ANOVA results and drill-down filtering to answer each question. Auto-answering uses eta-squared thresholds (R²adj < 5% = ruled out). Clicking any question switches the dashboard to show the relevant evidence.
 3. **Gemba observation** -- Go to the process and observe. Azure Team plan supports photo evidence (EXIF-stripped).
 4. **Expert input** -- Add comments and notes from domain experts to findings.
-5. **Converge** -- Synthesize a problem statement from answered questions. Multiple suspected causes are identified and ranked by evidence (eta-squared/R²adj). Ruled-out factors are preserved as negative learnings. Classify findings (key-driver vs low-impact).
+5. **Converge** -- Create SuspectedCause hubs that group related answered questions into named mechanism stories. The Problem Statement updates live as hubs are named — Q1 (measure) and Q2 (direction) were answered in FRAME, Q3 (scope) fills in as each hub is created. Ruled-out factors are preserved as negative learnings. Classify findings (key-driver vs low-impact).
 
 ### Data Shapes
 
-| Type            | Purpose                                                                                                |
-| --------------- | ------------------------------------------------------------------------------------------------------ |
-| `Finding`       | Core investigation record with status progression                                                      |
-| `Hypothesis`    | Question linked to a finding, with answer state and causeRole (suspected-cause/contributing/ruled-out) |
-| `FindingStatus` | `observed` / `investigating` / `analyzed` / `improving` / `resolved`                                   |
-| `FindingTag`    | `key-driver` or `low-impact` classification                                                            |
+| Type                | Purpose                                                                                             |
+| ------------------- | --------------------------------------------------------------------------------------------------- |
+| `Finding`           | Core investigation record with status progression                                                   |
+| `Hypothesis`        | Question linked to a finding, with answer state; linked to `SuspectedCauseHub` at Converging        |
+| `SuspectedCauseHub` | Named mechanism grouping multiple answered questions into one causal story; drives IMPROVE ideation |
+| `FindingStatus`     | `observed` / `investigating` / `analyzed` / `improving` / `resolved`                                |
+| `FindingTag`        | `key-driver` or `low-impact` classification                                                         |
 
 ### Tier Differences
 

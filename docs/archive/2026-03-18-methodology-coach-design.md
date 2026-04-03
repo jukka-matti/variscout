@@ -6,6 +6,8 @@ status: deprecated
 related: [methodology-coach, journey-phase, investigation-diamond, pdca, entry-scenario]
 ---
 
+> **Note (Apr 2026):** The `causeRole` model described in this document has been superseded by the SuspectedCause hub model. See [Investigation Workspace Reframing](../../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md).
+
 # Methodology Coach
 
 **Date:** 2026-03-18

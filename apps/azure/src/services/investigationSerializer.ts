@@ -1,9 +1,102 @@
-import type { Finding, Question } from '@variscout/core';
+import type { Finding, Question, SuspectedCause, SuspectedCauseEvidence } from '@variscout/core';
+import { migrateCauseRolesToHubs } from '@variscout/core';
 
-interface SerializerOptions {
-  projectId: string;
-  uploadBlob: (path: string, content: string) => Promise<void>;
+// ---------------------------------------------------------------------------
+// Serialized investigation state (structured JSON for project persistence)
+// ---------------------------------------------------------------------------
+
+/**
+ * Structured representation of the investigation state saved as JSON.
+ * The `suspectedCauses` field is optional so old project files (without hubs)
+ * remain valid and are migrated on deserialize.
+ */
+export interface SerializedInvestigationState {
+  findings: Finding[];
+  questions: Question[];
+  suspectedCauses?: SuspectedCause[];
 }
+
+/**
+ * Shape of a suspected cause as it may appear in legacy stored data,
+ * before the `totalContribution` → `evidence` migration.
+ */
+interface LegacyStoredHub extends Omit<SuspectedCause, 'evidence'> {
+  // Old numeric field, present before SuspectedCauseEvidence was introduced
+  totalContribution?: number;
+  evidence?: SuspectedCauseEvidence;
+}
+
+/**
+ * Serialize the investigation state to a plain object suitable for JSON storage.
+ * `suspectedCauses` is omitted when the array is empty (compact serialization).
+ */
+export function serializeInvestigationState(
+  findings: Finding[],
+  questions: Question[],
+  suspectedCauses: SuspectedCause[]
+): SerializedInvestigationState {
+  const state: SerializedInvestigationState = { findings, questions };
+  if (suspectedCauses.length > 0) {
+    state.suspectedCauses = suspectedCauses;
+  }
+  return state;
+}
+
+/**
+ * Deserialize investigation state from a stored object.
+ *
+ * Migrations applied on load:
+ * 1. If `suspectedCauses` is absent but questions have `causeRole === 'suspected-cause'`,
+ *    those questions are migrated into individual SuspectedCause hubs.
+ * 2. If a hub has `totalContribution` (legacy numeric field) but no `evidence`,
+ *    a basic `SuspectedCauseEvidence` is synthesised from it.
+ * 3. `selectedForImprovement` defaults to `undefined` when absent.
+ */
+export function deserializeInvestigationState(raw: SerializedInvestigationState): {
+  findings: Finding[];
+  questions: Question[];
+  suspectedCauses: SuspectedCause[];
+} {
+  const findings = raw.findings ?? [];
+  const questions = raw.questions ?? [];
+
+  if (raw.suspectedCauses !== undefined) {
+    // Data already has hubs — apply field-level migration then return
+    const migratedHubs = (raw.suspectedCauses as LegacyStoredHub[]).map(
+      (stored): SuspectedCause => {
+        const { totalContribution: _legacy, ...clean } = stored;
+        const hub: SuspectedCause = {
+          ...clean,
+          evidence: stored.evidence,
+          selectedForImprovement: stored.selectedForImprovement,
+        };
+
+        // Migrate legacy totalContribution (number) → SuspectedCauseEvidence
+        if (stored.totalContribution != null && !stored.evidence) {
+          hub.evidence = {
+            mode: 'standard',
+            contribution: {
+              value: stored.totalContribution,
+              label: 'R²adj',
+              description: `Explains ${Math.round(stored.totalContribution * 100)}% of variation`,
+            },
+          };
+        }
+
+        return hub;
+      }
+    );
+    return { findings, questions, suspectedCauses: migratedHubs };
+  }
+
+  // No hubs in stored data — attempt migration from legacy causeRole questions
+  const migratedHubs = migrateCauseRolesToHubs(questions);
+  return { findings, questions, suspectedCauses: migratedHubs };
+}
+
+// ---------------------------------------------------------------------------
+// Foundry IQ JSONL serializers (one-way, for AI Knowledge Base uploads)
+// ---------------------------------------------------------------------------
 
 /** Serialize findings to JSONL for Foundry IQ indexing */
 export function serializeFindings(findings: Finding[]): string {
@@ -62,10 +155,44 @@ export function serializeQuestions(questions: Question[]): string {
     .join('\n');
 }
 
-/** Debounced serialization — call after findings/questions change */
+/**
+ * Serialize suspected cause hubs to JSONL for Foundry IQ indexing.
+ * Only confirmed and suspected hubs are included; not-confirmed hubs are skipped.
+ */
+export function serializeSuspectedCauses(hubs: SuspectedCause[]): string {
+  return hubs
+    .filter(h => h.status !== 'not-confirmed')
+    .map(h =>
+      JSON.stringify({
+        id: h.id,
+        type: 'suspected-cause',
+        name: h.name,
+        synthesis: h.synthesis,
+        status: h.status,
+        questionIds: h.questionIds,
+        findingIds: h.findingIds,
+        evidence: h.evidence,
+        selectedForImprovement: h.selectedForImprovement,
+        createdAt: h.createdAt,
+      })
+    )
+    .join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// Debounced serializer (Foundry IQ upload orchestrator)
+// ---------------------------------------------------------------------------
+
+interface SerializerOptions {
+  projectId: string;
+  uploadBlob: (path: string, content: string) => Promise<void>;
+}
+
+/** Debounced serialization — call after findings/questions/hubs change */
 export function createInvestigationSerializer(options: SerializerOptions) {
   let findingsTimer: ReturnType<typeof setTimeout> | null = null;
   let questionsTimer: ReturnType<typeof setTimeout> | null = null;
+  let suspectedCausesTimer: ReturnType<typeof setTimeout> | null = null;
   const DEBOUNCE_MS = 5000;
 
   return {
@@ -93,9 +220,25 @@ export function createInvestigationSerializer(options: SerializerOptions) {
       }, DEBOUNCE_MS);
     },
 
+    onSuspectedCausesChange(hubs: SuspectedCause[]) {
+      if (suspectedCausesTimer) clearTimeout(suspectedCausesTimer);
+      suspectedCausesTimer = setTimeout(async () => {
+        try {
+          const jsonl = serializeSuspectedCauses(hubs);
+          await options.uploadBlob(
+            `${options.projectId}/investigation/suspected-causes.jsonl`,
+            jsonl
+          );
+        } catch (err) {
+          console.warn('[KB] Failed to serialize suspected causes:', err);
+        }
+      }, DEBOUNCE_MS);
+    },
+
     dispose() {
       if (findingsTimer) clearTimeout(findingsTimer);
       if (questionsTimer) clearTimeout(questionsTimer);
+      if (suspectedCausesTimer) clearTimeout(suspectedCausesTimer);
     },
   };
 }

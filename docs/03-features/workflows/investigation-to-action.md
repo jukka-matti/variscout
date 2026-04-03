@@ -221,28 +221,23 @@ A hypothesis links to a specific factor and is automatically validated via ANOVA
 
 For structured investigation with multiple competing theories, use the **Question-Driven Investigation Flow** — a diamond pattern of diverge (generate questions), validate (test each), and converge (eliminate contradicted, confirm supported). See [Question-Driven Investigation](question-driven-investigation.md) for the full workflow.
 
-### Cause Role Model (Azure only)
+### SuspectedCause Hub Model (Azure only)
 
-Once hypotheses are validated, the analyst can mark which hypothesis is the **primary suspected cause** and which are **contributing factors**:
+When questions are answered and evidence accumulates, the analyst creates **SuspectedCause hubs** — named entities that connect multiple evidence threads into one coherent causal story. A hub is not a tag applied to a single question; it is a grouping mechanism.
 
-```typescript
-// On the Hypothesis type
-causeRole?: 'primary' | 'contributing'
-```
+**Multiple hubs are allowed.** Each hub represents an independent mechanism driving variation. Real quality problems frequently have two or three. Creating separate hubs for each mechanism keeps the improvement planning distinct — each hub drives its own HMW brainstorm session in the IMPROVE phase.
 
-- **Primary** — the main suspected cause driving the variation. Only one primary is allowed per root question tree (enforced by `setCauseRole`).
-- **Contributing** — a secondary factor that amplifies or enables the primary cause but is not the main driver.
-- _(none)_ — not yet classified.
+**Hub membership:**
 
-The cause role is set from the `HypothesisNode` UI (see [Question-Driven Investigation](question-driven-investigation.md) for the button interaction). When any hypothesis in the tree carries a causeRole and the finding is at `analyzed` status or higher, the **FindingCard** shows a "Suspected cause" section listing the primary hypothesis prominently, with contributing hypotheses listed beneath it. This makes the convergence conclusion visible directly on the finding card without opening the full tree view.
+- **Primary evidence** — questions and findings with direct evidence for the mechanism
+- **Contributing** — questions whose evidence amplifies or enables the mechanism but is not the main driver
+- _(not linked)_ — questions not associated with any hub
 
-**"Hypothesis" vs "root cause":** VariScout finds _where_ variation is hiding
-(the key factors), but identifying a factor (Machine A explains 47%) is not proving
-root cause. The investigation diamond converges on a **suspected root cause** — the
-best-supported theory, confident enough to act on. True confirmation only comes when
-the process improves to target (outcome = effective at "Resolved" status). VariScout
-uses "hypothesis" and "suspected root cause" throughout to maintain this distinction.
-A suspected root cause becomes **confirmed** only when the outcome shows the fix was effective.
+When hubs exist and the finding is at `analyzed` status or higher, the **FindingCard** shows a "Suspected causes" section listing all hubs ranked by total evidence (η²/R²adj), with contributing questions beneath each hub name. This makes the convergence conclusion visible directly on the finding card without opening the full tree view.
+
+> Note: the legacy `causeRole: 'primary' | 'contributing'` field on the `Hypothesis` type is deprecated. New investigations use `SuspectedCauseHub` entities. Existing projects using `causeRole` continue to display correctly via a read-only migration view.
+
+**"Question" vs "root cause":** VariScout identifies _where_ variation is hiding (the key factors), but identifying a factor (Machine A explains 47%) is not proving root cause. The investigation diamond converges on **suspected causes** — the best-supported theories, confident enough to act on. True confirmation only comes when the process improves to target (outcome = effective at "Resolved" status). A suspected cause becomes **confirmed** only when the outcome shows the fix was effective.
 
 ### Improvement Ideation (Azure only)
 
@@ -525,7 +520,7 @@ The convergence synthesis is a deliberate pause between the INVESTIGATE and IMPR
 
 The synthesis step activates when the investigation diamond reaches the **Converging** sub-phase:
 
-- At least one hypothesis has `status: 'supported'` or `causeRole: 'primary'`
+- At least one `SuspectedCauseHub` exists (or at least one hypothesis has `status: 'supported'` for older projects)
 - The investigation diamond reaches the Converging phase
 
 The analyst can write the synthesis at any time, or skip it entirely.

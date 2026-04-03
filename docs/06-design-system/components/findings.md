@@ -568,6 +568,52 @@ When a finding is created while a question is focused in the investigation panel
 
 ---
 
+## SuspectedCauseHub
+
+A `SuspectedCauseHub` is a named convergence entity that groups multiple answered questions and linked findings into one coherent causal story. It is created during the Converging phase of the Investigation Diamond.
+
+**Purpose:** Where `HypothesisNode` represents a single question, `SuspectedCauseHub` represents the _mechanism_ — the "why behind the why." Multiple hubs can coexist in one investigation, each independently driving improvement brainstorming in the IMPROVE phase.
+
+### Visual Pattern
+
+A hub is rendered as a named card in the `InvestigationConclusion` area and in the Improvement workspace `IdeaGroupCard` header:
+
+```
+┌─────────────────────────────────────────────┐
+│  Worn nozzle tip                  56% η²    │
+│  ──────────────────────────────────────────  │
+│  ● Is nozzle tip worn?         [gemba]  ★   │
+│  ● Does temperature drift?      [data]  ◆   │
+│  Contributing:                              │
+│  ◆ Shift × Head interaction               4%│
+└─────────────────────────────────────────────┘
+```
+
+| Element           | Description                                                          |
+| ----------------- | -------------------------------------------------------------------- |
+| Hub name          | Editable mechanism description (e.g., "Worn nozzle tip")             |
+| Total evidence    | Sum of η²/R²adj from primary linked questions                        |
+| Primary questions | Answered questions with direct evidence for this mechanism (★ badge) |
+| Contributing      | Questions that amplify or enable this mechanism (◆ badge)            |
+
+### Hub Lifecycle
+
+| State               | Trigger                                                     |
+| ------------------- | ----------------------------------------------------------- |
+| `created`           | Analyst clicks "Create Suspected Cause" in Converging phase |
+| `evidenceLinked`    | Questions linked to the hub                                 |
+| `named`             | Hub receives a mechanism name                               |
+| `improvementTarget` | Hub drives HMW brainstorm in IMPROVE; ideas created         |
+| `confirmed`         | Outcome verified effective at `resolved` status             |
+
+### Platform Availability
+
+SuspectedCause hubs are Azure-only (Standard and Team plans). PWA supports `observed → analyzed` finding statuses only and does not expose hub creation.
+
+See [Investigation Workspace Reframing Design](../../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md) for the full data type and interaction spec.
+
+---
+
 ## "Ask CoScout About This" Action
 
 Context-aware entry point for AI assistance from investigation UI elements. Azure App only.

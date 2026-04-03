@@ -60,11 +60,13 @@ Changes when the investigation progresses (new hypotheses, status changes, ideas
 
 Fields within Tier 2 are ordered to exploit the LLM's primacy/recency bias:
 
-| Position   | Fields                                                       | Rationale                                                                                 |
-| ---------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| **Start**  | Problem statement, suspected causes, focused question        | Frames the conversation — CoScout knows what we're trying to solve before seeing evidence |
-| **Middle** | Findings (with evidence type + status), question tree, ideas | Evidence layer — bulk of investigation context                                            |
-| **End**    | Overdue actions, outcome summaries, comment signal           | Action state — recency bias keeps these salient for next-step suggestions                 |
+| Position   | Fields                                                                                     | Rationale                                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| **Start**  | Problem statement, **SuspectedCause hubs** (name + synthesis + evidence), focused question | Frames the conversation — CoScout knows what we're trying to solve and which hubs exist before seeing evidence |
+| **Middle** | Findings (with evidence type + status), question tree, ideas                               | Evidence layer — bulk of investigation context                                                                 |
+| **End**    | Overdue actions, outcome summaries, comment signal                                         | Action state — recency bias keeps these salient for next-step suggestions                                      |
+
+**SuspectedCause hubs in AI context:** Each hub is serialized as a compact record: `{ name, synthesis, evidenceMetric, evidenceValue, connectedQuestionCount, status }`. Typical token cost: ~15 tokens per hub. Hubs are placed at the start of Tier 2 alongside the problem statement, so CoScout enters every conversation aware of which causes the investigation is converging on. This enables hub-aware `answer_question` proposals and Converging phase synthesis assistance.
 
 This ordering is enforced in `buildCoScoutSystemPrompt()` via the `buildInvestigationContext()` helper in `@variscout/core/ai`. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for the full Pillar 1 specification.
 

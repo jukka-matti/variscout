@@ -4,10 +4,12 @@ title: 'ADR-020: Investigation Workflow Enhancement'
 
 # ADR-020: Investigation Workflow Enhancement
 
-**Status:** Accepted
+**Status:** Accepted (extended by ADR-053 and Investigation Reframing, Apr 2026)
 **Date:** 2026-03-14
 **Supersedes:** N/A
-**Related:** ADR-015 (Investigation Board), ADR-019 (AI Integration)
+**Related:** ADR-015 (Investigation Board), ADR-019 (AI Integration), ADR-053 (Question-Driven Investigation)
+
+> **Note (Apr 2026):** The `causeRole: 'primary' | 'contributing'` model introduced in this ADR has been superseded by SuspectedCause hub entities (see [ADR-053 Amendment](adr-053-question-driven-investigation.md#amendment-investigation-reframing-apr-2026) and [Investigation Workspace Reframing Design](../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md)). The "only one primary per tree" constraint is removed. Hypothesis tree mechanics and the five-status finding lifecycle remain unchanged.
 
 ## Context
 

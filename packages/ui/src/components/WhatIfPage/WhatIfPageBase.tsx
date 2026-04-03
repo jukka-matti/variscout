@@ -6,6 +6,8 @@ import {
   toNumericValue,
   inferCharacteristicType,
   getCategoryStats,
+  findBestSubgroup,
+  findTightestSubgroup,
   normalQuantile,
   normalCDF,
   type DataRow,
@@ -217,22 +219,7 @@ export function computePresets(
 
     if (categoryStats && categoryStats.length >= 2) {
       // 3. Match best category
-      let bestCategory = categoryStats[0]; // sorted by contribution (highest first)
-      if (type === 'smaller') {
-        bestCategory = categoryStats.reduce((best, cat) => (cat.mean < best.mean ? cat : best));
-      } else if (type === 'larger') {
-        bestCategory = categoryStats.reduce((best, cat) => (cat.mean > best.mean ? cat : best));
-      } else {
-        // Nominal: closest to target
-        const tgt =
-          target ??
-          (specs.usl !== undefined && specs.lsl !== undefined
-            ? (specs.usl + specs.lsl) / 2
-            : currentStats.mean);
-        bestCategory = categoryStats.reduce((best, cat) =>
-          Math.abs(cat.mean - tgt) < Math.abs(best.mean - tgt) ? cat : best
-        );
-      }
+      const bestCategory = findBestSubgroup(categoryStats, type, target, specs);
 
       const matchBestShift = bestCategory.mean - currentStats.mean;
       if (Math.abs(matchBestShift) > currentStats.stdDev * 0.05) {
@@ -246,9 +233,7 @@ export function computePresets(
       }
 
       // 4. Tighten spread (match tightest category)
-      const tightestCategory = categoryStats.reduce((best, cat) =>
-        cat.stdDev < best.stdDev && cat.stdDev > 0 ? cat : best
-      );
+      const tightestCategory = findTightestSubgroup(categoryStats);
       if (tightestCategory.stdDev > 0 && tightestCategory.stdDev < currentStats.stdDev) {
         const reduction = Math.min(1 - tightestCategory.stdDev / currentStats.stdDev, 0.5);
         if (reduction > 0.02) {

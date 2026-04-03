@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Question, IdeaImpact } from '@variscout/core';
+import type { Question, IdeaImpact, SuspectedCause } from '@variscout/core';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -31,6 +31,8 @@ interface InvestigationStoreState {
   projectionTarget: ProjectionTarget | null;
   /** Question ID to expand/scroll-to in the investigation tree (null = none) */
   expandedQuestionId: string | null;
+  /** Suspected cause hubs (synced from useSuspectedCauses hook) */
+  suspectedCauses: SuspectedCause[];
 }
 
 // ── Actions ─────────────────────────────────────────────────────────────────
@@ -49,6 +51,11 @@ interface InvestigationStoreActions {
   setProjectionTarget: (target: ProjectionTarget | null) => void;
   /** Expand and scroll-to a question in the investigation tree (null = clear) */
   expandToQuestion: (id: string | null) => void;
+  /**
+   * Sync suspected cause hubs from useSuspectedCauses hook.
+   * Called by useInvestigationOrchestration whenever hubs change.
+   */
+  syncSuspectedCauses: (hubs: SuspectedCause[]) => void;
 }
 
 export type InvestigationStore = InvestigationStoreState & InvestigationStoreActions;
@@ -62,6 +69,7 @@ export const useInvestigationStore = create<InvestigationStore>(set => ({
   ideaImpacts: {},
   projectionTarget: null,
   expandedQuestionId: null,
+  suspectedCauses: [],
 
   // Actions
   syncQuestions: (questions: Question[]) => set({ questions }),
@@ -70,4 +78,5 @@ export const useInvestigationStore = create<InvestigationStore>(set => ({
     set({ ideaImpacts: impacts }),
   setProjectionTarget: (target: ProjectionTarget | null) => set({ projectionTarget: target }),
   expandToQuestion: id => set({ expandedQuestionId: id }),
+  syncSuspectedCauses: (hubs: SuspectedCause[]) => set({ suspectedCauses: hubs }),
 }));

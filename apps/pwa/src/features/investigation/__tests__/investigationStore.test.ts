@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useInvestigationStore } from '../investigationStore';
-import type { Question } from '@variscout/core';
+import type { Question, SuspectedCause } from '@variscout/core';
 
 const makeQuestion = (overrides: Partial<Question> = {}): Question => ({
   id: `q-${Math.random()}`,
@@ -19,6 +19,7 @@ beforeEach(() => {
     ideaImpacts: {},
     projectionTarget: null,
     expandedQuestionId: null,
+    suspectedCauses: [],
   });
 });
 
@@ -51,5 +52,28 @@ describe('investigationStore', () => {
   it('expandToQuestion sets expanded ID', () => {
     useInvestigationStore.getState().expandToQuestion('q-42');
     expect(useInvestigationStore.getState().expandedQuestionId).toBe('q-42');
+  });
+
+  describe('syncSuspectedCauses', () => {
+    it('should sync suspected causes', () => {
+      const hub: SuspectedCause = {
+        id: 'h1',
+        name: 'Nozzle wear',
+        synthesis: 'test',
+        questionIds: ['q1'],
+        findingIds: [],
+        status: 'suspected',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      useInvestigationStore.getState().syncSuspectedCauses([hub]);
+      expect(useInvestigationStore.getState().suspectedCauses).toHaveLength(1);
+      expect(useInvestigationStore.getState().suspectedCauses[0].name).toBe('Nozzle wear');
+    });
+
+    it('should clear suspected causes', () => {
+      useInvestigationStore.getState().syncSuspectedCauses([]);
+      expect(useInvestigationStore.getState().suspectedCauses).toEqual([]);
+    });
   });
 });
