@@ -170,37 +170,17 @@ export function computeHubContribution(hub: SuspectedCause, questions: Question[
   return total;
 }
 
-/**
- * Compute mode-aware evidence for a SuspectedCause hub.
- *
- * Uses Best Subsets R²adj for the hub's factor set when available — this is
- * correct for correlated factors and always produces a value ≤ 1.0. Falls
- * back to a capped sum of individual η² values when Best Subsets data is not
- * available.
- *
- * @param hub - The SuspectedCause hub to compute evidence for
- * @param questions - All questions in scope (e.g. from the investigation store)
- * @param bestSubsetsResult - Best Subsets analysis result, or null for fallback
- * @param evidenceMetric - The metric key being used (for labelling purposes)
- * @param evidenceLabel - Human-readable label for the metric (e.g. 'R²adj')
- * @param mode - Analysis mode (default: 'standard')
- * @returns Structured SuspectedCauseEvidence object
- */
-export function computeHubEvidence(
-  hub: SuspectedCause,
+// ============================================================================
+// Mode-dispatched evidence computation
+// ============================================================================
+
+/** Statistical evidence via Best Subsets R²adj (standard + capability modes) */
+function computeStatisticalEvidence(
+  hubFactors: string[],
   questions: Question[],
-  bestSubsetsResult: BestSubsetsResult | null,
-  evidenceMetric: string,
-  evidenceLabel: string,
-  mode: SuspectedCauseEvidence['mode'] = 'standard'
-): SuspectedCauseEvidence {
-  // Collect factors linked to hub questions (questions without a factor are skipped)
-  const hubFactors = hub.questionIds
-    .map(id => questions.find(q => q.id === id)?.factor)
-    .filter((f): f is string => f != null);
-
-  let value = 0;
-
+  questionIds: string[],
+  bestSubsetsResult: BestSubsetsResult | null
+): number {
   if (bestSubsetsResult && hubFactors.length > 0) {
     const sorted = [...hubFactors].sort();
 
@@ -209,32 +189,112 @@ export function computeHubEvidence(
       const sf = [...s.factors].sort();
       return sf.length === sorted.length && sf.every((f, i) => f === sorted[i]);
     });
+    if (exact) return exact.rSquaredAdj;
 
-    if (exact) {
-      value = exact.rSquaredAdj;
-    } else {
-      // Fall back to the largest subset whose factors are all in the hub
-      const partialMatches = bestSubsetsResult.subsets
-        .filter(s => s.factors.every(f => hubFactors.includes(f)))
-        .sort((a, b) => b.rSquaredAdj - a.rSquaredAdj);
-      if (partialMatches.length > 0) value = partialMatches[0].rSquaredAdj;
-    }
-  } else {
-    // Fallback: sum individual evidence values, capped at 1.0
-    const hubQIds = new Set(hub.questionIds);
-    for (const q of questions) {
-      if (!hubQIds.has(q.id)) continue;
-      value += q.evidence?.etaSquared ?? q.evidence?.rSquaredAdj ?? 0;
-    }
-    value = Math.min(value, 1.0);
+    // Fall back to the largest subset whose factors are all in the hub
+    const partial = bestSubsetsResult.subsets
+      .filter(s => s.factors.every(f => hubFactors.includes(f)))
+      .sort((a, b) => b.rSquaredAdj - a.rSquaredAdj);
+    if (partial.length > 0) return partial[0].rSquaredAdj;
   }
 
+  // Fallback: capped sum of individual evidence
+  const hubQIds = new Set(questionIds);
+  let sum = 0;
+  for (const q of questions) {
+    if (!hubQIds.has(q.id)) continue;
+    sum += q.evidence?.etaSquared ?? q.evidence?.rSquaredAdj ?? 0;
+  }
+  return Math.min(sum, 1.0);
+}
+
+/** Lean evidence from waste contribution (yamazumi mode) */
+function computeLeanEvidence(questions: Question[], questionIds: string[]): number {
+  // Sum waste contribution from connected questions (capped at 1.0)
+  const hubQIds = new Set(questionIds);
+  let sum = 0;
+  for (const q of questions) {
+    if (!hubQIds.has(q.id)) continue;
+    sum += q.evidence?.etaSquared ?? q.evidence?.rSquaredAdj ?? 0;
+  }
+  return Math.min(sum, 1.0);
+}
+
+/** Channel evidence from channel Cpk (performance mode) */
+function computeChannelEvidence(questions: Question[], questionIds: string[]): number {
+  // For now, same fallback as lean — will be refined when channel ranking is implemented
+  const hubQIds = new Set(questionIds);
+  let sum = 0;
+  for (const q of questions) {
+    if (!hubQIds.has(q.id)) continue;
+    sum += q.evidence?.etaSquared ?? q.evidence?.rSquaredAdj ?? 0;
+  }
+  return Math.min(sum, 1.0);
+}
+
+/** Mode-specific evidence computation — follows analysisStrategy.ts pattern */
+const evidenceComputers: Record<
+  SuspectedCauseEvidence['mode'],
+  (
+    hubFactors: string[],
+    questions: Question[],
+    questionIds: string[],
+    bestSubsets: BestSubsetsResult | null
+  ) => number
+> = {
+  standard: (hf, q, qIds, bs) => computeStatisticalEvidence(hf, q, qIds, bs),
+  capability: (hf, q, qIds, bs) => computeStatisticalEvidence(hf, q, qIds, bs),
+  yamazumi: (_hf, q, qIds) => computeLeanEvidence(q, qIds),
+  performance: (_hf, q, qIds) => computeChannelEvidence(q, qIds),
+};
+
+const EVIDENCE_LABELS: Record<SuspectedCauseEvidence['mode'], string> = {
+  standard: 'R²adj',
+  capability: 'Cpk impact',
+  yamazumi: 'Waste %',
+  performance: 'Channel Cpk',
+};
+
+/**
+ * Compute mode-aware evidence for a SuspectedCause hub.
+ *
+ * Uses a mode-dispatched function map following the analysisStrategy.ts pattern.
+ * Standard and capability modes use Best Subsets R²adj for correlated factors,
+ * falling back to a capped sum of individual η² values. Yamazumi and performance
+ * modes use mode-appropriate evidence and skip Best Subsets.
+ *
+ * Duplicate factors across connected questions are deduplicated before lookup
+ * to prevent match failures when multiple questions share the same factor.
+ *
+ * @param hub - The SuspectedCause hub to compute evidence for
+ * @param questions - All questions in scope (e.g. from the investigation store)
+ * @param bestSubsetsResult - Best Subsets analysis result, or null for fallback
+ * @param mode - Analysis mode (default: 'standard')
+ * @returns Structured SuspectedCauseEvidence object
+ */
+export function computeHubEvidence(
+  hub: SuspectedCause,
+  questions: Question[],
+  bestSubsetsResult: BestSubsetsResult | null,
+  mode: SuspectedCauseEvidence['mode'] = 'standard'
+): SuspectedCauseEvidence {
+  // Collect unique factors linked to hub questions (dedup prevents match failures)
+  const hubFactors = [
+    ...new Set(
+      hub.questionIds
+        .map(id => questions.find(q => q.id === id)?.factor)
+        .filter((f): f is string => f != null)
+    ),
+  ];
+
+  const value = evidenceComputers[mode](hubFactors, questions, hub.questionIds, bestSubsetsResult);
   const pct = Math.round(value * 100);
+
   return {
     mode,
     contribution: {
       value,
-      label: evidenceLabel,
+      label: EVIDENCE_LABELS[mode],
       description: `Explains ${pct}% of variation`,
     },
   };

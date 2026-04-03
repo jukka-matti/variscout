@@ -228,7 +228,7 @@ describe('computeHubEvidence', () => {
   it('should use Best Subsets R²adj for combined factors', () => {
     const questions = [makeQuestion('q1', 'Shift', 0.34), makeQuestion('q2', 'Head', 0.28)];
     const hub = makeHub(['q1', 'q2']);
-    const evidence = computeHubEvidence(hub, questions, bestSubsets, 'rSquaredAdj', 'R²adj');
+    const evidence = computeHubEvidence(hub, questions, bestSubsets);
     // Should use the combined subset (52%), not naive sum (62%)
     expect(evidence.contribution.value).toBeCloseTo(0.52);
     expect(evidence.contribution.label).toBe('R²adj');
@@ -239,7 +239,7 @@ describe('computeHubEvidence', () => {
   it('should fall back to capped sum when no Best Subsets result', () => {
     const questions = [makeQuestion('q1', 'Shift', 0.34), makeQuestion('q2', 'Head', 0.28)];
     const hub = makeHub(['q1', 'q2']);
-    const evidence = computeHubEvidence(hub, questions, null, 'rSquaredAdj', 'R²adj');
+    const evidence = computeHubEvidence(hub, questions, null);
     // Naive sum = 0.62, capped at 1.0
     expect(evidence.contribution.value).toBeCloseTo(0.62);
   });
@@ -252,7 +252,7 @@ describe('computeHubEvidence', () => {
     ];
     const hub = makeHub(['q1', 'q2', 'q3']);
     // No 3-factor subset exists — should use best matching 2-factor subset
-    const evidence = computeHubEvidence(hub, questions, bestSubsets, 'rSquaredAdj', 'R²adj');
+    const evidence = computeHubEvidence(hub, questions, bestSubsets);
     expect(evidence.contribution.value).toBeCloseTo(0.52);
   });
 
@@ -268,13 +268,34 @@ describe('computeHubEvidence', () => {
       },
     ];
     const hub = makeHub(['q1']);
-    const evidence = computeHubEvidence(hub, questions, bestSubsets, 'rSquaredAdj', 'R²adj');
+    const evidence = computeHubEvidence(hub, questions, bestSubsets);
     expect(evidence.contribution.value).toBe(0);
   });
 
   it('should accept mode parameter', () => {
     const hub = makeHub([]);
-    const evidence = computeHubEvidence(hub, [], null, 'wasteContribution', 'Waste %', 'yamazumi');
+    const evidence = computeHubEvidence(hub, [], null, 'yamazumi');
+    expect(evidence.mode).toBe('yamazumi');
+  });
+
+  it('should dedup duplicate factors in hub', () => {
+    const questions = [
+      makeQuestion('q1', 'Shift', 0.34),
+      makeQuestion('q2', 'Shift', 0.28), // same factor!
+    ];
+    const hub = makeHub(['q1', 'q2']);
+    const evidence = computeHubEvidence(hub, questions, bestSubsets, 'standard');
+    // Should find ['Shift'] (deduped) → match single-factor subset
+    expect(evidence.contribution.value).toBeCloseTo(0.34);
+  });
+
+  it('should use lean evidence for yamazumi mode (no Best Subsets)', () => {
+    const questions = [makeQuestion('q1', 'Step', 0.42)];
+    const hub = makeHub(['q1']);
+    const evidence = computeHubEvidence(hub, questions, bestSubsets, 'yamazumi');
+    // Should NOT use Best Subsets even though it's provided
+    expect(evidence.contribution.value).toBeCloseTo(0.42);
+    expect(evidence.contribution.label).toBe('Waste %');
     expect(evidence.mode).toBe('yamazumi');
   });
 });
