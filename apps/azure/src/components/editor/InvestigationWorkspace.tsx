@@ -14,7 +14,7 @@ import {
   type UseQuestionsReturn,
 } from '@variscout/hooks';
 import type { FindingStatus, Question } from '@variscout/core';
-import { hasTeamFeatures } from '@variscout/core';
+import { hasTeamFeatures, inferCharacteristicType } from '@variscout/core';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { GripVertical } from 'lucide-react';
@@ -87,6 +87,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     filteredData,
     outcome,
     factors,
+    specs,
     processContext,
     setProcessContext,
     analysisMode,
@@ -115,6 +116,28 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     questionsState,
     mode: resolved,
   });
+
+  // Characteristic type derived from spec configuration (for Watson Q2)
+  const characteristicType = useMemo(() => inferCharacteristicType(specs), [specs]);
+
+  // Location factor: first significant single-factor question from Factor Intelligence (for Watson Q3)
+  // Picks the first factor-intel question that has a factor and is not ruled out — ordered by
+  // evidence (rSquaredAdj) descending. This is available as soon as bestSubsets runs.
+  const locationFactor = useMemo(() => {
+    const topQuestion = factorIntelQuestions
+      .filter(q => q.factor && q.causeRole !== 'ruled-out' && q.questionSource === 'factor-intel')
+      .sort(
+        (a, b) =>
+          (b.evidence?.rSquaredAdj ?? b.evidence?.etaSquared ?? 0) -
+          (a.evidence?.rSquaredAdj ?? a.evidence?.etaSquared ?? 0)
+      )[0];
+    if (!topQuestion?.factor) return undefined;
+    return {
+      factor: topQuestion.factor,
+      level: topQuestion.level,
+      evidence: topQuestion.evidence?.rSquaredAdj ?? topQuestion.evidence?.etaSquared,
+    };
+  }, [factorIntelQuestions]);
 
   // Left panel resizable
   const leftPanel = useResizablePanel('variscout-investigation-left-width', 260, 420, 320, 'left');
@@ -153,6 +176,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     outcome,
     targetCpk: cpkTarget,
     currentCpk: stats?.cpk ?? undefined,
+    characteristicType,
+    locationFactor,
     questions: questionsState.questions,
     existingStatement: processContext?.problemStatement,
     onStatementChange: handleProblemStatementChange,
