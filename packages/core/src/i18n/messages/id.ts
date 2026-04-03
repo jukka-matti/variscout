@@ -624,6 +624,26 @@ export const id: MessageCatalog = {
   'improve.actions': 'actions',
   'improve.done': 'done',
 
+  // Brainstorm modal
+  'brainstorm.title': 'Brainstorm',
+  'brainstorm.subtitle': 'No judging yet — just ideas',
+  'brainstorm.selectSubtitle': 'Tap ideas to select',
+  'brainstorm.inputPlaceholder': '+ type an idea...',
+  'brainstorm.doneBrainstorming': 'Done brainstorming →',
+  'brainstorm.addToPlan': 'Add {count} to plan →',
+  'brainstorm.back': '← Back',
+  'brainstorm.sparkMore': 'Spark more',
+  'brainstorm.inviteTeam': 'Invite team',
+  'brainstorm.copyLink': 'Copy link',
+  'brainstorm.ideaCount': '{count} ideas · {directions} directions',
+  'brainstorm.selectedCount': '{selected} of {total} selected',
+  'brainstorm.parkedLabel': 'Parked ideas',
+  'brainstorm.triggerButton': 'Brainstorm',
+  'brainstorm.joinToast.title': 'Brainstorm session started',
+  'brainstorm.joinToast.body': '{name} started brainstorming ideas for {cause}',
+  'brainstorm.joinToast.join': 'Join session',
+  'brainstorm.joinToast.later': 'Later',
+
   'timeframe.label': 'Effort',
 
   // Idea direction labels (Four Ideation Directions)
