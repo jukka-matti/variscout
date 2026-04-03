@@ -214,7 +214,7 @@ describe('useProblemStatement', () => {
       expect(result.current.q2Ready).toBe(false);
     });
 
-    it('q3Ready is true when locationFactor is set', () => {
+    it('hasScope is true when locationFactor is set', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
@@ -222,24 +222,24 @@ describe('useProblemStatement', () => {
           questions: [],
         })
       );
-      expect(result.current.q3Ready).toBe(true);
+      expect(result.current.hasScope).toBe(true);
     });
 
-    it('q3Ready is false when locationFactor is absent and no suspected causes', () => {
+    it('hasScope is false when locationFactor is absent and no suspected causes', () => {
       const { result } = renderHook(() =>
         useProblemStatement({ outcome: 'Fill Weight', questions: [] })
       );
-      expect(result.current.q3Ready).toBe(false);
+      expect(result.current.hasScope).toBe(false);
     });
 
-    it('q3Ready is true when there are suspected causes (backward compat)', () => {
+    it('hasScope is true when there are suspected causes (backward compat)', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
           questions: [makeQuestion()],
         })
       );
-      expect(result.current.q3Ready).toBe(true);
+      expect(result.current.hasScope).toBe(true);
     });
 
     it('liveStatement is set when isFormable is true', () => {
@@ -330,6 +330,58 @@ describe('useProblemStatement', () => {
       // isFormable is true (Q1+Q2+Q3), but isReady is false (no question suspected causes)
       expect(result.current.isFormable).toBe(true);
       expect(result.current.isReady).toBe(false);
+    });
+  });
+
+  describe('canGenerateDraft', () => {
+    const locationFactor: LocationFactor = { factor: 'Shift', level: 'Night', evidence: 0.42 };
+
+    it('canGenerateDraft should be true when q1Ready and hasScope (early path)', () => {
+      const { result } = renderHook(() =>
+        useProblemStatement({
+          outcome: 'Fill Weight',
+          locationFactor,
+          questions: [],
+        })
+      );
+      expect(result.current.q1Ready).toBe(true);
+      expect(result.current.hasScope).toBe(true);
+      expect(result.current.canGenerateDraft).toBe(true);
+    });
+
+    it('canGenerateDraft should be true from legacy path (suspected cause questions)', () => {
+      const { result } = renderHook(() =>
+        useProblemStatement({
+          outcome: 'Fill Weight',
+          questions: [makeQuestion()],
+        })
+      );
+      expect(result.current.q1Ready).toBe(true);
+      expect(result.current.hasScope).toBe(true);
+      expect(result.current.canGenerateDraft).toBe(true);
+    });
+
+    it('canGenerateDraft should be false without outcome', () => {
+      const { result } = renderHook(() =>
+        useProblemStatement({
+          outcome: null,
+          locationFactor,
+          questions: [],
+        })
+      );
+      expect(result.current.q1Ready).toBe(false);
+      expect(result.current.canGenerateDraft).toBe(false);
+    });
+
+    it('canGenerateDraft should be false without scope (no locationFactor, no suspected causes)', () => {
+      const { result } = renderHook(() =>
+        useProblemStatement({
+          outcome: 'Fill Weight',
+          questions: [],
+        })
+      );
+      expect(result.current.hasScope).toBe(false);
+      expect(result.current.canGenerateDraft).toBe(false);
     });
   });
 });

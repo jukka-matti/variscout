@@ -57,7 +57,9 @@ export interface UseProblemStatementReturn {
   /** Watson Q2 ready: characteristicType is set */
   q2Ready: boolean;
   /** Watson Q3 ready: locationFactor or at least one suspected-cause question present */
-  q3Ready: boolean;
+  hasScope: boolean;
+  /** Whether a Problem Statement draft can be generated (from either early or legacy path) */
+  canGenerateDraft: boolean;
   /**
    * Auto-built statement when isFormable is true. Updates live as locationFactor
    * and questions change. No "Generate" button required.
@@ -104,11 +106,11 @@ export function useProblemStatement({
   // Watson Q readiness
   const q1Ready = outcome != null && outcome !== '';
   const q2Ready = characteristicType != null;
-  const q3Ready =
+  const hasScope =
     locationFactor != null || questions.some(q => q.causeRole === 'suspected-cause' && q.factor);
 
   // Early formation: all three Watson questions answered
-  const isFormable = q1Ready && q2Ready && q3Ready && locationFactor != null;
+  const isFormable = q1Ready && q2Ready && hasScope && locationFactor != null;
 
   // Legacy suspected causes from question tree
   const suspectedCauses = useMemo(
@@ -125,6 +127,9 @@ export function useProblemStatement({
 
   // Legacy readiness: requires at least one question-based suspected cause
   const isReady = suspectedCauses.length > 0 && q1Ready;
+
+  // canGenerateDraft: true when either early or legacy formation path is viable
+  const canGenerateDraft = q1Ready && hasScope;
 
   // liveStatement: auto-built when isFormable, combining locationFactor + question causes
   const liveStatement = useMemo(() => {
@@ -191,7 +196,8 @@ export function useProblemStatement({
     isFormable,
     q1Ready,
     q2Ready,
-    q3Ready,
+    hasScope,
+    canGenerateDraft,
     liveStatement,
     draft,
     generatedDraft,
