@@ -367,7 +367,6 @@ describe('useDashboardCharts', () => {
 
   describe('handleDrillDown', () => {
     it('delegates to base handleDrillDown and reports factor change via onViewStateChange', () => {
-      mockBaseHandleDrillDown.mockReturnValue('Line');
       const onViewStateChange = vi.fn();
 
       const { result } = renderHook(() => useDashboardCharts({ onViewStateChange }));
@@ -378,8 +377,8 @@ describe('useDashboardCharts', () => {
 
       expect(mockBaseHandleDrillDown).toHaveBeenCalledWith('Operator', 'A');
       expect(onViewStateChange).toHaveBeenCalledWith({
-        boxplotFactor: 'Line',
-        paretoFactor: 'Line',
+        boxplotFactor: 'Operator',
+        paretoFactor: 'Operator',
       });
     });
 
