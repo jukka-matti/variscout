@@ -2,6 +2,8 @@
 title: 'AI Architecture Readiness Review (Archived)'
 ---
 
+> **Note (Apr 2026):** The `causeRole` model described in this document has been superseded by the SuspectedCause hub model. See [Investigation Workspace Reframing](../../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md).
+
 > **ARCHIVED** — Pre-implementation assessment (March 2026). All identified gaps have been resolved. See [AIX Design System](../05-technical/architecture/aix-design-system.md) for current AI standards and [AI Journey Integration](../05-technical/architecture/ai-journey-integration.md) for the AI overview.
 
 # AI Architecture Readiness Review

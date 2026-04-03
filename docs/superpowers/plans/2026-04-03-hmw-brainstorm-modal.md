@@ -4,6 +4,8 @@
 
 **Goal:** Add a dedicated brainstorm modal with HMW prompts, CoScout creative partner mode, and collaborative real-time sessions to the Improvement workspace.
 
+> **Note (Apr 2026):** The brainstorm modal receives SuspectedCause hub context (evidence strength, validation type, Problem Statement fragments) so HMW prompts are grounded in the specific confirmed cause being addressed. See [Investigation Workspace Reframing](../specs/2026-04-03-investigation-workspace-reframing-design.md).
+
 **Architecture:** New BrainstormModal component in `@variscout/ui` sits upstream of the existing IdeaGroupCard evaluate flow. Solo brainstorming works entirely client-side. Collaborative sessions use SSE via 4 new Express endpoints on `server.js` with Blob Storage for session state (Team plan only). CoScout gets a new `spark_brainstorm_ideas` tool and brainstorm coaching prompt section.
 
 **Tech Stack:** React + TypeScript, Tailwind CSS, Express SSE, Azure Blob Storage, Vitest

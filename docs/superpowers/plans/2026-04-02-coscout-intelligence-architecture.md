@@ -8,6 +8,8 @@ title: CoScout Intelligence Architecture (ADR-060) Implementation Plan
 
 **Goal:** Transform CoScout from a context-summarizing assistant into a knowledge-grounded investigation partner with five pillars: hot context quality, investigation retrieval, external document KB, question interaction, and mode-aware question completion.
 
+> **Note (Apr 2026):** CoScout context (hot context pillar) includes SuspectedCause hubs — evidence strength, validation status, Problem Statement fragments, and linked improvement ideas — so CoScout can reason about the current investigation at the cause level rather than just the finding level. See [Investigation Workspace Reframing](../specs/2026-04-03-investigation-workspace-reframing-design.md).
+
 **Architecture:** Three-layer knowledge system (hot/warm/cold) using Foundry IQ for hybrid BM25+vector search. Investigation artifacts serialized to Blob Storage, auto-indexed by Foundry IQ. `KnowledgeAdapter` interface abstracts search backend with fallback chain.
 
 **Tech Stack:** TypeScript, React, Vitest, Azure Blob Storage, Azure AI Search + Foundry IQ, Azure OpenAI (text-embedding-3-small), Express (server.js)

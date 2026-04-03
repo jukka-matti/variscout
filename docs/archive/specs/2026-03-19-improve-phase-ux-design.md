@@ -6,6 +6,8 @@ status: stable
 related: [improve, pdca, findings, ideation, actions, coaching, synthesis, workspace]
 ---
 
+> **Note (Apr 2026):** The `causeRole` model described in this document has been superseded by the SuspectedCause hub model. See [Investigation Workspace Reframing](../../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md).
+
 # IMPROVE Phase UX Design
 
 The IMPROVE phase redesign introduces three key innovations to bridge the gap between investigation convergence and action:

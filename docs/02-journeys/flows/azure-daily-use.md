@@ -161,7 +161,7 @@ Gary can pin multiple findings in one session. Each captures a distinct observat
 ### Phase 2 — Investigation: Questions and Validation
 
 5. Open a Finding → change status to **Investigating** → click **"Add question"**
-6. Type the suspected cause as a question (e.g., "Does Operator B lack training on Product Variant C?")
+6. Type the suspected cause as a question (e.g., "Does Operator B lack training on Product Variant C?") — each question is tracked as a **SuspectedCause hub** entity that aggregates evidence, validation results, and linked improvement ideas
 7. The question **auto-validates via η²** — if the factor's contribution exceeds the threshold, it shows as "Answered"; otherwise "Ruled out"
 8. Create **follow-up questions** to explore branches: diverge (cast wide), validate each (data, gemba walk, or expert input), converge on the answered ones
 9. _(If AI enabled)_ **CoScout** suggests validation approaches when asked; the **PI Panel** shows phase-aware guidance (e.g., "Have you explored [uncovered category]?")

@@ -2,6 +2,8 @@
 title: 'Hypothesis Investigation Flow: Diamond Pattern for Root Cause Analysis'
 ---
 
+> **Note (Apr 2026):** The `causeRole` model described in this document has been superseded by the SuspectedCause hub model. See [Investigation Workspace Reframing](../../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md).
+
 # Hypothesis Investigation Flow: Diamond Pattern for Root Cause Analysis
 
 > **ARCHIVED** — Delivered. See [ADR-020](../../07-decisions/adr-020-investigation-workflow.md) for the canonical decision.
