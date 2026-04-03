@@ -343,7 +343,12 @@ export interface Question {
   manualNote?: string;
   /** Improvement ideas for answered/investigating questions */
   ideas?: ImprovementIdea[];
-  /** Role in investigation conclusion — multiple 'suspected-cause' allowed per tree */
+  /**
+   * Role in investigation conclusion — multiple 'suspected-cause' allowed per tree.
+   * @deprecated Use SuspectedCause hub membership instead. Retained for backward
+   * compatibility and migration. New investigations should create SuspectedCause
+   * hubs and connect questions via questionIds.
+   */
   causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
   /** Source of this question: how it was generated */
   questionSource?: 'factor-intel' | 'heuristic' | 'coscout' | 'analyst';
@@ -506,6 +511,39 @@ export interface InvestigationCategory {
   color?: string;
   /** Keyword that triggered inference, if any (for tooltip display) */
   inferredFrom?: string;
+}
+
+// ============================================================================
+// Suspected Cause Hub (Investigation Reframing)
+// ============================================================================
+
+/**
+ * A suspected cause hub — a named mechanism that connects multiple evidence
+ * threads (questions, findings) into one coherent story.
+ *
+ * This is the primary output of the Investigation Diamond. Each hub drives
+ * one HMW brainstorm session in the IMPROVE phase.
+ *
+ * See: docs/superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md
+ */
+export interface SuspectedCause {
+  id: string;
+  /** Analyst-chosen name: "Nozzle wear on night shift" */
+  name: string;
+  /** Analyst's synthesis: how the evidence connects */
+  synthesis: string;
+  /** Connected question IDs */
+  questionIds: string[];
+  /** Connected finding IDs */
+  findingIds: string[];
+  /** Auto-computed: aggregate evidence from connected questions */
+  totalContribution?: number;
+  /** Status: suspected → confirmed (outcome-based) */
+  status: 'suspected' | 'confirmed' | 'not-confirmed';
+  /** Created timestamp */
+  createdAt: string;
+  /** Updated timestamp */
+  updatedAt: string;
 }
 
 /**
