@@ -3,21 +3,18 @@
  *
  * Extracts common logic from PWA and Azure useDashboardCharts hooks:
  * - Factor state management (boxplot + pareto) with initialization
- * - useVariationTracking composition
  * - useDashboardComputedData composition
  * - useChartCopy composition
  * - Pareto comparison toggle
- * - handleDrillDown with auto-advance to highest-variation factor
+ * - handleDrillDown
  *
  * App wrappers add: focus mode, embed mode, persistence, keyboard nav, chart titles.
  */
 
 import { useState, useCallback, useEffect } from 'react';
 import type { DataRow, AnovaResult, FilterAction, StatsWorkerAPI } from '@variscout/core';
-import { getNextDrillFactor } from '@variscout/core';
 import type { DisplayOptions } from './types';
 import type { BoxplotGroupData } from '@variscout/core';
-import { useVariationTracking, type FilterChipData } from './useVariationTracking';
 import { useDashboardComputedData } from './useDashboardComputedData';
 import { useChartCopy, type UseChartCopyOptions, type UseChartCopyReturn } from './useChartCopy';
 import type { UseFilterNavigationReturn } from './useFilterNavigation';
@@ -71,14 +68,8 @@ export interface UseDashboardChartsBaseResult {
   anovaResult: AnovaResult | null;
   boxplotData: BoxplotGroupData[];
 
-  // Variation tracking
-  cumulativeVariationPct: number | null;
-  factorVariations: Map<string, number>;
-  categoryContributions: Map<string, Map<string | number, number>> | undefined;
-  filterChipData: FilterChipData[];
-
-  // Drill handler — returns the next advanced factor name (or null)
-  handleDrillDown: (factor: string, value: string) => string | null;
+  // Drill handler
+  handleDrillDown: (factor: string, value: string) => void;
 }
 
 export function useDashboardChartsBase({
@@ -86,7 +77,6 @@ export function useDashboardChartsBase({
   filteredData,
   outcome,
   factors,
-  filterStack,
   displayOptions,
   filterNav,
   chartCopyOptions,
@@ -107,10 +97,6 @@ export function useDashboardChartsBase({
       setParetoFactor(prev => (!prev || !factors.includes(prev) ? factors[1] || factors[0] : prev));
     }
   }, [factors]);
-
-  // ── Variation tracking ────────────────────────────────────────────────
-  const { cumulativeVariationPct, factorVariations, categoryContributions, filterChipData } =
-    useVariationTracking(rawData, filterStack, outcome, factors);
 
   // ── Computed data ─────────────────────────────────────────────────────
   const { availableOutcomes, availableStageColumns, anovaResult, boxplotData } =
@@ -136,7 +122,7 @@ export function useDashboardChartsBase({
 
   // ── Drill-down handler ────────────────────────────────────────────────
   const handleDrillDown = useCallback(
-    (factor: string, value: string): string | null => {
+    (factor: string, value: string): void => {
       filterNav.applyFilter({
         type: 'filter',
         source: 'boxplot',
@@ -144,17 +130,11 @@ export function useDashboardChartsBase({
         values: [value],
       });
 
-      const nextFactor = getNextDrillFactor(factorVariations, factor);
-      if (nextFactor) {
-        setBoxplotFactor(nextFactor);
-        setParetoFactor(nextFactor);
-      } else {
-        setBoxplotFactor(factor);
-        setParetoFactor(factor);
-      }
-      return nextFactor;
+      // Keep the same factor after drill (no auto-advance without variation data)
+      setBoxplotFactor(factor);
+      setParetoFactor(factor);
     },
-    [filterNav, factorVariations]
+    [filterNav]
   );
 
   return {
@@ -173,10 +153,6 @@ export function useDashboardChartsBase({
     availableStageColumns,
     anovaResult,
     boxplotData,
-    cumulativeVariationPct,
-    factorVariations,
-    categoryContributions,
-    filterChipData,
     handleDrillDown,
   };
 }

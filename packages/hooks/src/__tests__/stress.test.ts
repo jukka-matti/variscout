@@ -1,15 +1,13 @@
 /**
  * Stress tests for hooks with large datasets.
  *
- * Tests useColumnClassification boundaries and useVariationTracking
- * computation at scale. Hook tests use renderHook from @testing-library/react.
+ * Tests useColumnClassification boundaries.
+ * Hook tests use renderHook from @testing-library/react.
  */
 
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useColumnClassification } from '../useColumnClassification';
-import { useVariationTracking } from '../useVariationTracking';
-import { createFilterAction, type FilterAction } from '@variscout/core';
 import type { DataRow } from '@variscout/core';
 
 // ============================================================================
@@ -154,112 +152,5 @@ describe('useColumnClassification at scale', () => {
       useColumnClassification(data, { excludeColumn: 'Weight', maxCategoricalUnique: 50 })
     );
     expect(raisedResult.current.categorical).toContain('Product');
-  });
-});
-
-// ============================================================================
-// useVariationTracking computation at scale
-// ============================================================================
-
-describe('useVariationTracking at scale', () => {
-  it('10K rows, 3 filters deep -> cumulative variation computed', { timeout: 30_000 }, () => {
-    const machinelevels = Array.from({ length: 5 }, (_, i) => `Machine_${i + 1}`);
-    const shiftLevels = ['Day', 'Night', 'Swing'];
-    const operatorLevels = Array.from({ length: 4 }, (_, i) => `Op_${i + 1}`);
-
-    // Stable references (required by useVariationTracking to avoid infinite loops)
-    const data = buildStressData(
-      10000,
-      { Machine: machinelevels, Shift: shiftLevels, Operator: operatorLevels },
-      'Output',
-      100,
-      5
-    );
-
-    const factors = ['Machine', 'Shift', 'Operator'];
-    const outcome = 'Output';
-
-    // 3-level filter stack
-    const filterStack: FilterAction[] = [
-      createFilterAction({
-        type: 'filter',
-        source: 'ichart',
-        factor: 'Machine',
-        values: ['Machine_1'],
-      }),
-      createFilterAction({ type: 'filter', source: 'ichart', factor: 'Shift', values: ['Day'] }),
-      createFilterAction({
-        type: 'filter',
-        source: 'ichart',
-        factor: 'Operator',
-        values: ['Op_1'],
-      }),
-    ];
-
-    const { result } = renderHook(() => useVariationTracking(data, filterStack, outcome, factors));
-
-    // Should have root + 3 filter levels = 4 breadcrumbs
-    expect(result.current.breadcrumbsWithVariation.length).toBeGreaterThanOrEqual(2);
-    // Cumulative variation should be a valid percentage
-    if (result.current.cumulativeVariationPct !== null) {
-      expect(result.current.cumulativeVariationPct).toBeGreaterThan(0);
-      expect(result.current.cumulativeVariationPct).toBeLessThanOrEqual(100);
-    }
-    // Impact level should be set
-    expect(result.current.impactLevel).not.toBeNull();
-  });
-
-  it('50K rows, 1 filter -> completes without timeout', { timeout: 30_000 }, () => {
-    const levels = Array.from({ length: 10 }, (_, i) => `Group_${i + 1}`);
-    const data = buildStressData(50000, { Group: levels }, 'Value', 100, 5);
-
-    const factors = ['Group'];
-    const outcome = 'Value';
-
-    const filterStack: FilterAction[] = [
-      createFilterAction({
-        type: 'filter',
-        source: 'ichart',
-        factor: 'Group',
-        values: ['Group_1'],
-      }),
-    ];
-
-    const start = performance.now();
-    const { result } = renderHook(() => useVariationTracking(data, filterStack, outcome, factors));
-    const elapsed = performance.now() - start;
-
-    // Should complete, producing a result
-    expect(result.current.breadcrumbsWithVariation.length).toBeGreaterThanOrEqual(2);
-    // Computation should be reasonable (not hanging)
-    expect(elapsed).toBeLessThan(10000);
-  });
-
-  it('factor variations are computed for large dataset', { timeout: 30_000 }, () => {
-    const data = buildStressData(
-      10000,
-      {
-        Machine: Array.from({ length: 8 }, (_, i) => `M_${i + 1}`),
-        Shift: ['Day', 'Night'],
-      },
-      'Weight',
-      100,
-      3
-    );
-
-    const factors = ['Machine', 'Shift'];
-    const outcome = 'Weight';
-    const emptyStack: FilterAction[] = [];
-
-    const { result } = renderHook(() => useVariationTracking(data, emptyStack, outcome, factors));
-
-    // Factor variations should be available
-    expect(result.current.factorVariations.size).toBeGreaterThan(0);
-
-    // Each variation should be a valid percentage
-    for (const [, pct] of result.current.factorVariations) {
-      expect(pct).toBeGreaterThanOrEqual(0);
-      expect(pct).toBeLessThanOrEqual(100);
-    }
   });
 });

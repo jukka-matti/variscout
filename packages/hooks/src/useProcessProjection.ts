@@ -24,7 +24,7 @@ import type {
   CenteringOpportunity,
   SpecSuggestion,
 } from '@variscout/core/variation';
-import type { FilterChipData } from './useVariationTracking';
+import type { FilterAction } from '@variscout/core';
 
 export type { ProcessProjection, CenteringOpportunity, SpecSuggestion };
 
@@ -41,8 +41,8 @@ export interface UseProcessProjectionOptions {
   specs: SpecLimits;
   /** Current computed stats (for filtered data) */
   stats: StatsResult | null;
-  /** Filter chip data (presence indicates drilling) */
-  filterChipData: FilterChipData[];
+  /** Filter stack (presence indicates drilling) */
+  filterStack: FilterAction[];
   /** Scoped findings for cumulative projection (optional, Azure only) */
   scopedFindings?: Finding[];
   /** Benchmark stats + label (Phase 3) */
@@ -111,7 +111,7 @@ export function useProcessProjection(
     outcome,
     specs,
     stats,
-    filterChipData,
+    filterStack,
     scopedFindings,
     benchmark,
     journeyPhase,
@@ -119,7 +119,7 @@ export function useProcessProjection(
     improvementLabel,
   } = options;
 
-  const isDrilling = filterChipData.length > 0;
+  const isDrilling = filterStack.length > 0;
   const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
 
   // Complement stats (everything NOT in the current filter selection)

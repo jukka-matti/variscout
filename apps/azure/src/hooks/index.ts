@@ -32,9 +32,6 @@ export {
 
 // Re-exported directly from @variscout/hooks (no Azure wrapper needed)
 export {
-  useVariationTracking,
-  type VariationTrackingResult,
-  type FilterChipData,
   useResponsiveChartMargins,
   useResponsiveChartFonts,
   useResponsiveTickCount,

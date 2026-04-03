@@ -10,7 +10,6 @@ describe('@variscout/hooks', () => {
     expect(exports.useResponsiveTickCount).toBeDefined();
     expect(exports.useResponsiveBreakpoints).toBeDefined();
     expect(exports.useFilterNavigation).toBeDefined();
-    expect(exports.useVariationTracking).toBeDefined();
     expect(exports.useKeyboardNavigation).toBeDefined();
   });
 });

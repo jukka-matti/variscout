@@ -5,7 +5,6 @@ import Dashboard from '../Dashboard';
 import * as DataContextModule from '../../context/DataContext';
 import * as CoreModule from '@variscout/core';
 import * as UseFilterNavigationModule from '../../hooks/useFilterNavigation';
-import * as UseVariationTrackingModule from '@variscout/hooks';
 
 // Mock components
 vi.mock('../charts/IChart', () => ({ default: () => <div data-testid="i-chart">I-Chart</div> }));
@@ -63,15 +62,6 @@ vi.mock('../../hooks/useFilterNavigation', () => ({
   useFilterNavigation: vi.fn(),
 }));
 
-// Mock useVariationTracking hook (from @variscout/hooks)
-vi.mock('@variscout/hooks', async () => {
-  const actual = await vi.importActual('@variscout/hooks');
-  return {
-    ...actual,
-    useVariationTracking: vi.fn(),
-  };
-});
-
 describe('Dashboard', () => {
   const mockApplyFilter = vi.fn();
   const mockNavigateTo = vi.fn();
@@ -90,14 +80,6 @@ describe('Dashboard', () => {
     clearHighlight: vi.fn(),
   };
 
-  const mockVariationTrackingReturn = {
-    breadcrumbsWithVariation: [{ id: 'root', label: 'All Data', isActive: true, source: 'ichart' }],
-    cumulativeVariationPct: null,
-    factorVariations: new Map(),
-    impactLevel: null,
-    insightText: null,
-  };
-
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.spyOn(UseFilterNavigationModule, 'useFilterNavigation').mockReturnValue(
@@ -108,11 +90,6 @@ describe('Dashboard', () => {
     vi.spyOn(UseFilterNavigationModule, 'default').mockReturnValue(
       mockFilterNavigationReturn as unknown as ReturnType<
         typeof UseFilterNavigationModule.useFilterNavigation
-      >
-    );
-    vi.spyOn(UseVariationTrackingModule, 'useVariationTracking').mockReturnValue(
-      mockVariationTrackingReturn as unknown as ReturnType<
-        typeof UseVariationTrackingModule.useVariationTracking
       >
     );
   });
