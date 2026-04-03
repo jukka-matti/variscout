@@ -383,3 +383,6 @@ export {
   type UseDocumentShelfOptions,
   type UseDocumentShelfReturn,
 } from './useDocumentShelf';
+
+// HMW Prompts (How Might We prompt generation for brainstorm modal)
+export { useHMWPrompts } from './useHMWPrompts';
