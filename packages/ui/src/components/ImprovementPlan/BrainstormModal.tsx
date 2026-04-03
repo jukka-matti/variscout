@@ -3,6 +3,7 @@ import { X, Sparkles } from 'lucide-react';
 import type { IdeaDirection } from '@variscout/core';
 import type { BrainstormIdea } from '@variscout/core/findings';
 import { useTranslation } from '@variscout/hooks';
+import { useIsMobile } from '../../hooks';
 import { BrainstormQuadrant } from './BrainstormQuadrant';
 import { VoteButton } from './VoteButton';
 
@@ -58,6 +59,8 @@ export const BrainstormModal: React.FC<BrainstormModalProps> = ({
   const { t } = useTranslation();
   const [step, setStep] = useState<'brainstorm' | 'select'>('brainstorm');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<IdeaDirection>('prevent');
+  const isMobile = useIsMobile();
 
   if (!isOpen) return null;
 
@@ -131,24 +134,57 @@ export const BrainstormModal: React.FC<BrainstormModalProps> = ({
         <div className="flex-1 overflow-y-auto">
           {step === 'brainstorm' ? (
             <div className="p-4 flex flex-col gap-4">
-              {/* 2×2 HMW Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {DIRECTIONS.map(direction => (
-                  <div
-                    key={direction}
-                    className="border border-edge rounded-lg bg-surface-secondary overflow-hidden"
-                  >
+              {isMobile ? (
+                <>
+                  {/* Mobile: tab bar + single active quadrant */}
+                  <div className="flex border-b border-edge -mx-4 px-4">
+                    {DIRECTIONS.map(d => (
+                      <button
+                        key={d}
+                        data-testid={`brainstorm-tab-${d}`}
+                        onClick={() => setActiveTab(d)}
+                        className={`flex-1 py-2 text-center text-xs transition-colors ${
+                          activeTab === d
+                            ? 'border-b-2 border-blue-400 text-content font-semibold'
+                            : 'text-content/40'
+                        }`}
+                      >
+                        <div>{DIRECTION_LABELS[d]}</div>
+                        <div className="text-[10px] opacity-50">{ideasByDirection(d).length}</div>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="border border-edge rounded-lg bg-surface-secondary overflow-hidden">
                     <BrainstormQuadrant
-                      direction={direction}
-                      hmwPrompt={hmwPrompts[direction]}
-                      ideas={ideasByDirection(direction)}
+                      direction={activeTab}
+                      hmwPrompt={hmwPrompts[activeTab]}
+                      ideas={ideasByDirection(activeTab)}
                       onAddIdea={onAddIdea}
                       onEditIdea={onEditIdea}
                       onRemoveIdea={onRemoveIdea}
                     />
                   </div>
-                ))}
-              </div>
+                </>
+              ) : (
+                /* Desktop: 2×2 grid */
+                <div className="grid grid-cols-2 gap-3">
+                  {DIRECTIONS.map(direction => (
+                    <div
+                      key={direction}
+                      className="border border-edge rounded-lg bg-surface-secondary overflow-hidden"
+                    >
+                      <BrainstormQuadrant
+                        direction={direction}
+                        hmwPrompt={hmwPrompts[direction]}
+                        ideas={ideasByDirection(direction)}
+                        onAddIdea={onAddIdea}
+                        onEditIdea={onEditIdea}
+                        onRemoveIdea={onRemoveIdea}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* CoScout insight bar */}
               {coScoutInsight && (

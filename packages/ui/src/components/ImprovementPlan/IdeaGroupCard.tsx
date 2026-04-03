@@ -47,6 +47,10 @@ export interface IdeaGroupCardProps {
   convertedIdeaIds?: Set<string>;
   /** Open brainstorm modal for this cause */
   onOpenBrainstorm?: (questionId: string) => void;
+  /** Ideas that were brainstormed but not selected — shown dimmed as "parked" */
+  parkedIdeas?: Array<{ id: string; text: string; direction?: IdeaDirection }>;
+  /** Promote a parked idea to the active list */
+  onPromoteIdea?: (ideaId: string) => void;
 }
 
 const TIMEFRAME_OPTIONS: Array<{
@@ -283,6 +287,8 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
   onIdeaHover,
   highlightedIdeaId,
   onOpenBrainstorm,
+  parkedIdeas,
+  onPromoteIdea,
 }) => {
   const { t } = useTranslation();
   const [newIdeaText, setNewIdeaText] = useState('');
@@ -515,6 +521,30 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
           >
             {t('idea.askCoScoutForIdeas')}
           </button>
+        </div>
+      )}
+
+      {/* Parked ideas */}
+      {parkedIdeas && parkedIdeas.length > 0 && (
+        <div className="px-4 pb-3 mt-2 pt-2 border-t border-edge/50">
+          <p className="text-[10px] text-content/30 uppercase tracking-wider mb-1">Parked ideas</p>
+          {parkedIdeas.map(idea => (
+            <div
+              key={idea.id}
+              data-testid={`parked-idea-${idea.id}`}
+              className="flex items-center gap-2 px-2 py-1 text-xs text-content/30 group"
+            >
+              <span className="flex-1 line-through">{idea.text}</span>
+              {onPromoteIdea && (
+                <button
+                  onClick={() => onPromoteIdea(idea.id)}
+                  className="opacity-0 group-hover:opacity-100 text-[10px] text-blue-400 hover:text-blue-300 transition-opacity"
+                >
+                  Promote
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
