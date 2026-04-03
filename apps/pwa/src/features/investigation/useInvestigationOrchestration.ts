@@ -1,20 +1,23 @@
 /**
- * useInvestigationOrchestration - Investigation/question orchestration for Azure Editor
+ * useInvestigationOrchestration - Investigation/question orchestration for PWA
  *
  * Owns the investigation workflow: calls useQuestions (CRUD engine from @variscout/hooks),
- * syncs computed state (questionsMap, ideaImpacts) to the Zustand investigationStore
- * for selector-based reads, and provides DataContext-dependent action callbacks.
+ * syncs computed state (questionsMap, ideaImpacts, suspectedCauses) to the Zustand
+ * investigationStore for selector-based reads, and provides DataContext-dependent action callbacks.
  */
-import { useMemo, useCallback, useEffect } from 'react';
+import { useMemo, useCallback, useEffect, useRef } from 'react';
 import { computeIdeaImpact } from '@variscout/core';
+import { migrateCauseRolesToHubs } from '@variscout/core/findings';
 import { useInvestigationStore } from './investigationStore';
 import { usePanelsStore } from '../panels/panelsStore';
+import { useSuspectedCauses } from '@variscout/hooks';
 import type {
   Finding,
   FindingProjection,
   FindingStatus,
   ProcessContext,
   StatsResult,
+  SuspectedCause,
 } from '@variscout/core';
 import type { UseQuestionsReturn } from '@variscout/hooks';
 
@@ -45,6 +48,23 @@ export interface UseInvestigationOrchestrationReturn {
   clearProjectionTarget: () => void;
   /** Set finding status with automatic idea-to-action conversion */
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
+  /** Full suspected causes hook state — hub CRUD operations for the Investigation workspace */
+  suspectedCausesState: {
+    hubs: SuspectedCause[];
+    createHub: (name: string, synthesis: string) => SuspectedCause;
+    updateHub: (
+      hubId: string,
+      updates: Partial<Pick<SuspectedCause, 'name' | 'synthesis'>>
+    ) => void;
+    deleteHub: (hubId: string) => void;
+    connectQuestion: (hubId: string, questionId: string) => void;
+    disconnectQuestion: (hubId: string, questionId: string) => void;
+    connectFinding: (hubId: string, findingId: string) => void;
+    disconnectFinding: (hubId: string, findingId: string) => void;
+    setHubStatus: (hubId: string, status: SuspectedCause['status']) => void;
+    getHubForQuestion: (questionId: string) => SuspectedCause | undefined;
+    getHubForFinding: (findingId: string) => SuspectedCause | undefined;
+  };
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────
@@ -55,6 +75,42 @@ export function useInvestigationOrchestration({
   processContext,
   stats,
 }: UseInvestigationOrchestrationOptions): UseInvestigationOrchestrationReturn {
+  // ── Suspected cause hubs ──────────────────────────────────────────────
+  const syncSuspectedCauses = useInvestigationStore.getState().syncSuspectedCauses;
+  const suspectedCausesState = useSuspectedCauses({
+    initialHubs: [],
+    onHubsChange: syncSuspectedCauses,
+  });
+
+  // One-time migration: if hubs are empty and questions have legacy causeRole markers,
+  // create hubs from those questions. Runs only once per orchestration mount.
+  const migrationDoneRef = useRef(false);
+  useEffect(() => {
+    if (migrationDoneRef.current) return;
+    if (suspectedCausesState.hubs.length > 0) {
+      migrationDoneRef.current = true;
+      return;
+    }
+    const questionsWithCauseRole = questionsState.questions.filter(
+      q => q.causeRole === 'suspected-cause'
+    );
+    if (questionsWithCauseRole.length > 0) {
+      const migratedHubs = migrateCauseRolesToHubs(questionsWithCauseRole);
+      if (migratedHubs.length > 0) {
+        syncSuspectedCauses(migratedHubs);
+      }
+    }
+    migrationDoneRef.current = true;
+    // Only run once on mount — intentionally omit questionsState.questions from deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the store in sync whenever hubs change via the onHubsChange callback above.
+  // The initial sync ensures the store reflects the current hubs on first render.
+  useEffect(() => {
+    syncSuspectedCauses(suspectedCausesState.hubs);
+  }, [suspectedCausesState.hubs, syncSuspectedCauses]);
+
   // ── Sync questions to Zustand store ──────────────────────────────────
   const syncQuestions = useInvestigationStore.getState().syncQuestions;
   useEffect(() => {
@@ -196,5 +252,6 @@ export function useInvestigationOrchestration({
     handleSaveIdeaProjection,
     clearProjectionTarget,
     handleSetFindingStatus,
+    suspectedCausesState,
   };
 }
