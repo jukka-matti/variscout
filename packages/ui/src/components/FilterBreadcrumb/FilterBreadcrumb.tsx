@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { ChevronDown, Pin, X } from 'lucide-react';
-import type { FilterChipData } from '@variscout/hooks';
-import { VariationBar, type VariationBarColorScheme } from '../VariationBar';
+import type { FilterChipData } from '../filterTypes';
 import { FilterChipDropdown, type FilterChipDropdownColorScheme } from '../FilterChipDropdown';
 
 /**
@@ -22,8 +21,6 @@ export interface FilterBreadcrumbColorScheme {
   chipHoverBg: string;
   /** Remove button border (e.g., 'border-edge/50' or 'border-slate-600/50') */
   removeBorder: string;
-  /** VariationBar color scheme */
-  variationBar: VariationBarColorScheme;
   /** FilterChipDropdown color scheme */
   dropdown: FilterChipDropdownColorScheme;
 }
@@ -39,13 +36,6 @@ export const defaultColorScheme: FilterBreadcrumbColorScheme = {
   chipBg: 'bg-surface-tertiary/50',
   chipHoverBg: 'hover:bg-surface-tertiary/70',
   removeBorder: 'border-edge/50',
-  variationBar: {
-    barBg: 'bg-surface-tertiary/50',
-    tooltipBg: 'bg-surface-secondary',
-    tooltipBorder: 'border-edge',
-    contentText: 'text-content',
-    mutedText: 'text-content-muted',
-  },
   dropdown: {
     secondaryBg: 'bg-surface-secondary',
     tertiaryBg: 'bg-surface-tertiary/50',
@@ -61,7 +51,7 @@ export const defaultColorScheme: FilterBreadcrumbColorScheme = {
 };
 
 export interface FilterBreadcrumbProps {
-  /** Filter chip data from useVariationTracking */
+  /** Filter chip data for active filters */
   filterChipData: FilterChipData[];
   /** Column aliases for display labels */
   columnAliases?: Record<string, string>;
@@ -71,12 +61,8 @@ export interface FilterBreadcrumbProps {
   onRemoveFilter: (factor: string) => void;
   /** Called when user clicks Clear All */
   onClearAll?: () => void;
-  /** Final cumulative variation percentage (for variation bar display) */
-  cumulativeVariationPct?: number | null;
   /** Color scheme for styling */
   colorScheme?: FilterBreadcrumbColorScheme;
-  /** Optional click handler for VariationBar (e.g., to open investigation panel) */
-  onVariationBarClick?: () => void;
   /** Optional callback to pin current filter state as a finding */
   onPinFinding?: () => void;
 }
@@ -96,17 +82,14 @@ function formatChipValues(values: (string | number)[]): string {
  * Enhanced filter breadcrumb using chips instead of breadcrumb trail
  *
  * Features:
- * - Filter chips with contribution % (not local eta-squared)
+ * - Filter chips showing Factor = Value (n=X)
  * - Multi-select dropdown for each chip
  * - Remove button per chip
  * - Clear all button
- * - Variation bar showing total variation in focus
  *
  * Design:
  * ```
- * [Shift: Night v 45%] [Machine: A, C v 32%]      [x Clear]
- *
- * [||||||||||||||||------------------] 60% of variation in focus
+ * [Shift: Night v (n=45)] [Machine: A, C v (n=32)]      [x Clear]
  * ```
  *
  * @example
@@ -116,7 +99,6 @@ function formatChipValues(values: (string | number)[]): string {
  *   filterChipData={filterChipData}
  *   onUpdateFilterValues={handleUpdate}
  *   onRemoveFilter={handleRemove}
- *   cumulativeVariationPct={45}
  * />
  *
  * ```
@@ -127,9 +109,7 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
   onUpdateFilterValues,
   onRemoveFilter,
   onClearAll,
-  cumulativeVariationPct,
   colorScheme = defaultColorScheme,
-  onVariationBarClick,
   onPinFinding,
 }) => {
   // Track which chip's dropdown is open
@@ -179,36 +159,11 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
     [onRemoveFilter]
   );
 
-  // Show variation bar when we have cumulative variation
-  const showVariationBar = cumulativeVariationPct !== undefined && cumulativeVariationPct !== null;
-
   // Ensure filterChipData is an array
   const chips = filterChipData || [];
 
   // Empty state: no filters applied
-  if (chips.length === 0) {
-    if (!showVariationBar) return null;
-
-    return (
-      <div
-        className={`flex flex-col ${colorScheme.containerBg} border-b ${colorScheme.border}`}
-        aria-live="polite"
-      >
-        <div className="flex items-center gap-2 px-4 sm:px-6 py-2">
-          <span className={`text-sm ${colorScheme.textMuted}`}>No filters applied</span>
-        </div>
-        <div className="px-4 sm:px-6 pb-2">
-          <VariationBar
-            isolatedPct={0}
-            showLabels={true}
-            className="max-w-xs"
-            colorScheme={colorScheme.variationBar}
-            onClick={onVariationBarClick}
-          />
-        </div>
-      </div>
-    );
-  }
+  if (chips.length === 0) return null;
 
   return (
     <div
@@ -237,33 +192,29 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
                   transition-colors
                   ${isOpen ? 'bg-blue-500/20 text-blue-300' : `${colorScheme.chipBg} text-white ${colorScheme.chipHoverBg}`}
                 `}
-                title={`${factorLabel} contributes ${Math.round(chipData.contributionPct)}% of total variation. Click to modify selection.`}
+                title={`${factorLabel}: ${formatChipValues(chipData.values)}. Click to modify selection.`}
               >
                 {/* Factor and values */}
                 <span className="font-medium">{factorLabel}:</span>
                 <span className="max-w-[120px] truncate">{formatChipValues(chipData.values)}</span>
+
+                {/* Sample count badge */}
+                {(() => {
+                  const totalCount = chipData.availableValues
+                    .filter(v => chipData.values.map(String).includes(String(v.value)))
+                    .reduce((sum, v) => sum + v.count, 0);
+                  return (
+                    <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-medium bg-blue-500/20 text-blue-400">
+                      n={totalCount}
+                    </span>
+                  );
+                })()}
 
                 {/* Dropdown indicator */}
                 <ChevronDown
                   size={12}
                   className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
                 />
-
-                {/* Contribution badge */}
-                <span
-                  className={`
-                    px-1.5 py-0.5 rounded text-[0.625rem] font-medium
-                    ${
-                      chipData.contributionPct >= 50
-                        ? 'bg-green-500/20 text-green-400'
-                        : chipData.contributionPct >= 30
-                          ? 'bg-amber-500/20 text-amber-400'
-                          : 'bg-blue-500/20 text-blue-400'
-                    }
-                  `}
-                >
-                  {Math.round(chipData.contributionPct)}%
-                </span>
               </button>
 
               {/* Remove button */}
@@ -319,19 +270,6 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
           </button>
         )}
       </div>
-
-      {/* Variation Bar */}
-      {showVariationBar && (
-        <div className="px-4 sm:px-6 pb-2">
-          <VariationBar
-            isolatedPct={cumulativeVariationPct!}
-            showLabels={true}
-            className="max-w-xs"
-            colorScheme={colorScheme.variationBar}
-            onClick={onVariationBarClick}
-          />
-        </div>
-      )}
 
       {/* Dropdown portal */}
       {openDropdown && dropdownAnchorRect && (

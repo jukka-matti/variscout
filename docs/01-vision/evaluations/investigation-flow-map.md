@@ -62,16 +62,15 @@ The analyst clicks the Store South bar in the Boxplot (or selects Store = Store 
 - **Boxplot**: Now shows Time_Slot groups within Store South. Dinner bar is tallest/widest. Lunch is tightest.
 - **Pareto**: Ranked by Time_Slot within Store South.
 - **Stats Panel**: Store South statistics (mean ~35, higher std dev).
-- **FilterBreadcrumb**: A chip appears: **"Store: South 45%"** — indicating Store explains ~45% of total variation. The badge is green (≥50% threshold may not be hit; depends on actual η²; could be amber at ~40%).
+- **FilterBreadcrumb**: A chip appears: **"Store: South (n=60)"** — showing the sample count for the filtered subset.
 
 **Existing guidance at this step:**
 
-- FilterBreadcrumb shows **contribution %** badge on the Store chip. (`FilterBreadcrumb.tsx:272–297`)
+- FilterBreadcrumb shows n=X badge on the Store chip. (`FilterBreadcrumb.tsx:272–297`)
 - Boxplot shows **"↓ drill here"** on the Dinner bar (highest η² among Time_Slot levels within the filtered data).
-- VariationBar updates to show cumulative explained variation.
 
 **Gap — no "suggested next factor" after first drill:**
-The analyst sees the contribution % on the active filter and the "↓ drill here" on the next Boxplot. But there's no explicit prompt like "Time_Slot explains 25% of remaining variation — try this next." The analyst must infer from the Boxplot label that Dinner is worth investigating.
+The analyst sees the n=X count on the active filter and the "↓ drill here" on the next Boxplot. But there's no explicit prompt like "Time_Slot explains 25% of remaining variation — try this next." The analyst must infer from the Boxplot label that Dinner is worth investigating.
 
 **What the Investigation Mindmap would show:**
 Store node is highlighted/filled (active filter). A trail leads from the center (start) to Store. Time_Slot and Day nodes are outlined (available). Time_Slot is larger than Day (higher η² on remaining data). The "suggested next" node (Time_Slot) pulses gently.
@@ -113,14 +112,13 @@ The analyst clicks Dinner in the Boxplot (or uses the "Drill →" button in the 
 
 - **I-Chart**: Store South, Dinner only. Tighter distribution (noise from non-Dinner slots removed).
 - **Boxplot**: Now shows Day groups within Store South + Dinner. Bars are relatively even (Day has low η²).
-- **FilterBreadcrumb**: Two chips: **"Store: South 45%"** and **"Time_Slot: Dinner 25%"**. The percentages show each factor's individual contribution.
+- **FilterBreadcrumb**: Two chips: **"Store: South (n=60)"** and **"Time_Slot: Dinner (n=20)"**. The sample counts show the filtered subset size at each drill level.
 - **Stats Panel**: Filtered statistics for Store South × Dinner.
 
 **Existing guidance at this step:**
 
-- Two contribution % badges in the FilterBreadcrumb.
+- Two n=X badges in the FilterBreadcrumb.
 - Boxplot "↓ drill here" on the highest-η² Day bar (likely weak signal).
-- VariationBar shows cumulative ~55–60% explained.
 - **InteractionGuidance appears**: With 2+ factors in the drill stack, the `InteractionGuidance` component renders: "When factors interact (e.g., Store × Time_Slot), use the Regression Panel with 'Include interactions'." (`InteractionGuidance.tsx:26`)
 
 **Gap — interaction guidance is text-only:**
@@ -211,15 +209,15 @@ The drill trail is complete: Start → Store South → Time_Slot: Dinner. Two no
 
 ## Summary: Guidance Coverage by Step
 
-| Step | Description              | Existing Guidance                        | Gaps                                     | Phase 1 (Factor Suggestion)                      | Phase 2 (Interaction Heatmap)               | Phase 3 (Mindmap/Narrative)              |
-| ---- | ------------------------ | ---------------------------------------- | ---------------------------------------- | ------------------------------------------------ | ------------------------------------------- | ---------------------------------------- |
-| 1    | Data loaded              | Boxplot "↓ drill here"                   | No "start here" for novices              | Add suggestion chip with η² value                | —                                           | Mindmap shows factor landscape           |
-| 2    | First drill (Store)      | Contribution %, Boxplot label            | No "suggested next factor"               | Suggestion chip: "Try Time_Slot — 25% remaining" | —                                           | Drill trail begins                       |
-| 3    | Funnel opened            | Rich: ranking, Cpk, cumulative           | Funnel is hidden, covers charts          | Surface key metrics in main view                 | —                                           | Mindmap provides always-visible overview |
-| 4    | Second drill (Time_Slot) | Contribution %, InteractionGuidance      | Interaction guidance is text-only        | —                                                | Heatmap shows Store × Time_Slot interaction | Mindmap shows interaction edges          |
-| 5    | Consider Day (weak)      | Boxplot label (no weak-signal indicator) | No diminishing returns signal            | Muted suggestion styling for weak factors        | —                                           | Small/dim Day node signals weakness      |
-| 6    | Check interactions       | Regression coefficients table            | Results require expert interpretation    | —                                                | Heatmap pre-computes and visualizes         | —                                        |
-| 7    | Investigation complete   | Cumulative bar (if Funnel open)          | No narrative summary, no stopping prompt | Stopping signal: "You've explained X%"           | —                                           | Narrative mode generates presentation    |
+| Step | Description              | Existing Guidance                        | Gaps                                     | Phase 1 (Factor Suggestion)                | Phase 2 (Interaction Heatmap)               | Phase 3 (Mindmap/Narrative)              |
+| ---- | ------------------------ | ---------------------------------------- | ---------------------------------------- | ------------------------------------------ | ------------------------------------------- | ---------------------------------------- |
+| 1    | Data loaded              | Boxplot "↓ drill here"                   | No "start here" for novices              | Add suggestion chip with η² value          | —                                           | Mindmap shows factor landscape           |
+| 2    | First drill (Store)      | η², Boxplot label                        | No "suggested next factor"               | Suggestion chip: "Try Time_Slot — η²=0.25" | —                                           | Drill trail begins                       |
+| 3    | Funnel opened            | Rich: ranking, Cpk, cumulative           | Funnel is hidden, covers charts          | Surface key metrics in main view           | —                                           | Mindmap provides always-visible overview |
+| 4    | Second drill (Time_Slot) | η², InteractionGuidance                  | Interaction guidance is text-only        | —                                          | Heatmap shows Store × Time_Slot interaction | Mindmap shows interaction edges          |
+| 5    | Consider Day (weak)      | Boxplot label (no weak-signal indicator) | No diminishing returns signal            | Muted suggestion styling for weak factors  | —                                           | Small/dim Day node signals weakness      |
+| 6    | Check interactions       | Regression coefficients table            | Results require expert interpretation    | —                                          | Heatmap pre-computes and visualizes         | —                                        |
+| 7    | Investigation complete   | Cumulative bar (if Funnel open)          | No narrative summary, no stopping prompt | Stopping signal: "You've explained X%"     | —                                           | Narrative mode generates presentation    |
 
 ---
 

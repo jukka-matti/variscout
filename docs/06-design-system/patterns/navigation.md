@@ -193,29 +193,27 @@ Findings can be opened in a separate window via `?view=findings`. The popout rec
 
 ## 4. Filter Navigation
 
-Filter chips show active filters with contribution % to total variation:
+Filter chips show active filters with the sample count (`n=X`) for the selected values:
 
 ```
-┌────────────────────┐  ┌────────────────────┐  ┌────────────────────┐
-│ Shift: Night ▼ 67% │  │ Machine: C ▼ 24%   │  │ Operator: Kim ▼ 9% │
-└────────────────────┘  └────────────────────┘  └────────────────────┘
+┌────────────────────────┐  ┌────────────────────────┐  ┌────────────────────────┐
+│ Shift: Night ▼ n=240   │  │ Machine: C ▼ n=80      │  │ Operator: Kim ▼ n=40   │
+└────────────────────────┘  └────────────────────────┘  └────────────────────────┘
 ```
 
 ### Implementation
 
 ```tsx
-import { useFilterNavigation, useVariationTracking } from '@variscout/hooks';
+import { useFilterNavigation } from '@variscout/hooks';
 
 const { filterStack, updateFilterValues, removeFilter } = useFilterNavigation(context);
-const { filterChipData } = useVariationTracking(rawData, filterStack, outcome, factors);
 
 {
-  filterChipData.map(chip => (
+  filterStack.map(chip => (
     <FilterChipDropdown
       key={chip.factor}
       factor={chip.factor}
       values={chip.values}
-      contributionPct={chip.contributionPct}
       availableValues={chip.availableValues}
       onValuesChange={newValues => updateFilterValues(chip.factor, newValues)}
       onRemove={() => removeFilter(chip.factor)}
@@ -229,8 +227,8 @@ const { filterChipData } = useVariationTracking(rawData, filterStack, outcome, f
 | Element         | Style                                    |
 | --------------- | ---------------------------------------- |
 | Chip            | Rounded pill with factor name and values |
-| Percentage      | Contribution % to TOTAL variation        |
-| Dropdown arrow  | Click to reveal all values with %        |
+| Sample count    | `n=X` showing rows matching the filter   |
+| Dropdown arrow  | Click to reveal all values with n=X      |
 | Selected values | Checkmarks in dropdown                   |
 | Remove button   | X icon or "Remove Filter" in dropdown    |
 
@@ -240,22 +238,15 @@ Chips support selecting multiple values within a factor:
 
 ```
 ┌────────────────────────┐
-│ Machine: A, C ▼ 45%    │
+│ Machine: A, C ▼ n=160  │
 └────────────────────────┘
 ```
-
-### Contribution % vs Local η²
-
-- **Contribution %** (shown in chips): Percentage of TOTAL variation from the original unfiltered data (via Total SS tracking)
-- **Local η²**: Percentage of variation at the current filtered level (used internally for ANOVA significance)
-
-Filter chips always show contribution to TOTAL variation, making cumulative impact intuitive.
 
 ### Navigation Actions
 
 | Action                | Result                                           |
 | --------------------- | ------------------------------------------------ |
-| Click chip dropdown   | Show all values with contribution %              |
+| Click chip dropdown   | Show all values with n=X counts                  |
 | Toggle value checkbox | Add/remove value from selection                  |
 | Click "Remove Filter" | Remove entire filter for that factor             |
 | Click "Clear All"     | Reset to unfiltered view                         |
@@ -265,7 +256,6 @@ Filter chips always show contribution to TOTAL variation, making cumulative impa
 ### Key Components
 
 - `useFilterNavigation` — Filter stack management, apply/update/remove/clear
-- `useVariationTracking` — Total SS scope tracking, contribution % calculation
 - `FilterBreadcrumb` — Sticky filter context bar
 - `FilterChipDropdown` — Individual chip with dropdown
 

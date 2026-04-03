@@ -169,11 +169,16 @@ Pass `analysisMode` (optional) to `generateInitialQuestions()` in `useHypotheses
 | `packages/hooks/src/useHypotheses.ts`                             | Wire `analysisMode` to `generateInitialQuestions()`             |
 | `packages/ui/src/components/FindingsWindow/QuestionChecklist.tsx` | Mode-aware evidence badge                                       |
 
+## Note: Standard ANOVA Metrics (ADR-062)
+
+Since **ADR-062** (Apr 2026), the "Category Total SS %" metric for Standard/Capability/Performance modes is removed. Those modes use η² and R²adj directly. The Yamazumi "waste contribution %" (a lean domain metric, not an ANOVA metric) is unaffected and remains as specified here.
+
 ## References
 
 - [ADR-053: Question-Driven Investigation](adr-053-question-driven-investigation.md) — base question model
 - [ADR-052: Factor Intelligence](adr-052-factor-intelligence.md) — 3-layer factor analysis
 - [ADR-047: Analysis Mode Strategy Pattern](adr-047-analysis-mode-strategy.md) — strategy registry
 - [ADR-034: Yamazumi Analysis Mode](adr-034-yamazumi-analysis-mode.md) — Yamazumi data model
+- [ADR-062: Standard ANOVA Metrics](adr-062-standard-anova-metrics.md)
 - [EDA Mental Model](../01-vision/eda-mental-model.md) — Turtiainen 2019 methodology
 - [AI Context Engineering](../05-technical/architecture/ai-context-engineering.md) — CoScout mode coaching

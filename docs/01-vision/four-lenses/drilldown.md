@@ -47,19 +47,16 @@ Action: Primary driver identified — investigate Machine C conditions
 ### Filter Chips UI
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ ACTIVE FILTERS                                                          │
-│                                                                         │
-│ ┌────────────────────┐  ┌────────────────────┐  ┌────────────────────┐ │
-│ │ Shift: Night ▼ 67% │  │ Machine: C ▼ 24%   │  │ Operator: Kim ▼ 9% │ │
-│ └────────────────────┘  └────────────────────┘  └────────────────────┘ │
-│                                                                         │
-│ CUMULATIVE: 46% of total variation in focus                            │
-│ "Fix this combination to address nearly half your quality problems"    │
-└─────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ACTIVE FILTERS                                                               │
+│                                                                              │
+│ ┌──────────────────────────┐  ┌───────────────────────┐  ┌────────────────┐ │
+│ │ Shift: Night ▼ n=240     │  │ Machine: C ▼ n=80     │  │ Op.: Kim ▼ n=40│ │
+│ └──────────────────────────┘  └───────────────────────┘  └────────────────┘ │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Each chip shows contribution % to TOTAL variation (not local η²).
+Each chip shows `n=X` — the sample count for the selected filter values. η² is shown in the ANOVA stats panel.
 
 ---
 
@@ -73,21 +70,25 @@ This is the killer insight of the entire methodology. Filter chips aren't just n
 VariScout identifies **factors driving variation**, not "root causes." EDA shows _which_ factors explain variation — the _why_ requires further investigation (5 Whys, experimentation, Gemba walks). This distinction matters: we quantify contribution, not causation.
 :::
 
-### The Math Behind Contribution %
+### The Math Behind η²
 
-Each filter's contribution % shows what portion of TOTAL variation it captures:
+Each factor's η² (eta-squared) shows the proportion of total variation explained by that factor at the current analysis level. It is computed from the ANOVA decomposition:
 
 ```
-FILTER CHIP                  CONTRIBUTION TO TOTAL    MEANING
-────────────────────────────────────────────────────────────────────────
-[Shift: Night ▼ 67%]         67% of total             Night shift alone
-[Machine: C ▼ 24%]           24% of total             Machine C within context
-[Operator: Kim ▼ 9%]         9% of total              Kim within context
-
-CUMULATIVE ISOLATION: ~46% of total variation in ONE condition
+η² = SS_between / SS_total
 ```
 
-**The insight:** By applying three filters, you've isolated 46.5% of ALL your variation into ONE specific condition: Operator Kim on Machine C during Night Shift.
+Where `SS_between` is the sum of squares explained by the factor and `SS_total` is the total sum of squares. η² ranges from 0 to 1 (shown as 0–100%).
+
+```
+FILTER CHIP                    η²      MEANING
+──────────────────────────────────────────────────────────────────────
+[Shift: Night ▼ n=240]         0.67    Shift explains 67% of variation
+[Machine: C ▼ n=80]            0.24    Machine C explains 24% within context
+[Operator: Kim ▼ n=40]         0.09    Operator explains 9% within context
+```
+
+**The insight:** By applying three filters, you've isolated a specific condition (Operator Kim on Machine C during Night Shift) that cumulatively accounts for a large share of your process variation.
 
 ---
 
@@ -113,13 +114,13 @@ DEPTH    FILTER CHIPS                         FINDING                 ACTIONABIL
 Level 0  (no filters)                         "We have variation"     ❌ Not actionable
                                                                       "Improve everything"
 
-Level 1  [Shift: Night ▼ 67%]                 "It's shift-related"    ⚠️ Somewhat actionable
+Level 1  [Shift: Night ▼ n=240]               "It's shift-related"    ⚠️ Somewhat actionable
                                                                       "Look at shift practices"
 
-Level 2  + [Machine: C ▼ 24%]                 "Night + Machine C"     ✓ Actionable
+Level 2  + [Machine: C ▼ n=80]                "Night + Machine C"     ✓ Actionable
                                                                       "Investigate Machine C"
 
-Level 3  + [Operator: Kim ▼ 9%]               "Kim on C at Night"     ✓✓ Highly actionable
+Level 3  + [Operator: Kim ▼ n=40]             "Kim on C at Night"     ✓✓ Highly actionable
                                                                       "Fix Machine C setup/maint"
 ```
 
@@ -127,19 +128,16 @@ Level 3  + [Operator: Kim ▼ 9%]               "Kim on C at Night"     ✓✓ H
 
 ## Reading Filter Chips
 
-**Contribution % (shown in chip):**
-
-> "Of TOTAL variation from ALL data, how much does this specific selection capture?"
-
-Unlike local η² which shows variation at the current filtered level, contribution % always references the original dataset.
+Filter chips show `n=X` — the number of rows matching the active filter selection. ANOVA η² is shown in the stats panel and ANOVA results area, not in the chip label.
 
 ```
 Example Filter Chips:
-[Shift: Night ▼ 67%]  [Machine: C ▼ 24%]  [Operator: Kim ▼ 9%]
-       ↑                    ↑                    ↑
-       67% of TOTAL         24% of TOTAL         9% of TOTAL
-       variation            variation            variation
+[Shift: Night ▼ n=240]  [Machine: C ▼ n=80]  [Operator: Kim ▼ n=40]
+         ↑                      ↑                      ↑
+    240 matching rows       80 matching rows       40 matching rows
 ```
+
+The ANOVA panel shows η² for each factor, quantifying how much of the variation is explained at each drill level.
 
 ---
 
@@ -245,9 +243,11 @@ TO ONE CONDITION
 
 **After (VariScout filter chips):**
 
-> Filter chips: `[Shift: Night ▼ 67%] [Machine: C ▼ 24%] [Operator: Kim ▼ 9%]`
+> Filter chips: `[Shift: Night ▼ n=240] [Machine: C ▼ n=80] [Operator: Kim ▼ n=40]`
 >
-> Translation: "This combination explains 46% of all our quality variation. Fix this one combination and nearly half our problems disappear."
+> ANOVA panel: Shift η²=0.67, Machine η²=0.24, Operator η²=0.09
+>
+> Translation: "This combination accounts for a large share of your quality variation. Fix this one combination and nearly half your problems disappear."
 
 **Which one does the plant manager act on?**
 
@@ -258,18 +258,15 @@ TO ONE CONDITION
 The filter chips should always show:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ ACTIVE FILTERS                                                          │
-│                                                                         │
-│ ┌────────────────────┐  ┌────────────────────┐  ┌────────────────────┐ │
-│ │ Shift: Night ▼ 67% │  │ Machine: C ▼ 24%   │  │ Operator: Kim ▼ 9% │ │
-│ └────────────────────┘  └────────────────────┘  └────────────────────┘ │
-│                                                                         │
-│ CUMULATIVE: 46% of total variation in focus                            │
-│ "Fix this combination to address nearly half your quality problems"    │
-│                                                                         │
-│ [Clear All Filters]                                                     │
-└─────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ACTIVE FILTERS                                                               │
+│                                                                              │
+│ ┌──────────────────────────┐  ┌───────────────────────┐  ┌────────────────┐ │
+│ │ Shift: Night ▼ n=240     │  │ Machine: C ▼ n=80     │  │ Op.: Kim ▼ n=40│ │
+│ └──────────────────────────┘  └───────────────────────┘  └────────────────┘ │
+│                                                                              │
+│ [Clear All Filters]                                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---

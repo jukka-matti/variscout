@@ -147,7 +147,7 @@ export function buildStatusTooltip(
 
   const lines = [
     statusLabel,
-    `Contribution: ${formatStat(evidence.etaSquared * 100, 1)}%`,
+    `η² = ${formatStat(evidence.etaSquared * 100, 1)}%`,
     `Evidence: ${interpretation.evidenceLevel} (n=${evidence.totalN})`,
     interpretation.message,
   ];

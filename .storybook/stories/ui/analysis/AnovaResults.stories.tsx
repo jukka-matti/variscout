@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { AnovaResults, anovaDefaultColorScheme } from '../../../../packages/ui/src/index';
+import { AnovaResults } from '../../../../packages/ui/src/index';
 import type { AnovaResult } from '../../../../packages/core/src/types';
 
 const significantResult: AnovaResult = {
@@ -39,6 +39,27 @@ const nonSignificantResult: AnovaResult = {
   insight: 'No significant difference between shifts. Shift explains only 0.2% of variation.',
 };
 
+const largeDatasetResult: AnovaResult = {
+  groups: [
+    { name: 'Machine 1', n: 50, mean: 10.2, stdDev: 0.5 },
+    { name: 'Machine 2', n: 50, mean: 10.8, stdDev: 0.6 },
+    { name: 'Machine 3', n: 50, mean: 10.0, stdDev: 0.4 },
+    { name: 'Machine 4', n: 50, mean: 11.1, stdDev: 0.7 },
+    { name: 'Machine 5', n: 50, mean: 9.9, stdDev: 0.3 },
+  ],
+  ssb: 4278,
+  ssw: 2761,
+  dfBetween: 4,
+  dfWithin: 245,
+  msb: 1069.5,
+  msw: 11.3,
+  fStatistic: 94.6,
+  pValue: 0.00001,
+  isSignificant: true,
+  etaSquared: 0.608,
+  insight: 'Machines explain 60.8% of variation.',
+};
+
 const meta = {
   title: 'UI/Analysis/AnovaResults',
   component: AnovaResults,
@@ -51,15 +72,20 @@ type Story = StoryObj<typeof meta>;
 export const Significant: Story = {
   args: {
     result: significantResult,
-    factorName: 'Machine',
-    colorScheme: anovaDefaultColorScheme,
+    factorLabel: 'Machine',
   },
 };
 
 export const NotSignificant: Story = {
   args: {
     result: nonSignificantResult,
-    factorName: 'Shift',
-    colorScheme: anovaDefaultColorScheme,
+    factorLabel: 'Shift',
+  },
+};
+
+export const LargeDataset: Story = {
+  args: {
+    result: largeDatasetResult,
+    factorLabel: 'Machine',
   },
 };

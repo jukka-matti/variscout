@@ -93,7 +93,6 @@ const IChartFocusedSection: React.FC<{
       {...chartExport}
       filterChipData={filterContext?.filterChipData}
       columnAliases={filterContext?.columnAliases}
-      cumulativeVariationPct={filterContext?.cumulativeVariationPct}
       showFilterContext={filterContext?.showFilterContext}
     >
       <ErrorBoundary componentName="I-Chart">{ichart.renderChart()}</ErrorBoundary>
@@ -152,7 +151,6 @@ const BoxplotFocusedSection: React.FC<{
       {...chartExport}
       filterChipData={filterContext?.filterChipData}
       columnAliases={filterContext?.columnAliases}
-      cumulativeVariationPct={filterContext?.cumulativeVariationPct}
       showFilterContext={filterContext?.showFilterContext}
     >
       <ErrorBoundary componentName="Boxplot">{boxplot.renderChart()}</ErrorBoundary>
@@ -200,7 +198,6 @@ const ParetoFocusedSection: React.FC<{
       {...chartExport}
       filterChipData={filterContext?.filterChipData}
       columnAliases={filterContext?.columnAliases}
-      cumulativeVariationPct={filterContext?.cumulativeVariationPct}
       showFilterContext={filterContext?.showFilterContext}
     >
       <ErrorBoundary componentName="Pareto Chart">{pareto.renderChart()}</ErrorBoundary>

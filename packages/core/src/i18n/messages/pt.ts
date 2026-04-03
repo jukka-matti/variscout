@@ -306,8 +306,8 @@ export const pt: MessageCatalog = {
   // Display toggles
   'display.violin': 'Diagrama de violino',
   'display.violinDesc': 'Mostrar formato da distribuição',
-  'display.contribution': 'Contribuição',
-  'display.contributionDesc': 'Mostrar contribuição da variação',
+  'display.etaSquared': 'η²',
+  'display.etaSquaredDesc': 'Mostrar η² (tamanho do efeito)',
   'display.sort': 'Ordenar',
   'display.ascending': 'Crescente',
   'display.descending': 'Decrescente',

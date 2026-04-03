@@ -45,7 +45,8 @@ import type {
   Finding,
   FindingAssignee,
 } from '@variscout/core';
-import type { FilterChipData, HighlightColor } from '@variscout/hooks';
+import type { FilterChipData } from '@variscout/ui';
+import type { HighlightColor } from '@variscout/hooks';
 import type { AzureFindingsCallbacks } from '@variscout/ui';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats';
@@ -71,7 +72,6 @@ export interface CarouselFilterContext {
   filters: Record<string, (string | number)[]>;
   columnAliases?: Record<string, string>;
   filterChipData: FilterChipData[];
-  cumulativeVariationPct: number;
   onUpdateFilterValues: (factor: string, newValues: (string | number)[]) => void;
   onRemoveFilter: (factor: string) => void;
   onClearAllFilters: () => void;
@@ -121,7 +121,7 @@ interface MobileChartCarouselProps {
   // Ask CoScout about a category
   onAskCoScout?: (focusContext: {
     chartType: 'boxplot' | 'pareto';
-    category: { name: string; mean?: number; contributionPct?: number };
+    category: { name: string; mean?: number; etaSquaredPct?: number };
   }) => void;
   /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
   onInvestigateFactor?: (effect: import('@variscout/core/stats').FactorMainEffect) => void;
@@ -133,7 +133,6 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
     filters,
     columnAliases = {},
     filterChipData,
-    cumulativeVariationPct,
     onUpdateFilterValues,
     onRemoveFilter,
     onClearAllFilters,
@@ -477,7 +476,6 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
             onUpdateFilterValues={onUpdateFilterValues}
             onRemoveFilter={onRemoveFilter}
             onClearAll={onClearAllFilters}
-            cumulativeVariationPct={cumulativeVariationPct}
             onPinFinding={onPinFinding ? () => onPinFinding() : undefined}
           />
         </div>

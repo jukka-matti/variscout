@@ -5,18 +5,6 @@
 // vi.mock calls MUST be before component imports to prevent infinite re-render loops
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-vi.mock('../useVariationTracking', () => ({
-  useVariationTracking: vi.fn(() => ({
-    cumulativeVariationPct: 45,
-    factorVariations: new Map([
-      ['Machine', 30],
-      ['Shift', 15],
-    ]),
-    categoryContributions: undefined,
-    filterChipData: [],
-  })),
-}));
-
 vi.mock('../useDashboardComputedData', () => ({
   useDashboardComputedData: vi.fn(() => ({
     availableOutcomes: ['Weight'],
@@ -35,20 +23,10 @@ vi.mock('../useChartCopy', () => ({
   })),
 }));
 
-vi.mock('@variscout/core', () => ({
-  getNextDrillFactor: vi.fn((variations: Map<string, number>, current: string) => {
-    const sorted = [...variations.entries()]
-      .filter(([k]) => k !== current)
-      .sort(([, a], [, b]) => b - a);
-    return sorted[0]?.[0] || null;
-  }),
-}));
-
 import { renderHook, act } from '@testing-library/react';
 import { useDashboardChartsBase } from '../useDashboardChartsBase';
 import type { UseDashboardChartsBaseOptions } from '../useDashboardChartsBase';
 import type { FilterAction } from '@variscout/core';
-import { getNextDrillFactor } from '@variscout/core';
 
 function makeOptions(
   overrides: Partial<UseDashboardChartsBaseOptions> = {}
@@ -157,14 +135,13 @@ describe('useDashboardChartsBase', () => {
 
   // ── handleDrillDown ─────────────────────────────────────────────────
 
-  it('handleDrillDown calls applyFilter with correct FilterAction and advances factors', () => {
+  it('handleDrillDown calls applyFilter with correct FilterAction and keeps factor', () => {
     const applyFilter = vi.fn();
     const opts = makeOptions({ filterNav: { applyFilter } });
     const { result } = renderHook(() => useDashboardChartsBase(opts));
 
-    let nextFactor: string | null = null;
     act(() => {
-      nextFactor = result.current.handleDrillDown('Machine', 'A');
+      result.current.handleDrillDown('Machine', 'A');
     });
 
     // Verify applyFilter was called with correct shape
@@ -177,46 +154,16 @@ describe('useDashboardChartsBase', () => {
       values: ['A'],
     });
 
-    // getNextDrillFactor returns 'Shift' (next highest variation after 'Machine')
-    expect(nextFactor).toBe('Shift');
-    expect(result.current.boxplotFactor).toBe('Shift');
-    expect(result.current.paretoFactor).toBe('Shift');
-  });
-
-  it('handleDrillDown keeps current factor when no next factor available', () => {
-    // Override getNextDrillFactor to return null
-    vi.mocked(getNextDrillFactor).mockReturnValueOnce(null);
-
-    const applyFilter = vi.fn();
-    const opts = makeOptions({ filterNav: { applyFilter } });
-    const { result } = renderHook(() => useDashboardChartsBase(opts));
-
-    let nextFactor: string | null = null;
-    act(() => {
-      nextFactor = result.current.handleDrillDown('Machine', 'B');
-    });
-
-    expect(nextFactor).toBeNull();
+    // Factor stays on the drilled factor
     expect(result.current.boxplotFactor).toBe('Machine');
     expect(result.current.paretoFactor).toBe('Machine');
   });
 
   // ── Passthrough of composed hook data ───────────────────────────────
 
-  it('passes through variation tracking and computed data from composed hooks', () => {
+  it('passes through computed data from composed hooks', () => {
     const opts = makeOptions();
     const { result } = renderHook(() => useDashboardChartsBase(opts));
-
-    // Variation tracking passthrough
-    expect(result.current.cumulativeVariationPct).toBe(45);
-    expect(result.current.factorVariations).toEqual(
-      new Map([
-        ['Machine', 30],
-        ['Shift', 15],
-      ])
-    );
-    expect(result.current.categoryContributions).toBeUndefined();
-    expect(result.current.filterChipData).toEqual([]);
 
     // Computed data passthrough
     expect(result.current.availableOutcomes).toEqual(['Weight']);

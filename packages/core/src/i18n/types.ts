@@ -420,8 +420,8 @@ export interface MessageCatalog {
   // Display toggles
   'display.violin': string;
   'display.violinDesc': string;
-  'display.contribution': string;
-  'display.contributionDesc': string;
+  'display.etaSquared': string;
+  'display.etaSquaredDesc': string;
   'display.sort': string;
   'display.ascending': string;
   'display.descending': string;

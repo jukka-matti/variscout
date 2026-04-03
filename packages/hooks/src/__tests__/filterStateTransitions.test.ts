@@ -5,14 +5,11 @@
  * - Round-trip consistency (add → remove → state matches original)
  * - Middle filter removal and recalculation
  * - Edge transitions (empty results, single-category filters)
- * - Multi-filter cumulative Total SS scope progression
  *
- * Uses both pure navigation functions from @variscout/core and
- * React hooks via renderHook for stateful behavior.
+ * Uses pure navigation functions from @variscout/core.
  */
 
 import { describe, it, expect } from 'vitest';
-import { renderHook } from '@testing-library/react';
 import {
   createFilterAction,
   pushFilterStack,
@@ -24,8 +21,6 @@ import {
   type FilterAction,
   type DataRow,
 } from '@variscout/core';
-import { useVariationTracking } from '../useVariationTracking';
-
 // ============================================================================
 // Test Data
 // ============================================================================
@@ -45,9 +40,6 @@ const testData: DataRow[] = [
   { Machine: 'C', Shift: 'Night', Operator: 'Alice', Weight: 102 },
   { Machine: 'C', Shift: 'Night', Operator: 'Bob', Weight: 103 },
 ];
-
-const factors = ['Machine', 'Shift', 'Operator'];
-const outcome = 'Weight';
 
 function makeFilter(factor: string, values: (string | number)[]): FilterAction {
   return createFilterAction({
@@ -252,74 +244,5 @@ describe('Filter Stack: Sequential Operations', () => {
     // But filter resolution: last wins
     const filters = filterStackToFilters(stack);
     expect(filters.Machine).toEqual(['B']);
-  });
-});
-
-// ============================================================================
-// Hook: Multi-Filter Cumulative Total SS Scope
-// ============================================================================
-
-describe('Cumulative Total SS Scope Progression', () => {
-  const emptyStack: FilterAction[] = [];
-
-  it('unfiltered → cumulative is null', () => {
-    const { result } = renderHook(() =>
-      useVariationTracking(testData, emptyStack, outcome, factors)
-    );
-    expect(result.current.cumulativeVariationPct).toBeNull();
-  });
-
-  it('single high-impact filter → high cumulative scope', () => {
-    // Machine C has the highest Total SS contribution (~53%)
-    const stack = [makeFilter('Machine', ['C'])];
-    const { result } = renderHook(() => useVariationTracking(testData, stack, outcome, factors));
-    expect(result.current.cumulativeVariationPct).not.toBeNull();
-    expect(result.current.cumulativeVariationPct!).toBeGreaterThan(50);
-  });
-
-  it('filter by low-impact factor → lower cumulative scope', () => {
-    // Shift has minimal effect on Weight in this dataset
-    const stack = [makeFilter('Shift', ['Day'])];
-    const { result } = renderHook(() => useVariationTracking(testData, stack, outcome, factors));
-    expect(result.current.cumulativeVariationPct).not.toBeNull();
-    // Shift contributes very little to Total SS relative to Machine
-    expect(result.current.cumulativeVariationPct!).toBeLessThan(55);
-  });
-
-  it('cumulative never exceeds 100%', () => {
-    // Deep drill: Machine then Shift then Operator
-    const stack = [
-      makeFilter('Machine', ['A']),
-      makeFilter('Shift', ['Day']),
-      makeFilter('Operator', ['Alice']),
-    ];
-    const { result } = renderHook(() => useVariationTracking(testData, stack, outcome, factors));
-
-    if (result.current.cumulativeVariationPct !== null) {
-      expect(result.current.cumulativeVariationPct).toBeLessThanOrEqual(100);
-    }
-  });
-
-  it('factorVariations map has entries for each factor', () => {
-    const { result } = renderHook(() =>
-      useVariationTracking(testData, emptyStack, outcome, factors)
-    );
-
-    // Should have variation percentages for Machine, Shift, Operator
-    expect(result.current.factorVariations.has('Machine')).toBe(true);
-    expect(result.current.factorVariations.has('Shift')).toBe(true);
-    expect(result.current.factorVariations.has('Operator')).toBe(true);
-  });
-
-  it('Machine max contribution > Shift max contribution (known structure)', () => {
-    const { result } = renderHook(() =>
-      useVariationTracking(testData, emptyStack, outcome, factors)
-    );
-
-    const machineVar = result.current.factorVariations.get('Machine') ?? 0;
-    const shiftVar = result.current.factorVariations.get('Shift') ?? 0;
-    // Machine C (Weight ~100) is the biggest single-category contributor
-    // Shift categories split variation roughly evenly (max ~50%)
-    expect(machineVar).toBeGreaterThan(shiftVar);
   });
 });

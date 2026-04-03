@@ -1,6 +1,6 @@
 import type React from 'react';
 import type { AnovaResult, StatsResult, StagedStatsResult, Finding } from '@variscout/core';
-import type { FilterChipData } from '@variscout/hooks';
+import type { FilterChipData } from '../filterTypes';
 
 export type FocusedChartType = 'ichart' | 'boxplot' | 'pareto';
 
@@ -23,7 +23,6 @@ export interface ChartExportProps {
 export interface FilterContextProps {
   filterChipData: FilterChipData[];
   columnAliases: Record<string, string>;
-  cumulativeVariationPct?: number | null;
   showFilterContext: boolean;
 }
 

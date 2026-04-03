@@ -68,7 +68,6 @@ const baseProps: DashboardLayoutBaseProps = {
   focusedChart: null,
   setFocusedChart: noop,
   filterChipData: [],
-  cumulativeVariationPct: null,
   annotations: mockAnnotations,
   copyFeedback: null,
   onCopyChart: noopAsync,

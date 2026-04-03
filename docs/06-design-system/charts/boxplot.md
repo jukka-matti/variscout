@@ -47,13 +47,6 @@ interface BoxplotProps extends BaseChartProps {
   variationPct?: number;
   /** Threshold for high variation highlight (default: 50) */
   variationThreshold?: number;
-  /** Category Total SS contributions - Map from key to % of total variation
-   * Uses Total SS (captures both mean shift AND spread), not between-group only
-   * Sum of all category contributions = 100%
-   */
-  categoryContributions?: Map<string | number, number>;
-  /** Show contribution labels below boxes (default: false) */
-  showContributionLabels?: boolean;
   /** Show violin (density) overlay behind box elements (default: false) */
   showViolin?: boolean;
 }
@@ -253,19 +246,18 @@ import PerformanceBoxplot from '@variscout/charts/PerformanceBoxplot';
 
 ## Statistical Elements
 
-| Element            | Standard Boxplot          | PerformanceBoxplot    |
-| ------------------ | ------------------------- | --------------------- |
-| **Whiskers**       | Min/Max (within 1.5×IQR)  | Min to Max            |
-| **Whisker caps**   | Horizontal at min/max     | Horizontal at min/max |
-| **Box**            | Q1 to Q3 (IQR)            | Q1 to Q3 (IQR)        |
-| **Median**         | Thick line                | Thick line            |
-| **Mean**           | Diamond marker            | Diamond marker        |
-| **Outliers**       | Red circles beyond fences | Not shown separately  |
-| **n label**        | Below each box            | Below each box        |
-| **Contribution %** | Below n (optional)        | Not applicable        |
-| **Spec lines**     | USL/LSL (dashed red)      | USL/LSL (dashed red)  |
-| **Target line**    | Dashed green              | Not shown             |
-| **Grid**           | Not shown                 | Not shown             |
+| Element          | Standard Boxplot          | PerformanceBoxplot    |
+| ---------------- | ------------------------- | --------------------- |
+| **Whiskers**     | Min/Max (within 1.5×IQR)  | Min to Max            |
+| **Whisker caps** | Horizontal at min/max     | Horizontal at min/max |
+| **Box**          | Q1 to Q3 (IQR)            | Q1 to Q3 (IQR)        |
+| **Median**       | Thick line                | Thick line            |
+| **Mean**         | Diamond marker            | Diamond marker        |
+| **Outliers**     | Red circles beyond fences | Not shown separately  |
+| **n label**      | Below each box            | Below each box        |
+| **Spec lines**   | USL/LSL (dashed red)      | USL/LSL (dashed red)  |
+| **Target line**  | Dashed green              | Not shown             |
+| **Grid**         | Not shown                 | Not shown             |
 
 ---
 
@@ -326,7 +318,7 @@ When the analyst clicks a question in the Investigation panel, the boxplot appli
 
 ### Mobile Tap Interaction
 
-On mobile (<640px), tapping a boxplot box opens a `MobileCategorySheet` bottom action sheet (from `@variscout/ui`) showing category stats: n, mean, median, IQR, and contribution %. The `onBoxContextMenu` right-click handler is desktop-only; on mobile, the `MobileChartCarousel` intercepts taps and uses the `onDrillDown` callback to open the sheet instead. Available actions in the sheet: drill-down into the category, highlight (red/amber/green), and pin as finding with an optional note.
+On mobile (<640px), tapping a boxplot box opens a `MobileCategorySheet` bottom action sheet (from `@variscout/ui`) showing category stats: n, mean, median, IQR, and η² (effect size). The `onBoxContextMenu` right-click handler is desktop-only; on mobile, the `MobileChartCarousel` intercepts taps and uses the `onDrillDown` callback to open the sheet instead. Available actions in the sheet: drill-down into the category, highlight (red/amber/green), and pin as finding with an optional note.
 
 ### Click Behavior
 
@@ -506,7 +498,7 @@ The table automatically highlights important patterns:
 | ------------------- | ------------------------------- | ------------------------------------------ |
 | **Highest StdDev**  | ★ star prefix (amber)           | Category with most internal variability    |
 | **High Variation**  | Red text on Variation %         | Category explains ≥ threshold of variation |
-| **Top Contributor** | Red text (even below threshold) | Category with highest contribution %       |
+| **Top Contributor** | Red text (even below threshold) | Category with highest η² (effect size)     |
 
 ### Theme Support
 
@@ -550,27 +542,9 @@ import BoxplotStatsTable from '@variscout/charts/BoxplotStatsTable';
 />
 ```
 
-### Contribution Bars (on Boxplot Chart)
+### Contribution Bars (removed)
 
-When `categoryContributions` is provided to the Boxplot component, small horizontal bars appear below each box:
-
-```
-       ┌─────┐
-       │     │
-   ────┼─────┼────
-       │     │
-       └─────┘
-         ■■■■■      ← Contribution bar (red when ≥ threshold)
-        [67%]       ← Optional label
-```
-
-| Element       | Style                                           |
-| ------------- | ----------------------------------------------- |
-| Bar width     | Proportional to contribution %                  |
-| Bar color     | Red when ≥ `variationThreshold`, gray otherwise |
-| Max bar width | Box width (100% = full width)                   |
-
-Enable with `showContributionLabels={true}` on Boxplot component.
+The per-category contribution bars (showing Category Total SS %) and the `showContributionLabels` prop were removed with ADR-062. η² is now shown in the ANOVA panel, and filter chips show n=X sample count instead of a percentage badge.
 
 ### Integration Points
 

@@ -32,7 +32,6 @@ The analyst loads the Hospital Ward sample via `/?sample=hospital-ward`. The Das
 **Existing guidance at this step:**
 
 - Boxplot shows **"↓ drill here"** on the Time_Period group with the highest contribution to variation (likely Night, due to its extreme position).
-- VariationBar shows total variation scope.
 - The 4-group Boxplot immediately reveals the multimodal structure — this is the chart's strongest moment.
 
 **Gap — the overall mean is the lie, but nothing calls it out:**
@@ -50,12 +49,12 @@ The analyst studies the Boxplot. Four Time_Period groups tell dramatically diffe
 - **Morning** (07:00–13:00): Box centered around ~70%. Moderate spread (std=6). Comfortable operating range.
 - **Afternoon** (14:00–16:00): Box centered around ~48%. Moderate spread (std=6). Dramatically underutilized — waste.
 - **Evening** (17:00–21:00): Box centered around ~65%. Wider spread (std=7). Below target.
-- The boxes barely overlap. Time_Period's contribution % is very high (likely >60%).
-- The "↓ drill here" label appears on the highest-contribution group.
+- The boxes barely overlap. Time_Period's η² is very high (likely >60%).
+- The "↓ drill here" label appears on the highest-η² group.
 
 **Existing guidance at this step:**
 
-- "↓ drill here" with contribution % identifies the dominant factor.
+- "↓ drill here" with η² identifies the dominant factor.
 - ANOVA (in maximized view) shows Time_Period is overwhelmingly significant.
 - The visual separation of the four boxes is itself the primary guidance — the multimodal structure is unmistakable.
 
@@ -73,12 +72,11 @@ The analyst clicks the Night group in the Boxplot. The dashboard filters to Nigh
 - **I-Chart**: ~252 data points (9 hours/day x 28 days). Remarkably stable — all values clustered tightly around 94%. The process is "in control" at a dangerously high level. Some points touch or exceed the 90% USL.
 - **Boxplot**: Now shows Day_of_Week groups within Night (7 groups: Mon–Sun).
 - **Stats Panel**: Mean ~94%, std dev ~3%, n ~252. Pass rate against 90% USL is low — many observations exceed the spec limit.
-- **FilterBreadcrumb**: A chip appears: **"Time_Period: Night XX%"** — showing a very high contribution percentage.
-- **VariationBar**: Updates to show substantial explained variation.
+- **FilterBreadcrumb**: A chip appears: **"Time_Period: Night (n=252)"** — showing the sample count for the filtered subset.
 
 **Existing guidance at this step:**
 
-- Filter chip with high contribution % confirms Night is the dominant source.
+- Filter chip with n=X count confirms this is a substantial slice of the data.
 - The I-Chart's stability at ~94% is visually striking — the problem isn't random spikes, it's the entire operating level.
 - Pass rate against USL drops dramatically, making the crisis concrete.
 
@@ -94,12 +92,12 @@ The analyst examines the Boxplot showing Mon–Sun within Night.
 **What the analyst sees:**
 
 - **Boxplot**: Seven boxes (Mon–Sun), all clustered around ~94% with similar spread. No day stands out. The crisis is chronic, not day-specific.
-- **"↓ drill here"** may appear on one day, but the contribution % is negligible.
+- **"↓ drill here"** may appear on one day, but the η² is negligible.
 - **ANOVA** (if checked): Day_of_Week within Night has a low F-statistic and high p-value. Day explains essentially zero variation within Night.
 
 **Existing guidance at this step:**
 
-- Low contribution % signals this factor isn't helpful.
+- Low η² in ANOVA signals this factor isn't helpful.
 - ANOVA confirms Day_of_Week is not significant within Night.
 - The visual uniformity of the seven boxes tells the story.
 
@@ -117,12 +115,12 @@ The analyst removes the Night filter and clicks the Afternoon group in the Boxpl
 - **I-Chart**: ~84 data points (3 hours/day x 28 days). Stable at a dramatically different level — values cluster around ~48%. The process is "in control" at severe underutilization.
 - **Boxplot**: Shows Day_of_Week within Afternoon. Similar pattern to Night — no day stands out.
 - **Stats Panel**: Mean ~48%, std dev ~6%, n ~84. Far below the 75% target. The opposite problem from Night.
-- **FilterBreadcrumb**: "Time_Period: Afternoon XX%".
+- **FilterBreadcrumb**: "Time_Period: Afternoon (n=84)".
 
 **Existing guidance at this step:**
 
 - The stats panel clearly shows the low mean.
-- Filter chip with contribution %.
+- Filter chip shows n=X sample count.
 
 **Gap — no connection between Night and Afternoon:**
 The analyst has now seen 94% (Night) and 48% (Afternoon). The arithmetic is compelling: (94 + 48) / 2 ≈ 71% — close to the "overall 69%" the dashboard showed. But the product doesn't draw this connection. There is no "Night's 94% and Afternoon's 48% average to the 69% your dashboard showed — but neither group experiences 69%" callout. The aggregation trap demonstration requires the analyst to do the mental arithmetic themselves.
@@ -144,7 +142,7 @@ The analyst removes the Afternoon filter to return to the full 672-point dataset
 
 - ANOVA provides statistical confirmation.
 - The Boxplot structure remains visible and revealing.
-- Contribution % on the "↓ drill here" label quantifies Time_Period's importance.
+- η² on the "↓ drill here" label quantifies Time_Period's importance.
 
 **Gap — no "before and after understanding" contrast:**
 The analyst now knows that "69% average" is a fiction. But the dashboard looks exactly the same as when they started. There is no visual marker of the analyst's changed understanding. No "you've now seen that this 69% mean hides a 94% crisis (Night) and 48% waste (Afternoon)" summary. The investigation has transformed the analyst's understanding, but the product's display is unchanged.
@@ -175,15 +173,15 @@ This dataset exists specifically to teach the aggregation trap — the most comm
 
 ## Summary: Guidance Coverage by Step
 
-| Step | Description                 | Existing Guidance                                        | Gaps                                                             |
-| ---- | --------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------- |
-| 1    | Data loaded                 | Boxplot "↓ drill here", VariationBar                     | Overall mean ~69% looks "fine" — no warning it's meaningless     |
-| 2    | Boxplot reveals 4 realities | "↓ drill here" with contribution %, ANOVA                | No "aggregation trap" teaching callout for non-overlapping boxes |
-| 3    | Drill into Night            | Filter chip with high %, I-Chart shows stability at ~94% | No "above USL" emphasis for the subgroup                         |
-| 4    | Day_of_Week within Night    | Low contribution %, ANOVA not significant                | No "chronic problem" confirmation                                |
-| 5    | Backtrack, drill Afternoon  | Stats show low mean (~48%)                               | No connection drawn to Night — (94+48)/2 ≈ 69% is invisible      |
-| 6    | Return to full view         | ANOVA confirms Time_Period dominant                      | No summary of what was found vs initial perception               |
-| 7    | Investigation complete      | (none)                                                   | No aggregation trap lesson or operational recommendation         |
+| Step | Description                 | Existing Guidance                                     | Gaps                                                             |
+| ---- | --------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------- |
+| 1    | Data loaded                 | Boxplot "↓ drill here"                                | Overall mean ~69% looks "fine" — no warning it's meaningless     |
+| 2    | Boxplot reveals 4 realities | "↓ drill here" with η², ANOVA                         | No "aggregation trap" teaching callout for non-overlapping boxes |
+| 3    | Drill into Night            | Filter chip with n=X, I-Chart shows stability at ~94% | No "above USL" emphasis for the subgroup                         |
+| 4    | Day_of_Week within Night    | Low η², ANOVA not significant                         | No "chronic problem" confirmation                                |
+| 5    | Backtrack, drill Afternoon  | Stats show low mean (~48%)                            | No connection drawn to Night — (94+48)/2 ≈ 69% is invisible      |
+| 6    | Return to full view         | ANOVA confirms Time_Period dominant                   | No summary of what was found vs initial perception               |
+| 7    | Investigation complete      | (none)                                                | No aggregation trap lesson or operational recommendation         |
 
 ---
 

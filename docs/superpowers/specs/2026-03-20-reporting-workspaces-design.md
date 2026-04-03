@@ -50,10 +50,10 @@ The analyst is exploring data. The report captures the current state and variati
 
 **Sections:**
 
-| #   | Section           | Technical Mode                                      | Summary Mode                                   |
-| --- | ----------------- | --------------------------------------------------- | ---------------------------------------------- |
-| 1   | Current Condition | KPI grid + I-Chart + AI narrative                   | KPI grid only (capability card)                |
-| 2   | Variation Drivers | Boxplot + Pareto for first factor + η² contribution | KPI grid with key driver name + contribution % |
+| #   | Section           | Technical Mode                         | Summary Mode                       |
+| --- | ----------------- | -------------------------------------- | ---------------------------------- |
+| 1   | Current Condition | KPI grid + I-Chart + AI narrative      | KPI grid only (capability card)    |
+| 2   | Variation Drivers | Boxplot + Pareto for first factor + η² | KPI grid with key driver name + η² |
 
 **Workspace color:** Green left border on sections, green dots in TOC.
 
@@ -72,7 +72,7 @@ The analyst has pinned findings and is building the case. The report captures th
 | #   | Section           | Technical Mode                                                                                                                                                                                                      | Summary Mode                                                   |
 | --- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | 1   | Current Condition | KPI grid + I-Chart                                                                                                                                                                                                  | KPI grid only                                                  |
-| 2   | Variation Drivers | Boxplot + Pareto                                                                                                                                                                                                    | Key driver + contribution %                                    |
+| 2   | Variation Drivers | Boxplot + Pareto                                                                                                                                                                                                    | Key driver + η²                                                |
 | 3   | Evidence Trail    | **Problem Statement** (living document, current draft) + **SuspectedCause hub summaries** (name, synthesis, evidence %, status) + ruled-out questions as negative learnings + finding snapshots with filter context | Synthesis narrative + primary suspected cause hub summary only |
 
 **Workspace color:** Sections 1-2 have green left border (Analysis workspace), Section 3 has amber left border (Findings workspace).
@@ -92,7 +92,7 @@ The full PDCA cycle is documented. The report tells the complete story across al
 | #   | Section               | Technical Mode                                                                                                                                                                                       | Summary Mode                                         |
 | --- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | 1   | Current Condition     | KPI grid + I-Chart                                                                                                                                                                                   | KPI grid only                                        |
-| 2   | Where Variation Hides | Boxplot + Pareto + η²                                                                                                                                                                                | Key driver + contribution %                          |
+| 2   | Where Variation Hides | Boxplot + Pareto + η²                                                                                                                                                                                | Key driver + η²                                      |
 | 3   | What We Found         | **Problem Statement** (Watson's 3 questions output) + **SuspectedCause hub summaries** (one row per hub: name, synthesis, evidence %, connected questions) + ruled-out learnings + finding snapshots | Problem Statement verdict + primary hub summary only |
 | 4   | What We Planned       | Improvement ideas grouped by hypothesis + direction badges + timeframe/cost/risk summary + projected Cpk                                                                                             | Timeframe breakdown bar + best projected Cpk         |
 | 5   | What We Did           | Actions with completion status + idea traceability + assignees + due dates                                                                                                                           | Action count + completion %                          |

@@ -325,10 +325,6 @@ vi.mock('../../hooks', () => ({
     availableStageColumns: [],
     anovaResult: null,
     boxplotData: [],
-    cumulativeVariationPct: 0,
-    filterChipData: [],
-    factorVariations: new Map(),
-    categoryContributions: new Map(),
     filterStack: [],
     applyFilter: vi.fn(),
     clearFilters: vi.fn(),
@@ -494,7 +490,6 @@ describe('Dashboard', () => {
     setSubgroupConfig: vi.fn(),
     cpkTarget: 1.33,
     setCpkTarget: vi.fn(),
-    categoryContributions: new Map(),
     selectedPoints: new Set<number>(),
     clearSelection: vi.fn(),
   };

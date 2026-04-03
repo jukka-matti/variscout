@@ -1,155 +1,124 @@
-import { useMemo } from 'react';
 import type { AnovaResult } from '@variscout/core';
-import { generateAnovaInsightLine } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { HelpTooltip } from '../HelpTooltip';
 import { useGlossary } from '../../hooks';
-
-/**
- * Color scheme for AnovaResults component
- * Allows customization for different app themes (PWA vs Azure)
- */
-export interface AnovaResultsColorScheme {
-  /** Background color class (e.g., 'bg-surface/50' or 'bg-slate-900/50') */
-  background: string;
-  /** Border color class (e.g., 'border-edge/50' or 'border-slate-700/50') */
-  border: string;
-  /** Header text color (e.g., 'text-content-secondary' or 'text-slate-400') */
-  headerText: string;
-  /** Primary content text (e.g., 'text-content' or 'text-slate-300') */
-  contentText: string;
-  /** Muted/secondary text (e.g., 'text-content-muted' or 'text-slate-500') */
-  mutedText: string;
-  /** Secondary content text (e.g., 'text-content-secondary' or 'text-slate-400') */
-  secondaryText: string;
-}
-
-/**
- * Default color scheme using PWA semantic tokens
- */
-export const defaultColorScheme: AnovaResultsColorScheme = {
-  background: 'bg-surface/50',
-  border: 'border-edge/50',
-  headerText: 'text-content-secondary',
-  contentText: 'text-content',
-  mutedText: 'text-content-muted',
-  secondaryText: 'text-content-secondary',
-};
 
 export interface AnovaResultsProps {
   /** ANOVA calculation result from @variscout/core */
   result: AnovaResult | null;
   /** Display label for the factor being analyzed */
   factorLabel: string;
-  /** Color scheme for styling (defaults to PWA semantic tokens) */
-  colorScheme?: AnovaResultsColorScheme;
 }
 
 /**
- * Format p-value for display (accepts a locale-aware formatter)
+ * Format p-value: show as <0.001 when very small, otherwise 3 decimal places.
  */
-function formatPValue(p: number, fmt: (v: number, d?: number) => string): string {
-  if (p < 0.001) return '< 0.001';
-  if (p < 0.01) return fmt(p, 3);
-  return fmt(p);
+function formatPValue(p: number): string {
+  if (p < 0.001) return '<0.001';
+  return p.toFixed(3);
 }
 
 /**
- * Displays one-way ANOVA results
+ * Format SS with comma separators for readability.
+ */
+function formatSS(value: number): string {
+  if (Math.abs(value) < 1) return value.toFixed(3);
+  return Math.round(value).toLocaleString('en-US');
+}
+
+/**
+ * Compact one-way ANOVA table.
  *
- * Shows group means, significance test, and plain-language insight.
- * Used in boxplot views to explain variation between groups.
+ * Displays the standard ANOVA decomposition (Factor / Error / Total)
+ * with DF, SS, F, P columns, and eta-squared as the key takeaway below.
+ *
+ * Replaces the previous narrative card. Group means are shown separately
+ * in BoxplotStatsTable above this component.
  *
  * @example
  * ```tsx
- * // Using PWA semantic tokens (default)
  * <AnovaResults result={anovaResult} factorLabel="Shift" />
  * ```
  */
-const AnovaResults = ({
-  result,
-  factorLabel,
-  colorScheme = defaultColorScheme,
-}: AnovaResultsProps) => {
+const AnovaResults = ({ result, factorLabel }: AnovaResultsProps) => {
   const { getTerm } = useGlossary();
   const { formatStat } = useTranslation();
 
-  const groups = result?.groups;
-  const pValue = result?.pValue ?? 0;
-  const etaSquared = result?.etaSquared ?? 0;
-  const fStatistic = result?.fStatistic ?? 0;
-
-  // Find top category (most deviation from grand mean)
-  const topCategory = useMemo(() => {
-    if (!groups?.length) return '';
-    const grandMean =
-      groups.reduce((sum, g) => sum + g.mean * g.n, 0) / groups.reduce((sum, g) => sum + g.n, 0);
-    return groups.reduce((top, g) =>
-      Math.abs(g.mean - grandMean) > Math.abs(top.mean - grandMean) ? g : top
-    ).name;
-  }, [groups]);
-
-  const insightText = useMemo(() => {
-    if (etaSquared <= 0) return '';
-    return generateAnovaInsightLine({ etaSquared, pValue, topCategoryName: topCategory });
-  }, [etaSquared, pValue, topCategory]);
-
   if (!result) return null;
+
+  const { ssb, ssw, dfBetween, dfWithin, fStatistic, pValue, etaSquared } = result;
+  const ssTotal = ssb + ssw;
+  const dfTotal = dfBetween + dfWithin;
 
   return (
     <div
       data-testid="anova-results"
-      className={`${colorScheme.background} border ${colorScheme.border} rounded-lg p-3 mt-2`}
+      className="bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 mt-2"
     >
-      <div className="flex items-center justify-between mb-2">
-        <span
-          className={`text-xs font-semibold ${colorScheme.headerText} uppercase tracking-wider`}
+      {/* Header */}
+      <span className="text-[0.6875rem] font-semibold text-content-secondary uppercase tracking-wider">
+        One-Way ANOVA
+      </span>
+
+      {/* ANOVA table */}
+      <table
+        className="w-full mt-1.5 text-xs font-mono"
+        aria-label={`ANOVA table for ${factorLabel}`}
+      >
+        <thead>
+          <tr className="text-content-muted text-left">
+            <th className="font-medium pb-1 pr-3">Source</th>
+            <th className="font-medium pb-1 pr-3 text-right">DF</th>
+            <th className="font-medium pb-1 pr-3 text-right">SS</th>
+            <th className="font-medium pb-1 pr-3 text-right">F</th>
+            <th className="font-medium pb-1 text-right">P</th>
+          </tr>
+        </thead>
+        <tbody className="text-content">
+          {/* Factor row */}
+          <tr className="border-t border-edge/30">
+            <td className="py-0.5 pr-3">{factorLabel}</td>
+            <td className="py-0.5 pr-3 text-right">{dfBetween}</td>
+            <td className="py-0.5 pr-3 text-right">{formatSS(ssb)}</td>
+            <td className="py-0.5 pr-3 text-right" data-testid="anova-significance">
+              {formatStat(fStatistic)}
+            </td>
+            <td className="py-0.5 text-right">{formatPValue(pValue)}</td>
+          </tr>
+          {/* Error row */}
+          <tr className="border-t border-edge/30">
+            <td className="py-0.5 pr-3 text-content-secondary">Error</td>
+            <td className="py-0.5 pr-3 text-right">{dfWithin}</td>
+            <td className="py-0.5 pr-3 text-right">{formatSS(ssw)}</td>
+            <td className="py-0.5 pr-3 text-right"></td>
+            <td className="py-0.5 text-right"></td>
+          </tr>
+          {/* Total row */}
+          <tr className="border-t border-edge/50 font-medium">
+            <td className="py-0.5 pr-3">Total</td>
+            <td className="py-0.5 pr-3 text-right">{dfTotal}</td>
+            <td className="py-0.5 pr-3 text-right">{formatSS(ssTotal)}</td>
+            <td className="py-0.5 pr-3 text-right"></td>
+            <td className="py-0.5 text-right"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      {/* Eta-squared takeaway */}
+      {etaSquared > 0 && (
+        <div
+          data-testid="anova-eta-squared"
+          className="mt-2 pt-1.5 border-t border-edge/30 text-xs flex items-center gap-1"
         >
-          ANOVA: {factorLabel}
-        </span>
-      </div>
-
-      {/* Group means and sample sizes */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mb-2">
-        {groups?.map(group => (
-          <span key={group.name} className={colorScheme.contentText}>
-            <span className={colorScheme.mutedText}>{group.name}:</span>{' '}
-            <span className="font-mono">{formatStat(group.mean, 1)}</span>
-            <span className={`${colorScheme.mutedText} ml-1`}>(n={group.n})</span>
+          <span className="font-mono font-semibold text-content">
+            &eta;&sup2; = {formatStat(etaSquared, 2)}
           </span>
-        ))}
-      </div>
-
-      {/* Contribution % (primary) + Evidence (secondary) */}
-      <div className={`mt-2 border-t ${colorScheme.border} pt-2`}>
-        <div className="flex items-center gap-4 text-sm">
-          {etaSquared > 0 && (
-            <span
-              data-testid="anova-eta-squared"
-              className={`font-mono font-semibold ${colorScheme.contentText} flex items-center gap-1`}
-            >
-              Contribution {formatStat(etaSquared * 100, 1)}%
-              <HelpTooltip term={getTerm('etaSquared')} iconSize={12} />
-            </span>
-          )}
-          <span className={`${colorScheme.mutedText} text-xs flex items-center gap-1`}>
-            <span data-testid="anova-significance" className="font-mono">
-              F = {formatStat(fStatistic)}, p = {formatPValue(pValue, formatStat)}
-            </span>
-            <HelpTooltip term={getTerm('fStatistic')} iconSize={12} />
+          <span className="text-content-secondary">
+            ({formatStat(etaSquared * 100, 1)}% of variation explained)
           </span>
+          <HelpTooltip term={getTerm('etaSquared')} iconSize={12} />
         </div>
-
-        {/* Insight line */}
-        {insightText && (
-          <div
-            className={`text-xs ${colorScheme.secondaryText} mt-1.5`}
-            data-testid="anova-insight"
-          >
-            {insightText}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 };

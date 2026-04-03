@@ -35,7 +35,7 @@ The ASA's 2016/2019 statements established: stop treating p < 0.05 as a truth ma
 
 ### ANOVA Panel
 
-- Flip layout: Contribution % first (bold, prominent), F/p second (muted, smaller)
+- Flip layout: η² first (bold, prominent), F/p second (muted, smaller)
 - Add deterministic insight line below stats, naming the specific outlier category and suggesting progressive stratification
 
 ### AI Context
@@ -46,7 +46,7 @@ The ASA's 2016/2019 statements established: stop treating p < 0.05 as a truth ma
 
 ### Hypothesis Hover
 
-- Status badge tooltip shows Contribution %, evidence level, sample info, and interpretation
+- Status badge tooltip shows η², evidence level, sample info, and interpretation
 - Weak evidence triggers gemba/expert follow-up suggestion, not "collect more data"
 
 ### Staged Comparison
@@ -72,3 +72,7 @@ The ASA's 2016/2019 statements established: stop treating p < 0.05 as a truth ma
 
 - No breaking changes to data model or persistence
 - `isSignificant` boolean retained in AnovaResult for backward compatibility but de-emphasized in UI
+
+## Amendment: Standard ANOVA Metrics (ADR-062)
+
+Since **ADR-062** (Apr 2026), the "Contribution %" label has been replaced throughout the UI with the standard statistical term **η²** (eta-squared). The `cumulativeScope` field in AIContext was removed along with the VariationBar component. The ANOVA panel now leads with η² as the canonical effect size metric. See [ADR-062](adr-062-standard-anova-metrics.md).

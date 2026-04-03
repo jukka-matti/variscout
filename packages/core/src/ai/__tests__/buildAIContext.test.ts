@@ -333,7 +333,7 @@ describe('buildAIContext', () => {
     const ctx = buildAIContext({
       focusContext: {
         chartType: 'boxplot',
-        category: { name: 'Machine A', mean: 10.2, contributionPct: 45 },
+        category: { name: 'Machine A', mean: 10.2, etaSquaredPct: 45 },
       },
     });
     expect(ctx.focusContext).toBeDefined();

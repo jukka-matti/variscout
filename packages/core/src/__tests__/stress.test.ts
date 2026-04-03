@@ -17,11 +17,6 @@ import {
   calculateBoxplotStats,
   calculateKDE,
 } from '../stats';
-import {
-  calculateFactorVariations,
-  calculateCategoryTotalSS,
-  calculateDrillVariation,
-} from '../variation';
 import type { DataRow } from '../types';
 import {
   generateStressData,
@@ -193,35 +188,10 @@ describe('calculateStats at scale', () => {
 });
 
 // ============================================================================
-// Variation Tracking at Scale
+// Eta-Squared at Scale
 // ============================================================================
 
-describe('Variation tracking at scale', () => {
-  it('3 factors x 10K rows - contributions sum to ~100%', { timeout: 30_000 }, () => {
-    const data = generateStressData({
-      rowCount: 10000,
-      factors: [
-        { name: 'Machine', levels: 10, meanShifts: Array.from({ length: 10 }, (_, i) => i * 2) },
-        { name: 'Shift', levels: 5 },
-        { name: 'Operator', levels: 3 },
-      ],
-      measurement: { name: 'Output', baseMean: 100, baseStd: 3 },
-    });
-
-    // Test calculateCategoryTotalSS - contributions should sum to ~100%
-    for (const factor of ['Machine', 'Shift', 'Operator']) {
-      const result = calculateCategoryTotalSS(data, factor, 'Output');
-      expect(result).not.toBeNull();
-
-      const totalContribution = Array.from(result!.contributions.values()).reduce(
-        (sum, v) => sum + v,
-        0
-      );
-      // Contributions within a factor should sum to 100%
-      expect(totalContribution).toBeCloseTo(100, 0);
-    }
-  });
-
+describe('Eta-squared at scale', () => {
   it(
     '1 factor x 50K rows, 50 levels - boundary of categorical threshold',
     { timeout: 30_000 },
@@ -239,33 +209,7 @@ describe('Variation tracking at scale', () => {
     }
   );
 
-  it('calculateFactorVariations with 3 factors on 10K rows', { timeout: 30_000 }, () => {
-    const data = generateStressData({
-      rowCount: 10000,
-      factors: [
-        { name: 'Machine', levels: 10, meanShifts: Array.from({ length: 10 }, (_, i) => i * 3) },
-        { name: 'Shift', levels: 3, meanShifts: [0, 1, 2] },
-        { name: 'Operator', levels: 5 },
-      ],
-      measurement: { name: 'Output', baseMean: 100, baseStd: 2 },
-    });
-
-    const variations = calculateFactorVariations(data, ['Machine', 'Shift', 'Operator'], 'Output');
-
-    // Machine has the largest mean shifts, should have highest variation
-    expect(variations.get('Machine')).toBeGreaterThan(0);
-    // All variations should be percentages
-    for (const [, pct] of variations) {
-      expect(pct).toBeGreaterThanOrEqual(0);
-      expect(pct).toBeLessThanOrEqual(100);
-    }
-  });
-
   it('known effect sizes - eta-squared within tolerance', () => {
-    // Generate data with a strong known effect:
-    // Group has 2 levels with mean shift of 10, baseStd = 1
-    // Expected eta-squared ≈ shift^2 / (shift^2 + 2*std^2) for balanced groups
-    // = 100 / (100 + 2) ≈ 0.98
     const data = generateStressData({
       rowCount: 2000,
       factors: [
@@ -279,29 +223,7 @@ describe('Variation tracking at scale', () => {
     });
 
     const etaSq = getEtaSquared(data, 'Treatment', 'Response');
-    // With shift=10 and std=1, eta-squared should be very high (>0.9)
     expect(etaSq).toBeGreaterThan(0.9);
-  });
-
-  it('calculateDrillVariation with multi-level filters', () => {
-    const data = generateStressData({
-      rowCount: 3000,
-      factors: [
-        { name: 'Machine', levels: 5, meanShifts: [0, 3, 6, 9, 12] },
-        { name: 'Shift', levels: 3, meanShifts: [0, 1, 2] },
-      ],
-      measurement: { name: 'Output', baseMean: 100, baseStd: 2 },
-    });
-
-    calculateDrillVariation(data, { Machine: ['Machine_001'], Shift: ['Day'] }, 'Output');
-
-    // Filtering doesn't exist as 'Day' - use generated level name
-    const result2 = calculateDrillVariation(data, { Machine: ['Machine_001'] }, 'Output');
-
-    expect(result2).not.toBeNull();
-    expect(result2!.levels).toHaveLength(2); // root + 1 filter
-    expect(result2!.cumulativeVariationPct).toBeGreaterThan(0);
-    expect(result2!.cumulativeVariationPct).toBeLessThanOrEqual(100);
   });
 });
 
@@ -402,17 +324,6 @@ describe('Timing budgets', () => {
       expect(point.count).toBeGreaterThanOrEqual(0);
       expect(Number.isFinite(point.value)).toBe(true);
     }
-  });
-
-  it('calculateCategoryTotalSS(50K, 50 levels) < 1000ms', { timeout: 30_000 }, () => {
-    const data = generateStressData({
-      rowCount: 50000,
-      factors: [{ name: 'Category', levels: 50 }],
-      measurement: { name: 'Value', baseMean: 100, baseStd: 5 },
-    });
-
-    const { durationMs } = timedExec(() => calculateCategoryTotalSS(data, 'Category', 'Value'));
-    expect(durationMs).toBeLessThan(1000);
   });
 });
 

@@ -1,13 +1,11 @@
 import React from 'react';
-import type { FilterChipData } from '@variscout/hooks';
+import type { FilterChipData } from '../filterTypes';
 
 export interface FilterContextBarProps {
-  /** Filter chip data from useVariationTracking */
+  /** Filter chip data for active filters */
   filterChipData: FilterChipData[];
   /** Column aliases for display labels */
   columnAliases?: Record<string, string>;
-  /** Final cumulative variation percentage */
-  cumulativeVariationPct?: number | null;
   /** Whether to show the bar (respects displayOptions.showFilterContext) */
   show?: boolean;
 }
@@ -34,14 +32,11 @@ function formatValues(values: (string | number)[]): string {
 const FilterContextBar: React.FC<FilterContextBarProps> = ({
   filterChipData,
   columnAliases = {},
-  cumulativeVariationPct,
   show = true,
 }) => {
   if (!show || !filterChipData || filterChipData.length === 0) {
     return null;
   }
-
-  const hasVariation = cumulativeVariationPct !== undefined && cumulativeVariationPct !== null;
 
   return (
     <div
@@ -64,13 +59,6 @@ const FilterContextBar: React.FC<FilterContextBarProps> = ({
           </React.Fragment>
         );
       })}
-      {hasVariation && (
-        <>
-          <span className="ml-auto pl-2 whitespace-nowrap font-medium text-blue-400">
-            {Math.round(cumulativeVariationPct!)}% in focus
-          </span>
-        </>
-      )}
     </div>
   );
 };

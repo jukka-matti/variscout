@@ -152,11 +152,11 @@ See [quick-check.md](quick-check.md) and [deep-dive.md](deep-dive.md) for detail
 
 ### Tier Differences
 
-| Dimension          | PWA (Free)                            | Azure (Standard / Team)   |
-| ------------------ | ------------------------------------- | ------------------------- |
-| Max drill factors  | 3                                     | 6                         |
-| Finding statuses   | 3 (observed, investigating, analyzed) | 5 (+ improving, resolved) |
-| Variation tracking | Cumulative Total SS                   | Cumulative Total SS       |
+| Dimension         | PWA (Free)                            | Azure (Standard / Team)     |
+| ----------------- | ------------------------------------- | --------------------------- |
+| Max drill factors | 3                                     | 6                           |
+| Finding statuses  | 3 (observed, investigating, analyzed) | 5 (+ improving, resolved)   |
+| Evidence tracking | η² per factor (ANOVA panel)           | η² per factor (ANOVA panel) |
 
 ### CoScout in Scout
 
@@ -166,7 +166,6 @@ See [quick-check.md](quick-check.md) and [deep-dive.md](deep-dive.md) for detail
 ### Key Code References
 
 - `useFilterNavigation` -- filter navigation with multi-select and breadcrumbs
-- `useVariationTracking` -- cumulative Total SS scope tracking
 - `useChartScale` -- Y-axis scale calculation
 - `useBoxplotData`, `useIChartData` -- chart data transforms
 
@@ -375,7 +374,7 @@ The drill-down loop is the core interaction pattern within the Scout phase. Each
 flowchart TD
     ALL["All Data"] --> READ["Read eta-squared\n(ANOVA under Boxplot)"]
     READ --> CLICK["Click highest-eta factor"]
-    CLICK --> FILTER["Filter applied\n(chip shows contribution %)"]
+    CLICK --> FILTER["Filter applied\n(chip shows n=X)"]
     FILTER --> UPDATE["Charts update\nfor filtered subset"]
     UPDATE --> CHECK{Enough variation\nisolated?}
     CHECK -- "Yes (>50%)" --> PIN["Pin finding"]
@@ -385,7 +384,7 @@ flowchart TD
     style PIN fill:#22c55e,color:#fff
 ```
 
-Each filter chip displays the cumulative contribution percentage (Total SS scope), giving the analyst a running measure of how much variation has been explained by the current drill path. See [drill-down-workflow.md](drill-down-workflow.md) for the detailed protocol.
+Each filter chip displays the sample count (n=X) for the filtered subset. Factor Intelligence R²adj ranking guides which factor to explore next. See [drill-down-workflow.md](drill-down-workflow.md) for the detailed protocol.
 
 ---
 
@@ -393,20 +392,20 @@ Each filter chip displays the cumulative contribution percentage (Total SS scope
 
 Twelve key decision points shape the analysis journey. Each has a clear question, evidence source, and branching outcome.
 
-| #   | Decision Point                     | Phase       | Evidence                               | Yes Path                         | No Path                              |
-| --- | ---------------------------------- | ----------- | -------------------------------------- | -------------------------------- | ------------------------------------ |
-| 1   | Stable?                            | Scout       | I-Chart (control limits, Nelson rules) | Proceed to Boxplot               | Investigate special causes first     |
-| 2   | Which factor drives variation?     | Scout       | Boxplot eta-squared                    | Drill into highest eta-squared   | Check interactions                   |
-| 3   | Enough variation isolated?         | Scout       | Cumulative Total SS > 50%              | Pin finding, move to Investigate | Continue drilling                    |
-| 4   | Capable?                           | Scout       | Cpk vs target (1.33 default)           | Process acceptable               | Needs improvement                    |
-| 5   | Quick Check or Deep Dive?          | Scout       | Time available, severity               | Quick Check (~5 min)             | Deep Dive (~30 min)                  |
-| 6   | Discovery or Hypothesis-driven?    | Scout       | Prior knowledge, CoScout input         | Discovery (scan all lenses)      | Hypothesis-driven (confirm and jump) |
-| 7   | Key Driver or Low Impact?          | Investigate | eta-squared magnitude, Pareto rank     | Tag as key-driver                | Tag as low-impact                    |
-| 8   | Single or multiple hypotheses?     | Investigate | Complexity of problem                  | Test single hypothesis           | Diverge into sub-hypotheses          |
-| 9   | Data, gemba, or expert validation? | Investigate | Available evidence                     | Statistical test (ANOVA)         | Physical observation or consultation |
-| 10  | Converged on suspected cause?      | Investigate | Hypothesis validation status           | Enter Improve phase              | Generate more hypotheses             |
-| 11  | What-If projection effective?      | Improve     | Projected Cpk meets target             | Define corrective actions        | Revise approach                      |
-| 12  | Verification passed?               | Improve     | Staged analysis (before vs after)      | Resolve finding, close           | PDCA loop back to Frame              |
+| #   | Decision Point                     | Phase       | Evidence                                                   | Yes Path                         | No Path                              |
+| --- | ---------------------------------- | ----------- | ---------------------------------------------------------- | -------------------------------- | ------------------------------------ |
+| 1   | Stable?                            | Scout       | I-Chart (control limits, Nelson rules)                     | Proceed to Boxplot               | Investigate special causes first     |
+| 2   | Which factor drives variation?     | Scout       | Boxplot eta-squared                                        | Drill into highest eta-squared   | Check interactions                   |
+| 3   | Enough variation isolated?         | Scout       | Key factors identified via R²adj ranking? Findings pinned? | Pin finding, move to Investigate | Continue drilling                    |
+| 4   | Capable?                           | Scout       | Cpk vs target (1.33 default)                               | Process acceptable               | Needs improvement                    |
+| 5   | Quick Check or Deep Dive?          | Scout       | Time available, severity                                   | Quick Check (~5 min)             | Deep Dive (~30 min)                  |
+| 6   | Discovery or Hypothesis-driven?    | Scout       | Prior knowledge, CoScout input                             | Discovery (scan all lenses)      | Hypothesis-driven (confirm and jump) |
+| 7   | Key Driver or Low Impact?          | Investigate | eta-squared magnitude, Pareto rank                         | Tag as key-driver                | Tag as low-impact                    |
+| 8   | Single or multiple hypotheses?     | Investigate | Complexity of problem                                      | Test single hypothesis           | Diverge into sub-hypotheses          |
+| 9   | Data, gemba, or expert validation? | Investigate | Available evidence                                         | Statistical test (ANOVA)         | Physical observation or consultation |
+| 10  | Converged on suspected cause?      | Investigate | Hypothesis validation status                               | Enter Improve phase              | Generate more hypotheses             |
+| 11  | What-If projection effective?      | Improve     | Projected Cpk meets target                                 | Define corrective actions        | Revise approach                      |
+| 12  | Verification passed?               | Improve     | Staged analysis (before vs after)                          | Resolve finding, close           | PDCA loop back to Frame              |
 
 ---
 

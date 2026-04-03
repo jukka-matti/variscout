@@ -12,13 +12,12 @@ const boxplotData: MobileCategorySheetData = {
   median: 12.4,
   iqr: 1.8,
   stdDev: 0.9,
-  contributionPct: 38,
 };
 
 const paretoData: MobileCategorySheetData = {
   categoryKey: 'Machine 3',
   chartType: 'pareto',
-  contributionPct: 42,
+  count: 42,
 };
 
 const defaultProps: MobileCategorySheetProps = {
@@ -45,21 +44,20 @@ describe('MobileCategorySheet', () => {
     expect(screen.getByTestId('category-sheet-title').textContent).toBe('Shift B');
   });
 
-  it('shows boxplot stats (n, mean, median, IQR, contribution)', () => {
+  it('shows boxplot stats (n, mean, median, IQR, SD)', () => {
     render(<MobileCategorySheet {...defaultProps} />);
     const stats = screen.getByTestId('category-sheet-stats');
     expect(stats.textContent).toContain('47');
     expect(stats.textContent).toContain('12.60');
     expect(stats.textContent).toContain('12.40');
     expect(stats.textContent).toContain('1.80');
-    expect(stats.textContent).toContain('38%');
+    expect(stats.textContent).toContain('0.90');
   });
 
-  it('shows pareto stats (contribution only)', () => {
+  it('shows pareto stats (count)', () => {
     render(<MobileCategorySheet {...defaultProps} data={paretoData} />);
     const stats = screen.getByTestId('category-sheet-stats');
-    expect(stats.textContent).toContain('42%');
-    expect(stats.textContent).not.toContain('Mean');
+    expect(stats.textContent).toContain('42');
   });
 
   it('calls onDrillDown and onClose when drill-down button is clicked', () => {

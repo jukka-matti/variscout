@@ -305,7 +305,7 @@ PerformanceParetoBase (renders SVG)
 
 ### Mobile Tap Interaction
 
-On mobile (<640px), tapping a Pareto bar opens a `MobileCategorySheet` bottom action sheet (from `@variscout/ui`) showing the category's contribution %. Count and cumulative % display are deferred to a future update. The sheet is triggered by the tap on the bar, with drill-down and highlight (red/amber/green) actions available.
+On mobile (<640px), tapping a Pareto bar opens a `MobileCategorySheet` bottom action sheet (from `@variscout/ui`) showing the category's η² (effect size). Count and cumulative % display are deferred to a future update. The sheet is triggered by the tap on the bar, with drill-down and highlight (red/amber/green) actions available.
 
 ### Click Behavior
 

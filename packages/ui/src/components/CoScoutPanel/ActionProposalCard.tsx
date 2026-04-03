@@ -88,8 +88,7 @@ function formatPreview(
       if (preview.predictedStatus) {
         lines.push(`Predicted: ${preview.predictedStatus}`);
         if (preview.etaSquared !== undefined) {
-          lines[lines.length - 1] +=
-            ` (Contribution ${Math.round((preview.etaSquared as number) * 100)}%)`;
+          lines[lines.length - 1] += ` (η² = ${Math.round((preview.etaSquared as number) * 100)}%)`;
         }
       }
       if (preview.validationType && preview.validationType !== 'data') {

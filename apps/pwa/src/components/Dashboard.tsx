@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
+import type { FilterChipData } from '@variscout/ui';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -40,7 +41,7 @@ import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import { Activity } from 'lucide-react';
-import { getColumnNames, type SpecLimits, type Finding } from '@variscout/core';
+import { getColumnNames, getEtaSquared, type SpecLimits, type Finding } from '@variscout/core';
 import { useProjectionStore } from '../features/projection/projectionStore';
 
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
@@ -178,14 +179,10 @@ const Dashboard = ({
     anovaResult,
     boxplotData,
     // Filter navigation state
+    filterStack,
     clearFilters,
     updateFilterValues,
     removeFilter,
-    // Variation tracking
-    cumulativeVariationPct,
-    factorVariations,
-    categoryContributions,
-    filterChipData,
     // Filter handler
     handleDrillDown,
   } = useDashboardCharts({
@@ -211,6 +208,25 @@ const Dashboard = ({
     }
   }, [requestedFactor, factors, setBoxplotFactor, setParetoFactor]);
 
+  // Build filter chip data from filter stack for breadcrumb display
+  const filterChipData: FilterChipData[] = useMemo(() => {
+    if (!filterStack || filterStack.length === 0 || !rawData?.length) return [];
+    return filterStack
+      .filter((f): f is typeof f & { factor: string } => !!f.factor)
+      .map(filter => {
+        const allValues = [...new Set(rawData.map(row => row[filter.factor]))];
+        return {
+          factor: filter.factor,
+          values: filter.values,
+          availableValues: allValues.map(val => ({
+            value: val as string | number,
+            count: rawData.filter(row => row[filter.factor] === val).length,
+            isSelected: filter.values.includes(val as string | number),
+          })),
+        };
+      });
+  }, [filterStack, rawData]);
+
   // Responsive mobile detection
   const isMobile = useIsMobile(BREAKPOINTS.phone);
 
@@ -222,7 +238,7 @@ const Dashboard = ({
     outcome,
     specs,
     stats,
-    filterChipData,
+    filterStack,
     journeyPhase,
   });
   const { centeringOpportunity, specSuggestion, activeProjection } = projectionResult;
@@ -325,6 +341,12 @@ const Dashboard = ({
     return parts.join('. ');
   }, [filteredData.length, rawData.length, filters]);
 
+  // Compute η² per factor for insight chips (replaces deleted useVariationTracking)
+  const factorVariations = useMemo(() => {
+    if (!outcome || !filteredData?.length || !factors?.length) return new Map<string, number>();
+    return new Map(factors.map(f => [f, getEtaSquared(filteredData, f, outcome) * 100]));
+  }, [filteredData, factors, outcome]);
+
   // --- Chart Insight Chips + Capability mode (shared hook) ---
   const {
     ichartInsight,
@@ -342,7 +364,6 @@ const Dashboard = ({
     factorVariations,
     boxplotFactor,
     paretoFactor,
-    categoryContributions,
     displayOptions,
     setDisplayOptions,
     subgroupConfig,
@@ -422,9 +443,7 @@ const Dashboard = ({
           onRemoveFilter={handleRemoveFilter}
           onClearAllFilters={handleClearAllFilters}
           filterChipData={filterChipData}
-          cumulativeVariationPct={cumulativeVariationPct}
           onUpdateFilterValues={handleUpdateFilterValues}
-          factorVariations={factorVariations}
           onHideParetoPanel={() => setShowParetoPanel(false)}
           onUploadPareto={onManageFactors}
           paretoAggregation={paretoAggregation}
@@ -460,7 +479,6 @@ const Dashboard = ({
           onUpdateFilterValues={handleUpdateFilterValues}
           onRemoveFilter={handleRemoveFilter}
           onClearAll={handleClearAllFilters}
-          cumulativeVariationPct={cumulativeVariationPct}
           onPinFinding={onPinFinding}
           layout={displayOptions.dashboardLayout ?? 'grid'}
           onLayoutChange={l => setDisplayOptions({ ...displayOptions, dashboardLayout: l })}
@@ -540,7 +558,6 @@ const Dashboard = ({
         focusedChart={focusedChart}
         setFocusedChart={setFocusedChart}
         filterChipData={filterChipData}
-        cumulativeVariationPct={cumulativeVariationPct}
         annotations={{
           contextMenu,
           handleContextMenu,
@@ -772,7 +789,6 @@ const Dashboard = ({
               }
               filterChipData={filterChipData}
               columnAliases={columnAliases}
-              cumulativeVariationPct={cumulativeVariationPct}
               showFilterContext={displayOptions.showFilterContext !== false}
               boxplotHighlights={boxplotHighlights}
               onBoxplotContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}

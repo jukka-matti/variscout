@@ -35,7 +35,7 @@ describe('useDrillPath', () => {
     const { result } = renderHook(() => useDrillPath(testData, [], 'Value', { usl: 25, lsl: 5 }));
 
     expect(result.current.drillPath).toEqual([]);
-    expect(result.current.cumulativeVariationPct).toBeNull();
+    expect(result.current.cumulativeScopePct).toBeNull();
   });
 
   it('returns empty drillPath when outcome is null', () => {
@@ -43,7 +43,7 @@ describe('useDrillPath', () => {
     const { result } = renderHook(() => useDrillPath(testData, stack, null, undefined));
 
     expect(result.current.drillPath).toEqual([]);
-    expect(result.current.cumulativeVariationPct).toBeNull();
+    expect(result.current.cumulativeScopePct).toBeNull();
   });
 
   it('returns empty drillPath when rawData has fewer than 2 rows', () => {
@@ -51,7 +51,7 @@ describe('useDrillPath', () => {
     const { result } = renderHook(() => useDrillPath([testData[0]], stack, 'Value', undefined));
 
     expect(result.current.drillPath).toEqual([]);
-    expect(result.current.cumulativeVariationPct).toBeNull();
+    expect(result.current.cumulativeScopePct).toBeNull();
   });
 
   it('computes a single drill step correctly', () => {
@@ -85,8 +85,8 @@ describe('useDrillPath', () => {
     expect(step.cpkBefore).toBeDefined();
     expect(step.cpkAfter).toBeDefined();
 
-    // cumulativeVariationPct should be step.cumulativeScope * 100
-    expect(result.current.cumulativeVariationPct).toBeCloseTo(step.cumulativeScope * 100, 5);
+    // cumulativeScopePct should be step.cumulativeScope * 100
+    expect(result.current.cumulativeScopePct).toBeCloseTo(step.cumulativeScope * 100, 5);
   });
 
   it('computes two drill steps with cumulative scope', () => {
@@ -108,8 +108,8 @@ describe('useDrillPath', () => {
     expect(step2.countBefore).toBe(4);
     expect(step2.countAfter).toBe(2);
 
-    // cumulativeVariationPct tracks the final cumulative scope
-    expect(result.current.cumulativeVariationPct).toBeCloseTo(step2.cumulativeScope * 100, 5);
+    // cumulativeScopePct tracks the final cumulative scope
+    expect(result.current.cumulativeScopePct).toBeCloseTo(step2.cumulativeScope * 100, 5);
   });
 
   it('skips highlight-type actions in filterStack', () => {

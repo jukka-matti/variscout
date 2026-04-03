@@ -24,7 +24,7 @@ Non-negotiable principles that govern every architectural decision and implement
 
 5. **Question-first investigation** (Turtiainen 2019) — Investigation starts from questions, not theories. Issue Statement sharpens into Problem Statement through answered questions. Multiple suspected causes are correct outcomes, not failures.
 
-6. **Progressive stratification** — Drill into data iteratively, guided by statistical evidence (η², R²adj). Each drill narrows scope. Contribution to TOTAL keeps the analyst anchored to the original problem.
+6. **Evidence-based drilling** — Drill into data iteratively, guided by statistical evidence (η² for factor effect size, R²adj for factor ranking via Factor Intelligence). The boxplot visual and StdDev comparison reveal which categories to investigate. Filter chips show sample count (n=X) to keep the analyst aware of data sufficiency.
 
 7. **Three evidence types** — Investigation questions are validated by data (auto η²/R²adj), gemba (go-and-see with photo evidence), or expert knowledge. Tasks flow to the right people through Teams. No variation problem is solved from a desk alone.
 

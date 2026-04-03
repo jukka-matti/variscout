@@ -64,7 +64,6 @@ vi.mock('@variscout/core', () => ({
   isPreviewEnabled: vi.fn(() => false),
   buildSuggestedQuestions: vi.fn(() => []),
   computeIdeaImpact: vi.fn(() => null),
-  calculateFactorVariations: vi.fn(() => []),
   getNelsonRule2Sequences: vi.fn(() => []),
   getNelsonRule3Sequences: vi.fn(() => []),
   calculateStagedComparison: vi.fn(() => null),

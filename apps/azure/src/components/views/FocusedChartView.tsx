@@ -13,7 +13,8 @@ import type {
   AnovaResult,
   Finding,
 } from '@variscout/core';
-import type { FilterChipData, HighlightColor } from '@variscout/hooks';
+import type { FilterChipData } from '@variscout/ui';
+import type { HighlightColor } from '@variscout/hooks';
 
 type FocusedChartType = 'ichart' | 'boxplot' | 'pareto';
 
@@ -26,7 +27,6 @@ interface FocusedChartViewProps {
   // Shared props
   displayOptions: DisplayOptions;
   columnAliases: Record<string, string>;
-  cumulativeVariationPct: number;
   filterChipData: FilterChipData[];
   copyFeedback?: string | null;
   onCopyChart?: (containerId: string, chartName: string) => Promise<void>;
@@ -136,7 +136,6 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
       filterContext={{
         filterChipData: props.filterChipData,
         columnAliases: props.columnAliases,
-        cumulativeVariationPct: props.cumulativeVariationPct,
         showFilterContext: props.displayOptions.showFilterContext !== false,
       }}
       ichart={{

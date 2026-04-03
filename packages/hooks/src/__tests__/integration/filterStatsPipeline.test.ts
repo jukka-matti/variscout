@@ -2,8 +2,8 @@
  * Pipeline Integration Tests
  *
  * Tests the complete hook pipeline with real CSV data from docs/04-cases/.
- * Verifies that the hooks (useDrillPath, useVariationTracking) produce
- * correct statistics that match the golden data values from
+ * Verifies that the hooks (useDrillPath) produce correct statistics
+ * that match the golden data values from
  * packages/core/src/__tests__/goldenData.test.ts.
  *
  * These tests bridge the gap between pure-function unit tests (core) and
@@ -17,7 +17,6 @@ import path from 'node:path';
 import type { DataRow, FilterAction } from '@variscout/core';
 import { createFilterAction, calculateStats, applyFilters } from '@variscout/core';
 import { useDrillPath } from '../../useDrillPath';
-import { useVariationTracking } from '../../useVariationTracking';
 
 // ============================================================================
 // Fixture loader — simple CSV parser (avoids papaparse dependency)
@@ -97,7 +96,7 @@ describe('Pipeline Integration: Coffee Washing Station', () => {
       expect(step.cpkAfter).toBeCloseTo(-0.5324, 2);
 
       // Cumulative scope percentage = scopeFraction * 100
-      expect(result.current.cumulativeVariationPct).toBeCloseTo(step.scopeFraction * 100, 5);
+      expect(result.current.cumulativeScopePct).toBeCloseTo(step.scopeFraction * 100, 5);
     });
 
     it('should compute correct stats for Bed A drill (good bed)', () => {
@@ -116,51 +115,7 @@ describe('Pipeline Integration: Coffee Washing Station', () => {
       const { result } = renderHook(() => useDrillPath(data, [], 'Moisture_pct', specs));
 
       expect(result.current.drillPath).toEqual([]);
-      expect(result.current.cumulativeVariationPct).toBeNull();
-    });
-  });
-
-  // --------------------------------------------------------------------------
-  // useVariationTracking with real data
-  // --------------------------------------------------------------------------
-
-  describe('useVariationTracking with coffee data', () => {
-    it('should identify Drying_Bed as high-variation factor', () => {
-      const { result } = renderHook(() =>
-        useVariationTracking(data, [], 'Moisture_pct', ['Drying_Bed'])
-      );
-
-      // Drying_Bed max category contribution ≈ 63.6% (Bed C is the biggest)
-      const dryingBedVariation = result.current.factorVariations.get('Drying_Bed');
-      expect(dryingBedVariation).toBeDefined();
-      expect(dryingBedVariation!).toBeCloseTo(63.62, 0);
-      expect(dryingBedVariation!).toBeGreaterThan(50);
-    });
-
-    it('should compute correct category contributions', () => {
-      const { result } = renderHook(() =>
-        useVariationTracking(data, [], 'Moisture_pct', ['Drying_Bed'])
-      );
-
-      const catContribs = result.current.categoryContributions?.get('Drying_Bed');
-      expect(catContribs).toBeDefined();
-
-      // Bed C should dominate total SS (≈63.6%)
-      const bedC = catContribs!.get('C');
-      expect(bedC).toBeDefined();
-      expect(bedC!).toBeCloseTo(63.62, 0);
-    });
-
-    it('should show cumulative variation when filters applied', () => {
-      const stack = [makeFilterAction('Drying_Bed', ['C'])];
-
-      const { result } = renderHook(() =>
-        useVariationTracking(data, stack, 'Moisture_pct', ['Drying_Bed'])
-      );
-
-      // Cumulative scope = Bed C's Total SS contribution ≈ 63.6%
-      expect(result.current.cumulativeVariationPct).toBeCloseTo(63.62, 0);
-      expect(result.current.impactLevel).toBe('high');
+      expect(result.current.cumulativeScopePct).toBeNull();
     });
   });
 });
@@ -195,19 +150,6 @@ describe('Pipeline Integration: Packaging Fill Weights', () => {
       // 120 total → 40 Night shift rows
       expect(step.countBefore).toBe(120);
       expect(step.countAfter).toBe(40);
-    });
-  });
-
-  describe('useVariationTracking with packaging data', () => {
-    it('should identify Shift max category contribution as significant', () => {
-      const { result } = renderHook(() =>
-        useVariationTracking(data, [], 'Fill_Weight_g', ['Shift'])
-      );
-
-      // Max category contribution for Shift (the biggest single shift's Total SS %)
-      const shiftVariation = result.current.factorVariations.get('Shift');
-      expect(shiftVariation).toBeDefined();
-      expect(shiftVariation!).toBeGreaterThan(50);
     });
   });
 });

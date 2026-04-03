@@ -38,18 +38,6 @@ const defaultBaseResult = {
   availableStageColumns: [],
   anovaResult: null,
   boxplotData: [],
-  cumulativeVariationPct: 42,
-  factorVariations: new Map([['Operator', 0.35]]),
-  categoryContributions: new Map([
-    [
-      'Operator',
-      new Map<string | number, number>([
-        ['A', 0.6],
-        ['B', 0.4],
-      ]),
-    ],
-  ]),
-  filterChipData: [],
   handleDrillDown: mockBaseHandleDrillDown,
 };
 
@@ -151,52 +139,6 @@ describe('useDashboardCharts', () => {
       expect(result.current.clearFilters).toBe(mockClearFilters);
       expect(result.current.updateFilterValues).toBe(mockUpdateFilterValues);
       expect(result.current.removeFilter).toBe(mockRemoveFilter);
-    });
-  });
-
-  describe('categoryContributions', () => {
-    it('returns category contributions from base hook when present', () => {
-      const { result } = renderHook(() => useDashboardCharts());
-
-      expect(result.current.categoryContributions).toBeInstanceOf(Map);
-      expect(result.current.categoryContributions.has('Operator')).toBe(true);
-      const operatorMap = result.current.categoryContributions.get('Operator')!;
-      expect(operatorMap.get('A')).toBe(0.6);
-      expect(operatorMap.get('B')).toBe(0.4);
-    });
-
-    it('returns empty Map when base hook has undefined categoryContributions', () => {
-      // Override base result for this test
-      const originalContributions = defaultBaseResult.categoryContributions;
-      defaultBaseResult.categoryContributions = undefined as unknown as Map<
-        string,
-        Map<string | number, number>
-      >;
-
-      const { result } = renderHook(() => useDashboardCharts());
-
-      expect(result.current.categoryContributions).toBeInstanceOf(Map);
-      expect(result.current.categoryContributions.size).toBe(0);
-
-      // Restore
-      defaultBaseResult.categoryContributions = originalContributions;
-    });
-  });
-
-  describe('cumulativeVariationPct', () => {
-    it('returns value from base hook', () => {
-      const { result } = renderHook(() => useDashboardCharts());
-      expect(result.current.cumulativeVariationPct).toBe(42);
-    });
-
-    it('coerces null to 0', () => {
-      const original = defaultBaseResult.cumulativeVariationPct;
-      defaultBaseResult.cumulativeVariationPct = null as unknown as number;
-
-      const { result } = renderHook(() => useDashboardCharts());
-      expect(result.current.cumulativeVariationPct).toBe(0);
-
-      defaultBaseResult.cumulativeVariationPct = original;
     });
   });
 
@@ -425,7 +367,6 @@ describe('useDashboardCharts', () => {
 
   describe('handleDrillDown', () => {
     it('delegates to base handleDrillDown and reports factor change via onViewStateChange', () => {
-      mockBaseHandleDrillDown.mockReturnValue('Line');
       const onViewStateChange = vi.fn();
 
       const { result } = renderHook(() => useDashboardCharts({ onViewStateChange }));
@@ -436,8 +377,8 @@ describe('useDashboardCharts', () => {
 
       expect(mockBaseHandleDrillDown).toHaveBeenCalledWith('Operator', 'A');
       expect(onViewStateChange).toHaveBeenCalledWith({
-        boxplotFactor: 'Line',
-        paretoFactor: 'Line',
+        boxplotFactor: 'Operator',
+        paretoFactor: 'Operator',
       });
     });
 
@@ -455,88 +396,6 @@ describe('useDashboardCharts', () => {
         boxplotFactor: 'Operator',
         paretoFactor: 'Operator',
       });
-    });
-  });
-
-  describe('lastAdvancedFactor visual feedback', () => {
-    it('initializes as null', () => {
-      const { result } = renderHook(() => useDashboardCharts());
-      expect(result.current.lastAdvancedFactor).toBeNull();
-    });
-
-    it('sets lastAdvancedFactor on drill-down when next factor exists', () => {
-      mockBaseHandleDrillDown.mockReturnValue('Line');
-
-      const { result } = renderHook(() => useDashboardCharts());
-
-      act(() => {
-        result.current.handleDrillDown('Operator', 'A');
-      });
-
-      expect(result.current.lastAdvancedFactor).toBe('Line');
-    });
-
-    it('clears lastAdvancedFactor after 2 seconds', () => {
-      mockBaseHandleDrillDown.mockReturnValue('Line');
-
-      const { result } = renderHook(() => useDashboardCharts());
-
-      act(() => {
-        result.current.handleDrillDown('Operator', 'A');
-      });
-      expect(result.current.lastAdvancedFactor).toBe('Line');
-
-      act(() => {
-        vi.advanceTimersByTime(2000);
-      });
-      expect(result.current.lastAdvancedFactor).toBeNull();
-    });
-
-    it('does not set lastAdvancedFactor when no next factor', () => {
-      mockBaseHandleDrillDown.mockReturnValue(null);
-
-      const { result } = renderHook(() => useDashboardCharts());
-
-      act(() => {
-        result.current.handleDrillDown('Operator', 'A');
-      });
-
-      expect(result.current.lastAdvancedFactor).toBeNull();
-    });
-
-    it('resets timeout on consecutive drill-downs', () => {
-      mockBaseHandleDrillDown.mockReturnValue('Line');
-
-      const { result } = renderHook(() => useDashboardCharts());
-
-      act(() => {
-        result.current.handleDrillDown('Operator', 'A');
-      });
-      expect(result.current.lastAdvancedFactor).toBe('Line');
-
-      // Advance partway through the timeout
-      act(() => {
-        vi.advanceTimersByTime(1500);
-      });
-
-      // Drill again — should reset the timer
-      mockBaseHandleDrillDown.mockReturnValue('Shift');
-      act(() => {
-        result.current.handleDrillDown('Line', 'X');
-      });
-      expect(result.current.lastAdvancedFactor).toBe('Shift');
-
-      // Original 2s would have expired, but new timer is still running
-      act(() => {
-        vi.advanceTimersByTime(500);
-      });
-      expect(result.current.lastAdvancedFactor).toBe('Shift');
-
-      // Full 2s from second drill
-      act(() => {
-        vi.advanceTimersByTime(1500);
-      });
-      expect(result.current.lastAdvancedFactor).toBeNull();
     });
   });
 

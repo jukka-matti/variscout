@@ -3,14 +3,14 @@ title: Progressive Filtering
 audience: [analyst, engineer]
 category: navigation
 status: stable
-related: [filter-chips, progressive-stratification, variation-tracking, chart-interaction]
+related: [filter-chips, progressive-stratification, eta-squared, chart-interaction]
 ---
 
 # Progressive Filtering
 
 <!-- journey-phase: scout -->
 
-> **Journey phase:** Primarily SCOUT (drill-down to find variation drivers) and INVESTIGATE (validating hypotheses on filtered subsets).
+> **Journey phase:** Primarily SCOUT (drill-down to find variation drivers) and INVESTIGATE (validating questions on filtered subsets).
 
 VariScout's navigation system connects drill-down analysis, linked filtering, and filter chips into one cohesive workflow for isolating variation sources.
 
@@ -18,24 +18,25 @@ VariScout's navigation system connects drill-down analysis, linked filtering, an
 
 ## 1. Drill-Down: Progressive Stratification
 
-Start with all data, then progressively filter to find where variation concentrates. Filter chips show contribution to TOTAL variation:
+Start with all data, then progressively filter to find where variation concentrates. Factor Intelligence (R²adj) guides which factors to explore. η² confirms each factor's effect size. Filter chips show sample counts:
 
 ```
-┌────────────────────┐  ┌────────────────────┐  ┌────────────────────┐
-│ Shift: Night ▼ 67% │  │ Machine: C ▼ 24%   │  │ Operator: Kim ▼ 9% │
-└────────────────────┘  └────────────────────┘  └────────────────────┘
+┌──────────────────────────┐  ┌──────────────────────────┐  ┌──────────────────────────┐
+│ Shift = Night (n=45)     │  │ Machine = C (n=15)       │  │ Operator = Kim (n=8)     │
+└──────────────────────────┘  └──────────────────────────┘  └──────────────────────────┘
 ```
 
-Each chip shows how much of the TOTAL variation that filter captures.
+Each chip shows the factor, selected value, and how many observations remain in the filtered subset.
 
-### Decision Thresholds
+### Decision Guidance
 
-| Variation % | Action                                   |
-| ----------- | ---------------------------------------- |
-| **>50%**    | Auto-drill — this is the primary driver  |
-| **>80%**    | Strong focus — highly concentrated issue |
-| **30-50%**  | Recommend investigating, ask user        |
-| **<30%**    | Multiple factors — check interactions    |
+| Signal                                            | Action                                              |
+| ------------------------------------------------- | --------------------------------------------------- |
+| Factor Intelligence shows high R²adj for a factor | Drill that factor first                             |
+| η² > 50% for a factor                             | Strong main effect — this factor dominates          |
+| StdDev of one category is 2x+ others              | Investigate that category's spread                  |
+| η² < 10% for all remaining factors                | Remaining variation is common cause — stop drilling |
+| n < 20 after filtering                            | Data too sparse for reliable statistics             |
 
 ### When to Check for Interactions
 
@@ -43,13 +44,13 @@ The drill-down methodology captures **main effects** — how much variation each
 
 > "Machine C is only problematic on Night shift"
 
-**Note:** Interaction detection is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)). Currently, the drill-down captures main effects only.
+**Note:** Interaction detection is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)). Currently, the drill-down captures main effects only. Factor Intelligence can hint at interactions when a two-factor combination has much higher R²adj than either factor alone.
 
-| Scenario                     | Recommendation                                                    |
-| ---------------------------- | ----------------------------------------------------------------- |
-| **<30% variation explained** | Check for interactions — combined effect may be stronger          |
-| **Factors seem related**     | Machine type + Operator experience often interact                 |
-| **Action seems ambiguous**   | "Fix Machine C" vs "Change Night process" — interaction clarifies |
+| Scenario                   | Recommendation                                                    |
+| -------------------------- | ----------------------------------------------------------------- |
+| **Low η² for all factors** | Check for interactions — combined effect may be stronger          |
+| **Factors seem related**   | Machine type + Operator experience often interact                 |
+| **Action seems ambiguous** | "Fix Machine C" vs "Change Night process" — interaction clarifies |
 
 | Method                        | What it captures                    |
 | ----------------------------- | ----------------------------------- |
@@ -57,22 +58,6 @@ The drill-down methodology captures **main effects** — how much variation each
 | GLM with interactions         | Main effects + two-way interactions |
 
 See [Regression Analysis: Interaction Effects](../../archive/regression.md#interaction-effects) for details (Phase 2, deferred per ADR-014).
-
-### Cumulative Impact
-
-The real power is cumulative calculation of contribution percentages:
-
-```
-FILTER CHIPS                      CONTRIBUTION TO TOTAL
-─────────────────────────────────────────────────────────
-[Shift: Night ▼ 67%]              67% of total variation
-[Machine: C ▼ 24%]                (within Night Shift context)
-[Operator: Kim ▼ 9%]              (within Machine C + Night)
-
-CUMULATIVE: Focused on ~46% of TOTAL variation
-```
-
-**Result:** Three filters focus on nearly half of ALL variation in ONE condition.
 
 ---
 
@@ -121,12 +106,10 @@ Filter chips replace the traditional breadcrumb trail with a chips-based interfa
 ┌─────────────────────────────────────────────────────────────────────────┐
 │ ACTIVE FILTERS                                                          │
 │                                                                         │
-│ ┌────────────────────┐  ┌────────────────────┐  ┌──────────────────┐   │
-│ │ Shift: Night ▼ 45% │  │ Machine: A, C ▼ 32%│  │ Operator: Kim ▼  │   │
-│ └────────────────────┘  └────────────────────┘  └──────────────────┘   │
-│                                                                         │
-│ CUMULATIVE: 77% of total variation in focus                            │
-│ "Focus on this combination to address most of your quality problems"   │
+│ ┌──────────────────────┐  ┌─────────────────────────┐  ┌─────────────┐ │
+│ │ Shift = Night (n=45) │  │ Machine = A, C (n=22)   │  │ Operator =  │ │
+│ │                      │  │                         │  │ Kim (n=8)   │ │
+│ └──────────────────────┘  └─────────────────────────┘  └─────────────┘ │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -134,51 +117,40 @@ Each chip shows:
 
 - **Factor name**: The column being filtered
 - **Selected values**: Current selection (truncated if multiple)
-- **Dropdown arrow**: Click to see all values with contribution %
-- **Contribution %**: Combined contribution of selected values to TOTAL variation
+- **n=X**: Sample count for the current selection
+- **Dropdown arrow**: Click to see all values
 
 ### Multi-Select Support
 
 Filter chips support selecting multiple values within a factor:
 
-| Selection    | Display                      | Contribution        |
-| ------------ | ---------------------------- | ------------------- |
-| Single value | `Shift: Night ▼ 45%`         | That value's %      |
-| Two values   | `Shift: Day, Night ▼ 78%`    | Sum of both values  |
-| 3+ values    | `Shift: Day, Night +1 ▼ 89%` | Sum of all selected |
+| Selection    | Display                        |
+| ------------ | ------------------------------ |
+| Single value | `Shift = Night (n=45)`         |
+| Two values   | `Shift = Day, Night (n=78)`    |
+| 3+ values    | `Shift = Day, Night +1 (n=89)` |
 
 ### Dropdown Values
 
-Clicking a chip reveals all available values with their individual contributions:
+Clicking a chip reveals all available values with sample counts:
 
 ```
 ┌─────────────────────────┐
 │ Shift                   │
 ├─────────────────────────┤
-│ ☑ Night        45%     │
-│ ☐ Day          33%     │
-│ ☐ Evening      22%     │
+│ ☑ Night        n=45    │
+│ ☐ Day          n=33    │
+│ ☐ Evening      n=22    │
 ├─────────────────────────┤
 │ [Remove Filter]         │
 └─────────────────────────┘
 ```
 
-Values are sorted by contribution (highest first) to guide users toward high-impact selections.
-
-### Contribution % vs Local η²
-
-**Important distinction:**
-
-- **Contribution %** (shown in chips): Percentage of TOTAL variation from original data
-- **Local η²** (legacy): Percentage of variation at the current filtered level
-
-Filter chips always show contribution to TOTAL variation, making it easier to understand cumulative impact.
-
 ### Navigation Actions
 
 | Action                | Result                               |
 | --------------------- | ------------------------------------ |
-| Click chip dropdown   | Show all values with contribution %  |
+| Click chip dropdown   | Show all values with sample counts   |
 | Toggle value checkbox | Add/remove value from selection      |
 | Click "Remove Filter" | Remove entire filter for that factor |
 | Click "Clear All"     | Reset to unfiltered view             |
@@ -189,7 +161,7 @@ Filter chips always show contribution to TOTAL variation, making it easier to un
 ## Implementation
 
 ```typescript
-import { useFilterNavigation, useVariationTracking } from '@variscout/hooks';
+import { useFilterNavigation } from '@variscout/hooks';
 
 // Filter navigation with multi-select support
 const { filterStack, applyFilter, updateFilterValues, removeFilter, clearFilters, hasFilters } =
@@ -197,14 +169,6 @@ const { filterStack, applyFilter, updateFilterValues, removeFilter, clearFilters
     { filters, setFilters, columnAliases },
     { enableHistory: true, enableUrlSync: true }
   );
-
-// Variation tracking for filter chip data
-const {
-  filterChipData, // Data for rendering filter chips
-  cumulativeVariationPct, // Total SS scope % in focus
-  impactLevel, // 'high' | 'moderate' | 'low'
-  factorVariations, // η² for each factor (internal drill suggestion)
-} = useVariationTracking(rawData, filterStack, outcome, factors);
 
 // Single value selection (traditional drill)
 applyFilter({
@@ -219,21 +183,6 @@ updateFilterValues('Shift', ['Night', 'Day'], 'boxplot');
 
 // Remove a specific filter
 removeFilter('Shift');
-```
-
-### FilterChipData Interface
-
-```typescript
-interface FilterChipData {
-  factor: string;
-  values: (string | number)[];
-  contributionPct: number; // % of TOTAL variation
-  availableValues: {
-    value: string | number;
-    contributionPct: number;
-    isSelected: boolean;
-  }[];
-}
 ```
 
 ### Click Handlers
@@ -262,16 +211,15 @@ const handleMultiSelect = (factor: string, value: string, currentValues: string[
 ### Filter Chip Rendering
 
 ```typescript
-// Render filter chips from variation tracking
-{filterChipData.map(chip => (
+// Render filter chips from filter stack
+{filterStack.map(filter => (
   <FilterChipDropdown
-    key={chip.factor}
-    factor={chip.factor}
-    values={chip.values}
-    contributionPct={chip.contributionPct}
-    availableValues={chip.availableValues}
-    onValuesChange={(newValues) => updateFilterValues(chip.factor, newValues)}
-    onRemove={() => removeFilter(chip.factor)}
+    key={filter.factor}
+    factor={filter.factor}
+    values={filter.values}
+    sampleCount={filter.sampleCount}
+    onValuesChange={(newValues) => updateFilterValues(filter.factor, newValues)}
+    onRemove={() => removeFilter(filter.factor)}
   />
 ))}
 ```
@@ -280,12 +228,13 @@ const handleMultiSelect = (factor: string, value: string, currentValues: string[
 
 ## User Interaction Flow
 
-1. **View Boxplot** - See factor comparison with contribution %
-2. **Click category** - Filter into that factor value
-3. **Filter chip appears** - Shows selected value(s) and contribution %
-4. **Click chip dropdown** - Select/deselect additional values
-5. **Repeat** - Until actionable condition found
-6. **Remove filter** - Click X or use "Remove Filter" in dropdown
+1. **Check Factor Intelligence** — See R²adj ranking for factor priority
+2. **View Boxplot** — See η² and category distributions
+3. **Click category** — Filter into that factor value
+4. **Filter chip appears** — Shows selected value(s) and n=X
+5. **Click chip dropdown** — Select/deselect additional values
+6. **Repeat** — Until actionable condition found
+7. **Remove filter** — Click X or use "Remove Filter" in dropdown
 
 ---
 

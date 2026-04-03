@@ -192,36 +192,36 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ### @variscout/hooks (29 files, 317 test cases)
 
-| Hook/Module                      | Tested | Focus                                                        |
-| :------------------------------- | :----- | :----------------------------------------------------------- |
-| `useAnnotationMode`              | ✅     | Chart annotation state, highlights, text notes, context menu |
-| `useBoxplotData`                 | ✅     | Shared d3 boxplot computation (quartiles, outliers)          |
-| `useChartCopy`                   | ✅     | Chart copy-to-clipboard, PNG/SVG download, style restore     |
-| `useChartScale`                  | ✅     | Y-axis scale calculation, locked vs dynamic ranges           |
-| `useColumnClassification`        | ✅     | Numeric vs categorical column detection, threshold tuning    |
-| `useControlViolations`           | ✅     | Control/spec violation computation, violation counts         |
-| `useDataIngestion`               | ✅     | File upload, data parsing, sample loading                    |
-| `useDataState`                   | ✅     | Shared DataContext state management, display options         |
-| `useDataTablePagination`         | ✅     | Page state, row slicing, boundary conditions                 |
-| `useDrillPath`                   | ✅     | DrillStep computation from filterStack, node contributions   |
-| `useFilterNavigation`            | ✅     | Multi-select, updateFilterValues, removeFilter, breadcrumbs  |
-| `useFocusedChartNav`             | ✅     | Focused chart keyboard navigation, chart order               |
-| `useHighlightFade`               | ✅     | Highlight timeout, fade animation state                      |
-| `useIChartData`                  | ✅     | Shared I-Chart data transform (control limits, points)       |
-| `useKeyboardNavigation`          | ✅     | Arrow key navigation, focus management                       |
-| `useBoxplotWrapperData`          | ✅     | Shared boxplot wrapper data prep (quartiles, groups)         |
-| `useIChartWrapperData`           | ✅     | Shared I-Chart wrapper data prep (points, limits)            |
-| `useParetoChartData`             | ✅     | Shared Pareto chart data prep (rankings, Cpk)                |
-| `useDashboardComputedData`       | ✅     | Shared dashboard computed stats and chart data               |
-| `useResizablePanel`              | ✅     | Panel size state, drag interaction, constraints              |
-| `useResponsiveChartMargins`      | ✅     | Dynamic chart margins based on container width               |
-| `useThemeState`                  | ✅     | Theme state (light/dark/system), themingEnabled parameter    |
-| `useTier`                        | ✅     | Tier info, channel validation, warning messages              |
-| `useVariationTracking`           | ✅     | Cumulative eta-squared, filter chip data with contribution % |
-| `filterStateTransitions`         | ✅     | Filter add/remove/clear state machine transitions            |
-| `stress`                         | ✅     | Performance/stress tests for hooks under load                |
-| `index.ts` (exports)             | ✅     | All public exports resolve correctly                         |
-| Integration: filterStatsPipeline | ✅     | End-to-end: CSV parse → filter → stats → ANOVA pipeline      |
+| Hook/Module                      | Tested | Focus                                                          |
+| :------------------------------- | :----- | :------------------------------------------------------------- |
+| `useAnnotationMode`              | ✅     | Chart annotation state, highlights, text notes, context menu   |
+| `useBoxplotData`                 | ✅     | Shared d3 boxplot computation (quartiles, outliers)            |
+| `useChartCopy`                   | ✅     | Chart copy-to-clipboard, PNG/SVG download, style restore       |
+| `useChartScale`                  | ✅     | Y-axis scale calculation, locked vs dynamic ranges             |
+| `useColumnClassification`        | ✅     | Numeric vs categorical column detection, threshold tuning      |
+| `useControlViolations`           | ✅     | Control/spec violation computation, violation counts           |
+| `useDataIngestion`               | ✅     | File upload, data parsing, sample loading                      |
+| `useDataState`                   | ✅     | Shared DataContext state management, display options           |
+| `useDataTablePagination`         | ✅     | Page state, row slicing, boundary conditions                   |
+| `useDrillPath`                   | ✅     | DrillStep computation from filterStack, node contributions     |
+| `useFilterNavigation`            | ✅     | Multi-select, updateFilterValues, removeFilter, breadcrumbs    |
+| `useFocusedChartNav`             | ✅     | Focused chart keyboard navigation, chart order                 |
+| `useHighlightFade`               | ✅     | Highlight timeout, fade animation state                        |
+| `useIChartData`                  | ✅     | Shared I-Chart data transform (control limits, points)         |
+| `useKeyboardNavigation`          | ✅     | Arrow key navigation, focus management                         |
+| `useBoxplotWrapperData`          | ✅     | Shared boxplot wrapper data prep (quartiles, groups)           |
+| `useIChartWrapperData`           | ✅     | Shared I-Chart wrapper data prep (points, limits)              |
+| `useParetoChartData`             | ✅     | Shared Pareto chart data prep (rankings, Cpk)                  |
+| `useDashboardComputedData`       | ✅     | Shared dashboard computed stats and chart data                 |
+| `useResizablePanel`              | ✅     | Panel size state, drag interaction, constraints                |
+| `useResponsiveChartMargins`      | ✅     | Dynamic chart margins based on container width                 |
+| `useThemeState`                  | ✅     | Theme state (light/dark/system), themingEnabled parameter      |
+| `useTier`                        | ✅     | Tier info, channel validation, warning messages                |
+| `useVariationTracking`           | ✅     | Cumulative eta-squared, filter chip data with n=X sample count |
+| `filterStateTransitions`         | ✅     | Filter add/remove/clear state machine transitions              |
+| `stress`                         | ✅     | Performance/stress tests for hooks under load                  |
+| `index.ts` (exports)             | ✅     | All public exports resolve correctly                           |
+| Integration: filterStatsPipeline | ✅     | End-to-end: CSV parse → filter → stats → ANOVA pipeline        |
 
 ### @variscout/ui (10 files, 136 test cases)
 
@@ -258,7 +258,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `StatsPanel`            | ✅     | Conditional display, Cp/Cpk, sigma within                                      |
 | `FindingsWindow`        | ✅     | Window rendering, popout behavior, localStorage sync                           |
 | `WhatIfPage`            | ✅     | Simulator integration, navigation, predictions                                 |
-| `FilterBreadcrumb`      | ✅     | Chip rendering, remove button, contribution %                                  |
+| `FilterBreadcrumb`      | ✅     | Chip rendering, remove button, n=X sample count badge                          |
 | `Editor`                | ✅     | Empty state, sample loading, navigation                                        |
 | `SettingsPanel`         | ✅     | Theme toggle, display options, panel open/close                                |
 | ColumnMapping (re-edit) | ✅     | Factor add/remove via ColumnMapping mode='edit', safe cancel                   |
@@ -698,7 +698,7 @@ Specific prompts for verifying complex features. These protocols can be executed
 - [ ] Stats (mean, sigma) update to reflect filtered subset
 - [ ] Second filter chip appears at second drill level
 - [ ] Both chips visible simultaneously
-- [ ] Cumulative contribution % updates
+- [ ] Cumulative η² updates
 - [ ] Clear All removes all chips and reverts stats
 
 ### 7. Manual Data Entry Verification

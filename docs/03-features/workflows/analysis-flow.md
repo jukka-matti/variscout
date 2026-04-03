@@ -107,14 +107,14 @@ SCOUT is EDA for process improvement — **not sequential verification gates**. 
 
 ### Decision Points (Natural Questions, Not Gates)
 
-| #   | Decision                        | Evidence                          | Outcome                               |
-| --- | ------------------------------- | --------------------------------- | ------------------------------------- |
-| 1   | What patterns exist?            | All four lenses simultaneously    | Follow the most interesting signal    |
-| 2   | Where does variation come from? | Boxplot eta-squared               | Drill into highest eta-squared factor |
-| 3   | Are we meeting Cpk target?      | Capability I-Chart vs target line | Below target: which subgroups?        |
-| 4   | Centering problem?              | Cp-Cpk gap                        | Large gap: investigate centering      |
-| 5   | Enough variation isolated?      | Cumulative Total SS >= 50-70%     | Pin finding, move to INVESTIGATE      |
-| 6   | Toggle view?                    | Curiosity about other perspective | Switch I-Chart mode freely            |
+| #   | Decision                        | Evidence                                                   | Outcome                               |
+| --- | ------------------------------- | ---------------------------------------------------------- | ------------------------------------- |
+| 1   | What patterns exist?            | All four lenses simultaneously                             | Follow the most interesting signal    |
+| 2   | Where does variation come from? | Boxplot eta-squared                                        | Drill into highest eta-squared factor |
+| 3   | Are we meeting Cpk target?      | Capability I-Chart vs target line                          | Below target: which subgroups?        |
+| 4   | Centering problem?              | Cp-Cpk gap                                                 | Large gap: investigate centering      |
+| 5   | Enough variation isolated?      | Key factors identified via R²adj ranking? Findings pinned? | Pin finding, move to INVESTIGATE      |
+| 6   | Toggle view?                    | Curiosity about other perspective                          | Switch I-Chart mode freely            |
 
 ### Thread Switching Moments
 

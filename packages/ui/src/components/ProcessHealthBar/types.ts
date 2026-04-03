@@ -4,7 +4,7 @@ import type {
   CenteringOpportunity,
   SpecSuggestion,
 } from '@variscout/core/variation';
-import type { FilterChipData } from '@variscout/hooks';
+import type { FilterChipData } from '../filterTypes';
 
 export interface ProcessHealthBarProps {
   /** Current computed stats (null when no data loaded) */
@@ -17,7 +17,7 @@ export interface ProcessHealthBarProps {
   onCpkTargetChange?: (target: number) => void;
   /** Total sample count */
   sampleCount: number;
-  /** Filter chip data from useVariationTracking */
+  /** Filter chip data for active filters */
   filterChipData: FilterChipData[];
   /** Column aliases for display labels */
   columnAliases?: Record<string, string>;
@@ -27,10 +27,6 @@ export interface ProcessHealthBarProps {
   onRemoveFilter: (factor: string) => void;
   /** Called when user clicks Clear All filters */
   onClearAll?: () => void;
-  /** Final cumulative variation percentage (for variation bar display) */
-  cumulativeVariationPct?: number | null;
-  /** Optional click handler for VariationBar */
-  onVariationBarClick?: () => void;
   /** Optional callback to pin current filter state as a finding */
   onPinFinding?: () => void;
   /** Current dashboard layout mode */

@@ -124,9 +124,9 @@ When the quick check reveals issues:
 
 1. Add or change factors via the **"Factors" button** in the nav bar (reopens ColumnMapping, up to 6)
 2. Check ANOVA: is the factor significant? (p-value, eta-squared)
-3. _(If AI enabled)_ **ChartInsightChip** appears below the Boxplot card with a contextual suggestion (e.g., "Drill Machine A (47% contribution)"). Chips are dismissable and never block the workflow.
+3. _(If AI enabled)_ **ChartInsightChip** appears below the Boxplot card with a contextual suggestion (e.g., "Drill Machine A (η² = 47%)"). Chips are dismissable and never block the workflow.
 4. Drill down: click Boxplot bars or Pareto categories to filter
-5. Follow the breadcrumb trail — each chip shows variation contribution (eta-squared %)
+5. Follow the breadcrumb trail — each chip shows sample count (n=X) for the filtered subset
 6. _(If AI enabled)_ NarrativeBar updates with each drill step, summarizing the new scope (e.g., "Machine A explains 47% of variation. Morning shift shows Nelson Rule 2 violation.")
 7. _(If AI enabled)_ Click **"Ask →"** in the NarrativeBar to open the **CoScoutPanel** for deeper questions (e.g., "Have we seen this pattern before?" or "What should I investigate next?")
 8. Identify the root cause factor/level combination
@@ -171,7 +171,7 @@ The investigation phase badge updates automatically: Initial → Diverging → V
 ### Phase 3 — Ideation: Improvement Ideas and Actions
 
 10. For each answered question with a confirmed cause, add **improvement ideas** — describe potential fixes with optional What-If projections
-11. **Compare ideas** using the What-If Simulator: adjust contribution percentages to see projected Cpk impact
+11. **Compare ideas** using the What-If Simulator: adjust factor levels to see projected Cpk impact
 12. Select the best idea → create **corrective actions** with description, assignee, and due date
 13. Change Finding status to **Improving** — the action plan is now active
 14. _(Team plan)_ Teams auto-posts the finding with its action plan to the configured channel

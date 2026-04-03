@@ -144,9 +144,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     id: 'pValue',
     label: 'p-value',
     definition:
-      "Measures how incompatible the data are with 'no difference between groups.' Smaller values = stronger evidence of a real pattern. Always interpret alongside Contribution %.",
+      "Measures how incompatible the data are with 'no difference between groups.' Smaller values = stronger evidence of a real pattern. Always interpret alongside η² (effect size).",
     description:
-      "The p-value tests whether there is evidence against 'no difference between groups.' Smaller values indicate stronger evidence. However, a small p-value alone does not mean a factor is important — Contribution % shows how much the factor matters in practice. A large dataset can produce a small p-value for trivially small differences.",
+      "The p-value tests whether there is evidence against 'no difference between groups.' Smaller values indicate stronger evidence. However, a small p-value alone does not mean a factor is important — η² shows how much the factor matters in practice. A large dataset can produce a small p-value for trivially small differences.",
     category: 'statistics',
     learnMorePath: '/tools/boxplot',
     relatedTerms: ['fStatistic', 'etaSquared'],
@@ -157,7 +157,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Effect size showing what proportion of variation is explained by the factor. In process data, focus on relative ranking across factors rather than absolute thresholds.',
     description:
-      'Eta-squared (\u03b7\u00b2) represents the proportion of total variance explained by the grouping factor. Unlike p-value, it indicates practical importance \u2014 how much the factor matters. VariScout displays this as Contribution % and uses it for relative ranking across factors, not for pass/fail judgments. Note: \u03b7\u00b2 is a positively biased estimator that tends to overstate the true effect for small samples.',
+      'Eta-squared (\u03b7\u00b2) represents the proportion of total variance explained by the grouping factor. Unlike p-value, it indicates practical importance \u2014 how much the factor matters. It is the standard ANOVA effect size metric, used for relative ranking across factors, not for pass/fail judgments. Note: \u03b7\u00b2 is a positively biased estimator that tends to overstate the true effect for small samples.',
     category: 'statistics',
     learnMorePath: '/tools/boxplot',
     relatedTerms: ['fStatistic', 'pValue'],
@@ -231,17 +231,6 @@ export const glossaryTerms: GlossaryTerm[] = [
     relatedTerms: ['ucl', 'lcl', 'mean', 'stdDev'],
   },
   {
-    id: 'totalSSContribution',
-    label: 'Total SS Contribution',
-    definition:
-      "A category's share of total sum of squares. A VariScout-specific extension of standard ANOVA that captures both mean shift AND spread (within-group variation).",
-    description:
-      "Unlike standard between-group SS which only measures mean differences, Total SS contribution is a VariScout extension that shows a category's full impact on variation. A category with mean near overall mean but high spread now shows non-zero impact. Sum of all category contributions equals 100%.",
-    category: 'methodology',
-    learnMorePath: '/tools/boxplot',
-    relatedTerms: ['etaSquared', 'stdDev'],
-  },
-  {
     id: 'characteristicType',
     label: 'Characteristic Type',
     definition:
@@ -274,7 +263,7 @@ export const glossaryTerms: GlossaryTerm[] = [
       'ANOVA decomposes SS_Total into SS_Between (mean differences between groups) and SS_Within (spread within groups). This identity always holds exactly: SS_Total = SS_Between + SS_Within. At the category level, each category contributes both between-group and within-group variation to the total.',
     category: 'statistics',
     learnMorePath: '/tools/boxplot',
-    relatedTerms: ['etaSquared', 'totalSSContribution', 'betweenWithinVariation'],
+    relatedTerms: ['etaSquared', 'betweenWithinVariation'],
   },
   {
     id: 'betweenWithinVariation',
@@ -285,7 +274,7 @@ export const glossaryTerms: GlossaryTerm[] = [
       "Between-group variation measures whether groups differ (do the means shift?). Within-group variation measures how consistent each group is internally (how much spread?). ANOVA's F-statistic is the ratio of between to within. A high F means group differences are large relative to internal spread.",
     category: 'statistics',
     learnMorePath: '/tools/boxplot',
-    relatedTerms: ['etaSquared', 'totalSSContribution', 'sumOfSquares', 'fStatistic'],
+    relatedTerms: ['etaSquared', 'sumOfSquares', 'fStatistic'],
   },
 
   // Charts
@@ -356,9 +345,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Separating data by factors (machine, shift, operator) to reveal hidden sources of variation.',
     description:
-      "Stratification is the core analytical technique in VariScout. The Boxplot shows each factor's contribution to total variation. By drilling down through factors via progressive stratification, you decompose total variation step by step. The variation bar shows cumulative progress toward explaining total variation.",
+      "Stratification is the core analytical technique in VariScout. The Boxplot combined with ANOVA η² quantifies each factor's effect on variation. By drilling down through factors via progressive stratification, you decompose total variation step by step.",
     category: 'methodology',
-    relatedTerms: ['rationalSubgrouping', 'etaSquared', 'totalSSContribution'],
+    relatedTerms: ['rationalSubgrouping', 'etaSquared'],
   },
   {
     id: 'rootCauseAnalysis',
@@ -418,7 +407,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     description:
       'Key drivers are the factors that matter most. In VariScout, a finding tagged as "key-driver" indicates the analyst has confirmed this factor significantly contributes to process variation and should be addressed.',
     category: 'investigation',
-    relatedTerms: ['finding', 'totalSSContribution', 'etaSquared'],
+    relatedTerms: ['finding', 'etaSquared'],
   },
   {
     id: 'actionItem',
@@ -481,7 +470,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Group comparison chart showing distribution summary — median, quartiles, range, and outliers per category.',
     description:
-      "The Boxplot stratifies data by a factor (machine, shift, operator) to compare variation across groups. Combined with ANOVA η², it quantifies each group's contribution to total variation. The natural entry point for progressive stratification — click a category to drill down.",
+      "The Boxplot stratifies data by a factor (machine, shift, operator) to compare variation across groups. Combined with ANOVA η², it quantifies each factor's effect size. The natural entry point for progressive stratification — click a category to drill down.",
     category: 'charts',
     learnMorePath: '/tools/boxplot',
     relatedTerms: ['stratification', 'etaSquared', 'violinPlot'],
@@ -492,10 +481,10 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Categories ranked by contribution with cumulative %. Reveals the vital few factors that drive most variation.',
     description:
-      'The Pareto chart applies the 80/20 principle to variation analysis — a few categories typically account for most of the total variation. Categories are ranked by Total SS contribution with a cumulative percentage line. Focus improvement effort on the vital few at the top.',
+      'The Pareto chart applies the 80/20 principle to variation analysis — a few categories typically account for most of the variation. Categories are ranked by ANOVA effect size with a cumulative percentage line. Focus improvement effort on the vital few at the top.',
     category: 'charts',
     learnMorePath: '/tools/pareto',
-    relatedTerms: ['totalSSContribution', 'stratification'],
+    relatedTerms: ['etaSquared', 'stratification'],
   },
   {
     id: 'capabilityAnalysis',

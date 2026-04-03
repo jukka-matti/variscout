@@ -111,14 +111,14 @@ Filters **do not persist** across page navigation. Cross-page column transfer us
 
 | Capability          | EDAScout                              | VariScout                                    |
 | ------------------- | ------------------------------------- | -------------------------------------------- |
-| Filter UI           | Modal (SubgroupExplorerModal)         | Inline chips with contribution %             |
+| Filter UI           | Modal (SubgroupExplorerModal)         | Inline chips with n=X sample count           |
 | Filter persistence  | Modal-scoped, lost on page navigation | Persistent across all four lenses            |
 | Filter logic        | AND across categories, OR within      | AND across categories, OR within (identical) |
 | Variance indication | Within-group SS coloring (misleading) | Between-group eta-squared (correct)          |
 | Cumulative tracking | None                                  | Variation funnel with cumulative eta-squared |
 | Filter context      | Separate from charts (modal)          | Integrated into chart interaction            |
 
-VariScout's filter architecture is fundamentally stronger: filters are integrated into the chart interaction (click-to-drill), persist across all four lenses, and display correct between-group contribution percentages. EDAScout's modal-based approach separates the "seeing variation" step from the "filtering" step, requiring a cognitive transfer that VariScout eliminates.
+VariScout's filter architecture is fundamentally stronger: filters are integrated into the chart interaction (click-to-drill), persist across all four lenses, and display n=X sample counts on filter chips (η² for effect size is shown in the ANOVA panel). EDAScout's modal-based approach separates the "seeing variation" step from the "filtering" step, requiring a cognitive transfer that VariScout eliminates.
 
 ---
 
@@ -160,7 +160,7 @@ Data flows through a shared `DataContext` (headers, rows, column classifications
 | ---------------------------- | ------------------------------------ | --------------------------------------------------- |
 | Chart coordination           | One chart per page                   | Four Lenses (4 charts simultaneously)               |
 | Filter across analyses       | Not supported (filters are per-page) | Linked filtering across all charts                  |
-| Analysis sequencing          | AI-suggested next steps (breadcrumb) | Methodology-driven (documentation + contribution %) |
+| Analysis sequencing          | AI-suggested next steps (breadcrumb) | Methodology-driven (documentation + η² effect size) |
 | Available analysis detection | Column-type based                    | Column-type based (similar)                         |
 | Navigation model             | Route-based (SPA pages)              | In-page (filter chips + chart updates)              |
 
@@ -200,32 +200,32 @@ These statistical issues are significant because:
 
 ## Feature Comparison Matrix
 
-| Feature                         | EDAScout v9               | VariScout                           |
-| ------------------------------- | ------------------------- | ----------------------------------- |
-| **I-Chart**                     | Yes (Recharts)            | Yes (Visx)                          |
-| **Boxplot**                     | Yes (Plotly.js)           | Yes (Visx)                          |
-| **Pareto**                      | Yes                       | Yes                                 |
-| **Capability analysis**         | Yes                       | Yes (Cp, Cpk, Pp, Ppk)              |
-| **Regression**                  | No                        | Yes                                 |
-| **Gage R&R**                    | No                        | No                                  |
-| **ANOVA**                       | Yes (flawed p-value)      | Yes (proper F-distribution)         |
-| **Nelson rules**                | Limited                   | Full 8-rule implementation          |
-| **Multi-measure (Performance)** | No                        | Yes (Azure/Excel)                   |
-| **Simultaneous chart views**    | 1 per page                | 4 (Four Lenses)                     |
-| **Linked filtering**            | No (per-page filters)     | Yes (cross-chart)                   |
-| **Contribution %**              | Within-group SS (flawed)  | Between-group eta-squared (correct) |
-| **Cumulative tracking**         | No                        | Variation funnel                    |
-| **Brush selection**             | Yes (I-Chart)             | No                                  |
-| **AI guidance**                 | Gemini 2.0 Flash          | None (methodology-driven)           |
-| **Offline operation**           | Requires server           | Full offline (PWA)                  |
-| **Spec limits**                 | Yes                       | Yes                                 |
-| **Performance direction**       | Yes (ColumnSpecification) | No (inferred from spec limits)      |
-| **Dark theme**                  | No                        | Yes (charts + Excel content pane)   |
-| **Mobile support**              | Responsive grid           | Responsive + mobile-first hooks     |
-| **European decimal handling**   | Yes                       | Yes                                 |
-| **Case studies / sample data**  | No                        | Yes (7 case studies)                |
-| **Glossary / help tooltips**    | No                        | Yes (20+ terms)                     |
-| **Export (CSV/clipboard)**      | Limited                   | Yes                                 |
+| Feature                         | EDAScout v9               | VariScout                         |
+| ------------------------------- | ------------------------- | --------------------------------- |
+| **I-Chart**                     | Yes (Recharts)            | Yes (Visx)                        |
+| **Boxplot**                     | Yes (Plotly.js)           | Yes (Visx)                        |
+| **Pareto**                      | Yes                       | Yes                               |
+| **Capability analysis**         | Yes                       | Yes (Cp, Cpk, Pp, Ppk)            |
+| **Regression**                  | No                        | Yes                               |
+| **Gage R&R**                    | No                        | No                                |
+| **ANOVA**                       | Yes (flawed p-value)      | Yes (proper F-distribution)       |
+| **Nelson rules**                | Limited                   | Full 8-rule implementation        |
+| **Multi-measure (Performance)** | No                        | Yes (Azure/Excel)                 |
+| **Simultaneous chart views**    | 1 per page                | 4 (Four Lenses)                   |
+| **Linked filtering**            | No (per-page filters)     | Yes (cross-chart)                 |
+| **Effect size (η²)**            | Within-group SS (flawed)  | ANOVA eta-squared (correct)       |
+| **Cumulative tracking**         | No                        | Variation funnel                  |
+| **Brush selection**             | Yes (I-Chart)             | No                                |
+| **AI guidance**                 | Gemini 2.0 Flash          | None (methodology-driven)         |
+| **Offline operation**           | Requires server           | Full offline (PWA)                |
+| **Spec limits**                 | Yes                       | Yes                               |
+| **Performance direction**       | Yes (ColumnSpecification) | No (inferred from spec limits)    |
+| **Dark theme**                  | No                        | Yes (charts + Excel content pane) |
+| **Mobile support**              | Responsive grid           | Responsive + mobile-first hooks   |
+| **European decimal handling**   | Yes                       | Yes                               |
+| **Case studies / sample data**  | No                        | Yes (7 case studies)              |
+| **Glossary / help tooltips**    | No                        | Yes (20+ terms)                   |
+| **Export (CSV/clipboard)**      | Limited                   | Yes                               |
 
 ---
 

@@ -55,7 +55,7 @@ Seven non-negotiable rules governing all AI behavior in VariScout:
 #### Terminology Enforcement
 
 - Always use VariScout glossary terms over textbook SPC
-- "Contribution %" not "effect size" or "eta squared" in user-facing text
+- "η² (eta-squared)" or "effect size" in user-facing text — not legacy "Contribution %"
 - "Progressive stratification" not "drill-down" when explaining methodology
 - "Voice of the Process / Voice of the Customer" when explaining control vs spec limits
 - "characteristic" not "measurement" or "variable" when referring to what is being measured

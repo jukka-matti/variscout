@@ -20,15 +20,12 @@ vi.mock('@variscout/hooks', () => {
 
 // Mock @variscout/core to avoid import issues
 vi.mock('@variscout/core', () => {
-  return {
-    getVariationImpactLevel: () => 'moderate',
-    getVariationInsight: () => 'Some insight',
-  };
+  return {};
 });
 
 import ProcessHealthBar from '../ProcessHealthBar';
 import type { ProcessHealthBarProps } from '../types';
-import type { FilterChipData } from '@variscout/hooks';
+import type { FilterChipData } from '../../filterTypes';
 
 const baseStats = {
   mean: 10.5,
@@ -47,11 +44,10 @@ const sampleChips: FilterChipData[] = [
   {
     factor: 'Machine',
     values: ['A', 'B'],
-    contributionPct: 45,
     availableValues: [
-      { value: 'A', contributionPct: 25, isSelected: true },
-      { value: 'B', contributionPct: 20, isSelected: true },
-      { value: 'C', contributionPct: 10, isSelected: false },
+      { value: 'A', count: 25, isSelected: true },
+      { value: 'B', count: 20, isSelected: true },
+      { value: 'C', count: 10, isSelected: false },
     ],
   },
 ];
@@ -132,7 +128,7 @@ describe('ProcessHealthBar', () => {
     expect(screen.getByTestId('filter-chip-Machine')).toBeDefined();
     const bar = screen.getByTestId('process-health-bar');
     expect(bar.textContent).toContain('Machine');
-    expect(bar.textContent).toContain('45%');
+    expect(bar.textContent).toContain('n=45');
   });
 
   it('calls onRemoveFilter when dismiss button clicked', () => {

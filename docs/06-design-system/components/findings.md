@@ -622,7 +622,7 @@ Context-aware entry point for AI assistance from investigation UI elements. Azur
 | ------------------- | ---------------------------- | -------------------------------------------- |
 | FindingCard         | "Ask CoScout" button         | Finding text, status, hypothesis (if linked) |
 | HypothesisNode      | Context menu → "Ask CoScout" | Hypothesis text, factor, validation type     |
-| MobileCategorySheet | "Ask CoScout" action button  | Category name, mean, contribution %          |
+| MobileCategorySheet | "Ask CoScout" action button  | Category name, mean, η² (effect size)        |
 
 Each action populates a `focusContext` object and opens the CoScout panel with the context pre-loaded as an additional system message. See [AI Context Engineering](../../05-technical/architecture/ai-context-engineering.md#focuscontext-between-tier-2-and-tier-3).
 

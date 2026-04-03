@@ -466,51 +466,33 @@ Returns `null` for empty data, empty stage order, or if no stage contains any da
 > Source: `packages/core/src/variation/contributions.ts`
 > User docs: [Variation Decomposition](../03-features/analysis/variation-decomposition.md)
 
-### Category Total SS
+### Factor-Level Effect Size
 
-For a factor with categories c₁, c₂, ..., cₖ:
+η² (eta-squared) is the standard metric for factor-level variation attribution:
 
 ```
-Total SS = Σ (x_ij - x̄)²                      over all observations
-Category SS_c = Σ (x_ij - x̄)²                  over observations in category c
-Category % = (Category SS_c / Total SS) × 100
+η² = SS_between / SS_total
 ```
 
-**Design decision**: Total SS partitioning (not between-group SS) captures **both** mean shift and within-group spread. A category with high internal variation but mean near the grand mean will still show non-zero impact. This better answers "Which categories should I focus on?" from an improvement perspective.
+η² measures the proportion of total variance explained by between-group mean differences. A high η² indicates a factor whose category means differ substantially — the primary criterion for factor ranking in Factor Intelligence.
 
-All category percentages sum to 100% — variation is fully partitioned.
-
-Returns `null` if fewer than 2 rows or zero total variance.
+For within-group spread, the boxplot StdDev column in the group statistics table is the appropriate complement: it quantifies how consistent each category is independently of its mean position.
 
 ### Category Stats
 
-`getCategoryStats()` returns per-category detail: count, mean, stdDev (population), contributionPct. Sorted by contribution descending (worst performers first). Used by the What-If Simulator.
+`getCategoryStats()` returns per-category detail: count, mean, stdDev (population). Sorted by mean deviation from overall mean (descending). Used by the What-If Simulator.
 
 ---
 
-## Part 11 — Drill-Down & Cumulative Scope
+## Part 11 — Drill-Down & Factor Exploration
 
 > Source: `packages/core/src/variation/drill.ts`, `packages/hooks/src/useDrillPath.ts`
 
-### Cumulative Scope Calculation
+### Factor Exploration Order
 
-The drill scope is **multiplicative**, not additive. Each drill level reduces the "window" to a fraction of the previous level:
+Drill-down uses Factor Intelligence R²adj to guide factor exploration order. The Factor Intelligence engine (Best Subsets for standard mode, waste % for Yamazumi mode) ranks factors so analysts investigate the highest-impact ones first.
 
-```
-cumulativeScope = Π (localScope_i)     for i = 1, ..., depth
-```
-
-Example: three levels with 80%, 70%, 60% local scope → cumulative = 0.8 × 0.7 × 0.6 = 33.6%.
-
-### Algorithm (calculateDrillVariation)
-
-1. Start with root entry: `localVariation = 100%, cumulative = 100%`
-2. For each filter in order:
-   - Compute `calculateCategoryTotalSS()` on **current filtered data** (not raw data)
-   - Sum contributions of selected category values → `selectedPct`
-   - `cumulativePct = (cumulativePct × selectedPct) / 100`
-   - Filter data down to selected values for next iteration
-   - Break if fewer than 2 rows remain
+Filter chips show sample count (`n=X`) for the filtered subset, giving the analyst an immediate read on how many observations remain after each drill step.
 
 ### Drill Path Statistics (useDrillPath hook)
 
@@ -520,8 +502,6 @@ The `useDrillPath` hook retrospectively computes drill path statistics by iterat
 interface DrillStep {
   factor: string;
   values: (string | number)[];
-  scopeFraction: number; // selected categories' Total SS fraction (0–1)
-  cumulativeScope: number; // running product of all scopeFractions (0–1)
   meanBefore: number; // mean before this filter applied
   meanAfter: number; // mean after this filter applied
   cpkBefore: number | undefined;
@@ -531,18 +511,7 @@ interface DrillStep {
 }
 ```
 
-For each filter action, the hook calls `calculateCategoryTotalSS()` on the progressively filtered data and `calculateStats()` on the outcome values before and after the filter. This provides the before/after delta visible in the narrative timeline.
-
-### Total SS vs Eta-Squared
-
-The codebase uses two different metrics for variation attribution:
-
-| Metric              | Formula                        | Where used                                                        |
-| ------------------- | ------------------------------ | ----------------------------------------------------------------- |
-| Category Total SS % | `SS_category / SS_total × 100` | Drill scope tracking, breadcrumbs, progress bar, category popover |
-| η² (eta-squared)    | `SS_between / SS_total`        | Hypothesis auto-validation, investigation factor ranking          |
-
-Total SS partitioning captures within-group spread. Eta-squared captures only between-group mean differences. The distinction is intentional: scope tracking uses Total SS (comprehensive), while node visual prominence uses η² (highlighting factors where category means differ most).
+For each filter action, the hook calls `calculateStats()` on the outcome values before and after the filter. This provides the before/after delta visible in the narrative timeline.
 
 ---
 
@@ -558,7 +527,7 @@ DRILL_SWITCH_THRESHOLD = 5    // Minimum % variation for drill suggestions
 
 ### Max Category Contribution
 
-`getMaxCategoryContribution(data, factor, outcome)`: returns the highest single-category Total SS contribution for a factor, as a fraction (0–1). This metric matches the numbers visible in the category popover, making the suggestion logic transparent.
+`getMaxCategoryContribution(data, factor, outcome)`: returns the highest single-category η² contribution for a factor, as a fraction (0–1). Used internally by the drill suggestion logic to determine whether a factor has any category with meaningful effect size.
 
 ### Next Drill Factor
 
@@ -772,12 +741,12 @@ VariScout classifies the confidence in ANOVA results using evidence levels deriv
 | < 0.10  | Weak           | Some signal — strengthen with gemba or expert evidence |
 | >= 0.10 | Insufficient   | No clear evidence of a pattern                         |
 
-Evidence level tells you **how confident** you can be. Contribution % tells you **how important** the factor is. Both are needed:
+Evidence level tells you **how confident** you can be. η² tells you **how important** the factor is. Both are needed:
 
-- **High contribution + strong evidence**: This factor clearly drives variation — drill into it
-- **High contribution + weak evidence**: Promising pattern — validate with gemba walk or expert
-- **Low contribution + strong evidence**: Real but small — other factors matter more
-- **Low contribution + weak evidence**: No clear pattern for this factor
+- **High η² + strong evidence**: This factor clearly drives variation — drill into it
+- **High η² + weak evidence**: Promising pattern — validate with gemba walk or expert
+- **Low η² + strong evidence**: Real but small — other factors matter more
+- **Low η² + weak evidence**: No clear pattern for this factor
 
 > **ASA alignment**: VariScout follows the American Statistical Association's 2016/2019 position — p-values are not used as binary pass/fail thresholds. "Statistically significant" language is replaced with evidence-calibrated descriptions.
 

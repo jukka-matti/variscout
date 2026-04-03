@@ -304,8 +304,8 @@ export const ar: MessageCatalog = {
   // Display toggles
   'display.violin': 'Violin plot',
   'display.violinDesc': 'Show distribution shape',
-  'display.contribution': 'Contribution',
-  'display.contributionDesc': 'Show variation contribution',
+  'display.etaSquared': 'η²',
+  'display.etaSquaredDesc': 'Show η² (effect size)',
   'display.sort': 'Sort',
   'display.ascending': 'Ascending',
   'display.descending': 'Descending',

@@ -103,14 +103,14 @@ EDA for process improvement — not sequential verification gates.
 
 **Decision points (natural questions, not gates):**
 
-| #   | Decision                        | Evidence                          | Outcome                            |
-| --- | ------------------------------- | --------------------------------- | ---------------------------------- |
-| 1   | What patterns exist?            | All four lenses simultaneously    | Follow the most interesting signal |
-| 2   | Where does variation come from? | Boxplot η²                        | Drill into highest η² factor       |
-| 3   | Are we meeting Cpk target?      | Capability I-Chart vs target      | Below target → which subgroups?    |
-| 4   | Centering problem?              | Cp-Cpk gap                        | Large gap → investigate centering  |
-| 5   | Enough variation isolated?      | Cumulative Total SS ≥ 50-70%      | Pin finding → INVESTIGATE          |
-| 6   | Toggle view?                    | Curiosity about other perspective | Switch I-Chart mode freely         |
+| #   | Decision                        | Evidence                                                       | Outcome                            |
+| --- | ------------------------------- | -------------------------------------------------------------- | ---------------------------------- |
+| 1   | What patterns exist?            | All four lenses simultaneously                                 | Follow the most interesting signal |
+| 2   | Where does variation come from? | Boxplot η²                                                     | Drill into highest η² factor       |
+| 3   | Are we meeting Cpk target?      | Capability I-Chart vs target                                   | Below target → which subgroups?    |
+| 4   | Centering problem?              | Cp-Cpk gap                                                     | Large gap → investigate centering  |
+| 5   | Enough variation isolated?      | Top factors' η² accounts for majority of explainable variation | Pin finding → INVESTIGATE          |
+| 6   | Toggle view?                    | Curiosity about other perspective                              | Switch I-Chart mode freely         |
 
 **Thread switching moments:**
 

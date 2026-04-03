@@ -3,7 +3,7 @@ title: Drill-Down Analysis Workflow
 audience: [analyst]
 category: workflow
 status: stable
-related: [drill-down, filter-chips, variation-tracking, eta-squared]
+related: [drill-down, filter-chips, eta-squared, r-squared-adj, factor-intelligence]
 ---
 
 # Drill-Down Analysis Workflow
@@ -70,7 +70,7 @@ _See [all process maps](process-maps.md) for PWA and Azure variants._
 
 ## Overview
 
-Drill-down analysis lets you progressively filter data to isolate specific variation sources. Each filter shows how much variation it explains, building a cumulative picture of your data.
+Drill-down analysis lets you progressively filter data to isolate specific variation sources. Factor Intelligence (R²adj) guides which factors to explore. η² confirms each factor's effect size. The boxplot visual and StdDev comparison reveal which categories to investigate.
 
 ## The Drill-Down Pattern
 
@@ -79,11 +79,11 @@ flowchart TD
     A[Start: All data] --> B[Boxplot shows η² by factor]
     B --> C[Click highest η² factor value]
     C --> D[Filter applied]
-    D --> E["Filter chip shows: Factor: Value ▼ XX%"]
+    D --> E["Filter chip shows: Factor = Value (n=X)"]
     E --> F[All charts update to subset]
-    F --> G{Enough variation in focus?}
-    G -->|">50%"| H[Actionable insight found]
-    G -->|"<50%"| I[Continue drilling]
+    F --> G{Insight found?}
+    G -->|"Yes"| H[Actionable insight found]
+    G -->|"No"| I[Continue drilling]
     I --> B
     H --> J[Document finding]
     J --> K[Plan action]
@@ -96,79 +96,44 @@ flowchart TD
 When you apply a filter, a chip appears showing:
 
 ```
-[Shift: Night ▼ 46%] [Operator: B ▼ 23%] [Machine: 3 ▼ 15%]
+[Shift = Night (n=45)] [Operator = B (n=12)] [Machine = 3 (n=8)]
 ```
 
-| Component   | Meaning                   |
-| ----------- | ------------------------- |
-| Factor name | The column being filtered |
-| Value       | The selected level        |
-| ▼           | Click to remove           |
-| Percentage  | Variation contribution    |
+| Component   | Meaning                             |
+| ----------- | ----------------------------------- |
+| Factor name | The column being filtered           |
+| Value       | The selected level                  |
+| n=X         | Sample count in the filtered subset |
 
-### Contribution Percentage
+The sample count keeps the analyst aware of data sufficiency — when n drops too low, statistics become unreliable.
 
-The percentage on each chip shows that factor's **contribution to variation**:
+### Single-Select vs Multi-Select
 
-- Calculated as η² (eta-squared)
-- Shows proportion of variance explained
-- Helps prioritize which factors matter most
-
-:::note[Cumulative vs Individual]
-Each chip shows its individual contribution. The VariationBar shows cumulative progress.
-:::
-
-## Tracking Your Investigation
-
-Two mechanisms track your cumulative progress as you drill down:
-
-**VariationBar** — A horizontal progress bar visible above the charts showing the cumulative percentage of total variation currently in focus. As you apply filters, the bar fills to reflect how much of the overall variation your current filter path accounts for. This tells you whether your drill-down has isolated enough variation to act on or whether further filtering is needed.
-
-### Interpreting Cumulative Progress
-
-| Variation outside focus | Interpretation            |
-| ----------------------- | ------------------------- |
-| > 50% remaining         | More drilling needed      |
-| 30-50% remaining        | Significant factors found |
-| < 30% remaining         | Good isolation            |
-| < 15% remaining         | Common cause only         |
-
-## Single-Select vs Multi-Select
-
-### Single-Select (Default)
-
-Click a value to filter to just that level:
+**Single-Select (Default)** — Click a value to filter to just that level:
 
 ```
-Shift: Night ▼ 46%
+Shift = Night (n=45)
 ```
 
-- Shows only Night shift data
-- Good for focusing on one problem area
-
-### Multi-Select
-
-Hold Ctrl/Cmd and click multiple values:
+**Multi-Select** — Hold Ctrl/Cmd and click multiple values:
 
 ```
-Shift: Night, Evening ▼ 52%
+Shift = Night, Evening (n=72)
 ```
 
-- Shows data from both shifts
-- Useful for comparing similar groups
-- Combined contribution may be higher
+Useful for comparing similar groups or establishing baselines.
 
 ## The Drill-Down Process
 
 ### Step 1: Start with Full Data
 
-View the Boxplot with all data. Note which factor has highest η². Consider enabling **Show distribution shape** in Settings to reveal bimodal distributions before filtering.
+View the Boxplot with all data. Note which factor has highest η². Check Factor Intelligence for R²adj rankings — it evaluates all factor combinations simultaneously and may reveal that a pair of factors together explains more than either alone.
 
 ### Step 2: Click to Filter
 
 Click on the bar (or box) for the level you want to investigate:
 
-- Click the **highest** level to isolate the biggest contributor
+- Click the **highest-spread** level to isolate the biggest variation source (compare StdDev values)
 - Click an **outlier** level to focus on the problem area
 - Click a **good** level to understand what works
 
@@ -176,7 +141,7 @@ Click on the bar (or box) for the level you want to investigate:
 
 After filtering:
 
-- Filter chip appears with contribution %
+- Filter chip appears with `Factor = Value (n=X)`
 - All charts update to show filtered subset
 - Boxplot recalculates η² for remaining factors
 - Capability shows filtered Cpk
@@ -185,14 +150,13 @@ After filtering:
 
 **Continue drilling if:**
 
-- Still significant variation unexplained
 - Next factor has meaningful η² (> 10%)
 - Enough data remains for analysis (n > 20)
+- Boxplot shows clear category differences
 
 **Stop drilling when:**
 
-- Variation sufficiently in focus (> 50-70%)
-- Remaining variation is common cause
+- Remaining variation is common cause (no factor has meaningful η²)
 - Data too sparse for reliable statistics
 - Actionable insight found
 
@@ -206,8 +170,8 @@ Record your filter path for:
 
 ```
 Filter path: Shift=Night → Operator=B → Machine=3
-Result: Isolated 84% of variation
-Finding: Machine 3 accounts for most off-spec production on night shift
+Finding: Machine 3 has StdDev 3x higher than other machines on night shift
+Action: Investigate Machine 3 maintenance schedule
 ```
 
 ## Example: Coffee Case Study
@@ -227,7 +191,7 @@ Full dataset: Fill weight variation
 **Filter 1: Batch = 3**
 
 ```
-[Batch: 3 ▼ 45%]
+[Batch = 3 (n=50)]
 ```
 
 Remaining factors:
@@ -237,12 +201,12 @@ Remaining factors:
 | Operator | 32% |
 | Time     | 8%  |
 
-Batch 3 was different—now Operator is more prominent.
+Batch 3 was different — now Operator is more prominent.
 
 **Filter 2: Operator = New**
 
 ```
-[Batch: 3 ▼ 45%] [Operator: New ▼ 32%]
+[Batch = 3 (n=50)] [Operator = New (n=15)]
 ```
 
 Remaining factors:
@@ -251,13 +215,11 @@ Remaining factors:
 | ------ | --- |
 | Time   | 15% |
 
-Cumulative: 77% in focus
-
 **Result**
 
 - New operator on Batch 3 explains most variation
 - Training opportunity identified
-- Time effect (15%) is shift-related—secondary factor
+- Time effect (15%) is shift-related — secondary factor
 
 ## When to Use Multi-Select
 
@@ -266,7 +228,7 @@ Cumulative: 77% in focus
 Select multiple "good" values to establish baseline:
 
 ```
-[Operator: A, C, D ▼ 8%]  ← Combined good operators
+[Operator = A, C, D (n=35)]  ← Combined good operators
 ```
 
 Then compare against the excluded "problem" level.
@@ -276,7 +238,7 @@ Then compare against the excluded "problem" level.
 Select "normal" values to see process without anomalies:
 
 ```
-[Shift: Day, Evening ▼ 52%]  ← Excluding Night shift
+[Shift = Day, Evening (n=72)]  ← Excluding Night shift
 ```
 
 ### Investigating Interactions
@@ -284,13 +246,13 @@ Select "normal" values to see process without anomalies:
 Select combinations to test interaction effects:
 
 ```
-[Shift: Night ▼] [Operator: New ▼]
+[Shift = Night] [Operator = New]
 ```
 
 vs
 
 ```
-[Shift: Day ▼] [Operator: New ▼]
+[Shift = Day] [Operator = New]
 ```
 
 Does new operator perform differently by shift?
@@ -299,10 +261,11 @@ Does new operator perform differently by shift?
 
 ### Do
 
-- Start with the highest η² factor
-- Note the cumulative variation as you drill
+- Start with Factor Intelligence R²adj ranking for guidance
+- Confirm with η² on the Boxplot
+- Compare StdDev values to find high-spread categories
 - Check Cpk at each level
-- Verify sample size remains adequate
+- Verify sample size remains adequate (watch n=X on chips)
 - Document your filter path
 
 ### Don't
@@ -342,7 +305,7 @@ Does new operator perform differently by shift?
 
 ### Remove Single Filter
 
-Click the ▼ on any filter chip to remove it.
+Click the X on any filter chip to remove it.
 
 ### Clear All Filters
 

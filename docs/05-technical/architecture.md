@@ -89,8 +89,8 @@ variscout-lite/
 │          @variscout/ui                                                      │
 │         (packages/ui/)                                                      │
 │  AnovaResults │ FilterBreadcrumb │ FilterChipDropdown │ FindingsLog        │
-│  PerformanceSetupPanel │ VariationBar │ YAxisPopover │ FindingCard        │
-│  UpgradePrompt │ ChartCard │ ColumnMapping │ HelpTooltip │ colors         │
+│  PerformanceSetupPanel │ YAxisPopover │ FindingCard │ ChartCard            │
+│  UpgradePrompt │ ColumnMapping │ HelpTooltip │ colors                      │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ```
@@ -161,7 +161,7 @@ Shared UI component library for PWA and Azure apps.
 
 - **Stack**: React + Tailwind CSS + Radix UI + Lucide React.
 - **Goal**: Ensure consistent design system implementation across web properties.
-- **Components** (major groups): `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `PerformanceSetupPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `WhatIfSimulator`, `WhatIfPageBase`, `StatsPanelBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `SpecsPopover`, `SpecEditor`, `CapabilityHistogram`, `ProbabilityPlot`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `MobileCategorySheet`, `DataTableBase`, `ChartDownloadMenu`, `EditableChartTitle`, `SettingsPanelBase`, `FocusedChartViewBase`, `DashboardBase` (FocusedViewOverlay, FocusedChartCard, DashboardChartCard, DashboardGrid), `FindingsWindow`, `FindingsLog`, `FindingCard`, `FindingEditor`, `InvestigationPrompt`, `InvestigationSidebar`, `CoScoutInline`, `CoScoutMessages`, `AIOnboardingTooltip`, `InvestigationPhaseBadge`, `PasteScreenBase`, `ManualEntryBase`, `ManualEntrySetupBase`, `CharacteristicTypeSelector`, `Slider`.
+- **Components** (major groups): `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `PerformanceSetupPanelBase`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `WhatIfSimulator`, `WhatIfPageBase`, `StatsPanelBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `SpecsPopover`, `SpecEditor`, `CapabilityHistogram`, `ProbabilityPlot`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `MobileCategorySheet`, `DataTableBase`, `ChartDownloadMenu`, `EditableChartTitle`, `SettingsPanelBase`, `FocusedChartViewBase`, `DashboardBase` (FocusedViewOverlay, FocusedChartCard, DashboardChartCard, DashboardGrid), `FindingsWindow`, `FindingsLog`, `FindingCard`, `FindingEditor`, `InvestigationPrompt`, `InvestigationSidebar`, `CoScoutInline`, `CoScoutMessages`, `AIOnboardingTooltip`, `InvestigationPhaseBadge`, `PasteScreenBase`, `ManualEntryBase`, `ManualEntrySetupBase`, `CharacteristicTypeSelector`, `Slider`.
 - **Hooks**: `useIsMobile`, `useGlossary`.
 - **Services**: `errorService`.
 
@@ -169,36 +169,36 @@ Shared UI component library for PWA and Azure apps.
 
 Shared React hooks for cross-platform functionality:
 
-| Hook                        | Purpose                                                       |
-| --------------------------- | ------------------------------------------------------------- |
-| `useChartScale`             | Calculate Y-axis range from data, specs, and axis settings    |
-| `useFilterNavigation`       | Filter navigation with multi-select and filter chip support   |
-| `useVariationTracking`      | Cumulative η² tracking + filter chip data with contribution % |
-| `useKeyboardNavigation`     | Arrow key navigation and focus management                     |
-| `useResponsiveChartMargins` | Dynamic chart margins based on container width                |
-| `useDataState`              | Shared DataContext state management                           |
-| `useDataIngestion`          | File upload and data parsing                                  |
-| `useTier`                   | License tier state and limits (Azure Marketplace)             |
-| `useColumnClassification`   | Column type classification                                    |
-| `useDrillPath`              | Drill path state and before/after statistics                  |
-| `useFindings`               | Findings CRUD, status transitions, hypothesis linking         |
-| `useHypotheses`             | Hypothesis tree CRUD, auto-validation, ideas                  |
-| `useBoxplotData`            | Shared d3 boxplot computation                                 |
-| `useIChartData`             | Shared I-Chart data transform                                 |
-| `useAnnotations`            | Chart annotation state (highlights, text notes)               |
-| `useThemeState`             | Theme state (light/dark/system)                               |
-| `useControlViolations`      | Control/spec violation computation                            |
-| `useFocusedChartNav`        | Keyboard chart focus navigation                               |
-| `useNarration`              | NarrativeBar state (loading, cached, error, refresh)          |
-| `useChartInsights`          | Per-chart deterministic + AI-enhanced insight orchestration   |
-| `useAICoScout`              | CoScout conversation state, streaming, abort control          |
-| `useKnowledgeSearch`        | Knowledge Base search wrapper                                 |
+| Hook                        | Purpose                                                         |
+| --------------------------- | --------------------------------------------------------------- |
+| `useChartScale`             | Calculate Y-axis range from data, specs, and axis settings      |
+| `useFilterNavigation`       | Filter navigation with multi-select and filter chip support     |
+| `useVariationTracking`      | Cumulative η² tracking + filter chip data with n=X sample count |
+| `useKeyboardNavigation`     | Arrow key navigation and focus management                       |
+| `useResponsiveChartMargins` | Dynamic chart margins based on container width                  |
+| `useDataState`              | Shared DataContext state management                             |
+| `useDataIngestion`          | File upload and data parsing                                    |
+| `useTier`                   | License tier state and limits (Azure Marketplace)               |
+| `useColumnClassification`   | Column type classification                                      |
+| `useDrillPath`              | Drill path state and before/after statistics                    |
+| `useFindings`               | Findings CRUD, status transitions, hypothesis linking           |
+| `useHypotheses`             | Hypothesis tree CRUD, auto-validation, ideas                    |
+| `useBoxplotData`            | Shared d3 boxplot computation                                   |
+| `useIChartData`             | Shared I-Chart data transform                                   |
+| `useAnnotations`            | Chart annotation state (highlights, text notes)                 |
+| `useThemeState`             | Theme state (light/dark/system)                                 |
+| `useControlViolations`      | Control/spec violation computation                              |
+| `useFocusedChartNav`        | Keyboard chart focus navigation                                 |
+| `useNarration`              | NarrativeBar state (loading, cached, error, refresh)            |
+| `useChartInsights`          | Per-chart deterministic + AI-enhanced insight orchestration     |
+| `useAICoScout`              | CoScout conversation state, streaming, abort control            |
+| `useKnowledgeSearch`        | Knowledge Base search wrapper                                   |
 
 **Key types:**
 
 | Type                        | Purpose                                                        |
 | --------------------------- | -------------------------------------------------------------- |
-| `FilterChipData`            | Filter chip data with contribution % and available values      |
+| `FilterChipData`            | Filter chip data with n=X sample count and available values    |
 | `UseFilterNavigationReturn` | Return type including `updateFilterValues()`, `removeFilter()` |
 | `VariationTrackingResult`   | Return type including `filterChipData`                         |
 | `UseTierResult`             | Tier info, validation functions, warning messages              |
@@ -615,11 +615,11 @@ When drilling down through factors, variation percentages (η² / eta-squared) a
 
 ### Platform-Specific Implementation
 
-| Platform  | Feature                           | Implementation                                   |
-| --------- | --------------------------------- | ------------------------------------------------ |
-| **PWA**   | Full breadcrumb with cumulative % | `useVariationTracking` hook → `FilterBreadcrumb` |
-| **PWA**   | Filter suggestions on boxplot     | `factorVariations` → `Boxplot.tsx`               |
-| **Azure** | Full breadcrumb with cumulative % | `useVariationTracking` hook → `FilterBreadcrumb` |
+| Platform  | Feature                          | Implementation                                   |
+| --------- | -------------------------------- | ------------------------------------------------ |
+| **PWA**   | Breadcrumb with n=X sample count | `useVariationTracking` hook → `FilterBreadcrumb` |
+| **PWA**   | Filter suggestions on boxplot    | `factorVariations` → `Boxplot.tsx`               |
+| **Azure** | Breadcrumb with n=X sample count | `useVariationTracking` hook → `FilterBreadcrumb` |
 
 ### Visual Indicators
 

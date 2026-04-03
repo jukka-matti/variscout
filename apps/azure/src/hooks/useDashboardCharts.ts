@@ -8,7 +8,7 @@
  * - lastAdvancedFactor visual feedback
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { useStatsWorker } from '../workers/useStatsWorker';
 import type { AnovaResult } from '@variscout/core';
@@ -16,7 +16,7 @@ import type { BoxplotGroupData } from '@variscout/charts';
 import { useDashboardChartsBase, useKeyboardNavigation } from '@variscout/hooks';
 import type { ViewState } from '@variscout/hooks';
 import { useFilterNavigation } from '../hooks';
-import type { UseFilterNavigationReturn, FilterChipData } from '../hooks';
+import type { UseFilterNavigationReturn } from '../hooks';
 
 const CHART_ORDER = ['ichart', 'boxplot', 'pareto', 'histogram', 'probability-plot'] as const;
 export type FocusedChart = (typeof CHART_ORDER)[number] | null;
@@ -48,13 +48,8 @@ export interface UseDashboardChartsResult {
   availableStageColumns: string[];
   anovaResult: AnovaResult | null;
   boxplotData: BoxplotGroupData[];
-  cumulativeVariationPct: number;
-  filterChipData: FilterChipData[];
-  factorVariations: Map<string, number>;
-  categoryContributions: Map<string, Map<string | number, number>>;
   showParetoPanel: boolean;
   setShowParetoPanel: (show: boolean) => void;
-  lastAdvancedFactor: string | null;
   filterStack: UseFilterNavigationReturn['filterStack'];
   applyFilter: UseFilterNavigationReturn['applyFilter'];
   clearFilters: UseFilterNavigationReturn['clearFilters'];
@@ -142,16 +137,6 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     onEscape: () => setFocusedChart(null),
   });
 
-  // lastAdvancedFactor visual feedback
-  const [lastAdvancedFactor, setLastAdvancedFactor] = useState<string | null>(null);
-  const advancedFactorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (advancedFactorTimeoutRef.current) clearTimeout(advancedFactorTimeoutRef.current);
-    };
-  }, []);
-
   // Chart titles
   const handleChartTitleChange = useCallback(
     (chart: 'ichart' | 'boxplot' | 'pareto', title: string) => {
@@ -162,21 +147,9 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
 
   // Drill-down with visual feedback
   const handleDrillDown = (factor: string, value: string) => {
-    const nextFactor = base.handleDrillDown(factor, value);
-    if (nextFactor) {
-      onViewStateChange?.({ boxplotFactor: nextFactor, paretoFactor: nextFactor });
-      setLastAdvancedFactor(nextFactor);
-      if (advancedFactorTimeoutRef.current) clearTimeout(advancedFactorTimeoutRef.current);
-      advancedFactorTimeoutRef.current = setTimeout(() => setLastAdvancedFactor(null), 2000);
-    } else {
-      onViewStateChange?.({ boxplotFactor: factor, paretoFactor: factor });
-    }
+    base.handleDrillDown(factor, value);
+    onViewStateChange?.({ boxplotFactor: factor, paretoFactor: factor });
   };
-
-  // Coerce nulls to match Azure's stricter types
-  const cumulativeVariationPct = base.cumulativeVariationPct ?? 0;
-  const categoryContributions =
-    base.categoryContributions ?? new Map<string, Map<string | number, number>>();
 
   return {
     boxplotFactor: base.boxplotFactor,
@@ -199,11 +172,6 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     availableStageColumns: base.availableStageColumns,
     anovaResult: base.anovaResult,
     boxplotData: base.boxplotData,
-    cumulativeVariationPct,
-    filterChipData: base.filterChipData,
-    factorVariations: base.factorVariations,
-    categoryContributions,
-    lastAdvancedFactor,
     filterStack,
     applyFilter,
     clearFilters,

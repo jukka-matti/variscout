@@ -31,10 +31,10 @@ import {
   useGlossary,
   BREAKPOINTS,
 } from '@variscout/ui';
-import { getColumnNames } from '@variscout/core';
+import { getColumnNames, getEtaSquared } from '@variscout/core';
 import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
 import type { Finding } from '@variscout/core';
-import type { AzureFindingsCallbacks } from '@variscout/ui';
+import type { AzureFindingsCallbacks, FilterChipData } from '@variscout/ui';
 import {
   useAnnotations,
   useFilterHandlers,
@@ -98,7 +98,7 @@ interface DashboardAIProps {
   onNarrativeRetry?: () => void;
   onAskCoScoutFromCategory?: (focusContext: {
     chartType: 'boxplot' | 'pareto';
-    category: { name: string; mean?: number; contributionPct?: number };
+    category: { name: string; mean?: number; etaSquaredPct?: number };
   }) => void;
 }
 
@@ -252,11 +252,7 @@ const Dashboard = ({
     availableStageColumns,
     anovaResult,
     boxplotData,
-    cumulativeVariationPct,
-    filterChipData,
-    factorVariations,
-    categoryContributions,
-    lastAdvancedFactor,
+    filterStack,
     clearFilters,
     updateFilterValues,
     removeFilter,
@@ -268,6 +264,25 @@ const Dashboard = ({
     initialParetoFactor: initialViewState?.paretoFactor,
     onViewStateChange,
   });
+
+  // Build filter chip data from filter stack for breadcrumb display
+  const filterChipData: FilterChipData[] = useMemo(() => {
+    if (!filterStack || filterStack.length === 0 || !rawData?.length) return [];
+    return filterStack
+      .filter((f): f is typeof f & { factor: string } => !!f.factor)
+      .map(filter => {
+        const allValues = [...new Set(rawData.map(row => row[filter.factor]))];
+        return {
+          factor: filter.factor,
+          values: filter.values,
+          availableValues: allValues.map(val => ({
+            value: val as string | number,
+            count: rawData.filter(row => row[filter.factor] === val).length,
+            isSelected: filter.values.includes(val as string | number),
+          })),
+        };
+      });
+  }, [filterStack, rawData]);
 
   // Apply external factor switch (from question click)
   useEffect(() => {
@@ -327,7 +342,7 @@ const Dashboard = ({
     outcome,
     specs,
     stats,
-    filterChipData,
+    filterStack,
     scopedFindings,
     benchmark: benchmarkData,
     journeyPhase,
@@ -397,6 +412,12 @@ const Dashboard = ({
     },
   });
 
+  // Compute η² per factor for insight chips (replaces deleted useVariationTracking)
+  const factorVariations = useMemo(() => {
+    if (!outcome || !filteredData?.length || !factors?.length) return new Map<string, number>();
+    return new Map(factors.map(f => [f, getEtaSquared(filteredData, f, outcome) * 100]));
+  }, [filteredData, factors, outcome]);
+
   // --- Chart Insight Chips + Capability mode (shared hook) ---
   const {
     ichartInsight,
@@ -414,7 +435,6 @@ const Dashboard = ({
     factorVariations,
     boxplotFactor,
     paretoFactor,
-    categoryContributions,
     displayOptions,
     setDisplayOptions,
     subgroupConfig,
@@ -463,7 +483,6 @@ const Dashboard = ({
             onUpdateFilterValues={handleUpdateFilterValues}
             onRemoveFilter={handleRemoveFilter}
             onClearAll={handleClearAllFilters}
-            cumulativeVariationPct={cumulativeVariationPct}
             onPinFinding={onPinFinding}
             layout={displayOptions.dashboardLayout ?? 'grid'}
             onLayoutChange={l => setDisplayOptions({ ...displayOptions, dashboardLayout: l })}
@@ -590,7 +609,6 @@ const Dashboard = ({
                 filters,
                 columnAliases,
                 filterChipData,
-                cumulativeVariationPct,
                 onUpdateFilterValues: handleUpdateFilterValues,
                 onRemoveFilter: handleRemoveFilter,
                 onClearAllFilters: handleClearAllFilters,
@@ -662,7 +680,6 @@ const Dashboard = ({
                 focusedChart={focusedChart}
                 setFocusedChart={setFocusedChart}
                 filterChipData={filterChipData}
-                cumulativeVariationPct={cumulativeVariationPct}
                 annotations={{
                   contextMenu: isPhone
                     ? {
@@ -732,17 +749,9 @@ const Dashboard = ({
                     )}
                   </div>
                 }
-                // Azure-specific: lastAdvancedFactor ring on boxplot factor selector
+                // Boxplot factor wrapper (visual feedback removed with variation tracking)
                 boxplotFactorWrapper={selector => (
-                  <div
-                    className={`rounded-lg transition-all duration-300 ${
-                      lastAdvancedFactor && lastAdvancedFactor === boxplotFactor
-                        ? 'ring-2 ring-blue-400'
-                        : ''
-                    }`}
-                  >
-                    {selector}
-                  </div>
+                  <div className="rounded-lg transition-all duration-300">{selector}</div>
                 )}
                 // Render slots
                 renderIChartContent={
@@ -850,7 +859,6 @@ const Dashboard = ({
                       onExit={() => setFocusedChart(null)}
                       displayOptions={displayOptions}
                       columnAliases={columnAliases}
-                      cumulativeVariationPct={cumulativeVariationPct}
                       filterChipData={filterChipData}
                       copyFeedback={copyFeedback}
                       onCopyChart={handleCopyChart}

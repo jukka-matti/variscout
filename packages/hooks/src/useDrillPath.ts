@@ -3,7 +3,6 @@ import {
   type FilterAction,
   type DataRow,
   type SpecLimits,
-  calculateCategoryTotalSS,
   calculateStats,
   applyFilters,
   toNumericValue,
@@ -21,7 +20,7 @@ export interface DrillStep {
   label: string;
   /** Timestamp from the filter action */
   timestamp: number;
-  /** Scope fraction: selected categories' Total SS as fraction of current level (0–1) */
+  /** Scope fraction: row count of selected categories as fraction of current level (0–1) */
   scopeFraction: number;
   /** Running product of all scope fractions up to this step (0–1) */
   cumulativeScope: number;
@@ -43,7 +42,7 @@ export interface UseDrillPathReturn {
   /** Ordered list of drill steps */
   drillPath: DrillStep[];
   /** Cumulative variation percentage (0–100) or null if no drills */
-  cumulativeVariationPct: number | null;
+  cumulativeScopePct: number | null;
 }
 
 /**
@@ -80,7 +79,7 @@ export function useDrillPath(
 ): UseDrillPathReturn {
   return useMemo(() => {
     if (!outcome || rawData.length < 2 || filterStack.length === 0) {
-      return { drillPath: [], cumulativeVariationPct: null };
+      return { drillPath: [], cumulativeScopePct: null };
     }
 
     const drillPath: DrillStep[] = [];
@@ -98,16 +97,6 @@ export function useDrillPath(
       // Skip if not enough data to compute stats
       if (currentData.length < 2) break;
 
-      // Compute Total SS scope for this factor at current data level
-      const totalSSResult = calculateCategoryTotalSS(currentData, factor, outcome);
-      let scopeFraction = 0;
-      if (totalSSResult) {
-        for (const value of action.values) {
-          scopeFraction += totalSSResult.contributions.get(value) ?? 0;
-        }
-        scopeFraction = scopeFraction / 100; // Convert % to fraction (0–1)
-      }
-
       // Stats before applying this filter
       const valuesBefore = getOutcomeValues(currentData, outcome);
       const statsBefore =
@@ -116,6 +105,9 @@ export function useDrillPath(
       // Apply this filter
       const stepFilters = { [factor]: action.values };
       const nextData = applyFilters(currentData, stepFilters);
+
+      // Scope as row-count fraction (rows selected / rows available at this level)
+      const scopeFraction = currentData.length > 0 ? nextData.length / currentData.length : 0;
 
       // Stats after applying this filter
       const valuesAfter = getOutcomeValues(nextData, outcome);
@@ -143,10 +135,10 @@ export function useDrillPath(
       currentData = nextData;
     }
 
-    const cumulativeVariationPct =
+    const cumulativeScopePct =
       drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null;
 
-    return { drillPath, cumulativeVariationPct };
+    return { drillPath, cumulativeScopePct };
   }, [rawData, filterStack, outcome, specs]);
 }
 

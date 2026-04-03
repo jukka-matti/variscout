@@ -13,7 +13,7 @@ import { LOCALE_NAMES } from '../../i18n/types';
  * See docs/05-technical/architecture/aix-design-system.md §1.2
  */
 export const TERMINOLOGY_INSTRUCTION = `Terminology rules — always use VariScout terms:
-- Say "Contribution %" not "eta squared" or "effect size".
+- Say "η² (effect size)" — the standard ANOVA metric for variation explained.
 - Say "Progressive stratification" not "drill-down".
 - Say "Voice of the Process" not "control limits" and "Voice of the Customer" not "spec limits" or "specification limits".
 - Say "characteristic" not "measurement" or "variable".

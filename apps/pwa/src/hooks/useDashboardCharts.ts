@@ -14,11 +14,7 @@ import { useStatsWorker } from '../workers/useStatsWorker';
 import type { AnovaResult } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/charts';
 import { useFilterNavigation, type UseFilterNavigationReturn } from './useFilterNavigation';
-import {
-  useDashboardChartsBase,
-  useVariationTracking,
-  type FilterChipData,
-} from '@variscout/hooks';
+import { useDashboardChartsBase } from '@variscout/hooks';
 import { useFocusMode } from './useFocusMode';
 import type { ChartId } from '@variscout/ui';
 
@@ -62,11 +58,6 @@ export interface UseDashboardChartsResult {
   clearFilters: UseFilterNavigationReturn['clearFilters'];
   updateFilterValues: UseFilterNavigationReturn['updateFilterValues'];
   removeFilter: UseFilterNavigationReturn['removeFilter'];
-  breadcrumbItems: ReturnType<typeof useVariationTracking>['breadcrumbsWithVariation'];
-  cumulativeVariationPct: number | null;
-  factorVariations: Map<string, number>;
-  categoryContributions: Map<string, Map<string | number, number>> | undefined;
-  filterChipData: FilterChipData[];
   handleDrillDown: (factor: string, value: string) => void;
 }
 
@@ -89,14 +80,6 @@ export function useDashboardCharts({
   const filterNav = externalFilterNav ?? localFilterNav;
   const { filterStack, applyFilter, navigateTo, clearFilters, updateFilterValues, removeFilter } =
     filterNav;
-
-  // Breadcrumbs (variation tracking provides these — base hook doesn't expose them)
-  const { breadcrumbsWithVariation: breadcrumbItems } = useVariationTracking(
-    rawData,
-    filterStack,
-    outcome,
-    factors
-  );
 
   // Base hook — shared composition
   const base = useDashboardChartsBase({
@@ -148,11 +131,6 @@ export function useDashboardCharts({
     [onChartClick]
   );
 
-  // Wrap drill-down to discard return value (PWA doesn't use lastAdvancedFactor)
-  const handleDrillDown = (factor: string, value: string) => {
-    base.handleDrillDown(factor, value);
-  };
-
   return {
     ...base,
     focusedChart,
@@ -171,8 +149,6 @@ export function useDashboardCharts({
     clearFilters,
     updateFilterValues,
     removeFilter,
-    breadcrumbItems,
-    handleDrillDown,
   };
 }
 

@@ -67,13 +67,6 @@ export {
   type HistoryState,
 } from './filterUtils';
 
-// Variation Tracking
-export {
-  useVariationTracking,
-  type VariationTrackingResult,
-  type FilterChipData,
-} from './useVariationTracking';
-
 // Keyboard Navigation
 export { useKeyboardNavigation, type KeyboardNavigationOptions } from './useKeyboardNavigation';
 

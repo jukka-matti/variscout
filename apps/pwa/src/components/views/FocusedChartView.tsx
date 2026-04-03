@@ -4,7 +4,8 @@ import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
 import { FocusedChartViewBase } from '@variscout/ui';
 import type { AnovaResult, StatsResult, StagedStatsResult, Finding } from '@variscout/core';
-import type { FilterChipData, HighlightColor, ChartTitles } from '@variscout/hooks';
+import type { FilterChipData } from '@variscout/ui';
+import type { HighlightColor, ChartTitles } from '@variscout/hooks';
 import { BoxplotStatsTable, type BoxplotGroupData } from '@variscout/charts';
 
 export type FocusableChart = 'ichart' | 'boxplot' | 'pareto';
@@ -39,7 +40,6 @@ export interface FocusedChartViewProps {
   onToggleParetoAggregation?: () => void;
   filterChipData?: FilterChipData[];
   columnAliases?: Record<string, string>;
-  cumulativeVariationPct?: number | null;
   showFilterContext?: boolean;
   // I-Chart finding props
   ichartFindings?: Finding[];
@@ -103,7 +103,6 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
     onToggleParetoAggregation,
     filterChipData = [],
     columnAliases = {},
-    cumulativeVariationPct,
     showFilterContext = true,
     ichartFindings,
     onCreateObservation,
@@ -139,7 +138,6 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
       filterContext={{
         filterChipData,
         columnAliases,
-        cumulativeVariationPct,
         showFilterContext,
       }}
       ichart={{

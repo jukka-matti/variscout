@@ -35,14 +35,12 @@ export interface UseDashboardInsightsOptions {
   specs: SpecLimits;
   /** Cpk target threshold */
   cpkTarget: number | undefined;
-  /** Factor variation map (factor name -> variation %) */
+  /** Factor η² map (factor name -> η² percentage 0-100) */
   factorVariations: Map<string, number>;
   /** Currently selected boxplot factor */
   boxplotFactor: string;
   /** Currently selected Pareto factor */
   paretoFactor: string;
-  /** Category contributions map (factor -> category -> contribution %) */
-  categoryContributions?: Map<string, Map<string | number, number>>;
   /** Display options (for capability mode detection) */
   displayOptions: DisplayOptions;
   /** Setter for display options (for handleCpkClick) */
@@ -87,7 +85,6 @@ export function useDashboardInsights({
   factorVariations,
   boxplotFactor,
   paretoFactor,
-  categoryContributions,
   displayOptions,
   setDisplayOptions,
   subgroupConfig,
@@ -154,22 +151,21 @@ export function useDashboardInsights({
   });
 
   // --- Pareto insight ---
+  // Note: per-category contribution data was removed with Total SS metric.
+  // Pareto deterministic insights are currently AI-only; no per-category η² available.
   const paretoInsight = useChartInsights({
     chartType: 'pareto',
     aiEnabled,
     aiContext: aiContext ?? null,
     fetchInsight: fetchChartInsight,
-    deterministicData: useMemo(() => {
-      const innerMap = categoryContributions?.get(paretoFactor);
-      const converted = innerMap
-        ? new Map([...innerMap.entries()].map(([k, v]) => [String(k), v]))
-        : undefined;
-      return {
-        categoryContributions: converted,
-        categoryCount: innerMap?.size ?? 0,
+    deterministicData: useMemo(
+      () => ({
+        categoryContributions: undefined,
+        categoryCount: 0,
         paretoFactor,
-      };
-    }, [categoryContributions, paretoFactor]),
+      }),
+      [paretoFactor]
+    ),
   });
 
   // --- Stats insight ---
