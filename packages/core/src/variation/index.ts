@@ -65,3 +65,6 @@ export {
 // Direction-aware category coloring
 export type { DirectionColor } from './directionColors';
 export { computeCategoryDirectionColors } from './directionColors';
+
+// Best subgroup selection (extracted from WhatIfPageBase)
+export { findBestSubgroup, findTightestSubgroup } from './bestSubgroup';

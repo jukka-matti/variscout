@@ -278,6 +278,8 @@ export {
   normalCDF,
   normalPDF,
   computeCategoryDirectionColors,
+  findBestSubgroup,
+  findTightestSubgroup,
   DRILL_SWITCH_THRESHOLD,
 } from './variation';
 
