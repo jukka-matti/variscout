@@ -3,12 +3,12 @@ title: Variation Decomposition
 audience: [analyst, engineer]
 category: analysis
 status: stable
-related: [total-ss, eta-squared, scope-fraction, anova]
+related: [eta-squared, r-squared-adj, anova, factor-intelligence]
 ---
 
 # Variation Decomposition
 
-Why VariScout uses different metrics for different questions, and how they relate to one-way ANOVA.
+How VariScout uses standard ANOVA metrics for factor ranking and investigation guidance.
 
 ---
 
@@ -26,51 +26,36 @@ One-way ANOVA decomposes total variation into two additive sources:
 
 This identity always holds exactly. The cross term vanishes because the sum of deviations within any group is zero: Σ(x_ij − x̄_j) = 0.
 
-### Category-level decomposition
-
-The identity also works at the category level. For any category _j_:
-
-**Category_SS_j = SS_Between_j + SS_Within_j**
-
-where:
-
-- SS_Between_j = n_j × (x̄_j − x̄)² — group mean vs grand mean
-- SS_Within_j = Σ_i (x_ij − x̄_j)² — spread within the group
-
-Key identity: **Σ_j Category_SS_j = SS_Total**
-
-The total variation is fully partitioned across categories — every observation's deviation from the grand mean is accounted for by exactly one category. This means category percentages always sum to 100%.
-
-With unbalanced data (unequal category sizes), larger categories contribute proportionally more to Total SS. This reflects their actual impact on the data but may overstate their importance per-observation.
-
 ---
 
-## Three Metrics, Three Questions
+## Two Metrics, Two Questions
 
-VariScout uses three different variation metrics, each answering a distinct question:
+VariScout uses two standard statistical metrics at different levels of the investigation:
 
-| Metric              | Formula                  | Question it answers                                | Where used in VariScout                                                  |
-| ------------------- | ------------------------ | -------------------------------------------------- | ------------------------------------------------------------------------ |
-| η² (eta-squared)    | SS_Between / SS_Total    | "How much variation does this **factor** explain?" | ANOVA panel, investigation factor ranking, Boxplot suggestion indicators |
-| Category Total SS % | Category_SS_j / SS_Total | "How much does each **category** contribute?"      | Contribution labels on Boxplot, filter chips, category popover           |
+| Metric                     | Formula                 | Question it answers                                     | Where used in VariScout                    |
+| -------------------------- | ----------------------- | ------------------------------------------------------- | ------------------------------------------ |
+| R²adj (adjusted R-squared) | 1 − (1−R²)(n−1)/(n−p−1) | "Which combination of factors best explains variation?" | Factor Intelligence ranking (Best Subsets) |
+| η² (eta-squared)           | SS_Between / SS_Total   | "How much variation does this factor explain?"          | ANOVA panel, investigation factor ranking  |
 
-### Why η² for factor ranking
+### Why R²adj for factor ranking
 
-η² measures only between-group variation (mean differences). This is the right metric for ranking **factors** because it is not distorted by the number of categories in a factor.
+Factor Intelligence uses Best Subsets regression to evaluate all factor combinations simultaneously. R²adj penalizes model complexity — adding a weak factor reduces R²adj even if R² increases slightly. This gives the analyst an honest ranking of which factors (and combinations) matter most, without the path dependency of one-factor-at-a-time exploration.
 
-A 5-category factor with diverse means (e.g. Step 1-5 with different cycle times) correctly ranks higher than a 2-category factor with similar means (e.g. Shift with Morning/Afternoon), because η² captures the total between-group effect regardless of how it is distributed across categories.
+### Why η² for individual factor assessment
+
+η² measures the proportion of total variation explained by between-group differences for a single factor. It is the standard ANOVA effect size metric taught in Six Sigma training. When the analyst drills into a specific factor, η² tells them how much that factor matters in isolation.
 
 > **Note on bias:** η² is a positively biased estimator — it tends to overstate the true population effect size, especially with small samples or many groups. VariScout uses η² (not the unbiased ω²) because it is the standard metric taught in Six Sigma training and because the drill-down use case involves relative ranking, not absolute estimation.
 
-Max-category Total SS is biased by category count: with 2 categories, each gets roughly 50% of variation; with 5 categories, each gets roughly 20%. A 2-category factor always looks "bigger" by this metric even when its η² is lower. That is why VariScout uses η² for suggestion ranking (highlighting which factor to drill next).
+### Category-level insight: the boxplot and StdDev
 
-### Why Total SS (not between-group) for category contribution
+While η² and R²adj answer factor-level questions ("does this factor matter?"), the analyst also needs category-level insight ("which category should I investigate?"). VariScout answers this through the **boxplot visual** and the **StdDev column** in the ANOVA stats table:
 
-Between-group SS only captures **mean shift**: n_j × (x̄_j − x̄)². A category whose mean equals the grand mean shows 0% — even if it has enormous spread. This is misleading: a category with high within-group variation is a real contributor to overall variation, regardless of where its mean sits.
+- The boxplot shows the distribution shape, median, spread, and outliers for each category — the analyst's eye does the comparison
+- The StdDev column in the stats table quantifies within-group spread numerically
+- Categories with unusually high StdDev are the ones contributing excess within-group variation
 
-Total SS contribution = (SS_Between_j + SS_Within_j) / SS_Total. This captures **both** mean shift **and** spread. Categories always sum to 100%.
-
-The worked example below demonstrates why this matters.
+This approach uses standard statistics rather than a custom per-category metric. The boxplot is the natural visual tool for comparing distributions, and StdDev is a universally understood measure of spread.
 
 ---
 
@@ -78,36 +63,40 @@ The worked example below demonstrates why this matters.
 
 The [Bottleneck case study](../../04-cases/bottleneck/index.md) has 150 cycle time measurements across 5 process steps (30 observations each). Grand mean = 36.24 seconds, SS_Total = 7,039.
 
-### Step-level decomposition
+### Factor-level analysis
 
-| Step       | n   | Mean  | SD  | SS_Between | SS_Within | Category SS | Total SS % |
-| ---------- | --- | ----- | --- | ---------- | --------- | ----------- | ---------- |
-| Step 1     | 30  | 32.5  | 2.0 | 412        | 116       | 528         | **7.5%**   |
-| **Step 2** | 30  | 39.4  | 8.9 | 306        | 2,393     | 2,699       | **38.3%**  |
-| Step 3     | 30  | 45.1  | 1.5 | 2,355      | 71        | 2,426       | **34.5%**  |
-| Step 4     | 30  | 33.7  | 1.9 | 194        | 104       | 298         | **4.2%**   |
-| Step 5     | 30  | 30.4  | 1.6 | 1,012      | 77        | 1,089       | **15.5%**  |
-| **Total**  | 150 | 36.24 |     | **4,278**  | **2,761** | **7,039**   | **100%**   |
+η² for the Step factor = 4,278 / 7,039 = **0.61** (61% of variation explained by step differences). This is the key number: the Step factor is the dominant driver of cycle time variation.
 
-η² for the Step factor = 4,278 / 7,039 = **0.61** (61% of variation explained by step differences).
+### Category-level insight from the boxplot
+
+| Step       | n   | Mean | StdDev  |
+| ---------- | --- | ---- | ------- |
+| Step 1     | 30  | 32.5 | 2.0     |
+| **Step 2** | 30  | 39.4 | **8.9** |
+| Step 3     | 30  | 45.1 | 1.5     |
+| Step 4     | 30  | 33.7 | 1.9     |
+| Step 5     | 30  | 30.4 | 1.6     |
+
+The boxplot immediately reveals two things:
+
+1. **Step 3 has the highest mean** (45.1s) — it is consistently slow
+2. **Step 2 has by far the highest spread** (StdDev = 8.9 vs ~2.0 for others) — it is unpredictable
 
 ### The key comparison: Step 2 vs Step 3
 
-| Metric                       | Step 2            | Step 3            | Which looks bigger? |
-| ---------------------------- | ----------------- | ----------------- | ------------------- |
-| SS_Between (mean shift only) | 306 (4.3%)        | 2,355 (33.5%)     | Step 3              |
-| SS_Within (spread only)      | 2,393 (34.0%)     | 71 (1.0%)         | Step 2              |
-| **Category Total SS**        | **2,699 (38.3%)** | **2,426 (34.5%)** | **Step 2**          |
+| What the analyst sees | Step 2                  | Step 3                    |
+| --------------------- | ----------------------- | ------------------------- |
+| Mean                  | 39.4 (moderate)         | 45.1 (highest)            |
+| StdDev                | **8.9** (4x others)     | 1.5 (low)                 |
+| Boxplot appearance    | Wide box, long whiskers | Tight box, short whiskers |
 
-If VariScout used **between-group SS** for the category popover, Step 2 would show just 4.3% contribution — it would look irrelevant. But Step 2 has the highest variance (SD = 8.9 vs the next highest at 2.0), and its inconsistency is what creates the production bottleneck.
+Step 3's high mean is visible immediately. But Step 2's enormous spread — visible as a wide box with long whiskers in the boxplot — reveals the real bottleneck: unpredictability. A step with StdDev of 8.9 when all others are around 2.0 is the dominant source of within-group variation.
 
-**Total SS contribution** correctly shows Step 2 at 38.3% — the single largest contributor to overall variation. This matches the case study finding: Step 2's unpredictability, not Step 3's consistently high mean, is the real problem.
+### What this means in practice
 
-### What 38.3% means in practice
+If you could eliminate Step 2's excess variation (bring its StdDev from 8.9 down to the average of other steps, ~1.8), you would remove approximately 34% of the total cycle time variation. Whether this translates to meaningful yield improvement depends on the specification limits — use the What-If Simulator to project the specific Cpk and yield change.
 
-If you could eliminate Step 2's excess variation (bring its SD from 8.9 down to the average of other steps, ~1.8), you would remove approximately 34% of the total cycle time variation. Whether this translates to meaningful yield improvement depends on the specification limits — use the What-If Simulator to project the specific Cpk and yield change.
-
-This matches the case study outcome: management was about to invest €50k upgrading Step 3 (highest mean). The variation analysis revealed Step 2 (highest spread) was the real bottleneck. The actual fix was €5k in training and standardized work instructions — a 10× better allocation of resources.
+This matches the case study outcome: management was about to invest EUR50k upgrading Step 3 (highest mean). The variation analysis revealed Step 2 (highest spread) was the real bottleneck. The actual fix was EUR5k in training and standardized work instructions — a 10x better allocation of resources.
 
 ---
 
@@ -117,29 +106,23 @@ This matches the case study outcome: management was about to invest €50k upgra
 
 Shows F-statistic, p-value, and η². These are factor-level metrics that answer "does this factor matter?" η² = 0.61 for Step means 61% of all cycle time variation is explained by which step you measure.
 
-F-test and p-value assume approximately normal data with similar spread across groups. η² and Total SS % are descriptive and do not require these assumptions.
+F-test and p-value assume approximately normal data with similar spread across groups. η² is descriptive and does not require these assumptions.
 
-### Investigation factor ranking
+### Factor Intelligence ranking
 
-The investigation sidebar highlights the factor with the highest η² among unexplored factors, guiding the analyst to drill the most impactful factor next.
+Factor Intelligence uses Best Subsets regression to rank all factor combinations by R²adj. This evaluates factors simultaneously rather than one at a time, avoiding path dependency. The analyst sees which individual factors and which combinations explain the most variation, guiding investigation priority.
 
-### Hypothesis auto-validation
+### Boxplot stats table
 
-Each hypothesis in the investigation panel displays **η²** for that factor — the same metric shown in the ANOVA panel. This answers "how much variation does this factor explain?" at a glance. Hypotheses are automatically validated against η² thresholds (see `useHypotheses` in `@variscout/hooks`).
-
-### Category popover and contribution labels
-
-Each row shows **Category Total SS %** for every category within the selected factor. These always sum to 100%. The analyst sees exactly how variation is distributed across categories — capturing both mean differences and spread.
+Each category row shows n, Mean, and StdDev. The analyst compares StdDev values across categories to identify which ones have excess spread. Categories with unusually high StdDev relative to others are prime investigation targets — they contribute disproportionate within-group variation.
 
 ### Drill-down filter chips
 
-When the analyst filters (e.g. clicks Step 2), the contribution percentage on the filter chip shows how much of the **original** total variation that filter captures. This keeps the analyst anchored to the original problem throughout the drill-down.
+When the analyst filters (e.g. clicks Step 2), the filter chip shows `Step = Step 2 (n=30)` — the factor, selected value, and sample count. All charts update to show the filtered subset. The analyst reads the updated η² for remaining factors to decide where to drill next.
 
-The cumulative percentage represents the fraction of the original total variation captured by your current filter combination. "45% in focus" means your current drill path accounts for 45% of all the variation in the dataset — the remaining 55% comes from data outside your filter selection.
+### Investigation panel
 
-### Hypothesis tree (investigation panel)
-
-Each factor sub-header shows the individual **η²** for that factor. Category headers (e.g. "Equipment", "People") do **not** show an aggregated variation percentage — η² values from separate one-way ANOVAs are not additive when factors are correlated, so summing them could exceed 100% and mislead.
+Each factor shows its **η²** from one-way ANOVA. Questions are automatically validated against η² thresholds. The investigation sidebar highlights the factor with the highest η² among unexplored factors, guiding the analyst to drill the most impactful factor next.
 
 **Design principle:** Only show variation numbers that are individually defensible. Never aggregate across factors unless using a multi-factor model that accounts for correlation.
 
@@ -151,19 +134,17 @@ Identifying a variation source is necessary but not sufficient for improvement. 
 
 ## For the Quality Professional
 
-If you've completed Six Sigma Green Belt training, you've seen one-way ANOVA in the Analyze phase. VariScout uses the same F-test, p-value, and η² — plus one extension at the category level. Here is how VariScout's metrics map to standard terminology:
+If you've completed Six Sigma Green Belt training, you've seen one-way ANOVA in the Analyze phase. VariScout uses the same F-test, p-value, and η² — standard metrics without custom extensions. Here is how VariScout's metrics map to standard terminology:
 
-| Standard ANOVA term     | VariScout equivalent                     | Notes                                                                                                                                         |
-| ----------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| SS_Between / SS_Total   | η² in ANOVA panel                        | Identical to standard η²                                                                                                                      |
-| MS_Between / MS_Within  | F-statistic in ANOVA panel               | Standard F-test                                                                                                                               |
-| SS for a specific group | Category Total SS %                      | VariScout adds within-group SS to give full picture                                                                                           |
-| Effect size (η²)        | Suggestion ranking                       | Used to guide drill-down order                                                                                                                |
-| Multi-Vari study        | Progressive drill-down with filter chips | VariScout automates the Multi-Vari decomposition: the analyst drills factors one at a time, and the tool quantifies each level's contribution |
+| Standard ANOVA term    | VariScout equivalent                     | Notes                                                                         |
+| ---------------------- | ---------------------------------------- | ----------------------------------------------------------------------------- |
+| SS_Between / SS_Total  | η² in ANOVA panel                        | Identical to standard η²                                                      |
+| MS_Between / MS_Within | F-statistic in ANOVA panel               | Standard F-test                                                               |
+| Effect size (η²)       | Factor ranking in investigation          | Used to guide drill-down order                                                |
+| Best Subsets R²adj     | Factor Intelligence ranking              | Evaluates all factor combinations simultaneously                              |
+| Multi-Vari study       | Progressive drill-down with filter chips | Analyst drills factors one at a time; boxplot + StdDev reveal category spread |
 
-VariScout extends textbook ANOVA at the **category level**. Textbook ANOVA focuses on the F-test and η² (both factor-level metrics). VariScout extends the decomposition to individual categories by including within-group variation, because the drill-down workflow needs to answer "which category should I investigate?" — a question that between-group SS alone cannot answer reliably.
-
-**Confounding:** One-factor-at-a-time analysis does not account for confounding between factors. If Operator and Shift are correlated (certain operators only work nights), drilling by Shift may capture variation actually caused by Operator. For statistically rigorous joint analysis, Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)).
+**Confounding:** One-factor-at-a-time analysis does not account for confounding between factors. If Operator and Shift are correlated (certain operators only work nights), drilling by Shift may capture variation actually caused by Operator. Factor Intelligence (Best Subsets R²adj) partially mitigates this by evaluating combinations, but for statistically rigorous joint analysis with interaction terms, Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)).
 
 ---
 
@@ -173,19 +154,15 @@ The variation decomposition system is a practical tool for process investigation
 
 ### Path dependency
 
-The drill-down examines one factor at a time. Different drill orders can produce different intermediate percentages — for example, drilling Shift → Operator may show different local scope fractions than Operator → Shift — but they converge on similar cumulative scope. For statistically rigorous joint analysis, Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)). See [Progressive Stratification](../../01-vision/progressive-stratification.md) Part 2 for a detailed treatment of this tension.
+The drill-down examines one factor at a time. Different drill orders can produce different intermediate results. Factor Intelligence (R²adj ranking) mitigates this by evaluating all factor combinations simultaneously, but the sequential drill-down interaction remains one-factor-at-a-time by design. See [Progressive Stratification](../../01-vision/progressive-stratification.md) Part 2 for a detailed treatment of this tension.
 
 ### Confounding and correlated factors
 
-Real process data is rarely orthogonal. When factors are correlated (operator × shift, material × supplier), one-factor ANOVA misattributes variation. The drill-down can lead to incorrect factor prioritization. For statistically rigorous joint analysis, Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)).
-
-### Cumulative scope approximation
-
-The cumulative scope percentage (the "in focus" number on drill-down chips) is the multiplicative product of local scope fractions through the drill path. This is an intuitive "funnel" metaphor, not a statistically grounded quantity. It treats each drill level's local scope as independent, which fails when factors are correlated. The regression model planned for Phase 2 will provide the correct joint estimate of explained variation.
+Real process data is rarely orthogonal. When factors are correlated (operator x shift, material x supplier), one-factor ANOVA misattributes variation. The drill-down can lead to incorrect factor prioritization. Factor Intelligence helps by ranking combinations, but for statistically rigorous joint analysis, Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)).
 
 ### When to transition beyond drill-down
 
-Use the drill-down for initial investigation (3–5 minutes). If you suspect interactions, have confounded factors, or need a formal model for projection, use the What-If Simulator to test scenarios with direct adjustments. Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)).
+Use the drill-down for initial investigation (3-5 minutes). If you suspect interactions, have confounded factors, or need a formal model for projection, use the What-If Simulator to test scenarios with direct adjustments. Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)).
 
 ---
 
@@ -193,8 +170,8 @@ Use the drill-down for initial investigation (3–5 minutes). If you suspect int
 
 When presenting variation findings to stakeholders, translate statistical metrics to business terms:
 
-- Instead of "Step 2 contributes 38.3% of Total SS," say "Step 2's inconsistency accounts for the largest share of cycle time variation."
 - Instead of "η² = 0.61 for Process Step," say "Which step the product is at explains 61% of the variation we see."
+- Instead of "Step 2 has StdDev of 8.9," say "Step 2's inconsistency is 4x worse than any other step — it's the bottleneck."
 - Use the What-If Simulator to generate specific before/after projections: "Reducing Step 2's spread from 8.9 to 2.0 seconds would improve overall process capability from Cpk X to Cpk Y."
 
 The chart copy and export features (clipboard, PNG, SVG) produce presentation-ready visuals that can be pasted directly into tollgate reviews and improvement reports.
@@ -205,7 +182,7 @@ The chart copy and export features (clipboard, PNG, SVG) produce presentation-re
 
 - NIST/SEMATECH e-Handbook of Statistical Methods, Section 7.4.3.2 — One-Way ANOVA
 - Montgomery, D.C. _Introduction to Statistical Quality Control_ (8th ed.), Chapter 13
-- VariScout implementation: `packages/core/src/stats/anova.ts` (ANOVA), `packages/core/src/variation/contributions.ts` (category decomposition)
+- VariScout implementation: `packages/core/src/stats/anova.ts` (ANOVA), `packages/core/src/variation/` (factor intelligence)
 
 ---
 
@@ -216,6 +193,6 @@ The chart copy and export features (clipboard, PNG, SVG) produce presentation-re
 | UX rationale for drill-down                | [Progressive Stratification](../../01-vision/progressive-stratification.md) |
 | Investigation workflow (Findings, What-If) | [Investigation to Action](../workflows/investigation-to-action.md)          |
 | Boxplot ANOVA display                      | [Boxplot](boxplot.md)                                                       |
-| Category contribution labels               | [Boxplot](boxplot.md)                                                       |
+| Factor Intelligence                        | [Factor Intelligence](../analysis/factor-intelligence.md)                   |
 | Regression and interaction analysis        | [Regression (Phase 2, deferred)](../../archive/regression.md)               |
-| Glossary: η², Total SS Contribution        | `packages/core/src/glossary/terms.ts`                                       |
+| Glossary: η², R²adj                        | `packages/core/src/glossary/terms.ts`                                       |
