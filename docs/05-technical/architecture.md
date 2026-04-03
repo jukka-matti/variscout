@@ -89,8 +89,8 @@ variscout-lite/
 │          @variscout/ui                                                      │
 │         (packages/ui/)                                                      │
 │  AnovaResults │ FilterBreadcrumb │ FilterChipDropdown │ FindingsLog        │
-│  PerformanceSetupPanel │ VariationBar │ YAxisPopover │ FindingCard        │
-│  UpgradePrompt │ ChartCard │ ColumnMapping │ HelpTooltip │ colors         │
+│  PerformanceSetupPanel │ YAxisPopover │ FindingCard │ ChartCard            │
+│  UpgradePrompt │ ColumnMapping │ HelpTooltip │ colors                      │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ```

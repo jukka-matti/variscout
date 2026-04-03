@@ -276,10 +276,9 @@ flowchart TB
         mobilesheet["MobileCategorySheet"]
     end
 
-    subgraph analysis["Analysis (7)"]
+    subgraph analysis["Analysis (6)"]
         anova["AnovaResults"]
         statspanel["StatsPanelBase"]
-        variationbar["VariationBar"]
         yaxispopover["YAxisPopover"]
         axiseditor["AxisEditor"]
         factorsel["FactorSelector"]

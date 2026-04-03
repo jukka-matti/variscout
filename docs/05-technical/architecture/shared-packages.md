@@ -217,7 +217,7 @@ import {
 import { FilterBreadcrumb, FilterChipDropdown, FilterContextBar } from '@variscout/ui';
 
 // Navigation
-import { VariationBar, FindingsWindow, FindingsLog } from '@variscout/ui';
+import { FindingsWindow, FindingsLog } from '@variscout/ui';
 
 // Settings
 import {

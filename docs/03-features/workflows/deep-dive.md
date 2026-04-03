@@ -145,8 +145,8 @@ Identify what factors explain the variation.
 
 3. **Track your path**
    - Note each filter applied
-   - Record contribution percentages
-   - Watch VariationBar progress
+   - Record contribution percentages (shown in filter chips)
+   - Monitor cumulative effect on variation explained
 
 ### Drill-Down Record
 
