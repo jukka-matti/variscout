@@ -50,7 +50,7 @@ When comparing factors, VariScout calculates:
 | p-value          | Probability of chance difference |
 | η² (eta-squared) | Proportion of variance explained |
 
-See [Variation Decomposition](variation-decomposition.md) for how η² relates to the category-level Total SS metrics shown in contribution labels and filter chips.
+See [Variation Decomposition](variation-decomposition.md) for η² interpretation and how the group statistics table's StdDev column reveals within-group spread.
 
 ---
 
@@ -86,7 +86,7 @@ Available in PWA and Azure App.
 
 Sort boxplot categories by **Name** (alphabetical, default), **Mean**, or **Spread** (IQR). Toggle ascending/descending direction.
 
-Access via the display options icon (SlidersHorizontal) in the Boxplot card header — the same popover that controls Violin Mode and Contribution Labels.
+Access via the display options icon (SlidersHorizontal) in the Boxplot card header — the same popover that controls Violin Mode.
 
 | Sort Criterion | What it reveals                                            |
 | -------------- | ---------------------------------------------------------- |
@@ -108,7 +108,7 @@ When specification limits are set, boxplot categories are colored by how well th
 
 Categories are ranked into thirds (green / amber / red). With 2 categories: best = green, worst = red. With 1 category: neutral gray.
 
-Direction coloring combines with the existing [variation contribution](variation-decomposition.md) bars: box fill shows quality direction (green/amber/red), contribution bar shows variation impact. Together they highlight categories that are both high-impact and poorly performing.
+Direction coloring works alongside the group statistics table: box fill shows quality direction (green/amber/red), while the StdDev column quantifies within-group spread. Together they highlight categories that are both high-impact and poorly performing.
 
 Manual annotation highlights (right-click) always override auto-colors. When specs are hidden or cleared, boxes revert to neutral gray.
 

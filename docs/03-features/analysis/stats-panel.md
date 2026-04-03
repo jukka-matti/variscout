@@ -75,9 +75,9 @@ Best for: Process improvement, ongoing monitoring, supplier qualification.
 │                                     │
 │  Process is off-center (shift up)   │
 │                                     │
-│  Variation by Factor:               │
-│  • Supplier: 34% of variation       │
-│  • Day: 12% of variation            │
+│  Factor Effect (η²):                │
+│  • Supplier: η² = 0.34              │
+│  • Day:      η² = 0.12              │
 └─────────────────────────────────────┘
 ```
 
@@ -182,5 +182,5 @@ Once specs are saved via the SpecEditor, the capability cards (Cp, Cpk, Pass Rat
 ## See Also
 
 - [Capability Analysis](capability.md) — Cp/Cpk calculations and interpretation
-- [Boxplot](boxplot.md) — Factor comparison with contribution %
-- [Variation Decomposition](variation-decomposition.md) — η² and Total SS metrics
+- [Boxplot](boxplot.md) — Factor comparison with η² and group StdDev
+- [Variation Decomposition](variation-decomposition.md) — η² and factor ranking
