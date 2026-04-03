@@ -193,10 +193,6 @@ export interface BreadcrumbItem {
   label: string;
   isActive: boolean;
   source: FilterSource;
-  /** Local scope % (Total SS fraction) at this filter level (0-100) */
-  localVariationPct?: number;
-  /** Cumulative scope % focused by all filters up to this point (0-100) */
-  cumulativeVariationPct?: number;
 }
 
 /**
@@ -235,39 +231,3 @@ export const initialNavigationState: NavigationState = {
   filterStack: [],
   currentHighlight: null,
 };
-
-/**
- * Variation scope thresholds for UI feedback
- *
- * HIGH_IMPACT (>50%): Green - "More than half your total variation is in focus"
- * MODERATE_IMPACT (30-50%): Amber - "Significant slice of variation in focus"
- * Below 30%: Blue - "Deep investigation — narrowed to a concentrated slice"
- */
-export const VARIATION_THRESHOLDS = {
-  /** Above this = high impact, green indicator, strong recommendation */
-  HIGH_IMPACT: 50,
-  /** Above this = moderate impact, amber indicator */
-  MODERATE_IMPACT: 30,
-} as const;
-
-/**
- * Get the impact level for a variation percentage
- */
-export function getVariationImpactLevel(variationPct: number): 'high' | 'moderate' | 'low' {
-  if (variationPct >= VARIATION_THRESHOLDS.HIGH_IMPACT) return 'high';
-  if (variationPct >= VARIATION_THRESHOLDS.MODERATE_IMPACT) return 'moderate';
-  return 'low';
-}
-
-/**
- * Get insight text for a cumulative scope percentage
- */
-export function getVariationInsight(cumulativePct: number): string {
-  if (cumulativePct >= VARIATION_THRESHOLDS.HIGH_IMPACT) {
-    return `This combination accounts for more than half your total variation — strong focus.`;
-  }
-  if (cumulativePct >= VARIATION_THRESHOLDS.MODERATE_IMPACT) {
-    return `Significant slice of variation in focus.`;
-  }
-  return `Deep investigation — narrowed to a concentrated slice of variation.`;
-}

@@ -243,17 +243,11 @@ export {
   pushFilterStack,
   shouldToggleFilter,
   filterStackToBreadcrumbs,
-  VARIATION_THRESHOLDS,
-  getVariationImpactLevel,
-  getVariationInsight,
 } from './navigation';
 
 // Variation tracking
 export type {
-  DrillVariationResult,
-  DrillLevelVariation,
   OptimalFactorResult,
-  CategoryTotalSSResult,
   CategoryStats,
   ProjectedStats,
   DirectAdjustmentParams,
@@ -263,13 +257,7 @@ export type {
 } from './variation';
 
 export {
-  calculateDrillVariation,
-  calculateFactorVariations,
-  calculateCategoryTotalSS,
-  getMaxCategoryContribution,
-  getCategoryStats,
   calculateProjectedStats,
-  shouldHighlightDrill,
   applyFilters,
   getNextDrillFactor,
   findOptimalFactors,

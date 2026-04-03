@@ -5,88 +5,9 @@
 import type { DataRow } from '../types';
 import { toNumericValue } from '../types';
 import { getEtaSquared } from '../stats';
-import { VARIATION_THRESHOLDS } from '../navigation';
-import { calculateCategoryTotalSS } from './contributions';
 import type { OptimalFactorResult } from './types';
 
 export type { OptimalFactorResult };
-
-/**
- * Get the maximum single-category Total SS contribution for a factor.
- * Used for drill suggestion ranking and drill-down investigation.
- *
- * This metric uses the same numbers visible in the category popover,
- * making the suggestion logic transparent: "Machine is suggested because
- * one category (C) accounts for 53% of total variation."
- *
- * @param data - Array of data rows
- * @param factor - Column name for the grouping variable
- * @param outcome - Column name for the numeric outcome variable
- * @returns Max contribution as fraction (0-1), or 0 if insufficient data
- */
-export function getMaxCategoryContribution(
-  data: DataRow[],
-  factor: string,
-  outcome: string
-): number {
-  const result = calculateCategoryTotalSS(data, factor, outcome);
-  if (!result) return 0;
-  let max = 0;
-  for (const pct of result.contributions.values()) {
-    if (pct > max) max = pct;
-  }
-  return max / 100; // Return as fraction (0-1)
-}
-
-/**
- * Calculate max category Total SS contribution for each factor on current filtered data
- *
- * For each factor, finds the single largest category's share of Total SS.
- * Used for drill suggestions — factors with >50% max category contribution
- * should be highlighted in charts as recommended drill targets.
- *
- * @param data - Current (possibly filtered) data
- * @param factors - Available factor columns to analyze
- * @param outcome - The outcome column name
- * @param excludeFactors - Factors to exclude (e.g., already filtered)
- * @returns Map of factor name to max category contribution percentage (0-100)
- */
-export function calculateFactorVariations(
-  data: DataRow[],
-  factors: string[],
-  outcome: string,
-  excludeFactors: string[] = []
-): Map<string, number> {
-  const variations = new Map<string, number>();
-
-  if (!outcome || data.length < 2) {
-    return variations;
-  }
-
-  const excludeSet = new Set(excludeFactors);
-
-  for (const factor of factors) {
-    // Skip excluded factors
-    if (excludeSet.has(factor)) continue;
-
-    const maxContrib = getMaxCategoryContribution(data, factor, outcome);
-    if (maxContrib > 0) {
-      variations.set(factor, maxContrib * 100);
-    }
-  }
-
-  return variations;
-}
-
-/**
- * Check if a factor should be highlighted as a drill target
- *
- * @param variationPct - The variation percentage for the factor
- * @returns true if variation is above HIGH_IMPACT threshold (50%)
- */
-export function shouldHighlightDrill(variationPct: number): boolean {
-  return variationPct >= VARIATION_THRESHOLDS.HIGH_IMPACT;
-}
 
 /**
  * Default minimum threshold for auto-switch (5%)

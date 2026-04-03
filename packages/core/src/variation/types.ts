@@ -3,50 +3,6 @@
  */
 
 /**
- * Result of drill variation calculation
- */
-export interface DrillVariationResult {
-  /**
-   * Array of variation data for each drill level
-   * Index 0 is root (100%), subsequent indices match filter order
-   */
-  levels: DrillLevelVariation[];
-
-  /**
-   * Final cumulative scope percentage (product of all level scope fractions)
-   * Represents what fraction of total variation is in the current focus
-   */
-  cumulativeVariationPct: number;
-
-  /**
-   * Impact level based on cumulative scope
-   */
-  impactLevel: 'high' | 'moderate' | 'low';
-
-  /**
-   * Insight text for the current cumulative scope
-   */
-  insightText: string;
-}
-
-/**
- * Variation data for a single drill level
- */
-export interface DrillLevelVariation {
-  /** Factor name (null for root level) */
-  factor: string | null;
-
-  /** Filter values at this level (null for root) */
-  values: (string | number)[] | null;
-
-  /** Local scope % at this level: selected categories' Total SS fraction (100 for root) */
-  localVariationPct: number;
-
-  /** Cumulative scope % up to and including this level */
-  cumulativeVariationPct: number;
-}
-
-/**
  * Result item for optimal factor selection
  */
 export interface OptimalFactorResult {
@@ -98,22 +54,6 @@ export interface CategoryStats {
   stdDev: number;
   /** Percentage of total variation contributed by this category (0-100) */
   contributionPct: number;
-}
-
-/**
- * Result of Total SS contribution calculation per category
- */
-export interface CategoryTotalSSResult {
-  /**
-   * Map from category value to percentage of total SS
-   * This captures both mean shift AND spread (within-group variation)
-   */
-  contributions: Map<string | number, number>;
-
-  /**
-   * Total SS for reference
-   */
-  ssTotal: number;
 }
 
 /**

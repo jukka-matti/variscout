@@ -13,7 +13,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import type { DataRow } from '../types';
 import { loadCsv } from './fixtures/loadCsv';
 import { calculateStats, calculateAnova, getEtaSquared } from '../stats';
-import { applyFilters, calculateDrillVariation, calculateCategoryTotalSS } from '../variation';
+import { applyFilters } from '../variation';
 
 // ============================================================================
 // Coffee dataset — washing-station.csv
@@ -172,55 +172,10 @@ describe('Golden Data: Coffee Washing Station', () => {
   });
 
   // --------------------------------------------------------------------------
-  // Scenario 6: Drill variation (cumulative Total SS scope)
+  // Scenario 6: Between-group variation (η²)
   // --------------------------------------------------------------------------
 
-  describe('drill variation', () => {
-    it('should calculate Total SS scope for Bed C drill', () => {
-      const result = calculateDrillVariation(data, { Drying_Bed: ['C'] }, 'Moisture_pct');
-
-      expect(result).not.toBeNull();
-      expect(result!.levels).toHaveLength(2); // root + 1 drill level
-
-      // Root level is 100%
-      expect(result!.levels[0].cumulativeVariationPct).toBe(100);
-
-      // Bed C's Total SS contribution (captures mean shift + spread)
-      // Bed C has the highest moisture → largest deviations from overall mean
-      expect(result!.levels[1].localVariationPct).toBeGreaterThan(30);
-      expect(result!.levels[1].localVariationPct).toBeLessThanOrEqual(100);
-      expect(result!.cumulativeVariationPct).toBeCloseTo(result!.levels[1].localVariationPct, 5);
-    });
-  });
-
-  // --------------------------------------------------------------------------
-  // Scenario 7: Category Total SS contributions
-  // --------------------------------------------------------------------------
-
-  describe('category contributions', () => {
-    it('should show Bed C dominating total SS', () => {
-      const result = calculateCategoryTotalSS(data, 'Drying_Bed', 'Moisture_pct');
-
-      expect(result).not.toBeNull();
-
-      const pctA = result!.contributions.get('A');
-      const pctB = result!.contributions.get('B');
-      const pctC = result!.contributions.get('C');
-
-      expect(pctA).toBeDefined();
-      expect(pctB).toBeDefined();
-      expect(pctC).toBeDefined();
-
-      // Bed C dominates with ~63.6% of total SS
-      expect(pctC!).toBeCloseTo(63.62, 0);
-      // Bed A ≈ 26.4%, Bed B ≈ 10.0%
-      expect(pctA!).toBeCloseTo(26.42, 0);
-      expect(pctB!).toBeCloseTo(9.96, 0);
-
-      // Sum should be 100%
-      expect(pctA! + pctB! + pctC!).toBeCloseTo(100, 1);
-    });
-
+  describe('between-group variation', () => {
     it('should show high between-group variation (η²)', () => {
       const etaSq = getEtaSquared(data, 'Drying_Bed', 'Moisture_pct');
       expect(etaSq).toBeCloseTo(0.8533, 2);
@@ -292,17 +247,6 @@ describe('Golden Data: Packaging Fill Weights', () => {
       expect(result).not.toBeNull();
       // Day and Evening are similar → low η²
       expect(result!.etaSquared).toBeLessThan(0.1);
-    });
-  });
-
-  describe('drill variation', () => {
-    it('should calculate Total SS scope for Shift drill', () => {
-      const result = calculateDrillVariation(data, { Shift: ['Night'] }, 'Fill_Weight_g');
-
-      expect(result).not.toBeNull();
-      // Night shift's Total SS contribution
-      expect(result!.cumulativeVariationPct).toBeGreaterThan(0);
-      expect(result!.cumulativeVariationPct).toBeLessThanOrEqual(100);
     });
   });
 });
