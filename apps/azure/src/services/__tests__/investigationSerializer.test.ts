@@ -46,7 +46,14 @@ function makeSuspectedCause(overrides: Partial<SuspectedCause> = {}): SuspectedC
     synthesis: 'Both nozzle and shift questions confirm the pattern.',
     questionIds: ['q-1', 'q-2'],
     findingIds: ['f-1'],
-    totalContribution: 0.62,
+    evidence: {
+      mode: 'standard',
+      contribution: {
+        value: 0.62,
+        label: 'R²adj',
+        description: 'Explains 62% of variation',
+      },
+    },
     status: 'suspected',
     createdAt: '2024-01-01T00:00:00.000Z',
     updatedAt: '2024-01-02T00:00:00.000Z',
@@ -262,12 +269,16 @@ describe('serializeSuspectedCauses', () => {
   });
 
   it('includes all key hub fields', () => {
+    const evidence = {
+      mode: 'standard' as const,
+      contribution: { value: 0.62, label: 'R²adj', description: 'Explains 62% of variation' },
+    };
     const hub = makeSuspectedCause({
       name: 'Nozzle wear on night shift',
       synthesis: 'Both factors confirm the pattern.',
       questionIds: ['q-1', 'q-2'],
       findingIds: ['f-1'],
-      totalContribution: 0.62,
+      evidence,
       status: 'confirmed',
     });
     const parsed = JSON.parse(serializeSuspectedCauses([hub]));
@@ -275,8 +286,20 @@ describe('serializeSuspectedCauses', () => {
     expect(parsed.synthesis).toBe('Both factors confirm the pattern.');
     expect(parsed.questionIds).toEqual(['q-1', 'q-2']);
     expect(parsed.findingIds).toEqual(['f-1']);
-    expect(parsed.totalContribution).toBeCloseTo(0.62);
+    expect(parsed.evidence).toEqual(evidence);
     expect(parsed.status).toBe('confirmed');
+  });
+
+  it('includes selectedForImprovement when set', () => {
+    const hub = makeSuspectedCause({ status: 'confirmed', selectedForImprovement: true });
+    const parsed = JSON.parse(serializeSuspectedCauses([hub]));
+    expect(parsed.selectedForImprovement).toBe(true);
+  });
+
+  it('omits selectedForImprovement when undefined', () => {
+    const hub = makeSuspectedCause({ status: 'confirmed', selectedForImprovement: undefined });
+    const parsed = JSON.parse(serializeSuspectedCauses([hub]));
+    expect(parsed.selectedForImprovement).toBeUndefined();
   });
 
   it('excludes not-confirmed hubs from Foundry IQ output', () => {
@@ -394,6 +417,80 @@ describe('deserializeInvestigationState', () => {
     expect(result.suspectedCauses).toEqual([]);
   });
 
+  it('migrates legacy totalContribution (number) to SuspectedCauseEvidence on load', () => {
+    const raw = {
+      findings: [],
+      questions: [],
+      suspectedCauses: [
+        {
+          id: 'sc-legacy',
+          name: 'Legacy hub',
+          synthesis: 'Old data',
+          questionIds: [],
+          findingIds: [],
+          totalContribution: 0.52,
+          status: 'suspected',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+    // Cast to bypass TypeScript type-checking — this simulates real stored legacy data
+    const result = deserializeInvestigationState(
+      raw as unknown as import('../investigationSerializer').SerializedInvestigationState
+    );
+    expect(result.suspectedCauses).toHaveLength(1);
+    const hub = result.suspectedCauses[0];
+    expect(hub.evidence).toEqual({
+      mode: 'standard',
+      contribution: {
+        value: 0.52,
+        label: 'R²adj',
+        description: 'Explains 52% of variation',
+      },
+    });
+  });
+
+  it('does not overwrite existing evidence when both totalContribution and evidence are present', () => {
+    const existingEvidence = {
+      mode: 'capability' as const,
+      contribution: { value: 0.75, label: 'Cpk delta', description: 'Explains 75% of variation' },
+    };
+    const raw = {
+      findings: [],
+      questions: [],
+      suspectedCauses: [
+        {
+          id: 'sc-both',
+          name: 'Hub with both fields',
+          synthesis: '',
+          questionIds: [],
+          findingIds: [],
+          totalContribution: 0.52,
+          evidence: existingEvidence,
+          status: 'suspected',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+    const result = deserializeInvestigationState(
+      raw as unknown as import('../investigationSerializer').SerializedInvestigationState
+    );
+    // evidence wins — totalContribution is ignored when evidence already present
+    expect(result.suspectedCauses[0].evidence).toEqual(existingEvidence);
+  });
+
+  it('preserves selectedForImprovement through deserialize', () => {
+    const raw = {
+      findings: [],
+      questions: [],
+      suspectedCauses: [{ ...makeSuspectedCause(), selectedForImprovement: true }],
+    };
+    const result = deserializeInvestigationState(raw);
+    expect(result.suspectedCauses[0].selectedForImprovement).toBe(true);
+  });
+
   it('round-trip: serialize → deserialize → serialize → output is identical', () => {
     const findings = [makeFinding()];
     const questions = [makeQuestion()];
@@ -408,6 +505,22 @@ describe('deserializeInvestigationState', () => {
     );
 
     expect(secondPass).toEqual(firstPass);
+  });
+
+  it('round-trip preserves evidence field correctly', () => {
+    const hub = makeSuspectedCause({
+      evidence: {
+        mode: 'capability',
+        contribution: {
+          value: 0.88,
+          label: 'Cpk delta',
+          description: 'Explains 88% of variation',
+        },
+      },
+    });
+    const firstPass = serializeInvestigationState([], [], [hub]);
+    const restored = deserializeInvestigationState(firstPass);
+    expect(restored.suspectedCauses[0].evidence).toEqual(hub.evidence);
   });
 });
 

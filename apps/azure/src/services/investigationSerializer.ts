@@ -1,4 +1,4 @@
-import type { Finding, Question, SuspectedCause } from '@variscout/core';
+import type { Finding, Question, SuspectedCause, SuspectedCauseEvidence } from '@variscout/core';
 import { migrateCauseRolesToHubs } from '@variscout/core';
 
 // ---------------------------------------------------------------------------
@@ -14,6 +14,16 @@ export interface SerializedInvestigationState {
   findings: Finding[];
   questions: Question[];
   suspectedCauses?: SuspectedCause[];
+}
+
+/**
+ * Shape of a suspected cause as it may appear in legacy stored data,
+ * before the `totalContribution` → `evidence` migration.
+ */
+interface LegacyStoredHub extends Omit<SuspectedCause, 'evidence'> {
+  // Old numeric field, present before SuspectedCauseEvidence was introduced
+  totalContribution?: number;
+  evidence?: SuspectedCauseEvidence;
 }
 
 /**
@@ -35,10 +45,12 @@ export function serializeInvestigationState(
 /**
  * Deserialize investigation state from a stored object.
  *
- * Migration: if the stored object has no `suspectedCauses` field but contains
- * questions with `causeRole === 'suspected-cause'`, those questions are
- * automatically migrated into individual SuspectedCause hubs. This ensures
- * existing saved projects gain hub entities the first time they are loaded.
+ * Migrations applied on load:
+ * 1. If `suspectedCauses` is absent but questions have `causeRole === 'suspected-cause'`,
+ *    those questions are migrated into individual SuspectedCause hubs.
+ * 2. If a hub has `totalContribution` (legacy numeric field) but no `evidence`,
+ *    a basic `SuspectedCauseEvidence` is synthesised from it.
+ * 3. `selectedForImprovement` defaults to `undefined` when absent.
  */
 export function deserializeInvestigationState(raw: SerializedInvestigationState): {
   findings: Finding[];
@@ -49,8 +61,31 @@ export function deserializeInvestigationState(raw: SerializedInvestigationState)
   const questions = raw.questions ?? [];
 
   if (raw.suspectedCauses !== undefined) {
-    // Data already has hubs — use them directly
-    return { findings, questions, suspectedCauses: raw.suspectedCauses };
+    // Data already has hubs — apply field-level migration then return
+    const migratedHubs = (raw.suspectedCauses as LegacyStoredHub[]).map(
+      (stored): SuspectedCause => {
+        const hub: SuspectedCause = {
+          ...stored,
+          evidence: stored.evidence,
+          selectedForImprovement: stored.selectedForImprovement,
+        };
+
+        // Migrate legacy totalContribution (number) → SuspectedCauseEvidence
+        if (stored.totalContribution != null && !stored.evidence) {
+          hub.evidence = {
+            mode: 'standard',
+            contribution: {
+              value: stored.totalContribution,
+              label: 'R²adj',
+              description: `Explains ${Math.round(stored.totalContribution * 100)}% of variation`,
+            },
+          };
+        }
+
+        return hub;
+      }
+    );
+    return { findings, questions, suspectedCauses: migratedHubs };
   }
 
   // No hubs in stored data — attempt migration from legacy causeRole questions
@@ -135,7 +170,8 @@ export function serializeSuspectedCauses(hubs: SuspectedCause[]): string {
         status: h.status,
         questionIds: h.questionIds,
         findingIds: h.findingIds,
-        totalContribution: h.totalContribution,
+        evidence: h.evidence,
+        selectedForImprovement: h.selectedForImprovement,
         createdAt: h.createdAt,
       })
     )
