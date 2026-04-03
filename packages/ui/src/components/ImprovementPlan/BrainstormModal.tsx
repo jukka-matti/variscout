@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Sparkles } from 'lucide-react';
 import type { IdeaDirection } from '@variscout/core';
 import type { BrainstormIdea } from '@variscout/core/findings';
+import { useTranslation } from '@variscout/hooks';
 import { BrainstormQuadrant } from './BrainstormQuadrant';
 import { VoteButton } from './VoteButton';
 
@@ -14,7 +15,6 @@ export interface BrainstormModalProps {
   onAddIdea: (direction: IdeaDirection, text: string) => void;
   onEditIdea: (ideaId: string, text: string) => void;
   onRemoveIdea: (ideaId: string) => void;
-  onSelectIdea?: (ideaId: string) => void;
   onClose: () => void;
   onDone: (selectedIds: string[]) => void;
   onSparkMore?: () => void;
@@ -55,6 +55,7 @@ export const BrainstormModal: React.FC<BrainstormModalProps> = ({
   session,
   voting,
 }) => {
+  const { t } = useTranslation();
   const [step, setStep] = useState<'brainstorm' | 'select'>('brainstorm');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -89,7 +90,10 @@ export const BrainstormModal: React.FC<BrainstormModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div
+      data-testid="brainstorm-modal"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    >
       <div className="bg-surface flex flex-col w-full max-w-3xl max-h-[90vh] rounded-lg shadow-xl border border-edge overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-edge flex-shrink-0">
@@ -103,7 +107,7 @@ export const BrainstormModal: React.FC<BrainstormModalProps> = ({
               )}
             </div>
             <p className="text-xs text-content/50 mt-0.5">
-              {step === 'brainstorm' ? 'Brainstorm ideas' : 'Select ideas to add to plan'}
+              {step === 'brainstorm' ? t('brainstorm.subtitle') : t('brainstorm.selectSubtitle')}
             </p>
           </div>
           {session && session.onInvite && (
@@ -111,7 +115,7 @@ export const BrainstormModal: React.FC<BrainstormModalProps> = ({
               onClick={session.onInvite}
               className="text-xs px-3 py-1.5 rounded bg-surface-secondary border border-edge text-content/70 hover:text-content transition-colors flex-shrink-0"
             >
-              Invite ({session.participantCount})
+              {t('brainstorm.inviteTeam')} ({session.participantCount})
             </button>
           )}
           <button
@@ -228,18 +232,20 @@ export const BrainstormModal: React.FC<BrainstormModalProps> = ({
               </span>
               {onSparkMore && (
                 <button
+                  data-testid="brainstorm-spark-btn"
                   onClick={onSparkMore}
                   className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-edge bg-surface-secondary text-content/70 hover:text-content transition-colors"
                 >
                   <Sparkles size={12} />
-                  Spark more
+                  {t('brainstorm.sparkMore')}
                 </button>
               )}
               <button
+                data-testid="brainstorm-done-btn"
                 onClick={() => setStep('select')}
                 className="text-xs px-4 py-1.5 rounded-lg bg-surface-secondary border border-edge text-content/70 hover:text-content transition-colors"
               >
-                Done brainstorming →
+                {t('brainstorm.doneBrainstorming')}
               </button>
             </>
           ) : (
@@ -248,10 +254,11 @@ export const BrainstormModal: React.FC<BrainstormModalProps> = ({
                 onClick={() => setStep('brainstorm')}
                 className="text-xs px-3 py-1.5 rounded-lg border border-edge bg-surface-secondary text-content/70 hover:text-content transition-colors"
               >
-                ← Back
+                {t('brainstorm.back')}
               </button>
               <span className="text-xs text-content/40 flex-1">{selectedIds.size} selected</span>
               <button
+                data-testid="brainstorm-add-btn"
                 onClick={handleDone}
                 disabled={selectedIds.size === 0}
                 className="text-xs px-4 py-1.5 rounded-lg bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"

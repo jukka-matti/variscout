@@ -551,6 +551,14 @@ app.post('/api/brainstorm/idea', express.json(), (req, res) => {
   const session = brainstormSessions.get(sessionId);
   if (!session) return res.status(404).json({ error: 'Session not found' });
 
+  if (!text || !direction) {
+    return res.status(400).json({ error: 'text and direction required' });
+  }
+  const validDirections = ['prevent', 'detect', 'simplify', 'eliminate'];
+  if (!validDirections.includes(direction)) {
+    return res.status(400).json({ error: 'Invalid direction' });
+  }
+
   const existing = session.ideas.find(i => i.id === id);
   if (existing) {
     existing.text = text;
@@ -566,9 +574,10 @@ app.post('/api/brainstorm/idea', express.json(), (req, res) => {
   }
 
   // Broadcast to all SSE clients
+  const broadcastIdea = existing || session.ideas[session.ideas.length - 1];
   const clients = brainstormClients.get(sessionId);
   if (clients) {
-    const event = JSON.stringify({ type: 'idea', idea: session.ideas.at(-1) || existing });
+    const event = JSON.stringify({ type: 'idea', idea: broadcastIdea });
     for (const client of clients) {
       client.write(`data: ${event}\n\n`);
     }
@@ -578,6 +587,10 @@ app.post('/api/brainstorm/idea', express.json(), (req, res) => {
 
 // SSE stream for live updates
 app.get('/api/brainstorm/stream', (req, res) => {
+  const principal = req.headers['x-ms-client-principal'];
+  if (!principal && !LOCAL_DEV) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
   const sessionId = req.query.sessionId;
   const session = brainstormSessions.get(sessionId);
   if (!session) return res.status(404).json({ error: 'Session not found' });
@@ -595,7 +608,6 @@ app.get('/api/brainstorm/stream', (req, res) => {
   if (clients) clients.add(res);
 
   // Add participant
-  const principal = req.headers['x-ms-client-principal'];
   if (principal) {
     try {
       const userId = JSON.parse(Buffer.from(principal, 'base64').toString()).userId;
@@ -612,6 +624,10 @@ app.get('/api/brainstorm/stream', (req, res) => {
 
 // Check for active session on a project
 app.get('/api/brainstorm/active', (req, res) => {
+  const principal = req.headers['x-ms-client-principal'];
+  if (!principal && !LOCAL_DEV) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
   const projectId = req.query.projectId;
   const now = Date.now();
   for (const [, session] of brainstormSessions) {

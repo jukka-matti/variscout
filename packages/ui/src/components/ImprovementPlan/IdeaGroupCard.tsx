@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Lightbulb } from 'lucide-react';
 import type {
   ImprovementIdea,
   IdeaTimeframe,
@@ -344,7 +344,8 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
               onClick={() => onOpenBrainstorm(question.id)}
               className="ml-auto text-xs px-2 py-1 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors flex-shrink-0"
             >
-              💡 Brainstorm
+              <Lightbulb size={12} className="inline mr-1" />
+              Brainstorm
             </button>
           )}
         </div>
