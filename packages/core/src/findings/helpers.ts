@@ -7,7 +7,10 @@ import type {
   FindingContext,
   FindingSource,
   InvestigationCategory,
+  Question,
+  SuspectedCause,
 } from './types';
+import { createSuspectedCause } from './factories';
 
 /**
  * Get finding status
@@ -134,4 +137,54 @@ export function isFindingScoped(finding: Finding): boolean {
  */
 export function getScopedFindings(findings: Finding[]): Finding[] {
   return findings.filter(f => f.role !== 'benchmark' && isFindingScoped(f));
+}
+
+// ============================================================================
+// SuspectedCause hub helpers
+// ============================================================================
+
+/**
+ * Compute the aggregate evidence contribution for a SuspectedCause hub.
+ *
+ * Sums η² (etaSquared) from each connected question. Falls back to rSquaredAdj
+ * when etaSquared is absent. Questions not present in the provided list are
+ * silently skipped (e.g. questions from a different investigation scope).
+ *
+ * @param hub - The SuspectedCause hub to compute contribution for
+ * @param questions - All questions in scope (e.g. from the investigation store)
+ * @returns Aggregate contribution as a decimal (e.g. 0.56 = 56%)
+ */
+export function computeHubContribution(hub: SuspectedCause, questions: Question[]): number {
+  const hubQuestionIds = new Set(hub.questionIds);
+  let total = 0;
+  for (const q of questions) {
+    if (!hubQuestionIds.has(q.id)) continue;
+    const contribution = q.evidence?.etaSquared ?? q.evidence?.rSquaredAdj ?? 0;
+    total += contribution;
+  }
+  return total;
+}
+
+/**
+ * Migrate legacy `causeRole: 'suspected-cause'` tags on questions into individual
+ * SuspectedCause hub instances.
+ *
+ * One hub is created per question that has `causeRole === 'suspected-cause'` and
+ * a non-empty `factor` name. Questions with `ruled-out` or `contributing` roles,
+ * or questions without a factor, are skipped.
+ *
+ * This is a one-time migration helper — new investigations should use the
+ * SuspectedCause hub model directly.
+ *
+ * @param questions - All questions in the investigation tree
+ * @returns New SuspectedCause hubs (one per migrated question)
+ */
+export function migrateCauseRolesToHubs(questions: Question[]): SuspectedCause[] {
+  const hubs: SuspectedCause[] = [];
+  for (const q of questions) {
+    if (q.causeRole !== 'suspected-cause') continue;
+    if (!q.factor) continue;
+    hubs.push(createSuspectedCause(q.factor, '', [q.id], q.linkedFindingIds ?? []));
+  }
+  return hubs;
 }

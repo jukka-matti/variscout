@@ -16,6 +16,7 @@ import {
   type ImprovementIdea,
   type PhotoAttachment,
   type InvestigationCategory,
+  type SuspectedCause,
 } from './types';
 
 /** Generate a unique ID */
@@ -238,6 +239,38 @@ export function createFactorFinding(input: FactorFindingInput): FactorFindingBun
   question.ideas = [idea];
 
   return { finding, question, idea };
+}
+
+/**
+ * Create a new SuspectedCause hub with a unique ID.
+ *
+ * A hub groups one or more questions (and their findings) under a named suspected
+ * cause, enabling the analyst to synthesize multiple evidence streams into a
+ * coherent explanation. The aggregate evidence contribution is computed separately
+ * via `computeHubContribution` in helpers.
+ *
+ * @param name - Analyst-chosen label, e.g. "Nozzle wear on night shift"
+ * @param synthesis - Free-text explanation connecting the evidence
+ * @param questionIds - IDs of questions linked to this hub
+ * @param findingIds - IDs of findings linked to this hub
+ */
+export function createSuspectedCause(
+  name: string,
+  synthesis: string,
+  questionIds: string[] = [],
+  findingIds: string[] = []
+): SuspectedCause {
+  const now = new Date().toISOString();
+  return {
+    id: generateId(),
+    name,
+    synthesis,
+    questionIds,
+    findingIds,
+    status: 'suspected',
+    createdAt: now,
+    updatedAt: now,
+  };
 }
 
 /**
