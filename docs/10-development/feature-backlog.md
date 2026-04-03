@@ -71,6 +71,27 @@ Detailed analysis: [discussions/2026-03-29-probability-plot-analysis.md](discuss
 
 ---
 
+## Tech Debt: Mode-Dispatch Pattern Consolidation
+
+`analysisStrategy.ts` uses a declarative function-map pattern (`Record<ResolvedMode, Strategy>`) for mode-specific behavior. Several other files use if/else or switch chains instead. Consolidating these to the function-map pattern improves maintainability — adding a new analysis mode requires touching fewer files.
+
+**Already consolidated (Apr 2026):**
+
+- [x] `computeHubEvidence` in `packages/core/src/findings/helpers.ts` — mode-dispatched evidence computers
+- [x] `generateForMode` in `packages/hooks/src/useQuestionGeneration.ts` — extracted dispatch function
+
+**Remaining consolidation targets:**
+
+- [ ] `useYamazumiParetoData.ts` — 5-case switch for Pareto aggregation modes (steps-total, steps-waste, steps-nva, activities, reasons). Extract to `aggregators: Record<YamazumiParetoMode, AggregatorFn>`.
+- [ ] `ImprovementSummaryBar.tsx` — 4 sequential if blocks (~160 lines) for improvement phase rendering (plan, plan-mixed, track, track-verified). Extract to mode-specific components or renderer map.
+- [ ] `ManualEntrySetupBase.tsx` + `ManualEntryBase.tsx` — Scattered if/else checks for standard vs performance mode. Extract validation and column generation to mode-specific config objects.
+- [ ] `bestSubsets.ts` — Evidence metric switch for 4 modes. Create declarative mode-to-metric mapping.
+- [ ] `Dashboard.tsx` — Tab routing based on analysis mode. Derive from `getStrategy()` instead of hardcoded conditionals.
+
+**Pattern reference:** See `packages/core/src/analysisStrategy.ts` for the canonical implementation.
+
+---
+
 ## Already Implemented (2026-03-29)
 
 - [x] **Wide-form data support (Stack Columns)** — ADR-050. Paste 80+ column datasets, stack into long-form for analysis. Integrated into ColumnMapping with smart detection.
