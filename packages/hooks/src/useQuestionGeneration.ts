@@ -108,14 +108,7 @@ export function useQuestionGeneration({
     }
 
     // Route question generation based on analysis mode
-    let generated: GeneratedQuestion[];
-    if (mode === 'performance' && channelData?.length) {
-      generated = generateChannelRankingQuestions(channelData);
-    } else if (mode === 'yamazumi' && yamazumiData?.length) {
-      generated = generateYamazumiQuestions(yamazumiData, taktTime);
-    } else {
-      generated = generateQuestionsFromRanking(bestSubsets, { mode });
-    }
+    const generated = generateForMode(mode, bestSubsets, channelData, yamazumiData, taktTime);
     if (generated.length > 0) {
       generateInitialQuestions(generated);
     }
@@ -219,6 +212,33 @@ export function useQuestionGeneration({
     handleQuestionClick,
     factorRequest,
   };
+}
+
+/**
+ * Select and invoke the appropriate question generator for the given analysis mode.
+ *
+ * Mode-specific generators are gated on data availability — if the required data
+ * is absent (e.g., channelData not yet loaded for 'performance' mode), the function
+ * falls back to the statistical Best Subsets ranking generator. This mirrors the
+ * declarative dispatch pattern in analysisStrategy.ts (ADR-047).
+ */
+function generateForMode(
+  mode: ResolvedMode | undefined,
+  bestSubsets: BestSubsetsResult | null,
+  channelData: ChannelInput[] | undefined,
+  yamazumiData: YamazumiBarData[] | undefined,
+  taktTime: number | undefined
+): GeneratedQuestion[] {
+  if (mode === 'performance' && channelData?.length) {
+    return generateChannelRankingQuestions(channelData);
+  }
+  if (mode === 'yamazumi' && yamazumiData?.length) {
+    return generateYamazumiQuestions(yamazumiData, taktTime);
+  }
+  // Default: Best Subsets ranking (standard, capability, or fallback when mode data unavailable).
+  // bestSubsets is guaranteed non-null by the useEffect guard in the calling hook.
+  if (!bestSubsets) return [];
+  return generateQuestionsFromRanking(bestSubsets, { mode });
 }
 
 /**
