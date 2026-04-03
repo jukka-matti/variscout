@@ -9,8 +9,10 @@ import type {
   InvestigationCategory,
   Question,
   SuspectedCause,
+  SuspectedCauseEvidence,
 } from './types';
 import { createSuspectedCause } from './factories';
+import type { BestSubsetsResult } from '../stats/bestSubsets';
 
 /**
  * Get finding status
@@ -153,6 +155,9 @@ export function getScopedFindings(findings: Finding[]): Finding[] {
  * @param hub - The SuspectedCause hub to compute contribution for
  * @param questions - All questions in scope (e.g. from the investigation store)
  * @returns Aggregate contribution as a decimal (e.g. 0.56 = 56%)
+ *
+ * @deprecated Use `computeHubEvidence` instead, which uses Best Subsets R²adj
+ * for correlated factors and always returns a value ≤ 1.0.
  */
 export function computeHubContribution(hub: SuspectedCause, questions: Question[]): number {
   const hubQuestionIds = new Set(hub.questionIds);
@@ -163,6 +168,76 @@ export function computeHubContribution(hub: SuspectedCause, questions: Question[
     total += contribution;
   }
   return total;
+}
+
+/**
+ * Compute mode-aware evidence for a SuspectedCause hub.
+ *
+ * Uses Best Subsets R²adj for the hub's factor set when available — this is
+ * correct for correlated factors and always produces a value ≤ 1.0. Falls
+ * back to a capped sum of individual η² values when Best Subsets data is not
+ * available.
+ *
+ * @param hub - The SuspectedCause hub to compute evidence for
+ * @param questions - All questions in scope (e.g. from the investigation store)
+ * @param bestSubsetsResult - Best Subsets analysis result, or null for fallback
+ * @param evidenceMetric - The metric key being used (for labelling purposes)
+ * @param evidenceLabel - Human-readable label for the metric (e.g. 'R²adj')
+ * @param mode - Analysis mode (default: 'standard')
+ * @returns Structured SuspectedCauseEvidence object
+ */
+export function computeHubEvidence(
+  hub: SuspectedCause,
+  questions: Question[],
+  bestSubsetsResult: BestSubsetsResult | null,
+  evidenceMetric: string,
+  evidenceLabel: string,
+  mode: SuspectedCauseEvidence['mode'] = 'standard'
+): SuspectedCauseEvidence {
+  // Collect factors linked to hub questions (questions without a factor are skipped)
+  const hubFactors = hub.questionIds
+    .map(id => questions.find(q => q.id === id)?.factor)
+    .filter((f): f is string => f != null);
+
+  let value = 0;
+
+  if (bestSubsetsResult && hubFactors.length > 0) {
+    const sorted = [...hubFactors].sort();
+
+    // Try exact factor-set match first
+    const exact = bestSubsetsResult.subsets.find(s => {
+      const sf = [...s.factors].sort();
+      return sf.length === sorted.length && sf.every((f, i) => f === sorted[i]);
+    });
+
+    if (exact) {
+      value = exact.rSquaredAdj;
+    } else {
+      // Fall back to the largest subset whose factors are all in the hub
+      const partialMatches = bestSubsetsResult.subsets
+        .filter(s => s.factors.every(f => hubFactors.includes(f)))
+        .sort((a, b) => b.rSquaredAdj - a.rSquaredAdj);
+      if (partialMatches.length > 0) value = partialMatches[0].rSquaredAdj;
+    }
+  } else {
+    // Fallback: sum individual evidence values, capped at 1.0
+    const hubQIds = new Set(hub.questionIds);
+    for (const q of questions) {
+      if (!hubQIds.has(q.id)) continue;
+      value += q.evidence?.etaSquared ?? q.evidence?.rSquaredAdj ?? 0;
+    }
+    value = Math.min(value, 1.0);
+  }
+
+  const pct = Math.round(value * 100);
+  return {
+    mode,
+    contribution: {
+      value,
+      label: evidenceLabel,
+      description: `Explains ${pct}% of variation`,
+    },
+  };
 }
 
 /**

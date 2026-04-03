@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { createSuspectedCause } from '../factories';
-import { computeHubContribution, migrateCauseRolesToHubs } from '../helpers';
+import { computeHubContribution, computeHubEvidence, migrateCauseRolesToHubs } from '../helpers';
 import type { Question, SuspectedCause } from '../types';
+import type { BestSubsetsResult } from '../../stats/bestSubsets';
 
 describe('createSuspectedCause', () => {
   it('should create a hub with name, synthesis, and connected IDs', () => {
@@ -158,5 +159,122 @@ describe('migrateCauseRolesToHubs', () => {
       },
     ];
     expect(migrateCauseRolesToHubs(questions)).toEqual([]);
+  });
+});
+
+describe('computeHubEvidence', () => {
+  const makeQuestion = (id: string, factor: string, eta?: number, rSq?: number): Question => ({
+    id,
+    text: '',
+    status: 'answered',
+    factor,
+    linkedFindingIds: [],
+    createdAt: '',
+    updatedAt: '',
+    evidence: { etaSquared: eta, rSquaredAdj: rSq },
+  });
+
+  const makeHub = (questionIds: string[]): SuspectedCause => ({
+    id: 'h1',
+    name: 'Test',
+    synthesis: '',
+    questionIds,
+    findingIds: [],
+    status: 'suspected',
+    createdAt: '',
+    updatedAt: '',
+  });
+
+  const bestSubsets: BestSubsetsResult = {
+    subsets: [
+      {
+        factors: ['Shift'],
+        factorCount: 1,
+        rSquared: 0.35,
+        rSquaredAdj: 0.34,
+        fStatistic: 10,
+        pValue: 0.001,
+        isSignificant: true,
+        dfModel: 1,
+      },
+      {
+        factors: ['Head'],
+        factorCount: 1,
+        rSquared: 0.29,
+        rSquaredAdj: 0.28,
+        fStatistic: 8,
+        pValue: 0.004,
+        isSignificant: true,
+        dfModel: 1,
+      },
+      {
+        factors: ['Head', 'Shift'],
+        factorCount: 2,
+        rSquared: 0.53,
+        rSquaredAdj: 0.52,
+        fStatistic: 18,
+        pValue: 0.0001,
+        isSignificant: true,
+        dfModel: 3,
+      },
+    ],
+    n: 300,
+    totalFactors: 2,
+    factorNames: ['Shift', 'Head'],
+    grandMean: 50,
+    ssTotal: 1000,
+  };
+
+  it('should use Best Subsets R²adj for combined factors', () => {
+    const questions = [makeQuestion('q1', 'Shift', 0.34), makeQuestion('q2', 'Head', 0.28)];
+    const hub = makeHub(['q1', 'q2']);
+    const evidence = computeHubEvidence(hub, questions, bestSubsets, 'rSquaredAdj', 'R²adj');
+    // Should use the combined subset (52%), not naive sum (62%)
+    expect(evidence.contribution.value).toBeCloseTo(0.52);
+    expect(evidence.contribution.label).toBe('R²adj');
+    expect(evidence.contribution.description).toContain('52%');
+    expect(evidence.mode).toBe('standard');
+  });
+
+  it('should fall back to capped sum when no Best Subsets result', () => {
+    const questions = [makeQuestion('q1', 'Shift', 0.34), makeQuestion('q2', 'Head', 0.28)];
+    const hub = makeHub(['q1', 'q2']);
+    const evidence = computeHubEvidence(hub, questions, null, 'rSquaredAdj', 'R²adj');
+    // Naive sum = 0.62, capped at 1.0
+    expect(evidence.contribution.value).toBeCloseTo(0.62);
+  });
+
+  it('should use partial match when exact combination not found', () => {
+    const questions = [
+      makeQuestion('q1', 'Shift', 0.34),
+      makeQuestion('q2', 'Head', 0.28),
+      makeQuestion('q3', 'Batch'),
+    ];
+    const hub = makeHub(['q1', 'q2', 'q3']);
+    // No 3-factor subset exists — should use best matching 2-factor subset
+    const evidence = computeHubEvidence(hub, questions, bestSubsets, 'rSquaredAdj', 'R²adj');
+    expect(evidence.contribution.value).toBeCloseTo(0.52);
+  });
+
+  it('should handle hub with no factor-linked questions', () => {
+    const questions: Question[] = [
+      {
+        id: 'q1',
+        text: 'gemba check',
+        status: 'answered',
+        linkedFindingIds: [],
+        createdAt: '',
+        updatedAt: '',
+      },
+    ];
+    const hub = makeHub(['q1']);
+    const evidence = computeHubEvidence(hub, questions, bestSubsets, 'rSquaredAdj', 'R²adj');
+    expect(evidence.contribution.value).toBe(0);
+  });
+
+  it('should accept mode parameter', () => {
+    const hub = makeHub([]);
+    const evidence = computeHubEvidence(hub, [], null, 'wasteContribution', 'Waste %', 'yamazumi');
+    expect(evidence.mode).toBe('yamazumi');
   });
 });
