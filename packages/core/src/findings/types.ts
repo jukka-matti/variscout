@@ -514,6 +514,89 @@ export interface InvestigationCategory {
 }
 
 // ============================================================================
+// Unified Projection Model
+// ============================================================================
+
+/** Source of a projection scenario — what mechanism is being addressed */
+export type ProjectionSource =
+  | { type: 'drill'; factors: string[]; levels: string[] }
+  | { type: 'suspected-cause'; causeId: string; factors: string[] }
+  | { type: 'centering' }
+  | { type: 'idea'; ideaId: string }
+  | { type: 'measured'; stageIndex: number };
+
+/** Method for computing the projection adjustment */
+export type ProjectionMethod =
+  | { type: 'match-best' }
+  | { type: 'target'; target: number }
+  | { type: 'eliminate-waste' }
+  | { type: 'direct'; meanShift: number; variationReduction: number }
+  | { type: 'actual' };
+
+/** Statistical domain projection result */
+export interface StatisticalProjectionResult {
+  currentMean: number;
+  currentSigma: number;
+  currentCpk?: number;
+  currentYield?: number;
+  projectedMean: number;
+  projectedSigma: number;
+  projectedCpk?: number;
+  projectedYield?: number;
+}
+
+/** Lean domain projection result (yamazumi) */
+export interface LeanProjectionResult {
+  currentCycleTime: number;
+  currentWaste: number;
+  currentVARatio: number;
+  taktTime?: number;
+  projectedCycleTime: number;
+  projectedWaste: number;
+  projectedVARatio: number;
+  meetsTakt: boolean;
+}
+
+/** Unified projection result — domain-specific */
+export interface ProjectionResult {
+  domain: 'statistical' | 'lean';
+  statistical?: StatisticalProjectionResult;
+  lean?: LeanProjectionResult;
+  overallImpact?: {
+    projectedMean?: number;
+    projectedSigma?: number;
+    projectedCpk?: number;
+    projectedVARatio?: number;
+  };
+}
+
+/** Unified projection scenario */
+export interface ProjectionScenario {
+  source: ProjectionSource;
+  method: ProjectionMethod;
+  result: ProjectionResult;
+}
+
+// ============================================================================
+// Suspected Cause Evidence
+// ============================================================================
+
+/** Mode-aware evidence on a suspected cause */
+export interface SuspectedCauseEvidence {
+  /** Mode active when evidence was computed */
+  mode: 'standard' | 'capability' | 'performance' | 'yamazumi';
+  /** How much of the problem this mechanism explains */
+  contribution: {
+    /** Numeric value: R²adj (0-1), waste % (0-1), Cpk delta, channel Cpk */
+    value: number;
+    /** From strategy: 'R²adj', 'Waste %', 'Cpk impact', 'Channel Cpk' */
+    label: string;
+    /** Human-readable: "Explains 52% of variation" */
+    description: string;
+  };
+}
+
+// ============================================================================
 // Suspected Cause Hub (Investigation Reframing)
 // ============================================================================
 
@@ -536,8 +619,10 @@ export interface SuspectedCause {
   questionIds: string[];
   /** Connected finding IDs */
   findingIds: string[];
-  /** Auto-computed: aggregate evidence from connected questions */
-  totalContribution?: number;
+  /** Mode-aware evidence — contribution stored, projection computed live */
+  evidence?: SuspectedCauseEvidence;
+  /** Whether this cause is selected for the current improvement round */
+  selectedForImprovement?: boolean;
   /** Status: suspected → confirmed (outcome-based) */
   status: 'suspected' | 'confirmed' | 'not-confirmed';
   /** Created timestamp */
