@@ -57,7 +57,7 @@ A single 44px `AppHeader` replaces the App header (56px) + EditorToolbar (48px) 
 
 ### 3. Investigation workspace layout
 
-Promotes question-driven EDA (ADR-053) from sidebar to full workspace:
+Promotes question-driven EDA (ADR-053) from sidebar to full workspace. The Investigation workspace is the **exclusive surface for SuspectedCause hub creation** — naming hubs, writing synthesis text, connecting questions to hubs, and reviewing hub evidence. The PI panel (available in Analysis workspace) shows hub summaries in read-only mode for quick reference without switching workspaces.
 
 ```
 +-----------------------+------------------------+--------------+

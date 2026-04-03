@@ -69,11 +69,11 @@ The analyst has pinned findings and is building the case. The report captures th
 
 **Sections:**
 
-| #   | Section           | Technical Mode                                                                                                                                             | Summary Mode                                       |
-| --- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| 1   | Current Condition | KPI grid + I-Chart                                                                                                                                         | KPI grid only                                      |
-| 2   | Variation Drivers | Boxplot + Pareto                                                                                                                                           | Key driver + contribution %                        |
-| 3   | Evidence Trail    | Hypothesis tree summary (status per hypothesis, cause role badges, investigation phase indicator) + synthesis card + finding snapshots with filter context | Synthesis narrative + primary suspected cause only |
+| #   | Section           | Technical Mode                                                                                                                                                                                                      | Summary Mode                                                   |
+| --- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| 1   | Current Condition | KPI grid + I-Chart                                                                                                                                                                                                  | KPI grid only                                                  |
+| 2   | Variation Drivers | Boxplot + Pareto                                                                                                                                                                                                    | Key driver + contribution %                                    |
+| 3   | Evidence Trail    | **Problem Statement** (living document, current draft) + **SuspectedCause hub summaries** (name, synthesis, evidence %, status) + ruled-out questions as negative learnings + finding snapshots with filter context | Synthesis narrative + primary suspected cause hub summary only |
 
 **Workspace color:** Sections 1-2 have green left border (Analysis workspace), Section 3 has amber left border (Findings workspace).
 
@@ -89,14 +89,14 @@ The full PDCA cycle is documented. The report tells the complete story across al
 
 **Sections:**
 
-| #   | Section               | Technical Mode                                                                                           | Summary Mode                                 |
-| --- | --------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| 1   | Current Condition     | KPI grid + I-Chart                                                                                       | KPI grid only                                |
-| 2   | Where Variation Hides | Boxplot + Pareto + η²                                                                                    | Key driver + contribution %                  |
-| 3   | What We Found         | Hypothesis tree + synthesis card + finding snapshots                                                     | Synthesis + primary cause                    |
-| 4   | What We Planned       | Improvement ideas grouped by hypothesis + direction badges + timeframe/cost/risk summary + projected Cpk | Timeframe breakdown bar + best projected Cpk |
-| 5   | What We Did           | Actions with completion status + idea traceability + assignees + due dates                               | Action count + completion %                  |
-| 6   | Did It Work?          | Outcomes + staged comparison charts + Cpk learning loop (before → projected → actual)                    | Cpk delta (before → after) with verdict      |
+| #   | Section               | Technical Mode                                                                                                                                                                                       | Summary Mode                                         |
+| --- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| 1   | Current Condition     | KPI grid + I-Chart                                                                                                                                                                                   | KPI grid only                                        |
+| 2   | Where Variation Hides | Boxplot + Pareto + η²                                                                                                                                                                                | Key driver + contribution %                          |
+| 3   | What We Found         | **Problem Statement** (Watson's 3 questions output) + **SuspectedCause hub summaries** (one row per hub: name, synthesis, evidence %, connected questions) + ruled-out learnings + finding snapshots | Problem Statement verdict + primary hub summary only |
+| 4   | What We Planned       | Improvement ideas grouped by hypothesis + direction badges + timeframe/cost/risk summary + projected Cpk                                                                                             | Timeframe breakdown bar + best projected Cpk         |
+| 5   | What We Did           | Actions with completion status + idea traceability + assignees + due dates                                                                                                                           | Action count + completion %                          |
+| 6   | Did It Work?          | Outcomes + staged comparison charts + Cpk learning loop (before → projected → actual)                                                                                                                | Cpk delta (before → after) with verdict              |
 
 **Workspace colors:** Sections 1-2 green (Analysis), Section 3 amber (Findings), Sections 4-6 purple (Improvement).
 

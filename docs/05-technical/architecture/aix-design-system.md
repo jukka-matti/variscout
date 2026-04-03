@@ -192,12 +192,21 @@ Azure AI Search + Foundry IQ integration for organizational learning:
 
 Five investigation phases with distinct AI behavior:
 
-| Phase      | AI Role        | Prompt Instructions                                   |
-| ---------- | -------------- | ----------------------------------------------------- |
-| Initial    | Orientation    | Help identify which chart to examine first            |
-| Diverging  | Exploration    | Encourage testing hypotheses across factor categories |
-| Validating | Interpretation | Help interpret η² (contribution, not causation)       |
-| Converging | Synthesis      | Help synthesize suspected causes, suggest next steps  |
+| Phase      | AI Role        | Prompt Instructions                                                                                                                                                                                                 |
+| ---------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Initial    | Orientation    | Help identify which chart to examine first                                                                                                                                                                          |
+| Diverging  | Exploration    | Encourage testing hypotheses across factor categories                                                                                                                                                               |
+| Validating | Interpretation | Help interpret η² (contribution, not causation)                                                                                                                                                                     |
+| Converging | Hub Synthesis  | Help analyst create named **SuspectedCause hubs** — propose hub connections, suggest hub names, draft synthesis text. Analyst creates hubs (CoScout proposes via `ActionProposalCard`). No `causeRole` tag cycling. |
+
+**Convergence coaching specifics:** The Converging phase is about naming and synthesizing the WHY, not tagging questions with role labels. CoScout should:
+
+1. Propose grouping related answered questions under a named hub ("These three questions about Shift all point to the same cause — shall I group them as 'Night shift setup consistency'?")
+2. Draft a synthesis sentence for the hub ("Night shift has higher fill weight variability due to inconsistent setup — η²=34%")
+3. Suggest whether a finding belongs to an existing hub or warrants a new one
+4. Alert when hub evidence overlaps, suggesting a merge or differentiation
+
+All Converging phase proposals follow the standard proposal pattern (ActionProposalCard — analyst confirms before any hub is created or modified).
 
 IMPROVE/PDCA phase coaching (monitoring, Cpk improvement) is handled separately — see Verification Sub-pattern below.
 

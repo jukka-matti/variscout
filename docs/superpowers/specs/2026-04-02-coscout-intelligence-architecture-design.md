@@ -346,9 +346,19 @@ allQuestions?: Array<{
 
 CoScout sees **why** a question was answered, not just that it was.
 
+### Hub Connection Synthesis (Converging Phase)
+
+During the Converging phase of the Investigation Diamond, CoScout can actively assist with hub creation and synthesis refinement:
+
+- **Suggest hub connections:** When multiple answered questions share a common factor theme or evidence pattern, CoScout can propose grouping them under a named SuspectedCause hub. The proposal appears as an `ActionProposalCard` — analyst confirms before the hub is created.
+- **Refine synthesis text:** Once a hub exists, CoScout can propose a synthesis narrative (concise causal summary) based on the connected questions' evidence and findings. The analyst reviews the proposed text before accepting.
+- **Cross-hub coherence check:** CoScout can flag when two hubs have overlapping evidence (e.g., the same finding linked to both), suggesting whether to merge or differentiate the hubs.
+
+These capabilities are phase-gated to Converging (INVESTIGATE+). CoScout never auto-creates hubs — all hub operations require analyst confirmation.
+
 ### Fix 3: Answer Question Tool (New Action Tool)
 
-New action tool `answer_question` in INVESTIGATE+ phase:
+New action tool `answer_question` in INVESTIGATE+ phase. The tool works with questions that are connected to a SuspectedCause hub — when answering a hub-connected question, CoScout's proposal includes the hub context so the analyst can see how the answer affects the hub's aggregate evidence:
 
 ```typescript
 {

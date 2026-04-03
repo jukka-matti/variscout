@@ -120,6 +120,10 @@ When the investigation converges (suspected causes identified), the system auto-
 
 InvestigationConclusion shows a "Generate Problem Statement" button when suspected causes exist. Clicking generates an editable draft that the analyst reviews before accepting.
 
+### Conclusion Card and SuspectedCause Hubs (read-only in PI Panel)
+
+The Conclusion card in the Questions tab shows **SuspectedCause hub summaries** in read-only mode: hub name, synthesis text, evidence strength (R²adj or η²), and count of connected questions. This is a read-only view — hub creation, naming, and synthesis editing happen exclusively in the Investigation workspace (full layout with CoScout assistance). The PI panel surface is intentionally read-only to keep the analysis workspace focused on chart exploration.
+
 ## ADR Reference
 
 See [ADR-056](../../07-decisions/adr-056-pi-panel-redesign.md) for the architectural decision record.

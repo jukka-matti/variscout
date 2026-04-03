@@ -48,7 +48,7 @@ Upload SOPs, specs, and FMEAs to Blob Storage via three paths: Knowledge tab in 
 
 ### Pillar 4: Question ↔ CoScout Interaction
 
-Add `focusedQuestionId` and `focusedQuestionText` to AI context. Add `answer_question` action tool (INVESTIGATE+ phase-gated, proposal pattern). Wire question answer documents into knowledge index.
+Add `focusedQuestionId` and `focusedQuestionText` to AI context. Add `answer_question` action tool (INVESTIGATE+ phase-gated, proposal pattern). Wire question answer documents into knowledge index. The `answer_question` tool is hub-aware: when the focused question belongs to a SuspectedCause hub, the proposal card shows the hub context so the analyst can see how the answer affects the hub's aggregate evidence. During the Converging phase, CoScout can also propose hub connections and synthesis refinements (hub creation requires analyst confirmation via `ActionProposalCard`).
 
 ### Pillar 5: Mode-Aware Question Completion
 

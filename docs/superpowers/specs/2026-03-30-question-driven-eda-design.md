@@ -159,11 +159,15 @@ The existing hypothesis tree data model is reframed semantically. The tree mecha
 
 **Key change: Multiple suspected causes.** Remove the one-primary-per-tree constraint in `setCauseRole`. Multiple questions can be marked as `suspected-cause`. The problem statement synthesizes all of them, ranked by evidence (η²/R²adj).
 
+> **Deprecation note (investigation reframing):** `causeRole` tags on individual Question nodes are deprecated as the primary grouping mechanism. The new model uses **SuspectedCause hub entities** — named hubs that aggregate related questions, findings, and evidence under a single synthesized cause. Hub creation happens in the Investigation workspace; `causeRole` fields are retained for backward compatibility but should not be used for new cause-grouping logic. See the investigation reframing spec for the hub data model.
+
 **Tree depth max 3 (unchanged):** Initial question → follow-up → deep follow-up. Maps to thesis Level 1 → Level 2 → Level 3.
 
 ### 5. Problem Statement + Suspected Causes (conclusion)
 
-The Problem Statement is the **output** of SCOUT, not the input. It emerges when enough questions are answered to satisfy Watson's three elements:
+The Problem Statement is a **living document** that forms early and progressively sharpens. Watson's Q1 (what measure?) and Q2 (how should it change?) are answerable at FRAME from the issue statement and specs. Q3 (what is the scope?) solidifies in the first SCOUT loop as Factor Intelligence identifies the highest-ranking suspected causes. The Problem Statement is not waiting for the full investigation to complete before it exists — it exists from the first loop and updates as evidence accumulates.
+
+The Problem Statement emerges when enough questions are answered to satisfy Watson's three elements:
 
 1. **What measure needs to change?** — the Y-measure (already selected in FRAME)
 2. **How should it change?** — direction + target (from improvement target in Brief, or from capability findings)

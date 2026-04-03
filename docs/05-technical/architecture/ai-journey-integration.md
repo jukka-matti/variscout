@@ -76,12 +76,14 @@ Watson's EDA chart sequence: I-Chart → Boxplot → Pareto → Capability. AI e
 
 The Investigation Diamond (Initial → Diverging → Validating → Converging) with phase-specific AI coaching:
 
-| Diamond Phase | AI Role        | CoScout Behavior                                                                          | Reasoning Effort |
-| ------------- | -------------- | ----------------------------------------------------------------------------------------- | ---------------- |
-| Initial       | Orientation    | Help identify which questions to check first (Factor Intelligence ranking)                | `'none'`         |
-| Diverging     | Exploration    | Encourage exploring open questions, suggest follow-ups                                    | `'low'`          |
-| Validating    | Interpretation | Help interpret evidence for/against (eta-squared, R²adj — contribution, not causation)    | `'medium'`       |
-| Converging    | Synthesis      | Help synthesize multiple suspected causes into problem statement, brainstorm improvements | `'medium'`       |
+| Diamond Phase | AI Role        | CoScout Behavior                                                                                                                                                                                                            | Reasoning Effort |
+| ------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Initial       | Orientation    | Help identify which questions to check first (Factor Intelligence ranking)                                                                                                                                                  | `'none'`         |
+| Diverging     | Exploration    | Encourage exploring open questions, suggest follow-ups                                                                                                                                                                      | `'low'`          |
+| Validating    | Interpretation | Help interpret evidence for/against (eta-squared, R²adj — contribution, not causation)                                                                                                                                      | `'medium'`       |
+| Converging    | Synthesis      | Help synthesize evidence into **SuspectedCause hubs**: propose hub connections, suggest hub names, draft synthesis text, flag cross-hub overlap. Assist with problem statement refinement. Brainstorm improvements per hub. | `'medium'`       |
+
+> **Hub creation is Investigation workspace only.** The Converging phase's synthesis work — creating named hubs, connecting questions, writing synthesis narratives — happens in the Investigation workspace layout where CoScout has sufficient space to assist. The PI panel (Analysis workspace) shows hubs read-only. This separation keeps the analysis exploration context clean while giving structured hub creation the full-width workspace it needs.
 
 > **Note on reasoning effort:** Investigation Diamond phases map to journey phases for reasoning effort: Initial/Diverging → SCOUT (`'low'`), Validating/Converging → INVESTIGATE (`'medium'`). The effort level is set by `getCoScoutReasoningEffort(journeyPhase)` from `@variscout/core`.
 
