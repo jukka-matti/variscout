@@ -27,3 +27,6 @@ export { detectYamazumiFormat } from './detection';
 
 // Question generation
 export { generateYamazumiQuestions } from './questions';
+
+// Lean projection engine
+export { projectWasteElimination, projectVAImprovement } from './projection';
