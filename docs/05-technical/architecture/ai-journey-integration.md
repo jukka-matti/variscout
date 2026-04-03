@@ -293,7 +293,7 @@ VariScout's Finding system builds a measurement-backed knowledge base from norma
 | Traditional FMEA                     | VariScout Finding                       |
 | ------------------------------------ | --------------------------------------- |
 | Severity (1-10 guess)                | Cpk + pass rate (actual)                |
-| Occurrence (1-10 guess)              | η² contribution % (actual)              |
+| Occurrence (1-10 guess)              | η² effect size (actual)                 |
 | Recommended action (rarely verified) | Corrective action with Cpk before/after |
 
 After 50+ investigations, the AI has genuine organizational knowledge. Investigation artifacts (findings, questions, ideas) are indexed automatically in Foundry IQ (Blob Storage) — no manual publishing step needed. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md).

@@ -25,7 +25,7 @@ packages/
 │              #   useResponsiveTickCount - Responsive axis tick count
 │              #   useResponsiveBreakpoints - Responsive breakpoint detection
 │              #   useFilterNavigation - Filter navigation with breadcrumbs
-│              #   useVariationTracking - Cumulative Total SS scope tracking
+│              #   useVariationTracking - REMOVED in ADR-062 (Cumulative Total SS scope tracking removed)
 │              #   useKeyboardNavigation - Arrow key focus management
 │              #   useColumnClassification - Column data type classification
 │              #   useDataIngestion - File upload and data parsing

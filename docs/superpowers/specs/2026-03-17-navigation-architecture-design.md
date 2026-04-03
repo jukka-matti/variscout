@@ -30,12 +30,12 @@ Current navigation issues:
 
 Four expert perspectives evaluated whether phases should be visible UI:
 
-| Expert                  | Verdict   | Key Argument                                                                                                                                   |
-| ----------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Quality Professional    | Invisible | "I already know where I am. Phases belong in reports, not dashboards."                                                                         |
-| UX/Interaction Designer | Invisible | "Workspace, not wizard. Figma/Tableau/VS Code succeed without mode labels."                                                                    |
-| Learning Science        | Invisible | "Visible phases short-circuit productive struggle. Existing scaffolding (yellow glow, breadcrumbs, contribution %) is pedagogically superior." |
-| Product Strategy        | Invisible | "Phase labels add perceived complexity. Natural upgrade ceilings work better than labeled friction."                                           |
+| Expert                  | Verdict   | Key Argument                                                                                                                       |
+| ----------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Quality Professional    | Invisible | "I already know where I am. Phases belong in reports, not dashboards."                                                             |
+| UX/Interaction Designer | Invisible | "Workspace, not wizard. Figma/Tableau/VS Code succeed without mode labels."                                                        |
+| Learning Science        | Invisible | "Visible phases short-circuit productive struggle. Existing scaffolding (yellow glow, breadcrumbs, η²) is pedagogically superior." |
+| Product Strategy        | Invisible | "Phase labels add perceived complexity. Natural upgrade ceilings work better than labeled friction."                               |
 
 **Unanimous conclusion: Phases should be invisible intelligence that drives contextual adaptation — toolbar emphasis, panel priority, NarrativeBar tone, mobile filtering — without explicit labels.**
 

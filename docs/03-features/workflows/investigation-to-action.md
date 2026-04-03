@@ -102,7 +102,7 @@ Separating investigation (Findings) from projection (What-If) mirrors how experi
 
 Use the dashboard's drill-down workflow to progressively filter the data by factors. As you discover interesting patterns, pin them as findings:
 
-1. **Drill into factors** — Click Boxplot/Pareto categories to filter. Each factor's ANOVA η² shows its contribution to total variation. Follow the highest contribution path.
+1. **Drill into factors** — Click Boxplot/Pareto categories to filter. Each factor's ANOVA η² shows its effect size. Follow the highest η² path.
 
 2. **Pin findings** — Click the pin button in the breadcrumb bar to instantly capture the current filter state as a finding. Add a note later if desired — the filter chips and statistics are captured automatically.
 
@@ -122,7 +122,7 @@ There are two ways to create findings:
 
 | Method                | How                                            | What is captured                                             |
 | --------------------- | ---------------------------------------------- | ------------------------------------------------------------ |
-| **Breadcrumb pin**    | Click pin button in filter breadcrumb bar      | Current filter state, statistics, variation %                |
+| **Breadcrumb pin**    | Click pin button in filter breadcrumb bar      | Current filter state, statistics, n=X sample count           |
 | **Chart observation** | Right-click chart category → "Add observation" | Category name, chart type, observation text, source metadata |
 
 Chart-sourced findings carry a `source` chip on the FindingCard (e.g., "Boxplot: Machine C") so analysts can distinguish observations made on a specific chart element from drill-down filter pins.
@@ -137,9 +137,9 @@ In Board view, chart observations appear alongside drill-down findings, grouped 
 
 Stop investigating when:
 
-- Cumulative contribution reaches 70% or more
+- The top factors' η² collectively accounts for the majority of explainable variation
 - All meaningful factors have been explored
-- Remaining variation is common cause (no factor has significant contribution)
+- Remaining variation is common cause (no factor shows meaningful η²)
 
 ### Investigation Status Tracking
 
@@ -203,14 +203,14 @@ observed → investigating → analyzed → improving → resolved
 
 When a finding reaches "Analyzed" status, classify it by contribution magnitude:
 
-| Tag            | Color | Meaning                                        |
-| -------------- | ----- | ---------------------------------------------- |
-| **Key Driver** | Green | Significant variation contributor — actionable |
-| **Low Impact** | Gray  | Minor or negligible contribution               |
-| _(none)_       | —     | Not yet classified                             |
+| Tag            | Color | Meaning                                      |
+| -------------- | ----- | -------------------------------------------- |
+| **Key Driver** | Green | High η² — factor has substantial effect size |
+| **Low Impact** | Gray  | Low η² — minor or negligible effect          |
+| _(none)_       | —     | Not yet classified                           |
 
-Tags reflect _contribution magnitude_, not causal certainty. VariScout quantifies
-contribution, not causation — we measure how much variation a factor accounts for,
+Tags reflect _effect size magnitude_, not causal certainty. VariScout quantifies
+η² (eta-squared), not causation — we measure how much variation a factor accounts for,
 not whether it's the "root cause."
 
 ### Suspected Cause / Hypothesis (Azure only)
@@ -233,7 +233,7 @@ When questions are answered and evidence accumulates, the analyst creates **Susp
 - **Contributing** — questions whose evidence amplifies or enables the mechanism but is not the main driver
 - _(not linked)_ — questions not associated with any hub
 
-When hubs exist and the finding is at `analyzed` status or higher, the **FindingCard** shows a "Suspected causes" section listing all hubs ranked by total evidence (η²/R²adj), with contributing questions beneath each hub name. This makes the convergence conclusion visible directly on the finding card without opening the full tree view.
+When hubs exist and the finding is at `analyzed` status or higher, the **FindingCard** shows a "Suspected causes" section listing all hubs ranked by total evidence (η² / R²adj), with contributing questions beneath each hub name. This makes the convergence conclusion visible directly on the finding card without opening the full tree view.
 
 > Note: the legacy `causeRole: 'primary' | 'contributing'` field on the `Hypothesis` type is deprecated. New investigations use `SuspectedCauseHub` entities. Existing projects using `causeRole` continue to display correctly via a read-only migration view.
 
@@ -413,7 +413,7 @@ Low Impact findings document what was ruled out. This is valuable for:
 
 ### Output
 
-A list of pinned findings, each with filter context, variation %, tags, and analyst notes.
+A list of pinned findings, each with filter context, n=X sample count, tags, and analyst notes.
 Findings at "Improving" or "Resolved" status additionally carry corrective actions,
 outcomes, and Cpk improvement data.
 
@@ -498,11 +498,11 @@ These are estimates, not guarantees. Use them for:
 
 Drill into delivery time variation and pin findings:
 
-1. **Store** has the highest contribution: Store C accounts for 35% of variation
+1. **Store** has the highest η²: Store C shows the strongest effect on delivery time
 2. Within Store C, **Day** matters: Weekend deliveries are 8 minutes slower
-3. **Driver** has a moderate effect (12%): Driver 3 is consistently slow
+3. **Driver** has a lower η²: Driver 3 is consistently slow but accounts for less variation
 
-Cumulative: ~72% of variation explained. Tag Store C + Weekend as "Key Driver", Driver 3 as "Low Impact" (small contribution alone).
+Tag Store C + Weekend as "Key Driver", Driver 3 as "Low Impact" (lower η² alone).
 
 ### Project
 

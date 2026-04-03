@@ -83,14 +83,14 @@ interface Concept {
 
 ## Term Categories
 
-| Category       | Terms                                                                                                                                                                                                                                                |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| control-limits | UCL, LCL, USL, LSL, Target                                                                                                                                                                                                                           |
-| capability     | Cp, Cpk, Pass Rate, Rejected                                                                                                                                                                                                                         |
-| statistics     | Mean, Median, Std Dev, F-Statistic, p-value, η², Sum of Squares, Between/Within Variation                                                                                                                                                            |
-| methodology    | Special Cause, Common Cause, Nelson Rule 2/3, In-Control, Staged Analysis, Total SS Contribution, Characteristic Type, Probability Plot, Control vs Spec, Natural Variation, Process Stability, Out of Control, Rational Subgrouping, Stratification |
-| investigation  | Root Cause Analysis, Corrective Action, Preventive Action, Finding, Investigation Status, Key Driver, Action Item, Finding Outcome, Process Context, Hypothesis                                                                                      |
-| charts         | I-Chart, Boxplot, Pareto Chart, Capability Analysis, Violin Plot                                                                                                                                                                                     |
+| Category       | Terms                                                                                                                                                                                                                         |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| control-limits | UCL, LCL, USL, LSL, Target                                                                                                                                                                                                    |
+| capability     | Cp, Cpk, Pass Rate, Rejected                                                                                                                                                                                                  |
+| statistics     | Mean, Median, Std Dev, F-Statistic, p-value, η², Sum of Squares, Between/Within Variation                                                                                                                                     |
+| methodology    | Special Cause, Common Cause, Nelson Rule 2/3, In-Control, Staged Analysis, Characteristic Type, Probability Plot, Control vs Spec, Natural Variation, Process Stability, Out of Control, Rational Subgrouping, Stratification |
+| investigation  | Root Cause Analysis, Corrective Action, Preventive Action, Finding, Investigation Status, Key Driver, Action Item, Finding Outcome, Process Context, Hypothesis                                                               |
+| charts         | I-Chart, Boxplot, Pareto Chart, Capability Analysis, Violin Plot                                                                                                                                                              |
 
 ## Concept Categories
 
@@ -108,13 +108,13 @@ The glossary currently contains 25 terms across 5 categories. For AI Phase 1 (AD
 
 ### Current Terms (25)
 
-| Category       | Existing Terms                                                                                                                        |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| control-limits | UCL, LCL, USL, LSL, Target                                                                                                            |
-| capability     | Cp, Cpk, Pass Rate, Rejected                                                                                                          |
-| statistics     | Mean, Std Dev, F-Statistic, p-value, Eta-squared, Sum of Squares, Between/Within Variation                                            |
-| methodology    | Special Cause, Common Cause, Nelson Rule 2, In-Control, Staged Analysis, Total SS Contribution, Characteristic Type, Probability Plot |
-| charts         | Violin Plot                                                                                                                           |
+| Category       | Existing Terms                                                                                                 |
+| -------------- | -------------------------------------------------------------------------------------------------------------- |
+| control-limits | UCL, LCL, USL, LSL, Target                                                                                     |
+| capability     | Cp, Cpk, Pass Rate, Rejected                                                                                   |
+| statistics     | Mean, Std Dev, F-Statistic, p-value, Eta-squared, Sum of Squares, Between/Within Variation                     |
+| methodology    | Special Cause, Common Cause, Nelson Rule 2, In-Control, Staged Analysis, Characteristic Type, Probability Plot |
+| charts         | Violin Plot                                                                                                    |
 
 ### Proposed New Terms (~25 additions)
 

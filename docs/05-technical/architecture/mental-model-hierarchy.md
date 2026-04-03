@@ -107,7 +107,7 @@ FRAME contains significant deterministic engines: data parsing and validation, c
 | Goal     | Discover variation patterns using Watson's EDA chart sequence                           |
 | Method   | I-Chart (stability) → Boxplot (factor comparison) → Pareto (ranking) → Capability (Cpk) |
 | AI       | NarrativeBar summarizes state; ChartInsightChips per chart; CoScout available           |
-| Key Code | `useFilterNavigation`, `useVariationTracking`, `useChartScale`, chart data hooks        |
+| Key Code | `useFilterNavigation`, `useChartScale`, chart data hooks                                |
 | Exit     | Variation drivers quantified, findings pinned                                           |
 
 The Four Lenses (CHANGE/FLOW/FAILURE/VALUE) are pedagogical labels for the chart sequence — useful for teaching and marketing. Code uses chart names directly.
