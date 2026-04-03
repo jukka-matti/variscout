@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useInvestigationStore } from '../investigationStore';
+import type { SuspectedCause } from '@variscout/core';
 
 /** Reset store to defaults before each test. */
 beforeEach(() => {
@@ -9,18 +10,20 @@ beforeEach(() => {
     ideaImpacts: {},
     projectionTarget: null,
     expandedQuestionId: null,
+    suspectedCauses: [],
   });
 });
 
 describe('investigationStore', () => {
   describe('initial state', () => {
-    it('has correct defaults for all 5 fields', () => {
+    it('has correct defaults for all 6 fields', () => {
       const s = useInvestigationStore.getState();
       expect(s.questions).toEqual([]);
       expect(s.questionsMap).toEqual({});
       expect(s.ideaImpacts).toEqual({});
       expect(s.projectionTarget).toBeNull();
       expect(s.expandedQuestionId).toBeNull();
+      expect(s.suspectedCauses).toEqual([]);
     });
   });
 
@@ -159,6 +162,56 @@ describe('investigationStore', () => {
       useInvestigationStore.getState().expandToQuestion('q1');
       useInvestigationStore.getState().expandToQuestion('q2');
       expect(useInvestigationStore.getState().expandedQuestionId).toBe('q2');
+    });
+  });
+
+  describe('syncSuspectedCauses', () => {
+    it('should sync suspected causes', () => {
+      const hub: SuspectedCause = {
+        id: 'h1',
+        name: 'Nozzle wear',
+        synthesis: 'test',
+        questionIds: ['q1'],
+        findingIds: [],
+        status: 'suspected',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      useInvestigationStore.getState().syncSuspectedCauses([hub]);
+      expect(useInvestigationStore.getState().suspectedCauses).toHaveLength(1);
+      expect(useInvestigationStore.getState().suspectedCauses[0].name).toBe('Nozzle wear');
+    });
+
+    it('should clear suspected causes', () => {
+      useInvestigationStore.getState().syncSuspectedCauses([]);
+      expect(useInvestigationStore.getState().suspectedCauses).toEqual([]);
+    });
+
+    it('overwrites previous hubs', () => {
+      const hub1: SuspectedCause = {
+        id: 'h1',
+        name: 'First cause',
+        synthesis: '',
+        questionIds: [],
+        findingIds: [],
+        status: 'suspected',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      const hub2: SuspectedCause = {
+        id: 'h2',
+        name: 'Second cause',
+        synthesis: '',
+        questionIds: [],
+        findingIds: [],
+        status: 'confirmed',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      useInvestigationStore.getState().syncSuspectedCauses([hub1]);
+      useInvestigationStore.getState().syncSuspectedCauses([hub1, hub2]);
+      expect(useInvestigationStore.getState().suspectedCauses).toHaveLength(2);
+      expect(useInvestigationStore.getState().suspectedCauses[1].name).toBe('Second cause');
     });
   });
 });

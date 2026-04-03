@@ -518,6 +518,7 @@ export type {
   IdeaCategory,
   FindingRole,
   BenchmarkStats,
+  SuspectedCause,
 } from './findings';
 export {
   DEFAULT_RISK_AXIS_CONFIG,
@@ -542,6 +543,7 @@ export {
   createImprovementIdea,
   createFactorFinding,
   createInvestigationCategory,
+  createSuspectedCause,
 } from './findings';
 export type { FactorFindingInput, FactorFindingBundle } from './findings';
 export {
@@ -557,6 +559,8 @@ export {
   migrateActionAssignee,
   isFindingScoped,
   getScopedFindings,
+  computeHubContribution,
+  migrateCauseRolesToHubs,
 } from './findings';
 
 // Yamazumi Analysis Mode
