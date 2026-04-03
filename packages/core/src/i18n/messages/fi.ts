@@ -306,8 +306,8 @@ export const fi: MessageCatalog = {
   // Display toggles
   'display.violin': 'Viulukuvio',
   'display.violinDesc': 'Näytä jakauman muoto',
-  'display.contribution': 'Kontribuutio',
-  'display.contributionDesc': 'Näytä vaihtelun osuus',
+  'display.etaSquared': 'η²',
+  'display.etaSquaredDesc': 'Näytä η² (vaikutuskoko)',
   'display.sort': 'Järjestä',
   'display.ascending': 'Nouseva',
   'display.descending': 'Laskeva',

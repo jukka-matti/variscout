@@ -42,7 +42,7 @@ function getCategoryStats(
     const count = values.length;
     const mean = values.reduce((s, v) => s + v, 0) / count;
     const variance = count > 1 ? values.reduce((s, v) => s + (v - mean) ** 2, 0) / (count - 1) : 0;
-    result.push({ value, count, mean, stdDev: Math.sqrt(variance), contributionPct: 0 });
+    result.push({ value, count, mean, stdDev: Math.sqrt(variance) });
   }
   return result;
 }

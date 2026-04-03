@@ -98,7 +98,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
       type: 'function',
       name: 'compare_categories',
       description:
-        'Get per-category stats breakdown for a factor, including mean, stdDev, count, Cpk, and ANOVA eta-squared (Contribution %). Use to identify which categories show the most variation before suggesting filters.',
+        'Get per-category stats breakdown for a factor, including mean, stdDev, count, Cpk, and ANOVA η² (effect size). Use to identify which categories show the most variation before suggesting filters.',
       parameters: {
         type: 'object',
         properties: {
@@ -738,8 +738,8 @@ VariScout shows four analytical tools simultaneously with linked filtering:
 Two Voices distinguish stability from capability: Voice of the Process (control limits) vs Voice of the Customer (specification limits).
 
 Key principles:
-- Contribution, not causation — VariScout shows WHERE variation concentrates; the analyst investigates WHY.
-- Progressive stratification — drill through factors one at a time, guided by contribution %.
+- Correlation, not causation — VariScout shows WHERE variation concentrates; the analyst investigates WHY.
+- Progressive stratification — drill through factors one at a time, guided by η².
 - Iterative exploration — each finding triggers new questions and deeper analysis.
 
 Use the provided context (statistics, filters, violations, findings) to ground every answer.
@@ -1117,7 +1117,7 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
   parts.push(TERMINOLOGY_INSTRUCTION);
 
   parts.push(
-    'When citing drill scope, use the provided cumulativeScope value. Never compute or estimate scope from Contribution % values.'
+    'When citing drill scope, use the provided cumulativeScope value. Never compute or estimate scope from η² values.'
   );
 
   // Source attribution for Knowledge Base
@@ -1346,12 +1346,12 @@ Question guidance (Investigation Diamond):
 - Factor-linked questions get auto-answered by Factor Intelligence (R²adj ranking). Recommend linking to factors whenever possible.
 - When a question can't be tested with data (physical inspection needed), set validation_type to "gemba" or "expert" and provide a clear validation_task.
 - Never create sub-questions more than 3 levels deep or more than 8 siblings per parent.
-- When factor and level are specified, VariScout auto-answers using ANOVA (Contribution % >=15% answered, <5% ruled out, 5-15% investigating).
+- When factor and level are specified, VariScout auto-answers using ANOVA (η² >=15% answered, <5% ruled out, 5-15% investigating).
 - When a data-answered question has weak evidence (p >= 0.05), suggest gemba or expert validation. Never advise 'collect more data and wait.'
 
 Finding guidance:
 - Use create_finding when the user identifies a notable pattern worth recording.
-- Also proactively suggest create_finding when you detect a notable pattern: Cpk below target, Contribution % > 15% for a factor, out-of-control violations.
+- Also proactively suggest create_finding when you detect a notable pattern: Cpk below target, η² > 15% for a factor, out-of-control violations.
 - Write finding text as a concise factual observation: "[Factor] shows [metric] = [value] ([context])".
 
 Action suggestion guidance (IMPROVE phase):
@@ -1420,7 +1420,7 @@ Sharing guidance (Team plan only):
 - These tools send content externally. Always include clear preview.
 
 Issue statement sharpening:
-- After significant findings (Contribution % > 15%, Cpk gap identified), suggest updating the issue statement.
+- After significant findings (η² > 15%, Cpk gap identified), suggest updating the issue statement.
 - Format suggestion as: "Based on what we've found, your issue statement could be sharpened to: '[updated text]'"
 - The issue statement should get more specific with each answered question.
 - Do NOT suggest sharpening after every minor observation — only after key insights.
@@ -1459,13 +1459,13 @@ function buildEntryScenarioGuidance(scenario: EntryScenario): string {
 
     case 'exploration':
       return `Entry scenario: Exploration — The analyst entered with an upfront theory to check. The upfront theory becomes the first question to check.
-- SCOUT: Immediately use compare_categories on the factor named in the theory to verify it. Report Contribution % and per-category stats. If answered (>=15%), suggest apply_filter and create_finding.
+- SCOUT: Immediately use compare_categories on the factor named in the theory to verify it. Report η² and per-category stats. If answered (>=15%), suggest apply_filter and create_finding.
 - INVESTIGATE: Propose create_question with the upfront theory as the root question. Then suggest follow-up questions based on answers.
 - IMPROVE: After addressing the suspected causes, compare before/after on the metric linked to the original theory. In PLAN, search KB for fixes to the confirmed factor. In ACT, verify whether the theory-specific metric improved.`;
 
     case 'routine':
       return `Entry scenario: Routine check — No specific problem or theory. Scanning for signals. Factor Intelligence questions are available for proactive scanning.
-- SCOUT: Use compare_categories conservatively. Only suggest apply_filter if a notable signal is found (Contribution % > 10%). Do NOT proactively suggest findings unless a clear anomaly is detected.
+- SCOUT: Use compare_categories conservatively. Only suggest apply_filter if a notable signal is found (η² > 10%). Do NOT proactively suggest findings unless a clear anomaly is detected.
 - INVESTIGATE: Only reached if the analyst manually creates a finding. Follow their lead.
 - IMPROVE: Signal has been addressed — help evaluate whether sustaining controls prevent recurrence. In PLAN, suggest preventive actions and SOP updates. In ACT, recommend scheduling a follow-up check in 30 days.`;
   }

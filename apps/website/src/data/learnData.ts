@@ -1107,7 +1107,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'vs-pvalue',
         title: 'η² vs p-value',
         content:
-          'P-value measures how strong the evidence is against "no difference." η² (Contribution %) measures how much the factor matters. A tiny difference can produce a small p-value with enough data. Contribution % tells you if the difference is worth acting on.',
+          'P-value measures how strong the evidence is against "no difference." η² (effect size) measures how much the factor matters. A tiny difference can produce a small p-value with enough data. η² tells you if the difference is worth acting on.',
         visual: {
           type: 'comparison',
           data: {

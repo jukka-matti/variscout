@@ -52,8 +52,6 @@ export interface CategoryStats {
   mean: number;
   /** Category standard deviation */
   stdDev: number;
-  /** Percentage of total variation contributed by this category (0-100) */
-  contributionPct: number;
 }
 
 /**

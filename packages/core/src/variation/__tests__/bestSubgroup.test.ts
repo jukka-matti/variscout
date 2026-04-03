@@ -3,9 +3,9 @@ import { findBestSubgroup, findTightestSubgroup } from '../bestSubgroup';
 import type { CategoryStats } from '../types';
 
 const categories: CategoryStats[] = [
-  { value: 'Day', mean: 13.0, stdDev: 0.8, count: 200, contributionPct: 40 },
-  { value: 'Night', mean: 15.2, stdDev: 1.4, count: 180, contributionPct: 35 },
-  { value: 'Evening', mean: 14.0, stdDev: 1.0, count: 150, contributionPct: 25 },
+  { value: 'Day', mean: 13.0, stdDev: 0.8, count: 200 },
+  { value: 'Night', mean: 15.2, stdDev: 1.4, count: 180 },
+  { value: 'Evening', mean: 14.0, stdDev: 1.0, count: 150 },
 ];
 
 describe('findBestSubgroup', () => {

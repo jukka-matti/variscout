@@ -69,40 +69,37 @@ export const concepts: readonly Concept[] = [
     id: 'progressiveStratification',
     label: 'Progressive Stratification',
     definition:
-      'Sequential one-factor-at-a-time drill-down, guided by contribution %, that narrows the search for variation sources.',
+      'Sequential one-factor-at-a-time drill-down, guided by η², that narrows the search for variation sources.',
     description:
       "VariScout's core drill-down mechanism. At each step: (1) identify the highest-impact factor via the Boxplot and Pareto, (2) filter to its most impactful level, (3) see how remaining factors redistribute. The cumulative variation bar shows progress toward explaining total variation. Analogous to binary search applied to a factor space.",
     conceptCategory: 'principle',
     learnMorePath: '/learn/progressive-stratification',
     relations: [
       { targetId: 'stratification', type: 'uses' },
-      { targetId: 'totalSSContribution', type: 'uses' },
+      { targetId: 'etaSquared', type: 'uses' },
     ],
   },
   {
-    id: 'contributionNotCausation',
-    label: 'Contribution, Not Causation',
+    id: 'evidenceNotCausation',
+    label: 'Evidence, Not Causation',
     definition:
       'VariScout quantifies how much each factor contributes to variation — the "why" requires further investigation (5 Whys, Gemba walks).',
     description:
-      'A key distinction: η² and Total SS contribution show WHERE variation concentrates, not WHY it happens. High contribution means "focus here" — not "this is the root cause." The analyst uses VariScout to find where to focus, then applies lean thinking to find the actual cause.',
+      'A key distinction: η² shows WHERE variation concentrates, not WHY it happens. High η² means "focus here" — not "this is the root cause." The analyst uses VariScout to find where to focus, then applies lean thinking to find the actual cause.',
     conceptCategory: 'principle',
-    relations: [
-      { targetId: 'etaSquared', type: 'uses' },
-      { targetId: 'totalSSContribution', type: 'uses' },
-    ],
+    relations: [{ targetId: 'etaSquared', type: 'uses' }],
   },
   {
     id: 'statisticalVsPractical',
     label: 'Statistical vs Practical Significance',
     definition:
-      'A factor can be "real but irrelevant" (strong evidence, low contribution) or "promising but uncertain" (high contribution, weak evidence). Contribution % tells importance, evidence level tells confidence.',
+      'A factor can be "real but irrelevant" (strong evidence, low η²) or "promising but uncertain" (high η², weak evidence). η² tells importance, evidence level tells confidence.',
     description:
-      'Traditional hypothesis testing treats p < 0.05 as a binary threshold. VariScout separates the two dimensions: Contribution % shows how much a factor matters in practice, while the evidence level (derived from p-value) shows how confident we can be. This prevents two common mistakes: dismissing a high-contribution factor because p > 0.05, or over-reacting to a tiny difference with p < 0.001.',
+      'Traditional hypothesis testing treats p < 0.05 as a binary threshold. VariScout separates the two dimensions: η² shows how much a factor matters in practice, while the evidence level (derived from p-value) shows how confident we can be. This prevents two common mistakes: dismissing a high-η² factor because p > 0.05, or over-reacting to a tiny difference with p < 0.001.',
     conceptCategory: 'principle',
     relations: [
       { targetId: 'etaSquared', type: 'uses' },
-      { targetId: 'contributionNotCausation', type: 'leads-to' },
+      { targetId: 'evidenceNotCausation', type: 'leads-to' },
     ],
   },
   {

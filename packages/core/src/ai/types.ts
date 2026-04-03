@@ -209,7 +209,7 @@ export interface AIContext {
   /** Focus context from "Ask CoScout about this" actions */
   focusContext?: {
     chartType?: InsightChartType;
-    category?: { name: string; mean?: number; contributionPct?: number };
+    category?: { name: string; mean?: number; etaSquaredPct?: number };
     finding?: {
       text: string;
       status: string;

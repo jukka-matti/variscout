@@ -83,7 +83,7 @@ export function buildIChartInsight(
 }
 
 /**
- * Build insight chip for Boxplot based on factor variation contributions.
+ * Build insight chip for Boxplot based on factor η² (eta-squared) effect sizes.
  */
 export function buildBoxplotInsight(
   factorVariations: Map<string, number>,
