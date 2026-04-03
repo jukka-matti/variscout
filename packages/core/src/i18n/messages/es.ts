@@ -268,6 +268,7 @@ export const es: MessageCatalog = {
   'ai.tool.publishReport': 'Publicar informe',
   'ai.tool.notifyOwners': 'Notificar a responsables',
   'ai.tool.suggestIdea': 'Sugerir idea de mejora',
+  'ai.tool.sparkBrainstorm': 'Spark brainstorm ideas',
   'ai.tool.suggestSaveFinding': 'Save insight',
   'ai.tool.navigateTo': 'Navigate to',
   'ai.tool.answerQuestion': 'Answer question',

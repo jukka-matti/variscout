@@ -268,6 +268,7 @@ export const fi: MessageCatalog = {
   'ai.tool.publishReport': 'Julkaise raportti',
   'ai.tool.notifyOwners': 'Ilmoita vastuuhenkilöille',
   'ai.tool.suggestIdea': 'Ehdota parannusideaa',
+  'ai.tool.sparkBrainstorm': 'Spark brainstorm ideas',
   'ai.tool.suggestSaveFinding': 'Tallenna havainto',
   'ai.tool.navigateTo': 'Navigate to',
   'ai.tool.answerQuestion': 'Answer question',

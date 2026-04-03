@@ -269,6 +269,7 @@ export const de: MessageCatalog = {
   'ai.tool.publishReport': 'Bericht veröffentlichen',
   'ai.tool.notifyOwners': 'Verantwortliche benachrichtigen',
   'ai.tool.suggestIdea': 'Verbesserungsidee vorschlagen',
+  'ai.tool.sparkBrainstorm': 'Spark brainstorm ideas',
   'ai.tool.suggestSaveFinding': 'Erkenntnis speichern',
   'ai.tool.navigateTo': 'Navigate to',
   'ai.tool.answerQuestion': 'Answer question',
