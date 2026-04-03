@@ -361,6 +361,7 @@ export {
   useProblemStatement,
   type UseProblemStatementOptions,
   type UseProblemStatementReturn,
+  type LocationFactor,
 } from './useProblemStatement';
 
 // Question Reactivity (drill-down factor → active question lookup)
