@@ -26,6 +26,7 @@ export type ActionToolName =
   | 'create_finding'
   | 'suggest_action'
   | 'suggest_improvement_idea'
+  | 'spark_brainstorm_ideas'
   | 'suggest_save_finding'
   | 'share_finding'
   | 'publish_report'

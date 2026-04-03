@@ -1627,9 +1627,9 @@ describe('buildCoScoutTools', () => {
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
   });
 
-  it('never exceeds 20 tools (IMPROVE + Team plan)', () => {
+  it('never exceeds 21 tools (IMPROVE + Team plan)', () => {
     const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
-    expect(tools.length).toBeLessThanOrEqual(20);
+    expect(tools.length).toBeLessThanOrEqual(21);
   });
 
   it('includes get_finding_attachment in all phases', () => {
@@ -1660,6 +1660,26 @@ describe('buildCoScoutTools', () => {
   it('does not include suggest_improvement_idea in FRAME phase', () => {
     const tools = buildCoScoutTools({ phase: 'frame' });
     expect(tools.find(t => t.name === 'suggest_improvement_idea')).toBeUndefined();
+  });
+
+  it('includes spark_brainstorm_ideas in IMPROVE phase tools', () => {
+    const tools = buildCoScoutTools({ phase: 'improve' });
+    const tool = tools.find(t => t.name === 'spark_brainstorm_ideas');
+    expect(tool).toBeDefined();
+    expect(tool!.parameters.properties).toHaveProperty('question_id');
+    expect(tool!.parameters.properties).toHaveProperty('cause_name');
+    expect(tool!.parameters.properties.ideas.type).toBe('array');
+  });
+
+  it('does not include spark_brainstorm_ideas in SCOUT phase', () => {
+    const tools = buildCoScoutTools({ phase: 'scout' });
+    expect(tools.find(t => t.name === 'spark_brainstorm_ideas')).toBeUndefined();
+  });
+
+  it('includes brainstorm coaching when brainstormSessionActive', () => {
+    const prompt = buildCoScoutSystemPrompt({ brainstormSessionActive: true });
+    expect(prompt).toContain('Brainstorm coaching');
+    expect(prompt).toContain('creative partner');
   });
 
   it('includes suggest_save_finding tool in INVESTIGATE phase', () => {
