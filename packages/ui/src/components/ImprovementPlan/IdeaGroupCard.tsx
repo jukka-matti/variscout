@@ -45,6 +45,8 @@ export interface IdeaGroupCardProps {
   highlightedIdeaId?: string | null;
   onAskCoScout?: (question: string) => void;
   convertedIdeaIds?: Set<string>;
+  /** Open brainstorm modal for this cause */
+  onOpenBrainstorm?: (questionId: string) => void;
 }
 
 const TIMEFRAME_OPTIONS: Array<{
@@ -280,6 +282,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
   convertedIdeaIds,
   onIdeaHover,
   highlightedIdeaId,
+  onOpenBrainstorm,
 }) => {
   const { t } = useTranslation();
   const [newIdeaText, setNewIdeaText] = useState('');
@@ -335,6 +338,15 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
               η² {Math.round(evidence.etaSquared * 100)}%
             </span>
           )}
+          {onOpenBrainstorm && (
+            <button
+              data-testid="brainstorm-trigger"
+              onClick={() => onOpenBrainstorm(question.id)}
+              className="ml-auto text-xs px-2 py-1 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors flex-shrink-0"
+            >
+              💡 Brainstorm
+            </button>
+          )}
         </div>
         {linkedFindingName && <p className="text-xs text-content/50 mt-1">{linkedFindingName}</p>}
       </div>
@@ -365,6 +377,9 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
 
               {/* Text */}
               <span className="text-sm text-content flex-1 min-w-0 line-clamp-2">{idea.text}</span>
+              {idea.aiGenerated && (
+                <span className="text-[10px] text-content/30 flex-shrink-0">✨</span>
+              )}
 
               {/* Timeframe dropdown (inline) */}
               <select

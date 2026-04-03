@@ -74,6 +74,8 @@ export interface ImprovementWorkspaceBaseProps {
   onIdeaHover?: (ideaId: string | null) => void;
   /** ID of idea highlighted from matrix click (for scroll-to + ring animation) */
   highlightedIdeaId?: string | null;
+  /** Open brainstorm modal for a cause question */
+  onOpenBrainstorm?: (questionId: string) => void;
 }
 
 export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> = ({
@@ -106,6 +108,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
   onBackToPlan: _onBackToPlan,
   onIdeaHover,
   highlightedIdeaId,
+  onOpenBrainstorm,
 }) => {
   const { t } = useTranslation();
 
@@ -176,11 +179,6 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
         />
       )}
 
-      {/* Four Directions hint */}
-      <p data-testid="four-directions-hint" className="text-sm italic text-content/50 text-center">
-        {t('improve.fourDirections')}
-      </p>
-
       {/* Question groups */}
       {hasIdeas ? (
         questions
@@ -204,6 +202,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
               convertedIdeaIds={convertedIdeaIds}
               onIdeaHover={onIdeaHover}
               highlightedIdeaId={highlightedIdeaId}
+              onOpenBrainstorm={onOpenBrainstorm}
             />
           ))
       ) : (
