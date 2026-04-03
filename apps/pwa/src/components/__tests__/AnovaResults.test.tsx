@@ -27,51 +27,98 @@ describe('AnovaResults', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('should render significant result correctly', () => {
+  it('should render the ANOVA table with correct structure', () => {
     render(<AnovaResults result={mockResult} factorLabel="Machine" />);
 
-    expect(screen.getByText('ANOVA: Machine')).toBeInTheDocument();
-    expect(screen.getByText(/F = 5.42/)).toBeInTheDocument();
-    expect(screen.getByText(/p = 0.003/)).toBeInTheDocument();
+    // Title
+    expect(screen.getByText('One-Way ANOVA')).toBeInTheDocument();
+
+    // Table headers
+    expect(screen.getByText('Source')).toBeInTheDocument();
+    expect(screen.getByText('DF')).toBeInTheDocument();
+    expect(screen.getByText('SS')).toBeInTheDocument();
+    expect(screen.getByText('F')).toBeInTheDocument();
+    expect(screen.getByText('P')).toBeInTheDocument();
+
+    // Factor row: label, DF, SS
+    expect(screen.getByText('Machine')).toBeInTheDocument();
+
+    // Error and Total rows
+    expect(screen.getByText('Error')).toBeInTheDocument();
+    expect(screen.getByText('Total')).toBeInTheDocument();
   });
 
-  it('should render group statistics', () => {
+  it('should display ANOVA table rows correctly', () => {
     render(<AnovaResults result={mockResult} factorLabel="Machine" />);
 
-    expect(screen.getByText('Group A:')).toBeInTheDocument();
-    expect(screen.getByText('10.0')).toBeInTheDocument();
+    const table = screen.getByRole('table');
+    const rows = table.querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(3);
 
-    expect(screen.getByText('Group B:')).toBeInTheDocument();
-    expect(screen.getByText('15.0')).toBeInTheDocument();
+    // Factor row: Machine | 1 | 63 | 5.42 | 0.003
+    const factorCells = rows[0].querySelectorAll('td');
+    expect(factorCells[0].textContent).toBe('Machine');
+    expect(factorCells[1].textContent).toBe('1'); // dfBetween
+    expect(factorCells[2].textContent).toBe('63'); // ssb rounded
 
-    // Both groups have n=5, so we use getAllByText
-    const nLabels = screen.getAllByText('(n=5)');
-    expect(nLabels).toHaveLength(2);
+    // Error row: Error | 8 | 8
+    const errorCells = rows[1].querySelectorAll('td');
+    expect(errorCells[0].textContent).toBe('Error');
+    expect(errorCells[1].textContent).toBe('8'); // dfWithin
+
+    // Total row: Total | 9 | 71
+    const totalCells = rows[2].querySelectorAll('td');
+    expect(totalCells[0].textContent).toBe('Total');
+    expect(totalCells[1].textContent).toBe('9'); // dfTotal
   });
 
-  it('should render non-significant result correctly', () => {
-    const nonSigResult: AnovaResult = {
-      ...mockResult,
-      isSignificant: false,
-      pValue: 0.45,
-      fStatistic: 0.8,
-      insight: 'No significant difference between groups',
-    };
+  it('should display eta-squared with percentage', () => {
+    render(<AnovaResults result={mockResult} factorLabel="Machine" />);
 
-    render(<AnovaResults result={nonSigResult} factorLabel="Machine" />);
-
-    expect(screen.getByText('ANOVA: Machine')).toBeInTheDocument();
-    expect(screen.getByText(/F = 0.80/)).toBeInTheDocument();
-    expect(screen.getByText(/p = 0.45/)).toBeInTheDocument();
+    const etaSquared = screen.getByTestId('anova-eta-squared');
+    expect(etaSquared).toBeInTheDocument();
+    // Should show "45.0% of variation explained"
+    expect(etaSquared.textContent).toMatch(/45\.0%/);
+    expect(etaSquared.textContent).toMatch(/variation explained/);
   });
 
-  it('should format very small p-values correctly', () => {
-    const smallPResult = {
+  it('should preserve data-testid attributes for E2E compatibility', () => {
+    render(<AnovaResults result={mockResult} factorLabel="Machine" />);
+
+    expect(screen.getByTestId('anova-results')).toBeInTheDocument();
+    expect(screen.getByTestId('anova-significance')).toBeInTheDocument();
+    expect(screen.getByTestId('anova-eta-squared')).toBeInTheDocument();
+  });
+
+  it('should format very small p-values as <0.001', () => {
+    const smallPResult: AnovaResult = {
       ...mockResult,
       pValue: 0.00001,
     };
 
     render(<AnovaResults result={smallPResult} factorLabel="Machine" />);
-    expect(screen.getByText(/p = < 0.001/)).toBeInTheDocument();
+    expect(screen.getByText('<0.001')).toBeInTheDocument();
+  });
+
+  it('should format p-value to 3 decimal places', () => {
+    render(<AnovaResults result={mockResult} factorLabel="Machine" />);
+    expect(screen.getByText('0.003')).toBeInTheDocument();
+  });
+
+  it('should render accessible table with aria-label', () => {
+    render(<AnovaResults result={mockResult} factorLabel="Machine" />);
+
+    const table = screen.getByRole('table');
+    expect(table).toHaveAttribute('aria-label', 'ANOVA table for Machine');
+  });
+
+  it('should not show eta-squared when zero', () => {
+    const zeroEtaResult: AnovaResult = {
+      ...mockResult,
+      etaSquared: 0,
+    };
+
+    render(<AnovaResults result={zeroEtaResult} factorLabel="Machine" />);
+    expect(screen.queryByTestId('anova-eta-squared')).not.toBeInTheDocument();
   });
 });
