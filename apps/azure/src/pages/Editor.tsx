@@ -16,6 +16,7 @@ import {
   WhatIfPageBase,
   PrioritizationMatrix,
   TrackView,
+  VerificationPrompt,
   DEFAULT_PRESETS,
   type AnalysisBrief,
   type MatrixDimension,
@@ -628,6 +629,12 @@ export const Editor: React.FC<EditorProps> = ({
     aggregatedActions,
     selectedIdeasForRecap,
     projectionReferenceContext,
+    verificationData: improvVerificationData,
+    hasVerification: improvHasVerification,
+    currentOutcome: improvCurrentOutcome,
+    outcomeNotes: improvOutcomeNotes,
+    handleOutcomeChange: improvHandleOutcomeChange,
+    handleOutcomeNotesChange: improvHandleOutcomeNotesChange,
   } = useImprovementOrchestration({
     questionsState,
     findingsState,
@@ -637,6 +644,7 @@ export const Editor: React.FC<EditorProps> = ({
     rawData,
     outcome,
     specs,
+    stagedStats,
   });
   const improvementQuestions = useImprovementStore(s => s.improvementQuestions);
   const improvementLinkedFindings = useImprovementStore(s => s.improvementLinkedFindings);
@@ -644,6 +652,9 @@ export const Editor: React.FC<EditorProps> = ({
   const convertedIdeaIds = useImprovementStore(s => s.convertedIdeaIds);
   const activeImprovementView = useImprovementStore(s => s.activeImprovementView);
   const highlightedIdeaId = useImprovementStore(s => s.highlightedIdeaId);
+
+  // Verification prompt: show when new data is uploaded while findings are improving
+  const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
 
   // Matrix axis state (local — not persisted)
   const [matrixXAxis, setMatrixXAxis] = useState<MatrixDimension>('benefit');
@@ -674,6 +685,15 @@ export const Editor: React.FC<EditorProps> = ({
     showCapabilitySuggestion,
     dataFlow.yamazumiDetection,
   ]);
+
+  // Show verification prompt when new data is uploaded while findings are improving
+  const hasImprovingFindings = findingsState.findings.some(f => f.status === 'improving');
+  useEffect(() => {
+    if (hasImprovingFindings && stagedStats && !improvHasVerification) {
+      setShowVerificationPrompt(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stagedStats]); // Only trigger on stagedStats change (new data upload)
 
   // Journey phase detection
   const journeyPhase = useJourneyPhase(!!filteredData.length, findingsState.findings);
@@ -1177,7 +1197,20 @@ export const Editor: React.FC<EditorProps> = ({
                     onToggleComplete={(actionId, findingId) => {
                       findingsState.toggleActionComplete(findingId, actionId);
                     }}
-                    hasVerification={false}
+                    verification={improvVerificationData}
+                    hasVerification={improvHasVerification}
+                    selectedOutcome={
+                      improvCurrentOutcome
+                        ? improvCurrentOutcome.effective === 'yes'
+                          ? 'effective'
+                          : improvCurrentOutcome.effective === 'partial'
+                            ? 'partial'
+                            : 'not-effective'
+                        : undefined
+                    }
+                    outcomeNotes={improvOutcomeNotes}
+                    onOutcomeChange={improvHandleOutcomeChange}
+                    onOutcomeNotesChange={improvHandleOutcomeNotesChange}
                   />
                 )}
               />
@@ -1295,6 +1328,15 @@ export const Editor: React.FC<EditorProps> = ({
         <EditorMobileSheet
           onAction={handleMobileMore}
           onClose={() => setMobileActiveTab('analysis')}
+        />
+      )}
+
+      {/* Verification prompt: shown when data uploaded while findings are improving */}
+      {showVerificationPrompt && (
+        <VerificationPrompt
+          improvingActionCount={aggregatedActions.filter(a => !a.completedAt).length}
+          onConfirmVerification={() => setShowVerificationPrompt(false)}
+          onDismiss={() => setShowVerificationPrompt(false)}
         />
       )}
     </div>
