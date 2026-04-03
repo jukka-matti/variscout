@@ -32,7 +32,6 @@ The analyst loads the Bottleneck sample via the home screen card or `/?sample=bo
 **Existing guidance at this step:**
 
 - Boxplot shows **"↓ drill here"** label on the group with the highest contribution to variation (likely Step 2, since its spread dominates Total SS).
-- VariationBar at the top shows total variation scope.
 - No other suggestions unless the analyst interacts.
 
 **Gap — the Boxplot draws the eye to the wrong place:**
@@ -49,12 +48,12 @@ The analyst studies the Boxplot more carefully. Five groups are visible. Step 3 
 - Step 3 median is the highest — it looks like the "worst" step.
 - Step 2's box extends much further above and below its median (~40s). Whiskers reach from low 20s to high 50s.
 - Steps 1, 4, 5 are compact and low — clearly not the problem.
-- The "↓ drill here" label appears on Step 2 (highest contribution %), correctly identifying the high-variation step.
-- Contribution percentages are visible on the label, showing Step's dominance.
+- The "↓ drill here" label appears on Step 2 (highest η²), correctly identifying the high-variation step.
+- η² is visible in the ANOVA panel, showing Step's dominance.
 
 **Existing guidance at this step:**
 
-- The "↓ drill here" label with contribution % on Step 2 is the key navigation cue.
+- The "↓ drill here" label on Step 2 is the key navigation cue.
 - ANOVA (visible in maximized boxplot view) shows Step is a significant factor with high F-statistic and low p-value.
 
 **Gap — no "variation vs mean" teaching moment:**
@@ -72,14 +71,12 @@ The analyst clicks the Step 2 group in the Boxplot. The dashboard filters to onl
 - **Boxplot**: Now shows Shift groups within Step 2 (Morning, Afternoon). Both boxes are wide.
 - **Pareto**: Shift-level ranking within Step 2.
 - **Stats Panel**: Mean ~40s, std dev ~10s, n=30. The standard deviation is the key number — it's 3–5x higher than other steps.
-- **FilterBreadcrumb**: A chip appears: **"Step: Step 2 XX%"** — showing Step 2's contribution to total variation. The percentage is high, confirming this is the dominant source.
-- **VariationBar**: Updates to show cumulative explained variation.
+- **FilterBreadcrumb**: A chip appears: **"Step: Step 2 (n=30)"** — showing the sample count for the filtered subset, confirming this is a meaningful slice of the data.
 
 **Existing guidance at this step:**
 
-- Filter chip with contribution % badge confirms this is a meaningful filter.
+- Filter chip with n=X count confirms this is a meaningful filter.
 - Boxplot "↓ drill here" appears on one of the Shift groups.
-- VariationBar shows progress in the investigation.
 
 **Gap — no "you found the problem" confirmation:**
 The analyst has correctly identified the high-variation step, but nothing in the UI celebrates or confirms this. The I-Chart's wild scatter is the visual proof, and the std dev ~10 is the numeric proof, but there's no explicit comparison to other steps. The analyst would need to mentally recall that other steps had std ~2–3 to appreciate the 3–5x difference. A side-by-side comparison or "Step 2's variation is 3x the average of other steps" callout would reinforce the finding.
@@ -93,16 +90,16 @@ The analyst examines the Boxplot showing Morning vs Afternoon shifts within Step
 **What the analyst sees:**
 
 - **Boxplot**: Two boxes (Morning, Afternoon) with similar medians (~40s) and similarly wide spread. Neither shift is dramatically different from the other.
-- **"↓ drill here"** may appear on one shift, but the contribution % is low.
+- **"↓ drill here"** may appear on one shift, but the η² is low.
 - **ANOVA** (if checked): Shift within Step 2 has a low F-statistic and high p-value. Shift explains negligible variation within Step 2.
 
 **Existing guidance at this step:**
 
-- Low contribution % on the Shift label signals this factor isn't important within the current filter.
+- Low η² in ANOVA signals this factor isn't important within the current filter.
 - ANOVA confirms Shift is not significant.
 
 **Gap — no "dead end" signal:**
-The analyst has reached a dead end — Shift doesn't explain Step 2's variation. The problem is the step's process itself, not when it runs. But nothing in the UI explicitly says "this factor doesn't help." The analyst must interpret the similar-looking boxes and low contribution % themselves. A prompt like "Shift explains <5% of remaining variation — the variability is inherent to Step 2's process" would close the loop and redirect the analyst's attention.
+The analyst has reached a dead end — Shift doesn't explain Step 2's variation. The problem is the step's process itself, not when it runs. But nothing in the UI explicitly says "this factor doesn't help." The analyst must interpret the similar-looking boxes and low η² themselves. A prompt like "Shift explains <5% of remaining variation — the variability is inherent to Step 2's process" would close the loop and redirect the analyst's attention.
 
 ---
 
@@ -120,7 +117,7 @@ The analyst removes the Step 2 filter (clicks the X on the filter chip) to retur
 **Existing guidance at this step:**
 
 - The stats panel clearly shows the low std dev.
-- Filter chip shows contribution %.
+- Filter chip shows n=X sample count.
 
 **Gap — no comparison context from the previous drill:**
 This is where the pedagogical payoff should happen: Step 2 (mean ~40, std ~10) vs Step 3 (mean ~45, std ~2). But the analyst has to remember Step 2's numbers from memory. The sequential drill-down loses the comparison context — each filter shows its own stats in isolation. There is no "compared to Step 2, this step has 5x less variation" callout. No side-by-side view of drill results. The "slow but predictable vs fast but chaotic" insight requires the analyst to hold two mental models simultaneously.
@@ -171,15 +168,15 @@ The entire teaching arc depends on the analyst constructing the "variation > mea
 
 ## Summary: Guidance Coverage by Step
 
-| Step | Description                  | Existing Guidance                            | Gaps                                                       |
-| ---- | ---------------------------- | -------------------------------------------- | ---------------------------------------------------------- |
-| 1    | Data loaded                  | Boxplot "↓ drill here", VariationBar         | Eye drawn to Step 3's high median, not Step 2's wide box   |
-| 2    | Boxplot reveals misdirection | "↓ drill here" on Step 2 with contribution % | No teaching callout: "variation matters more than average" |
-| 3    | Drill into Step 2            | Filter chip with %, I-Chart shows scatter    | No confirmation: "you found the high-variation step"       |
-| 4    | Shift within Step 2          | Low contribution %, ANOVA not significant    | No "dead end" signal to redirect investigation             |
-| 5    | Backtrack, drill Step 3      | Stats show low std dev                       | No comparison to Step 2 — sequential drills lose context   |
-| 6    | Return to full view          | ANOVA confirms Step is significant           | No investigation summary or journey record                 |
-| 7    | Investigation complete       | (none)                                       | No narrative conclusion or teaching wrap-up                |
+| Step | Description                  | Existing Guidance                           | Gaps                                                       |
+| ---- | ---------------------------- | ------------------------------------------- | ---------------------------------------------------------- |
+| 1    | Data loaded                  | Boxplot "↓ drill here"                      | Eye drawn to Step 3's high median, not Step 2's wide box   |
+| 2    | Boxplot reveals misdirection | "↓ drill here" on Step 2 with η²            | No teaching callout: "variation matters more than average" |
+| 3    | Drill into Step 2            | Filter chip with n=X, I-Chart shows scatter | No confirmation: "you found the high-variation step"       |
+| 4    | Shift within Step 2          | Low η², ANOVA not significant               | No "dead end" signal to redirect investigation             |
+| 5    | Backtrack, drill Step 3      | Stats show low std dev                      | No comparison to Step 2 — sequential drills lose context   |
+| 6    | Return to full view          | ANOVA confirms Step is significant          | No investigation summary or journey record                 |
+| 7    | Investigation complete       | (none)                                      | No narrative conclusion or teaching wrap-up                |
 
 ---
 

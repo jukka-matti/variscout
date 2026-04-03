@@ -111,14 +111,14 @@ Filters **do not persist** across page navigation. Cross-page column transfer us
 
 | Capability          | EDAScout                              | VariScout                                    |
 | ------------------- | ------------------------------------- | -------------------------------------------- |
-| Filter UI           | Modal (SubgroupExplorerModal)         | Inline chips with contribution %             |
+| Filter UI           | Modal (SubgroupExplorerModal)         | Inline chips with n=X sample count           |
 | Filter persistence  | Modal-scoped, lost on page navigation | Persistent across all four lenses            |
 | Filter logic        | AND across categories, OR within      | AND across categories, OR within (identical) |
 | Variance indication | Within-group SS coloring (misleading) | Between-group eta-squared (correct)          |
 | Cumulative tracking | None                                  | Variation funnel with cumulative eta-squared |
 | Filter context      | Separate from charts (modal)          | Integrated into chart interaction            |
 
-VariScout's filter architecture is fundamentally stronger: filters are integrated into the chart interaction (click-to-drill), persist across all four lenses, and display correct between-group contribution percentages. EDAScout's modal-based approach separates the "seeing variation" step from the "filtering" step, requiring a cognitive transfer that VariScout eliminates.
+VariScout's filter architecture is fundamentally stronger: filters are integrated into the chart interaction (click-to-drill), persist across all four lenses, and display n=X sample counts on filter chips (η² for effect size is shown in the ANOVA panel). EDAScout's modal-based approach separates the "seeing variation" step from the "filtering" step, requiring a cognitive transfer that VariScout eliminates.
 
 ---
 
@@ -160,7 +160,7 @@ Data flows through a shared `DataContext` (headers, rows, column classifications
 | ---------------------------- | ------------------------------------ | --------------------------------------------------- |
 | Chart coordination           | One chart per page                   | Four Lenses (4 charts simultaneously)               |
 | Filter across analyses       | Not supported (filters are per-page) | Linked filtering across all charts                  |
-| Analysis sequencing          | AI-suggested next steps (breadcrumb) | Methodology-driven (documentation + contribution %) |
+| Analysis sequencing          | AI-suggested next steps (breadcrumb) | Methodology-driven (documentation + η² effect size) |
 | Available analysis detection | Column-type based                    | Column-type based (similar)                         |
 | Navigation model             | Route-based (SPA pages)              | In-page (filter chips + chart updates)              |
 

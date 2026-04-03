@@ -109,7 +109,7 @@ VariScout is designed for practitioners who need to **find and act on variation 
 | **Operations Managers** | Quick answers, clear actions          | Breadcrumb trail, cumulative %        |
 | **Supervisors**         | Identify which shift/machine/operator | Boxplot + linked filtering            |
 | **Quality Teams**       | Capability reporting, spec compliance | Cp/Cpk, pass/fail %                   |
-| **OpEx Teams**          | Prioritize improvement projects       | Pareto, variation contribution %      |
+| **OpEx Teams**          | Prioritize improvement projects       | Pareto, η² effect size                |
 
 **What they DON'T need (initially):**
 

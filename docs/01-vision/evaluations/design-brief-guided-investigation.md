@@ -19,12 +19,12 @@ The guided investigation features build on two distinct statistical engines alre
 
 The drill-down workflow uses one-way ANOVA eta-squared (η² = SS_between / SS_total) to rank factors by explanatory power. This is the correct metric for the "which factor next?" question because it quantifies how much of the outcome's total variation is attributable to group membership.
 
-| Capability                | Implementation                            | Location                                      | Status |
-| ------------------------- | ----------------------------------------- | --------------------------------------------- | ------ |
-| Single-factor η²          | `getEtaSquared(data, factor, outcome)`    | `packages/core/src/stats.ts:177`              | Exists |
-| Per-category contribution | `useVariationTracking` → `filterChipData` | `packages/hooks/src/useVariationTracking.ts`  | Exists |
-| Cumulative η² tracking    | `useVariationTracking` → running sum      | `packages/hooks/src/useVariationTracking.ts`  | Exists |
-| Factor ranking by η²      | `VariationFunnel` → `optimalFactors`      | `apps/pwa/src/components/VariationFunnel.tsx` | Exists |
+| Capability              | Implementation                            | Location                                      | Status |
+| ----------------------- | ----------------------------------------- | --------------------------------------------- | ------ |
+| Single-factor η²        | `getEtaSquared(data, factor, outcome)`    | `packages/core/src/stats.ts:177`              | Exists |
+| Per-filter sample count | `useVariationTracking` → `filterChipData` | `packages/hooks/src/useVariationTracking.ts`  | Exists |
+| Cumulative η² tracking  | `useVariationTracking` → running sum      | `packages/hooks/src/useVariationTracking.ts`  | Exists |
+| Factor ranking by η²    | `VariationFunnel` → `optimalFactors`      | `apps/pwa/src/components/VariationFunnel.tsx` | Exists |
 
 **Key property**: η² values are computed per-factor against the current filtered subset, so they update dynamically as the analyst drills down. This is the foundation for factor suggestion — the highest η² among remaining (unfiltered) factors is the suggested next step.
 
@@ -64,11 +64,10 @@ VariScout already contains 10+ guidance elements scattered across the PWA and (p
 
 ### High Prominence (Always Visible)
 
-| Element                        | Location                                                                   | What It Does                                                                                                             | Platform   |
-| ------------------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ---------- |
-| **Boxplot "↓ drill here"**     | `packages/charts/src/Boxplot.tsx:389`                                      | Red text label on the highest-η² bar in the Boxplot                                                                      | PWA, Azure |
-| **Filter chip contribution %** | `packages/ui/src/components/FilterBreadcrumb/FilterBreadcrumb.tsx:272–297` | Badge on each active filter showing its contribution to total variation (color-coded: ≥50% green, ≥30% amber, <30% blue) | PWA, Azure |
-| **VariationBar**               | `packages/ui/src/components/VariationBar/`                                 | Horizontal bar showing cumulative explained variation                                                                    | PWA, Azure |
+| Element                    | Location                                                           | What It Does                                                                   | Platform   |
+| -------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ | ---------- |
+| **Boxplot "↓ drill here"** | `packages/charts/src/Boxplot.tsx:389`                              | Red text label on the highest-η² bar in the Boxplot                            | PWA, Azure |
+| **Filter chip n=X badge**  | `packages/ui/src/components/FilterBreadcrumb/FilterBreadcrumb.tsx` | Badge on each active filter showing sample count (n=X) for the filtered subset | PWA, Azure |
 
 ### Moderate Prominence (Visible in Funnel Panel)
 
@@ -92,15 +91,15 @@ VariScout already contains 10+ guidance elements scattered across the PWA and (p
 
 The Azure app is missing several guidance elements that exist in the PWA:
 
-| Missing in Azure                  | Impact                                         |
-| --------------------------------- | ---------------------------------------------- |
-| VariationFunnel / FunnelPanel     | No factor ranking view, no cumulative tracking |
-| InteractionGuidance               | No interaction awareness prompt                |
-| FunnelWindow (pop-out)            | No companion overview window                   |
-| Inline Cpk badges                 | No improvement potential indicators            |
-| Cumulative explained target (70%) | No stopping signal                             |
+| Missing in Azure                  | Impact                                            |
+| --------------------------------- | ------------------------------------------------- |
+| VariationFunnel / FunnelPanel     | No factor ranking view, no cumulative η² tracking |
+| InteractionGuidance               | No interaction awareness prompt                   |
+| FunnelWindow (pop-out)            | No companion overview window                      |
+| Inline Cpk badges                 | No improvement potential indicators               |
+| Cumulative explained target (70%) | No stopping signal                                |
 
-The Azure app has the Boxplot "↓ drill here", FilterBreadcrumb with contribution %, VariationBar, and WhatIfSimulator — the high-prominence and lowest-prominence elements. The entire middle tier (the Funnel Panel ecosystem) is absent.
+The Azure app has the Boxplot "↓ drill here", FilterBreadcrumb with n=X badge, and WhatIfSimulator — the high-prominence and lowest-prominence elements. The entire middle tier (the Funnel Panel ecosystem) is absent.
 
 ### Audit Summary
 
@@ -144,13 +143,13 @@ Distilled from the six competitor benchmarks ([Minitab](competitive/minitab-benc
 
 These elements already exist and work correctly. The design task is making them more discoverable and consistent across platforms:
 
-| Element                    | Current State                                         | Design Need                                                                     |
-| -------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Boxplot "↓ drill here"     | Works but is a single red label; no context about why | Add η² value, make it a tappable suggestion chip                                |
-| Filter chip contribution % | Color-coded badge, well-implemented                   | Consider making it more prominent or adding a "cumulative" view                 |
-| VariationFunnel ranking    | Rich but hidden in slide-out panel                    | Surface key information (next factor suggestion, cumulative %) in the main view |
-| InteractionGuidance        | Only triggers at 2+ factors; text-only                | Integrate with the interaction heatmap (Phase 2) for visual backing             |
-| WhatIfSimulator            | Present in both PWA and Azure                         | No changes needed for Phase 1                                                   |
+| Element                 | Current State                                         | Design Need                                                                      |
+| ----------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Boxplot "↓ drill here"  | Works but is a single red label; no context about why | Add η² value, make it a tappable suggestion chip                                 |
+| Filter chip n=X badge   | Shows sample count per active filter                  | Consider adding cumulative η² view alongside sample count                        |
+| VariationFunnel ranking | Rich but hidden in slide-out panel                    | Surface key information (next factor suggestion, cumulative η²) in the main view |
+| InteractionGuidance     | Only triggers at 2+ factors; text-only                | Integrate with the interaction heatmap (Phase 2) for visual backing              |
+| WhatIfSimulator         | Present in both PWA and Azure                         | No changes needed for Phase 1                                                    |
 
 ### New Design: Investigation Overview Components
 

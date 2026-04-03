@@ -92,7 +92,7 @@ Everything already in DataContext, extracted by `buildAIContext()`:
 - Computed statistics: mean, median, stdDev, Cp, Cpk, pass rate
 - Variation metrics: η² per factor, cumulative scope, Total SS
 - Violations: Nelson Rule 2 (shift) and Rule 3 (trend) sequence counts, control/spec limit breaches
-- Findings: title, status, tag, factor, contribution %, suspected cause, actions, outcome
+- Findings: title, status, tag, factor, η² (effect size), suspected cause, actions, outcome
 - Filter state: active drill path and breadcrumbs
 
 Typical payload: <500 tokens.
@@ -635,7 +635,7 @@ How AI context changes across investigation phases:
 | -------------- | ------------------------------------------- | ------------------------------------------ | -------------------------------------------------- |
 | **Initial**    | Problem statement, basic stats              | "What patterns do you see?"                | Help identify which chart to examine first         |
 | **Diverging**  | Hypothesis tree, categories                 | "Have you explored [uncovered category]?"  | Encourage exploring across factor categories       |
-| **Validating** | η² contributions, validation status         | "What does this η² mean for [factor]?"     | Help interpret contribution %, prioritize untested |
+| **Validating** | η² contributions, validation status         | "What does this η² mean for [factor]?"     | Help interpret η² effect size, prioritize untested |
 | **Converging** | Supported hypotheses with improvement ideas | "What improvement ideas for [hypothesis]?" | Help evaluate suspected cause, brainstorm ideas    |
 
 > **IMPROVE phase:** CoScout shifts to action planning and Cpk monitoring. Action items, projections, and outcomes are injected as context. See [AIX Design System § Verification Sub-pattern](aix-design-system.md).
