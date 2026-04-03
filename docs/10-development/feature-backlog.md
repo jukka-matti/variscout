@@ -80,13 +80,13 @@ Detailed analysis: [discussions/2026-03-29-probability-plot-analysis.md](discuss
 - [x] `computeHubEvidence` in `packages/core/src/findings/helpers.ts` — mode-dispatched evidence computers
 - [x] `generateForMode` in `packages/hooks/src/useQuestionGeneration.ts` — extracted dispatch function
 
-**Remaining consolidation targets:**
+**Remaining consolidation targets:** All done (Apr 2026).
 
-- [ ] `useYamazumiParetoData.ts` — 5-case switch for Pareto aggregation modes (steps-total, steps-waste, steps-nva, activities, reasons). Extract to `aggregators: Record<YamazumiParetoMode, AggregatorFn>`.
-- [ ] `ImprovementSummaryBar.tsx` — 4 sequential if blocks (~160 lines) for improvement phase rendering (plan, plan-mixed, track, track-verified). Extract to mode-specific components or renderer map.
-- [ ] `ManualEntrySetupBase.tsx` + `ManualEntryBase.tsx` — Scattered if/else checks for standard vs performance mode. Extract validation and column generation to mode-specific config objects.
-- [ ] `bestSubsets.ts` — Evidence metric switch for 4 modes. Create declarative mode-to-metric mapping.
-- [ ] `Dashboard.tsx` — Tab routing based on analysis mode. Derive from `getStrategy()` instead of hardcoded conditionals.
+- [x] `useYamazumiParetoData.ts` — `categoryExtractors: Record<YamazumiParetoMode, CategoryExtractor>`
+- [x] `ImprovementSummaryBar.tsx` — `modeRenderers: Record<SummaryMode, RenderFn>`
+- [x] `ManualEntrySetupBase.tsx` + `ManualEntryBase.tsx` — `modeValidators`, `modeConfigRenderers`, `emptyRowCreators`, `pasteMappers`, `analyzers`
+- [x] `bestSubsets.ts` — `singleFactorFormatters` / `combinationFormatters: Record<ResolvedMode, Fn>`
+- [x] `Dashboard.tsx` — `modeTabs: Record<ResolvedMode, ModeTab[]>` + `modeDefaultTab`
 
 **Pattern reference:** See `packages/core/src/analysisStrategy.ts` for the canonical implementation.
 
