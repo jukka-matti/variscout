@@ -15,3 +15,5 @@ export { QUESTION_STATUS_COLORS } from './questionStatus';
 export { buildProblemStatement } from './problemStatement';
 export type { ProblemStatementInput } from './problemStatement';
 export { assignCauseColors } from './causeColors';
+export { generateHMWPrompts } from './hmwPrompts';
+export type { BrainstormIdea } from './hmwPrompts';
