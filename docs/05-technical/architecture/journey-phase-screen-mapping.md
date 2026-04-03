@@ -73,8 +73,10 @@ Store actions: `panelsStore.showDashboard()` / `showAnalysis()` / `showInvestiga
 **New UI elements added in INVESTIGATE (2026-03-18):**
 
 - **`HypothesisNode` — inline sub-hypothesis form:** The "+" button on each node expands an inline form (text input + optional factor dropdown + validation type radio buttons) in place of the previous `window.prompt()`. Cancels with Escape; submits with Enter or "Add".
-- **`HypothesisNode` — cause role cycle button:** Supported/partial nodes show a 🎯 button that cycles `none → primary → contributing → none`. Only one primary allowed per root tree; no limit on contributing. `PRIMARY` / `CONTRIBUTING` badges rendered on the node row.
-- **`FindingCard` — "Suspected cause" section:** When any hypothesis carries a causeRole and the finding is `analyzed` or higher, the card renders a "Suspected cause" section listing the primary hypothesis prominently and contributing hypotheses beneath it.
+- **`InvestigationConclusion` — SuspectedCause hub creation:** In the Converging phase, the analyst creates named hub entities that group multiple answered questions into one causal story. Multiple hubs are allowed. Each hub receives a mechanism name and collects its evidence links. The old `causeRole: 'primary'` cycle button (single-primary constraint) is replaced by hub membership management.
+- **`FindingCard` — "Suspected causes" section:** When any hub exists and the finding is `analyzed` or higher, the card renders a "Suspected causes" section listing hub names ranked by total evidence (η²/R²adj), with contributing questions beneath each hub.
+
+**Amendment (Apr 2026):** The Converging phase creates `SuspectedCauseHub` entities rather than setting `causeRole` tags on individual questions. See [Investigation Workspace Reframing Design](../../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md).
 
 **Entry scenario affects INVESTIGATE:** "Problem to Solve" → full diamond traversal expected. "Hypothesis to Check" → may skip diverging, go straight to validating. Entry scenario flows to CoScout via `useEditorAI`.
 
@@ -92,7 +94,7 @@ Store actions: `panelsStore.showDashboard()` / `showAnalysis()` / `showInvestiga
 
 - **`ImprovementWorkspaceBase`** — Full-page improvement planning view. Contains SynthesisCard, Four Directions hint, IdeaGroupCards grouped by hypothesis, and ImprovementSummaryBar. Azure only.
 - **`SynthesisCard`** — Convergence synthesis narrative (editable, max 500 chars). Linked finding badges. Read-only variant for Board view header.
-- **`IdeaGroupCard`** — Ideas grouped by supported/partial hypothesis. Each row has checkbox, direction badge (Four Ideation Directions), timeframe dropdown (just do/days/weeks/months), cost estimate, risk assessment, projection badge, What-If and CoScout buttons.
+- **`IdeaGroupCard`** — Ideas grouped by SuspectedCause hub (one card per hub). Each row has checkbox, direction badge (Four Ideation Directions), timeframe dropdown (just do/days/weeks/months), cost estimate, risk assessment, projection badge, What-If and CoScout buttons.
 - **`ImprovementSummaryBar`** — Sticky bottom bar: selected count, timeframe breakdown, projected Cpk, "Convert selected → Actions" button.
 - **Direction badge on `HypothesisNode` ideas:** Color-coded prevent/detect/simplify/eliminate badge (Four Ideation Directions).
 - **Timeframe dropdown on `HypothesisNode`:** Inline `<select>` for implementation timeframe (just do/days/weeks/months), color-coded.

@@ -51,8 +51,9 @@ stateDiagram-v2
 
     state Converging {
         [*] --> ReviewingEvidence
-        ReviewingEvidence --> MarkingCauseRoles
-        MarkingCauseRoles --> SynthesizingSuspectedCauses
+        ReviewingEvidence --> CreatingSuspectedCauseHubs
+        CreatingSuspectedCauseHubs --> LinkingEvidenceToHubs
+        LinkingEvidenceToHubs --> SynthesizingProblemStatement
     }
 ```
 
@@ -60,12 +61,12 @@ stateDiagram-v2
 
 Each investigation diamond phase triggers distinct CoScout behavior and UI changes.
 
-| Phase          | Trigger In                   | CoScout Behavior                                                                       | UI Changes                                                                       | Suggested Questions                                                  |
-| -------------- | ---------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| **Initial**    | Data loaded, scanning charts | Scan patterns + generate questions (Factor Intelligence ranking)                       | Dashboard with Four Lenses, question checklist                                   | "Which factors should we check first?"                               |
-| **Diverging**  | First question generated     | Encourage exploring open questions, suggest follow-ups                                 | Investigation panel opens, question checklist with status dots                   | "Does [factor] explain variation? (R²adj = X%)"                      |
-| **Validating** | Question selected            | Help interpret evidence for/against (eta-squared, R²adj)                               | Validation checklist, ANOVA highlights                                           | "eta-squared for [factor] is X% — does this answer the question?"    |
-| **Converging** | Evidence collected           | Synthesize multiple suspected causes into problem statement, suggest causeRole marking | Finding cards show answer status, suspected causes section with causeRole badges | "Evidence points to [factor] as suspected cause — ready to improve?" |
+| Phase          | Trigger In                   | CoScout Behavior                                                                    | UI Changes                                                                 | Suggested Questions                                                     |
+| -------------- | ---------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **Initial**    | Data loaded, scanning charts | Scan patterns + generate questions (Factor Intelligence ranking)                    | Dashboard with Four Lenses, question checklist                             | "Which factors should we check first?"                                  |
+| **Diverging**  | First question generated     | Encourage exploring open questions, suggest follow-ups                              | Investigation panel opens, question checklist with status dots             | "Does [factor] explain variation? (R²adj = X%)"                         |
+| **Validating** | Question selected            | Help interpret evidence for/against (eta-squared, R²adj)                            | Validation checklist, ANOVA highlights                                     | "eta-squared for [factor] is X% — does this answer the question?"       |
+| **Converging** | Evidence collected           | Synthesize multiple suspected causes into problem statement via SuspectedCause hubs | Finding cards show answer status, suspected causes section with hub badges | "Evidence points to [mechanism] as suspected cause — ready to improve?" |
 
 > **Note:** For CoScout behavior during IMPROVE (suggesting corrective actions, monitoring Cpk), see [Analysis Journey Map § Phase 4](analysis-journey-map.md#phase-4-improve).
 
@@ -119,10 +120,10 @@ flowchart TD
     J -->|Answers no| L[Mark question ruled-out]
     J -->|Inconclusive| M[Gather more evidence]
     M --> B
-    K --> O{Assign cause role?}
-    O -->|Suspected cause| P[Set causeRole: suspected-cause]
-    O -->|Contributing| Q[Set causeRole: contributing]
-    O -->|Skip| N
+    K --> O{Link to hub?}
+    O -->|Create or join hub| P[Add question to SuspectedCauseHub]
+    O -->|Contributing evidence| Q[Mark as contributing in hub]
+    O -->|Skip for now| N
     P --> N
     Q --> N
     L --> N
@@ -138,6 +139,33 @@ flowchart TD
 
 **Auto-answered questions:** Factor Intelligence auto-answers questions where R²adj < 5% as "ruled out" — these are negative learnings captured without analyst effort. Factors with R²adj > 5% generate follow-up questions (Layer 2-3).
 
+## SuspectedCause Hub Lifecycle
+
+SuspectedCause hubs have their own lifecycle distinct from the question tree and finding status:
+
+```mermaid
+stateDiagram-v2
+    [*] --> created : Analyst creates hub in Converging phase
+    created --> evidenceLinked : Questions and findings linked
+    evidenceLinked --> named : Hub receives a mechanism name
+    named --> improvementTarget : Hub drives HMW brainstorm in IMPROVE
+    improvementTarget --> confirmed : Outcome verified as effective
+    improvementTarget --> ruled_out : Outcome shows fix was ineffective
+
+    evidenceLinked --> evidenceLinked : More questions linked
+```
+
+| Hub State           | Meaning                                                               |
+| ------------------- | --------------------------------------------------------------------- |
+| `created`           | Named entity exists, no questions linked yet                          |
+| `evidenceLinked`    | One or more answered questions linked to the hub                      |
+| `named`             | Hub has a mechanism name (e.g., "Worn nozzle tip")                    |
+| `improvementTarget` | Hub has an associated HMW brainstorm and improvement ideas in IMPROVE |
+| `confirmed`         | Outcome shows the fix was effective — hub mechanism was real          |
+| `ruled_out`         | Outcome shows the fix was not effective — re-enter INVESTIGATE        |
+
+Confirmation only happens at `resolved` status when outcome is "Effective." Hubs in `improvementTarget` state should be treated as theories, not facts.
+
 ## Hooks and Components
 
 Each investigation concept maps to a specific hook or component in the codebase.
@@ -151,7 +179,7 @@ Each investigation concept maps to a specific hook or component in the codebase.
 | Finding cards                 | `FindingCard`                             | `@variscout/ui`    |
 | Board view                    | `FindingBoardView`                        | `@variscout/ui`    |
 | What-If simulator             | `WhatIfSimulator`                         | `@variscout/ui`    |
-| Cause role management         | `setCauseRole` in `useHypotheses`         | `@variscout/hooks` |
+| SuspectedCause hub CRUD       | `useSuspectedCauses` in `useHypotheses`   | `@variscout/hooks` |
 | Idea→What-If projection       | `WhatIfPageBase` (projectionContext)      | `@variscout/ui`    |
 | Simulation change callback    | `onSimulationChange` in `WhatIfSimulator` | `@variscout/ui`    |
 

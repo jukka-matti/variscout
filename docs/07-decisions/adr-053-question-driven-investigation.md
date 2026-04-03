@@ -126,11 +126,26 @@ The current implementation covers **Standard mode** — questions generated from
 | Investigation Panel wiring               | `packages/ui/src/components/FindingsWindow/`                      | Complete |
 | Mode-aware question generation           | See [ADR-054](adr-054-mode-aware-question-strategy.md)            | Planned  |
 
+## Amendment: Investigation Reframing (Apr 2026)
+
+**Extended by:** Investigation Workspace Reframing design spec (Apr 2026)
+
+Three clarifications added after implementation experience:
+
+1. **SuspectedCause hub entities replace causeRole tagging.** Suspected causes are now `SuspectedCauseHub` entities that connect multiple evidence threads (questions, findings) into one named mechanism story. The `causeRole: 'primary' | 'contributing'` field on `Hypothesis` is deprecated. Multiple hubs per investigation are the norm, each driving its own HMW brainstorm in IMPROVE.
+
+2. **Problem Statement forms at FRAME + SCOUT Loop 1, not at investigation end.** Q1 (measure) and Q2 (direction) are answered when the analyst maps data and sets characteristic type during FRAME. Q3 (scope) fills in when the first SuspectedCause hub is created. The Problem Statement is a live view, not a button-triggered output.
+
+3. **The Investigation Diamond = finding the WHY, not forming the Problem Statement.** The diamond's Converging phase is for creating SuspectedCause hubs and linking evidence — the Problem Statement assembles itself from hub data. The diamond closes when hubs are named; the Problem Statement is a consequence, not the goal of convergence.
+
+See: [Investigation Workspace Reframing Design](../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md)
+
 ## References
 
 - Turtiainen, J-M. (2019). _Mental Model for Exploratory Data Analysis Applications for Structured Problem-Solving._ LUT University.
 - Watson, G.H. (2019a). _The DNA of Strategy Execution._
 - [Design spec: Question-Driven EDA](../superpowers/specs/2026-03-30-question-driven-eda-design.md)
+- [Investigation Workspace Reframing Design](../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md)
 - [Thesis reference](../01-vision/references/turtiainen-2019-eda-mental-model.md)
 - [ADR-020: Investigation Workflow](adr-020-investigation-workflow.md)
 - [ADR-029: AI Action Tools](adr-029-ai-action-tools.md)

@@ -43,7 +43,7 @@ The left panel shows the improvement context while the analyst is not projecting
 
 - **Problem Statement** — `processContext.problemStatement` (Watson's 3-question synthesis from the Investigation phase)
 - **Improvement Target** — `processContext.targetValue` alongside the current Cpk from the stats pipeline
-- **Suspected Causes** — Questions with `status: 'answered' | 'investigating'` and `causeRole: 'suspected-cause' | 'contributing'`, each showing its R²adj or η² evidence
+- **Suspected Causes** — `SuspectedCauseHub` entities from the investigation, each showing its mechanism name, linked question count, and total R²adj or η² evidence
 - **Synthesis** — `processContext.synthesis` (editable narrative, max 500 chars). Pre-filled from the problem statement text on first open if synthesis is empty.
 
 ## Brainstorm Modal
@@ -82,11 +82,13 @@ The default view after entering the Improvement workspace.
 
 ### Idea Cards
 
-`IdeaGroupCard` instances are stacked below the matrix, one per suspected cause. Each card header shows:
+`IdeaGroupCard` instances are stacked below the matrix, one per SuspectedCause hub. Each card header shows:
 
 - Cause color bar on the left
-- Cause name and evidence badge (R²adj % or η² from `question.evidence`)
-- Cause role label ("suspected cause" or "contributing")
+- Hub name (the mechanism name set during investigation) and evidence badge (total R²adj % or η² across linked questions)
+- Hub membership label ("suspected cause" or "contributing")
+
+Each hub drives one HMW brainstorm session via the "Brainstorm" button. This keeps improvement ideation anchored to a specific mechanism rather than to individual questions or factor levels.
 
 Each idea row within the card contains: selection checkbox, idea text, direction badge (Prevent/Detect/Simplify/Eliminate), timeframe dropdown, cost dropdown, risk assessment, projected Cpk badge (when a What-If projection is saved), action buttons for "Project" and CoScout, and a "→ Action" badge when the idea has been converted.
 
