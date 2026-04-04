@@ -498,6 +498,9 @@ importers:
       '@variscout/data':
         specifier: workspace:*
         version: link:../data
+      '@variscout/stores':
+        specifier: workspace:*
+        version: link:../stores
       comlink:
         specifier: ^4.4.2
         version: 4.4.2
