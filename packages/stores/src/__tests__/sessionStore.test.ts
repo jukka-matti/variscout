@@ -197,4 +197,30 @@ describe('sessionStore — ViewState persistence', () => {
     // Non-persisted fields should not appear
     expect('highlightRowIndex' in persisted).toBe(false);
   });
+
+  // --- Azure-specific fields ---
+
+  it('setAIEnabled toggles AI', () => {
+    useSessionStore.getState().setAIEnabled(false);
+    expect(useSessionStore.getState().aiEnabled).toBe(false);
+    useSessionStore.getState().setAIEnabled(true);
+    expect(useSessionStore.getState().aiEnabled).toBe(true);
+  });
+
+  it('setAIPreferences updates per-component toggles', () => {
+    useSessionStore.getState().setAIPreferences({ narration: true, insights: false });
+    expect(useSessionStore.getState().aiPreferences).toEqual({ narration: true, insights: false });
+  });
+
+  it('setKnowledgeSearchFolder sets folder path', () => {
+    useSessionStore.getState().setKnowledgeSearchFolder('/Shared Documents/KB');
+    expect(useSessionStore.getState().knowledgeSearchFolder).toBe('/Shared Documents/KB');
+  });
+
+  it('defaults: aiEnabled is true, aiPreferences empty, knowledgeSearchFolder null', () => {
+    const initial = getSessionInitialState();
+    expect(initial.aiEnabled).toBe(true);
+    expect(initial.aiPreferences).toEqual({});
+    expect(initial.knowledgeSearchFolder).toBeNull();
+  });
 });

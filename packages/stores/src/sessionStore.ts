@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { idbStorage } from './persistence/idbAdapter';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,6 +47,14 @@ export interface SessionState {
   expandedQuestionId: string | null;
   /** Set by navigate_to tool; consumed by Editor to focus a chart via ViewState */
   pendingChartFocus: string | null;
+
+  // Azure-specific fields (no-op in PWA)
+  /** Whether CoScout AI is enabled */
+  aiEnabled: boolean;
+  /** Per-component AI toggle preferences (e.g., { narration: true, insights: false }) */
+  aiPreferences: Record<string, boolean>;
+  /** SharePoint/OneDrive folder path for Knowledge Base search */
+  knowledgeSearchFolder: string | null;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -74,6 +84,11 @@ export interface SessionActions {
   setExpandedQuestionId: (id: string | null) => void;
   setPendingChartFocus: (chart: string | null) => void;
 
+  // Azure-specific
+  setAIEnabled: (enabled: boolean) => void;
+  setAIPreferences: (prefs: Record<string, boolean>) => void;
+  setKnowledgeSearchFolder: (folder: string | null) => void;
+
   // Persistence
   initFromViewState: (
     viewState: (Partial<PersistedViewState> & Record<string, unknown>) | null | undefined
@@ -99,68 +114,93 @@ export const getSessionInitialState = (): SessionState => ({
   highlightedFindingId: null,
   expandedQuestionId: null,
   pendingChartFocus: null,
+  aiEnabled: true,
+  aiPreferences: {},
+  knowledgeSearchFolder: null,
 });
 
 // ── Store ────────────────────────────────────────────────────────────────────
 
-export const useSessionStore = create<SessionStore>(set => ({
-  ...getSessionInitialState(),
+export const useSessionStore = create<SessionStore>()(
+  persist(
+    set => ({
+      ...getSessionInitialState(),
 
-  // Workspace navigation
-  showDashboard: () => set({ activeView: 'dashboard' }),
-  showAnalysis: () => set({ activeView: 'analysis' }),
-  showInvestigation: () =>
-    set({
-      activeView: 'investigation',
-      isPISidebarOpen: true,
-      piActiveTab: 'questions',
+      // Workspace navigation
+      showDashboard: () => set({ activeView: 'dashboard' }),
+      showAnalysis: () => set({ activeView: 'analysis' }),
+      showInvestigation: () =>
+        set({
+          activeView: 'investigation',
+          isPISidebarOpen: true,
+          piActiveTab: 'questions',
+        }),
+      showImprovement: () =>
+        set({
+          activeView: 'improvement',
+          isWhatIfOpen: false,
+        }),
+      showReport: () => set({ activeView: 'report' }),
+
+      // Panel toggles
+      togglePISidebar: () => set(s => ({ isPISidebarOpen: !s.isPISidebarOpen })),
+      setPIActiveTab: tab => set({ piActiveTab: tab, piOverflowView: null }),
+      setPIOverflowView: view => set({ piOverflowView: view }),
+      toggleCoScout: () => set(s => ({ isCoScoutOpen: !s.isCoScoutOpen })),
+      toggleWhatIf: () => set(s => ({ isWhatIfOpen: !s.isWhatIfOpen })),
+      toggleDataTable: () => set(s => ({ isDataTableOpen: !s.isDataTableOpen })),
+      toggleFindings: () =>
+        set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: !s.isFindingsOpen })),
+
+      // Highlights
+      handlePointClick: index => set({ highlightRowIndex: index, isPISidebarOpen: true }),
+      handleRowClick: index => set({ highlightedChartPoint: index }),
+      setHighlightPoint: index => set({ highlightedChartPoint: index }),
+      setHighlightedFindingId: id => set({ highlightedFindingId: id }),
+      setExpandedQuestionId: id => set({ expandedQuestionId: id }),
+      setPendingChartFocus: chart => set({ pendingChartFocus: chart }),
+
+      // Azure-specific
+      setAIEnabled: enabled => set({ aiEnabled: enabled }),
+      setAIPreferences: prefs => set({ aiPreferences: prefs }),
+      setKnowledgeSearchFolder: folder => set({ knowledgeSearchFolder: folder }),
+
+      // Persistence
+      initFromViewState: viewState => {
+        let activeView: WorkspaceView = (viewState?.activeView as WorkspaceView) ?? 'analysis';
+        // Backward compat: map legacy 'editor' value from old persisted data
+        if ((activeView as string) === 'editor') activeView = 'analysis';
+        set({
+          activeView,
+          isFindingsOpen: (viewState?.isFindingsOpen as boolean) ?? false,
+          isWhatIfOpen: (viewState?.isWhatIfOpen as boolean) ?? false,
+        });
+      },
+
+      toViewState: (): PersistedViewState => {
+        const s = useSessionStore.getState();
+        return {
+          activeView: s.activeView,
+          isFindingsOpen: s.isFindingsOpen,
+          isWhatIfOpen: s.isWhatIfOpen,
+        };
+      },
     }),
-  showImprovement: () =>
-    set({
-      activeView: 'improvement',
-      isWhatIfOpen: false,
-    }),
-  showReport: () => set({ activeView: 'report' }),
-
-  // Panel toggles
-  togglePISidebar: () => set(s => ({ isPISidebarOpen: !s.isPISidebarOpen })),
-  setPIActiveTab: tab => set({ piActiveTab: tab, piOverflowView: null }),
-  setPIOverflowView: view => set({ piOverflowView: view }),
-  toggleCoScout: () => set(s => ({ isCoScoutOpen: !s.isCoScoutOpen })),
-  toggleWhatIf: () => set(s => ({ isWhatIfOpen: !s.isWhatIfOpen })),
-  toggleDataTable: () => set(s => ({ isDataTableOpen: !s.isDataTableOpen })),
-  toggleFindings: () =>
-    set(s => (s.activeView === 'investigation' ? s : { isFindingsOpen: !s.isFindingsOpen })),
-
-  // Highlights
-  handlePointClick: index => set({ highlightRowIndex: index, isPISidebarOpen: true }),
-  handleRowClick: index => set({ highlightedChartPoint: index }),
-  setHighlightPoint: index => set({ highlightedChartPoint: index }),
-  setHighlightedFindingId: id => set({ highlightedFindingId: id }),
-  setExpandedQuestionId: id => set({ expandedQuestionId: id }),
-  setPendingChartFocus: chart => set({ pendingChartFocus: chart }),
-
-  // Persistence
-  initFromViewState: viewState => {
-    let activeView: WorkspaceView = (viewState?.activeView as WorkspaceView) ?? 'analysis';
-    // Backward compat: map legacy 'editor' value from old persisted data
-    if ((activeView as string) === 'editor') activeView = 'analysis';
-    set({
-      activeView,
-      isFindingsOpen: (viewState?.isFindingsOpen as boolean) ?? false,
-      isWhatIfOpen: (viewState?.isWhatIfOpen as boolean) ?? false,
-    });
-  },
-
-  toViewState: (): PersistedViewState => {
-    // Implemented as a getter — Zustand doesn't support getters natively,
-    // so this action reads state via the store's own getState.
-    // The store reference is captured in the closure below.
-    const s = useSessionStore.getState();
-    return {
-      activeView: s.activeView,
-      isFindingsOpen: s.isFindingsOpen,
-      isWhatIfOpen: s.isWhatIfOpen,
-    };
-  },
-}));
+    {
+      name: 'variscout-session',
+      storage: createJSONStorage(() => idbStorage),
+      partialize: state => ({
+        // Only persist user preferences, not transient highlights
+        activeView: state.activeView,
+        isPISidebarOpen: state.isPISidebarOpen,
+        piActiveTab: state.piActiveTab,
+        isCoScoutOpen: state.isCoScoutOpen,
+        isWhatIfOpen: state.isWhatIfOpen,
+        isFindingsOpen: state.isFindingsOpen,
+        aiEnabled: state.aiEnabled,
+        aiPreferences: state.aiPreferences,
+        knowledgeSearchFolder: state.knowledgeSearchFolder,
+      }),
+    }
+  )
+);

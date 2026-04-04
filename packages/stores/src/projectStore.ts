@@ -99,6 +99,25 @@ export interface AxisSettings {
   scaleMode?: ScaleMode;
 }
 
+/** View state persisted with project (analyst's working context) */
+export interface ViewState {
+  activeView?: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
+  activeTab?: 'analysis' | 'performance' | 'yamazumi';
+  isFindingsOpen?: boolean;
+  isWhatIfOpen?: boolean;
+  focusedChart?:
+    | 'ichart'
+    | 'boxplot'
+    | 'pareto'
+    | 'yamazumi'
+    | 'histogram'
+    | 'probability-plot'
+    | null;
+  boxplotFactor?: string;
+  paretoFactor?: string;
+  findingsViewMode?: 'list' | 'board' | 'tree';
+}
+
 // ============================================================================
 // Serialized project shape (for loadProject)
 // ============================================================================
@@ -137,6 +156,7 @@ export interface SerializedProject {
   separateParetoFilename?: string | null;
   processContext?: ProcessContext;
   entryScenario?: EntryScenario;
+  viewState?: ViewState | null;
   findings?: Finding[];
   questions?: Question[];
   categories?: InvestigationCategory[];
@@ -199,6 +219,13 @@ export interface ProjectState {
   // AI / investigation context
   processContext: ProcessContext | null;
   entryScenario: EntryScenario | null;
+
+  // Multi-point selection (ephemeral, not persisted — Minitab-style brushing)
+  selectedPoints: Set<number>;
+  selectionIndexMap: Map<number, number>;
+
+  // View state (for restoring analyst's working context on project load)
+  viewState: ViewState | null;
 
   // Findings and questions (stored here for serialization; feature stores manage editing)
   findings: Finding[];
@@ -263,6 +290,17 @@ export interface ProjectActions {
   setProcessContext: (context: ProcessContext | null) => void;
   setEntryScenario: (scenario: EntryScenario | null) => void;
 
+  // Selection (ephemeral)
+  setSelectedPoints: (points: Set<number>) => void;
+  addToSelection: (indices: number[]) => void;
+  removeFromSelection: (indices: number[]) => void;
+  clearSelection: () => void;
+  togglePointSelection: (index: number) => void;
+  setSelectionIndexMap: (map: Map<number, number>) => void;
+
+  // View state
+  setViewState: (state: ViewState | null) => void;
+
   // Findings and questions
   setFindings: (findings: Finding[]) => void;
   setQuestions: (questions: Question[]) => void;
@@ -319,6 +357,9 @@ const initialState: ProjectState = {
   separateParetoFilename: null,
   processContext: null,
   entryScenario: null,
+  selectedPoints: new Set(),
+  selectionIndexMap: new Map(),
+  viewState: null,
   findings: [],
   questions: [],
   categories: [],
@@ -387,6 +428,9 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
       separateParetoFilename: serialized.separateParetoFilename ?? null,
       processContext: serialized.processContext ?? null,
       entryScenario: serialized.entryScenario ?? null,
+      viewState: serialized.viewState ?? null,
+      selectedPoints: new Set(),
+      selectionIndexMap: new Map(),
       findings: serialized.findings ?? [],
       questions: serialized.questions ?? [],
       categories: serialized.categories ?? [],
@@ -449,6 +493,38 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
 
   setProcessContext: setAndMark(set, 'processContext'),
   setEntryScenario: setAndMark(set, 'entryScenario'),
+
+  // --- Selection (ephemeral — not marked as unsaved) ---
+
+  setSelectedPoints: points => set(() => ({ selectedPoints: points })),
+  addToSelection: indices =>
+    set(s => {
+      const newSet = new Set(s.selectedPoints);
+      indices.forEach(i => newSet.add(i));
+      return { selectedPoints: newSet };
+    }),
+  removeFromSelection: indices =>
+    set(s => {
+      const newSet = new Set(s.selectedPoints);
+      indices.forEach(i => newSet.delete(i));
+      return { selectedPoints: newSet };
+    }),
+  clearSelection: () => set(() => ({ selectedPoints: new Set() })),
+  togglePointSelection: index =>
+    set(s => {
+      const newSet = new Set(s.selectedPoints);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return { selectedPoints: newSet };
+    }),
+  setSelectionIndexMap: map => set(() => ({ selectionIndexMap: map })),
+
+  // --- View state ---
+
+  setViewState: setAndMark(set, 'viewState'),
 
   // --- Findings and questions ---
 

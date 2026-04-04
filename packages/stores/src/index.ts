@@ -16,6 +16,7 @@ export type {
   ScaleMode,
   StageOrderMode,
   HighlightColor,
+  ViewState,
 } from './projectStore';
 export {
   useInvestigationStore,
