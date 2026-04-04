@@ -17,3 +17,10 @@ export type {
   StageOrderMode,
   HighlightColor,
 } from './projectStore';
+export {
+  useInvestigationStore,
+  getInvestigationInitialState,
+  MAX_QUESTION_DEPTH,
+  MAX_CHILDREN_PER_PARENT,
+} from './investigationStore';
+export type { InvestigationState, InvestigationActions } from './investigationStore';
