@@ -163,7 +163,7 @@ export interface UsePasteImportFlowReturn {
  * Manages the paste/import/manual-entry state machine for the PWA.
  *
  * Accepts data context setters via dependency injection so it never
- * imports useData() directly.
+ * imports from Zustand stores directly.
  */
 export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePasteImportFlowReturn {
   const {

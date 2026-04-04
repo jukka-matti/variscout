@@ -185,7 +185,7 @@ const Dashboard = ({
   const selectedPoints = useProjectStore(s => s.selectedPoints);
   const clearSelection = useProjectStore(s => s.clearSelection);
   const { filteredData } = useFilteredData();
-  const { stats } = useAnalysisStats();
+  const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const { getTerm } = useGlossary();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
@@ -779,6 +779,7 @@ const Dashboard = ({
                         findings={chartFindings?.boxplot}
                         onEditFinding={onEditFinding}
                         onDeleteFinding={onDeleteFinding}
+                        isComputing={isComputing}
                       />
                     )}
                   </ErrorBoundary>
@@ -803,6 +804,7 @@ const Dashboard = ({
                         findings={chartFindings?.pareto}
                         onEditFinding={onEditFinding}
                         onDeleteFinding={onDeleteFinding}
+                        isComputing={isComputing}
                       />
                     )}
                   </ErrorBoundary>

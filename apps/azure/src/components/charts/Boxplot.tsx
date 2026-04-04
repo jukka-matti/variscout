@@ -4,7 +4,7 @@
 import React from 'react';
 import { withParentSize } from '@visx/responsive';
 import { useProjectStore } from '@variscout/stores';
-import { useFilteredData, useAnalysisStats, useCapabilityBoxplotData } from '@variscout/hooks';
+import { useFilteredData, useCapabilityBoxplotData } from '@variscout/hooks';
 import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotWrapperBase } from '@variscout/ui';
 import type { HighlightColor } from '@variscout/hooks';
@@ -20,11 +20,12 @@ interface BoxplotProps {
   findings?: Finding[];
   onEditFinding?: (id: string, text: string) => void;
   onDeleteFinding?: (id: string) => void;
+  /** Passed from parent Dashboard to avoid duplicate Worker dispatch per chart wrapper */
+  isComputing?: boolean;
 }
 
-const Boxplot = ({ parentWidth, parentHeight, ...props }: BoxplotProps) => {
+const Boxplot = ({ parentWidth, parentHeight, isComputing = false, ...props }: BoxplotProps) => {
   const { filteredData } = useFilteredData();
-  const { isComputing } = useAnalysisStats();
   const outcome = useProjectStore(s => s.outcome);
   const specs = useProjectStore(s => s.specs);
   const filters = useProjectStore(s => s.filters);

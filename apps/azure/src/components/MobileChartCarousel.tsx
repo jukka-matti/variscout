@@ -5,8 +5,8 @@
  * pill navigation buttons, and dot indicators. Designed for
  * Teams mobile / phone viewports (<640px).
  *
- * Azure-specific: renders Azure chart wrappers that use useData() context.
- * Does not share code with PWA MobileDashboard (different context model).
+ * Azure-specific: renders Azure chart wrappers that read from Zustand store selectors.
+ * Does not share code with PWA MobileDashboard (different store wiring).
  *
  * Boxplot/Pareto: tapping a category opens MobileCategorySheet (bottom action sheet)
  * instead of drilling down immediately. Sheet provides drill-down, highlight, and

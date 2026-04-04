@@ -4,7 +4,7 @@
 import React from 'react';
 import { withParentSize } from '@visx/responsive';
 import { useProjectStore } from '@variscout/stores';
-import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
+import { useFilteredData } from '@variscout/hooks';
 import { ParetoChartWrapperBase } from '@variscout/ui';
 import type { HighlightColor } from '@variscout/hooks';
 import type { Finding } from '@variscout/core';
@@ -27,12 +27,18 @@ interface ParetoChartProps {
   findings?: Finding[];
   onEditFinding?: (id: string, text: string) => void;
   onDeleteFinding?: (id: string) => void;
+  /** Passed from parent Dashboard to avoid duplicate Worker dispatch per chart wrapper */
+  isComputing?: boolean;
 }
 
-const ParetoChart = ({ parentWidth, parentHeight, ...props }: ParetoChartProps) => {
+const ParetoChart = ({
+  parentWidth,
+  parentHeight,
+  isComputing = false,
+  ...props
+}: ParetoChartProps) => {
   const rawData = useProjectStore(s => s.rawData);
   const { filteredData } = useFilteredData();
-  const { isComputing } = useAnalysisStats();
   const outcome = useProjectStore(s => s.outcome);
   const filters = useProjectStore(s => s.filters);
   const setFilters = useProjectStore(s => s.setFilters);

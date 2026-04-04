@@ -39,7 +39,7 @@ import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
-import { type ExclusionReason, toNumericValue } from '@variscout/core';
+import { type ExclusionReason, type Question, toNumericValue } from '@variscout/core';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
 import { useQuestionGeneration } from '@variscout/hooks';
@@ -144,7 +144,7 @@ function AppMain() {
   const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
   const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
   const setCpkTarget = useProjectStore(s => s.setCpkTarget);
-  const setQuestions = useCallback((qs: import('@variscout/core').Question[]) => {
+  const setQuestions = useCallback((qs: Question[]) => {
     useDomainInvestigationStore.getState().loadInvestigationState({ questions: qs });
   }, []);
 

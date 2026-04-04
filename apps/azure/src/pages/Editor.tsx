@@ -47,7 +47,7 @@ import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
-import type { ExclusionReason } from '@variscout/core';
+import type { ExclusionReason, Finding, Question, InvestigationCategory } from '@variscout/core';
 import { Check } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
@@ -183,10 +183,10 @@ export const Editor: React.FC<EditorProps> = ({
   const setCategories = useDomainInvestigationStore(s => s.setCategories);
 
   // Investigation store setters (via loadInvestigationState for bulk updates)
-  const setPersistedFindings = useCallback((findings: import('@variscout/core').Finding[]) => {
+  const setPersistedFindings = useCallback((findings: Finding[]) => {
     useDomainInvestigationStore.getState().loadInvestigationState({ findings });
   }, []);
-  const setPersistedQuestions = useCallback((questions: import('@variscout/core').Question[]) => {
+  const setPersistedQuestions = useCallback((questions: Question[]) => {
     useDomainInvestigationStore.getState().loadInvestigationState({ questions });
   }, []);
 
@@ -867,7 +867,7 @@ export const Editor: React.FC<EditorProps> = ({
       newOutcome: string,
       newFactors: string[],
       newSpecs?: { target?: number; lsl?: number; usl?: number },
-      newCategories?: import('@variscout/core').InvestigationCategory[],
+      newCategories?: InvestigationCategory[],
       brief?: AnalysisBrief
     ) => {
       if (newCategories) setCategories(newCategories);
