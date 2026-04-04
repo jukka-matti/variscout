@@ -2,15 +2,18 @@
  * PerformanceCapability - Azure App Wrapper
  *
  * Thin wrapper that connects the shared PerformanceCapability component
- * to the Azure app's DataContext.
+ * to Zustand stores via derived hooks.
  */
 
 import React, { useMemo } from 'react';
 import { PerformanceCapability as PerformanceCapabilityBase } from '@variscout/charts';
-import { useData } from '../../context/DataContext';
+import { usePerformanceAnalysis } from '@variscout/hooks';
+import { useProjectStore } from '@variscout/stores';
 
 const PerformanceCapability: React.FC = () => {
-  const { performanceResult, selectedMeasure, specs } = useData();
+  const performanceResult = usePerformanceAnalysis();
+  const selectedMeasure = useProjectStore(s => s.selectedMeasure);
+  const specs = useProjectStore(s => s.specs);
 
   // Get the selected channel's data
   const selectedChannel = useMemo(() => {

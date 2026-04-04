@@ -19,6 +19,7 @@ import type {
   InvestigationCategory,
   Finding,
   Question,
+  ParetoRow,
 } from '@variscout/core';
 
 // ============================================================================
@@ -42,12 +43,8 @@ export type ParetoAggregation = 'count' | 'value';
 /** Stage order determination mode */
 export type StageOrderMode = 'auto' | 'data-order';
 
-/** Pareto row for separately uploaded data */
-export interface ParetoRow {
-  category: string;
-  value: number;
-  [key: string]: unknown;
-}
+// ParetoRow is imported from @variscout/core above and re-exported here for stores consumers
+export type { ParetoRow };
 
 /** Data quality report from parser */
 export interface DataQualityReport {
@@ -83,6 +80,8 @@ export interface DisplayOptions {
   dashboardLayout?: 'grid' | 'scroll';
   /** Capability boxplot metric */
   capabilityBoxplotMetric?: 'cp' | 'cpk';
+  /** Standard I-Chart metric toggle: measurement data or capability (Cpk/Cp) */
+  standardIChartMetric?: 'measurement' | 'capability';
 }
 
 /** Custom chart titles for reporting/export */

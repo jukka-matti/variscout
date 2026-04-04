@@ -394,3 +394,12 @@ export { useBrainstormSession, type UseBrainstormSessionReturn } from './useBrai
 
 // Brainstorm Detect (poll for active sessions — Team plan auto-detect)
 export { useBrainstormDetect, type UseBrainstormDetectReturn } from './useBrainstormDetect';
+
+// Derived hooks (store-first state access)
+export { useFilteredData, type FilteredDataResult } from './useFilteredData';
+export { useAnalysisStats, type AnalysisStatsResult } from './useAnalysisStats';
+export { useStagedAnalysis, type StagedAnalysisResult } from './useStagedAnalysis';
+export { usePerformanceAnalysis } from './usePerformanceAnalysis';
+export { useYDomain, type YDomainResult } from './useYDomain';
+export { useSpecsForMeasure } from './useSpecsForMeasure';
+export { useProjectActions, type ProjectActionsResult } from './useProjectActions';

@@ -2,12 +2,13 @@
  * PerformancePareto - Azure App Wrapper
  *
  * Thin wrapper that connects the shared PerformancePareto component
- * to the Azure app's DataContext.
+ * to Zustand stores via derived hooks.
  */
 
 import React from 'react';
 import { PerformancePareto as PerformanceParetoBase } from '@variscout/charts';
-import { useData } from '../../context/DataContext';
+import { usePerformanceAnalysis } from '@variscout/hooks';
+import { useProjectStore } from '@variscout/stores';
 
 interface PerformanceParetoProps {
   onChannelClick?: (channelId: string) => void;
@@ -16,7 +17,8 @@ interface PerformanceParetoProps {
 }
 
 const PerformancePareto: React.FC<PerformanceParetoProps> = ({ onChannelClick, maxDisplayed }) => {
-  const { performanceResult, selectedMeasure } = useData();
+  const performanceResult = usePerformanceAnalysis();
+  const selectedMeasure = useProjectStore(s => s.selectedMeasure);
 
   return (
     <PerformanceParetoBase

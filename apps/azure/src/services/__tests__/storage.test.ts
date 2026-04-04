@@ -57,18 +57,22 @@ vi.mock('../../db/schema', () => ({
 // ---------------------------------------------------------------------------
 // Mock: @variscout/core — hasTeamFeatures defaults to true (cloud sync tests)
 // ---------------------------------------------------------------------------
-vi.mock('@variscout/core', () => ({
-  hasTeamFeatures: () => true,
-  buildProjectMetadata: () => ({
-    phase: 'scout',
-    findingCounts: {},
-    questionCounts: {},
-    actionCounts: { total: 0, completed: 0, overdue: 0 },
-    assignedTaskCount: 0,
-    hasOverdueTasks: false,
-    lastViewedAt: {},
-  }),
-}));
+vi.mock('@variscout/core', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/core')>();
+  return {
+    ...actual,
+    hasTeamFeatures: () => true,
+    buildProjectMetadata: () => ({
+      phase: 'scout',
+      findingCounts: {},
+      questionCounts: {},
+      actionCounts: { total: 0, completed: 0, overdue: 0 },
+      assignedTaskCount: 0,
+      hasOverdueTasks: false,
+      lastViewedAt: {},
+    }),
+  };
+});
 
 // ---------------------------------------------------------------------------
 // Mock: ../auth/easyAuth

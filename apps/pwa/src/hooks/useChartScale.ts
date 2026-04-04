@@ -1,20 +1,23 @@
 /**
  * Re-export useChartScale from @variscout/hooks
- * with PWA-specific context wrapper
+ * with PWA-specific store-backed wrapper
  */
-import { useChartScale as useChartScaleBase } from '@variscout/hooks';
-import { useData } from '../context/DataContext';
+import { useChartScale as useChartScaleBase, useFilteredData } from '@variscout/hooks';
+import { useProjectStore } from '@variscout/stores';
 
 export type { ChartScaleResult } from '@variscout/hooks';
 
 /**
  * Hook for calculating optimal Y-axis scale for charts
  *
- * Automatically uses the PWA's DataContext.
+ * Reads from Zustand stores instead of DataContext.
  * For the context-injection version, use @variscout/hooks directly.
  */
 export const useChartScale = () => {
-  const { filteredData, outcome, specs, axisSettings } = useData();
+  const { filteredData } = useFilteredData();
+  const outcome = useProjectStore(s => s.outcome);
+  const specs = useProjectStore(s => s.specs);
+  const axisSettings = useProjectStore(s => s.axisSettings);
 
   return useChartScaleBase({
     filteredData,

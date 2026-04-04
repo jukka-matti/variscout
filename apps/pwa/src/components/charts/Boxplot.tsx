@@ -1,12 +1,12 @@
 /**
- * PWA Boxplot - Thin wrapper that connects DataContext to shared BoxplotWrapperBase
+ * PWA Boxplot - Thin wrapper that connects stores to shared BoxplotWrapperBase
  */
 import React from 'react';
 import { withParentSize } from '@visx/responsive';
-import { useData } from '../../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
+import { useFilteredData, useAnalysisStats, useCapabilityBoxplotData } from '@variscout/hooks';
 import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotWrapperBase } from '@variscout/ui';
-import { useCapabilityBoxplotData } from '@variscout/hooks';
 import type { HighlightColor } from '@variscout/hooks';
 import type { Finding } from '@variscout/core';
 
@@ -24,16 +24,28 @@ interface BoxplotProps {
 }
 
 const Boxplot = ({ parentWidth, parentHeight, ...props }: BoxplotProps) => {
-  const ctx = useData();
+  const { filteredData } = useFilteredData();
+  const { isComputing } = useAnalysisStats();
+  const outcome = useProjectStore(s => s.outcome);
+  const specs = useProjectStore(s => s.specs);
+  const filters = useProjectStore(s => s.filters);
+  const setFilters = useProjectStore(s => s.setFilters);
+  const columnAliases = useProjectStore(s => s.columnAliases);
+  const setColumnAliases = useProjectStore(s => s.setColumnAliases);
+  const valueLabels = useProjectStore(s => s.valueLabels);
+  const setValueLabels = useProjectStore(s => s.setValueLabels);
+  const displayOptions = useProjectStore(s => s.displayOptions);
+  const subgroupConfig = useProjectStore(s => s.subgroupConfig);
+  const cpkTarget = useProjectStore(s => s.cpkTarget);
   const { min, max } = useChartScale();
 
-  const isCapabilityMode = ctx.displayOptions.standardIChartMetric === 'capability';
+  const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
 
   const capabilityData = useCapabilityBoxplotData({
-    filteredData: ctx.filteredData,
-    outcome: ctx.outcome ?? '',
-    specs: ctx.specs,
-    subgroupConfig: ctx.subgroupConfig,
+    filteredData,
+    outcome: outcome ?? '',
+    specs,
+    subgroupConfig,
     factor: props.factor,
     metric: 'cpk',
   });
@@ -43,24 +55,24 @@ const Boxplot = ({ parentWidth, parentHeight, ...props }: BoxplotProps) => {
       <BoxplotWrapperBase
         parentWidth={parentWidth}
         parentHeight={parentHeight}
-        filteredData={ctx.filteredData}
-        outcome={ctx.outcome}
-        specs={isCapabilityMode ? {} : ctx.specs}
-        filters={ctx.filters}
-        onFiltersChange={ctx.setFilters}
-        columnAliases={ctx.columnAliases}
-        onColumnAliasesChange={ctx.setColumnAliases}
-        valueLabels={ctx.valueLabels}
-        onValueLabelsChange={ctx.setValueLabels}
-        displayOptions={ctx.displayOptions}
+        filteredData={filteredData}
+        outcome={outcome}
+        specs={isCapabilityMode ? {} : specs}
+        filters={filters}
+        onFiltersChange={setFilters}
+        columnAliases={columnAliases}
+        onColumnAliasesChange={setColumnAliases}
+        valueLabels={valueLabels}
+        onValueLabelsChange={setValueLabels}
+        displayOptions={displayOptions}
         yDomainMin={isCapabilityMode ? 0 : min}
         yDomainMax={isCapabilityMode ? 0 : max}
         capabilityData={isCapabilityMode ? capabilityData : undefined}
         isCapabilityMode={isCapabilityMode}
-        cpkTarget={ctx.cpkTarget}
+        cpkTarget={cpkTarget}
         {...props}
       />
-      {ctx.isComputing && (
+      {isComputing && (
         <div className="absolute inset-0 bg-surface-primary/30 pointer-events-none transition-opacity duration-200" />
       )}
     </div>

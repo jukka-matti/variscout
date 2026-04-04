@@ -2,12 +2,13 @@
  * PerformanceIChart - Azure App Wrapper
  *
  * Thin wrapper that connects the shared PerformanceIChart component
- * to the Azure app's DataContext.
+ * to Zustand stores via derived hooks.
  */
 
 import React from 'react';
 import { PerformanceIChart as PerformanceIChartBase } from '@variscout/charts';
-import { useData } from '../../context/DataContext';
+import { usePerformanceAnalysis } from '@variscout/hooks';
+import { useProjectStore } from '@variscout/stores';
 
 interface PerformanceIChartProps {
   onChannelClick?: (channelId: string) => void;
@@ -22,7 +23,8 @@ const PerformanceIChart: React.FC<PerformanceIChartProps> = ({
   capabilityMetric = 'cpk',
   cpkTarget,
 }) => {
-  const { performanceResult, selectedMeasure } = useData();
+  const performanceResult = usePerformanceAnalysis();
+  const selectedMeasure = useProjectStore(s => s.selectedMeasure);
 
   return (
     <PerformanceIChartBase

@@ -30,14 +30,18 @@ vi.mock('../../context/DataContext', () => ({
 }));
 
 // Mock calculateStats
-vi.mock('@variscout/core', () => ({
-  calculateStats: vi.fn(() => ({
-    mean: 15,
-    stdDev: 5,
-    cpk: 0.67,
-    n: 4,
-  })),
-}));
+vi.mock('@variscout/core', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/core')>();
+  return {
+    ...actual,
+    calculateStats: vi.fn(() => ({
+      mean: 15,
+      stdDev: 5,
+      cpk: 0.67,
+      n: 4,
+    })),
+  };
+});
 
 // Mock WhatIfSimulator (now imported by WhatIfPageBase from @variscout/ui)
 vi.mock('@variscout/ui', async () => {

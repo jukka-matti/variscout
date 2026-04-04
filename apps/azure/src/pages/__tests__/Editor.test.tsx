@@ -44,40 +44,44 @@ vi.mock('../../components/ProjectDashboard', () => ({
 
 // ── Mock @variscout/core ──
 
-vi.mock('@variscout/core', () => ({
-  parseText: vi.fn(async () => [{ Weight: 10, Machine: 'A' }]),
-  detectColumns: vi.fn(() => ({ outcome: 'Weight', factors: ['Machine'], columnAnalysis: [] })),
-  detectWideFormat: vi.fn(() => ({ isWideFormat: false, channels: [] })),
-  detectYamazumiFormat: vi.fn(() => ({
-    isYamazumiFormat: false,
-    confidence: 'low',
-    suggestedMapping: {},
-    reason: '',
-  })),
-  validateData: vi.fn(() => ({ isValid: true, errors: [], warnings: [] })),
-  downloadCSV: vi.fn(),
-  getNelsonRule2ViolationPoints: vi.fn(() => []),
-  calculateStats: vi.fn(() => ({ mean: 10, ucl: 12, lcl: 8 })),
-  hasTeamFeatures: vi.fn(() => false),
-  isTeamPlan: vi.fn(() => false),
-  hasKnowledgeBase: vi.fn(() => false),
-  isPreviewEnabled: vi.fn(() => false),
-  buildSuggestedQuestions: vi.fn(() => []),
-  computeIdeaImpact: vi.fn(() => null),
-  getNelsonRule2Sequences: vi.fn(() => []),
-  getNelsonRule3Sequences: vi.fn(() => []),
-  calculateStagedComparison: vi.fn(() => null),
-  djb2Hash: vi.fn((str: string) => String(str.length)),
-  // ADR-029: Action tools
-  parseActionMarkers: vi.fn(() => []),
-  isDuplicateProposal: vi.fn(() => false),
-  formatKnowledgeContext: vi.fn(() => ''),
-  computeFilterPreview: vi.fn(() => ({ samples: 0, mean: 0, stdDev: 0 })),
-  hashFilterStack: vi.fn(() => ''),
-  generateProposalId: vi.fn(() => 'test-proposal-id'),
-  getEtaSquared: vi.fn(() => 0),
-  groupDataByFactor: vi.fn(() => new Map()),
-}));
+vi.mock('@variscout/core', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/core')>();
+  return {
+    ...actual,
+    parseText: vi.fn(async () => [{ Weight: 10, Machine: 'A' }]),
+    detectColumns: vi.fn(() => ({ outcome: 'Weight', factors: ['Machine'], columnAnalysis: [] })),
+    detectWideFormat: vi.fn(() => ({ isWideFormat: false, channels: [] })),
+    detectYamazumiFormat: vi.fn(() => ({
+      isYamazumiFormat: false,
+      confidence: 'low',
+      suggestedMapping: {},
+      reason: '',
+    })),
+    validateData: vi.fn(() => ({ isValid: true, errors: [], warnings: [] })),
+    downloadCSV: vi.fn(),
+    getNelsonRule2ViolationPoints: vi.fn(() => []),
+    calculateStats: vi.fn(() => ({ mean: 10, ucl: 12, lcl: 8 })),
+    hasTeamFeatures: vi.fn(() => false),
+    isTeamPlan: vi.fn(() => false),
+    hasKnowledgeBase: vi.fn(() => false),
+    isPreviewEnabled: vi.fn(() => false),
+    buildSuggestedQuestions: vi.fn(() => []),
+    computeIdeaImpact: vi.fn(() => null),
+    getNelsonRule2Sequences: vi.fn(() => []),
+    getNelsonRule3Sequences: vi.fn(() => []),
+    calculateStagedComparison: vi.fn(() => null),
+    djb2Hash: vi.fn((str: string) => String(str.length)),
+    // ADR-029: Action tools
+    parseActionMarkers: vi.fn(() => []),
+    isDuplicateProposal: vi.fn(() => false),
+    formatKnowledgeContext: vi.fn(() => ''),
+    computeFilterPreview: vi.fn(() => ({ samples: 0, mean: 0, stdDev: 0 })),
+    hashFilterStack: vi.fn(() => ''),
+    generateProposalId: vi.fn(() => 'test-proposal-id'),
+    getEtaSquared: vi.fn(() => 0),
+    groupDataByFactor: vi.fn(() => new Map()),
+  };
+});
 
 vi.mock('../../hooks/usePhotoComments', () => ({
   usePhotoComments: () => ({

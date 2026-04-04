@@ -2,12 +2,13 @@
  * PerformanceBoxplot - Azure App Wrapper
  *
  * Thin wrapper that connects the shared PerformanceBoxplot component
- * to the Azure app's DataContext.
+ * to Zustand stores via derived hooks.
  */
 
 import React from 'react';
 import { PerformanceBoxplot as PerformanceBoxplotBase } from '@variscout/charts';
-import { useData } from '../../context/DataContext';
+import { usePerformanceAnalysis } from '@variscout/hooks';
+import { useProjectStore } from '@variscout/stores';
 
 interface PerformanceBoxplotProps {
   onChannelClick?: (channelId: string) => void;
@@ -19,7 +20,10 @@ const PerformanceBoxplot: React.FC<PerformanceBoxplotProps> = ({
   onChannelClick,
   maxDisplayed,
 }) => {
-  const { performanceResult, selectedMeasure, specs, displayOptions } = useData();
+  const performanceResult = usePerformanceAnalysis();
+  const selectedMeasure = useProjectStore(s => s.selectedMeasure);
+  const specs = useProjectStore(s => s.specs);
+  const displayOptions = useProjectStore(s => s.displayOptions);
 
   return (
     <PerformanceBoxplotBase
