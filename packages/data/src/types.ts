@@ -25,6 +25,18 @@ export interface SampleDataset {
   config: SampleConfig;
 }
 
+/**
+ * Pre-populated investigation state for showcase/demo datasets.
+ * When present, loadSample injects this into DataContext so the
+ * dataset opens with questions, findings, and hubs already in place.
+ */
+export interface SampleInvestigationState {
+  findings?: import('@variscout/core').Finding[];
+  questions?: import('@variscout/core').Question[];
+  suspectedCauses?: import('@variscout/core').SuspectedCause[];
+  categories?: import('@variscout/core').InvestigationCategory[];
+}
+
 export interface SampleConfig {
   /** Column name for the measurement/outcome variable */
   outcome: string;
@@ -48,6 +60,8 @@ export interface SampleConfig {
     productColumn?: string;
     waitTimeColumn?: string;
   };
+  /** Pre-populated investigation state for showcase/demo datasets */
+  investigation?: SampleInvestigationState;
 }
 
 export interface SpecLimits {

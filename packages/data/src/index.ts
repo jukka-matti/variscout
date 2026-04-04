@@ -8,7 +8,7 @@
  */
 
 // Types
-export type { SampleDataset, SampleCategory, ComputedChartData } from './types';
+export type { SampleDataset, SampleCategory, SampleInvestigationState, ComputedChartData } from './types';
 
 // Sample datasets
 export { SAMPLES, getSample } from './samples';

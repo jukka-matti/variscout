@@ -32,6 +32,9 @@ import {
   type DataRow,
   type SpecLimits,
   type TimeExtractionConfig,
+  type Finding,
+  type Question,
+  type InvestigationCategory,
 } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 
@@ -58,6 +61,12 @@ export interface DataIngestionActions {
   setMeasureLabel: (label: string) => void;
   setAnalysisMode: (mode: AnalysisMode) => void;
   setYamazumiMapping: (mapping: YamazumiColumnMapping | null) => void;
+  /** Set pre-populated findings (for showcase/demo datasets) */
+  setFindings?: (findings: Finding[]) => void;
+  /** Set pre-populated questions (for showcase/demo datasets) */
+  setQuestions?: (questions: Question[]) => void;
+  /** Set pre-populated investigation categories (for showcase/demo datasets) */
+  setCategories?: (categories: InvestigationCategory[]) => void;
 }
 
 export interface TimeExtractionPrompt {
@@ -143,6 +152,9 @@ export function useDataIngestion(
     setMeasureLabel,
     setAnalysisMode,
     setYamazumiMapping,
+    setFindings,
+    setQuestions,
+    setCategories,
   } = actions;
 
   const processFile = useCallback(
@@ -362,6 +374,13 @@ export function useDataIngestion(
         setAnalysisMode(sample.config.analysisMode ?? 'standard');
         setYamazumiMapping(null);
       }
+      // Inject pre-populated investigation state (showcase/demo datasets)
+      if (sample.config.investigation) {
+        const inv = sample.config.investigation;
+        if (inv.findings && setFindings) setFindings(inv.findings);
+        if (inv.questions && setQuestions) setQuestions(inv.questions);
+        if (inv.categories && setCategories) setCategories(inv.categories);
+      }
     },
     [
       setRawData,
@@ -377,6 +396,9 @@ export function useDataIngestion(
       setMeasureLabel,
       setAnalysisMode,
       setYamazumiMapping,
+      setFindings,
+      setQuestions,
+      setCategories,
     ]
   );
 

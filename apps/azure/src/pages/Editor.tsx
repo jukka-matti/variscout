@@ -323,14 +323,8 @@ export const Editor: React.FC<EditorProps> = ({
   const dataFlowRef = React.useRef(dataFlow);
   dataFlowRef.current = dataFlow;
 
-  // Load sample passed from portfolio "Try a Sample"
+  // Load sample passed from portfolio "Try a Sample" (effect below, after suspectedCausesState)
   const initialSampleConsumedRef = useRef(false);
-  useEffect(() => {
-    if (initialSample && !initialSampleConsumedRef.current) {
-      initialSampleConsumedRef.current = true;
-      dataFlowRef.current.handleLoadSample(initialSample);
-    }
-  }, [initialSample]);
 
   // Manual data analyze with append-mode merge
   const { handleManualDataAnalyze } = useDataMerge({
@@ -603,6 +597,20 @@ export const Editor: React.FC<EditorProps> = ({
     stats,
   });
   const projectionTarget = useInvestigationStore(s => s.projectionTarget);
+
+  // Load sample passed from portfolio "Try a Sample"
+  useEffect(() => {
+    if (initialSample && !initialSampleConsumedRef.current) {
+      initialSampleConsumedRef.current = true;
+      dataFlowRef.current.handleLoadSample(initialSample);
+      // Inject suspected causes for showcase/demo datasets (not in DataContext)
+      const hubs = initialSample.config.investigation?.suspectedCauses;
+      if (hubs && hubs.length > 0) {
+        suspectedCausesState.resetHubs(hubs);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on mount
+  }, []);
 
   // Investigation indexing for Foundry IQ (ADR-060 Pillar 2)
   // Active only when Team plan + KB preview enabled + project is open

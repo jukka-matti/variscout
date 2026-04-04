@@ -1,4 +1,5 @@
 // Sample dataset exports
+export { investigationShowcase } from './investigation-showcase';
 export { journey, journeyBefore, journeyAfter } from './journey';
 export { bottleneck } from './bottleneck';
 export { hospitalWard } from './hospital-ward';
@@ -23,6 +24,7 @@ export { finlandArrivals } from './finland-arrivals';
 export type { SampleDataset, SampleConfig, SpecLimits } from '../types';
 
 // Import all for SAMPLES array
+import { investigationShowcase } from './investigation-showcase';
 import { journey, journeyBefore, journeyAfter } from './journey';
 import { bottleneck } from './bottleneck';
 import { hospitalWard } from './hospital-ward';
@@ -71,6 +73,8 @@ export const SAMPLES: SampleDataset[] = [
   assemblyLine,
   // Wide-Form (Stack Columns)
   finlandArrivals,
+  // Investigation Showcase
+  investigationShowcase,
   // Journey/Training
   journey,
   journeyBefore,
