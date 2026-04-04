@@ -39,6 +39,9 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setMeasureLabel,
     setAnalysisMode,
     setYamazumiMapping,
+    setFindings,
+    setQuestions,
+    setCategories,
   } = useData();
 
   const actions = {
@@ -56,6 +59,9 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setMeasureLabel,
     setAnalysisMode,
     setYamazumiMapping,
+    setFindings,
+    setQuestions,
+    setCategories,
   };
 
   const isMobile = useIsMobile(640);

@@ -19,6 +19,7 @@ Case studies mapped to the marketing content calendar. Each case provides data, 
 | 9-12 | **Coffee**        | East Africa          | Factor comparison                         | Phase 3: Apply  |
 | 9-12 | **Packaging**     | Africa manufacturing | Pareto, capability, process diagnosis     | Phase 3: Apply  |
 | 12   | **Avocado**       | Post-harvest         | Regression (requires regression — future) | Phase 3: Apply  |
+| —    | **Investigation Showcase** | Food packaging | Full investigation workflow (questions, findings, hubs, regression) | Showcase |
 
 ---
 

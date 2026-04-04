@@ -33,6 +33,9 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setMeasureLabel,
     setAnalysisMode,
     setYamazumiMapping,
+    setFindings,
+    setQuestions,
+    setCategories,
   } = useData();
 
   const actions = {
@@ -50,6 +53,9 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setMeasureLabel,
     setAnalysisMode,
     setYamazumiMapping,
+    setFindings,
+    setQuestions,
+    setCategories,
   };
 
   return useDataIngestionBase(actions, {
