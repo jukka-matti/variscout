@@ -113,10 +113,9 @@ export function useInvestigationOrchestration({
   // would cause a double-sync and overwrite migrated hubs with stale empty state.
 
   // ── Sync questions to Zustand store ──────────────────────────────────
-  const syncQuestions = useInvestigationStore.getState().syncQuestions;
   useEffect(() => {
-    syncQuestions(questionsState.questions);
-  }, [questionsState.questions, syncQuestions]);
+    useInvestigationStore.getState().syncQuestions(questionsState.questions);
+  }, [questionsState.questions]);
 
   // ── Sync questionsMap to store ───────────────────────────────────────
   const questionsMap = useMemo(() => {
@@ -142,10 +141,9 @@ export function useInvestigationOrchestration({
     return map;
   }, [questionsState.questions]);
 
-  const syncQuestionsMap = useInvestigationStore.getState().syncQuestionsMap;
   useEffect(() => {
-    syncQuestionsMap(questionsMap);
-  }, [questionsMap, syncQuestionsMap]);
+    useInvestigationStore.getState().syncQuestionsMap(questionsMap);
+  }, [questionsMap]);
 
   // ── Sync ideaImpacts to store ─────────────────────────────────────────
   const ideaImpacts = useMemo(() => {
@@ -172,10 +170,9 @@ export function useInvestigationOrchestration({
     return impacts;
   }, [questionsState.questions, processContext, stats]);
 
-  const syncIdeaImpacts = useInvestigationStore.getState().syncIdeaImpacts;
   useEffect(() => {
-    syncIdeaImpacts(ideaImpacts);
-  }, [ideaImpacts, syncIdeaImpacts]);
+    useInvestigationStore.getState().syncIdeaImpacts(ideaImpacts);
+  }, [ideaImpacts]);
 
   // ── DataContext-dependent actions ─────────────────────────────────────
 

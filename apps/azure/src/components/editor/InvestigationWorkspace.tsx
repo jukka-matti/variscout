@@ -360,7 +360,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         {/* Question checklist */}
         <div className="flex-1 overflow-y-auto px-3 py-2">
           <QuestionChecklist
-            questions={factorIntelQuestions}
+            questions={questionsState.questions}
             issueStatement={processContext?.issueStatement}
             onIssueStatementChange={handleIssueStatementChange}
             onQuestionClick={handleQuestionClickWithSwitch}

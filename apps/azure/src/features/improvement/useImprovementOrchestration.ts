@@ -352,9 +352,8 @@ export function useImprovementOrchestration({
   );
 
   // ── Sync computed state to Zustand store ────────────────────────────────
-  const syncState = useImprovementStore.getState().syncState;
   useEffect(() => {
-    syncState({
+    useImprovementStore.getState().syncState({
       improvementQuestions,
       improvementLinkedFindings,
       selectedIdeaIds,
@@ -367,7 +366,6 @@ export function useImprovementOrchestration({
     selectedIdeaIds,
     projectedCpkMap,
     convertedIdeaIds,
-    syncState,
   ]);
 
   // Convert all selected ideas to action items on their linked findings

@@ -147,20 +147,18 @@ export function useFindingsOrchestration({
   const { drillPath } = useDrillPath(rawData, filterNav.filterStack, outcome, specs);
 
   // ── Sync findings to Zustand store ──────────────────────────────────────
-  const syncFindings = useFindingsStore.getState().syncFindings;
   useEffect(() => {
-    syncFindings(findingsState.findings);
-  }, [findingsState.findings, syncFindings]);
+    useFindingsStore.getState().syncFindings(findingsState.findings);
+  }, [findingsState.findings]);
 
   // ── Highlight auto-clear (3s) ──────────────────────────────────────────
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
-  const setHighlightedFindingId = useFindingsStore.getState().setHighlightedFindingId;
 
   useEffect(() => {
     if (!highlightedFindingId) return;
-    const timer = setTimeout(() => setHighlightedFindingId(null), 3000);
+    const timer = setTimeout(() => useFindingsStore.getState().setHighlightedFindingId(null), 3000);
     return () => clearTimeout(timer);
-  }, [highlightedFindingId, setHighlightedFindingId]);
+  }, [highlightedFindingId]);
 
   // ── Chart findings from store ──────────────────────────────────────────
   const chartFindings = useFindingsStore(s => s.chartFindings);
