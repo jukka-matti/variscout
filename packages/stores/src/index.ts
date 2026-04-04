@@ -24,3 +24,14 @@ export {
   MAX_CHILDREN_PER_PARENT,
 } from './investigationStore';
 export type { InvestigationState, InvestigationActions } from './investigationStore';
+export { useImprovementStore, getImprovementInitialState } from './improvementStore';
+export type { ImprovementState, ImprovementActions, ImprovementStore } from './improvementStore';
+export { useSessionStore, getSessionInitialState } from './sessionStore';
+export type {
+  SessionState,
+  SessionActions,
+  SessionStore,
+  WorkspaceView,
+  PITab,
+  PersistedViewState,
+} from './sessionStore';
