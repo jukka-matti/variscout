@@ -18,13 +18,23 @@ export function usePanelsPersistence(
   const activeView = usePanelsStore(s => s.activeView);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
 
-  // Persistence — skip initial render
+  // Persistence — skip initial render and redundant writes
   const isFirstRender = useRef(true);
+  const prevRef = useRef({ isFindingsOpen, isWhatIfOpen, activeView });
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
     }
+    const prev = prevRef.current;
+    if (
+      prev.isFindingsOpen === isFindingsOpen &&
+      prev.isWhatIfOpen === isWhatIfOpen &&
+      prev.activeView === activeView
+    ) {
+      return;
+    }
+    prevRef.current = { isFindingsOpen, isWhatIfOpen, activeView };
     onViewStateChange?.({ isFindingsOpen, isWhatIfOpen, activeView });
   }, [isFindingsOpen, isWhatIfOpen, activeView, onViewStateChange]);
 

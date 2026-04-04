@@ -374,12 +374,17 @@ export function useDataIngestion(
         setAnalysisMode(sample.config.analysisMode ?? 'standard');
         setYamazumiMapping(null);
       }
-      // Inject pre-populated investigation state (showcase/demo datasets)
+      // Inject or clear pre-populated investigation state (showcase/demo datasets)
       if (sample.config.investigation) {
         const inv = sample.config.investigation;
-        if (inv.findings && setFindings) setFindings(inv.findings);
-        if (inv.questions && setQuestions) setQuestions(inv.questions);
-        if (inv.categories && setCategories) setCategories(inv.categories);
+        if (inv.findings?.length && setFindings) setFindings(inv.findings);
+        if (inv.questions?.length && setQuestions) setQuestions(inv.questions);
+        if (inv.categories?.length && setCategories) setCategories(inv.categories);
+      } else {
+        // Clear stale investigation state from a previous showcase sample
+        if (setFindings) setFindings([]);
+        if (setQuestions) setQuestions([]);
+        if (setCategories) setCategories([]);
       }
     },
     [

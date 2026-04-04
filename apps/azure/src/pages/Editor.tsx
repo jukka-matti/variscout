@@ -194,7 +194,14 @@ export const Editor: React.FC<EditorProps> = ({
   viewStateRef.current = viewState;
   const handleViewStateChange = useCallback(
     (partial: Partial<import('@variscout/hooks').ViewState>) => {
-      setViewState({ ...(viewStateRef.current ?? {}), ...partial });
+      const prev = viewStateRef.current ?? {};
+      // Skip update if all values in the partial are already current (break render loop)
+      const hasChange = Object.entries(partial).some(
+        ([k, v]) => prev[k as keyof typeof prev] !== v
+      );
+      if (hasChange) {
+        setViewState({ ...prev, ...partial });
+      }
     },
     [setViewState]
   );
