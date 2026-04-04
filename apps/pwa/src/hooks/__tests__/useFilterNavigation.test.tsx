@@ -1,20 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useFilterNavigation } from '../useFilterNavigation';
-import * as DataContextModule from '../../context/DataContext';
-
-// Mock the DataContext
-vi.mock('../../context/DataContext', () => ({
-  useData: vi.fn(),
-}));
+import { useProjectStore, getProjectInitialState } from '@variscout/stores';
 
 describe('useFilterNavigation', () => {
   const mockSetFilters = vi.fn();
-  const mockDataContext = {
-    filters: {},
-    setFilters: mockSetFilters,
-    columnAliases: {},
-  };
 
   // Store original window methods
   const originalLocationSearch = window.location.search;
@@ -24,9 +14,14 @@ describe('useFilterNavigation', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataContext as unknown as ReturnType<typeof DataContextModule.useData>
-    );
+
+    // Reset store to initial state and inject mock setFilters
+    useProjectStore.setState({
+      ...getProjectInitialState(),
+      filters: {},
+      columnAliases: {},
+      setFilters: mockSetFilters,
+    });
 
     // Mock window.location properties using Object.defineProperty
     Object.defineProperty(window, 'location', {
@@ -95,10 +90,9 @@ describe('useFilterNavigation', () => {
     });
 
     it('applyFilter toggles off existing filter', () => {
-      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-        ...mockDataContext,
+      useProjectStore.setState({
         filters: { Machine: ['A'] },
-      } as unknown as ReturnType<typeof DataContextModule.useData>);
+      });
 
       const { result } = renderHook(() => useFilterNavigation());
 
@@ -352,10 +346,9 @@ describe('useFilterNavigation', () => {
 
   describe('column alias support', () => {
     it('uses column aliases in labels', () => {
-      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-        ...mockDataContext,
+      useProjectStore.setState({
         columnAliases: { Machine: 'Equipment' },
-      } as unknown as ReturnType<typeof DataContextModule.useData>);
+      });
 
       const { result } = renderHook(() => useFilterNavigation());
 

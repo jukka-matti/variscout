@@ -9,7 +9,8 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { useData } from '../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
+import { useFilteredData } from '@variscout/hooks';
 import { useStatsWorker } from '../workers/useStatsWorker';
 import type { AnovaResult } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/charts';
@@ -60,8 +61,13 @@ export interface UseDashboardChartsResult {
 }
 
 export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboardChartsResult {
-  const { outcome, factors, rawData, filteredData, chartTitles, setChartTitles, displayOptions } =
-    useData();
+  const outcome = useProjectStore(s => s.outcome);
+  const factors = useProjectStore(s => s.factors);
+  const rawData = useProjectStore(s => s.rawData);
+  const chartTitles = useProjectStore(s => s.chartTitles);
+  const setChartTitles = useProjectStore(s => s.setChartTitles);
+  const displayOptions = useProjectStore(s => s.displayOptions);
+  const { filteredData } = useFilteredData();
   const workerApi = useStatsWorker();
 
   const { initialBoxplotFactor, initialParetoFactor, onViewStateChange } = props ?? {};

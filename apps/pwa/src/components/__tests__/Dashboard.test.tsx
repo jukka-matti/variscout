@@ -5,6 +5,7 @@ import Dashboard from '../Dashboard';
 import * as DataContextModule from '../../context/DataContext';
 import * as CoreModule from '@variscout/core';
 import * as UseFilterNavigationModule from '../../hooks/useFilterNavigation';
+import { useProjectStore, getProjectInitialState } from '@variscout/stores';
 
 // Mock components
 vi.mock('../charts/IChart', () => ({ default: () => <div data-testid="i-chart">I-Chart</div> }));
@@ -82,6 +83,18 @@ describe('Dashboard', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+
+    // Seed project store with test data (useDashboardCharts reads from stores)
+    useProjectStore.setState({
+      ...getProjectInitialState(),
+      outcome: 'Result',
+      factors: ['Machine'],
+      rawData: [{ Result: 10, Machine: 'A' }],
+      specs: {},
+      chartTitles: { ichart: '', boxplot: '', pareto: '' },
+      displayOptions: { showFilterContext: true },
+    });
+
     vi.spyOn(UseFilterNavigationModule, 'useFilterNavigation').mockReturnValue(
       mockFilterNavigationReturn as unknown as ReturnType<
         typeof UseFilterNavigationModule.useFilterNavigation

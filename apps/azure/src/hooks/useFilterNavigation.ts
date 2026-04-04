@@ -1,20 +1,20 @@
 /**
  * Re-export useFilterNavigation from @variscout/hooks
- * with Azure-specific context wrapper
+ * with Azure-specific store-backed wrapper
  */
 import {
   useFilterNavigation as useFilterNavigationBase,
   type UseFilterNavigationOptions,
   type UseFilterNavigationReturn,
 } from '@variscout/hooks';
-import { useData } from '../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
 
 export type { UseFilterNavigationOptions, UseFilterNavigationReturn };
 
 /**
  * Hook for managing filter navigation state
  *
- * Automatically uses the Azure app's DataContext.
+ * Reads from Zustand stores instead of DataContext.
  * Passes external filterStack for project persistence (breadcrumbs survive save/reload).
  * For the context-injection version, use @variscout/hooks directly.
  *
@@ -24,7 +24,11 @@ export type { UseFilterNavigationOptions, UseFilterNavigationReturn };
 export function useFilterNavigation(
   options: UseFilterNavigationOptions = {}
 ): UseFilterNavigationReturn {
-  const { filters, setFilters, columnAliases, filterStack, setFilterStack } = useData();
+  const filters = useProjectStore(s => s.filters);
+  const setFilters = useProjectStore(s => s.setFilters);
+  const columnAliases = useProjectStore(s => s.columnAliases);
+  const filterStack = useProjectStore(s => s.filterStack);
+  const setFilterStack = useProjectStore(s => s.setFilterStack);
 
   return useFilterNavigationBase(
     { filters, setFilters, columnAliases },

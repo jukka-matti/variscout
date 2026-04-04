@@ -8,11 +8,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // ── Mocks (BEFORE imports) ────────────────────────────────────────────
 
 const mockSetChartTitles = vi.fn();
-const mockUseData = vi.fn();
-
-vi.mock('../../context/DataContext', () => ({
-  useData: () => mockUseData(),
-}));
 
 const mockBaseSetBoxplotFactor = vi.fn();
 const mockBaseSetParetoFactor = vi.fn();
@@ -44,6 +39,10 @@ const defaultBaseResult = {
 vi.mock('@variscout/hooks', () => ({
   useDashboardChartsBase: () => defaultBaseResult,
   useKeyboardNavigation: vi.fn(),
+  useFilteredData: () => ({
+    filteredData: [{ Weight: 10, Operator: 'A', Line: '1' }],
+    filteredIndexMap: new Map(),
+  }),
 }));
 
 // Mock useStatsWorker (Worker is not available in jsdom)
@@ -70,19 +69,20 @@ vi.mock('../useFilterNavigation', () => ({
 // ── Import AFTER mocks ────────────────────────────────────────────────
 import { renderHook, act } from '@testing-library/react';
 import { useDashboardCharts } from '../useDashboardCharts';
+import { useProjectStore, getProjectInitialState } from '@variscout/stores';
 
-// ── Default DataContext mock ──────────────────────────────────────────
+// ── Default store state ──────────────────────────────────────────
 
-function defaultDataContext() {
-  return {
+function seedDefaultStore() {
+  useProjectStore.setState({
+    ...getProjectInitialState(),
     outcome: 'Weight',
     factors: ['Operator', 'Line'],
     rawData: [{ Weight: 10, Operator: 'A', Line: '1' }],
-    filteredData: [{ Weight: 10, Operator: 'A', Line: '1' }],
     chartTitles: {},
     setChartTitles: mockSetChartTitles,
     displayOptions: {},
-  };
+  });
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ function defaultDataContext() {
 describe('useDashboardCharts', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    mockUseData.mockReturnValue(defaultDataContext());
+    seedDefaultStore();
   });
 
   afterEach(() => {
@@ -307,10 +307,11 @@ describe('useDashboardCharts', () => {
       });
       expect(result.current.showParetoPanel).toBe(false);
 
-      // Simulate data change
-      mockUseData.mockReturnValue({
-        ...defaultDataContext(),
-        rawData: [{ Weight: 20, Operator: 'B', Line: '2' }],
+      // Simulate data change via store
+      act(() => {
+        useProjectStore.setState({
+          rawData: [{ Weight: 20, Operator: 'B', Line: '2' }],
+        });
       });
       rerender();
 
@@ -325,9 +326,10 @@ describe('useDashboardCharts', () => {
       });
       expect(result.current.showParetoPanel).toBe(false);
 
-      mockUseData.mockReturnValue({
-        ...defaultDataContext(),
-        factors: ['Operator', 'Line', 'Shift'],
+      act(() => {
+        useProjectStore.setState({
+          factors: ['Operator', 'Line', 'Shift'],
+        });
       });
       rerender();
 
@@ -347,8 +349,7 @@ describe('useDashboardCharts', () => {
     });
 
     it('preserves existing chart titles', () => {
-      mockUseData.mockReturnValue({
-        ...defaultDataContext(),
+      useProjectStore.setState({
         chartTitles: { boxplot: 'Existing Boxplot Title' },
       });
 

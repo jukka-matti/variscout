@@ -1,13 +1,13 @@
 /**
  * useDataIngestion - Azure wrapper for shared data ingestion hook
  *
- * Thin wrapper that connects shared hook to Azure's DataContext via useData().
+ * Thin wrapper that connects shared hook to Zustand projectStore.
  * Azure supports larger datasets (250K rows vs PWA's 50K) thanks to
  * Transferable ArrayBuffer optimization in the Web Worker pipeline.
  */
 
 import { useIsMobile } from '@variscout/ui';
-import { useData } from '../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
 import {
   useDataIngestion as useDataIngestionBase,
   type UseDataIngestionOptions,
@@ -24,44 +24,24 @@ const AZURE_MOBILE_LIMITS = {
 };
 
 export const useDataIngestion = (options?: UseDataIngestionOptions) => {
-  const {
-    setRawData,
-    setOutcome,
-    setFactors,
-    setSpecs,
-    setFilters,
-    setDataFilename,
-    setDataQualityReport,
-    setParetoMode,
-    setSeparateParetoData,
-    setSeparateParetoFilename,
-    setMeasureColumns,
-    setMeasureLabel,
-    setAnalysisMode,
-    setYamazumiMapping,
-    setFindings,
-    setQuestions,
-    setCategories,
-  } = useData();
-
   const actions = {
-    setRawData,
-    setOutcome,
-    setFactors,
-    setSpecs,
-    setFilters,
-    setDataFilename,
-    setDataQualityReport,
-    setParetoMode,
-    setSeparateParetoData,
-    setSeparateParetoFilename,
-    setMeasureColumns,
-    setMeasureLabel,
-    setAnalysisMode,
-    setYamazumiMapping,
-    setFindings,
-    setQuestions,
-    setCategories,
+    setRawData: useProjectStore(s => s.setRawData),
+    setOutcome: useProjectStore(s => s.setOutcome),
+    setFactors: useProjectStore(s => s.setFactors),
+    setSpecs: useProjectStore(s => s.setSpecs),
+    setFilters: useProjectStore(s => s.setFilters),
+    setDataFilename: useProjectStore(s => s.setDataFilename),
+    setDataQualityReport: useProjectStore(s => s.setDataQualityReport),
+    setParetoMode: useProjectStore(s => s.setParetoMode),
+    setSeparateParetoData: useProjectStore(s => s.setSeparateParetoData),
+    setSeparateParetoFilename: useProjectStore(s => s.setSeparateParetoFilename),
+    setMeasureColumns: useProjectStore(s => s.setMeasureColumns),
+    setMeasureLabel: useProjectStore(s => s.setMeasureLabel),
+    setAnalysisMode: useProjectStore(s => s.setAnalysisMode),
+    setYamazumiMapping: useProjectStore(s => s.setYamazumiMapping),
+    setFindings: useProjectStore(s => s.setFindings),
+    setQuestions: useProjectStore(s => s.setQuestions),
+    setCategories: useProjectStore(s => s.setCategories),
   };
 
   const isMobile = useIsMobile(640);
