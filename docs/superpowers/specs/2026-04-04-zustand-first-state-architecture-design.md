@@ -1,6 +1,6 @@
 ---
 title: 'Zustand-First State Architecture'
-status: draft
+status: delivered
 date: 2026-04-04
 audience: [developer, architect]
 category: architecture

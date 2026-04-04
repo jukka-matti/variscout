@@ -1,3 +1,7 @@
+---
+title: 'Zustand-First Architecture — Phase 1: Create @variscout/stores'
+---
+
 # Zustand-First Architecture — Phase 1: Create @variscout/stores
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -609,13 +613,11 @@ beforeEach(() => {
 describe('investigationStore', () => {
   describe('findings CRUD', () => {
     it('adds a finding', () => {
-      const f = useInvestigationStore
-        .getState()
-        .addFinding('Line 2 runs high', {
-          activeFilters: { Line: ['Line 2'] },
-          cumulativeScope: null,
-          stats: { mean: 502, samples: 72 },
-        });
+      const f = useInvestigationStore.getState().addFinding('Line 2 runs high', {
+        activeFilters: { Line: ['Line 2'] },
+        cumulativeScope: null,
+        stats: { mean: 502, samples: 72 },
+      });
       expect(f.id).toBeDefined();
       expect(f.text).toBe('Line 2 runs high');
       expect(f.status).toBe('observed');
