@@ -11,9 +11,8 @@
  */
 
 import { useCallback } from 'react';
-import { useProjectStore } from '@variscout/stores';
-import { useInvestigationStore } from '@variscout/stores';
-import type { FilterAction } from '@variscout/core';
+import { useProjectStore, useInvestigationStore } from '@variscout/stores';
+import { filterStackToFilters } from '@variscout/core/navigation';
 import type { AnalysisState, PersistenceAdapter, SavedProject, ViewState } from './types';
 import type { SerializedProject } from '@variscout/stores';
 
@@ -35,19 +34,6 @@ export interface ProjectActionsResult {
 // ============================================================================
 // Helpers
 // ============================================================================
-
-/**
- * Derive flat filters from filter stack for data filtering.
- */
-function deriveFlatFilters(filterStack: FilterAction[]): Record<string, (string | number)[]> {
-  const flatFilters: Record<string, (string | number)[]> = {};
-  for (const action of filterStack) {
-    if (action.type === 'filter' && action.factor) {
-      flatFilters[action.factor] = action.values;
-    }
-  }
-  return flatFilters;
-}
 
 /**
  * Migrate isMindmapOpen → isFindingsOpen for old .vrs files.
@@ -76,7 +62,7 @@ function buildSerializedProject(
   let filters = state.filters;
   let filterStack = state.filterStack ?? [];
   if (filterStack.length > 0) {
-    filters = deriveFlatFilters(filterStack);
+    filters = filterStackToFilters(filterStack);
   } else {
     // Old .vrs: use flat filters directly, no breadcrumbs
     filterStack = [];
@@ -199,9 +185,13 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
     async (name: string): Promise<SavedProject> => {
       const currentState = getCurrentStateFromStores();
       const project = await persistence.saveProject(name, currentState);
-      useProjectStore.getState().setProjectId(project.id);
-      useProjectStore.getState().setProjectName(project.name);
-      useProjectStore.getState().markSaved();
+      // Atomic update: set id + name + markSaved in one setState to avoid
+      // intermediate dirty states (setProjectId/setProjectName each trigger hasUnsavedChanges: true)
+      useProjectStore.setState({
+        projectId: project.id,
+        projectName: project.name,
+        hasUnsavedChanges: false,
+      });
       return project;
     },
     [persistence]
@@ -281,7 +271,7 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
   const importProject = useCallback(
     async (file: File): Promise<void> => {
       const state = await persistence.importFromFile(file);
-      const projectName = file.name.replace('.vrs', '');
+      const projectName = file.name.replace(/\.vrs$/i, '');
       const serialized = buildSerializedProject(null, projectName, state);
 
       // Hydrate project store
