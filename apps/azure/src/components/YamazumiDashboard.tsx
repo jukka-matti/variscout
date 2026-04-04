@@ -24,7 +24,8 @@ import type {
   YamazumiParetoMode,
 } from '@variscout/core';
 import { IChart, ParetoChart, YamazumiChart } from '@variscout/charts';
-import { useData } from '../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
+import { useFilteredData } from '@variscout/hooks';
 
 interface YamazumiDashboardProps {
   mapping: YamazumiColumnMapping;
@@ -37,7 +38,8 @@ const YamazumiDashboard: React.FC<YamazumiDashboardProps> = ({
   onBarClick,
   onTaktTimeChange,
 }) => {
-  const { filteredData, specs } = useData();
+  const { filteredData } = useFilteredData();
+  const specs = useProjectStore(s => s.specs);
   const showBranding = !isPaidTier();
 
   // Yamazumi-specific display state

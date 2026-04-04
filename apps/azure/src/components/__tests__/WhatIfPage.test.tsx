@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import WhatIfPage from '../WhatIfPage';
-import * as DataContextModule from '../../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
 
 // Mock @variscout/ui — WhatIfPageBase is what the wrapper renders
 vi.mock('@variscout/ui', async () => {
@@ -56,32 +56,29 @@ vi.mock('@variscout/ui', async () => {
 describe('WhatIfPage', () => {
   const mockOnBack = vi.fn();
 
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  const mockDataCtx = {
+  const mockStoreState = {
     outcome: 'Weight',
     rawData: [
       { Weight: 10.2, Machine: 'A' },
       { Weight: 10.5, Machine: 'B' },
       { Weight: 9.8, Machine: 'A' },
     ],
-    filteredData: [
-      { Weight: 10.2, Machine: 'A' },
-      { Weight: 10.5, Machine: 'B' },
-      { Weight: 9.8, Machine: 'A' },
-    ],
     specs: { usl: 12, lsl: 8 },
+    columnAliases: {},
+    cpkTarget: undefined,
+    viewState: null,
+    filters: {},
   };
 
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    useProjectStore.setState(
+      mockStoreState as unknown as Partial<ReturnType<typeof useProjectStore.getState>>
+    );
+  });
+
   it('renders empty state when no data', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      outcome: null,
-      rawData: [],
-      filteredData: [],
-      specs: {},
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
+    useProjectStore.setState({ outcome: null, rawData: [], filters: {} });
 
     render(<WhatIfPage onBack={mockOnBack} />);
 
@@ -89,10 +86,6 @@ describe('WhatIfPage', () => {
   });
 
   it('renders header with back button, beaker icon, and title', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<WhatIfPage onBack={mockOnBack} />);
 
     expect(screen.getByText('What-If Simulator')).toBeInTheDocument();
@@ -100,10 +93,6 @@ describe('WhatIfPage', () => {
   });
 
   it('shows outcome name and sample count', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<WhatIfPage onBack={mockOnBack} />);
 
     expect(screen.getByText('Weight')).toBeInTheDocument();
@@ -111,40 +100,25 @@ describe('WhatIfPage', () => {
   });
 
   it('shows filter count badge when filters active', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<WhatIfPage onBack={mockOnBack} filterCount={2} />);
 
     expect(screen.getByText('2 filters')).toBeInTheDocument();
   });
 
   it('does not show filter badge when no filters', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<WhatIfPage onBack={mockOnBack} filterCount={0} />);
 
     expect(screen.queryByText(/filter/)).not.toBeInTheDocument();
   });
 
   it('shows singular "filter" for count of 1', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<WhatIfPage onBack={mockOnBack} filterCount={1} />);
 
     expect(screen.getByText('1 filter')).toBeInTheDocument();
   });
 
   it('shows specs warning when no USL/LSL', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      ...mockDataCtx,
-      specs: {},
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
+    useProjectStore.setState({ specs: {} });
 
     render(<WhatIfPage onBack={mockOnBack} />);
 
@@ -154,10 +128,6 @@ describe('WhatIfPage', () => {
   });
 
   it('does not show specs warning when specs are set', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<WhatIfPage onBack={mockOnBack} />);
 
     expect(
@@ -166,10 +136,6 @@ describe('WhatIfPage', () => {
   });
 
   it('back button calls onBack', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<WhatIfPage onBack={mockOnBack} />);
 
     fireEvent.click(screen.getByTitle('Back to Dashboard'));
@@ -177,10 +143,6 @@ describe('WhatIfPage', () => {
   });
 
   it('renders WhatIfSimulator when stats are available', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<WhatIfPage onBack={mockOnBack} />);
 
     expect(screen.getByTestId('what-if-simulator')).toBeInTheDocument();

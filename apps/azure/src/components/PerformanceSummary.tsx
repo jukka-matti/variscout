@@ -7,11 +7,15 @@
 
 import React from 'react';
 import { useTranslation } from '@variscout/hooks';
-import { useData } from '../context/DataContext';
+import { usePerformanceAnalysis } from '@variscout/hooks';
+import { useProjectStore } from '@variscout/stores';
 
 const PerformanceSummary: React.FC = () => {
   const { formatStat } = useTranslation();
-  const { performanceResult, selectedMeasure, setSelectedMeasure, measureLabel } = useData();
+  const performanceResult = usePerformanceAnalysis();
+  const selectedMeasure = useProjectStore(s => s.selectedMeasure);
+  const setSelectedMeasure = useProjectStore(s => s.setSelectedMeasure);
+  const measureLabel = useProjectStore(s => s.measureLabel);
 
   if (!performanceResult) {
     return null;

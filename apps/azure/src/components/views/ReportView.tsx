@@ -6,7 +6,13 @@
  * Investigation Report, Improvement Story) with Technical/Summary audience modes.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useData } from '../../context/DataContext';
+import { useProjectStore, useInvestigationStore } from '@variscout/stores';
+import {
+  useFilteredData,
+  useAnalysisStats,
+  useStagedAnalysis,
+  usePerformanceAnalysis,
+} from '@variscout/hooks';
 import { hasTeamFeatures } from '@variscout/core';
 import {
   ReportViewBase,
@@ -115,29 +121,24 @@ const ReportView: React.FC<ReportViewProps> = ({
   aiEnabled,
   narrative,
 }) => {
-  const {
-    rawData,
-    outcome,
-    factors,
-    specs,
-    stats,
-    filteredData,
-    findings: persistedFindings,
-    questions: persistedQuestions,
-    columnAliases,
-    processContext,
-    stageColumn,
-    stagedStats,
-    cpkTarget,
-    displayOptions,
-    analysisMode,
-    yamazumiMapping,
-    subgroupConfig,
-    performanceResult,
-  } = useData();
-
-  const findings = useMemo(() => persistedFindings ?? [], [persistedFindings]);
-  const questions = useMemo(() => persistedQuestions ?? [], [persistedQuestions]);
+  const rawData = useProjectStore(s => s.rawData);
+  const outcome = useProjectStore(s => s.outcome);
+  const factors = useProjectStore(s => s.factors);
+  const specs = useProjectStore(s => s.specs);
+  const columnAliases = useProjectStore(s => s.columnAliases);
+  const processContext = useProjectStore(s => s.processContext);
+  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const displayOptions = useProjectStore(s => s.displayOptions);
+  const analysisMode = useProjectStore(s => s.analysisMode);
+  const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
+  const subgroupConfig = useProjectStore(s => s.subgroupConfig);
+  const stageColumn = useProjectStore(s => s.stageColumn);
+  const { filteredData } = useFilteredData();
+  const { stats } = useAnalysisStats();
+  const { stagedStats } = useStagedAnalysis();
+  const performanceResult = usePerformanceAnalysis();
+  const findings = useInvestigationStore(s => s.findings);
+  const questions = useInvestigationStore(s => s.questions);
 
   // ---------------------------------------------------------------------------
   // Resolved analysis mode + strategy
@@ -429,7 +430,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     reportType,
     sections,
     questions,
-    processContext,
+    processContext: processContext ?? undefined,
     stats: stats ?? undefined,
     sampleCount: filteredData.length,
     aiNarrative: narrative ?? undefined,

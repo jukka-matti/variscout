@@ -1,5 +1,5 @@
 import React from 'react';
-import { useData } from '../../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
 import { DataTableModalBase } from '@variscout/ui';
 import type { ExclusionReason } from '@variscout/core';
 
@@ -13,7 +13,10 @@ interface DataTableModalProps {
 }
 
 const DataTableModal = ({ showExcludedOnly = false, ...props }: DataTableModalProps) => {
-  const { rawData, outcome, specs, setRawData } = useData();
+  const rawData = useProjectStore(s => s.rawData);
+  const outcome = useProjectStore(s => s.outcome);
+  const specs = useProjectStore(s => s.specs);
+  const setRawData = useProjectStore(s => s.setRawData);
 
   return (
     <DataTableModalBase

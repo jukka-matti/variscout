@@ -25,7 +25,8 @@ import type { HubProjection } from '@variscout/core/findings';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { GripVertical } from 'lucide-react';
-import { useData } from '../../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
+import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useInvestigationStore } from '../../features/investigation/investigationStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
@@ -94,17 +95,15 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   viewMode: externalViewMode,
   onViewModeChange,
 }) => {
-  const {
-    filteredData,
-    outcome,
-    factors,
-    specs,
-    processContext,
-    setProcessContext,
-    analysisMode,
-    stats,
-    cpkTarget,
-  } = useData();
+  const outcome = useProjectStore(s => s.outcome);
+  const factors = useProjectStore(s => s.factors);
+  const specs = useProjectStore(s => s.specs);
+  const processContext = useProjectStore(s => s.processContext);
+  const setProcessContext = useProjectStore(s => s.setProcessContext);
+  const analysisMode = useProjectStore(s => s.analysisMode);
+  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const { filteredData } = useFilteredData();
+  const { stats } = useAnalysisStats();
 
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);

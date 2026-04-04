@@ -1,7 +1,7 @@
 import React from 'react';
 import { SettingsPanelBase, ThemeToggle, useTheme } from '@variscout/ui';
 import { useTranslation } from '@variscout/hooks';
-import { useData } from '../../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -10,7 +10,8 @@ interface SettingsPanelProps {
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
-  const { displayOptions, setDisplayOptions } = useData();
+  const displayOptions = useProjectStore(s => s.displayOptions);
+  const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
   const { theme, setTheme } = useTheme();
 
   return (

@@ -20,6 +20,7 @@ import type {
   Finding,
   Question,
   ParetoRow,
+  DataQualityReport,
 } from '@variscout/core';
 
 // ============================================================================
@@ -46,13 +47,7 @@ export type StageOrderMode = 'auto' | 'data-order';
 // ParetoRow is imported from @variscout/core above and re-exported here for stores consumers
 export type { ParetoRow };
 
-/** Data quality report from parser */
-export interface DataQualityReport {
-  totalRows: number;
-  validRows: number;
-  invalidRows: number;
-  issues: Array<{ row: number; column: string; message: string }>;
-}
+export type { DataQualityReport };
 
 /** Display options for chart visualizations */
 export interface DisplayOptions {

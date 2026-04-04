@@ -29,7 +29,8 @@ import { DocumentShelfBase } from '@variscout/ui';
 import { hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { isAIAvailable } from '../../services/aiService';
-import { useData } from '../../context/DataContext';
+import { useProjectStore, useSessionStore } from '@variscout/stores';
+import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import { useInvestigationStore } from '../../features/investigation/investigationStore';
@@ -103,19 +104,17 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   excludedRowIndices,
   excludedReasons,
 }) => {
-  const {
-    factors,
-    aiEnabled,
-    processContext,
-    rawData,
-    filteredData,
-    stats,
-    filters,
-    specs,
-    outcome,
-    cpkTarget,
-    analysisMode,
-  } = useData();
+  const factors = useProjectStore(s => s.factors);
+  const rawData = useProjectStore(s => s.rawData);
+  const filters = useProjectStore(s => s.filters);
+  const specs = useProjectStore(s => s.specs);
+  const outcome = useProjectStore(s => s.outcome);
+  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const analysisMode = useProjectStore(s => s.analysisMode);
+  const processContext = useProjectStore(s => s.processContext);
+  const aiEnabled = useSessionStore(s => s.aiEnabled);
+  const { filteredData } = useFilteredData();
+  const { stats } = useAnalysisStats();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
 
   // Question-driven investigation (ADR-053)

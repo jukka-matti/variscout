@@ -36,7 +36,7 @@ vi.mock('@variscout/hooks', async () => {
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import DataTableModal from '../data/DataTableModal';
-import * as DataContextModule from '../../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
 
 describe('PWA DataTableModal wrapper', () => {
   const mockData = [{ name: 'Item A', value: 10, category: 'Type 1' }];
@@ -46,15 +46,15 @@ describe('PWA DataTableModal wrapper', () => {
     vi.restoreAllMocks();
     mockSetRawData.mockClear();
 
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+    useProjectStore.setState({
       rawData: mockData,
       outcome: 'value',
       specs: { usl: 25, lsl: 5 },
       setRawData: mockSetRawData,
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
+    } as unknown as Partial<ReturnType<typeof useProjectStore.getState>>);
   });
 
-  it('bridges useData context to DataTableModalBase', () => {
+  it('bridges store state to DataTableModalBase', () => {
     render(<DataTableModal isOpen={true} onClose={() => {}} />);
     expect(screen.getByText('Data Table')).toBeInTheDocument();
     expect(screen.getByText('Item A')).toBeInTheDocument();

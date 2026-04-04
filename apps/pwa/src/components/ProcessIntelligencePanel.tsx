@@ -3,7 +3,7 @@ import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
 import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
 import type { PITab, ComplementInsight, PIOverflowView } from '@variscout/ui';
 import { PIPanelBase, WhatIfSimulator, computePresets, useGlossary } from '@variscout/ui';
-import { useData } from '../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
 import SpecEditor from './settings/SpecEditor';
 
 interface ProcessIntelligencePanelProps {
@@ -59,7 +59,7 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
   overflowView,
   onOverflowViewChange,
 }) => {
-  const { setSpecs } = useData();
+  const setSpecs = useProjectStore(s => s.setSpecs);
   const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
 

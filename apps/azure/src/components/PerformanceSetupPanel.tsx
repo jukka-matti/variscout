@@ -12,7 +12,7 @@ import {
   type PerformanceSetupPanelTierProps,
 } from '@variscout/ui';
 import { useTier } from '@variscout/hooks';
-import { useData } from '../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
 import { detectChannelColumns } from '@variscout/core';
 
 interface PerformanceSetupPanelProps {
@@ -38,17 +38,15 @@ const PerformanceSetupPanel: React.FC<PerformanceSetupPanelProps> = ({
   onCancel,
   onOpenSettings,
 }) => {
-  const {
-    rawData,
-    specs,
-    measureColumns: currentMeasureColumns,
-    measureLabel: currentMeasureLabel,
-    cpkTarget: currentCpkTarget,
-    setMeasureColumns,
-    setMeasureLabel,
-    setAnalysisMode,
-    setCpkTarget,
-  } = useData();
+  const rawData = useProjectStore(s => s.rawData);
+  const specs = useProjectStore(s => s.specs);
+  const currentMeasureColumns = useProjectStore(s => s.measureColumns);
+  const currentMeasureLabel = useProjectStore(s => s.measureLabel);
+  const currentCpkTarget = useProjectStore(s => s.cpkTarget);
+  const setMeasureColumns = useProjectStore(s => s.setMeasureColumns);
+  const setMeasureLabel = useProjectStore(s => s.setMeasureLabel);
+  const setAnalysisMode = useProjectStore(s => s.setAnalysisMode);
+  const setCpkTarget = useProjectStore(s => s.setCpkTarget);
 
   // Tier information for channel limit validation
   const { tier, maxChannels, upgradeUrl, validateChannels } = useTier();

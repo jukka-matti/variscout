@@ -10,7 +10,8 @@ import PerformanceDashboard from './PerformanceDashboard';
 import YamazumiDashboard from './YamazumiDashboard';
 import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
-import { useData } from '../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
+import { useFilteredData, useAnalysisStats, useStagedAnalysis } from '@variscout/hooks';
 import { resolveMode } from '@variscout/core/strategy';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { useDashboardCharts } from '../hooks';
@@ -155,39 +156,37 @@ const Dashboard = ({
   } = ai;
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
     findingsCallbacks ?? {};
-  const {
-    outcome,
-    factors,
-    setOutcome,
-    rawData,
-    setRawData,
-    stats,
-    specs,
-    setSpecs,
-    filteredData,
-    filters,
-    setFilters,
-    analysisMode,
-    yamazumiMapping,
-    columnAliases,
-    stageColumn,
-    stageOrderMode,
-    stagedStats,
-    setStageColumn,
-    setStageOrderMode,
-    paretoAggregation,
-    setParetoAggregation,
-    chartTitles,
-    timeColumn,
-    displayOptions,
-    setDisplayOptions,
-    subgroupConfig,
-    setSubgroupConfig,
-    cpkTarget,
-    setCpkTarget,
-    selectedPoints,
-    clearSelection,
-  } = useData();
+  const outcome = useProjectStore(s => s.outcome);
+  const factors = useProjectStore(s => s.factors);
+  const setOutcome = useProjectStore(s => s.setOutcome);
+  const rawData = useProjectStore(s => s.rawData);
+  const setRawData = useProjectStore(s => s.setRawData);
+  const specs = useProjectStore(s => s.specs);
+  const setSpecs = useProjectStore(s => s.setSpecs);
+  const filters = useProjectStore(s => s.filters);
+  const setFilters = useProjectStore(s => s.setFilters);
+  const analysisMode = useProjectStore(s => s.analysisMode);
+  const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
+  const columnAliases = useProjectStore(s => s.columnAliases);
+  const stageColumn = useProjectStore(s => s.stageColumn);
+  const stageOrderMode = useProjectStore(s => s.stageOrderMode);
+  const setStageColumn = useProjectStore(s => s.setStageColumn);
+  const setStageOrderMode = useProjectStore(s => s.setStageOrderMode);
+  const paretoAggregation = useProjectStore(s => s.paretoAggregation);
+  const setParetoAggregation = useProjectStore(s => s.setParetoAggregation);
+  const chartTitles = useProjectStore(s => s.chartTitles);
+  const timeColumn = useProjectStore(s => s.timeColumn);
+  const displayOptions = useProjectStore(s => s.displayOptions);
+  const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
+  const subgroupConfig = useProjectStore(s => s.subgroupConfig);
+  const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
+  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const setCpkTarget = useProjectStore(s => s.setCpkTarget);
+  const selectedPoints = useProjectStore(s => s.selectedPoints);
+  const clearSelection = useProjectStore(s => s.clearSelection);
+  const { filteredData } = useFilteredData();
+  const { stats } = useAnalysisStats();
+  const { stagedStats } = useStagedAnalysis();
   const { getTerm } = useGlossary();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
 

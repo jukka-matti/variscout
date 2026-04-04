@@ -1,15 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import WhatIfPage from '../WhatIfPage';
+import { useProjectStore } from '@variscout/stores';
 
-// Mock DataContext
-const defaultContextValue = {
-  filteredData: [
-    { Machine: 'A', Value: 10 },
-    { Machine: 'A', Value: 11 },
-    { Machine: 'B', Value: 20 },
-    { Machine: 'B', Value: 19 },
-  ],
+// Default store state
+const defaultStoreState = {
   rawData: [
     { Machine: 'A', Value: 10 },
     { Machine: 'A', Value: 11 },
@@ -22,12 +17,6 @@ const defaultContextValue = {
   factors: ['Machine'],
   cpkTarget: 1.33,
 };
-
-let contextValue = { ...defaultContextValue };
-
-vi.mock('../../context/DataContext', () => ({
-  useData: () => contextValue,
-}));
 
 // Mock calculateStats
 vi.mock('@variscout/core', async importOriginal => {
@@ -99,17 +88,19 @@ vi.mock('@variscout/ui', async () => {
 describe('WhatIfPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    contextValue = { ...defaultContextValue };
+    useProjectStore.setState(
+      defaultStoreState as unknown as Partial<ReturnType<typeof useProjectStore.getState>>
+    );
   });
 
   it('shows empty state when no outcome set', () => {
-    contextValue = { ...defaultContextValue, outcome: '' };
+    useProjectStore.setState({ outcome: null });
     render(<WhatIfPage onBack={() => {}} />);
     expect(screen.getByText('Load data and set specification limits first.')).toBeInTheDocument();
   });
 
   it('shows empty state when rawData is empty', () => {
-    contextValue = { ...defaultContextValue, rawData: [], filteredData: [] };
+    useProjectStore.setState({ rawData: [], outcome: null });
     render(<WhatIfPage onBack={() => {}} />);
     expect(screen.getByText('Load data and set specification limits first.')).toBeInTheDocument();
   });
@@ -124,10 +115,7 @@ describe('WhatIfPage', () => {
   });
 
   it('shows specs warning when no USL/LSL set', () => {
-    contextValue = {
-      ...defaultContextValue,
-      specs: {},
-    };
+    useProjectStore.setState({ specs: {} });
     render(<WhatIfPage onBack={() => {}} />);
     expect(
       screen.getByText('Set specification limits (USL/LSL) to see Cpk and yield projections.')
@@ -153,19 +141,13 @@ describe('WhatIfPage', () => {
   });
 
   it('shows filter count when filters active', () => {
-    contextValue = {
-      ...defaultContextValue,
-      filters: { Machine: ['A'] },
-    };
+    useProjectStore.setState({ filters: { Machine: ['A'] } });
     render(<WhatIfPage onBack={() => {}} />);
     expect(screen.getByText('1 filter')).toBeInTheDocument();
   });
 
   it('shows plural filters label for multiple filters', () => {
-    contextValue = {
-      ...defaultContextValue,
-      filters: { Machine: ['A'], Shift: ['Morning'] },
-    };
+    useProjectStore.setState({ filters: { Machine: ['A'], Shift: ['Morning'] } });
     render(<WhatIfPage onBack={() => {}} />);
     expect(screen.getByText('2 filters')).toBeInTheDocument();
   });
@@ -177,7 +159,7 @@ describe('WhatIfPage', () => {
   });
 
   it('back button works in empty state too', () => {
-    contextValue = { ...defaultContextValue, outcome: '' };
+    useProjectStore.setState({ outcome: null });
     const onBack = vi.fn();
     render(<WhatIfPage onBack={onBack} />);
 

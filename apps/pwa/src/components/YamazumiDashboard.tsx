@@ -29,7 +29,8 @@ import type {
 } from '@variscout/core';
 import { IChartBase, ParetoChartBase, YamazumiChartBase } from '@variscout/charts';
 import { withParentSize } from '@visx/responsive';
-import { useData } from '../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
+import { useFilteredData } from '@variscout/hooks';
 
 // ---------------------------------------------------------------------------
 // Responsive inner chart components (withParentSize provides dimensions)
@@ -137,7 +138,8 @@ const YamazumiDashboard: React.FC<YamazumiDashboardProps> = ({
   onBarClick,
   onTaktTimeChange,
 }) => {
-  const { filteredData, specs } = useData();
+  const { filteredData } = useFilteredData();
+  const specs = useProjectStore(s => s.specs);
   const [ichartMetric, setIchartMetric] = useState<YamazumiIChartMetric>('total');
   const [paretoMode, setParetoMode] = useState<YamazumiParetoMode>('steps-total');
 

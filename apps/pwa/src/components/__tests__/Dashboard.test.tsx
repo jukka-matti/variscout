@@ -2,7 +2,6 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
-import * as DataContextModule from '../../context/DataContext';
 import * as CoreModule from '@variscout/core';
 import * as UseFilterNavigationModule from '../../hooks/useFilterNavigation';
 import { useProjectStore, getProjectInitialState } from '@variscout/stores';
@@ -107,29 +106,7 @@ describe('Dashboard', () => {
     );
   });
 
-  const mockDataCtx = {
-    outcome: 'Result',
-    factors: ['Machine'],
-    rawData: [{ Result: 10, Machine: 'A' }],
-    filteredData: [{ Result: 10, Machine: 'A' }],
-    stats: { mean: 10, ucl: 12, lcl: 8 },
-    specs: {},
-    setOutcome: vi.fn(),
-    filters: {},
-    columnAliases: {},
-    chartTitles: { ichart: '', boxplot: '', pareto: '' },
-    setChartTitles: vi.fn(),
-    displayOptions: { showFilterContext: true },
-    setDisplayOptions: vi.fn(),
-    selectedPoints: new Set<number>(),
-    clearSelection: vi.fn(),
-  };
-
   it('renders dashboard view by default with tab navigation', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<Dashboard />);
 
     // Dashboard view shows I-Chart, Boxplot, and ProcessHealthBar
@@ -139,10 +116,6 @@ describe('Dashboard', () => {
   });
 
   it('does not render AnovaResults when calculation returns null', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     vi.spyOn(CoreModule, 'calculateAnova').mockReturnValue(null);
 
     render(<Dashboard />);

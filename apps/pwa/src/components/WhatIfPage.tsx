@@ -1,5 +1,6 @@
 import React from 'react';
-import { useData } from '../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
+import { useFilteredData } from '@variscout/hooks';
 import { WhatIfPageBase } from '@variscout/ui';
 
 interface WhatIfPageProps {
@@ -7,7 +8,13 @@ interface WhatIfPageProps {
 }
 
 const WhatIfPage: React.FC<WhatIfPageProps> = ({ onBack }) => {
-  const { filteredData, rawData, outcome, specs, filters, factors, cpkTarget } = useData();
+  const { filteredData } = useFilteredData();
+  const rawData = useProjectStore(s => s.rawData);
+  const outcome = useProjectStore(s => s.outcome);
+  const specs = useProjectStore(s => s.specs);
+  const filters = useProjectStore(s => s.filters);
+  const factors = useProjectStore(s => s.factors);
+  const cpkTarget = useProjectStore(s => s.cpkTarget);
   const filterCount = Object.keys(filters).length;
 
   return (

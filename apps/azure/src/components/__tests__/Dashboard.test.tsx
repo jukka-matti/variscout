@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
-import * as DataContextModule from '../../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
 import * as CoreModule from '@variscout/core';
 
 // Mock components
@@ -338,8 +338,21 @@ vi.mock('../../hooks', () => ({
   }),
 }));
 
-// Mock @variscout/hooks
+// Mock @variscout/hooks (includes derived hooks that Dashboard now uses directly)
 vi.mock('@variscout/hooks', () => ({
+  useFilteredData: () => ({
+    filteredData: useProjectStore.getState().rawData,
+    filteredIndexMap: new Map(),
+  }),
+  useAnalysisStats: () => ({
+    stats: { mean: 10, ucl: 12, lcl: 8 },
+    kde: null,
+    isComputing: false,
+  }),
+  useStagedAnalysis: () => ({
+    stagedData: [],
+    stagedStats: null,
+  }),
   useAnnotations: () => ({
     hasAnnotations: false,
     boxplotHighlights: {},
@@ -453,52 +466,38 @@ vi.mock('@variscout/core', async () => {
 });
 
 describe('Dashboard', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  const mockDataCtx = {
+  const mockStoreState = {
     outcome: 'Result',
     factors: ['Machine'],
     rawData: [{ Result: 10, Machine: 'A' }],
-    filteredData: [{ Result: 10, Machine: 'A' }],
-    stats: { mean: 10, ucl: 12, lcl: 8 },
     specs: {},
     filters: {},
-    setOutcome: vi.fn(),
-    setFactors: vi.fn(),
-    setFilters: vi.fn(),
-    setSpecs: vi.fn(),
-    setRawData: vi.fn(),
     columnAliases: {},
     stageColumn: null,
     stageOrderMode: 'auto' as const,
-    stagedStats: null,
-    setStageColumn: vi.fn(),
-    setStageOrderMode: vi.fn(),
     paretoAggregation: 'count' as const,
-    setParetoAggregation: vi.fn(),
     chartTitles: {},
-    setChartTitles: vi.fn(),
     timeColumn: null,
     displayOptions: {
       showFilterContext: true,
       lockYAxisToFullData: true,
     },
-    setDisplayOptions: vi.fn(),
     subgroupConfig: { method: 'fixed-size' as const, size: 5 },
-    setSubgroupConfig: vi.fn(),
     cpkTarget: 1.33,
-    setCpkTarget: vi.fn(),
     selectedPoints: new Set<number>(),
-    clearSelection: vi.fn(),
+    analysisMode: 'standard' as const,
+    yamazumiMapping: null,
+    filterStack: [],
   };
 
-  it('renders Analysis tab by default', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    useProjectStore.setState(
+      mockStoreState as unknown as Partial<ReturnType<typeof useProjectStore.getState>>
     );
+  });
 
+  it('renders Analysis tab by default', () => {
     render(<Dashboard />);
 
     expect(screen.getByText('Analysis')).toHaveClass('bg-blue-600'); // Active
@@ -508,10 +507,6 @@ describe('Dashboard', () => {
   });
 
   it('does not render AnovaResults when calculation returns null', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     vi.spyOn(CoreModule, 'calculateAnova').mockReturnValue(null);
 
     render(<Dashboard />);
@@ -520,10 +515,7 @@ describe('Dashboard', () => {
   });
 
   it('returns null when no outcome is selected', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      ...mockDataCtx,
-      outcome: null,
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
+    useProjectStore.setState({ outcome: null });
 
     const { container } = render(<Dashboard />);
 
@@ -531,10 +523,6 @@ describe('Dashboard', () => {
   });
 
   it('displays UCL, Mean, and LCL stats', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<Dashboard />);
 
     expect(screen.getByText('UCL:')).toBeInTheDocument();
@@ -546,10 +534,7 @@ describe('Dashboard', () => {
   });
 
   it('shows Performance tab when analysisMode is performance', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      ...mockDataCtx,
-      analysisMode: 'performance',
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
+    useProjectStore.setState({ analysisMode: 'performance' });
 
     render(<Dashboard />);
 
@@ -557,20 +542,12 @@ describe('Dashboard', () => {
   });
 
   it('does not show Performance tab by default', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<Dashboard />);
 
     expect(screen.queryByText('Performance')).not.toBeInTheDocument();
   });
 
   it('renders download menus and copy buttons for each chart', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<Dashboard />);
 
     const downloadMenus = screen.getAllByTestId('chart-download-menu');
@@ -581,10 +558,6 @@ describe('Dashboard', () => {
   });
 
   it('renders editable chart titles', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
     render(<Dashboard />);
 
     const titles = screen.getAllByTestId('editable-title');

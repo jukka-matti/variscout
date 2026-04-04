@@ -2,19 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeProvider } from '@variscout/ui';
 
-// Mock DataContext BEFORE importing SettingsPanel
+import { useProjectStore } from '@variscout/stores';
+
 const mockDisplayOptions = {
   showFilterContext: true,
   lockYAxisToFullData: true,
 };
 const mockSetDisplayOptions = vi.fn();
-
-vi.mock('../../../context/DataContext', () => ({
-  useData: () => ({
-    displayOptions: mockDisplayOptions,
-    setDisplayOptions: mockSetDisplayOptions,
-  }),
-}));
 
 vi.mock('@variscout/hooks', async importOriginal => {
   const actual = (await importOriginal()) as Record<string, unknown>;
@@ -74,6 +68,12 @@ describe('SettingsPanel', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     localStorage.clear();
+    useProjectStore.setState({
+      displayOptions: mockDisplayOptions,
+      setDisplayOptions: mockSetDisplayOptions,
+      processContext: {},
+    } as unknown as Partial<ReturnType<typeof useProjectStore.getState>>);
+    // Note: useSessionStore uses persist middleware with IDB — defaults are fine for these tests
 
     // HTMLDialogElement and matchMedia stubs provided by shared test/setup.ts
   });

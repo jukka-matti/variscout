@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FolderOpen, ExternalLink, LogOut, Shield } from 'lucide-react';
 import { SettingsPanelBase, ProcessDescriptionField, PreviewBadge, useTheme } from '@variscout/ui';
 import { hasTeamFeatures, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
-import { useData } from '../../context/DataContext';
+import { useProjectStore, useSessionStore } from '@variscout/stores';
 import ThemeToggle from './ThemeToggle';
 import { isAIAvailable } from '../../services/aiService';
 
@@ -32,18 +32,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 }) => {
   const [, setForceUpdate] = useState(0);
   const { theme, setTheme } = useTheme();
-  const {
-    displayOptions,
-    setDisplayOptions,
-    processContext,
-    setProcessContext,
-    aiEnabled,
-    setAIEnabled,
-    aiPreferences,
-    setAIPreferences,
-    knowledgeSearchFolder,
-    setKnowledgeSearchFolder,
-  } = useData();
+  const displayOptions = useProjectStore(s => s.displayOptions);
+  const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
+  const processContext = useProjectStore(s => s.processContext) ?? {};
+  const setProcessContext = useProjectStore(s => s.setProcessContext);
+  const aiEnabled = useSessionStore(s => s.aiEnabled);
+  const setAIEnabled = useSessionStore(s => s.setAIEnabled);
+  const aiPreferences = useSessionStore(s => s.aiPreferences);
+  const setAIPreferences = useSessionStore(s => s.setAIPreferences);
+  const knowledgeSearchFolder = useSessionStore(s => s.knowledgeSearchFolder);
+  const setKnowledgeSearchFolder = useSessionStore(s => s.setKnowledgeSearchFolder);
 
   return (
     <SettingsPanelBase
@@ -272,7 +270,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         name="az-setting-kb-scope"
                         type="radio"
                         checked={!knowledgeSearchFolder}
-                        onChange={() => setKnowledgeSearchFolder(undefined)}
+                        onChange={() => setKnowledgeSearchFolder(null)}
                         className="border-edge"
                       />
                       Channel folder (default)
@@ -292,7 +290,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       Custom folder
                     </label>
                   </div>
-                  {knowledgeSearchFolder !== undefined && (
+                  {knowledgeSearchFolder !== null && (
                     <div className="space-y-2">
                       {knowledgeSearchFolder && (
                         <div className="flex items-center gap-1.5 text-xs text-content-secondary bg-surface-tertiary rounded px-2.5 py-1.5">
@@ -311,7 +309,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                           id="az-setting-kb-folder-path"
                           name="az-setting-kb-folder-path"
                           type="text"
-                          value={knowledgeSearchFolder}
+                          value={knowledgeSearchFolder ?? ''}
                           onChange={e => setKnowledgeSearchFolder(e.target.value)}
                           placeholder="https://contoso.sharepoint.com/sites/QualityTeam/..."
                           className="w-full mt-1 text-xs px-2.5 py-1.5 rounded border border-edge bg-surface-secondary text-content placeholder:text-content-muted focus:ring-1 focus:ring-blue-500 focus:border-blue-500"

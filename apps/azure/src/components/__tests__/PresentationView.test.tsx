@@ -1,21 +1,8 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import * as DataContextModule from '../../context/DataContext';
 import PresentationView from '../views/PresentationView';
-
-// Mock DataContext
-vi.mock('../../context/DataContext', () => ({
-  useData: vi.fn(() => ({
-    outcome: 'Result',
-    factors: ['Machine'],
-    stats: null,
-    specs: {},
-    filteredData: [],
-    chartTitles: {},
-    setChartTitles: vi.fn(),
-  })),
-}));
+import { useProjectStore } from '@variscout/stores';
 
 // Mock chart components
 vi.mock('../charts/IChart', () => ({ default: () => <div data-testid="i-chart">I-Chart</div> }));
@@ -45,6 +32,14 @@ describe('PresentationView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useProjectStore.setState({
+      outcome: 'Result',
+      factors: ['Machine'],
+      specs: {},
+      chartTitles: {},
+      rawData: [],
+      filters: {},
+    } as unknown as Partial<ReturnType<typeof useProjectStore.getState>>);
   });
 
   it('renders all charts in static grid', () => {
@@ -70,16 +65,7 @@ describe('PresentationView', () => {
   });
 
   it('returns null when no outcome', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      outcome: null,
-      factors: [],
-      stats: null,
-      specs: {},
-      setSpecs: vi.fn(),
-      filteredData: [],
-      chartTitles: {},
-      setChartTitles: vi.fn(),
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
+    useProjectStore.setState({ outcome: null });
 
     const { container } = render(<PresentationView {...defaultProps} />);
 

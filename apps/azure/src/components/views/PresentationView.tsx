@@ -8,7 +8,8 @@ import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
 import ProcessIntelligencePanel from '../ProcessIntelligencePanel';
 import { PresentationViewBase } from '@variscout/ui';
-import { useData } from '../../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
+import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 
 interface PresentationViewProps {
   onExit: () => void;
@@ -29,16 +30,14 @@ const PresentationView: React.FC<PresentationViewProps> = ({
   paretoAggregation,
   onToggleParetoAggregation,
 }) => {
-  const {
-    outcome,
-    factors,
-    stats,
-    specs,
-    setSpecs,
-    filteredData,
-    chartTitles: rawChartTitles,
-    setChartTitles,
-  } = useData();
+  const outcome = useProjectStore(s => s.outcome);
+  const factors = useProjectStore(s => s.factors);
+  const specs = useProjectStore(s => s.specs);
+  const setSpecs = useProjectStore(s => s.setSpecs);
+  const rawChartTitles = useProjectStore(s => s.chartTitles);
+  const setChartTitles = useProjectStore(s => s.setChartTitles);
+  const { filteredData } = useFilteredData();
+  const { stats } = useAnalysisStats();
   const chartTitles = rawChartTitles || {};
 
   if (!outcome) return null;

@@ -10,7 +10,8 @@
  */
 
 import React, { useCallback, useState, useEffect } from 'react';
-import { useData } from '../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
+import { usePerformanceAnalysis } from '@variscout/hooks';
 import PerformanceSummary from './PerformanceSummary';
 import PerformanceIChart from './charts/PerformanceIChart';
 import PerformanceBoxplot from './charts/PerformanceBoxplot';
@@ -42,15 +43,13 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   onExitPerformanceMode: _onExitPerformanceMode,
   onDrillToMeasure,
 }) => {
-  const {
-    performanceResult,
-    selectedMeasure,
-    setSelectedMeasure,
-    specs,
-    setSpecs,
-    measureColumns,
-    cpkTarget,
-  } = useData();
+  const performanceResult = usePerformanceAnalysis();
+  const selectedMeasure = useProjectStore(s => s.selectedMeasure);
+  const setSelectedMeasure = useProjectStore(s => s.setSelectedMeasure);
+  const specs = useProjectStore(s => s.specs);
+  const setSpecs = useProjectStore(s => s.setSpecs);
+  const measureColumns = useProjectStore(s => s.measureColumns);
+  const cpkTarget = useProjectStore(s => s.cpkTarget);
 
   // Cp/Cpk toggle state (includes 'both' option)
   const [capabilityMetric, setCapabilityMetric] = useState<CapabilityMetric>('cpk');

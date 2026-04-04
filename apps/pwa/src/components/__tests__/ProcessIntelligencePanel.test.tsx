@@ -37,7 +37,6 @@ vi.mock('@variscout/hooks', async () => {
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import ProcessIntelligencePanel from '../ProcessIntelligencePanel';
-import * as DataContextModule from '../../context/DataContext';
 
 // Mock the CapabilityHistogram component
 vi.mock('../charts/CapabilityHistogram', () => ({
@@ -70,10 +69,6 @@ describe('ProcessIntelligencePanel', () => {
   });
 
   it('shows Summary tab by default', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      setSpecs: vi.fn(),
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
-
     render(
       <ProcessIntelligencePanel
         stats={mockStats}
@@ -93,10 +88,6 @@ describe('ProcessIntelligencePanel', () => {
   });
 
   it('switches to Questions tab on click', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      setSpecs: vi.fn(),
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
-
     render(
       <ProcessIntelligencePanel
         stats={mockStats}
@@ -115,10 +106,6 @@ describe('ProcessIntelligencePanel', () => {
   });
 
   it('displays Cp when specs are set', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      setSpecs: vi.fn(),
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
-
     render(
       <ProcessIntelligencePanel
         stats={mockStats}
@@ -134,10 +121,6 @@ describe('ProcessIntelligencePanel', () => {
   });
 
   it('always shows Cp and Cpk in the card grid when specs are set', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      setSpecs: vi.fn(),
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
-
     render(
       <ProcessIntelligencePanel
         stats={mockStats}
@@ -155,10 +138,6 @@ describe('ProcessIntelligencePanel', () => {
   });
 
   it('shows Mean, Median, and Std Dev in the card grid', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      setSpecs: vi.fn(),
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
-
     render(
       <ProcessIntelligencePanel
         stats={mockStats}
@@ -179,10 +158,6 @@ describe('ProcessIntelligencePanel', () => {
   });
 
   it('shows sample count inline', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      setSpecs: vi.fn(),
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
-
     render(
       <ProcessIntelligencePanel
         stats={mockStats}
@@ -197,10 +172,6 @@ describe('ProcessIntelligencePanel', () => {
   });
 
   it('shows "Edit specifications" pencil link when no specs provided', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      setSpecs: vi.fn(),
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
-
     render(
       <ProcessIntelligencePanel
         stats={mockStats}
@@ -216,10 +187,6 @@ describe('ProcessIntelligencePanel', () => {
   });
 
   it('shows "Edit specifications" pencil link when specs are set', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      setSpecs: vi.fn(),
-    } as unknown as ReturnType<typeof DataContextModule.useData>);
-
     render(
       <ProcessIntelligencePanel
         stats={mockStats}
@@ -235,10 +202,6 @@ describe('ProcessIntelligencePanel', () => {
 
   describe('compact mode', () => {
     it('shows pencil link in compact mode', () => {
-      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-        setSpecs: vi.fn(),
-      } as unknown as ReturnType<typeof DataContextModule.useData>);
-
       render(
         <ProcessIntelligencePanel
           stats={mockStats}
@@ -254,10 +217,6 @@ describe('ProcessIntelligencePanel', () => {
     });
 
     it('shows metrics in compact mode', () => {
-      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-        setSpecs: vi.fn(),
-      } as unknown as ReturnType<typeof DataContextModule.useData>);
-
       render(
         <ProcessIntelligencePanel
           stats={mockStats}
@@ -274,10 +233,6 @@ describe('ProcessIntelligencePanel', () => {
     });
 
     it('switches tabs in compact mode', () => {
-      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-        setSpecs: vi.fn(),
-      } as unknown as ReturnType<typeof DataContextModule.useData>);
-
       render(
         <ProcessIntelligencePanel
           stats={mockStats}
