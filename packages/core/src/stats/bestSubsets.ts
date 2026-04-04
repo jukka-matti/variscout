@@ -44,6 +44,10 @@ export interface BestSubsetResult {
   isSignificant: boolean;
   /** Total degrees of freedom consumed by this model */
   dfModel: number;
+  /** Level effects relative to grand mean. factor → (level → effect) */
+  levelEffects: Map<string, Map<string, number>>;
+  /** Cell means. compound key → { mean, n } */
+  cellMeans: Map<string, { mean: number; n: number }>;
 }
 
 /**
@@ -106,11 +110,15 @@ export function computeRSquaredAdjusted(rSquared: number, n: number, k: number):
  * This is equivalent to a main-effects-only model (no interactions).
  * For VariScout's use case (ranking factor importance), this is sufficient.
  */
-function computeSubsetSS(
-  values: number[],
-  factorColumns: string[][],
-  n: number
-): { ssb: number; ssw: number; dfModel: number } {
+/** Internal result from computeSubsetSS including cell means for level effect computation */
+interface SubsetSSResult {
+  ssb: number;
+  ssw: number;
+  dfModel: number;
+  cellMeans: Map<string, { mean: number; n: number }>;
+}
+
+function computeSubsetSS(values: number[], factorColumns: string[][], n: number): SubsetSSResult {
   // Build compound group key for each observation
   const groups = new Map<string, number[]>();
 
@@ -123,9 +131,11 @@ function computeSubsetSS(
   const grandMean = d3.mean(values) ?? 0;
   let ssb = 0;
   let ssw = 0;
+  const cellMeans = new Map<string, { mean: number; n: number }>();
 
-  for (const vals of groups.values()) {
+  for (const [key, vals] of groups.entries()) {
     const groupMean = d3.mean(vals) ?? 0;
+    cellMeans.set(key, { mean: groupMean, n: vals.length });
     ssb += vals.length * (groupMean - grandMean) ** 2;
     for (const v of vals) {
       ssw += (v - groupMean) ** 2;
@@ -135,7 +145,47 @@ function computeSubsetSS(
   // Degrees of freedom for the model = (number of cells - 1)
   const dfModel = groups.size - 1;
 
-  return { ssb, ssw, dfModel };
+  return { ssb, ssw, dfModel, cellMeans };
+}
+
+/**
+ * Compute marginal level effects for each factor in a subset.
+ *
+ * For each factor, computes the weighted marginal mean per level
+ * (averaging across all other factor levels, weighted by cell size),
+ * then subtracts the grand mean.
+ */
+function computeLevelEffects(
+  subsetFactors: string[],
+  cellMeans: Map<string, { mean: number; n: number }>,
+  grandMean: number
+): Map<string, Map<string, number>> {
+  const effects = new Map<string, Map<string, number>>();
+
+  for (let fi = 0; fi < subsetFactors.length; fi++) {
+    const factorName = subsetFactors[fi];
+    // Accumulate weighted sum and count per level of this factor
+    const levelSums = new Map<string, number>();
+    const levelCounts = new Map<string, number>();
+
+    for (const [key, { mean, n }] of cellMeans.entries()) {
+      const parts = key.split('\x00');
+      const level = parts[fi];
+      levelSums.set(level, (levelSums.get(level) ?? 0) + mean * n);
+      levelCounts.set(level, (levelCounts.get(level) ?? 0) + n);
+    }
+
+    const levelEffects = new Map<string, number>();
+    for (const [level, sum] of levelSums.entries()) {
+      const count = levelCounts.get(level) ?? 1;
+      const marginalMean = sum / count;
+      levelEffects.set(level, marginalMean - grandMean);
+    }
+
+    effects.set(factorName, levelEffects);
+  }
+
+  return effects;
 }
 
 /**
@@ -200,7 +250,7 @@ export function computeBestSubsets(
     }
 
     // Compute SS for this subset
-    const { ssb, ssw, dfModel } = computeSubsetSS(validValues, subsetColumns, n);
+    const { ssb, ssw, dfModel, cellMeans } = computeSubsetSS(validValues, subsetColumns, n);
 
     // R²
     const rSquared = ssTotal > 0 ? ssb / ssTotal : 0;
@@ -220,6 +270,9 @@ export function computeBestSubsets(
       pValue = fDistributionPValue(fStatistic, dfModel, dfResidual);
     }
 
+    // Compute level effects for this subset
+    const levelEffects = computeLevelEffects(subsetFactors, cellMeans, grandMean);
+
     subsets.push({
       factors: subsetFactors,
       factorCount: subsetFactors.length,
@@ -229,6 +282,8 @@ export function computeBestSubsets(
       pValue,
       isSignificant: pValue < 0.05,
       dfModel,
+      levelEffects,
+      cellMeans,
     });
   }
 
@@ -377,4 +432,129 @@ export function getBestSingleFactor(
   // Filter to single-factor models and return the best one
   const singles = result.subsets.filter(s => s.factorCount === 1);
   return singles.length > 0 ? singles[0] : null;
+}
+
+// ============================================================================
+// Model prediction from level effects
+// ============================================================================
+
+/** A single factor level change in a model prediction */
+export interface LevelChange {
+  /** Factor name */
+  factor: string;
+  /** Current level value */
+  from: string;
+  /** Target level value */
+  to: string;
+  /** Delta = target effect - current effect */
+  effect: number;
+}
+
+/** Prediction result from an additive model */
+export interface ModelPrediction {
+  /** Predicted mean at target levels */
+  predictedMean: number;
+  /** Change in predicted mean (target - current) */
+  meanDelta: number;
+  /** Per-factor level changes with individual deltas */
+  levelChanges: LevelChange[];
+}
+
+/**
+ * Predict the mean change from switching factor levels, using the additive
+ * level-effects model from a best subset result.
+ *
+ * Returns null if any factor or level is missing from the model.
+ *
+ * @param bestSubset - A single BestSubsetResult with levelEffects populated
+ * @param grandMean - Grand mean of the outcome (from BestSubsetsResult)
+ * @param currentLevels - Current factor levels (factor → level string)
+ * @param targetLevels - Target factor levels (factor → level string)
+ */
+export function predictFromModel(
+  bestSubset: BestSubsetResult,
+  grandMean: number,
+  currentLevels: Record<string, string>,
+  targetLevels: Record<string, string>
+): ModelPrediction | null {
+  let currentPredicted = grandMean;
+  let targetPredicted = grandMean;
+  const levelChanges: LevelChange[] = [];
+
+  for (const factor of bestSubset.factors) {
+    const factorEffects = bestSubset.levelEffects.get(factor);
+    if (!factorEffects) return null;
+
+    const currentLevel = currentLevels[factor];
+    const targetLevel = targetLevels[factor];
+    if (currentLevel === undefined || targetLevel === undefined) return null;
+
+    const currentEffect = factorEffects.get(currentLevel);
+    const targetEffect = factorEffects.get(targetLevel);
+    if (currentEffect === undefined || targetEffect === undefined) return null;
+
+    currentPredicted += currentEffect;
+    targetPredicted += targetEffect;
+
+    levelChanges.push({
+      factor,
+      from: currentLevel,
+      to: targetLevel,
+      effect: targetEffect - currentEffect,
+    });
+  }
+
+  return {
+    predictedMean: targetPredicted,
+    meanDelta: targetPredicted - currentPredicted,
+    levelChanges,
+  };
+}
+
+// ============================================================================
+// Investigation coverage
+// ============================================================================
+
+/** Result of computing investigation coverage */
+export interface CoverageResult {
+  /** Number of checked (answered or ruled-out) questions */
+  checked: number;
+  /** Total number of questions */
+  total: number;
+  /** Percentage of R²adj explored (0-100) */
+  exploredPercent: number;
+}
+
+/**
+ * Compute investigation coverage: what fraction of total R²adj has been
+ * explored (answered or ruled-out) versus still open/investigating.
+ *
+ * @param questions - Array of question-like objects with status and optional evidence
+ */
+export function computeCoverage(
+  questions: Array<{ status: string; evidence?: { rSquaredAdj?: number } }>
+): CoverageResult {
+  const total = questions.length;
+  if (total === 0) return { checked: 0, total: 0, exploredPercent: 0 };
+
+  let checkedCount = 0;
+  let checkedR2 = 0;
+  let totalR2 = 0;
+
+  for (const q of questions) {
+    const r2 = q.evidence?.rSquaredAdj ?? 0;
+    totalR2 += r2;
+    if (q.status === 'answered' || q.status === 'ruled-out') {
+      checkedCount++;
+      checkedR2 += r2;
+    }
+  }
+
+  const exploredPercent = totalR2 > 0 ? (checkedR2 / totalR2) * 100 : 0;
+
+  return {
+    checked: checkedCount,
+    total,
+    exploredPercent,
+  };
 }

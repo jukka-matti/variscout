@@ -65,6 +65,11 @@ export {
   type WhatIfSimulatorProps,
   type SimulatorPreset,
   type WhatIfSimulatorHandle,
+  LeanWhatIfSimulator,
+  type LeanWhatIfSimulatorProps,
+  type LeanActivity,
+  LeanDistributionPreview,
+  type LeanDistributionPreviewProps,
 } from './components/WhatIfSimulator';
 
 export {
@@ -118,6 +123,8 @@ export {
   QuestionRowExpanded,
   ObservationsSection,
   ConclusionCard,
+  EquationDisplay,
+  formatEquation,
   JournalTabView,
   JournalEntryRow,
   PIOverflowMenu,
@@ -129,6 +136,7 @@ export {
   type StagedComparisonCardProps,
   type StagedComparisonColorScheme,
   type FactorIntelligencePanelProps,
+  type EquationDisplayProps,
   type QuestionsTabViewProps,
   type QuestionRowProps,
   type QuestionRowExpandedProps,
@@ -488,6 +496,16 @@ export {
   type YamazumiParetoModeDropdownProps,
 } from './components/YamazumiDisplayToggle';
 export { YamazumiSummaryBar, type YamazumiSummaryBarProps } from './components/YamazumiSummaryBar';
+
+// Investigation Conclusion (Hub model)
+export {
+  HubComposer,
+  type HubComposerProps,
+  HubCard,
+  type HubCardProps,
+  SynthesisPrompt,
+  type SynthesisPromptProps,
+} from './components/InvestigationConclusion';
 
 // Process Health Bar
 export { ProcessHealthBar, type ProcessHealthBarProps } from './components/ProcessHealthBar';

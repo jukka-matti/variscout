@@ -7,10 +7,17 @@
  * with variable context (stats, filters, findings) in subsequent messages.
  */
 
-import type { AIContext, CoScoutMessage, JourneyPhase, EntryScenario } from '../types';
+import type {
+  AIContext,
+  CoScoutMessage,
+  JourneyPhase,
+  InvestigationPhase,
+  EntryScenario,
+} from '../types';
 import type { ToolDefinition, MessageContent, InputContentPart } from '../responsesApi';
 import type { Locale } from '../../i18n/types';
 import type { AnalysisMode } from '../../types';
+import type { SuspectedCause } from '../../findings/types';
 import { formatStatistic } from '../../i18n/format';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from './shared';
 import { buildSummaryPrompt } from './narration';
@@ -20,8 +27,12 @@ import { resolveMode, getStrategy } from '../../analysisStrategy';
 export interface BuildCoScoutToolsOptions {
   /** Current journey phase — determines which tools are available */
   phase?: JourneyPhase;
+  /** Current investigation phase — used for fine-grained tool gating within INVESTIGATE */
+  investigationPhase?: InvestigationPhase;
   /** Whether user is on Team plan (enables sharing tools) */
   isTeamPlan?: boolean;
+  /** Existing suspected cause hubs — enables connect_hub_evidence when non-empty */
+  existingHubs?: SuspectedCause[];
 }
 
 /**
@@ -32,7 +43,7 @@ export interface BuildCoScoutToolsOptions {
  * ADR-029: Extended from 3 to 13 tools with action tool support.
  */
 export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolDefinition[] {
-  const { phase, isTeamPlan } = options;
+  const { phase, investigationPhase, isTeamPlan, existingHubs } = options;
 
   // Read tools — always available
   const tools: ToolDefinition[] = [
@@ -529,6 +540,76 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
         },
       }
     );
+
+    // Suspected cause hub tools — phase-gated to validating/converging
+    if (investigationPhase === 'validating' || investigationPhase === 'converging') {
+      tools.push({
+        type: 'function',
+        name: 'suggest_suspected_cause',
+        description:
+          'Suggest a suspected cause hub that connects related questions and findings into a named mechanism. Use when you notice 2+ answered questions pointing to the same root cause during validating or converging phase.',
+        parameters: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description:
+                'Analyst-friendly name for the mechanism, e.g., "Nozzle wear on night shift"',
+            },
+            synthesis: {
+              type: 'string',
+              description: 'Brief explanation of how the evidence connects',
+            },
+            questionIds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'IDs of questions to connect to this hub',
+            },
+            findingIds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'IDs of findings to connect to this hub',
+            },
+          },
+          required: ['name', 'synthesis', 'questionIds', 'findingIds'],
+          additionalProperties: false,
+          strict: true,
+        },
+      });
+    }
+
+    // Connect evidence to existing hubs — only when hubs exist
+    if (existingHubs && existingHubs.length > 0) {
+      tools.push({
+        type: 'function',
+        name: 'connect_hub_evidence',
+        description:
+          'Connect newly answered questions or findings to an existing suspected cause hub. Use when new evidence supports an already-named mechanism.',
+        parameters: {
+          type: 'object',
+          properties: {
+            hubId: { type: 'string', description: 'ID of the existing suspected cause hub' },
+            questionIds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Question IDs to connect',
+            },
+            findingIds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Finding IDs to connect',
+            },
+            reason: {
+              type: 'string',
+              description: 'Brief explanation of why this evidence belongs to this hub',
+            },
+          },
+          required: ['hubId', 'questionIds', 'findingIds', 'reason'],
+          additionalProperties: false,
+          strict: true,
+        },
+      });
+    }
 
     // Team-only sharing tools (INVESTIGATE+)
     if (isTeamPlan) {
@@ -1112,6 +1193,43 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
         `Questions are validated using ${qs.validationMethod}. ` +
         `Focus on: ${qs.questionFocus}`
     );
+
+    // Investigation phase coaching — adapts CoScout's guidance to the current investigation stage
+    if (investigation.phase) {
+      const investigationPhaseCoaching: Record<string, string> = {
+        initial:
+          "The analyst is starting their investigation. Help them formulate their concern clearly. Suggest sharpening the issue statement. Point out what Watson's Q3 (scope) still needs — the first significant factor from data.",
+        diverging:
+          "The analyst is exploring broadly. Encourage checking unexplored factors — mention coverage progress if available. Suggest gemba walks or expert input for factors that data alone can't explain.",
+        validating:
+          'The analyst is gathering evidence. Focus on evidence quality — suggest gemba validation for statistical findings, expert input where data is inconclusive. When you see 2+ answered questions pointing to the same mechanism, use suggest_suspected_cause to help them name it.',
+        converging:
+          'The analyst is synthesizing findings into mechanisms. Help them name suspected causes — use suggest_suspected_cause when you see evidence clustering. Connect new evidence to existing hubs with connect_hub_evidence. Highlight coverage progress.',
+        improving:
+          'The analyst is in the improvement phase. Focus on PDCA execution — track actions, verify outcomes, suggest sustaining controls.',
+      };
+
+      if (investigationPhaseCoaching[investigation.phase]) {
+        parts.push(`Investigation coaching: ${investigationPhaseCoaching[investigation.phase]}`);
+      }
+    }
+
+    // Mode-aware coaching hints — complements the mode-specific terminology above
+    const modeCoachingHints: Record<string, string> = {
+      standard:
+        'Focus on which factors explain variation. Use R\u00B2adj for ranking. Evidence strength = R\u00B2adj from Best Subsets.',
+      capability:
+        'Frame questions around Cpk impact. Which factors affect process capability most?',
+      yamazumi:
+        'Focus on waste elimination. Which activities contribute most waste? Think lean: eliminate, simplify, combine, reduce.',
+      performance:
+        'Focus on channel health. Which channels are worst performers? Same root cause across channels?',
+    };
+
+    const currentMode = options.analysisMode ?? 'standard';
+    if (modeCoachingHints[currentMode]) {
+      parts.push(`Mode coaching: ${modeCoachingHints[currentMode]}`);
+    }
   }
 
   parts.push(TERMINOLOGY_INSTRUCTION);

@@ -12,7 +12,8 @@ import type {
   SuspectedCauseEvidence,
 } from './types';
 import { createSuspectedCause } from './factories';
-import type { BestSubsetsResult } from '../stats/bestSubsets';
+import type { BestSubsetsResult, BestSubsetResult, LevelChange } from '../stats/bestSubsets';
+import { predictFromModel } from '../stats/bestSubsets';
 
 /**
  * Get finding status
@@ -298,6 +299,226 @@ export function computeHubEvidence(
       description: `Explains ${pct}% of variation`,
     },
   };
+}
+
+// ============================================================================
+// Hub projection (model-based prediction for SuspectedCause)
+// ============================================================================
+
+/** Projection result for a SuspectedCause hub based on level-effects model */
+export interface HubProjection {
+  /** Change in predicted mean (target - current) */
+  predictedMeanDelta: number;
+  /** Predicted mean at target (best) levels */
+  predictedMean: number;
+  /** Predicted mean at current (worst) levels */
+  currentMean: number;
+  /** R²adj of the matching subset model */
+  rSquaredAdj: number;
+  /** Per-factor level changes */
+  levelChanges: LevelChange[];
+  /** Hedged label for UI display */
+  label: string;
+}
+
+/**
+ * Compute a model-based projection for a SuspectedCause hub.
+ *
+ * Finds the best matching factor subset from the Best Subsets result,
+ * uses level effects to predict the mean change when switching from
+ * current worst levels to best levels.
+ *
+ * @param hub - The SuspectedCause hub
+ * @param questions - All questions in scope
+ * @param bestSubsetsResult - Best Subsets analysis result (null → return null)
+ * @param currentWorstLevels - Current worst factor levels (factor → level)
+ * @param options - Optional spec target and characteristic type
+ */
+export function computeHubProjection(
+  hub: SuspectedCause,
+  questions: Question[],
+  bestSubsetsResult: BestSubsetsResult | null,
+  currentWorstLevels: Record<string, string>,
+  options?: { target?: number; characteristicType?: 'nominal' | 'smaller' | 'larger' }
+): HubProjection | null {
+  if (!bestSubsetsResult) return null;
+
+  // Collect unique factors from connected questions
+  const hubFactors = [
+    ...new Set(
+      hub.questionIds
+        .map(id => questions.find(q => q.id === id)?.factor)
+        .filter((f): f is string => f != null)
+    ),
+  ];
+
+  if (hubFactors.length === 0) return null;
+
+  // Find best matching subset: exact match first, then largest partial
+  const sorted = [...hubFactors].sort();
+  let matchedSubset: BestSubsetResult | undefined;
+
+  matchedSubset = bestSubsetsResult.subsets.find(s => {
+    const sf = [...s.factors].sort();
+    return sf.length === sorted.length && sf.every((f, i) => f === sorted[i]);
+  });
+
+  if (!matchedSubset) {
+    const partials = bestSubsetsResult.subsets
+      .filter(s => s.factors.every(f => hubFactors.includes(f)))
+      .sort((a, b) => b.rSquaredAdj - a.rSquaredAdj);
+    matchedSubset = partials[0];
+  }
+
+  if (!matchedSubset) return null;
+
+  // Find best levels: selection depends on characteristic type.
+  // - nominal: level with smallest absolute effect (closest to grand mean)
+  // - smaller: level with most negative effect (lowest predicted mean)
+  // - larger: level with most positive effect (highest predicted mean)
+  const charType = options?.characteristicType ?? 'nominal';
+  const targetLevels: Record<string, string> = {};
+  for (const factor of matchedSubset.factors) {
+    const effects = matchedSubset.levelEffects.get(factor);
+    if (!effects) return null;
+
+    let bestLevel: string | undefined;
+
+    if (charType === 'smaller') {
+      // Smaller-is-better: pick the level with the most negative effect
+      let bestEffect = Infinity;
+      for (const [level, effect] of effects.entries()) {
+        if (effect < bestEffect) {
+          bestEffect = effect;
+          bestLevel = level;
+        }
+      }
+    } else if (charType === 'larger') {
+      // Larger-is-better: pick the level with the most positive effect
+      let bestEffect = -Infinity;
+      for (const [level, effect] of effects.entries()) {
+        if (effect > bestEffect) {
+          bestEffect = effect;
+          bestLevel = level;
+        }
+      }
+    } else {
+      // Nominal: pick the level closest to zero (closest to grand mean)
+      let bestDist = Infinity;
+      for (const [level, effect] of effects.entries()) {
+        const distance = Math.abs(effect);
+        if (distance < bestDist) {
+          bestDist = distance;
+          bestLevel = level;
+        }
+      }
+    }
+
+    if (!bestLevel) return null;
+    targetLevels[factor] = bestLevel;
+  }
+
+  // Build currentLevels from the provided worst levels (only for matched factors)
+  const currentLevels: Record<string, string> = {};
+  for (const factor of matchedSubset.factors) {
+    const level = currentWorstLevels[factor];
+    if (!level) return null;
+    currentLevels[factor] = level;
+  }
+
+  const prediction = predictFromModel(
+    matchedSubset,
+    bestSubsetsResult.grandMean,
+    currentLevels,
+    targetLevels
+  );
+
+  if (!prediction) return null;
+
+  return {
+    predictedMeanDelta: prediction.meanDelta,
+    predictedMean: prediction.predictedMean,
+    currentMean: prediction.predictedMean - prediction.meanDelta,
+    rSquaredAdj: matchedSubset.rSquaredAdj,
+    levelChanges: prediction.levelChanges,
+    label: 'Model suggests',
+  };
+}
+
+// ============================================================================
+// Evidence clustering (factor overlap detection)
+// ============================================================================
+
+/** A cluster of questions sharing factors that could form a SuspectedCause hub */
+export interface EvidenceCluster {
+  /** Factors shared by the clustered questions */
+  factors: string[];
+  /** Question IDs in the cluster */
+  questionIds: string[];
+  /** Finding IDs linked to clustered questions */
+  findingIds: string[];
+  /** Combined R²adj of the cluster */
+  rSquaredAdj: number;
+}
+
+/**
+ * Detect clusters of answered questions that share factors and could
+ * form new SuspectedCause hubs.
+ *
+ * Groups answered questions by their factor, excludes factors already
+ * covered by existing hubs, and returns clusters with 2+ questions
+ * sorted by combined R²adj.
+ *
+ * @param questions - All questions in scope
+ * @param findings - All findings in scope
+ * @param existingHubs - Existing SuspectedCause hubs (factors excluded)
+ */
+export function detectEvidenceClusters(
+  questions: Question[],
+  findings: Finding[],
+  existingHubs: SuspectedCause[]
+): EvidenceCluster[] {
+  // Collect factors already covered by existing hubs
+  const coveredFactors = new Set<string>();
+  for (const hub of existingHubs) {
+    for (const qId of hub.questionIds) {
+      const q = questions.find(qq => qq.id === qId);
+      if (q?.factor) coveredFactors.add(q.factor);
+    }
+  }
+
+  // Group answered questions by factor
+  const factorQuestions = new Map<string, Question[]>();
+  for (const q of questions) {
+    if (q.status !== 'answered' && q.status !== 'investigating') continue;
+    if (!q.factor) continue;
+    if (coveredFactors.has(q.factor)) continue;
+
+    if (!factorQuestions.has(q.factor)) factorQuestions.set(q.factor, []);
+    factorQuestions.get(q.factor)!.push(q);
+  }
+
+  // Build clusters from factors with 2+ questions
+  const clusters: EvidenceCluster[] = [];
+  for (const [factor, qs] of factorQuestions.entries()) {
+    if (qs.length < 2) continue;
+
+    const questionIds = qs.map(q => q.id);
+    const findingIds = [...new Set(qs.flatMap(q => q.linkedFindingIds ?? []))];
+    const rSquaredAdj = qs.reduce((sum, q) => sum + (q.evidence?.rSquaredAdj ?? 0), 0);
+
+    clusters.push({
+      factors: [factor],
+      questionIds,
+      findingIds,
+      rSquaredAdj,
+    });
+  }
+
+  // Sort by combined R²adj descending
+  clusters.sort((a, b) => b.rSquaredAdj - a.rSquaredAdj);
+
+  return clusters;
 }
 
 /**

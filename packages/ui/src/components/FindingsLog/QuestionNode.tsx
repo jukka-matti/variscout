@@ -264,12 +264,19 @@ const QuestionNode: React.FC<QuestionNodeProps> = ({
             )}
 
             {/* Factor Intelligence source indicator */}
-            {question.questionSource === 'factor-intel' && (
+            {question.questionSource === 'factor-intel' && !question.parentId && (
               <span
                 className="text-[0.5625rem] px-1 py-0.5 rounded bg-surface-secondary text-content-muted"
                 title="Auto-generated from Factor Intelligence"
               >
                 FI
+              </span>
+            )}
+
+            {/* Follow-up badge for child questions from Factor Intelligence */}
+            {question.questionSource === 'factor-intel' && question.parentId && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400">
+                follow-up
               </span>
             )}
 

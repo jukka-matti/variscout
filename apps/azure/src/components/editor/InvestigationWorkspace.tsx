@@ -15,6 +15,13 @@ import {
 } from '@variscout/hooks';
 import type { FindingStatus, Question } from '@variscout/core';
 import { hasTeamFeatures, inferCharacteristicType } from '@variscout/core';
+import {
+  computeHubEvidence,
+  computeHubProjection,
+  detectEvidenceClusters,
+} from '@variscout/core/findings';
+import type { SuspectedCauseEvidence } from '@variscout/core';
+import type { HubProjection } from '@variscout/core/findings';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { GripVertical } from 'lucide-react';
@@ -24,6 +31,7 @@ import { useInvestigationStore } from '../../features/investigation/investigatio
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
+import type { UseInvestigationOrchestrationReturn } from '../../features/investigation/useInvestigationOrchestration';
 
 // Resize panel config (individual args for useResizablePanel)
 
@@ -52,6 +60,8 @@ interface InvestigationWorkspaceProps {
   aiOrch: UseAIOrchestrationReturn;
   // Column aliases
   columnAliases: Record<string, string>;
+  // Hub model (SuspectedCause CRUD from useInvestigationOrchestration)
+  suspectedCausesState: UseInvestigationOrchestrationReturn['suspectedCausesState'];
   // View state
   viewMode?: 'list' | 'board' | 'tree';
   onViewModeChange?: (mode: 'list' | 'board' | 'tree') => void;
@@ -80,6 +90,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   isTeamsCamera,
   aiOrch,
   columnAliases,
+  suspectedCausesState,
   viewMode: externalViewMode,
   onViewModeChange,
 }) => {
@@ -109,7 +120,11 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   // Question generation (ADR-053) — computed from data context
   const resolved = resolveMode(analysisMode ?? 'standard');
   const strategy = getStrategy(resolved);
-  const { questions: factorIntelQuestions, handleQuestionClick } = useQuestionGeneration({
+  const {
+    questions: factorIntelQuestions,
+    handleQuestionClick,
+    bestSubsets,
+  } = useQuestionGeneration({
     filteredData: filteredData ?? [],
     outcome,
     factors,
@@ -138,6 +153,73 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       evidence: topQuestion.evidence?.rSquaredAdj ?? topQuestion.evidence?.etaSquared,
     };
   }, [factorIntelQuestions]);
+
+  // ── Hub model computations (SuspectedCause hubs) ───────────────────────
+  const hubs = suspectedCausesState.hubs;
+
+  // Compute hub evidences
+  const hubEvidences = useMemo(() => {
+    if (hubs.length === 0) return undefined;
+    const map = new Map<string, SuspectedCauseEvidence>();
+    const evidenceMode: SuspectedCauseEvidence['mode'] =
+      resolved === 'capability'
+        ? 'capability'
+        : resolved === 'performance'
+          ? 'performance'
+          : resolved === 'yamazumi'
+            ? 'yamazumi'
+            : 'standard';
+    for (const hub of hubs) {
+      map.set(hub.id, computeHubEvidence(hub, questionsState.questions, bestSubsets, evidenceMode));
+    }
+    return map;
+  }, [hubs, questionsState.questions, bestSubsets, resolved]);
+
+  // Compute worst levels from bestSubsets level effects (for hub projections)
+  const currentWorstLevels = useMemo(() => {
+    if (!bestSubsets) return {};
+    const worst: Record<string, string> = {};
+    for (const subset of bestSubsets.subsets) {
+      for (const factor of subset.factors) {
+        if (worst[factor]) continue;
+        const effects = subset.levelEffects.get(factor);
+        if (!effects) continue;
+        let worstLevel: string | undefined;
+        let worstEffect = -Infinity;
+        for (const [level, effect] of effects.entries()) {
+          if (Math.abs(effect) > worstEffect) {
+            worstEffect = Math.abs(effect);
+            worstLevel = level;
+          }
+        }
+        if (worstLevel) worst[factor] = worstLevel;
+      }
+    }
+    return worst;
+  }, [bestSubsets]);
+
+  // Compute hub projections
+  const hubProjections = useMemo(() => {
+    if (hubs.length === 0 || !bestSubsets) return undefined;
+    const map = new Map<string, HubProjection>();
+    for (const hub of hubs) {
+      const proj = computeHubProjection(
+        hub,
+        questionsState.questions,
+        bestSubsets,
+        currentWorstLevels,
+        specs ?? undefined
+      );
+      if (proj) map.set(hub.id, proj);
+    }
+    return map;
+  }, [hubs, questionsState.questions, bestSubsets, currentWorstLevels, specs]);
+
+  // Detect evidence clusters for synthesis prompts
+  const evidenceClusters = useMemo(
+    () => detectEvidenceClusters(questionsState.questions, findingsState.findings, hubs),
+    [questionsState.questions, findingsState.findings, hubs]
+  );
 
   // Left panel resizable
   const leftPanel = useResizablePanel('variscout-investigation-left-width', 260, 420, 320, 'left');
@@ -194,6 +276,73 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     usePanelsStore.getState().showAnalysis();
   };
 
+  // ── Hub CRUD callbacks ──────────────────────────────────────────────────
+  const handleCreateHub = useCallback(
+    (name: string, synthesis: string, questionIds: string[], findingIds: string[]) => {
+      const hub = suspectedCausesState.createHub(name, synthesis);
+      for (const qId of questionIds) suspectedCausesState.connectQuestion(hub.id, qId);
+      for (const fId of findingIds) suspectedCausesState.connectFinding(hub.id, fId);
+    },
+    [suspectedCausesState]
+  );
+
+  const handleUpdateHub = useCallback(
+    (
+      hubId: string,
+      name: string,
+      synthesis: string,
+      questionIds: string[],
+      findingIds: string[]
+    ) => {
+      suspectedCausesState.updateHub(hubId, { name, synthesis });
+      // Sync connections: disconnect removed, connect added
+      const existing = hubs.find(h => h.id === hubId);
+      if (existing) {
+        for (const qId of existing.questionIds) {
+          if (!questionIds.includes(qId)) suspectedCausesState.disconnectQuestion(hubId, qId);
+        }
+        for (const qId of questionIds) {
+          if (!existing.questionIds.includes(qId)) suspectedCausesState.connectQuestion(hubId, qId);
+        }
+        for (const fId of existing.findingIds) {
+          if (!findingIds.includes(fId)) suspectedCausesState.disconnectFinding(hubId, fId);
+        }
+        for (const fId of findingIds) {
+          if (!existing.findingIds.includes(fId)) suspectedCausesState.connectFinding(hubId, fId);
+        }
+      }
+    },
+    [suspectedCausesState, hubs]
+  );
+
+  const handleDeleteHub = useCallback(
+    (hubId: string) => suspectedCausesState.deleteHub(hubId),
+    [suspectedCausesState]
+  );
+
+  const handleToggleHubSelect = useCallback(
+    (hubId: string) => {
+      const hub = hubs.find(h => h.id === hubId);
+      if (hub) {
+        suspectedCausesState.updateHub(hubId, {});
+        // Toggle selectedForImprovement via setHubStatus or direct update
+        // The useSuspectedCauses hook manages the selectedForImprovement toggle
+        // through the hub's status — but for selection we toggle the flag directly.
+        // Since updateHub only accepts name/synthesis, use the store sync approach:
+        const updated = hubs.map(h =>
+          h.id === hubId ? { ...h, selectedForImprovement: !h.selectedForImprovement } : h
+        );
+        suspectedCausesState.resetHubs(updated);
+      }
+    },
+    [suspectedCausesState, hubs]
+  );
+
+  const handleBrainstormHub = useCallback((_hubId: string) => {
+    // Navigate to improvement workspace
+    usePanelsStore.getState().showImprovement();
+  }, []);
+
   return (
     <div className="flex flex-1 min-h-0 relative">
       {/* Left panel: Question checklist + phase + conclusions */}
@@ -221,19 +370,30 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         </div>
 
         {/* Investigation conclusion */}
-        {(suspectedCauses.length > 0 || ruledOut.length > 0) && (
+        {(suspectedCauses.length > 0 || ruledOut.length > 0 || hubs.length > 0) && (
           <div className="border-t border-edge px-3 py-2 flex-shrink-0">
             <InvestigationConclusion
               suspectedCauses={suspectedCauses}
               ruledOut={ruledOut}
               contributing={contributing}
               problemStatement={processContext?.problemStatement}
-              hasConclusions={suspectedCauses.length > 0}
+              hasConclusions={suspectedCauses.length > 0 || hubs.length > 0}
               problemStatementDraft={problemStatement.draft}
               isProblemStatementReady={problemStatement.isReady}
               onGenerateProblemStatement={problemStatement.generate}
               onAcceptProblemStatement={problemStatement.accept}
               onDismissProblemStatement={problemStatement.dismiss}
+              hubs={hubs}
+              hubEvidences={hubEvidences}
+              hubProjections={hubProjections}
+              onCreateHub={handleCreateHub}
+              onUpdateHub={handleUpdateHub}
+              onDeleteHub={handleDeleteHub}
+              onToggleHubSelect={handleToggleHubSelect}
+              onBrainstormHub={handleBrainstormHub}
+              evidenceClusters={evidenceClusters}
+              questions={questionsState.questions}
+              findings={findingsState.findings}
             />
           </div>
         )}

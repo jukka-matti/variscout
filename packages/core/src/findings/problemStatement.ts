@@ -34,6 +34,8 @@ export interface ProblemStatementInput {
     /** eta-squared or R²adj percentage (0-1 scale) */
     evidence?: number;
   }>;
+  /** Optional level effect for the location factor (from best subsets model) */
+  locationEffect?: { level: string; effect: number };
 }
 
 /**
@@ -73,7 +75,18 @@ export function buildProblemStatement(input: ProblemStatementInput): string {
         : 'Reduce variation in';
 
   let measurePart = `${directionVerb} ${input.outcome}`;
-  if (input.currentCpk != null && input.targetValue != null) {
+  // Include location effect when available (e.g. "adds +0.8g")
+  if (input.locationEffect) {
+    const { level, effect } = input.locationEffect;
+    const sign = effect >= 0 ? '+' : '';
+    const effectStr = Math.abs(effect) >= 10 ? effect.toFixed(1) : effect.toFixed(2);
+    measurePart += ` for ${level} (adds ${sign}${effectStr}`;
+    if (input.currentCpk != null && input.targetValue != null) {
+      measurePart += `, Cpk ${input.currentCpk.toFixed(2)} \u2192 ${input.targetValue.toFixed(2)})`;
+    } else {
+      measurePart += ')';
+    }
+  } else if (input.currentCpk != null && input.targetValue != null) {
     measurePart += ` (Cpk ${input.currentCpk.toFixed(2)} \u2192 target ${input.targetValue.toFixed(2)})`;
   } else if (input.targetValue != null) {
     measurePart += ` to target ${input.targetValue.toFixed(2)}`;

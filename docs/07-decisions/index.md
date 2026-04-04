@@ -104,6 +104,14 @@ What becomes easier or harder as a result?
 
 ---
 
+## Related Design Specs
+
+| Spec                                                                                 | Description                                                                                                                 |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| [Investigation Spine](../superpowers/specs/2026-04-04-investigation-spine-design.md) | Three Threads, Five Sentences, One Story — equation display, hub creation, EDA heartbeat, lean what-if, CoScout integration |
+
+---
+
 ## Other Documents
 
 | Document                                                               | Description                          |

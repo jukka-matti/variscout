@@ -52,6 +52,11 @@ import type {
   SimulatorPreset,
   WhatIfSimulatorColorScheme,
 } from '../WhatIfSimulator/WhatIfSimulator';
+import LeanWhatIfSimulator from '../WhatIfSimulator/LeanWhatIfSimulator';
+import LeanDistributionPreview from '../WhatIfSimulator/LeanDistributionPreview';
+import type { LeanActivity } from '../WhatIfSimulator/LeanWhatIfSimulator';
+import type { LeanProjectionResult, ProjectionScenario } from '@variscout/core';
+import { projectVAImprovement } from '@variscout/core/yamazumi';
 /**
  * Color scheme for WhatIfPage
  */
@@ -127,6 +132,16 @@ export interface WhatIfPageBaseProps {
   onSaveProjection?: (projection: FindingProjection) => void;
   /** Reference context for subset vs reference stats and contextual presets */
   referenceContext?: WhatIfReferenceContext;
+  /** Analysis mode — determines which simulator variant to render */
+  mode?: 'standard' | 'capability' | 'yamazumi' | 'performance';
+  /** Lean mode: activities for yamazumi What-If */
+  leanActivities?: LeanActivity[];
+  /** Lean mode: takt time */
+  leanTaktTime?: number;
+  /** Lean mode: best reference for "Match best" preset */
+  leanBestReference?: { name: string; time: number };
+  /** Lean mode: callback to save projection scenario */
+  onSaveLeanProjection?: (scenario: ProjectionScenario) => void;
 }
 
 /**
@@ -318,6 +333,11 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
   projectionContext,
   onSaveProjection,
   referenceContext,
+  mode = 'standard',
+  leanActivities,
+  leanTaktTime,
+  leanBestReference,
+  onSaveLeanProjection,
 }) => {
   const { formatStat } = useTranslation();
   const c = colorScheme;
@@ -426,8 +446,58 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
     onSaveProjection(projection);
   }, [onSaveProjection, currentStats, simParams, specs]);
 
-  // Guard: no data or no outcome
-  if (!outcome || rawData.length === 0) {
+  // --- Lean mode state ---
+  const [leanSelectedId, setLeanSelectedId] = useState<string>(leanActivities?.[0]?.id ?? '');
+  const [leanReduction, setLeanReduction] = useState(0);
+
+  const leanSelected = useMemo(
+    () => leanActivities?.find(a => a.id === leanSelectedId),
+    [leanActivities, leanSelectedId]
+  );
+
+  const leanProjection = useMemo<LeanProjectionResult | undefined>(() => {
+    if (!leanActivities || !leanSelected) return undefined;
+    const vaTime = leanActivities.filter(a => a.type === 'va').reduce((s, a) => s + a.time, 0);
+    const nvaTime = leanActivities
+      .filter(a => a.type === 'nva-required')
+      .reduce((s, a) => s + a.time, 0);
+    const wasteTime = leanActivities
+      .filter(a => a.type === 'waste' || a.type === 'wait')
+      .reduce((s, a) => s + a.time, 0);
+    // The reduction applies to the selected activity's time
+    const reductionAmount = leanSelected.time * leanReduction;
+    // Adjust the appropriate bucket
+    let adjVa = vaTime;
+    let adjNva = nvaTime;
+    let adjWaste = wasteTime;
+    if (leanSelected.type === 'va') adjVa = Math.max(0, vaTime - reductionAmount);
+    else if (leanSelected.type === 'nva-required') adjNva = Math.max(0, nvaTime - reductionAmount);
+    else adjWaste = Math.max(0, wasteTime - reductionAmount);
+    return projectVAImprovement(adjVa, adjNva, adjWaste, 0, leanTaktTime);
+  }, [leanActivities, leanSelected, leanReduction, leanTaktTime]);
+
+  const handleLeanActivitySelect = useCallback((id: string) => {
+    setLeanSelectedId(id);
+    setLeanReduction(0);
+  }, []);
+
+  const handleSaveLeanProjection = useCallback(() => {
+    if (!onSaveLeanProjection || !leanProjection) return;
+    const scenario: ProjectionScenario = {
+      source: { type: 'centering' },
+      method: { type: 'eliminate-waste' },
+      result: {
+        domain: 'lean',
+        lean: leanProjection,
+      },
+    };
+    onSaveLeanProjection(scenario);
+  }, [onSaveLeanProjection, leanProjection]);
+
+  const isLeanMode = mode === 'yamazumi' && leanActivities && leanActivities.length > 0;
+
+  // Guard: no data or no outcome (lean mode only needs activities)
+  if (!isLeanMode && (!outcome || rawData.length === 0)) {
     return (
       <div className={`flex flex-col h-full ${c.pageBg} ${c.pageText}`}>
         <div className={`flex items-center gap-3 px-4 py-3 border-b ${c.border}`}>
@@ -534,24 +604,63 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
       {/* Content */}
       <div className="flex-1 overflow-auto p-4">
         <div className="max-w-2xl mx-auto space-y-4">
-          {!hasSpecs && (
-            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-400">
-              Set specification limits (USL/LSL) to see Cpk and yield projections.
-            </div>
-          )}
+          {isLeanMode ? (
+            <>
+              <LeanWhatIfSimulator
+                activities={leanActivities!}
+                taktTime={leanTaktTime}
+                selectedActivityId={leanSelectedId}
+                onActivitySelect={handleLeanActivitySelect}
+                onReductionChange={setLeanReduction}
+                reduction={leanReduction}
+                projection={leanProjection}
+                bestReference={leanBestReference}
+              />
 
-          {currentStats && (
-            <WhatIfSimulator
-              currentStats={currentStats}
-              specs={specs}
-              defaultExpanded={true}
-              presets={presets}
-              colorScheme={simulatorColorScheme}
-              cpkTarget={cpkTarget}
-              complementStats={complementStats}
-              subsetCount={filteredData.length}
-              onSimulationChange={onSaveProjection ? handleSimulationChange : undefined}
-            />
+              {leanSelectedId && (
+                <LeanDistributionPreview
+                  activities={leanActivities!}
+                  selectedActivityId={leanSelectedId}
+                  reduction={leanReduction}
+                  taktTime={leanTaktTime}
+                />
+              )}
+
+              {/* Save lean projection */}
+              {projectionContext && onSaveLeanProjection && leanProjection && (
+                <button
+                  onClick={handleSaveLeanProjection}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 text-xs font-medium transition-colors"
+                  disabled={leanReduction === 0}
+                  data-testid="save-lean-projection-btn"
+                >
+                  <Save size={12} />
+                  Save to idea
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              {!hasSpecs && (
+                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-400">
+                  Set specification limits (USL/LSL) to see Cpk and yield projections.
+                </div>
+              )}
+
+              {currentStats && (
+                <WhatIfSimulator
+                  currentStats={currentStats}
+                  specs={specs}
+                  defaultExpanded={true}
+                  presets={presets}
+                  colorScheme={simulatorColorScheme}
+                  cpkTarget={cpkTarget}
+                  complementStats={complementStats}
+                  subsetCount={filteredData.length}
+                  onSimulationChange={onSaveProjection ? handleSimulationChange : undefined}
+                />
+              )}
+            </>
           )}
         </div>
       </div>

@@ -53,6 +53,16 @@ const TOOL_CONFIG: Record<
   notify_action_owners: { labelKey: 'ai.tool.notifyOwners', icon: Bell, editable: false },
   navigate_to: { labelKey: 'ai.tool.navigateTo', icon: Navigation, editable: false },
   answer_question: { labelKey: 'ai.tool.answerQuestion', icon: CircleCheck, editable: true },
+  suggest_suspected_cause: {
+    labelKey: 'ai.tool.suggestSuspectedCause',
+    icon: GitBranch,
+    editable: true,
+  },
+  connect_hub_evidence: {
+    labelKey: 'ai.tool.connectHubEvidence',
+    icon: GitBranch,
+    editable: false,
+  },
 };
 
 /** Format preview data for display */

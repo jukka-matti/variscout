@@ -1,6 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, ChevronRight, ClipboardCheck, Sparkles, Check, X } from 'lucide-react';
-import type { Question } from '@variscout/core';
+import { ChevronDown, ChevronRight, ClipboardCheck, Sparkles, Check, X, Plus } from 'lucide-react';
+import type { Question, Finding, SuspectedCause, SuspectedCauseEvidence } from '@variscout/core';
+import type { HubProjection, EvidenceCluster } from '@variscout/core/findings';
+import { HubComposer } from '../InvestigationConclusion/HubComposer';
+import { HubCard } from '../InvestigationConclusion/HubCard';
+import { SynthesisPrompt } from '../InvestigationConclusion/SynthesisPrompt';
+
+/** Local state for the hub composer inline form */
+interface ComposerState {
+  mode: 'closed' | 'creating' | 'editing';
+  editingHubId?: string;
+  prefilledQuestionIds?: string[];
+  prefilledFindingIds?: string[];
+}
 
 export interface InvestigationConclusionProps {
   /** Questions marked as suspected causes */
@@ -23,6 +35,29 @@ export interface InvestigationConclusionProps {
   onAcceptProblemStatement?: (text: string) => void;
   /** Dismiss the draft */
   onDismissProblemStatement?: () => void;
+  /** SuspectedCause hub management */
+  hubs?: SuspectedCause[];
+  hubEvidences?: Map<string, SuspectedCauseEvidence>;
+  hubProjections?: Map<string, HubProjection>;
+  onCreateHub?: (
+    name: string,
+    synthesis: string,
+    questionIds: string[],
+    findingIds: string[]
+  ) => void;
+  onUpdateHub?: (
+    hubId: string,
+    name: string,
+    synthesis: string,
+    questionIds: string[],
+    findingIds: string[]
+  ) => void;
+  onDeleteHub?: (hubId: string) => void;
+  onToggleHubSelect?: (hubId: string) => void;
+  onBrainstormHub?: (hubId: string) => void;
+  evidenceClusters?: EvidenceCluster[];
+  questions?: Question[];
+  findings?: Finding[];
 }
 
 /** Format evidence percentage from a question */
@@ -53,9 +88,22 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
   onGenerateProblemStatement,
   onAcceptProblemStatement,
   onDismissProblemStatement,
+  hubs,
+  hubEvidences,
+  hubProjections,
+  onCreateHub,
+  onUpdateHub,
+  onDeleteHub: _onDeleteHub,
+  onToggleHubSelect,
+  onBrainstormHub,
+  evidenceClusters,
+  questions,
+  findings,
 }) => {
   const [ruledOutExpanded, setRuledOutExpanded] = useState(false);
   const [editedDraft, setEditedDraft] = useState('');
+  const [composerState, setComposerState] = useState<ComposerState>({ mode: 'closed' });
+  const [dismissedClusterIds, setDismissedClusterIds] = useState<Set<string>>(new Set());
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Sync edited draft when a new generated draft arrives
@@ -73,6 +121,30 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
   const sortedContributing = [...contributing].sort(sortByEvidenceDesc);
   const sortedRuledOut = [...ruledOut].sort(sortByEvidenceDesc);
 
+  const useHubModel = hubs !== undefined && onCreateHub !== undefined;
+  const editingHub =
+    composerState.mode === 'editing' && composerState.editingHubId
+      ? hubs?.find(h => h.id === composerState.editingHubId)
+      : undefined;
+
+  const visibleClusters = (evidenceClusters ?? []).filter(
+    c => !dismissedClusterIds.has(c.factors.join(','))
+  );
+
+  const handleComposerSave = (
+    name: string,
+    synthesis: string,
+    questionIds: string[],
+    findingIds: string[]
+  ) => {
+    if (composerState.mode === 'editing' && composerState.editingHubId) {
+      onUpdateHub?.(composerState.editingHubId, name, synthesis, questionIds, findingIds);
+    } else {
+      onCreateHub?.(name, synthesis, questionIds, findingIds);
+    }
+    setComposerState({ mode: 'closed' });
+  };
+
   return (
     <div className="space-y-3" data-testid="investigation-conclusion">
       {/* Section header */}
@@ -83,8 +155,84 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
         </span>
       </div>
 
-      {/* Suspected Causes */}
-      {sortedCauses.length > 0 && (
+      {/* Synthesis prompts from detected clusters */}
+      {useHubModel &&
+        visibleClusters.map(cluster => (
+          <SynthesisPrompt
+            key={cluster.factors.join(',')}
+            cluster={cluster}
+            onNameCause={() => {
+              setComposerState({
+                mode: 'creating',
+                prefilledQuestionIds: cluster.questionIds,
+                prefilledFindingIds: cluster.findingIds,
+              });
+            }}
+            onDismiss={() => {
+              setDismissedClusterIds(prev => new Set([...prev, cluster.factors.join(',')]));
+            }}
+          />
+        ))}
+
+      {/* Suspected Causes — hub model or legacy chip model */}
+      {useHubModel ? (
+        <div data-testid="suspected-causes">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <span className="text-[0.625rem] font-medium text-content-secondary">
+              Suspected Causes
+            </span>
+            {hubs!.length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[0.5625rem] font-medium">
+                {hubs!.length}
+              </span>
+            )}
+            {composerState.mode === 'closed' && (
+              <button
+                onClick={() => setComposerState({ mode: 'creating' })}
+                className="ml-auto flex items-center gap-0.5 text-[10px] text-purple-400 hover:text-purple-300 transition-colors"
+                data-testid="add-hub-button"
+              >
+                <Plus size={10} />
+                Name a suspected cause
+              </button>
+            )}
+          </div>
+
+          {/* Hub cards */}
+          <div className="space-y-1.5">
+            {hubs!.map(hub => (
+              <HubCard
+                key={hub.id}
+                hub={hub}
+                evidence={hubEvidences?.get(hub.id)}
+                projection={hubProjections?.get(hub.id)}
+                questionsCount={hub.questionIds.length}
+                findingsCount={hub.findingIds.length}
+                onEdit={() => setComposerState({ mode: 'editing', editingHubId: hub.id })}
+                onToggleSelect={() => onToggleHubSelect?.(hub.id)}
+                onBrainstorm={() => onBrainstormHub?.(hub.id)}
+              />
+            ))}
+          </div>
+
+          {/* Inline composer */}
+          {composerState.mode !== 'closed' && (
+            <div className="mt-1.5">
+              <HubComposer
+                prefilledQuestionIds={composerState.prefilledQuestionIds}
+                prefilledFindingIds={composerState.prefilledFindingIds}
+                questions={questions ?? []}
+                findings={findings ?? []}
+                editingHub={editingHub}
+                evidence={editingHub ? hubEvidences?.get(editingHub.id) : undefined}
+                projection={editingHub ? hubProjections?.get(editingHub.id) : undefined}
+                onSave={handleComposerSave}
+                onCancel={() => setComposerState({ mode: 'closed' })}
+              />
+            </div>
+          )}
+        </div>
+      ) : sortedCauses.length > 0 ? (
         <div data-testid="suspected-causes">
           <div className="flex items-center gap-1.5 mb-1.5">
             <span className="text-[0.625rem] font-medium text-content-secondary">
@@ -100,7 +248,7 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
             ))}
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Contributing Factors */}
       {sortedContributing.length > 0 && (

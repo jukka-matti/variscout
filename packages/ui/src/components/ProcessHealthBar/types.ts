@@ -6,6 +6,28 @@ import type {
 } from '@variscout/core/variation';
 import type { FilterChipData } from '../filterTypes';
 
+/** Lean stats for yamazumi mode display in ProcessHealthBar */
+export interface LeanHealthStats {
+  /** Current cycle time in seconds */
+  cycleTime: number;
+  /** Value-adding ratio (0-1) */
+  vaRatio: number;
+  /** Takt time in seconds (optional) */
+  taktTime?: number;
+}
+
+/** Lean projection for yamazumi mode display in ProcessHealthBar */
+export interface LeanHealthProjection {
+  /** Current cycle time in seconds */
+  currentCT: number;
+  /** Projected cycle time in seconds */
+  projectedCT: number;
+  /** Whether projected CT meets takt time */
+  meetsTakt: boolean;
+  /** Projection label (e.g. "if waste eliminated") */
+  label: string;
+}
+
 export interface ProcessHealthBarProps {
   /** Current computed stats (null when no data loaded) */
   stats: StatsResult | null;
@@ -70,4 +92,13 @@ export interface ProcessHealthBarProps {
     subgroupsMeetingTarget: number;
     totalSubgroups: number;
   };
+
+  // --- Lean mode props (yamazumi) ---
+
+  /** Analysis mode — 'yamazumi' triggers lean display */
+  mode?: 'standard' | 'capability' | 'yamazumi' | 'performance';
+  /** Lean stats for yamazumi mode (cycle time, VA ratio, takt) */
+  leanStats?: LeanHealthStats;
+  /** Lean projection for yamazumi mode (CT → projected CT) */
+  leanProjection?: LeanHealthProjection;
 }

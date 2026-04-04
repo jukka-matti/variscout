@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { computeBestSubsets, generateQuestionsFromRanking } from '../bestSubsets';
-import type { BestSubsetsResult } from '../bestSubsets';
+import {
+  computeBestSubsets,
+  generateQuestionsFromRanking,
+  predictFromModel,
+  computeCoverage,
+} from '../bestSubsets';
+import type { BestSubsetsResult, BestSubsetResult } from '../bestSubsets';
 import type { DataRow } from '../../types';
 
 // ---------------------------------------------------------------------------
@@ -129,6 +134,8 @@ describe('generateQuestionsFromRanking', () => {
           pValue: 0.001,
           isSignificant: true,
           dfModel: 1,
+          levelEffects: new Map(),
+          cellMeans: new Map(),
         },
         {
           factors: ['B'],
@@ -139,6 +146,8 @@ describe('generateQuestionsFromRanking', () => {
           pValue: 0.6,
           isSignificant: false,
           dfModel: 1,
+          levelEffects: new Map(),
+          cellMeans: new Map(),
         },
       ],
       n: 50,
@@ -167,6 +176,8 @@ describe('generateQuestionsFromRanking', () => {
           pValue: 0.7,
           isSignificant: false,
           dfModel: 1,
+          levelEffects: new Map(),
+          cellMeans: new Map(),
         },
       ],
       n: 50,
@@ -246,6 +257,8 @@ describe('generateQuestionsFromRanking', () => {
           pValue: 0.001,
           isSignificant: true,
           dfModel: 1,
+          levelEffects: new Map(),
+          cellMeans: new Map(),
         },
         {
           factors: ['Weak'],
@@ -256,6 +269,8 @@ describe('generateQuestionsFromRanking', () => {
           pValue: 0.2,
           isSignificant: false,
           dfModel: 1,
+          levelEffects: new Map(),
+          cellMeans: new Map(),
         },
       ],
       n: 50,
@@ -273,5 +288,253 @@ describe('generateQuestionsFromRanking', () => {
     expect(strong?.autoAnswered).toBe(false);
     expect(weak?.autoAnswered).toBe(true);
     expect(weak?.autoStatus).toBe('ruled-out');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests: Level effects and cell means
+// ---------------------------------------------------------------------------
+
+describe('level effects and cell means', () => {
+  it('computes correct level effects for 2-factor balanced data', () => {
+    // 2 factors, 2 levels each, balanced design (need >= 5 observations)
+    // Machine: M1 → Weight +5, M2 → Weight -5
+    // Shift: Day → Weight +3, Night → Weight -3
+    // Grand mean = 100 (with deterministic noise ~0)
+    const rows: DataRow[] = [
+      { Weight: 108, Machine: 'M1', Shift: 'Day' },
+      { Weight: 108, Machine: 'M1', Shift: 'Day' },
+      { Weight: 102, Machine: 'M1', Shift: 'Night' },
+      { Weight: 102, Machine: 'M1', Shift: 'Night' },
+      { Weight: 98, Machine: 'M2', Shift: 'Day' },
+      { Weight: 98, Machine: 'M2', Shift: 'Day' },
+      { Weight: 92, Machine: 'M2', Shift: 'Night' },
+      { Weight: 92, Machine: 'M2', Shift: 'Night' },
+    ];
+
+    const result = computeBestSubsets(rows, 'Weight', ['Machine', 'Shift']);
+    expect(result).not.toBeNull();
+
+    // Find the 2-factor subset
+    const combo = result!.subsets.find(s => s.factorCount === 2);
+    expect(combo).toBeDefined();
+
+    // Grand mean = (108*2 + 102*2 + 98*2 + 92*2) / 8 = 100
+    expect(result!.grandMean).toBeCloseTo(100, 5);
+
+    // Machine level effects:
+    // M1 marginal mean = (108*2 + 102*2) / 4 = 105, effect = 105 - 100 = 5
+    // M2 marginal mean = (98*2 + 92*2) / 4 = 95, effect = 95 - 100 = -5
+    const machineEffects = combo!.levelEffects.get('Machine');
+    expect(machineEffects).toBeDefined();
+    expect(machineEffects!.get('M1')).toBeCloseTo(5, 5);
+    expect(machineEffects!.get('M2')).toBeCloseTo(-5, 5);
+
+    // Shift level effects:
+    // Day marginal mean = (108*2 + 98*2) / 4 = 103, effect = 103 - 100 = 3
+    // Night marginal mean = (102*2 + 92*2) / 4 = 97, effect = 97 - 100 = -3
+    const shiftEffects = combo!.levelEffects.get('Shift');
+    expect(shiftEffects).toBeDefined();
+    expect(shiftEffects!.get('Day')).toBeCloseTo(3, 5);
+    expect(shiftEffects!.get('Night')).toBeCloseTo(-3, 5);
+  });
+
+  it('computes correct cell means', () => {
+    const rows: DataRow[] = [
+      { Weight: 108, Machine: 'M1', Shift: 'Day' },
+      { Weight: 108, Machine: 'M1', Shift: 'Day' },
+      { Weight: 102, Machine: 'M1', Shift: 'Night' },
+      { Weight: 98, Machine: 'M2', Shift: 'Day' },
+      { Weight: 92, Machine: 'M2', Shift: 'Night' },
+      { Weight: 92, Machine: 'M2', Shift: 'Night' },
+    ];
+
+    const result = computeBestSubsets(rows, 'Weight', ['Machine', 'Shift']);
+    expect(result).not.toBeNull();
+    const combo = result!.subsets.find(s => s.factorCount === 2);
+    expect(combo).toBeDefined();
+
+    // Cell means (compound key uses \x00 separator)
+    const m1Day = combo!.cellMeans.get('M1\x00Day');
+    expect(m1Day).toEqual({ mean: 108, n: 2 });
+
+    const m2Night = combo!.cellMeans.get('M2\x00Night');
+    expect(m2Night).toEqual({ mean: 92, n: 2 });
+
+    const m1Night = combo!.cellMeans.get('M1\x00Night');
+    expect(m1Night).toEqual({ mean: 102, n: 1 });
+  });
+
+  it('computes correct cell means with multiple observations per cell', () => {
+    const rows: DataRow[] = [
+      { Weight: 106, Machine: 'M1', Shift: 'Day' },
+      { Weight: 110, Machine: 'M1', Shift: 'Day' },
+      { Weight: 94, Machine: 'M2', Shift: 'Night' },
+      { Weight: 90, Machine: 'M2', Shift: 'Night' },
+      { Weight: 100, Machine: 'M1', Shift: 'Night' },
+      { Weight: 100, Machine: 'M2', Shift: 'Day' },
+    ];
+
+    const result = computeBestSubsets(rows, 'Weight', ['Machine', 'Shift']);
+    expect(result).not.toBeNull();
+    const combo = result!.subsets.find(s => s.factorCount === 2);
+    expect(combo).toBeDefined();
+
+    const m1Day = combo!.cellMeans.get('M1\x00Day');
+    expect(m1Day).toBeDefined();
+    expect(m1Day!.mean).toBeCloseTo(108, 5);
+    expect(m1Day!.n).toBe(2);
+
+    const m2Night = combo!.cellMeans.get('M2\x00Night');
+    expect(m2Night!.mean).toBeCloseTo(92, 5);
+    expect(m2Night!.n).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests: predictFromModel
+// ---------------------------------------------------------------------------
+
+describe('predictFromModel', () => {
+  function makeMockSubset(): { subset: BestSubsetResult; grandMean: number } {
+    // Machine: M1 effect +5, M2 effect -5
+    // Shift: Day effect +3, Night effect -3
+    const machineEffects = new Map<string, number>([
+      ['M1', 5],
+      ['M2', -5],
+    ]);
+    const shiftEffects = new Map<string, number>([
+      ['Day', 3],
+      ['Night', -3],
+    ]);
+
+    const subset: BestSubsetResult = {
+      factors: ['Machine', 'Shift'],
+      factorCount: 2,
+      rSquared: 0.9,
+      rSquaredAdj: 0.88,
+      fStatistic: 50,
+      pValue: 0.0001,
+      isSignificant: true,
+      dfModel: 3,
+      levelEffects: new Map([
+        ['Machine', machineEffects],
+        ['Shift', shiftEffects],
+      ]),
+      cellMeans: new Map(),
+    };
+
+    return { subset, grandMean: 100 };
+  }
+
+  it('returns correct delta for known level changes', () => {
+    const { subset, grandMean } = makeMockSubset();
+
+    const result = predictFromModel(
+      subset,
+      grandMean,
+      { Machine: 'M2', Shift: 'Night' }, // worst: 100 + (-5) + (-3) = 92
+      { Machine: 'M1', Shift: 'Day' } // best: 100 + 5 + 3 = 108
+    );
+
+    expect(result).not.toBeNull();
+    expect(result!.predictedMean).toBeCloseTo(108, 5);
+    expect(result!.meanDelta).toBeCloseTo(16, 5); // 108 - 92
+    expect(result!.levelChanges).toHaveLength(2);
+
+    const machineChange = result!.levelChanges.find(c => c.factor === 'Machine');
+    expect(machineChange!.effect).toBeCloseTo(10, 5); // 5 - (-5)
+
+    const shiftChange = result!.levelChanges.find(c => c.factor === 'Shift');
+    expect(shiftChange!.effect).toBeCloseTo(6, 5); // 3 - (-3)
+  });
+
+  it('returns zero delta when current and target are identical', () => {
+    const { subset, grandMean } = makeMockSubset();
+
+    const result = predictFromModel(
+      subset,
+      grandMean,
+      { Machine: 'M1', Shift: 'Day' },
+      { Machine: 'M1', Shift: 'Day' }
+    );
+
+    expect(result).not.toBeNull();
+    expect(result!.meanDelta).toBeCloseTo(0, 5);
+  });
+
+  it('returns null for unknown level', () => {
+    const { subset, grandMean } = makeMockSubset();
+
+    const result = predictFromModel(
+      subset,
+      grandMean,
+      { Machine: 'M1', Shift: 'Day' },
+      { Machine: 'M3', Shift: 'Day' } // M3 does not exist
+    );
+
+    expect(result).toBeNull();
+  });
+
+  it('returns null for missing factor in currentLevels', () => {
+    const { subset, grandMean } = makeMockSubset();
+
+    const result = predictFromModel(
+      subset,
+      grandMean,
+      { Machine: 'M1' }, // missing Shift
+      { Machine: 'M1', Shift: 'Day' }
+    );
+
+    expect(result).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests: computeCoverage
+// ---------------------------------------------------------------------------
+
+describe('computeCoverage', () => {
+  it('computes coverage with mix of answered/open/ruled-out', () => {
+    const questions = [
+      { status: 'answered', evidence: { rSquaredAdj: 0.4 } },
+      { status: 'ruled-out', evidence: { rSquaredAdj: 0.1 } },
+      { status: 'open', evidence: { rSquaredAdj: 0.3 } },
+      { status: 'investigating', evidence: { rSquaredAdj: 0.2 } },
+    ];
+
+    const result = computeCoverage(questions);
+
+    expect(result.checked).toBe(2); // answered + ruled-out
+    expect(result.total).toBe(4);
+    // Explored R²adj = 0.40 + 0.10 = 0.50, total = 1.00
+    expect(result.exploredPercent).toBeCloseTo(50, 5);
+  });
+
+  it('returns 0 for empty questions', () => {
+    const result = computeCoverage([]);
+    expect(result.checked).toBe(0);
+    expect(result.total).toBe(0);
+    expect(result.exploredPercent).toBe(0);
+  });
+
+  it('returns 100% when all are answered', () => {
+    const questions = [
+      { status: 'answered', evidence: { rSquaredAdj: 0.4 } },
+      { status: 'answered', evidence: { rSquaredAdj: 0.3 } },
+    ];
+
+    const result = computeCoverage(questions);
+    expect(result.checked).toBe(2);
+    expect(result.exploredPercent).toBeCloseTo(100, 5);
+  });
+
+  it('handles questions with no evidence gracefully', () => {
+    const questions = [{ status: 'answered' }, { status: 'open', evidence: { rSquaredAdj: 0.5 } }];
+
+    const result = computeCoverage(questions);
+    expect(result.checked).toBe(1);
+    // Explored: 0, Total: 0.50 → 0%
+    expect(result.exploredPercent).toBeCloseTo(0, 5);
   });
 });

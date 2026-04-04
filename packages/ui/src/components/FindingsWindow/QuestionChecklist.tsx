@@ -1,6 +1,7 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Check, ChevronDown, ChevronRight, X } from 'lucide-react';
 import type { Question } from '@variscout/core';
+import { computeCoverage } from '@variscout/core/stats';
 
 export interface QuestionChecklistProps {
   /** Questions (Question objects with questionSource set) */
@@ -66,6 +67,7 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
   const [answeredExpanded, setAnsweredExpanded] = useState(false);
   const [suggestionDismissed, setSuggestionDismissed] = useState(false);
   const [localIssue, setLocalIssue] = useState(issueStatement ?? '');
+  const [nextHighlightCleared, setNextHighlightCleared] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Reset dismissed state when a new suggestion arrives
@@ -101,18 +103,49 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
     .filter(q => q.status === 'answered' || q.status === 'ruled-out')
     .sort(sortByEvidence);
 
-  // Aggregate coverage: sum R²adj of answered/auto-answered questions
-  const coverageSummary = React.useMemo(() => {
+  // Aggregate coverage using computeCoverage from @variscout/core/stats
+  const coverageSummary = useMemo(() => {
     if (questions.length === 0) return null;
-    const checked = questions.filter(q => q.status === 'answered' || q.status === 'ruled-out');
-    const totalR2 = questions.reduce((sum, q) => sum + (q.evidence?.rSquaredAdj ?? 0), 0);
-    const checkedR2 = checked.reduce((sum, q) => sum + (q.evidence?.rSquaredAdj ?? 0), 0);
+    const result = computeCoverage(questions);
     return {
-      checked: checked.length,
-      total: questions.length,
-      explainedPct: totalR2 > 0 ? Math.round((checkedR2 / totalR2) * 100) : null,
+      checked: result.checked,
+      total: result.total,
+      explainedPct: result.exploredPercent > 0 ? Math.round(result.exploredPercent) : null,
     };
   }, [questions]);
+
+  // Compute next question to highlight — reset when questions change
+  const nextQuestionId = useMemo(() => {
+    if (nextHighlightCleared) return null;
+
+    const openQs = questions.filter(q => q.status === 'open' || q.status === 'investigating');
+    if (openQs.length === 0) return null;
+
+    // Priority 1: newly generated follow-ups (children of recently answered questions)
+    const answeredIds = new Set(questions.filter(q => q.status === 'answered').map(q => q.id));
+    const followUpChildren = openQs.filter(
+      q => q.questionSource === 'factor-intel' && q.parentId && answeredIds.has(q.parentId)
+    );
+    if (followUpChildren.length > 0) return followUpChildren[0].id;
+
+    // Priority 2: highest R²adj unanswered L1 question
+    const l1Open = openQs
+      .filter(q => q.status === 'open' && q.questionSource === 'factor-intel')
+      .sort((a, b) => (b.evidence?.rSquaredAdj ?? 0) - (a.evidence?.rSquaredAdj ?? 0));
+    if (l1Open.length > 0) return l1Open[0].id;
+
+    // Priority 3: oldest open question (first in array, already sorted by creation)
+    return openQs[0].id;
+  }, [questions, nextHighlightCleared]);
+
+  // Reset the cleared state when questions array changes (new answers/follow-ups)
+  const prevQuestionsLenRef = useRef(questions.length);
+  useEffect(() => {
+    if (questions.length !== prevQuestionsLenRef.current) {
+      setNextHighlightCleared(false);
+      prevQuestionsLenRef.current = questions.length;
+    }
+  }, [questions.length]);
 
   return (
     <div className="space-y-3">
@@ -174,22 +207,29 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
 
       {/* Coverage summary */}
       {coverageSummary && coverageSummary.total > 0 && (
-        <div
-          className="flex items-center gap-2 text-[0.625rem] text-content-muted"
-          data-testid="coverage-summary"
-        >
-          <div className="flex-1 h-1 rounded-full bg-surface-secondary overflow-hidden">
+        <div className="space-y-1" data-testid="coverage-summary">
+          <div className="flex items-center justify-between text-[0.625rem] text-content-muted">
+            <span className="tabular-nums">
+              {coverageSummary.checked}/{coverageSummary.total} checked
+              {coverageSummary.explainedPct != null &&
+                ` · ${coverageSummary.explainedPct}% explored`}
+            </span>
+          </div>
+          <div
+            className="h-1 rounded-full bg-surface-tertiary overflow-hidden"
+            title="This tracks factors in your data. Real-world causes may be outside your dataset."
+          >
             <div
-              className="h-full rounded-full bg-blue-500/60 transition-all"
+              className={`h-full rounded-full transition-all ${
+                (coverageSummary.explainedPct ?? 0) >= 80
+                  ? 'bg-green-500'
+                  : 'bg-gradient-to-r from-blue-500 to-green-500'
+              }`}
               style={{
-                width: `${(coverageSummary.checked / coverageSummary.total) * 100}%`,
+                width: `${coverageSummary.explainedPct ?? (coverageSummary.checked / coverageSummary.total) * 100}%`,
               }}
             />
           </div>
-          <span className="shrink-0 tabular-nums">
-            {coverageSummary.checked}/{coverageSummary.total} checked
-            {coverageSummary.explainedPct != null && ` · ${coverageSummary.explainedPct}% explored`}
-          </span>
         </div>
       )}
 
@@ -204,7 +244,11 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
               <QuestionRow
                 key={q.id}
                 question={q}
-                onQuestionClick={onQuestionClick}
+                isNext={q.id === nextQuestionId}
+                onQuestionClick={question => {
+                  setNextHighlightCleared(true);
+                  onQuestionClick?.(question);
+                }}
                 onAnswerQuestion={onAnswerQuestion}
                 evidenceLabel={evidenceLabel}
               />
@@ -283,10 +327,11 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
 /** Single question row */
 const QuestionRow: React.FC<{
   question: Question;
+  isNext?: boolean;
   onQuestionClick?: (question: Question) => void;
   onAnswerQuestion?: (questionId: string) => void;
   evidenceLabel?: string;
-}> = ({ question, onQuestionClick, evidenceLabel }) => {
+}> = ({ question, isNext, onQuestionClick, evidenceLabel }) => {
   const isRuledOut = question.status === 'ruled-out';
   const r2Pct =
     question.evidence?.rSquaredAdj != null ? Math.round(question.evidence.rSquaredAdj * 100) : null;
@@ -295,7 +340,9 @@ const QuestionRow: React.FC<{
   return (
     <button
       onClick={() => onQuestionClick?.(question)}
-      className="w-full text-left flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-surface hover:bg-surface-tertiary transition-colors group"
+      className={`w-full text-left flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-surface hover:bg-surface-tertiary transition-colors group ${
+        isNext ? 'border-l-2 border-blue-500' : ''
+      }`}
       data-testid={`question-${question.id}`}
     >
       {/* Status dot */}
@@ -320,6 +367,16 @@ const QuestionRow: React.FC<{
       {r2Pct != null && (
         <span className="flex-shrink-0 mt-0.5 px-1.5 py-0.5 rounded-full bg-surface-secondary text-[0.5625rem] text-content-muted font-medium">
           {r2Pct}%{evidenceLabel && evidenceLabel !== 'R²adj' ? ` ${evidenceLabel}` : ''}
+        </span>
+      )}
+
+      {/* Next question indicator */}
+      {isNext && (
+        <span
+          className="flex-shrink-0 mt-0.5 text-xs text-blue-500 font-medium"
+          data-testid="next-question-badge"
+        >
+          ← next
         </span>
       )}
     </button>

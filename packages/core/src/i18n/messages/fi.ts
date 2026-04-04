@@ -272,6 +272,8 @@ export const fi: MessageCatalog = {
   'ai.tool.suggestSaveFinding': 'Tallenna havainto',
   'ai.tool.navigateTo': 'Navigate to',
   'ai.tool.answerQuestion': 'Answer question',
+  'ai.tool.suggestSuspectedCause': 'Suggest suspected cause',
+  'ai.tool.connectHubEvidence': 'Connect hub evidence',
 
   // Report
   'report.kpi.inSpec': 'Toleranssissa',

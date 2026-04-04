@@ -250,6 +250,8 @@ export const sv: MessageCatalog = {
   'ai.tool.suggestSaveFinding': 'Spara insikt',
   'ai.tool.navigateTo': 'Navigate to',
   'ai.tool.answerQuestion': 'Answer question',
+  'ai.tool.suggestSuspectedCause': 'Suggest suspected cause',
+  'ai.tool.connectHubEvidence': 'Connect hub evidence',
   'report.kpi.inSpec': 'In Spec',
   'table.noData': 'No data to display',
   'table.page': 'Page {page} of {total}',

@@ -66,6 +66,9 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   onAcceptSpecSuggestion,
   isCapabilityMode = false,
   capabilityStats,
+  mode,
+  leanStats,
+  leanProjection,
 }) => {
   const { formatStat } = useTranslation();
 
@@ -131,6 +134,68 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
 
   // Render stats section
   const renderStats = () => {
+    // Yamazumi lean mode: show CT, VA%, takt instead of Cpk stats
+    if (mode === 'yamazumi' && leanStats) {
+      const ctStr = formatStat(leanStats.cycleTime, 1);
+      const vaStr = (leanStats.vaRatio * 100).toFixed(0);
+      const taktCompliance =
+        leanStats.taktTime != null ? leanStats.cycleTime <= leanStats.taktTime : undefined;
+
+      return (
+        <div className="flex items-center gap-2 text-xs text-content-secondary">
+          <span>
+            <span className="text-content-muted">CT</span>
+            <span className="ml-1 font-mono text-content" data-testid="stat-ct">
+              {ctStr}s
+            </span>
+          </span>
+          <span className="text-content-muted">|</span>
+          <span>
+            <span className="text-content-muted">VA</span>
+            <span className="ml-1 font-mono text-content" data-testid="stat-va-ratio">
+              {vaStr}%
+            </span>
+          </span>
+          {leanStats.taktTime != null && (
+            <>
+              <span className="text-content-muted">|</span>
+              <span data-testid="stat-takt">
+                <span className="text-content-muted">Takt</span>
+                <span
+                  className={`ml-1 font-mono ${taktCompliance ? 'text-green-500' : 'text-red-400'}`}
+                >
+                  {taktCompliance ? '\u2713' : '\u2717'}
+                </span>
+              </span>
+            </>
+          )}
+          <span className="text-content-muted">|</span>
+          <span>
+            <span className="text-content-muted">n</span>
+            <span className="ml-1 font-mono">{sampleCount}</span>
+          </span>
+          {/* Lean projection: "CT 45s → 35.9s" */}
+          {leanProjection && (
+            <span className="ml-1.5 text-green-500 font-mono" data-testid="lean-projection-display">
+              CT {formatStat(leanProjection.currentCT, 1)}s &rarr;{' '}
+              {formatStat(leanProjection.projectedCT, 1)}s
+              <span className="ml-1 font-sans text-content-secondary">{leanProjection.label}</span>
+            </span>
+          )}
+          {/* Active projection with lean fields (from useProcessProjection) */}
+          {!leanProjection && activeProjection?.currentCT != null && (
+            <span className="ml-1.5 text-green-500 font-mono" data-testid="lean-projection-display">
+              CT {formatStat(activeProjection.currentCT, 1)}s &rarr;{' '}
+              {formatStat(activeProjection.projectedCT!, 1)}s
+              <span className="ml-1 font-sans text-content-secondary">
+                {activeProjection.label}
+              </span>
+            </span>
+          )}
+        </div>
+      );
+    }
+
     if (!stats) return null;
 
     const meanStr = formatStat(stats.mean, 2);

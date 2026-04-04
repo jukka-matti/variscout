@@ -88,7 +88,9 @@ export function buildIChartInsight(
 export function buildBoxplotInsight(
   factorVariations: Map<string, number>,
   currentFactor: string,
-  nextDrillFactor: string | null
+  nextDrillFactor: string | null,
+  /** Optional level effect summary for the current factor, e.g. "Night +0.8g" */
+  levelEffectSummary?: string
 ): DeterministicInsight | null {
   // Priority 3: next drill factor has meaningful variation
   if (nextDrillFactor !== null) {
@@ -106,8 +108,12 @@ export function buildBoxplotInsight(
   // Priority 2: current factor explains majority of variation
   const currentVariation = factorVariations.get(currentFactor);
   if (currentVariation !== undefined && currentVariation >= 50) {
+    // Enhance with level effect when available
+    const text = levelEffectSummary
+      ? `${levelEffectSummary} (${Math.round(currentVariation)}% of variation)`
+      : `${currentFactor} explains ${Math.round(currentVariation)}% of total variation`;
     return {
-      text: `${currentFactor} explains ${Math.round(currentVariation)}% of total variation`,
+      text,
       chipType: 'info',
       priority: 2,
     };

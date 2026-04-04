@@ -4,7 +4,7 @@
 
 import type { AIContext, ProcessContext, TargetMetric, InvestigationPhase } from './types';
 import type { InsightChartType } from './chartInsights';
-import type { Finding, Question, InvestigationCategory } from '../findings';
+import type { Finding, Question, InvestigationCategory, SuspectedCause } from '../findings';
 import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { buildGlossaryPrompt } from '../glossary/buildGlossaryPrompt';
@@ -13,6 +13,7 @@ import type { AnalysisMode } from '../types';
 import type { YamazumiSummary } from '../yamazumi/types';
 import type { SubgroupCapabilityResult, SubgroupConfig } from '../stats/subgroupCapability';
 import type { Locale } from '../i18n/types';
+import type { BestSubsetsResult } from '../stats/bestSubsets';
 
 /** Stats input for AI context — extends StatsResult with app-level fields */
 export interface AIStatsInput {
@@ -82,12 +83,26 @@ export interface BuildAIContextOptions {
   teamContributors?: AIContext['teamContributors'];
   /** Staged comparison result (when Before/After stages detected) */
   stagedComparison?: StagedComparison | null;
+  /** Best subsets result for model equation context */
+  bestSubsetsResult?: BestSubsetsResult;
   /** Maximum token budget for glossary (default 40 terms) */
   maxGlossaryTerms?: number;
   /** Locale for bilingual glossary and AI response language */
   locale?: Locale;
   /** Current analysis mode */
   analysisMode?: AnalysisMode;
+  /** Suspected cause hubs from investigation */
+  suspectedCauses?: SuspectedCause[];
+  /** R²adj-weighted coverage percentage (0-100) */
+  coveragePercent?: number;
+  /** Number of questions that have been checked (answered or ruled-out) */
+  questionsChecked?: number;
+  /** Total number of questions in the investigation */
+  questionsTotal?: number;
+  /** Problem statement maturity stage */
+  problemStatementStage?: 'partial' | 'actionable' | 'with-causes';
+  /** Live problem statement text */
+  liveStatement?: string;
   /** Yamazumi summary stats (when in yamazumi mode) */
   yamazumiSummary?: YamazumiSummary;
   /** Subgroup capability data (when capability mode is active) */
@@ -468,6 +483,92 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     } else if (focusedQuestionId) {
       // focusedQuestionId provided without a questions list
       context.investigation.focusedQuestionId = focusedQuestionId;
+    }
+
+    // Suspected cause hubs (Phase 6 — CoScout as Investigation Partner)
+    if (options.suspectedCauses && options.suspectedCauses.length > 0) {
+      context.investigation.suspectedCauseHubs = options.suspectedCauses.map(hub => ({
+        id: hub.id,
+        name: hub.name,
+        synthesis: hub.synthesis,
+        status: hub.status,
+        questionCount: hub.questionIds.length,
+        findingCount: hub.findingIds.length,
+        evidence: hub.evidence
+          ? {
+              value: hub.evidence.contribution.value,
+              label: hub.evidence.contribution.label,
+              description: hub.evidence.contribution.description,
+            }
+          : undefined,
+        selectedForImprovement: hub.selectedForImprovement,
+      }));
+    }
+
+    // Coverage and progress metrics
+    if (options.coveragePercent !== undefined) {
+      context.investigation.coveragePercent = options.coveragePercent;
+    }
+    if (options.questionsChecked !== undefined && options.questionsTotal !== undefined) {
+      context.investigation.questionsChecked = options.questionsChecked;
+      context.investigation.questionsTotal = options.questionsTotal;
+    }
+
+    // Problem statement maturity
+    if (options.problemStatementStage) {
+      context.investigation.problemStatementStage = options.problemStatementStage;
+    }
+    if (options.liveStatement) {
+      context.investigation.liveStatement = options.liveStatement;
+    }
+  }
+
+  // Add best model equation when available
+  if (options.bestSubsetsResult) {
+    const topSubset = options.bestSubsetsResult.subsets[0];
+    if (topSubset && topSubset.rSquaredAdj > 0.01) {
+      // Convert Maps to Records for JSON serialization
+      const levelEffects: Record<string, Record<string, number>> = {};
+      for (const [factor, effects] of topSubset.levelEffects.entries()) {
+        const rec: Record<string, number> = {};
+        for (const [level, effect] of effects.entries()) {
+          rec[level] = effect;
+        }
+        levelEffects[factor] = rec;
+      }
+
+      // Find worst and best cell means
+      let worstKey = '';
+      let bestKey = '';
+      let worstMean = -Infinity;
+      let bestMean = Infinity;
+      for (const [key, { mean }] of topSubset.cellMeans.entries()) {
+        if (mean > worstMean) {
+          worstMean = mean;
+          worstKey = key;
+        }
+        if (mean < bestMean) {
+          bestMean = mean;
+          bestKey = key;
+        }
+      }
+
+      const buildLevels = (key: string): Record<string, string> => {
+        const parts = key.split('\x00');
+        const levels: Record<string, string> = {};
+        topSubset.factors.forEach((f, i) => {
+          levels[f] = parts[i];
+        });
+        return levels;
+      };
+
+      context.bestModelEquation = {
+        factors: topSubset.factors,
+        rSquaredAdj: topSubset.rSquaredAdj,
+        levelEffects,
+        worstCase: { levels: buildLevels(worstKey), predicted: worstMean },
+        bestCase: { levels: buildLevels(bestKey), predicted: bestMean },
+      };
     }
   }
 

@@ -592,6 +592,7 @@ export const Editor: React.FC<EditorProps> = ({
     handleSaveIdeaProjection,
     clearProjectionTarget,
     handleSetFindingStatus,
+    suspectedCausesState,
   } = useInvestigationOrchestration({
     questionsState,
     findingsState,
@@ -1070,6 +1071,7 @@ export const Editor: React.FC<EditorProps> = ({
                 onViewModeChange={(mode: 'list' | 'board' | 'tree') =>
                   handleViewStateChange({ findingsViewMode: mode })
                 }
+                suspectedCausesState={suspectedCausesState}
               />
             ) : activeView === 'improvement' ? (
               <ImprovementWorkspaceBase

@@ -88,7 +88,14 @@ export { andersonDarlingTest, normalCDF } from './andersonDarling';
 export type { AndersonDarlingResult } from './andersonDarling';
 
 // Best subsets regression
-export type { BestSubsetResult, BestSubsetsResult, GeneratedQuestion } from './bestSubsets';
+export type {
+  BestSubsetResult,
+  BestSubsetsResult,
+  GeneratedQuestion,
+  LevelChange,
+  ModelPrediction,
+  CoverageResult,
+} from './bestSubsets';
 
 // Performance channel ranking questions
 export type { ChannelInput } from './channelQuestions';
@@ -98,6 +105,8 @@ export {
   computeRSquaredAdjusted,
   getBestSingleFactor,
   generateQuestionsFromRanking,
+  predictFromModel,
+  computeCoverage,
 } from './bestSubsets';
 
 // Factor effects (Factor Intelligence Layers 2-3)

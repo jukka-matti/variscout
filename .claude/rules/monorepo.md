@@ -121,6 +121,8 @@ packages/
                #   ProcessHealthBar,
                #   YamazumiDetectedModal, YamazumiIChartMetricToggle, YamazumiParetoModeDropdown,
                #   YamazumiSummaryBar,
+               #   HubComposer, HubCard, SynthesisPrompt, EquationDisplay,
+               #   LeanWhatIfSimulator, LeanDistributionPreview,
                #   QuestionsTabView, QuestionRow, QuestionRowExpanded, ObservationsSection, ConclusionCard,
                #   JournalTabView, JournalEntryRow, PIOverflowMenu,
                #   useGlossary, useIsMobile, useTheme, errorService, BREAKPOINTS
@@ -182,10 +184,10 @@ The core package supports granular sub-path imports (in addition to the root `@v
 | Import Path | Module | Key Exports |
 |-------------|--------|-------------|
 | `@variscout/core` | Root barrel | Everything (backwards compatible) |
-| `@variscout/core/stats` | stats/ | calculateStats, calculateAnova, calculateBoxplotStats, calculateKDE, lttb |
+| `@variscout/core/stats` | stats/ | calculateStats, calculateAnova, calculateBoxplotStats, calculateKDE, lttb, predictFromModel, computeCoverage |
 | `@variscout/core/ai` | ai/ | responsesApi, buildAIContext, actionTools, chartInsights |
 | `@variscout/core/parser` | parser/ | parseText, detectColumns, validateData |
-| `@variscout/core/findings` | findings/ | Finding types, factories, helpers, migration |
+| `@variscout/core/findings` | findings/ | Finding types, factories, helpers, migration, computeHubProjection, detectEvidenceClusters |
 | `@variscout/core/variation` | variation/ | Variation tracking, simulation, suggestions |
 | `@variscout/core/yamazumi` | yamazumi/ | Yamazumi aggregation, classification, detection |
 | `@variscout/core/tier` | tier.ts | configureTier, getTier, isPaidTier, feature gates |

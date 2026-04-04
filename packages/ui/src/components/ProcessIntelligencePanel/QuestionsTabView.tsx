@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import type { Question, Finding } from '@variscout/core/findings';
 import type { QuestionStatus } from '@variscout/core/findings';
+import type { BestSubsetResult } from '@variscout/core/stats';
+import type { SuspectedCause as SuspectedCauseHub, SuspectedCauseEvidence } from '@variscout/core';
 import QuestionRow from './QuestionRow';
 import QuestionRowExpanded from './QuestionRowExpanded';
 import ObservationsSection from './ObservationsSection';
 import ConclusionCard from './ConclusionCard';
 import type { SuspectedCause } from './ConclusionCard';
+import EquationDisplay from './EquationDisplay';
 import { QuestionInputModal } from './QuestionInputModal';
 import { QuestionLinkModal } from './QuestionLinkModal';
 
@@ -25,6 +28,14 @@ export interface QuestionsTabViewProps {
   combinedProjectedCpk?: number;
   /** Record of question id → projected Cpk value (for QuestionRowExpanded) */
   projectedCpkMap?: Record<string, number>;
+  /** Best subset result for equation display */
+  bestSubset?: BestSubsetResult;
+  /** Grand mean of the outcome (for equation display) */
+  grandMean?: number;
+  /** Outcome column name (for equation display) */
+  outcomeLabel?: string;
+  /** Whether interaction was detected (for equation display warning) */
+  interactionDetected?: boolean;
   /** Mode-aware evidence label (default: R²adj) */
   evidenceLabel?: string;
   /**
@@ -39,6 +50,12 @@ export interface QuestionsTabViewProps {
   onAddQuestion?: (text: string) => void;
   onAddObservation?: (text: string) => void;
   onLinkObservation?: (findingId: string, questionId: string) => void;
+  /** Hub-based suspected causes (new model) — passed to ConclusionCard */
+  hubs?: SuspectedCauseHub[];
+  /** Hub evidence map — passed to ConclusionCard */
+  hubEvidences?: Map<string, SuspectedCauseEvidence>;
+  /** Navigate to the Investigation workspace (passed to ConclusionCard) */
+  onNavigateToInvestigation?: () => void;
 }
 
 /** Display order for question groups */
@@ -69,6 +86,10 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
   suspectedCauses = [],
   combinedProjectedCpk,
   projectedCpkMap = {},
+  bestSubset,
+  grandMean,
+  outcomeLabel,
+  interactionDetected,
   evidenceLabel = 'R²adj',
   evidenceMetric: _evidenceMetric = 'rSquaredAdj',
   onQuestionClick,
@@ -76,6 +97,9 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
   onAddQuestion,
   onAddObservation,
   onLinkObservation,
+  hubs,
+  hubEvidences,
+  onNavigateToInvestigation,
 }) => {
   // Track which questions are expanded
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
@@ -333,7 +357,22 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
         currentCpk={currentCpk}
         combinedProjectedCpk={combinedProjectedCpk}
         targetCpk={targetCpk}
+        hubs={hubs}
+        hubEvidences={hubEvidences}
+        onNavigateToInvestigation={onNavigateToInvestigation}
       />
+
+      {/* Equation display — shown when best subset model is available */}
+      {bestSubset && grandMean !== undefined && outcomeLabel && (
+        <div className="mx-2 mb-2">
+          <EquationDisplay
+            bestSubset={bestSubset}
+            grandMean={grandMean}
+            outcome={outcomeLabel}
+            interactionDetected={interactionDetected}
+          />
+        </div>
+      )}
 
       {/* Modals (replaces window.prompt) */}
       <QuestionInputModal

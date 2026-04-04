@@ -14,7 +14,8 @@ import type { SessionClosePromptItem } from '@variscout/ui';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { toNumericValue, createFactorFinding } from '@variscout/core';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
-import type { ExclusionReason, FindingStatus } from '@variscout/core';
+import { computeHubEvidence } from '@variscout/core/findings';
+import type { ExclusionReason, FindingStatus, SuspectedCauseEvidence } from '@variscout/core';
 import type { UseQuestionsReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
 import {
   useQuestionGeneration,
@@ -31,6 +32,7 @@ import { isAIAvailable } from '../../services/aiService';
 import { useData } from '../../context/DataContext';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
+import { useInvestigationStore } from '../../features/investigation/investigationStore';
 import { useAIStore } from '../../features/ai/aiStore';
 import { useImprovementStore } from '../../features/improvement/improvementStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
@@ -155,6 +157,26 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     const values = Object.values(projectedCpkMap);
     return values.length > 0 ? Math.max(...values) : undefined;
   }, [projectedCpkMap]);
+
+  // ── Hub model for ConclusionCard in QuestionsTabView ──────────────────
+  const hubsFromStore = useInvestigationStore(s => s.suspectedCauses);
+
+  const hubEvidencesForPI = useMemo(() => {
+    if (hubsFromStore.length === 0) return undefined;
+    const map = new Map<string, SuspectedCauseEvidence>();
+    const evidenceMode: SuspectedCauseEvidence['mode'] =
+      resolved === 'capability'
+        ? 'capability'
+        : resolved === 'performance'
+          ? 'performance'
+          : resolved === 'yamazumi'
+            ? 'yamazumi'
+            : 'standard';
+    for (const hub of hubsFromStore) {
+      map.set(hub.id, computeHubEvidence(hub, questionsState.questions, bestSubsets, evidenceMode));
+    }
+    return map;
+  }, [hubsFromStore, questionsState.questions, bestSubsets, resolved]);
 
   // ── PI Panel: Questions + Journal wiring ─────────────────────────────
   const activeFactor = useMemo(() => {
@@ -538,6 +560,11 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
                       onLinkObservation={handleLinkObservation}
                       evidenceLabel={strategy.questionStrategy.evidenceLabel}
                       phaseBadge={journeyPhase ?? undefined}
+                      hubs={hubsFromStore.length > 0 ? hubsFromStore : undefined}
+                      hubEvidences={hubEvidencesForPI}
+                      onNavigateToInvestigation={() =>
+                        usePanelsStore.getState().showInvestigation()
+                      }
                     />
                   )}
                   renderJournalTab={() => <JournalTabView entries={journalEntries} />}

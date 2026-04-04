@@ -205,6 +205,31 @@ export interface AIContext {
     focusedQuestionId?: string;
     /** Text of the question currently in focus in the PI panel */
     focusedQuestionText?: string;
+    /** Suspected cause hubs (Phase 6 — distinct from legacy causeRole-based suspectedCauses) */
+    suspectedCauseHubs?: Array<{
+      id: string;
+      name: string;
+      synthesis: string;
+      status: string;
+      questionCount: number;
+      findingCount: number;
+      evidence?: {
+        value: number;
+        label: string;
+        description: string;
+      };
+      selectedForImprovement?: boolean;
+    }>;
+    /** R²adj-weighted coverage percentage (0-100) */
+    coveragePercent?: number;
+    /** Number of questions checked (answered or ruled-out) */
+    questionsChecked?: number;
+    /** Total number of questions */
+    questionsTotal?: number;
+    /** Problem statement maturity stage */
+    problemStatementStage?: 'partial' | 'actionable' | 'with-causes';
+    /** Live problem statement text (auto-synthesized) */
+    liveStatement?: string;
   };
   /** Focus context from "Ask CoScout about this" actions */
   focusContext?: {
@@ -289,6 +314,14 @@ export interface AIContext {
     source: string;
     url?: string;
   }>;
+  /** Best model equation summary from best subsets analysis */
+  bestModelEquation?: {
+    factors: string[];
+    rSquaredAdj: number;
+    levelEffects: Record<string, Record<string, number>>;
+    worstCase: { levels: Record<string, string>; predicted: number };
+    bestCase: { levels: Record<string, string>; predicted: number };
+  };
 }
 
 /** AI error classification */

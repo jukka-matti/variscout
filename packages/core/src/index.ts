@@ -94,6 +94,8 @@ export {
   computeRSquaredAdjusted,
   getBestSingleFactor,
   generateQuestionsFromRanking,
+  predictFromModel,
+  computeCoverage,
   // Point decimation for chart rendering
   lttb,
   // Evidence interpretation
@@ -125,7 +127,14 @@ export type {
 } from './stats';
 
 // Best subsets regression types
-export type { BestSubsetResult, BestSubsetsResult, GeneratedQuestion } from './stats';
+export type {
+  BestSubsetResult,
+  BestSubsetsResult,
+  GeneratedQuestion,
+  LevelChange,
+  ModelPrediction,
+  CoverageResult,
+} from './stats';
 
 // Factor effects types (Factor Intelligence Layers 2-3)
 export type {
@@ -559,8 +568,11 @@ export {
   getScopedFindings,
   computeHubContribution,
   computeHubEvidence,
+  computeHubProjection,
+  detectEvidenceClusters,
   migrateCauseRolesToHubs,
 } from './findings';
+export type { HubProjection, EvidenceCluster } from './findings';
 
 // Yamazumi Analysis Mode
 export type {

@@ -90,6 +90,32 @@ const BestSubsetsCard: React.FC<BestSubsetsCardProps> = ({
                   style={{ width: `${barWidth}%` }}
                 />
               </div>
+              {/* Level effect summary — top effect per factor */}
+              {subset.levelEffects.size > 0 && (
+                <div className="text-[0.5625rem] text-content-secondary mt-0.5 truncate">
+                  {subset.factors
+                    .map(factor => {
+                      const effects = subset.levelEffects.get(factor);
+                      if (!effects || effects.size === 0) return null;
+                      // Pick the level with the highest absolute effect
+                      let topLevel = '';
+                      let topEffect = 0;
+                      for (const [level, effect] of effects.entries()) {
+                        if (Math.abs(effect) > Math.abs(topEffect)) {
+                          topLevel = level;
+                          topEffect = effect;
+                        }
+                      }
+                      if (topLevel === '') return null;
+                      const sign = topEffect >= 0 ? '+' : '';
+                      const val =
+                        Math.abs(topEffect) >= 10 ? topEffect.toFixed(1) : topEffect.toFixed(2);
+                      return `${topLevel} ${sign}${val}`;
+                    })
+                    .filter(Boolean)
+                    .join(', ')}
+                </div>
+              )}
               {/* Significance indicator */}
               {!subset.isSignificant && (
                 <div className="text-[0.5625rem] text-content-muted mt-0.5">

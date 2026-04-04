@@ -333,6 +333,7 @@ export type {
   ProcessProjection,
   CenteringOpportunity,
   SpecSuggestion,
+  LeanProjectionFields,
 } from './useProcessProjection';
 
 // Async Stats Hook (Worker bridge)

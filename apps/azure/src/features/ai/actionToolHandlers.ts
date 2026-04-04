@@ -12,6 +12,7 @@ import type {
   Question,
   FilterAction,
   ActionProposal,
+  SuspectedCause,
 } from '@variscout/core';
 import {
   getEtaSquared,
@@ -31,6 +32,8 @@ export interface ActionToolDeps {
   questions: Question[];
   filters: Record<string, (string | number)[]>;
   filterStack: FilterAction[];
+  /** Existing suspected cause hubs — used by connect_hub_evidence handler */
+  suspectedCauses?: SuspectedCause[];
 }
 
 export function buildActionToolHandlers({
@@ -43,6 +46,7 @@ export function buildActionToolHandlers({
   questions,
   filters,
   filterStack,
+  suspectedCauses,
 }: ActionToolDeps): Partial<ToolHandlerMap> {
   return {
     apply_filter: async (args: Record<string, unknown>) => {
@@ -322,6 +326,82 @@ export function buildActionToolHandlers({
         filterStackHash: hashFilterStack(filterStack),
         timestamp: Date.now(),
         editableText: text,
+      };
+      return JSON.stringify({ proposal: true, ...proposal });
+    },
+
+    suggest_suspected_cause: async (args: Record<string, unknown>) => {
+      const name = args.name as string;
+      const synthesis = args.synthesis as string;
+      const questionIds = args.questionIds as string[];
+      const findingIds = (args.findingIds as string[] | undefined) ?? [];
+
+      if (!name) return JSON.stringify({ error: 'Missing name' });
+      if (!questionIds || questionIds.length === 0) {
+        return JSON.stringify({ error: 'At least one questionId is required' });
+      }
+
+      // Validate that referenced questions exist
+      const missingQuestions = questionIds.filter(id => !questions.find(q => q.id === id));
+      if (missingQuestions.length > 0) {
+        return JSON.stringify({ error: `Questions not found: ${missingQuestions.join(', ')}` });
+      }
+
+      // Validate that referenced findings exist
+      const missingFindings = findingIds.filter(id => !findings.find(f => f.id === id));
+      if (missingFindings.length > 0) {
+        return JSON.stringify({ error: `Findings not found: ${missingFindings.join(', ')}` });
+      }
+
+      const proposal: ActionProposal = {
+        id: generateProposalId(),
+        tool: 'suggest_suspected_cause',
+        params: { name, synthesis, questionIds, findingIds },
+        preview: {
+          name,
+          synthesis,
+          questionCount: questionIds.length,
+          findingCount: findingIds.length,
+          previewText: `Create suspected cause: "${name}"\nConnecting ${questionIds.length} question${questionIds.length !== 1 ? 's' : ''} + ${findingIds.length} finding${findingIds.length !== 1 ? 's' : ''}`,
+        },
+        status: 'pending',
+        filterStackHash: hashFilterStack(filterStack),
+        timestamp: Date.now(),
+        editableText: synthesis,
+      };
+      return JSON.stringify({ proposal: true, ...proposal });
+    },
+
+    connect_hub_evidence: async (args: Record<string, unknown>) => {
+      const hubId = args.hubId as string;
+      const questionIds = (args.questionIds as string[] | undefined) ?? [];
+      const findingIds = (args.findingIds as string[] | undefined) ?? [];
+      const reason = (args.reason as string) ?? '';
+
+      if (!hubId) return JSON.stringify({ error: 'Missing hubId' });
+
+      const hub = suspectedCauses?.find(h => h.id === hubId);
+      if (!hub) return JSON.stringify({ error: `Suspected cause hub not found: ${hubId}` });
+
+      const totalNew = questionIds.length + findingIds.length;
+      if (totalNew === 0) {
+        return JSON.stringify({ error: 'At least one questionId or findingId is required' });
+      }
+
+      const proposal: ActionProposal = {
+        id: generateProposalId(),
+        tool: 'connect_hub_evidence',
+        params: { hubId, questionIds, findingIds, reason },
+        preview: {
+          hubName: hub.name,
+          questionCount: questionIds.length,
+          findingCount: findingIds.length,
+          reason,
+          previewText: `Connect ${totalNew} item${totalNew !== 1 ? 's' : ''} to hub "${hub.name}"${reason ? ` \u2014 ${reason}` : ''}`,
+        },
+        status: 'pending',
+        filterStackHash: hashFilterStack(filterStack),
+        timestamp: Date.now(),
       };
       return JSON.stringify({ proposal: true, ...proposal });
     },

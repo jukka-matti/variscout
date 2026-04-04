@@ -88,6 +88,24 @@ export interface ProcessProjection {
   label: string;
   /** Number of findings contributing to this projection */
   findingCount: number;
+  /** Projection source for priority ordering */
+  source?:
+    | 'resolved'
+    | 'improvement'
+    | 'cumulative'
+    | 'benchmark'
+    | 'drill'
+    | 'model'
+    | 'centering';
+
+  // --- Lean fields (yamazumi mode) ---
+
+  /** Current cycle time in seconds (yamazumi only) */
+  currentCT?: number;
+  /** Projected cycle time in seconds (yamazumi only) */
+  projectedCT?: number;
+  /** Whether projected CT meets takt time (yamazumi only) */
+  meetsTakt?: boolean;
 }
 
 /**

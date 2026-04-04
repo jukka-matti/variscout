@@ -37,3 +37,5 @@ export { QuestionInputModal } from './QuestionInputModal';
 export type { QuestionInputModalProps } from './QuestionInputModal';
 export { QuestionLinkModal } from './QuestionLinkModal';
 export type { QuestionLinkModalProps } from './QuestionLinkModal';
+export { default as EquationDisplay, formatEquation } from './EquationDisplay';
+export type { EquationDisplayProps } from './EquationDisplay';

@@ -214,12 +214,25 @@ export function useQuestions(options: UseQuestionsOptions = {}): UseQuestionsRet
   // Auto-validate statuses when ANOVA changes (data-validated only)
   // Then propagate children statuses upward to parents (bottom-up).
   const validatedQuestions = useMemo(() => {
-    // Pass 1: compute per-question data status
+    // Pass 1: compute per-question data status and enrich evidence with eta-squared.
+    // The evidence.etaSquared field is used downstream by useQuestionGeneration to
+    // gate follow-up question spawning (L2/L3 only fire when η² ≥ 5%).
     const withStatus = questions.map(q => {
       const computed = computeStatus(q, anovaByFactor);
-      return computed !== q.status
-        ? { ...q, status: computed, updatedAt: new Date().toISOString() }
-        : q;
+      // Enrich evidence with current eta-squared from ANOVA (if available)
+      const anova = q.factor && anovaByFactor ? anovaByFactor[q.factor] : undefined;
+      const etaSquared = anova?.etaSquared;
+      const needsStatusUpdate = computed !== q.status;
+      const needsEtaUpdate = etaSquared !== undefined && etaSquared !== q.evidence?.etaSquared;
+
+      if (!needsStatusUpdate && !needsEtaUpdate) return q;
+
+      return {
+        ...q,
+        status: computed,
+        evidence: etaSquared !== undefined ? { ...q.evidence, etaSquared } : q.evidence,
+        updatedAt: new Date().toISOString(),
+      };
     });
 
     // Pass 2: propagate children → parent (bottom-up by depth)
