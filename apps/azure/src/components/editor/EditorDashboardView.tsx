@@ -542,7 +542,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
                   precomputedBestSubsets={bestSubsets}
                   renderQuestionsTab={() => (
                     <QuestionsTabView
-                      questions={factorIntelQuestions}
+                      questions={questionsState.questions}
                       findings={findingsState.findings}
                       issueStatement={processContext?.issueStatement}
                       currentCpk={stats?.cpk ?? undefined}

@@ -214,22 +214,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   synthesis,
   linkedFindings,
 }) => {
-  if (findings.length === 0) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
-        <div className="w-10 h-10 rounded-full bg-surface-tertiary/50 flex items-center justify-center mb-3">
-          <Pin size={18} className="text-content-muted" />
-        </div>
-        <p className="text-sm text-content-secondary mb-1">No findings yet</p>
-        <p className="text-xs text-content-muted leading-relaxed max-w-[240px]">
-          Pin interesting filter combinations as you explore. Click the pin button in the breadcrumb
-          bar to save your current view.
-        </p>
-      </div>
-    );
-  }
-
-  if (viewMode === 'tree' && questions) {
+  // Tree view renders questions even without findings — show tree before empty guard
+  if (viewMode === 'tree' && questions && questions.length > 0) {
     return (
       <div className={`flex-1 min-h-0 flex flex-col ${className ?? ''}`}>
         <QuestionTreeView
@@ -251,6 +237,21 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onAskCoScout={onAskCoScout}
           onSetCauseRole={onSetCauseRole}
         />
+      </div>
+    );
+  }
+
+  if (findings.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
+        <div className="w-10 h-10 rounded-full bg-surface-tertiary/50 flex items-center justify-center mb-3">
+          <Pin size={18} className="text-content-muted" />
+        </div>
+        <p className="text-sm text-content-secondary mb-1">No findings yet</p>
+        <p className="text-xs text-content-muted leading-relaxed max-w-[240px]">
+          Pin interesting filter combinations as you explore. Click the pin button in the breadcrumb
+          bar to save your current view.
+        </p>
       </div>
     );
   }
