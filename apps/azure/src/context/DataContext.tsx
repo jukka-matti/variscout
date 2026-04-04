@@ -27,6 +27,7 @@ import type {
   StageOrderMode,
   ProcessContext,
 } from '@variscout/core';
+import { useStoreSync } from './useStoreSync';
 
 // Re-export types for backwards compatibility
 export type { DisplayOptions, ParetoMode, DataQualityReport, ParetoRow, StorageLocation };
@@ -92,6 +93,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [state, actions] = useDataState({
     persistence: azurePersistenceAdapter,
     workerApi,
+  });
+
+  // ---------------------------------------------------------------------------
+  // Store sync: Investigation store is source of truth for findings/questions/categories.
+  // The sync hook reads from the store and pushes changes back to useDataState
+  // for persistence serialization.
+  // ---------------------------------------------------------------------------
+  const storeSync = useStoreSync({
+    stateFindings: state.findings,
+    stateQuestions: state.questions,
+    stateCategories: state.categories,
+    setStateFindings: actions.setFindings,
+    setStateQuestions: actions.setQuestions,
+    setStateCategories: actions.setCategories,
   });
 
   // AI process context
@@ -224,14 +239,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // View state
       viewState: state.viewState,
 
-      // Findings
-      findings: state.findings,
+      // Findings (from investigation store via sync)
+      findings: storeSync.findings,
 
-      // Questions
-      questions: state.questions,
+      // Questions (from investigation store via sync)
+      questions: storeSync.questions,
 
-      // Investigation categories
-      categories: state.categories,
+      // Investigation categories (from investigation store via sync)
+      categories: storeSync.categories,
 
       // Async computation state
       isComputing: state.isComputing,
@@ -246,6 +261,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }),
     [
       state,
+      storeSync.findings,
+      storeSync.questions,
+      storeSync.categories,
       currentProjectLocation,
       syncStatus,
       processContext,
@@ -299,12 +317,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearSelection: actions.clearSelection,
       togglePointSelection: actions.togglePointSelection,
 
-      // Filter stack / view state / findings / questions / categories setters
+      // Filter stack / view state setters
       setFilterStack: actions.setFilterStack,
       setViewState: actions.setViewState,
-      setFindings: actions.setFindings,
-      setQuestions: actions.setQuestions,
-      setCategories: actions.setCategories,
+
+      // Investigation setters (routed through store sync)
+      setFindings: storeSync.setFindings,
+      setQuestions: storeSync.setQuestions,
+      setCategories: storeSync.setCategories,
 
       // AI
       setProcessContext,
@@ -324,6 +344,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }),
     [
       actions,
+      storeSync.setFindings,
+      storeSync.setQuestions,
+      storeSync.setCategories,
       saveProject,
       loadProject,
       deleteProject,
