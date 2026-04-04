@@ -1,9 +1,22 @@
 import React, { useMemo, useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react';
 import type { SampleDataset } from '@variscout/data';
 import { useStorage } from '../services/storage';
+import type { StorageLocation } from '../services/storage';
 import { useProjectLoader } from '../hooks/useProjectLoader';
 import { useProjectOverview } from '../hooks/useProjectOverview';
-import { useDataStateCtx, useDataActions } from '../context/DataContext';
+import {
+  useProjectStore,
+  useInvestigationStore as useDomainInvestigationStore,
+  useSessionStore,
+} from '@variscout/stores';
+import {
+  useFilteredData,
+  useAnalysisStats,
+  useStagedAnalysis,
+  useProjectActions,
+} from '@variscout/hooks';
+import { azurePersistenceAdapter, setDefaultLocation } from '../lib/persistenceAdapter';
+import { useStatsWorker } from '../workers/useStatsWorker';
 import { useDataIngestion } from '../hooks/useDataIngestion';
 import { useFilterNavigation } from '../hooks';
 import { AppHeader } from '../components/AppHeader';
@@ -108,63 +121,98 @@ export const Editor: React.FC<EditorProps> = ({
   initialMode,
   initialSample,
 }) => {
-  const { syncStatus, listProjects } = useStorage();
+  const { syncStatus, listProjects, saveProject: saveToCloud } = useStorage();
   const { locale } = useLocale();
   const { showToast } = useToast();
-  // Split context: state (re-renders on changes) + actions (stable references)
-  const {
-    rawData,
-    filteredData,
-    currentProjectName,
-    outcome,
-    factors,
-    specs,
-    columnAliases,
-    measureColumns,
-    measureLabel,
-    dataFilename,
-    dataQualityReport,
-    analysisMode,
-    filters,
-    displayOptions,
-    viewState,
-    findings: persistedFindings,
-    questions: persistedQuestions,
-    currentProjectLocation,
-    stats,
-    stagedStats,
-    processContext,
-    aiEnabled,
-    categories,
-    knowledgeSearchFolder,
-    subgroupConfig,
-    cpkTarget,
-  } = useDataStateCtx();
-  const {
-    setOutcome,
-    setRawData,
-    setFactors,
-    setSpecs,
-    setDataFilename,
-    setDataQualityReport,
-    setMeasureColumns,
-    setMeasureLabel,
-    setColumnAliases,
-    setAnalysisMode,
-    setYamazumiMapping,
-    setFilters,
-    setDisplayOptions,
-    setViewState,
-    setFindings: setPersistedFindings,
-    setQuestions: setPersistedQuestions,
-    saveProject,
-    loadProject,
-    renameProject,
-    setProcessContext,
-    setCategories,
-    setSubgroupConfig,
-    setCpkTarget,
-  } = useDataActions();
+
+  // ── Zustand store selectors (replaces useDataStateCtx) ────────────────────
+  const rawData = useProjectStore(s => s.rawData);
+  const outcome = useProjectStore(s => s.outcome);
+  const factors = useProjectStore(s => s.factors);
+  const specs = useProjectStore(s => s.specs);
+  const columnAliases = useProjectStore(s => s.columnAliases);
+  const measureColumns = useProjectStore(s => s.measureColumns);
+  const measureLabel = useProjectStore(s => s.measureLabel);
+  const dataFilename = useProjectStore(s => s.dataFilename);
+  const dataQualityReport = useProjectStore(s => s.dataQualityReport);
+  const analysisMode = useProjectStore(s => s.analysisMode);
+  const filters = useProjectStore(s => s.filters);
+  const displayOptions = useProjectStore(s => s.displayOptions);
+  const viewState = useProjectStore(s => s.viewState);
+  const currentProjectName = useProjectStore(s => s.projectName);
+  const subgroupConfig = useProjectStore(s => s.subgroupConfig);
+  const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const processContext = useProjectStore(s => s.processContext) ?? undefined;
+
+  // Investigation store (domain — findings/questions/categories)
+  const persistedFindings = useDomainInvestigationStore(s => s.findings);
+  const persistedQuestions = useDomainInvestigationStore(s => s.questions);
+  const categories = useDomainInvestigationStore(s => s.categories);
+
+  // Session store
+  const aiEnabled = useSessionStore(s => s.aiEnabled);
+  const knowledgeSearchFolder = useSessionStore(s => s.knowledgeSearchFolder) ?? undefined;
+
+  // Derived hooks (replaces computed state from useDataState)
+  const { filteredData } = useFilteredData();
+  const workerApi = useStatsWorker();
+  const { stats } = useAnalysisStats(workerApi);
+  const { stagedStats } = useStagedAnalysis();
+
+  // Azure-specific: project location is always 'personal' (ADR-059)
+  const currentProjectLocation: StorageLocation = 'personal';
+
+  // ── Zustand store setters (replaces useDataActions) ────────────────────────
+  const setRawData = useProjectStore(s => s.setRawData);
+  const setOutcome = useProjectStore(s => s.setOutcome);
+  const setFactors = useProjectStore(s => s.setFactors);
+  const setSpecs = useProjectStore(s => s.setSpecs);
+  const setDataFilename = useProjectStore(s => s.setDataFilename);
+  const setDataQualityReport = useProjectStore(s => s.setDataQualityReport);
+  const setMeasureColumns = useProjectStore(s => s.setMeasureColumns);
+  const setMeasureLabel = useProjectStore(s => s.setMeasureLabel);
+  const setColumnAliases = useProjectStore(s => s.setColumnAliases);
+  const setAnalysisMode = useProjectStore(s => s.setAnalysisMode);
+  const setYamazumiMapping = useProjectStore(s => s.setYamazumiMapping);
+  const setFilters = useProjectStore(s => s.setFilters);
+  const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
+  const setViewState = useProjectStore(s => s.setViewState);
+  const setProcessContext = useProjectStore(s => s.setProcessContext);
+  const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
+  const setCpkTarget = useProjectStore(s => s.setCpkTarget);
+  const setCategories = useDomainInvestigationStore(s => s.setCategories);
+
+  // Investigation store setters (via loadInvestigationState for bulk updates)
+  const setPersistedFindings = useCallback((findings: import('@variscout/core').Finding[]) => {
+    useDomainInvestigationStore.getState().loadInvestigationState({ findings });
+  }, []);
+  const setPersistedQuestions = useCallback((questions: import('@variscout/core').Question[]) => {
+    useDomainInvestigationStore.getState().loadInvestigationState({ questions });
+  }, []);
+
+  // Persistence actions (local IndexedDB via adapter)
+  const projectActions = useProjectActions(azurePersistenceAdapter);
+
+  // Wrap saveProject with cloud sync
+  const saveProject = useCallback(
+    async (name: string) => {
+      setDefaultLocation('personal');
+      const project = await projectActions.saveProject(name);
+      // Trigger cloud sync with current store state snapshot
+      const state = useProjectStore.getState();
+      await saveToCloud(state, name, 'personal');
+      return project;
+    },
+    [projectActions, saveToCloud]
+  );
+
+  const loadProject = projectActions.loadProject;
+  const renameProject = useCallback(
+    async (oldName: string, newName: string) => {
+      await projectActions.renameProject(oldName, newName);
+    },
+    [projectActions]
+  );
 
   const ingestion = useDataIngestion({
     onTimeColumnDetected: prompt => {
@@ -845,12 +893,12 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Compute excluded row data for DataTableModal
   const excludedRowIndices = useMemo(() => {
-    if (!dataQualityReport) return undefined;
+    if (!dataQualityReport?.excludedRows) return undefined;
     return new Set(dataQualityReport.excludedRows.map(r => r.index));
   }, [dataQualityReport]);
 
   const excludedReasons = useMemo(() => {
-    if (!dataQualityReport) return undefined;
+    if (!dataQualityReport?.excludedRows) return undefined;
     const map = new Map<number, ExclusionReason[]>();
     dataQualityReport.excludedRows.forEach(row => map.set(row.index, row.reasons));
     return map;

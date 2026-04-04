@@ -1,9 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+
+// ── Provide IndexedDB polyfill for Zustand persist middleware (sessionStore) ──
+import 'fake-indexeddb/auto';
+
 import { Editor } from '../Editor';
-import * as DataContextModule from '../../context/DataContext';
 import * as StorageModule from '../../services/storage';
 import { usePanelsStore } from '../../features/panels/panelsStore';
+import { useProjectStore, useInvestigationStore, useSessionStore } from '@variscout/stores';
 
 // ── Mock child components ──
 
@@ -179,6 +183,27 @@ vi.mock('../../hooks', () => ({
   }),
 }));
 
+// ── Mock workers ──
+
+vi.mock('../../workers/useStatsWorker', () => ({
+  useStatsWorker: () => null,
+}));
+
+// ── Mock persistence adapter ──
+
+vi.mock('../../lib/persistenceAdapter', () => ({
+  azurePersistenceAdapter: {
+    saveProject: vi.fn(() => Promise.resolve({ id: 'test', name: 'Test' })),
+    loadProject: vi.fn(() => Promise.resolve(null)),
+    listProjects: vi.fn(() => Promise.resolve([])),
+    deleteProject: vi.fn(() => Promise.resolve()),
+    renameProject: vi.fn(() => Promise.resolve()),
+    exportProject: vi.fn(),
+    importProject: vi.fn(() => Promise.resolve()),
+  },
+  setDefaultLocation: vi.fn(),
+}));
+
 // ── Mock storage ──
 
 vi.mock('../../services/storage', () => ({
@@ -195,13 +220,6 @@ vi.mock('../../services/storage', () => ({
   })),
 }));
 
-// ── Mock DataContext ──
-
-vi.mock('../../context/DataContext', () => ({
-  useDataStateCtx: vi.fn(),
-  useDataActions: vi.fn(),
-}));
-
 vi.mock('../../context/ToastContext', () => ({
   useToast: () => ({
     notifications: [],
@@ -212,80 +230,62 @@ vi.mock('../../context/ToastContext', () => ({
 
 // ── Test helpers ──
 
-const baseDataState = {
-  rawData: [] as Record<string, unknown>[],
-  filteredData: [] as Record<string, unknown>[],
-  outcome: null as string | null,
-  factors: [] as string[],
-  specs: {} as Record<string, unknown>,
-  stats: null,
-  filters: {},
-  columnAliases: {},
-  measureColumns: null,
-  measureLabel: null,
-  currentProjectName: 'Test Project',
-  currentProjectLocation: 'team' as const,
-  hasUnsavedChanges: false,
-  stageColumn: null,
-  stageOrderMode: 'auto' as const,
-  stagedStats: null,
-  paretoAggregation: 'count' as const,
-  chartTitles: {},
-  timeColumn: null,
-  selectedPoints: new Set<number>(),
-  displayOptions: {},
-  dataFilename: null,
-  dataQualityReport: null,
-  analysisMode: 'standard' as const,
-  yamazumiMapping: null,
-  viewState: null,
-};
-
-const baseDataActions = {
-  setOutcome: vi.fn(),
-  setRawData: vi.fn(),
-  setFactors: vi.fn(),
-  setSpecs: vi.fn(),
-  setFilters: vi.fn(),
-  setDataFilename: vi.fn(),
-  setDataQualityReport: vi.fn(),
-  setMeasureColumns: vi.fn(),
-  setMeasureLabel: vi.fn(),
-  setStageColumn: vi.fn(),
-  setStageOrderMode: vi.fn(),
-  setParetoAggregation: vi.fn(),
-  setChartTitles: vi.fn(),
-  setColumnAliases: vi.fn(),
-  setDisplayOptions: vi.fn(),
-  saveProject: vi.fn(),
-  loadProject: vi.fn(() => Promise.resolve()),
-  clearSelection: vi.fn(),
-  setAnalysisMode: vi.fn(),
-  setYamazumiMapping: vi.fn(),
-  setViewState: vi.fn(),
-  renameProject: vi.fn(() => Promise.resolve()),
-  setFindings: vi.fn(),
-  setQuestions: vi.fn(),
-  setProcessContext: vi.fn(),
-  setCategories: vi.fn(),
-  setSubgroupConfig: vi.fn(),
-  setCpkTarget: vi.fn(),
-};
-
 const defaultProps = {
   projectId: 'test-123',
   onBack: vi.fn(),
 };
 
-function renderEditor(stateOverrides: Partial<typeof baseDataState> = {}) {
-  vi.mocked(DataContextModule.useDataStateCtx).mockReturnValue({
-    ...baseDataState,
-    ...stateOverrides,
-  } as unknown as ReturnType<typeof DataContextModule.useDataStateCtx>);
-  vi.mocked(DataContextModule.useDataActions).mockReturnValue({
-    ...baseDataActions,
-  } as unknown as ReturnType<typeof DataContextModule.useDataActions>);
+/**
+ * Seed Zustand stores with test data (replaces DataContext mocking)
+ */
+function seedStores(
+  overrides: {
+    rawData?: Record<string, unknown>[];
+    outcome?: string | null;
+    factors?: string[];
+    specs?: Record<string, unknown>;
+    projectName?: string | null;
+    displayOptions?: Record<string, unknown>;
+    dataFilename?: string | null;
+    analysisMode?: string;
+    viewState?: Record<string, unknown> | null;
+  } = {}
+) {
+  useProjectStore.setState({
+    rawData: overrides.rawData ?? [],
+    outcome: overrides.outcome ?? null,
+    factors: overrides.factors ?? [],
+    specs: overrides.specs ?? {},
+    projectName: overrides.projectName ?? 'Test Project',
+    displayOptions: overrides.displayOptions ?? {},
+    dataFilename: overrides.dataFilename ?? null,
+    dataQualityReport: null,
+    analysisMode: (overrides.analysisMode as 'standard') ?? 'standard',
+    filters: {},
+    columnAliases: {},
+    measureColumns: [],
+    measureLabel: 'Measure',
+    viewState: (overrides.viewState as null) ?? null,
+    subgroupConfig: { method: 'fixed-size', size: 5 },
+    cpkTarget: undefined,
+    processContext: null,
+    hasUnsavedChanges: false,
+  } as Partial<ReturnType<typeof useProjectStore.getState>>);
 
+  useInvestigationStore.setState({
+    findings: [],
+    questions: [],
+    categories: [],
+  } as Partial<ReturnType<typeof useInvestigationStore.getState>>);
+
+  useSessionStore.setState({
+    aiEnabled: false,
+    knowledgeSearchFolder: null,
+  } as Partial<ReturnType<typeof useSessionStore.getState>>);
+}
+
+function renderEditor(stateOverrides: Parameters<typeof seedStores>[0] = {}) {
+  seedStores(stateOverrides);
   return render(<Editor {...defaultProps} />);
 }
 
@@ -304,6 +304,9 @@ describe('Editor', () => {
       listProjects: vi.fn(() => Promise.resolve([])),
       syncStatus: { status: 'synced', message: 'Synced' },
     } as unknown as ReturnType<typeof StorageModule.useStorage>);
+
+    // Reset stores to clean state
+    seedStores();
   });
 
   it('renders empty state when rawData is empty', () => {
@@ -316,7 +319,7 @@ describe('Editor', () => {
   });
 
   it('shows logo mark and project name in header', () => {
-    renderEditor({ currentProjectName: 'My Analysis' });
+    renderEditor({ projectName: 'My Analysis' });
     expect(screen.getByText('My Analysis')).toBeInTheDocument();
   });
 
@@ -330,7 +333,6 @@ describe('Editor', () => {
     usePanelsStore.setState({ activeView: 'analysis' });
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
-      filteredData: [{ Weight: 10, Machine: 'A' }],
       outcome: 'Weight',
       factors: ['Machine'],
     });
@@ -341,7 +343,6 @@ describe('Editor', () => {
   it('shows CoScout toggle when data is loaded', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
-      filteredData: [{ Weight: 10, Machine: 'A' }],
       outcome: 'Weight',
       factors: ['Machine'],
     });
@@ -358,7 +359,6 @@ describe('Editor', () => {
   it('shows ColumnMapping when data is loaded but no outcome selected', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
-      filteredData: [{ Weight: 10, Machine: 'A' }],
       outcome: null,
     });
 
@@ -368,7 +368,6 @@ describe('Editor', () => {
   it('shows project dashboard overview when data is loaded with projectId', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
-      filteredData: [{ Weight: 10, Machine: 'A' }],
       outcome: 'Weight',
       factors: ['Machine'],
     });
@@ -381,7 +380,6 @@ describe('Editor', () => {
   it('shows analysis view when Analysis tab is clicked', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
-      filteredData: [{ Weight: 10, Machine: 'A' }],
       outcome: 'Weight',
       factors: ['Machine'],
     });
@@ -395,7 +393,6 @@ describe('Editor', () => {
   it('shows Add Data button when data is loaded in analysis view', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
-      filteredData: [{ Weight: 10, Machine: 'A' }],
       outcome: 'Weight',
       factors: ['Machine'],
     });
