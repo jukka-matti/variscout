@@ -189,11 +189,14 @@ export const Editor: React.FC<EditorProps> = ({
   }, [rawData.length]);
 
   // Report view state changes for persistence (merge partial updates)
+  // Use ref for viewState to avoid circular dep: handleViewStateChange → viewState → usePanelsPersistence → handleViewStateChange
+  const viewStateRef = useRef(viewState);
+  viewStateRef.current = viewState;
   const handleViewStateChange = useCallback(
     (partial: Partial<import('@variscout/hooks').ViewState>) => {
-      setViewState({ ...(viewState ?? {}), ...partial });
+      setViewState({ ...(viewStateRef.current ?? {}), ...partial });
     },
-    [viewState, setViewState]
+    [setViewState]
   );
 
   // Panel visibility and chart/table sync (Zustand store)
