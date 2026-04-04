@@ -31,14 +31,6 @@ export type {
   ViewState,
 } from './types';
 
-// Data State Hook (shared DataContext logic)
-export {
-  useDataState,
-  type UseDataStateOptions,
-  type DataState,
-  type DataActions,
-} from './useDataState';
-
 // Chart Scale
 export { useChartScale } from './useChartScale';
 
