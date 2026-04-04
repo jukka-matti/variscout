@@ -75,6 +75,9 @@ importers:
       eslint-plugin-react-hooks:
         specifier: ^7.0.1
         version: 7.0.1(eslint@9.39.2(jiti@2.6.1))
+      globals:
+        specifier: ^14.0.0
+        version: 14.0.0
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -225,10 +228,10 @@ importers:
     dependencies:
       '@astrojs/starlight':
         specifier: ^0.38.2
-        version: 0.38.2(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2))
+        version: 0.38.2(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2))
       astro:
         specifier: ^6.1.3
-        version: 6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)
+        version: 6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)
       rehype-mermaid:
         specifier: ^3.0.0
         version: 3.0.0(playwright@1.58.2)
@@ -355,10 +358,10 @@ importers:
         version: link:../../packages/ui
       astro:
         specifier: ^6.1.3
-        version: 6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)
+        version: 6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)
       lucide-astro:
         specifier: ^0.556.0
-        version: 0.556.0(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2))
+        version: 0.556.0(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2))
       react:
         specifier: ^19.0.0
         version: 19.2.3
@@ -519,6 +522,25 @@ importers:
         version: 29.0.1(@noble/hashes@1.8.0)
       typescript:
         specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.0(@types/node@25.5.0)(jsdom@29.0.1(@noble/hashes@1.8.0))(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.2))
+
+  packages/stores:
+    dependencies:
+      '@variscout/core':
+        specifier: workspace:*
+        version: link:../core
+      idb-keyval:
+        specifier: ^6.2.1
+        version: 6.2.2
+      zustand:
+        specifier: ^5.0.0
+        version: 5.0.12(@types/react@19.2.7)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
+    devDependencies:
+      typescript:
+        specifier: ^5.8.0
         version: 5.9.3
       vitest:
         specifier: ^4.1.0
@@ -4750,6 +4772,9 @@ packages:
     resolution: {integrity: sha512-im9DjEDQ55s9fL4EYzOAv0yMqmMBSZp6G0VvFyTMPKWxiSBHUj9NW/qqLmXUwXrrM7AvqSlTCfvqRb0cM8yYqw==}
     engines: {node: '>=0.10.0'}
 
+  idb-keyval@6.2.2:
+    resolution: {integrity: sha512-yjD9nARJ/jb1g+CvD0tlhUHOrJ9Sy0P8T9MF3YaLlHnSRpwPfpTX0XIvpmw3gAJUmEu3FiICLBDPXVwyEvrleg==}
+
   idb@7.1.1:
     resolution: {integrity: sha512-gchesWBzyvGHRO9W8tzUWFDycow5gwjvFKfyV9FF32Y7F50yZMp7mP+T2mJIWFx49zicqyC4uefHM17o6xKIVQ==}
 
@@ -7442,12 +7467,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/mdx@5.0.3(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2))':
+  '@astrojs/mdx@5.0.3(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2))':
     dependencies:
       '@astrojs/markdown-remark': 7.1.0
       '@mdx-js/mdx': 3.1.1
       acorn: 8.16.0
-      astro: 6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)
+      astro: 6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)
       es-module-lexer: 2.0.0
       estree-util-visit: 2.0.0
       hast-util-to-html: 9.0.5
@@ -7494,17 +7519,17 @@ snapshots:
       stream-replace-string: 2.0.0
       zod: 4.3.6
 
-  '@astrojs/starlight@0.38.2(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2))':
+  '@astrojs/starlight@0.38.2(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2))':
     dependencies:
       '@astrojs/markdown-remark': 7.1.0
-      '@astrojs/mdx': 5.0.3(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2))
+      '@astrojs/mdx': 5.0.3(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2))
       '@astrojs/sitemap': 3.7.2
       '@pagefind/default-ui': 1.4.0
       '@types/hast': 3.0.4
       '@types/js-yaml': 4.0.9
       '@types/mdast': 4.0.4
-      astro: 6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)
-      astro-expressive-code: 0.41.7(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2))
+      astro: 6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)
+      astro-expressive-code: 0.41.7(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2))
       bcp-47: 2.1.0
       hast-util-from-html: 2.0.3
       hast-util-select: 6.0.4
@@ -10567,12 +10592,12 @@ snapshots:
 
   astring@1.9.0: {}
 
-  astro-expressive-code@0.41.7(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)):
+  astro-expressive-code@0.41.7(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)):
     dependencies:
-      astro: 6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)
+      astro: 6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)
       rehype-expressive-code: 0.41.7
 
-  astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2):
+  astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2):
     dependencies:
       '@astrojs/compiler': 3.0.1
       '@astrojs/internal-helpers': 0.8.0
@@ -10622,7 +10647,7 @@ snapshots:
       ultrahtml: 1.6.0
       unifont: 0.7.4
       unist-util-visit: 5.1.0
-      unstorage: 1.17.4(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)
+      unstorage: 1.17.4(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(idb-keyval@6.2.2)
       vfile: 6.0.3
       vite: 7.3.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.8.2)
       vitefu: 1.1.3(vite@7.3.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.8.2))
@@ -12344,6 +12369,8 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
+  idb-keyval@6.2.2: {}
+
   idb@7.1.1: {}
 
   ignore@5.3.2: {}
@@ -12883,9 +12910,9 @@ snapshots:
     dependencies:
       yallist: 4.0.0
 
-  lucide-astro@0.556.0(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)):
+  lucide-astro@0.556.0(astro@6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)):
     dependencies:
-      astro: 6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)
+      astro: 6.1.3(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(@types/node@25.5.0)(idb-keyval@6.2.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.2)
 
   lucide-react@1.7.0(react@19.2.3):
     dependencies:
@@ -14971,7 +14998,7 @@ snapshots:
       picomatch: 4.0.4
       webpack-virtual-modules: 0.6.2
 
-  unstorage@1.17.4(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0):
+  unstorage@1.17.4(@azure/identity@4.13.1)(@azure/storage-blob@12.31.0)(idb-keyval@6.2.2):
     dependencies:
       anymatch: 3.1.3
       chokidar: 5.0.0
@@ -14984,6 +15011,7 @@ snapshots:
     optionalDependencies:
       '@azure/identity': 4.13.1
       '@azure/storage-blob': 12.31.0
+      idb-keyval: 6.2.2
 
   unzipper@0.12.3:
     dependencies:
