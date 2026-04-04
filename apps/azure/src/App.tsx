@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { getEasyAuthUser, login, logout, type EasyAuthUser } from './auth/easyAuth';
 import { clearGraphTokenCache } from './auth/graphToken';
-import { DataProvider } from './context/DataContext';
 import { ThemeProvider } from '@variscout/ui';
 import { LocaleProvider } from './context/LocaleContext';
 import { StorageProvider, useStorage } from './services/storage';
@@ -133,16 +132,14 @@ function AppMain() {
                 Skip to main content
               </a>
               <ErrorBoundary onError={handleAppError}>
-                <DataProvider>
-                  <AppContent
-                    user={user}
-                    isAdmin={isAdmin}
-                    gatingMode={gatingMode}
-                    isSettingsOpen={isSettingsOpen}
-                    setIsSettingsOpen={setIsSettingsOpen}
-                    onLogout={handleLogout}
-                  />
-                </DataProvider>
+                <AppContent
+                  user={user}
+                  isAdmin={isAdmin}
+                  gatingMode={gatingMode}
+                  isSettingsOpen={isSettingsOpen}
+                  setIsSettingsOpen={setIsSettingsOpen}
+                  onLogout={handleLogout}
+                />
               </ErrorBoundary>
               <SyncToasts />
             </div>

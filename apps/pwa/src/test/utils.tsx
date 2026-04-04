@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { vi } from 'vitest';
-import { DataProvider } from '../context/DataContext';
+import { useProjectStore } from '@variscout/stores';
 
 // Mock data for testing
 export const mockData = [
@@ -73,15 +73,35 @@ export const emptyMockContext = {
   stats: null,
 };
 
-// Render with DataProvider wrapper
+/**
+ * Seed Zustand stores with test data (replaces DataProvider wrapper).
+ * Call before rendering components that use store selectors.
+ */
+export function seedStores(
+  overrides: {
+    rawData?: Record<string, unknown>[];
+    outcome?: string | null;
+    factors?: string[];
+    specs?: { usl?: number; lsl?: number };
+    filters?: Record<string, (string | number)[]>;
+  } = {}
+) {
+  const projectState = useProjectStore.getState();
+  projectState.setRawData((overrides.rawData ?? mockData) as import('@variscout/core').DataRow[]);
+  if (overrides.outcome !== undefined) projectState.setOutcome(overrides.outcome);
+  if (overrides.factors) projectState.setFactors(overrides.factors);
+  if (overrides.specs) projectState.setSpecs(overrides.specs);
+  if (overrides.filters) projectState.setFilters(overrides.filters);
+}
+
+/**
+ * Render with minimal wrapper (no DataProvider needed — stores are global).
+ */
 export function renderWithContext(
   ui: React.ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
 ) {
-  return render(ui, {
-    wrapper: ({ children }) => <DataProvider>{children}</DataProvider>,
-    ...options,
-  });
+  return render(ui, options);
 }
 
 // Create a mock useData function

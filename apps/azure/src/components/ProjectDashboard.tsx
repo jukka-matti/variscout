@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Play, Upload, FileText, ListChecks } from 'lucide-react';
 
-import { useDataStateCtx } from '../context/DataContext';
+import { useProjectStore, useInvestigationStore, useSessionStore } from '@variscout/stores';
 import { useJourneyPhase } from '@variscout/hooks';
 import { useAIStore } from '../features/ai/aiStore';
 import type { CloudProject } from '../services/storage';
@@ -42,8 +42,13 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
   onViewPortfolio,
   onUpdateLastViewed,
 }) => {
-  // Data context
-  const { findings, questions, filterStack, viewState, rawData, aiEnabled } = useDataStateCtx();
+  // Store selectors (replaces useDataStateCtx)
+  const rawData = useProjectStore(s => s.rawData);
+  const filterStack = useProjectStore(s => s.filterStack);
+  const viewState = useProjectStore(s => s.viewState);
+  const findings = useInvestigationStore(s => s.findings);
+  const questions = useInvestigationStore(s => s.questions);
+  const aiEnabled = useSessionStore(s => s.aiEnabled);
 
   // Journey phase
   const hasData = rawData != null && rawData.length > 0;

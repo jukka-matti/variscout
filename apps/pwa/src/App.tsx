@@ -1,5 +1,4 @@
 import React, { Suspense, useCallback, useState, useEffect, useMemo } from 'react';
-import { useDataStateCtx, useDataActions } from './context/DataContext';
 import { downloadCSV } from './lib/export';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
@@ -28,7 +27,13 @@ import {
   buildFindingContext,
   buildFindingSource,
   useJournalEntries,
+  useFilteredData,
+  useAnalysisStats,
 } from '@variscout/hooks';
+import {
+  useProjectStore,
+  useInvestigationStore as useDomainInvestigationStore,
+} from '@variscout/stores';
 import AppHeader from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
@@ -45,6 +50,7 @@ import { useProjectionStore } from './features/projection/projectionStore';
 import { useInvestigationStore } from './features/investigation/investigationStore';
 import { useInvestigationOrchestration } from './features/investigation/useInvestigationOrchestration';
 import { useImprovementOrchestration } from './features/improvement/useImprovementOrchestration';
+import { useStatsWorker } from './workers/useStatsWorker';
 
 // Lazy-loaded heavy components for code splitting
 const dashboardImport = () => import('./components/Dashboard');
@@ -99,43 +105,48 @@ function App() {
 }
 
 function AppMain() {
-  // Split context: state (re-renders on changes) + actions (stable references)
-  const {
-    rawData,
-    filteredData,
-    outcome,
-    specs,
-    dataFilename,
-    dataQualityReport,
-    paretoMode,
-    separateParetoFilename,
-    factors,
-    filters,
-    columnAliases,
-    analysisMode,
-    yamazumiMapping,
-    displayOptions,
-    stats,
-    cpkTarget,
-    questions,
-  } = useDataStateCtx();
-  const {
-    setRawData,
-    setOutcome,
-    setFactors,
-    setSpecs,
-    setDataFilename,
-    setDataQualityReport,
-    setFilters,
-    setColumnAliases,
-    clearSelection,
-    setAnalysisMode,
-    setYamazumiMapping,
-    setDisplayOptions,
-    setSubgroupConfig,
-    setCpkTarget,
-    setQuestions,
-  } = useDataActions();
+  // ── Zustand store selectors (replaces useDataStateCtx) ──────────────────
+  const rawData = useProjectStore(s => s.rawData);
+  const outcome = useProjectStore(s => s.outcome);
+  const specs = useProjectStore(s => s.specs);
+  const dataFilename = useProjectStore(s => s.dataFilename);
+  const dataQualityReport = useProjectStore(s => s.dataQualityReport);
+  const paretoMode = useProjectStore(s => s.paretoMode);
+  const separateParetoFilename = useProjectStore(s => s.separateParetoFilename);
+  const factors = useProjectStore(s => s.factors);
+  const filters = useProjectStore(s => s.filters);
+  const columnAliases = useProjectStore(s => s.columnAliases);
+  const analysisMode = useProjectStore(s => s.analysisMode);
+  const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
+  const displayOptions = useProjectStore(s => s.displayOptions);
+  const cpkTarget = useProjectStore(s => s.cpkTarget);
+
+  // Investigation store (domain — questions)
+  const questions = useDomainInvestigationStore(s => s.questions);
+
+  // Derived hooks (replaces computed state from useDataState)
+  const { filteredData } = useFilteredData();
+  const workerApi = useStatsWorker();
+  const { stats } = useAnalysisStats(workerApi);
+
+  // ── Zustand store setters (replaces useDataActions) ─────────────────────
+  const setRawData = useProjectStore(s => s.setRawData);
+  const setOutcome = useProjectStore(s => s.setOutcome);
+  const setFactors = useProjectStore(s => s.setFactors);
+  const setSpecs = useProjectStore(s => s.setSpecs);
+  const setDataFilename = useProjectStore(s => s.setDataFilename);
+  const setDataQualityReport = useProjectStore(s => s.setDataQualityReport);
+  const setFilters = useProjectStore(s => s.setFilters);
+  const setColumnAliases = useProjectStore(s => s.setColumnAliases);
+  const clearSelection = useProjectStore(s => s.clearSelection);
+  const setAnalysisMode = useProjectStore(s => s.setAnalysisMode);
+  const setYamazumiMapping = useProjectStore(s => s.setYamazumiMapping);
+  const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
+  const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
+  const setCpkTarget = useProjectStore(s => s.setCpkTarget);
+  const setQuestions = useCallback((qs: import('@variscout/core').Question[]) => {
+    useDomainInvestigationStore.getState().loadInvestigationState({ questions: qs });
+  }, []);
 
   // Data ingestion must be declared before importFlow since importFlow uses its callbacks.
   // The onWideFormatDetected/onTimeColumnDetected callbacks use importFlow setters,

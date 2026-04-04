@@ -51,7 +51,16 @@ import {
   getAIProviderLabel,
   getResponsesApiConfig,
 } from '../../services/aiService';
-import type { AIPreferences } from '../../context/DataContext';
+/**
+ * Per-component AI toggle preferences.
+ * All default to true — disabling a component hides it without turning off AI globally.
+ */
+export interface AIPreferences {
+  narration: boolean;
+  insights: boolean;
+  coscout: boolean;
+  [key: string]: boolean;
+}
 import {
   searchDocuments,
   isKnowledgeBaseAvailable,

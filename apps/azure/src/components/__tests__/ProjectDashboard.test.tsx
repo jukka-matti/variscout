@@ -5,8 +5,28 @@ import type { Finding, Question } from '@variscout/core';
 
 // vi.mock MUST come before component imports to prevent import ordering issues
 
-vi.mock('../../context/DataContext', () => ({
-  useDataStateCtx: vi.fn(),
+vi.mock('@variscout/stores', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useProjectStore: vi.fn((selector: (s: any) => unknown) =>
+    selector({
+      rawData: [{ Weight: 10 }],
+      filterStack: [],
+      viewState: {},
+    })
+  ),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useInvestigationStore: vi.fn((selector: (s: any) => unknown) =>
+    selector({
+      findings: [],
+      questions: [],
+    })
+  ),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useSessionStore: vi.fn((selector: (s: any) => unknown) =>
+    selector({
+      aiEnabled: false,
+    })
+  ),
 }));
 
 vi.mock('../../features/ai/aiStore', () => ({
@@ -50,7 +70,7 @@ vi.mock('../../services/storage', () => ({
 import ProjectDashboard from '../ProjectDashboard';
 import ProjectStatusCard from '../ProjectStatusCard';
 import DashboardSummaryCard from '../DashboardSummaryCard';
-import { useDataStateCtx } from '../../context/DataContext';
+import { useProjectStore, useInvestigationStore, useSessionStore } from '@variscout/stores';
 import { useAIStore } from '../../features/ai/aiStore';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -83,14 +103,46 @@ function makeQuestion(overrides: Partial<Question> = {}): Question {
   };
 }
 
-const defaultDataState = {
-  findings: [] as Finding[],
-  questions: [] as Question[],
-  filterStack: [],
-  viewState: {},
-  rawData: [{ Weight: 10 }],
-  aiEnabled: false,
+const defaultStoreState = {
+  project: {
+    rawData: [{ Weight: 10 }],
+    filterStack: [] as FilterAction[],
+    viewState: {},
+  },
+  investigation: {
+    findings: [] as Finding[],
+    questions: [] as Question[],
+  },
+  session: {
+    aiEnabled: false,
+  },
 };
+
+type FilterAction = import('@variscout/core').FilterAction;
+
+function setStoreState(
+  overrides: {
+    project?: Record<string, unknown>;
+    investigation?: Record<string, unknown>;
+    session?: Record<string, unknown>;
+  } = {}
+) {
+  const projectState = { ...defaultStoreState.project, ...overrides.project };
+  const investigationState = { ...defaultStoreState.investigation, ...overrides.investigation };
+  const sessionState = { ...defaultStoreState.session, ...overrides.session };
+
+  vi.mocked(useProjectStore).mockImplementation(
+    ((selector: (s: any) => unknown) => selector(projectState)) as any // eslint-disable-line @typescript-eslint/no-explicit-any
+  );
+
+  vi.mocked(useInvestigationStore).mockImplementation(
+    ((selector: (s: any) => unknown) => selector(investigationState)) as any // eslint-disable-line @typescript-eslint/no-explicit-any
+  );
+
+  vi.mocked(useSessionStore).mockImplementation(
+    ((selector: (s: any) => unknown) => selector(sessionState)) as any // eslint-disable-line @typescript-eslint/no-explicit-any
+  );
+}
 
 // ── Tests ────────────────────────────────────────────────────────────────────
 
@@ -269,9 +321,7 @@ describe('ProjectDashboard', () => {
   };
 
   beforeEach(() => {
-    vi.mocked(useDataStateCtx).mockReturnValue(
-      defaultDataState as unknown as ReturnType<typeof useDataStateCtx>
-    );
+    setStoreState();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(useAIStore).mockImplementation((selector: (s: any) => unknown) =>
       selector({
@@ -298,10 +348,7 @@ describe('ProjectDashboard', () => {
   });
 
   it('shows View report button when findings exist', () => {
-    vi.mocked(useDataStateCtx).mockReturnValue({
-      ...defaultDataState,
-      findings: [makeFinding()],
-    } as unknown as ReturnType<typeof useDataStateCtx>);
+    setStoreState({ investigation: { findings: [makeFinding()], questions: [] } });
 
     render(<ProjectDashboard {...defaultProps} />);
     expect(screen.getByTestId('action-report')).toBeInTheDocument();
@@ -313,14 +360,16 @@ describe('ProjectDashboard', () => {
   });
 
   it('shows Review actions button when actions exist', () => {
-    vi.mocked(useDataStateCtx).mockReturnValue({
-      ...defaultDataState,
-      findings: [
-        makeFinding({
-          actions: [{ id: 'a-1', text: 'Fix', createdAt: Date.now() }],
-        }),
-      ],
-    } as unknown as ReturnType<typeof useDataStateCtx>);
+    setStoreState({
+      investigation: {
+        findings: [
+          makeFinding({
+            actions: [{ id: 'a-1', text: 'Fix', createdAt: Date.now() }],
+          }),
+        ],
+        questions: [],
+      },
+    });
 
     render(<ProjectDashboard {...defaultProps} />);
     expect(screen.getByTestId('action-review-actions')).toBeInTheDocument();
@@ -342,10 +391,7 @@ describe('ProjectDashboard', () => {
 
   it('calls onNavigate with report when View report is clicked', () => {
     const onNavigate = vi.fn();
-    vi.mocked(useDataStateCtx).mockReturnValue({
-      ...defaultDataState,
-      findings: [makeFinding()],
-    } as unknown as ReturnType<typeof useDataStateCtx>);
+    setStoreState({ investigation: { findings: [makeFinding()], questions: [] } });
 
     render(<ProjectDashboard {...defaultProps} onNavigate={onNavigate} />);
     fireEvent.click(screen.getByTestId('action-report'));
