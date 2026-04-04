@@ -256,6 +256,9 @@ importers:
       '@variscout/hooks':
         specifier: workspace:*
         version: link:../../packages/hooks
+      '@variscout/stores':
+        specifier: workspace:*
+        version: link:../../packages/stores
       '@variscout/ui':
         specifier: workspace:*
         version: link:../../packages/ui

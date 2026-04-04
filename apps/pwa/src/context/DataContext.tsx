@@ -5,7 +5,7 @@
  * Split into DataStateContext and DataActionsContext following Kent C. Dodds pattern
  * for optimal re-render behavior: action-only consumers don't re-render on state changes.
  */
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import {
   useDataState,
   type DataState,
@@ -19,6 +19,7 @@ import {
 import { type StatsResult, type StagedStatsResult, type StageOrderMode } from '@variscout/core';
 import { pwaPersistenceAdapter } from '../lib/persistenceAdapter';
 import { useStatsWorker } from '../workers/useStatsWorker';
+import { useStoreSync } from './useStoreSync';
 
 // Re-export types for backwards compatibility
 export type { DisplayOptions, ChartTitles, ParetoMode, DataQualityReport, ParetoRow };
@@ -33,9 +34,47 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     workerApi,
   });
 
+  // ---------------------------------------------------------------------------
+  // Store sync: Investigation store is source of truth for findings/questions/categories.
+  // The sync hook reads from the store and pushes changes back to useDataState
+  // for persistence serialization.
+  // ---------------------------------------------------------------------------
+  const storeSync = useStoreSync({
+    stateFindings: state.findings,
+    stateQuestions: state.questions,
+    stateCategories: state.categories,
+    setStateFindings: actions.setFindings,
+    setStateQuestions: actions.setQuestions,
+    setStateCategories: actions.setCategories,
+  });
+
+  // Memoize state context to avoid unnecessary re-renders
+  const stateValue = useMemo<DataState>(
+    () => ({
+      ...state,
+      // Override investigation fields with store-authoritative values
+      findings: storeSync.findings,
+      questions: storeSync.questions,
+      categories: storeSync.categories,
+    }),
+    [state, storeSync.findings, storeSync.questions, storeSync.categories]
+  );
+
+  // Memoize actions context to avoid unnecessary re-renders
+  const actionsValue = useMemo<DataActions>(
+    () => ({
+      ...actions,
+      // Route investigation setters through the store
+      setFindings: storeSync.setFindings,
+      setQuestions: storeSync.setQuestions,
+      setCategories: storeSync.setCategories,
+    }),
+    [actions, storeSync.setFindings, storeSync.setQuestions, storeSync.setCategories]
+  );
+
   return (
-    <DataStateContext.Provider value={state}>
-      <DataActionsContext.Provider value={actions}>{children}</DataActionsContext.Provider>
+    <DataStateContext.Provider value={stateValue}>
+      <DataActionsContext.Provider value={actionsValue}>{children}</DataActionsContext.Provider>
     </DataStateContext.Provider>
   );
 };
