@@ -1,5 +1,5 @@
 import React, { Suspense, useCallback, useState, useEffect, useMemo } from 'react';
-import { useData } from './context/DataContext';
+import { useDataStateCtx, useDataActions } from './context/DataContext';
 import { downloadCSV } from './lib/export';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
@@ -99,6 +99,7 @@ function App() {
 }
 
 function AppMain() {
+  // Split context: state (re-renders on changes) + actions (stable references)
   const {
     rawData,
     filteredData,
@@ -108,31 +109,33 @@ function AppMain() {
     dataQualityReport,
     paretoMode,
     separateParetoFilename,
+    factors,
+    filters,
+    columnAliases,
+    analysisMode,
+    yamazumiMapping,
+    displayOptions,
+    stats,
+    cpkTarget,
+    questions,
+  } = useDataStateCtx();
+  const {
     setRawData,
     setOutcome,
     setFactors,
     setSpecs,
     setDataFilename,
     setDataQualityReport,
-    factors,
-    filters,
     setFilters,
-    columnAliases,
     setColumnAliases,
     clearSelection,
-    analysisMode,
-    yamazumiMapping,
     setAnalysisMode,
     setYamazumiMapping,
-    displayOptions,
     setDisplayOptions,
     setSubgroupConfig,
-    stats,
-    cpkTarget,
     setCpkTarget,
-    questions,
     setQuestions,
-  } = useData();
+  } = useDataActions();
 
   // Data ingestion must be declared before importFlow since importFlow uses its callbacks.
   // The onWideFormatDetected/onTimeColumnDetected callbacks use importFlow setters,

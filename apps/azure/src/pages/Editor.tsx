@@ -3,7 +3,7 @@ import type { SampleDataset } from '@variscout/data';
 import { useStorage } from '../services/storage';
 import { useProjectLoader } from '../hooks/useProjectLoader';
 import { useProjectOverview } from '../hooks/useProjectOverview';
-import { useData } from '../context/DataContext';
+import { useDataStateCtx, useDataActions } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
 import { useFilterNavigation } from '../hooks';
 import { AppHeader } from '../components/AppHeader';
@@ -111,6 +111,7 @@ export const Editor: React.FC<EditorProps> = ({
   const { syncStatus, listProjects } = useStorage();
   const { locale } = useLocale();
   const { showToast } = useToast();
+  // Split context: state (re-renders on changes) + actions (stable references)
   const {
     rawData,
     filteredData,
@@ -123,6 +124,23 @@ export const Editor: React.FC<EditorProps> = ({
     measureLabel,
     dataFilename,
     dataQualityReport,
+    analysisMode,
+    filters,
+    displayOptions,
+    viewState,
+    findings: persistedFindings,
+    questions: persistedQuestions,
+    currentProjectLocation,
+    stats,
+    stagedStats,
+    processContext,
+    aiEnabled,
+    categories,
+    knowledgeSearchFolder,
+    subgroupConfig,
+    cpkTarget,
+  } = useDataStateCtx();
+  const {
     setOutcome,
     setRawData,
     setFactors,
@@ -132,36 +150,21 @@ export const Editor: React.FC<EditorProps> = ({
     setMeasureColumns,
     setMeasureLabel,
     setColumnAliases,
-    analysisMode,
     setAnalysisMode,
     setYamazumiMapping,
-    filters,
     setFilters,
-    displayOptions,
     setDisplayOptions,
-    viewState,
     setViewState,
-    findings: persistedFindings,
     setFindings: setPersistedFindings,
-    questions: persistedQuestions,
     setQuestions: setPersistedQuestions,
-    currentProjectLocation,
     saveProject,
     loadProject,
     renameProject,
-    stats,
-    stagedStats,
-    processContext,
     setProcessContext,
-    aiEnabled,
-    categories,
     setCategories,
-    knowledgeSearchFolder,
-    subgroupConfig,
     setSubgroupConfig,
-    cpkTarget,
     setCpkTarget,
-  } = useData();
+  } = useDataActions();
 
   const ingestion = useDataIngestion({
     onTimeColumnDetected: prompt => {

@@ -198,7 +198,8 @@ vi.mock('../../services/storage', () => ({
 // ── Mock DataContext ──
 
 vi.mock('../../context/DataContext', () => ({
-  useData: vi.fn(),
+  useDataStateCtx: vi.fn(),
+  useDataActions: vi.fn(),
 }));
 
 vi.mock('../../context/ToastContext', () => ({
@@ -211,7 +212,7 @@ vi.mock('../../context/ToastContext', () => ({
 
 // ── Test helpers ──
 
-const baseDataCtx = {
+const baseDataState = {
   rawData: [] as Record<string, unknown>[],
   filteredData: [] as Record<string, unknown>[],
   outcome: null as string | null,
@@ -235,6 +236,12 @@ const baseDataCtx = {
   displayOptions: {},
   dataFilename: null,
   dataQualityReport: null,
+  analysisMode: 'standard' as const,
+  yamazumiMapping: null,
+  viewState: null,
+};
+
+const baseDataActions = {
   setOutcome: vi.fn(),
   setRawData: vi.fn(),
   setFactors: vi.fn(),
@@ -253,12 +260,16 @@ const baseDataCtx = {
   saveProject: vi.fn(),
   loadProject: vi.fn(() => Promise.resolve()),
   clearSelection: vi.fn(),
-  analysisMode: 'standard' as const,
-  yamazumiMapping: null,
   setAnalysisMode: vi.fn(),
   setYamazumiMapping: vi.fn(),
-  viewState: null,
   setViewState: vi.fn(),
+  renameProject: vi.fn(() => Promise.resolve()),
+  setFindings: vi.fn(),
+  setQuestions: vi.fn(),
+  setProcessContext: vi.fn(),
+  setCategories: vi.fn(),
+  setSubgroupConfig: vi.fn(),
+  setCpkTarget: vi.fn(),
 };
 
 const defaultProps = {
@@ -266,11 +277,14 @@ const defaultProps = {
   onBack: vi.fn(),
 };
 
-function renderEditor(dataOverrides: Partial<typeof baseDataCtx> = {}) {
-  vi.mocked(DataContextModule.useData).mockReturnValue({
-    ...baseDataCtx,
-    ...dataOverrides,
-  } as unknown as ReturnType<typeof DataContextModule.useData>);
+function renderEditor(stateOverrides: Partial<typeof baseDataState> = {}) {
+  vi.mocked(DataContextModule.useDataStateCtx).mockReturnValue({
+    ...baseDataState,
+    ...stateOverrides,
+  } as unknown as ReturnType<typeof DataContextModule.useDataStateCtx>);
+  vi.mocked(DataContextModule.useDataActions).mockReturnValue({
+    ...baseDataActions,
+  } as unknown as ReturnType<typeof DataContextModule.useDataActions>);
 
   return render(<Editor {...defaultProps} />);
 }
