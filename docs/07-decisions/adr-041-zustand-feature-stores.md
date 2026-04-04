@@ -4,7 +4,7 @@ title: 'ADR-041: Zustand Feature Stores'
 
 # ADR-041: Zustand Feature Stores
 
-**Status:** Accepted
+**Status:** Accepted — Evolved (Apr 2026)
 **Date:** 2026-03-22
 
 ## Context
@@ -118,6 +118,37 @@ The decision to use state-driven navigation (`panelsStore.activeView`) instead o
 - **Teams embedding favors state-driven navigation:** No URL bar visible, `subPageId` is a string (not a path), 2048 character limit on deep links, no browser history participation, session loss on tab switch.
 - **Comparable workspace apps** (Figma, Notion, Linear) use state-driven navigation for within-editor views.
 - **Re-evaluate when any two become true:** >6 independent top-level views, route-level code splitting needed, public-facing SSR needed, back/forward browser navigation required, app stops being Teams-embedded.
+
+## Implementation / Evolution (Apr 2026)
+
+### Original decision (Mar 2026)
+
+The original ADR established 5 Azure feature stores (`panelsStore`, `findingsStore`, `investigationStore`, `improvementStore`, `aiStore`) for UI-specific state in the Azure app. DataContext remained as React Context for the core data pipeline — parsed data, stats, specs, and filters — consumed by nearly every component and updating at human speed (seconds, not animation frames).
+
+### Evolution: `@variscout/stores` domain package + School B direct access
+
+In April 2026 a second wave of the migration completed the transition to Zustand as the single source of truth, removing DataContext entirely.
+
+**`@variscout/stores` package (131 tests):**
+
+A new `@variscout/stores` package was created with 4 domain stores that own the full data lifecycle (not just read-side UI state):
+
+| Store                   | Domain                                |
+| ----------------------- | ------------------------------------- |
+| `useProjectStore`       | Raw data, config, project lifecycle   |
+| `useInvestigationStore` | Findings, questions, hubs, categories |
+| `useSessionStore`       | UI prefs, AI config (auto-persist)    |
+| `useImprovementStore`   | Ephemeral improvement workspace state |
+
+**School B — direct store access:**
+
+DataContext, `useStoreSync`, and `useDataState` were deleted. 34 consumer files were migrated to import directly from `@variscout/stores` via selectors. 7 derived hooks in `@variscout/hooks` (`useFilteredData`, `useAnalysisStats`, `useStagedAnalysis`, `usePerformanceAnalysis`, `useYDomain`, `useSpecsForMeasure`, and related) replace the previous `useDataComputation` pattern.
+
+**Azure feature stores unchanged:**
+
+The 5 Azure feature stores (`panelsStore`, `findingsStore`, `investigationStore`, `improvementStore`, `aiStore`) in `apps/azure/src/features/*/` remain. They continue to own UI-specific state (panel visibility, highlights, AI conversation). The orchestration hooks (`useFindingsOrchestration`, `useInvestigationOrchestration`, `useImprovementOrchestration`, `useAIOrchestration`) still exist but now sync from **shared hooks → feature stores** rather than DataContext → stores.
+
+**Design spec:** `docs/superpowers/specs/2026-04-04-zustand-direct-store-access-design.md`
 
 ## Related Decisions
 
