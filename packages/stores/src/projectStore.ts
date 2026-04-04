@@ -281,8 +281,8 @@ const DEFAULT_DISPLAY_OPTIONS: DisplayOptions = {
 };
 
 const DEFAULT_SUBGROUP_CONFIG: SubgroupConfig = {
-  subgroupSize: 1,
-  method: 'individual',
+  size: 1,
+  method: 'fixed-size',
 };
 
 const initialState: ProjectState = {

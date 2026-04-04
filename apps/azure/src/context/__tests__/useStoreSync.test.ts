@@ -39,7 +39,7 @@ function makeCategory(name: string): InvestigationCategory {
   return {
     id: `cat-${Math.random().toString(36).slice(2, 8)}`,
     name,
-    factorColumns: [],
+    factorNames: [],
   };
 }
 

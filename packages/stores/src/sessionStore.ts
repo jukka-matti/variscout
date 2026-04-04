@@ -152,7 +152,7 @@ export const useSessionStore = create<SessionStore>(set => ({
     });
   },
 
-  toViewState: () => {
+  toViewState: (): PersistedViewState => {
     // Implemented as a getter — Zustand doesn't support getters natively,
     // so this action reads state via the store's own getState.
     // The store reference is captured in the closure below.
