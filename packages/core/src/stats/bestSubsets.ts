@@ -324,6 +324,7 @@ function extractPredictors(solution: OLSSolution, encodings: FactorEncoding[]): 
         tStatistic: solution.tStatistics[linearIdx],
         pValue: solution.pValues[linearIdx],
         isSignificant: solution.pValues[linearIdx] < 0.05,
+        mean: enc.mean,
       });
 
       // Quadratic term if present
@@ -338,6 +339,7 @@ function extractPredictors(solution: OLSSolution, encodings: FactorEncoding[]): 
           tStatistic: solution.tStatistics[qIdx],
           pValue: solution.pValues[qIdx],
           isSignificant: solution.pValues[qIdx] < 0.05,
+          mean: enc.mean,
         });
       }
     }
@@ -991,15 +993,11 @@ export function predictFromUnifiedModel(
       if (isNaN(numVal)) return null;
       predicted += predictor.coefficient * numVal;
     } else if (predictor.type === 'quadratic') {
-      // Quadratic term uses centered value: (x - mean)²
-      // The coefficient already accounts for the centering in the design matrix
-      // But we need the mean — it's not stored directly on the predictor.
-      // For now, we approximate using the raw squared value.
-      // The design matrix uses (x - mean)² but the coefficient is fit to that.
-      // To predict correctly, we'd need the mean. Since bestSubset doesn't store it
-      // directly, this is a known limitation. The full design matrix would be needed.
-      // Skip quadratic prediction for now — it requires augmented metadata.
-      // The primary use case for predictFromUnifiedModel is linear predictions.
+      // Quadratic term uses centered value: coefficient * (x - mean)²
+      const numVal = typeof rawValue === 'number' ? rawValue : parseFloat(String(rawValue));
+      if (isNaN(numVal)) return null;
+      const centered = numVal - (predictor.mean ?? 0);
+      predicted += predictor.coefficient * centered * centered;
     }
   }
 

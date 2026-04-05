@@ -426,8 +426,9 @@ export function computeEvidenceMapLayout(
           }
 
           if (linear && quad && quad.coefficient !== 0) {
-            // Vertex of quadratic: x_opt = -b / (2c) where b = linear coef, c = quadratic coef
-            optimum = -linear.coefficient / (2 * quad.coefficient);
+            // Vertex of centered quadratic: x_opt = xbar - b / (2c)
+            // where b = linear coef, c = quadratic coef, xbar = factor mean
+            optimum = (quad.mean ?? 0) - linear.coefficient / (2 * quad.coefficient);
           }
         }
       }

@@ -587,6 +587,8 @@ export interface PredictorInfo {
   pValue: number;
   /** Whether the coefficient is significant (p < 0.05) */
   isSignificant: boolean;
+  /** Continuous/quadratic: mean of the factor values used for centering */
+  mean?: number;
 }
 
 /** Type III SS decomposition result for a single factor. */

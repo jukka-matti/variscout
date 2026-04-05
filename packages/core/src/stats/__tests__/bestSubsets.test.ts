@@ -752,6 +752,57 @@ describe('predictFromUnifiedModel', () => {
       expect(predicted).toBeNull();
     }
   });
+
+  it('predicts correctly for quadratic model with mean offset', () => {
+    // Hand-build a model: y = intercept + b1*x + b2*(x - mean)^2
+    // Linear column uses raw x, quadratic column uses centered (x - mean)^2
+    // intercept=10, b1=2, b2=0.5, mean=50
+    const subset: BestSubsetResult = {
+      factors: ['X'],
+      factorCount: 1,
+      rSquared: 0.95,
+      rSquaredAdj: 0.94,
+      fStatistic: 100,
+      pValue: 0.0001,
+      isSignificant: true,
+      dfModel: 2,
+      levelEffects: new Map(),
+      cellMeans: new Map(),
+      intercept: 10,
+      predictors: [
+        {
+          name: 'X',
+          factorName: 'X',
+          type: 'continuous',
+          coefficient: 2,
+          standardError: 0.1,
+          tStatistic: 20,
+          pValue: 0.0001,
+          isSignificant: true,
+          mean: 50,
+        },
+        {
+          name: 'X²',
+          factorName: 'X',
+          type: 'quadratic',
+          coefficient: 0.5,
+          standardError: 0.05,
+          tStatistic: 10,
+          pValue: 0.001,
+          isSignificant: true,
+          mean: 50,
+        },
+      ],
+      modelType: 'ols',
+    };
+
+    // At x = 50 (the mean): y = 10 + 2*50 + 0.5*(50-50)^2 = 110
+    expect(predictFromUnifiedModel(subset, { X: 50 })).toBeCloseTo(110, 5);
+    // At x = 52: y = 10 + 2*52 + 0.5*(52-50)^2 = 10 + 104 + 2 = 116
+    expect(predictFromUnifiedModel(subset, { X: 52 })).toBeCloseTo(116, 5);
+    // At x = 48: y = 10 + 2*48 + 0.5*(48-50)^2 = 10 + 96 + 2 = 108
+    expect(predictFromUnifiedModel(subset, { X: 48 })).toBeCloseTo(108, 5);
+  });
 });
 
 // ===========================================================================

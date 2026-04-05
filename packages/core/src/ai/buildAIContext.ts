@@ -552,7 +552,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 
             const relationship = quadraticP && quadraticP.pValue < 0.1 ? 'quadratic' : 'linear';
 
-            // Estimate optimum via vertex of quadratic: x* = -b1 / (2*b2)
+            // Estimate optimum via vertex of centered quadratic: x* = xbar - b1 / (2*b2)
             // Only meaningful when quadratic term is significant and both coefficients present
             let optimum: number | undefined;
             if (
@@ -561,7 +561,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
               quadraticP !== undefined &&
               quadraticP.coefficient !== 0
             ) {
-              optimum = -(linearP.coefficient / (2 * quadraticP.coefficient));
+              optimum = (quadraticP.mean ?? 0) - linearP.coefficient / (2 * quadraticP.coefficient);
             }
 
             return {

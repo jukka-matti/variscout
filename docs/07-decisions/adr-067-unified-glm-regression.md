@@ -32,11 +32,11 @@ Replace the categorical-only best subsets cell-means engine with a **unified OLS
 
 ### 1. Design Matrix Construction
 
-Categorical factors are dummy-coded with the first category alphabetically as the reference level (reference cell coding). Continuous factors enter the design matrix directly as numeric columns. Factor type is detected by `detectFactorType()` in `@variscout/core` based on unique-value count heuristic, with user override in Column Mapping.
+Categorical factors are dummy-coded with the most frequent level as the reference level (with alphabetical tie-breaking) using reference cell coding. Continuous factors enter the design matrix directly as numeric columns. Factor type is detected by `detectFactorType()` in `@variscout/core` based on unique-value count heuristic, with user override in Column Mapping.
 
 ### 2. QR-Based OLS Solver
 
-The OLS solver uses QR decomposition (Householder reflections) rather than the normal equations. This achieves 9+ significant digits of accuracy on the NIST Longley dataset, which is deliberately ill-conditioned. The solver is in `packages/core/src/stats/ols.ts`.
+The OLS solver uses QR decomposition (Householder reflections) rather than the normal equations. This achieves 9+ significant digits of accuracy on the NIST Longley dataset, which is deliberately ill-conditioned. The solver is in `packages/core/src/stats/olsRegression.ts`.
 
 ### 3. Best Subsets with Group Constraint
 
@@ -44,11 +44,11 @@ Categorical factors with _m_ levels enter as a unit (all _m − 1_ dummies toget
 
 ### 4. Automatic Quadratic Detection
 
-For each continuous factor, the engine tests a linear + quadratic term pair. If adding the quadratic term improves R²adj by a meaningful margin, the quadratic model is retained. Centered form (X − X̄) reduces numerical correlation. The sweet spot (optimum X\*) and operating window are computed from −β₁ / (2 × β₂). Implementation: `packages/core/src/stats/quadratic.ts`.
+For each continuous factor, the engine tests a linear + quadratic term pair. If adding the quadratic term improves R²adj by a meaningful margin, the quadratic model is retained. Centered form (X − X̄) reduces numerical correlation. The sweet spot (optimum X\*) and operating window are computed from X̄ − β₁ / (2 × β₂). Quadratic detection is integrated into `packages/core/src/stats/olsRegression.ts`.
 
 ### 5. Type III SS with Partial η²
 
-Type III SS is computed for each factor in the fitted model using the sequential SS approach: fit the full model, then fit the model with one factor removed; the difference is that factor's Type III SS. This correctly handles unbalanced data — each factor's contribution is adjusted for all others. Partial η² = SS_factor(Type III) / (SS_factor + SS_residual). Implementation: `packages/core/src/stats/typeIII.ts`.
+Type III SS is computed for each factor in the fitted model using the sequential SS approach: fit the full model, then fit the model with one factor removed; the difference is that factor's Type III SS. This correctly handles unbalanced data — each factor's contribution is adjusted for all others. Partial η² = SS_factor(Type III) / (SS_factor + SS_residual). Implementation: `packages/core/src/stats/typeIIISS.ts`.
 
 ### 6. VIF and Guardrails
 
@@ -80,9 +80,9 @@ A test suite in `packages/core/src/stats/__tests__/nist.test.ts` validates again
 
 ## Implementation Notes
 
-The unified GLM engine supersedes the deferred regression code from ADR-014. The old `regression.ts`, `multiRegression.ts`, and `modelReduction.ts` files are no longer the canonical implementation — the new modules (`ols.ts`, `bestSubsets.ts`, `quadratic.ts`, `typeIII.ts`) are. The old files remain in the codebase but are not exported.
+The unified GLM engine supersedes the deferred regression code from ADR-014. The old `regression.ts`, `multiRegression.ts`, and `modelReduction.ts` files are no longer the canonical implementation — the new modules (`olsRegression.ts`, `bestSubsets.ts`, `designMatrix.ts`, `typeIIISS.ts`) are. Quadratic detection is integrated into `olsRegression.ts`. The old files remain in the codebase but are not exported.
 
-The `simulateFromModel()` function in `simulation.ts` (previously deferred) is now wired to the OLS model for continuous-factor What-If. The direct-adjustment simulator remains available for analysts who prefer to work without fitting a model.
+The `predictFromUnifiedModel()` function in `bestSubsets.ts` accepts mixed factor values (numeric for continuous, string for categorical) and returns the predicted outcome using the fitted OLS model. The direct-adjustment simulator remains available for analysts who prefer to work without fitting a model.
 
 ## Related Design Spec
 

@@ -66,6 +66,15 @@ export interface SerializedBestSubsetsResult {
     factorTypes?: Record<string, 'continuous' | 'categorical'>;
     hasQuadraticTerms?: boolean;
     rmse?: number;
+    /** Type III SS per factor — serialized from Map<string, TypeIIIResult> */
+    typeIIIResults?: Record<
+      string,
+      { ssTypeIII: number; dfFactor: number; fValue: number; pValue: number; partialEtaSq: number }
+    >;
+    /** VIF per factor — serialized from Map<string, number> */
+    vif?: Record<string, number>;
+    /** Reference levels for categorical factors — serialized from Map<string, string> */
+    referenceLevels?: Record<string, string>;
     warnings?: string[];
   }>;
   n: number;

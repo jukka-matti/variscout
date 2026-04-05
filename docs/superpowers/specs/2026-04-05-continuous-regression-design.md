@@ -61,16 +61,16 @@ Returns: `{ predicted, lowerPI, upperPI }` — predicted value with 95% predicti
 
 ## Key Components
 
-| Module                | File                                             | Purpose                           |
-| --------------------- | ------------------------------------------------ | --------------------------------- |
-| Factor type detection | `packages/core/src/stats/factorType.ts`          | Heuristic + user override         |
-| Design matrix         | `packages/core/src/stats/designMatrix.ts`        | Dummy coding + continuous columns |
-| OLS solver            | `packages/core/src/stats/ols.ts`                 | QR decomposition (Householder)    |
-| Best subsets          | `packages/core/src/stats/bestSubsets.ts`         | R²adj model selection             |
-| Quadratic detection   | `packages/core/src/stats/quadratic.ts`           | Curvature test + sweet spot       |
-| Type III SS           | `packages/core/src/stats/typeIII.ts`             | Partial η² per factor             |
-| Prediction            | `packages/core/src/stats/` → `predictFromModel`  | What-If response curves           |
-| NIST validation       | `packages/core/src/stats/__tests__/nist.test.ts` | Certified reference datasets      |
+| Module                | File                                             | Purpose                                           |
+| --------------------- | ------------------------------------------------ | ------------------------------------------------- |
+| Factor type detection | `packages/core/src/stats/factorType.ts`          | Heuristic + user override                         |
+| Design matrix         | `packages/core/src/stats/designMatrix.ts`        | Dummy coding + continuous columns                 |
+| OLS solver            | `packages/core/src/stats/olsRegression.ts`       | QR decomposition (Householder)                    |
+| Best subsets          | `packages/core/src/stats/bestSubsets.ts`         | R²adj model selection                             |
+| Quadratic detection   | `packages/core/src/stats/olsRegression.ts`       | Curvature test + sweet spot (integrated into OLS) |
+| Type III SS           | `packages/core/src/stats/typeIIISS.ts`           | Partial η² per factor                             |
+| Prediction            | `packages/core/src/stats/` → `predictFromModel`  | What-If response curves                           |
+| NIST validation       | `packages/core/src/stats/__tests__/nist.test.ts` | Certified reference datasets                      |
 
 ---
 

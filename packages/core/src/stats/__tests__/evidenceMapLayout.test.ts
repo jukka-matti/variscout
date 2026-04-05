@@ -372,6 +372,7 @@ describe('computeEvidenceMapLayout — continuous factor enrichment', () => {
     tStatistic: -2,
     pValue: 0.05,
     isSignificant: true,
+    mean: 200, // factor mean used for centering
   };
 
   const quadValley: PredictorInfo = {
@@ -383,6 +384,7 @@ describe('computeEvidenceMapLayout — continuous factor enrichment', () => {
     tStatistic: 2,
     pValue: 0.05,
     isSignificant: true,
+    mean: 200,
   };
 
   it('sets factorType from BestSubsetsResult.factorTypes', () => {
@@ -431,13 +433,13 @@ describe('computeEvidenceMapLayout — continuous factor enrichment', () => {
     expect(tempNode.trendGlyph).toBe('∪');
   });
 
-  it('computes optimum from vertex formula: x_opt = -b / (2c)', () => {
-    // b = 0.4, c = -0.002 → x_opt = -0.4 / (2 × -0.002) = 100
+  it('computes optimum from vertex formula: x_opt = mean - b / (2c)', () => {
+    // mean = 200, b = 0.4, c = -0.002 → x_opt = 200 - 0.4 / (2 × -0.002) = 200 + 100 = 300
     const bs = makeMixedBestSubsets(positiveLinear, quadPeak);
     const layout = computeEvidenceMapLayout(bs, null, null, container);
 
     const tempNode = layout.factorNodes.find(n => n.factor === 'Temp')!;
-    expect(tempNode.optimum).toBeCloseTo(100, 2);
+    expect(tempNode.optimum).toBeCloseTo(300, 2);
   });
 
   it('assigns null trendGlyph for categorical factors', () => {

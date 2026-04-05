@@ -70,6 +70,29 @@ function serializeSubset(subset: BestSubsetResult): SerializedBestSubsetsResult[
     ? Object.fromEntries(subset.factorTypes.entries())
     : undefined;
 
+  const typeIIIResults:
+    | Record<
+        string,
+        {
+          ssTypeIII: number;
+          dfFactor: number;
+          fValue: number;
+          pValue: number;
+          partialEtaSq: number;
+        }
+      >
+    | undefined = subset.typeIIIResults
+    ? Object.fromEntries(subset.typeIIIResults.entries())
+    : undefined;
+
+  const vif: Record<string, number> | undefined = subset.vif
+    ? Object.fromEntries(subset.vif.entries())
+    : undefined;
+
+  const referenceLevels: Record<string, string> | undefined = subset.referenceLevels
+    ? Object.fromEntries(subset.referenceLevels.entries())
+    : undefined;
+
   return {
     factors: subset.factors,
     factorCount: subset.factorCount,
@@ -87,6 +110,9 @@ function serializeSubset(subset: BestSubsetResult): SerializedBestSubsetsResult[
     factorTypes,
     hasQuadraticTerms: subset.hasQuadraticTerms,
     rmse: subset.rmse,
+    typeIIIResults,
+    vif,
+    referenceLevels,
     warnings: subset.warnings,
   };
 }
@@ -147,6 +173,14 @@ export function deserializeBestSubsetsResult(
       ? new Map(Object.entries(s.factorTypes) as Array<[string, 'continuous' | 'categorical']>)
       : undefined;
 
+    const typeIIIResults = s.typeIIIResults ? new Map(Object.entries(s.typeIIIResults)) : undefined;
+
+    const vif = s.vif ? new Map(Object.entries(s.vif)) : undefined;
+
+    const referenceLevels = s.referenceLevels
+      ? new Map(Object.entries(s.referenceLevels))
+      : undefined;
+
     return {
       factors: s.factors,
       factorCount: s.factorCount,
@@ -164,6 +198,9 @@ export function deserializeBestSubsetsResult(
       factorTypes,
       hasQuadraticTerms: s.hasQuadraticTerms,
       rmse: s.rmse,
+      typeIIIResults,
+      vif,
+      referenceLevels,
       warnings: s.warnings,
     };
   });
