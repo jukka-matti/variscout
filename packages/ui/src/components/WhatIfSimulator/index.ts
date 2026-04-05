@@ -15,3 +15,9 @@ export {
 
 export { default as LeanDistributionPreview } from './LeanDistributionPreview';
 export type { LeanDistributionPreviewProps } from './LeanDistributionPreview';
+
+export {
+  default as PredictionProfiler,
+  type PredictionProfilerProps,
+  type PredictionProfilerFactor,
+} from './PredictionProfiler';
