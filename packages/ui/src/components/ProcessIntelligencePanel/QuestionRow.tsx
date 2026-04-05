@@ -83,6 +83,7 @@ const QuestionRow: React.FC<QuestionRowProps> = ({
   return (
     <div
       data-testid={`question-row-${question.id}`}
+      data-factor={question.factor ?? undefined}
       className={[
         'relative flex items-center gap-1.5 px-2 py-1 border-l-2',
         'text-xs select-none transition-colors',

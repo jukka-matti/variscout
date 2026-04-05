@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import type { Question, Finding } from '@variscout/core/findings';
 import type { QuestionStatus } from '@variscout/core/findings';
@@ -62,6 +62,10 @@ export interface QuestionsTabViewProps {
   hubProjections?: Map<string, HubProjection>;
   /** Navigate to the Investigation workspace (passed to ConclusionCard) */
   onNavigateToInvestigation?: () => void;
+  /** Factor name to scroll-to and highlight (from Evidence Map node click) */
+  highlightedFactor?: string | null;
+  /** Called after the 2-second highlight fades */
+  onClearHighlight?: () => void;
 }
 
 /** Display order for question groups */
@@ -107,7 +111,38 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
   hubEvidences,
   hubProjections,
   onNavigateToInvestigation,
+  highlightedFactor,
+  onClearHighlight,
 }) => {
+  // Ref for the scrollable container — used for scroll-to-factor behavior
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to and ring-highlight the first question row matching highlightedFactor
+  useEffect(() => {
+    if (!highlightedFactor) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    // CSS.escape guards against special chars in factor names
+    const selector = `[data-factor="${CSS.escape(highlightedFactor)}"]`;
+    const el = container.querySelector<HTMLElement>(selector);
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    el.classList.add('ring-2', 'ring-blue-400', 'ring-inset', 'rounded');
+
+    const timer = setTimeout(() => {
+      el.classList.remove('ring-2', 'ring-blue-400', 'ring-inset', 'rounded');
+      onClearHighlight?.();
+    }, 2000);
+
+    return () => {
+      clearTimeout(timer);
+      el.classList.remove('ring-2', 'ring-blue-400', 'ring-inset', 'rounded');
+    };
+  }, [highlightedFactor, onClearHighlight]);
+
   // Track which questions are expanded
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
     const initial = new Set<string>();
@@ -186,7 +221,11 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
   const hasQuestions = questions.length > 0;
 
   return (
-    <div className="flex flex-col gap-0 overflow-y-auto min-h-0" data-testid="questions-tab-view">
+    <div
+      ref={containerRef}
+      className="flex flex-col gap-0 overflow-y-auto min-h-0"
+      data-testid="questions-tab-view"
+    >
       {/* Vitals bar */}
       <div
         className="flex items-center gap-2 px-2 py-1.5 border-b border-edge/60 bg-surface-secondary"

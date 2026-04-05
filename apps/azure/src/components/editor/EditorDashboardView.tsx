@@ -339,6 +339,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
   const piSidebar = useResizablePanel('variscout-stats-sidebar-width', 280, 500, 320, 'left');
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
+  const highlightedFactor = usePanelsStore(s => s.highlightedFactor);
 
   // Visual grounding for CoScout REF markers (ADR-050)
   const { highlight: visualGroundingHighlight } = useVisualGrounding({
@@ -665,6 +666,8 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
                       onNavigateToInvestigation={() =>
                         usePanelsStore.getState().showInvestigation()
                       }
+                      highlightedFactor={highlightedFactor}
+                      onClearHighlight={() => usePanelsStore.getState().setHighlightedFactor(null)}
                     />
                   )}
                   renderJournalTab={() => <JournalTabView entries={journalEntries} />}
