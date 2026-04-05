@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import Dashboard from '../Dashboard';
+import { EvidenceMapBase } from '@variscout/charts';
 
 const ProcessIntelligencePanel = React.lazy(() => import('../ProcessIntelligencePanel'));
 import DataTableModal from '../data/DataTableModal';
@@ -12,7 +13,12 @@ import {
 } from '@variscout/ui';
 import type { SessionClosePromptItem } from '@variscout/ui';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
-import { toNumericValue, createFactorFinding } from '@variscout/core';
+import {
+  toNumericValue,
+  createFactorFinding,
+  computeMainEffects,
+  computeInteractionEffects,
+} from '@variscout/core';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
 import { computeHubEvidence, computeHubProjection } from '@variscout/core/findings';
 import type { HubProjection } from '@variscout/core';
@@ -25,8 +31,9 @@ import {
   useJourneyPhase,
   useVisualGrounding,
   useDocumentShelf,
+  useEvidenceMapData,
 } from '@variscout/hooks';
-import { DocumentShelfBase } from '@variscout/ui';
+import { DocumentShelfBase, FactorPreviewOverlay } from '@variscout/ui';
 import { hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { isAIAvailable } from '../../services/aiService';
@@ -273,6 +280,58 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   // Session-close prompt state (ADR-049)
   const [showClosePrompt, setShowClosePrompt] = useState(false);
   const [closePromptItems, setClosePromptItems] = useState<SessionClosePromptItem[]>([]);
+
+  // Factor Preview overlay state
+  const activeView = usePanelsStore(s => s.activeView);
+  const factorPreviewDismissed = usePanelsStore(s => s.factorPreviewDismissed);
+  const dismissFactorPreview = usePanelsStore(s => s.dismissFactorPreview);
+
+  // Fixed container size for the overlay Evidence Map (matches overlay panel h-[min(50vh,400px)])
+  const FACTOR_PREVIEW_MAP_SIZE = useMemo(() => ({ width: 620, height: 360 }), []);
+
+  const hasFactorIntelligenceForPreview = bestSubsets !== null && factors.length >= 2;
+
+  const mainEffectsForPreview = useMemo(() => {
+    if (!hasFactorIntelligenceForPreview || !outcome || !filteredData.length) return null;
+    return computeMainEffects(filteredData, outcome, factors);
+  }, [hasFactorIntelligenceForPreview, filteredData, outcome, factors]);
+
+  const interactionsForPreview = useMemo(() => {
+    if (!hasFactorIntelligenceForPreview || !outcome || !filteredData.length) return null;
+    return computeInteractionEffects(filteredData, outcome, factors);
+  }, [hasFactorIntelligenceForPreview, filteredData, outcome, factors]);
+
+  const evidenceMapDataForPreview = useEvidenceMapData({
+    bestSubsets: hasFactorIntelligenceForPreview ? bestSubsets : null,
+    mainEffects: mainEffectsForPreview,
+    interactions: interactionsForPreview,
+    containerSize: FACTOR_PREVIEW_MAP_SIZE,
+    mode: resolved,
+  });
+
+  const showFactorPreview =
+    !factorPreviewDismissed &&
+    activeView === 'analysis' &&
+    hasFactorIntelligenceForPreview &&
+    !evidenceMapDataForPreview.isEmpty;
+
+  // Derive top factor and its single-factor R²adj from bestSubsets
+  const topFactor = bestSubsets?.subsets[0]?.factors[0] ?? null;
+  const topFactorR2 = useMemo(() => {
+    if (!topFactor || !bestSubsets) return 0;
+    const singleFactorSubset = bestSubsets.subsets.find(
+      s => s.factors.length === 1 && s.factors[0] === topFactor
+    );
+    return singleFactorSubset?.rSquaredAdj ?? bestSubsets.subsets[0]?.rSquaredAdj ?? 0;
+  }, [topFactor, bestSubsets]);
+
+  const handleFactorPreviewStart = useCallback(
+    (factor: string) => {
+      usePanelsStore.getState().setHighlightedFactor(factor);
+      dismissFactorPreview();
+    },
+    [dismissFactorPreview]
+  );
 
   // Panel state from Zustand
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
@@ -716,6 +775,32 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
         onSave={handleClosePromptSave}
         onDismiss={handleClosePromptDismiss}
       />
+
+      {/* Factor Preview overlay — shown once when Factor Intelligence first completes in SCOUT phase */}
+      {showFactorPreview && topFactor && (
+        <FactorPreviewOverlay
+          evidenceMap={
+            <EvidenceMapBase
+              parentWidth={FACTOR_PREVIEW_MAP_SIZE.width}
+              parentHeight={FACTOR_PREVIEW_MAP_SIZE.height}
+              outcomeNode={evidenceMapDataForPreview.outcomeNode}
+              factorNodes={evidenceMapDataForPreview.factorNodes}
+              relationshipEdges={evidenceMapDataForPreview.relationshipEdges}
+              equation={evidenceMapDataForPreview.equation}
+              causalEdges={[]}
+              convergencePoints={[]}
+              enableZoom={false}
+              compact={false}
+            />
+          }
+          topFactor={topFactor}
+          topFactorR2={topFactorR2}
+          modelR2={bestSubsets!.subsets[0]?.rSquaredAdj ?? 0}
+          factorCount={factors.length}
+          onStartWithFactor={handleFactorPreviewStart}
+          onDismiss={dismissFactorPreview}
+        />
+      )}
     </>
   );
 };

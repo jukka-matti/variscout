@@ -17,6 +17,7 @@ beforeEach(() => {
     piOverflowView: null,
     highlightedFactor: null,
     investigationViewMode: 'map',
+    factorPreviewDismissed: false,
   });
 });
 
@@ -395,6 +396,17 @@ describe('panelsStore', () => {
       usePanelsStore.getState().setHighlightedFactor('Machine');
       usePanelsStore.getState().setHighlightedFactor(null);
       expect(usePanelsStore.getState().highlightedFactor).toBeNull();
+    });
+  });
+
+  describe('factorPreviewDismissed', () => {
+    it('should default to false', () => {
+      expect(usePanelsStore.getState().factorPreviewDismissed).toBe(false);
+    });
+
+    it('dismissFactorPreview sets to true', () => {
+      usePanelsStore.getState().dismissFactorPreview();
+      expect(usePanelsStore.getState().factorPreviewDismissed).toBe(true);
     });
   });
 

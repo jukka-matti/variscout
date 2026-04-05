@@ -22,6 +22,8 @@ interface PanelsState {
   highlightedFactor: string | null;
   /** Investigation workspace center view: 'map' (Evidence Map) or 'findings' (FindingsLog) */
   investigationViewMode: 'map' | 'findings';
+  /** Whether the Factor Preview overlay has been dismissed for this session */
+  factorPreviewDismissed: boolean;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -49,6 +51,7 @@ interface PanelsActions {
   setPIOverflowView: (view: 'data' | 'whatif' | null) => void;
   setHighlightedFactor: (factor: string | null) => void;
   setInvestigationViewMode: (mode: 'map' | 'findings') => void;
+  dismissFactorPreview: () => void;
   /** Initialize persisted panel state from a saved ViewState. */
   initFromViewState: (
     viewState?: {
@@ -78,6 +81,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   piOverflowView: null,
   highlightedFactor: null,
   investigationViewMode: 'map',
+  factorPreviewDismissed: false,
 
   // Workspace navigation (ADR-055 + header-redesign spec)
   showDashboard: () => set(() => ({ activeView: 'dashboard' })),
@@ -139,6 +143,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
         : { highlightedFactor: null }
     ),
   setInvestigationViewMode: mode => set(() => ({ investigationViewMode: mode })),
+  dismissFactorPreview: () => set({ factorPreviewDismissed: true }),
 
   // ViewState initialization — maps legacy values
   initFromViewState: viewState => {
