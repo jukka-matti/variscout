@@ -8,3 +8,4 @@ export {
   type UsePopoutSyncOptions,
   type UsePopoutSyncReturn,
 } from './usePopoutSync';
+export { groupFindingsByChart, type ChartFindings } from './findingsStore';

@@ -1,109 +1,25 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useInvestigationFeatureStore } from '../investigationStore';
-import type { SuspectedCause } from '@variscout/core';
+import {
+  useInvestigationFeatureStore,
+  buildQuestionsMap,
+  buildIdeaImpacts,
+} from '../investigationStore';
+import type { Question } from '@variscout/core';
 
 /** Reset store to defaults before each test. */
 beforeEach(() => {
   useInvestigationFeatureStore.setState({
-    questions: [],
-    questionsMap: {},
-    ideaImpacts: {},
     projectionTarget: null,
     expandedQuestionId: null,
-    suspectedCauses: [],
   });
 });
 
 describe('investigationStore', () => {
   describe('initial state', () => {
-    it('has correct defaults for all 6 fields', () => {
+    it('has correct defaults', () => {
       const s = useInvestigationFeatureStore.getState();
-      expect(s.questions).toEqual([]);
-      expect(s.questionsMap).toEqual({});
-      expect(s.ideaImpacts).toEqual({});
       expect(s.projectionTarget).toBeNull();
       expect(s.expandedQuestionId).toBeNull();
-      expect(s.suspectedCauses).toEqual([]);
-    });
-  });
-
-  describe('syncQuestions', () => {
-    it('sets questions array', () => {
-      const questions = [
-        { id: 'q1', text: 'Head 3 causes variation', status: 'investigating' },
-        { id: 'q2', text: 'Temperature drift', status: 'answered' },
-      ];
-      useInvestigationFeatureStore.getState().syncQuestions(questions as never[]);
-      expect(useInvestigationFeatureStore.getState().questions).toHaveLength(2);
-      expect(useInvestigationFeatureStore.getState().questions[0]).toEqual(questions[0]);
-    });
-
-    it('clears with empty array', () => {
-      useInvestigationFeatureStore.getState().syncQuestions([{ id: 'q1' }] as never[]);
-      useInvestigationFeatureStore.getState().syncQuestions([]);
-      expect(useInvestigationFeatureStore.getState().questions).toEqual([]);
-    });
-
-    it('overwrites previous questions', () => {
-      useInvestigationFeatureStore.getState().syncQuestions([{ id: 'q1' }] as never[]);
-      useInvestigationFeatureStore
-        .getState()
-        .syncQuestions([{ id: 'q2' }, { id: 'q3' }] as never[]);
-      expect(useInvestigationFeatureStore.getState().questions).toHaveLength(2);
-    });
-  });
-
-  describe('syncQuestionsMap', () => {
-    it('sets map of question display data', () => {
-      const map = {
-        q1: {
-          text: 'Head 3 causes variation',
-          status: 'investigating',
-          factor: 'Head',
-          level: '3',
-        },
-        q2: {
-          text: 'Temperature drift',
-          status: 'answered',
-          causeRole: 'suspected-cause' as const,
-        },
-      };
-      useInvestigationFeatureStore.getState().syncQuestionsMap(map as never);
-      const result = useInvestigationFeatureStore.getState().questionsMap;
-      expect(result).toHaveProperty('q1');
-      expect(result).toHaveProperty('q2');
-    });
-
-    it('clears with empty object', () => {
-      useInvestigationFeatureStore
-        .getState()
-        .syncQuestionsMap({ q1: { text: 't', status: 's' } } as never);
-      useInvestigationFeatureStore.getState().syncQuestionsMap({});
-      expect(useInvestigationFeatureStore.getState().questionsMap).toEqual({});
-    });
-  });
-
-  describe('syncIdeaImpacts', () => {
-    it('sets idea impacts record', () => {
-      const impacts = { idea1: 'high' as const, idea2: 'medium' as const };
-      useInvestigationFeatureStore.getState().syncIdeaImpacts(impacts);
-      expect(useInvestigationFeatureStore.getState().ideaImpacts).toEqual(impacts);
-    });
-
-    it('handles undefined values', () => {
-      const impacts: Record<string, 'low' | 'medium' | 'high' | undefined> = {
-        idea1: undefined,
-        idea2: 'low',
-      };
-      useInvestigationFeatureStore.getState().syncIdeaImpacts(impacts);
-      expect(useInvestigationFeatureStore.getState().ideaImpacts.idea1).toBeUndefined();
-      expect(useInvestigationFeatureStore.getState().ideaImpacts.idea2).toBe('low');
-    });
-
-    it('clears with empty object', () => {
-      useInvestigationFeatureStore.getState().syncIdeaImpacts({ idea1: 'high' });
-      useInvestigationFeatureStore.getState().syncIdeaImpacts({});
-      expect(useInvestigationFeatureStore.getState().ideaImpacts).toEqual({});
     });
   });
 
@@ -166,54 +82,54 @@ describe('investigationStore', () => {
       expect(useInvestigationFeatureStore.getState().expandedQuestionId).toBe('q2');
     });
   });
+});
 
-  describe('syncSuspectedCauses', () => {
-    it('should sync suspected causes', () => {
-      const hub: SuspectedCause = {
-        id: 'h1',
-        name: 'Nozzle wear',
-        synthesis: 'test',
-        questionIds: ['q1'],
-        findingIds: [],
-        status: 'suspected',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      useInvestigationFeatureStore.getState().syncSuspectedCauses([hub]);
-      expect(useInvestigationFeatureStore.getState().suspectedCauses).toHaveLength(1);
-      expect(useInvestigationFeatureStore.getState().suspectedCauses[0].name).toBe('Nozzle wear');
-    });
+describe('buildQuestionsMap', () => {
+  it('builds map from questions array', () => {
+    const questions = [
+      {
+        id: 'q1',
+        text: 'Head 3 causes variation',
+        status: 'investigating',
+        factor: 'Head',
+        level: '3',
+      },
+      {
+        id: 'q2',
+        text: 'Temperature drift',
+        status: 'answered',
+        causeRole: 'suspected-cause' as const,
+      },
+    ] as Question[];
+    const map = buildQuestionsMap(questions);
+    expect(map).toHaveProperty('q1');
+    expect(map).toHaveProperty('q2');
+    expect(map.q1.factor).toBe('Head');
+    expect(map.q2.causeRole).toBe('suspected-cause');
+  });
 
-    it('should clear suspected causes', () => {
-      useInvestigationFeatureStore.getState().syncSuspectedCauses([]);
-      expect(useInvestigationFeatureStore.getState().suspectedCauses).toEqual([]);
-    });
+  it('returns empty map for empty array', () => {
+    expect(buildQuestionsMap([])).toEqual({});
+  });
+});
 
-    it('overwrites previous hubs', () => {
-      const hub1: SuspectedCause = {
-        id: 'h1',
-        name: 'First cause',
-        synthesis: '',
-        questionIds: [],
-        findingIds: [],
-        status: 'suspected',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      const hub2: SuspectedCause = {
-        id: 'h2',
-        name: 'Second cause',
-        synthesis: '',
-        questionIds: [],
-        findingIds: [],
-        status: 'confirmed',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      useInvestigationFeatureStore.getState().syncSuspectedCauses([hub1]);
-      useInvestigationFeatureStore.getState().syncSuspectedCauses([hub1, hub2]);
-      expect(useInvestigationFeatureStore.getState().suspectedCauses).toHaveLength(2);
-      expect(useInvestigationFeatureStore.getState().suspectedCauses[1].name).toBe('Second cause');
-    });
+describe('buildIdeaImpacts', () => {
+  it('returns empty map when no ideas', () => {
+    const questions = [{ id: 'q1', text: 'test', status: 'open' }] as Question[];
+    const impacts = buildIdeaImpacts(questions, undefined, null);
+    expect(impacts).toEqual({});
+  });
+
+  it('computes impacts for questions with ideas', () => {
+    const questions = [
+      {
+        id: 'q1',
+        text: 'test',
+        status: 'investigating',
+        ideas: [{ id: 'i1', text: 'Fix it', createdAt: '' }],
+      },
+    ] as Question[];
+    const impacts = buildIdeaImpacts(questions, undefined, null);
+    expect(impacts).toHaveProperty('i1');
   });
 });

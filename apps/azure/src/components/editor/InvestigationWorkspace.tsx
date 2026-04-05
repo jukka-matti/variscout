@@ -35,8 +35,11 @@ import { useProjectStore, useInvestigationStore } from '@variscout/stores';
 import { InvestigationMapView } from './InvestigationMapView';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
-import { useInvestigationFeatureStore } from '../../features/investigation/investigationStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
+import {
+  useInvestigationFeatureStore,
+  type QuestionDisplayData,
+} from '../../features/investigation/investigationStore';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
 import type { UseInvestigationOrchestrationReturn } from '../../features/investigation/useInvestigationOrchestration';
@@ -70,6 +73,9 @@ interface InvestigationWorkspaceProps {
   columnAliases: Record<string, string>;
   // Hub model (SuspectedCause CRUD from useInvestigationOrchestration)
   suspectedCausesState: UseInvestigationOrchestrationReturn['suspectedCausesState'];
+  // Derived investigation data (from orchestration hook)
+  questionsMap: Record<string, QuestionDisplayData>;
+  ideaImpacts: Record<string, import('@variscout/core').IdeaImpact | undefined>;
   // View state
   viewMode?: 'list' | 'board' | 'tree';
   onViewModeChange?: (mode: 'list' | 'board' | 'tree') => void;
@@ -99,6 +105,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   aiOrch,
   columnAliases,
   suspectedCausesState,
+  questionsMap,
+  ideaImpacts,
   viewMode: externalViewMode,
   onViewModeChange,
 }) => {
@@ -117,8 +125,6 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const highlightedFactor = usePanelsStore(s => s.highlightedFactor);
   const setInvestigationViewMode = usePanelsStore(s => s.setInvestigationViewMode);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
-  const questionsMap = useInvestigationFeatureStore(s => s.questionsMap);
-  const ideaImpacts = useInvestigationFeatureStore(s => s.ideaImpacts);
   const causalLinks = useInvestigationStore(s => s.causalLinks);
 
   // Investigation phase (deterministic, from question/findings state)

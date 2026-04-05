@@ -1,83 +1,21 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { Finding } from '@variscout/core';
-import { useFindingsStore } from '../findingsStore';
+import { useFindingsStore, groupFindingsByChart } from '../findingsStore';
 
 /** Reset store to defaults before each test. */
 beforeEach(() => {
   useFindingsStore.setState({
-    findings: [],
     highlightedFindingId: null,
-    chartFindings: { boxplot: [], pareto: [], ichart: [] },
     statusFilter: null,
   });
 });
 
 describe('findingsStore', () => {
   describe('initial state', () => {
-    it('has empty findings, null highlight, empty chart groups, and null filter', () => {
+    it('has null highlight and null filter', () => {
       const s = useFindingsStore.getState();
-      expect(s.findings).toEqual([]);
       expect(s.highlightedFindingId).toBeNull();
-      expect(s.chartFindings).toEqual({ boxplot: [], pareto: [], ichart: [] });
       expect(s.statusFilter).toBeNull();
-    });
-  });
-
-  describe('syncFindings', () => {
-    it('syncs an empty array', () => {
-      const empty: Finding[] = [];
-      useFindingsStore.getState().syncFindings(empty);
-      const s = useFindingsStore.getState();
-      expect(s.findings).toBe(empty);
-      expect(s.chartFindings).toEqual({ boxplot: [], pareto: [], ichart: [] });
-    });
-
-    it('groups findings by chart source', () => {
-      const findings = [
-        { id: '1', text: 'boxplot finding', source: { chart: 'boxplot' } },
-        { id: '2', text: 'pareto finding', source: { chart: 'pareto' } },
-        { id: '3', text: 'ichart finding', source: { chart: 'ichart' } },
-        { id: '4', text: 'another boxplot', source: { chart: 'boxplot' } },
-      ] as Finding[];
-
-      useFindingsStore.getState().syncFindings(findings);
-      const s = useFindingsStore.getState();
-      expect(s.findings).toBe(findings);
-      expect(s.chartFindings.boxplot).toHaveLength(2);
-      expect(s.chartFindings.pareto).toHaveLength(1);
-      expect(s.chartFindings.ichart).toHaveLength(1);
-      expect(s.chartFindings.boxplot[0].id).toBe('1');
-      expect(s.chartFindings.boxplot[1].id).toBe('4');
-      expect(s.chartFindings.pareto[0].id).toBe('2');
-      expect(s.chartFindings.ichart[0].id).toBe('3');
-    });
-
-    it('does not group findings without a source', () => {
-      const findings = [
-        { id: '1', text: 'no source' },
-        { id: '2', text: 'null source', source: undefined },
-      ] as Finding[];
-
-      useFindingsStore.getState().syncFindings(findings);
-      const s = useFindingsStore.getState();
-      expect(s.findings).toBe(findings);
-      expect(s.chartFindings.boxplot).toHaveLength(0);
-      expect(s.chartFindings.pareto).toHaveLength(0);
-      expect(s.chartFindings.ichart).toHaveLength(0);
-    });
-
-    it('skips recomputation when same reference is passed', () => {
-      const findings = [{ id: '1', text: 'test', source: { chart: 'boxplot' } }] as Finding[];
-
-      useFindingsStore.getState().syncFindings(findings);
-      const chartFindingsAfterFirst = useFindingsStore.getState().chartFindings;
-
-      // Sync same reference again
-      useFindingsStore.getState().syncFindings(findings);
-      const chartFindingsAfterSecond = useFindingsStore.getState().chartFindings;
-
-      // Should be the exact same object (no recomputation)
-      expect(chartFindingsAfterSecond).toBe(chartFindingsAfterFirst);
     });
   });
 
@@ -111,5 +49,42 @@ describe('findingsStore', () => {
       useFindingsStore.getState().setStatusFilter(null);
       expect(useFindingsStore.getState().statusFilter).toBeNull();
     });
+  });
+});
+
+describe('groupFindingsByChart', () => {
+  it('groups findings by chart source', () => {
+    const findings = [
+      { id: '1', text: 'boxplot finding', source: { chart: 'boxplot' } },
+      { id: '2', text: 'pareto finding', source: { chart: 'pareto' } },
+      { id: '3', text: 'ichart finding', source: { chart: 'ichart' } },
+      { id: '4', text: 'another boxplot', source: { chart: 'boxplot' } },
+    ] as Finding[];
+
+    const result = groupFindingsByChart(findings);
+    expect(result.boxplot).toHaveLength(2);
+    expect(result.pareto).toHaveLength(1);
+    expect(result.ichart).toHaveLength(1);
+    expect(result.boxplot[0].id).toBe('1');
+    expect(result.boxplot[1].id).toBe('4');
+    expect(result.pareto[0].id).toBe('2');
+    expect(result.ichart[0].id).toBe('3');
+  });
+
+  it('returns empty arrays for an empty input', () => {
+    const result = groupFindingsByChart([]);
+    expect(result).toEqual({ boxplot: [], pareto: [], ichart: [] });
+  });
+
+  it('does not group findings without a source', () => {
+    const findings = [
+      { id: '1', text: 'no source' },
+      { id: '2', text: 'null source', source: undefined },
+    ] as Finding[];
+
+    const result = groupFindingsByChart(findings);
+    expect(result.boxplot).toHaveLength(0);
+    expect(result.pareto).toHaveLength(0);
+    expect(result.ichart).toHaveLength(0);
   });
 });

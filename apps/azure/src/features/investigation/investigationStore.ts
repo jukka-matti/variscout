@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import type { Question, IdeaImpact, SuspectedCause } from '@variscout/core';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -18,44 +17,71 @@ export interface ProjectionTarget {
   questionText: string;
 }
 
+// ── Pure computation functions (used by orchestration hook) ─────────────────
+
+import type { Question, IdeaImpact, ProcessContext, StatsResult } from '@variscout/core';
+import { computeIdeaImpact } from '@variscout/core';
+
+/** Build a lookup map from Question[] to display data keyed by question ID. */
+export function buildQuestionsMap(questions: Question[]): Record<string, QuestionDisplayData> {
+  const map: Record<string, QuestionDisplayData> = {};
+  for (const h of questions) {
+    map[h.id] = {
+      text: h.text,
+      status: h.status,
+      factor: h.factor,
+      level: h.level,
+      causeRole: h.causeRole,
+    };
+  }
+  return map;
+}
+
+/** Build a lookup map of idea impacts keyed by idea ID. */
+export function buildIdeaImpacts(
+  questions: Question[],
+  processContext: ProcessContext | undefined,
+  stats: StatsResult | null
+): Record<string, IdeaImpact | undefined> {
+  const impacts: Record<string, IdeaImpact | undefined> = {};
+  const target =
+    processContext?.targetMetric && processContext?.targetValue !== undefined
+      ? {
+          metric: processContext.targetMetric,
+          value: processContext.targetValue,
+          direction: processContext.targetDirection ?? 'minimize',
+        }
+      : undefined;
+  const currentStats = stats
+    ? { mean: stats.mean, sigma: stats.stdDev, cpk: stats.cpk }
+    : undefined;
+
+  for (const h of questions) {
+    if (h.ideas) {
+      for (const idea of h.ideas) {
+        impacts[idea.id] = computeIdeaImpact(idea, target, currentStats);
+      }
+    }
+  }
+  return impacts;
+}
+
 // ── State ───────────────────────────────────────────────────────────────────
 
 interface InvestigationStoreState {
-  /** All questions (synced from useQuestions hook) */
-  questions: Question[];
-  /** Map of question ID to display data for FindingCard */
-  questionsMap: Record<string, QuestionDisplayData>;
-  /** Computed idea impacts keyed by idea ID */
-  ideaImpacts: Record<string, IdeaImpact | undefined>;
   /** Current projection target for What-If round-trip */
   projectionTarget: ProjectionTarget | null;
   /** Question ID to expand/scroll-to in the investigation tree (null = none) */
   expandedQuestionId: string | null;
-  /** Suspected cause hubs (synced from useSuspectedCauses hook) */
-  suspectedCauses: SuspectedCause[];
 }
 
 // ── Actions ─────────────────────────────────────────────────────────────────
 
 interface InvestigationStoreActions {
-  /**
-   * Sync questions from the useQuestions hook into the store.
-   * Called by useInvestigationOrchestration whenever questions change.
-   */
-  syncQuestions: (questions: Question[]) => void;
-  /** Sync the pre-computed questions display map */
-  syncQuestionsMap: (map: Record<string, QuestionDisplayData>) => void;
-  /** Sync the pre-computed idea impacts */
-  syncIdeaImpacts: (impacts: Record<string, IdeaImpact | undefined>) => void;
   /** Set or clear the projection target for What-If round-trip */
   setProjectionTarget: (target: ProjectionTarget | null) => void;
   /** Expand and scroll-to a question in the investigation tree (null = clear) */
   expandToQuestion: (id: string | null) => void;
-  /**
-   * Sync suspected cause hubs from useSuspectedCauses hook.
-   * Called by useInvestigationOrchestration whenever hubs change.
-   */
-  syncSuspectedCauses: (hubs: SuspectedCause[]) => void;
 }
 
 export type InvestigationStore = InvestigationStoreState & InvestigationStoreActions;
@@ -64,19 +90,10 @@ export type InvestigationStore = InvestigationStoreState & InvestigationStoreAct
 
 export const useInvestigationFeatureStore = create<InvestigationStore>(set => ({
   // Initial state
-  questions: [],
-  questionsMap: {},
-  ideaImpacts: {},
   projectionTarget: null,
   expandedQuestionId: null,
-  suspectedCauses: [],
 
   // Actions
-  syncQuestions: (questions: Question[]) => set({ questions }),
-  syncQuestionsMap: (map: Record<string, QuestionDisplayData>) => set({ questionsMap: map }),
-  syncIdeaImpacts: (impacts: Record<string, IdeaImpact | undefined>) =>
-    set({ ideaImpacts: impacts }),
   setProjectionTarget: (target: ProjectionTarget | null) => set({ projectionTarget: target }),
   expandToQuestion: id => set({ expandedQuestionId: id }),
-  syncSuspectedCauses: (hubs: SuspectedCause[]) => set({ suspectedCauses: hubs }),
 }));

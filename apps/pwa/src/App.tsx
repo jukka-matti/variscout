@@ -45,7 +45,6 @@ import { EvidenceMapPopout } from './components/EvidenceMapPopout';
 import { useAppPanels } from './hooks/useAppPanels';
 import { useFindingsStore } from './features/findings/findingsStore';
 import { useProjectionStore } from './features/projection/projectionStore';
-import { useInvestigationFeatureStore } from './features/investigation/investigationStore';
 import { useInvestigationOrchestration } from './features/investigation/useInvestigationOrchestration';
 import { useImprovementOrchestration } from './features/improvement/useImprovementOrchestration';
 import { useStatsWorker } from './workers/useStatsWorker';
@@ -264,7 +263,7 @@ function AppMain() {
     },
   });
 
-  const investigationQuestionsMap = useInvestigationFeatureStore(s => s.questionsMap);
+  const investigationQuestionsMap = investigation.questionsMap;
 
   // Mobile tab bar (phone only, <640px)
   const isPhone = useIsMobile(BREAKPOINTS.phone);
@@ -775,12 +774,18 @@ function AppMain() {
                 handleQuestionClick={handleQuestionClick}
                 columnAliases={columnAliases}
                 resolvedMode={resolved}
+                questionsMap={investigation.questionsMap}
+                ideaImpacts={investigation.ideaImpacts}
               />
             ) : panels.activeView === 'improvement' ? (
               <ImprovementView
                 questionsState={questionsState}
                 onBack={panels.showAnalysis}
                 handleConvertIdeasToActions={improvementOrch.handleConvertIdeasToActions}
+                improvementQuestions={improvementOrch.improvementQuestions}
+                improvementLinkedFindings={improvementOrch.improvementLinkedFindings}
+                selectedIdeaIds={improvementOrch.selectedIdeaIds}
+                convertedIdeaIds={improvementOrch.convertedIdeaIds}
               />
             ) : panels.activeView === 'report' ? (
               <ReportView

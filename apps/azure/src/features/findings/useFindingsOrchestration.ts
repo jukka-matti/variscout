@@ -14,7 +14,7 @@ import {
   buildFindingContext,
   buildFindingSource,
 } from '@variscout/hooks';
-import { useFindingsStore } from './findingsStore';
+import { useFindingsStore, groupFindingsByChart } from './findingsStore';
 import { usePanelsStore } from '../panels/panelsStore';
 import { usePopoutSync } from './usePopoutSync';
 import type { UseFilterNavigationReturn } from '../../hooks/useFilterNavigation';
@@ -146,11 +146,6 @@ export function useFindingsOrchestration({
   // Drill path for context building
   const { drillPath } = useDrillPath(rawData, filterNav.filterStack, outcome, specs);
 
-  // ── Sync findings to Zustand store ──────────────────────────────────────
-  useEffect(() => {
-    useFindingsStore.getState().syncFindings(findingsState.findings);
-  }, [findingsState.findings]);
-
   // ── Highlight auto-clear (3s) ──────────────────────────────────────────
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
 
@@ -160,8 +155,11 @@ export function useFindingsOrchestration({
     return () => clearTimeout(timer);
   }, [highlightedFindingId]);
 
-  // ── Chart findings from store ──────────────────────────────────────────
-  const chartFindings = useFindingsStore(s => s.chartFindings);
+  // ── Chart findings (derived from domain store findings) ───────────────
+  const chartFindings = useMemo(
+    () => groupFindingsByChart(findingsState.findings),
+    [findingsState.findings]
+  );
 
   // ── DataContext-dependent actions ──────────────────────────────────────
 

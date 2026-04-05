@@ -37,13 +37,11 @@ import { DocumentShelfBase, FactorPreviewOverlay } from '@variscout/ui';
 import { hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { isAIAvailable } from '../../services/aiService';
-import { useProjectStore, useSessionStore } from '@variscout/stores';
+import { useProjectStore, useSessionStore, useInvestigationStore } from '@variscout/stores';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
-import { useInvestigationFeatureStore } from '../../features/investigation/investigationStore';
 import { useAIStore } from '../../features/ai/aiStore';
-import { useImprovementFeatureStore } from '../../features/improvement/improvementStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
 import { useResizablePanel } from '@variscout/hooks';
@@ -90,6 +88,8 @@ interface EditorDashboardViewProps {
   controlViolations: Map<number, string[]> | undefined;
   excludedRowIndices: Set<number> | undefined;
   excludedReasons: Map<number, ExclusionReason[]> | undefined;
+  // Improvement projection
+  projectedCpkMap: Record<string, number>;
 }
 
 export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
@@ -111,6 +111,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   controlViolations,
   excludedRowIndices,
   excludedReasons,
+  projectedCpkMap,
 }) => {
   const factors = useProjectStore(s => s.factors);
   const rawData = useProjectStore(s => s.rawData);
@@ -141,7 +142,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   });
 
   const strategy = getStrategy(resolved);
-  const projectedCpkMap = useImprovementFeatureStore(s => s.projectedCpkMap);
 
   // ── Document Shelf (Team tier + KB preview gate) ─────────────────────
   const isTeamWithKB = hasKnowledgeBase() && isPreviewEnabled('knowledge-base');
@@ -166,7 +166,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   }, [projectedCpkMap]);
 
   // ── Hub model for ConclusionCard in QuestionsTabView ──────────────────
-  const hubsFromStore = useInvestigationFeatureStore(s => s.suspectedCauses);
+  const hubsFromStore = useInvestigationStore(s => s.suspectedCauses);
 
   const hubEvidencesForPI = useMemo(() => {
     if (hubsFromStore.length === 0) return undefined;
@@ -702,6 +702,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
         )}
 
         <Dashboard
+          projectedCpkMap={projectedCpkMap}
           onPointClick={isPhone ? undefined : usePanelsStore.getState().handlePointClick}
           highlightedPointIndex={isPhone ? undefined : highlightedChartPoint}
           filterNav={filterNav}

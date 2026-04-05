@@ -60,7 +60,6 @@ import { useAIOrchestration, useActionProposals, useInvestigationIndexing } from
 import { useInvestigationOrchestration } from '../features/investigation';
 import { useInvestigationFeatureStore } from '../features/investigation/investigationStore';
 import { useImprovementOrchestration } from '../features/improvement';
-import { useImprovementFeatureStore } from '../features/improvement/improvementStore';
 import { useLocale } from '../context/LocaleContext';
 import { usePanelsStore } from '../features/panels/panelsStore';
 import { usePanelsPersistence } from '../features/panels/usePanelsPersistence';
@@ -653,6 +652,8 @@ export const Editor: React.FC<EditorProps> = ({
     clearProjectionTarget,
     handleSetFindingStatus,
     suspectedCausesState,
+    questionsMap,
+    ideaImpacts,
   } = useInvestigationOrchestration({
     questionsState,
     findingsState,
@@ -710,6 +711,11 @@ export const Editor: React.FC<EditorProps> = ({
     outcomeNotes: improvOutcomeNotes,
     handleOutcomeChange: improvHandleOutcomeChange,
     handleOutcomeNotesChange: improvHandleOutcomeNotesChange,
+    improvementQuestions,
+    improvementLinkedFindings,
+    selectedIdeaIds,
+    projectedCpkMap: improvementProjectedCpkMap,
+    convertedIdeaIds,
   } = useImprovementOrchestration({
     questionsState,
     findingsState,
@@ -721,12 +727,8 @@ export const Editor: React.FC<EditorProps> = ({
     specs,
     stagedStats,
   });
-  const improvementQuestions = useImprovementFeatureStore(s => s.improvementQuestions);
-  const improvementLinkedFindings = useImprovementFeatureStore(s => s.improvementLinkedFindings);
-  const selectedIdeaIds = useImprovementFeatureStore(s => s.selectedIdeaIds);
-  const convertedIdeaIds = useImprovementFeatureStore(s => s.convertedIdeaIds);
-  const activeImprovementView = useImprovementFeatureStore(s => s.activeImprovementView);
-  const highlightedIdeaId = useImprovementFeatureStore(s => s.highlightedIdeaId);
+  const activeImprovementView = usePanelsStore(s => s.activeImprovementView);
+  const highlightedIdeaId = usePanelsStore(s => s.highlightedIdeaId);
 
   // Verification prompt: show when new data is uploaded while findings are improving
   const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
@@ -1071,7 +1073,7 @@ export const Editor: React.FC<EditorProps> = ({
         onAddManualData={dataFlow.handleAddMoreData}
         onConvertToActions={() => {
           handleConvertIdeasToActions();
-          useImprovementFeatureStore.getState().setActiveImprovementView('track');
+          usePanelsStore.getState().setActiveImprovementView('track');
         }}
         hasSelectedIdeas={selectedIdeaIds.size > 0}
         onNavigateToPortfolio={onBack}
@@ -1156,6 +1158,8 @@ export const Editor: React.FC<EditorProps> = ({
                   handleViewStateChange({ findingsViewMode: mode })
                 }
                 suspectedCausesState={suspectedCausesState}
+                questionsMap={questionsMap}
+                ideaImpacts={ideaImpacts}
               />
             ) : activeView === 'improvement' ? (
               <ImprovementWorkspaceBase
@@ -1178,7 +1182,7 @@ export const Editor: React.FC<EditorProps> = ({
                 onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
                 onConvertToActions={() => {
                   handleConvertIdeasToActions();
-                  useImprovementFeatureStore.getState().setActiveImprovementView('track');
+                  usePanelsStore.getState().setActiveImprovementView('track');
                 }}
                 onBack={() => usePanelsStore.getState().showAnalysis()}
                 onPopout={handleOpenImprovementPopout}
@@ -1237,7 +1241,7 @@ export const Editor: React.FC<EditorProps> = ({
                       }}
                       onToggleSelect={ideaId => {
                         const question = improvementQuestions.find(q =>
-                          q.ideas?.some(i => i.id === ideaId)
+                          q.ideas?.some((i: { id: string }) => i.id === ideaId)
                         );
                         if (question) {
                           questionsState.selectIdea(
@@ -1251,15 +1255,15 @@ export const Editor: React.FC<EditorProps> = ({
                       onIdeaClick={ideaId => {
                         const card = document.querySelector(`[data-testid="idea-row-${ideaId}"]`);
                         card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        useImprovementFeatureStore.getState().setHighlightedIdeaId(ideaId);
+                        usePanelsStore.getState().setHighlightedIdeaId(ideaId);
                         setTimeout(
-                          () => useImprovementFeatureStore.getState().setHighlightedIdeaId(null),
+                          () => usePanelsStore.getState().setHighlightedIdeaId(null),
                           2000
                         );
                       }}
                       onGhostDotClick={ideaId => {
                         const question = improvementQuestions.find(q =>
-                          q.ideas?.some(i => i.id === ideaId)
+                          q.ideas?.some((i: { id: string }) => i.id === ideaId)
                         );
                         if (question) {
                           handleProjectIdea(question.id, ideaId, true);
@@ -1268,9 +1272,7 @@ export const Editor: React.FC<EditorProps> = ({
                     />
                   </div>
                 )}
-                onIdeaHover={ideaId =>
-                  useImprovementFeatureStore.getState().setHighlightedIdeaId(ideaId)
-                }
+                onIdeaHover={ideaId => usePanelsStore.getState().setHighlightedIdeaId(ideaId)}
                 highlightedIdeaId={highlightedIdeaId}
                 onOpenBrainstorm={questionId => {
                   setBrainstormQuestionId(questionId);
@@ -1280,11 +1282,9 @@ export const Editor: React.FC<EditorProps> = ({
                   <TrackView
                     selectedIdeas={selectedIdeasForRecap}
                     onEditSelection={() =>
-                      useImprovementFeatureStore.getState().setActiveImprovementView('plan')
+                      usePanelsStore.getState().setActiveImprovementView('plan')
                     }
-                    onBackToPlan={() =>
-                      useImprovementFeatureStore.getState().setActiveImprovementView('plan')
-                    }
+                    onBackToPlan={() => usePanelsStore.getState().setActiveImprovementView('plan')}
                     actions={aggregatedActions}
                     onToggleComplete={(actionId, findingId) => {
                       findingsState.toggleActionComplete(findingId, actionId);
@@ -1334,6 +1334,7 @@ export const Editor: React.FC<EditorProps> = ({
                 controlViolations={controlViolations}
                 excludedRowIndices={excludedRowIndices}
                 excludedReasons={excludedReasons}
+                projectedCpkMap={improvementProjectedCpkMap}
               />
             )}
           </>

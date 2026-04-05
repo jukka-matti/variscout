@@ -2,19 +2,24 @@
  * useInvestigationOrchestration - Investigation/question orchestration for PWA
  *
  * Owns the investigation workflow: calls useQuestions (CRUD engine from @variscout/hooks),
- * syncs computed state (questionsMap, ideaImpacts, suspectedCauses) to the Zustand
- * investigationStore for selector-based reads, and provides DataContext-dependent action callbacks.
+ * computes derived state (questionsMap, ideaImpacts) as useMemo values returned from the hook,
+ * and provides DataContext-dependent action callbacks.
  */
 import { useMemo, useCallback, useEffect, useRef } from 'react';
-import { computeIdeaImpact } from '@variscout/core';
 import { migrateCauseRolesToHubs } from '@variscout/core/findings';
-import { useInvestigationFeatureStore } from './investigationStore';
+import {
+  useInvestigationFeatureStore,
+  buildQuestionsMap,
+  buildIdeaImpacts,
+} from './investigationStore';
+import type { QuestionDisplayData } from './investigationStore';
 import { usePanelsStore } from '../panels/panelsStore';
 import { useSuspectedCauses } from '@variscout/hooks';
 import type {
   Finding,
   FindingProjection,
   FindingStatus,
+  IdeaImpact,
   ProcessContext,
   StatsResult,
   SuspectedCause,
@@ -66,6 +71,10 @@ export interface UseInvestigationOrchestrationReturn {
     getHubForQuestion: (questionId: string) => SuspectedCause | undefined;
     getHubForFinding: (findingId: string) => SuspectedCause | undefined;
   };
+  /** Map of question ID to display data for FindingCard */
+  questionsMap: Record<string, QuestionDisplayData>;
+  /** Computed idea impacts keyed by idea ID */
+  ideaImpacts: Record<string, IdeaImpact | undefined>;
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────
@@ -79,7 +88,6 @@ export function useInvestigationOrchestration({
   // ── Suspected cause hubs ──────────────────────────────────────────────
   const suspectedCausesState = useSuspectedCauses({
     initialHubs: [],
-    onHubsChange: useInvestigationFeatureStore.getState().syncSuspectedCauses,
   });
 
   // One-time migration: if hubs are empty and questions have legacy causeRole markers,
@@ -108,74 +116,16 @@ export function useInvestigationOrchestration({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Store sync is handled entirely by the onHubsChange: syncSuspectedCauses callback
-  // passed to useSuspectedCauses above. No separate effect needed — a second effect
-  // would cause a double-sync and overwrite migrated hubs with stale empty state.
+  // ── Compute derived data (returned from hook, not synced to store) ────
+  const questionsMap = useMemo(
+    () => buildQuestionsMap(questionsState.questions),
+    [questionsState.questions]
+  );
 
-  // ── Sync questions to Zustand store ──────────────────────────────────
-  const syncQuestions = useInvestigationFeatureStore.getState().syncQuestions;
-  useEffect(() => {
-    syncQuestions(questionsState.questions);
-  }, [questionsState.questions, syncQuestions]);
-
-  // ── Sync questionsMap to store ───────────────────────────────────────
-  const questionsMap = useMemo(() => {
-    const map: Record<
-      string,
-      {
-        text: string;
-        status: string;
-        factor?: string;
-        level?: string;
-        causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
-      }
-    > = {};
-    for (const q of questionsState.questions) {
-      map[q.id] = {
-        text: q.text,
-        status: q.status,
-        factor: q.factor,
-        level: q.level,
-        causeRole: q.causeRole,
-      };
-    }
-    return map;
-  }, [questionsState.questions]);
-
-  const syncQuestionsMap = useInvestigationFeatureStore.getState().syncQuestionsMap;
-  useEffect(() => {
-    syncQuestionsMap(questionsMap);
-  }, [questionsMap, syncQuestionsMap]);
-
-  // ── Sync ideaImpacts to store ─────────────────────────────────────────
-  const ideaImpacts = useMemo(() => {
-    const impacts: Record<string, ReturnType<typeof computeIdeaImpact>> = {};
-    const target =
-      processContext?.targetMetric && processContext?.targetValue !== undefined
-        ? {
-            metric: processContext.targetMetric,
-            value: processContext.targetValue,
-            direction: processContext.targetDirection ?? 'minimize',
-          }
-        : undefined;
-    const currentStats = stats
-      ? { mean: stats.mean, sigma: stats.stdDev, cpk: stats.cpk }
-      : undefined;
-
-    for (const q of questionsState.questions) {
-      if (q.ideas) {
-        for (const idea of q.ideas) {
-          impacts[idea.id] = computeIdeaImpact(idea, target, currentStats);
-        }
-      }
-    }
-    return impacts;
-  }, [questionsState.questions, processContext, stats]);
-
-  const syncIdeaImpacts = useInvestigationFeatureStore.getState().syncIdeaImpacts;
-  useEffect(() => {
-    syncIdeaImpacts(ideaImpacts);
-  }, [ideaImpacts, syncIdeaImpacts]);
+  const ideaImpacts = useMemo(
+    () => buildIdeaImpacts(questionsState.questions, processContext, stats),
+    [questionsState.questions, processContext, stats]
+  );
 
   // ── DataContext-dependent actions ─────────────────────────────────────
 
@@ -254,5 +204,7 @@ export function useInvestigationOrchestration({
     clearProjectionTarget,
     handleSetFindingStatus,
     suspectedCausesState,
+    questionsMap,
+    ideaImpacts,
   };
 }
