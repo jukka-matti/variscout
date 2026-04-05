@@ -8,6 +8,7 @@
 import React, { useCallback, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { X, ChevronRight, MessageCircle } from 'lucide-react';
+import { strengthLabel } from './utils';
 
 export interface EvidenceMapNodeSheetProps {
   isOpen: boolean;
@@ -29,13 +30,6 @@ const fmt = (v: number): string => (Number.isInteger(v) ? String(v) : v.toFixed(
 
 /** Format effect with sign prefix */
 const fmtEffect = (v: number): string => (v >= 0 ? `+${fmt(v)}` : fmt(v));
-
-/** Map relationship strength (0-1) to a human-readable label */
-const strengthLabel = (s: number): string => {
-  if (s >= 0.7) return 'Strong';
-  if (s >= 0.3) return 'Moderate';
-  return 'Weak';
-};
 
 export const EvidenceMapNodeSheet: React.FC<EvidenceMapNodeSheetProps> = ({
   isOpen,

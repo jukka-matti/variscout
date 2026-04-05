@@ -179,6 +179,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   // ── Factor Intelligence for Evidence Map (requires 2+ factors) ──
   const hasFactorIntelligence = factors.length >= 2 && !!outcome && filteredData.length > 0;
 
+  // TODO: consider useAsyncStats / Web Worker for large mobile datasets
   const bestSubsets = useMemo(() => {
     if (!hasFactorIntelligence) return null;
     return computeBestSubsets(filteredData, outcome!, factors);
@@ -208,6 +209,8 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
     bestSubsets: showMapTab ? bestSubsets : null,
     mainEffects: showMapTab ? mainEffectsResult : null,
     interactions: showMapTab ? interactionEffectsResult : null,
+    // Layout positions are computed at a reference size; the responsive wrapper + zoom
+    // transform in EvidenceMap handles actual viewport fitting.
     containerSize: { width: 400, height: 350 },
     mode: 'standard',
   });
@@ -279,7 +282,10 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
     (factor: string) => {
       const node = evidenceMapData.factorNodes.find(n => n.factor === factor);
       if (node && node.levelEffects.length > 0) {
-        onDrillDown(factor, node.levelEffects[0].level);
+        const sorted = [...node.levelEffects].sort(
+          (a, b) => Math.abs(b.effect) - Math.abs(a.effect)
+        );
+        onDrillDown(factor, sorted[0].level);
       }
       setNodeSheet(null);
     },
@@ -309,7 +315,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
           : (currentIndex - 1 + VIEWS.length) % VIEWS.length;
       setActiveView(VIEWS[newIndex].key);
     },
-    [currentIndex]
+    [currentIndex, VIEWS]
   );
 
   // Swipe handling (Touch API)
@@ -328,13 +334,15 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
 
   const onTouchEnd = useCallback(() => {
     if (!touchStart || !touchEnd) return;
+    // Skip carousel swipe when Evidence Map is active — pinch-zoom takes priority
+    if (activeView === 'map') return;
     const distance = touchStart - touchEnd;
     if (distance > minSwipeDistance) {
       goToView('next');
     } else if (distance < -minSwipeDistance) {
       goToView('prev');
     }
-  }, [touchStart, touchEnd, goToView]);
+  }, [touchStart, touchEnd, goToView, activeView]);
 
   // Boxplot drill-down interceptor: opens sheet instead of drilling immediately
   const handleBoxplotDrillDown = useCallback(

@@ -100,6 +100,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   // ── Factor Intelligence for Evidence Map (requires 2+ factors) ──
   const hasFactorIntelligence = factors.length >= 2 && !!outcome && filteredData.length > 0;
 
+  // TODO: consider useAsyncStats / Web Worker for large mobile datasets
   const bestSubsets = useMemo(() => {
     if (!hasFactorIntelligence) return null;
     return computeBestSubsets(filteredData, outcome!, factors);
@@ -130,7 +131,9 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
     bestSubsets: showMapTab ? bestSubsets : null,
     mainEffects: showMapTab ? mainEffects : null,
     interactions: showMapTab ? interactionEffects : null,
-    containerSize: { width: 400, height: 350 }, // mobile container size
+    // Layout positions are computed at a reference size; the responsive wrapper + zoom
+    // transform in EvidenceMap handles actual viewport fitting.
+    containerSize: { width: 400, height: 350 },
     mode: 'standard',
   });
 
@@ -194,7 +197,10 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
         // Drill down on the factor's worst level (highest absolute effect)
         const node = evidenceMapData.factorNodes.find(n => n.factor === factor);
         if (node && node.levelEffects.length > 0) {
-          onDrillDown(factor, node.levelEffects[0].level);
+          const sorted = [...node.levelEffects].sort(
+            (a, b) => Math.abs(b.effect) - Math.abs(a.effect)
+          );
+          onDrillDown(factor, sorted[0].level);
         }
       }
       setNodeSheet(null);
@@ -287,6 +293,8 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
+    // Skip carousel swipe when Evidence Map is active — pinch-zoom takes priority
+    if (activeView === 'map') return;
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;

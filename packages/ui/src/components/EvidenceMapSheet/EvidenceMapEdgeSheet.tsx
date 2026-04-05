@@ -8,6 +8,7 @@
 import React, { useCallback, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { X, ArrowRight } from 'lucide-react';
+import { strengthLabel } from './utils';
 
 export interface EvidenceMapEdgeSheetProps {
   isOpen: boolean;
@@ -20,13 +21,6 @@ export interface EvidenceMapEdgeSheetProps {
   whyStatement?: string;
   onViewDetails?: () => void;
 }
-
-/** Map relationship strength (0-1) to a human-readable label */
-const strengthLabel = (s: number): string => {
-  if (s >= 0.7) return 'Strong';
-  if (s >= 0.3) return 'Moderate';
-  return 'Weak';
-};
 
 /** Badge styling per evidence type */
 const evidenceBadge: Record<
