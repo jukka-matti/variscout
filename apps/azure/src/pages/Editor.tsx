@@ -748,7 +748,7 @@ export const Editor: React.FC<EditorProps> = ({
     brainstormQuestion?.text ?? '',
     processContext?.problemStatement
   );
-  // Track brainstorm ideas locally (BrainstormModal manages its own ideas array)
+  // Local brainstorm ideas array — passed to BrainstormModal as props
   const [brainstormIdeas, setBrainstormIdeas] = useState<BrainstormIdea[]>([]);
 
   // Control violations for chart annotations (must be called unconditionally for hook order)
@@ -1162,188 +1162,152 @@ export const Editor: React.FC<EditorProps> = ({
                 suspectedCausesState={suspectedCausesState}
               />
             ) : activeView === 'improvement' ? (
-              <>
-                <ImprovementWorkspaceBase
-                  synthesis={processContext?.synthesis}
-                  onSynthesisChange={handleSynthesisChange}
-                  questions={improvementQuestions}
-                  linkedFindings={improvementLinkedFindings}
-                  onToggleSelect={(hId, iId, sel) => questionsState.selectIdea(hId, iId, sel)}
-                  onUpdateTimeframe={(hId, iId, timeframe) =>
-                    questionsState.updateIdea(hId, iId, { timeframe })
-                  }
-                  onUpdateDirection={(hId, iId, dir) =>
-                    questionsState.updateIdea(hId, iId, { direction: dir })
-                  }
-                  onUpdateCost={(hId, iId, cost) => questionsState.updateIdea(hId, iId, { cost })}
-                  onOpenRisk={() => {}}
-                  onRemoveIdea={questionsState.removeIdea}
-                  onOpenWhatIf={(questionId, ideaId) => handleProjectIdea(questionId, ideaId, true)}
-                  onAddIdea={(hId, text) => questionsState.addIdea(hId, text)}
-                  onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
-                  onConvertToActions={() => {
-                    handleConvertIdeasToActions();
-                    useImprovementStore.getState().setActiveImprovementView('track');
-                  }}
-                  onBack={() => usePanelsStore.getState().showAnalysis()}
-                  onPopout={handleOpenImprovementPopout}
-                  selectedIdeaIds={selectedIdeaIds}
-                  convertedIdeaIds={convertedIdeaIds}
-                  targetCpk={processContext?.targetValue}
-                  activeView={activeImprovementView}
-                  showLeftPanel={true}
-                  renderLeftPanel={() => {
-                    if (projectionTarget) {
-                      return (
-                        <WhatIfPageBase
-                          filteredData={filteredData}
-                          rawData={rawData}
-                          outcome={outcome}
-                          specs={specs}
-                          filterCount={0}
-                          onBack={() => clearProjectionTarget()}
-                          cpkTarget={cpkTarget}
-                          activeFactor={viewState?.boxplotFactor}
-                          projectionContext={{
-                            ideaText: projectionTarget.ideaText,
-                            questionText: projectionTarget.questionText,
-                          }}
-                          onSaveProjection={handleSaveIdeaProjection}
-                          referenceContext={projectionReferenceContext}
-                        />
-                      );
-                    }
+              <ImprovementWorkspaceBase
+                synthesis={processContext?.synthesis}
+                onSynthesisChange={handleSynthesisChange}
+                questions={improvementQuestions}
+                linkedFindings={improvementLinkedFindings}
+                onToggleSelect={(hId, iId, sel) => questionsState.selectIdea(hId, iId, sel)}
+                onUpdateTimeframe={(hId, iId, timeframe) =>
+                  questionsState.updateIdea(hId, iId, { timeframe })
+                }
+                onUpdateDirection={(hId, iId, dir) =>
+                  questionsState.updateIdea(hId, iId, { direction: dir })
+                }
+                onUpdateCost={(hId, iId, cost) => questionsState.updateIdea(hId, iId, { cost })}
+                onOpenRisk={() => {}}
+                onRemoveIdea={questionsState.removeIdea}
+                onOpenWhatIf={(questionId, ideaId) => handleProjectIdea(questionId, ideaId, true)}
+                onAddIdea={(hId, text) => questionsState.addIdea(hId, text)}
+                onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
+                onConvertToActions={() => {
+                  handleConvertIdeasToActions();
+                  useImprovementStore.getState().setActiveImprovementView('track');
+                }}
+                onBack={() => usePanelsStore.getState().showAnalysis()}
+                onPopout={handleOpenImprovementPopout}
+                selectedIdeaIds={selectedIdeaIds}
+                convertedIdeaIds={convertedIdeaIds}
+                targetCpk={processContext?.targetValue}
+                activeView={activeImprovementView}
+                showLeftPanel={true}
+                renderLeftPanel={() => {
+                  if (projectionTarget) {
                     return (
-                      <ImprovementContextPanel
-                        problemStatement={processContext?.problemStatement}
-                        targetCpk={processContext?.targetValue}
-                        currentCpk={stats?.cpk}
-                        causes={causeSummaries}
-                        synthesis={processContext?.synthesis}
+                      <WhatIfPageBase
+                        filteredData={filteredData}
+                        rawData={rawData}
+                        outcome={outcome}
+                        specs={specs}
+                        filterCount={0}
+                        onBack={() => clearProjectionTarget()}
+                        cpkTarget={cpkTarget}
+                        activeFactor={viewState?.boxplotFactor}
+                        projectionContext={{
+                          ideaText: projectionTarget.ideaText,
+                          questionText: projectionTarget.questionText,
+                        }}
+                        onSaveProjection={handleSaveIdeaProjection}
+                        referenceContext={projectionReferenceContext}
                       />
                     );
-                  }}
-                  renderMatrix={() => (
-                    <div className="p-4">
-                      <PrioritizationMatrix
-                        ideas={matrixIdeas}
-                        xAxis={matrixXAxis}
-                        yAxis={matrixYAxis}
-                        colorBy={matrixColorBy}
-                        causeColors={causeColors}
-                        causeLabels={causeLabels}
-                        presets={DEFAULT_PRESETS}
-                        activePreset={matrixPreset}
-                        onPresetChange={setMatrixPreset}
-                        onAxisChange={(axis, value) => {
-                          if (axis === 'x') setMatrixXAxis(value);
-                          else if (axis === 'y') setMatrixYAxis(value);
-                          else setMatrixColorBy(value);
-                        }}
-                        onToggleSelect={ideaId => {
-                          const question = improvementQuestions.find(q =>
-                            q.ideas?.some(i => i.id === ideaId)
-                          );
-                          if (question) {
-                            questionsState.selectIdea(
-                              question.id,
-                              ideaId,
-                              !selectedIdeaIds.has(ideaId)
-                            );
-                          }
-                        }}
-                        highlightedIdeaId={highlightedIdeaId ?? undefined}
-                        onIdeaClick={ideaId => {
-                          const card = document.querySelector(`[data-testid="idea-row-${ideaId}"]`);
-                          card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                          useImprovementStore.getState().setHighlightedIdeaId(ideaId);
-                          setTimeout(
-                            () => useImprovementStore.getState().setHighlightedIdeaId(null),
-                            2000
-                          );
-                        }}
-                        onGhostDotClick={ideaId => {
-                          const question = improvementQuestions.find(q =>
-                            q.ideas?.some(i => i.id === ideaId)
-                          );
-                          if (question) {
-                            handleProjectIdea(question.id, ideaId, true);
-                          }
-                        }}
-                      />
-                    </div>
-                  )}
-                  onIdeaHover={ideaId =>
-                    useImprovementStore.getState().setHighlightedIdeaId(ideaId)
                   }
-                  highlightedIdeaId={highlightedIdeaId}
-                  onOpenBrainstorm={questionId => {
-                    setBrainstormQuestionId(questionId);
-                    setBrainstormIdeas([]);
-                  }}
-                  renderTrackView={() => (
-                    <TrackView
-                      selectedIdeas={selectedIdeasForRecap}
-                      onEditSelection={() =>
-                        useImprovementStore.getState().setActiveImprovementView('plan')
-                      }
-                      onBackToPlan={() =>
-                        useImprovementStore.getState().setActiveImprovementView('plan')
-                      }
-                      actions={aggregatedActions}
-                      onToggleComplete={(actionId, findingId) => {
-                        findingsState.toggleActionComplete(findingId, actionId);
-                      }}
-                      verification={improvVerificationData}
-                      hasVerification={improvHasVerification}
-                      selectedOutcome={
-                        improvCurrentOutcome
-                          ? improvCurrentOutcome.effective === 'yes'
-                            ? 'effective'
-                            : improvCurrentOutcome.effective === 'partial'
-                              ? 'partial'
-                              : 'not-effective'
-                          : undefined
-                      }
-                      outcomeNotes={improvOutcomeNotes}
-                      onOutcomeChange={improvHandleOutcomeChange}
-                      onOutcomeNotesChange={improvHandleOutcomeNotesChange}
+                  return (
+                    <ImprovementContextPanel
+                      problemStatement={processContext?.problemStatement}
+                      targetCpk={processContext?.targetValue}
+                      currentCpk={stats?.cpk}
+                      causes={causeSummaries}
+                      synthesis={processContext?.synthesis}
                     />
-                  )}
-                />
-                <BrainstormModal
-                  isOpen={brainstormQuestionId !== null}
-                  causeName={brainstormQuestion?.text ?? ''}
-                  hmwPrompts={hmwPrompts}
-                  ideas={brainstormIdeas}
-                  onAddIdea={(direction: IdeaDirection, text: string) => {
-                    const id = `brainstorm-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-                    setBrainstormIdeas(prev => [
-                      ...prev,
-                      { id, text, direction, aiGenerated: false, voteCount: 0 },
-                    ]);
-                  }}
-                  onEditIdea={(ideaId: string, text: string) => {
-                    setBrainstormIdeas(prev =>
-                      prev.map(i => (i.id === ideaId ? { ...i, text } : i))
-                    );
-                  }}
-                  onRemoveIdea={(ideaId: string) => {
-                    setBrainstormIdeas(prev => prev.filter(i => i.id !== ideaId));
-                  }}
-                  onClose={() => setBrainstormQuestionId(null)}
-                  onDone={(selectedIds: string[]) => {
-                    if (brainstormQuestionId) {
-                      const selected = brainstormIdeas.filter(i => selectedIds.includes(i.id));
-                      for (const idea of selected) {
-                        questionsState.addIdea(brainstormQuestionId, idea.text);
-                      }
+                  );
+                }}
+                renderMatrix={() => (
+                  <div className="p-4">
+                    <PrioritizationMatrix
+                      ideas={matrixIdeas}
+                      xAxis={matrixXAxis}
+                      yAxis={matrixYAxis}
+                      colorBy={matrixColorBy}
+                      causeColors={causeColors}
+                      causeLabels={causeLabels}
+                      presets={DEFAULT_PRESETS}
+                      activePreset={matrixPreset}
+                      onPresetChange={setMatrixPreset}
+                      onAxisChange={(axis, value) => {
+                        if (axis === 'x') setMatrixXAxis(value);
+                        else if (axis === 'y') setMatrixYAxis(value);
+                        else setMatrixColorBy(value);
+                      }}
+                      onToggleSelect={ideaId => {
+                        const question = improvementQuestions.find(q =>
+                          q.ideas?.some(i => i.id === ideaId)
+                        );
+                        if (question) {
+                          questionsState.selectIdea(
+                            question.id,
+                            ideaId,
+                            !selectedIdeaIds.has(ideaId)
+                          );
+                        }
+                      }}
+                      highlightedIdeaId={highlightedIdeaId ?? undefined}
+                      onIdeaClick={ideaId => {
+                        const card = document.querySelector(`[data-testid="idea-row-${ideaId}"]`);
+                        card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        useImprovementStore.getState().setHighlightedIdeaId(ideaId);
+                        setTimeout(
+                          () => useImprovementStore.getState().setHighlightedIdeaId(null),
+                          2000
+                        );
+                      }}
+                      onGhostDotClick={ideaId => {
+                        const question = improvementQuestions.find(q =>
+                          q.ideas?.some(i => i.id === ideaId)
+                        );
+                        if (question) {
+                          handleProjectIdea(question.id, ideaId, true);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                onIdeaHover={ideaId => useImprovementStore.getState().setHighlightedIdeaId(ideaId)}
+                highlightedIdeaId={highlightedIdeaId}
+                onOpenBrainstorm={questionId => {
+                  setBrainstormQuestionId(questionId);
+                  setBrainstormIdeas([]);
+                }}
+                renderTrackView={() => (
+                  <TrackView
+                    selectedIdeas={selectedIdeasForRecap}
+                    onEditSelection={() =>
+                      useImprovementStore.getState().setActiveImprovementView('plan')
                     }
-                    setBrainstormQuestionId(null);
-                    setBrainstormIdeas([]);
-                  }}
-                />
-              </>
+                    onBackToPlan={() =>
+                      useImprovementStore.getState().setActiveImprovementView('plan')
+                    }
+                    actions={aggregatedActions}
+                    onToggleComplete={(actionId, findingId) => {
+                      findingsState.toggleActionComplete(findingId, actionId);
+                    }}
+                    verification={improvVerificationData}
+                    hasVerification={improvHasVerification}
+                    selectedOutcome={
+                      improvCurrentOutcome
+                        ? improvCurrentOutcome.effective === 'yes'
+                          ? 'effective'
+                          : improvCurrentOutcome.effective === 'partial'
+                            ? 'partial'
+                            : 'not-effective'
+                        : undefined
+                    }
+                    outcomeNotes={improvOutcomeNotes}
+                    onOutcomeChange={improvHandleOutcomeChange}
+                    onOutcomeNotesChange={improvHandleOutcomeNotesChange}
+                  />
+                )}
+              />
             ) : activeView === 'report' ? (
               <Suspense fallback={null}>
                 <ReportView
@@ -1469,6 +1433,38 @@ export const Editor: React.FC<EditorProps> = ({
           onDismiss={() => setShowVerificationPrompt(false)}
         />
       )}
+
+      {/* Brainstorm modal: hoisted to top-level so it survives view navigation */}
+      <BrainstormModal
+        isOpen={brainstormQuestionId !== null}
+        causeName={brainstormQuestion?.text ?? ''}
+        hmwPrompts={hmwPrompts}
+        ideas={brainstormIdeas}
+        onAddIdea={(direction: IdeaDirection, text: string) => {
+          const id = `brainstorm-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          setBrainstormIdeas(prev => [
+            ...prev,
+            { id, text, direction, aiGenerated: false, voteCount: 0 },
+          ]);
+        }}
+        onEditIdea={(ideaId: string, text: string) => {
+          setBrainstormIdeas(prev => prev.map(i => (i.id === ideaId ? { ...i, text } : i)));
+        }}
+        onRemoveIdea={(ideaId: string) => {
+          setBrainstormIdeas(prev => prev.filter(i => i.id !== ideaId));
+        }}
+        onClose={() => setBrainstormQuestionId(null)}
+        onDone={(selectedIds: string[]) => {
+          if (brainstormQuestionId) {
+            const selected = brainstormIdeas.filter(i => selectedIds.includes(i.id));
+            for (const idea of selected) {
+              questionsState.addIdea(brainstormQuestionId, idea.text);
+            }
+          }
+          setBrainstormQuestionId(null);
+          setBrainstormIdeas([]);
+        }}
+      />
     </div>
   );
 };
