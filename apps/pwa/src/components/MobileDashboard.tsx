@@ -261,7 +261,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
       { key: 'stats', label: t('view.stats'), icon: <TrendingUp size={18} /> },
     ];
     if (showMapTab) {
-      base.push({ key: 'map', label: t('chart.type.map', 'Map'), icon: <GitBranch size={18} /> });
+      base.push({ key: 'map', label: 'Map', icon: <GitBranch size={18} /> });
     }
     return base;
   }, [t, showMapTab]);

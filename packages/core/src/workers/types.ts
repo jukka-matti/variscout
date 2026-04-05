@@ -69,7 +69,7 @@ export interface SerializedBestSubsetsResult {
     /** Type III SS per factor — serialized from Map<string, TypeIIIResult> */
     typeIIIResults?: Record<
       string,
-      { ssTypeIII: number; dfFactor: number; fValue: number; pValue: number; partialEtaSq: number }
+      { ssTypeIII: number; dfEffect: number; fStat: number; pValue: number; partialEtaSq: number }
     >;
     /** VIF per factor — serialized from Map<string, number> */
     vif?: Record<string, number>;

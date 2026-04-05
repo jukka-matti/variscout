@@ -75,8 +75,8 @@ function serializeSubset(subset: BestSubsetResult): SerializedBestSubsetsResult[
         string,
         {
           ssTypeIII: number;
-          dfFactor: number;
-          fValue: number;
+          dfEffect: number;
+          fStat: number;
           pValue: number;
           partialEtaSq: number;
         }

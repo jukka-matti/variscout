@@ -16,10 +16,10 @@ function makeHub(
     id,
     name,
     status,
-    factors: ['Shift'],
-    connectedQuestionIds: [],
-    connectedFindingIds: [],
-    createdAt: Date.now(),
+    questionIds: [],
+    findingIds: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     synthesis: '',
     selectedForImprovement: false,
   };
@@ -49,7 +49,13 @@ describe('ConclusionCard', () => {
   it('renders hub names with evidence badges', () => {
     const hubs = [makeHub('h1', 'Night shift effect')];
     const evidence = new Map([
-      ['h1', { contribution: { label: 'R²adj', value: 0.38 }, mode: 'standard' as const }],
+      [
+        'h1',
+        {
+          contribution: { label: 'R²adj', value: 0.38, description: 'Explains 38% of variation' },
+          mode: 'standard' as const,
+        },
+      ],
     ]);
 
     render(<ConclusionCard suspectedCauses={[]} hubs={hubs} hubEvidences={evidence} />);

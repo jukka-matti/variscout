@@ -114,7 +114,7 @@ export interface BuildAIContextOptions {
     cpkTarget?: number;
   };
   /** Evidence Map topology for graph-aware CoScout reasoning */
-  evidenceMapTopology?: AIContext['investigation']['evidenceMapTopology'];
+  evidenceMapTopology?: NonNullable<AIContext['investigation']>['evidenceMapTopology'];
 }
 
 /**
@@ -532,52 +532,55 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
         const bestSubset = options.bestSubsetsResult?.subsets[0];
         const factorTypes = options.bestSubsetsResult?.factorTypes ?? bestSubset?.factorTypes;
 
-        const enrichedNodes = topology.factorNodes.map(node => {
-          if (!factorTypes) return node;
-          const factorType = factorTypes.get(node.factor);
-          if (!factorType) return node;
+        const enrichedNodes = topology.factorNodes.map(
+          (node: (typeof topology.factorNodes)[number]) => {
+            if (!factorTypes) return node;
+            const factorType = factorTypes.get(node.factor);
+            if (!factorType) return node;
 
-          if (factorType === 'categorical') {
-            return { ...node, type: 'categorical' as const };
-          }
-
-          // Continuous factor: extract range and relationship shape from best model
-          if (bestSubset?.predictors) {
-            const linearP = bestSubset.predictors.find(
-              p => p.factorName === node.factor && p.type === 'continuous'
-            );
-            const quadraticP = bestSubset.predictors.find(
-              p => p.factorName === node.factor && p.type === 'quadratic'
-            );
-
-            const relationship = quadraticP && quadraticP.pValue < 0.1 ? 'quadratic' : 'linear';
-
-            // Estimate optimum via vertex of centered quadratic: x* = xbar - b1 / (2*b2)
-            // Only meaningful when quadratic term is significant and both coefficients present
-            let optimum: number | undefined;
-            if (
-              relationship === 'quadratic' &&
-              linearP !== undefined &&
-              quadraticP !== undefined &&
-              quadraticP.coefficient !== 0
-            ) {
-              optimum = (quadraticP.mean ?? 0) - linearP.coefficient / (2 * quadraticP.coefficient);
+            if (factorType === 'categorical') {
+              return { ...node, type: 'categorical' as const };
             }
 
-            return {
-              ...node,
-              type: 'continuous' as const,
-              relationship,
-              ...(optimum !== undefined ? { optimum } : {}),
-            };
-          }
+            // Continuous factor: extract range and relationship shape from best model
+            if (bestSubset?.predictors) {
+              const linearP = bestSubset.predictors.find(
+                p => p.factorName === node.factor && p.type === 'continuous'
+              );
+              const quadraticP = bestSubset.predictors.find(
+                p => p.factorName === node.factor && p.type === 'quadratic'
+              );
 
-          return { ...node, type: 'continuous' as const };
-        });
+              const relationship = quadraticP && quadraticP.pValue < 0.1 ? 'quadratic' : 'linear';
+
+              // Estimate optimum via vertex of centered quadratic: x* = xbar - b1 / (2*b2)
+              // Only meaningful when quadratic term is significant and both coefficients present
+              let optimum: number | undefined;
+              if (
+                relationship === 'quadratic' &&
+                linearP !== undefined &&
+                quadraticP !== undefined &&
+                quadraticP.coefficient !== 0
+              ) {
+                optimum =
+                  (quadraticP.mean ?? 0) - linearP.coefficient / (2 * quadraticP.coefficient);
+              }
+
+              return {
+                ...node,
+                type: 'continuous' as const,
+                relationship,
+                ...(optimum !== undefined ? { optimum } : {}),
+              };
+            }
+
+            return { ...node, type: 'continuous' as const };
+          }
+        );
 
         context.investigation.evidenceMapTopology = {
           ...topology,
-          factorNodes: enrichedNodes,
+          factorNodes: enrichedNodes as typeof topology.factorNodes,
         };
       } else {
         context.investigation.evidenceMapTopology = topology;
