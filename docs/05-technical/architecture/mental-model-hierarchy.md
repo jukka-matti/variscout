@@ -124,13 +124,13 @@ Each mode is a view configuration, not a separate workflow. The analyst switches
 
 ### INVESTIGATE
 
-| Aspect   | Detail                                                                                          |
-| -------- | ----------------------------------------------------------------------------------------------- |
-| Goal     | Understand why — structured learning through question answering in the investigation diamond    |
-| Method   | Investigation Diamond: Initial → Diverging → Validating → Converging (see detail below)         |
-| AI       | Phase-aware diamond prompts in CoScout; investigation sidebar with uncovered factor suggestions |
-| Key Code | `useFindings`, `useHypotheses`, `FindingsLog`, `FindingBoardView`, `InvestigationPhaseBadge`    |
-| Exit     | Multiple suspected causes identified, finding marked `analyzed`                                 |
+| Aspect   | Detail                                                                                                                                     |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Goal     | Understand why — structured learning through question answering in the investigation diamond                                               |
+| Method   | Investigation Diamond: Initial → Diverging → Validating → Converging (see detail below); Evidence Map as primary workspace                 |
+| AI       | Phase-aware diamond prompts in CoScout; investigation sidebar with uncovered factor suggestions                                            |
+| Key Code | `useFindings`, `useHypotheses`, `FindingsLog`, `FindingBoardView`, `InvestigationPhaseBadge`, `InvestigationMapView`, `useEvidenceMapData` |
+| Exit     | Multiple suspected causes identified, finding marked `analyzed`                                                                            |
 
 **Knowledge Base (Mode 3):** "Search Knowledge Base?" button in CoScout triggers Foundry IQ (Remote SharePoint via Azure AI Search). Returns folder-scoped documents using the user's own token (per-user security). Results injected as Layer 4 context for CoScout re-synthesis.
 
