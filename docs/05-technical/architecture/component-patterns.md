@@ -16,6 +16,7 @@ How VariScout's shared hooks work together to enable drill-down, filtering, and 
 
 ```mermaid
 flowchart TB
+    %% DataContext deleted Apr 2026 — domain stores (@variscout/stores) are source of truth
     subgraph State["State Layer"]
         DS[useDataState]
     end
@@ -494,7 +495,8 @@ flowchart TB
         KS[useKnowledgeSearch]
     end
 
-    DC[DataContext] --> AC
+    %% DataContext deleted Apr 2026 — domain stores are source of truth; useAIContext reads from @variscout/stores directly
+    DC[domain stores] --> AC
     F[Findings] --> AC
     H[Hypotheses] --> AC
     PC[ProcessContext] --> AC
@@ -525,14 +527,13 @@ For detailed data flow, context shape, and three-mode comparison, see [AI Archit
 
 ## Feature-Sliced Design (Azure Only)
 
-The Azure app uses Feature-Sliced Design ([ADR-041](../../07-decisions/adr-041-zustand-feature-stores.md), [ADR-045](../../07-decisions/adr-045-modular-architecture.md)) with 5 Zustand feature stores:
+The Azure app uses Feature-Sliced Design ([ADR-041](../../07-decisions/adr-041-zustand-feature-stores.md), [ADR-045](../../07-decisions/adr-045-modular-architecture.md)) with 4 Zustand feature stores (`improvementStore` was deleted Apr 2026 — improvement UI state moved to `panelsStore`, computed directly by components from domain stores):
 
 | Store                | Domain                    | Key Responsibility                                    |
 | -------------------- | ------------------------- | ----------------------------------------------------- |
 | `panelsStore`        | Panel visibility & layout | View toggle, panel open/close, mutual exclusion rules |
 | `findingsStore`      | Findings read-side state  | Findings list, chart grouping, highlight state        |
 | `investigationStore` | Investigation UI state    | Hypothesis map, idea impacts, projection target       |
-| `improvementStore`   | Improvement workspace     | Improvement hypotheses, selected ideas, projected Cpk |
 | `aiStore`            | AI/CoScout UI state       | Narration, messages, suggestions, action proposals    |
 
 ### Architecture Principles
@@ -541,7 +542,7 @@ The Azure app uses Feature-Sliced Design ([ADR-041](../../07-decisions/adr-041-z
 - **Orchestration hooks sync to stores** — Each feature has a `use*Orchestration.ts` hook that watches shared hooks via `useEffect` and syncs derived state to its Zustand store.
 - **Components read via selectors** — `useStore(s => s.field)` provides granular re-renders without prop drilling.
 - **Cross-store access via `getState()`** — Explicit and traceable. 12 cross-store calls across 3 files (within manageable limits).
-- **Bridge hooks for persistence** — `usePanelsPersistence` watches store changes and syncs to DataContext's `ViewState` for project-level persistence.
+- **Bridge hooks for persistence** — ~~`usePanelsPersistence` watches store changes and syncs to DataContext's `ViewState` for project-level persistence.~~ (DataContext deleted Apr 2026 — persistence now goes directly through `useProjectActions` + `sessionStore` middleware.)
 
 See [Store Interactions](store-interactions.md) for the full coupling analysis and [Data Flow](data-flow.md#azure-feature-sliced-data-flow-adr-041) for the layered data flow diagram.
 

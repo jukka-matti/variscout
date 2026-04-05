@@ -596,7 +596,7 @@ apps/azure/
 │   ├── features/investigation/__tests__/
 │   │   └── investigationStore.test.ts  # Zustand store (15 tests)
 │   ├── features/improvement/__tests__/
-│   │   └── improvementStore.test.ts    # Zustand store (6 tests)
+│   │   └── improvementStore.test.ts    # Zustand store (6 tests) — DELETED Apr 2026 (improvementStore removed)
 │   └── pages/__tests__/
 │       └── Editor.test.tsx
 ```
@@ -869,13 +869,13 @@ Current state: 3,844 tests across 231 files, all passing. Coverage thresholds me
 
 4 Zustand stores tested (58 new tests). Pattern: `panelsStore.test.ts`.
 
-| Store                | Location                  | Tests |
-| -------------------- | ------------------------- | ----- |
-| `panelsStore`        | `features/panels/`        | 41    |
-| `aiStore`            | `features/ai/`            | 27    |
-| `investigationStore` | `features/investigation/` | 15    |
-| `findingsStore`      | `features/findings/`      | 10    |
-| `improvementStore`   | `features/improvement/`   | 6     |
+| Store                  | Location                    | Tests                                    |
+| ---------------------- | --------------------------- | ---------------------------------------- |
+| `panelsStore`          | `features/panels/`          | 41                                       |
+| `aiStore`              | `features/ai/`              | 27                                       |
+| `investigationStore`   | `features/investigation/`   | 15                                       |
+| `findingsStore`        | `features/findings/`        | 10                                       |
+| ~~`improvementStore`~~ | ~~`features/improvement/`~~ | ~~6~~ (deleted Apr 2026 — store removed) |
 
 Note: `data-flow` uses `useReducer` (not Zustand) — hook testing is a separate item.
 

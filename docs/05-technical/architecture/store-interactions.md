@@ -11,7 +11,7 @@ related: [zustand, feature-stores, adr-041, state-management]
 The app uses Zustand stores at two layers (ADR-041, evolved Apr 2026):
 
 1. **`@variscout/stores` — 4 domain stores** — source of truth for all analytical data, findings, and project state. Shared across PWA and Azure.
-2. **Azure feature stores (`apps/azure/src/features/*/`)** — 5 stores for Azure-specific UI state (panel visibility, highlights, AI conversation).
+2. **Azure feature stores (`apps/azure/src/features/*/`)** — 4 stores for Azure-specific UI state (panel visibility, highlights, AI conversation). `improvementStore` (feature) was deleted Apr 2026; its UI state moved to `panelsStore` and is now computed directly by components from domain stores.
 
 DataContext and useStoreSync have been deleted. Components import directly from `@variscout/stores` via selectors and compose computed state from derived hooks in `@variscout/hooks`.
 
@@ -38,10 +38,11 @@ AZURE FEATURE STORES (apps/azure/src/features/*/)
   panelsStore            → panel visibility & layout
   findingsStore          → findings read-side UI state
   investigationStore     → investigation UI state (feature)
-  improvementStore       → improvement workspace UI state (feature)
   aiStore                → CoScout, narration, action proposals
+  [improvementStore deleted Apr 2026 — UI state moved to panelsStore]
 
   — Orchestration hooks sync from shared hooks → feature stores
+  — syncState bridges eliminated Apr 2026; orchestration hooks return computed state directly
 
         |
         v
@@ -68,14 +69,14 @@ graph TD
         PS[panelsStore<br/><i>UI visibility, layout</i>]
         FS[findingsStore<br/><i>findings UI state</i>]
         IS[investigationStore (feature)<br/><i>investigation UI state</i>]
-        IMS[improvementStore (feature)<br/><i>improvement workspace</i>]
+        %% improvementStore (feature) deleted Apr 2026 — UI state moved to panelsStore
         AS[aiStore<br/><i>CoScout, narration</i>]
     end
 
     subgraph "Orchestration Hooks"
         FO[useFindingsOrchestration]
         IO[useInvestigationOrchestration]
-        IMO[useImprovementOrchestration]
+        %% useImprovementOrchestration deleted Apr 2026 — syncState bridge eliminated
         AO[useAIOrchestration]
         TH[useToolHandlers]
         PSE[usePanelsSideEffects]
@@ -94,14 +95,12 @@ graph TD
 
     DH --> FO
     DH --> IO
-    DH --> IMO
     DH --> AO
 
     FO -->|syncFindings, setHighlightedFindingId| FS
     FO -->|setFindingsOpen| PS
     IO -->|syncHypotheses, syncHypothesesMap, syncIdeaImpacts, setProjectionTarget| IS
     IO -->|setWhatIfOpen| PS
-    IMO -->|syncState| IMS
     AO -->|syncNarration, syncCoScoutMessages, syncSuggestedQuestions, syncActionProposals, syncAIContext, syncKnowledgeSearch, ...| AS
     PSE -->|setHighlightPoint| PS
 
@@ -114,13 +113,11 @@ graph TD
     ED -.->|selector reads| PS
     ED -.->|selector reads| FS
     ED -.->|selector reads| IS
-    ED -.->|selector reads| IMS
     ED -.->|selector reads| AS
 
     EDV -.->|selector reads| PS
     EDV -.->|selector reads| FS
     EDV -.->|selector reads| IS
-    EDV -.->|selector reads| IMS
 
     PD -.->|selector reads| AS
 
@@ -131,7 +128,6 @@ graph TD
     style PS fill:#e0f2fe,stroke:#0284c7
     style FS fill:#fef3c7,stroke:#d97706
     style IS fill:#ede9fe,stroke:#7c3aed
-    style IMS fill:#dcfce7,stroke:#16a34a
     style AS fill:#fce7f3,stroke:#db2777
 ```
 
@@ -139,51 +135,51 @@ graph TD
 
 These are the only places where code in one feature domain writes to a store owned by another feature domain. All go through orchestration hooks (never store-to-store).
 
-| Source File                        | Writes To                      | Action(s) Called                                                                                                                                                                                                                                                    | Purpose                                                                   |
-| ---------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `useFindingsOrchestration.ts`      | `panelsStore`                  | `setFindingsOpen(true)`                                                                                                                                                                                                                                             | Open findings panel when pinning or observing a finding                   |
-| `useFindingsOrchestration.ts`      | `findingsStore`                | `syncFindings()`, `setHighlightedFindingId()`                                                                                                                                                                                                                       | Sync CRUD state from `useFindings` hook; highlight newly created findings |
-| `useInvestigationOrchestration.ts` | `panelsStore`                  | `setWhatIfOpen(true)`, `setWhatIfOpen(false)`                                                                                                                                                                                                                       | Open/close What-If panel for idea projection round-trip                   |
-| `useInvestigationOrchestration.ts` | `investigationStore` (feature) | `syncHypotheses()`, `syncHypothesesMap()`, `syncIdeaImpacts()`, `setProjectionTarget()`                                                                                                                                                                             | Sync hypothesis CRUD state and computed display data                      |
-| `useImprovementOrchestration.ts`   | `improvementStore` (feature)   | `syncState()`                                                                                                                                                                                                                                                       | Bulk sync computed improvement workspace data                             |
-| `useAIOrchestration.ts`            | `aiStore`                      | `syncNarration()`, `syncCoScoutMessages()`, `syncSuggestedQuestions()`, `syncAIContext()`, `setProviderLabel()`, `setKbPermissionWarning()`, `setResolvedChannelFolderUrl()`, `setKnowledgeSearchScope()`, `setKnowledgeSearchTimestamp()`, `syncKnowledgeSearch()` | Sync all AI-derived state from composed hooks                             |
-| `teamToolHandlers.ts`              | `panelsStore`                  | `showDashboard()`, `showAnalysis()`, `showInvestigation()`, `showImprovement()`, `setCoScoutOpen()`, `showReport()`, `setPendingChartFocus()` (ADR-055)                                                                                                             | `navigate_to` tool handler navigates to workspaces                        |
-| `teamToolHandlers.ts`              | `findingsStore`                | `setHighlightedFindingId()`                                                                                                                                                                                                                                         | `navigate_to` tool highlights target finding                              |
-| `teamToolHandlers.ts`              | `investigationStore` (feature) | `expandToHypothesis()`                                                                                                                                                                                                                                              | `navigate_to` tool scrolls to target hypothesis                           |
-| `usePanelsSideEffects.ts`          | `panelsStore`                  | `setHighlightPoint(null)`                                                                                                                                                                                                                                           | Auto-clear chart highlight after 2-second timeout                         |
+| Source File                          | Writes To                        | Action(s) Called                                                                                                                                                                                                                                                    | Purpose                                                                                                                                                                                                  |
+| ------------------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useFindingsOrchestration.ts`        | `panelsStore`                    | `setFindingsOpen(true)`                                                                                                                                                                                                                                             | Open findings panel when pinning or observing a finding                                                                                                                                                  |
+| `useFindingsOrchestration.ts`        | `findingsStore`                  | `syncFindings()`, `setHighlightedFindingId()`                                                                                                                                                                                                                       | Sync CRUD state from `useFindings` hook; highlight newly created findings                                                                                                                                |
+| `useInvestigationOrchestration.ts`   | `panelsStore`                    | `setWhatIfOpen(true)`, `setWhatIfOpen(false)`                                                                                                                                                                                                                       | Open/close What-If panel for idea projection round-trip                                                                                                                                                  |
+| `useInvestigationOrchestration.ts`   | `investigationStore` (feature)   | `syncHypotheses()`, `syncHypothesesMap()`, `syncIdeaImpacts()`, `setProjectionTarget()`                                                                                                                                                                             | Sync hypothesis CRUD state and computed display data                                                                                                                                                     |
+| ~~`useImprovementOrchestration.ts`~~ | ~~`improvementStore` (feature)~~ | ~~`syncState()`~~                                                                                                                                                                                                                                                   | ~~Bulk sync computed improvement workspace data~~ (deleted Apr 2026 — improvementStore removed; syncState bridge eliminated; improvement UI state moved to panelsStore, computed directly by components) |
+| `useAIOrchestration.ts`              | `aiStore`                        | `syncNarration()`, `syncCoScoutMessages()`, `syncSuggestedQuestions()`, `syncAIContext()`, `setProviderLabel()`, `setKbPermissionWarning()`, `setResolvedChannelFolderUrl()`, `setKnowledgeSearchScope()`, `setKnowledgeSearchTimestamp()`, `syncKnowledgeSearch()` | Sync all AI-derived state from composed hooks                                                                                                                                                            |
+| `teamToolHandlers.ts`                | `panelsStore`                    | `showDashboard()`, `showAnalysis()`, `showInvestigation()`, `showImprovement()`, `setCoScoutOpen()`, `showReport()`, `setPendingChartFocus()` (ADR-055)                                                                                                             | `navigate_to` tool handler navigates to workspaces                                                                                                                                                       |
+| `teamToolHandlers.ts`                | `findingsStore`                  | `setHighlightedFindingId()`                                                                                                                                                                                                                                         | `navigate_to` tool highlights target finding                                                                                                                                                             |
+| `teamToolHandlers.ts`                | `investigationStore` (feature)   | `expandToHypothesis()`                                                                                                                                                                                                                                              | `navigate_to` tool scrolls to target hypothesis                                                                                                                                                          |
+| `usePanelsSideEffects.ts`            | `panelsStore`                    | `setHighlightPoint(null)`                                                                                                                                                                                                                                           | Auto-clear chart highlight after 2-second timeout                                                                                                                                                        |
 
 ## Cross-Store Reads via Page/Component Layer
 
 Components subscribe to domain stores and feature stores via selectors. This is the intended consumption pattern — components compose state from whichever stores they need.
 
-| Component                 | Reads From                     | Fields Read                                                                                                                                                                                                                | Purpose                                               |
-| ------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `Editor.tsx`              | `useProjectStore`              | `rawData`, `config`, `specs`                                                                                                                                                                                               | Data pipeline, project config                         |
-| `Editor.tsx`              | `useInvestigationStore`        | `findings`, `questions`, `hubs`, `categories`                                                                                                                                                                              | Investigation state                                   |
-| `Editor.tsx`              | `panelsStore`                  | `activeView`, `isFindingsOpen`, `isCoScoutOpen`, `isWhatIfOpen`, `isStatsSidebarOpen`, `pendingChartFocus` (ADR-055: `isImprovementOpen` removed; `isReportOpen`/`isPresentationMode` removed — Report is a workspace tab) | Workspace routing, panel visibility                   |
-| `Editor.tsx`              | `findingsStore`                | `highlightedFindingId`, `setHighlightedFindingId`                                                                                                                                                                          | Finding highlight state for sidebar                   |
-| `Editor.tsx`              | `investigationStore` (feature) | `projectionTarget`                                                                                                                                                                                                         | What-If round-trip: pre-populate projection from idea |
-| `Editor.tsx`              | `improvementStore` (feature)   | `improvementHypotheses`, `improvementLinkedFindings`, `selectedIdeaIds`, `convertedIdeaIds`                                                                                                                                | Improvement workspace props                           |
-| `Editor.tsx`              | `aiStore`                      | `pendingDashboardQuestion`                                                                                                                                                                                                 | Pre-fill CoScout from project dashboard quick-ask     |
-| `EditorDashboardView.tsx` | `panelsStore`                  | `isFindingsOpen`, `isCoScoutOpen`, `isDataPanelOpen`, `isDataTableOpen`, `highlightRowIndex`, `highlightedChartPoint`                                                                                                      | Dashboard layout, data panel                          |
-| `EditorDashboardView.tsx` | `findingsStore`                | `highlightedFindingId`, `setHighlightedFindingId`                                                                                                                                                                          | Finding highlight in dashboard context                |
-| `EditorDashboardView.tsx` | `investigationStore` (feature) | `hypothesesMap`, `ideaImpacts`                                                                                                                                                                                             | Hypothesis display data for finding cards             |
-| `EditorDashboardView.tsx` | `improvementStore` (feature)   | `projectedCpkMap`, `improvementLinkedFindings`                                                                                                                                                                             | Projected Cpk badges on finding cards                 |
-| `ProjectDashboard.tsx`    | `aiStore`                      | `narration`, `setPendingDashboardQuestion`                                                                                                                                                                                 | Show AI summary, queue question for CoScout           |
+| Component                     | Reads From                       | Fields Read                                                                                                                                                                                                                | Purpose                                                                                 |
+| ----------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `Editor.tsx`                  | `useProjectStore`                | `rawData`, `config`, `specs`                                                                                                                                                                                               | Data pipeline, project config                                                           |
+| `Editor.tsx`                  | `useInvestigationStore`          | `findings`, `questions`, `hubs`, `categories`                                                                                                                                                                              | Investigation state                                                                     |
+| `Editor.tsx`                  | `panelsStore`                    | `activeView`, `isFindingsOpen`, `isCoScoutOpen`, `isWhatIfOpen`, `isStatsSidebarOpen`, `pendingChartFocus` (ADR-055: `isImprovementOpen` removed; `isReportOpen`/`isPresentationMode` removed — Report is a workspace tab) | Workspace routing, panel visibility                                                     |
+| `Editor.tsx`                  | `findingsStore`                  | `highlightedFindingId`, `setHighlightedFindingId`                                                                                                                                                                          | Finding highlight state for sidebar                                                     |
+| `Editor.tsx`                  | `investigationStore` (feature)   | `projectionTarget`                                                                                                                                                                                                         | What-If round-trip: pre-populate projection from idea                                   |
+| ~~`Editor.tsx`~~              | ~~`improvementStore` (feature)~~ | ~~`improvementHypotheses`, `improvementLinkedFindings`, `selectedIdeaIds`, `convertedIdeaIds`~~                                                                                                                            | ~~Improvement workspace props~~ (deleted Apr 2026 — improvementStore removed)           |
+| `Editor.tsx`                  | `aiStore`                        | `pendingDashboardQuestion`                                                                                                                                                                                                 | Pre-fill CoScout from project dashboard quick-ask                                       |
+| `EditorDashboardView.tsx`     | `panelsStore`                    | `isFindingsOpen`, `isCoScoutOpen`, `isDataPanelOpen`, `isDataTableOpen`, `highlightRowIndex`, `highlightedChartPoint`                                                                                                      | Dashboard layout, data panel                                                            |
+| `EditorDashboardView.tsx`     | `findingsStore`                  | `highlightedFindingId`, `setHighlightedFindingId`                                                                                                                                                                          | Finding highlight in dashboard context                                                  |
+| `EditorDashboardView.tsx`     | `investigationStore` (feature)   | `hypothesesMap`, `ideaImpacts`                                                                                                                                                                                             | Hypothesis display data for finding cards                                               |
+| ~~`EditorDashboardView.tsx`~~ | ~~`improvementStore` (feature)~~ | ~~`projectedCpkMap`, `improvementLinkedFindings`~~                                                                                                                                                                         | ~~Projected Cpk badges on finding cards~~ (deleted Apr 2026 — improvementStore removed) |
+| `ProjectDashboard.tsx`        | `aiStore`                        | `narration`, `setPendingDashboardQuestion`                                                                                                                                                                                 | Show AI summary, queue question for CoScout                                             |
 
 ## Store Isolation Summary
 
-| Store                          | Layer         | Direct Cross-Store Imports | Written By (orchestration)                                                                                            | Read By (components)                    |
-| ------------------------------ | ------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `useProjectStore`              | Domain        | None                       | App lifecycle (project load/save), user actions                                                                       | `Editor.tsx`, derived hooks             |
-| `useInvestigationStore`        | Domain        | None                       | App lifecycle, user actions (findings/questions/hubs)                                                                 | `Editor.tsx`, derived hooks             |
-| `useSessionStore`              | Domain        | None                       | App startup, user preference changes                                                                                  | Derived hooks, settings components      |
-| `useImprovementStore` (domain) | Domain        | None                       | Improvement workspace actions                                                                                         | Derived hooks                           |
-| `panelsStore`                  | Azure Feature | None                       | `useFindingsOrchestration`, `useInvestigationOrchestration`, `teamToolHandlers`, `usePanelsSideEffects`, `Editor.tsx` | `Editor.tsx`, `EditorDashboardView.tsx` |
-| `findingsStore`                | Azure Feature | None                       | `useFindingsOrchestration`, `teamToolHandlers`                                                                        | `Editor.tsx`, `EditorDashboardView.tsx` |
-| `investigationStore` (feature) | Azure Feature | None                       | `useInvestigationOrchestration`, `teamToolHandlers`                                                                   | `Editor.tsx`, `EditorDashboardView.tsx` |
-| `improvementStore` (feature)   | Azure Feature | None                       | `useImprovementOrchestration`                                                                                         | `Editor.tsx`, `EditorDashboardView.tsx` |
-| `aiStore`                      | Azure Feature | None                       | `useAIOrchestration`                                                                                                  | `Editor.tsx`, `ProjectDashboard.tsx`    |
+| Store                            | Layer             | Direct Cross-Store Imports | Written By (orchestration)                                                                                            | Read By (components)                                                                       |
+| -------------------------------- | ----------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `useProjectStore`                | Domain            | None                       | App lifecycle (project load/save), user actions                                                                       | `Editor.tsx`, derived hooks                                                                |
+| `useInvestigationStore`          | Domain            | None                       | App lifecycle, user actions (findings/questions/hubs)                                                                 | `Editor.tsx`, derived hooks                                                                |
+| `useSessionStore`                | Domain            | None                       | App startup, user preference changes                                                                                  | Derived hooks, settings components                                                         |
+| `useImprovementStore` (domain)   | Domain            | None                       | Improvement workspace actions                                                                                         | Derived hooks                                                                              |
+| `panelsStore`                    | Azure Feature     | None                       | `useFindingsOrchestration`, `useInvestigationOrchestration`, `teamToolHandlers`, `usePanelsSideEffects`, `Editor.tsx` | `Editor.tsx`, `EditorDashboardView.tsx`                                                    |
+| `findingsStore`                  | Azure Feature     | None                       | `useFindingsOrchestration`, `teamToolHandlers`                                                                        | `Editor.tsx`, `EditorDashboardView.tsx`                                                    |
+| `investigationStore` (feature)   | Azure Feature     | None                       | `useInvestigationOrchestration`, `teamToolHandlers`                                                                   | `Editor.tsx`, `EditorDashboardView.tsx`                                                    |
+| ~~`improvementStore` (feature)~~ | ~~Azure Feature~~ | —                          | ~~`useImprovementOrchestration`~~                                                                                     | — (deleted Apr 2026 — store and orchestration hook removed; UI state moved to panelsStore) |
+| `aiStore`                        | Azure Feature     | None                       | `useAIOrchestration`                                                                                                  | `Editor.tsx`, `ProjectDashboard.tsx`                                                       |
 
 ## Guidelines
 
@@ -241,12 +237,13 @@ When a domain action in one feature needs to trigger a side effect in another fe
 
 **Step 1:** Identify the orchestration hook that owns the triggering action.
 
-| Action                      | Orchestration Hook              |
-| --------------------------- | ------------------------------- |
-| Finding created/pinned      | `useFindingsOrchestration`      |
-| Hypothesis linked           | `useInvestigationOrchestration` |
-| AI tool navigation          | `teamToolHandlers`              |
-| Improvement idea projection | `useInvestigationOrchestration` |
+| Action                         | Orchestration Hook                                                                 |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| Finding created/pinned         | `useFindingsOrchestration`                                                         |
+| Hypothesis linked              | `useInvestigationOrchestration`                                                    |
+| AI tool navigation             | `teamToolHandlers`                                                                 |
+| Improvement idea projection    | `useInvestigationOrchestration`                                                    |
+| ~~Improvement workspace sync~~ | ~~`useImprovementOrchestration`~~ (deleted Apr 2026 — syncState bridge eliminated) |
 
 **Step 2:** Add the `getState()` call in the orchestration hook:
 
