@@ -602,7 +602,115 @@ Referenced archived explorations:
 - `docs/archive/factor-map.md` — d3-force approach, deferred
 - `docs/archive/investigation-mindmap.md` — lighter concept, archived Feb 2026
 
-## 13. Risks & Mitigations
+## 13. Mobile Experience (<640px)
+
+### Design Principles
+
+The Evidence Map on mobile is a **read-only overview tool**, not an editing workspace. Analysts use it on the factory floor to check connections or in meetings to present findings. Causal link creation and deep investigation happen at the desk.
+
+The spatial insight — topology, convergence — must survive on mobile. A list view would remove the visualization's reason to exist. The map renders the same radial SVG layout with touch adaptations.
+
+### Placement
+
+The Evidence Map is the **5th tab in the mobile carousel** alongside I-Chart, Boxplot, Pareto, Stats. Follows the established `MobileDashboard` swipe pattern. No pop-out window on mobile (`window.open()` is unreliable on iOS/Android).
+
+### Touch Interactions
+
+| Action             | Desktop                   | Mobile (<640px)                                           |
+| ------------------ | ------------------------- | --------------------------------------------------------- |
+| Inspect node       | Hover tooltip             | Tap → `MobileCategorySheet` bottom sheet                  |
+| Filter by factor   | Click node                | Bottom sheet → [Drill Down] button                        |
+| Inspect edge       | Click edge label          | Tap edge → bottom sheet with relationship type + evidence |
+| Create causal link | Click-to-connect (future) | Not available (desktop only)                              |
+| Navigate           | Scroll                    | Pinch-to-zoom + pan (via `@visx/zoom`)                    |
+| Pop-out            | window.open()             | Not available                                             |
+
+### Pinch-Zoom via @visx/zoom
+
+Wrap `EvidenceMapBase` in `<Zoom>` component from `@visx/zoom`:
+
+```typescript
+<Zoom
+  width={parentWidth}
+  height={parentHeight}
+  scaleXMin={0.5}
+  scaleXMax={3}
+  initialTransformMatrix={initialTransform}
+>
+  {zoom => (
+    <svg>
+      <rect fill="transparent" onTouchStart={zoom.dragStart} ... />
+      <g transform={zoom.toString()}>
+        <EvidenceMapBase ... />
+      </g>
+    </svg>
+  )}
+</Zoom>
+```
+
+No new dependency — `@visx/zoom` is already in the visx suite used by all charts.
+
+### Progressive Disclosure by Factor Count
+
+| Factors | Default zoom                               | Labels               | Touch targets                                |
+| ------- | ------------------------------------------ | -------------------- | -------------------------------------------- |
+| 3-4     | Fit all, full labels                       | Always visible       | 44px radius (natural)                        |
+| 5-7     | Fit all, abbreviated labels (8 char + ...) | Visible, truncated   | 44px transparent hit area                    |
+| 8-10    | Fit all, labels hidden                     | Appear on zoom >1.5x | 44px transparent hit area, nodes 20px visual |
+
+### Bottom Sheet Content (MobileCategorySheet extension)
+
+When analyst taps a factor node:
+
+```
+━━━  [drag handle]
+Supplier                    R²adj = 0.34
+Best level: A (+12.3g)      Worst: C (−7.2g)
+
+Relationships:
+  ↔ Fill Head   INTERACTIVE  ΔR² = 4%
+  ↔ Shift       INDEPENDENT
+
+[Drill Down]  [Ask CoScout]
+```
+
+When analyst taps a relationship edge:
+
+```
+━━━  [drag handle]
+Supplier × Fill Head        INTERACTIVE
+ΔR² = 4%
+
+Evidence: D (data validated)
+Why: "Night shift runs cause thermal drift"
+
+[View Details]
+```
+
+### Mobile-Specific Props
+
+```typescript
+interface EvidenceMapBaseProps {
+  // ... existing props ...
+  compact?: boolean; // true on mobile: hides labels, enlarges touch targets
+  enableZoom?: boolean; // true on mobile: wraps in @visx/zoom
+  onNodeTap?: (factor: string) => void; // mobile: opens bottom sheet
+  onEdgeTap?: (factorA: string, factorB: string) => void; // mobile: opens edge sheet
+}
+```
+
+### What's NOT Available on Mobile
+
+- Causal link creation (Layer 2 editing) — desktop only
+- Pop-out window — desktop only
+- Mini-map — desktop only (too small for touch)
+- Investigation workspace centerpiece layout — desktop only
+- Timeline animation scrubber — desktop only (too complex for touch)
+- Chart panel slide-in — desktop only
+
+Mobile shows Layer 1 (statistical constellation) in read-only mode. Layer 2 (causal links) renders if they exist but can't be created. Layer 3 (convergence zones) renders as visual indicators.
+
+## 14. Risks & Mitigations
 
 | Risk                                                | Mitigation                                                                                                      |
 | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
