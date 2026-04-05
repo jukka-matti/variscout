@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useImprovementStore } from '../improvementStore';
+import { useImprovementFeatureStore } from '../improvementStore';
 import type { ImprovementQuestion } from '../improvementStore';
 
 /** Reset store to defaults before each test. */
 beforeEach(() => {
-  useImprovementStore.setState({
+  useImprovementFeatureStore.setState({
     improvementQuestions: [],
     improvementLinkedFindings: [],
     selectedIdeaIds: new Set<string>(),
@@ -16,7 +16,7 @@ beforeEach(() => {
 describe('improvementStore', () => {
   describe('initial state', () => {
     it('has empty arrays, empty Sets, and empty map', () => {
-      const s = useImprovementStore.getState();
+      const s = useImprovementFeatureStore.getState();
       expect(s.improvementQuestions).toEqual([]);
       expect(s.improvementLinkedFindings).toEqual([]);
       expect(s.selectedIdeaIds).toEqual(new Set());
@@ -25,7 +25,7 @@ describe('improvementStore', () => {
     });
 
     it('has Sets that are instanceof Set', () => {
-      const s = useImprovementStore.getState();
+      const s = useImprovementFeatureStore.getState();
       expect(s.selectedIdeaIds).toBeInstanceOf(Set);
       expect(s.convertedIdeaIds).toBeInstanceOf(Set);
     });
@@ -42,7 +42,7 @@ describe('improvementStore', () => {
       const projectedCpkMap = { f1: 1.45 };
       const convertedIdeaIds = new Set(['idea-1']);
 
-      useImprovementStore.getState().syncState({
+      useImprovementFeatureStore.getState().syncState({
         improvementQuestions: questions,
         improvementLinkedFindings: linkedFindings,
         selectedIdeaIds,
@@ -50,7 +50,7 @@ describe('improvementStore', () => {
         convertedIdeaIds,
       });
 
-      const s = useImprovementStore.getState();
+      const s = useImprovementFeatureStore.getState();
       expect(s.improvementQuestions).toBe(questions);
       expect(s.improvementQuestions).toHaveLength(2);
       expect(s.improvementLinkedFindings).toBe(linkedFindings);
@@ -65,7 +65,7 @@ describe('improvementStore', () => {
       const selectedIdeaIds = new Set(['idea-a']);
       const convertedIdeaIds = new Set(['idea-b']);
 
-      useImprovementStore.getState().syncState({
+      useImprovementFeatureStore.getState().syncState({
         improvementQuestions: [],
         improvementLinkedFindings: [],
         selectedIdeaIds,
@@ -73,7 +73,7 @@ describe('improvementStore', () => {
         convertedIdeaIds,
       });
 
-      const s = useImprovementStore.getState();
+      const s = useImprovementFeatureStore.getState();
       expect(s.selectedIdeaIds).toBeInstanceOf(Set);
       expect(s.convertedIdeaIds).toBeInstanceOf(Set);
       expect(s.selectedIdeaIds.has('idea-a')).toBe(true);
@@ -81,7 +81,7 @@ describe('improvementStore', () => {
     });
 
     it('overwrites previous state on subsequent sync', () => {
-      useImprovementStore.getState().syncState({
+      useImprovementFeatureStore.getState().syncState({
         improvementQuestions: [{ id: 'h1', text: 'First', ideas: [] }],
         improvementLinkedFindings: [{ id: 'f1', text: 'Finding 1' }],
         selectedIdeaIds: new Set(['old-idea']),
@@ -91,7 +91,7 @@ describe('improvementStore', () => {
 
       const newHypotheses: ImprovementQuestion[] = [{ id: 'h2', text: 'Second', ideas: [] }];
 
-      useImprovementStore.getState().syncState({
+      useImprovementFeatureStore.getState().syncState({
         improvementQuestions: newHypotheses,
         improvementLinkedFindings: [],
         selectedIdeaIds: new Set(['new-idea']),
@@ -99,7 +99,7 @@ describe('improvementStore', () => {
         convertedIdeaIds: new Set(),
       });
 
-      const s = useImprovementStore.getState();
+      const s = useImprovementFeatureStore.getState();
       expect(s.improvementQuestions).toBe(newHypotheses);
       expect(s.improvementQuestions).toHaveLength(1);
       expect(s.improvementQuestions[0].id).toBe('h2');
@@ -112,7 +112,7 @@ describe('improvementStore', () => {
 
     it('handles empty collections', () => {
       // First set some data
-      useImprovementStore.getState().syncState({
+      useImprovementFeatureStore.getState().syncState({
         improvementQuestions: [{ id: 'h1', text: 'test', ideas: [] }],
         improvementLinkedFindings: [{ id: 'f1', text: 'test' }],
         selectedIdeaIds: new Set(['idea-1']),
@@ -121,7 +121,7 @@ describe('improvementStore', () => {
       });
 
       // Then sync empty state
-      useImprovementStore.getState().syncState({
+      useImprovementFeatureStore.getState().syncState({
         improvementQuestions: [],
         improvementLinkedFindings: [],
         selectedIdeaIds: new Set(),
@@ -129,7 +129,7 @@ describe('improvementStore', () => {
         convertedIdeaIds: new Set(),
       });
 
-      const s = useImprovementStore.getState();
+      const s = useImprovementFeatureStore.getState();
       expect(s.improvementQuestions).toEqual([]);
       expect(s.improvementLinkedFindings).toEqual([]);
       expect(s.selectedIdeaIds.size).toBe(0);

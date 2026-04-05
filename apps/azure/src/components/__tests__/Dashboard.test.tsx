@@ -450,7 +450,7 @@ vi.mock('@variscout/hooks', () => ({
 
 // Mock improvement store (Zustand)
 vi.mock('../../features/improvement/improvementStore', () => ({
-  useImprovementStore: (selector?: (s: Record<string, unknown>) => unknown) => {
+  useImprovementFeatureStore: (selector?: (s: Record<string, unknown>) => unknown) => {
     const state = { projectedCpkMap: {} };
     return selector ? selector(state) : state;
   },

@@ -8,7 +8,7 @@ import type { Finding, FilterAction, ActionProposal, ToolHandlerMap } from '@var
 import { hashFilterStack, generateProposalId } from '@variscout/core';
 import { usePanelsStore } from '../panels/panelsStore';
 import { useFindingsStore } from '../findings/findingsStore';
-import { useInvestigationStore } from '../investigation/investigationStore';
+import { useInvestigationFeatureStore } from '../investigation/investigationStore';
 
 export type NavigationTarget =
   | 'dashboard'
@@ -79,7 +79,7 @@ export function buildNavTeamToolHandlers({
         case 'question':
           panels.showInvestigation();
           if (targetId) {
-            useInvestigationStore.getState().expandToQuestion(targetId);
+            useInvestigationFeatureStore.getState().expandToQuestion(targetId);
           }
           break;
         case 'chart':

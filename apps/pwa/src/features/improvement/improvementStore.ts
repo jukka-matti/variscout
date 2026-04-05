@@ -47,7 +47,7 @@ export type ImprovementStore = ImprovementStoreState & ImprovementStoreActions;
 
 // ── Store ───────────────────────────────────────────────────────────────────
 
-export const useImprovementStore = create<ImprovementStore>(set => ({
+export const useImprovementFeatureStore = create<ImprovementStore>(set => ({
   // Initial state
   improvementQuestions: [],
   improvementLinkedFindings: [],

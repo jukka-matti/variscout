@@ -4,11 +4,7 @@ import { useStorage } from '../services/storage';
 import type { StorageLocation } from '../services/storage';
 import { useProjectLoader } from '../hooks/useProjectLoader';
 import { useProjectOverview } from '../hooks/useProjectOverview';
-import {
-  useProjectStore,
-  useInvestigationStore as useDomainInvestigationStore,
-  useSessionStore,
-} from '@variscout/stores';
+import { useProjectStore, useInvestigationStore, useSessionStore } from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
@@ -62,9 +58,9 @@ import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
 import { useAIOrchestration, useActionProposals, useInvestigationIndexing } from '../features/ai';
 import { useInvestigationOrchestration } from '../features/investigation';
-import { useInvestigationStore } from '../features/investigation/investigationStore';
+import { useInvestigationFeatureStore } from '../features/investigation/investigationStore';
 import { useImprovementOrchestration } from '../features/improvement';
-import { useImprovementStore } from '../features/improvement/improvementStore';
+import { useImprovementFeatureStore } from '../features/improvement/improvementStore';
 import { useLocale } from '../context/LocaleContext';
 import { usePanelsStore } from '../features/panels/panelsStore';
 import { usePanelsPersistence } from '../features/panels/usePanelsPersistence';
@@ -154,9 +150,9 @@ export const Editor: React.FC<EditorProps> = ({
   const processContext = useProjectStore(s => s.processContext) ?? undefined;
 
   // Investigation store (domain — findings/questions/categories)
-  const persistedFindings = useDomainInvestigationStore(s => s.findings);
-  const persistedQuestions = useDomainInvestigationStore(s => s.questions);
-  const categories = useDomainInvestigationStore(s => s.categories);
+  const persistedFindings = useInvestigationStore(s => s.findings);
+  const persistedQuestions = useInvestigationStore(s => s.questions);
+  const categories = useInvestigationStore(s => s.categories);
 
   // Session store
   const aiEnabled = useSessionStore(s => s.aiEnabled);
@@ -189,14 +185,14 @@ export const Editor: React.FC<EditorProps> = ({
   const setProcessContext = useProjectStore(s => s.setProcessContext);
   const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
   const setCpkTarget = useProjectStore(s => s.setCpkTarget);
-  const setCategories = useDomainInvestigationStore(s => s.setCategories);
+  const setCategories = useInvestigationStore(s => s.setCategories);
 
   // Investigation store setters (via loadInvestigationState for bulk updates)
   const setPersistedFindings = useCallback((findings: Finding[]) => {
-    useDomainInvestigationStore.getState().loadInvestigationState({ findings });
+    useInvestigationStore.getState().loadInvestigationState({ findings });
   }, []);
   const setPersistedQuestions = useCallback((questions: Question[]) => {
-    useDomainInvestigationStore.getState().loadInvestigationState({ questions });
+    useInvestigationStore.getState().loadInvestigationState({ questions });
   }, []);
 
   // Persistence actions (local IndexedDB via adapter)
@@ -447,7 +443,7 @@ export const Editor: React.FC<EditorProps> = ({
       useFindingsStore.getState().setStatusFilter(targetId);
     } else if (target === 'question' && targetId) {
       ps.showInvestigation();
-      useInvestigationStore.getState().expandToQuestion(targetId);
+      useInvestigationFeatureStore.getState().expandToQuestion(targetId);
     } else if (target === 'improvement' || target === 'actions') {
       ps.showImprovement();
     } else if (target === 'report') {
@@ -570,7 +566,7 @@ export const Editor: React.FC<EditorProps> = ({
         });
       } else {
         usePanelsStore.getState().showInvestigation();
-        useInvestigationStore.getState().expandToQuestion(initialQuestionId);
+        useInvestigationFeatureStore.getState().expandToQuestion(initialQuestionId);
       }
     }
     if (initialMode === 'investigation') {
@@ -663,7 +659,7 @@ export const Editor: React.FC<EditorProps> = ({
     processContext,
     stats,
   });
-  const projectionTarget = useInvestigationStore(s => s.projectionTarget);
+  const projectionTarget = useInvestigationFeatureStore(s => s.projectionTarget);
 
   // Load sample passed from portfolio "Try a Sample"
   useEffect(() => {
@@ -725,12 +721,12 @@ export const Editor: React.FC<EditorProps> = ({
     specs,
     stagedStats,
   });
-  const improvementQuestions = useImprovementStore(s => s.improvementQuestions);
-  const improvementLinkedFindings = useImprovementStore(s => s.improvementLinkedFindings);
-  const selectedIdeaIds = useImprovementStore(s => s.selectedIdeaIds);
-  const convertedIdeaIds = useImprovementStore(s => s.convertedIdeaIds);
-  const activeImprovementView = useImprovementStore(s => s.activeImprovementView);
-  const highlightedIdeaId = useImprovementStore(s => s.highlightedIdeaId);
+  const improvementQuestions = useImprovementFeatureStore(s => s.improvementQuestions);
+  const improvementLinkedFindings = useImprovementFeatureStore(s => s.improvementLinkedFindings);
+  const selectedIdeaIds = useImprovementFeatureStore(s => s.selectedIdeaIds);
+  const convertedIdeaIds = useImprovementFeatureStore(s => s.convertedIdeaIds);
+  const activeImprovementView = useImprovementFeatureStore(s => s.activeImprovementView);
+  const highlightedIdeaId = useImprovementFeatureStore(s => s.highlightedIdeaId);
 
   // Verification prompt: show when new data is uploaded while findings are improving
   const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
@@ -1075,7 +1071,7 @@ export const Editor: React.FC<EditorProps> = ({
         onAddManualData={dataFlow.handleAddMoreData}
         onConvertToActions={() => {
           handleConvertIdeasToActions();
-          useImprovementStore.getState().setActiveImprovementView('track');
+          useImprovementFeatureStore.getState().setActiveImprovementView('track');
         }}
         hasSelectedIdeas={selectedIdeaIds.size > 0}
         onNavigateToPortfolio={onBack}
@@ -1182,7 +1178,7 @@ export const Editor: React.FC<EditorProps> = ({
                 onAskCoScout={aiOrch.handleAskCoScoutFromIdeas}
                 onConvertToActions={() => {
                   handleConvertIdeasToActions();
-                  useImprovementStore.getState().setActiveImprovementView('track');
+                  useImprovementFeatureStore.getState().setActiveImprovementView('track');
                 }}
                 onBack={() => usePanelsStore.getState().showAnalysis()}
                 onPopout={handleOpenImprovementPopout}
@@ -1255,9 +1251,9 @@ export const Editor: React.FC<EditorProps> = ({
                       onIdeaClick={ideaId => {
                         const card = document.querySelector(`[data-testid="idea-row-${ideaId}"]`);
                         card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        useImprovementStore.getState().setHighlightedIdeaId(ideaId);
+                        useImprovementFeatureStore.getState().setHighlightedIdeaId(ideaId);
                         setTimeout(
-                          () => useImprovementStore.getState().setHighlightedIdeaId(null),
+                          () => useImprovementFeatureStore.getState().setHighlightedIdeaId(null),
                           2000
                         );
                       }}
@@ -1272,7 +1268,9 @@ export const Editor: React.FC<EditorProps> = ({
                     />
                   </div>
                 )}
-                onIdeaHover={ideaId => useImprovementStore.getState().setHighlightedIdeaId(ideaId)}
+                onIdeaHover={ideaId =>
+                  useImprovementFeatureStore.getState().setHighlightedIdeaId(ideaId)
+                }
                 highlightedIdeaId={highlightedIdeaId}
                 onOpenBrainstorm={questionId => {
                   setBrainstormQuestionId(questionId);
@@ -1282,10 +1280,10 @@ export const Editor: React.FC<EditorProps> = ({
                   <TrackView
                     selectedIdeas={selectedIdeasForRecap}
                     onEditSelection={() =>
-                      useImprovementStore.getState().setActiveImprovementView('plan')
+                      useImprovementFeatureStore.getState().setActiveImprovementView('plan')
                     }
                     onBackToPlan={() =>
-                      useImprovementStore.getState().setActiveImprovementView('plan')
+                      useImprovementFeatureStore.getState().setActiveImprovementView('plan')
                     }
                     actions={aggregatedActions}
                     onToggleComplete={(actionId, findingId) => {

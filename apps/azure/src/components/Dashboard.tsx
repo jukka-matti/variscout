@@ -45,7 +45,7 @@ import {
   useJourneyPhase,
   useCapabilityIChartData,
 } from '@variscout/hooks';
-import { useImprovementStore } from '../features/improvement/improvementStore';
+import { useImprovementFeatureStore } from '../features/improvement/improvementStore';
 import type { AIContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 import { Activity, BarChart3, Gauge, Timer, ArrowLeft, Settings2 } from 'lucide-react';
@@ -315,7 +315,7 @@ const Dashboard = ({
 
   // Process projection intelligence (Phase 2-4)
   const journeyPhase = useJourneyPhase(!!rawData?.length, allFindings ?? []);
-  const projectedCpkMap = useImprovementStore(s => s.projectedCpkMap);
+  const projectedCpkMap = useImprovementFeatureStore(s => s.projectedCpkMap);
 
   const scopedFindings = useMemo(
     () => (allFindings ? getScopedFindings(allFindings) : undefined),

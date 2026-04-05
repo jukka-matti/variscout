@@ -30,10 +30,7 @@ import {
   useFilteredData,
   useAnalysisStats,
 } from '@variscout/hooks';
-import {
-  useProjectStore,
-  useInvestigationStore as useDomainInvestigationStore,
-} from '@variscout/stores';
+import { useProjectStore, useInvestigationStore } from '@variscout/stores';
 import AppHeader from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
@@ -48,7 +45,7 @@ import { EvidenceMapPopout } from './components/EvidenceMapPopout';
 import { useAppPanels } from './hooks/useAppPanels';
 import { useFindingsStore } from './features/findings/findingsStore';
 import { useProjectionStore } from './features/projection/projectionStore';
-import { useInvestigationStore } from './features/investigation/investigationStore';
+import { useInvestigationFeatureStore } from './features/investigation/investigationStore';
 import { useInvestigationOrchestration } from './features/investigation/useInvestigationOrchestration';
 import { useImprovementOrchestration } from './features/improvement/useImprovementOrchestration';
 import { useStatsWorker } from './workers/useStatsWorker';
@@ -126,7 +123,7 @@ function AppMain() {
   const cpkTarget = useProjectStore(s => s.cpkTarget);
 
   // Investigation store (domain — questions)
-  const questions = useDomainInvestigationStore(s => s.questions);
+  const questions = useInvestigationStore(s => s.questions);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();
@@ -149,7 +146,7 @@ function AppMain() {
   const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
   const setCpkTarget = useProjectStore(s => s.setCpkTarget);
   const setQuestions = useCallback((qs: Question[]) => {
-    useDomainInvestigationStore.getState().loadInvestigationState({ questions: qs });
+    useInvestigationStore.getState().loadInvestigationState({ questions: qs });
   }, []);
 
   // Data ingestion must be declared before importFlow since importFlow uses its callbacks.
@@ -267,7 +264,7 @@ function AppMain() {
     },
   });
 
-  const investigationQuestionsMap = useInvestigationStore(s => s.questionsMap);
+  const investigationQuestionsMap = useInvestigationFeatureStore(s => s.questionsMap);
 
   // Mobile tab bar (phone only, <640px)
   const isPhone = useIsMobile(BREAKPOINTS.phone);

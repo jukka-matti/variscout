@@ -27,7 +27,7 @@ import type { ResolvedMode } from '@variscout/core/strategy';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
 import { useFindingsStore } from '../../features/findings/findingsStore';
-import { useInvestigationStore } from '../../features/investigation/investigationStore';
+import { useInvestigationFeatureStore } from '../../features/investigation/investigationStore';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 
 interface InvestigationViewProps {
@@ -65,8 +65,8 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   resolvedMode,
 }) => {
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
-  const questionsMap = useInvestigationStore(s => s.questionsMap);
-  const ideaImpacts = useInvestigationStore(s => s.ideaImpacts);
+  const questionsMap = useInvestigationFeatureStore(s => s.questionsMap);
+  const ideaImpacts = useInvestigationFeatureStore(s => s.ideaImpacts);
 
   // Investigation phase detection (deterministic)
   const investigationPhase = useMemo(
@@ -189,7 +189,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
             viewMode={viewMode}
             questions={questionsState.questions}
             onSelectQuestion={(q: Question) =>
-              useInvestigationStore.getState().expandToQuestion(q.id)
+              useInvestigationFeatureStore.getState().expandToQuestion(q.id)
             }
             onAddSubQuestion={questionsState.addSubQuestion}
             factors={drillFactors}

@@ -1,4 +1,4 @@
-export { useInvestigationStore } from './investigationStore';
+export { useInvestigationFeatureStore } from './investigationStore';
 export type {
   InvestigationStore,
   QuestionDisplayData,

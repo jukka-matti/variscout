@@ -41,9 +41,9 @@ import { useProjectStore, useSessionStore } from '@variscout/stores';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
-import { useInvestigationStore } from '../../features/investigation/investigationStore';
+import { useInvestigationFeatureStore } from '../../features/investigation/investigationStore';
 import { useAIStore } from '../../features/ai/aiStore';
-import { useImprovementStore } from '../../features/improvement/improvementStore';
+import { useImprovementFeatureStore } from '../../features/improvement/improvementStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
 import { useResizablePanel } from '@variscout/hooks';
@@ -141,7 +141,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   });
 
   const strategy = getStrategy(resolved);
-  const projectedCpkMap = useImprovementStore(s => s.projectedCpkMap);
+  const projectedCpkMap = useImprovementFeatureStore(s => s.projectedCpkMap);
 
   // ── Document Shelf (Team tier + KB preview gate) ─────────────────────
   const isTeamWithKB = hasKnowledgeBase() && isPreviewEnabled('knowledge-base');
@@ -166,7 +166,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   }, [projectedCpkMap]);
 
   // ── Hub model for ConclusionCard in QuestionsTabView ──────────────────
-  const hubsFromStore = useInvestigationStore(s => s.suspectedCauses);
+  const hubsFromStore = useInvestigationFeatureStore(s => s.suspectedCauses);
 
   const hubEvidencesForPI = useMemo(() => {
     if (hubsFromStore.length === 0) return undefined;

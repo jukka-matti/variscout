@@ -31,14 +31,11 @@ import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { wouldCreateCycle } from '@variscout/core/stats';
 import { GripVertical } from 'lucide-react';
-import {
-  useProjectStore,
-  useInvestigationStore as useDomainInvestigationStore,
-} from '@variscout/stores';
+import { useProjectStore, useInvestigationStore } from '@variscout/stores';
 import { InvestigationMapView } from './InvestigationMapView';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
-import { useInvestigationStore } from '../../features/investigation/investigationStore';
+import { useInvestigationFeatureStore } from '../../features/investigation/investigationStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
@@ -120,9 +117,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const highlightedFactor = usePanelsStore(s => s.highlightedFactor);
   const setInvestigationViewMode = usePanelsStore(s => s.setInvestigationViewMode);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
-  const questionsMap = useInvestigationStore(s => s.questionsMap);
-  const ideaImpacts = useInvestigationStore(s => s.ideaImpacts);
-  const causalLinks = useDomainInvestigationStore(s => s.causalLinks);
+  const questionsMap = useInvestigationFeatureStore(s => s.questionsMap);
+  const ideaImpacts = useInvestigationFeatureStore(s => s.ideaImpacts);
+  const causalLinks = useInvestigationStore(s => s.causalLinks);
 
   // Investigation phase (deterministic, from question/findings state)
   const investigationPhase = useMemo(
@@ -409,7 +406,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
       }
     ) => {
-      useDomainInvestigationStore.getState().addCausalLink(from, to, params.whyStatement, {
+      useInvestigationStore.getState().addCausalLink(from, to, params.whyStatement, {
         direction: params.direction,
         evidenceType: params.evidenceType,
       });
@@ -418,7 +415,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   );
 
   const handleRemoveCausalLink = useCallback((id: string) => {
-    useDomainInvestigationStore.getState().removeCausalLink(id);
+    useInvestigationStore.getState().removeCausalLink(id);
   }, []);
 
   const handleUpdateCausalLink = useCallback(
@@ -430,7 +427,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
       }
     ) => {
-      useDomainInvestigationStore.getState().updateCausalLink(id, {
+      useInvestigationStore.getState().updateCausalLink(id, {
         whyStatement: params.whyStatement,
         direction: params.direction,
         evidenceType: params.evidenceType,
@@ -588,7 +585,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               onRestoreFinding={handleRestoreFinding}
               viewMode={viewMode}
               questions={questionsState.questions}
-              onSelectQuestion={h => useInvestigationStore.getState().expandToQuestion(h.id)}
+              onSelectQuestion={h => useInvestigationFeatureStore.getState().expandToQuestion(h.id)}
               onAddSubQuestion={questionsState.addSubQuestion}
               factors={drillFactors}
               getChildrenSummary={questionsState.getChildrenSummary}

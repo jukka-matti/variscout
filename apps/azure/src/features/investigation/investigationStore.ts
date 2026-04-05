@@ -62,7 +62,7 @@ export type InvestigationStore = InvestigationStoreState & InvestigationStoreAct
 
 // ── Store ───────────────────────────────────────────────────────────────────
 
-export const useInvestigationStore = create<InvestigationStore>(set => ({
+export const useInvestigationFeatureStore = create<InvestigationStore>(set => ({
   // Initial state
   questions: [],
   questionsMap: {},

@@ -175,7 +175,7 @@ variscout-lite/
 - **Strategy Pattern (ADR-047)**: `resolveMode()` + `getStrategy()` in `@variscout/core/strategy` — eliminates cascading mode ternaries. Each mode carries chart slots, KPI type, report config, metric labels, AI coaching hints. CoScout receives mode-specific methodology coaching (lean for yamazumi, multi-channel for performance).
 - **Duplicate Evidence Map types**: `FactorNodeData` is defined in BOTH `packages/hooks/src/useEvidenceMapData.ts` AND `packages/charts/src/EvidenceMap/types.ts` — update both when adding fields
 - **FindingSource is a discriminated union**: Narrow before accessing `.category` (`'category' in src`). Variants: boxplot/pareto (category), ichart (anchorX/Y), yamazumi (category + activityType), coscout (messageId)
-- **Store import aliasing**: Azure feature stores and `@variscout/stores` domain stores export same names — use `as useDomainInvestigationStore` aliasing in files that need both
+- **Feature store naming**: Azure feature stores use `*FeatureStore` suffix (`useInvestigationFeatureStore`, `useImprovementFeatureStore`) to avoid collision with domain stores in `@variscout/stores`
 - **`wouldCreateCycle`**: Lives in `@variscout/core/stats` (causalGraph.ts), not findings
 
 See `.claude/rules/` for code style, chart, testing, and monorepo conventions.

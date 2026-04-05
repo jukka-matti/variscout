@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useImprovementStore } from '../improvementStore';
+import { useImprovementFeatureStore } from '../improvementStore';
 
 beforeEach(() => {
-  useImprovementStore.setState({
+  useImprovementFeatureStore.setState({
     improvementQuestions: [],
     improvementLinkedFindings: [],
     selectedIdeaIds: new Set(),
@@ -13,7 +13,7 @@ beforeEach(() => {
 
 describe('improvementStore', () => {
   it('syncState updates all fields', () => {
-    useImprovementStore.getState().syncState({
+    useImprovementFeatureStore.getState().syncState({
       improvementQuestions: [
         { id: 'q-1', text: 'Fix shift', ideas: [{ id: 'i-1', text: 'Train', createdAt: '' }] },
       ],
@@ -22,7 +22,7 @@ describe('improvementStore', () => {
       projectedCpkMap: { 'f-1': 1.45 },
       convertedIdeaIds: new Set(),
     });
-    const s = useImprovementStore.getState();
+    const s = useImprovementFeatureStore.getState();
     expect(s.improvementQuestions).toHaveLength(1);
     expect(s.improvementLinkedFindings).toHaveLength(1);
     expect(s.selectedIdeaIds.has('i-1')).toBe(true);
@@ -30,7 +30,7 @@ describe('improvementStore', () => {
   });
 
   it('starts with empty state', () => {
-    const s = useImprovementStore.getState();
+    const s = useImprovementFeatureStore.getState();
     expect(s.improvementQuestions).toEqual([]);
     expect(s.selectedIdeaIds.size).toBe(0);
   });

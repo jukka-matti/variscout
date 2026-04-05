@@ -8,7 +8,7 @@
 import React from 'react';
 import { ImprovementWorkspaceBase } from '@variscout/ui';
 import type { UseQuestionsReturn } from '@variscout/hooks';
-import { useImprovementStore } from '../../features/improvement/improvementStore';
+import { useImprovementFeatureStore } from '../../features/improvement/improvementStore';
 import type { UseImprovementOrchestrationReturn } from '../../features/improvement/useImprovementOrchestration';
 
 interface ImprovementViewProps {
@@ -22,10 +22,10 @@ const ImprovementView: React.FC<ImprovementViewProps> = ({
   onBack,
   handleConvertIdeasToActions,
 }) => {
-  const improvementQuestions = useImprovementStore(s => s.improvementQuestions);
-  const improvementLinkedFindings = useImprovementStore(s => s.improvementLinkedFindings);
-  const selectedIdeaIds = useImprovementStore(s => s.selectedIdeaIds);
-  const convertedIdeaIds = useImprovementStore(s => s.convertedIdeaIds);
+  const improvementQuestions = useImprovementFeatureStore(s => s.improvementQuestions);
+  const improvementLinkedFindings = useImprovementFeatureStore(s => s.improvementLinkedFindings);
+  const selectedIdeaIds = useImprovementFeatureStore(s => s.selectedIdeaIds);
+  const convertedIdeaIds = useImprovementFeatureStore(s => s.convertedIdeaIds);
 
   if (improvementQuestions.length === 0) {
     return (

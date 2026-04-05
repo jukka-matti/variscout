@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useInvestigationStore } from '../investigationStore';
+import { useInvestigationFeatureStore } from '../investigationStore';
 import type { Question, SuspectedCause } from '@variscout/core';
 
 const makeQuestion = (overrides: Partial<Question> = {}): Question => ({
@@ -13,7 +13,7 @@ const makeQuestion = (overrides: Partial<Question> = {}): Question => ({
 });
 
 beforeEach(() => {
-  useInvestigationStore.setState({
+  useInvestigationFeatureStore.setState({
     questions: [],
     questionsMap: {},
     ideaImpacts: {},
@@ -26,14 +26,14 @@ beforeEach(() => {
 describe('investigationStore', () => {
   it('syncQuestions updates questions', () => {
     const questions = [makeQuestion({ text: 'Shift effect' })];
-    useInvestigationStore.getState().syncQuestions(questions);
-    expect(useInvestigationStore.getState().questions).toHaveLength(1);
+    useInvestigationFeatureStore.getState().syncQuestions(questions);
+    expect(useInvestigationFeatureStore.getState().questions).toHaveLength(1);
   });
 
   it('syncQuestionsMap updates display map', () => {
     const map = { 'q-1': { text: 'Test', status: 'answered', factor: 'Shift' } };
-    useInvestigationStore.getState().syncQuestionsMap(map);
-    expect(useInvestigationStore.getState().questionsMap).toEqual(map);
+    useInvestigationFeatureStore.getState().syncQuestionsMap(map);
+    expect(useInvestigationFeatureStore.getState().questionsMap).toEqual(map);
   });
 
   it('setProjectionTarget sets and clears', () => {
@@ -43,15 +43,15 @@ describe('investigationStore', () => {
       ideaText: 'Change shift',
       questionText: 'Shift effect',
     };
-    useInvestigationStore.getState().setProjectionTarget(target);
-    expect(useInvestigationStore.getState().projectionTarget).toEqual(target);
-    useInvestigationStore.getState().setProjectionTarget(null);
-    expect(useInvestigationStore.getState().projectionTarget).toBeNull();
+    useInvestigationFeatureStore.getState().setProjectionTarget(target);
+    expect(useInvestigationFeatureStore.getState().projectionTarget).toEqual(target);
+    useInvestigationFeatureStore.getState().setProjectionTarget(null);
+    expect(useInvestigationFeatureStore.getState().projectionTarget).toBeNull();
   });
 
   it('expandToQuestion sets expanded ID', () => {
-    useInvestigationStore.getState().expandToQuestion('q-42');
-    expect(useInvestigationStore.getState().expandedQuestionId).toBe('q-42');
+    useInvestigationFeatureStore.getState().expandToQuestion('q-42');
+    expect(useInvestigationFeatureStore.getState().expandedQuestionId).toBe('q-42');
   });
 
   describe('syncSuspectedCauses', () => {
@@ -66,14 +66,14 @@ describe('investigationStore', () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      useInvestigationStore.getState().syncSuspectedCauses([hub]);
-      expect(useInvestigationStore.getState().suspectedCauses).toHaveLength(1);
-      expect(useInvestigationStore.getState().suspectedCauses[0].name).toBe('Nozzle wear');
+      useInvestigationFeatureStore.getState().syncSuspectedCauses([hub]);
+      expect(useInvestigationFeatureStore.getState().suspectedCauses).toHaveLength(1);
+      expect(useInvestigationFeatureStore.getState().suspectedCauses[0].name).toBe('Nozzle wear');
     });
 
     it('should clear suspected causes', () => {
-      useInvestigationStore.getState().syncSuspectedCauses([]);
-      expect(useInvestigationStore.getState().suspectedCauses).toEqual([]);
+      useInvestigationFeatureStore.getState().syncSuspectedCauses([]);
+      expect(useInvestigationFeatureStore.getState().suspectedCauses).toEqual([]);
     });
   });
 });

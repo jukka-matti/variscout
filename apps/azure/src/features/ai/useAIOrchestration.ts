@@ -41,8 +41,8 @@ import {
 import { isTeamPlan } from '@variscout/core';
 import { useAIDerivedState } from './useAIDerivedState';
 import { useToolHandlers } from './useToolHandlers';
-import { useInvestigationStore } from '../investigation/investigationStore';
-import { useInvestigationStore as useDomainInvestigationStore } from '@variscout/stores';
+import { useInvestigationFeatureStore } from '../investigation/investigationStore';
+import { useInvestigationStore } from '@variscout/stores';
 import { useAIStore, type AIContextSummary } from './aiStore';
 import type { ResponsesApiConfig } from '@variscout/core';
 import {
@@ -161,8 +161,8 @@ export function useAIOrchestration({
   const aiAvailable = enabled && isAIAvailable();
 
   // Read domain store for CoScout context (ADR-066)
-  const causalLinks = useDomainInvestigationStore(s => s.causalLinks);
-  const suspectedCauses = useDomainInvestigationStore(s => s.suspectedCauses);
+  const causalLinks = useInvestigationStore(s => s.causalLinks);
+  const suspectedCauses = useInvestigationStore(s => s.suspectedCauses);
 
   // Per-component preferences (default all on)
   const prefs = aiPreferences ?? { narration: true, insights: true, coscout: true };
@@ -262,7 +262,7 @@ export function useAIOrchestration({
   const [focusContext, setFocusContext] = useState<AIContext['focusContext']>(undefined);
 
   // Read focused question ID from investigation store (ADR-060 Pillar 1)
-  const focusedQuestionId = useInvestigationStore(s => s.expandedQuestionId ?? undefined);
+  const focusedQuestionId = useInvestigationFeatureStore(s => s.expandedQuestionId ?? undefined);
 
   // AI context
   const aiContext = useAIContext({

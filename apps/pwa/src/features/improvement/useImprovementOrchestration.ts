@@ -8,7 +8,7 @@
 import { useMemo, useCallback, useEffect } from 'react';
 import type { Finding } from '@variscout/core';
 import type { UseQuestionsReturn } from '@variscout/hooks';
-import { useImprovementStore, type ImprovementQuestion } from './improvementStore';
+import { useImprovementFeatureStore, type ImprovementQuestion } from './improvementStore';
 
 export type { ImprovementQuestion };
 
@@ -112,7 +112,7 @@ export function useImprovementOrchestration({
   // ── Sync to store ──────────────────────────────────────────────────
 
   useEffect(() => {
-    useImprovementStore.getState().syncState({
+    useImprovementFeatureStore.getState().syncState({
       improvementQuestions,
       improvementLinkedFindings,
       selectedIdeaIds,

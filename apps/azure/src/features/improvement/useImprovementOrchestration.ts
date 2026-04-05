@@ -21,7 +21,7 @@ import type {
 import { calculateStats, toNumericValue } from '@variscout/core';
 import { calculateStagedComparison, toVerificationData } from '@variscout/core/stats';
 import { assignCauseColors } from '@variscout/core/findings';
-import { useInvestigationStore } from '../investigation/investigationStore';
+import { useInvestigationFeatureStore } from '../investigation/investigationStore';
 import type { UseQuestionsReturn } from '@variscout/hooks';
 import type { MatrixIdea, CauseSummary, TrackedAction, SelectedIdea } from '@variscout/ui';
 import {
@@ -31,7 +31,7 @@ import {
   type ImprovementSyncData,
   type ImprovementAction,
 } from '../../components/ImprovementWindow';
-import { useImprovementStore } from './improvementStore';
+import { useImprovementFeatureStore } from './improvementStore';
 
 export type { ImprovementQuestion } from './improvementStore';
 
@@ -353,7 +353,7 @@ export function useImprovementOrchestration({
 
   // ── Sync computed state to Zustand store ────────────────────────────────
   useEffect(() => {
-    useImprovementStore.getState().syncState({
+    useImprovementFeatureStore.getState().syncState({
       improvementQuestions,
       improvementLinkedFindings,
       selectedIdeaIds,
@@ -471,7 +471,7 @@ export function useImprovementOrchestration({
 
   // ── Projection reference context (subset vs complement stats) ───────────
   const projectionReferenceContext = useMemo(() => {
-    const projTarget = useInvestigationStore.getState().projectionTarget;
+    const projTarget = useInvestigationFeatureStore.getState().projectionTarget;
     if (!projTarget || !rawData?.length || !outcome) return undefined;
 
     const question = (persistedQuestions ?? []).find(q => q.id === projTarget.questionId);

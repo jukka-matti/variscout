@@ -8,7 +8,7 @@
 import { useMemo, useCallback, useEffect, useRef } from 'react';
 import { computeIdeaImpact } from '@variscout/core';
 import { migrateCauseRolesToHubs } from '@variscout/core/findings';
-import { useInvestigationStore } from './investigationStore';
+import { useInvestigationFeatureStore } from './investigationStore';
 import { usePanelsStore } from '../panels/panelsStore';
 import { useSuspectedCauses } from '@variscout/hooks';
 import type {
@@ -79,7 +79,7 @@ export function useInvestigationOrchestration({
   // ── Suspected cause hubs ──────────────────────────────────────────────
   const suspectedCausesState = useSuspectedCauses({
     initialHubs: [],
-    onHubsChange: useInvestigationStore.getState().syncSuspectedCauses,
+    onHubsChange: useInvestigationFeatureStore.getState().syncSuspectedCauses,
   });
 
   // One-time migration: if hubs are empty and questions have legacy causeRole markers,
@@ -114,7 +114,7 @@ export function useInvestigationOrchestration({
 
   // ── Sync questions to Zustand store ──────────────────────────────────
   useEffect(() => {
-    useInvestigationStore.getState().syncQuestions(questionsState.questions);
+    useInvestigationFeatureStore.getState().syncQuestions(questionsState.questions);
   }, [questionsState.questions]);
 
   // ── Sync questionsMap to store ───────────────────────────────────────
@@ -142,7 +142,7 @@ export function useInvestigationOrchestration({
   }, [questionsState.questions]);
 
   useEffect(() => {
-    useInvestigationStore.getState().syncQuestionsMap(questionsMap);
+    useInvestigationFeatureStore.getState().syncQuestionsMap(questionsMap);
   }, [questionsMap]);
 
   // ── Sync ideaImpacts to store ─────────────────────────────────────────
@@ -171,7 +171,7 @@ export function useInvestigationOrchestration({
   }, [questionsState.questions, processContext, stats]);
 
   useEffect(() => {
-    useInvestigationStore.getState().syncIdeaImpacts(ideaImpacts);
+    useInvestigationFeatureStore.getState().syncIdeaImpacts(ideaImpacts);
   }, [ideaImpacts]);
 
   // ── DataContext-dependent actions ─────────────────────────────────────
@@ -193,7 +193,7 @@ export function useInvestigationOrchestration({
       const question = questionsState.getQuestion(questionId);
       const idea = question?.ideas?.find(i => i.id === ideaId);
       if (question && idea) {
-        useInvestigationStore.getState().setProjectionTarget({
+        useInvestigationFeatureStore.getState().setProjectionTarget({
           questionId,
           ideaId,
           ideaText: idea.text,
@@ -209,16 +209,16 @@ export function useInvestigationOrchestration({
 
   // Clear the projection target
   const clearProjectionTarget = useCallback(() => {
-    useInvestigationStore.getState().setProjectionTarget(null);
+    useInvestigationFeatureStore.getState().setProjectionTarget(null);
   }, []);
 
   // Save projection from What-If back to idea
   const handleSaveIdeaProjection = useCallback(
     (projection: FindingProjection) => {
-      const target = useInvestigationStore.getState().projectionTarget;
+      const target = useInvestigationFeatureStore.getState().projectionTarget;
       if (target) {
         questionsState.setIdeaProjection(target.questionId, target.ideaId, projection);
-        useInvestigationStore.getState().setProjectionTarget(null);
+        useInvestigationFeatureStore.getState().setProjectionTarget(null);
         usePanelsStore.getState().setWhatIfOpen(false);
       }
     },
