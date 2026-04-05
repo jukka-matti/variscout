@@ -79,6 +79,9 @@ packages/
 │              #   useJournalEntries - Journal state and event recording for PI panel Journal tab
 │              #   useQuestionReactivity - Factor-to-question highlight mapping for PI panel context reactivity
 │              #   useVisualGrounding - CoScout visual grounding highlight lifecycle
+│              #   useEvidenceMapData - Evidence Map data flow (statistical + investigation + synthesis layers)
+│              #   usePopoutChannel - BroadcastChannel cross-window sync for pop-out windows
+│              #   useEvidenceMapTimeline - Timeline animation for Evidence Map report replay
 │              #   copySectionAsHTML - Rich clipboard copy utility
 └── ui/        # @variscout/ui - Shared UI components (70+ modules):
                #   AnovaResults, FilterBreadcrumb, FilterChipDropdown, FilterContextBar,

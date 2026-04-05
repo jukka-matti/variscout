@@ -229,6 +229,25 @@ Dashboard uses auto-height mode (`height: 0` in EXPORT_SIZES) — captures full 
 - Copy button: inline 1-click with Check feedback icon
 - All export icons use `size={14}`
 
+## Evidence Map (Data Relationship Visualization)
+
+Spatial visualization of factor relationships using R²adj from best subsets regression:
+
+| Component | Base Export | Purpose |
+|-----------|-------------|---------|
+| `EvidenceMap` | `EvidenceMapBase` | Layered SVG: factor nodes, relationship edges, causal links |
+
+**3-layer architecture (composited `<g>` groups):**
+- **Layer 1 (Statistical):** Factor nodes by R²adj, 5 relationship types, equation bar. PWA + Azure.
+- **Layer 2 (Investigation):** CausalLink directed edges, evidence badges (D/G/E), gap markers. Azure only.
+- **Layer 3 (Synthesis):** SuspectedCause hub convergence zones, projections. Azure only.
+
+**Props pattern:** Props-based, uses `chartColors`/`chromeColors` constants. Layout computed by `evidenceMapLayout.ts` in `@variscout/core`. Data flow via `useEvidenceMapData` hook.
+
+**Mobile:** `enableZoom={true}` wraps in `@visx/zoom` for pinch/pan. `compact={true}` hides labels until zoom > 1.5x. Touch targets enlarged to 44px. `onNodeTap`/`onEdgeTap` open bottom sheets.
+
+**Pop-out:** `?view=evidence-map` route. Cross-window sync via `usePopoutChannel` (BroadcastChannel).
+
 ## Yamazumi Chart (Lean Time Study Analysis)
 
 Yamazumi stacked bar chart visualizes cycle time composition by activity type:
