@@ -500,6 +500,8 @@ export {
   type CauseSummaryCardData,
   AddActionDialog,
   type AddActionDialogProps,
+  BrainstormModal,
+  type BrainstormModalProps,
 } from './components/ImprovementPlan';
 
 // Yamazumi Components
