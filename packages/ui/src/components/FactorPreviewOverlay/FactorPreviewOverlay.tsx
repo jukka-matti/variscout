@@ -4,10 +4,15 @@
  * Shows the Layer 1 (statistical) Evidence Map with a recommendation
  * to start investigation with the top factor (highest R²adj).
  * Rendered as a centered modal overlay over the dashboard.
+ *
+ * For continuous factors, an optional ScatterFit mini-chart replaces the
+ * Evidence Map display to show the fitted regression relationship.
  */
 
 import React, { useRef, useEffect } from 'react';
 import { X, ArrowRight } from 'lucide-react';
+import { ScatterFit } from '@variscout/charts';
+import type { ScatterFitProps } from '@variscout/charts';
 
 export interface FactorPreviewOverlayProps {
   /** Rendered Evidence Map element (Layer 1 only) — parent provides */
@@ -24,6 +29,22 @@ export interface FactorPreviewOverlayProps {
   onStartWithFactor: (factor: string) => void;
   /** Called when "Skip" or close is clicked */
   onDismiss: () => void;
+
+  // ── Continuous factor scatter preview ──────────────────────────────────────
+  /** Factor type — 'continuous' renders a ScatterFit chart instead of the Evidence Map */
+  factorType?: 'continuous' | 'categorical';
+  /** Raw scatter data for continuous factors */
+  scatterData?: ScatterFitProps['data'];
+  /** Fitted curve points for continuous factors */
+  fittedLine?: ScatterFitProps['fittedLine'];
+  /** Prediction band for continuous factors */
+  predictionBand?: ScatterFitProps['predictionBand'];
+  /** Optimal point marker (quadratic peak/valley) */
+  optimum?: ScatterFitProps['optimum'];
+  /** Whether the regression is statistically significant */
+  isSignificant?: boolean;
+  /** Insight text shown below the ScatterFit chart */
+  insightText?: string;
 }
 
 export const FactorPreviewOverlay: React.FC<FactorPreviewOverlayProps> = ({
@@ -34,9 +55,23 @@ export const FactorPreviewOverlay: React.FC<FactorPreviewOverlayProps> = ({
   factorCount,
   onStartWithFactor,
   onDismiss,
+  factorType,
+  scatterData,
+  fittedLine,
+  predictionBand,
+  optimum,
+  isSignificant,
+  insightText,
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const modelR2Pct = Math.round(modelR2 * 100);
+
+  const showScatter =
+    factorType === 'continuous' &&
+    scatterData &&
+    scatterData.length > 0 &&
+    fittedLine &&
+    fittedLine.length > 0;
 
   // Focus the dialog container on mount for keyboard accessibility
   useEffect(() => {
@@ -90,9 +125,30 @@ export const FactorPreviewOverlay: React.FC<FactorPreviewOverlayProps> = ({
           </button>
         </div>
 
-        {/* Evidence Map */}
+        {/* Chart area — ScatterFit for continuous, Evidence Map for categorical/default */}
         <div className="h-[min(50vh,400px)] flex-shrink-0 overflow-hidden bg-surface-secondary">
-          {evidenceMap}
+          {showScatter ? (
+            <div className="w-full h-full flex flex-col">
+              <div className="flex-1 min-h-0">
+                <ScatterFit
+                  data={scatterData!}
+                  fittedLine={fittedLine!}
+                  predictionBand={predictionBand}
+                  optimum={optimum}
+                  isSignificant={isSignificant}
+                  xLabel={topFactor}
+                  showBranding={false}
+                />
+              </div>
+              {insightText && (
+                <p className="px-4 py-2 text-xs text-content-secondary text-center flex-shrink-0 border-t border-edge">
+                  {insightText}
+                </p>
+              )}
+            </div>
+          ) : (
+            evidenceMap
+          )}
         </div>
 
         {/* Footer */}
