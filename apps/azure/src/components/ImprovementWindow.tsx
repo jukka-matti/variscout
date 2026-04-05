@@ -1,132 +1,77 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import type {
-  IdeaTimeframe,
-  IdeaDirection,
-  IdeaCostCategory,
-  ImprovementIdea,
-} from '@variscout/core';
+import type { IdeaTimeframe, IdeaDirection, IdeaCostCategory } from '@variscout/core';
 import { ImprovementWorkspaceBase } from '@variscout/ui';
-
-/**
- * Storage keys for cross-window data sync (mirrors FindingsWindow pattern).
- */
-export const IMPROVEMENT_SYNC_KEY = 'variscout_improvement_sync';
-export const IMPROVEMENT_ACTION_KEY = 'variscout_improvement_action';
-
-export interface ImprovementSyncData {
-  synthesis?: string;
-  questions: Array<{
-    id: string;
-    text: string;
-    causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
-    factor?: string;
-    ideas: ImprovementIdea[];
-    linkedFindingName?: string;
-  }>;
-  linkedFindings?: Array<{ id: string; text: string }>;
-  selectedIdeaIds: string[];
-  convertedIdeaIds: string[];
-  targetCpk?: number;
-  timestamp: number;
-}
-
-export type ImprovementAction =
-  | { type: 'synthesis-change'; text: string; timestamp: number }
-  | {
-      type: 'toggle-select';
-      questionId: string;
-      ideaId: string;
-      selected: boolean;
-      timestamp: number;
-    }
-  | {
-      type: 'update-timeframe';
-      questionId: string;
-      ideaId: string;
-      timeframe: IdeaTimeframe | undefined;
-      timestamp: number;
-    }
-  | {
-      type: 'update-direction';
-      questionId: string;
-      ideaId: string;
-      direction: IdeaDirection | undefined;
-      timestamp: number;
-    }
-  | {
-      type: 'update-cost';
-      questionId: string;
-      ideaId: string;
-      cost: { category: IdeaCostCategory } | undefined;
-      timestamp: number;
-    }
-  | { type: 'remove-idea'; questionId: string; ideaId: string; timestamp: number }
-  | { type: 'add-idea'; questionId: string; text: string; timestamp: number }
-  | { type: 'convert-to-actions'; timestamp: number };
+import { usePopoutChannel, writeHydrationData, HYDRATION_KEYS } from '@variscout/hooks';
+import type {
+  ImprovementSyncData,
+  ImprovementSyncMessage,
+  ImprovementActionMessage,
+  ImprovementAction,
+} from '@variscout/hooks';
 
 /**
  * Standalone improvement window for dual-screen setups.
  *
  * Rendered when the URL contains ?view=improvement.
- * Receives data from the main window via localStorage sync.
+ * Receives data from the main window via BroadcastChannel (usePopoutChannel).
  *
  * Communication pattern (same as FindingsWindow):
- * 1. Main window writes data to localStorage under IMPROVEMENT_SYNC_KEY
- * 2. This window listens for storage events and updates its state
- * 3. Actions are sent back via IMPROVEMENT_ACTION_KEY
+ * 1. Main window writes hydration data to localStorage, then opens this window
+ * 2. This window reads hydration data on mount via usePopoutChannel
+ * 3. Ongoing sync via BroadcastChannel messages (ImprovementSyncMessage)
+ * 4. Actions sent back via BroadcastChannel (ImprovementActionMessage)
  */
 const ImprovementWindow: React.FC = () => {
+  const { lastMessage, sendMessage, hydrationData } = usePopoutChannel<
+    ImprovementSyncMessage | ImprovementActionMessage
+  >({
+    windowId: 'improvement',
+    hydrationKey: HYDRATION_KEYS.improvement,
+  });
+
   const [syncData, setSyncData] = useState<ImprovementSyncData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Load initial data from localStorage
+  // Initialize from hydration data (localStorage snapshot written before popup opened)
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(IMPROVEMENT_SYNC_KEY);
-      if (stored) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time initialization from localStorage on mount
-        setSyncData(JSON.parse(stored) as ImprovementSyncData);
-      } else {
-        setError('No data available. Please open from the main VariScout window.');
-      }
-    } catch {
-      setError('Failed to load data from main window.');
+    if (hydrationData) {
+      setSyncData(hydrationData as ImprovementSyncData);
+    } else {
+      setError('No data available. Please open from the main VariScout window.');
     }
-  }, []);
+  }, [hydrationData]);
 
-  // Listen for storage updates from main window
+  // Listen for ongoing sync via BroadcastChannel
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === IMPROVEMENT_SYNC_KEY && e.newValue) {
-        try {
-          setSyncData(JSON.parse(e.newValue) as ImprovementSyncData);
-          setError(null);
-        } catch (err) {
-          console.error('Failed to parse improvement sync data:', err);
-        }
-      }
-    };
+    if (lastMessage?.type === 'improvement-sync') {
+      setSyncData((lastMessage as ImprovementSyncMessage).payload);
+      setError(null);
+    }
+  }, [lastMessage]);
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  /** Send an action to the main window via localStorage */
-  const sendAction = useCallback((action: ImprovementAction) => {
-    localStorage.setItem(IMPROVEMENT_ACTION_KEY, JSON.stringify(action));
-  }, []);
+  /** Send an action to the main window via BroadcastChannel */
+  const sendAction = useCallback(
+    (action: ImprovementAction) => {
+      sendMessage({
+        type: 'improvement-action',
+        target: 'main',
+        payload: action,
+      } as Omit<ImprovementActionMessage, 'source'>);
+    },
+    [sendMessage]
+  );
 
   const handleSynthesisChange = useCallback(
     (text: string) => {
-      sendAction({ type: 'synthesis-change', text, timestamp: Date.now() });
-      setSyncData(prev => (prev ? { ...prev, synthesis: text, timestamp: Date.now() } : prev));
+      sendAction({ action: 'synthesis-change', text });
+      setSyncData(prev => (prev ? { ...prev, synthesis: text } : prev));
     },
     [sendAction]
   );
 
   const handleToggleSelect = useCallback(
     (questionId: string, ideaId: string, selected: boolean) => {
-      sendAction({ type: 'toggle-select', questionId, ideaId, selected, timestamp: Date.now() });
+      sendAction({ action: 'toggle-select', questionId, ideaId, selected });
       setSyncData(prev => {
         if (!prev) return prev;
         const selectedSet = new Set(prev.selectedIdeaIds);
@@ -143,7 +88,6 @@ const ImprovementWindow: React.FC = () => {
                 }
               : h
           ),
-          timestamp: Date.now(),
         };
       });
     },
@@ -153,11 +97,10 @@ const ImprovementWindow: React.FC = () => {
   const handleUpdateTimeframe = useCallback(
     (questionId: string, ideaId: string, timeframe: IdeaTimeframe | undefined) => {
       sendAction({
-        type: 'update-timeframe',
+        action: 'update-timeframe',
         questionId,
         ideaId,
         timeframe,
-        timestamp: Date.now(),
       });
       setSyncData(prev => {
         if (!prev) return prev;
@@ -168,7 +111,6 @@ const ImprovementWindow: React.FC = () => {
               ? { ...h, ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, timeframe } : i)) }
               : h
           ),
-          timestamp: Date.now(),
         };
       });
     },
@@ -178,11 +120,10 @@ const ImprovementWindow: React.FC = () => {
   const handleUpdateDirection = useCallback(
     (questionId: string, ideaId: string, direction: IdeaDirection | undefined) => {
       sendAction({
-        type: 'update-direction',
+        action: 'update-direction',
         questionId,
         ideaId,
         direction,
-        timestamp: Date.now(),
       });
       setSyncData(prev => {
         if (!prev) return prev;
@@ -193,7 +134,6 @@ const ImprovementWindow: React.FC = () => {
               ? { ...h, ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, direction } : i)) }
               : h
           ),
-          timestamp: Date.now(),
         };
       });
     },
@@ -203,11 +143,10 @@ const ImprovementWindow: React.FC = () => {
   const handleUpdateCost = useCallback(
     (questionId: string, ideaId: string, cost: { category: IdeaCostCategory } | undefined) => {
       sendAction({
-        type: 'update-cost',
+        action: 'update-cost',
         questionId,
         ideaId,
         cost,
-        timestamp: Date.now(),
       });
       setSyncData(prev => {
         if (!prev) return prev;
@@ -218,7 +157,6 @@ const ImprovementWindow: React.FC = () => {
               ? { ...h, ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, cost } : i)) }
               : h
           ),
-          timestamp: Date.now(),
         };
       });
     },
@@ -227,7 +165,7 @@ const ImprovementWindow: React.FC = () => {
 
   const handleRemoveIdea = useCallback(
     (questionId: string, ideaId: string) => {
-      sendAction({ type: 'remove-idea', questionId, ideaId, timestamp: Date.now() });
+      sendAction({ action: 'remove-idea', questionId, ideaId });
       setSyncData(prev => {
         if (!prev) return prev;
         return {
@@ -236,7 +174,6 @@ const ImprovementWindow: React.FC = () => {
             h.id === questionId ? { ...h, ideas: h.ideas.filter(i => i.id !== ideaId) } : h
           ),
           selectedIdeaIds: prev.selectedIdeaIds.filter(id => id !== ideaId),
-          timestamp: Date.now(),
         };
       });
     },
@@ -245,7 +182,7 @@ const ImprovementWindow: React.FC = () => {
 
   const handleAddIdea = useCallback(
     (questionId: string, text: string) => {
-      sendAction({ type: 'add-idea', questionId, text, timestamp: Date.now() });
+      sendAction({ action: 'add-idea', questionId, text });
       // Optimistic add with temp ID — will be reconciled on next sync
       setSyncData(prev => {
         if (!prev) return prev;
@@ -262,12 +199,11 @@ const ImprovementWindow: React.FC = () => {
                       text,
                       selected: false,
                       createdAt: new Date().toISOString(),
-                    } as ImprovementIdea,
+                    } as import('@variscout/core').ImprovementIdea,
                   ],
                 }
               : h
           ),
-          timestamp: Date.now(),
         };
       });
     },
@@ -275,7 +211,7 @@ const ImprovementWindow: React.FC = () => {
   );
 
   const handleConvertToActions = useCallback(() => {
-    sendAction({ type: 'convert-to-actions', timestamp: Date.now() });
+    sendAction({ action: 'convert-to-actions' });
   }, [sendAction]);
 
   // Error state
@@ -326,10 +262,11 @@ export default ImprovementWindow;
 
 /**
  * Open the improvement workspace in a popout window.
- * Writes sync data to localStorage, then opens a new window with ?view=improvement.
+ * Writes hydration data to localStorage, then opens a new window with ?view=improvement.
+ * Ongoing sync happens via BroadcastChannel (usePopoutChannel).
  */
 export function openImprovementPopout(data: ImprovementSyncData): Window | null {
-  localStorage.setItem(IMPROVEMENT_SYNC_KEY, JSON.stringify(data));
+  writeHydrationData(HYDRATION_KEYS.improvement, data);
 
   const url = `${window.location.origin}${window.location.pathname}?view=improvement`;
   return window.open(
@@ -340,8 +277,19 @@ export function openImprovementPopout(data: ImprovementSyncData): Window | null 
 }
 
 /**
- * Update the improvement popout with new data.
+ * Update the improvement popout with new data (call on every data change).
+ * Sends a BroadcastChannel message — the popout listens via usePopoutChannel.
  */
 export function updateImprovementPopout(data: ImprovementSyncData): void {
-  localStorage.setItem(IMPROVEMENT_SYNC_KEY, JSON.stringify(data));
+  try {
+    const channel = new BroadcastChannel('variscout-sync');
+    channel.postMessage({
+      type: 'improvement-sync',
+      source: 'main',
+      payload: data,
+    } satisfies ImprovementSyncMessage);
+    channel.close();
+  } catch {
+    // BroadcastChannel not available — silently ignore
+  }
 }

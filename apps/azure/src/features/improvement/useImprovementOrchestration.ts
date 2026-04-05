@@ -24,13 +24,9 @@ import { assignCauseColors } from '@variscout/core/findings';
 import { useInvestigationFeatureStore } from '../investigation/investigationStore';
 import type { UseQuestionsReturn } from '@variscout/hooks';
 import type { MatrixIdea, CauseSummary, TrackedAction, SelectedIdea } from '@variscout/ui';
-import {
-  openImprovementPopout,
-  updateImprovementPopout,
-  IMPROVEMENT_ACTION_KEY,
-  type ImprovementSyncData,
-  type ImprovementAction,
-} from '../../components/ImprovementWindow';
+import { openImprovementPopout, updateImprovementPopout } from '../../components/ImprovementWindow';
+import type { ImprovementSyncData, ImprovementActionMessage } from '@variscout/hooks';
+import { usePopoutChannel } from '@variscout/hooks';
 import { useImprovementFeatureStore } from './improvementStore';
 
 export type { ImprovementQuestion } from './improvementStore';
@@ -392,7 +388,6 @@ export function useImprovementOrchestration({
       selectedIdeaIds: Array.from(selectedIdeaIds),
       convertedIdeaIds: Array.from(convertedIdeaIds),
       targetCpk: processContext?.targetValue,
-      timestamp: Date.now(),
     }),
     [
       processContext,
@@ -414,52 +409,53 @@ export function useImprovementOrchestration({
     updateImprovementPopout(buildImprovementSyncData());
   }, [buildImprovementSyncData]);
 
-  // Listen for actions from the popout window
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key !== IMPROVEMENT_ACTION_KEY || !e.newValue) return;
-      try {
-        const action = JSON.parse(e.newValue) as ImprovementAction;
-        switch (action.type) {
-          case 'synthesis-change':
-            setProcessContext({ ...processContext, synthesis: action.text });
-            break;
-          case 'toggle-select':
-            questionsState.selectIdea(action.questionId, action.ideaId, action.selected);
-            break;
-          case 'update-timeframe':
-            questionsState.updateIdea(action.questionId, action.ideaId, {
-              timeframe: action.timeframe,
-            });
-            break;
-          case 'update-direction':
-            questionsState.updateIdea(action.questionId, action.ideaId, {
-              direction: action.direction,
-            });
-            break;
-          case 'update-cost':
-            questionsState.updateIdea(action.questionId, action.ideaId, {
-              cost: action.cost,
-            });
-            break;
-          case 'remove-idea':
-            questionsState.removeIdea(action.questionId, action.ideaId);
-            break;
-          case 'add-idea':
-            questionsState.addIdea(action.questionId, action.text);
-            break;
-          case 'convert-to-actions':
-            handleConvertIdeasToActions();
-            break;
-        }
-      } catch (err) {
-        console.error('[Editor] Failed to parse improvement action:', err);
-      }
-    };
+  // Listen for actions from the popout window via BroadcastChannel
+  const { lastMessage: improvementLastMessage } = usePopoutChannel<ImprovementActionMessage>({
+    windowId: 'main',
+  });
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [processContext, setProcessContext, questionsState, handleConvertIdeasToActions]);
+  useEffect(() => {
+    if (!improvementLastMessage || improvementLastMessage.type !== 'improvement-action') return;
+    const action = (improvementLastMessage as ImprovementActionMessage).payload;
+    switch (action.action) {
+      case 'synthesis-change':
+        setProcessContext({ ...processContext, synthesis: action.text });
+        break;
+      case 'toggle-select':
+        questionsState.selectIdea(action.questionId, action.ideaId, action.selected);
+        break;
+      case 'update-timeframe':
+        questionsState.updateIdea(action.questionId, action.ideaId, {
+          timeframe: action.timeframe,
+        });
+        break;
+      case 'update-direction':
+        questionsState.updateIdea(action.questionId, action.ideaId, {
+          direction: action.direction,
+        });
+        break;
+      case 'update-cost':
+        questionsState.updateIdea(action.questionId, action.ideaId, {
+          cost: action.cost,
+        });
+        break;
+      case 'remove-idea':
+        questionsState.removeIdea(action.questionId, action.ideaId);
+        break;
+      case 'add-idea':
+        questionsState.addIdea(action.questionId, action.text);
+        break;
+      case 'convert-to-actions':
+        handleConvertIdeasToActions();
+        break;
+    }
+  }, [
+    improvementLastMessage,
+    processContext,
+    setProcessContext,
+    questionsState,
+    handleConvertIdeasToActions,
+  ]);
 
   // Synthesis text change handler
   const handleSynthesisChange = useCallback(
