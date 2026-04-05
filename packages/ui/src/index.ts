@@ -399,6 +399,9 @@ export {
   type ReportInvestigationSummaryProps,
 } from './components/ReportView';
 
+// Report Evidence Map
+export { ReportEvidenceMap, type ReportEvidenceMapProps } from './components/ReportEvidenceMap';
+
 // Services
 export {
   errorService,
