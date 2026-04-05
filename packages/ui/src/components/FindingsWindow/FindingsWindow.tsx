@@ -1,5 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useTranslation } from '@variscout/hooks';
+import {
+  useTranslation,
+  usePopoutChannel,
+  writeHydrationData,
+  HYDRATION_KEYS,
+} from '@variscout/hooks';
+import type {
+  FindingsSyncData,
+  FindingsAction,
+  FindingsSyncMessage,
+  FindingsActionMessage,
+  DrillStep,
+} from '@variscout/hooks';
 import { formatForMobile } from '@variscout/core/ai';
 import { ClipboardCopy, Check, List, LayoutGrid, Copy } from 'lucide-react';
 import { useIsMobile } from '../../hooks';
@@ -11,7 +23,6 @@ import type {
   ProcessContext,
   InvestigationPhase,
 } from '@variscout/core';
-import type { DrillStep } from '@variscout/hooks';
 import FindingsLog from '../FindingsLog/FindingsLog';
 import FindingBoardColumns from '../FindingsLog/FindingBoardColumns';
 import { copyFindingsToClipboard } from '../FindingsLog/export';
@@ -21,75 +32,28 @@ import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
 import { InvestigationSidebar } from './InvestigationSidebar';
 
 /**
- * Storage keys for cross-window data sync
- */
-export const FINDINGS_SYNC_KEY = 'variscout_findings_sync';
-export const FINDINGS_ACTION_KEY = 'variscout_findings_action';
-
-export interface FindingsSyncData {
-  findings: Finding[];
-  columnAliases?: Record<string, string>;
-  drillPath: DrillStep[];
-  timestamp: number;
-  /** Questions for investigation page tree view */
-  treeQuestions?: Question[];
-  /** Process context for brief header */
-  processContext?: ProcessContext;
-  /** Current metric value for progress bar */
-  currentValue?: number;
-  /** Projected metric value from selected improvement ideas */
-  projectedValue?: number;
-  /** Current investigation phase */
-  investigationPhase?: InvestigationPhase;
-  /** Suggested questions from AI context */
-  suggestedQuestions?: string[];
-  /** Factor role classifications */
-  factorRoles?: Record<string, string>;
-  /** Whether AI features are available */
-  aiAvailable?: boolean;
-  /** Factor Intelligence questions (Question objects with questionSource) */
-  questions?: Question[];
-  /** Current issue statement */
-  issueStatement?: string;
-  /** CoScout-suggested sharpened issue statement */
-  suggestedIssueStatement?: string;
-  /** Formulated problem statement */
-  problemStatement?: string;
-  /** Whether problem statement is complete */
-  isProblemStatementComplete?: boolean;
-}
-
-export interface FindingsAction {
-  type:
-    | 'edit'
-    | 'delete'
-    | 'set-status'
-    | 'set-tag'
-    | 'add-comment'
-    | 'edit-comment'
-    | 'delete-comment';
-  id: string;
-  text?: string; // for edit, add-comment, edit-comment
-  status?: FindingStatus; // for set-status
-  tag?: FindingTag | null; // for set-tag
-  commentId?: string; // for edit-comment, delete-comment
-  timestamp: number;
-}
-
-/**
  * Standalone findings window for dual-screen setups.
  *
  * Rendered when the URL contains ?view=findings.
- * Receives findings from the main window via localStorage sync.
+ * Receives findings from the main window via BroadcastChannel (usePopoutChannel).
  *
  * Communication pattern:
- * 1. Main window writes findings data to localStorage under FINDINGS_SYNC_KEY
- * 2. This window listens for storage events and updates its state
- * 3. Edit/delete actions are sent back via FINDINGS_ACTION_KEY
+ * 1. Main window writes hydration data to localStorage, then opens this window
+ * 2. This window reads hydration data on mount via usePopoutChannel
+ * 3. Ongoing sync via BroadcastChannel messages (FindingsSyncMessage)
+ * 4. Edit/delete actions sent back via BroadcastChannel (FindingsActionMessage)
  */
 const FindingsWindow: React.FC = () => {
   const { t, formatStat } = useTranslation();
   const isMobile = useIsMobile();
+
+  const { lastMessage, sendMessage, hydrationData } = usePopoutChannel<
+    FindingsSyncMessage | FindingsActionMessage
+  >({
+    windowId: 'findings',
+    hydrationKey: HYDRATION_KEYS.findings,
+  });
+
   const [syncData, setSyncData] = useState<FindingsSyncData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
@@ -115,55 +79,44 @@ const FindingsWindow: React.FC = () => {
     });
   }, []);
 
-  // Load initial data from localStorage
+  // Initialize from hydration data (localStorage snapshot written before popup opened)
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(FINDINGS_SYNC_KEY);
-      if (stored) {
-        const data = JSON.parse(stored) as FindingsSyncData;
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time initialization from localStorage on mount
-        setSyncData(data);
-      } else {
-        setError('No data available. Please open from the main VariScout window.');
-      }
-    } catch {
-      setError('Failed to load data from main window.');
+    if (hydrationData) {
+      setSyncData(hydrationData as FindingsSyncData);
+    } else {
+      setError('No data available. Please open from the main VariScout window.');
     }
-  }, []);
+  }, [hydrationData]);
 
-  // Listen for storage updates from main window
+  // Listen for ongoing sync via BroadcastChannel
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === FINDINGS_SYNC_KEY && e.newValue) {
-        try {
-          const data = JSON.parse(e.newValue) as FindingsSyncData;
-          setSyncData(data);
-          setError(null);
-        } catch (err) {
-          console.error('Failed to parse sync data:', err);
-        }
-      }
-    };
+    if (lastMessage?.type === 'findings-sync') {
+      setSyncData((lastMessage as FindingsSyncMessage).payload);
+      setError(null);
+    }
+  }, [lastMessage]);
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  /** Send an action to the main window via localStorage */
-  const sendAction = useCallback((action: FindingsAction) => {
-    localStorage.setItem(FINDINGS_ACTION_KEY, JSON.stringify(action));
-  }, []);
+  /** Send an action to the main window via BroadcastChannel */
+  const sendAction = useCallback(
+    (action: FindingsAction) => {
+      sendMessage({
+        type: 'findings-action',
+        target: 'main',
+        payload: action,
+      } as Omit<FindingsActionMessage, 'source'>);
+    },
+    [sendMessage]
+  );
 
   // Edit finding
   const handleEditFinding = useCallback(
     (id: string, text: string) => {
-      sendAction({ type: 'edit', id, text, timestamp: Date.now() });
+      sendAction({ action: 'edit', id, text });
       setSyncData(prev => {
         if (!prev) return prev;
         return {
           ...prev,
           findings: prev.findings.map(f => (f.id === id ? { ...f, text } : f)),
-          timestamp: Date.now(),
         };
       });
     },
@@ -173,13 +126,12 @@ const FindingsWindow: React.FC = () => {
   // Delete finding
   const handleDeleteFinding = useCallback(
     (id: string) => {
-      sendAction({ type: 'delete', id, timestamp: Date.now() });
+      sendAction({ action: 'delete', id });
       setSyncData(prev => {
         if (!prev) return prev;
         return {
           ...prev,
           findings: prev.findings.filter(f => f.id !== id),
-          timestamp: Date.now(),
         };
       });
     },
@@ -189,7 +141,7 @@ const FindingsWindow: React.FC = () => {
   // Set finding status
   const handleSetStatus = useCallback(
     (id: string, status: FindingStatus) => {
-      sendAction({ type: 'set-status', id, status, timestamp: Date.now() });
+      sendAction({ action: 'set-status', id, status });
       setSyncData(prev => {
         if (!prev) return prev;
         return {
@@ -197,7 +149,6 @@ const FindingsWindow: React.FC = () => {
           findings: prev.findings.map(f =>
             f.id === id ? { ...f, status, statusChangedAt: Date.now() } : f
           ),
-          timestamp: Date.now(),
         };
       });
     },
@@ -207,13 +158,12 @@ const FindingsWindow: React.FC = () => {
   // Set finding tag
   const handleSetTag = useCallback(
     (id: string, tag: FindingTag | null) => {
-      sendAction({ type: 'set-tag', id, tag, timestamp: Date.now() });
+      sendAction({ action: 'set-tag', id, tag });
       setSyncData(prev => {
         if (!prev) return prev;
         return {
           ...prev,
           findings: prev.findings.map(f => (f.id === id ? { ...f, tag: tag ?? undefined } : f)),
-          timestamp: Date.now(),
         };
       });
     },
@@ -223,7 +173,7 @@ const FindingsWindow: React.FC = () => {
   // Add comment
   const handleAddComment = useCallback(
     (id: string, text: string) => {
-      sendAction({ type: 'add-comment', id, text, timestamp: Date.now() });
+      sendAction({ action: 'add-comment', id, text });
       // Optimistic: append a comment locally
       setSyncData(prev => {
         if (!prev) return prev;
@@ -240,7 +190,6 @@ const FindingsWindow: React.FC = () => {
                 }
               : f
           ),
-          timestamp: Date.now(),
         };
       });
     },
@@ -250,7 +199,7 @@ const FindingsWindow: React.FC = () => {
   // Edit comment
   const handleEditComment = useCallback(
     (findingId: string, commentId: string, text: string) => {
-      sendAction({ type: 'edit-comment', id: findingId, commentId, text, timestamp: Date.now() });
+      sendAction({ action: 'edit-comment', id: findingId, commentId, text });
       setSyncData(prev => {
         if (!prev) return prev;
         return {
@@ -263,7 +212,6 @@ const FindingsWindow: React.FC = () => {
                 }
               : f
           ),
-          timestamp: Date.now(),
         };
       });
     },
@@ -273,7 +221,7 @@ const FindingsWindow: React.FC = () => {
   // Delete comment
   const handleDeleteComment = useCallback(
     (findingId: string, commentId: string) => {
-      sendAction({ type: 'delete-comment', id: findingId, commentId, timestamp: Date.now() });
+      sendAction({ action: 'delete-comment', id: findingId, commentId });
       setSyncData(prev => {
         if (!prev) return prev;
         return {
@@ -281,7 +229,6 @@ const FindingsWindow: React.FC = () => {
           findings: prev.findings.map(f =>
             f.id === findingId ? { ...f, comments: f.comments.filter(c => c.id !== commentId) } : f
           ),
-          timestamp: Date.now(),
         };
       });
     },
@@ -554,7 +501,8 @@ export default FindingsWindow;
 
 /**
  * Open the findings in a popout window.
- * Writes sync data to localStorage, then opens a new window with ?view=findings.
+ * Writes hydration data to localStorage, then opens a new window with ?view=findings.
+ * Ongoing sync happens via BroadcastChannel (usePopoutChannel).
  */
 export interface PopoutSyncOptions {
   findings: Finding[];
@@ -575,17 +523,16 @@ export interface PopoutSyncOptions {
   isProblemStatementComplete?: boolean;
 }
 
-export function openFindingsPopout(
+function buildSyncData(
   findings: Finding[],
   columnAliases?: Record<string, string>,
   drillPath?: DrillStep[],
   options?: Omit<PopoutSyncOptions, 'findings' | 'columnAliases' | 'drillPath'>
-): Window | null {
-  const syncData: FindingsSyncData = {
+): FindingsSyncData {
+  return {
     findings,
     columnAliases,
     drillPath: drillPath ?? [],
-    timestamp: Date.now(),
     treeQuestions: options?.treeQuestions,
     processContext: options?.processContext,
     currentValue: options?.currentValue,
@@ -600,7 +547,18 @@ export function openFindingsPopout(
     problemStatement: options?.problemStatement,
     isProblemStatementComplete: options?.isProblemStatementComplete,
   };
-  localStorage.setItem(FINDINGS_SYNC_KEY, JSON.stringify(syncData));
+}
+
+export function openFindingsPopout(
+  findings: Finding[],
+  columnAliases?: Record<string, string>,
+  drillPath?: DrillStep[],
+  options?: Omit<PopoutSyncOptions, 'findings' | 'columnAliases' | 'drillPath'>
+): Window | null {
+  const syncData = buildSyncData(findings, columnAliases, drillPath, options);
+
+  // Write hydration snapshot for the popout to read on mount
+  writeHydrationData(HYDRATION_KEYS.findings, syncData);
 
   const url = `${window.location.origin}${window.location.pathname}?view=findings`;
   const popup = window.open(
@@ -614,6 +572,7 @@ export function openFindingsPopout(
 
 /**
  * Update the findings popout with new data (call on every findings/drillPath change).
+ * Sends a BroadcastChannel message — the popout listens via usePopoutChannel.
  */
 export function updateFindingsPopout(
   findings: Finding[],
@@ -621,24 +580,17 @@ export function updateFindingsPopout(
   drillPath?: DrillStep[],
   options?: Omit<PopoutSyncOptions, 'findings' | 'columnAliases' | 'drillPath'>
 ): void {
-  const syncData: FindingsSyncData = {
-    findings,
-    columnAliases,
-    drillPath: drillPath ?? [],
-    timestamp: Date.now(),
-    treeQuestions: options?.treeQuestions,
-    processContext: options?.processContext,
-    currentValue: options?.currentValue,
-    projectedValue: options?.projectedValue,
-    investigationPhase: options?.investigationPhase,
-    suggestedQuestions: options?.suggestedQuestions,
-    factorRoles: options?.factorRoles,
-    aiAvailable: options?.aiAvailable,
-    questions: options?.questions,
-    issueStatement: options?.issueStatement,
-    suggestedIssueStatement: options?.suggestedIssueStatement,
-    problemStatement: options?.problemStatement,
-    isProblemStatementComplete: options?.isProblemStatementComplete,
-  };
-  localStorage.setItem(FINDINGS_SYNC_KEY, JSON.stringify(syncData));
+  const syncData = buildSyncData(findings, columnAliases, drillPath, options);
+
+  try {
+    const channel = new BroadcastChannel('variscout-sync');
+    channel.postMessage({
+      type: 'findings-sync',
+      source: 'main',
+      payload: syncData,
+    } satisfies FindingsSyncMessage);
+    channel.close();
+  } catch {
+    // BroadcastChannel not available — silently ignore
+  }
 }

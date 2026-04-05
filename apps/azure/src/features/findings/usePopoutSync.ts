@@ -2,18 +2,18 @@
  * usePopoutSync - Manages findings popout window lifecycle and two-way sync.
  *
  * Extracted from useFindingsOrchestration to keep popout window management
- * (open, update, listen for storage events) in its own hook.
+ * (open, update, listen for BroadcastChannel messages) in its own hook.
+ *
+ * Communication pattern:
+ * - Main → Popout: openFindingsPopout (hydration) + updateFindingsPopout (BroadcastChannel)
+ * - Popout → Main: FindingsActionMessage via BroadcastChannel, received here via usePopoutChannel
  */
 
 import { useCallback, useEffect, useRef, useMemo } from 'react';
 import type { Finding, Question, ProcessContext } from '@variscout/core';
-import type { UseFindingsReturn, DrillStep } from '@variscout/hooks';
-import {
-  openFindingsPopout,
-  updateFindingsPopout,
-  FINDINGS_ACTION_KEY,
-  type FindingsAction,
-} from '@variscout/ui';
+import type { UseFindingsReturn, DrillStep, FindingsActionMessage } from '@variscout/hooks';
+import { usePopoutChannel } from '@variscout/hooks';
+import { openFindingsPopout, updateFindingsPopout } from '@variscout/ui';
 
 export interface UsePopoutSyncOptions {
   /** Current findings list */
@@ -72,43 +72,39 @@ export function usePopoutSync({
     updateFindingsPopout(findings, columnAliases, drillPath, popoutOptions);
   }, [findings, columnAliases, drillPath, popoutOptions]);
 
-  // Listen for actions from popout window
+  // Listen for actions from popout window via BroadcastChannel
+  const { lastMessage } = usePopoutChannel<FindingsActionMessage>({
+    windowId: 'main',
+  });
+
   useEffect(() => {
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key !== FINDINGS_ACTION_KEY || !e.newValue) return;
-      try {
-        const action = JSON.parse(e.newValue) as FindingsAction;
-        switch (action.type) {
-          case 'edit':
-            if (action.text !== undefined) findingsState.editFinding(action.id, action.text);
-            break;
-          case 'delete':
-            findingsState.deleteFinding(action.id);
-            break;
-          case 'set-status':
-            if (action.status) findingsState.setFindingStatus(action.id, action.status);
-            break;
-          case 'set-tag':
-            findingsState.setFindingTag(action.id, action.tag ?? null);
-            break;
-          case 'add-comment':
-            if (action.text !== undefined) findingsState.addFindingComment(action.id, action.text);
-            break;
-          case 'edit-comment':
-            if (action.commentId && action.text !== undefined)
-              findingsState.editFindingComment(action.id, action.commentId, action.text);
-            break;
-          case 'delete-comment':
-            if (action.commentId) findingsState.deleteFindingComment(action.id, action.commentId);
-            break;
-        }
-      } catch {
-        // ignore parse errors
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, [findingsState]);
+    if (!lastMessage || lastMessage.type !== 'findings-action') return;
+    const action = (lastMessage as FindingsActionMessage).payload;
+    switch (action.action) {
+      case 'edit':
+        if (action.text !== undefined) findingsState.editFinding(action.id, action.text);
+        break;
+      case 'delete':
+        findingsState.deleteFinding(action.id);
+        break;
+      case 'set-status':
+        if (action.status) findingsState.setFindingStatus(action.id, action.status);
+        break;
+      case 'set-tag':
+        findingsState.setFindingTag(action.id, action.tag ?? null);
+        break;
+      case 'add-comment':
+        if (action.text !== undefined) findingsState.addFindingComment(action.id, action.text);
+        break;
+      case 'edit-comment':
+        if (action.commentId && action.text !== undefined)
+          findingsState.editFindingComment(action.id, action.commentId, action.text);
+        break;
+      case 'delete-comment':
+        if (action.commentId) findingsState.deleteFindingComment(action.id, action.commentId);
+        break;
+    }
+  }, [lastMessage, findingsState]);
 
   return { handleOpenFindingsPopout };
 }

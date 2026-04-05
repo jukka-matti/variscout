@@ -6,8 +6,6 @@ import {
   FindingsWindow,
   openFindingsPopout,
   updateFindingsPopout,
-  FINDINGS_ACTION_KEY,
-  type FindingsAction,
   YamazumiDetectedModal,
   PerformanceDetectedModal,
   CapabilitySuggestionModal,
@@ -29,7 +27,9 @@ import {
   useJournalEntries,
   useFilteredData,
   useAnalysisStats,
+  usePopoutChannel,
 } from '@variscout/hooks';
+import type { FindingsActionMessage } from '@variscout/hooks';
 import { useProjectStore, useInvestigationStore } from '@variscout/stores';
 import AppHeader from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
@@ -522,43 +522,39 @@ function AppMain() {
     updateFindingsPopout(findingsState.findings, columnAliases, drillPath);
   }, [findingsState.findings, columnAliases, drillPath]);
 
-  // Findings popout: listen for actions from popout window
+  // Findings popout: listen for actions from popout window via BroadcastChannel
+  const { lastMessage: findingsPopoutMessage } = usePopoutChannel<FindingsActionMessage>({
+    windowId: 'main',
+  });
+
   useEffect(() => {
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key !== FINDINGS_ACTION_KEY || !e.newValue) return;
-      try {
-        const action = JSON.parse(e.newValue) as FindingsAction;
-        switch (action.type) {
-          case 'edit':
-            if (action.text !== undefined) findingsState.editFinding(action.id, action.text);
-            break;
-          case 'delete':
-            findingsState.deleteFinding(action.id);
-            break;
-          case 'set-status':
-            if (action.status) findingsState.setFindingStatus(action.id, action.status);
-            break;
-          case 'set-tag':
-            findingsState.setFindingTag(action.id, action.tag ?? null);
-            break;
-          case 'add-comment':
-            if (action.text !== undefined) findingsState.addFindingComment(action.id, action.text);
-            break;
-          case 'edit-comment':
-            if (action.commentId && action.text !== undefined)
-              findingsState.editFindingComment(action.id, action.commentId, action.text);
-            break;
-          case 'delete-comment':
-            if (action.commentId) findingsState.deleteFindingComment(action.id, action.commentId);
-            break;
-        }
-      } catch {
-        // ignore parse errors
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, [findingsState]);
+    if (!findingsPopoutMessage || findingsPopoutMessage.type !== 'findings-action') return;
+    const action = (findingsPopoutMessage as FindingsActionMessage).payload;
+    switch (action.action) {
+      case 'edit':
+        if (action.text !== undefined) findingsState.editFinding(action.id, action.text);
+        break;
+      case 'delete':
+        findingsState.deleteFinding(action.id);
+        break;
+      case 'set-status':
+        if (action.status) findingsState.setFindingStatus(action.id, action.status);
+        break;
+      case 'set-tag':
+        findingsState.setFindingTag(action.id, action.tag ?? null);
+        break;
+      case 'add-comment':
+        if (action.text !== undefined) findingsState.addFindingComment(action.id, action.text);
+        break;
+      case 'edit-comment':
+        if (action.commentId && action.text !== undefined)
+          findingsState.editFindingComment(action.id, action.commentId, action.text);
+        break;
+      case 'delete-comment':
+        if (action.commentId) findingsState.deleteFindingComment(action.id, action.commentId);
+        break;
+    }
+  }, [findingsPopoutMessage, findingsState]);
 
   const isOnline = useOnlineStatus();
 
