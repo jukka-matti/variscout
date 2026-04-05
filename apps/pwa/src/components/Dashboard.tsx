@@ -326,8 +326,12 @@ const Dashboard = ({
       .filter((v: number) => !isNaN(v));
   }, [filteredData, outcome]);
 
-  // Probability plot series (single series in PWA — no factor support)
-  const probabilitySeries = useProbabilityPlotData({ values: histogramData });
+  // Probability plot series — linked to boxplot factor for multi-series grouping
+  const probabilitySeries = useProbabilityPlotData({
+    values: histogramData,
+    factorColumn: boxplotFactor,
+    rows: filteredData,
+  });
 
   // Accessible live region text for screen readers
   const liveRegionText = useMemo(() => {

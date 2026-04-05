@@ -85,6 +85,8 @@ When a factor column is active, one colored line per factor level is rendered on
 | CI bands    | Shown only for the hovered series (avoids clutter)                               |
 | Legend      | Color dot + series name, shown when multi-series                                 |
 
+**Factor selection:** The probability plot is linked to the Boxplot factor selector — when the analyst selects a factor in the Boxplot dropdown, the probability plot automatically groups by the same factor. Data flow: `boxplotFactor` from `projectStore` → `useProbabilityPlotData({ values, factorColumn, rows })` → multi-series rendering.
+
 **Slope interpretation:** Steeper line = smaller StDev = better capability. Parallel lines = same spread, different means (location shift). Different slopes = variability problem.
 
 ---

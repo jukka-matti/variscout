@@ -14,7 +14,8 @@ import type { SessionClosePromptItem } from '@variscout/ui';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { toNumericValue, createFactorFinding } from '@variscout/core';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
-import { computeHubEvidence } from '@variscout/core/findings';
+import { computeHubEvidence, computeHubProjection } from '@variscout/core/findings';
+import type { HubProjection } from '@variscout/core';
 import type { ExclusionReason, FindingStatus, SuspectedCauseEvidence } from '@variscout/core';
 import type { UseQuestionsReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
 import {
@@ -176,6 +177,46 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     }
     return map;
   }, [hubsFromStore, questionsState.questions, bestSubsets, resolved]);
+
+  // Compute worst levels from bestSubsets level effects (for hub projections)
+  const currentWorstLevels = useMemo(() => {
+    if (!bestSubsets) return {};
+    const worst: Record<string, string> = {};
+    for (const subset of bestSubsets.subsets) {
+      for (const factor of subset.factors) {
+        if (worst[factor]) continue;
+        const effects = subset.levelEffects.get(factor);
+        if (!effects) continue;
+        let worstLevel: string | undefined;
+        let worstEffect = -Infinity;
+        for (const [level, effect] of effects.entries()) {
+          if (Math.abs(effect) > worstEffect) {
+            worstEffect = Math.abs(effect);
+            worstLevel = level;
+          }
+        }
+        if (worstLevel) worst[factor] = worstLevel;
+      }
+    }
+    return worst;
+  }, [bestSubsets]);
+
+  // Compute hub projections for ConclusionCard
+  const hubProjectionsForPI = useMemo(() => {
+    if (hubsFromStore.length === 0 || !bestSubsets) return undefined;
+    const map = new Map<string, HubProjection>();
+    for (const hub of hubsFromStore) {
+      const proj = computeHubProjection(
+        hub,
+        questionsState.questions,
+        bestSubsets,
+        currentWorstLevels,
+        specs ?? undefined
+      );
+      if (proj) map.set(hub.id, proj);
+    }
+    return map;
+  }, [hubsFromStore, questionsState.questions, bestSubsets, currentWorstLevels, specs]);
 
   // ── PI Panel: Questions + Journal wiring ─────────────────────────────
   const activeFactor = useMemo(() => {
@@ -561,6 +602,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
                       phaseBadge={journeyPhase ?? undefined}
                       hubs={hubsFromStore.length > 0 ? hubsFromStore : undefined}
                       hubEvidences={hubEvidencesForPI}
+                      hubProjections={hubProjectionsForPI}
                       onNavigateToInvestigation={() =>
                         usePanelsStore.getState().showInvestigation()
                       }

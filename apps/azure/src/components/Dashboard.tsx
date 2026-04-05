@@ -369,8 +369,12 @@ const Dashboard = ({
       .filter((v: number) => !isNaN(v));
   }, [filteredData, outcome]);
 
-  // Probability plot series (single series for now — factor wiring in Step 7)
-  const probabilitySeries = useProbabilityPlotData({ values: histogramData });
+  // Probability plot series — linked to boxplot factor for multi-series grouping
+  const probabilitySeries = useProbabilityPlotData({
+    values: histogramData,
+    factorColumn: boxplotFactor,
+    rows: filteredData,
+  });
 
   // Keyboard: clear selection on Escape (complement to hook's focused-mode ESC)
   useEffect(() => {

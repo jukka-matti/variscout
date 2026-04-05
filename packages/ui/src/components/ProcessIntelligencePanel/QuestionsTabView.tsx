@@ -3,7 +3,11 @@ import { Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import type { Question, Finding } from '@variscout/core/findings';
 import type { QuestionStatus } from '@variscout/core/findings';
 import type { BestSubsetResult } from '@variscout/core/stats';
-import type { SuspectedCause as SuspectedCauseHub, SuspectedCauseEvidence } from '@variscout/core';
+import type {
+  SuspectedCause as SuspectedCauseHub,
+  SuspectedCauseEvidence,
+  HubProjection,
+} from '@variscout/core';
 import QuestionRow from './QuestionRow';
 import QuestionRowExpanded from './QuestionRowExpanded';
 import ObservationsSection from './ObservationsSection';
@@ -54,6 +58,8 @@ export interface QuestionsTabViewProps {
   hubs?: SuspectedCauseHub[];
   /** Hub evidence map — passed to ConclusionCard */
   hubEvidences?: Map<string, SuspectedCauseEvidence>;
+  /** Hub model projections — passed to ConclusionCard */
+  hubProjections?: Map<string, HubProjection>;
   /** Navigate to the Investigation workspace (passed to ConclusionCard) */
   onNavigateToInvestigation?: () => void;
 }
@@ -99,6 +105,7 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
   onLinkObservation,
   hubs,
   hubEvidences,
+  hubProjections,
   onNavigateToInvestigation,
 }) => {
   // Track which questions are expanded
@@ -359,6 +366,7 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
         targetCpk={targetCpk}
         hubs={hubs}
         hubEvidences={hubEvidences}
+        hubProjections={hubProjections}
         onNavigateToInvestigation={onNavigateToInvestigation}
       />
 

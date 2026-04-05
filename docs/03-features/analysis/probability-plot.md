@@ -133,6 +133,22 @@ The Y-axis shows the **normal quantile** (z-score) calculated using the **Acklam
 
 ---
 
+## Factor Grouping (Multi-Series)
+
+When a factor is selected in the Boxplot factor dropdown, the probability plot automatically overlays **one series per factor level** with different colors and a legend. This reveals whether normality varies across process conditions — a common finding in mixed-population data.
+
+Each series shows its own:
+
+- **Fitted line** with 95% confidence bands
+- **Anderson-Darling test** p-value (per series, when n ≥ 7)
+- **Mean, StdDev, N** in the series tooltip
+
+This is especially useful for diagnosing multi-modal distributions: if the overall probability plot shows an S-curve or clusters, stratifying by factor often reveals that each subgroup is individually normal — the non-normality comes from mixing different populations.
+
+The factor selection is linked to the Boxplot — both charts always show the same grouping factor. This keeps the analysis synchronized: you see distribution shape (probability plot) and location/spread (boxplot) for the same grouping.
+
+---
+
 ## Example Interpretations
 
 ### Example 1: Normal Data

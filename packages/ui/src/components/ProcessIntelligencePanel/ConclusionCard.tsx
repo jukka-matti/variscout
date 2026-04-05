@@ -1,6 +1,10 @@
 import React from 'react';
 import { Check, ArrowRight } from 'lucide-react';
-import type { SuspectedCause as SuspectedCauseHub, SuspectedCauseEvidence } from '@variscout/core';
+import type {
+  SuspectedCause as SuspectedCauseHub,
+  SuspectedCauseEvidence,
+  HubProjection,
+} from '@variscout/core';
 
 export interface SuspectedCause {
   factor: string;
@@ -15,6 +19,8 @@ export interface ConclusionCardProps {
   /** Hub-based display (new model) */
   hubs?: SuspectedCauseHub[];
   hubEvidences?: Map<string, SuspectedCauseEvidence>;
+  /** Model-based projections per hub (from computeHubProjection) */
+  hubProjections?: Map<string, HubProjection>;
   onNavigateToInvestigation?: () => void;
 }
 
@@ -39,6 +45,7 @@ const ConclusionCard: React.FC<ConclusionCardProps> = ({
   targetCpk,
   hubs,
   hubEvidences,
+  hubProjections,
   onNavigateToInvestigation,
 }) => {
   const useHubModel = hubs !== undefined && hubs.length > 0;
@@ -70,23 +77,36 @@ const ConclusionCard: React.FC<ConclusionCardProps> = ({
             const evidenceBadge = evidence
               ? `${evidence.contribution.label} ${Math.round(evidence.contribution.value * 100)}%`
               : null;
+            const projection = hubProjections?.get(hub.id);
 
             return (
               <div
                 key={hub.id}
-                className="flex items-center gap-1.5 rounded bg-purple-500/15 px-1.5 py-1"
+                className="rounded bg-purple-500/15 px-1.5 py-1"
                 data-testid={`conclusion-hub-${hub.id}`}
               >
-                <span
-                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${HUB_STATUS_DOT[hub.status]}`}
-                />
-                <span className="text-[0.6875rem] text-purple-200 font-medium flex-1 truncate">
-                  {hub.name}
-                </span>
-                {evidenceBadge && (
-                  <span className="text-[0.5625rem] text-purple-300/70 font-medium shrink-0">
-                    {evidenceBadge}
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${HUB_STATUS_DOT[hub.status]}`}
+                  />
+                  <span className="text-[0.6875rem] text-purple-200 font-medium flex-1 truncate">
+                    {hub.name}
                   </span>
+                  {evidenceBadge && (
+                    <span className="text-[0.5625rem] text-purple-300/70 font-medium shrink-0">
+                      {evidenceBadge}
+                    </span>
+                  )}
+                </div>
+                {projection && (
+                  <div
+                    className="text-[0.5625rem] text-purple-300/60 font-mono ml-3 mt-0.5"
+                    data-testid={`conclusion-hub-projection-${hub.id}`}
+                  >
+                    {projection.label} {projection.predictedMeanDelta > 0 ? '+' : ''}
+                    {projection.predictedMeanDelta.toFixed(1)} (R²adj{' '}
+                    {Math.round(projection.rSquaredAdj * 100)}%)
+                  </div>
                 )}
               </div>
             );
