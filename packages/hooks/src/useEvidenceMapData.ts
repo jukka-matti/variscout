@@ -141,6 +141,8 @@ export interface UseEvidenceMapDataReturn {
   activeLayer: 1 | 2 | 3;
   /** Whether the map has no data to render */
   isEmpty: boolean;
+  /** Factors with at least one answered or ruled-out question */
+  exploredFactors: Set<string>;
 }
 
 // ============================================================================
@@ -297,6 +299,7 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
         convergencePoints: [],
         activeLayer: 1 as const,
         isEmpty: true,
+        exploredFactors: new Set(),
       };
     }
 
@@ -353,6 +356,14 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
     if (causalEdges.length > 0) activeLayer = 2;
     if (convergencePoints.length > 0) activeLayer = 3;
 
+    // Compute explored factors: factors with at least one answered or ruled-out question
+    const exploredFactors = new Set<string>();
+    for (const q of questions) {
+      if (q.factor && (q.status === 'answered' || q.causeRole === 'ruled-out')) {
+        exploredFactors.add(q.factor);
+      }
+    }
+
     return {
       outcomeNode,
       factorNodes,
@@ -362,6 +373,7 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
       convergencePoints,
       activeLayer,
       isEmpty: factorNodes.length === 0,
+      exploredFactors,
     };
   }, [
     bestSubsets,
