@@ -1,6 +1,15 @@
-import React, { useState, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Activity, BarChart3, PieChart, TrendingUp } from 'lucide-react';
-import { useTranslation } from '@variscout/hooks';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Activity,
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  GitBranch,
+} from 'lucide-react';
+import { useTranslation, useEvidenceMapData } from '@variscout/hooks';
+import { EvidenceMap } from '@variscout/charts';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -11,11 +20,18 @@ import {
   FactorSelector,
   FilterBreadcrumb,
   MobileCategorySheet,
+  EvidenceMapNodeSheet,
+  EvidenceMapEdgeSheet,
 } from '@variscout/ui';
+import {
+  computeBestSubsets,
+  computeMainEffects,
+  computeInteractionEffects,
+} from '@variscout/core/stats';
 import type { StatsResult, AnovaResult, DataRow, Finding } from '@variscout/core';
 import type { FilterChipData } from '@variscout/ui';
 
-type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats';
+type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'map';
 
 interface MobileDashboardProps {
   outcome: string | null;
@@ -81,6 +97,111 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   const { t } = useTranslation();
   const [activeView, setActiveView] = useState<ChartView>('ichart');
 
+  // ── Factor Intelligence for Evidence Map (requires 2+ factors) ──
+  const hasFactorIntelligence = factors.length >= 2 && !!outcome && filteredData.length > 0;
+
+  const bestSubsets = useMemo(() => {
+    if (!hasFactorIntelligence) return null;
+    return computeBestSubsets(filteredData, outcome!, factors);
+  }, [filteredData, outcome, factors, hasFactorIntelligence]);
+
+  const mainEffects = useMemo(() => {
+    if (!hasFactorIntelligence) return null;
+    return computeMainEffects(filteredData, outcome!, factors);
+  }, [filteredData, outcome, factors, hasFactorIntelligence]);
+
+  const interactionEffects = useMemo(() => {
+    if (!hasFactorIntelligence) return null;
+    return computeInteractionEffects(filteredData, outcome!, factors);
+  }, [filteredData, outcome, factors, hasFactorIntelligence]);
+
+  // Evidence Map data — only compute when bestSubsets has a meaningful model
+  const bestModel = bestSubsets?.subsets[0];
+  const showMapTab = !!bestModel && bestModel.rSquaredAdj > 0.05;
+
+  // Reset to I-Chart if map tab disappears while active
+  useEffect(() => {
+    if (!showMapTab && activeView === 'map') {
+      setActiveView('ichart');
+    }
+  }, [showMapTab, activeView]);
+
+  const evidenceMapData = useEvidenceMapData({
+    bestSubsets: showMapTab ? bestSubsets : null,
+    mainEffects: showMapTab ? mainEffects : null,
+    interactions: showMapTab ? interactionEffects : null,
+    containerSize: { width: 400, height: 350 }, // mobile container size
+    mode: 'standard',
+  });
+
+  // Evidence Map sheet state
+  const [nodeSheet, setNodeSheet] = useState<{
+    factor: string;
+    rSquaredAdj: number;
+    levelEffects: Array<{ level: string; effect: number }>;
+    relationships: Array<{ otherFactor: string; type: string; strength: number }>;
+  } | null>(null);
+
+  const [edgeSheet, setEdgeSheet] = useState<{
+    factorA: string;
+    factorB: string;
+    relationshipType: string;
+    strength: number;
+  } | null>(null);
+
+  const handleNodeTap = useCallback(
+    (factor: string) => {
+      const node = evidenceMapData.factorNodes.find(n => n.factor === factor);
+      if (!node) return;
+      const relationships = evidenceMapData.relationshipEdges
+        .filter(e => e.factorA === factor || e.factorB === factor)
+        .map(e => ({
+          otherFactor: e.factorA === factor ? e.factorB : e.factorA,
+          type: e.type,
+          strength: e.strength,
+        }));
+      setNodeSheet({
+        factor,
+        rSquaredAdj: node.rSquaredAdj,
+        levelEffects: node.levelEffects,
+        relationships,
+      });
+    },
+    [evidenceMapData.factorNodes, evidenceMapData.relationshipEdges]
+  );
+
+  const handleEdgeTap = useCallback(
+    (factorA: string, factorB: string) => {
+      const edge = evidenceMapData.relationshipEdges.find(
+        e =>
+          (e.factorA === factorA && e.factorB === factorB) ||
+          (e.factorA === factorB && e.factorB === factorA)
+      );
+      if (!edge) return;
+      setEdgeSheet({
+        factorA: edge.factorA,
+        factorB: edge.factorB,
+        relationshipType: edge.type,
+        strength: edge.strength,
+      });
+    },
+    [evidenceMapData.relationshipEdges]
+  );
+
+  const handleNodeSheetDrillDown = useCallback(
+    (factor: string) => {
+      if (onDrillDown) {
+        // Drill down on the factor's worst level (highest absolute effect)
+        const node = evidenceMapData.factorNodes.find(n => n.factor === factor);
+        if (node && node.levelEffects.length > 0) {
+          onDrillDown(factor, node.levelEffects[0].level);
+        }
+      }
+      setNodeSheet(null);
+    },
+    [onDrillDown, evidenceMapData.factorNodes]
+  );
+
   // MobileCategorySheet state
   const [sheetData, setSheetData] = useState<{
     categoryKey: string;
@@ -126,12 +247,18 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
     [onPinFinding, sheetData]
   );
 
-  const views: { key: ChartView; label: string; icon: React.ReactNode }[] = [
-    { key: 'ichart', label: t('chart.type.ichart'), icon: <Activity size={18} /> },
-    { key: 'boxplot', label: t('chart.type.boxplot'), icon: <BarChart3 size={18} /> },
-    { key: 'pareto', label: t('chart.type.pareto'), icon: <PieChart size={18} /> },
-    { key: 'stats', label: t('view.stats'), icon: <TrendingUp size={18} /> },
-  ];
+  const views: { key: ChartView; label: string; icon: React.ReactNode }[] = useMemo(() => {
+    const base: { key: ChartView; label: string; icon: React.ReactNode }[] = [
+      { key: 'ichart', label: t('chart.type.ichart'), icon: <Activity size={18} /> },
+      { key: 'boxplot', label: t('chart.type.boxplot'), icon: <BarChart3 size={18} /> },
+      { key: 'pareto', label: t('chart.type.pareto'), icon: <PieChart size={18} /> },
+      { key: 'stats', label: t('view.stats'), icon: <TrendingUp size={18} /> },
+    ];
+    if (showMapTab) {
+      base.push({ key: 'map', label: t('chart.type.map', 'Map'), icon: <GitBranch size={18} /> });
+    }
+    return base;
+  }, [t, showMapTab]);
 
   const currentIndex = views.findIndex(v => v.key === activeView);
 
@@ -287,6 +414,18 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
                 compact
               />
             )}
+            {activeView === 'map' && showMapTab && (
+              <EvidenceMap
+                outcomeNode={evidenceMapData.outcomeNode}
+                factorNodes={evidenceMapData.factorNodes}
+                relationshipEdges={evidenceMapData.relationshipEdges}
+                equation={evidenceMapData.equation}
+                enableZoom={true}
+                compact={true}
+                onNodeTap={handleNodeTap}
+                onEdgeTap={handleEdgeTap}
+              />
+            )}
           </ErrorBoundary>
         </div>
         {activeView === 'boxplot' && anovaResult && (
@@ -318,6 +457,31 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
         onPinFinding={handleSheetPinFinding}
         onClose={() => setSheetData(null)}
       />
+
+      {/* Evidence Map Node Sheet */}
+      {nodeSheet && (
+        <EvidenceMapNodeSheet
+          isOpen={true}
+          onClose={() => setNodeSheet(null)}
+          factor={nodeSheet.factor}
+          rSquaredAdj={nodeSheet.rSquaredAdj}
+          levelEffects={nodeSheet.levelEffects}
+          relationships={nodeSheet.relationships}
+          onDrillDown={onDrillDown ? handleNodeSheetDrillDown : undefined}
+        />
+      )}
+
+      {/* Evidence Map Edge Sheet */}
+      {edgeSheet && (
+        <EvidenceMapEdgeSheet
+          isOpen={true}
+          onClose={() => setEdgeSheet(null)}
+          factorA={edgeSheet.factorA}
+          factorB={edgeSheet.factorB}
+          relationshipType={edgeSheet.relationshipType}
+          strength={edgeSheet.strength}
+        />
+      )}
     </div>
   );
 };

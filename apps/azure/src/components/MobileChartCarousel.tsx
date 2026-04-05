@@ -12,7 +12,7 @@
  * instead of drilling down immediately. Sheet provides drill-down, highlight, and
  * pin-as-finding actions.
  */
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -20,9 +20,12 @@ import {
   BarChart3,
   PieChart,
   TrendingUp,
+  GitBranch,
   Send,
   Check,
 } from 'lucide-react';
+import { useEvidenceMapData } from '@variscout/hooks';
+import { EvidenceMap } from '@variscout/charts';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -34,8 +37,15 @@ import {
   ErrorBoundary,
   FilterBreadcrumb,
   MobileCategorySheet,
+  EvidenceMapNodeSheet,
+  EvidenceMapEdgeSheet,
 } from '@variscout/ui';
 import type { MobileCategorySheetData } from '@variscout/ui';
+import {
+  computeBestSubsets,
+  computeMainEffects,
+  computeInteractionEffects,
+} from '@variscout/core/stats';
 import type {
   StatsResult,
   SpecLimits,
@@ -49,9 +59,9 @@ import type { FilterChipData } from '@variscout/ui';
 import type { HighlightColor } from '@variscout/hooks';
 import type { AzureFindingsCallbacks } from '@variscout/ui';
 
-type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats';
+type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'map';
 
-const VIEWS: { key: ChartView; label: string; icon: React.ReactNode }[] = [
+const BASE_VIEWS: { key: ChartView; label: string; icon: React.ReactNode }[] = [
   { key: 'ichart', label: 'I-Chart', icon: <Activity size={18} /> },
   { key: 'boxplot', label: 'Boxplot', icon: <BarChart3 size={18} /> },
   { key: 'pareto', label: 'Pareto', icon: <PieChart size={18} /> },
@@ -165,6 +175,116 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
     onSetFindingAssignee,
   } = findingsCallbacks ?? {};
   const [activeView, setActiveView] = useState<ChartView>('ichart');
+
+  // ── Factor Intelligence for Evidence Map (requires 2+ factors) ──
+  const hasFactorIntelligence = factors.length >= 2 && !!outcome && filteredData.length > 0;
+
+  const bestSubsets = useMemo(() => {
+    if (!hasFactorIntelligence) return null;
+    return computeBestSubsets(filteredData, outcome!, factors);
+  }, [filteredData, outcome, factors, hasFactorIntelligence]);
+
+  const mainEffectsResult = useMemo(() => {
+    if (!hasFactorIntelligence) return null;
+    return computeMainEffects(filteredData, outcome!, factors);
+  }, [filteredData, outcome, factors, hasFactorIntelligence]);
+
+  const interactionEffectsResult = useMemo(() => {
+    if (!hasFactorIntelligence) return null;
+    return computeInteractionEffects(filteredData, outcome!, factors);
+  }, [filteredData, outcome, factors, hasFactorIntelligence]);
+
+  const bestModel = bestSubsets?.subsets[0];
+  const showMapTab = !!bestModel && bestModel.rSquaredAdj > 0.05;
+
+  // Reset to I-Chart if map tab disappears while active
+  useEffect(() => {
+    if (!showMapTab && activeView === 'map') {
+      setActiveView('ichart');
+    }
+  }, [showMapTab, activeView]);
+
+  const evidenceMapData = useEvidenceMapData({
+    bestSubsets: showMapTab ? bestSubsets : null,
+    mainEffects: showMapTab ? mainEffectsResult : null,
+    interactions: showMapTab ? interactionEffectsResult : null,
+    containerSize: { width: 400, height: 350 },
+    mode: 'standard',
+  });
+
+  // Build views array with optional Map tab
+  const VIEWS = useMemo(() => {
+    if (!showMapTab) return BASE_VIEWS;
+    return [
+      ...BASE_VIEWS,
+      { key: 'map' as ChartView, label: 'Map', icon: <GitBranch size={18} /> },
+    ];
+  }, [showMapTab]);
+
+  // Evidence Map sheet state
+  const [nodeSheet, setNodeSheet] = useState<{
+    factor: string;
+    rSquaredAdj: number;
+    levelEffects: Array<{ level: string; effect: number }>;
+    relationships: Array<{ otherFactor: string; type: string; strength: number }>;
+  } | null>(null);
+
+  const [edgeSheet, setEdgeSheet] = useState<{
+    factorA: string;
+    factorB: string;
+    relationshipType: string;
+    strength: number;
+  } | null>(null);
+
+  const handleNodeTap = useCallback(
+    (factor: string) => {
+      const node = evidenceMapData.factorNodes.find(n => n.factor === factor);
+      if (!node) return;
+      const relationships = evidenceMapData.relationshipEdges
+        .filter(e => e.factorA === factor || e.factorB === factor)
+        .map(e => ({
+          otherFactor: e.factorA === factor ? e.factorB : e.factorA,
+          type: e.type,
+          strength: e.strength,
+        }));
+      setNodeSheet({
+        factor,
+        rSquaredAdj: node.rSquaredAdj,
+        levelEffects: node.levelEffects,
+        relationships,
+      });
+    },
+    [evidenceMapData.factorNodes, evidenceMapData.relationshipEdges]
+  );
+
+  const handleEdgeTap = useCallback(
+    (factorA: string, factorB: string) => {
+      const edge = evidenceMapData.relationshipEdges.find(
+        e =>
+          (e.factorA === factorA && e.factorB === factorB) ||
+          (e.factorA === factorB && e.factorB === factorA)
+      );
+      if (!edge) return;
+      setEdgeSheet({
+        factorA: edge.factorA,
+        factorB: edge.factorB,
+        relationshipType: edge.type,
+        strength: edge.strength,
+      });
+    },
+    [evidenceMapData.relationshipEdges]
+  );
+
+  const handleNodeSheetDrillDown = useCallback(
+    (factor: string) => {
+      const node = evidenceMapData.factorNodes.find(n => n.factor === factor);
+      if (node && node.levelEffects.length > 0) {
+        onDrillDown(factor, node.levelEffects[0].level);
+      }
+      setNodeSheet(null);
+    },
+    [onDrillDown, evidenceMapData.factorNodes]
+  );
 
   // Category sheet state
   const [categorySheet, setCategorySheet] = useState<MobileCategorySheetData | null>(null);
@@ -536,6 +656,18 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
                 onInvestigateFactor={onInvestigateFactor}
               />
             )}
+            {activeView === 'map' && showMapTab && (
+              <EvidenceMap
+                outcomeNode={evidenceMapData.outcomeNode}
+                factorNodes={evidenceMapData.factorNodes}
+                relationshipEdges={evidenceMapData.relationshipEdges}
+                equation={evidenceMapData.equation}
+                enableZoom={true}
+                compact={true}
+                onNodeTap={handleNodeTap}
+                onEdgeTap={handleEdgeTap}
+              />
+            )}
           </ErrorBoundary>
         </div>
 
@@ -573,6 +705,31 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
         renderExtra={canMentionInChannel ? renderPostPinFlow : undefined}
         onAskCoScout={onAskCoScout}
       />
+
+      {/* Evidence Map Node Sheet */}
+      {nodeSheet && (
+        <EvidenceMapNodeSheet
+          isOpen={true}
+          onClose={() => setNodeSheet(null)}
+          factor={nodeSheet.factor}
+          rSquaredAdj={nodeSheet.rSquaredAdj}
+          levelEffects={nodeSheet.levelEffects}
+          relationships={nodeSheet.relationships}
+          onDrillDown={handleNodeSheetDrillDown}
+        />
+      )}
+
+      {/* Evidence Map Edge Sheet */}
+      {edgeSheet && (
+        <EvidenceMapEdgeSheet
+          isOpen={true}
+          onClose={() => setEdgeSheet(null)}
+          factorA={edgeSheet.factorA}
+          factorB={edgeSheet.factorB}
+          relationshipType={edgeSheet.relationshipType}
+          strength={edgeSheet.strength}
+        />
+      )}
     </div>
   );
 };
