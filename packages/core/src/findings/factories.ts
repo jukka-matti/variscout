@@ -17,6 +17,7 @@ import {
   type PhotoAttachment,
   type InvestigationCategory,
   type SuspectedCause,
+  type CausalLink,
 } from './types';
 
 /** Generate a unique ID */
@@ -268,6 +269,51 @@ export function createSuspectedCause(
     questionIds,
     findingIds,
     status: 'suspected',
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+/**
+ * Create a new CausalLink with a unique ID.
+ *
+ * A causal link represents a directed relationship between two factors in the
+ * investigation DAG. Used to model causal chains discovered during investigation.
+ *
+ * @param fromFactor - Source factor column name (e.g., "Shift")
+ * @param toFactor - Target factor column name (e.g., "Fill Head")
+ * @param whyStatement - Analyst explanation of the causal mechanism
+ * @param options - Optional configuration for direction, evidence, source, etc.
+ */
+export function createCausalLink(
+  fromFactor: string,
+  toFactor: string,
+  whyStatement: string,
+  options?: {
+    fromLevel?: string;
+    toLevel?: string;
+    direction?: CausalLink['direction'];
+    evidenceType?: CausalLink['evidenceType'];
+    source?: CausalLink['source'];
+    strength?: number;
+    relationshipType?: CausalLink['relationshipType'];
+  }
+): CausalLink {
+  const now = new Date().toISOString();
+  return {
+    id: generateId(),
+    fromFactor,
+    toFactor,
+    fromLevel: options?.fromLevel,
+    toLevel: options?.toLevel,
+    whyStatement,
+    direction: options?.direction ?? 'drives',
+    evidenceType: options?.evidenceType ?? 'unvalidated',
+    questionIds: [],
+    findingIds: [],
+    strength: options?.strength,
+    relationshipType: options?.relationshipType,
+    source: options?.source ?? 'analyst',
     createdAt: now,
     updatedAt: now,
   };

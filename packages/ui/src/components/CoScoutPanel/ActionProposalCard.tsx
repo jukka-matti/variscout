@@ -13,6 +13,8 @@ import {
   BookmarkPlus,
   Navigation,
   CircleCheck,
+  Network,
+  Scan,
 } from 'lucide-react';
 import type { ActionProposal, ActionToolName, ProposalStatus, Locale } from '@variscout/core';
 import { formatStatistic } from '@variscout/core/i18n';
@@ -61,6 +63,16 @@ const TOOL_CONFIG: Record<
   connect_hub_evidence: {
     labelKey: 'ai.tool.connectHubEvidence',
     icon: GitBranch,
+    editable: false,
+  },
+  suggest_causal_link: {
+    labelKey: 'ai.tool.suggestCausalLink' as keyof import('@variscout/core').MessageCatalog,
+    icon: Network,
+    editable: true,
+  },
+  highlight_map_pattern: {
+    labelKey: 'ai.tool.highlightMapPattern' as keyof import('@variscout/core').MessageCatalog,
+    icon: Scan,
     editable: false,
   },
 };

@@ -55,6 +55,9 @@ describe('parseRefMarkers', () => {
       'question',
       'dashboard',
       'improvement',
+      'evidence-node',
+      'evidence-edge',
+      'evidence-map',
     ];
     for (const type of types) {
       const result = parseRefMarkers(`[REF:${type}:x]text[/REF]`);

@@ -387,6 +387,35 @@ export { useBrainstormSession, type UseBrainstormSessionReturn } from './useBrai
 // Brainstorm Detect (poll for active sessions — Team plan auto-detect)
 export { useBrainstormDetect, type UseBrainstormDetectReturn } from './useBrainstormDetect';
 
+// Evidence Map Data (layered visualization computation)
+export {
+  useEvidenceMapData,
+  type UseEvidenceMapDataOptions,
+  type UseEvidenceMapDataReturn,
+  type FactorNodeData,
+  type RelationshipEdgeData,
+  type OutcomeNodeData,
+  type EquationData,
+  type CausalEdgeData,
+  type ConvergencePointData,
+} from './useEvidenceMapData';
+
+// Evidence Map Timeline (report view replay animation)
+export {
+  useEvidenceMapTimeline,
+  type TimelineFrame,
+  type UseEvidenceMapTimelineOptions,
+  type UseEvidenceMapTimelineReturn,
+} from './useEvidenceMapTimeline';
+
+// Popout Channel (BroadcastChannel cross-window sync)
+export {
+  usePopoutChannel,
+  type PopoutMessage,
+  type UsePopoutChannelOptions,
+  type UsePopoutChannelReturn,
+} from './usePopoutChannel';
+
 // Derived hooks (store-first state access)
 export { useFilteredData, type FilteredDataResult } from './useFilteredData';
 export { useAnalysisStats, type AnalysisStatsResult } from './useAnalysisStats';

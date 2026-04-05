@@ -1627,9 +1627,9 @@ describe('buildCoScoutTools', () => {
     expect(tools.every(t => t.parameters.additionalProperties === false)).toBe(true);
   });
 
-  it('never exceeds 21 tools (IMPROVE + Team plan)', () => {
+  it('never exceeds 23 tools (IMPROVE + Team plan)', () => {
     const tools = buildCoScoutTools({ phase: 'improve', isTeamPlan: true });
-    expect(tools.length).toBeLessThanOrEqual(21);
+    expect(tools.length).toBeLessThanOrEqual(23);
   });
 
   it('includes get_finding_attachment in all phases', () => {

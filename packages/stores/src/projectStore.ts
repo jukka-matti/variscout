@@ -19,6 +19,8 @@ import type {
   InvestigationCategory,
   Finding,
   Question,
+  SuspectedCause,
+  CausalLink,
   ParetoRow,
   DataQualityReport,
 } from '@variscout/core';
@@ -154,6 +156,8 @@ export interface SerializedProject {
   findings?: Finding[];
   questions?: Question[];
   categories?: InvestigationCategory[];
+  suspectedCauses?: SuspectedCause[];
+  causalLinks?: CausalLink[];
 }
 
 // ============================================================================

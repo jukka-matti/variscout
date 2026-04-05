@@ -104,6 +104,8 @@ function buildSerializedProject(
     findings: state.findings ?? [],
     questions: state.questions ?? [],
     categories: state.categories ?? [],
+    suspectedCauses: state.suspectedCauses ?? [],
+    causalLinks: state.causalLinks ?? [],
   };
 }
 
@@ -113,6 +115,7 @@ function buildSerializedProject(
  */
 function getCurrentStateFromStores(): Omit<AnalysisState, 'version'> {
   const ps = useProjectStore.getState();
+  const is = useInvestigationStore.getState();
 
   const state: Omit<AnalysisState, 'version'> = {
     rawData: ps.rawData,
@@ -160,14 +163,13 @@ function getCurrentStateFromStores(): Omit<AnalysisState, 'version'> {
   // View state — always include for explicit round-trip
   if (ps.viewState) state.viewState = ps.viewState;
 
-  // Findings — only include if non-empty
-  if (ps.findings.length > 0) state.findings = ps.findings;
-
-  // Questions — only include if non-empty
-  if (ps.questions.length > 0) state.questions = ps.questions;
-
-  // Categories — only include if non-empty
-  if (ps.categories.length > 0) state.categories = ps.categories;
+  // Investigation data — read from investigationStore (authoritative source)
+  // projectStore copies are stale after Zustand-first migration
+  if (is.findings.length > 0) state.findings = is.findings;
+  if (is.questions.length > 0) state.questions = is.questions;
+  if (is.categories.length > 0) state.categories = is.categories;
+  if (is.suspectedCauses.length > 0) state.suspectedCauses = is.suspectedCauses;
+  if (is.causalLinks.length > 0) state.causalLinks = is.causalLinks;
 
   return state;
 }
@@ -217,6 +219,8 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
         findings: state.findings ?? [],
         questions: state.questions ?? [],
         categories: state.categories ?? [],
+        suspectedCauses: state.suspectedCauses ?? [],
+        causalLinks: state.causalLinks ?? [],
       });
     },
     [persistence]
@@ -286,6 +290,8 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
         findings: state.findings ?? [],
         questions: state.questions ?? [],
         categories: state.categories ?? [],
+        suspectedCauses: state.suspectedCauses ?? [],
+        causalLinks: state.causalLinks ?? [],
       });
     },
     [persistence]

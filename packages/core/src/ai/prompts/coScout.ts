@@ -541,6 +541,75 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
       }
     );
 
+    // Evidence Map tools — available during INVESTIGATE+
+    tools.push(
+      {
+        type: 'function',
+        name: 'suggest_causal_link',
+        description:
+          'Propose a causal relationship between two factors based on statistical evidence. ' +
+          'Use when interaction ΔR² > 2% or when the analyst asks about factor relationships.',
+        parameters: {
+          type: 'object',
+          properties: {
+            fromFactor: { type: 'string', description: 'Source factor column name' },
+            toFactor: { type: 'string', description: 'Target factor column name' },
+            fromLevel: {
+              type: ['string', 'null'],
+              description: 'Specific source condition (null if not applicable)',
+            },
+            toLevel: {
+              type: ['string', 'null'],
+              description: 'Specific target condition (null if not applicable)',
+            },
+            mechanism: {
+              type: 'string',
+              description: 'Why this causal relationship exists',
+            },
+            direction: {
+              type: 'string',
+              enum: ['drives', 'modulates', 'confounds'],
+              description:
+                'Type of causal relationship: drives = direct cause, modulates = affects strength, confounds = shared upstream cause',
+            },
+          },
+          required: ['fromFactor', 'toFactor', 'fromLevel', 'toLevel', 'mechanism', 'direction'],
+          additionalProperties: false,
+          strict: true,
+        },
+      },
+      {
+        type: 'function',
+        name: 'highlight_map_pattern',
+        description:
+          'Draw attention to a convergence, gap, or relationship pattern on the Evidence Map. ' +
+          'Use when you notice multiple factors clustering, isolated nodes, or redundant links.',
+        parameters: {
+          type: 'object',
+          properties: {
+            factors: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Factors involved in the pattern',
+            },
+            patternType: {
+              type: 'string',
+              enum: ['convergence', 'gap', 'interaction', 'redundancy'],
+              description:
+                'convergence = multiple links point to same target, gap = factor with no links, interaction = synergistic effect, redundancy = overlapping links',
+            },
+            explanation: {
+              type: 'string',
+              description: 'Why this pattern is noteworthy',
+            },
+          },
+          required: ['factors', 'patternType', 'explanation'],
+          additionalProperties: false,
+          strict: true,
+        },
+      }
+    );
+
     // Suspected cause hub tools — phase-gated to validating/converging
     if (investigationPhase === 'validating' || investigationPhase === 'converging') {
       tools.push({
@@ -1057,6 +1126,28 @@ Never invent data or statistics. If the context does not contain enough informat
       invParts.push(`**\u26a0 Overdue actions:**\n${overdueLines.join('\n')}`);
     }
 
+    // Evidence Map context — interaction effects and causal links
+    if (investigation.interactionEffects) {
+      const significantInteractions = investigation.interactionEffects
+        .filter(r => r.isSignificant && r.deltaRSquared > 0.02)
+        .map(
+          r =>
+            `${r.factorA} \u00d7 ${r.factorB}: \u0394R\u00b2=${(r.deltaRSquared * 100).toFixed(1)}%`
+        );
+      if (significantInteractions.length > 0) {
+        invParts.push(
+          `**Significant interactions:**\n${significantInteractions.map(s => `- ${s}`).join('\n')}`
+        );
+      }
+    }
+
+    if (investigation.causalLinks && investigation.causalLinks.length > 0) {
+      const linkLines = investigation.causalLinks.map(
+        l => `- ${l.fromFactor} \u2192 ${l.toFactor} [${l.direction}] (${l.evidenceType})`
+      );
+      invParts.push(`**Existing causal links (do not duplicate):**\n${linkLines.join('\n')}`);
+    }
+
     if (invParts.length > 0) {
       parts.push('Investigation context:\n' + invParts.join('\n'));
     }
@@ -1230,6 +1321,16 @@ Never use standard SPC terminology (control limits, Nelson rules) for the channe
     if (modeCoachingHints[currentMode]) {
       parts.push(`Mode coaching: ${modeCoachingHints[currentMode]}`);
     }
+
+    // Evidence Map coaching — causal link and pattern awareness
+    parts.push(
+      `Evidence Map coaching:
+- When you see interaction terms with \u0394R\u00b2 > 2%, consider suggesting a causal link using suggest_causal_link.
+- When you see a convergence point (factor with 2+ incoming causal links) without a SuspectedCause hub, suggest creating one.
+- When you see a causal link with evidenceType "unvalidated", suggest what evidence would validate it (gemba observation, expert consultation, or additional data collection).
+- Use [REF:evidence-node:FACTOR_NAME]factor text[/REF] to create clickable highlights on the Evidence Map.
+- Use [REF:evidence-edge:LINK_ID]link description[/REF] to highlight a specific causal link on the map.`
+    );
   }
 
   parts.push(TERMINOLOGY_INSTRUCTION);

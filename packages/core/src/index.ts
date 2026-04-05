@@ -518,6 +518,11 @@ export type {
   FindingRole,
   BenchmarkStats,
   SuspectedCause,
+  // Causal link types (investigation DAG)
+  CausalLink,
+  CausalDirection,
+  CausalEvidenceType,
+  CausalSource,
   // Projection types (SuspectedCause evidence model)
   ProjectionSource,
   ProjectionMethod,
@@ -551,6 +556,7 @@ export {
   createFactorFinding,
   createInvestigationCategory,
   createSuspectedCause,
+  createCausalLink,
 } from './findings';
 export type { FactorFindingInput, FactorFindingBundle } from './findings';
 export {

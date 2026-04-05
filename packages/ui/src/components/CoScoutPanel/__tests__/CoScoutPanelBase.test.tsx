@@ -58,6 +58,8 @@ vi.mock('lucide-react', () => ({
     <span data-testid="circlecheck-icon" {...props} />
   ),
   Paperclip: (props: Record<string, unknown>) => <span data-testid="paperclip-icon" {...props} />,
+  Network: (props: Record<string, unknown>) => <span data-testid="network-icon" {...props} />,
+  Scan: (props: Record<string, unknown>) => <span data-testid="scan-icon" {...props} />,
 }));
 
 import { CoScoutPanelBase } from '../CoScoutPanelBase';

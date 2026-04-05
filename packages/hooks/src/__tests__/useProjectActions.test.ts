@@ -173,10 +173,11 @@ describe('useProjectActions', () => {
       expect(savedState.paretoMode).toBe('separate');
     });
 
-    it('should include findings from store', async () => {
+    it('should include findings from investigation store', async () => {
       const persistence = createMockPersistence();
       const findings = [makeFinding('f1', 'Test finding')];
-      useProjectStore.getState().setFindings(findings);
+      // Findings are edited in investigationStore (authoritative source)
+      useInvestigationStore.getState().loadInvestigationState({ findings });
 
       const { result } = renderHook(() => useProjectActions(persistence));
 

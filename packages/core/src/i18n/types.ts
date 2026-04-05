@@ -388,6 +388,8 @@ export interface MessageCatalog {
   'ai.tool.answerQuestion': string;
   'ai.tool.suggestSuspectedCause': string;
   'ai.tool.connectHubEvidence': string;
+  'ai.tool.suggestCausalLink': string;
+  'ai.tool.highlightMapPattern': string;
 
   // Report
   'report.kpi.inSpec': string;

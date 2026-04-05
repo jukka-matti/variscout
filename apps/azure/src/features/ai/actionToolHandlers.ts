@@ -13,6 +13,7 @@ import type {
   FilterAction,
   ActionProposal,
   SuspectedCause,
+  CausalLink,
 } from '@variscout/core';
 import {
   getEtaSquared,
@@ -20,6 +21,7 @@ import {
   hashFilterStack,
   generateProposalId,
 } from '@variscout/core';
+import { wouldCreateCycle } from '@variscout/core/stats';
 import type { ToolHandlerMap } from '@variscout/core';
 
 export interface ActionToolDeps {
@@ -34,6 +36,10 @@ export interface ActionToolDeps {
   filterStack: FilterAction[];
   /** Existing suspected cause hubs — used by connect_hub_evidence handler */
   suspectedCauses?: SuspectedCause[];
+  /** Existing causal links — used by suggest_causal_link handler */
+  causalLinks?: CausalLink[];
+  /** Available factor column names — used for validation */
+  factors?: string[];
 }
 
 export function buildActionToolHandlers({
@@ -47,6 +53,8 @@ export function buildActionToolHandlers({
   filters,
   filterStack,
   suspectedCauses,
+  causalLinks,
+  factors,
 }: ActionToolDeps): Partial<ToolHandlerMap> {
   return {
     apply_filter: async (args: Record<string, unknown>) => {
@@ -398,6 +406,105 @@ export function buildActionToolHandlers({
           findingCount: findingIds.length,
           reason,
           previewText: `Connect ${totalNew} item${totalNew !== 1 ? 's' : ''} to hub "${hub.name}"${reason ? ` \u2014 ${reason}` : ''}`,
+        },
+        status: 'pending',
+        filterStackHash: hashFilterStack(filterStack),
+        timestamp: Date.now(),
+      };
+      return JSON.stringify({ proposal: true, ...proposal });
+    },
+
+    suggest_causal_link: async (args: Record<string, unknown>) => {
+      const fromFactor = args.fromFactor as string;
+      const toFactor = args.toFactor as string;
+      const mechanism = args.mechanism as string;
+      const direction = (args.direction as string) ?? 'drives';
+      const fromLevel = (args.fromLevel as string | null) ?? undefined;
+      const toLevel = (args.toLevel as string | null) ?? undefined;
+
+      if (!fromFactor || !toFactor || !mechanism) {
+        return JSON.stringify({ error: 'Missing fromFactor, toFactor, or mechanism' });
+      }
+
+      // Validate that factors exist in the dataset
+      if (factors && factors.length > 0) {
+        if (!factors.includes(fromFactor)) {
+          return JSON.stringify({ error: `Factor not found in dataset: ${fromFactor}` });
+        }
+        if (!factors.includes(toFactor)) {
+          return JSON.stringify({ error: `Factor not found in dataset: ${toFactor}` });
+        }
+      }
+
+      // Check for existing link between these factors
+      if (causalLinks && causalLinks.length > 0) {
+        const existing = causalLinks.find(
+          l => l.fromFactor === fromFactor && l.toFactor === toFactor
+        );
+        if (existing) {
+          return JSON.stringify({
+            error: `A causal link from "${fromFactor}" to "${toFactor}" already exists`,
+          });
+        }
+      }
+
+      // Check for cycle
+      if (causalLinks && wouldCreateCycle(causalLinks, fromFactor, toFactor)) {
+        return JSON.stringify({
+          error: `Adding ${fromFactor} → ${toFactor} would create a cycle in the causal graph`,
+        });
+      }
+
+      const validDirections = ['drives', 'modulates', 'confounds'];
+      const safeDirection = validDirections.includes(direction) ? direction : 'drives';
+
+      const proposal: ActionProposal = {
+        id: generateProposalId(),
+        tool: 'suggest_causal_link',
+        params: { fromFactor, toFactor, mechanism, direction: safeDirection, fromLevel, toLevel },
+        preview: {
+          fromFactor,
+          toFactor,
+          mechanism,
+          direction: safeDirection,
+          fromLevel: fromLevel ?? undefined,
+          toLevel: toLevel ?? undefined,
+          previewText: `${fromFactor}${fromLevel ? ` (${fromLevel})` : ''} ${safeDirection} ${toFactor}${toLevel ? ` (${toLevel})` : ''}: ${mechanism}`,
+        },
+        status: 'pending',
+        filterStackHash: hashFilterStack(filterStack),
+        timestamp: Date.now(),
+        editableText: mechanism,
+      };
+      return JSON.stringify({ proposal: true, ...proposal });
+    },
+
+    highlight_map_pattern: async (args: Record<string, unknown>) => {
+      const patternFactors = args.factors as string[];
+      const patternType = args.patternType as string;
+      const explanation = args.explanation as string;
+
+      if (!patternFactors || patternFactors.length === 0) {
+        return JSON.stringify({ error: 'Missing factors array' });
+      }
+      if (!patternType || !explanation) {
+        return JSON.stringify({ error: 'Missing patternType or explanation' });
+      }
+
+      const validPatternTypes = ['convergence', 'gap', 'interaction', 'redundancy'];
+      if (!validPatternTypes.includes(patternType)) {
+        return JSON.stringify({ error: `Invalid patternType: ${patternType}` });
+      }
+
+      const proposal: ActionProposal = {
+        id: generateProposalId(),
+        tool: 'highlight_map_pattern',
+        params: { factors: patternFactors, patternType, explanation },
+        preview: {
+          factors: patternFactors,
+          patternType,
+          explanation,
+          previewText: `${patternType}: ${patternFactors.join(', ')} \u2014 ${explanation}`,
         },
         status: 'pending',
         filterStackHash: hashFilterStack(filterStack),

@@ -110,6 +110,19 @@ export { default as ChartLegend, type ChartLegendProps } from './ChartLegend';
 export { default as YamazumiChart, YamazumiChartBase } from './YamazumiChart';
 export type { YamazumiChartProps } from './types';
 
+// Evidence Map components
+export { EvidenceMap, EvidenceMapBase } from './EvidenceMap';
+export type {
+  EvidenceMapBaseProps,
+  FactorNodeData,
+  RelationshipEdgeData,
+  OutcomeNodeData,
+  EquationData,
+  CausalEdgeData,
+  ConvergencePointData,
+  RelationshipType,
+} from './EvidenceMap';
+
 // Performance chart components
 export { default as PerformanceIChart, PerformanceIChartBase } from './PerformanceIChart';
 export { default as PerformanceBoxplot, PerformanceBoxplotBase } from './PerformanceBoxplot';

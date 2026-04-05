@@ -33,7 +33,9 @@ export type ActionToolName =
   | 'notify_action_owners'
   | 'navigate_to' // Project dashboard navigation
   | 'suggest_suspected_cause'
-  | 'connect_hub_evidence';
+  | 'connect_hub_evidence'
+  | 'suggest_causal_link'
+  | 'highlight_map_pattern';
 
 /** Names of all read tools (auto-execute) */
 export type ReadToolName =

@@ -44,6 +44,7 @@ import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
 import { useQuestionGeneration } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
+import { EvidenceMapPopout } from './components/EvidenceMapPopout';
 import { useAppPanels } from './hooks/useAppPanels';
 import { useFindingsStore } from './features/findings/findingsStore';
 import { useProjectionStore } from './features/projection/projectionStore';
@@ -99,6 +100,9 @@ function App() {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('view') === 'findings') {
     return <FindingsWindow />;
+  }
+  if (urlParams.get('view') === 'evidence-map') {
+    return <EvidenceMapPopout />;
   }
 
   return <AppMain />;

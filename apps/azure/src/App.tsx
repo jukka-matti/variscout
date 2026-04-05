@@ -14,6 +14,7 @@ import SettingsPanel from './components/settings/SettingsPanel';
 import { SyncToastContainer } from './components/SyncToast';
 import { ErrorBoundary, FindingsWindow } from '@variscout/ui';
 import ImprovementWindow from './components/ImprovementWindow';
+import { EvidenceMapWindow } from './pages/EvidenceMapWindow';
 import { AppHeader } from './components/AppHeader';
 import { Activity } from 'lucide-react';
 import { parseDeepLink, validateDeepLink, type DeepLinkParams } from './services/deepLinks';
@@ -41,6 +42,17 @@ function App() {
       <ThemeProvider>
         <LocaleProvider>
           <ImprovementWindow />
+        </LocaleProvider>
+      </ThemeProvider>
+    );
+  }
+
+  // Popout window route: render standalone EvidenceMapWindow
+  if (urlParams.get('view') === 'evidence-map') {
+    return (
+      <ThemeProvider>
+        <LocaleProvider>
+          <EvidenceMapWindow />
         </LocaleProvider>
       </ThemeProvider>
     );

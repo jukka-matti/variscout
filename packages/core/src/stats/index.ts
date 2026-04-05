@@ -138,6 +138,24 @@ export { generateFindingText } from './findingText';
 export type { EvidenceLevel, EvidenceInterpretation } from './evidence';
 export { interpretEvidence, generateAnovaInsightLine } from './evidence';
 
+// Causal graph (Evidence Map DAG)
+export type { CausalLink, RelationshipType } from './causalGraph';
+export {
+  classifyRelationship,
+  wouldCreateCycle,
+  findConvergencePoints,
+  topologicalSort,
+  findPaths,
+} from './causalGraph';
+
+// Evidence Map layout
+export type {
+  FactorNodeLayout,
+  RelationshipEdgeLayout,
+  EvidenceMapLayout,
+} from './evidenceMapLayout';
+export { computeEvidenceMapLayout } from './evidenceMapLayout';
+
 // Subgroup capability analysis
 export type {
   SubgroupMethod,

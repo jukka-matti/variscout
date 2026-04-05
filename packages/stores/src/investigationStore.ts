@@ -29,6 +29,7 @@ import type {
   InvestigationCategory,
   SuspectedCause,
   SuspectedCauseEvidence,
+  CausalLink,
 } from '@variscout/core';
 import {
   createFinding,
@@ -37,6 +38,7 @@ import {
   createQuestion,
   createImprovementIdea,
   createSuspectedCause,
+  createCausalLink,
 } from '@variscout/core';
 
 // ============================================================================
@@ -57,6 +59,7 @@ export interface InvestigationState {
   findings: Finding[];
   questions: Question[];
   suspectedCauses: SuspectedCause[];
+  causalLinks: CausalLink[];
   categories: InvestigationCategory[];
   focusedQuestionId: string | null;
 }
@@ -168,6 +171,36 @@ export interface InvestigationActions {
   setHubEvidence: (hubId: string, evidence: SuspectedCauseEvidence) => void;
   resetHubs: (hubs: SuspectedCause[]) => void;
 
+  // --- Causal link actions ---
+  addCausalLink: (
+    fromFactor: string,
+    toFactor: string,
+    whyStatement: string,
+    options?: {
+      fromLevel?: string;
+      toLevel?: string;
+      direction?: CausalLink['direction'];
+      evidenceType?: CausalLink['evidenceType'];
+      source?: CausalLink['source'];
+      strength?: number;
+      relationshipType?: CausalLink['relationshipType'];
+    }
+  ) => CausalLink | null;
+  removeCausalLink: (id: string) => void;
+  updateCausalLink: (
+    id: string,
+    updates: Partial<
+      Pick<
+        CausalLink,
+        'whyStatement' | 'direction' | 'evidenceType' | 'strength' | 'fromLevel' | 'toLevel'
+      >
+    >
+  ) => void;
+  linkQuestionToCausalLink: (linkId: string, questionId: string) => void;
+  linkFindingToCausalLink: (linkId: string, findingId: string) => void;
+  unlinkQuestionFromCausalLink: (linkId: string, questionId: string) => void;
+  unlinkFindingFromCausalLink: (linkId: string, findingId: string) => void;
+
   // --- Category + bulk actions ---
   setCategories: (categories: InvestigationCategory[]) => void;
   loadInvestigationState: (state: Partial<InvestigationState>) => void;
@@ -187,6 +220,25 @@ function getQuestionDepth(id: string, questions: Question[]): number {
     if (depth > MAX_QUESTION_DEPTH + 1) break;
   }
   return depth;
+}
+
+/**
+ * Simple DFS cycle detection for the causal DAG.
+ * Returns true if adding an edge fromFactor→toFactor would create a cycle.
+ */
+function wouldCreateCycle(links: CausalLink[], fromFactor: string, toFactor: string): boolean {
+  const visited = new Set<string>();
+  const stack = [toFactor];
+  while (stack.length > 0) {
+    const current = stack.pop()!;
+    if (current === fromFactor) return true;
+    if (visited.has(current)) continue;
+    visited.add(current);
+    for (const link of links) {
+      if (link.fromFactor === current) stack.push(link.toFactor);
+    }
+  }
+  return false;
 }
 
 function collectDescendants(id: string, questions: Question[]): Set<string> {
@@ -212,6 +264,7 @@ const initialState: InvestigationState = {
   findings: [],
   questions: [],
   suspectedCauses: [],
+  causalLinks: [],
   categories: [],
   focusedQuestionId: null,
 };
@@ -253,6 +306,15 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     deleteFinding: id => {
       set(state => ({
         findings: state.findings.filter(f => f.id !== id),
+        // Remove deleted finding ID from causal link references
+        causalLinks: state.causalLinks.map(l => {
+          if (!l.findingIds.includes(id)) return l;
+          return {
+            ...l,
+            findingIds: l.findingIds.filter(fid => fid !== id),
+            updatedAt: new Date().toISOString(),
+          };
+        }),
       }));
     },
 
@@ -605,6 +667,13 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
             ? { ...f, questionId: undefined, validationStatus: undefined }
             : f
         ),
+        // Remove deleted question IDs from causal link references
+        causalLinks: state.causalLinks.map(l => {
+          const filtered = l.questionIds.filter(qid => !idsToDelete.has(qid));
+          return filtered.length === l.questionIds.length
+            ? l
+            : { ...l, questionIds: filtered, updatedAt: new Date().toISOString() };
+        }),
       }));
 
       return unlinkedFindingIds;
@@ -742,6 +811,10 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     deleteHub: hubId => {
       set(state => ({
         suspectedCauses: state.suspectedCauses.filter(h => h.id !== hubId),
+        // Clear hubId from causal links that reference the deleted hub
+        causalLinks: state.causalLinks.map(l =>
+          l.hubId === hubId ? { ...l, hubId: undefined, updatedAt: new Date().toISOString() } : l
+        ),
       }));
     },
 
@@ -822,6 +895,88 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     },
 
     // ========================================================================
+    // Causal link actions
+    // ========================================================================
+
+    addCausalLink: (fromFactor, toFactor, whyStatement, options?) => {
+      const { causalLinks } = get();
+      if (wouldCreateCycle(causalLinks, fromFactor, toFactor)) return null;
+      const link = createCausalLink(fromFactor, toFactor, whyStatement, options);
+      set(state => ({ causalLinks: [...state.causalLinks, link] }));
+      return link;
+    },
+
+    removeCausalLink: id => {
+      set(state => ({
+        causalLinks: state.causalLinks.filter(l => l.id !== id),
+      }));
+    },
+
+    updateCausalLink: (id, updates) => {
+      set(state => ({
+        causalLinks: state.causalLinks.map(l =>
+          l.id === id ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l
+        ),
+      }));
+    },
+
+    linkQuestionToCausalLink: (linkId, questionId) => {
+      set(state => ({
+        causalLinks: state.causalLinks.map(l => {
+          if (l.id !== linkId) return l;
+          if (l.questionIds.includes(questionId)) return l;
+          return {
+            ...l,
+            questionIds: [...l.questionIds, questionId],
+            updatedAt: new Date().toISOString(),
+          };
+        }),
+      }));
+    },
+
+    linkFindingToCausalLink: (linkId, findingId) => {
+      set(state => ({
+        causalLinks: state.causalLinks.map(l => {
+          if (l.id !== linkId) return l;
+          if (l.findingIds.includes(findingId)) return l;
+          return {
+            ...l,
+            findingIds: [...l.findingIds, findingId],
+            updatedAt: new Date().toISOString(),
+          };
+        }),
+      }));
+    },
+
+    unlinkQuestionFromCausalLink: (linkId, questionId) => {
+      set(state => ({
+        causalLinks: state.causalLinks.map(l =>
+          l.id !== linkId
+            ? l
+            : {
+                ...l,
+                questionIds: l.questionIds.filter(id => id !== questionId),
+                updatedAt: new Date().toISOString(),
+              }
+        ),
+      }));
+    },
+
+    unlinkFindingFromCausalLink: (linkId, findingId) => {
+      set(state => ({
+        causalLinks: state.causalLinks.map(l =>
+          l.id !== linkId
+            ? l
+            : {
+                ...l,
+                findingIds: l.findingIds.filter(id => id !== findingId),
+                updatedAt: new Date().toISOString(),
+              }
+        ),
+      }));
+    },
+
+    // ========================================================================
     // Category + bulk actions
     // ========================================================================
 
@@ -834,6 +989,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
         findings: partial.findings ?? state.findings,
         questions: partial.questions ?? state.questions,
         suspectedCauses: partial.suspectedCauses ?? state.suspectedCauses,
+        causalLinks: partial.causalLinks ?? state.causalLinks,
         categories: partial.categories ?? state.categories,
       }));
     },

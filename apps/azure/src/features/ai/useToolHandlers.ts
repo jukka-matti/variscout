@@ -18,6 +18,7 @@ import type {
   Finding,
   Question,
   FilterAction,
+  CausalLink,
 } from '@variscout/core';
 import type { UseKnowledgeSearchReturn } from '@variscout/hooks';
 import { buildReadToolHandlers } from './readToolHandlers';
@@ -40,6 +41,7 @@ export interface UseToolHandlersOptions {
   filters: Record<string, (string | number)[]>;
   filterStack: FilterAction[];
   knowledgeSearch: UseKnowledgeSearchReturn;
+  causalLinks?: CausalLink[];
 }
 
 export function useToolHandlers({
@@ -56,6 +58,7 @@ export function useToolHandlers({
   filters,
   filterStack,
   knowledgeSearch,
+  causalLinks,
 }: UseToolHandlersOptions): ToolHandlerMap | undefined {
   return useMemo((): ToolHandlerMap | undefined => {
     if (!aiAvailable || !coscoutEnabled) return undefined;
@@ -82,6 +85,8 @@ export function useToolHandlers({
       questions,
       filters,
       filterStack,
+      causalLinks,
+      factors,
     });
 
     const navTeamTools = buildNavTeamToolHandlers({
@@ -104,5 +109,6 @@ export function useToolHandlers({
     findings,
     questions,
     knowledgeSearch,
+    causalLinks,
   ]);
 }

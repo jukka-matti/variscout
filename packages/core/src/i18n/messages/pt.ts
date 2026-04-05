@@ -274,6 +274,8 @@ export const pt: MessageCatalog = {
   'ai.tool.answerQuestion': 'Answer question',
   'ai.tool.suggestSuspectedCause': 'Suggest suspected cause',
   'ai.tool.connectHubEvidence': 'Connect hub evidence',
+  'ai.tool.suggestCausalLink': 'Suggest causal link',
+  'ai.tool.highlightMapPattern': 'Highlight map pattern',
 
   // Report
   'report.kpi.inSpec': 'Dentro da espec.',

@@ -186,19 +186,18 @@ describe('useProjectActions persistence roundtrip', () => {
     const adapter = createInMemoryAdapter();
     const { result } = renderHook(() => useProjectActions(adapter));
 
-    // Investigation store holds the authority for findings/questions
+    // investigationStore is the authority for findings/questions
     const findings = [
       makeFinding('f1', 'Weight spike on Machine B'),
       makeFinding('f2', 'Shift effect'),
     ];
     const questions = [makeQuestion('q1', 'Is Machine B the root cause?')];
 
-    // useProjectActions reads findings/questions from projectStore (via getCurrentStateFromStores)
+    // getCurrentStateFromStores reads investigation data from investigationStore (authoritative)
     useProjectStore.getState().setRawData(sampleData);
     useProjectStore.getState().setOutcome('Weight');
     useProjectStore.getState().setFactors(['Machine']);
-    useProjectStore.getState().setFindings(findings);
-    useProjectStore.getState().setQuestions(questions);
+    useInvestigationStore.getState().loadInvestigationState({ findings, questions });
 
     // Save
     let savedId!: string;

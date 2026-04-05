@@ -220,6 +220,21 @@ export interface AIContext {
       };
       selectedForImprovement?: boolean;
     }>;
+    /** Existing causal links between factors (prevents duplicate suggestions) */
+    causalLinks?: Array<{
+      id: string;
+      fromFactor: string;
+      toFactor: string;
+      direction: 'drives' | 'modulates' | 'confounds';
+      evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
+    }>;
+    /** Significant interaction effects for map-aware suggestions */
+    interactionEffects?: Array<{
+      factorA: string;
+      factorB: string;
+      deltaRSquared: number;
+      isSignificant: boolean;
+    }>;
     /** R²adj-weighted coverage percentage (0-100) */
     coveragePercent?: number;
     /** Number of questions checked (answered or ruled-out) */

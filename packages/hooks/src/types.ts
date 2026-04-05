@@ -17,6 +17,8 @@ import type {
   StageOrderMode,
   Finding,
   Question,
+  SuspectedCause,
+  CausalLink,
   ProcessContext,
   InvestigationCategory,
   EntryScenario,
@@ -252,6 +254,14 @@ export interface AnalysisState {
   // --- Investigation categories (dynamic factor grouping) ---
   /** User-defined categories grouping factor columns */
   categories?: InvestigationCategory[];
+
+  // --- Suspected causes (investigation synthesis) ---
+  /** SuspectedCause hubs connecting evidence threads */
+  suspectedCauses?: SuspectedCause[];
+
+  // --- Causal links (investigation DAG) ---
+  /** Causal links between factors (investigation DAG) */
+  causalLinks?: CausalLink[];
 
   // --- AI process context ---
   /** Process description for AI grounding */

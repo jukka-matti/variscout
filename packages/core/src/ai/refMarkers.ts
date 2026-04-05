@@ -12,7 +12,10 @@ export type RefTargetType =
   | 'finding'
   | 'question'
   | 'dashboard'
-  | 'improvement';
+  | 'improvement'
+  | 'evidence-node'
+  | 'evidence-edge'
+  | 'evidence-map';
 
 export interface RefMarker {
   targetType: RefTargetType;
@@ -27,7 +30,7 @@ export interface ParseRefResult {
   refs: RefMarker[];
 }
 
-const REF_MARKER_REGEX = /\[REF:(\w+)(?::([^\]]*))?\]([\s\S]*?)\[\/REF\]/g;
+const REF_MARKER_REGEX = /\[REF:([\w-]+)(?::([^\]]*))?\]([\s\S]*?)\[\/REF\]/g;
 
 export function parseRefMarkers(text: string): ParseRefResult {
   interface RawMatch {
@@ -82,5 +85,5 @@ export function parseRefMarkers(text: string): ParseRefResult {
 }
 
 export function stripRefMarkers(text: string): string {
-  return text.replace(/\[REF:(?:\w+)(?::[^\]]*)?\]([\s\S]*?)\[\/REF\]/g, '$1');
+  return text.replace(/\[REF:(?:[\w-]+)(?::[^\]]*)?\]([\s\S]*?)\[\/REF\]/g, '$1');
 }

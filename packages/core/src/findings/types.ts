@@ -631,6 +631,34 @@ export interface SuspectedCause {
   updatedAt: string;
 }
 
+// ============================================================================
+// Causal Link (Investigation DAG)
+// ============================================================================
+
+/** Directed causal relationship between factors in the investigation DAG */
+export interface CausalLink {
+  id: string;
+  fromFactor: string; // Factor column name (e.g., "Shift")
+  toFactor: string; // Factor column name (e.g., "Fill Head")
+  fromLevel?: string; // Specific condition (e.g., "Night")
+  toLevel?: string; // Specific condition (e.g., "Heads 5-8")
+  whyStatement: string; // "Night shift runs cause thermal drift"
+  direction: 'drives' | 'modulates' | 'confounds';
+  evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
+  questionIds: string[]; // Questions supporting this link
+  findingIds: string[]; // Findings supporting this link
+  hubId?: string; // SuspectedCause hub this belongs to
+  strength?: number; // ΔR² or computed from R²adj comparison
+  relationshipType?: 'independent' | 'overlapping' | 'synergistic' | 'interactive' | 'redundant';
+  source: 'analyst' | 'coscout' | 'auto';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CausalDirection = CausalLink['direction'];
+export type CausalEvidenceType = CausalLink['evidenceType'];
+export type CausalSource = CausalLink['source'];
+
 /**
  * Color palette for auto-assigning category badge colors.
  * Cycles through 8 distinct colors for visual differentiation.
