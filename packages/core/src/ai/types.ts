@@ -243,6 +243,14 @@ export interface AIContext {
         explored: boolean;
         questionCount: number;
         findingCount: number;
+        /** Factor measurement type: categorical (group comparison) or continuous (regression) */
+        type?: 'categorical' | 'continuous';
+        /** Value range [min, max] for continuous factors */
+        range?: [number, number];
+        /** Detected relationship shape for continuous factors */
+        relationship?: 'linear' | 'quadratic';
+        /** Estimated optimum value (quadratic vertex) for continuous factors with sweet spot */
+        optimum?: number;
       }>;
       relationships: Array<{
         factorA: string;

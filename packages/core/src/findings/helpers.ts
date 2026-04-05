@@ -13,7 +13,7 @@ import type {
 } from './types';
 import { createSuspectedCause } from './factories';
 import type { BestSubsetsResult, BestSubsetResult, LevelChange } from '../stats/bestSubsets';
-import { predictFromModel } from '../stats/bestSubsets';
+import { predictFromModel, predictFromUnifiedModel } from '../stats/bestSubsets';
 
 /**
  * Get finding status
@@ -328,18 +328,34 @@ export interface HubProjection {
  * uses level effects to predict the mean change when switching from
  * current worst levels to best levels.
  *
+ * For all-categorical models: uses the additive level-effects prediction
+ * (predictFromModel) with string level names.
+ *
+ * For OLS models with continuous factors: uses predictFromUnifiedModel
+ * with numeric factor values when `currentWorstValues` is provided.
+ * Falls back to the categorical path for any factor not present in the
+ * numeric values map.
+ *
  * @param hub - The SuspectedCause hub
  * @param questions - All questions in scope
  * @param bestSubsetsResult - Best Subsets analysis result (null → return null)
- * @param currentWorstLevels - Current worst factor levels (factor → level)
- * @param options - Optional spec target and characteristic type
+ * @param currentWorstLevels - Current worst factor levels (factor → level string).
+ *   For continuous factors, this is used only as fallback display labels.
+ * @param options - Optional spec target, characteristic type, and continuous values
  */
 export function computeHubProjection(
   hub: SuspectedCause,
   questions: Question[],
   bestSubsetsResult: BestSubsetsResult | null,
   currentWorstLevels: Record<string, string>,
-  options?: { target?: number; characteristicType?: 'nominal' | 'smaller' | 'larger' }
+  options?: {
+    target?: number;
+    characteristicType?: 'nominal' | 'smaller' | 'larger';
+    /** Numeric values for continuous factors (factor → value) */
+    currentWorstValues?: Record<string, number>;
+    /** Numeric target values for continuous factors (factor → optimal value) */
+    targetValues?: Record<string, number>;
+  }
 ): HubProjection | null {
   if (!bestSubsetsResult) return null;
 
@@ -418,7 +434,90 @@ export function computeHubProjection(
     targetLevels[factor] = bestLevel;
   }
 
-  // Build currentLevels from the provided worst levels (only for matched factors)
+  // Determine if the matched subset uses OLS with continuous factors
+  const hasContinuousFactors =
+    matchedSubset.factorTypes !== undefined &&
+    Array.from(matchedSubset.factorTypes.values()).some(t => t === 'continuous');
+
+  // OLS path: use predictFromUnifiedModel when continuous factors exist and
+  // numeric values are provided for all continuous factors in the model.
+  if (
+    hasContinuousFactors &&
+    matchedSubset.predictors !== undefined &&
+    matchedSubset.intercept !== undefined &&
+    options?.currentWorstValues !== undefined &&
+    options?.targetValues !== undefined
+  ) {
+    const factorTypes = matchedSubset.factorTypes!;
+    const currentWorstValues = options.currentWorstValues;
+    const targetOpts = options.targetValues;
+
+    // Build mixed factor-value maps (string for categorical, number for continuous)
+    const currentFactorValues: Record<string, string | number> = {};
+    const targetFactorValues: Record<string, string | number> = {};
+
+    let allFactorsPresent = true;
+    for (const factor of matchedSubset.factors) {
+      const fType = factorTypes.get(factor) ?? 'categorical';
+      if (fType === 'continuous') {
+        const currentNum = currentWorstValues[factor];
+        const targetNum = targetOpts[factor];
+        if (currentNum === undefined || targetNum === undefined) {
+          allFactorsPresent = false;
+          break;
+        }
+        currentFactorValues[factor] = currentNum;
+        targetFactorValues[factor] = targetNum;
+      } else {
+        const currentLevel = currentWorstLevels[factor];
+        const targetLevel = targetLevels[factor];
+        if (!currentLevel || !targetLevel) {
+          allFactorsPresent = false;
+          break;
+        }
+        currentFactorValues[factor] = currentLevel;
+        targetFactorValues[factor] = targetLevel;
+      }
+    }
+
+    if (allFactorsPresent) {
+      const currentPredicted = predictFromUnifiedModel(matchedSubset, currentFactorValues);
+      const targetPredicted = predictFromUnifiedModel(matchedSubset, targetFactorValues);
+
+      if (currentPredicted !== null && targetPredicted !== null) {
+        // Build level changes for display (continuous factors show numeric range)
+        const levelChanges: LevelChange[] = matchedSubset.factors.map(factor => {
+          const fType = factorTypes.get(factor) ?? 'categorical';
+          if (fType === 'continuous') {
+            return {
+              factor,
+              from: String(currentFactorValues[factor]),
+              to: String(targetFactorValues[factor]),
+              effect: targetPredicted - currentPredicted,
+            };
+          }
+          return {
+            factor,
+            from: String(currentFactorValues[factor]),
+            to: String(targetFactorValues[factor]),
+            effect: 0, // individual contribution not decomposed in unified model
+          };
+        });
+
+        return {
+          predictedMeanDelta: targetPredicted - currentPredicted,
+          predictedMean: targetPredicted,
+          currentMean: currentPredicted,
+          rSquaredAdj: matchedSubset.rSquaredAdj,
+          levelChanges,
+          label: 'Model suggests',
+        };
+      }
+    }
+    // Fall through to categorical path if numeric values incomplete
+  }
+
+  // Categorical (ANOVA) path: build currentLevels from provided worst levels
   const currentLevels: Record<string, string> = {};
   for (const factor of matchedSubset.factors) {
     const level = currentWorstLevels[factor];

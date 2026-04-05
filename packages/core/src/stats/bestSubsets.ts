@@ -784,7 +784,13 @@ export interface GeneratedQuestion {
   /** Question source */
   source: 'factor-intel';
   /** Question type */
-  type: 'single-factor' | 'combination' | 'main-effect' | 'interaction';
+  type:
+    | 'single-factor'
+    | 'combination'
+    | 'main-effect'
+    | 'interaction'
+    | 'curve-shape'
+    | 'optimal-value';
 }
 
 /** Maximum number of multi-factor combination questions to generate */

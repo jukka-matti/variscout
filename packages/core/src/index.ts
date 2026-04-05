@@ -610,9 +610,16 @@ export type {
   StatsComputeRequest,
   StatsComputeResult,
   AnovaComputeRequest,
+  BestSubsetsComputeRequest,
+  SerializedBestSubsetsResult,
   StatsWorkerAPI,
 } from './workers/types';
-export { computeStats, computeAnova } from './workers/statsWorkerApi';
+export {
+  computeStats,
+  computeAnova,
+  computeBestSubsetsWorker,
+  deserializeBestSubsetsResult,
+} from './workers/statsWorkerApi';
 
 // Project Metadata (Portfolio view)
 export { buildProjectMetadata } from './projectMetadata';

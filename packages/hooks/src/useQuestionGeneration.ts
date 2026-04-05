@@ -252,7 +252,85 @@ function generateForMode(
   // Default: Best Subsets ranking (standard, capability, or fallback when mode data unavailable).
   // bestSubsets is guaranteed non-null by the useEffect guard in the calling hook.
   if (!bestSubsets) return [];
-  return generateQuestionsFromRanking(bestSubsets, { mode });
+  const base = generateQuestionsFromRanking(bestSubsets, { mode });
+  const continuous = generateContinuousFactorQuestions(bestSubsets);
+  return [...base, ...continuous];
+}
+
+/**
+ * Generate curve-shape and optimal-value questions for continuous factors in the
+ * best model. These questions complement the standard single-factor/combination
+ * questions and are only generated when the best model uses OLS with continuous
+ * predictors.
+ *
+ * - 'curve-shape': generated for continuous factors when a quadratic term was
+ *   detected (p < 0.10 for the quadratic predictor). Auto-answered 'ruled-out'
+ *   when the quadratic p-value exceeds 0.10 (relationship is linear).
+ * - 'optimal-value': generated for continuous factors when a sweet spot was
+ *   detected (quadratic term present and significant).
+ *
+ * Does not break existing categorical-only question generation: if no continuous
+ * factors exist, returns an empty array.
+ */
+function generateContinuousFactorQuestions(result: BestSubsetsResult): GeneratedQuestion[] {
+  if (!result.usedOLS || !result.subsets.length) return [];
+
+  const bestSubset = result.subsets[0];
+  if (!bestSubset.predictors || !bestSubset.factorTypes) return [];
+
+  const questions: GeneratedQuestion[] = [];
+
+  // Collect continuous factors from the best model
+  for (const [factorName, factorType] of bestSubset.factorTypes.entries()) {
+    if (factorType !== 'continuous') continue;
+
+    // Find linear and quadratic predictors for this factor
+    const linearPredictor = bestSubset.predictors.find(
+      p => p.factorName === factorName && p.type === 'continuous'
+    );
+    const quadraticPredictor = bestSubset.predictors.find(
+      p => p.factorName === factorName && p.type === 'quadratic'
+    );
+
+    // Quadratic p-value threshold for "curve detected"
+    const QUADRATIC_P_THRESHOLD = 0.1;
+    const hasQuadratic = quadraticPredictor !== undefined;
+    const quadraticSignificant = hasQuadratic && quadraticPredictor!.pValue < QUADRATIC_P_THRESHOLD;
+
+    // R²adj from the single-factor subset (for evidence ranking)
+    const singleFactorSubset = result.subsets.find(
+      s => s.factorCount === 1 && s.factors[0] === factorName
+    );
+    const rSquaredAdj = singleFactorSubset?.rSquaredAdj ?? bestSubset.rSquaredAdj;
+
+    // 'curve-shape' question: generated for all continuous factors in the best model.
+    // Auto-answered as 'ruled-out' (linear) when quadratic p > 0.10.
+    const isLinear = hasQuadratic && !quadraticSignificant;
+    questions.push({
+      text: `Is ${factorName} relationship linear or curved?`,
+      factors: [factorName],
+      rSquaredAdj,
+      autoAnswered: isLinear,
+      ...(isLinear ? { autoStatus: 'ruled-out' as const } : {}),
+      source: 'factor-intel',
+      type: 'curve-shape',
+    });
+
+    // 'optimal-value' question: only when a quadratic term is present and significant
+    // (indicates a sweet spot / optimal operating point exists).
+    if (quadraticSignificant && linearPredictor !== undefined) {
+      questions.push({
+        text: `What's the optimal ${factorName}?`,
+        factors: [factorName],
+        rSquaredAdj,
+        autoAnswered: false,
+        source: 'factor-intel',
+        type: 'optimal-value',
+      });
+    }
+  }
+
+  return questions;
 }
 
 /**
