@@ -9,7 +9,7 @@
 import { useMemo, useCallback, useEffect } from 'react';
 import { useFindings, buildFindingContext, buildFindingSource } from '@variscout/hooks';
 import type { DrillStep } from '@variscout/hooks';
-import { useFindingsStore } from './findingsStore';
+import { useFindingsStore, groupFindingsByChart } from './findingsStore';
 import { usePanelsStore } from '../panels/panelsStore';
 import type { Finding, SpecLimits, DataRow } from '@variscout/core';
 import type { FindingsCallbacks } from '@variscout/ui';
@@ -47,11 +47,6 @@ export function useFindingsOrchestration({
     initialFindings: persistedFindings,
     onFindingsChange: setPersistedFindings,
   });
-
-  // Sync to read-side store
-  useEffect(() => {
-    useFindingsStore.getState().syncFindings(findingsState.findings);
-  }, [findingsState.findings]);
 
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
@@ -119,12 +114,8 @@ export function useFindingsOrchestration({
 
   // Chart findings grouped for annotation display
   const chartFindings = useMemo(
-    () => ({
-      boxplot: findingsState.getChartFindings('boxplot'),
-      pareto: findingsState.getChartFindings('pareto'),
-      ichart: findingsState.getChartFindings('ichart'),
-    }),
-    [findingsState]
+    () => groupFindingsByChart(findingsState.findings),
+    [findingsState.findings]
   );
 
   const findingsCallbacks: FindingsCallbacks = useMemo(

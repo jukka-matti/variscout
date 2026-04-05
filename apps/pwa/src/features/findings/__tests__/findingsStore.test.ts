@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useFindingsStore } from '../findingsStore';
+import { useFindingsStore, groupFindingsByChart } from '../findingsStore';
 import type { Finding } from '@variscout/core';
 
 const makeFinding = (overrides: Partial<Finding> = {}): Finding => ({
@@ -15,38 +15,12 @@ const makeFinding = (overrides: Partial<Finding> = {}): Finding => ({
 
 beforeEach(() => {
   useFindingsStore.setState({
-    findings: [],
     highlightedFindingId: null,
-    chartFindings: { boxplot: [], pareto: [], ichart: [] },
     statusFilter: null,
   });
 });
 
 describe('findingsStore', () => {
-  describe('syncFindings', () => {
-    it('updates findings and recomputes chartFindings', () => {
-      const findings = [
-        makeFinding({ source: { chart: 'boxplot', category: 'A' } }),
-        makeFinding({ source: { chart: 'pareto', category: 'B' } }),
-        makeFinding(),
-      ];
-      useFindingsStore.getState().syncFindings(findings);
-      const s = useFindingsStore.getState();
-      expect(s.findings).toHaveLength(3);
-      expect(s.chartFindings.boxplot).toHaveLength(1);
-      expect(s.chartFindings.pareto).toHaveLength(1);
-      expect(s.chartFindings.ichart).toHaveLength(0);
-    });
-
-    it('skips update when same array reference (referential equality)', () => {
-      const findings = [makeFinding()];
-      useFindingsStore.getState().syncFindings(findings);
-      const before = useFindingsStore.getState().chartFindings;
-      useFindingsStore.getState().syncFindings(findings);
-      expect(useFindingsStore.getState().chartFindings).toBe(before);
-    });
-  });
-
   describe('setHighlightedFindingId', () => {
     it('sets and clears highlighted finding', () => {
       useFindingsStore.getState().setHighlightedFindingId('f-1');
@@ -61,5 +35,26 @@ describe('findingsStore', () => {
       useFindingsStore.getState().setStatusFilter('investigating');
       expect(useFindingsStore.getState().statusFilter).toBe('investigating');
     });
+  });
+});
+
+describe('groupFindingsByChart', () => {
+  it('groups findings by source chart type', () => {
+    const findings = [
+      makeFinding({ source: { chart: 'boxplot', category: 'A' } }),
+      makeFinding({ source: { chart: 'pareto', category: 'B' } }),
+      makeFinding(),
+    ];
+    const result = groupFindingsByChart(findings);
+    expect(result.boxplot).toHaveLength(1);
+    expect(result.pareto).toHaveLength(1);
+    expect(result.ichart).toHaveLength(0);
+  });
+
+  it('returns stable empty arrays for empty input', () => {
+    const result = groupFindingsByChart([]);
+    expect(result.boxplot).toHaveLength(0);
+    expect(result.pareto).toHaveLength(0);
+    expect(result.ichart).toHaveLength(0);
   });
 });

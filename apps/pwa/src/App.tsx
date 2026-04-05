@@ -43,7 +43,7 @@ import { useQuestionGeneration } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { EvidenceMapPopout } from './components/EvidenceMapPopout';
 import { useAppPanels } from './hooks/useAppPanels';
-import { useFindingsStore } from './features/findings/findingsStore';
+import { useFindingsStore, groupFindingsByChart } from './features/findings/findingsStore';
 import { useProjectionStore } from './features/projection/projectionStore';
 import { useInvestigationOrchestration } from './features/investigation/useInvestigationOrchestration';
 import { useImprovementOrchestration } from './features/improvement/useImprovementOrchestration';
@@ -199,11 +199,8 @@ function AppMain() {
     dismissWideFormat: importFlow.handleDismissWideFormat,
   });
 
-  // Findings state — useFindings is the CRUD engine, store is the read-side cache
+  // Findings state — useFindings is the CRUD engine, findingsStore holds UI-only state
   const findingsState = useFindings();
-  useEffect(() => {
-    useFindingsStore.getState().syncFindings(findingsState.findings);
-  }, [findingsState.findings]);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
 
@@ -491,12 +488,8 @@ function AppMain() {
 
   // Chart findings grouped by chart type for inline annotation display
   const chartFindings = useMemo(
-    () => ({
-      boxplot: findingsState.getChartFindings('boxplot'),
-      pareto: findingsState.getChartFindings('pareto'),
-      ichart: findingsState.getChartFindings('ichart'),
-    }),
-    [findingsState]
+    () => groupFindingsByChart(findingsState.findings),
+    [findingsState.findings]
   );
 
   // Findings: restore filter state

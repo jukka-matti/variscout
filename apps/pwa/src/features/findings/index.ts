@@ -1,2 +1,2 @@
-export { useFindingsStore } from './findingsStore';
-export type { FindingsStore } from './findingsStore';
+export { useFindingsStore, groupFindingsByChart } from './findingsStore';
+export type { FindingsStore, ChartFindings } from './findingsStore';
