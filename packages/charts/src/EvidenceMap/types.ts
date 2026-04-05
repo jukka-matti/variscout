@@ -31,6 +31,8 @@ export interface FactorNodeData {
    *   null → categorical
    */
   trendGlyph?: '/' | '\\' | '∩' | '∪' | null;
+  /** Optimal input value for quadratic factors (vertex x-coordinate) */
+  optimum?: number;
 }
 
 export interface RelationshipEdgeData {
@@ -116,6 +118,7 @@ export interface EvidenceMapBaseProps {
   // Interaction callbacks
   onFactorClick?: (factor: string) => void;
   onFactorHover?: (factor: string | null) => void;
+  onFactorContextMenu?: (factor: string, clientX: number, clientY: number) => void;
   onEdgeClick?: (factorA: string, factorB: string) => void;
   onCausalEdgeClick?: (id: string) => void;
   onConvergenceClick?: (factor: string) => void;

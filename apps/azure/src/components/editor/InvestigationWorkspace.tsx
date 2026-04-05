@@ -29,6 +29,7 @@ import type { SuspectedCauseEvidence } from '@variscout/core';
 import type { HubProjection } from '@variscout/core/findings';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
+import { wouldCreateCycle } from '@variscout/core/stats';
 import { GripVertical } from 'lucide-react';
 import {
   useProjectStore,
@@ -116,6 +117,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const investigationViewMode = usePanelsStore(s => s.investigationViewMode);
+  const highlightedFactor = usePanelsStore(s => s.highlightedFactor);
   const setInvestigationViewMode = usePanelsStore(s => s.setInvestigationViewMode);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const questionsMap = useInvestigationStore(s => s.questionsMap);
@@ -365,6 +367,83 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     usePanelsStore.getState().showImprovement();
   }, []);
 
+  // ── Evidence Map context menu callbacks ──────────────────────────────────
+  const handleMapAskQuestion = useCallback(
+    (factor: string) => {
+      questionsState.addQuestion(`What is the effect of ${factor}?`, factor);
+    },
+    [questionsState]
+  );
+
+  const handleMapCreateFinding = useCallback(
+    (factor: string) => {
+      const filters = useProjectStore.getState().filters;
+      findingsState.addFinding(
+        `Observation about ${factor}`,
+        { activeFilters: filters, cumulativeScope: null },
+        { chart: 'boxplot', category: factor }
+      );
+    },
+    [findingsState]
+  );
+
+  const handleMapAskCoScout = useCallback(
+    (factor: string) => {
+      aiOrch.handleAskCoScoutFromCategory({ category: { name: factor } });
+    },
+    [aiOrch]
+  );
+
+  const handleMapDrillDown = useCallback((factor: string) => {
+    usePanelsStore.getState().setHighlightedFactor(factor);
+    usePanelsStore.getState().showAnalysis();
+  }, []);
+
+  const handleConfirmCausalLink = useCallback(
+    (
+      from: string,
+      to: string,
+      params: {
+        whyStatement: string;
+        direction: 'drives' | 'modulates' | 'confounds';
+        evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
+      }
+    ) => {
+      useDomainInvestigationStore.getState().addCausalLink(from, to, params.whyStatement, {
+        direction: params.direction,
+        evidenceType: params.evidenceType,
+      });
+    },
+    []
+  );
+
+  const handleRemoveCausalLink = useCallback((id: string) => {
+    useDomainInvestigationStore.getState().removeCausalLink(id);
+  }, []);
+
+  const handleUpdateCausalLink = useCallback(
+    (
+      id: string,
+      params: {
+        whyStatement: string;
+        direction: 'drives' | 'modulates' | 'confounds';
+        evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
+      }
+    ) => {
+      useDomainInvestigationStore.getState().updateCausalLink(id, {
+        whyStatement: params.whyStatement,
+        direction: params.direction,
+        evidenceType: params.evidenceType,
+      });
+    },
+    []
+  );
+
+  const checkWouldCreateCycle = useCallback(
+    (from: string, to: string) => wouldCreateCycle(causalLinks, from, to),
+    [causalLinks]
+  );
+
   return (
     <div className="flex flex-1 min-h-0 relative">
       {/* Left panel: Question checklist + phase + conclusions */}
@@ -388,6 +467,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             onQuestionClick={handleQuestionClickWithSwitch}
             problemStatement={processContext?.problemStatement}
             evidenceLabel={strategy.questionStrategy.evidenceLabel}
+            highlightedFactor={highlightedFactor}
           />
         </div>
 
@@ -490,6 +570,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               findings: findingsState.findings,
               suspectedCauses: hubs,
             }}
+            onAskQuestion={handleMapAskQuestion}
+            onCreateFinding={handleMapCreateFinding}
+            onAskCoScout={handleMapAskCoScout}
+            onDrillDown={handleMapDrillDown}
+            onConfirmCausalLink={handleConfirmCausalLink}
+            onRemoveCausalLink={handleRemoveCausalLink}
+            onUpdateCausalLink={handleUpdateCausalLink}
+            wouldCreateCycle={checkWouldCreateCycle}
           />
         ) : (
           <div className="flex-1 overflow-y-auto px-3 py-2">

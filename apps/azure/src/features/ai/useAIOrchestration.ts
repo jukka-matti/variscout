@@ -42,6 +42,7 @@ import { isTeamPlan } from '@variscout/core';
 import { useAIDerivedState } from './useAIDerivedState';
 import { useToolHandlers } from './useToolHandlers';
 import { useInvestigationStore } from '../investigation/investigationStore';
+import { useInvestigationStore as useDomainInvestigationStore } from '@variscout/stores';
 import { useAIStore, type AIContextSummary } from './aiStore';
 import type { ResponsesApiConfig } from '@variscout/core';
 import {
@@ -97,6 +98,8 @@ export interface UseAIOrchestrationOptions {
   entryScenario?: EntryScenario;
   capabilityData?: BuildAIContextOptions['capabilityData'];
   analysisMode?: AnalysisMode;
+  /** Evidence Map topology for graph-aware CoScout reasoning (ADR-066) */
+  evidenceMapTopology?: BuildAIContextOptions['evidenceMapTopology'];
   onOpenCoScout: () => void;
   onOpenFindings: () => void;
 }
@@ -150,11 +153,16 @@ export function useAIOrchestration({
   entryScenario,
   capabilityData,
   analysisMode,
+  evidenceMapTopology,
   onOpenCoScout,
   onOpenFindings,
 }: UseAIOrchestrationOptions): UseAIOrchestrationReturn {
   const { formatStat } = useTranslation();
   const aiAvailable = enabled && isAIAvailable();
+
+  // Read domain store for CoScout context (ADR-066)
+  const causalLinks = useDomainInvestigationStore(s => s.causalLinks);
+  const suspectedCauses = useDomainInvestigationStore(s => s.suspectedCauses);
 
   // Per-component preferences (default all on)
   const prefs = aiPreferences ?? { narration: true, insights: true, coscout: true };
@@ -177,6 +185,54 @@ export function useAIOrchestration({
     highlightedFindingId,
     stagedStats,
   });
+
+  // Build lightweight Evidence Map topology from available data when no explicit topology provided (ADR-066)
+  const effectiveTopology = useMemo(() => {
+    if (evidenceMapTopology) return evidenceMapTopology;
+    if (!factors.length) return undefined;
+
+    const contribMap = new Map(aiVariationContributions?.map(c => [c.factor, c.etaSquared]) ?? []);
+
+    const factorNodes = factors.map(factor => {
+      const fQuestions = questions.filter(q => q.factor === factor);
+      const fFindings = findings.filter(f => {
+        const src = f.source;
+        return src && 'category' in src && src.category === factor;
+      });
+      return {
+        factor,
+        rSquaredAdj: contribMap.get(factor) ?? 0,
+        explored: fQuestions.length > 0 || fFindings.length > 0,
+        questionCount: fQuestions.length,
+        findingCount: fFindings.length,
+      };
+    });
+
+    const convergencePoints = (suspectedCauses ?? []).map(hub => ({
+      factor: hub.name,
+      incomingCount: hub.questionIds.length + hub.findingIds.length,
+      hubName: hub.name,
+      hubStatus: hub.status,
+    }));
+
+    return {
+      factorNodes,
+      relationships: [] as Array<{
+        factorA: string;
+        factorB: string;
+        type: string;
+        strength: number;
+      }>,
+      convergencePoints,
+    };
+  }, [
+    evidenceMapTopology,
+    factors,
+    questions,
+    findings,
+    aiVariationContributions,
+    suspectedCauses,
+  ]);
 
   // Responses API config (resolved async)
   const [responsesConfig, setResponsesConfig] = useState<ResponsesApiConfig | undefined>(undefined);
@@ -232,6 +288,8 @@ export function useAIOrchestration({
     capabilityData,
     analysisMode,
     focusedQuestionId,
+    evidenceMapTopology: effectiveTopology,
+    suspectedCauses,
   });
 
   // AI narration (disabled when per-component toggle is off)
@@ -262,6 +320,7 @@ export function useAIOrchestration({
     filters,
     filterStack,
     knowledgeSearch,
+    causalLinks,
   });
 
   // Tool phase-gating options (ADR-029)

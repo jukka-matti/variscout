@@ -51,6 +51,8 @@ export interface FactorNodeData {
    *   null → categorical
    */
   trendGlyph?: '/' | '\\' | '∩' | '∪' | null;
+  /** Optimal input value for quadratic factors (vertex x-coordinate) */
+  optimum?: number;
 }
 
 /** Statistical relationship edge between two factor nodes. */
@@ -199,6 +201,7 @@ function mapFactorNode(node: FactorNodeLayout, mode: ResolvedMode): FactorNodeDa
     effectLabel: buildEffectLabel(node.levelEffects),
     factorType: node.factorType,
     trendGlyph: node.trendGlyph,
+    ...(node.optimum !== undefined && { optimum: node.optimum }),
   };
 }
 

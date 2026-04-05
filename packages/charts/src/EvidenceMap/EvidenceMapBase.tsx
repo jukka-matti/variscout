@@ -31,6 +31,7 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
   convergencePoints = [],
   onFactorClick,
   onFactorHover,
+  onFactorContextMenu,
   onEdgeClick,
   onCausalEdgeClick,
   onConvergenceClick,
@@ -100,6 +101,7 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
         width={width}
         zoomScale={zoomScale}
         onFactorClick={onFactorClick}
+        onFactorContextMenu={onFactorContextMenu}
         onFactorHover={factor => {
           setHoveredFactor(factor);
           onFactorHover?.(factor);

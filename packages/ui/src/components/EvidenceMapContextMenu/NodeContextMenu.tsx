@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useLayoutEffect, useState } from 'react';
-import { MessageCircleQuestion, FileText, Bot, ArrowRight } from 'lucide-react';
+import { MessageCircleQuestion, FileText, Bot, ArrowRight, Link } from 'lucide-react';
 
 export interface NodeContextMenuProps {
   factor: string;
@@ -9,6 +9,7 @@ export interface NodeContextMenuProps {
   onCreateFinding: (factor: string) => void;
   onAskCoScout: (factor: string) => void;
   onDrillDown: (factor: string) => void;
+  onCreateCausalLink?: (factor: string) => void;
   onClose: () => void;
 }
 
@@ -20,6 +21,7 @@ export const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
   onCreateFinding,
   onAskCoScout,
   onDrillDown,
+  onCreateCausalLink,
   onClose,
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -46,6 +48,15 @@ export const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       label: `Drill down to ${factor}`,
       action: () => onDrillDown(factor),
     },
+    ...(onCreateCausalLink
+      ? [
+          {
+            icon: Link,
+            label: `Create causal link from ${factor}`,
+            action: () => onCreateCausalLink(factor),
+          },
+        ]
+      : []),
   ];
 
   // Clamp position to viewport bounds after render

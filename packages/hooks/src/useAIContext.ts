@@ -14,6 +14,7 @@ import type {
   StagedComparison,
   Locale,
   EntryScenario,
+  SuspectedCause,
 } from '@variscout/core';
 import type {
   StatsResult,
@@ -81,6 +82,10 @@ export interface UseAIContextOptions {
   capabilityData?: BuildAIContextOptions['capabilityData'];
   /** ID of the question currently focused in the PI panel (ADR-060 Pillar 1) */
   focusedQuestionId?: string;
+  /** Evidence Map topology for graph-aware CoScout reasoning (ADR-066) */
+  evidenceMapTopology?: BuildAIContextOptions['evidenceMapTopology'];
+  /** Suspected cause hubs from investigation (ADR-064) */
+  suspectedCauses?: SuspectedCause[];
 }
 
 export interface UseAIContextReturn {
@@ -118,6 +123,8 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     drillPathEnriched,
     capabilityData,
     focusedQuestionId,
+    evidenceMapTopology,
+    suspectedCauses,
   } = options;
 
   const context = useMemo<AIContext | null>(() => {
@@ -144,6 +151,8 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       cumulativeScope,
       drillPathEnriched,
       capabilityData,
+      evidenceMapTopology,
+      suspectedCauses,
     };
 
     // Map StatsResult to AIStatsInput
@@ -188,6 +197,8 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     drillPathEnriched,
     capabilityData,
     focusedQuestionId,
+    evidenceMapTopology,
+    suspectedCauses,
   ]);
 
   return { context };

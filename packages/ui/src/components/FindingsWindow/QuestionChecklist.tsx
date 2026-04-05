@@ -26,6 +26,8 @@ export interface QuestionChecklistProps {
   isProblemStatementComplete?: boolean;
   /** Mode-specific evidence label (e.g., "R²adj", "Cpk impact", "Waste %") */
   evidenceLabel?: string;
+  /** Factor to highlight and scroll to (from Evidence Map click) */
+  highlightedFactor?: string | null;
 }
 
 const ISSUE_STATEMENT_MAX = 500;
@@ -63,6 +65,7 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
   problemStatement,
   isProblemStatementComplete,
   evidenceLabel,
+  highlightedFactor,
 }) => {
   const [answeredExpanded, setAnsweredExpanded] = useState(false);
   const [suggestionDismissed, setSuggestionDismissed] = useState(false);
@@ -76,6 +79,21 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
       setSuggestionDismissed(false);
     }
   }, [suggestedIssueStatement]);
+
+  // Scroll to highlighted factor's question when Evidence Map node is clicked
+  const [flashFactor, setFlashFactor] = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!highlightedFactor || !listRef.current) return;
+    const el = listRef.current.querySelector(`[data-factor="${CSS.escape(highlightedFactor)}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      setFlashFactor(highlightedFactor);
+      const timer = setTimeout(() => setFlashFactor(null), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightedFactor]);
 
   const handleAcceptSuggestion = useCallback(() => {
     onAcceptSuggestion?.();
@@ -148,7 +166,7 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
   }, [questions.length]);
 
   return (
-    <div className="space-y-3">
+    <div ref={listRef} className="space-y-3">
       {/* Issue Statement */}
       {onIssueStatementChange && (
         <div>
@@ -245,6 +263,7 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
                 key={q.id}
                 question={q}
                 isNext={q.id === nextQuestionId}
+                isFlashing={flashFactor != null && q.factor === flashFactor}
                 onQuestionClick={question => {
                   setNextHighlightCleared(true);
                   onQuestionClick?.(question);
@@ -274,6 +293,7 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
                 <QuestionRow
                   key={q.id}
                   question={q}
+                  isFlashing={flashFactor != null && q.factor === flashFactor}
                   onQuestionClick={onQuestionClick}
                   onAnswerQuestion={onAnswerQuestion}
                   evidenceLabel={evidenceLabel}
@@ -328,10 +348,11 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
 const QuestionRow: React.FC<{
   question: Question;
   isNext?: boolean;
+  isFlashing?: boolean;
   onQuestionClick?: (question: Question) => void;
   onAnswerQuestion?: (questionId: string) => void;
   evidenceLabel?: string;
-}> = ({ question, isNext, onQuestionClick, evidenceLabel }) => {
+}> = ({ question, isNext, isFlashing, onQuestionClick, evidenceLabel }) => {
   const isRuledOut = question.status === 'ruled-out';
   const r2Pct =
     question.evidence?.rSquaredAdj != null ? Math.round(question.evidence.rSquaredAdj * 100) : null;
@@ -342,8 +363,9 @@ const QuestionRow: React.FC<{
       onClick={() => onQuestionClick?.(question)}
       className={`w-full text-left flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-surface hover:bg-surface-tertiary transition-colors group ${
         isNext ? 'border-l-2 border-blue-500' : ''
-      }`}
+      }${isFlashing ? ' ring-2 ring-blue-400 ring-opacity-75' : ''}`}
       data-testid={`question-${question.id}`}
+      data-factor={question.factor ?? undefined}
     >
       {/* Status dot */}
       <span

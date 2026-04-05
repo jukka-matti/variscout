@@ -137,9 +137,11 @@ export const usePanelsStore = create<PanelsStore>(set => ({
 
   // Evidence Map deep linking
   setHighlightedFactor: factor =>
-    set(() =>
+    set(state =>
       factor
-        ? { highlightedFactor: factor, piActiveTab: 'questions' as const, isPISidebarOpen: true }
+        ? state.activeView === 'investigation'
+          ? { highlightedFactor: factor } // In Investigation, don't open PI sidebar (QuestionChecklist handles it)
+          : { highlightedFactor: factor, piActiveTab: 'questions' as const, isPISidebarOpen: true }
         : { highlightedFactor: null }
     ),
   setInvestigationViewMode: mode => set(() => ({ investigationViewMode: mode })),

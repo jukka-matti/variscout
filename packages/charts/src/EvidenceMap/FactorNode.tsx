@@ -28,6 +28,7 @@ interface FactorNodeProps {
   onClick?: (factor: string) => void;
   onHover?: (factor: string | null) => void;
   onTap?: (factor: string) => void;
+  onContextMenu?: (factor: string, clientX: number, clientY: number) => void;
 }
 
 function getNodeColor(rSquaredAdj: number, isDark: boolean): string {
@@ -99,6 +100,7 @@ const FactorNode: React.FC<FactorNodeProps> = ({
   onClick,
   onHover,
   onTap,
+  onContextMenu,
 }) => {
   const chrome = getChromeColors(isDark);
   const color = getNodeColor(node.rSquaredAdj, isDark);
@@ -127,6 +129,12 @@ const FactorNode: React.FC<FactorNodeProps> = ({
       }}
       onMouseEnter={() => onHover?.(node.factor)}
       onMouseLeave={() => onHover?.(null)}
+      onContextMenu={e => {
+        if (onContextMenu) {
+          e.preventDefault();
+          onContextMenu(node.factor, e.clientX, e.clientY);
+        }
+      }}
       role="button"
       aria-label={`Factor: ${node.factor}, ${node.metricLabel}`}
     >

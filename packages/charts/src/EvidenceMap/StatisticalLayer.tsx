@@ -26,6 +26,7 @@ interface StatisticalLayerProps {
   zoomScale?: number;
   onFactorClick?: (factor: string) => void;
   onFactorHover?: (factor: string | null) => void;
+  onFactorContextMenu?: (factor: string, clientX: number, clientY: number) => void;
   onEdgeClick?: (factorA: string, factorB: string) => void;
   onNodeTap?: (factor: string) => void;
   onEdgeTap?: (factorA: string, factorB: string) => void;
@@ -45,6 +46,7 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
   zoomScale = 1,
   onFactorClick,
   onFactorHover,
+  onFactorContextMenu,
   onEdgeClick,
   onNodeTap,
   onEdgeTap,
@@ -164,6 +166,7 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
           onClick={onFactorClick}
           onHover={onFactorHover}
           onTap={onNodeTap}
+          onContextMenu={onFactorContextMenu}
         />
       ))}
     </Group>
