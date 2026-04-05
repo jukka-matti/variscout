@@ -15,8 +15,8 @@ import type {
   BuildCoScoutToolsOptions,
 } from '@variscout/core';
 import {
-  buildCoScoutInput,
-  buildCoScoutTools,
+  assembleCoScoutPrompt,
+  buildCoScoutMessageInput,
   streamResponsesWithToolLoop,
   traceAICall,
   getCoScoutReasoningEffort,
@@ -133,18 +133,24 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
       const hasImages = images && images.length > 0;
 
       try {
-        // Build Responses API input (pass journeyPhase so tool routing instructions reach the LLM)
-        const { instructions, input } = buildCoScoutInput(
+        // Build tiered prompt via assembler (Phase 2 migration)
+        const tiers = assembleCoScoutPrompt({
+          phase: toolsOptions?.phase ?? 'frame',
+          investigationPhase: toolsOptions?.investigationPhase,
+          mode: context.analysisMode ?? 'standard',
+          surface: 'fullPanel',
           context,
+          isTeamPlan: toolsOptions?.isTeamPlan,
+        });
+        const instructions = [tiers.tier1Static, tiers.tier2SemiStatic, tiers.tier3Dynamic]
+          .filter(Boolean)
+          .join('\n\n');
+        const input = buildCoScoutMessageInput(
           messagesRef.current,
           text.trim(),
-          {
-            journeyPhase: toolsOptions?.phase,
-            isTeamPlan: toolsOptions?.isTeamPlan,
-            ...(hasImages ? { images: images.map(img => ({ dataUrl: img.dataUrl })) } : {}),
-          }
+          hasImages ? images!.map(img => ({ dataUrl: img.dataUrl })) : undefined
         );
-        const tools = buildCoScoutTools(toolsOptions);
+        const tools = tiers.tools;
 
         const placeholderId = generateId();
         const placeholder: CoScoutMessage = {

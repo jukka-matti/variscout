@@ -4,15 +4,18 @@ import {
   buildSummaryPrompt,
   buildChartInsightSystemPrompt,
   buildChartInsightPrompt,
-  buildCoScoutSystemPrompt,
-  buildCoScoutMessages,
-  buildCoScoutInput,
-  buildCoScoutTools,
   formatKnowledgeContext,
   buildReportSystemPrompt,
   buildReportPrompt,
   buildLocaleHint,
 } from '../prompts';
+// Legacy functions imported directly for backward-compatibility tests
+import {
+  buildCoScoutSystemPrompt,
+  buildCoScoutMessages,
+  buildCoScoutInput,
+  buildCoScoutTools,
+} from '../prompts/coScout/legacy';
 import { narrationResponseSchema, chartInsightResponseSchema } from '../schemas';
 import type { AIContext, CoScoutMessage } from '../types';
 import type { Finding, Question } from '../../findings';

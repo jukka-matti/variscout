@@ -2,10 +2,10 @@
  * Barrel re-export for all prompt modules.
  *
  * Import from here for clean access:
- *   import { buildCoScoutSystemPrompt } from './prompts';
+ *   import { assembleCoScoutPrompt } from './prompts';
  *
  * Or import specific modules for smaller bundles:
- *   import { buildCoScoutSystemPrompt } from './prompts/coScout';
+ *   import { assembleCoScoutPrompt } from './prompts/coScout';
  */
 
 // Shared utilities
@@ -18,7 +18,7 @@ export { buildNarrationSystemPrompt, buildSummaryPrompt } from './narration';
 export type { ChartInsightData } from './chartInsights';
 export { buildChartInsightSystemPrompt, buildChartInsightPrompt } from './chartInsights';
 
-// CoScout conversational prompts
+// CoScout conversational prompts — new assembler API
 export type {
   BuildCoScoutSystemPromptOptions,
   BuildCoScoutToolsOptions,
@@ -26,14 +26,7 @@ export type {
   CoScoutPromptTiers,
   AssembleCoScoutPromptOptions,
 } from './coScout';
-export {
-  buildCoScoutSystemPrompt,
-  buildCoScoutMessages,
-  buildCoScoutInput,
-  buildCoScoutTools,
-  formatKnowledgeContext,
-  assembleCoScoutPrompt,
-} from './coScout';
+export { formatKnowledgeContext, assembleCoScoutPrompt, buildCoScoutMessageInput } from './coScout';
 
 // Report generation prompts
 export { buildReportSystemPrompt, buildReportPrompt } from './reports';

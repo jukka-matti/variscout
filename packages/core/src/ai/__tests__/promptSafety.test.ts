@@ -10,12 +10,12 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildNarrationSystemPrompt,
-  buildCoScoutSystemPrompt,
   buildChartInsightSystemPrompt,
-  buildCoScoutTools,
   buildSummaryPrompt,
   TERMINOLOGY_INSTRUCTION,
 } from '../prompts';
+// Legacy functions imported directly for backward-compatibility tests
+import { buildCoScoutSystemPrompt, buildCoScoutTools } from '../prompts/coScout/legacy';
 import { buildAIContext } from '../buildAIContext';
 import type { AIContext } from '../types';
 

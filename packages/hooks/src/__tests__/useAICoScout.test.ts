@@ -18,13 +18,16 @@ vi.mock('@variscout/core', async importOriginal => {
   const actual = await importOriginal<Record<string, unknown>>();
   return {
     ...actual,
-    // Stub new exports that barrel re-export chain may not resolve via importOriginal
-    // (prompt building is tested in @variscout/core — these stubs just unblock the hook)
-    buildCoScoutInput: (ctx: unknown, _history: unknown, userMessage: string) => ({
-      instructions: 'test-instructions',
-      input: [{ role: 'user', content: userMessage }],
+    // Stub new assembler API (prompt building is tested in @variscout/core)
+    assembleCoScoutPrompt: () => ({
+      tier1Static: 'test-tier1',
+      tier2SemiStatic: 'test-tier2',
+      tier3Dynamic: '',
+      tools: [],
     }),
-    buildCoScoutTools: () => [],
+    buildCoScoutMessageInput: (_history: unknown, userMessage: string) => [
+      { role: 'user', content: userMessage },
+    ],
     // Mocked side-effect functions
     streamResponsesWithToolLoop: mockStreamFn,
     traceAICall: mockTraceAICall,

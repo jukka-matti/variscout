@@ -1,28 +1,24 @@
 /**
- * CoScout prompt module — modular directory with legacy backward compatibility.
+ * CoScout prompt module — modular directory with tiered assembler.
  *
- * This barrel re-exports everything from the legacy monolithic module
- * for backward compatibility, and provides the new tiered assembler
- * that composes from extracted modules (role, phases, modes, context, tools).
+ * The assembler composes from extracted modules (role, phases, modes, context, tools).
+ * Legacy functions (buildCoScoutSystemPrompt, buildCoScoutInput, buildCoScoutTools)
+ * remain in legacy.ts for direct import by tests that validate legacy behavior.
  *
- * Strangler fig pattern: legacy.ts is the original coScout.ts renamed;
- * assembleCoScoutPrompt now uses extracted modules instead of delegating.
+ * Consumers should use:
+ *   - `assembleCoScoutPrompt()` for prompt construction
+ *   - `buildCoScoutMessageInput()` for Responses API input array
+ *   - `getToolsForPhase()` for tool definitions
  */
 
-// ── Backward-compatible re-exports ──────────────────────────────────────
-// These legacy functions are still used by useAICoScout.ts and tests.
-// Phase 2 will migrate consumers to the new assembler API.
-/** @deprecated Use `assembleCoScoutPrompt` instead. */
-export {
-  buildCoScoutSystemPrompt,
-  buildCoScoutMessages,
-  buildCoScoutInput,
-  buildCoScoutTools,
-} from './legacy';
+// Legacy types still needed by consumers (BuildCoScoutToolsOptions used by useAICoScout options interface)
 export type { BuildCoScoutSystemPromptOptions, BuildCoScoutToolsOptions } from './legacy';
 
 // New formatKnowledgeContext — single source of truth
 export { formatKnowledgeContext } from './context';
+
+// Message input builder (extracted from legacy buildCoScoutInput)
+export { buildCoScoutMessageInput } from './messages';
 
 // ── New types ───────────────────────────────────────────────────────────
 export type { CoScoutSurface, CoScoutPromptTiers, AssembleCoScoutPromptOptions } from './types';
