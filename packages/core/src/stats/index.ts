@@ -157,6 +157,14 @@ export type {
 } from './evidenceMapLayout';
 export { computeEvidenceMapLayout } from './evidenceMapLayout';
 
+// OLS regression (QR-based solver)
+export type { OLSSolution } from './olsRegression';
+export { solveOLS, CONDITION_NUMBER_WARNING } from './olsRegression';
+
+// Design matrix construction
+export type { DesignMatrixResult, FactorEncoding, FactorSpec } from './designMatrix';
+export { buildDesignMatrix } from './designMatrix';
+
 // Subgroup capability analysis
 export type {
   SubgroupMethod,
