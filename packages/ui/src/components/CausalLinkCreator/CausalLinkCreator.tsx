@@ -60,7 +60,8 @@ export const CausalLinkCreator: React.FC<CausalLinkCreatorProps> = ({
           value={whyStatement}
           onChange={e => setWhyStatement(e.target.value)}
           placeholder="Describe the mechanism..."
-          className="w-full px-3 py-2 text-sm border border-edge rounded-lg bg-surface text-content focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none h-20 mb-3"
+          disabled={cycleWarning}
+          className={`w-full px-3 py-2 text-sm border border-edge rounded-lg bg-surface text-content focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none h-20 mb-3${cycleWarning ? ' opacity-50' : ''}`}
           autoFocus
         />
 
@@ -72,7 +73,8 @@ export const CausalLinkCreator: React.FC<CausalLinkCreatorProps> = ({
             <select
               value={direction}
               onChange={e => setDirection(e.target.value as typeof direction)}
-              className="w-full px-2 py-1.5 text-xs border border-edge rounded bg-surface text-content"
+              disabled={cycleWarning}
+              className={`w-full px-2 py-1.5 text-xs border border-edge rounded bg-surface text-content${cycleWarning ? ' opacity-50' : ''}`}
             >
               <option value="drives">Drives</option>
               <option value="modulates">Modulates</option>
@@ -86,7 +88,8 @@ export const CausalLinkCreator: React.FC<CausalLinkCreatorProps> = ({
             <select
               value={evidenceType}
               onChange={e => setEvidenceType(e.target.value as typeof evidenceType)}
-              className="w-full px-2 py-1.5 text-xs border border-edge rounded bg-surface text-content"
+              disabled={cycleWarning}
+              className={`w-full px-2 py-1.5 text-xs border border-edge rounded bg-surface text-content${cycleWarning ? ' opacity-50' : ''}`}
             >
               <option value="data">Data</option>
               <option value="gemba">Gemba</option>

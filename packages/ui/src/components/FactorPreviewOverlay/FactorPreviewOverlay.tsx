@@ -6,7 +6,7 @@
  * Rendered as a centered modal overlay over the dashboard.
  */
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { X, ArrowRight } from 'lucide-react';
 
 export interface FactorPreviewOverlayProps {
@@ -35,7 +35,13 @@ export const FactorPreviewOverlay: React.FC<FactorPreviewOverlayProps> = ({
   onStartWithFactor,
   onDismiss,
 }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const modelR2Pct = Math.round(modelR2 * 100);
+
+  // Focus the dialog container on mount for keyboard accessibility
+  useEffect(() => {
+    dialogRef.current?.focus();
+  }, []);
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -43,7 +49,7 @@ export const FactorPreviewOverlay: React.FC<FactorPreviewOverlayProps> = ({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleDialogKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') {
       onDismiss();
     }
@@ -53,14 +59,16 @@ export const FactorPreviewOverlay: React.FC<FactorPreviewOverlayProps> = ({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
       onClick={handleBackdropClick}
-      onKeyDown={handleKeyDown}
       role="presentation"
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="factor-preview-title"
-        className="bg-surface border border-edge rounded-xl shadow-2xl flex flex-col w-[min(90vw,720px)] max-h-[85vh] overflow-hidden"
+        tabIndex={-1}
+        onKeyDown={handleDialogKeyDown}
+        className="bg-surface border border-edge rounded-xl shadow-2xl flex flex-col w-[min(90vw,720px)] max-h-[85vh] overflow-hidden focus:outline-none"
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-4 px-5 py-4 border-b border-edge flex-shrink-0">

@@ -14,7 +14,12 @@ import {
   type UseQuestionsReturn,
 } from '@variscout/hooks';
 import type { FindingStatus, Question } from '@variscout/core';
-import { hasTeamFeatures, inferCharacteristicType } from '@variscout/core';
+import {
+  hasTeamFeatures,
+  inferCharacteristicType,
+  computeMainEffects,
+  computeInteractionEffects,
+} from '@variscout/core';
 import {
   computeHubEvidence,
   computeHubProjection,
@@ -137,6 +142,17 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     questionsState,
     mode: resolved,
   });
+
+  // Main effects and interactions for Evidence Map (Layer 1 statistical enrichment)
+  const mainEffects = useMemo(() => {
+    if (!bestSubsets || !filteredData?.length || !outcome) return null;
+    return computeMainEffects(filteredData, outcome, factors);
+  }, [bestSubsets, filteredData, outcome, factors]);
+
+  const interactions = useMemo(() => {
+    if (!bestSubsets || !filteredData?.length || !outcome || factors.length < 2) return null;
+    return computeInteractionEffects(filteredData, outcome, factors);
+  }, [bestSubsets, filteredData, outcome, factors]);
 
   // Characteristic type derived from spec configuration (for Watson Q2)
   const characteristicType = useMemo(() => inferCharacteristicType(specs), [specs]);
@@ -466,8 +482,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           <InvestigationMapView
             mapOptions={{
               bestSubsets,
-              mainEffects: null,
-              interactions: null,
+              mainEffects,
+              interactions,
               mode: resolved,
               causalLinks,
               questions: questionsState.questions,
