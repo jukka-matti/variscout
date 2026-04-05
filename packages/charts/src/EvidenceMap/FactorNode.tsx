@@ -15,8 +15,10 @@ interface FactorNodeProps {
   isHighlighted: boolean;
   isDark: boolean;
   compact: boolean;
+  hideLabels?: boolean;
   onClick?: (factor: string) => void;
   onHover?: (factor: string | null) => void;
+  onTap?: (factor: string) => void;
 }
 
 function getNodeColor(rSquaredAdj: number, isDark: boolean): string {
@@ -26,13 +28,18 @@ function getNodeColor(rSquaredAdj: number, isDark: boolean): string {
   return chrome.labelMuted; // grey — weak
 }
 
+/** Minimum touch target radius (44px diameter / 2) */
+const TOUCH_TARGET_RADIUS = 22;
+
 const FactorNode: React.FC<FactorNodeProps> = ({
   node,
   isHighlighted,
   isDark,
   compact,
+  hideLabels = false,
   onClick,
   onHover,
+  onTap,
 }) => {
   const chrome = getChromeColors(isDark);
   const color = getNodeColor(node.rSquaredAdj, isDark);
@@ -44,13 +51,21 @@ const FactorNode: React.FC<FactorNodeProps> = ({
     <Group
       top={node.y}
       left={node.x}
-      style={{ cursor: onClick ? 'pointer' : 'default' }}
-      onClick={() => onClick?.(node.factor)}
+      style={{ cursor: onClick || onTap ? 'pointer' : 'default' }}
+      onClick={() => {
+        onClick?.(node.factor);
+        onTap?.(node.factor);
+      }}
       onMouseEnter={() => onHover?.(node.factor)}
       onMouseLeave={() => onHover?.(null)}
       role="button"
       aria-label={`Factor: ${node.factor}, ${node.metricLabel}`}
     >
+      {/* Transparent touch target (44px min) for compact/mobile mode */}
+      {compact && node.radius < TOUCH_TARGET_RADIUS && (
+        <circle r={TOUCH_TARGET_RADIUS} fill="transparent" />
+      )}
+
       {/* Highlight ring */}
       {isHighlighted && (
         <circle
@@ -72,26 +87,28 @@ const FactorNode: React.FC<FactorNodeProps> = ({
       />
 
       {/* Factor name */}
-      <text
-        textAnchor="middle"
-        dy={compact ? 0 : -4}
-        fill="white"
-        fontSize={compact ? 8 : 11}
-        fontWeight="bold"
-        pointerEvents="none"
-      >
-        {node.factor.length > 12 ? node.factor.slice(0, 10) + '...' : node.factor}
-      </text>
+      {!hideLabels && (
+        <text
+          textAnchor="middle"
+          dy={compact ? 0 : -4}
+          fill="white"
+          fontSize={compact ? 8 : 11}
+          fontWeight="bold"
+          pointerEvents="none"
+        >
+          {node.factor.length > 12 ? node.factor.slice(0, 10) + '...' : node.factor}
+        </text>
+      )}
 
       {/* Metric label (R²adj value) */}
-      {!compact && (
+      {!compact && !hideLabels && (
         <text textAnchor="middle" dy={10} fill={subtextColor} fontSize={9} pointerEvents="none">
           {node.metricLabel}
         </text>
       )}
 
       {/* Effect label (±value) */}
-      {!compact && node.effectLabel && (
+      {!compact && !hideLabels && node.effectLabel && (
         <text
           textAnchor="middle"
           dy={22}

@@ -114,6 +114,11 @@ export interface EvidenceMapBaseProps {
   highlightedEdge?: string | null;
   showEquation?: boolean;
 
+  // Mobile interactions
+  enableZoom?: boolean;
+  onNodeTap?: (factor: string) => void;
+  onEdgeTap?: (factorA: string, factorB: string) => void;
+
   // Display
   isDark?: boolean;
   compact?: boolean;

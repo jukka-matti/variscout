@@ -12,6 +12,7 @@ interface RelationshipEdgeProps {
   edge: RelationshipEdgeData;
   isHighlighted: boolean;
   isDark: boolean;
+  hideLabels?: boolean;
   onClick?: (factorA: string, factorB: string) => void;
 }
 
@@ -74,6 +75,7 @@ const RelationshipEdge: React.FC<RelationshipEdgeProps> = ({
   edge,
   isHighlighted,
   isDark,
+  hideLabels = false,
   onClick,
 }) => {
   const style = getEdgeStyle(edge.type, isDark);
@@ -103,7 +105,7 @@ const RelationshipEdge: React.FC<RelationshipEdgeProps> = ({
       />
 
       {/* Label badge (for non-trivial relationships) */}
-      {showLabel && (
+      {showLabel && !hideLabels && (
         <>
           <rect
             x={midX - 45}

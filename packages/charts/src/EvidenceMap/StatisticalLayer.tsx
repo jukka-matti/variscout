@@ -23,9 +23,12 @@ interface StatisticalLayerProps {
   compact: boolean;
   showEquation: boolean;
   width: number;
+  zoomScale?: number;
   onFactorClick?: (factor: string) => void;
   onFactorHover?: (factor: string | null) => void;
   onEdgeClick?: (factorA: string, factorB: string) => void;
+  onNodeTap?: (factor: string) => void;
+  onEdgeTap?: (factorA: string, factorB: string) => void;
 }
 
 const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
@@ -39,18 +42,24 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
   compact,
   showEquation,
   width,
+  zoomScale = 1,
   onFactorClick,
   onFactorHover,
   onEdgeClick,
+  onNodeTap,
+  onEdgeTap,
 }) => {
   const chrome = getChromeColors(isDark);
   const textColor = chrome.labelPrimary;
   const bgColor = chrome.gridLine;
 
+  /** Progressive label disclosure: hide labels at low zoom in compact mode */
+  const hideLabels = compact && zoomScale < 1.5;
+
   return (
     <Group>
-      {/* Equation bar (top) */}
-      {showEquation && equation && !compact && (
+      {/* Equation bar (top) — hidden when labels are hidden */}
+      {showEquation && equation && !compact && !hideLabels && (
         <Group>
           <rect
             x={width * 0.15}
@@ -99,7 +108,8 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
               highlightedFactor === edge.factorB
             }
             isDark={isDark}
-            onClick={onEdgeClick}
+            hideLabels={hideLabels}
+            onClick={onEdgeTap ?? onEdgeClick}
           />
         );
       })}
@@ -150,8 +160,10 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
           isHighlighted={highlightedFactor === node.factor}
           isDark={isDark}
           compact={compact}
+          hideLabels={hideLabels}
           onClick={onFactorClick}
           onHover={onFactorHover}
+          onTap={onNodeTap}
         />
       ))}
     </Group>

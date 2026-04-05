@@ -10,6 +10,7 @@
 
 import React, { useState } from 'react';
 import { Group } from '@visx/group';
+import { Zoom } from '@visx/zoom';
 import { getChromeColors } from '../colors';
 import StatisticalLayer from './StatisticalLayer';
 import InvestigationLayer from './InvestigationLayer';
@@ -36,6 +37,9 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
   highlightedFactor: externalHighlight,
   highlightedEdge,
   showEquation = true,
+  enableZoom = false,
+  onNodeTap,
+  onEdgeTap,
   isDark = false,
   compact = false,
 }) => {
@@ -73,52 +77,98 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
     );
   }
 
+  const layerContent = (zoomScale = 1): React.ReactElement => (
+    <Group>
+      {/* Layer 3: Synthesis (behind everything else for zone rendering) */}
+      <SynthesisLayer
+        convergencePoints={convergencePoints}
+        isDark={isDark}
+        onConvergenceClick={onConvergenceClick}
+      />
+
+      {/* Layer 1: Statistical (factor nodes, edges, equation) */}
+      <StatisticalLayer
+        outcomeNode={outcomeNode}
+        factorNodes={factorNodes}
+        relationshipEdges={relationshipEdges}
+        equation={equation}
+        highlightedFactor={highlightedFactor}
+        highlightedEdge={highlightedEdge ?? null}
+        isDark={isDark}
+        compact={compact}
+        showEquation={showEquation}
+        width={width}
+        zoomScale={zoomScale}
+        onFactorClick={onFactorClick}
+        onFactorHover={factor => {
+          setHoveredFactor(factor);
+          onFactorHover?.(factor);
+        }}
+        onEdgeClick={onEdgeClick}
+        onNodeTap={onNodeTap}
+        onEdgeTap={onEdgeTap}
+      />
+
+      {/* Layer 2: Investigation (causal links overlay) */}
+      <InvestigationLayer
+        causalEdges={causalEdges}
+        highlightedEdge={highlightedEdge ?? null}
+        isDark={isDark}
+        onCausalEdgeClick={onCausalEdgeClick}
+      />
+    </Group>
+  );
+
+  const ariaLabel = `Evidence Map: ${factorNodes.length} factors, ${causalEdges.length} causal links`;
+
+  if (enableZoom) {
+    return (
+      <Zoom<SVGSVGElement>
+        width={width}
+        height={height}
+        scaleXMin={0.5}
+        scaleXMax={3}
+        scaleYMin={0.5}
+        scaleYMax={3}
+      >
+        {zoom => (
+          <svg
+            width={width}
+            height={height}
+            ref={zoom.containerRef}
+            style={{ touchAction: 'none' }}
+            role="img"
+            aria-label={ariaLabel}
+            data-testid="chart-evidence-map"
+          >
+            <rect
+              width={width}
+              height={height}
+              fill="transparent"
+              onTouchStart={zoom.dragStart}
+              onTouchMove={zoom.dragMove}
+              onTouchEnd={zoom.dragEnd}
+              onMouseDown={zoom.dragStart}
+              onMouseMove={zoom.dragMove}
+              onMouseUp={zoom.dragEnd}
+            />
+            <g transform={zoom.toString()}>{layerContent(zoom.transformMatrix.scaleX)}</g>
+          </svg>
+        )}
+      </Zoom>
+    );
+  }
+
   return (
     <svg
       width={width}
       height={height}
       role="img"
-      aria-label={`Evidence Map: ${factorNodes.length} factors, ${causalEdges.length} causal links`}
+      aria-label={ariaLabel}
       data-testid="chart-evidence-map"
     >
       <rect width={width} height={height} fill="transparent" />
-
-      <Group>
-        {/* Layer 3: Synthesis (behind everything else for zone rendering) */}
-        <SynthesisLayer
-          convergencePoints={convergencePoints}
-          isDark={isDark}
-          onConvergenceClick={onConvergenceClick}
-        />
-
-        {/* Layer 1: Statistical (factor nodes, edges, equation) */}
-        <StatisticalLayer
-          outcomeNode={outcomeNode}
-          factorNodes={factorNodes}
-          relationshipEdges={relationshipEdges}
-          equation={equation}
-          highlightedFactor={highlightedFactor}
-          highlightedEdge={highlightedEdge ?? null}
-          isDark={isDark}
-          compact={compact}
-          showEquation={showEquation}
-          width={width}
-          onFactorClick={onFactorClick}
-          onFactorHover={factor => {
-            setHoveredFactor(factor);
-            onFactorHover?.(factor);
-          }}
-          onEdgeClick={onEdgeClick}
-        />
-
-        {/* Layer 2: Investigation (causal links overlay) */}
-        <InvestigationLayer
-          causalEdges={causalEdges}
-          highlightedEdge={highlightedEdge ?? null}
-          isDark={isDark}
-          onCausalEdgeClick={onCausalEdgeClick}
-        />
-      </Group>
+      {layerContent()}
     </svg>
   );
 };
