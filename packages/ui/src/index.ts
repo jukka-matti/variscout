@@ -13,6 +13,7 @@ export {
   CapabilitySuggestionModal,
   type CapabilitySuggestionModalProps,
 } from './components/CapabilitySuggestionModal';
+export { CausalLinkCreator, type CausalLinkCreatorProps } from './components/CausalLinkCreator';
 export { DataQualityBanner, type DataQualityBannerProps } from './components/DataQualityBanner';
 export {
   ColumnMapping,
