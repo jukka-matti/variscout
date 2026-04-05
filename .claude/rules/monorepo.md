@@ -126,6 +126,8 @@ packages/
                #   YamazumiSummaryBar,
                #   HubComposer, HubCard, SynthesisPrompt, EquationDisplay,
                #   LeanWhatIfSimulator, LeanDistributionPreview,
+               #   FactorPreviewOverlay, NodeContextMenu, CausalLinkCreator, ReportEvidenceMap,
+               #   EvidenceMapNodeSheet, EvidenceMapEdgeSheet,
                #   QuestionsTabView, QuestionRow, QuestionRowExpanded, ObservationsSection, ConclusionCard,
                #   JournalTabView, JournalEntryRow, PIOverflowMenu,
                #   useGlossary, useIsMobile, useTheme, errorService, BREAKPOINTS

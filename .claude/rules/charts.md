@@ -248,6 +248,14 @@ Spatial visualization of factor relationships using R²adj from best subsets reg
 
 **Pop-out:** `?view=evidence-map` route. Cross-window sync via `usePopoutChannel` (BroadcastChannel).
 
+**Analysis Spine:** The Evidence Map is the primary center view in the Investigation workspace (Azure). It grows through phases: embryonic at FRAME→SCOUT (`FactorPreviewOverlay`), full 3-layer in INVESTIGATE (`InvestigationMapView`), timeline replay in REPORT (`ReportEvidenceMap`). `useEvidenceMapData` returns `exploredFactors: Set<string>` for node coloring (grey = unexplored, colored = explored).
+
+**Investigation interactions (Azure):**
+- Single-click node → PI panel scrolls to related questions (via `highlightedFactor` in panelsStore)
+- Right-click node → `NodeContextMenu`: ask question, create finding, ask CoScout, drill down
+- `CausalLinkCreator` modal: why-statement + direction (drives/modulates/confounds) + evidence type (D/G/E)
+- `investigationViewMode` in panelsStore toggles between Evidence Map and FindingsLog
+
 ## Yamazumi Chart (Lean Time Study Analysis)
 
 Yamazumi stacked bar chart visualizes cycle time composition by activity type:

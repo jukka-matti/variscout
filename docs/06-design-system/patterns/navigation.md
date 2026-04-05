@@ -84,11 +84,19 @@ activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report
 
 **Investigation workspace layout** (three columns):
 
-| Left (280-400px, resizable)                              | Center (flex-1)                                                                     | Right (optional)              |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------- |
-| QuestionChecklist + PhaseBadge + InvestigationConclusion | FindingsLog (list / board / tree) + **SuspectedCause hub panel** (Converging phase) | CoScout (no mutual exclusion) |
+| Left (280-400px, resizable)                              | Center (flex-1)                                                                               | Right (optional)                       |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------- |
+| QuestionChecklist + PhaseBadge + InvestigationConclusion | **Evidence Map** (default) or FindingsLog (toggle via `investigationViewMode` in panelsStore) | CoScout (graph-aware, no mutual excl.) |
 
-The Investigation workspace is the **exclusive surface for SuspectedCause hub creation**. During the Converging phase, the center area expands to include a hub management view: create named hubs, connect questions and findings to hubs, write synthesis text, and review aggregate evidence. CoScout assists with hub synthesis from the right panel. The PI panel (available in Analysis workspace) shows hub summaries in read-only mode.
+The center area defaults to the **Evidence Map** (`InvestigationMapView`) — a 3-layer SVG showing statistical relationships (L1), causal links with evidence badges (L2), and suspected cause convergence zones (L3). A toggle bar at the top switches between "Evidence Map" and "Findings" (list/board/tree). When Findings is selected, the existing FindingsLog renders with its sub-mode toggle.
+
+**Evidence Map interactions** (Investigation workspace center):
+
+- Single-click node → PI panel Questions tab scrolls to related questions (via `highlightedFactor`)
+- Right-click node → `NodeContextMenu` (ask question, create finding, ask CoScout, drill down)
+- Causal link creation via `CausalLinkCreator` modal (why-statement + direction + evidence type)
+
+The Investigation workspace is the **exclusive surface for SuspectedCause hub creation**. During the Converging phase, the Evidence Map shows hub convergence zones. CoScout assists with hub synthesis from the right panel, now with graph-aware context (`evidenceMapTopology` in AIContext). The PI panel (available in Analysis workspace) shows hub summaries in read-only mode.
 
 **Question click round-trip** — the core interaction loop of question-driven EDA (ADR-053):
 
