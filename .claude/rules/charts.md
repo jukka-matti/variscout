@@ -177,21 +177,9 @@ Three chart types support annotations via right-click context menu. Text observa
 | Pareto  | Category-based    | Yes        | Yes (Finding)     | `highlightedCategories`, `onBarContextMenu`     |
 | I-Chart | Free-floating (%) | No         | Yes (Finding)     | `ichartAnnotations`, `onChartContextMenu`       |
 
-**"Add observation"** (context menu) creates a `Finding` with `source` metadata (`FindingSource` with chartType, category, anchorX/Y). The floating text box rendered by `ChartAnnotationLayer` is a visual projection of the Finding. `ChartAnnotationLayer` reads from `Finding[]` (filtered by source), not `ChartAnnotation[]`.
+"Add observation" creates a `Finding` with `source` metadata (`FindingSource` with chartType, category, anchorX/Y). `ChartAnnotationLayer` reads from `Finding[]`, not `ChartAnnotation[]`. Color highlights (red/amber/green) remain in `DisplayOptions` as lightweight visual markers — they do not create findings.
 
-**Color highlights** (red/amber/green) remain in `DisplayOptions` as lightweight visual markers. They do not create findings.
-
-**Category-based** (Boxplot/Pareto): Observations anchor to a named category. Offsets reset on data changes. Finding carries `source.category`.
-
-**Free-floating** (I-Chart): Observations store percentage positions (0.0-1.0) within the chart area. Position is data-independent. Finding carries `source.anchorX`/`source.anchorY`. I-Chart dot colors are never overridden (blue = in-control, red = violation).
-
-**Status dot**: Each annotation box displays a status dot matching the finding's investigation status (amber = observed, blue = investigating, purple = analyzed).
-
-State managed by `useAnnotations` hook from `@variscout/hooks`. UI components: `ChartAnnotationLayer` and `AnnotationContextMenu` from `@variscout/ui`.
-
-**Mobile (<640px)**: Tap on boxplot box or Pareto bar opens `MobileCategorySheet` bottom action sheet (from `@variscout/ui`) with category stats, drill-down, highlight, and pin-as-finding actions. "Pin as Finding" includes `source` metadata (chart type and category). Draggable text annotations (`ChartAnnotationLayer`) remain desktop-only. I-Chart annotations are desktop-only on all platforms.
-
-**Opt-in visibility for question-linked findings:** Findings created via the question auto-link mechanism have `showOnChart: false` by default. The analyst can toggle "Show on chart" on the finding card to render the annotation box. This keeps charts clean during question-driven investigation — the spotlight (selectedGroups) provides visual feedback without annotation clutter.
+State managed by `useAnnotations` hook. UI: `ChartAnnotationLayer` and `AnnotationContextMenu` from `@variscout/ui`. Mobile (<640px): `MobileCategorySheet` bottom sheet. Question-linked findings have `showOnChart: false` by default.
 
 ## Target Reference Line
 
@@ -242,19 +230,7 @@ Spatial visualization of factor relationships using R²adj from best subsets reg
 - **Layer 2 (Investigation):** CausalLink directed edges, evidence badges (D/G/E), gap markers. Azure only.
 - **Layer 3 (Synthesis):** SuspectedCause hub convergence zones, projections. Azure only.
 
-**Props pattern:** Props-based, uses `chartColors`/`chromeColors` constants. Layout computed by `evidenceMapLayout.ts` in `@variscout/core`. Data flow via `useEvidenceMapData` hook.
-
-**Mobile:** `enableZoom={true}` wraps in `@visx/zoom` for pinch/pan. `compact={true}` hides labels until zoom > 1.5x. Touch targets enlarged to 44px. `onNodeTap`/`onEdgeTap` open bottom sheets.
-
-**Pop-out:** `?view=evidence-map` route. Cross-window sync via `usePopoutChannel` (BroadcastChannel).
-
-**Analysis Spine:** The Evidence Map is the primary center view in the Investigation workspace (Azure). It grows through phases: embryonic at FRAME→SCOUT (`FactorPreviewOverlay`), full 3-layer in INVESTIGATE (`InvestigationMapView`), timeline replay in REPORT (`ReportEvidenceMap`). `useEvidenceMapData` returns `exploredFactors: Set<string>` for node coloring (grey = unexplored, colored = explored).
-
-**Investigation interactions (Azure):**
-- Single-click node → PI panel scrolls to related questions (via `highlightedFactor` in panelsStore)
-- Right-click node → `NodeContextMenu`: ask question, create finding, ask CoScout, drill down
-- `CausalLinkCreator` modal: why-statement + direction (drives/modulates/confounds) + evidence type (D/G/E)
-- `investigationViewMode` in panelsStore toggles between Evidence Map and FindingsLog
+Props-based, uses `chartColors`/`chromeColors` constants. Layout: `evidenceMapLayout.ts` in `@variscout/core/stats`. Data flow: `useEvidenceMapData` hook. Mobile: `enableZoom` for pinch/pan, `compact` hides labels until zoom > 1.5x. Pop-out: `usePopoutChannel` (BroadcastChannel). See CLAUDE.md Evidence Map rows for design specs and interaction details.
 
 ## Yamazumi Chart (Lean Time Study Analysis)
 
@@ -270,12 +246,7 @@ Yamazumi stacked bar chart visualizes cycle time composition by activity type:
 - Waste: `#ef4444` (red) — Eliminable waste
 - Wait: `#94a3b8` (grey) — Queue/wait time
 
-**Props pattern:**
-- Accepts `data: YamazumiBarData[]` from `computeYamazumiData()` in `@variscout/core`
-- `taktTime?: number` renders horizontal dashed line (reuses spec limit pattern)
-- `onBarClick`, `onBarContextMenu` for drill-down and findings
-- `highlightedBars` for annotation highlights
-- Theme-aware via `useChartTheme`
+Accepts `data: YamazumiBarData[]` from `computeYamazumiData()`, `taktTime` for target line. Theme-aware via `useChartTheme`.
 
 **Chart slot mapping (Yamazumi mode):**
 

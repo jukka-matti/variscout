@@ -21,7 +21,7 @@
 | ---------------------- | -------------------- | ------------------------------------------------------------------- |
 | `@variscout/core`      | Unit                 | stats, parser, tier, export, performance, yamazumi, lttb, buildAIContext, channelQuestions, causalGraph, evidenceMapLayout |
 | `@variscout/charts`    | Unit                 | colors, accessibility, multi-selection hook                         |
-| `@variscout/hooks`     | Unit                 | useTier, useChartScale, useColumnClassification, useDrillPath, useVariationTracking, useAnnotations, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDocumentShelf, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState, useHighlightFade, useResizablePanel, useDataTablePagination, useBoxplotWrapperData, useIChartWrapperData, useParetoChartData, useDashboardComputedData, useDashboardChartsBase, useQuestions, useQuestionGeneration, useFindings, useAIContext, useChartInsights, useAICoScout, useKnowledgeSearch, useNarration, useVerificationCharts, useFilterHandlers, useCreateFactorModal, useLocaleState, useTranslation, useReportSections, useScrollSpy, useJourneyPhase, useSnapshotData, copySectionAsHTML, useYamazumiChartData, useYamazumiIChartData, useYamazumiParetoData, useProbabilityPlotData, useAsyncStats, useFilteredData, useAnalysisStats, useStagedAnalysis, usePerformanceAnalysis, useYDomain, useSpecsForMeasure, useProjectActions |
+| `@variscout/hooks`     | Unit                 | All hooks in `packages/hooks/src/` should have tests in `__tests__/` |
 | `@variscout/ui`        | Unit                 | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle, DataTableBase, DocumentShelf, KnowledgeCitationCard, QuestionsTabView |
 | `@variscout/pwa`       | Component + E2E      | UI components, context, full user flows                             |
 | `@variscout/azure-app` | Component + E2E      | UI components, auth, storage, editor flows, actionToolHandlers, investigationSerializer |
@@ -87,8 +87,8 @@ Zustand stores are tested as plain state containers without rendering components
 - **Reset between tests**: Use `store.setState(initialState)` or call `store.getState().reset()` if the store exposes a reset action
 - **Selector testing**: Assert that selectors derive correct values from known state
 - **Cross-store access**: Mock `otherStore.getState()` when testing stores that read from siblings
-- **All 5 stores tested**: panelsStore (41), aiStore (27), investigationStore (15), findingsStore (10), improvementStore (6)
-- **Reference test**: `apps/azure/src/features/panels/__tests__/panelsStore.test.ts`
+- **All feature stores tested**: Reference: `apps/azure/src/features/panels/__tests__/panelsStore.test.ts`
+- **Test totals**: Run `pnpm test` for current counts. Approximate split: core ~45%, hooks ~15%, azure ~14%, ui ~19%, stores+charts+pwa ~7%
 
 ```typescript
 import { usePanelsStore } from '../panelsStore';
