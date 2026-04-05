@@ -40,6 +40,17 @@ export interface FactorNodeData {
   levelEffects: Array<{ level: string; effect: number }>;
   metricLabel: string;
   effectLabel: string;
+  /** Factor type classification (undefined for categorical-only data) */
+  factorType?: 'continuous' | 'categorical';
+  /**
+   * Trend glyph for continuous factors:
+   *   '/'  → positive linear slope
+   *   '\\' → negative linear slope
+   *   '∩'  → quadratic peak (sweet spot maximum)
+   *   '∪'  → quadratic valley (sweet spot minimum)
+   *   null → categorical
+   */
+  trendGlyph?: '/' | '\\' | '∩' | '∪' | null;
 }
 
 /** Statistical relationship edge between two factor nodes. */
@@ -186,6 +197,8 @@ function mapFactorNode(node: FactorNodeLayout, mode: ResolvedMode): FactorNodeDa
     levelEffects: node.levelEffects,
     metricLabel: buildMetricLabel(node.rSquaredAdj, mode),
     effectLabel: buildEffectLabel(node.levelEffects),
+    factorType: node.factorType,
+    trendGlyph: node.trendGlyph,
   };
 }
 

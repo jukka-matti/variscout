@@ -20,6 +20,17 @@ export interface FactorNodeData {
   metricLabel: string;
   /** Strongest level effect as ±value string (e.g., "+12.3g") */
   effectLabel: string;
+  /** Factor type classification (undefined for categorical-only data) */
+  factorType?: 'continuous' | 'categorical';
+  /**
+   * Trend glyph for continuous factors:
+   *   '/'  → positive linear slope
+   *   '\\' → negative linear slope
+   *   '∩'  → quadratic peak (sweet spot maximum)
+   *   '∪'  → quadratic valley (sweet spot minimum)
+   *   null → categorical
+   */
+  trendGlyph?: '/' | '\\' | '∩' | '∪' | null;
 }
 
 export interface RelationshipEdgeData {

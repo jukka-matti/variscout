@@ -17,6 +17,7 @@ import type { MainEffectsResult } from './factorEffects';
 import type { InteractionEffectsResult } from './factorEffects';
 import { classifyRelationship } from './causalGraph';
 import type { RelationshipType } from './causalGraph';
+import type { PredictorInfo } from '../types';
 
 // ============================================================================
 // Types
@@ -40,6 +41,24 @@ export interface FactorNodeLayout {
   rSquaredAdj: number;
   /** Level effects: which levels move the outcome and by how much */
   levelEffects: Array<{ level: string; effect: number }>;
+
+  // === Continuous factor enrichment (optional, present when OLS engine was used) ===
+
+  /** Factor type classification */
+  factorType?: 'continuous' | 'categorical';
+  /**
+   * Trend glyph for continuous factors:
+   *   '/'  → positive linear slope
+   *   '\\' → negative linear slope
+   *   '∩'  → quadratic with peak in range (sweet spot maximum)
+   *   '∪'  → quadratic with valley in range (sweet spot minimum)
+   *   null → categorical (no glyph)
+   */
+  trendGlyph?: '/' | '\\' | '∩' | '∪' | null;
+  /** Slope coefficient for continuous (linear) factors */
+  slopeCoefficient?: number;
+  /** Optimal input value for quadratic factors (vertex x-coordinate) */
+  optimum?: number;
 }
 
 /** Layout position and metadata for one relationship edge. */
@@ -176,17 +195,46 @@ function findInteractionDeltaR2(
 /**
  * Build the equation formula string from the best model.
  *
- * Format: "y-hat = 87.2 + 12.3(Supplier A) + 6.1(Head 1-4)"
- * For each factor in the model, picks the level with the largest absolute effect.
+ * For categorical factors: "ŷ = 87.2 + 12.3(Supplier A) - 6.1(Head 1-4)"
+ * For continuous factors:  "ŷ = 87.2 + 0.40×Temp - 0.002×Temp²"
+ * Mixed models show both forms.
+ *
+ * When `predictors` is present (OLS engine), continuous factors use slope
+ * notation. Falls back to `levelEffects` for categorical-only models.
  */
 function buildEquationFormula(bestModel: BestSubsetResult, grandMean: number): string {
-  const parts: string[] = [`\u0177 = ${grandMean.toFixed(1)}`];
+  const intercept = bestModel.intercept ?? grandMean;
+  const parts: string[] = [`\u0177 = ${intercept.toFixed(1)}`];
+
+  // When OLS predictors are available, use them for continuous factors
+  const predictors = bestModel.predictors;
+  const factorTypesMap = bestModel.factorTypes;
 
   for (const factor of bestModel.factors) {
+    const factorType = factorTypesMap?.get(factor);
+
+    if (factorType === 'continuous' && predictors) {
+      // Find linear and quadratic terms for this factor
+      const linear = predictors.find(p => p.factorName === factor && p.type === 'continuous');
+      const quad = predictors.find(p => p.factorName === factor && p.type === 'quadratic');
+
+      if (linear) {
+        const coef = linear.coefficient;
+        const sign = coef >= 0 ? '+' : '-';
+        parts.push(`${sign} ${Math.abs(coef).toFixed(3)}\u00D7${factor}`);
+      }
+      if (quad) {
+        const coef = quad.coefficient;
+        const sign = coef >= 0 ? '+' : '-';
+        parts.push(`${sign} ${Math.abs(coef).toFixed(4)}\u00D7${factor}\u00B2`);
+      }
+      continue;
+    }
+
+    // Categorical fallback: pick the level with the largest absolute effect
     const effectMap = bestModel.levelEffects.get(factor);
     if (!effectMap || effectMap.size === 0) continue;
 
-    // Find the level with the largest absolute effect
     let bestLevel = '';
     let bestEffect = 0;
 
@@ -204,6 +252,39 @@ function buildEquationFormula(bestModel: BestSubsetResult, grandMean: number): s
   }
 
   return parts.join(' ');
+}
+
+/**
+ * Determine the trend glyph for a factor node based on its predictors.
+ *
+ * Rules:
+ * - Categorical → null (no glyph)
+ * - Continuous, linear only, positive coefficient → '/'
+ * - Continuous, linear only, negative coefficient → '\\'
+ * - Continuous with quadratic term, negative quadratic coefficient → '∩' (peak/sweet spot maximum)
+ * - Continuous with quadratic term, positive quadratic coefficient → '∪' (valley/sweet spot minimum)
+ */
+function determineTrendGlyph(
+  factor: string,
+  factorType: 'continuous' | 'categorical' | undefined,
+  predictors: PredictorInfo[] | undefined
+): FactorNodeLayout['trendGlyph'] {
+  if (factorType !== 'continuous') return null;
+  if (!predictors) return null;
+
+  const linear = predictors.find(p => p.factorName === factor && p.type === 'continuous');
+  const quad = predictors.find(p => p.factorName === factor && p.type === 'quadratic');
+
+  if (quad) {
+    // Quadratic coefficient determines whether it's a peak (∩) or valley (∪)
+    return quad.coefficient < 0 ? '∩' : '∪';
+  }
+
+  if (linear) {
+    return linear.coefficient >= 0 ? '/' : '\\';
+  }
+
+  return null;
 }
 
 // ============================================================================
@@ -288,6 +369,11 @@ export function computeEvidenceMapLayout(
   // Find the max R²adj for normalization
   const maxR2 = factorsWithR2.length > 0 ? factorsWithR2[0].rAdjSingle : 0;
 
+  // Use the best (top-ranked) subset's predictors and factorTypes for glyph determination
+  const bestModelPredictors = bestSubsets.subsets[0]?.predictors;
+  // Factor types come from BestSubsetsResult (top-level classification) or from the best subset
+  const globalFactorTypes = bestSubsets.factorTypes ?? bestSubsets.subsets[0]?.factorTypes;
+
   const factorNodes: FactorNodeLayout[] = factorsWithR2.map(
     ({ factor, rAdjSingle, subset }, index) => {
       // Angle: evenly distributed starting from 12 o'clock (-pi/2), clockwise
@@ -316,6 +402,36 @@ export function computeEvidenceMapLayout(
       // Extract level effects
       const levelEffects = extractLevelEffects(subset, factor);
 
+      // Continuous factor enrichment — only when factorTypes map is present
+      const factorType = globalFactorTypes?.get(factor);
+
+      // Only compute glyph fields when we have type classification (OLS engine was used)
+      let trendGlyph: FactorNodeLayout['trendGlyph'] | undefined;
+      let slopeCoefficient: number | undefined;
+      let optimum: number | undefined;
+
+      if (factorType !== undefined) {
+        trendGlyph = determineTrendGlyph(factor, factorType, bestModelPredictors);
+
+        if (factorType === 'continuous' && bestModelPredictors) {
+          const linear = bestModelPredictors.find(
+            p => p.factorName === factor && p.type === 'continuous'
+          );
+          const quad = bestModelPredictors.find(
+            p => p.factorName === factor && p.type === 'quadratic'
+          );
+
+          if (linear) {
+            slopeCoefficient = linear.coefficient;
+          }
+
+          if (linear && quad && quad.coefficient !== 0) {
+            // Vertex of quadratic: x_opt = -b / (2c) where b = linear coef, c = quadratic coef
+            optimum = -linear.coefficient / (2 * quad.coefficient);
+          }
+        }
+      }
+
       return {
         factor,
         x,
@@ -325,6 +441,11 @@ export function computeEvidenceMapLayout(
         angle,
         rSquaredAdj: rAdjSingle,
         levelEffects,
+        // Continuous enrichment fields — only present when factorTypes map exists
+        ...(factorType !== undefined && { factorType }),
+        ...(trendGlyph !== undefined && { trendGlyph }),
+        ...(slopeCoefficient !== undefined && { slopeCoefficient }),
+        ...(optimum !== undefined && { optimum }),
       };
     }
   );

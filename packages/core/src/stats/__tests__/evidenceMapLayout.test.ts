@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { computeEvidenceMapLayout } from '../evidenceMapLayout';
-import type { BestSubsetsResult } from '../bestSubsets';
+import type { BestSubsetsResult, BestSubsetResult } from '../bestSubsets';
+import type { PredictorInfo } from '../../types';
 
 // ============================================================================
 // Helpers
@@ -225,5 +226,266 @@ describe('computeEvidenceMapLayout', () => {
     // |5| = |−5|, so order depends on Map iteration; both are present
     expect(nodeA.levelEffects.map(e => e.level)).toContain('a1');
     expect(nodeA.levelEffects.map(e => e.level)).toContain('a2');
+  });
+});
+
+// ============================================================================
+// Continuous factor enrichment (factorType, trendGlyph, slopeCoefficient, optimum)
+// ============================================================================
+
+/**
+ * Build a BestSubsetsResult that simulates an OLS result with one continuous
+ * factor (Temp) and one categorical factor (Supplier).
+ */
+function makeMixedBestSubsets(
+  continuousPredictor: PredictorInfo,
+  quadraticPredictor?: PredictorInfo
+): BestSubsetsResult {
+  const predictors: PredictorInfo[] = [
+    continuousPredictor,
+    ...(quadraticPredictor ? [quadraticPredictor] : []),
+    {
+      name: 'Supplier',
+      factorName: 'Supplier',
+      type: 'categorical',
+      level: 'B',
+      coefficient: 3.5,
+      standardError: 0.8,
+      tStatistic: 4.4,
+      pValue: 0.001,
+      isSignificant: true,
+    },
+  ];
+
+  const bestSubset: BestSubsetResult = {
+    factors: ['Temp', 'Supplier'],
+    factorCount: 2,
+    rSquared: 0.72,
+    rSquaredAdj: 0.68,
+    fStatistic: 15,
+    pValue: 0.0001,
+    isSignificant: true,
+    dfModel: 3,
+    levelEffects: new Map([
+      [
+        'Supplier',
+        new Map([
+          ['B', 3.5],
+          ['A', -3.5],
+        ]),
+      ],
+      // Temp has no levelEffects in OLS mode
+      ['Temp', new Map()],
+    ]),
+    cellMeans: new Map(),
+    predictors,
+    intercept: 87.2,
+    modelType: 'ols',
+    factorTypes: new Map([
+      ['Temp', 'continuous'],
+      ['Supplier', 'categorical'],
+    ]),
+  };
+
+  const singleTemp: BestSubsetResult = {
+    factors: ['Temp'],
+    factorCount: 1,
+    rSquared: 0.45,
+    rSquaredAdj: 0.43,
+    fStatistic: 10,
+    pValue: 0.002,
+    isSignificant: true,
+    dfModel: 1,
+    levelEffects: new Map([['Temp', new Map()]]),
+    cellMeans: new Map(),
+    factorTypes: new Map([['Temp', 'continuous']]),
+  };
+
+  const singleSupplier: BestSubsetResult = {
+    factors: ['Supplier'],
+    factorCount: 1,
+    rSquared: 0.3,
+    rSquaredAdj: 0.28,
+    fStatistic: 8,
+    pValue: 0.005,
+    isSignificant: true,
+    dfModel: 1,
+    levelEffects: new Map([
+      [
+        'Supplier',
+        new Map([
+          ['B', 3.5],
+          ['A', -3.5],
+        ]),
+      ],
+    ]),
+    cellMeans: new Map(),
+    factorTypes: new Map([['Supplier', 'categorical']]),
+  };
+
+  return {
+    subsets: [bestSubset, singleTemp, singleSupplier],
+    n: 80,
+    totalFactors: 2,
+    factorNames: ['Temp', 'Supplier'],
+    grandMean: 87.2,
+    ssTotal: 2000,
+    factorTypes: new Map([
+      ['Temp', 'continuous'],
+      ['Supplier', 'categorical'],
+    ]),
+    usedOLS: true,
+  };
+}
+
+describe('computeEvidenceMapLayout — continuous factor enrichment', () => {
+  const container = { width: 800, height: 600 };
+
+  const positiveLinear: PredictorInfo = {
+    name: 'Temp',
+    factorName: 'Temp',
+    type: 'continuous',
+    coefficient: 0.4,
+    standardError: 0.05,
+    tStatistic: 8,
+    pValue: 0.0001,
+    isSignificant: true,
+  };
+
+  const negativeLinear: PredictorInfo = {
+    name: 'Temp',
+    factorName: 'Temp',
+    type: 'continuous',
+    coefficient: -0.4,
+    standardError: 0.05,
+    tStatistic: -8,
+    pValue: 0.0001,
+    isSignificant: true,
+  };
+
+  const quadPeak: PredictorInfo = {
+    name: 'Temp²',
+    factorName: 'Temp',
+    type: 'quadratic',
+    coefficient: -0.002, // negative → peak (∩)
+    standardError: 0.001,
+    tStatistic: -2,
+    pValue: 0.05,
+    isSignificant: true,
+  };
+
+  const quadValley: PredictorInfo = {
+    name: 'Temp²',
+    factorName: 'Temp',
+    type: 'quadratic',
+    coefficient: 0.002, // positive → valley (∪)
+    standardError: 0.001,
+    tStatistic: 2,
+    pValue: 0.05,
+    isSignificant: true,
+  };
+
+  it('sets factorType from BestSubsetsResult.factorTypes', () => {
+    const bs = makeMixedBestSubsets(positiveLinear);
+    const layout = computeEvidenceMapLayout(bs, null, null, container);
+
+    const tempNode = layout.factorNodes.find(n => n.factor === 'Temp')!;
+    const supplierNode = layout.factorNodes.find(n => n.factor === 'Supplier')!;
+
+    expect(tempNode.factorType).toBe('continuous');
+    expect(supplierNode.factorType).toBe('categorical');
+  });
+
+  it("assigns '/' glyph for positive linear continuous factor", () => {
+    const bs = makeMixedBestSubsets(positiveLinear);
+    const layout = computeEvidenceMapLayout(bs, null, null, container);
+
+    const tempNode = layout.factorNodes.find(n => n.factor === 'Temp')!;
+    expect(tempNode.trendGlyph).toBe('/');
+    expect(tempNode.slopeCoefficient).toBeCloseTo(0.4, 5);
+    expect(tempNode.optimum).toBeUndefined();
+  });
+
+  it("assigns '\\\\' glyph for negative linear continuous factor", () => {
+    const bs = makeMixedBestSubsets(negativeLinear);
+    const layout = computeEvidenceMapLayout(bs, null, null, container);
+
+    const tempNode = layout.factorNodes.find(n => n.factor === 'Temp')!;
+    expect(tempNode.trendGlyph).toBe('\\');
+    expect(tempNode.slopeCoefficient).toBeCloseTo(-0.4, 5);
+  });
+
+  it("assigns '∩' glyph for quadratic peak (negative quadratic coefficient)", () => {
+    const bs = makeMixedBestSubsets(positiveLinear, quadPeak);
+    const layout = computeEvidenceMapLayout(bs, null, null, container);
+
+    const tempNode = layout.factorNodes.find(n => n.factor === 'Temp')!;
+    expect(tempNode.trendGlyph).toBe('∩');
+  });
+
+  it("assigns '∪' glyph for quadratic valley (positive quadratic coefficient)", () => {
+    const bs = makeMixedBestSubsets(positiveLinear, quadValley);
+    const layout = computeEvidenceMapLayout(bs, null, null, container);
+
+    const tempNode = layout.factorNodes.find(n => n.factor === 'Temp')!;
+    expect(tempNode.trendGlyph).toBe('∪');
+  });
+
+  it('computes optimum from vertex formula: x_opt = -b / (2c)', () => {
+    // b = 0.4, c = -0.002 → x_opt = -0.4 / (2 × -0.002) = 100
+    const bs = makeMixedBestSubsets(positiveLinear, quadPeak);
+    const layout = computeEvidenceMapLayout(bs, null, null, container);
+
+    const tempNode = layout.factorNodes.find(n => n.factor === 'Temp')!;
+    expect(tempNode.optimum).toBeCloseTo(100, 2);
+  });
+
+  it('assigns null trendGlyph for categorical factors', () => {
+    const bs = makeMixedBestSubsets(positiveLinear);
+    const layout = computeEvidenceMapLayout(bs, null, null, container);
+
+    const supplierNode = layout.factorNodes.find(n => n.factor === 'Supplier')!;
+    expect(supplierNode.trendGlyph).toBeNull();
+  });
+
+  it('leaves factorType and trendGlyph undefined for categorical-only data (no factorTypes map)', () => {
+    // Standard categorical-only bestSubsets has no factorTypes
+    const bs = makeBestSubsets();
+    const layout = computeEvidenceMapLayout(bs, null, null, container);
+
+    for (const node of layout.factorNodes) {
+      expect(node.factorType).toBeUndefined();
+      expect(node.trendGlyph).toBeUndefined();
+    }
+  });
+
+  it('builds equation using continuous slope notation when predictors present', () => {
+    const bs = makeMixedBestSubsets(positiveLinear);
+    const layout = computeEvidenceMapLayout(bs, null, null, container);
+
+    expect(layout.equation).not.toBeNull();
+    // Should contain slope notation (×) for Temp
+    expect(layout.equation!.formula).toMatch(/×Temp/);
+    // Intercept from bestSubset.intercept (87.2)
+    expect(layout.equation!.formula).toContain('87.2');
+  });
+
+  it('builds equation using quadratic notation for quadratic term', () => {
+    const bs = makeMixedBestSubsets(positiveLinear, quadPeak);
+    const layout = computeEvidenceMapLayout(bs, null, null, container);
+
+    expect(layout.equation).not.toBeNull();
+    // Should contain Temp² (superscript 2 = \u00B2)
+    expect(layout.equation!.formula).toMatch(/×Temp²|×Temp\u00B2/);
+  });
+
+  it('falls back to categorical level notation when predictors absent', () => {
+    // Standard categorical subset — no predictors field
+    const bs = makeBestSubsets();
+    const layout = computeEvidenceMapLayout(bs, null, null, container);
+
+    expect(layout.equation).not.toBeNull();
+    // Should contain parenthesised level names
+    expect(layout.equation!.formula).toMatch(/\(a1\)/);
   });
 });
