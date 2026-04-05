@@ -79,6 +79,7 @@ This section captures key architectural decisions made during VariScout developm
 | [065](adr-065-evidence-map-causal-graph.md)          | Evidence Map & Causal Graph Visualization          | Accepted   | 2026-04-05 |
 | [066](adr-066-evidence-map-investigation-center.md)  | Evidence Map as Investigation Workspace Center     | Accepted   | 2026-04-05 |
 | [067](adr-067-unified-glm-regression.md)             | Unified GLM Regression Engine                      | Accepted   | 2026-04-05 |
+| [068](adr-068-coscout-cognitive-redesign.md)         | CoScout Cognitive Redesign                         | Accepted   | 2026-04-05 |
 
 ---
 
