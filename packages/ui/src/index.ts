@@ -329,6 +329,14 @@ export {
   type MobileCategorySheetData,
 } from './components/MobileCategorySheet';
 
+// Evidence Map Sheets (mobile bottom sheets for factor nodes and relationship edges)
+export {
+  EvidenceMapNodeSheet,
+  type EvidenceMapNodeSheetProps,
+  EvidenceMapEdgeSheet,
+  type EvidenceMapEdgeSheetProps,
+} from './components/EvidenceMapSheet';
+
 // Mobile Tab Bar
 export { MobileTabBar, type MobileTabBarProps, type MobileTab } from './components/MobileTabBar';
 
