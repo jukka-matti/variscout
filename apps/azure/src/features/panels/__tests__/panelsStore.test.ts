@@ -15,6 +15,8 @@ beforeEach(() => {
     isPISidebarOpen: false,
     piActiveTab: 'stats',
     piOverflowView: null,
+    highlightedFactor: null,
+    investigationViewMode: 'map',
   });
 });
 
@@ -377,6 +379,35 @@ describe('panelsStore', () => {
         isReportOpen: true,
       } as never);
       expect(usePanelsStore.getState().activeView).toBe('report');
+    });
+  });
+
+  describe('highlightedFactor', () => {
+    it('should set highlighted factor and switch PI tab to questions', () => {
+      usePanelsStore.getState().setHighlightedFactor('Machine');
+      const state = usePanelsStore.getState();
+      expect(state.highlightedFactor).toBe('Machine');
+      expect(state.piActiveTab).toBe('questions');
+      expect(state.isPISidebarOpen).toBe(true);
+    });
+
+    it('should clear highlighted factor', () => {
+      usePanelsStore.getState().setHighlightedFactor('Machine');
+      usePanelsStore.getState().setHighlightedFactor(null);
+      expect(usePanelsStore.getState().highlightedFactor).toBeNull();
+    });
+  });
+
+  describe('investigationViewMode', () => {
+    it('should default to map', () => {
+      expect(usePanelsStore.getState().investigationViewMode).toBe('map');
+    });
+
+    it('should toggle between map and findings', () => {
+      usePanelsStore.getState().setInvestigationViewMode('findings');
+      expect(usePanelsStore.getState().investigationViewMode).toBe('findings');
+      usePanelsStore.getState().setInvestigationViewMode('map');
+      expect(usePanelsStore.getState().investigationViewMode).toBe('map');
     });
   });
 });
