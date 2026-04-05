@@ -75,6 +75,9 @@ This section captures key architectural decisions made during VariScout developm
 | [061](adr-061-hmw-brainstorm-ideation.md)            | HMW Brainstorm & Collaborative Ideation            | Accepted   | 2026-04-03 |
 | [062](adr-062-standard-anova-metrics.md)             | Standard ANOVA Metrics & Category Total SS Removal | Accepted   | 2026-04-03 |
 | [063](adr-063-trust-compliance-roadmap.md)           | Trust & Compliance Roadmap                         | Accepted   | 2026-04-03 |
+| [064](adr-064-suspected-cause-hub-model.md)          | SuspectedCause Hub Model & Investigation Reframing | Accepted   | 2026-04-03 |
+| [065](adr-065-evidence-map-causal-graph.md)          | Evidence Map & Causal Graph Visualization          | Accepted   | 2026-04-05 |
+| [066](adr-066-evidence-map-investigation-center.md)  | Evidence Map as Investigation Workspace Center     | Accepted   | 2026-04-05 |
 
 ---
 
