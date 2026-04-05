@@ -21,7 +21,9 @@
     "./performance": "./src/performance.ts",
     "./time": "./src/time.ts",
     "./projectMetadata": "./src/projectMetadata.ts",
-    "./strategy": "./src/analysisStrategy.ts"
+    "./strategy": "./src/analysisStrategy.ts",
+    "./ui-types": "./src/ui-types/index.ts",
+    "./evidenceMap": "./src/evidenceMap/index.ts"
   },
   "scripts": {
     "test": "vitest",
