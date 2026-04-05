@@ -25,7 +25,11 @@ import type { HubProjection } from '@variscout/core/findings';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { GripVertical } from 'lucide-react';
-import { useProjectStore } from '@variscout/stores';
+import {
+  useProjectStore,
+  useInvestigationStore as useDomainInvestigationStore,
+} from '@variscout/stores';
+import { InvestigationMapView } from './InvestigationMapView';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useInvestigationStore } from '../../features/investigation/investigationStore';
@@ -106,9 +110,12 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const { stats } = useAnalysisStats();
 
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
+  const investigationViewMode = usePanelsStore(s => s.investigationViewMode);
+  const setInvestigationViewMode = usePanelsStore(s => s.setInvestigationViewMode);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const questionsMap = useInvestigationStore(s => s.questionsMap);
   const ideaImpacts = useInvestigationStore(s => s.ideaImpacts);
+  const causalLinks = useDomainInvestigationStore(s => s.causalLinks);
 
   // Investigation phase (deterministic, from question/findings state)
   const investigationPhase = useMemo(
@@ -409,82 +416,119 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         </div>
       </div>
 
-      {/* Center: Findings (list/board/tree) */}
+      {/* Center: Evidence Map or Findings (list/board/tree) */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         {/* View mode toggle */}
         <div className="flex items-center gap-1 px-3 py-2 border-b border-edge bg-surface flex-shrink-0">
-          {(['list', 'board', 'tree'] as const).map(mode => (
+          {/* Primary toggle: Map vs Findings */}
+          {(['map', 'findings'] as const).map(mode => (
             <button
               key={mode}
               className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                viewMode === mode
+                investigationViewMode === mode
                   ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
                   : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
               }`}
-              onClick={() => handleViewMode(mode)}
+              onClick={() => setInvestigationViewMode(mode)}
             >
-              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+              {mode === 'map' ? 'Evidence Map' : 'Findings'}
             </button>
           ))}
+
+          {/* Sub-toggle: list/board/tree (only when Findings is active) */}
+          {investigationViewMode === 'findings' && (
+            <>
+              <div className="w-px h-4 bg-edge mx-1" />
+              {(['list', 'board', 'tree'] as const).map(mode => (
+                <button
+                  key={mode}
+                  className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                    viewMode === mode
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                      : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
+                  }`}
+                  onClick={() => handleViewMode(mode)}
+                >
+                  {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                </button>
+              ))}
+            </>
+          )}
+
           <span className="ml-auto text-xs text-content-tertiary">
             {findingsState.findings.length} finding
             {findingsState.findings.length !== 1 ? 's' : ''}
           </span>
         </div>
 
-        {/* Findings content */}
-        <div className="flex-1 overflow-y-auto px-3 py-2">
-          <FindingsLog
-            findings={findingsState.findings}
-            onEditFinding={findingsState.editFinding}
-            onDeleteFinding={findingsState.deleteFinding}
-            onRestoreFinding={handleRestoreFinding}
-            viewMode={viewMode}
-            questions={questionsState.questions}
-            onSelectQuestion={h => useInvestigationStore.getState().expandToQuestion(h.id)}
-            onAddSubQuestion={questionsState.addSubQuestion}
-            factors={drillFactors}
-            getChildrenSummary={questionsState.getChildrenSummary}
-            onSetFindingStatus={handleSetFindingStatus}
-            onSetFindingTag={findingsState.setFindingTag}
-            onAddComment={(id: string, text: string) => handleAddCommentWithAuthor(id, text)}
-            columnAliases={columnAliases}
-            activeFindingId={highlightedFindingId}
-            onAddPhoto={
-              hasTeamFeatures() && handleAddPhoto
-                ? (fId: string, cId: string, file: File) => {
-                    handleAddPhoto(fId, cId, file);
-                  }
-                : undefined
-            }
-            onCaptureFromTeams={
-              hasTeamFeatures() && isTeamsCamera && handleCaptureFromTeams
-                ? (fId: string, cId: string) => {
-                    handleCaptureFromTeams(fId, cId);
-                  }
-                : undefined
-            }
-            onCreateQuestion={handleCreateQuestion}
-            questionsMap={questionsMap}
-            onSetValidationTask={questionsState.setValidationTask}
-            onCompleteTask={questionsState.completeTask}
-            onSetManualStatus={questionsState.setManualStatus}
-            onAddAction={findingsState.addAction}
-            onCompleteAction={findingsState.completeAction}
-            onDeleteAction={findingsState.deleteAction}
-            onSetOutcome={findingsState.setOutcome}
-            ideaImpacts={ideaImpacts}
-            onAddIdea={questionsState.addIdea}
-            onUpdateIdea={questionsState.updateIdea}
-            onRemoveIdea={questionsState.removeIdea}
-            onSelectIdea={questionsState.selectIdea}
-            onProjectIdea={handleProjectIdea}
-            onSetCauseRole={questionsState.setCauseRole}
-            onShareFinding={handleShareFinding}
-            onNavigateToChart={handleNavigateToChart}
-            showAuthors
+        {/* Content */}
+        {investigationViewMode === 'map' ? (
+          <InvestigationMapView
+            mapOptions={{
+              bestSubsets,
+              mainEffects: null,
+              interactions: null,
+              mode: resolved,
+              causalLinks,
+              questions: questionsState.questions,
+              findings: findingsState.findings,
+              suspectedCauses: hubs,
+            }}
           />
-        </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto px-3 py-2">
+            <FindingsLog
+              findings={findingsState.findings}
+              onEditFinding={findingsState.editFinding}
+              onDeleteFinding={findingsState.deleteFinding}
+              onRestoreFinding={handleRestoreFinding}
+              viewMode={viewMode}
+              questions={questionsState.questions}
+              onSelectQuestion={h => useInvestigationStore.getState().expandToQuestion(h.id)}
+              onAddSubQuestion={questionsState.addSubQuestion}
+              factors={drillFactors}
+              getChildrenSummary={questionsState.getChildrenSummary}
+              onSetFindingStatus={handleSetFindingStatus}
+              onSetFindingTag={findingsState.setFindingTag}
+              onAddComment={(id: string, text: string) => handleAddCommentWithAuthor(id, text)}
+              columnAliases={columnAliases}
+              activeFindingId={highlightedFindingId}
+              onAddPhoto={
+                hasTeamFeatures() && handleAddPhoto
+                  ? (fId: string, cId: string, file: File) => {
+                      handleAddPhoto(fId, cId, file);
+                    }
+                  : undefined
+              }
+              onCaptureFromTeams={
+                hasTeamFeatures() && isTeamsCamera && handleCaptureFromTeams
+                  ? (fId: string, cId: string) => {
+                      handleCaptureFromTeams(fId, cId);
+                    }
+                  : undefined
+              }
+              onCreateQuestion={handleCreateQuestion}
+              questionsMap={questionsMap}
+              onSetValidationTask={questionsState.setValidationTask}
+              onCompleteTask={questionsState.completeTask}
+              onSetManualStatus={questionsState.setManualStatus}
+              onAddAction={findingsState.addAction}
+              onCompleteAction={findingsState.completeAction}
+              onDeleteAction={findingsState.deleteAction}
+              onSetOutcome={findingsState.setOutcome}
+              ideaImpacts={ideaImpacts}
+              onAddIdea={questionsState.addIdea}
+              onUpdateIdea={questionsState.updateIdea}
+              onRemoveIdea={questionsState.removeIdea}
+              onSelectIdea={questionsState.selectIdea}
+              onProjectIdea={handleProjectIdea}
+              onSetCauseRole={questionsState.setCauseRole}
+              onShareFinding={handleShareFinding}
+              onNavigateToChart={handleNavigateToChart}
+              showAuthors
+            />
+          </div>
+        )}
       </div>
 
       {/* Right: CoScout panel (optional, self-managing resize) */}
