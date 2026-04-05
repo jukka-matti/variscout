@@ -411,10 +411,29 @@ export {
 // Popout Channel (BroadcastChannel cross-window sync)
 export {
   usePopoutChannel,
+  writeHydrationData,
   type PopoutMessage,
   type UsePopoutChannelOptions,
   type UsePopoutChannelReturn,
 } from './usePopoutChannel';
+
+// Popout Message Contracts (typed messages for each popout window)
+export {
+  HYDRATION_KEYS,
+  type FindingsSyncData,
+  type FindingsSyncMessage,
+  type FindingsActionMessage,
+  type FindingsAction,
+  type ImprovementSyncData,
+  type ImprovementSyncMessage,
+  type ImprovementActionMessage,
+  type ImprovementAction,
+  type EvidenceMapSyncData,
+  type EvidenceMapSyncMessage,
+  type FactorSelectedMessage,
+  type WindowLifecycleMessage,
+  type PopoutMessageType,
+} from './popoutMessages';
 
 // Derived hooks (store-first state access)
 export { useFilteredData, type FilteredDataResult } from './useFilteredData';

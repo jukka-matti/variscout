@@ -9,6 +9,12 @@
  *
  * Falls back to no-op when BroadcastChannel is not available (e.g., older browsers,
  * non-secure contexts).
+ *
+ * Features:
+ * - Generic message typing for type-safe contracts
+ * - localStorage hydration on mount (for initial state before channel is ready)
+ * - Lifecycle messages (window-opened, window-closing) auto-sent
+ * - Optional heartbeat interval
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -34,15 +40,21 @@ export interface UsePopoutChannelOptions {
   windowId: string;
   /** Whether the channel is active (default: true) */
   enabled?: boolean;
+  /** localStorage key for initial hydration state (read on mount) */
+  hydrationKey?: string;
+  /** Heartbeat interval in ms — if provided, sends periodic heartbeat messages */
+  heartbeatInterval?: number;
 }
 
-export interface UsePopoutChannelReturn {
+export interface UsePopoutChannelReturn<T extends PopoutMessage = PopoutMessage> {
   /** Send a message to other windows. Source is added automatically. */
-  sendMessage: (msg: Omit<PopoutMessage, 'source'>) => void;
+  sendMessage: (msg: Omit<T, 'source'>) => void;
   /** The last received message (filtered by target), or null */
-  lastMessage: PopoutMessage | null;
+  lastMessage: T | null;
   /** Whether the BroadcastChannel is connected */
   isConnected: boolean;
+  /** Initial state read from localStorage on mount (null if no hydrationKey or parse failed) */
+  hydrationData: unknown | null;
 }
 
 // ============================================================================
@@ -52,14 +64,52 @@ export interface UsePopoutChannelReturn {
 const CHANNEL_NAME = 'variscout-sync';
 
 // ============================================================================
+// Static helpers
+// ============================================================================
+
+/**
+ * Write hydration data to localStorage for a popout window to read on mount.
+ * Call this from the main window BEFORE opening the popup.
+ */
+export function writeHydrationData(key: string, data: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch {
+    // Silently ignore (quota exceeded, private mode, etc.)
+  }
+}
+
+/**
+ * Read and parse hydration data from localStorage.
+ * Returns null if key is missing or JSON.parse fails.
+ */
+function readHydrationData(key: string): unknown | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return null;
+    return JSON.parse(raw) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+// ============================================================================
 // Hook
 // ============================================================================
 
-export function usePopoutChannel(options: UsePopoutChannelOptions): UsePopoutChannelReturn {
-  const { windowId, enabled = true } = options;
+export function usePopoutChannel<T extends PopoutMessage = PopoutMessage>(
+  options: UsePopoutChannelOptions
+): UsePopoutChannelReturn<T> {
+  const { windowId, enabled = true, hydrationKey, heartbeatInterval } = options;
 
-  const [lastMessage, setLastMessage] = useState<PopoutMessage | null>(null);
+  const [lastMessage, setLastMessage] = useState<T | null>(null);
   const channelRef = useRef<BroadcastChannel | null>(null);
+
+  // Read hydration data once on mount
+  const [hydrationData] = useState<unknown | null>(() => {
+    if (!hydrationKey) return null;
+    return readHydrationData(hydrationKey);
+  });
 
   // Set up and tear down the BroadcastChannel
   useEffect(() => {
@@ -87,7 +137,7 @@ export function usePopoutChannel(options: UsePopoutChannelOptions): UsePopoutCha
 
     channelRef.current = channel;
 
-    const handleMessage = (event: MessageEvent<PopoutMessage>) => {
+    const handleMessage = (event: MessageEvent<T>) => {
       try {
         const msg = event.data;
         if (!msg || typeof msg.type !== 'string' || typeof msg.source !== 'string') {
@@ -108,23 +158,56 @@ export function usePopoutChannel(options: UsePopoutChannelOptions): UsePopoutCha
 
     channel.addEventListener('message', handleMessage);
 
+    // Send lifecycle: window-opened
+    try {
+      channel.postMessage({ type: 'window-opened', source: windowId });
+    } catch {
+      // Channel may already be in error state
+    }
+
     return () => {
+      // Send lifecycle: window-closing (best-effort)
+      try {
+        channel.postMessage({ type: 'window-closing', source: windowId });
+      } catch {
+        // Ignore — channel may already be closed
+      }
+
       channel.removeEventListener('message', handleMessage);
       channel.close();
       channelRef.current = null;
     };
   }, [windowId, enabled]);
 
+  // Heartbeat interval
+  useEffect(() => {
+    if (!enabled || !heartbeatInterval || heartbeatInterval <= 0) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      const channel = channelRef.current;
+      if (!channel) return;
+      try {
+        channel.postMessage({ type: 'heartbeat', source: windowId });
+      } catch {
+        // Ignore — channel may be closed
+      }
+    }, heartbeatInterval);
+
+    return () => clearInterval(timer);
+  }, [windowId, enabled, heartbeatInterval]);
+
   // Stable sendMessage callback
   const sendMessage = useCallback(
-    (msg: Omit<PopoutMessage, 'source'>) => {
+    (msg: Omit<T, 'source'>) => {
       const channel = channelRef.current;
       if (!channel) return;
 
-      const fullMessage: PopoutMessage = {
+      const fullMessage = {
         ...msg,
         source: windowId,
-      };
+      } as T;
 
       try {
         channel.postMessage(fullMessage);
@@ -136,5 +219,5 @@ export function usePopoutChannel(options: UsePopoutChannelOptions): UsePopoutCha
   );
 
   const isConnected = enabled && typeof BroadcastChannel !== 'undefined';
-  return { sendMessage, lastMessage, isConnected };
+  return { sendMessage, lastMessage, isConnected, hydrationData };
 }
