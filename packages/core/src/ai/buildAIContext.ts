@@ -113,6 +113,8 @@ export interface BuildAIContextOptions {
     config: SubgroupConfig;
     cpkTarget?: number;
   };
+  /** Evidence Map topology for graph-aware CoScout reasoning */
+  evidenceMapTopology?: AIContext['investigation']['evidenceMapTopology'];
 }
 
 /**
@@ -362,7 +364,8 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     (questions && questions.length > 0) ||
     investigationProgress ||
     selectedFinding ||
-    focusedQuestionId
+    focusedQuestionId ||
+    options.evidenceMapTopology
   ) {
     context.investigation = {};
 
@@ -520,6 +523,10 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     }
     if (options.liveStatement) {
       context.investigation.liveStatement = options.liveStatement;
+    }
+
+    if (options.evidenceMapTopology) {
+      context.investigation.evidenceMapTopology = options.evidenceMapTopology;
     }
   }
 

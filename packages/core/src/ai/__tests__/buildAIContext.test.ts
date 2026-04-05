@@ -972,4 +972,38 @@ describe('ADR-060 Pillar 1', () => {
       expect(ctx.investigation?.allQuestions![0].manualNote).toBeUndefined();
     });
   });
+
+  it('should include evidenceMapTopology when provided', () => {
+    const context = buildAIContext({
+      outcome: 'Weight',
+      factors: ['Machine', 'Shift'],
+      data: [],
+      evidenceMapTopology: {
+        factorNodes: [
+          {
+            factor: 'Machine',
+            rSquaredAdj: 0.34,
+            explored: true,
+            questionCount: 3,
+            findingCount: 1,
+          },
+          {
+            factor: 'Shift',
+            rSquaredAdj: 0.22,
+            explored: false,
+            questionCount: 0,
+            findingCount: 0,
+          },
+        ],
+        relationships: [
+          { factorA: 'Machine', factorB: 'Shift', type: 'interactive', strength: 0.04 },
+        ],
+        convergencePoints: [],
+      },
+    });
+
+    expect(context.investigation?.evidenceMapTopology).toBeDefined();
+    expect(context.investigation?.evidenceMapTopology?.factorNodes).toHaveLength(2);
+    expect(context.investigation?.evidenceMapTopology?.relationships).toHaveLength(1);
+  });
 });

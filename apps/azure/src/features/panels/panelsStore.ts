@@ -18,6 +18,12 @@ interface PanelsState {
   piActiveTab: 'stats' | 'questions' | 'journal';
   /** Secondary overflow view within the PI panel (Data or What-If). Cleared when tab changes. */
   piOverflowView: 'data' | 'whatif' | null;
+  /** Factor highlighted from Evidence Map node click (for PI panel scroll-to) */
+  highlightedFactor: string | null;
+  /** Investigation workspace center view: 'map' (Evidence Map) or 'findings' (FindingsLog) */
+  investigationViewMode: 'map' | 'findings';
+  /** Whether the Factor Preview overlay has been dismissed for this session */
+  factorPreviewDismissed: boolean;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -43,6 +49,9 @@ interface PanelsActions {
   togglePISidebar: () => void;
   setPIActiveTab: (tab: 'stats' | 'questions' | 'journal') => void;
   setPIOverflowView: (view: 'data' | 'whatif' | null) => void;
+  setHighlightedFactor: (factor: string | null) => void;
+  setInvestigationViewMode: (mode: 'map' | 'findings') => void;
+  dismissFactorPreview: () => void;
   /** Initialize persisted panel state from a saved ViewState. */
   initFromViewState: (
     viewState?: {
@@ -70,6 +79,9 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   isPISidebarOpen: false,
   piActiveTab: 'stats',
   piOverflowView: null,
+  highlightedFactor: null,
+  investigationViewMode: 'map',
+  factorPreviewDismissed: false,
 
   // Workspace navigation (ADR-055 + header-redesign spec)
   showDashboard: () => set(() => ({ activeView: 'dashboard' })),
@@ -122,6 +134,16 @@ export const usePanelsStore = create<PanelsStore>(set => ({
 
   // Pending chart focus (consumed by Editor to set focusedChart in ViewState)
   setPendingChartFocus: chart => set({ pendingChartFocus: chart }),
+
+  // Evidence Map deep linking
+  setHighlightedFactor: factor =>
+    set(() =>
+      factor
+        ? { highlightedFactor: factor, piActiveTab: 'questions' as const, isPISidebarOpen: true }
+        : { highlightedFactor: null }
+    ),
+  setInvestigationViewMode: mode => set(() => ({ investigationViewMode: mode })),
+  dismissFactorPreview: () => set({ factorPreviewDismissed: true }),
 
   // ViewState initialization — maps legacy values
   initFromViewState: viewState => {

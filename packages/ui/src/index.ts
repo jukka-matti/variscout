@@ -13,6 +13,7 @@ export {
   CapabilitySuggestionModal,
   type CapabilitySuggestionModalProps,
 } from './components/CapabilitySuggestionModal';
+export { CausalLinkCreator, type CausalLinkCreatorProps } from './components/CausalLinkCreator';
 export { DataQualityBanner, type DataQualityBannerProps } from './components/DataQualityBanner';
 export {
   ColumnMapping,
@@ -337,6 +338,9 @@ export {
   type EvidenceMapEdgeSheetProps,
 } from './components/EvidenceMapSheet';
 
+// Evidence Map Context Menu (right-click actions for factor nodes)
+export { NodeContextMenu, type NodeContextMenuProps } from './components/EvidenceMapContextMenu';
+
 // Mobile Tab Bar
 export { MobileTabBar, type MobileTabBarProps, type MobileTab } from './components/MobileTabBar';
 
@@ -394,6 +398,9 @@ export {
   ReportInvestigationSummary,
   type ReportInvestigationSummaryProps,
 } from './components/ReportView';
+
+// Report Evidence Map
+export { ReportEvidenceMap, type ReportEvidenceMapProps } from './components/ReportEvidenceMap';
 
 // Services
 export {
@@ -546,6 +553,12 @@ export {
   type DensityPreset,
   type ThemeConfig,
 } from './context/ThemeContext';
+
+// Factor Preview Overlay (Evidence Map embryonic preview)
+export {
+  FactorPreviewOverlay,
+  type FactorPreviewOverlayProps,
+} from './components/FactorPreviewOverlay';
 
 // Document Shelf (Team tier — PI panel Docs tab)
 export {
