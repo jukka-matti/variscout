@@ -235,6 +235,28 @@ export interface AIContext {
       deltaRSquared: number;
       isSignificant: boolean;
     }>;
+    /** Evidence Map topology for graph-aware CoScout reasoning */
+    evidenceMapTopology?: {
+      factorNodes: Array<{
+        factor: string;
+        rSquaredAdj: number;
+        explored: boolean;
+        questionCount: number;
+        findingCount: number;
+      }>;
+      relationships: Array<{
+        factorA: string;
+        factorB: string;
+        type: string;
+        strength: number;
+      }>;
+      convergencePoints: Array<{
+        factor: string;
+        incomingCount: number;
+        hubName?: string;
+        hubStatus?: string;
+      }>;
+    };
     /** R²adj-weighted coverage percentage (0-100) */
     coveragePercent?: number;
     /** Number of questions checked (answered or ruled-out) */
