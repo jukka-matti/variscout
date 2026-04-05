@@ -188,7 +188,26 @@ describe('formatDataContext', () => {
     expect(result).toContain('18%');
   });
 
-  it('includes best model equation with R-squared adj', () => {
+  it('includes best model equation with R-squared adj and worst/best cases', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      bestModelEquation: {
+        factors: ['Machine', 'Shift'],
+        rSquaredAdj: 0.61,
+        levelEffects: {},
+        worstCase: { levels: { Machine: 'B', Shift: 'Night' }, predicted: 53.4 },
+        bestCase: { levels: { Machine: 'A', Shift: 'Day' }, predicted: 47.9 },
+      },
+    });
+    expect(result).toContain('Best model: {Machine, Shift}');
+    expect(result).toContain('R\u00b2adj=0.61');
+    expect(result).toContain('Worst case: Machine=B + Shift=Night');
+    expect(result).toContain('53.4');
+    expect(result).toContain('Best case: Machine=A + Shift=Day');
+    expect(result).toContain('47.9');
+  });
+
+  it('omits worst/best case lines when levels are empty', () => {
     const result = formatDataContext({
       ...emptyContext,
       bestModelEquation: {
@@ -199,8 +218,56 @@ describe('formatDataContext', () => {
         bestCase: { levels: {}, predicted: 5 },
       },
     });
-    expect(result).toContain('Best model: Machine + Operator');
-    expect(result).toContain('R\u00b2adj=56%');
+    expect(result).toContain('Best model:');
+    expect(result).not.toContain('Worst case:');
+    expect(result).not.toContain('Best case:');
+  });
+
+  it('omits best model equation when absent', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      stats: { mean: 10, stdDev: 1, samples: 50 },
+    });
+    expect(result).not.toContain('Best model:');
+  });
+
+  it('includes focusContext with chartType and category stats', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      focusContext: {
+        chartType: 'boxplot',
+        category: { name: 'Machine=B', mean: 53.4, etaSquaredPct: 42 },
+      },
+    });
+    expect(result).toContain('Focus:');
+    expect(result).toContain('boxplot');
+    expect(result).toContain('Machine=B');
+    expect(result).toContain('mean=53.40');
+    expect(result).toContain('\u03b7\u00b2=42%');
+  });
+
+  it('includes focusContext with finding text', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      focusContext: {
+        chartType: 'pareto',
+        finding: {
+          text: 'Machine B shows elevated variation vs other machines',
+          status: 'investigating',
+        },
+      },
+    });
+    expect(result).toContain('Focus:');
+    expect(result).toContain('pareto');
+    expect(result).toContain('finding: "Machine B shows elevated variation');
+  });
+
+  it('omits Focus line when focusContext is absent', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      variationContributions: [{ factor: 'Machine', etaSquared: 0.3 }],
+    });
+    expect(result).not.toContain('Focus:');
   });
 
   it('includes drill path and scope', () => {

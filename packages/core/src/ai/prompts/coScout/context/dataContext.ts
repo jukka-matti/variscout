@@ -59,9 +59,43 @@ export function formatDataContext(context: AIContext): string {
   // Best model equation
   if (context.bestModelEquation) {
     const bm = context.bestModelEquation;
-    const factorList = bm.factors.join(' + ');
-    const rAdj = Math.round(bm.rSquaredAdj * 100);
-    lines.push(`Best model: ${factorList} \u2192 R\u00b2adj=${rAdj}%`);
+    const factorList = bm.factors.join(', ');
+    lines.push(`Best model: {${factorList}} \u2192 R\u00b2adj=${bm.rSquaredAdj.toFixed(2)}`);
+    if (bm.worstCase && Object.keys(bm.worstCase.levels).length > 0) {
+      const worstLevels = Object.entries(bm.worstCase.levels)
+        .map(([f, v]) => `${f}=${v}`)
+        .join(' + ');
+      lines.push(`  Worst case: ${worstLevels} \u2192 ${bm.worstCase.predicted.toFixed(1)}`);
+    }
+    if (bm.bestCase && Object.keys(bm.bestCase.levels).length > 0) {
+      const bestLevels = Object.entries(bm.bestCase.levels)
+        .map(([f, v]) => `${f}=${v}`)
+        .join(' + ');
+      lines.push(`  Best case: ${bestLevels} \u2192 ${bm.bestCase.predicted.toFixed(1)}`);
+    }
+  }
+
+  // Focus context from "Ask CoScout about this" actions
+  if (context.focusContext) {
+    const fc = context.focusContext;
+    const parts: string[] = [];
+    if (fc.chartType) parts.push(fc.chartType);
+    if (fc.category) {
+      let catDesc = fc.category.name;
+      if (fc.category.mean !== undefined) catDesc += ` (mean=${fc.category.mean.toFixed(2)}`;
+      if (fc.category.etaSquaredPct !== undefined)
+        catDesc +=
+          (fc.category.mean !== undefined ? ', ' : ' (') +
+          `\u03b7\u00b2=${Math.round(fc.category.etaSquaredPct)}%`;
+      if (fc.category.mean !== undefined || fc.category.etaSquaredPct !== undefined) catDesc += ')';
+      parts.push(catDesc);
+    }
+    if (fc.finding) {
+      parts.push(`finding: "${fc.finding.text.slice(0, 80)}"`);
+    }
+    if (parts.length > 0) {
+      lines.push(`Focus: ${parts.join(' \u2014 ')}`);
+    }
   }
 
   // Stats summary
