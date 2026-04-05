@@ -50,6 +50,7 @@ Once a feature stabilizes, the ADR is the canonical reference.
 | [2026-03-31-vqi-rescore-design.md](2026-03-31-vqi-rescore-design.md)                                                   | VQI Re-Evaluation & Activation Improvements                   | ADR-054 | Active    |
 | [2026-04-02-coscout-intelligence-architecture-design.md](2026-04-02-coscout-intelligence-architecture-design.md)       | CoScout Intelligence Architecture                             | ADR-060 | Draft     |
 | [2026-04-04-investigation-spine-design.md](2026-04-04-investigation-spine-design.md)                                   | Investigation Spine: Three Threads, Five Sentences, One Story | —       | Delivered |
+| [2026-04-05-evidence-map-design.md](2026-04-05-evidence-map-design.md)                                                 | Evidence Map: Causal Graph Visualization                      | —       | Delivered |
 
 ## Lifecycle
 

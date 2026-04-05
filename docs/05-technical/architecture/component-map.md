@@ -141,6 +141,10 @@ flowchart TB
         yam_chart["YamazumiChart<br/><small>Stacked bar by activity type<br/>takt time line</small>"]
     end
 
+    subgraph evidencemap["Evidence Map (causal graph)"]
+        ev_map["EvidenceMap<br/><small>Force-directed causal graph<br/>3-layer: statistical, investigation, synthesis</small>"]
+    end
+
     subgraph supporting["Supporting Components"]
         stats_table["BoxplotStatsTable<br/><small>Summary statistics table</small>"]
         legend["ChartLegend"]
@@ -159,6 +163,8 @@ flowchart TB
     performance --> core_stats
     yamazumi --> core_types
     yamazumi --> core_stats
+    evidencemap --> core_types
+    evidencemap --> core_stats
     supporting --> core_types
 ```
 
