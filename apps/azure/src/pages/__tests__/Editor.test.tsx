@@ -133,6 +133,7 @@ vi.mock('@variscout/ui', () => ({
   CoScoutPanelBase: () => null,
   AIOnboardingTooltip: () => null,
   SessionClosePrompt: () => null,
+  BrainstormModal: () => null,
   useIsMobile: () => false,
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));
