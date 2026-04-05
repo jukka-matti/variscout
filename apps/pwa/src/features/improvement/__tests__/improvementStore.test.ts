@@ -1,37 +1,14 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { useImprovementFeatureStore } from '../improvementStore';
+import { describe, it, expect } from 'vitest';
+import type { ImprovementQuestion } from '../improvementStore';
 
-beforeEach(() => {
-  useImprovementFeatureStore.setState({
-    improvementQuestions: [],
-    improvementLinkedFindings: [],
-    selectedIdeaIds: new Set(),
-    projectedCpkMap: {},
-    convertedIdeaIds: new Set(),
-  });
-});
-
-describe('improvementStore', () => {
-  it('syncState updates all fields', () => {
-    useImprovementFeatureStore.getState().syncState({
-      improvementQuestions: [
-        { id: 'q-1', text: 'Fix shift', ideas: [{ id: 'i-1', text: 'Train', createdAt: '' }] },
-      ],
-      improvementLinkedFindings: [{ id: 'f-1', text: 'Shift variance' }],
-      selectedIdeaIds: new Set(['i-1']),
-      projectedCpkMap: { 'f-1': 1.45 },
-      convertedIdeaIds: new Set(),
-    });
-    const s = useImprovementFeatureStore.getState();
-    expect(s.improvementQuestions).toHaveLength(1);
-    expect(s.improvementLinkedFindings).toHaveLength(1);
-    expect(s.selectedIdeaIds.has('i-1')).toBe(true);
-    expect(s.projectedCpkMap['f-1']).toBe(1.45);
-  });
-
-  it('starts with empty state', () => {
-    const s = useImprovementFeatureStore.getState();
-    expect(s.improvementQuestions).toEqual([]);
-    expect(s.selectedIdeaIds.size).toBe(0);
+describe('ImprovementQuestion type', () => {
+  it('type is correctly shaped', () => {
+    const q: ImprovementQuestion = {
+      id: 'q-1',
+      text: 'Fix shift',
+      ideas: [{ id: 'i-1', text: 'Train', createdAt: '' }],
+    };
+    expect(q.id).toBe('q-1');
+    expect(q.ideas).toHaveLength(1);
   });
 });

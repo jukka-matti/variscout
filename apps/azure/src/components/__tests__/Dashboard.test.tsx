@@ -448,13 +448,7 @@ vi.mock('@variscout/hooks', () => ({
   useProbabilityPlotData: () => [],
 }));
 
-// Mock improvement store (Zustand)
-vi.mock('../../features/improvement/improvementStore', () => ({
-  useImprovementFeatureStore: (selector?: (s: Record<string, unknown>) => unknown) => {
-    const state = { projectedCpkMap: {} };
-    return selector ? selector(state) : state;
-  },
-}));
+// Improvement store mock removed — projectedCpkMap is now passed as a prop
 
 // Mock core functions
 vi.mock('@variscout/core', async () => {

@@ -7,7 +7,7 @@
  * reads, and provides DataContext-dependent action callbacks (popout sync,
  * synthesis change, idea-to-action conversion).
  */
-import React, { useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import type {
   Finding,
   FindingAssignee,
@@ -27,8 +27,7 @@ import type { MatrixIdea, CauseSummary, TrackedAction, SelectedIdea } from '@var
 import { openImprovementPopout, updateImprovementPopout } from '../../components/ImprovementWindow';
 import type { ImprovementSyncData, ImprovementActionMessage } from '@variscout/hooks';
 import { usePopoutChannel } from '@variscout/hooks';
-import { useImprovementFeatureStore } from './improvementStore';
-
+import type { ImprovementQuestion } from './improvementStore';
 export type { ImprovementQuestion } from './improvementStore';
 
 // ── Types ────────────────────────────────────────────────────────────────
@@ -68,6 +67,16 @@ export interface UseImprovementOrchestrationReturn {
   handleOpenImprovementPopout: () => void;
   /** Synthesis text change handler */
   handleSynthesisChange: (text: string) => void;
+  /** Questions with answered/investigating status that have ideas */
+  improvementQuestions: ImprovementQuestion[];
+  /** Findings linked to any question with ideas */
+  improvementLinkedFindings: Array<{ id: string; text: string }>;
+  /** Set of selected idea IDs across all questions */
+  selectedIdeaIds: Set<string>;
+  /** Projected Cpk map: finding ID -> projected Cpk */
+  projectedCpkMap: Record<string, number>;
+  /** Ideas that already have matching action items */
+  convertedIdeaIds: Set<string>;
   /** Map of questionId → hex color for cause grouping */
   causeColors: Map<string, string>;
   /** Labels for cause legend (questionId → display name) */
@@ -347,23 +356,6 @@ export function useImprovementOrchestration({
     [focusFinding, findingsState, currentOutcome]
   );
 
-  // ── Sync computed state to Zustand store ────────────────────────────────
-  useEffect(() => {
-    useImprovementFeatureStore.getState().syncState({
-      improvementQuestions,
-      improvementLinkedFindings,
-      selectedIdeaIds,
-      projectedCpkMap,
-      convertedIdeaIds,
-    });
-  }, [
-    improvementQuestions,
-    improvementLinkedFindings,
-    selectedIdeaIds,
-    projectedCpkMap,
-    convertedIdeaIds,
-  ]);
-
   // Convert all selected ideas to action items on their linked findings
   const handleConvertIdeasToActions = useCallback(() => {
     for (const h of persistedQuestions ?? []) {
@@ -516,6 +508,11 @@ export function useImprovementOrchestration({
     handleConvertIdeasToActions,
     handleOpenImprovementPopout,
     handleSynthesisChange,
+    improvementQuestions,
+    improvementLinkedFindings,
+    selectedIdeaIds,
+    projectedCpkMap,
+    convertedIdeaIds,
     causeColors,
     causeLabels,
     causeSummaries,

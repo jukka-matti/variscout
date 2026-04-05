@@ -45,7 +45,6 @@ import {
   useJourneyPhase,
   useCapabilityIChartData,
 } from '@variscout/hooks';
-import { useImprovementFeatureStore } from '../features/improvement/improvementStore';
 import type { AIContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 import { Activity, BarChart3, Gauge, Timer, ArrowLeft, Settings2 } from 'lucide-react';
@@ -123,6 +122,8 @@ interface DashboardProps {
   // Domain groups
   performance?: DashboardPerformanceProps;
   ai?: DashboardAIProps;
+  /** Projected Cpk map from improvement workspace (finding ID -> projected Cpk) */
+  projectedCpkMap?: Record<string, number>;
 }
 
 const Dashboard = ({
@@ -140,6 +141,7 @@ const Dashboard = ({
   requestedFactor,
   performance = {},
   ai = {},
+  projectedCpkMap: externalProjectedCpkMap,
 }: DashboardProps) => {
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
@@ -315,7 +317,7 @@ const Dashboard = ({
 
   // Process projection intelligence (Phase 2-4)
   const journeyPhase = useJourneyPhase(!!rawData?.length, allFindings ?? []);
-  const projectedCpkMap = useImprovementFeatureStore(s => s.projectedCpkMap);
+  const projectedCpkMap = externalProjectedCpkMap ?? {};
 
   const scopedFindings = useMemo(
     () => (allFindings ? getScopedFindings(allFindings) : undefined),

@@ -2,31 +2,33 @@
  * ImprovementView - Improvement workspace for PWA
  *
  * Wraps ImprovementWorkspaceBase from @variscout/ui with PWA-specific wiring.
- * Reads from Zustand stores (improvementStore).
+ * Receives improvement data as props from the orchestration hook (no store reads).
  * No AI (no onAskCoScout), no popout (no onPopout), no Teams.
  */
 import React from 'react';
 import { ImprovementWorkspaceBase } from '@variscout/ui';
 import type { UseQuestionsReturn } from '@variscout/hooks';
-import { useImprovementFeatureStore } from '../../features/improvement/improvementStore';
 import type { UseImprovementOrchestrationReturn } from '../../features/improvement/useImprovementOrchestration';
 
 interface ImprovementViewProps {
   questionsState: UseQuestionsReturn;
   onBack: () => void;
   handleConvertIdeasToActions: UseImprovementOrchestrationReturn['handleConvertIdeasToActions'];
+  improvementQuestions: UseImprovementOrchestrationReturn['improvementQuestions'];
+  improvementLinkedFindings: UseImprovementOrchestrationReturn['improvementLinkedFindings'];
+  selectedIdeaIds: UseImprovementOrchestrationReturn['selectedIdeaIds'];
+  convertedIdeaIds: UseImprovementOrchestrationReturn['convertedIdeaIds'];
 }
 
 const ImprovementView: React.FC<ImprovementViewProps> = ({
   questionsState,
   onBack,
   handleConvertIdeasToActions,
+  improvementQuestions,
+  improvementLinkedFindings,
+  selectedIdeaIds,
+  convertedIdeaIds,
 }) => {
-  const improvementQuestions = useImprovementFeatureStore(s => s.improvementQuestions);
-  const improvementLinkedFindings = useImprovementFeatureStore(s => s.improvementLinkedFindings);
-  const selectedIdeaIds = useImprovementFeatureStore(s => s.selectedIdeaIds);
-  const convertedIdeaIds = useImprovementFeatureStore(s => s.convertedIdeaIds);
-
   if (improvementQuestions.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 text-center">

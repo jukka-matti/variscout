@@ -1,3 +1,6 @@
-export { useImprovementFeatureStore } from './improvementStore';
-export type { ImprovementStore, ImprovementQuestion } from './improvementStore';
+export type { ImprovementQuestion } from './improvementStore';
 export { useImprovementOrchestration } from './useImprovementOrchestration';
+export type {
+  UseImprovementOrchestrationOptions,
+  UseImprovementOrchestrationReturn,
+} from './useImprovementOrchestration';

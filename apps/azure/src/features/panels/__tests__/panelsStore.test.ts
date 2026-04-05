@@ -18,6 +18,8 @@ beforeEach(() => {
     highlightedFactor: null,
     investigationViewMode: 'map',
     factorPreviewDismissed: false,
+    activeImprovementView: 'plan',
+    highlightedIdeaId: null,
   });
 });
 

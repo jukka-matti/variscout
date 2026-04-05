@@ -1,7 +1,10 @@
-import { create } from 'zustand';
+/**
+ * ImprovementQuestion type — shared between the orchestration hook and UI components.
+ *
+ * The Zustand store has been removed: all synced state is now returned from
+ * useImprovementOrchestration directly.
+ */
 import type { Question } from '@variscout/core';
-
-// ── Types ───────────────────────────────────────────────────────────────────
 
 export interface ImprovementQuestion {
   id: string;
@@ -11,50 +14,3 @@ export interface ImprovementQuestion {
   ideas: NonNullable<Question['ideas']>;
   linkedFindingName?: string;
 }
-
-// ── State ───────────────────────────────────────────────────────────────────
-
-interface ImprovementStoreState {
-  /** Questions with answered/investigating status that have ideas */
-  improvementQuestions: ImprovementQuestion[];
-  /** Findings linked to any question with ideas */
-  improvementLinkedFindings: Array<{ id: string; text: string }>;
-  /** Set of selected idea IDs across all questions */
-  selectedIdeaIds: Set<string>;
-  /** Projected Cpk map: finding ID -> projected Cpk */
-  projectedCpkMap: Record<string, number>;
-  /** Ideas that already have matching action items */
-  convertedIdeaIds: Set<string>;
-}
-
-// ── Actions ─────────────────────────────────────────────────────────────────
-
-interface ImprovementStoreActions {
-  /**
-   * Bulk sync all computed state from the orchestration hook.
-   * Called by useImprovementOrchestration whenever dependencies change.
-   */
-  syncState: (state: {
-    improvementQuestions: ImprovementQuestion[];
-    improvementLinkedFindings: Array<{ id: string; text: string }>;
-    selectedIdeaIds: Set<string>;
-    projectedCpkMap: Record<string, number>;
-    convertedIdeaIds: Set<string>;
-  }) => void;
-}
-
-export type ImprovementStore = ImprovementStoreState & ImprovementStoreActions;
-
-// ── Store ───────────────────────────────────────────────────────────────────
-
-export const useImprovementFeatureStore = create<ImprovementStore>(set => ({
-  // Initial state
-  improvementQuestions: [],
-  improvementLinkedFindings: [],
-  selectedIdeaIds: new Set<string>(),
-  projectedCpkMap: {},
-  convertedIdeaIds: new Set<string>(),
-
-  // Actions
-  syncState: state => set(state),
-}));

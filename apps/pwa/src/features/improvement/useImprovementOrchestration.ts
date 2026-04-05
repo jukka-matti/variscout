@@ -3,12 +3,12 @@
  *
  * Simplified version of Azure's orchestration (no popout sync, no Teams).
  * Filters questions with ideas, computes selected idea IDs, projected Cpk map,
- * and syncs to Zustand improvementStore.
+ * and returns them directly from the hook (no sync to Zustand store).
  */
-import { useMemo, useCallback, useEffect } from 'react';
+import { useMemo, useCallback } from 'react';
 import type { Finding } from '@variscout/core';
 import type { UseQuestionsReturn } from '@variscout/hooks';
-import { useImprovementFeatureStore, type ImprovementQuestion } from './improvementStore';
+import type { ImprovementQuestion } from './improvementStore';
 
 export type { ImprovementQuestion };
 
@@ -33,6 +33,16 @@ export interface UseImprovementOrchestrationOptions {
 export interface UseImprovementOrchestrationReturn {
   /** Convert selected ideas to action items on their linked findings */
   handleConvertIdeasToActions: () => void;
+  /** Questions with answered/investigating status that have ideas */
+  improvementQuestions: ImprovementQuestion[];
+  /** Findings linked to any question with ideas */
+  improvementLinkedFindings: Array<{ id: string; text: string }>;
+  /** Set of selected idea IDs across all questions */
+  selectedIdeaIds: Set<string>;
+  /** Projected Cpk map: finding ID -> projected Cpk */
+  projectedCpkMap: Record<string, number>;
+  /** Ideas that already have matching action items */
+  convertedIdeaIds: Set<string>;
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────
@@ -109,24 +119,6 @@ export function useImprovementOrchestration({
     return ids;
   }, [findingsState.findings]);
 
-  // ── Sync to store ──────────────────────────────────────────────────
-
-  useEffect(() => {
-    useImprovementFeatureStore.getState().syncState({
-      improvementQuestions,
-      improvementLinkedFindings,
-      selectedIdeaIds,
-      projectedCpkMap,
-      convertedIdeaIds,
-    });
-  }, [
-    improvementQuestions,
-    improvementLinkedFindings,
-    selectedIdeaIds,
-    projectedCpkMap,
-    convertedIdeaIds,
-  ]);
-
   // ── Actions ────────────────────────────────────────────────────────
 
   const handleConvertIdeasToActions = useCallback(() => {
@@ -145,5 +137,10 @@ export function useImprovementOrchestration({
 
   return {
     handleConvertIdeasToActions,
+    improvementQuestions,
+    improvementLinkedFindings,
+    selectedIdeaIds,
+    projectedCpkMap,
+    convertedIdeaIds,
   };
 }

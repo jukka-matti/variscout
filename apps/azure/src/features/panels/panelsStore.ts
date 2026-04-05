@@ -24,6 +24,10 @@ interface PanelsState {
   investigationViewMode: 'map' | 'findings';
   /** Whether the Factor Preview overlay has been dismissed for this session */
   factorPreviewDismissed: boolean;
+  /** Active improvement view: plan (default) or track */
+  activeImprovementView: 'plan' | 'track';
+  /** ID of idea highlighted via matrix<->card bidirectional navigation */
+  highlightedIdeaId: string | null;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -52,6 +56,10 @@ interface PanelsActions {
   setHighlightedFactor: (factor: string | null) => void;
   setInvestigationViewMode: (mode: 'map' | 'findings') => void;
   dismissFactorPreview: () => void;
+  /** Switch between plan and track views */
+  setActiveImprovementView: (view: 'plan' | 'track') => void;
+  /** Set highlighted idea ID for bidirectional matrix<->card navigation */
+  setHighlightedIdeaId: (id: string | null) => void;
   /** Initialize persisted panel state from a saved ViewState. */
   initFromViewState: (
     viewState?: {
@@ -82,6 +90,8 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   highlightedFactor: null,
   investigationViewMode: 'map',
   factorPreviewDismissed: false,
+  activeImprovementView: 'plan',
+  highlightedIdeaId: null,
 
   // Workspace navigation (ADR-055 + header-redesign spec)
   showDashboard: () => set(() => ({ activeView: 'dashboard' })),
@@ -146,6 +156,10 @@ export const usePanelsStore = create<PanelsStore>(set => ({
     ),
   setInvestigationViewMode: mode => set(() => ({ investigationViewMode: mode })),
   dismissFactorPreview: () => set({ factorPreviewDismissed: true }),
+
+  // Improvement view
+  setActiveImprovementView: view => set({ activeImprovementView: view }),
+  setHighlightedIdeaId: id => set({ highlightedIdeaId: id }),
 
   // ViewState initialization — maps legacy values
   initFromViewState: viewState => {
