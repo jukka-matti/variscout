@@ -167,7 +167,13 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
               previous_response_id: previousResponseIdRef.current,
               store: !hasImages,
               prompt_cache_key: 'variscout-coscout',
-              reasoning: { effort: getCoScoutReasoningEffort(toolsOptions?.phase) },
+              reasoning: {
+                effort: getCoScoutReasoningEffort(
+                  toolsOptions?.phase,
+                  toolsOptions?.investigationPhase,
+                  context?.stagedComparison != null
+                ),
+              },
             },
             toolHandlers || {},
             (delta: string) => {

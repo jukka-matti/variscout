@@ -1,30 +1,46 @@
 /**
  * Per-journey-phase reasoning effort configuration.
  *
- * Maps journey phases to OpenAI Responses API `reasoning.effort` values.
- * Higher effort = better reasoning but more tokens and latency.
+ * Maps journey phases (and investigation sub-phases) to OpenAI Responses API
+ * `reasoning.effort` values. Higher effort = better reasoning but more tokens
+ * and latency.
  */
 
-import type { JourneyPhase } from './types';
+import type { JourneyPhase, InvestigationPhase } from './types';
 
 /**
- * Get the reasoning effort level for CoScout based on journey phase.
+ * Get the reasoning effort level for CoScout based on journey phase,
+ * optional investigation sub-phase, and staged data presence.
  *
- * - frame: Quick orientation, no deep reasoning needed
+ * - frame: Quick orientation, light reasoning
  * - scout: Pattern exploration, light reasoning
- * - investigate: Root cause analysis, needs structured reasoning
- * - improve: Action validation, light reasoning
+ * - investigate/initial|diverging: Exploration, light reasoning
+ * - investigate/validating: Hypothesis validation, medium reasoning
+ * - investigate/converging: Root cause synthesis, high reasoning
+ * - improve (no staged data): Action planning, light reasoning
+ * - improve (with staged data): Verification & impact, high reasoning
  */
 export function getCoScoutReasoningEffort(
-  phase?: JourneyPhase
+  phase?: JourneyPhase,
+  investigationPhase?: InvestigationPhase,
+  hasStagedData?: boolean
 ): 'none' | 'low' | 'medium' | 'high' {
+  if (phase === 'improve' && hasStagedData) return 'high';
+  if (phase === 'investigate') {
+    switch (investigationPhase) {
+      case 'converging':
+        return 'high';
+      case 'validating':
+        return 'medium';
+      default:
+        return 'low';
+    }
+  }
   switch (phase) {
     case 'frame':
-      return 'none';
+      return 'low';
     case 'scout':
       return 'low';
-    case 'investigate':
-      return 'medium';
     case 'improve':
       return 'low';
     default:
