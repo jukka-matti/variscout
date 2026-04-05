@@ -29,6 +29,9 @@ export type {
   StageOrderMode,
   BoxplotGroupInput,
   BoxplotGroupData,
+  PredictorType,
+  PredictorInfo,
+  TypeIIIResult,
 } from '../types';
 
 // Basic statistics
@@ -106,8 +109,16 @@ export {
   getBestSingleFactor,
   generateQuestionsFromRanking,
   predictFromModel,
+  predictFromUnifiedModel,
   computeCoverage,
 } from './bestSubsets';
+
+// Type III SS decomposition
+export { computeTypeIIISS } from './typeIIISS';
+
+// Factor type detection
+export type { FactorTypeClassification } from './factorTypeDetection';
+export { classifyFactorType, classifyAllFactors } from './factorTypeDetection';
 
 // Factor effects (Factor Intelligence Layers 2-3)
 export type {
