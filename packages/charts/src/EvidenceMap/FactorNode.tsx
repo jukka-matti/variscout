@@ -3,6 +3,15 @@
  *
  * Shows factor name, R²adj metric, and strongest level effect.
  * Color indicates strength tier: green (>20%), amber (10-20%), grey (<10%).
+ *
+ * For continuous factors, renders a subtle trend glyph inside the circle:
+ *   '/'  → diagonal line (positive linear)
+ *   '\\' → diagonal line (negative linear)
+ *   '∩'  → arc curving upward (quadratic peak / sweet spot maximum)
+ *   '∪'  → arc curving downward (quadratic valley / sweet spot minimum)
+ *
+ * The '∩' and '∪' glyphs also show a pulsing ring animation to indicate
+ * an optimal operating region exists.
  */
 
 import React from 'react';
@@ -31,6 +40,56 @@ function getNodeColor(rSquaredAdj: number, isDark: boolean): string {
 /** Minimum touch target radius (44px diameter / 2) */
 const TOUCH_TARGET_RADIUS = 22;
 
+/** Glyph size as a fraction of node radius */
+const GLYPH_FRACTION = 0.4;
+
+/**
+ * Build the SVG path data for a trend glyph centered at (0,0).
+ * The glyph fits within a box of ±g where g = nodeRadius * GLYPH_FRACTION.
+ */
+function buildGlyphPath(glyph: '/' | '\\' | '∩' | '∪', g: number): string {
+  switch (glyph) {
+    case '/':
+      // Diagonal line from bottom-left to top-right
+      return `M ${-g} ${g} L ${g} ${-g}`;
+    case '\\':
+      // Diagonal line from top-left to bottom-right
+      return `M ${-g} ${-g} L ${g} ${g}`;
+    case '∩': {
+      // Arc that curves upward — cubic bezier from left to right with upward peak
+      // Start: (-g, g/2) → End: (g, g/2), peak at (0, -g)
+      const cp = g * 1.2;
+      return `M ${-g} ${g * 0.5} C ${-g} ${-cp} ${g} ${-cp} ${g} ${g * 0.5}`;
+    }
+    case '∪': {
+      // Arc that curves downward — cubic bezier from left to right with downward valley
+      // Start: (-g, -g/2) → End: (g, -g/2), valley at (0, g)
+      const cp = g * 1.2;
+      return `M ${-g} ${-g * 0.5} C ${-g} ${cp} ${g} ${cp} ${g} ${-g * 0.5}`;
+    }
+  }
+}
+
+/** CSS keyframes for the sweet-spot pulsing ring (injected once). */
+const PULSE_STYLE_ID = 'evidence-map-pulse';
+function injectPulseStyle(): void {
+  if (typeof document === 'undefined') return;
+  if (document.getElementById(PULSE_STYLE_ID)) return;
+  const style = document.createElement('style');
+  style.id = PULSE_STYLE_ID;
+  style.textContent = `
+    @keyframes em-node-pulse {
+      0%   { opacity: 0.5; r: var(--pulse-r0); }
+      70%  { opacity: 0; r: var(--pulse-r1); }
+      100% { opacity: 0; r: var(--pulse-r1); }
+    }
+    .em-pulse-ring {
+      animation: em-node-pulse 2s ease-out infinite;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 const FactorNode: React.FC<FactorNodeProps> = ({
   node,
   isHighlighted,
@@ -46,6 +105,16 @@ const FactorNode: React.FC<FactorNodeProps> = ({
   const textColor = chrome.labelPrimary;
   const subtextColor = chrome.labelSecondary;
   const highlightStroke = isHighlighted ? chartColors.mean : 'transparent';
+
+  const glyph = node.trendGlyph;
+  const hasGlyph = glyph !== null && glyph !== undefined;
+  const isQuadratic = glyph === '∩' || glyph === '∪';
+  const glyphSize = node.radius * GLYPH_FRACTION;
+
+  // Inject CSS animation for sweet-spot glyphs (no-op if already present)
+  if (isQuadratic) {
+    injectPulseStyle();
+  }
 
   return (
     <Group
@@ -64,6 +133,23 @@ const FactorNode: React.FC<FactorNodeProps> = ({
       {/* Transparent touch target (44px min) for compact/mobile mode */}
       {compact && node.radius < TOUCH_TARGET_RADIUS && (
         <circle r={TOUCH_TARGET_RADIUS} fill="transparent" />
+      )}
+
+      {/* Sweet-spot pulsing ring — rendered behind the main circle */}
+      {isQuadratic && (
+        <circle
+          className="em-pulse-ring"
+          r={node.radius + 8}
+          fill="none"
+          stroke={chartColors.cpPotential}
+          strokeWidth={1.5}
+          style={
+            {
+              '--pulse-r0': `${node.radius + 4}px`,
+              '--pulse-r1': `${node.radius + 14}px`,
+            } as React.CSSProperties
+          }
+        />
       )}
 
       {/* Highlight ring */}
@@ -85,6 +171,19 @@ const FactorNode: React.FC<FactorNodeProps> = ({
         stroke={color}
         strokeWidth={1.5}
       />
+
+      {/* Trend glyph (continuous factors only) — subtle, inside the circle */}
+      {hasGlyph && !compact && (
+        <path
+          d={buildGlyphPath(glyph as '/' | '\\' | '∩' | '∪', glyphSize)}
+          stroke={chrome.labelPrimary}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.3}
+          pointerEvents="none"
+        />
+      )}
 
       {/* Factor name */}
       {!hideLabels && (

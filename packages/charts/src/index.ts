@@ -32,6 +32,7 @@ export type {
   PerformanceBoxplotProps,
   PerformanceParetoProps,
   PerformanceCapabilityProps,
+  ScatterFitProps,
 } from './types';
 
 // Color constants
@@ -122,6 +123,9 @@ export type {
   ConvergencePointData,
   RelationshipType,
 } from './EvidenceMap';
+
+// ScatterFit chart component
+export { default as ScatterFit, ScatterFitBase } from './ScatterFit';
 
 // Performance chart components
 export { default as PerformanceIChart, PerformanceIChartBase } from './PerformanceIChart';

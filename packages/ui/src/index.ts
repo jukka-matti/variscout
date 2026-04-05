@@ -71,6 +71,9 @@ export {
   type LeanActivity,
   LeanDistributionPreview,
   type LeanDistributionPreviewProps,
+  PredictionProfiler,
+  type PredictionProfilerProps,
+  type PredictionProfilerFactor,
 } from './components/WhatIfSimulator';
 
 export {
@@ -573,3 +576,6 @@ export {
   type DocumentInfo,
   type AutoIndexSummaryData,
 } from './components/DocumentShelf';
+
+// Investigation components (regression sweet spot, etc.)
+export { SweetSpotCard, type SweetSpotCardProps } from './components/Investigation';

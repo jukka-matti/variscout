@@ -560,6 +560,51 @@ export interface ParetoDataPoint {
 // Complement Insight (Target Discovery / Process Intelligence)
 // ============================================================================
 
+// ============================================================================
+// Unified OLS/GLM Engine Types (Best Subsets + Type III SS)
+// ============================================================================
+
+/** Classification of a predictor variable in the unified OLS engine. */
+export type PredictorType = 'categorical' | 'continuous' | 'quadratic';
+
+/** Detailed coefficient information for a single predictor in the OLS model. */
+export interface PredictorInfo {
+  /** Display name, e.g., "Temperature", "Temperature²", "Supplier" */
+  name: string;
+  /** Source factor column name */
+  factorName: string;
+  /** Predictor type */
+  type: PredictorType;
+  /** Categorical: which level this dummy represents */
+  level?: string;
+  /** Estimated coefficient (slope or level effect vs reference) */
+  coefficient: number;
+  /** Standard error of the coefficient */
+  standardError: number;
+  /** t-statistic = coefficient / standardError */
+  tStatistic: number;
+  /** Two-tailed p-value for the coefficient */
+  pValue: number;
+  /** Whether the coefficient is significant (p < 0.05) */
+  isSignificant: boolean;
+  /** Continuous/quadratic: mean of the factor values used for centering */
+  mean?: number;
+}
+
+/** Type III SS decomposition result for a single factor. */
+export interface TypeIIIResult {
+  /** Type III sum of squares for this factor */
+  ssTypeIII: number;
+  /** Degrees of freedom for this factor's effect */
+  dfEffect: number;
+  /** Partial eta-squared = ssTypeIII / (ssTypeIII + ssError) */
+  partialEtaSq: number;
+  /** F-statistic for this factor */
+  fStat: number;
+  /** p-value for this factor's F-test */
+  pValue: number;
+}
+
 /** Complement data insight when drilling into a subset. */
 export interface ComplementInsight {
   mean: number;

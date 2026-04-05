@@ -1,7 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import EquationDisplay, { formatEquation } from '../EquationDisplay';
 import type { BestSubsetResult } from '@variscout/core/stats';
+import type { PredictorInfo } from '@variscout/core/types';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -139,5 +140,390 @@ describe('EquationDisplay', () => {
     // Should show all 4 cells
     expect(screen.getByText(/Day\+1-4=94/)).toBeInTheDocument();
     expect(screen.getByText(/Night\+5-8=48/)).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Helpers for natural language (continuous / mixed) mode
+// ---------------------------------------------------------------------------
+
+function makeMixedSubset(): BestSubsetResult {
+  return {
+    factors: ['Temp', 'Supplier'],
+    factorCount: 2,
+    rSquared: 0.75,
+    rSquaredAdj: 0.74,
+    fStatistic: 612.3,
+    pValue: 0.00001,
+    isSignificant: true,
+    dfModel: 4,
+    levelEffects: new Map([
+      [
+        'Supplier',
+        new Map([
+          ['A', 12.3],
+          ['B', -3.1],
+        ]),
+      ],
+    ]),
+    cellMeans: new Map(),
+    predictors: undefined,
+    intercept: 60.1,
+    rmse: 2.1,
+    factorTypes: new Map([
+      ['Temp', 'continuous'],
+      ['Supplier', 'categorical'],
+    ]),
+  };
+}
+
+function makeContinuousPredictors(): PredictorInfo[] {
+  return [
+    {
+      name: 'Temp',
+      factorName: 'Temp',
+      type: 'continuous',
+      coefficient: 0.4,
+      standardError: 0.02,
+      tStatistic: 20,
+      pValue: 0.0001,
+      isSignificant: true,
+    },
+    {
+      name: 'Supplier',
+      factorName: 'Supplier',
+      type: 'categorical',
+      level: 'A',
+      coefficient: 12.3,
+      standardError: 0.5,
+      tStatistic: 24.6,
+      pValue: 0.0001,
+      isSignificant: true,
+    },
+    {
+      name: 'Supplier',
+      factorName: 'Supplier',
+      type: 'categorical',
+      level: 'B',
+      coefficient: -3.1,
+      standardError: 0.5,
+      tStatistic: -6.2,
+      pValue: 0.0001,
+      isSignificant: true,
+    },
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// Tests: natural language mode (predictors provided)
+// ---------------------------------------------------------------------------
+
+describe('EquationDisplay — natural language mode', () => {
+  it('renders predicted value header instead of equation text', () => {
+    const subset = makeMixedSubset();
+    const predictors = makeContinuousPredictors();
+
+    render(
+      <EquationDisplay
+        bestSubset={subset}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={predictors}
+        intercept={60.1}
+      />
+    );
+
+    expect(screen.getByTestId('equation-predicted')).toBeInTheDocument();
+    expect(screen.queryByTestId('equation-text')).not.toBeInTheDocument();
+  });
+
+  it('shows trust badge with correct label for strong model', () => {
+    const subset = makeMixedSubset(); // r2Adj = 0.74, isSignificant = true
+    const predictors = makeContinuousPredictors();
+
+    render(
+      <EquationDisplay
+        bestSubset={subset}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={predictors}
+        intercept={60.1}
+      />
+    );
+
+    const badge = screen.getByTestId('trust-badge');
+    expect(badge.textContent).toContain('Strong model');
+  });
+
+  it('shows amber trust badge for moderate model (r2Adj = 0.45)', () => {
+    const subset = { ...makeMixedSubset(), rSquaredAdj: 0.45 };
+    const predictors = makeContinuousPredictors();
+
+    render(
+      <EquationDisplay
+        bestSubset={subset}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={predictors}
+        intercept={60.1}
+      />
+    );
+
+    expect(screen.getByTestId('trust-badge').textContent).toContain('Moderate model');
+  });
+
+  it('shows red trust badge for weak model (r2Adj = 0.15)', () => {
+    const subset = { ...makeMixedSubset(), rSquaredAdj: 0.15 };
+    const predictors = makeContinuousPredictors();
+
+    render(
+      <EquationDisplay
+        bestSubset={subset}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={predictors}
+        intercept={60.1}
+      />
+    );
+
+    expect(screen.getByTestId('trust-badge').textContent).toContain('Weak model');
+  });
+
+  it('renders factor chips for each factor', () => {
+    const subset = makeMixedSubset();
+    const predictors = makeContinuousPredictors();
+
+    render(
+      <EquationDisplay
+        bestSubset={subset}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={predictors}
+        intercept={60.1}
+      />
+    );
+
+    expect(screen.getByTestId('equation-factor-chips')).toBeInTheDocument();
+    expect(screen.getByTestId('equation-chip-Temp')).toBeInTheDocument();
+    expect(screen.getByTestId('equation-chip-Supplier')).toBeInTheDocument();
+  });
+
+  it('calls onFactorClick when chip is clicked', () => {
+    const onFactorClick = vi.fn();
+    const subset = makeMixedSubset();
+    const predictors = makeContinuousPredictors();
+
+    render(
+      <EquationDisplay
+        bestSubset={subset}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={predictors}
+        intercept={60.1}
+        onFactorClick={onFactorClick}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('equation-chip-Temp'));
+    expect(onFactorClick).toHaveBeenCalledWith('Temp');
+  });
+
+  it('shows "+N more" pill when there are more than 3 factors', () => {
+    const subset: BestSubsetResult = {
+      ...makeMixedSubset(),
+      factors: ['Temp', 'Supplier', 'Machine', 'Shift'],
+      factorTypes: new Map([
+        ['Temp', 'continuous'],
+        ['Supplier', 'categorical'],
+        ['Machine', 'categorical'],
+        ['Shift', 'categorical'],
+      ]),
+      levelEffects: new Map([
+        ['Supplier', new Map([['A', 12.3]])],
+        ['Machine', new Map([['M1', 5.0]])],
+        ['Shift', new Map([['Day', -2.0]])],
+      ]),
+    };
+
+    const predictors: PredictorInfo[] = [
+      ...makeContinuousPredictors(),
+      {
+        name: 'Machine',
+        factorName: 'Machine',
+        type: 'categorical',
+        level: 'M1',
+        coefficient: 5.0,
+        standardError: 0.5,
+        tStatistic: 10,
+        pValue: 0.0001,
+        isSignificant: true,
+      },
+      {
+        name: 'Shift',
+        factorName: 'Shift',
+        type: 'categorical',
+        level: 'Day',
+        coefficient: -2.0,
+        standardError: 0.3,
+        tStatistic: -6.7,
+        pValue: 0.0001,
+        isSignificant: true,
+      },
+    ];
+
+    render(
+      <EquationDisplay
+        bestSubset={subset}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={predictors}
+        intercept={60.1}
+      />
+    );
+
+    expect(screen.getByTestId('equation-chips-overflow')).toBeInTheDocument();
+    expect(screen.getByTestId('equation-chips-overflow').textContent).toContain('+1 more');
+  });
+
+  it('expands to show math equation when toggle is clicked', () => {
+    const subset = makeMixedSubset();
+    const predictors = makeContinuousPredictors();
+
+    render(
+      <EquationDisplay
+        bestSubset={subset}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={predictors}
+        intercept={60.1}
+        rmse={2.1}
+        n={847}
+        fStatistic={612.3}
+      />
+    );
+
+    // Math equation hidden initially
+    expect(screen.queryByTestId('equation-math-expanded')).not.toBeInTheDocument();
+
+    // Click to expand
+    fireEvent.click(screen.getByTestId('equation-expand-toggle'));
+
+    expect(screen.getByTestId('equation-math-expanded')).toBeInTheDocument();
+    expect(screen.getByTestId('equation-math-text').textContent).toContain('60.1');
+  });
+
+  it('shows model stats line in expanded view', () => {
+    const subset = makeMixedSubset();
+    const predictors = makeContinuousPredictors();
+
+    render(
+      <EquationDisplay
+        bestSubset={subset}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={predictors}
+        intercept={60.1}
+        rmse={2.1}
+        n={847}
+        fStatistic={612.3}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('equation-expand-toggle'));
+
+    const statsLine = screen.getByTestId('equation-model-stats');
+    expect(statsLine.textContent).toContain('74%'); // R²adj
+    expect(statsLine.textContent).toContain('2.10'); // RMSE
+  });
+
+  it('shows warnings below the card', () => {
+    const subset = makeMixedSubset();
+    const predictors = makeContinuousPredictors();
+
+    render(
+      <EquationDisplay
+        bestSubset={subset}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={predictors}
+        intercept={60.1}
+        warnings={['Multicollinearity detected in Temp and Supplier']}
+      />
+    );
+
+    expect(screen.getByTestId('equation-warning-0').textContent).toContain('Multicollinearity');
+  });
+
+  it('shows quadratic warning when hasQuadraticTerms is true', () => {
+    const subset = makeMixedSubset();
+    const predictors = makeContinuousPredictors();
+
+    render(
+      <EquationDisplay
+        bestSubset={subset}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={predictors}
+        intercept={60.1}
+        hasQuadraticTerms
+      />
+    );
+
+    expect(screen.getByTestId('equation-warning-0').textContent).toContain('Quadratic terms');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests: TrustBadge helper (via component)
+// ---------------------------------------------------------------------------
+
+describe('TrustBadge trust thresholds', () => {
+  const makeSubsetWithR2 = (r2Adj: number, isSignificant = true): BestSubsetResult => ({
+    ...makeMixedSubset(),
+    rSquaredAdj: r2Adj,
+    isSignificant,
+  });
+
+  it('shows Weak model when not significant regardless of r2', () => {
+    render(
+      <EquationDisplay
+        bestSubset={makeSubsetWithR2(0.75, false)}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={makeContinuousPredictors()}
+        intercept={60.1}
+      />
+    );
+
+    // r2 >= 0.6 but not significant → Weak
+    expect(screen.getByTestId('trust-badge').textContent).toContain('Weak model');
+  });
+
+  it('boundary: r2Adj exactly 0.60 with significant → Strong', () => {
+    render(
+      <EquationDisplay
+        bestSubset={makeSubsetWithR2(0.6, true)}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={makeContinuousPredictors()}
+        intercept={60.1}
+      />
+    );
+
+    expect(screen.getByTestId('trust-badge').textContent).toContain('Strong model');
+  });
+
+  it('boundary: r2Adj exactly 0.30 → Moderate', () => {
+    render(
+      <EquationDisplay
+        bestSubset={makeSubsetWithR2(0.3, true)}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={makeContinuousPredictors()}
+        intercept={60.1}
+      />
+    );
+
+    expect(screen.getByTestId('trust-badge').textContent).toContain('Moderate model');
   });
 });

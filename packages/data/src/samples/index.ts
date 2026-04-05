@@ -1,4 +1,6 @@
 // Sample dataset exports
+export { nistLongley } from './nistLongley';
+export { injectionMolding } from './injection';
 export { investigationShowcase } from './investigation-showcase';
 export { journey, journeyBefore, journeyAfter } from './journey';
 export { bottleneck } from './bottleneck';
@@ -24,6 +26,8 @@ export { finlandArrivals } from './finland-arrivals';
 export type { SampleDataset, SampleConfig, SpecLimits } from '../types';
 
 // Import all for SAMPLES array
+import { nistLongley } from './nistLongley';
+import { injectionMolding } from './injection';
 import { investigationShowcase } from './investigation-showcase';
 import { journey, journeyBefore, journeyAfter } from './journey';
 import { bottleneck } from './bottleneck';
@@ -50,6 +54,9 @@ import type { SampleDataset } from '../types';
  * All available sample datasets
  */
 export const SAMPLES: SampleDataset[] = [
+  // Regression Benchmarks
+  nistLongley,
+  injectionMolding,
   // ITC Sector Samples
   mangoExport,
   textiles,

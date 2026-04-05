@@ -358,3 +358,30 @@ export interface YamazumiChartProps extends BaseChartProps {
   /** Y-axis label */
   yAxisLabel?: string;
 }
+
+// ============================================================================
+// ScatterFit Chart Types
+// ============================================================================
+
+/**
+ * ScatterFit props - scatterplot with fitted curve overlay
+ * Used in FactorPreviewOverlay for continuous-factor relationship preview
+ */
+export interface ScatterFitProps extends BaseChartProps {
+  /** Raw data points */
+  data: Array<{ x: number; y: number }>;
+  /** Fitted curve points (connected line) */
+  fittedLine: Array<{ x: number; y: number }>;
+  /** Prediction band (optional) */
+  predictionBand?: Array<{ x: number; yLow: number; yHigh: number }>;
+  /** Optimal point marker (quadratic peak/valley) */
+  optimum?: { x: number; y: number };
+  /** Whether the relationship is significant (affects fitted line color) */
+  isSignificant?: boolean;
+  /** X-axis label */
+  xLabel?: string;
+  /** Y-axis label */
+  yLabel?: string;
+  /** Insight text shown below chart */
+  insightText?: string;
+}

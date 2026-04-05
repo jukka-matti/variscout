@@ -714,19 +714,175 @@ Findings connect to charts via `FindingSource` metadata:
 
 ---
 
-## Part 15 — Deferred Methods (Phase 2)
+## Part 15 — Unified GLM Regression Engine
 
-Per ADR-014, the following modules exist in `@variscout/core` but are not exported or used in the current product:
+> Sources: `packages/core/src/stats/ols.ts`, `packages/core/src/stats/bestSubsets.ts`, `packages/core/src/stats/designMatrix.ts`, `packages/core/src/stats/quadratic.ts`, `packages/core/src/stats/typeIII.ts`
+> User docs: [Regression Methodology](../03-features/analysis/regression-methodology.md)
+> Decision: [ADR-067](../07-decisions/adr-067-unified-glm-regression.md)
 
-| Module                     | Function                        | Purpose                                     |
-| -------------------------- | ------------------------------- | ------------------------------------------- |
-| `stats/regression.ts`      | `calculateRegression()`         | Simple linear regression                    |
-| `stats/multiRegression.ts` | `calculateMultipleRegression()` | Multiple regression with categorical coding |
-| `stats/interaction.ts`     | `getInteractionStrength()`      | Factor interaction analysis                 |
-| `stats/modelReduction.ts`  | `suggestTermRemoval()`          | Backward elimination                        |
-| `variation/simulation.ts`  | `simulateFromModel()`           | Regression-based what-if                    |
+The unified OLS/GLM engine handles both categorical (dummy-coded) and continuous factors in a single model. It supersedes the categorical-only best subsets engine for Factor Intelligence, Evidence Map positioning, and What-If prediction. The simple `calculateAnova()` (Part 2) is retained for one-way ANOVA in the Boxplot panel.
 
-These will enable model-driven simulation in a future release: regression coefficients → what-if adjustments → projected outcomes.
+### Design Matrix Construction
+
+> Source: `packages/core/src/stats/designMatrix.ts`
+
+Categorical factors use reference cell dummy coding. For a factor with levels [A, B, C, D], reference level A produces three dummy columns:
+
+```
+[Machine=B]   1 if Machine is B, 0 otherwise
+[Machine=C]   1 if Machine is C, 0 otherwise
+[Machine=D]   1 if Machine is D, 0 otherwise
+```
+
+Reference level is the first category alphabetically. Its effect is absorbed into the intercept.
+
+Continuous factors enter as raw numeric columns. For quadratic terms (see below), the centered form is used:
+
+```
+X_centered = X − mean(X)
+X_quadratic = X_centered²
+```
+
+### OLS Solver (QR Decomposition)
+
+> Source: `packages/core/src/stats/ols.ts`
+
+Solves `β = argmin ||Xβ − y||²` via QR decomposition using Householder reflections:
+
+```
+X = QR    (Q orthogonal, R upper triangular)
+β = R⁻¹ Qᵀ y
+```
+
+QR decomposition is preferred over the normal equations (X'X)⁻¹X'y because it does not square the condition number of the design matrix. For near-singular X (correlated factors), the normal equations amplify numerical errors; QR decomposition remains stable.
+
+**Validation**: Tested against NIST StRD datasets (Norris, Pontius, Longley) to 9+ significant digits. The Longley dataset is deliberately ill-conditioned and is the standard benchmark for numerical stability.
+
+**Residual standard error**:
+
+```
+s = sqrt( ||y − Xβ̂||² / (n − p − 1) )
+```
+
+**Coefficient standard errors**:
+
+```
+SE(β_j) = s × sqrt( (R⁻¹)ⱼⱼ )
+```
+
+Where (R⁻¹)ⱼⱼ is the j-th diagonal of the inverse of the upper triangular R factor.
+
+### Best Subsets Model Selection
+
+> Source: `packages/core/src/stats/bestSubsets.ts`
+
+Evaluates all 2^k − 1 non-empty factor combinations (k ≤ 10, exact via Furnival-Wilson leaps and bounds). Categorical factors enter/leave as a unit — all dummy variables for a categorical factor are either included or excluded together.
+
+Selection criterion: R²adj:
+
+```
+R²adj = 1 − (1 − R²) × (n − 1) / (n − p − 1)
+```
+
+Where p is the number of model parameters (intercept + predictor columns). R²adj penalizes model complexity: adding a predictor that explains little variance reduces R²adj even if R² increases.
+
+### Quadratic Detection
+
+> Source: `packages/core/src/stats/quadratic.ts`
+
+For each continuous factor, tests whether a quadratic term (β₂ × X²) improves R²adj over the linear-only model. If the improvement exceeds a threshold, the quadratic term is retained in the best subsets candidate pool.
+
+**Sweet spot computation** (when β₂ < 0, indicating a maximum):
+
+```
+X_optimum = X̄ − β₁ / (2 × β₂)
+```
+
+Where X̄ is the sample mean (added back because the quadratic was fitted on centered X).
+
+**Operating window**: the range where predicted response is within 1% of the optimum. Computed by solving `ŷ(X*) − ŷ(X) = 0.01 × ŷ(X*)` for X on both sides of the optimum.
+
+### Type III Sum of Squares
+
+> Source: `packages/core/src/stats/typeIII.ts`
+
+Type III SS for factor j: fit the full model, then fit the model with factor j removed. The difference in residual SS is the Type III SS for factor j:
+
+```
+SS_j(Type III) = RSS(model without j) − RSS(full model)
+```
+
+**Partial η²**:
+
+```
+Partial η²_j = SS_j(Type III) / (SS_j(Type III) + RSS_full)
+```
+
+Type III SS is the standard for unbalanced observational data — it adjusts each factor's contribution for all others, removing order dependency.
+
+**F-statistic and p-value** for factor j:
+
+```
+F_j = (SS_j(Type III) / df_j) / (RSS_full / df_residual)
+p_j = P(F > F_j | df_j, df_residual)    via fDistributionPValue()
+```
+
+Where df_j = number of parameters for factor j (1 for continuous, m−1 for categorical with m levels).
+
+### VIF (Variance Inflation Factor)
+
+For each factor j, regress factor j on all other factors. VIF_j = 1 / (1 − R²_j):
+
+```
+VIF_j = 1 / (1 − R²_j)
+```
+
+VIF > 10 triggers a warning. This is computed only for continuous factors (VIF for dummy-coded categorical blocks is reported as the maximum VIF among the block's individual dummies).
+
+### Prediction
+
+> Source: `packages/core/src/stats/` → exported as `predictFromModel`
+
+```typescript
+predictFromModel(
+  model: GLMModel,
+  factorValues: Record<string, number | string>
+): { predicted: number; lowerPI: number; upperPI: number }
+```
+
+Constructs the prediction vector x\* from factor values (dummy-encoding categorical values), then:
+
+```
+ŷ* = x*ᵀ β̂
+
+Prediction interval (95%):
+ŷ* ± t_{α/2, n-p-1} × s × sqrt(1 + x*ᵀ (XᵀX)⁻¹ x*)
+```
+
+The term `sqrt(1 + x*ᵀ (XᵀX)⁻¹ x*)` accounts for both estimation uncertainty (the second term) and individual observation scatter (the leading 1). This is a **prediction interval**, not a confidence interval — it bounds a single future observation.
+
+**Extrapolation detection**: `computeCoverage()` checks whether each continuous factor value in x\* falls within the observed range [min, max]. Values outside this range set an `isExtrapolation` flag, triggering the amber warning in the What-If Profiler.
+
+### Two-Engine Architecture
+
+| Engine        | Module                            | Used for                                            | Algorithm                      |
+| ------------- | --------------------------------- | --------------------------------------------------- | ------------------------------ |
+| One-way ANOVA | `stats/anova.ts`                  | Boxplot panel, per-factor η²                        | Group means, exact F-test      |
+| Unified GLM   | `stats/ols.ts` + `bestSubsets.ts` | Factor Intelligence, Evidence Map, What-If Profiler | QR decomposition, best subsets |
+
+For categorical-only data, both engines produce mathematically equivalent results (within floating-point precision). The ANOVA engine is retained for Boxplot display because it is faster, simpler, and uses terminology (F, p, η²) familiar to Six Sigma practitioners.
+
+### NIST Validation Reference
+
+> Test file: `packages/core/src/stats/__tests__/nist.test.ts`
+
+| Dataset | Description                                | VariScout accuracy     |
+| ------- | ------------------------------------------ | ---------------------- |
+| Norris  | Simple linear, n=36                        | ≥ 9 significant digits |
+| Pontius | Quadratic, n=40                            | ≥ 9 significant digits |
+| Longley | Multiple regression, ill-conditioned, n=16 | ≥ 9 significant digits |
+
+Certified reference values from NIST StRD: https://www.itl.nist.gov/div898/strd/
 
 ---
 
@@ -754,18 +910,23 @@ Evidence level tells you **how confident** you can be. η² tells you **how impo
 
 ## References & Standards
 
-| Topic                                | Standard / Source                                                           |
-| ------------------------------------ | --------------------------------------------------------------------------- |
-| I-MR chart, σ_within                 | Wheeler, _Understanding Variation_ (2000); d2 constant from AIAG SPC Manual |
-| Cp, Cpk                              | AIAG Statistical Process Control Reference Manual, 2nd ed.                  |
-| d2 = 1.128                           | Hartley unbiasing constant for moving range span 2                          |
-| ANOVA effect size (η²)               | Cohen, _Statistical Power Analysis for the Behavioral Sciences_ (1988)      |
-| Boxplot, IQR fences                  | Tukey, _Exploratory Data Analysis_ (1977)                                   |
-| KDE bandwidth                        | Silverman, _Density Estimation for Statistics and Data Analysis_ (1986)     |
-| Benard median rank                   | Benard & Bos-Levenbach (1953); Minitab default                              |
-| Normal quantile                      | Acklam's rational approximation (~1e-9 accuracy)                            |
-| Error function                       | Abramowitz & Stegun, _Handbook of Mathematical Functions_, formula 7.1.26   |
-| Incomplete beta / continued fraction | Lentz's algorithm (max 200 iterations, ε = 1e-10)                           |
-| Nelson Rule 2                        | Nelson, _Journal of Quality Technology_ (1984) — 9-point runs               |
-| Nelson Rule 3                        | Nelson, _Journal of Quality Technology_ (1984) — 6-point trends             |
-| Evidence levels (p-value)            | ASA Statement on Statistical Significance and P-Values (2016, 2019)         |
+| Topic                                | Standard / Source                                                             |
+| ------------------------------------ | ----------------------------------------------------------------------------- |
+| I-MR chart, σ_within                 | Wheeler, _Understanding Variation_ (2000); d2 constant from AIAG SPC Manual   |
+| Cp, Cpk                              | AIAG Statistical Process Control Reference Manual, 2nd ed.                    |
+| d2 = 1.128                           | Hartley unbiasing constant for moving range span 2                            |
+| ANOVA effect size (η²)               | Cohen, _Statistical Power Analysis for the Behavioral Sciences_ (1988)        |
+| Boxplot, IQR fences                  | Tukey, _Exploratory Data Analysis_ (1977)                                     |
+| KDE bandwidth                        | Silverman, _Density Estimation for Statistics and Data Analysis_ (1986)       |
+| Benard median rank                   | Benard & Bos-Levenbach (1953); Minitab default                                |
+| Normal quantile                      | Acklam's rational approximation (~1e-9 accuracy)                              |
+| Error function                       | Abramowitz & Stegun, _Handbook of Mathematical Functions_, formula 7.1.26     |
+| Incomplete beta / continued fraction | Lentz's algorithm (max 200 iterations, ε = 1e-10)                             |
+| Nelson Rule 2                        | Nelson, _Journal of Quality Technology_ (1984) — 9-point runs                 |
+| Nelson Rule 3                        | Nelson, _Journal of Quality Technology_ (1984) — 6-point trends               |
+| Evidence levels (p-value)            | ASA Statement on Statistical Significance and P-Values (2016, 2019)           |
+| OLS QR decomposition                 | Golub, G.H. & Van Loan, C.F. (2013). _Matrix Computations_, 4th ed., Ch. 5    |
+| Best subsets (leaps and bounds)      | Furnival, G.M. & Wilson, R.W. (1974). _Technometrics_ 16(4):499–511           |
+| Type III SS                          | Montgomery, D.C. (2017). _Design and Analysis of Experiments_, 9th ed., Ch. 8 |
+| VIF multicollinearity                | Belsley, Kuh & Welsch. _Regression Diagnostics_ (1980). Wiley.                |
+| NIST StRD regression benchmarks      | NIST Statistical Reference Datasets, https://www.itl.nist.gov/div898/strd/    |
