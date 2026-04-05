@@ -444,15 +444,18 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
       </div>
 
       {/* Swipe Indicator Dots */}
-      <div className="flex justify-center gap-2 py-3 bg-surface/50">
+      <div className="flex justify-center gap-1 py-2 bg-surface/50">
         {views.map(v => (
           <button
             key={v.key}
             onClick={() => setActiveView(v.key)}
-            className={`w-2 h-2 rounded-full transition-colors
-                            ${activeView === v.key ? 'bg-blue-500' : 'bg-surface-elevated'}`}
+            className="p-2 flex items-center justify-center"
             aria-label={`Go to ${v.label}`}
-          />
+          >
+            <span
+              className={`w-2 h-2 rounded-full transition-colors ${activeView === v.key ? 'bg-blue-500' : 'bg-surface-elevated'}`}
+            />
+          </button>
         ))}
       </div>
 
@@ -469,7 +472,6 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
       {/* Evidence Map Node Sheet */}
       {nodeSheet && (
         <EvidenceMapNodeSheet
-          isOpen={true}
           onClose={() => setNodeSheet(null)}
           factor={nodeSheet.factor}
           rSquaredAdj={nodeSheet.rSquaredAdj}
@@ -482,7 +484,6 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
       {/* Evidence Map Edge Sheet */}
       {edgeSheet && (
         <EvidenceMapEdgeSheet
-          isOpen={true}
           onClose={() => setEdgeSheet(null)}
           factorA={edgeSheet.factorA}
           factorB={edgeSheet.factorB}

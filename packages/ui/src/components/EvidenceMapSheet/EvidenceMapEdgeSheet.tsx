@@ -8,10 +8,10 @@
 import React, { useCallback, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { X, ArrowRight } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import { strengthLabel } from './utils';
 
 export interface EvidenceMapEdgeSheetProps {
-  isOpen: boolean;
   onClose: () => void;
   factorA: string;
   factorB: string;
@@ -27,17 +27,25 @@ const evidenceBadge: Record<
   NonNullable<EvidenceMapEdgeSheetProps['evidenceType']>,
   { label: string; className: string }
 > = {
-  data: { label: 'Data', className: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  gemba: { label: 'Gemba', className: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  expert: { label: 'Expert', className: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  data: {
+    label: 'Data',
+    className: 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30',
+  },
+  gemba: {
+    label: 'Gemba',
+    className: 'bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30',
+  },
+  expert: {
+    label: 'Expert',
+    className: 'bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30',
+  },
   unvalidated: {
     label: 'Unvalidated',
-    className: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    className: 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30',
   },
 };
 
 export const EvidenceMapEdgeSheet: React.FC<EvidenceMapEdgeSheetProps> = ({
-  isOpen,
   onClose,
   factorA,
   factorB,
@@ -47,6 +55,7 @@ export const EvidenceMapEdgeSheet: React.FC<EvidenceMapEdgeSheetProps> = ({
   whyStatement,
   onViewDetails,
 }) => {
+  const { t } = useTranslation();
   const touchStartY = useRef<number | null>(null);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -69,8 +78,6 @@ export const EvidenceMapEdgeSheet: React.FC<EvidenceMapEdgeSheetProps> = ({
     onViewDetails?.();
     onClose();
   }, [onViewDetails, onClose]);
-
-  if (!isOpen) return null;
 
   const badge = evidenceType ? evidenceBadge[evidenceType] : null;
 
@@ -123,7 +130,7 @@ export const EvidenceMapEdgeSheet: React.FC<EvidenceMapEdgeSheetProps> = ({
               onClick={onClose}
               className="p-2 text-content-secondary hover:text-content rounded-lg transition-colors"
               style={{ minWidth: 44, minHeight: 44 }}
-              aria-label="Close"
+              aria-label={t('action.close')}
             >
               <X size={18} />
             </button>
@@ -171,6 +178,7 @@ export const EvidenceMapEdgeSheet: React.FC<EvidenceMapEdgeSheetProps> = ({
                   style={{ minHeight: 48 }}
                   data-testid="edge-sheet-view-details"
                 >
+                  {/* TODO: add i18n key for action.viewDetails */}
                   View Details
                   <ArrowRight size={16} />
                 </button>

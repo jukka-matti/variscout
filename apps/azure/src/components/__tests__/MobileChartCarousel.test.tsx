@@ -329,7 +329,7 @@ describe('MobileChartCarousel', () => {
 
     const dots = screen
       .getAllByRole('button')
-      .filter(btn => btn.classList.contains('rounded-full') && btn.classList.contains('w-2'));
+      .filter(btn => btn.getAttribute('aria-label')?.startsWith('Go to '));
     expect(dots).toHaveLength(4);
   });
 

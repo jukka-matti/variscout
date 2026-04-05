@@ -8,10 +8,10 @@
 import React, { useCallback, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { X, ChevronRight, MessageCircle } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import { strengthLabel } from './utils';
 
 export interface EvidenceMapNodeSheetProps {
-  isOpen: boolean;
   onClose: () => void;
   factor: string;
   rSquaredAdj: number;
@@ -32,7 +32,6 @@ const fmt = (v: number): string => (Number.isInteger(v) ? String(v) : v.toFixed(
 const fmtEffect = (v: number): string => (v >= 0 ? `+${fmt(v)}` : fmt(v));
 
 export const EvidenceMapNodeSheet: React.FC<EvidenceMapNodeSheetProps> = ({
-  isOpen,
   onClose,
   factor,
   rSquaredAdj,
@@ -41,6 +40,7 @@ export const EvidenceMapNodeSheet: React.FC<EvidenceMapNodeSheetProps> = ({
   onDrillDown,
   onAskCoScout,
 }) => {
+  const { t } = useTranslation();
   const touchStartY = useRef<number | null>(null);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -68,8 +68,6 @@ export const EvidenceMapNodeSheet: React.FC<EvidenceMapNodeSheetProps> = ({
     onAskCoScout?.(factor);
     onClose();
   }, [onAskCoScout, factor, onClose]);
-
-  if (!isOpen) return null;
 
   // Sort effects descending to find best/worst
   const sorted = [...levelEffects].sort((a, b) => b.effect - a.effect);
@@ -125,7 +123,7 @@ export const EvidenceMapNodeSheet: React.FC<EvidenceMapNodeSheetProps> = ({
               onClick={onClose}
               className="p-2 text-content-secondary hover:text-content rounded-lg transition-colors"
               style={{ minWidth: 44, minHeight: 44 }}
-              aria-label="Close"
+              aria-label={t('action.close')}
             >
               <X size={18} />
             </button>
@@ -191,6 +189,7 @@ export const EvidenceMapNodeSheet: React.FC<EvidenceMapNodeSheetProps> = ({
                 style={{ minHeight: 48 }}
                 data-testid="node-sheet-drill-down"
               >
+                {/* TODO: add i18n key for action.drillDown */}
                 Drill Down
                 <ChevronRight size={16} />
               </button>
@@ -198,12 +197,12 @@ export const EvidenceMapNodeSheet: React.FC<EvidenceMapNodeSheetProps> = ({
             {onAskCoScout && (
               <button
                 onClick={handleAskCoScout}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-xl transition-colors touch-feedback"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-xl transition-colors touch-feedback"
                 style={{ minHeight: 48 }}
                 data-testid="node-sheet-ask-coscout"
               >
                 <MessageCircle size={16} />
-                Ask CoScout
+                {t('ai.askCoScout')}
               </button>
             )}
           </div>
