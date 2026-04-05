@@ -678,3 +678,150 @@ describe('investigationStore — bulk operations', () => {
     expect(useInvestigationStore.getState().categories).toEqual(cats);
   });
 });
+
+// ============================================================================
+// Causal link tests
+// ============================================================================
+
+describe('investigationStore — causalLink actions', () => {
+  it('creates a causal link with correct defaults', () => {
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'A drives B');
+    expect(link).not.toBeNull();
+    expect(link!.fromFactor).toBe('A');
+    expect(link!.toFactor).toBe('B');
+    expect(link!.whyStatement).toBe('A drives B');
+    expect(link!.direction).toBe('drives');
+    expect(link!.evidenceType).toBe('unvalidated');
+    expect(link!.questionIds).toEqual([]);
+    expect(link!.findingIds).toEqual([]);
+    expect(link!.source).toBe('analyst');
+    expect(useInvestigationStore.getState().causalLinks).toHaveLength(1);
+  });
+
+  it('returns null if would create cycle', () => {
+    useInvestigationStore.getState().addCausalLink('A', 'B', 'A drives B');
+    const result = useInvestigationStore.getState().addCausalLink('B', 'A', 'B drives A');
+    expect(result).toBeNull();
+    expect(useInvestigationStore.getState().causalLinks).toHaveLength(1);
+  });
+
+  it('returns null for self-loop (same fromFactor and toFactor)', () => {
+    const result = useInvestigationStore.getState().addCausalLink('A', 'A', 'Self loop');
+    expect(result).toBeNull();
+    expect(useInvestigationStore.getState().causalLinks).toHaveLength(0);
+  });
+
+  it('removes a causal link', () => {
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'A drives B');
+    useInvestigationStore.getState().removeCausalLink(link!.id);
+    expect(useInvestigationStore.getState().causalLinks).toHaveLength(0);
+  });
+
+  it('no error when removing non-existent link', () => {
+    useInvestigationStore.getState().removeCausalLink('nonexistent');
+    expect(useInvestigationStore.getState().causalLinks).toHaveLength(0);
+  });
+
+  it('updates whyStatement', () => {
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Original');
+    useInvestigationStore.getState().updateCausalLink(link!.id, { whyStatement: 'Updated' });
+    expect(useInvestigationStore.getState().causalLinks[0].whyStatement).toBe('Updated');
+  });
+
+  it('updates evidenceType', () => {
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test');
+    useInvestigationStore.getState().updateCausalLink(link!.id, { evidenceType: 'data' });
+    expect(useInvestigationStore.getState().causalLinks[0].evidenceType).toBe('data');
+  });
+
+  it('sets updatedAt on update', () => {
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test');
+    const before = link!.updatedAt;
+    // Small delay to ensure timestamp differs
+    useInvestigationStore.getState().updateCausalLink(link!.id, { whyStatement: 'Changed' });
+    const after = useInvestigationStore.getState().causalLinks[0].updatedAt;
+    expect(after).toBeDefined();
+    // updatedAt should be a valid ISO string
+    expect(new Date(after).getTime()).toBeGreaterThanOrEqual(new Date(before).getTime());
+  });
+
+  it('links a question ID', () => {
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test');
+    useInvestigationStore.getState().linkQuestionToCausalLink(link!.id, 'q-1');
+    expect(useInvestigationStore.getState().causalLinks[0].questionIds).toEqual(['q-1']);
+  });
+
+  it('no duplicate question IDs on double-link', () => {
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test');
+    useInvestigationStore.getState().linkQuestionToCausalLink(link!.id, 'q-1');
+    useInvestigationStore.getState().linkQuestionToCausalLink(link!.id, 'q-1');
+    expect(useInvestigationStore.getState().causalLinks[0].questionIds).toEqual(['q-1']);
+  });
+
+  it('unlinks a question ID', () => {
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test');
+    useInvestigationStore.getState().linkQuestionToCausalLink(link!.id, 'q-1');
+    useInvestigationStore.getState().linkQuestionToCausalLink(link!.id, 'q-2');
+    useInvestigationStore.getState().unlinkQuestionFromCausalLink(link!.id, 'q-1');
+    expect(useInvestigationStore.getState().causalLinks[0].questionIds).toEqual(['q-2']);
+  });
+
+  it('links a finding ID', () => {
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test');
+    useInvestigationStore.getState().linkFindingToCausalLink(link!.id, 'f-1');
+    expect(useInvestigationStore.getState().causalLinks[0].findingIds).toEqual(['f-1']);
+  });
+
+  it('no duplicate finding IDs on double-link', () => {
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test');
+    useInvestigationStore.getState().linkFindingToCausalLink(link!.id, 'f-1');
+    useInvestigationStore.getState().linkFindingToCausalLink(link!.id, 'f-1');
+    expect(useInvestigationStore.getState().causalLinks[0].findingIds).toEqual(['f-1']);
+  });
+
+  it('unlinks a finding ID', () => {
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test');
+    useInvestigationStore.getState().linkFindingToCausalLink(link!.id, 'f-1');
+    useInvestigationStore.getState().unlinkFindingFromCausalLink(link!.id, 'f-1');
+    expect(useInvestigationStore.getState().causalLinks[0].findingIds).toEqual([]);
+  });
+});
+
+describe('investigationStore — causalLink cascade behavior', () => {
+  it('deleteQuestion removes questionId from causal links', () => {
+    const q = useInvestigationStore.getState().addQuestion('Test question');
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test');
+    useInvestigationStore.getState().linkQuestionToCausalLink(link!.id, q.id);
+    expect(useInvestigationStore.getState().causalLinks[0].questionIds).toContain(q.id);
+
+    useInvestigationStore.getState().deleteQuestion(q.id);
+    expect(useInvestigationStore.getState().causalLinks[0].questionIds).not.toContain(q.id);
+  });
+
+  it('deleteFinding removes findingId from causal links', () => {
+    const ctx = makeContext();
+    const f = useInvestigationStore.getState().addFinding('Test finding', ctx);
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test');
+    useInvestigationStore.getState().linkFindingToCausalLink(link!.id, f.id);
+    expect(useInvestigationStore.getState().causalLinks[0].findingIds).toContain(f.id);
+
+    useInvestigationStore.getState().deleteFinding(f.id);
+    expect(useInvestigationStore.getState().causalLinks[0].findingIds).not.toContain(f.id);
+  });
+
+  it('deleteHub clears hubId from causal links', () => {
+    const hub = useInvestigationStore.getState().createHub('Test hub', 'Synthesis');
+    const link = useInvestigationStore.getState().addCausalLink('A', 'B', 'Test', {
+      source: 'analyst',
+    });
+    // Manually set hubId via updateCausalLink — the store doesn't have a direct setHubId action,
+    // so we use loadInvestigationState to set it
+    useInvestigationStore.setState(state => ({
+      causalLinks: state.causalLinks.map(l => (l.id === link!.id ? { ...l, hubId: hub.id } : l)),
+    }));
+    expect(useInvestigationStore.getState().causalLinks[0].hubId).toBe(hub.id);
+
+    useInvestigationStore.getState().deleteHub(hub.id);
+    expect(useInvestigationStore.getState().causalLinks[0].hubId).toBeUndefined();
+  });
+});

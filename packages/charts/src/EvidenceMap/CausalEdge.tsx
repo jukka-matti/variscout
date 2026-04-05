@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { chartColors, getChromeColors } from '../colors';
 import type { CausalEdgeData } from './types';
 
 interface CausalEdgeProps {
@@ -17,13 +18,13 @@ interface CausalEdgeProps {
 function getEvidenceColor(evidenceType: CausalEdgeData['evidenceType']): string {
   switch (evidenceType) {
     case 'data':
-      return '#22c55e'; // green
+      return chartColors.pass; // green
     case 'gemba':
-      return '#3b82f6'; // blue
+      return chartColors.mean; // blue
     case 'expert':
-      return '#8b5cf6'; // purple
+      return chartColors.cpPotential; // purple
     case 'unvalidated':
-      return '#ef4444'; // red
+      return chartColors.fail; // red
   }
 }
 
@@ -41,9 +42,14 @@ function getEvidenceBadge(evidenceType: CausalEdgeData['evidenceType']): string 
 }
 
 const CausalEdge: React.FC<CausalEdgeProps> = ({ edge, isHighlighted, isDark, onClick }) => {
+  const chrome = getChromeColors(isDark);
   const evidenceColor = getEvidenceColor(edge.evidenceType);
   const isGap = edge.evidenceType === 'unvalidated';
-  const strokeColor = isHighlighted ? '#3b82f6' : isGap ? '#ef4444' : '#3b82f6';
+  const strokeColor = isHighlighted
+    ? chartColors.mean
+    : isGap
+      ? chartColors.fail
+      : chartColors.mean;
   const midX = (edge.fromX + edge.toX) / 2;
   const midY = (edge.fromY + edge.toY) / 2;
 
@@ -95,7 +101,7 @@ const CausalEdge: React.FC<CausalEdgeProps> = ({ edge, isHighlighted, isDark, on
         width={100}
         height={20}
         rx={4}
-        fill={isDark ? '#1e293b' : '#f8fafc'}
+        fill={chrome.tooltipBg}
         stroke={strokeColor}
         strokeWidth={1}
         opacity={0.9}
@@ -135,7 +141,7 @@ const CausalEdge: React.FC<CausalEdgeProps> = ({ edge, isHighlighted, isDark, on
             height={14}
             rx={3}
             fill={isDark ? '#7f1d1d' : '#fef2f2'}
-            stroke="#ef4444"
+            stroke={chartColors.fail}
             strokeWidth={1}
             opacity={0.9}
           />

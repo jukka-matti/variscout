@@ -8,6 +8,7 @@
 
 import React from 'react';
 import { Group } from '@visx/group';
+import { chartColors, getChromeColors } from '../colors';
 import type { ConvergencePointData } from './types';
 
 interface SynthesisLayerProps {
@@ -19,12 +20,12 @@ interface SynthesisLayerProps {
 function getStatusColor(status?: string): string {
   switch (status) {
     case 'confirmed':
-      return '#22c55e';
+      return chartColors.pass;
     case 'not-confirmed':
-      return '#64748b';
+      return getChromeColors(true).labelMuted; // slate-500
     case 'suspected':
     default:
-      return '#8b5cf6';
+      return chartColors.cpPotential;
   }
 }
 
@@ -48,6 +49,8 @@ const SynthesisLayer: React.FC<SynthesisLayerProps> = ({
             left={point.x}
             style={{ cursor: onConvergenceClick ? 'pointer' : 'default' }}
             onClick={() => onConvergenceClick?.(point.factor)}
+            role="button"
+            aria-label={`Convergence point: ${point.factor}${point.hubName ? `, hub: ${point.hubName}` : ''}, ${point.incomingCount} incoming links`}
           >
             {/* Convergence zone (subtle glow behind the factor node) */}
             <circle

@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { chartColors, getChromeColors } from '../colors';
 import type { RelationshipEdgeData, RelationshipType } from './types';
 
 interface RelationshipEdgeProps {
@@ -22,16 +23,17 @@ interface EdgeStyle {
 }
 
 function getEdgeStyle(type: RelationshipType, isDark: boolean): EdgeStyle {
+  const chrome = getChromeColors(isDark);
   switch (type) {
     case 'interactive':
-      return { stroke: '#8b5cf6', strokeWidth: 2.5, opacity: 0.7 };
+      return { stroke: chartColors.cpPotential, strokeWidth: 2.5, opacity: 0.7 };
     case 'synergistic':
-      return { stroke: '#22c55e', strokeWidth: 2, opacity: 0.6 };
+      return { stroke: chartColors.pass, strokeWidth: 2, opacity: 0.6 };
     case 'overlapping':
-      return { stroke: '#ef4444', strokeWidth: 1.5, strokeDasharray: '6,4', opacity: 0.5 };
+      return { stroke: chartColors.fail, strokeWidth: 1.5, strokeDasharray: '6,4', opacity: 0.5 };
     case 'redundant':
       return {
-        stroke: isDark ? '#475569' : '#94a3b8',
+        stroke: chrome.stageDivider,
         strokeWidth: 1,
         strokeDasharray: '3,6',
         opacity: 0.3,
@@ -39,7 +41,7 @@ function getEdgeStyle(type: RelationshipType, isDark: boolean): EdgeStyle {
     case 'independent':
     default:
       return {
-        stroke: isDark ? '#334155' : '#cbd5e1',
+        stroke: chrome.gridLine,
         strokeWidth: 1,
         strokeDasharray: '2,6',
         opacity: 0.2,
@@ -77,8 +79,9 @@ const RelationshipEdge: React.FC<RelationshipEdgeProps> = ({
   const style = getEdgeStyle(edge.type, isDark);
   const midX = (edge.ax + edge.bx) / 2;
   const midY = (edge.ay + edge.by) / 2;
+  const chrome = getChromeColors(isDark);
   const showLabel = edge.type !== 'independent' && edge.type !== 'redundant';
-  const labelColor = isDark ? '#94a3b8' : '#64748b';
+  const labelColor = chrome.labelSecondary;
 
   return (
     <g
@@ -93,7 +96,7 @@ const RelationshipEdge: React.FC<RelationshipEdgeProps> = ({
         y1={edge.ay}
         x2={edge.bx}
         y2={edge.by}
-        stroke={isHighlighted ? '#3b82f6' : style.stroke}
+        stroke={isHighlighted ? chartColors.mean : style.stroke}
         strokeWidth={isHighlighted ? style.strokeWidth + 1 : style.strokeWidth}
         strokeDasharray={style.strokeDasharray}
         opacity={isHighlighted ? 0.9 : style.opacity}
@@ -108,7 +111,7 @@ const RelationshipEdge: React.FC<RelationshipEdgeProps> = ({
             width={90}
             height={28}
             rx={5}
-            fill={isDark ? '#1e293b' : '#f8fafc'}
+            fill={chrome.tooltipBg}
             stroke={style.stroke}
             strokeWidth={1}
             opacity={0.95}

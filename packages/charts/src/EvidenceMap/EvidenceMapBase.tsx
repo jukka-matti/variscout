@@ -10,6 +10,7 @@
 
 import React, { useState } from 'react';
 import { Group } from '@visx/group';
+import { getChromeColors } from '../colors';
 import StatisticalLayer from './StatisticalLayer';
 import InvestigationLayer from './InvestigationLayer';
 import SynthesisLayer from './SynthesisLayer';
@@ -44,6 +45,8 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
   const width = Math.max(parentWidth, MIN_WIDTH);
   const height = Math.max(parentHeight, MIN_HEIGHT);
 
+  const chrome = getChromeColors(isDark);
+
   if (factorNodes.length === 0) {
     return (
       <svg width={width} height={height} role="img" aria-label="Evidence Map — no data">
@@ -52,7 +55,7 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
           x={width / 2}
           y={height / 2}
           textAnchor="middle"
-          fill={isDark ? '#64748b' : '#94a3b8'}
+          fill={chrome.labelMuted}
           fontSize={13}
         >
           Factor Intelligence not available
@@ -61,7 +64,7 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
           x={width / 2}
           y={height / 2 + 18}
           textAnchor="middle"
-          fill={isDark ? '#475569' : '#cbd5e1'}
+          fill={chrome.axisSecondary}
           fontSize={11}
         >
           Add 2+ factors and outcome to see relationships

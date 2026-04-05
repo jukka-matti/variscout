@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { Group } from '@visx/group';
+import { chartColors, getChromeColors } from '../colors';
 import FactorNode from './FactorNode';
 import RelationshipEdge from './RelationshipEdge';
 import type { FactorNodeData, RelationshipEdgeData, OutcomeNodeData, EquationData } from './types';
@@ -42,8 +43,9 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
   onFactorHover,
   onEdgeClick,
 }) => {
-  const textColor = isDark ? '#e2e8f0' : '#1e293b';
-  const bgColor = isDark ? '#1e293b' : '#f1f5f9';
+  const chrome = getChromeColors(isDark);
+  const textColor = chrome.labelPrimary;
+  const bgColor = chrome.gridLine;
 
   return (
     <Group>
@@ -57,7 +59,7 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
             height={44}
             rx={8}
             fill={bgColor}
-            stroke={isDark ? '#334155' : '#e2e8f0'}
+            stroke={chrome.tooltipBorder}
             strokeWidth={1}
           />
           <text
@@ -111,7 +113,7 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
             y1={node.y}
             x2={outcomeNode.x}
             y2={outcomeNode.y}
-            stroke={isDark ? '#334155' : '#e2e8f0'}
+            stroke={chrome.tooltipBorder}
             strokeWidth={Math.max(1, node.rSquaredAdj * 8)}
             opacity={highlightedFactor === node.factor ? 0.5 : 0.15}
           />
@@ -120,7 +122,7 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
       {/* Outcome node (center) */}
       {outcomeNode && (
         <Group top={outcomeNode.y} left={outcomeNode.x}>
-          <circle r={outcomeNode.radius} fill="#3b82f6" opacity={0.85} />
+          <circle r={outcomeNode.radius} fill={chartColors.mean} opacity={0.85} />
           <text
             textAnchor="middle"
             dy={compact ? 0 : -6}

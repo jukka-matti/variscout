@@ -139,7 +139,8 @@ export type { EvidenceLevel, EvidenceInterpretation } from './evidence';
 export { interpretEvidence, generateAnovaInsightLine } from './evidence';
 
 // Causal graph (Evidence Map DAG)
-export type { CausalLink, RelationshipType } from './causalGraph';
+// Note: CausalLink is exported from '@variscout/core/findings' (canonical source)
+export type { RelationshipType } from './causalGraph';
 export {
   classifyRelationship,
   wouldCreateCycle,

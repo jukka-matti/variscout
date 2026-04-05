@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { Group } from '@visx/group';
+import { chartColors, getChromeColors } from '../colors';
 import type { FactorNodeData } from './types';
 
 interface FactorNodeProps {
@@ -19,9 +20,10 @@ interface FactorNodeProps {
 }
 
 function getNodeColor(rSquaredAdj: number, isDark: boolean): string {
-  if (rSquaredAdj >= 0.2) return '#22c55e'; // green — strong
-  if (rSquaredAdj >= 0.1) return '#f59e0b'; // amber — moderate
-  return isDark ? '#64748b' : '#94a3b8'; // grey — weak
+  if (rSquaredAdj >= 0.2) return chartColors.pass; // green — strong
+  if (rSquaredAdj >= 0.1) return chartColors.warning; // amber — moderate
+  const chrome = getChromeColors(isDark);
+  return chrome.labelMuted; // grey — weak
 }
 
 const FactorNode: React.FC<FactorNodeProps> = ({
@@ -32,10 +34,11 @@ const FactorNode: React.FC<FactorNodeProps> = ({
   onClick,
   onHover,
 }) => {
+  const chrome = getChromeColors(isDark);
   const color = getNodeColor(node.rSquaredAdj, isDark);
-  const textColor = isDark ? '#e2e8f0' : '#1e293b';
-  const subtextColor = isDark ? '#94a3b8' : '#64748b';
-  const highlightStroke = isHighlighted ? '#3b82f6' : 'transparent';
+  const textColor = chrome.labelPrimary;
+  const subtextColor = chrome.labelSecondary;
+  const highlightStroke = isHighlighted ? chartColors.mean : 'transparent';
 
   return (
     <Group

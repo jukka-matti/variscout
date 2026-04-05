@@ -8,6 +8,8 @@
  * from the best subsets regression engine.
  */
 
+import type { CausalLink } from '../findings/types';
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -19,48 +21,6 @@ export type RelationshipType =
   | 'synergistic'
   | 'interactive'
   | 'redundant';
-
-/**
- * A directed causal link between two factors in the Evidence Map.
- *
- * Links are created by the analyst, CoScout, or automatically from
- * statistical evidence. Each link carries evidence references back
- * to questions and findings in the investigation.
- */
-export interface CausalLink {
-  /** Unique identifier */
-  id: string;
-  /** Source factor name */
-  fromFactor: string;
-  /** Target factor name */
-  toFactor: string;
-  /** Optional source factor level */
-  fromLevel?: string;
-  /** Optional target factor level */
-  toLevel?: string;
-  /** Human-readable "why" statement explaining the relationship */
-  whyStatement: string;
-  /** Causal direction type */
-  direction: 'drives' | 'modulates' | 'confounds';
-  /** Evidence validation type */
-  evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
-  /** IDs of investigation questions supporting this link */
-  questionIds: string[];
-  /** IDs of findings supporting this link */
-  findingIds: string[];
-  /** ID of the suspected cause hub, if linked */
-  hubId?: string;
-  /** Strength of the relationship (e.g., delta R²adj) */
-  strength?: number;
-  /** Statistical relationship classification */
-  relationshipType?: RelationshipType;
-  /** Who created this link */
-  source: 'analyst' | 'coscout' | 'auto';
-  /** ISO timestamp of creation */
-  createdAt: string;
-  /** ISO timestamp of last update */
-  updatedAt: string;
-}
 
 // ============================================================================
 // Relationship classification

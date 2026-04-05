@@ -5,8 +5,8 @@
  * (no causal links or synthesis — those are Azure features).
  */
 
-import React, { useEffect, useState } from 'react';
-import { EvidenceMapBase } from '@variscout/charts';
+import React, { useEffect, useRef, useState } from 'react';
+import { EvidenceMap } from '@variscout/charts';
 import type {
   FactorNodeData,
   RelationshipEdgeData,
@@ -35,11 +35,13 @@ function readHydrationState(): HydrationState | null {
 export function EvidenceMapPopout() {
   const [mapData, setMapData] = useState<HydrationState | null>(readHydrationState);
   const [isDark] = useState(() => localStorage.getItem('variscout_theme') === 'dark');
+  const channelRef = useRef<BroadcastChannel | null>(null);
 
   // BroadcastChannel for ongoing sync
   useEffect(() => {
     if (typeof BroadcastChannel === 'undefined') return;
     const channel = new BroadcastChannel('variscout-sync');
+    channelRef.current = channel;
 
     channel.onmessage = event => {
       const msg = event.data;
@@ -51,19 +53,17 @@ export function EvidenceMapPopout() {
 
     return () => {
       channel.close();
+      channelRef.current = null;
     };
   }, []);
 
   const handleFactorClick = (factor: string) => {
-    if (typeof BroadcastChannel === 'undefined') return;
-    const channel = new BroadcastChannel('variscout-sync');
-    channel.postMessage({
+    channelRef.current?.postMessage({
       type: 'factor-selected',
       source: 'evidence-map',
       target: 'main',
       payload: { factor },
     });
-    channel.close();
   };
 
   if (!mapData) {
@@ -78,16 +78,16 @@ export function EvidenceMapPopout() {
 
   return (
     <div style={{ height: '100vh', width: '100vw', overflow: 'hidden', padding: 16 }}>
-      <EvidenceMapBase
-        parentWidth={window.innerWidth - 32}
-        parentHeight={window.innerHeight - 32}
-        outcomeNode={mapData.outcomeNode}
-        factorNodes={mapData.factorNodes}
-        relationshipEdges={mapData.relationshipEdges}
-        equation={mapData.equation}
-        onFactorClick={handleFactorClick}
-        isDark={isDark}
-      />
+      <div style={{ width: '100%', height: '100%' }}>
+        <EvidenceMap
+          outcomeNode={mapData.outcomeNode}
+          factorNodes={mapData.factorNodes}
+          relationshipEdges={mapData.relationshipEdges}
+          equation={mapData.equation}
+          onFactorClick={handleFactorClick}
+          isDark={isDark}
+        />
+      </div>
     </div>
   );
 }

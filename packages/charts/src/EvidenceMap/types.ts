@@ -2,12 +2,8 @@
  * Evidence Map types — props interfaces for the layered visualization
  */
 
-export type RelationshipType =
-  | 'independent'
-  | 'overlapping'
-  | 'synergistic'
-  | 'interactive'
-  | 'redundant';
+import type { RelationshipType } from '@variscout/core/stats';
+export type { RelationshipType };
 
 // ============================================================================
 // Layout data (computed by useEvidenceMapData hook)
@@ -112,7 +108,6 @@ export interface EvidenceMapBaseProps {
   onEdgeClick?: (factorA: string, factorB: string) => void;
   onCausalEdgeClick?: (id: string) => void;
   onConvergenceClick?: (factor: string) => void;
-  onCreateCausalLink?: (fromFactor: string, toFactor: string) => void;
 
   // Visual state
   highlightedFactor?: string | null;

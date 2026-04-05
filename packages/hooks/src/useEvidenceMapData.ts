@@ -25,7 +25,9 @@ import type { ResolvedMode } from '@variscout/core/strategy';
 import type { CausalLink, Question, Finding, SuspectedCause } from '@variscout/core/findings';
 
 // ============================================================================
-// Output types (structurally compatible with @variscout/charts EvidenceMap types)
+// Output types — structurally compatible with @variscout/charts EvidenceMap types.
+// Defined here because @variscout/hooks must not depend on @variscout/charts.
+// Keep in sync with: packages/charts/src/EvidenceMap/types.ts
 // ============================================================================
 
 /** Factor node with position, strength, and mode-aware labels. */
@@ -145,16 +147,17 @@ export interface UseEvidenceMapDataReturn {
 // Internal helpers
 // ============================================================================
 
-/** Build mode-aware metric label for a factor node. */
-function buildMetricLabel(rSquaredAdj: number, mode: ResolvedMode): string {
-  const r2Label = `R\u00B2adj=${rSquaredAdj.toFixed(2)}`;
-
-  if (mode === 'yamazumi') {
-    // Yamazumi uses waste % as primary metric; R²adj still shown for context
-    return r2Label;
-  }
-
-  return r2Label;
+/**
+ * Build mode-aware metric label for a factor node.
+ *
+ * TODO: Extend with mode-specific metrics when data is available:
+ * - capability: "R²adj=0.34, Cpk +0.4" (needs Cpk impact per factor)
+ * - performance: "R²adj=0.34, 3 channels" (needs channel count per factor)
+ * - yamazumi: "Waste 28%, +45s" (needs waste contribution per factor)
+ * Currently R²adj is shown for all modes as a universal metric.
+ */
+function buildMetricLabel(rSquaredAdj: number, _mode: ResolvedMode): string {
+  return `R\u00B2adj=${rSquaredAdj.toFixed(2)}`;
 }
 
 /** Build the strongest level effect as +/- value string. */

@@ -88,18 +88,22 @@ export function usePopoutChannel(options: UsePopoutChannelOptions): UsePopoutCha
     channelRef.current = channel;
 
     const handleMessage = (event: MessageEvent<PopoutMessage>) => {
-      const msg = event.data;
-      if (!msg || typeof msg.type !== 'string' || typeof msg.source !== 'string') {
-        return; // Ignore malformed messages
+      try {
+        const msg = event.data;
+        if (!msg || typeof msg.type !== 'string' || typeof msg.source !== 'string') {
+          return; // Ignore malformed messages
+        }
+
+        // Skip messages from ourselves
+        if (msg.source === windowId) return;
+
+        // Skip targeted messages not meant for us
+        if (msg.target && msg.target !== windowId) return;
+
+        setLastMessage(msg);
+      } catch {
+        // Ignore messages that fail validation
       }
-
-      // Skip messages from ourselves
-      if (msg.source === windowId) return;
-
-      // Skip targeted messages not meant for us
-      if (msg.target && msg.target !== windowId) return;
-
-      setLastMessage(msg);
     };
 
     channel.addEventListener('message', handleMessage);
