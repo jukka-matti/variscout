@@ -79,7 +79,7 @@ AssembleCoScoutPromptOptions
 | -------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
 | Tier 1 (Static)      | Role + principles + security + terminology + glossary                 | Session-invariant                                            | Serves as Azure AI Foundry cacheable prefix (≥1,024 tokens) |
 | Tier 2 (Semi-static) | Phase coaching + mode workflow + investigation/data/knowledge context | Changes on navigation (phase transition, mode switch, drill) | Not cached — regenerated on navigation events               |
-| Tier 3 (Dynamic)     | Surface-specific context (chart data, history summary)                | Changes per turn                                             | Not cached — reserved for future Phase 2 implementation     |
+| Tier 3 (Dynamic)     | Surface-specific context (chart data, history summary)                | Changes per turn                                             | Not cached — reserved for future enhancement                |
 
 ## Type Contracts
 

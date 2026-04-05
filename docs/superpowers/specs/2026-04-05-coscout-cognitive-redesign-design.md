@@ -1,6 +1,6 @@
 ---
 title: CoScout Cognitive Redesign
-status: draft
+status: delivered
 date: 2026-04-05
 related:
   [
