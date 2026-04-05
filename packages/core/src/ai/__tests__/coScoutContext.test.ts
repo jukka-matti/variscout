@@ -1,0 +1,333 @@
+/**
+ * Tests for CoScout context formatters (Tier 2 semi-static context).
+ */
+import { describe, it, expect } from 'vitest';
+import { formatInvestigationContext } from '../prompts/coScout/context/investigation';
+import { formatDataContext } from '../prompts/coScout/context/dataContext';
+import { formatKnowledgeContext } from '../prompts/coScout/context/knowledgeContext';
+import type { AIContext } from '../types';
+
+describe('formatInvestigationContext', () => {
+  it('returns empty string for undefined investigation', () => {
+    expect(formatInvestigationContext(undefined)).toBe('');
+  });
+
+  it('returns empty string for empty investigation object', () => {
+    expect(formatInvestigationContext({})).toBe('');
+  });
+
+  it('includes problem statement with stage', () => {
+    const result = formatInvestigationContext({
+      liveStatement: 'Moisture content is too high in batches from Line A',
+      problemStatementStage: 'actionable',
+    });
+    expect(result).toContain('Problem:');
+    expect(result).toContain('Moisture content is too high');
+    expect(result).toContain('(actionable)');
+  });
+
+  it('falls back to problemStatement.fullText when liveStatement is missing', () => {
+    const result = formatInvestigationContext({
+      problemStatement: { fullText: 'Cpk below 1.0 on diameter' },
+    });
+    expect(result).toContain('Cpk below 1.0 on diameter');
+  });
+
+  it('includes question count summary with status breakdown', () => {
+    const result = formatInvestigationContext({
+      questionTree: [
+        { id: 'q1', text: 'Is Roast Level significant?', status: 'answered', factor: 'Roast' },
+        { id: 'q2', text: 'Is Grind significant?', status: 'open', factor: 'Grind' },
+        {
+          id: 'q3',
+          text: 'Is Origin significant?',
+          status: 'ruled-out',
+          factor: 'Origin',
+          children: [{ text: 'Sub question', status: 'open' }],
+        },
+      ],
+    });
+    expect(result).toContain('Questions: 4 total');
+    expect(result).toContain('1 answered');
+    expect(result).toContain('2 open');
+    expect(result).toContain('1 ruled-out');
+  });
+
+  it('uses ONLY suspectedCauseHubs, not legacy suspectedCauses', () => {
+    const result = formatInvestigationContext({
+      // Legacy causeRole-based suspected causes — should be IGNORED
+      suspectedCauses: [
+        {
+          id: 'sc1',
+          text: 'Temperature drift',
+          causeRole: 'suspected-cause',
+          status: 'investigating',
+        },
+      ],
+      // Hub-based suspected causes — should be INCLUDED
+      suspectedCauseHubs: [
+        {
+          id: 'hub1',
+          name: 'Raw material moisture',
+          synthesis: 'Incoming moisture varies by supplier',
+          status: 'active',
+          questionCount: 3,
+          findingCount: 2,
+          evidence: { value: 0.45, label: 'Strong (R²adj=45%)', description: 'test' },
+          selectedForImprovement: true,
+        },
+      ],
+    });
+
+    // Hub content should be present
+    expect(result).toContain('Suspected cause hubs:');
+    expect(result).toContain('Raw material moisture');
+    expect(result).toContain('[active]');
+    expect(result).toContain('3Q, 2F');
+    expect(result).toContain('Strong (R²adj=45%)');
+    expect(result).toContain('[selected for improvement]');
+
+    // Legacy causeRole content should NOT appear
+    expect(result).not.toContain('Temperature drift');
+  });
+
+  it('includes Evidence Map topology summary', () => {
+    const result = formatInvestigationContext({
+      evidenceMapTopology: {
+        factorNodes: [
+          { factor: 'Roast', rSquaredAdj: 0.35, explored: true, questionCount: 2, findingCount: 1 },
+          {
+            factor: 'Grind',
+            rSquaredAdj: 0.12,
+            explored: false,
+            questionCount: 0,
+            findingCount: 0,
+          },
+          {
+            factor: 'Origin',
+            rSquaredAdj: 0.08,
+            explored: true,
+            questionCount: 1,
+            findingCount: 0,
+          },
+        ],
+        relationships: [{ factorA: 'Roast', factorB: 'Grind', type: 'moderate', strength: 0.3 }],
+        convergencePoints: [{ factor: 'Roast', incomingCount: 2, hubName: 'Heat treatment' }],
+      },
+    });
+    expect(result).toContain('Evidence Map: 3 factor nodes');
+    expect(result).toContain('2 explored');
+    expect(result).toContain('1 relationships');
+    expect(result).toContain('1 convergence points');
+  });
+
+  it('includes causal links', () => {
+    const result = formatInvestigationContext({
+      causalLinks: [
+        {
+          id: 'cl1',
+          fromFactor: 'Temperature',
+          toFactor: 'Viscosity',
+          direction: 'drives',
+          evidenceType: 'data',
+        },
+      ],
+    });
+    expect(result).toContain('Causal links:');
+    expect(result).toContain('Temperature');
+    expect(result).toContain('Viscosity');
+    expect(result).toContain('[drives]');
+    expect(result).toContain('(data)');
+  });
+
+  it('includes coverage percentage', () => {
+    const result = formatInvestigationContext({
+      coveragePercent: 68,
+      questionsChecked: 5,
+      questionsTotal: 8,
+    });
+    expect(result).toContain('Investigation coverage: 68%');
+    expect(result).toContain('5/8 questions checked');
+  });
+});
+
+describe('formatDataContext', () => {
+  const emptyContext: AIContext = {
+    process: {},
+    filters: [],
+  };
+
+  it('returns empty string for empty context', () => {
+    expect(formatDataContext(emptyContext)).toBe('');
+  });
+
+  it('includes problem statement from investigation', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      investigation: {
+        liveStatement: 'Moisture too high in Line A',
+        problemStatementStage: 'with-causes',
+      },
+    });
+    expect(result).toContain('Problem: "Moisture too high in Line A"');
+    expect(result).toContain('(with-causes)');
+  });
+
+  it('falls back to process.problemStatement', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      process: { problemStatement: 'Cpk below target' },
+    });
+    expect(result).toContain('Problem: "Cpk below target"');
+  });
+
+  it('includes variation contributions with factor names and percentages', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      variationContributions: [
+        { factor: 'Machine', etaSquared: 0.42 },
+        { factor: 'Operator', etaSquared: 0.18 },
+        { factor: 'Shift', etaSquared: 0.05 },
+      ],
+    });
+    expect(result).toContain('Top factors:');
+    expect(result).toContain('Machine');
+    expect(result).toContain('42%');
+    expect(result).toContain('Operator');
+    expect(result).toContain('18%');
+  });
+
+  it('includes best model equation with R-squared adj', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      bestModelEquation: {
+        factors: ['Machine', 'Operator'],
+        rSquaredAdj: 0.56,
+        levelEffects: {},
+        worstCase: { levels: {}, predicted: 10 },
+        bestCase: { levels: {}, predicted: 5 },
+      },
+    });
+    expect(result).toContain('Best model: Machine + Operator');
+    expect(result).toContain('R\u00b2adj=56%');
+  });
+
+  it('includes drill path and scope', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      drillPath: ['Machine', 'Shift'],
+      cumulativeScope: 0.65,
+    });
+    expect(result).toContain('Drill scope: 65% of total variation');
+    expect(result).toContain('Machine > Shift');
+  });
+
+  it('includes stats summary', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      stats: {
+        mean: 12.45,
+        stdDev: 1.23,
+        samples: 150,
+        cpk: 1.42,
+        passRate: 0.985,
+      },
+    });
+    expect(result).toContain('n=150');
+    expect(result).toContain('mean=12.45');
+    expect(result).toContain('Cpk=1.42');
+    expect(result).toContain('pass=99%');
+  });
+
+  it('includes question progress summary', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      investigation: {
+        questionTree: [
+          { id: 'q1', text: 'First priority question', status: 'open' },
+          { id: 'q2', text: 'Answered one', status: 'answered' },
+          { id: 'q3', text: 'Ruled out one', status: 'ruled-out' },
+        ],
+      },
+    });
+    expect(result).toContain('1 open');
+    expect(result).toContain('1 answered');
+    expect(result).toContain('1 ruled-out');
+    expect(result).toContain('priority: "First priority question"');
+  });
+
+  it('produces no raw JSON in output', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      variationContributions: [{ factor: 'Machine', etaSquared: 0.3 }],
+      stats: { mean: 10, stdDev: 1, samples: 100 },
+    });
+    expect(result).not.toContain('{');
+    expect(result).not.toContain('}');
+    expect(result).not.toContain('[object');
+  });
+});
+
+describe('formatKnowledgeContext', () => {
+  it('returns empty string for no results and no documents', () => {
+    expect(formatKnowledgeContext([])).toBe('');
+  });
+
+  it('formats knowledge results with factor and Cpk', () => {
+    const result = formatKnowledgeContext([
+      {
+        projectName: 'Coffee Q1',
+        factor: 'Roast Level',
+        status: 'resolved',
+        etaSquared: 0.35,
+        cpkBefore: 0.8,
+        cpkAfter: 1.5,
+        suspectedCause: 'Dark roast moisture retention',
+        actionsText: 'Reduced roast time by 15%',
+        outcomeEffective: true,
+      },
+    ]);
+    expect(result).toContain('Knowledge Base documents');
+    expect(result).toContain('Dark roast moisture retention');
+    expect(result).toContain('Coffee Q1');
+    expect(result).toContain('Roast Level');
+    expect(result).toContain('35.0%');
+    expect(result).toContain('0.80');
+    expect(result).toContain('1.50');
+    expect(result).toContain('effective');
+  });
+
+  it('formats knowledge documents with source attribution', () => {
+    const result = formatKnowledgeContext(
+      [],
+      [
+        {
+          title: 'SOP-042 Moisture Control',
+          snippet: 'The moisture control procedure requires...',
+          source: 'Quality/SOPs',
+          url: 'https://example.com/sop-042',
+        },
+      ]
+    );
+    expect(result).toContain('SOP-042 Moisture Control');
+    expect(result).toContain('[Source: Quality/SOPs]');
+    expect(result).toContain('https://example.com/sop-042');
+  });
+
+  it('produces no raw JSON in output', () => {
+    const result = formatKnowledgeContext([
+      {
+        projectName: 'Test',
+        factor: 'X',
+        status: 'open',
+        etaSquared: null,
+        cpkBefore: null,
+        cpkAfter: null,
+        suspectedCause: 'test',
+        actionsText: '',
+        outcomeEffective: null,
+      },
+    ]);
+    expect(result).not.toContain('[object');
+  });
+});
