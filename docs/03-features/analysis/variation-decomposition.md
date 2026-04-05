@@ -144,7 +144,7 @@ If you've completed Six Sigma Green Belt training, you've seen one-way ANOVA in 
 | Best Subsets R²adj     | Factor Intelligence ranking              | Evaluates all factor combinations simultaneously                              |
 | Multi-Vari study       | Progressive drill-down with filter chips | Analyst drills factors one at a time; boxplot + StdDev reveal category spread |
 
-**Confounding:** One-factor-at-a-time analysis does not account for confounding between factors. If Operator and Shift are correlated (certain operators only work nights), drilling by Shift may capture variation actually caused by Operator. Factor Intelligence (Best Subsets R²adj) partially mitigates this by evaluating combinations, but for statistically rigorous joint analysis with interaction terms, Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)).
+**Confounding:** One-factor-at-a-time analysis does not account for confounding between factors. If Operator and Shift are correlated (certain operators only work nights), drilling by Shift may capture variation actually caused by Operator. Factor Intelligence (Best Subsets R²adj) mitigates this by evaluating combinations and using Type III SS to adjust each factor's contribution for all others. See [Regression Methodology](regression-methodology.md) for how the unified GLM handles correlated factors.
 
 ---
 
@@ -158,11 +158,11 @@ The drill-down examines one factor at a time. Different drill orders can produce
 
 ### Confounding and correlated factors
 
-Real process data is rarely orthogonal. When factors are correlated (operator x shift, material x supplier), one-factor ANOVA misattributes variation. The drill-down can lead to incorrect factor prioritization. Factor Intelligence helps by ranking combinations, but for statistically rigorous joint analysis, Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)).
+Real process data is rarely orthogonal. When factors are correlated (operator x shift, material x supplier), one-factor ANOVA misattributes variation. The drill-down can lead to incorrect factor prioritization. Factor Intelligence uses the unified GLM engine (see [ADR-067](../../07-decisions/adr-067-unified-glm-regression.md)) which handles correlated factors via Type III SS — but for visually exploring interactions, the What-If Profiler provides the practical entry point.
 
 ### When to transition beyond drill-down
 
-Use the drill-down for initial investigation (3-5 minutes). If you suspect interactions, have confounded factors, or need a formal model for projection, use the What-If Simulator to test scenarios with direct adjustments. Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)).
+Use the drill-down for initial investigation (3-5 minutes). If you suspect interactions, have confounded factors, or need a formal model for projection, use the What-If Prediction Profiler — it uses the fitted regression model to generate response curves for continuous factors and level comparisons for categorical factors. See [Regression Methodology](regression-methodology.md) for how the model is built.
 
 ---
 
@@ -194,5 +194,5 @@ The chart copy and export features (clipboard, PNG, SVG) produce presentation-re
 | Investigation workflow (Findings, What-If) | [Investigation to Action](../workflows/investigation-to-action.md)          |
 | Boxplot ANOVA display                      | [Boxplot](boxplot.md)                                                       |
 | Factor Intelligence                        | [Factor Intelligence](../analysis/factor-intelligence.md)                   |
-| Regression and interaction analysis        | [Regression (Phase 2, deferred)](../../archive/regression.md)               |
+| Regression methodology                     | [Regression Methodology](regression-methodology.md)                         |
 | Glossary: η², R²adj                        | `packages/core/src/glossary/terms.ts`                                       |

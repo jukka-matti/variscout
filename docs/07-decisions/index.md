@@ -25,7 +25,7 @@ This section captures key architectural decisions made during VariScout developm
 | [011](adr-011-ai-development-tooling.md)             | AI Development Tooling                             | Accepted   | 2026-02-18 |
 | [012](adr-012-pwa-browser-only.md)                   | PWA Browser-Only, Zero Data                        | Accepted   | 2026-02-18 |
 | [013](adr-013-architecture-evaluation-ddd-swarms.md) | Architecture Evaluation (DDD/Swarms)               | Accepted   | 2026-02-18 |
-| [014](adr-014-regression-deferral.md)                | Defer Regression to Phase 2                        | Accepted   | 2026-02-25 |
+| [014](adr-014-regression-deferral.md)                | Defer Regression to Phase 2                        | Superseded | 2026-02-25 |
 | [015](adr-015-investigation-board.md)                | Investigation Board                                | Accepted   | 2026-02-26 |
 | [016](adr-016-teams-integration.md)                  | Microsoft Teams Integration                        | Superseded | 2026-02-27 |
 | [017](adr-017-fluent-design-alignment.md)            | Fluent 2 Design Principle Alignment                | Accepted   | 2026-03-02 |
@@ -78,6 +78,7 @@ This section captures key architectural decisions made during VariScout developm
 | [064](adr-064-suspected-cause-hub-model.md)          | SuspectedCause Hub Model & Investigation Reframing | Accepted   | 2026-04-03 |
 | [065](adr-065-evidence-map-causal-graph.md)          | Evidence Map & Causal Graph Visualization          | Accepted   | 2026-04-05 |
 | [066](adr-066-evidence-map-investigation-center.md)  | Evidence Map as Investigation Workspace Center     | Accepted   | 2026-04-05 |
+| [067](adr-067-unified-glm-regression.md)             | Unified GLM Regression Engine                      | Accepted   | 2026-04-05 |
 
 ---
 

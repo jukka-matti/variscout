@@ -4,7 +4,7 @@ title: 'ADR-014: Defer Regression to Phase 2'
 
 # ADR-014: Defer Regression to Phase 2
 
-**Status:** Accepted
+**Status:** Superseded by [ADR-067](adr-067-unified-glm-regression.md)
 **Date:** 2026-02-25
 **Related:** [ADR-007](adr-007-azure-marketplace-distribution.md) (distribution strategy), [ADR-010](adr-010-gagerr-deferral.md) (Gage R&R deferral precedent)
 
