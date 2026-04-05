@@ -1,9 +1,11 @@
 /**
  * Data context formatter for CoScout Tier 2 (semi-static context).
  *
- * NEW formatter — produces the grounded data context block that summarizes
- * the current analysis state: problem statement, active chart, drill scope,
- * top factors, best model, Evidence Map topology, and question progress.
+ * Owns: active chart, drill scope, top factors by eta-squared,
+ * best model equation (R²adj), stats summary (n, mean, sigma, Cpk).
+ *
+ * Investigation state (problem statement, Evidence Map topology,
+ * question progress) is owned by investigation.ts to avoid duplication.
  */
 
 import type { AIContext } from '../../../types';
@@ -19,21 +21,10 @@ import type { AIContext } from '../../../types';
 export function formatDataContext(context: AIContext): string {
   const lines: string[] = [];
 
-  // Problem statement
-  const problemText =
-    context.investigation?.liveStatement ??
-    context.investigation?.problemStatement?.fullText ??
-    context.process?.problemStatement;
-  const problemStage = context.investigation?.problemStatementStage;
-  if (problemText) {
-    const stage = problemStage ? ` (${problemStage})` : '';
-    lines.push(`Problem: "${problemText}"${stage}`);
-  }
-
   // Active chart with factor info
   if (context.activeChart) {
     const filters = context.filters;
-    const activeFactor = filters && filters.length > 0 ? filters[filters.length - 1] : undefined;
+    const activeFactor = filters.length > 0 ? filters[filters.length - 1] : undefined;
     let chartLine = `Active chart: ${context.activeChart}`;
     if (activeFactor) {
       const catCount = activeFactor.values.length;
@@ -71,58 +62,6 @@ export function formatDataContext(context: AIContext): string {
     const factorList = bm.factors.join(' + ');
     const rAdj = Math.round(bm.rSquaredAdj * 100);
     lines.push(`Best model: ${factorList} \u2192 R\u00b2adj=${rAdj}%`);
-  }
-
-  // Evidence Map topology
-  if (context.investigation?.evidenceMapTopology) {
-    const topo = context.investigation.evidenceMapTopology;
-    const nodeCount = topo.factorNodes.length;
-    const edgeCount = topo.relationships.length;
-    const convergenceCount = topo.convergencePoints.length;
-
-    let mapLine = `Evidence Map: ${nodeCount} factor nodes, ${edgeCount} relationships`;
-    if (convergenceCount > 0) {
-      mapLine += `, ${convergenceCount} convergence points`;
-    }
-    lines.push(mapLine);
-  }
-
-  // Question progress
-  if (context.investigation?.questionTree && context.investigation.questionTree.length > 0) {
-    const questions = context.investigation.questionTree;
-    let openCount = 0;
-    let answeredCount = 0;
-    let ruledOutCount = 0;
-    let topOpenQuestion: string | undefined;
-
-    for (const q of questions) {
-      if (q.status === 'open') {
-        openCount++;
-        if (!topOpenQuestion) topOpenQuestion = q.text;
-      } else if (q.status === 'answered') {
-        answeredCount++;
-      } else if (q.status === 'ruled-out') {
-        ruledOutCount++;
-      }
-      if (q.children) {
-        for (const child of q.children) {
-          if (child.status === 'open') {
-            openCount++;
-            if (!topOpenQuestion) topOpenQuestion = child.text;
-          } else if (child.status === 'answered') {
-            answeredCount++;
-          } else if (child.status === 'ruled-out') {
-            ruledOutCount++;
-          }
-        }
-      }
-    }
-
-    let qLine = `Questions: ${openCount} open, ${answeredCount} answered, ${ruledOutCount} ruled-out`;
-    if (topOpenQuestion) {
-      qLine += ` (priority: "${topOpenQuestion}")`;
-    }
-    lines.push(qLine);
   }
 
   // Stats summary

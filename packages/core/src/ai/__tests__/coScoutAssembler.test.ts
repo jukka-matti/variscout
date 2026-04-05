@@ -5,6 +5,7 @@ import type { AIContext } from '../types';
 /** Minimal context that satisfies the assembler without blowing up */
 const MINIMAL_CONTEXT = {
   stats: { samples: 100, mean: 50, stdDev: 5 },
+  filters: [],
 } as unknown as AIContext;
 
 describe('assembleCoScoutPrompt', () => {

@@ -161,7 +161,7 @@ describe('formatDataContext', () => {
     expect(formatDataContext(emptyContext)).toBe('');
   });
 
-  it('includes problem statement from investigation', () => {
+  it('does NOT include problem statement (owned by investigation.ts)', () => {
     const result = formatDataContext({
       ...emptyContext,
       investigation: {
@@ -169,16 +169,7 @@ describe('formatDataContext', () => {
         problemStatementStage: 'with-causes',
       },
     });
-    expect(result).toContain('Problem: "Moisture too high in Line A"');
-    expect(result).toContain('(with-causes)');
-  });
-
-  it('falls back to process.problemStatement', () => {
-    const result = formatDataContext({
-      ...emptyContext,
-      process: { problemStatement: 'Cpk below target' },
-    });
-    expect(result).toContain('Problem: "Cpk below target"');
+    expect(result).not.toContain('Problem:');
   });
 
   it('includes variation contributions with factor names and percentages', () => {
@@ -239,21 +230,17 @@ describe('formatDataContext', () => {
     expect(result).toContain('pass=99%');
   });
 
-  it('includes question progress summary', () => {
+  it('does NOT include question progress (owned by investigation.ts)', () => {
     const result = formatDataContext({
       ...emptyContext,
       investigation: {
         questionTree: [
           { id: 'q1', text: 'First priority question', status: 'open' },
           { id: 'q2', text: 'Answered one', status: 'answered' },
-          { id: 'q3', text: 'Ruled out one', status: 'ruled-out' },
         ],
       },
     });
-    expect(result).toContain('1 open');
-    expect(result).toContain('1 answered');
-    expect(result).toContain('1 ruled-out');
-    expect(result).toContain('priority: "First priority question"');
+    expect(result).not.toContain('Questions:');
   });
 
   it('produces no raw JSON in output', () => {

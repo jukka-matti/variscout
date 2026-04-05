@@ -10,16 +10,18 @@
  */
 
 // ── Backward-compatible re-exports ──────────────────────────────────────
+// These legacy functions are still used by useAICoScout.ts and tests.
+// Phase 2 will migrate consumers to the new assembler API.
+/** @deprecated Use `assembleCoScoutPrompt` instead. */
 export {
   buildCoScoutSystemPrompt,
   buildCoScoutMessages,
   buildCoScoutInput,
   buildCoScoutTools,
-  formatKnowledgeContext as formatKnowledgeContextLegacy,
 } from './legacy';
 export type { BuildCoScoutSystemPromptOptions, BuildCoScoutToolsOptions } from './legacy';
 
-// Re-export the new formatKnowledgeContext (same signature) for backward compat
+// New formatKnowledgeContext — single source of truth
 export { formatKnowledgeContext } from './context';
 
 // ── New types ───────────────────────────────────────────────────────────
