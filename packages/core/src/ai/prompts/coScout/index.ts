@@ -21,10 +21,14 @@ export type { BuildCoScoutSystemPromptOptions, BuildCoScoutToolsOptions } from '
 // ── New types ───────────────────────────────────────────────────────────
 export type { CoScoutSurface, CoScoutPromptTiers, AssembleCoScoutPromptOptions } from './types';
 
+// ── Tool registry ──────────────────────────────────────────────────────
+export { TOOL_REGISTRY, getToolsForPhase } from './tools';
+export type { ToolRegistryEntry, ToolName } from './tools';
+
 // ── Assembler ───────────────────────────────────────────────────────────
 import type { CoScoutPromptTiers, AssembleCoScoutPromptOptions } from './types';
 import { buildCoScoutSystemPrompt } from './legacy';
-import { buildCoScoutTools } from './legacy';
+import { getToolsForPhase } from './tools';
 
 /**
  * Unified prompt assembler — builds a tiered prompt from options.
@@ -56,11 +60,10 @@ export function assembleCoScoutPrompt(
     findings: context?.findings,
   });
 
-  // Delegate to legacy tools builder
-  const tools = buildCoScoutTools({
-    phase,
-    investigationPhase,
+  // Use typed tool registry instead of legacy builder
+  const tools = getToolsForPhase(phase ?? 'frame', mode ?? 'standard', {
     isTeamPlan,
+    investigationPhase,
   });
 
   return {
