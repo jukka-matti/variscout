@@ -27,6 +27,18 @@ export function formatInvestigationContext(
 
   const lines: string[] = [];
 
+  // Phase transition announcement — prepended before everything else
+  if (
+    investigation.previousPhase &&
+    investigation.phase &&
+    investigation.previousPhase !== investigation.phase
+  ) {
+    lines.push(`⚡ Phase transition: ${investigation.previousPhase} → ${investigation.phase}`);
+    if (investigation.transitionReason) {
+      lines.push(investigation.transitionReason);
+    }
+  }
+
   // Problem statement with stage
   if (investigation.liveStatement) {
     const stage = investigation.problemStatementStage

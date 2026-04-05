@@ -149,6 +149,45 @@ describe('formatInvestigationContext', () => {
     expect(result).toContain('Investigation coverage: 68%');
     expect(result).toContain('5/8 questions checked');
   });
+
+  // Phase transition tests (Task 3)
+  it('includes phase transition announcement when previousPhase differs from phase', () => {
+    const result = formatInvestigationContext({
+      phase: 'validating',
+      previousPhase: 'diverging',
+      transitionReason:
+        "You answered 3 questions — evidence is accumulating. Let's assess which answers point to the same root cause.",
+    });
+    expect(result).toContain('⚡ Phase transition: diverging → validating');
+    expect(result).toContain('You answered 3 questions');
+  });
+
+  it('omits phase transition when previousPhase equals phase', () => {
+    const result = formatInvestigationContext({
+      phase: 'validating',
+      previousPhase: 'validating',
+      transitionReason: 'Should not appear',
+    });
+    expect(result).not.toContain('⚡ Phase transition');
+    expect(result).not.toContain('Should not appear');
+  });
+
+  it('omits phase transition when previousPhase is absent', () => {
+    const result = formatInvestigationContext({
+      phase: 'validating',
+      transitionReason: 'Should not appear',
+    });
+    expect(result).not.toContain('⚡ Phase transition');
+    expect(result).not.toContain('Should not appear');
+  });
+
+  it('includes transition announcement without reason when transitionReason is absent', () => {
+    const result = formatInvestigationContext({
+      phase: 'converging',
+      previousPhase: 'validating',
+    });
+    expect(result).toContain('⚡ Phase transition: validating → converging');
+  });
 });
 
 describe('formatDataContext', () => {

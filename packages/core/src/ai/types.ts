@@ -183,6 +183,10 @@ export interface AIContext {
     }>;
     /** Current investigation phase (deterministic) */
     phase?: 'initial' | 'diverging' | 'validating' | 'converging' | 'improving';
+    /** Previous investigation phase — when set and different from phase, triggers a transition announcement */
+    previousPhase?: 'initial' | 'diverging' | 'validating' | 'converging' | 'improving';
+    /** Human-readable reason for the phase transition (shown in CoScout context block) */
+    transitionReason?: string;
     /** Investigation categories for completeness prompting */
     categories?: Array<{ name: string; factorNames: string[] }>;
     /** Suspected causes from questions with causeRole (supports multiple) */
