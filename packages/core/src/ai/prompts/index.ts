@@ -19,13 +19,20 @@ export type { ChartInsightData } from './chartInsights';
 export { buildChartInsightSystemPrompt, buildChartInsightPrompt } from './chartInsights';
 
 // CoScout conversational prompts
-export type { BuildCoScoutSystemPromptOptions, BuildCoScoutToolsOptions } from './coScout';
+export type {
+  BuildCoScoutSystemPromptOptions,
+  BuildCoScoutToolsOptions,
+  CoScoutSurface,
+  CoScoutPromptTiers,
+  AssembleCoScoutPromptOptions,
+} from './coScout';
 export {
   buildCoScoutSystemPrompt,
   buildCoScoutMessages,
   buildCoScoutInput,
   buildCoScoutTools,
   formatKnowledgeContext,
+  assembleCoScoutPrompt,
 } from './coScout';
 
 // Report generation prompts

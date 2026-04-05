@@ -13,15 +13,15 @@ import type {
   JourneyPhase,
   InvestigationPhase,
   EntryScenario,
-} from '../types';
-import type { ToolDefinition, MessageContent, InputContentPart } from '../responsesApi';
-import type { Locale } from '../../i18n/types';
-import type { AnalysisMode } from '../../types';
-import type { SuspectedCause } from '../../findings/types';
-import { formatStatistic } from '../../i18n/format';
-import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from './shared';
-import { buildSummaryPrompt } from './narration';
-import { resolveMode, getStrategy } from '../../analysisStrategy';
+} from '../../types';
+import type { ToolDefinition, MessageContent, InputContentPart } from '../../responsesApi';
+import type { Locale } from '../../../i18n/types';
+import type { AnalysisMode } from '../../../types';
+import type { SuspectedCause } from '../../../findings/types';
+import { formatStatistic } from '../../../i18n/format';
+import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from '../shared';
+import { buildSummaryPrompt } from '../narration';
+import { resolveMode, getStrategy } from '../../../analysisStrategy';
 
 /** Options for building phase-gated CoScout tools */
 export interface BuildCoScoutToolsOptions {
