@@ -158,8 +158,8 @@ export type {
 export { computeEvidenceMapLayout } from './evidenceMapLayout';
 
 // OLS regression (QR-based solver)
-export type { OLSSolution } from './olsRegression';
-export { solveOLS, CONDITION_NUMBER_WARNING } from './olsRegression';
+export type { OLSSolution, QuadraticTestResult } from './olsRegression';
+export { solveOLS, CONDITION_NUMBER_WARNING, shouldIncludeQuadratic } from './olsRegression';
 
 // Design matrix construction
 export type { DesignMatrixResult, FactorEncoding, FactorSpec } from './designMatrix';

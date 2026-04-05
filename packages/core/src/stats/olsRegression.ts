@@ -17,6 +17,22 @@ import { fDistributionPValue, tDistributionPValue } from './distributions';
 // ============================================================================
 
 /**
+ * Result of a partial F-test for a quadratic term.
+ */
+export interface QuadraticTestResult {
+  /** Whether the quadratic term is significant at the given alpha level */
+  include: boolean;
+  /** Partial F-statistic: improvement in fit from adding x² */
+  partialF: number;
+  /** p-value for the partial F-test */
+  pValue: number;
+  /** R² of the linear-only model */
+  linearR2: number;
+  /** R² of the linear+quadratic model */
+  quadraticR2: number;
+}
+
+/**
  * Complete OLS solution with diagnostics.
  */
 export interface OLSSolution {
@@ -339,5 +355,94 @@ export function solveOLS(X: Float64Array[], y: Float64Array, n: number, p: numbe
     p,
     conditionNumber,
     rank,
+  };
+}
+
+// ============================================================================
+// Quadratic term detection
+// ============================================================================
+
+/**
+ * Test whether adding a quadratic term significantly improves model fit.
+ *
+ * Uses a partial F-test comparing:
+ *   - Linear model:    y ~ 1 + x
+ *   - Quadratic model: y ~ 1 + x + (x - mean(x))²
+ *
+ * The quadratic column uses **centered** x to prevent multicollinearity
+ * between the linear and quadratic predictors (correlation drops from ~0.95
+ * to near 0). The linear coefficient retains its original-units interpretation.
+ *
+ * @param y     - Response vector (length n)
+ * @param x     - Predictor vector (length n), raw (uncentered)
+ * @param n     - Number of observations
+ * @param alpha - Significance threshold; default 0.10 (generous for screening)
+ * @returns     QuadraticTestResult with include flag, partial F, p-value, and R²s
+ */
+export function shouldIncludeQuadratic(
+  y: Float64Array,
+  x: Float64Array,
+  n: number,
+  alpha: number = 0.1
+): QuadraticTestResult {
+  // Need at least 4 observations to fit intercept + x + x² with 1 residual df
+  if (n < 4) {
+    return { include: false, partialF: 0, pValue: 1, linearR2: 0, quadraticR2: 0 };
+  }
+
+  // -------------------------------------------------------------------------
+  // 1. Compute mean(x) for centering
+  // -------------------------------------------------------------------------
+  let xSum = 0;
+  for (let i = 0; i < n; i++) xSum += x[i];
+  const xMean = xSum / n;
+
+  // -------------------------------------------------------------------------
+  // 2. Build linear model: X_linear = [intercept, x]
+  // -------------------------------------------------------------------------
+  const intercept = new Float64Array(n).fill(1);
+  const xRaw = new Float64Array(n);
+  for (let i = 0; i < n; i++) xRaw[i] = x[i];
+
+  const linearResult = solveOLS([intercept, xRaw], y, n, 2);
+  const sseLinear = linearResult.sse;
+  const linearR2 = linearResult.rSquared;
+
+  // -------------------------------------------------------------------------
+  // 3. Build quadratic model: X_quad = [intercept, x, (x - mean(x))²]
+  //    Only the quadratic column is centered; x stays in original units.
+  // -------------------------------------------------------------------------
+  const xCenteredSq = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const d = x[i] - xMean;
+    xCenteredSq[i] = d * d;
+  }
+
+  const quadResult = solveOLS([intercept, xRaw, xCenteredSq], y, n, 3);
+  const sseQuadratic = quadResult.sse;
+  const quadraticR2 = quadResult.rSquared;
+
+  // -------------------------------------------------------------------------
+  // 4. Partial F-test: H0: quadratic coefficient = 0
+  //    F = (SSE_linear - SSE_quadratic) / 1
+  //        ─────────────────────────────────────
+  //        SSE_quadratic / (n - 3)
+  // -------------------------------------------------------------------------
+  const dfRes = n - 3;
+  const sseDiff = sseLinear - sseQuadratic;
+
+  // Guard against numerical noise where sseLinear < sseQuadratic
+  const sseDiffClamped = Math.max(0, sseDiff);
+  const mseQuad = dfRes > 0 ? sseQuadratic / dfRes : 0;
+
+  const partialF = mseQuad > 0 ? sseDiffClamped / mseQuad : 0;
+  const pValue = dfRes > 0 ? fDistributionPValue(partialF, 1, dfRes) : 1;
+
+  return {
+    include: pValue < alpha,
+    partialF,
+    pValue,
+    linearR2,
+    quadraticR2,
   };
 }

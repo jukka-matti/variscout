@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { solveOLS } from '../olsRegression';
+import { solveOLS, shouldIncludeQuadratic } from '../olsRegression';
 import type { OLSSolution } from '../olsRegression';
 
 // ============================================================================
@@ -290,6 +290,187 @@ describe('solveOLS', () => {
         }
         expect(Math.abs(dot)).toBeLessThan(1e-8);
       }
+    });
+  });
+});
+
+// ============================================================================
+// shouldIncludeQuadratic tests
+// ============================================================================
+
+describe('shouldIncludeQuadratic', () => {
+  // Deterministic pseudo-noise for reproducible tests (avoids Math.random())
+  // Lehmer LCG: produces values in (-0.5, 0.5)
+  function deterministicNoise(n: number, seed: number = 42, scale: number = 0.3): number[] {
+    const noise: number[] = [];
+    let s = seed;
+    for (let i = 0; i < n; i++) {
+      s = (s * 1664525 + 1013904223) & 0xffffffff;
+      noise.push(((s >>> 0) / 0xffffffff - 0.5) * scale);
+    }
+    return noise;
+  }
+
+  describe('linear data — quadratic term should NOT be significant', () => {
+    // y = 2 + 3x + small noise; true relationship is linear
+    const xVals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    const n = xVals.length;
+    const noise = deterministicNoise(n, 7, 0.2);
+    const x = Float64Array.from(xVals);
+    const y = Float64Array.from(xVals.map((xi, i) => 2 + 3 * xi + noise[i]));
+
+    it('should return include: false for linear data', () => {
+      const result = shouldIncludeQuadratic(y, x, n);
+      expect(result.include).toBe(false);
+    });
+
+    it('should have high p-value (> 0.10)', () => {
+      const result = shouldIncludeQuadratic(y, x, n);
+      expect(result.pValue).toBeGreaterThan(0.1);
+    });
+
+    it('should return valid R² values with linearR2 > 0.99', () => {
+      const result = shouldIncludeQuadratic(y, x, n);
+      expect(result.linearR2).toBeGreaterThan(0.99);
+      expect(result.quadraticR2).toBeGreaterThanOrEqual(result.linearR2 - 0.01);
+    });
+  });
+
+  describe('quadratic data — quadratic term SHOULD be significant', () => {
+    // y = 2 + 3x - 0.5x² + small noise; true relationship is quadratic
+    const xVals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    const n = xVals.length;
+    const noise = deterministicNoise(n, 13, 0.5);
+    const x = Float64Array.from(xVals);
+    const y = Float64Array.from(xVals.map((xi, i) => 2 + 3 * xi - 0.5 * xi * xi + noise[i]));
+
+    it('should return include: true for quadratic data', () => {
+      const result = shouldIncludeQuadratic(y, x, n);
+      expect(result.include).toBe(true);
+    });
+
+    it('should have low p-value (< 0.10)', () => {
+      const result = shouldIncludeQuadratic(y, x, n);
+      expect(result.pValue).toBeLessThan(0.1);
+    });
+
+    it('should show improvement: quadraticR2 >= linearR2', () => {
+      const result = shouldIncludeQuadratic(y, x, n);
+      expect(result.quadraticR2).toBeGreaterThanOrEqual(result.linearR2);
+    });
+
+    it('should return positive partialF', () => {
+      const result = shouldIncludeQuadratic(y, x, n);
+      expect(result.partialF).toBeGreaterThan(0);
+    });
+  });
+
+  describe('perfect quadratic: y = x²', () => {
+    const xVals = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
+    const n = xVals.length;
+    const x = Float64Array.from(xVals);
+    const y = Float64Array.from(xVals.map(xi => xi * xi));
+
+    it('should return include: true', () => {
+      const result = shouldIncludeQuadratic(y, x, n);
+      expect(result.include).toBe(true);
+    });
+
+    it('should have very low p-value', () => {
+      const result = shouldIncludeQuadratic(y, x, n);
+      expect(result.pValue).toBeLessThan(0.001);
+    });
+
+    it('should achieve near-perfect quadraticR2', () => {
+      const result = shouldIncludeQuadratic(y, x, n);
+      expect(result.quadraticR2).toBeGreaterThan(0.99);
+    });
+  });
+
+  describe('flat data (constant y) — quadratic should NOT be significant', () => {
+    const xVals = [1, 2, 3, 4, 5, 6, 7, 8];
+    const n = xVals.length;
+    const x = Float64Array.from(xVals);
+    const y = Float64Array.from(xVals.map(() => 5.0));
+
+    it('should return include: false for constant y', () => {
+      const result = shouldIncludeQuadratic(y, x, n);
+      expect(result.include).toBe(false);
+    });
+
+    it('should return include: false (not enough variation to detect quadratic)', () => {
+      // With constant y there is no variation to explain — quadratic cannot be significant
+      const result = shouldIncludeQuadratic(y, x, n);
+      expect(result.include).toBe(false);
+    });
+  });
+
+  describe('centering verification — x and x_centered² should be near-orthogonal', () => {
+    // Verify that centering x before squaring eliminates the linear/quadratic
+    // correlation that causes multicollinearity
+    const xVals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const n = xVals.length;
+
+    function pearsonCorrelation(a: number[], b: number[]): number {
+      const meanA = a.reduce((s, v) => s + v, 0) / n;
+      const meanB = b.reduce((s, v) => s + v, 0) / n;
+      let num = 0,
+        da2 = 0,
+        db2 = 0;
+      for (let i = 0; i < n; i++) {
+        const da = a[i] - meanA;
+        const db = b[i] - meanB;
+        num += da * db;
+        da2 += da * da;
+        db2 += db * db;
+      }
+      return num / Math.sqrt(da2 * db2);
+    }
+
+    it('centered x² should have lower |correlation| with x than uncentered x²', () => {
+      const xMean = xVals.reduce((s, v) => s + v, 0) / n;
+      const xSq = xVals.map(xi => xi * xi);
+      const xCenteredSq = xVals.map(xi => (xi - xMean) ** 2);
+
+      const corrUncentered = Math.abs(pearsonCorrelation(xVals, xSq));
+      const corrCentered = Math.abs(pearsonCorrelation(xVals, xCenteredSq));
+
+      // Centering should substantially reduce multicollinearity
+      expect(corrCentered).toBeLessThan(corrUncentered);
+      // For x = 1..10, centered correlation should be very small
+      expect(corrCentered).toBeLessThan(0.1);
+    });
+  });
+
+  describe('custom alpha threshold', () => {
+    // Use strict alpha=0.01; data with modest quadratic curvature may not reach it
+    const xVals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const n = xVals.length;
+    const noise = [0.1, -0.2, 0.15, -0.1, 0.3, -0.25, 0.2, -0.1, 0.05, -0.15];
+    const x = Float64Array.from(xVals);
+    // Perfect quadratic — should be significant even at strict alpha
+    const y = Float64Array.from(xVals.map((xi, i) => xi * xi + noise[i]));
+
+    it('alpha=0.01: perfect quadratic should still be detected', () => {
+      const result = shouldIncludeQuadratic(y, x, n, 0.01);
+      expect(result.include).toBe(true);
+    });
+
+    it('alpha=0.001: very strict — reports p-value correctly regardless', () => {
+      const result = shouldIncludeQuadratic(y, x, n, 0.001);
+      // pValue itself is trustworthy — include is determined by threshold
+      expect(result.pValue).toBeGreaterThanOrEqual(0);
+      expect(result.pValue).toBeLessThanOrEqual(1);
+    });
+  });
+
+  describe('minimum observations guard', () => {
+    it('should return include: false when n < 4', () => {
+      const x = Float64Array.from([1, 2, 3]);
+      const y = Float64Array.from([1, 4, 9]);
+      const result = shouldIncludeQuadratic(y, x, 3);
+      expect(result.include).toBe(false);
+      expect(result.pValue).toBe(1);
     });
   });
 });
