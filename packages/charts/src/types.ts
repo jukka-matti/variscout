@@ -19,12 +19,12 @@ import type {
   ParetoDataPoint,
   ProbabilityPlotSeries,
 } from '@variscout/core';
+import type { HighlightColor } from '@variscout/core/ui-types';
 
 // Re-export data point types from core (canonical source)
 export type { IChartDataPoint, ParetoDataPoint } from '@variscout/core';
 
-/** Highlight color for annotated chart elements */
-export type HighlightColor = 'red' | 'amber' | 'green';
+export type { HighlightColor } from '@variscout/core/ui-types';
 
 // Re-export types from core for convenience
 export type {

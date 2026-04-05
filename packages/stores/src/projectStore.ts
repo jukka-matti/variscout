@@ -14,6 +14,7 @@ import type {
   YamazumiColumnMapping,
   SubgroupConfig,
   FilterAction,
+  StageOrderMode,
   ProcessContext,
   EntryScenario,
   InvestigationCategory,
@@ -24,95 +25,30 @@ import type {
   ParetoRow,
   DataQualityReport,
 } from '@variscout/core';
+import type {
+  ParetoMode,
+  ParetoAggregation,
+  DisplayOptions,
+  ChartTitles,
+  AxisSettings,
+  ViewState,
+} from '@variscout/core/ui-types';
 
-// ============================================================================
-// Local type definitions
-// Types from @variscout/hooks are reproduced here to avoid a hooks dependency.
-// Keep in sync with packages/hooks/src/types.ts.
-// ============================================================================
+// Re-export canonical UI types for store consumers
+export type {
+  ScaleMode,
+  HighlightColor,
+  ParetoMode,
+  ParetoAggregation,
+  DisplayOptions,
+  ChartTitles,
+  AxisSettings,
+  ViewState,
+} from '@variscout/core/ui-types';
 
-/** Y-axis scale mode */
-export type ScaleMode = 'auto' | 'clampZero' | 'manual';
-
-/** Highlight color for chart annotations */
-export type HighlightColor = 'red' | 'amber' | 'green';
-
-/** Pareto chart data mode */
-export type ParetoMode = 'derived' | 'separate';
-
-/** Pareto chart aggregation mode */
-export type ParetoAggregation = 'count' | 'value';
-
-/** Stage order determination mode */
-export type StageOrderMode = 'auto' | 'data-order';
-
-// ParetoRow is imported from @variscout/core above and re-exported here for stores consumers
+// Re-export core types for store consumers
 export type { ParetoRow };
-
 export type { DataQualityReport };
-
-/** Display options for chart visualizations */
-export interface DisplayOptions {
-  /** Lock Y-axis to full dataset range when filtering (default: true) */
-  lockYAxisToFullData?: boolean;
-  /** Show control limits (UCL/Mean/LCL) on I-Chart (default: true) */
-  showControlLimits?: boolean;
-  /** Show violin (density) overlay on boxplot charts (default: false) */
-  showViolin?: boolean;
-  /** Show filter context bar inside chart cards for copy-to-clipboard (default: true) */
-  showFilterContext?: boolean;
-  /** Boxplot category sort criterion (default: 'name') */
-  boxplotSortBy?: 'name' | 'mean' | 'spread';
-  /** Boxplot category sort direction (default: 'asc') */
-  boxplotSortDirection?: 'asc' | 'desc';
-  /** Highlighted boxplot categories (category key → color) */
-  boxplotHighlights?: Record<string, HighlightColor>;
-  /** Highlighted pareto categories (category key → color) */
-  paretoHighlights?: Record<string, HighlightColor>;
-  /** Show specification limits on I-Chart (default: true) */
-  showSpecs?: boolean;
-  /** Show Cpk values in stats panel (default: true) */
-  showCpk?: boolean;
-  /** Dashboard layout mode */
-  dashboardLayout?: 'grid' | 'scroll';
-  /** Capability boxplot metric */
-  capabilityBoxplotMetric?: 'cp' | 'cpk';
-  /** Standard I-Chart metric toggle: measurement data or capability (Cpk/Cp) */
-  standardIChartMetric?: 'measurement' | 'capability';
-}
-
-/** Custom chart titles for reporting/export */
-export interface ChartTitles {
-  ichart?: string;
-  boxplot?: string;
-  pareto?: string;
-}
-
-/** Axis settings for Y-axis manual override */
-export interface AxisSettings {
-  min?: number;
-  max?: number;
-  scaleMode?: ScaleMode;
-}
-
-/** View state persisted with project (analyst's working context) */
-export interface ViewState {
-  activeView?: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
-  activeTab?: 'analysis' | 'performance' | 'yamazumi';
-  isFindingsOpen?: boolean;
-  isWhatIfOpen?: boolean;
-  focusedChart?:
-    | 'ichart'
-    | 'boxplot'
-    | 'pareto'
-    | 'yamazumi'
-    | 'histogram'
-    | 'probability-plot'
-    | null;
-  boxplotFactor?: string;
-  paretoFactor?: string;
-  findingsViewMode?: 'list' | 'board' | 'tree';
-}
 
 // ============================================================================
 // Serialized project shape (for loadProject)

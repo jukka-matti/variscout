@@ -16,7 +16,7 @@ import type {
   EquationData,
   CausalEdgeData,
   ConvergencePointData,
-} from '@variscout/charts';
+} from '@variscout/core/evidenceMap';
 
 const HYDRATION_KEY = 'variscout_evidence_map_hydration';
 

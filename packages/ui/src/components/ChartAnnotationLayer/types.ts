@@ -1,7 +1,7 @@
 import { chartColors, chromeColors } from '@variscout/charts';
+import type { HighlightColor } from '@variscout/core/ui-types';
 
-/** Highlight color for annotated chart elements */
-export type HighlightColor = 'red' | 'amber' | 'green';
+export type { HighlightColor } from '@variscout/core/ui-types';
 
 /** Color definition for annotation styling */
 export interface AnnotationColorDef {

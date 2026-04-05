@@ -19,98 +19,27 @@ import type { BestSubsetsResult } from '@variscout/core/stats';
 import type { MainEffectsResult, InteractionEffectsResult } from '@variscout/core/stats';
 import { computeEvidenceMapLayout } from '@variscout/core/stats';
 import type { EvidenceMapLayout, FactorNodeLayout } from '@variscout/core/stats';
-import type { RelationshipType } from '@variscout/core/stats';
 import { findConvergencePoints } from '@variscout/core/stats';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import type { CausalLink, Question, Finding, SuspectedCause } from '@variscout/core/findings';
+import type {
+  FactorNodeData,
+  RelationshipEdgeData,
+  OutcomeNodeData,
+  EquationData,
+  CausalEdgeData,
+  ConvergencePointData,
+} from '@variscout/core/evidenceMap';
 
-// ============================================================================
-// Output types — structurally compatible with @variscout/charts EvidenceMap types.
-// Defined here because @variscout/hooks must not depend on @variscout/charts.
-// Keep in sync with: packages/charts/src/EvidenceMap/types.ts
-// ============================================================================
-
-/** Factor node with position, strength, and mode-aware labels. */
-export interface FactorNodeData {
-  factor: string;
-  x: number;
-  y: number;
-  radius: number;
-  rSquaredAdj: number;
-  levelEffects: Array<{ level: string; effect: number }>;
-  metricLabel: string;
-  effectLabel: string;
-  /** Factor type classification (undefined for categorical-only data) */
-  factorType?: 'continuous' | 'categorical';
-  /**
-   * Trend glyph for continuous factors:
-   *   '/'  → positive linear slope
-   *   '\\' → negative linear slope
-   *   '∩'  → quadratic peak (sweet spot maximum)
-   *   '∪'  → quadratic valley (sweet spot minimum)
-   *   null → categorical
-   */
-  trendGlyph?: '/' | '\\' | '∩' | '∪' | null;
-  /** Optimal input value for quadratic factors (vertex x-coordinate) */
-  optimum?: number;
-}
-
-/** Statistical relationship edge between two factor nodes. */
-export interface RelationshipEdgeData {
-  factorA: string;
-  factorB: string;
-  type: RelationshipType;
-  strength: number;
-  ax: number;
-  ay: number;
-  bx: number;
-  by: number;
-}
-
-/** Central outcome node. */
-export interface OutcomeNodeData {
-  x: number;
-  y: number;
-  radius: number;
-  label: string;
-  mean: number;
-}
-
-/** Best regression equation data. */
-export interface EquationData {
-  factors: string[];
-  rSquaredAdj: number;
-  formula: string;
-}
-
-/** Directed causal edge from investigation (Layer 2). */
-export interface CausalEdgeData {
-  id: string;
-  fromFactor: string;
-  toFactor: string;
-  fromLevel?: string;
-  toLevel?: string;
-  whyStatement: string;
-  direction: 'drives' | 'modulates' | 'confounds';
-  evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
-  questionCount: number;
-  findingCount: number;
-  fromX: number;
-  fromY: number;
-  toX: number;
-  toY: number;
-}
-
-/** Convergence point — factor with 2+ incoming causal links (Layer 3). */
-export interface ConvergencePointData {
-  factor: string;
-  x: number;
-  y: number;
-  incomingCount: number;
-  hubName?: string;
-  hubStatus?: 'suspected' | 'confirmed' | 'not-confirmed';
-  projectedImprovement?: string;
-}
+// Re-export canonical Evidence Map types for consumers that import from this hook
+export type {
+  FactorNodeData,
+  RelationshipEdgeData,
+  OutcomeNodeData,
+  EquationData,
+  CausalEdgeData,
+  ConvergencePointData,
+} from '@variscout/core/evidenceMap';
 
 // ============================================================================
 // Hook options and return types

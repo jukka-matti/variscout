@@ -14,10 +14,11 @@ export type {
   ParetoRow,
   DataQualityReport,
   ScaleMode,
-  StageOrderMode,
   HighlightColor,
   ViewState,
 } from './projectStore';
+// StageOrderMode is a domain type from @variscout/core, not a UI type
+export type { StageOrderMode } from '@variscout/core';
 export {
   useInvestigationStore,
   getInvestigationInitialState,

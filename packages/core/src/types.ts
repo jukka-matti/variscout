@@ -242,13 +242,8 @@ export interface ProbabilityPlotSeries {
   originalIndices: number[];
 }
 
-/**
- * Display options for capability metrics
- */
-export interface DisplayOptions {
-  /** Show filter context bar inside chart cards for copy-to-clipboard (default: true) */
-  showFilterContext?: boolean;
-}
+// DisplayOptions is now canonical in @variscout/core/ui-types
+// Re-exported via core/index.ts for backward compatibility
 
 /**
  * Group statistics for ANOVA

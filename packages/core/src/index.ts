@@ -14,7 +14,6 @@ export type {
   CharacteristicType,
   ProbabilityPlotPoint,
   ProbabilityPlotSeries,
-  DisplayOptions,
   ConformanceResult,
   AnovaResult,
   AnovaGroup,
@@ -24,6 +23,28 @@ export type {
   StageBoundary,
   NelsonRule2Sequence,
 } from './types';
+
+// Canonical UI presentation types (single source of truth)
+export type {
+  ScaleMode,
+  HighlightColor,
+  DisplayOptions,
+  ChartTitles,
+  ParetoMode,
+  ParetoAggregation,
+  ViewState,
+  AxisSettings,
+} from './ui-types/index';
+
+// Canonical Evidence Map data types (single source of truth)
+export type {
+  FactorNodeData,
+  RelationshipEdgeData,
+  OutcomeNodeData,
+  EquationData,
+  CausalEdgeData,
+  ConvergencePointData,
+} from './evidenceMap/index';
 
 // Types - Staged Comparison
 export type {
