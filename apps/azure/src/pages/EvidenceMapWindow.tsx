@@ -7,88 +7,44 @@
  * Follows the same pattern as FindingsWindow and ImprovementWindow.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { EvidenceMap } from '@variscout/charts';
+import { usePopoutChannel, HYDRATION_KEYS } from '@variscout/hooks';
 import type {
-  FactorNodeData,
-  RelationshipEdgeData,
-  OutcomeNodeData,
-  EquationData,
-  CausalEdgeData,
-  ConvergencePointData,
-} from '@variscout/core/evidenceMap';
-
-const HYDRATION_KEY = 'variscout_evidence_map_hydration';
-
-interface HydrationState {
-  outcomeNode: OutcomeNodeData | null;
-  factorNodes: FactorNodeData[];
-  relationshipEdges: RelationshipEdgeData[];
-  equation: EquationData | null;
-  causalEdges: CausalEdgeData[];
-  convergencePoints: ConvergencePointData[];
-}
-
-function readHydrationState(): HydrationState | null {
-  try {
-    const raw = localStorage.getItem(HYDRATION_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
+  EvidenceMapSyncMessage,
+  FactorSelectedMessage,
+  EvidenceMapSyncData,
+} from '@variscout/hooks';
 
 export function EvidenceMapWindow() {
-  const [mapData, setMapData] = useState<HydrationState | null>(readHydrationState);
   const [isDark] = useState(() => localStorage.getItem('variscout_theme') === 'dark');
   const [highlightedFactor, setHighlightedFactor] = useState<string | null>(null);
-  const channelRef = useRef<BroadcastChannel | null>(null);
 
-  // BroadcastChannel for ongoing sync
+  const { lastMessage, sendMessage, hydrationData } = usePopoutChannel<
+    EvidenceMapSyncMessage | FactorSelectedMessage
+  >({
+    windowId: 'evidence-map',
+    hydrationKey: HYDRATION_KEYS.evidenceMap,
+    heartbeatInterval: 5000,
+  });
+
+  const [mapData, setMapData] = useState<EvidenceMapSyncData | null>(null);
+
   useEffect(() => {
-    if (typeof BroadcastChannel === 'undefined') return;
+    if (hydrationData) setMapData(hydrationData as EvidenceMapSyncData);
+  }, [hydrationData]);
 
-    const channel = new BroadcastChannel('variscout-sync');
-    channelRef.current = channel;
+  useEffect(() => {
+    if (!lastMessage) return;
+    if (lastMessage.type === 'evidence-map-update') {
+      setMapData((lastMessage as EvidenceMapSyncMessage).payload);
+    } else if (lastMessage.type === 'factor-selected') {
+      setHighlightedFactor((lastMessage as FactorSelectedMessage).payload?.factor ?? null);
+    }
+  }, [lastMessage]);
 
-    channel.onmessage = event => {
-      const msg = event.data;
-      if (msg.target && msg.target !== 'all' && msg.target !== 'evidence-map') return;
-
-      switch (msg.type) {
-        case 'evidence-map-update':
-          setMapData(msg.payload);
-          break;
-        case 'factor-selected':
-          setHighlightedFactor(msg.payload?.factor ?? null);
-          break;
-      }
-    };
-
-    // Send heartbeat
-    const heartbeat = setInterval(() => {
-      channel.postMessage({ type: 'heartbeat', source: 'evidence-map' });
-    }, 5000);
-
-    // Announce we're open
-    channel.postMessage({ type: 'window-opened', source: 'evidence-map' });
-
-    return () => {
-      channel.postMessage({ type: 'window-closing', source: 'evidence-map' });
-      clearInterval(heartbeat);
-      channel.close();
-      channelRef.current = null;
-    };
-  }, []);
-
-  // Handle factor click — broadcast to main window via existing channel
   const handleFactorClick = (factor: string) => {
-    channelRef.current?.postMessage({
-      type: 'factor-selected',
-      source: 'evidence-map',
-      target: 'main',
-      payload: { factor },
-    });
+    sendMessage({ type: 'factor-selected', target: 'main', payload: { factor } });
   };
 
   if (!mapData) {

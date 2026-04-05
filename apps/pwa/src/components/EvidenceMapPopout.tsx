@@ -5,65 +5,40 @@
  * (no causal links or synthesis — those are Azure features).
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { EvidenceMap } from '@variscout/charts';
+import { usePopoutChannel, HYDRATION_KEYS } from '@variscout/hooks';
 import type {
-  FactorNodeData,
-  RelationshipEdgeData,
-  OutcomeNodeData,
-  EquationData,
-} from '@variscout/core/evidenceMap';
-
-const HYDRATION_KEY = 'variscout_evidence_map_hydration';
-
-interface HydrationState {
-  outcomeNode: OutcomeNodeData | null;
-  factorNodes: FactorNodeData[];
-  relationshipEdges: RelationshipEdgeData[];
-  equation: EquationData | null;
-}
-
-function readHydrationState(): HydrationState | null {
-  try {
-    const raw = localStorage.getItem(HYDRATION_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
+  EvidenceMapSyncMessage,
+  FactorSelectedMessage,
+  EvidenceMapSyncData,
+} from '@variscout/hooks';
 
 export function EvidenceMapPopout() {
-  const [mapData, setMapData] = useState<HydrationState | null>(readHydrationState);
   const [isDark] = useState(() => localStorage.getItem('variscout_theme') === 'dark');
-  const channelRef = useRef<BroadcastChannel | null>(null);
 
-  // BroadcastChannel for ongoing sync
+  const { lastMessage, sendMessage, hydrationData } = usePopoutChannel<
+    EvidenceMapSyncMessage | FactorSelectedMessage
+  >({
+    windowId: 'evidence-map',
+    hydrationKey: HYDRATION_KEYS.evidenceMap,
+  });
+
+  const [mapData, setMapData] = useState<EvidenceMapSyncData | null>(null);
+
   useEffect(() => {
-    if (typeof BroadcastChannel === 'undefined') return;
-    const channel = new BroadcastChannel('variscout-sync');
-    channelRef.current = channel;
+    if (hydrationData) setMapData(hydrationData as EvidenceMapSyncData);
+  }, [hydrationData]);
 
-    channel.onmessage = event => {
-      const msg = event.data;
-      if (msg.target && msg.target !== 'all' && msg.target !== 'evidence-map') return;
-      if (msg.type === 'evidence-map-update') {
-        setMapData(msg.payload);
-      }
-    };
-
-    return () => {
-      channel.close();
-      channelRef.current = null;
-    };
-  }, []);
+  useEffect(() => {
+    if (!lastMessage) return;
+    if (lastMessage.type === 'evidence-map-update') {
+      setMapData((lastMessage as EvidenceMapSyncMessage).payload);
+    }
+  }, [lastMessage]);
 
   const handleFactorClick = (factor: string) => {
-    channelRef.current?.postMessage({
-      type: 'factor-selected',
-      source: 'evidence-map',
-      target: 'main',
-      payload: { factor },
-    });
+    sendMessage({ type: 'factor-selected', target: 'main', payload: { factor } });
   };
 
   if (!mapData) {
