@@ -547,6 +547,12 @@ export {
   type ThemeConfig,
 } from './context/ThemeContext';
 
+// Factor Preview Overlay (Evidence Map embryonic preview)
+export {
+  FactorPreviewOverlay,
+  type FactorPreviewOverlayProps,
+} from './components/FactorPreviewOverlay';
+
 // Document Shelf (Team tier — PI panel Docs tab)
 export {
   DocumentShelfBase,
