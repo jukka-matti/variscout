@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { BestSubsetResult } from '@variscout/core/stats';
+import type { PredictorInfo } from '@variscout/core/types';
 
 export interface EquationDisplayProps {
   bestSubset: BestSubsetResult;
@@ -10,7 +11,32 @@ export interface EquationDisplayProps {
   /** Quality characteristic type — determines worst/best interpretation */
   characteristicType?: 'nominal' | 'smaller' | 'larger';
   className?: string;
+
+  // === NEW: continuous / mixed model props ===
+
+  /** Factor types for mixed equation display */
+  factorTypes?: Map<string, 'continuous' | 'categorical'>;
+  /** Predictors for continuous factors (from BestSubsetResult.predictors) */
+  predictors?: PredictorInfo[];
+  /** Intercept value (for expanded equation) */
+  intercept?: number;
+  /** RMSE */
+  rmse?: number;
+  /** Number of observations */
+  n?: number;
+  /** F-statistic */
+  fStatistic?: number;
+  /** Whether quadratic terms are present */
+  hasQuadraticTerms?: boolean;
+  /** Model warnings */
+  warnings?: string[];
+  /** Callback when a factor chip is clicked */
+  onFactorClick?: (factor: string) => void;
 }
+
+// ============================================================================
+// Utilities
+// ============================================================================
 
 /** Format a number to reasonable precision (1-2 decimals based on magnitude). */
 function fmt(value: number): string {
@@ -50,11 +76,6 @@ export function formatEquation(
 
 /**
  * Compute worst and best predicted cases from cell means.
- *
- * Interpretation depends on characteristic type:
- * - nominal: worst = farthest from grand mean, best = closest to grand mean
- * - smaller: worst = highest predicted, best = lowest predicted
- * - larger: worst = lowest predicted, best = highest predicted
  */
 function getExtremes(
   bestSubset: BestSubsetResult,
@@ -75,7 +96,6 @@ function getExtremes(
   let bestMean = 0;
 
   if (characteristicType === 'nominal') {
-    // Nominal: worst = farthest from grand mean, best = closest to grand mean
     const ref = grandMean ?? 0;
     let worstDist = -Infinity;
     let bestDist = Infinity;
@@ -94,7 +114,6 @@ function getExtremes(
       }
     }
   } else if (characteristicType === 'larger') {
-    // Larger-is-better: worst = lowest, best = highest
     worstMean = Infinity;
     bestMean = -Infinity;
 
@@ -109,7 +128,6 @@ function getExtremes(
       }
     }
   } else {
-    // Smaller-is-better (default for 'smaller'): worst = highest, best = lowest
     worstMean = -Infinity;
     bestMean = Infinity;
 
@@ -132,11 +150,223 @@ function getExtremes(
   };
 }
 
+// ============================================================================
+// Trust badge
+// ============================================================================
+
+interface TrustBadgeProps {
+  r2Adj: number;
+  isSignificant: boolean;
+}
+
+function TrustBadge({ r2Adj, isSignificant }: TrustBadgeProps): React.ReactElement {
+  let label: string;
+  let colorClass: string;
+
+  if (!isSignificant || r2Adj < 0.3) {
+    label = 'Weak model';
+    colorClass = 'text-red-400';
+  } else if (r2Adj >= 0.6) {
+    label = 'Strong model';
+    colorClass = 'text-green-400';
+  } else {
+    label = 'Moderate model';
+    colorClass = 'text-amber-400';
+  }
+
+  return (
+    <span
+      className={`text-[0.5625rem] font-medium flex items-center gap-0.5 ${colorClass}`}
+      data-testid="trust-badge"
+    >
+      <span aria-hidden="true">&#9679;</span>
+      {label}
+    </span>
+  );
+}
+
+// ============================================================================
+// Factor chip builders
+// ============================================================================
+
+interface FactorChipSummary {
+  factorName: string;
+  label: string;
+  /** Absolute effect magnitude for ranking */
+  magnitude: number;
+  isQuadratic: boolean;
+}
+
+/**
+ * Compute the dominant direction/label for a continuous factor given its linear
+ * predictor (and optional quadratic predictor).
+ */
+function buildContinuousChipLabel(
+  factorName: string,
+  linearPredictor: PredictorInfo,
+  quadraticPredictor: PredictorInfo | undefined
+): { label: string; magnitude: number; isQuadratic: boolean } {
+  if (quadraticPredictor) {
+    // Quadratic: vertex = -b / (2c). c < 0 → peak, c > 0 → valley.
+    const b = linearPredictor.coefficient;
+    const c = quadraticPredictor.coefficient;
+    const vertex = -b / (2 * c);
+    const effectAtVertex = Math.abs(b * vertex + c * vertex * vertex);
+
+    if (c < 0) {
+      return {
+        label: `${factorName} peak ${fmt(vertex)} \u2191${fmt(effectAtVertex)}`,
+        magnitude: effectAtVertex,
+        isQuadratic: true,
+      };
+    } else {
+      return {
+        label: `${factorName} valley ${fmt(vertex)} \u2193${fmt(effectAtVertex)}`,
+        magnitude: effectAtVertex,
+        isQuadratic: true,
+      };
+    }
+  }
+
+  // Linear only
+  const coeff = linearPredictor.coefficient;
+  const arrow = coeff >= 0 ? '\u2191' : '\u2193';
+  return {
+    label: `${factorName} ${coeff >= 0 ? '+' : ''}${fmt(coeff)}/unit ${arrow}`,
+    magnitude: Math.abs(coeff),
+    isQuadratic: false,
+  };
+}
+
+/**
+ * Compute the dominant level label for a categorical factor.
+ */
+function buildCategoricalChipLabel(
+  factorName: string,
+  levelEffects: Map<string, number> | undefined
+): { label: string; magnitude: number } {
+  if (!levelEffects || levelEffects.size === 0) {
+    return { label: factorName, magnitude: 0 };
+  }
+
+  // Find the level with the largest absolute effect
+  let dominantLevel = '';
+  let dominantEffect = 0;
+
+  for (const [level, effect] of levelEffects) {
+    if (Math.abs(effect) > Math.abs(dominantEffect)) {
+      dominantEffect = effect;
+      dominantLevel = level;
+    }
+  }
+
+  const arrow = dominantEffect >= 0 ? '\u2191' : '\u2193';
+  return {
+    label: `${factorName}: ${dominantLevel} ${arrow}${fmt(Math.abs(dominantEffect))}`,
+    magnitude: Math.abs(dominantEffect),
+  };
+}
+
+/**
+ * Build chip summaries ranked by absolute effect magnitude.
+ */
+function buildFactorChips(
+  factors: string[],
+  predictors: PredictorInfo[],
+  factorTypes: Map<string, 'continuous' | 'categorical'> | undefined,
+  levelEffects: Map<string, Map<string, number>>
+): FactorChipSummary[] {
+  const chips: FactorChipSummary[] = [];
+  const processedFactors = new Set<string>();
+
+  for (const factorName of factors) {
+    if (processedFactors.has(factorName)) continue;
+    processedFactors.add(factorName);
+
+    const fType = factorTypes?.get(factorName);
+
+    if (
+      fType === 'continuous' ||
+      (!fType && predictors.some(p => p.factorName === factorName && p.type === 'continuous'))
+    ) {
+      const linear = predictors.find(p => p.factorName === factorName && p.type === 'continuous');
+      const quadratic = predictors.find(p => p.factorName === factorName && p.type === 'quadratic');
+
+      if (linear) {
+        const { label, magnitude, isQuadratic } = buildContinuousChipLabel(
+          factorName,
+          linear,
+          quadratic
+        );
+        chips.push({ factorName, label, magnitude, isQuadratic });
+      }
+    } else {
+      const effects = levelEffects.get(factorName);
+      const { label, magnitude } = buildCategoricalChipLabel(factorName, effects);
+      chips.push({ factorName, label, magnitude, isQuadratic: false });
+    }
+  }
+
+  // Rank by absolute magnitude descending
+  return chips.sort((a, b) => b.magnitude - a.magnitude);
+}
+
+// ============================================================================
+// Math equation builder
+// ============================================================================
+
+/**
+ * Build the full math equation string from predictors + intercept.
+ * e.g. "ŷ = 60.1 + 0.40×Temp − 0.002×Temp² + 12.3(Supplier A)"
+ */
+function buildMathEquation(predictors: PredictorInfo[], intercept: number): string {
+  const parts: string[] = [`\u0177 = ${fmt(intercept)}`];
+
+  // Group by factor name to order: continuous before quadratic, then categorical
+  const seen = new Set<string>();
+
+  // First pass: continuous + quadratic
+  for (const p of predictors) {
+    if (p.type === 'continuous' || p.type === 'quadratic') {
+      const sign = p.coefficient >= 0 ? '+' : '\u2212';
+      const absCoeff = fmt(Math.abs(p.coefficient));
+      const termName = p.type === 'quadratic' ? `${p.factorName}\u00B2` : p.factorName;
+      parts.push(`${sign} ${absCoeff}\u00D7${termName}`);
+    }
+  }
+
+  // Second pass: categorical (one entry per factor, show strongest level)
+  for (const p of predictors) {
+    if (p.type === 'categorical' && p.level && !seen.has(p.factorName)) {
+      seen.add(p.factorName);
+      // Find all levels for this factor and show top contributor
+      const factorPredictors = predictors.filter(
+        fp => fp.type === 'categorical' && fp.factorName === p.factorName
+      );
+      const top = factorPredictors.reduce((best, cur) =>
+        Math.abs(cur.coefficient) > Math.abs(best.coefficient) ? cur : best
+      );
+      const sign = top.coefficient >= 0 ? '+' : '\u2212';
+      parts.push(`${sign} ${fmt(Math.abs(top.coefficient))}(${top.factorName}: ${top.level})`);
+    }
+  }
+
+  return parts.join(' ');
+}
+
+// ============================================================================
+// Main component
+// ============================================================================
+
 /**
  * EquationDisplay — compact regression equation card for the PI panel.
  *
- * Shows the best additive model equation, R²adj badge, worst/best predictions,
- * and an expandable cell-count section.
+ * Two modes:
+ * 1. **Natural language mode** (when `predictors` provided): shows predicted
+ *    value, trust badge, and tappable factor chips. Expandable to full math
+ *    equation with model statistics.
+ * 2. **Legacy categorical mode** (when `predictors` absent): shows the original
+ *    formatEquation output, R²adj badge, worst/best predictions, and cell counts.
  */
 const EquationDisplay: React.FC<EquationDisplayProps> = ({
   bestSubset,
@@ -145,13 +375,169 @@ const EquationDisplay: React.FC<EquationDisplayProps> = ({
   interactionDetected,
   characteristicType,
   className,
+  factorTypes,
+  predictors,
+  intercept,
+  rmse,
+  n,
+  fStatistic,
+  hasQuadraticTerms,
+  warnings,
+  onFactorClick,
 }) => {
+  // Both state vars hoisted unconditionally (Rules of Hooks)
   const [expanded, setExpanded] = useState(false);
-  const extremes = getExtremes(bestSubset, characteristicType ?? 'nominal', grandMean);
+  const [cellsExpanded, setCellsExpanded] = useState(false);
 
-  const equation = formatEquation(bestSubset, grandMean, outcome);
   const r2Pct = (bestSubset.rSquaredAdj * 100).toFixed(0);
   const pLabel = bestSubset.pValue < 0.001 ? 'p < 0.001' : `p = ${bestSubset.pValue.toFixed(3)}`;
+
+  // ── Natural language mode (predictors provided) ──────────────────────────
+  if (predictors && predictors.length > 0) {
+    const interceptValue = intercept ?? bestSubset.intercept ?? grandMean;
+    const chips = buildFactorChips(
+      bestSubset.factors,
+      predictors,
+      factorTypes ?? bestSubset.factorTypes,
+      bestSubset.levelEffects
+    );
+
+    const visibleChips = chips.slice(0, 3);
+    const hiddenCount = chips.length - visibleChips.length;
+
+    const mathEquation = buildMathEquation(predictors, interceptValue);
+
+    // Model stats line
+    const nVal =
+      n ??
+      (bestSubset.cellMeans.size > 0
+        ? [...bestSubset.cellMeans.values()].reduce((s, c) => s + c.n, 0)
+        : undefined);
+    const dfModel = bestSubset.dfModel;
+    const dfError = nVal != null ? nVal - dfModel - 1 : undefined;
+    const fVal = fStatistic ?? bestSubset.fStatistic;
+    const rmseVal = rmse ?? bestSubset.rmse;
+
+    const modelStatsLine = [
+      `R\u00B2adj\u00A0=\u00A0${r2Pct}%`,
+      rmseVal != null ? `\u03C3\u0302\u00A0=\u00A0${fmt(rmseVal)}` : null,
+      nVal != null ? `n\u00A0=\u00A0${nVal}` : null,
+      fVal != null && dfError != null
+        ? `F(${dfModel},${dfError})\u00A0=\u00A0${fmt(fVal)},\u00A0${pLabel}`
+        : pLabel,
+    ]
+      .filter(Boolean)
+      .join(' \u00B7 ');
+
+    const allWarnings = [
+      ...(warnings ?? bestSubset.warnings ?? []),
+      ...(interactionDetected
+        ? ['Interaction detected \u2014 model assumes additive effects']
+        : []),
+      ...((hasQuadraticTerms ?? bestSubset.hasQuadraticTerms)
+        ? ['Quadratic terms included \u2014 curved relationship']
+        : []),
+    ];
+
+    return (
+      <div
+        className={`bg-gradient-to-br from-blue-500/5 to-indigo-500/5 border border-blue-500/15 rounded-lg p-3 ${className ?? ''}`}
+        data-testid="equation-display"
+      >
+        {/* Header row: label + trust badge */}
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="text-[0.625rem] uppercase tracking-wider text-blue-400 font-medium">
+            Best model
+          </span>
+          <TrustBadge r2Adj={bestSubset.rSquaredAdj} isSignificant={bestSubset.isSignificant} />
+        </div>
+
+        {/* Predicted value */}
+        <div className="text-xs text-content-secondary mb-1.5" data-testid="equation-predicted">
+          Predicted <span className="text-content font-medium">{outcome}</span> ={' '}
+          <span className="font-mono font-semibold text-blue-300">{fmt(interceptValue)}</span>
+        </div>
+
+        {/* Factor chips */}
+        <div className="flex flex-wrap gap-1.5 mb-2" data-testid="equation-factor-chips">
+          {visibleChips.map(chip => (
+            <button
+              key={chip.factorName}
+              type="button"
+              onClick={() => onFactorClick?.(chip.factorName)}
+              className={`
+                text-[0.6rem] leading-tight px-2 py-0.5 rounded-full
+                bg-slate-800 border border-slate-700
+                text-content-secondary hover:text-content hover:border-slate-500
+                transition-colors
+                ${chip.isQuadratic ? 'text-purple-300 hover:text-purple-200' : ''}
+              `}
+              data-testid={`equation-chip-${chip.factorName}`}
+            >
+              {chip.label}
+            </button>
+          ))}
+          {hiddenCount > 0 && (
+            <span
+              className="text-[0.6rem] px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-content-muted"
+              data-testid="equation-chips-overflow"
+            >
+              +{hiddenCount} more
+            </span>
+          )}
+        </div>
+
+        {/* Expandable math equation */}
+        <div className="border-t border-edge/40 pt-1.5">
+          <button
+            type="button"
+            onClick={() => setExpanded(v => !v)}
+            className="flex items-center gap-1 text-[0.5625rem] text-content-muted hover:text-content transition-colors"
+            data-testid="equation-expand-toggle"
+          >
+            {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+            <span>Show equation</span>
+          </button>
+
+          {expanded && (
+            <div className="mt-1.5" data-testid="equation-math-expanded">
+              <div
+                className="text-[0.6rem] font-mono text-content leading-relaxed break-words"
+                data-testid="equation-math-text"
+              >
+                {mathEquation}
+              </div>
+              <div
+                className="mt-0.5 text-[0.5625rem] font-mono text-content-muted"
+                data-testid="equation-model-stats"
+              >
+                {modelStatsLine}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Warnings */}
+        {allWarnings.length > 0 && (
+          <div className="mt-1.5 space-y-0.5">
+            {allWarnings.map((w, i) => (
+              <div
+                key={i}
+                className="text-[0.625rem] text-amber-500"
+                data-testid={`equation-warning-${i}`}
+              >
+                &#9888; {w}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Legacy categorical mode ───────────────────────────────────────────────
+  const extremes = getExtremes(bestSubset, characteristicType ?? 'nominal', grandMean);
+  const equation = formatEquation(bestSubset, grandMean, outcome);
 
   return (
     <div
@@ -164,7 +550,7 @@ const EquationDisplay: React.FC<EquationDisplayProps> = ({
           Best model
         </span>
         <span className="text-[0.5625rem] font-mono bg-blue-500/15 text-blue-300 rounded px-1 py-0.5">
-          R²adj {r2Pct}%
+          R&#178;adj {r2Pct}%
         </span>
         <span className="text-[0.5625rem] text-content-muted">{pLabel}</span>
       </div>
@@ -208,14 +594,14 @@ const EquationDisplay: React.FC<EquationDisplayProps> = ({
         <div className="mt-2 border-t border-edge/40 pt-1.5">
           <button
             type="button"
-            onClick={() => setExpanded(v => !v)}
+            onClick={() => setCellsExpanded(v => !v)}
             className="flex items-center gap-1 text-[0.5625rem] text-content-muted hover:text-content transition-colors"
             data-testid="equation-cell-toggle"
           >
-            {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+            {cellsExpanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
             <span>Cell counts ({bestSubset.cellMeans.size} cells)</span>
           </button>
-          {expanded && (
+          {cellsExpanded && (
             <div className="mt-1 flex flex-wrap gap-1" data-testid="equation-cell-counts">
               {[...bestSubset.cellMeans.entries()].map(([key, { n }]) => (
                 <span
