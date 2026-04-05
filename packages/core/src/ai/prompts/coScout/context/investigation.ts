@@ -99,6 +99,42 @@ export function formatInvestigationContext(
       return parts.join(' ');
     });
     lines.push(`Suspected cause hubs:\n${hubLines.join('\n')}`);
+
+    // Evidence sufficiency warning: check coveragePercent or per-hub rSquaredAdj
+    const coverage = investigation.coveragePercent;
+    if (coverage !== undefined && coverage < 25) {
+      const openCount =
+        investigation.questionsTotal !== undefined && investigation.questionsChecked !== undefined
+          ? investigation.questionsTotal - investigation.questionsChecked
+          : undefined;
+      const openSuffix =
+        openCount !== undefined && openCount > 0
+          ? ` Consider investigating the ${openCount} remaining open question${openCount === 1 ? '' : 's'}.`
+          : '';
+      lines.push(
+        `⚠ Evidence note: Hub "${investigation.suspectedCauseHubs[0].name}" explains ~${Math.round(coverage)}% of variation — significant sources may remain unexplored.${openSuffix}`
+      );
+    } else if (coverage === undefined) {
+      // Fall back to per-hub rSquaredAdj when coveragePercent is not set
+      for (const hub of investigation.suspectedCauseHubs) {
+        const hubR2 = hub.evidence?.value;
+        if (hubR2 !== undefined && hubR2 < 0.25) {
+          const pct = Math.round(hubR2 * 100);
+          const openCount =
+            investigation.questionsTotal !== undefined &&
+            investigation.questionsChecked !== undefined
+              ? investigation.questionsTotal - investigation.questionsChecked
+              : undefined;
+          const openSuffix =
+            openCount !== undefined && openCount > 0
+              ? ` Consider investigating the ${openCount} remaining open question${openCount === 1 ? '' : 's'}.`
+              : '';
+          lines.push(
+            `⚠ Evidence note: Hub "${hub.name}" explains ~${pct}% of variation — significant sources may remain unexplored.${openSuffix}`
+          );
+        }
+      }
+    }
   }
 
   // Evidence Map topology summary

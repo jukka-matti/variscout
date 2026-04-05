@@ -188,6 +188,101 @@ describe('formatInvestigationContext', () => {
     });
     expect(result).toContain('⚡ Phase transition: validating → converging');
   });
+
+  // Evidence sufficiency tests (Task 4)
+  it('includes evidence warning for hub when coveragePercent < 25', () => {
+    const result = formatInvestigationContext({
+      coveragePercent: 12,
+      questionsChecked: 2,
+      questionsTotal: 5,
+      suspectedCauseHubs: [
+        {
+          id: 'hub1',
+          name: 'Nozzle Wear',
+          synthesis: 'Nozzle degradation varies by shift',
+          status: 'active',
+          questionCount: 2,
+          findingCount: 1,
+        },
+      ],
+    });
+    expect(result).toContain('⚠ Evidence note:');
+    expect(result).toContain('Nozzle Wear');
+    expect(result).toContain('~12% of variation');
+    expect(result).toContain('significant sources may remain unexplored');
+    expect(result).toContain('3 remaining open questions');
+  });
+
+  it('omits evidence warning when coveragePercent >= 25', () => {
+    const result = formatInvestigationContext({
+      coveragePercent: 45,
+      suspectedCauseHubs: [
+        {
+          id: 'hub1',
+          name: 'Machine Setup',
+          synthesis: 'Setup variation across shifts',
+          status: 'active',
+          questionCount: 3,
+          findingCount: 2,
+        },
+      ],
+    });
+    expect(result).not.toContain('⚠ Evidence note:');
+  });
+
+  it('uses per-hub evidence.value when coveragePercent is absent and value < 0.25', () => {
+    const result = formatInvestigationContext({
+      suspectedCauseHubs: [
+        {
+          id: 'hub1',
+          name: 'Nozzle Wear',
+          synthesis: 'Nozzle degradation',
+          status: 'active',
+          questionCount: 1,
+          findingCount: 0,
+          evidence: { value: 0.12, label: 'Weak (R²adj=12%)', description: 'test' },
+        },
+      ],
+    });
+    expect(result).toContain('⚠ Evidence note:');
+    expect(result).toContain('Nozzle Wear');
+    expect(result).toContain('~12% of variation');
+  });
+
+  it('omits evidence warning when per-hub evidence.value >= 0.25 and coveragePercent absent', () => {
+    const result = formatInvestigationContext({
+      suspectedCauseHubs: [
+        {
+          id: 'hub1',
+          name: 'Machine Setup',
+          synthesis: 'Setup variation',
+          status: 'active',
+          questionCount: 3,
+          findingCount: 2,
+          evidence: { value: 0.38, label: 'Strong (R²adj=38%)', description: 'test' },
+        },
+      ],
+    });
+    expect(result).not.toContain('⚠ Evidence note:');
+  });
+
+  it('omits open question count suffix when questionsTotal and questionsChecked are absent', () => {
+    const result = formatInvestigationContext({
+      coveragePercent: 8,
+      suspectedCauseHubs: [
+        {
+          id: 'hub1',
+          name: 'Raw Material',
+          synthesis: 'Incoming moisture varies',
+          status: 'active',
+          questionCount: 0,
+          findingCount: 0,
+        },
+      ],
+    });
+    expect(result).toContain('⚠ Evidence note:');
+    expect(result).not.toContain('remaining open question');
+  });
 });
 
 describe('formatDataContext', () => {
