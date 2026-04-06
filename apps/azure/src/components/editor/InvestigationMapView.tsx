@@ -182,6 +182,7 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
           onFactorClick={handleFactorClick}
           onFactorContextMenu={handleContextMenu}
           onCausalEdgeClick={setSelectedEdgeId}
+          onConvergenceClick={handleFactorClick}
         />
       )}
 
