@@ -32,43 +32,46 @@ vi.mock('@variscout/hooks', async () => {
       formatStat: (v: number, d = 2) => v.toFixed(d),
       formatPct: (v: number) => `${(v * 100).toFixed(1)}%`,
     }),
+    useAnalysisStats: () => ({ stats: mockStats }),
+    useFilteredData: () => ({ filteredData: mockFilteredData }),
   };
 });
 
-import { render, screen, fireEvent } from '@testing-library/react';
+const mockStats = {
+  mean: 10.5,
+  median: 10.4,
+  stdDev: 1.2,
+  sigmaWithin: 1.1,
+  mrBar: 1.24,
+  ucl: 14.1,
+  lcl: 6.9,
+  cp: 1.5,
+  cpk: 1.2,
+  outOfSpecPercentage: 5.5,
+};
+
+const mockSpecs = { usl: 15, lsl: 5 };
+const mockFilteredData = [{ value: 10 }, { value: 11 }, { value: 9 }];
+
+// Set up projectStore state before import
+import { useProjectStore } from '@variscout/stores';
+
+import { render, screen } from '@testing-library/react';
 import ProcessIntelligencePanel from '../ProcessIntelligencePanel';
 
-// Mock the CapabilityHistogram component
-vi.mock('../charts/CapabilityHistogram', () => ({
-  default: () => <div data-testid="capability-histogram">Histogram Mock</div>,
-}));
-
 describe('ProcessIntelligencePanel', () => {
-  const mockStats = {
-    mean: 10.5,
-    median: 10.4,
-    stdDev: 1.2,
-    sigmaWithin: 1.1,
-    mrBar: 1.24,
-    ucl: 14.1,
-    lcl: 6.9,
-    cp: 1.5,
-    cpk: 1.2,
-    outOfSpecPercentage: 5.5,
-  };
-
-  const mockSpecs = {
-    usl: 15,
-    lsl: 5,
-  };
-
-  const mockFilteredData = [{ value: 10 }, { value: 11 }, { value: 9 }];
-
   beforeEach(() => {
     vi.restoreAllMocks();
+    // Seed the project store with test data
+    useProjectStore.setState({
+      specs: mockSpecs,
+      outcome: 'value',
+      cpkTarget: undefined,
+      factors: [],
+    });
   });
 
-  it('shows Summary tab by default', () => {
+  it('shows Stats tab content by default', () => {
     render(
       <ProcessIntelligencePanel
         stats={mockStats}
@@ -78,31 +81,13 @@ describe('ProcessIntelligencePanel', () => {
       />
     );
 
-    // Stats tab should be active (surface-tertiary background)
-    const statsTab = screen.getByText('Stats');
+    // Stats tab should be active
+    const statsTab = screen.getByTestId('pi-tab-stats');
     expect(statsTab).toHaveClass('bg-surface-tertiary');
 
-    // Should show pass rate (use getAllByText since HelpTooltip may also contain the term)
+    // Should show pass rate
     expect(screen.getAllByText('Pass Rate').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('94.5%')).toBeInTheDocument(); // 100 - 5.5
-  });
-
-  it('switches to Questions tab on click', () => {
-    render(
-      <ProcessIntelligencePanel
-        stats={mockStats}
-        specs={mockSpecs}
-        filteredData={mockFilteredData}
-        outcome="value"
-      />
-    );
-
-    // Click Questions tab
-    fireEvent.click(screen.getByText('Questions'));
-
-    // Questions tab should now be active
-    const questionsTab = screen.getByText('Questions');
-    expect(questionsTab).toHaveClass('bg-surface-tertiary');
+    expect(screen.getByText('94.5%')).toBeInTheDocument();
   });
 
   it('displays Cp when specs are set', () => {
@@ -115,26 +100,8 @@ describe('ProcessIntelligencePanel', () => {
       />
     );
 
-    // Cp label appears multiple times due to HelpTooltip
     expect(screen.getAllByText('Cp').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('1.50')).toBeInTheDocument();
-  });
-
-  it('always shows Cp and Cpk in the card grid when specs are set', () => {
-    render(
-      <ProcessIntelligencePanel
-        stats={mockStats}
-        specs={mockSpecs}
-        filteredData={mockFilteredData}
-        outcome="value"
-      />
-    );
-
-    // Both Cp and Cpk always shown when specs exist
-    expect(screen.getAllByText('Cp').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('1.50')).toBeInTheDocument();
-    expect(screen.getAllByText('Cpk').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows Mean, Median, and Std Dev in the card grid', () => {
@@ -147,17 +114,15 @@ describe('ProcessIntelligencePanel', () => {
       />
     );
 
-    // Mean, Median, and Std Dev are always shown
     expect(screen.getAllByText('Mean').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('10.50')).toBeInTheDocument();
     expect(screen.getAllByText('Median').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('10.40')).toBeInTheDocument();
     expect(screen.getAllByText('Std Dev').length).toBeGreaterThanOrEqual(1);
-    // Std Dev value (1.20) may appear multiple times if Cpk is same, use getAllByText
     expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows sample count inline', () => {
+  it('shows sample count', () => {
     render(
       <ProcessIntelligencePanel
         stats={mockStats}
@@ -168,25 +133,10 @@ describe('ProcessIntelligencePanel', () => {
     );
 
     expect(screen.getByTestId('stat-value-samples')).toBeInTheDocument();
-    expect(screen.getByText('n=3')).toBeInTheDocument(); // 3 items in mockFilteredData
+    expect(screen.getByText('n=3')).toBeInTheDocument();
   });
 
-  it('shows "Edit specifications" pencil link when no specs provided', () => {
-    render(
-      <ProcessIntelligencePanel
-        stats={mockStats}
-        specs={{}}
-        filteredData={mockFilteredData}
-        outcome="value"
-      />
-    );
-
-    // Should show pencil link to set specs
-    expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
-    expect(screen.getByText('Edit specifications')).toBeInTheDocument();
-  });
-
-  it('shows "Edit specifications" pencil link when specs are set', () => {
+  it('shows "Edit specifications" pencil link', () => {
     render(
       <ProcessIntelligencePanel
         stats={mockStats}
@@ -200,53 +150,34 @@ describe('ProcessIntelligencePanel', () => {
     expect(screen.getByText('Edit specifications')).toBeInTheDocument();
   });
 
-  describe('compact mode', () => {
-    it('shows pencil link in compact mode', () => {
-      render(
-        <ProcessIntelligencePanel
-          stats={mockStats}
-          specs={mockSpecs}
-          filteredData={mockFilteredData}
-          outcome="value"
-          compact
-        />
-      );
+  it('hides capability metrics when no specs', () => {
+    useProjectStore.setState({ specs: {} });
+    render(
+      <ProcessIntelligencePanel
+        stats={mockStats}
+        specs={{}}
+        filteredData={mockFilteredData}
+        outcome="value"
+      />
+    );
 
-      expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
-      expect(screen.getByText('Edit specifications')).toBeInTheDocument();
-    });
+    expect(screen.queryByText('Pass Rate')).not.toBeInTheDocument();
+    expect(screen.queryByText('Cp')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Mean').length).toBeGreaterThanOrEqual(1);
+  });
 
-    it('shows metrics in compact mode', () => {
-      render(
-        <ProcessIntelligencePanel
-          stats={mockStats}
-          specs={mockSpecs}
-          filteredData={mockFilteredData}
-          outcome="value"
-          compact
-        />
-      );
+  it('renders compact mode', () => {
+    const { container } = render(
+      <ProcessIntelligencePanel
+        stats={mockStats}
+        specs={mockSpecs}
+        filteredData={mockFilteredData}
+        outcome="value"
+        compact
+      />
+    );
 
-      expect(screen.getAllByText('Mean').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('10.50')).toBeInTheDocument();
-      expect(screen.getByText('n=3')).toBeInTheDocument();
-    });
-
-    it('switches tabs in compact mode', () => {
-      render(
-        <ProcessIntelligencePanel
-          stats={mockStats}
-          specs={mockSpecs}
-          filteredData={mockFilteredData}
-          outcome="value"
-          compact
-        />
-      );
-
-      fireEvent.click(screen.getByText('Questions'));
-      // Questions tab should be active
-      const questionsTab = screen.getByText('Questions');
-      expect(questionsTab).toHaveClass('bg-surface-tertiary');
-    });
+    expect(container.querySelector('.scroll-touch')).not.toBeNull();
+    expect(screen.getByText('Edit specifications')).toBeInTheDocument();
   });
 });

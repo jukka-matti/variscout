@@ -14,9 +14,13 @@ vi.mock('../charts/ParetoChart', () => ({
     <div data-testid="pareto-chart">Pareto: {factor}</div>
   ),
 }));
-vi.mock('../ProcessIntelligencePanel', () => ({
-  default: () => <div data-testid="stats-panel">Process Intelligence Panel</div>,
-}));
+vi.mock('@variscout/ui', async () => {
+  const actual = await vi.importActual('@variscout/ui');
+  return {
+    ...actual,
+    StatsTabContent: () => <div data-testid="stats-panel">Stats Tab Content</div>,
+  };
+});
 
 describe('PresentationView', () => {
   const onExit = vi.fn();

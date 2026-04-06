@@ -113,7 +113,6 @@ export {
 
 export {
   PIPanelBase,
-  StatsSummaryPanel,
   TargetDiscoveryCard,
   StagedComparisonCard,
   defaultStagedComparisonColorScheme,
@@ -121,7 +120,6 @@ export {
   QuestionsTabView,
   QuestionsTabContent,
   QuestionRow,
-  ObservationsSection,
   ConclusionCard,
   EquationDisplay,
   formatEquation,
@@ -132,7 +130,6 @@ export {
   type PITab,
   type ComplementInsight,
   type TargetDiscoveryCardProps,
-  type StatsSummaryPanelProps,
   type StagedComparisonCardProps,
   type StagedComparisonColorScheme,
   type FactorIntelligencePanelProps,
@@ -143,7 +140,6 @@ export {
   JournalTabContent,
   type JournalTabContentProps,
   type QuestionRowProps,
-  type ObservationsSectionProps,
   type ConclusionCardProps,
   type SuspectedCause,
   QuestionInputModal,

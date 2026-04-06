@@ -27,7 +27,7 @@ import {
   computePresets,
 } from '@variscout/ui';
 import type { PITabConfig, PIOverflowItem } from '@variscout/ui';
-import { useIsMobile, BREAKPOINTS, useGlossary } from '@variscout/ui';
+import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import {
   useResizablePanel,
   useFilteredData,
@@ -89,7 +89,6 @@ export const PISection: React.FC<PISectionProps> = ({
   projectId,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
-  const { getTerm } = useGlossary();
 
   // Store reads
   const specs = useProjectStore(s => s.specs);
@@ -291,18 +290,7 @@ export const PISection: React.FC<PISectionProps> = ({
         className="flex flex-col flex-shrink-0 bg-surface-secondary overflow-y-auto"
         style={{ width: piSidebar.width }}
       >
-        <PIPanelBase
-          compact={true}
-          stats={stats}
-          specs={specs}
-          filteredData={filteredData}
-          outcome={outcome}
-          getTerm={getTerm}
-          sampleCount={filteredData?.length}
-          cpkTarget={cpkTarget}
-          tabs={tabs}
-          overflowItems={overflowItems}
-        />
+        <PIPanelBase compact={true} tabs={tabs} overflowItems={overflowItems} />
       </div>
 
       {/* Resize handle */}

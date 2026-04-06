@@ -1,5 +1,4 @@
 export { default as PIPanelBase } from './PIPanelBase';
-export { default as StatsSummaryPanel } from './StatsSummaryPanel';
 export { default as TargetDiscoveryCard } from './TargetDiscoveryCard';
 export { default as BestSubsetsCard } from './BestSubsetsCard';
 export { default as MainEffectsPlot } from './MainEffectsPlot';
@@ -11,7 +10,6 @@ export type { BestSubsetsCardProps } from './BestSubsetsCard';
 export type { MainEffectsPlotProps } from './MainEffectsPlot';
 export type { InteractionPlotProps } from './InteractionPlot';
 export type { FactorIntelligencePanelProps } from './FactorIntelligencePanel';
-export type { StatsSummaryPanelProps } from './StatsSummaryPanel';
 export { StagedComparisonCard, defaultStagedComparisonColorScheme } from './StagedComparisonCard';
 export type {
   StagedComparisonCardProps,
@@ -23,8 +21,6 @@ export { default as JournalEntryRow } from './JournalEntryRow';
 export type { JournalEntryRowProps } from './JournalEntryRow';
 export { default as QuestionRow } from './QuestionRow';
 export type { QuestionRowProps } from './QuestionRow';
-export { default as ObservationsSection } from './ObservationsSection';
-export type { ObservationsSectionProps } from './ObservationsSection';
 export { default as ConclusionCard } from './ConclusionCard';
 export type { ConclusionCardProps, SuspectedCause } from './ConclusionCard';
 export { default as QuestionsTabView } from './QuestionsTabView';

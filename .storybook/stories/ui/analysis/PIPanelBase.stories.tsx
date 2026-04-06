@@ -1,19 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { PIPanelBase } from '../../../../packages/ui/src/index';
-import type { StatsResult } from '../../../../packages/core/src/types';
-
-const mockStats: StatsResult = {
-  mean: 10.08,
-  median: 10.05,
-  stdDev: 0.27,
-  sigmaWithin: 0.24,
-  mrBar: 0.27,
-  ucl: 10.8,
-  lcl: 9.36,
-  cp: 1.39,
-  cpk: 1.28,
-  outOfSpecPercentage: 0.5,
-};
 
 const meta = {
   title: 'UI/Analysis/PIPanelBase',
@@ -27,25 +13,65 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    stats: mockStats,
-    specs: { usl: 11.0, lsl: 9.0, target: 10.0 },
-    sampleCount: 150,
+    tabs: [
+      {
+        id: 'stats',
+        label: 'Stats',
+        content: <div className="p-4 text-content">Stats content here</div>,
+      },
+      {
+        id: 'questions',
+        label: 'Questions',
+        badge: 3,
+        content: <div className="p-4 text-content">Questions content here</div>,
+      },
+      {
+        id: 'journal',
+        label: 'Journal',
+        content: <div className="p-4 text-content">Journal content here</div>,
+      },
+    ],
   },
 };
 
-export const NoSpecs: Story = {
+export const WithOverflow: Story = {
   args: {
-    stats: { ...mockStats, cp: undefined, cpk: undefined, outOfSpecPercentage: 0 },
-    specs: {},
-    sampleCount: 150,
+    tabs: [
+      {
+        id: 'stats',
+        label: 'Stats',
+        content: <div className="p-4 text-content">Stats content here</div>,
+      },
+    ],
+    overflowItems: [
+      {
+        id: 'data',
+        label: 'Data Table',
+        content: <div className="p-4 text-content">Data table content</div>,
+      },
+      {
+        id: 'whatif',
+        label: 'What-If',
+        content: <div className="p-4 text-content">What-If simulator content</div>,
+      },
+    ],
   },
 };
 
-export const WithEditSpecs: Story = {
+export const Compact: Story = {
   args: {
-    stats: mockStats,
-    specs: { usl: 11.0, lsl: 9.0, target: 10.0 },
-    sampleCount: 150,
-    onEditSpecs: () => {},
+    compact: true,
+    tabs: [
+      {
+        id: 'stats',
+        label: 'Stats',
+        content: <div className="p-4 text-content">Stats content here</div>,
+      },
+      {
+        id: 'questions',
+        label: 'Questions',
+        content: <div className="p-4 text-content">Questions content here</div>,
+      },
+    ],
   },
 };
