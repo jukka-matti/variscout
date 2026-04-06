@@ -184,3 +184,6 @@ export {
   calculateSubgroupCapability,
   calculateSeriesControlLimits,
 } from './subgroupCapability';
+
+// Boundary 2: numeric safety utilities (ADR-069)
+export { finiteOrUndefined, safeDivide, computeOptimum } from './safeMath';
