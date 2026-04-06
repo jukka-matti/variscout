@@ -31,7 +31,11 @@ interface FactorNodeProps {
   onContextMenu?: (factor: string, clientX: number, clientY: number) => void;
 }
 
-function getNodeColor(rSquaredAdj: number, isDark: boolean): string {
+function getNodeColor(rSquaredAdj: number, isDark: boolean, explored?: boolean): string {
+  if (explored === false) {
+    const chrome = getChromeColors(isDark);
+    return chrome.labelMuted;
+  }
   if (rSquaredAdj >= 0.2) return chartColors.pass; // green — strong
   if (rSquaredAdj >= 0.1) return chartColors.warning; // amber — moderate
   const chrome = getChromeColors(isDark);
@@ -103,7 +107,7 @@ const FactorNode: React.FC<FactorNodeProps> = ({
   onContextMenu,
 }) => {
   const chrome = getChromeColors(isDark);
-  const color = getNodeColor(node.rSquaredAdj, isDark);
+  const color = getNodeColor(node.rSquaredAdj, isDark, node.explored);
   const textColor = chrome.labelPrimary;
   const subtextColor = chrome.labelSecondary;
   const highlightStroke = isHighlighted ? chartColors.mean : 'transparent';
@@ -175,7 +179,7 @@ const FactorNode: React.FC<FactorNodeProps> = ({
       <circle
         r={node.radius}
         fill={color}
-        opacity={isHighlighted ? 0.9 : 0.7}
+        opacity={node.explored === false ? 0.4 : isHighlighted ? 0.9 : 0.7}
         stroke={color}
         strokeWidth={1.5}
       />
