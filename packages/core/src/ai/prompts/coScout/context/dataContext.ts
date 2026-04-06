@@ -51,7 +51,17 @@ export function formatDataContext(context: AIContext): string {
   if (context.variationContributions && context.variationContributions.length > 0) {
     const topFactors = context.variationContributions
       .slice(0, 5)
-      .map(vc => `${vc.factor} \u03b7\u00b2=${Math.round(vc.etaSquared * 100)}%`)
+      .map(vc => {
+        let label = `${vc.factor} \u03b7\u00b2=${Math.round(vc.etaSquared * 100)}%`;
+        if (vc.factorType) {
+          const parts: string[] = [vc.factorType];
+          if (vc.relationship === 'quadratic' && vc.optimum !== undefined) {
+            parts.push(`sweet spot ${vc.optimum}`);
+          }
+          label += ` [${parts.join(', ')}]`;
+        }
+        return label;
+      })
       .join(', ');
     lines.push(`Top factors: ${topFactors}`);
   }

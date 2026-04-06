@@ -112,10 +112,17 @@ export function buildSummaryPrompt(context: AIContext): string {
   // Variation contributions
   if (context.variationContributions && context.variationContributions.length > 0) {
     const vcStr = context.variationContributions
-      .map(
-        vc =>
-          `${vc.factor}${vc.category ? ` (${vc.category})` : ''}: η²=${formatStatistic(vc.etaSquared * 100, 'en', 1)}%`
-      )
+      .map(vc => {
+        let label = `${vc.factor}${vc.category ? ` (${vc.category})` : ''}: η²=${formatStatistic(vc.etaSquared * 100, 'en', 1)}%`;
+        if (vc.factorType) {
+          const parts: string[] = [vc.factorType];
+          if (vc.relationship === 'quadratic' && vc.optimum !== undefined) {
+            parts.push(`sweet spot ${vc.optimum}`);
+          }
+          label += ` [${parts.join(', ')}]`;
+        }
+        return label;
+      })
       .join(', ');
     parts.push(`Variation contributions: ${vcStr}`);
   }

@@ -322,6 +322,27 @@ describe('formatDataContext', () => {
     expect(result).toContain('18%');
   });
 
+  it('includes factor type and optimum in variation contributions line', () => {
+    const result = formatDataContext({
+      ...emptyContext,
+      variationContributions: [
+        {
+          factor: 'Temperature',
+          etaSquared: 0.45,
+          factorType: 'continuous',
+          relationship: 'quadratic',
+          optimum: 72.3,
+        },
+        { factor: 'Machine', etaSquared: 0.12, factorType: 'categorical' },
+        { factor: 'Shift', etaSquared: 0.05 },
+      ],
+    });
+    expect(result).toContain('Temperature η²=45% [continuous, sweet spot 72.3]');
+    expect(result).toContain('Machine η²=12% [categorical]');
+    expect(result).toContain('Shift η²=5%');
+    expect(result).not.toContain('Shift η²=5% [');
+  });
+
   it('includes best model equation with R-squared adj and worst/best cases', () => {
     const result = formatDataContext({
       ...emptyContext,
