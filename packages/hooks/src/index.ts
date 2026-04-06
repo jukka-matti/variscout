@@ -335,6 +335,9 @@ export {
   type UseAsyncStatsResult,
 } from './useAsyncStats';
 
+// Hub Computations (shared evidence + projection memos)
+export { useHubComputations, type UseHubComputationsReturn } from './useHubComputations';
+
 // Question Generation (Factor Intelligence → questions pipeline)
 export {
   useQuestionGeneration,
