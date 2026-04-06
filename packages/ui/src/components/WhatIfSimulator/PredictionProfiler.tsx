@@ -226,9 +226,11 @@ function FactorCard({ factor, onValueChange }: FactorCardProps) {
 
   const displayValue =
     typeof factor.currentValue === 'number'
-      ? factor.currentValue % 1 === 0
-        ? factor.currentValue.toFixed(0)
-        : factor.currentValue.toFixed(2)
+      ? !Number.isFinite(factor.currentValue)
+        ? '—'
+        : factor.currentValue % 1 === 0
+          ? factor.currentValue.toFixed(0)
+          : factor.currentValue.toFixed(2)
       : factor.currentValue;
 
   return (
@@ -277,7 +279,10 @@ function FactorCard({ factor, onValueChange }: FactorCardProps) {
           {factor.hasOptimum && factor.optimumValue != null && (
             <div className="flex items-center gap-1 text-[0.625rem] text-purple-400">
               <TrendingUp size={10} />
-              <span>Optimum: {factor.optimumValue.toFixed(2)}</span>
+              <span>
+                Optimum:{' '}
+                {Number.isFinite(factor.optimumValue) ? factor.optimumValue.toFixed(2) : '—'}
+              </span>
             </div>
           )}
 
@@ -356,10 +361,14 @@ const PredictionProfiler: React.FC<PredictionProfilerProps> = ({
 }) => {
   const trust = trustLevel ? TRUST_CONFIG[trustLevel] : null;
 
-  const formattedPrediction =
-    predictedValue % 1 === 0 ? predictedValue.toFixed(0) : predictedValue.toFixed(2);
+  const formattedPrediction = !Number.isFinite(predictedValue)
+    ? '—'
+    : predictedValue % 1 === 0
+      ? predictedValue.toFixed(0)
+      : predictedValue.toFixed(2);
 
-  const formattedCpk = predictedCpk != null ? predictedCpk.toFixed(2) : null;
+  const formattedCpk =
+    predictedCpk != null && Number.isFinite(predictedCpk) ? predictedCpk.toFixed(2) : null;
 
   return (
     <div

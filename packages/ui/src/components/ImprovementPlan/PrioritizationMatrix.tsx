@@ -393,7 +393,9 @@ function buildTooltip(idea: MatrixIdea, t: (key: keyof MessageCatalog) => string
     lines.push(`${t('matrix.axis.benefit')}: ${t(BENEFIT_I18N[idea.impactOverride])}`);
   }
   if (idea.projection?.projectedCpk != null) {
-    lines.push(`Cpk: ${idea.projection.projectedCpk.toFixed(2)}`);
+    lines.push(
+      `Cpk: ${Number.isFinite(idea.projection.projectedCpk) ? idea.projection.projectedCpk.toFixed(2) : '—'}`
+    );
   }
   lines.push(`\n${t('matrix.clickToSelect')}`);
   return lines.join('\n');

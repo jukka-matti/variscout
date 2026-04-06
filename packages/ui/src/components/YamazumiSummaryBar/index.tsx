@@ -23,6 +23,7 @@ export interface YamazumiSummaryBarProps {
 }
 
 function formatTime(seconds: number): string {
+  if (!Number.isFinite(seconds)) return '—';
   if (seconds >= 3600) return `${(seconds / 3600).toFixed(1)}h`;
   if (seconds >= 60) return `${(seconds / 60).toFixed(1)}m`;
   return `${seconds.toFixed(1)}s`;

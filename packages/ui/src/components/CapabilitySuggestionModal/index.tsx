@@ -339,7 +339,7 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                   <span title="Process Potential — measures spread vs spec width, ignoring centering">
                     Cp
                   </span>{' '}
-                  {liveCpk.cp.toFixed(2)}
+                  {Number.isFinite(liveCpk.cp) ? liveCpk.cp.toFixed(2) : '—'}
                 </div>
               )}
             </div>

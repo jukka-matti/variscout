@@ -80,7 +80,7 @@ const HubComposer: React.FC<HubComposerProps> = ({
     : null;
 
   const projectionLabel = projection
-    ? `${projection.label} ${projection.predictedMeanDelta > 0 ? '+' : ''}${projection.predictedMeanDelta.toFixed(1)}`
+    ? `${projection.label} ${projection.predictedMeanDelta > 0 ? '+' : ''}${Number.isFinite(projection.predictedMeanDelta) ? projection.predictedMeanDelta.toFixed(1) : '—'}`
     : null;
 
   return (

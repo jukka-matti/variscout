@@ -82,7 +82,7 @@ export const ImprovementContextPanel: React.FC<ImprovementContextPanelProps> = (
                   data-testid="context-target-cpk"
                   className="text-2xl font-bold text-green-500 leading-none"
                 >
-                  {targetCpk.toFixed(2)}
+                  {Number.isFinite(targetCpk) ? targetCpk.toFixed(2) : '—'}
                 </span>
                 <span className="text-[0.625rem] text-content-muted mt-0.5 uppercase tracking-wide">
                   Target Cpk
@@ -98,7 +98,7 @@ export const ImprovementContextPanel: React.FC<ImprovementContextPanelProps> = (
                   data-testid="context-current-cpk"
                   className="text-lg font-semibold text-red-400 leading-none"
                 >
-                  {currentCpk.toFixed(2)}
+                  {Number.isFinite(currentCpk) ? currentCpk.toFixed(2) : '—'}
                 </span>
                 <span className="text-[0.625rem] text-content-muted mt-0.5 uppercase tracking-wide">
                   Current Cpk

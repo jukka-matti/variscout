@@ -65,7 +65,7 @@ export const ReportActivityBreakdown: React.FC<ReportActivityBreakdownProps> = (
 
               {/* Percentage */}
               <span className="text-slate-500 dark:text-slate-400">
-                {(segment.percentage * 100).toFixed(1)}%
+                {Number.isFinite(segment.percentage) ? (segment.percentage * 100).toFixed(1) : '—'}%
               </span>
             </div>
           );

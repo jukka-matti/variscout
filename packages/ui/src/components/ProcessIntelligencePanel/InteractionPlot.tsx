@@ -74,12 +74,12 @@ const InteractionPanel: React.FC<{ interaction: InteractionResult }> = ({ intera
                 : 'bg-surface-tertiary text-content-muted'
             }`}
           >
-            ΔR²={deltaRSquared.toFixed(3)}
+            ΔR²={Number.isFinite(deltaRSquared) ? deltaRSquared.toFixed(3) : '—'}
           </span>
           {isSignificant && (
             <span className="text-[0.625rem] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500">
               p{'<'}
-              {pValue < 0.001 ? '0.001' : pValue.toFixed(3)}
+              {!Number.isFinite(pValue) ? '—' : pValue < 0.001 ? '0.001' : pValue.toFixed(3)}
             </span>
           )}
         </div>
@@ -99,7 +99,7 @@ const InteractionPanel: React.FC<{ interaction: InteractionResult }> = ({ intera
           className="fill-content-muted text-[0.5625rem]"
           textAnchor="end"
         >
-          {yMax.toFixed(0)}
+          {Number.isFinite(yMax) ? yMax.toFixed(0) : ''}
         </text>
         <text
           x={marginLeft - 4}
@@ -107,7 +107,7 @@ const InteractionPanel: React.FC<{ interaction: InteractionResult }> = ({ intera
           className="fill-content-muted text-[0.5625rem]"
           textAnchor="end"
         >
-          {yMin.toFixed(0)}
+          {Number.isFinite(yMin) ? yMin.toFixed(0) : ''}
         </text>
 
         {/* Series lines */}

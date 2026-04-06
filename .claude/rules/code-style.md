@@ -6,6 +6,13 @@
 - Use explicit types for function parameters and return values
 - Prefer `interface` over `type` for object shapes
 
+## Numeric Safety
+
+- Never use `.toFixed()` on statistical values in UI or AI prompt code — use `formatStatistic()` from `@variscout/core/i18n`, or guard with `Number.isFinite()` first
+- For internal computation strings (e.g., equation builder), `Number.isFinite()` guard + `.toFixed()` is acceptable
+- Stats functions must return `number | undefined`, never NaN or Infinity (see ADR-069)
+- Use `safeDivide()` from `@variscout/core/stats` for any division where the denominator could be zero or near-zero
+
 ## React
 
 - Functional components only (no class components)

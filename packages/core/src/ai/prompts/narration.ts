@@ -116,8 +116,12 @@ export function buildSummaryPrompt(context: AIContext): string {
         let label = `${vc.factor}${vc.category ? ` (${vc.category})` : ''}: η²=${formatStatistic(vc.etaSquared * 100, 'en', 1)}%`;
         if (vc.factorType) {
           const parts: string[] = [vc.factorType];
-          if (vc.relationship === 'quadratic' && vc.optimum !== undefined) {
-            parts.push(`sweet spot ${vc.optimum}`);
+          if (
+            vc.relationship === 'quadratic' &&
+            vc.optimum !== undefined &&
+            Number.isFinite(vc.optimum)
+          ) {
+            parts.push(`sweet spot ${vc.optimum!.toFixed(2)}`);
           }
           label += ` [${parts.join(', ')}]`;
         }

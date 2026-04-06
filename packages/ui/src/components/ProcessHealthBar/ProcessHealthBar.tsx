@@ -137,7 +137,7 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
     // Yamazumi lean mode: show CT, VA%, takt instead of Cpk stats
     if (mode === 'yamazumi' && leanStats) {
       const ctStr = formatStat(leanStats.cycleTime, 1);
-      const vaStr = (leanStats.vaRatio * 100).toFixed(0);
+      const vaStr = Number.isFinite(leanStats.vaRatio) ? (leanStats.vaRatio * 100).toFixed(0) : '—';
       const taktCompliance =
         leanStats.taktTime != null ? leanStats.cycleTime <= leanStats.taktTime : undefined;
 
@@ -251,7 +251,9 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
     // Specs set: show Pass Rate (or subgroup target %), Cpk/target, Mean, σ, n
     const passRate =
       stats.outOfSpecPercentage !== undefined
-        ? (100 - stats.outOfSpecPercentage).toFixed(1) + '%'
+        ? (Number.isFinite(stats.outOfSpecPercentage)
+            ? (100 - stats.outOfSpecPercentage).toFixed(1)
+            : '—') + '%'
         : '—';
     const subgroupPct =
       isCapabilityMode && capabilityStats && capabilityStats.totalSubgroups > 0

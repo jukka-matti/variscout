@@ -72,14 +72,16 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({
               className="rounded-lg border border-edge bg-surface-secondary p-3"
             >
               <div className="mb-1 text-xs text-content/50">Cpk</div>
-              <div className="text-xs text-content/60">{verification.cpkBefore.toFixed(2)}</div>
+              <div className="text-xs text-content/60">
+                {Number.isFinite(verification.cpkBefore) ? verification.cpkBefore.toFixed(2) : '—'}
+              </div>
               <div
                 data-testid="verification-cpk-after"
                 className={`text-base font-semibold ${
                   verification.cpkAfter > verification.cpkBefore ? 'text-green-400' : 'text-red-400'
                 }`}
               >
-                {verification.cpkAfter.toFixed(2)}
+                {Number.isFinite(verification.cpkAfter) ? verification.cpkAfter.toFixed(2) : '—'}
               </div>
             </div>
 
@@ -112,7 +114,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({
               <div className="mb-1 text-xs text-content/50">Mean Shift</div>
               <div className="text-base font-semibold text-content">
                 {verification.meanShift >= 0 ? '+' : ''}
-                {verification.meanShift.toFixed(2)}
+                {Number.isFinite(verification.meanShift) ? verification.meanShift.toFixed(2) : '—'}
               </div>
             </div>
 
@@ -128,7 +130,9 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({
                   verification.sigmaRatio < 1 ? 'text-green-400' : 'text-red-400'
                 }`}
               >
-                {verification.sigmaRatio.toFixed(2)}
+                {Number.isFinite(verification.sigmaRatio)
+                  ? verification.sigmaRatio.toFixed(2)
+                  : '—'}
               </div>
             </div>
           </div>

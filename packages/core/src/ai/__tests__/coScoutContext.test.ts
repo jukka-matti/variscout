@@ -337,7 +337,7 @@ describe('formatDataContext', () => {
         { factor: 'Shift', etaSquared: 0.05 },
       ],
     });
-    expect(result).toContain('Temperature η²=45% [continuous, sweet spot 72.3]');
+    expect(result).toContain('Temperature η²=45% [continuous, sweet spot 72.30]');
     expect(result).toContain('Machine η²=12% [categorical]');
     expect(result).toContain('Shift η²=5%');
     expect(result).not.toContain('Shift η²=5% [');

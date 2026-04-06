@@ -180,6 +180,11 @@ function calculateAnovaFromGroups(
   const sst = ssb + ssw;
   const etaSquared = sst > 0 ? ssb / sst : 0;
 
+  // Boundary 2: reject non-finite outputs (ADR-069)
+  if (!Number.isFinite(fStatistic) || !Number.isFinite(pValue) || !Number.isFinite(etaSquared)) {
+    return null;
+  }
+
   // Generate plain-language insight
   const insight = generateAnovaInsight(groupStats, isSignificant, outcomeName);
 

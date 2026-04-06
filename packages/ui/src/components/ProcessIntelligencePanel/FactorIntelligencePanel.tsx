@@ -102,8 +102,14 @@ const FactorIntelligencePanel: React.FC<FactorIntelligencePanelProps> = ({
       {/* Layer 2 locked message */}
       {!showLayer2 && bestSubsets.subsets.length > 0 && (
         <div className="text-[0.6875rem] text-content-muted italic py-1">
-          {tf('fi.layer2Locked', { threshold: (LAYER2_THRESHOLD * 100).toFixed(0) })}
-          {bestR2adj > 0 && tf('fi.layer2Current', { value: (bestR2adj * 100).toFixed(1) })}
+          {tf('fi.layer2Locked', {
+            threshold: Number.isFinite(LAYER2_THRESHOLD)
+              ? (LAYER2_THRESHOLD * 100).toFixed(0)
+              : '—',
+          })}
+          {bestR2adj > 0 &&
+            Number.isFinite(bestR2adj) &&
+            tf('fi.layer2Current', { value: (bestR2adj * 100).toFixed(1) })}
         </div>
       )}
 

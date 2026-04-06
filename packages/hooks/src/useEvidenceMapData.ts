@@ -99,7 +99,7 @@ export interface UseEvidenceMapDataReturn {
  * Currently R²adj is shown for all modes as a universal metric.
  */
 function buildMetricLabel(rSquaredAdj: number, _mode: ResolvedMode): string {
-  return `R\u00B2adj=${rSquaredAdj.toFixed(2)}`;
+  return `R\u00B2adj=${Number.isFinite(rSquaredAdj) ? rSquaredAdj.toFixed(2) : '?'}`;
 }
 
 /** Build the strongest level effect as +/- value string. */
@@ -109,7 +109,7 @@ function buildEffectLabel(levelEffects: Array<{ level: string; effect: number }>
   // levelEffects are already sorted by absolute effect descending
   const strongest = levelEffects[0];
   const sign = strongest.effect >= 0 ? '+' : '';
-  return `${sign}${strongest.effect.toFixed(1)}`;
+  return Number.isFinite(strongest.effect) ? `${sign}${strongest.effect.toFixed(1)}` : '—';
 }
 
 /**

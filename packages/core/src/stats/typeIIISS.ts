@@ -16,6 +16,7 @@ import type { DataRow, TypeIIIResult } from '../types';
 import type { FactorSpec } from './designMatrix';
 import { buildDesignMatrix } from './designMatrix';
 import { solveOLS } from './olsRegression';
+import { safeDivide, finiteOrUndefined } from './safeMath';
 import { fDistributionPValue } from './distributions';
 
 /**
@@ -76,8 +77,12 @@ export function computeTypeIIISS(
       const ssTypeIII = fullSolution.sst - sseFullModel;
       // Actually: SSE(intercept-only) = SST, so Type III SS = SST - SSE_full = SSR_full
       // But more precisely: Type III SS = SSE_reduced - SSE_full = SST - SSE_full
-      const partialEtaSq = ssTypeIII / (ssTypeIII + sseFullModel);
-      const fStat = mseFull > 0 ? ssTypeIII / dfEffect / mseFull : 0;
+      const partialEtaSq =
+        ssTypeIII + sseFullModel > 0
+          ? (finiteOrUndefined(ssTypeIII / (ssTypeIII + sseFullModel)) ?? 0)
+          : 0;
+      const msEffect = safeDivide(ssTypeIII, dfEffect);
+      const fStat = msEffect !== undefined && mseFull > 0 ? msEffect / mseFull : 0;
       const pValue = dfResidualFull > 0 ? fDistributionPValue(fStat, dfEffect, dfResidualFull) : 1;
 
       results.set(factorToRemove.name, {
@@ -110,8 +115,12 @@ export function computeTypeIIISS(
     }
 
     const ssTypeIII = Math.max(0, reducedSolution.sse - sseFullModel);
-    const partialEtaSq = ssTypeIII + sseFullModel > 0 ? ssTypeIII / (ssTypeIII + sseFullModel) : 0;
-    const fStat = mseFull > 0 ? ssTypeIII / dfEffect / mseFull : 0;
+    const partialEtaSq =
+      ssTypeIII + sseFullModel > 0
+        ? (finiteOrUndefined(ssTypeIII / (ssTypeIII + sseFullModel)) ?? 0)
+        : 0;
+    const msEffect = safeDivide(ssTypeIII, dfEffect);
+    const fStat = msEffect !== undefined && mseFull > 0 ? msEffect / mseFull : 0;
     const pValue = dfResidualFull > 0 ? fDistributionPValue(fStat, dfEffect, dfResidualFull) : 1;
 
     results.set(factorToRemove.name, {

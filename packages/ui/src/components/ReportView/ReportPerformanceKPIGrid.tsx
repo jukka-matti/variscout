@@ -53,7 +53,7 @@ export const ReportPerformanceKPIGrid: React.FC<ReportPerformanceKPIGridProps> =
           data-testid="worst-cpk"
           className={`mt-1 text-lg font-semibold ${getCpkColor(worstCpk, cpkTarget)}`}
         >
-          {worstCpk.toFixed(2)}
+          {Number.isFinite(worstCpk) ? worstCpk.toFixed(2) : '—'}
         </div>
         <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{worstChannelName}</div>
       </div>
@@ -62,10 +62,10 @@ export const ReportPerformanceKPIGrid: React.FC<ReportPerformanceKPIGridProps> =
       <div className={cardClass}>
         <div className={labelClass}>Mean Cpk</div>
         <div className={`mt-1 text-lg font-semibold ${getCpkColor(meanCpk, cpkTarget)}`}>
-          {meanCpk.toFixed(2)}
+          {Number.isFinite(meanCpk) ? meanCpk.toFixed(2) : '—'}
         </div>
         <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-          target: {cpkTarget.toFixed(2)}
+          target: {Number.isFinite(cpkTarget) ? cpkTarget.toFixed(2) : '—'}
         </div>
       </div>
     </div>

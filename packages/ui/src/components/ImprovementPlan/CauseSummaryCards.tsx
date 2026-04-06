@@ -78,7 +78,7 @@ export const CauseSummaryCards: React.FC<CauseSummaryCardsProps> = ({ causes, on
             }
           >
             {cause.avgProjectedCpk != null
-              ? `Avg Cpk: ${cause.avgProjectedCpk.toFixed(2)}`
+              ? `Avg Cpk: ${Number.isFinite(cause.avgProjectedCpk) ? cause.avgProjectedCpk.toFixed(2) : '—'}`
               : 'Avg Cpk: —'}
           </span>
 

@@ -930,3 +930,43 @@ Evidence level tells you **how confident** you can be. η² tells you **how impo
 | Type III SS                          | Montgomery, D.C. (2017). _Design and Analysis of Experiments_, 9th ed., Ch. 8 |
 | VIF multicollinearity                | Belsley, Kuh & Welsch. _Regression Diagnostics_ (1980). Wiley.                |
 | NIST StRD regression benchmarks      | NIST Statistical Reference Datasets, https://www.itl.nist.gov/div898/strd/    |
+
+---
+
+## Numerical Safety — Three-Boundary Defense
+
+> Source: `packages/core/src/stats/safeMath.ts`
+> Architecture: [ADR-069](../07-decisions/adr-069-three-boundary-numeric-safety.md)
+
+### Architecture
+
+```
+Raw Data → [B1: Input] → Clean Data → [Stats Engine] → [B2: Output] → Safe Results → [B3: Display] → User
+```
+
+| Boundary | Location                                | Guard                                               | Handles                               |
+| -------- | --------------------------------------- | --------------------------------------------------- | ------------------------------------- |
+| **B1**   | `toNumericValue()` in `types.ts`        | `isFinite() && !isNaN()`                            | Rejects NaN/Infinity from parsed data |
+| **B2**   | `safeMath.ts` utilities                 | `finiteOrUndefined`, `safeDivide`, `computeOptimum` | Guarantees finite stats output        |
+| **B3**   | `formatStatistic()` in `i18n/format.ts` | `!isFinite(value) → '—'`                            | Prevents "NaN"/"Infinity" in UI text  |
+
+### Utilities (`safeMath.ts`)
+
+| Function            | Signature                                                | Returns                                                       |
+| ------------------- | -------------------------------------------------------- | ------------------------------------------------------------- |
+| `finiteOrUndefined` | `(n: number) → number \| undefined`                      | `n` if finite, else `undefined`                               |
+| `safeDivide`        | `(num, denom, minDenom?) → number \| undefined`          | Result if finite and `\|denom\| ≥ minDenom`, else `undefined` |
+| `computeOptimum`    | `(linearCoef, quadCoef, quadMean) → number \| undefined` | Vertex `x̄ − b₁/(2b₂)` if finite, else `undefined`             |
+
+### Functions That Can Return `undefined` or `null`
+
+| Function                         | Return Type               | When                                   |
+| -------------------------------- | ------------------------- | -------------------------------------- |
+| `calculateAnova()`               | `null`                    | Non-finite F-statistic, p-value, or η² |
+| `calculateStats()` → `cp`, `cpk` | `undefined`               | σ_within = 0                           |
+| `computeOptimum()`               | `undefined`               | Near-zero or non-finite coefficients   |
+| `andersonDarlingTest()`          | `{ statistic: Infinity }` | All values identical (intentional)     |
+
+### Convention
+
+Stats functions return `number | undefined` (or `null` for ANOVA), never `NaN` or `Infinity`. The single exception is `andersonDarlingTest()` which returns `Infinity` intentionally for degenerate data.

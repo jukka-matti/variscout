@@ -55,8 +55,12 @@ export function formatDataContext(context: AIContext): string {
         let label = `${vc.factor} \u03b7\u00b2=${Math.round(vc.etaSquared * 100)}%`;
         if (vc.factorType) {
           const parts: string[] = [vc.factorType];
-          if (vc.relationship === 'quadratic' && vc.optimum !== undefined) {
-            parts.push(`sweet spot ${vc.optimum}`);
+          if (
+            vc.relationship === 'quadratic' &&
+            vc.optimum !== undefined &&
+            Number.isFinite(vc.optimum)
+          ) {
+            parts.push(`sweet spot ${vc.optimum!.toFixed(2)}`);
           }
           label += ` [${parts.join(', ')}]`;
         }
@@ -70,18 +74,24 @@ export function formatDataContext(context: AIContext): string {
   if (context.bestModelEquation) {
     const bm = context.bestModelEquation;
     const factorList = bm.factors.join(', ');
-    lines.push(`Best model: {${factorList}} \u2192 R\u00b2adj=${bm.rSquaredAdj.toFixed(2)}`);
+    lines.push(
+      `Best model: {${factorList}} \u2192 R\u00b2adj=${Number.isFinite(bm.rSquaredAdj) ? bm.rSquaredAdj.toFixed(2) : '?'}`
+    );
     if (bm.worstCase && Object.keys(bm.worstCase.levels).length > 0) {
       const worstLevels = Object.entries(bm.worstCase.levels)
         .map(([f, v]) => `${f}=${v}`)
         .join(' + ');
-      lines.push(`  Worst case: ${worstLevels} \u2192 ${bm.worstCase.predicted.toFixed(1)}`);
+      lines.push(
+        `  Worst case: ${worstLevels} \u2192 ${Number.isFinite(bm.worstCase.predicted) ? bm.worstCase.predicted.toFixed(1) : '?'}`
+      );
     }
     if (bm.bestCase && Object.keys(bm.bestCase.levels).length > 0) {
       const bestLevels = Object.entries(bm.bestCase.levels)
         .map(([f, v]) => `${f}=${v}`)
         .join(' + ');
-      lines.push(`  Best case: ${bestLevels} \u2192 ${bm.bestCase.predicted.toFixed(1)}`);
+      lines.push(
+        `  Best case: ${bestLevels} \u2192 ${Number.isFinite(bm.bestCase.predicted) ? bm.bestCase.predicted.toFixed(1) : '?'}`
+      );
     }
   }
 
@@ -92,7 +102,8 @@ export function formatDataContext(context: AIContext): string {
     if (fc.chartType) parts.push(fc.chartType);
     if (fc.category) {
       let catDesc = fc.category.name;
-      if (fc.category.mean !== undefined) catDesc += ` (mean=${fc.category.mean.toFixed(2)}`;
+      if (fc.category.mean !== undefined && Number.isFinite(fc.category.mean))
+        catDesc += ` (mean=${fc.category.mean.toFixed(2)}`;
       if (fc.category.etaSquaredPct !== undefined)
         catDesc +=
           (fc.category.mean !== undefined ? ', ' : ' (') +
@@ -113,9 +124,9 @@ export function formatDataContext(context: AIContext): string {
     const s = context.stats;
     const statParts: string[] = [];
     statParts.push(`n=${s.samples}`);
-    statParts.push(`mean=${s.mean.toFixed(2)}`);
-    statParts.push(`\u03c3=${s.stdDev.toFixed(2)}`);
-    if (s.cpk !== undefined) statParts.push(`Cpk=${s.cpk.toFixed(2)}`);
+    if (Number.isFinite(s.mean)) statParts.push(`mean=${s.mean.toFixed(2)}`);
+    if (Number.isFinite(s.stdDev)) statParts.push(`\u03c3=${s.stdDev.toFixed(2)}`);
+    if (s.cpk !== undefined && Number.isFinite(s.cpk)) statParts.push(`Cpk=${s.cpk.toFixed(2)}`);
     if (s.passRate !== undefined) statParts.push(`pass=${Math.round(s.passRate * 100)}%`);
     lines.push(`Stats: ${statParts.join(', ')}`);
   }

@@ -88,10 +88,14 @@ function renderTrackVerified({
         {verificationCpk != null && (
           <span data-testid="summary-verification-cpk">
             {'Cpk '}
-            <span className="text-content">{verificationCpk.before.toFixed(2)}</span>
+            <span className="text-content">
+              {Number.isFinite(verificationCpk.before) ? verificationCpk.before.toFixed(2) : '—'}
+            </span>
             {' \u2192 '}
-            <span className="text-green-400 font-medium">{verificationCpk.after.toFixed(2)}</span>
-            {cpkImprovement != null && (
+            <span className="text-green-400 font-medium">
+              {Number.isFinite(verificationCpk.after) ? verificationCpk.after.toFixed(2) : '—'}
+            </span>
+            {cpkImprovement != null && Number.isFinite(cpkImprovement) && (
               <span data-testid="summary-cpk-improvement" className="ml-1 text-green-400">
                 {`(+${cpkImprovement.toFixed(0)}%)`}
               </span>
@@ -102,9 +106,9 @@ function renderTrackVerified({
         {verificationYield != null && (
           <span data-testid="summary-verification-yield">
             {'Yield '}
-            <span className="text-content">{`${verificationYield.before.toFixed(0)}%`}</span>
+            <span className="text-content">{`${Number.isFinite(verificationYield.before) ? verificationYield.before.toFixed(0) : '—'}%`}</span>
             {' \u2192 '}
-            <span className="text-green-400 font-medium">{`${verificationYield.after.toFixed(0)}%`}</span>
+            <span className="text-green-400 font-medium">{`${Number.isFinite(verificationYield.after) ? verificationYield.after.toFixed(0) : '—'}%`}</span>
           </span>
         )}
       </div>
@@ -159,11 +163,15 @@ function renderTrack({
         {projectedCpk != null && (
           <span data-testid="summary-projected-cpk">
             {'Cpk '}
-            <span className="text-content">{projectedCpk.toFixed(2)}</span>
+            <span className="text-content">
+              {Number.isFinite(projectedCpk) ? projectedCpk.toFixed(2) : '—'}
+            </span>
             {targetCpk != null && (
               <>
                 {' \u2192 target '}
-                <span className="text-content">{targetCpk.toFixed(2)}</span>
+                <span className="text-content">
+                  {Number.isFinite(targetCpk) ? targetCpk.toFixed(2) : '—'}
+                </span>
               </>
             )}
           </span>
@@ -233,7 +241,9 @@ function renderPlanMixed({
         {isYamazumi && projectedCycleTime != null ? (
           <span data-testid="summary-projected-ct" className="text-sm text-content">
             {'Projected CT '}
-            <span className="font-mono font-medium">{projectedCycleTime.toFixed(1)}s</span>
+            <span className="font-mono font-medium">
+              {Number.isFinite(projectedCycleTime) ? projectedCycleTime.toFixed(1) : '—'}s
+            </span>
             {meetsTakt != null && (
               <span
                 data-testid="summary-takt-compliance"
@@ -246,14 +256,16 @@ function renderPlanMixed({
         ) : (
           projectedCpk != null && (
             <span data-testid="summary-projected-cpk" className="text-sm text-content">
-              {tf('improve.projectedCpk', { value: projectedCpk.toFixed(2) })}
+              {tf('improve.projectedCpk', {
+                value: Number.isFinite(projectedCpk) ? projectedCpk.toFixed(2) : '—',
+              })}
               {delta != null && (
                 <span
                   data-testid="summary-cpk-delta"
                   className={`ml-1.5 text-xs ${delta >= 0 ? 'text-green-500' : 'text-red-400'}`}
                 >
                   {tf('improve.targetDelta', {
-                    delta: `${delta >= 0 ? '+' : ''}${delta.toFixed(2)}`,
+                    delta: `${delta >= 0 ? '+' : ''}${Number.isFinite(delta) ? delta.toFixed(2) : '—'}`,
                   })}
                 </span>
               )}
@@ -354,7 +366,9 @@ function renderPlan({
         {isYamazumi && projectedCycleTime != null ? (
           <span data-testid="summary-projected-ct" className="text-sm text-content">
             {'Projected CT '}
-            <span className="font-mono font-medium">{projectedCycleTime.toFixed(1)}s</span>
+            <span className="font-mono font-medium">
+              {Number.isFinite(projectedCycleTime) ? projectedCycleTime.toFixed(1) : '—'}s
+            </span>
             {meetsTakt != null && (
               <span
                 data-testid="summary-takt-compliance"
@@ -367,14 +381,16 @@ function renderPlan({
         ) : (
           projectedCpk != null && (
             <span data-testid="summary-projected-cpk" className="text-sm text-content">
-              {tf('improve.projectedCpk', { value: projectedCpk.toFixed(2) })}
+              {tf('improve.projectedCpk', {
+                value: Number.isFinite(projectedCpk) ? projectedCpk.toFixed(2) : '—',
+              })}
               {delta != null && (
                 <span
                   data-testid="summary-cpk-delta"
                   className={`ml-1.5 text-xs ${delta >= 0 ? 'text-green-500' : 'text-red-400'}`}
                 >
                   {tf('improve.targetDelta', {
-                    delta: `${delta >= 0 ? '+' : ''}${delta.toFixed(2)}`,
+                    delta: `${delta >= 0 ? '+' : ''}${Number.isFinite(delta) ? delta.toFixed(2) : '—'}`,
                   })}
                 </span>
               )}

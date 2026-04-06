@@ -173,7 +173,8 @@ export function computeMainEffects(
       const groupMean = d3.mean(vals) ?? 0;
       ssBetween += vals.length * (groupMean - grandMean) ** 2;
     }
-    const etaSquared = ssBetween / ssTotal;
+    const rawEtaSquared = ssBetween / ssTotal;
+    const etaSquared = Number.isFinite(rawEtaSquared) ? rawEtaSquared : 0;
 
     // F-test
     const dfBetween = groups.size - 1;
@@ -184,6 +185,7 @@ export function computeMainEffects(
       const F = ssBetween / dfBetween / (ssWithin / dfWithin);
       pValue = fDistributionPValue(F, dfBetween, dfWithin);
     }
+    if (!Number.isFinite(pValue)) pValue = 1;
 
     // Per-level effects
     const levels: LevelEffect[] = [];
