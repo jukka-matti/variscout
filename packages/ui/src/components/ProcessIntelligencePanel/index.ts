@@ -1,6 +1,4 @@
 export { default as PIPanelBase } from './PIPanelBase';
-export { default as PIOverflowMenu } from './PIOverflowMenu';
-export type { PIOverflowMenuProps } from './PIOverflowMenu';
 export { default as StatsSummaryPanel } from './StatsSummaryPanel';
 export { default as TargetDiscoveryCard } from './TargetDiscoveryCard';
 export { default as BestSubsetsCard } from './BestSubsetsCard';
