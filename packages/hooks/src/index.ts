@@ -338,6 +338,16 @@ export {
 // Hub Computations (shared evidence + projection memos)
 export { useHubComputations, type UseHubComputationsReturn } from './useHubComputations';
 
+// CoScout props assembly (shared props for CoScoutPanelBase)
+export {
+  useCoScoutProps,
+  type UseCoScoutPropsOptions,
+  type UseCoScoutPropsReturn,
+  type CoScoutAIOrchSlice,
+  type CoScoutResizeConfig,
+  type CoScoutActionProposalsSlice,
+} from './useCoScoutProps';
+
 // Question Generation (Factor Intelligence → questions pipeline)
 export {
   useQuestionGeneration,

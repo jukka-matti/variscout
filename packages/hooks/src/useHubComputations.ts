@@ -17,8 +17,7 @@ import type { BestSubsetsResult } from '@variscout/core/stats';
 import type { HubProjection, SuspectedCauseEvidence } from '@variscout/core/findings';
 import type { Question } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
-import { useInvestigationStore } from '@variscout/stores';
-import { useProjectStore } from '@variscout/stores';
+import { useInvestigationStore, useProjectStore } from '@variscout/stores';
 
 export interface UseHubComputationsReturn {
   /** Evidence summary per hub (undefined when no hubs exist) */
