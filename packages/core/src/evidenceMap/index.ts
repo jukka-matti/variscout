@@ -45,6 +45,8 @@ export interface FactorNodeData {
   trendGlyph?: '/' | '\\' | '∩' | '∪' | null;
   /** Optimal input value for quadratic factors (vertex x-coordinate) */
   optimum?: number;
+  /** Whether the analyst has explored this factor (answered/ruled-out questions). undefined = pre-investigation */
+  explored?: boolean;
 }
 
 export interface RelationshipEdgeData {
