@@ -156,7 +156,7 @@ function FindingCard({
             {data.outcome.cpkDelta != null && (
               <span className="ml-1 text-green-400">
                 (Cpk {data.outcome.cpkDelta > 0 ? '+' : ''}
-                {data.outcome.cpkDelta.toFixed(2)})
+                {Number.isFinite(data.outcome.cpkDelta) ? data.outcome.cpkDelta.toFixed(2) : '—'})
               </span>
             )}
           </p>

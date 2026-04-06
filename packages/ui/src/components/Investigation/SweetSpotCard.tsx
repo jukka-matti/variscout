@@ -43,7 +43,10 @@ const SweetSpotCard: React.FC<SweetSpotCardProps> = ({
   onCreateAction,
   className = '',
 }) => {
-  const formatVal = (v: number) => (v % 1 === 0 ? v.toFixed(0) : v.toFixed(2));
+  const formatVal = (v: number) => {
+    if (!Number.isFinite(v)) return '—';
+    return v % 1 === 0 ? v.toFixed(0) : v.toFixed(2);
+  };
 
   const improvement = predictedAtCurrent != null ? predictedAtOptimum - predictedAtCurrent : null;
 

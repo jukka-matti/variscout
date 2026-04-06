@@ -14,6 +14,7 @@ export interface AnovaResultsProps {
  * Format p-value: show as <0.001 when very small, otherwise 3 decimal places.
  */
 function formatPValue(p: number): string {
+  if (!Number.isFinite(p)) return '—';
   if (p < 0.001) return '<0.001';
   return p.toFixed(3);
 }
@@ -22,6 +23,7 @@ function formatPValue(p: number): string {
  * Format SS with comma separators for readability.
  */
 function formatSS(value: number): string {
+  if (!Number.isFinite(value)) return '—';
   if (Math.abs(value) < 1) return value.toFixed(3);
   return Math.round(value).toLocaleString('en-US');
 }

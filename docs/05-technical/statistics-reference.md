@@ -929,6 +929,7 @@ Evidence level tells you **how confident** you can be. η² tells you **how impo
 | Best subsets (leaps and bounds)      | Furnival, G.M. & Wilson, R.W. (1974). _Technometrics_ 16(4):499–511           |
 | Type III SS                          | Montgomery, D.C. (2017). _Design and Analysis of Experiments_, 9th ed., Ch. 8 |
 | VIF multicollinearity                | Belsley, Kuh & Welsch. _Regression Diagnostics_ (1980). Wiley.                |
+| NIST StRD regression benchmarks      | NIST Statistical Reference Datasets, https://www.itl.nist.gov/div898/strd/    |
 
 ---
 
@@ -969,4 +970,3 @@ Raw Data → [B1: Input] → Clean Data → [Stats Engine] → [B2: Output] → 
 ### Convention
 
 Stats functions return `number | undefined` (or `null` for ANOVA), never `NaN` or `Infinity`. The single exception is `andersonDarlingTest()` which returns `Infinity` intentionally for degenerate data.
-| NIST StRD regression benchmarks | NIST Statistical Reference Datasets, https://www.itl.nist.gov/div898/strd/ |

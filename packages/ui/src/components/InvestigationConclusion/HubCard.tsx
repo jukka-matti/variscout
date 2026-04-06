@@ -38,7 +38,7 @@ const HubCard: React.FC<HubCardProps> = ({
     : null;
 
   const projectionText = projection
-    ? `${projection.label} ${projection.predictedMeanDelta > 0 ? '+' : ''}${projection.predictedMeanDelta.toFixed(1)} (R²adj ${Math.round(projection.rSquaredAdj * 100)}%)`
+    ? `${projection.label} ${projection.predictedMeanDelta > 0 ? '+' : ''}${Number.isFinite(projection.predictedMeanDelta) ? projection.predictedMeanDelta.toFixed(1) : '—'} (R²adj ${Number.isFinite(projection.rSquaredAdj) ? Math.round(projection.rSquaredAdj * 100) : '—'}%)`
     : null;
 
   const summaryParts: string[] = [];

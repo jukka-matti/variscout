@@ -151,5 +151,15 @@ export default [
       ],
     },
   },
+  // Boundary 3: prevent unguarded .toFixed() on statistical values (ADR-069)
+  {
+    files: ['packages/ui/src/**/*.{ts,tsx}', 'packages/core/src/ai/prompts/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': ['warn', {
+        selector: "CallExpression[callee.property.name='toFixed']",
+        message: 'Guard with Number.isFinite() before .toFixed(), or use formatStatistic() from @variscout/core/i18n. See ADR-069.',
+      }],
+    },
+  },
   prettier,
 ];
