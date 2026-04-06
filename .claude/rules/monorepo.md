@@ -62,6 +62,7 @@ When adding a new shared package that uses Tailwind classes, add a corresponding
 - `@variscout/charts` depends on `@variscout/core`
 - `@variscout/hooks` depends on `@variscout/core` (for types, utilities, and tier)
 - `@variscout/ui` — 110+ components + `useGlossary`, `useIsMobile`, `useTheme`, `errorService`, `BREAKPOINTS`
+- `@variscout/ui` depends on `@variscout/stores` for store-aware tab content components (`StatsTabContent`, `QuestionsTabContent`, `JournalTabContent`). This is acceptable because stores are shared infrastructure. Props-based components remain preferred for purely presentational UI.
 
 ## @variscout/core Sub-Path Exports
 

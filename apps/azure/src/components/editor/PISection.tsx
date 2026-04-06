@@ -96,9 +96,11 @@ export const PISection: React.FC<PISectionProps> = ({
   const cpkTarget = useProjectStore(s => s.cpkTarget);
   const filters = useProjectStore(s => s.filters);
 
-  // Panel visibility from panelsStore
+  // Panel visibility and tab state from panelsStore
   const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
   const highlightedFactor = usePanelsStore(s => s.highlightedFactor);
+  const piActiveTab = usePanelsStore(s => s.piActiveTab);
+  const setPIActiveTab = usePanelsStore(s => s.setPIActiveTab);
 
   // Open question count for badge
   const openQuestionCount = useMemo(
@@ -256,16 +258,12 @@ export const PISection: React.FC<PISectionProps> = ({
     });
   }
 
-  // Data Table opens a modal via panelsStore. We add it as an overflow item
-  // whose selection triggers the modal open. Since PIPanelBase renders the
-  // overflow item content inline, we render an empty node and open the modal
-  // as a side-effect in the onSelect callback — but PIPanelBase doesn't expose
-  // a per-item callback. Instead, we use a small React wrapper so the modal
-  // opens on mount when this content is shown.
+  // Data Table opens a modal via panelsStore. We use the onSelect callback
+  // pattern so the modal opens immediately without rendering inline content.
   overflowItems.push({
     id: 'data',
     label: 'Data Table',
-    content: <DataTableOverflowTrigger />,
+    onSelect: () => usePanelsStore.getState().openDataTable(),
   });
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -290,7 +288,13 @@ export const PISection: React.FC<PISectionProps> = ({
         className="flex flex-col flex-shrink-0 bg-surface-secondary overflow-y-auto"
         style={{ width: piSidebar.width }}
       >
-        <PIPanelBase compact={true} tabs={tabs} overflowItems={overflowItems} />
+        <PIPanelBase
+          compact={true}
+          tabs={tabs}
+          overflowItems={overflowItems}
+          activeTab={piActiveTab}
+          onTabChange={setPIActiveTab}
+        />
       </div>
 
       {/* Resize handle */}
@@ -303,24 +307,5 @@ export const PISection: React.FC<PISectionProps> = ({
         <GripVertical size={12} className="text-content-muted" />
       </div>
     </>
-  );
-};
-
-// ---------------------------------------------------------------------------
-// Internal helper — opens DataTableModal via panelsStore on mount.
-// Used as overflow content for the "Data Table" overflow item.
-// ---------------------------------------------------------------------------
-
-const DataTableOverflowTrigger: React.FC = () => {
-  // Open the Data Table modal as a side-effect when this content is rendered
-  // (i.e. when the user selects "Data Table" from the PI overflow menu).
-  React.useEffect(() => {
-    usePanelsStore.getState().openDataTable();
-  }, []);
-
-  return (
-    <div className="flex items-center justify-center p-4 text-content-secondary text-sm">
-      Opening Data Table…
-    </div>
   );
 };

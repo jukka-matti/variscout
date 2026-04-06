@@ -6,3 +6,5 @@ export { PISection } from './PISection';
 export type { PISectionProps } from './PISection';
 export { DashboardSection } from './DashboardSection';
 export type { DashboardSectionProps } from './DashboardSection';
+export { CoScoutSection } from './CoScoutSection';
+export type { CoScoutSectionProps } from './CoScoutSection';

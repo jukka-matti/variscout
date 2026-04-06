@@ -113,7 +113,12 @@ const ConfigOverflowMenu: React.FC<ConfigOverflowMenuProps> = ({ items, activeId
               className="w-full text-left px-3 py-1.5 text-xs text-content hover:bg-surface-secondary transition-colors flex items-center gap-2"
               data-testid={`pi-overflow-item-${item.id}`}
               onClick={() => {
-                onSelect(item.id);
+                if (item.onSelect) {
+                  // Callback-only item: trigger side-effect (e.g. open modal), don't show inline content
+                  item.onSelect(item.id);
+                } else {
+                  onSelect(item.id);
+                }
                 setOpen(false);
               }}
             >
@@ -135,11 +140,26 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
   defaultTab,
   className,
   compact = false,
+  activeTab: controlledActiveTab,
+  onTabChange,
 }) => {
-  const [activeTabId, setActiveTabId] = useState<string>(
-    () => defaultTab ?? (tabs.length > 0 ? tabs[0].id : '')
+  const [internalActiveTabId, setInternalActiveTabId] = useState<string>(
+    () => controlledActiveTab ?? defaultTab ?? (tabs.length > 0 ? tabs[0].id : '')
   );
   const [activeOverflowItemId, setActiveOverflowItemId] = useState<string | null>(null);
+
+  // Controlled vs uncontrolled: when activeTab prop is provided, use it
+  const activeTabId = controlledActiveTab ?? internalActiveTabId;
+
+  const handleTabChange = (id: string) => {
+    if (onTabChange) {
+      onTabChange(id);
+    } else {
+      setInternalActiveTabId(id);
+    }
+    // Clear overflow when tab changes
+    setActiveOverflowItemId(null);
+  };
 
   const renderTabBar = () => {
     const hasOverflow = overflowItems && overflowItems.length > 0;
@@ -150,7 +170,7 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
             key={tab.id}
             tab={tab}
             activeId={activeTabId}
-            onTabChange={setActiveTabId}
+            onTabChange={handleTabChange}
             compact={compact}
           />
         ))}
@@ -166,10 +186,10 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
   };
 
   const renderTabContent = () => {
-    // Overflow item content takes priority
+    // Overflow item content takes priority (only for items with inline content)
     if (activeOverflowItemId) {
       const item = overflowItems?.find(i => i.id === activeOverflowItemId);
-      if (item) {
+      if (item && item.content) {
         return (
           <div
             className="flex-1 min-h-0 overflow-auto"

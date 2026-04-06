@@ -5,12 +5,6 @@
  * and passed-in props. Reads UI state from panelsStore (highlightedChartPoint,
  * highlightedFactor).
  *
- * NOTE: This is a minimal wiring layer. The full wiring (onInvestigateFactor,
- * onPinFinding, onShareChart, viewState, projectedCpkMap, handleShareChart)
- * needs to be supplied as additional props when this is consumed by
- * EditorDashboardView (Task 10). The props below are the minimum subset
- * required for the Dashboard to function; the rest are added in Task 10.
- *
  * Props it reads from stores:
  * - panelsStore: highlightedChartPoint, highlightedFactor
  * - useIsMobile for phone detection
@@ -45,8 +39,6 @@ export interface DashboardSectionProps {
   aiOrch: UseAIOrchestrationReturn;
   /** Factor switch request from question click — sets boxplot + pareto factor */
   factorRequest: { factor: string; seq: number } | null;
-
-  // ── Props that will also be wired in EditorDashboardView (Task 10) ──────
 
   /** Persisted view state for Dashboard (focused chart, active tab, etc.) */
   viewState?: ViewState;

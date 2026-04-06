@@ -16,7 +16,18 @@ export interface PIOverflowItem {
   id: string;
   label: string;
   icon?: React.ReactNode;
-  content: React.ReactNode;
+  /**
+   * Rendered inline when the item is selected from the overflow menu.
+   * Mutually exclusive with `onSelect` — if `onSelect` is provided, `content`
+   * is not rendered; instead the callback is invoked and the menu closes.
+   */
+  content?: React.ReactNode;
+  /**
+   * When provided, clicking this overflow item calls the callback instead of
+   * showing inline content. Use this for items that open modals or trigger
+   * side-effects (e.g., Data Table opens via panelsStore.openDataTable()).
+   */
+  onSelect?: (id: string) => void;
 }
 
 export interface PIPanelBaseProps {
@@ -30,4 +41,16 @@ export interface PIPanelBaseProps {
   className?: string;
   /** Compact (mobile) layout */
   compact?: boolean;
+  /**
+   * Controlled active tab id (from panelsStore).
+   * When provided, PIPanelBase uses this instead of internal state.
+   * Tab click calls `onTabChange` if provided, otherwise falls back to
+   * internal state.
+   */
+  activeTab?: string;
+  /**
+   * Called when the user clicks a tab button.
+   * Required when `activeTab` is provided to keep the controlled value in sync.
+   */
+  onTabChange?: (tabId: string) => void;
 }
