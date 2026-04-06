@@ -39,3 +39,5 @@ export { QuestionLinkModal } from './QuestionLinkModal';
 export type { QuestionLinkModalProps } from './QuestionLinkModal';
 export { default as EquationDisplay, formatEquation } from './EquationDisplay';
 export type { EquationDisplayProps } from './EquationDisplay';
+export { default as StatsTabContent } from './StatsTabContent';
+export type { StatsTabContentProps } from './StatsTabContent';
