@@ -1152,6 +1152,8 @@ export const Editor: React.FC<EditorProps> = ({
                 }
                 isTeamsCamera={isTeamsCamera}
                 aiOrch={aiOrch}
+                actionProposalsState={actionProposalsState}
+                handleSearchKnowledge={handleSearchKnowledge}
                 columnAliases={columnAliases}
                 viewMode={viewState?.findingsViewMode}
                 onViewModeChange={(mode: 'list' | 'board' | 'tree') =>
