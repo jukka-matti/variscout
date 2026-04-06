@@ -7,6 +7,7 @@ import type { InsightChartType } from './chartInsights';
 import type { Finding, Question, InvestigationCategory, SuspectedCause } from '../findings';
 import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
+import { computeOptimum } from '../stats/safeMath';
 import { buildGlossaryPrompt } from '../glossary/buildGlossaryPrompt';
 import type { GlossaryCategory } from '../glossary/types';
 import type { AnalysisMode } from '../types';
@@ -565,14 +566,12 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
               // Estimate optimum via vertex of centered quadratic: x* = xbar - b1 / (2*b2)
               // Only meaningful when quadratic term is significant and both coefficients present
               let optimum: number | undefined;
-              if (
-                relationship === 'quadratic' &&
-                linearP !== undefined &&
-                quadraticP !== undefined &&
-                quadraticP.coefficient !== 0
-              ) {
-                optimum =
-                  (quadraticP.mean ?? 0) - linearP.coefficient / (2 * quadraticP.coefficient);
+              if (relationship === 'quadratic' && linearP && quadraticP) {
+                optimum = computeOptimum(
+                  linearP.coefficient,
+                  quadraticP.coefficient,
+                  quadraticP.mean ?? 0
+                );
               }
 
               return {

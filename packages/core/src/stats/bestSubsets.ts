@@ -26,6 +26,7 @@ import { solveOLS, shouldIncludeQuadratic } from './olsRegression';
 import type { OLSSolution } from './olsRegression';
 import { computeTypeIIISS } from './typeIIISS';
 import type { ResolvedMode } from '../analysisStrategy';
+import { safeDivide } from './safeMath';
 
 // ============================================================================
 // Types
@@ -345,7 +346,8 @@ function extractPredictors(solution: OLSSolution, encodings: FactorEncoding[]): 
     }
   }
 
-  return predictors;
+  // Boundary 2: exclude predictors with non-finite coefficients (ADR-069)
+  return predictors.filter(p => Number.isFinite(p.coefficient));
 }
 
 /**
@@ -399,7 +401,8 @@ function computeVIF(
       try {
         const result = solveOLS(otherCols, X[targetCol], n, otherCols.length);
         const r2 = result.rSquared;
-        totalVIF += r2 < 1 ? 1 / (1 - r2) : Infinity;
+        const vif = safeDivide(1, 1 - r2);
+        totalVIF += vif ?? Infinity;
       } catch {
         totalVIF += 1.0;
       }
@@ -426,22 +429,24 @@ function checkGuardrails(
   const gap = solution.rSquared - solution.rSquaredAdj;
   if (gap > OVERFITTING_GAP_THRESHOLD) {
     warnings.push(
-      `Possible overfitting: R² - R²adj = ${gap.toFixed(3)} (threshold: ${OVERFITTING_GAP_THRESHOLD})`
+      `Possible overfitting: R² - R²adj = ${Number.isFinite(gap) ? gap.toFixed(3) : '?'} (threshold: ${OVERFITTING_GAP_THRESHOLD})`
     );
   }
 
   // Observation-to-predictor ratio
-  const ratio = n / (p - 1); // p includes intercept
+  const ratio = safeDivide(n, p - 1) ?? n; // p includes intercept
   if (p > 1 && ratio < MIN_OBS_PER_PREDICTOR) {
     warnings.push(
-      `Low observation-to-predictor ratio: ${ratio.toFixed(1)} (recommended: ≥ ${MIN_OBS_PER_PREDICTOR})`
+      `Low observation-to-predictor ratio: ${Number.isFinite(ratio) ? ratio.toFixed(1) : '?'} (recommended: ≥ ${MIN_OBS_PER_PREDICTOR})`
     );
   }
 
   // High VIF
   for (const [factor, vifValue] of vif.entries()) {
     if (vifValue > 10) {
-      warnings.push(`High multicollinearity: VIF(${factor}) = ${vifValue.toFixed(1)} (> 10)`);
+      warnings.push(
+        `High multicollinearity: VIF(${factor}) = ${Number.isFinite(vifValue) ? vifValue.toFixed(1) : '>1000'} (> 10)`
+      );
     }
   }
 

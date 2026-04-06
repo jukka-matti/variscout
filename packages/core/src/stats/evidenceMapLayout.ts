@@ -13,6 +13,7 @@
  */
 
 import type { BestSubsetsResult, BestSubsetResult } from './bestSubsets';
+import { computeOptimum } from './safeMath';
 import type { MainEffectsResult } from './factorEffects';
 import type { InteractionEffectsResult } from './factorEffects';
 import { classifyRelationship } from './causalGraph';
@@ -204,7 +205,7 @@ function findInteractionDeltaR2(
  */
 function buildEquationFormula(bestModel: BestSubsetResult, grandMean: number): string {
   const intercept = bestModel.intercept ?? grandMean;
-  const parts: string[] = [`\u0177 = ${intercept.toFixed(1)}`];
+  const parts: string[] = [`\u0177 = ${Number.isFinite(intercept) ? intercept.toFixed(1) : '?'}`];
 
   // When OLS predictors are available, use them for continuous factors
   const predictors = bestModel.predictors;
@@ -218,12 +219,12 @@ function buildEquationFormula(bestModel: BestSubsetResult, grandMean: number): s
       const linear = predictors.find(p => p.factorName === factor && p.type === 'continuous');
       const quad = predictors.find(p => p.factorName === factor && p.type === 'quadratic');
 
-      if (linear) {
+      if (linear && Number.isFinite(linear.coefficient)) {
         const coef = linear.coefficient;
         const sign = coef >= 0 ? '+' : '-';
         parts.push(`${sign} ${Math.abs(coef).toFixed(3)}\u00D7${factor}`);
       }
-      if (quad) {
+      if (quad && Number.isFinite(quad.coefficient)) {
         const coef = quad.coefficient;
         const sign = coef >= 0 ? '+' : '-';
         parts.push(`${sign} ${Math.abs(coef).toFixed(4)}\u00D7${factor}\u00B2`);
@@ -425,10 +426,8 @@ export function computeEvidenceMapLayout(
             slopeCoefficient = linear.coefficient;
           }
 
-          if (linear && quad && quad.coefficient !== 0) {
-            // Vertex of centered quadratic: x_opt = xbar - b / (2c)
-            // where b = linear coef, c = quadratic coef, xbar = factor mean
-            optimum = (quad.mean ?? 0) - linear.coefficient / (2 * quad.coefficient);
+          if (linear && quad) {
+            optimum = computeOptimum(linear.coefficient, quad.coefficient, quad.mean ?? 0);
           }
         }
       }
