@@ -157,6 +157,20 @@ const CausalEdge: React.FC<CausalEdgeProps> = ({ edge, isHighlighted, isDark, on
           </text>
         </>
       )}
+
+      {/* Level subtitle — only when level info is present */}
+      {(edge.fromLevel || edge.toLevel) && (
+        <text
+          x={midX}
+          y={isGap ? midY + 40 : midY + 34}
+          textAnchor="middle"
+          fill={chrome.labelSecondary}
+          fontSize={7}
+          pointerEvents="none"
+        >
+          {edge.fromLevel ?? edge.fromFactor} → {edge.toLevel ?? edge.toFactor}
+        </text>
+      )}
     </g>
   );
 };
