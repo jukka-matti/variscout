@@ -155,6 +155,8 @@ export {
   type JournalEntryRowProps,
   type PIOverflowMenuProps,
   type PIOverflowView,
+  type PITabConfig,
+  type PIOverflowItem,
 } from './components/ProcessIntelligencePanel';
 
 export {

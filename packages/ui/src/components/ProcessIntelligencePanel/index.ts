@@ -7,7 +7,7 @@ export { default as BestSubsetsCard } from './BestSubsetsCard';
 export { default as MainEffectsPlot } from './MainEffectsPlot';
 export { default as InteractionPlot } from './InteractionPlot';
 export { default as FactorIntelligencePanel } from './FactorIntelligencePanel';
-export type { PIPanelBaseProps, PITab, PIOverflowView } from './types';
+export type { PIPanelBaseProps, PITab, PIOverflowView, PITabConfig, PIOverflowItem } from './types';
 export type { ComplementInsight, TargetDiscoveryCardProps } from './TargetDiscoveryCard';
 export type { BestSubsetsCardProps } from './BestSubsetsCard';
 export type { MainEffectsPlotProps } from './MainEffectsPlot';
