@@ -54,7 +54,7 @@ const FactorPanel: React.FC<{
             </span>
           )}
           <span className="text-[0.6875rem] text-content-muted font-mono">
-            η²={effect.etaSquared.toFixed(2)}
+            η²={Number.isFinite(effect.etaSquared) ? effect.etaSquared.toFixed(2) : '—'}
           </span>
         </div>
       </div>
@@ -130,7 +130,7 @@ const FactorPanel: React.FC<{
                 className="fill-content-secondary text-[0.625rem] font-mono"
                 textAnchor="middle"
               >
-                {l.mean.toFixed(1)}
+                {Number.isFinite(l.mean) ? l.mean.toFixed(1) : '—'}
               </text>
               {/* Level label */}
               <text
@@ -151,7 +151,10 @@ const FactorPanel: React.FC<{
         <div className="text-[0.6875rem] text-content-secondary">
           {t('fi.best')}: <span className="text-green-500 font-semibold">{effect.bestLevel}</span>
           {' · '}
-          {t('fi.range')}: <span className="font-mono">{effect.effectRange.toFixed(1)}</span>
+          {t('fi.range')}:{' '}
+          <span className="font-mono">
+            {Number.isFinite(effect.effectRange) ? effect.effectRange.toFixed(1) : '—'}
+          </span>
         </div>
         {effect.isSignificant && onInvestigate && (
           <button

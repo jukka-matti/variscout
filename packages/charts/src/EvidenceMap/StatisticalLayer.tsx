@@ -82,7 +82,7 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
             fontWeight="bold"
           >
             Best Model: {equation.factors.join(' + ')} → R²adj ={' '}
-            {(equation.rSquaredAdj * 100).toFixed(0)}%
+            {Number.isFinite(equation.rSquaredAdj) ? (equation.rSquaredAdj * 100).toFixed(0) : '—'}%
           </text>
           <text
             x={width / 2}
@@ -148,7 +148,7 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
           </text>
           {!compact && (
             <text textAnchor="middle" dy={8} fill="#bfdbfe" fontSize={10}>
-              ȳ = {outcomeNode.mean.toFixed(1)}
+              ȳ = {Number.isFinite(outcomeNode.mean) ? outcomeNode.mean.toFixed(1) : '—'}
             </text>
           )}
         </Group>

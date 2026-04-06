@@ -66,6 +66,7 @@ function getTypeLabel(type: RelationshipType): string {
 }
 
 function formatStrength(type: RelationshipType, strength: number): string {
+  if (!Number.isFinite(strength)) return '';
   if (type === 'interactive') return `ΔR²=${(strength * 100).toFixed(0)}%`;
   if (type === 'overlapping') return `shared ${(strength * 100).toFixed(0)}%`;
   return '';

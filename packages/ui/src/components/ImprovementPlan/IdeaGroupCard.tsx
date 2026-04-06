@@ -457,7 +457,9 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
                   data-testid={`idea-projection-${idea.id}`}
                   className="inline-flex items-center rounded-full bg-blue-500/10 px-1.5 py-0.5 text-[0.625rem] font-medium text-blue-500 shrink-0"
                 >
-                  {idea.projection.projectedCpk.toFixed(2)}
+                  {Number.isFinite(idea.projection.projectedCpk)
+                    ? idea.projection.projectedCpk.toFixed(2)
+                    : '—'}
                 </span>
               )}
 

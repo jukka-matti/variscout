@@ -243,7 +243,7 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
               }`}
               data-testid="vitals-cpk"
             >
-              {currentCpk.toFixed(2)}
+              {Number.isFinite(currentCpk) ? currentCpk.toFixed(2) : '—'}
             </span>
           </div>
         )}
@@ -253,7 +253,7 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
           <div className="flex items-center gap-1">
             <span className="text-[0.5625rem] text-content-muted">tgt</span>
             <span className="text-xs font-mono text-content-secondary" data-testid="vitals-target">
-              {targetCpk.toFixed(2)}
+              {Number.isFinite(targetCpk) ? targetCpk.toFixed(2) : '—'}
             </span>
           </div>
         )}

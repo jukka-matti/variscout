@@ -36,6 +36,7 @@ export interface LeanWhatIfSimulatorProps {
 }
 
 function formatTime(seconds: number): string {
+  if (!Number.isFinite(seconds)) return '—';
   return seconds >= 60 ? `${(seconds / 60).toFixed(1)}m` : `${seconds.toFixed(1)}s`;
 }
 

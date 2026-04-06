@@ -265,7 +265,9 @@ const QuestionRow: React.FC<QuestionRowProps> = ({
                 If{' '}
                 <span className="font-medium text-content">{question.factor ?? 'this factor'}</span>{' '}
                 is fixed →{' '}
-                <span className="font-mono text-green-400">Cpk {projectedCpk.toFixed(2)}</span>
+                <span className="font-mono text-green-400">
+                  Cpk {Number.isFinite(projectedCpk) ? projectedCpk.toFixed(2) : '—'}
+                </span>
                 {cpkImprovement !== null && cpkImprovement > 0 && (
                   <span className="text-green-500 ml-1">(+{cpkImprovement}%)</span>
                 )}

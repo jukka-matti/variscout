@@ -70,7 +70,8 @@ export default function LeanDistributionPreview({
   const y1 = PAD_Y;
   const y2 = PAD_Y + BAR_HEIGHT + GAP;
 
-  const formatTime = (s: number) => (s >= 60 ? `${(s / 60).toFixed(1)}m` : `${s.toFixed(1)}s`);
+  const formatTime = (s: number) =>
+    !Number.isFinite(s) ? '—' : s >= 60 ? `${(s / 60).toFixed(1)}m` : `${s.toFixed(1)}s`;
 
   return (
     <div data-testid="lean-distribution-preview">

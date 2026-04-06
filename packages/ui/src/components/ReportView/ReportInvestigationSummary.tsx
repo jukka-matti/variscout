@@ -45,7 +45,7 @@ export interface ReportInvestigationSummaryProps {
 // ============================================================================
 
 function formatPercentage(value: number | undefined): string | null {
-  if (value == null) return null;
+  if (value == null || !Number.isFinite(value)) return null;
   return `${(value * 100).toFixed(1)}%`;
 }
 

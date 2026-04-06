@@ -217,7 +217,8 @@ export const ActionTrackerSection: React.FC<ActionTrackerSectionProps> = ({
                       className="inline-flex items-center rounded-full bg-blue-500/10 px-1.5 py-0.5 text-[0.625rem] font-medium text-blue-500"
                       data-testid={`action-cpk-${action.id}`}
                     >
-                      Cpk {action.projectedCpk.toFixed(2)}
+                      Cpk{' '}
+                      {Number.isFinite(action.projectedCpk) ? action.projectedCpk.toFixed(2) : '—'}
                     </span>
                   )}
                 </div>

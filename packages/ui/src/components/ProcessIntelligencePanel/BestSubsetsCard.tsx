@@ -108,8 +108,11 @@ const BestSubsetsCard: React.FC<BestSubsetsCardProps> = ({
                       }
                       if (topLevel === '') return null;
                       const sign = topEffect >= 0 ? '+' : '';
-                      const val =
-                        Math.abs(topEffect) >= 10 ? topEffect.toFixed(1) : topEffect.toFixed(2);
+                      const val = !Number.isFinite(topEffect)
+                        ? '—'
+                        : Math.abs(topEffect) >= 10
+                          ? topEffect.toFixed(1)
+                          : topEffect.toFixed(2);
                       return `${topLevel} ${sign}${val}`;
                     })
                     .filter(Boolean)

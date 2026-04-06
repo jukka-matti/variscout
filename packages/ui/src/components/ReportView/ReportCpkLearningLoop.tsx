@@ -36,7 +36,7 @@ export interface ReportCpkLearningLoopProps {
 // Helpers
 // ============================================================================
 
-const defaultFormatValue = (v: number): string => v.toFixed(2);
+const defaultFormatValue = (v: number): string => (Number.isFinite(v) ? v.toFixed(2) : '—');
 
 function formatDisplay(value: number | undefined, formatter: (v: number) => string): string {
   if (value === undefined) return '—';
@@ -54,7 +54,7 @@ function formatDelta(from: number | undefined, to: number | undefined): string {
   if (from === undefined || to === undefined) return '';
   const delta = to - from;
   const sign = delta >= 0 ? '+' : '';
-  return `${sign}${delta.toFixed(2)}`;
+  return Number.isFinite(delta) ? `${sign}${delta.toFixed(2)}` : '—';
 }
 
 function getVerdictKey(verdict?: 'yes' | 'no' | 'partial'): string | null {

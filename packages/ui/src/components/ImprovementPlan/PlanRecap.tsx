@@ -66,7 +66,7 @@ export const PlanRecap: React.FC<PlanRecapProps> = ({ selectedIdeas, onEditSelec
                   data-testid={`plan-recap-cpk-${idea.id}`}
                   className="text-green-400 text-[10px] shrink-0"
                 >
-                  Cpk {idea.projectedCpk.toFixed(2)}
+                  Cpk {Number.isFinite(idea.projectedCpk) ? idea.projectedCpk.toFixed(2) : '—'}
                 </span>
               )}
             </div>

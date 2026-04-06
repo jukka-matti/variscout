@@ -104,8 +104,10 @@ const ConclusionCard: React.FC<ConclusionCardProps> = ({
                     data-testid={`conclusion-hub-projection-${hub.id}`}
                   >
                     {projection.label} {projection.predictedMeanDelta > 0 ? '+' : ''}
-                    {projection.predictedMeanDelta.toFixed(1)} (R²adj{' '}
-                    {Math.round(projection.rSquaredAdj * 100)}%)
+                    {Number.isFinite(projection.predictedMeanDelta)
+                      ? projection.predictedMeanDelta.toFixed(1)
+                      : '—'}{' '}
+                    (R²adj {Math.round(projection.rSquaredAdj * 100)}%)
                   </div>
                 )}
               </div>
@@ -141,10 +143,10 @@ const ConclusionCard: React.FC<ConclusionCardProps> = ({
                 {delta !== null && (
                   <span
                     className={`text-[0.5625rem] font-mono ${delta > 0 ? 'text-green-400' : 'text-red-400'}`}
-                    aria-label={`Cpk delta ${delta > 0 ? '+' : ''}${delta.toFixed(2)}`}
+                    aria-label={`Cpk delta ${delta > 0 ? '+' : ''}${Number.isFinite(delta) ? delta.toFixed(2) : '—'}`}
                   >
                     {delta > 0 ? '+' : ''}
-                    {delta.toFixed(2)}
+                    {Number.isFinite(delta) ? delta.toFixed(2) : '—'}
                   </span>
                 )}
               </div>
@@ -160,9 +162,13 @@ const ConclusionCard: React.FC<ConclusionCardProps> = ({
           data-testid="conclusion-combined"
         >
           <span>Combined:</span>
-          <span className="font-mono text-content">{currentCpk.toFixed(2)}</span>
+          <span className="font-mono text-content">
+            {Number.isFinite(currentCpk) ? currentCpk.toFixed(2) : '—'}
+          </span>
           <span aria-hidden="true">→</span>
-          <span className="font-mono text-green-400">{combinedProjectedCpk.toFixed(2)}</span>
+          <span className="font-mono text-green-400">
+            {Number.isFinite(combinedProjectedCpk) ? combinedProjectedCpk.toFixed(2) : '—'}
+          </span>
           {combinedMeetsTarget && (
             <>
               <Check size={11} className="text-green-500 shrink-0" aria-hidden="true" />

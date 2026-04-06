@@ -40,6 +40,7 @@ export interface EquationDisplayProps {
 
 /** Format a number to reasonable precision (1-2 decimals based on magnitude). */
 function fmt(value: number): string {
+  if (!Number.isFinite(value)) return '—';
   const abs = Math.abs(value);
   if (abs >= 100) return value.toFixed(0);
   if (abs >= 10) return value.toFixed(1);
@@ -389,8 +390,14 @@ const EquationDisplay: React.FC<EquationDisplayProps> = ({
   const [expanded, setExpanded] = useState(false);
   const [cellsExpanded, setCellsExpanded] = useState(false);
 
-  const r2Pct = (bestSubset.rSquaredAdj * 100).toFixed(0);
-  const pLabel = bestSubset.pValue < 0.001 ? 'p < 0.001' : `p = ${bestSubset.pValue.toFixed(3)}`;
+  const r2Pct = Number.isFinite(bestSubset.rSquaredAdj)
+    ? (bestSubset.rSquaredAdj * 100).toFixed(0)
+    : '—';
+  const pLabel = !Number.isFinite(bestSubset.pValue)
+    ? 'p = —'
+    : bestSubset.pValue < 0.001
+      ? 'p < 0.001'
+      : `p = ${bestSubset.pValue.toFixed(3)}`;
 
   // ── Natural language mode (predictors provided) ──────────────────────────
   if (predictors && predictors.length > 0) {

@@ -140,7 +140,10 @@ const IdeaRow: React.FC<{ idea: ImprovementIdea }> = ({ idea }) => {
           )}
           {idea.projection?.projectedCpk != null && (
             <span className="text-blue-600 dark:text-blue-400 font-medium">
-              Cpk {idea.projection.projectedCpk.toFixed(2)}
+              Cpk{' '}
+              {Number.isFinite(idea.projection.projectedCpk)
+                ? idea.projection.projectedCpk.toFixed(2)
+                : '—'}
             </span>
           )}
         </div>
@@ -202,7 +205,9 @@ export const ReportImprovementSummary: React.FC<ReportImprovementSummaryProps> =
         {/* Projected Cpk */}
         {bestProjectedCpk != null && (
           <span className="text-blue-600 dark:text-blue-400 font-medium text-xs">
-            {tf('report.bestProjectedCpk', { value: bestProjectedCpk.toFixed(2) })}
+            {tf('report.bestProjectedCpk', {
+              value: Number.isFinite(bestProjectedCpk) ? bestProjectedCpk.toFixed(2) : '—',
+            })}
             {targetCpk != null && bestProjectedCpk >= targetCpk && (
               <span className="text-green-500 ml-1">{t('report.meetsTarget')}</span>
             )}
