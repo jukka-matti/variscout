@@ -9,28 +9,18 @@
  * Owns only cross-section concerns:
  * - useQuestionGeneration (bestSubsets + factorRequest shared by PI + Dashboard)
  * - handleInvestigateFactor callback (creates Finding + Question + Idea bundle)
- * - FactorPreviewOverlay (one-time overlay on Factor Intelligence completion)
+ * - FactorPreviewSection (one-time overlay on Factor Intelligence completion)
  * - DataTableModal (triggered from PI overflow)
  * - AIOnboardingTooltip
  */
 
-import React, { useCallback, useMemo } from 'react';
-import { EvidenceMapBase } from '@variscout/charts';
-import { AIOnboardingTooltip, FactorPreviewOverlay } from '@variscout/ui';
-import {
-  createFactorFinding,
-  computeMainEffects,
-  computeInteractionEffects,
-} from '@variscout/core';
+import React, { useCallback } from 'react';
+import { AIOnboardingTooltip } from '@variscout/ui';
+import { createFactorFinding } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
 import type { UseQuestionsReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
-import {
-  useQuestionGeneration,
-  useJourneyPhase,
-  useEvidenceMapData,
-  useFilteredData,
-} from '@variscout/hooks';
+import { useQuestionGeneration, useJourneyPhase, useFilteredData } from '@variscout/hooks';
 import { isAIAvailable } from '../../services/aiService';
 import { useProjectStore, useSessionStore } from '@variscout/stores';
 import { usePanelsStore } from '../../features/panels/panelsStore';
@@ -46,6 +36,7 @@ import DataTableModal from '../data/DataTableModal';
 import { PISection } from './PISection';
 import { DashboardSection } from './DashboardSection';
 import { CoScoutSection } from './CoScoutSection';
+import { FactorPreviewSection } from './FactorPreviewSection';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -170,55 +161,8 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     [outcome, filteredData, findingsState, questionsState, handleSetFindingStatus]
   );
 
-  // ── Factor Preview overlay ──────────────────────────────────────────────
-  const activeView = usePanelsStore(s => s.activeView);
-  const factorPreviewDismissed = usePanelsStore(s => s.factorPreviewDismissed);
-  const dismissFactorPreview = usePanelsStore(s => s.dismissFactorPreview);
+  // ── Data Table state ────────────────────────────────────────────────────
   const isDataTableOpen = usePanelsStore(s => s.isDataTableOpen);
-
-  const FACTOR_PREVIEW_MAP_SIZE = useMemo(() => ({ width: 620, height: 360 }), []);
-  const hasFactorIntelligenceForPreview = bestSubsets !== null && factors.length >= 2;
-
-  const mainEffectsForPreview = useMemo(() => {
-    if (!hasFactorIntelligenceForPreview || !outcome || !filteredData.length) return null;
-    return computeMainEffects(filteredData, outcome, factors);
-  }, [hasFactorIntelligenceForPreview, filteredData, outcome, factors]);
-
-  const interactionsForPreview = useMemo(() => {
-    if (!hasFactorIntelligenceForPreview || !outcome || !filteredData.length) return null;
-    return computeInteractionEffects(filteredData, outcome, factors);
-  }, [hasFactorIntelligenceForPreview, filteredData, outcome, factors]);
-
-  const evidenceMapDataForPreview = useEvidenceMapData({
-    bestSubsets: hasFactorIntelligenceForPreview ? bestSubsets : null,
-    mainEffects: mainEffectsForPreview,
-    interactions: interactionsForPreview,
-    containerSize: FACTOR_PREVIEW_MAP_SIZE,
-    mode: resolved,
-  });
-
-  const showFactorPreview =
-    !factorPreviewDismissed &&
-    activeView === 'analysis' &&
-    hasFactorIntelligenceForPreview &&
-    !evidenceMapDataForPreview.isEmpty;
-
-  const topFactor = bestSubsets?.subsets[0]?.factors[0] ?? null;
-  const topFactorR2 = useMemo(() => {
-    if (!topFactor || !bestSubsets) return 0;
-    const singleFactorSubset = bestSubsets.subsets.find(
-      s => s.factors.length === 1 && s.factors[0] === topFactor
-    );
-    return singleFactorSubset?.rSquaredAdj ?? bestSubsets.subsets[0]?.rSquaredAdj ?? 0;
-  }, [topFactor, bestSubsets]);
-
-  const handleFactorPreviewStart = useCallback(
-    (factor: string) => {
-      usePanelsStore.getState().setHighlightedFactor(factor);
-      dismissFactorPreview();
-    },
-    [dismissFactorPreview]
-  );
 
   // ── Render ──────────────────────────────────────────────────────────────
   return (
@@ -281,30 +225,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
       />
 
       {/* Factor Preview overlay — shown once when Factor Intelligence first completes */}
-      {showFactorPreview && topFactor && (
-        <FactorPreviewOverlay
-          evidenceMap={
-            <EvidenceMapBase
-              parentWidth={FACTOR_PREVIEW_MAP_SIZE.width}
-              parentHeight={FACTOR_PREVIEW_MAP_SIZE.height}
-              outcomeNode={evidenceMapDataForPreview.outcomeNode}
-              factorNodes={evidenceMapDataForPreview.factorNodes}
-              relationshipEdges={evidenceMapDataForPreview.relationshipEdges}
-              equation={evidenceMapDataForPreview.equation}
-              causalEdges={[]}
-              convergencePoints={[]}
-              enableZoom={false}
-              compact={false}
-            />
-          }
-          topFactor={topFactor}
-          topFactorR2={topFactorR2}
-          modelR2={bestSubsets!.subsets[0]?.rSquaredAdj ?? 0}
-          factorCount={factors.length}
-          onStartWithFactor={handleFactorPreviewStart}
-          onDismiss={dismissFactorPreview}
-        />
-      )}
+      <FactorPreviewSection bestSubsets={bestSubsets} />
     </>
   );
 };
