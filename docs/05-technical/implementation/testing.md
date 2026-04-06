@@ -929,4 +929,24 @@ Validated as correctly scoped entry point. No action needed.
 ## Related Documentation
 
 - `.claude/rules/testing.md` - Quick reference testing rules (in project root)
+
+---
+
+## Degenerate Input Testing
+
+Stats functions must be tested with edge-case inputs to verify the three-boundary defense (ADR-069):
+
+- **Constant-value data** — all measurements identical (σ = 0)
+- **Single data point** — n = 1
+- **Perfectly collinear predictors** — one factor is a linear combination of another
+- **All-NaN columns** — factor column with no valid numeric values
+
+Expected behavior:
+
+- Stats functions return `undefined` or `null`, never `NaN` or `Infinity`
+- Exception: `andersonDarlingTest()` returns `{ statistic: Infinity }` intentionally for degenerate data
+- UI displays "—" (em dash) for non-computable values
+
+Reference implementation: `packages/core/src/stats/__tests__/safeMath.test.ts`
+
 - [Technical Overview](../index.md) - Technical section index
