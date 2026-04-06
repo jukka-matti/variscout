@@ -168,7 +168,7 @@ const CausalEdge: React.FC<CausalEdgeProps> = ({ edge, isHighlighted, isDark, on
           fontSize={7}
           pointerEvents="none"
         >
-          {edge.fromLevel ?? edge.fromFactor} → {edge.toLevel ?? edge.toFactor}
+          {edge.fromLevel || edge.fromFactor} → {edge.toLevel || edge.toFactor}
         </text>
       )}
     </g>

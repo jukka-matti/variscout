@@ -176,7 +176,7 @@ describe('useEvidenceMapData — explored node state', () => {
     expect(tempNode?.explored).toBe(false);
   });
 
-  it('does NOT mark a factor as explored for an open question without causeRole', () => {
+  it('leaves explored undefined when only open questions exist (no concluded investigation)', () => {
     const questions: Question[] = [
       makeQuestion({ id: 'q1', status: 'open', factor: 'Temperature' }),
     ];
@@ -190,11 +190,13 @@ describe('useEvidenceMapData — explored node state', () => {
         questions,
       })
     );
-    const tempNode = result.current.factorNodes.find(n => n.factor === 'Temperature');
-    expect(tempNode?.explored).toBe(false);
+    // No answered/ruled-out questions → exploration hasn't started → normal colors
+    for (const node of result.current.factorNodes) {
+      expect(node.explored).toBeUndefined();
+    }
   });
 
-  it('does NOT mark a factor as explored for an investigating question', () => {
+  it('leaves explored undefined when only investigating questions exist', () => {
     const questions: Question[] = [
       makeQuestion({ id: 'q1', status: 'investigating', factor: 'Temperature' }),
     ];
@@ -208,8 +210,9 @@ describe('useEvidenceMapData — explored node state', () => {
         questions,
       })
     );
-    const tempNode = result.current.factorNodes.find(n => n.factor === 'Temperature');
-    expect(tempNode?.explored).toBe(false);
+    for (const node of result.current.factorNodes) {
+      expect(node.explored).toBeUndefined();
+    }
   });
 
   it('stamps explored on all factors when both have qualifying questions', () => {
@@ -231,6 +234,25 @@ describe('useEvidenceMapData — explored node state', () => {
     const pressNode = result.current.factorNodes.find(n => n.factor === 'Pressure');
     expect(tempNode?.explored).toBe(true);
     expect(pressNode?.explored).toBe(true);
+  });
+
+  it('deduplicates — multiple answered questions for same factor still produce explored: true', () => {
+    const questions: Question[] = [
+      makeQuestion({ id: 'q1', status: 'answered', factor: 'Temperature' }),
+      makeQuestion({ id: 'q2', status: 'answered', factor: 'Temperature' }),
+    ];
+    const { result } = renderHook(() =>
+      useEvidenceMapData({
+        bestSubsets: makeBestSubsets(),
+        mainEffects: null,
+        interactions: null,
+        containerSize: defaultContainerSize,
+        mode: 'standard',
+        questions,
+      })
+    );
+    const tempNode = result.current.factorNodes.find(n => n.factor === 'Temperature');
+    expect(tempNode?.explored).toBe(true);
   });
 
   it('ignores questions with no factor field', () => {

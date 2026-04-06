@@ -262,16 +262,12 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
 
     // Compute explored factors: factors with at least one answered or ruled-out question
     const exploredSet = new Set<string>();
-    let hasFactorQuestions = false;
     for (const q of questions) {
-      if (q.factor) {
-        hasFactorQuestions = true;
-        if (q.status === 'answered' || q.causeRole === 'ruled-out') {
-          exploredSet.add(q.factor);
-        }
+      if (q.factor && (q.status === 'answered' || q.causeRole === 'ruled-out')) {
+        exploredSet.add(q.factor);
       }
     }
-    const hasExploration = hasFactorQuestions;
+    const hasExploration = exploredSet.size > 0;
 
     // Map layout nodes to chart data with explored state
     const factorNodes: FactorNodeData[] = layout.factorNodes.map(n =>
