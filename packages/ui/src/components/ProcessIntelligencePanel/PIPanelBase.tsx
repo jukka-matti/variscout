@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
-import { Pencil } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Pencil, MoreHorizontal, X } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import { HelpTooltip } from '../HelpTooltip';
 import type { GlossaryTerm } from '@variscout/core';
-import type { PIPanelBaseProps, PITab, PIOverflowView } from './types';
+import type { PIPanelBaseProps, PITab, PIOverflowView, PITabConfig, PIOverflowItem } from './types';
 import { StagedComparisonCard } from './StagedComparisonCard';
 import TargetDiscoveryCard from './TargetDiscoveryCard';
-import PIOverflowMenu from './PIOverflowMenu';
 
 // MetricCard component for the summary grid
 interface MetricCardProps {
@@ -59,6 +58,8 @@ const EMPTY_STATE_CLASS =
 
 const pencilIcon = <Pencil size={12} />;
 
+// ─── Legacy tab button (PITab-based) ────────────────────────────────────────
+
 interface TabButtonProps {
   tab: PITab;
   label: string;
@@ -95,6 +96,221 @@ const TabButton = ({
   </button>
 );
 
+// ─── Config-driven tab button ────────────────────────────────────────────────
+
+interface ConfigTabButtonProps {
+  tab: PITabConfig;
+  activeId: string;
+  onTabChange: (id: string) => void;
+  compact?: boolean;
+}
+
+const ConfigTabButton = ({ tab, activeId, onTabChange, compact }: ConfigTabButtonProps) => (
+  <button
+    onClick={() => onTabChange(tab.id)}
+    data-testid={`pi-tab-${tab.id}`}
+    className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1 ${
+      activeId === tab.id ? TAB_ACTIVE_CLASS : TAB_INACTIVE_CLASS
+    } ${compact ? 'flex-1 px-2 py-2' : ''}`}
+    style={compact ? { minHeight: 44 } : undefined}
+  >
+    {tab.label}
+    {tab.badge !== undefined && tab.badge > 0 && (
+      <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[0.5rem] font-semibold rounded-full bg-blue-500/20 text-blue-400 leading-none">
+        {tab.badge}
+      </span>
+    )}
+  </button>
+);
+
+// ─── Inlined overflow menu ───────────────────────────────────────────────────
+
+interface OverflowMenuProps {
+  activeOverflow: PIOverflowView;
+  onSelect: (view: PIOverflowView) => void;
+}
+
+const LEGACY_OVERFLOW_LABELS: Record<NonNullable<PIOverflowView>, string> = {
+  data: 'Data Table',
+  whatif: 'What-If',
+};
+
+const LegacyOverflowMenu: React.FC<OverflowMenuProps> = ({ activeOverflow, onSelect }) => {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    if (open) document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
+
+  if (activeOverflow !== null) {
+    return (
+      <button
+        type="button"
+        onClick={() => onSelect(null)}
+        className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-surface-tertiary text-content border border-edge/60 hover:bg-surface hover:text-content-secondary transition-colors"
+        aria-label={`Close ${LEGACY_OVERFLOW_LABELS[activeOverflow]}`}
+      >
+        <span>{LEGACY_OVERFLOW_LABELS[activeOverflow]}</span>
+        <X size={10} />
+      </button>
+    );
+  }
+
+  return (
+    <div ref={containerRef} className="relative ml-auto flex-shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center justify-center w-7 h-7 rounded-md text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+        aria-label="More options"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <MoreHorizontal size={14} />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full mt-1 z-20 min-w-[140px] bg-surface border border-edge rounded-lg shadow-lg py-1"
+        >
+          <button
+            role="menuitem"
+            type="button"
+            className="w-full text-left px-3 py-1.5 text-xs text-content hover:bg-surface-secondary transition-colors"
+            onClick={() => {
+              onSelect('data');
+              setOpen(false);
+            }}
+          >
+            {LEGACY_OVERFLOW_LABELS['data']}
+          </button>
+          <button
+            role="menuitem"
+            type="button"
+            className="w-full text-left px-3 py-1.5 text-xs text-content hover:bg-surface-secondary transition-colors"
+            onClick={() => {
+              onSelect('whatif');
+              setOpen(false);
+            }}
+          >
+            {LEGACY_OVERFLOW_LABELS['whatif']}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Config-driven overflow menu ─────────────────────────────────────────────
+
+interface ConfigOverflowMenuProps {
+  items: PIOverflowItem[];
+  activeId: string | null;
+  onSelect: (id: string | null) => void;
+}
+
+const ConfigOverflowMenu: React.FC<ConfigOverflowMenuProps> = ({ items, activeId, onSelect }) => {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    if (open) document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
+
+  const activeItem = activeId ? items.find(i => i.id === activeId) : null;
+
+  if (activeItem) {
+    return (
+      <button
+        type="button"
+        onClick={() => onSelect(null)}
+        className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-surface-tertiary text-content border border-edge/60 hover:bg-surface hover:text-content-secondary transition-colors"
+        aria-label={`Close ${activeItem.label}`}
+        data-testid={`pi-overflow-close-${activeItem.id}`}
+      >
+        <span>{activeItem.label}</span>
+        <X size={10} />
+      </button>
+    );
+  }
+
+  if (items.length === 0) return null;
+
+  return (
+    <div ref={containerRef} className="relative ml-auto flex-shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center justify-center w-7 h-7 rounded-md text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+        aria-label="More options"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        data-testid="pi-overflow-trigger"
+      >
+        <MoreHorizontal size={14} />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full mt-1 z-20 min-w-[140px] bg-surface border border-edge rounded-lg shadow-lg py-1"
+        >
+          {items.map(item => (
+            <button
+              key={item.id}
+              role="menuitem"
+              type="button"
+              className="w-full text-left px-3 py-1.5 text-xs text-content hover:bg-surface-secondary transition-colors flex items-center gap-2"
+              data-testid={`pi-overflow-item-${item.id}`}
+              onClick={() => {
+                onSelect(item.id);
+                setOpen(false);
+              }}
+            >
+              {item.icon}
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── PIPanelBase ─────────────────────────────────────────────────────────────
+
 const PIPanelBase: React.FC<PIPanelBaseProps> = ({
   stats,
   specs,
@@ -119,24 +335,29 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
   activeProjection,
   centeringOpportunity,
   onAcceptSpecs,
-  // Tab render props
+  // Legacy tab render props
   renderDataTable,
   renderWhatIf,
   renderQuestionsTab,
   renderJournalTab,
   openQuestionCount,
-  // Docs tab props
+  // Legacy docs tab props
   showDocsTab,
   renderDocsTab,
   docsCount,
-  // Overflow menu props
+  // Legacy overflow menu props
   overflowView: overflowViewProp,
   onOverflowViewChange,
+  // New config-driven API
+  tabs,
+  overflowItems,
 }) => {
   const { t, formatStat } = useTranslation();
+
+  // ── Legacy tab state ──────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<PITab>(defaultTab || 'stats');
 
-  // Overflow view can be controlled (via prop) or uncontrolled (local state)
+  // Legacy overflow view can be controlled (via prop) or uncontrolled (local state)
   const [overflowViewLocal, setOverflowViewLocal] = useState<PIOverflowView>(null);
   const overflowView = overflowViewProp !== undefined ? overflowViewProp : overflowViewLocal;
   const setOverflowView = (view: PIOverflowView) => {
@@ -146,6 +367,12 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
       setOverflowViewLocal(view);
     }
   };
+
+  // ── Config-driven tab state ───────────────────────────────────────────────
+  const [activeConfigTabId, setActiveConfigTabId] = useState<string>(() =>
+    tabs && tabs.length > 0 ? tabs[0].id : ''
+  );
+  const [activeOverflowItemId, setActiveOverflowItemId] = useState<string | null>(null);
 
   const emptyState = (message: string) => <div className={EMPTY_STATE_CLASS}>{message}</div>;
 
@@ -297,7 +524,64 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
     );
   };
 
-  const renderTabs = () => (
+  // ── Config-driven rendering ───────────────────────────────────────────────
+
+  const renderConfigTabBar = () => {
+    if (!tabs) return null;
+    const hasOverflow = overflowItems && overflowItems.length > 0;
+    return (
+      <div className={`${TAB_BAR_CLASS} ${compact ? 'mb-4' : ''} items-center`}>
+        {tabs.map(tab => (
+          <ConfigTabButton
+            key={tab.id}
+            tab={tab}
+            activeId={activeConfigTabId}
+            onTabChange={setActiveConfigTabId}
+            compact={compact}
+          />
+        ))}
+        {hasOverflow && (
+          <ConfigOverflowMenu
+            items={overflowItems!}
+            activeId={activeOverflowItemId}
+            onSelect={setActiveOverflowItemId}
+          />
+        )}
+      </div>
+    );
+  };
+
+  const renderConfigTabContent = () => {
+    if (!tabs) return null;
+
+    // Overflow item content takes priority
+    if (activeOverflowItemId) {
+      const item = overflowItems?.find(i => i.id === activeOverflowItemId);
+      if (item) {
+        return (
+          <div
+            className="flex-1 min-h-0 overflow-auto"
+            data-testid={`pi-overflow-content-${item.id}`}
+          >
+            {item.content}
+          </div>
+        );
+      }
+    }
+
+    const activeTab = tabs.find(t => t.id === activeConfigTabId) ?? tabs[0];
+    if (!activeTab) return null;
+
+    return (
+      <div className="flex-1 min-h-0 overflow-auto" data-testid={`pi-tab-content-${activeTab.id}`}>
+        {activeTab.content}
+      </div>
+    );
+  };
+
+  // ── Legacy rendering ──────────────────────────────────────────────────────
+
+  const renderLegacyTabBar = () => (
     <div className={`${TAB_BAR_CLASS} ${compact ? 'mb-4' : ''} items-center`}>
       <TabButton
         tab="stats"
@@ -331,11 +615,11 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
           badge={docsCount}
         />
       )}
-      <PIOverflowMenu activeOverflow={overflowView} onSelect={setOverflowView} />
+      <LegacyOverflowMenu activeOverflow={overflowView} onSelect={setOverflowView} />
     </div>
   );
 
-  const renderTabContent = () => {
+  const renderLegacyTabContent = () => {
     // Overflow views take priority over tab selection
     if (overflowView === 'data') {
       return (
@@ -381,11 +665,17 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
     }
   };
 
+  // ── Routing: config vs legacy ─────────────────────────────────────────────
+
+  const isConfigMode = tabs !== undefined;
+  const renderTabBar = isConfigMode ? renderConfigTabBar : renderLegacyTabBar;
+  const renderTabContent = isConfigMode ? renderConfigTabContent : renderLegacyTabContent;
+
   // Compact layout (mobile)
   if (compact) {
     return (
       <div className={CONTAINER_COMPACT_CLASS}>
-        {renderTabs()}
+        {renderTabBar()}
         <div className="flex-1 min-h-0">{renderTabContent()}</div>
       </div>
     );
@@ -395,7 +685,7 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
   return (
     <div className={className ? `${CONTAINER_CLASS} ${className}` : CONTAINER_CLASS}>
       <div className="flex justify-between items-center border-b border-inherit pb-4">
-        {renderTabs()}
+        {renderTabBar()}
       </div>
       {renderTabContent()}
     </div>

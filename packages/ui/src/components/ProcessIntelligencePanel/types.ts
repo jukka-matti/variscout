@@ -12,6 +12,22 @@ import type { ComplementInsight } from '@variscout/core';
 export type PITab = 'stats' | 'questions' | 'journal' | 'docs';
 export type PIOverflowView = 'data' | 'whatif' | null;
 
+/** Config-driven tab definition for PIPanelBase tabs prop */
+export interface PITabConfig {
+  id: string;
+  label: string;
+  badge?: number;
+  content: React.ReactNode;
+}
+
+/** Config-driven overflow item definition for PIPanelBase overflowItems prop */
+export interface PIOverflowItem {
+  id: string;
+  label: string;
+  icon?: React.ReactNode;
+  content: React.ReactNode;
+}
+
 export interface PIPanelBaseProps {
   stats: StatsResult | null;
   specs: SpecLimits;
@@ -91,4 +107,18 @@ export interface PIPanelBaseProps {
   overflowView?: PIOverflowView;
   /** Called when the overflow view changes */
   onOverflowViewChange?: (view: PIOverflowView) => void;
+
+  // --- Config-driven tab API (preferred over render props for new consumers) ---
+
+  /**
+   * When provided, replaces the static Stats/Questions/Journal/Docs tab bar with
+   * a dynamic tab bar driven by this array. Old render props are ignored.
+   */
+  tabs?: PITabConfig[];
+
+  /**
+   * When provided alongside `tabs`, replaces the built-in overflow menu items
+   * (Data Table / What-If) with these items.
+   */
+  overflowItems?: PIOverflowItem[];
 }
