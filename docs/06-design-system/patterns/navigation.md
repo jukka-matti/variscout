@@ -59,7 +59,7 @@ AppHeader — project mode (44px):
 - **Logo mark [V]** (Activity icon in blue square) replaces the back arrow — clicking returns to portfolio
 - **Project name** shows an auto-save status dot (no Save button — auto-save only via `useAutoSave`)
 - **Workspace tabs** switch the center content area (dashboard / charts / findings board / improvement workspace / report view)
-- **PI toggle** (Process Intelligence) opens a left sidebar (Summary, Data, What-If tabs) — visible in all workspaces (not gated to Analysis)
+- **PI toggle** (Process Intelligence) opens a left sidebar (Stats, Questions, Journal, Docs tabs) — visible in all workspaces (not gated to Analysis)
 - **AI** toggle opens CoScout as a right sidebar (adapts coaching to active workspace phase)
 - **Analysis** has a dropdown for sub-modes (Standard / Performance / Yamazumi)
 - **Report** workspace contains the report view, export, and PDF actions (no report/export/present buttons in header)

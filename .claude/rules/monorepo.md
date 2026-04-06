@@ -23,10 +23,12 @@ packages/
 ├── hooks/     # @variscout/hooks - 60+ shared React hooks (ls packages/hooks/src/use*.ts for full list)
 │              #   Key hooks: useFilteredData, useAnalysisStats, useProjectActions,
 │              #   useEvidenceMapData, useAICoScout, usePopoutChannel,
-│              #   useQuestions, useFindings, useProblemStatement
+│              #   useQuestions, useFindings, useProblemStatement,
+│              #   useHubComputations, useCoScoutProps, useImprovementProjections
 └── ui/        # @variscout/ui - 110+ shared UI components (ls packages/ui/src/components/ for full list)
                #   Key: DashboardLayoutBase, CoScoutPanelBase, ImprovementWorkspaceBase,
                #   ReportViewBase, FindingsWindow, HubComposer, EvidenceMapNodeSheet
+               #   Store-aware PI Panel tabs: StatsTabContent, QuestionsTabContent, JournalTabContent
                #   Also exports: useGlossary, useIsMobile, useTheme, errorService, BREAKPOINTS
 
 apps/

@@ -1,13 +1,15 @@
 ---
 title: Process Intelligence Panel
 date: 2026-03-28
-status: delivered
+status: superseded
 audience: [developer, designer]
 category: design-spec
 related: [stats-panel, what-if, target-discovery, sidebar, process-health-bar]
 ---
 
 # Process Intelligence Panel
+
+> **Superseded**: This design was superseded by the [PI Panel Redesign](2026-04-01-process-intelligence-panel-redesign.md) (ADR-056, 2026-04-01). The 4-tab model (Stats | Questions | Journal | Docs) replaced the original 3-tab model (Summary | Data | What-If).
 
 Redesign the Stats sidebar from a passive metrics display into an active intelligence panel that helps analysts discover achievable targets, project improvement impact, and explore data.
 
