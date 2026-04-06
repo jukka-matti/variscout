@@ -9,7 +9,6 @@ import type {
   HubProjection,
 } from '@variscout/core';
 import QuestionRow from './QuestionRow';
-import QuestionRowExpanded from './QuestionRowExpanded';
 import ObservationsSection from './ObservationsSection';
 import ConclusionCard from './ConclusionCard';
 import type { SuspectedCause } from './ConclusionCard';
@@ -30,7 +29,7 @@ export interface QuestionsTabViewProps {
   activeQuestionId?: string | null;
   suspectedCauses?: SuspectedCause[];
   combinedProjectedCpk?: number;
-  /** Record of question id → projected Cpk value (for QuestionRowExpanded) */
+  /** Record of question id → projected Cpk value (for expanded QuestionRow detail) */
   projectedCpkMap?: Record<string, number>;
   /** Best subset result for equation display */
   bestSubset?: BestSubsetResult;
@@ -342,26 +341,19 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
                     const isExpanded = expandedIds.has(q.id);
 
                     return (
-                      <React.Fragment key={q.id}>
-                        <QuestionRow
-                          question={q}
-                          findings={linkedFindings}
-                          isActive={isActive}
-                          isExpanded={isExpanded}
-                          evidenceLabel={evidenceLabel}
-                          onClick={onQuestionClick}
-                          onToggleExpand={handleToggleExpand}
-                        />
-                        {isExpanded && (
-                          <QuestionRowExpanded
-                            question={q}
-                            findings={linkedFindings}
-                            projectedCpk={projectedCpkMap[q.id]}
-                            currentCpk={currentCpk}
-                            onAddNote={onAddNote}
-                          />
-                        )}
-                      </React.Fragment>
+                      <QuestionRow
+                        key={q.id}
+                        question={q}
+                        findings={linkedFindings}
+                        isActive={isActive}
+                        isExpanded={isExpanded}
+                        evidenceLabel={evidenceLabel}
+                        onClick={onQuestionClick}
+                        onToggleExpand={handleToggleExpand}
+                        projectedCpk={projectedCpkMap[q.id]}
+                        currentCpk={currentCpk}
+                        onAddNote={onAddNote}
+                      />
                     );
                   })}
               </div>
