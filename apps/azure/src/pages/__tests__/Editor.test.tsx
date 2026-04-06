@@ -134,7 +134,16 @@ vi.mock('@variscout/ui', () => ({
   AIOnboardingTooltip: () => null,
   SessionClosePrompt: () => null,
   BrainstormModal: () => null,
+  FactorPreviewOverlay: () => null,
+  PIPanelBase: () => null,
+  StatsTabContent: () => null,
+  QuestionsTabContent: () => null,
+  JournalTabContent: () => null,
+  DocumentShelfBase: () => null,
+  WhatIfSimulator: () => null,
+  computePresets: vi.fn(() => undefined),
   useIsMobile: () => false,
+  useGlossary: () => ({ getTerm: (key: string) => key }),
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));
 

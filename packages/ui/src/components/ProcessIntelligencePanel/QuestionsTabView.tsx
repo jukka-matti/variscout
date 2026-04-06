@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, ChevronDown, ChevronRight } from 'lucide-react';
+import { Camera, Link2, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import type { Question, Finding } from '@variscout/core/findings';
 import type { QuestionStatus } from '@variscout/core/findings';
 import type { BestSubsetResult } from '@variscout/core/stats';
@@ -9,8 +9,6 @@ import type {
   HubProjection,
 } from '@variscout/core';
 import QuestionRow from './QuestionRow';
-import QuestionRowExpanded from './QuestionRowExpanded';
-import ObservationsSection from './ObservationsSection';
 import ConclusionCard from './ConclusionCard';
 import type { SuspectedCause } from './ConclusionCard';
 import EquationDisplay from './EquationDisplay';
@@ -30,7 +28,7 @@ export interface QuestionsTabViewProps {
   activeQuestionId?: string | null;
   suspectedCauses?: SuspectedCause[];
   combinedProjectedCpk?: number;
-  /** Record of question id → projected Cpk value (for QuestionRowExpanded) */
+  /** Record of question id → projected Cpk value (for expanded QuestionRow detail) */
   projectedCpkMap?: Record<string, number>;
   /** Best subset result for equation display */
   bestSubset?: BestSubsetResult;
@@ -342,26 +340,19 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
                     const isExpanded = expandedIds.has(q.id);
 
                     return (
-                      <React.Fragment key={q.id}>
-                        <QuestionRow
-                          question={q}
-                          findings={linkedFindings}
-                          isActive={isActive}
-                          isExpanded={isExpanded}
-                          evidenceLabel={evidenceLabel}
-                          onClick={onQuestionClick}
-                          onToggleExpand={handleToggleExpand}
-                        />
-                        {isExpanded && (
-                          <QuestionRowExpanded
-                            question={q}
-                            findings={linkedFindings}
-                            projectedCpk={projectedCpkMap[q.id]}
-                            currentCpk={currentCpk}
-                            onAddNote={onAddNote}
-                          />
-                        )}
-                      </React.Fragment>
+                      <QuestionRow
+                        key={q.id}
+                        question={q}
+                        findings={linkedFindings}
+                        isActive={isActive}
+                        isExpanded={isExpanded}
+                        evidenceLabel={evidenceLabel}
+                        onClick={onQuestionClick}
+                        onToggleExpand={handleToggleExpand}
+                        projectedCpk={projectedCpkMap[q.id]}
+                        currentCpk={currentCpk}
+                        onAddNote={onAddNote}
+                      />
                     );
                   })}
               </div>
@@ -390,12 +381,62 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
         </button>
       )}
 
-      {/* Observations section */}
-      <ObservationsSection
-        observations={unlinkedFindings}
-        onLink={onLinkObservation ? (findingId: string) => setLinkTarget(findingId) : undefined}
-        onAddObservation={onAddObservation ? () => setAddObservationOpen(true) : undefined}
-      />
+      {/* Observations section (inlined) */}
+      {(unlinkedFindings.length > 0 || onAddObservation) && (
+        <div
+          className="border-t border-edge/60 pt-2 flex flex-col gap-1"
+          data-testid="observations-section"
+        >
+          <div className="flex items-center gap-1.5 px-2">
+            <span className="text-[0.625rem] font-semibold text-content-muted uppercase tracking-wide">
+              Observations
+            </span>
+            {unlinkedFindings.length > 0 && (
+              <span
+                className="text-[0.5625rem] bg-amber-500/15 text-amber-400 rounded px-1 leading-4"
+                aria-label={`${unlinkedFindings.length} unlinked observation${unlinkedFindings.length !== 1 ? 's' : ''}`}
+                data-testid="observations-count"
+              >
+                {unlinkedFindings.length}
+              </span>
+            )}
+          </div>
+          {unlinkedFindings.map(finding => (
+            <div
+              key={finding.id}
+              className="flex items-start gap-1.5 px-2 py-1"
+              data-testid={`observation-${finding.id}`}
+            >
+              <Camera size={12} className="mt-0.5 text-amber-500 shrink-0" aria-hidden="true" />
+              <span className="flex-1 text-xs text-content leading-snug line-clamp-2">
+                {finding.text}
+              </span>
+              {onLinkObservation && (
+                <button
+                  type="button"
+                  onClick={() => setLinkTarget(finding.id)}
+                  aria-label="Link observation to a question"
+                  className="shrink-0 p-0.5 rounded text-content-muted hover:text-blue-400 transition-colors"
+                  data-testid={`link-observation-${finding.id}`}
+                >
+                  <Link2 size={11} />
+                </button>
+              )}
+            </div>
+          ))}
+          {onAddObservation && (
+            <button
+              type="button"
+              onClick={() => setAddObservationOpen(true)}
+              className="flex items-center gap-1 px-2 py-1 text-xs text-content-muted hover:text-content transition-colors"
+              data-testid="add-observation-button"
+            >
+              <Plus size={11} aria-hidden="true" />
+              Add observation
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Conclusion card */}
       <ConclusionCard

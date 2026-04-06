@@ -572,6 +572,9 @@ importers:
       '@variscout/hooks':
         specifier: workspace:*
         version: link:../hooks
+      '@variscout/stores':
+        specifier: workspace:*
+        version: link:../stores
       focus-trap-react:
         specifier: ^12.0.0
         version: 12.0.0(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)

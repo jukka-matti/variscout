@@ -4,12 +4,12 @@ import {
   InvestigationPhaseBadge,
   InvestigationConclusion,
   FindingsLog,
-  CoScoutPanelBase,
 } from '@variscout/ui';
 import {
   useResizablePanel,
   useQuestionGeneration,
   useProblemStatement,
+  useHubComputations,
   type UseFindingsReturn,
   type UseQuestionsReturn,
 } from '@variscout/hooks';
@@ -20,19 +20,14 @@ import {
   computeMainEffects,
   computeInteractionEffects,
 } from '@variscout/core';
-import {
-  computeHubEvidence,
-  computeHubProjection,
-  detectEvidenceClusters,
-} from '@variscout/core/findings';
-import type { SuspectedCauseEvidence } from '@variscout/core';
-import type { HubProjection } from '@variscout/core/findings';
+import { detectEvidenceClusters } from '@variscout/core/findings';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { wouldCreateCycle } from '@variscout/core/stats';
 import { GripVertical } from 'lucide-react';
 import { useProjectStore, useInvestigationStore } from '@variscout/stores';
 import { InvestigationMapView } from './InvestigationMapView';
+import { CoScoutSection } from './CoScoutSection';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
@@ -41,7 +36,7 @@ import {
   type QuestionDisplayData,
 } from '../../features/investigation/investigationStore';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
-import type { UseAIOrchestrationReturn } from '../../features/ai';
+import type { UseAIOrchestrationReturn, UseActionProposalsReturn } from '../../features/ai';
 import type { UseInvestigationOrchestrationReturn } from '../../features/investigation/useInvestigationOrchestration';
 
 // Resize panel config (individual args for useResizablePanel)
@@ -69,6 +64,8 @@ interface InvestigationWorkspaceProps {
   isTeamsCamera: boolean;
   // AI
   aiOrch: UseAIOrchestrationReturn;
+  actionProposalsState: UseActionProposalsReturn;
+  handleSearchKnowledge: () => void;
   // Column aliases
   columnAliases: Record<string, string>;
   // Hub model (SuspectedCause CRUD from useInvestigationOrchestration)
@@ -103,6 +100,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   handleCaptureFromTeams,
   isTeamsCamera,
   aiOrch,
+  actionProposalsState,
+  handleSearchKnowledge,
   columnAliases,
   suspectedCausesState,
   questionsMap,
@@ -120,7 +119,6 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const { filteredData } = useFilteredData();
   const { stats } = useAnalysisStats();
 
-  const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const investigationViewMode = usePanelsStore(s => s.investigationViewMode);
   const highlightedFactor = usePanelsStore(s => s.highlightedFactor);
   const setInvestigationViewMode = usePanelsStore(s => s.setInvestigationViewMode);
@@ -184,63 +182,10 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   // ── Hub model computations (SuspectedCause hubs) ───────────────────────
   const hubs = suspectedCausesState.hubs;
 
-  // Compute hub evidences
-  const hubEvidences = useMemo(() => {
-    if (hubs.length === 0) return undefined;
-    const map = new Map<string, SuspectedCauseEvidence>();
-    const evidenceMode: SuspectedCauseEvidence['mode'] =
-      resolved === 'capability'
-        ? 'capability'
-        : resolved === 'performance'
-          ? 'performance'
-          : resolved === 'yamazumi'
-            ? 'yamazumi'
-            : 'standard';
-    for (const hub of hubs) {
-      map.set(hub.id, computeHubEvidence(hub, questionsState.questions, bestSubsets, evidenceMode));
-    }
-    return map;
-  }, [hubs, questionsState.questions, bestSubsets, resolved]);
-
-  // Compute worst levels from bestSubsets level effects (for hub projections)
-  const currentWorstLevels = useMemo(() => {
-    if (!bestSubsets) return {};
-    const worst: Record<string, string> = {};
-    for (const subset of bestSubsets.subsets) {
-      for (const factor of subset.factors) {
-        if (worst[factor]) continue;
-        const effects = subset.levelEffects.get(factor);
-        if (!effects) continue;
-        let worstLevel: string | undefined;
-        let worstEffect = -Infinity;
-        for (const [level, effect] of effects.entries()) {
-          if (Math.abs(effect) > worstEffect) {
-            worstEffect = Math.abs(effect);
-            worstLevel = level;
-          }
-        }
-        if (worstLevel) worst[factor] = worstLevel;
-      }
-    }
-    return worst;
-  }, [bestSubsets]);
-
-  // Compute hub projections
-  const hubProjections = useMemo(() => {
-    if (hubs.length === 0 || !bestSubsets) return undefined;
-    const map = new Map<string, HubProjection>();
-    for (const hub of hubs) {
-      const proj = computeHubProjection(
-        hub,
-        questionsState.questions,
-        bestSubsets,
-        currentWorstLevels,
-        specs ?? undefined
-      );
-      if (proj) map.set(hub.id, proj);
-    }
-    return map;
-  }, [hubs, questionsState.questions, bestSubsets, currentWorstLevels, specs]);
+  const { hubEvidences, hubProjections } = useHubComputations(
+    bestSubsets,
+    questionsState.questions
+  );
 
   // Detect evidence clusters for synthesis prompts
   const evidenceClusters = useMemo(
@@ -268,8 +213,6 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     }
     return { suspectedCauses: suspected, contributing: contrib, ruledOut: ruled };
   }, [questionsState.questions]);
-
-  const { coscout } = aiOrch;
 
   const drillFactors = useMemo(() => drillPath.map(d => d.factor), [drillPath]);
 
@@ -638,32 +581,15 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         )}
       </div>
 
-      {/* Right: CoScout panel (optional, self-managing resize) */}
-      {coscout && (
-        <CoScoutPanelBase
-          isOpen={isCoScoutOpen}
-          onClose={() => usePanelsStore.getState().setCoScoutOpen(false)}
-          resizeConfig={{
-            storageKey: 'variscout-azure-coscout-panel-width',
-            min: 320,
-            max: 600,
-            defaultWidth: 384,
-          }}
-          messages={coscout.messages}
-          onSend={
-            coscout.send as (
-              text: string,
-              images?: { id: string; dataUrl: string; mimeType?: string }[]
-            ) => void
-          }
-          isLoading={coscout.isLoading}
-          isStreaming={coscout.isStreaming}
-          onStopStreaming={coscout.stopStreaming}
-          error={coscout.error}
-          onRetry={coscout.retry}
-          suggestedQuestions={aiOrch.suggestedQuestions}
-        />
-      )}
+      {/* Right: CoScout panel (session-close prompt, visual grounding, KB search) */}
+      <CoScoutSection
+        aiOrch={aiOrch}
+        findingsState={findingsState}
+        questionsState={questionsState}
+        actionProposalsState={actionProposalsState}
+        handleSearchKnowledge={handleSearchKnowledge}
+        handleAddCommentWithAuthor={handleAddCommentWithAuthor}
+      />
     </div>
   );
 };

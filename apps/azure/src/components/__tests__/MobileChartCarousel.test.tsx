@@ -43,8 +43,8 @@ vi.mock('../charts/ParetoChart', () => ({
     </div>
   ),
 }));
-vi.mock('../ProcessIntelligencePanel', () => ({
-  default: () => <div data-testid="stats-mock">Process Intelligence Panel</div>,
+vi.mock('../settings/SpecEditor', () => ({
+  default: () => <div data-testid="spec-editor-mock">Spec Editor</div>,
 }));
 vi.mock('../AssigneeInput', () => ({
   AssigneeInput: ({
@@ -62,6 +62,7 @@ vi.mock('../AssigneeInput', () => ({
 }));
 // Mock @variscout/ui components
 vi.mock('@variscout/ui', () => ({
+  StatsTabContent: () => <div data-testid="stats-mock">Stats Tab Content</div>,
   ErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   FilterBreadcrumb: () => <div data-testid="filter-breadcrumb-mock">Breadcrumb</div>,
   AnovaResults: () => <div data-testid="anova-mock">ANOVA</div>,

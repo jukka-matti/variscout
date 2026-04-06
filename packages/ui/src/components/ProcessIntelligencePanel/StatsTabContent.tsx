@@ -1,24 +1,41 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pencil } from 'lucide-react';
-import { useTranslation } from '@variscout/hooks';
-import { HelpTooltip } from '../HelpTooltip';
+import { useAnalysisStats, useFilteredData, useTranslation } from '@variscout/hooks';
+import { useProjectStore } from '@variscout/stores';
+import { computeMainEffects, computeInteractionEffects } from '@variscout/core/stats';
+import type { BestSubsetsResult, FactorMainEffect } from '@variscout/core/stats';
 import type { StatsResult, SpecLimits, GlossaryTerm, StagedComparison } from '@variscout/core';
+import { useGlossary } from '../../hooks/useGlossary';
+import { HelpTooltip } from '../HelpTooltip';
 import { StagedComparisonCard } from './StagedComparisonCard';
+import FactorIntelligencePanel from './FactorIntelligencePanel';
+import EquationDisplay from './EquationDisplay';
 
-export interface StatsSummaryPanelProps {
-  stats: StatsResult | null;
-  specs: SpecLimits;
-  filteredData?: { length: number };
+export interface StatsTabContentProps {
+  /**
+   * Pre-computed best subsets — provided by the caller (e.g. from useQuestionGeneration)
+   * to avoid double computation. When null/undefined, factor intelligence is not shown.
+   */
+  bestSubsets?: BestSubsetsResult | null;
+  /** Opens the spec editor (app-specific, can't come from a store) */
   onEditSpecs?: () => void;
+  /** Navigate to investigation for a factor */
+  onInvestigateFactor?: (effect: FactorMainEffect) => void;
+  /** Whether to show capability metrics (Cp/Cpk/Pass Rate) */
   showCpk?: boolean;
+  /** Staged comparison object for staged analysis display */
   stagedComparison?: StagedComparison;
+  /** Cpk target threshold (shown in Cpk card) */
   cpkTarget?: number;
+  /** Callback when Cpk card is clicked (navigates to capability mode) */
   onCpkClick?: () => void;
+  /** Number of subgroups meeting cpkTarget */
   subgroupsMeetingTarget?: number;
+  /** Total subgroup count */
   subgroupCount?: number;
-  renderSummaryFooter?: (stats: StatsResult, specs: SpecLimits) => React.ReactNode;
-  getTerm: (key: string) => GlossaryTerm | undefined;
 }
+
+// ─── MetricCard ──────────────────────────────────────────────────────────────
 
 const METRIC_CARD_BG = 'bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 text-center';
 const METRIC_LABEL = 'flex items-center justify-center gap-1 text-xs text-content-secondary mb-1';
@@ -49,24 +66,33 @@ const MetricCard = ({ label, value, helpTerm, unit }: MetricCardProps) => (
 
 const pencilIcon = <Pencil size={12} />;
 
-/**
- * StatsSummaryPanel — Summary-only stats card for use in the dashboard grid.
- *
- * Displays metric cards (Pass Rate, Cp, Cpk, Mean, Median, StdDev) without
- * tabs or chart rendering. Styled to match DashboardChartCard aesthetics.
- */
-const StatsSummaryPanel: React.FC<StatsSummaryPanelProps> = ({
+// ─── Stats Summary (inlined from former StatsSummaryPanel) ───────────────────
+
+interface StatsSummaryProps {
+  stats: StatsResult | null;
+  specs: SpecLimits;
+  filteredData: { length: number };
+  onEditSpecs?: () => void;
+  showCpk: boolean;
+  stagedComparison?: StagedComparison;
+  cpkTarget?: number;
+  onCpkClick?: () => void;
+  subgroupsMeetingTarget?: number;
+  subgroupCount?: number;
+  getTerm: (key: string) => GlossaryTerm | undefined;
+}
+
+const StatsSummary: React.FC<StatsSummaryProps> = ({
   stats,
   specs,
   filteredData,
   onEditSpecs,
-  showCpk = true,
+  showCpk,
   stagedComparison,
   cpkTarget,
   onCpkClick,
   subgroupsMeetingTarget,
   subgroupCount,
-  renderSummaryFooter,
   getTerm,
 }) => {
   const { t, formatStat } = useTranslation();
@@ -184,9 +210,110 @@ const StatsSummaryPanel: React.FC<StatsSummaryPanelProps> = ({
         />
         <MetricCard label={t('stats.samples')} value={`n=${filteredData?.length ?? 0}`} />
       </div>
-      {stats && renderSummaryFooter?.(stats, specs)}
     </div>
   );
 };
 
-export default StatsSummaryPanel;
+// ─── StatsTabContent ─────────────────────────────────────────────────────────
+
+/**
+ * StatsTabContent — store-aware content for the "Stats" tab in the PI Panel.
+ *
+ * Reads its own data:
+ * - stats via useAnalysisStats()
+ * - filteredData via useFilteredData()
+ * - specs, outcome, cpkTarget, factors from useProjectStore
+ *
+ * Accepts optional props that can't come from stores (callbacks, app-specific state).
+ *
+ * Composes: StatsSummary (inlined), EquationDisplay (conditional), FactorIntelligencePanel (conditional).
+ */
+const StatsTabContent: React.FC<StatsTabContentProps> = ({
+  bestSubsets,
+  onEditSpecs,
+  onInvestigateFactor,
+  showCpk = true,
+  stagedComparison,
+  cpkTarget: cpkTargetProp,
+  onCpkClick,
+  subgroupsMeetingTarget,
+  subgroupCount,
+}) => {
+  const { getTerm } = useGlossary();
+
+  // Store reads
+  const specs = useProjectStore(s => s.specs);
+  const outcome = useProjectStore(s => s.outcome);
+  const storeCpkTarget = useProjectStore(s => s.cpkTarget);
+  const factors = useProjectStore(s => s.factors);
+
+  // Hook reads
+  const { stats } = useAnalysisStats();
+  const { filteredData } = useFilteredData();
+
+  const cpkTarget = cpkTargetProp ?? storeCpkTarget;
+
+  // Factor Intelligence: compute main/interaction effects when we have enough data
+  const hasFactorIntelligence =
+    factors.length >= 2 && !!outcome && filteredData.length > 0 && !!bestSubsets;
+
+  const mainEffects = useMemo(() => {
+    if (!hasFactorIntelligence) return null;
+    return computeMainEffects(filteredData, outcome!, factors);
+  }, [hasFactorIntelligence, filteredData, outcome, factors]);
+
+  const interactionEffects = useMemo(() => {
+    if (!hasFactorIntelligence) return null;
+    return computeInteractionEffects(filteredData, outcome!, factors);
+  }, [hasFactorIntelligence, filteredData, outcome, factors]);
+
+  // Equation display: show when bestSubsets has a valid top subset
+  const topSubset = bestSubsets?.subsets?.[0];
+  const showEquation = hasFactorIntelligence && !!topSubset && !!outcome;
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Primary stats summary */}
+      <StatsSummary
+        stats={stats}
+        specs={specs}
+        filteredData={filteredData}
+        onEditSpecs={onEditSpecs}
+        showCpk={showCpk}
+        stagedComparison={stagedComparison}
+        cpkTarget={cpkTarget}
+        onCpkClick={onCpkClick}
+        subgroupsMeetingTarget={subgroupsMeetingTarget}
+        subgroupCount={subgroupCount}
+        getTerm={getTerm}
+      />
+
+      {/* Equation display — shown when best subsets regression has a result */}
+      {showEquation && topSubset && outcome && (
+        <EquationDisplay
+          bestSubset={topSubset}
+          grandMean={bestSubsets!.grandMean}
+          outcome={outcome}
+          factorTypes={bestSubsets!.factorTypes}
+          predictors={topSubset.predictors}
+          intercept={topSubset.intercept}
+          rmse={topSubset.rmse}
+          n={bestSubsets!.n}
+        />
+      )}
+
+      {/* Staged comparison overrides the stat cards — already handled inside StatsSummary,
+          so we don't render factor intelligence when staged */}
+      {!stagedComparison && hasFactorIntelligence && bestSubsets && (
+        <FactorIntelligencePanel
+          bestSubsets={bestSubsets}
+          mainEffects={mainEffects}
+          interactionEffects={interactionEffects}
+          onInvestigateFactor={onInvestigateFactor}
+        />
+      )}
+    </div>
+  );
+};
+
+export default StatsTabContent;

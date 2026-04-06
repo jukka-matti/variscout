@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
-import type { ProcessProjection, CenteringOpportunity } from '@variscout/core/variation';
-import type { PITab, ComplementInsight, PIOverflowView } from '@variscout/ui';
-import { PIPanelBase, WhatIfSimulator, computePresets, useGlossary } from '@variscout/ui';
+import type { PIOverflowView } from '@variscout/ui';
+import { PIPanelBase, StatsTabContent, WhatIfSimulator, computePresets } from '@variscout/ui';
+import type { PITabConfig, PIOverflowItem } from '@variscout/ui';
 import { useProjectStore } from '@variscout/stores';
 import SpecEditor from './settings/SpecEditor';
 
@@ -11,18 +11,13 @@ interface ProcessIntelligencePanelProps {
   specs: SpecLimits;
   filteredData?: DataRow[];
   outcome?: string | null;
-  defaultTab?: PITab;
+  defaultTab?: string;
   className?: string;
   compact?: boolean;
   cpkTarget?: number;
   onCpkClick?: () => void;
   subgroupsMeetingTarget?: number;
   subgroupCount?: number;
-  /** Target discovery props */
-  isDrilling?: boolean;
-  complement?: ComplementInsight | null;
-  activeProjection?: ProcessProjection | null;
-  centeringOpportunity?: CenteringOpportunity | null;
   sampleCount?: number;
   /** PI panel: Questions tab render prop */
   renderQuestionsTab?: () => React.ReactNode;
@@ -48,19 +43,14 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
   onCpkClick,
   subgroupsMeetingTarget,
   subgroupCount,
-  isDrilling,
-  complement,
-  activeProjection,
-  centeringOpportunity,
-  sampleCount,
+  sampleCount: _sampleCount,
   renderQuestionsTab,
   renderJournalTab,
   openQuestionCount,
-  overflowView,
-  onOverflowViewChange,
+  overflowView: _overflowView,
+  onOverflowViewChange: _onOverflowViewChange,
 }) => {
   const setSpecs = useProjectStore(s => s.setSpecs);
-  const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
 
   const handleSaveSpecs = (newSpecs: SpecLimits) => {
@@ -77,6 +67,104 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
     );
   }, [stats, specs, filteredData, outcome]);
 
+  // Build tabs config
+  const tabs: PITabConfig[] = useMemo(() => {
+    const result: PITabConfig[] = [
+      {
+        id: 'stats',
+        label: 'Stats',
+        content: (
+          <StatsTabContent
+            onEditSpecs={() => setIsEditingSpecs(true)}
+            showCpk={true}
+            cpkTarget={cpkTarget}
+            onCpkClick={onCpkClick}
+            subgroupsMeetingTarget={subgroupsMeetingTarget}
+            subgroupCount={subgroupCount}
+          />
+        ),
+      },
+    ];
+    if (renderQuestionsTab) {
+      result.push({
+        id: 'questions',
+        label: 'Questions',
+        badge: openQuestionCount,
+        content: renderQuestionsTab(),
+      });
+    }
+    if (renderJournalTab) {
+      result.push({
+        id: 'journal',
+        label: 'Journal',
+        content: renderJournalTab(),
+      });
+    }
+    return result;
+  }, [
+    cpkTarget,
+    onCpkClick,
+    subgroupsMeetingTarget,
+    subgroupCount,
+    renderQuestionsTab,
+    renderJournalTab,
+    openQuestionCount,
+  ]);
+
+  // Build overflow items
+  const overflowItems: PIOverflowItem[] = useMemo(() => {
+    const items: PIOverflowItem[] = [];
+    if (filteredData.length > 0 && outcome) {
+      items.push({
+        id: 'data',
+        label: 'Data Table',
+        content: (
+          <div className="text-xs text-content-secondary p-2">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-edge/50">
+                  <th className="text-left py-1 px-2 font-medium">#</th>
+                  <th className="text-right py-1 px-2 font-medium">{outcome}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.slice(0, 100).map((row, i) => (
+                  <tr key={i} className="border-b border-edge/20 hover:bg-surface-tertiary/30">
+                    <td className="py-0.5 px-2 text-content-muted">{i + 1}</td>
+                    <td className="py-0.5 px-2 text-right font-mono">
+                      {String(row[outcome] ?? '')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {filteredData.length > 100 && (
+              <div className="text-center text-content-muted mt-2">
+                Showing 100 of {filteredData.length} rows
+              </div>
+            )}
+          </div>
+        ),
+      });
+    }
+    if (stats && (specs.usl !== undefined || specs.lsl !== undefined)) {
+      items.push({
+        id: 'whatif',
+        label: 'What-If',
+        content: (
+          <WhatIfSimulator
+            currentStats={{ mean: stats.mean, stdDev: stats.stdDev, cpk: stats.cpk }}
+            specs={specs}
+            defaultExpanded={true}
+            cpkTarget={cpkTarget}
+            presets={presets}
+          />
+        ),
+      });
+    }
+    return items;
+  }, [filteredData, outcome, stats, specs, cpkTarget, presets]);
+
   return (
     <>
       {isEditingSpecs && (
@@ -89,80 +177,11 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
       )}
 
       <PIPanelBase
-        stats={stats}
-        specs={specs}
-        filteredData={filteredData}
-        outcome={outcome}
+        tabs={tabs}
+        overflowItems={overflowItems}
         defaultTab={defaultTab}
         className={className}
         compact={compact}
-        onEditSpecs={() => setIsEditingSpecs(true)}
-        cpkTarget={cpkTarget}
-        onCpkClick={onCpkClick}
-        subgroupsMeetingTarget={subgroupsMeetingTarget}
-        subgroupCount={subgroupCount}
-        getTerm={getTerm}
-        sampleCount={sampleCount}
-        isDrilling={isDrilling}
-        complement={complement}
-        activeProjection={activeProjection}
-        centeringOpportunity={centeringOpportunity}
-        onAcceptSpecs={(lsl, usl) => {
-          setSpecs({ ...specs, lsl, usl });
-          setIsEditingSpecs(true);
-        }}
-        renderQuestionsTab={renderQuestionsTab}
-        renderJournalTab={renderJournalTab}
-        openQuestionCount={openQuestionCount}
-        overflowView={overflowView}
-        onOverflowViewChange={onOverflowViewChange}
-        renderDataTable={
-          filteredData.length > 0 && outcome
-            ? () => (
-                <div className="text-xs text-content-secondary p-2">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-edge/50">
-                        <th className="text-left py-1 px-2 font-medium">#</th>
-                        <th className="text-right py-1 px-2 font-medium">{outcome}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredData.slice(0, 100).map((row, i) => (
-                        <tr
-                          key={i}
-                          className="border-b border-edge/20 hover:bg-surface-tertiary/30"
-                        >
-                          <td className="py-0.5 px-2 text-content-muted">{i + 1}</td>
-                          <td className="py-0.5 px-2 text-right font-mono">
-                            {String(row[outcome] ?? '')}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {filteredData.length > 100 && (
-                    <div className="text-center text-content-muted mt-2">
-                      Showing 100 of {filteredData.length} rows
-                    </div>
-                  )}
-                </div>
-              )
-            : undefined
-        }
-        renderWhatIf={
-          stats && (specs.usl !== undefined || specs.lsl !== undefined)
-            ? () => (
-                <WhatIfSimulator
-                  currentStats={{ mean: stats.mean, stdDev: stats.stdDev, cpk: stats.cpk }}
-                  specs={specs}
-                  defaultExpanded={true}
-                  cpkTarget={cpkTarget}
-                  presets={presets}
-                />
-              )
-            : undefined
-        }
       />
     </>
   );

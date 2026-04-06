@@ -6,10 +6,8 @@ import React from 'react';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
-import ProcessIntelligencePanel from '../ProcessIntelligencePanel';
-import { PresentationViewBase } from '@variscout/ui';
+import { PresentationViewBase, StatsTabContent } from '@variscout/ui';
 import { useProjectStore } from '@variscout/stores';
-import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 
 interface PresentationViewProps {
   onExit: () => void;
@@ -31,13 +29,8 @@ const PresentationView: React.FC<PresentationViewProps> = ({
   onToggleParetoAggregation,
 }) => {
   const outcome = useProjectStore(s => s.outcome);
-  const factors = useProjectStore(s => s.factors);
-  const specs = useProjectStore(s => s.specs);
-  const setSpecs = useProjectStore(s => s.setSpecs);
   const rawChartTitles = useProjectStore(s => s.chartTitles);
   const setChartTitles = useProjectStore(s => s.setChartTitles);
-  const { filteredData } = useFilteredData();
-  const { stats } = useAnalysisStats();
   const chartTitles = rawChartTitles || {};
 
   if (!outcome) return null;
@@ -63,16 +56,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
           />
         ) : null
       }
-      renderStats={() => (
-        <ProcessIntelligencePanel
-          stats={stats}
-          specs={specs}
-          filteredData={filteredData}
-          outcome={outcome}
-          onSaveSpecs={setSpecs}
-          factors={factors}
-        />
-      )}
+      renderStats={() => <StatsTabContent />}
     />
   );
 };

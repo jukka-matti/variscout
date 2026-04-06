@@ -29,7 +29,7 @@ import { EvidenceMap } from '@variscout/charts';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
-import ProcessIntelligencePanel from './ProcessIntelligencePanel';
+import SpecEditor from './settings/SpecEditor';
 import { AssigneeInput } from './AssigneeInput';
 import {
   AnovaResults,
@@ -39,6 +39,7 @@ import {
   MobileCategorySheet,
   EvidenceMapNodeSheet,
   EvidenceMapEdgeSheet,
+  StatsTabContent,
 } from '@variscout/ui';
 import type { MobileCategorySheetData } from '@variscout/ui';
 import {
@@ -155,7 +156,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   },
   highlights: { boxplotHighlights, paretoHighlights, onSetHighlight },
   onDrillDown,
-  stats,
+  stats: _stats,
   specs,
   filteredData,
   outcome,
@@ -175,6 +176,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
     onSetFindingAssignee,
   } = findingsCallbacks ?? {};
   const [activeView, setActiveView] = useState<ChartView>('ichart');
+  const [isEditingSpecs, setIsEditingSpecs] = useState(false);
 
   // ── Factor Intelligence for Evidence Map (requires 2+ factors) ──
   const hasFactorIntelligence = factors.length >= 2 && !!outcome && filteredData.length > 0;
@@ -653,16 +655,33 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
               />
             )}
             {activeView === 'stats' && (
-              <ProcessIntelligencePanel
-                stats={stats}
-                specs={specs}
-                filteredData={filteredData}
-                outcome={outcome}
-                onSaveSpecs={onSaveSpecs}
-                showCpk={showCpk}
-                factors={factors}
-                onInvestigateFactor={onInvestigateFactor}
-              />
+              <>
+                {isEditingSpecs && (
+                  <SpecEditor
+                    specs={specs}
+                    onSave={newSpecs => {
+                      onSaveSpecs(newSpecs);
+                      setIsEditingSpecs(false);
+                    }}
+                    onClose={() => setIsEditingSpecs(false)}
+                    style={{
+                      top: '70px',
+                      right: '0px',
+                      width: '100%',
+                      maxWidth: '320px',
+                      zIndex: 20,
+                    }}
+                  />
+                )}
+                <div className="p-3 overflow-auto h-full">
+                  <StatsTabContent
+                    bestSubsets={bestSubsets}
+                    onEditSpecs={() => setIsEditingSpecs(true)}
+                    onInvestigateFactor={onInvestigateFactor}
+                    showCpk={showCpk}
+                  />
+                </div>
+              </>
             )}
             {activeView === 'map' && showMapTab && (
               <EvidenceMap
