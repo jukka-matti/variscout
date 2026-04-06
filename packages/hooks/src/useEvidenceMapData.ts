@@ -83,8 +83,6 @@ export interface UseEvidenceMapDataReturn {
   activeLayer: 1 | 2 | 3;
   /** Whether the map has no data to render */
   isEmpty: boolean;
-  /** Factors with at least one answered or ruled-out question */
-  exploredFactors: Set<string>;
 }
 
 // ============================================================================
@@ -118,7 +116,11 @@ function buildEffectLabel(levelEffects: Array<{ level: string; effect: number }>
  * Map a FactorNodeLayout (from the layout engine) to FactorNodeData
  * (for the chart component).
  */
-function mapFactorNode(node: FactorNodeLayout, mode: ResolvedMode): FactorNodeData {
+function mapFactorNode(
+  node: FactorNodeLayout,
+  mode: ResolvedMode,
+  explored?: boolean
+): FactorNodeData {
   return {
     factor: node.factor,
     x: node.x,
@@ -131,6 +133,7 @@ function mapFactorNode(node: FactorNodeLayout, mode: ResolvedMode): FactorNodeDa
     factorType: node.factorType,
     trendGlyph: node.trendGlyph,
     ...(node.optimum !== undefined && { optimum: node.optimum }),
+    ...(explored !== undefined && { explored }),
   };
 }
 
@@ -244,7 +247,6 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
         convergencePoints: [],
         activeLayer: 1 as const,
         isEmpty: true,
-        exploredFactors: new Set(),
       };
     }
 
@@ -257,7 +259,24 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
     );
 
     const outcomeNode: OutcomeNodeData = layout.outcomeNode;
-    const factorNodes: FactorNodeData[] = layout.factorNodes.map(n => mapFactorNode(n, mode));
+
+    // Compute explored factors: factors with at least one answered or ruled-out question
+    const exploredSet = new Set<string>();
+    let hasFactorQuestions = false;
+    for (const q of questions) {
+      if (q.factor) {
+        hasFactorQuestions = true;
+        if (q.status === 'answered' || q.causeRole === 'ruled-out') {
+          exploredSet.add(q.factor);
+        }
+      }
+    }
+    const hasExploration = hasFactorQuestions;
+
+    // Map layout nodes to chart data with explored state
+    const factorNodes: FactorNodeData[] = layout.factorNodes.map(n =>
+      mapFactorNode(n, mode, hasExploration ? exploredSet.has(n.factor) : undefined)
+    );
     const relationshipEdges: RelationshipEdgeData[] = layout.relationshipEdges.map(e => ({
       factorA: e.factorA,
       factorB: e.factorB,
@@ -301,14 +320,6 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
     if (causalEdges.length > 0) activeLayer = 2;
     if (convergencePoints.length > 0) activeLayer = 3;
 
-    // Compute explored factors: factors with at least one answered or ruled-out question
-    const exploredFactors = new Set<string>();
-    for (const q of questions) {
-      if (q.factor && (q.status === 'answered' || q.causeRole === 'ruled-out')) {
-        exploredFactors.add(q.factor);
-      }
-    }
-
     return {
       outcomeNode,
       factorNodes,
@@ -318,7 +329,6 @@ export function useEvidenceMapData(options: UseEvidenceMapDataOptions): UseEvide
       convergencePoints,
       activeLayer,
       isEmpty: factorNodes.length === 0,
-      exploredFactors,
     };
   }, [
     bestSubsets,

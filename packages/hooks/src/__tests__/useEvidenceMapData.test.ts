@@ -104,8 +104,8 @@ const defaultContainerSize = { width: 800, height: 600 };
 // Tests
 // ============================================================================
 
-describe('useEvidenceMapData — exploredFactors', () => {
-  it('returns empty Set when no questions provided', () => {
+describe('useEvidenceMapData — explored node state', () => {
+  it('leaves explored undefined when no questions provided', () => {
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: makeBestSubsets(),
@@ -116,11 +116,12 @@ describe('useEvidenceMapData — exploredFactors', () => {
         questions: [],
       })
     );
-    expect(result.current.exploredFactors).toBeInstanceOf(Set);
-    expect(result.current.exploredFactors.size).toBe(0);
+    for (const node of result.current.factorNodes) {
+      expect(node.explored).toBeUndefined();
+    }
   });
 
-  it('returns empty Set for empty (no bestSubsets) state', () => {
+  it('returns no exploredFactors field on empty (no bestSubsets) state', () => {
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: null,
@@ -130,16 +131,15 @@ describe('useEvidenceMapData — exploredFactors', () => {
         mode: 'standard',
       })
     );
-    expect(result.current.exploredFactors).toBeInstanceOf(Set);
-    expect(result.current.exploredFactors.size).toBe(0);
     expect(result.current.isEmpty).toBe(true);
+    expect(result.current.factorNodes).toHaveLength(0);
+    expect((result.current as Record<string, unknown>).exploredFactors).toBeUndefined();
   });
 
   it('marks a factor as explored when it has an answered question', () => {
     const questions: Question[] = [
       makeQuestion({ id: 'q1', status: 'answered', factor: 'Temperature' }),
     ];
-
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: makeBestSubsets(),
@@ -150,16 +150,16 @@ describe('useEvidenceMapData — exploredFactors', () => {
         questions,
       })
     );
-
-    expect(result.current.exploredFactors.has('Temperature')).toBe(true);
-    expect(result.current.exploredFactors.has('Pressure')).toBe(false);
+    const tempNode = result.current.factorNodes.find(n => n.factor === 'Temperature');
+    const pressNode = result.current.factorNodes.find(n => n.factor === 'Pressure');
+    expect(tempNode?.explored).toBe(true);
+    expect(pressNode?.explored).toBe(false);
   });
 
   it('marks a factor as explored when it has a ruled-out question (any status)', () => {
     const questions: Question[] = [
       makeQuestion({ id: 'q1', status: 'open', factor: 'Pressure', causeRole: 'ruled-out' }),
     ];
-
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: makeBestSubsets(),
@@ -170,16 +170,16 @@ describe('useEvidenceMapData — exploredFactors', () => {
         questions,
       })
     );
-
-    expect(result.current.exploredFactors.has('Pressure')).toBe(true);
-    expect(result.current.exploredFactors.has('Temperature')).toBe(false);
+    const pressNode = result.current.factorNodes.find(n => n.factor === 'Pressure');
+    const tempNode = result.current.factorNodes.find(n => n.factor === 'Temperature');
+    expect(pressNode?.explored).toBe(true);
+    expect(tempNode?.explored).toBe(false);
   });
 
   it('does NOT mark a factor as explored for an open question without causeRole', () => {
     const questions: Question[] = [
       makeQuestion({ id: 'q1', status: 'open', factor: 'Temperature' }),
     ];
-
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: makeBestSubsets(),
@@ -190,15 +190,14 @@ describe('useEvidenceMapData — exploredFactors', () => {
         questions,
       })
     );
-
-    expect(result.current.exploredFactors.has('Temperature')).toBe(false);
+    const tempNode = result.current.factorNodes.find(n => n.factor === 'Temperature');
+    expect(tempNode?.explored).toBe(false);
   });
 
   it('does NOT mark a factor as explored for an investigating question', () => {
     const questions: Question[] = [
       makeQuestion({ id: 'q1', status: 'investigating', factor: 'Temperature' }),
     ];
-
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: makeBestSubsets(),
@@ -209,16 +208,15 @@ describe('useEvidenceMapData — exploredFactors', () => {
         questions,
       })
     );
-
-    expect(result.current.exploredFactors.has('Temperature')).toBe(false);
+    const tempNode = result.current.factorNodes.find(n => n.factor === 'Temperature');
+    expect(tempNode?.explored).toBe(false);
   });
 
-  it('includes both factors when each has at least one qualifying question', () => {
+  it('stamps explored on all factors when both have qualifying questions', () => {
     const questions: Question[] = [
       makeQuestion({ id: 'q1', status: 'answered', factor: 'Temperature' }),
       makeQuestion({ id: 'q2', status: 'open', factor: 'Pressure', causeRole: 'ruled-out' }),
     ];
-
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: makeBestSubsets(),
@@ -229,17 +227,14 @@ describe('useEvidenceMapData — exploredFactors', () => {
         questions,
       })
     );
-
-    expect(result.current.exploredFactors.has('Temperature')).toBe(true);
-    expect(result.current.exploredFactors.has('Pressure')).toBe(true);
-    expect(result.current.exploredFactors.size).toBe(2);
+    const tempNode = result.current.factorNodes.find(n => n.factor === 'Temperature');
+    const pressNode = result.current.factorNodes.find(n => n.factor === 'Pressure');
+    expect(tempNode?.explored).toBe(true);
+    expect(pressNode?.explored).toBe(true);
   });
 
   it('ignores questions with no factor field', () => {
-    const questions: Question[] = [
-      makeQuestion({ id: 'q1', status: 'answered' }), // no factor
-    ];
-
+    const questions: Question[] = [makeQuestion({ id: 'q1', status: 'answered' })];
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: makeBestSubsets(),
@@ -250,28 +245,8 @@ describe('useEvidenceMapData — exploredFactors', () => {
         questions,
       })
     );
-
-    expect(result.current.exploredFactors.size).toBe(0);
-  });
-
-  it('deduplicates — multiple answered questions for same factor produce one entry', () => {
-    const questions: Question[] = [
-      makeQuestion({ id: 'q1', status: 'answered', factor: 'Temperature' }),
-      makeQuestion({ id: 'q2', status: 'answered', factor: 'Temperature' }),
-    ];
-
-    const { result } = renderHook(() =>
-      useEvidenceMapData({
-        bestSubsets: makeBestSubsets(),
-        mainEffects: null,
-        interactions: null,
-        containerSize: defaultContainerSize,
-        mode: 'standard',
-        questions,
-      })
-    );
-
-    expect(result.current.exploredFactors.size).toBe(1);
-    expect(result.current.exploredFactors.has('Temperature')).toBe(true);
+    for (const node of result.current.factorNodes) {
+      expect(node.explored).toBeUndefined();
+    }
   });
 });
