@@ -319,6 +319,28 @@ describe('buildAIContext', () => {
     expect(ctx.variationContributions).toBeUndefined();
   });
 
+  it('passes through factorType and optimum on variationContributions', () => {
+    const ctx = buildAIContext({
+      variationContributions: [
+        {
+          factor: 'Temperature',
+          etaSquared: 0.45,
+          factorType: 'continuous',
+          relationship: 'quadratic',
+          optimum: 72,
+        },
+        { factor: 'Machine', etaSquared: 0.12, factorType: 'categorical' },
+        { factor: 'Shift', etaSquared: 0.05 },
+      ],
+    });
+    expect(ctx.variationContributions![0].factorType).toBe('continuous');
+    expect(ctx.variationContributions![0].relationship).toBe('quadratic');
+    expect(ctx.variationContributions![0].optimum).toBe(72);
+    expect(ctx.variationContributions![1].factorType).toBe('categorical');
+    expect(ctx.variationContributions![1].optimum).toBeUndefined();
+    expect(ctx.variationContributions![2].factorType).toBeUndefined();
+  });
+
   it('includes drillPath when provided', () => {
     const ctx = buildAIContext({ drillPath: ['Machine', 'Shift'] });
     expect(ctx.drillPath).toEqual(['Machine', 'Shift']);

@@ -57,7 +57,13 @@ export interface BuildAIContextOptions {
   /** Currently active/focused chart */
   activeChart?: InsightChartType;
   /** Variation contributions per factor (η²) */
-  variationContributions?: Array<{ factor: string; etaSquared: number }>;
+  variationContributions?: Array<{
+    factor: string;
+    etaSquared: number;
+    factorType?: 'categorical' | 'continuous';
+    relationship?: 'linear' | 'quadratic';
+    optimum?: number;
+  }>;
   /** Drill path: ordered factor names from filter stack */
   drillPath?: string[];
   /** Cumulative scope fraction (0-1) from drill path */
@@ -188,7 +194,10 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
   if (variationContributions && variationContributions.length > 0) {
     context.variationContributions = variationContributions.map(vc => {
       const cat = categoriesOpt ? getCategoryForFactor(categoriesOpt, vc.factor) : undefined;
-      return cat ? { ...vc, category: cat.name } : vc;
+      return {
+        ...vc,
+        ...(cat ? { category: cat.name } : {}),
+      };
     });
   }
 

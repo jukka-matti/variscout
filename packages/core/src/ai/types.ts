@@ -88,7 +88,17 @@ export interface AIContext {
     nelsonRule3Count?: number;
   };
   /** Variation contributions per factor (η²) */
-  variationContributions?: Array<{ factor: string; etaSquared: number; category?: string }>;
+  variationContributions?: Array<{
+    factor: string;
+    etaSquared: number;
+    category?: string;
+    /** Factor measurement type classification */
+    factorType?: 'categorical' | 'continuous';
+    /** Detected relationship shape for continuous factors */
+    relationship?: 'linear' | 'quadratic';
+    /** Estimated optimum value for quadratic factors (vertex x-coordinate) */
+    optimum?: number;
+  }>;
   /** Drill path: ordered factor names from filter stack */
   drillPath?: string[];
   /** Enriched drill path with scope fractions (when available from useDrillPath) */
