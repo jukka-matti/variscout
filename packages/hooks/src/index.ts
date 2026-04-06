@@ -338,6 +338,13 @@ export {
 // Hub Computations (shared evidence + projection memos)
 export { useHubComputations, type UseHubComputationsReturn } from './useHubComputations';
 
+// Improvement Projections (suspected-cause × projected-Cpk summaries)
+export {
+  useImprovementProjections,
+  type UseImprovementProjectionsReturn,
+  type SuspectedCauseProjection,
+} from './useImprovementProjections';
+
 // CoScout props assembly (shared props for CoScoutPanelBase)
 export {
   useCoScoutProps,
