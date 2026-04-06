@@ -45,6 +45,15 @@ interface AIStoreState {
   knowledgeSearching: boolean;
   /** Knowledge search documents */
   knowledgeDocuments: UseKnowledgeSearchReturn['documents'];
+  /** Factor type classification from best subsets (stable metadata) */
+  factorMetadata: Map<
+    string,
+    {
+      factorType: 'categorical' | 'continuous';
+      relationship?: 'linear' | 'quadratic';
+      optimum?: number;
+    }
+  > | null;
   // Session engagement tracking (for session-close save prompt)
   pendingSaveProposals: number;
   unsavedBookmarks: string[];
@@ -71,6 +80,7 @@ interface AIStoreActions {
     isSearching: boolean;
     documents: UseKnowledgeSearchReturn['documents'];
   }) => void;
+  syncFactorMetadata: (metadata: AIStoreState['factorMetadata']) => void;
   /** Set or clear a pending question to pre-fill CoScout from the project dashboard */
   setPendingDashboardQuestion: (question: string | null) => void;
   incrementPendingSaveProposals: () => void;
@@ -103,6 +113,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
   knowledgeAvailable: false,
   knowledgeSearching: false,
   knowledgeDocuments: [],
+  factorMetadata: null,
   pendingSaveProposals: 0,
   unsavedBookmarks: [],
   turnCount: 0,
@@ -124,6 +135,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
       knowledgeSearching: state.isSearching,
       knowledgeDocuments: state.documents,
     }),
+  syncFactorMetadata: metadata => set({ factorMetadata: metadata }),
   setPendingDashboardQuestion: question => set({ pendingDashboardQuestion: question }),
   incrementPendingSaveProposals: () =>
     set(s => ({ pendingSaveProposals: s.pendingSaveProposals + 1 })),

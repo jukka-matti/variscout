@@ -186,6 +186,18 @@ export function useAIOrchestration({
     stagedStats,
   });
 
+  // Enrich variation contributions with factor metadata from best subsets (via aiStore)
+  const factorMetadata = useAIStore(s => s.factorMetadata);
+  const enrichedContributions = useMemo(() => {
+    if (!aiVariationContributions) return undefined;
+    if (!factorMetadata) return aiVariationContributions;
+    return aiVariationContributions.map(vc => {
+      const meta = factorMetadata.get(vc.factor);
+      if (!meta) return vc;
+      return { ...vc, ...meta };
+    });
+  }, [aiVariationContributions, factorMetadata]);
+
   // Build lightweight Evidence Map topology from available data when no explicit topology provided (ADR-066)
   const effectiveTopology = useMemo(() => {
     if (evidenceMapTopology) return evidenceMapTopology;
@@ -277,7 +289,7 @@ export function useAIOrchestration({
     findings,
     questions,
     activeChart: viewState?.focusedChart as InsightChartType | undefined,
-    variationContributions: aiVariationContributions,
+    variationContributions: enrichedContributions,
     drillPath: filterStack.filter(a => a.type === 'filter' && a.factor).map(a => a.factor!),
     selectedFinding: aiSelectedFinding,
     focusContext,

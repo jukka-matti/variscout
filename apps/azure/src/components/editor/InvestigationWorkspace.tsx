@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   QuestionChecklist,
   InvestigationPhaseBadge,
@@ -36,6 +36,7 @@ import {
   type QuestionDisplayData,
 } from '../../features/investigation/investigationStore';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
+import { useAIStore } from '../../features/ai/aiStore';
 import type { UseAIOrchestrationReturn, UseActionProposalsReturn } from '../../features/ai';
 import type { UseInvestigationOrchestrationReturn } from '../../features/investigation/useInvestigationOrchestration';
 
@@ -145,6 +146,55 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     questionsState,
     mode: resolved,
   });
+
+  // Sync factor type metadata to aiStore for CoScout context enrichment
+  useEffect(() => {
+    const factorTypes = bestSubsets?.factorTypes;
+    if (!factorTypes || factorTypes.size === 0) {
+      useAIStore.getState().syncFactorMetadata(null);
+      return;
+    }
+
+    const bestModelPredictors = bestSubsets.subsets[0]?.predictors;
+    const metadata = new Map<
+      string,
+      {
+        factorType: 'categorical' | 'continuous';
+        relationship?: 'linear' | 'quadratic';
+        optimum?: number;
+      }
+    >();
+
+    for (const [factor, type] of factorTypes) {
+      const entry: {
+        factorType: 'categorical' | 'continuous';
+        relationship?: 'linear' | 'quadratic';
+        optimum?: number;
+      } = {
+        factorType: type,
+      };
+
+      if (type === 'continuous' && bestModelPredictors) {
+        const linear = bestModelPredictors.find(
+          p => p.factorName === factor && p.type === 'continuous'
+        );
+        const quad = bestModelPredictors.find(
+          p => p.factorName === factor && p.type === 'quadratic'
+        );
+
+        if (linear && quad && quad.coefficient !== 0) {
+          entry.relationship = 'quadratic';
+          entry.optimum = (quad.mean ?? 0) - linear.coefficient / (2 * quad.coefficient);
+        } else if (linear) {
+          entry.relationship = 'linear';
+        }
+      }
+
+      metadata.set(factor, entry);
+    }
+
+    useAIStore.getState().syncFactorMetadata(metadata);
+  }, [bestSubsets]);
 
   // Main effects and interactions for Evidence Map (Layer 1 statistical enrichment)
   const mainEffects = useMemo(() => {
