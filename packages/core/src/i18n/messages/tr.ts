@@ -850,6 +850,9 @@ export const tr: MessageCatalog = {
   // Action (additional)
   'action.continue': 'Continue',
 
+  'action.drillDown': 'Drill Down',
+  'action.viewDetails': 'View Details',
+
   // Upgrade (additional)
   'upgrade.freeTierLimitation': 'Free tier limitation',
   'upgrade.fromPrice': 'From \u20ac79/month',

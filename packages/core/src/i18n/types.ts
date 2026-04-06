@@ -972,6 +972,8 @@ export interface MessageCatalog {
 
   // Actions (additional)
   'action.continue': string;
+  'action.drillDown': string;
+  'action.viewDetails': string;
 
   // Upgrade (additional)
   'upgrade.freeTierLimitation': string;

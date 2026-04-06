@@ -888,6 +888,8 @@ export const en: MessageCatalog = {
 
   // Action (additional)
   'action.continue': 'Continue',
+  'action.drillDown': 'Drill Down',
+  'action.viewDetails': 'View Details',
 
   // Upgrade (additional)
   'upgrade.freeTierLimitation': 'Free tier limitation',

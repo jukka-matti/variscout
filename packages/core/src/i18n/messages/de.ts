@@ -883,6 +883,9 @@ export const de: MessageCatalog = {
   // Action (additional)
   'action.continue': 'Continue',
 
+  'action.drillDown': 'Drill Down',
+  'action.viewDetails': 'View Details',
+
   // Upgrade (additional)
   'upgrade.freeTierLimitation': 'Free tier limitation',
   'upgrade.fromPrice': 'From €79/month',

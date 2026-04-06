@@ -7,7 +7,7 @@
  */
 import React, { useCallback, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
-import { X, ArrowRight } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import { strengthLabel } from './utils';
 
@@ -19,7 +19,6 @@ export interface EvidenceMapEdgeSheetProps {
   strength: number;
   evidenceType?: 'data' | 'gemba' | 'expert' | 'unvalidated';
   whyStatement?: string;
-  onViewDetails?: () => void;
 }
 
 /** Badge styling per evidence type */
@@ -53,7 +52,6 @@ export const EvidenceMapEdgeSheet: React.FC<EvidenceMapEdgeSheetProps> = ({
   strength,
   evidenceType,
   whyStatement,
-  onViewDetails,
 }) => {
   const { t } = useTranslation();
   const touchStartY = useRef<number | null>(null);
@@ -73,11 +71,6 @@ export const EvidenceMapEdgeSheet: React.FC<EvidenceMapEdgeSheetProps> = ({
     },
     [onClose]
   );
-
-  const handleViewDetails = useCallback(() => {
-    onViewDetails?.();
-    onClose();
-  }, [onViewDetails, onClose]);
 
   const badge = evidenceType ? evidenceBadge[evidenceType] : null;
 
@@ -163,25 +156,6 @@ export const EvidenceMapEdgeSheet: React.FC<EvidenceMapEdgeSheetProps> = ({
               <div className="mx-4 border-t border-edge" />
               <div className="px-4 py-3" data-testid="edge-sheet-why">
                 <p className="text-sm text-content italic">{whyStatement}</p>
-              </div>
-            </>
-          )}
-
-          {/* View Details button */}
-          {onViewDetails && (
-            <>
-              <div className="mx-4 border-t border-edge" />
-              <div className="px-4 py-3">
-                <button
-                  onClick={handleViewDetails}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors touch-feedback"
-                  style={{ minHeight: 48 }}
-                  data-testid="edge-sheet-view-details"
-                >
-                  {/* TODO: add i18n key for action.viewDetails */}
-                  View Details
-                  <ArrowRight size={16} />
-                </button>
               </div>
             </>
           )}

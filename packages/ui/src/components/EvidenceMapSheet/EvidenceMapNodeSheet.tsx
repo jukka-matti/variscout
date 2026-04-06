@@ -189,8 +189,7 @@ export const EvidenceMapNodeSheet: React.FC<EvidenceMapNodeSheetProps> = ({
                 style={{ minHeight: 48 }}
                 data-testid="node-sheet-drill-down"
               >
-                {/* TODO: add i18n key for action.drillDown */}
-                Drill Down
+                {t('action.drillDown')}
                 <ChevronRight size={16} />
               </button>
             )}
