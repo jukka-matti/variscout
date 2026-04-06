@@ -41,3 +41,5 @@ export { default as StatsTabContent } from './StatsTabContent';
 export type { StatsTabContentProps } from './StatsTabContent';
 export { default as QuestionsTabContent } from './QuestionsTabContent';
 export type { QuestionsTabContentProps } from './QuestionsTabContent';
+export { default as JournalTabContent } from './JournalTabContent';
+export type { JournalTabContentProps } from './JournalTabContent';

@@ -141,6 +141,8 @@ export {
   type StatsTabContentProps,
   type QuestionsTabViewProps,
   type QuestionsTabContentProps,
+  JournalTabContent,
+  type JournalTabContentProps,
   type QuestionRowProps,
   type ObservationsSectionProps,
   type ConclusionCardProps,

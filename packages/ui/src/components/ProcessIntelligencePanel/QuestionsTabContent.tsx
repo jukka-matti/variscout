@@ -1,7 +1,6 @@
 import React from 'react';
 import { useInvestigationStore, useProjectStore } from '@variscout/stores';
 import { useAnalysisStats, useHubComputations, useImprovementProjections } from '@variscout/hooks';
-import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import type { BestSubsetsResult } from '@variscout/core/stats';
 import type { Question } from '@variscout/core/findings';
 import QuestionsTabView from './QuestionsTabView';
@@ -50,12 +49,11 @@ export interface QuestionsTabContentProps {
  *
  * Reads from stores:
  * - questions, findings, suspectedCauses from useInvestigationStore
- * - processContext (issueStatement), cpkTarget, analysisMode from useProjectStore
+ * - processContext (issueStatement), cpkTarget from useProjectStore
  * - currentCpk via useAnalysisStats()
  *
  * Computes hub evidences/projections via useHubComputations (shared hook from Task 1).
  * Computes improvement projections via useImprovementProjections (shared hook from Task 3).
- * Derives evidenceLabel from analysisMode via the strategy pattern.
  *
  * Accepts props that cannot come from stores:
  * - bestSubsets, projectedCpkMap — from caller's useQuestionGeneration
@@ -84,10 +82,6 @@ const QuestionsTabContent: React.FC<QuestionsTabContentProps> = ({
 
   // Extract issue statement from process context
   const issueStatement = processContext?.issueStatement;
-  const analysisMode = useProjectStore(s => s.analysisMode);
-
-  // Derived: evidence label from strategy
-  const evidenceLabel = getStrategy(resolveMode(analysisMode)).evidenceLabel;
 
   // Current process Cpk from stats hook
   const { stats } = useAnalysisStats();
@@ -118,7 +112,6 @@ const QuestionsTabContent: React.FC<QuestionsTabContentProps> = ({
       suspectedCauses={suspectedCauses}
       combinedProjectedCpk={combinedProjectedCpk}
       projectedCpkMap={projectedCpkMap}
-      evidenceLabel={evidenceLabel}
       hubs={hubs.length > 0 ? hubs : undefined}
       hubEvidences={hubEvidences}
       hubProjections={hubProjections}
