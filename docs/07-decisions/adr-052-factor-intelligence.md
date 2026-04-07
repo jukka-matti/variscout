@@ -38,7 +38,7 @@ Implement **Factor Intelligence** as a 3-layer progressive feature in the SCOUT 
 
 2. **Evidence-gated layers.** Each layer only unlocks when the previous layer shows sufficient evidence. This prevents analysts from jumping to interaction analysis without first confirming factors matter (matching teaching progression).
 
-3. **ANOVA-based, not regression-based.** Layers 1-3 use sum-of-squares decomposition on categorical factors. This avoids the heavier GLM engine while providing the factor prioritization analysts need. Full regression (Layer 4) is deferred to Phase 2.
+3. **Dual-engine with automatic routing.** Layers 1-3 use ANOVA cell-means when all factors are categorical, and the unified GLM engine (ADR-067) when any factor is continuous. Layer 3 interaction detection uses Pass 2 partial F-test screening when the OLS path is active (`interactionScreening.ts`), falling back to cell-means ΔR² for all-categorical data. Interaction questions use directional templates: ordinal ("the gap changes") or disordinal ("the ranking flips").
 
 4. **X-level targets.** Optimal factor settings from the analysis become improvement targets (`ImprovementIdea` with specific factor levels), converting statistical findings into actionable process changes.
 
@@ -93,9 +93,9 @@ packages/ui/src/components/StatsPanel/
 
 ### Future
 
-- **Layer 4 (Model):** Restore multiRegression.ts for regression equation + residual diagnostics
+- **Layer 4 (Model) — partially delivered:** Regression equation with interaction terms is in the model (ADR-067 Pass 2). Remaining: residual diagnostic plots, PredictionProfiler wiring.
 - **Layer 5 (Optimization):** Constrained optimization → What-If Simulator pipeline
-- **Regression analysis mode:** When Layers 4-5 are implemented, add `'regression'` as a proper `AnalysisMode` via ADR-047 strategy pattern
+- **Regression analysis mode:** When Layer 5 is implemented, add `'regression'` as a proper `AnalysisMode` via ADR-047 strategy pattern
 
 ## Implementation Status
 
@@ -103,7 +103,8 @@ packages/ui/src/components/StatsPanel/
 | ------------------------------ | ------------------------------------------------------------------- | ------------------------ |
 | Layer 1: Best Subsets R²adj    | `packages/core/src/stats/bestSubsets.ts`                            | Complete                 |
 | Layer 2: Main Effects          | `packages/core/src/stats/factorEffects.ts`                          | Complete                 |
-| Layer 3: Interactions          | `packages/core/src/stats/factorEffects.ts`                          | Complete                 |
+| Layer 3: Interactions (cat)    | `packages/core/src/stats/factorEffects.ts`                          | Complete                 |
+| Layer 3: Interactions (OLS)    | `packages/core/src/stats/interactionScreening.ts`                   | Complete                 |
 | Question generation            | `packages/core/src/stats/bestSubsets.ts`                            | Complete (Standard mode) |
 | FactorIntelligencePanel UI     | `packages/ui/src/components/StatsPanel/FactorIntelligencePanel.tsx` | Complete                 |
 | MainEffectsPlot                | `packages/ui/src/components/StatsPanel/MainEffectsPlot.tsx`         | Complete                 |

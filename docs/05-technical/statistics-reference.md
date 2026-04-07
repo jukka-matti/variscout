@@ -786,9 +786,41 @@ R²adj = 1 − (1 − R²) × (n − 1) / (n − p − 1)
 
 Where p is the number of model parameters (intercept + predictor columns). R²adj penalizes model complexity: adding a predictor that explains little variance reduces R²adj even if R² increases.
 
+### Interaction Screening (Pass 2)
+
+> Source: `packages/core/src/stats/interactionScreening.ts`
+
+After Pass 1 identifies the best main-effects model, Pass 2 screens all factor pairs among the winning factors for two-way interactions.
+
+**Algorithm:**
+
+1. For each pair (A, B) among winning factors, fit two models using the full winning factor set:
+   - Main-effects only: y ~ all winning factors
+   - With interaction: y ~ all winning factors + A×B
+2. Partial F-test: `F = [(SSE_main − SSE_full) / df_interaction] / [SSE_full / df_residual]`
+3. If p < 0.10 (generous screening threshold), the interaction term enters the final model
+4. Re-fit the complete model with all significant interaction terms
+
+**Interaction column types** in the design matrix:
+
+| Pair type                           | Columns    | Formula                                                           |
+| ----------------------------------- | ---------- | ----------------------------------------------------------------- |
+| Continuous × Continuous             | 1          | `(X_A − mean_A)(X_B − mean_B)` — centered product                 |
+| Continuous × Categorical (m levels) | m−1        | `(X_cont − mean) × dummy_j` — centered × each non-reference dummy |
+| Categorical (a) × Categorical (b)   | (a−1)(b−1) | `dummy_Ai × dummy_Bj` — all non-reference dummy pairs             |
+
+Centering reduces collinearity between interaction columns and main-effect columns (same rationale as centering X before X² in quadratic detection).
+
+**Pattern classification:** After detection, each interaction is classified by the geometric pattern of cell means:
+
+- **Ordinal**: the ranking of one factor's levels is preserved across the other factor's values. Lines do not cross. Detection: cell mean rankings are consistent across quartile bins.
+- **Disordinal**: the ranking reverses. Lines cross within the observed range. Detection: cell mean rankings reverse between any two bins.
+
+**Computational cost:** For w winning factors, Pass 2 adds C(w,2) partial F-tests — typically 3–6 for 2–4 winners. Each test requires 2 OLS solves. Total overhead: ~6–12 extra OLS solves vs 2^k in Pass 1. Negligible in the browser.
+
 ### Quadratic Detection
 
-> Source: `packages/core/src/stats/quadratic.ts`
+> Source: `packages/core/src/stats/olsRegression.ts`
 
 For each continuous factor, tests whether a quadratic term (β₂ × X²) improves R²adj over the linear-only model. If the improvement exceeds a threshold, the quadratic term is retained in the best subsets candidate pool.
 

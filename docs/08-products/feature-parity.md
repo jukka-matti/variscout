@@ -42,14 +42,16 @@ Complete feature availability across VariScout platforms.
 
 All platforms share `@variscout/core` and produce **identical results** for the features they support.
 
-| Calculation           | Azure Standard | Azure Team | PWA | Formula Reference   |
-| --------------------- | :------------: | :--------: | :-: | ------------------- |
-| Mean, Median, Std Dev |       ✓        |     ✓      |  ✓  | Standard            |
-| UCL/LCL (3σ)          |       ✓        |     ✓      |  ✓  | x̄ ± 3σ              |
-| Cp, Cpk               |       ✓        |     ✓      |  ✓  | (USL-LSL)/6σ        |
-| η² (Eta-squared)      |       ✓        |     ✓      |  ✓  | SS_between/SS_total |
-| F-statistic, p-value  |       ✓        |     ✓      |  ✓  | ANOVA               |
-| Nelson Rule 2         |       ✓        |     ✓      |  ✓  | 9-point run         |
+| Calculation           | Azure Standard | Azure Team | PWA | Formula Reference                                    |
+| --------------------- | :------------: | :--------: | :-: | ---------------------------------------------------- |
+| Mean, Median, Std Dev |       ✓        |     ✓      |  ✓  | Standard                                             |
+| UCL/LCL (3σ)          |       ✓        |     ✓      |  ✓  | x̄ ± 3σ                                               |
+| Cp, Cpk               |       ✓        |     ✓      |  ✓  | (USL-LSL)/6σ                                         |
+| η² (Eta-squared)      |       ✓        |     ✓      |  ✓  | SS_between/SS_total                                  |
+| F-statistic, p-value  |       ✓        |     ✓      |  ✓  | ANOVA                                                |
+| Nelson Rule 2         |       ✓        |     ✓      |  ✓  | 9-point run                                          |
+| Best subsets R²adj    |       ✓        |     ✓      |  ✓  | 2^k factor ranking                                   |
+| Interaction screening |       ✓        |     ✓      |  ✓  | Pass 2 partial F-test (cont×cont, cont×cat, cat×cat) |
 
 ---
 

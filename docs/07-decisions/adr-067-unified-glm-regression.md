@@ -42,23 +42,27 @@ The OLS solver uses QR decomposition (Householder reflections) rather than the n
 
 Categorical factors with _m_ levels enter as a unit (all _m − 1_ dummies together). The Furnival-Wilson leaps and bounds algorithm evaluates all 2^k − 1 factor combinations (k ≤ 10). Selection criterion: R²adj. Implementation: `packages/core/src/stats/bestSubsets.ts`.
 
-### 4. Automatic Quadratic Detection
+### 4. Two-Pass Best Subsets with Interaction Screening
+
+After Pass 1 identifies the best main-effects model, Pass 2 screens all factor pairs among the winning factors for two-way interaction effects via partial F-test (α=0.10). Hierarchical constraint: interactions are only tested among factors in the winning model — not full enumeration. For k=6 with 3 winners: 69 OLS solves total (63 Pass 1 + 6 Pass 2) vs 2,097,151 for full interaction enumeration. Significant interactions are added to the model and re-fit. Each interaction is classified as ordinal (gap changes, lines don't cross) or disordinal (ranking reverses, lines cross) — geometric terms only, following the "contribution, not causation" principle. Implementation: `packages/core/src/stats/interactionScreening.ts`. Benchmarked against Minitab Best Subsets and JMP Fit Model for all factor type combinations (cont×cont, cont×cat, cat×cat).
+
+### 5. Automatic Quadratic Detection
 
 For each continuous factor, the engine tests a linear + quadratic term pair. If adding the quadratic term improves R²adj by a meaningful margin, the quadratic model is retained. Centered form (X − X̄) reduces numerical correlation. The sweet spot (optimum X\*) and operating window are computed from X̄ − β₁ / (2 × β₂). Quadratic detection is integrated into `packages/core/src/stats/olsRegression.ts`.
 
-### 5. Type III SS with Partial η²
+### 6. Type III SS with Partial η²
 
 Type III SS is computed for each factor in the fitted model using the sequential SS approach: fit the full model, then fit the model with one factor removed; the difference is that factor's Type III SS. This correctly handles unbalanced data — each factor's contribution is adjusted for all others. Partial η² = SS_factor(Type III) / (SS_factor + SS_residual). Implementation: `packages/core/src/stats/typeIIISS.ts`.
 
-### 6. VIF and Guardrails
+### 7. VIF and Guardrails
 
 VIF is computed for each continuous factor: VIF_j = 1 / (1 − R²_j) where R²_j regresses factor j on all others. Extrapolation detection flags When-If slider positions outside the observed range. Overfitting check: R² − R²adj > 0.10. Low R² warning: R²adj < 0.30.
 
-### 7. Prediction Functions
+### 8. Prediction Functions
 
 `predictFromModel(model, factorValues)` accepts a map of factor names to values (numeric for continuous, string for categorical) and returns the predicted outcome with 95% prediction interval. Used by the What-If Prediction Profiler for continuous slider response curves. `computeCoverage()` computes the prediction interval width across the continuous factor range.
 
-### 8. NIST Validation
+### 9. NIST Validation
 
 A test suite in `packages/core/src/stats/__tests__/nist.test.ts` validates against the NIST StRD certified datasets (Norris, Pontius, Longley) to 9 significant digits. The Longley dataset specifically validates numerical stability under multicollinearity.
 
