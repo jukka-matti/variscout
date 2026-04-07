@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import type { OverallImpactResult } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
-import type { WhatIfSimulatorColorScheme } from './WhatIfSimulator';
-import { whatIfSimulatorDefaultColorScheme } from './WhatIfSimulator';
+import type { WhatIfSimulatorColorScheme } from '../WhatIfExplorer/colorScheme';
+import { whatIfSimulatorDefaultColorScheme } from '../WhatIfExplorer/colorScheme';
 
 interface OverallImpactSummaryProps {
   impact: OverallImpactResult;

@@ -32,19 +32,18 @@ vi.mock('@variscout/core', async importOriginal => {
   };
 });
 
-// Mock WhatIfSimulator (now imported by WhatIfPageBase from @variscout/ui)
+// Mock WhatIfExplorerPage from @variscout/ui
 vi.mock('@variscout/ui', async () => {
   const actual = await vi.importActual<typeof import('@variscout/ui')>('@variscout/ui');
   return {
     ...actual,
-    WhatIfPageBase: ({
+    WhatIfExplorerPage: ({
       filteredData,
       rawData,
       outcome,
       specs,
       filterCount,
       onBack,
-      colorScheme: _colorScheme,
     }: {
       filteredData: Record<string, unknown>[];
       rawData: Record<string, unknown>[];
@@ -52,9 +51,8 @@ vi.mock('@variscout/ui', async () => {
       specs: Record<string, unknown>;
       filterCount: number;
       onBack: () => void;
-      colorScheme: unknown;
     }) => {
-      // Simplified rendering that mirrors the real WhatIfPageBase behavior
+      // Simplified rendering that mirrors the real WhatIfExplorerPage behavior
       if (!outcome || rawData.length === 0) {
         return (
           <div>

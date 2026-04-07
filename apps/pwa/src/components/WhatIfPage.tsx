@@ -1,7 +1,7 @@
 import React from 'react';
 import { useProjectStore } from '@variscout/stores';
 import { useFilteredData } from '@variscout/hooks';
-import { WhatIfPageBase } from '@variscout/ui';
+import { WhatIfExplorerPage } from '@variscout/ui';
 
 interface WhatIfPageProps {
   onBack: () => void;
@@ -18,7 +18,7 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({ onBack }) => {
   const filterCount = Object.keys(filters).length;
 
   return (
-    <WhatIfPageBase
+    <WhatIfExplorerPage
       filteredData={filteredData}
       rawData={rawData}
       outcome={outcome}

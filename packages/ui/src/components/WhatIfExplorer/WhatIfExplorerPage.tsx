@@ -14,7 +14,7 @@ import { useTranslation } from '@variscout/hooks';
 import type { YamazumiBarData } from '@variscout/core/yamazumi';
 import type { ModelScope, WhatIfReference } from '@variscout/hooks';
 import { WhatIfExplorer } from './WhatIfExplorer';
-import { computePresets } from '../WhatIfPage/WhatIfPageBase';
+import { computePresets } from './computePresets';
 import type { WhatIfProcessStats, WhatIfProjectionContext, SimulatorPreset } from './types';
 
 // ============================================================================

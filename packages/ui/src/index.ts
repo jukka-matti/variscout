@@ -60,32 +60,12 @@ export {
 } from './components/Slider';
 
 export {
-  WhatIfSimulator,
-  whatIfSimulatorDefaultColorScheme,
-  type WhatIfSimulatorColorScheme,
-  type WhatIfSimulatorProps,
-  type SimulatorPreset,
-  type WhatIfSimulatorHandle,
-  LeanWhatIfSimulator,
-  type LeanWhatIfSimulatorProps,
-  type LeanActivity,
   LeanDistributionPreview,
   type LeanDistributionPreviewProps,
-  PredictionProfiler,
-  type PredictionProfilerProps,
-  type PredictionProfilerFactor,
+  type LeanActivity,
 } from './components/WhatIfSimulator';
 
-export {
-  WhatIfPageBase,
-  computePresets,
-  whatIfPageDefaultColorScheme,
-  type WhatIfPageColorScheme,
-  type WhatIfPageBaseProps,
-  type WhatIfReferenceContext,
-} from './components/WhatIfPage';
-
-// What-If Explorer (unified, replaces WhatIfSimulator/PredictionProfiler/LeanWhatIfSimulator)
+// What-If Explorer (unified)
 export {
   WhatIfExplorer,
   WhatIfExplorerPage,
@@ -93,11 +73,14 @@ export {
   ModelInformedEstimator,
   ActivityReducer,
   ChannelAdjuster,
+  computePresets,
+  whatIfSimulatorDefaultColorScheme,
 } from './components/WhatIfExplorer';
 export type {
   WhatIfExplorerProps,
   WhatIfExplorerPageProps,
   WhatIfExplorerReferenceContext,
+  WhatIfSimulatorColorScheme,
   ModelScope,
   WhatIfReference,
   WhatIfProcessStats,

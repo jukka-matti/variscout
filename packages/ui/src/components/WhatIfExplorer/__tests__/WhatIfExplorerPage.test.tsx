@@ -27,8 +27,8 @@ vi.mock('@variscout/hooks', () => ({
   }),
 }));
 
-// Mock computePresets from WhatIfPageBase
-vi.mock('../../WhatIfPage/WhatIfPageBase', () => ({
+// Mock computePresets from computePresets utility
+vi.mock('../computePresets', () => ({
   computePresets: vi.fn(() => [
     {
       label: 'Shift to target',
