@@ -12,6 +12,8 @@ import {
   useAnalysisStats,
   useStagedAnalysis,
   usePerformanceAnalysis,
+  useEvidenceMapData,
+  useEvidenceMapTimeline,
 } from '@variscout/hooks';
 import { hasTeamFeatures } from '@variscout/core';
 import {
@@ -31,6 +33,7 @@ import {
   ReportCapabilityKPIGrid,
   ReportPerformanceKPIGrid,
   ReportActivityBreakdown,
+  ReportEvidenceMap,
 } from '@variscout/ui';
 import {
   useReportSections,
@@ -51,10 +54,19 @@ import {
   formatFindingFilters,
   calculateStagedComparison,
   computeYamazumiSummary,
+  computeBestSubsets,
+  computeMainEffects,
+  computeInteractionEffects,
 } from '@variscout/core';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import type { ResolvedMode } from '@variscout/core/strategy';
-import { IChartBase, BoxplotBase, ParetoChartBase, YamazumiChartBase } from '@variscout/charts';
+import {
+  IChartBase,
+  BoxplotBase,
+  ParetoChartBase,
+  YamazumiChartBase,
+  EvidenceMapBase,
+} from '@variscout/charts';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
@@ -109,6 +121,7 @@ const FindingChartSnapshot: React.FC<{
 const REPORT_CHART_MAX_WIDTH = 720;
 const REPORT_CHART_HEIGHT = 320;
 const REPORT_HISTOGRAM_HEIGHT = 280;
+const REPORT_MAP_SIZE = { width: REPORT_CHART_MAX_WIDTH, height: 400 } as const;
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -139,6 +152,26 @@ const ReportView: React.FC<ReportViewProps> = ({
   const performanceResult = usePerformanceAnalysis();
   const findings = useInvestigationStore(s => s.findings);
   const questions = useInvestigationStore(s => s.questions);
+  const causalLinks = useInvestigationStore(s => s.causalLinks);
+  const suspectedCauses = useInvestigationStore(s => s.suspectedCauses);
+
+  // ---------------------------------------------------------------------------
+  // Evidence Map computation for Report timeline
+  // ---------------------------------------------------------------------------
+  const reportBestSubsets = useMemo(() => {
+    if (!outcome || !filteredData || filteredData.length === 0 || factors.length < 2) return null;
+    return computeBestSubsets(filteredData, outcome, factors);
+  }, [filteredData, outcome, factors]);
+
+  const reportMainEffects = useMemo(() => {
+    if (!reportBestSubsets || !outcome || !filteredData?.length) return null;
+    return computeMainEffects(filteredData, outcome, factors);
+  }, [reportBestSubsets, filteredData, outcome, factors]);
+
+  const reportInteractions = useMemo(() => {
+    if (!reportBestSubsets || !outcome || !filteredData?.length || factors.length < 2) return null;
+    return computeInteractionEffects(filteredData, outcome, factors);
+  }, [reportBestSubsets, filteredData, outcome, factors]);
 
   // ---------------------------------------------------------------------------
   // Resolved analysis mode + strategy
@@ -151,6 +184,25 @@ const ReportView: React.FC<ReportViewProps> = ({
   // Boolean aliases — kept for the many binary checks in the render tree
   const isYamazumi = resolved === 'yamazumi';
   const isCapabilityMode = resolved === 'capability';
+
+  const reportMapData = useEvidenceMapData({
+    bestSubsets: reportBestSubsets,
+    mainEffects: reportMainEffects,
+    interactions: reportInteractions,
+    containerSize: REPORT_MAP_SIZE,
+    mode: resolved,
+    causalLinks,
+    questions,
+    findings,
+    suspectedCauses: suspectedCauses ?? [],
+  });
+
+  const timeline = useEvidenceMapTimeline({
+    causalLinks,
+    questions,
+    findings,
+    suspectedCauses: suspectedCauses ?? [],
+  });
 
   // ---------------------------------------------------------------------------
   // Yamazumi mode data
@@ -831,6 +883,26 @@ const ReportView: React.FC<ReportViewProps> = ({
         {/* Step 3: Evidence Trail */}
         {section.id === 'evidence-trail' && outcome && (
           <div className="space-y-4">
+            {/* Evidence Map timeline replay */}
+            {!reportMapData.isEmpty && (
+              <ReportEvidenceMap
+                evidenceMap={
+                  <EvidenceMapBase
+                    parentWidth={REPORT_MAP_SIZE.width}
+                    parentHeight={REPORT_MAP_SIZE.height}
+                    outcomeNode={reportMapData.outcomeNode}
+                    factorNodes={reportMapData.factorNodes}
+                    relationshipEdges={reportMapData.relationshipEdges}
+                    equation={reportMapData.equation}
+                    causalEdges={reportMapData.causalEdges}
+                    convergencePoints={reportMapData.convergencePoints}
+                    compact
+                  />
+                }
+                timeline={timeline}
+              />
+            )}
+
             {/* Synthesis card (always shown) */}
             {processContext?.synthesis && (
               <div className="mb-2">

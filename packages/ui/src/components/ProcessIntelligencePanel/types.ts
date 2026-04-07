@@ -30,7 +30,7 @@ export interface PIOverflowItem {
   onSelect?: (id: string) => void;
 }
 
-export interface PIPanelBaseProps {
+export interface PIPanelBaseProps<T extends string = string> {
   /** Tab definitions — required, drives the tab bar and content */
   tabs: PITabConfig[];
   /** Overflow menu items (e.g., Data Table, What-If) */
@@ -47,10 +47,10 @@ export interface PIPanelBaseProps {
    * Tab click calls `onTabChange` if provided, otherwise falls back to
    * internal state.
    */
-  activeTab?: string;
+  activeTab?: T;
   /**
    * Called when the user clicks a tab button.
    * Required when `activeTab` is provided to keep the controlled value in sync.
    */
-  onTabChange?: (tabId: string) => void;
+  onTabChange?: (tabId: T) => void;
 }

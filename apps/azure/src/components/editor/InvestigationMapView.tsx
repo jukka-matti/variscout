@@ -6,10 +6,12 @@ import {
   NodeContextMenu,
   EdgeContextMenu,
   EdgeDetailCard,
+  EdgeMiniChart,
   CausalLinkCreator,
   SweetSpotCard,
 } from '@variscout/ui';
 import type { CausalEdgeData } from '@variscout/charts';
+import { mapRelationshipType } from '@variscout/core/stats';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { ArrowRight, X, Pencil, Trash2 } from 'lucide-react';
 
@@ -42,6 +44,8 @@ interface InvestigationMapViewProps {
   ) => void;
   /** Whether a causal link from→to would create a cycle */
   wouldCreateCycle?: (from: string, to: string) => boolean;
+  /** Filtered data rows for EdgeMiniChart (optional — omit if not available) */
+  filteredData?: Record<string, unknown>[];
 }
 
 export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
@@ -54,6 +58,7 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
   onRemoveCausalLink,
   onUpdateCausalLink,
   wouldCreateCycle,
+  filteredData,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ width: 600, height: 400 });
@@ -218,11 +223,26 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
 
   const handleEdgeAskCoScout = useCallback(
     (factorA: string, factorB: string) => {
-      onAskCoScout?.(`${factorA} \u00d7 ${factorB}`);
+      // Build enriched context string with relationship metadata
+      const edge = mapData.relationshipEdges?.find(
+        e =>
+          (e.factorA === factorA && e.factorB === factorB) ||
+          (e.factorA === factorB && e.factorB === factorA)
+      );
+      const uiInfo = edge ? mapRelationshipType(edge.type, true) : null;
+      const label = uiInfo?.label ?? '';
+      const r2 = edge
+        ? `R²adj=${Number.isFinite(edge.strength) ? edge.strength.toFixed(2) : '?'}`
+        : '';
+      const context =
+        label && r2
+          ? `${factorA} \u00d7 ${factorB} (${label}, ${r2})`
+          : `${factorA} \u00d7 ${factorB}`;
+      onAskCoScout?.(context);
       setSelectedRelEdge(null);
       setEdgeContextMenu(null);
     },
-    [onAskCoScout]
+    [onAskCoScout, mapData.relationshipEdges]
   );
 
   // Cancel pending link on Escape
@@ -435,7 +455,23 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
           onAskCoScout={handleEdgeAskCoScout}
           onAskQuestion={handleEdgeAskQuestion}
           onClose={() => setSelectedRelEdge(null)}
-        />
+        >
+          {filteredData && filteredData.length > 0 && (
+            <EdgeMiniChart
+              factorA={selectedRelEdge.factorA}
+              factorB={selectedRelEdge.factorB}
+              factorAType={
+                mapOptions.bestSubsets?.factorTypes?.get(selectedRelEdge.factorA) ?? 'categorical'
+              }
+              factorBType={
+                mapOptions.bestSubsets?.factorTypes?.get(selectedRelEdge.factorB) ?? 'categorical'
+              }
+              data={filteredData}
+              width={260}
+              height={80}
+            />
+          )}
+        </EdgeDetailCard>
       )}
 
       {/* Sweet spot card for quadratic factors */}

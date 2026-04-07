@@ -574,6 +574,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             onRemoveCausalLink={handleRemoveCausalLink}
             onUpdateCausalLink={handleUpdateCausalLink}
             wouldCreateCycle={checkWouldCreateCycle}
+            filteredData={filteredData ?? undefined}
           />
         ) : (
           <div className="flex-1 overflow-y-auto px-3 py-2">

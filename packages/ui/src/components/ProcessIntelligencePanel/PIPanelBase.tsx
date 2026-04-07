@@ -134,7 +134,7 @@ const ConfigOverflowMenu: React.FC<ConfigOverflowMenuProps> = ({ items, activeId
 
 // ─── PIPanelBase ─────────────────────────────────────────────────────────────
 
-const PIPanelBase: React.FC<PIPanelBaseProps> = ({
+function PIPanelBase<T extends string = string>({
   tabs,
   overflowItems,
   defaultTab,
@@ -142,7 +142,7 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
   compact = false,
   activeTab: controlledActiveTab,
   onTabChange,
-}) => {
+}: PIPanelBaseProps<T>) {
   const [internalActiveTabId, setInternalActiveTabId] = useState<string>(
     () => controlledActiveTab ?? defaultTab ?? (tabs.length > 0 ? tabs[0].id : '')
   );
@@ -153,7 +153,7 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
 
   const handleTabChange = (id: string) => {
     if (onTabChange) {
-      onTabChange(id);
+      onTabChange(id as T);
     } else {
       setInternalActiveTabId(id);
     }
@@ -230,6 +230,6 @@ const PIPanelBase: React.FC<PIPanelBaseProps> = ({
       {renderTabContent()}
     </div>
   );
-};
+}
 
 export default PIPanelBase;

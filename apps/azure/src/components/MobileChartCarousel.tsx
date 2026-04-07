@@ -757,6 +757,13 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
           factorB={edgeSheet.factorB}
           relationshipType={edgeSheet.relationshipType}
           strength={edgeSheet.strength}
+          onAskCoScout={
+            onAskCoScout
+              ? (fA, fB) => {
+                  onAskCoScout({ chartType: 'boxplot', category: { name: `${fA} \u00d7 ${fB}` } });
+                }
+              : undefined
+          }
         />
       )}
     </div>

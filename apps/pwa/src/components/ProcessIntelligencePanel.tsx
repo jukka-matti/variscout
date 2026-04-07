@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
-import type { PIOverflowView } from '@variscout/ui';
 import { PIPanelBase, StatsTabContent, WhatIfSimulator, computePresets } from '@variscout/ui';
 import type { PITabConfig, PIOverflowItem } from '@variscout/ui';
 import { useProjectStore } from '@variscout/stores';
@@ -18,17 +17,12 @@ interface ProcessIntelligencePanelProps {
   onCpkClick?: () => void;
   subgroupsMeetingTarget?: number;
   subgroupCount?: number;
-  sampleCount?: number;
   /** PI panel: Questions tab render prop */
   renderQuestionsTab?: () => React.ReactNode;
   /** PI panel: Journal tab render prop */
   renderJournalTab?: () => React.ReactNode;
   /** PI panel: open question count for badge */
   openQuestionCount?: number;
-  /** PI panel: overflow view state (controlled by parent) */
-  overflowView?: PIOverflowView;
-  /** PI panel: overflow view change handler */
-  onOverflowViewChange?: (view: PIOverflowView) => void;
 }
 
 const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
@@ -43,12 +37,9 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
   onCpkClick,
   subgroupsMeetingTarget,
   subgroupCount,
-  sampleCount: _sampleCount,
   renderQuestionsTab,
   renderJournalTab,
   openQuestionCount,
-  overflowView: _overflowView,
-  onOverflowViewChange: _onOverflowViewChange,
 }) => {
   const setSpecs = useProjectStore(s => s.setSpecs);
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);

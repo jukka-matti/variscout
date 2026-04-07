@@ -15,7 +15,6 @@ import {
   BREAKPOINTS,
   QuestionsTabView,
   JournalTabView,
-  type PIOverflowView,
 } from '@variscout/ui';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
@@ -237,9 +236,6 @@ function AppMain() {
     [factorIntelQuestions]
   );
 
-  // PI Panel: overflow view state (local — PWA has no Zustand panels store for this)
-  const [piOverflowView, setPIOverflowView] = useState<PIOverflowView>(null);
-
   const investigation = useInvestigationOrchestration({
     questionsState,
     findingsState: {
@@ -388,11 +384,6 @@ function AppMain() {
       centeringOpportunity: centeringOpp,
     });
   }, [complementInsight, isDrilling, centeringOpp]);
-
-  const projIsDrilling = useProjectionStore(s => s.isDrilling);
-  const projComplement = useProjectionStore(s => s.complement);
-  const projCentering = useProjectionStore(s => s.centeringOpportunity);
-  const projActive = useProjectionStore(s => s.activeProjection);
 
   // Capability suggestion: show when specs are set and no other detection modal is showing
   useEffect(() => {
@@ -646,11 +637,6 @@ function AppMain() {
                 filteredData={filteredData}
                 outcome={outcome}
                 cpkTarget={cpkTarget}
-                sampleCount={filteredData?.length}
-                isDrilling={projIsDrilling}
-                complement={projComplement}
-                centeringOpportunity={projCentering}
-                activeProjection={projActive}
                 renderQuestionsTab={() => (
                   <QuestionsTabView
                     questions={factorIntelQuestions}
@@ -661,8 +647,6 @@ function AppMain() {
                 )}
                 renderJournalTab={() => <JournalTabView entries={journalEntries} />}
                 openQuestionCount={openQuestionCount}
-                overflowView={piOverflowView}
-                onOverflowViewChange={setPIOverflowView}
               />
             </Suspense>
           </div>
