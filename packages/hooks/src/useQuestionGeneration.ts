@@ -173,7 +173,9 @@ export function useQuestionGeneration({
     );
     const l3FollowUps =
       allAnsweredL1WithEvidence.length >= 2
-        ? generateFollowUpQuestions(null, interactionEffects)
+        ? generateFollowUpQuestions(null, interactionEffects, {
+            screenResults: bestSubsets?.subsets[0]?.interactionScreenResults,
+          })
         : [];
 
     const followUps = [...l2FollowUps, ...l3FollowUps];

@@ -12,6 +12,7 @@ import * as d3 from 'd3-array';
 import type { DataRow } from '../types';
 import { toNumericValue } from '../types';
 import { fDistributionPValue } from './distributions';
+import type { InteractionScreenResult } from './interactionScreening';
 
 // ============================================================================
 // Types
@@ -421,7 +422,10 @@ import type { GeneratedQuestion } from './bestSubsets';
 export function generateFollowUpQuestions(
   mainEffects: MainEffectsResult | null,
   interactions: InteractionEffectsResult | null,
-  options?: { minEtaSquared?: number }
+  options?: {
+    minEtaSquared?: number;
+    screenResults?: InteractionScreenResult[];
+  }
 ): GeneratedQuestion[] {
   const minEta = options?.minEtaSquared ?? 0.05;
   const questions: GeneratedQuestion[] = [];
@@ -442,8 +446,29 @@ export function generateFollowUpQuestions(
     }
   }
 
-  // Layer 3: interaction follow-ups — gated on >= 2 significant main effects
-  if (interactions && mainEffects && mainEffects.significantCount >= 2) {
+  // Layer 3: interaction follow-ups
+  // If screen results available (from Pass 2), use directional templates
+  if (options?.screenResults && options.screenResults.length > 0) {
+    for (const sr of options.screenResults) {
+      if (!sr.isSignificant) continue;
+
+      const text =
+        sr.pattern === 'disordinal'
+          ? `${sr.factors[0]} and ${sr.factors[1]} \u2014 the ranking flips across ${sr.plotSeries} levels. What's different about them?`
+          : `${sr.factors[0]} and ${sr.factors[1]} \u2014 the gap between ${sr.plotSeries} levels changes at different ${sr.plotXAxis} values. Worth checking why.`;
+
+      questions.push({
+        text,
+        factors: [...sr.factors],
+        rSquaredAdj: sr.deltaRSquaredAdj,
+        autoAnswered: false,
+        source: 'factor-intel',
+        type: 'interaction',
+      });
+    }
+  } else if (interactions && mainEffects && mainEffects.significantCount >= 2) {
+    // Fallback: generic interaction question generation when screen results aren't
+    // available (e.g., all-categorical data that went through the ANOVA path)
     for (const interaction of interactions.interactions) {
       if (!interaction.isSignificant) continue;
 
