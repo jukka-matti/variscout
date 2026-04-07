@@ -337,8 +337,9 @@ export {
   type EvidenceMapEdgeSheetProps,
 } from './components/EvidenceMapSheet';
 
-// Evidence Map Context Menu (right-click actions for factor nodes)
+// Evidence Map Context Menu (right-click actions for factor nodes and relationship edges)
 export { NodeContextMenu, type NodeContextMenuProps } from './components/EvidenceMapContextMenu';
+export { EdgeContextMenu, type EdgeContextMenuProps } from './components/EvidenceMapContextMenu';
 
 // Mobile Tab Bar
 export { MobileTabBar, type MobileTabBarProps, type MobileTab } from './components/MobileTabBar';
