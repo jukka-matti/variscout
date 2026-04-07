@@ -88,6 +88,7 @@ export {
 // What-If Explorer (unified, replaces WhatIfSimulator/PredictionProfiler/LeanWhatIfSimulator)
 export {
   WhatIfExplorer,
+  WhatIfExplorerPage,
   BasicEstimator,
   ModelInformedEstimator,
   ActivityReducer,
@@ -95,6 +96,8 @@ export {
 } from './components/WhatIfExplorer';
 export type {
   WhatIfExplorerProps,
+  WhatIfExplorerPageProps,
+  WhatIfExplorerReferenceContext,
   ModelScope,
   WhatIfReference,
   WhatIfProcessStats,
