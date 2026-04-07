@@ -383,12 +383,13 @@ export function buildDesignMatrix(
       const contEnc = encA.type === 'continuous' ? encA : encB;
       const catEnc = encA.type === 'categorical' ? encA : encB;
       const contCol = contEnc.columnIndices[0];
+      const contMean = contEnc.mean as number;
 
       for (let li = 0; li < catEnc.columnIndices.length; li++) {
         const catCol = catEnc.columnIndices[li];
         const intCol = intEnc.columnIndices[li];
         for (let ri = 0; ri < n; ri++) {
-          X[intCol][ri] = X[contCol][ri] * X[catCol][ri];
+          X[intCol][ri] = (X[contCol][ri] - contMean) * X[catCol][ri];
         }
       }
     } else {

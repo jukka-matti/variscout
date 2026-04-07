@@ -387,14 +387,15 @@ describe('buildDesignMatrix — interaction columns', () => {
     const intEnc = result.encodings[2];
     const n = result.n;
 
-    // For each interaction column, values should be Temperature * dummy
+    // For each interaction column, values should be (Temperature - mean) * dummy
+    const tempMean = tempEnc.mean as number;
     for (let li = 0; li < intEnc.columnIndices.length; li++) {
       const intColIdx = intEnc.columnIndices[li];
       const catColIdx = machineEnc.columnIndices[li];
       const tempColIdx = tempEnc.columnIndices[0];
       for (let ri = 0; ri < n; ri++) {
         expect(result.X[intColIdx][ri]).toBeCloseTo(
-          result.X[tempColIdx][ri] * result.X[catColIdx][ri],
+          (result.X[tempColIdx][ri] - tempMean) * result.X[catColIdx][ri],
           10
         );
       }

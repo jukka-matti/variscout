@@ -436,7 +436,7 @@ export function generateFollowUpQuestions(
       if (factor.etaSquared < minEta) continue;
 
       questions.push({
-        text: `Is ${factor.worstLevel} specifically the worst for ${factor.factor}? (effect range: ${factor.effectRange.toFixed(2)})`,
+        text: `Is ${factor.worstLevel} specifically the worst for ${factor.factor}? (effect range: ${Number.isFinite(factor.effectRange) ? factor.effectRange.toFixed(2) : '?'})`,
         factors: [factor.factor],
         rSquaredAdj: factor.etaSquared, // Use eta-squared as evidence strength
         autoAnswered: false,

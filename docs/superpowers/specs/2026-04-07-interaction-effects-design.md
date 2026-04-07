@@ -1,6 +1,6 @@
 ---
 title: Interaction Effects — Two-Pass Best Subsets with OLS Interaction Screening
-status: draft
+status: delivered
 date: 2026-04-07
 related:
   [
