@@ -22,7 +22,7 @@ import {
   ColumnMapping,
   ImprovementWorkspaceBase,
   ImprovementContextPanel,
-  WhatIfPageBase,
+  WhatIfExplorerPage,
   PrioritizationMatrix,
   TrackView,
   VerificationPrompt,
@@ -1206,7 +1206,7 @@ export const Editor: React.FC<EditorProps> = ({
                 renderLeftPanel={() => {
                   if (projectionTarget) {
                     return (
-                      <WhatIfPageBase
+                      <WhatIfExplorerPage
                         filteredData={filteredData}
                         rawData={rawData}
                         outcome={outcome}
@@ -1215,6 +1215,7 @@ export const Editor: React.FC<EditorProps> = ({
                         onBack={() => clearProjectionTarget()}
                         cpkTarget={cpkTarget}
                         activeFactor={viewState?.boxplotFactor}
+                        mode={analysisMode ?? 'standard'}
                         projectionContext={{
                           ideaText: projectionTarget.ideaText,
                           questionText: projectionTarget.questionText,

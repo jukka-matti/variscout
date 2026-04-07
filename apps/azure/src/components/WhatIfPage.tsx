@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useProjectStore } from '@variscout/stores';
 import { useFilteredData } from '@variscout/hooks';
-import { WhatIfPageBase } from '@variscout/ui';
+import { WhatIfExplorerPage } from '@variscout/ui';
 import type { FilterAction, FindingProjection } from '@variscout/core';
 
 interface WhatIfPageProps {
@@ -28,6 +28,7 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({
   const columnAliases = useProjectStore(s => s.columnAliases);
   const cpkTarget = useProjectStore(s => s.cpkTarget);
   const viewState = useProjectStore(s => s.viewState);
+  const analysisMode = useProjectStore(s => s.analysisMode);
 
   const filterNames = useMemo(() => {
     if (!filterStack || filterStack.length === 0) return undefined;
@@ -40,7 +41,7 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({
   }, [filterStack, columnAliases]);
 
   return (
-    <WhatIfPageBase
+    <WhatIfExplorerPage
       filteredData={filteredData}
       rawData={rawData}
       outcome={outcome}
@@ -50,6 +51,7 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({
       onBack={onBack}
       cpkTarget={cpkTarget}
       activeFactor={viewState?.boxplotFactor}
+      mode={analysisMode ?? 'standard'}
       projectionContext={projectionContext}
       onSaveProjection={onSaveProjection}
     />

@@ -142,6 +142,7 @@ export function WhatIfExplorerPage({
     return {
       mean: stats.mean,
       stdDev: stats.stdDev,
+      median: stats.median,
       cpk: stats.cpk,
       n: values.length,
     };
@@ -167,7 +168,11 @@ export function WhatIfExplorerPage({
   const presets = useMemo((): SimulatorPreset[] | undefined => {
     if (!currentStats || !outcome) return undefined;
     const result = computePresets(
-      currentStats,
+      {
+        mean: currentStats.mean,
+        stdDev: currentStats.stdDev,
+        median: currentStats.median ?? currentStats.mean,
+      },
       specs,
       filteredData,
       outcome,

@@ -208,9 +208,9 @@ describe('WhatIfExplorerPage — empty state', () => {
 
 describe('WhatIfExplorerPage — mode passthrough', () => {
   it('passes mode to WhatIfExplorer', () => {
-    renderPage({ mode: 'capability' });
+    renderPage({ mode: 'performance' });
     const explorer = screen.getByTestId('mock-whatif-explorer');
-    expect(explorer.getAttribute('data-mode')).toBe('capability');
+    expect(explorer.getAttribute('data-mode')).toBe('performance');
   });
 
   it('defaults to standard mode', () => {

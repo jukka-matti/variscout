@@ -21,6 +21,7 @@ export type { WhatIfReference } from '@variscout/hooks';
 export interface WhatIfProcessStats {
   mean: number;
   stdDev: number;
+  median?: number;
   cpk?: number;
   n?: number;
 }
