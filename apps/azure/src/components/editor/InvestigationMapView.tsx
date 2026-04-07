@@ -208,8 +208,8 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
   }, []);
 
   const handleEdgeAskQuestion = useCallback(
-    (factorA: string, _factorB: string) => {
-      onAskQuestion?.(factorA);
+    (factorA: string, factorB: string) => {
+      onAskQuestion?.(`${factorA} \u00d7 ${factorB}`);
       setSelectedRelEdge(null);
       setEdgeContextMenu(null);
     },
@@ -217,8 +217,8 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
   );
 
   const handleEdgeAskCoScout = useCallback(
-    (factorA: string, _factorB: string) => {
-      onAskCoScout?.(factorA);
+    (factorA: string, factorB: string) => {
+      onAskCoScout?.(`${factorA} \u00d7 ${factorB}`);
       setSelectedRelEdge(null);
       setEdgeContextMenu(null);
     },
@@ -238,6 +238,15 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
   const cycleWarning = causalLinkDraft
     ? (wouldCreateCycle?.(causalLinkDraft.from, causalLinkDraft.to) ?? false)
     : false;
+
+  // Find the relationship edge data for the detail card
+  const selectedRelEdgeData = selectedRelEdge
+    ? (mapData.relationshipEdges?.find(
+        e =>
+          (e.factorA === selectedRelEdge.factorA && e.factorB === selectedRelEdge.factorB) ||
+          (e.factorA === selectedRelEdge.factorB && e.factorB === selectedRelEdge.factorA)
+      ) ?? null)
+    : null;
 
   return (
     <div ref={containerRef} className="flex-1 min-h-0 bg-surface-secondary relative">
@@ -413,32 +422,21 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
       )}
 
       {/* Relationship edge detail card */}
-      {selectedRelEdge &&
-        !editingEdge &&
-        !causalLinkDraft &&
-        (() => {
-          const edge = mapData.relationshipEdges?.find(
-            e =>
-              (e.factorA === selectedRelEdge.factorA && e.factorB === selectedRelEdge.factorB) ||
-              (e.factorA === selectedRelEdge.factorB && e.factorB === selectedRelEdge.factorA)
-          );
-          if (!edge) return null;
-          return (
-            <EdgeDetailCard
-              factorA={selectedRelEdge.factorA}
-              factorB={selectedRelEdge.factorB}
-              relationshipType={edge.type}
-              rSquaredAdj={edge.strength}
-              strength={edge.strength}
-              x={selectedRelEdge.x}
-              y={selectedRelEdge.y}
-              onPromoteToCausal={handlePromoteToCausal}
-              onAskCoScout={handleEdgeAskCoScout}
-              onAskQuestion={handleEdgeAskQuestion}
-              onClose={() => setSelectedRelEdge(null)}
-            />
-          );
-        })()}
+      {selectedRelEdgeData && selectedRelEdge && !editingEdge && !causalLinkDraft && (
+        <EdgeDetailCard
+          factorA={selectedRelEdge.factorA}
+          factorB={selectedRelEdge.factorB}
+          relationshipType={selectedRelEdgeData.type}
+          rSquaredAdj={selectedRelEdgeData.strength}
+          strength={selectedRelEdgeData.strength}
+          x={selectedRelEdge.x}
+          y={selectedRelEdge.y}
+          onPromoteToCausal={handlePromoteToCausal}
+          onAskCoScout={handleEdgeAskCoScout}
+          onAskQuestion={handleEdgeAskQuestion}
+          onClose={() => setSelectedRelEdge(null)}
+        />
+      )}
 
       {/* Sweet spot card for quadratic factors */}
       {sweetSpotNode && !selectedEdge && !selectedRelEdge && !causalLinkDraft && !editingEdge && (

@@ -27,6 +27,18 @@ export function getChartType(
   return 'boxplot';
 }
 
+/**
+ * Mini chart color constants — match @variscout/charts/colors values.
+ * Cannot import directly because @variscout/ui must not depend on @variscout/charts.
+ */
+const MINI_CHART_COLORS = {
+  dot: '#60a5fa', // blue-400 — matches chartColors.mean
+  dotFill: '#3b82f6', // blue-500
+  boxStroke: '#94a3b8', // slate-400 — matches chromeColors.axisSecondary (dark)
+  boxFill: '#94a3b8',
+  labelText: '#64748b', // slate-500 — matches chromeColors.axisSecondary (light)
+} as const;
+
 // ---- Internal helpers ----
 
 function toNumber(v: unknown): number | null {
@@ -112,7 +124,7 @@ const ScatterChart: React.FC<ScatterChartProps> = ({
   const innerW = width - PADDING.left - PADDING.right;
   const innerH = height - PADDING.top - PADDING.bottom;
 
-  const dotColor = isDark ? '#60a5fa' : '#3b82f6';
+  const dotColor = isDark ? MINI_CHART_COLORS.dot : MINI_CHART_COLORS.dotFill;
   const dotOpacity = Math.min(1, 0.8 - Math.max(0, points.length - 30) * 0.005);
 
   return (
@@ -181,9 +193,9 @@ const BoxplotChart: React.FC<BoxplotChartProps> = ({
   const bandW = innerW / groups.length;
   const boxW = Math.max(6, bandW * 0.4);
 
-  const strokeColor = isDark ? '#94a3b8' : '#64748b';
+  const strokeColor = isDark ? MINI_CHART_COLORS.boxStroke : MINI_CHART_COLORS.labelText;
   const boxFill = isDark ? '#1e3a5f' : '#dbeafe';
-  const medianColor = isDark ? '#60a5fa' : '#2563eb';
+  const medianColor = isDark ? MINI_CHART_COLORS.dot : MINI_CHART_COLORS.dotFill;
 
   return (
     <svg width={width} height={height} aria-hidden="true">
