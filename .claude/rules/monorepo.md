@@ -24,10 +24,12 @@ packages/
 │              #   Key hooks: useFilteredData, useAnalysisStats, useProjectActions,
 │              #   useEvidenceMapData, useAICoScout, usePopoutChannel,
 │              #   useQuestions, useFindings, useProblemStatement,
-│              #   useHubComputations, useCoScoutProps, useImprovementProjections
+│              #   useHubComputations, useCoScoutProps, useImprovementProjections,
+│              #   useScopedModels, useWhatIfReferences
 └── ui/        # @variscout/ui - 110+ shared UI components (ls packages/ui/src/components/ for full list)
                #   Key: DashboardLayoutBase, CoScoutPanelBase, ImprovementWorkspaceBase,
-               #   ReportViewBase, FindingsWindow, HubComposer, EvidenceMapNodeSheet
+               #   ReportViewBase, FindingsWindow, HubComposer, EvidenceMapNodeSheet,
+               #   WhatIfExplorer, WhatIfExplorerPage
                #   Store-aware PI Panel tabs: StatsTabContent, QuestionsTabContent, JournalTabContent
                #   Also exports: useGlossary, useIsMobile, useTheme, errorService, BREAKPOINTS
 
