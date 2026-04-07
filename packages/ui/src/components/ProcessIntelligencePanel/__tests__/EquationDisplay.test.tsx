@@ -527,3 +527,140 @@ describe('TrustBadge trust thresholds', () => {
     expect(screen.getByTestId('trust-badge').textContent).toContain('Moderate model');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Tests: interaction chip + qualification badge
+// ---------------------------------------------------------------------------
+
+function makeInteractionPredictors(): PredictorInfo[] {
+  return [
+    ...makeContinuousPredictors(),
+    {
+      name: 'Temp×Supplier',
+      factorName: 'Temp×Supplier',
+      type: 'interaction',
+      sourceFactors: ['Temp', 'Supplier'] as [string, string],
+      interactionType: 'cont×cat',
+      coefficient: -0.18,
+      standardError: 0.04,
+      tStatistic: -4.5,
+      pValue: 0.0001,
+      isSignificant: true,
+    },
+  ];
+}
+
+describe('EquationDisplay — interaction chip + qualification badge', () => {
+  it('renders interaction chip with × glyph', () => {
+    render(
+      <EquationDisplay
+        bestSubset={makeMixedSubset()}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={makeInteractionPredictors()}
+        intercept={60.1}
+      />
+    );
+
+    const chips = screen.getByTestId('equation-factor-chips');
+    expect(chips.textContent).toContain('×');
+    expect(chips.textContent).toContain('Temp');
+    expect(chips.textContent).toContain('Supplier');
+  });
+
+  it('shows qualification badge when interaction terms present', () => {
+    render(
+      <EquationDisplay
+        bestSubset={makeMixedSubset()}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={makeInteractionPredictors()}
+        intercept={60.1}
+      />
+    );
+
+    const note = screen.getByTestId('equation-interaction-note');
+    expect(note).toBeInTheDocument();
+    expect(note.textContent).toContain('combined effects');
+  });
+
+  it('does not show qualification badge when no interaction terms', () => {
+    render(
+      <EquationDisplay
+        bestSubset={makeMixedSubset()}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={makeContinuousPredictors()}
+        intercept={60.1}
+      />
+    );
+
+    expect(screen.queryByTestId('equation-interaction-note')).not.toBeInTheDocument();
+  });
+
+  it('includes interaction term in expanded math equation', () => {
+    render(
+      <EquationDisplay
+        bestSubset={makeMixedSubset()}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={makeInteractionPredictors()}
+        intercept={60.1}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('equation-expand-toggle'));
+
+    const mathText = screen.getByTestId('equation-math-text');
+    expect(mathText.textContent).toContain('×');
+    expect(mathText.textContent).toContain('Temp');
+    expect(mathText.textContent).toContain('Supplier');
+  });
+
+  it('groups multiple dummy entries for the same interaction pair into one chip', () => {
+    const twoLevelInteraction: PredictorInfo[] = [
+      ...makeContinuousPredictors(),
+      {
+        name: 'Temp×Supplier:A',
+        factorName: 'Temp×Supplier:A',
+        type: 'interaction',
+        sourceFactors: ['Temp', 'Supplier'] as [string, string],
+        interactionType: 'cont×cat',
+        coefficient: -0.18,
+        standardError: 0.04,
+        tStatistic: -4.5,
+        pValue: 0.0001,
+        isSignificant: true,
+      },
+      {
+        name: 'Temp×Supplier:B',
+        factorName: 'Temp×Supplier:B',
+        type: 'interaction',
+        sourceFactors: ['Temp', 'Supplier'] as [string, string],
+        interactionType: 'cont×cat',
+        coefficient: 0.05,
+        standardError: 0.04,
+        tStatistic: 1.25,
+        pValue: 0.21,
+        isSignificant: false,
+      },
+    ];
+
+    render(
+      <EquationDisplay
+        bestSubset={makeMixedSubset()}
+        grandMean={60.1}
+        outcome="Moisture"
+        predictors={twoLevelInteraction}
+        intercept={60.1}
+      />
+    );
+
+    // Only one interaction chip should appear (grouped)
+    const chips = screen.getByTestId('equation-factor-chips');
+    // Count how many buttons contain '×' — should be exactly 1 interaction chip
+    const allButtons = chips.querySelectorAll('button');
+    const interactionButtons = Array.from(allButtons).filter(b => b.textContent?.includes('×'));
+    expect(interactionButtons).toHaveLength(1);
+  });
+});

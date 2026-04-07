@@ -196,6 +196,7 @@ interface FactorChipSummary {
   /** Absolute effect magnitude for ranking */
   magnitude: number;
   isQuadratic: boolean;
+  isInteraction: boolean;
 }
 
 /**
@@ -237,6 +238,30 @@ function buildContinuousChipLabel(
     magnitude: Math.abs(coeff),
     isQuadratic: false,
   };
+}
+
+/**
+ * Compute the chip label for an interaction term.
+ * Groups multiple PredictorInfo entries for the same factor pair (e.g. cont×cat
+ * produces m-1 dummies) and shows the most significant coefficient.
+ */
+function buildInteractionChipLabel(interactionPredictors: PredictorInfo[]): {
+  label: string;
+  magnitude: number;
+} {
+  if (interactionPredictors.length === 0) {
+    return { label: '?', magnitude: 0 };
+  }
+
+  // Pick the entry with the largest absolute coefficient as representative
+  const top = interactionPredictors.reduce((best, cur) =>
+    Math.abs(cur.coefficient) > Math.abs(best.coefficient) ? cur : best
+  );
+
+  const [factorA, factorB] = top.sourceFactors ?? [top.factorName, '?'];
+  const label = `${factorA} \u00D7 ${factorB}`;
+
+  return { label, magnitude: Math.abs(top.coefficient) };
 }
 
 /**
@@ -299,13 +324,29 @@ function buildFactorChips(
           linear,
           quadratic
         );
-        chips.push({ factorName, label, magnitude, isQuadratic });
+        chips.push({ factorName, label, magnitude, isQuadratic, isInteraction: false });
       }
     } else {
       const effects = levelEffects.get(factorName);
       const { label, magnitude } = buildCategoricalChipLabel(factorName, effects);
-      chips.push({ factorName, label, magnitude, isQuadratic: false });
+      chips.push({ factorName, label, magnitude, isQuadratic: false, isInteraction: false });
     }
+  }
+
+  // Interaction terms: group by sourceFactors pair key and add one chip per pair
+  const interactionPredictors = predictors.filter(p => p.type === 'interaction');
+  const interactionGroups = new Map<string, PredictorInfo[]>();
+
+  for (const p of interactionPredictors) {
+    const [a, b] = p.sourceFactors ?? [p.factorName, ''];
+    const key = [a, b].sort().join('\x00');
+    if (!interactionGroups.has(key)) interactionGroups.set(key, []);
+    interactionGroups.get(key)!.push(p);
+  }
+
+  for (const [key, group] of interactionGroups) {
+    const { label, magnitude } = buildInteractionChipLabel(group);
+    chips.push({ factorName: key, label, magnitude, isQuadratic: false, isInteraction: true });
   }
 
   // Rank by absolute magnitude descending
@@ -349,6 +390,29 @@ function buildMathEquation(predictors: PredictorInfo[], intercept: number): stri
       );
       const sign = top.coefficient >= 0 ? '+' : '\u2212';
       parts.push(`${sign} ${fmt(Math.abs(top.coefficient))}(${top.factorName}: ${top.level})`);
+    }
+  }
+
+  // Third pass: interaction terms (one entry per source-factor pair, show strongest)
+  const interactionSeen = new Set<string>();
+  for (const p of predictors) {
+    if (p.type === 'interaction' && p.sourceFactors) {
+      const [a, b] = p.sourceFactors;
+      const key = [a, b].sort().join('\x00');
+      if (interactionSeen.has(key)) continue;
+      interactionSeen.add(key);
+
+      const pairPredictors = predictors.filter(
+        fp =>
+          fp.type === 'interaction' &&
+          fp.sourceFactors != null &&
+          [fp.sourceFactors[0], fp.sourceFactors[1]].sort().join('\x00') === key
+      );
+      const top = pairPredictors.reduce((best, cur) =>
+        Math.abs(cur.coefficient) > Math.abs(best.coefficient) ? cur : best
+      );
+      const sign = top.coefficient >= 0 ? '+' : '\u2212';
+      parts.push(`${sign} ${fmt(Math.abs(top.coefficient))}\u00D7(${a}\u00D7${b})`);
     }
   }
 
@@ -436,6 +500,8 @@ const EquationDisplay: React.FC<EquationDisplayProps> = ({
       .filter(Boolean)
       .join(' \u00B7 ');
 
+    const hasInteractionTerms = predictors.some(p => p.type === 'interaction');
+
     const allWarnings = [
       ...(warnings ?? bestSubset.warnings ?? []),
       ...(interactionDetected
@@ -474,10 +540,14 @@ const EquationDisplay: React.FC<EquationDisplayProps> = ({
               onClick={() => onFactorClick?.(chip.factorName)}
               className={`
                 text-[0.6rem] leading-tight px-2 py-0.5 rounded-full
-                bg-slate-800 border border-slate-700
-                text-content-secondary hover:text-content hover:border-slate-500
                 transition-colors
-                ${chip.isQuadratic ? 'text-purple-300 hover:text-purple-200' : ''}
+                ${
+                  chip.isInteraction
+                    ? 'border border-purple-500/30 bg-purple-500/10 text-purple-300 hover:text-purple-200 hover:border-purple-500/50'
+                    : chip.isQuadratic
+                      ? 'bg-slate-800 border border-slate-700 text-purple-300 hover:text-purple-200 hover:border-slate-500'
+                      : 'bg-slate-800 border border-slate-700 text-content-secondary hover:text-content hover:border-slate-500'
+                }
               `}
               data-testid={`equation-chip-${chip.factorName}`}
             >
@@ -536,6 +606,16 @@ const EquationDisplay: React.FC<EquationDisplayProps> = ({
                 &#9888; {w}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Interaction qualification note */}
+        {hasInteractionTerms && (
+          <div
+            className="text-xs text-content-secondary mt-1 px-2"
+            data-testid="equation-interaction-note"
+          >
+            Model includes factor interactions — predictions account for combined effects.
           </div>
         )}
       </div>
