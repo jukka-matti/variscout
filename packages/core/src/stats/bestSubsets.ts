@@ -27,6 +27,8 @@ import type { OLSSolution } from './olsRegression';
 import { computeTypeIIISS } from './typeIIISS';
 import type { ResolvedMode } from '../analysisStrategy';
 import { safeDivide } from './safeMath';
+import { screenInteractionPair } from './interactionScreening';
+import type { InteractionScreenResult } from './interactionScreening';
 
 // ============================================================================
 // Types
@@ -79,6 +81,10 @@ export interface BestSubsetResult {
   typeIIIResults?: Map<string, TypeIIIResult>;
   /** Model warnings */
   warnings?: string[];
+  /** Interaction screening results for factor pairs in this model */
+  interactionScreenResults?: InteractionScreenResult[];
+  /** Whether the model includes interaction terms */
+  hasInteractionTerms?: boolean;
 }
 
 /**
@@ -297,6 +303,25 @@ function extractPredictors(solution: OLSSolution, encodings: FactorEncoding[]): 
   const predictors: PredictorInfo[] = [];
 
   for (const enc of encodings) {
+    if (enc.type === 'interaction') {
+      for (let ci = 0; ci < enc.columnIndices.length; ci++) {
+        const colIdx = enc.columnIndices[ci];
+        predictors.push({
+          name: enc.factorName,
+          factorName: enc.factorName,
+          type: 'interaction',
+          coefficient: solution.coefficients[colIdx],
+          standardError: solution.standardErrors[colIdx],
+          tStatistic: solution.tStatistics[colIdx],
+          pValue: solution.pValues[colIdx],
+          isSignificant: solution.pValues[colIdx] < 0.05,
+          sourceFactors: enc.sourceFactors as [string, string],
+          interactionType: enc.interactionType,
+        });
+      }
+      continue;
+    }
+
     if (enc.type === 'categorical') {
       const nonRefLevels = enc.levels!.filter(l => l !== enc.referenceLevel);
       for (let li = 0; li < nonRefLevels.length; li++) {
@@ -755,6 +780,88 @@ function computeBestSubsetsOLS(
       best.warnings = checkGuardrails(solution, matrixResult.n, matrixResult.p, vif);
     } catch {
       // VIF computation failed — not critical
+    }
+
+    // Pass 2: Screen interaction pairs among winning factors
+    if (best.factors.length >= 2) {
+      const winningFactors = best.factors;
+      const screenResults: InteractionScreenResult[] = [];
+
+      const winningSpecs: FactorSpec[] = winningFactors.map(f => ({
+        name: f,
+        type: factorTypeMap.get(f) ?? ('categorical' as const),
+        includeQuadratic: quadraticFlags.get(f) ?? false,
+      }));
+
+      for (let i = 0; i < winningFactors.length; i++) {
+        for (let j = i + 1; j < winningFactors.length; j++) {
+          const result = screenInteractionPair(
+            data,
+            outcome,
+            winningSpecs,
+            winningFactors[i],
+            winningFactors[j]
+          );
+          screenResults.push(result);
+        }
+      }
+
+      best.interactionScreenResults = screenResults;
+
+      const significantInteractions = screenResults.filter(r => r.isSignificant);
+
+      if (significantInteractions.length > 0) {
+        const specsWithInteractions: FactorSpec[] = [
+          ...winningSpecs,
+          ...significantInteractions.map(r => ({
+            name: `${r.factors[0]}×${r.factors[1]}`,
+            type: 'interaction' as const,
+            sourceFactors: [r.factors[0], r.factors[1]] as [string, string],
+          })),
+        ];
+
+        try {
+          const fullMatrix = buildDesignMatrix(data, outcome, specsWithInteractions);
+          if (fullMatrix.n >= fullMatrix.p + 1) {
+            const fullSolution = solveOLS(fullMatrix.X, fullMatrix.y, fullMatrix.n, fullMatrix.p);
+
+            best.rSquared = fullSolution.rSquared;
+            best.rSquaredAdj = fullSolution.rSquaredAdj;
+            best.fStatistic = fullSolution.fStatistic;
+            best.pValue = fullSolution.fPValue;
+            best.rmse = fullSolution.rmse;
+            best.dfModel = fullMatrix.p - 1;
+            best.hasInteractionTerms = true;
+
+            best.predictors = extractPredictors(fullSolution, fullMatrix.encodings);
+            best.intercept = fullSolution.coefficients[0];
+
+            try {
+              const typeIIIResults = computeTypeIIISS(data, outcome, specsWithInteractions);
+              if (typeIIIResults) {
+                best.typeIIIResults = typeIIIResults;
+              }
+            } catch {
+              // Type III SS failed for interaction model — not critical
+            }
+
+            try {
+              const vif = computeVIF(
+                fullMatrix.X,
+                fullMatrix.n,
+                fullMatrix.p,
+                fullMatrix.encodings
+              );
+              best.vif = vif;
+              best.warnings = checkGuardrails(fullSolution, fullMatrix.n, fullMatrix.p, vif);
+            } catch {
+              // VIF failed — not critical
+            }
+          }
+        } catch {
+          best.hasInteractionTerms = false;
+        }
+      }
     }
   }
 

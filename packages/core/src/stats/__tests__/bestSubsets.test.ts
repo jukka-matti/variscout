@@ -433,14 +433,17 @@ describe('computeBestSubsets — VIF', () => {
     }
   });
 
-  it('shows VIF near 1 for uncorrelated predictors', () => {
-    // Temperature and Machine are independent → VIF should be close to 1
+  it('shows VIF near 1 for uncorrelated predictors (main-effects only)', () => {
+    // Temperature and Machine are independent → VIF should be close to 1 for main effects.
+    // Note: Pass 2 may add an interaction term if screening finds significance at alpha=0.1,
+    // which raises VIF for interaction columns. Only check when no interaction was added.
     const data = buildMixedData(60);
     const result = computeBestSubsets(data, 'Y', ['Temperature', 'Machine']);
     expect(result).not.toBeNull();
 
     const best = result!.subsets[0];
-    if (best.vif && best.factorCount === 2) {
+    // Only check VIF if no interaction terms were added (interaction VIF is naturally higher)
+    if (best.vif && best.factorCount === 2 && !best.hasInteractionTerms) {
       for (const [, vifVal] of best.vif.entries()) {
         expect(vifVal).toBeLessThan(5); // should be much lower for independent
       }
@@ -937,5 +940,61 @@ describe('getBestSingleFactor', () => {
   it('returns null for insufficient data', () => {
     const best = getBestSingleFactor([{ A: 'Lo', Y: 10 }], 'Y', ['A']);
     expect(best).toBeNull();
+  });
+});
+
+// ===========================================================================
+// Tests: Pass 2 interaction screening
+// ===========================================================================
+
+describe('computeBestSubsets — interaction screening (Pass 2)', () => {
+  it('detects interaction in the best model when present', () => {
+    const data: DataRow[] = [];
+    for (let i = 0; i < 60; i++) {
+      // Use decimal steps so classifyFactorType sees decimals → continuous (7-20 range with decimals)
+      const temp = 10 + (i % 10) * 1.7 + 0.3;
+      const machine = i < 30 ? 'A' : 'B';
+      const slope = machine === 'A' ? 2.0 : 0.5;
+      const y = 100 + slope * (temp - 20) + (machine === 'B' ? 5 : 0) + (i % 5) * 0.05;
+      data.push({ Temperature: temp, Machine: machine, Weight: y });
+    }
+
+    const result = computeBestSubsets(data, 'Weight', ['Temperature', 'Machine']);
+    expect(result).not.toBeNull();
+
+    const best = result!.subsets[0];
+    expect(best.interactionScreenResults).toBeDefined();
+    expect(best.interactionScreenResults!.length).toBeGreaterThan(0);
+    expect(best.interactionScreenResults![0].isSignificant).toBe(true);
+    expect(best.hasInteractionTerms).toBe(true);
+  });
+
+  it('does not add interaction when none is significant', () => {
+    const data: DataRow[] = [];
+    for (let i = 0; i < 60; i++) {
+      // Use decimal steps so classifyFactorType sees decimals → continuous
+      const temp = 10 + (i % 10) * 1.7 + 0.3;
+      const machine = i < 30 ? 'A' : 'B';
+      const y = 100 + 1.5 * (temp - 20) + (machine === 'B' ? 5 : 0) + (i % 5) * 0.05;
+      data.push({ Temperature: temp, Machine: machine, Weight: y });
+    }
+
+    const result = computeBestSubsets(data, 'Weight', ['Temperature', 'Machine']);
+    const best = result!.subsets[0];
+    expect(best.hasInteractionTerms).toBeFalsy();
+  });
+
+  it('preserves backward compat — all-categorical uses ANOVA path', () => {
+    const data: DataRow[] = [
+      { Shift: 'Day', Machine: 'A', y: 10 },
+      { Shift: 'Day', Machine: 'B', y: 12 },
+      { Shift: 'Night', Machine: 'A', y: 15 },
+      { Shift: 'Night', Machine: 'B', y: 20 },
+      { Shift: 'Day', Machine: 'A', y: 11 },
+      { Shift: 'Night', Machine: 'B', y: 19 },
+    ];
+    const result = computeBestSubsets(data, 'y', ['Shift', 'Machine']);
+    expect(result).not.toBeNull();
+    expect(result!.usedOLS).toBeFalsy();
   });
 });
