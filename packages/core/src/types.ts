@@ -560,7 +560,7 @@ export interface ParetoDataPoint {
 // ============================================================================
 
 /** Classification of a predictor variable in the unified OLS engine. */
-export type PredictorType = 'categorical' | 'continuous' | 'quadratic';
+export type PredictorType = 'categorical' | 'continuous' | 'quadratic' | 'interaction';
 
 /** Detailed coefficient information for a single predictor in the OLS model. */
 export interface PredictorInfo {
@@ -584,6 +584,10 @@ export interface PredictorInfo {
   isSignificant: boolean;
   /** Continuous/quadratic: mean of the factor values used for centering */
   mean?: number;
+  /** Interaction: source factor names */
+  sourceFactors?: [string, string];
+  /** Interaction: type of factor pair */
+  interactionType?: 'cont×cont' | 'cont×cat' | 'cat×cat';
 }
 
 /** Type III SS decomposition result for a single factor. */
