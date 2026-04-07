@@ -272,16 +272,11 @@ This is injected as a user-initiated CoScout message with edge metadata context,
 
 ## 10. Future Connection: Data Collection Planning
 
-During investigation, the analyst often reaches the limits of their current data — they see an interaction but need _different_ or _more_ evidence to understand it. This manifests as:
+During investigation, the analyst often sees an interesting relationship but realizes their current data doesn't show enough of the picture. The natural next step is to measure something new — add nozzle wear rate as a column, observe what happens during changeover, ask an engineer what differs between setups.
 
-- **More samples** — "I need 50 more data points from Supplier A × Head 1-4"
-- **New measurements** — "I need to start measuring nozzle wear rate"
-- **Gemba observation** — "I need to go see what happens during Supplier A changeover"
-- **Designed experiment** — "I need controlled Supplier × Fill Head combinations"
+This doesn't require new analytical methods. The analyst collects new data, loads it into VariScout, and **the same four lenses do the rest** — ANOVA shows whether the new factor explains variation, boxplots show the distribution, and the Evidence Map recalculates with the new factor as a node. No hypothesis tests, no DOE — just more data through the same lens, more of the picture revealed.
 
-The existing investigation question system (data/gemba/expert evidence types) partially covers this — the edge card's "Ask question" action creates questions that can be tagged with the validation type. But a structured Data Collection Planner (measurement plan, sample size, assignment to team members) is a separate feature that would connect to the Evidence Map as a natural extension.
-
-The edge interactions spec enables this future work: the "Ask question" action creates the investigation question, and a future Data Collection Planner spec would add structured planning to those questions.
+The edge card's "Ask question" action captures what the analyst wants to understand next. That question becomes the reason they go measure something new. When the new data is loaded, the Evidence Map shows the answer. The existing data append flow and three evidence types (data/gemba/expert) already support this cycle.
 
 ## 11. What's NOT in Scope (this spec)
 
