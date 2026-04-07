@@ -270,7 +270,20 @@ This is injected as a user-initiated CoScout message with edge metadata context,
 | `InvestigationMapView` | Wire edge detail card, edge context menu, edge → causal promotion |
 | `EvidenceMapEdgeSheet` | Add `onPromoteToCausal` + `onAskCoScout` action buttons           |
 
-## 10. What's NOT in Scope
+## 10. Future Connection: Data Collection Planning
+
+During investigation, the analyst often reaches the limits of their current data — they see an interaction but need _different_ or _more_ evidence to understand it. This manifests as:
+
+- **More samples** — "I need 50 more data points from Supplier A × Head 1-4"
+- **New measurements** — "I need to start measuring nozzle wear rate"
+- **Gemba observation** — "I need to go see what happens during Supplier A changeover"
+- **Designed experiment** — "I need controlled Supplier × Fill Head combinations"
+
+The existing investigation question system (data/gemba/expert evidence types) partially covers this — the edge card's "Ask question" action creates questions that can be tagged with the validation type. But a structured Data Collection Planner (measurement plan, sample size, assignment to team members) is a separate feature that would connect to the Evidence Map as a natural extension.
+
+The edge interactions spec enables this future work: the "Ask question" action creates the investigation question, and a future Data Collection Planner spec would add structured planning to those questions.
+
+## 11. What's NOT in Scope (this spec)
 
 - **Continuous × continuous interaction terms in OLS** — requires design matrix changes (Spec B, future)
 - **Factor double-click → chart overlay** — separate feature, independent of edge interactions
