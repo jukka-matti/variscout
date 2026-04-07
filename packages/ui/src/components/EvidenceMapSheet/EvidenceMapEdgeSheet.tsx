@@ -19,6 +19,8 @@ export interface EvidenceMapEdgeSheetProps {
   strength: number;
   evidenceType?: 'data' | 'gemba' | 'expert' | 'unvalidated';
   whyStatement?: string;
+  onPromoteToCausal?: (factorA: string, factorB: string) => void;
+  onAskCoScout?: (factorA: string, factorB: string) => void;
 }
 
 /** Badge styling per evidence type */
@@ -52,6 +54,8 @@ export const EvidenceMapEdgeSheet: React.FC<EvidenceMapEdgeSheetProps> = ({
   strength,
   evidenceType,
   whyStatement,
+  onPromoteToCausal,
+  onAskCoScout,
 }) => {
   const { t } = useTranslation();
   const touchStartY = useRef<number | null>(null);
@@ -156,6 +160,41 @@ export const EvidenceMapEdgeSheet: React.FC<EvidenceMapEdgeSheetProps> = ({
               <div className="mx-4 border-t border-edge" />
               <div className="px-4 py-3" data-testid="edge-sheet-why">
                 <p className="text-sm text-content italic">{whyStatement}</p>
+              </div>
+            </>
+          )}
+
+          {/* Action buttons */}
+          {(onPromoteToCausal || onAskCoScout) && (
+            <>
+              <div className="mx-4 border-t border-edge" />
+              <div className="px-4 py-3 flex gap-2">
+                {onPromoteToCausal && (
+                  <button
+                    onClick={() => {
+                      onPromoteToCausal(factorA, factorB);
+                      onClose();
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
+                    style={{ minHeight: 48 }}
+                    data-testid="edge-sheet-promote"
+                  >
+                    Promote to causal link
+                  </button>
+                )}
+                {onAskCoScout && (
+                  <button
+                    onClick={() => {
+                      onAskCoScout(factorA, factorB);
+                      onClose();
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-surface-secondary hover:bg-surface-elevated text-content font-medium rounded-xl transition-colors border border-edge"
+                    style={{ minHeight: 48 }}
+                    data-testid="edge-sheet-coscout"
+                  >
+                    Ask CoScout
+                  </button>
+                )}
               </div>
             </>
           )}
