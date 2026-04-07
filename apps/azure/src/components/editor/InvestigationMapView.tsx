@@ -2,7 +2,13 @@ import React, { useCallback, useRef, useState } from 'react';
 import { EvidenceMapBase } from '@variscout/charts';
 import { useEvidenceMapData } from '@variscout/hooks';
 import type { UseEvidenceMapDataOptions } from '@variscout/hooks';
-import { NodeContextMenu, CausalLinkCreator, SweetSpotCard } from '@variscout/ui';
+import {
+  NodeContextMenu,
+  EdgeContextMenu,
+  EdgeDetailCard,
+  CausalLinkCreator,
+  SweetSpotCard,
+} from '@variscout/ui';
 import type { CausalEdgeData } from '@variscout/charts';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { ArrowRight, X, Pencil, Trash2 } from 'lucide-react';
@@ -83,6 +89,20 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [editingEdge, setEditingEdge] = useState<CausalEdgeData | null>(null);
 
+  // ── Relationship edge interaction state ────────────────────────────────
+  const [selectedRelEdge, setSelectedRelEdge] = useState<{
+    factorA: string;
+    factorB: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [edgeContextMenu, setEdgeContextMenu] = useState<{
+    factorA: string;
+    factorB: string;
+    x: number;
+    y: number;
+  } | null>(null);
+
   const selectedEdge = selectedEdgeId
     ? (mapData.causalEdges.find(e => e.id === selectedEdgeId) ?? null)
     : null;
@@ -108,6 +128,8 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
         setPendingFromFactor(null);
         return;
       }
+      setSelectedRelEdge(null);
+      setEdgeContextMenu(null);
       usePanelsStore.getState().setHighlightedFactor(factor);
     },
     [pendingFromFactor]
@@ -115,6 +137,8 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
 
   const handleContextMenu = useCallback((factor: string, x: number, y: number) => {
     setPendingFromFactor(null); // Cancel any pending link creation
+    setSelectedRelEdge(null);
+    setEdgeContextMenu(null);
     setContextMenu({ factor, x, y });
   }, []);
 
@@ -147,6 +171,59 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
     setCausalLinkDraft(null);
     setEditingEdge(null);
   }, []);
+
+  // ── Relationship edge handlers ──────────────────────────────────────────
+  const handleEdgeClick = useCallback(
+    (factorA: string, factorB: string) => {
+      // Find edge midpoint for card positioning
+      const edge = mapData.relationshipEdges?.find(
+        e =>
+          (e.factorA === factorA && e.factorB === factorB) ||
+          (e.factorA === factorB && e.factorB === factorA)
+      );
+      const midX = edge ? (edge.ax + edge.bx) / 2 : 300;
+      const midY = edge ? (edge.ay + edge.by) / 2 : 200;
+      setSelectedRelEdge({ factorA, factorB, x: midX, y: midY });
+      setSelectedEdgeId(null);
+      setContextMenu(null);
+      setEdgeContextMenu(null);
+    },
+    [mapData.relationshipEdges]
+  );
+
+  const handleEdgeContextMenu = useCallback(
+    (factorA: string, factorB: string, x: number, y: number) => {
+      setEdgeContextMenu({ factorA, factorB, x, y });
+      setSelectedRelEdge(null);
+      setSelectedEdgeId(null);
+      setContextMenu(null);
+    },
+    []
+  );
+
+  const handlePromoteToCausal = useCallback((factorA: string, factorB: string) => {
+    setCausalLinkDraft({ from: factorA, to: factorB });
+    setSelectedRelEdge(null);
+    setEdgeContextMenu(null);
+  }, []);
+
+  const handleEdgeAskQuestion = useCallback(
+    (factorA: string, _factorB: string) => {
+      onAskQuestion?.(factorA);
+      setSelectedRelEdge(null);
+      setEdgeContextMenu(null);
+    },
+    [onAskQuestion]
+  );
+
+  const handleEdgeAskCoScout = useCallback(
+    (factorA: string, _factorB: string) => {
+      onAskCoScout?.(factorA);
+      setSelectedRelEdge(null);
+      setEdgeContextMenu(null);
+    },
+    [onAskCoScout]
+  );
 
   // Cancel pending link on Escape
   React.useEffect(() => {
@@ -183,6 +260,8 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
           onFactorContextMenu={handleContextMenu}
           onCausalEdgeClick={setSelectedEdgeId}
           onConvergenceClick={handleFactorClick}
+          onEdgeClick={handleEdgeClick}
+          onEdgeContextMenu={handleEdgeContextMenu}
         />
       )}
 
@@ -213,6 +292,20 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
           onDrillDown={factor => onDrillDown?.(factor)}
           onCreateCausalLink={onConfirmCausalLink ? handleCreateCausalLink : undefined}
           onClose={handleCloseContextMenu}
+        />
+      )}
+
+      {/* Edge context menu */}
+      {edgeContextMenu && (
+        <EdgeContextMenu
+          factorA={edgeContextMenu.factorA}
+          factorB={edgeContextMenu.factorB}
+          x={edgeContextMenu.x}
+          y={edgeContextMenu.y}
+          onAskQuestion={handleEdgeAskQuestion}
+          onAskCoScout={handleEdgeAskCoScout}
+          onPromoteToCausal={handlePromoteToCausal}
+          onClose={() => setEdgeContextMenu(null)}
         />
       )}
 
@@ -319,8 +412,36 @@ export const InvestigationMapView: React.FC<InvestigationMapViewProps> = ({
         </div>
       )}
 
+      {/* Relationship edge detail card */}
+      {selectedRelEdge &&
+        !editingEdge &&
+        !causalLinkDraft &&
+        (() => {
+          const edge = mapData.relationshipEdges?.find(
+            e =>
+              (e.factorA === selectedRelEdge.factorA && e.factorB === selectedRelEdge.factorB) ||
+              (e.factorA === selectedRelEdge.factorB && e.factorB === selectedRelEdge.factorA)
+          );
+          if (!edge) return null;
+          return (
+            <EdgeDetailCard
+              factorA={selectedRelEdge.factorA}
+              factorB={selectedRelEdge.factorB}
+              relationshipType={edge.type}
+              rSquaredAdj={edge.strength}
+              strength={edge.strength}
+              x={selectedRelEdge.x}
+              y={selectedRelEdge.y}
+              onPromoteToCausal={handlePromoteToCausal}
+              onAskCoScout={handleEdgeAskCoScout}
+              onAskQuestion={handleEdgeAskQuestion}
+              onClose={() => setSelectedRelEdge(null)}
+            />
+          );
+        })()}
+
       {/* Sweet spot card for quadratic factors */}
-      {sweetSpotNode && !selectedEdge && !causalLinkDraft && !editingEdge && (
+      {sweetSpotNode && !selectedEdge && !selectedRelEdge && !causalLinkDraft && !editingEdge && (
         <div className="absolute top-3 right-3 z-20 w-64">
           <SweetSpotCard
             factorName={sweetSpotNode.factor}
