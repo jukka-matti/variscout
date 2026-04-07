@@ -407,6 +407,28 @@ export interface FindingProjection {
 
   /** Timestamp of projection creation */
   createdAt: string;
+
+  /** Model context when projection is informed by regression (optional, backward compatible) */
+  modelContext?: FindingProjectionModelContext;
+}
+
+/**
+ * Context from the regression model that informed a projection.
+ * Captures the analyst's estimation rationale and model quality.
+ */
+export interface FindingProjectionModelContext {
+  /** Factor this projection targets (from the idea's linked question) */
+  linkedFactor?: string;
+  /** Analyst's estimate of how much of the factor gap this idea closes (0-1) */
+  gapClosure?: number;
+  /** Model-derived gap for the linked factor (in outcome units) */
+  factorGap?: number;
+  /** R² adjusted of the model used */
+  rSquaredAdj?: number;
+  /** Label of the model scope used (e.g., 'All data' or 'Machine=B') */
+  scopeLabel?: string;
+  /** Model-predicted optimum Cpk (ceiling from regression) */
+  modelOptimumCpk?: number;
 }
 
 // ============================================================================

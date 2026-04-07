@@ -8,7 +8,7 @@
  * - SpecEditor overlay (local open/close state)
  * - What-If simulator overflow item
  *
- * Reads from stores: specs, stats, filteredData (via hooks), outcome, cpkTarget,
+ * Reads from stores: specs, stats, filteredData (via hooks), outcome, analysisMode,
  * isPISidebarOpen from panelsStore.
  *
  * Accepts props for app-specific data that can't come from stores:
@@ -23,7 +23,7 @@ import {
   QuestionsTabContent,
   JournalTabContent,
   DocumentShelfBase,
-  WhatIfSimulator,
+  WhatIfExplorer,
   computePresets,
 } from '@variscout/ui';
 import type { PITabConfig, PIOverflowItem } from '@variscout/ui';
@@ -93,8 +93,8 @@ export const PISection: React.FC<PISectionProps> = ({
   // Store reads
   const specs = useProjectStore(s => s.specs);
   const outcome = useProjectStore(s => s.outcome);
-  const cpkTarget = useProjectStore(s => s.cpkTarget);
   const filters = useProjectStore(s => s.filters);
+  const analysisMode = useProjectStore(s => s.analysisMode);
 
   // Panel visibility and tab state from panelsStore
   const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
@@ -247,11 +247,10 @@ export const PISection: React.FC<PISectionProps> = ({
       id: 'whatif',
       label: 'What-If',
       content: (
-        <WhatIfSimulator
+        <WhatIfExplorer
+          mode={analysisMode ?? 'standard'}
           currentStats={{ mean: stats.mean, stdDev: stats.stdDev, cpk: stats.cpk }}
           specs={specs}
-          defaultExpanded={true}
-          cpkTarget={cpkTarget}
           presets={presets}
         />
       ),

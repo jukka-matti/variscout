@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
-import { PIPanelBase, StatsTabContent, WhatIfSimulator, computePresets } from '@variscout/ui';
+import { PIPanelBase, StatsTabContent, WhatIfExplorer, computePresets } from '@variscout/ui';
 import type { PITabConfig, PIOverflowItem } from '@variscout/ui';
 import { useProjectStore } from '@variscout/stores';
 import SpecEditor from './settings/SpecEditor';
@@ -42,6 +42,7 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
   openQuestionCount,
 }) => {
   const setSpecs = useProjectStore(s => s.setSpecs);
+  const analysisMode = useProjectStore(s => s.analysisMode);
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
 
   const handleSaveSpecs = (newSpecs: SpecLimits) => {
@@ -143,18 +144,17 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
         id: 'whatif',
         label: 'What-If',
         content: (
-          <WhatIfSimulator
+          <WhatIfExplorer
+            mode={analysisMode ?? 'standard'}
             currentStats={{ mean: stats.mean, stdDev: stats.stdDev, cpk: stats.cpk }}
             specs={specs}
-            defaultExpanded={true}
-            cpkTarget={cpkTarget}
             presets={presets}
           />
         ),
       });
     }
     return items;
-  }, [filteredData, outcome, stats, specs, cpkTarget, presets]);
+  }, [filteredData, outcome, stats, specs, cpkTarget, presets, analysisMode]);
 
   return (
     <>

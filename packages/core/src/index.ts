@@ -515,6 +515,7 @@ export type {
   FindingTag,
   FindingSource,
   FindingProjection,
+  FindingProjectionModelContext,
   PhotoAttachment,
   PhotoUploadStatus,
   CommentAttachment,

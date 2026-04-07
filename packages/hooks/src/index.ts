@@ -345,6 +345,16 @@ export {
   type SuspectedCauseProjection,
 } from './useImprovementProjections';
 
+// Scoped Models (model scoping for What-If Explorer)
+export { useScopedModels, type UseScopedModelsReturn, type ModelScope } from './useScopedModels';
+
+// What-If References (benchmark markers for What-If Explorer)
+export {
+  useWhatIfReferences,
+  type WhatIfReference,
+  type UseWhatIfReferencesOptions,
+} from './useWhatIfReferences';
+
 // CoScout props assembly (shared props for CoScoutPanelBase)
 export {
   useCoScoutProps,
