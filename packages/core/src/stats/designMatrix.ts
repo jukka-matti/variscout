@@ -30,12 +30,13 @@ import { toNumericValue } from '../types';
 export interface FactorEncoding {
   /** Factor column name in the source data */
   factorName: string;
-  /** Whether this factor is treated as continuous or categorical */
-  type: 'continuous' | 'categorical';
+  /** Whether this factor is treated as continuous, categorical, or interaction */
+  type: 'continuous' | 'categorical' | 'interaction';
   /**
    * Column indices in X (0 = intercept).
    * Categorical: one index per non-reference level (k-1 columns).
    * Continuous: one index (linear) or two indices [linear, quadratic].
+   * Interaction: one index per product term.
    */
   columnIndices: number[];
   /** Categorical: all levels sorted alphabetically */
@@ -46,6 +47,10 @@ export interface FactorEncoding {
   quadraticIndex?: number;
   /** Continuous: mean of the factor values (used for centering) */
   mean?: number;
+  /** Interaction: the two source factor names */
+  sourceFactors?: [string, string];
+  /** Interaction: the kind of factor pair */
+  interactionType?: 'cont×cont' | 'cont×cat' | 'cat×cat';
 }
 
 /**
@@ -72,9 +77,11 @@ export interface DesignMatrixResult {
  */
 export interface FactorSpec {
   name: string;
-  type: 'continuous' | 'categorical';
+  type: 'continuous' | 'categorical' | 'interaction';
   /** Continuous only: include a (x - mean)² column in addition to the linear term */
   includeQuadratic?: boolean;
+  /** Interaction only: the two source factor names (must appear earlier in the factors array) */
+  sourceFactors?: [string, string];
 }
 
 // ============================================================================
@@ -151,10 +158,12 @@ export function buildDesignMatrix(
     const yVal = toNumericValue(row[outcome]);
     if (yVal === undefined) continue;
 
-    // Check each factor
+    // Check each factor (skip interaction factors — they have no raw column)
     let rowValid = true;
     for (let fi = 0; fi < factors.length; fi++) {
       const { name, type } = factors[fi];
+      if (type === 'interaction') continue;
+
       const cell = row[name];
 
       if (type === 'continuous') {
@@ -174,10 +183,11 @@ export function buildDesignMatrix(
 
     if (!rowValid) continue;
 
-    // Row is valid — collect raw values
+    // Row is valid — collect raw values (skip interaction factors)
     validIndices.push(rowIdx);
     for (let fi = 0; fi < factors.length; fi++) {
       const { name, type } = factors[fi];
+      if (type === 'interaction') continue;
       const cell = row[name];
       if (type === 'continuous') {
         rawContinuous[fi].push(toNumericValue(cell) as number);
@@ -219,6 +229,47 @@ export function buildDesignMatrix(
         columnIndices,
         levels,
         referenceLevel,
+      });
+    } else if (type === 'interaction') {
+      const [srcA, srcB] = factors[fi].sourceFactors ?? ([] as unknown as [string, string]);
+      const encA = encodings.find(e => e.factorName === srcA);
+      const encB = encodings.find(e => e.factorName === srcB);
+
+      if (!encA || !encB) {
+        throw new Error(
+          `buildDesignMatrix: interaction factor "${name}" references unknown source factors "${srcA}" or "${srcB}". ` +
+            `Source factors must appear before the interaction in the factors array.`
+        );
+      }
+
+      let interactionType: FactorEncoding['interactionType'];
+      let numCols: number;
+
+      if (encA.type === 'continuous' && encB.type === 'continuous') {
+        interactionType = 'cont×cont';
+        numCols = 1;
+      } else if (encA.type === 'continuous' && encB.type === 'categorical') {
+        interactionType = 'cont×cat';
+        numCols = encB.columnIndices.length; // (m-1)
+      } else if (encA.type === 'categorical' && encB.type === 'continuous') {
+        interactionType = 'cont×cat';
+        numCols = encA.columnIndices.length; // (m-1)
+      } else {
+        // cat×cat
+        interactionType = 'cat×cat';
+        numCols = encA.columnIndices.length * encB.columnIndices.length; // (a-1)(b-1)
+      }
+
+      const startCol = totalCols;
+      const columnIndices = Array.from({ length: numCols }, (_, i) => startCol + i);
+      totalCols += numCols;
+
+      encodings.push({
+        factorName: name,
+        type: 'interaction',
+        columnIndices,
+        sourceFactors: [srcA, srcB],
+        interactionType,
       });
     } else {
       // continuous
@@ -274,9 +325,11 @@ export function buildDesignMatrix(
     // Intercept
     X[0][ri] = 1;
 
-    // Factor columns
+    // Factor columns (skip interaction factors — filled in a separate pass below)
     for (let fi = 0; fi < factors.length; fi++) {
       const { name, type } = factors[fi];
+      if (type === 'interaction') continue;
+
       const enc = encodings[fi];
 
       if (type === 'categorical') {
@@ -298,6 +351,57 @@ export function buildDesignMatrix(
 
         if (enc.quadraticIndex !== undefined) {
           X[enc.quadraticIndex][ri] = centered * centered;
+        }
+      }
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Pass 3: fill interaction product columns
+  // Reads from already-populated main-effect columns.
+  // -----------------------------------------------------------------------
+
+  for (let fi = 0; fi < factors.length; fi++) {
+    if (factors[fi].type !== 'interaction') continue;
+
+    const intEnc = encodings[fi];
+    const encA = encodings.find(e => e.factorName === intEnc.sourceFactors![0])!;
+    const encB = encodings.find(e => e.factorName === intEnc.sourceFactors![1])!;
+
+    if (intEnc.interactionType === 'cont×cont') {
+      // Centered product: (x - meanX) * (z - meanZ)
+      const colA = encA.columnIndices[0];
+      const colB = encB.columnIndices[0];
+      const meanA = encA.mean as number;
+      const meanB = encB.mean as number;
+      const intCol = intEnc.columnIndices[0];
+      for (let ri = 0; ri < n; ri++) {
+        X[intCol][ri] = (X[colA][ri] - meanA) * (X[colB][ri] - meanB);
+      }
+    } else if (intEnc.interactionType === 'cont×cat') {
+      // Determine which encoding is continuous and which is categorical
+      const contEnc = encA.type === 'continuous' ? encA : encB;
+      const catEnc = encA.type === 'categorical' ? encA : encB;
+      const contCol = contEnc.columnIndices[0];
+
+      for (let li = 0; li < catEnc.columnIndices.length; li++) {
+        const catCol = catEnc.columnIndices[li];
+        const intCol = intEnc.columnIndices[li];
+        for (let ri = 0; ri < n; ri++) {
+          X[intCol][ri] = X[contCol][ri] * X[catCol][ri];
+        }
+      }
+    } else {
+      // cat×cat: each pair of dummies
+      let intColCount = 0;
+      for (let ali = 0; ali < encA.columnIndices.length; ali++) {
+        for (let bli = 0; bli < encB.columnIndices.length; bli++) {
+          const colA = encA.columnIndices[ali];
+          const colB = encB.columnIndices[bli];
+          const intCol = intEnc.columnIndices[intColCount++];
+          for (let ri = 0; ri < n; ri++) {
+            X[intCol][ri] = X[colA][ri] * X[colB][ri];
+          }
         }
       }
     }

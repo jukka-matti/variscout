@@ -326,6 +326,213 @@ describe('buildDesignMatrix — multiple factors', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Interaction columns
+// ---------------------------------------------------------------------------
+
+describe('buildDesignMatrix — interaction columns', () => {
+  // cont×cat: Temperature (continuous) × Machine (categorical, 3 levels → 2 dummies)
+  // Expected: 2 product columns: Temperature × (Machine=B dummy) and Temperature × (Machine=C dummy)
+  const contCatData: DataRow[] = [
+    { Temperature: 10, Machine: 'A', y: 5 },
+    { Temperature: 20, Machine: 'B', y: 8 },
+    { Temperature: 30, Machine: 'C', y: 13 },
+    { Temperature: 15, Machine: 'A', y: 6 },
+    { Temperature: 25, Machine: 'B', y: 10 },
+  ];
+
+  it('cont×cat creates (m-1) product columns', () => {
+    const result = buildDesignMatrix(contCatData, 'y', [
+      { name: 'Temperature', type: 'continuous' },
+      { name: 'Machine', type: 'categorical' },
+      {
+        name: 'Temperature×Machine',
+        type: 'interaction',
+        sourceFactors: ['Temperature', 'Machine'],
+      },
+    ]);
+    // p = 1 (intercept) + 1 (Temp) + 2 (Machine B,C dummies) + 2 (interaction) = 6
+    expect(result.p).toBe(6);
+    const intEnc = result.encodings[2];
+    expect(intEnc.columnIndices.length).toBe(2);
+  });
+
+  it('cont×cat interaction encoding has correct sourceFactors and interactionType', () => {
+    const result = buildDesignMatrix(contCatData, 'y', [
+      { name: 'Temperature', type: 'continuous' },
+      { name: 'Machine', type: 'categorical' },
+      {
+        name: 'Temperature×Machine',
+        type: 'interaction',
+        sourceFactors: ['Temperature', 'Machine'],
+      },
+    ]);
+    const intEnc = result.encodings[2];
+    expect(intEnc.type).toBe('interaction');
+    expect(intEnc.sourceFactors).toEqual(['Temperature', 'Machine']);
+    expect(intEnc.interactionType).toBe('cont×cat');
+  });
+
+  it('cont×cat product columns equal Temperature × dummy values', () => {
+    const result = buildDesignMatrix(contCatData, 'y', [
+      { name: 'Temperature', type: 'continuous' },
+      { name: 'Machine', type: 'categorical' },
+      {
+        name: 'Temperature×Machine',
+        type: 'interaction',
+        sourceFactors: ['Temperature', 'Machine'],
+      },
+    ]);
+    const tempEnc = result.encodings[0];
+    const machineEnc = result.encodings[1];
+    const intEnc = result.encodings[2];
+    const n = result.n;
+
+    // For each interaction column, values should be Temperature * dummy
+    for (let li = 0; li < intEnc.columnIndices.length; li++) {
+      const intColIdx = intEnc.columnIndices[li];
+      const catColIdx = machineEnc.columnIndices[li];
+      const tempColIdx = tempEnc.columnIndices[0];
+      for (let ri = 0; ri < n; ri++) {
+        expect(result.X[intColIdx][ri]).toBeCloseTo(
+          result.X[tempColIdx][ri] * result.X[catColIdx][ri],
+          10
+        );
+      }
+    }
+  });
+
+  // cont×cont: Temperature × Pressure
+  const contContData: DataRow[] = [
+    { Temperature: 10, Pressure: 1, y: 5 },
+    { Temperature: 20, Pressure: 2, y: 8 },
+    { Temperature: 30, Pressure: 3, y: 13 },
+  ];
+
+  it('cont×cont creates 1 centered product column', () => {
+    const result = buildDesignMatrix(contContData, 'y', [
+      { name: 'Temperature', type: 'continuous' },
+      { name: 'Pressure', type: 'continuous' },
+      {
+        name: 'Temperature×Pressure',
+        type: 'interaction',
+        sourceFactors: ['Temperature', 'Pressure'],
+      },
+    ]);
+    // p = 1 + 1 + 1 + 1 = 4
+    expect(result.p).toBe(4);
+    const intEnc = result.encodings[2];
+    expect(intEnc.columnIndices.length).toBe(1);
+  });
+
+  it('cont×cont interaction encoding has correct interactionType', () => {
+    const result = buildDesignMatrix(contContData, 'y', [
+      { name: 'Temperature', type: 'continuous' },
+      { name: 'Pressure', type: 'continuous' },
+      {
+        name: 'Temperature×Pressure',
+        type: 'interaction',
+        sourceFactors: ['Temperature', 'Pressure'],
+      },
+    ]);
+    const intEnc = result.encodings[2];
+    expect(intEnc.type).toBe('interaction');
+    expect(intEnc.interactionType).toBe('cont×cont');
+    expect(intEnc.sourceFactors).toEqual(['Temperature', 'Pressure']);
+  });
+
+  it('cont×cont column is centered product: (x - meanX) * (z - meanZ)', () => {
+    const result = buildDesignMatrix(contContData, 'y', [
+      { name: 'Temperature', type: 'continuous' },
+      { name: 'Pressure', type: 'continuous' },
+      {
+        name: 'Temperature×Pressure',
+        type: 'interaction',
+        sourceFactors: ['Temperature', 'Pressure'],
+      },
+    ]);
+    const tempEnc = result.encodings[0];
+    const pressEnc = result.encodings[1];
+    const intEnc = result.encodings[2];
+    const meanTemp = tempEnc.mean as number; // 20
+    const meanPressure = pressEnc.mean as number; // 2
+
+    const intColIdx = intEnc.columnIndices[0];
+    const tempRaws = [10, 20, 30];
+    const pressRaws = [1, 2, 3];
+
+    for (let ri = 0; ri < result.n; ri++) {
+      const expected = (tempRaws[ri] - meanTemp) * (pressRaws[ri] - meanPressure);
+      expect(result.X[intColIdx][ri]).toBeCloseTo(expected, 10);
+    }
+  });
+
+  // cat×cat: Machine (3 levels) × Shift (2 levels) → (3-1)(2-1) = 2 product columns
+  const catCatData: DataRow[] = [
+    { Machine: 'A', Shift: 'Day', y: 5 },
+    { Machine: 'B', Shift: 'Night', y: 8 },
+    { Machine: 'C', Shift: 'Day', y: 13 },
+    { Machine: 'A', Shift: 'Night', y: 6 },
+    { Machine: 'B', Shift: 'Day', y: 10 },
+    { Machine: 'C', Shift: 'Night', y: 11 },
+  ];
+
+  it('cat×cat creates (a-1)(b-1) product columns', () => {
+    const result = buildDesignMatrix(catCatData, 'y', [
+      { name: 'Machine', type: 'categorical' },
+      { name: 'Shift', type: 'categorical' },
+      { name: 'Machine×Shift', type: 'interaction', sourceFactors: ['Machine', 'Shift'] },
+    ]);
+    // Machine: 3 levels → 2 dummies; Shift: 2 levels → 1 dummy
+    // interaction: 2 × 1 = 2 product columns
+    // p = 1 + 2 + 1 + 2 = 6
+    expect(result.p).toBe(6);
+    const intEnc = result.encodings[2];
+    expect(intEnc.columnIndices.length).toBe(2);
+  });
+
+  it('cat×cat interaction encoding has correct interactionType', () => {
+    const result = buildDesignMatrix(catCatData, 'y', [
+      { name: 'Machine', type: 'categorical' },
+      { name: 'Shift', type: 'categorical' },
+      { name: 'Machine×Shift', type: 'interaction', sourceFactors: ['Machine', 'Shift'] },
+    ]);
+    const intEnc = result.encodings[2];
+    expect(intEnc.type).toBe('interaction');
+    expect(intEnc.interactionType).toBe('cat×cat');
+    expect(intEnc.sourceFactors).toEqual(['Machine', 'Shift']);
+  });
+
+  it('cat×cat product columns equal dummy_A × dummy_B values', () => {
+    const result = buildDesignMatrix(catCatData, 'y', [
+      { name: 'Machine', type: 'categorical' },
+      { name: 'Shift', type: 'categorical' },
+      { name: 'Machine×Shift', type: 'interaction', sourceFactors: ['Machine', 'Shift'] },
+    ]);
+    const machineEnc = result.encodings[0]; // 2 dummies
+    const shiftEnc = result.encodings[1]; // 1 dummy
+    const intEnc = result.encodings[2]; // 2 product columns
+
+    // The 2 product columns: machineEnc.columnIndices[0] × shiftEnc.columnIndices[0]
+    //                        machineEnc.columnIndices[1] × shiftEnc.columnIndices[0]
+    const n = result.n;
+    let intColCount = 0;
+    for (let mli = 0; mli < machineEnc.columnIndices.length; mli++) {
+      for (let sli = 0; sli < shiftEnc.columnIndices.length; sli++) {
+        const intColIdx = intEnc.columnIndices[intColCount++];
+        const mColIdx = machineEnc.columnIndices[mli];
+        const sColIdx = shiftEnc.columnIndices[sli];
+        for (let ri = 0; ri < n; ri++) {
+          expect(result.X[intColIdx][ri]).toBeCloseTo(
+            result.X[mColIdx][ri] * result.X[sColIdx][ri],
+            10
+          );
+        }
+      }
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Edge cases
 // ---------------------------------------------------------------------------
 
