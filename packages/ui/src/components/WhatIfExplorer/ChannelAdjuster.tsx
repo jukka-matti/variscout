@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { RotateCcw, Save } from 'lucide-react';
 import { simulateDirectAdjustment } from '@variscout/core';
 import type { FindingProjection, ChannelResult } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import Slider from '../Slider/Slider';
 import type { ChannelAdjusterProps } from './types';
 
@@ -19,7 +20,7 @@ function getCpkColor(cpk: number | undefined): string {
 }
 
 function formatCpk(cpk: number | undefined, formatStat: (n: number, d: number) => string): string {
-  if (cpk == null) return '—';
+  if (cpk == null || !Number.isFinite(cpk)) return '—';
   return formatStat(cpk, 2);
 }
 
@@ -177,6 +178,8 @@ export default function ChannelAdjuster({
     }
   }, [findingProjection, onProjectionChange]);
 
+  const { formatStat } = useTranslation();
+
   const handleReset = useCallback(() => {
     setMeanShift(0);
     setVariationReduction(0);
@@ -188,15 +191,13 @@ export default function ChannelAdjuster({
     }
   }, [findingProjection, onSaveProjection]);
 
-  const formatStat = useCallback(
-    (n: number, decimals: number) => (Number.isFinite(n) ? n.toFixed(decimals) : '—'),
-    []
+  const formatMeanShift = useCallback(
+    (value: number) => {
+      const sign = value >= 0 ? '+' : '';
+      return `${sign}${Number.isFinite(value) ? formatStat(value, 2) : '—'}`;
+    },
+    [formatStat]
   );
-
-  const formatMeanShift = useCallback((value: number) => {
-    const sign = value >= 0 ? '+' : '';
-    return `${sign}${Number.isFinite(value) ? value.toFixed(2) : '—'}`;
-  }, []);
 
   return (
     <div className={`space-y-4 ${className ?? ''}`} data-testid="channel-adjuster">
@@ -214,7 +215,7 @@ export default function ChannelAdjuster({
           {sortedChannels.map(ch => (
             <option key={ch.id} value={ch.id}>
               {ch.label}
-              {ch.cpk != null && Number.isFinite(ch.cpk) ? ` — Cpk ${ch.cpk.toFixed(2)}` : ''}
+              {ch.cpk != null && Number.isFinite(ch.cpk) ? ` — Cpk ${formatStat(ch.cpk, 2)}` : ''}
             </option>
           ))}
         </select>
@@ -266,9 +267,11 @@ export default function ChannelAdjuster({
             <div key={i} className="flex items-center justify-between">
               <span className="text-content-secondary">{ref.label}</span>
               <span className="font-mono">
-                {Number.isFinite(ref.value) ? ref.value.toFixed(2) : '—'}
+                {Number.isFinite(ref.value) ? formatStat(ref.value, 2) : '—'}
                 {ref.cpk != null && Number.isFinite(ref.cpk) && (
-                  <span className={`ml-2 ${getCpkColor(ref.cpk)}`}>Cpk {ref.cpk.toFixed(2)}</span>
+                  <span className={`ml-2 ${getCpkColor(ref.cpk)}`}>
+                    Cpk {formatStat(ref.cpk, 2)}
+                  </span>
                 )}
               </span>
             </div>

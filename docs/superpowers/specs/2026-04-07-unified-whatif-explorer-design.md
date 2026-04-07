@@ -80,17 +80,17 @@ The old `WhatIfSimulator` tab component has been replaced. Both apps pass regres
 - **Phase 1 (types + hooks)** — complete. `useScopedModels`, `useWhatIfReferences`, and `WhatIfExplorerProps` types delivered.
 - **Phase 2 (component)** — complete. All four renderers delivered with tests.
 - **PI panel What-If replaced** — both Azure and PWA apps now use `WhatIfExplorer`.
-- **`WhatIfPageBase` (improvement workflow full page) NOT yet replaced** — `packages/ui/src/components/WhatIfPage/WhatIfPageBase.tsx` is still used in the improvement hub workflow. Needs a `WhatIfExplorerPage` wrapper as a follow-up task.
-- **Model/scopes not yet wired into app UI** — the `scope` toggle (`'hub' | 'global'`) and model selection UI will activate when the improvement workflow integration is done.
+- **`WhatIfPageBase` (improvement workflow full page) replaced** — `WhatIfExplorerPage` is now used in the improvement hub workflow. `WhatIfPageBase` has been deleted.
+- **Model/scopes wired** — the `scope` toggle and model selection are active in both Azure and PWA editors.
 - **CoScout interaction context confirmed wired** — `whatIfExplorerState` is included in the AI context via the existing `useAIOrchestration` wiring.
 
 ## Migration Path
 
-| Old Component                            | Replacement                         | Status            |
-| ---------------------------------------- | ----------------------------------- | ----------------- |
-| `WhatIfSimulator`                        | `WhatIfExplorer` (basic/model mode) | PI panel replaced |
-| `PredictionProfiler`                     | `WhatIfExplorer` (model mode)       | PI panel replaced |
-| `LeanWhatIfSimulator`                    | `WhatIfExplorer` (lean mode)        | PI panel replaced |
-| `WhatIfPageBase` (improvement full page) | `WhatIfExplorerPage` wrapper        | Pending follow-up |
+| Old Component                            | Replacement                         | Status  |
+| ---------------------------------------- | ----------------------------------- | ------- |
+| `WhatIfSimulator`                        | `WhatIfExplorer` (basic/model mode) | Deleted |
+| `PredictionProfiler`                     | `WhatIfExplorer` (model mode)       | Deleted |
+| `LeanWhatIfSimulator`                    | `WhatIfExplorer` (lean mode)        | Deleted |
+| `WhatIfPageBase` (improvement full page) | `WhatIfExplorerPage` wrapper        | Deleted |
 
-Old components remain in `packages/ui/src/components/WhatIfSimulator/` with `@deprecated` JSDoc tags. Do not delete until `WhatIfPageBase` migration is complete.
+Main component files have been deleted. The `packages/ui/src/components/WhatIfSimulator/` directory now contains only helper sub-components (`DistributionPreview`, `LeanDistributionPreview`, `OverallImpactSummary`) which are still used by `WhatIfExplorer`.

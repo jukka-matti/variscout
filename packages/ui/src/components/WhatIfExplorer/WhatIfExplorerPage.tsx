@@ -131,11 +131,8 @@ export function WhatIfExplorerPage({
     if (!outcome || filteredData.length === 0) return null;
 
     const values = filteredData
-      .map(row => {
-        const val = row[outcome];
-        return typeof val === 'number' ? val : parseFloat(String(val));
-      })
-      .filter(v => !isNaN(v));
+      .map(row => toNumericValue(row[outcome]))
+      .filter((v): v is number => v !== undefined);
 
     if (values.length === 0) return null;
     const stats = calculateStats(values, specs.usl, specs.lsl);
@@ -160,7 +157,8 @@ export function WhatIfExplorerPage({
       .filter((v): v is number => v !== undefined);
     if (values.length < 2) return undefined;
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
+    // Bessel's correction: divide by (n-1) for sample variance
+    const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / (values.length - 1);
     return { mean, stdDev: Math.sqrt(variance), count: values.length };
   }, [rawData, filteredData, outcome]);
 

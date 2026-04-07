@@ -117,16 +117,10 @@ export function useScopedModels(
   const [activeScopeId, setActiveScopeId] = useState<string>('global');
   const cacheRef = useRef<Map<string, ModelScope>>(new Map());
 
-  // Global scope — computed from full dataset
+  // Global scope — computed from full dataset; useMemo handles caching via dependency array
   const globalScope = useMemo<ModelScope | null>(() => {
     if (!data.length || !outcome || !factors.length) return null;
-
-    const cached = cacheRef.current.get('global');
-    if (cached && cached.n === data.length) return cached;
-
-    const scope = buildScope('global', 'All data', {}, data, outcome, factors);
-    if (scope) cacheRef.current.set('global', scope);
-    return scope;
+    return buildScope('global', 'All data', {}, data, outcome, factors);
   }, [data, outcome, factors]);
 
   // Filtered data + minimum-n check

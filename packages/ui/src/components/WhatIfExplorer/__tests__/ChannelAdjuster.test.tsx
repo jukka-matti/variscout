@@ -3,6 +3,19 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import ChannelAdjuster from '../ChannelAdjuster';
 import type { ChannelResult } from '@variscout/core';
 
+// Mock @variscout/hooks — must appear before component imports
+vi.mock('@variscout/hooks', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    formatStat: (n: number, decimals?: number) => {
+      if (decimals !== undefined) return n.toFixed(decimals);
+      return n % 1 === 0 ? String(n) : n.toFixed(2);
+    },
+    formatPct: (n: number) => `${n}%`,
+    locale: 'en',
+  }),
+}));
+
 // Mock simulateDirectAdjustment from @variscout/core
 vi.mock('@variscout/core', () => ({
   simulateDirectAdjustment: vi.fn(

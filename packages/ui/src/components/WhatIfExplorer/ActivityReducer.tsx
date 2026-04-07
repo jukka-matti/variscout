@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { RotateCcw, Save } from 'lucide-react';
-import { ACTIVITY_TYPE_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_ORDER } from '@variscout/core';
+import { ACTIVITY_TYPE_COLORS, ACTIVITY_TYPE_LABELS } from '@variscout/core';
 import type { FindingProjection } from '@variscout/core';
 import type { YamazumiBarData, YamazumiSegment } from '@variscout/core/yamazumi';
 import Slider from '../Slider/Slider';
@@ -383,6 +383,3 @@ export default function ActivityReducer({
 
 // Re-export types that tests might need
 export type { ActivityEntry };
-
-// Suppress unused import warnings — ACTIVITY_TYPE_ORDER is exported for completeness
-void (ACTIVITY_TYPE_ORDER as unknown);
