@@ -997,4 +997,52 @@ describe('computeBestSubsets — interaction screening (Pass 2)', () => {
     expect(result).not.toBeNull();
     expect(result!.usedOLS).toBeFalsy();
   });
+
+  it('end-to-end: injection dataset detects Temperature×Machine interaction', () => {
+    // Synthetic injection-like data with machine-specific temperature slopes
+    const data: DataRow[] = [];
+    for (let i = 0; i < 80; i++) {
+      const temp = 180 + (i % 20) * 2.1; // 180–219.9, >20 unique → continuous
+      const machine = i < 40 ? 'M1' : 'M2';
+      // M1: slope +0.05/°C, M2: slope +0.15/°C (ordinal — same direction, different magnitude)
+      // M2 intercept higher (+2) so M2 is always above M1 across the temp range
+      const slope = machine === 'M1' ? 0.05 : 0.15;
+      const machineEffect = machine === 'M1' ? 0 : 2;
+      const noise = (((i * 7919 + 104729) % 1000) / 1000) * 0.02 - 0.01;
+      const y = 12.5 + slope * (temp - 195) + machineEffect + noise;
+      data.push({ Temperature: temp, Machine: machine, Weight: y });
+    }
+
+    const result = computeBestSubsets(data, 'Weight', ['Temperature', 'Machine']);
+    expect(result).not.toBeNull();
+    expect(result!.usedOLS).toBe(true);
+
+    const best = result!.subsets[0];
+    // Both factors should be in the winning model
+    expect(best.factors).toContain('Temperature');
+    expect(best.factors).toContain('Machine');
+
+    // Pass 2 should have run and found the interaction
+    expect(best.interactionScreenResults).toBeDefined();
+    expect(best.interactionScreenResults!.length).toBeGreaterThan(0);
+
+    const tempMachineScreen = best.interactionScreenResults!.find(
+      r => r.factors.includes('Machine') && r.factors.includes('Temperature')
+    );
+    expect(tempMachineScreen).toBeDefined();
+    expect(tempMachineScreen!.isSignificant).toBe(true);
+    expect(tempMachineScreen!.pattern).toBe('ordinal');
+    expect(tempMachineScreen!.interactionType).toBe('cont×cat');
+
+    // Model should include interaction terms
+    expect(best.hasInteractionTerms).toBe(true);
+
+    // R²adj with interaction should be high
+    expect(best.rSquaredAdj).toBeGreaterThan(0.8);
+
+    // Predictors should include an interaction entry
+    const interactionPred = best.predictors?.find(p => p.type === 'interaction');
+    expect(interactionPred).toBeDefined();
+    expect(interactionPred!.sourceFactors).toBeDefined();
+  });
 });

@@ -138,7 +138,9 @@ export function screenInteractionPair(
       factorB,
       typeB,
       getUniqueLevels(data, factorA),
-      getUniqueLevels(data, factorB)
+      getUniqueLevels(data, factorB),
+      typeA === 'continuous' ? getContinuousRange(data, factorA) : undefined,
+      typeB === 'continuous' ? getContinuousRange(data, factorB) : undefined
     );
     return {
       factors: [nameAlpha, nameBeta],
@@ -188,7 +190,9 @@ export function screenInteractionPair(
     factorB,
     typeB,
     getUniqueLevels(data, factorA),
-    getUniqueLevels(data, factorB)
+    getUniqueLevels(data, factorB),
+    typeA === 'continuous' ? getContinuousRange(data, factorA) : undefined,
+    typeB === 'continuous' ? getContinuousRange(data, factorB) : undefined
   );
 
   return {
@@ -239,7 +243,9 @@ export function classifyInteractionPattern(
   const typeB = isContinuousB ? ('continuous' as const) : ('categorical' as const);
   const levelsA = isContinuousA ? undefined : getUniqueLevels(data, factorA);
   const levelsB = isContinuousB ? undefined : getUniqueLevels(data, factorB);
-  const axes = assignPlotAxes(factorA, typeA, factorB, typeB, levelsA, levelsB);
+  const rangeA = isContinuousA ? getContinuousRange(data, factorA) : undefined;
+  const rangeB = isContinuousB ? getContinuousRange(data, factorB) : undefined;
+  const axes = assignPlotAxes(factorA, typeA, factorB, typeB, levelsA, levelsB, rangeA, rangeB);
   const plotX = axes.plotXAxis;
   const series = axes.plotSeries;
 
@@ -372,7 +378,9 @@ export function assignPlotAxes(
   factorB: string,
   typeB: 'continuous' | 'categorical' | 'interaction',
   levelsA?: string[],
-  levelsB?: string[]
+  levelsB?: string[],
+  rangeA?: number,
+  rangeB?: number
 ): PlotAxisAssignment {
   const isContinuousA = typeA === 'continuous';
   const isContinuousB = typeB === 'continuous';
@@ -388,7 +396,10 @@ export function assignPlotAxes(
   }
 
   if (isContinuousA && isContinuousB) {
-    // cont×cont: first factor on x
+    // cont×cont: higher-range factor on x for wider spread
+    if (rangeA !== undefined && rangeB !== undefined && rangeB > rangeA) {
+      return { plotXAxis: factorB, plotSeries: factorA, rationale: 'continuous-on-x' };
+    }
     return { plotXAxis: factorA, plotSeries: factorB, rationale: 'continuous-on-x' };
   }
 
@@ -418,6 +429,22 @@ function isContinuousFactor(data: DataRow[], factor: string): boolean {
     if (unique.size > 6) return true;
   }
   return false;
+}
+
+/**
+ * Compute the range (max - min) of a continuous factor.
+ */
+function getContinuousRange(data: DataRow[], factor: string): number | undefined {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const row of data) {
+    const v = toNumericValue(row[factor]);
+    if (v !== undefined) {
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+  }
+  return Number.isFinite(min) && Number.isFinite(max) ? max - min : undefined;
 }
 
 /**

@@ -350,10 +350,9 @@ function isFollowUpAlreadyPresent(q: GeneratedQuestion, questions: Question[]): 
 
   if (q.type === 'interaction') {
     // An interaction follow-up targets a pair of factors.
-    // Check if we already have a question that references both factors.
-    return factorIntel.some(
-      qi => qi.factor === q.factors[0] && qi.evidence?.etaSquared != null // Interaction questions use deltaR² stored as etaSquared
-    );
+    // Check if we already have a question whose text references both factor names.
+    const [fA, fB] = q.factors;
+    return factorIntel.some(qi => qi.text.includes(fA) && qi.text.includes(fB));
   }
 
   return false;
