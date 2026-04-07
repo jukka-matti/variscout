@@ -596,6 +596,25 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     }
   }
 
+  // Populate interaction effects from best subsets Pass 2 screening
+  if (options.bestSubsetsResult?.subsets[0]?.interactionScreenResults) {
+    const screenResults = options.bestSubsetsResult.subsets[0].interactionScreenResults;
+    const significant = screenResults.filter(r => r.isSignificant);
+    if (significant.length > 0) {
+      if (!context.investigation) context.investigation = {};
+      context.investigation.interactionEffects = significant.map(r => ({
+        factors: r.factors,
+        pattern: r.pattern,
+        deltaRSquaredAdj: r.deltaRSquaredAdj,
+        pValue: r.pValue,
+        plainLanguage:
+          r.pattern === 'disordinal'
+            ? `${r.factors[0]} and ${r.factors[1]} — the ranking reverses across ${r.plotSeries} levels.`
+            : `${r.factors[0]} and ${r.factors[1]} — the gap between ${r.plotSeries} levels changes at different ${r.plotXAxis} values.`,
+      }));
+    }
+  }
+
   // Add best model equation when available
   if (options.bestSubsetsResult) {
     const topSubset = options.bestSubsetsResult.subsets[0];

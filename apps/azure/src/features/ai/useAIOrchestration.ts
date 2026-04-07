@@ -100,6 +100,8 @@ export interface UseAIOrchestrationOptions {
   analysisMode?: AnalysisMode;
   /** Evidence Map topology for graph-aware CoScout reasoning (ADR-066) */
   evidenceMapTopology?: BuildAIContextOptions['evidenceMapTopology'];
+  /** Best subsets result for interaction effects context */
+  bestSubsetsResult?: BuildAIContextOptions['bestSubsetsResult'];
   onOpenCoScout: () => void;
   onOpenFindings: () => void;
 }
@@ -154,6 +156,7 @@ export function useAIOrchestration({
   capabilityData,
   analysisMode,
   evidenceMapTopology,
+  bestSubsetsResult,
   onOpenCoScout,
   onOpenFindings,
 }: UseAIOrchestrationOptions): UseAIOrchestrationReturn {
@@ -302,6 +305,7 @@ export function useAIOrchestration({
     focusedQuestionId,
     evidenceMapTopology: effectiveTopology,
     suspectedCauses,
+    bestSubsetsResult,
   });
 
   // AI narration (disabled when per-component toggle is off)

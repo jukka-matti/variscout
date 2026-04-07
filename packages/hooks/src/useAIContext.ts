@@ -86,6 +86,8 @@ export interface UseAIContextOptions {
   evidenceMapTopology?: BuildAIContextOptions['evidenceMapTopology'];
   /** Suspected cause hubs from investigation (ADR-064) */
   suspectedCauses?: SuspectedCause[];
+  /** Best subsets result for model equation and interaction effects context */
+  bestSubsetsResult?: BuildAIContextOptions['bestSubsetsResult'];
 }
 
 export interface UseAIContextReturn {
@@ -125,6 +127,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     focusedQuestionId,
     evidenceMapTopology,
     suspectedCauses,
+    bestSubsetsResult,
   } = options;
 
   const context = useMemo<AIContext | null>(() => {
@@ -153,6 +156,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       capabilityData,
       evidenceMapTopology,
       suspectedCauses,
+      bestSubsetsResult,
     };
 
     // Map StatsResult to AIStatsInput
@@ -199,6 +203,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     focusedQuestionId,
     evidenceMapTopology,
     suspectedCauses,
+    bestSubsetsResult,
   ]);
 
   return { context };

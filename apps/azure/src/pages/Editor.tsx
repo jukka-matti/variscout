@@ -40,7 +40,7 @@ import {
   useTranslation,
   useHMWPrompts,
 } from '@variscout/hooks';
-import { hasTeamFeatures, downloadCSV } from '@variscout/core';
+import { hasTeamFeatures, downloadCSV, computeBestSubsets } from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
@@ -813,6 +813,15 @@ export const Editor: React.FC<EditorProps> = ({
     };
   }, [isCapabilityMode, capabilityIChartData, subgroupConfig, cpkTarget]);
 
+  // Best subsets for AI context (interaction effects)
+  const bestSubsetsForAI = useMemo(
+    () =>
+      outcome && factors.length > 0 && filteredData.length >= 5
+        ? computeBestSubsets(filteredData, outcome, factors)
+        : null,
+    [filteredData, outcome, factors]
+  );
+
   // AI orchestration
   const aiOrch = useAIOrchestration({
     enabled: aiEnabled,
@@ -840,6 +849,7 @@ export const Editor: React.FC<EditorProps> = ({
     entryScenario,
     capabilityData: aiCapabilityData,
     analysisMode,
+    bestSubsetsResult: bestSubsetsForAI ?? undefined,
     onOpenCoScout: () => {
       if (isPhone) coScoutTriggerRef.current = document.activeElement;
       usePanelsStore.getState().setCoScoutOpen(true);
