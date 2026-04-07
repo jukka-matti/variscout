@@ -341,6 +341,9 @@ export {
 export { NodeContextMenu, type NodeContextMenuProps } from './components/EvidenceMapContextMenu';
 export { EdgeContextMenu, type EdgeContextMenuProps } from './components/EvidenceMapContextMenu';
 
+// Evidence Map Edge Detail Card (desktop floating card for relationship edge clicks)
+export { EdgeDetailCard, type EdgeDetailCardProps } from './components/EvidenceMap/EdgeDetailCard';
+
 // Mobile Tab Bar
 export { MobileTabBar, type MobileTabBarProps, type MobileTab } from './components/MobileTabBar';
 
