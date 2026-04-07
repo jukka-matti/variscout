@@ -174,6 +174,58 @@ The What-If Profiler shows the operating window as a shaded band on the continuo
 
 ---
 
+## Two-Way Interaction Effects
+
+When two factors are both significant individually, their combined pattern may not be additive — one factor's association with the outcome may differ across levels of the other factor. VariScout detects this automatically using a two-pass hierarchical approach that matches the capability of Minitab's Best Subsets with interaction terms and JMP's Fit Model interaction detection.
+
+### How it works
+
+**Pass 1 (main effects):** Best subsets evaluates all 2^k−1 factor subsets as before, identifying the best main-effects model.
+
+**Pass 2 (interaction screening):** For each pair of factors in the winning model, a partial F-test compares the main-effects-only model against a model with the interaction term added. If the interaction is significant (p < 0.10 screening threshold), the term enters the final equation.
+
+This hierarchical approach is computationally efficient (6 extra OLS solves for 3 winning factors, vs 2 million for full enumeration) and methodologically sound — interactions between non-significant main effects are rarely meaningful.
+
+### Interaction column types
+
+The design matrix generates appropriate product columns for all factor type combinations:
+
+| Pair type                 | Columns             | Example                           |
+| ------------------------- | ------------------- | --------------------------------- |
+| Continuous × Categorical  | (m−1) products      | Temperature × each Machine dummy  |
+| Continuous × Continuous   | 1 centered product  | (Temp − mean)(Pressure − mean)    |
+| Categorical × Categorical | (a−1)(b−1) products | Shift dummy × Machine dummy pairs |
+
+### Pattern classification
+
+Interactions are classified by their geometric pattern in the cell means:
+
+- **Ordinal:** The ranking of levels is preserved — one level is always higher, but the gap changes. Lines do not cross.
+- **Disordinal:** The ranking reverses — lines cross within the observed range.
+
+This classification drives the question language and Evidence Map edge display.
+
+### Benchmark comparison
+
+| Capability                     | Minitab GLM               | JMP Fit Model          | VariScout                      |
+| ------------------------------ | ------------------------- | ---------------------- | ------------------------------ |
+| Cat × Cat interaction          | Yes                       | Yes                    | Yes                            |
+| Cont × Cont interaction        | Yes                       | Yes                    | Yes                            |
+| Cont × Cat interaction         | Yes                       | Yes                    | Yes                            |
+| Interactions in model equation | Yes                       | Yes                    | Yes                            |
+| Type III SS for interaction    | Yes                       | Yes                    | Yes                            |
+| Pattern classification         | Manual (interaction plot) | Manual (Profiler)      | Automatic (ordinal/disordinal) |
+| Hierarchical gating            | Optional                  | Stepwise               | Built-in (Layer 3 methodology) |
+| Response surface / contour     | Yes (DOE)                 | Yes (Surface Profiler) | Not included (DOE scope)       |
+
+VariScout adds automatic pattern classification and question-driven surfacing that Minitab and JMP leave to the analyst's interpretation.
+
+### Language principle
+
+All interaction language follows the "contribution, not causation" principle: the tool describes geometric patterns ("the gap between Machine levels changes", "the ranking reverses"), not mechanisms. The analyst supplies causal interpretation through gemba observation and expert knowledge.
+
+---
+
 ## Type III SS and Partial η²
 
 When a model contains multiple factors, each factor's contribution must be computed **adjusted for all other factors** — this is Type III sum of squares (Type III SS).

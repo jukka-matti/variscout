@@ -7,23 +7,28 @@ import {
 import type { DataRow } from '../../types';
 
 // ---------------------------------------------------------------------------
-// Test data generators
+// Test data generators (deterministic — no Math.random)
 // ---------------------------------------------------------------------------
+
+/** Simple deterministic noise: small perturbation based on index */
+function deterministicNoise(i: number, scale: number): number {
+  // Produces a repeatable sequence in [-scale/2, +scale/2]
+  return (((i * 7919 + 104729) % 1000) / 1000 - 0.5) * scale;
+}
 
 /**
  * makeInteractionData — cont×cat with ORDINAL interaction.
  * Machine A slope +2.0/unit, Machine B slope +0.5/unit.
- * Same direction, different magnitude. ~50 rows.
+ * Same direction, different magnitude. 50 rows.
  */
 function makeInteractionData(): DataRow[] {
   const rows: DataRow[] = [];
-  // 25 rows for Machine A, 25 for Machine B
   for (let i = 0; i < 25; i++) {
-    const temp = i * 2; // 0, 2, 4, ... 48
+    const temp = i * 2;
     rows.push({
       Temperature: temp,
       Machine: 'A',
-      Yield: 10 + 2.0 * temp + (Math.random() - 0.5) * 0.5,
+      Yield: 10 + 2.0 * temp + deterministicNoise(i, 0.5),
     });
   }
   for (let i = 0; i < 25; i++) {
@@ -31,7 +36,7 @@ function makeInteractionData(): DataRow[] {
     rows.push({
       Temperature: temp,
       Machine: 'B',
-      Yield: 5 + 0.5 * temp + (Math.random() - 0.5) * 0.5,
+      Yield: 5 + 0.5 * temp + deterministicNoise(i + 25, 0.5),
     });
   }
   return rows;
@@ -39,23 +44,24 @@ function makeInteractionData(): DataRow[] {
 
 /**
  * makeNoInteractionData — Parallel slopes (both +1.5/unit), different intercepts.
+ * Large sample (100 rows) with tiny noise to ensure no spurious interaction.
  */
 function makeNoInteractionData(): DataRow[] {
   const rows: DataRow[] = [];
-  for (let i = 0; i < 25; i++) {
-    const temp = i * 2;
+  for (let i = 0; i < 50; i++) {
+    const temp = i * 1.0; // 0, 1, ..., 49
     rows.push({
       Temperature: temp,
       Machine: 'A',
-      Yield: 10 + 1.5 * temp + (Math.random() - 0.5) * 0.2,
+      Yield: 10 + 1.5 * temp + deterministicNoise(i + 50, 0.05),
     });
   }
-  for (let i = 0; i < 25; i++) {
-    const temp = i * 2;
+  for (let i = 0; i < 50; i++) {
+    const temp = i * 1.0;
     rows.push({
       Temperature: temp,
       Machine: 'B',
-      Yield: 3 + 1.5 * temp + (Math.random() - 0.5) * 0.2,
+      Yield: 3 + 1.5 * temp + deterministicNoise(i + 100, 0.05),
     });
   }
   return rows;
@@ -71,7 +77,7 @@ function makeDisordinalData(): DataRow[] {
     rows.push({
       Temperature: temp,
       Machine: 'A',
-      Yield: 10 + 1.5 * temp + (Math.random() - 0.5) * 0.3,
+      Yield: 10 + 1.5 * temp + deterministicNoise(i + 100, 0.3),
     });
   }
   for (let i = 0; i < 25; i++) {
@@ -79,7 +85,7 @@ function makeDisordinalData(): DataRow[] {
     rows.push({
       Temperature: temp,
       Machine: 'B',
-      Yield: 50 - 1.0 * temp + (Math.random() - 0.5) * 0.3,
+      Yield: 50 - 1.0 * temp + deterministicNoise(i + 125, 0.3),
     });
   }
   return rows;

@@ -6,16 +6,24 @@ import { mulberry32, round } from '../utils';
 //
 // Data generation model:
 //   Fill_Weight = 12.5
-//     + 0.015 * (Temp - 195)           linear temperature effect
-//     - 0.001 * (Temp - 195)²          quadratic: sweet spot at 195°C
-//     + 0.005 * (Force - 85)           linear clamping force effect
-//     + 0.002 * (CoolTime - 20)        weak cooling time effect
-//     + supplier_effect                 A: +0.3, B: 0, C: -0.4
-//     + machine_effect                  M1: -0.1, M2: +0.2, M3: 0, M4: -0.1
-//     + N(0, 0.15)                      process noise
+//     + machine_temp_slope * (Temp - 195)  temperature slope varies by machine (INTERACTION)
+//     - 0.001 * (Temp - 195)²              quadratic: sweet spot at 195°C
+//     + 0.005 * (Force - 85)               linear clamping force effect
+//     + 0.002 * (CoolTime - 20)            weak cooling time effect
+//     + supplier_effect                     A: +0.3, B: 0, C: -0.4
+//     + machine_effect                      M1: -0.1, M2: +0.2, M3: 0, M4: -0.1
+//     + N(0, 0.15)                          process noise
+//
+// Designed interaction: Temperature × Machine (ordinal — M2 more sensitive, M4 less)
 
 const SUPPLIER_EFFECTS: Record<string, number> = { A: 0.3, B: 0.0, C: -0.4 };
 const MACHINE_EFFECTS: Record<string, number> = { M1: -0.1, M2: 0.2, M3: 0.0, M4: -0.1 };
+// Machine-specific temperature sensitivity (interaction):
+//   M1: standard slope (0.015/°C)
+//   M2: higher slope (0.025/°C) — more sensitive to temperature
+//   M3: standard slope (0.015/°C)
+//   M4: lower slope (0.005/°C) — less sensitive to temperature
+const MACHINE_TEMP_SLOPES: Record<string, number> = { M1: 0.015, M2: 0.025, M3: 0.015, M4: 0.005 };
 const SUPPLIERS = ['A', 'B', 'C'] as const;
 const MACHINES = ['M1', 'M2', 'M3', 'M4'] as const;
 
@@ -48,9 +56,10 @@ function generateInjectionData(): Record<string, unknown>[] {
     const deltaForce = force - 85;
     const deltaCool = coolTime - 20;
 
+    const tempSlope = MACHINE_TEMP_SLOPES[machine];
     const fillWeight =
       12.5 +
-      0.015 * deltaTemp -
+      tempSlope * deltaTemp -
       0.001 * deltaTemp * deltaTemp +
       0.005 * deltaForce +
       0.002 * deltaCool +

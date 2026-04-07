@@ -16,6 +16,7 @@ import type { FactorSpec } from './designMatrix';
 import { buildDesignMatrix } from './designMatrix';
 import { solveOLS } from './olsRegression';
 import { fDistributionPValue } from './distributions';
+import { safeDivide } from './safeMath';
 import * as d3 from 'd3-array';
 
 // ============================================================================
@@ -167,9 +168,9 @@ export function screenInteractionPair(
     partialF = 0;
     pValue = 1;
   } else {
-    const mseInteraction = sseDiff / dfInteraction;
-    const mseFull = fullSolution.sse / dfResidual;
-    partialF = mseFull > 0 ? mseInteraction / mseFull : 0;
+    const mseInteraction = safeDivide(sseDiff, dfInteraction) ?? 0;
+    const mseFull = safeDivide(fullSolution.sse, dfResidual) ?? 0;
+    partialF = safeDivide(mseInteraction, mseFull) ?? 0;
     pValue = fDistributionPValue(partialF, dfInteraction, dfResidual);
   }
 
@@ -233,25 +234,14 @@ export function classifyInteractionPattern(
   const isContinuousA = isContinuousFactor(data, factorA);
   const isContinuousB = isContinuousFactor(data, factorB);
 
-  // Assign plotX (continuous preferred) and series
-  let plotX: string;
-  let series: string;
-
-  if (isContinuousA && !isContinuousB) {
-    plotX = factorA;
-    series = factorB;
-  } else if (!isContinuousA && isContinuousB) {
-    plotX = factorB;
-    series = factorA;
-  } else if (isContinuousA && isContinuousB) {
-    // Both continuous — use factorA as x
-    plotX = factorA;
-    series = factorB;
-  } else {
-    // Both categorical — use factorA as x
-    plotX = factorA;
-    series = factorB;
-  }
+  // Use assignPlotAxes for consistent axis assignment across classification and display
+  const typeA = isContinuousA ? ('continuous' as const) : ('categorical' as const);
+  const typeB = isContinuousB ? ('continuous' as const) : ('categorical' as const);
+  const levelsA = isContinuousA ? undefined : getUniqueLevels(data, factorA);
+  const levelsB = isContinuousB ? undefined : getUniqueLevels(data, factorB);
+  const axes = assignPlotAxes(factorA, typeA, factorB, typeB, levelsA, levelsB);
+  const plotX = axes.plotXAxis;
+  const series = axes.plotSeries;
 
   // Get series levels
   const seriesLevels = getUniqueLevels(data, series);
@@ -260,7 +250,8 @@ export function classifyInteractionPattern(
   let xBins: string[];
   let rowBinMapper: (row: DataRow) => string | undefined;
 
-  if (isContinuousA || isContinuousB) {
+  const plotXIsContinuous = plotX === factorA ? isContinuousA : isContinuousB;
+  if (plotXIsContinuous) {
     // Continuous x-axis: discretize into quartile bins
     const xValues = data
       .map(r => toNumericValue(r[plotX]))

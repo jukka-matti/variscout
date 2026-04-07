@@ -135,6 +135,14 @@ export {
   generateFollowUpQuestions,
 } from './factorEffects';
 
+// Interaction screening (Pass 2 of best subsets)
+export type { InteractionScreenResult } from './interactionScreening';
+export {
+  screenInteractionPair,
+  classifyInteractionPattern,
+  assignPlotAxes,
+} from './interactionScreening';
+
 // Kernel density estimation
 export { calculateKDE } from './kde';
 
