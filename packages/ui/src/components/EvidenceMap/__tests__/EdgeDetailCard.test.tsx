@@ -89,4 +89,70 @@ describe('EdgeDetailCard', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
+
+  describe('interaction pattern guidance', () => {
+    it('shows ordinal guidance for interactive + ordinal', () => {
+      render(<EdgeDetailCard {...defaultProps} interactionPattern="ordinal" />);
+      expect(
+        screen.getByText('The gap between Fill Head levels changes across Supplier values.')
+      ).toBeTruthy();
+    });
+
+    it('shows disordinal guidance for interactive + disordinal', () => {
+      render(<EdgeDetailCard {...defaultProps} interactionPattern="disordinal" />);
+      expect(
+        screen.getByText('The ranking of Fill Head levels reverses across Supplier values.')
+      ).toBeTruthy();
+    });
+
+    it('shows generic guidance when interactionPattern is not provided', () => {
+      render(<EdgeDetailCard {...defaultProps} />);
+      expect(screen.getByText('Optimize together')).toBeTruthy();
+    });
+
+    it('shows generic guidance for non-interactive type regardless of interactionPattern', () => {
+      render(
+        <EdgeDetailCard
+          {...defaultProps}
+          relationshipType="overlapping"
+          interactionPattern="ordinal"
+        />
+      );
+      expect(screen.getByText('Shared variation — investigate what connects them')).toBeTruthy();
+    });
+  });
+
+  describe('cell counts display', () => {
+    const cellCounts = [
+      { levelA: 'A1', levelB: 'B1', n: 8 },
+      { levelA: 'A1', levelB: 'B2', n: 3 },
+      { levelA: 'A2', levelB: 'B1', n: 12 },
+    ];
+
+    it('renders cell counts when provided', () => {
+      render(<EdgeDetailCard {...defaultProps} cellCounts={cellCounts} />);
+      expect(screen.getByText('Cell sizes:')).toBeTruthy();
+      expect(screen.getByText('A1×B1: n=8')).toBeTruthy();
+      expect(screen.getByText('A1×B2: n=3')).toBeTruthy();
+      expect(screen.getByText('A2×B1: n=12')).toBeTruthy();
+    });
+
+    it('does not render cell counts section when cellCounts is not provided', () => {
+      render(<EdgeDetailCard {...defaultProps} />);
+      expect(screen.queryByText('Cell sizes:')).toBeNull();
+    });
+
+    it('does not render cell counts section when cellCounts is empty', () => {
+      render(<EdgeDetailCard {...defaultProps} cellCounts={[]} />);
+      expect(screen.queryByText('Cell sizes:')).toBeNull();
+    });
+
+    it('flags cells with n < 5 in amber', () => {
+      const { container } = render(<EdgeDetailCard {...defaultProps} cellCounts={cellCounts} />);
+      const amberSpans = container.querySelectorAll('.text-amber-500');
+      // Only A1×B2 (n=3) should be amber
+      expect(amberSpans).toHaveLength(1);
+      expect(amberSpans[0].textContent).toBe('A1×B2: n=3');
+    });
+  });
 });

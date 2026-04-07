@@ -18,6 +18,10 @@ export interface EdgeDetailCardProps {
   onClose: () => void;
   /** Optional mini chart slot — rendered between stats and actions */
   children?: React.ReactNode;
+  /** Interaction pattern classification (ordinal = gap changes, disordinal = ranking reverses) */
+  interactionPattern?: 'ordinal' | 'disordinal';
+  /** Cell sample counts for the interaction */
+  cellCounts?: Array<{ levelA: string; levelB: string; n: number }>;
 }
 
 function strengthLabel(s: number): string {
@@ -46,6 +50,8 @@ export const EdgeDetailCard: React.FC<EdgeDetailCardProps> = ({
   onAskQuestion,
   onClose,
   children,
+  interactionPattern,
+  cellCounts,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const uiType = mapRelationshipType(relationshipType);
@@ -114,9 +120,32 @@ export const EdgeDetailCard: React.FC<EdgeDetailCardProps> = ({
       {/* Mini chart slot */}
       {children && <div className="px-3 pb-2">{children}</div>}
 
+      {/* Cell counts (Dr. Makela's caveat) */}
+      {cellCounts && cellCounts.length > 0 && (
+        <div className="px-3 pb-2 text-xs">
+          <div className="text-content-secondary mb-1">Cell sizes:</div>
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+            {cellCounts.map(cell => (
+              <span
+                key={`${cell.levelA}-${cell.levelB}`}
+                className={cell.n < 5 ? 'text-amber-500' : 'text-content-secondary'}
+              >
+                {cell.levelA}×{cell.levelB}: n={cell.n}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Guidance */}
       <div className="px-3 pb-2">
-        <p className="text-xs text-content-secondary italic">{uiInfo.guidance}</p>
+        <p className="text-xs text-content-secondary italic">
+          {relationshipType === 'interactive' && interactionPattern === 'ordinal'
+            ? `The gap between ${factorB} levels changes across ${factorA} values.`
+            : relationshipType === 'interactive' && interactionPattern === 'disordinal'
+              ? `The ranking of ${factorB} levels reverses across ${factorA} values.`
+              : uiInfo.guidance}
+        </p>
       </div>
 
       {/* Divider */}
