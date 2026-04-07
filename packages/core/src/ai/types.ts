@@ -244,10 +244,11 @@ export interface AIContext {
     }>;
     /** Significant interaction effects for map-aware suggestions */
     interactionEffects?: Array<{
-      factorA: string;
-      factorB: string;
-      deltaRSquared: number;
-      isSignificant: boolean;
+      factors: [string, string];
+      pattern: 'ordinal' | 'disordinal';
+      deltaRSquaredAdj: number;
+      pValue: number;
+      plainLanguage: string;
     }>;
     /** Evidence Map topology for graph-aware CoScout reasoning */
     evidenceMapTopology?: {

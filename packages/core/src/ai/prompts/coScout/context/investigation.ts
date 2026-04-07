@@ -167,6 +167,23 @@ export function formatInvestigationContext(
     lines.push(`Causal links:\n${linkLines.join('\n')}`);
   }
 
+  // Interaction effects
+  if (investigation.interactionEffects?.length) {
+    const significant = investigation.interactionEffects.filter(ie => ie.deltaRSquaredAdj > 0.02);
+    if (significant.length > 0) {
+      lines.push('Interaction effects detected:');
+      for (const ie of significant) {
+        const deltaStr = Number.isFinite(ie.deltaRSquaredAdj)
+          ? (ie.deltaRSquaredAdj * 100).toFixed(1)
+          : '?';
+        const pStr = Number.isFinite(ie.pValue) ? ie.pValue.toFixed(3) : '?';
+        lines.push(
+          `- ${ie.factors[0]} \u00d7 ${ie.factors[1]}: ${ie.plainLanguage} (\u0394R\u00b2adj=${deltaStr}%, p=${pStr})`
+        );
+      }
+    }
+  }
+
   // Coverage and progress
   if (investigation.coveragePercent !== undefined) {
     const checked =

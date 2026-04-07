@@ -1129,11 +1129,13 @@ Never invent data or statistics. If the context does not contain enough informat
     // Evidence Map context — interaction effects and causal links
     if (investigation.interactionEffects) {
       const significantInteractions = investigation.interactionEffects
-        .filter(r => r.isSignificant && r.deltaRSquared > 0.02)
-        .map(
-          r =>
-            `${r.factorA} \u00d7 ${r.factorB}: \u0394R\u00b2=${(r.deltaRSquared * 100).toFixed(1)}%`
-        );
+        .filter(r => r.deltaRSquaredAdj > 0.02)
+        .map(r => {
+          const deltaStr = Number.isFinite(r.deltaRSquaredAdj)
+            ? (r.deltaRSquaredAdj * 100).toFixed(1)
+            : '?';
+          return `${r.factors[0]} \u00d7 ${r.factors[1]}: \u0394R\u00b2adj=${deltaStr}%`;
+        });
       if (significantInteractions.length > 0) {
         invParts.push(
           `**Significant interactions:**\n${significantInteractions.map(s => `- ${s}`).join('\n')}`
