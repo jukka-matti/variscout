@@ -344,6 +344,15 @@ export { EdgeContextMenu, type EdgeContextMenuProps } from './components/Evidenc
 // Evidence Map Edge Detail Card (desktop floating card for relationship edge clicks)
 export { EdgeDetailCard, type EdgeDetailCardProps } from './components/EvidenceMap/EdgeDetailCard';
 
+// Evidence Map Edge Mini Chart (adaptive boxplot/scatter for edge detail card)
+export {
+  EdgeMiniChart,
+  type EdgeMiniChartProps,
+  type FactorDataType,
+  type MiniChartType,
+  getChartType,
+} from './components/EvidenceMap/EdgeMiniChart';
+
 // Mobile Tab Bar
 export { MobileTabBar, type MobileTabBarProps, type MobileTab } from './components/MobileTabBar';
 
