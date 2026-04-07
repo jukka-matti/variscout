@@ -81,7 +81,7 @@ const makeChannels = (): ChannelResult[] => [
     cp: 1.6,
     min: 7,
     max: 13,
-    health: 'good',
+    health: 'excellent',
     outOfSpecPercentage: 0,
     values: [],
   },

@@ -85,6 +85,28 @@ export {
   type WhatIfReferenceContext,
 } from './components/WhatIfPage';
 
+// What-If Explorer (unified, replaces WhatIfSimulator/PredictionProfiler/LeanWhatIfSimulator)
+export {
+  WhatIfExplorer,
+  BasicEstimator,
+  ModelInformedEstimator,
+  ActivityReducer,
+  ChannelAdjuster,
+} from './components/WhatIfExplorer';
+export type {
+  WhatIfExplorerProps,
+  ModelScope,
+  WhatIfReference,
+  WhatIfProcessStats,
+  WhatIfProjectionContext,
+  WhatIfComplementStats,
+  SimulatorPreset as WhatIfSimulatorPreset,
+  ModelInformedEstimatorProps,
+  BasicEstimatorProps,
+  ActivityReducerProps,
+  ChannelAdjusterProps,
+} from './components/WhatIfExplorer';
+
 export { ErrorBoundary, type ErrorBoundaryProps } from './components/ErrorBoundary';
 export {
   AxisEditor,
