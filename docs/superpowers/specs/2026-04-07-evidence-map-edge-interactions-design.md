@@ -2,7 +2,7 @@
 title: Evidence Map Edge Interactions — Statistical Edge → Investigation Bridge
 audience: [developer]
 category: architecture
-status: draft
+status: delivered
 related: [evidence-map, evidence-map-spine, investigation, coscout, causal-link]
 ---
 
