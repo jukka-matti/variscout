@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use WhatIfExplorer from @variscout/ui instead.
+ * This component remains until WhatIfPageBase (improvement workflow full page) is migrated.
+ */
 import React, { useState, useMemo, useCallback, useEffect, useImperativeHandle } from 'react';
 import { ChevronRight, ChevronDown, RotateCcw, Beaker, Target, XCircle, Star } from 'lucide-react';
 import { simulateDirectAdjustment, simulateOverallImpact } from '@variscout/core';

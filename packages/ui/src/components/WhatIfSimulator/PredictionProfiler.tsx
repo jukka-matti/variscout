@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use WhatIfExplorer (ModelInformedEstimator mode) from @variscout/ui instead.
+ * This component remains until WhatIfPageBase (improvement workflow full page) is migrated.
+ */
 import React, { useCallback, useMemo } from 'react';
 import { AlertTriangle, TrendingUp } from 'lucide-react';
 

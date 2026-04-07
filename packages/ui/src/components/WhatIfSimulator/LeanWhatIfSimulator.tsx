@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use WhatIfExplorer (ActivityReducer mode) from @variscout/ui instead.
+ * This component remains until WhatIfPageBase (improvement workflow full page) is migrated.
+ */
 import React, { useMemo, useCallback } from 'react';
 import { ChevronDown, RotateCcw } from 'lucide-react';
 import { ACTIVITY_TYPE_COLORS, ACTIVITY_TYPE_LABELS } from '@variscout/core';
