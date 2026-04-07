@@ -33,6 +33,7 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
   onFactorHover,
   onFactorContextMenu,
   onEdgeClick,
+  onEdgeContextMenu,
   onCausalEdgeClick,
   onConvergenceClick,
   highlightedFactor: externalHighlight,
@@ -107,6 +108,7 @@ const EvidenceMapBase: React.FC<EvidenceMapBaseProps> = ({
           onFactorHover?.(factor);
         }}
         onEdgeClick={onEdgeClick}
+        onEdgeContextMenu={onEdgeContextMenu}
         onNodeTap={onNodeTap}
         onEdgeTap={onEdgeTap}
       />

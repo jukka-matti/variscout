@@ -14,6 +14,7 @@ interface RelationshipEdgeProps {
   isDark: boolean;
   hideLabels?: boolean;
   onClick?: (factorA: string, factorB: string) => void;
+  onContextMenu?: (factorA: string, factorB: string, clientX: number, clientY: number) => void;
 }
 
 interface EdgeStyle {
@@ -78,6 +79,7 @@ const RelationshipEdge: React.FC<RelationshipEdgeProps> = ({
   isDark,
   hideLabels = false,
   onClick,
+  onContextMenu,
 }) => {
   const style = getEdgeStyle(edge.type, isDark);
   const midX = (edge.ax + edge.bx) / 2;
@@ -88,8 +90,13 @@ const RelationshipEdge: React.FC<RelationshipEdgeProps> = ({
 
   return (
     <g
-      style={{ cursor: onClick ? 'pointer' : 'default' }}
+      style={{ cursor: onClick || onContextMenu ? 'pointer' : 'default' }}
       onClick={() => onClick?.(edge.factorA, edge.factorB)}
+      onContextMenu={e => {
+        if (!onContextMenu) return;
+        e.preventDefault();
+        onContextMenu(edge.factorA, edge.factorB, e.clientX, e.clientY);
+      }}
       role="img"
       aria-label={`${edge.factorA} and ${edge.factorB}: ${getTypeLabel(edge.type)}`}
     >

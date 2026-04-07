@@ -28,6 +28,7 @@ interface StatisticalLayerProps {
   onFactorHover?: (factor: string | null) => void;
   onFactorContextMenu?: (factor: string, clientX: number, clientY: number) => void;
   onEdgeClick?: (factorA: string, factorB: string) => void;
+  onEdgeContextMenu?: (factorA: string, factorB: string, clientX: number, clientY: number) => void;
   onNodeTap?: (factor: string) => void;
   onEdgeTap?: (factorA: string, factorB: string) => void;
 }
@@ -48,6 +49,7 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
   onFactorHover,
   onFactorContextMenu,
   onEdgeClick,
+  onEdgeContextMenu,
   onNodeTap,
   onEdgeTap,
 }) => {
@@ -112,6 +114,7 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
             isDark={isDark}
             hideLabels={hideLabels}
             onClick={onEdgeTap ?? onEdgeClick}
+            onContextMenu={onEdgeContextMenu}
           />
         );
       })}

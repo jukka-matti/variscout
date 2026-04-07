@@ -49,6 +49,7 @@ export interface EvidenceMapBaseProps {
   onFactorHover?: (factor: string | null) => void;
   onFactorContextMenu?: (factor: string, clientX: number, clientY: number) => void;
   onEdgeClick?: (factorA: string, factorB: string) => void;
+  onEdgeContextMenu?: (factorA: string, factorB: string, clientX: number, clientY: number) => void;
   onCausalEdgeClick?: (id: string) => void;
   onConvergenceClick?: (factor: string) => void;
 
