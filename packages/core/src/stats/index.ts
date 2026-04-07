@@ -187,3 +187,7 @@ export {
 
 // Boundary 2: numeric safety utilities (ADR-069)
 export { finiteOrUndefined, safeDivide, computeOptimum } from './safeMath';
+
+// UI relationship type mapping (5 engine types → 3 user-facing types)
+export type { UIRelationshipType, UIRelationshipInfo } from './relationshipTypeMapping';
+export { mapRelationshipType } from './relationshipTypeMapping';
