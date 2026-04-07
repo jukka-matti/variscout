@@ -325,16 +325,19 @@ describe('useScopedModels', () => {
 
   it('caches globalScope — does not recompute when data reference unchanged', () => {
     const data = makeData(50, { Machine: ['A', 'B'] });
+    // Stable factors ref: useMemo caches by reference equality, so we must not
+    // recreate the array on every render (which would defeat useMemo caching).
+    const factors = ['Machine'];
     const { result, rerender } = renderHook(
       ({ filters }: { filters: Record<string, (string | number)[]> }) =>
-        useScopedModels(data, 'yield', ['Machine'], filters),
+        useScopedModels(data, 'yield', factors, filters),
       { initialProps: { filters: {} } }
     );
 
     const firstGlobalScope = result.current.globalScope;
     const callCountAfterFirst = mockComputeBestSubsets.mock.calls.length;
 
-    // Rerender with same data — global scope should not recompute
+    // Rerender with same data and same factors ref — global scope should not recompute
     rerender({ filters: {} });
 
     // computeBestSubsets call count should not have increased for global

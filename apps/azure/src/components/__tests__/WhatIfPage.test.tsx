@@ -3,18 +3,19 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import WhatIfPage from '../WhatIfPage';
 import { useProjectStore } from '@variscout/stores';
 
-// Mock @variscout/ui — WhatIfPageBase is what the wrapper renders
+// Mock @variscout/ui — WhatIfExplorerPage is what the wrapper renders
 vi.mock('@variscout/ui', async () => {
   const actual = await vi.importActual<typeof import('@variscout/ui')>('@variscout/ui');
   return {
     ...actual,
-    WhatIfPageBase: ({
+    WhatIfExplorerPage: ({
       filteredData,
       rawData,
       outcome,
       specs,
       filterCount,
       onBack,
+      mode,
     }: {
       filteredData: Record<string, unknown>[];
       rawData: Record<string, unknown>[];
@@ -22,6 +23,7 @@ vi.mock('@variscout/ui', async () => {
       specs: Record<string, unknown>;
       filterCount: number;
       onBack: () => void;
+      mode?: string;
     }) => {
       if (!outcome || rawData.length === 0) {
         return (
@@ -46,7 +48,9 @@ vi.mock('@variscout/ui', async () => {
             </span>
           )}
           {!hasSpecs && <p>Set specification limits (USL/LSL) to see Cpk and yield projections.</p>}
-          <div data-testid="what-if-simulator">WhatIfSimulator</div>
+          <div data-testid="what-if-simulator" data-mode={mode}>
+            WhatIfSimulator
+          </div>
         </div>
       );
     },
@@ -68,6 +72,7 @@ describe('WhatIfPage', () => {
     cpkTarget: undefined,
     viewState: null,
     filters: {},
+    analysisMode: 'standard' as const,
   };
 
   beforeEach(() => {
@@ -146,5 +151,11 @@ describe('WhatIfPage', () => {
     render(<WhatIfPage onBack={mockOnBack} />);
 
     expect(screen.getByTestId('what-if-simulator')).toBeInTheDocument();
+  });
+
+  it('passes mode from project store', () => {
+    render(<WhatIfPage onBack={mockOnBack} />);
+
+    expect(screen.getByTestId('what-if-simulator').getAttribute('data-mode')).toBe('standard');
   });
 });

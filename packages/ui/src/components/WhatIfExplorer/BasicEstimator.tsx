@@ -6,7 +6,7 @@ import { useTranslation } from '@variscout/hooks';
 import Slider from '../Slider/Slider';
 import DistributionPreview from '../WhatIfSimulator/DistributionPreview';
 import OverallImpactSummary from '../WhatIfSimulator/OverallImpactSummary';
-import { whatIfSimulatorDefaultColorScheme } from '../WhatIfSimulator/WhatIfSimulator';
+import { whatIfSimulatorDefaultColorScheme } from './colorScheme';
 import type { BasicEstimatorProps, SimulatorPreset } from './types';
 
 // ============================================================================

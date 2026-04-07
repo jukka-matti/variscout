@@ -1,6 +1,16 @@
 import { useMemo } from 'react';
 import { ACTIVITY_TYPE_COLORS } from '@variscout/core';
-import type { LeanActivity } from './LeanWhatIfSimulator';
+import type { ActivityType } from '@variscout/core';
+
+/** Lean activity data (time study step with classification) */
+export interface LeanActivity {
+  id: string;
+  name: string;
+  type: ActivityType;
+  time: number;
+  /** Percentage of total cycle time */
+  percentage: number;
+}
 
 export interface LeanDistributionPreviewProps {
   activities: LeanActivity[];
@@ -52,7 +62,12 @@ export default function LeanDistributionPreview({
         let x = LABEL_W;
         return items.map(a => {
           const w = a.time * scale;
-          const seg = { x, w, color: ACTIVITY_TYPE_COLORS[a.type], id: a.id };
+          const seg = {
+            x,
+            w,
+            color: (ACTIVITY_TYPE_COLORS as Record<ActivityType, string>)[a.type],
+            id: a.id,
+          };
           x += w;
           return seg;
         });

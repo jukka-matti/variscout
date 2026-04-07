@@ -4,7 +4,7 @@ import { simulateDirectAdjustment } from '@variscout/core';
 import type { FindingProjection } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import Slider from '../Slider/Slider';
-import { whatIfSimulatorDefaultColorScheme } from '../WhatIfSimulator/WhatIfSimulator';
+import { whatIfSimulatorDefaultColorScheme } from './colorScheme';
 import type { ModelInformedEstimatorProps, WhatIfReference } from './types';
 
 // ============================================================================
