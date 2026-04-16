@@ -21,12 +21,15 @@ import {
   parseParetoFile,
   detectWideFormat,
   detectYamazumiFormat,
+  detectDefectFormat,
   augmentWithTimeColumns,
   hasTimeComponent,
   type WideFormatDetection,
   type YamazumiDetection,
+  type DefectDetection,
   type AnalysisMode,
   type YamazumiColumnMapping,
+  type DefectMapping,
   type DataQualityReport,
   type ParetoRow,
   type DataRow,
@@ -61,6 +64,7 @@ export interface DataIngestionActions {
   setMeasureLabel: (label: string) => void;
   setAnalysisMode: (mode: AnalysisMode) => void;
   setYamazumiMapping: (mapping: YamazumiColumnMapping | null) => void;
+  setDefectMapping?: (mapping: DefectMapping | null) => void;
   /** Set pre-populated findings (for showcase/demo datasets) */
   setFindings?: (findings: Finding[]) => void;
   /** Set pre-populated questions (for showcase/demo datasets) */
@@ -86,6 +90,8 @@ export interface UseDataIngestionOptions {
   onWideFormatDetected?: (result: WideFormatDetection) => void;
   /** Callback when Yamazumi (time study) format is detected */
   onYamazumiDetected?: (result: YamazumiDetection) => void;
+  /** Callback when defect data format is detected */
+  onDefectDetected?: (result: DefectDetection) => void;
   /** Callback when time column is detected */
   onTimeColumnDetected?: (prompt: TimeExtractionPrompt) => void;
   /** Getter for current rawData (needed for time extraction) */
@@ -129,6 +135,7 @@ export function useDataIngestion(
   const {
     onWideFormatDetected,
     onYamazumiDetected,
+    onDefectDetected,
     onTimeColumnDetected,
     getRawData,
     getOutcome,
@@ -152,6 +159,7 @@ export function useDataIngestion(
     setMeasureLabel,
     setAnalysisMode,
     setYamazumiMapping,
+    setDefectMapping,
     setFindings,
     setQuestions,
     setCategories,
@@ -202,11 +210,21 @@ export function useDataIngestion(
           if (yamazumiResult.isYamazumiFormat && onYamazumiDetected) {
             onYamazumiDetected(yamazumiResult);
           } else {
-            // Check for wide format (multi-measure) data
-            const wideFormat = detectWideFormat(data);
-            if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
-              if (onWideFormatDetected) {
-                onWideFormatDetected(wideFormat);
+            // Check for defect format (before wide format — more specific)
+            const defectResult = detectDefectFormat(data, detected.columnAnalysis);
+            if (
+              defectResult.isDefectFormat &&
+              (defectResult.confidence === 'high' || defectResult.confidence === 'medium') &&
+              onDefectDetected
+            ) {
+              onDefectDetected(defectResult);
+            } else {
+              // Check for wide format (multi-measure) data
+              const wideFormat = detectWideFormat(data);
+              if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
+                if (onWideFormatDetected) {
+                  onWideFormatDetected(wideFormat);
+                }
               }
             }
           }
@@ -237,6 +255,7 @@ export function useDataIngestion(
       setDataQualityReport,
       onWideFormatDetected,
       onYamazumiDetected,
+      onDefectDetected,
       onTimeColumnDetected,
       rowHardLimit,
       rowWarningThreshold,
@@ -293,6 +312,7 @@ export function useDataIngestion(
     setMeasureLabel('Measure');
     setAnalysisMode('standard');
     setYamazumiMapping(null);
+    if (setDefectMapping) setDefectMapping(null);
   }, [
     setRawData,
     setDataFilename,
@@ -308,6 +328,7 @@ export function useDataIngestion(
     setMeasureLabel,
     setAnalysisMode,
     setYamazumiMapping,
+    setDefectMapping,
   ]);
 
   // Apply time extraction to current dataset
@@ -370,9 +391,23 @@ export function useDataIngestion(
           productColumn: sample.config.yamazumiMapping.productColumn,
           waitTimeColumn: sample.config.yamazumiMapping.waitTimeColumn,
         });
+      } else if (sample.config.analysisMode === 'defect' && sample.config.defectMapping) {
+        setAnalysisMode('defect');
+        if (setDefectMapping) {
+          setDefectMapping({
+            dataShape: sample.config.defectMapping.dataShape,
+            defectTypeColumn: sample.config.defectMapping.defectTypeColumn,
+            countColumn: sample.config.defectMapping.countColumn,
+            resultColumn: sample.config.defectMapping.resultColumn,
+            aggregationUnit: sample.config.defectMapping.aggregationUnit,
+            unitsProducedColumn: sample.config.defectMapping.unitsProducedColumn,
+          });
+        }
+        setYamazumiMapping(null);
       } else {
         setAnalysisMode(sample.config.analysisMode ?? 'standard');
         setYamazumiMapping(null);
+        if (setDefectMapping) setDefectMapping(null);
       }
       // Inject or clear pre-populated investigation state (showcase/demo datasets)
       if (sample.config.investigation) {
@@ -401,6 +436,7 @@ export function useDataIngestion(
       setMeasureLabel,
       setAnalysisMode,
       setYamazumiMapping,
+      setDefectMapping,
       setFindings,
       setQuestions,
       setCategories,

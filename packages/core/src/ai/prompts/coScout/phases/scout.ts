@@ -22,6 +22,14 @@ const MODE_DRILL_GUIDANCE: Record<AnalysisMode, string> = {
 - Switch Pareto mode to "Reasons" to see what types of waste dominate across steps.
 - Create findings for: stations exceeding takt, waste hotspots, activities with high NVA ratio.`,
 
+  defect: `Drill guidance:
+- Start with the Pareto — which defect type dominates by count, time impact, or cost?
+- Use apply_filter on the top defect type to drill into its drivers.
+- After filtering, the Boxplot switches to show the defect rate by remaining factors (machine, shift, line) — rank by eta-squared.
+- Brush spikes on the I-Chart to see what defect types and factors are present during high-rate periods.
+- Switch Pareto grouping factor to see composition from different angles (by machine, by product, by shift).
+- Create findings for: dominant defect types, factors with high eta-squared, temporal spikes or trends.`,
+
   performance: `Drill guidance:
 - Start with the Performance Pareto — count how many channels are critical (Cpk < 1.0).
 - Compare worst channels using the boxplot — is the problem centering or spread?

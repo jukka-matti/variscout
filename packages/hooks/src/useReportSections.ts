@@ -134,6 +134,7 @@ const currentConditionTitles: Record<ResolvedMode, string> = {
   performance: 'How do channels perform?',
   capability: 'Is capability meeting target?',
   standard: 'What does the process look like?',
+  defect: 'What does the defect landscape look like?',
 };
 
 const driversTitles: Record<ResolvedMode, string> = {
@@ -141,6 +142,7 @@ const driversTitles: Record<ResolvedMode, string> = {
   performance: 'Which channels are failing?',
   capability: 'What drives capability differences?',
   standard: 'What is driving the variation?',
+  defect: 'What is driving the defect rate?',
 };
 
 // ============================================================================

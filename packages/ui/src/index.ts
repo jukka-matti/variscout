@@ -596,5 +596,12 @@ export {
   type AutoIndexSummaryData,
 } from './components/DocumentShelf';
 
+// Defect Components
+export {
+  DefectDetectedModal,
+  type DefectDetectedModalProps,
+} from './components/DefectDetectedModal';
+export { DefectSummary, type DefectSummaryProps } from './components/DefectSummary';
+
 // Investigation components (regression sweet spot, etc.)
 export { SweetSpotCard, type SweetSpotCardProps } from './components/Investigation';

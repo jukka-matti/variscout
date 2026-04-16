@@ -21,6 +21,13 @@ const MODE_IMPROVE_GUIDANCE: Record<AnalysisMode, string> = {
 - Lean improvement directions: eliminate the activity, combine with adjacent step, simplify the procedure, automate.
 - After kaizen, verify using staged analysis: compare before/after VA ratio and takt compliance.`,
 
+  defect: `Improvement focus:
+- Target the top Pareto contributor — reducing the #1 defect type often has the biggest impact.
+- Distinguish containment (stop defects from reaching the customer) from prevention (stop defects from occurring).
+- Use the Pareto 80/20 indicator — if 2 of 10 defect types account for 80% of defects, focus there.
+- After improvement, verify using staged analysis: compare before/after defect rate and top-type proportion.
+- Estimate the cost impact of reducing the target defect type's rate.`,
+
   performance: `Improvement focus:
 - Target worst-performing channels — prioritize by Cpk gap to target.
 - Check whether multiple bad channels share a root cause (position, maintenance, operating conditions).

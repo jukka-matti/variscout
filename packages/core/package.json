@@ -23,7 +23,8 @@
     "./projectMetadata": "./src/projectMetadata.ts",
     "./strategy": "./src/analysisStrategy.ts",
     "./ui-types": "./src/ui-types/index.ts",
-    "./evidenceMap": "./src/evidenceMap/index.ts"
+    "./evidenceMap": "./src/evidenceMap/index.ts",
+    "./defect": "./src/defect/index.ts"
   },
   "scripts": {
     "test": "vitest",

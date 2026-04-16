@@ -1,9 +1,14 @@
 import type { AnalysisMode } from './types';
 
-export type ResolvedMode = 'standard' | 'capability' | 'performance' | 'yamazumi';
+export type ResolvedMode = 'standard' | 'capability' | 'performance' | 'yamazumi' | 'defect';
 
 export interface QuestionStrategy {
-  generator: 'bestSubsets' | 'bestSubsetsWithSpecs' | 'wasteComposition' | 'channelRanking';
+  generator:
+    | 'bestSubsets'
+    | 'bestSubsetsWithSpecs'
+    | 'wasteComposition'
+    | 'channelRanking'
+    | 'defectAnalysis';
   evidenceMetric: 'rSquaredAdj' | 'cpkImpact' | 'wasteContribution' | 'channelCpk';
   evidenceLabel: string;
   validationMethod: 'anova' | 'anovaWithSpecs' | 'taktCompliance';
@@ -23,7 +28,8 @@ export type ChartSlotType =
   | 'yamazumi-pareto'
   | 'stats'
   | 'histogram'
-  | 'yamazumi-summary';
+  | 'yamazumi-summary'
+  | 'defect-summary';
 
 export interface AnalysisModeStrategy {
   chartSlots: {
@@ -46,6 +52,7 @@ export function resolveMode(
   mode: AnalysisMode,
   opts?: { standardIChartMetric?: string }
 ): ResolvedMode {
+  if (mode === 'defect') return 'defect';
   if (mode === 'performance') return 'performance';
   if (mode === 'yamazumi') return 'yamazumi';
   if (opts?.standardIChartMetric === 'capability') return 'capability';
@@ -127,6 +134,23 @@ const strategies: Readonly<Record<ResolvedMode, AnalysisModeStrategy>> = {
       evidenceLabel: 'Waste %',
       validationMethod: 'taktCompliance',
       questionFocus: 'Which step has the most waste?',
+    },
+  },
+  defect: {
+    chartSlots: { slot1: 'ichart', slot2: 'boxplot', slot3: 'pareto', slot4: 'defect-summary' },
+    kpiComponent: 'defect',
+    reportTitle: 'Defect Analysis',
+    reportSections: ['current-condition', 'drivers', 'evidence-trail', 'learning-loop'],
+    metricLabel: () => 'Defect Rate',
+    formatMetricValue: (v: number) => (Number.isFinite(v) ? `${v.toFixed(1)}` : '--'),
+    aiChartInsightKeys: ['ichart', 'boxplot', 'pareto'],
+    aiToolSet: 'standard',
+    questionStrategy: {
+      generator: 'defectAnalysis',
+      evidenceMetric: 'rSquaredAdj',
+      evidenceLabel: 'R²adj',
+      validationMethod: 'anova',
+      questionFocus: 'Which defect type dominates and which factor drives defect rate variation?',
     },
   },
 };

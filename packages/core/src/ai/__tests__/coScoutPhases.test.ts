@@ -6,7 +6,7 @@ import { buildInvestigateCoaching } from '../prompts/coScout/phases/investigate'
 import { buildImproveCoaching } from '../prompts/coScout/phases/improve';
 import type { AnalysisMode } from '../../types';
 
-const ALL_MODES: AnalysisMode[] = ['standard', 'yamazumi', 'performance'];
+const ALL_MODES: AnalysisMode[] = ['standard', 'yamazumi', 'performance', 'defect'];
 
 describe('Phase coaching modules', () => {
   describe('buildFrameCoaching', () => {

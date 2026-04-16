@@ -856,6 +856,19 @@ export interface MessageCatalog {
   'yamazumi.detected.taktPlaceholder': string;
   'yamazumi.detected.decline': string;
   'yamazumi.detected.enable': string;
+
+  // Defect detected modal
+  'defect.detected.title': string;
+  'defect.detected.confidence': string;
+  'defect.detected.dataShape': string;
+  'defect.detected.defectType': string;
+  'defect.detected.count': string;
+  'defect.detected.result': string;
+  'defect.detected.unitsProduced': string;
+  'defect.detected.aggregationUnit': string;
+  'defect.detected.dismiss': string;
+  'defect.detected.enable': string;
+
   'yamazumi.metric.total': string;
   'yamazumi.metric.va': string;
   'yamazumi.metric.nva': string;

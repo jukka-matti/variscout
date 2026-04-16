@@ -114,6 +114,8 @@ export interface ColumnMappingProps {
   onStackConfigChange?: (config: StackConfig | null) => void;
   /** Platform row limit for stack warning (default: 50000) */
   rowLimit?: number;
+  /** Hide specification limits section (e.g., defect mode where Cpk is not applicable) */
+  hideSpecs?: boolean;
 }
 
 /**
@@ -162,6 +164,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   initialStackConfig,
   onStackConfigChange,
   rowLimit = 50000,
+  hideSpecs = false,
 }) => {
   const { t } = useTranslation();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
@@ -656,8 +659,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             )}
           </div>
 
-          {/* Specification Limits (hidden in edit mode — specs have their own editor) */}
-          {mode === 'setup' && (
+          {/* Specification Limits (hidden in edit mode or defect mode — specs have their own editor / Cpk not applicable) */}
+          {mode === 'setup' && !hideSpecs && (
             <SpecsSection
               expanded={specsExpanded}
               onToggle={() => setSpecsExpanded(!specsExpanded)}

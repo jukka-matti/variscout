@@ -34,6 +34,7 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setMeasureLabel: useProjectStore(s => s.setMeasureLabel),
     setAnalysisMode: useProjectStore(s => s.setAnalysisMode),
     setYamazumiMapping: useProjectStore(s => s.setYamazumiMapping),
+    setDefectMapping: useProjectStore(s => s.setDefectMapping),
     setFindings: useProjectStore(s => s.setFindings),
     setQuestions: useProjectStore(s => s.setQuestions),
     setCategories: useProjectStore(s => s.setCategories),

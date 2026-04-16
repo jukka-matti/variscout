@@ -44,8 +44,8 @@ export interface SampleConfig {
   factors: string[];
   /** Specification limits */
   specs: SpecLimits;
-  /** Analysis mode (standard, performance, or yamazumi) */
-  analysisMode?: 'standard' | 'performance' | 'yamazumi';
+  /** Analysis mode (standard, performance, yamazumi, or defect) */
+  analysisMode?: 'standard' | 'performance' | 'yamazumi' | 'defect';
   /** Column names for measure variables (wide format data) */
   measureColumns?: string[];
   /** Enable Yamazumi analysis mode (time study analysis) */
@@ -59,6 +59,15 @@ export interface SampleConfig {
     reasonColumn?: string;
     productColumn?: string;
     waitTimeColumn?: string;
+  };
+  /** Defect column role mapping */
+  defectMapping?: {
+    dataShape: 'event-log' | 'pre-aggregated' | 'pass-fail';
+    defectTypeColumn?: string;
+    countColumn?: string;
+    resultColumn?: string;
+    aggregationUnit: string;
+    unitsProducedColumn?: string;
   };
   /** Pre-populated investigation state for showcase/demo datasets */
   investigation?: SampleInvestigationState;

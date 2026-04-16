@@ -916,6 +916,7 @@ const singleFactorFormatters: Record<ResolvedMode, (factor: string) => string> =
   capability: f => `Does ${f} affect Cpk?`,
   yamazumi: f => `Does ${f} explain variation?`,
   performance: f => `Does ${f} affect channel performance?`,
+  defect: f => `Does ${f} drive defect rate variation?`,
 };
 
 const combinationFormatters: Record<ResolvedMode, (factorList: string) => string> = {
@@ -923,6 +924,7 @@ const combinationFormatters: Record<ResolvedMode, (factorList: string) => string
   capability: fl => `Does ${fl} together affect Cpk more?`,
   yamazumi: fl => `Does ${fl} together explain more variation?`,
   performance: fl => `Does ${fl} together affect channel performance more?`,
+  defect: fl => `Does ${fl} together explain more defect rate variation?`,
 };
 
 function formatSingleFactorQuestion(factor: string, mode?: ResolvedMode): string {

@@ -15,11 +15,13 @@ import type { JourneyPhase } from '../../../types';
 import { buildStandardWorkflow } from './standard';
 import { buildPerformanceWorkflow } from './performance';
 import { buildYamazumiWorkflow } from './yamazumi';
+import { buildDefectWorkflow } from './defect';
 
 export { buildStandardWorkflow } from './standard';
 export { buildCapabilityWorkflow } from './capability';
 export { buildPerformanceWorkflow } from './performance';
 export { buildYamazumiWorkflow } from './yamazumi';
+export { buildDefectWorkflow } from './defect';
 
 /**
  * Build mode-specific coaching instructions for CoScout.
@@ -40,6 +42,8 @@ export function buildModeWorkflow(mode: AnalysisMode, phase: JourneyPhase): stri
       return buildPerformanceWorkflow(phase);
     case 'yamazumi':
       return buildYamazumiWorkflow(phase);
+    case 'defect':
+      return buildDefectWorkflow(phase);
     default:
       return buildStandardWorkflow(phase);
   }

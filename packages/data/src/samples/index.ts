@@ -21,6 +21,7 @@ export { largeScale } from './large-scale';
 export { ovenZonesData } from './ovenZones';
 export { assemblyLine } from './assembly-line';
 export { finlandArrivals } from './finland-arrivals';
+export { manufacturingDefects } from './manufacturing-defects';
 
 // Re-export types
 export type { SampleDataset, SampleConfig, SpecLimits } from '../types';
@@ -48,6 +49,7 @@ import { largeScale } from './large-scale';
 import { ovenZonesData } from './ovenZones';
 import { assemblyLine } from './assembly-line';
 import { finlandArrivals } from './finland-arrivals';
+import { manufacturingDefects } from './manufacturing-defects';
 import type { SampleDataset } from '../types';
 
 /**
@@ -80,6 +82,8 @@ export const SAMPLES: SampleDataset[] = [
   assemblyLine,
   // Wide-Form (Stack Columns)
   finlandArrivals,
+  // Defect Mode
+  manufacturingDefects,
   // Investigation Showcase
   investigationShowcase,
   // Journey/Training

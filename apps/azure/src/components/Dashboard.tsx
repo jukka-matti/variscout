@@ -70,6 +70,7 @@ const modeTabs: Record<ResolvedMode, ModeTab[]> = {
     { id: 'analysis', label: 'Analysis', icon: BarChart3, activeColor: 'bg-blue-600' },
     { id: 'yamazumi', label: 'Yamazumi', icon: Timer, activeColor: 'bg-amber-600' },
   ],
+  defect: [{ id: 'analysis', label: 'Analysis', icon: BarChart3, activeColor: 'bg-blue-600' }],
 };
 
 /** Default tab when switching to a mode (undefined = keep current). */
@@ -78,6 +79,7 @@ const modeDefaultTab: Record<ResolvedMode, DashboardTab | undefined> = {
   capability: undefined,
   performance: undefined,
   yamazumi: 'yamazumi',
+  defect: undefined,
 };
 
 interface DashboardPerformanceProps {

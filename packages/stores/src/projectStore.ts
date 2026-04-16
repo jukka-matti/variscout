@@ -12,6 +12,7 @@ import type {
   SpecLimits,
   AnalysisMode,
   YamazumiColumnMapping,
+  DefectMapping,
   SubgroupConfig,
   FilterAction,
   StageOrderMode,
@@ -76,6 +77,7 @@ export interface SerializedProject {
   selectedMeasure?: string | null;
   cpkTarget?: number | undefined;
   yamazumiMapping?: YamazumiColumnMapping | null;
+  defectMapping?: DefectMapping | null;
   subgroupConfig?: SubgroupConfig;
   filters?: Record<string, (string | number)[]>;
   filterStack?: FilterAction[];
@@ -133,6 +135,9 @@ export interface ProjectState {
 
   // Yamazumi mode
   yamazumiMapping: YamazumiColumnMapping | null;
+
+  // Defect mode
+  defectMapping: DefectMapping | null;
 
   // Subgroup capability
   subgroupConfig: SubgroupConfig;
@@ -203,6 +208,8 @@ export interface ProjectActions {
 
   // Yamazumi mode
   setYamazumiMapping: (mapping: YamazumiColumnMapping | null) => void;
+  // Defect mode
+  setDefectMapping: (mapping: DefectMapping | null) => void;
 
   // Subgroup capability
   setSubgroupConfig: (config: SubgroupConfig) => void;
@@ -279,6 +286,7 @@ const initialState: ProjectState = {
   selectedMeasure: null,
   cpkTarget: undefined,
   yamazumiMapping: null,
+  defectMapping: null,
   subgroupConfig: DEFAULT_SUBGROUP_CONFIG,
   filters: {},
   filterStack: [],
@@ -350,6 +358,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
       selectedMeasure: serialized.selectedMeasure ?? null,
       cpkTarget: serialized.cpkTarget,
       yamazumiMapping: serialized.yamazumiMapping ?? null,
+      defectMapping: serialized.defectMapping ?? null,
       subgroupConfig: serialized.subgroupConfig ?? DEFAULT_SUBGROUP_CONFIG,
       filters: serialized.filters ?? {},
       filterStack: serialized.filterStack ?? [],
@@ -403,6 +412,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
   // --- Yamazumi mode ---
 
   setYamazumiMapping: setAndMark(set, 'yamazumiMapping'),
+  setDefectMapping: setAndMark(set, 'defectMapping'),
 
   // --- Subgroup capability ---
 

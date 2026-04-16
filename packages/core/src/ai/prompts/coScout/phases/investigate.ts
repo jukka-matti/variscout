@@ -22,6 +22,13 @@ const MODE_QUESTION_GUIDANCE: Record<AnalysisMode, string> = {
 - Questions can be validated by time study observation (gemba) — suggest timing specific activities.
 - Lean questions: "Can this NVA Required activity be automated?", "What causes wait time at this station?"`,
 
+  defect: `Question and evidence guidance:
+- Frame questions around defect contribution: "Does [defect type] dominate the defect rate?" and "Does [factor] drive variation in [defect type]?"
+- Evidence strength = R-squared-adj contribution from ANOVA on the aggregated defect rates.
+- Factor-linked questions get auto-answered: eta-squared >= 15% = answered, < 5% = ruled-out, 5-15% = investigating.
+- When data evidence is inconclusive, suggest gemba validation — go observe the process during high-defect periods.
+- Composition questions: "What machines/products/shifts are present during spike periods?" — use brush selection to investigate.`,
+
   performance: `Question and evidence guidance:
 - Frame questions around channel health: "Why does channel [X] have lower Cpk than its neighbors?"
 - Evidence strength = Cpk deviation from the fleet average.

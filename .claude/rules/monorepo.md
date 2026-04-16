@@ -94,6 +94,7 @@ The core package supports granular sub-path imports (in addition to the root `@v
 | `@variscout/core/strategy` | analysisStrategy.ts | resolveMode, getStrategy, AnalysisModeStrategy (ADR-047) |
 | `@variscout/core/ui-types` | ui-types/ | DisplayOptions, ScaleMode, HighlightColor, ViewState, ChartTitles, AxisSettings, ParetoMode, ParetoAggregation |
 | `@variscout/core/evidenceMap` | evidenceMap/ | FactorNodeData, RelationshipEdgeData, OutcomeNodeData, EquationData, CausalEdgeData, ConvergencePointData, RelationshipType |
+| `@variscout/core/defect` | defect/ | DefectMapping, DefectDetection, DefectDataShape, DefectTransformResult, detectDefectFormat, computeDefectRates |
 
 Apps must call `registerLocaleLoaders()` at startup to provide bundler-specific locale loading (see app `main.tsx` files).
 

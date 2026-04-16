@@ -742,6 +742,18 @@ export const ar: MessageCatalog = {
   'yamazumi.detected.taktPlaceholder': 'e.g., 120 seconds',
   'yamazumi.detected.decline': 'Use Standard Mode',
   'yamazumi.detected.enable': 'Enable Yamazumi Mode',
+
+  // Defect detected modal
+  'defect.detected.title': 'Defect Data Detected',
+  'defect.detected.confidence': 'confidence',
+  'defect.detected.dataShape': 'Data shape',
+  'defect.detected.defectType': 'Defect type',
+  'defect.detected.count': 'Count',
+  'defect.detected.result': 'Result',
+  'defect.detected.unitsProduced': 'Units produced',
+  'defect.detected.aggregationUnit': 'Group defects by',
+  'defect.detected.dismiss': 'Use Standard Mode',
+  'defect.detected.enable': 'Enable Defect Mode',
   'yamazumi.metric.total': 'Total',
   'yamazumi.metric.va': 'VA',
   'yamazumi.metric.nva': 'NVA',

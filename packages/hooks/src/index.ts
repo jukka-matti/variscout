@@ -97,6 +97,15 @@ export { useHighlightFade, type UseHighlightFadeReturn } from './useHighlightFad
 
 export { useResizablePanel, type UseResizablePanelReturn } from './useResizablePanel';
 
+// Defect Transform
+export { useDefectTransform } from './useDefectTransform';
+
+// Defect Summary (derived KPIs for DefectSummary component)
+export {
+  useDefectSummary,
+  type DefectSummaryProps as UseDefectSummaryProps,
+} from './useDefectSummary';
+
 // Chart Data Hooks (shared computation for app wrappers)
 export { useBoxplotData, STAGE_SEPARATOR } from './useBoxplotData';
 export type { ViolinDataMap, UseBoxplotDataResult, StageInfo } from './useBoxplotData';

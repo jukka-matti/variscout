@@ -9,6 +9,7 @@ import {
   YamazumiDetectedModal,
   PerformanceDetectedModal,
   CapabilitySuggestionModal,
+  DefectDetectedModal,
   MobileTabBar,
   type MobileTab,
   useIsMobile,
@@ -143,6 +144,7 @@ function AppMain() {
   const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
   const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
   const setCpkTarget = useProjectStore(s => s.setCpkTarget);
+  const setDefectMapping = useProjectStore(s => s.setDefectMapping);
   const setQuestions = useCallback((qs: Question[]) => {
     useInvestigationStore.getState().loadInvestigationState({ questions: qs });
   }, []);
@@ -156,6 +158,9 @@ function AppMain() {
     },
     onYamazumiDetected: result => {
       importFlowRef.current?.handleYamazumiDetected(result);
+    },
+    onDefectDetected: result => {
+      importFlowRef.current?.handleDefectDetected(result);
     },
     onTimeColumnDetected: prompt => {
       importFlowRef.current?.setTimeExtractionPrompt(prompt);
@@ -394,7 +399,8 @@ function AppMain() {
       !capabilitySuggestionDismissed &&
       !showCapabilitySuggestion &&
       !importFlow.yamazumiDetection &&
-      !importFlow.wideFormatDetection
+      !importFlow.wideFormatDetection &&
+      !importFlow.defectDetection
     ) {
       setShowCapabilitySuggestion(true);
     }
@@ -406,6 +412,7 @@ function AppMain() {
     showCapabilitySuggestion,
     importFlow.yamazumiDetection,
     importFlow.wideFormatDetection,
+    importFlow.defectDetection,
   ]);
 
   const handleExport = useCallback(async () => {
@@ -735,6 +742,7 @@ function AppMain() {
                 suggestedStack={importFlow.suggestedStack}
                 onStackConfigChange={importFlow.handleStackConfigChange}
                 rowLimit={50000}
+                hideSpecs={analysisMode === 'defect'}
               />
             ) : panels.activeView === 'investigation' ? (
               <InvestigationView
@@ -918,6 +926,20 @@ function AppMain() {
             importFlow.handleDismissYamazumi();
           }}
           onDecline={() => importFlow.handleDismissYamazumi()}
+        />
+      )}
+
+      {/* Defect Detection Modal */}
+      {importFlow.defectDetection && (
+        <DefectDetectedModal
+          detection={importFlow.defectDetection}
+          columnNames={rawData.length > 0 ? Object.keys(rawData[0]) : []}
+          onEnable={mapping => {
+            setAnalysisMode('defect');
+            setDefectMapping(mapping);
+            importFlow.handleDismissDefect();
+          }}
+          onDismiss={importFlow.handleDismissDefect}
         />
       )}
 

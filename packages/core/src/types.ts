@@ -301,8 +301,9 @@ export type StageOrderMode = 'auto' | 'data-order';
  * - 'standard': SPC analysis (I-Chart + Boxplot + Pareto + Stats)
  * - 'performance': Multi-channel analysis (Cpk Scatter + Boxplot + Pareto + Stats)
  * - 'yamazumi': Lean time study analysis (I-Chart + Yamazumi + Pareto + Summary)
+ * - 'defect': Defect analysis (I-Chart + Boxplot + Pareto + Defect Summary) with aggregation transform
  */
-export type AnalysisMode = 'standard' | 'performance' | 'yamazumi';
+export type AnalysisMode = 'standard' | 'performance' | 'yamazumi' | 'defect';
 
 /**
  * Result of staged statistical calculations

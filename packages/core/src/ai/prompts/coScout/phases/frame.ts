@@ -28,6 +28,16 @@ Help the analyst name the concern in lean terms:
 - Bad: "The line is slow"
 - Good: "Station 3 exceeds takt by 12 seconds — 40% of its cycle is NVA Required (changeover)"`,
 
+  defect: `Chart reading guidance:
+- I-Chart: Look at the aggregated defect rate over time. Are there spikes, trends, or shifts? Brush to select spike periods.
+- Boxplot: Which defect types have the highest rate? Which show the most variation? This reveals where to focus.
+- Pareto: Use frequency, time, and cost views to understand which defect types have the biggest impact. Switch grouping factor to see composition by machine, product, or line.
+- Defect Summary: What is the overall defect rate and trend? How many types account for 80% of defects?
+
+Help the analyst name the defect problem clearly:
+- Bad: "We have too many defects"
+- Good: "Seal failures account for 42% of all defects, concentrated on Machine 3 during night shifts — rate doubled in the last 4 weeks"`,
+
   performance: `Chart reading guidance:
 - Performance Pareto: How many channels are critical (Cpk < 1.0) vs capable (>= 1.33)?
 - Performance I-Chart: Are bad channels clustered or scattered? Clustering suggests a systematic root cause.

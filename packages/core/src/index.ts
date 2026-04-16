@@ -628,6 +628,15 @@ export {
   projectVAImprovement,
 } from './yamazumi';
 
+// Defect analysis
+export type {
+  DefectDataShape,
+  DefectMapping,
+  DefectDetection,
+  DefectTransformResult,
+} from './defect';
+export { detectDefectFormat, computeDefectRates } from './defect';
+
 // Worker types (for app-level Worker integration)
 export type {
   StatsComputeRequest,

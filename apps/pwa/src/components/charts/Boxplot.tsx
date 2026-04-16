@@ -8,7 +8,7 @@ import { useFilteredData, useCapabilityBoxplotData } from '@variscout/hooks';
 import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotWrapperBase } from '@variscout/ui';
 import type { HighlightColor } from '@variscout/hooks';
-import type { Finding } from '@variscout/core';
+import type { Finding, DataRow } from '@variscout/core';
 
 interface BoxplotProps {
   factor: string;
@@ -23,11 +23,24 @@ interface BoxplotProps {
   onDeleteFinding?: (id: string) => void;
   /** Passed from parent Dashboard to avoid duplicate Worker dispatch per chart wrapper */
   isComputing?: boolean;
+  /** Override filtered data (e.g. defect-transformed rows) */
+  dataOverride?: DataRow[];
+  /** Override outcome column name (e.g. defect rate column) */
+  outcomeOverride?: string;
 }
 
-const Boxplot = ({ parentWidth, parentHeight, isComputing = false, ...props }: BoxplotProps) => {
-  const { filteredData } = useFilteredData();
-  const outcome = useProjectStore(s => s.outcome);
+const Boxplot = ({
+  parentWidth,
+  parentHeight,
+  isComputing = false,
+  dataOverride,
+  outcomeOverride,
+  ...props
+}: BoxplotProps) => {
+  const { filteredData: storeData } = useFilteredData();
+  const filteredData = dataOverride ?? storeData;
+  const storeOutcome = useProjectStore(s => s.outcome);
+  const outcome = outcomeOverride ?? storeOutcome;
   const specs = useProjectStore(s => s.specs);
   const filters = useProjectStore(s => s.filters);
   const setFilters = useProjectStore(s => s.setFilters);
