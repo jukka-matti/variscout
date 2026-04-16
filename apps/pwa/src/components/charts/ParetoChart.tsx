@@ -33,6 +33,8 @@ interface ParetoChartProps {
   dataOverride?: DataRow[];
   /** Override outcome column name (e.g. defect rate column) */
   outcomeOverride?: string;
+  /** Callback to switch factor grouping (inline dropdown) */
+  onFactorSwitch?: (factorName: string) => void;
 }
 
 const ParetoChart = ({

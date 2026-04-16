@@ -194,6 +194,187 @@ describe('computeDefectRates', () => {
   });
 
   // ──────────────────────────────────────────────
+  // Event-log with cost/duration columns
+  // ──────────────────────────────────────────────
+
+  describe('event-log with costColumn', () => {
+    const data: DataRow[] = [
+      { Batch: 'B1', DefectType: 'Scratch', Cost: 10 },
+      { Batch: 'B1', DefectType: 'Scratch', Cost: 15 },
+      { Batch: 'B1', DefectType: 'Dent', Cost: 50 },
+      { Batch: 'B2', DefectType: 'Scratch', Cost: 12 },
+      { Batch: 'B2', DefectType: 'Dent', Cost: 30 },
+    ];
+
+    const mapping: DefectMapping = {
+      dataShape: 'event-log',
+      aggregationUnit: 'Batch',
+      defectTypeColumn: 'DefectType',
+      costColumn: 'Cost',
+    };
+
+    it('sums cost per group into CostTotal column', () => {
+      const result = computeDefectRates(data, mapping);
+
+      const b1Scratch = result.data.find(r => r['Batch'] === 'B1' && r['DefectType'] === 'Scratch');
+      expect(b1Scratch?.['CostTotal']).toBe(25); // 10 + 15
+
+      const b1Dent = result.data.find(r => r['Batch'] === 'B1' && r['DefectType'] === 'Dent');
+      expect(b1Dent?.['CostTotal']).toBe(50);
+
+      const b2Scratch = result.data.find(r => r['Batch'] === 'B2' && r['DefectType'] === 'Scratch');
+      expect(b2Scratch?.['CostTotal']).toBe(12);
+    });
+
+    it('exposes costColumn as CostTotal in result', () => {
+      const result = computeDefectRates(data, mapping);
+      expect(result.costColumn).toBe('CostTotal');
+    });
+
+    it('still produces DefectCount alongside CostTotal', () => {
+      const result = computeDefectRates(data, mapping);
+      const b1Scratch = result.data.find(r => r['Batch'] === 'B1' && r['DefectType'] === 'Scratch');
+      expect(b1Scratch?.['DefectCount']).toBe(2);
+      expect(b1Scratch?.['CostTotal']).toBe(25);
+    });
+  });
+
+  describe('event-log with durationColumn', () => {
+    const data: DataRow[] = [
+      { Batch: 'B1', DefectType: 'Scratch', Duration: 5 },
+      { Batch: 'B1', DefectType: 'Scratch', Duration: 8 },
+      { Batch: 'B1', DefectType: 'Dent', Duration: 20 },
+      { Batch: 'B2', DefectType: 'Dent', Duration: 15 },
+      { Batch: 'B2', DefectType: 'Dent', Duration: 10 },
+    ];
+
+    const mapping: DefectMapping = {
+      dataShape: 'event-log',
+      aggregationUnit: 'Batch',
+      defectTypeColumn: 'DefectType',
+      durationColumn: 'Duration',
+    };
+
+    it('sums duration per group into DurationTotal column', () => {
+      const result = computeDefectRates(data, mapping);
+
+      const b1Scratch = result.data.find(r => r['Batch'] === 'B1' && r['DefectType'] === 'Scratch');
+      expect(b1Scratch?.['DurationTotal']).toBe(13); // 5 + 8
+
+      const b2Dent = result.data.find(r => r['Batch'] === 'B2' && r['DefectType'] === 'Dent');
+      expect(b2Dent?.['DurationTotal']).toBe(25); // 15 + 10
+    });
+
+    it('exposes durationColumn as DurationTotal in result', () => {
+      const result = computeDefectRates(data, mapping);
+      expect(result.durationColumn).toBe('DurationTotal');
+    });
+  });
+
+  describe('event-log with both cost and duration', () => {
+    const data: DataRow[] = [
+      { Batch: 'B1', DefectType: 'X', Cost: 10, Duration: 5 },
+      { Batch: 'B1', DefectType: 'X', Cost: 20, Duration: 3 },
+    ];
+
+    const mapping: DefectMapping = {
+      dataShape: 'event-log',
+      aggregationUnit: 'Batch',
+      defectTypeColumn: 'DefectType',
+      costColumn: 'Cost',
+      durationColumn: 'Duration',
+    };
+
+    it('produces both CostTotal and DurationTotal', () => {
+      const result = computeDefectRates(data, mapping);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0]['CostTotal']).toBe(30);
+      expect(result.data[0]['DurationTotal']).toBe(8);
+      expect(result.costColumn).toBe('CostTotal');
+      expect(result.durationColumn).toBe('DurationTotal');
+    });
+  });
+
+  describe('event-log cost with non-numeric values', () => {
+    const data: DataRow[] = [
+      { Batch: 'B1', DefectType: 'X', Cost: 10 },
+      { Batch: 'B1', DefectType: 'X', Cost: 'N/A' },
+      { Batch: 'B1', DefectType: 'X', Cost: null },
+    ];
+
+    const mapping: DefectMapping = {
+      dataShape: 'event-log',
+      aggregationUnit: 'Batch',
+      defectTypeColumn: 'DefectType',
+      costColumn: 'Cost',
+    };
+
+    it('skips non-numeric values when summing', () => {
+      const result = computeDefectRates(data, mapping);
+      expect(result.data[0]['CostTotal']).toBe(10);
+    });
+  });
+
+  // ──────────────────────────────────────────────
+  // Pass-fail with cost/duration
+  // ──────────────────────────────────────────────
+
+  describe('pass-fail with costColumn', () => {
+    const data: DataRow[] = [
+      { Batch: 'B1', Result: 'Fail', Cost: 100 },
+      { Batch: 'B1', Result: 'Pass', Cost: 0 },
+      { Batch: 'B1', Result: 'Fail', Cost: 50 },
+      { Batch: 'B2', Result: 'Fail', Cost: 75 },
+      { Batch: 'B2', Result: 'Pass', Cost: 0 },
+    ];
+
+    const mapping: DefectMapping = {
+      dataShape: 'pass-fail',
+      aggregationUnit: 'Batch',
+      resultColumn: 'Result',
+      costColumn: 'Cost',
+    };
+
+    it('sums cost per aggregation group', () => {
+      const result = computeDefectRates(data, mapping);
+      const b1 = result.data.find(r => r['Batch'] === 'B1');
+      expect(b1?.['CostTotal']).toBe(150); // 100 + 0 + 50
+      const b2 = result.data.find(r => r['Batch'] === 'B2');
+      expect(b2?.['CostTotal']).toBe(75); // 75 + 0
+    });
+
+    it('exposes costColumn as CostTotal', () => {
+      const result = computeDefectRates(data, mapping);
+      expect(result.costColumn).toBe('CostTotal');
+    });
+  });
+
+  // ──────────────────────────────────────────────
+  // Pre-aggregated with cost/duration passthrough
+  // ──────────────────────────────────────────────
+
+  describe('pre-aggregated with costColumn passthrough', () => {
+    const data: DataRow[] = [
+      { Station: 'S1', Defects: 5, TotalCost: 200 },
+      { Station: 'S2', Defects: 12, TotalCost: 800 },
+    ];
+
+    const mapping: DefectMapping = {
+      dataShape: 'pre-aggregated',
+      aggregationUnit: 'Station',
+      countColumn: 'Defects',
+      costColumn: 'TotalCost',
+    };
+
+    it('passes costColumn name through directly', () => {
+      const result = computeDefectRates(data, mapping);
+      expect(result.costColumn).toBe('TotalCost');
+      // Data is passed through, so original column name is preserved
+      expect(result.data[0]['TotalCost']).toBe(200);
+    });
+  });
+
+  // ──────────────────────────────────────────────
   // Edge cases
   // ──────────────────────────────────────────────
 

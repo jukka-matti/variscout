@@ -84,7 +84,9 @@ const DefectSummary: React.FC<DefectSummaryProps> = ({
           <div className={LABEL}>Defect Rate</div>
           <div className="flex items-baseline">
             <span className={VALUE} data-testid="stat-value-defect-rate">
-              {defectRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              {Number.isFinite(defectRate)
+                ? defectRate.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                : '--'}
             </span>
             <span className="text-xs text-content-secondary ml-1">/{rateLabel}</span>
             {trendDirection && <TrendArrow direction={trendDirection} />}

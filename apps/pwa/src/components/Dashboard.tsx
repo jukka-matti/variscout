@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { FilterChipData } from '@variscout/ui';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
@@ -145,6 +145,15 @@ const Dashboard = ({
   const effectiveOutcome = isDefectMode && defectResult ? defectResult.outcomeColumn : outcome;
   const effectiveFactors = isDefectMode && defectResult ? defectResult.factors : factors;
 
+  // In defect mode + value aggregation, use cost/duration column for Pareto Σ mode
+  const defectParetoOutcome = (() => {
+    if (!isDefectMode || !defectResult || paretoAggregation !== 'value') return undefined;
+    // Prefer cost column, fall back to duration, then to default outcome
+    if (defectResult.costColumn) return defectResult.costColumn;
+    if (defectResult.durationColumn) return defectResult.durationColumn;
+    return undefined; // fall back to effectiveOutcome
+  })();
+
   // Compute DefectSummary props from transformed data (extracted hook)
   const defectSummaryProps = useDefectSummary(isDefectMode ? defectResult : null, defectMapping);
 
@@ -223,6 +232,29 @@ const Dashboard = ({
       setParetoFactor(requestedFactor.factor);
     }
   }, [requestedFactor, effectiveFactors, setBoxplotFactor, setParetoFactor]);
+
+  // Defect mode drill-down: auto-switch Boxplot/Pareto to next best factor
+  // When user filters to a specific defect type, grouping by defect type is redundant.
+  const prevDefectFilterRef = useRef(false);
+  useEffect(() => {
+    if (!isDefectMode || !defectMapping?.defectTypeColumn) {
+      prevDefectFilterRef.current = false;
+      return;
+    }
+    const defectCol = defectMapping.defectTypeColumn;
+    const hasDefectFilter = defectCol in (filters ?? {});
+    const wasFiltered = prevDefectFilterRef.current;
+    prevDefectFilterRef.current = hasDefectFilter;
+
+    // Only auto-switch on entering the drill (filter added), not on removal
+    if (hasDefectFilter && !wasFiltered) {
+      const nextFactor = effectiveFactors.find(f => f !== defectCol);
+      if (nextFactor) {
+        setBoxplotFactor(nextFactor);
+        setParetoFactor(nextFactor);
+      }
+    }
+  }, [isDefectMode, defectMapping, filters, effectiveFactors, setBoxplotFactor, setParetoFactor]);
 
   // Build filter chip data from filter stack for breadcrumb display
   const filterChipData: FilterChipData[] = useMemo(() => {
@@ -734,7 +766,12 @@ const Dashboard = ({
                 onDeleteFinding={onDeleteFinding}
                 isComputing={isComputing}
                 dataOverride={isDefectMode && defectResult ? effectiveData : undefined}
-                outcomeOverride={isDefectMode && defectResult ? effectiveOutcome : undefined}
+                outcomeOverride={
+                  isDefectMode && defectResult
+                    ? (defectParetoOutcome ?? effectiveOutcome)
+                    : undefined
+                }
+                onFactorSwitch={isDefectMode ? setParetoFactor : undefined}
               />
             )}
           </ErrorBoundary>

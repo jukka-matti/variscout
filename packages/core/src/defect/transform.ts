@@ -16,6 +16,10 @@ export interface DefectTransformResult {
   outcomeColumn: string;
   /** Available factor columns for drill-down */
   factors: string[];
+  /** Name of the summed cost column (if costColumn was mapped) */
+  costColumn?: string;
+  /** Name of the summed duration column (if durationColumn was mapped) */
+  durationColumn?: string;
 }
 
 /**
@@ -81,7 +85,8 @@ function categoricalColumns(rows: DataRow[], exclude: Set<string>): string[] {
  * Transform event-log defect data into aggregated rows.
  */
 function transformEventLog(rawData: DataRow[], mapping: DefectMapping): DefectTransformResult {
-  const { aggregationUnit, defectTypeColumn, unitsProducedColumn } = mapping;
+  const { aggregationUnit, defectTypeColumn, unitsProducedColumn, costColumn, durationColumn } =
+    mapping;
 
   // Grouping columns: aggregationUnit + defectTypeColumn (if present)
   const groupCols = [aggregationUnit];
@@ -116,6 +121,10 @@ function transformEventLog(rawData: DataRow[], mapping: DefectMapping): DefectTr
   const hasRate = !!unitsProducedColumn;
   const outcomeColumn = hasRate ? 'DefectRate' : 'DefectCount';
 
+  // Determine output column names for cost/duration
+  const costOutColumn = costColumn ? 'CostTotal' : undefined;
+  const durationOutColumn = durationColumn ? 'DurationTotal' : undefined;
+
   const data: DataRow[] = [];
   for (const [, rows] of groups) {
     const count = rows.length;
@@ -137,6 +146,26 @@ function transformEventLog(rawData: DataRow[], mapping: DefectMapping): DefectTr
       outRow['DefectRate'] = units && units > 0 ? count / units : count;
     }
 
+    // Sum cost column if mapped
+    if (costColumn && costOutColumn) {
+      let costSum = 0;
+      for (const row of rows) {
+        const val = row[costColumn];
+        if (typeof val === 'number') costSum += val;
+      }
+      outRow[costOutColumn] = costSum;
+    }
+
+    // Sum duration column if mapped
+    if (durationColumn && durationOutColumn) {
+      let durSum = 0;
+      for (const row of rows) {
+        const val = row[durationColumn];
+        if (typeof val === 'number') durSum += val;
+      }
+      outRow[durationOutColumn] = durSum;
+    }
+
     // Preserve other factor columns using mode
     for (const col of allFactors) {
       if (col === defectTypeColumn) continue; // already set
@@ -146,20 +175,34 @@ function transformEventLog(rawData: DataRow[], mapping: DefectMapping): DefectTr
     data.push(outRow);
   }
 
-  return { data, outcomeColumn, factors: allFactors };
+  return {
+    data,
+    outcomeColumn,
+    factors: allFactors,
+    costColumn: costOutColumn,
+    durationColumn: durationOutColumn,
+  };
 }
 
 /**
  * Transform pre-aggregated defect data (pass through).
  */
 function transformPreAggregated(rawData: DataRow[], mapping: DefectMapping): DefectTransformResult {
-  const { aggregationUnit, countColumn } = mapping;
+  const { aggregationUnit, countColumn, costColumn, durationColumn } = mapping;
   const outcomeColumn = countColumn!;
 
   const excludeSet = new Set([aggregationUnit]);
   const factors = categoricalColumns(rawData, excludeSet);
 
-  return { data: [...rawData], outcomeColumn, factors };
+  // For pre-aggregated data, cost/duration columns already exist in the rows.
+  // Pass them through directly (no renaming needed).
+  return {
+    data: [...rawData],
+    outcomeColumn,
+    factors,
+    costColumn: costColumn,
+    durationColumn: durationColumn,
+  };
 }
 
 /**
@@ -177,7 +220,7 @@ function buildFailSet(): Set<string> {
  * Transform pass/fail defect data into aggregated rows.
  */
 function transformPassFail(rawData: DataRow[], mapping: DefectMapping): DefectTransformResult {
-  const { aggregationUnit, resultColumn } = mapping;
+  const { aggregationUnit, resultColumn, costColumn, durationColumn } = mapping;
   if (!resultColumn) {
     return { data: [], outcomeColumn: 'DefectRate', factors: [] };
   }
@@ -212,6 +255,26 @@ function transformPassFail(rawData: DataRow[], mapping: DefectMapping): DefectTr
     outRow['DefectRate'] = total > 0 ? failCount / total : 0;
     outRow['TotalUnits'] = total;
 
+    // Sum cost column if mapped
+    if (costColumn) {
+      let costSum = 0;
+      for (const row of rows) {
+        const val = row[costColumn];
+        if (typeof val === 'number') costSum += val;
+      }
+      outRow['CostTotal'] = costSum;
+    }
+
+    // Sum duration column if mapped
+    if (durationColumn) {
+      let durSum = 0;
+      for (const row of rows) {
+        const val = row[durationColumn];
+        if (typeof val === 'number') durSum += val;
+      }
+      outRow['DurationTotal'] = durSum;
+    }
+
     // Preserve factor columns using mode
     for (const col of factors) {
       outRow[col] = columnMode(rows, col);
@@ -220,7 +283,13 @@ function transformPassFail(rawData: DataRow[], mapping: DefectMapping): DefectTr
     data.push(outRow);
   }
 
-  return { data, outcomeColumn: 'DefectRate', factors };
+  return {
+    data,
+    outcomeColumn: 'DefectRate',
+    factors,
+    costColumn: costColumn ? 'CostTotal' : undefined,
+    durationColumn: durationColumn ? 'DurationTotal' : undefined,
+  };
 }
 
 /**

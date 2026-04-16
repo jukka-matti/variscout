@@ -399,14 +399,15 @@ Stored in `projectStore` alongside `yamazumiMapping` and `measureColumns`.
 - Question strategy generator
 - Sample dataset for testing
 
-### Phase 2 — Full Drill-Down
+### Phase 2 — Full Drill-Down (delivered)
 
-- Re-aggregation on filter change
-- Pareto factor switching enhancement
-- Pass/fail data shape support
-- Rate normalization (defects per N units)
-- Cost/duration column integration for Pareto value POVs
-- DefectSummary panel (full: trend, top factor, 80/20)
+- Re-aggregation on filter change (reactive via useDefectTransform)
+- Pareto factor switching (FactorSelectorDropdown in defect mode)
+- Pass/fail data shape support (detection + transform)
+- Rate normalization (defects per N units via unitsProducedColumn)
+- Cost/duration column integration for Pareto value POVs (CostTotal/DurationTotal)
+- DefectSummary panel (full: trend via split-half, top factor, 80/20)
+- Boxplot auto-suggest after drill-down (switches to first non-defect-type factor)
 
 ### Phase 3 — Investigation Depth
 
