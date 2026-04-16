@@ -65,6 +65,7 @@ VariScout uses a monorepo structure with shared packages:
 ```
 packages/
 ├── core/      # Statistics, parser, types (no React)
+├── stores/    # Zustand domain stores (source of truth)
 ├── charts/    # Visx chart components
 ├── hooks/     # Shared React hooks
 ├── ui/        # Shared UI components
@@ -73,7 +74,8 @@ packages/
 apps/
 ├── pwa/           # React + Vite PWA
 ├── azure/         # Azure Team App
-└── website/       # Astro marketing site
+├── website/       # Astro marketing site
+└── docs/          # Starlight documentation site
 ```
 
 A unified design system covers both PWA and Azure App: theme-aware (dark/light), data-focused colors, consistent semantics across platforms, and WCAG AA accessible.

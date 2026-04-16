@@ -20,13 +20,13 @@ packages/
 ├── stores/    # @variscout/stores - 4 Zustand domain stores (project, investigation, improvement, session)
 │              #   Source of truth for all app state. Components read via selectors.
 │              #   investigationStore includes CausalLink entity. sessionStore auto-persists to IndexedDB.
-├── hooks/     # @variscout/hooks - 60+ shared React hooks (ls packages/hooks/src/use*.ts for full list)
+├── hooks/     # @variscout/hooks - 78 shared React hooks (ls packages/hooks/src/use*.ts for full list)
 │              #   Key hooks: useFilteredData, useAnalysisStats, useProjectActions,
 │              #   useEvidenceMapData, useAICoScout, usePopoutChannel,
 │              #   useQuestions, useFindings, useProblemStatement,
 │              #   useHubComputations, useCoScoutProps, useImprovementProjections,
 │              #   useScopedModels, useWhatIfReferences
-└── ui/        # @variscout/ui - 110+ shared UI components (ls packages/ui/src/components/ for full list)
+└── ui/        # @variscout/ui - 80+ shared UI component modules (ls packages/ui/src/components/ for full list)
                #   Key: DashboardLayoutBase, CoScoutPanelBase, ImprovementWorkspaceBase,
                #   ReportViewBase, FindingsWindow, HubComposer, EvidenceMapNodeSheet,
                #   WhatIfExplorer, WhatIfExplorerPage
@@ -40,7 +40,8 @@ apps/
 │              #     findings/, investigation/, improvement/, ai/, data-flow/, panels/
 │              #   hooks/ - useProjectLoader, useProjectOverview
 │              #   components/ - ProjectDashboard, ProjectCard, editor/InvestigationWorkspace
-└── website/      # @variscout/website - Marketing website (Astro + React Islands)
+├── website/      # @variscout/website - Marketing website (Astro + React Islands)
+└── docs/         # @variscout/docs - Starlight documentation site (sources docs/ → apps/docs/src/content/)
 ```
 
 ## Tailwind v4 `@source` (Critical)
@@ -65,7 +66,7 @@ When adding a new shared package that uses Tailwind classes, add a corresponding
 - `@variscout/core` has no React dependencies (exports stats, parser, glossary, tier)
 - `@variscout/charts` depends on `@variscout/core`
 - `@variscout/hooks` depends on `@variscout/core` (for types, utilities, and tier)
-- `@variscout/ui` — 110+ components + `useGlossary`, `useIsMobile`, `useTheme`, `errorService`, `BREAKPOINTS`
+- `@variscout/ui` — 80+ component modules + `useGlossary`, `useIsMobile`, `useTheme`, `errorService`, `BREAKPOINTS`
 - `@variscout/ui` depends on `@variscout/stores` for store-aware tab content components (`StatsTabContent`, `QuestionsTabContent`, `JournalTabContent`). This is acceptable because stores are shared infrastructure. Props-based components remain preferred for purely presentational UI.
 
 ## @variscout/core Sub-Path Exports
