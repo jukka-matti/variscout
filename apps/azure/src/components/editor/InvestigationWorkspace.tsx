@@ -4,6 +4,7 @@ import {
   InvestigationPhaseBadge,
   InvestigationConclusion,
   FindingsLog,
+  QuestionLinkPrompt,
 } from '@variscout/ui';
 import {
   useResizablePanel,
@@ -29,7 +30,7 @@ import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { wouldCreateCycle } from '@variscout/core/stats';
 import { GripVertical } from 'lucide-react';
-import { useProjectStore, useInvestigationStore } from '@variscout/stores';
+import { useProjectStore, useInvestigationStore, useSessionStore } from '@variscout/stores';
 import { InvestigationMapView } from './InvestigationMapView';
 import { CoScoutSection } from './CoScoutSection';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
@@ -130,6 +131,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const setInvestigationViewMode = usePanelsStore(s => s.setInvestigationViewMode);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const causalLinks = useInvestigationStore(s => s.causalLinks);
+
+  // Question-link prompt for map context menu findings
+  const skipQuestionLinkPrompt = useSessionStore(s => s.skipQuestionLinkPrompt);
+  const setSkipQuestionLinkPrompt = useSessionStore(s => s.setSkipQuestionLinkPrompt);
+  const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
+  const mapQuestions = useInvestigationStore(s => s.questions);
+  const [mapPromptOpen, setMapPromptOpen] = useState(false);
+  const [mapPromptFindingId, setMapPromptFindingId] = useState<string>('');
 
   // Investigation phase (deterministic, from question/findings state)
   const investigationPhase = useMemo(
@@ -411,14 +420,34 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const handleMapCreateFinding = useCallback(
     (factor: string) => {
       const filters = useProjectStore.getState().filters;
-      findingsState.addFinding(
+      const newFinding = findingsState.addFinding(
         `Observation about ${factor}`,
         { activeFilters: filters, cumulativeScope: null },
         { chart: 'boxplot', category: factor }
       );
+      if (!skipQuestionLinkPrompt) {
+        setMapPromptFindingId(newFinding.id);
+        setMapPromptOpen(true);
+      }
     },
-    [findingsState]
+    [findingsState, skipQuestionLinkPrompt]
   );
+
+  // Map finding question-link prompt handlers
+  const handleMapPromptLink = useCallback(
+    (questionId: string) => {
+      linkFindingToQuestion(mapPromptFindingId, questionId);
+    },
+    [mapPromptFindingId, linkFindingToQuestion]
+  );
+
+  const handleMapPromptSkipForever = useCallback(() => {
+    setSkipQuestionLinkPrompt(true);
+  }, [setSkipQuestionLinkPrompt]);
+
+  const handleMapPromptClose = useCallback(() => {
+    setMapPromptOpen(false);
+  }, []);
 
   const handleMapAskCoScout = useCallback(
     (factor: string) => {
@@ -680,6 +709,17 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         actionProposalsState={actionProposalsState}
         handleSearchKnowledge={handleSearchKnowledge}
         handleAddCommentWithAuthor={handleAddCommentWithAuthor}
+      />
+
+      {/* Question-Link Prompt — shown after map context-menu creates a Finding */}
+      <QuestionLinkPrompt
+        isOpen={mapPromptOpen}
+        findingId={mapPromptFindingId}
+        questions={mapQuestions}
+        onLink={handleMapPromptLink}
+        onSkip={handleMapPromptClose}
+        onSkipForever={handleMapPromptSkipForever}
+        onClose={handleMapPromptClose}
       />
     </div>
   );

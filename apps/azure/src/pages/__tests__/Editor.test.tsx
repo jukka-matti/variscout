@@ -134,6 +134,7 @@ vi.mock('@variscout/ui', () => ({
   AIOnboardingTooltip: () => null,
   SessionClosePrompt: () => null,
   BrainstormModal: () => null,
+  QuestionLinkPrompt: () => null,
   FactorPreviewOverlay: () => null,
   PIPanelBase: () => null,
   StatsTabContent: () => null,

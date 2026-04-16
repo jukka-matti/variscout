@@ -27,6 +27,7 @@ import {
   TrackView,
   VerificationPrompt,
   BrainstormModal,
+  QuestionLinkPrompt,
   DEFAULT_PRESETS,
   type AnalysisBrief,
   type MatrixDimension,
@@ -152,10 +153,13 @@ export const Editor: React.FC<EditorProps> = ({
   const persistedFindings = useInvestigationStore(s => s.findings);
   const persistedQuestions = useInvestigationStore(s => s.questions);
   const categories = useInvestigationStore(s => s.categories);
+  const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
 
   // Session store
   const aiEnabled = useSessionStore(s => s.aiEnabled);
   const knowledgeSearchFolder = useSessionStore(s => s.knowledgeSearchFolder) ?? undefined;
+  const skipQuestionLinkPrompt = useSessionStore(s => s.skipQuestionLinkPrompt);
+  const setSkipQuestionLinkPrompt = useSessionStore(s => s.setSkipQuestionLinkPrompt);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();
@@ -533,6 +537,57 @@ export const Editor: React.FC<EditorProps> = ({
     focusedQuestionId: focusedQuestionIdRef.current,
     linkFinding: linkFindingRef.current,
   });
+
+  // Question-link prompt state (shown after chart observation creates a Finding)
+  const [questionLinkPromptOpen, setQuestionLinkPromptOpen] = useState(false);
+  const [questionLinkFindingId, setQuestionLinkFindingId] = useState<string>('');
+
+  // Intercept chart observation to show prompt if user has not opted out
+  const wrappedOnAddChartObservation = useCallback(
+    (
+      chartType: 'boxplot' | 'pareto' | 'ichart',
+      categoryKey?: string,
+      noteText?: string,
+      anchorX?: number,
+      anchorY?: number
+    ) => {
+      const result = findingsCallbacks.onAddChartObservation?.(
+        chartType,
+        categoryKey,
+        noteText,
+        anchorX,
+        anchorY
+      );
+      if (result && !skipQuestionLinkPrompt) {
+        setQuestionLinkFindingId(result.id);
+        setQuestionLinkPromptOpen(true);
+      }
+      return result;
+    },
+    [findingsCallbacks, skipQuestionLinkPrompt]
+  );
+
+  // Stable wrapped findingsCallbacks with intercepted onAddChartObservation
+  const findingsCallbacksWithPrompt = useMemo(
+    () => ({ ...findingsCallbacks, onAddChartObservation: wrappedOnAddChartObservation }),
+    [findingsCallbacks, wrappedOnAddChartObservation]
+  );
+
+  // Question-link prompt handlers
+  const handleQuestionLink = useCallback(
+    (questionId: string) => {
+      linkFindingToQuestion(questionLinkFindingId, questionId);
+    },
+    [questionLinkFindingId, linkFindingToQuestion]
+  );
+
+  const handleQuestionSkipForever = useCallback(() => {
+    setSkipQuestionLinkPrompt(true);
+  }, [setSkipQuestionLinkPrompt]);
+
+  const handleQuestionPromptClose = useCallback(() => {
+    setQuestionLinkPromptOpen(false);
+  }, []);
 
   // Deep link: auto-open findings panel and highlight target finding (one-shot)
   // Also set activeView to 'dashboard' on project load unless deep-linked
@@ -1341,7 +1396,7 @@ export const Editor: React.FC<EditorProps> = ({
                 onViewStateChange={handleViewStateChange}
                 projectId={projectId ?? undefined}
                 findingsState={findingsState}
-                findingsCallbacks={findingsCallbacks}
+                findingsCallbacks={findingsCallbacksWithPrompt}
                 handlePinFinding={handlePinFinding}
                 handleSetFindingStatus={handleSetFindingStatus}
                 questionsState={questionsState}
@@ -1459,6 +1514,17 @@ export const Editor: React.FC<EditorProps> = ({
           onDismiss={() => setShowVerificationPrompt(false)}
         />
       )}
+
+      {/* Question-Link Prompt — shown after chart observation creates a Finding */}
+      <QuestionLinkPrompt
+        isOpen={questionLinkPromptOpen}
+        findingId={questionLinkFindingId}
+        questions={persistedQuestions}
+        onLink={handleQuestionLink}
+        onSkip={handleQuestionPromptClose}
+        onSkipForever={handleQuestionSkipForever}
+        onClose={handleQuestionPromptClose}
+      />
 
       {/* Brainstorm modal: hoisted to top-level so it survives view navigation */}
       <BrainstormModal
