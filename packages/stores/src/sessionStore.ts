@@ -55,10 +55,9 @@ export interface SessionState {
   aiPreferences: Record<string, boolean>;
   /** SharePoint/OneDrive folder path for Knowledge Base search */
   knowledgeSearchFolder: string | null;
-  /**
-   * Whether to suppress the 'link this finding to a question?' prompt after
-   * Finding creation. One-time opt-out per session-store-lifetime; reset by
-   * clearing site data.
+  /** Whether to suppress the "link this finding to a question?" prompt after Finding creation.
+   *  Permanent opt-out persisted to IndexedDB; resets only when the user clears site data.
+   *  Defaults to false (prompt shown).
    */
   skipQuestionLinkPrompt: boolean;
 }

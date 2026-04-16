@@ -245,15 +245,16 @@ describe('sessionStore — skipQuestionLinkPrompt', () => {
   it('skipQuestionLinkPrompt is included in the partialize output', () => {
     useSessionStore.getState().setSkipQuestionLinkPrompt(true);
 
-    // Simulate what zustand persist does: call partialize with current state
-    // The persist config is not directly accessible, but we can verify the
-    // field is present in state (which partialize reads) and survives a
-    // setState round-trip — the same pattern as aiEnabled tests above.
-    const state = useSessionStore.getState();
-    expect(state.skipQuestionLinkPrompt).toBe(true);
+    // Call the actual partialize function via Zustand's persist API so that
+    // removing the field from the partialize block in sessionStore.ts will
+    // cause this test to fail.
+    const partialize = useSessionStore.persist.getOptions().partialize;
+    const persisted = partialize(useSessionStore.getState());
+    expect(persisted.skipQuestionLinkPrompt).toBe(true);
 
-    // Reset and verify the default is false, confirming the field is managed
-    useSessionStore.setState({ skipQuestionLinkPrompt: false });
-    expect(useSessionStore.getState().skipQuestionLinkPrompt).toBe(false);
+    // Verify false value also round-trips through partialize correctly.
+    useSessionStore.getState().setSkipQuestionLinkPrompt(false);
+    const persistedFalse = partialize(useSessionStore.getState());
+    expect(persistedFalse.skipQuestionLinkPrompt).toBe(false);
   });
 });
