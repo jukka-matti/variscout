@@ -11,6 +11,8 @@ import {
   useProblemStatement,
   useHubComputations,
   useDefectTransform,
+  useDefectEvidenceMap,
+  type DefectMapView,
   type UseFindingsReturn,
   type UseQuestionsReturn,
 } from '@variscout/hooks';
@@ -225,6 +227,22 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     if (!bestSubsets || !filteredData?.length || !outcome || factors.length < 2) return null;
     return computeInteractionEffects(filteredData, outcome, factors);
   }, [bestSubsets, filteredData, outcome, factors]);
+
+  // ── Defect Evidence Map integration ──────────────────────────────────────
+  const [defectMapView, setDefectMapView] = useState<DefectMapView>('all');
+  const isDefectMode = resolved === 'defect';
+
+  const defectEvidenceMap = useDefectEvidenceMap(
+    isDefectMode ? defectResult : null,
+    isDefectMode ? defectMapping : null,
+    isDefectMode ? bestSubsets : null,
+    isDefectMode ? defectMapView : 'all',
+    factors
+  );
+
+  // Override bestSubsets for Evidence Map when viewing per-type defect analysis
+  const mapBestSubsets =
+    isDefectMode && defectMapView !== 'all' ? defectEvidenceMap.bestSubsets : bestSubsets;
 
   // Characteristic type derived from spec configuration (for Watson Q2)
   const characteristicType = useMemo(() => inferCharacteristicType(specs), [specs]);
@@ -576,7 +594,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         {investigationViewMode === 'map' ? (
           <InvestigationMapView
             mapOptions={{
-              bestSubsets,
+              bestSubsets: mapBestSubsets,
               mainEffects,
               interactions,
               mode: resolved,
@@ -594,6 +612,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             onUpdateCausalLink={handleUpdateCausalLink}
             wouldCreateCycle={checkWouldCreateCycle}
             filteredData={filteredData ?? undefined}
+            defectMapView={isDefectMode ? defectMapView : undefined}
+            onDefectMapViewChange={isDefectMode ? setDefectMapView : undefined}
+            defectEvidenceMap={isDefectMode ? defectEvidenceMap : undefined}
           />
         ) : (
           <div className="flex-1 overflow-y-auto px-3 py-2">

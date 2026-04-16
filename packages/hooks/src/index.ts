@@ -106,6 +106,14 @@ export {
   type DefectSummaryProps as UseDefectSummaryProps,
 } from './useDefectSummary';
 
+// Defect Evidence Map (lazy per-type Best Subsets with progressive caching)
+export {
+  useDefectEvidenceMap,
+  type DefectMapView,
+  type CrossTypeEntry,
+  type UseDefectEvidenceMapResult,
+} from './useDefectEvidenceMap';
+
 // Chart Data Hooks (shared computation for app wrappers)
 export { useBoxplotData, STAGE_SEPARATOR } from './useBoxplotData';
 export type { ViolinDataMap, UseBoxplotDataResult, StageInfo } from './useBoxplotData';

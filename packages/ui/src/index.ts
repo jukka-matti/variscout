@@ -349,6 +349,18 @@ export {
 export { NodeContextMenu, type NodeContextMenuProps } from './components/EvidenceMapContextMenu';
 export { EdgeContextMenu, type EdgeContextMenuProps } from './components/EvidenceMapContextMenu';
 
+// Evidence Map Defect Type Selector (pill tabs for defect mode views)
+export {
+  DefectTypeSelector,
+  type DefectTypeSelectorProps,
+} from './components/EvidenceMap/DefectTypeSelector';
+
+// Evidence Map Insufficient Data State (empty state when defect type lacks data)
+export {
+  InsufficientDataState,
+  type InsufficientDataStateProps,
+} from './components/EvidenceMap/InsufficientDataState';
+
 // Evidence Map Edge Detail Card (desktop floating card for relationship edge clicks)
 export { EdgeDetailCard, type EdgeDetailCardProps } from './components/EvidenceMap/EdgeDetailCard';
 
@@ -360,6 +372,12 @@ export {
   type MiniChartType,
   getChartType,
 } from './components/EvidenceMap/EdgeMiniChart';
+
+// Evidence Map Cross-Type Rendering (radial factor layout for defect cross-type view)
+export {
+  CrossTypeEvidenceMap,
+  type CrossTypeEvidenceMapProps,
+} from './components/EvidenceMap/CrossTypeEvidenceMap';
 
 // Mobile Tab Bar
 export { MobileTabBar, type MobileTabBarProps, type MobileTab } from './components/MobileTabBar';

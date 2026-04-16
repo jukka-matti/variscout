@@ -505,6 +505,9 @@ const Dashboard = ({
           onToggleParetoAggregation={() =>
             setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
           }
+          defectResult={defectResult}
+          defectMapping={defectMapping}
+          isDefectMode={isDefectMode}
         />
       </div>
     );

@@ -8,7 +8,8 @@ import {
   TrendingUp,
   GitBranch,
 } from 'lucide-react';
-import { useTranslation, useEvidenceMapData } from '@variscout/hooks';
+import { useTranslation, useEvidenceMapData, useDefectEvidenceMap } from '@variscout/hooks';
+import type { DefectMapView } from '@variscout/hooks';
 import { EvidenceMap } from '@variscout/charts';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
@@ -22,6 +23,9 @@ import {
   MobileCategorySheet,
   EvidenceMapNodeSheet,
   EvidenceMapEdgeSheet,
+  DefectTypeSelector,
+  CrossTypeEvidenceMap,
+  InsufficientDataState,
 } from '@variscout/ui';
 import {
   computeBestSubsets,
@@ -29,6 +33,7 @@ import {
   computeInteractionEffects,
 } from '@variscout/core/stats';
 import type { StatsResult, AnovaResult, DataRow, Finding } from '@variscout/core';
+import type { DefectTransformResult, DefectMapping } from '@variscout/core';
 import type { FilterChipData } from '@variscout/ui';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'map';
@@ -64,6 +69,10 @@ interface MobileDashboardProps {
   findings?: Finding[];
   onEditFinding?: (id: string, text: string) => void;
   onDeleteFinding?: (id: string) => void;
+  // Defect mode Evidence Map integration
+  defectResult?: DefectTransformResult | null;
+  defectMapping?: DefectMapping | null;
+  isDefectMode?: boolean;
 }
 
 const MobileDashboard: React.FC<MobileDashboardProps> = ({
@@ -93,9 +102,13 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   findings,
   onEditFinding,
   onDeleteFinding,
+  defectResult,
+  defectMapping,
+  isDefectMode = false,
 }) => {
   const { t } = useTranslation();
   const [activeView, setActiveView] = useState<ChartView>('ichart');
+  const [defectMapView, setDefectMapView] = useState<DefectMapView>('all');
 
   // ── Factor Intelligence for Evidence Map (requires 2+ factors) ──
   const hasFactorIntelligence = factors.length >= 2 && !!outcome && filteredData.length > 0;
@@ -116,21 +129,38 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
     return computeInteractionEffects(filteredData, outcome!, factors);
   }, [filteredData, outcome, factors, hasFactorIntelligence]);
 
+  // ── Defect Evidence Map integration ──────────────────────────────────────
+  const defectEvidenceMap = useDefectEvidenceMap(
+    isDefectMode ? (defectResult ?? null) : null,
+    isDefectMode ? (defectMapping ?? null) : null,
+    isDefectMode ? bestSubsets : null,
+    isDefectMode ? defectMapView : 'all',
+    factors
+  );
+
+  // Override bestSubsets for Evidence Map when viewing per-type defect analysis
+  const mapBestSubsets =
+    isDefectMode && defectMapView !== 'all' ? defectEvidenceMap.bestSubsets : bestSubsets;
+
   // Evidence Map data — only compute when bestSubsets has a meaningful model
-  const bestModel = bestSubsets?.subsets[0];
+  const bestModel = mapBestSubsets?.subsets[0];
   const showMapTab = !!bestModel && bestModel.rSquaredAdj > 0.05;
 
-  // Reset to I-Chart if map tab disappears while active
+  // In defect mode, also show map tab when viewing cross-type (even without bestSubsets)
+  const showMapTabDefect = isDefectMode && defectMapView === 'cross-type';
+
+  // Reset to I-Chart if map tab disappears while active (legitimate redirect, not cascading)
+
   useEffect(() => {
-    if (!showMapTab && activeView === 'map') {
+    if (!showMapTab && !showMapTabDefect && activeView === 'map') {
       setActiveView('ichart');
     }
-  }, [showMapTab, activeView]);
+  }, [showMapTab, showMapTabDefect, activeView]);
 
   const evidenceMapData = useEvidenceMapData({
-    bestSubsets: showMapTab ? bestSubsets : null,
-    mainEffects: showMapTab ? mainEffects : null,
-    interactions: showMapTab ? interactionEffects : null,
+    bestSubsets: showMapTab || showMapTabDefect ? mapBestSubsets : null,
+    mainEffects: showMapTab || showMapTabDefect ? mainEffects : null,
+    interactions: showMapTab || showMapTabDefect ? interactionEffects : null,
     // Layout positions are computed at a reference size; the responsive wrapper + zoom
     // transform in EvidenceMap handles actual viewport fitting.
     containerSize: { width: 400, height: 350 },
@@ -260,11 +290,11 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
       { key: 'pareto', label: t('chart.type.pareto'), icon: <PieChart size={18} /> },
       { key: 'stats', label: t('view.stats'), icon: <TrendingUp size={18} /> },
     ];
-    if (showMapTab) {
+    if (showMapTab || showMapTabDefect) {
       base.push({ key: 'map', label: 'Map', icon: <GitBranch size={18} /> });
     }
     return base;
-  }, [t, showMapTab]);
+  }, [t, showMapTab, showMapTabDefect]);
 
   const currentIndex = views.findIndex(v => v.key === activeView);
 
@@ -422,17 +452,57 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
                 compact
               />
             )}
-            {activeView === 'map' && showMapTab && (
-              <EvidenceMap
-                outcomeNode={evidenceMapData.outcomeNode}
-                factorNodes={evidenceMapData.factorNodes}
-                relationshipEdges={evidenceMapData.relationshipEdges}
-                equation={evidenceMapData.equation}
-                enableZoom={true}
-                compact={true}
-                onNodeTap={handleNodeTap}
-                onEdgeTap={handleEdgeTap}
-              />
+            {activeView === 'map' && (showMapTab || showMapTabDefect) && (
+              <div className="flex flex-col h-full">
+                {/* Defect type selector (defect mode only) */}
+                {isDefectMode && (
+                  <div className="flex-none px-2 py-1.5 border-b border-edge">
+                    <DefectTypeSelector
+                      selectedView={defectMapView}
+                      onViewChange={setDefectMapView}
+                      defectTypes={defectEvidenceMap.totalTypes}
+                      analyzedTypes={defectEvidenceMap.analyzedTypes}
+                      totalTypeCount={defectEvidenceMap.totalTypes.length}
+                      analyzedTypeCount={defectEvidenceMap.analyzedTypes.length}
+                    />
+                  </div>
+                )}
+
+                <div className="flex-1 min-h-0">
+                  {/* Insufficient data state */}
+                  {isDefectMode &&
+                  defectEvidenceMap.insufficient &&
+                  defectMapView !== 'all' &&
+                  defectMapView !== 'cross-type' ? (
+                    <InsufficientDataState
+                      typeName={String(defectMapView)}
+                      have={defectEvidenceMap.insufficient.have}
+                      need={defectEvidenceMap.insufficient.need}
+                    />
+                  ) : isDefectMode &&
+                    defectMapView === 'cross-type' &&
+                    defectEvidenceMap.crossTypeMatrix ? (
+                    <CrossTypeEvidenceMap
+                      crossTypeMatrix={defectEvidenceMap.crossTypeMatrix}
+                      analyzedCount={defectEvidenceMap.analyzedTypes.length}
+                      totalCount={defectEvidenceMap.totalTypes.length}
+                      containerWidth={400}
+                      containerHeight={350}
+                    />
+                  ) : (
+                    <EvidenceMap
+                      outcomeNode={evidenceMapData.outcomeNode}
+                      factorNodes={evidenceMapData.factorNodes}
+                      relationshipEdges={evidenceMapData.relationshipEdges}
+                      equation={evidenceMapData.equation}
+                      enableZoom={true}
+                      compact={true}
+                      onNodeTap={handleNodeTap}
+                      onEdgeTap={handleEdgeTap}
+                    />
+                  )}
+                </div>
+              </div>
             )}
           </ErrorBoundary>
         </div>

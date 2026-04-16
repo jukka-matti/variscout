@@ -2,7 +2,7 @@
 title: Defect Mode Evidence Map Integration
 audience: [engineer, analyst]
 category: analysis
-status: draft
+status: delivered
 related: [defect, evidence-map, regression, cross-type, investigation]
 ---
 
