@@ -5,9 +5,9 @@ Structured investigation for process improvement — question-driven, evidence-b
 ## Principles ([full constitution](docs/01-vision/constitution.md))
 
 - **Journey-driven variation analysis** — FRAME → SCOUT → INVESTIGATE → IMPROVE; discovery, understanding, verification
-- **Same analysis everywhere, AI optional** — PWA and Azure share identical analytical power; CoScout adds depth
-- **Customer-owned data** — browser processing; when data moves (Teams, OneDrive, AI) it stays in customer's tenant
-- **Question-first investigation** — questions before theories, multiple suspected causes (Turtiainen 2019)
+- **Same analysis everywhere** — identical analytical capability across products; collaboration, persistence, and AI scale with tier (PWA session-only → Azure Standard local+AI → Azure Team cloud+KB)
+- **Customer-owned data** — browser processing; when data moves (Blob Storage sync, AI calls) it stays in customer's Azure tenant
+- **Questions drive investigation** — three entry points: upfront hypotheses (FRAME), evidence-ranked (Factor Intelligence), observation-triggered (Four Lenses); multiple suspected causes (Turtiainen 2019)
 - **Deterministic first, AI enhances** — statistical engine is authority, CoScout adds context
 - **Three evidence types** — data (auto η²), gemba (go-see + photos), expert knowledge
 
