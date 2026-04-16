@@ -417,6 +417,8 @@ export {
   type ReportActivityBreakdownProps,
   ReportInvestigationSummary,
   type ReportInvestigationSummaryProps,
+  ReportDefectKPIGrid,
+  type ReportDefectKPIGridProps,
 } from './components/ReportView';
 
 // Report Evidence Map

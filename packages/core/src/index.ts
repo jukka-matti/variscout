@@ -634,8 +634,9 @@ export type {
   DefectMapping,
   DefectDetection,
   DefectTransformResult,
+  DefectQuestionInput,
 } from './defect';
-export { detectDefectFormat, computeDefectRates } from './defect';
+export { detectDefectFormat, computeDefectRates, generateDefectAnalysisQuestions } from './defect';
 
 // Worker types (for app-level Worker integration)
 export type {

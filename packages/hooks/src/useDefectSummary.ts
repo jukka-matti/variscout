@@ -57,7 +57,8 @@ export function computeDefectSummaryProps(
 
   const rows = defectResult.data;
   const outcomeCol = defectResult.outcomeColumn;
-  const totalDefects = rows.reduce((sum, r) => sum + (Number(r['DefectCount']) || 0), 0);
+  const countCol = 'DefectCount'; // always produced by computeDefectRates() for all data shapes
+  const totalDefects = rows.reduce((sum, r) => sum + (Number(r[countCol]) || 0), 0);
   const avgRate = rows.reduce((sum, r) => sum + (Number(r[outcomeCol]) || 0), 0) / rows.length;
 
   // Top defect type from DefectType column
@@ -71,7 +72,7 @@ export function computeDefectSummaryProps(
     const typeCounts = new Map<string, number>();
     for (const r of rows) {
       const dt = String(r[defectTypeCol] ?? '');
-      const count = Number(r['DefectCount']) || 1;
+      const count = Number(r[countCol]) || 1;
       typeCounts.set(dt, (typeCounts.get(dt) ?? 0) + count);
     }
     const sorted = [...typeCounts.entries()].sort((a, b) => b[1] - a[1]);

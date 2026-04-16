@@ -42,6 +42,7 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setFindings: useProjectStore(s => s.setFindings),
     setQuestions: useProjectStore(s => s.setQuestions),
     setCategories: useProjectStore(s => s.setCategories),
+    setDefectMapping: useProjectStore(s => s.setDefectMapping),
   };
 
   const isMobile = useIsMobile(640);

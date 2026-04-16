@@ -11,7 +11,7 @@ import {
 } from '@variscout/hooks';
 import { useChartScale } from '../../hooks/useChartScale';
 import { IChartWrapperBase } from '@variscout/ui';
-import type { Finding } from '@variscout/core';
+import type { DataRow, Finding } from '@variscout/core';
 
 interface IChartProps {
   parentWidth: number;
@@ -23,13 +23,25 @@ interface IChartProps {
   onCreateObservation?: (anchorX: number, anchorY: number) => void;
   onEditFinding?: (id: string, text: string) => void;
   onDeleteFinding?: (id: string) => void;
+  /** Override filtered data (e.g., defect mode transformed data) */
+  dataOverride?: DataRow[];
+  /** Override outcome column (e.g., defect mode outcome) */
+  outcomeOverride?: string;
 }
 
-const IChart = ({ parentWidth, parentHeight, ...props }: IChartProps) => {
-  const { filteredData } = useFilteredData();
+const IChart = ({
+  parentWidth,
+  parentHeight,
+  dataOverride,
+  outcomeOverride,
+  ...props
+}: IChartProps) => {
+  const { filteredData: storeData } = useFilteredData();
+  const filteredData = dataOverride ?? storeData;
   const { stats, isComputing } = useAnalysisStats();
   const { stagedData, stagedStats } = useStagedAnalysis();
-  const outcome = useProjectStore(s => s.outcome);
+  const storeOutcome = useProjectStore(s => s.outcome);
+  const outcome = outcomeOverride ?? storeOutcome;
   const timeColumn = useProjectStore(s => s.timeColumn);
   const stageColumn = useProjectStore(s => s.stageColumn);
   const specs = useProjectStore(s => s.specs);

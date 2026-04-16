@@ -28,6 +28,8 @@ import {
   useFilteredData,
   useAnalysisStats,
   usePopoutChannel,
+  useDefectTransform,
+  useDefectSummary,
 } from '@variscout/hooks';
 import type { FindingsActionMessage } from '@variscout/hooks';
 import { useProjectStore, useInvestigationStore } from '@variscout/stores';
@@ -120,6 +122,7 @@ function AppMain() {
   const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
   const displayOptions = useProjectStore(s => s.displayOptions);
   const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const defectMapping = useProjectStore(s => s.defectMapping);
 
   // Investigation store (domain — questions)
   const questions = useInvestigationStore(s => s.questions);
@@ -128,6 +131,11 @@ function AppMain() {
   const { filteredData } = useFilteredData();
   const workerApi = useStatsWorker();
   const { stats } = useAnalysisStats(workerApi);
+
+  // Defect mode: compute defect summary for report view
+  const isDefectMode = resolveMode(analysisMode) === 'defect';
+  const defectResult = useDefectTransform(filteredData, defectMapping, analysisMode);
+  const defectSummaryProps = useDefectSummary(isDefectMode ? defectResult : null, defectMapping);
 
   // ── Zustand store setters (replaces useDataActions) ─────────────────────
   const setRawData = useProjectStore(s => s.setRawData);
@@ -783,6 +791,14 @@ function AppMain() {
                 dataFilename={dataFilename}
                 sampleCount={filteredData?.length ?? 0}
                 analysisMode={analysisMode}
+                defectSummary={
+                  defectSummaryProps
+                    ? {
+                        ...defectSummaryProps,
+                        sampleCount: filteredData?.length ?? 0,
+                      }
+                    : null
+                }
               />
             ) : resolveMode(analysisMode) === 'yamazumi' && yamazumiMapping ? (
               <Suspense fallback={null}>

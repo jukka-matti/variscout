@@ -32,6 +32,7 @@ import {
   ReportYamazumiKPIGrid,
   ReportCapabilityKPIGrid,
   ReportPerformanceKPIGrid,
+  ReportDefectKPIGrid,
   ReportActivityBreakdown,
   ReportEvidenceMap,
 } from '@variscout/ui';
@@ -46,6 +47,8 @@ import {
   useIChartData,
   useYamazumiChartData,
   useCapabilityIChartData,
+  useDefectTransform,
+  useDefectSummary,
   copySectionAsHTML,
 } from '@variscout/hooks';
 import type { ReportSectionDescriptor, VerificationChartId, AudienceMode } from '@variscout/hooks';
@@ -247,6 +250,14 @@ const ReportView: React.FC<ReportViewProps> = ({
       passingCount: cpkValues.filter(v => v >= target).length,
     };
   }, [isCapabilityMode, capabilityIChartData, cpkTarget]);
+
+  // ---------------------------------------------------------------------------
+  // Defect mode data
+  // ---------------------------------------------------------------------------
+  const isDefectMode = resolved === 'defect';
+  const defectMapping = useProjectStore(s => s.defectMapping);
+  const defectResult = useDefectTransform(filteredData, defectMapping, analysisMode);
+  const defectSummaryProps = useDefectSummary(isDefectMode ? defectResult : null, defectMapping);
 
   // ---------------------------------------------------------------------------
   // Audience mode state
@@ -711,6 +722,32 @@ const ReportView: React.FC<ReportViewProps> = ({
                   </>
                 );
               })()
+            ) : isDefectMode && defectSummaryProps ? (
+              <>
+                <ReportDefectKPIGrid
+                  totalDefects={defectSummaryProps.totalDefects}
+                  defectRate={defectSummaryProps.defectRate}
+                  rateLabel={defectSummaryProps.rateLabel}
+                  sampleCount={filteredData.length}
+                  topDefectType={defectSummaryProps.topDefectType}
+                  topDefectPercent={defectSummaryProps.topDefectPercent}
+                  paretoCount80={defectSummaryProps.paretoCount80}
+                  totalTypes={defectSummaryProps.totalTypes}
+                  trendDirection={defectSummaryProps.trendDirection}
+                />
+                {!isSummary && (
+                  <ReportChartSnapshot
+                    id="report-snapshot-ichart"
+                    chartType="ichart"
+                    filterLabel="Defect rate trend"
+                    renderChart={() => <IChart />}
+                    onCopyChart={async (containerId, chartName) => {
+                      await handleCopyChart(containerId, chartName);
+                    }}
+                    copyFeedback={copyFeedback}
+                  />
+                )}
+              </>
             ) : (
               stats && (
                 <>

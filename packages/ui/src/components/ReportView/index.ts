@@ -54,3 +54,4 @@ export {
   ReportInvestigationSummary,
   type ReportInvestigationSummaryProps,
 } from './ReportInvestigationSummary';
+export { ReportDefectKPIGrid, type ReportDefectKPIGridProps } from './ReportDefectKPIGrid';

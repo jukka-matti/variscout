@@ -300,6 +300,7 @@ vi.mock('@variscout/ui', () => ({
   },
   ChartInsightChip: () => null,
   NarrativeBar: () => null,
+  DefectSummary: () => <div data-testid="defect-summary">Defect Summary</div>,
   useIsMobile: () => false,
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));
@@ -446,6 +447,8 @@ vi.mock('@variscout/hooks', () => ({
     activeProjection: null,
   }),
   useProbabilityPlotData: () => [],
+  useDefectTransform: () => null,
+  useDefectSummary: () => null,
 }));
 
 // Improvement store mock removed — projectedCpkMap is now passed as a prop

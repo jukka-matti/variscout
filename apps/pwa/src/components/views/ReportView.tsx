@@ -10,10 +10,12 @@ import {
   ReportViewBase,
   ReportSection,
   ReportKPIGrid,
+  ReportDefectKPIGrid,
   ReportQuestionSummary,
   ReportImprovementSummary,
   ReportCpkLearningLoop,
 } from '@variscout/ui';
+import type { ReportDefectKPIGridProps } from '@variscout/ui';
 import { useReportSections, useScrollSpy, copySectionAsHTML } from '@variscout/hooks';
 import type { AudienceMode } from '@variscout/hooks';
 import type { Finding, Question, SpecLimits, StatsResult, AnalysisMode } from '@variscout/core';
@@ -31,6 +33,8 @@ interface ReportViewProps {
   dataFilename: string | null;
   sampleCount: number;
   analysisMode: AnalysisMode | null;
+  /** Defect mode KPI data — when provided, renders defect-specific KPIs */
+  defectSummary?: ReportDefectKPIGridProps | null;
 }
 
 const ReportView: React.FC<ReportViewProps> = ({
@@ -43,6 +47,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   dataFilename,
   sampleCount,
   analysisMode,
+  defectSummary,
 }) => {
   const resolved = resolveMode(analysisMode ?? 'standard');
   const strategy = getStrategy(resolved);
@@ -104,8 +109,8 @@ const ReportView: React.FC<ReportViewProps> = ({
       const sectionId = section.id;
       const ref = sectionRefs[sectionId];
 
-      // Current condition: KPI grid
-      if (sectionId === 'current-condition' && stats) {
+      // Current condition: KPI grid (defect mode uses defect-specific KPIs)
+      if (sectionId === 'current-condition' && (stats || defectSummary)) {
         return (
           <ReportSection
             key={sectionId}
@@ -116,7 +121,11 @@ const ReportView: React.FC<ReportViewProps> = ({
             workspace={section.workspace}
             sectionRef={ref}
           >
-            <ReportKPIGrid stats={stats} specs={specs} sampleCount={sampleCount} />
+            {defectSummary ? (
+              <ReportDefectKPIGrid {...defectSummary} />
+            ) : stats ? (
+              <ReportKPIGrid stats={stats} specs={specs} sampleCount={sampleCount} />
+            ) : null}
           </ReportSection>
         );
       }

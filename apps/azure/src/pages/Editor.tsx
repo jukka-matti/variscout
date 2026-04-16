@@ -40,7 +40,7 @@ import {
   useTranslation,
   useHMWPrompts,
 } from '@variscout/hooks';
-import { hasTeamFeatures, downloadCSV, computeBestSubsets } from '@variscout/core';
+import { hasTeamFeatures, downloadCSV, computeBestSubsets, getColumnNames } from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
@@ -178,6 +178,7 @@ export const Editor: React.FC<EditorProps> = ({
   const setColumnAliases = useProjectStore(s => s.setColumnAliases);
   const setAnalysisMode = useProjectStore(s => s.setAnalysisMode);
   const setYamazumiMapping = useProjectStore(s => s.setYamazumiMapping);
+  const setDefectMapping = useProjectStore(s => s.setDefectMapping);
   const setFilters = useProjectStore(s => s.setFilters);
   const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
   const setViewState = useProjectStore(s => s.setViewState);
@@ -227,6 +228,9 @@ export const Editor: React.FC<EditorProps> = ({
     },
     onYamazumiDetected: result => {
       dataFlowRef.current?.handleYamazumiDetectedFromIngestion(result);
+    },
+    onDefectDetected: result => {
+      dataFlowRef.current?.handleDefectDetectedFromIngestion(result);
     },
     getRawData: () => rawData,
     getOutcome: () => outcome,
@@ -760,7 +764,8 @@ export const Editor: React.FC<EditorProps> = ({
       (factors.length > 0 || rawData.length >= 10) &&
       !capabilitySuggestionDismissed &&
       !showCapabilitySuggestion &&
-      !dataFlow.yamazumiDetection
+      !dataFlow.yamazumiDetection &&
+      !dataFlow.defectDetection
     ) {
       setShowCapabilitySuggestion(true);
     }
@@ -771,6 +776,7 @@ export const Editor: React.FC<EditorProps> = ({
     capabilitySuggestionDismissed,
     showCapabilitySuggestion,
     dataFlow.yamazumiDetection,
+    dataFlow.defectDetection,
   ]);
 
   // Show verification prompt when new data is uploaded while findings are improving
@@ -1397,6 +1403,14 @@ export const Editor: React.FC<EditorProps> = ({
           dataFlow.dismissYamazumiDetection();
         }}
         onDeclineYamazumi={() => dataFlow.dismissYamazumiDetection()}
+        defectDetection={dataFlow.defectDetection}
+        columnNames={getColumnNames(rawData)}
+        onEnableDefect={mapping => {
+          setAnalysisMode('defect');
+          setDefectMapping(mapping);
+          dataFlow.dismissDefectDetection();
+        }}
+        onDeclineDefect={() => dataFlow.dismissDefectDetection()}
         showCapabilitySuggestion={showCapabilitySuggestion}
         onStartCapability={config => {
           setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });

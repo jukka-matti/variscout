@@ -5,6 +5,7 @@ import {
   validateData,
   detectWideFormat,
   detectYamazumiFormat,
+  detectDefectFormat,
   augmentWithTimeColumns,
   stackColumns,
 } from '@variscout/core';
@@ -14,6 +15,7 @@ import type {
   DataQualityReport,
   TimeExtractionConfig,
   YamazumiDetection,
+  DefectDetection,
   StackConfig,
 } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
@@ -266,6 +268,10 @@ export interface UseEditorDataFlowReturn {
   yamazumiDetection: YamazumiDetection | null;
   dismissYamazumiDetection: () => void;
   handleYamazumiDetectedFromIngestion: (result: YamazumiDetection) => void;
+  // Defect detection
+  defectDetection: DefectDetection | null;
+  dismissDefectDetection: () => void;
+  handleDefectDetectedFromIngestion: (result: DefectDetection) => void;
 }
 
 // ── Hook implementation ────────────────────────────────────────────────────
@@ -322,6 +328,14 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   const dismissYamazumiDetection = useCallback(() => setYamazumiDetection(null), []);
   const handleYamazumiDetectedFromIngestion = useCallback(
     (result: YamazumiDetection) => setYamazumiDetection(result),
+    []
+  );
+
+  // Defect detection state
+  const [defectDetection, setDefectDetection] = useState<DefectDetection | null>(null);
+  const dismissDefectDetection = useCallback(() => setDefectDetection(null), []);
+  const handleDefectDetectedFromIngestion = useCallback(
+    (result: DefectDetection) => setDefectDetection(result),
     []
   );
 
@@ -418,11 +432,17 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         if (yamazumiResult.isYamazumiFormat) {
           setYamazumiDetection(yamazumiResult);
         } else {
-          const wideFormat = detectWideFormat(data);
-          if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
-            setMeasureColumns(wideFormat.channels.map(c => c.id));
-            setMeasureLabel('Channel');
-            setAnalysisMode('performance');
+          // Check for defect format before falling back to wide/standard
+          const defectResult = detectDefectFormat(data, detected.columnAnalysis);
+          if (defectResult.isDefectFormat) {
+            setDefectDetection(defectResult);
+          } else {
+            const wideFormat = detectWideFormat(data);
+            if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
+              setMeasureColumns(wideFormat.channels.map(c => c.id));
+              setMeasureLabel('Channel');
+              setAnalysisMode('performance');
+            }
           }
         }
 
@@ -712,5 +732,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     yamazumiDetection,
     dismissYamazumiDetection,
     handleYamazumiDetectedFromIngestion,
+    // Defect detection
+    defectDetection,
+    dismissDefectDetection,
+    handleDefectDetectedFromIngestion,
   };
 }

@@ -14,6 +14,8 @@ import type { YamazumiBarData } from '@variscout/core/yamazumi';
 import { generateYamazumiQuestions } from '@variscout/core/yamazumi';
 import type { ChannelInput } from '@variscout/core/stats';
 import { generateChannelRankingQuestions } from '@variscout/core/stats';
+import type { DefectQuestionInput } from '@variscout/core/defect';
+import { generateDefectAnalysisQuestions } from '@variscout/core/defect';
 import type { UseQuestionsReturn } from './useQuestions';
 
 export interface UseQuestionGenerationOptions {
@@ -38,6 +40,8 @@ export interface UseQuestionGenerationOptions {
   taktTime?: number;
   /** Channel capability data — when mode is 'performance' and this is provided, routes to channel ranking generator */
   channelData?: ChannelInput[];
+  /** Defect data — when mode is 'defect' and this is provided, routes to defect question generator */
+  defectData?: DefectQuestionInput;
 }
 
 export interface UseQuestionGenerationReturn {
@@ -70,6 +74,7 @@ export function useQuestionGeneration({
   yamazumiData,
   taktTime,
   channelData,
+  defectData,
 }: UseQuestionGenerationOptions): UseQuestionGenerationReturn {
   const hasFactorIntelligence =
     enabled && factors.length >= 2 && !!outcome && filteredData.length > 0;
@@ -108,7 +113,14 @@ export function useQuestionGeneration({
     }
 
     // Route question generation based on analysis mode
-    const generated = generateForMode(mode, bestSubsets, channelData, yamazumiData, taktTime);
+    const generated = generateForMode(
+      mode,
+      bestSubsets,
+      channelData,
+      yamazumiData,
+      taktTime,
+      defectData
+    );
     if (generated.length > 0) {
       generateInitialQuestions(generated);
     }
@@ -124,6 +136,7 @@ export function useQuestionGeneration({
     yamazumiData,
     taktTime,
     channelData,
+    defectData,
     allQuestions,
     generateInitialQuestions,
   ]);
@@ -243,13 +256,17 @@ function generateForMode(
   bestSubsets: BestSubsetsResult | null,
   channelData: ChannelInput[] | undefined,
   yamazumiData: YamazumiBarData[] | undefined,
-  taktTime: number | undefined
+  taktTime: number | undefined,
+  defectData: DefectQuestionInput | undefined
 ): GeneratedQuestion[] {
   if (mode === 'performance' && channelData?.length) {
     return generateChannelRankingQuestions(channelData);
   }
   if (mode === 'yamazumi' && yamazumiData?.length) {
     return generateYamazumiQuestions(yamazumiData, taktTime);
+  }
+  if (mode === 'defect' && defectData?.transformedData.length) {
+    return generateDefectAnalysisQuestions(defectData, bestSubsets);
   }
   // Default: Best Subsets ranking (standard, capability, or fallback when mode data unavailable).
   // bestSubsets is guaranteed non-null by the useEffect guard in the calling hook.

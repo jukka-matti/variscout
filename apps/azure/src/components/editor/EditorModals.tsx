@@ -1,12 +1,28 @@
 import React from 'react';
-import { YamazumiDetectedModal, CapabilitySuggestionModal } from '@variscout/ui';
-import type { YamazumiDetection, SubgroupConfig, SpecLimits, StatsResult } from '@variscout/core';
+import {
+  YamazumiDetectedModal,
+  CapabilitySuggestionModal,
+  DefectDetectedModal,
+} from '@variscout/ui';
+import type {
+  YamazumiDetection,
+  DefectDetection,
+  DefectMapping,
+  SubgroupConfig,
+  SpecLimits,
+  StatsResult,
+} from '@variscout/core';
 
 interface EditorModalsProps {
   // Yamazumi detection
   yamazumiDetection: YamazumiDetection | null;
   onEnableYamazumi: (taktTime: number | undefined) => void;
   onDeclineYamazumi: () => void;
+  // Defect detection
+  defectDetection: DefectDetection | null;
+  columnNames: string[];
+  onEnableDefect: (mapping: DefectMapping) => void;
+  onDeclineDefect: () => void;
   // Capability suggestion
   showCapabilitySuggestion: boolean;
   onStartCapability: (config: SubgroupConfig) => void;
@@ -27,6 +43,10 @@ export const EditorModals: React.FC<EditorModalsProps> = ({
   yamazumiDetection,
   onEnableYamazumi,
   onDeclineYamazumi,
+  defectDetection,
+  columnNames,
+  onEnableDefect,
+  onDeclineDefect,
   showCapabilitySuggestion,
   onStartCapability,
   onStartStandard,
@@ -47,6 +67,14 @@ export const EditorModals: React.FC<EditorModalsProps> = ({
           detection={yamazumiDetection}
           onEnable={onEnableYamazumi}
           onDecline={onDeclineYamazumi}
+        />
+      )}
+      {defectDetection && (
+        <DefectDetectedModal
+          detection={defectDetection}
+          columnNames={columnNames}
+          onEnable={onEnableDefect}
+          onDismiss={onDeclineDefect}
         />
       )}
       {showCapabilitySuggestion && (

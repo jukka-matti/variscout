@@ -20,7 +20,13 @@ import { createFactorFinding } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
 import type { UseQuestionsReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
-import { useQuestionGeneration, useJourneyPhase, useFilteredData } from '@variscout/hooks';
+import {
+  useQuestionGeneration,
+  useJourneyPhase,
+  useFilteredData,
+  useDefectTransform,
+} from '@variscout/hooks';
+import type { DefectQuestionInput } from '@variscout/core/defect';
 import { isAIAvailable } from '../../services/aiService';
 import { useProjectStore, useSessionStore } from '@variscout/stores';
 import { usePanelsStore } from '../../features/panels/panelsStore';
@@ -106,17 +112,34 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
   const analysisMode = useProjectStore(s => s.analysisMode);
+  const defectMapping = useProjectStore(s => s.defectMapping);
   const aiEnabled = useSessionStore(s => s.aiEnabled);
   const { filteredData } = useFilteredData();
 
+  // Defect mode transform for question generation
+  const defectResult = useDefectTransform(filteredData, defectMapping, analysisMode ?? 'standard');
+
   // ── Question generation (shared across PISection + DashboardSection) ────
   const resolved = resolveMode(analysisMode ?? 'standard');
+
+  // Build defect data input for question generator when in defect mode
+  const defectData: DefectQuestionInput | undefined =
+    resolved === 'defect' && defectResult
+      ? {
+          transformedData: defectResult.data,
+          outcomeColumn: defectResult.outcomeColumn,
+          defectTypeColumn: defectMapping?.defectTypeColumn,
+          factors: defectResult.factors,
+        }
+      : undefined;
+
   const { bestSubsets, handleQuestionClick, factorRequest } = useQuestionGeneration({
     filteredData: filteredData ?? [],
     outcome,
     factors,
     questionsState,
     mode: resolved,
+    defectData,
   });
 
   // ── Journey phase badge ─────────────────────────────────────────────────

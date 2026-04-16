@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -11,7 +11,13 @@ import YamazumiDashboard from './YamazumiDashboard';
 import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
 import { useProjectStore } from '@variscout/stores';
-import { useFilteredData, useAnalysisStats, useStagedAnalysis } from '@variscout/hooks';
+import {
+  useFilteredData,
+  useAnalysisStats,
+  useStagedAnalysis,
+  useDefectTransform,
+  useDefectSummary,
+} from '@variscout/hooks';
 import { resolveMode } from '@variscout/core/strategy';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { useDashboardCharts } from '../hooks';
@@ -28,6 +34,7 @@ import {
   FocusedViewOverlay,
   CapabilityMetricToggle,
   SubgroupConfigPopover,
+  DefectSummary,
   useIsMobile,
   useGlossary,
   BREAKPOINTS,
@@ -188,11 +195,32 @@ const Dashboard = ({
   const setCpkTarget = useProjectStore(s => s.setCpkTarget);
   const selectedPoints = useProjectStore(s => s.selectedPoints);
   const clearSelection = useProjectStore(s => s.clearSelection);
+  const defectMapping = useProjectStore(s => s.defectMapping);
   const { filteredData } = useFilteredData();
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const { getTerm } = useGlossary();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
+
+  // Defect mode: transform filtered data into aggregated defect rates
+  const isDefectMode = resolveMode(analysisMode) === 'defect';
+  const defectResult = useDefectTransform(filteredData, defectMapping, analysisMode);
+
+  // When in defect mode, override data + outcome + factors from the transform result
+  const effectiveData = isDefectMode && defectResult ? defectResult.data : filteredData;
+  const effectiveOutcome = isDefectMode && defectResult ? defectResult.outcomeColumn : outcome;
+  const effectiveFactors = isDefectMode && defectResult ? defectResult.factors : factors;
+
+  // In defect mode + value aggregation, use cost/duration column for Pareto value mode
+  const defectParetoOutcome = (() => {
+    if (!isDefectMode || !defectResult || paretoAggregation !== 'value') return undefined;
+    if (defectResult.costColumn) return defectResult.costColumn;
+    if (defectResult.durationColumn) return defectResult.durationColumn;
+    return undefined;
+  })();
+
+  // Compute DefectSummary props from transformed data
+  const defectSummaryProps = useDefectSummary(isDefectMode ? defectResult : null, defectMapping);
 
   const [activeTab, setActiveTabRaw] = useState<DashboardTab>(
     initialViewState?.activeTab ?? 'analysis'
@@ -289,11 +317,34 @@ const Dashboard = ({
 
   // Apply external factor switch (from question click)
   useEffect(() => {
-    if (requestedFactor && factors.includes(requestedFactor.factor)) {
+    if (requestedFactor && effectiveFactors.includes(requestedFactor.factor)) {
       setBoxplotFactor(requestedFactor.factor);
       setParetoFactor(requestedFactor.factor);
     }
-  }, [requestedFactor, factors, setBoxplotFactor, setParetoFactor]);
+  }, [requestedFactor, effectiveFactors, setBoxplotFactor, setParetoFactor]);
+
+  // Defect mode drill-down: auto-switch Boxplot/Pareto to next best factor
+  // When user filters to a specific defect type, grouping by defect type is redundant.
+  const prevDefectFilterRef = useRef(false);
+  useEffect(() => {
+    if (!isDefectMode || !defectMapping?.defectTypeColumn) {
+      prevDefectFilterRef.current = false;
+      return;
+    }
+    const defectCol = defectMapping.defectTypeColumn;
+    const hasDefectFilter = defectCol in (filters ?? {});
+    const wasFiltered = prevDefectFilterRef.current;
+    prevDefectFilterRef.current = hasDefectFilter;
+
+    // Only auto-switch on entering the drill (filter added), not on removal
+    if (hasDefectFilter && !wasFiltered) {
+      const nextFactor = effectiveFactors.find(f => f !== defectCol);
+      if (nextFactor) {
+        setBoxplotFactor(nextFactor);
+        setParetoFactor(nextFactor);
+      }
+    }
+  }, [isDefectMode, defectMapping, filters, effectiveFactors, setBoxplotFactor, setParetoFactor]);
 
   // Restore persisted focused chart (one-time after hook initializes)
   useEffect(() => {
@@ -367,11 +418,11 @@ const Dashboard = ({
 
   // Histogram data for standalone chart cards (grid mode)
   const histogramData = useMemo(() => {
-    if (!outcome || !filteredData || filteredData.length === 0) return [];
-    return filteredData
-      .map((d: Record<string, unknown>) => Number(d[outcome]))
+    if (!effectiveOutcome || !effectiveData || effectiveData.length === 0) return [];
+    return effectiveData
+      .map((d: Record<string, unknown>) => Number(d[effectiveOutcome]))
       .filter((v: number) => !isNaN(v));
-  }, [filteredData, outcome]);
+  }, [effectiveData, effectiveOutcome]);
 
   // Probability plot series — linked to boxplot factor for multi-series grouping
   const probabilitySeries = useProbabilityPlotData({
@@ -421,9 +472,12 @@ const Dashboard = ({
 
   // Compute η² per factor for insight chips (replaces deleted useVariationTracking)
   const factorVariations = useMemo(() => {
-    if (!outcome || !filteredData?.length || !factors?.length) return new Map<string, number>();
-    return new Map(factors.map(f => [f, getEtaSquared(filteredData, f, outcome) * 100]));
-  }, [filteredData, factors, outcome]);
+    if (!effectiveOutcome || !effectiveData?.length || !effectiveFactors?.length)
+      return new Map<string, number>();
+    return new Map(
+      effectiveFactors.map(f => [f, getEtaSquared(effectiveData, f, effectiveOutcome) * 100])
+    );
+  }, [effectiveData, effectiveFactors, effectiveOutcome]);
 
   // --- Chart Insight Chips + Capability mode (shared hook) ---
   const {
@@ -435,8 +489,8 @@ const Dashboard = ({
     isCapabilityMode,
   } = useDashboardInsights({
     stats,
-    filteredData,
-    outcome,
+    filteredData: effectiveData,
+    outcome: effectiveOutcome,
     specs,
     cpkTarget,
     factorVariations,
@@ -773,6 +827,10 @@ const Dashboard = ({
                       }
                       onEditFinding={onEditFinding}
                       onDeleteFinding={onDeleteFinding}
+                      dataOverride={isDefectMode && defectResult ? effectiveData : undefined}
+                      outcomeOverride={
+                        isDefectMode && defectResult ? (effectiveOutcome ?? undefined) : undefined
+                      }
                     />
                   </ErrorBoundary>
                 }
@@ -788,6 +846,10 @@ const Dashboard = ({
                         onEditFinding={onEditFinding}
                         onDeleteFinding={onDeleteFinding}
                         isComputing={isComputing}
+                        dataOverride={isDefectMode && defectResult ? effectiveData : undefined}
+                        outcomeOverride={
+                          isDefectMode && defectResult ? (effectiveOutcome ?? undefined) : undefined
+                        }
                       />
                     )}
                   </ErrorBoundary>
@@ -802,7 +864,7 @@ const Dashboard = ({
                         onToggleComparison={() => setShowParetoComparison(!showParetoComparison)}
                         onHide={() => setShowParetoPanel(false)}
                         onUploadPareto={onManageFactors}
-                        availableFactors={factors}
+                        availableFactors={effectiveFactors}
                         aggregation={paretoAggregation}
                         onToggleAggregation={() =>
                           setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
@@ -813,6 +875,13 @@ const Dashboard = ({
                         onEditFinding={onEditFinding}
                         onDeleteFinding={onDeleteFinding}
                         isComputing={isComputing}
+                        dataOverride={isDefectMode && defectResult ? effectiveData : undefined}
+                        outcomeOverride={
+                          isDefectMode && defectResult
+                            ? (defectParetoOutcome ?? effectiveOutcome ?? undefined)
+                            : undefined
+                        }
+                        onFactorSwitch={isDefectMode ? setParetoFactor : undefined}
                       />
                     )}
                   </ErrorBoundary>
@@ -820,7 +889,9 @@ const Dashboard = ({
                 /* Stats panel removed from grid — key stats now in ProcessHealthBar toolbar.
                    Stats sidebar (left) provides detailed view when toggled. */
                 renderVerificationCard={
-                  histogramData.length > 0 && stats ? (
+                  isDefectMode && defectSummaryProps ? (
+                    <DefectSummary {...defectSummaryProps} />
+                  ) : histogramData.length > 0 && stats ? (
                     <VerificationCard
                       renderHistogram={
                         <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />

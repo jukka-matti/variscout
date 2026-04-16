@@ -10,9 +10,11 @@ import {
   useQuestionGeneration,
   useProblemStatement,
   useHubComputations,
+  useDefectTransform,
   type UseFindingsReturn,
   type UseQuestionsReturn,
 } from '@variscout/hooks';
+import type { DefectQuestionInput } from '@variscout/core/defect';
 import type { FindingStatus, Question } from '@variscout/core';
 import {
   hasTeamFeatures,
@@ -116,6 +118,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const processContext = useProjectStore(s => s.processContext);
   const setProcessContext = useProjectStore(s => s.setProcessContext);
   const analysisMode = useProjectStore(s => s.analysisMode);
+  const defectMapping = useProjectStore(s => s.defectMapping);
   const cpkTarget = useProjectStore(s => s.cpkTarget);
   const { filteredData } = useFilteredData();
   const { stats } = useAnalysisStats();
@@ -132,9 +135,24 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     [questionsState.questions, findingsState.findings]
   );
 
+  // Defect mode transform for question generation
+  const defectResult = useDefectTransform(filteredData, defectMapping, analysisMode ?? 'standard');
+
   // Question generation (ADR-053) — computed from data context
   const resolved = resolveMode(analysisMode ?? 'standard');
   const strategy = getStrategy(resolved);
+
+  // Build defect data input for question generator when in defect mode
+  const defectData: DefectQuestionInput | undefined =
+    resolved === 'defect' && defectResult
+      ? {
+          transformedData: defectResult.data,
+          outcomeColumn: defectResult.outcomeColumn,
+          defectTypeColumn: defectMapping?.defectTypeColumn,
+          factors: defectResult.factors,
+        }
+      : undefined;
+
   const {
     questions: factorIntelQuestions,
     handleQuestionClick,
@@ -145,6 +163,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     factors,
     questionsState,
     mode: resolved,
+    defectData,
   });
 
   // Sync factor type metadata to aiStore for CoScout context enrichment

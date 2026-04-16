@@ -409,12 +409,13 @@ Stored in `projectStore` alongside `yamazumiMapping` and `measureColumns`.
 - DefectSummary panel (full: trend via split-half, top factor, 80/20)
 - Boxplot auto-suggest after drill-down (switches to first non-defect-type factor)
 
-### Phase 3 — Investigation Depth
+### Phase 3 — Investigation Depth + Azure (delivered)
 
-- Defect-specific question templates
-- Evidence Map integration (defect type nodes)
-- Report template for defect mode
-- CoScout deep coaching (containment vs prevention, escape rate)
+- Defect-specific question templates (type dominance, factor variation, temporal stability)
+- Report template (ReportDefectKPIGrid with defect-specific KPIs)
+- Azure app full integration (detection, modal, dashboard, question generation, reports)
+- CoScout deep coaching already delivered in Phase 1 (containment vs prevention in improve phase)
+- Evidence Map integration deferred (defect types don't map to the factor-based node model; requires design)
 
 ## Verification
 

@@ -7,7 +7,7 @@ import { useProjectStore } from '@variscout/stores';
 import { useFilteredData } from '@variscout/hooks';
 import { ParetoChartWrapperBase } from '@variscout/ui';
 import type { HighlightColor } from '@variscout/hooks';
-import type { Finding } from '@variscout/core';
+import type { DataRow, Finding } from '@variscout/core';
 
 interface ParetoChartProps {
   factor: string;
@@ -28,17 +28,28 @@ interface ParetoChartProps {
   onDeleteFinding?: (id: string) => void;
   /** Passed from parent Dashboard to avoid duplicate Worker dispatch per chart wrapper */
   isComputing?: boolean;
+  /** Override filtered data (e.g., defect mode transformed data) */
+  dataOverride?: DataRow[];
+  /** Override outcome column (e.g., defect mode outcome) */
+  outcomeOverride?: string;
+  /** Factor switch callback (e.g., for defect mode pareto factor switching) */
+  onFactorSwitch?: (factor: string) => void;
 }
 
 const ParetoChart = ({
   parentWidth,
   parentHeight,
   isComputing = false,
+  dataOverride,
+  outcomeOverride,
+  onFactorSwitch,
   ...props
 }: ParetoChartProps) => {
   const rawData = useProjectStore(s => s.rawData);
-  const { filteredData } = useFilteredData();
-  const outcome = useProjectStore(s => s.outcome);
+  const { filteredData: storeData } = useFilteredData();
+  const filteredData = dataOverride ?? storeData;
+  const storeOutcome = useProjectStore(s => s.outcome);
+  const outcome = outcomeOverride ?? storeOutcome;
   const filters = useProjectStore(s => s.filters);
   const setFilters = useProjectStore(s => s.setFilters);
   const columnAliases = useProjectStore(s => s.columnAliases);
@@ -61,6 +72,7 @@ const ParetoChart = ({
         paretoMode={paretoMode}
         separateParetoData={separateParetoData}
         showBranding={false}
+        onFactorSwitch={onFactorSwitch}
         {...props}
       />
       {isComputing && (
