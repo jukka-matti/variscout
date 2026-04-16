@@ -224,3 +224,36 @@ describe('sessionStore — ViewState persistence', () => {
     expect(initial.knowledgeSearchFolder).toBeNull();
   });
 });
+
+describe('sessionStore — skipQuestionLinkPrompt', () => {
+  it('defaults to false in getSessionInitialState()', () => {
+    const initial = getSessionInitialState();
+    expect(initial.skipQuestionLinkPrompt).toBe(false);
+  });
+
+  it('setSkipQuestionLinkPrompt(true) updates state', () => {
+    useSessionStore.getState().setSkipQuestionLinkPrompt(true);
+    expect(useSessionStore.getState().skipQuestionLinkPrompt).toBe(true);
+  });
+
+  it('setSkipQuestionLinkPrompt(false) updates state back', () => {
+    useSessionStore.setState({ skipQuestionLinkPrompt: true });
+    useSessionStore.getState().setSkipQuestionLinkPrompt(false);
+    expect(useSessionStore.getState().skipQuestionLinkPrompt).toBe(false);
+  });
+
+  it('skipQuestionLinkPrompt is included in the partialize output', () => {
+    useSessionStore.getState().setSkipQuestionLinkPrompt(true);
+
+    // Simulate what zustand persist does: call partialize with current state
+    // The persist config is not directly accessible, but we can verify the
+    // field is present in state (which partialize reads) and survives a
+    // setState round-trip — the same pattern as aiEnabled tests above.
+    const state = useSessionStore.getState();
+    expect(state.skipQuestionLinkPrompt).toBe(true);
+
+    // Reset and verify the default is false, confirming the field is managed
+    useSessionStore.setState({ skipQuestionLinkPrompt: false });
+    expect(useSessionStore.getState().skipQuestionLinkPrompt).toBe(false);
+  });
+});

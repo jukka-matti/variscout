@@ -55,6 +55,12 @@ export interface SessionState {
   aiPreferences: Record<string, boolean>;
   /** SharePoint/OneDrive folder path for Knowledge Base search */
   knowledgeSearchFolder: string | null;
+  /**
+   * Whether to suppress the 'link this finding to a question?' prompt after
+   * Finding creation. One-time opt-out per session-store-lifetime; reset by
+   * clearing site data.
+   */
+  skipQuestionLinkPrompt: boolean;
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -88,6 +94,7 @@ export interface SessionActions {
   setAIEnabled: (enabled: boolean) => void;
   setAIPreferences: (prefs: Record<string, boolean>) => void;
   setKnowledgeSearchFolder: (folder: string | null) => void;
+  setSkipQuestionLinkPrompt: (value: boolean) => void;
 
   // Persistence
   initFromViewState: (
@@ -117,6 +124,7 @@ export const getSessionInitialState = (): SessionState => ({
   aiEnabled: true,
   aiPreferences: {},
   knowledgeSearchFolder: null,
+  skipQuestionLinkPrompt: false,
 });
 
 // ── Store ────────────────────────────────────────────────────────────────────
@@ -164,6 +172,7 @@ export const useSessionStore = create<SessionStore>()(
       setAIEnabled: enabled => set({ aiEnabled: enabled }),
       setAIPreferences: prefs => set({ aiPreferences: prefs }),
       setKnowledgeSearchFolder: folder => set({ knowledgeSearchFolder: folder }),
+      setSkipQuestionLinkPrompt: value => set({ skipQuestionLinkPrompt: value }),
 
       // Persistence
       initFromViewState: viewState => {
@@ -200,6 +209,7 @@ export const useSessionStore = create<SessionStore>()(
         aiEnabled: state.aiEnabled,
         aiPreferences: state.aiPreferences,
         knowledgeSearchFolder: state.knowledgeSearchFolder,
+        skipQuestionLinkPrompt: state.skipQuestionLinkPrompt,
       }),
     }
   )
