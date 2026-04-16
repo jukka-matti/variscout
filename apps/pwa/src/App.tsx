@@ -538,6 +538,25 @@ function AppMain() {
     popupRef.current = openFindingsPopout(findingsState.findings, columnAliases, drillPath);
   }, [findingsState.findings, columnAliases, drillPath]);
 
+  // Question-link prompt handlers — stable callbacks so QuestionLinkPrompt never
+  // re-renders due to inline arrow functions changing identity each render.
+  // NOTE: QuestionLinkPrompt already calls onClose() after onLink() and after
+  // onSkip()/onSkipForever(), so these handlers must NOT also close the prompt.
+  const handleQuestionLink = useCallback(
+    (questionId: string) => {
+      linkFindingToQuestion(questionLinkFindingId, questionId);
+    },
+    [questionLinkFindingId, linkFindingToQuestion]
+  );
+
+  const handleQuestionSkipForever = useCallback(() => {
+    setSkipQuestionLinkPrompt(true);
+  }, [setSkipQuestionLinkPrompt]);
+
+  const handleQuestionPromptClose = useCallback(() => {
+    setQuestionLinkPromptOpen(false);
+  }, []);
+
   // Findings popout: sync data when findings/drillPath change
   useEffect(() => {
     if (!popupRef.current || popupRef.current.closed) return;
@@ -1013,16 +1032,10 @@ function AppMain() {
         isOpen={questionLinkPromptOpen}
         findingId={questionLinkFindingId}
         questions={factorIntelQuestions}
-        onLink={questionId => {
-          linkFindingToQuestion(questionLinkFindingId, questionId);
-          setQuestionLinkPromptOpen(false);
-        }}
-        onSkip={() => setQuestionLinkPromptOpen(false)}
-        onSkipForever={() => {
-          setSkipQuestionLinkPrompt(true);
-          setQuestionLinkPromptOpen(false);
-        }}
-        onClose={() => setQuestionLinkPromptOpen(false)}
+        onLink={handleQuestionLink}
+        onSkip={handleQuestionPromptClose}
+        onSkipForever={handleQuestionSkipForever}
+        onClose={handleQuestionPromptClose}
       />
 
       {/* Mobile Tab Bar (phone only) */}
