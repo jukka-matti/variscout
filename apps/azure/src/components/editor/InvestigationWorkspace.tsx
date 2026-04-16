@@ -419,6 +419,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
   const handleMapCreateFinding = useCallback(
     (factor: string) => {
+      if (mapPromptOpen) return; // prevent re-trigger while prompt is open
       const filters = useProjectStore.getState().filters;
       const newFinding = findingsState.addFinding(
         `Observation about ${factor}`,
@@ -430,7 +431,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         setMapPromptOpen(true);
       }
     },
-    [findingsState, skipQuestionLinkPrompt]
+    [findingsState, skipQuestionLinkPrompt, mapPromptOpen]
   );
 
   // Map finding question-link prompt handlers
