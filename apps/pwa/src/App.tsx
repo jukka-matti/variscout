@@ -16,6 +16,7 @@ import {
   BREAKPOINTS,
   QuestionsTabView,
   JournalTabView,
+  QuestionLinkPrompt,
 } from '@variscout/ui';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
@@ -32,7 +33,7 @@ import {
   useDefectSummary,
 } from '@variscout/hooks';
 import type { FindingsActionMessage } from '@variscout/hooks';
-import { useProjectStore, useInvestigationStore } from '@variscout/stores';
+import { useProjectStore, useInvestigationStore, useSessionStore } from '@variscout/stores';
 import AppHeader from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
@@ -126,6 +127,11 @@ function AppMain() {
 
   // Investigation store (domain — questions)
   const questions = useInvestigationStore(s => s.questions);
+  const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
+
+  // Session store — question-link prompt opt-out flag
+  const skipQuestionLinkPrompt = useSessionStore(s => s.skipQuestionLinkPrompt);
+  const setSkipQuestionLinkPrompt = useSessionStore(s => s.setSkipQuestionLinkPrompt);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();
@@ -301,6 +307,10 @@ function AppMain() {
   // Capability suggestion modal state
   const [showCapabilitySuggestion, setShowCapabilitySuggestion] = useState(false);
   const [capabilitySuggestionDismissed, setCapabilitySuggestionDismissed] = useState(false);
+
+  // Question-link prompt state (shown after chart observation creates a Finding)
+  const [questionLinkPromptOpen, setQuestionLinkPromptOpen] = useState(false);
+  const [questionLinkFindingId, setQuestionLinkFindingId] = useState<string>('');
 
   // Embed mode state
   const [isEmbedMode, setIsEmbedMode] = useState(false);
@@ -488,8 +498,22 @@ function AppMain() {
       const newFinding = findingsState.addFinding('', context, source);
       panels.setIsFindingsPanelOpen(true);
       setHighlightedFindingId(newFinding.id);
+      // Show question-link prompt unless user opted out
+      if (!skipQuestionLinkPrompt) {
+        setQuestionLinkFindingId(newFinding.id);
+        setQuestionLinkPromptOpen(true);
+      }
     },
-    [filters, drillPath, filteredData, outcome, specs, findingsState, panels]
+    [
+      filters,
+      drillPath,
+      filteredData,
+      outcome,
+      specs,
+      findingsState,
+      panels,
+      skipQuestionLinkPrompt,
+    ]
   );
 
   // Chart findings grouped by chart type for inline annotation display
@@ -983,6 +1007,23 @@ function AppMain() {
           onCpkTargetChange={setCpkTarget}
         />
       )}
+
+      {/* Question-Link Prompt — shown after chart observation creates a Finding */}
+      <QuestionLinkPrompt
+        isOpen={questionLinkPromptOpen}
+        findingId={questionLinkFindingId}
+        questions={factorIntelQuestions}
+        onLink={questionId => {
+          linkFindingToQuestion(questionLinkFindingId, questionId);
+          setQuestionLinkPromptOpen(false);
+        }}
+        onSkip={() => setQuestionLinkPromptOpen(false)}
+        onSkipForever={() => {
+          setSkipQuestionLinkPrompt(true);
+          setQuestionLinkPromptOpen(false);
+        }}
+        onClose={() => setQuestionLinkPromptOpen(false)}
+      />
 
       {/* Mobile Tab Bar (phone only) */}
       {isPhone && rawData.length > 0 && (
