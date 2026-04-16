@@ -266,6 +266,11 @@ export {
 } from './components/FindingsLog';
 
 export {
+  QuestionLinkPrompt,
+  type QuestionLinkPromptProps,
+} from './components/FindingsLog/QuestionLinkPrompt';
+
+export {
   default as PasteScreenBase,
   pasteScreenDefaultColorScheme,
   type PasteScreenBaseProps,
