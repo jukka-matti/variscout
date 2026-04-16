@@ -37,7 +37,8 @@ packages/core/src/ai/prompts/coScout/
 │   ├── standard.ts   — SPC terminology, Cpk workflow, factor-driven investigation
 │   ├── performance.ts— Multi-channel terminology, worst-channel Cpk, channel ranking
 │   ├── yamazumi.ts   — Lean terminology, VA ratio, waste categories, bottleneck identification
-│   └── capability.ts — Capability-focused coaching (centering vs spread diagnostic)
+│   ├── capability.ts — Capability-focused coaching (centering vs spread diagnostic)
+│   └── defect.ts     — Defect terminology, failure modes, containment vs prevention, Pareto principle
 └── context/
     ├── index.ts      — Barrel: formatInvestigationContext, formatDataContext, formatKnowledgeContext
     ├── investigation.ts — Problem statement, question tree, hubs, causal links, findings

@@ -34,13 +34,13 @@ VariScout organizes the analyst's workflow into five workspaces, controlled by a
 
 Three zones in project mode (left: logo mark + project name, center: workspace tabs, right: panel toggles + settings gear):
 
-| Workspace              | Purpose                                               | State                                                                                    |
-| ---------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| **Overview**           | Project Dashboard landing page                        | `activeView: 'dashboard'`                                                                |
-| **Analysis** (default) | Dashboard with charts, stats, filters                 | `activeView: 'analysis'`; dropdown for sub-modes (Standard / Performance / Yamazumi)     |
-| **Investigation**      | Question-driven EDA, findings board, tree             | Workspace tab (ADR-055); also available as sidebar in Analysis + popout `?view=findings` |
-| **Improvement**        | PDCA planning, action tracking, verification, outcome | Workspace tab (ADR-055); split layout with context panel, hub, and CoScout               |
-| **Report**             | Workspace-aligned report view with export             | `activeView: 'report'`; report/export/PDF actions live here (not in header)              |
+| Workspace              | Purpose                                               | State                                                                                         |
+| ---------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **Overview**           | Project Dashboard landing page                        | `activeView: 'dashboard'`                                                                     |
+| **Analysis** (default) | Dashboard with charts, stats, filters                 | `activeView: 'analysis'`; dropdown for sub-modes (Standard / Performance / Yamazumi / Defect) |
+| **Investigation**      | Question-driven EDA, findings board, tree             | Workspace tab (ADR-055); also available as sidebar in Analysis + popout `?view=findings`      |
+| **Improvement**        | PDCA planning, action tracking, verification, outcome | Workspace tab (ADR-055); split layout with context panel, hub, and CoScout                    |
+| **Report**             | Workspace-aligned report view with export             | `activeView: 'report'`; report/export/PDF actions live here (not in header)                   |
 
 ### AppHeader Navigation (ADR-055)
 
