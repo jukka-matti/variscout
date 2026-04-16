@@ -16,6 +16,16 @@ Structured investigation using the question-driven diamond pattern — generate 
 
 When you identify a key variation driver through drill-down analysis, the next question is _why_. The Question-Driven Investigation Flow provides a structured way to explore possible causes by generating questions from evidence (Factor Intelligence + context), answering them with data and real-world evidence, and converging on multiple suspected causes.
 
+Questions enter the investigation through three entry points — matching Principle 5 of the [VariScout Constitution](../../01-vision/constitution.md):
+
+| Entry Point                               | When        | How                                                                    |
+| ----------------------------------------- | ----------- | ---------------------------------------------------------------------- |
+| **Upfront hypotheses**                    | FRAME phase | Analyst enters hypotheses in the Analysis Brief before seeing any data |
+| **Evidence-ranked (Factor Intelligence)** | SCOUT phase | Auto-generated from R²adj rankings; ranked by statistical evidence     |
+| **Observation-triggered (Four Lenses)**   | Any phase   | Chart right-click → "Add observation" → **QuestionLinkPrompt** appears |
+
+The investigation does not require a strict question-first order. Analysts can start from any of the three entry points, and observations made while exploring charts can retroactively link to existing questions or surface new ones.
+
 The investigation follows a **question-driven diamond pattern** — four phases of structured learning:
 
 1. **Initial** — Upfront questions from the issue statement + Factor Intelligence generate evidence-ranked questions; these form the root nodes of the question tree
@@ -60,6 +70,30 @@ For questions like "is the nozzle tip worn?" or "is the conveyor belt misaligned
 ### Expert Validation (Domain Knowledge)
 
 Similar to gemba, but for questions that require expertise rather than physical inspection. "Could resin batch variation cause this pattern?" — consult the materials engineer, record their assessment.
+
+## Linking Observations to Questions
+
+When an analyst right-clicks a chart element and selects "Add observation," VariScout creates a Finding and immediately shows the **QuestionLinkPrompt** — a lightweight nudge that asks whether to link the new finding to an existing open question.
+
+### What the prompt offers
+
+| Option                         | Effect                                                                                                                             |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Pick an existing open question | Links the finding to that question; question status updates if evidence is strong                                                  |
+| Skip (this time)               | Saves the finding unlinked; the prompt appears again next time                                                                     |
+| "Don't ask again this session" | Suppresses the prompt for the rest of the browser session (persists across page reloads via `sessionStore.skipQuestionLinkPrompt`) |
+
+The prompt only shows open questions — answered and ruled-out questions are excluded. If there are no open questions, the prompt is skipped and the finding is saved directly.
+
+### Session-level opt-out
+
+The "don't ask again" flag is stored in `sessionStore` (not the project store). It persists across page reloads within the same browser session. To re-enable the prompt, clear the site data for the app (browser settings → site data, or use the developer tools). The flag does not persist to IndexedDB or cloud storage — it resets when the browser session ends.
+
+### Rationale
+
+This pattern supports Principle 5 — "Questions drive investigation" — without forcing strict question-first order. An analyst exploring charts freely can make observations first and link them to questions after the fact. The prompt provides a low-friction nudge rather than a mandatory gate. Analysts who prefer the questions-first discipline can link every finding; analysts who prefer free exploration can skip the prompt without friction.
+
+Observations that are never linked to a question remain as standalone findings (the "observations inbox" in the PI Panel Questions tab). They still appear in the Journal tab and in reports.
 
 ## Using the Question Tree
 
