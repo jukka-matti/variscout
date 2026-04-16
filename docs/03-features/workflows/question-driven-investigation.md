@@ -77,17 +77,17 @@ When an analyst right-clicks a chart element and selects "Add observation," Vari
 
 ### What the prompt offers
 
-| Option                         | Effect                                                                                                                             |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Pick an existing open question | Links the finding to that question; question status updates if evidence is strong                                                  |
-| Skip (this time)               | Saves the finding unlinked; the prompt appears again next time                                                                     |
-| "Don't ask again this session" | Suppresses the prompt for the rest of the browser session (persists across page reloads via `sessionStore.skipQuestionLinkPrompt`) |
+| Option                         | Effect                                                                                  |
+| ------------------------------ | --------------------------------------------------------------------------------------- |
+| Pick an existing open question | Links the finding to that question; question status updates if evidence is strong       |
+| Skip (this time)               | Saves the finding unlinked; the prompt appears again next time                          |
+| "Don't ask again"              | Permanently suppresses the prompt via `sessionStore.skipQuestionLinkPrompt` (persisted) |
 
 The prompt only shows open questions — answered and ruled-out questions are excluded. If there are no open questions, the prompt is skipped and the finding is saved directly.
 
-### Session-level opt-out
+### Permanent opt-out
 
-The "don't ask again" flag is stored in `sessionStore` (not the project store). It persists across page reloads within the same browser session. To re-enable the prompt, clear the site data for the app (browser settings → site data, or use the developer tools). The flag does not persist to IndexedDB or cloud storage — it resets when the browser session ends.
+The "don't ask again" flag lives in `sessionStore` and is persisted to IndexedDB alongside other session preferences. It survives page reloads and browser restarts. To re-enable the prompt, clear the site data for the app (browser settings → site data, or via developer tools). This makes the opt-out a durable user preference, not a per-session toggle.
 
 ### Rationale
 
