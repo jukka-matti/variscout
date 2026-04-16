@@ -5,7 +5,13 @@ import { useIsMobile } from '../../hooks';
 export interface QuestionLinkPromptProps {
   /** Whether the prompt is open. */
   isOpen: boolean;
-  /** The finding that was just created. Passed so callbacks know which finding to link. */
+  /**
+   * The finding that was just created. The wrapper typically closes over this
+   * when constructing `onLink` so the callback knows which finding to link.
+   * This prop is not used internally by the component — it's part of the public
+   * API for wrapper clarity and future extension (e.g., showing the finding's
+   * category in the prompt header).
+   */
   findingId: string;
   /** Open questions from the investigation store, to show in the picker. */
   questions: ReadonlyArray<{ id: string; text: string; status: string }>;
@@ -34,10 +40,20 @@ const QuestionLinkPromptInner: React.FC<QuestionLinkPromptInnerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<Element | null>(null);
 
-  // Capture previous focus on mount; restore on unmount
+  // Capture previous focus on mount; restore on unmount. Focus the first
+  // interactive element (question button or Skip) via rAF to avoid a setTimeout race.
   useEffect(() => {
     previousFocusRef.current = document.activeElement;
-    setTimeout(() => containerRef.current?.focus(), 0);
+    requestAnimationFrame(() => {
+      const focusable = containerRef.current?.querySelectorAll<HTMLElement>(
+        'button, input, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable && focusable.length > 0) {
+        focusable[0].focus();
+      } else {
+        containerRef.current?.focus();
+      }
+    });
     return () => {
       if (previousFocusRef.current && 'focus' in previousFocusRef.current) {
         (previousFocusRef.current as HTMLElement).focus();
@@ -45,12 +61,28 @@ const QuestionLinkPromptInner: React.FC<QuestionLinkPromptInnerProps> = ({
     };
   }, []);
 
-  // Escape key handler
+  // Escape + Tab focus-trap key handler (merged into a single listener)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
         onClose();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const focusable = containerRef.current?.querySelectorAll<HTMLElement>(
+          'button, input, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable || focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -81,7 +113,7 @@ const QuestionLinkPromptInner: React.FC<QuestionLinkPromptInnerProps> = ({
       tabIndex={-1}
       role="dialog"
       aria-modal="true"
-      aria-label="Link observation to a question"
+      aria-labelledby="qlp-title"
       className="flex flex-col gap-3 bg-surface-secondary border border-edge rounded-lg shadow-xl p-4 w-full max-w-sm outline-none"
       onClick={e => e.stopPropagation()}
     >
@@ -89,7 +121,7 @@ const QuestionLinkPromptInner: React.FC<QuestionLinkPromptInnerProps> = ({
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
           <Link2 size={14} className="text-blue-400 flex-shrink-0 mt-0.5" />
-          <span className="text-sm font-medium text-content">
+          <span id="qlp-title" className="text-sm font-medium text-content">
             Link this observation to a question?
           </span>
         </div>
@@ -109,13 +141,9 @@ const QuestionLinkPromptInner: React.FC<QuestionLinkPromptInnerProps> = ({
 
       {/* Question picker */}
       {openQuestions.length > 0 ? (
-        <ul
-          role="listbox"
-          aria-label="Open questions"
-          className="flex flex-col gap-1 max-h-40 overflow-y-auto"
-        >
+        <ul className="flex flex-col gap-1 max-h-40 overflow-y-auto">
           {openQuestions.map(q => (
-            <li key={q.id} role="option" aria-selected={false}>
+            <li key={q.id}>
               <button
                 className="w-full text-left text-xs px-3 py-2 rounded border border-edge bg-surface hover:bg-surface-tertiary hover:border-blue-500/50 text-content transition-colors"
                 onClick={() => handleLink(q.id)}

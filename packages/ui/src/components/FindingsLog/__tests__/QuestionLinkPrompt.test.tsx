@@ -91,4 +91,21 @@ describe('QuestionLinkPrompt', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(props.onClose).toHaveBeenCalledTimes(1);
   });
+
+  // 9. Focus trap: Tab from last focusable element wraps back to first
+  it('Tab from last focusable element wraps focus back to first', () => {
+    render(<QuestionLinkPrompt {...defaultProps()} />);
+    // Focusable order: Close button, q-1 button, q-2 button, checkbox, Skip button
+    const allButtons = screen.getAllByRole('button');
+    const skipButton = screen.getByRole('button', { name: /skip/i });
+    // Move focus to the last focusable element (Skip button)
+    skipButton.focus();
+    expect(document.activeElement).toBe(skipButton);
+    // Tab from Skip should wrap to the first focusable element (Close button)
+    const closeButton = screen.getByRole('button', { name: /close/i });
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: false });
+    expect(document.activeElement).toBe(closeButton);
+    // Silence unused variable warning — allButtons is referenced to confirm count
+    expect(allButtons.length).toBeGreaterThan(0);
+  });
 });
