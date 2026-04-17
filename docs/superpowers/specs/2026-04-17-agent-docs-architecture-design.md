@@ -458,8 +458,8 @@ These are all C-tier elements intentionally deferred per "A now, C elements adde
 
 This spec is implemented in phased plans under `docs/superpowers/plans/`:
 
-- [Phase 1: Foundation](../plans/2026-04-17-agent-docs-architecture-phase1-foundation.md) — fully additive scaffolding (12 skills, 8 package CLAUDE.md.new drafts, 3 Tier 1 + 5 Tier 2 human docs). Zero deletions.
-- Phase 2: Content migration + atomic switchover — plan to be written after Phase 1 ships
+- [Phase 1: Foundation](../plans/2026-04-17-agent-docs-architecture-phase1-foundation.md) — fully additive scaffolding (12 skills, 8 package CLAUDE.md.new drafts, 3 Tier 1 + 5 Tier 2 human docs). Zero deletions. **Delivered 2026-04-17.**
+- [Phase 2: Migration + Switchover](../plans/2026-04-17-agent-docs-architecture-phase2-migration.md) — populate 12 skill bodies, add 6 reference files, atomic swap 9 CLAUDE.mds to live. Old root preserved as `.bak`. `.claude/rules/` still live through Phase 3.
 - Phase 3: Enforcement + cleanup (ESLint + hooks + rules/ + archive/ deletion) — plan to be written after Phase 2 ships
 
 ## References
