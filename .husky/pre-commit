@@ -3,3 +3,12 @@ npx lint-staged --concurrent false
 # Documentation health — blocks commit if drift is found.
 # Run `pnpm docs:sync` to auto-fix count drift, or fix manually.
 pnpm docs:check
+
+# SSOT check — warn if CLAUDE.md sections duplicate content across files
+bash scripts/check-ssot.sh
+
+# CLAUDE.md size check — fail if >120% of per-file budget
+bash scripts/check-claude-md-size.sh
+
+# Dead-link check — warn until 2026-05-01, then fail
+bash scripts/check-dead-links.sh

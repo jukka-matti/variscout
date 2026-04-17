@@ -2,7 +2,7 @@
 title: 'ADR-037: Reporting Workspaces'
 audience: [analyst, engineer]
 category: architecture
-status: Accepted
+status: accepted
 date: 2026-03-20
 related: [report-view, workspace, audience-toggle, qc-story]
 ---

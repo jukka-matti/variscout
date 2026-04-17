@@ -38,9 +38,9 @@ This tension is compounded by VariScout's four-chart layout. On desktop, four li
 
 ## Related Patterns
 
-- [Sidebar Filter Panel](../../../archive/evaluation-patterns/sidebar-filter-panel.md) --- Would make the screen budget problem worse on mobile by adding a persistent panel.
-- [Small Multiples](../../../archive/evaluation-patterns/small-multiples.md) --- Grid layouts are inherently hostile to narrow screens.
-- [Factor Map](../../../archive/evaluation-patterns/factor-map.md) --- A separate spatial view could decouple the filter state display from chart space, potentially improving mobile by opening filters in a dedicated screen.
+- Sidebar Filter Panel --- Would make the screen budget problem worse on mobile by adding a persistent panel.
+- Small Multiples --- Grid layouts are inherently hostile to narrow screens.
+- Factor Map --- A separate spatial view could decouple the filter state display from chart space, potentially improving mobile by opening filters in a dedicated screen.
 
 ## Mitigation (ADR-039)
 

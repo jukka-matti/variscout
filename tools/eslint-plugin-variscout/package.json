@@ -1,0 +1,20 @@
+{
+  "name": "eslint-plugin-variscout",
+  "version": "0.1.0",
+  "description": "VariScout-specific ESLint rules (ADR-069 numeric safety, chart colors, terminology)",
+  "main": "index.js",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "peerDependencies": {
+    "eslint": "^9.0.0"
+  },
+  "scripts": {
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.0"
+  }
+}

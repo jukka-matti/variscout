@@ -6,6 +6,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import boundaries from 'eslint-plugin-boundaries';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
+import variscoutPlugin from 'eslint-plugin-variscout';
 
 // Test globals (Vitest)
 const testGlobals = {
@@ -153,12 +154,56 @@ export default [
   },
   // Boundary 3: prevent unguarded .toFixed() on statistical values (ADR-069)
   {
-    files: ['packages/ui/src/**/*.{ts,tsx}', 'packages/core/src/ai/prompts/**/*.ts'],
+    files: ['packages/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}'],
+    ignores: [
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/__tests__/**/*',
+      'packages/charts/src/colors.ts',
+    ],
+    plugins: { variscout: variscoutPlugin },
     rules: {
-      'no-restricted-syntax': ['warn', {
-        selector: "CallExpression[callee.property.name='toFixed']",
-        message: 'Guard with Number.isFinite() before .toFixed(), or use formatStatistic() from @variscout/core/i18n. See ADR-069.',
-      }],
+      'variscout/no-tofixed-on-stats': 'error',
+    },
+  },
+  // Hard rule: never hardcode hex colors in chart packages — use chartColors/chromeColors
+  {
+    files: ['packages/charts/**/*.{ts,tsx}'],
+    plugins: { variscout: variscoutPlugin },
+    rules: {
+      'variscout/no-hardcoded-chart-colors': 'error',
+    },
+  },
+  // Exempt the colors source file itself (defines the constants)
+  {
+    files: ['packages/charts/src/colors.ts'],
+    rules: {
+      'variscout/no-hardcoded-chart-colors': 'off',
+    },
+  },
+  // Hard rule: never use 'root cause' in user-facing strings or AI prompts — use 'contribution' (P5)
+  {
+    files: [
+      'packages/core/src/i18n/**/*.ts',
+      'packages/core/src/ai/prompts/**/*.ts',
+    ],
+    plugins: { variscout: variscoutPlugin },
+    rules: {
+      'variscout/no-root-cause-language': 'error',
+    },
+  },
+  // Hard rule: never use 'moderator'/'primary' role labels in interaction/regression/ANOVA code
+  // Use geometric terms: ordinal / disordinal (feedback memory: interaction language)
+  {
+    files: [
+      'packages/core/src/stats/**/*.ts',
+      'packages/core/src/**/interaction*.ts',
+      'packages/core/src/**/regression*.ts',
+      'packages/core/src/**/anova*.ts',
+    ],
+    plugins: { variscout: variscoutPlugin },
+    rules: {
+      'variscout/no-interaction-moderator': 'error',
     },
   },
   prettier,

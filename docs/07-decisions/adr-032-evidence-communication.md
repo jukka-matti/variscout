@@ -1,6 +1,6 @@
 ---
 title: 'ADR-032: Evidence-Based Statistical Communication'
-status: Accepted
+status: accepted
 date: 2026-03-19
 ---
 

@@ -2,7 +2,8 @@
 title: 'ADR-024: Scouting Report — Dynamic Analysis Report View'
 audience: [analyst, engineer]
 category: architecture
-status: Superseded by ADR-037
+status: superseded
+superseded-by: adr-037
 date: 2026-03-16
 related: [report-view, presentation, qc-story, copy-workflow, teams-sharing]
 ---
@@ -188,7 +189,6 @@ Step 5 (Verification — "Did the actions work?") renders actual before/after st
 
 ## Related
 
-- [Design Spec: Scouting Report](../archive/specs/scouting-report-design.md) — Full design document (archived)
 - [ADR-015: Investigation Board](adr-015-investigation-board.md) — Findings model
 - [ADR-020: Investigation Workflow](adr-020-investigation-workflow.md) — Hypothesis model
 - [ADR-023: Verification Experience](adr-023-data-lifecycle.md) — Staged comparison, data lifecycle

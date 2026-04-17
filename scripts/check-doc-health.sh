@@ -72,7 +72,7 @@ echo "  Actual sub-path exports: $ACTUAL_SUBPATHS"
 # ---------------------------------------------------------------------------
 echo ""
 echo "--- Test coverage for listed hooks ---"
-TESTING_MD="$ROOT/.claude/rules/testing.md"
+TESTING_MD="$ROOT/.claude/skills/writing-tests/SKILL.md"
 TESTS_DIR="$ROOT/packages/hooks/src/__tests__"
 
 # Extract hook names from the @variscout/hooks row in testing.md only
@@ -138,6 +138,15 @@ done
 
 if [ "$MISSING_PATHS" -eq 0 ]; then
   green "  ✓ All ${#PATHS_TO_CHECK[@]} spot-checked paths exist"
+fi
+
+# ---------------------------------------------------------------------------
+# 6. Frontmatter schema validation
+# ---------------------------------------------------------------------------
+echo ""
+echo "--- Frontmatter schema ---"
+if ! node "$ROOT/scripts/check-doc-frontmatter.mjs"; then
+  WARNINGS=$((WARNINGS + 1))
 fi
 
 # ---------------------------------------------------------------------------

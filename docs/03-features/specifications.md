@@ -47,8 +47,8 @@ Structured investigation for process improvement. Question-driven analysis that 
 | Statistics Panel            | Conformance/Capability modes, Cp/Cpk, η², histogram   | [stats-panel.md](analysis/stats-panel.md)                                                             |
 | Data Table                  | Inline editing, keyboard navigation, spec status      | [data-input.md](data/data-input.md)                                                                   |
 | Save & Load (.vrs)          | Azure App: project persistence + OneDrive sync        | [storage.md](data/storage.md)                                                                         |
-| Chart Annotations           | Right-click highlights + text observations → Findings | [charts.md](../../.claude/rules/charts.md) §Chart Annotations                                         |
-| Export                      | PNG (charts/dashboard), CSV, SVG                      | [Chart Export](../../.claude/rules/charts.md) §Chart Export                                           |
+| Chart Annotations           | Right-click highlights + text observations → Findings | [charts.md](../../.claude/skills/editing-charts/SKILL.md) §Chart Annotations                          |
+| Export                      | PNG (charts/dashboard), CSV, SVG                      | [Chart Export](../../.claude/skills/editing-charts/SKILL.md) §Chart Export                            |
 | Branding                    | Source bar with sample count; hidden for paid tiers   | —                                                                                                     |
 | Staged Analysis             | Before/after comparison with stage columns            | [staged-analysis.md](analysis/staged-analysis.md)                                                     |
 | Nelson Rules                | Control chart pattern detection                       | [nelson-rules.md](analysis/nelson-rules.md)                                                           |

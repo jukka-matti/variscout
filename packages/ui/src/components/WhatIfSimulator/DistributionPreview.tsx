@@ -24,9 +24,11 @@ function buildCurvePath(
   const first = points[0];
   const last = points[points.length - 1];
   const line = points
+    // eslint-disable-next-line variscout/no-tofixed-on-stats -- internal computation (SVG path coordinates) per code-style.md
     .map((p, i) => `${i === 0 ? 'M' : 'L'}${xScale(p.x).toFixed(1)},${yScale(p.y).toFixed(1)}`)
     .join(' ');
   // Close to baseline for fill
+  // eslint-disable-next-line variscout/no-tofixed-on-stats -- internal computation (SVG path coordinates) per code-style.md
   return `${line} L${xScale(last.x).toFixed(1)},${yScale(0).toFixed(1)} L${xScale(first.x).toFixed(1)},${yScale(0).toFixed(1)} Z`;
 }
 

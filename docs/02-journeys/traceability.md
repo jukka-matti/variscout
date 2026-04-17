@@ -237,6 +237,6 @@ Field quality engineer on shop floor via Teams mobile.
 ## See Also
 
 - [User Flows](index.md) — Flow catalog and entry point matrix
-- [Monorepo Rules](../../.claude/rules/monorepo.md) — Complete hook and component listing
+- [Monorepo Rules](../../.claude/skills/editing-monorepo-structure/SKILL.md) — Complete hook and component listing
 - [Feature Parity Matrix](../08-products/feature-parity.md) — What's available where
 - [Business Bible](../01-vision/business-bible.md) — Strategic context behind user journeys

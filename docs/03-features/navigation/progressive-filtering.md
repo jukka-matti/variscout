@@ -57,7 +57,7 @@ The drill-down methodology captures **main effects** — how much variation each
 | Sequential ANOVA (drill-down) | Main effects only (η² per factor)   |
 | GLM with interactions         | Main effects + two-way interactions |
 
-See [Regression Analysis: Interaction Effects](../../archive/regression.md#interaction-effects) for details (Phase 2, deferred per ADR-014).
+See Regression Analysis: Interaction Effects for details (Phase 2, deferred per ADR-014).
 
 ---
 

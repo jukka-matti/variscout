@@ -555,7 +555,7 @@ This is **designed but not implemented** on main. The branch code is 38+ commits
 - [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) — conceptual navigation layers
 - [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — INVESTIGATE phase workflow
 - [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — full Improvement Hub feature doc (Plan/Track views, context panel, What-If integration)
-- [IMPROVE Phase UX Design](../../archive/specs/2026-03-19-improve-phase-ux-design.md) — three-workspace model detail (historical)
+- IMPROVE Phase UX Design — three-workspace model detail (historical)
 - [Project Dashboard](../../03-features/workflows/project-dashboard.md) — Dashboard feature (What's New, OtherProjectsList, Portfolio integration)
 - [Project Reopen Flow](../../02-journeys/flows/project-reopen.md) — Full flow: Portfolio → Dashboard → Analysis
 - [ADR-042: Project Dashboard](../../07-decisions/adr-042-project-dashboard.md) — Dashboard ↔ Editor design decisions

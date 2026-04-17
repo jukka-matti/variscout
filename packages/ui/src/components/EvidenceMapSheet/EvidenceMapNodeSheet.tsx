@@ -26,7 +26,10 @@ export interface EvidenceMapNodeSheetProps {
 }
 
 /** Format a number for display: integers as-is, floats to 3 decimal places */
-const fmt = (v: number): string => (Number.isInteger(v) ? String(v) : v.toFixed(3));
+const fmt = (v: number): string => {
+  if (!Number.isFinite(v)) return '—';
+  return Number.isInteger(v) ? String(v) : v.toFixed(3);
+};
 
 /** Format effect with sign prefix */
 const fmtEffect = (v: number): string => (v >= 0 ? `+${fmt(v)}` : fmt(v));

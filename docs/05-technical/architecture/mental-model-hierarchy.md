@@ -381,7 +381,5 @@ See [ADR-042](../../07-decisions/adr-042-project-dashboard.md) and [Journey Phas
 - [Methodology](../../01-vision/methodology.md) — Watson's EDA, Four Lenses, Investigation Diamond, Two Voices
 - [AI Journey Integration](ai-journey-integration.md) — AI layers and experience spectrum
 - [Business Bible](../../01-vision/business-bible.md) — Value Levers
-- [Scouting Report Design](../../archive/specs/scouting-report-design.md) — Report Steps (archived)
 - [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — Finding Status, Hypothesis lifecycle
 - [Journey Phase → Screen Mapping](./journey-phase-screen-mapping.md) — concrete code references per phase
-- [Methodology Coach Design](../../archive/2026-03-18-methodology-coach-design.md) — UI implementation of journey awareness (archived, removed)

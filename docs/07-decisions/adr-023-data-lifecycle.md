@@ -2,7 +2,7 @@
 title: "ADR-023: Verification Experience — Data Lifecycle, Staged Comparison, and the 'Did It Work?' Interaction"
 audience: [analyst, engineer]
 category: architecture
-status: Accepted
+status: accepted
 date: 2026-03-16
 related: [staged-analysis, findings, investigation-workflow, ai-context]
 ---

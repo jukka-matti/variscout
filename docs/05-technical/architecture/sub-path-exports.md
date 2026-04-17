@@ -83,10 +83,10 @@ Add a new sub-path when:
 
 1. Create `src/{domain}/index.ts` (or `src/{domain}.ts` for single-file modules)
 2. Add to `exports` in `packages/core/package.json`
-3. Add to the Sub-Path Exports table in `.claude/rules/monorepo.md`
+3. Add to the Sub-Path Exports table in `.claude/skills/editing-monorepo-structure/SKILL.md`
 4. Verify: `pnpm --filter @variscout/core build` (if applicable)
 
 ## Related
 
-- [Monorepo Rules](../../../.claude/rules/monorepo.md) — Sub-path table maintained here
+- [Monorepo Rules](../../../.claude/skills/editing-monorepo-structure/SKILL.md) — Sub-path table maintained here
 - [ADR-045: Modular Architecture](../../07-decisions/adr-045-modular-architecture.md) — DDD-lite philosophy

@@ -1,6 +1,6 @@
 ---
 title: 'ADR-030: Unified File Picker (OneDrive v8)'
-status: Accepted
+status: accepted
 date: 2026-03-19
 ---
 

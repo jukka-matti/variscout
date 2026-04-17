@@ -38,6 +38,6 @@ This is particularly acute because the drill-down is what differentiates VariSco
 
 ## Related Patterns
 
-- [Sidebar Filter Panel](../../../archive/evaluation-patterns/sidebar-filter-panel.md) --- Always-visible filters solve discoverability entirely but sacrifice analytical flow integration.
-- [Factor Suggestion](../../../archive/evaluation-patterns/factor-suggestion.md) --- An explicit prompt ("Try clicking Machine next") could guide first-time users.
-- [Factor Map](../../../archive/evaluation-patterns/factor-map.md) --- A spatial overview could serve as a more discoverable entry point than chart-embedded interactions.
+- Sidebar Filter Panel --- Always-visible filters solve discoverability entirely but sacrifice analytical flow integration.
+- Factor Suggestion --- An explicit prompt ("Try clicking Machine next") could guide first-time users.
+- Factor Map --- A spatial overview could serve as a more discoverable entry point than chart-embedded interactions.
