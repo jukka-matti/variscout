@@ -54,6 +54,7 @@ Once a feature stabilizes, the ADR is the canonical reference.
 | [2026-04-05-evidence-map-spine-design.md](2026-04-05-evidence-map-spine-design.md)                                     | Evidence Map as Analysis Spine                                | —       | Delivered  |
 | [2026-04-16-defect-analysis-mode-design.md](2026-04-16-defect-analysis-mode-design.md)                                 | Defect Analysis Mode (3 phases)                               | —       | Delivered  |
 | [2026-04-16-defect-evidence-map-integration-design.md](2026-04-16-defect-evidence-map-integration-design.md)           | Defect Evidence Map Integration (Three-View Model)            | —       | Delivered  |
+| [2026-04-17-agent-docs-architecture-design.md](2026-04-17-agent-docs-architecture-design.md)                           | Agent-Facing Documentation Architecture (A++)                 | —       | Draft      |
 | [2026-03-20-improvement-prioritization-design.md](2026-03-20-improvement-prioritization-design.md)                     | Improvement Prioritization (Timeframe/Cost/Risk)              | ADR-035 | Delivered  |
 | [2026-03-21-analysis-flow-design.md](2026-03-21-analysis-flow-design.md)                                               | Analysis Flow                                                 | —       | Delivered  |
 | [2026-03-21-yamazumi-reporting-design.md](2026-03-21-yamazumi-reporting-design.md)                                     | Yamazumi Reporting                                            | ADR-034 | Delivered  |
