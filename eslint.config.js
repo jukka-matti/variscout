@@ -6,6 +6,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import boundaries from 'eslint-plugin-boundaries';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
+import variscoutPlugin from 'eslint-plugin-variscout';
 
 // Test globals (Vitest)
 const testGlobals = {
@@ -154,11 +155,9 @@ export default [
   // Boundary 3: prevent unguarded .toFixed() on statistical values (ADR-069)
   {
     files: ['packages/ui/src/**/*.{ts,tsx}', 'packages/core/src/ai/prompts/**/*.ts'],
+    plugins: { variscout: variscoutPlugin },
     rules: {
-      'no-restricted-syntax': ['warn', {
-        selector: "CallExpression[callee.property.name='toFixed']",
-        message: 'Guard with Number.isFinite() before .toFixed(), or use formatStatistic() from @variscout/core/i18n. See ADR-069.',
-      }],
+      'variscout/no-tofixed-on-stats': 'warn',
     },
   },
   prettier,
