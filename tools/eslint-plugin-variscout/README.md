@@ -82,5 +82,5 @@ pnpm test
 
 - [ADR-069 — Three-Boundary Numeric Safety](../../docs/07-decisions/adr-069-three-boundary-numeric-safety.md)
 - [Constitution P5 — Contribution not causation](../../docs/01-vision/constitution.md)
-- [Interaction language feedback](../../.claude/memory/feedback_interaction_language.md)
+- Interaction language feedback — user memory at `feedback_interaction_language.md`
 - [ESLint Rule API (v9)](https://eslint.org/docs/latest/extend/custom-rules)
