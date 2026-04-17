@@ -2,6 +2,7 @@
 // Rules are added one-by-one in subsequent tasks.
 
 import noTofixedOnStats from './rules/no-tofixed-on-stats.js';
+import noHardcodedChartColors from './rules/no-hardcoded-chart-colors.js';
 
 export default {
   meta: {
@@ -10,5 +11,6 @@ export default {
   },
   rules: {
     'no-tofixed-on-stats': noTofixedOnStats,
+    'no-hardcoded-chart-colors': noHardcodedChartColors,
   },
 };

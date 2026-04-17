@@ -160,5 +160,20 @@ export default [
       'variscout/no-tofixed-on-stats': 'warn',
     },
   },
+  // Hard rule: never hardcode hex colors in chart packages — use chartColors/chromeColors
+  {
+    files: ['packages/charts/**/*.{ts,tsx}'],
+    plugins: { variscout: variscoutPlugin },
+    rules: {
+      'variscout/no-hardcoded-chart-colors': 'error',
+    },
+  },
+  // Exempt the colors source file itself (defines the constants)
+  {
+    files: ['packages/charts/src/colors.ts'],
+    rules: {
+      'variscout/no-hardcoded-chart-colors': 'off',
+    },
+  },
   prettier,
 ];
