@@ -153,3 +153,12 @@ Nested `packages/*/CLAUDE.md` (21–42 lines each) and `apps/*/CLAUDE.md` (33–
 **Spot-test results:** see "Phase 2 Spot-Test Results" section above — 4/5 strong skill matches, 1 acceptable weak match for formatStatistic case.
 
 **Next phase:** Phase 3 — add ESLint plugins (no-tofixed-on-stats, no-hardcoded-chart-colors, no-root-cause-language, no-interaction-moderator), pre-commit hooks for SSOT + stale-link warnings, then DELETE `.claude/rules/`, `docs/archive/`, scope `MEMORY.md` to session state only, delete `CLAUDE.md.bak`. Phase 3 plan to be written after Phase 2 commit.
+
+### Phase 3 — Dead-link cutoff
+
+- **Hook installed:** 2026-04-17 (warn mode)
+- **Fail cutoff:** 2026-05-01 (Phase 4 responsibility)
+- **Fix owner:** whoever triggered the most recent warn — addressable in PR review
+- **Count at installation:** 131 broken links — all 131 inside `docs/archive/`, which is deleted in Phase 3 Task 10. Post-Task-10 count expected: 0.
+
+The `scripts/check-dead-links.sh` hook auto-escalates to fail mode when `date +%Y-%m-%d >= 2026-05-01`. No manual flip required.
