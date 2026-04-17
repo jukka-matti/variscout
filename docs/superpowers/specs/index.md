@@ -88,6 +88,8 @@ Once a feature stabilizes, the ADR is the canonical reference.
 | [2026-04-07-interaction-effects-design.md](2026-04-07-interaction-effects-design.md)                             | Interaction Effects (two-way, partial F-test)                 | ADR-067 | Delivered  |
 | [2026-04-07-process-flow-analysis-mode-design.md](2026-04-07-process-flow-analysis-mode-design.md)               | Process Flow Analysis Mode                                    | —       | Draft      |
 | [2026-04-07-unified-whatif-explorer-design.md](2026-04-07-unified-whatif-explorer-design.md)                     | Unified What-If Explorer                                      | —       | Delivered  |
+| [2026-04-17-agent-docs-architecture-design.md](2026-04-17-agent-docs-architecture-design.md)                     | Agent Docs Architecture (A++)                                 | —       | Delivered  |
+| [2026-04-17-doc-prune-audit-design.md](2026-04-17-doc-prune-audit-design.md)                                     | Doc Prune — Load-Bearing Audit (Phase 5)                      | —       | Draft      |
 
 ## Lifecycle
 
