@@ -109,6 +109,7 @@ const FactorIntelligencePanel: React.FC<FactorIntelligencePanelProps> = ({
           })}
           {bestR2adj > 0 &&
             Number.isFinite(bestR2adj) &&
+            // eslint-disable-next-line variscout/no-tofixed-on-stats -- guarded by Number.isFinite(bestR2adj) above
             tf('fi.layer2Current', { value: (bestR2adj * 100).toFixed(1) })}
         </div>
       )}

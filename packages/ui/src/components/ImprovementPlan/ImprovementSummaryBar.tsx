@@ -97,6 +97,7 @@ function renderTrackVerified({
             </span>
             {cpkImprovement != null && Number.isFinite(cpkImprovement) && (
               <span data-testid="summary-cpk-improvement" className="ml-1 text-green-400">
+                {/* eslint-disable-next-line variscout/no-tofixed-on-stats -- guarded on line 98 via Number.isFinite(cpkImprovement) */}
                 {`(+${cpkImprovement.toFixed(0)}%)`}
               </span>
             )}

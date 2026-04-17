@@ -43,7 +43,9 @@ function relativeTime(timestamp: number): string {
 /** Format a file size in human-readable form */
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
+  // eslint-disable-next-line variscout/no-tofixed-on-stats -- internal computation (file size formatting) per code-style.md
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  // eslint-disable-next-line variscout/no-tofixed-on-stats -- internal computation (file size formatting) per code-style.md
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 

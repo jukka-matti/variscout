@@ -111,6 +111,7 @@ export const EdgeDetailCard: React.FC<EdgeDetailCardProps> = ({
         {deltaRSquared !== undefined && Number.isFinite(deltaRSquared) && deltaRSquared > 0 && (
           <span>
             ΔR² ={' '}
+            {/* eslint-disable-next-line variscout/no-tofixed-on-stats -- guarded on line 111 via Number.isFinite(deltaRSquared) */}
             <span className="font-medium text-content">{(deltaRSquared * 100).toFixed(0)}%</span>
           </span>
         )}

@@ -328,6 +328,7 @@ export const CapabilitySuggestionModal: React.FC<CapabilitySuggestionModalProps>
                   <span title="Process Capability Index — measures how well the process fits within specification limits">
                     Cpk
                   </span>{' '}
+                  {/* eslint-disable-next-line variscout/no-tofixed-on-stats -- guarded above; undefined → em-dash per ADR-069 */}
                   {liveCpk.cpk !== undefined ? liveCpk.cpk.toFixed(2) : '—'}
                 </span>
                 <span className="text-xs text-content-muted">

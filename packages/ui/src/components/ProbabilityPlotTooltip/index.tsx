@@ -43,6 +43,7 @@ export const ProbabilityPlotTooltip: React.FC<ProbabilityPlotTooltipProps> = ({
 };
 
 function formatStat(value: number): string {
+  if (!Number.isFinite(value)) return '—';
   if (Math.abs(value) >= 100) return value.toFixed(1);
   if (Math.abs(value) >= 1) return value.toFixed(3);
   return value.toFixed(4);

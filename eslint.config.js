@@ -154,10 +154,16 @@ export default [
   },
   // Boundary 3: prevent unguarded .toFixed() on statistical values (ADR-069)
   {
-    files: ['packages/ui/src/**/*.{ts,tsx}', 'packages/core/src/ai/prompts/**/*.ts'],
+    files: ['packages/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}'],
+    ignores: [
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/__tests__/**/*',
+      'packages/charts/src/colors.ts',
+    ],
     plugins: { variscout: variscoutPlugin },
     rules: {
-      'variscout/no-tofixed-on-stats': 'warn',
+      'variscout/no-tofixed-on-stats': 'error',
     },
   },
   // Hard rule: never hardcode hex colors in chart packages — use chartColors/chromeColors
