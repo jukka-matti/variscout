@@ -250,21 +250,23 @@ function classify(t) {
 
   if (strong >= 2) return { rec: 'KEEP', reason: `${strong} strong inbound (code/agent/skills)` };
 
-  // Delivered + no load-bearing refs + old = stale design artifact.
-  // Allowing low peer/docs counts lets us catch specs that are only
-  // referenced from index stubs or one-off cross-references.
+  // Delivered specs with no load-bearing refs: the feature shipped, the
+  // ADR + code are ground truth, the spec is historical design context.
+  // Archive regardless of cross-refs — those get rewritten at execution.
+  if (strong === 0 && t.status === 'delivered') {
+    return { rec: 'ARCHIVE', reason: `delivered, no strong refs` };
+  }
+
+  // Abandoned drafts: if a draft is >14d old with no load-bearing refs,
+  // it's either stale intent or was absorbed into another spec. Safe to
+  // archive; subagent pass catches exceptions.
   if (
     strong === 0 &&
-    t.status === 'delivered' &&
+    t.status === 'draft' &&
     t.ageDays != null &&
-    t.ageDays > 60 &&
-    t.inbound.peers <= 1 &&
-    t.inbound.docs <= 3
+    t.ageDays > 14
   ) {
-    return {
-      rec: 'ARCHIVE',
-      reason: `delivered, no strong refs, ${t.ageDays}d old, low cross-ref`,
-    };
+    return { rec: 'ARCHIVE', reason: `stale draft, ${t.ageDays}d old, no strong refs` };
   }
 
   return {
@@ -327,8 +329,9 @@ lines.push('');
 lines.push('1. Process-flow exception → **KEEP** (only-source-of-truth).');
 lines.push('2. `status ∈ {superseded, archived}` → **ARCHIVE** (status alone; inbound refs get rewritten at execution).');
 lines.push('3. `strong inbound ≥ 2` (code/agent/skills) → **KEEP**.');
-lines.push('4. `delivered AND strong = 0 AND age > 60d AND peers ≤ 1 AND docs ≤ 3` → **ARCHIVE** (stale design artifact).');
-lines.push('5. Everything else → **REVIEW**.');
+lines.push('4. `delivered AND strong = 0` → **ARCHIVE** (feature shipped; ADR + code are ground truth).');
+lines.push('5. `draft AND strong = 0 AND age > 14d` → **ARCHIVE** (abandoned draft).');
+lines.push('6. Everything else → **REVIEW**.');
 lines.push('');
 lines.push('Index files (`docs/07-decisions/index.md`, `docs/superpowers/specs/index.md`) are excluded as sources — they are bookkeeping, not load-bearing.');
 lines.push('');
