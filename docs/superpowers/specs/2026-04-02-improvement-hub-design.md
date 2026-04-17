@@ -2,7 +2,7 @@
 title: Improvement Hub Redesign
 audience: [developer, analyst]
 category: architecture
-status: draft
+status: delivered
 related: [improvement, prioritization, what-if, pdca, actions, verification, matrix, risk]
 ---
 

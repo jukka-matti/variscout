@@ -39,7 +39,7 @@ flowchart LR
         ch2["4 Performance Charts (+ Base)"]
     end
 
-    subgraph hooks["@variscout/hooks (60+ hooks)"]
+    subgraph hooks["@variscout/hooks (127 hooks)"]
         direction TB
         h1["8 State & Data"]
         h2["9 Chart Data & Visualization"]
@@ -50,7 +50,7 @@ flowchart LR
         h7["3 Reporting & Export"]
     end
 
-    subgraph ui["@variscout/ui (110+ components)"]
+    subgraph ui["@variscout/ui (92 components)"]
         direction TB
         u1["10 Input"]
         u2["4 Data Display"]

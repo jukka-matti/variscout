@@ -170,5 +170,5 @@ pnpm test
 - [Marketplace Guide](marketplace.md) — offer type, pricing, listing content
 - [ARM Template](arm-template.md) — full template documentation
 - [Authentication](authentication.md) — EasyAuth setup and configuration
-- [OneDrive Sync](onedrive-sync.md) — storage integration details
+- [OneDrive Sync](blob-storage-sync.md) — storage integration details
 - [ADR-007](../../07-decisions/adr-007-azure-marketplace-distribution.md) — distribution strategy decision

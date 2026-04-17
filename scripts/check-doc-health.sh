@@ -22,7 +22,8 @@ echo "--- Hook count ---"
 HOOKS_INDEX="$ROOT/packages/hooks/src/index.ts"
 # Count unique use* function names (exclude type-only exports like UseXxxOptions/UseXxxReturn)
 ACTUAL_HOOKS=$(grep -oE 'use[A-Z][a-zA-Z]+' "$HOOKS_INDEX" | grep -v '^Use' | sort -u | wc -l | tr -d ' ')
-CLAIMED_HOOKS=$(grep -oE '[0-9]+\+? shared React hooks' "$ROOT/CLAUDE.md" | grep -oE '^[0-9]+' || echo 0)
+CLAIMED_HOOKS=$({ grep -oE '\| [0-9]+\+? hooks ' "$ROOT/CLAUDE.md" || echo ''; } | grep -oE '[0-9]+' | head -1 || echo 0)
+CLAIMED_HOOKS=${CLAIMED_HOOKS:-0}
 
 echo "  Actual hook exports: $ACTUAL_HOOKS"
 echo "  CLAUDE.md claims: ${CLAIMED_HOOKS}+"
@@ -42,7 +43,8 @@ echo "--- Component count ---"
 UI_INDEX="$ROOT/packages/ui/src/index.ts"
 # Count unique module sources (each from './Component' is one module)
 ACTUAL_COMPONENTS=$(grep -oE "from '\\./[^']+'" "$UI_INDEX" | sort -u | wc -l | tr -d ' ')
-CLAIMED_COMPONENTS=$(grep -oE '[0-9]+\+? shared UI components' "$ROOT/CLAUDE.md" | grep -oE '^[0-9]+' || echo 0)
+CLAIMED_COMPONENTS=$({ grep -oE '\| [0-9]+\+? component modules' "$ROOT/CLAUDE.md" || echo ''; } | grep -oE '[0-9]+' | head -1 || echo 0)
+CLAIMED_COMPONENTS=${CLAIMED_COMPONENTS:-0}
 
 echo "  Actual UI exports: $ACTUAL_COMPONENTS"
 echo "  CLAUDE.md claims: ${CLAIMED_COMPONENTS}+"
@@ -74,8 +76,8 @@ TESTING_MD="$ROOT/.claude/rules/testing.md"
 TESTS_DIR="$ROOT/packages/hooks/src/__tests__"
 
 # Extract hook names from the @variscout/hooks row in testing.md only
-HOOKS_ROW=$(grep '@variscout/hooks' "$TESTING_MD" || echo "")
-LISTED_HOOKS=$(echo "$HOOKS_ROW" | grep -oE 'use[A-Z][a-zA-Z]+' | grep -v '^Use' | sort -u)
+HOOKS_ROW=$(grep '@variscout/hooks' "$TESTING_MD" 2>/dev/null || echo "")
+LISTED_HOOKS=$({ echo "$HOOKS_ROW" | grep -oE 'use[A-Z][a-zA-Z]+' || true; } | { grep -v '^Use' || true; } | sort -u)
 MISSING_TESTS=0
 
 for hook in $LISTED_HOOKS; do
@@ -111,7 +113,7 @@ PATHS_TO_CHECK=(
   "docs/06-design-system/patterns/css-height-chain.md"
   "docs/08-products/azure/"
   "packages/core/src/parser/"
-  "packages/core/src/ai/prompts/coScout.ts"
+  "packages/core/src/ai/prompts/coScout/"
   "packages/core/src/ai/actionTools.ts"
   "packages/core/src/analysisStrategy.ts"
   "apps/azure/src/services/localDb.ts"
@@ -145,8 +147,8 @@ echo ""
 echo "=== Summary ==="
 if [ "$WARNINGS" -eq 0 ]; then
   green "✓ Documentation health check passed — no issues found"
+  exit 0
 else
-  yellow "⚠ $WARNINGS warning(s) found — run scripts/generate-monorepo-lists.ts to fix drift"
+  yellow "⚠ $WARNINGS warning(s) found — run \`pnpm docs:sync\` to auto-fix count drift, or fix paths manually"
+  exit 1
 fi
-
-exit 0

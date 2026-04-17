@@ -170,7 +170,7 @@ On **Team plan**, the header shows sync status feedback (saved, syncing, offline
 
 Save is explicit on both plans — unsaved work is lost if the tab closes.
 
-See [OneDrive Sync](../../08-products/azure/onedrive-sync.md) for Team plan sync details.
+See [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) for Team plan sync details.
 
 ---
 
@@ -253,7 +253,7 @@ For a first-time user, this brief interaction introduces the investigation workf
 - [Azure App Overview](../../08-products/azure/index.md)
 - [How It Works](../../08-products/azure/how-it-works.md) — end-to-end architecture
 - [Authentication](../../08-products/azure/authentication.md) — EasyAuth details
-- [OneDrive Sync](../../08-products/azure/onedrive-sync.md) — persistence flow
+- [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) — persistence flow
 - [Enterprise Evaluation](enterprise.md) — how Olivia evaluated before Gary got access
 - [Azure Daily Use](azure-daily-use.md) — Gary's workflow after first analysis
 - [Return Visitor](return-visitor.md) — PWA return experience and upgrade triggers

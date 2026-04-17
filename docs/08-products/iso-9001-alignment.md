@@ -28,24 +28,24 @@ VariScout implements a structured four-phase investigation journey with a 5-stat
 
 ### Four-Phase Journey
 
-| Phase | Purpose | Key Activities |
-|---|---|---|
-| **FRAME** | Define the investigation scope | Load data, map columns, set specification limits |
-| **SCOUT** | Discover variation patterns | I-Chart stability check, ANOVA factor analysis, Pareto ranking |
-| **INVESTIGATE** | Build understanding of causes | Drill-down, hypothesis generation, question-driven validation |
-| **IMPROVE** | Plan, execute, and verify improvements | Brainstorm ideas, assign corrective actions, verify outcomes with Cpk |
+| Phase           | Purpose                                | Key Activities                                                        |
+| --------------- | -------------------------------------- | --------------------------------------------------------------------- |
+| **FRAME**       | Define the investigation scope         | Load data, map columns, set specification limits                      |
+| **SCOUT**       | Discover variation patterns            | I-Chart stability check, ANOVA factor analysis, Pareto ranking        |
+| **INVESTIGATE** | Build understanding of causes          | Drill-down, hypothesis generation, question-driven validation         |
+| **IMPROVE**     | Plan, execute, and verify improvements | Brainstorm ideas, assign corrective actions, verify outcomes with Cpk |
 
 ### 5-Status Finding Lifecycle
 
 Every observation follows a documented lifecycle from initial detection to verified resolution:
 
-| Status | Badge | Meaning | PDCA Mapping |
-|---|---|---|---|
-| **Observed** | Amber | Pattern spotted, not yet investigated | — |
-| **Investigating** | Blue | Actively drilling into this finding | — |
-| **Analyzed** | Purple | Suspected cause identified | Plan |
-| **Improving** | Cyan | Corrective actions assigned and in progress | Do |
-| **Resolved** | Green | Actions completed, outcome verified | Check / Act |
+| Status            | Badge  | Meaning                                     | PDCA Mapping |
+| ----------------- | ------ | ------------------------------------------- | ------------ |
+| **Observed**      | Amber  | Pattern spotted, not yet investigated       | —            |
+| **Investigating** | Blue   | Actively drilling into this finding         | —            |
+| **Analyzed**      | Purple | Suspected cause identified                  | Plan         |
+| **Improving**     | Cyan   | Corrective actions assigned and in progress | Do           |
+| **Resolved**      | Green  | Actions completed, outcome verified         | Check / Act  |
 
 Every status transition is timestamped. The analyst can add comments at any stage to record what was checked and what was learned, creating a complete investigation narrative.
 
@@ -53,11 +53,11 @@ Every status transition is timestamped. The analyst can add comments at any stag
 
 VariScout requires evidence to support investigation conclusions. Three validation types ensure findings are supported by appropriate evidence:
 
-| Evidence Type | Method | ISO Relevance |
-|---|---|---|
-| **Data** | ANOVA eta-squared auto-validation against significance thresholds | Objective measurement evidence (9.1) |
-| **Gemba** | Physical go-see inspection tasks with recorded observations | Process evidence from the production floor (8.5, 10.2) |
-| **Expert** | Domain knowledge assessments from experienced personnel | Competency evidence (7.2) |
+| Evidence Type | Method                                                            | ISO Relevance                                          |
+| ------------- | ----------------------------------------------------------------- | ------------------------------------------------------ |
+| **Data**      | ANOVA eta-squared auto-validation against significance thresholds | Objective measurement evidence (9.1)                   |
+| **Gemba**     | Physical go-see inspection tasks with recorded observations       | Process evidence from the production floor (8.5, 10.2) |
+| **Expert**    | Domain knowledge assessments from experienced personnel           | Competency evidence (7.2)                              |
 
 A hypothesis can only be marked as "supported" when at least one validation type provides sufficient evidence. This prevents conclusions based on assumption alone.
 
@@ -100,14 +100,14 @@ A hypothesis can only be marked as "supported" when at least one validation type
 
 **VariScout capability:**
 
-| Analytical Method | Purpose | Output |
-|---|---|---|
-| **I-Chart** | Process stability over time | Control limit violations, run rules, trend detection |
-| **Boxplot** | Distribution comparison across factor levels | Median, IQR, outliers by category |
-| **Pareto** | Factor contribution ranking | Ordered bar chart with cumulative percentage |
-| **ANOVA** | Statistical significance testing | F-statistic, p-value, η² (variance explained) |
-| **Cpk / Ppk** | Process capability assessment | Capability indices relative to specification limits |
-| **Staged comparison** | Before/after measurement | Quantified deltas (mean shift, σ change, Cpk delta) |
+| Analytical Method     | Purpose                                      | Output                                               |
+| --------------------- | -------------------------------------------- | ---------------------------------------------------- |
+| **I-Chart**           | Process stability over time                  | Control limit violations, run rules, trend detection |
+| **Boxplot**           | Distribution comparison across factor levels | Median, IQR, outliers by category                    |
+| **Pareto**            | Factor contribution ranking                  | Ordered bar chart with cumulative percentage         |
+| **ANOVA**             | Statistical significance testing             | F-statistic, p-value, η² (variance explained)        |
+| **Cpk / Ppk**         | Process capability assessment                | Capability indices relative to specification limits  |
+| **Staged comparison** | Before/after measurement                     | Quantified deltas (mean shift, σ change, Cpk delta)  |
 
 All statistical calculations are deterministic — computed in the browser using validated algorithms. AI explains the results but never generates or modifies statistical values.
 
@@ -139,14 +139,14 @@ All statistical calculations are deterministic — computed in the browser using
 
 The 5-status finding model directly implements the corrective action lifecycle required by Clause 10.2:
 
-| ISO 10.2 Requirement | VariScout Implementation |
-|---|---|
-| React to nonconformity | **Observed** status — pattern detected and recorded |
-| Evaluate the need for action | **Investigating** → **Analyzed** — drill-down analysis, hypothesis testing, factor contribution measurement |
-| Determine root cause | **Question-driven investigation** — diamond pattern of diverge (generate questions), validate (test each with data/gemba/expert evidence), converge (eliminate contradicted theories). Suspected causes are identified through evidence, not assumption |
-| Implement corrective action | **Improving** status — action items with assignee, due date, completion tracking. Auto-transition from Analyzed when first action is added |
-| Review effectiveness | **Resolved** status — outcome assessment: effective (yes/no/partial), Cpk before/after, verification notes |
-| Retain documented information | All statuses, transitions, comments, and outcomes are timestamped and retained |
+| ISO 10.2 Requirement          | VariScout Implementation                                                                                                                                                                                                                                |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| React to nonconformity        | **Observed** status — pattern detected and recorded                                                                                                                                                                                                     |
+| Evaluate the need for action  | **Investigating** → **Analyzed** — drill-down analysis, hypothesis testing, factor contribution measurement                                                                                                                                             |
+| Determine root cause          | **Question-driven investigation** — diamond pattern of diverge (generate questions), validate (test each with data/gemba/expert evidence), converge (eliminate contradicted theories). Suspected causes are identified through evidence, not assumption |
+| Implement corrective action   | **Improving** status — action items with assignee, due date, completion tracking. Auto-transition from Analyzed when first action is added                                                                                                              |
+| Review effectiveness          | **Resolved** status — outcome assessment: effective (yes/no/partial), Cpk before/after, verification notes                                                                                                                                              |
+| Retain documented information | All statuses, transitions, comments, and outcomes are timestamped and retained                                                                                                                                                                          |
 
 **Key distinction:** VariScout uses the term "suspected cause" rather than "root cause" throughout. A suspected cause becomes confirmed only when the outcome measurement (Cpk after) shows the corrective action was effective. This honest framing aligns with scientific rigor and prevents premature claims of root cause identification.
 
@@ -174,12 +174,12 @@ The 5-status finding model directly implements the corrective action lifecycle r
 
 ISO 9001:2026 adds new emphasis on digitalization, data-driven decision-making, and organizational knowledge management. VariScout directly supports these new requirements:
 
-| 2026 Emphasis | VariScout Capability |
-|---|---|
-| **Digitalization** | Browser-based tool replacing paper forms and spreadsheets. All investigation data is structured, searchable, and exportable |
-| **Data-driven decisions** | Statistical evidence (η², Cpk, p-values) quantifies every claim. AI explains but never replaces statistical authority |
-| **Knowledge management** | Resolved findings build a searchable knowledge index (Team plan). Negative learnings are preserved. Question trees document the full investigation journey |
-| **Measured outcomes** | Cpk before/after provides objective verification that improvements are effective, not just implemented |
+| 2026 Emphasis             | VariScout Capability                                                                                                                                       |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Digitalization**        | Browser-based tool replacing paper forms and spreadsheets. All investigation data is structured, searchable, and exportable                                |
+| **Data-driven decisions** | Statistical evidence (η², Cpk, p-values) quantifies every claim. AI explains but never replaces statistical authority                                      |
+| **Knowledge management**  | Resolved findings build a searchable knowledge index (Team plan). Negative learnings are preserved. Question trees document the full investigation journey |
+| **Measured outcomes**     | Cpk before/after provides objective verification that improvements are effective, not just implemented                                                     |
 
 ---
 
@@ -208,12 +208,12 @@ This is the most rigorous verification available: same tool, same statistical me
 
 ### ISO Relevance
 
-| Verification Element | ISO Clause |
-|---|---|
-| Measured Cpk improvement demonstrates corrective action effectiveness | 10.2 |
-| Quantified deltas provide evidence for management review | 9.3 |
-| Knowledge Base records build organizational improvement history | 7.1.6, 10.3 |
-| Projected vs. actual comparison enables estimation calibration | 10.3 |
+| Verification Element                                                  | ISO Clause  |
+| --------------------------------------------------------------------- | ----------- |
+| Measured Cpk improvement demonstrates corrective action effectiveness | 10.2        |
+| Quantified deltas provide evidence for management review              | 9.3         |
+| Knowledge Base records build organizational improvement history       | 7.1.6, 10.3 |
+| Projected vs. actual comparison enables estimation calibration        | 10.3        |
 
 ---
 
@@ -221,16 +221,16 @@ This is the most rigorous verification available: same tool, same statistical me
 
 VariScout creates the following documented information relevant to ISO 9001:2026 audits:
 
-| Record | Content | Retention |
-|---|---|---|
-| **Finding card** | Status progression, suspected cause, classification tags, timestamps | Project lifetime |
-| **Question tree** | Investigation questions with status (answered/ruled-out/open), linked hypotheses, validation evidence | Project lifetime |
-| **Journal** | Chronological investigation timeline — every event, status change, and comment | Project lifetime |
-| **Corrective actions** | Action text, assignee, due date, completion timestamp | Project lifetime |
-| **Outcome assessment** | Effectiveness (yes/no/partial), Cpk before/after, verification notes | Project lifetime |
-| **Improvement ideas** | Idea text, direction, timeframe, cost, risk, What-If projection | Project lifetime |
-| **Statistical exports** | Chart images (PNG/SVG), data exports (CSV), report PDFs | User-managed |
-| **Knowledge Base** | Resolved finding outcomes searchable for future investigations (Team plan) | Project lifetime |
+| Record                  | Content                                                                                               | Retention        |
+| ----------------------- | ----------------------------------------------------------------------------------------------------- | ---------------- |
+| **Finding card**        | Status progression, suspected cause, classification tags, timestamps                                  | Project lifetime |
+| **Question tree**       | Investigation questions with status (answered/ruled-out/open), linked hypotheses, validation evidence | Project lifetime |
+| **Journal**             | Chronological investigation timeline — every event, status change, and comment                        | Project lifetime |
+| **Corrective actions**  | Action text, assignee, due date, completion timestamp                                                 | Project lifetime |
+| **Outcome assessment**  | Effectiveness (yes/no/partial), Cpk before/after, verification notes                                  | Project lifetime |
+| **Improvement ideas**   | Idea text, direction, timeframe, cost, risk, What-If projection                                       | Project lifetime |
+| **Statistical exports** | Chart images (PNG/SVG), data exports (CSV), report PDFs                                               | User-managed     |
+| **Knowledge Base**      | Resolved finding outcomes searchable for future investigations (Team plan)                            | Project lifetime |
 
 All records are stored in the customer's own infrastructure (browser IndexedDB for Standard; Azure Blob Storage for Team). No audit data leaves the customer's environment.
 
@@ -250,7 +250,7 @@ To set clear expectations for auditors:
 ## See Also
 
 - [Security Whitepaper](azure/security-whitepaper.md) — Security architecture for IT procurement evaluation
-- [ADR-062: Trust & Compliance Roadmap](../07-decisions/adr-062-trust-compliance-roadmap.md) — Phased approach to formal certification
+- [ADR-062: Trust & Compliance Roadmap](../07-decisions/adr-063-trust-compliance-roadmap.md) — Phased approach to formal certification
 - [Investigation to Action Workflow](../03-features/workflows/investigation-to-action.md) — Detailed workflow documentation
 - [Question-Driven Investigation](../03-features/workflows/question-driven-investigation.md) — Diamond pattern investigation methodology
 - [Staged Analysis](../03-features/analysis/staged-analysis.md) — Before/after verification methodology

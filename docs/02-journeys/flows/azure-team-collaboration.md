@@ -275,7 +275,7 @@ When AI is enabled, Azure AI Foundry resources are deployed in the customer's te
 - [How It Works](../../08-products/azure/how-it-works.md) — end-to-end architecture
 - [ARM Template](../../08-products/azure/arm-template.md) — deployment resources
 - [Authentication](../../08-products/azure/authentication.md) — EasyAuth details
-- [OneDrive Sync](../../08-products/azure/onedrive-sync.md) — sync and offline behavior
+- [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) — sync and offline behavior
 - [AI Setup](azure-ai-setup.md) — admin flow for enabling AI features
 - [Enterprise Evaluation](enterprise.md) — how Olivia evaluated before deploying
 - [First Analysis](azure-first-analysis.md) — what team members experience on day one

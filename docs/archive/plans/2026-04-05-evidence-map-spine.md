@@ -1,4 +1,5 @@
 ---
+status: archived
 title: 'Evidence Map as Analysis Spine — Implementation Plan'
 ---
 

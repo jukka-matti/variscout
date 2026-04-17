@@ -1,1 +1,5 @@
 npx lint-staged --concurrent false
+
+# Documentation health — blocks commit if drift is found.
+# Run `pnpm docs:sync` to auto-fix count drift, or fix manually.
+pnpm docs:check

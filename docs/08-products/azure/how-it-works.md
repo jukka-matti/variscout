@@ -326,5 +326,5 @@ CUSTOMER TENANT                          PUBLISHER (VariScout)
 - [Azure App Overview](index.md) — product positioning and pricing
 - [ARM Template](arm-template.md) — resource definitions and deployment methods
 - [Authentication (EasyAuth)](authentication.md) — auth endpoints and client-side helper
-- [OneDrive Sync](onedrive-sync.md) — sync flow, conflict resolution, offline behavior
+- [OneDrive Sync](blob-storage-sync.md) — sync flow, conflict resolution, offline behavior
 - [Marketplace Guide](marketplace.md) — publishing, certification, listing content

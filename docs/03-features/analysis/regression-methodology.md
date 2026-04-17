@@ -394,7 +394,7 @@ The regression solver uses QR decomposition rather than the normal equations (X'
 | Topic                                 | Document                                                                     |
 | ------------------------------------- | ---------------------------------------------------------------------------- |
 | ANOVA and η² (one-factor analysis)    | [Variation Decomposition](variation-decomposition.md)                        |
-| Factor Intelligence ranking           | [Factor Intelligence](factor-intelligence.md)                                |
+| Factor Intelligence ranking           | [Factor Intelligence](../../02-journeys/flows/factor-intelligence.md)        |
 | Evidence Map spatial layout           | [Evidence Map](../../superpowers/specs/2026-04-05-evidence-map-design.md)    |
 | What-If Simulator (direct adjustment) | [Investigation to Action](../workflows/investigation-to-action.md)           |
 | Implementation reference              | [Statistics Technical Reference](../../05-technical/statistics-reference.md) |

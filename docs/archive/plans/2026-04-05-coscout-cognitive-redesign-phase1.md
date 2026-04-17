@@ -1,5 +1,7 @@
 ---
 title: 'CoScout Cognitive Redesign — Phase 1: Foundation'
+status: archived
+spec: 2026-04-05-coscout-cognitive-redesign-design.md
 ---
 
 # CoScout Cognitive Redesign — Phase 1: Foundation

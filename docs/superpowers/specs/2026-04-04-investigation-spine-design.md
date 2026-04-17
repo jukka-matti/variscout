@@ -2,7 +2,7 @@
 title: 'Investigation Spine — Three Threads, Five Sentences, One Story'
 audience: [analyst, engineer]
 category: architecture
-status: draft
+status: delivered
 related:
   [
     investigation,

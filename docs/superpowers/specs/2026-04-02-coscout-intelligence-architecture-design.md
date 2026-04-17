@@ -24,6 +24,8 @@ related:
 
 # CoScout Intelligence Architecture
 
+> **Implementation plan:** [2026-04-02-coscout-intelligence-architecture.md](../plans/2026-04-02-coscout-intelligence-architecture.md) — active (phases 1–2 delivered, 3–5 pending Azure Foundry IQ deployment).
+
 ## Problem Statement
 
 CoScout operates on approximately 15–25% of investigation knowledge. A critical audit of `buildAIContext()` reveals:

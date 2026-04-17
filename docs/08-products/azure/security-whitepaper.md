@@ -48,13 +48,13 @@ VariScout is deployed through the **Azure Marketplace** as a Managed Application
 
 ### No Shared Infrastructure
 
-| Aspect | Traditional Multi-Tenant SaaS | VariScout |
-|---|---|---|
-| Compute | Shared application servers | Customer's own App Service |
-| Database | Shared database, row-level isolation | No database; browser IndexedDB or customer's Blob Storage |
-| AI Services | Shared AI endpoint | Customer's own Azure OpenAI resource |
-| Secrets | Vendor's key management | Customer's own Key Vault |
-| Monitoring | Vendor's telemetry | Customer's own Application Insights |
+| Aspect      | Traditional Multi-Tenant SaaS        | VariScout                                                 |
+| ----------- | ------------------------------------ | --------------------------------------------------------- |
+| Compute     | Shared application servers           | Customer's own App Service                                |
+| Database    | Shared database, row-level isolation | No database; browser IndexedDB or customer's Blob Storage |
+| AI Services | Shared AI endpoint                   | Customer's own Azure OpenAI resource                      |
+| Secrets     | Vendor's key management              | Customer's own Key Vault                                  |
+| Monitoring  | Vendor's telemetry                   | Customer's own Application Insights                       |
 
 ### No Publisher Access
 
@@ -83,10 +83,10 @@ VariScout uses **App Service Authentication (EasyAuth)** — a platform-level au
 
 **Both tiers require zero admin consent:**
 
-| Permission | Type | Admin Consent | Purpose | Tier |
-|---|---|---|---|---|
-| `User.Read` | Delegated | **No** | Get user profile (name, email) | All |
-| `People.Read` | Delegated | **No** | People picker for action assignment | Team |
+| Permission    | Type      | Admin Consent | Purpose                             | Tier |
+| ------------- | --------- | ------------- | ----------------------------------- | ---- |
+| `User.Read`   | Delegated | **No**        | Get user profile (name, email)      | All  |
+| `People.Read` | Delegated | **No**        | People picker for action assignment | Team |
 
 Users grant consent on first login. No IT administrator action is required.
 
@@ -132,13 +132,13 @@ The browser never receives storage credentials. Instead:
 3. The App Service's managed identity (with `Storage Blob Data Contributor` RBAC role) generates a container-scoped SAS token
 4. The browser uses the SAS token for direct Blob Storage access
 
-| SAS Token Control | Detail |
-|---|---|
-| Container-scoped | Access limited to `variscout-projects` container only |
-| Time-limited | 1-hour expiry, regenerated on demand |
-| Entra ID gated | Requires valid EasyAuth session |
-| No delete permission | Read + Write only |
-| Azure RBAC | Customer IT manages access via standard role assignments |
+| SAS Token Control    | Detail                                                   |
+| -------------------- | -------------------------------------------------------- |
+| Container-scoped     | Access limited to `variscout-projects` container only    |
+| Time-limited         | 1-hour expiry, regenerated on demand                     |
+| Entra ID gated       | Requires valid EasyAuth session                          |
+| No delete permission | Read + Write only                                        |
+| Azure RBAC           | Customer IT manages access via standard role assignments |
 
 ### Data Sovereignty
 
@@ -150,19 +150,19 @@ All data resides in the **Azure region selected by the customer** during deploym
 
 ### In Transit
 
-| Control | Configuration |
-|---|---|
-| HTTPS enforced | `httpsOnly: true` in ARM template |
+| Control             | Configuration                         |
+| ------------------- | ------------------------------------- |
+| HTTPS enforced      | `httpsOnly: true` in ARM template     |
 | Minimum TLS version | `minTlsVersion: "1.2"` on App Service |
-| Blob Storage | All traffic over TLS |
+| Blob Storage        | All traffic over TLS                  |
 
 ### At Rest
 
-| Component | Encryption |
-|---|---|
-| Blob Storage | Azure-managed Server-Side Encryption (SSE) |
-| IndexedDB (Standard plan) | Browser-managed encryption |
-| Key Vault | Azure-managed encryption with RBAC authorization |
+| Component                 | Encryption                                       |
+| ------------------------- | ------------------------------------------------ |
+| Blob Storage              | Azure-managed Server-Side Encryption (SSE)       |
+| IndexedDB (Standard plan) | Browser-managed encryption                       |
+| Key Vault                 | Azure-managed encryption with RBAC authorization |
 
 ### Secret Management
 
@@ -185,15 +185,15 @@ VariScout's core principle is **"deterministic first, AI enhances."** The statis
 
 The `buildAIContext()` function transforms raw measurement data into summary statistics before any AI interaction. **Raw measurement values are never sent to AI services.**
 
-| Data Category | Sent to AI? | What Is Sent |
-|---|---|---|
-| Raw measurements | **Never** | Only summary statistics (mean, stdDev, Cpk, etc.) |
-| Factor names & categories | Yes | Column headers (e.g., "Machine", "Shift") and category values (e.g., "Machine A", "Morning") |
-| Analyst-written text | Yes | Finding descriptions, hypotheses, process descriptions — deliberately authored by the authenticated user |
-| Photos | **Never** | Stored in Blob Storage only |
-| User credentials | **Never** | Authentication handled by EasyAuth platform |
-| Conversation history | Session-only | Last 10 messages; no persistence across sessions |
-| Knowledge Base snippets | Yes (Team plan) | Maximum 400 characters per document snippet |
+| Data Category             | Sent to AI?     | What Is Sent                                                                                             |
+| ------------------------- | --------------- | -------------------------------------------------------------------------------------------------------- |
+| Raw measurements          | **Never**       | Only summary statistics (mean, stdDev, Cpk, etc.)                                                        |
+| Factor names & categories | Yes             | Column headers (e.g., "Machine", "Shift") and category values (e.g., "Machine A", "Morning")             |
+| Analyst-written text      | Yes             | Finding descriptions, hypotheses, process descriptions — deliberately authored by the authenticated user |
+| Photos                    | **Never**       | Stored in Blob Storage only                                                                              |
+| User credentials          | **Never**       | Authentication handled by EasyAuth platform                                                              |
+| Conversation history      | Session-only    | Last 10 messages; no persistence across sessions                                                         |
+| Knowledge Base snippets   | Yes (Team plan) | Maximum 400 characters per document snippet                                                              |
 
 ### AI Infrastructure
 
@@ -220,15 +220,15 @@ Only non-PII metadata is recorded to Application Insights:
 
 Every customer deployment is a fully isolated instance:
 
-| Layer | Isolation Mechanism |
-|---|---|
-| Compute | Dedicated App Service per customer |
-| Storage | Dedicated Storage Account per customer |
-| AI | Dedicated Azure OpenAI resource per customer |
-| Secrets | Dedicated Key Vault per customer |
-| Identity | Customer's own Entra ID tenant |
-| Monitoring | Dedicated Application Insights per customer |
-| Network | No cross-customer network paths |
+| Layer      | Isolation Mechanism                          |
+| ---------- | -------------------------------------------- |
+| Compute    | Dedicated App Service per customer           |
+| Storage    | Dedicated Storage Account per customer       |
+| AI         | Dedicated Azure OpenAI resource per customer |
+| Secrets    | Dedicated Key Vault per customer             |
+| Identity   | Customer's own Entra ID tenant               |
+| Monitoring | Dedicated Application Insights per customer  |
+| Network    | No cross-customer network paths              |
 
 There is no multi-tenant database, no shared API gateway, no shared compute, and no data aggregation across customers. Each deployment is architecturally identical to a customer-built application running in their own Azure environment.
 
@@ -236,23 +236,23 @@ There is no multi-tenant database, no shared API gateway, no shared compute, and
 
 ## 7. Network Security
 
-| Control | Configuration |
-|---|---|
-| HTTPS enforcement | `httpsOnly: true` |
-| FTP | Disabled (`ftpsState: "Disabled"`) |
-| Management endpoints | None exposed |
-| Health endpoint | `GET /health` (excluded from auth, exposes no data) |
-| Inbound access | Gated through EasyAuth middleware |
+| Control              | Configuration                                       |
+| -------------------- | --------------------------------------------------- |
+| HTTPS enforcement    | `httpsOnly: true`                                   |
+| FTP                  | Disabled (`ftpsState: "Disabled"`)                  |
+| Management endpoints | None exposed                                        |
+| Health endpoint      | `GET /health` (excluded from auth, exposes no data) |
+| Inbound access       | Gated through EasyAuth middleware                   |
 
 ### Outbound Connections
 
 The application makes outbound connections only to:
 
-| Destination | When | Purpose |
-|---|---|---|
-| Azure Blob Storage | Team plan, on save/load | Project data sync |
-| Azure OpenAI | When AI features are used | Statistical summary explanation |
-| Azure AI Search | Team plan, on KB search | Knowledge Base document search |
+| Destination        | When                      | Purpose                         |
+| ------------------ | ------------------------- | ------------------------------- |
+| Azure Blob Storage | Team plan, on save/load   | Project data sync               |
+| Azure OpenAI       | When AI features are used | Statistical summary explanation |
+| Azure AI Search    | Team plan, on KB search   | Knowledge Base document search  |
 
 No connections are made to publisher-operated servers, third-party analytics, or external tracking services.
 
@@ -264,11 +264,11 @@ No connections are made to publisher-operated servers, third-party analytics, or
 
 The App Service's system-assigned managed identity is granted the following roles, **scoped to specific resources** (not resource-group-wide):
 
-| Role | Resource | Purpose |
-|---|---|---|
-| `Storage Blob Data Contributor` | Storage Account | Generate SAS tokens for browser access |
-| `Cognitive Services User` | Azure AI Services | Access AI models via bearer token |
-| `Key Vault Secrets User` | Key Vault | Read deployment secrets |
+| Role                            | Resource          | Purpose                                |
+| ------------------------------- | ----------------- | -------------------------------------- |
+| `Storage Blob Data Contributor` | Storage Account   | Generate SAS tokens for browser access |
+| `Cognitive Services User`       | Azure AI Services | Access AI models via bearer token      |
+| `Key Vault Secrets User`        | Key Vault         | Read deployment secrets                |
 
 ### Customer IT Controls
 
@@ -286,13 +286,13 @@ Customer IT retains full control over access management via standard Azure mecha
 
 Team plan users can capture photo evidence for findings (gemba observations). Photos undergo client-side security processing before upload:
 
-| Processing Step | Detail |
-|---|---|
-| EXIF metadata removal | All EXIF tags stripped in the browser |
-| GPS data removal | Location data removed before upload |
-| Canvas re-encode | Image re-encoded via HTML Canvas (strips embedded metadata) |
-| Size limitation | Resized if longest side exceeds 2048px |
-| Storage | Uploaded to customer's Blob Storage at `{projectId}/photos/{findingId}/` |
+| Processing Step       | Detail                                                                   |
+| --------------------- | ------------------------------------------------------------------------ |
+| EXIF metadata removal | All EXIF tags stripped in the browser                                    |
+| GPS data removal      | Location data removed before upload                                      |
+| Canvas re-encode      | Image re-encoded via HTML Canvas (strips embedded metadata)              |
+| Size limitation       | Resized if longest side exceeds 2048px                                   |
+| Storage               | Uploaded to customer's Blob Storage at `{projectId}/photos/{findingId}/` |
 
 Photos are never sent to AI services, never processed server-side, and never leave the customer's Azure tenant.
 
@@ -302,13 +302,13 @@ Photos are never sent to AI services, never processed server-side, and never lea
 
 ### Recovery Targets
 
-| Scenario | RTO | RPO |
-|---|---|---|
-| App Service failure | < 5 minutes | 0 (stateless) |
-| Region outage | < 2 hours | 0 (redeploy to new region) |
-| Key compromise | < 30 minutes | N/A |
-| Data loss (Standard) | N/A | N/A (browser-local, user responsibility) |
-| Data loss (Team) | < 1 hour | ~15 minutes (last sync) |
+| Scenario             | RTO          | RPO                                      |
+| -------------------- | ------------ | ---------------------------------------- |
+| App Service failure  | < 5 minutes  | 0 (stateless)                            |
+| Region outage        | < 2 hours    | 0 (redeploy to new region)               |
+| Key compromise       | < 30 minutes | N/A                                      |
+| Data loss (Standard) | N/A          | N/A (browser-local, user responsibility) |
+| Data loss (Team)     | < 1 hour     | ~15 minutes (last sync)                  |
 
 ### Stateless Architecture
 
@@ -320,12 +320,12 @@ The App Service is stateless — it serves a pre-built SPA package with no serve
 
 ### Data Protection
 
-| Component | Protection |
-|---|---|
-| Standard plan (IndexedDB) | Browser-local; user can export as JSON |
-| Team plan (Blob Storage) | Azure Storage SLA; geo-redundancy configurable by customer |
-| Key Vault secrets | Soft-delete with 90-day recovery window |
-| Application code | CI/CD history + deployment slots |
+| Component                 | Protection                                                 |
+| ------------------------- | ---------------------------------------------------------- |
+| Standard plan (IndexedDB) | Browser-local; user can export as JSON                     |
+| Team plan (Blob Storage)  | Azure Storage SLA; geo-redundancy configurable by customer |
+| Key Vault secrets         | Soft-delete with 90-day recovery window                    |
+| Application code          | CI/CD history + deployment slots                           |
 
 ---
 
@@ -335,22 +335,22 @@ VariScout (the publisher) does not currently hold ISO 27001 certification. This 
 
 ### Control Ownership
 
-| ISO 27001 Annex A Domain | Control Owner | Rationale |
-|---|---|---|
-| A.5 Information Security Policies | Customer | Customer's Azure policies govern the deployment |
-| A.6 Organization of Information Security | Customer | Customer's organizational structure applies |
-| A.7 Human Resource Security | Shared | Publisher employees have zero access to customer data |
-| A.8 Asset Management | Customer | All assets (App Service, Storage, AI) are customer-owned Azure resources |
-| A.9 Access Control | Customer | Azure AD (Entra ID) + RBAC managed by customer IT |
-| A.10 Cryptography | Customer | Azure-managed encryption in customer's subscription |
-| A.11 Physical & Environmental Security | Customer | Azure datacenters in customer-selected region |
-| A.12 Operations Security | Customer | Azure platform operations in customer's subscription |
-| A.13 Communications Security | Customer | Azure networking in customer's subscription |
-| A.14 System Acquisition, Development & Maintenance | **Publisher** | Secure SDLC, code review, dependency management |
-| A.15 Supplier Relationships | Shared | Publisher manages Azure/Microsoft relationship; customer manages VariScout relationship |
-| A.16 Information Security Incident Management | Customer | Customer's incident response for their Azure resources |
-| A.17 Business Continuity | Customer | Customer controls backup, geo-redundancy, and DR for their Azure resources |
-| A.18 Compliance | **Publisher** | Regulatory mapping (EU AI Act, ISO 9001:2026 alignment) |
+| ISO 27001 Annex A Domain                           | Control Owner | Rationale                                                                               |
+| -------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------- |
+| A.5 Information Security Policies                  | Customer      | Customer's Azure policies govern the deployment                                         |
+| A.6 Organization of Information Security           | Customer      | Customer's organizational structure applies                                             |
+| A.7 Human Resource Security                        | Shared        | Publisher employees have zero access to customer data                                   |
+| A.8 Asset Management                               | Customer      | All assets (App Service, Storage, AI) are customer-owned Azure resources                |
+| A.9 Access Control                                 | Customer      | Azure AD (Entra ID) + RBAC managed by customer IT                                       |
+| A.10 Cryptography                                  | Customer      | Azure-managed encryption in customer's subscription                                     |
+| A.11 Physical & Environmental Security             | Customer      | Azure datacenters in customer-selected region                                           |
+| A.12 Operations Security                           | Customer      | Azure platform operations in customer's subscription                                    |
+| A.13 Communications Security                       | Customer      | Azure networking in customer's subscription                                             |
+| A.14 System Acquisition, Development & Maintenance | **Publisher** | Secure SDLC, code review, dependency management                                         |
+| A.15 Supplier Relationships                        | Shared        | Publisher manages Azure/Microsoft relationship; customer manages VariScout relationship |
+| A.16 Information Security Incident Management      | Customer      | Customer's incident response for their Azure resources                                  |
+| A.17 Business Continuity                           | Customer      | Customer controls backup, geo-redundancy, and DR for their Azure resources              |
+| A.18 Compliance                                    | **Publisher** | Regulatory mapping (EU AI Act, ISO 9001:2026 alignment)                                 |
 
 ### Publisher Security Practices (A.14)
 
@@ -364,7 +364,7 @@ VariScout's development practices include:
 
 ### Roadmap to Formal Certification
 
-See [ADR-062: Trust & Compliance Roadmap](../../07-decisions/adr-062-trust-compliance-roadmap.md) for the phased approach to formal certification (SOC 2 Type I self-assessment, SOC 2 Type II audit, ISO 27001).
+See [ADR-062: Trust & Compliance Roadmap](../../07-decisions/adr-063-trust-compliance-roadmap.md) for the phased approach to formal certification (SOC 2 Type I self-assessment, SOC 2 Type II audit, ISO 27001).
 
 ---
 
@@ -413,20 +413,20 @@ Full policy: `docs/05-technical/architecture/responsible-ai-policy.md`
 
 ## 13. Summary
 
-| Security Area | VariScout Approach |
-|---|---|
-| **Deployment** | Customer's own Azure subscription; no shared infrastructure |
-| **Publisher access** | Zero — no `publisherManagement` authorization |
-| **Authentication** | Azure AD via EasyAuth; zero admin consent required |
-| **Data residency** | Standard: browser only. Team: customer's Blob Storage |
-| **Encryption** | TLS 1.2+ in transit; Azure-managed SSE at rest; Key Vault for secrets |
-| **AI data handling** | Stats-only payloads; raw measurements never sent to AI |
-| **Tenant isolation** | Per-customer deployment of all Azure resources |
-| **Network** | HTTPS enforced; FTP disabled; no management endpoints |
-| **RBAC** | Managed identity with resource-scoped roles |
-| **Photo security** | EXIF/GPS stripped client-side before upload |
-| **Disaster recovery** | Stateless architecture; < 5 min RTO |
-| **Compliance** | EU AI Act limited-risk; ISO 9001:2026 alignment; Azure Marketplace certified |
+| Security Area         | VariScout Approach                                                           |
+| --------------------- | ---------------------------------------------------------------------------- |
+| **Deployment**        | Customer's own Azure subscription; no shared infrastructure                  |
+| **Publisher access**  | Zero — no `publisherManagement` authorization                                |
+| **Authentication**    | Azure AD via EasyAuth; zero admin consent required                           |
+| **Data residency**    | Standard: browser only. Team: customer's Blob Storage                        |
+| **Encryption**        | TLS 1.2+ in transit; Azure-managed SSE at rest; Key Vault for secrets        |
+| **AI data handling**  | Stats-only payloads; raw measurements never sent to AI                       |
+| **Tenant isolation**  | Per-customer deployment of all Azure resources                               |
+| **Network**           | HTTPS enforced; FTP disabled; no management endpoints                        |
+| **RBAC**              | Managed identity with resource-scoped roles                                  |
+| **Photo security**    | EXIF/GPS stripped client-side before upload                                  |
+| **Disaster recovery** | Stateless architecture; < 5 min RTO                                          |
+| **Compliance**        | EU AI Act limited-risk; ISO 9001:2026 alignment; Azure Marketplace certified |
 
 ---
 
@@ -437,5 +437,5 @@ Full policy: `docs/05-technical/architecture/responsible-ai-policy.md`
 - [AI Safety Report](ai-safety-report.md)
 - [EU AI Act Mapping](../../05-technical/architecture/eu-ai-act-mapping.md)
 - [Responsible AI Policy](../../05-technical/architecture/responsible-ai-policy.md)
-- [ADR-062: Trust & Compliance Roadmap](../../07-decisions/adr-062-trust-compliance-roadmap.md)
+- [ADR-062: Trust & Compliance Roadmap](../../07-decisions/adr-063-trust-compliance-roadmap.md)
 - [ISO 9001:2026 Alignment Guide](../iso-9001-alignment.md)

@@ -175,6 +175,6 @@ What happens to persisted state when data changes mid-analysis:
 
 ## See Also
 
-- [OneDrive Sync](../../08-products/azure/onedrive-sync.md) — Azure-specific sync mechanism
+- [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) — Azure-specific sync mechanism
 - [Offline-First Architecture](../../05-technical/architecture/offline-first.md) — Technical approach
 - [PWA Session Model](../../08-products/pwa/index.md#session-model) — Why the PWA doesn't persist
