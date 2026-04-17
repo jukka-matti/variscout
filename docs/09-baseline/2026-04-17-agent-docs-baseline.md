@@ -3,6 +3,7 @@ title: Agent Docs Architecture Baseline (Pre-Phase 1)
 audience: [engineer]
 category: reference
 status: reference
+last-reviewed: 2026-04-17
 related: [claude-md, skills, migration, measurement]
 ---
 
@@ -68,3 +69,27 @@ For each prompt, record:
 - Correct on first try? (Y/N)
 - Number of corrections needed
 - Observed failure mode (C, D, or none)
+
+## Phase 1 Completion
+
+**Date completed:** 2026-04-17
+**Status:** Phase 1 Foundation delivered. All files created as `.new` variants or new docs. Old system fully operational.
+
+**Files created (10 commits, fully additive):**
+
+- 12 skill folders with frontmatter-only `SKILL.md` in `.claude/skills/`
+- 8 package/app `CLAUDE.md.new` drafts (`packages/{core,charts,hooks,ui,stores,data}/`, `apps/{azure,pwa}/`)
+- 1 root `CLAUDE.md.new` draft (50 lines, ≤50 target)
+- 3 Tier 1 human narrative docs (`docs/OVERVIEW.md`, `USER-JOURNEYS.md`, `DATA-FLOW.md`)
+- 5 Tier 2 per-mode journey docs (`docs/USER-JOURNEYS-{YAMAZUMI,PERFORMANCE,DEFECT,CAPABILITY,PROCESS-FLOW}.md`)
+
+**Phase 1 gate checks — all passed:**
+
+- Test suite: 5818/5818 passing (unchanged from baseline)
+- Build: clean (full turbo cache hit — no code changes)
+- Live files unchanged: `CLAUDE.md` still 181 lines; no live `packages/*/CLAUDE.md` or `apps/*/CLAUDE.md` created; `.claude/rules/*` untouched
+- Frontmatter: valid on all 9 new docs (incl. this baseline) and all 12 new skills
+- `pnpm docs:check`: all checks pass (diagram health, orphan check, cross-references)
+- Readability self-test (OVERVIEW + USER-JOURNEYS + DATA-FLOW): passes 3-question test (what VariScout does, personas + phases, data trace)
+
+**Next phase:** Phase 2 — populate 12 skill SKILL.md bodies by migrating content from `.claude/rules/*.md` + relevant ADRs/specs, add skill reference files (EXPORTS.md / COLORS.md for `editing-charts`; YAMAZUMI.md / PERFORMANCE.md / DEFECT.md / PROCESS-FLOW.md for `editing-analysis-modes`), then atomic swap `CLAUDE.md.new` → live. Plan to be written in `docs/superpowers/plans/` after Phase 1 commit.
