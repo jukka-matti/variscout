@@ -250,4 +250,3 @@ See [Authentication — App Roles](../../08-products/azure/authentication.md#adm
 - [Flow 9: AI Setup](azure-ai-setup.md) — AI resource provisioning
 - [ARM Template](../../08-products/azure/arm-template.md) — deployment resources
 - [Authentication](../../08-products/azure/authentication.md) — EasyAuth configuration
-- [Admin Experience Design](../../archive/specs/2026-03-19-admin-experience-design.md) — UI design spec

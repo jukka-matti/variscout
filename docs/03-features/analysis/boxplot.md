@@ -151,7 +151,7 @@ const etaSq = getEtaSquared(data, 'Machine', 'Weight');
 - [Progressive Filtering](../navigation/progressive-filtering.md) - Multi-level factor exploration
 - [I-Chart](i-chart.md) - Previous step: detect instability over time
 - [Pareto](pareto.md) - Next step: rank contribution of factors
-- [Regression (Phase 2, deferred)](../../archive/regression.md) - When to check for interactions
+- Regression (Phase 2, deferred) - When to check for interactions
 - [Chart Design](../../06-design-system/charts/boxplot.md)
 - [Glossary: η² (Eta-squared)](../../glossary.md#2-eta-squared)
 - [Glossary: F-statistic](../../glossary.md#f-statistic)

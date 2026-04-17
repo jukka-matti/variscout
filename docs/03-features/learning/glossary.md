@@ -104,7 +104,7 @@ interface Concept {
 
 ## Glossary Expansion Plan (AI Readiness)
 
-The glossary currently contains 25 terms across 5 categories. For AI Phase 1 (ADR-019), the glossary needs expansion to ~40-50 terms to serve as the primary hallucination-reduction strategy via `buildGlossaryPrompt()`. See [AI Readiness Review](../../archive/ai-readiness-review.md) for the strategic rationale.
+The glossary currently contains 25 terms across 5 categories. For AI Phase 1 (ADR-019), the glossary needs expansion to ~40-50 terms to serve as the primary hallucination-reduction strategy via `buildGlossaryPrompt()`. See AI Readiness Review for the strategic rationale.
 
 ### Current Terms (25)
 
@@ -214,4 +214,4 @@ Implementation uses `@media (hover: none)` to disable mouse enter/leave on touch
 - [VariScout Methodology](../../01-vision/methodology.md) — Human-readable methodology reference
 - [AI Context Engineering](../../05-technical/architecture/ai-context-engineering.md) — How knowledge feeds AI
 - [AI Architecture — Glossary Grounding](../../05-technical/architecture/ai-architecture.md#layer-3--glossary-grounding)
-- [AI Readiness Review](../../archive/ai-readiness-review.md) (archived)
+- AI Readiness Review (archived)

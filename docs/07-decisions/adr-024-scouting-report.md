@@ -188,7 +188,6 @@ Step 5 (Verification — "Did the actions work?") renders actual before/after st
 
 ## Related
 
-- [Design Spec: Scouting Report](../archive/specs/scouting-report-design.md) — Full design document (archived)
 - [ADR-015: Investigation Board](adr-015-investigation-board.md) — Findings model
 - [ADR-020: Investigation Workflow](adr-020-investigation-workflow.md) — Hypothesis model
 - [ADR-023: Verification Experience](adr-023-data-lifecycle.md) — Staged comparison, data lifecycle

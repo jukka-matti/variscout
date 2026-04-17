@@ -5,7 +5,7 @@ title: 'Design Brief: Guided Investigation'
 # Design Brief: Guided Investigation
 
 > **Historical document** — this design brief led to the Investigation Mindmap (Phases A-D).
-> See [design-spec-investigation-mindmap.md](../../archive/design-spec-investigation-mindmap.md) for final spec.
+> See design-spec-investigation-mindmap.md (archived) for final spec.
 
 > Synthesis document bridging competitive intelligence, existing codebase capabilities, and design questions for the Factor Suggestion (Phase 1) and Interaction Heatmap (Phase 2) features.
 
@@ -191,9 +191,9 @@ These questions should be resolved during the UI/UX design phase. They are order
 
 ### Phase 3: Investigation Overview
 
-9. **Mindmap window model**: The Investigation Mindmap (see [pattern evaluation](../../archive/investigation-mindmap.md)) opens as a companion view. Should it be: (a) a pop-out window (like the existing FunnelWindow), (b) a split-pane alongside the main dashboard, (c) a full-screen mode that replaces the dashboard temporarily? Each has different implications for state synchronization and mobile support.
+9. **Mindmap window model**: The Investigation Mindmap (pattern evaluation archived) opens as a companion view. Should it be: (a) a pop-out window (like the existing FunnelWindow), (b) a split-pane alongside the main dashboard, (c) a full-screen mode that replaces the dashboard temporarily? Each has different implications for state synchronization and mobile support.
 
-10. **Narrative export format**: The Investigation Narrative (see [pattern evaluation](../../archive/investigation-narrative.md)) targets stakeholder presentations. Should it export as: (a) a static PNG/SVG image, (b) an interactive HTML page, (c) a PDF report, (d) copy-to-clipboard for pasting into slides? The Azure audience (Olivia's team) likely wants PowerPoint-compatible output.
+10. **Narrative export format**: The Investigation Narrative (pattern evaluation archived) targets stakeholder presentations. Should it export as: (a) a static PNG/SVG image, (b) an interactive HTML page, (c) a PDF report, (d) copy-to-clipboard for pasting into slides? The Azure audience (Olivia's team) likely wants PowerPoint-compatible output.
 
 ---
 
@@ -224,11 +224,6 @@ This validation is a prerequisite for the Investigation Flow Map ([Concept 2](in
 ## Related Documents
 
 - [Investigation Flow Map](investigation-flow-map.md) — Step-by-step scenario walkthrough using the Pizza dataset
-- [Investigation Mindmap](../../archive/investigation-mindmap.md) — Pattern evaluation for the companion visualization
-- [Investigation Narrative](../../archive/investigation-narrative.md) — Pattern evaluation for presentation mode
-- [Factor Suggestion](../../archive/evaluation-patterns/factor-suggestion.md) — Phase 1 pattern evaluation
-- [Interaction Heatmap](../../archive/evaluation-patterns/interaction-heatmap.md) — Phase 2 pattern evaluation
-- [Factor Map](../../archive/evaluation-patterns/factor-map.md) — Related Phase 3 pattern (deferred)
 - [EDAScout Benchmark](competitive/edascout-benchmark.md) — AI guidance rollback arc
 - [Minitab Benchmark](competitive/minitab-benchmark.md) — Menu-driven factor analysis
 - [JMP Benchmark](competitive/jmp-benchmark.md) — Effect Summary and model-first paradigm

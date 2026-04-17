@@ -37,5 +37,5 @@ The tool quantifies variation sources but can't assess whether those sources are
 
 ## Related Patterns
 
-- [Factor Suggestion](../../../archive/evaluation-patterns/factor-suggestion.md) --- Could include actionability hints alongside statistical suggestions, though this requires domain knowledge the tool doesn't have.
-- [Auto-Combination Finder](../../../archive/evaluation-patterns/auto-combination-finder.md) --- Faster path to findings, but amplifies the "now what?" gap by making the statistical part trivially easy.
+- Factor Suggestion --- Could include actionability hints alongside statistical suggestions, though this requires domain knowledge the tool doesn't have.
+- Auto-Combination Finder --- Faster path to findings, but amplifies the "now what?" gap by making the statistical part trivially easy.

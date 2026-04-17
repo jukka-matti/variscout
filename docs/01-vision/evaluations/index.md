@@ -63,7 +63,7 @@ The Investigation Mindmap consolidates Factor Suggestion, Interaction Heatmap, a
 3. **Phase C: Narrative Mode + WhatIfSimulator separation** — Reorganizes nodes into a timeline for stakeholder communication. Step annotations, interaction cross-connections, conclusion panel, PNG export. WhatIfSimulator moves to standalone `/whatif` route.
 4. **Phase D: Polish + Azure enhancements** — Split-pane option (Azure, viewport > 1280px), annotations (Azure: OneDrive-synced; PWA: session-only), SVG export (Azure), "Model improvements" → WhatIfSimulator link.
 
-Each phase builds on the previous: B needs A's nodes, C needs A's drill trail + B's edges, D needs all three modes complete. See [Design Spec §12](../../archive/design-spec-investigation-mindmap.md#12-implementation-phasing) (archived) for full infrastructure prerequisites and reuse mapping.
+Each phase builds on the previous: B needs A's nodes, C needs A's drill trail + B's edges, D needs all three modes complete. See Design Spec §12 (archived) for full infrastructure prerequisites and reuse mapping.
 
 The sidebar filter panel is rejected as incompatible with VariScout's core differentiator. The auto-combination finder is deferred to the Azure App only, as it conflicts with the PWA's educational mission. Parallel Path Comparison, Small Multiples, and Factor Map are deferred — the Mindmap addresses the tensions they targeted through consolidation rather than additional surfaces.
 

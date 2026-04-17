@@ -97,26 +97,26 @@ The fundamental limitation: Power BI is a reporting tool, not an analysis tool. 
 
 ## Feature Comparison
 
-| Capability                   | Power BI                                          | VariScout                                                                                         |
-| ---------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Visual analytics (general)   | Broad, enterprise-focused                         | Focused on SPC/quality domain                                                                     |
-| Control charts (I-MR)        | Third-party custom visuals only                   | Yes (I-Chart, native)                                                                             |
-| Capability analysis (Cp/Cpk) | Custom DAX only (complex, fragile)                | Yes, integrated                                                                                   |
-| Boxplot                      | Available as chart type                           | Integrated with drill-down filtering                                                              |
-| Pareto chart                 | Available (sorted bar chart)                      | Integrated with drill-down filtering                                                              |
-| ANOVA                        | Not available                                     | Yes, with eta-squared ranking                                                                     |
-| Regression                   | Trend lines; R/Python scripts for full regression | Simple and multiple regression                                                                    |
-| Gage R&R                     | Not available                                     | Not available                                                                                     |
-| Small multiples              | Yes (added 2021, grid layout)                     | Planned feature                                                                                   |
-| Slicers / filter panel       | Core paradigm                                     | Rejected pattern (see [evaluation](../../../archive/evaluation-patterns/sidebar-filter-panel.md)) |
-| Cross-filtering              | Yes (visual-level interaction)                    | Yes (linked filtering, investigation-driven)                                                      |
-| Factor ranking (automated)   | Key Influencers visual (ML-based)                 | Eta-squared ranking (statistical, transparent)                                                    |
-| Statistical calculations     | Basic aggregations + DAX (expert-authored)        | SPC-specific (Cpk, ANOVA, eta-squared)                                                            |
-| Nelson rules / run tests     | Not available                                     | Yes                                                                                               |
-| Excel integration            | Deep (bidirectional)                              | Excel Add-in (native Office.js)                                                                   |
-| Natural language queries     | Q&A feature                                       | Not applicable                                                                                    |
-| Price for individual analyst | Free (Desktop), $10/month (Pro sharing)           | Free (PWA) or from €79/month (Azure)                                                              |
-| Microsoft ecosystem          | Deep integration (365, Teams, SharePoint)         | Azure Marketplace only                                                                            |
+| Capability                   | Power BI                                          | VariScout                                      |
+| ---------------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| Visual analytics (general)   | Broad, enterprise-focused                         | Focused on SPC/quality domain                  |
+| Control charts (I-MR)        | Third-party custom visuals only                   | Yes (I-Chart, native)                          |
+| Capability analysis (Cp/Cpk) | Custom DAX only (complex, fragile)                | Yes, integrated                                |
+| Boxplot                      | Available as chart type                           | Integrated with drill-down filtering           |
+| Pareto chart                 | Available (sorted bar chart)                      | Integrated with drill-down filtering           |
+| ANOVA                        | Not available                                     | Yes, with eta-squared ranking                  |
+| Regression                   | Trend lines; R/Python scripts for full regression | Simple and multiple regression                 |
+| Gage R&R                     | Not available                                     | Not available                                  |
+| Small multiples              | Yes (added 2021, grid layout)                     | Planned feature                                |
+| Slicers / filter panel       | Core paradigm                                     | Rejected pattern                               |
+| Cross-filtering              | Yes (visual-level interaction)                    | Yes (linked filtering, investigation-driven)   |
+| Factor ranking (automated)   | Key Influencers visual (ML-based)                 | Eta-squared ranking (statistical, transparent) |
+| Statistical calculations     | Basic aggregations + DAX (expert-authored)        | SPC-specific (Cpk, ANOVA, eta-squared)         |
+| Nelson rules / run tests     | Not available                                     | Yes                                            |
+| Excel integration            | Deep (bidirectional)                              | Excel Add-in (native Office.js)                |
+| Natural language queries     | Q&A feature                                       | Not applicable                                 |
+| Price for individual analyst | Free (Desktop), $10/month (Pro sharing)           | Free (PWA) or from €79/month (Azure)           |
+| Microsoft ecosystem          | Deep integration (365, Teams, SharePoint)         | Azure Marketplace only                         |
 
 ---
 

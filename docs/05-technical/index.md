@@ -68,7 +68,6 @@ High-level architecture overview and detailed design documents:
 | [Component Patterns](architecture/component-patterns.md)  | Hook integration, colorScheme, base patterns                |
 | [AI Architecture](architecture/ai-architecture.md)        | AI integration, Azure AI Foundry, context pipeline          |
 | [AIX Design System](architecture/aix-design-system.md)    | AI experience governance: tone, trust, interaction patterns |
-| [AI Readiness Review](../archive/ai-readiness-review.md)  | Strategic assessment (archived — all gaps resolved)         |
 | [Documentation Methodology](documentation-methodology.md) | Diataxis, C4, Docs-as-Code, journey spine                   |
 
 ### Implementation

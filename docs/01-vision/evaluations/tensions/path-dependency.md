@@ -34,9 +34,3 @@ Whether this is confusing or simply an accurate reflection of how factor contrib
 ## Strategic Weight
 
 **Low** --- Path dependency is mathematically correct behavior, not a bug. The final results converge, and the intermediate differences are informative for skilled analysts. The risk is primarily pedagogical: novices may be confused. This is better addressed through learning content (glossary, help tooltips) than through UI changes that would mask correct statistical behavior.
-
-## Related Patterns
-
-- [Parallel Path Comparison](../../../archive/evaluation-patterns/parallel-path-comparison.md) --- Directly addresses this by showing alternative paths and their convergence or divergence.
-- [Auto-Combination Finder](../../../archive/evaluation-patterns/auto-combination-finder.md) --- Bypasses path dependency entirely by jumping straight to the optimal combination.
-- [Factor Map](../../../archive/evaluation-patterns/factor-map.md) --- Shows all factors simultaneously without imposing a sequence, making path dependency irrelevant for the initial overview.
