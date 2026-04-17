@@ -10,7 +10,7 @@
 
 ## Invariants
 
-- Naming: `*Base` = shared primitive in @variscout/ui (props-based, no app logic). `*WrapperBase` = app-level composition (combines hooks + Base + app UI). App wrappers in apps/*/ import `*WrapperBase` or `*Base` and add ~50 lines of app-specific wiring.
+- Naming: `*Base` = shared primitive in @variscout/ui (props-based, no app logic). `*WrapperBase` = app-level composition (combines hooks + Base + app UI). App wrappers in apps/*/ import `*WrapperBase`or`\*Base` and add ~50 lines of app-specific wiring.
 - @variscout/ui MAY import from @variscout/stores for store-aware tab content components (`StatsTabContent`, `QuestionsTabContent`, `JournalTabContent`). This is a documented exception per ADR-056. Props-based components remain preferred for purely presentational UI.
 - PI Panel tabs config via `PIPanelBase` (PITabConfig API). Store-aware tab content is the default.
 - Error service (`errorService`) and hooks (`useIsMobile`, `useTheme`, `useGlossary`, `BREAKPOINTS`) are also exported from @variscout/ui.

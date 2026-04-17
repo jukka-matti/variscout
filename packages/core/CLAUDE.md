@@ -6,7 +6,7 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 
 - Never import React, visx, or any UI library. This package must stay pure TS.
 - Stats functions must return `number | undefined` — never `NaN` or `Infinity`. Use `safeMath.ts` (safeDivide, safeLog, safeSqrt).
-- Never use `Math.random` in code or tests. Tests that need randomness use a deterministic PRNG (see packages/core/src/stats/__tests__/ for examples).
+- Never use `Math.random` in code or tests. Tests that need randomness use a deterministic PRNG (see packages/core/src/stats/**tests**/ for examples).
 - Never use `.toFixed()` on exported stat values — consumers call `formatStatistic()` from `@variscout/core/i18n`.
 
 ## Invariants
