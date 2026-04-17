@@ -1,5 +1,7 @@
 # Agent-Facing Documentation Architecture — Phase 1 (Foundation) Implementation Plan
 
+**Baseline:** [docs/09-baseline/2026-04-17-agent-docs-baseline.md](../../09-baseline/2026-04-17-agent-docs-baseline.md)
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Scaffold the A++ documentation architecture (12 skills + 8 package CLAUDE.md.new drafts + 3 Tier 1 human docs + 5 Tier 2 per-mode journey docs + root CLAUDE.md.new draft) as a fully additive delta — zero breaking changes, no deletions, old system stays active until Phase 2.
