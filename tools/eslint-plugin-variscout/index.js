@@ -3,6 +3,7 @@
 
 import noTofixedOnStats from './rules/no-tofixed-on-stats.js';
 import noHardcodedChartColors from './rules/no-hardcoded-chart-colors.js';
+import noRootCauseLanguage from './rules/no-root-cause-language.js';
 
 export default {
   meta: {
@@ -12,5 +13,6 @@ export default {
   rules: {
     'no-tofixed-on-stats': noTofixedOnStats,
     'no-hardcoded-chart-colors': noHardcodedChartColors,
+    'no-root-cause-language': noRootCauseLanguage,
   },
 };

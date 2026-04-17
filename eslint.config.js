@@ -175,5 +175,16 @@ export default [
       'variscout/no-hardcoded-chart-colors': 'off',
     },
   },
+  // Hard rule: never use 'root cause' in user-facing strings or AI prompts — use 'contribution' (P5)
+  {
+    files: [
+      'packages/core/src/i18n/**/*.ts',
+      'packages/core/src/ai/prompts/**/*.ts',
+    ],
+    plugins: { variscout: variscoutPlugin },
+    rules: {
+      'variscout/no-root-cause-language': 'error',
+    },
+  },
   prettier,
 ];
