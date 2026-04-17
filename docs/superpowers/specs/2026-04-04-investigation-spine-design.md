@@ -22,7 +22,7 @@ related:
 
 The complete investigation experience as one coherent narrative — from vague concern to confirmed improvement. Three interleaving threads (narrative, evidence, projection) weave through five progressive sentences, rendered on three surfaces at two speeds. Grounded in Turtiainen (2019), validated against Lean Six Sigma MBB methodology.
 
-Builds on: [Investigation Workspace Reframing](2026-04-03-investigation-workspace-reframing-design.md) (three breakthrough insights), [Question-Driven EDA](2026-03-30-question-driven-eda-design.md) (EDA mental model implementation), [Improvement Hub](2026-04-02-improvement-hub-design.md) (What-If integration).
+Builds on: [Investigation Workspace Reframing](2026-04-03-investigation-workspace-reframing-design.md) (three breakthrough insights), [Question-Driven EDA](../../archive/specs/2026-03-30-question-driven-eda-design.md) (EDA mental model implementation), [Improvement Hub](../../archive/specs/2026-04-02-improvement-hub-design.md) (What-If integration).
 
 ---
 
@@ -641,17 +641,17 @@ Analyst selects target activity first, then presets apply to that activity:
 
 ## 13. Relationship to Existing Specs and ADRs
 
-| Document                                                                          | Relationship                                                                        |
-| --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| [Investigation Reframing](2026-04-03-investigation-workspace-reframing-design.md) | **Predecessor** — three breakthrough insights incorporated here as foundation       |
-| [Question-Driven EDA](2026-03-30-question-driven-eda-design.md)                   | **Extended** — EDA heartbeat mechanism added (follow-ups, next highlight, coverage) |
-| [Improvement Hub](2026-04-02-improvement-hub-design.md)                           | **Aligned** — contextual What-If presets, hub → brainstorm link, reference naming   |
-| [HMW Brainstorm](2026-04-03-hmw-brainstorm-modal-design.md)                       | **Compatible** — hub context passed to brainstorm session                           |
-| [CoScout Intelligence](2026-04-02-coscout-intelligence-architecture-design.md)    | **Extended** — 2 new tools, phase coaching, enriched context                        |
-| [PI Panel Redesign](2026-04-01-process-intelligence-panel-redesign.md)            | **Compatible** — Questions tab shows spine summary with equation display            |
-| ADR-047 (Strategy Pattern)                                                        | Uses mode dispatch for evidence engines and What-If variants                        |
-| ADR-052 (Factor Intelligence)                                                     | L1→L3 pipeline drives evidence thread                                               |
-| ADR-053 (Question-Driven Investigation)                                           | Foundation — question model, 5 sources, auto-linking                                |
-| ADR-054 (Mode-Aware Questions)                                                    | Mode routing for question generators                                                |
-| ADR-061 (HMW Brainstorm)                                                          | Hub → brainstorm connection formalized                                              |
-| ADR-062 (Standard ANOVA Metrics)                                                  | R²adj for ranking, η² for effect size, standardized labels                          |
+| Document                                                                                   | Relationship                                                                        |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| [Investigation Reframing](2026-04-03-investigation-workspace-reframing-design.md)          | **Predecessor** — three breakthrough insights incorporated here as foundation       |
+| [Question-Driven EDA](../../archive/specs/2026-03-30-question-driven-eda-design.md)        | **Extended** — EDA heartbeat mechanism added (follow-ups, next highlight, coverage) |
+| [Improvement Hub](../../archive/specs/2026-04-02-improvement-hub-design.md)                | **Aligned** — contextual What-If presets, hub → brainstorm link, reference naming   |
+| [HMW Brainstorm](../../archive/specs/2026-04-03-hmw-brainstorm-modal-design.md)            | **Compatible** — hub context passed to brainstorm session                           |
+| [CoScout Intelligence](2026-04-02-coscout-intelligence-architecture-design.md)             | **Extended** — 2 new tools, phase coaching, enriched context                        |
+| [PI Panel Redesign](../../archive/specs/2026-04-01-process-intelligence-panel-redesign.md) | **Compatible** — Questions tab shows spine summary with equation display            |
+| ADR-047 (Strategy Pattern)                                                                 | Uses mode dispatch for evidence engines and What-If variants                        |
+| ADR-052 (Factor Intelligence)                                                              | L1→L3 pipeline drives evidence thread                                               |
+| ADR-053 (Question-Driven Investigation)                                                    | Foundation — question model, 5 sources, auto-linking                                |
+| ADR-054 (Mode-Aware Questions)                                                             | Mode routing for question generators                                                |
+| ADR-061 (HMW Brainstorm)                                                                   | Hub → brainstorm connection formalized                                              |
+| ADR-062 (Standard ANOVA Metrics)                                                           | R²adj for ranking, η² for effect size, standardized labels                          |

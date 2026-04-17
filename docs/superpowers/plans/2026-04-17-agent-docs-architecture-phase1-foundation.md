@@ -1277,7 +1277,7 @@ Length target per file: 500–700 words.
 
 - [ ] **Step 1: Write `docs/USER-JOURNEYS-YAMAZUMI.md`**
 
-Sources: `docs/03-features/analysis/yamazumi.md`, ADR-034, `docs/superpowers/specs/2026-03-20-yamazumi-analysis-mode-design.md`, `docs/superpowers/specs/2026-03-21-yamazumi-reporting-design.md`. Focus on: lean practitioner persona, activity classification journey, takt comparison, rebalancing insight. Mention fixed VA/NVA/Waste/Wait colors, `computeYamazumiData()` transform, taktTime line, idle time as a first-class metric, per-step stacked bars. Include a line about when dots fall back from boxplot (N<7).
+Sources: `docs/03-features/analysis/yamazumi.md`, ADR-034, `docs/archive/specs/2026-03-20-yamazumi-analysis-mode-design.md`, `docs/archive/specs/2026-03-21-yamazumi-reporting-design.md`. Focus on: lean practitioner persona, activity classification journey, takt comparison, rebalancing insight. Mention fixed VA/NVA/Waste/Wait colors, `computeYamazumiData()` transform, taktTime line, idle time as a first-class metric, per-step stacked bars. Include a line about when dots fall back from boxplot (N<7).
 
 - [ ] **Step 2: Write `docs/USER-JOURNEYS-PERFORMANCE.md`**
 
@@ -1289,7 +1289,7 @@ Sources: `docs/superpowers/specs/2026-04-16-defect-analysis-mode-design.md`, `do
 
 - [ ] **Step 4: Write `docs/USER-JOURNEYS-CAPABILITY.md`**
 
-Sources: `docs/03-features/analysis/capability.md`, `docs/03-features/analysis/subgroup-capability.md`, ADR-038, `docs/superpowers/specs/2026-03-21-capability-time-subgrouping.md`. Focus on: quality engineer computing Cp/Cpk, setting specs (LSL/USL/target), histogram + probability plot interpretation, subgroup capability (Cp vs Pp, Cpk vs Ppk, common-cause vs total), when to use. **Include how-to elements:** step-by-step for setting specs, interpreting a failed Cpk, deciding if process is capable.
+Sources: `docs/03-features/analysis/capability.md`, `docs/03-features/analysis/subgroup-capability.md`, ADR-038, `docs/archive/specs/2026-03-21-capability-time-subgrouping.md`. Focus on: quality engineer computing Cp/Cpk, setting specs (LSL/USL/target), histogram + probability plot interpretation, subgroup capability (Cp vs Pp, Cpk vs Ppk, common-cause vs total), when to use. **Include how-to elements:** step-by-step for setting specs, interpreting a failed Cpk, deciding if process is capable.
 
 - [ ] **Step 5: Write `docs/USER-JOURNEYS-PROCESS-FLOW.md`**
 

@@ -382,7 +382,7 @@ The analyst can edit the assembled text at any time. Edits are saved to `process
 - [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md) — CoScout and AI features
 - [Findings Components](../../06-design-system/components/findings.md) — Design system specs
 - [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Architectural decisions
-- [PI Panel Redesign](../../superpowers/specs/2026-04-01-process-intelligence-panel-redesign.md) — Stats/Questions/Journal tab design (ADR-056)
+- [PI Panel Redesign](../../archive/specs/2026-04-01-process-intelligence-panel-redesign.md) — Stats/Questions/Journal tab design (ADR-056)
 
 ## Related: ADR-060 (CoScout Intelligence Architecture)
 

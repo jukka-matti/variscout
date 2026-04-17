@@ -91,7 +91,7 @@ Seven capabilities that enhance CoScout's knowledge capture without persisting c
 
 ## Implementation
 
-Design spec: [2026-03-24-coscout-knowledge-catalyst-design.md](../superpowers/specs/2026-03-24-coscout-knowledge-catalyst-design.md)
+Design spec: [2026-03-24-coscout-knowledge-catalyst-design.md](../archive/specs/2026-03-24-coscout-knowledge-catalyst-design.md)
 
 ### Key files
 

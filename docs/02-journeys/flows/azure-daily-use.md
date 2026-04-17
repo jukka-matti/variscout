@@ -270,7 +270,7 @@ Instead of downloading individual charts and assembling them in PowerPoint, Gary
 
 **Time savings:** Weekly review drops from 5–10 minutes of manual assembly to < 1 minute (Save as PDF for the complete report). Improvement reports drop from 15–20 minutes to 3–5 minutes.
 
-See [ADR-024: Scouting Report](../../07-decisions/adr-024-scouting-report.md) for the full design.
+See [ADR-024: Scouting Report](../../archive/adrs/adr-024-scouting-report.md) for the full design.
 
 ---
 
@@ -341,4 +341,4 @@ The "Show AI assistance" toggle only appears when an AI endpoint is configured. 
 - [Four Lenses Workflow](../../03-features/workflows/four-lenses-workflow.md) — analysis framework
 - [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CoScoutPanel specs
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — architectural decision
-- [ADR-024: Scouting Report](../../07-decisions/adr-024-scouting-report.md) — dynamic Report View
+- [ADR-024: Scouting Report](../../archive/adrs/adr-024-scouting-report.md) — dynamic Report View

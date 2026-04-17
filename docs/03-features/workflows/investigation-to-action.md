@@ -445,7 +445,7 @@ Cpk: 0.85 → 1.35
 Notes: Nozzle replacement resolved drift. Monitoring for 2 weeks.
 ```
 
-Uses [ADR-018](../../07-decisions/adr-018-channel-mention-workflow.md) @mention workflow infrastructure.
+Uses [ADR-018](../../archive/adrs/adr-018-channel-mention-workflow.md) @mention workflow infrastructure.
 
 ## What-If Simulator — Project Improvement
 
@@ -635,4 +635,4 @@ Every step works without AI. CoScout enhances but never gates:
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Knowledge base dependency
 - [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md) — AI × investigation phase touch points
 - [ADR-023: Verification Experience](../../07-decisions/adr-023-data-lifecycle.md) — Data lifecycle, staged comparison, verification vision
-- [ADR-024: Scouting Report](../../07-decisions/adr-024-scouting-report.md) — Dynamic Report View for sharing investigation stories
+- [ADR-024: Scouting Report](../../archive/adrs/adr-024-scouting-report.md) — Dynamic Report View for sharing investigation stories

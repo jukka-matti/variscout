@@ -43,5 +43,5 @@ Replace the monolithic `coScout.ts` with a modular `coScout/` directory. Key cha
 
 - Phase 1 (Foundation): Modular prompts, tool registry, tier types, reasoning config
 - Phase 2 (Intelligence): Context enrichment, question pipeline, proactive coaching, KB wiring
-- Design spec: `docs/superpowers/specs/2026-04-05-coscout-cognitive-redesign-design.md`
+- Design spec: `docs/archive/specs/2026-04-05-coscout-cognitive-redesign-design.md`
 - Regression tests: `packages/core/src/ai/__tests__/promptTierSafety.test.ts`

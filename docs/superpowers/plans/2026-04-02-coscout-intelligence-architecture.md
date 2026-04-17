@@ -1032,8 +1032,8 @@ Fetch original file from Blob Storage via SAS token. Render preview (PDF viewer,
 **Files:**
 
 - Create: `docs/07-decisions/adr-060-coscout-intelligence-architecture.md`
-- Modify: `docs/07-decisions/adr-022-knowledge-layer-architecture.md` (status → Superseded)
-- Modify: `docs/07-decisions/adr-026-knowledge-base-sharepoint-first.md` (status → Superseded)
+- Modify: `docs/archive/adrs/adr-022-knowledge-layer-architecture.md` (status → Superseded)
+- Modify: `docs/archive/adrs/adr-026-knowledge-base-sharepoint-first.md` (status → Superseded)
 - Modify: `docs/07-decisions/adr-049-coscout-context-and-memory.md` (add Extended note)
 - Modify: `docs/07-decisions/index.md` (add ADR-060, update statuses)
 
@@ -1059,9 +1059,9 @@ Fetch original file from Blob Storage via SAS token. Render preview (PDF viewer,
 **Files:**
 
 - Modify: `docs/superpowers/specs/index.md`
-- Modify: `docs/superpowers/specs/2026-04-02-web-first-implementation-design.md`
-- Modify: `docs/superpowers/specs/2026-03-19-knowledge-base-folder-search-design.md`
-- Modify: `docs/superpowers/specs/2026-03-24-coscout-knowledge-catalyst-design.md`
+- Modify: `docs/archive/specs/2026-04-02-web-first-implementation-design.md`
+- Modify: `docs/archive/specs/2026-03-19-knowledge-base-folder-search-design.md`
+- Modify: `docs/archive/specs/2026-03-24-coscout-knowledge-catalyst-design.md`
 - Modify: `CLAUDE.md`
 - Modify: `docs/03-features/workflows/question-driven-investigation.md`
 

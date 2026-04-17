@@ -148,7 +148,7 @@ Since **ADR-062** (Apr 2026), the label "Contribution %" has been replaced by th
 
 - Turtiainen, J-M. (2019). _Mental Model for Exploratory Data Analysis Applications for Structured Problem-Solving._ LUT University.
 - Watson, G.H. (2019a). _The DNA of Strategy Execution._
-- [Design spec: Question-Driven EDA](../superpowers/specs/2026-03-30-question-driven-eda-design.md)
+- [Design spec: Question-Driven EDA](../archive/specs/2026-03-30-question-driven-eda-design.md)
 - [Investigation Workspace Reframing Design](../superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md)
 - [Thesis reference](../01-vision/references/turtiainen-2019-eda-mental-model.md)
 - [ADR-020: Investigation Workflow](adr-020-investigation-workflow.md)

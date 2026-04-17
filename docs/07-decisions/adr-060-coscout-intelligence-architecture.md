@@ -98,8 +98,8 @@ Design spec: `docs/superpowers/specs/2026-04-02-coscout-intelligence-architectur
 
 ## See Also
 
-- [ADR-022: Knowledge Layer Architecture](adr-022-knowledge-layer-architecture.md) (superseded)
-- [ADR-026: Knowledge Base — SharePoint-First](adr-026-knowledge-base-sharepoint-first.md) (superseded)
+- [ADR-022: Knowledge Layer Architecture](../archive/adrs/adr-022-knowledge-layer-architecture.md) (superseded)
+- [ADR-026: Knowledge Base — SharePoint-First](../archive/adrs/adr-026-knowledge-base-sharepoint-first.md) (superseded)
 - [ADR-049: CoScout Knowledge Catalyst](adr-049-coscout-context-and-memory.md) (extended)
 - [ADR-054: Mode-Aware Question Strategy](adr-054-mode-aware-question-strategy.md) (completed)
 - [ADR-059: Web-First Deployment Architecture](adr-059-web-first-deployment-architecture.md)

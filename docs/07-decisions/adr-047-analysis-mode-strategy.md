@@ -181,4 +181,4 @@ No other files need to change.
 - [ADR-034: Yamazumi Analysis Mode](adr-034-yamazumi-analysis-mode.md) — introduced the third mode that motivated this pattern
 - [ADR-045: Modular Architecture](adr-045-modular-architecture.md) — architectural context for where strategy objects live
 - [AI Architecture](../05-technical/architecture/ai-architecture.md) — documents the AI mode awareness gap
-- Full design: `docs/superpowers/specs/2026-03-23-event-driven-architecture-design.md`
+- Full design: `docs/archive/specs/2026-03-23-event-driven-architecture-design.md`

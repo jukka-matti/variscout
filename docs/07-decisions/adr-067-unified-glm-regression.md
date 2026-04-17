@@ -90,7 +90,7 @@ The `predictFromUnifiedModel()` function in `bestSubsets.ts` accepts mixed facto
 
 ## Related Design Spec
 
-[Continuous Regression Design](../superpowers/specs/2026-04-05-continuous-regression-design.md)
+[Continuous Regression Design](../archive/specs/2026-04-05-continuous-regression-design.md)
 
 ## Related ADRs
 

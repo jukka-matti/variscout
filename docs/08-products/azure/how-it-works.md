@@ -271,7 +271,7 @@ Photo evidence flows through a client-side pipeline:
 
 `getCurrentUser.ts` extracts user identity from the Teams JWT (UPN claim) with EasyAuth fallback. Author names appear on findings and comments for audit trails.
 
-See [ADR-016](../../07-decisions/adr-016-teams-integration.md) for the full technical design.
+See [ADR-016](../../archive/adrs/adr-016-teams-integration.md) for the full technical design.
 
 ---
 
