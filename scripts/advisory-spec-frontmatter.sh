@@ -6,8 +6,12 @@ file="${TOOL_INPUT_file_path:-}"
 [ -z "$file" ] && exit 0
 case "$file" in
   *docs/superpowers/specs/*.md)
-    if [ -f "$file" ] && ! head -5 "$file" | grep -q '^---$'; then
-      echo "⚠ Spec missing YAML frontmatter. Add title/audience/category/status/related." >&2
+    if [ -f "$file" ]; then
+      if ! head -5 "$file" | grep -q '^---$'; then
+        echo "⚠ Spec missing YAML frontmatter. Add title/status at minimum; see scripts/docs-frontmatter-schema.mjs for the full enum." >&2
+      elif grep -qE '^status:\s*[A-Z]' "$file"; then
+        echo "⚠ Spec status should be lowercase — see scripts/docs-frontmatter-schema.mjs." >&2
+      fi
     fi
     ;;
 esac

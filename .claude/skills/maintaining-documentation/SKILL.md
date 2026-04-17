@@ -25,7 +25,7 @@ description: Use when creating or updating ADRs, design specs, diagrams, or the 
 
 Every ADR must include (in order):
 
-1. **Status** — `Accepted`, `Superseded`, or `Deferred`
+1. **Status** — `accepted`, `superseded`, `deferred`, or `stable` (lowercase; schema-enforced)
 2. **Date** — ISO 8601 format (YYYY-MM-DD)
 3. **Context** — The problem or trigger for this decision
 4. **Decision** — What was decided (clear, declarative)
@@ -51,18 +51,28 @@ Design specs (`docs/superpowers/specs/`) are **not one-time artifacts** — they
 
 ### Required Frontmatter
 
-Every major doc (ADRs + design specs) must include YAML frontmatter:
+Every major doc must include YAML frontmatter. **Schema SSOT:** `scripts/docs-frontmatter-schema.mjs`. Enforced by `node scripts/check-doc-frontmatter.mjs` (wired into `pnpm docs:check`; warn mode until **2026-05-15**, then fails commits).
 
 ```yaml
 ---
 title: Document Title
-audience: [analyst, engineer]  # or [developer] if code-only
-category: analysis             # analysis | architecture | workflow | reference
-status: draft                  # draft | delivered | active | deferred | deprecated
-related: [term-1, term-2]     # semantic tags for search/filtering
-last-reviewed: 2026-04-17     # ISO 8601 — bump when substantially edited
+audience: [analyst, engineer]  # enum: see AUDIENCE in schema
+category: analysis             # enum: see CATEGORY in schema
+status: draft                  # enum: see STATUS in schema (lowercase)
+related: [term-1, term-2]      # freeform semantic tags
+last-reviewed: 2026-04-17      # ISO 8601 — bump when substantially edited
 ---
 ```
+
+**Doc-type rules** (in the schema):
+
+| Type                         | Path                            | Required                           |
+| ---------------------------- | ------------------------------- | ---------------------------------- |
+| `general`                    | `docs/**` (default)             | title, audience, category, status  |
+| `adr`                        | `docs/07-decisions/adr-*.md`    | title (status lowercase if set)    |
+| `spec` (specs, plans, etc.)  | `docs/superpowers/**`           | title, status                      |
+
+**Allowed status values:** `draft`, `active`, `accepted`, `in-progress`, `design`, `delivered`, `stable`, `deferred`, `superseded`, `archived`, `reference`, `template`, `raw`. Extend the schema rather than widening the lint rule to absorb drift.
 
 ### Starlight Frontmatter (docs/ site)
 

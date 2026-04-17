@@ -1,6 +1,6 @@
 ---
 title: 'ADR-067: Unified GLM Regression Engine'
-status: Accepted
+status: accepted
 date: 2026-04-05
 ---
 

@@ -6,8 +6,14 @@ file="${TOOL_INPUT_file_path:-}"
 [ -z "$file" ] && exit 0
 case "$file" in
   *docs/07-decisions/adr-*.md)
-    if [ -f "$file" ] && ! grep -q '^last-reviewed:' "$file"; then
-      echo "⚠ ADR missing last-reviewed frontmatter. Update when modifying." >&2
+    if [ -f "$file" ]; then
+      if ! grep -q '^last-reviewed:' "$file"; then
+        echo "⚠ ADR missing last-reviewed frontmatter. Update when modifying." >&2
+      fi
+      # Enum hint: status must be lowercase (accepted/superseded/stable/...).
+      if grep -qE '^status:\s*[A-Z]' "$file"; then
+        echo "⚠ ADR status should be lowercase — see scripts/docs-frontmatter-schema.mjs." >&2
+      fi
     fi
     ;;
 esac

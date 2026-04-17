@@ -1,3 +1,9 @@
+---
+title: 'Agent Docs Architecture — Phase 1: Foundation'
+status: delivered
+date: 2026-04-17
+---
+
 # Agent-Facing Documentation Architecture — Phase 1 (Foundation) Implementation Plan
 
 **Baseline:** [docs/09-baseline/2026-04-17-agent-docs-baseline.md](../../09-baseline/2026-04-17-agent-docs-baseline.md)

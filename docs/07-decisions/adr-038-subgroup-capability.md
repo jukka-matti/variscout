@@ -1,6 +1,6 @@
 ---
 title: 'ADR-038: Subgroup Capability Analysis (Cp/Cpk per Subgroup)'
-status: Accepted
+status: accepted
 date: 2026-03-21
 ---
 
