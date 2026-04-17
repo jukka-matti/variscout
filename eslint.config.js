@@ -186,5 +186,19 @@ export default [
       'variscout/no-root-cause-language': 'error',
     },
   },
+  // Hard rule: never use 'moderator'/'primary' role labels in interaction/regression/ANOVA code
+  // Use geometric terms: ordinal / disordinal (feedback memory: interaction language)
+  {
+    files: [
+      'packages/core/src/stats/**/*.ts',
+      'packages/core/src/**/interaction*.ts',
+      'packages/core/src/**/regression*.ts',
+      'packages/core/src/**/anova*.ts',
+    ],
+    plugins: { variscout: variscoutPlugin },
+    rules: {
+      'variscout/no-interaction-moderator': 'error',
+    },
+  },
   prettier,
 ];
