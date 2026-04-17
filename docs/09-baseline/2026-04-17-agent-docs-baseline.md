@@ -162,3 +162,53 @@ Nested `packages/*/CLAUDE.md` (21–42 lines each) and `apps/*/CLAUDE.md` (33–
 - **Count at installation:** 131 broken links — all 131 inside `docs/archive/`, which is deleted in Phase 3 Task 10. Post-Task-10 count expected: 0.
 
 The `scripts/check-dead-links.sh` hook auto-escalates to fail mode when `date +%Y-%m-%d >= 2026-05-01`. No manual flip required.
+
+### Phase 3 Completion
+
+**Date:** 2026-04-17
+
+**Delivered:**
+
+- `eslint-plugin-variscout` with 4 AST rules (no-tofixed-on-stats, no-hardcoded-chart-colors, no-root-cause-language, no-interaction-moderator). 39/39 tests passing.
+- 3 new pre-commit hooks: `check-ssot.sh` (warn), `check-claude-md-size.sh` (warn 80% / fail 120%), `check-dead-links.sh` (warn until 2026-05-01, then auto-escalates to fail).
+- 2 pre-edit advisories in `.claude/settings.json` (ADR `last-reviewed` frontmatter check; spec YAML frontmatter check). Non-blocking; invoked via `scripts/advisory-{adr,spec}-frontmatter.sh`.
+- `no-tofixed-on-stats` scope widened from `packages/ui/src` + `packages/core/src/ai/prompts` to full monorepo (`packages/**` + `apps/**` excluding tests + `packages/charts/src/colors.ts`); severity upgraded `warn` → `error`. Widening surfaced zero new violations outside packages/ui/src — confirming scope was already comprehensive. 19 pre-existing violations triaged: 2 stat-value fixes in formatter helpers, 8 suppressions with justification (4 internal-computation per code-style.md; 4 JSX `&&`-guard cases the rule's AST walker doesn't detect).
+- `.claude/rules/` deleted (6 files, 724 lines) + `CLAUDE.md.bak` deleted (181 lines rollback file).
+- `docs/archive/` deleted (65 files) — preserved on `origin/archive-preserved` branch + tag `archive-snapshot-2026-04-17`. Inbound archive refs in docs/ stripped (link markup removed, text kept).
+- MEMORY.md scope audit complete: entirely session/project/feedback state, no doc-routing duplicates found. No deletion needed; plan's predicted no-op confirmed.
+- Spec `status: draft → delivered`; Implementation Plans section updated with final counts and measured outcomes.
+
+**Measured outcomes:**
+
+- Always-loaded context: 905 → 57 lines (93.7% reduction from pre-Phase 1 baseline; 92.7% from post-Phase 2 state). Target achieved.
+- ESLint violations of plugin rules: 0 errors across all 4 rules.
+- Broken `.md` links in docs/: 131 at Task 9 install (all inside `docs/archive/`), 0 after Task 10 deletion. Cutoff unchanged (2026-05-01 auto-escalation).
+- Tests: 5857/5857 passing throughout.
+- Monorepo size: 94 files removed (docs/archive), 7 files deleted (.claude/rules + CLAUDE.md.bak), 10 files modified (suppressions + scripts/skills updates).
+
+**Commits on branch `agent-docs-arch/phase1-foundation` (Phase 3):**
+
+| Task | SHA                     | Description                                               |
+| ---- | ----------------------- | --------------------------------------------------------- |
+| 1    | `87cfd8f8` + `76b56b5a` | Scaffold `eslint-plugin-variscout` (+ fix-ups)            |
+| 2    | `9f636db8` + `7b6bab55` | `no-tofixed-on-stats` AST rule                            |
+| 3    | `6ba2e7e7`              | `no-hardcoded-chart-colors` rule                          |
+| 4    | `11f6c43c`              | `no-root-cause-language` rule                             |
+| 5    | `5b378a99`              | `no-interaction-moderator` rule                           |
+| 6    | `efc598c4`              | `check-ssot.sh` pre-commit hook                           |
+| 7    | `69ce370e`              | `check-claude-md-size.sh` pre-commit hook                 |
+| 8    | `ddf00d16`              | Widen no-tofixed-on-stats scope + fix violations          |
+| 9    | `04da3e27`              | `check-dead-links.sh` pre-commit hook                     |
+| 10   | `f8ca10de`              | Delete `docs/archive/` (preserved in safety branch + tag) |
+| 11   | `35563c60`              | Delete `.claude/rules/` + `CLAUDE.md.bak`                 |
+| 12   | `d2306f50`              | Pre-edit advisories in `.claude/settings.json`            |
+| 13   | (this commit)           | Spec delivered + baseline Phase 3 completion note         |
+
+**Deferred to Phase 4:**
+
+- `check-ssot.sh` warn → fail escalation
+- `check-claude-md-size.sh` warn-count monitoring (root CLAUDE.md 57 > 40 warn threshold)
+- CI doc-lint stage (repo does not currently have `.github/workflows/` doc-lint; to be added after warn→fail transitions stabilize)
+- Skill activation telemetry review (weekly in first month)
+- Extend `no-tofixed-on-stats` rule AST walker to recognize `LogicalExpression` guards in JSX — would eliminate 4 of the 8 Task 8 suppressions.
+- Promotion of new manual correction patterns to ESLint rules
