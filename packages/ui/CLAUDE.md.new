@@ -1,0 +1,34 @@
+# @variscout/ui
+
+80+ shared UI component modules. Base primitives, wrapper bases, store-aware PI Panel tabs.
+
+## Hard rules
+
+- Never nest `<button>` inside `<button>` or `<a>` inside `<a>` — HTML spec violation. Use Fluent UI focusMode pattern (see docs/06-design-system/patterns/interactions.md).
+- Functional components only. Props interfaces named `{ComponentName}Props`.
+- Use semantic Tailwind classes (`bg-surface-secondary`, `text-content`, `border-edge`) that adapt to `data-theme`. No per-component color-scheme props.
+
+## Invariants
+
+- Naming: `*Base` = shared primitive in @variscout/ui (props-based, no app logic). `*WrapperBase` = app-level composition (combines hooks + Base + app UI). App wrappers in apps/*/ import `*WrapperBase` or `*Base` and add ~50 lines of app-specific wiring.
+- @variscout/ui MAY import from @variscout/stores for store-aware tab content components (`StatsTabContent`, `QuestionsTabContent`, `JournalTabContent`). This is a documented exception per ADR-056. Props-based components remain preferred for purely presentational UI.
+- PI Panel tabs config via `PIPanelBase` (PITabConfig API). Store-aware tab content is the default.
+- Error service (`errorService`) and hooks (`useIsMobile`, `useTheme`, `useGlossary`, `BREAKPOINTS`) are also exported from @variscout/ui.
+
+## Test command
+
+```bash
+pnpm --filter @variscout/ui test
+```
+
+## Skills to consult
+
+- `editing-evidence-map` — for EvidenceMap components
+- `editing-investigation-workflow` — for FindingsWindow, HubComposer, investigation UI
+- `writing-tests` — RTL patterns, data-testid conventions
+
+## Related
+
+- ADR-045 Modular architecture
+- ADR-056 PI Panel redesign
+- ADR-061 HMW brainstorm ideation
