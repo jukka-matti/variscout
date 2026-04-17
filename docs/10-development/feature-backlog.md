@@ -34,7 +34,7 @@ Items with user-validated demand and clear scope. Ordered by impact within each 
 
 ### Probability Plot — Phase C (Process Diagnostics)
 
-Design spec: [`2026-03-29-probability-plot-enhancement-design.md`](../superpowers/specs/2026-03-29-probability-plot-enhancement-design.md) (draft).
+Design spec: [`2026-03-29-probability-plot-enhancement-design.md`](../archive/specs/2026-03-29-probability-plot-enhancement-design.md) (draft).
 
 - [ ] **Inflection point detection** — Piecewise linear regression on the probability plot data. Detect where slope changes significantly. Mark change points with vertical indicators.
 

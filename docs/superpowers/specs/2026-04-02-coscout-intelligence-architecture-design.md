@@ -550,8 +550,8 @@ Update all affected documentation to reflect ADR-060 changes. Organized by prior
 
 **Critical (ADR lifecycle):**
 
-- `docs/07-decisions/adr-022-knowledge-layer-architecture.md` — status → "Superseded by ADR-060"
-- `docs/07-decisions/adr-026-knowledge-base-sharepoint-first.md` — status → "Superseded by ADR-060", remove "needs new backend" note
+- `docs/archive/adrs/adr-022-knowledge-layer-architecture.md` — status → "Superseded by ADR-060"
+- `docs/archive/adrs/adr-026-knowledge-base-sharepoint-first.md` — status → "Superseded by ADR-060", remove "needs new backend" note
 - `docs/07-decisions/adr-049-coscout-context-and-memory.md` — add "Extended by ADR-060" note
 - `docs/07-decisions/index.md` — add ADR-060 entry, update ADR-022/026 status to Superseded
 - Create `docs/07-decisions/adr-060-coscout-intelligence-architecture.md` — formal ADR from design spec
@@ -572,9 +572,9 @@ Update all affected documentation to reflect ADR-060 changes. Organized by prior
 **Low (specs & routing):**
 
 - `docs/superpowers/specs/index.md` — add new spec entry
-- `docs/superpowers/specs/2026-04-02-web-first-implementation-design.md` — add ADR-060 cross-reference to §4
-- `docs/superpowers/specs/2026-03-19-knowledge-base-folder-search-design.md` — add "Superseded by ADR-060" update callout
-- `docs/superpowers/specs/2026-03-24-coscout-knowledge-catalyst-design.md` — add "Extended by ADR-060" note
+- `docs/archive/specs/2026-04-02-web-first-implementation-design.md` — add ADR-060 cross-reference to §4
+- `docs/archive/specs/2026-03-19-knowledge-base-folder-search-design.md` — add "Superseded by ADR-060" update callout
+- `docs/archive/specs/2026-03-24-coscout-knowledge-catalyst-design.md` — add "Extended by ADR-060" note
 - `CLAUDE.md` — add AI knowledge architecture row to task→doc mapping table
 - `docs/03-features/workflows/question-driven-investigation.md` — note about mode-aware completion + answer_question tool
 

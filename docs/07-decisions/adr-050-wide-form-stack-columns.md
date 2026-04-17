@@ -81,4 +81,4 @@ When stacking, columns fall into three roles:
 - `apps/pwa/src/hooks/usePasteImportFlow.ts` — PWA data flow wiring
 - `apps/azure/src/features/data-flow/useEditorDataFlow.ts` — Azure data flow wiring
 - `packages/hooks/src/types.ts` — `StackConfig` in `AnalysisState`
-- Design spec: `docs/superpowers/specs/2026-03-29-wide-form-stack-columns-design.md`
+- Design spec: `docs/archive/specs/2026-03-29-wide-form-stack-columns-design.md`

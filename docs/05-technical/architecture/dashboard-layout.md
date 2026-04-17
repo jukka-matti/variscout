@@ -109,11 +109,11 @@ The center chart grid **compresses naturally** via flexbox as sidebars take hori
 | Both sidebars open       | ~740px                       | Charts at minimum comfortable width                         |
 | Very compressed (<600px) | <600px                       | Consider auto-switching to scroll mode (future)             |
 
-When stats sidebar is **open**: the sidebar shows the Process Intelligence Panel (4 tabs: Stats, Questions, Journal, Docs; Data table and What-If accessible via overflow menu). VerificationCard remains in grid row 2 (tabbed Histogram/ProbPlot). Key stats are always visible in ProcessHealthBar regardless of sidebar state. See [PI Panel Redesign spec](../../superpowers/specs/2026-04-01-process-intelligence-panel-redesign.md) (ADR-056).
+When stats sidebar is **open**: the sidebar shows the Process Intelligence Panel (4 tabs: Stats, Questions, Journal, Docs; Data table and What-If accessible via overflow menu). VerificationCard remains in grid row 2 (tabbed Histogram/ProbPlot). Key stats are always visible in ProcessHealthBar regardless of sidebar state. See [PI Panel Redesign spec](../../archive/specs/2026-04-01-process-intelligence-panel-redesign.md) (ADR-056).
 
 When stats sidebar is **closed**: ProcessHealthBar shows inline stats (Cpk, Pass, Mean, σ, projections). VerificationCard in row 2 provides Histogram/Probability Plot in a tabbed card.
 
-See [Dashboard Chrome Redesign spec](../../superpowers/specs/2026-03-28-dashboard-chrome-redesign.md) for the full workspace navigation model.
+See [Dashboard Chrome Redesign spec](../../archive/specs/2026-03-28-dashboard-chrome-redesign.md) for the full workspace navigation model.
 
 ## Grid Slot Mapping
 

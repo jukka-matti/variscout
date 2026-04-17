@@ -263,7 +263,7 @@ The path to Level 4 requires cross-project knowledge compounding. The architectu
 - [ADR-053: Question-Driven Investigation](../../07-decisions/adr-053-question-driven-investigation.md)
 - [ADR-054: Mode-Aware Question Strategy](../../07-decisions/adr-054-mode-aware-question-strategy.md)
 - [ProAgentBench: Evaluating LLM Agents for Proactive Assistance](https://arxiv.org/html/2602.04482v1) — timing of AI interruptions research
-- [Question-Driven EDA Design Spec](2026-03-30-question-driven-eda-design.md)
+- [Question-Driven EDA Design Spec](../../archive/specs/2026-03-30-question-driven-eda-design.md)
 
 Sources:
 

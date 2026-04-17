@@ -207,4 +207,4 @@ The ARM template uses a `VARISCOUT_PLAN` environment variable (`standard` or `te
 - [Azure Marketplace Guide](marketplace.md)
 - [Products Overview](../index.md)
 - [ADR-007: Distribution Strategy](../../07-decisions/adr-007-azure-marketplace-distribution.md)
-- [ADR-016: Teams Integration](../../07-decisions/adr-016-teams-integration.md)
+- [ADR-016: Teams Integration](../../archive/adrs/adr-016-teams-integration.md)

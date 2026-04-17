@@ -80,8 +80,10 @@ export const schema = {
 
 export function classify(relPath) {
   if (relPath.startsWith('docs/07-decisions/')) return 'adr';
+  if (relPath.startsWith('docs/archive/adrs/')) return 'adr';
   // Specs, plans, and other superpowers artifacts share the lighter
   // required-fields rule (title + status) — they aren't published docs.
   if (relPath.startsWith('docs/superpowers/')) return 'spec';
+  if (relPath.startsWith('docs/archive/specs/')) return 'spec';
   return 'general';
 }

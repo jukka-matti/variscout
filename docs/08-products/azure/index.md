@@ -173,7 +173,7 @@ const plan = import.meta.env.VARISCOUT_PLAN; // 'standard' or 'team'
 
 ## Teams Integration
 
-The Team plan includes Microsoft Teams SDK integration, enabling VariScout to run as a Teams channel tab with silent SSO via the On-Behalf-Of (OBO) flow. Channel tabs store projects in the channel's SharePoint document library, and users can capture photos directly from the shop floor with automatic EXIF/GPS stripping. See [ADR-016: Teams Integration](../../07-decisions/adr-016-teams-integration.md) for the full technical design.
+The Team plan includes Microsoft Teams SDK integration, enabling VariScout to run as a Teams channel tab with silent SSO via the On-Behalf-Of (OBO) flow. Channel tabs store projects in the channel's SharePoint document library, and users can capture photos directly from the shop floor with automatic EXIF/GPS stripping. See [ADR-016: Teams Integration](../../archive/adrs/adr-016-teams-integration.md) for the full technical design.
 
 ---
 
@@ -253,6 +253,6 @@ The Azure app includes a development-only tier switching component at `apps/azur
 - [Certification Guide](certification-guide.md) — Azure Marketplace certification preparation
 - [AI Safety Report](ai-safety-report.md) — CoScout AI safety compliance template
 - [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md)
-- [ADR-016: Teams Integration](../../07-decisions/adr-016-teams-integration.md)
+- [ADR-016: Teams Integration](../../archive/adrs/adr-016-teams-integration.md)
 - [Marketplace Readiness Report](marketplace-readiness-report.md) — Marketplace submission readiness assessment
 - [ADR-021: Security Evaluation](../../07-decisions/adr-021-security-evaluation.md)

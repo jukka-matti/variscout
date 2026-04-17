@@ -789,10 +789,6 @@ export default defineConfig({
               slug: '07-decisions/adr-005-props-based-charts',
             },
             {
-              label: 'ADR-006 Edition System',
-              slug: '07-decisions/adr-006-edition-system',
-            },
-            {
               label: 'ADR-007 Azure Distribution',
               slug: '07-decisions/adr-007-azure-marketplace-distribution',
             },
@@ -829,16 +825,8 @@ export default defineConfig({
               slug: '07-decisions/adr-015-investigation-board',
             },
             {
-              label: 'ADR-016 Teams Integration',
-              slug: '07-decisions/adr-016-teams-integration',
-            },
-            {
               label: 'ADR-017 Fluent Design',
               slug: '07-decisions/adr-017-fluent-design-alignment',
-            },
-            {
-              label: 'ADR-018 Channel @Mention',
-              slug: '07-decisions/adr-018-channel-mention-workflow',
             },
             {
               label: 'ADR-019 AI Integration',
@@ -853,24 +841,12 @@ export default defineConfig({
               slug: '07-decisions/adr-021-security-evaluation',
             },
             {
-              label: 'ADR-022 Knowledge Layer',
-              slug: '07-decisions/adr-022-knowledge-layer-architecture',
-            },
-            {
               label: 'ADR-023 Data Lifecycle',
               slug: '07-decisions/adr-023-data-lifecycle',
             },
             {
-              label: 'ADR-024 Scouting Report',
-              slug: '07-decisions/adr-024-scouting-report',
-            },
-            {
               label: 'ADR-025 Internationalization',
               slug: '07-decisions/adr-025-internationalization',
-            },
-            {
-              label: 'ADR-026 Knowledge Base',
-              slug: '07-decisions/adr-026-knowledge-base-sharepoint-first',
             },
             {
               label: 'ADR-028 Responses API',

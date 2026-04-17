@@ -9,7 +9,7 @@ related: [knowledge-base, sharepoint, coscout, adr-026]
 # Knowledge Base: Document Upload, Folder Selection & Permissions
 
 **Date**: 2026-03-19
-**ADR**: [ADR-026](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
+**ADR**: [ADR-026](../../archive/adrs/adr-026-knowledge-base-sharepoint-first.md)
 
 > **Update (2026-04-02):** ADR-026 is superseded by [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md). The backend now uses Foundry IQ with Blob Storage instead of Remote SharePoint. The UI/UX patterns described here are preserved.
 
@@ -190,6 +190,6 @@ Don't show when:
 
 ## See Also
 
-- [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
+- [ADR-026: SharePoint-First Knowledge Base](../../archive/adrs/adr-026-knowledge-base-sharepoint-first.md)
 - [Knowledge Base Search](../../03-features/workflows/knowledge-base-search.md)
 - [AI Architecture](../../05-technical/architecture/ai-architecture.md)

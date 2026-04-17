@@ -713,7 +713,7 @@ Photos are immutable once uploaded (no edit/delete). Thumbnails (~50KB base64) e
 
 `getCurrentUser.ts` extracts user identity from the Teams JWT (UPN claim) with EasyAuth fallback. Enables author tracking on findings and comments.
 
-See [ADR-016](../07-decisions/adr-016-teams-integration.md) for the full Teams integration design.
+See [ADR-016](../archive/adrs/adr-016-teams-integration.md) for the full Teams integration design.
 
 ## 13. Performance Budget
 

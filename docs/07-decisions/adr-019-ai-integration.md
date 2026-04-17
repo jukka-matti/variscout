@@ -92,7 +92,7 @@ Azure AI Search serves as the managed knowledge service -- not a custom RAG pipe
 
 **Capabilities:** Built-in hybrid search (keyword + semantic ranking), Foundry IQ agentic retrieval for query decomposition. All Azure-native, ARM-deployable, same-tenant data sovereignty. Per-user permissions via user token passthrough.
 
-See [ADR-026](adr-026-knowledge-base-sharepoint-first.md) for the full architecture decision.
+See [ADR-026](../archive/adrs/adr-026-knowledge-base-sharepoint-first.md) for the full architecture decision.
 
 ### ARM Template Changes
 
@@ -204,7 +204,7 @@ Key design decisions:
 ## See Also
 
 - [ADR-015: Investigation Board](adr-015-investigation-board.md)
-- [ADR-026: SharePoint-First Knowledge Base](adr-026-knowledge-base-sharepoint-first.md)
+- [ADR-026: SharePoint-First Knowledge Base](../archive/adrs/adr-026-knowledge-base-sharepoint-first.md)
 - [AI Journey Integration](../05-technical/architecture/ai-journey-integration.md)
 - [AI Architecture](../05-technical/architecture/ai-architecture.md)
 - [AI Components](../06-design-system/components/ai-components.md)

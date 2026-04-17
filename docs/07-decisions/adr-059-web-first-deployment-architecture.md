@@ -148,4 +148,4 @@ Conflict resolution: ETag-based optimistic concurrency on `metadata.json`.
 
 ### Documentation Changes
 
-See design spec `docs/superpowers/specs/2026-04-02-web-first-deployment-architecture-design.md` for full 20-file documentation impact.
+See design spec `docs/archive/specs/2026-04-02-web-first-deployment-architecture-design.md` for full 20-file documentation impact.

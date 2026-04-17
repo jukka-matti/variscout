@@ -56,7 +56,7 @@ The brainstorm modal opens per cause from the "💡 Brainstorm" button in the Id
 2. **Select** — Dot-vote on which ideas to pursue. Anonymous vote counts in collaborative mode. No voter names.
 3. **Evaluate** — Selected ideas flow to IdeaGroupCard with direction pre-set. Unselected ideas are "parked" (dimmed, promotable later).
 
-See [HMW Brainstorm Modal Design](../../superpowers/specs/2026-04-03-hmw-brainstorm-modal-design.md) for the full spec.
+See [HMW Brainstorm Modal Design](../../archive/specs/2026-04-03-hmw-brainstorm-modal-design.md) for the full spec.
 
 ### Collaborative Sessions (Team Plan)
 
@@ -244,4 +244,4 @@ The Improvement workspace is Azure-only (Standard and Team plans). The PWA inclu
 - [Question-Driven Investigation](question-driven-investigation.md) — How suspected causes are identified before entering this workspace
 - [Staged Analysis](../analysis/staged-analysis.md) — Verification with before/after data
 - [ADR-035](../../07-decisions/adr-035-improvement-prioritization.md) — Prioritization decision record
-- [Improvement Hub Design](../../superpowers/specs/2026-04-02-improvement-hub-design.md) — Full design spec
+- [Improvement Hub Design](../../archive/specs/2026-04-02-improvement-hub-design.md) — Full design spec

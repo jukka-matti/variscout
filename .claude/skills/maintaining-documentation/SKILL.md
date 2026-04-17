@@ -40,14 +40,20 @@ Every ADR must include (in order):
 
 ## Design Specs (Living Documents)
 
-### Spec-Anchored Policy
+### Spec Archive Policy (revised 2026-04-17)
 
-Design specs (`docs/superpowers/specs/`) are **not one-time artifacts** — they are living design references:
+Design specs (`docs/superpowers/specs/`) are **design-time artifacts**, not living references. Once a feature ships, the ADR + code become ground truth and the spec stops earning its keep in the main tree.
 
-- **Status progression:** `draft` → `delivered` (stays in specs/, don't archive)
-- **Archive only when superseded:** A fundamentally new design replaces the old one → move old spec to `docs/archive/`
-- **Update before implementing:** When iterating on a delivered feature, update the spec first, then code
-- **"Why" + "how":** Specs capture user flows, design thinking, and rationale that ADRs don't — valuable for future iterations
+- **Status progression:** `draft` → `active` → `delivered` → **archive** (move to `docs/archive/specs/`).
+- **Archive on delivery** unless one of these exceptions applies:
+  - No ADR exists yet (spec is still the only persistent record of the decision).
+  - Spec is still actively informing follow-on work (phases in progress).
+  - Spec is the only source of truth for something (e.g. design-only modes like Process Flow).
+- **Abandoned drafts** (>14 days old, no downstream activity) are archived the same way.
+- **Superseded** specs or ADRs are archived immediately; the successor takes over canonical reference duty.
+- **Resurrection**: if an archived spec becomes load-bearing again, `git mv` it back and update the index entry. See `docs/archive/README.md`.
+
+Historical context: the prior policy ("living delivered specs") was reversed in the Phase 5 doc-prune audit (see `docs/09-baseline/2026-04-17-doc-audit.md`) because at 64 specs the living-spec default produced more rot than insight.
 
 ### Required Frontmatter
 

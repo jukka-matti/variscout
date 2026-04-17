@@ -170,5 +170,5 @@ Per constitution principle 2 ("Same analysis everywhere, the full journey"), PWA
 - [ADR-042: Project Dashboard](adr-042-project-dashboard.md) — Dashboard as entry point (stays as landing page)
 - [ADR-053: Question-Driven Investigation](adr-053-question-driven-investigation.md) — Investigation flow promoted to workspace
 - [ADR-054: Mode-Aware Question Strategy](adr-054-mode-aware-question-strategy.md) — Questions adapt per analysis mode
-- [Dashboard Chrome Redesign spec](../superpowers/specs/2026-03-28-dashboard-chrome-redesign.md) — Full design
+- [Dashboard Chrome Redesign spec](../archive/specs/2026-03-28-dashboard-chrome-redesign.md) — Full design
 - [Navigation Patterns](../06-design-system/patterns/navigation.md) — Three-workspace model documentation

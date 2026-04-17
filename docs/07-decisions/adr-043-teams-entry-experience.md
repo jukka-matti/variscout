@@ -179,7 +179,7 @@ When the project list is empty (no saved projects), the Portfolio home screen sh
 ## See Also
 
 - [ADR-042: Project Dashboard](adr-042-project-dashboard.md) — Single-project Overview tab (Dashboard ↔ Editor)
-- [ADR-016: Teams Integration](adr-016-teams-integration.md) — Teams channel tabs and deep link infrastructure
+- [ADR-016: Teams Integration](../archive/adrs/adr-016-teams-integration.md) — Teams channel tabs and deep link infrastructure
 - [ADR-030: Unified File Picker](adr-030-unified-file-picker.md) — File System Access API and OneDrive file handling
 - [Project Dashboard](../../docs/03-features/workflows/project-dashboard.md) — Dashboard feature documentation
 - [Project Reopen Flow](../../docs/02-journeys/flows/project-reopen.md) — Updated flow with Portfolio entry

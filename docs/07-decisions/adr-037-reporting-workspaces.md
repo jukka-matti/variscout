@@ -9,7 +9,7 @@ related: [report-view, workspace, audience-toggle, qc-story]
 
 # ADR-037: Reporting Workspaces
 
-Supersedes: [ADR-024](adr-024-scouting-report.md)
+Supersedes: [ADR-024](../archive/adrs/adr-024-scouting-report.md)
 
 ## Status
 
@@ -85,5 +85,5 @@ Report is now a **workspace tab** (`activeView: 'report'`) rather than a modal o
 
 ## References
 
-- [Design spec](../superpowers/specs/2026-03-20-reporting-workspaces-design.md)
-- [ADR-024](adr-024-scouting-report.md) (superseded)
+- [Design spec](../archive/specs/2026-03-20-reporting-workspaces-design.md)
+- [ADR-024](../archive/adrs/adr-024-scouting-report.md) (superseded)

@@ -104,6 +104,6 @@ still drives Standard → Team.
 
 ## Related
 
-- [ADR-024: Scouting Report](adr-024-scouting-report.md) — Report View design
+- [ADR-024: Scouting Report](../archive/adrs/adr-024-scouting-report.md) — Report View design
 - [Tier Philosophy](../08-products/tier-philosophy.md) — Feature gating principles
 - [Feature Parity](../08-products/feature-parity.md) — Complete feature matrix

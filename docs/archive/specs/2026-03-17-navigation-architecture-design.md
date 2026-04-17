@@ -11,7 +11,7 @@ date: 2026-03-17
 
 ## 1. Problem Statement
 
-The navigation audit (docs/superpowers/specs/2026-03-17-navigation-audit.md) found 30 issues across 6 POVs. Beyond mechanical fixes (touch targets, focus traps), it revealed a structural gap:
+The navigation audit (docs/archive/specs/2026-03-17-navigation-audit.md) found 30 issues across 6 POVs. Beyond mechanical fixes (touch targets, focus traps), it revealed a structural gap:
 
 **VariScout's documentation describes a 4-phase analysis workflow (FRAME→SCOUT→INVESTIGATE→IMPROVE) with 5 feedback loops. But the app is a flat dashboard with bolt-on panels, no router, no phase awareness, and no shared navigation abstraction.**
 

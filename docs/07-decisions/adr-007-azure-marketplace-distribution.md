@@ -27,7 +27,7 @@ This approach had several limitations:
 
 ### Revision Context (2026-02-27)
 
-Teams integration creates a natural product tier split. Quality teams need mobile gemba access (photo evidence, chart sharing, commenting on findings) and shared channel file storage. This justifies a two-plan Marketplace model: Standard (personal, browser) and Team (collaborative, Teams-integrated, AI-enhanced). See [ADR-016](adr-016-teams-integration.md) for full technical design. See [ADR-033](adr-033-pricing-simplification.md) for the pricing simplification that consolidated Team AI into Team.
+Teams integration creates a natural product tier split. Quality teams need mobile gemba access (photo evidence, chart sharing, commenting on findings) and shared channel file storage. This justifies a two-plan Marketplace model: Standard (personal, browser) and Team (collaborative, Teams-integrated, AI-enhanced). See [ADR-016](../archive/adrs/adr-016-teams-integration.md) for full technical design. See [ADR-033](adr-033-pricing-simplification.md) for the pricing simplification that consolidated Team AI into Team.
 
 ### Revision Context (2026-02-13)
 
@@ -301,14 +301,14 @@ The codebase (`apps/excel-addin/`) was removed. Historical documentation preserv
 - Azure Function for On-Behalf-Of token exchange
 - AI Knowledge Base via Remote SharePoint knowledge source (ADR-026)
 - Report publishing to SharePoint for organizational learning
-- See [ADR-016](adr-016-teams-integration.md) for phased delivery breakdown
-- See [ADR-019](adr-019-ai-integration.md) and [ADR-026](adr-026-knowledge-base-sharepoint-first.md) for AI/KB design
+- See [ADR-016](../archive/adrs/adr-016-teams-integration.md) for phased delivery breakdown
+- See [ADR-019](adr-019-ai-integration.md) and [ADR-026](../archive/adrs/adr-026-knowledge-base-sharepoint-first.md) for AI/KB design
 
 ---
 
 ## Related Decisions
 
-- [ADR-006: Edition System](adr-006-edition-system.md) - Superseded, kept for historical context
+- [ADR-006: Edition System](../archive/adrs/adr-006-edition-system.md) - Superseded, kept for historical context
 - [ADR-004: Offline-First](adr-004-offline-first.md) - Unchanged, still applies
 - [ADR-059: Web-First Deployment Architecture](adr-059-web-first-deployment-architecture.md) - Web-first architecture (supersedes ADR-016)
 

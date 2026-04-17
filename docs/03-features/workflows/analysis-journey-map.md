@@ -125,7 +125,7 @@ flowchart TD
 
 1. **Scan I-Chart for stability** -- Look for points outside control limits, runs, and trends. Red dots signal special causes.
 2. **Compare factors in Boxplot** -- Read ANOVA eta-squared to identify which factor explains the most variation.
-3. **Factor Intelligence generates ranked questions** -- Best Subsets R²adj ranking runs automatically, turning each factor and factor combination into a question ("Does Shift explain variation?" with R²adj %). Factors with R²adj < 5% are auto-answered as "ruled out" (negative learnings). See [Question-Driven EDA Design](../../superpowers/specs/2026-03-30-question-driven-eda-design.md) for the full question model.
+3. **Factor Intelligence generates ranked questions** -- Best Subsets R²adj ranking runs automatically, turning each factor and factor combination into a question ("Does Shift explain variation?" with R²adj %). Factors with R²adj < 5% are auto-answered as "ruled out" (negative learnings). See [Question-Driven EDA Design](../../archive/specs/2026-03-30-question-driven-eda-design.md) for the full question model.
 4. **Rank in Pareto** -- See which categories within a factor contribute most to failures or out-of-spec results.
 5. **Check Cpk** -- After filtering, assess whether the isolated subset meets specification requirements.
 6. **Toggle Capability Mode** -- The I-Chart supports a "Values | Capability" toggle switching between raw measurements and per-subgroup Cp/Cpk. This checks whether subgroups consistently meet the Cpk target. See [Analysis Flow](analysis-flow.md) for the complete two-thread analysis journey.

@@ -212,7 +212,7 @@ The panel architecture is evolving toward a symmetric model with two cross-cutti
 
 **Findings panel:** Becomes the center content of the Investigation workspace tab (not a sidebar). Can still be popped out to a separate window.
 
-See [Dashboard Chrome Redesign spec](../../superpowers/specs/2026-03-28-dashboard-chrome-redesign.md) for the full design.
+See [Dashboard Chrome Redesign spec](../../archive/specs/2026-03-28-dashboard-chrome-redesign.md) for the full design.
 
 ## Z-Index Scale
 

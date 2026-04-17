@@ -372,7 +372,7 @@ Improvement ideas injected during converging phase when supported hypotheses exi
 
 - Re-run 40-criteria evaluation quarterly (next: June 2026)
 - Track dimension scores over time (baseline: March 2026 at 3.14/5.0)
-- Evaluation rubric: `docs/superpowers/specs/2026-03-16-ai-integration-evaluation.md`
+- Evaluation rubric: `docs/archive/specs/2026-03-16-ai-integration-evaluation.md`
 
 ### 4.3 Gap Tracker
 

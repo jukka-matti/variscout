@@ -83,6 +83,6 @@ The Knowledge Base search degrades gracefully:
 
 - [AI Architecture](../../05-technical/architecture/ai-architecture.md)
 - [ADR-060: CoScout Intelligence Architecture](../../07-decisions/adr-060-coscout-intelligence-architecture.md) (current knowledge architecture)
-- [ADR-022: Knowledge Layer Architecture](../../07-decisions/adr-022-knowledge-layer-architecture.md) (original)
-- [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md) (superseded by ADR-060)
+- [ADR-022: Knowledge Layer Architecture](../../archive/adrs/adr-022-knowledge-layer-architecture.md) (original)
+- [ADR-026: SharePoint-First Knowledge Base](../../archive/adrs/adr-026-knowledge-base-sharepoint-first.md) (superseded by ADR-060)
 - [ARM Template — AI Services](../../08-products/azure/arm-template.md#4-ai-services-all-plans)

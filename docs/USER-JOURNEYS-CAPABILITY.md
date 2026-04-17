@@ -64,6 +64,6 @@ When Cpk fails, the INVESTIGATE phase identifies which factors (Shift, Machine, 
 
 ## Design reference
 
-- **Spec:** `docs/superpowers/specs/2026-03-21-capability-time-subgrouping.md`, `docs/superpowers/specs/2026-03-29-capability-mode-coherence-design.md`
+- **Spec:** `docs/archive/specs/2026-03-21-capability-time-subgrouping.md`, `docs/archive/specs/2026-03-29-capability-mode-coherence-design.md`
 - **ADR:** `docs/07-decisions/adr-038-subgroup-capability.md`
 - **Code:** `packages/core/src/stats/` (calculateStats for Cp/Cpk, subgroupCapability.ts for per-subgroup series), `packages/hooks/src/useCapabilityIChartData.ts`, `packages/hooks/src/useCapabilityBoxplotData.ts`, `packages/ui/src/components/CapabilityMetricToggle/`, `packages/ui/src/components/SubgroupConfig/`

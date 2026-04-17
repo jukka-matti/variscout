@@ -37,6 +37,6 @@ For kaizen verification, she uploads post-improvement data with a Stage column. 
 
 ## Design reference
 
-- **Spec:** `docs/superpowers/specs/2026-03-20-yamazumi-analysis-mode-design.md`, `docs/superpowers/specs/2026-03-21-yamazumi-reporting-design.md`
+- **Spec:** `docs/archive/specs/2026-03-20-yamazumi-analysis-mode-design.md`, `docs/archive/specs/2026-03-21-yamazumi-reporting-design.md`
 - **ADR:** `docs/07-decisions/adr-034-yamazumi-analysis-mode.md`
 - **Code:** `packages/core/src/yamazumi/` (detection, classification, aggregation), `packages/charts/src/YamazumiChart/` (YamazumiChart, YamazumiChartBase), `packages/ui/src/components/YamazumiSummaryPanel/`, `packages/hooks/src/useYamazumiData.ts`

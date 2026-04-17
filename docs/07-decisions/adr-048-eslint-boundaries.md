@@ -132,4 +132,4 @@ Phase 2 is deferred because cross-feature direct imports in orchestration hooks 
 
 - [ADR-045: Modular Architecture](adr-045-modular-architecture.md) — boundary rules this ADR enforces
 - [ADR-046: Event-Driven Architecture](adr-046-event-driven-architecture.md) — event bus enables Phase 2 feature isolation
-- Full design: `docs/superpowers/specs/2026-03-23-event-driven-architecture-design.md`
+- Full design: `docs/archive/specs/2026-03-23-event-driven-architecture-design.md`

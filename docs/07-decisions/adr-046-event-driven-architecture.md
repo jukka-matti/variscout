@@ -166,4 +166,4 @@ The orchestration hooks (`useFindingsOrchestration`, `useInvestigationOrchestrat
 - [ADR-041: Zustand Feature Stores](adr-041-zustand-feature-stores.md) — store architecture this builds on
 - [ADR-029: AI Action Tools](adr-029-ai-action-tools.md) — AI tools flow through domain events
 - [Store Interactions](../05-technical/architecture/store-interactions.md) — updated with event bus section
-- Full design: `docs/superpowers/specs/2026-03-23-event-driven-architecture-design.md`
+- Full design: `docs/archive/specs/2026-03-23-event-driven-architecture-design.md`

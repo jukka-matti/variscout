@@ -8,7 +8,7 @@ title: 'ADR-021 Security Evaluation: Teams Integration'
 
 **Date**: 2026-02-27
 
-**Related**: [ADR-016](adr-016-teams-integration.md) (Teams Integration), [ADR-007](adr-007-azure-marketplace-distribution.md) (Marketplace Distribution), [ADR-015](adr-015-investigation-board.md) (Investigation Board)
+**Related**: [ADR-016](../archive/adrs/adr-016-teams-integration.md) (Teams Integration), [ADR-007](adr-007-azure-marketplace-distribution.md) (Marketplace Distribution), [ADR-015](adr-015-investigation-board.md) (Investigation Board)
 
 **Scope**: Security evaluation of the proposed Teams integration design from three external perspectives: Microsoft certification, enterprise IT procurement, and a Finnish manufacturer buyer.
 
@@ -492,7 +492,7 @@ Canvas re-encode + stripExifFromBlob ──── EXIF/GPS stripped (two layers)
 
 ## See Also
 
-- [ADR-016: Teams Integration](adr-016-teams-integration.md) — the technical design being evaluated
+- [ADR-016: Teams Integration](../archive/adrs/adr-016-teams-integration.md) — the technical design being evaluated
 - [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md) — two-plan model (Standard / Team)
 - [Certification Guide](../08-products/azure/certification-guide.md) — marketplace certification mechanics
 - [Submission Checklist](../08-products/azure/submission-checklist.md) — submission readiness tracker

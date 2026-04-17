@@ -710,7 +710,7 @@ The existing Project Dashboard (WhatsNewSection, DashboardSummaryCard, ProjectSt
 - [AIX Design System](aix-design-system.md)
 - [VariScout Methodology](../../01-vision/methodology.md)
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)
-- [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
+- [ADR-026: SharePoint-First Knowledge Base](../../archive/adrs/adr-026-knowledge-base-sharepoint-first.md)
 - [ADR-027: AI Collaborator Evolution](../../07-decisions/adr-027-ai-collaborator-evolution.md)
 - [AI Components](../../06-design-system/components/ai-components.md)
 - [ADR-049: CoScout Knowledge Catalyst](../../07-decisions/adr-049-coscout-context-and-memory.md)

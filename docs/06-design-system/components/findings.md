@@ -642,7 +642,7 @@ When a finding reaches a key status in a Teams channel tab, VariScout posts an A
 
 **Status update cards:** When a finding status changes to `analyzed` or `resolved`, an Adaptive Card is automatically posted to the channel showing the suspected cause (if analyzed), Cpk delta (if resolved), @mentions for assignees, and a "View" button deep-linking into the app.
 
-**Teams Activity Feed:** When a finding is assigned via @mention, the assignee receives a Teams notification bell with a deep link directly to the finding. Uses the same `ChannelMessage.Send` Graph permission and OBO token infrastructure as the @mention workflow (see [ADR-018](../../07-decisions/adr-018-channel-mention-workflow.md)).
+**Teams Activity Feed:** When a finding is assigned via @mention, the assignee receives a Teams notification bell with a deep link directly to the finding. Uses the same `ChannelMessage.Send` Graph permission and OBO token infrastructure as the @mention workflow (see [ADR-018](../../archive/adrs/adr-018-channel-mention-workflow.md)).
 
 ---
 

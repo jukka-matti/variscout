@@ -158,4 +158,4 @@ The redesigned "CoScout Knowledge Catalyst" (7 capabilities, no conversation per
 
 **7 resolved by elimination, 2 by design.** The simplest solution was not to fix the problems but to remove the features that caused them.
 
-See: [ADR-049 (revised)](../../07-decisions/adr-049-coscout-context-and-memory.md) | [Knowledge Catalyst Design Spec](2026-03-24-coscout-knowledge-catalyst-design.md)
+See: [ADR-049 (revised)](../../07-decisions/adr-049-coscout-context-and-memory.md) | [Knowledge Catalyst Design Spec](../../archive/specs/2026-03-24-coscout-knowledge-catalyst-design.md)

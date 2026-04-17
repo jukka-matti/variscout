@@ -68,4 +68,4 @@ Interactive SVG scatter plot with flexible X/Y/Color axis selection from four di
 
 ## Implementation
 
-See [Improvement Prioritization Design](../superpowers/specs/2026-03-20-improvement-prioritization-design.md) for the full spec including data model, UI mockups, and migration details.
+See [Improvement Prioritization Design](../archive/specs/2026-03-20-improvement-prioritization-design.md) for the full spec including data model, UI mockups, and migration details.

@@ -80,7 +80,7 @@ The collaborator evolution is incremental — each capability is independent and
 ## Related
 
 - [ADR-019: AI Integration](adr-019-ai-integration.md) — original AI architecture decision
-- [ADR-026: Knowledge Base — SharePoint-First](adr-026-knowledge-base-sharepoint-first.md) — knowledge layer
+- [ADR-026: Knowledge Base — SharePoint-First](../archive/adrs/adr-026-knowledge-base-sharepoint-first.md) — knowledge layer
 - [AI Journey Integration](../05-technical/architecture/ai-journey-integration.md) — consolidated AI overview
 - [AIX Design System](../05-technical/architecture/aix-design-system.md) — governance patterns (§2.8 Actionable Suggestion)
-- [AI Integration Evaluation](../superpowers/specs/2026-03-16-ai-integration-evaluation.md) — baseline assessment
+- [AI Integration Evaluation](../archive/specs/2026-03-16-ai-integration-evaluation.md) — baseline assessment
