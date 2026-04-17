@@ -93,3 +93,63 @@ For each prompt, record:
 - Readability self-test (OVERVIEW + USER-JOURNEYS + DATA-FLOW): passes 3-question test (what VariScout does, personas + phases, data trace)
 
 **Next phase:** Phase 2 — populate 12 skill SKILL.md bodies by migrating content from `.claude/rules/*.md` + relevant ADRs/specs, add skill reference files (EXPORTS.md / COLORS.md for `editing-charts`; YAMAZUMI.md / PERFORMANCE.md / DEFECT.md / PROCESS-FLOW.md for `editing-analysis-modes`), then atomic swap `CLAUDE.md.new` → live. Plan to be written in `docs/superpowers/plans/` after Phase 1 commit.
+
+## Phase 2 Spot-Test Results
+
+**Date:** 2026-04-17
+
+Five representative prompts evaluated against the activated skill descriptions (post-atomic-swap). Assessment is description-based: does the skill's `description` frontmatter contain enough concrete trigger keywords (file paths, function names, domain terms) that the relevant prompt would reliably invoke it?
+
+| #   | Prompt                                                                        | Expected skill                             | Observed skill (trigger match)                                                                                                                | Verdict |
+| --- | ----------------------------------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1   | "Add a new chart annotation that shows a control-limit violation."            | `editing-charts`                           | `editing-charts` — description matches on "chart annotations", "packages/charts/"                                                             | ✅      |
+| 2   | "Format a computed Cpk value for display in a new widget."                    | `adding-i18n-messages` (`formatStatistic`) | WEAK — neither `editing-statistics` nor `adding-i18n-messages` description mentions `formatStatistic()` or `.toFixed` anti-pattern explicitly | ⚠️ tune |
+| 3   | "Add an idle-time metric to the Yamazumi mode's I-Chart slot."                | `editing-analysis-modes`                   | `editing-analysis-modes` — description matches on "yamazumi", "chart slot mapping", "computeYamazumiData"                                     | ✅      |
+| 4   | "Add a new translation key for the HMW Brainstorm modal title."               | `adding-i18n-messages`                     | `adding-i18n-messages` — description matches on "translation keys", "typed message catalogs"                                                  | ✅      |
+| 5   | "Persist a new `investigationSummary` field to Blob Storage when it changes." | `editing-azure-storage-auth`               | `editing-azure-storage-auth` — description matches on "Blob Storage", "SAS tokens", "cloud sync"                                              | ✅      |
+
+**Verdict:** 4 of 5 strong matches. Prompt #2 is a known ambiguity — formatting a stat value straddles i18n (the function lives in `@variscout/core/i18n`) and statistics (the context is a Cpk). Action: the `adding-i18n-messages` SKILL.md body documents `formatStatistic()` and the `.toFixed()` anti-pattern in detail, so if either skill is loaded it will catch the mistake. Keeping descriptions as-is; further tuning deferred to Phase 3 when real usage data accumulates.
+
+No description edits made in Phase 2. Any Phase 3 tuning will be driven by observed failure rather than speculative re-writes.
+
+## Phase 2 Completion
+
+**Date completed:** 2026-04-17
+
+**Phase 2 delivered:**
+
+- 12 skill bodies populated with mandatory `## Gotchas` sections
+- 6 reference files created:
+  - `editing-charts/` — `EXPORTS.md` + `COLORS.md`
+  - `editing-analysis-modes/` — `YAMAZUMI.md` + `PERFORMANCE.md` + `DEFECT.md` + `PROCESS-FLOW.md`
+- Atomic swap executed: root `CLAUDE.md` 181 lines → 57 lines. Old root preserved at `CLAUDE.md.bak` (pending deletion in Phase 3).
+- 8 nested `packages/{core,charts,hooks,ui,stores,data}/CLAUDE.md` + `apps/{azure,pwa}/CLAUDE.md` activated.
+- `.claude/rules/*.md` still live as belt-and-suspenders (deletion scheduled for Phase 3).
+
+**Gate checks — all passed:**
+
+- Test suite: all packages passing (Turbo full cache hit — no code changed)
+- Build: clean, exit 0
+- `pnpm docs:check`: passes (diagram health + orphan check + doc health)
+- Pre-commit hooks: clean
+
+**Always-loaded context (post-swap):**
+
+| File                             | Lines   | Notes                                      |
+| -------------------------------- | ------- | ------------------------------------------ |
+| `CLAUDE.md`                      | 57      | Lean routing + package inventory (was 181) |
+| `.claude/rules/charts.md`        | 278     | Still active — removed in Phase 3          |
+| `.claude/rules/code-style.md`    | 51      | Still active — removed in Phase 3          |
+| `.claude/rules/documentation.md` | 67      | Still active — removed in Phase 3          |
+| `.claude/rules/monorepo.md`      | 121     | Still active — removed in Phase 3          |
+| `.claude/rules/ruflo.md`         | 62      | Still active — removed in Phase 3          |
+| `.claude/rules/testing.md`       | 145     | Still active — removed in Phase 3          |
+| **Total root+rules**             | **781** | Baseline was 905 — partial reduction       |
+
+Nested `packages/*/CLAUDE.md` (21–42 lines each) and `apps/*/CLAUDE.md` (33–40 lines each) load only when the agent edits files in that directory — conditional, not always-loaded.
+
+**Full reduction (root CLAUDE.md: 181 → 57, −124 lines) is realized unconditionally. The remaining 724 lines from `.claude/rules/` will be removed in Phase 3** when ESLint plugins, pre-commit hooks, and skill-based discovery are proven to provide equivalent coverage.
+
+**Spot-test results:** see "Phase 2 Spot-Test Results" section above — 4/5 strong skill matches, 1 acceptable weak match for formatStatistic case.
+
+**Next phase:** Phase 3 — add ESLint plugins (no-tofixed-on-stats, no-hardcoded-chart-colors, no-root-cause-language, no-interaction-moderator), pre-commit hooks for SSOT + stale-link warnings, then DELETE `.claude/rules/`, `docs/archive/`, scope `MEMORY.md` to session state only, delete `CLAUDE.md.bak`. Phase 3 plan to be written after Phase 2 commit.
