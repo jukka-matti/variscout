@@ -1,0 +1,40 @@
+# @variscout/azure-app
+
+Azure Team App — Feature-Sliced Design with Zustand feature stores, IndexedDB + Blob Storage, EasyAuth, App Insights.
+
+## Hard rules
+
+- Never log PII to App Insights or any telemetry. Customer-owned data principle (ADR-059) is strict. Log only structural events (counts, types, durations).
+- Never import MSAL or roll your own auth. Azure uses EasyAuth — the `/api/me` endpoint + cookie flow in `server.js`.
+- Tailwind v4 requires `@source` directives in `src/index.css` for every shared package with UI (`@source "../../../packages/ui/src/**/*.tsx"`, etc). Responsive utilities (`lg:grid`, `md:flex-row`) silently break without these.
+- Don't introduce new top-level directories. Feature-Sliced Design: features/, hooks/, components/, services/, auth/, db/, lib/.
+
+## Invariants
+
+- 6 feature modules in `src/features/`, each with a co-located Zustand feature store suffixed `*FeatureStore` where ambiguity needed: `panels/panelsStore`, `findings/findingsStore`, `investigation/useInvestigationFeatureStore`, `ai/aiStore`, `data-flow/`, `improvement/` (the improvement UI-state store was deleted April 2026; its state moved to `panelsStore`).
+- Persistence: IndexedDB via Dexie (`src/db/schema.ts`, `services/localDb.ts`). Blob Storage sync for Team tier (`services/cloudSync.ts`). SAS tokens minted by `/api/storage-token` endpoint in `server.js`.
+- App Insights wired at `src/lib/appInsights.ts`. `services/storage.ts` is the facade for both local + cloud.
+- Domain stores from `@variscout/stores` are the source of truth for project/investigation/improvement/session data. Feature stores hold UI-only state.
+- File Picker: local files only (`components/FileBrowseButton.tsx`). SharePoint picker removed per ADR-059.
+
+## Test command
+
+```bash
+pnpm --filter @variscout/azure-app test
+```
+
+E2E tests via Playwright: `pnpm --filter @variscout/azure-app test:e2e`.
+
+## Skills to consult
+
+- `editing-azure-storage-auth` — for any auth, storage, or cloud sync changes
+- `editing-investigation-workflow` — for editor/InvestigationMapView, HubComposer, etc.
+- `writing-tests` — E2E data-testid conventions
+
+## Related
+
+- ADR-041 Zustand feature stores
+- ADR-043 Teams entry experience
+- ADR-059 Web-first deployment architecture
+- docs/08-products/azure/authentication.md
+- docs/08-products/azure/blob-storage-sync.md
