@@ -72,7 +72,7 @@ echo "  Actual sub-path exports: $ACTUAL_SUBPATHS"
 # ---------------------------------------------------------------------------
 echo ""
 echo "--- Test coverage for listed hooks ---"
-TESTING_MD="$ROOT/.claude/rules/testing.md"
+TESTING_MD="$ROOT/.claude/skills/writing-tests/SKILL.md"
 TESTS_DIR="$ROOT/packages/hooks/src/__tests__"
 
 # Extract hook names from the @variscout/hooks row in testing.md only

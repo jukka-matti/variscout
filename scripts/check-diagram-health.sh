@@ -145,7 +145,7 @@ while IFS= read -r file; do
   relpath="${file#$ROOT/docs/}"
 
   # Check if any other .md file references this file (by filename or relative path)
-  refs=$(grep -rl "$basename\|$relpath" "$ROOT/docs/" "$ROOT/CLAUDE.md" "$ROOT/.claude/rules/" 2>/dev/null | grep -v "$file" | head -1 || true)
+  refs=$(grep -rl "$basename\|$relpath" "$ROOT/docs/" "$ROOT/CLAUDE.md" "$ROOT/.claude/skills/" 2>/dev/null | grep -v "$file" | head -1 || true)
   if [ -z "$refs" ]; then
     ORPHAN_COUNT=$((ORPHAN_COUNT + 1))
     if (( ORPHAN_COUNT <= 10 )); then
