@@ -2,7 +2,7 @@
 title: HMW Brainstorm Modal + Collaborative Sessions
 audience: [analyst, engineer]
 category: workflow
-status: draft
+status: delivered
 related: [improvement, brainstorm, hmw, coscout, collaboration, ideation]
 ---
 

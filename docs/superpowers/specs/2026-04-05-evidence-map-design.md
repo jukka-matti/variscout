@@ -1,6 +1,6 @@
 ---
 title: Evidence Map — Data Relationship Visualization
-status: draft
+status: delivered
 date: 2026-04-05
 audience: [developer, analyst]
 category: architecture

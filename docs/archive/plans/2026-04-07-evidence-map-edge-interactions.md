@@ -1,4 +1,5 @@
 ---
+status: archived
 title: Evidence Map Edge Interactions Implementation Plan
 ---
 

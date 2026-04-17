@@ -174,7 +174,7 @@ Implementation: `apps/azure/src/hooks/useFilePicker.ts`, `apps/azure/src/compone
 
 ## See Also
 
-- [OneDrive Sync](onedrive-sync.md) — Graph API calls, conflict resolution
+- [OneDrive Sync](blob-storage-sync.md) — Graph API calls, conflict resolution
 - [Authentication (EasyAuth)](authentication.md) — Token acquisition
 - [Project Persistence](../../03-features/data/storage.md) — AnalysisState format
 - [PWA Session Model](../pwa/index.md#session-model) — PWA has no persistence (by design)

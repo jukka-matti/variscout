@@ -1,5 +1,7 @@
 ---
 title: Blob Storage Sync Implementation Plan
+status: archived
+spec: 2026-04-02-web-first-implementation-design.md
 ---
 
 # Blob Storage Sync Implementation Plan

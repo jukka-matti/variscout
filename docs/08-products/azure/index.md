@@ -247,7 +247,7 @@ The Azure app includes a development-only tier switching component at `apps/azur
 - [Pricing](pricing-tiers.md)
 - [ARM Template](arm-template.md)
 - [Authentication (EasyAuth)](authentication.md)
-- [OneDrive Sync](onedrive-sync.md)
+- [OneDrive Sync](blob-storage-sync.md)
 - [Storage](storage.md) — IndexedDB schema, sync queue, persistence model
 - [Submission Checklist](submission-checklist.md) — Marketplace submission preparation
 - [Certification Guide](certification-guide.md) — Azure Marketplace certification preparation

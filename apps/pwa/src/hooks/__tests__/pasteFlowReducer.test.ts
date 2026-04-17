@@ -23,6 +23,7 @@ describe('pasteFlowReducer', () => {
         isManualEntry: false,
         wideFormatDetection: null,
         yamazumiDetection: null,
+        defectDetection: null,
       });
     });
   });

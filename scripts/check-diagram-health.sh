@@ -99,23 +99,16 @@ for phase in frame scout investigate improve; do
   fi
 done
 
-# HypothesisStatus values → investigation-lifecycle-map.md
-for status in supported contradicted; do
-  if ! grep -qi "$status" "$LIFECYCLE_MAP" 2>/dev/null; then
-    red "DRIFT: HypothesisStatus '$status' not found in investigation-lifecycle-map.md"
+# QuestionStatus values → investigation-lifecycle-map.md
+# (Hypothesis was renamed to Question per ADR-053; enum lives in packages/core/src/findings/types.ts)
+for status in open investigating answered ruled-out; do
+  if ! grep -qi "\`$status\`" "$LIFECYCLE_MAP" 2>/dev/null; then
+    red "DRIFT: QuestionStatus '$status' not documented in investigation-lifecycle-map.md"
     ERRORS=$((ERRORS + 1))
   else
-    green "OK: HypothesisStatus '$status' in lifecycle map"
+    green "OK: QuestionStatus '$status' in lifecycle map"
   fi
 done
-
-# Check 'untested' or 'created' appears (initial state)
-if ! grep -qi "untested\|created\|Hypothesis created" "$LIFECYCLE_MAP" 2>/dev/null; then
-  red "DRIFT: HypothesisStatus 'untested' (initial state) not found in investigation-lifecycle-map.md"
-  ERRORS=$((ERRORS + 1))
-else
-  green "OK: HypothesisStatus 'untested' (initial state) in lifecycle map"
-fi
 
 echo ""
 echo "=== Stale Reference Checks ==="

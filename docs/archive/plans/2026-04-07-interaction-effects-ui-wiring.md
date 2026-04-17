@@ -1,4 +1,5 @@
 ---
+status: archived
 title: Interaction Effects UI Wiring Plan
 ---
 

@@ -264,7 +264,7 @@ interface SuspectedCause {
 }
 ```
 
-`SuspectedCauseEvidence` is defined in the [Suspected Cause Evidence Model spec](2026-04-03-suspected-cause-evidence-model-design.md). It carries mode-aware contribution (R²adj for standard/capability, waste % for yamazumi, channel Cpk for performance) and is stored — not recomputed on every render. The `selectedForImprovement` flag marks which causes the analyst has chosen to act on; unselected causes are "parked."
+`SuspectedCauseEvidence` is the evidence record attached to each hub. It carries mode-aware contribution (R²adj for standard/capability, waste % for yamazumi, channel Cpk for performance) and is stored — not recomputed on every render. The `selectedForImprovement` flag marks which causes the analyst has chosen to act on; unselected causes are "parked." (The original "Suspected Cause Evidence Model" spec was never split out; the model is defined here and implemented in `packages/core/src/findings/types.ts`.)
 
 ### Problem Statement Changes
 

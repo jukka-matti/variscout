@@ -1,5 +1,7 @@
 ---
 title: 'Zustand-First Architecture — Phase 2: Wire Azure App'
+status: archived
+spec: 2026-04-04-zustand-first-state-architecture-design.md
 ---
 
 # Zustand-First Architecture — Phase 2: Wire Azure App

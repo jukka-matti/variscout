@@ -193,6 +193,6 @@ The chart copy and export features (clipboard, PNG, SVG) produce presentation-re
 | UX rationale for drill-down                | [Progressive Stratification](../../01-vision/progressive-stratification.md) |
 | Investigation workflow (Findings, What-If) | [Investigation to Action](../workflows/investigation-to-action.md)          |
 | Boxplot ANOVA display                      | [Boxplot](boxplot.md)                                                       |
-| Factor Intelligence                        | [Factor Intelligence](../analysis/factor-intelligence.md)                   |
+| Factor Intelligence                        | [Factor Intelligence](../../02-journeys/flows/factor-intelligence.md)       |
 | Regression methodology                     | [Regression Methodology](regression-methodology.md)                         |
 | Glossary: η², R²adj                        | `packages/core/src/glossary/terms.ts`                                       |

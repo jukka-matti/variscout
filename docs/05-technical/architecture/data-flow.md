@@ -395,5 +395,5 @@ flowchart LR
 - [Offline-First](offline-first.md) - Persistence strategy
 - [Shared Packages](shared-packages.md) - Package responsibilities
 - [PWA Session Model](../../08-products/pwa/index.md#session-model) - PWA has no persistence
-- [OneDrive Sync](../../08-products/azure/onedrive-sync.md) - Cloud sync details
+- [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) - Cloud sync details
 - [ADR-023: Verification Experience & Data Lifecycle](../../07-decisions/adr-023-data-lifecycle.md) - Data entry paths, append architecture, staged verification

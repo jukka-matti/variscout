@@ -459,7 +459,7 @@ pnpm --filter @variscout/azure-app test:e2e
 
 - [ARM Template Documentation](../../08-products/azure/arm-template.md) — template parameters and App Registration setup
 - [Authentication (EasyAuth)](../../08-products/azure/authentication.md) — auth flow, endpoints, token management
-- [OneDrive Sync](../../08-products/azure/onedrive-sync.md) — sync architecture and storage structure
+- [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) — sync architecture and storage structure
 - [Marketplace Submission Checklist](../../08-products/azure/submission-checklist.md) — full submission tracker
 - [Deployment Guide](deployment.md) — build commands and deployment workflows
 - [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md) — distribution strategy

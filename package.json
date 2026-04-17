@@ -19,6 +19,7 @@
     "docs:build": "pnpm --filter @variscout/docs build",
     "docs:preview": "pnpm --filter @variscout/docs preview",
     "docs:check": "bash scripts/check-diagram-health.sh && bash scripts/check-doc-health.sh",
+    "docs:sync": "bash scripts/sync-monorepo-counts.sh",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "check:i18n": "npx tsx scripts/check-i18n.ts"

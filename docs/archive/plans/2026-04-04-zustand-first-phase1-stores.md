@@ -1,4 +1,5 @@
 ---
+status: archived
 title: 'Zustand-First Architecture — Phase 1: Create @variscout/stores'
 ---
 
