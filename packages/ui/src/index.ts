@@ -582,6 +582,9 @@ export {
 } from './components/CapabilityMetricToggle';
 export { SubgroupConfigPopover, type SubgroupConfigProps } from './components/SubgroupConfig';
 
+// FRAME workspace — visual Process Map (ADR-070)
+export { ProcessMapBase, type ProcessMapBaseProps } from './components/ProcessMap/ProcessMapBase';
+
 // Hooks
 export {
   useIsMobile,
