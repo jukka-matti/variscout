@@ -34,6 +34,7 @@ export interface SampleInvestigationState {
   findings?: import('@variscout/core').Finding[];
   questions?: import('@variscout/core').Question[];
   suspectedCauses?: import('@variscout/core').SuspectedCause[];
+  causalLinks?: import('@variscout/core').CausalLink[];
   categories?: import('@variscout/core').InvestigationCategory[];
 }
 

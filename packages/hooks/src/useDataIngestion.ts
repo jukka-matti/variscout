@@ -38,6 +38,8 @@ import {
   type Finding,
   type Question,
   type InvestigationCategory,
+  type SuspectedCause,
+  type CausalLink,
 } from '@variscout/core';
 import type { ProcessContext } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
@@ -72,6 +74,10 @@ export interface DataIngestionActions {
   setQuestions?: (questions: Question[]) => void;
   /** Set pre-populated investigation categories (for showcase/demo datasets) */
   setCategories?: (categories: InvestigationCategory[]) => void;
+  /** Replace SuspectedCause hubs with a seeded set (showcase/demo datasets) */
+  setSuspectedCauses?: (hubs: SuspectedCause[]) => void;
+  /** Replace CausalLinks with a seeded set (showcase/demo datasets) */
+  setCausalLinks?: (links: CausalLink[]) => void;
   /** Set the process context (used to seed FRAME Process Map on showcases) */
   setProcessContext?: (ctx: ProcessContext | null) => void;
   /** Snapshot of the current process context — merged when seeding processMap. */
@@ -168,6 +174,8 @@ export function useDataIngestion(
     setFindings,
     setQuestions,
     setCategories,
+    setSuspectedCauses,
+    setCausalLinks,
     setProcessContext,
     getProcessContext,
   } = actions;
@@ -422,11 +430,16 @@ export function useDataIngestion(
         if (inv.findings?.length && setFindings) setFindings(inv.findings);
         if (inv.questions?.length && setQuestions) setQuestions(inv.questions);
         if (inv.categories?.length && setCategories) setCategories(inv.categories);
+        if (inv.suspectedCauses?.length && setSuspectedCauses)
+          setSuspectedCauses(inv.suspectedCauses);
+        if (inv.causalLinks?.length && setCausalLinks) setCausalLinks(inv.causalLinks);
       } else {
         // Clear stale investigation state from a previous showcase sample
         if (setFindings) setFindings([]);
         if (setQuestions) setQuestions([]);
         if (setCategories) setCategories([]);
+        if (setSuspectedCauses) setSuspectedCauses([]);
+        if (setCausalLinks) setCausalLinks([]);
       }
       // Seed or clear the FRAME Process Map (ADR-070). Preserves any other
       // processContext fields (description, problemStatement, …) already set.
@@ -458,6 +471,8 @@ export function useDataIngestion(
       setFindings,
       setQuestions,
       setCategories,
+      setSuspectedCauses,
+      setCausalLinks,
       setProcessContext,
       getProcessContext,
     ]
