@@ -34,5 +34,6 @@ export const textiles: SampleDataset = {
     outcome: 'Tensile Strength (N)',
     factors: ['Loom ID', 'Operator'],
     specs: { lsl: 40, target: 45 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };

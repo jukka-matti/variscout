@@ -50,5 +50,6 @@ export const cookieWeight: SampleDataset = {
     outcome: 'Cookie_Weight_g',
     factors: ['Oven', 'Shift'],
     specs: { lsl: 27, usl: 33, target: 30 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };

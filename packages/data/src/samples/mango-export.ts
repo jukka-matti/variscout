@@ -40,5 +40,6 @@ export const mangoExport: SampleDataset = {
     outcome: 'Fruit Weight (g)',
     factors: ['Origin Farm', 'Variety'],
     specs: { lsl: 300, usl: 350, target: 325 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };

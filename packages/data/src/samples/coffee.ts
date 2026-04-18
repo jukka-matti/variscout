@@ -58,6 +58,7 @@ export const coffee: SampleDataset = {
     outcome: 'Moisture_pct',
     factors: ['Drying_Bed'],
     specs: { lsl: 10, usl: 12, target: 11 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };
 

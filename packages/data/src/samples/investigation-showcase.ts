@@ -437,6 +437,7 @@ export const investigationShowcase: SampleDataset = {
     outcome: 'Fill_Weight_g',
     factors: ['Line', 'Shift', 'Material_Batch', 'Operator'],
     specs: { lsl: 495, usl: 505, target: 500 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
     investigation: {
       findings: buildFindings(),
       questions: buildQuestions(),
