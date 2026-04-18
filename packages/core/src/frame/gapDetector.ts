@@ -98,11 +98,12 @@ export function detectGaps(input: GapDetectorInput = {}): Gap[] {
   if (processMap) {
     const stepsInOrder = [...processMap.nodes].sort((a, b) => a.order - b.order);
     for (const step of stepsInOrder) {
+      const stepLabel = step.name.trim() ? `"${step.name}"` : 'this step';
       if (!step.ctqColumn) {
         recommended.push({
           kind: 'missing-ctq-at-step',
           severity: 'recommended',
-          message: `No CTQ at "${step.name}". Add an in-process measure to track what changes through this step.`,
+          message: `No CTQ at ${stepLabel}. Add an in-process measure to track what changes through this step.`,
           stepId: step.id,
         });
       }
@@ -111,7 +112,7 @@ export function detectGaps(input: GapDetectorInput = {}): Gap[] {
         recommended.push({
           kind: 'step-without-tributaries',
           severity: 'recommended',
-          message: `Step "${step.name}" has no tributaries. Add the factors (xs) that feed this step to use it as a rational-subgroup axis.`,
+          message: `${stepLabel === 'this step' ? 'This step' : `Step ${stepLabel}`} has no tributaries. Add the factors (xs) that feed this step to use it as a rational-subgroup axis.`,
           stepId: step.id,
         });
       }

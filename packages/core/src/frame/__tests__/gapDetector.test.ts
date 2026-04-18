@@ -184,6 +184,38 @@ describe('detectGaps — recommended gaps', () => {
       'step-2',
     ]);
   });
+
+  it('uses "this step" in messages when step.name is empty (no bare quotes)', () => {
+    const gaps = detectGaps({
+      outcomeColumn: 'Fill_Weight',
+      specs: { usl: 12 },
+      processMap: mkMap({
+        nodes: [{ id: 'step-1', name: '   ', order: 0 }],
+        tributaries: [],
+      }),
+    });
+    const ctq = gaps.find(g => g.kind === 'missing-ctq-at-step');
+    const noTribs = gaps.find(g => g.kind === 'step-without-tributaries');
+    expect(ctq?.message).toContain('No CTQ at this step');
+    expect(ctq?.message).not.toContain('""');
+    expect(noTribs?.message.startsWith('This step has no tributaries')).toBe(true);
+    expect(noTribs?.message).not.toContain('""');
+  });
+
+  it('quotes the step name when present', () => {
+    const gaps = detectGaps({
+      outcomeColumn: 'Fill_Weight',
+      specs: { usl: 12 },
+      processMap: mkMap({
+        nodes: [{ id: 'step-1', name: 'Fill', order: 0 }],
+        tributaries: [],
+      }),
+    });
+    const ctq = gaps.find(g => g.kind === 'missing-ctq-at-step');
+    const noTribs = gaps.find(g => g.kind === 'step-without-tributaries');
+    expect(ctq?.message).toContain('No CTQ at "Fill"');
+    expect(noTribs?.message).toContain('Step "Fill" has no tributaries');
+  });
 });
 
 describe('detectGaps — no map', () => {

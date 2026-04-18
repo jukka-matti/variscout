@@ -14,7 +14,8 @@ export interface UseAppPanelsOptions {
 }
 
 export interface UseAppPanelsReturn {
-  activeView: 'analysis' | 'investigation' | 'improvement' | 'report';
+  activeView: 'frame' | 'analysis' | 'investigation' | 'improvement' | 'report';
+  showFrame: () => void;
   showAnalysis: () => void;
   showInvestigation: () => void;
   showImprovement: () => void;
@@ -125,6 +126,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   return {
     // Workspace navigation
     activeView: store.activeView,
+    showFrame: store.showFrame,
     showAnalysis: store.showAnalysis,
     showInvestigation: store.showInvestigation,
     showImprovement: store.showImprovement,
