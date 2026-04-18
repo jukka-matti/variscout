@@ -469,6 +469,10 @@ Zero data migration. All schema additions are optional fields that default to `u
 - Mobile interaction for drag-compose gates — two-finger lasso then menu? Confirm with usability test.
 - Whether to ship an optional "Hide Evidence Map from toggle" preference for users who commit to Wall workflow.
 
+## Implementation plan
+
+- [`2026-04-19-investigation-wall.md`](../plans/2026-04-19-investigation-wall.md) — 14-phase TDD plan that slices the Definition-of-Done above into bite-sized tasks.
+
 ## References
 
 - Design handoff: `~/Downloads/process-thinking 2/` (Claude Design, 5 HTML prototypes + shared CSS/JS)
