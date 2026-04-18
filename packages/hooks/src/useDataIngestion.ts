@@ -39,6 +39,7 @@ import {
   type Question,
   type InvestigationCategory,
 } from '@variscout/core';
+import type { ProcessContext } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 
 // Default performance thresholds
@@ -71,6 +72,10 @@ export interface DataIngestionActions {
   setQuestions?: (questions: Question[]) => void;
   /** Set pre-populated investigation categories (for showcase/demo datasets) */
   setCategories?: (categories: InvestigationCategory[]) => void;
+  /** Set the process context (used to seed FRAME Process Map on showcases) */
+  setProcessContext?: (ctx: ProcessContext | null) => void;
+  /** Snapshot of the current process context — merged when seeding processMap. */
+  getProcessContext?: () => ProcessContext | null | undefined;
 }
 
 export interface TimeExtractionPrompt {
@@ -163,6 +168,8 @@ export function useDataIngestion(
     setFindings,
     setQuestions,
     setCategories,
+    setProcessContext,
+    getProcessContext,
   } = actions;
 
   const processFile = useCallback(
@@ -421,6 +428,17 @@ export function useDataIngestion(
         if (setQuestions) setQuestions([]);
         if (setCategories) setCategories([]);
       }
+      // Seed or clear the FRAME Process Map (ADR-070). Preserves any other
+      // processContext fields (description, problemStatement, …) already set.
+      if (setProcessContext) {
+        const base = getProcessContext?.() ?? undefined;
+        if (sample.config.processMap) {
+          setProcessContext({ ...(base ?? {}), processMap: sample.config.processMap });
+        } else if (base?.processMap) {
+          const { processMap: _drop, ...rest } = base;
+          setProcessContext(Object.keys(rest).length > 0 ? (rest as ProcessContext) : null);
+        }
+      }
     },
     [
       setRawData,
@@ -440,6 +458,8 @@ export function useDataIngestion(
       setFindings,
       setQuestions,
       setCategories,
+      setProcessContext,
+      getProcessContext,
     ]
   );
 

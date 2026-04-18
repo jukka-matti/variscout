@@ -37,6 +37,9 @@ export interface SampleInvestigationState {
   categories?: import('@variscout/core').InvestigationCategory[];
 }
 
+/** Seed of the FRAME Process Map for a showcase — loadSample writes this to processContext. */
+export type SampleProcessMap = import('@variscout/core/frame').ProcessMap;
+
 export interface SampleConfig {
   /** Column name for the measurement/outcome variable */
   outcome: string;
@@ -71,6 +74,12 @@ export interface SampleConfig {
   };
   /** Pre-populated investigation state for showcase/demo datasets */
   investigation?: SampleInvestigationState;
+  /**
+   * Pre-seeded FRAME Process Map. Populated on showcase/demo datasets so the
+   * Frame workspace opens with a completed SIPOC spine that matches the
+   * investigation story — no rebuild required. ADR-070.
+   */
+  processMap?: SampleProcessMap;
 }
 
 export interface SpecLimits {

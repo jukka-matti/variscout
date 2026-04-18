@@ -19,7 +19,13 @@ import {
 } from 'lucide-react';
 import { usePanelsStore } from '../features/panels/panelsStore';
 
-type WorkspaceView = 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
+type WorkspaceView =
+  | 'dashboard'
+  | 'frame'
+  | 'analysis'
+  | 'investigation'
+  | 'improvement'
+  | 'report';
 
 export interface AppHeaderProps {
   mode: 'portfolio' | 'project';

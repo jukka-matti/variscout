@@ -1,11 +1,6 @@
 import type { SampleDataset } from '../types';
 import { seedRandom, generateNormal, round } from '../utils';
-import type {
-  Finding,
-  Question,
-  SuspectedCause,
-  InvestigationCategory,
-} from '@variscout/core';
+import type { Finding, Question, SuspectedCause, InvestigationCategory } from '@variscout/core';
 
 // ============================================================================
 // Stable IDs for cross-referencing between questions, findings, and hubs
@@ -237,7 +232,8 @@ function buildQuestions(): Question[] {
       evidence: {
         etaSquared: 0.005,
       },
-      manualNote: 'No significant operator effect (η² < 1%, p > 0.3). All operators perform equivalently.',
+      manualNote:
+        'No significant operator effect (η² < 1%, p > 0.3). All operators perform equivalently.',
     },
   ];
 }
@@ -446,6 +442,24 @@ export const investigationShowcase: SampleDataset = {
       questions: buildQuestions(),
       suspectedCauses: buildSuspectedCauses(),
       categories: buildCategories(),
+    },
+    processMap: {
+      version: 1,
+      ctsColumn: 'Fill_Weight_g',
+      nodes: [{ id: 'step-fill', name: 'Fill', order: 0, ctqColumn: 'Fill_Weight_g' }],
+      tributaries: [
+        { id: 'trib-line', stepId: 'step-fill', column: 'Line', role: 'machine' },
+        { id: 'trib-shift', stepId: 'step-fill', column: 'Shift', role: 'shift' },
+        { id: 'trib-batch', stepId: 'step-fill', column: 'Material_Batch', role: 'batch' },
+        { id: 'trib-operator', stepId: 'step-fill', column: 'Operator', role: 'operator' },
+      ],
+      subgroupAxes: ['trib-line'],
+      hunches: [
+        { id: 'h-nozzle', text: 'Nozzle wear on Line 2', tributaryId: 'trib-line' },
+        { id: 'h-night', text: 'Night shift has more spread', tributaryId: 'trib-shift' },
+      ],
+      createdAt: iso(0),
+      updatedAt: iso(0),
     },
   },
 };

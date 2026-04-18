@@ -4,7 +4,13 @@ import { idbStorage } from './persistence/idbAdapter';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type WorkspaceView = 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
+export type WorkspaceView =
+  | 'dashboard'
+  | 'frame'
+  | 'analysis'
+  | 'investigation'
+  | 'improvement'
+  | 'report';
 export type PITab = 'stats' | 'questions' | 'journal';
 
 /** The subset of SessionState that is persisted to ViewState. */

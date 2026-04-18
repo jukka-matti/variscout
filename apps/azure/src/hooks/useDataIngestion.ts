@@ -43,6 +43,8 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setQuestions: useProjectStore(s => s.setQuestions),
     setCategories: useProjectStore(s => s.setCategories),
     setDefectMapping: useProjectStore(s => s.setDefectMapping),
+    setProcessContext: useProjectStore(s => s.setProcessContext),
+    getProcessContext: () => useProjectStore.getState().processContext,
   };
 
   const isMobile = useIsMobile(640);

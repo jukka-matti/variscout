@@ -38,6 +38,8 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setFindings: useProjectStore(s => s.setFindings),
     setQuestions: useProjectStore(s => s.setQuestions),
     setCategories: useProjectStore(s => s.setCategories),
+    setProcessContext: useProjectStore(s => s.setProcessContext),
+    getProcessContext: () => useProjectStore.getState().processContext,
   };
 
   return useDataIngestionBase(actions, {
