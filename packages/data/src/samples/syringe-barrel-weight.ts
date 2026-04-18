@@ -35,7 +35,6 @@ const IDS = {
   Q_CAVITY: 'q-sbw-cavity',
   Q_OPERATOR: 'q-sbw-operator',
   Q_SHIFT: 'q-sbw-shift',
-  Q_DEFECT_MIX: 'q-sbw-defect-mix',
   Q_IMPROVEMENT: 'q-sbw-improvement',
   // Findings
   F_CAPABILITY_GAP: 'f-sbw-capability-gap',
@@ -43,8 +42,6 @@ const IDS = {
   F_PRESSURE_SLOPE: 'f-sbw-pressure-slope',
   F_INTERACTION: 'f-sbw-lot-pressure-interaction',
   F_CAVITY2_LIGHT: 'f-sbw-cavity2-light',
-  F_DEFECT_PARETO: 'f-sbw-defect-pareto',
-  F_WITHIN_LOT_CPK: 'f-sbw-within-lot-cpk',
   // Hub
   HUB_LOT3_PRESSURE: 'hub-sbw-lot3-pressure',
   // Causal links
@@ -100,7 +97,7 @@ function generateData(): Record<string, unknown>[] {
   };
 
   const lotEffect: Record<string, number> = { L1: 0.03, L2: 0, L3: -0.1 };
-  const cavityEffect: Record<string, number> = { Cav1: 0.055, Cav2: -0.055 };
+  const cavityEffect: Record<string, number> = { Cav1: 0.025, Cav2: -0.025 };
 
   const lots = ['L1', 'L2', 'L3'];
   const cavities = ['Cav1', 'Cav2'];
@@ -117,47 +114,24 @@ function generateData(): Record<string, unknown>[] {
         for (let cycle = 0; cycle < CYCLES_PER_COMBO; cycle++) {
           const shift = cycle < Math.floor(CYCLES_PER_COMBO / 2) ? 'Day' : 'Eve';
           const holdPressure = uniform(75, 92);
-          const holdPressureRounded = Math.round(holdPressure * 10) / 10;
           const interaction = lot === 'L3' ? 0.012 * (holdPressure - 83) : 0;
-          const weightRaw =
+          const weight =
             12.0 +
             lotEffect[lot] +
             0.015 * (holdPressure - 83) +
             cavityEffect[cavity] +
             interaction +
             normal(0, 0.075);
-          const weight = Math.round(weightRaw * 1000) / 1000;
-
-          // Defect_Type is QC's judgement at inspection. Rules mirror the causal
-          // story: underweight tails below LSL, short shots from low pressure,
-          // flash from high pressure on Cav2, sink marks ~5% random (red herring
-          // for Pareto ranking), contamination rare. Keep independent rolls
-          // consistent across the loop (two rng draws per part) for determinism.
-          const randSink = rng();
-          const randContam = rng();
-          let defect = 'OK';
-          if (weight < 11.8) {
-            defect = 'Underweight';
-          } else if (holdPressure < 77) {
-            defect = 'Short_Shot';
-          } else if (holdPressure > 90 && cavity === 'Cav2') {
-            defect = 'Flash';
-          } else if (randSink < 0.05) {
-            defect = 'Sink_Mark';
-          } else if (randContam < 0.015) {
-            defect = 'Contamination';
-          }
 
           rows.push({
             Observation: obs++,
             Timestamp: isoAt(hours),
             Lot_ID: lot,
-            Hold_Pressure_bar: holdPressureRounded,
+            Hold_Pressure_bar: Math.round(holdPressure * 10) / 10,
             Cavity: cavity,
             Operator: operator,
             Shift: shift,
-            Defect_Type: defect,
-            Weight_g: weight,
+            Weight_g: Math.round(weight * 1000) / 1000,
           });
 
           hours += 1.5; // ~16 obs/day -> 300 rows spans ~18.75 days (≈ 3 weeks)
@@ -185,7 +159,7 @@ function buildQuestions(): Question[] {
       validationType: 'data',
       questionSource: 'analyst',
       manualNote:
-        'Baseline Cpk ≈ 0.76 (within-subgroup sigma, n=5 rational subgroups) against USL 12.30 / LSL 11.70. ~4% of parts fall below LSL. Probability plot shows a clear left tail — underweight parts dominate the failure mode.',
+        'Baseline Cpk ≈ 0.70 against USL 12.30 / LSL 11.70 — ~4% of parts fall below LSL. Probability plot shows a left tail — the process loses parts on the low side.',
     },
     // Q2 — Lot effect (Analyze)
     {
@@ -243,7 +217,7 @@ function buildQuestions(): Question[] {
       validationType: 'data',
       questionSource: 'factor-intel',
       evidence: {
-        etaSquared: 0.1,
+        etaSquared: 0.04,
       },
       ideas: [
         {
@@ -293,21 +267,7 @@ function buildQuestions(): Question[] {
       manualNote:
         'Shift is not a driver (η² < 1%). Rule out and refocus on material + process parameters.',
     },
-    // Q8 — QC defect mix (Analyze/Improve — focuses the 80/20)
-    {
-      id: IDS.Q_DEFECT_MIX,
-      text: 'Which defect mode should we attack first (Pareto priority)?',
-      factor: 'Defect_Type',
-      status: 'answered',
-      linkedFindingIds: [IDS.F_DEFECT_PARETO],
-      createdAt: isoAt(14),
-      updatedAt: isoAt(18),
-      validationType: 'data',
-      questionSource: 'analyst',
-      manualNote:
-        'Underweight dominates the defect Pareto (34 of 80 non-OK events, 42%). Short shots and flash follow but each <20. Prioritizing underweight is the 80/20 call — and it ties directly to the capability gap and the Lot 3 hub.',
-    },
-    // Q9 — Improvement (Improve/Control)
+    // Q8 — Improvement (Improve/Control)
     {
       id: IDS.Q_IMPROVEMENT,
       text: 'How do we reach Cpk ≥ 1.33 within the next 4 weeks?',
@@ -329,7 +289,7 @@ function buildQuestions(): Question[] {
           direction: 'eliminate',
           selected: true,
           notes:
-            'Directly counters the interaction. Expected to recover the low tail and move projected Cpk from ~0.76 to ~1.4.',
+            'Directly counters the interaction. Expected to recover the low tail and move projected Cpk from ~0.70 to ~1.4.',
           createdAt: isoAt(25),
         },
         {
@@ -353,12 +313,12 @@ function buildFindings(): Finding[] {
     // F1 — capability gap (Define/Measure finding)
     {
       id: IDS.F_CAPABILITY_GAP,
-      text: 'Process is not capable: Cpk ≈ 0.76 against USL 12.30 / LSL 11.70 (within-subgroup sigma, n=5 rational subgroups). The distribution has a left tail — roughly 4% of parts are below LSL.',
+      text: 'Process is not capable: Cpk ≈ 0.70 against USL 12.30 / LSL 11.70. The distribution has a left tail — roughly 4% of parts are below LSL.',
       createdAt: epochAt(2),
       context: {
         activeFilters: {},
         cumulativeScope: null,
-        stats: { mean: 11.99, cpk: 0.76, samples: 300 },
+        stats: { mean: 11.99, cpk: 0.7, samples: 300 },
       },
       status: 'analyzed',
       tag: 'key-driver',
@@ -447,12 +407,12 @@ function buildFindings(): Finding[] {
     // F5 — Cavity 2 slightly light (boxplot by Cavity)
     {
       id: IDS.F_CAVITY2_LIGHT,
-      text: 'Cavity 2 runs ~0.11 g lighter than Cavity 1 on average (η² ≈ 10%). Secondary contributor — likely gate geometry — addressable during next mold maintenance.',
+      text: 'Cavity 2 runs ~0.05 g lighter than Cavity 1 on average (η² ≈ 4%). Small but persistent — likely gate geometry.',
       createdAt: epochAt(12),
       context: {
         activeFilters: { Cavity: ['Cav2'] },
         cumulativeScope: null,
-        stats: { mean: 11.93, samples: 150 },
+        stats: { mean: 11.96, samples: 150 },
       },
       status: 'analyzed',
       comments: [
@@ -467,52 +427,6 @@ function buildFindings(): Finding[] {
       questionId: IDS.Q_CAVITY,
       validationStatus: 'supports',
     },
-    // F6 — Defect Pareto (80/20 priority)
-    {
-      id: IDS.F_DEFECT_PARETO,
-      text: 'Underweight dominates the QC defect Pareto (34 events, 42% of non-OK). Short Shot and Flash follow at ~20 each. The underweight cluster is the same physical problem as the capability gap — fixing Lot 3 pressure should attack both at once.',
-      createdAt: epochAt(14),
-      context: {
-        activeFilters: {},
-        cumulativeScope: null,
-        stats: { mean: 11.99, samples: 300 },
-      },
-      status: 'analyzed',
-      tag: 'key-driver',
-      comments: [
-        {
-          id: 'c-pareto-1',
-          text: 'Pareto confirms the 80/20: the top-3 defect modes cover ~83% of all non-OK events. Prioritize Underweight.',
-          createdAt: epochAt(15),
-        },
-      ],
-      statusChangedAt: epochAt(18),
-      source: { chart: 'pareto', category: 'Underweight' },
-      questionId: IDS.Q_DEFECT_MIX,
-      validationStatus: 'supports',
-    },
-    // F7 — Within-lot Cpk variation (capability mode insight)
-    {
-      id: IDS.F_WITHIN_LOT_CPK,
-      text: 'Within-lot Cpk varies widely on Lot 3: rolling n=5 subgroup Cpks span roughly 0.3–1.1 on L3 vs 0.8–1.6 on L1/L2. The tail is not uniform — L3 has weak subgroups that drive the overall gap.',
-      createdAt: epochAt(18),
-      context: {
-        activeFilters: { Lot_ID: ['L3'] },
-        cumulativeScope: null,
-        stats: { mean: 11.92, cpk: 0.45, samples: 100 },
-      },
-      status: 'analyzed',
-      comments: [
-        {
-          id: 'c-within-1',
-          text: 'Toggle the I-chart to Capability view to see the per-subgroup Cpk trajectory. Boxplot of Lot × Cpk (capability mode) shows L3 centered well below 1.0.',
-          createdAt: epochAt(19),
-        },
-      ],
-      statusChangedAt: epochAt(20),
-      questionId: IDS.Q_LOT,
-      validationStatus: 'supports',
-    },
   ];
 }
 
@@ -522,15 +436,9 @@ function buildSuspectedCauses(): SuspectedCause[] {
       id: IDS.HUB_LOT3_PRESSURE,
       name: 'Lot 3 under-pressurized — regrind-rich material needs +5 bar',
       synthesis:
-        'Lot 3 contains more regrind than Lots 1 and 2, which raises melt viscosity and makes weight more sensitive to hold pressure. At the current 83 bar setpoint, L3 barrels fall ~0.10 g light on average, producing the left tail that drives Cpk below 1.0. QC-caught "Underweight" defects cluster on the same population, confirming this is the 80/20 priority. A lot-specific pressure recipe (L3 → ~88 bar) is expected to recover the tail, collapse the Underweight Pareto bar, and restore capability. Cavity 2 contributes a secondary ~0.10 g main effect.',
-      questionIds: [IDS.Q_LOT, IDS.Q_PRESSURE, IDS.Q_INTERACTION, IDS.Q_DEFECT_MIX],
-      findingIds: [
-        IDS.F_LOT3_LIGHT,
-        IDS.F_PRESSURE_SLOPE,
-        IDS.F_INTERACTION,
-        IDS.F_DEFECT_PARETO,
-        IDS.F_WITHIN_LOT_CPK,
-      ],
+        'Lot 3 contains more regrind than Lots 1 and 2, which raises melt viscosity and makes weight more sensitive to hold pressure. At the current 83 bar setpoint, L3 barrels fall ~0.10 g light on average, producing the left tail that drives Cpk below 1.0. A lot-specific pressure recipe (L3 → ~88 bar) is expected to recover the tail and restore capability. Cavity 2 contributes a secondary ~0.05 g main effect.',
+      questionIds: [IDS.Q_LOT, IDS.Q_PRESSURE, IDS.Q_INTERACTION],
+      findingIds: [IDS.F_LOT3_LIGHT, IDS.F_PRESSURE_SLOPE, IDS.F_INTERACTION],
       evidence: {
         mode: 'standard',
         contribution: {
@@ -658,29 +566,8 @@ export const syringeBarrelWeight: SampleDataset = {
   data: generateData(),
   config: {
     outcome: 'Weight_g',
-    factors: ['Lot_ID', 'Hold_Pressure_bar', 'Cavity', 'Operator', 'Shift', 'Defect_Type'],
+    factors: ['Lot_ID', 'Hold_Pressure_bar', 'Cavity', 'Operator', 'Shift'],
     specs: { lsl: 11.7, usl: 12.3, target: 12.0 },
-    // Rolling n=5 subgroups → ~60 rational subgroups over the 3-week run.
-    // Enables Cpk-over-time on the I-chart (capability view) and within-lot
-    // Cpk distribution on the boxplot — both invisible with size=1 default.
-    subgroupConfig: { method: 'fixed-size', size: 5 },
-    // Land on the raw-value I-chart (measurement view). Capability is a
-    // deliberate toggle in the demo walk-through, not the initial state.
-    displayOptions: {
-      standardIChartMetric: 'measurement',
-      showCpk: true,
-      showSpecs: true,
-    },
-    // QC-caught defects as a pre-aggregated Pareto — mirrors the in-dataset
-    // Defect_Type counts so toggling between derived/separate Pareto is
-    // consistent. Underweight #1 reinforces the capability-gap story.
-    separateParetoData: [
-      { category: 'Underweight', count: 34 },
-      { category: 'Short_Shot', count: 17 },
-      { category: 'Flash', count: 16 },
-      { category: 'Sink_Mark', count: 9 },
-      { category: 'Contamination', count: 4 },
-    ],
     investigation: {
       findings: buildFindings(),
       questions: buildQuestions(),
