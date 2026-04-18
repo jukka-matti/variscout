@@ -115,4 +115,29 @@ describe('deriveConditionFromFindingSource', () => {
     const result = deriveConditionFromFindingSource(source, {});
     expect(result).toBeUndefined();
   });
+
+  it('returns undefined when metricColumn missing for ichart', () => {
+    const source: FindingSource = { chart: 'ichart', anchorX: 10, anchorY: 120 };
+    expect(deriveConditionFromFindingSource(source, {})).toBeUndefined();
+  });
+
+  it('returns undefined when metricColumn missing for probability', () => {
+    const source: FindingSource = { chart: 'probability', anchorX: 10, anchorY: 100 };
+    expect(deriveConditionFromFindingSource(source, {})).toBeUndefined();
+  });
+
+  it('returns undefined when anchorYMax missing for probability', () => {
+    const source: FindingSource = { chart: 'probability', anchorX: 10, anchorY: 100 };
+    expect(deriveConditionFromFindingSource(source, { metricColumn: 'FILL' })).toBeUndefined();
+  });
+
+  it('returns undefined when dimensionColumn missing for pareto', () => {
+    const source: FindingSource = { chart: 'pareto', category: 'Supplier' };
+    expect(deriveConditionFromFindingSource(source, {})).toBeUndefined();
+  });
+
+  it('returns undefined when activityColumn missing for yamazumi', () => {
+    const source: FindingSource = { chart: 'yamazumi', category: 'Bending' };
+    expect(deriveConditionFromFindingSource(source, {})).toBeUndefined();
+  });
 });
