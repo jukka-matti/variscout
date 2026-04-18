@@ -105,6 +105,12 @@
             "command": "[ -n \"$SESSION_ID\" ] && npx ruflo@3.5.42 hooks session-restore --session-id \"$SESSION_ID\" 2>>/tmp/ruflo-hooks.log || true",
             "timeout": 10000,
             "continueOnError": true
+          },
+          {
+            "type": "command",
+            "command": "bash scripts/check-git-hygiene.sh || true",
+            "timeout": 3000,
+            "continueOnError": true
           }
         ]
       }

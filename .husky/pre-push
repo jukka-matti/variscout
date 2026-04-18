@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# pre-push — warn (non-blocking) if pushing product code directly to main.
+#
+# Git supplies ref updates on stdin, one per line:
+#   <local-ref> <local-sha> <remote-ref> <remote-sha>
+#
+# We only warn when <remote-ref> is refs/heads/main. Feature-branch
+# pushes are untouched. User decides whether to heed the warning.
+
+set -u
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ -z "$remote_ref" ] && continue
+  [ "$remote_ref" != "refs/heads/main" ] && continue
+  [ "$local_sha" = "0000000000000000000000000000000000000000" ] && continue
+
+  # Collect the file list from the commits being pushed.
+  if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+    range="$local_sha"
+    files=$(git show --name-only --format= "$local_sha" 2>/dev/null)
+  else
+    range="${remote_sha}..${local_sha}"
+    files=$(git diff --name-only "$range" 2>/dev/null)
+  fi
+  [ -z "$files" ] && continue
+
+  classification=$(echo "$files" | bash "$ROOT/scripts/classify-change.sh")
+
+  case "$classification" in
+    product|mixed)
+      echo "⚠ pre-push: direct push to main contains $classification changes." >&2
+      echo "  Files:" >&2
+      echo "$files" | sed 's/^/    /' >&2
+      echo "  Consider: feature branch → PR → bash scripts/pr-ready-check.sh → merge." >&2
+      echo "  Proceeding anyway (warning is non-blocking)." >&2
+      ;;
+  esac
+done
+
+exit 0

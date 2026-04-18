@@ -27,6 +27,12 @@ Structured investigation for process improvement. Browser-based, offline-first, 
 - **Path-scoped rules**: `.claude/rules/` — load automatically when editing specific areas.
 - **Skills**: `.claude/skills/` — load on invocation or match.
 
+## Workflow
+
+- **Tooling / docs / config** (`.claude/`, `scripts/`, `docs/`, `CLAUDE.md`, `package.json`, etc.): direct commit to main is fine.
+- **Product code** (`packages/*/src/`, `apps/*/src/`): branch → PR → `bash scripts/pr-ready-check.sh` green → subagent code review → squash-merge. Don't use `gh pr merge --admin` unless it's an emergency.
+- Pre-push hook warns (non-blocking) if a direct-to-main push touches product code.
+
 ## When uncertain
 
 Prefer retrieval over recall. Read the relevant ADR, spec, or package CLAUDE.md before writing non-trivial code. If an instruction contradicts code, trust code and flag the drift.
