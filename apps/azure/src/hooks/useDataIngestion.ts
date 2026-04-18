@@ -50,6 +50,9 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
       useInvestigationStore.getState().loadInvestigationState({ causalLinks: links }),
     setProcessContext: useProjectStore(s => s.setProcessContext),
     getProcessContext: () => useProjectStore.getState().processContext,
+    setSubgroupConfig: useProjectStore(s => s.setSubgroupConfig),
+    setDisplayOptions: useProjectStore(s => s.setDisplayOptions),
+    getDisplayOptions: () => useProjectStore.getState().displayOptions,
   };
 
   const isMobile = useIsMobile(640);

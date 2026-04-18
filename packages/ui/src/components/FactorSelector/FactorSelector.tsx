@@ -20,7 +20,7 @@ export interface FactorSelectorColorScheme {
 export const defaultColorScheme: FactorSelectorColorScheme = {
   container: 'bg-surface border-edge',
   selected: 'bg-blue-600 text-white shadow-sm',
-  unselected: 'text-content-secondary hover:text-white hover:bg-surface-secondary',
+  unselected: 'text-content hover:bg-surface-secondary',
   indicatorBorder: 'border-surface',
 };
 

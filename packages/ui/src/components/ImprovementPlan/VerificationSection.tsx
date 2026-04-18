@@ -78,7 +78,9 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({
               <div
                 data-testid="verification-cpk-after"
                 className={`text-base font-semibold ${
-                  verification.cpkAfter > verification.cpkBefore ? 'text-green-400' : 'text-red-400'
+                  verification.cpkAfter > verification.cpkBefore
+                    ? 'text-green-700 dark:text-green-400'
+                    : 'text-red-400'
                 }`}
               >
                 {Number.isFinite(verification.cpkAfter) ? verification.cpkAfter.toFixed(2) : '—'}
@@ -98,7 +100,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({
                 data-testid="verification-pass-rate-after"
                 className={`text-base font-semibold ${
                   verification.passRateAfter > verification.passRateBefore
-                    ? 'text-green-400'
+                    ? 'text-green-700 dark:text-green-400'
                     : 'text-red-400'
                 }`}
               >
@@ -127,7 +129,9 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({
               <div
                 data-testid="verification-sigma-ratio-value"
                 className={`text-base font-semibold ${
-                  verification.sigmaRatio < 1 ? 'text-green-400' : 'text-red-400'
+                  verification.sigmaRatio < 1
+                    ? 'text-green-700 dark:text-green-400'
+                    : 'text-red-400'
                 }`}
               >
                 {Number.isFinite(verification.sigmaRatio)

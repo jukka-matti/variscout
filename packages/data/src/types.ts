@@ -81,6 +81,12 @@ export interface SampleConfig {
    * investigation story — no rebuild required. ADR-070.
    */
   processMap?: SampleProcessMap;
+  /** Rational subgrouping config (rolling n, or group-by-column). Seeds projectStore.subgroupConfig. */
+  subgroupConfig?: import('@variscout/core').SubgroupConfig;
+  /** Default display options on load (e.g. standardIChartMetric). Merged into projectStore.displayOptions. */
+  displayOptions?: Partial<import('@variscout/core').DisplayOptions>;
+  /** Pre-aggregated Pareto data (e.g. QC defect counts). When present, loadSample switches paretoMode to 'separate'. */
+  separateParetoData?: import('@variscout/core').ParetoRow[];
 }
 
 export interface SpecLimits {
