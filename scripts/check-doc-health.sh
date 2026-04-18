@@ -22,17 +22,23 @@ echo "--- Hook count ---"
 HOOKS_INDEX="$ROOT/packages/hooks/src/index.ts"
 # Count unique use* function names (exclude type-only exports like UseXxxOptions/UseXxxReturn)
 ACTUAL_HOOKS=$(grep -oE 'use[A-Z][a-zA-Z]+' "$HOOKS_INDEX" | grep -v '^Use' | sort -u | wc -l | tr -d ' ')
-CLAIMED_HOOKS=$({ grep -oE '\| [0-9]+\+? hooks ' "$ROOT/CLAUDE.md" || echo ''; } | grep -oE '[0-9]+' | head -1 || echo 0)
-CLAIMED_HOOKS=${CLAIMED_HOOKS:-0}
+HOOKS_CLAIM_RAW=$(grep -oE '\| [0-9]+\+? hooks ' "$ROOT/CLAUDE.md" || true)
 
-echo "  Actual hook exports: $ACTUAL_HOOKS"
-echo "  CLAUDE.md claims: ${CLAIMED_HOOKS}+"
-if [ "$CLAIMED_HOOKS" -gt "$ACTUAL_HOOKS" ]; then
-  warn "CLAUDE.md overstates hook count ($CLAIMED_HOOKS > $ACTUAL_HOOKS)"
-elif [ $((ACTUAL_HOOKS - CLAIMED_HOOKS)) -gt 5 ]; then
-  warn "CLAUDE.md understates hook count by $((ACTUAL_HOOKS - CLAIMED_HOOKS)) (claimed ${CLAIMED_HOOKS}+, actual $ACTUAL_HOOKS)"
+if [ -z "$HOOKS_CLAIM_RAW" ]; then
+  # CLAUDE.md makes no claim → nothing to drift against.
+  green "  ✓ Hook count not asserted in CLAUDE.md (actual: $ACTUAL_HOOKS) — skipped"
 else
-  green "  ✓ Hook count within tolerance"
+  CLAIMED_HOOKS=$(echo "$HOOKS_CLAIM_RAW" | grep -oE '[0-9]+' | head -1 || echo 0)
+  CLAIMED_HOOKS=${CLAIMED_HOOKS:-0}
+  echo "  Actual hook exports: $ACTUAL_HOOKS"
+  echo "  CLAUDE.md claims: ${CLAIMED_HOOKS}+"
+  if [ "$CLAIMED_HOOKS" -gt "$ACTUAL_HOOKS" ]; then
+    warn "CLAUDE.md overstates hook count ($CLAIMED_HOOKS > $ACTUAL_HOOKS)"
+  elif [ $((ACTUAL_HOOKS - CLAIMED_HOOKS)) -gt 5 ]; then
+    warn "CLAUDE.md understates hook count by $((ACTUAL_HOOKS - CLAIMED_HOOKS)) (claimed ${CLAIMED_HOOKS}+, actual $ACTUAL_HOOKS)"
+  else
+    green "  ✓ Hook count within tolerance"
+  fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -43,17 +49,22 @@ echo "--- Component count ---"
 UI_INDEX="$ROOT/packages/ui/src/index.ts"
 # Count unique module sources (each from './Component' is one module)
 ACTUAL_COMPONENTS=$(grep -oE "from '\\./[^']+'" "$UI_INDEX" | sort -u | wc -l | tr -d ' ')
-CLAIMED_COMPONENTS=$({ grep -oE '\| [0-9]+\+? component modules' "$ROOT/CLAUDE.md" || echo ''; } | grep -oE '[0-9]+' | head -1 || echo 0)
-CLAIMED_COMPONENTS=${CLAIMED_COMPONENTS:-0}
+COMP_CLAIM_RAW=$(grep -oE '\| [0-9]+\+? component modules' "$ROOT/CLAUDE.md" || true)
 
-echo "  Actual UI exports: $ACTUAL_COMPONENTS"
-echo "  CLAUDE.md claims: ${CLAIMED_COMPONENTS}+"
-if [ "$CLAIMED_COMPONENTS" -gt "$ACTUAL_COMPONENTS" ]; then
-  warn "CLAUDE.md overstates component count ($CLAIMED_COMPONENTS > $ACTUAL_COMPONENTS)"
-elif [ $((ACTUAL_COMPONENTS - CLAIMED_COMPONENTS)) -gt 10 ]; then
-  warn "CLAUDE.md understates component count by $((ACTUAL_COMPONENTS - CLAIMED_COMPONENTS)) (claimed ${CLAIMED_COMPONENTS}+, actual $ACTUAL_COMPONENTS)"
+if [ -z "$COMP_CLAIM_RAW" ]; then
+  green "  ✓ Component count not asserted in CLAUDE.md (actual: $ACTUAL_COMPONENTS) — skipped"
 else
-  green "  ✓ Component count within tolerance"
+  CLAIMED_COMPONENTS=$(echo "$COMP_CLAIM_RAW" | grep -oE '[0-9]+' | head -1 || echo 0)
+  CLAIMED_COMPONENTS=${CLAIMED_COMPONENTS:-0}
+  echo "  Actual UI exports: $ACTUAL_COMPONENTS"
+  echo "  CLAUDE.md claims: ${CLAIMED_COMPONENTS}+"
+  if [ "$CLAIMED_COMPONENTS" -gt "$ACTUAL_COMPONENTS" ]; then
+    warn "CLAUDE.md overstates component count ($CLAIMED_COMPONENTS > $ACTUAL_COMPONENTS)"
+  elif [ $((ACTUAL_COMPONENTS - CLAIMED_COMPONENTS)) -gt 10 ]; then
+    warn "CLAUDE.md understates component count by $((ACTUAL_COMPONENTS - CLAIMED_COMPONENTS)) (claimed ${CLAIMED_COMPONENTS}+, actual $ACTUAL_COMPONENTS)"
+  else
+    green "  ✓ Component count within tolerance"
+  fi
 fi
 
 # ---------------------------------------------------------------------------

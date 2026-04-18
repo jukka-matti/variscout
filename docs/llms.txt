@@ -1,0 +1,36 @@
+# VariScout
+
+> Structured investigation for process improvement. Browser-based, offline-first, customer-owned data. PWA (public, free) + Azure Marketplace tiers (Standard €79/mo, Team €199/mo).
+
+Entry points for AI agents working in this repo. Humans should start at `docs/index.md`.
+
+## Core orientation
+
+- [OVERVIEW.md](OVERVIEW.md): what VariScout does, the FRAME → SCOUT → INVESTIGATE → IMPROVE journey, six analysis modes, three distribution tiers.
+- [USER-JOURNEYS.md](USER-JOURNEYS.md): ten personas, unified journey spine, per-mode distinctive experience.
+- [DATA-FLOW.md](DATA-FLOW.md): parse → transform → stats → persist → sync → display → AI pipeline. Three numeric-safety boundaries.
+
+## Architecture
+
+- [Decisions (ADRs, live)](07-decisions/): current architectural decisions. Start at `07-decisions/index.md`.
+- [Decisions (archived)](archive/adrs/): superseded decisions preserved for traceability.
+- [Designs (specs)](superpowers/specs/): active design work. Start at `superpowers/specs/index.md`.
+
+## Agent-specific context
+
+- `../CLAUDE.md`: root project instructions (invariants, commands, where to look).
+- `../packages/*/CLAUDE.md` and `../apps/*/CLAUDE.md`: per-package context, loaded on demand.
+- `../.claude/rules/`: path-scoped rules that load automatically when editing specific code areas (stats, charts, CoScout prompts, Azure storage, tests, i18n).
+- `../.claude/skills/`: task-triggered workflow skills.
+
+## Reference
+
+- [Glossary](03-features/learning/glossary.md): domain terms, statistical vocabulary.
+- [Feature parity matrix](08-products/feature-parity.md): PWA vs Azure Standard vs Azure Team.
+- [Statistics reference](05-technical/statistics-reference.md): formulas, NIST validation, citations.
+
+## Tooling
+
+- `pnpm docs:check`: runs diagram health, orphan detection, dead-link scan, frontmatter schema validation.
+- `scripts/audit-doc-references.mjs`: reference-map tool for load-bearing audits (see `docs/09-baseline/2026-04-17-doc-audit.md`).
+- Frontmatter schema: `scripts/docs-frontmatter-schema.mjs` (warn mode until 2026-05-15).
