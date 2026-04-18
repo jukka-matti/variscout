@@ -706,3 +706,17 @@ export const CATEGORY_COLORS = [
   '#ec4899', // pink
   '#64748b', // slate
 ] as const;
+
+// ============================================================================
+// Investigation Wall — Contribution Tree
+// ============================================================================
+
+/**
+ * Composition tree for the Investigation Wall. Leaves reference `SuspectedCause`
+ * hubs; branches compose them with boolean gates (AND / OR / NOT). Persisted on
+ * `investigationStore.problemContributionTree` so team-authored contribution stories
+ * survive reload. Terminology: "contribution tree", never "root cause" (P5 amended).
+ */
+export type GateNode =
+  | { kind: 'hub'; hubId: string }
+  | { kind: 'and' | 'or' | 'not'; children: GateNode[] };

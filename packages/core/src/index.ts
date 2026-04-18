@@ -554,6 +554,8 @@ export type {
   ProjectionResult,
   ProjectionScenario,
   SuspectedCauseEvidence,
+  // Investigation Wall — contribution tree
+  GateNode,
 } from './findings';
 export {
   DEFAULT_RISK_AXIS_CONFIG,

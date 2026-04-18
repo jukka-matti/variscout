@@ -30,6 +30,7 @@ import type {
   SuspectedCause,
   SuspectedCauseEvidence,
   CausalLink,
+  GateNode,
 } from '@variscout/core';
 import {
   createFinding,
@@ -62,6 +63,7 @@ export interface InvestigationState {
   causalLinks: CausalLink[];
   categories: InvestigationCategory[];
   focusedQuestionId: string | null;
+  problemContributionTree?: GateNode;
 }
 
 export interface InvestigationActions {
@@ -205,6 +207,9 @@ export interface InvestigationActions {
   setCategories: (categories: InvestigationCategory[]) => void;
   loadInvestigationState: (state: Partial<InvestigationState>) => void;
   resetAll: () => void;
+
+  // --- Investigation Wall ---
+  setProblemContributionTree: (tree: GateNode | undefined) => void;
 }
 
 // ============================================================================
@@ -267,6 +272,7 @@ const initialState: InvestigationState = {
   causalLinks: [],
   categories: [],
   focusedQuestionId: null,
+  problemContributionTree: undefined,
 };
 
 // ============================================================================
@@ -997,6 +1003,12 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     resetAll: () => {
       set(initialState);
     },
+
+    // ========================================================================
+    // Investigation Wall actions
+    // ========================================================================
+
+    setProblemContributionTree: tree => set({ problemContributionTree: tree }),
   })
 );
 
