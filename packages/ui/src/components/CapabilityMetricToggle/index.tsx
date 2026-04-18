@@ -1,7 +1,12 @@
 /**
  * CapabilityMetricToggle - Segmented control to switch between
- * "Values" (raw measurements) and "Capability" (Cp/Cpk per subgroup)
- * on the standard I-Chart.
+ * "Measurements" (raw values) and "Cpk stability" (Cp/Cpk per subgroup
+ * plotted as a control chart — ADR-038).
+ *
+ * The labels match the story VariScout tells: you're either looking at
+ * individual measurements or at whether capability itself is stable over
+ * time / across subgroups. Rational-subgroup coaching lives in
+ * `CapabilityCoachingPanel`.
  *
  * Follows YamazumiIChartMetricToggle pattern — props-based, no context.
  */
@@ -19,8 +24,8 @@ export interface CapabilityMetricToggleProps {
 }
 
 const OPTIONS: { value: StandardIChartMetric; label: string }[] = [
-  { value: 'measurement', label: 'Values' },
-  { value: 'capability', label: 'Capability' },
+  { value: 'measurement', label: 'Measurements' },
+  { value: 'capability', label: 'Cpk stability' },
 ];
 
 export const CapabilityMetricToggle: React.FC<CapabilityMetricToggleProps> = ({
@@ -31,7 +36,7 @@ export const CapabilityMetricToggle: React.FC<CapabilityMetricToggleProps> = ({
   return (
     <div
       className="flex items-center gap-0.5 bg-surface-secondary rounded-lg p-0.5"
-      title={disabled ? 'Set specification limits to enable capability view' : undefined}
+      title={disabled ? 'Set specification limits to enable the Cpk stability view' : undefined}
     >
       {OPTIONS.map(opt => (
         <button

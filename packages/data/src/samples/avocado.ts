@@ -48,5 +48,6 @@ export const avocado: SampleDataset = {
     outcome: 'Shelf_Life_Days',
     factors: ['Coating_ml_kg', 'Process', 'Material'],
     specs: { lsl: 10, target: 15 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };

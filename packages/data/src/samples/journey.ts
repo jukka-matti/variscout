@@ -72,6 +72,7 @@ export const journey: SampleDataset = {
     outcome: 'Measurement',
     factors: ['Factor'],
     specs: { lsl: 90, usl: 110, target: 100 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };
 
@@ -87,6 +88,7 @@ export const journeyBefore: SampleDataset = {
     outcome: 'Measurement',
     factors: ['Sample'],
     specs: { lsl: 90, usl: 110, target: 100 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };
 
@@ -102,5 +104,6 @@ export const journeyAfter: SampleDataset = {
     outcome: 'Measurement',
     factors: ['Sample'],
     specs: { lsl: 90, usl: 110, target: 100 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };

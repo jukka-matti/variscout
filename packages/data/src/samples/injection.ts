@@ -94,5 +94,6 @@ export const injectionMolding: SampleDataset = {
     outcome: 'Fill_Weight',
     factors: ['Barrel_Temperature', 'Clamping_Force', 'Cooling_Time', 'Supplier', 'Machine'],
     specs: { lsl: 11.8, usl: 13.2, target: 12.5 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };

@@ -53,5 +53,6 @@ export const delivery: SampleDataset = {
     outcome: 'Delivery_Time_min',
     factors: ['Route', 'Driver'],
     specs: { target: 25, usl: 40 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };

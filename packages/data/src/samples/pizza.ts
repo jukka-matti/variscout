@@ -48,5 +48,6 @@ export const pizza: SampleDataset = {
     outcome: 'Delivery_Time_min',
     factors: ['Store', 'Time_Slot', 'Day'],
     specs: { target: 30, usl: 45 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };

@@ -42,5 +42,6 @@ export const packaging: SampleDataset = {
     outcome: 'Defect_Count',
     factors: ['Product', 'Defect_Type'],
     specs: { target: 50, usl: 100 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };

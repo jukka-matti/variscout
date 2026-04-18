@@ -47,5 +47,6 @@ export const callWait: SampleDataset = {
     outcome: 'Wait_Time_min',
     factors: ['Queue', 'Hour', 'Day'],
     specs: { target: 3, usl: 8 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };

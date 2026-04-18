@@ -48,5 +48,6 @@ export const sockMystery: SampleDataset = {
     outcome: 'Socks_Lost',
     factors: ['Dryer', 'Washer', 'Load_Size'],
     specs: { target: 0, usl: 2 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };

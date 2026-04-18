@@ -50,5 +50,6 @@ export const weldDefects: SampleDataset = {
     outcome: 'Defect_Count',
     factors: ['Weld_Cell', 'Primary_Defect'],
     specs: { target: 3, usl: 10 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };

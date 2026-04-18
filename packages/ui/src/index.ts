@@ -580,6 +580,10 @@ export {
   CapabilityMetricToggle,
   type CapabilityMetricToggleProps,
 } from './components/CapabilityMetricToggle';
+export {
+  CapabilityCoachingPanel,
+  type CapabilityCoachingPanelProps,
+} from './components/CapabilityCoachingPanel';
 export { SubgroupConfigPopover, type SubgroupConfigProps } from './components/SubgroupConfig';
 
 // FRAME workspace — visual Process Map (ADR-070)

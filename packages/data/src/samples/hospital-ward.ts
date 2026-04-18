@@ -61,5 +61,6 @@ export const hospitalWard: SampleDataset = {
     outcome: 'Utilization_pct',
     factors: ['Time_Period', 'Day_of_Week'],
     specs: { target: 75, usl: 90 },
+    subgroupConfig: { method: 'fixed-size', size: 5 },
   },
 };
