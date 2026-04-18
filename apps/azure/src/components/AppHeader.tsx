@@ -397,6 +397,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             Overview
           </button>
           <button
+            className={tabClass(activeView === 'frame')}
+            onClick={() => usePanelsStore.getState().showFrame()}
+            data-testid="view-toggle-frame"
+          >
+            Frame
+          </button>
+          <button
             className={tabClass(activeView === 'analysis')}
             onClick={() => usePanelsStore.getState().showAnalysis()}
             data-testid="view-toggle-analysis"

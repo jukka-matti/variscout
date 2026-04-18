@@ -230,6 +230,14 @@ describe('panelsStore', () => {
       expect(usePanelsStore.getState().activeView).toBe('dashboard');
     });
 
+    it('showFrame sets activeView to frame and closes findings sidebar', () => {
+      usePanelsStore.setState({ isFindingsOpen: true });
+      usePanelsStore.getState().showFrame();
+      const s = usePanelsStore.getState();
+      expect(s.activeView).toBe('frame');
+      expect(s.isFindingsOpen).toBe(false);
+    });
+
     it('showAnalysis sets activeView to analysis', () => {
       usePanelsStore.getState().showDashboard();
       usePanelsStore.getState().showAnalysis();

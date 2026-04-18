@@ -3,7 +3,7 @@ import { create } from 'zustand';
 // ── State ────────────────────────────────────────────────────────────────────
 
 interface PanelsState {
-  activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
+  activeView: 'dashboard' | 'frame' | 'analysis' | 'investigation' | 'improvement' | 'report';
   isDataTableOpen: boolean;
   /** @deprecated Findings are moving to the Investigation workspace. Kept for backward compat; always false. Task 10 will remove consumers. */
   isFindingsOpen: boolean;
@@ -34,6 +34,7 @@ interface PanelsState {
 
 interface PanelsActions {
   showDashboard: () => void;
+  showFrame: () => void;
   showAnalysis: () => void;
   showInvestigation: () => void;
   showImprovement: () => void;
@@ -63,7 +64,7 @@ interface PanelsActions {
   /** Initialize persisted panel state from a saved ViewState. */
   initFromViewState: (
     viewState?: {
-      activeView?: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report';
+      activeView?: 'dashboard' | 'frame' | 'analysis' | 'investigation' | 'improvement' | 'report';
       isFindingsOpen?: boolean;
       isWhatIfOpen?: boolean;
     } | null
@@ -93,8 +94,13 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   activeImprovementView: 'plan',
   highlightedIdeaId: null,
 
-  // Workspace navigation (ADR-055 + header-redesign spec)
+  // Workspace navigation (ADR-055 + header-redesign spec, extended with 'frame' per ADR-070)
   showDashboard: () => set(() => ({ activeView: 'dashboard' })),
+  showFrame: () =>
+    set(() => ({
+      activeView: 'frame',
+      isFindingsOpen: false,
+    })),
   showAnalysis: () => set(() => ({ activeView: 'analysis' })),
   showInvestigation: () =>
     set(() => ({
