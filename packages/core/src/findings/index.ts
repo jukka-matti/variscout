@@ -20,6 +20,8 @@ export type { BrainstormIdea } from './hmwPrompts';
 export type {
   ComparisonOp,
   ConditionLeaf,
+  ConditionAndOr,
+  ConditionNot,
   ConditionBranch,
   HypothesisCondition,
   FindingSourceColumnHints,

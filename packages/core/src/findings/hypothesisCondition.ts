@@ -25,10 +25,17 @@ export interface ConditionLeaf {
   value: string | number | [number, number] | string[] | number[];
 }
 
-export interface ConditionBranch {
-  kind: 'and' | 'or' | 'not';
+export interface ConditionAndOr {
+  kind: 'and' | 'or';
   children: HypothesisCondition[];
 }
+
+export interface ConditionNot {
+  kind: 'not';
+  child: HypothesisCondition;
+}
+
+export type ConditionBranch = ConditionAndOr | ConditionNot;
 
 export type HypothesisCondition = ConditionLeaf | ConditionBranch;
 

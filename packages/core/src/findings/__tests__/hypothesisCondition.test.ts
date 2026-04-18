@@ -33,7 +33,7 @@ describe('HypothesisCondition type', () => {
     };
     const not: HypothesisCondition = {
       kind: 'not',
-      children: [{ kind: 'leaf', column: 'X', op: 'eq', value: 1 }],
+      child: { kind: 'leaf', column: 'X', op: 'eq', value: 1 },
     };
     expect(or.kind).toBe('or');
     expect(not.kind).toBe('not');

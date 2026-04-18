@@ -997,6 +997,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
         suspectedCauses: partial.suspectedCauses ?? state.suspectedCauses,
         causalLinks: partial.causalLinks ?? state.causalLinks,
         categories: partial.categories ?? state.categories,
+        problemContributionTree: partial.problemContributionTree ?? state.problemContributionTree,
       }));
     },
 

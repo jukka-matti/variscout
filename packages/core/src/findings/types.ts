@@ -719,4 +719,5 @@ export const CATEGORY_COLORS = [
  */
 export type GateNode =
   | { kind: 'hub'; hubId: string }
-  | { kind: 'and' | 'or' | 'not'; children: GateNode[] };
+  | { kind: 'and' | 'or'; children: GateNode[] }
+  | { kind: 'not'; child: GateNode };

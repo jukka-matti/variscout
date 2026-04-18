@@ -857,4 +857,19 @@ describe('problemContributionTree', () => {
     useInvestigationStore.getState().setProblemContributionTree(undefined);
     expect(useInvestigationStore.getState().problemContributionTree).toBeUndefined();
   });
+
+  it('survives loadInvestigationState round-trip', () => {
+    const tree: GateNode = {
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'not', child: { kind: 'hub', hubId: 'h2' } },
+      ],
+    };
+    useInvestigationStore.setState(useInvestigationStore.getInitialState());
+    useInvestigationStore.getState().loadInvestigationState({
+      problemContributionTree: tree,
+    });
+    expect(useInvestigationStore.getState().problemContributionTree).toEqual(tree);
+  });
 });
