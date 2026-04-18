@@ -67,9 +67,9 @@ function recalcCpk(
 /** Traffic-light color for Cpk vs target */
 function getCpkColor(cpk: number | undefined, target: number): string {
   if (cpk === undefined) return 'text-content-muted';
-  if (cpk >= target) return 'text-green-400';
-  if (cpk >= 1.0) return 'text-amber-400';
-  return 'text-red-400';
+  if (cpk >= target) return 'text-green-700 dark:text-green-400';
+  if (cpk >= 1.0) return 'text-amber-700 dark:text-amber-400';
+  return 'text-red-700 dark:text-red-400';
 }
 
 function getCpkDotColor(cpk: number | undefined, target: number): string {

@@ -38,6 +38,10 @@ import {
   type Finding,
   type Question,
   type InvestigationCategory,
+  type SuspectedCause,
+  type CausalLink,
+  type SubgroupConfig,
+  type DisplayOptions,
 } from '@variscout/core';
 import type { ProcessContext } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
@@ -72,10 +76,20 @@ export interface DataIngestionActions {
   setQuestions?: (questions: Question[]) => void;
   /** Set pre-populated investigation categories (for showcase/demo datasets) */
   setCategories?: (categories: InvestigationCategory[]) => void;
+  /** Replace SuspectedCause hubs with a seeded set (showcase/demo datasets) */
+  setSuspectedCauses?: (hubs: SuspectedCause[]) => void;
+  /** Replace CausalLinks with a seeded set (showcase/demo datasets) */
+  setCausalLinks?: (links: CausalLink[]) => void;
   /** Set the process context (used to seed FRAME Process Map on showcases) */
   setProcessContext?: (ctx: ProcessContext | null) => void;
   /** Snapshot of the current process context — merged when seeding processMap. */
   getProcessContext?: () => ProcessContext | null | undefined;
+  /** Set rational subgrouping config from a sample (rolling n or group-by-column) */
+  setSubgroupConfig?: (config: SubgroupConfig) => void;
+  /** Merge partial display options from a sample (e.g. standardIChartMetric default) */
+  setDisplayOptions?: (options: DisplayOptions) => void;
+  /** Current display options (for merge) — optional getter */
+  getDisplayOptions?: () => DisplayOptions;
 }
 
 export interface TimeExtractionPrompt {
@@ -168,8 +182,13 @@ export function useDataIngestion(
     setFindings,
     setQuestions,
     setCategories,
+    setSuspectedCauses,
+    setCausalLinks,
     setProcessContext,
     getProcessContext,
+    setSubgroupConfig,
+    setDisplayOptions,
+    getDisplayOptions,
   } = actions;
 
   const processFile = useCallback(
@@ -372,9 +391,25 @@ export function useDataIngestion(
       setSpecs(sample.config.specs);
       const report = validateData(sample.data as DataRow[], sample.config.outcome);
       setDataQualityReport(report);
-      setParetoMode('derived');
-      setSeparateParetoData(null);
-      setSeparateParetoFilename(null);
+      // Pareto data source: sample-seeded (pre-aggregated QC defects) or derived from factors.
+      if (sample.config.separateParetoData?.length) {
+        setSeparateParetoData(sample.config.separateParetoData as ParetoRow[]);
+        setSeparateParetoFilename(`${sample.name} — Pareto`);
+        setParetoMode('separate');
+      } else {
+        setParetoMode('derived');
+        setSeparateParetoData(null);
+        setSeparateParetoFilename(null);
+      }
+      // Rational subgrouping for capability view (opt-in via sample config).
+      if (sample.config.subgroupConfig && setSubgroupConfig) {
+        setSubgroupConfig(sample.config.subgroupConfig);
+      }
+      // Display options: merge sample-seeded defaults with current (preserves unrelated user toggles).
+      if (sample.config.displayOptions && setDisplayOptions) {
+        const current = getDisplayOptions ? getDisplayOptions() : ({} as DisplayOptions);
+        setDisplayOptions({ ...current, ...sample.config.displayOptions });
+      }
       if (
         sample.config.analysisMode === 'performance' &&
         sample.config.measureColumns &&
@@ -422,11 +457,16 @@ export function useDataIngestion(
         if (inv.findings?.length && setFindings) setFindings(inv.findings);
         if (inv.questions?.length && setQuestions) setQuestions(inv.questions);
         if (inv.categories?.length && setCategories) setCategories(inv.categories);
+        if (inv.suspectedCauses?.length && setSuspectedCauses)
+          setSuspectedCauses(inv.suspectedCauses);
+        if (inv.causalLinks?.length && setCausalLinks) setCausalLinks(inv.causalLinks);
       } else {
         // Clear stale investigation state from a previous showcase sample
         if (setFindings) setFindings([]);
         if (setQuestions) setQuestions([]);
         if (setCategories) setCategories([]);
+        if (setSuspectedCauses) setSuspectedCauses([]);
+        if (setCausalLinks) setCausalLinks([]);
       }
       // Seed or clear the FRAME Process Map (ADR-070). Preserves any other
       // processContext fields (description, problemStatement, …) already set.
@@ -458,8 +498,13 @@ export function useDataIngestion(
       setFindings,
       setQuestions,
       setCategories,
+      setSuspectedCauses,
+      setCausalLinks,
       setProcessContext,
       getProcessContext,
+      setSubgroupConfig,
+      setDisplayOptions,
+      getDisplayOptions,
     ]
   );
 

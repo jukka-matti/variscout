@@ -92,11 +92,14 @@ function renderTrackVerified({
               {Number.isFinite(verificationCpk.before) ? verificationCpk.before.toFixed(2) : '—'}
             </span>
             {' \u2192 '}
-            <span className="text-green-400 font-medium">
+            <span className="text-green-700 dark:text-green-400 font-medium">
               {Number.isFinite(verificationCpk.after) ? verificationCpk.after.toFixed(2) : '—'}
             </span>
             {cpkImprovement != null && Number.isFinite(cpkImprovement) && (
-              <span data-testid="summary-cpk-improvement" className="ml-1 text-green-400">
+              <span
+                data-testid="summary-cpk-improvement"
+                className="ml-1 text-green-700 dark:text-green-400"
+              >
                 {/* eslint-disable-next-line variscout/no-tofixed-on-stats -- guarded on line 98 via Number.isFinite(cpkImprovement) */}
                 {`(+${cpkImprovement.toFixed(0)}%)`}
               </span>
@@ -109,7 +112,7 @@ function renderTrackVerified({
             {'Yield '}
             <span className="text-content">{`${Number.isFinite(verificationYield.before) ? verificationYield.before.toFixed(0) : '—'}%`}</span>
             {' \u2192 '}
-            <span className="text-green-400 font-medium">{`${Number.isFinite(verificationYield.after) ? verificationYield.after.toFixed(0) : '—'}%`}</span>
+            <span className="text-green-700 dark:text-green-400 font-medium">{`${Number.isFinite(verificationYield.after) ? verificationYield.after.toFixed(0) : '—'}%`}</span>
           </span>
         )}
       </div>

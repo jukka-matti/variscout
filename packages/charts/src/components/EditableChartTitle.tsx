@@ -98,7 +98,7 @@ const EditableChartTitle = ({
           onChange={e => setEditValue(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
-          className="bg-surface border border-blue-500 rounded px-2 py-1 text-white outline-none min-w-[200px] text-sm font-semibold"
+          className="bg-surface border border-blue-500 rounded px-2 py-1 text-content outline-none min-w-[200px] text-sm font-semibold"
           autoFocus
         />
         <span className="text-xs text-content-muted">{t('chart.edit.saveCancel')}</span>

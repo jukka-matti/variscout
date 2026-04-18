@@ -73,7 +73,7 @@ export const CauseSummaryCards: React.FC<CauseSummaryCardsProps> = ({ causes, on
             data-testid={`cause-avg-cpk-${cause.id}`}
             className={
               cause.avgProjectedCpk != null
-                ? 'text-xs text-green-400'
+                ? 'text-xs text-green-700 dark:text-green-400'
                 : 'text-xs text-content-muted'
             }
           >
