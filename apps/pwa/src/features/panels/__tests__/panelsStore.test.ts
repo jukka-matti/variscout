@@ -94,6 +94,14 @@ describe('panelsStore', () => {
       expect(usePanelsStore.getState().activeView).toBe('report');
     });
 
+    it('showFrame sets workspace and closes findings panel', () => {
+      usePanelsStore.setState({ isFindingsOpen: true });
+      usePanelsStore.getState().showFrame();
+      const s = usePanelsStore.getState();
+      expect(s.activeView).toBe('frame');
+      expect(s.isFindingsOpen).toBe(false);
+    });
+
     it('toggleFindings is no-op in investigation workspace', () => {
       usePanelsStore.getState().showInvestigation();
       usePanelsStore.getState().toggleFindings();
