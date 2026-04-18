@@ -78,6 +78,7 @@ import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
 import { InvestigationWorkspace } from '../components/editor/InvestigationWorkspace';
+import FrameView from '../components/editor/FrameView';
 import { EditorModals } from '../components/editor/EditorModals';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
 import ProjectDashboard from '../components/ProjectDashboard';
@@ -1205,6 +1206,8 @@ export const Editor: React.FC<EditorProps> = ({
                   onUpdateLastViewed={handleUpdateLastViewed}
                 />
               </div>
+            ) : activeView === 'frame' ? (
+              <FrameView />
             ) : activeView === 'investigation' ? (
               <InvestigationWorkspace
                 findingsState={findingsState}
