@@ -47,6 +47,7 @@ import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import { Activity } from 'lucide-react';
 import { getColumnNames, getEtaSquared, type SpecLimits, type Finding } from '@variscout/core';
 import { resolveMode as resolveModeUtil } from '@variscout/core/strategy';
+import { subgroupAxisColumns } from '@variscout/core/frame';
 import { useProjectionStore } from '../features/projection/projectionStore';
 
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
@@ -105,6 +106,7 @@ const Dashboard = ({
     findingsCallbacks ?? {};
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
+  const processContext = useProjectStore(s => s.processContext);
   const setOutcome = useProjectStore(s => s.setOutcome);
   const rawData = useProjectStore(s => s.rawData);
   const setRawData = useProjectStore(s => s.setRawData);
@@ -700,7 +702,13 @@ const Dashboard = ({
               <SubgroupConfigPopover
                 config={subgroupConfig}
                 onConfigChange={setSubgroupConfig}
-                availableColumns={factors}
+                availableColumns={(() => {
+                  // Prefer the rational-subgroup axes the user picked in FRAME — they
+                  // reflect process structure. Fall back to all factors for projects
+                  // without a map (backward compat). ADR-070.
+                  const fromMap = subgroupAxisColumns(processContext?.processMap);
+                  return fromMap.length > 0 ? fromMap : factors;
+                })()}
                 columnAliases={columnAliases}
               />
             )}

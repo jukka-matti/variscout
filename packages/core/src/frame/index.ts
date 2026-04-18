@@ -22,3 +22,4 @@ export type {
 
 export { inferMode } from './modeInference';
 export { detectGaps } from './gapDetector';
+export { subgroupAxisColumns } from './subgroupAxes';
