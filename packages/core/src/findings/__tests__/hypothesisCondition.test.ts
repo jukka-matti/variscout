@@ -46,4 +46,24 @@ describe('HypothesisCondition type', () => {
     };
     expect(cond.kind).toBe('leaf');
   });
+
+  it('allows in comparison with string array', () => {
+    const cond: HypothesisCondition = {
+      kind: 'leaf',
+      column: 'SUPPLIER',
+      op: 'in',
+      value: ['A', 'B', 'C'],
+    };
+    expect(cond.kind).toBe('leaf');
+  });
+
+  it('allows in comparison with number array', () => {
+    const cond: HypothesisCondition = {
+      kind: 'leaf',
+      column: 'LOT',
+      op: 'in',
+      value: [1, 2, 3],
+    };
+    expect(cond.kind).toBe('leaf');
+  });
 });

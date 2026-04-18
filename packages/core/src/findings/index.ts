@@ -17,3 +17,9 @@ export type { ProblemStatementInput } from './problemStatement';
 export { assignCauseColors } from './causeColors';
 export { generateHMWPrompts } from './hmwPrompts';
 export type { BrainstormIdea } from './hmwPrompts';
+export type {
+  ComparisonOp,
+  ConditionLeaf,
+  ConditionBranch,
+  HypothesisCondition,
+} from './hypothesisCondition';

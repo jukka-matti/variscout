@@ -14,7 +14,13 @@ export interface ConditionLeaf {
   kind: 'leaf';
   column: string;
   op: ComparisonOp;
-  value: string | number | [number, number] | string[];
+  /**
+   * Operator-specific value shape:
+   * - `eq` / `neq` / `lt` / `lte` / `gt` / `gte`: `string | number`
+   * - `between`: `[number, number]` (inclusive)
+   * - `in`: `string[] | number[]`
+   */
+  value: string | number | [number, number] | string[] | number[];
 }
 
 export interface ConditionBranch {
