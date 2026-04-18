@@ -65,6 +65,7 @@ const DataTableModal = React.lazy(() => import('./components/data/DataTableModal
 const FindingsPanel = React.lazy(() => import('./components/FindingsPanel'));
 const YamazumiDashboard = React.lazy(() => import('./components/YamazumiDashboard'));
 const ProcessIntelligencePanel = React.lazy(() => import('./components/ProcessIntelligencePanel'));
+const FrameView = React.lazy(() => import('./components/views/FrameView'));
 const InvestigationView = React.lazy(() => import('./components/views/InvestigationView'));
 const ImprovementView = React.lazy(() => import('./components/views/ImprovementView'));
 const ReportView = React.lazy(() => import('./components/views/ReportView'));
@@ -722,6 +723,7 @@ function AppMain() {
               <div className="flex border-b border-edge flex-shrink-0 bg-surface">
                 {(
                   [
+                    { id: 'frame', label: 'Frame' },
                     { id: 'analysis', label: 'Analysis' },
                     { id: 'investigation', label: 'Investigation' },
                     { id: 'improvement', label: 'Improvement' },
@@ -736,7 +738,8 @@ function AppMain() {
                         : 'border-transparent text-content-secondary hover:text-content hover:border-content-tertiary'
                     }`}
                     onClick={() => {
-                      if (ws.id === 'analysis') panels.showAnalysis();
+                      if (ws.id === 'frame') panels.showFrame();
+                      else if (ws.id === 'analysis') panels.showAnalysis();
                       else if (ws.id === 'investigation') panels.showInvestigation();
                       else if (ws.id === 'improvement') panels.showImprovement();
                       else if (ws.id === 'report') panels.showReport();
@@ -795,6 +798,8 @@ function AppMain() {
                 rowLimit={50000}
                 hideSpecs={analysisMode === 'defect'}
               />
+            ) : panels.activeView === 'frame' ? (
+              <FrameView />
             ) : panels.activeView === 'investigation' ? (
               <InvestigationView
                 filteredData={filteredData ?? []}
