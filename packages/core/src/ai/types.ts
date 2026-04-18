@@ -5,6 +5,7 @@
 import type { InsightChartType } from './chartInsights';
 import type { Locale } from '../i18n/types';
 import type { AnalysisMode } from '../types';
+import type { ProcessMap } from '../frame/types';
 
 /** AI model tier — maps to ARM deployment names ('fast' or 'reasoning') */
 export type AITier = 'fast' | 'reasoning';
@@ -55,6 +56,15 @@ export interface ProcessContext {
   factorRoles?: Record<string, string>;
   /** Convergence synthesis — suspected cause narrative (max 500 chars) */
   synthesis?: string;
+  /**
+   * User-built visual Process Map (FRAME workspace).
+   *
+   * Captures process structure (SIPOC spine), CTS (ocean), CTQs per step,
+   * tributaries/xs, rational-subgroup axes, and pre-data hunches. Drives
+   * deterministic mode inference + gap detection (see `frame/modeInference.ts`
+   * and `frame/gapDetector.ts`). Null for mapless projects. ADR-070.
+   */
+  processMap?: ProcessMap;
 }
 
 /** Structured AI context assembled from current analysis state */
