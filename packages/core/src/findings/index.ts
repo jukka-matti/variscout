@@ -22,4 +22,6 @@ export type {
   ConditionLeaf,
   ConditionBranch,
   HypothesisCondition,
+  FindingSourceColumnHints,
 } from './hypothesisCondition';
+export { deriveConditionFromFindingSource } from './hypothesisCondition';
