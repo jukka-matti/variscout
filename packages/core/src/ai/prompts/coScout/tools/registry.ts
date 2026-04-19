@@ -438,6 +438,33 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
     phases: ['investigate', 'improve'],
   },
 
+  propose_hypothesis_from_finding: {
+    definition: {
+      type: 'function',
+      name: 'propose_hypothesis_from_finding',
+      description:
+        "Create a new suspected-cause hub seeded with an existing finding as first evidence. Condition auto-derives from the finding's source. Requires analyst confirmation before the hub is committed.",
+      parameters: {
+        type: 'object',
+        properties: {
+          finding_id: {
+            type: 'string',
+            description: 'ID of the finding that provides initial evidence for the hypothesis',
+          },
+          hypothesis_name: {
+            type: 'string',
+            description: 'Short analyst-ready label for the hypothesis',
+          },
+        },
+        required: ['finding_id', 'hypothesis_name'],
+        additionalProperties: false,
+        strict: true,
+      },
+    },
+    classification: 'action',
+    phases: ['investigate'],
+  },
+
   suggest_suspected_cause: {
     definition: {
       type: 'function',
