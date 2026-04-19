@@ -81,8 +81,10 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
   const processMap = useProjectStore(s => s.processContext?.processMap);
   const rawData = useProjectStore(s => s.rawData);
-  const wallActiveColumns = useMemo(
-    () => (rawData.length > 0 ? Object.keys(rawData[0]) : []),
+  // Undefined when no rows are loaded so WallCanvas keeps the missing-column
+  // badge suppressed (rather than flagging every hub against an empty set).
+  const wallActiveColumns = useMemo<string[] | undefined>(
+    () => (rawData.length > 0 ? Object.keys(rawData[0]) : undefined),
     [rawData]
   );
   const hubs = useInvestigationStore(s => s.suspectedCauses);

@@ -142,9 +142,11 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
   // Columns present in the active dataset — powers WallCanvas missing-column
   // badge for hubs whose condition references a renamed or dropped column.
+  // Undefined when no rows are loaded so the badge stays suppressed (rather
+  // than flagging every column as missing against an empty column set).
   const rawData = useProjectStore(s => s.rawData);
-  const wallActiveColumns = useMemo(
-    () => (rawData.length > 0 ? Object.keys(rawData[0]) : []),
+  const wallActiveColumns = useMemo<string[] | undefined>(
+    () => (rawData.length > 0 ? Object.keys(rawData[0]) : undefined),
     [rawData]
   );
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
