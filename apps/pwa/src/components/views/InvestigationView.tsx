@@ -3,7 +3,7 @@
  *
  * Simplified version of Azure's InvestigationWorkspace:
  * - Left panel: QuestionChecklist + InvestigationPhaseBadge + InvestigationConclusion
- * - Center: FindingsLog (list/board/tree)
+ * - Center: Map/Wall toggle → FindingsLog (list/board/tree) | WallCanvas
  * - No CoScout (PWA has no AI)
  * - No Teams integration (no photos, no assignees)
  * - 3-status findings (not 5)
@@ -26,6 +26,8 @@ import { getStrategy } from '@variscout/core/strategy';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
+import { useWallLayoutStore, useProjectStore, useInvestigationStore } from '@variscout/stores';
+import { WallCanvas } from '@variscout/charts';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import {
   useInvestigationFeatureStore,
@@ -73,6 +75,14 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   ideaImpacts,
 }) => {
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
+
+  // Map/Wall sub-toggle (mirrors Azure InvestigationWorkspace)
+  const wallViewMode = useWallLayoutStore(s => s.viewMode);
+  const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
+  const processMap = useProjectStore(s => s.processContext?.processMap);
+  const hubs = useInvestigationStore(s => s.suspectedCauses);
+  const wallFindings = useInvestigationStore(s => s.findings);
+  const wallQuestions = useInvestigationStore(s => s.questions);
 
   // Investigation phase detection (deterministic)
   const investigationPhase = useMemo(
@@ -162,66 +172,113 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
         </div>
       </div>
 
-      {/* Center: Findings (list/board/tree) */}
+      {/* Center: Map/Wall toggle + content */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        {/* View mode toggle */}
+        {/* Header toolbar */}
         <div className="flex items-center gap-1 px-3 py-2 border-b border-edge bg-surface flex-shrink-0">
-          {(['list', 'board', 'tree'] as const).map(mode => (
-            <button
-              key={mode}
-              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                viewMode === mode
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
-                  : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
-              }`}
-              onClick={() => setViewMode(mode)}
-            >
-              {mode.charAt(0).toUpperCase() + mode.slice(1)}
-            </button>
-          ))}
+          {/* Map/Wall primary toggle */}
+          <div
+            role="group"
+            aria-label="Investigation view mode"
+            className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
+          >
+            {(['map', 'wall'] as const).map(mode => (
+              <button
+                key={mode}
+                type="button"
+                aria-pressed={wallViewMode === mode}
+                onClick={() => setWallViewMode(mode)}
+                className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                  wallViewMode === mode
+                    ? 'bg-surface-secondary text-content'
+                    : 'text-content-secondary hover:text-content'
+                }`}
+              >
+                {mode.charAt(0).toUpperCase() + mode.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {/* List/board/tree sub-toggle (only in Map/Findings view) */}
+          {wallViewMode === 'map' && (
+            <>
+              <div className="w-px h-4 bg-edge mx-1" />
+              {(['list', 'board', 'tree'] as const).map(mode => (
+                <button
+                  key={mode}
+                  className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                    viewMode === mode
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                      : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
+                  }`}
+                  onClick={() => setViewMode(mode)}
+                >
+                  {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                </button>
+              ))}
+            </>
+          )}
+
           <span className="ml-auto text-xs text-content-tertiary">
             {findingsState.findings.length} finding
             {findingsState.findings.length !== 1 ? 's' : ''}
           </span>
         </div>
 
-        {/* Findings content */}
-        <div className="flex-1 overflow-y-auto px-3 py-2">
-          <FindingsLog
-            findings={findingsState.findings}
-            onEditFinding={findingsState.editFinding}
-            onDeleteFinding={findingsState.deleteFinding}
-            onRestoreFinding={handleRestoreFinding}
-            viewMode={viewMode}
-            questions={questionsState.questions}
-            onSelectQuestion={(q: Question) =>
-              useInvestigationFeatureStore.getState().expandToQuestion(q.id)
-            }
-            onAddSubQuestion={questionsState.addSubQuestion}
-            factors={drillFactors}
-            getChildrenSummary={questionsState.getChildrenSummary}
-            onSetFindingStatus={handleSetFindingStatus}
-            onSetFindingTag={findingsState.setFindingTag}
-            onAddComment={(id: string, text: string) => findingsState.addFindingComment(id, text)}
-            columnAliases={columnAliases}
-            activeFindingId={highlightedFindingId}
-            onCreateQuestion={handleCreateQuestion}
-            questionsMap={questionsMap}
-            onSetValidationTask={questionsState.setValidationTask}
-            onCompleteTask={questionsState.completeTask}
-            onSetManualStatus={questionsState.setManualStatus}
-            onAddAction={findingsState.addAction}
-            onCompleteAction={findingsState.completeAction}
-            onDeleteAction={findingsState.deleteAction}
-            onSetOutcome={findingsState.setOutcome}
-            ideaImpacts={ideaImpacts}
-            onAddIdea={questionsState.addIdea}
-            onUpdateIdea={questionsState.updateIdea}
-            onRemoveIdea={questionsState.removeIdea}
-            onSelectIdea={questionsState.selectIdea}
-            onSetCauseRole={questionsState.setCauseRole}
-          />
-        </div>
+        {/* Content */}
+        {wallViewMode === 'wall' ? (
+          processMap ? (
+            <WallCanvas
+              hubs={hubs}
+              findings={wallFindings}
+              questions={wallQuestions}
+              processMap={processMap}
+              problemCpk={0}
+              eventsPerWeek={0}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">
+              Build a Process Map in the Frame workspace first.
+            </div>
+          )
+        ) : (
+          <div className="flex-1 overflow-y-auto px-3 py-2">
+            <FindingsLog
+              findings={findingsState.findings}
+              onEditFinding={findingsState.editFinding}
+              onDeleteFinding={findingsState.deleteFinding}
+              onRestoreFinding={handleRestoreFinding}
+              viewMode={viewMode}
+              questions={questionsState.questions}
+              onSelectQuestion={(q: Question) =>
+                useInvestigationFeatureStore.getState().expandToQuestion(q.id)
+              }
+              onAddSubQuestion={questionsState.addSubQuestion}
+              factors={drillFactors}
+              getChildrenSummary={questionsState.getChildrenSummary}
+              onSetFindingStatus={handleSetFindingStatus}
+              onSetFindingTag={findingsState.setFindingTag}
+              onAddComment={(id: string, text: string) => findingsState.addFindingComment(id, text)}
+              columnAliases={columnAliases}
+              activeFindingId={highlightedFindingId}
+              onCreateQuestion={handleCreateQuestion}
+              questionsMap={questionsMap}
+              onSetValidationTask={questionsState.setValidationTask}
+              onCompleteTask={questionsState.completeTask}
+              onSetManualStatus={questionsState.setManualStatus}
+              onAddAction={findingsState.addAction}
+              onCompleteAction={findingsState.completeAction}
+              onDeleteAction={findingsState.deleteAction}
+              onSetOutcome={findingsState.setOutcome}
+              ideaImpacts={ideaImpacts}
+              onAddIdea={questionsState.addIdea}
+              onUpdateIdea={questionsState.updateIdea}
+              onRemoveIdea={questionsState.removeIdea}
+              onSelectIdea={questionsState.selectIdea}
+              onSetCauseRole={questionsState.setCauseRole}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
