@@ -43,3 +43,64 @@ describe('wallLayoutStore', () => {
     expect(useWallLayoutStore.getState().railOpen).toBe(true);
   });
 });
+
+describe('wallLayoutStore — positions, selection, cache', () => {
+  beforeEach(() => {
+    useWallLayoutStore.setState(useWallLayoutStore.getInitialState());
+  });
+
+  it('sets node position', () => {
+    useWallLayoutStore.getState().setNodePosition('hub-1', { x: 500, y: 400 });
+    expect(useWallLayoutStore.getState().nodePositions['hub-1']).toEqual({ x: 500, y: 400 });
+  });
+
+  it('replaces selection', () => {
+    useWallLayoutStore.getState().setSelection(['a', 'b']);
+    expect([...useWallLayoutStore.getState().selection]).toEqual(['a', 'b']);
+    useWallLayoutStore.getState().setSelection(['c']);
+    expect([...useWallLayoutStore.getState().selection]).toEqual(['c']);
+  });
+
+  it('adds to selection and clears', () => {
+    useWallLayoutStore.getState().addToSelection('a');
+    useWallLayoutStore.getState().addToSelection('b');
+    expect(useWallLayoutStore.getState().selection.size).toBe(2);
+    useWallLayoutStore.getState().clearSelection();
+    expect(useWallLayoutStore.getState().selection.size).toBe(0);
+  });
+
+  it('stores an AND-check result by gate path', () => {
+    useWallLayoutStore.getState().setAndCheckResult('root', { holds: 38, total: 42, at: 123 });
+    expect(useWallLayoutStore.getState().andCheckResults.root).toEqual({
+      holds: 38,
+      total: 42,
+      at: 123,
+    });
+  });
+
+  it('opens and closes chart clusters', () => {
+    useWallLayoutStore.getState().openChartCluster({
+      tributaryId: 't1',
+      x: 100,
+      y: 200,
+      activeChart: 'ichart',
+    });
+    expect(useWallLayoutStore.getState().openChartClusters.t1?.activeChart).toBe('ichart');
+    useWallLayoutStore.getState().closeChartCluster('t1');
+    expect(useWallLayoutStore.getState().openChartClusters.t1).toBeUndefined();
+  });
+
+  it('enqueues and drains pending comments', () => {
+    useWallLayoutStore.getState().enqueuePendingComment({
+      scope: 'hub',
+      targetId: 'h1',
+      text: 'offline note',
+      localId: 'loc-1',
+      createdAt: 1,
+    });
+    expect(useWallLayoutStore.getState().pendingComments.length).toBe(1);
+    const drained = useWallLayoutStore.getState().drainPendingComments();
+    expect(drained.length).toBe(1);
+    expect(useWallLayoutStore.getState().pendingComments.length).toBe(0);
+  });
+});
