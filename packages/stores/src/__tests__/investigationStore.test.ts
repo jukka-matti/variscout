@@ -506,6 +506,34 @@ describe('investigationStore — suspected cause hubs', () => {
     expect(useInvestigationStore.getState().suspectedCauses[0].synthesis).toBe('Old synthesis');
   });
 
+  it('createHubFromFinding returns null when the finding does not exist', () => {
+    const result = useInvestigationStore.getState().createHubFromFinding('missing-id');
+    expect(result).toBeNull();
+    expect(useInvestigationStore.getState().suspectedCauses).toHaveLength(0);
+  });
+
+  it('createHubFromFinding creates a hub seeded from the finding text and links it', () => {
+    const ctx = makeContext();
+    const finding = useInvestigationStore
+      .getState()
+      .addFinding('Night shift nozzle runs consistently hotter than day shift baseline', ctx);
+    const hub = useInvestigationStore.getState().createHubFromFinding(finding.id);
+    expect(hub).not.toBeNull();
+    const state = useInvestigationStore.getState();
+    expect(state.suspectedCauses).toHaveLength(1);
+    const persisted = state.suspectedCauses[0];
+    expect(persisted.findingIds).toEqual([finding.id]);
+    expect(persisted.name.startsWith('Hypothesis:')).toBe(true);
+    expect(persisted.status).toBe('suspected');
+  });
+
+  it('createHubFromFinding uses fallback name when finding text is empty', () => {
+    const ctx = makeContext();
+    const finding = useInvestigationStore.getState().addFinding('   ', ctx);
+    useInvestigationStore.getState().createHubFromFinding(finding.id);
+    expect(useInvestigationStore.getState().suspectedCauses[0].name).toBe('New hypothesis');
+  });
+
   it('connects question and finding to hub', () => {
     const hub = useInvestigationStore.getState().createHub('Test', 'Synth');
     useInvestigationStore.getState().connectQuestionToHub(hub.id, 'q-1');

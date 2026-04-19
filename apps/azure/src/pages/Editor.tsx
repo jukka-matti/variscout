@@ -4,7 +4,12 @@ import { useStorage } from '../services/storage';
 import type { StorageLocation } from '../services/storage';
 import { useProjectLoader } from '../hooks/useProjectLoader';
 import { useProjectOverview } from '../hooks/useProjectOverview';
-import { useProjectStore, useInvestigationStore, useSessionStore } from '@variscout/stores';
+import {
+  useProjectStore,
+  useInvestigationStore,
+  useSessionStore,
+  useWallLayoutStore,
+} from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
@@ -590,6 +595,17 @@ export const Editor: React.FC<EditorProps> = ({
   const handleQuestionPromptClose = useCallback(() => {
     setQuestionLinkPromptOpen(false);
   }, []);
+
+  // Wall-variant propose-hypothesis CTA — creates a new SuspectedCause hub seeded
+  // from the finding and links the finding as the first piece of evidence.
+  const wallViewMode = useWallLayoutStore(s => s.viewMode);
+  const createHubFromFinding = useInvestigationStore(s => s.createHubFromFinding);
+  const handleProposeHypothesisFromFinding = useCallback(
+    (findingId: string) => {
+      createHubFromFinding(findingId);
+    },
+    [createHubFromFinding]
+  );
 
   // Deep link: auto-open findings panel and highlight target finding (one-shot)
   // Also set activeView to 'dashboard' on project load unless deep-linked
@@ -1531,6 +1547,8 @@ export const Editor: React.FC<EditorProps> = ({
         onSkip={handleQuestionPromptClose}
         onSkipForever={handleQuestionSkipForever}
         onClose={handleQuestionPromptClose}
+        wallActive={wallViewMode === 'wall'}
+        onProposeHypothesis={handleProposeHypothesisFromFinding}
       />
 
       {/* Brainstorm modal: hoisted to top-level so it survives view navigation */}
