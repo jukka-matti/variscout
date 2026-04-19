@@ -11,6 +11,7 @@
 import React, { useMemo } from 'react';
 import type { SuspectedCause, Finding, Question, ProcessMap, GateNode } from '@variscout/core';
 import { conditionHasMissingColumn } from '@variscout/core';
+import { getMessage } from '@variscout/core/i18n';
 import { ProblemConditionCard } from './ProblemConditionCard';
 import { HypothesisCard } from './HypothesisCard';
 import { QuestionPill } from './QuestionPill';
@@ -18,6 +19,7 @@ import { TributaryFooter } from './TributaryFooter';
 import { EmptyState } from './EmptyState';
 import { MissingEvidenceDigest } from './MissingEvidenceDigest';
 import type { WallStatus } from './types';
+import { getDocumentLocale } from './hooks/useWallLocale';
 
 export interface WallCanvasProps {
   hubs: SuspectedCause[];
@@ -74,6 +76,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   onSeedFromFactorIntel,
   onFocusHubFromGap,
 }) => {
+  const locale = getDocumentLocale();
   const columnSet = useMemo(
     () => (activeColumns ? new Set(activeColumns) : undefined),
     [activeColumns]
@@ -103,7 +106,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         preserveAspectRatio="xMidYMid meet"
         className="bg-background text-content flex-1"
         role="img"
-        aria-label="Investigation Wall canvas"
+        aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
       >
         <ProblemConditionCard
           ctsColumn={problemLabel}
