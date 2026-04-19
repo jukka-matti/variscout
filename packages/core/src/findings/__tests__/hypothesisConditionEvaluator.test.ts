@@ -196,3 +196,117 @@ describe('evaluateCondition', () => {
     expect(evaluateCondition(cond, row)).toBe(false);
   });
 });
+
+import { runAndCheck } from '../hypothesisConditionEvaluator';
+import type { SuspectedCause, GateNode } from '@variscout/core';
+
+function hub(id: string, cond: HypothesisCondition | undefined): SuspectedCause {
+  return {
+    id,
+    name: id,
+    synthesis: '',
+    questionIds: [],
+    findingIds: [],
+    status: 'suspected',
+    condition: cond,
+    createdAt: '2026-04-19T00:00:00Z',
+    updatedAt: '2026-04-19T00:00:00Z',
+  };
+}
+
+describe('runAndCheck', () => {
+  const hubs: SuspectedCause[] = [
+    hub('h1', { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' }),
+    hub('h2', { kind: 'leaf', column: 'SUPPLIER', op: 'eq', value: 'B' }),
+    hub('h3', undefined),
+  ];
+
+  const rows = [
+    { SHIFT: 'night', SUPPLIER: 'B' },
+    { SHIFT: 'night', SUPPLIER: 'A' },
+    { SHIFT: 'day', SUPPLIER: 'B' },
+    { SHIFT: 'night', SUPPLIER: 'B' },
+  ];
+
+  it('counts holds for a single-hub leaf', () => {
+    const tree: GateNode = { kind: 'hub', hubId: 'h1' };
+    const result = runAndCheck(tree, hubs, rows);
+    expect(result.total).toBe(4);
+    expect(result.holds).toBe(3);
+    expect(result.matchingRowIndices).toEqual([0, 1, 3]);
+  });
+
+  it('counts holds for AND of two hubs', () => {
+    const tree: GateNode = {
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    };
+    const result = runAndCheck(tree, hubs, rows);
+    expect(result.holds).toBe(2);
+    expect(result.matchingRowIndices).toEqual([0, 3]);
+  });
+
+  it('returns 0 holds when a referenced hub has no condition', () => {
+    const tree: GateNode = {
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h3' }, // no condition
+      ],
+    };
+    const result = runAndCheck(tree, hubs, rows);
+    expect(result.holds).toBe(0);
+  });
+
+  it('handles nested OR + AND', () => {
+    const tree: GateNode = {
+      kind: 'or',
+      children: [
+        {
+          kind: 'and',
+          children: [
+            { kind: 'hub', hubId: 'h1' },
+            { kind: 'hub', hubId: 'h2' },
+          ],
+        },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    };
+    const result = runAndCheck(tree, hubs, rows);
+    // row 0: h1=true h2=true → AND true → OR true
+    // row 1: h1=true h2=false → AND false. h2=false. OR false.
+    // row 2: h1=false h2=true → AND false. h2=true. OR true.
+    // row 3: h1=true h2=true → AND true → OR true.
+    expect(result.holds).toBe(3);
+    expect(result.matchingRowIndices).toEqual([0, 2, 3]);
+  });
+
+  it('handles unary NOT gate', () => {
+    const tree: GateNode = {
+      kind: 'not',
+      child: { kind: 'hub', hubId: 'h1' },
+    };
+    const result = runAndCheck(tree, hubs, rows);
+    // h1 = SHIFT == 'night' → true on rows 0, 1, 3; false on row 2
+    // NOT h1 → true on row 2 only
+    expect(result.holds).toBe(1);
+    expect(result.matchingRowIndices).toEqual([2]);
+  });
+
+  it('returns total 0 / holds 0 on empty rows without throwing', () => {
+    const tree: GateNode = { kind: 'hub', hubId: 'h1' };
+    const result = runAndCheck(tree, hubs, []);
+    expect(result.total).toBe(0);
+    expect(result.holds).toBe(0);
+    expect(result.matchingRowIndices).toEqual([]);
+  });
+
+  it('returns 0 holds when tree references a missing hub', () => {
+    const tree: GateNode = { kind: 'hub', hubId: 'missing' };
+    const result = runAndCheck(tree, hubs, rows);
+    expect(result.holds).toBe(0);
+  });
+});

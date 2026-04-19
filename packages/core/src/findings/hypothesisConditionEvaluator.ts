@@ -7,6 +7,7 @@
  */
 
 import type { HypothesisCondition } from './hypothesisCondition';
+import type { SuspectedCause, GateNode } from './types';
 
 export type DataRow = Record<string, unknown>;
 
@@ -22,6 +23,58 @@ export function evaluateCondition(cond: HypothesisCondition, row: DataRow): bool
       return !evaluateCondition(cond.child, row);
   }
 }
+
+// ============================================================================
+// GateNode tree evaluator
+// ============================================================================
+
+export interface AndCheckResult {
+  total: number;
+  holds: number;
+  matchingRowIndices: number[];
+}
+
+/**
+ * Evaluate a GateNode tree against every row in the data window. Returns the
+ * count of rows where the tree evaluates to true, the total rows considered,
+ * and the matching row indices for highlight-on-chart interactions.
+ *
+ * Hubs without a condition evaluate to false (cannot be disconfirmed without a rule).
+ * Unknown hub IDs evaluate to false.
+ */
+export function runAndCheck(
+  tree: GateNode,
+  hubs: SuspectedCause[],
+  rows: DataRow[]
+): AndCheckResult {
+  const hubById = new Map(hubs.map(h => [h.id, h]));
+  const matching: number[] = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    if (evaluateGate(tree, hubById, rows[i])) matching.push(i);
+  }
+  return { total: rows.length, holds: matching.length, matchingRowIndices: matching };
+}
+
+function evaluateGate(node: GateNode, hubById: Map<string, SuspectedCause>, row: DataRow): boolean {
+  switch (node.kind) {
+    case 'hub': {
+      const hub = hubById.get(node.hubId);
+      if (!hub || !hub.condition) return false;
+      return evaluateCondition(hub.condition, row);
+    }
+    case 'and':
+      return node.children.every(c => evaluateGate(c, hubById, row));
+    case 'or':
+      return node.children.some(c => evaluateGate(c, hubById, row));
+    case 'not':
+      return !evaluateGate(node.child, hubById, row);
+  }
+}
+
+// ============================================================================
+// Leaf evaluator
+// ============================================================================
 
 function evaluateLeaf(cond: Extract<HypothesisCondition, { kind: 'leaf' }>, row: DataRow): boolean {
   if (!(cond.column in row)) return false;
