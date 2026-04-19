@@ -61,10 +61,25 @@ export interface WallCanvasProps {
    * draggable wrapper, avoiding unused DndContext overhead).
    */
   onComposeGate?: (payload: { hubId: string; gatePath: GatePath }) => void;
+  /**
+   * View-level zoom factor applied as `scale(zoom)` on the content group.
+   * Defaults to 1.0 (identity). Apps thread this from `wallLayoutStore.zoom`.
+   * Values typically in [0.2, 3.0]; consumers should clamp before setting.
+   */
+  zoom?: number;
+  /**
+   * View-level pan offset applied as `translate(pan.x, pan.y)` on the content
+   * group. Defaults to origin. Apps thread this from `wallLayoutStore.pan`.
+   */
+  pan?: { x: number; y: number };
 }
 
-const CANVAS_W = 2000;
-const CANVAS_H = 1400;
+/**
+ * Canvas dimensions in user-space units. Exported so Minimap and other
+ * viewport-overlay primitives can reuse the same coordinate space.
+ */
+export const CANVAS_W = 2000;
+export const CANVAS_H = 1400;
 
 function deriveDisplayStatus(hub: SuspectedCause, findings: Finding[]): WallStatus {
   if (hub.status === 'confirmed') return 'confirmed';
@@ -94,6 +109,8 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   onSeedFromFactorIntel,
   onFocusHubFromGap,
   onComposeGate,
+  zoom = 1,
+  pan = { x: 0, y: 0 },
 }) => {
   const locale = getDocumentLocale();
   const columnSet = useMemo(
@@ -129,58 +146,62 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         role="img"
         aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
       >
-        <ProblemConditionCard
-          ctsColumn={problemLabel}
-          cpk={problemCpk}
-          eventsPerWeek={eventsPerWeek}
-          x={CANVAS_W / 2}
-          y={40}
-        />
-
-        <line
-          x1={80}
-          x2={CANVAS_W - 80}
-          y1={280}
-          y2={280}
-          className="stroke-edge"
-          strokeDasharray="4 6"
-        />
-
-        {hubs.map((hub, idx) => {
-          const hubProps = {
-            hub,
-            displayStatus: deriveDisplayStatus(hub, findings),
-            x: hubSpacing * (idx + 1),
-            y: hubY,
-            hasGap: gapsByHubId[hub.id],
-            missingColumn: columnSet ? conditionHasMissingColumn(hub.condition, columnSet) : false,
-            onSelect: onSelectHub,
-          };
-          return dndEnabled ? (
-            <DraggableHypothesisCard key={hub.id} {...hubProps} />
-          ) : (
-            <HypothesisCard key={hub.id} {...hubProps} />
-          );
-        })}
-
-        {openQuestions.map((q, idx) => (
-          <QuestionPill
-            key={q.id}
-            questionId={q.id}
-            text={q.text}
-            status={q.status}
-            x={200 + idx * 240}
-            y={900}
-            onPromote={onPromoteQuestion}
+        <g data-wall-viewport transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+          <ProblemConditionCard
+            ctsColumn={problemLabel}
+            cpk={problemCpk}
+            eventsPerWeek={eventsPerWeek}
+            x={CANVAS_W / 2}
+            y={40}
           />
-        ))}
 
-        <TributaryFooter
-          tributaries={processMap.tributaries}
-          hubs={hubs}
-          y={1300}
-          canvasWidth={CANVAS_W}
-        />
+          <line
+            x1={80}
+            x2={CANVAS_W - 80}
+            y1={280}
+            y2={280}
+            className="stroke-edge"
+            strokeDasharray="4 6"
+          />
+
+          {hubs.map((hub, idx) => {
+            const hubProps = {
+              hub,
+              displayStatus: deriveDisplayStatus(hub, findings),
+              x: hubSpacing * (idx + 1),
+              y: hubY,
+              hasGap: gapsByHubId[hub.id],
+              missingColumn: columnSet
+                ? conditionHasMissingColumn(hub.condition, columnSet)
+                : false,
+              onSelect: onSelectHub,
+            };
+            return dndEnabled ? (
+              <DraggableHypothesisCard key={hub.id} {...hubProps} />
+            ) : (
+              <HypothesisCard key={hub.id} {...hubProps} />
+            );
+          })}
+
+          {openQuestions.map((q, idx) => (
+            <QuestionPill
+              key={q.id}
+              questionId={q.id}
+              text={q.text}
+              status={q.status}
+              x={200 + idx * 240}
+              y={900}
+              onPromote={onPromoteQuestion}
+            />
+          ))}
+
+          <TributaryFooter
+            tributaries={processMap.tributaries}
+            hubs={hubs}
+            y={1300}
+            canvasWidth={CANVAS_W}
+          />
+        </g>
       </svg>
 
       <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
