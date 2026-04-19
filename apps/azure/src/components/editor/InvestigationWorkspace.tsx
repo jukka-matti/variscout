@@ -43,6 +43,7 @@ import {
   CANVAS_W,
   CANVAS_H,
   useWallKeyboard,
+  useWallIsMobile,
 } from '@variscout/charts';
 import { InvestigationMapView } from './InvestigationMapView';
 import { CoScoutSection } from './CoScoutSection';
@@ -175,9 +176,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   // Phase 13 — ⌘K command palette. Only responds when Wall is visible.
   // (pan-to-node helper is defined after `hubs` is available, below.)
   const [wallPaletteOpen, setWallPaletteOpen] = useState(false);
+  // Phase 14.1 — viewport-aware rendering. Below 768px the WallCanvas swaps
+  // to MobileCardList; the Minimap and CommandPalette are sibling controls,
+  // so we gate their mount on the same breakpoint.
+  const wallIsMobile = useWallIsMobile();
   useWallKeyboard({
     onSearch: () => {
-      if (wallViewMode === 'wall') setWallPaletteOpen(true);
+      if (wallViewMode === 'wall' && !wallIsMobile) setWallPaletteOpen(true);
     },
   });
 
@@ -753,23 +758,30 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   pan={wallPan}
                   groupByTributary={wallGroupByTributary}
                 />
-                <div className="absolute bottom-4 right-4 pointer-events-auto">
-                  <Minimap
-                    hubs={hubs}
-                    questions={questionsState.questions}
-                    zoom={wallZoom}
-                    pan={wallPan}
-                    onPanTo={(x, y) => setWallPan({ x, y })}
-                  />
-                </div>
-                <CommandPalette
-                  open={wallPaletteOpen}
-                  onClose={() => setWallPaletteOpen(false)}
-                  onPanTo={handleWallPanToNode}
-                  hubs={hubs}
-                  questions={questionsState.questions}
-                  findings={findingsState.findings}
-                />
+                {/* Minimap + CommandPalette are desktop-only. WallCanvas
+                    self-gates to MobileCardList below 768px, so these
+                    sibling controls would overlap the mobile list. */}
+                {!wallIsMobile && (
+                  <>
+                    <div className="absolute bottom-4 right-4 pointer-events-auto">
+                      <Minimap
+                        hubs={hubs}
+                        questions={questionsState.questions}
+                        zoom={wallZoom}
+                        pan={wallPan}
+                        onPanTo={(x, y) => setWallPan({ x, y })}
+                      />
+                    </div>
+                    <CommandPalette
+                      open={wallPaletteOpen}
+                      onClose={() => setWallPaletteOpen(false)}
+                      onPanTo={handleWallPanToNode}
+                      hubs={hubs}
+                      questions={questionsState.questions}
+                      findings={findingsState.findings}
+                    />
+                  </>
+                )}
               </div>
             ) : (
               <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">

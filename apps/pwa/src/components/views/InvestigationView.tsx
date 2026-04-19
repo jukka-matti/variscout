@@ -34,6 +34,7 @@ import {
   CANVAS_W,
   CANVAS_H,
   useWallKeyboard,
+  useWallIsMobile,
 } from '@variscout/charts';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import {
@@ -127,10 +128,13 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'tree'>('board');
 
   // Phase 13 — ⌘K command palette trigger. Only active when Wall is visible.
+  // Phase 14.1 — Minimap + palette gate on desktop only; MobileCardList
+  // takes over below 768px and overlay controls would collide with it.
+  const wallIsMobile = useWallIsMobile();
   const [paletteOpen, setPaletteOpen] = useState(false);
   useWallKeyboard({
     onSearch: () => {
-      if (wallViewMode === 'wall') setPaletteOpen(true);
+      if (wallViewMode === 'wall' && !wallIsMobile) setPaletteOpen(true);
     },
   });
 
@@ -317,23 +321,29 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
                 pan={wallPan}
                 groupByTributary={wallGroupByTributary}
               />
-              <div className="absolute bottom-4 right-4 pointer-events-auto">
-                <Minimap
-                  hubs={hubs}
-                  questions={wallQuestions}
-                  zoom={wallZoom}
-                  pan={wallPan}
-                  onPanTo={(x, y) => setWallPan({ x, y })}
-                />
-              </div>
-              <CommandPalette
-                open={paletteOpen}
-                onClose={() => setPaletteOpen(false)}
-                onPanTo={handlePanToNode}
-                hubs={hubs}
-                questions={wallQuestions}
-                findings={wallFindings}
-              />
+              {/* Minimap + CommandPalette are desktop-only. WallCanvas
+                  self-gates to MobileCardList below 768px. */}
+              {!wallIsMobile && (
+                <>
+                  <div className="absolute bottom-4 right-4 pointer-events-auto">
+                    <Minimap
+                      hubs={hubs}
+                      questions={wallQuestions}
+                      zoom={wallZoom}
+                      pan={wallPan}
+                      onPanTo={(x, y) => setWallPan({ x, y })}
+                    />
+                  </div>
+                  <CommandPalette
+                    open={paletteOpen}
+                    onClose={() => setPaletteOpen(false)}
+                    onPanTo={handlePanToNode}
+                    hubs={hubs}
+                    questions={wallQuestions}
+                    findings={wallFindings}
+                  />
+                </>
+              )}
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">
