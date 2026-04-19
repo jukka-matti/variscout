@@ -118,9 +118,11 @@ export const useWallLayoutStore = create<WallLayoutState & WallLayoutActions>()(
 // Expose getInitialState for test resets using the named-function pattern
 // established by sessionStore (getSessionInitialState) and compatible with
 // the Zustand store API attachment expected in wallLayoutStore tests.
-(
-  useWallLayoutStore as typeof useWallLayoutStore & { getInitialState: () => WallLayoutState }
-).getInitialState = getWallLayoutInitialState;
+// Double-cast via `unknown` avoids a type collision with Zustand's built-in
+// getInitialState (which returns state + actions) — here we intentionally
+// narrow to the bare WallLayoutState for test-reset semantics.
+(useWallLayoutStore as unknown as { getInitialState: () => WallLayoutState }).getInitialState =
+  getWallLayoutInitialState;
 
 // ── Dexie persistence ────────────────────────────────────────────────────────
 

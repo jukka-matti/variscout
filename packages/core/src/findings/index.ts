@@ -27,5 +27,9 @@ export type {
   FindingSourceColumnHints,
 } from './hypothesisCondition';
 export { deriveConditionFromFindingSource } from './hypothesisCondition';
-export type { DataRow, AndCheckResult } from './hypothesisConditionEvaluator';
+export type { AndCheckResult } from './hypothesisConditionEvaluator';
 export { evaluateCondition, runAndCheck } from './hypothesisConditionEvaluator';
+// Note: DataRow is the canonical foundational type from `../types` — not re-exported
+// from this sub-path to avoid a duplicate identifier at the root barrel. The evaluator
+// accepts `Record<string, unknown>`-compatible rows; consumers get the canonical DataRow
+// via `@variscout/core` root or `@variscout/core/types` directly.

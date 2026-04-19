@@ -560,10 +560,18 @@ export type {
   SuspectedCauseEvidence,
   // Investigation Wall — contribution tree
   GateNode,
-  // HypothesisCondition evaluator
-  DataRow,
+  // HypothesisCondition evaluator (DataRow is re-exported via line 7 from './types')
   AndCheckResult,
 } from './findings';
+
+// FRAME ProcessMap types (surface at root for UI consumers)
+export type {
+  ProcessMap,
+  ProcessMapNode,
+  ProcessMapTributary,
+  ProcessMapHunch,
+  TributaryRole,
+} from './frame';
 export {
   DEFAULT_RISK_AXIS_CONFIG,
   computeRiskLevel,
