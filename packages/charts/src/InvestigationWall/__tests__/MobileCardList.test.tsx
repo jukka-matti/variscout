@@ -55,7 +55,7 @@ describe('MobileCardList', () => {
         validationStatus: 'supports',
       } as unknown as Finding,
     ];
-    const hub = makeHub({ id: 'h-ev', findingIds: ['f1'], status: 'open' });
+    const hub = makeHub({ id: 'h-ev', findingIds: ['f1'], status: 'suspected' });
     render(<MobileCardList hubs={[hub]} findings={findings} questions={[]} />);
     expect(screen.getByTestId('wall-mobile-hub-h-ev')).toHaveAttribute('data-status', 'evidenced');
   });
