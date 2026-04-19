@@ -43,6 +43,23 @@ describe('wallLayoutStore', () => {
     useWallLayoutStore.getState().toggleRail();
     expect(useWallLayoutStore.getState().railOpen).toBe(true);
   });
+
+  it('groupByTributary defaults to false', () => {
+    expect(useWallLayoutStore.getState().groupByTributary).toBe(false);
+  });
+
+  it('setGroupByTributary toggles the flag', () => {
+    useWallLayoutStore.getState().setGroupByTributary(true);
+    expect(useWallLayoutStore.getState().groupByTributary).toBe(true);
+    useWallLayoutStore.getState().setGroupByTributary(false);
+    expect(useWallLayoutStore.getState().groupByTributary).toBe(false);
+  });
+
+  it('groupByTributary changes do NOT populate undoStack (UI-only)', () => {
+    useWallLayoutStore.getState().setGroupByTributary(true);
+    useWallLayoutStore.getState().setGroupByTributary(false);
+    expect(useWallLayoutStore.getState().undoStack.length).toBe(0);
+  });
 });
 
 describe('wallLayoutStore — positions, selection, cache', () => {
@@ -124,6 +141,17 @@ describe('wallLayoutStore persistence', () => {
     await rehydrateWallLayout('proj-abc');
     expect(useWallLayoutStore.getState().viewMode).toBe('wall');
     expect(useWallLayoutStore.getState().nodePositions['hub-1']).toEqual({ x: 123, y: 456 });
+  });
+
+  it('persists and rehydrates groupByTributary', async () => {
+    useWallLayoutStore.getState().setGroupByTributary(true);
+    await persistWallLayout('proj-group');
+
+    useWallLayoutStore.setState(useWallLayoutStore.getInitialState());
+    expect(useWallLayoutStore.getState().groupByTributary).toBe(false);
+
+    await rehydrateWallLayout('proj-group');
+    expect(useWallLayoutStore.getState().groupByTributary).toBe(true);
   });
 
   it('rehydrate with unknown projectId leaves defaults', async () => {

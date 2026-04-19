@@ -190,6 +190,57 @@ describe('WallCanvas', () => {
     expect(transformGroup?.getAttribute('transform')).toContain('scale(1)');
   });
 
+  it('wraps hubs in a tributary-group frame when groupByTributary is on', () => {
+    const hubA: SuspectedCause = { ...hub, id: 'hA', tributaryIds: ['t1'] };
+    const hubB: SuspectedCause = { ...hub, id: 'hB', tributaryIds: ['t1'] };
+    const { container } = render(
+      <WallCanvas
+        hubs={[hubA, hubB]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+        groupByTributary
+      />
+    );
+    const group = container.querySelector('[data-tributary-group="t1"]');
+    expect(group).toBeTruthy();
+    // Both hubs live inside the group frame.
+    expect(group?.querySelectorAll('[aria-label*="Hypothesis"]').length).toBe(2);
+  });
+
+  it('does not render tributary-group frame when groupByTributary is off', () => {
+    const hubA: SuspectedCause = { ...hub, id: 'hA', tributaryIds: ['t1'] };
+    const { container } = render(
+      <WallCanvas
+        hubs={[hubA]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+    expect(container.querySelector('[data-tributary-group]')).toBeNull();
+  });
+
+  it('buckets hubs without matching tributary into an unassigned group', () => {
+    const hubA: SuspectedCause = { ...hub, id: 'hA' }; // no tributaryIds
+    const { container } = render(
+      <WallCanvas
+        hubs={[hubA]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+        groupByTributary
+      />
+    );
+    expect(container.querySelector('[data-tributary-group="unassigned"]')).toBeTruthy();
+  });
+
   it('applies provided zoom + pan to the viewport transform', () => {
     const { container } = render(
       <WallCanvas
