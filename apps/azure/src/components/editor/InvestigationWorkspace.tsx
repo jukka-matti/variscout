@@ -141,6 +141,11 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   // Map/Wall sub-toggle (within the Evidence Map view)
   const wallViewMode = useWallLayoutStore(s => s.viewMode);
   const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
+  // Phase 13 scale features — threaded into WallCanvas so zoom, pan, and
+  // tributary clustering route through the existing store + persistence.
+  const wallZoom = useWallLayoutStore(s => s.zoom);
+  const wallPan = useWallLayoutStore(s => s.pan);
+  const wallGroupByTributary = useWallLayoutStore(s => s.groupByTributary);
   // Columns present in the active dataset — powers WallCanvas missing-column
   // badge for hubs whose condition references a renamed or dropped column.
   // Undefined when no rows are loaded so the badge stays suppressed (rather
@@ -686,6 +691,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 problemCpk={0}
                 eventsPerWeek={0}
                 activeColumns={wallActiveColumns}
+                zoom={wallZoom}
+                pan={wallPan}
+                groupByTributary={wallGroupByTributary}
               />
             ) : (
               <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">

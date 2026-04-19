@@ -90,4 +90,52 @@ describe('HypothesisCard', () => {
     expect(screen.getByLabelText(/evidence gap/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/references missing column/i)).toBeInTheDocument();
   });
+
+  // ── Level-of-detail rendering (Phase 13.1) ────────────────────────────────
+  describe('LOD at low zoom', () => {
+    it('renders glyph-only when zoomScale < 0.3', () => {
+      const { container } = render(
+        <svg>
+          <HypothesisCard hub={hub} displayStatus="evidenced" x={0} y={0} zoomScale={0.2} />
+        </svg>
+      );
+      // Glyph marker is present...
+      expect(container.querySelector('[data-wall-lod="glyph"]')).toBeTruthy();
+      // ...but the hub name and findings label are not.
+      expect(screen.queryByText(/Nozzle runs hot on night shift/)).toBeNull();
+      expect(screen.queryByText(/3 findings/)).toBeNull();
+    });
+
+    it('renders glyph + hub name (no findings/chart) when zoomScale < 0.6', () => {
+      const { container } = render(
+        <svg>
+          <HypothesisCard hub={hub} displayStatus="confirmed" x={0} y={0} zoomScale={0.5} />
+        </svg>
+      );
+      expect(container.querySelector('[data-wall-lod="medium"]')).toBeTruthy();
+      expect(screen.getByText(/Nozzle runs hot on night shift/)).toBeInTheDocument();
+      // Findings count hidden at medium LOD.
+      expect(screen.queryByText(/3 findings/)).toBeNull();
+    });
+
+    it('renders full card when zoomScale >= 0.6', () => {
+      render(
+        <svg>
+          <HypothesisCard hub={hub} displayStatus="confirmed" x={0} y={0} zoomScale={0.8} />
+        </svg>
+      );
+      expect(screen.getByText(/Nozzle runs hot on night shift/)).toBeInTheDocument();
+      expect(screen.getByText(/3 findings/)).toBeInTheDocument();
+    });
+
+    it('renders full card when zoomScale is undefined (no LOD)', () => {
+      render(
+        <svg>
+          <HypothesisCard hub={hub} displayStatus="confirmed" x={0} y={0} />
+        </svg>
+      );
+      expect(screen.getByText(/Nozzle runs hot on night shift/)).toBeInTheDocument();
+      expect(screen.getByText(/3 findings/)).toBeInTheDocument();
+    });
+  });
 });

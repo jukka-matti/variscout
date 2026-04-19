@@ -52,6 +52,12 @@ export interface WallLayoutState {
   zoom: number;
   pan: { x: number; y: number };
   railOpen: boolean;
+  /**
+   * When true, the Wall arranges hubs into per-tributary clusters. UI-only
+   * view preference — does not participate in undo history. Persisted per
+   * project so the choice survives reload.
+   */
+  groupByTributary: boolean;
   andCheckResults: Record<GateNodePath, AndCheckSnapshot>;
   pendingComments: PendingComment[];
   /**
@@ -82,6 +88,7 @@ export interface WallLayoutActions {
   setPan: (pan: { x: number; y: number }) => void;
   toggleRail: () => void;
   setRailOpen: (open: boolean) => void;
+  setGroupByTributary: (on: boolean) => void;
   setAndCheckResult: (path: GateNodePath, snapshot: AndCheckSnapshot) => void;
   openChartCluster: (state: ChartClusterState) => void;
   closeChartCluster: (tributaryId: TributaryId) => void;
@@ -110,6 +117,7 @@ export const getWallLayoutInitialState = (): WallLayoutState => ({
   zoom: 1,
   pan: { x: 0, y: 0 },
   railOpen: true,
+  groupByTributary: false,
   andCheckResults: {},
   pendingComments: [],
   undoStack: [],
@@ -136,6 +144,7 @@ export const useWallLayoutStore = create<WallLayoutState & WallLayoutActions>()(
   setPan: pan => set({ pan }),
   toggleRail: () => set(s => ({ railOpen: !s.railOpen })),
   setRailOpen: railOpen => set({ railOpen }),
+  setGroupByTributary: on => set({ groupByTributary: on }),
   setAndCheckResult: (path, snapshot) =>
     set(s => ({ andCheckResults: { ...s.andCheckResults, [path]: snapshot } })),
   openChartCluster: clusterState =>
@@ -234,6 +243,11 @@ interface WallLayoutSnapshot {
   zoom: number;
   pan: { x: number; y: number };
   railOpen: boolean;
+  /**
+   * Optional for backward compat — older snapshots (pre-Phase 13) won't carry
+   * this field, and rehydrate treats missing as `false` (initial default).
+   */
+  groupByTributary?: boolean;
   updatedAt: number;
 }
 
@@ -275,6 +289,7 @@ export async function persistWallLayout(projectId: string): Promise<void> {
     zoom: s.zoom,
     pan: s.pan,
     railOpen: s.railOpen,
+    groupByTributary: s.groupByTributary,
     updatedAt: Date.now(),
   });
 }
@@ -288,5 +303,6 @@ export async function rehydrateWallLayout(projectId: string): Promise<void> {
     zoom: snapshot.zoom,
     pan: snapshot.pan,
     railOpen: snapshot.railOpen,
+    groupByTributary: snapshot.groupByTributary ?? false,
   });
 }
