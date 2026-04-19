@@ -10,9 +10,11 @@
  */
 
 import React from 'react';
-import type { SuspectedCause } from '@variscout/core';
+import type { MessageCatalog, SuspectedCause } from '@variscout/core';
+import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '../colors';
 import type { WallStatus } from './types';
+import { getDocumentLocale } from './hooks/useWallLocale';
 
 export interface HypothesisCardProps {
   hub: SuspectedCause;
@@ -33,11 +35,11 @@ export interface HypothesisCardProps {
 const CARD_W = 280;
 const CARD_H = 180;
 
-const STATUS_LABEL: Record<WallStatus, string> = {
-  proposed: 'Proposed',
-  evidenced: 'Evidenced',
-  confirmed: 'Confirmed',
-  refuted: 'Refuted',
+const STATUS_KEY: Record<WallStatus, keyof MessageCatalog> = {
+  proposed: 'wall.status.proposed',
+  evidenced: 'wall.status.evidenced',
+  confirmed: 'wall.status.confirmed',
+  refuted: 'wall.status.refuted',
 };
 
 /** Status-specific border colors sourced from chartColors — no hardcoded hex. */
@@ -58,8 +60,20 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
   onSelect,
   onContextMenu,
 }) => {
-  const statusLabel = STATUS_LABEL[displayStatus];
-  const label = `Hypothesis ${hub.name}, ${statusLabel}, ${hub.findingIds.length} findings`;
+  const locale = getDocumentLocale();
+  const statusLabel = getMessage(locale, STATUS_KEY[displayStatus]);
+  const hypothesisLabel = getMessage(locale, 'wall.card.hypothesisLabel');
+  const findingsLabel = formatMessage(locale, 'wall.card.findings', {
+    count: hub.findingIds.length,
+  });
+  const label = formatMessage(locale, 'wall.card.ariaLabel', {
+    name: hub.name,
+    status: statusLabel,
+    count: hub.findingIds.length,
+  });
+  const missingColumnText = getMessage(locale, 'wall.card.missingColumn');
+  const missingColumnAria = getMessage(locale, 'wall.card.missingColumnAria');
+  const evidenceGapAria = getMessage(locale, 'wall.card.evidenceGap');
 
   return (
     <g
@@ -94,7 +108,7 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
         y={24}
         className="fill-content-subtle text-[10px] uppercase tracking-wide font-mono"
       >
-        Hypothesis · {statusLabel}
+        {hypothesisLabel} · {statusLabel}
       </text>
       <text x={16} y={48} className="fill-content font-semibold text-sm">
         {hub.name}
@@ -102,10 +116,10 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
       {/* Mini-chart slot — integration hook for later tasks */}
       <rect x={16} y={64} width={CARD_W - 32} height={72} rx={4} className="fill-surface" />
       <text x={16} y={CARD_H - 16} className="fill-content-muted text-xs font-mono">
-        {hub.findingIds.length} findings
+        {findingsLabel}
       </text>
       {hasGap && (
-        <g aria-label="Evidence gap">
+        <g aria-label={evidenceGapAria}>
           <circle cx={CARD_W - 24} cy={24} r={10} fill={chartColors.warning} />
           <text
             x={CARD_W - 24}
@@ -118,7 +132,7 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
         </g>
       )}
       {missingColumn && (
-        <g aria-label="Condition references missing column">
+        <g aria-label={missingColumnAria}>
           <rect
             x={CARD_W - 196}
             y={CARD_H - 28}
@@ -136,7 +150,7 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
             className="text-[10px] font-medium pointer-events-none"
             fill={chartColors.warning}
           >
-            ⚠ Condition references missing column
+            {missingColumnText}
           </text>
         </g>
       )}

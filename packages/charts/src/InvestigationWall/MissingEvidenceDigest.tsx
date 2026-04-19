@@ -7,6 +7,8 @@
  */
 
 import React, { useState } from 'react';
+import { getMessage } from '@variscout/core/i18n';
+import { getDocumentLocale } from './hooks/useWallLocale';
 
 export interface MissingEvidenceGap {
   id: string;
@@ -24,18 +26,25 @@ export const MissingEvidenceDigest: React.FC<MissingEvidenceDigestProps> = ({
   onFocusHub,
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const locale = getDocumentLocale();
 
   if (gaps.length === 0) return null;
 
+  const title = getMessage(locale, 'wall.missing.title');
   return (
-    <section aria-label="Missing evidence digest" className="border-t border-edge bg-surface p-3">
+    <section
+      aria-label={getMessage(locale, 'wall.missing.ariaLabel')}
+      className="border-t border-edge bg-surface p-3"
+    >
       <button
         type="button"
         onClick={() => setExpanded(e => !e)}
         className="flex items-center justify-between w-full text-xs uppercase tracking-wide font-mono text-warning"
         aria-expanded={expanded}
       >
-        <span>⚠ Missing evidence · the detective move nobody ships ({gaps.length})</span>
+        <span>
+          ⚠ {title} · the detective move nobody ships ({gaps.length})
+        </span>
         <span aria-hidden>{expanded ? '▾' : '▸'}</span>
       </button>
       {expanded && (

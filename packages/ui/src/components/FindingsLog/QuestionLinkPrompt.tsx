@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Link2, Lightbulb } from 'lucide-react';
+import type { Locale } from '@variscout/core';
+import { LOCALES, getMessage } from '@variscout/core/i18n';
 import { useIsMobile } from '../../hooks';
+
+function getDocumentLocale(): Locale {
+  if (typeof document === 'undefined') return 'en';
+  const locale = document.documentElement.getAttribute('data-locale');
+  if (locale && (LOCALES as readonly string[]).includes(locale)) {
+    return locale as Locale;
+  }
+  return 'en';
+}
 
 export interface QuestionLinkPromptProps {
   /** Whether the prompt is open. */
@@ -178,7 +189,7 @@ const QuestionLinkPromptInner: React.FC<QuestionLinkPromptInnerProps> = ({
           className="flex items-center gap-2 w-full text-left text-xs px-3 py-2 rounded border border-edge bg-surface hover:bg-surface-tertiary hover:border-amber-500/50 text-content transition-colors"
         >
           <Lightbulb size={14} className="text-amber-400 flex-shrink-0" aria-hidden="true" />
-          <span>Propose new hypothesis from this finding</span>
+          <span>{getMessage(getDocumentLocale(), 'wall.cta.proposeHypothesis')}</span>
         </button>
       )}
 

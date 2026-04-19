@@ -10,6 +10,8 @@
 
 import React from 'react';
 import type { QuestionStatus } from '@variscout/core';
+import { formatMessage } from '@variscout/core/i18n';
+import { getDocumentLocale } from './hooks/useWallLocale';
 
 export interface QuestionPillProps {
   questionId: string;
@@ -33,11 +35,13 @@ export const QuestionPill: React.FC<QuestionPillProps> = ({
   onSelect,
   onPromote,
 }) => {
+  const locale = getDocumentLocale();
+  const ariaLabel = formatMessage(locale, 'wall.question.ariaLabel', { text, status });
   return (
     <g
       role="button"
       tabIndex={0}
-      aria-label={`Question: ${text}, ${status}`}
+      aria-label={ariaLabel}
       transform={`translate(${x - PILL_W / 2}, ${y})`}
       onClick={() => onSelect?.(questionId)}
       onContextMenu={e => {
