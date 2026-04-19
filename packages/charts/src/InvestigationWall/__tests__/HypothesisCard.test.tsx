@@ -62,4 +62,32 @@ describe('HypothesisCard', () => {
     );
     expect(container.querySelector('[data-status="refuted"]')).toBeTruthy();
   });
+
+  it('does not render missing-column badge by default', () => {
+    render(
+      <svg>
+        <HypothesisCard hub={hub} displayStatus="evidenced" x={0} y={0} />
+      </svg>
+    );
+    expect(screen.queryByLabelText(/references missing column/i)).toBeNull();
+  });
+
+  it('renders missing-column badge when missingColumn prop is true', () => {
+    render(
+      <svg>
+        <HypothesisCard hub={hub} displayStatus="evidenced" x={0} y={0} missingColumn />
+      </svg>
+    );
+    expect(screen.getByLabelText(/references missing column/i)).toBeInTheDocument();
+  });
+
+  it('missing-column badge is distinct from evidence-gap badge', () => {
+    render(
+      <svg>
+        <HypothesisCard hub={hub} displayStatus="evidenced" x={0} y={0} hasGap missingColumn />
+      </svg>
+    );
+    expect(screen.getByLabelText(/evidence gap/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/references missing column/i)).toBeInTheDocument();
+  });
 });

@@ -26,7 +26,11 @@ export type {
   HypothesisCondition,
   FindingSourceColumnHints,
 } from './hypothesisCondition';
-export { deriveConditionFromFindingSource } from './hypothesisCondition';
+export {
+  collectReferencedColumns,
+  conditionHasMissingColumn,
+  deriveConditionFromFindingSource,
+} from './hypothesisCondition';
 export type { AndCheckResult } from './hypothesisConditionEvaluator';
 export { evaluateCondition, runAndCheck } from './hypothesisConditionEvaluator';
 // Note: DataRow is the canonical foundational type from `../types` — not re-exported

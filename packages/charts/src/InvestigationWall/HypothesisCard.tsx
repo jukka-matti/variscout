@@ -20,6 +20,12 @@ export interface HypothesisCardProps {
   x: number;
   y: number;
   hasGap?: boolean;
+  /**
+   * When true, this hub's condition references a data column that no longer exists
+   * (renamed, dropped, or the active dataset shifted). AND-check still correctly
+   * returns false for such hubs — this badge surfaces the reason to the analyst.
+   */
+  missingColumn?: boolean;
   onSelect?: (hubId: string) => void;
   onContextMenu?: (hubId: string, event: React.MouseEvent) => void;
 }
@@ -48,6 +54,7 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
   x,
   y,
   hasGap,
+  missingColumn,
   onSelect,
   onContextMenu,
 }) => {
@@ -107,6 +114,29 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
             className="fill-content text-xs font-bold pointer-events-none"
           >
             !
+          </text>
+        </g>
+      )}
+      {missingColumn && (
+        <g aria-label="Condition references missing column">
+          <rect
+            x={CARD_W - 196}
+            y={CARD_H - 28}
+            width={180}
+            height={20}
+            rx={4}
+            fill={chartColors.warning}
+            opacity={0.15}
+            stroke={chartColors.warning}
+            strokeWidth={1}
+          />
+          <text
+            x={CARD_W - 188}
+            y={CARD_H - 14}
+            className="text-[10px] font-medium pointer-events-none"
+            fill={chartColors.warning}
+          >
+            ⚠ Condition references missing column
           </text>
         </g>
       )}

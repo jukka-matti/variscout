@@ -66,4 +66,78 @@ describe('WallCanvas', () => {
     );
     expect(screen.getByText(/SHIFT/)).toBeInTheDocument();
   });
+
+  it('flags missing-column when hub condition references a column not in activeColumns', () => {
+    const hubWithCondition: SuspectedCause = {
+      ...hub,
+      id: 'h-missing',
+      condition: {
+        kind: 'leaf',
+        column: 'DROPPED_COLUMN',
+        op: 'eq',
+        value: 'x',
+      },
+    };
+    render(
+      <WallCanvas
+        hubs={[hubWithCondition]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0}
+        eventsPerWeek={0}
+        activeColumns={['SHIFT', 'NOZZLE.TEMP']}
+      />
+    );
+    expect(screen.getByLabelText(/references missing column/i)).toBeInTheDocument();
+  });
+
+  it('does not flag missing-column when all referenced columns are present', () => {
+    const hubWithCondition: SuspectedCause = {
+      ...hub,
+      id: 'h-ok',
+      condition: {
+        kind: 'leaf',
+        column: 'SHIFT',
+        op: 'eq',
+        value: 'night',
+      },
+    };
+    render(
+      <WallCanvas
+        hubs={[hubWithCondition]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0}
+        eventsPerWeek={0}
+        activeColumns={['SHIFT', 'NOZZLE.TEMP']}
+      />
+    );
+    expect(screen.queryByLabelText(/references missing column/i)).toBeNull();
+  });
+
+  it('does not flag missing-column when activeColumns is not provided', () => {
+    const hubWithCondition: SuspectedCause = {
+      ...hub,
+      id: 'h-unknown',
+      condition: {
+        kind: 'leaf',
+        column: 'ANY_COLUMN',
+        op: 'eq',
+        value: 'x',
+      },
+    };
+    render(
+      <WallCanvas
+        hubs={[hubWithCondition]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0}
+        eventsPerWeek={0}
+      />
+    );
+    expect(screen.queryByLabelText(/references missing column/i)).toBeNull();
+  });
 });
