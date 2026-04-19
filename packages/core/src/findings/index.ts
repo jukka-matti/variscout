@@ -27,3 +27,5 @@ export type {
   FindingSourceColumnHints,
 } from './hypothesisCondition';
 export { deriveConditionFromFindingSource } from './hypothesisCondition';
+export type { DataRow, AndCheckResult } from './hypothesisConditionEvaluator';
+export { evaluateCondition, runAndCheck } from './hypothesisConditionEvaluator';

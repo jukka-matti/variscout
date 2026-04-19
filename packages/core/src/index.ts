@@ -556,6 +556,9 @@ export type {
   SuspectedCauseEvidence,
   // Investigation Wall — contribution tree
   GateNode,
+  // HypothesisCondition evaluator
+  DataRow,
+  AndCheckResult,
 } from './findings';
 export {
   DEFAULT_RISK_AXIS_CONFIG,
@@ -582,6 +585,9 @@ export {
   createInvestigationCategory,
   createSuspectedCause,
   createCausalLink,
+  // HypothesisCondition evaluator
+  evaluateCondition,
+  runAndCheck,
 } from './findings';
 export type { FactorFindingInput, FactorFindingBundle } from './findings';
 export {
