@@ -174,6 +174,10 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
               missingColumn: columnSet
                 ? conditionHasMissingColumn(hub.condition, columnSet)
                 : false,
+              // Thread zoom as zoomScale so HypothesisCard can pick an LOD
+              // tier. Pass only when zoom is non-default — undefined zoomScale
+              // keeps the full-detail render path (pre-Phase 13 behavior).
+              zoomScale: zoom !== 1 ? zoom : undefined,
               onSelect: onSelectHub,
             };
             return dndEnabled ? (
