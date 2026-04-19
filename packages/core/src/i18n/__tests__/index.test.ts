@@ -194,6 +194,14 @@ describe('Investigation Wall keys', () => {
     'wall.missing.title',
     'wall.canvas.ariaLabel',
     'wall.cta.proposeHypothesis',
+    // Phase 13 scale features
+    'wall.toolbar.groupByTributary',
+    'wall.toolbar.zoomIn',
+    'wall.toolbar.zoomOut',
+    'wall.toolbar.resetView',
+    'wall.palette.placeholder',
+    'wall.palette.empty',
+    'wall.minimap.ariaLabel',
   ] as const;
 
   it('has English values for all wall keys', () => {
@@ -204,6 +212,9 @@ describe('Investigation Wall keys', () => {
     expect(getMessage('en', 'wall.cta.proposeHypothesis')).toBe(
       'Propose new hypothesis from this finding'
     );
+    expect(getMessage('en', 'wall.toolbar.groupByTributary')).toBe('Group by tributary');
+    expect(getMessage('en', 'wall.palette.placeholder')).toBe('Search hubs, questions, findings…');
+    expect(getMessage('en', 'wall.minimap.ariaLabel')).toBe('Investigation Wall minimap');
   });
 
   it('every locale defines every wall.* key with a non-empty value', () => {
@@ -227,9 +238,7 @@ describe('Investigation Wall keys', () => {
   });
 
   it('interpolates gate.holds and problem.ariaLabel', () => {
-    expect(formatMessage('en', 'wall.gate.holds', { matching: 38, total: 42 })).toBe(
-      'HOLDS 38/42'
-    );
+    expect(formatMessage('en', 'wall.gate.holds', { matching: 38, total: 42 })).toBe('HOLDS 38/42');
     expect(
       formatMessage('en', 'wall.problem.ariaLabel', {
         column: 'FILL',
