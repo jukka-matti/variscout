@@ -991,4 +991,43 @@ export interface MessageCatalog {
   // Upgrade (additional)
   'upgrade.freeTierLimitation': string;
   'upgrade.fromPrice': string;
+
+  // Investigation Wall
+  'wall.status.proposed': string;
+  'wall.status.evidenced': string;
+  'wall.status.confirmed': string;
+  'wall.status.refuted': string;
+  'wall.card.hypothesisLabel': string;
+  'wall.card.findings': string;
+  'wall.card.evidenceGap': string;
+  'wall.card.missingColumn': string;
+  'wall.card.missingColumnAria': string;
+  'wall.card.ariaLabel': string;
+  'wall.problem.title': string;
+  'wall.problem.eventsPerWeek': string;
+  'wall.problem.ariaLabel': string;
+  'wall.gate.and': string;
+  'wall.gate.or': string;
+  'wall.gate.not': string;
+  'wall.gate.holds': string;
+  'wall.gate.noTotals': string;
+  'wall.gate.ariaLabel': string;
+  'wall.question.ariaLabel': string;
+  'wall.tributary.ariaLabel': string;
+  'wall.empty.ariaLabel': string;
+  'wall.empty.title': string;
+  'wall.empty.subtitle': string;
+  'wall.empty.writeHypothesis': string;
+  'wall.empty.promoteFromQuestion': string;
+  'wall.empty.seedFromFactorIntel': string;
+  'wall.rail.title': string;
+  'wall.rail.openAria': string;
+  'wall.rail.closeAria': string;
+  'wall.rail.rootAria': string;
+  'wall.rail.openButton': string;
+  'wall.rail.empty': string;
+  'wall.missing.ariaLabel': string;
+  'wall.missing.title': string;
+  'wall.canvas.ariaLabel': string;
+  'wall.cta.proposeHypothesis': string;
 }
