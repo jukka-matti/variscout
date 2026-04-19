@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { useInvestigationStore, getInvestigationInitialState } from '../investigationStore';
+import { useProjectStore, getProjectInitialState } from '../projectStore';
+import { useWallLayoutStore, getWallLayoutInitialState } from '../wallLayoutStore';
 import type {
   FindingContext,
   FindingOutcome,
@@ -590,6 +592,116 @@ describe('investigationStore — suspected cause hubs', () => {
     ];
     useInvestigationStore.getState().resetHubs(newHubs);
     expect(useInvestigationStore.getState().suspectedCauses).toEqual(newHubs);
+  });
+});
+
+// ============================================================================
+// addHubComment — optimistic + SSE queue fallback
+// ============================================================================
+
+describe('investigationStore — addHubComment', () => {
+  const mockFetch = vi.fn();
+
+  beforeEach(() => {
+    useProjectStore.setState(getProjectInitialState());
+    useWallLayoutStore.setState(getWallLayoutInitialState());
+    mockFetch.mockReset();
+    vi.stubGlobal('fetch', mockFetch);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('optimistically appends the comment to the hub before the fetch resolves', async () => {
+    useProjectStore.setState({ projectId: 'proj-1' });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ ok: true }) });
+
+    const hub = useInvestigationStore.getState().createHub('Nozzle wear', 'Night shift');
+
+    const pending = useInvestigationStore.getState().addHubComment(hub.id, 'First thought', 'Jane');
+
+    // Comment is visible synchronously on the hub — optimistic update landed
+    // before the promise resolves.
+    const liveHub = useInvestigationStore.getState().suspectedCauses[0];
+    expect(liveHub.comments).toHaveLength(1);
+    expect(liveHub.comments?.[0]?.text).toBe('First thought');
+    expect(liveHub.comments?.[0]?.author).toBe('Jane');
+
+    await pending;
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/hub-comments/append',
+      expect.objectContaining({ method: 'POST' })
+    );
+  });
+
+  it('sends the same id used in the optimistic update (server dedupes by id)', async () => {
+    useProjectStore.setState({ projectId: 'proj-id-echo' });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ ok: true }) });
+    const hub = useInvestigationStore.getState().createHub('Hub', 'Synth');
+
+    const comment = await useInvestigationStore.getState().addHubComment(hub.id, 'hi');
+
+    const callArgs = mockFetch.mock.calls[0];
+    const body = JSON.parse(callArgs[1].body) as { id: string; text: string };
+    expect(body.id).toBe(comment.id);
+    expect(body.text).toBe('hi');
+  });
+
+  it('queues to wallLayoutStore.pendingComments when the server returns !ok', async () => {
+    useProjectStore.setState({ projectId: 'proj-fail' });
+    mockFetch.mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({}) });
+
+    const hub = useInvestigationStore.getState().createHub('Hub', 'Synth');
+    await useInvestigationStore.getState().addHubComment(hub.id, 'queued text', 'Alex');
+
+    const pending = useWallLayoutStore.getState().pendingComments;
+    expect(pending).toHaveLength(1);
+    expect(pending[0].scope).toBe('hub');
+    expect(pending[0].targetId).toBe(hub.id);
+    expect(pending[0].text).toBe('queued text');
+    expect(pending[0].author).toBe('Alex');
+  });
+
+  it('queues when fetch rejects (network error)', async () => {
+    useProjectStore.setState({ projectId: 'proj-throw' });
+    mockFetch.mockRejectedValueOnce(new Error('offline'));
+
+    const hub = useInvestigationStore.getState().createHub('Hub', 'Synth');
+    await useInvestigationStore.getState().addHubComment(hub.id, 'offline text');
+
+    const pending = useWallLayoutStore.getState().pendingComments;
+    expect(pending).toHaveLength(1);
+    expect(pending[0].text).toBe('offline text');
+  });
+
+  it('skips the network when no project is active (PWA-local mode)', async () => {
+    // projectId stays null after beforeEach reset
+    const hub = useInvestigationStore.getState().createHub('Hub', 'Synth');
+
+    await useInvestigationStore.getState().addHubComment(hub.id, 'local only');
+
+    expect(mockFetch).not.toHaveBeenCalled();
+    // Still optimistically appended locally.
+    const liveHub = useInvestigationStore.getState().suspectedCauses[0];
+    expect(liveHub.comments).toHaveLength(1);
+  });
+
+  it('drain queue retrieves and clears all pending comments for retry', async () => {
+    useProjectStore.setState({ projectId: 'proj-drain' });
+    // Two failing posts fill the queue.
+    mockFetch
+      .mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({}) })
+      .mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({}) });
+
+    const hub = useInvestigationStore.getState().createHub('Hub', 'Synth');
+    await useInvestigationStore.getState().addHubComment(hub.id, 'first');
+    await useInvestigationStore.getState().addHubComment(hub.id, 'second');
+
+    expect(useWallLayoutStore.getState().pendingComments).toHaveLength(2);
+    const drained = useWallLayoutStore.getState().drainPendingComments();
+    expect(drained).toHaveLength(2);
+    expect(useWallLayoutStore.getState().pendingComments).toHaveLength(0);
   });
 });
 
