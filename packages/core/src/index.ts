@@ -613,7 +613,13 @@ export {
   // HypothesisCondition column inspection
   collectReferencedColumns,
   conditionHasMissingColumn,
+  // GateNode path-based tree ops (Investigation Wall contribution tree)
+  getAt,
+  updateAt,
+  insertHubAsAndChild,
+  removeAt,
 } from './findings';
+export type { GatePath } from './findings';
 export type { FactorFindingInput, FactorFindingBundle } from './findings';
 export {
   getCategoryForFactor,
