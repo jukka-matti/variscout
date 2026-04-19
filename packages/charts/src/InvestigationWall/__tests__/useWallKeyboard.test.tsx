@@ -35,4 +35,54 @@ describe('useWallKeyboard', () => {
     expect(onNewHypothesis).not.toHaveBeenCalled();
     input.remove();
   });
+
+  // ── Undo / redo bindings (Phase 7.3) ──────────────────────────────────────
+
+  it('calls onUndo for cmd+z', () => {
+    const onUndo = vi.fn();
+    const onRedo = vi.fn();
+    renderHook(() => useWallKeyboard({ onUndo, onRedo }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true }));
+    expect(onUndo).toHaveBeenCalledTimes(1);
+    expect(onRedo).not.toHaveBeenCalled();
+  });
+
+  it('calls onUndo for ctrl+z (Windows)', () => {
+    const onUndo = vi.fn();
+    renderHook(() => useWallKeyboard({ onUndo }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true }));
+    expect(onUndo).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onRedo for cmd+shift+z', () => {
+    const onUndo = vi.fn();
+    const onRedo = vi.fn();
+    renderHook(() => useWallKeyboard({ onUndo, onRedo }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, shiftKey: true }));
+    expect(onRedo).toHaveBeenCalledTimes(1);
+    expect(onUndo).not.toHaveBeenCalled();
+  });
+
+  it('calls onRedo for cmd+y (Windows-style redo)', () => {
+    const onUndo = vi.fn();
+    const onRedo = vi.fn();
+    renderHook(() => useWallKeyboard({ onUndo, onRedo }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'y', metaKey: true }));
+    expect(onRedo).toHaveBeenCalledTimes(1);
+    expect(onUndo).not.toHaveBeenCalled();
+  });
+
+  it('does not fire undo/redo while typing in an input', () => {
+    const onUndo = vi.fn();
+    const onRedo = vi.fn();
+    renderHook(() => useWallKeyboard({ onUndo, onRedo }));
+    const input = document.createElement('input');
+    document.body.appendChild(input);
+    input.focus();
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'y', metaKey: true, bubbles: true }));
+    expect(onUndo).not.toHaveBeenCalled();
+    expect(onRedo).not.toHaveBeenCalled();
+    input.remove();
+  });
 });
