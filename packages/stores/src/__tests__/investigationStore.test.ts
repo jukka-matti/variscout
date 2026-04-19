@@ -5,6 +5,7 @@ import type {
   FindingOutcome,
   SuspectedCause,
   InvestigationCategory,
+  GateNode,
 } from '@variscout/core';
 
 // ============================================================================
@@ -823,5 +824,52 @@ describe('investigationStore — causalLink cascade behavior', () => {
 
     useInvestigationStore.getState().deleteHub(hub.id);
     expect(useInvestigationStore.getState().causalLinks[0].hubId).toBeUndefined();
+  });
+});
+
+// ============================================================================
+// problemContributionTree tests
+// ============================================================================
+
+describe('problemContributionTree', () => {
+  beforeEach(() => {
+    useInvestigationStore.setState(getInvestigationInitialState());
+  });
+
+  it('defaults to undefined', () => {
+    expect(useInvestigationStore.getState().problemContributionTree).toBeUndefined();
+  });
+
+  it('can be set to a gate tree with hub leaves', () => {
+    const tree: GateNode = {
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    };
+    useInvestigationStore.getState().setProblemContributionTree(tree);
+    expect(useInvestigationStore.getState().problemContributionTree).toEqual(tree);
+  });
+
+  it('can be cleared by setting undefined', () => {
+    useInvestigationStore.getState().setProblemContributionTree({ kind: 'hub', hubId: 'h1' });
+    useInvestigationStore.getState().setProblemContributionTree(undefined);
+    expect(useInvestigationStore.getState().problemContributionTree).toBeUndefined();
+  });
+
+  it('survives loadInvestigationState round-trip', () => {
+    const tree: GateNode = {
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'not', child: { kind: 'hub', hubId: 'h2' } },
+      ],
+    };
+    useInvestigationStore.setState(useInvestigationStore.getInitialState());
+    useInvestigationStore.getState().loadInvestigationState({
+      problemContributionTree: tree,
+    });
+    expect(useInvestigationStore.getState().problemContributionTree).toEqual(tree);
   });
 });

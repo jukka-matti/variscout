@@ -63,7 +63,7 @@ UI code never calls `.toFixed()` on stat values. `formatStatistic()` from `@vari
 
 ## 7. AI boundary (CoScout)
 
-CoScout calls leave the browser but stay in the customer's tenant (Azure OpenAI endpoint provisioned in the customer's subscription). Prompts include investigation state (findings, hubs, causal links, evidence map topology) but **never raw data rows beyond what the user has exposed in charts**. Visual grounding markers (ADR-057) reference chart elements by ID, not data. Tool calls (25-tool registry) return structured diffs the user confirms before applying.
+CoScout calls leave the browser but stay in the customer's tenant (Azure OpenAI endpoint provisioned in the customer's subscription). Prompts include investigation state (findings, hubs, causal links, evidence map topology) but **never raw data rows beyond what the user has exposed in charts**. Visual grounding markers (ADR-057) reference chart elements by ID, not data. Tool calls (27-tool registry) return structured diffs the user confirms before applying.
 
 ## 8. Telemetry (App Insights — Azure only)
 

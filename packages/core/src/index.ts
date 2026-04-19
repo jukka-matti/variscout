@@ -493,6 +493,10 @@ export {
 export { searchProjectArtifacts } from './ai';
 export type { SearchProjectOptions, SearchResult } from './ai';
 
+// Wall investigation actions (Phase 3)
+export { proposeDisconfirmationMove, critiqueInvestigationState } from './ai/actions';
+export type { SuggestedBrush, InvestigationGap, CritiqueInput, CritiqueResult } from './ai/actions';
+
 // Category keyword matching and inference
 export {
   CATEGORY_KEYWORDS,
@@ -554,7 +558,20 @@ export type {
   ProjectionResult,
   ProjectionScenario,
   SuspectedCauseEvidence,
+  // Investigation Wall — contribution tree
+  GateNode,
+  // HypothesisCondition evaluator (DataRow is re-exported via line 7 from './types')
+  AndCheckResult,
 } from './findings';
+
+// FRAME ProcessMap types (surface at root for UI consumers)
+export type {
+  ProcessMap,
+  ProcessMapNode,
+  ProcessMapTributary,
+  ProcessMapHunch,
+  TributaryRole,
+} from './frame';
 export {
   DEFAULT_RISK_AXIS_CONFIG,
   computeRiskLevel,
@@ -580,6 +597,9 @@ export {
   createInvestigationCategory,
   createSuspectedCause,
   createCausalLink,
+  // HypothesisCondition evaluator
+  evaluateCondition,
+  runAndCheck,
 } from './findings';
 export type { FactorFindingInput, FactorFindingBundle } from './findings';
 export {

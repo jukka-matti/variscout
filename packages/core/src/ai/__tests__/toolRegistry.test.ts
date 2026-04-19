@@ -235,3 +235,35 @@ describe('getToolsForPhase', () => {
     }
   });
 });
+
+describe('Wall propose_hypothesis_from_finding tool', () => {
+  it('registers as an action tool (requires user confirmation)', () => {
+    expect(TOOL_REGISTRY.propose_hypothesis_from_finding).toBeDefined();
+    expect(TOOL_REGISTRY.propose_hypothesis_from_finding.classification).toBe('action');
+    expect(TOOL_REGISTRY.propose_hypothesis_from_finding.phases).toContain('investigate');
+  });
+
+  it('requires finding_id and hypothesis_name parameters', () => {
+    const required = TOOL_REGISTRY.propose_hypothesis_from_finding.definition.parameters.required;
+    expect(required).toContain('finding_id');
+    expect(required).toContain('hypothesis_name');
+  });
+});
+
+describe('Wall critique_investigation_state tool', () => {
+  it('registers critique_investigation_state as read tool in investigate phase', () => {
+    expect(TOOL_REGISTRY.critique_investigation_state).toBeDefined();
+    expect(TOOL_REGISTRY.critique_investigation_state.classification).toBe('read');
+    expect(TOOL_REGISTRY.critique_investigation_state.phases).toContain('investigate');
+  });
+
+  it('getToolsForPhase includes critique_investigation_state when phase is investigate', () => {
+    const tools = getToolsForPhase('investigate', 'standard');
+    expect(tools.some(t => t.name === 'critique_investigation_state')).toBe(true);
+  });
+
+  it('getToolsForPhase excludes critique_investigation_state in frame phase', () => {
+    const tools = getToolsForPhase('frame', 'standard');
+    expect(tools.some(t => t.name === 'critique_investigation_state')).toBe(false);
+  });
+});

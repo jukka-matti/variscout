@@ -49,6 +49,7 @@ import { useAppPanels } from './hooks/useAppPanels';
 import { useFindingsStore, groupFindingsByChart } from './features/findings/findingsStore';
 import { useProjectionStore } from './features/projection/projectionStore';
 import { useInvestigationOrchestration } from './features/investigation/useInvestigationOrchestration';
+import { useWallLayoutLifecycle } from './features/investigation/useWallLayoutLifecycle';
 import { useImprovementOrchestration } from './features/improvement/useImprovementOrchestration';
 import { useStatsWorker } from './workers/useStatsWorker';
 
@@ -255,6 +256,11 @@ function AppMain() {
       factorIntelQuestions.filter(q => q.status === 'open' || q.status === 'investigating').length,
     [factorIntelQuestions]
   );
+
+  // Wall layout persistence — rehydrate on project open, debounce-persist on change.
+  // projectId is null in the PWA (session-only), so this is a no-op at runtime.
+  const projectId = useProjectStore(s => s.projectId);
+  useWallLayoutLifecycle(projectId);
 
   const investigation = useInvestigationOrchestration({
     questionsState,

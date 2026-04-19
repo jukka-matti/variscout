@@ -3,6 +3,8 @@
  * questions, improvement ideas, and investigation workflow.
  */
 
+import type { HypothesisCondition } from './hypothesisCondition';
+
 // ============================================================================
 // Investigation Status Types
 // ============================================================================
@@ -647,6 +649,15 @@ export interface SuspectedCause {
   selectedForImprovement?: boolean;
   /** Status: suspected → confirmed (outcome-based) */
   status: 'suspected' | 'confirmed' | 'not-confirmed';
+  /** Predicate tree used by the Investigation Wall to evaluate HOLDS X/Y.
+   * Auto-derived from the first finding's `findingSource` on creation; analyst-editable.
+   * Absent for hubs created before Wall ships. */
+  condition?: HypothesisCondition;
+  /** Explicit ProcessMap binding. Falls back to column-matching derivation via
+   * findings' columns when absent. */
+  tributaryIds?: string[];
+  /** Timestamped hypothesis-level team discussion. Same shape as FindingComment. */
+  comments?: FindingComment[];
   /** Created timestamp */
   createdAt: string;
   /** Updated timestamp */
@@ -695,3 +706,18 @@ export const CATEGORY_COLORS = [
   '#ec4899', // pink
   '#64748b', // slate
 ] as const;
+
+// ============================================================================
+// Investigation Wall — Contribution Tree
+// ============================================================================
+
+/**
+ * Composition tree for the Investigation Wall. Leaves reference `SuspectedCause`
+ * hubs; branches compose them with boolean gates (AND / OR / NOT). Persisted on
+ * `investigationStore.problemContributionTree` so team-authored contribution stories
+ * survive reload. Terminology: "contribution tree", never "root cause" (P5 amended).
+ */
+export type GateNode =
+  | { kind: 'hub'; hubId: string }
+  | { kind: 'and' | 'or'; children: GateNode[] }
+  | { kind: 'not'; child: GateNode };

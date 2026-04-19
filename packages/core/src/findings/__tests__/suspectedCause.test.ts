@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { createSuspectedCause } from '../factories';
 import { computeHubContribution, computeHubEvidence, migrateCauseRolesToHubs } from '../helpers';
-import type { Question, SuspectedCause } from '../types';
+import type { Question, SuspectedCause, FindingComment } from '../types';
 import type { BestSubsetsResult } from '../../stats/bestSubsets';
+import type { HypothesisCondition } from '../hypothesisCondition';
 
 describe('createSuspectedCause', () => {
   it('should create a hub with name, synthesis, and connected IDs', () => {
@@ -297,5 +298,65 @@ describe('computeHubEvidence', () => {
     expect(evidence.contribution.value).toBeCloseTo(0.42);
     expect(evidence.contribution.label).toBe('Waste %');
     expect(evidence.mode).toBe('yamazumi');
+  });
+});
+
+describe('SuspectedCause optional Wall fields', () => {
+  it('accepts an undefined condition (default for existing hubs)', () => {
+    const hub: SuspectedCause = {
+      id: 'hub-1',
+      name: 'Nozzle runs hot',
+      synthesis: '',
+      questionIds: [],
+      findingIds: [],
+      status: 'suspected',
+      createdAt: '2026-04-19T00:00:00.000Z',
+      updatedAt: '2026-04-19T00:00:00.000Z',
+    };
+    expect(hub.condition).toBeUndefined();
+  });
+
+  it('accepts a condition predicate tree', () => {
+    const condition: HypothesisCondition = {
+      kind: 'and',
+      children: [
+        { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' },
+        { kind: 'leaf', column: 'NOZZLE.TEMP', op: 'gt', value: 120 },
+      ],
+    };
+    const hub: SuspectedCause = {
+      id: 'hub-2',
+      name: 'Hot nozzle night shift',
+      synthesis: '',
+      questionIds: [],
+      findingIds: [],
+      status: 'suspected',
+      condition,
+      createdAt: '2026-04-19T00:00:00.000Z',
+      updatedAt: '2026-04-19T00:00:00.000Z',
+    };
+    expect(hub.condition?.kind).toBe('and');
+  });
+
+  it('accepts tributaryIds and comments', () => {
+    const comment: FindingComment = {
+      id: 'c-1',
+      text: 'H1 looks tight',
+      createdAt: Date.now(),
+    };
+    const hub: SuspectedCause = {
+      id: 'hub-3',
+      name: 'Low viscosity',
+      synthesis: '',
+      questionIds: [],
+      findingIds: [],
+      status: 'suspected',
+      tributaryIds: ['trib-123'],
+      comments: [comment],
+      createdAt: '2026-04-19T00:00:00.000Z',
+      updatedAt: '2026-04-19T00:00:00.000Z',
+    };
+    expect(hub.tributaryIds).toEqual(['trib-123']);
+    expect(hub.comments?.length).toBe(1);
   });
 });
