@@ -9,17 +9,27 @@
  */
 
 import React, { useMemo } from 'react';
-import type { SuspectedCause, Finding, Question, ProcessMap, GateNode } from '@variscout/core';
+import { DndContext } from '@dnd-kit/core';
+import type {
+  SuspectedCause,
+  Finding,
+  Question,
+  ProcessMap,
+  GateNode,
+  GatePath,
+} from '@variscout/core';
 import { conditionHasMissingColumn } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { ProblemConditionCard } from './ProblemConditionCard';
 import { HypothesisCard } from './HypothesisCard';
+import { DraggableHypothesisCard } from './DraggableHypothesisCard';
 import { QuestionPill } from './QuestionPill';
 import { TributaryFooter } from './TributaryFooter';
 import { EmptyState } from './EmptyState';
 import { MissingEvidenceDigest } from './MissingEvidenceDigest';
 import type { WallStatus } from './types';
 import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallDragDrop } from './hooks/useWallDragDrop';
 
 export interface WallCanvasProps {
   hubs: SuspectedCause[];
@@ -43,6 +53,14 @@ export interface WallCanvasProps {
   onPromoteFromQuestion?: () => void;
   onSeedFromFactorIntel?: () => void;
   onFocusHubFromGap?: (id: string) => void;
+  /**
+   * When provided, enables drag-drop gate composition. Hubs become draggable
+   * sources; gate badges become drop targets. Fired on a valid hub→gate
+   * drop — callers should wire this to `investigationStore.composeGate`.
+   * When omitted, drag-drop is disabled (HypothesisCard renders without a
+   * draggable wrapper, avoiding unused DndContext overhead).
+   */
+  onComposeGate?: (payload: { hubId: string; gatePath: GatePath }) => void;
 }
 
 const CANVAS_W = 2000;
@@ -75,12 +93,15 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   onPromoteFromQuestion,
   onSeedFromFactorIntel,
   onFocusHubFromGap,
+  onComposeGate,
 }) => {
   const locale = getDocumentLocale();
   const columnSet = useMemo(
     () => (activeColumns ? new Set(activeColumns) : undefined),
     [activeColumns]
   );
+  const dndEnabled = Boolean(onComposeGate);
+  const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
   if (hubs.length === 0) {
     return (
       <EmptyState
@@ -99,7 +120,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     q => q.status === 'open' && !hubs.some(h => h.questionIds.includes(q.id))
   );
 
-  return (
+  const body = (
     <div className="w-full h-full flex flex-col">
       <svg
         viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
@@ -125,18 +146,22 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           strokeDasharray="4 6"
         />
 
-        {hubs.map((hub, idx) => (
-          <HypothesisCard
-            key={hub.id}
-            hub={hub}
-            displayStatus={deriveDisplayStatus(hub, findings)}
-            x={hubSpacing * (idx + 1)}
-            y={hubY}
-            hasGap={gapsByHubId[hub.id]}
-            missingColumn={columnSet ? conditionHasMissingColumn(hub.condition, columnSet) : false}
-            onSelect={onSelectHub}
-          />
-        ))}
+        {hubs.map((hub, idx) => {
+          const hubProps = {
+            hub,
+            displayStatus: deriveDisplayStatus(hub, findings),
+            x: hubSpacing * (idx + 1),
+            y: hubY,
+            hasGap: gapsByHubId[hub.id],
+            missingColumn: columnSet ? conditionHasMissingColumn(hub.condition, columnSet) : false,
+            onSelect: onSelectHub,
+          };
+          return dndEnabled ? (
+            <DraggableHypothesisCard key={hub.id} {...hubProps} />
+          ) : (
+            <HypothesisCard key={hub.id} {...hubProps} />
+          );
+        })}
 
         {openQuestions.map((q, idx) => (
           <QuestionPill
@@ -161,4 +186,8 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
     </div>
   );
+
+  // Only mount DndContext when drag-drop is enabled — keeps the tree lean
+  // and avoids unused pointer-event listeners in the legacy/read-only case.
+  return dndEnabled ? <DndContext onDragEnd={onDragEnd}>{body}</DndContext> : body;
 };

@@ -42,6 +42,8 @@ import {
   createImprovementIdea,
   createSuspectedCause,
   createCausalLink,
+  insertHubAsAndChild,
+  type GatePath,
 } from '@variscout/core';
 
 // ============================================================================
@@ -228,6 +230,13 @@ export interface InvestigationActions {
 
   // --- Investigation Wall ---
   setProblemContributionTree: (tree: GateNode | undefined) => void;
+  /**
+   * Compose a hub into the contribution tree at `path` via AND.
+   * No-op if the tree is undefined — caller must initialize via
+   * `setProblemContributionTree` first. Delegates to
+   * `insertHubAsAndChild` from `@variscout/core/findings`.
+   */
+  composeGate: (path: GatePath, hubId: string) => void;
 }
 
 // ============================================================================
@@ -1101,6 +1110,18 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     // ========================================================================
 
     setProblemContributionTree: tree => set({ problemContributionTree: tree }),
+
+    composeGate: (path, hubId) =>
+      set(state => {
+        const current = state.problemContributionTree;
+        // Tree must be initialized first — silent no-op matches the
+        // UX contract (drag-drop fires frequently; we don't want to
+        // create an implicit root).
+        if (!current) return {};
+        const next = insertHubAsAndChild(current, path, hubId);
+        if (next === current) return {};
+        return { problemContributionTree: next };
+      }),
   })
 );
 
