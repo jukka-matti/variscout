@@ -41,4 +41,6 @@ export { DroppableGateBadge } from './DroppableGateBadge';
 export type { DroppableGateBadgeProps } from './DroppableGateBadge';
 export { CommandPalette } from './CommandPalette';
 export type { CommandPaletteProps } from './CommandPalette';
+export { Minimap } from './Minimap';
+export type { MinimapProps } from './Minimap';
 export { CANVAS_W, CANVAS_H } from './WallCanvas';
