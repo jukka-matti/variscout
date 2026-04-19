@@ -79,6 +79,12 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   // Map/Wall sub-toggle (mirrors Azure InvestigationWorkspace)
   const wallViewMode = useWallLayoutStore(s => s.viewMode);
   const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
+  // Phase 13 scale features — thread store values into WallCanvas so zoom,
+  // pan, and tributary clustering survive re-renders and route through the
+  // existing undo/persist infrastructure.
+  const wallZoom = useWallLayoutStore(s => s.zoom);
+  const wallPan = useWallLayoutStore(s => s.pan);
+  const wallGroupByTributary = useWallLayoutStore(s => s.groupByTributary);
   const processMap = useProjectStore(s => s.processContext?.processMap);
   const rawData = useProjectStore(s => s.rawData);
   // Undefined when no rows are loaded so WallCanvas keeps the missing-column
@@ -243,6 +249,9 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
               problemCpk={0}
               eventsPerWeek={0}
               activeColumns={wallActiveColumns}
+              zoom={wallZoom}
+              pan={wallPan}
+              groupByTributary={wallGroupByTributary}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">
