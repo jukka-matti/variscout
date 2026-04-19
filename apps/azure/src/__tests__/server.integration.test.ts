@@ -389,3 +389,147 @@ describe('KB endpoints — missing required fields', () => {
     expect(res.status).toBe(400);
   });
 });
+
+// ── Hub comments SSE (Investigation Wall) ────────────────────────────────────
+// Mirrors the brainstorm SSE shape — append / active endpoints round-trip.
+// No plan gate (all tiers can collaborate) and no UUID gate (hub IDs are
+// client-generated with whatever id scheme the client uses).
+
+describe('POST /api/hub-comments/append — auth + validation', () => {
+  it('returns 401 without auth header', async () => {
+    const res = await request
+      .post('/api/hub-comments/append')
+      .send({ projectId: 'p1', hubId: 'h1', text: 'hi' });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 400 when projectId is missing', async () => {
+    const res = await request
+      .post('/api/hub-comments/append')
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .send({ hubId: 'h1', text: 'hi' });
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when hubId is missing', async () => {
+    const res = await request
+      .post('/api/hub-comments/append')
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .send({ projectId: 'p1', text: 'hi' });
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when text is missing', async () => {
+    const res = await request
+      .post('/api/hub-comments/append')
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .send({ projectId: 'p1', hubId: 'h1' });
+    expect(res.status).toBe(400);
+  });
+
+  it('appends comment with body echo when valid', async () => {
+    const res = await request
+      .post('/api/hub-comments/append')
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .send({
+        projectId: 'proj-a',
+        hubId: 'hub-a',
+        text: 'Nozzle wear hypothesis',
+        author: 'Jane',
+      });
+    expect(res.status).toBe(200);
+    const body = JSON.parse(res.text) as {
+      ok: boolean;
+      comment: { id: string; text: string; author: string; createdAt: number };
+    };
+    expect(body.ok).toBe(true);
+    expect(body.comment.text).toBe('Nozzle wear hypothesis');
+    expect(body.comment.author).toBe('Jane');
+    expect(typeof body.comment.id).toBe('string');
+    expect(body.comment.id.length).toBeGreaterThan(0);
+    expect(typeof body.comment.createdAt).toBe('number');
+  });
+
+  it('is idempotent when the same id is re-sent', async () => {
+    const res1 = await request
+      .post('/api/hub-comments/append')
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .send({
+        projectId: 'proj-idem',
+        hubId: 'hub-idem',
+        text: 'only once',
+        id: 'fixed-comment-id',
+      });
+    expect(res1.status).toBe(200);
+
+    const res2 = await request
+      .post('/api/hub-comments/append')
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .send({
+        projectId: 'proj-idem',
+        hubId: 'hub-idem',
+        text: 'only once',
+        id: 'fixed-comment-id',
+      });
+    expect(res2.status).toBe(200);
+
+    // Active endpoint confirms only one comment is stored for this hub.
+    const active = await request
+      .get('/api/hub-comments/active?projectId=proj-idem')
+      .set('x-ms-client-principal', VALID_PRINCIPAL);
+    const counts = JSON.parse(active.text) as Record<string, number>;
+    expect(counts['hub-idem']).toBe(1);
+  });
+});
+
+describe('GET /api/hub-comments/active', () => {
+  it('returns 401 without auth', async () => {
+    const res = await request.get('/api/hub-comments/active?projectId=x');
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 400 without projectId', async () => {
+    const res = await request
+      .get('/api/hub-comments/active')
+      .set('x-ms-client-principal', VALID_PRINCIPAL);
+    expect(res.status).toBe(400);
+  });
+
+  it('returns per-hub counts for the given project', async () => {
+    // Seed two comments on hub-A, one on hub-B under a different project.
+    await request
+      .post('/api/hub-comments/append')
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .send({ projectId: 'proj-counts', hubId: 'hub-A', text: 'c1' });
+    await request
+      .post('/api/hub-comments/append')
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .send({ projectId: 'proj-counts', hubId: 'hub-A', text: 'c2' });
+    await request
+      .post('/api/hub-comments/append')
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .send({ projectId: 'proj-counts', hubId: 'hub-B', text: 'c3' });
+
+    const res = await request
+      .get('/api/hub-comments/active?projectId=proj-counts')
+      .set('x-ms-client-principal', VALID_PRINCIPAL);
+    expect(res.status).toBe(200);
+    const body = JSON.parse(res.text) as Record<string, number>;
+    expect(body['hub-A']).toBe(2);
+    expect(body['hub-B']).toBe(1);
+  });
+});
+
+describe('GET /api/hub-comments/stream — validation', () => {
+  it('returns 401 without auth', async () => {
+    const res = await request.get('/api/hub-comments/stream?projectId=p&hubId=h');
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 400 when projectId or hubId missing', async () => {
+    const res = await request
+      .get('/api/hub-comments/stream?projectId=p')
+      .set('x-ms-client-principal', VALID_PRINCIPAL);
+    expect(res.status).toBe(400);
+  });
+});
