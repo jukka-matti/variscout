@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ActionProposal } from '@variscout/core';
+import type { ActionProposal, BestSubsetsCandidate } from '@variscout/core';
 import type {
   UseNarrationReturn,
   UseAICoScoutReturn,
@@ -14,6 +14,27 @@ export interface AIContextSummary {
   filterCount: number;
   findingCount: number;
   phase?: string;
+}
+
+/**
+ * A single proactive CoScout suggestion surfaced by a background pipeline.
+ *
+ * `kind: 'suggestion'` tags the message so the CoScout UI can render it
+ * distinctly from user/assistant messages without extending the external
+ * `UseAICoScoutReturn['messages']` type. The `candidates` payload is the raw
+ * best-subsets detector output — rendering (e.g. "Consider citing {column} in
+ * a hub") happens in the CoScout panel.
+ */
+export interface WallSuggestion {
+  kind: 'suggestion';
+  /** Stable id so repeated debounced emits can replace-in-place. */
+  id: string;
+  /** Source of the suggestion — currently only the best-subsets pipeline. */
+  source: 'best-subsets';
+  /** Detector output. Consumers may render only the top N. */
+  candidates: BestSubsetsCandidate[];
+  /** Emit timestamp for stale-display gating. */
+  emittedAt: number;
 }
 
 // ── State ───────────────────────────────────────────────────────────────────
@@ -59,6 +80,8 @@ interface AIStoreState {
   unsavedBookmarks: string[];
   turnCount: number;
   findingsCreatedThisSession: boolean;
+  /** Proactive Wall suggestions emitted by background pipelines (Phase 9). */
+  wallSuggestions: WallSuggestion[];
 }
 
 // ── Actions ─────────────────────────────────────────────────────────────────
@@ -92,6 +115,16 @@ interface AIStoreActions {
   resetSessionState: () => void;
   /** Check if session-close prompt should show */
   shouldShowClosePrompt: () => boolean;
+  /**
+   * Insert-or-replace a Wall suggestion by id. Used by background pipelines
+   * (e.g. `useWallBackgroundJobs`) to emit debounced proactive hints without
+   * duplicating entries on every run.
+   */
+  upsertWallSuggestion: (suggestion: WallSuggestion) => void;
+  /** Drop a Wall suggestion by id (e.g. when the user dismisses it). */
+  dismissWallSuggestion: (id: string) => void;
+  /** Clear every Wall suggestion — e.g. on project switch. */
+  clearWallSuggestions: () => void;
 }
 
 export type AIStore = AIStoreState & AIStoreActions;
@@ -118,6 +151,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
   unsavedBookmarks: [],
   turnCount: 0,
   findingsCreatedThisSession: false,
+  wallSuggestions: [],
 
   // Actions
   syncNarration: narration => set({ narration }),
@@ -162,4 +196,17 @@ export const useAIStore = create<AIStore>((set, get) => ({
       (turnCount >= 5 && !findingsCreatedThisSession)
     );
   },
+  upsertWallSuggestion: suggestion =>
+    set(s => {
+      const existingIndex = s.wallSuggestions.findIndex(x => x.id === suggestion.id);
+      if (existingIndex === -1) {
+        return { wallSuggestions: [...s.wallSuggestions, suggestion] };
+      }
+      const next = s.wallSuggestions.slice();
+      next[existingIndex] = suggestion;
+      return { wallSuggestions: next };
+    }),
+  dismissWallSuggestion: id =>
+    set(s => ({ wallSuggestions: s.wallSuggestions.filter(x => x.id !== id) })),
+  clearWallSuggestions: () => set({ wallSuggestions: [] }),
 }));
