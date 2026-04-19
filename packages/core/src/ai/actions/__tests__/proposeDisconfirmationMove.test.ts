@@ -68,6 +68,7 @@ describe('proposeDisconfirmationMove', () => {
     expect(result?.chart).toBe('boxplot');
     expect(result?.suggestedCategory).toBeDefined();
     expect(result?.suggestedCategory).not.toBe('night');
+    expect(result?.column).toBe('SHIFT');
   });
 
   it('returns undefined for coscout-only findings', () => {
@@ -78,5 +79,20 @@ describe('proposeDisconfirmationMove', () => {
       finding('f3', { chart: 'coscout', messageId: 'm3' }),
     ];
     expect(proposeDisconfirmationMove(h, findings, data)).toBeUndefined();
+  });
+
+  it('suggests below-anchor ichart range when numeric supporters dominate', () => {
+    const numericData = [{ VALUE: 105 }, { VALUE: 120 }, { VALUE: 130 }, { VALUE: 95 }];
+    const h = hub('h1', ['f1', 'f2', 'f3']);
+    const findings = [
+      finding('f1', { chart: 'ichart', anchorX: 1, anchorY: 120 }),
+      finding('f2', { chart: 'ichart', anchorX: 2, anchorY: 125 }),
+      finding('f3', { chart: 'ichart', anchorX: 3, anchorY: 130 }),
+    ];
+    const result = proposeDisconfirmationMove(h, findings, numericData);
+    expect(result).toBeDefined();
+    expect(result?.chart).toBe('ichart');
+    expect(result?.suggestedRange).toEqual([undefined, 120]);
+    expect(result?.reason).toContain('below 120');
   });
 });

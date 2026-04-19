@@ -12,7 +12,8 @@ import type { SuspectedCause, Finding, FindingSource, DataRow } from '../..';
 export interface SuggestedBrush {
   chart: FindingSource['chart'];
   suggestedCategory?: string;
-  suggestedRange?: [number, number];
+  /** Inclusive numeric range. Either bound may be `undefined` to mean "unbounded on that side". */
+  suggestedRange?: [number | undefined, number | undefined];
   column?: string;
   reason: string;
 }
@@ -54,7 +55,7 @@ export function proposeDisconfirmationMove(
     const threshold = numeric.source.anchorY;
     return {
       chart: 'ichart',
-      suggestedRange: [Number.NEGATIVE_INFINITY, threshold],
+      suggestedRange: [undefined, threshold],
       reason: `${hub.name} has no disconfirmation attempted. Try brushing values below ${threshold}.`,
     };
   }
