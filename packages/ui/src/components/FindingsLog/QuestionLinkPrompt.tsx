@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Link2 } from 'lucide-react';
+import { X, Link2, Lightbulb } from 'lucide-react';
 import { useIsMobile } from '../../hooks';
 
 export interface QuestionLinkPromptProps {
@@ -23,17 +23,24 @@ export interface QuestionLinkPromptProps {
   onSkipForever: () => void;
   /** Called to close (backdrop click, Escape, or after any action). */
   onClose: () => void;
+  /** When true, show a "Propose new hypothesis from this finding" CTA for Wall workflow. */
+  wallActive?: boolean;
+  /** Called when user clicks the Wall-variant propose-hypothesis CTA. Receives the findingId. */
+  onProposeHypothesis?: (findingId: string) => void;
 }
 
 // Inner component mounts only when open — ensures checkbox resets each time
-type QuestionLinkPromptInnerProps = Omit<QuestionLinkPromptProps, 'isOpen' | 'findingId'>;
+type QuestionLinkPromptInnerProps = Omit<QuestionLinkPromptProps, 'isOpen'>;
 
 const QuestionLinkPromptInner: React.FC<QuestionLinkPromptInnerProps> = ({
+  findingId,
   questions,
   onLink,
   onSkip,
   onSkipForever,
   onClose,
+  wallActive,
+  onProposeHypothesis,
 }) => {
   const isMobile = useIsMobile();
   const [skipForever, setSkipForever] = useState(false);
@@ -105,7 +112,12 @@ const QuestionLinkPromptInner: React.FC<QuestionLinkPromptInnerProps> = ({
     onClose();
   };
 
-  // TODO: Add "Create question from observation" button (follow-up; out of scope for this task)
+  const handleProposeHypothesis = () => {
+    onProposeHypothesis?.(findingId);
+    onClose();
+  };
+
+  const showProposeHypothesis = wallActive === true && typeof onProposeHypothesis === 'function';
 
   const dialog = (
     <div
@@ -159,6 +171,17 @@ const QuestionLinkPromptInner: React.FC<QuestionLinkPromptInnerProps> = ({
         </p>
       )}
 
+      {showProposeHypothesis && (
+        <button
+          type="button"
+          onClick={handleProposeHypothesis}
+          className="flex items-center gap-2 w-full text-left text-xs px-3 py-2 rounded border border-edge bg-surface hover:bg-surface-tertiary hover:border-amber-500/50 text-content transition-colors"
+        >
+          <Lightbulb size={14} className="text-amber-400 flex-shrink-0" aria-hidden="true" />
+          <span>Propose new hypothesis from this finding</span>
+        </button>
+      )}
+
       {/* Footer: Don't ask again + Skip */}
       <div className="flex items-center justify-between gap-2 pt-1 border-t border-edge/50">
         <label className="flex items-center gap-1.5 text-xs text-content-muted cursor-pointer select-none">
@@ -208,11 +231,7 @@ const QuestionLinkPromptInner: React.FC<QuestionLinkPromptInnerProps> = ({
  * Non-blocking: skipping is always valid. "Don't ask again" persists the
  * preference via onSkipForever → sessionStore.setSkipQuestionLinkPrompt(true).
  */
-export const QuestionLinkPrompt: React.FC<QuestionLinkPromptProps> = ({
-  isOpen,
-  findingId: _findingId,
-  ...rest
-}) => {
+export const QuestionLinkPrompt: React.FC<QuestionLinkPromptProps> = ({ isOpen, ...rest }) => {
   if (!isOpen) return null;
   return <QuestionLinkPromptInner {...rest} />;
 };
