@@ -36,6 +36,7 @@ import { formatInvestigationContext, formatDataContext, formatKnowledgeContext }
 import { getToolsForPhase } from './tools';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from '../shared';
 import type { SuspectedCause } from '../../../findings/types';
+import { investigationDisciplinePrompt } from './tier2';
 
 /**
  * Unified prompt assembler — builds a tiered prompt from modular modules.
@@ -90,6 +91,11 @@ export function assembleCoScoutPrompt(
 
   // Mode-specific workflow guidance
   tier2Parts.push(buildModeWorkflow(mode, phase));
+
+  // Tier 2 discipline coaching — phase-specific targeted guidance
+  if (phase === 'investigate') {
+    tier2Parts.push(investigationDisciplinePrompt);
+  }
 
   // Investigation context (problem statement, questions, hubs, causal links)
   const investigationBlock = formatInvestigationContext(context?.investigation);
