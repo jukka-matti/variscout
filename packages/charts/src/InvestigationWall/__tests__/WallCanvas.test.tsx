@@ -172,4 +172,39 @@ describe('WallCanvas', () => {
     // No draggable wrapper when DnD is off.
     expect(container.querySelector('[data-draggable-hub]')).toBeNull();
   });
+
+  it('applies identity transform (zoom=1, pan=0,0) by default', () => {
+    const { container } = render(
+      <WallCanvas
+        hubs={[hub]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+    const transformGroup = container.querySelector('[data-wall-viewport]');
+    expect(transformGroup).toBeTruthy();
+    expect(transformGroup?.getAttribute('transform')).toContain('translate(0, 0)');
+    expect(transformGroup?.getAttribute('transform')).toContain('scale(1)');
+  });
+
+  it('applies provided zoom + pan to the viewport transform', () => {
+    const { container } = render(
+      <WallCanvas
+        hubs={[hub]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+        zoom={0.5}
+        pan={{ x: 100, y: 50 }}
+      />
+    );
+    const transformGroup = container.querySelector('[data-wall-viewport]');
+    expect(transformGroup?.getAttribute('transform')).toContain('translate(100, 50)');
+    expect(transformGroup?.getAttribute('transform')).toContain('scale(0.5)');
+  });
 });
