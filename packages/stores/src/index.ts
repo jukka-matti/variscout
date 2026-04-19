@@ -37,3 +37,21 @@ export type {
   PITab,
   PersistedViewState,
 } from './sessionStore';
+export { useWallLayoutStore, persistWallLayout, rehydrateWallLayout } from './wallLayoutStore';
+export type {
+  WallLayoutState,
+  WallLayoutActions,
+  ChartClusterState,
+  AndCheckSnapshot,
+  PendingComment,
+  NodeId,
+  TributaryId,
+  GateNodePath,
+} from './wallLayoutStore';
+export {
+  selectHubCommentStream,
+  selectHypothesisTributaries,
+  selectOpenQuestionsWithoutHub,
+  selectQuestionsForHub,
+} from './wallSelectors';
+export type { HubCommentEntry } from './wallSelectors';
