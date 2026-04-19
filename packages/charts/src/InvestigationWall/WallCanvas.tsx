@@ -27,9 +27,11 @@ import { QuestionPill } from './QuestionPill';
 import { TributaryFooter } from './TributaryFooter';
 import { EmptyState } from './EmptyState';
 import { MissingEvidenceDigest } from './MissingEvidenceDigest';
+import { MobileCardList } from './MobileCardList';
 import type { WallStatus } from './types';
 import { getDocumentLocale } from './hooks/useWallLocale';
 import { useWallDragDrop } from './hooks/useWallDragDrop';
+import { useWallIsMobile } from './hooks/useWallBreakpoint';
 
 export interface WallCanvasProps {
   hubs: SuspectedCause[];
@@ -157,6 +159,29 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
 
   const dndEnabled = Boolean(onComposeGate);
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
+  const isMobile = useWallIsMobile();
+
+  // Mobile (<768px): swap the 2000×1400 SVG for a vertical card stack.
+  // MissingEvidenceDigest still renders below the list on mobile so gap
+  // coaching stays visible. MobileCardList handles its own empty state,
+  // so this branch supersedes the hubs-empty short-circuit below.
+  if (isMobile) {
+    return (
+      <div className="w-full h-full flex flex-col">
+        <MobileCardList
+          hubs={hubs}
+          findings={findings}
+          questions={questions}
+          onSelectHub={onSelectHub}
+          onWriteHypothesis={onWriteHypothesis}
+          onPromoteFromQuestion={onPromoteFromQuestion}
+          onSeedFromFactorIntel={onSeedFromFactorIntel}
+        />
+        <MissingEvidenceDigest gaps={gaps} onFocusHub={onFocusHubFromGap} />
+      </div>
+    );
+  }
+
   if (hubs.length === 0) {
     return (
       <EmptyState
