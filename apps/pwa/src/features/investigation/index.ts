@@ -5,3 +5,4 @@ export type {
   ProjectionTarget,
 } from './investigationStore';
 export { useInvestigationOrchestration } from './useInvestigationOrchestration';
+export { useWallHubCommentLocal } from './useWallHubCommentLocal';
