@@ -817,11 +817,9 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       if (!finding) return null;
       const excerpt = finding.text.trim().slice(0, 80);
       const name = excerpt.length > 0 ? `Hypothesis: ${excerpt}` : 'New hypothesis';
-      const hub = createSuspectedCause(name, '');
-      set(state => ({
-        suspectedCauses: [...state.suspectedCauses, { ...hub, findingIds: [findingId] }],
-      }));
-      return { ...hub, findingIds: [findingId] };
+      const hub = createSuspectedCause(name, '', [], [findingId]);
+      set(state => ({ suspectedCauses: [...state.suspectedCauses, hub] }));
+      return hub;
     },
 
     updateHub: (hubId, updates) => {
