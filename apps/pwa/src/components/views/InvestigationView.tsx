@@ -80,6 +80,11 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   const wallViewMode = useWallLayoutStore(s => s.viewMode);
   const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
   const processMap = useProjectStore(s => s.processContext?.processMap);
+  const rawData = useProjectStore(s => s.rawData);
+  const wallActiveColumns = useMemo(
+    () => (rawData.length > 0 ? Object.keys(rawData[0]) : []),
+    [rawData]
+  );
   const hubs = useInvestigationStore(s => s.suspectedCauses);
   const wallFindings = useInvestigationStore(s => s.findings);
   const wallQuestions = useInvestigationStore(s => s.questions);
@@ -235,6 +240,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
               processMap={processMap}
               problemCpk={0}
               eventsPerWeek={0}
+              activeColumns={wallActiveColumns}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">

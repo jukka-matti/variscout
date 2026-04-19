@@ -140,6 +140,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   // Map/Wall sub-toggle (within the Evidence Map view)
   const wallViewMode = useWallLayoutStore(s => s.viewMode);
   const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
+  // Columns present in the active dataset — powers WallCanvas missing-column
+  // badge for hubs whose condition references a renamed or dropped column.
+  const rawData = useProjectStore(s => s.rawData);
+  const wallActiveColumns = useMemo(
+    () => (rawData.length > 0 ? Object.keys(rawData[0]) : []),
+    [rawData]
+  );
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const causalLinks = useInvestigationStore(s => s.causalLinks);
 
@@ -670,6 +677,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 processMap={processMap}
                 problemCpk={0}
                 eventsPerWeek={0}
+                activeColumns={wallActiveColumns}
               />
             ) : (
               <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">

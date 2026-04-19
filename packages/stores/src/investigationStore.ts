@@ -163,6 +163,12 @@ export interface InvestigationActions {
 
   // --- Hub actions ---
   createHub: (name: string, synthesis: string) => SuspectedCause;
+  /**
+   * Create a new SuspectedCause hub from a finding. The hub is seeded with a
+   * default name derived from the finding's text (truncated), linked to the
+   * finding, and returned. Returns null if the finding doesn't exist.
+   */
+  createHubFromFinding: (findingId: string) => SuspectedCause | null;
   updateHub: (hubId: string, updates: Partial<Pick<SuspectedCause, 'name' | 'synthesis'>>) => void;
   deleteHub: (hubId: string) => void;
   connectQuestionToHub: (hubId: string, questionId: string) => void;
@@ -804,6 +810,18 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       const hub = createSuspectedCause(name, synthesis);
       set(state => ({ suspectedCauses: [...state.suspectedCauses, hub] }));
       return hub;
+    },
+
+    createHubFromFinding: findingId => {
+      const finding = get().findings.find(f => f.id === findingId);
+      if (!finding) return null;
+      const excerpt = finding.text.trim().slice(0, 80);
+      const name = excerpt.length > 0 ? `Hypothesis: ${excerpt}` : 'New hypothesis';
+      const hub = createSuspectedCause(name, '');
+      set(state => ({
+        suspectedCauses: [...state.suspectedCauses, { ...hub, findingIds: [findingId] }],
+      }));
+      return { ...hub, findingIds: [findingId] };
     },
 
     updateHub: (hubId, updates) => {
