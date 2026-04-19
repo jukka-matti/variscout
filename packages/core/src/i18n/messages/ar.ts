@@ -245,7 +245,7 @@ export const ar: MessageCatalog = {
   'investigation.phaseInitial': 'Gather initial observations',
   'investigation.phaseDiverging': 'Explore multiple questions',
   'investigation.phaseValidating': 'Test and validate questions',
-  'investigation.phaseConverging': 'Narrow to root cause',
+  'investigation.phaseConverging': 'Narrow to contribution',
   'investigation.phaseImproving': 'Implement and verify changes',
   'investigation.pdcaTitle': 'Verification Checklist',
   'investigation.verifyChart': 'I-Chart stable after change',
