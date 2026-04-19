@@ -11,11 +11,16 @@ import type { HypothesisCondition } from './hypothesisCondition';
 export type DataRow = Record<string, unknown>;
 
 export function evaluateCondition(cond: HypothesisCondition, row: DataRow): boolean {
-  if (cond.kind === 'leaf') return evaluateLeaf(cond, row);
-  if (cond.kind === 'and') return cond.children.every(c => evaluateCondition(c, row));
-  if (cond.kind === 'or') return cond.children.some(c => evaluateCondition(c, row));
-  // kind === 'not' — unary, operates on cond.child
-  return !evaluateCondition(cond.child, row);
+  switch (cond.kind) {
+    case 'leaf':
+      return evaluateLeaf(cond, row);
+    case 'and':
+      return cond.children.every(c => evaluateCondition(c, row));
+    case 'or':
+      return cond.children.some(c => evaluateCondition(c, row));
+    case 'not':
+      return !evaluateCondition(cond.child, row);
+  }
 }
 
 function evaluateLeaf(cond: Extract<HypothesisCondition, { kind: 'leaf' }>, row: DataRow): boolean {
@@ -39,6 +44,7 @@ function evaluateLeaf(cond: Extract<HypothesisCondition, { kind: 'leaf' }>, row:
     case 'between':
       if (typeof raw !== 'number') return false;
       if (!Array.isArray(cond.value) || cond.value.length !== 2) return false;
+      if (typeof cond.value[0] !== 'number' || typeof cond.value[1] !== 'number') return false;
       return raw >= cond.value[0] && raw <= cond.value[1];
     case 'in':
       if (!Array.isArray(cond.value)) return false;
