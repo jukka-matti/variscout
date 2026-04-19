@@ -493,6 +493,10 @@ export {
 export { searchProjectArtifacts } from './ai';
 export type { SearchProjectOptions, SearchResult } from './ai';
 
+// Wall investigation actions (Phase 3)
+export { proposeDisconfirmationMove, critiqueInvestigationState } from './ai/actions';
+export type { SuggestedBrush, InvestigationGap, CritiqueInput, CritiqueResult } from './ai/actions';
+
 // Category keyword matching and inference
 export {
   CATEGORY_KEYWORDS,

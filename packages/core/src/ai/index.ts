@@ -148,3 +148,7 @@ export type {
   KnowledgeSearchOptions,
   KnowledgeSourceType,
 } from './knowledgeAdapter';
+
+// Wall investigation actions (Phase 3)
+export { proposeDisconfirmationMove, critiqueInvestigationState } from './actions';
+export type { SuggestedBrush, InvestigationGap, CritiqueInput, CritiqueResult } from './actions';
