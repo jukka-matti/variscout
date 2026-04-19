@@ -1,7 +1,37 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { WallCanvas } from '../WallCanvas';
 import type { SuspectedCause, ProcessMap } from '@variscout/core';
+
+/**
+ * Override `window.matchMedia` for a single test to force the mobile branch
+ * of `useWallIsMobile`. Returns a restore function that the caller invokes
+ * in `afterEach` (or directly) to put the default jsdom desktop stub back.
+ */
+function installMobileMatchMedia() {
+  const original = window.matchMedia;
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    configurable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: true,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+  return () => {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      configurable: true,
+      value: original,
+    });
+  };
+}
 
 const processMap: ProcessMap = {
   version: 1,
@@ -257,5 +287,51 @@ describe('WallCanvas', () => {
     const transformGroup = container.querySelector('[data-wall-viewport]');
     expect(transformGroup?.getAttribute('transform')).toContain('translate(100, 50)');
     expect(transformGroup?.getAttribute('transform')).toContain('scale(0.5)');
+  });
+
+  describe('mobile breakpoint', () => {
+    let restoreMatchMedia: (() => void) | undefined;
+
+    afterEach(() => {
+      restoreMatchMedia?.();
+      restoreMatchMedia = undefined;
+    });
+
+    it('renders MobileCardList instead of the SVG canvas below 768px', () => {
+      restoreMatchMedia = installMobileMatchMedia();
+      const { container } = render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          questions={[]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+        />
+      );
+      // Mobile card list is present...
+      expect(screen.getByTestId('wall-mobile-card-list')).toBeInTheDocument();
+      expect(screen.getByTestId('wall-mobile-hub-h1')).toBeInTheDocument();
+      // ...and the desktop SVG viewport group is not.
+      expect(container.querySelector('[data-wall-viewport]')).toBeNull();
+    });
+
+    it('still renders MissingEvidenceDigest below the card list on mobile', () => {
+      restoreMatchMedia = installMobileMatchMedia();
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          questions={[]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          gaps={[{ id: 'g1', message: 'No SHIFT coverage', hubId: 'h1' }]}
+        />
+      );
+      // Digest renders as a collapsed section — the aria-label is enough to
+      // confirm the panel mounted alongside the mobile card list.
+      expect(screen.getByLabelText(/Missing evidence digest/i)).toBeInTheDocument();
+    });
   });
 });
