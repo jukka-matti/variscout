@@ -50,6 +50,7 @@ import type { UseFindingsOrchestrationReturn } from '../../features/findings/use
 import { useAIStore } from '../../features/ai/aiStore';
 import type { UseAIOrchestrationReturn, UseActionProposalsReturn } from '../../features/ai';
 import type { UseInvestigationOrchestrationReturn } from '../../features/investigation/useInvestigationOrchestration';
+import { useWallHubCommentLifecycle } from '../../features/investigation/useWallHubCommentLifecycle';
 
 // Resize panel config (individual args for useResizablePanel)
 
@@ -142,6 +143,11 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const causalLinks = useInvestigationStore(s => s.causalLinks);
+
+  // Wall hub-comment SSE subscription — no-op when viewMode !== 'wall' or
+  // when there's no selection. Streams lifetime-bound to this component
+  // (unmounts when the user leaves the Investigation workspace).
+  useWallHubCommentLifecycle();
 
   // Question-link prompt for map context menu findings
   const skipQuestionLinkPrompt = useSessionStore(s => s.skipQuestionLinkPrompt);
