@@ -643,13 +643,149 @@ app.get('/api/brainstorm/active', (req, res) => {
   res.json(null);
 });
 
-// Cleanup expired sessions periodically
+// ─── Hub Comments (Investigation Wall — per-hub SSE collaboration) ───────────
+//
+// Mirrors the brainstorm SSE pattern above. Each hypothesis hub (SuspectedCause)
+// on the Investigation Wall can host a live comment thread. Clients subscribe
+// per `${projectId}:${hubId}` and receive `init` + `comment` events. Storage is
+// in-memory (ephemeral, per-pod) with a 24h TTL — customer-owned persistence
+// stays in IndexedDB / Blob Storage per ADR-059. The server only relays the
+// live collaboration stream; durable history is the client's responsibility.
+//
+// Key format: `${projectId}:${hubId}` — same-shape string key used for both
+// comments and subscriber Sets so cleanup is symmetric with brainstorm.
+
+const hubCommentsByKey = new Map();   // `${projectId}:${hubId}` → Comment[]
+const hubCommentClients = new Map();  // `${projectId}:${hubId}` → Set<res>
+const hubCommentTouchedAt = new Map(); // `${projectId}:${hubId}` → last-touched epoch ms
+
+const HUB_COMMENT_TTL_MS = 24 * 60 * 60 * 1000;
+
+function hubCommentKey(projectId, hubId) {
+  return `${projectId}:${hubId}`;
+}
+
+// Append a comment to a hub and broadcast to SSE subscribers
+app.post('/api/hub-comments/append', express.json(), (req, res) => {
+  const principal = req.headers['x-ms-client-principal'];
+  if (!principal && !LOCAL_DEV) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  const { projectId, hubId, text, author, id } = req.body;
+  if (!projectId || !hubId || !text) {
+    return res.status(400).json({ error: 'projectId, hubId, and text required' });
+  }
+
+  const userId = principal
+    ? JSON.parse(Buffer.from(principal, 'base64').toString()).userId || 'local'
+    : 'local-dev';
+
+  const comment = {
+    id: id || randomUUID(),
+    text,
+    author: author || userId,
+    createdAt: Date.now(),
+  };
+
+  const key = hubCommentKey(projectId, hubId);
+  const list = hubCommentsByKey.get(key) || [];
+  // Dedup by id — idempotent re-send is a no-op (still broadcasts so clients resync)
+  if (!list.some(c => c.id === comment.id)) {
+    list.push(comment);
+    hubCommentsByKey.set(key, list);
+  }
+  hubCommentTouchedAt.set(key, Date.now());
+
+  const clients = hubCommentClients.get(key);
+  if (clients) {
+    const event = JSON.stringify({ type: 'comment', comment });
+    for (const client of clients) {
+      client.write(`data: ${event}\n\n`);
+    }
+  }
+
+  res.json({ ok: true, comment });
+});
+
+// SSE stream of comments for a single hub
+app.get('/api/hub-comments/stream', (req, res) => {
+  const principal = req.headers['x-ms-client-principal'];
+  if (!principal && !LOCAL_DEV) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  const projectId = req.query.projectId;
+  const hubId = req.query.hubId;
+  if (!projectId || !hubId) {
+    return res.status(400).json({ error: 'projectId and hubId query params required' });
+  }
+
+  const key = hubCommentKey(projectId, hubId);
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  // Send current state
+  const comments = hubCommentsByKey.get(key) || [];
+  res.write(`data: ${JSON.stringify({ type: 'init', projectId, hubId, comments })}\n\n`);
+
+  // Register client
+  let clients = hubCommentClients.get(key);
+  if (!clients) {
+    clients = new Set();
+    hubCommentClients.set(key, clients);
+  }
+  clients.add(res);
+  hubCommentTouchedAt.set(key, Date.now());
+
+  req.on('close', () => {
+    const set = hubCommentClients.get(key);
+    if (set) {
+      set.delete(res);
+      if (set.size === 0) hubCommentClients.delete(key);
+    }
+  });
+});
+
+// Aggregate comment counts for every hub in a project — sidebar/badge feed
+app.get('/api/hub-comments/active', (req, res) => {
+  const principal = req.headers['x-ms-client-principal'];
+  if (!principal && !LOCAL_DEV) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  const projectId = req.query.projectId;
+  if (!projectId) {
+    return res.status(400).json({ error: 'projectId required' });
+  }
+
+  const counts = {};
+  const prefix = `${projectId}:`;
+  for (const [key, list] of hubCommentsByKey) {
+    if (key.startsWith(prefix)) {
+      const hubId = key.slice(prefix.length);
+      counts[hubId] = list.length;
+    }
+  }
+  res.json(counts);
+});
+
+// Cleanup expired sessions + hub comments periodically
 setInterval(() => {
   const now = Date.now();
   for (const [id, session] of brainstormSessions) {
     if (session.expiresAt < now) {
       brainstormSessions.delete(id);
       brainstormClients.delete(id);
+    }
+  }
+  // Expire hub-comment buckets that haven't been touched for 24h. Active SSE
+  // subscribers keep the bucket alive via touch-on-append; idle buckets drop
+  // their comment history to bound memory.
+  for (const [key, touchedAt] of hubCommentTouchedAt) {
+    if (now - touchedAt > HUB_COMMENT_TTL_MS && !hubCommentClients.has(key)) {
+      hubCommentsByKey.delete(key);
+      hubCommentTouchedAt.delete(key);
     }
   }
 }, 60 * 60 * 1000); // Every hour
