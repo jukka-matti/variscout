@@ -134,6 +134,25 @@ interface WallLayoutSnapshot {
   updatedAt: number;
 }
 
+/**
+ * Dedicated Dexie database for Wall UI state.
+ *
+ * Why a separate DB from the Azure app's `VaRiScoutAzure`: this store lives in
+ * the shared `@variscout/stores` package, imported by BOTH PWA and Azure. The
+ * Azure DB schema lives under `apps/azure/` — reaching into it from a shared
+ * package would reverse the monorepo's downward-only dependency flow
+ * (app → stores → core). So the Wall gets its own named IndexedDB
+ * (`variscout-wall-layout`), keyed by `projectId`, owned by the stores package.
+ *
+ * Consequence: UI state (view mode, zoom, pan, node positions) and domain data
+ * (projects, blobs) are cleanly separated across two DBs — different
+ * lifecycles, different eviction policies.
+ *
+ * Known gap: no cascade on project delete. If a project is removed from the
+ * Azure DB, its Wall snapshot orphans here. Benign (bounded by distinct
+ * projects) but a janitor on project-delete would be cleaner — tracked as a
+ * known gap in the Wall spec.
+ */
 class WallLayoutDB extends Dexie {
   snapshots!: Table<WallLayoutSnapshot, string>;
   constructor() {

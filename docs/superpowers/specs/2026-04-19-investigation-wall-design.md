@@ -441,6 +441,11 @@ Zero data migration. All schema additions are optional fields that default to `u
 | Wall → Improve handoff                  | SuspectedCause hubs already drive HMW per ADR-061; only wiring tweaks needed | Follow-on                                    |
 | Bayesian probability badges on status   | Interesting but out of vision (status is discrete here)                      | Research                                     |
 
+## Known gaps (to track, not blocking)
+
+- **No cascade on project delete.** `wallLayoutStore` persists a per-project snapshot in its own Dexie DB (`variscout-wall-layout`, distinct from `VaRiScoutAzure` — see `packages/stores/src/wallLayoutStore.ts` for the package-boundary rationale). If a project is deleted from the Azure DB, its Wall snapshot orphans in the Wall DB. Benign (bounded by distinct projects, a few KB each) but a janitor on project-delete would be cleaner. Track in a follow-up once project-delete UX lands.
+- **Cross-app feature store pattern is single-example.** `wallLayoutStore` is the first shared UI-state store in `@variscout/stores`. The pattern (separate Dexie DB + per-app `useXxxLifecycle(projectId)` hook) hasn't been tested against a second consumer. Promote to an ADR when the second cross-app UI store appears — premature codification would lock in an unproven pattern.
+
 ## Definition of done
 
 - [ ] Toggle `Map | Wall` wired in Investigation workspace (PWA + Azure apps).
