@@ -7,6 +7,7 @@
  * causalLinks, problemContributionTree) live in investigationStore.
  */
 
+import Dexie, { type Table } from 'dexie';
 import { create } from 'zustand';
 
 export type NodeId = string;
@@ -120,3 +121,50 @@ export const useWallLayoutStore = create<WallLayoutState & WallLayoutActions>()(
 (
   useWallLayoutStore as typeof useWallLayoutStore & { getInitialState: () => WallLayoutState }
 ).getInitialState = getWallLayoutInitialState;
+
+// ── Dexie persistence ────────────────────────────────────────────────────────
+
+interface WallLayoutSnapshot {
+  projectId: string;
+  viewMode: 'map' | 'wall';
+  nodePositions: Record<NodeId, { x: number; y: number }>;
+  zoom: number;
+  pan: { x: number; y: number };
+  railOpen: boolean;
+  updatedAt: number;
+}
+
+class WallLayoutDB extends Dexie {
+  snapshots!: Table<WallLayoutSnapshot, string>;
+  constructor() {
+    super('variscout-wall-layout');
+    this.version(1).stores({ snapshots: 'projectId,updatedAt' });
+  }
+}
+
+const db = new WallLayoutDB();
+
+export async function persistWallLayout(projectId: string): Promise<void> {
+  const s = useWallLayoutStore.getState();
+  await db.snapshots.put({
+    projectId,
+    viewMode: s.viewMode,
+    nodePositions: s.nodePositions,
+    zoom: s.zoom,
+    pan: s.pan,
+    railOpen: s.railOpen,
+    updatedAt: Date.now(),
+  });
+}
+
+export async function rehydrateWallLayout(projectId: string): Promise<void> {
+  const snapshot = await db.snapshots.get(projectId);
+  if (!snapshot) return;
+  useWallLayoutStore.setState({
+    viewMode: snapshot.viewMode,
+    nodePositions: snapshot.nodePositions,
+    zoom: snapshot.zoom,
+    pan: snapshot.pan,
+    railOpen: snapshot.railOpen,
+  });
+}

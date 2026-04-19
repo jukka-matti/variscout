@@ -1,3 +1,4 @@
+import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useWallLayoutStore } from '../wallLayoutStore';
 
@@ -102,5 +103,31 @@ describe('wallLayoutStore — positions, selection, cache', () => {
     const drained = useWallLayoutStore.getState().drainPendingComments();
     expect(drained.length).toBe(1);
     expect(useWallLayoutStore.getState().pendingComments.length).toBe(0);
+  });
+});
+
+import { rehydrateWallLayout, persistWallLayout } from '../wallLayoutStore';
+
+describe('wallLayoutStore persistence', () => {
+  beforeEach(() => {
+    useWallLayoutStore.setState(useWallLayoutStore.getInitialState());
+  });
+
+  it('persists and rehydrates viewMode + positions for a projectId', async () => {
+    useWallLayoutStore.getState().setViewMode('wall');
+    useWallLayoutStore.getState().setNodePosition('hub-1', { x: 123, y: 456 });
+    await persistWallLayout('proj-abc');
+
+    useWallLayoutStore.setState(useWallLayoutStore.getInitialState());
+    expect(useWallLayoutStore.getState().viewMode).toBe('map');
+
+    await rehydrateWallLayout('proj-abc');
+    expect(useWallLayoutStore.getState().viewMode).toBe('wall');
+    expect(useWallLayoutStore.getState().nodePositions['hub-1']).toEqual({ x: 123, y: 456 });
+  });
+
+  it('rehydrate with unknown projectId leaves defaults', async () => {
+    await rehydrateWallLayout('unknown-project');
+    expect(useWallLayoutStore.getState().viewMode).toBe('map');
   });
 });
