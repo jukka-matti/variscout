@@ -59,6 +59,7 @@ import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
 import { useAIOrchestration, useActionProposals, useInvestigationIndexing } from '../features/ai';
 import { useInvestigationOrchestration } from '../features/investigation';
+import { useWallLayoutLifecycle } from '../features/investigation/useWallLayoutLifecycle';
 import { useInvestigationFeatureStore } from '../features/investigation/investigationStore';
 import { useImprovementOrchestration } from '../features/improvement';
 import { useLocale } from '../context/LocaleContext';
@@ -743,6 +744,9 @@ export const Editor: React.FC<EditorProps> = ({
       projectId: projectId ?? undefined,
       enabled: isKnowledgeBaseAvailable(),
     });
+
+  // Wall layout persistence — rehydrate on project open, debounce-persist on change.
+  useWallLayoutLifecycle(projectId);
 
   // Trigger indexing side-effects whenever findings or questions change
   useEffect(() => {
