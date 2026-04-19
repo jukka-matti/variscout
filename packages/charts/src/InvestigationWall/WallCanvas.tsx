@@ -72,6 +72,15 @@ export interface WallCanvasProps {
    * group. Defaults to origin. Apps thread this from `wallLayoutStore.pan`.
    */
   pan?: { x: number; y: number };
+  /**
+   * When true, hubs are grouped by their first matching tributary (intersect
+   * `hub.tributaryIds` with `processMap.tributaries[].id`). Each non-empty
+   * group renders inside a dashed-outline `<g data-tributary-group>` frame
+   * labeled at top-left. Hubs without a matching tributary fall into an
+   * "unassigned" group rendered without a frame. Apps thread this from
+   * `wallLayoutStore.groupByTributary`.
+   */
+  groupByTributary?: boolean;
 }
 
 /**
@@ -111,12 +120,41 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   onComposeGate,
   zoom = 1,
   pan = { x: 0, y: 0 },
+  groupByTributary = false,
 }) => {
   const locale = getDocumentLocale();
   const columnSet = useMemo(
     () => (activeColumns ? new Set(activeColumns) : undefined),
     [activeColumns]
   );
+  // Tributary clustering: bucket each hub by its first matching tributary.
+  // Unmatched hubs (no tributaryIds, or none intersecting processMap) drop
+  // into an "unassigned" bucket rendered without a frame. Order matches
+  // processMap.tributaries, with unassigned always last. Empty buckets drop.
+  // Computed unconditionally — returns null when disabled so the render path
+  // falls back to the default linear layout.
+  const tributaryGroups = useMemo(() => {
+    if (!groupByTributary) return null;
+    const tributaries = processMap.tributaries;
+    const tributaryById = new Map(tributaries.map(t => [t.id, t]));
+    type Bucket = {
+      tributary: (typeof tributaries)[number] | null;
+      hubs: SuspectedCause[];
+    };
+    const buckets: Bucket[] = tributaries.map(t => ({ tributary: t, hubs: [] }));
+    const unassigned: Bucket = { tributary: null, hubs: [] };
+    for (const hub of hubs) {
+      const matchId = hub.tributaryIds?.find(id => tributaryById.has(id));
+      if (matchId) {
+        const b = buckets.find(bk => bk.tributary?.id === matchId);
+        b!.hubs.push(hub);
+      } else {
+        unassigned.hubs.push(hub);
+      }
+    }
+    return [...buckets, unassigned].filter(b => b.hubs.length > 0);
+  }, [groupByTributary, hubs, processMap.tributaries]);
+
   const dndEnabled = Boolean(onComposeGate);
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
   if (hubs.length === 0) {
@@ -136,6 +174,24 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const openQuestions = questions.filter(
     q => q.status === 'open' && !hubs.some(h => h.questionIds.includes(q.id))
   );
+
+  const renderHubAt = (hub: SuspectedCause, x: number) => {
+    const hubProps = {
+      hub,
+      displayStatus: deriveDisplayStatus(hub, findings),
+      x,
+      y: hubY,
+      hasGap: gapsByHubId[hub.id],
+      missingColumn: columnSet ? conditionHasMissingColumn(hub.condition, columnSet) : false,
+      zoomScale: zoom !== 1 ? zoom : undefined,
+      onSelect: onSelectHub,
+    };
+    return dndEnabled ? (
+      <DraggableHypothesisCard key={hub.id} {...hubProps} />
+    ) : (
+      <HypothesisCard key={hub.id} {...hubProps} />
+    );
+  };
 
   const body = (
     <div className="w-full h-full flex flex-col">
@@ -164,28 +220,50 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
             strokeDasharray="4 6"
           />
 
-          {hubs.map((hub, idx) => {
-            const hubProps = {
-              hub,
-              displayStatus: deriveDisplayStatus(hub, findings),
-              x: hubSpacing * (idx + 1),
-              y: hubY,
-              hasGap: gapsByHubId[hub.id],
-              missingColumn: columnSet
-                ? conditionHasMissingColumn(hub.condition, columnSet)
-                : false,
-              // Thread zoom as zoomScale so HypothesisCard can pick an LOD
-              // tier. Pass only when zoom is non-default — undefined zoomScale
-              // keeps the full-detail render path (pre-Phase 13 behavior).
-              zoomScale: zoom !== 1 ? zoom : undefined,
-              onSelect: onSelectHub,
-            };
-            return dndEnabled ? (
-              <DraggableHypothesisCard key={hub.id} {...hubProps} />
-            ) : (
-              <HypothesisCard key={hub.id} {...hubProps} />
-            );
-          })}
+          {tributaryGroups
+            ? (() => {
+                // Slice the canvas horizontally into equal-width bands, one per
+                // non-empty group. Each band draws its own frame (when a
+                // tributary is known) and distributes its hubs evenly within
+                // the inner padding.
+                const GROUP_PAD_X = 40;
+                const bandWidth = CANVAS_W / tributaryGroups.length;
+                return tributaryGroups.map((group, bandIdx) => {
+                  const bandX0 = bandIdx * bandWidth;
+                  const innerX0 = bandX0 + GROUP_PAD_X;
+                  const innerW = bandWidth - GROUP_PAD_X * 2;
+                  const perHub = innerW / (group.hubs.length + 1);
+                  return (
+                    <g
+                      key={group.tributary?.id ?? '__unassigned__'}
+                      data-tributary-group={group.tributary?.id ?? 'unassigned'}
+                    >
+                      {group.tributary && (
+                        <>
+                          <rect
+                            x={bandX0 + GROUP_PAD_X / 2}
+                            y={hubY - 40}
+                            width={bandWidth - GROUP_PAD_X}
+                            height={260}
+                            rx={12}
+                            className="fill-transparent stroke-edge"
+                            strokeDasharray="4 4"
+                          />
+                          <text
+                            x={bandX0 + GROUP_PAD_X / 2 + 12}
+                            y={hubY - 20}
+                            className="fill-content-muted text-xs font-mono uppercase tracking-wide"
+                          >
+                            {group.tributary.label ?? group.tributary.column}
+                          </text>
+                        </>
+                      )}
+                      {group.hubs.map((hub, i) => renderHubAt(hub, innerX0 + perHub * (i + 1)))}
+                    </g>
+                  );
+                });
+              })()
+            : hubs.map((hub, idx) => renderHubAt(hub, hubSpacing * (idx + 1)))}
 
           {openQuestions.map((q, idx) => (
             <QuestionPill
