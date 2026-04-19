@@ -1030,4 +1030,12 @@ export interface MessageCatalog {
   'wall.missing.title': string;
   'wall.canvas.ariaLabel': string;
   'wall.cta.proposeHypothesis': string;
+  // Scale features (Phase 13)
+  'wall.toolbar.groupByTributary': string;
+  'wall.toolbar.zoomIn': string;
+  'wall.toolbar.zoomOut': string;
+  'wall.toolbar.resetView': string;
+  'wall.palette.placeholder': string;
+  'wall.palette.empty': string;
+  'wall.minimap.ariaLabel': string;
 }

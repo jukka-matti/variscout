@@ -934,4 +934,11 @@ export const hr: MessageCatalog = {
   'wall.missing.title': 'Missing evidence',
   'wall.canvas.ariaLabel': 'Investigation Wall canvas',
   'wall.cta.proposeHypothesis': 'Propose new hypothesis from this finding',
+  'wall.toolbar.groupByTributary': 'Group by tributary',
+  'wall.toolbar.zoomIn': 'Zoom in',
+  'wall.toolbar.zoomOut': 'Zoom out',
+  'wall.toolbar.resetView': 'Reset view',
+  'wall.palette.placeholder': 'Search hubs, questions, findings…',
+  'wall.palette.empty': 'No matches',
+  'wall.minimap.ariaLabel': 'Investigation Wall minimap',
 };
