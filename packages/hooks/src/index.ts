@@ -434,6 +434,9 @@ export { useBrainstormSession, type UseBrainstormSessionReturn } from './useBrai
 // Brainstorm Detect (poll for active sessions — Team plan auto-detect)
 export { useBrainstormDetect, type UseBrainstormDetectReturn } from './useBrainstormDetect';
 
+// Hub Comment Stream (Investigation Wall — per-hub SSE team discussion)
+export { useHubCommentStream, type UseHubCommentStreamOptions } from './useHubCommentStream';
+
 // Evidence Map Data (layered visualization computation)
 export {
   useEvidenceMapData,

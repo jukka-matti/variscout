@@ -7,6 +7,8 @@
  */
 
 import { create } from 'zustand';
+import { useProjectStore } from './projectStore';
+import { useWallLayoutStore } from './wallLayoutStore';
 import type {
   Finding,
   FindingContext,
@@ -178,6 +180,16 @@ export interface InvestigationActions {
   setHubStatus: (hubId: string, status: SuspectedCause['status']) => void;
   setHubEvidence: (hubId: string, evidence: SuspectedCauseEvidence) => void;
   resetHubs: (hubs: SuspectedCause[]) => void;
+  /**
+   * Append a comment to a hub (Investigation Wall team discussion).
+   * Optimistically updates the hub's `comments` array, then POSTs to
+   * /api/hub-comments/append. On HTTP failure, enqueues the comment to
+   * wallLayoutStore.pendingComments for retry by the SSE reconnect flow.
+   *
+   * Returns the locally generated FindingComment so callers can render
+   * immediately without waiting for the network round-trip.
+   */
+  addHubComment: (hubId: string, text: string, author?: string) => Promise<FindingComment>;
 
   // --- Causal link actions ---
   addCausalLink: (
@@ -914,6 +926,69 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     resetHubs: hubs => {
       set({ suspectedCauses: hubs });
+    },
+
+    addHubComment: async (hubId, text, author) => {
+      // 1. Build the comment locally so optimistic append + server payload
+      //    share the same id — keeps the SSE echo idempotent (server dedupes
+      //    by id, so the echo that fans back via the stream is a no-op).
+      const comment = createFindingComment(text, author);
+
+      // 2. Optimistic update: append to the hub's comments array.
+      set(state => ({
+        suspectedCauses: state.suspectedCauses.map(h =>
+          h.id === hubId
+            ? {
+                ...h,
+                comments: [...(h.comments ?? []), comment],
+                updatedAt: new Date().toISOString(),
+              }
+            : h
+        ),
+      }));
+
+      // 3. Fire-and-track: POST to the server. On failure, push to the
+      //    pendingComments queue so the SSE reconnect flow can drain it.
+      const projectId = useProjectStore.getState().projectId;
+      if (!projectId) {
+        // PWA / no-project paths: optimistic-only, comment stays local.
+        return comment;
+      }
+
+      try {
+        const res = await fetch('/api/hub-comments/append', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId,
+            hubId,
+            id: comment.id,
+            text: comment.text,
+            author: comment.author,
+          }),
+        });
+        if (!res.ok) {
+          useWallLayoutStore.getState().enqueuePendingComment({
+            scope: 'hub',
+            targetId: hubId,
+            text: comment.text,
+            author: comment.author,
+            localId: comment.id,
+            createdAt: comment.createdAt,
+          });
+        }
+      } catch {
+        useWallLayoutStore.getState().enqueuePendingComment({
+          scope: 'hub',
+          targetId: hubId,
+          text: comment.text,
+          author: comment.author,
+          localId: comment.id,
+          createdAt: comment.createdAt,
+        });
+      }
+
+      return comment;
     },
 
     // ========================================================================
