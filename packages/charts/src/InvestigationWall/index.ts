@@ -39,3 +39,6 @@ export { DraggableHypothesisCard } from './DraggableHypothesisCard';
 export type { DraggableHypothesisCardProps } from './DraggableHypothesisCard';
 export { DroppableGateBadge } from './DroppableGateBadge';
 export type { DroppableGateBadgeProps } from './DroppableGateBadge';
+export { CommandPalette } from './CommandPalette';
+export type { CommandPaletteProps } from './CommandPalette';
+export { CANVAS_W, CANVAS_H } from './WallCanvas';
