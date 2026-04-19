@@ -116,6 +116,23 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
     phases: ['frame', 'scout', 'investigate', 'improve'],
   },
 
+  critique_investigation_state: {
+    definition: {
+      type: 'function',
+      name: 'critique_investigation_state',
+      description:
+        'Identify gaps in the current investigation: hypotheses missing disconfirmation attempts, open questions lacking a hypothesis, promising columns not yet hypothesized, stale questions. Returns a structured gap array for the Wall rail critique feed.',
+      parameters: {
+        type: 'object',
+        properties: {},
+        additionalProperties: false,
+        strict: true,
+      },
+    },
+    classification: 'read',
+    phases: ['investigate'],
+  },
+
   compare_categories: {
     definition: {
       type: 'function',
@@ -426,7 +443,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       type: 'function',
       name: 'suggest_suspected_cause',
       description:
-        'Suggest a suspected cause hub that connects related questions and findings into a named mechanism. Use when you notice 2+ answered questions pointing to the same root cause during validating or converging phase.',
+        'Suggest a suspected cause hub that connects related questions and findings into a named mechanism. Use when you notice 2+ answered questions pointing to the same contributing factor during validating or converging phase.',
       parameters: {
         type: 'object',
         properties: {
@@ -501,7 +518,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       type: 'function',
       name: 'suggest_improvement_idea',
       description:
-        'Propose an improvement idea for an answered question. Ideas bridge root cause analysis and corrective actions. The analyst can edit, run What-If simulation, and select for implementation. Use the Four Ideation Directions to classify the approach. Prefer lean improvements \u2014 simplest fix that addresses the root cause.',
+        'Propose an improvement idea for an answered question. Ideas bridge investigation findings and corrective actions. The analyst can edit, run What-If simulation, and select for implementation. Use the Four Ideation Directions to classify the approach. Prefer lean improvements \u2014 simplest fix that addresses the contributing factor.',
       parameters: {
         type: 'object',
         properties: {
@@ -658,7 +675,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
             type: 'string',
             description:
               'Concise insight text, e.g., "Nozzle 3 shows 2x variation of other nozzles \u2014 ' +
-              'cleaning frequency is the likely root cause (eta-squared 0.42)"',
+              'cleaning frequency is the likely contributing factor (eta-squared 0.42)"',
           },
           reasoning: {
             type: 'string',

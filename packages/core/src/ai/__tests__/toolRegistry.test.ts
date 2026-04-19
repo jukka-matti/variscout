@@ -235,3 +235,21 @@ describe('getToolsForPhase', () => {
     }
   });
 });
+
+describe('Wall critique_investigation_state tool', () => {
+  it('registers critique_investigation_state as read tool in investigate phase', () => {
+    expect(TOOL_REGISTRY.critique_investigation_state).toBeDefined();
+    expect(TOOL_REGISTRY.critique_investigation_state.classification).toBe('read');
+    expect(TOOL_REGISTRY.critique_investigation_state.phases).toContain('investigate');
+  });
+
+  it('getToolsForPhase includes critique_investigation_state when phase is investigate', () => {
+    const tools = getToolsForPhase('investigate', 'standard');
+    expect(tools.some(t => t.name === 'critique_investigation_state')).toBe(true);
+  });
+
+  it('getToolsForPhase excludes critique_investigation_state in frame phase', () => {
+    const tools = getToolsForPhase('frame', 'standard');
+    expect(tools.some(t => t.name === 'critique_investigation_state')).toBe(false);
+  });
+});
