@@ -8,8 +8,9 @@
  * Renders EmptyState when no hubs exist.
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { SuspectedCause, Finding, Question, ProcessMap, GateNode } from '@variscout/core';
+import { conditionHasMissingColumn } from '@variscout/core';
 import { ProblemConditionCard } from './ProblemConditionCard';
 import { HypothesisCard } from './HypothesisCard';
 import { QuestionPill } from './QuestionPill';
@@ -28,6 +29,12 @@ export interface WallCanvasProps {
   problemContributionTree?: GateNode;
   gapsByHubId?: Record<string, boolean>;
   gaps?: Array<{ id: string; message: string; hubId?: string }>;
+  /**
+   * Column keys present in the active dataset. When provided, each hub whose
+   * `condition` references a column absent from this set renders a
+   * missing-column warning badge on its card.
+   */
+  activeColumns?: ReadonlyArray<string>;
   onSelectHub?: (id: string) => void;
   onPromoteQuestion?: (id: string) => void;
   onWriteHypothesis?: () => void;
@@ -59,6 +66,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   eventsPerWeek,
   gapsByHubId = {},
   gaps = [],
+  activeColumns,
   onSelectHub,
   onPromoteQuestion,
   onWriteHypothesis,
@@ -66,6 +74,10 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   onSeedFromFactorIntel,
   onFocusHubFromGap,
 }) => {
+  const columnSet = useMemo(
+    () => (activeColumns ? new Set(activeColumns) : undefined),
+    [activeColumns]
+  );
   if (hubs.length === 0) {
     return (
       <EmptyState
@@ -118,6 +130,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
             x={hubSpacing * (idx + 1)}
             y={hubY}
             hasGap={gapsByHubId[hub.id]}
+            missingColumn={columnSet ? conditionHasMissingColumn(hub.condition, columnSet) : false}
             onSelect={onSelectHub}
           />
         ))}

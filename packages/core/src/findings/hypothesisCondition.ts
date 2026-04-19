@@ -87,3 +87,43 @@ export function deriveConditionFromFindingSource(
       return undefined;
   }
 }
+
+/**
+ * Collect the set of column names referenced by a hypothesis condition tree.
+ * Returns an empty set for unknown kinds — defensive against future schema growth.
+ */
+export function collectReferencedColumns(condition: HypothesisCondition): Set<string> {
+  const columns = new Set<string>();
+  const walk = (node: HypothesisCondition): void => {
+    switch (node.kind) {
+      case 'leaf':
+        columns.add(node.column);
+        return;
+      case 'and':
+      case 'or':
+        node.children.forEach(walk);
+        return;
+      case 'not':
+        walk(node.child);
+        return;
+    }
+  };
+  walk(condition);
+  return columns;
+}
+
+/**
+ * True iff the condition references at least one column not present in `availableColumns`.
+ * Returns false for an undefined condition (no claim → no missing-column state).
+ */
+export function conditionHasMissingColumn(
+  condition: HypothesisCondition | undefined,
+  availableColumns: ReadonlySet<string>
+): boolean {
+  if (!condition) return false;
+  const referenced = collectReferencedColumns(condition);
+  for (const col of referenced) {
+    if (!availableColumns.has(col)) return true;
+  }
+  return false;
+}

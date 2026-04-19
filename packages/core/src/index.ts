@@ -600,6 +600,9 @@ export {
   // HypothesisCondition evaluator
   evaluateCondition,
   runAndCheck,
+  // HypothesisCondition column inspection
+  collectReferencedColumns,
+  conditionHasMissingColumn,
 } from './findings';
 export type { FactorFindingInput, FactorFindingBundle } from './findings';
 export {
