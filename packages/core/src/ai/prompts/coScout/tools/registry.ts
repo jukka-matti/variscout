@@ -6,6 +6,9 @@
  * the registry to produce the tools array for a given phase/mode/tier.
  *
  * ADR-029: Extended from 3 to 25 tools with action tool support.
+ * PR #75 (Investigation Wall): 25 → 27 tools
+ *   + `critique_investigation_state` (read, investigate phase)
+ *   + `propose_hypothesis_from_finding` (action, investigate phase)
  */
 
 import type { ToolDefinition } from '../../../responsesApi';

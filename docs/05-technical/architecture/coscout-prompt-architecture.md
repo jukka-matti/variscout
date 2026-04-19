@@ -25,7 +25,7 @@ packages/core/src/ai/prompts/coScout/
 ├── legacy.ts         — Original monolith functions (deprecated, test-only backward compat)
 ├── tools/
 │   ├── index.ts      — Barrel: TOOL_REGISTRY, getToolsForPhase(), ToolRegistryEntry, ToolName
-│   └── registry.ts   — 25 tools defined once with phase/mode/tier gating + condition functions
+│   └── registry.ts   — 27 tools defined once with phase/mode/tier gating + condition functions
 ├── phases/
 │   ├── index.ts      — buildPhaseCoaching() dispatcher + barrel exports
 │   ├── frame.ts      — FRAME phase coaching (problem framing, measure selection)
@@ -115,7 +115,7 @@ interface AssembleCoScoutPromptOptions {
 
 ## Tool Registry
 
-25 tools defined once in `tools/registry.ts`, with phase/mode/tier gating via `ToolRegistryEntry`:
+27 tools defined once in `tools/registry.ts`, with phase/mode/tier gating via `ToolRegistryEntry`:
 
 ```typescript
 interface ToolRegistryEntry {
