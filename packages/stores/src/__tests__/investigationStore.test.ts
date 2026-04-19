@@ -1013,3 +1013,99 @@ describe('problemContributionTree', () => {
     expect(useInvestigationStore.getState().problemContributionTree).toEqual(tree);
   });
 });
+
+// ============================================================================
+// composeGate tests (Phase 7.2)
+// ============================================================================
+
+describe('composeGate', () => {
+  beforeEach(() => {
+    useInvestigationStore.setState(getInvestigationInitialState());
+  });
+
+  it('is a no-op when the tree is undefined', () => {
+    useInvestigationStore.getState().composeGate([], 'h1');
+    expect(useInvestigationStore.getState().problemContributionTree).toBeUndefined();
+  });
+
+  it('appends a hub to an existing AND at root', () => {
+    const tree: GateNode = {
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    };
+    useInvestigationStore.getState().setProblemContributionTree(tree);
+    useInvestigationStore.getState().composeGate([], 'h3');
+    expect(useInvestigationStore.getState().problemContributionTree).toEqual({
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h2' },
+        { kind: 'hub', hubId: 'h3' },
+      ],
+    });
+  });
+
+  it('wraps a leaf tree in a new AND when dropped at root', () => {
+    useInvestigationStore.getState().setProblemContributionTree({ kind: 'hub', hubId: 'h1' });
+    useInvestigationStore.getState().composeGate([], 'h2');
+    expect(useInvestigationStore.getState().problemContributionTree).toEqual({
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    });
+  });
+
+  it('wraps an OR in a new AND at root when dropped on the OR', () => {
+    const tree: GateNode = {
+      kind: 'or',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    };
+    useInvestigationStore.getState().setProblemContributionTree(tree);
+    useInvestigationStore.getState().composeGate([], 'h3');
+    expect(useInvestigationStore.getState().problemContributionTree).toEqual({
+      kind: 'and',
+      children: [tree, { kind: 'hub', hubId: 'h3' }],
+    });
+  });
+
+  it('composes at a nested path', () => {
+    // Leaf at [0] inside a root AND — composing there wraps that leaf in AND.
+    const tree: GateNode = {
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    };
+    useInvestigationStore.getState().setProblemContributionTree(tree);
+    useInvestigationStore.getState().composeGate([0], 'h3');
+    expect(useInvestigationStore.getState().problemContributionTree).toEqual({
+      kind: 'and',
+      children: [
+        {
+          kind: 'and',
+          children: [
+            { kind: 'hub', hubId: 'h1' },
+            { kind: 'hub', hubId: 'h3' },
+          ],
+        },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    });
+  });
+
+  it('is a no-op for an invalid path (leaves tree untouched)', () => {
+    const tree: GateNode = { kind: 'hub', hubId: 'h1' };
+    useInvestigationStore.getState().setProblemContributionTree(tree);
+    useInvestigationStore.getState().composeGate([99], 'h2');
+    expect(useInvestigationStore.getState().problemContributionTree).toBe(tree);
+  });
+});

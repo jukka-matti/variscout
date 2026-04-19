@@ -13,6 +13,7 @@
     "@variscout/core": "workspace:*",
     "dexie": "^4.0.11",
     "idb-keyval": "^6.2.1",
+    "immer": "^11.1.4",
     "zustand": "^5.0.0"
   },
   "devDependencies": {

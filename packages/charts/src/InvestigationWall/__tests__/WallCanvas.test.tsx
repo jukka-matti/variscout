@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { WallCanvas } from '../WallCanvas';
 import type { SuspectedCause, ProcessMap } from '@variscout/core';
@@ -139,5 +139,37 @@ describe('WallCanvas', () => {
       />
     );
     expect(screen.queryByLabelText(/references missing column/i)).toBeNull();
+  });
+
+  it('renders draggable hubs when onComposeGate is provided (DnD enabled)', () => {
+    const onComposeGate = vi.fn();
+    const { container } = render(
+      <WallCanvas
+        hubs={[hub]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+        onComposeGate={onComposeGate}
+      />
+    );
+    // DraggableHypothesisCard wraps with data-draggable-hub attr.
+    expect(container.querySelector('[data-draggable-hub="h1"]')).toBeTruthy();
+  });
+
+  it('renders static hubs when onComposeGate is not provided (DnD disabled)', () => {
+    const { container } = render(
+      <WallCanvas
+        hubs={[hub]}
+        findings={[]}
+        questions={[]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+    // No draggable wrapper when DnD is off.
+    expect(container.querySelector('[data-draggable-hub]')).toBeNull();
   });
 });

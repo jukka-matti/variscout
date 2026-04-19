@@ -47,6 +47,7 @@ export type {
   NodeId,
   TributaryId,
   GateNodePath,
+  UndoEntry,
 } from './wallLayoutStore';
 export {
   selectHubCommentStream,
