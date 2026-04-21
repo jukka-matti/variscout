@@ -10,6 +10,8 @@
  */
 
 import React from 'react';
+import { getMessage } from '@variscout/core/i18n';
+import { getDocumentLocale } from './hooks/useWallLocale';
 
 export interface NarratorMessage {
   id: string;
@@ -26,16 +28,17 @@ export interface NarratorRailProps {
 }
 
 export const NarratorRail: React.FC<NarratorRailProps> = ({ messages, isOpen, onToggle }) => {
+  const locale = getDocumentLocale();
   if (!isOpen) {
     return (
       <button
         type="button"
-        aria-label="Open narrator rail"
+        aria-label={getMessage(locale, 'wall.rail.openAria')}
         onClick={onToggle}
         className="fixed right-2 top-20 rounded-full bg-surface-secondary border border-edge p-2"
         data-testid="narrator-rail-closed"
       >
-        <span className="sr-only">Open rail</span>
+        <span className="sr-only">{getMessage(locale, 'wall.rail.openButton')}</span>
         <span aria-hidden>●</span>
       </button>
     );
@@ -43,15 +46,17 @@ export const NarratorRail: React.FC<NarratorRailProps> = ({ messages, isOpen, on
 
   return (
     <aside
-      aria-label="Narrator rail"
+      aria-label={getMessage(locale, 'wall.rail.rootAria')}
       className="w-80 border-l border-edge bg-surface h-full overflow-y-auto p-3 flex flex-col gap-2"
       data-testid="narrator-rail-open"
     >
       <header className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-content">CoScout</h2>
+        <h2 className="text-sm font-semibold text-content">
+          {getMessage(locale, 'wall.rail.title')}
+        </h2>
         <button
           type="button"
-          aria-label="Close narrator rail"
+          aria-label={getMessage(locale, 'wall.rail.closeAria')}
           onClick={onToggle}
           className="text-content-muted hover:text-content"
         >
@@ -59,7 +64,7 @@ export const NarratorRail: React.FC<NarratorRailProps> = ({ messages, isOpen, on
         </button>
       </header>
       {messages.length === 0 ? (
-        <p className="text-xs text-content-muted">No suggestions yet.</p>
+        <p className="text-xs text-content-muted">{getMessage(locale, 'wall.rail.empty')}</p>
       ) : (
         <ol className="flex flex-col gap-2 list-none p-0 m-0">
           {messages.map(m => (

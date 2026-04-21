@@ -8,7 +8,7 @@
  * - No Teams integration (no photos, no assignees)
  * - 3-status findings (not 5)
  */
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   QuestionChecklist,
   InvestigationPhaseBadge,
@@ -27,7 +27,15 @@ import type { ResolvedMode } from '@variscout/core/strategy';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
 import { useWallLayoutStore, useProjectStore, useInvestigationStore } from '@variscout/stores';
-import { WallCanvas } from '@variscout/charts';
+import {
+  WallCanvas,
+  CommandPalette,
+  Minimap,
+  CANVAS_W,
+  CANVAS_H,
+  useWallKeyboard,
+  useWallIsMobile,
+} from '@variscout/charts';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import {
   useInvestigationFeatureStore,
@@ -79,7 +87,22 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   // Map/Wall sub-toggle (mirrors Azure InvestigationWorkspace)
   const wallViewMode = useWallLayoutStore(s => s.viewMode);
   const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
+  // Phase 13 scale features — thread store values into WallCanvas so zoom,
+  // pan, and tributary clustering survive re-renders and route through the
+  // existing undo/persist infrastructure.
+  const wallZoom = useWallLayoutStore(s => s.zoom);
+  const wallPan = useWallLayoutStore(s => s.pan);
+  const setWallPan = useWallLayoutStore(s => s.setPan);
+  const wallGroupByTributary = useWallLayoutStore(s => s.groupByTributary);
+  const setWallGroupByTributary = useWallLayoutStore(s => s.setGroupByTributary);
   const processMap = useProjectStore(s => s.processContext?.processMap);
+  const rawData = useProjectStore(s => s.rawData);
+  // Undefined when no rows are loaded so WallCanvas keeps the missing-column
+  // badge suppressed (rather than flagging every hub against an empty set).
+  const wallActiveColumns = useMemo<string[] | undefined>(
+    () => (rawData.length > 0 ? Object.keys(rawData[0]) : undefined),
+    [rawData]
+  );
   const hubs = useInvestigationStore(s => s.suspectedCauses);
   const wallFindings = useInvestigationStore(s => s.findings);
   const wallQuestions = useInvestigationStore(s => s.questions);
@@ -103,6 +126,44 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
 
   // View mode (list/board/tree)
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'tree'>('board');
+
+  // Phase 13 — ⌘K command palette trigger. Only active when Wall is visible.
+  // Phase 14.1 — Minimap + palette gate on desktop only; MobileCardList
+  // takes over below 768px and overlay controls would collide with it.
+  const wallIsMobile = useWallIsMobile();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  useWallKeyboard({
+    onSearch: () => {
+      if (wallViewMode === 'wall' && !wallIsMobile) setPaletteOpen(true);
+    },
+  });
+
+  // Phase 13 — resolve a CommandPalette result id to a canvas-space pan target.
+  // Positioning mirrors WallCanvas's deterministic layout (hubs row at y=400,
+  // questions row at y=900). WallCanvas doesn't expose node positions, so this
+  // recomputation is a controlled duplication — refactor if the layout ever
+  // becomes dynamic.
+  const handlePanToNode = useCallback(
+    (nodeId: string) => {
+      const hubIndex = hubs.findIndex(h => h.id === nodeId);
+      if (hubIndex >= 0) {
+        const hubSpacing = CANVAS_W / (hubs.length + 1);
+        setWallPan({
+          x: CANVAS_W / 2 - hubSpacing * (hubIndex + 1),
+          y: CANVAS_H / 2 - 400,
+        });
+        return;
+      }
+      const questionIndex = wallQuestions.findIndex(q => q.id === nodeId);
+      if (questionIndex >= 0) {
+        setWallPan({
+          x: CANVAS_W / 2 - (200 + questionIndex * 240),
+          y: CANVAS_H / 2 - 900,
+        });
+      }
+    },
+    [hubs, wallQuestions, setWallPan]
+  );
 
   // Categorize questions for InvestigationConclusion
   const { suspectedCauses, contributing, ruledOut } = useMemo(() => {
@@ -219,6 +280,25 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
             </>
           )}
 
+          {/* Wall-only: group-by-tributary toggle */}
+          {wallViewMode === 'wall' && (
+            <>
+              <div className="w-px h-4 bg-edge mx-1" />
+              <button
+                type="button"
+                aria-pressed={wallGroupByTributary}
+                onClick={() => setWallGroupByTributary(!wallGroupByTributary)}
+                className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                  wallGroupByTributary
+                    ? 'bg-surface-secondary text-content'
+                    : 'text-content-secondary hover:text-content'
+                }`}
+              >
+                Group by tributary
+              </button>
+            </>
+          )}
+
           <span className="ml-auto text-xs text-content-tertiary">
             {findingsState.findings.length} finding
             {findingsState.findings.length !== 1 ? 's' : ''}
@@ -228,14 +308,43 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
         {/* Content */}
         {wallViewMode === 'wall' ? (
           processMap ? (
-            <WallCanvas
-              hubs={hubs}
-              findings={wallFindings}
-              questions={wallQuestions}
-              processMap={processMap}
-              problemCpk={0}
-              eventsPerWeek={0}
-            />
+            <div className="relative flex-1 flex flex-col min-h-0">
+              <WallCanvas
+                hubs={hubs}
+                findings={wallFindings}
+                questions={wallQuestions}
+                processMap={processMap}
+                problemCpk={0}
+                eventsPerWeek={0}
+                activeColumns={wallActiveColumns}
+                zoom={wallZoom}
+                pan={wallPan}
+                groupByTributary={wallGroupByTributary}
+              />
+              {/* Minimap + CommandPalette are desktop-only. WallCanvas
+                  self-gates to MobileCardList below 768px. */}
+              {!wallIsMobile && (
+                <>
+                  <div className="absolute bottom-4 right-4 pointer-events-auto">
+                    <Minimap
+                      hubs={hubs}
+                      questions={wallQuestions}
+                      zoom={wallZoom}
+                      pan={wallPan}
+                      onPanTo={(x, y) => setWallPan({ x, y })}
+                    />
+                  </div>
+                  <CommandPalette
+                    open={paletteOpen}
+                    onClose={() => setPaletteOpen(false)}
+                    onPanTo={handlePanToNode}
+                    hubs={hubs}
+                    questions={wallQuestions}
+                    findings={wallFindings}
+                  />
+                </>
+              )}
+            </div>
           ) : (
             <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">
               Build a Process Map in the Frame workspace first.

@@ -21,3 +21,29 @@ export type { EmptyStateProps } from './EmptyState';
 export type { WallStatus, Point } from './types';
 export { useWallKeyboard } from './hooks/useWallKeyboard';
 export type { UseWallKeyboardOptions } from './hooks/useWallKeyboard';
+export {
+  useWallDragDrop,
+  encodeHubDraggableId,
+  decodeHubDraggableId,
+  encodeGatePath,
+  decodeGatePath,
+  DRAGGABLE_HUB_PREFIX,
+  DROPPABLE_GATE_PREFIX,
+} from './hooks/useWallDragDrop';
+export type {
+  UseWallDragDropOptions,
+  UseWallDragDropResult,
+  WallDropPayload,
+} from './hooks/useWallDragDrop';
+export { DraggableHypothesisCard } from './DraggableHypothesisCard';
+export type { DraggableHypothesisCardProps } from './DraggableHypothesisCard';
+export { DroppableGateBadge } from './DroppableGateBadge';
+export type { DroppableGateBadgeProps } from './DroppableGateBadge';
+export { CommandPalette } from './CommandPalette';
+export type { CommandPaletteProps } from './CommandPalette';
+export { Minimap } from './Minimap';
+export type { MinimapProps } from './Minimap';
+export { useWallIsMobile, WALL_MOBILE_BREAKPOINT } from './hooks/useWallBreakpoint';
+export { MobileCardList } from './MobileCardList';
+export type { MobileCardListProps } from './MobileCardList';
+export { CANVAS_W, CANVAS_H } from './WallCanvas';

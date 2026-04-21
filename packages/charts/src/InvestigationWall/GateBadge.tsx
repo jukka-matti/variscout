@@ -9,7 +9,10 @@
  */
 
 import React from 'react';
+import type { MessageCatalog } from '@variscout/core';
+import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '../colors';
+import { getDocumentLocale } from './hooks/useWallLocale';
 
 export interface GateBadgeProps {
   kind: 'and' | 'or' | 'not';
@@ -24,6 +27,12 @@ export interface GateBadgeProps {
 
 const GATE_R = 22;
 
+const KIND_KEY: Record<GateBadgeProps['kind'], keyof MessageCatalog> = {
+  and: 'wall.gate.and',
+  or: 'wall.gate.or',
+  not: 'wall.gate.not',
+};
+
 export const GateBadge: React.FC<GateBadgeProps> = ({
   kind,
   gatePath,
@@ -34,20 +43,25 @@ export const GateBadge: React.FC<GateBadgeProps> = ({
   onRun,
   onContextMenu,
 }) => {
-  const label = kind.toUpperCase();
+  const locale = getDocumentLocale();
+  const label = getMessage(locale, KIND_KEY[kind]);
   const glyph = kind === 'not' ? '⊘' : '◇';
   const holdsText =
     holds === undefined || total === undefined
       ? ''
       : total === 0
-        ? '—/0'
-        : `HOLDS ${holds}/${total}`;
+        ? getMessage(locale, 'wall.gate.noTotals')
+        : formatMessage(locale, 'wall.gate.holds', { matching: holds, total });
+  const ariaLabel = formatMessage(locale, 'wall.gate.ariaLabel', {
+    kind: label,
+    holds: holdsText,
+  });
 
   return (
     <g
       role="button"
       tabIndex={0}
-      aria-label={`Gate ${label} ${holdsText}`}
+      aria-label={ariaLabel}
       transform={`translate(${x}, ${y})`}
       onClick={() => onRun?.(gatePath)}
       onContextMenu={e => {

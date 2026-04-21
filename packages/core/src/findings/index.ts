@@ -26,9 +26,15 @@ export type {
   HypothesisCondition,
   FindingSourceColumnHints,
 } from './hypothesisCondition';
-export { deriveConditionFromFindingSource } from './hypothesisCondition';
+export {
+  collectReferencedColumns,
+  conditionHasMissingColumn,
+  deriveConditionFromFindingSource,
+} from './hypothesisCondition';
 export type { AndCheckResult } from './hypothesisConditionEvaluator';
 export { evaluateCondition, runAndCheck } from './hypothesisConditionEvaluator';
+export type { GatePath } from './gateNodeOps';
+export { getAt, updateAt, insertHubAsAndChild, removeAt } from './gateNodeOps';
 // Note: DataRow is the canonical foundational type from `../types` — not re-exported
 // from this sub-path to avoid a duplicate identifier at the root barrel. The evaluator
 // accepts `Record<string, unknown>`-compatible rows; consumers get the canonical DataRow

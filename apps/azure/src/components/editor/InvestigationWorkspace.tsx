@@ -36,7 +36,15 @@ import {
   useSessionStore,
   useWallLayoutStore,
 } from '@variscout/stores';
-import { WallCanvas } from '@variscout/charts';
+import {
+  WallCanvas,
+  CommandPalette,
+  Minimap,
+  CANVAS_W,
+  CANVAS_H,
+  useWallKeyboard,
+  useWallIsMobile,
+} from '@variscout/charts';
 import { InvestigationMapView } from './InvestigationMapView';
 import { CoScoutSection } from './CoScoutSection';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
@@ -50,6 +58,7 @@ import type { UseFindingsOrchestrationReturn } from '../../features/findings/use
 import { useAIStore } from '../../features/ai/aiStore';
 import type { UseAIOrchestrationReturn, UseActionProposalsReturn } from '../../features/ai';
 import type { UseInvestigationOrchestrationReturn } from '../../features/investigation/useInvestigationOrchestration';
+import { useWallHubCommentLifecycle } from '../../features/investigation/useWallHubCommentLifecycle';
 
 // Resize panel config (individual args for useResizablePanel)
 
@@ -140,8 +149,42 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   // Map/Wall sub-toggle (within the Evidence Map view)
   const wallViewMode = useWallLayoutStore(s => s.viewMode);
   const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
+  // Phase 13 scale features — threaded into WallCanvas so zoom, pan, and
+  // tributary clustering route through the existing store + persistence.
+  const wallZoom = useWallLayoutStore(s => s.zoom);
+  const wallPan = useWallLayoutStore(s => s.pan);
+  const setWallPan = useWallLayoutStore(s => s.setPan);
+  const wallGroupByTributary = useWallLayoutStore(s => s.groupByTributary);
+  const setWallGroupByTributary = useWallLayoutStore(s => s.setGroupByTributary);
+  // Columns present in the active dataset — powers WallCanvas missing-column
+  // badge for hubs whose condition references a renamed or dropped column.
+  // Undefined when no rows are loaded so the badge stays suppressed (rather
+  // than flagging every column as missing against an empty column set).
+  const rawData = useProjectStore(s => s.rawData);
+  const wallActiveColumns = useMemo<string[] | undefined>(
+    () => (rawData.length > 0 ? Object.keys(rawData[0]) : undefined),
+    [rawData]
+  );
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const causalLinks = useInvestigationStore(s => s.causalLinks);
+
+  // Wall hub-comment SSE subscription — no-op when viewMode !== 'wall' or
+  // when there's no selection. Streams lifetime-bound to this component
+  // (unmounts when the user leaves the Investigation workspace).
+  useWallHubCommentLifecycle();
+
+  // Phase 13 — ⌘K command palette. Only responds when Wall is visible.
+  // (pan-to-node helper is defined after `hubs` is available, below.)
+  const [wallPaletteOpen, setWallPaletteOpen] = useState(false);
+  // Phase 14.1 — viewport-aware rendering. Below 768px the WallCanvas swaps
+  // to MobileCardList; the Minimap and CommandPalette are sibling controls,
+  // so we gate their mount on the same breakpoint.
+  const wallIsMobile = useWallIsMobile();
+  useWallKeyboard({
+    onSearch: () => {
+      if (wallViewMode === 'wall' && !wallIsMobile) setWallPaletteOpen(true);
+    },
+  });
 
   // Question-link prompt for map context menu findings
   const skipQuestionLinkPrompt = useSessionStore(s => s.skipQuestionLinkPrompt);
@@ -288,6 +331,30 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
   // ── Hub model computations (SuspectedCause hubs) ───────────────────────
   const hubs = suspectedCausesState.hubs;
+
+  // Phase 13 — pan-to-node: replicate WallCanvas's deterministic layout so the
+  // command palette can center the viewport on a hub/question by id.
+  const handleWallPanToNode = useCallback(
+    (nodeId: string) => {
+      const hubIndex = hubs.findIndex(h => h.id === nodeId);
+      if (hubIndex >= 0) {
+        const hubSpacing = CANVAS_W / (hubs.length + 1);
+        setWallPan({
+          x: CANVAS_W / 2 - hubSpacing * (hubIndex + 1),
+          y: CANVAS_H / 2 - 400,
+        });
+        return;
+      }
+      const questionIndex = questionsState.questions.findIndex(q => q.id === nodeId);
+      if (questionIndex >= 0) {
+        setWallPan({
+          x: CANVAS_W / 2 - (200 + questionIndex * 240),
+          y: CANVAS_H / 2 - 900,
+        });
+      }
+    },
+    [hubs, questionsState.questions, setWallPan]
+  );
 
   const { hubEvidences, hubProjections } = useHubComputations(
     bestSubsets,
@@ -630,6 +697,21 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   </button>
                 ))}
               </div>
+              {/* Wall-only toolbar: group by tributary */}
+              {wallViewMode === 'wall' && (
+                <button
+                  type="button"
+                  aria-pressed={wallGroupByTributary}
+                  onClick={() => setWallGroupByTributary(!wallGroupByTributary)}
+                  className={`ml-1 px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                    wallGroupByTributary
+                      ? 'bg-surface-secondary text-content'
+                      : 'text-content-secondary hover:text-content'
+                  }`}
+                >
+                  Group by tributary
+                </button>
+              )}
             </>
           )}
 
@@ -663,14 +745,44 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         {investigationViewMode === 'map' ? (
           wallViewMode === 'wall' ? (
             processMap ? (
-              <WallCanvas
-                hubs={hubs}
-                findings={findingsState.findings}
-                questions={questionsState.questions}
-                processMap={processMap}
-                problemCpk={0}
-                eventsPerWeek={0}
-              />
+              <div className="relative flex-1 flex flex-col min-h-0">
+                <WallCanvas
+                  hubs={hubs}
+                  findings={findingsState.findings}
+                  questions={questionsState.questions}
+                  processMap={processMap}
+                  problemCpk={0}
+                  eventsPerWeek={0}
+                  activeColumns={wallActiveColumns}
+                  zoom={wallZoom}
+                  pan={wallPan}
+                  groupByTributary={wallGroupByTributary}
+                />
+                {/* Minimap + CommandPalette are desktop-only. WallCanvas
+                    self-gates to MobileCardList below 768px, so these
+                    sibling controls would overlap the mobile list. */}
+                {!wallIsMobile && (
+                  <>
+                    <div className="absolute bottom-4 right-4 pointer-events-auto">
+                      <Minimap
+                        hubs={hubs}
+                        questions={questionsState.questions}
+                        zoom={wallZoom}
+                        pan={wallPan}
+                        onPanTo={(x, y) => setWallPan({ x, y })}
+                      />
+                    </div>
+                    <CommandPalette
+                      open={wallPaletteOpen}
+                      onClose={() => setWallPaletteOpen(false)}
+                      onPanTo={handleWallPanToNode}
+                      hubs={hubs}
+                      questions={questionsState.questions}
+                      findings={findingsState.findings}
+                    />
+                  </>
+                )}
+              </div>
             ) : (
               <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">
                 Build a Process Map in the Frame workspace first.

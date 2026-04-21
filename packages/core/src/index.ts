@@ -494,8 +494,18 @@ export { searchProjectArtifacts } from './ai';
 export type { SearchProjectOptions, SearchResult } from './ai';
 
 // Wall investigation actions (Phase 3)
-export { proposeDisconfirmationMove, critiqueInvestigationState } from './ai/actions';
-export type { SuggestedBrush, InvestigationGap, CritiqueInput, CritiqueResult } from './ai/actions';
+export {
+  proposeDisconfirmationMove,
+  critiqueInvestigationState,
+  detectBestSubsetsCandidates,
+} from './ai/actions';
+export type {
+  SuggestedBrush,
+  InvestigationGap,
+  CritiqueInput,
+  CritiqueResult,
+  BestSubsetsCandidate,
+} from './ai/actions';
 
 // Category keyword matching and inference
 export {
@@ -600,7 +610,16 @@ export {
   // HypothesisCondition evaluator
   evaluateCondition,
   runAndCheck,
+  // HypothesisCondition column inspection
+  collectReferencedColumns,
+  conditionHasMissingColumn,
+  // GateNode path-based tree ops (Investigation Wall contribution tree)
+  getAt,
+  updateAt,
+  insertHubAsAndChild,
+  removeAt,
 } from './findings';
+export type { GatePath } from './findings';
 export type { FactorFindingInput, FactorFindingBundle } from './findings';
 export {
   getCategoryForFactor,

@@ -8,6 +8,8 @@
  */
 
 import React from 'react';
+import { getMessage } from '@variscout/core/i18n';
+import { getDocumentLocale } from './hooks/useWallLocale';
 
 export interface EmptyStateProps {
   onWriteHypothesis?: () => void;
@@ -20,34 +22,37 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onPromoteFromQuestion,
   onSeedFromFactorIntel,
 }) => {
+  const locale = getDocumentLocale();
   return (
     <section
-      aria-label="Investigation Wall empty state"
+      aria-label={getMessage(locale, 'wall.empty.ariaLabel')}
       className="flex flex-col items-center justify-center gap-4 p-8"
     >
-      <h2 className="text-lg font-semibold text-content">Start with a hypothesis</h2>
-      <p className="text-xs text-content-muted">Three ways to begin:</p>
+      <h2 className="text-lg font-semibold text-content">
+        {getMessage(locale, 'wall.empty.title')}
+      </h2>
+      <p className="text-xs text-content-muted">{getMessage(locale, 'wall.empty.subtitle')}</p>
       <div className="flex flex-col gap-2 w-full max-w-xs">
         <button
           type="button"
           onClick={onWriteHypothesis}
           className="rounded bg-surface-secondary border border-edge px-3 py-2 text-sm text-content hover:bg-surface"
         >
-          Write one
+          {getMessage(locale, 'wall.empty.writeHypothesis')}
         </button>
         <button
           type="button"
           onClick={onPromoteFromQuestion}
           className="rounded bg-surface-secondary border border-edge px-3 py-2 text-sm text-content hover:bg-surface"
         >
-          Promote from a question
+          {getMessage(locale, 'wall.empty.promoteFromQuestion')}
         </button>
         <button
           type="button"
           onClick={onSeedFromFactorIntel}
           className="rounded bg-surface-secondary border border-edge px-3 py-2 text-sm text-content hover:bg-surface"
         >
-          Seed 3 from Factor Intelligence
+          {getMessage(locale, 'wall.empty.seedFromFactorIntel')}
         </button>
       </div>
     </section>

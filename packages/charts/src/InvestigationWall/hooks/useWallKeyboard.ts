@@ -49,6 +49,12 @@ export function useWallKeyboard(options: UseWallKeyboardOptions): void {
         options.onUndo?.();
         return;
       }
+      // Cmd/Ctrl + Y — Windows-style redo shortcut, equivalent to Cmd+Shift+Z.
+      if (mod && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        options.onRedo?.();
+        return;
+      }
 
       if (e.key === 'Escape') {
         options.onEscape?.();

@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { useInvestigationStore, getInvestigationInitialState } from '../investigationStore';
+import { useProjectStore, getProjectInitialState } from '../projectStore';
+import { useWallLayoutStore, getWallLayoutInitialState } from '../wallLayoutStore';
 import type {
   FindingContext,
   FindingOutcome,
@@ -506,6 +508,34 @@ describe('investigationStore — suspected cause hubs', () => {
     expect(useInvestigationStore.getState().suspectedCauses[0].synthesis).toBe('Old synthesis');
   });
 
+  it('createHubFromFinding returns null when the finding does not exist', () => {
+    const result = useInvestigationStore.getState().createHubFromFinding('missing-id');
+    expect(result).toBeNull();
+    expect(useInvestigationStore.getState().suspectedCauses).toHaveLength(0);
+  });
+
+  it('createHubFromFinding creates a hub seeded from the finding text and links it', () => {
+    const ctx = makeContext();
+    const finding = useInvestigationStore
+      .getState()
+      .addFinding('Night shift nozzle runs consistently hotter than day shift baseline', ctx);
+    const hub = useInvestigationStore.getState().createHubFromFinding(finding.id);
+    expect(hub).not.toBeNull();
+    const state = useInvestigationStore.getState();
+    expect(state.suspectedCauses).toHaveLength(1);
+    const persisted = state.suspectedCauses[0];
+    expect(persisted.findingIds).toEqual([finding.id]);
+    expect(persisted.name.startsWith('Hypothesis:')).toBe(true);
+    expect(persisted.status).toBe('suspected');
+  });
+
+  it('createHubFromFinding uses fallback name when finding text is empty', () => {
+    const ctx = makeContext();
+    const finding = useInvestigationStore.getState().addFinding('   ', ctx);
+    useInvestigationStore.getState().createHubFromFinding(finding.id);
+    expect(useInvestigationStore.getState().suspectedCauses[0].name).toBe('New hypothesis');
+  });
+
   it('connects question and finding to hub', () => {
     const hub = useInvestigationStore.getState().createHub('Test', 'Synth');
     useInvestigationStore.getState().connectQuestionToHub(hub.id, 'q-1');
@@ -590,6 +620,116 @@ describe('investigationStore — suspected cause hubs', () => {
     ];
     useInvestigationStore.getState().resetHubs(newHubs);
     expect(useInvestigationStore.getState().suspectedCauses).toEqual(newHubs);
+  });
+});
+
+// ============================================================================
+// addHubComment — optimistic + SSE queue fallback
+// ============================================================================
+
+describe('investigationStore — addHubComment', () => {
+  const mockFetch = vi.fn();
+
+  beforeEach(() => {
+    useProjectStore.setState(getProjectInitialState());
+    useWallLayoutStore.setState(getWallLayoutInitialState());
+    mockFetch.mockReset();
+    vi.stubGlobal('fetch', mockFetch);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('optimistically appends the comment to the hub before the fetch resolves', async () => {
+    useProjectStore.setState({ projectId: 'proj-1' });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ ok: true }) });
+
+    const hub = useInvestigationStore.getState().createHub('Nozzle wear', 'Night shift');
+
+    const pending = useInvestigationStore.getState().addHubComment(hub.id, 'First thought', 'Jane');
+
+    // Comment is visible synchronously on the hub — optimistic update landed
+    // before the promise resolves.
+    const liveHub = useInvestigationStore.getState().suspectedCauses[0];
+    expect(liveHub.comments).toHaveLength(1);
+    expect(liveHub.comments?.[0]?.text).toBe('First thought');
+    expect(liveHub.comments?.[0]?.author).toBe('Jane');
+
+    await pending;
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/hub-comments/append',
+      expect.objectContaining({ method: 'POST' })
+    );
+  });
+
+  it('sends the same id used in the optimistic update (server dedupes by id)', async () => {
+    useProjectStore.setState({ projectId: 'proj-id-echo' });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ ok: true }) });
+    const hub = useInvestigationStore.getState().createHub('Hub', 'Synth');
+
+    const comment = await useInvestigationStore.getState().addHubComment(hub.id, 'hi');
+
+    const callArgs = mockFetch.mock.calls[0];
+    const body = JSON.parse(callArgs[1].body) as { id: string; text: string };
+    expect(body.id).toBe(comment.id);
+    expect(body.text).toBe('hi');
+  });
+
+  it('queues to wallLayoutStore.pendingComments when the server returns !ok', async () => {
+    useProjectStore.setState({ projectId: 'proj-fail' });
+    mockFetch.mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({}) });
+
+    const hub = useInvestigationStore.getState().createHub('Hub', 'Synth');
+    await useInvestigationStore.getState().addHubComment(hub.id, 'queued text', 'Alex');
+
+    const pending = useWallLayoutStore.getState().pendingComments;
+    expect(pending).toHaveLength(1);
+    expect(pending[0].scope).toBe('hub');
+    expect(pending[0].targetId).toBe(hub.id);
+    expect(pending[0].text).toBe('queued text');
+    expect(pending[0].author).toBe('Alex');
+  });
+
+  it('queues when fetch rejects (network error)', async () => {
+    useProjectStore.setState({ projectId: 'proj-throw' });
+    mockFetch.mockRejectedValueOnce(new Error('offline'));
+
+    const hub = useInvestigationStore.getState().createHub('Hub', 'Synth');
+    await useInvestigationStore.getState().addHubComment(hub.id, 'offline text');
+
+    const pending = useWallLayoutStore.getState().pendingComments;
+    expect(pending).toHaveLength(1);
+    expect(pending[0].text).toBe('offline text');
+  });
+
+  it('skips the network when no project is active (PWA-local mode)', async () => {
+    // projectId stays null after beforeEach reset
+    const hub = useInvestigationStore.getState().createHub('Hub', 'Synth');
+
+    await useInvestigationStore.getState().addHubComment(hub.id, 'local only');
+
+    expect(mockFetch).not.toHaveBeenCalled();
+    // Still optimistically appended locally.
+    const liveHub = useInvestigationStore.getState().suspectedCauses[0];
+    expect(liveHub.comments).toHaveLength(1);
+  });
+
+  it('drain queue retrieves and clears all pending comments for retry', async () => {
+    useProjectStore.setState({ projectId: 'proj-drain' });
+    // Two failing posts fill the queue.
+    mockFetch
+      .mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({}) })
+      .mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({}) });
+
+    const hub = useInvestigationStore.getState().createHub('Hub', 'Synth');
+    await useInvestigationStore.getState().addHubComment(hub.id, 'first');
+    await useInvestigationStore.getState().addHubComment(hub.id, 'second');
+
+    expect(useWallLayoutStore.getState().pendingComments).toHaveLength(2);
+    const drained = useWallLayoutStore.getState().drainPendingComments();
+    expect(drained).toHaveLength(2);
+    expect(useWallLayoutStore.getState().pendingComments).toHaveLength(0);
   });
 });
 
@@ -871,5 +1011,101 @@ describe('problemContributionTree', () => {
       problemContributionTree: tree,
     });
     expect(useInvestigationStore.getState().problemContributionTree).toEqual(tree);
+  });
+});
+
+// ============================================================================
+// composeGate tests (Phase 7.2)
+// ============================================================================
+
+describe('composeGate', () => {
+  beforeEach(() => {
+    useInvestigationStore.setState(getInvestigationInitialState());
+  });
+
+  it('is a no-op when the tree is undefined', () => {
+    useInvestigationStore.getState().composeGate([], 'h1');
+    expect(useInvestigationStore.getState().problemContributionTree).toBeUndefined();
+  });
+
+  it('appends a hub to an existing AND at root', () => {
+    const tree: GateNode = {
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    };
+    useInvestigationStore.getState().setProblemContributionTree(tree);
+    useInvestigationStore.getState().composeGate([], 'h3');
+    expect(useInvestigationStore.getState().problemContributionTree).toEqual({
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h2' },
+        { kind: 'hub', hubId: 'h3' },
+      ],
+    });
+  });
+
+  it('wraps a leaf tree in a new AND when dropped at root', () => {
+    useInvestigationStore.getState().setProblemContributionTree({ kind: 'hub', hubId: 'h1' });
+    useInvestigationStore.getState().composeGate([], 'h2');
+    expect(useInvestigationStore.getState().problemContributionTree).toEqual({
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    });
+  });
+
+  it('wraps an OR in a new AND at root when dropped on the OR', () => {
+    const tree: GateNode = {
+      kind: 'or',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    };
+    useInvestigationStore.getState().setProblemContributionTree(tree);
+    useInvestigationStore.getState().composeGate([], 'h3');
+    expect(useInvestigationStore.getState().problemContributionTree).toEqual({
+      kind: 'and',
+      children: [tree, { kind: 'hub', hubId: 'h3' }],
+    });
+  });
+
+  it('composes at a nested path', () => {
+    // Leaf at [0] inside a root AND — composing there wraps that leaf in AND.
+    const tree: GateNode = {
+      kind: 'and',
+      children: [
+        { kind: 'hub', hubId: 'h1' },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    };
+    useInvestigationStore.getState().setProblemContributionTree(tree);
+    useInvestigationStore.getState().composeGate([0], 'h3');
+    expect(useInvestigationStore.getState().problemContributionTree).toEqual({
+      kind: 'and',
+      children: [
+        {
+          kind: 'and',
+          children: [
+            { kind: 'hub', hubId: 'h1' },
+            { kind: 'hub', hubId: 'h3' },
+          ],
+        },
+        { kind: 'hub', hubId: 'h2' },
+      ],
+    });
+  });
+
+  it('is a no-op for an invalid path (leaves tree untouched)', () => {
+    const tree: GateNode = { kind: 'hub', hubId: 'h1' };
+    useInvestigationStore.getState().setProblemContributionTree(tree);
+    useInvestigationStore.getState().composeGate([99], 'h2');
+    expect(useInvestigationStore.getState().problemContributionTree).toBe(tree);
   });
 });

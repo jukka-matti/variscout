@@ -7,6 +7,8 @@
  */
 
 import { create } from 'zustand';
+import { useProjectStore } from './projectStore';
+import { useWallLayoutStore } from './wallLayoutStore';
 import type {
   Finding,
   FindingContext,
@@ -40,6 +42,8 @@ import {
   createImprovementIdea,
   createSuspectedCause,
   createCausalLink,
+  insertHubAsAndChild,
+  type GatePath,
 } from '@variscout/core';
 
 // ============================================================================
@@ -163,6 +167,12 @@ export interface InvestigationActions {
 
   // --- Hub actions ---
   createHub: (name: string, synthesis: string) => SuspectedCause;
+  /**
+   * Create a new SuspectedCause hub from a finding. The hub is seeded with a
+   * default name derived from the finding's text (truncated), linked to the
+   * finding, and returned. Returns null if the finding doesn't exist.
+   */
+  createHubFromFinding: (findingId: string) => SuspectedCause | null;
   updateHub: (hubId: string, updates: Partial<Pick<SuspectedCause, 'name' | 'synthesis'>>) => void;
   deleteHub: (hubId: string) => void;
   connectQuestionToHub: (hubId: string, questionId: string) => void;
@@ -172,6 +182,16 @@ export interface InvestigationActions {
   setHubStatus: (hubId: string, status: SuspectedCause['status']) => void;
   setHubEvidence: (hubId: string, evidence: SuspectedCauseEvidence) => void;
   resetHubs: (hubs: SuspectedCause[]) => void;
+  /**
+   * Append a comment to a hub (Investigation Wall team discussion).
+   * Optimistically updates the hub's `comments` array, then POSTs to
+   * /api/hub-comments/append. On HTTP failure, enqueues the comment to
+   * wallLayoutStore.pendingComments for retry by the SSE reconnect flow.
+   *
+   * Returns the locally generated FindingComment so callers can render
+   * immediately without waiting for the network round-trip.
+   */
+  addHubComment: (hubId: string, text: string, author?: string) => Promise<FindingComment>;
 
   // --- Causal link actions ---
   addCausalLink: (
@@ -210,6 +230,13 @@ export interface InvestigationActions {
 
   // --- Investigation Wall ---
   setProblemContributionTree: (tree: GateNode | undefined) => void;
+  /**
+   * Compose a hub into the contribution tree at `path` via AND.
+   * No-op if the tree is undefined — caller must initialize via
+   * `setProblemContributionTree` first. Delegates to
+   * `insertHubAsAndChild` from `@variscout/core/findings`.
+   */
+  composeGate: (path: GatePath, hubId: string) => void;
 }
 
 // ============================================================================
@@ -806,6 +833,16 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       return hub;
     },
 
+    createHubFromFinding: findingId => {
+      const finding = get().findings.find(f => f.id === findingId);
+      if (!finding) return null;
+      const excerpt = finding.text.trim().slice(0, 80);
+      const name = excerpt.length > 0 ? `Hypothesis: ${excerpt}` : 'New hypothesis';
+      const hub = createSuspectedCause(name, '', [], [findingId]);
+      set(state => ({ suspectedCauses: [...state.suspectedCauses, hub] }));
+      return hub;
+    },
+
     updateHub: (hubId, updates) => {
       set(state => ({
         suspectedCauses: state.suspectedCauses.map(h =>
@@ -898,6 +935,69 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
 
     resetHubs: hubs => {
       set({ suspectedCauses: hubs });
+    },
+
+    addHubComment: async (hubId, text, author) => {
+      // 1. Build the comment locally so optimistic append + server payload
+      //    share the same id — keeps the SSE echo idempotent (server dedupes
+      //    by id, so the echo that fans back via the stream is a no-op).
+      const comment = createFindingComment(text, author);
+
+      // 2. Optimistic update: append to the hub's comments array.
+      set(state => ({
+        suspectedCauses: state.suspectedCauses.map(h =>
+          h.id === hubId
+            ? {
+                ...h,
+                comments: [...(h.comments ?? []), comment],
+                updatedAt: new Date().toISOString(),
+              }
+            : h
+        ),
+      }));
+
+      // 3. Fire-and-track: POST to the server. On failure, push to the
+      //    pendingComments queue so the SSE reconnect flow can drain it.
+      const projectId = useProjectStore.getState().projectId;
+      if (!projectId) {
+        // PWA / no-project paths: optimistic-only, comment stays local.
+        return comment;
+      }
+
+      try {
+        const res = await fetch('/api/hub-comments/append', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId,
+            hubId,
+            id: comment.id,
+            text: comment.text,
+            author: comment.author,
+          }),
+        });
+        if (!res.ok) {
+          useWallLayoutStore.getState().enqueuePendingComment({
+            scope: 'hub',
+            targetId: hubId,
+            text: comment.text,
+            author: comment.author,
+            localId: comment.id,
+            createdAt: comment.createdAt,
+          });
+        }
+      } catch {
+        useWallLayoutStore.getState().enqueuePendingComment({
+          scope: 'hub',
+          targetId: hubId,
+          text: comment.text,
+          author: comment.author,
+          localId: comment.id,
+          createdAt: comment.createdAt,
+        });
+      }
+
+      return comment;
     },
 
     // ========================================================================
@@ -1010,6 +1110,18 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
     // ========================================================================
 
     setProblemContributionTree: tree => set({ problemContributionTree: tree }),
+
+    composeGate: (path, hubId) =>
+      set(state => {
+        const current = state.problemContributionTree;
+        // Tree must be initialized first — silent no-op matches the
+        // UX contract (drag-drop fires frequently; we don't want to
+        // create an implicit root).
+        if (!current) return {};
+        const next = insertHubAsAndChild(current, path, hubId);
+        if (next === current) return {};
+        return { problemContributionTree: next };
+      }),
   })
 );
 

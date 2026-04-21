@@ -155,6 +155,100 @@ describe('new catalog keys', () => {
   });
 });
 
+describe('Investigation Wall keys', () => {
+  const wallKeys = [
+    'wall.status.proposed',
+    'wall.status.evidenced',
+    'wall.status.confirmed',
+    'wall.status.refuted',
+    'wall.card.hypothesisLabel',
+    'wall.card.findings',
+    'wall.card.evidenceGap',
+    'wall.card.missingColumn',
+    'wall.card.missingColumnAria',
+    'wall.card.ariaLabel',
+    'wall.problem.title',
+    'wall.problem.eventsPerWeek',
+    'wall.problem.ariaLabel',
+    'wall.gate.and',
+    'wall.gate.or',
+    'wall.gate.not',
+    'wall.gate.holds',
+    'wall.gate.noTotals',
+    'wall.gate.ariaLabel',
+    'wall.question.ariaLabel',
+    'wall.tributary.ariaLabel',
+    'wall.empty.ariaLabel',
+    'wall.empty.title',
+    'wall.empty.subtitle',
+    'wall.empty.writeHypothesis',
+    'wall.empty.promoteFromQuestion',
+    'wall.empty.seedFromFactorIntel',
+    'wall.rail.title',
+    'wall.rail.openAria',
+    'wall.rail.closeAria',
+    'wall.rail.rootAria',
+    'wall.rail.openButton',
+    'wall.rail.empty',
+    'wall.missing.ariaLabel',
+    'wall.missing.title',
+    'wall.canvas.ariaLabel',
+    'wall.cta.proposeHypothesis',
+    // Phase 13 scale features
+    'wall.toolbar.groupByTributary',
+    'wall.toolbar.zoomIn',
+    'wall.toolbar.zoomOut',
+    'wall.toolbar.resetView',
+    'wall.palette.placeholder',
+    'wall.palette.empty',
+    'wall.minimap.ariaLabel',
+  ] as const;
+
+  it('has English values for all wall keys', () => {
+    expect(getMessage('en', 'wall.status.proposed')).toBe('Proposed');
+    expect(getMessage('en', 'wall.problem.title')).toBe('Problem condition');
+    expect(getMessage('en', 'wall.empty.title')).toBe('Start with a hypothesis');
+    expect(getMessage('en', 'wall.rail.title')).toBe('CoScout');
+    expect(getMessage('en', 'wall.cta.proposeHypothesis')).toBe(
+      'Propose new hypothesis from this finding'
+    );
+    expect(getMessage('en', 'wall.toolbar.groupByTributary')).toBe('Group by tributary');
+    expect(getMessage('en', 'wall.palette.placeholder')).toBe('Search hubs, questions, findings…');
+    expect(getMessage('en', 'wall.minimap.ariaLabel')).toBe('Investigation Wall minimap');
+  });
+
+  it('every locale defines every wall.* key with a non-empty value', () => {
+    for (const locale of LOCALES) {
+      const catalog = getMessages(locale);
+      for (const key of wallKeys) {
+        expect(catalog[key], `${locale}.${key} missing or empty`).toBeTruthy();
+      }
+    }
+  });
+
+  it('interpolates card.findings and card.ariaLabel', () => {
+    expect(formatMessage('en', 'wall.card.findings', { count: 3 })).toBe('3 findings');
+    expect(
+      formatMessage('en', 'wall.card.ariaLabel', {
+        name: 'Nozzle hot',
+        status: 'Confirmed',
+        count: 4,
+      })
+    ).toBe('Hypothesis Nozzle hot, Confirmed, 4 findings');
+  });
+
+  it('interpolates gate.holds and problem.ariaLabel', () => {
+    expect(formatMessage('en', 'wall.gate.holds', { matching: 38, total: 42 })).toBe('HOLDS 38/42');
+    expect(
+      formatMessage('en', 'wall.problem.ariaLabel', {
+        column: 'FILL',
+        cpk: '0.78',
+        count: 42,
+      })
+    ).toBe('Problem condition: FILL, Cpk 0.78, 42 events per week');
+  });
+});
+
 describe('chart violation detail keys', () => {
   it('interpolates nelson2.detail with all params', () => {
     expect(

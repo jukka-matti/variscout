@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import type { HypothesisCondition } from '../hypothesisCondition';
-import { deriveConditionFromFindingSource } from '../hypothesisCondition';
+import {
+  collectReferencedColumns,
+  conditionHasMissingColumn,
+  deriveConditionFromFindingSource,
+} from '../hypothesisCondition';
 import type { FindingSource } from '../types';
 
 describe('HypothesisCondition type', () => {
@@ -139,5 +143,79 @@ describe('deriveConditionFromFindingSource', () => {
   it('returns undefined when activityColumn missing for yamazumi', () => {
     const source: FindingSource = { chart: 'yamazumi', category: 'Bending' };
     expect(deriveConditionFromFindingSource(source, {})).toBeUndefined();
+  });
+});
+
+describe('collectReferencedColumns', () => {
+  it('returns a single column for a leaf', () => {
+    const cond: HypothesisCondition = {
+      kind: 'leaf',
+      column: 'SHIFT',
+      op: 'eq',
+      value: 'night',
+    };
+    expect([...collectReferencedColumns(cond)]).toEqual(['SHIFT']);
+  });
+
+  it('walks into and/or branches and dedups', () => {
+    const cond: HypothesisCondition = {
+      kind: 'and',
+      children: [
+        { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' },
+        { kind: 'leaf', column: 'NOZZLE.TEMP', op: 'gt', value: 120 },
+        {
+          kind: 'or',
+          children: [
+            { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'day' },
+            { kind: 'leaf', column: 'OPERATOR', op: 'eq', value: 'alice' },
+          ],
+        },
+      ],
+    };
+    expect(collectReferencedColumns(cond)).toEqual(new Set(['SHIFT', 'NOZZLE.TEMP', 'OPERATOR']));
+  });
+
+  it('walks into not branches', () => {
+    const cond: HypothesisCondition = {
+      kind: 'not',
+      child: { kind: 'leaf', column: 'OVERRIDE', op: 'eq', value: true as unknown as string },
+    };
+    expect([...collectReferencedColumns(cond)]).toEqual(['OVERRIDE']);
+  });
+});
+
+describe('conditionHasMissingColumn', () => {
+  it('returns false when condition is undefined', () => {
+    expect(conditionHasMissingColumn(undefined, new Set(['SHIFT']))).toBe(false);
+  });
+
+  it('returns false when every referenced column is present', () => {
+    const cond: HypothesisCondition = {
+      kind: 'and',
+      children: [
+        { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' },
+        { kind: 'leaf', column: 'NOZZLE.TEMP', op: 'gt', value: 120 },
+      ],
+    };
+    expect(conditionHasMissingColumn(cond, new Set(['SHIFT', 'NOZZLE.TEMP', 'OTHER']))).toBe(false);
+  });
+
+  it('returns true when any referenced column is absent', () => {
+    const cond: HypothesisCondition = {
+      kind: 'and',
+      children: [
+        { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' },
+        { kind: 'leaf', column: 'NOZZLE.TEMP', op: 'gt', value: 120 },
+      ],
+    };
+    expect(conditionHasMissingColumn(cond, new Set(['SHIFT']))).toBe(true);
+  });
+
+  it('inspects columns inside NOT branches', () => {
+    const cond: HypothesisCondition = {
+      kind: 'not',
+      child: { kind: 'leaf', column: 'DROPPED', op: 'eq', value: 1 },
+    };
+    expect(conditionHasMissingColumn(cond, new Set(['KEPT']))).toBe(true);
   });
 });

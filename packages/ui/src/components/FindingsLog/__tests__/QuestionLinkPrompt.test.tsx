@@ -108,4 +108,46 @@ describe('QuestionLinkPrompt', () => {
     // Silence unused variable warning — allButtons is referenced to confirm count
     expect(allButtons.length).toBeGreaterThan(0);
   });
+
+  // 10. Wall variant: "Propose new hypothesis" CTA hidden by default
+  it('does not render propose-hypothesis CTA when wallActive is not set', () => {
+    render(<QuestionLinkPrompt {...defaultProps()} />);
+    expect(screen.queryByRole('button', { name: /propose new hypothesis/i })).toBeNull();
+  });
+
+  // 11. Wall variant: CTA renders when wallActive=true
+  it('renders propose-hypothesis CTA when wallActive is true', () => {
+    render(
+      <QuestionLinkPrompt {...defaultProps({ wallActive: true, onProposeHypothesis: vi.fn() })} />
+    );
+    expect(
+      screen.getByRole('button', { name: /propose new hypothesis from this finding/i })
+    ).toBeDefined();
+  });
+
+  // 12. Wall variant: clicking CTA calls onProposeHypothesis(findingId) and onClose
+  it('calls onProposeHypothesis with findingId and onClose when Wall CTA clicked', () => {
+    const onProposeHypothesis = vi.fn();
+    const props = defaultProps({ wallActive: true, onProposeHypothesis });
+    render(<QuestionLinkPrompt {...props} />);
+    fireEvent.click(
+      screen.getByRole('button', { name: /propose new hypothesis from this finding/i })
+    );
+    expect(onProposeHypothesis).toHaveBeenCalledWith('f-1');
+    expect(onProposeHypothesis).toHaveBeenCalledTimes(1);
+    expect(props.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  // 13. Wall variant: CTA also shown when no open questions exist
+  it('renders propose-hypothesis CTA even when no open questions exist', () => {
+    const noOpen = openQuestions.filter(q => q.status !== 'open');
+    render(
+      <QuestionLinkPrompt
+        {...defaultProps({ questions: noOpen, wallActive: true, onProposeHypothesis: vi.fn() })}
+      />
+    );
+    expect(
+      screen.getByRole('button', { name: /propose new hypothesis from this finding/i })
+    ).toBeDefined();
+  });
 });

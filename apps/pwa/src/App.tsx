@@ -33,7 +33,12 @@ import {
   useDefectSummary,
 } from '@variscout/hooks';
 import type { FindingsActionMessage } from '@variscout/hooks';
-import { useProjectStore, useInvestigationStore, useSessionStore } from '@variscout/stores';
+import {
+  useProjectStore,
+  useInvestigationStore,
+  useSessionStore,
+  useWallLayoutStore,
+} from '@variscout/stores';
 import AppHeader from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
@@ -564,6 +569,16 @@ function AppMain() {
     setQuestionLinkPromptOpen(false);
   }, []);
 
+  // Wall-variant propose-hypothesis CTA
+  const wallViewMode = useWallLayoutStore(s => s.viewMode);
+  const createHubFromFinding = useInvestigationStore(s => s.createHubFromFinding);
+  const handleProposeHypothesisFromFinding = useCallback(
+    (findingId: string) => {
+      createHubFromFinding(findingId);
+    },
+    [createHubFromFinding]
+  );
+
   // Findings popout: sync data when findings/drillPath change
   useEffect(() => {
     if (!popupRef.current || popupRef.current.closed) return;
@@ -1047,6 +1062,8 @@ function AppMain() {
         onSkip={handleQuestionPromptClose}
         onSkipForever={handleQuestionSkipForever}
         onClose={handleQuestionPromptClose}
+        wallActive={wallViewMode === 'wall'}
+        onProposeHypothesis={handleProposeHypothesisFromFinding}
       />
 
       {/* Mobile Tab Bar (phone only) */}

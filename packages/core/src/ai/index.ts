@@ -150,5 +150,15 @@ export type {
 } from './knowledgeAdapter';
 
 // Wall investigation actions (Phase 3)
-export { proposeDisconfirmationMove, critiqueInvestigationState } from './actions';
-export type { SuggestedBrush, InvestigationGap, CritiqueInput, CritiqueResult } from './actions';
+export {
+  proposeDisconfirmationMove,
+  critiqueInvestigationState,
+  detectBestSubsetsCandidates,
+} from './actions';
+export type {
+  SuggestedBrush,
+  InvestigationGap,
+  CritiqueInput,
+  CritiqueResult,
+  BestSubsetsCandidate,
+} from './actions';
