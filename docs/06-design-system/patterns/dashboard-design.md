@@ -3,83 +3,54 @@ title: Dashboard Design Principles
 audience: [analyst, engineer]
 category: reference
 status: stable
-related: [layout, dashboard, presentation-mode]
+related: [analysis-dashboard, layout, dashboard, presentation-mode]
 ---
 
 # Dashboard Design Principles
 
-UX principles and layout rules for the VariScout analysis dashboard.
+General UX principles for VariScout dashboards.
+
+The exact contract for the Analysis workspace now lives in [Analysis Dashboard Pattern](analysis-dashboard.md). This page keeps the cross-cutting principles that still apply regardless of specific chart slotting.
 
 ---
 
-## Scrollable Dashboard Layout
+## Core Principles
 
-The dashboard uses a scrollable layout with minimum chart heights for comfortable analysis:
+### Laptop first
 
-| Chart   | Minimum Height | Purpose                                 |
-| ------- | -------------- | --------------------------------------- |
-| I-Chart | 400px          | Primary chart needs good vertical space |
-| Boxplot | 280px          | Enough for readable axes                |
-| Pareto  | 280px          | Enough for readable axes                |
+Design the normal case around **full-screen laptop** before optimizing narrow windows or oversized monitors.
 
-**Sticky Navigation**: Breadcrumb trail and tab bar remain visible at top while scrolling.
+### Stable regions
 
----
+Keep dashboard regions stable so analysts learn where to look:
 
-## Dashboard Structure
+- shared context in the top strip
+- orientation in the hero chart
+- drill-down in the subgroup panel
+- shape/spec/ranking in the adaptive lens
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  🏠 All Data > Machine: A  [Clear All]    (sticky header)   │
-│  [Analysis]                                                    │
-├─────────────────────────────────────────────────────────────┤
-│  I-Chart                                    [Outcome ▼]     │
-│                                                             │
-│  (scrollable content)                                       │
-│                                                             │
-├─────────────────────────────────────────────────────────────┤
-│  Boxplot      │  Pareto       │  Summary                    │
-│  [Factor ▼]   │  [Category ▼] │  [Prob] [Cap]               │
-│               │               │                             │
-└───────────────┴───────────────┴─────────────────────────────┘
-```
+### Guided empty states
+
+When data is missing for a panel, keep the layout stable and explain how to unlock the missing analysis instead of collapsing the page.
+
+### Chart-local ownership
+
+Selectors should stay near the chart they control. Shared summary and global actions should stay in the top strip.
+
+### Minimal utility chrome
+
+In the normal dashboard, visible utility actions should be lightweight. Copy/download/share belong in focused view or secondary UI when they compete with reading the charts.
 
 ---
 
-## Independent Panel Selections
+## Scroll And Focus
 
-Each panel has its own data selector and operates independently:
+Allow both:
 
-| Panel   | Selection                     | Required  |
-| ------- | ----------------------------- | --------- |
-| I-Chart | Outcome (numeric column)      | Yes       |
-| Boxplot | Factor (categorical column)   | No        |
-| Pareto  | Category (categorical column) | No        |
-| Summary | Uses Outcome                  | Automatic |
+- **viewport-fit overview** for fast orientation
+- **scroll / focus views** for detailed reading and export
 
----
-
-## Empty State Behavior
-
-When no data is selected for a panel, it displays a dropdown prompt rather than hiding or rearranging the layout. This keeps the interface consistent and learnable.
-
----
-
-## Header & Workspace Layout
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  📂 Project Name          data.csv (1,247 rows)    [Copy ▼] [⚙]│
-├─────────────────────────────────────────────────────────────────┤
-│  I-Chart ...                                                    │
-```
-
-| Element      | Description                     |
-| ------------ | ------------------------------- |
-| Project name | Editable, user-defined          |
-| Data file    | Shows source file and row count |
-| Copy menu    | Copy All, Copy Chart options    |
-| Settings     | Gear icon for preferences       |
+The analyst should be able to move between overview and deeper reading without relearning the page.
 
 ---
 
@@ -88,9 +59,7 @@ When no data is selected for a panel, it displays a dropdown prompt rather than 
 Fullscreen distraction-free view for stakeholder presentations:
 
 - Access via **View → Presentation Mode**
-- Displays all charts in optimized layout:
-  - I-Chart on top (~60% height)
-  - Boxplot, Pareto, Stats Panel in bottom row
+- Displays the key charts in a simplified reading layout
 - Hides header, footer, tabs, and breadcrumbs
 - Press **Escape** to exit
 - Subtle "Press Escape to exit" hint in bottom right
@@ -125,11 +94,11 @@ Always show current filter state so users know what subset of data they're viewi
 
 ## Copy & Export Workflow
 
-| Option     | Description                                             |
-| ---------- | ------------------------------------------------------- |
-| Copy All   | Entire dashboard view as single image                   |
-| Copy Chart | Individual chart (I-Chart, Boxplot, Pareto, or Summary) |
-| Copy Stats | Summary statistics as formatted text                    |
+| Option     | Description                           |
+| ---------- | ------------------------------------- |
+| Copy All   | Entire dashboard view as single image |
+| Copy Chart | Individual focused chart              |
+| Copy Stats | Summary statistics as formatted text  |
 
 Charts are copied to clipboard as PNG — paste directly into PowerPoint, Word, Google Slides, or email.
 
@@ -137,17 +106,18 @@ Charts are copied to clipboard as PNG — paste directly into PowerPoint, Word, 
 
 ## Design Principles Summary
 
-| Principle              | Implementation                               |
-| ---------------------- | -------------------------------------------- |
-| Scrollable layout      | Charts have comfortable min-heights          |
-| Sticky navigation      | Breadcrumb and tabs visible while scrolling  |
-| Consistent layout      | Same structure regardless of data selections |
-| Independent selections | Each panel has its own data selector         |
-| Empty state = prompt   | Shows dropdown when no data selected         |
-| Presentation mode      | Fullscreen view for stakeholder meetings     |
+| Principle            | Implementation                                        |
+| -------------------- | ----------------------------------------------------- |
+| Laptop-first layout  | Optimize the normal case around full-screen laptop    |
+| Stable regions       | Keep chart roles learnable across data states         |
+| Guided empty states  | Explain missing analysis instead of collapsing layout |
+| Local control owner  | Keep selectors near the chart they affect             |
+| Light utility chrome | Use focused view for export-heavy actions             |
+| Presentation mode    | Provide a distraction-free meeting view               |
 
 ---
 
 ## See Also
 
+- [Analysis Dashboard Pattern](analysis-dashboard.md)
 - [Layout Patterns](layout.md) — CSS-level layout patterns and responsive breakpoints

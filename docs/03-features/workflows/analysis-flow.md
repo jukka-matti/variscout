@@ -14,11 +14,21 @@ journey-phase: [all]
 
 VariScout's analysis journey weaves **two analytical threads** through four phases (FRAME, SCOUT, INVESTIGATE, IMPROVE):
 
-- **Variation Analysis** — "Where does variation come from?" Uses the I-Chart with raw measurement values, Boxplot eta-squared for factor comparison, Pareto for ranking, and Stats for summary metrics. The analyst progressively drills down using the highest eta-squared factor until sufficient variation is isolated.
+- **Variation Analysis** — "Where does variation come from?" Uses the I-Chart with raw measurement values, the subgroup/variation panel for factor comparison, and Pareto when ranking is meaningful. The analyst progressively drills down using the highest eta-squared factor until sufficient variation is isolated.
 
 - **Capability Analysis** — "Are we meeting our Cpk target?" Uses the same I-Chart with a **"Values | Capability" toggle** that switches the Y-axis from raw measurements to per-subgroup Cp/Cpk. This reveals whether capability itself is stable across batches, shifts, time periods, or equipment.
 
 Capability mode is a **flexible I-Chart view toggle**, not a separate workflow. The analyst switches freely at any point during analysis. Findings, drill-down, and investigation work identically in both modes. Three entry paths determine which thread leads the analysis.
+
+### Analysis Workspace Anatomy
+
+In the normal laptop Analysis view:
+
+- the **I-Chart** is always visible
+- the **left lower panel** stays about subgroup / variation-source drill-down
+- the **right lower panel** is an adaptive lens with `Probability`, `Distribution` or `Capability`, and optional `Pareto`
+
+This UI structure mirrors the EDA flow: orient on the hero chart, compare subgroup variation, read distribution/spec context, then rank contributors when ranking is meaningful.
 
 ```mermaid
 flowchart TD
@@ -62,7 +72,7 @@ The first question the analyst asks depends on the entry path — not a fixed se
 ### Thread 1: Variation Analysis
 
 - **Core question:** "Where does variation come from?"
-- **Tools:** I-Chart (values), Boxplot (eta-squared), Pareto, Stats
+- **Tools:** I-Chart (values), Boxplot (eta-squared), optional Pareto, top-strip summary
 - **Method:** Progressive stratification — drill via highest eta-squared, filter, repeat until 50-70% or more of variation is isolated
 - **Findings:** Pin at breadcrumb (filter state + stats + Cpk) or right-click chart observation
 

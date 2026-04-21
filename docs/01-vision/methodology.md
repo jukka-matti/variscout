@@ -56,11 +56,11 @@ The thesis places the I-Chart first in the sequence for practical reasons — ti
 
 VariScout adds three original concepts on top of Watson's foundation:
 
-### 1. Parallel Views
+### 1. Coordinated Views
 
-All four analytical tools are visible simultaneously on a single dashboard with **linked filtering**. Clicking "Machine B" in the Boxplot simultaneously updates the I-Chart (Machine B's timeline), Pareto (Machine B's failure modes), and Capability (Machine B's Cpk). The tools become a coordinated investigation team, not four independent displays.
+VariScout keeps the analytical tools in one coordinated dashboard with **linked filtering**, but the normal laptop view no longer requires four equal tiles at once. The I-Chart stays visible, the subgroup panel supports drill-down, and the adaptive lens gives access to Probability, Distribution/Capability, and Pareto when it is meaningful. Clicking "Machine B" in the Boxplot still updates the other relevant lenses immediately.
 
-This is how VariScout differs from sequential tool usage — the analyst sees every perspective at once.
+This is how VariScout differs from sequential tool usage — the analyst can move through every perspective without leaving the shared analysis context.
 
 ### 2. Progressive Stratification
 

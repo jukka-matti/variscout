@@ -3,184 +3,112 @@ title: Statistics Panel
 audience: [analyst, engineer]
 category: analysis
 status: stable
-related: [capability, boxplot, specs, conformance]
+related: [capability, probability-plot, specs, analysis-dashboard]
 ---
 
 # Statistics Panel
 
 <!-- journey-phase: scout -->
 
-> **Journey phase:** SCOUT — conformance and capability metrics visible across all phases.
+> **Journey phase:** SCOUT — summary metrics and spec context for the current analysis scope.
 
-The Statistics Panel provides summary metrics for the current analysis view. It supports two modes depending on the analyst's focus.
+VariScout no longer treats "stats" as one monolithic panel in the main Analysis view. Statistics now live across three coordinated surfaces:
 
----
-
-## Two Analysis Modes
-
-```
-┌─────────────────────────────────────┐
-│  ANALYSIS MODE                      │
-│  ○ Conformance (batch pass/fail)    │
-│  ● Capability (process performance) │
-└─────────────────────────────────────┘
-```
-
-### Conformance Mode — "Does each batch pass?"
-
-| Metric             | Description                         |
-| ------------------ | ----------------------------------- |
-| Pass count         | Batches within spec                 |
-| Fail count         | Batches outside spec                |
-| Pass rate %        | Overall success rate                |
-| Failures by factor | Which supplier/station has problems |
-
-Best for: Incoming inspection, export certification, lot acceptance.
-
-```
-┌─────────────────────────────────────┐
-│  CONFORMANCE SUMMARY                │
-│                                     │
-│  ✅ Passed:    47/50 (94%)          │
-│  🔴 Rejected:   3/50 (6%)           │
-│                                     │
-│  Spec: 9% - 13% moisture            │
-│                                     │
-│  Failures by Supplier:              │
-│  • Supplier B: 2 (67% of failures)  │
-│  • Supplier A: 1 (33% of failures)  │
-└─────────────────────────────────────┘
-```
-
-### Capability Mode — "Can our process reliably meet specs?"
-
-| Metric           | Description                                                |
-| ---------------- | ---------------------------------------------------------- |
-| Mean             | Central tendency                                           |
-| Median           | Midpoint value (always shown alongside Mean)               |
-| Std Dev          | Spread of the distribution                                 |
-| Cp               | Process capability (potential) — requires both USL and LSL |
-| Cpk              | Process capability (actual, considers centering)           |
-| % out of spec    | Actual failure rate                                        |
-| η² (eta-squared) | Variation explained by factor                              |
-
-Best for: Process improvement, ongoing monitoring, supplier qualification.
-
-```
-┌─────────────────────────────────────┐
-│  CAPABILITY SUMMARY                 │
-│                                     │
-│  Cp:  1.42    Cpk: 0.91 ⚠️          │
-│  % out of spec: 6%                  │
-│                                     │
-│  Process is off-center (shift up)   │
-│                                     │
-│  Factor Effect (η²):                │
-│  • Supplier: η² = 0.34              │
-│  • Day:      η² = 0.12              │
-└─────────────────────────────────────┘
-```
+- **Top strip (`ProcessHealthBar`)** — fast summary and spec shortcut
+- **Adaptive lens** — Probability plus Distribution/Capability, and optional Pareto
+- **Detailed side panel / secondary views** — deeper stats, data, questions, or what-if tools where supported
 
 ---
 
-## Display Options (Settings → Visualization)
+## Normal Laptop View
 
-- Toggle Cp display (only available when both USL and LSL are defined)
-- Toggle Cpk display
-- Configurable Cpk target threshold (default: 1.33)
-  - Values below target shown in warning color (yellow/amber)
-  - Values at or above target shown in success color (green)
-  - Configurable threshold available in Azure App; PWA uses fixed 1.33 threshold
+In the laptop-first Analysis dashboard:
 
----
+- the **top strip** owns quick summary values such as `x̄`, `σ`, and `n`
+- the **spec shortcut** lives in the top strip
+- the **adaptive lens** owns the distribution/spec reading workflow
 
-## Capability Histogram
-
-Available via the VerificationCard (tabbed Histogram/Probability Plot) in the dashboard grid row 2.
-
-```
-┌─────────────────────────────────────┐
-│  HISTOGRAM                          │
-│       LSL         Mean        USL   │
-│        │    ████   │           │    │
-│        │   ██████  │           │    │
-│        │  █████████│███        │    │
-│        │ ███████████████       │    │
-│  ──────┼───────────┼───────────┼──  │
-│   🔴    │    🟢     │     🟢    │ 🔴 │
-│ out of │  within   │   within  │out │
-│  spec  │   spec    │    spec   │    │
-└─────────────────────────────────────┘
-```
-
-- Distribution histogram of outcome values
-- Vertical lines for USL (red dashed), LSL (red dashed), Target (green dashed), Mean (blue solid)
-- Bars colored green (within spec) or red (outside spec)
-- Visual complement to numeric Cp/Cpk values
+That means the I-Chart header does **not** repeat the same summary numbers in the normal view.
 
 ---
 
-## Spec Input Flow (Progressive Disclosure)
+## What The Analyst Sees
 
-Users can set specification limits at two points in the workflow:
+### 1. Top Strip Summary
 
-### 1. During Column Mapping (optional)
+The top strip gives the analyst fast scope awareness:
 
-The ColumnMapping component includes a collapsible "Set Specification Limits" section at the bottom. It is collapsed by default — users who already know their specs can expand it and enter Target, LSL, and USL before proceeding to analysis. Values are applied automatically; no Apply button is required.
+- current mean
+- current spread
+- sample count
+- active filters
+- factor-management entry
+- spec shortcut
 
-```
-┌─────────────────────────────────────┐
-│  Column Mapping                     │
-│  ...                                │
-│  ▶ Set Specification Limits         │  ← collapsed by default
-└─────────────────────────────────────┘
+When specs are not configured, this is the main statistical summary surface.
 
-Expanded:
-┌─────────────────────────────────────┐
-│  ▼ Set Specification Limits         │
-│                                     │
-│  Target: [________]   (optional)    │
-│  LSL:    [________]   (optional)    │
-│  USL:    [________]   (optional)    │
-└─────────────────────────────────────┘
-```
+### 2. Adaptive Lens
 
-### 2. Pencil Link in the Stats Panel
+The right-hand adaptive card carries the diagnostic/statistical reading flow:
 
-The Stats Panel shows a pencil link below the metric cards. The link text changes based on whether specs are already configured:
+| Context                    | Tabs shown                                |
+| -------------------------- | ----------------------------------------- |
+| No specs, no subgroup data | `Probability` + `Distribution`            |
+| Specs, no subgroup data    | `Probability` + `Capability`              |
+| No specs, subgroup data    | `Probability` + `Distribution` + `Pareto` |
+| Specs, subgroup data       | `Probability` + `Capability` + `Pareto`   |
 
-- **No specs set:** `✏ Set spec limits` — clicking opens the SpecEditor popover where the user can enter Target, LSL, and USL.
-- **Specs exist:** `✏ Edit spec limits` — clicking opens the same SpecEditor popover, pre-populated with current values.
+`Probability` is the default tab because it is the first distribution check after the I-Chart in VariScout's EDA sequence.
 
-```
-┌─────────────────────────────────────┐
-│  STATS                              │
-│  Mean: 12.4    Median: 12.2         │
-│  Std Dev: 0.8  Samples: 50          │
-│                                     │
-│  ✏ Set spec limits                  │
-└─────────────────────────────────────┘
-```
+### 3. Detailed Stats Surfaces
 
-Once specs are saved via the SpecEditor, the capability cards (Cp, Cpk, Pass Rate) appear in the metric grid:
+Detailed stats still exist where needed:
 
-```
-┌─────────────────────────────────────┐
-│  STATS                              │
-│  Pass Rate: 94%  Cp: 1.42  Cpk: 0.91│
-│  Mean: 12.4    Median: 12.2         │
-│  Std Dev: 0.8  Samples: 50          │
-│                                     │
-│  ✏ Edit spec limits                 │
-└─────────────────────────────────────┘
-```
+- sidebars and secondary panels in Azure
+- focused chart view for chart-specific export and reading
+- report views and other downstream evidence surfaces
 
-**Design rationale:** A single SpecEditor popover provides a consistent spec editing experience across all entry points (Stats Panel, chart cards, header).
+The key design point is that these are **secondary** to the main Analysis reading path.
+
+---
+
+## Distribution vs Capability
+
+The histogram surface changes meaning based on specs:
+
+- **No specs** → label it `Distribution`
+- **Specs exist** → label it `Capability`
+
+The underlying chart is still the histogram/distribution view, but the label follows the analyst's question rather than the drawing primitive.
+
+---
+
+## Spec Input Flow
+
+Specification limits can be set from:
+
+1. **Column Mapping** — before analysis starts
+2. **Top strip shortcut** — during analysis
+
+Once specs exist:
+
+- the adaptive lens switches from `Distribution` to `Capability`
+- capability metrics become meaningful
+- the top strip can summarize capability context without duplicating chart-local controls
+
+---
+
+## Design Principles
+
+- Put fast summary in the top strip
+- Keep distribution/spec reading in the adaptive lens
+- Do not duplicate the same numbers across the top strip and hero chart header
+- Let labels reflect the analyst's question, not just the chart primitive
 
 ---
 
 ## See Also
 
-- [Capability Analysis](capability.md) — Cp/Cpk calculations and interpretation
-- [Boxplot](boxplot.md) — Factor comparison with η² and group StdDev
-- [Variation Decomposition](variation-decomposition.md) — η² and factor ranking
+- [Capability Analysis](capability.md)
+- [Probability Plot](probability-plot.md)
+- [Analysis Dashboard Pattern](../../06-design-system/patterns/analysis-dashboard.md)

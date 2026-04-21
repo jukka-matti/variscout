@@ -10,7 +10,7 @@ related: [cpk, cp, normal-distribution, sigma-estimation, specification-limits]
 
 <!-- journey-phase: scout -->
 
-> **Journey phase:** SCOUT (VALUE lens) — specification compliance, the final check in Watson's EDA.
+> **Journey phase:** SCOUT (VALUE lens) — specification-aware comparison to customer requirements.
 
 Capability Analysis is VariScout's tool for the **VALUE** lens - comparing process output to customer specifications.
 
@@ -113,7 +113,7 @@ Capability metrics require specification limits to be meaningful:
 | Cp        | Both USL and LSL               |
 | Cpk       | At least one spec (USL or LSL) |
 
-When no specifications are configured, the StatsPanel shows only basic statistics (Mean, Std Dev, Sample count).
+When no specifications are configured, the top strip shows only basic statistics (Mean, Std Dev, Sample count) and the adaptive lens labels the histogram view as **Distribution** rather than **Capability**.
 
 ---
 
@@ -131,10 +131,10 @@ When no specifications are configured, the StatsPanel shows only basic statistic
 When the analyst toggles to Capability mode:
 
 - **I-Chart**: Dual Cpk/Cp series with connecting lines showing centering gap
-- **Boxplot**: Shows Cpk distribution per factor with Cpk target reference line. Y-axis labeled "Cpk"
-- **Pareto**: Unchanged — shows variation contribution (complements capability boxplot)
+- **Variation Sources panel**: Stays subgroup-focused in the laptop baseline; capability does not take over the boxplot slot
+- **Adaptive lens**: The secondary tab becomes **Capability** (instead of **Distribution**) and remains paired with **Probability**
+- **Pareto**: Appears in the adaptive lens only when the dataset has a meaningful ranking dimension
 - **Process Health Bar**: Shows overall Cpk and % subgroups meeting Cpk target
-- **Histogram/Probability Plot**: Unchanged — shows raw measurement distribution as reality check
 
 ---
 
@@ -191,6 +191,7 @@ const stats = calculateStats(values, usl, lsl);
 - [VALUE Lens](../../01-vision/four-lenses/value.md) - Customer value concepts
 - [Two Voices](../../01-vision/two-voices/index.md) - Control limits vs specs
 - [Probability Plot](probability-plot.md) - Check normality assumption
+- [Statistics Panel](stats-panel.md) - Where summary stats and the adaptive lens fit together
 - [Performance Mode](performance-mode.md) - Multi-channel capability comparison
 - [Staged Analysis](staged-analysis.md) - Before/after capability comparison
 - [Glossary: Cp/Cpk](../../glossary.md#cp)

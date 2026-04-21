@@ -6,7 +6,6 @@ import { FactorSelector } from '../FactorSelector';
 import { FilterContextBar } from '../FilterContextBar';
 import { BoxplotDisplayToggle } from '../BoxplotDisplayToggle';
 import { ChartInsightChip } from '../ChartInsightChip';
-import { HelpTooltip } from '../HelpTooltip';
 import { AnnotationContextMenu } from '../AnnotationContextMenu';
 import DashboardChartCard from './DashboardChartCard';
 import DashboardGrid from './DashboardGrid';
@@ -148,6 +147,8 @@ export interface DashboardLayoutBaseProps {
   renderFocusedView?: React.ReactNode;
   /** Tabbed verification card (Histogram/ProbPlot) */
   renderVerificationCard?: React.ReactNode;
+  /** Focus target for the adaptive right-hand lens */
+  verificationCardFocusTarget?: 'histogram' | 'probability-plot' | 'pareto' | null;
 
   // ---- Spec editor ----
   renderSpecEditor?: React.ReactNode;
@@ -214,10 +215,10 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   stageOrderMode,
   setStageOrderMode,
   stagedStats,
-  controlStats,
-  getTermUcl,
-  getTermMean,
-  getTermLcl,
+  controlStats: _controlStats,
+  getTermUcl: _getTermUcl,
+  getTermMean: _getTermMean,
+  getTermLcl: _getTermLcl,
   chartTitles,
   onChartTitleChange,
   boxplotFactor,
@@ -246,6 +247,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   renderPIPanel,
   renderFocusedView,
   renderVerificationCard,
+  verificationCardFocusTarget,
   renderSpecEditor,
   ichartTitleSlot,
   ichartExtraControls,
@@ -350,10 +352,9 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
 
         {ichartHeaderExtra}
       </div>
-
       {ichartExtraControls}
 
-      {stageColumn && stagedStats ? (
+      {stageColumn && stagedStats && (
         <div className="flex gap-4 text-sm bg-surface/50 px-3 py-1.5 rounded-lg border border-edge/50">
           <span className="text-blue-400 font-medium">{stagedStats.stageOrder.length} stages</span>
           <span className="text-content-secondary">
@@ -363,44 +364,28 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
             </span>
           </span>
         </div>
-      ) : (
-        controlStats && (
-          <div className="flex gap-4 text-sm bg-surface/50 px-3 py-1.5 rounded-lg border border-edge/50">
-            <span className="text-content-secondary flex items-center gap-1">
-              UCL: <span className="text-content font-mono">{formatStat(controlStats.ucl)}</span>
-              {getTermUcl && <HelpTooltip term={getTermUcl} iconSize={12} />}
-            </span>
-            <span className="text-content-secondary flex items-center gap-1">
-              Mean: <span className="text-content font-mono">{formatStat(controlStats.mean)}</span>
-              {getTermMean && <HelpTooltip term={getTermMean} iconSize={12} />}
-            </span>
-            <span className="text-content-secondary flex items-center gap-1">
-              LCL: <span className="text-content font-mono">{formatStat(controlStats.lcl)}</span>
-              {getTermLcl && <HelpTooltip term={getTermLcl} iconSize={12} />}
-            </span>
-          </div>
-        )
       )}
     </>
   );
 
   // ---- Boxplot factor selector (with optional wrapper) ----
-  const boxplotFactorSelector = (
-    <FactorSelector
-      factors={factors}
-      selected={boxplotFactor}
-      onChange={setBoxplotFactor}
-      hasActiveFilter={!!filters?.[boxplotFactor]?.length}
-      columnAliases={columnAliases}
-    />
-  );
+  const boxplotFactorSelector =
+    factors.length > 0 ? (
+      <FactorSelector
+        factors={factors}
+        selected={boxplotFactor}
+        onChange={setBoxplotFactor}
+        hasActiveFilter={!!filters?.[boxplotFactor]?.length}
+        columnAliases={columnAliases}
+      />
+    ) : null;
 
   const wrappedBoxplotFactor = boxplotFactorWrapper
     ? boxplotFactorWrapper(boxplotFactorSelector)
     : boxplotFactorSelector;
 
   // ---- Boxplot controls ----
-  const boxplotControls = (
+  const boxplotControls = boxplotFactor ? (
     <>
       {wrappedBoxplotFactor}
       <BoxplotDisplayToggle
@@ -424,7 +409,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
         </button>
       )}
     </>
-  );
+  ) : null;
 
   // ---- Pareto controls ----
   const paretoControls = (
@@ -499,6 +484,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
               onDownloadSvg={onDownloadSvg}
               onShareChart={onShareChart}
               observationCount={ichartObservationCount}
+              utilityActions="maximize-only"
               title={ichartTitle}
               controls={ichartControls}
               filterBar={filterBar}
@@ -522,10 +508,11 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
               onDownloadSvg={onDownloadSvg}
               onShareChart={onShareChart}
               observationCount={boxplotObservationCount}
+              utilityActions="maximize-only"
               title={
                 <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
                   <EditableChartTitle
-                    defaultTitle={`Boxplot: ${boxplotFactor}`}
+                    defaultTitle={boxplotFactor ? `Boxplot: ${boxplotFactor}` : 'Variation Sources'}
                     value={chartTitles.boxplot || ''}
                     onChange={title => onChartTitleChange('boxplot', title)}
                   />
@@ -554,6 +541,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
                 onDownloadSvg={onDownloadSvg}
                 onShareChart={onShareChart}
                 observationCount={paretoObservationCount}
+                utilityActions="maximize-only"
                 title={
                   <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
                     <EditableChartTitle
@@ -592,12 +580,13 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
                 testId="chart-verification"
                 chartName="verification"
                 className="flex-1 min-w-[250px] min-h-0"
-                onMaximize={() => setFocusedChart('histogram')}
+                onMaximize={() => setFocusedChart(verificationCardFocusTarget ?? 'histogram')}
                 copyFeedback={copyFeedback}
                 onCopyChart={onCopyChart}
                 onDownloadPng={onDownloadPng}
                 onDownloadSvg={onDownloadSvg}
                 onShareChart={onShareChart}
+                utilityActions="maximize-only"
                 title={<></>}
               >
                 {renderVerificationCard}

@@ -43,6 +43,8 @@ export interface DashboardChartCardProps {
   onShareChart?: (chartName: string) => void;
   /** Number of chart observations (findings linked to this chart) */
   observationCount?: number;
+  /** Which utility actions are visible in the title row */
+  utilityActions?: 'all' | 'maximize-only' | 'none';
 }
 
 /**
@@ -76,8 +78,13 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
   downloadMenuColorScheme,
   onShareChart,
   observationCount,
+  utilityActions = 'all',
 }) => {
-  const showExportButtons = onCopyChart && onDownloadPng && onDownloadSvg;
+  const showExportButtons =
+    utilityActions === 'all' && onCopyChart && onDownloadPng && onDownloadSvg;
+  const showShareButton = utilityActions === 'all' && onShareChart;
+  const showMaximizeButton = utilityActions !== 'none' && !!onMaximize;
+  const hasUtilityActions = !!(showExportButtons || showShareButton || showMaximizeButton);
 
   return (
     <div
@@ -87,8 +94,8 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
       className={`bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 flex flex-col min-h-0 h-full transition-all ${highlightClass} ${className}`}
       style={minHeight ? { minHeight } : undefined}
     >
-      <div className="flex justify-between items-center mb-2 gap-4">
-        <div className="flex items-center gap-1.5">
+      <div className="flex justify-between items-start mb-2 gap-4">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {title}
           {observationCount != null && observationCount > 0 && (
             <span
@@ -100,67 +107,73 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap justify-end" data-export-hide>
-          {controls}
+        {hasUtilityActions && (
+          <div className="flex items-center gap-2 flex-wrap justify-end" data-export-hide>
+            {showExportButtons && (
+              <>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onCopyChart(id, chartName);
+                  }}
+                  className={`p-1.5 rounded transition-all min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                    copyFeedback === chartName
+                      ? 'bg-green-500/20 text-green-400'
+                      : 'text-content-muted hover:text-content hover:bg-surface-tertiary'
+                  }`}
+                  title={`Copy ${chartName} to clipboard`}
+                  aria-label={`Copy ${chartName} to clipboard`}
+                  data-export-hide
+                >
+                  {copyFeedback === chartName ? <Check size={14} /> : <Copy size={14} />}
+                </button>
+                <ChartDownloadMenu
+                  containerId={id}
+                  chartName={chartName}
+                  onDownloadPng={onDownloadPng}
+                  onDownloadSvg={onDownloadSvg}
+                  colorScheme={downloadMenuColorScheme}
+                />
+              </>
+            )}
 
-          {showExportButtons && (
-            <>
+            {showShareButton && (
               <button
                 onClick={e => {
                   e.stopPropagation();
-                  onCopyChart(id, chartName);
+                  onShareChart(chartName);
                 }}
-                className={`p-1.5 rounded transition-all min-w-[44px] min-h-[44px] flex items-center justify-center ${
-                  copyFeedback === chartName
-                    ? 'bg-green-500/20 text-green-400'
-                    : 'text-content-muted hover:text-content hover:bg-surface-tertiary'
-                }`}
-                title={`Copy ${chartName} to clipboard`}
-                aria-label={`Copy ${chartName} to clipboard`}
+                className="p-1.5 rounded text-content-muted hover:text-blue-400 hover:bg-blue-400/10 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                title={`Share ${chartName}`}
+                aria-label={`Share ${chartName}`}
                 data-export-hide
               >
-                {copyFeedback === chartName ? <Check size={14} /> : <Copy size={14} />}
+                <Share2 size={14} />
               </button>
-              <ChartDownloadMenu
-                containerId={id}
-                chartName={chartName}
-                onDownloadPng={onDownloadPng}
-                onDownloadSvg={onDownloadSvg}
-                colorScheme={downloadMenuColorScheme}
-              />
-            </>
-          )}
+            )}
 
-          {onShareChart && (
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                onShareChart(chartName);
-              }}
-              className="p-1.5 rounded text-content-muted hover:text-blue-400 hover:bg-blue-400/10 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-              title={`Share ${chartName}`}
-              aria-label={`Share ${chartName}`}
-              data-export-hide
-            >
-              <Share2 size={14} />
-            </button>
-          )}
-
-          {onMaximize && (
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                onMaximize();
-              }}
-              className="p-1.5 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-              title="Maximize Chart"
-              aria-label="Maximize chart"
-            >
-              <Maximize2 size={14} />
-            </button>
-          )}
-        </div>
+            {showMaximizeButton && (
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  onMaximize?.();
+                }}
+                className="p-1.5 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                title="Maximize Chart"
+                aria-label="Maximize chart"
+              >
+                <Maximize2 size={14} />
+              </button>
+            )}
+          </div>
+        )}
       </div>
+
+      {controls && (
+        <div className="mb-2 flex flex-wrap items-center gap-2" data-export-hide>
+          {controls}
+        </div>
+      )}
 
       {filterBar}
 
