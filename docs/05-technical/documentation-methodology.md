@@ -115,6 +115,17 @@ The [C4 Model](https://c4model.com/) provides four zoom levels for architecture 
 | Review in PRs          | Documentation reviewed alongside code in every PR                      |
 | Linting rules          | `.claude/skills/maintaining-documentation/SKILL.md` enforces structure |
 
+### Indexing Rule For New Docs
+
+New durable docs should be indexed at the right level when they are created.
+
+- Always add the new doc to the nearest relevant section `index.md`.
+- Add the doc to `docs/index.md` if it is useful as a repo-wide entry point for humans.
+- Add the doc to `docs/llms.txt` if agents should discover it early during orientation or retrieval.
+- If the doc is local, narrow, or temporary, a section-level index entry is enough.
+
+This complements the orphan-doc check: a new doc must not only be linked from somewhere, it should also be discoverable from the right navigation layer.
+
 ---
 
 ## The Journey Spine

@@ -91,6 +91,12 @@ Total Addressable Market estimate across three segments: structured process inve
 
 [:octicons-arrow-right-24: Market Analysis](market-analysis.md)
 
+### Trainer Network
+
+The lightweight ecosystem model for certified Trainers and Master Trainers, with company grouping handled through the public directory rather than formal territorial partner rights.
+
+[:octicons-arrow-right-24: Trainer Network](trainer-network.md)
+
 ### Design Evaluations
 
 Product strategy evaluations for the 6 design tensions and 7 alternative patterns identified in Progressive Stratification. Each evaluation assesses fit against VariScout's philosophy, personas, and competitive positioning to inform roadmap decisions.

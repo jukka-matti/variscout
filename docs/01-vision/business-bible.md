@@ -268,6 +268,7 @@ Five layers of value, each building on the previous:
 2. **Usage → Stickiness:** More analyses saved → harder to switch → lower churn
 3. **Findings → Knowledge:** More resolved findings → better AI suggestions → faster investigations → more resolved findings
 4. **Team → Expansion:** One team succeeds → adjacent teams adopt → site-wide deployment
+5. **Trainers → Reach:** More certified trainers → more courses and consulting → more VariScout users → more future trainers
 
 ---
 
@@ -302,6 +303,16 @@ The explicit progression from free to maximum value, with the trigger moments th
 
 AI features (NarrativeBar, ChartInsightChips, CoScout) are included in all Azure plans — the customer deploys their own Azure AI Foundry resources. The Team plan adds the managed Knowledge Base layer on top.
 
+### Trainer Network Overlay
+
+The training funnel does not need a heavy reseller program to scale. VariScout's default ecosystem model is a lightweight network:
+
+- **Trainer**: individual certified to deliver VariScout training and consulting
+- **Master Trainer**: individual certified to train new Trainers
+- **Company grouping**: directory visibility and lead-routing only, not a separate governance layer
+
+This keeps standards centralized while allowing delivery to spread across consultants and small firms without founder travel becoming the bottleneck. See [Trainer Network](trainer-network.md).
+
 ---
 
 ## Competitive Landscape
@@ -326,6 +337,7 @@ AI features (NarrativeBar, ChartInsightChips, CoScout) are included in all Azure
 
 - [Philosophy](philosophy.md) — Four Lenses, Two Voices, EDA for Process Improvement
 - [Market Analysis](market-analysis.md) — TAM, competitive positioning, pricing comparison
+- [Trainer Network](trainer-network.md) — Simplified ecosystem model for trainers and Master Trainers
 - [UX Research](../02-journeys/ux-research.md) — Persona interviews, JTBD
 - [Tier Philosophy](../08-products/tier-philosophy.md) — Why features are gated where they are
 - [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md) — Distribution strategy

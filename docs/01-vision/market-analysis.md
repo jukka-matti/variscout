@@ -37,7 +37,7 @@ VariScout occupies a distinct category from the full Minitab suite (DOE, hypothe
 
 ### Layer 2 — LSS Training Funnel (Secondary)
 
-**Who:** Lean Six Sigma training providers, universities, and corporate training programs needing a free/cheap Minitab alternative for Green Belt courses.
+**Who:** Lean Six Sigma training providers, universities, corporate training programs, and future VariScout-certified trainers needing a free/cheap Minitab alternative for Green Belt courses.
 
 | Assumption                      | Value            | Rationale                         |
 | ------------------------------- | ---------------- | --------------------------------- |
@@ -50,6 +50,8 @@ VariScout occupies a distinct category from the full Minitab suite (DOE, hypothe
 :::note
 Most training revenue comes from the **free PWA** driving awareness, not direct sales. The TAM here flows from corporate training departments that upgrade to Azure App for internal use after discovering VariScout through training.
 :::
+
+Over time, this layer can also support a lightweight trainer network: Master Trainers certify new Trainers, active Trainers are listed publicly, and companies are visible only as a contact grouping when multiple Trainers operate under the same firm. See [Trainer Network](trainer-network.md).
 
 ### Layer 3 — Excel-Native Quality Analytics (Tertiary)
 
