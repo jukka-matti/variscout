@@ -2,6 +2,8 @@
 
 Structured investigation for process improvement. Browser-based, offline-first, customer-owned data.
 
+Shared agent map: `docs/llms.txt`
+
 ## Invariants
 
 - Browser-only processing; data stays in customer's tenant (ADR-059).
@@ -24,8 +26,9 @@ Structured investigation for process improvement. Browser-based, offline-first, 
 - **Agent manifest**: `docs/llms.txt` — map of priority entry points.
 - **Decisions (why)**: `docs/07-decisions/` (live) + `docs/archive/adrs/` (superseded).
 - **Designs (what)**: `docs/superpowers/specs/` (active) + `docs/archive/specs/` (delivered/historical).
-- **Path-scoped rules**: `.claude/rules/` — load automatically when editing specific areas.
-- **Skills**: `.claude/skills/` — load on invocation or match.
+- **Ruflo workflow**: `docs/05-technical/implementation/ruflo-workflow.md` + `docs/05-technical/implementation/ruflo.md`
+- **Claude-only rules**: `.claude/rules/` — load automatically when editing specific areas.
+- **Claude-only skills**: `.claude/skills/` — load on invocation or match.
 
 ## Workflow
 
@@ -36,3 +39,9 @@ Structured investigation for process improvement. Browser-based, offline-first, 
 ## When uncertain
 
 Prefer retrieval over recall. Read the relevant ADR, spec, or package CLAUDE.md before writing non-trivial code. If an instruction contradicts code, trust code and flag the drift.
+
+## Claude-Specific Notes
+
+- `.claude/settings.json` provides Claude hooks, statusline, permissions, and attribution.
+- `claude --chrome` is the supported browser-assisted E2E path in this repo.
+- `AGENTS.md` is the Codex entrypoint; keep shared repo guidance consistent across both wrappers.
