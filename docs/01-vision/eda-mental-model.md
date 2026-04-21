@@ -272,7 +272,7 @@ The Probability Plot adds a capability that the other three lenses do not provid
 
 The probability plot is the thesis's tool for validating assumptions before drawing conclusions. It answers: "Can I trust the statistics I am computing from this data?"
 
-In the thesis's recommended tool sequence (Figure 35), the probability plot comes immediately after the I-Chart and before capability analysis. This ordering is deliberate: verify that the data is well-behaved before computing indices that assume it is. VariScout places the probability plot alongside the capability histogram in the stats sidebar, making it easy to check normality whenever capability numbers are being reviewed.
+In the thesis's recommended tool sequence (Figure 35), the probability plot comes immediately after the I-Chart and before capability analysis. This ordering is deliberate: diagnose whether the data is well-behaved before leaning on indices that assume it is. VariScout places the probability plot in the adaptive analysis lens alongside the distribution/capability histogram, making it part of the normal reading path whenever capability numbers are being reviewed.
 
 For the question-driven model, the probability plot answers questions that the other lenses cannot: "Is this data from one process or two?" (inflection point detection), "Which factor level has the tightest distribution?" (slope comparison), "Can I trust this Cpk number?" (normality validation). These are not statistical trivia — they are practical questions that determine whether the analyst's conclusions are reliable.
 
@@ -588,12 +588,12 @@ The sharpening process is the same (vague → precise through evidence), but the
 
 ### 7.2 How the Four Lenses Map to Modes
 
-| Lens                      | Standard                         | Capability                 | Yamazumi                     | Performance                       |
-| ------------------------- | -------------------------------- | -------------------------- | ---------------------------- | --------------------------------- |
-| **CHANGE** (I-Chart)      | Time-based stability             | Cpk trend across subgroups | Waste metric trend over time | Per-channel Cpk trend             |
-| **FLOW** (Boxplot)        | Factor comparison                | Cpk by factor level        | Activity composition by step | Channel distribution              |
-| **FAILURE** (Pareto)      | Category ranking by count/impact | Cpk ranking by factor      | Waste type ranking           | Channel Cpk ranking (worst first) |
-| **VALUE** (Stats/Summary) | Statistical overview             | Capability indices         | VA ratio, takt compliance    | Worst-channel summary             |
+| Lens                      | Standard                         | Capability                                | Yamazumi                     | Performance                       |
+| ------------------------- | -------------------------------- | ----------------------------------------- | ---------------------------- | --------------------------------- |
+| **CHANGE** (I-Chart)      | Time-based stability             | Cpk trend across subgroups                | Waste metric trend over time | Per-channel Cpk trend             |
+| **FLOW** (Boxplot)        | Factor comparison                | Factor comparison still drives drill-down | Activity composition by step | Channel distribution              |
+| **FAILURE** (Pareto)      | Category ranking by count/impact | Ranking view when meaningful              | Waste type ranking           | Channel Cpk ranking (worst first) |
+| **VALUE** (Stats/Summary) | Statistical overview             | Capability + Probability lens             | VA ratio, takt compliance    | Worst-channel summary             |
 
 In Yamazumi mode, the **VALUE** lens is primary — lean practitioners start with "are we meeting takt?" and "what is our VA ratio?" before drilling into specific waste types. In Capability mode, the **CHANGE** lens is primary — the Cpk trend reveals whether the process is improving or degrading.
 

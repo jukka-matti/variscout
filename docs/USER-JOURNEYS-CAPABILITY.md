@@ -25,7 +25,7 @@ After uploading data and completing column mapping, the engineer enters LSL, USL
 
 ### Reading the standard capability view
 
-The dashboard displays a histogram (Slot 4) with the fitted normal distribution overlaid against spec limits. The stats panel shows Cp (potential capability: (USL−LSL)/6σ_within), Cpk (actual: penalized for off-center processes), and Pass Rate (% within spec).
+The laptop-first dashboard keeps the I-Chart visible and places capability reading in the adaptive right-hand lens. When specs exist, the lens labels the histogram tab **Capability** and pairs it with **Probability**. The top strip summarizes Cp/Cpk context and provides the spec shortcut.
 
 The industry rule of thumb is **Cpk ≥ 1.33** for a capable process (4σ buffer from the nearest limit). Automotive PPAP typically requires Cpk ≥ 1.67.
 
@@ -40,7 +40,7 @@ For PPAP or ongoing monitoring, the analyst maps a subgroup column (e.g., Batch,
 
 The I-Chart (Slot 1) switches to a **dual Cp/Cpk series**: Cpk (blue, primary) and Cp (purple, secondary), with a grey connecting line between each pair. A long gap between Cp and Cpk means the subgroup is capable but off-center. If the Cpk I-Chart is in control, Cpk ≈ Ppk — the summary number is representative. If Cpk is out of control, the overall Ppk is misleading (it averages unstable capability). An in-control Cpk I-Chart is stronger PPAP evidence than a single Ppk number.
 
-The Boxplot (Slot 2) shows Cpk per factor level with a dashed `targetLine` at Cpk = 1.33, making compliant and non-compliant levels immediately distinguishable.
+The lower-left panel remains the subgroup / variation-source panel. In the laptop baseline, capability does not replace that slot; it stays available through the adaptive right-hand lens while the subgroup panel continues supporting drill-down.
 
 ### Decision point: centering vs variation
 

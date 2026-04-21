@@ -162,11 +162,11 @@ describe('DashboardLayoutBase', () => {
     expect(screen.getByText('3 consecutive points above mean')).toBeDefined();
   });
 
-  it('renders control stats (UCL/Mean/LCL) in I-Chart header', () => {
+  it('does not duplicate control stats inside the I-Chart header', () => {
     render(<DashboardLayoutBase {...baseProps} />);
-    expect(screen.getByText('12.00')).toBeDefined(); // UCL
-    expect(screen.getByText('10.00')).toBeDefined(); // Mean
-    expect(screen.getByText('8.00')).toBeDefined(); // LCL
+    expect(screen.queryByText(/UCL:/)).toBeNull();
+    expect(screen.queryByText(/Mean:/)).toBeNull();
+    expect(screen.queryByText(/LCL:/)).toBeNull();
   });
 
   it('renders staged stats when stageColumn is set', () => {
@@ -195,5 +195,13 @@ describe('DashboardLayoutBase', () => {
       />
     );
     expect(screen.getByTestId('custom-title')).toBeDefined();
+  });
+
+  it('uses a neutral variation-sources title when no subgroup factor is selected', () => {
+    render(
+      <DashboardLayoutBase {...baseProps} factors={[]} boxplotFactor="" showParetoPanel={false} />
+    );
+
+    expect(screen.getByText('Variation Sources')).toBeDefined();
   });
 });
