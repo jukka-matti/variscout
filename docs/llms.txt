@@ -18,10 +18,13 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 
 ## Agent-specific context
 
-- `../CLAUDE.md`: root project instructions (invariants, commands, where to look).
+- `../AGENTS.md`: Codex entrypoint for root project instructions and Codex-specific ruflo usage.
+- `../CLAUDE.md`: Claude entrypoint for root project instructions and Claude-only automation.
 - `../packages/*/CLAUDE.md` and `../apps/*/CLAUDE.md`: per-package context, loaded on demand.
 - `../.claude/rules/`: path-scoped rules that load automatically when editing specific code areas (stats, charts, CoScout prompts, Azure storage, tests, i18n).
 - `../.claude/skills/`: task-triggered workflow skills.
+- `05-technical/implementation/ruflo-workflow.md`: shared ruflo workflow across agent clients.
+- `05-technical/implementation/codex-ruflo-workflow.md`: Codex-specific MCP and workflow notes.
 
 ## Reference
 

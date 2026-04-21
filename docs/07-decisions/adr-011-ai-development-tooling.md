@@ -10,7 +10,7 @@ title: 'ADR-011: AI Development Tooling (ruflo)'
 
 ## Context
 
-VariScout is a 5-package TypeScript monorepo with 1,475 unit tests and 19 Playwright E2E specs. Development uses Claude Code as the primary AI coding assistant.
+VariScout is a 5-package TypeScript monorepo with 1,475 unit tests and 19 Playwright E2E specs. Development uses AI coding assistants through a shared repo-owned tooling layer, with Claude Code established first and Codex supported through the same ruflo backend.
 
 Recurring friction points:
 
@@ -20,7 +20,7 @@ Recurring friction points:
 
 ## Decision
 
-Use ruflo (formerly claude-flow) as an MCP-integrated development tooling layer. It runs as a local MCP server that Claude Code connects to on session start, providing:
+Use ruflo (formerly claude-flow) as an MCP-integrated development tooling layer. It runs as a local MCP server that Claude Code and Codex can connect to, providing:
 
 1. **Vector-indexed codebase search** -- HNSW embeddings (all-MiniLM-L6-v2, 384-dim) for semantic file search. "Find Cpk calculation" returns `stats.ts` without needing exact grep patterns.
 2. **Persistent cross-session memory** -- Namespaced key-value store (architecture, conventions, decisions, testing) with semantic search. Survives session restarts.
@@ -35,7 +35,7 @@ Use ruflo (formerly claude-flow) as an MCP-integrated development tooling layer.
 
 3. **7 background workers** -- `audit` (security), `testgaps` (coverage), `map` (codebase structure), `optimize` (performance hints), `consolidate` (memory dedup), `deepdive` (code analysis), `refactor` (quality suggestions). 5 additional workers available for on-demand dispatch. Workers are staggered and resource-throttled (max 2 concurrent, CPU/memory guards).
 
-4. **autoStart on session open** -- MCP server starts automatically when Claude Code opens via `autoStart: true` in `.mcp.json`. SessionStart hook starts the daemon.
+4. **autoStart on session open** -- MCP server starts automatically from `.mcp.json`. Claude SessionStart hooks also start the daemon; Codex may require explicit MCP verification depending on local client registration.
 
 5. **Swarm orchestration available but secondary** -- Multi-agent swarm capabilities exist for large refactors but are not the primary workflow. Most VariScout tasks are sequential monorepo changes.
 
@@ -45,7 +45,8 @@ Use ruflo (formerly claude-flow) as an MCP-integrated development tooling layer.
 - Runtime config: `.ruflo/config.yaml`
 - Daemon state: `.ruflo/daemon-state.json`
 - Memory DB: `.swarm/memory.db`
-- Hooks: `.claude/settings.json` (PreToolUse, PostToolUse, SessionStart, UserPromptSubmit)
+- Claude hooks: `.claude/settings.json` (PreToolUse, PostToolUse, SessionStart, UserPromptSubmit)
+- Codex entrypoint: `AGENTS.md`
 - Worker exclusions: `.venv/**`, `node_modules/**`, `dist/**`, `site/**`, `*.min.js`, `*.min.css`
 
 ## Consequences

@@ -8,7 +8,7 @@ title: 'Ruflo Development Tooling'
 
 ruflo is an MCP-integrated AI development tooling layer for VariScout. It provides semantic codebase search, persistent cross-session memory, hooks intelligence (pattern learning), neural learning (SONA), automated security scanning, and background workers. It is **not** a runtime dependency -- it only runs during development sessions.
 
-**Version**: Pinned to `ruflo@3.5.42` in `.mcp.json` and `.claude/settings.json`. Update monthly.
+**Version**: Pinned to `ruflo@3.5.42` in `.mcp.json` and Claude hook automation in `.claude/settings.json`. Update monthly.
 
 ## Quick Commands
 
@@ -45,12 +45,12 @@ npx ruflo@3.5.42 neural status
 ## Architecture
 
 ```
-Claude Code ──MCP──▶ ruflo MCP Server (npx, port 3000)
-                          │
-                          ├── Memory (sql.js + HNSW vector index)
-                          ├── Embeddings (all-MiniLM-L6-v2, 384-dim)
-                          ├── Hooks (pre/post edit, session start/end)
-                          └── Daemon (background workers)
+Claude Code or Codex ──MCP──▶ ruflo MCP Server (npx, port 3000)
+                                  │
+                                  ├── Memory (sql.js + HNSW vector index)
+                                  ├── Embeddings (all-MiniLM-L6-v2, 384-dim)
+                                  ├── Hooks (Claude-specific local automation)
+                                  └── Daemon (background workers)
 ```
 
 ### Config Files
@@ -60,7 +60,8 @@ Claude Code ──MCP──▶ ruflo MCP Server (npx, port 3000)
 | `.mcp.json`                | MCP server definition (autoStart: true)            |
 | `.ruflo/config.yaml`       | Runtime config (topology, memory backend, workers) |
 | `.ruflo/daemon-state.json` | Worker state and schedules                         |
-| `.claude/settings.json`    | Hooks, statusline, permissions, attribution        |
+| `.claude/settings.json`    | Claude hooks, statusline, permissions, attribution |
+| `AGENTS.md`                | Codex entrypoint for repo workflow                 |
 
 ### Memory Namespaces
 
@@ -81,12 +82,12 @@ Total: 117 entries with HNSW vector embeddings. Semantic search returns results 
 
 Both systems are used and serve different purposes:
 
-| Feature           | Claude Code MEMORY.md             | Ruflo AgentDB                                 |
-| ----------------- | --------------------------------- | --------------------------------------------- |
-| Always in context | Yes (auto-loaded)                 | No (explicit retrieval)                       |
-| Capacity          | ~200 lines                        | 117 entries (thousands possible)              |
-| Search            | Scanned by AI during context      | Semantic vector search (HNSW)                 |
-| Best for          | High-level project state, routing | Detailed domain knowledge, semantic discovery |
+| Feature           | Agent docs + MEMORY.md               | Ruflo AgentDB                                 |
+| ----------------- | ------------------------------------ | --------------------------------------------- |
+| Always in context | Yes (`AGENTS.md` or `CLAUDE.md`)     | No (explicit retrieval)                       |
+| Capacity          | Small wrapper docs plus local memory | 117 entries (thousands possible)              |
+| Search            | Scanned by AI during context         | Semantic vector search (HNSW)                 |
+| Best for          | High-level project state, routing    | Detailed domain knowledge, semantic discovery |
 
 Use MEMORY.md for "what should I always know." Use ruflo memory for "find me something specific."
 
@@ -115,6 +116,8 @@ Hooks automatically learn from development patterns:
 - **Metrics**: `npx ruflo@3.5.42 hooks metrics` shows 24h dashboard
 
 As of Mar 2026: 128 commands tracked, 15 patterns at 85% confidence, 94% success rate.
+
+Hook capture is strongest in Claude because `.claude/settings.json` is wired there. Codex still benefits from shared memory, workers, diff analysis, and CLI tooling through the same ruflo backend.
 
 ### Neural Learning (SONA)
 
@@ -164,3 +167,4 @@ Ensure `.venv/` is in `.gitignore` and `workers.excludePaths` in `.ruflo/config.
 
 - [ADR-011: AI Development Tooling](../../07-decisions/adr-011-ai-development-tooling.md)
 - [Security Scanning](security-scanning.md)
+- [Codex + Ruflo Workflow](codex-ruflo-workflow.md)

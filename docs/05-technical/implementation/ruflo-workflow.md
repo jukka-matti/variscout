@@ -13,13 +13,20 @@ Ruflo is a **pull-based knowledge system**. Hooks passively learn from your oper
 ```
 Claude Code ──hooks──▶ ruflo (learns passively)
 Claude Code ──MCP────▶ ruflo (query on demand) ──results──▶ Claude Code
+Codex      ──────────▶ ruflo (query on demand) ──results──▶ Codex
 ```
+
+Claude has extra local automation via `.claude/settings.json`. Codex shares the same MCP-backed memory and analysis workflow, but should not assume Claude hooks or statusline behavior.
 
 ## Development Lifecycle
 
-### 1. Session Start (automated)
+### 1. Session Start
 
-Hooks start the daemon and restore session state. No manual action needed.
+Claude sessions start daemon and restore state via hooks.
+
+Codex sessions should confirm MCP availability with `codex mcp list`. If needed, register `ruflo` manually with `codex mcp add ruflo -- npx ruflo@3.5.42 mcp start`.
+
+No additional setup is needed once the MCP server is available.
 
 ### 2. Before Starting a Feature
 
@@ -41,7 +48,7 @@ Hooks automatically track:
 - Command success/failure rates
 - Prompt classification and routing
 
-No manual action needed. Intelligence accumulates in `.ruflo/` metrics.
+In Claude, hooks capture this passively. In Codex, use the shared MCP tools directly; intelligence still accumulates in `.ruflo/` metrics once ruflo is running.
 
 ### 4. Before Creating a PR
 
@@ -96,7 +103,7 @@ mcp__ruflo__memory_store(namespace: "architecture", key: "change-name", value: "
 | Pre-PR risk assessment                            | `mcp__ruflo__analyze_diff`                               | Classifies changes, suggests reviewers            |
 | Security audit                                    | `mcp__ruflo__hooks_worker-dispatch(trigger: "audit")`    | OWASP + CVE scanning                              |
 | Test gap detection                                | `mcp__ruflo__hooks_worker-dispatch(trigger: "testgaps")` | Coverage analysis across 9 workspaces             |
-| Project state/routing                             | CLAUDE.md + MEMORY.md                                    | Always in context, no query needed                |
+| Project state/routing                             | `AGENTS.md`, `CLAUDE.md`, `docs/llms.txt`, MEMORY.md     | Always-available repo guidance                    |
 
 ## Keeping Memory Fresh
 
@@ -110,3 +117,4 @@ Ruflo memory is only as good as its last update. After significant work:
 
 - [Ruflo Technical Reference](ruflo.md) — tools, config, troubleshooting
 - [ADR-011: AI Development Tooling](../../07-decisions/adr-011-ai-development-tooling.md) — architectural decision
+- [Codex + Ruflo Workflow](codex-ruflo-workflow.md) — Codex-specific setup notes
