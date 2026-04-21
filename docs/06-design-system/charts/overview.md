@@ -1,5 +1,8 @@
 ---
 title: 'Chart Styling Overview'
+audience: [designer, developer]
+category: reference
+status: stable
 ---
 
 # Chart Styling Overview

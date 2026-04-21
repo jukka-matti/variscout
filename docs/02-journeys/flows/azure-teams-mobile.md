@@ -1,5 +1,8 @@
 ---
 title: 'Azure Mobile Flow'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Azure Mobile Flow

@@ -4,7 +4,7 @@ title: 'ADR-018: Channel @Mention Workflow — Mobile Finding to Team Action'
 
 # ADR-018: Channel @Mention Workflow — Mobile Finding to Team Action
 
-**Status**: Superseded by [ADR-059](adr-059-web-first-deployment-architecture.md)
+**Status**: Superseded by [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md)
 
 **Date**: 2026-03-02
 
@@ -211,11 +211,11 @@ Standard plan scope string is unchanged. PWA is unaffected.
 
 ## Related Decisions
 
-- [ADR-015: Investigation Board](adr-015-investigation-board.md) — Findings system (extended
+- [ADR-015: Investigation Board](../../07-decisions/adr-015-investigation-board.md) — Findings system (extended
   here with assignee)
 - [ADR-016: Teams Integration](adr-016-teams-integration.md) — Teams SDK foundation, mobile
   layout, sharing (extended here with channel @mention)
-- [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md) —
+- [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md) —
   Standard vs Team plan gating
 
 ---

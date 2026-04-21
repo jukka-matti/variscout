@@ -1,5 +1,8 @@
 ---
 title: 'Variation Bar (Removed — ADR-062)'
+audience: [designer, developer]
+category: components
+status: stable
 ---
 
 # Variation Bar (Removed)

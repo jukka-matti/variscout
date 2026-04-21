@@ -1,5 +1,8 @@
 ---
 title: "Four Scenarios: When the Voices Align (or Don't)"
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # Four Scenarios: When the Voices Align (or Don't)

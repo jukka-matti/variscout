@@ -1,5 +1,8 @@
 ---
 title: 'FAILURE Lens: Pareto'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # FAILURE Lens: Pareto

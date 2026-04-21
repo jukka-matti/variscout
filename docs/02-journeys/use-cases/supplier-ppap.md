@@ -1,5 +1,8 @@
 ---
 title: 'Supplier PPAP Capability Studies'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Supplier PPAP Capability Studies

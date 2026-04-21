@@ -1,5 +1,8 @@
 ---
 title: 'CHANGE Lens: I-Chart'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # CHANGE Lens: I-Chart

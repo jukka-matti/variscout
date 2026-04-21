@@ -1,5 +1,8 @@
 ---
 title: 'Chart Hooks'
+audience: [designer, developer]
+category: reference
+status: stable
 ---
 
 # Chart Hooks

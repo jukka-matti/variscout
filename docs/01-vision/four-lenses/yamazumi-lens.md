@@ -1,5 +1,8 @@
 ---
 title: 'Yamazumi Lens: Composition'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # Yamazumi Lens: Composition

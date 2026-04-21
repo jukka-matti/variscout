@@ -1,5 +1,8 @@
 ---
 title: 'Tableau Competitive Benchmark'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Tableau Competitive Benchmark

@@ -1,5 +1,8 @@
 ---
 title: 'Packaging Line Case'
+audience: [analyst, engineer]
+category: learning
+status: reference
 ---
 
 # Packaging Line Case

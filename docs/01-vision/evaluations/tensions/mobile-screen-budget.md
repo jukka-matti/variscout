@@ -1,5 +1,8 @@
 ---
 title: 'Mobile Screen Budget'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Mobile Screen Budget

@@ -1,5 +1,8 @@
 ---
 title: 'Market Analysis & TAM Estimate'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # Market Analysis & TAM Estimate

@@ -1,5 +1,8 @@
 ---
 title: 'LSS Consultant Client Delivery'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # LSS Consultant Client Delivery

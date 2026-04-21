@@ -2,6 +2,9 @@
 title: Component Map
 description: L3 component views per package — internal modules and their responsibilities
 journey-phase: [all]
+audience: [developer, architect]
+category: architecture
+status: stable
 ---
 
 # Component Map

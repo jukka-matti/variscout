@@ -1,5 +1,8 @@
 ---
 title: 'Feature Parity Matrix'
+audience: [business, product]
+category: strategy
+status: stable
 ---
 
 # Feature Parity Matrix

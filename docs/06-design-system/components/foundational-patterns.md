@@ -1,5 +1,8 @@
 ---
 title: 'Foundational UI Patterns'
+audience: [designer, developer]
+category: components
+status: stable
 ---
 
 # Foundational UI Patterns

@@ -1,5 +1,8 @@
 ---
 title: 'Assembly Line Bottleneck Analysis'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Assembly Line Bottleneck Analysis

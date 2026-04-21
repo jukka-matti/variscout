@@ -1,5 +1,8 @@
 ---
 title: 'Accessibility Guidelines'
+audience: [designer, developer]
+category: patterns
+status: stable
 ---
 
 # Accessibility Guidelines

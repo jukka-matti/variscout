@@ -1,5 +1,8 @@
 ---
 title: 'Supplier Performance Comparison'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Supplier Performance Comparison

@@ -1,5 +1,8 @@
 ---
 title: 'Findings'
+audience: [designer, developer]
+category: components
+status: stable
 ---
 
 # Findings

@@ -1,5 +1,8 @@
 ---
 title: 'VaRiScout Lite Case Studies'
+audience: [analyst, engineer]
+category: learning
+status: reference
 ---
 
 # VaRiScout Lite Case Studies
@@ -12,14 +15,14 @@ Case studies mapped to the marketing content calendar. Each case provides data, 
 
 ## Case Portfolio
 
-| Week | Case              | Location             | Primary Analysis                          | Campaign Phase  |
-| ---- | ----------------- | -------------------- | ----------------------------------------- | --------------- |
-| 1-4  | **Bottleneck**    | ESTIEM training      | Process flow, I-Chart, Boxplot            | Phase 1: Launch |
-| 5-8  | **Hospital Ward** | Healthcare           | Aggregation trap, time patterns           | Phase 2: Deepen |
-| 9-12 | **Coffee**        | East Africa          | Factor comparison                         | Phase 3: Apply  |
-| 9-12 | **Packaging**     | Africa manufacturing | Pareto, capability, process diagnosis     | Phase 3: Apply  |
-| 12   | **Avocado**       | Post-harvest         | Regression (requires regression — future) | Phase 3: Apply  |
-| —    | **Investigation Showcase** | Food packaging | Full investigation workflow (questions, findings, hubs, regression) | Showcase |
+| Week | Case                       | Location             | Primary Analysis                                                    | Campaign Phase  |
+| ---- | -------------------------- | -------------------- | ------------------------------------------------------------------- | --------------- |
+| 1-4  | **Bottleneck**             | ESTIEM training      | Process flow, I-Chart, Boxplot                                      | Phase 1: Launch |
+| 5-8  | **Hospital Ward**          | Healthcare           | Aggregation trap, time patterns                                     | Phase 2: Deepen |
+| 9-12 | **Coffee**                 | East Africa          | Factor comparison                                                   | Phase 3: Apply  |
+| 9-12 | **Packaging**              | Africa manufacturing | Pareto, capability, process diagnosis                               | Phase 3: Apply  |
+| 12   | **Avocado**                | Post-harvest         | Regression (requires regression — future)                           | Phase 3: Apply  |
+| —    | **Investigation Showcase** | Food packaging       | Full investigation workflow (questions, findings, hubs, regression) | Showcase        |
 
 ---
 

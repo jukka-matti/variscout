@@ -1,5 +1,6 @@
 ---
 title: 'Design Specs (superpowers)'
+status: reference
 ---
 
 # Design Specs (superpowers)

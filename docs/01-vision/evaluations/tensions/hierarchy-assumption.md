@@ -1,5 +1,8 @@
 ---
 title: 'Hierarchy Assumption'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Hierarchy Assumption

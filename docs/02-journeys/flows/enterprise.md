@@ -1,5 +1,8 @@
 ---
 title: 'Flow 4: Enterprise Evaluator'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Flow 4: Enterprise Evaluator

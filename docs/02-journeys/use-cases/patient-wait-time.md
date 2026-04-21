@@ -1,5 +1,8 @@
 ---
 title: 'Patient Wait Time Variation'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Patient Wait Time Variation

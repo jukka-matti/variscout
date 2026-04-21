@@ -1,5 +1,8 @@
 ---
 title: 'Azure Marketplace Submission Checklist'
+audience: [admin, architect]
+category: reference
+status: stable
 ---
 
 # Azure Marketplace Submission Checklist

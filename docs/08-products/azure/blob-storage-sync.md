@@ -1,5 +1,8 @@
 ---
 title: 'Blob Storage Sync'
+audience: [admin, architect]
+category: reference
+status: stable
 ---
 
 # Blob Storage Sync

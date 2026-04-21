@@ -1,5 +1,8 @@
 ---
 title: 'Drill-Down: Progressive Variation Analysis'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # Drill-Down: Progressive Variation Analysis

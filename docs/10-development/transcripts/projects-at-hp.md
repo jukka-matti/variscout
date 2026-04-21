@@ -5,6 +5,8 @@ language: en
 date: 2026-04-05
 duration: 1905.8s
 status: raw
+audience: [developer, product]
+category: reference
 ---
 
 # Projects at HP

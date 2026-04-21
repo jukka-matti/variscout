@@ -1,5 +1,8 @@
 ---
 title: 'Testing Strategy'
+audience: [developer]
+category: implementation
+status: stable
 ---
 
 # Testing Strategy

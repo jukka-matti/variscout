@@ -1,5 +1,8 @@
 ---
 title: 'Flow 6: Azure App — First Analysis'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Flow 6: Azure App — First Analysis

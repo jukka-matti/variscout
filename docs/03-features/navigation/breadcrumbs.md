@@ -1,6 +1,8 @@
 ---
 title: 'Filter Breadcrumb Navigation'
 status: draft
+audience: [analyst, engineer]
+category: navigation
 ---
 
 # Filter Breadcrumb Navigation

@@ -1,5 +1,8 @@
 ---
 title: 'Use Cases'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Use Cases

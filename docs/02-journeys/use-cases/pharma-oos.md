@@ -1,5 +1,8 @@
 ---
 title: 'Pharma OOS Investigation'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Pharma OOS Investigation

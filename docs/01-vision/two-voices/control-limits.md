@@ -1,5 +1,8 @@
 ---
 title: 'Voice of the Process: Control Limits'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # Voice of the Process: Control Limits

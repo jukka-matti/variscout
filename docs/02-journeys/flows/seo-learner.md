@@ -1,5 +1,8 @@
 ---
 title: 'Flow 1: SEO Learner → Product'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Flow 1: SEO Learner → Product

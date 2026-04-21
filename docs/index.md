@@ -1,6 +1,9 @@
 ---
 title: VariScout Documentation
 description: Structured investigation for process improvement — question-driven, evidence-based, AI-assisted
+audience: [developer, architect]
+category: reference
+status: stable
 ---
 
 # VariScout Documentation

@@ -1,5 +1,8 @@
 ---
 title: 'Authentication (EasyAuth)'
+audience: [admin, architect]
+category: reference
+status: stable
 ---
 
 # Authentication (EasyAuth)

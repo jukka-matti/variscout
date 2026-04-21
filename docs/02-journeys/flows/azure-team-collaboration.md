@@ -1,5 +1,8 @@
 ---
 title: 'Flow 8: Azure App — Team Collaboration'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Flow 8: Azure App — Team Collaboration

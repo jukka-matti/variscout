@@ -1,5 +1,8 @@
 ---
 title: 'Flow: Wide-Form Data Analysis'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Flow: Wide-Form Data Analysis

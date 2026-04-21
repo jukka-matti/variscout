@@ -1,5 +1,8 @@
 ---
 title: 'Multi-Zone Oven Temperature Control Case Study'
+audience: [analyst, engineer]
+category: learning
+status: reference
 ---
 
 # Multi-Zone Oven Temperature Control Case Study

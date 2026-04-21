@@ -1,5 +1,8 @@
 ---
 title: 'Pricing'
+audience: [admin, architect]
+category: reference
+status: stable
 ---
 
 # Pricing

@@ -1,5 +1,8 @@
 ---
 title: 'Boxplot Charts'
+audience: [designer, developer]
+category: reference
+status: stable
 ---
 
 # Boxplot Charts

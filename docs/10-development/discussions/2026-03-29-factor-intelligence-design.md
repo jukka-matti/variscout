@@ -1,5 +1,8 @@
 ---
 title: 'Factor Intelligence Design Discussion'
+audience: [developer, product]
+category: reference
+status: draft
 ---
 
 # The Ideal Factor Analysis Experience in VariScout

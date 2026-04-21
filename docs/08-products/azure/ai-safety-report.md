@@ -3,6 +3,7 @@ title: AI Safety Report — CoScout
 category: compliance
 status: template
 date: 2026-03-17
+audience: [admin, architect]
 ---
 
 # AI Safety Report — CoScout

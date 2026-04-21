@@ -1,5 +1,8 @@
 ---
 title: 'Two Types of Variation, Two Types of Action'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # Two Types of Variation, Two Types of Action

@@ -1,5 +1,8 @@
 ---
 title: 'Flow 7: Azure App — Daily Use'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Flow 7: Azure App — Daily Use

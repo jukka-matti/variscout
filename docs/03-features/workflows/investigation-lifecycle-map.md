@@ -2,6 +2,9 @@
 title: Investigation Lifecycle Map
 description: State diagrams for investigation diamond phases and Finding status lifecycle with transition triggers and CoScout behavior
 journey-phase: investigate
+audience: [analyst, engineer]
+category: workflow
+status: stable
 ---
 
 # Investigation Lifecycle Map

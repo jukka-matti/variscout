@@ -1,5 +1,8 @@
 ---
 title: 'Glossary'
+audience: [analyst, engineer]
+category: learning
+status: stable
 ---
 
 # Glossary

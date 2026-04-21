@@ -1,5 +1,8 @@
 ---
 title: 'Green Belt Gary'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Green Belt Gary

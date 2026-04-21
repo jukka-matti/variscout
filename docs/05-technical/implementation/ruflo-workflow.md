@@ -1,5 +1,8 @@
 ---
 title: 'Ruflo Development Workflow'
+audience: [developer]
+category: implementation
+status: stable
 ---
 
 # Ruflo Development Workflow

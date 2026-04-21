@@ -1,5 +1,8 @@
 ---
 title: 'Deployment Guide'
+audience: [developer]
+category: implementation
+status: stable
 ---
 
 # Deployment Guide

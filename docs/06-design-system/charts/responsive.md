@@ -1,5 +1,8 @@
 ---
 title: 'Responsive Charts'
+audience: [designer, developer]
+category: reference
+status: stable
 ---
 
 # Responsive Charts

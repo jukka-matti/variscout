@@ -1,5 +1,8 @@
 ---
 title: 'Investigation Flow Map: Pizza Delivery'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Investigation Flow Map: Pizza Delivery

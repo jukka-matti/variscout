@@ -1,5 +1,8 @@
 ---
 title: 'Data Input System'
+audience: [developer]
+category: implementation
+status: stable
 ---
 
 # Data Input System

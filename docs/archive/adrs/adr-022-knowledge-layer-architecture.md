@@ -4,11 +4,11 @@ title: 'ADR-022: Knowledge Layer Architecture'
 
 # ADR-022: Knowledge Layer Architecture
 
-**Status**: Superseded by [ADR-060](adr-060-coscout-intelligence-architecture.md)
+**Status**: Superseded by [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md)
 **Date**: 2026-03-16
 **Deciders**: Product team
 
-> **Status: Superseded by [ADR-060](adr-060-coscout-intelligence-architecture.md)** (2026-04-02)
+> **Status: Superseded by [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md)** (2026-04-02)
 > The Azure AI Search findings indexer is replaced by Foundry IQ unified knowledge index that covers both investigation artifacts and external documents.
 
 > [!IMPORTANT]
@@ -105,8 +105,8 @@ CoScout question → useKnowledgeSearch → searchRelatedFindings() (semantic)
 
 ## See Also
 
-- [AI Architecture](../05-technical/architecture/ai-architecture.md)
-- [ADR-019: AI Integration](adr-019-ai-integration.md)
+- [AI Architecture](../../05-technical/architecture/ai-architecture.md)
+- [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)
 - [ADR-026: SharePoint-First Knowledge Base](adr-026-knowledge-base-sharepoint-first.md)
-- [Knowledge Base Search Workflow](../03-features/workflows/knowledge-base-search.md)
-- [ARM Template — AI Services](../08-products/azure/arm-template.md)
+- [Knowledge Base Search Workflow](../../03-features/workflows/knowledge-base-search.md)
+- [ARM Template — AI Services](../../08-products/azure/arm-template.md)

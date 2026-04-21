@@ -1,5 +1,8 @@
 ---
 title: 'Azure Marketplace Guide'
+audience: [admin, architect]
+category: reference
+status: stable
 ---
 
 # Azure Marketplace Guide

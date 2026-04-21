@@ -1,5 +1,8 @@
 ---
 title: 'Typography'
+audience: [designer, developer]
+category: patterns
+status: stable
 ---
 
 # Typography

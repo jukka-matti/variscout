@@ -1,5 +1,8 @@
 ---
 title: 'Website Design Philosophy'
+audience: [business, designer]
+category: strategy
+status: stable
 ---
 
 # Website Design Philosophy

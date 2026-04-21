@@ -1,5 +1,8 @@
 ---
 title: 'Vision & Methodology'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # Vision & Methodology

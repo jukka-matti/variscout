@@ -1,5 +1,8 @@
 ---
 title: 'How It Works'
+audience: [admin, architect]
+category: reference
+status: stable
 ---
 
 # How It Works

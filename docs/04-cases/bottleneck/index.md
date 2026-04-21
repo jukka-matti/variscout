@@ -1,5 +1,8 @@
 ---
 title: 'Bottleneck Case - ESTIEM'
+audience: [analyst, engineer]
+category: learning
+status: reference
 ---
 
 # Bottleneck Case - ESTIEM

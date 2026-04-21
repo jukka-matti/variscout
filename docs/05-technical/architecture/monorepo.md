@@ -1,5 +1,8 @@
 ---
 title: 'Monorepo Architecture'
+audience: [developer, architect]
+category: architecture
+status: stable
 ---
 
 # Monorepo Architecture

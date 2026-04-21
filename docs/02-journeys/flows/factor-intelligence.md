@@ -1,6 +1,9 @@
 ---
 title: 'Flow: Factor Intelligence'
 journey-phase: [scout, investigate]
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Flow: Factor Intelligence

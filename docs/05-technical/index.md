@@ -1,5 +1,8 @@
 ---
 title: 'Technical Documentation'
+audience: [developer, architect]
+category: reference
+status: stable
 ---
 
 # Technical Documentation

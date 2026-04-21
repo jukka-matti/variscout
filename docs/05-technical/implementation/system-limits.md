@@ -1,5 +1,8 @@
 ---
 title: 'System Limits'
+audience: [developer]
+category: implementation
+status: stable
 ---
 
 # System Limits

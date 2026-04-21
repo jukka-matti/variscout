@@ -1,5 +1,8 @@
 ---
 title: 'AI Components'
+audience: [designer, developer]
+category: components
+status: stable
 ---
 
 # AI Components

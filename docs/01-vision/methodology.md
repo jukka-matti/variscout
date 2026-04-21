@@ -1,5 +1,8 @@
 ---
 title: 'VariScout Methodology'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # VariScout Methodology

@@ -1,6 +1,8 @@
 ---
 title: 'Drill-Down Navigation'
 status: draft
+audience: [analyst, engineer]
+category: navigation
 ---
 
 # Drill-Down Navigation

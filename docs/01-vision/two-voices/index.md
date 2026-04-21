@@ -1,5 +1,8 @@
 ---
 title: 'Two Voices: Control Limits vs Specification Limits'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # Two Voices: Control Limits vs Specification Limits

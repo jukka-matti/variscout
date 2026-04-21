@@ -1,5 +1,8 @@
 ---
 title: 'Avocado Coating Case'
+audience: [analyst, engineer]
+category: learning
+status: reference
 ---
 
 # Avocado Coating Case

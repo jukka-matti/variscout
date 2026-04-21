@@ -1,5 +1,8 @@
 ---
 title: 'Codex + Ruflo Workflow'
+audience: [developer]
+category: implementation
+status: stable
 ---
 
 # Codex + Ruflo Workflow

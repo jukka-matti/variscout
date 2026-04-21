@@ -2,6 +2,9 @@
 title: System Map
 description: Visual architecture overview of VariScout's packages, apps, and external integrations
 journey-phase: [all]
+audience: [developer, architect]
+category: architecture
+status: stable
 ---
 
 # System Map

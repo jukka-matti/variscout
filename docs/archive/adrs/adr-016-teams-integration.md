@@ -4,7 +4,7 @@ title: 'ADR-016: Microsoft Teams Integration'
 
 # ADR-016: Microsoft Teams Integration
 
-**Status**: Superseded by [ADR-059](adr-059-web-first-deployment-architecture.md)
+**Status**: Superseded by [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md)
 
 **Date**: 2026-02-27
 
@@ -230,9 +230,9 @@ Phases 2 and 3 can proceed in parallel after Phase 1. Phase 6 can be done at any
 
 ## Related Decisions
 
-- [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md) — Two-plan model (Standard / Team)
-- [ADR-015: Investigation Board](adr-015-investigation-board.md) — Finding statuses, tags, and comments (extended here with author + photos)
-- [ADR-004: Offline-First](adr-004-offline-first.md) — Offline capability preserved; photo upload queued when offline
+- [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md) — Two-plan model (Standard / Team)
+- [ADR-015: Investigation Board](../../07-decisions/adr-015-investigation-board.md) — Finding statuses, tags, and comments (extended here with author + photos)
+- [ADR-004: Offline-First](../../07-decisions/adr-004-offline-first.md) — Offline capability preserved; photo upload queued when offline
 
 ---
 
@@ -241,7 +241,7 @@ Phases 2 and 3 can proceed in parallel after Phase 1. Phase 6 can be done at any
 - [Teams SDK Documentation](https://learn.microsoft.com/en-us/microsoftteams/platform/)
 - [On-Behalf-Of Flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow)
 - [Adaptive Cards](https://adaptivecards.io/)
-- [Investigation Workflow](../03-features/workflows/investigation-to-action.md)
+- [Investigation Workflow](../../03-features/workflows/investigation-to-action.md)
 
 ---
 

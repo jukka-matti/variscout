@@ -1,5 +1,8 @@
 ---
 title: 'Power BI Competitive Benchmark'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Power BI Competitive Benchmark

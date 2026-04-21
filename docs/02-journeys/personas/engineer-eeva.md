@@ -1,5 +1,8 @@
 ---
 title: 'Engineer Eeva'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Engineer Eeva

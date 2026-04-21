@@ -1,5 +1,8 @@
 ---
 title: 'Azure App Testing Plan — rdmaic Organization'
+audience: [developer]
+category: implementation
+status: stable
 ---
 
 # Azure App Testing Plan — rdmaic Organization

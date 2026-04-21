@@ -1,5 +1,8 @@
 ---
 title: 'Pareto Charts'
+audience: [designer, developer]
+category: reference
+status: stable
 ---
 
 # Pareto Charts

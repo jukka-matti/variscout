@@ -1,6 +1,9 @@
 ---
 title: 'Knowledge Base Search'
 journey-phase: [scout, investigate, improve]
+audience: [analyst, engineer]
+category: workflow
+status: stable
 ---
 
 # Knowledge Base Search

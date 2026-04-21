@@ -1,5 +1,8 @@
 ---
 title: 'Spacing'
+audience: [designer, developer]
+category: patterns
+status: stable
 ---
 
 # Spacing

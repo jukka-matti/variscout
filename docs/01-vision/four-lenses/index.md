@@ -1,5 +1,8 @@
 ---
 title: "Watson's Four Lenses of Process Knowledge"
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # Watson's Four Lenses of Process Knowledge

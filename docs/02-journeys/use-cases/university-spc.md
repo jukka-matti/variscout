@@ -1,5 +1,8 @@
 ---
 title: 'University SPC Course'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # University SPC Course

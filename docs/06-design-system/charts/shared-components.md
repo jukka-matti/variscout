@@ -1,5 +1,8 @@
 ---
 title: 'Shared Chart Components'
+audience: [designer, developer]
+category: reference
+status: stable
 ---
 
 # Shared Chart Components

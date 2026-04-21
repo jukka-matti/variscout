@@ -1,5 +1,8 @@
 ---
 title: 'Investigation Flow Map: Bottleneck Detection'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Investigation Flow Map: Bottleneck Detection

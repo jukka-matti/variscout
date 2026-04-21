@@ -1,5 +1,8 @@
 ---
 title: Transcripts & Expert Interviews
+audience: [developer, product]
+category: reference
+status: raw
 ---
 
 # Transcripts & Expert Interviews

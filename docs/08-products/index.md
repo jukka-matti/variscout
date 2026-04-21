@@ -1,5 +1,8 @@
 ---
 title: 'Products'
+audience: [business, product]
+category: strategy
+status: stable
 ---
 
 # Products

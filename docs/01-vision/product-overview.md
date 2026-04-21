@@ -1,5 +1,8 @@
 ---
 title: 'VariScout: Product Overview'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # VariScout: Product Overview

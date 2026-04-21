@@ -1,5 +1,8 @@
 ---
 title: 'Student Sara'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Student Sara
