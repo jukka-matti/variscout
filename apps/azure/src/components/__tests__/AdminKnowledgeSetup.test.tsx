@@ -46,6 +46,8 @@ describe('AdminKnowledgeSetup', () => {
       aiSearchEndpoint: 'https://search.example.com',
       aiSearchIndex: 'findings',
       appInsightsConnectionString: '',
+      voiceInputEnabled: false,
+      speechToTextDeployment: '',
     });
   });
 
@@ -82,6 +84,8 @@ describe('AdminKnowledgeSetup', () => {
       aiSearchEndpoint: '',
       aiSearchIndex: '',
       appInsightsConnectionString: '',
+      voiceInputEnabled: false,
+      speechToTextDeployment: '',
     });
     // Also clear env var
     import.meta.env.VITE_AI_SEARCH_ENDPOINT = '';
