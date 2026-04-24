@@ -56,6 +56,16 @@ if [ -n "$unmerged" ]; then
   count=$(echo "$unmerged" | wc -l | tr -d ' ')
   first=$(echo "$unmerged" | head -3 | tr '\n' ',' | sed 's/,$//; s/,/, /g')
   warn "Unmerged branches: $count ($first$([ "$count" -gt 3 ] && echo ', …'))"
+
+  # Per-branch freshness: warn if a branch is far behind main.
+  # Cheap O(N branches) — only runs when there are any unmerged.
+  while IFS= read -r b; do
+    [ -z "$b" ] && continue
+    behind=$(git rev-list --count "$b..origin/main" 2>/dev/null || echo 0)
+    if [ "${behind:-0}" -ge 20 ]; then
+      warn "  ↳ $b is $behind commits behind origin/main — consider rebase/merge before adding commits"
+    fi
+  done <<< "$unmerged"
 fi
 
 # --- Stashes ---

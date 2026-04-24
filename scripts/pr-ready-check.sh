@@ -42,6 +42,15 @@ echo "=== pr-ready-check ==="
 echo "Branch: $(git rev-parse --abbrev-ref HEAD)"
 echo "HEAD:   $(git rev-parse --short HEAD) — $(git log -1 --format='%s')"
 
+# Freshness banner — advisory, non-blocking. A branch ≥10 commits behind main
+# is likely to hit conflicts at squash time (lockfile + any parallel work).
+# Computed against the cached origin/main — rely on caller to fetch if fresh.
+if BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null) && [ "${BEHIND:-0}" -ge 10 ]; then
+  echo ""
+  yellow "⚠ Branch is $BEHIND commits behind origin/main — rebase/merge first to avoid conflicts."
+  echo "    git fetch origin main && git merge origin/main"
+fi
+
 run_step "tests (turbo)"       pnpm test
 run_step "lint (turbo)"        pnpm lint
 run_step "docs:check"          pnpm docs:check
