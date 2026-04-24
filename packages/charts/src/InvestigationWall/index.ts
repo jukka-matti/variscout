@@ -44,6 +44,7 @@ export type { CommandPaletteProps } from './CommandPalette';
 export { Minimap } from './Minimap';
 export type { MinimapProps } from './Minimap';
 export { useWallIsMobile, WALL_MOBILE_BREAKPOINT } from './hooks/useWallBreakpoint';
+export { useWallLocale, getDocumentLocale } from './hooks/useWallLocale';
 export { MobileCardList } from './MobileCardList';
 export type { MobileCardListProps } from './MobileCardList';
 export { CANVAS_W, CANVAS_H } from './WallCanvas';

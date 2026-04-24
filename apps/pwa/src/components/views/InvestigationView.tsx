@@ -35,7 +35,9 @@ import {
   CANVAS_H,
   useWallKeyboard,
   useWallIsMobile,
+  useWallLocale,
 } from '@variscout/charts';
+import { getMessage } from '@variscout/core/i18n';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import {
   useInvestigationFeatureStore,
@@ -87,6 +89,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
   // Map/Wall sub-toggle (mirrors Azure InvestigationWorkspace)
   const wallViewMode = useWallLayoutStore(s => s.viewMode);
   const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
+  const locale = useWallLocale();
   // Phase 13 scale features — thread store values into WallCanvas so zoom,
   // pan, and tributary clustering survive re-renders and route through the
   // existing undo/persist infrastructure.
@@ -347,7 +350,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">
-              Build a Process Map in the Frame workspace first.
+              {getMessage(locale, 'wall.missing.processMap')}
             </div>
           )
         ) : (

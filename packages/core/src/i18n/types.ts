@@ -1029,6 +1029,7 @@ export interface MessageCatalog {
   'wall.missing.ariaLabel': string;
   'wall.missing.title': string;
   'wall.missing.tagline': string;
+  'wall.missing.processMap': string;
   'wall.canvas.ariaLabel': string;
   'wall.cta.proposeHypothesis': string;
   // Scale features (Phase 13)

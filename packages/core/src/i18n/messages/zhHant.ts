@@ -890,6 +890,7 @@ export const zhHant: MessageCatalog = {
   'wall.missing.ariaLabel': 'Missing evidence digest',
   'wall.missing.title': 'Missing evidence',
   'wall.missing.tagline': 'Missing evidence · the detective move nobody ships ({count})',
+  'wall.missing.processMap': 'Build a Process Map in the Frame workspace first.',
   'wall.canvas.ariaLabel': 'Investigation Wall canvas',
   'wall.cta.proposeHypothesis': 'Propose new hypothesis from this finding',
   'wall.toolbar.groupByTributary': 'Group by tributary',
