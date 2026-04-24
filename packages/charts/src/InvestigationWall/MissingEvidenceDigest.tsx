@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 
 export interface MissingEvidenceGap {
   id: string;
@@ -26,7 +26,7 @@ export const MissingEvidenceDigest: React.FC<MissingEvidenceDigestProps> = ({
   onFocusHub,
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
 
   if (gaps.length === 0) return null;
 

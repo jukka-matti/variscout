@@ -18,7 +18,7 @@ import type { SuspectedCause, Question } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { chartColors } from '../colors';
 import { CANVAS_W, CANVAS_H } from './WallCanvas';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 
 /** Minimap SVG dimensions in pixels (also the CSS size). */
 const MINIMAP_W = 160;
@@ -49,7 +49,7 @@ export interface MinimapProps {
 }
 
 export const Minimap: React.FC<MinimapProps> = ({ hubs, questions, zoom, pan, onPanTo }) => {
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
 
   // Positions mirror WallCanvas hub/question placement math (hubs on row 400,
   // questions on row 900). Done here rather than threading positions through

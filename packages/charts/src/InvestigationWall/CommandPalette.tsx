@@ -12,9 +12,9 @@
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type { Finding, Question, SuspectedCause } from '@variscout/core';
+import type { Finding, MessageCatalog, Question, SuspectedCause } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 
 export interface CommandPaletteProps {
   open: boolean;
@@ -32,6 +32,12 @@ interface Result {
   kind: ResultKind;
   label: string;
 }
+
+const RESULT_KIND_KEY: Record<ResultKind, keyof MessageCatalog> = {
+  hub: 'wall.palette.kind.hub',
+  question: 'wall.palette.kind.question',
+  finding: 'wall.palette.kind.finding',
+};
 
 function buildResults(
   hubs: SuspectedCause[],
@@ -60,7 +66,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [query, setQuery] = useState('');
   const [activeIdx, setActiveIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
 
   // Reset state when the palette opens afresh.
   useEffect(() => {
@@ -144,7 +150,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           onKeyDown={handleKeyDown}
           className="w-full px-4 py-3 bg-surface text-content text-sm border-b border-edge outline-none"
         />
-        <ul className="max-h-80 overflow-y-auto" role="listbox">
+        <ul
+          className="max-h-80 overflow-y-auto"
+          role="listbox"
+          aria-activedescendant={
+            filtered.length > 0 && filtered[activeIdx]
+              ? `wall-palette-option-${filtered[activeIdx].kind}-${filtered[activeIdx].id}`
+              : undefined
+          }
+        >
           {filtered.length === 0 ? (
             <li className="px-4 py-3 text-content-muted text-sm">
               {getMessage(locale, 'wall.palette.empty')}
@@ -153,6 +167,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             filtered.map((r, idx) => (
               <li
                 key={`${r.kind}:${r.id}`}
+                id={`wall-palette-option-${r.kind}-${r.id}`}
                 role="option"
                 aria-selected={idx === activeIdx}
                 data-active={idx === activeIdx ? 'true' : undefined}
@@ -169,7 +184,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 }}
               >
                 <span className="mr-2 uppercase text-[10px] tracking-wide font-mono text-content-muted">
-                  {r.kind}
+                  {getMessage(locale, RESULT_KIND_KEY[r.kind])}
                 </span>
                 {r.label}
               </li>

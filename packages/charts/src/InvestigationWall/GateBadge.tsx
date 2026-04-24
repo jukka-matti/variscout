@@ -12,7 +12,7 @@ import React from 'react';
 import type { MessageCatalog } from '@variscout/core';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '../colors';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 
 export interface GateBadgeProps {
   kind: 'and' | 'or' | 'not';
@@ -43,7 +43,7 @@ export const GateBadge: React.FC<GateBadgeProps> = ({
   onRun,
   onContextMenu,
 }) => {
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
   const label = getMessage(locale, KIND_KEY[kind]);
   const glyph = kind === 'not' ? '⊘' : '◇';
   const holdsText =

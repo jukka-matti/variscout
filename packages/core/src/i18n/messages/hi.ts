@@ -908,6 +908,7 @@ export const hi: MessageCatalog = {
   'wall.status.refuted': 'Refuted',
   'wall.card.hypothesisLabel': 'Hypothesis',
   'wall.card.findings': '{count} findings',
+  'wall.card.questions': '{count} questions',
   'wall.card.evidenceGap': 'Evidence gap',
   'wall.card.missingColumn': '⚠ Condition references missing column',
   'wall.card.missingColumnAria': 'Condition references missing column',
@@ -946,5 +947,8 @@ export const hi: MessageCatalog = {
   'wall.toolbar.resetView': 'Reset view',
   'wall.palette.placeholder': 'Search hubs, questions, findings…',
   'wall.palette.empty': 'No matches',
+  'wall.palette.kind.hub': 'HUB',
+  'wall.palette.kind.question': 'QUESTION',
+  'wall.palette.kind.finding': 'FINDING',
   'wall.minimap.ariaLabel': 'Investigation Wall minimap',
 };

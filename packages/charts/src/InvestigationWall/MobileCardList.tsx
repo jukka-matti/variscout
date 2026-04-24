@@ -16,7 +16,7 @@ import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '../colors';
 import { EmptyState } from './EmptyState';
 import type { WallStatus } from './types';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 
 export interface MobileCardListProps {
   hubs: SuspectedCause[];
@@ -78,7 +78,7 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
   onPromoteFromQuestion,
   onSeedFromFactorIntel,
 }) => {
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
 
   if (hubs.length === 0) {
     return (
@@ -106,7 +106,9 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
         });
         // Linked questions only — `questionIds` is the canonical link list,
         // matching the "question count" signal used by HypothesisCard copy.
-        const linkedQuestionCount = hub.questionIds.length;
+        const questionsLabel = formatMessage(locale, 'wall.card.questions', {
+          count: hub.questionIds.length,
+        });
         const ariaLabel = formatMessage(locale, 'wall.card.ariaLabel', {
           name: hub.name,
           status: statusLabel,
@@ -136,9 +138,7 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
             <div className="text-sm font-semibold text-content mt-0.5">{hub.name}</div>
             <div className="text-xs font-mono text-content-muted mt-1 flex gap-3">
               <span data-testid={`wall-mobile-hub-${hub.id}-findings`}>{findingsLabel}</span>
-              <span data-testid={`wall-mobile-hub-${hub.id}-questions`}>
-                {linkedQuestionCount} Q
-              </span>
+              <span data-testid={`wall-mobile-hub-${hub.id}-questions`}>{questionsLabel}</span>
             </div>
           </li>
         );

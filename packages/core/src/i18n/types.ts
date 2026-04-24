@@ -1038,5 +1038,9 @@ export interface MessageCatalog {
   'wall.toolbar.resetView': string;
   'wall.palette.placeholder': string;
   'wall.palette.empty': string;
+  'wall.palette.kind.hub': string;
+  'wall.palette.kind.question': string;
+  'wall.palette.kind.finding': string;
+  'wall.card.questions': string;
   'wall.minimap.ariaLabel': string;
 }

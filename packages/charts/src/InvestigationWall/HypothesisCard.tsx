@@ -14,7 +14,7 @@ import type { MessageCatalog, SuspectedCause } from '@variscout/core';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '../colors';
 import type { WallStatus } from './types';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 
 export interface HypothesisCardProps {
   hub: SuspectedCause;
@@ -70,7 +70,7 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
   onSelect,
   onContextMenu,
 }) => {
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
   const statusLabel = getMessage(locale, STATUS_KEY[displayStatus]);
   const hypothesisLabel = getMessage(locale, 'wall.card.hypothesisLabel');
   const findingsLabel = formatMessage(locale, 'wall.card.findings', {

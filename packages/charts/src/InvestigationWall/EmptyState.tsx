@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { getMessage } from '@variscout/core/i18n';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 
 export interface EmptyStateProps {
   onWriteHypothesis?: () => void;
@@ -22,7 +22,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onPromoteFromQuestion,
   onSeedFromFactorIntel,
 }) => {
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
   return (
     <section
       aria-label={getMessage(locale, 'wall.empty.ariaLabel')}
