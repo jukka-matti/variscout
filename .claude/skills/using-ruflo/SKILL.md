@@ -16,7 +16,7 @@ Use this skill when running ruflo tools or accessing ruflo semantic memory for V
 Ruflo memory contains 117 indexed entries about VariScout's architecture, domain, conventions, and testing. Search it for deep codebase questions:
 
 ```bash
-npx ruflo@3.5.42 memory search --query "your question here"
+npx ruflo@3.5.80 memory search --query "your question here"
 ```
 
 Common queries and what they find:
@@ -42,10 +42,10 @@ Non-overlapping responsibilities: MEMORY.md is ephemeral session state; Ruflo is
 
 **Before creating PR**: Run `mcp__ruflo__analyze_diff` for risk assessment, then dispatch `testgaps` and `audit` workers to catch gaps.
 
-**After major refactoring**: Run `npx ruflo@3.5.42 hooks pretrain` to reindex the codebase and rebuild semantic search. Then add or update specific memory entries:
+**After major refactoring**: Run `npx ruflo@3.5.80 hooks pretrain` to reindex the codebase and rebuild semantic search. Then add or update specific memory entries:
 
 ```bash
-npx ruflo@3.5.42 memory store --namespace architecture --key "change-name" --value "description"
+npx ruflo@3.5.80 memory store --namespace architecture --key "change-name" --value "description"
 ```
 
 **Keep memory fresh**: Update entries when test counts, architecture, or conventions change significantly.
@@ -68,7 +68,7 @@ npx ruflo@3.5.42 memory store --namespace architecture --key "change-name" --val
 After major codebase changes, store new knowledge entries for future semantic search:
 
 ```bash
-npx ruflo@3.5.42 memory store --namespace <namespace> --key "<key>" --value "<description>"
+npx ruflo@3.5.80 memory store --namespace <namespace> --key "<key>" --value "<description>"
 ```
 
 Example namespaces: `architecture`, `testing`, `domain`, `performance`.
@@ -76,7 +76,7 @@ Example namespaces: `architecture`, `testing`, `domain`, `performance`.
 ## Gotchas
 
 - **Don't use ruflo for ephemeral task state** — use `TaskCreate` instead. Ruflo memory is for durable knowledge; TaskCreate is for session-scoped work tracking.
-- **Re-index after major refactors** — semantic search becomes stale as the codebase evolves. Always run `npx ruflo@3.5.42 hooks pretrain` after large changes to rebuild the index.
+- **Re-index after major refactors** — semantic search becomes stale as the codebase evolves. Always run `npx ruflo@3.5.80 hooks pretrain` after large changes to rebuild the index.
 - **Version pinning** — Ruflo is pinned to `3.5.42` in `.mcp.json`. Don't upgrade without coordination; MCP tool signatures may change between versions.
 - **Hook error logs** — Check `/tmp/ruflo-hooks.log` if hooks fail silently. This file is not persisted across reboots and not tracked in git.
 - **Config file confusion** — `.claude/settings.json` contains hooks and statusline configuration only. Ruflo runtime config lives in `.ruflo/config.yaml`. Don't confuse the two.

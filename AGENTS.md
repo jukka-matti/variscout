@@ -45,4 +45,4 @@ Structured investigation for process improvement. Browser-based, offline-first, 
 
 1. Read `AGENTS.md` and `docs/llms.txt`.
 2. Run `pnpm codex:ruflo-check`.
-3. If Ruflo is missing, add it with `codex mcp add ruflo -- npx ruflo@3.5.42 mcp start`.
+3. If Ruflo is missing, add it with `codex mcp add ruflo -- npx ruflo@3.5.80 mcp start`.

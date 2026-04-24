@@ -21,13 +21,13 @@ VariScout uses ruflo for automated OWASP security audits. As an offline-first ap
 ### Quick CVE Check
 
 ```bash
-npx ruflo@3.5.42 security cve --check
+npx ruflo@3.5.80 security cve --check
 ```
 
 ### Full OWASP Scan
 
 ```bash
-npx ruflo@3.5.42 security scan --depth full
+npx ruflo@3.5.80 security scan --depth full
 ```
 
 ### Auto-Fix with Agent Swarm
@@ -37,7 +37,7 @@ Use MCP tools to dispatch a targeted security audit worker:
 ```bash
 # Via MCP: mcp__ruflo__hooks_worker-dispatch with trigger: "audit"
 # Or manually:
-npx ruflo@3.5.42 security scan --depth full --fix
+npx ruflo@3.5.80 security scan --depth full --fix
 ```
 
 ## OWASP Top 10 Coverage
@@ -183,7 +183,7 @@ Transitive dependencies sometimes lag behind security patches. pnpm's `overrides
 After fixes, re-run the scan to confirm remediation:
 
 ```bash
-npx ruflo@3.5.42 security scan --depth full
+npx ruflo@3.5.80 security scan --depth full
 ```
 
 ## Integration with CI/CD
@@ -192,5 +192,5 @@ Add to your CI pipeline:
 
 ```yaml
 - name: Security Scan
-  run: npx ruflo@3.5.42 security scan --depth full
+  run: npx ruflo@3.5.80 security scan --depth full
 ```
