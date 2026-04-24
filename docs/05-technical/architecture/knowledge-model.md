@@ -1,5 +1,8 @@
 ---
 title: 'Knowledge Model Architecture'
+audience: [developer, architect]
+category: architecture
+status: stable
 ---
 
 # Knowledge Model Architecture

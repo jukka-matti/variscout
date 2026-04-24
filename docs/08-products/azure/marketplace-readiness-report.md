@@ -2,6 +2,8 @@
 title: Marketplace Readiness Report
 date: 2026-03-25
 status: in-progress
+audience: [admin, architect]
+category: reference
 ---
 
 # Azure Marketplace Readiness Report

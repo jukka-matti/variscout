@@ -3,7 +3,7 @@ title: VariScout — What It Does In Practice
 audience: [engineer, analyst]
 category: reference
 status: stable
-last-reviewed: 2026-04-17
+last-reviewed: 2026-04-24
 related: [product-overview, modes, tiers, coscout, journey]
 ---
 
@@ -35,21 +35,21 @@ Mode resolution lives in `packages/core/src/analysisStrategy.ts`. CoScout's meth
 
 ## The three tiers
 
-| Tier           | Distribution      | Price   | Capability                                                           |
-| -------------- | ----------------- | ------- | -------------------------------------------------------------------- |
-| PWA            | Public URL        | Free    | Full analysis, session-only, no persistence. Training and education. |
-| Azure Standard | Azure Marketplace | €79/mo  | Full analysis + CoScout AI, local (IndexedDB) persistence.           |
-| Azure Team     | Azure Marketplace | €199/mo | + Teams entry, Blob Storage sync, Knowledge Base.                    |
+| Tier           | Distribution      | Price   | Capability                                                                       |
+| -------------- | ----------------- | ------- | -------------------------------------------------------------------------------- |
+| PWA            | Public URL        | Free    | Full analysis, session-only, no persistence. Training and education.             |
+| Azure Standard | Azure Marketplace | €79/mo  | Full analysis + CoScout AI, local (IndexedDB) persistence, optional voice input. |
+| Azure Team     | Azure Marketplace | €199/mo | + Blob Storage sync, Knowledge Base, optional voice input.                       |
 
 Same analytical capability everywhere. Tier changes collaboration, persistence, and AI.
 
 ## CoScout — the AI assistant
 
-CoScout is an assistant, not an oracle. It coaches methodology, asks targeted questions, surfaces references, and proposes actions. The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override. CoScout is modular (tier1/2/3 prompt layering), mode-aware (methodology coaching varies by analysis mode), and tool-calling (27-tool registry gated by phase/mode/tier).
+CoScout is an assistant, not an oracle. It coaches methodology, asks targeted questions, surfaces references, and proposes actions. The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override. CoScout is modular (tier1/2/3 prompt layering), mode-aware (methodology coaching varies by analysis mode), and tool-calling (27-tool registry gated by phase/mode/tier). On Azure tiers, CoScout can also accept **voice input** in a transcript-first way: the user speaks, the text lands in the normal draft box, the user reviews/edits, then sends. v1 replies remain text.
 
 ## Customer-owned data
 
-Processing happens in the browser. When data moves (Blob Storage sync, AI calls), it stays in the customer's Azure tenant — no VariScout-operated cloud. This is a core product principle, not a feature.
+Processing happens in the browser. When data moves (Blob Storage sync, AI calls, optional Azure voice transcription), it stays in the customer's Azure tenant — no VariScout-operated cloud. This is a core product principle, not a feature. Voice input does not create a durable audio layer; the saved artifact is the transcript inside the normal investigation model.
 
 ## Where to go next
 

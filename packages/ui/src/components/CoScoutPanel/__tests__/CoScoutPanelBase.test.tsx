@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import type { CoScoutMessage } from '@variscout/core';
+import type { VoiceInputConfig } from '../../VoiceInput';
 
 // Mock dependencies BEFORE component import (critical vitest pattern)
 vi.mock('@variscout/hooks', () => ({
@@ -21,6 +22,7 @@ vi.mock('lucide-react', () => ({
   GripVertical: (props: Record<string, unknown>) => <span data-testid="grip-icon" {...props} />,
   X: (props: Record<string, unknown>) => <span data-testid="x-icon" {...props} />,
   Send: (props: Record<string, unknown>) => <span data-testid="send-icon" {...props} />,
+  Mic: (props: Record<string, unknown>) => <span data-testid="mic-icon" {...props} />,
   RotateCw: (props: Record<string, unknown>) => <span data-testid="rotate-icon" {...props} />,
   MoreVertical: (props: Record<string, unknown>) => (
     <span data-testid="more-vertical-icon" {...props} />
@@ -73,9 +75,71 @@ const defaultProps = {
   resizeConfig: { storageKey: 'test-key' },
 };
 
+const originalMediaRecorder = globalThis.MediaRecorder;
+const originalMediaDevices = navigator.mediaDevices;
+const originalInnerWidth = window.innerWidth;
+const originalSecureContext = window.isSecureContext;
+
+const stopTrack = vi.fn();
+const getUserMedia = vi.fn(async () => ({
+  getTracks: () => [{ stop: stopTrack }],
+}));
+
+class MockMediaRecorder {
+  static isTypeSupported = vi.fn(() => true);
+
+  public state = 'inactive';
+  public mimeType: string;
+  public ondataavailable: ((event: { data: Blob }) => void) | null = null;
+  public onstop: (() => void) | null = null;
+
+  constructor(_stream: unknown, options?: { mimeType?: string }) {
+    this.mimeType = options?.mimeType ?? 'audio/webm';
+  }
+
+  start() {
+    this.state = 'recording';
+  }
+
+  stop() {
+    this.state = 'inactive';
+    this.ondataavailable?.({ data: new Blob(['audio'], { type: this.mimeType }) });
+    this.onstop?.();
+  }
+}
+
+const voiceInput: VoiceInputConfig = {
+  isAvailable: true,
+  transcribeAudio: vi.fn(async () => 'Spoken draft question'),
+};
+
 describe('CoScoutPanelBase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    stopTrack.mockClear();
+    Object.defineProperty(window, 'isSecureContext', {
+      configurable: true,
+      value: true,
+    });
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia },
+    });
+    globalThis.MediaRecorder = MockMediaRecorder as unknown as typeof MediaRecorder;
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalInnerWidth });
+    Object.defineProperty(window, 'isSecureContext', {
+      configurable: true,
+      value: originalSecureContext,
+    });
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: originalMediaDevices,
+    });
+    globalThis.MediaRecorder = originalMediaRecorder;
   });
 
   it('renders nothing when isOpen is false', () => {
@@ -360,6 +424,52 @@ describe('CoScoutPanelBase', () => {
       render(<CoScoutPanelBase {...defaultProps} isStreaming={true} onStopStreaming={vi.fn()} />);
       const input = screen.getByTestId('coscout-input') as HTMLTextAreaElement;
       expect(input.disabled).toBe(true);
+    });
+  });
+
+  describe('voice input', () => {
+    it('records on desktop and inserts the transcript as an editable draft without auto-sending', async () => {
+      const onSend = vi.fn();
+      render(<CoScoutPanelBase {...defaultProps} onSend={onSend} voiceInput={voiceInput} />);
+
+      fireEvent.click(screen.getByTestId('coscout-voice-button'));
+      await screen.findByTestId('coscout-voice-cancel');
+      fireEvent.click(screen.getByTestId('coscout-voice-button'));
+
+      await waitFor(() =>
+        expect(screen.getByTestId('coscout-input')).toHaveValue('Spoken draft question')
+      );
+
+      expect(voiceInput.transcribeAudio).toHaveBeenCalledTimes(1);
+      expect(onSend).not.toHaveBeenCalled();
+    });
+
+    it('supports push-to-talk on mobile by transcribing on pointer release', async () => {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 });
+      window.dispatchEvent(new Event('resize'));
+
+      render(<CoScoutPanelBase {...defaultProps} voiceInput={voiceInput} />);
+
+      const button = screen.getByTestId('coscout-voice-button');
+      fireEvent.pointerDown(button);
+      await screen.findByTestId('coscout-voice-cancel');
+      fireEvent.pointerUp(button);
+
+      await waitFor(() =>
+        expect(screen.getByTestId('coscout-input')).toHaveValue('Spoken draft question')
+      );
+      expect(voiceInput.transcribeAudio).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancels a recording without transcribing or changing the draft', async () => {
+      render(<CoScoutPanelBase {...defaultProps} voiceInput={voiceInput} />);
+
+      fireEvent.click(screen.getByTestId('coscout-voice-button'));
+      fireEvent.click(await screen.findByTestId('coscout-voice-cancel'));
+
+      await waitFor(() => expect(stopTrack).toHaveBeenCalled());
+      expect(voiceInput.transcribeAudio).not.toHaveBeenCalled();
+      expect(screen.getByTestId('coscout-input')).toHaveValue('');
     });
   });
 });

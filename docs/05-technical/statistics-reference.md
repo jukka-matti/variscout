@@ -1,5 +1,8 @@
 ---
 title: 'Statistics & Investigation Technical Reference'
+audience: [developer, architect]
+category: reference
+status: stable
 ---
 
 # Statistics & Investigation Technical Reference

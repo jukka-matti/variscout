@@ -1,5 +1,8 @@
 ---
 title: 'Flow 3: YouTube/Content → Website → Product'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Flow 3: YouTube/Content → Website → Product

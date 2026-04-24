@@ -1,5 +1,8 @@
 ---
 title: 'PWA (Free Training Tool)'
+audience: [analyst, engineer]
+category: reference
+status: stable
 ---
 
 # PWA (Free Training Tool)

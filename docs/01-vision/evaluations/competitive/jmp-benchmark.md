@@ -1,5 +1,8 @@
 ---
 title: 'JMP Competitive Benchmark'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # JMP Competitive Benchmark

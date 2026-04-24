@@ -1,5 +1,8 @@
 ---
 title: 'Assembly Line Case - PCB Assembly'
+audience: [analyst, engineer]
+category: learning
+status: reference
 ---
 
 # Assembly Line Case - PCB Assembly

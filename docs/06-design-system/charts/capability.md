@@ -1,5 +1,8 @@
 ---
 title: 'Capability Histograms'
+audience: [designer, developer]
+category: reference
+status: stable
 ---
 
 # Capability Histograms

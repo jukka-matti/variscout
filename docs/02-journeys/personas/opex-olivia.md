@@ -1,5 +1,8 @@
 ---
 title: 'OpEx Olivia'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # OpEx Olivia

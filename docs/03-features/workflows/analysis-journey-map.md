@@ -2,6 +2,9 @@
 title: Analysis Journey Map
 description: Visual map of the 4-phase analysis journey — Frame, Scout, Investigate, Improve — with CoScout companion and PDCA loop
 journey-phase: [all]
+audience: [analyst, engineer]
+category: workflow
+status: stable
 ---
 
 # Analysis Journey Map

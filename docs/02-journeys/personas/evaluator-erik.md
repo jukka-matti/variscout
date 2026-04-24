@@ -1,5 +1,8 @@
 ---
 title: 'Evaluator Erik'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Evaluator Erik

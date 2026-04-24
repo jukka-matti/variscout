@@ -1,5 +1,8 @@
 ---
 title: 'Performance Mode Charts'
+audience: [designer, developer]
+category: reference
+status: stable
 ---
 
 # Performance Mode Charts

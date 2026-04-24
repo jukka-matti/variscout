@@ -1,5 +1,8 @@
 ---
 title: 'Trainer Tina'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Trainer Tina

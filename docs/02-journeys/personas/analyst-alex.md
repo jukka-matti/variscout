@@ -1,5 +1,8 @@
 ---
 title: 'Analyst Alex'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Analyst Alex

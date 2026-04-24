@@ -1,5 +1,8 @@
 ---
 title: 'Layout Patterns'
+audience: [designer, developer]
+category: patterns
+status: stable
 ---
 
 # Layout Patterns

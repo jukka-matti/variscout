@@ -1,5 +1,8 @@
 ---
 title: 'ARM Template Documentation'
+audience: [admin, architect]
+category: reference
+status: stable
 ---
 
 # ARM Template Documentation

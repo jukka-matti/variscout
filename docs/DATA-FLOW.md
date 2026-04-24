@@ -3,7 +3,7 @@ title: VariScout Data Lifecycle
 audience: [engineer]
 category: architecture
 status: stable
-last-reviewed: 2026-04-17
+last-reviewed: 2026-04-24
 related: [data-flow, persistence, sync, customer-owned, blob-storage, indexeddb, easyauth]
 ---
 
@@ -65,13 +65,22 @@ UI code never calls `.toFixed()` on stat values. `formatStatistic()` from `@vari
 
 CoScout calls leave the browser but stay in the customer's tenant (Azure OpenAI endpoint provisioned in the customer's subscription). Prompts include investigation state (findings, hubs, causal links, evidence map topology) but **never raw data rows beyond what the user has exposed in charts**. Visual grounding markers (ADR-057) reference chart elements by ID, not data. Tool calls (27-tool registry) return structured diffs the user confirms before applying.
 
+Azure voice input uses the same tenant boundary:
+
+- browser records a short audio clip in memory only
+- the clip is sent to the customer's Azure OpenAI speech-to-text deployment
+- raw audio is discarded after transcription
+- the transcript becomes a normal CoScout draft, finding draft, or comment draft
+
+There is no persisted audio object in IndexedDB or Blob Storage, and PWA keeps the microphone disabled.
+
 ## 8. Telemetry (App Insights — Azure only)
 
 `apps/azure/src/lib/appInsights.ts`. Logs structural events (mode changes, feature usage counts, durations) — **never PII, never raw data**. Telemetry violations are a priority fix.
 
 ## Trust chain summary
 
-Parse → transform → stats → persist → sync → display → AI. Every boundary either validates or passes through, never silently corrupts. Three numeric gates (B1, B2, B3) guarantee no `NaN`/`Infinity` reaches the user. Customer-owned principle guarantees no data leaves customer tenant.
+Parse → transform → stats → persist → sync → display → AI. Every boundary either validates or passes through, never silently corrupts. Three numeric gates (B1, B2, B3) guarantee no `NaN`/`Infinity` reaches the user. Customer-owned principle guarantees no data leaves customer tenant. Voice input, when enabled on Azure tiers, follows the same rule: audio is transient, transcript is durable.
 
 ## Reference
 

@@ -1,5 +1,8 @@
 ---
 title: 'Design Brief: Guided Investigation'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Design Brief: Guided Investigation

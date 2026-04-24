@@ -2,6 +2,9 @@
 title: Data Pipeline Map
 description: End-to-end data flow from CSV upload through statistics, charts, and AI — with TypeScript interfaces at every boundary
 journey-phase: [all]
+audience: [developer, architect]
+category: architecture
+status: stable
 ---
 
 # Data Pipeline Map

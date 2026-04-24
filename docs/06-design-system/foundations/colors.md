@@ -1,5 +1,8 @@
 ---
 title: 'Color System'
+audience: [designer, developer]
+category: patterns
+status: stable
 ---
 
 # Color System

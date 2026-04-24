@@ -1,5 +1,8 @@
 ---
 title: 'Batch Process Consistency'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Batch Process Consistency

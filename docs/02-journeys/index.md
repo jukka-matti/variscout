@@ -1,5 +1,8 @@
 ---
 title: 'User Journeys'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # User Journeys

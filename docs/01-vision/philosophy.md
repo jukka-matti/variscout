@@ -1,5 +1,8 @@
 ---
 title: 'EDA for Process Improvement'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # EDA for Process Improvement

@@ -1,5 +1,8 @@
 ---
 title: 'Shared Packages'
+audience: [developer, architect]
+category: architecture
+status: stable
 ---
 
 # Shared Packages

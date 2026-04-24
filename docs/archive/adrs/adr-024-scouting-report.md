@@ -10,7 +10,7 @@ related: [report-view, presentation, qc-story, copy-workflow, teams-sharing]
 
 # ADR-024: Scouting Report — Dynamic Analysis Report View
 
-**Status**: Superseded by [ADR-037](adr-037-reporting-workspaces.md)
+**Status**: Superseded by [ADR-037](../../07-decisions/adr-037-reporting-workspaces.md)
 
 **Date**: 2026-03-16
 
@@ -189,9 +189,9 @@ Step 5 (Verification — "Did the actions work?") renders actual before/after st
 
 ## Related
 
-- [ADR-015: Investigation Board](adr-015-investigation-board.md) — Findings model
-- [ADR-020: Investigation Workflow](adr-020-investigation-workflow.md) — Hypothesis model
-- [ADR-023: Verification Experience](adr-023-data-lifecycle.md) — Staged comparison, data lifecycle
-- [ADR-031: Report Export](adr-031-report-export.md) — Print/PDF export for Standard+ plans
-- [Investigation to Action Workflow](../03-features/workflows/investigation-to-action.md) — Workflow spec
-- [Azure Daily Use](../02-journeys/flows/azure-daily-use.md) — Report View in daily workflow context
+- [ADR-015: Investigation Board](../../07-decisions/adr-015-investigation-board.md) — Findings model
+- [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Hypothesis model
+- [ADR-023: Verification Experience](../../07-decisions/adr-023-data-lifecycle.md) — Staged comparison, data lifecycle
+- [ADR-031: Report Export](../../07-decisions/adr-031-report-export.md) — Print/PDF export for Standard+ plans
+- [Investigation to Action Workflow](../../03-features/workflows/investigation-to-action.md) — Workflow spec
+- [Azure Daily Use](../../02-journeys/flows/azure-daily-use.md) — Report View in daily workflow context

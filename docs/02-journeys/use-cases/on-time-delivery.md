@@ -1,5 +1,8 @@
 ---
 title: 'On-Time Delivery Analysis'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # On-Time Delivery Analysis

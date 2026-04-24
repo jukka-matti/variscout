@@ -4,7 +4,7 @@ title: 'ADR-006: Edition System'
 
 # ADR-006: Edition System
 
-**Status**: Superseded by [ADR-007](adr-007-azure-marketplace-distribution.md)
+**Status**: Superseded by [ADR-007](../../07-decisions/adr-007-azure-marketplace-distribution.md)
 
 **Date**: 2024-03-01 (Updated: 2026-02-05)
 
@@ -12,7 +12,7 @@ title: 'ADR-006: Edition System'
 
 ## Historical Context
 
-> **Note**: This ADR documents the original Community/Licensed edition system using Paddle for payment processing and license keys. This approach has been superseded by Azure Marketplace distribution. See [ADR-007](adr-007-azure-marketplace-distribution.md) for the current strategy.
+> **Note**: This ADR documents the original Community/Licensed edition system using Paddle for payment processing and license keys. This approach has been superseded by Azure Marketplace distribution. See [ADR-007](../../07-decisions/adr-007-azure-marketplace-distribution.md) for the current strategy.
 
 The original model supported:
 
@@ -172,7 +172,7 @@ Azure App tier is determined at deployment time, not build time.
 
 ## See Also
 
-- [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md) (current strategy)
-- [Products Overview](../08-products/index.md)
-- [Azure Pricing Tiers](../08-products/azure/pricing-tiers.md)
+- [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md) (current strategy)
+- [Products Overview](../../08-products/index.md)
+- [Azure Pricing Tiers](../../08-products/azure/pricing-tiers.md)
 - Excel License Detection (removed — Excel Add-in shelved Feb 2026)

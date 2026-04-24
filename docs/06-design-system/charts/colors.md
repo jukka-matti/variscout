@@ -1,5 +1,8 @@
 ---
 title: 'Chart Colors'
+audience: [designer, developer]
+category: reference
+status: stable
 ---
 
 # Chart Colors

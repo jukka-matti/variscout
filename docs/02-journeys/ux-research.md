@@ -1,5 +1,8 @@
 ---
 title: 'UX Research: VariScout Lite'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # UX Research: VariScout Lite

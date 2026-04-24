@@ -47,6 +47,7 @@ import {
 } from '@variscout/charts';
 import { InvestigationMapView } from './InvestigationMapView';
 import { CoScoutSection } from './CoScoutSection';
+import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
@@ -130,6 +131,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   viewMode: externalViewMode,
   onViewModeChange,
 }) => {
+  const voiceInput = isSpeechToTextAvailable() ? { isAvailable: true, transcribeAudio } : undefined;
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
   const specs = useProjectStore(s => s.specs);
@@ -865,6 +867,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               onShareFinding={handleShareFinding}
               onNavigateToChart={handleNavigateToChart}
               showAuthors
+              voiceInput={voiceInput}
             />
           </div>
         )}

@@ -1,5 +1,8 @@
 ---
 title: 'Interaction Patterns'
+audience: [designer, developer]
+category: patterns
+status: stable
 ---
 
 # Interaction Patterns

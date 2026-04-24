@@ -114,3 +114,11 @@ ADR-060 extends this decision by:
 - Embedding investigation artifacts into Foundry IQ unified knowledge index
 - Creating external document upload paths (Knowledge tab, CoScout panel, finding comments)
 - All 7 capabilities of ADR-049 are preserved and enhanced.
+
+## Extended by ADR-071 (2026-04-24)
+
+ADR-071 adds optional Azure voice input to CoScout drafts and finding/comment editors.
+
+- The durable record remains the existing investigation model and message/comment text.
+- Audio itself is **not** durable memory.
+- Voice transcripts are treated like any other user-authored draft: review/edit first, then send or save.

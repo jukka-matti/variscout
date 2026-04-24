@@ -1,5 +1,8 @@
 ---
 title: 'EDAScout Competitive Benchmark'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # EDAScout Competitive Benchmark

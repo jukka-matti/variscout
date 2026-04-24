@@ -1,5 +1,8 @@
 ---
 title: 'FLOW Lens: Boxplot'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # FLOW Lens: Boxplot

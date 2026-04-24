@@ -1,5 +1,8 @@
 ---
 title: 'Admin Aino'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Admin Aino

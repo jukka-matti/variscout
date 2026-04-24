@@ -1,5 +1,8 @@
 ---
 title: 'Ruflo Development Workflow'
+audience: [developer]
+category: implementation
+status: stable
 ---
 
 # Ruflo Development Workflow
@@ -24,7 +27,7 @@ Claude has extra local automation via `.claude/settings.json`. Codex shares the 
 
 Claude sessions start daemon and restore state via hooks.
 
-Codex sessions should confirm MCP availability with `codex mcp list`. If needed, register `ruflo` manually with `codex mcp add ruflo -- npx ruflo@3.5.42 mcp start`.
+Codex sessions should run `pnpm codex:ruflo-check`. That command verifies the active Codex MCP registration and prints the recovery command if Ruflo is missing. If needed, register `ruflo` manually with `codex mcp add ruflo -- npx ruflo@3.5.42 mcp start`.
 
 No additional setup is needed once the MCP server is available.
 
@@ -49,6 +52,8 @@ Hooks automatically track:
 - Prompt classification and routing
 
 In Claude, hooks capture this passively. In Codex, use the shared MCP tools directly; intelligence still accumulates in `.ruflo/` metrics once ruflo is running.
+
+For Codex, the helpful startup summary should come from visible repo guidance and `pnpm codex:ruflo-check`, not from hidden client-specific hook behavior.
 
 ### 4. Before Creating a PR
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FilterChipData } from '@variscout/ui';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
@@ -8,7 +8,6 @@ import ProbabilityPlot from './charts/ProbabilityPlot';
 import { useProbabilityPlotData } from '@variscout/hooks';
 import MobileDashboard from './MobileDashboard';
 import SpecEditor from './settings/SpecEditor';
-import SpecsPopover from './settings/SpecsPopover';
 import { EmbedFocusView, FocusedChartView } from './views';
 import { EditableChartTitle } from '@variscout/ui';
 import {
@@ -24,7 +23,6 @@ import {
   SubgroupConfigPopover,
   DefectSummary,
   useIsMobile,
-  useGlossary,
   BREAKPOINTS,
   type ChartId,
 } from '@variscout/ui';
@@ -52,6 +50,8 @@ import { useProjectionStore } from '../features/projection/projectionStore';
 
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
 import type { FindingsCallbacks } from '@variscout/ui';
+
+type AnalysisLensTab = 'probability' | 'distribution' | 'pareto';
 
 interface DashboardProps {
   onPointClick?: (index: number) => void;
@@ -129,7 +129,6 @@ const Dashboard = ({
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
   const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
   const cpkTarget = useProjectStore(s => s.cpkTarget);
-  const setCpkTarget = useProjectStore(s => s.setCpkTarget);
   const selectedPoints = useProjectStore(s => s.selectedPoints);
   const clearSelection = useProjectStore(s => s.clearSelection);
   const analysisMode = useProjectStore(s => s.analysisMode);
@@ -137,6 +136,7 @@ const Dashboard = ({
   const { filteredData } = useFilteredData();
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
+  const [analysisLensTab, setAnalysisLensTab] = useState<AnalysisLensTab>('probability');
 
   // Defect mode: transform filtered data into aggregated defect rates
   const isDefectMode = resolveModeUtil(analysisMode) === 'defect';
@@ -158,8 +158,6 @@ const Dashboard = ({
 
   // Compute DefectSummary props from transformed data (extracted hook)
   const defectSummaryProps = useDefectSummary(isDefectMode ? defectResult : null, defectMapping);
-
-  const { getTerm } = useGlossary();
 
   // Annotations (right-click context menu for highlights)
   const {
@@ -186,7 +184,6 @@ const Dashboard = ({
     handleNextChart,
     handlePrevChart,
     // Panel toggles
-    showParetoPanel,
     setShowParetoPanel,
     showParetoComparison,
     toggleParetoComparison,
@@ -384,6 +381,91 @@ const Dashboard = ({
     factorColumn: boxplotFactor,
     rows: filteredData,
   });
+
+  const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
+
+  const subgroupEmptyState = useMemo(() => {
+    const timeLabel = timeColumn ? columnAliases[timeColumn] || timeColumn : null;
+    const guidance = timeLabel
+      ? `Add subgroup columns in Factors, or extract time-based factors from ${timeLabel} to compare day, week, or shift patterns.`
+      : 'Add subgroup columns in Factors to compare variation sources, or create a factor from a brushed selection in the I-Chart.';
+
+    return (
+      <div className="flex h-full items-center justify-center p-6">
+        <div className="max-w-md text-center space-y-3">
+          <div>
+            <h4 className="text-base font-semibold text-content">No subgroup data yet</h4>
+            <p className="mt-2 text-sm text-content-secondary">{guidance}</p>
+          </div>
+          {onManageFactors && (
+            <button
+              type="button"
+              onClick={onManageFactors}
+              className="inline-flex items-center justify-center rounded-lg bg-surface-tertiary px-3 py-2 text-sm font-medium text-content transition-colors hover:bg-surface"
+            >
+              Factors
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }, [columnAliases, onManageFactors, timeColumn]);
+
+  const analysisLensTabs = [
+    {
+      id: 'probability',
+      label: 'Probability',
+      content: <ProbabilityPlot series={probabilitySeries} />,
+    },
+    {
+      id: 'distribution',
+      label: hasSpecs ? 'Capability' : 'Distribution',
+      content: <CapabilityHistogram data={histogramData} specs={specs} mean={stats?.mean ?? 0} />,
+    },
+    ...(paretoFactor
+      ? [
+          {
+            id: 'pareto',
+            label: 'Pareto',
+            content: (
+              <ErrorBoundary componentName="Pareto Chart">
+                <ParetoChart
+                  factor={paretoFactor}
+                  onDrillDown={handleDrillDown}
+                  showComparison={showParetoComparison}
+                  onToggleComparison={() => toggleParetoComparison()}
+                  onHide={() => setAnalysisLensTab('probability')}
+                  onUploadPareto={onManageFactors}
+                  availableFactors={effectiveFactors}
+                  aggregation={paretoAggregation}
+                  onToggleAggregation={() =>
+                    setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
+                  }
+                  showBranding={false}
+                  highlightedCategories={paretoHighlights}
+                  onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
+                  findings={chartFindings?.pareto}
+                  onEditFinding={onEditFinding}
+                  onDeleteFinding={onDeleteFinding}
+                  isComputing={isComputing}
+                  dataOverride={isDefectMode && defectResult ? effectiveData : undefined}
+                  outcomeOverride={
+                    isDefectMode && defectResult
+                      ? (defectParetoOutcome ?? effectiveOutcome ?? undefined)
+                      : undefined
+                  }
+                  onFactorSwitch={isDefectMode ? setParetoFactor : undefined}
+                />
+              </ErrorBoundary>
+            ),
+          } satisfies { id: AnalysisLensTab; label: string; content: React.ReactNode },
+        ]
+      : []),
+  ] satisfies Array<{ id: AnalysisLensTab; label: string; content: React.ReactNode }>;
+
+  const activeAnalysisLensTab = analysisLensTabs.some(tab => tab.id === analysisLensTab)
+    ? analysisLensTab
+    : (analysisLensTabs[0]?.id ?? 'probability');
 
   // Accessible live region text for screen readers
   const liveRegionText = useMemo(() => {
@@ -604,16 +686,13 @@ const Dashboard = ({
         setStageOrderMode={setStageOrderMode}
         stagedStats={stagedStats}
         controlStats={stats}
-        getTermUcl={getTerm('ucl')}
-        getTermMean={getTerm('mean')}
-        getTermLcl={getTerm('lcl')}
         chartTitles={chartTitles}
         onChartTitleChange={handleChartTitleChange}
         boxplotFactor={boxplotFactor}
         setBoxplotFactor={setBoxplotFactor}
         paretoFactor={paretoFactor}
         setParetoFactor={setParetoFactor}
-        showParetoPanel={showParetoPanel}
+        showParetoPanel={false}
         layout={displayOptions.dashboardLayout ?? 'grid'}
         focusedChart={focusedChart}
         setFocusedChart={setFocusedChart}
@@ -677,18 +756,6 @@ const Dashboard = ({
             </div>
           </div>
         }
-        // PWA-specific: SpecsPopover in I-Chart controls
-        ichartExtraControls={
-          <div className="pl-2 border-l border-edge">
-            <SpecsPopover
-              specs={specs}
-              onSave={newSpecs => setSpecs(newSpecs)}
-              onOpenAdvanced={() => setShowSpecEditor(true)}
-              cpkTarget={cpkTarget}
-              onCpkTargetChange={setCpkTarget}
-            />
-          </div>
-        }
         ichartHeaderExtra={
           <div className="flex items-center gap-1">
             <CapabilityMetricToggle
@@ -737,7 +804,7 @@ const Dashboard = ({
         }
         renderBoxplotContent={
           <ErrorBoundary componentName="Boxplot">
-            {boxplotFactor && (
+            {boxplotFactor ? (
               <Boxplot
                 factor={boxplotFactor}
                 onDrillDown={handleDrillDown}
@@ -751,6 +818,8 @@ const Dashboard = ({
                 dataOverride={isDefectMode && defectResult ? effectiveData : undefined}
                 outcomeOverride={isDefectMode && defectResult ? effectiveOutcome : undefined}
               />
+            ) : (
+              subgroupEmptyState
             )}
           </ErrorBoundary>
         }
@@ -794,12 +863,19 @@ const Dashboard = ({
             <DefectSummary {...defectSummaryProps} />
           ) : histogramData.length > 0 && stats ? (
             <VerificationCard
-              renderHistogram={
-                <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
-              }
-              renderProbabilityPlot={<ProbabilityPlot series={probabilitySeries} />}
+              tabs={analysisLensTabs}
+              activeTab={activeAnalysisLensTab}
+              onTabChange={tabId => setAnalysisLensTab(tabId as AnalysisLensTab)}
+              defaultTab="probability"
             />
           ) : undefined
+        }
+        verificationCardFocusTarget={
+          activeAnalysisLensTab === 'pareto'
+            ? 'pareto'
+            : activeAnalysisLensTab === 'distribution'
+              ? 'histogram'
+              : 'probability-plot'
         }
         renderFocusedView={
           focusedChart === 'histogram' || focusedChart === 'probability-plot' ? (

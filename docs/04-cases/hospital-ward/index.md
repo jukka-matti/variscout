@@ -1,5 +1,8 @@
 ---
 title: 'Hospital Ward Case - ABB/Practitioner Context'
+audience: [analyst, engineer]
+category: learning
+status: reference
 ---
 
 # Hospital Ward Case - ABB/Practitioner Context

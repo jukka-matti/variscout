@@ -1,5 +1,8 @@
 ---
 title: 'Individual Control Charts (I-Chart)'
+audience: [designer, developer]
+category: reference
+status: stable
 ---
 
 # Individual Control Charts (I-Chart)

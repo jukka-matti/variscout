@@ -1,5 +1,8 @@
 ---
 title: 'Flow 10: Azure App — Admin Operations'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Flow 10: Azure App — Admin Operations

@@ -71,6 +71,24 @@ describe('DashboardChartCard', () => {
     expect(screen.queryByLabelText('Maximize chart')).toBeNull();
   });
 
+  it('can limit utility actions to maximize only', () => {
+    render(
+      <DashboardChartCard
+        {...defaultProps}
+        utilityActions="maximize-only"
+        onMaximize={vi.fn()}
+        onCopyChart={vi.fn()}
+        onDownloadPng={vi.fn()}
+        onDownloadSvg={vi.fn()}
+        onShareChart={vi.fn()}
+      />
+    );
+
+    expect(screen.getByLabelText('Maximize chart')).toBeDefined();
+    expect(screen.queryByLabelText('Copy Boxplot to clipboard')).toBeNull();
+    expect(screen.queryByLabelText('Share Boxplot')).toBeNull();
+  });
+
   // --- export buttons ---
 
   it('renders copy and download buttons when all export handlers are provided', () => {

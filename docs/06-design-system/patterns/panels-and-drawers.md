@@ -1,5 +1,8 @@
 ---
 title: 'Panels and Drawers'
+audience: [designer, developer]
+category: patterns
+status: stable
 ---
 
 # Panels and Drawers

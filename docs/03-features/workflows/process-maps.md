@@ -1,5 +1,8 @@
 ---
 title: 'Visual Process Maps'
+audience: [analyst, engineer]
+category: workflow
+status: stable
 ---
 
 # Visual Process Maps

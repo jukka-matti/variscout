@@ -1,5 +1,8 @@
 ---
 title: 'Minitab Competitive Benchmark'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Minitab Competitive Benchmark

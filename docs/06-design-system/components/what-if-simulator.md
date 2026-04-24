@@ -1,5 +1,8 @@
 ---
 title: 'What-If Simulator'
+audience: [designer, developer]
+category: components
+status: stable
 ---
 
 # What-If Simulator

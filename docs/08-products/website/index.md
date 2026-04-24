@@ -1,5 +1,8 @@
 ---
 title: 'Marketing Website'
+audience: [business, designer]
+category: strategy
+status: stable
 ---
 
 # Marketing Website

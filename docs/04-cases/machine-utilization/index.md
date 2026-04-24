@@ -1,5 +1,8 @@
 ---
 title: 'Case Study: "Do We Really Need a New Machine?"'
+audience: [analyst, engineer]
+category: learning
+status: reference
 ---
 
 # Case Study: "Do We Really Need a New Machine?"

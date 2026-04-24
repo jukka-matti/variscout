@@ -1,5 +1,8 @@
 ---
 title: 'Path Dependency'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Path Dependency

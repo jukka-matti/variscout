@@ -1,5 +1,8 @@
 ---
 title: 'Discoverability'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Discoverability

@@ -1,5 +1,8 @@
 ---
 title: 'Evaluations: Progressive Stratification Tensions & Patterns'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Evaluations: Progressive Stratification Tensions & Patterns

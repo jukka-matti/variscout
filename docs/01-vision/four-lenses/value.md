@@ -1,5 +1,8 @@
 ---
 title: 'VALUE Lens: Capability Histogram'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # VALUE Lens: Capability Histogram

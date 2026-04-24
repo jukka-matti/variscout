@@ -1,6 +1,8 @@
 ---
 title: 'First-Time Explorer Flow'
 status: draft
+audience: [product, designer]
+category: workflow
 ---
 
 # First-Time Explorer Flow

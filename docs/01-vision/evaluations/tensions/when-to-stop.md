@@ -1,5 +1,8 @@
 ---
 title: 'When to Stop'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # When to Stop

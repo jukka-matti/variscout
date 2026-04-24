@@ -26,6 +26,7 @@ import FindingComments from './FindingComments';
 import ActionItemsSection from './FindingCardActions';
 import ProjectionSection from './FindingCardProjection';
 import { QuestionSection, SuspectedCauseSection, OutcomeSection } from './FindingCardExpanded';
+import type { VoiceInputConfig } from '../VoiceInput';
 
 export interface FindingCardProps {
   finding: Finding;
@@ -112,6 +113,8 @@ export interface FindingCardProps {
   }) => void;
   /** Callback to send a direct question to CoScout (used by per-action "Ask" buttons) */
   onAskCoScoutQuestion?: (question: string) => void;
+  /** Optional Azure-only voice input that transcribes into finding/comment editors */
+  voiceInput?: VoiceInputConfig;
 }
 
 /**
@@ -151,6 +154,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onAskCoScout,
   onAskCoScoutQuestion,
   renderActionAssigneePicker,
+  voiceInput,
 }) => {
   const { t, formatStat } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
@@ -268,6 +272,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
             initialText={finding.text}
             onSave={handleSave}
             onCancel={() => setIsEditing(false)}
+            voiceInput={voiceInput}
           />
         ) : (
           <div className="flex items-start gap-1">
@@ -450,6 +455,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
             onAddPhoto={onAddPhoto}
             onCaptureFromTeams={onCaptureFromTeams}
             showAuthors={showAuthors}
+            voiceInput={voiceInput}
           />
         )}
       </div>

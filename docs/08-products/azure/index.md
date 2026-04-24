@@ -1,5 +1,8 @@
 ---
 title: 'Azure App (Primary Product)'
+audience: [admin, architect]
+category: reference
+status: stable
 ---
 
 # Azure App (Primary Product)

@@ -10,9 +10,9 @@ related: [normal-distribution, anderson-darling, qq-plot]
 
 <!-- journey-phase: scout -->
 
-> **Journey phase:** SCOUT — distribution shape assessment before capability calculations.
+> **Journey phase:** SCOUT — distribution-shape diagnosis that often comes immediately after the I-Chart.
 
-The probability plot assesses whether data follows a normal distribution, which underpins capability analysis and control chart assumptions.
+The probability plot assesses whether data follows a normal distribution, but in VariScout it is also a general diagnostic chart for spotting mixed populations, tails, skew, and subgroup differences.
 
 ---
 
@@ -27,6 +27,18 @@ Many statistical methods assume normality:
 - **Expected performance** predictions depend on distribution shape
 
 The probability plot provides a visual answer.
+
+---
+
+## Dashboard Placement
+
+In the laptop-first Analysis dashboard, `Probability` is the default tab in the adaptive right-hand lens.
+
+- It is always available
+- It stays visible whether specs exist or not
+- When a subgroup factor is selected, it can overlay multiple series for factor-level comparison
+
+This makes the probability plot part of the analyst's normal exploratory reading path, not a hidden verification-only step.
 
 ---
 
@@ -181,7 +193,10 @@ J-shaped curve, data clustered at low end.
 | Outlier detection    | Good             | Depends on bins   |
 | Distribution shape   | Precise          | Approximate       |
 
-Use **both** for comprehensive assessment.
+Use **both** for comprehensive assessment. In the dashboard, the companion histogram tab is labeled:
+
+- `Distribution` when specs are not set
+- `Capability` when specs are present
 
 ---
 

@@ -1,5 +1,8 @@
 ---
 title: 'Azure Marketplace Certification Guide'
+audience: [admin, architect]
+category: reference
+status: stable
 ---
 
 # Azure Marketplace Certification Guide

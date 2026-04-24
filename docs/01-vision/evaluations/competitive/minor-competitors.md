@@ -1,5 +1,8 @@
 ---
 title: 'Minor Competitor Profiles'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Minor Competitor Profiles

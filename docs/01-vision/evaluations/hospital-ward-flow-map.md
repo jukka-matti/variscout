@@ -1,5 +1,8 @@
 ---
 title: 'Investigation Flow Map: Hospital Ward (Aggregation Trap)'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Investigation Flow Map: Hospital Ward (Aggregation Trap)

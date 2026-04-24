@@ -1,5 +1,8 @@
 ---
 title: 'Voice of the Customer: Specification Limits'
+audience: [business, analyst]
+category: methodology
+status: stable
 ---
 
 # Voice of the Customer: Specification Limits

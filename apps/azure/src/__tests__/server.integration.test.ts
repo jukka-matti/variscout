@@ -112,6 +112,8 @@ afterAll(() => {
   delete process.env.STORAGE_ACCOUNT_NAME;
   delete process.env.STORAGE_CONTAINER_NAME;
   delete process.env.AZURE_STORAGE_CONNECTION_STRING;
+  delete process.env.VOICE_INPUT_ENABLED;
+  delete process.env.AI_SPEECH_TO_TEXT_DEPLOYMENT;
 });
 
 // ── Health & Config ──────────────────────────────────────────────────────────
@@ -140,11 +142,28 @@ describe('GET /config', () => {
     expect(body).toHaveProperty('plan');
     expect(body).toHaveProperty('aiEndpoint');
     expect(body).toHaveProperty('storageAccountName');
+    expect(body).toHaveProperty('voiceInputEnabled');
+    expect(body).toHaveProperty('speechToTextDeployment');
   });
 
   it('sets Cache-Control: no-cache', async () => {
     const res = await request.get('/config');
     expect(res.headers['cache-control']).toBe('no-cache');
+  });
+
+  it('enables microphone permissions and runtime fields when voice input is configured', async () => {
+    process.env.VOICE_INPUT_ENABLED = 'true';
+    process.env.AI_SPEECH_TO_TEXT_DEPLOYMENT = 'gpt-4o-mini-transcribe';
+
+    const res = await request.get('/config');
+    const body = JSON.parse(res.text);
+
+    expect(body.voiceInputEnabled).toBe(true);
+    expect(body.speechToTextDeployment).toBe('gpt-4o-mini-transcribe');
+    expect(res.headers['permissions-policy']).toContain('microphone=(self)');
+
+    delete process.env.VOICE_INPUT_ENABLED;
+    delete process.env.AI_SPEECH_TO_TEXT_DEPLOYMENT;
   });
 });
 

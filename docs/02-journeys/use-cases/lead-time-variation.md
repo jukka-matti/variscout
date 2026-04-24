@@ -1,5 +1,8 @@
 ---
 title: 'Lead Time Variation Analysis'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Lead Time Variation Analysis

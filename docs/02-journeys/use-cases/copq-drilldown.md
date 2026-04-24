@@ -1,5 +1,8 @@
 ---
 title: 'COPQ Drill-Down'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # COPQ Drill-Down

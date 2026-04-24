@@ -1,5 +1,8 @@
 ---
 title: 'Azure App Storage'
+audience: [admin, architect]
+category: reference
+status: stable
 ---
 
 # Azure App Storage

@@ -265,6 +265,8 @@ export {
   type QuestionNodeProps,
 } from './components/FindingsLog';
 
+export { type VoiceInputConfig } from './components/VoiceInput';
+
 export {
   QuestionLinkPrompt,
   type QuestionLinkPromptProps,

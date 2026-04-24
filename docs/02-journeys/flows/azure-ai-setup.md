@@ -1,5 +1,8 @@
 ---
 title: 'Flow 9: Azure App — AI Setup'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Flow 9: Azure App — AI Setup

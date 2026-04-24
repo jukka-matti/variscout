@@ -610,7 +610,7 @@ This gives CoScout awareness of its own prior contributions without replaying co
 
 ## How Evaluation Findings Are Resolved
 
-The [evaluation report](2026-03-24-adr049-evaluation-report.md) identified 9 must-fix items in the previous design. This design resolves all of them:
+The [evaluation report](../../superpowers/specs/2026-03-24-adr049-evaluation-report.md) identified 9 must-fix items in the previous design. This design resolves all of them:
 
 | #   | Finding                                   | Resolution                                                                                                |
 | --- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |

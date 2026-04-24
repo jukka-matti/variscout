@@ -1,5 +1,8 @@
 ---
 title: 'Shared UI Library Strategy'
+audience: [developer, architect]
+category: implementation
+status: stable
 ---
 
 # Shared UI Library Strategy

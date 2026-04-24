@@ -1,5 +1,8 @@
 ---
 title: 'VariScout Design System'
+audience: [designer, developer]
+category: reference
+status: stable
 ---
 
 # VariScout Design System

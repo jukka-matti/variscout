@@ -1,5 +1,8 @@
 ---
 title: 'Website Content Architecture'
+audience: [business, designer]
+category: strategy
+status: stable
 ---
 
 # Website Content Architecture

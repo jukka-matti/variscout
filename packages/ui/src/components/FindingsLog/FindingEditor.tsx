@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '@variscout/hooks';
+import { useIsMobile } from '../../hooks';
+import { VoiceDraftButton, appendVoiceDraftText, type VoiceInputConfig } from '../VoiceInput';
 
 export interface FindingEditorProps {
   /** Initial text value */
@@ -12,6 +14,8 @@ export interface FindingEditorProps {
   onCancel: () => void;
   /** Auto-focus the textarea on mount */
   autoFocus?: boolean;
+  /** Optional Azure-only voice input that transcribes into the editor draft */
+  voiceInput?: VoiceInputConfig;
 }
 
 /**
@@ -24,11 +28,14 @@ const FindingEditor: React.FC<FindingEditorProps> = ({
   onSave,
   onCancel,
   autoFocus = true,
+  voiceInput,
 }) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const isMobile = useIsMobile();
   const resolvedPlaceholder = placeholder ?? t('finding.placeholder');
   const [text, setText] = useState(initialText);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (autoFocus && textareaRef.current) {
@@ -53,24 +60,44 @@ const FindingEditor: React.FC<FindingEditorProps> = ({
   };
 
   return (
-    <textarea
-      ref={textareaRef}
-      value={text}
-      onChange={e => setText(e.target.value)}
-      onKeyDown={handleKeyDown}
-      onBlur={() => {
-        const trimmed = text.trim();
-        if (trimmed) {
-          onSave(trimmed);
-        } else {
-          onCancel();
-        }
-      }}
-      placeholder={resolvedPlaceholder}
-      rows={2}
-      className="w-full bg-surface border border-edge rounded px-2 py-1.5 text-xs text-content placeholder:text-content-muted outline-none focus:border-blue-500 resize-none"
-      aria-label={t('finding.note')}
-    />
+    <div ref={editorRef} className="space-y-1">
+      <textarea
+        ref={textareaRef}
+        value={text}
+        onChange={e => setText(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={e => {
+          if (editorRef.current?.contains(e.relatedTarget as Node | null)) {
+            return;
+          }
+          const trimmed = text.trim();
+          if (trimmed) {
+            onSave(trimmed);
+          } else {
+            onCancel();
+          }
+        }}
+        placeholder={resolvedPlaceholder}
+        rows={2}
+        className="w-full bg-surface border border-edge rounded px-2 py-1.5 text-xs text-content placeholder:text-content-muted outline-none focus:border-blue-500 resize-none"
+        aria-label={t('finding.note')}
+      />
+      <VoiceDraftButton
+        voiceInput={voiceInput}
+        mode={isMobile ? 'hold' : 'tap'}
+        language={locale}
+        onTranscript={transcript => {
+          setText(prev => appendVoiceDraftText(prev, transcript));
+          requestAnimationFrame(() => textareaRef.current?.focus());
+        }}
+        testIdPrefix="finding-editor-voice"
+        className="flex items-center justify-end"
+        buttonClassName="p-1 rounded text-content-muted hover:text-content transition-colors"
+        cancelButtonClassName="p-1 rounded text-content-muted hover:text-content transition-colors"
+        statusClassName="text-[0.625rem] text-content-muted"
+        iconSize={12}
+      />
+    </div>
   );
 };
 

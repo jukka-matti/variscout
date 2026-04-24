@@ -9,6 +9,7 @@ status: stable
 
 Reusable UI and interaction patterns.
 
+- [Analysis Dashboard Pattern](analysis-dashboard.md)
 - [Dashboard Design Principles](dashboard-design.md)
 - [Detection Modals](detection-modals.md)
 - [Feedback Patterns](feedback.md)

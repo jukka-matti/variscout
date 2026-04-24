@@ -1,5 +1,8 @@
 ---
 title: 'Ruflo Development Tooling'
+audience: [developer]
+category: implementation
+status: stable
 ---
 
 # Ruflo Development Tooling

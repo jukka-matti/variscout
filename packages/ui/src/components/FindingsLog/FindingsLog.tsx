@@ -13,6 +13,7 @@ import FindingCard from './FindingCard';
 import FindingBoardView from './FindingBoardView';
 import QuestionTreeView from './QuestionTreeView';
 import FindingsExportMenu from './FindingsExportMenu';
+import type { VoiceInputConfig } from '../VoiceInput';
 
 export interface FindingsLogProps {
   /** Optional className for the root wrapper */
@@ -57,7 +58,7 @@ export interface FindingsLogProps {
   /** Set a finding's classification tag */
   onSetFindingTag?: (id: string, tag: FindingTag | null) => void;
   /** Add a comment to a finding */
-  onAddComment?: (id: string, text: string) => void;
+  onAddComment?: (id: string, text: string, attachment?: File) => void;
   /** Edit an existing comment */
   onEditComment?: (findingId: string, commentId: string, text: string) => void;
   /** Delete a comment */
@@ -152,6 +153,8 @@ export interface FindingsLogProps {
   synthesis?: string;
   /** Linked findings for board view synthesis card */
   linkedFindings?: Array<{ id: string; text: string }>;
+  /** Optional Azure-only voice input that transcribes into finding/comment editors */
+  voiceInput?: VoiceInputConfig;
 }
 
 /**
@@ -213,6 +216,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   projectedCpkMap,
   synthesis,
   linkedFindings,
+  voiceInput,
 }) => {
   // Tree view renders questions even without findings — show tree before empty guard
   if (viewMode === 'tree' && questions && questions.length > 0) {
@@ -288,6 +292,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
           onSetOutcome={onSetOutcome}
+          voiceInput={voiceInput}
         />
       </div>
     );
@@ -339,6 +344,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
             renderActionAssigneePicker={renderActionAssigneePicker}
             onAskCoScout={onAskCoScoutAboutFinding}
             projectedCpk={projectedCpkMap?.[finding.id]}
+            voiceInput={voiceInput}
           />
         ))}
       </div>

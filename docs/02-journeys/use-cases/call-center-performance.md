@@ -1,5 +1,8 @@
 ---
 title: 'Call Center Performance Analysis'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Call Center Performance Analysis

@@ -1,5 +1,8 @@
 ---
 title: 'Flow 5: Return Visitor → App'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Flow 5: Return Visitor → App

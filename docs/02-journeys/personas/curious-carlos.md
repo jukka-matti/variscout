@@ -1,5 +1,8 @@
 ---
 title: 'Curious Carlos'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Curious Carlos

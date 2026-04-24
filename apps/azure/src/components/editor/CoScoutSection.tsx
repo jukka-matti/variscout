@@ -26,6 +26,7 @@ import { useVisualGrounding } from '@variscout/hooks';
 import { useCoScoutProps } from '@variscout/hooks';
 import type { UseFindingsReturn, UseQuestionsReturn } from '@variscout/hooks';
 import { isAIAvailable } from '../../services/aiService';
+import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useAIStore } from '../../features/ai/aiStore';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
@@ -214,6 +215,7 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
   }, []);
 
   const aiAvailable = aiEnabled && isAIAvailable();
+  const voiceInput = isSpeechToTextAvailable() ? { isAvailable: true, transcribeAudio } : undefined;
 
   // Don't render anything if AI is not available (CoScoutPanelBase handles isOpen=false)
   if (!aiAvailable && !isCoScoutOpen) {
@@ -244,6 +246,7 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
             onClose={handleCoScoutClose}
             {...restCoScoutProps}
             onAddCommentToQuestion={onAddCommentToHypothesis}
+            voiceInput={voiceInput}
           />
         </div>
       ) : (
@@ -252,6 +255,7 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
           onClose={handleCoScoutClose}
           {...restCoScoutProps}
           onAddCommentToQuestion={onAddCommentToHypothesis}
+          voiceInput={voiceInput}
         />
       )}
 

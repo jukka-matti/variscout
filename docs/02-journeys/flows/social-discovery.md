@@ -1,5 +1,8 @@
 ---
 title: 'Flow 2: Social Discovery → Case → Product'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Flow 2: Social Discovery → Case → Product

@@ -1,5 +1,8 @@
 ---
 title: 'Field Fiona'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Field Fiona

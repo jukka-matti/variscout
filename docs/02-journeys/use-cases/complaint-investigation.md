@@ -1,5 +1,8 @@
 ---
 title: 'Customer Complaint Investigation'
+audience: [product, designer]
+category: workflow
+status: stable
 ---
 
 # Customer Complaint Investigation

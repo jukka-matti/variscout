@@ -35,7 +35,7 @@ Use ruflo (formerly claude-flow) as an MCP-integrated development tooling layer.
 
 3. **7 background workers** -- `audit` (security), `testgaps` (coverage), `map` (codebase structure), `optimize` (performance hints), `consolidate` (memory dedup), `deepdive` (code analysis), `refactor` (quality suggestions). 5 additional workers available for on-demand dispatch. Workers are staggered and resource-throttled (max 2 concurrent, CPU/memory guards).
 
-4. **autoStart on session open** -- MCP server starts automatically from `.mcp.json`. Claude SessionStart hooks also start the daemon; Codex may require explicit MCP verification depending on local client registration.
+4. **autoStart on session open** -- The repo pins the Ruflo launch command in `.mcp.json`. Claude SessionStart hooks also start the daemon; Codex uses its own MCP configuration and should be verified with `pnpm codex:ruflo-check` or `codex mcp get ruflo`.
 
 5. **Swarm orchestration available but secondary** -- Multi-agent swarm capabilities exist for large refactors but are not the primary workflow. Most VariScout tasks are sequential monorepo changes.
 
@@ -47,6 +47,7 @@ Use ruflo (formerly claude-flow) as an MCP-integrated development tooling layer.
 - Memory DB: `.swarm/memory.db`
 - Claude hooks: `.claude/settings.json` (PreToolUse, PostToolUse, SessionStart, UserPromptSubmit)
 - Codex entrypoint: `AGENTS.md`
+- Codex bootstrap check: `scripts/check-codex-ruflo.sh` via `pnpm codex:ruflo-check`
 - Worker exclusions: `.venv/**`, `node_modules/**`, `dist/**`, `site/**`, `*.min.js`, `*.min.css`
 
 ## Consequences

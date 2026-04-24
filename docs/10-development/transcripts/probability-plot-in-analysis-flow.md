@@ -5,6 +5,8 @@ language: en
 date: 2026-04-05
 duration: 359.2s
 status: raw
+audience: [developer, product]
+category: reference
 ---
 
 # Probability Plot in Analysis Flow

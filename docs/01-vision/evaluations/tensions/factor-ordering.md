@@ -1,5 +1,8 @@
 ---
 title: 'Factor Ordering'
+audience: [business, product]
+category: strategy
+status: reference
 ---
 
 # Factor Ordering

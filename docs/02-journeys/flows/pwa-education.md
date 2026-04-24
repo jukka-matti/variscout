@@ -1,6 +1,8 @@
 ---
 title: 'PWA Education Flow'
 status: draft
+audience: [product, designer]
+category: workflow
 ---
 
 # PWA Education Flow

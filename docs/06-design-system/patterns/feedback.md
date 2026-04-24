@@ -1,5 +1,8 @@
 ---
 title: 'Feedback Patterns'
+audience: [designer, developer]
+category: patterns
+status: stable
 ---
 
 # Feedback Patterns

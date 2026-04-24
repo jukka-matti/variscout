@@ -1,5 +1,8 @@
 ---
 title: 'Probability Plot'
+audience: [designer, developer]
+category: reference
+status: stable
 ---
 
 # Probability Plot

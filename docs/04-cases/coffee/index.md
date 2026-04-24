@@ -1,5 +1,8 @@
 ---
 title: 'Coffee Washing Station Case'
+audience: [analyst, engineer]
+category: learning
+status: reference
 ---
 
 # Coffee Washing Station Case

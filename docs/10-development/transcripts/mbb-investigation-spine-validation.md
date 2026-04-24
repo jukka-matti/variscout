@@ -4,6 +4,8 @@ type: interview
 language: en
 date: 2026-03-29
 status: delivered
+audience: [developer, product]
+category: reference
 ---
 
 # MBB Validation Interview: Investigation Spine Design

@@ -1,5 +1,8 @@
 ---
 title: 'Security Scanning'
+audience: [developer]
+category: implementation
+status: stable
 ---
 
 # Security Scanning

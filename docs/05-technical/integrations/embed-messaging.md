@@ -1,5 +1,8 @@
 ---
 title: 'PWA Embed Messaging Protocol'
+audience: [developer, architect]
+category: implementation
+status: stable
 ---
 
 # PWA Embed Messaging Protocol

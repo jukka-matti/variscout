@@ -4,6 +4,9 @@ date: 2026-03-29
 sources:
   - 2026-03-29-probability-plot.txt
   - 2026-03-29-probability-plot-and-commenting.txt
+audience: [developer, product]
+category: reference
+status: draft
 ---
 
 # Probability Plot: Multi-Angle Analysis
