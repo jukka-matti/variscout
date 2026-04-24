@@ -31,13 +31,23 @@ export const DraggableHypothesisCard: React.FC<DraggableHypothesisCardProps> = p
   // exists on both — cast is safe.
   const setSvgRef = setNodeRef as unknown as React.Ref<SVGGElement>;
 
+  // dnd-kit's `attributes` puts role="button" + tabIndex=0 on the draggable,
+  // but HypothesisCard already owns the button semantics (its own role,
+  // tabIndex, aria-label, and Enter/Space handler). Stacking both would
+  // create nested focus targets and a screen reader would announce "button,
+  // button". Strip role/tabIndex from the outer wrapper and keep the rest of
+  // dnd-kit's a11y wiring (aria-roledescription, aria-describedby, etc.).
+  const { role: _role, tabIndex: _tabIndex, ...dndAttributes } = attributes;
+  void _role;
+  void _tabIndex;
+
   return (
     <g
       ref={setSvgRef}
       transform={`translate(${dx}, ${dy})`}
       style={{ opacity: isDragging ? 0.6 : 1, cursor: 'grab' }}
       data-draggable-hub={props.hub.id}
-      {...attributes}
+      {...dndAttributes}
       {...listeners}
     >
       <HypothesisCard {...props} />

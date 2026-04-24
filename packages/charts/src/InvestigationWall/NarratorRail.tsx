@@ -11,7 +11,7 @@
 
 import React from 'react';
 import { getMessage } from '@variscout/core/i18n';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 
 export interface NarratorMessage {
   id: string;
@@ -28,7 +28,7 @@ export interface NarratorRailProps {
 }
 
 export const NarratorRail: React.FC<NarratorRailProps> = ({ messages, isOpen, onToggle }) => {
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
   if (!isOpen) {
     return (
       <button

@@ -44,7 +44,9 @@ import {
   CANVAS_H,
   useWallKeyboard,
   useWallIsMobile,
+  useWallLocale,
 } from '@variscout/charts';
+import { getMessage } from '@variscout/core/i18n';
 import { InvestigationMapView } from './InvestigationMapView';
 import { CoScoutSection } from './CoScoutSection';
 import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
@@ -151,6 +153,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   // Map/Wall sub-toggle (within the Evidence Map view)
   const wallViewMode = useWallLayoutStore(s => s.viewMode);
   const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
+  const locale = useWallLocale();
   // Phase 13 scale features — threaded into WallCanvas so zoom, pan, and
   // tributary clustering route through the existing store + persistence.
   const wallZoom = useWallLayoutStore(s => s.zoom);
@@ -787,7 +790,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               </div>
             ) : (
               <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">
-                Build a Process Map in the Frame workspace first.
+                {getMessage(locale, 'wall.missing.processMap')}
               </div>
             )
           ) : (

@@ -68,10 +68,10 @@ describe('MobileCardList', () => {
   it('renders linked question count from hub.questionIds.length', () => {
     render(<MobileCardList hubs={[hubA]} findings={[]} questions={[] as Question[]} />);
     // hubA has one linked question
-    expect(screen.getByTestId('wall-mobile-hub-hA-questions')).toHaveTextContent('1 Q');
+    expect(screen.getByTestId('wall-mobile-hub-hA-questions')).toHaveTextContent('1 questions');
     // hubB has zero
     render(<MobileCardList hubs={[hubB]} findings={[]} questions={[] as Question[]} />);
-    expect(screen.getByTestId('wall-mobile-hub-hB-questions')).toHaveTextContent('0 Q');
+    expect(screen.getByTestId('wall-mobile-hub-hB-questions')).toHaveTextContent('0 questions');
   });
 
   it('fires onSelectHub when a card is clicked', () => {

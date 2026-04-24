@@ -29,7 +29,7 @@ import { EmptyState } from './EmptyState';
 import { MissingEvidenceDigest } from './MissingEvidenceDigest';
 import { MobileCardList } from './MobileCardList';
 import type { WallStatus } from './types';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 import { useWallDragDrop } from './hooks/useWallDragDrop';
 import { useWallIsMobile } from './hooks/useWallBreakpoint';
 
@@ -124,7 +124,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   pan = { x: 0, y: 0 },
   groupByTributary = false,
 }) => {
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
   const columnSet = useMemo(
     () => (activeColumns ? new Set(activeColumns) : undefined),
     [activeColumns]

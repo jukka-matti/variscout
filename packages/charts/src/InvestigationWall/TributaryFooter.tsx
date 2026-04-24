@@ -9,7 +9,7 @@
 import React from 'react';
 import type { ProcessMapTributary, SuspectedCause } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 
 export interface TributaryFooterProps {
   tributaries: ProcessMapTributary[];
@@ -28,7 +28,7 @@ export const TributaryFooter: React.FC<TributaryFooterProps> = ({
   y,
   canvasWidth,
 }) => {
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
   if (tributaries.length === 0) return null;
 
   const referenced = new Set(hubs.flatMap(h => h.tributaryIds ?? []));
