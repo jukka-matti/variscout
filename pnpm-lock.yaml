@@ -145,8 +145,8 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4
       dexie:
-        specifier: ^4.0.11
-        version: 4.3.0
+        specifier: ^4.4.2
+        version: 4.4.2
       express:
         specifier: ^5.2.1
         version: 5.2.1
@@ -557,8 +557,8 @@ importers:
         specifier: workspace:*
         version: link:../core
       dexie:
-        specifier: ^4.0.11
-        version: 4.3.0
+        specifier: ^4.4.2
+        version: 4.4.2
       idb-keyval:
         specifier: ^6.2.1
         version: 6.2.2
@@ -4338,8 +4338,8 @@ packages:
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
 
-  dexie@4.3.0:
-    resolution: {integrity: sha512-5EeoQpJvMKHe6zWt/FSIIuRa3CWlZeIl6zKXt+Lz7BU6RoRRLgX9dZEynRfXrkLcldKYCBiz7xekTEylnie1Ug==}
+  dexie@4.4.2:
+    resolution: {integrity: sha512-zMtV8q79EFE5U8FKZvt0Y/77PCU/Hr/RDxv1EDeo228L+m/HTbeN2AjoQm674rhQCX8n3ljK87lajt7UQuZfvw==}
 
   dezalgo@1.0.4:
     resolution: {integrity: sha512-rXSP0bf+5n0Qonsb+SVVfNfIsimO4HEtmnIpPHY8Q1UCzKlQrDMfdobr8nJOOsRgWCyMRqeSBQzmWUMq7zvVig==}
@@ -11826,7 +11826,7 @@ snapshots:
     dependencies:
       dequal: 2.0.3
 
-  dexie@4.3.0: {}
+  dexie@4.4.2: {}
 
   dezalgo@1.0.4:
     dependencies:
