@@ -35,7 +35,7 @@ function supportsVoiceCapture(): boolean {
   return Boolean(
     typeof window !== 'undefined' &&
     window.isSecureContext &&
-    navigator.mediaDevices?.getUserMedia &&
+    typeof navigator.mediaDevices?.getUserMedia === 'function' &&
     typeof MediaRecorder !== 'undefined'
   );
 }
