@@ -21,6 +21,7 @@
     "docs:check": "bash scripts/check-diagram-health.sh && bash scripts/check-doc-health.sh",
     "docs:check:frontmatter": "node scripts/check-doc-frontmatter.mjs",
     "docs:sync": "bash scripts/sync-monorepo-counts.sh",
+    "codex:ruflo-check": "bash scripts/check-codex-ruflo.sh",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "check:i18n": "npx tsx scripts/check-i18n.ts"

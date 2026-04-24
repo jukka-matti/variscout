@@ -15,6 +15,7 @@ Structured investigation for process improvement. Browser-based, offline-first, 
 - `pnpm --filter @variscout/azure-app dev` - Azure app
 - `pnpm test` - all packages via turbo
 - `pnpm build` - all packages and apps
+- `pnpm codex:ruflo-check` - verify Codex can reach repo-pinned Ruflo and print recovery steps if missing
 
 ## Where To Look
 
@@ -34,12 +35,14 @@ Structured investigation for process improvement. Browser-based, offline-first, 
 
 ## Using Ruflo From Codex
 
-- The shared MCP server is defined in `.mcp.json`.
+- The repo pins the shared Ruflo command in `.mcp.json`, but Codex activation is verified through `codex mcp` and local Codex config.
+- At session start, run `pnpm codex:ruflo-check` for the Codex-side health summary and recovery command.
 - Before complex work, query ruflo memory for architecture, domain, or prior patterns.
 - Before PR prep, run diff analysis and dispatch audit or test-gap workers when relevant.
 - Codex does not use Claude-only hooks from `.claude/settings.json`; treat those as client-specific automation.
 
-## MCP Check
+## Codex Session Start
 
-- Verify registration with `codex mcp list`.
-- If `ruflo` is missing, add it with `codex mcp add ruflo -- npx ruflo@3.5.42 mcp start`.
+1. Read `AGENTS.md` and `docs/llms.txt`.
+2. Run `pnpm codex:ruflo-check`.
+3. If Ruflo is missing, add it with `codex mcp add ruflo -- npx ruflo@3.5.42 mcp start`.
