@@ -27,7 +27,7 @@ Claude has extra local automation via `.claude/settings.json`. Codex shares the 
 
 Claude sessions start daemon and restore state via hooks.
 
-Codex sessions should run `pnpm codex:ruflo-check`. That command verifies the active Codex MCP registration and prints the recovery command if Ruflo is missing. If needed, register `ruflo` manually with `codex mcp add ruflo -- npx ruflo@3.5.42 mcp start`.
+Codex sessions should run `pnpm codex:ruflo-check`. That command verifies the active Codex MCP registration and prints the recovery command if Ruflo is missing. If needed, register `ruflo` manually with `codex mcp add ruflo -- npx ruflo@3.5.80 mcp start`.
 
 No additional setup is needed once the MCP server is available.
 
@@ -76,7 +76,7 @@ When you've completed a significant refactor or feature:
 
 ```bash
 # Reindex codebase structure
-npx ruflo@3.5.42 hooks pretrain
+npx ruflo@3.5.80 hooks pretrain
 
 # Update stale memory entries
 mcp__ruflo__memory_store(namespace: "architecture", key: "change-name", value: "description")
@@ -116,7 +116,7 @@ Ruflo memory is only as good as its last update. After significant work:
 
 1. Check if relevant entries are stale: `mcp__ruflo__memory_retrieve(key: "testing/counts")`
 2. Update with current data: `mcp__ruflo__memory_store(namespace: "testing", key: "counts", value: "...")`
-3. Reindex if structure changed: `npx ruflo@3.5.42 hooks pretrain`
+3. Reindex if structure changed: `npx ruflo@3.5.80 hooks pretrain`
 
 ## See Also
 

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TOOL_INPUT_file_path\" ] && npx ruflo@3.5.42 hooks pre-edit --file \"$TOOL_INPUT_file_path\" 2>>/tmp/ruflo-hooks.log || true",
+            "command": "[ -n \"$TOOL_INPUT_file_path\" ] && npx ruflo@3.5.80 hooks pre-edit --file \"$TOOL_INPUT_file_path\" 2>>/tmp/ruflo-hooks.log || true",
             "timeout": 5000
           },
           {
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TOOL_INPUT_command\" ] && npx ruflo@3.5.42 hooks pre-command --command \"$TOOL_INPUT_command\" 2>>/tmp/ruflo-hooks.log || true",
+            "command": "[ -n \"$TOOL_INPUT_command\" ] && npx ruflo@3.5.80 hooks pre-command --command \"$TOOL_INPUT_command\" 2>>/tmp/ruflo-hooks.log || true",
             "timeout": 5000,
             "continueOnError": true
           }
@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TOOL_INPUT_prompt\" ] && npx ruflo@3.5.42 hooks pre-task --task-id \"task-$(date +%s)\" --description \"$TOOL_INPUT_prompt\" 2>>/tmp/ruflo-hooks.log || true",
+            "command": "[ -n \"$TOOL_INPUT_prompt\" ] && npx ruflo@3.5.80 hooks pre-task --task-id \"task-$(date +%s)\" --description \"$TOOL_INPUT_prompt\" 2>>/tmp/ruflo-hooks.log || true",
             "timeout": 5000,
             "continueOnError": true
           }
@@ -50,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TOOL_INPUT_file_path\" ] && npx ruflo@3.5.42 hooks post-edit --file \"$TOOL_INPUT_file_path\" --success \"${TOOL_SUCCESS:-true}\" 2>>/tmp/ruflo-hooks.log || true",
+            "command": "[ -n \"$TOOL_INPUT_file_path\" ] && npx ruflo@3.5.80 hooks post-edit --file \"$TOOL_INPUT_file_path\" --success \"${TOOL_SUCCESS:-true}\" 2>>/tmp/ruflo-hooks.log || true",
             "timeout": 5000,
             "continueOnError": true
           }
@@ -61,7 +61,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TOOL_INPUT_command\" ] && npx ruflo@3.5.42 hooks post-command --command \"$TOOL_INPUT_command\" --success \"${TOOL_SUCCESS:-true}\" 2>>/tmp/ruflo-hooks.log || true",
+            "command": "[ -n \"$TOOL_INPUT_command\" ] && npx ruflo@3.5.80 hooks post-command --command \"$TOOL_INPUT_command\" --success \"${TOOL_SUCCESS:-true}\" 2>>/tmp/ruflo-hooks.log || true",
             "timeout": 5000,
             "continueOnError": true
           }
@@ -72,7 +72,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TOOL_RESULT_agent_id\" ] && npx ruflo@3.5.42 hooks post-task --task-id \"$TOOL_RESULT_agent_id\" --success \"${TOOL_SUCCESS:-true}\" 2>>/tmp/ruflo-hooks.log || true",
+            "command": "[ -n \"$TOOL_RESULT_agent_id\" ] && npx ruflo@3.5.80 hooks post-task --task-id \"$TOOL_RESULT_agent_id\" --success \"${TOOL_SUCCESS:-true}\" 2>>/tmp/ruflo-hooks.log || true",
             "timeout": 5000,
             "continueOnError": true
           }
@@ -84,7 +84,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$PROMPT\" ] && npx ruflo@3.5.42 hooks route --task \"$PROMPT\" || true",
+            "command": "[ -n \"$PROMPT\" ] && npx ruflo@3.5.80 hooks route --task \"$PROMPT\" || true",
             "timeout": 5000,
             "continueOnError": true
           }
@@ -96,13 +96,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx ruflo@3.5.42 daemon start --quiet 2>>/tmp/ruflo-hooks.log || true",
+            "command": "npx ruflo@3.5.80 daemon start --quiet 2>>/tmp/ruflo-hooks.log || true",
             "timeout": 5000,
             "continueOnError": true
           },
           {
             "type": "command",
-            "command": "[ -n \"$SESSION_ID\" ] && npx ruflo@3.5.42 hooks session-restore --session-id \"$SESSION_ID\" 2>>/tmp/ruflo-hooks.log || true",
+            "command": "[ -n \"$SESSION_ID\" ] && npx ruflo@3.5.80 hooks session-restore --session-id \"$SESSION_ID\" 2>>/tmp/ruflo-hooks.log || true",
             "timeout": 10000,
             "continueOnError": true
           },
@@ -131,7 +131,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$NOTIFICATION_MESSAGE\" ] && npx ruflo@3.5.42 memory store --namespace notifications --key \"notify-$(date +%s)\" --value \"$NOTIFICATION_MESSAGE\" 2>>/tmp/ruflo-hooks.log || true",
+            "command": "[ -n \"$NOTIFICATION_MESSAGE\" ] && npx ruflo@3.5.80 memory store --namespace notifications --key \"notify-$(date +%s)\" --value \"$NOTIFICATION_MESSAGE\" 2>>/tmp/ruflo-hooks.log || true",
             "timeout": 3000,
             "continueOnError": true
           }

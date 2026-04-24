@@ -11,38 +11,38 @@ status: stable
 
 ruflo is an MCP-integrated AI development tooling layer for VariScout. It provides semantic codebase search, persistent cross-session memory, hooks intelligence (pattern learning), neural learning (SONA), automated security scanning, and background workers. It is **not** a runtime dependency -- it only runs during development sessions.
 
-**Version**: Pinned to `ruflo@3.5.42` in `.mcp.json` and Claude hook automation in `.claude/settings.json`. Update monthly.
+**Version**: Pinned to `ruflo@3.5.80` in `.mcp.json` and Claude hook automation in `.claude/settings.json`. Update monthly.
 
 ## Quick Commands
 
 ```bash
 # System status
-npx ruflo@3.5.42 daemon status
-npx ruflo@3.5.42 hooks metrics              # Hook intelligence stats
+npx ruflo@3.5.80 daemon status
+npx ruflo@3.5.80 hooks metrics              # Hook intelligence stats
 
 # Semantic search (117 indexed entries, ~80-100ms response)
-npx ruflo@3.5.42 memory search --query "Cpk calculation"
-npx ruflo@3.5.42 memory search --query "Azure authentication"
-npx ruflo@3.5.42 memory search --query "which persona needs admin"
+npx ruflo@3.5.80 memory search --query "Cpk calculation"
+npx ruflo@3.5.80 memory search --query "Azure authentication"
+npx ruflo@3.5.80 memory search --query "which persona needs admin"
 
 # Memory operations
-npx ruflo@3.5.42 memory stats
-npx ruflo@3.5.42 memory list --namespace domain
-npx ruflo@3.5.42 memory store -k "key" --namespace ns --value "data"
+npx ruflo@3.5.80 memory stats
+npx ruflo@3.5.80 memory list --namespace domain
+npx ruflo@3.5.80 memory store -k "key" --namespace ns --value "data"
 
 # Security scanning
-npx ruflo@3.5.42 security scan --depth full  # OWASP Top 10
-npx ruflo@3.5.42 security cve --check         # CVE database
+npx ruflo@3.5.80 security scan --depth full  # OWASP Top 10
+npx ruflo@3.5.80 security cve --check         # CVE database
 
 # Daemon control
-npx ruflo@3.5.42 daemon start
-npx ruflo@3.5.42 daemon stop
+npx ruflo@3.5.80 daemon start
+npx ruflo@3.5.80 daemon stop
 
 # Reindex codebase (run after major changes)
-npx ruflo@3.5.42 hooks pretrain
+npx ruflo@3.5.80 hooks pretrain
 
 # Neural / pattern learning
-npx ruflo@3.5.42 neural status
+npx ruflo@3.5.80 neural status
 ```
 
 ## Architecture
@@ -116,7 +116,7 @@ Hooks automatically learn from development patterns:
 
 - **Pattern learning**: Tracks which files are edited together, command sequences, success/failure rates
 - **Routing**: Classifies prompts and routes to appropriate agent types (87% accuracy, 42 routes)
-- **Metrics**: `npx ruflo@3.5.42 hooks metrics` shows 24h dashboard
+- **Metrics**: `npx ruflo@3.5.80 hooks metrics` shows 24h dashboard
 
 As of Mar 2026: 128 commands tracked, 15 patterns at 85% confidence, 94% success rate.
 
@@ -129,7 +129,7 @@ SONA (Self-Optimizing Neural Architecture) provides deeper pattern recognition:
 - Q-learning + neural reinforcement from task execution
 - Mixture of Experts (8 networks) for routing decisions
 - Elastic Weight Consolidation prevents forgetting older patterns
-- Bootstrapped via `npx ruflo@3.5.42 hooks pretrain`
+- Bootstrapped via `npx ruflo@3.5.80 hooks pretrain`
 
 Neural learning accumulates passively — runs automatically when daemon is active.
 
@@ -139,7 +139,7 @@ Neural learning accumulates passively — runs automatically when daemon is acti
 
 ```bash
 rm .ruflo/daemon.pid
-npx ruflo@3.5.42 daemon start
+npx ruflo@3.5.80 daemon start
 ```
 
 ### Worker stuck in "running" state
@@ -149,8 +149,8 @@ Edit `.ruflo/daemon-state.json` and set `"isRunning": false` for the stuck worke
 ### Memory empty after session
 
 ```bash
-npx ruflo@3.5.42 memory init --force
-npx ruflo@3.5.42 hooks pretrain
+npx ruflo@3.5.80 memory init --force
+npx ruflo@3.5.80 hooks pretrain
 ```
 
 Then re-seed memory entries (see seed commands in ADR-011).
