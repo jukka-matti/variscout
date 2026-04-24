@@ -1,6 +1,6 @@
 ---
 name: using-ruflo
-description: Use when running ruflo tools or accessing ruflo memory for VariScout. Semantic memory search via npx ruflo memory search, when to use ruflo memory vs MEMORY.md (routing vs semantic), worker dispatch via mcp__ruflo__hooks_worker-dispatch, hook error logs at /tmp/ruflo-hooks.log, version pinned to 3.5.42 in .mcp.json.
+description: Use when running ruflo tools or accessing ruflo memory for VariScout. Semantic memory search via npx ruflo memory search, when to use ruflo memory vs MEMORY.md (routing vs semantic), worker dispatch via mcp__ruflo__hooks_worker-dispatch, hook error logs at /tmp/ruflo-hooks.log, version pinned to 3.5.80 in .mcp.json.
 ---
 
 # Using Ruflo
@@ -77,7 +77,7 @@ Example namespaces: `architecture`, `testing`, `domain`, `performance`.
 
 - **Don't use ruflo for ephemeral task state** — use `TaskCreate` instead. Ruflo memory is for durable knowledge; TaskCreate is for session-scoped work tracking.
 - **Re-index after major refactors** — semantic search becomes stale as the codebase evolves. Always run `npx ruflo@3.5.80 hooks pretrain` after large changes to rebuild the index.
-- **Version pinning** — Ruflo is pinned to `3.5.42` in `.mcp.json`. Don't upgrade without coordination; MCP tool signatures may change between versions.
+- **Version pinning** — Ruflo is pinned to `3.5.80` in `.mcp.json`. Don't upgrade without coordination; MCP tool signatures may change between versions.
 - **Hook error logs** — Check `/tmp/ruflo-hooks.log` if hooks fail silently. This file is not persisted across reboots and not tracked in git.
 - **Config file confusion** — `.claude/settings.json` contains hooks and statusline configuration only. Ruflo runtime config lives in `.ruflo/config.yaml`. Don't confuse the two.
 
