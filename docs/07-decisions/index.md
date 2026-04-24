@@ -82,6 +82,7 @@ This section captures key architectural decisions made during VariScout developm
 | [068](adr-068-coscout-cognitive-redesign.md)                      | CoScout Cognitive Redesign                           | Accepted   | 2026-04-05                                                                                 |
 | [069](adr-069-three-boundary-numeric-safety.md)                   | Three-Boundary Numeric Safety                        | Accepted   | 2026-04-06                                                                                 |
 | [070](adr-070-frame-workspace.md)                                 | FRAME Workspace, Visual Process Map & Mode Inference | Accepted   | 2026-04-18                                                                                 |
+| [071](adr-071-coscout-voice-input.md)                             | CoScout Voice Input                                  | Accepted   | 2026-04-24                                                                                 |
 
 ---
 
@@ -117,6 +118,7 @@ What becomes easier or harder as a result?
 | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Investigation Spine](../superpowers/specs/2026-04-04-investigation-spine-design.md)         | Three Threads, Five Sentences, One Story — equation display, hub creation, EDA heartbeat, lean what-if, CoScout integration                                                |
 | [FRAME Workspace & Process Map](../superpowers/specs/2026-04-18-frame-process-map-design.md) | FRAME promoted to first-class tab · river-styled SIPOC visual map · data-seeded entry · deterministic mode inference · capability-view storytelling leg · CoScout optional |
+| [CoScout Voice Input v1](../superpowers/specs/2026-04-24-coscout-voice-input-design.md)      | Azure-only transcript-first voice input for CoScout and finding capture, with no durable audio retention                                                                   |
 
 ---
 

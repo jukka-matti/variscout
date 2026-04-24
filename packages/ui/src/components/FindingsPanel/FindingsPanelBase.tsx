@@ -27,6 +27,7 @@ import { useResizablePanel, useTranslation } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '../FindingsLog';
 import { CoScoutInline } from '../CoScoutInline';
 import { QuestionChecklist } from '../FindingsWindow/QuestionChecklist';
+import type { VoiceInputConfig } from '../VoiceInput';
 
 export interface FindingsPanelResizeConfig {
   storageKey: string;
@@ -166,6 +167,8 @@ export interface FindingsPanelBaseProps {
   synthesis?: string;
   /** Linked findings for board view synthesis card */
   linkedFindings?: Array<{ id: string; text: string }>;
+  /** Optional Azure-only voice input that transcribes into finding/comment editors */
+  voiceInput?: VoiceInputConfig;
 
   // --- Question-driven investigation (ADR-053) ---
   /** Factor Intelligence questions (Question objects with questionSource) */
@@ -255,6 +258,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   projectedCpkMap,
   synthesis,
   linkedFindings,
+  voiceInput,
   questions,
   issueStatement,
   onIssueStatementChange,
@@ -504,6 +508,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           projectedCpkMap={projectedCpkMap}
           synthesis={synthesis}
           linkedFindings={linkedFindings}
+          voiceInput={voiceInput}
         />
 
         {/* CoScout inline (Azure only) */}

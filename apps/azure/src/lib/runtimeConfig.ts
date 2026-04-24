@@ -12,9 +12,23 @@ export interface RuntimeConfig {
   aiSearchEndpoint: string;
   aiSearchIndex: string;
   appInsightsConnectionString: string;
+  voiceInputEnabled: boolean;
+  speechToTextDeployment: string;
 }
 
 let cached: RuntimeConfig | null = null;
+
+function normalizeRuntimeConfig(data: Partial<RuntimeConfig> | null | undefined): RuntimeConfig {
+  return {
+    plan: data?.plan || '',
+    aiEndpoint: data?.aiEndpoint || '',
+    aiSearchEndpoint: data?.aiSearchEndpoint || '',
+    aiSearchIndex: data?.aiSearchIndex || '',
+    appInsightsConnectionString: data?.appInsightsConnectionString || '',
+    voiceInputEnabled: data?.voiceInputEnabled === true,
+    speechToTextDeployment: data?.speechToTextDeployment || '',
+  };
+}
 
 /**
  * Load runtime config from /config endpoint.
@@ -28,6 +42,7 @@ export async function loadRuntimeConfig(): Promise<RuntimeConfig> {
     const res = await fetch('/config');
     if (res.ok) {
       const data = await res.json();
+      const normalized = normalizeRuntimeConfig(data);
       // Validate that URLs use HTTPS to prevent injection
       const isValidUrl = (s: string | undefined): boolean => {
         if (!s) return true; // undefined/empty is OK (falls back to env vars)
@@ -37,10 +52,10 @@ export async function loadRuntimeConfig(): Promise<RuntimeConfig> {
           return false;
         }
       };
-      if (!isValidUrl(data.aiEndpoint) || !isValidUrl(data.aiSearchEndpoint)) {
+      if (!isValidUrl(normalized.aiEndpoint) || !isValidUrl(normalized.aiSearchEndpoint)) {
         console.error('Runtime config contains invalid URLs');
       } else {
-        cached = data;
+        cached = normalized;
         return cached!;
       }
     }
@@ -49,13 +64,7 @@ export async function loadRuntimeConfig(): Promise<RuntimeConfig> {
   }
 
   // Fallback: empty config, consumers fall back to import.meta.env
-  cached = {
-    plan: '',
-    aiEndpoint: '',
-    aiSearchEndpoint: '',
-    aiSearchIndex: '',
-    appInsightsConnectionString: '',
-  };
+  cached = normalizeRuntimeConfig(null);
   return cached;
 }
 

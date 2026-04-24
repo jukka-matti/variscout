@@ -59,8 +59,11 @@ None of the Teams integration features are irreplaceable:
 - **Auth**: EasyAuth only (`User.Read` — zero admin consent for either tier)
 - **Team storage**: Azure Blob Storage in customer's resource group (replaces OneDrive/SharePoint)
 - **Photo capture**: Browser `<input type="file" accept="image/*" capture="environment">`
+- **Voice capture**: Browser microphone in Azure App only, feature-flagged, transcript-first
 - **Teams presence**: Optional static tab (documentation, not code dependency)
 - **Teams SDK**: Removed entirely from codebase
+
+Voice input follows the same web-first rule as photo capture: browser APIs only, no Teams SDK, no extra Microsoft Graph scopes. Speech-to-text requests go to the customer's Azure OpenAI deployment, and raw audio is discarded after transcription. PWA keeps `Permissions-Policy: microphone=()`; Azure App enables microphone access only when the feature flag is on.
 
 ### Tier Model (Preserved)
 

@@ -20,6 +20,7 @@ import { validateImageFile, fileToDataUrl, MAX_IMAGES_PER_MESSAGE } from '@varis
 import { useResizablePanel, useTranslation } from '@variscout/hooks';
 import { CoScoutMessages, type KnowledgeDocumentResult } from './CoScoutMessages';
 import { ImagePreview, type ImagePreviewItem } from './ImagePreview';
+import { VoiceDraftButton, appendVoiceDraftText, type VoiceInputConfig } from '../VoiceInput';
 
 export interface CoScoutPanelResizeConfig {
   storageKey: string;
@@ -82,6 +83,8 @@ export interface CoScoutPanelBaseProps {
   insightQuestions?: Array<{ id: string; text: string }>;
   /** ADR-050 visual grounding: activate a REF marker (highlight chart element) */
   onRefActivate?: (targetType: string, targetId?: string) => void;
+  /** Optional Azure-only voice input that transcribes into the current text draft */
+  voiceInput?: VoiceInputConfig;
 }
 
 const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
@@ -118,8 +121,9 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   insightFindings,
   insightQuestions,
   onRefActivate,
+  voiceInput,
 }) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const isMobile = useIsMobile();
   const [input, setInput] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
@@ -215,6 +219,18 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
     const el = e.target;
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 96) + 'px'; // max ~4 rows
+  }, []);
+
+  const handleVoiceTranscript = useCallback((transcript: string) => {
+    setInput(prev => appendVoiceDraftText(prev, transcript));
+    setInputFocused(true);
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (!el) return;
+      el.focus();
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 96) + 'px';
+    });
   }, []);
 
   const handleInputFocus = useCallback(() => {
@@ -538,6 +554,19 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
                   }}
                 />
               </label>
+            )}
+            {!isStreaming && (
+              <VoiceDraftButton
+                voiceInput={voiceInput}
+                mode={isMobile ? 'hold' : 'tap'}
+                language={locale}
+                onTranscript={handleVoiceTranscript}
+                testIdPrefix="coscout-voice"
+                className="flex flex-col items-end gap-1"
+                buttonClassName="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors flex-shrink-0"
+                cancelButtonClassName="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors flex-shrink-0"
+                statusClassName="text-[0.625rem] text-content-muted text-right max-w-[180px]"
+              />
             )}
             {isStreaming ? (
               <button

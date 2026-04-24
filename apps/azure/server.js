@@ -42,6 +42,14 @@ if (aiIngestMatch) {
   try { connectSrc += ` ${new URL(aiIngestMatch[1]).origin}`; } catch { /* ignore */ }
 }
 
+function isVoiceInputEnabled() {
+  return process.env.VOICE_INPUT_ENABLED === 'true';
+}
+
+function getPermissionsPolicy() {
+  return `camera=(self), microphone=${isVoiceInputEnabled() ? '(self)' : '()'}, geolocation=(), payment=()`;
+}
+
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [
     "default-src 'self'",
@@ -61,7 +69,6 @@ const SECURITY_HEADERS = {
   // Teams requires iframe embedding which X-Frame-Options: DENY would block.
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(self), microphone=(), geolocation=(), payment=()',
 };
 
 const MIME = {
@@ -93,6 +100,7 @@ app.use((_req, res, next) => {
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
     res.setHeader(key, value);
   }
+  res.setHeader('Permissions-Policy', getPermissionsPolicy());
   next();
 });
 
@@ -114,6 +122,8 @@ app.get('/config', (_req, res) => {
     aiSearchEndpoint: process.env.AI_SEARCH_ENDPOINT || '',
     aiSearchIndex: process.env.AI_SEARCH_INDEX || 'findings',
     appInsightsConnectionString: process.env.APPINSIGHTS_CONNECTION_STRING || process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '',
+    voiceInputEnabled: isVoiceInputEnabled(),
+    speechToTextDeployment: process.env.AI_SPEECH_TO_TEXT_DEPLOYMENT || '',
     storageAccountName: process.env.STORAGE_ACCOUNT_NAME || '',
     storageContainerName: process.env.STORAGE_CONTAINER_NAME || 'variscout-projects',
   };

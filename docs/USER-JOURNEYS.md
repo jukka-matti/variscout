@@ -3,7 +3,7 @@ title: VariScout User Journeys — Personas & Flows
 audience: [engineer, analyst]
 category: reference
 status: stable
-last-reviewed: 2026-04-17
+last-reviewed: 2026-04-24
 related: [personas, flows, journey, modes]
 ---
 
@@ -22,7 +22,7 @@ Ten personas drive VariScout's design decisions. Each follows the same journey s
 7. **Curious Carlos** — discovery mode, exploratory, comes in via content or SEO.
 8. **Evaluator Erik** — prospective buyer, evaluating the product for a team.
 9. **Admin Aino** — Azure admin, provisions tenants, manages access, reviews telemetry.
-10. **Field Fiona** — gemba observer, captures photos and notes on the floor (mobile flows).
+10. **Field Fiona** — gemba observer, captures photos, voice notes, and comments on the floor (mobile flows).
 
 Full persona details: `docs/02-journeys/personas/`.
 
@@ -73,3 +73,16 @@ Designed but not coded. Intended for bottleneck analysis across process steps. *
 - **Factor Intelligence discovery:** `docs/02-journeys/flows/factor-intelligence.md`
 
 Thirteen additional flows (distribution-specific: SEO, content, social, enterprise, mobile) in `docs/02-journeys/flows/`. These are reference, not orientation.
+
+## Voice-assisted Azure flow
+
+Azure Standard and Azure Team add an optional **transcript-first voice path** for two personas in particular:
+
+- **Field Fiona** can hold to speak on mobile while documenting a finding or comment beside the process.
+- **Analyst Alex** can tap to record on desktop when working through an investigation with CoScout.
+
+The interaction is intentionally constrained:
+
+- Voice fills the existing text draft; it does not auto-send.
+- CoScout replies remain text in v1 so citations, proposals, and saved findings stay visible.
+- Raw audio is discarded after transcription; the durable artifact is the transcript in the normal thread or comment.
