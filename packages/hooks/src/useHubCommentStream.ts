@@ -26,7 +26,8 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { useInvestigationStore } from '@variscout/stores';
+import { useInvestigationStore, useWallLayoutStore } from '@variscout/stores';
+import type { PendingComment } from '@variscout/stores';
 import type { FindingComment } from '@variscout/core/findings';
 
 interface UseHubCommentStreamOptions {
@@ -60,6 +61,57 @@ function mergeIncomingComment(hubId: string, incoming: FindingComment): void {
       return { ...h, comments: [...existing, incoming] };
     }),
   }));
+}
+
+/**
+ * Replay any queued-from-offline hub comments through the append endpoint.
+ *
+ * Invoked after an SSE `init` event — which signals the server is reachable
+ * again — to drain `wallLayoutStore.pendingComments`. Each pending comment
+ * is POSTed with its original id; the server dedupes by id so retries (or
+ * echoes from our own stream) are idempotent. POST failures re-enqueue the
+ * comment so the next reconnect's `init` can try again.
+ *
+ * Drains *all* pending hub comments, not just this hub's — SSE init proves
+ * the connection is healthy; other hubs' queued comments might as well
+ * ride along. Finding-scoped pendings are re-enqueued unchanged (the finding
+ * comment stream owns them).
+ */
+function replayPendingHubComments(projectId: string): void {
+  const wallStore = useWallLayoutStore.getState();
+  const pending = wallStore.drainPendingComments();
+  if (pending.length === 0) return;
+
+  for (const p of pending) {
+    if (p.scope !== 'hub') {
+      wallStore.enqueuePendingComment(p);
+      continue;
+    }
+    postHubComment(projectId, p).catch(() => {
+      // Already re-enqueued inside postHubComment on failure.
+    });
+  }
+}
+
+async function postHubComment(projectId: string, p: PendingComment): Promise<void> {
+  try {
+    const res = await fetch('/api/hub-comments/append', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        projectId,
+        hubId: p.targetId,
+        id: p.localId,
+        text: p.text,
+        author: p.author,
+      }),
+    });
+    if (!res.ok) {
+      useWallLayoutStore.getState().enqueuePendingComment(p);
+    }
+  } catch {
+    useWallLayoutStore.getState().enqueuePendingComment(p);
+  }
 }
 
 export function useHubCommentStream({
@@ -131,6 +183,10 @@ export function useHubCommentStream({
             for (const c of data.comments) {
               mergeIncomingComment(hubId, c);
             }
+            // Server is reachable — drain any comments that were queued
+            // while offline (per spec: "Posts queue in pendingComments[],
+            // flush on SSE reconnect").
+            replayPendingHubComments(projectId);
           } else if (data.type === 'comment' && data.comment) {
             mergeIncomingComment(hubId, data.comment);
           }

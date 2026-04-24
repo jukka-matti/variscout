@@ -30,7 +30,7 @@ class MockEventSourceClass {
 
 vi.stubGlobal('EventSource', MockEventSourceClass);
 
-// ─── Mock investigationStore ──────────────────────────────────────────────────
+// ─── Mock investigationStore + wallLayoutStore ────────────────────────────────
 
 const stateRef = {
   current: {
@@ -46,10 +46,37 @@ const setStateMock = vi.fn(
   }
 );
 
+interface MockPending {
+  scope: 'finding' | 'hub';
+  targetId: string;
+  text: string;
+  author?: string;
+  localId: string;
+  createdAt: number;
+}
+
+const wallStateRef = {
+  pendingComments: [] as MockPending[],
+};
+const enqueuePendingCommentMock = vi.fn((c: MockPending) => {
+  wallStateRef.pendingComments.push(c);
+});
+const drainPendingCommentsMock = vi.fn(() => {
+  const drained = wallStateRef.pendingComments;
+  wallStateRef.pendingComments = [];
+  return drained;
+});
+
 vi.mock('@variscout/stores', () => ({
   useInvestigationStore: {
     setState: (u: (s: typeof stateRef.current) => typeof stateRef.current) => setStateMock(u),
     getState: () => stateRef.current,
+  },
+  useWallLayoutStore: {
+    getState: () => ({
+      enqueuePendingComment: enqueuePendingCommentMock,
+      drainPendingComments: drainPendingCommentsMock,
+    }),
   },
 }));
 
@@ -59,6 +86,9 @@ describe('useHubCommentStream', () => {
   beforeEach(() => {
     instances.length = 0;
     setStateMock.mockClear();
+    enqueuePendingCommentMock.mockClear();
+    drainPendingCommentsMock.mockClear();
+    wallStateRef.pendingComments = [];
     stateRef.current = {
       suspectedCauses: [
         { id: 'hub-1', comments: [] },
@@ -214,6 +244,113 @@ describe('useHubCommentStream', () => {
     // Reconnected — a fresh EventSource was created for hub-1.
     expect(instances).toHaveLength(2);
     expect(instances[1].url).toContain('hubId=hub-1');
+  });
+
+  it('replays queued pending hub comments on SSE init', async () => {
+    // Seed one queued-while-offline comment.
+    wallStateRef.pendingComments = [
+      {
+        scope: 'hub',
+        targetId: 'hub-1',
+        text: 'queued while offline',
+        author: 'alice',
+        localId: 'c-queued',
+        createdAt: 100,
+      },
+    ];
+
+    const fetchMock = vi.fn(() => Promise.resolve({ ok: true } as Response));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderHook(() => useHubCommentStream({ projectId: 'proj-1', visibleHubIds: ['hub-1'] }));
+
+    act(() => {
+      instances[0].onmessage!({
+        data: JSON.stringify({ type: 'init', comments: [] }),
+      } as MessageEvent);
+    });
+
+    // Drain happened synchronously; POST fires async.
+    expect(drainPendingCommentsMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/hub-comments/append');
+    expect(init?.method).toBe('POST');
+    const body = JSON.parse(init!.body as string);
+    expect(body).toMatchObject({
+      projectId: 'proj-1',
+      hubId: 'hub-1',
+      id: 'c-queued',
+      text: 'queued while offline',
+      author: 'alice',
+    });
+
+    // Wait for the POST promise to settle — ok response means no re-enqueue.
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(enqueuePendingCommentMock).not.toHaveBeenCalled();
+    expect(wallStateRef.pendingComments).toHaveLength(0);
+  });
+
+  it('re-enqueues a pending comment when replay POST fails', async () => {
+    wallStateRef.pendingComments = [
+      {
+        scope: 'hub',
+        targetId: 'hub-1',
+        text: 'will fail',
+        localId: 'c-fail',
+        createdAt: 200,
+      },
+    ];
+
+    const fetchMock = vi.fn(() => Promise.resolve({ ok: false, status: 500 } as Response));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderHook(() => useHubCommentStream({ projectId: 'proj-1', visibleHubIds: ['hub-1'] }));
+
+    act(() => {
+      instances[0].onmessage!({
+        data: JSON.stringify({ type: 'init', comments: [] }),
+      } as MessageEvent);
+    });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(enqueuePendingCommentMock).toHaveBeenCalledTimes(1);
+    expect(enqueuePendingCommentMock.mock.calls[0][0]).toMatchObject({
+      localId: 'c-fail',
+    });
+  });
+
+  it('preserves non-hub pendings when draining on init', () => {
+    wallStateRef.pendingComments = [
+      {
+        scope: 'finding',
+        targetId: 'finding-x',
+        text: 'finding-scoped',
+        localId: 'c-find',
+        createdAt: 300,
+      },
+    ];
+
+    const fetchMock = vi.fn(() => Promise.resolve({ ok: true } as Response));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderHook(() => useHubCommentStream({ projectId: 'proj-1', visibleHubIds: ['hub-1'] }));
+
+    act(() => {
+      instances[0].onmessage!({
+        data: JSON.stringify({ type: 'init', comments: [] }),
+      } as MessageEvent);
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(enqueuePendingCommentMock).toHaveBeenCalledTimes(1);
+    expect(enqueuePendingCommentMock.mock.calls[0][0]).toMatchObject({
+      scope: 'finding',
+      localId: 'c-find',
+    });
   });
 
   it('closes all streams when projectId becomes null', () => {

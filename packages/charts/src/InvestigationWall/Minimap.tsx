@@ -33,7 +33,12 @@ export interface MinimapProps {
   questions: Question[];
   /** Current viewport zoom. */
   zoom: number;
-  /** Current viewport pan offset in canvas space. */
+  /**
+   * Current viewport pan offset in screen-space pixels. Matches the transform
+   * applied by WallCanvas: `translate(pan.x, pan.y) scale(zoom)` — the translate
+   * happens in the parent's coordinate system before the scale, so to convert
+   * back to canvas space divide by `zoom` (see vpX/vpY math below).
+   */
   pan: { x: number; y: number };
   /**
    * Invoked on minimap click with x/y coordinates in canvas space. Consumers
@@ -68,8 +73,8 @@ export const Minimap: React.FC<MinimapProps> = ({ hubs, questions, zoom, pan, on
   // starting at (-pan.x/z, -pan.y/z). Scale that to minimap units.
   const vpW = MINIMAP_W / zoom;
   const vpH = MINIMAP_H / zoom;
-  const vpX = (-pan.x / CANVAS_W) * MINIMAP_W;
-  const vpY = (-pan.y / CANVAS_H) * MINIMAP_H;
+  const vpX = (-pan.x / zoom / CANVAS_W) * MINIMAP_W;
+  const vpY = (-pan.y / zoom / CANVAS_H) * MINIMAP_H;
 
   const handleClick = (e: React.MouseEvent<SVGSVGElement>) => {
     const svg = e.currentTarget;
