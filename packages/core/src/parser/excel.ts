@@ -19,8 +19,11 @@ export async function parseExcel(file: File): Promise<DataRow[]> {
     );
   }
 
-  const { default: readXlsxFile } = await import('read-excel-file/browser');
-  const rawRows = await readXlsxFile(file);
+  // v9 changed the default export to return `Sheet[]` (multi-sheet). `readSheet`
+  // is the single-sheet counterpart that returns `Row[]` directly — same shape
+  // as the v7 default export, so the downstream row handling below is unchanged.
+  const { readSheet } = await import('read-excel-file/browser');
+  const rawRows = await readSheet(file);
   if (rawRows.length === 0) return [];
 
   const headers = rawRows[0].map((h, i) => String(h ?? `Column${i + 1}`));
