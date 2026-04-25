@@ -14,6 +14,7 @@ Reusable UI and interaction patterns.
 - [Detection Modals](detection-modals.md)
 - [Feedback Patterns](feedback.md)
 - [Interaction Patterns](interactions.md)
+- [Investigation Workspace Pattern](investigation-workspaces.md)
 - [Layout Patterns](layout.md)
 - [Navigation Patterns](navigation.md)
 - [Panels and Drawers](panels-and-drawers.md)

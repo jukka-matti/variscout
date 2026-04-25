@@ -573,6 +573,13 @@ Required guardrails:
 
 Session continuation note: [Question-Driven EDA 2.0 — Session Handoff](../plans/2026-04-25-question-driven-eda-2-handoff.md).
 
+UI concept intake: [Claude Design UI Concept Extraction](2026-04-25-claude-design-ui-concept-extraction.md).
+
+Design-system patterns to apply before product UI implementation:
+
+- [Investigation Workspace Pattern](../../06-design-system/patterns/investigation-workspaces.md)
+- [Signal and Branch Components](../../06-design-system/components/signal-branch-components.md)
+
 ### Phase 1 — Vocabulary and Current Understanding
 
 - Rename user-facing "Problem Statement" entry to Issue / Concern where applicable.

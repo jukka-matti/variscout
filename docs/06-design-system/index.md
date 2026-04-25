@@ -69,6 +69,7 @@ See [Colors](./foundations/colors.md) for the complete mapping.
 - [Foundational Patterns](./components/foundational-patterns.md) - Buttons, forms, cards, modals
 - [What-If Simulator](./components/what-if-simulator.md) - Process improvement exploration
 - [Findings](./components/findings.md) - Investigation findings, board view, actions
+- [Signal and Branch Components](./components/signal-branch-components.md) - Signal Cards, trust/power chips, mechanism branch cards
 - [AI Components](./components/ai-components.md) - NarrativeBar, ChartInsightChip, CoScoutPanel
 - [Help Tooltip](./components/help-tooltip.md) - Contextual help with glossary integration
 
@@ -79,6 +80,7 @@ See [Colors](./foundations/colors.md) for the complete mapping.
 - [Navigation](./patterns/navigation.md) - Navigation patterns and breadcrumbs
 - [Interactions](./patterns/interactions.md) - Interaction patterns (inline edit, grids, selection cards)
 - [Panels and Drawers](./patterns/panels-and-drawers.md) - Panel decision framework, drawer types, z-index scale
+- [Investigation Workspaces](./patterns/investigation-workspaces.md) - Canvas/list dual rendering for branch, root, signal, and evidence workspaces
 
 ## Usage
 

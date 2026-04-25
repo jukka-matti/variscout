@@ -14,6 +14,8 @@ related:
     investigation-wall,
     process-flow,
     yamazumi,
+    design-system,
+    accessibility,
   ]
 ---
 
@@ -25,6 +27,7 @@ The methodology spec has been written, verified, and committed.
 
 - Spec: `docs/superpowers/specs/2026-04-25-question-driven-eda-2-design.md`
 - Companion spec: `docs/superpowers/specs/2026-04-25-process-flow-yamazumi-integration-design.md`
+- UI concept extraction: `docs/superpowers/specs/2026-04-25-claude-design-ui-concept-extraction.md`
 - Spec index updated: `docs/superpowers/specs/index.md`
 - Commit: `db09060c docs: add question-driven eda 2 spec`
 - Verification run: `pnpm docs:check` passed during the commit hook.
@@ -57,6 +60,7 @@ Key decisions:
 - `SURVEY` is a horizontal evaluator across phases, not only an import screen.
 - Existing analysis modes should be reframed as **instrument sets** selected by data shape and question.
 - The first spec from this session is part of the same design: Process Flow locates the constraint, scoped-step Yamazumi explains waste inside it, and QDE 2.0 turns both outputs into clues and next moves inside Mechanism Branches.
+- The Claude Design UI concepts should be used through tracked design-system patterns, not copied directly from deck styling.
 - Investigation is not only evidence collection; it is process understanding and may surface missing deeper data.
 - Measurement trust enters through **Signal Cards**, not a resurrected standalone Gage R&R mode.
 - Cp/Cpk should stay simple: show Cp and Cpk over authored process moments, with average Cp/Cpk by stage.
@@ -74,11 +78,12 @@ The plan should be phased. Do not attempt the whole spec in one PR.
 
 Recommended implementation slices:
 
-1. Vocabulary and Current Understanding.
-2. Branch-based Investigation UI projection.
-3. Survey evaluator foundation.
-4. Signal Cards foundation.
-5. Cp/Cpk process moments in Subgroup Builder / capability view.
+1. Design-system foundation for investigation workspaces, Signal Cards, AI-independent proposal UX, and alternate structured views.
+2. Vocabulary and Current Understanding.
+3. Branch-based Investigation UI projection.
+4. Survey evaluator foundation.
+5. Signal Cards foundation.
+6. Cp/Cpk process moments in Subgroup Builder / capability view.
 
 ## Important Guardrails
 
@@ -94,6 +99,9 @@ Recommended implementation slices:
 Read these before planning:
 
 - `docs/superpowers/specs/2026-04-25-question-driven-eda-2-design.md`
+- `docs/superpowers/specs/2026-04-25-claude-design-ui-concept-extraction.md`
+- `docs/06-design-system/patterns/investigation-workspaces.md`
+- `docs/06-design-system/components/signal-branch-components.md`
 - `docs/01-vision/eda-mental-model.md`
 - `docs/01-vision/references/turtiainen-2019-eda-mental-model.md`
 - `docs/03-features/workflows/question-driven-investigation.md`

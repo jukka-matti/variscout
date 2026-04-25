@@ -126,6 +126,65 @@ Announce dynamic content changes:
 </figure>
 ```
 
+## Complex Workspace Accessibility
+
+Canvas-like and graph-like workspaces require a stronger fallback rule than
+charts.
+
+Use **alternate structured views**, not only data tables.
+
+| Visual surface              | Required structured view                                      |
+| --------------------------- | ------------------------------------------------------------- |
+| Investigation Wall          | Branch card list with clues, links, gates, and next moves     |
+| Roots / river view          | Process-node and mechanism-branch list with relationship text |
+| Subgroup event timeline     | Event and process-moment table                                |
+| Cp/Cpk process-moment strip | Moment table with boundary cause, `n`, Cp, Cpk, and warnings  |
+| Signal/trust workspace      | Signal Card list with trust, power, archetype, and weak link  |
+
+The structured view must preserve meaning:
+
+- support and counter-evidence relationships
+- AND/OR/NOT gate logic
+- signal trust and power warnings
+- process-node bindings
+- branch status
+- next moves
+- comments and ownership
+
+Color, position, line thickness, and spatial grouping cannot be the only way to
+understand a relationship.
+
+### Graph Keyboard Pattern
+
+Graph and canvas workspaces must expose keyboard navigation:
+
+| Key               | Action                                           |
+| ----------------- | ------------------------------------------------ |
+| `Tab`             | Move between major cards, panels, and controls   |
+| `Arrow keys`      | Move within a node/card group or timeline        |
+| `Enter` / `Space` | Open selected node, clue, chip, or gate          |
+| `Escape`          | Close detail panel or cancel linking interaction |
+| `Shift + Arrow`   | Extend selection where multi-select is supported |
+
+Dragging cannot be the only way to connect or reorganize investigation objects.
+Every drag action needs a menu or keyboard equivalent.
+
+### Touch Targets
+
+Tablet and mobile investigation workspaces require a minimum target size of 44
+by 44 CSS pixels for:
+
+- nodes
+- branch cards
+- clue chips
+- trust/power chips
+- gates
+- resize/link handles
+- accept/edit/reject proposal controls
+
+Small chart marks can remain smaller visually, but their interactive hit target
+must meet the target size requirement when touch interaction is enabled.
+
 ## Focus Indicators
 
 ### Visible Focus Rings
@@ -258,6 +317,8 @@ Respect user preferences:
 - [ ] Navigate entire app using only keyboard
 - [ ] Test with screen reader (VoiceOver/NVDA)
 - [ ] Verify focus visibility in all states
+- [ ] Verify graph/canvas workspaces have equivalent structured views
+- [ ] Verify drag/link actions have keyboard or menu equivalents
 - [ ] Test at 200% zoom level
 
 ### Screen Reader Testing
