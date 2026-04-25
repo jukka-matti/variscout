@@ -27,7 +27,7 @@ Claude has extra local automation via `.claude/settings.json`. Codex shares the 
 
 Claude sessions start daemon and restore state via hooks.
 
-Codex sessions should run `pnpm codex:ruflo-check`. That command verifies the active Codex MCP registration and prints the recovery command if Ruflo is missing. If needed, register `ruflo` manually with `codex mcp add ruflo -- npx ruflo@3.5.80 mcp start`.
+Codex sessions should run `pnpm codex:ruflo-check`. That command verifies the active Codex MCP registration, expected version, and CLI smoke probes. If Ruflo is missing, disabled, or stale, follow the remove/add repair commands printed by the check.
 
 No additional setup is needed once the MCP server is available.
 
@@ -42,6 +42,8 @@ mcp__ruflo__memory_search(query: "similar feature patterns", namespace: "decisio
 ```
 
 This surfaces prior decisions, architectural patterns, and domain knowledge that may not be in CLAUDE.md or the immediate code.
+
+Codex may lazy-load Ruflo tools. If `memory_search` is not initially visible, search the tool registry for Ruflo memory tools before assuming the capability is missing.
 
 ### 3. During Coding (passive)
 
@@ -70,6 +72,8 @@ mcp__ruflo__hooks_worker-dispatch(trigger: "testgaps", context: "Pre-PR audit", 
 mcp__ruflo__hooks_worker-dispatch(trigger: "audit", context: "Pre-PR security", priority: "critical")
 ```
 
+If `analyze_diff` fails through MCP, use `git diff --stat`, targeted review of changed files, and `bash scripts/pr-ready-check.sh` as the fallback gate. Do not block PR prep solely on a degraded Ruflo diff-analysis tool.
+
 ### 5. After Major Changes
 
 When you've completed a significant refactor or feature:
@@ -84,7 +88,7 @@ mcp__ruflo__memory_store(namespace: "architecture", key: "change-name", value: "
 
 ### 6. Periodic Maintenance (automated)
 
-7 daemon workers run on intervals (configured in `.ruflo/config.yaml`):
+7 daemon workers run on intervals when local `.ruflo/config.yaml` is present:
 
 | Worker      | Interval | What it does                   |
 | ----------- | -------- | ------------------------------ |
@@ -103,9 +107,9 @@ mcp__ruflo__memory_store(namespace: "architecture", key: "change-name", value: "
 | Need                                              | Use                                                      | Why                                               |
 | ------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------- |
 | Quick file/class lookup                           | Glob, Grep                                               | Faster for exact matches                          |
-| Domain knowledge ("how does Cpk work here?")      | `mcp__ruflo__memory_search`                              | Semantic search across 117+ entries               |
+| Domain knowledge ("how does Cpk work here?")      | `mcp__ruflo__memory_search`                              | Semantic search across local AgentDB memory       |
 | Architecture questions ("where is auth handled?") | `mcp__ruflo__memory_search`                              | Returns contextual knowledge, not just file paths |
-| Pre-PR risk assessment                            | `mcp__ruflo__analyze_diff`                               | Classifies changes, suggests reviewers            |
+| Pre-PR risk assessment                            | `mcp__ruflo__analyze_diff`                               | Use when available; fall back to git diff review   |
 | Security audit                                    | `mcp__ruflo__hooks_worker-dispatch(trigger: "audit")`    | OWASP + CVE scanning                              |
 | Test gap detection                                | `mcp__ruflo__hooks_worker-dispatch(trigger: "testgaps")` | Coverage analysis across 9 workspaces             |
 | Project state/routing                             | `AGENTS.md`, `CLAUDE.md`, `docs/llms.txt`, MEMORY.md     | Always-available repo guidance                    |
@@ -117,6 +121,8 @@ Ruflo memory is only as good as its last update. After significant work:
 1. Check if relevant entries are stale: `mcp__ruflo__memory_retrieve(key: "testing/counts")`
 2. Update with current data: `mcp__ruflo__memory_store(namespace: "testing", key: "counts", value: "...")`
 3. Reindex if structure changed: `npx ruflo@3.5.80 hooks pretrain`
+
+When updating docs that mention Ruflo versions, run `pnpm docs:check`; it includes a drift guard against `scripts/check-codex-ruflo.sh`.
 
 ## See Also
 

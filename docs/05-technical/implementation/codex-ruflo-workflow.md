@@ -11,7 +11,8 @@ How to use Codex with the shared ruflo tooling in this repo.
 
 ## What Is Shared vs Client-Specific
 
-- Shared: `.mcp.json` pins the repo-owned `ruflo` launch command and version.
+- Tracked: `scripts/check-codex-ruflo.sh` pins the expected `ruflo` version and repair command.
+- Local: `.mcp.json` and Codex MCP registration can mirror that command, but they are machine-local and may drift.
 - Shared: ruflo memory, workers, diff analysis, and CLI commands.
 - Claude-only: `.claude/settings.json` hooks, statusline, and path-scoped rule loading.
 - Codex-specific: `AGENTS.md` is the repo entrypoint, and active MCP registration is managed through Codex config plus `codex mcp`.
@@ -19,10 +20,10 @@ How to use Codex with the shared ruflo tooling in this repo.
 ## Startup Checklist
 
 1. Read `AGENTS.md` and `docs/llms.txt`.
-2. Run `pnpm codex:ruflo-check` to verify Codex registration and print the recovery command if needed.
-3. If `ruflo` is missing, run `codex mcp add ruflo -- npx ruflo@3.5.80 mcp start`.
+2. Run `pnpm codex:ruflo-check` to verify Codex registration, version, and CLI smoke probes.
+3. If `ruflo` is missing, disabled, or stale, run the remove/add repair commands printed by the check.
 
-The practical Codex source of truth is `codex mcp get ruflo`, which reads the active Codex MCP configuration on your machine. The repo still keeps `.mcp.json` as the pinned shared Ruflo definition.
+The practical Codex source of truth is `codex mcp get ruflo`, which reads the active Codex MCP configuration on your machine. The tracked repo source of truth for the expected version is `scripts/check-codex-ruflo.sh`; `pnpm docs:check` includes a drift guard so current docs and scripts reference the same version.
 
 ## Recommended Codex Workflow
 
@@ -35,6 +36,8 @@ mcp__ruflo__memory_search(query: "Azure authentication", namespace: "domain")
 mcp__ruflo__memory_search(query: "Cpk calculation stats", namespace: "architecture")
 mcp__ruflo__memory_search(query: "similar feature patterns", namespace: "decisions")
 ```
+
+If `memory_search` does not appear in the initially visible tool list, search the tool registry for Ruflo memory tools. Codex can lazy-load additional MCP tool definitions.
 
 Codex does not receive the passive Claude hook guidance, so retrieval should be intentional at task start.
 
@@ -55,6 +58,8 @@ mcp__ruflo__hooks_worker-dispatch(trigger: "testgaps", context: "Pre-PR audit", 
 mcp__ruflo__hooks_worker-dispatch(trigger: "audit", context: "Pre-PR security", priority: "critical")
 ```
 
+If `analyze_diff` returns an MCP runtime error such as `require is not defined`, treat Ruflo diff analysis as degraded for that session and fall back to `git diff --stat`, targeted file review, and the normal `bash scripts/pr-ready-check.sh` gate.
+
 ### After Major Refactors
 
 ```bash
@@ -63,7 +68,9 @@ npx ruflo@3.5.80 hooks pretrain
 
 ## Failure Modes
 
-- If `pnpm codex:ruflo-check` reports missing registration, add Ruflo manually with `codex mcp add ruflo -- npx ruflo@3.5.80 mcp start`.
-- If `.mcp.json` and Codex registration drift, trust the repo-pinned command/version and re-register Ruflo from the repo instructions.
-- If MCP is unavailable, the CLI still works for `memory search`, `security scan`, `daemon status`, and `hooks pretrain`.
+- If `pnpm codex:ruflo-check` reports missing, disabled, or wrong-version registration, run the remove/add repair commands it prints.
+- After changing Codex MCP registration, start a fresh Codex session before judging MCP runtime behavior; an already-running MCP server process may keep serving the current session.
+- If local `.mcp.json` and Codex registration drift, trust `scripts/check-codex-ruflo.sh` and re-register Ruflo from the check output.
+- If CLI probes time out but MCP tools work, use MCP memory/search tools and record the CLI path as degraded.
+- If MCP is unavailable, try the CLI for `memory search`, `security scan`, `daemon status`, and `hooks pretrain`.
 - If a doc mentions Claude hooks or statusline behavior, assume that behavior is not available in Codex unless separately configured.

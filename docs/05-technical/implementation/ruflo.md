@@ -11,7 +11,7 @@ status: stable
 
 ruflo is an MCP-integrated AI development tooling layer for VariScout. It provides semantic codebase search, persistent cross-session memory, hooks intelligence (pattern learning), neural learning (SONA), automated security scanning, and background workers. It is **not** a runtime dependency -- it only runs during development sessions.
 
-**Version**: Pinned to `ruflo@3.5.80` in `.mcp.json` and Claude hook automation in `.claude/settings.json`. Update monthly.
+**Version**: Expected `ruflo@3.5.80`, pinned in `scripts/check-codex-ruflo.sh` and mirrored by Claude hook automation in `.claude/settings.json`. Local `.mcp.json` and Codex MCP registration should match it, but they are verified rather than trusted. Update monthly.
 
 ## Quick Commands
 
@@ -20,7 +20,7 @@ ruflo is an MCP-integrated AI development tooling layer for VariScout. It provid
 npx ruflo@3.5.80 daemon status
 npx ruflo@3.5.80 hooks metrics              # Hook intelligence stats
 
-# Semantic search (117 indexed entries, ~80-100ms response)
+# Semantic search (local AgentDB; check current counts with memory stats)
 npx ruflo@3.5.80 memory search --query "Cpk calculation"
 npx ruflo@3.5.80 memory search --query "Azure authentication"
 npx ruflo@3.5.80 memory search --query "which persona needs admin"
@@ -58,28 +58,18 @@ Claude Code or Codex ──MCP──▶ ruflo MCP Server (npx, port 3000)
 
 ### Config Files
 
-| File                       | Purpose                                            |
-| -------------------------- | -------------------------------------------------- |
-| `.mcp.json`                | MCP server definition (autoStart: true)            |
-| `.ruflo/config.yaml`       | Runtime config (topology, memory backend, workers) |
-| `.ruflo/daemon-state.json` | Worker state and schedules                         |
-| `.claude/settings.json`    | Claude hooks, statusline, permissions, attribution |
-| `AGENTS.md`                | Codex entrypoint for repo workflow                 |
+| File                         | Purpose                                                |
+| ---------------------------- | ------------------------------------------------------ |
+| `scripts/check-codex-ruflo.sh` | Tracked Codex version pin, health check, repair output |
+| `.mcp.json`                  | Local MCP server definition (gitignored)               |
+| `.ruflo/config.yaml`         | Local runtime config (topology, memory backend, workers) |
+| `.ruflo/daemon-state.json`   | Local worker state and schedules                       |
+| `.claude/settings.json`      | Claude hooks, statusline, permissions, attribution     |
+| `AGENTS.md`                  | Codex entrypoint for repo workflow                     |
 
 ### Memory Namespaces
 
-| Namespace             | Entries | Contents                                                                         |
-| --------------------- | ------- | -------------------------------------------------------------------------------- |
-| `domain`              | 51      | Personas (9), use cases (14), flows, methodology, four lenses, two voices        |
-| `architecture`        | 20      | Monorepo structure, storage split, sub-path exports, App Insights, key files     |
-| `decisions`           | 14      | ADR summaries, removed features, Azure architecture, system limits               |
-| `testing`             | 13      | Test counts, patterns, priorities, coverage gaps, e2e selectors                  |
-| `conventions`         | 10      | Coding standards, import rules, color usage, token proxy, component patterns     |
-| `anti-patterns`       | 6       | Common mistakes: no hardcoded colors, no cross-package imports, removed features |
-| `state`               | 2       | Product status, recent changes                                                   |
-| `project_exploration` | 1       | Codebase exploration context                                                     |
-
-Total: 117 entries with HNSW vector embeddings. Semantic search returns results in ~80-100ms.
+Ruflo memory is local and changes over time. Use `mcp__ruflo__memory_stats` for current counts. On 2026-04-25, the Codex MCP baseline in this repo reported hundreds of entries with 100% embedding coverage across these namespaces: `architecture`, `domain`, `conventions`, `testing`, `decisions`, `variscout`, `anti-patterns`, `state`, `components`, `features`, `stats`, `pattern`, `documentation`, `project_exploration`, and `ui`.
 
 ### Memory + MEMORY.md Complementarity
 
@@ -88,11 +78,24 @@ Both systems are used and serve different purposes:
 | Feature           | Agent docs + MEMORY.md               | Ruflo AgentDB                                 |
 | ----------------- | ------------------------------------ | --------------------------------------------- |
 | Always in context | Yes (`AGENTS.md` or `CLAUDE.md`)     | No (explicit retrieval)                       |
-| Capacity          | Small wrapper docs plus local memory | 117 entries (thousands possible)              |
+| Capacity          | Small wrapper docs plus local memory | Local AgentDB entries (hundreds possible)     |
 | Search            | Scanned by AI during context         | Semantic vector search (HNSW)                 |
 | Best for          | High-level project state, routing    | Detailed domain knowledge, semantic discovery |
 
 Use MEMORY.md for "what should I always know." Use ruflo memory for "find me something specific."
+
+### Codex Operational Baseline
+
+The expected Codex health path is:
+
+1. `pnpm codex:ruflo-check` verifies registration, version, and CLI smoke probes.
+2. `mcp__ruflo__mcp_status` confirms an MCP server is running.
+3. `mcp__ruflo__memory_stats` confirms local memory is initialized.
+4. `mcp__ruflo__memory_search` returns domain or architecture context. If it is not initially visible in Codex, search the tool registry for Ruflo memory tools.
+5. `mcp__ruflo__hooks_worker_list` confirms available worker triggers.
+6. `mcp__ruflo__analyze_diff` is useful when available; if it returns a runtime error, fall back to Git diff review and `bash scripts/pr-ready-check.sh`.
+
+After changing Codex MCP registration, restart the Codex session before judging MCP runtime behavior. The current session may keep using the already-started MCP server process.
 
 ### Background Workers
 
@@ -162,6 +165,7 @@ Ensure `.venv/` is in `.gitignore` and `workers.excludePaths` in `.ruflo/config.
 ## What NOT To Do
 
 - **Don't add ruflo to package.json** -- It's dev tooling only, runs via npx
+- **Don't treat local `.mcp.json` as authoritative** -- Codex registration is checked with `pnpm codex:ruflo-check`
 - **Don't commit .ruflo/ data** -- Already gitignored; contains local state
 - **Don't rely on daemon for CI/CD** -- Workers are for local dev intelligence only
 - **Don't store secrets in memory** -- Memory DB is unencrypted local SQLite
