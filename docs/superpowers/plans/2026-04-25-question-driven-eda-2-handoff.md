@@ -93,6 +93,9 @@ Recommended implementation slices:
 - Do not claim mechanisms are confirmed before post-action verification.
 - Keep deterministic logic as authority; CoScout may draft, suggest, and explain.
 - Preserve browser-only processing and existing store/package boundaries.
+- Treat documentation as part of implementation. Each slice should update the
+  affected methodology, product workflow, design-system, ADR/spec, and
+  user-journey docs in the same PR or commit series as the code.
 
 ## Context References
 
