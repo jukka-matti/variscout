@@ -261,6 +261,14 @@ This extraction creates three design-system requirements:
 2. Add Signal/Branch component guidance for chips, cards, gates, and proposals.
 3. Extend accessibility rules from chart fallback tables to alternate
    structured views for graph-like workspaces.
+4. Add QDE 2.0 UI view contracts that preserve concrete view anatomy from the
+   decks while translating it into VariScout's design system.
+
+Design-system outputs:
+
+- [Investigation Workspace Pattern](../../06-design-system/patterns/investigation-workspaces.md)
+- [Signal And Branch Components](../../06-design-system/components/signal-branch-components.md)
+- [QDE 2.0 UI View Contracts](../../06-design-system/patterns/qde2-ui-view-contracts.md)
 
 ## Implementation Plan Inputs
 

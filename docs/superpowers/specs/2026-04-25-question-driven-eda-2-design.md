@@ -579,6 +579,7 @@ Design-system patterns to apply before product UI implementation:
 
 - [Investigation Workspace Pattern](../../06-design-system/patterns/investigation-workspaces.md)
 - [Signal and Branch Components](../../06-design-system/components/signal-branch-components.md)
+- [QDE 2.0 UI View Contracts](../../06-design-system/patterns/qde2-ui-view-contracts.md)
 
 ### Phase 1 — Vocabulary and Current Understanding
 

@@ -101,6 +101,7 @@ Read these before planning:
 - `docs/superpowers/specs/2026-04-25-question-driven-eda-2-design.md`
 - `docs/superpowers/specs/2026-04-25-claude-design-ui-concept-extraction.md`
 - `docs/06-design-system/patterns/investigation-workspaces.md`
+- `docs/06-design-system/patterns/qde2-ui-view-contracts.md`
 - `docs/06-design-system/components/signal-branch-components.md`
 - `docs/01-vision/eda-mental-model.md`
 - `docs/01-vision/references/turtiainen-2019-eda-mental-model.md`

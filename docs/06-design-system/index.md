@@ -81,6 +81,7 @@ See [Colors](./foundations/colors.md) for the complete mapping.
 - [Interactions](./patterns/interactions.md) - Interaction patterns (inline edit, grids, selection cards)
 - [Panels and Drawers](./patterns/panels-and-drawers.md) - Panel decision framework, drawer types, z-index scale
 - [Investigation Workspaces](./patterns/investigation-workspaces.md) - Canvas/list dual rendering for branch, root, signal, and evidence workspaces
+- [QDE 2.0 UI View Contracts](./patterns/qde2-ui-view-contracts.md) - Concrete view anatomy and interaction contracts for QDE 2.0 surfaces
 
 ## Usage
 
