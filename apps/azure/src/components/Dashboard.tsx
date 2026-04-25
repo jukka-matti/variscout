@@ -901,10 +901,24 @@ const Dashboard = ({
                     <DefectSummary {...defectSummaryProps} />
                   ) : histogramData.length > 0 && stats ? (
                     <VerificationCard
-                      renderHistogram={
-                        <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
-                      }
-                      renderProbabilityPlot={<ProbabilityPlot series={probabilitySeries} />}
+                      tabs={[
+                        {
+                          id: 'histogram',
+                          label: 'Histogram',
+                          content: (
+                            <CapabilityHistogram
+                              data={histogramData}
+                              specs={specs}
+                              mean={stats.mean}
+                            />
+                          ),
+                        },
+                        {
+                          id: 'probability-plot',
+                          label: 'Probability Plot',
+                          content: <ProbabilityPlot series={probabilitySeries} />,
+                        },
+                      ]}
                     />
                   ) : undefined
                 }

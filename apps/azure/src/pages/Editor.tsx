@@ -1312,6 +1312,7 @@ export const Editor: React.FC<EditorProps> = ({
                   return (
                     <ImprovementContextPanel
                       problemStatement={processContext?.problemStatement}
+                      currentUnderstanding={processContext?.currentUnderstanding}
                       targetCpk={processContext?.targetValue}
                       currentCpk={stats?.cpk}
                       causes={causeSummaries}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Camera, Link2, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import type { Question, Finding } from '@variscout/core/findings';
+import type { CurrentUnderstanding } from '@variscout/core';
 import type { QuestionStatus } from '@variscout/core/findings';
 import type { BestSubsetResult } from '@variscout/core/stats';
 import type {
@@ -22,6 +23,7 @@ export interface QuestionsTabViewProps {
   questions: Question[];
   findings: Finding[];
   issueStatement?: string;
+  currentUnderstanding?: CurrentUnderstanding | string;
   currentCpk?: number;
   targetCpk?: number;
   phaseBadge?: string;
@@ -87,6 +89,7 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
   questions,
   findings,
   issueStatement,
+  currentUnderstanding,
   currentCpk,
   targetCpk,
   phaseBadge,
@@ -114,6 +117,8 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
 }) => {
   // Ref for the scrollable container — used for scroll-to-factor behavior
   const containerRef = useRef<HTMLDivElement>(null);
+  const currentUnderstandingText =
+    typeof currentUnderstanding === 'string' ? currentUnderstanding : currentUnderstanding?.summary;
 
   // Scroll to and ring-highlight the first question row matching highlightedFactor
   useEffect(() => {
@@ -276,9 +281,24 @@ const QuestionsTabView: React.FC<QuestionsTabViewProps> = ({
           data-testid="issue-statement"
         >
           <div className="text-[0.5625rem] font-semibold text-content-muted uppercase tracking-wide mb-0.5">
-            Issue statement
+            Issue / Concern
           </div>
           <p className="text-xs text-content leading-snug">{issueStatement}</p>
+        </div>
+      )}
+
+      {/* Current understanding */}
+      {currentUnderstandingText && (
+        <div
+          className="mx-2 mt-2 rounded bg-blue-500/5 border-l-2 border-blue-500/40 px-2 py-1.5"
+          data-testid="current-understanding"
+        >
+          <div className="text-[0.5625rem] font-semibold text-content-muted uppercase tracking-wide mb-0.5">
+            Current Understanding
+          </div>
+          <p className="text-xs text-content leading-snug whitespace-pre-wrap">
+            {currentUnderstandingText}
+          </p>
         </div>
       )}
 

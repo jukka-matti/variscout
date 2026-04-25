@@ -62,8 +62,8 @@ vi.mock('@variscout/ui', () => ({
     </select>
   ),
   ProcessHealthBar: () => <div data-testid="process-health-bar">Health Bar</div>,
-  VerificationCard: ({ renderHistogram }: { renderHistogram: React.ReactNode }) => (
-    <div data-testid="verification-card">{renderHistogram}</div>
+  VerificationCard: ({ tabs }: { tabs: Array<{ content: React.ReactNode }> }) => (
+    <div data-testid="verification-card">{tabs[0]?.content}</div>
   ),
   FilterBreadcrumb: () => <div data-testid="filter-breadcrumb">Breadcrumb</div>,
   EditableChartTitle: ({ defaultTitle }: { defaultTitle: string }) => (

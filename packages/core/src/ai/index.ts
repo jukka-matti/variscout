@@ -4,7 +4,11 @@
 
 export type {
   AITier,
+  CurrentUnderstanding,
+  CurrentUnderstandingMechanism,
   ProcessContext,
+  ProblemCondition,
+  ProblemConditionStatus,
   TargetMetric,
   EntryScenario,
   InvestigationPhase,

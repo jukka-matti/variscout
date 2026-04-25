@@ -61,6 +61,7 @@ describe('QuestionChecklist', () => {
       />
     );
     expect(screen.getByTestId('issue-statement')).toBeDefined();
+    expect(screen.getByText('Issue / Concern')).toBeDefined();
     expect(screen.getByDisplayValue('Fill weight too high')).toBeDefined();
   });
 
@@ -78,6 +79,21 @@ describe('QuestionChecklist', () => {
       />
     );
     expect(screen.getByTestId('problem-statement')).toBeDefined();
+    expect(screen.getByText('Approved Problem Statement')).toBeDefined();
     expect(screen.getByText(/Mean fill weight increased/)).toBeDefined();
+  });
+
+  it('renders current understanding when provided', () => {
+    render(
+      <QuestionChecklist
+        questions={[]}
+        currentUnderstanding={{
+          summary:
+            'Issue / concern: Fill weight too high.\nProblem condition: Cpk is 0.87 against target 1.33.',
+        }}
+      />
+    );
+    expect(screen.getByText('Current Understanding')).toBeDefined();
+    expect(screen.getByText(/Cpk is 0.87 against target 1.33/)).toBeDefined();
   });
 });

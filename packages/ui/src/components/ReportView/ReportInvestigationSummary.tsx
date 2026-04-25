@@ -2,8 +2,9 @@
  * ReportInvestigationSummary — Read-only investigation audit trail for reports.
  *
  * Renders the question-driven EDA narrative:
- * - Issue statement (original concern)
- * - Problem statement (refined formulation)
+ * - Issue / Concern (original concern)
+ * - Current Understanding (refined live synthesis)
+ * - Approved Problem Statement (accepted formulation)
  * - Suspected causes with evidence
  * - Negative learnings (ruled-out factors)
  *
@@ -11,6 +12,7 @@
  */
 
 import React from 'react';
+import type { CurrentUnderstanding } from '@variscout/core';
 
 // ============================================================================
 // Types
@@ -30,9 +32,11 @@ interface RuledOutFactor {
 }
 
 export interface ReportInvestigationSummaryProps {
-  /** Original issue statement */
+  /** Original issue / concern */
   issueStatement?: string;
-  /** Formulated problem statement */
+  /** Stable current understanding summary */
+  currentUnderstanding?: CurrentUnderstanding | string;
+  /** Approved problem statement */
   problemStatement?: string;
   /** Suspected causes from investigation */
   suspectedCauses?: SuspectedCause[];
@@ -70,12 +74,16 @@ function renderEvidence(evidence?: { rSquaredAdj?: number; etaSquared?: number }
 
 export const ReportInvestigationSummary: React.FC<ReportInvestigationSummaryProps> = ({
   issueStatement,
+  currentUnderstanding,
   problemStatement,
   suspectedCauses,
   ruledOut,
 }) => {
+  const currentUnderstandingText =
+    typeof currentUnderstanding === 'string' ? currentUnderstanding : currentUnderstanding?.summary;
   const hasContent =
     issueStatement ||
+    currentUnderstandingText ||
     problemStatement ||
     (suspectedCauses && suspectedCauses.length > 0) ||
     (ruledOut && ruledOut.length > 0);
@@ -84,21 +92,33 @@ export const ReportInvestigationSummary: React.FC<ReportInvestigationSummaryProp
 
   return (
     <div data-testid="report-investigation-summary" className="space-y-4">
-      {/* Issue Statement */}
+      {/* Issue / Concern */}
       {issueStatement && (
         <div className="rounded-lg border border-edge bg-surface-elevated p-4">
           <p className="text-xs font-medium text-content-muted uppercase tracking-wider mb-2">
-            Issue Statement
+            Issue / Concern
           </p>
           <p className="text-sm text-content leading-relaxed">{issueStatement}</p>
         </div>
       )}
 
-      {/* Problem Statement */}
+      {/* Current Understanding */}
+      {currentUnderstandingText && (
+        <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
+          <p className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2">
+            Current Understanding
+          </p>
+          <p className="text-sm text-content leading-relaxed whitespace-pre-wrap">
+            {currentUnderstandingText}
+          </p>
+        </div>
+      )}
+
+      {/* Approved Problem Statement */}
       {problemStatement && (
         <div className="rounded-lg border border-green-500/20 bg-green-500/5 p-4">
           <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider mb-2">
-            Problem Statement
+            Approved Problem Statement
           </p>
           <p className="text-sm text-content leading-relaxed">{problemStatement}</p>
         </div>

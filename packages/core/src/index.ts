@@ -385,7 +385,11 @@ export { hasExifData, stripExifSegments, stripExifFromBlob } from './utils/exifS
 
 // AI (Phase 1)
 export type {
+  CurrentUnderstanding,
+  CurrentUnderstandingMechanism,
   ProcessContext,
+  ProblemCondition,
+  ProblemConditionStatus,
   TargetMetric,
   EntryScenario,
   InvestigationPhase,
@@ -418,6 +422,14 @@ export {
   narrationResponseSchema,
   chartInsightResponseSchema,
 } from './ai';
+
+// Process understanding vocabulary helpers
+export {
+  buildCurrentUnderstanding,
+  buildProblemCondition,
+  type BuildCurrentUnderstandingInput,
+  type BuildProblemConditionInput,
+} from './processUnderstanding';
 
 // AI (Action Tools — ADR-029)
 export type {

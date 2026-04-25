@@ -84,6 +84,7 @@ describe('InvestigationConclusion', () => {
       />
     );
     expect(screen.getByTestId('problem-statement')).toBeDefined();
+    expect(screen.getByText('Approved Problem Statement')).toBeDefined();
     expect(screen.getByText('Mean fill weight increased 3g since January')).toBeDefined();
   });
 
