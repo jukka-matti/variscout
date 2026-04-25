@@ -11,6 +11,7 @@ related:
     frame-process-map,
     process-flow,
     yamazumi,
+    process-hub,
     capability,
     rational-subgroups,
     measurement-trust,
@@ -67,6 +68,38 @@ issue -> current understanding -> problem condition -> mechanism branches -> nex
 ```
 
 The thesis model already defines the EDA loop. The product should make it visible without exposing the internal data model.
+
+## Relationship To Process Hub
+
+This spec defines the investigation language that Process Hub consumes. Process
+Hub is the organizational home for a production line, service queue, value
+stream, or business process. QDE 2.0 explains what each investigation inside
+that hub is learning.
+
+The dependency runs in this order:
+
+```text
+Process Hub = where the team's improvement work lives
+QDE 2.0 = how each investigation builds process understanding
+```
+
+Process Hub should roll up QDE 2.0 artifacts:
+
+- **Issue / Concern** becomes the investigation seed shown in the hub.
+- **Current Understanding** becomes the hub card summary for active work.
+- **Problem Condition** becomes the measurable gap the process owner can scan.
+- **Mechanism Branches** explain why actions are being considered.
+- **Next Move** tells the team what happens next.
+- **Verification and control handoff** show whether changes worked and what
+  should be sustained.
+
+Implementation sequencing is important: **QDE 2.0 Phase 1 should land before
+Process Hub product code**. Otherwise the hub would be built around the older
+project/finding/problem-statement vocabulary and would need to be reworked when
+Current Understanding and Problem Condition become first-class concepts.
+
+See [Process Hub](2026-04-25-process-hub-design.md) for the organizational
+container design.
 
 ## Relationship To Process Flow + Yamazumi
 
@@ -618,6 +651,7 @@ Design-system patterns to apply before product UI implementation:
 - Add Current Understanding as the live summary across SCOUT and INVESTIGATE.
 - Keep existing data model as much as possible.
 - Make Problem Statement an approved output, not an upfront required form.
+- Treat this as the prerequisite for Process Hub MVP implementation.
 
 ### Phase 2 — Branch-Based Investigation UI
 

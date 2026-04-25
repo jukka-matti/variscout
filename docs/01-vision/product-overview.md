@@ -13,6 +13,8 @@ status: stable
 
 We deliberately chose investigation depth over statistical breadth. Instead of competing with Minitab on test coverage, we built the investigation methodology (Turtiainen 2019) into the product: FRAME → SCOUT → INVESTIGATE → IMPROVE → REPORT as workspace tabs, question-driven EDA as the core workflow, and three evidence types (data, gemba, expert) as the investigation backbone.
 
+The near-term strategic direction adds **Process Hub** as the organizational context around that methodology. A Process Hub represents the production line, service queue, value stream, or business process being improved. Investigations inside the hub can be Quick, Focused, or Chartered, but they still use the same VariScout spine. This makes VariScout a structured improvement layer for teams working inside existing ERP, MES, QMS, CRM, or business-process systems, not a replacement for those systems.
+
 ---
 
 ## What We Built

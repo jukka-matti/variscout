@@ -12,6 +12,8 @@ The Project Dashboard is a persistent overview screen shown when a user reopens 
 
 > Azure-only feature. PWA has no project persistence and no dashboard.
 
+> Future direction: Process Hub is planned as the higher-level home above individual project dashboards. The Project Dashboard remains the current shipped single-investigation overview; Process Hub will roll up multiple investigations, actions, verification gaps, and control handoffs for one process or work system. See [Process Hub](../../superpowers/specs/2026-04-25-process-hub-design.md).
+
 ---
 
 ## What the dashboard shows
