@@ -21,7 +21,7 @@ export interface InvestigationConclusionProps {
   ruledOut: Question[];
   /** Questions marked as contributing */
   contributing: Question[];
-  /** Synthesized problem statement */
+  /** Approved problem statement */
   problemStatement?: string;
   /** Whether the investigation has enough evidence for conclusions */
   hasConclusions: boolean;
@@ -308,11 +308,11 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
         </div>
       )}
 
-      {/* Problem Statement — three states: accepted, draft editing, or generate button */}
+      {/* Problem Statement — three states: approved, draft editing, or generate button */}
       {problemStatement && !problemStatementDraft && (
         <div className="border-l-2 border-green-500 pl-2.5 py-1.5" data-testid="problem-statement">
           <div className="text-[0.5625rem] uppercase tracking-wider text-content-muted font-medium mb-0.5">
-            Problem Statement
+            Approved Problem Statement
           </div>
           <p className="text-[0.6875rem] leading-relaxed text-content-secondary">
             {problemStatement}

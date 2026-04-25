@@ -48,12 +48,29 @@ describe('QuestionsTabView — issue statement', () => {
       />
     );
     expect(screen.getByTestId('issue-statement')).toBeDefined();
+    expect(screen.getByText('Issue / Concern')).toBeDefined();
     expect(screen.getByText('Cpk below 1.33 on Line 3 since Feb')).toBeDefined();
   });
 
   it('does not render issue statement when absent', () => {
     render(<QuestionsTabView questions={[]} findings={[]} />);
     expect(screen.queryByTestId('issue-statement')).toBeNull();
+  });
+
+  it('renders current understanding when provided', () => {
+    render(
+      <QuestionsTabView
+        questions={[]}
+        findings={[]}
+        currentUnderstanding={{
+          summary:
+            'Issue / concern: Cpk below target.\nProblem condition: Cpk is 0.87 against target 1.33.',
+        }}
+      />
+    );
+    expect(screen.getByTestId('current-understanding')).toBeDefined();
+    expect(screen.getByText('Current Understanding')).toBeDefined();
+    expect(screen.getByText(/Cpk is 0.87 against target 1.33/)).toBeDefined();
   });
 });
 

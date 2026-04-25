@@ -684,6 +684,56 @@ describe('ADR-060 Pillar 1', () => {
       expect(ctx.investigation).toBeDefined();
       expect(ctx.investigation?.problemStatement?.fullText).toBe('Measure X is drifting');
     });
+
+    it('includes current understanding and problem condition while preserving legacy fields', () => {
+      const problemCondition = {
+        metric: 'cpk' as const,
+        currentValue: 0.87,
+        targetValue: 1.33,
+        targetDirection: 'maximize' as const,
+        status: 'below-target' as const,
+        summary: 'Cpk is 0.87 against target 1.33.',
+      };
+      const currentUnderstanding = {
+        summary:
+          'Issue / concern: Fill weight is too high.\nProblem condition: Cpk is 0.87 against target 1.33.',
+        issueConcern: 'Fill weight is too high.',
+        problemCondition,
+      };
+
+      const ctx = buildAIContext({
+        process: {
+          issueStatement: 'Fill weight is too high.',
+          problemStatement: 'Mean fill weight is high on Line 3 night shift.',
+          problemCondition,
+          currentUnderstanding,
+        },
+      });
+
+      expect(ctx.investigation?.issueStatement).toBe('Fill weight is too high.');
+      expect(ctx.investigation?.problemStatement?.fullText).toBe(
+        'Mean fill weight is high on Line 3 night shift.'
+      );
+      expect(ctx.investigation?.problemCondition).toEqual(problemCondition);
+      expect(ctx.investigation?.currentUnderstanding).toEqual(currentUnderstanding);
+    });
+
+    it('creates investigation context when only problem condition is present', () => {
+      const problemCondition = {
+        metric: 'yield' as const,
+        currentValue: 92,
+        targetValue: 98,
+        targetDirection: 'maximize' as const,
+        status: 'below-target' as const,
+        summary: 'Yield is 92 against target 98.',
+      };
+
+      const ctx = buildAIContext({
+        process: { problemCondition },
+      });
+
+      expect(ctx.investigation?.problemCondition).toEqual(problemCondition);
+    });
   });
 
   // Task 3: topFindings

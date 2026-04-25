@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Check, ChevronDown, ChevronRight, X } from 'lucide-react';
-import type { Question } from '@variscout/core';
+import type { CurrentUnderstanding, Question } from '@variscout/core';
 import { computeCoverage } from '@variscout/core/stats';
 
 export interface QuestionChecklistProps {
@@ -22,6 +22,8 @@ export interface QuestionChecklistProps {
   onDismissSuggestion?: () => void;
   /** Formulated problem statement (shown when enough questions answered) */
   problemStatement?: string;
+  /** Stable summary of the current investigation understanding */
+  currentUnderstanding?: CurrentUnderstanding | string;
   /** Whether the problem statement is complete (Watson's 3 questions answered) */
   isProblemStatementComplete?: boolean;
   /** Mode-specific evidence label (e.g., "R²adj", "Cpk impact", "Waste %") */
@@ -63,6 +65,7 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
   onAcceptSuggestion,
   onDismissSuggestion,
   problemStatement,
+  currentUnderstanding,
   isProblemStatementComplete,
   evidenceLabel,
   highlightedFactor,
@@ -72,6 +75,9 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
   const [localIssue, setLocalIssue] = useState(issueStatement ?? '');
   const [nextHighlightCleared, setNextHighlightCleared] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const currentUnderstandingText =
+    typeof currentUnderstanding === 'string' ? currentUnderstanding : currentUnderstanding?.summary;
+  const isApprovedProblemStatementComplete = isProblemStatementComplete ?? true;
 
   // Reset dismissed state when a new suggestion arrives
   useEffect(() => {
@@ -167,11 +173,11 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
 
   return (
     <div ref={listRef} className="space-y-3">
-      {/* Issue Statement */}
+      {/* Issue / Concern */}
       {onIssueStatementChange && (
         <div>
           <div className="text-[0.625rem] uppercase tracking-wider text-content-muted font-medium mb-1">
-            Issue Statement
+            Issue / Concern
           </div>
           <textarea
             ref={textareaRef}
@@ -220,6 +226,21 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Current Understanding */}
+      {currentUnderstandingText && (
+        <div
+          className="border-l-2 border-blue-500/40 bg-blue-500/5 rounded-r-lg px-2.5 py-2"
+          data-testid="current-understanding"
+        >
+          <div className="text-[0.625rem] uppercase tracking-wider text-content font-bold mb-1">
+            Current Understanding
+          </div>
+          <p className="text-[0.6875rem] leading-relaxed text-content-secondary whitespace-pre-wrap">
+            {currentUnderstandingText}
+          </p>
         </div>
       )}
 
@@ -310,11 +331,11 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
         </p>
       )}
 
-      {/* Problem Statement */}
+      {/* Approved Problem Statement */}
       {problemStatement && (
         <div
           className={`border-l-2 rounded-r-lg px-2.5 py-2 ${
-            isProblemStatementComplete
+            isApprovedProblemStatementComplete
               ? 'border-green-500/40 bg-green-500/5'
               : 'border-amber-500/30 bg-amber-500/5'
           }`}
@@ -322,9 +343,9 @@ const QuestionChecklist: React.FC<QuestionChecklistProps> = ({
         >
           <div className="flex items-center gap-1.5 mb-1">
             <span className="text-[0.625rem] uppercase tracking-wider text-content font-bold">
-              Problem Statement
+              Approved Problem Statement
             </span>
-            {isProblemStatementComplete ? (
+            {isApprovedProblemStatementComplete ? (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 text-[0.5625rem] font-medium">
                 <Check size={8} />
                 Complete

@@ -49,7 +49,7 @@ export interface QuestionsTabContentProps {
  *
  * Reads from stores:
  * - questions, findings, suspectedCauses from useInvestigationStore
- * - processContext (issueStatement), cpkTarget from useProjectStore
+ * - processContext (issueStatement/currentUnderstanding), cpkTarget from useProjectStore
  * - currentCpk via useAnalysisStats()
  *
  * Computes hub evidences/projections via useHubComputations (shared hook from Task 1).
@@ -82,6 +82,7 @@ const QuestionsTabContent: React.FC<QuestionsTabContentProps> = ({
 
   // Extract issue statement from process context
   const issueStatement = processContext?.issueStatement;
+  const currentUnderstanding = processContext?.currentUnderstanding;
 
   // Current process Cpk from stats hook
   const { stats } = useAnalysisStats();
@@ -106,6 +107,7 @@ const QuestionsTabContent: React.FC<QuestionsTabContentProps> = ({
       questions={questions}
       findings={findings}
       issueStatement={issueStatement}
+      currentUnderstanding={currentUnderstanding}
       currentCpk={currentCpk}
       targetCpk={cpkTarget}
       phaseBadge={phaseBadge}

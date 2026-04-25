@@ -130,6 +130,7 @@ function AppMain() {
   const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
   const displayOptions = useProjectStore(s => s.displayOptions);
   const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const processContext = useProjectStore(s => s.processContext);
   const defectMapping = useProjectStore(s => s.defectMapping);
 
   // Investigation store (domain — questions)
@@ -721,6 +722,7 @@ function AppMain() {
                   <QuestionsTabView
                     questions={factorIntelQuestions}
                     findings={findingsState.findings}
+                    currentUnderstanding={processContext?.currentUnderstanding}
                     onQuestionClick={handleQuestionClick}
                     evidenceLabel={getStrategy(resolved).questionStrategy.evidenceLabel}
                   />

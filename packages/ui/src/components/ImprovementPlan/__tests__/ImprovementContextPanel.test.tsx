@@ -41,6 +41,7 @@ const defaultProps: ImprovementContextPanelProps = {
   targetCpk: 1.33,
   currentCpk: 0.87,
   causes: sampleCauses,
+  currentUnderstanding: 'Problem condition: Cpk is 0.87 against target 1.33.',
   synthesis: 'Focus improvement efforts on Machine Type and Shift scheduling.',
 };
 
@@ -50,17 +51,26 @@ describe('ImprovementContextPanel', () => {
     expect(screen.getByTestId('improvement-context-panel')).toBeTruthy();
   });
 
-  describe('Problem Statement section', () => {
-    it('renders the problem statement text', () => {
+  describe('Approved Problem Statement section', () => {
+    it('renders the approved problem statement text', () => {
       render(<ImprovementContextPanel {...defaultProps} />);
       const el = screen.getByTestId('context-problem-statement');
       expect(el.textContent).toBe(defaultProps.problemStatement);
+      expect(screen.getByText('Approved Problem Statement')).toBeTruthy();
     });
 
-    it('renders a placeholder when problem statement is absent', () => {
+    it('renders a placeholder when approved problem statement is absent', () => {
       render(<ImprovementContextPanel {...defaultProps} problemStatement={undefined} />);
       const section = screen.getByTestId('context-problem-statement-section');
-      expect(section.textContent).toContain('No problem statement');
+      expect(section.textContent).toContain('No approved problem statement');
+    });
+  });
+
+  describe('Current Understanding section', () => {
+    it('renders the current understanding text', () => {
+      render(<ImprovementContextPanel {...defaultProps} />);
+      const el = screen.getByTestId('context-current-understanding');
+      expect(el.textContent).toBe(defaultProps.currentUnderstanding);
     });
   });
 

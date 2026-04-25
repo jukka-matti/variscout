@@ -37,7 +37,13 @@ export function buildReportPrompt(
     parts.push(`## Process\n${context.process.description}`);
   }
   if (context.process?.issueStatement) {
-    parts.push(`## Issue Statement\n${context.process.issueStatement}`);
+    parts.push(`## Issue / Concern\n${context.process.issueStatement}`);
+  }
+  if (context.process?.currentUnderstanding?.summary) {
+    parts.push(`## Current Understanding\n${context.process.currentUnderstanding.summary}`);
+  }
+  if (context.process?.problemStatement) {
+    parts.push(`## Approved Problem Statement\n${context.process.problemStatement}`);
   }
 
   // Stats
@@ -83,7 +89,7 @@ export function buildReportPrompt(
   parts.push(`Generate a quality engineering report with these sections:
 1. Executive Summary (2-3 sentences)
 2. Key Findings (bullet points)
-3. Root Causes (from questions)
+3. Contributing Factors (from questions)
 4. Actions Taken (from action items)
 5. Outcomes (effectiveness)
 6. Recommendations (next steps)`);

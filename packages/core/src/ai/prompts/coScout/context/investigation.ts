@@ -15,6 +15,7 @@ export const EVIDENCE_SUFFICIENCY_THRESHOLD = 0.25;
  * Format investigation context into a human-readable text block for CoScout.
  *
  * Includes:
+ * - Current understanding / problem condition
  * - Problem statement with stage
  * - Question tree summary (counts by status, top 3 by priority)
  * - Suspected cause hubs (ONLY hub entities, not legacy causeRole)
@@ -40,6 +41,12 @@ export function formatInvestigationContext(
     if (investigation.transitionReason) {
       lines.push(investigation.transitionReason);
     }
+  }
+
+  if (investigation.currentUnderstanding?.summary) {
+    lines.push(`Current understanding:\n${investigation.currentUnderstanding.summary}`);
+  } else if (investigation.problemCondition?.summary) {
+    lines.push(`Problem condition: ${investigation.problemCondition.summary}`);
   }
 
   // Problem statement with stage
