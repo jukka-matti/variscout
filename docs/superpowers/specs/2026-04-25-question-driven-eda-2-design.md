@@ -68,6 +68,26 @@ issue -> current understanding -> problem condition -> mechanism branches -> nex
 
 The thesis model already defines the EDA loop. The product should make it visible without exposing the internal data model.
 
+## Relationship To Process Flow + Yamazumi
+
+This spec depends on the companion design
+[Process Flow + Yamazumi Integration](2026-04-25-process-flow-yamazumi-integration-design.md).
+
+That spec defines the lean-flow level-of-detail workflow:
+
+```text
+Process Flow locates the constraint -> Yamazumi explains waste inside the selected step
+```
+
+QDE 2.0 defines how that workflow becomes part of the investigation loop:
+
+1. Process Flow can create a clue that identifies the station, wait, or lead-time pattern worth investigating.
+2. The branch next move can ask for scoped-step Yamazumi data instead of requiring full-line coverage.
+3. Yamazumi can create clues about work, wait, waste, VA ratio, takt gap, and improvement opportunity.
+4. The Mechanism Branch carries both levels together as one process-understanding thread.
+
+In other words: the Process Flow + Yamazumi spec defines the instrument behavior; this spec defines how those instruments feed Current Understanding, branches, and next moves.
+
 ## Methodology Update
 
 ### Existing Thesis Loop
@@ -550,6 +570,8 @@ Required guardrails:
 - Use "suspected mechanism" / "branch" / "contribution" language, not causal certainty.
 
 ## Phasing
+
+Session continuation note: [Question-Driven EDA 2.0 — Session Handoff](../plans/2026-04-25-question-driven-eda-2-handoff.md).
 
 ### Phase 1 — Vocabulary and Current Understanding
 

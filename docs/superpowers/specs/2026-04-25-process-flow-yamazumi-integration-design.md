@@ -50,6 +50,11 @@ This spec makes the connection explicit and grounds the Finlandia "discovered pr
 - INVESTIGATE converts flow and waste evidence into questions, findings, and SuspectedCause hubs.
 - IMPROVE runs kaizen/PDCA and verifies with lean metrics.
 
+The investigation behavior is specified further in
+[Question-Driven EDA 2.0](2026-04-25-question-driven-eda-2-design.md):
+Process Flow and Yamazumi outputs should become clues and next moves inside
+Mechanism Branches, not isolated chart-mode artifacts.
+
 ## Design Principle
 
 VariScout should not require perfect full-process data upfront.
