@@ -46,7 +46,13 @@ import {
   useTranslation,
   useHMWPrompts,
 } from '@variscout/hooks';
-import { hasTeamFeatures, downloadCSV, computeBestSubsets, getColumnNames } from '@variscout/core';
+import {
+  DEFAULT_PROCESS_HUB_ID,
+  hasTeamFeatures,
+  downloadCSV,
+  computeBestSubsets,
+  getColumnNames,
+} from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
@@ -57,6 +63,10 @@ import type {
   Question,
   InvestigationCategory,
   IdeaDirection,
+  InvestigationDepth,
+  InvestigationStatus,
+  ProcessContext,
+  ProcessHub,
 } from '@variscout/core';
 import type { BrainstormIdea } from '@variscout/core/findings';
 import { Check } from 'lucide-react';
@@ -93,6 +103,19 @@ import { useAIStore } from '../features/ai/aiStore';
 const WhatIfPage = lazy(() => import('../components/WhatIfPage'));
 const ReportView = lazy(() => import('../components/views/ReportView'));
 
+const INVESTIGATION_DEPTHS: InvestigationDepth[] = ['quick', 'focused', 'chartered'];
+const INVESTIGATION_STATUSES: InvestigationStatus[] = [
+  'issue-captured',
+  'framing',
+  'scouting',
+  'investigating',
+  'ready-to-improve',
+  'improving',
+  'verifying',
+  'resolved',
+  'controlled',
+];
+
 /** Derive a clean project name from a data filename */
 function cleanProjectName(filename: string | null): string {
   if (!filename || filename === 'Pasted Data') {
@@ -105,6 +128,125 @@ function cleanProjectName(filename: string | null): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+function participantFromText(value: string): { displayName: string } | undefined {
+  const trimmed = value.trim();
+  return trimmed ? { displayName: trimmed } : undefined;
+}
+
+function formatStatusLabel(value: string): string {
+  return value.replace(/-/g, ' ');
+}
+
+interface InvestigationMetadataPanelProps {
+  processContext: ProcessContext | undefined;
+  processHubs: ProcessHub[];
+  onChange: (context: ProcessContext) => void;
+}
+
+const InvestigationMetadataPanel: React.FC<InvestigationMetadataPanelProps> = ({
+  processContext,
+  processHubs,
+  onChange,
+}) => {
+  const context = processContext ?? {};
+  const update = (patch: Partial<ProcessContext>) => onChange({ ...context, ...patch });
+
+  return (
+    <div className="mx-2 mb-2 rounded-lg border border-edge bg-surface-secondary/70 p-3">
+      <div className="grid gap-3 lg:grid-cols-6">
+        <label className="text-xs text-content-secondary">
+          <span className="mb-1 block">Process Hub</span>
+          <select
+            value={context.processHubId ?? DEFAULT_PROCESS_HUB_ID}
+            onChange={event => update({ processHubId: event.target.value })}
+            className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
+          >
+            {processHubs.map(hub => (
+              <option key={hub.id} value={hub.id}>
+                {hub.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs text-content-secondary">
+          <span className="mb-1 block">Depth</span>
+          <select
+            value={context.investigationDepth ?? 'quick'}
+            onChange={event =>
+              update({ investigationDepth: event.target.value as InvestigationDepth })
+            }
+            className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
+          >
+            {INVESTIGATION_DEPTHS.map(depth => (
+              <option key={depth} value={depth}>
+                {depth}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs text-content-secondary">
+          <span className="mb-1 block">Status</span>
+          <select
+            value={context.investigationStatus ?? 'scouting'}
+            onChange={event =>
+              update({ investigationStatus: event.target.value as InvestigationStatus })
+            }
+            className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
+          >
+            {INVESTIGATION_STATUSES.map(status => (
+              <option key={status} value={status}>
+                {formatStatusLabel(status)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs text-content-secondary">
+          <span className="mb-1 block">Owner</span>
+          <input
+            value={context.investigationOwner?.displayName ?? ''}
+            onChange={event =>
+              update({ investigationOwner: participantFromText(event.target.value) })
+            }
+            className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
+          />
+        </label>
+        <label className="text-xs text-content-secondary">
+          <span className="mb-1 block">Sponsor</span>
+          <input
+            value={context.sponsor?.displayName ?? ''}
+            onChange={event => update({ sponsor: participantFromText(event.target.value) })}
+            className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
+          />
+        </label>
+        <label className="text-xs text-content-secondary">
+          <span className="mb-1 block">Contributors</span>
+          <input
+            value={context.contributors?.map(c => c.displayName).join(', ') ?? ''}
+            onChange={event =>
+              update({
+                contributors: event.target.value
+                  .split(',')
+                  .map(name => name.trim())
+                  .filter(Boolean)
+                  .map(displayName => ({ displayName })),
+              })
+            }
+            className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
+          />
+        </label>
+      </div>
+      <label className="mt-3 block text-xs text-content-secondary">
+        <span className="mb-1 block">Next Move</span>
+        <input
+          value={context.nextMove ?? ''}
+          onChange={event => update({ nextMove: event.target.value })}
+          className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
+        />
+      </label>
+    </div>
+  );
+};
 
 interface EditorProps {
   projectId: string | null;
@@ -121,6 +263,8 @@ interface EditorProps {
   initialMode?: string;
   /** Sample dataset to load immediately (from portfolio "Try a Sample") */
   initialSample?: SampleDataset | null;
+  /** Process Hub to assign when starting a new investigation from the hub home */
+  initialProcessHubId?: string;
 }
 
 export const Editor: React.FC<EditorProps> = ({
@@ -132,8 +276,9 @@ export const Editor: React.FC<EditorProps> = ({
   initialQuestionId,
   initialMode,
   initialSample,
+  initialProcessHubId,
 }) => {
-  const { syncStatus, listProjects, saveProject: saveToCloud } = useStorage();
+  const { syncStatus, listProjects, listProcessHubs, saveProject: saveToCloud } = useStorage();
   const { locale } = useLocale();
   const { showToast } = useToast();
 
@@ -252,11 +397,23 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Mobile tab bar state (phone only)
   const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('analysis');
+  const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
 
   // Reset mobile tab when data is cleared
   useEffect(() => {
     if (rawData.length === 0) setMobileActiveTab('analysis');
   }, [rawData.length]);
+
+  useEffect(() => {
+    listProcessHubs()
+      .then(setProcessHubs)
+      .catch(() => setProcessHubs([]));
+  }, [listProcessHubs]);
+
+  useEffect(() => {
+    if (!initialProcessHubId || projectId || processContext?.processHubId) return;
+    setProcessContext({ ...(processContext ?? {}), processHubId: initialProcessHubId });
+  }, [initialProcessHubId, processContext, projectId, setProcessContext]);
 
   // Report view state changes for persistence (merge partial updates)
   // Use ref for viewState to avoid circular dep: handleViewStateChange → viewState → usePanelsPersistence → handleViewStateChange
@@ -1191,6 +1348,12 @@ export const Editor: React.FC<EditorProps> = ({
           {dataFlow.appendFeedback}
         </div>
       )}
+
+      <InvestigationMetadataPanel
+        processContext={processContext}
+        processHubs={processHubs}
+        onChange={setProcessContext}
+      />
 
       {/* Main Content -- inert when phone overlay is open (F-18 focus trap) */}
       <div

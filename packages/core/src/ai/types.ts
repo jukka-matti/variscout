@@ -6,6 +6,7 @@ import type { InsightChartType } from './chartInsights';
 import type { Locale } from '../i18n/types';
 import type { AnalysisMode } from '../types';
 import type { ProcessMap } from '../frame/types';
+import type { InvestigationDepth, InvestigationStatus, ProcessParticipantRef } from '../processHub';
 
 /** AI model tier — maps to ARM deployment names ('fast' or 'reasoning') */
 export type AITier = 'fast' | 'reasoning';
@@ -83,6 +84,22 @@ export type JourneyPhase = 'frame' | 'scout' | 'investigate' | 'improve';
 
 /** Process context provided by the user for AI grounding */
 export interface ProcessContext {
+  /** Durable process context that owns this investigation */
+  processHubId?: string;
+  /** Investigation depth inside the Process Hub */
+  investigationDepth?: InvestigationDepth;
+  /** Process Hub status for this investigation */
+  investigationStatus?: InvestigationStatus;
+  /** Person accountable for the process/work-system health */
+  processOwner?: ProcessParticipantRef;
+  /** Person driving this investigation day to day */
+  investigationOwner?: ProcessParticipantRef;
+  /** Sponsor/accountable stakeholder for larger work */
+  sponsor?: ProcessParticipantRef;
+  /** People contributing process knowledge, observations, checks, or actions */
+  contributors?: ProcessParticipantRef[];
+  /** Process Hub next move summary */
+  nextMove?: string;
   /** Free-text description of the process (max 500 chars) */
   description?: string;
   /** Product or part being measured */

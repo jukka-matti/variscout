@@ -3,6 +3,7 @@
 // No Azure SDK on the client — all operations use REST API with SAS tokens.
 
 import type { ProjectMetadata } from '@variscout/core';
+import type { ProcessHub } from '@variscout/core';
 import type { Project } from './localDb';
 
 // ── Helpers ───────────────────────────────────────────────────────────
@@ -218,6 +219,44 @@ export async function updateBlobIndex(projects: BlobProjectMetadata[]): Promise<
 
   if (!res.ok) {
     throw new Error(`${res.status} Failed to update blob index`);
+  }
+}
+
+/**
+ * List Process Hubs from the central catalog blob.
+ * Returns empty array if the catalog doesn't exist yet.
+ */
+export async function listBlobProcessHubs(): Promise<ProcessHub[]> {
+  const sasUrl = await getSasToken();
+  const url = blobUrl(sasUrl, '_process_hubs.json');
+
+  const res = await fetch(url);
+  if (res.status === 404) return [];
+  if (!res.ok) {
+    throw new Error(`${res.status} Failed to list process hub catalog`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Update the central Process Hub catalog blob.
+ */
+export async function updateBlobProcessHubs(hubs: ProcessHub[]): Promise<void> {
+  const sasUrl = await getSasToken();
+  const url = blobUrl(sasUrl, '_process_hubs.json');
+
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'x-ms-blob-type': 'BlockBlob',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(hubs),
+  });
+
+  if (!res.ok) {
+    throw new Error(`${res.status} Failed to update process hub catalog`);
   }
 }
 

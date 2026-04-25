@@ -21,11 +21,11 @@ date: 2026-04-25
 ## Summary
 
 VariScout should move from a project-first entry model to a **Process Hub first**
-model. A Process Hub is the organizational home for one process, production line,
-cell, queue, value stream, or business flow. It gives the process owner and the
-improvement team one place to see what is being investigated, what is being
-changed, who owns the work, what is waiting for verification, and what learning
-needs to be sustained.
+model. A Process Hub is the durable organizational home for one process,
+production line, cell, queue, value stream, development flow, lab flow, or
+business workflow. It gives the process owner and improvement team one place to
+see what is being investigated, what is being changed, who owns the work, what
+is waiting for verification, and what learning needs to be sustained.
 
 The internal architecture concept can be `WorkSystem`, but the user-facing name
 is **Process Hub**.
@@ -68,7 +68,8 @@ learning, action, verification, and sustainment handoff.
 
 ### Process Hub
 
-A Process Hub represents the organizational asset being improved:
+A Process Hub represents the recurring operational or development context being
+improved, not an individual improvement project:
 
 - Line 4 sachet filling
 - Claims queue
@@ -76,6 +77,7 @@ A Process Hub represents the organizational asset being improved:
 - Supplier intake
 - Station 3 assembly cell
 - Outpatient waiting-time process
+- API release quality flow
 
 Each hub has a process owner or accountable role. Different investigations
 inside the hub can be led by different people.
@@ -94,6 +96,31 @@ it uses one method with different depth:
 Depth is progressive. A Quick investigation can become Focused. A Focused
 investigation can become Chartered when the scope, risk, or organizational
 impact grows.
+
+### Improvement Project / Chartered Work
+
+A formal improvement project is optional and secondary to the Process Hub. A
+Green Belt, Black Belt, OpEx lead, or development-organization engineer may run
+chartered work that:
+
+- lives inside one Process Hub,
+- touches several Process Hubs, or
+- compares the same mechanism across multiple lines, queues, or flows.
+
+The MVP stores one primary `processHubId` per investigation. Cross-hub programs
+or formal project wrappers are deferred, but the model should not block future
+`relatedProcessHubIds` or `improvementProgramId` concepts.
+
+### Multi-Hub Users
+
+The Process Hub home should support both single-hub and multi-hub users:
+
+- A process owner or team leader may mostly live in one hub.
+- A quality engineer may own investigations across a small set of hubs.
+- A Green Belt, Black Belt, OpEx lead, or development-org engineer may scan many
+  hubs to find leverage, blocked work, verification gaps, or charter candidates.
+- A sponsor or manager may only need status, owner, Problem Condition, and next
+  decision points across selected hubs.
 
 ### Ownership
 
@@ -132,12 +159,15 @@ Status can be derived where possible from existing findings, questions, hubs,
 actions, and outcomes. It should only be stored directly when the derived state
 is not expressive enough for portfolio or hub rollups.
 
-## Process Hub Dashboard
+## Process Hub Home
 
-The Process Hub dashboard is for the process owner, team leader, and
-improvement team. It should show:
+The Azure home should become hub-first. It is not merely a saved-project
+portfolio; it is the operating view over accessible Process Hubs and the active
+investigations inside them. It is for the process owner, team leader, GB/BB,
+OpEx lead, quality engineer, and sponsor. It should show:
 
-- Active investigations, grouped by depth and status.
+- Accessible Process Hubs before individual investigations.
+- Active investigations, grouped by hub, depth, and status.
 - Current Understanding and Next Move for each active investigation.
 - Owners, contributors, and due items.
 - Open actions across all investigations for the process.
@@ -214,7 +244,7 @@ project/finding-centered language and need rework.
 - Add investigation metadata: `processHubId`, depth, owner, sponsor,
   contributors, status, Current Understanding, Problem Condition, and Next Move.
 - Migrate existing saved projects into a General / Unassigned Process Hub.
-- Update Portfolio to show Process Hubs before individual investigations.
+- Update the Azure home to show Process Hubs before individual investigations.
 - Add Process Hub dashboard rollups.
 
 ### Phase 3 - EDA 2.0 Enrichment
@@ -255,9 +285,15 @@ project/finding-centered language and need rework.
 
 ## Open Implementation Decisions
 
-- Whether `ProcessHub` belongs in a new domain store or extends the existing
-  project metadata store.
 - Which investigation status values are stored versus derived.
+
+## Closed Implementation Decisions
+
+- The MVP does **not** add a fifth domain Zustand store. The Process Hub catalog
+  lives in Azure persistence, and active investigation assignment lives in
+  `processContext` plus `ProjectMetadata`.
+- PWA remains investigation-first for this phase. Shared types stay compatible,
+  but Process Hub UI and persistence are Azure-only in the MVP.
 - Whether PWA gets a session-only Process Hub wrapper or keeps a simpler
   investigation-first entry.
 - Exact migration shape for Azure Standard local projects and Azure Team Blob

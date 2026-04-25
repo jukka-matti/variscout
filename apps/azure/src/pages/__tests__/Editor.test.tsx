@@ -221,6 +221,10 @@ vi.mock('../../services/storage', () => ({
   useStorage: vi.fn(() => ({
     saveProject: vi.fn(),
     listProjects: vi.fn(() => Promise.resolve([])),
+    listProcessHubs: vi.fn(() =>
+      Promise.resolve([{ id: 'general-unassigned', name: 'General / Unassigned', createdAt: '' }])
+    ),
+    saveProcessHub: vi.fn(),
     syncStatus: { status: 'synced', message: 'Synced' },
   })),
   updateLastViewedAt: vi.fn(),
@@ -313,6 +317,10 @@ describe('Editor', () => {
     vi.mocked(StorageModule.useStorage).mockReturnValue({
       saveProject: vi.fn(),
       listProjects: vi.fn(() => Promise.resolve([])),
+      listProcessHubs: vi.fn(() =>
+        Promise.resolve([{ id: 'general-unassigned', name: 'General / Unassigned', createdAt: '' }])
+      ),
+      saveProcessHub: vi.fn(),
       syncStatus: { status: 'synced', message: 'Synced' },
     } as unknown as ReturnType<typeof StorageModule.useStorage>);
 

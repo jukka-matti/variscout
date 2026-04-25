@@ -345,6 +345,44 @@ describe('buildProjectMetadata — lastViewedAt', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Process Hub metadata
+// ---------------------------------------------------------------------------
+
+describe('buildProjectMetadata — Process Hub fields', () => {
+  it('defaults legacy projects into General / Unassigned', () => {
+    const result = buildProjectMetadata([], [], true, 'local');
+    expect(result.processHubId).toBe('general-unassigned');
+    expect(result.investigationStatus).toBe('scouting');
+  });
+
+  it('copies investigation metadata and summaries from processContext', () => {
+    const result = buildProjectMetadata([], [], true, 'local', undefined, {
+      processHubId: 'line-4',
+      investigationDepth: 'focused',
+      investigationStatus: 'investigating',
+      processOwner: { displayName: 'Olivia Owner', upn: 'olivia@example.com' },
+      investigationOwner: { displayName: 'Eeva Engineer', upn: 'eeva@example.com' },
+      sponsor: { displayName: 'Sam Sponsor', upn: 'sam@example.com' },
+      contributors: [{ displayName: 'Fiona Field', upn: 'fiona@example.com' }],
+      currentUnderstanding: { summary: 'Variation concentrates on night shift.' },
+      problemCondition: { summary: 'Cpk is below target on Heads 5-8.' },
+      nextMove: 'Inspect nozzle wear during night shift.',
+    });
+
+    expect(result.processHubId).toBe('line-4');
+    expect(result.investigationDepth).toBe('focused');
+    expect(result.investigationStatus).toBe('investigating');
+    expect(result.processOwner?.displayName).toBe('Olivia Owner');
+    expect(result.investigationOwner?.displayName).toBe('Eeva Engineer');
+    expect(result.sponsor?.displayName).toBe('Sam Sponsor');
+    expect(result.contributors?.[0]?.displayName).toBe('Fiona Field');
+    expect(result.currentUnderstandingSummary).toBe('Variation concentrates on night shift.');
+    expect(result.problemConditionSummary).toBe('Cpk is below target on Heads 5-8.');
+    expect(result.nextMove).toBe('Inspect nozzle wear during night shift.');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Empty inputs — guard against crashes
 // ---------------------------------------------------------------------------
 

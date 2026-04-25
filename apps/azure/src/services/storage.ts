@@ -6,6 +6,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { getEasyAuthUser, isLocalDev } from '../auth/easyAuth';
 import { errorService } from '@variscout/ui';
 import { hasTeamFeatures } from '@variscout/core';
+import type { ProcessHub } from '@variscout/core';
 import {
   addToSyncQueue,
   getPendingSyncItems,
@@ -45,6 +46,8 @@ import {
   listFromCloud,
   getCloudModifiedDate,
   saveSidecarToCloud,
+  listProcessHubsFromCloud,
+  saveProcessHubToCloud,
   RETRY_DELAYS,
   MAX_RETRY_DELAY,
   MAX_RETRIES,
@@ -56,6 +59,9 @@ import {
   listFromIndexedDB,
   markAsSynced,
   extractMetadataInputs,
+  listProcessHubsFromIndexedDB,
+  saveProcessHubToIndexedDB,
+  ensureDefaultProcessHubInIndexedDB,
 } from './localDb';
 
 // ── StorageProvider Context ─────────────────────────────────────────────
@@ -64,6 +70,8 @@ interface StorageContextValue {
   saveProject: (project: Project, name: string, location: StorageLocation) => Promise<void>;
   loadProject: (name: string, location: StorageLocation) => Promise<Project | null>;
   listProjects: () => Promise<CloudProject[]>;
+  listProcessHubs: () => Promise<ProcessHub[]>;
+  saveProcessHub: (hub: ProcessHub) => Promise<void>;
   syncStatus: SyncStatus;
   notifications: SyncNotification[];
   dismissNotification: (id: string) => void;
@@ -290,7 +298,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
         }
 
-        const { id, etag } = await saveToCloud(token, projectToSave, name, location);
+        const { id, etag } = await saveToCloud(token, projectToSave, name, location, meta);
         baseStateForSync = JSON.stringify(projectToSave);
 
         // Fire-and-forget: write metadata sidecar alongside .vrs
@@ -470,6 +478,54 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
+  // ── Process Hub catalog ───────────────────────────────────────────
+
+  const listProcessHubs = useCallback(async (): Promise<ProcessHub[]> => {
+    const localHubs = await listProcessHubsFromIndexedDB();
+
+    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+      return localHubs;
+    }
+
+    try {
+      const cloudHubs = await listProcessHubsFromCloud('blob-sas');
+      for (const hub of cloudHubs) {
+        await saveProcessHubToIndexedDB(hub);
+      }
+      return listProcessHubsFromIndexedDB();
+    } catch (error) {
+      if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+        errorService.logWarning('Failed to list process hubs from cloud', {
+          component: 'storage',
+          action: 'listProcessHubs',
+          metadata: { error: error instanceof Error ? error.message : String(error) },
+        });
+      }
+      return localHubs;
+    }
+  }, []);
+
+  const saveProcessHub = useCallback(async (hub: ProcessHub): Promise<void> => {
+    await ensureDefaultProcessHubInIndexedDB();
+    await saveProcessHubToIndexedDB(hub);
+
+    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+      return;
+    }
+
+    try {
+      await saveProcessHubToCloud('blob-sas', hub);
+    } catch (error) {
+      if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+        errorService.logWarning('Failed to save process hub to cloud', {
+          component: 'storage',
+          action: 'saveProcessHub',
+          metadata: { error: error instanceof Error ? error.message : String(error) },
+        });
+      }
+    }
+  }, []);
+
   // ── Background sync when coming online ────────────────────────────
 
   useEffect(() => {
@@ -582,6 +638,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     saveProject,
     loadProject,
     listProjects,
+    listProcessHubs,
+    saveProcessHub,
     syncStatus,
     notifications,
     dismissNotification,

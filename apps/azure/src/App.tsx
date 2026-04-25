@@ -183,6 +183,7 @@ function AppContent({
 }) {
   const [currentView, setCurrentView] = useState<View>('editor');
   const [currentProject, setCurrentProject] = useState<string | null>(null);
+  const [pendingProcessHubId, setPendingProcessHubId] = useState<string | null>(null);
   const [pendingSample, setPendingSample] = useState<SampleDataset | null>(null);
 
   // Resolve deep link from URL params
@@ -241,8 +242,9 @@ function AppContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const navigateToEditor = (projectId?: string) => {
+  const navigateToEditor = (projectId?: string, processHubId?: string) => {
     setCurrentProject(projectId || null);
+    setPendingProcessHubId(processHubId || null);
     setCurrentView('editor');
   };
 
@@ -253,7 +255,7 @@ function AppContent({
 
   const handleLoadSample = (sample: SampleDataset) => {
     setPendingSample(sample);
-    navigateToEditor();
+    navigateToEditor(undefined, pendingProcessHubId ?? undefined);
   };
 
   return (
@@ -283,7 +285,7 @@ function AppContent({
         )}
         {currentView === 'dashboard' && !deepLinkError && (
           <ProjectDashboard
-            onOpenProject={id => navigateToEditor(id)}
+            onOpenProject={(id, processHubId) => navigateToEditor(id, processHubId)}
             onLoadSample={handleLoadSample}
           />
         )}
@@ -291,6 +293,7 @@ function AppContent({
           <Editor
             projectId={currentProject}
             onBack={navigateToDashboard}
+            initialProcessHubId={currentProject ? undefined : (pendingProcessHubId ?? undefined)}
             initialSample={pendingSample}
             onOpenSettings={() => setIsSettingsOpen(true)}
             initialFindingId={

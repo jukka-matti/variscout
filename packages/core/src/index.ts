@@ -407,6 +407,24 @@ export type {
   CoScoutPromptTiers,
   AssembleCoScoutPromptOptions,
 } from './ai';
+
+export {
+  DEFAULT_PROCESS_HUB,
+  DEFAULT_PROCESS_HUB_ID,
+  DEFAULT_PROCESS_HUB_NAME,
+  buildProcessHubRollups,
+  investigationStatusFromJourneyPhase,
+  normalizeProcessHubId,
+} from './processHub';
+export type {
+  InvestigationDepth,
+  InvestigationStatus,
+  ProcessHub,
+  ProcessHubInvestigation,
+  ProcessHubInvestigationMetadata,
+  ProcessHubRollup,
+  ProcessParticipantRef,
+} from './processHub';
 export {
   buildAIContext,
   detectInvestigationPhase,
