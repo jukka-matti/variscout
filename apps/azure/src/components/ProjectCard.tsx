@@ -56,6 +56,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     ? Object.values(metadata.questionCounts).reduce((sum, n) => sum + n, 0)
     : 0;
   const overdueActions = metadata?.actionCounts.overdue ?? 0;
+  const statusLabel = metadata?.investigationStatus?.replace(/-/g, ' ');
+  const depthLabel = metadata?.investigationDepth;
 
   // Location label
   const locationLabel = location === 'team' ? 'Team' : 'Personal';
@@ -96,6 +98,24 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
       {/* Subtitle: location + who updated when */}
       <p className="text-xs text-content-secondary">{subtitle}</p>
+
+      {(statusLabel ||
+        depthLabel ||
+        metadata?.currentUnderstandingSummary ||
+        metadata?.problemConditionSummary ||
+        metadata?.nextMove) && (
+        <div className="space-y-1 text-xs text-content-secondary" data-testid="project-card-hub">
+          {(statusLabel || depthLabel) && (
+            <p>
+              {[depthLabel, statusLabel].filter(Boolean).join(' · ')}
+              {metadata?.processHubId ? ` · ${metadata.processHubId}` : ''}
+            </p>
+          )}
+          {metadata?.currentUnderstandingSummary && <p>{metadata.currentUnderstandingSummary}</p>}
+          {metadata?.problemConditionSummary && <p>{metadata.problemConditionSummary}</p>}
+          {metadata?.nextMove && <p className="text-content">Next: {metadata.nextMove}</p>}
+        </div>
+      )}
 
       {/* "Your tasks" section — only when assignedTaskCount > 0 */}
       {assignedTaskCount > 0 && (

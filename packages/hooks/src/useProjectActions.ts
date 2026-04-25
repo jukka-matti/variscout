@@ -100,6 +100,7 @@ function buildSerializedProject(
     paretoMode: state.paretoMode ?? 'derived',
     paretoAggregation: state.paretoAggregation ?? 'count',
     separateParetoData: state.separateParetoData ?? null,
+    processContext: state.processContext,
     viewState,
     findings: state.findings ?? [],
     questions: state.questions ?? [],
@@ -156,6 +157,7 @@ function getCurrentStateFromStores(): Omit<AnalysisState, 'version'> {
 
   // Time column — only include if set
   if (ps.timeColumn) state.timeColumn = ps.timeColumn;
+  if (ps.processContext) state.processContext = ps.processContext;
 
   // Filter stack — only include if non-empty
   if (ps.filterStack.length > 0) state.filterStack = ps.filterStack;

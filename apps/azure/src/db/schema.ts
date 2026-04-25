@@ -29,10 +29,13 @@ export interface SyncItem {
   queuedAt: string;
 }
 
+export type ProcessHubRecord = import('@variscout/core').ProcessHub;
+
 class VariScoutDatabase extends Dexie {
   projects!: Dexie.Table<ProjectRecord, string>;
   syncQueue!: Dexie.Table<SyncItem, number>;
   syncState!: Dexie.Table<SyncStateRecord, string>;
+  processHubs!: Dexie.Table<ProcessHubRecord, string>;
 
   constructor() {
     super('VaRiScoutAzure');
@@ -59,6 +62,16 @@ class VariScoutDatabase extends Dexie {
       syncState: 'name, cloudId, lastSynced, etag',
       photoQueue: '++id, photoId, findingId, queuedAt',
       channelDriveCache: 'channelId',
+    });
+
+    // Version 4: Process Hub catalog for Azure Standard local mode
+    this.version(4).stores({
+      projects: 'name, location, modified, synced',
+      syncQueue: '++id, name, location, queuedAt',
+      syncState: 'name, cloudId, lastSynced, etag',
+      photoQueue: '++id, photoId, findingId, queuedAt',
+      channelDriveCache: 'channelId',
+      processHubs: 'id, name, updatedAt',
     });
   }
 }

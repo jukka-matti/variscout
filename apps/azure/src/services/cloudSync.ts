@@ -2,7 +2,8 @@
 // Cloud sync via Blob Storage (ADR-059 Phase 2).
 // Wraps blobClient.ts operations for the storage.ts orchestrator.
 
-import type { ProjectMetadata } from '@variscout/core';
+import { DEFAULT_PROCESS_HUB } from '@variscout/core';
+import type { ProcessHub, ProjectMetadata } from '@variscout/core';
 import { AuthError } from '../auth/easyAuth';
 import { db } from '../db/schema';
 import type { Project } from './localDb';
@@ -12,6 +13,8 @@ import {
   loadBlobMetadata,
   listBlobProjects,
   updateBlobIndex,
+  listBlobProcessHubs,
+  updateBlobProcessHubs,
 } from './blobClient';
 import type { BlobProjectMetadata } from './blobClient';
 
@@ -156,7 +159,8 @@ export async function saveToCloud(
   _token: string,
   project: Project,
   name: string,
-  _location: StorageLocation
+  _location: StorageLocation,
+  projectMetadata?: ProjectMetadata
 ): Promise<{ id: string; etag: string }> {
   // Use stable UUID from syncState, or generate a new one (C-1)
   const syncState = await db.syncState.get(name);
@@ -167,6 +171,7 @@ export async function saveToCloud(
     projectId,
     name,
     updated: now,
+    metadata: projectMetadata,
   };
 
   await wrapBlobCall(async () => {
@@ -179,6 +184,19 @@ export async function saveToCloud(
   });
 
   return { id: projectId, etag: now };
+}
+
+export async function listProcessHubsFromCloud(_token: string): Promise<ProcessHub[]> {
+  const hubs = await wrapBlobCall(() => listBlobProcessHubs());
+  return hubs.length > 0 ? hubs : [DEFAULT_PROCESS_HUB];
+}
+
+export async function saveProcessHubToCloud(_token: string, hub: ProcessHub): Promise<void> {
+  const hubs = await listProcessHubsFromCloud(_token);
+  const next = hubs.some(existing => existing.id === hub.id)
+    ? hubs.map(existing => (existing.id === hub.id ? hub : existing))
+    : [...hubs, hub];
+  await wrapBlobCall(() => updateBlobProcessHubs(next));
 }
 
 export async function loadFromCloud(

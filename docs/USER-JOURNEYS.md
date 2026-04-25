@@ -15,8 +15,8 @@ Ten personas drive VariScout's design decisions. Each follows the same journey s
 
 1. **Analyst Alex** — data analyst, uses Standard mode, lives in statistics and charts.
 2. **Engineer Eeva** — process engineer, uses Capability + Performance modes, specs-driven.
-3. **Green-Belt Gary** — Six Sigma green-belt, formal DMAIC, uses multiple modes across a project.
-4. **OpEx Olivia** — operational excellence lead, portfolio view, uses Project Dashboard.
+3. **Green-Belt Gary** — Six Sigma green-belt, formal DMAIC, may work across multiple Process Hubs.
+4. **OpEx Olivia** — operational excellence lead, hub-first operating view, uses Process Hub rollups.
 5. **Trainer Tina** — facilitator, uses PWA tier for workshops and classroom exercises.
 6. **Student Sara** — first-time learner, uses PWA, embedded or standalone.
 7. **Curious Carlos** — discovery mode, exploratory, comes in via content or SEO.
@@ -25,6 +25,14 @@ Ten personas drive VariScout's design decisions. Each follows the same journey s
 10. **Field Fiona** — gemba observer, captures photos, voice notes, and comments on the floor (mobile flows).
 
 Full persona details: `docs/02-journeys/personas/`.
+
+## Process Hub contexts
+
+Process Hub adds an Azure organizational layer around the investigation spine.
+A process owner may mostly live in one hub for a production line, queue, or
+workflow. A quality engineer, GB/BB, OpEx lead, or development-org engineer may
+work across multiple hubs to compare leverage, blocked work, verification gaps,
+and charter candidates. The PWA remains investigation-first for training.
 
 ## The unified journey spine
 

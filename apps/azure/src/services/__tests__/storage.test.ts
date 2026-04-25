@@ -17,6 +17,8 @@ const {
   mockLoadBlobMetadata,
   mockListBlobProjects,
   mockUpdateBlobIndex,
+  mockListBlobProcessHubs,
+  mockUpdateBlobProcessHubs,
 } = vi.hoisted(() => ({
   mockProjects: {
     put: vi.fn().mockResolvedValue(undefined),
@@ -38,6 +40,8 @@ const {
   mockLoadBlobMetadata: vi.fn().mockResolvedValue(null),
   mockListBlobProjects: vi.fn().mockResolvedValue([]),
   mockUpdateBlobIndex: vi.fn().mockResolvedValue(undefined),
+  mockListBlobProcessHubs: vi.fn().mockResolvedValue([]),
+  mockUpdateBlobProcessHubs: vi.fn().mockResolvedValue(undefined),
 }));
 
 // ---------------------------------------------------------------------------
@@ -101,6 +105,8 @@ vi.mock('../blobClient', () => ({
   loadBlobMetadata: mockLoadBlobMetadata,
   listBlobProjects: mockListBlobProjects,
   updateBlobIndex: mockUpdateBlobIndex,
+  listBlobProcessHubs: mockListBlobProcessHubs,
+  updateBlobProcessHubs: mockUpdateBlobProcessHubs,
 }));
 
 // ---------------------------------------------------------------------------

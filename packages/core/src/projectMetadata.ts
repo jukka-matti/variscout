@@ -7,7 +7,14 @@
  */
 
 import type { Finding, FindingStatus, Question, QuestionStatus } from './findings';
-import type { JourneyPhase } from './ai/types';
+import type { JourneyPhase, ProcessContext } from './ai/types';
+import {
+  investigationStatusFromJourneyPhase,
+  normalizeProcessHubId,
+  type InvestigationDepth,
+  type InvestigationStatus,
+  type ProcessParticipantRef,
+} from './processHub';
 
 export interface ProjectMetadata {
   /** High-level analysis journey phase */
@@ -27,6 +34,26 @@ export interface ProjectMetadata {
    * Preserved from existing metadata — not modified by buildProjectMetadata.
    */
   lastViewedAt: Record<string, number>;
+  /** Primary Process Hub for this investigation. Legacy projects default to General / Unassigned. */
+  processHubId?: string;
+  /** Lightweight depth marker for hub rollups. */
+  investigationDepth?: InvestigationDepth;
+  /** Investigation-level status for hub rollups. */
+  investigationStatus?: InvestigationStatus;
+  /** Person accountable for the process/work-system health. */
+  processOwner?: ProcessParticipantRef;
+  /** Person driving the investigation day to day. */
+  investigationOwner?: ProcessParticipantRef;
+  /** Sponsor/accountable stakeholder for larger work. */
+  sponsor?: ProcessParticipantRef;
+  /** People contributing process knowledge, observations, checks, or actions. */
+  contributors?: ProcessParticipantRef[];
+  /** Compact Current Understanding shown on hub cards. */
+  currentUnderstandingSummary?: string;
+  /** Compact Problem Condition shown on hub cards. */
+  problemConditionSummary?: string;
+  /** Compact next move shown on hub cards. */
+  nextMove?: string;
 }
 
 /**
@@ -60,7 +87,8 @@ export function buildProjectMetadata(
   questions: Question[],
   hasData: boolean,
   userId: string,
-  existingLastViewedAt?: Record<string, number>
+  existingLastViewedAt?: Record<string, number>,
+  processContext?: ProcessContext | null
 ): ProjectMetadata {
   const now = Date.now();
 
@@ -134,5 +162,18 @@ export function buildProjectMetadata(
     assignedTaskCount,
     hasOverdueTasks,
     lastViewedAt: existingLastViewedAt ?? {},
+    processHubId: normalizeProcessHubId(processContext?.processHubId),
+    investigationDepth: processContext?.investigationDepth,
+    investigationStatus:
+      processContext?.investigationStatus ?? investigationStatusFromJourneyPhase(phase),
+    processOwner: processContext?.processOwner,
+    investigationOwner: processContext?.investigationOwner,
+    sponsor: processContext?.sponsor,
+    contributors: processContext?.contributors,
+    currentUnderstandingSummary: processContext?.currentUnderstanding?.summary,
+    problemConditionSummary:
+      processContext?.problemCondition?.summary ??
+      processContext?.currentUnderstanding?.problemCondition?.summary,
+    nextMove: processContext?.nextMove,
   };
 }

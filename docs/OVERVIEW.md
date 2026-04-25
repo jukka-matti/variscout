@@ -11,7 +11,7 @@ related: [product-overview, modes, tiers, coscout, journey]
 
 VariScout is **structured investigation for process improvement**. A browser-based, offline-first tool for quality engineers, lean practitioners, and analysts to explore variation in process data, identify suspected causes, and drive improvement actions. Data stays in the customer's environment throughout.
 
-The near-term product direction is **Process Hub first**: every investigation belongs to a real process, production line, queue, cell, value stream, or business flow. The Process Hub gives the process owner and improvement team one place to see what is being investigated, what is being changed, who owns the work, what is waiting for verification, and which learnings need to be sustained. The current implementation remains project/investigation-first until the Process Hub design is implemented.
+The near-term product direction is **Process Hub first**: every investigation belongs to a real process, production line, queue, cell, value stream, development flow, or business workflow. The Process Hub gives the process owner and improvement team one place to see what is being investigated, what is being changed, who owns the work, what is waiting for verification, and which learnings need to be sustained. A GB/BB, OpEx lead, or development-org engineer may work across multiple Process Hubs; a line owner may mostly live in one.
 
 ## The journey model
 
@@ -26,7 +26,7 @@ The spine never changes. Analysis modes vary the tools used inside each phase.
 
 ## The organizational context
 
-Process Hub is the planned organizational context around the journey model. It does not replace the investigation spine; it contains investigations at different depths:
+Process Hub is the organizational context around the journey model. It does not replace the investigation spine; it contains investigations at different depths. A formal improvement project is optional and secondary: it may live inside one hub or span multiple hubs later.
 
 | Depth         | Use                                                            |
 | ------------- | -------------------------------------------------------------- |
@@ -70,6 +70,7 @@ Processing happens in the browser. When data moves (Blob Storage sync, AI calls,
 - User flows and personas: `USER-JOURNEYS.md`
 - Data lifecycle (parse → stats → persist → sync): `DATA-FLOW.md`
 - Process Hub direction: `docs/superpowers/specs/2026-04-25-process-hub-design.md`
+- Process Hub use cases: `docs/superpowers/specs/2026-04-25-process-hub-use-cases.md`
 - EDA 2.0 direction: `docs/superpowers/specs/2026-04-25-question-driven-eda-2-design.md`
 - Mode-specific journeys: `USER-JOURNEYS-{YAMAZUMI,PERFORMANCE,DEFECT,CAPABILITY,PROCESS-FLOW}.md`
 - Feature parity table: `docs/08-products/feature-parity.md`

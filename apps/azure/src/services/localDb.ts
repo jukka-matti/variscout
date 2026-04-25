@@ -1,8 +1,14 @@
 // src/services/localDb.ts
 // IndexedDB operations for project persistence (Dexie wrapper)
 
-import { buildProjectMetadata } from '@variscout/core';
-import type { ProjectMetadata, Finding, Question } from '@variscout/core';
+import { DEFAULT_PROCESS_HUB, buildProjectMetadata } from '@variscout/core';
+import type {
+  ProcessContext,
+  ProcessHub,
+  ProjectMetadata,
+  Finding,
+  Question,
+} from '@variscout/core';
 import { db } from '../db/schema';
 import type { StorageLocation, CloudProject } from './cloudSync';
 
@@ -28,7 +34,18 @@ export function extractMetadataInputs(
     const findings = (Array.isArray(p.findings) ? p.findings : []) as Finding[];
     const questions = (Array.isArray(p.questions) ? p.questions : []) as Question[];
     const hasData = Array.isArray(p.rawData) && p.rawData.length > 0;
-    return buildProjectMetadata(findings, questions, hasData, userId, existingLastViewedAt);
+    const processContext =
+      p.processContext && typeof p.processContext === 'object'
+        ? (p.processContext as ProcessContext)
+        : undefined;
+    return buildProjectMetadata(
+      findings,
+      questions,
+      hasData,
+      userId,
+      existingLastViewedAt,
+      processContext
+    );
   } catch {
     return null;
   }
@@ -85,4 +102,27 @@ export async function markAsSynced(
       baseStateJson,
     });
   }
+}
+
+// ── Process Hub catalog ────────────────────────────────────────────────
+
+export async function ensureDefaultProcessHubInIndexedDB(): Promise<void> {
+  const existing = await db.processHubs.get(DEFAULT_PROCESS_HUB.id);
+  if (!existing) {
+    await db.processHubs.put(DEFAULT_PROCESS_HUB);
+  }
+}
+
+export async function saveProcessHubToIndexedDB(hub: ProcessHub): Promise<void> {
+  await db.processHubs.put(hub);
+}
+
+export async function listProcessHubsFromIndexedDB(): Promise<ProcessHub[]> {
+  await ensureDefaultProcessHubInIndexedDB();
+  const hubs = await db.processHubs.toArray();
+  return hubs.sort((a, b) => {
+    if (a.id === DEFAULT_PROCESS_HUB.id) return -1;
+    if (b.id === DEFAULT_PROCESS_HUB.id) return 1;
+    return a.name.localeCompare(b.name);
+  });
 }
