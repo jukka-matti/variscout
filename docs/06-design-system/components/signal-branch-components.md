@@ -131,6 +131,10 @@ Allowed actions:
 
 The card must still be fully useful when CoScout is hidden.
 
+Branch warnings are advisory. A card may show weak trust, weak power, missing
+counter-checks, or "statistically notable but small effect" prompts, but those
+prompts should guide the next move rather than block action.
+
 ## Evidence / Clue Chip
 
 Clue chips summarize source and strength.
@@ -180,6 +184,7 @@ Forbidden behavior:
 - auto-confirming mechanisms
 - auto-changing Signal Cards
 - hiding the manual path
+- using `significant` as causal proof
 
 ## Component States
 

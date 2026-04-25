@@ -38,6 +38,12 @@ Every QDE 2.0 view must define:
   keyboard, screen readers, reporting, and audit.
 - **Do not ship**: deck ideas or shortcuts that would weaken the product.
 
+Evidence warnings are advisory across all views. Use `Worth checking`,
+`Use caution`, `Not enough to conclude`, `Statistically notable`, and
+`Ready for next move`. Do not use p-values, missing disconfirmation, weak
+power, or weak trust as hard blockers unless the user is in a regulated
+workflow that explicitly requires that rule.
+
 ## Priority Order
 
 | Priority | View contract                      | Why first                                                    |
@@ -105,6 +111,10 @@ The view must distinguish:
 We did not see it.
 We could not have detected it.
 ```
+
+Power warnings should guide practical next moves. They should not prevent the
+team from taking containment or improvement action when engineering judgement
+supports acting.
 
 ### Trust Tab
 
@@ -443,6 +453,18 @@ CoScout may:
 - explain gate results
 
 Every suggestion is a proposal card with accept/edit/reject/why controls.
+
+### Advisory Evidence Behavior
+
+The Wall should surface weak evidence as coaching:
+
+- `Worth checking`: no gemba clue or counter-check yet.
+- `Use caution`: weak signal trust, weak power, or small `n`.
+- `Statistically notable`: p-value-driven pattern, still needs effect size and
+  process context.
+- `Ready for next move`: enough practical confidence to act.
+
+Do not block a branch only because one evidence type is missing.
 
 ### Structured Twin
 

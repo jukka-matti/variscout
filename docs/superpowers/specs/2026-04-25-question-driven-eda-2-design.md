@@ -199,6 +199,37 @@ User-facing model:
 Problem condition -> Clues -> Suspected mechanisms -> Next move
 ```
 
+### Advisory Evidence, Not Compliance Gates
+
+QDE 2.0 should support practical problem solving, not force teams through an
+academic checklist.
+
+Evidence quality signals are prompts, not blockers. VariScout should surface
+p-value cautions, weak effect size, weak signal trust, weak power, missing
+gemba, missing counter-checks, and missing process context as helpful
+next-move guidance. The analyst and team decide whether the right next move is
+more analysis, gemba observation, measurement validation, containment,
+experiment, or improvement.
+
+Use product language like:
+
+- `Worth checking`
+- `Use caution`
+- `Not enough to conclude`
+- `Statistically notable`
+- `Ready for next move`
+
+Avoid product language like:
+
+- `Required`
+- `Blocked`
+- `Invalid`
+- `Significant, therefore root cause`
+- `Confirmed root cause`
+
+P-values are one clue about compatibility with a statistical model. They are
+not effect size, practical importance, mechanism proof, or a decision gate.
+
 ### Clue
 
 A clue is any meaningful observation:
@@ -298,17 +329,17 @@ The most important UX output of a branch is the next move. This is where the EDA
 
 Next move types:
 
-| Next move           | Meaning                         | Example                                                          |
-| ------------------- | ------------------------------- | ---------------------------------------------------------------- |
-| Drill deeper        | Stay in SCOUT, narrow the data  | "Filter Night shift and inspect Heads 5-8."                      |
-| Switch instrument   | Use a different instrument set  | "Open Yamazumi for Station 3."                                   |
-| Collect deeper data | Add a missing data layer        | "Collect activity-level time study for Station 3 only."          |
-| Gemba check         | Go inspect the physical process | "Inspect nozzle wear on Head 5-8 during Night shift."            |
-| Expert check        | Ask domain knowledge            | "Ask maintenance about temperature-controller history."          |
-| Measurement check   | Validate the signal             | "Run a crossed device x reference-part check, blocked by shift." |
-| Disconfirm          | Try to weaken the branch        | "Compare Day shift with the same tool revision."                 |
-| Improve             | Act on the branch               | "Create HMW for nozzle replacement frequency."                   |
-| Verify              | Load post-action data           | "Compare Cp/Cpk process moments before and after the change."    |
+| Next move           | Meaning                         | Example                                                                  |
+| ------------------- | ------------------------------- | ------------------------------------------------------------------------ |
+| Drill deeper        | Stay in SCOUT, narrow the data  | "Filter Night shift and inspect Heads 5-8."                              |
+| Switch instrument   | Use a different instrument set  | "Open Yamazumi for Station 3."                                           |
+| Collect deeper data | Add a missing data layer        | "Collect activity-level time study for Station 3 only."                  |
+| Gemba check         | Go inspect the physical process | "Inspect nozzle wear on Head 5-8 during Night shift."                    |
+| Expert check        | Ask domain knowledge            | "Ask maintenance about temperature-controller history."                  |
+| Measurement check   | Validate the signal             | "Run a crossed device x reference-part check; watch shift as a blocker." |
+| Disconfirm          | Try to weaken the branch        | "Compare Day shift with the same tool revision."                         |
+| Improve             | Act on the branch               | "Create HMW for nozzle replacement frequency."                           |
+| Verify              | Load post-action data           | "Compare Cp/Cpk process moments before and after the change."            |
 
 CoScout can suggest next moves, but deterministic logic should produce the baseline suggestions.
 
@@ -316,13 +347,13 @@ CoScout can suggest next moves, but deterministic logic should produce the basel
 
 Do not make Survey only an import-time screen. Survey is a reusable evaluator across phases.
 
-| Phase       | Survey asks                                                          |
-| ----------- | -------------------------------------------------------------------- |
-| FRAME       | What does this data afford? What is missing?                         |
-| SCOUT       | Which instrument sets and checks are available?                      |
-| INVESTIGATE | Is this branch evidenced, trusted, powered, and disconfirmed enough? |
-| IMPROVE     | What data verifies whether the action worked?                        |
-| REPORT      | Which claims are backed by which signals, checks, and branches?      |
+| Phase       | Survey asks                                                                             |
+| ----------- | --------------------------------------------------------------------------------------- |
+| FRAME       | What does this data afford? What is missing?                                            |
+| SCOUT       | Which instrument sets and checks are available?                                         |
+| INVESTIGATE | What evidence, trust, power, and counter-checks would make this branch safer to act on? |
+| IMPROVE     | What data verifies whether the action worked?                                           |
+| REPORT      | Which claims are backed by which signals, checks, and branches?                         |
 
 Survey has three notebooks:
 

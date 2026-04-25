@@ -91,6 +91,9 @@ Recommended implementation slices:
 - Do not expose `Finding`, `Question`, `Hypothesis`, `Gate`, `SignalCard`, and `Evidence` as equal user-facing objects.
 - Do not add Gage R&R as a top-level mode.
 - Do not claim mechanisms are confirmed before post-action verification.
+- Do not turn p-values, missing disconfirmation, weak power, or weak trust into
+  rigid compliance gates. Surface them as advisory prompts for practical next
+  moves.
 - Keep deterministic logic as authority; CoScout may draft, suggest, and explain.
 - Preserve browser-only processing and existing store/package boundaries.
 - Treat documentation as part of implementation. Each slice should update the

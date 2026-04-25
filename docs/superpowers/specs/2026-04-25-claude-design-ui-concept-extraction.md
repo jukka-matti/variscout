@@ -145,6 +145,10 @@ Problem condition -> Clues -> Suspected mechanisms -> Next move
 - Replace "confirmed" language with stricter readiness wording unless there is
   post-action verification. Mechanisms can be proposed, evidenced,
   challenged, or ready for action.
+- Treat evidence quality as advisory. Missing evidence, weak trust, weak power,
+  missing disconfirmation, or a weak p-value context should suggest practical
+  next moves, not block the team from acting when containment or improvement is
+  the right engineering choice.
 
 Implementation landing:
 
@@ -237,6 +241,13 @@ CoScout must not be required to:
 - make the flow valid
 
 The manual/deterministic path must be complete.
+
+CoScout language must stay practical:
+
+- say `statistically notable`, not `significant, therefore causal`
+- say `worth checking`, not `required`
+- say `use caution`, not `blocked`
+- say `ready for next move`, not `confirmed root cause`
 
 ### 4. Cards Beat Settings Screens
 

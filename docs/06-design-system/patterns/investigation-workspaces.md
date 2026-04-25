@@ -121,6 +121,32 @@ Status labels must be textual:
 
 Do not use "confirmed root cause" before post-action verification.
 
+## Advisory Evidence
+
+Investigation workspaces should coach practical problem solving. Evidence
+signals are advisory prompts, not compliance gates.
+
+Use:
+
+- `Worth checking` for missing or weak evidence.
+- `Use caution` for weak signal trust, weak power, small sample size, or
+  unresolved counter-checks.
+- `Not enough to conclude` when evidence is too thin for a claim.
+- `Statistically notable` for p-value-driven observations.
+- `Ready for next move` when the team has enough confidence to act.
+
+Avoid:
+
+- `Required`
+- `Blocked`
+- `Invalid`
+- `Significant`
+- `Confirmed root cause`
+
+The workspace may warn that a branch is weak, but it should still allow the
+team to choose a practical next move such as containment, gemba observation,
+measurement validation, an experiment, or an improvement trial.
+
 ## Clues
 
 A clue can come from:
