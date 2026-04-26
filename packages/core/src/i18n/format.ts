@@ -145,3 +145,31 @@ export function formatInteger(value: number, locale: Locale = 'en'): string {
   if (!isFinite(value)) return '—';
   return getNumberFormatter(locale, 0).format(Math.round(value));
 }
+
+const pluralRulesCache = new Map<Locale, Intl.PluralRules>();
+
+function getPluralRules(locale: Locale): Intl.PluralRules {
+  let rules = pluralRulesCache.get(locale);
+  if (!rules) {
+    rules = new Intl.PluralRules(BCP47[locale]);
+    pluralRulesCache.set(locale, rules);
+  }
+  return rules;
+}
+
+export type PluralForms = Partial<Record<Intl.LDMLPluralRule, string>> & { other: string };
+
+/**
+ * Pick the locale-correct plural form via Intl.PluralRules.
+ *
+ * Use to avoid hand-rolled English-only pluralization (e.g. `count + ' investigation' + (count === 1 ? '' : 's')`).
+ *
+ * @param count - The count driving the plural choice
+ * @param forms - Map of LDML plural categories to strings; `other` is required as a fallback
+ * @param locale - Target locale (defaults to 'en')
+ * @returns The form matching the locale's plural rule for `count`, or `forms.other` if the matched category is missing
+ */
+export function formatPlural(count: number, forms: PluralForms, locale: Locale = 'en'): string {
+  const category = getPluralRules(locale).select(Math.abs(count));
+  return forms[category] ?? forms.other;
+}

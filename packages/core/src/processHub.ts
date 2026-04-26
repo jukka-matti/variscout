@@ -289,6 +289,10 @@ function newestInvestigation<TInvestigation extends ProcessHubInvestigation>(
   )[0];
 }
 
+function synthesizeOrphanHub(hubId: string): ProcessHub {
+  return { id: hubId, name: 'Unknown hub', createdAt: '1970-01-01T00:00:00.000Z' };
+}
+
 export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestigation>(
   hubs: ProcessHub[],
   investigations: TInvestigation[],
@@ -303,13 +307,13 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
   for (const investigation of investigations) {
     const hubId = normalizeProcessHubId(investigation.metadata?.processHubId);
     if (!hubMap.has(hubId)) {
-      hubMap.set(hubId, { id: hubId, name: hubId, createdAt: '1970-01-01T00:00:00.000Z' });
+      hubMap.set(hubId, synthesizeOrphanHub(hubId));
     }
   }
   for (const snapshot of options.evidenceSnapshots ?? []) {
     const hubId = normalizeProcessHubId(snapshot.hubId);
     if (!hubMap.has(hubId)) {
-      hubMap.set(hubId, { id: hubId, name: hubId, createdAt: '1970-01-01T00:00:00.000Z' });
+      hubMap.set(hubId, synthesizeOrphanHub(hubId));
     }
   }
 

@@ -98,6 +98,32 @@ describe('ProcessHubEvidencePanel', () => {
     ]);
   });
 
+  it('classifies low-rate false greens (≤1%) as amber severity', async () => {
+    const source = {
+      id: 'src-1',
+      hubId: 'line-4',
+      name: 'Agent review log',
+      cadence: 'weekly' as const,
+      profileId: 'agent-review-log',
+      createdAt: '2026-04-26T00:00:00.000Z',
+      updatedAt: '2026-04-26T00:00:00.000Z',
+    };
+    mockListEvidenceSources.mockResolvedValue([source]);
+
+    render(<ProcessHubEvidencePanel hubId="line-4" />);
+    const fileInput = await screen.findByLabelText('Upload Snapshot');
+
+    const correctRows = Array.from({ length: 200 }, () => 'green,correct').join('\n');
+    const csv = `flagColor,auditResult\ngreen,incorrect\n${correctRows}\n`;
+
+    fireEvent.change(fileInput, { target: { files: [makeCsvFile(csv)] } });
+
+    await waitFor(() => expect(mockSaveEvidenceSnapshot).toHaveBeenCalledTimes(1));
+    const [savedSnapshot] = mockSaveEvidenceSnapshot.mock.calls[0];
+    expect(savedSnapshot.latestSignals[0].severity).toBe('amber');
+    expect(savedSnapshot.latestSignals[0].value).toBe(1);
+  });
+
   it('saves a snapshot tagged with green severity when no false greens are detected', async () => {
     const source = {
       id: 'src-1',

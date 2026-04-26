@@ -600,6 +600,42 @@ describe('buildProcessHubCadence', () => {
 });
 
 describe('buildProcessHubRollups', () => {
+  it('synthesizes a friendly fallback name when an evidence snapshot references an unknown hub', () => {
+    const evidenceSnapshots: EvidenceSnapshot[] = [
+      {
+        id: 'snap-orphan',
+        hubId: 'process-hub-7f3a-deleted',
+        sourceId: 'src-1',
+        capturedAt: '2026-04-26T10:00:00.000Z',
+        rowCount: 100,
+        latestSignals: [],
+      },
+    ];
+
+    const rollups = buildProcessHubRollups([], [], { evidenceSnapshots });
+    const orphan = rollups.find(r => r.hub.id === 'process-hub-7f3a-deleted');
+
+    expect(orphan).toBeDefined();
+    expect(orphan?.hub.name).toBe('Unknown hub');
+  });
+
+  it('synthesizes a friendly fallback name when an investigation references an unknown hub', () => {
+    const investigations = [
+      {
+        id: 'orphan-investigation',
+        name: 'Orphan investigation',
+        modified: '2026-04-26T00:00:00.000Z',
+        metadata: makeMetadata({ processHubId: 'deleted-hub-abc123' }),
+      },
+    ];
+
+    const rollups = buildProcessHubRollups([], investigations);
+    const orphan = rollups.find(r => r.hub.id === 'deleted-hub-abc123');
+
+    expect(orphan).toBeDefined();
+    expect(orphan?.hub.name).toBe('Unknown hub');
+  });
+
   it('groups investigations under their hub and computes deterministic rollups', () => {
     const hubs: ProcessHub[] = [
       DEFAULT_PROCESS_HUB,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowRight, CircleAlert, Plus } from 'lucide-react';
 import type { HubReviewSignal, ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
-import { formatStatistic } from '@variscout/core/i18n';
+import { formatStatistic, formatPlural } from '@variscout/core/i18n';
 
 interface ProcessHubCardProps {
   rollup: ProcessHubRollup<ProcessHubInvestigation>;
@@ -21,7 +21,7 @@ const formatTopFocus = (topFocus: NonNullable<HubReviewSignal['topFocus']>): str
 };
 
 const formatChangeSignals = (count: number): string =>
-  `${count} change signal${count === 1 ? '' : 's'}`;
+  `${count} ${formatPlural(count, { one: 'change signal', other: 'change signals' })}`;
 
 const ProcessHubCard: React.FC<ProcessHubCardProps> = ({
   rollup,
@@ -43,8 +43,11 @@ const ProcessHubCard: React.FC<ProcessHubCardProps> = ({
         <button type="button" className="min-w-0 text-left" onClick={onOpen}>
           <h3 className="text-sm font-semibold text-content leading-snug">{hub.name}</h3>
           <p className="mt-1 text-xs text-content-secondary">
-            {rollup.activeInvestigationCount} active investigation
-            {rollup.activeInvestigationCount === 1 ? '' : 's'}
+            {rollup.activeInvestigationCount}{' '}
+            {formatPlural(rollup.activeInvestigationCount, {
+              one: 'active investigation',
+              other: 'active investigations',
+            })}
           </p>
         </button>
         <div className="flex items-center gap-1">

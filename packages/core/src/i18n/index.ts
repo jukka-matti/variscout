@@ -13,7 +13,8 @@
 export type { Locale, MessageCatalog } from './types';
 export { LOCALES, LOCALE_NAMES } from './types';
 
-export { formatStatistic, formatPercent, formatDate, formatInteger } from './format';
+export { formatStatistic, formatPercent, formatDate, formatInteger, formatPlural } from './format';
+export type { PluralForms } from './format';
 
 import type { Locale, MessageCatalog } from './types';
 import { LOCALES } from './types';

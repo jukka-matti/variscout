@@ -26,6 +26,14 @@ function falseGreenCount(snapshot: EvidenceSnapshot): number {
   );
 }
 
+const FALSE_GREEN_AMBER_RATE = 0.01;
+
+function falseGreenSeverity(unsafeGreens: number, totalRows: number): 'green' | 'amber' | 'red' {
+  if (unsafeGreens === 0) return 'green';
+  if (totalRows === 0) return 'red';
+  return unsafeGreens / totalRows <= FALSE_GREEN_AMBER_RATE ? 'amber' : 'red';
+}
+
 const ProcessHubEvidencePanel: React.FC<ProcessHubEvidencePanelProps> = ({
   hubId,
   onEvidenceChanged,
@@ -98,6 +106,11 @@ const ProcessHubEvidencePanel: React.FC<ProcessHubEvidencePanelProps> = ({
         (count, row) => count + (row.FalseGreen === 1 ? 1 : 0),
         0
       );
+      const severity = falseGreenSeverity(unsafeGreens, rows.length);
+      const signalId =
+        severity === 'green'
+          ? `${selectedSource.id}:safe-green`
+          : `${selectedSource.id}:false-green`;
       const snapshot: EvidenceSnapshot = {
         id: `snapshot-${Date.now()}`,
         hubId,
@@ -105,26 +118,15 @@ const ProcessHubEvidencePanel: React.FC<ProcessHubEvidencePanelProps> = ({
         capturedAt,
         rowCount: rows.length,
         profileApplication: application,
-        latestSignals:
-          unsafeGreens > 0
-            ? [
-                {
-                  id: `${selectedSource.id}:false-green`,
-                  label: 'False green',
-                  value: unsafeGreens,
-                  severity: 'red',
-                  capturedAt,
-                },
-              ]
-            : [
-                {
-                  id: `${selectedSource.id}:safe-green`,
-                  label: 'False green',
-                  value: 0,
-                  severity: 'green',
-                  capturedAt,
-                },
-              ],
+        latestSignals: [
+          {
+            id: signalId,
+            label: 'False green',
+            value: unsafeGreens,
+            severity,
+            capturedAt,
+          },
+        ],
       };
       await saveEvidenceSnapshot(snapshot, text);
       setStatus(

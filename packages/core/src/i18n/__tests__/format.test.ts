@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatStatistic, formatPercent, formatDate, formatInteger } from '../format';
+import { formatStatistic, formatPercent, formatDate, formatInteger, formatPlural } from '../format';
 
 describe('formatStatistic', () => {
   it('formats English numbers with period decimal separator', () => {
@@ -118,5 +118,42 @@ describe('formatInteger', () => {
 
   it('returns dash for NaN', () => {
     expect(formatInteger(NaN)).toBe('—');
+  });
+});
+
+describe('formatPlural', () => {
+  const enForms = { one: 'investigation', other: 'investigations' };
+
+  it('returns the singular form for count=1 in English', () => {
+    expect(formatPlural(1, enForms, 'en')).toBe('investigation');
+  });
+
+  it('returns the plural form for count=2 in English', () => {
+    expect(formatPlural(2, enForms, 'en')).toBe('investigations');
+  });
+
+  it('returns the plural form for count=0 in English', () => {
+    expect(formatPlural(0, enForms, 'en')).toBe('investigations');
+  });
+
+  it('handles negative counts via Math.abs (English)', () => {
+    expect(formatPlural(-1, enForms, 'en')).toBe('investigation');
+  });
+
+  it('honors the language plural rule (Polish has a "few" form)', () => {
+    const plForms = {
+      one: 'inwestygacja',
+      few: 'inwestygacje',
+      many: 'inwestygacji',
+      other: 'inwestygacji',
+    };
+    // Polish: 'one' for 1, 'few' for 2-4, 'many' for 0/5+
+    expect(formatPlural(1, plForms, 'pl')).toBe('inwestygacja');
+    expect(formatPlural(3, plForms, 'pl')).toBe('inwestygacje');
+    expect(formatPlural(5, plForms, 'pl')).toBe('inwestygacji');
+  });
+
+  it('falls back to "other" when the matched form is missing', () => {
+    expect(formatPlural(3, { other: 'items' }, 'pl')).toBe('items');
   });
 });
