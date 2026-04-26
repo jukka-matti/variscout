@@ -1,6 +1,6 @@
 import type React from 'react';
 
-export type PITab = 'stats' | 'questions' | 'journal' | 'docs';
+export type PITab = 'stats' | 'questions' | 'survey' | 'journal' | 'docs';
 export type PIOverflowView = 'data' | 'whatif' | null;
 
 /** Config-driven tab definition for PIPanelBase tabs prop */

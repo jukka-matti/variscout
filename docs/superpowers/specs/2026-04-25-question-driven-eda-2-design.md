@@ -404,6 +404,11 @@ Survey has three notebooks:
 2. **Trust** — whether the signals are defined and credible enough.
 3. **Power** — whether the data can detect the effect size the team cares about.
 
+Implementation note (2026-04-26): the Survey Foundation slice ships the
+deterministic evaluator and shared notebook first. Trust and Power are advisory
+placeholders in this phase; Signal Cards remain the next phase and will replace
+those placeholders with persisted signal-level facts.
+
 ## Signal Cards
 
 A Signal Card describes whether a measurement or factor can be trusted as a clue.
@@ -458,7 +463,9 @@ Do not expose "Expanded" as a primary user choice. Treat blocking as a separate 
 
 Do not resurrect Gage R&R as a standalone mode in this methodology. ADR-010's credibility concern still applies.
 
-The first product step is Signal Cards and branch-level trust/power surfacing. A full measurement study planner can follow only when the statistical surface is production-grade.
+After Survey Foundation, the next product step is Signal Cards and branch-level
+trust/power surfacing. A full measurement study planner can follow only when the
+statistical surface is production-grade.
 
 ## Instrument Sets, Not User Mental Models
 
@@ -672,9 +679,12 @@ Design-system patterns to apply before product UI implementation:
 
 ### Phase 3 — Survey Evaluator
 
-- Build deterministic `surveyDataAffordances()` style logic.
+- Build deterministic `evaluateSurvey()` style logic.
 - Return possibility, trust, power, and next-move recommendations.
-- Integrate with FRAME, SCOUT, INVESTIGATE, and IMPROVE.
+- Integrate first with the Azure Process Intelligence sidebar and mobile More
+  sheet; keep shared core/UI compatible with PWA integration.
+- Status: [Survey Foundation](../plans/2026-04-26-qde-2-survey-foundation.md)
+  delivered on 2026-04-26.
 
 ### Phase 4 — Signal Cards
 
@@ -682,6 +692,7 @@ Design-system patterns to apply before product UI implementation:
 - Attach to key Y, X, CTQ, sensor, and process-flow signals.
 - Surface trust/power on clues and branches.
 - Add measurement-check next moves.
+- Status: next phase after Survey Foundation.
 
 ### Phase 5 — Cp/Cpk Process Moments
 

@@ -22,6 +22,7 @@ import {
   StatsTabContent,
   QuestionsTabContent,
   JournalTabContent,
+  SurveyNotebookBase,
   DocumentShelfBase,
   WhatIfExplorer,
   computePresets,
@@ -37,8 +38,9 @@ import {
 import type { UseFindingsReturn, UseQuestionsReturn } from '@variscout/hooks';
 import type { BestSubsetsResult, FactorMainEffect } from '@variscout/core/stats';
 import type { Question } from '@variscout/core/findings';
-import { hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
-import { useProjectStore } from '@variscout/stores';
+import { evaluateSurvey, hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
+import type { SurveyRecommendation } from '@variscout/core/survey';
+import { useInvestigationStore, useProjectStore } from '@variscout/stores';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import SpecEditor from '../settings/SpecEditor';
 
@@ -92,9 +94,17 @@ export const PISection: React.FC<PISectionProps> = ({
 
   // Store reads
   const specs = useProjectStore(s => s.specs);
+  const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
+  const factors = useProjectStore(s => s.factors);
+  const timeColumn = useProjectStore(s => s.timeColumn);
   const filters = useProjectStore(s => s.filters);
   const analysisMode = useProjectStore(s => s.analysisMode);
+  const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
+  const defectMapping = useProjectStore(s => s.defectMapping);
+  const processContext = useProjectStore(s => s.processContext);
+  const setProcessContext = useProjectStore(s => s.setProcessContext);
+  const suspectedCauses = useInvestigationStore(s => s.suspectedCauses);
 
   // Panel visibility and tab state from panelsStore
   const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
@@ -145,6 +155,43 @@ export const PISection: React.FC<PISectionProps> = ({
   }, [stats, specs, filteredData, outcome]);
 
   const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
+
+  const surveyEvaluation = useMemo(
+    () =>
+      evaluateSurvey({
+        data: rawData,
+        outcomeColumn: outcome,
+        factorColumns: factors,
+        timeColumn,
+        specs,
+        yamazumiMapping,
+        defectMapping,
+        processContext: processContext ?? undefined,
+        questions: questionsState.questions,
+        findings: findingsState.findings,
+        branches: suspectedCauses,
+      }),
+    [
+      rawData,
+      outcome,
+      factors,
+      timeColumn,
+      specs,
+      yamazumiMapping,
+      defectMapping,
+      processContext,
+      questionsState.questions,
+      findingsState.findings,
+      suspectedCauses,
+    ]
+  );
+
+  const handleAcceptSurveyRecommendation = (recommendation: SurveyRecommendation): void => {
+    setProcessContext({
+      ...(processContext ?? {}),
+      nextMove: recommendation.actionText,
+    });
+  };
 
   // Callbacks for QuestionsTabContent
   const handleAddQuestion = (text: string): void => {
@@ -216,6 +263,18 @@ export const PISection: React.FC<PISectionProps> = ({
       id: 'journal',
       label: 'Journal',
       content: <JournalTabContent />,
+    },
+    {
+      id: 'survey',
+      label: 'Survey',
+      badge: surveyEvaluation.recommendations.length,
+      content: (
+        <SurveyNotebookBase
+          compact={true}
+          evaluation={surveyEvaluation}
+          onAcceptRecommendation={handleAcceptSurveyRecommendation}
+        />
+      ),
     },
   ];
 

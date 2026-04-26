@@ -416,6 +416,23 @@ export {
   investigationStatusFromJourneyPhase,
   normalizeProcessHubId,
 } from './processHub';
+
+// Survey evaluator (QDE 2.0 foundation)
+export { evaluateSurvey, SURVEY_RECOMMENDATION_KIND_LABELS, SURVEY_STATUS_LABELS } from './survey';
+export type {
+  SurveyDiagnostics,
+  SurveyEvaluation,
+  SurveyEvaluationInput,
+  SurveyPossibilityItem,
+  SurveyPowerItem,
+  SurveyRecommendation,
+  SurveyRecommendationKind,
+  SurveyRecommendationSource,
+  SurveyRecommendationTarget,
+  SurveySection,
+  SurveyStatus,
+  SurveyTrustItem,
+} from './survey';
 export type {
   InvestigationDepth,
   InvestigationStatus,

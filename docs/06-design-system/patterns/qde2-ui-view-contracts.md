@@ -46,18 +46,22 @@ workflow that explicitly requires that rule.
 
 ## Priority Order
 
-| Priority | View contract                      | Why first                                                    |
-| -------- | ---------------------------------- | ------------------------------------------------------------ |
-| P0       | Signal Card and Trust Chip         | Every later view needs signal trust language                 |
-| P0       | Process Moment Builder             | Turns subgrouping into process-understanding infrastructure  |
-| P0       | Running Cp/Cpk Process Moment View | Makes the capability idea visible and pin-able               |
-| P1       | Investigation Wall / Roots View    | Main QDE 2.0 synthesis surface                               |
-| P1       | Survey Notebook                    | Horizontal evaluator for possibility, power, and trust       |
-| P2       | Measurement Study Planner          | Requires stable deterministic measurement-study calculations |
-| P2       | Discovery Canvas                   | Valuable, but depends on Process Flow maturity               |
-| P2       | Variation Tracer / Flow View       | Powerful, but requires validated attribution                 |
+| Priority | View contract                      | Why first                                                              |
+| -------- | ---------------------------------- | ---------------------------------------------------------------------- |
+| P0       | Survey Notebook Foundation         | Current phase: deterministic possibility, power, and trust evaluator   |
+| P1       | Signal Card and Trust Chip         | Next phase: replaces Survey trust/power placeholders with signal facts |
+| P0       | Process Moment Builder             | Turns subgrouping into process-understanding infrastructure            |
+| P0       | Running Cp/Cpk Process Moment View | Makes the capability idea visible and pin-able                         |
+| P1       | Investigation Wall / Roots View    | Main QDE 2.0 synthesis surface                                         |
+| P2       | Measurement Study Planner          | Requires stable deterministic measurement-study calculations           |
+| P2       | Discovery Canvas                   | Valuable, but depends on Process Flow maturity                         |
+| P2       | Variation Tracer / Flow View       | Powerful, but requires validated attribution                           |
 
 ## 1. Survey Notebook
+
+Current phase note (2026-04-26): Survey Foundation ships as a deterministic
+core evaluator plus shared notebook UI. Signal Cards are not persisted in this
+phase; Trust and Power rows remain advisory until the Signal Card phase lands.
 
 ### Job
 

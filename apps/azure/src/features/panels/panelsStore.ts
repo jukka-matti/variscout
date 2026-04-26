@@ -15,7 +15,7 @@ interface PanelsState {
   pendingChartFocus: string | null;
   isPISidebarOpen: boolean;
   /** Active tab in the PI (Process Intelligence) panel. */
-  piActiveTab: 'stats' | 'questions' | 'journal';
+  piActiveTab: 'stats' | 'questions' | 'survey' | 'journal';
   /** Secondary overflow view within the PI panel (Data or What-If). Cleared when tab changes. */
   piOverflowView: 'data' | 'whatif' | null;
   /** Factor highlighted from Evidence Map node click (for PI panel scroll-to) */
@@ -52,7 +52,7 @@ interface PanelsActions {
   handleRowClick: (index: number) => void;
   setPendingChartFocus: (chart: string | null) => void;
   togglePISidebar: () => void;
-  setPIActiveTab: (tab: 'stats' | 'questions' | 'journal') => void;
+  setPIActiveTab: (tab: 'stats' | 'questions' | 'survey' | 'journal') => void;
   setPIOverflowView: (view: 'data' | 'whatif' | null) => void;
   setHighlightedFactor: (factor: string | null) => void;
   setInvestigationViewMode: (mode: 'map' | 'findings') => void;
