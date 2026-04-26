@@ -415,13 +415,20 @@ clues, suspected mechanisms, missing checks, and next moves.
 
 ```text
 Header: Current Understanding, problem condition, scope
-Workspace: visual roots/canvas or branch map
+Workspace: visual roots/canvas, generic branch list, or process-map branch map
 Branch cards: suspected mechanisms
 Clue tray: pinned chart/gemba/expert/process clues
 Gate layer: AND/OR/NOT mechanism conditions
 Side rail: selected branch detail, comments, Signal Cards, next moves
 Toolbar: add branch, add clue, run gate check, switch structured view
 ```
+
+### Process-Map Context
+
+The Branch UI must not require a process map. With only an issue, current
+understanding, problem condition, and `SuspectedCause` hubs, the workspace
+renders branch cards in a generic spatial/list layout. A process map adds
+tributary grouping, scope chips, and process-node context when available.
 
 ### Primary Interactions
 

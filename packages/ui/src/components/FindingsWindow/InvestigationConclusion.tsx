@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronRight, ClipboardCheck, Sparkles, Check, X, Plus } from 'lucide-react';
 import type { Question, Finding, SuspectedCause, SuspectedCauseEvidence } from '@variscout/core';
 import type { HubProjection, EvidenceCluster } from '@variscout/core/findings';
-import { HubComposer } from '../InvestigationConclusion/HubComposer';
+import { HubComposer, type HubComposerBranchFields } from '../InvestigationConclusion/HubComposer';
 import { HubCard } from '../InvestigationConclusion/HubCard';
 import { SynthesisPrompt } from '../InvestigationConclusion/SynthesisPrompt';
 
@@ -43,14 +43,16 @@ export interface InvestigationConclusionProps {
     name: string,
     synthesis: string,
     questionIds: string[],
-    findingIds: string[]
+    findingIds: string[],
+    branchFields: HubComposerBranchFields
   ) => void;
   onUpdateHub?: (
     hubId: string,
     name: string,
     synthesis: string,
     questionIds: string[],
-    findingIds: string[]
+    findingIds: string[],
+    branchFields: HubComposerBranchFields
   ) => void;
   onDeleteHub?: (hubId: string) => void;
   onToggleHubSelect?: (hubId: string) => void;
@@ -135,12 +137,20 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
     name: string,
     synthesis: string,
     questionIds: string[],
-    findingIds: string[]
+    findingIds: string[],
+    branchFields: HubComposerBranchFields
   ) => {
     if (composerState.mode === 'editing' && composerState.editingHubId) {
-      onUpdateHub?.(composerState.editingHubId, name, synthesis, questionIds, findingIds);
+      onUpdateHub?.(
+        composerState.editingHubId,
+        name,
+        synthesis,
+        questionIds,
+        findingIds,
+        branchFields
+      );
     } else {
-      onCreateHub?.(name, synthesis, questionIds, findingIds);
+      onCreateHub?.(name, synthesis, questionIds, findingIds, branchFields);
     }
     setComposerState({ mode: 'closed' });
   };

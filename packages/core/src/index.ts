@@ -585,6 +585,14 @@ export type {
   FindingRole,
   BenchmarkStats,
   SuspectedCause,
+  MechanismBranchReadiness,
+  MechanismBranchStatus,
+  MechanismBranchClueView,
+  MechanismBranchProcessContext,
+  MechanismBranchProjectionOptions,
+  MechanismBranchQuestionView,
+  MechanismBranchReadinessView,
+  MechanismBranchViewModel,
   // Causal link types (investigation DAG)
   CausalLink,
   CausalDirection,
@@ -667,6 +675,8 @@ export {
   computeHubContribution,
   computeHubEvidence,
   computeHubProjection,
+  projectMechanismBranch,
+  projectMechanismBranches,
   detectEvidenceClusters,
   migrateCauseRolesToHubs,
 } from './findings';

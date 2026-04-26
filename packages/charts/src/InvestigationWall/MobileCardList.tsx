@@ -2,8 +2,9 @@
  * MobileCardList — Vertical stack of hub cards for narrow viewports.
  *
  * Replaces the 2000×1400 SVG WallCanvas below 768px, where the full canvas
- * is unreadable. Each hub renders as an HTML card with name, status label,
- * findings and questions counts, and a subtle status-colored left border.
+ * is unreadable. Each hub renders as a structured Mechanism Branch card with
+ * suspected mechanism, clue/check counts, readiness, next move, and a subtle
+ * status-colored left border.
  *
  * Status derivation mirrors `deriveDisplayStatus` in WallCanvas: confirmed
  * and not-confirmed map directly; otherwise "evidenced" when at least one
@@ -11,7 +12,14 @@
  */
 
 import React from 'react';
-import type { MessageCatalog, SuspectedCause, Finding, Question } from '@variscout/core';
+import {
+  projectMechanismBranch,
+  type MessageCatalog,
+  type ProcessMap,
+  type SuspectedCause,
+  type Finding,
+  type Question,
+} from '@variscout/core';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '../colors';
 import { EmptyState } from './EmptyState';
@@ -28,6 +36,7 @@ export interface MobileCardListProps {
    * another prop break.
    */
   questions: Question[];
+  processMap?: ProcessMap;
   onSelectHub?: (hubId: string) => void;
   onWriteHypothesis?: () => void;
   onPromoteFromQuestion?: () => void;
@@ -73,6 +82,7 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
   hubs,
   findings,
   questions: _questions,
+  processMap,
   onSelectHub,
   onWriteHypothesis,
   onPromoteFromQuestion,
@@ -90,7 +100,7 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
     );
   }
 
-  const hypothesisLabel = getMessage(locale, 'wall.card.hypothesisLabel');
+  const branchLabel = getMessage(locale, 'wall.card.hypothesisLabel');
 
   return (
     <ul
@@ -100,20 +110,27 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
     >
       {hubs.map(hub => {
         const status = deriveDisplayStatus(hub, findings);
+        const branch = projectMechanismBranch(hub, {
+          questions: _questions,
+          findings,
+          processContext: processMap ? { processMap } : undefined,
+        });
         const statusLabel = getMessage(locale, STATUS_KEY[status]);
         const findingsLabel = formatMessage(locale, 'wall.card.findings', {
           count: hub.findingIds.length,
         });
-        // Linked questions only — `questionIds` is the canonical link list,
-        // matching the "question count" signal used by HypothesisCard copy.
+        // Linked questions only — `questionIds` is the canonical link list.
         const questionsLabel = formatMessage(locale, 'wall.card.questions', {
           count: hub.questionIds.length,
         });
         const ariaLabel = formatMessage(locale, 'wall.card.ariaLabel', {
-          name: hub.name,
+          name: branch.suspectedMechanism,
           status: statusLabel,
-          count: hub.findingIds.length,
+          count: branch.supportingClues.length,
         });
+        const supportingLabel = `${branch.supportingClues.length} supporting clue${branch.supportingClues.length === 1 ? '' : 's'}`;
+        const counterLabel = `${branch.counterClues.length} counter-clue${branch.counterClues.length === 1 ? '' : 's'}`;
+        const openChecksLabel = `${branch.openChecks.length} open check${branch.openChecks.length === 1 ? '' : 's'}`;
         return (
           <li
             key={hub.id}
@@ -133,9 +150,22 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
             }}
           >
             <div className="text-[10px] uppercase tracking-wide font-mono text-content-subtle">
-              {hypothesisLabel} · {statusLabel}
+              {branchLabel} · {statusLabel}
             </div>
-            <div className="text-sm font-semibold text-content mt-0.5">{hub.name}</div>
+            <div className="text-sm font-semibold text-content mt-0.5">
+              {branch.suspectedMechanism}
+            </div>
+            <div className="text-[11px] text-content-muted mt-1">
+              Suspected mechanism · {branch.readiness.label}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 mt-2 text-xs text-content-secondary">
+              <span>{supportingLabel}</span>
+              <span>{counterLabel}</span>
+              <span>{openChecksLabel}</span>
+            </div>
+            {branch.nextMove && (
+              <div className="text-xs text-content-secondary mt-2">Next: {branch.nextMove}</div>
+            )}
             <div className="text-xs font-mono text-content-muted mt-1 flex gap-3">
               <span data-testid={`wall-mobile-hub-${hub.id}-findings`}>{findingsLabel}</span>
               <span data-testid={`wall-mobile-hub-${hub.id}-questions`}>{questionsLabel}</span>

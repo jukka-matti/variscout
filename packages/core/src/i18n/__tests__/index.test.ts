@@ -207,10 +207,10 @@ describe('Investigation Wall keys', () => {
   it('has English values for all wall keys', () => {
     expect(getMessage('en', 'wall.status.proposed')).toBe('Proposed');
     expect(getMessage('en', 'wall.problem.title')).toBe('Problem condition');
-    expect(getMessage('en', 'wall.empty.title')).toBe('Start with a hypothesis');
+    expect(getMessage('en', 'wall.empty.title')).toBe('Start a Mechanism Branch');
     expect(getMessage('en', 'wall.rail.title')).toBe('CoScout');
     expect(getMessage('en', 'wall.cta.proposeHypothesis')).toBe(
-      'Propose new hypothesis from this finding'
+      'Propose suspected mechanism from this finding'
     );
     expect(getMessage('en', 'wall.toolbar.groupByTributary')).toBe('Group by tributary');
     expect(getMessage('en', 'wall.palette.placeholder')).toBe('Search hubs, questions, findings…');
@@ -234,7 +234,7 @@ describe('Investigation Wall keys', () => {
         status: 'Confirmed',
         count: 4,
       })
-    ).toBe('Hypothesis Nozzle hot, Confirmed, 4 findings');
+    ).toBe('Mechanism Branch Nozzle hot, Confirmed, 4 supporting clues');
   });
 
   it('interpolates gate.holds and problem.ariaLabel', () => {

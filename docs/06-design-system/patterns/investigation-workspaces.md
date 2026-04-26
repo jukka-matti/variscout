@@ -108,6 +108,11 @@ Next move
 Comments / ownership
 ```
 
+Process-map context is optional. A branch card must be useful with only the
+issue, problem condition, suspected mechanism, clues, checks, and next move.
+When a process map exists, it may add scope chips, tributary grouping, and
+process-node warnings; absence of a map is not an empty or blocked state.
+
 Status labels must be textual:
 
 | Label             | Meaning                                   |

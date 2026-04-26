@@ -65,7 +65,7 @@ describe('WallCanvas', () => {
         eventsPerWeek={42}
       />
     );
-    expect(screen.getByText(/Start with a hypothesis/i)).toBeInTheDocument();
+    expect(screen.getByText(/Start a Mechanism Branch/i)).toBeInTheDocument();
   });
 
   it('renders Problem card + hub cards when hubs present', () => {
@@ -81,6 +81,22 @@ describe('WallCanvas', () => {
     );
     expect(screen.getByText(/Problem condition/i)).toBeInTheDocument();
     expect(screen.getByText(/Nozzle runs hot/i)).toBeInTheDocument();
+  });
+
+  it('renders branch cards without a process map', () => {
+    render(
+      <WallCanvas
+        hubs={[{ ...hub, nextMove: 'Check nozzle temperature.' }]}
+        findings={[]}
+        questions={[]}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+    expect(screen.getByText(/Problem condition/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nozzle runs hot/i)).toBeInTheDocument();
+    expect(screen.getByText(/Mechanism Branch/i)).toBeInTheDocument();
+    expect(screen.getByText(/Next: Check nozzle temperature/i)).toBeInTheDocument();
   });
 
   it('renders tributary footer row', () => {
@@ -237,7 +253,7 @@ describe('WallCanvas', () => {
     const group = container.querySelector('[data-tributary-group="t1"]');
     expect(group).toBeTruthy();
     // Both hubs live inside the group frame.
-    expect(group?.querySelectorAll('[aria-label*="Hypothesis"]').length).toBe(2);
+    expect(group?.querySelectorAll('[aria-label*="Mechanism Branch"]').length).toBe(2);
   });
 
   it('does not render tributary-group frame when groupByTributary is off', () => {

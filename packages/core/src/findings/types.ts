@@ -624,6 +624,17 @@ export interface SuspectedCauseEvidence {
 // Suspected Cause Hub (Investigation Reframing)
 // ============================================================================
 
+/** User-facing Mechanism Branch lifecycle status. */
+export type MechanismBranchStatus = 'active' | 'confirmed' | 'not-confirmed' | 'parked';
+
+/** Deterministic readiness bucket shown on Mechanism Branch cards. */
+export type MechanismBranchReadiness =
+  | 'not-tested'
+  | 'needs-check'
+  | 'evidence-backed'
+  | 'ready-to-act'
+  | 'closed';
+
 /**
  * A suspected cause hub — a named mechanism that connects multiple evidence
  * threads (questions, findings) into one coherent story.
@@ -649,6 +660,16 @@ export interface SuspectedCause {
   selectedForImprovement?: boolean;
   /** Status: suspected → confirmed (outcome-based) */
   status: 'suspected' | 'confirmed' | 'not-confirmed';
+  /** Optional user-facing branch lifecycle status. Defaults are derived from `status`. */
+  branchStatus?: MechanismBranchStatus;
+  /** Optional user-facing branch readiness override. Usually derived from evidence/checks. */
+  branchReadiness?: MechanismBranchReadiness;
+  /** Branch-level next move. Investigation-level `ProcessContext.nextMove` remains separate. */
+  nextMove?: string;
+  /** Explicit finding IDs that should render as counter-clues for this branch. */
+  counterFindingIds?: string[];
+  /** Explicit question IDs that should render as open branch checks. */
+  checkQuestionIds?: string[];
   /** Predicate tree used by the Investigation Wall to evaluate HOLDS X/Y.
    * Auto-derived from the first finding's `findingSource` on creation; analyst-editable.
    * Absent for hubs created before Wall ships. */

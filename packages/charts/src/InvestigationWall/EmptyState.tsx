@@ -2,9 +2,9 @@
  * EmptyState — shown on the Investigation Wall when no hubs exist yet.
  *
  * Presents three entry points for starting an investigation:
- *   1. Write a hypothesis directly.
- *   2. Promote an existing question to a hypothesis.
- *   3. Seed hubs from Factor Intelligence.
+ *   1. Write a suspected mechanism directly.
+ *   2. Promote an existing question into branch work.
+ *   3. Seed mechanism branches from Factor Intelligence.
  */
 
 import React from 'react';

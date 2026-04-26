@@ -65,6 +65,56 @@ describe('MobileCardList', () => {
     expect(screen.getByTestId('wall-mobile-hub-hA-findings')).toHaveTextContent('3 findings');
   });
 
+  it('renders structured branch sections with clues, checks, readiness, and next move', () => {
+    const branchHub = makeHub({
+      id: 'h-branch',
+      findingIds: ['f1', 'f2'],
+      questionIds: ['q1'],
+      nextMove: 'Run a late-shift temperature check.',
+    });
+    const findings: Finding[] = [
+      {
+        id: 'f1',
+        text: 'Night shift has wider spread',
+        createdAt: 1,
+        context: { activeFilters: {}, cumulativeScope: null },
+        status: 'analyzed',
+        comments: [],
+        statusChangedAt: 1,
+        validationStatus: 'supports',
+      },
+      {
+        id: 'f2',
+        text: 'Day shift has one similar event',
+        createdAt: 2,
+        context: { activeFilters: {}, cumulativeScope: null },
+        status: 'analyzed',
+        comments: [],
+        statusChangedAt: 2,
+        validationStatus: 'contradicts',
+      },
+    ];
+    const questions: Question[] = [
+      {
+        id: 'q1',
+        text: 'Check nozzle temperature after four hours',
+        status: 'open',
+        linkedFindingIds: [],
+        createdAt: '',
+        updatedAt: '',
+      },
+    ];
+
+    render(<MobileCardList hubs={[branchHub]} findings={findings} questions={questions} />);
+
+    expect(screen.getByText(/Mechanism Branch/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 supporting clue/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 counter-clue/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 open check/i)).toBeInTheDocument();
+    expect(screen.getByText(/Needs check/i)).toBeInTheDocument();
+    expect(screen.getByText(/Next: Run a late-shift temperature check/i)).toBeInTheDocument();
+  });
+
   it('renders linked question count from hub.questionIds.length', () => {
     render(<MobileCardList hubs={[hubA]} findings={[]} questions={[] as Question[]} />);
     // hubA has one linked question
@@ -85,6 +135,6 @@ describe('MobileCardList', () => {
     render(<MobileCardList hubs={[]} findings={[]} questions={[]} />);
     expect(screen.queryByTestId('wall-mobile-card-list')).toBeNull();
     // EmptyState heading comes from the shared component
-    expect(screen.getByText(/Start with a hypothesis/i)).toBeInTheDocument();
+    expect(screen.getByText(/Start a Mechanism Branch/i)).toBeInTheDocument();
   });
 });

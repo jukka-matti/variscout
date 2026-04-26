@@ -522,6 +522,26 @@ describe('deserializeInvestigationState', () => {
     const restored = deserializeInvestigationState(firstPass);
     expect(restored.suspectedCauses[0].evidence).toEqual(hub.evidence);
   });
+
+  it('round-trip preserves branch nextMove and branch clue/check references', () => {
+    const hub = makeSuspectedCause({
+      nextMove: 'Run a late-shift temperature check.',
+      counterFindingIds: ['f-counter'],
+      checkQuestionIds: ['q-check'],
+    });
+    const firstPass = serializeInvestigationState([], [], [hub]);
+    const restored = deserializeInvestigationState(firstPass);
+    const secondPass = serializeInvestigationState(
+      restored.findings,
+      restored.questions,
+      restored.suspectedCauses
+    );
+
+    expect(restored.suspectedCauses[0].nextMove).toBe('Run a late-shift temperature check.');
+    expect(restored.suspectedCauses[0].counterFindingIds).toEqual(['f-counter']);
+    expect(restored.suspectedCauses[0].checkQuestionIds).toEqual(['q-check']);
+    expect(secondPass).toEqual(firstPass);
+  });
 });
 
 // ---------------------------------------------------------------------------

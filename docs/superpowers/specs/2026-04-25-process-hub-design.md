@@ -58,6 +58,9 @@ source question:
 
 The current project portfolio answers "which saved investigations exist?" A
 Process Hub answers "what is happening to this process, why, and did it work?"
+The "why" rollup comes from Mechanism Branches inside investigations: branch
+readiness, supporting/counter clues, open checks, and branch next moves explain
+why the hub summary recommends action, deeper checking, or waiting.
 
 This makes VariScout the structured improvement layer around existing management
 systems. ERP, MES, QMS, CRM, ACD, or workflow tools remain the source systems.
@@ -208,8 +211,11 @@ EDA 2.0 is the investigation language inside Process Hub:
 - EDA 2.0 defines what an investigation is learning.
 - Current Understanding is the Process Hub summary line for active work.
 - Problem Condition is the measurable gap shown on hub cards.
-- Mechanism Branches explain why action is being considered.
-- Next Move tells the team what to do next.
+- Mechanism Branches explain why action is being considered and remain
+  investigation artifacts projected from `SuspectedCause` hubs.
+- Next Move tells the team what to do next. Branch-level next moves can inform
+  the investigation-level Process Hub summary, but the summary remains
+  separately editable.
 - Signal Cards and Survey later improve trust, power, and data readiness.
 
 Implementation should land **EDA 2.0 Phase 1 before Process Hub product code**:

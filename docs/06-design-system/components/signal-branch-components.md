@@ -105,6 +105,10 @@ Accessibility requirement:
 ## Mechanism Branch Card
 
 The Mechanism Branch Card is the main investigation unit.
+It is the UI projection of a `SuspectedCause` hub plus linked clues/checks, and
+it must render without a process map. Process-map bindings enrich branch scope
+and grouping when present; they are optional context, not a prerequisite for
+using the Branch UI.
 
 Required sections:
 

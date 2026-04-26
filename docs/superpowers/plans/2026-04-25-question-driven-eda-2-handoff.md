@@ -28,6 +28,8 @@ The methodology spec has been written, verified, and committed.
 - Spec: `docs/superpowers/specs/2026-04-25-question-driven-eda-2-design.md`
 - Companion spec: `docs/superpowers/specs/2026-04-25-process-flow-yamazumi-integration-design.md`
 - UI concept extraction: `docs/superpowers/specs/2026-04-25-claude-design-ui-concept-extraction.md`
+- Branch workspace phase plan:
+  `docs/superpowers/plans/2026-04-25-qde-2-branch-workspace.md`
 - Spec index updated: `docs/superpowers/specs/index.md`
 - Commit: `db09060c docs: add question-driven eda 2 spec`
 - Verification run: `pnpm docs:check` passed during the commit hook.

@@ -201,13 +201,15 @@ describe('PWA InvestigationView Map/Wall toggle', () => {
     ).toBeTruthy();
   });
 
-  it('shows fallback message when wall mode is active but no processMap', () => {
+  it('shows WallCanvas when wall mode is active but no processMap', () => {
     useWallLayoutStore.getState().setViewMode('wall');
     // processMap is null by default after reset
 
     render(<InvestigationView {...makeMinimalProps()} />);
 
-    expect(screen.getByText(/Build a Process Map in the Frame workspace first/i)).toBeTruthy();
+    expect(
+      screen.queryByTestId('wall-canvas') ?? screen.queryByTestId('wall-canvas-empty')
+    ).toBeTruthy();
   });
 
   it('list/board/tree sub-toggle is visible in Map mode', () => {

@@ -409,6 +409,7 @@ export {
 // Suspected Cause Hubs (named mechanism groupings for investigation synthesis)
 export {
   useSuspectedCauses,
+  type SuspectedCauseUpdate,
   type UseSuspectedCausesOptions,
   type UseSuspectedCausesReturn,
 } from './useSuspectedCauses';

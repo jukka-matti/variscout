@@ -313,6 +313,14 @@ A Mechanism Branch is the working unit in INVESTIGATE. It collects:
 - Next move.
 - Readiness to act.
 
+Implementation decision for this phase: Mechanism Branch is a user-facing
+projection over the existing `SuspectedCause` hub, not a new persisted domain
+entity or fifth store. `SuspectedCause` remains the mechanism container and may
+carry optional branch-facing fields such as readiness/status, branch `nextMove`,
+counter-clue references, and open-check references. The branch view model is
+derived from `SuspectedCause`, linked questions, linked findings, and optional
+process context.
+
 The branch should read like:
 
 ```text
@@ -335,7 +343,9 @@ Desktop can use the full Wall / roots view:
 - Mechanism branches below.
 - Clues attached to branches.
 - Natural-language condition logic between branches.
-- Tributary/process-map binding in the footer or side rail.
+- Tributary/process-map binding in the footer or side rail when a process map
+  exists.
+- Generic branch layout when no process map exists.
 
 ### Tablet
 
@@ -743,7 +753,11 @@ Review against:
 
 1. Should `SURVEY` remain a horizontal evaluator only, or graduate to a visible workspace after the branch model proves itself?
 2. Should Current Understanding live in `ProcessContext`, `investigationStore`, or a derived selector over both?
-3. Should Mechanism Branch be a new entity, or a user-facing projection of existing SuspectedCause hubs?
-4. How much of Signal Card trust/power should ship before any formal measurement-study planner?
-5. What minimum n should a process moment require before Cp/Cpk is shown rather than marked insufficient?
-6. How should ProcessMap CTQ specs be modeled when Cp/Cpk is needed per step, not only for the overall Y?
+3. How much of Signal Card trust/power should ship before any formal measurement-study planner?
+4. What minimum n should a process moment require before Cp/Cpk is shown rather than marked insufficient?
+5. How should ProcessMap CTQ specs be modeled when Cp/Cpk is needed per step, not only for the overall Y?
+
+## Resolved Questions
+
+1. Mechanism Branch is a user-facing projection of existing `SuspectedCause`
+   hubs. It is not a new domain store or separate top-level persisted entity.

@@ -5,6 +5,7 @@ import {
   InvestigationConclusion,
   FindingsLog,
   QuestionLinkPrompt,
+  type HubComposerBranchFields,
 } from '@variscout/ui';
 import {
   useResizablePanel,
@@ -51,9 +52,7 @@ import {
   CANVAS_H,
   useWallKeyboard,
   useWallIsMobile,
-  useWallLocale,
 } from '@variscout/charts';
-import { getMessage } from '@variscout/core/i18n';
 import { InvestigationMapView } from './InvestigationMapView';
 import { CoScoutSection } from './CoScoutSection';
 import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
@@ -160,7 +159,6 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   // Map/Wall sub-toggle (within the Evidence Map view)
   const wallViewMode = useWallLayoutStore(s => s.viewMode);
   const setWallViewMode = useWallLayoutStore(s => s.setViewMode);
-  const locale = useWallLocale();
   // Phase 13 scale features — threaded into WallCanvas so zoom, pan, and
   // tributary clustering route through the existing store + persistence.
   const wallZoom = useWallLayoutStore(s => s.zoom);
@@ -470,10 +468,17 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
   // ── Hub CRUD callbacks ──────────────────────────────────────────────────
   const handleCreateHub = useCallback(
-    (name: string, synthesis: string, questionIds: string[], findingIds: string[]) => {
+    (
+      name: string,
+      synthesis: string,
+      questionIds: string[],
+      findingIds: string[],
+      branchFields: HubComposerBranchFields
+    ) => {
       const hub = suspectedCausesState.createHub(name, synthesis);
       for (const qId of questionIds) suspectedCausesState.connectQuestion(hub.id, qId);
       for (const fId of findingIds) suspectedCausesState.connectFinding(hub.id, fId);
+      if (branchFields.nextMove) suspectedCausesState.updateHub(hub.id, branchFields);
     },
     [suspectedCausesState]
   );
@@ -484,9 +489,10 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       name: string,
       synthesis: string,
       questionIds: string[],
-      findingIds: string[]
+      findingIds: string[],
+      branchFields: HubComposerBranchFields
     ) => {
-      suspectedCausesState.updateHub(hubId, { name, synthesis });
+      suspectedCausesState.updateHub(hubId, { name, synthesis, ...branchFields });
       // Sync connections: disconnect removed, connect added
       const existing = hubs.find(h => h.id === hubId);
       if (existing) {
@@ -747,7 +753,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 ))}
               </div>
               {/* Wall-only toolbar: group by tributary */}
-              {wallViewMode === 'wall' && (
+              {wallViewMode === 'wall' && processMap && (
                 <button
                   type="button"
                   aria-pressed={wallGroupByTributary}
@@ -793,50 +799,44 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         {/* Content */}
         {investigationViewMode === 'map' ? (
           wallViewMode === 'wall' ? (
-            processMap ? (
-              <div className="relative flex-1 flex flex-col min-h-0">
-                <WallCanvas
-                  hubs={hubs}
-                  findings={findingsState.findings}
-                  questions={questionsState.questions}
-                  processMap={processMap}
-                  problemCpk={0}
-                  eventsPerWeek={0}
-                  activeColumns={wallActiveColumns}
-                  zoom={wallZoom}
-                  pan={wallPan}
-                  groupByTributary={wallGroupByTributary}
-                />
-                {/* Minimap + CommandPalette are desktop-only. WallCanvas
-                    self-gates to MobileCardList below 768px, so these
-                    sibling controls would overlap the mobile list. */}
-                {!wallIsMobile && (
-                  <>
-                    <div className="absolute bottom-4 right-4 pointer-events-auto">
-                      <Minimap
-                        hubs={hubs}
-                        questions={questionsState.questions}
-                        zoom={wallZoom}
-                        pan={wallPan}
-                        onPanTo={(x, y) => setWallPan({ x, y })}
-                      />
-                    </div>
-                    <CommandPalette
-                      open={wallPaletteOpen}
-                      onClose={() => setWallPaletteOpen(false)}
-                      onPanTo={handleWallPanToNode}
+            <div className="relative flex-1 flex flex-col min-h-0">
+              <WallCanvas
+                hubs={hubs}
+                findings={findingsState.findings}
+                questions={questionsState.questions}
+                processMap={processMap}
+                problemCpk={0}
+                eventsPerWeek={0}
+                activeColumns={wallActiveColumns}
+                zoom={wallZoom}
+                pan={wallPan}
+                groupByTributary={Boolean(processMap && wallGroupByTributary)}
+              />
+              {/* Minimap + CommandPalette are desktop-only. WallCanvas
+                  self-gates to MobileCardList below 768px, so these
+                  sibling controls would overlap the mobile list. */}
+              {!wallIsMobile && (
+                <>
+                  <div className="absolute bottom-4 right-4 pointer-events-auto">
+                    <Minimap
                       hubs={hubs}
                       questions={questionsState.questions}
-                      findings={findingsState.findings}
+                      zoom={wallZoom}
+                      pan={wallPan}
+                      onPanTo={(x, y) => setWallPan({ x, y })}
                     />
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">
-                {getMessage(locale, 'wall.missing.processMap')}
-              </div>
-            )
+                  </div>
+                  <CommandPalette
+                    open={wallPaletteOpen}
+                    onClose={() => setWallPaletteOpen(false)}
+                    onPanTo={handleWallPanToNode}
+                    hubs={hubs}
+                    questions={questionsState.questions}
+                    findings={findingsState.findings}
+                  />
+                </>
+              )}
+            </div>
           ) : (
             <InvestigationMapView
               mapOptions={{

@@ -35,6 +35,15 @@ export type { AndCheckResult } from './hypothesisConditionEvaluator';
 export { evaluateCondition, runAndCheck } from './hypothesisConditionEvaluator';
 export type { GatePath } from './gateNodeOps';
 export { getAt, updateAt, insertHubAsAndChild, removeAt } from './gateNodeOps';
+export type {
+  MechanismBranchClueView,
+  MechanismBranchProcessContext,
+  MechanismBranchProjectionOptions,
+  MechanismBranchQuestionView,
+  MechanismBranchReadinessView,
+  MechanismBranchViewModel,
+} from './mechanismBranch';
+export { projectMechanismBranch, projectMechanismBranches } from './mechanismBranch';
 // Note: DataRow is the canonical foundational type from `../types` — not re-exported
 // from this sub-path to avoid a duplicate identifier at the root barrel. The evaluator
 // accepts `Record<string, unknown>`-compatible rows; consumers get the canonical DataRow

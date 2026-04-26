@@ -25,9 +25,9 @@ vi.mock('@variscout/charts', async importOriginal => {
     EvidenceMapBase: () => <div data-testid="evidence-map-base" />,
     WallCanvas: (props: { hubs: unknown[] }) =>
       props.hubs.length > 0 ? (
-        <div data-testid="wall-canvas" />
+        <div data-testid="wall-canvas" data-has-process-map={String('processMap' in props)} />
       ) : (
-        <div data-testid="wall-canvas-empty" />
+        <div data-testid="wall-canvas-empty" data-has-process-map={String('processMap' in props)} />
       ),
   };
 });
@@ -286,5 +286,26 @@ describe('InvestigationWorkspace Map/Wall toggle', () => {
 
     const wallBtn = screen.getByRole('button', { name: /^wall$/i });
     expect(wallBtn.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('renders the WallCanvas for a chart-first investigation without a process map', () => {
+    useWallLayoutStore.getState().setViewMode('wall');
+    const props = makeMinimalProps();
+    props.suspectedCausesState.hubs = [
+      {
+        id: 'hub-1',
+        name: 'Nozzle heat drift',
+        synthesis: '',
+        questionIds: [],
+        findingIds: [],
+        status: 'suspected',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ] as never;
+
+    render(<InvestigationWorkspace {...props} />);
+
+    expect(screen.getByTestId('wall-canvas')).toBeInTheDocument();
   });
 });

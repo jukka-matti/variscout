@@ -83,6 +83,10 @@ const HubCard: React.FC<HubCardProps> = ({
         <div className="text-xs text-content-secondary pl-5">{projectionText}</div>
       )}
 
+      {hub.nextMove && (
+        <div className="text-xs text-content-secondary pl-5">Next: {hub.nextMove}</div>
+      )}
+
       {/* Expanded: synthesis + evidence */}
       {expanded && (
         <div className="pl-5 pt-1 space-y-1 border-t border-edge mt-1">

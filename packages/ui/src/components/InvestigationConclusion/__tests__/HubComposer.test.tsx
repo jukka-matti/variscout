@@ -76,7 +76,7 @@ describe('HubComposer', () => {
     expect(button).toBeDisabled();
   });
 
-  it('"Create Hub" button calls onSave with name, synthesis, questionIds, findingIds', () => {
+  it('"Create Hub" button calls onSave with name, synthesis, questionIds, findingIds, and nextMove', () => {
     const props = defaultProps();
     render(<HubComposer {...props} prefilledQuestionIds={['q1']} prefilledFindingIds={['f1']} />);
 
@@ -86,9 +86,14 @@ describe('HubComposer', () => {
     fireEvent.change(screen.getByPlaceholderText(/How does the evidence connect/), {
       target: { value: 'Thermal stress' },
     });
+    fireEvent.change(screen.getByPlaceholderText(/Next move for this branch/), {
+      target: { value: 'Run a late-shift temperature check.' },
+    });
     fireEvent.click(screen.getByTestId('hub-composer-save'));
 
-    expect(props.onSave).toHaveBeenCalledWith('Nozzle wear', 'Thermal stress', ['q1'], ['f1']);
+    expect(props.onSave).toHaveBeenCalledWith('Nozzle wear', 'Thermal stress', ['q1'], ['f1'], {
+      nextMove: 'Run a late-shift temperature check.',
+    });
   });
 
   it('"Cancel" button calls onCancel', () => {
@@ -131,5 +136,25 @@ describe('HubComposer', () => {
     expect(screen.getByDisplayValue('Evidence connects via thermal stress')).toBeInTheDocument();
     // Save button should say "Save" instead of "Create Hub"
     expect(screen.getByTestId('hub-composer-save')).toHaveTextContent('Save');
+  });
+
+  it('pre-populates branch nextMove when editingHub provided', () => {
+    const editingHub: SuspectedCause = {
+      id: 'hub-1',
+      name: 'Existing cause',
+      synthesis: '',
+      questionIds: [],
+      findingIds: [],
+      status: 'suspected',
+      nextMove: 'Check nozzle temperature after the night run.',
+      createdAt: '2026-04-04T00:00:00Z',
+      updatedAt: '2026-04-04T00:00:00Z',
+    };
+
+    render(<HubComposer {...defaultProps()} editingHub={editingHub} />);
+
+    expect(
+      screen.getByDisplayValue('Check nozzle temperature after the night run.')
+    ).toBeInTheDocument();
   });
 });

@@ -108,6 +108,20 @@ describe('useSuspectedCauses', () => {
       expect(hub.synthesis).toBe('New synthesis');
     });
 
+    it('updates branch nextMove without changing linked evidence', () => {
+      const initial = [createSuspectedCause('Hub', '', ['q-001'], ['f-001'])];
+      const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
+      act(() => {
+        result.current.updateHub(initial[0].id, {
+          nextMove: 'Run a late-shift temperature check.',
+        });
+      });
+      const hub = result.current.hubs[0];
+      expect(hub.nextMove).toBe('Run a late-shift temperature check.');
+      expect(hub.questionIds).toEqual(['q-001']);
+      expect(hub.findingIds).toEqual(['f-001']);
+    });
+
     it('updates updatedAt to a valid ISO timestamp', () => {
       const initial = [createSuspectedCause('Hub', '')];
       const { result } = renderHook(() => useSuspectedCauses({ initialHubs: initial }));
