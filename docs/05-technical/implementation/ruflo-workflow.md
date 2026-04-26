@@ -109,7 +109,7 @@ mcp__ruflo__memory_store(namespace: "architecture", key: "change-name", value: "
 | Quick file/class lookup                           | Glob, Grep                                               | Faster for exact matches                          |
 | Domain knowledge ("how does Cpk work here?")      | `mcp__ruflo__memory_search`                              | Semantic search across local AgentDB memory       |
 | Architecture questions ("where is auth handled?") | `mcp__ruflo__memory_search`                              | Returns contextual knowledge, not just file paths |
-| Pre-PR risk assessment                            | `mcp__ruflo__analyze_diff`                               | Use when available; fall back to git diff review   |
+| Pre-PR risk assessment                            | `mcp__ruflo__analyze_diff`                               | Use when available; fall back to git diff review  |
 | Security audit                                    | `mcp__ruflo__hooks_worker-dispatch(trigger: "audit")`    | OWASP + CVE scanning                              |
 | Test gap detection                                | `mcp__ruflo__hooks_worker-dispatch(trigger: "testgaps")` | Coverage analysis across 9 workspaces             |
 | Project state/routing                             | `AGENTS.md`, `CLAUDE.md`, `docs/llms.txt`, MEMORY.md     | Always-available repo guidance                    |
@@ -121,6 +121,10 @@ Ruflo memory is only as good as its last update. After significant work:
 1. Check if relevant entries are stale: `mcp__ruflo__memory_retrieve(key: "testing/counts")`
 2. Update with current data: `mcp__ruflo__memory_store(namespace: "testing", key: "counts", value: "...")`
 3. Reindex if structure changed: `npx ruflo@3.5.80 hooks pretrain`
+
+If memory appears empty, prefer a non-destructive reseed first: run `memory stats`, run `hooks pretrain`, import current-project Claude memories if available, and store a small set of curated project invariants. Do not run reset or `memory init --force` unless you explicitly intend to discard the existing local database.
+
+Root-level `agentdb.rvf*` files are local AgentDB state. Keep them out of Git; if they appear in the repo root, copy a backup and move the live files under ignored `.ruflo/data/`.
 
 When updating docs that mention Ruflo versions, run `pnpm docs:check`; it includes a drift guard against `scripts/check-codex-ruflo.sh`.
 

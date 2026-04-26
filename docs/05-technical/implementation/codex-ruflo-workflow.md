@@ -71,6 +71,19 @@ npx ruflo@3.5.80 hooks pretrain
 - If `pnpm codex:ruflo-check` reports missing, disabled, or wrong-version registration, run the remove/add repair commands it prints.
 - After changing Codex MCP registration, start a fresh Codex session before judging MCP runtime behavior; an already-running MCP server process may keep serving the current session.
 - If local `.mcp.json` and Codex registration drift, trust `scripts/check-codex-ruflo.sh` and re-register Ruflo from the check output.
-- If CLI probes time out but MCP tools work, use MCP memory/search tools and record the CLI path as degraded.
+- If CLI probes time out, retry `npx ruflo@3.5.80 --version` and `npx ruflo@3.5.80 memory stats` once with a longer timeout. If MCP tools work after that, use MCP memory/search tools and record the CLI path as degraded.
 - If MCP is unavailable, try the CLI for `memory search`, `security scan`, `daemon status`, and `hooks pretrain`.
 - If a doc mentions Claude hooks or statusline behavior, assume that behavior is not available in Codex unless separately configured.
+
+## Local Memory Hygiene
+
+Keep Ruflo and AgentDB data local. `.ruflo/`, `.swarm/`, `.claude/memory.db*`, `ruvector.db`, and root `agentdb.rvf*` files are ignored development state. If `agentdb.rvf` or `agentdb.rvf.lock` appears in the repo root, back it up under `.ruflo/data/` and move the live file there before continuing.
+
+When reseeding memory from Codex, use the non-destructive path first:
+
+```bash
+npx ruflo@3.5.80 memory stats
+npx ruflo@3.5.80 hooks pretrain
+```
+
+Then store curated entries through MCP memory tools or import current-project Claude memory. Avoid reset commands unless the intent is to throw away the existing local AgentDB contents.

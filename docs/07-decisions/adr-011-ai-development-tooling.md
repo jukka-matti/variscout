@@ -46,6 +46,7 @@ Use ruflo (formerly claude-flow) as an MCP-integrated development tooling layer.
 - Local runtime config: `.ruflo/config.yaml`
 - Local daemon state: `.ruflo/daemon-state.json`
 - Memory DB: `.swarm/memory.db`
+- Local AgentDB/RuVector files: `.ruflo/data/`, `agentdb.rvf*`, and `ruvector.db` (ignored development state)
 - Claude hooks: `.claude/settings.json` (PreToolUse, PostToolUse, SessionStart, UserPromptSubmit)
 - Codex entrypoint: `AGENTS.md`
 - Codex bootstrap command: `pnpm codex:ruflo-check`

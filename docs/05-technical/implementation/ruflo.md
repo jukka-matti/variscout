@@ -58,14 +58,29 @@ Claude Code or Codex ──MCP──▶ ruflo MCP Server (npx, port 3000)
 
 ### Config Files
 
-| File                         | Purpose                                                |
-| ---------------------------- | ------------------------------------------------------ |
-| `scripts/check-codex-ruflo.sh` | Tracked Codex version pin, health check, repair output |
-| `.mcp.json`                  | Local MCP server definition (gitignored)               |
-| `.ruflo/config.yaml`         | Local runtime config (topology, memory backend, workers) |
-| `.ruflo/daemon-state.json`   | Local worker state and schedules                       |
-| `.claude/settings.json`      | Claude hooks, statusline, permissions, attribution     |
-| `AGENTS.md`                  | Codex entrypoint for repo workflow                     |
+| File                           | Purpose                                                  |
+| ------------------------------ | -------------------------------------------------------- |
+| `scripts/check-codex-ruflo.sh` | Tracked Codex version pin, health check, repair output   |
+| `.mcp.json`                    | Local MCP server definition (gitignored)                 |
+| `.ruflo/config.yaml`           | Local runtime config (topology, memory backend, workers) |
+| `.ruflo/daemon-state.json`     | Local worker state and schedules                         |
+| `.ruflo/data/`                 | Ignored local AgentDB/Ruflo data path                    |
+| `.claude/settings.json`        | Claude hooks, statusline, permissions, attribution       |
+| `AGENTS.md`                    | Codex entrypoint for repo workflow                       |
+
+### Local State Files
+
+Ruflo and AgentDB can create local memory files in more than one place, depending on the CLI/MCP path that touched the repo:
+
+| Path                 | Purpose                                      | Git policy |
+| -------------------- | -------------------------------------------- | ---------- |
+| `.ruflo/`            | Ruflo config, metrics, logs, and local data  | Ignored    |
+| `.swarm/memory.db`   | Current shared memory database               | Ignored    |
+| `.claude/memory.db*` | Claude-local memory cache                    | Ignored    |
+| `ruvector.db`        | Local RuVector/vector index fallback         | Ignored    |
+| `agentdb.rvf*`       | Root-level AgentDB files, if recreated there | Ignored    |
+
+If root-level `agentdb.rvf` or `agentdb.rvf.lock` appears, move it under `.ruflo/data/` after copying a backup there. The root ignore rule is a fallback for tools that recreate those files outside `.ruflo/data/`; do not commit the database files.
 
 ### Memory Namespaces
 
@@ -152,11 +167,24 @@ Edit `.ruflo/daemon-state.json` and set `"isRunning": false` for the stuck worke
 ### Memory empty after session
 
 ```bash
-npx ruflo@3.5.80 memory init --force
+npx ruflo@3.5.80 memory stats
 npx ruflo@3.5.80 hooks pretrain
 ```
 
-Then re-seed memory entries (see seed commands in ADR-011).
+Then re-seed memory entries with MCP `memory_store` / `agentdb_hierarchical_store`, or import current-project Claude memories with MCP `memory_import_claude`. Avoid `memory init --force` or other reset commands unless you intentionally want to discard the local memory database.
+
+### CLI recovery from Codex
+
+If `pnpm codex:ruflo-check` reports a CLI timeout but the MCP registration is correct, retry the one-shot CLI with a longer timeout:
+
+```bash
+npx ruflo@3.5.80 --version
+npx ruflo@3.5.80 memory stats
+npx ruflo@3.5.80 memory search --query "Cpk calculation"
+npx ruflo@3.5.80 hooks pretrain
+```
+
+If those are still slow or unavailable, use the Codex MCP tool surface for `hooks_intelligence`, `memory_store`, `memory_retrieve`, `memory_list`, and namespace-scoped `memory_search_unified`. The separate `embeddings_search` endpoint may require its own initialization even when stored memories already have embeddings. Treat the CLI path as degraded only after MCP memory has also been checked.
 
 ### Audit worker scanning .venv
 
@@ -166,7 +194,7 @@ Ensure `.venv/` is in `.gitignore` and `workers.excludePaths` in `.ruflo/config.
 
 - **Don't add ruflo to package.json** -- It's dev tooling only, runs via npx
 - **Don't treat local `.mcp.json` as authoritative** -- Codex registration is checked with `pnpm codex:ruflo-check`
-- **Don't commit .ruflo/ data** -- Already gitignored; contains local state
+- **Don't commit local memory data** -- `.ruflo/`, `.swarm/`, `.claude/memory.db*`, `ruvector.db`, and `agentdb.rvf*` are local state
 - **Don't rely on daemon for CI/CD** -- Workers are for local dev intelligence only
 - **Don't store secrets in memory** -- Memory DB is unencrypted local SQLite
 
