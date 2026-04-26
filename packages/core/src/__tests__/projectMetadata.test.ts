@@ -380,6 +380,27 @@ describe('buildProjectMetadata — Process Hub fields', () => {
     expect(result.problemConditionSummary).toBe('Cpk is below target on Heads 5-8.');
     expect(result.nextMove).toBe('Inspect nozzle wear during night shift.');
   });
+
+  it('copies review signal metadata when provided', () => {
+    const result = buildProjectMetadata([], [], true, 'local', undefined, undefined, {
+      rowCount: 4,
+      outcome: 'Weight',
+      computedAt: '2026-04-26T00:00:00.000Z',
+      topFocus: { factor: 'Machine', value: 'B', variationPct: 94 },
+      changeSignals: {
+        total: 1,
+        outOfControlCount: 1,
+        nelsonRule2Count: 0,
+        nelsonRule3Count: 0,
+      },
+    });
+
+    expect(result.reviewSignal).toMatchObject({
+      rowCount: 4,
+      outcome: 'Weight',
+      topFocus: { factor: 'Machine', value: 'B', variationPct: 94 },
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -8,6 +8,7 @@
 
 import type { Finding, FindingStatus, Question, QuestionStatus } from './findings';
 import type { JourneyPhase, ProcessContext } from './ai/types';
+import type { HubReviewSignal } from './processReviewSignal';
 import {
   investigationStatusFromJourneyPhase,
   normalizeProcessHubId,
@@ -54,6 +55,8 @@ export interface ProjectMetadata {
   problemConditionSummary?: string;
   /** Compact next move shown on hub cards. */
   nextMove?: string;
+  /** Latest lightweight review signal shown on Process Hub cards. */
+  reviewSignal?: HubReviewSignal;
 }
 
 /**
@@ -88,7 +91,8 @@ export function buildProjectMetadata(
   hasData: boolean,
   userId: string,
   existingLastViewedAt?: Record<string, number>,
-  processContext?: ProcessContext | null
+  processContext?: ProcessContext | null,
+  reviewSignal?: HubReviewSignal | null
 ): ProjectMetadata {
   const now = Date.now();
 
@@ -175,5 +179,6 @@ export function buildProjectMetadata(
       processContext?.problemCondition?.summary ??
       processContext?.currentUnderstanding?.problemCondition?.summary,
     nextMove: processContext?.nextMove,
+    reviewSignal: reviewSignal ?? undefined,
   };
 }

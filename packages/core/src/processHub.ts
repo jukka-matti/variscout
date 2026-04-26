@@ -1,4 +1,5 @@
 import type { JourneyPhase } from './ai/types';
+import type { HubReviewSignal } from './processReviewSignal';
 
 export const DEFAULT_PROCESS_HUB_ID = 'general-unassigned';
 export const DEFAULT_PROCESS_HUB_NAME = 'General / Unassigned';
@@ -45,6 +46,7 @@ export interface ProcessHubInvestigationMetadata {
   currentUnderstandingSummary?: string;
   problemConditionSummary?: string;
   nextMove?: string;
+  reviewSignal?: HubReviewSignal;
 }
 
 export interface ProcessHubInvestigation {
@@ -67,6 +69,7 @@ export interface ProcessHubRollup<
   currentUnderstandingSummary?: string;
   problemConditionSummary?: string;
   nextMove?: string;
+  reviewSignal?: HubReviewSignal;
 }
 
 const ACTIVE_STATUSES = new Set<InvestigationStatus>([
@@ -156,6 +159,9 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
           investigation.metadata?.problemConditionSummary ||
           investigation.metadata?.nextMove
       );
+      const reviewSignalSource = hubInvestigations.find(
+        investigation => investigation.metadata?.reviewSignal
+      );
 
       return {
         hub,
@@ -168,6 +174,7 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
         currentUnderstandingSummary: summarySource?.metadata?.currentUnderstandingSummary,
         problemConditionSummary: summarySource?.metadata?.problemConditionSummary,
         nextMove: summarySource?.metadata?.nextMove,
+        reviewSignal: reviewSignalSource?.metadata?.reviewSignal,
       };
     })
     .filter(rollup => rollup.investigations.length > 0 || rollup.hub.id !== DEFAULT_PROCESS_HUB_ID)
