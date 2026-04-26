@@ -56,6 +56,35 @@ export interface ProcessHubInvestigationMetadata {
   problemConditionSummary?: string;
   nextMove?: string;
   reviewSignal?: HubReviewSignal;
+  /**
+   * Lightweight projection of the active SustainmentRecord for this investigation,
+   * surfaced on the hub for cadence rendering without re-querying the records list.
+   * Shape mirrors `SustainmentMetadataProjection` in `./sustainment` (kept inline
+   * here to avoid a circular dependency with sustainment.ts).
+   */
+  sustainment?: {
+    recordId: string;
+    cadence:
+      | 'weekly'
+      | 'biweekly'
+      | 'monthly'
+      | 'quarterly'
+      | 'semiannual'
+      | 'annual'
+      | 'on-demand';
+    nextReviewDue?: string;
+    latestVerdict?: 'holding' | 'drifting' | 'broken' | 'inconclusive';
+    handoffSurface?:
+      | 'mes-recipe'
+      | 'scada-alarm'
+      | 'qms-procedure'
+      | 'work-instruction'
+      | 'training-record'
+      | 'audit-program'
+      | 'dashboard-only'
+      | 'ticket-queue'
+      | 'other';
+  };
 }
 
 export interface ProcessHubInvestigation {

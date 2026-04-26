@@ -1,3 +1,5 @@
+import type { ProcessHubInvestigation, ProcessHubReviewItem } from './processHub';
+
 export interface ProcessParticipantRef {
   id: string;
   displayName: string;
@@ -165,4 +167,58 @@ export function isSustainmentOverdue(
   const dueMs = new Date(record.nextReviewDue).getTime();
   const cutoffMs = dueMs + safeGraceDays * 24 * 60 * 60 * 1000;
   return now.getTime() > cutoffMs;
+}
+
+/**
+ * Returns the cadence-board sustainment queue: investigations whose effective
+ * status is in SUSTAINMENT_STATUSES (`resolved` or `controlled`), whose record
+ * is due (per `isSustainmentDue`), and which are not opted out via a
+ * ControlHandoff with `retainSustainmentReview = false`.
+ *
+ * Tombstoned records are excluded by the underlying `isSustainmentDue` check.
+ */
+export function selectSustainmentReviews<TInv extends ProcessHubInvestigation>(
+  investigations: TInv[],
+  records: SustainmentRecord[],
+  handoffs: ControlHandoff[],
+  now: Date
+): ProcessHubReviewItem<TInv>[] {
+  const recordByInvestigation = new Map(records.map(r => [r.investigationId, r]));
+  const handoffByInvestigation = new Map(handoffs.map(h => [h.investigationId, h]));
+
+  return investigations
+    .filter(inv => {
+      const status = inv.metadata?.investigationStatus;
+      if (status !== 'resolved' && status !== 'controlled') return false;
+      const record = recordByInvestigation.get(inv.id);
+      if (!record || !isSustainmentDue(record, now)) return false;
+      if (status === 'controlled') {
+        const handoff = handoffByInvestigation.get(inv.id);
+        if (handoff && handoff.retainSustainmentReview === false) return false;
+      }
+      return true;
+    })
+    .map(inv => ({
+      investigation: inv,
+      reasons: [],
+      changeSignalCount: inv.metadata?.reviewSignal?.changeSignals?.total ?? 0,
+      overdueActionCount: inv.metadata?.actionCounts?.overdue ?? 0,
+      nextMove: inv.metadata?.nextMove,
+      readinessReasons: [],
+    }));
+}
+
+/**
+ * Returns investigations whose effective status is `controlled` but which lack
+ * a ControlHandoff record. These should surface in the cadence board as a
+ * prompt to either record the handoff or revert the status.
+ */
+export function selectControlHandoffCandidates<TInv extends ProcessHubInvestigation>(
+  investigations: TInv[],
+  handoffs: ControlHandoff[]
+): TInv[] {
+  const handoffByInvestigation = new Set(handoffs.map(h => h.investigationId));
+  return investigations.filter(
+    inv => inv.metadata?.investigationStatus === 'controlled' && !handoffByInvestigation.has(inv.id)
+  );
 }

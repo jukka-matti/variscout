@@ -3,8 +3,15 @@ import {
   isSustainmentDue,
   isSustainmentOverdue,
   nextDueFromCadence,
+  selectControlHandoffCandidates,
+  selectSustainmentReviews,
+  type ControlHandoff,
+  type ControlHandoffSurface,
+  type SustainmentCadence,
   type SustainmentRecord,
+  type SustainmentVerdict,
 } from '../sustainment';
+import type { ProcessHubInvestigation } from '../processHub';
 
 describe('nextDueFromCadence', () => {
   it('adds 7 days for weekly cadence anchored to a known timestamp', () => {
@@ -124,5 +131,186 @@ describe('isSustainmentOverdue', () => {
     expect(isSustainmentOverdue(record, new Date('2026-04-25T00:00:00.000Z'), -7)).toBe(false);
     expect(isSustainmentOverdue(record, new Date('2026-04-26T00:00:00.000Z'), -7)).toBe(false);
     expect(isSustainmentOverdue(record, new Date('2026-04-27T00:00:00.000Z'), -7)).toBe(true);
+  });
+});
+
+function makeInvestigation(
+  id: string,
+  status: NonNullable<ProcessHubInvestigation['metadata']>['investigationStatus'],
+  sustainmentProjection?: {
+    recordId: string;
+    cadence: SustainmentCadence;
+    nextReviewDue?: string;
+    latestVerdict?: SustainmentVerdict;
+  }
+): ProcessHubInvestigation {
+  return {
+    id,
+    name: id,
+    modified: '2026-04-26T00:00:00.000Z',
+    metadata: {
+      findingCounts: {},
+      questionCounts: {},
+      actionCounts: { total: 0, completed: 0, overdue: 0 },
+      processHubId: 'hub-1',
+      investigationStatus: status,
+      sustainment: sustainmentProjection,
+    },
+  };
+}
+
+function makeHandoff(
+  investigationId: string,
+  retain: boolean,
+  surface: ControlHandoffSurface = 'mes-recipe'
+): ControlHandoff {
+  return {
+    id: `h-${investigationId}`,
+    investigationId,
+    hubId: 'hub-1',
+    surface,
+    systemName: 'System',
+    operationalOwner: { id: 'u-1', displayName: 'Op' },
+    handoffDate: '2026-04-26T00:00:00.000Z',
+    description: '',
+    retainSustainmentReview: retain,
+    recordedAt: '2026-04-26T00:00:00.000Z',
+    recordedBy: { id: 'u-1', displayName: 'Op' },
+  };
+}
+
+describe('selectSustainmentReviews', () => {
+  it('returns only investigations with a due record', () => {
+    const due = {
+      ...makeRecord('2026-04-25T00:00:00.000Z'),
+      id: 'rec-due',
+      investigationId: 'inv-1',
+    };
+    const future = {
+      ...makeRecord('2026-05-25T00:00:00.000Z'),
+      id: 'rec-future',
+      investigationId: 'inv-2',
+    };
+    const investigations = [
+      makeInvestigation('inv-1', 'resolved', {
+        recordId: due.id,
+        cadence: 'monthly',
+        nextReviewDue: due.nextReviewDue,
+      }),
+      makeInvestigation('inv-2', 'controlled', {
+        recordId: future.id,
+        cadence: 'monthly',
+        nextReviewDue: future.nextReviewDue,
+      }),
+      makeInvestigation('inv-3', 'investigating'),
+    ];
+
+    const result = selectSustainmentReviews(
+      investigations,
+      [due, future],
+      [],
+      new Date('2026-04-26T00:00:00.000Z')
+    );
+
+    expect(result.map(r => r.investigation.id)).toEqual(['inv-1']);
+  });
+
+  it('excludes controlled investigations whose ControlHandoff.retainSustainmentReview is false', () => {
+    const due = {
+      ...makeRecord('2026-04-25T00:00:00.000Z'),
+      id: 'rec-1',
+      investigationId: 'inv-1',
+    };
+    const investigations = [
+      makeInvestigation('inv-1', 'controlled', {
+        recordId: 'rec-1',
+        cadence: 'monthly',
+        nextReviewDue: due.nextReviewDue,
+      }),
+    ];
+    const handoffs: ControlHandoff[] = [makeHandoff('inv-1', false)];
+
+    const result = selectSustainmentReviews(
+      investigations,
+      [due],
+      handoffs,
+      new Date('2026-04-26T00:00:00.000Z')
+    );
+
+    expect(result).toEqual([]);
+  });
+
+  it('keeps controlled investigations whose handoff retains sustainment review', () => {
+    const due = {
+      ...makeRecord('2026-04-25T00:00:00.000Z'),
+      id: 'rec-1',
+      investigationId: 'inv-1',
+    };
+    const investigations = [
+      makeInvestigation('inv-1', 'controlled', {
+        recordId: 'rec-1',
+        cadence: 'monthly',
+        nextReviewDue: due.nextReviewDue,
+      }),
+    ];
+    const handoffs: ControlHandoff[] = [makeHandoff('inv-1', true)];
+
+    const result = selectSustainmentReviews(
+      investigations,
+      [due],
+      handoffs,
+      new Date('2026-04-26T00:00:00.000Z')
+    );
+
+    expect(result.map(r => r.investigation.id)).toEqual(['inv-1']);
+  });
+
+  it('skips tombstoned records', () => {
+    const tombstoned = {
+      ...makeRecord('2026-04-25T00:00:00.000Z'),
+      id: 'rec-1',
+      investigationId: 'inv-1',
+      tombstoneAt: '2026-04-26T00:00:00.000Z',
+    };
+    const investigations = [
+      makeInvestigation('inv-1', 'resolved', {
+        recordId: 'rec-1',
+        cadence: 'monthly',
+        nextReviewDue: tombstoned.nextReviewDue,
+      }),
+    ];
+
+    const result = selectSustainmentReviews(
+      investigations,
+      [tombstoned],
+      [],
+      new Date('2026-04-26T00:00:00.000Z')
+    );
+
+    expect(result).toEqual([]);
+  });
+});
+
+describe('selectControlHandoffCandidates', () => {
+  it('returns controlled investigations with no handoff record', () => {
+    const investigations = [
+      makeInvestigation('inv-1', 'controlled'),
+      makeInvestigation('inv-2', 'resolved'),
+      makeInvestigation('inv-3', 'controlled'),
+    ];
+    const handoffs: ControlHandoff[] = [makeHandoff('inv-3', true, 'qms-procedure')];
+
+    const result = selectControlHandoffCandidates(investigations, handoffs);
+
+    expect(result.map(i => i.id)).toEqual(['inv-1']);
+  });
+
+  it('returns empty when all controlled investigations have handoffs', () => {
+    const investigations = [makeInvestigation('inv-1', 'controlled')];
+    const handoffs: ControlHandoff[] = [makeHandoff('inv-1', true)];
+
+    const result = selectControlHandoffCandidates(investigations, handoffs);
+
+    expect(result).toEqual([]);
   });
 });
