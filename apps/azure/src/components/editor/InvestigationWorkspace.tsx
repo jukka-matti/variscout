@@ -5,11 +5,13 @@ import {
   InvestigationConclusion,
   FindingsLog,
   QuestionLinkPrompt,
+  type HubComposerBranchFields,
 } from '@variscout/ui';
 import {
   useResizablePanel,
   useQuestionGeneration,
   useProblemStatement,
+  useCurrentUnderstanding,
   useHubComputations,
   useDefectTransform,
   useDefectEvidenceMap,
@@ -18,7 +20,13 @@ import {
   type UseQuestionsReturn,
 } from '@variscout/hooks';
 import type { DefectQuestionInput } from '@variscout/core/defect';
-import type { FindingStatus, Question } from '@variscout/core';
+import type {
+  CurrentUnderstanding,
+  FindingStatus,
+  ProblemCondition,
+  ProcessContext,
+  Question,
+} from '@variscout/core';
 import {
   hasTeamFeatures,
   inferCharacteristicType,
@@ -411,6 +419,42 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     onStatementChange: handleProblemStatementChange,
   });
 
+  const handleCurrentUnderstandingChange = useCallback(
+    (
+      currentUnderstanding: CurrentUnderstanding | undefined,
+      problemCondition: ProblemCondition | undefined
+    ) => {
+      const next: ProcessContext = { ...(processContext ?? {}) };
+      if (currentUnderstanding) {
+        next.currentUnderstanding = currentUnderstanding;
+      } else {
+        delete next.currentUnderstanding;
+      }
+      if (problemCondition) {
+        next.problemCondition = problemCondition;
+      } else {
+        delete next.problemCondition;
+      }
+      setProcessContext(next);
+    },
+    [processContext, setProcessContext]
+  );
+
+  const currentUnderstandingState = useCurrentUnderstanding({
+    processContext,
+    stats: {
+      mean: stats?.mean,
+      stdDev: stats?.stdDev,
+      cpk: stats?.cpk,
+      passRate:
+        stats?.outOfSpecPercentage !== undefined ? 100 - stats.outOfSpecPercentage : undefined,
+    },
+    problemStatement,
+    questions: questionsState.questions,
+    suspectedCauseHubs: hubs,
+    onCurrentUnderstandingChange: handleCurrentUnderstandingChange,
+  });
+
   // Issue statement handlers
   const handleIssueStatementChange = (text: string) => {
     setProcessContext({ ...processContext, issueStatement: text });
@@ -424,10 +468,17 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
   // ── Hub CRUD callbacks ──────────────────────────────────────────────────
   const handleCreateHub = useCallback(
-    (name: string, synthesis: string, questionIds: string[], findingIds: string[]) => {
+    (
+      name: string,
+      synthesis: string,
+      questionIds: string[],
+      findingIds: string[],
+      branchFields: HubComposerBranchFields
+    ) => {
       const hub = suspectedCausesState.createHub(name, synthesis);
       for (const qId of questionIds) suspectedCausesState.connectQuestion(hub.id, qId);
       for (const fId of findingIds) suspectedCausesState.connectFinding(hub.id, fId);
+      if (branchFields.nextMove) suspectedCausesState.updateHub(hub.id, branchFields);
     },
     [suspectedCausesState]
   );
@@ -438,9 +489,10 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       name: string,
       synthesis: string,
       questionIds: string[],
-      findingIds: string[]
+      findingIds: string[],
+      branchFields: HubComposerBranchFields
     ) => {
-      suspectedCausesState.updateHub(hubId, { name, synthesis });
+      suspectedCausesState.updateHub(hubId, { name, synthesis, ...branchFields });
       // Sync connections: disconnect removed, connect added
       const existing = hubs.find(h => h.id === hubId);
       if (existing) {
@@ -608,6 +660,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             issueStatement={processContext?.issueStatement}
             onIssueStatementChange={handleIssueStatementChange}
             onQuestionClick={handleQuestionClickWithSwitch}
+            currentUnderstanding={currentUnderstandingState.currentUnderstanding}
             problemStatement={processContext?.problemStatement}
             evidenceLabel={strategy.questionStrategy.evidenceLabel}
             highlightedFactor={highlightedFactor}
@@ -700,7 +753,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 ))}
               </div>
               {/* Wall-only toolbar: group by tributary */}
-              {wallViewMode === 'wall' && (
+              {wallViewMode === 'wall' && processMap && (
                 <button
                   type="button"
                   aria-pressed={wallGroupByTributary}
@@ -746,50 +799,44 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         {/* Content */}
         {investigationViewMode === 'map' ? (
           wallViewMode === 'wall' ? (
-            processMap ? (
-              <div className="relative flex-1 flex flex-col min-h-0">
-                <WallCanvas
-                  hubs={hubs}
-                  findings={findingsState.findings}
-                  questions={questionsState.questions}
-                  processMap={processMap}
-                  problemCpk={0}
-                  eventsPerWeek={0}
-                  activeColumns={wallActiveColumns}
-                  zoom={wallZoom}
-                  pan={wallPan}
-                  groupByTributary={wallGroupByTributary}
-                />
-                {/* Minimap + CommandPalette are desktop-only. WallCanvas
-                    self-gates to MobileCardList below 768px, so these
-                    sibling controls would overlap the mobile list. */}
-                {!wallIsMobile && (
-                  <>
-                    <div className="absolute bottom-4 right-4 pointer-events-auto">
-                      <Minimap
-                        hubs={hubs}
-                        questions={questionsState.questions}
-                        zoom={wallZoom}
-                        pan={wallPan}
-                        onPanTo={(x, y) => setWallPan({ x, y })}
-                      />
-                    </div>
-                    <CommandPalette
-                      open={wallPaletteOpen}
-                      onClose={() => setWallPaletteOpen(false)}
-                      onPanTo={handleWallPanToNode}
+            <div className="relative flex-1 flex flex-col min-h-0">
+              <WallCanvas
+                hubs={hubs}
+                findings={findingsState.findings}
+                questions={questionsState.questions}
+                processMap={processMap}
+                problemCpk={0}
+                eventsPerWeek={0}
+                activeColumns={wallActiveColumns}
+                zoom={wallZoom}
+                pan={wallPan}
+                groupByTributary={Boolean(processMap && wallGroupByTributary)}
+              />
+              {/* Minimap + CommandPalette are desktop-only. WallCanvas
+                  self-gates to MobileCardList below 768px, so these
+                  sibling controls would overlap the mobile list. */}
+              {!wallIsMobile && (
+                <>
+                  <div className="absolute bottom-4 right-4 pointer-events-auto">
+                    <Minimap
                       hubs={hubs}
                       questions={questionsState.questions}
-                      findings={findingsState.findings}
+                      zoom={wallZoom}
+                      pan={wallPan}
+                      onPanTo={(x, y) => setWallPan({ x, y })}
                     />
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">
-                Build a Process Map in the Frame workspace first.
-              </div>
-            )
+                  </div>
+                  <CommandPalette
+                    open={wallPaletteOpen}
+                    onClose={() => setWallPaletteOpen(false)}
+                    onPanTo={handleWallPanToNode}
+                    hubs={hubs}
+                    questions={questionsState.questions}
+                    findings={findingsState.findings}
+                  />
+                </>
+              )}
+            </div>
           ) : (
             <InvestigationMapView
               mapOptions={{

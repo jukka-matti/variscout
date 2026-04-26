@@ -1,7 +1,7 @@
 /**
  * WallCanvas — Top-level composition component for the Investigation Wall.
  *
- * Assembles ProblemConditionCard (top), HypothesisCard hubs (middle row),
+ * Assembles ProblemConditionCard (top), Mechanism Branch cards (middle row),
  * open QuestionPills (lower row), TributaryFooter (bottom), and
  * MissingEvidenceDigest (HTML panel below the SVG canvas).
  *
@@ -18,7 +18,7 @@ import type {
   GateNode,
   GatePath,
 } from '@variscout/core';
-import { conditionHasMissingColumn } from '@variscout/core';
+import { conditionHasMissingColumn, projectMechanismBranch } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { ProblemConditionCard } from './ProblemConditionCard';
 import { HypothesisCard } from './HypothesisCard';
@@ -29,7 +29,7 @@ import { EmptyState } from './EmptyState';
 import { MissingEvidenceDigest } from './MissingEvidenceDigest';
 import { MobileCardList } from './MobileCardList';
 import type { WallStatus } from './types';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 import { useWallDragDrop } from './hooks/useWallDragDrop';
 import { useWallIsMobile } from './hooks/useWallBreakpoint';
 
@@ -37,7 +37,7 @@ export interface WallCanvasProps {
   hubs: SuspectedCause[];
   findings: Finding[];
   questions: Question[];
-  processMap: ProcessMap;
+  processMap?: ProcessMap;
   problemCpk: number;
   eventsPerWeek: number;
   problemContributionTree?: GateNode;
@@ -59,7 +59,7 @@ export interface WallCanvasProps {
    * When provided, enables drag-drop gate composition. Hubs become draggable
    * sources; gate badges become drop targets. Fired on a valid hub→gate
    * drop — callers should wire this to `investigationStore.composeGate`.
-   * When omitted, drag-drop is disabled (HypothesisCard renders without a
+   * When omitted, drag-drop is disabled (the branch card renders without a
    * draggable wrapper, avoiding unused DndContext overhead).
    */
   onComposeGate?: (payload: { hubId: string; gatePath: GatePath }) => void;
@@ -75,8 +75,9 @@ export interface WallCanvasProps {
    */
   pan?: { x: number; y: number };
   /**
-   * When true, hubs are grouped by their first matching tributary (intersect
-   * `hub.tributaryIds` with `processMap.tributaries[].id`). Each non-empty
+   * When true and a process map exists, hubs are grouped by their first
+   * matching tributary (intersect `hub.tributaryIds` with
+   * `processMap.tributaries[].id`). Each non-empty
    * group renders inside a dashed-outline `<g data-tributary-group>` frame
    * labeled at top-left. Hubs without a matching tributary fall into an
    * "unassigned" group rendered without a frame. Apps thread this from
@@ -124,11 +125,25 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   pan = { x: 0, y: 0 },
   groupByTributary = false,
 }) => {
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
   const columnSet = useMemo(
     () => (activeColumns ? new Set(activeColumns) : undefined),
     [activeColumns]
   );
+  const branchByHubId = useMemo(() => {
+    const entries = hubs.map(
+      hub =>
+        [
+          hub.id,
+          projectMechanismBranch(hub, {
+            questions,
+            findings,
+            processContext: processMap ? { processMap } : undefined,
+          }),
+        ] as const
+    );
+    return new Map(entries);
+  }, [findings, hubs, processMap, questions]);
   // Tributary clustering: bucket each hub by its first matching tributary.
   // Unmatched hubs (no tributaryIds, or none intersecting processMap) drop
   // into an "unassigned" bucket rendered without a frame. Order matches
@@ -136,7 +151,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   // Computed unconditionally — returns null when disabled so the render path
   // falls back to the default linear layout.
   const tributaryGroups = useMemo(() => {
-    if (!groupByTributary) return null;
+    if (!groupByTributary || !processMap) return null;
     const tributaries = processMap.tributaries;
     const tributaryById = new Map(tributaries.map(t => [t.id, t]));
     type Bucket = {
@@ -155,7 +170,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       }
     }
     return [...buckets, unassigned].filter(b => b.hubs.length > 0);
-  }, [groupByTributary, hubs, processMap.tributaries]);
+  }, [groupByTributary, hubs, processMap]);
 
   const dndEnabled = Boolean(onComposeGate);
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
@@ -172,6 +187,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           hubs={hubs}
           findings={findings}
           questions={questions}
+          processMap={processMap}
           onSelectHub={onSelectHub}
           onWriteHypothesis={onWriteHypothesis}
           onPromoteFromQuestion={onPromoteFromQuestion}
@@ -192,7 +208,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     );
   }
 
-  const problemLabel = processMap.ctsColumn ?? 'CTS';
+  const problemLabel = processMap?.ctsColumn ?? 'CTS';
   const hubY = 400;
   const hubSpacing = CANVAS_W / (hubs.length + 1);
 
@@ -203,6 +219,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const renderHubAt = (hub: SuspectedCause, x: number) => {
     const hubProps = {
       hub,
+      branch: branchByHubId.get(hub.id),
       displayStatus: deriveDisplayStatus(hub, findings),
       x,
       y: hubY,
@@ -302,12 +319,14 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
             />
           ))}
 
-          <TributaryFooter
-            tributaries={processMap.tributaries}
-            hubs={hubs}
-            y={1300}
-            canvasWidth={CANVAS_W}
-          />
+          {processMap && (
+            <TributaryFooter
+              tributaries={processMap.tributaries}
+              hubs={hubs}
+              y={1300}
+              canvasWidth={CANVAS_W}
+            />
+          )}
         </g>
       </svg>
 

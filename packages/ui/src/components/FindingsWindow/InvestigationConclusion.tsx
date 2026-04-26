@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronRight, ClipboardCheck, Sparkles, Check, X, Plus } from 'lucide-react';
 import type { Question, Finding, SuspectedCause, SuspectedCauseEvidence } from '@variscout/core';
 import type { HubProjection, EvidenceCluster } from '@variscout/core/findings';
-import { HubComposer } from '../InvestigationConclusion/HubComposer';
+import { HubComposer, type HubComposerBranchFields } from '../InvestigationConclusion/HubComposer';
 import { HubCard } from '../InvestigationConclusion/HubCard';
 import { SynthesisPrompt } from '../InvestigationConclusion/SynthesisPrompt';
 
@@ -21,7 +21,7 @@ export interface InvestigationConclusionProps {
   ruledOut: Question[];
   /** Questions marked as contributing */
   contributing: Question[];
-  /** Synthesized problem statement */
+  /** Approved problem statement */
   problemStatement?: string;
   /** Whether the investigation has enough evidence for conclusions */
   hasConclusions: boolean;
@@ -43,14 +43,16 @@ export interface InvestigationConclusionProps {
     name: string,
     synthesis: string,
     questionIds: string[],
-    findingIds: string[]
+    findingIds: string[],
+    branchFields: HubComposerBranchFields
   ) => void;
   onUpdateHub?: (
     hubId: string,
     name: string,
     synthesis: string,
     questionIds: string[],
-    findingIds: string[]
+    findingIds: string[],
+    branchFields: HubComposerBranchFields
   ) => void;
   onDeleteHub?: (hubId: string) => void;
   onToggleHubSelect?: (hubId: string) => void;
@@ -135,12 +137,20 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
     name: string,
     synthesis: string,
     questionIds: string[],
-    findingIds: string[]
+    findingIds: string[],
+    branchFields: HubComposerBranchFields
   ) => {
     if (composerState.mode === 'editing' && composerState.editingHubId) {
-      onUpdateHub?.(composerState.editingHubId, name, synthesis, questionIds, findingIds);
+      onUpdateHub?.(
+        composerState.editingHubId,
+        name,
+        synthesis,
+        questionIds,
+        findingIds,
+        branchFields
+      );
     } else {
-      onCreateHub?.(name, synthesis, questionIds, findingIds);
+      onCreateHub?.(name, synthesis, questionIds, findingIds, branchFields);
     }
     setComposerState({ mode: 'closed' });
   };
@@ -308,11 +318,11 @@ const InvestigationConclusion: React.FC<InvestigationConclusionProps> = ({
         </div>
       )}
 
-      {/* Problem Statement — three states: accepted, draft editing, or generate button */}
+      {/* Problem Statement — three states: approved, draft editing, or generate button */}
       {problemStatement && !problemStatementDraft && (
         <div className="border-l-2 border-green-500 pl-2.5 py-1.5" data-testid="problem-statement">
           <div className="text-[0.5625rem] uppercase tracking-wider text-content-muted font-medium mb-0.5">
-            Problem Statement
+            Approved Problem Statement
           </div>
           <p className="text-[0.6875rem] leading-relaxed text-content-secondary">
             {problemStatement}

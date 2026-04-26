@@ -80,6 +80,12 @@ describe('HubCard', () => {
     expect(screen.getByText(/1 finding/)).toBeInTheDocument();
   });
 
+  it('shows branch next move when present', () => {
+    render(<HubCard {...defaultProps()} hub={makeHub({ nextMove: 'Run a late-shift check.' })} />);
+
+    expect(screen.getByText(/Next: Run a late-shift check/i)).toBeInTheDocument();
+  });
+
   it('"Edit" button calls onEdit', () => {
     const props = defaultProps();
     render(<HubCard {...props} />);

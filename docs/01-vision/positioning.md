@@ -53,27 +53,45 @@ That quote is VariScout in one sentence.
 
 ### Core Positioning Statement
 
-**VariScout is structured investigation for process improvement — question-driven, evidence-based, AI-assisted. It turns process data into investigations that end in measurable improvement.**
+**VariScout is a team improvement workspace for turning operational data into shared process understanding, verified improvements, and sustained controls — question-driven, evidence-based, and AI-assisted.**
+
+The planned Process Hub direction sharpens this positioning. A Process Hub is the organizational home for one production line, service queue, value stream, or business process. It lets the process owner and improvement team see what is being investigated, what is changing, who owns the work, what is waiting for verification, and which learnings need to be sustained.
+
+Process Hub also gives VariScout a clear monitoring boundary: VariScout helps teams monitor process performance at an improvement cadence, detect meaningful change signals, identify where variation is concentrated, and turn those signals into faster investigation, action, verification, and sustained control. It can support control inside VariScout or help teams operationalize controls in live systems, but it does not become the 24/7 operational monitoring platform.
 
 ### What VariScout Is Not
 
 - **Not a dashboard tool.** Dashboards show what happened. VariScout helps you figure out why and guides you to fix it.
 - **Not a statistics package.** Statistics are one evidence type. VariScout structures the investigation around them.
 - **Not an AI analytics tool.** AI assists. The methodology and the team drive the investigation.
+- **Not a 24/7 operational monitoring system.** VariScout reviews performance at an improvement cadence; live alerts, shift-critical escalation, and real-time control loops stay in operational systems.
 
 ### Multi-Level Pitch
 
-| Context                 | Pitch                                                                                                                                                                                                                                       |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **One sentence**        | VariScout guides structured investigations that turn process data into measurable improvement.                                                                                                                                              |
-| **Dinner / elevator**   | You paste your data, VariScout shows you where the problems are. Then your team goes and checks — photos, observations, expertise. It guides the whole investigation, not just the data part.                                               |
-| **Website hero**        | Turn process data into structured team investigations. Generate questions from data. Answer them with statistics, gemba observations, and team expertise. Prove your fix worked.                                                            |
-| **Marketplace listing** | Structured investigation for process improvement. Question-driven analysis that guides teams from concern to measured result — combining data analysis, gemba observations, and expert knowledge in one investigation flow, assisted by AI. |
-| **Internal strategy**   | VariScout is the first tool that embodies structured EDA investigation as a product. The methodology (Turtiainen 2019) is the product. The AI augments. The collaboration scales it. The knowledge accumulates.                             |
+| Context                 | Pitch                                                                                                                                                                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **One sentence**        | VariScout helps teams turn process data into shared understanding, verified improvement, and sustained control.                                                                                                                       |
+| **Process Hub**         | Monitor performance. Detect change. Focus investigation. Verify action. Sustain control.                                                                                                                                              |
+| **Dinner / elevator**   | Your team chooses the process, adds the data, and VariScout shows where the problems are. Then the team checks what is really happening, assigns actions, verifies whether the change worked, and captures what should be sustained.  |
+| **Website hero**        | Turn operational data into structured team improvement. Build current understanding, check suspected mechanisms with data and gemba evidence, prove fixes worked, and hand learning back to the process.                              |
+| **Marketplace listing** | Structured improvement workspace for process teams. Question-driven analysis guides teams from concern to measured result by combining data analysis, gemba observations, expert knowledge, action tracking, and AI-assisted context. |
+| **Internal strategy**   | VariScout is the first tool that embodies structured EDA investigation as a team process-improvement workspace. The methodology (Turtiainen 2019) is the product. AI augments; Process Hub gives the organizational container.        |
 
 ---
 
 ## 3. The Investigation Method
+
+### Process Hub — Investigation in Organizational Context
+
+The planned Process Hub direction makes the process, line, queue, or business flow the default context. The Process Hub does not replace the investigation method. It collects multiple investigations around the same process so the process owner can see active work, ownership, planned changes, verification gaps, and sustainment/control decisions.
+
+Inside a Process Hub, investigations can be:
+
+- **Quick** — a small local team issue with lightweight action and verification.
+- **Focused** — several checks or one mechanism branch.
+- **Chartered** — formal LSSGB/DMAIC-style work with sponsor, target, and report.
+
+This is how VariScout fits existing management systems: ERP, MES, QMS, CRM, and workflow tools remain systems of record; VariScout is the structured improvement layer that turns their data and the team's evidence into shared learning, verified change, and sustained control.
 
 ### Four Phases — Investigation as Navigation
 

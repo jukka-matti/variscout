@@ -25,7 +25,8 @@
     "./ui-types": "./src/ui-types/index.ts",
     "./evidenceMap": "./src/evidenceMap/index.ts",
     "./defect": "./src/defect/index.ts",
-    "./frame": "./src/frame/index.ts"
+    "./frame": "./src/frame/index.ts",
+    "./survey": "./src/survey/index.ts"
   },
   "scripts": {
     "test": "vitest",

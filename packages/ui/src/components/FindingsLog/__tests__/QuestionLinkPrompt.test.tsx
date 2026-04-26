@@ -109,10 +109,10 @@ describe('QuestionLinkPrompt', () => {
     expect(allButtons.length).toBeGreaterThan(0);
   });
 
-  // 10. Wall variant: "Propose new hypothesis" CTA hidden by default
+  // 10. Wall variant: suspected mechanism CTA hidden by default
   it('does not render propose-hypothesis CTA when wallActive is not set', () => {
     render(<QuestionLinkPrompt {...defaultProps()} />);
-    expect(screen.queryByRole('button', { name: /propose new hypothesis/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /propose suspected mechanism/i })).toBeNull();
   });
 
   // 11. Wall variant: CTA renders when wallActive=true
@@ -121,7 +121,7 @@ describe('QuestionLinkPrompt', () => {
       <QuestionLinkPrompt {...defaultProps({ wallActive: true, onProposeHypothesis: vi.fn() })} />
     );
     expect(
-      screen.getByRole('button', { name: /propose new hypothesis from this finding/i })
+      screen.getByRole('button', { name: /propose suspected mechanism from this finding/i })
     ).toBeDefined();
   });
 
@@ -131,7 +131,7 @@ describe('QuestionLinkPrompt', () => {
     const props = defaultProps({ wallActive: true, onProposeHypothesis });
     render(<QuestionLinkPrompt {...props} />);
     fireEvent.click(
-      screen.getByRole('button', { name: /propose new hypothesis from this finding/i })
+      screen.getByRole('button', { name: /propose suspected mechanism from this finding/i })
     );
     expect(onProposeHypothesis).toHaveBeenCalledWith('f-1');
     expect(onProposeHypothesis).toHaveBeenCalledTimes(1);
@@ -147,7 +147,7 @@ describe('QuestionLinkPrompt', () => {
       />
     );
     expect(
-      screen.getByRole('button', { name: /propose new hypothesis from this finding/i })
+      screen.getByRole('button', { name: /propose suspected mechanism from this finding/i })
     ).toBeDefined();
   });
 });

@@ -46,6 +46,19 @@ import {
   type GatePath,
 } from '@variscout/core';
 
+type SuspectedCauseUpdate = Partial<
+  Pick<
+    SuspectedCause,
+    | 'name'
+    | 'synthesis'
+    | 'nextMove'
+    | 'branchStatus'
+    | 'branchReadiness'
+    | 'counterFindingIds'
+    | 'checkQuestionIds'
+  >
+>;
+
 // ============================================================================
 // Tree constraints (mirrored from useQuestions.ts)
 // ============================================================================
@@ -173,7 +186,7 @@ export interface InvestigationActions {
    * finding, and returned. Returns null if the finding doesn't exist.
    */
   createHubFromFinding: (findingId: string) => SuspectedCause | null;
-  updateHub: (hubId: string, updates: Partial<Pick<SuspectedCause, 'name' | 'synthesis'>>) => void;
+  updateHub: (hubId: string, updates: SuspectedCauseUpdate) => void;
   deleteHub: (hubId: string) => void;
   connectQuestionToHub: (hubId: string, questionId: string) => void;
   disconnectQuestionFromHub: (hubId: string, questionId: string) => void;
@@ -837,7 +850,7 @@ export const useInvestigationStore = create<InvestigationState & InvestigationAc
       const finding = get().findings.find(f => f.id === findingId);
       if (!finding) return null;
       const excerpt = finding.text.trim().slice(0, 80);
-      const name = excerpt.length > 0 ? `Hypothesis: ${excerpt}` : 'New hypothesis';
+      const name = excerpt.length > 0 ? `Suspected mechanism: ${excerpt}` : 'New mechanism branch';
       const hub = createSuspectedCause(name, '', [], [findingId]);
       set(state => ({ suspectedCauses: [...state.suspectedCauses, hub] }));
       return hub;

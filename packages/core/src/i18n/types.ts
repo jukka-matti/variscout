@@ -1028,6 +1028,8 @@ export interface MessageCatalog {
   'wall.rail.empty': string;
   'wall.missing.ariaLabel': string;
   'wall.missing.title': string;
+  'wall.missing.tagline': string;
+  'wall.missing.processMap': string;
   'wall.canvas.ariaLabel': string;
   'wall.cta.proposeHypothesis': string;
   // Scale features (Phase 13)
@@ -1037,5 +1039,9 @@ export interface MessageCatalog {
   'wall.toolbar.resetView': string;
   'wall.palette.placeholder': string;
   'wall.palette.empty': string;
+  'wall.palette.kind.hub': string;
+  'wall.palette.kind.question': string;
+  'wall.palette.kind.finding': string;
+  'wall.card.questions': string;
   'wall.minimap.ariaLabel': string;
 }

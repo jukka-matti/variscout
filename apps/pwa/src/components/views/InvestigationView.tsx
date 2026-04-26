@@ -281,7 +281,7 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
           )}
 
           {/* Wall-only: group-by-tributary toggle */}
-          {wallViewMode === 'wall' && (
+          {wallViewMode === 'wall' && processMap && (
             <>
               <div className="w-px h-4 bg-edge mx-1" />
               <button
@@ -307,49 +307,43 @@ const InvestigationView: React.FC<InvestigationViewProps> = ({
 
         {/* Content */}
         {wallViewMode === 'wall' ? (
-          processMap ? (
-            <div className="relative flex-1 flex flex-col min-h-0">
-              <WallCanvas
-                hubs={hubs}
-                findings={wallFindings}
-                questions={wallQuestions}
-                processMap={processMap}
-                problemCpk={0}
-                eventsPerWeek={0}
-                activeColumns={wallActiveColumns}
-                zoom={wallZoom}
-                pan={wallPan}
-                groupByTributary={wallGroupByTributary}
-              />
-              {/* Minimap + CommandPalette are desktop-only. WallCanvas
-                  self-gates to MobileCardList below 768px. */}
-              {!wallIsMobile && (
-                <>
-                  <div className="absolute bottom-4 right-4 pointer-events-auto">
-                    <Minimap
-                      hubs={hubs}
-                      questions={wallQuestions}
-                      zoom={wallZoom}
-                      pan={wallPan}
-                      onPanTo={(x, y) => setWallPan({ x, y })}
-                    />
-                  </div>
-                  <CommandPalette
-                    open={paletteOpen}
-                    onClose={() => setPaletteOpen(false)}
-                    onPanTo={handlePanToNode}
+          <div className="relative flex-1 flex flex-col min-h-0">
+            <WallCanvas
+              hubs={hubs}
+              findings={wallFindings}
+              questions={wallQuestions}
+              processMap={processMap}
+              problemCpk={0}
+              eventsPerWeek={0}
+              activeColumns={wallActiveColumns}
+              zoom={wallZoom}
+              pan={wallPan}
+              groupByTributary={Boolean(processMap && wallGroupByTributary)}
+            />
+            {/* Minimap + CommandPalette are desktop-only. WallCanvas
+                self-gates to MobileCardList below 768px. */}
+            {!wallIsMobile && (
+              <>
+                <div className="absolute bottom-4 right-4 pointer-events-auto">
+                  <Minimap
                     hubs={hubs}
                     questions={wallQuestions}
-                    findings={wallFindings}
+                    zoom={wallZoom}
+                    pan={wallPan}
+                    onPanTo={(x, y) => setWallPan({ x, y })}
                   />
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-content-secondary text-sm px-6 text-center">
-              Build a Process Map in the Frame workspace first.
-            </div>
-          )
+                </div>
+                <CommandPalette
+                  open={paletteOpen}
+                  onClose={() => setPaletteOpen(false)}
+                  onPanTo={handlePanToNode}
+                  hubs={hubs}
+                  questions={wallQuestions}
+                  findings={wallFindings}
+                />
+              </>
+            )}
+          </div>
         ) : (
           <div className="flex-1 overflow-y-auto px-3 py-2">
             <FindingsLog

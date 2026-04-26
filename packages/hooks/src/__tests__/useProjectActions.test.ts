@@ -189,6 +189,30 @@ describe('useProjectActions', () => {
       expect(savedState.findings).toHaveLength(1);
       expect(savedState.findings[0].text).toBe('Test finding');
     });
+
+    it('should include processContext from project store', async () => {
+      const persistence = createMockPersistence();
+      useProjectStore.getState().setProcessContext({
+        processHubId: 'line-4',
+        investigationDepth: 'focused',
+        investigationStatus: 'investigating',
+        nextMove: 'Inspect nozzle wear during night shift.',
+      });
+
+      const { result } = renderHook(() => useProjectActions(persistence));
+
+      await act(async () => {
+        await result.current.saveProject('With Process Hub');
+      });
+
+      const savedState = (persistence.saveProject as ReturnType<typeof vi.fn>).mock.calls[0][1];
+      expect(savedState.processContext).toMatchObject({
+        processHubId: 'line-4',
+        investigationDepth: 'focused',
+        investigationStatus: 'investigating',
+        nextMove: 'Inspect nozzle wear during night shift.',
+      });
+    });
   });
 
   // --------------------------------------------------------------------------
@@ -390,6 +414,45 @@ describe('useProjectActions', () => {
       expect(is.findings[0].text).toBe('Finding 1');
       expect(is.questions).toHaveLength(1);
       expect(is.questions[0].text).toBe('Why?');
+    });
+
+    it('should hydrate processContext on load', async () => {
+      const persistence = createMockPersistence();
+
+      (persistence.loadProject as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'proj-hub',
+        name: 'With Hub Context',
+        state: {
+          version: '1',
+          rawData: sampleData,
+          outcome: 'Weight',
+          factors: ['Machine'],
+          specs: {},
+          filters: {},
+          axisSettings: {},
+          processContext: {
+            processHubId: 'claims-queue',
+            investigationDepth: 'chartered',
+            investigationStatus: 'verifying',
+            nextMove: 'Compare post-action queue time.',
+          },
+        } satisfies AnalysisState,
+        savedAt: '2026-03-01T00:00:00Z',
+        rowCount: 4,
+      } satisfies SavedProject);
+
+      const { result } = renderHook(() => useProjectActions(persistence));
+
+      await act(async () => {
+        await result.current.loadProject('proj-hub');
+      });
+
+      expect(useProjectStore.getState().processContext).toMatchObject({
+        processHubId: 'claims-queue',
+        investigationDepth: 'chartered',
+        investigationStatus: 'verifying',
+        nextMove: 'Compare post-action queue time.',
+      });
     });
 
     it('should load backward-compat fields with defaults for old .vrs files', async () => {

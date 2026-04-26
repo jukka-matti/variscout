@@ -49,6 +49,10 @@ Design spec: [`2026-03-29-probability-plot-enhancement-design.md`](../archive/sp
   - _Source: Both discussions — "bigger fonts... my current setting is just chart text size but it should be everything"_
   - _Related: Display density design spec (`2026-03-29-display-density-design.md`, draft)._
 
+### i18n
+
+- [ ] **Wall native translations pass** — `wall.*` catalog keys (Phase 12 + `wall.missing.processMap` from PR #76 walk) currently use English fallback in all 31 non-English locales. Next translation batch should cover the 10 native locales: fi, de, es, fr, pt, ja, zhHans, zhHant, ko, nb.
+
 ### UX Polish — Probability Plot & Charts
 
 - [ ] **Cp/Cpk on histogram** — When in capability mode, show Cp/Cpk on the histogram chart itself (Phase A follow-up).

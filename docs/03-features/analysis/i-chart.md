@@ -10,19 +10,21 @@ related: [control-limits, nelson-rules, stability, time-series]
 
 <!-- journey-phase: scout -->
 
-> **Journey phase:** SCOUT (CHANGE lens) — stability analysis, the first chart in Watson's EDA sequence.
+> **Journey phase:** SCOUT (CHANGE lens) — time-ordered change analysis, the first chart in Watson's EDA sequence.
 
-The I-Chart is VariScout's tool for the **CHANGE** lens - analyzing time-based stability.
+The I-Chart is VariScout's tool for the **CHANGE** lens - analyzing how the
+process behaves when measurements are arranged in time order.
 
 ---
 
 ## Purpose
 
-_"Is the process stable, or is something degrading/shifting over time?"_
+_"What changed over time, what pattern is worth investigating, and does it
+affect the target?"_
 
 The I-Chart reveals:
 
-- Time-based stability or instability
+- Time-based structure, stability, or instability
 - Trends, shifts, cycles
 - Points outside control limits (UCL/LCL)
 - Dynamic behavior: wear, degradation, seasonal effects

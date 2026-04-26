@@ -371,6 +371,8 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
   if (
     process.issueStatement ||
     process.problemStatement ||
+    process.currentUnderstanding ||
+    process.problemCondition ||
     (questions && questions.length > 0) ||
     investigationProgress ||
     selectedFinding ||
@@ -381,6 +383,14 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 
     if (process.issueStatement) {
       context.investigation.issueStatement = process.issueStatement;
+    }
+
+    if (process.currentUnderstanding) {
+      context.investigation.currentUnderstanding = process.currentUnderstanding;
+    }
+
+    if (process.problemCondition) {
+      context.investigation.problemCondition = process.problemCondition;
     }
 
     if (process.problemStatement) {

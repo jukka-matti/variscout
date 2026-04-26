@@ -18,6 +18,10 @@ Azure App only (Standard and Team plans). All AI components require:
 1. AI endpoint configured in ARM deployment (`enableAI` parameter)
 2. User Settings toggle "Show AI assistance" set to ON
 
+AI is an enhancement layer, not a required workflow path. Any feature that uses
+CoScout must still expose a deterministic/manual path when AI is unavailable,
+disabled, offline, or hidden by tier.
+
 ### PWA Availability
 
 The PWA (free tier) uses **deterministic `ChartInsightChip` only** (`isAI={false}`). No `NarrativeBar`, no `CoScoutPanel`, no AI service calls. The PWA is a training tool where "the struggle is the point."
@@ -33,6 +37,11 @@ The PWA (free tier) uses **deterministic `ChartInsightChip` only** (`isAI={false
 | Endpoint + toggle OFF  | Hidden by user choice                        |
 
 When AI is unavailable (no endpoint, toggle off, or offline with no cache), all three components are hidden — the dashboard looks exactly as it does today.
+
+For investigation workspaces, AI suggestions should render as proposal cards
+with `Accept`, `Edit`, `Reject`, and `Why?` controls. CoScout may draft or
+suggest, but it must not silently create branches, confirm mechanisms, change
+Signal Cards, or mutate deterministic analysis state.
 
 ---
 

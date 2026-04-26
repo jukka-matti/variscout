@@ -2,14 +2,14 @@
  * EmptyState — shown on the Investigation Wall when no hubs exist yet.
  *
  * Presents three entry points for starting an investigation:
- *   1. Write a hypothesis directly.
- *   2. Promote an existing question to a hypothesis.
- *   3. Seed hubs from Factor Intelligence.
+ *   1. Write a suspected mechanism directly.
+ *   2. Promote an existing question into branch work.
+ *   3. Seed mechanism branches from Factor Intelligence.
  */
 
 import React from 'react';
 import { getMessage } from '@variscout/core/i18n';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 
 export interface EmptyStateProps {
   onWriteHypothesis?: () => void;
@@ -22,7 +22,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onPromoteFromQuestion,
   onSeedFromFactorIntel,
 }) => {
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
   return (
     <section
       aria-label={getMessage(locale, 'wall.empty.ariaLabel')}

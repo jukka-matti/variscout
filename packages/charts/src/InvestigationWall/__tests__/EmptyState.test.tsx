@@ -5,7 +5,9 @@ import { EmptyState } from '../EmptyState';
 describe('EmptyState', () => {
   it('renders three CTAs', () => {
     render(<EmptyState />);
-    expect(screen.getByRole('button', { name: /write one/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /write a suspected mechanism/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /promote from a question/i })).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /seed 3 from factor intelligence/i })
@@ -15,7 +17,7 @@ describe('EmptyState', () => {
   it('fires onWriteHypothesis', () => {
     const fn = vi.fn();
     render(<EmptyState onWriteHypothesis={fn} />);
-    fireEvent.click(screen.getByRole('button', { name: /write one/i }));
+    fireEvent.click(screen.getByRole('button', { name: /write a suspected mechanism/i }));
     expect(fn).toHaveBeenCalled();
   });
 

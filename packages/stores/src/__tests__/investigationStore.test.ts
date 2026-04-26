@@ -525,7 +525,7 @@ describe('investigationStore — suspected cause hubs', () => {
     expect(state.suspectedCauses).toHaveLength(1);
     const persisted = state.suspectedCauses[0];
     expect(persisted.findingIds).toEqual([finding.id]);
-    expect(persisted.name.startsWith('Hypothesis:')).toBe(true);
+    expect(persisted.name.startsWith('Suspected mechanism:')).toBe(true);
     expect(persisted.status).toBe('suspected');
   });
 
@@ -533,7 +533,7 @@ describe('investigationStore — suspected cause hubs', () => {
     const ctx = makeContext();
     const finding = useInvestigationStore.getState().addFinding('   ', ctx);
     useInvestigationStore.getState().createHubFromFinding(finding.id);
-    expect(useInvestigationStore.getState().suspectedCauses[0].name).toBe('New hypothesis');
+    expect(useInvestigationStore.getState().suspectedCauses[0].name).toBe('New mechanism branch');
   });
 
   it('connects question and finding to hub', () => {

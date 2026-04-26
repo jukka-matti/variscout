@@ -203,6 +203,8 @@ export { VerificationCard, type VerificationCardProps } from './components/Verif
 
 export { FilterContextBar, type FilterContextBarProps } from './components/FilterContextBar';
 
+export { SurveyNotebookBase, type SurveyNotebookBaseProps } from './components/SurveyNotebookBase';
+
 export {
   BoxplotDisplayToggle,
   boxplotDisplayToggleDefaultColorScheme,
@@ -565,6 +567,7 @@ export { YamazumiSummaryBar, type YamazumiSummaryBarProps } from './components/Y
 export {
   HubComposer,
   type HubComposerProps,
+  type HubComposerBranchFields,
   HubCard,
   type HubCardProps,
   SynthesisPrompt,

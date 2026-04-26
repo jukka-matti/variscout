@@ -14,7 +14,7 @@ import {
 } from './investigationStore';
 import type { QuestionDisplayData } from './investigationStore';
 import { usePanelsStore } from '../panels/panelsStore';
-import { useSuspectedCauses } from '@variscout/hooks';
+import { useSuspectedCauses, type SuspectedCauseUpdate } from '@variscout/hooks';
 import { useInvestigationStore } from '@variscout/stores';
 import type {
   Finding,
@@ -58,10 +58,7 @@ export interface UseInvestigationOrchestrationReturn {
   suspectedCausesState: {
     hubs: SuspectedCause[];
     createHub: (name: string, synthesis: string) => SuspectedCause;
-    updateHub: (
-      hubId: string,
-      updates: Partial<Pick<SuspectedCause, 'name' | 'synthesis'>>
-    ) => void;
+    updateHub: (hubId: string, updates: SuspectedCauseUpdate) => void;
     deleteHub: (hubId: string) => void;
     resetHubs: (newHubs: SuspectedCause[]) => void;
     connectQuestion: (hubId: string, questionId: string) => void;

@@ -10,7 +10,7 @@
 import React from 'react';
 import { formatStatistic, formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '../colors';
-import { getDocumentLocale } from './hooks/useWallLocale';
+import { useWallLocale } from './hooks/useWallLocale';
 
 export interface ProblemConditionCardProps {
   ctsColumn: string;
@@ -30,7 +30,7 @@ export const ProblemConditionCard: React.FC<ProblemConditionCardProps> = ({
   x,
   y,
 }) => {
-  const locale = getDocumentLocale();
+  const locale = useWallLocale();
   const cpkFormatted = formatStatistic(cpk, locale, 2);
   const label = formatMessage(locale, 'wall.problem.ariaLabel', {
     column: ctsColumn,

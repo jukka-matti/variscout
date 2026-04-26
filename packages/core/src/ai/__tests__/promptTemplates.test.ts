@@ -1381,7 +1381,24 @@ describe('buildReportPrompt', () => {
     };
     const prompt = buildReportPrompt(ctx, [], []);
     expect(prompt).toContain('Yield dropping in Q1');
-    expect(prompt).toContain('## Issue Statement');
+    expect(prompt).toContain('## Issue / Concern');
+  });
+
+  it('includes current understanding and approved problem statement in report prompt', () => {
+    const ctx: AIContext = {
+      process: {
+        currentUnderstanding: {
+          summary: 'Problem condition: Cpk is 0.87 against target 1.33.',
+        },
+        problemStatement: 'Mean fill weight is high on Line 3 night shift.',
+      },
+      filters: [],
+    };
+    const prompt = buildReportPrompt(ctx, [], []);
+    expect(prompt).toContain('## Current Understanding');
+    expect(prompt).toContain('Problem condition: Cpk is 0.87 against target 1.33.');
+    expect(prompt).toContain('## Approved Problem Statement');
+    expect(prompt).toContain('Mean fill weight is high on Line 3 night shift.');
   });
 
   it('includes statistics when provided', () => {
@@ -1449,7 +1466,8 @@ describe('buildReportPrompt', () => {
     const ctx: AIContext = { process: {}, filters: [] };
     const prompt = buildReportPrompt(ctx, [], []);
     expect(prompt).toContain('Executive Summary');
-    expect(prompt).toContain('Root Causes');
+    expect(prompt).toContain('Contributing Factors');
+    expect(prompt).not.toContain('Root Causes');
     expect(prompt).toContain('Recommendations');
   });
 

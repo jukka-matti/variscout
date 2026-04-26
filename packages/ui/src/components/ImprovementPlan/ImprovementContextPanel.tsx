@@ -1,4 +1,5 @@
 import React from 'react';
+import type { CurrentUnderstanding } from '@variscout/core';
 
 export interface CauseSummary {
   id: string;
@@ -12,6 +13,7 @@ export interface CauseSummary {
 
 export interface ImprovementContextPanelProps {
   problemStatement?: string;
+  currentUnderstanding?: CurrentUnderstanding | string;
   targetCpk?: number;
   currentCpk?: number;
   causes: CauseSummary[];
@@ -32,6 +34,7 @@ const ROLE_STYLE: Record<CauseSummary['role'], string> = {
 
 export const ImprovementContextPanel: React.FC<ImprovementContextPanelProps> = ({
   problemStatement,
+  currentUnderstanding,
   targetCpk,
   currentCpk,
   causes,
@@ -39,6 +42,8 @@ export const ImprovementContextPanel: React.FC<ImprovementContextPanelProps> = (
 }) => {
   const activeCauses = causes.filter(c => c.role !== 'ruled-out');
   const ruledOut = causes.filter(c => c.role === 'ruled-out');
+  const currentUnderstandingText =
+    typeof currentUnderstanding === 'string' ? currentUnderstanding : currentUnderstanding?.summary;
 
   return (
     <div
@@ -50,10 +55,27 @@ export const ImprovementContextPanel: React.FC<ImprovementContextPanelProps> = (
         Improvement Context
       </p>
 
-      {/* Problem Statement */}
+      {/* Current Understanding */}
+      {currentUnderstandingText && (
+        <section data-testid="context-current-understanding-section">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-content-muted mb-1.5">
+            Current Understanding
+          </h3>
+          <div className="rounded-md border border-edge bg-surface-secondary px-3 py-2.5">
+            <p
+              data-testid="context-current-understanding"
+              className="text-sm text-content leading-snug whitespace-pre-wrap"
+            >
+              {currentUnderstandingText}
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* Approved Problem Statement */}
       <section data-testid="context-problem-statement-section">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-content-muted mb-1.5">
-          Problem Statement
+          Approved Problem Statement
         </h3>
         <div className="rounded-md border-l-4 border-amber-500 bg-surface-secondary px-3 py-2.5">
           {problemStatement ? (
@@ -64,7 +86,9 @@ export const ImprovementContextPanel: React.FC<ImprovementContextPanelProps> = (
               {problemStatement}
             </p>
           ) : (
-            <p className="text-sm italic text-content-muted">No problem statement defined.</p>
+            <p className="text-sm italic text-content-muted">
+              No approved problem statement defined.
+            </p>
           )}
         </div>
       </section>

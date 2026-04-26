@@ -385,7 +385,11 @@ export { hasExifData, stripExifSegments, stripExifFromBlob } from './utils/exifS
 
 // AI (Phase 1)
 export type {
+  CurrentUnderstanding,
+  CurrentUnderstandingMechanism,
   ProcessContext,
+  ProblemCondition,
+  ProblemConditionStatus,
   TargetMetric,
   EntryScenario,
   InvestigationPhase,
@@ -403,6 +407,41 @@ export type {
   CoScoutPromptTiers,
   AssembleCoScoutPromptOptions,
 } from './ai';
+
+export {
+  DEFAULT_PROCESS_HUB,
+  DEFAULT_PROCESS_HUB_ID,
+  DEFAULT_PROCESS_HUB_NAME,
+  buildProcessHubRollups,
+  investigationStatusFromJourneyPhase,
+  normalizeProcessHubId,
+} from './processHub';
+
+// Survey evaluator (QDE 2.0 foundation)
+export { evaluateSurvey, SURVEY_RECOMMENDATION_KIND_LABELS, SURVEY_STATUS_LABELS } from './survey';
+export type {
+  SurveyDiagnostics,
+  SurveyEvaluation,
+  SurveyEvaluationInput,
+  SurveyPossibilityItem,
+  SurveyPowerItem,
+  SurveyRecommendation,
+  SurveyRecommendationKind,
+  SurveyRecommendationSource,
+  SurveyRecommendationTarget,
+  SurveySection,
+  SurveyStatus,
+  SurveyTrustItem,
+} from './survey';
+export type {
+  InvestigationDepth,
+  InvestigationStatus,
+  ProcessHub,
+  ProcessHubInvestigation,
+  ProcessHubInvestigationMetadata,
+  ProcessHubRollup,
+  ProcessParticipantRef,
+} from './processHub';
 export {
   buildAIContext,
   detectInvestigationPhase,
@@ -418,6 +457,14 @@ export {
   narrationResponseSchema,
   chartInsightResponseSchema,
 } from './ai';
+
+// Process understanding vocabulary helpers
+export {
+  buildCurrentUnderstanding,
+  buildProblemCondition,
+  type BuildCurrentUnderstandingInput,
+  type BuildProblemConditionInput,
+} from './processUnderstanding';
 
 // AI (Action Tools — ADR-029)
 export type {
@@ -555,6 +602,14 @@ export type {
   FindingRole,
   BenchmarkStats,
   SuspectedCause,
+  MechanismBranchReadiness,
+  MechanismBranchStatus,
+  MechanismBranchClueView,
+  MechanismBranchProcessContext,
+  MechanismBranchProjectionOptions,
+  MechanismBranchQuestionView,
+  MechanismBranchReadinessView,
+  MechanismBranchViewModel,
   // Causal link types (investigation DAG)
   CausalLink,
   CausalDirection,
@@ -637,6 +692,8 @@ export {
   computeHubContribution,
   computeHubEvidence,
   computeHubProjection,
+  projectMechanismBranch,
+  projectMechanismBranches,
   detectEvidenceClusters,
   migrateCauseRolesToHubs,
 } from './findings';

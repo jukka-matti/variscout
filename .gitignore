@@ -135,6 +135,8 @@ dist
 .ruflo/
 .swarm/
 .mcp.json
+agentdb.rvf*
+ruvector.db
 .venv/
 agents/
 .superpowers/brainstorm/

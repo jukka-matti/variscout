@@ -33,6 +33,27 @@ describe('formatInvestigationContext', () => {
     expect(result).toContain('Cpk below 1.0 on diameter');
   });
 
+  it('includes current understanding and problem condition', () => {
+    const result = formatInvestigationContext({
+      currentUnderstanding: {
+        summary:
+          'Issue / concern: Fill weight too high.\nProblem condition: Cpk is 0.87 against target 1.33.',
+      },
+      problemCondition: {
+        metric: 'cpk',
+        currentValue: 0.87,
+        targetValue: 1.33,
+        targetDirection: 'maximize',
+        status: 'below-target',
+        summary: 'Cpk is 0.87 against target 1.33.',
+      },
+    });
+
+    expect(result).toContain('Current understanding:');
+    expect(result).toContain('Issue / concern: Fill weight too high.');
+    expect(result).toContain('Problem condition: Cpk is 0.87 against target 1.33.');
+  });
+
   it('includes question count summary with status breakdown', () => {
     const result = formatInvestigationContext({
       questionTree: [

@@ -13,13 +13,26 @@ export interface UseSuspectedCausesOptions {
   onHubsChange?: (hubs: SuspectedCause[]) => void;
 }
 
+export type SuspectedCauseUpdate = Partial<
+  Pick<
+    SuspectedCause,
+    | 'name'
+    | 'synthesis'
+    | 'nextMove'
+    | 'branchStatus'
+    | 'branchReadiness'
+    | 'counterFindingIds'
+    | 'checkQuestionIds'
+  >
+>;
+
 export interface UseSuspectedCausesReturn {
   /** Current list of suspected cause hubs */
   hubs: SuspectedCause[];
   /** Create a new hub and return it */
   createHub: (name: string, synthesis: string) => SuspectedCause;
   /** Update name and/or synthesis of an existing hub */
-  updateHub: (hubId: string, updates: Partial<Pick<SuspectedCause, 'name' | 'synthesis'>>) => void;
+  updateHub: (hubId: string, updates: SuspectedCauseUpdate) => void;
   /** Delete a hub by id */
   deleteHub: (hubId: string) => void;
   /**
@@ -83,7 +96,7 @@ export function useSuspectedCauses(options: UseSuspectedCausesOptions): UseSuspe
   );
 
   const updateHub = useCallback(
-    (hubId: string, updates: Partial<Pick<SuspectedCause, 'name' | 'synthesis'>>): void => {
+    (hubId: string, updates: SuspectedCauseUpdate): void => {
       update(prev =>
         prev.map(h =>
           h.id === hubId ? { ...h, ...updates, updatedAt: new Date().toISOString() } : h

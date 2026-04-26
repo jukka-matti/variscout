@@ -12,7 +12,7 @@ describe('ReportInvestigationSummary', () => {
     render(<ReportInvestigationSummary issueStatement="Fill weight exceeds USL on Line 3" />);
     expect(screen.getByTestId('report-investigation-summary')).toBeDefined();
     expect(screen.getByText('Fill weight exceeds USL on Line 3')).toBeDefined();
-    expect(screen.getByText('Issue Statement')).toBeDefined();
+    expect(screen.getByText('Issue / Concern')).toBeDefined();
   });
 
   it('renders suspected causes with evidence', () => {
@@ -52,7 +52,19 @@ describe('ReportInvestigationSummary', () => {
     render(
       <ReportInvestigationSummary problemStatement="Mean fill weight increased 3g since January across all lines" />
     );
-    expect(screen.getByText('Problem Statement')).toBeDefined();
+    expect(screen.getByText('Approved Problem Statement')).toBeDefined();
     expect(screen.getByText(/Mean fill weight increased/)).toBeDefined();
+  });
+
+  it('renders current understanding separately from approved problem statement', () => {
+    render(
+      <ReportInvestigationSummary
+        currentUnderstanding="Problem condition: Cpk is 0.87 against target 1.33."
+        problemStatement="Mean fill weight increased 3g since January across all lines"
+      />
+    );
+    expect(screen.getByText('Current Understanding')).toBeDefined();
+    expect(screen.getByText('Approved Problem Statement')).toBeDefined();
+    expect(screen.getByText(/Cpk is 0.87 against target 1.33/)).toBeDefined();
   });
 });

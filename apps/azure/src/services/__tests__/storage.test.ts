@@ -17,6 +17,8 @@ const {
   mockLoadBlobMetadata,
   mockListBlobProjects,
   mockUpdateBlobIndex,
+  mockListBlobProcessHubs,
+  mockUpdateBlobProcessHubs,
 } = vi.hoisted(() => ({
   mockProjects: {
     put: vi.fn().mockResolvedValue(undefined),
@@ -38,6 +40,8 @@ const {
   mockLoadBlobMetadata: vi.fn().mockResolvedValue(null),
   mockListBlobProjects: vi.fn().mockResolvedValue([]),
   mockUpdateBlobIndex: vi.fn().mockResolvedValue(undefined),
+  mockListBlobProcessHubs: vi.fn().mockResolvedValue([]),
+  mockUpdateBlobProcessHubs: vi.fn().mockResolvedValue(undefined),
 }));
 
 // ---------------------------------------------------------------------------
@@ -101,6 +105,8 @@ vi.mock('../blobClient', () => ({
   loadBlobMetadata: mockLoadBlobMetadata,
   listBlobProjects: mockListBlobProjects,
   updateBlobIndex: mockUpdateBlobIndex,
+  listBlobProcessHubs: mockListBlobProcessHubs,
+  updateBlobProcessHubs: mockUpdateBlobProcessHubs,
 }));
 
 // ---------------------------------------------------------------------------
@@ -372,6 +378,34 @@ describe('storage service', () => {
 
       expect(loaded).toEqual(localData);
       expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it('preserves an accepted Survey next move through local save/load', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+
+      const projectWithSurveyMove = {
+        ...sampleProject,
+        processContext: { nextMove: 'Set LSL or USL for the mapped outcome.' },
+      };
+      let savedData: unknown;
+      mockProjects.put.mockImplementationOnce(async record => {
+        savedData = record.data;
+      });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+
+      await act(async () => {
+        await result.current.saveProject(projectWithSurveyMove, 'survey-next-move', 'personal');
+      });
+
+      mockProjects.get.mockResolvedValueOnce({ data: savedData });
+
+      let loaded: unknown;
+      await act(async () => {
+        loaded = await result.current.loadProject('survey-next-move', 'personal');
+      });
+
+      expect(loaded).toEqual(projectWithSurveyMove);
     });
 
     it('falls back to IndexedDB when cloud load fails (network error)', async () => {

@@ -152,7 +152,16 @@ if [ "$MISSING_PATHS" -eq 0 ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 6. Frontmatter schema validation
+# 6. Ruflo version drift
+# ---------------------------------------------------------------------------
+echo ""
+echo "--- Ruflo version drift ---"
+if ! node "$ROOT/scripts/check-ruflo-drift.mjs"; then
+  WARNINGS=$((WARNINGS + 1))
+fi
+
+# ---------------------------------------------------------------------------
+# 7. Frontmatter schema validation
 # ---------------------------------------------------------------------------
 echo ""
 echo "--- Frontmatter schema ---"

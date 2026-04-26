@@ -1,5 +1,11 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { hasTeamFeatures } from '@variscout/core';
+import {
+  DEFAULT_PROCESS_HUB_ID,
+  buildProcessHubRollups,
+  hasTeamFeatures,
+  normalizeProcessHubId,
+} from '@variscout/core';
+import type { ProcessHub } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
 import { getEasyAuthUser } from '../auth/easyAuth';
@@ -15,10 +21,11 @@ import {
 } from 'lucide-react';
 import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
 import ProjectCard from '../components/ProjectCard';
+import ProcessHubCard from '../components/ProcessHubCard';
 import SampleDataPicker from '../components/SampleDataPicker';
 
 interface DashboardProps {
-  onOpenProject: (id?: string) => void;
+  onOpenProject: (id?: string, processHubId?: string) => void;
   /** Load a .vrs project file (from SharePoint download) */
   onLoadProjectFile?: (file: File) => void;
   /** Load a sample dataset directly into a new analysis */
@@ -30,10 +37,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onLoadProjectFile,
   onLoadSample,
 }) => {
-  const { listProjects, syncStatus } = useStorage();
+  const { listProjects, listProcessHubs, saveProcessHub, syncStatus } = useStorage();
 
   const [userId, setUserId] = useState('local');
   const [projects, setProjects] = useState<CloudProject[]>([]);
+  const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
+  const [selectedHubId, setSelectedHubId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSamplePickerOpen, setIsSamplePickerOpen] = useState(false);
@@ -72,8 +81,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const loadProjects = async (): Promise<void> => {
     setIsLoading(true);
     try {
-      const projectList = await listProjects();
+      const [projectList, hubList] = await Promise.all([listProjects(), listProcessHubs()]);
       setProjects(projectList);
+      setProcessHubs(hubList);
     } catch (error) {
       console.error('Failed to load projects:', error);
     } finally {
@@ -102,6 +112,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
     });
   }, [projects, searchQuery]);
 
+  const hubRollups = useMemo(() => {
+    return buildProcessHubRollups(
+      processHubs,
+      sortedProjects.map(project => ({
+        id: project.id || project.name,
+        name: project.name,
+        modified: project.modified,
+        metadata: project.metadata,
+      }))
+    );
+  }, [processHubs, sortedProjects]);
+
+  const visibleProjects = useMemo(() => {
+    if (!selectedHubId) return sortedProjects;
+    return sortedProjects.filter(
+      project => normalizeProcessHubId(project.metadata?.processHubId) === selectedHubId
+    );
+  }, [selectedHubId, sortedProjects]);
+
+  const selectedHub = processHubs.find(hub => hub.id === selectedHubId);
+
   const handleSampleSelect = (sample: SampleDataset): void => {
     if (onLoadSample) {
       onLoadSample(sample);
@@ -123,6 +154,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
       }
     };
     input.click();
+  };
+
+  const handleCreateHub = async (): Promise<void> => {
+    const name = window.prompt('Process Hub name');
+    const trimmed = name?.trim();
+    if (!trimmed) return;
+    const id = trimmed
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    const now = new Date().toISOString();
+    const hub: ProcessHub = { id: id || `hub-${Date.now()}`, name: trimmed, createdAt: now };
+    await saveProcessHub(hub);
+    setSelectedHubId(hub.id);
+    await loadProjects();
   };
 
   // Get sync status display
@@ -156,8 +202,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-content">Analyses</h2>
-          <p className="text-content-secondary text-sm mt-1">Manage your saved analyses</p>
+          <h2 className="text-2xl font-bold text-content">Process Hubs</h2>
+          <p className="text-content-secondary text-sm mt-1">
+            Scan process contexts and the investigations inside them
+          </p>
         </div>
         <div className="flex items-center gap-3">{hasTeamFeatures() && getSyncStatusDisplay()}</div>
       </div>
@@ -165,11 +213,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Action row */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <button
-          onClick={() => onOpenProject()}
+          onClick={() => onOpenProject(undefined, selectedHubId ?? DEFAULT_PROCESS_HUB_ID)}
           className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium sm:w-auto w-full"
         >
           <Plus size={18} />
-          New Analysis
+          New Investigation
+        </button>
+        <button
+          onClick={handleCreateHub}
+          className="flex items-center justify-center gap-2 px-4 py-2 border border-edge rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors font-medium"
+        >
+          <FolderOpen size={16} />
+          New Hub
         </button>
         <div className="flex items-center gap-3">
           <button
@@ -208,7 +263,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           />
           <input
             type="text"
-            placeholder="Search analyses..."
+            placeholder="Search investigations..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-surface-secondary border border-edge rounded-lg text-content placeholder-content-muted focus:outline-none focus:border-blue-500 transition-colors"
@@ -218,36 +273,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
           onClick={loadProjects}
           disabled={isLoading}
           className="p-2 text-content-secondary hover:text-content hover:bg-surface-secondary rounded-lg transition-colors disabled:opacity-50"
-          title="Refresh analyses"
+          title="Refresh investigations"
         >
           <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
         </button>
       </div>
 
-      {/* Analyses List */}
+      {/* Process Hub List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
           <RefreshCw size={32} className="text-content-muted animate-spin" />
         </div>
-      ) : sortedProjects.length === 0 ? (
+      ) : sortedProjects.length === 0 && hubRollups.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FolderOpen size={48} className="text-content-muted mb-4" />
           <h3 className="text-lg font-medium text-content mb-2">
-            {projects.length === 0 ? 'No analyses yet' : 'No matching analyses'}
+            {projects.length === 0 ? 'No investigations yet' : 'No matching investigations'}
           </h3>
           <p className="text-content-secondary text-sm max-w-md">
             {projects.length === 0
-              ? 'Create your first analysis to start exploring variation data with your team.'
+              ? 'Create your first investigation to start exploring variation data with your team.'
               : "Try adjusting your search or filter to find what you're looking for."}
           </p>
           {projects.length === 0 && (
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-6">
               <button
-                onClick={() => onOpenProject()}
+                onClick={() => onOpenProject(undefined, selectedHubId ?? DEFAULT_PROCESS_HUB_ID)}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
                 <Plus size={18} />
-                New Analysis
+                New Investigation
               </button>
               <button
                 onClick={() => setIsSamplePickerOpen(true)}
@@ -260,15 +315,48 @@ export const Dashboard: React.FC<DashboardProps> = ({
           )}
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {sortedProjects.map(project => (
-            <ProjectCard
-              key={project.id || project.name}
-              project={project}
-              currentUserId={userId}
-              onClick={() => onOpenProject(project.id)}
-            />
-          ))}
+        <div className="space-y-6">
+          <section>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-content">Process Hubs</h3>
+              {selectedHubId && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedHubId(null)}
+                  className="text-xs text-content-secondary hover:text-content"
+                >
+                  Show all investigations
+                </button>
+              )}
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {hubRollups.map(rollup => (
+                <ProcessHubCard
+                  key={rollup.hub.id}
+                  rollup={rollup}
+                  isSelected={selectedHubId === rollup.hub.id}
+                  onOpen={() => setSelectedHubId(rollup.hub.id)}
+                  onStartInvestigation={() => onOpenProject(undefined, rollup.hub.id)}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h3 className="mb-3 text-sm font-semibold text-content">
+              {selectedHub ? `Investigations in ${selectedHub.name}` : 'Investigations'}
+            </h3>
+            <div className="flex flex-col gap-3">
+              {visibleProjects.map(project => (
+                <ProjectCard
+                  key={project.id || project.name}
+                  project={project}
+                  currentUserId={userId}
+                  onClick={() => onOpenProject(project.id)}
+                />
+              ))}
+            </div>
+          </section>
         </div>
       )}
 

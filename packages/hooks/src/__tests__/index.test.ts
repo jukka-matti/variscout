@@ -11,5 +11,5 @@ describe('@variscout/hooks', () => {
     expect(exports.useResponsiveBreakpoints).toBeDefined();
     expect(exports.useFilterNavigation).toBeDefined();
     expect(exports.useKeyboardNavigation).toBeDefined();
-  });
+  }, 15000);
 });

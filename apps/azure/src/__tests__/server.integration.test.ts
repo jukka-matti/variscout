@@ -3,7 +3,7 @@
  * Integration tests for apps/azure/server.js Express endpoints.
  *
  * Uses supertest to send real HTTP requests through the Express middleware
- * chain without binding to a port (NODE_ENV=test skips app.listen()).
+ * chain on an ephemeral in-memory port (NODE_ENV=test skips server.js app.listen()).
  * Azure SDK imports (@azure/storage-blob, @azure/identity) are mocked to
  * avoid real Azure infrastructure requirements.
  */

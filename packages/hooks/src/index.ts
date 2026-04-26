@@ -397,9 +397,19 @@ export {
   type LocationFactor,
 } from './useProblemStatement';
 
+// Current Understanding (EDA 2.0 vocabulary synthesis)
+export {
+  useCurrentUnderstanding,
+  type CurrentUnderstandingProblemStatementState,
+  type CurrentUnderstandingStats,
+  type UseCurrentUnderstandingOptions,
+  type UseCurrentUnderstandingReturn,
+} from './useCurrentUnderstanding';
+
 // Suspected Cause Hubs (named mechanism groupings for investigation synthesis)
 export {
   useSuspectedCauses,
+  type SuspectedCauseUpdate,
   type UseSuspectedCausesOptions,
   type UseSuspectedCausesReturn,
 } from './useSuspectedCauses';

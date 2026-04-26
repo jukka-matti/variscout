@@ -3,6 +3,10 @@ import { X, ChevronDown, ChevronRight } from 'lucide-react';
 import type { Question, Finding, SuspectedCause, SuspectedCauseEvidence } from '@variscout/core';
 import type { HubProjection } from '@variscout/core/findings';
 
+export interface HubComposerBranchFields {
+  nextMove?: string;
+}
+
 export interface HubComposerProps {
   /** Pre-populated question IDs (from synthesis prompt or CoScout) */
   prefilledQuestionIds?: string[];
@@ -19,7 +23,13 @@ export interface HubComposerProps {
   /** Projection from computeHubProjection */
   projection?: HubProjection;
   /** Called when hub is created/saved */
-  onSave: (name: string, synthesis: string, questionIds: string[], findingIds: string[]) => void;
+  onSave: (
+    name: string,
+    synthesis: string,
+    questionIds: string[],
+    findingIds: string[],
+    branchFields: HubComposerBranchFields
+  ) => void;
   /** Called when cancelled */
   onCancel: () => void;
 }
@@ -42,6 +52,7 @@ const HubComposer: React.FC<HubComposerProps> = ({
 }) => {
   const [name, setName] = useState(editingHub?.name ?? '');
   const [synthesis, setSynthesis] = useState(editingHub?.synthesis ?? '');
+  const [nextMove, setNextMove] = useState(editingHub?.nextMove ?? '');
   const [questionIds, setQuestionIds] = useState<string[]>(
     editingHub?.questionIds ?? prefilledQuestionIds
   );
@@ -65,7 +76,9 @@ const HubComposer: React.FC<HubComposerProps> = ({
 
   const handleSave = () => {
     if (!name.trim()) return;
-    onSave(name.trim(), synthesis.trim(), questionIds, findingIds);
+    onSave(name.trim(), synthesis.trim(), questionIds, findingIds, {
+      nextMove: nextMove.trim() || undefined,
+    });
   };
 
   const removeQuestion = (id: string) => setQuestionIds(prev => prev.filter(x => x !== id));
@@ -107,6 +120,15 @@ const HubComposer: React.FC<HubComposerProps> = ({
         value={synthesis}
         onChange={e => setSynthesis(e.target.value)}
         data-testid="hub-composer-synthesis"
+      />
+
+      <textarea
+        className="w-full text-xs text-content-secondary bg-transparent border border-edge rounded px-2 py-1.5 resize-y placeholder:text-content-muted focus:outline-none focus:border-purple-500"
+        placeholder="Next move for this branch (optional)"
+        rows={2}
+        value={nextMove}
+        onChange={e => setNextMove(e.target.value)}
+        data-testid="hub-composer-next-move"
       />
 
       {/* Connected evidence */}

@@ -34,9 +34,9 @@ export interface QuestionLinkPromptProps {
   onSkipForever: () => void;
   /** Called to close (backdrop click, Escape, or after any action). */
   onClose: () => void;
-  /** When true, show a "Propose new hypothesis from this finding" CTA for Wall workflow. */
+  /** When true, show a "Propose suspected mechanism from this finding" CTA for Wall workflow. */
   wallActive?: boolean;
-  /** Called when user clicks the Wall-variant propose-hypothesis CTA. Receives the findingId. */
+  /** Called when user clicks the Wall-variant branch proposal CTA. Receives the findingId. */
   onProposeHypothesis?: (findingId: string) => void;
 }
 

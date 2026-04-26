@@ -98,9 +98,23 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
   }
 
   if (processContext?.issueStatement) {
-    parts.push('## Issue Statement');
+    parts.push('## Issue / Concern');
     parts.push('');
     parts.push(processContext.issueStatement);
+    parts.push('');
+  }
+
+  if (processContext?.currentUnderstanding?.summary) {
+    parts.push('## Current Understanding');
+    parts.push('');
+    parts.push(processContext.currentUnderstanding.summary);
+    parts.push('');
+  }
+
+  if (processContext?.problemStatement) {
+    parts.push('## Approved Problem Statement');
+    parts.push('');
+    parts.push(processContext.problemStatement);
     parts.push('');
   }
 

@@ -6,12 +6,67 @@ import type { InsightChartType } from './chartInsights';
 import type { Locale } from '../i18n/types';
 import type { AnalysisMode } from '../types';
 import type { ProcessMap } from '../frame/types';
+import type { InvestigationDepth, InvestigationStatus, ProcessParticipantRef } from '../processHub';
 
 /** AI model tier — maps to ARM deployment names ('fast' or 'reasoning') */
 export type AITier = 'fast' | 'reasoning';
 
 /** Target metric type for improvement tracking */
 export type TargetMetric = 'mean' | 'sigma' | 'cpk' | 'yield' | 'passRate';
+
+/** Deterministic status for a metric relative to its target */
+export type ProblemConditionStatus =
+  | 'above-target'
+  | 'below-target'
+  | 'off-target'
+  | 'at-or-better-than-target'
+  | 'unknown';
+
+/** Measurable condition that makes the issue actionable */
+export interface ProblemCondition {
+  /** Metric used to express the condition */
+  metric?: TargetMetric;
+  /** Current observed value for the metric */
+  currentValue?: number;
+  /** Desired value for the metric */
+  targetValue?: number;
+  /** Direction of improvement relative to target */
+  targetDirection?: 'minimize' | 'maximize' | 'target';
+  /** Deterministic comparison of currentValue to targetValue */
+  status?: ProblemConditionStatus;
+  /** Stable human-readable summary */
+  summary: string;
+}
+
+/** Active suspected mechanism contributing to the current understanding */
+export interface CurrentUnderstandingMechanism {
+  /** Stable identifier when available */
+  id?: string;
+  /** Human-readable mechanism/cause name */
+  name: string;
+  /** Evidence or reasoning summary */
+  synthesis?: string;
+  /** Compact evidence label, e.g. "R2adj 34%" */
+  evidenceLabel?: string;
+}
+
+/** Stable summary of the investigation's current understanding */
+export interface CurrentUnderstanding {
+  /** Deterministic combined summary; no timestamps */
+  summary: string;
+  /** Initial issue or concern in the analyst's words */
+  issueConcern?: string;
+  /** Measurable condition that makes the issue actionable */
+  problemCondition?: ProblemCondition;
+  /** Scoped data pattern currently believed relevant */
+  scopedPattern?: string;
+  /** Live draft before analyst approval */
+  liveProblemStatementDraft?: string;
+  /** Analyst-approved final problem statement */
+  approvedProblemStatement?: string;
+  /** Active suspected mechanisms/hubs under consideration */
+  activeSuspectedMechanisms?: CurrentUnderstandingMechanism[];
+}
 
 /** What prompted the analyst to start this analysis */
 export type EntryScenario = 'problem' | 'exploration' | 'routine';
@@ -29,16 +84,36 @@ export type JourneyPhase = 'frame' | 'scout' | 'investigate' | 'improve';
 
 /** Process context provided by the user for AI grounding */
 export interface ProcessContext {
+  /** Durable process context that owns this investigation */
+  processHubId?: string;
+  /** Investigation depth inside the Process Hub */
+  investigationDepth?: InvestigationDepth;
+  /** Process Hub status for this investigation */
+  investigationStatus?: InvestigationStatus;
+  /** Person accountable for the process/work-system health */
+  processOwner?: ProcessParticipantRef;
+  /** Person driving this investigation day to day */
+  investigationOwner?: ProcessParticipantRef;
+  /** Sponsor/accountable stakeholder for larger work */
+  sponsor?: ProcessParticipantRef;
+  /** People contributing process knowledge, observations, checks, or actions */
+  contributors?: ProcessParticipantRef[];
+  /** Process Hub next move summary */
+  nextMove?: string;
   /** Free-text description of the process (max 500 chars) */
   description?: string;
   /** Product or part being measured */
   product?: string;
   /** Measurement being analyzed */
   measurement?: string;
-  /** Issue statement: the initial concern being investigated (max 500 chars) */
+  /** Issue / Concern: the initial concern being investigated (max 500 chars) */
   issueStatement?: string;
-  /** Problem statement: precise output answering Watson's 3 questions (measure, direction, scope) */
+  /** Approved Problem Statement: accepted output answering Watson's 3 questions */
   problemStatement?: string;
+  /** Stable current understanding assembled from issue, condition, scope, drafts, and mechanisms */
+  currentUnderstanding?: CurrentUnderstanding;
+  /** Measurable problem condition derived from the target metric and current/target values */
+  problemCondition?: ProblemCondition;
   /** Suspected causes from question-driven investigation, ranked by evidence */
   suspectedCauses?: Array<{
     factor: string;
@@ -141,6 +216,10 @@ export interface AIContext {
   /** Investigation context (for investigation page CoScout) */
   investigation?: {
     issueStatement?: string;
+    /** Stable current understanding assembled from issue, condition, scope, drafts, and mechanisms */
+    currentUnderstanding?: CurrentUnderstanding;
+    /** Measurable problem condition derived from target metric/current value/target */
+    problemCondition?: ProblemCondition;
     targetMetric?: TargetMetric;
     targetValue?: number;
     currentValue?: number;
