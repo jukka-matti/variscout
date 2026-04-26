@@ -1,6 +1,6 @@
 ---
 title: Analysis Journey Map
-description: Visual map of the 4-phase analysis journey — Frame, Scout, Investigate, Improve — with CoScout companion and PDCA loop
+description: Visual map of the 4-phase investigation journey with Survey readiness checks, CoScout companion, and PDCA loop
 journey-phase: [all]
 audience: [analyst, engineer]
 category: workflow
@@ -11,7 +11,7 @@ status: stable
 
 > **Analyst's visual guide** to the 4-phase journey with flowcharts and decision points. For the canonical architecture reference (AI modes, code mappings, known gaps), see [The Journey Model](../../05-technical/architecture/mental-model-hierarchy.md). For AI behavior per phase, see [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md).
 
-VariScout guides quality analysts through four distinct phases: **Frame**, **Scout**, **Investigate**, and **Improve**. Each phase has a clear purpose, specific data shapes at its boundaries, and defined decision points that move the analyst forward. CoScout, the AI companion, adapts its behaviour at each phase to provide contextually relevant guidance.
+VariScout guides quality analysts through four distinct phases: **Frame**, **Scout**, **Investigate**, and **Improve**. Each phase has a clear purpose, specific data shapes at its boundaries, and defined decision points that move the analyst forward. Survey runs horizontally across the phases as a deterministic readiness evaluator, while CoScout adapts its behaviour to provide contextual explanation and proposals.
 
 ## Journey Overview
 
@@ -25,22 +25,36 @@ flowchart LR
         IM["IMPROVE\nProject and verify fixes"]
     end
 
+    SURVEY["SURVEY\nReadiness evaluator"]
+
     F --> S
     S --> I
     I --> IM
     IM -- "PDCA loop" --> F
     S -- "Add Data" --> F
 
+    SURVEY -. "data affordance" .-> F
+    SURVEY -. "available checks" .-> S
+    SURVEY -. "trust / power / counter-checks" .-> I
+    SURVEY -. "verification readiness" .-> IM
+
     style F fill:#3b82f6,color:#fff
     style S fill:#22c55e,color:#fff
     style I fill:#f59e0b,color:#fff
     style IM fill:#8b5cf6,color:#fff
+    style SURVEY fill:#64748b,color:#fff
 ```
 
 The journey is not strictly linear. Two feedback loops connect the phases:
 
 - **PDCA loop** -- After verifying an improvement, the analyst re-enters Frame with new data to confirm the gains hold.
 - **Add Data loop** -- While scouting, the analyst may realise the dataset is incomplete and return to Frame to add more data or remap columns.
+
+Survey is not a fifth journey phase. It asks whether the current data, signals,
+branches, and verification evidence are good enough for the next move. In
+Process Hub cadence reviews, the same logic rolls up across investigations:
+which work is ready to act, ready to verify, ready to sustain, or waiting for
+better evidence.
 
 ---
 

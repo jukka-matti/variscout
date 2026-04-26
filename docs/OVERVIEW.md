@@ -36,6 +36,11 @@ Process Hub is the organizational context around the journey model. It does not 
 
 EDA 2.0 supplies the language inside each investigation: Issue / Concern, Current Understanding, Problem Condition, Mechanism Branches, Next Move, Verification, and Control handoff. See `docs/superpowers/specs/2026-04-25-process-hub-design.md`.
 
+Survey sits horizontally across that journey. It asks whether the current data,
+signals, branches, and verification evidence are good enough for the next
+methodological move. It is not a fifth phase or workspace; it is the readiness
+check that supports both analyst investigations and Process Hub cadence reviews.
+
 ## The six analysis modes
 
 1. **Standard** (default). Continuous measurement data. I-Chart, Boxplot, Pareto, Stats panel. Most common entry point — quality engineers, analysts, students.
@@ -71,6 +76,7 @@ Processing happens in the browser. When data moves (Blob Storage sync, AI calls,
 - Data lifecycle (parse → stats → persist → sync): `DATA-FLOW.md`
 - Process Hub direction: `docs/superpowers/specs/2026-04-25-process-hub-design.md`
 - Process Hub use cases: `docs/superpowers/specs/2026-04-25-process-hub-use-cases.md`
+- Unified methodology roadmap: `docs/superpowers/specs/2026-04-26-unified-process-hub-methodology-roadmap.md`
 - EDA 2.0 direction: `docs/superpowers/specs/2026-04-25-question-driven-eda-2-design.md`
 - Mode-specific journeys: `USER-JOURNEYS-{YAMAZUMI,PERFORMANCE,DEFECT,CAPABILITY,PROCESS-FLOW}.md`
 - Feature parity table: `docs/08-products/feature-parity.md`

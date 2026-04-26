@@ -69,6 +69,9 @@ Terminology rules are codified in the `TERMINOLOGY_INSTRUCTION` constant in `pac
 - Suggest specific numeric thresholds not derived from the data
 - Recommend process changes beyond the analyst's data scope
 - Reference data from other tenants or organizations
+- Override deterministic Survey output, Signal Card state, process-hub review
+  signals, or user-confirmed evidence. CoScout may explain these artifacts and
+  draft next moves, but it is not their source of truth.
 
 ### 1.3 Governance
 

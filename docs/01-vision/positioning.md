@@ -59,6 +59,12 @@ The planned Process Hub direction sharpens this positioning. A Process Hub is th
 
 Process Hub also gives VariScout a clear monitoring boundary: VariScout helps teams monitor process performance at an improvement cadence, detect meaningful change signals, identify where variation is concentrated, and turn those signals into faster investigation, action, verification, and sustained control. It can support control inside VariScout or help teams operationalize controls in live systems, but it does not become the 24/7 operational monitoring platform.
 
+The methodology is nested: Process Hub organizes the work over time, FRAME →
+SCOUT → INVESTIGATE → IMPROVE explains how one investigation is done, questions
+drive the reasoning, and Survey checks whether the current evidence is ready for
+the next move. Signal Cards and process moments make that readiness more
+trustworthy as the roadmap matures.
+
 ### What VariScout Is Not
 
 - **Not a dashboard tool.** Dashboards show what happened. VariScout helps you figure out why and guides you to fix it.

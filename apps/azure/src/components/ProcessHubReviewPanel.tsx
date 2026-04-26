@@ -1,7 +1,17 @@
 import React from 'react';
-import { ArrowRight, CircleAlert, ClipboardCheck, Plus, Radar } from 'lucide-react';
+import {
+  ArrowRight,
+  CircleAlert,
+  ClipboardCheck,
+  Layers3,
+  Plus,
+  Radar,
+  ShieldCheck,
+} from 'lucide-react';
 import { buildProcessHubReview } from '@variscout/core';
 import type {
+  InvestigationDepth,
+  InvestigationStatus,
   ProcessHubInvestigation,
   ProcessHubReviewItem,
   ProcessHubRollup,
@@ -21,6 +31,15 @@ const formatChangeSignals = (count: number): string =>
 
 const formatOverdueActions = (count: number): string =>
   `${count} overdue action${count === 1 ? '' : 's'}`;
+
+const DEPTH_SECTIONS: Array<{ depth: InvestigationDepth; label: string }> = [
+  { depth: 'quick', label: 'Quick' },
+  { depth: 'focused', label: 'Focused' },
+  { depth: 'chartered', label: 'Chartered' },
+];
+
+const formatStatus = (status?: InvestigationStatus): string =>
+  (status ?? 'scouting').replace(/-/g, ' ');
 
 const formatTopFocus = (item: ProcessHubReviewItem): string | null => {
   const topFocus = item.investigation.metadata?.reviewSignal?.topFocus;
@@ -62,10 +81,12 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   onStartInvestigation,
 }) => {
   const review = buildProcessHubReview(rollup);
+  const hasActiveWork = DEPTH_SECTIONS.some(({ depth }) => review.depthQueues[depth].length > 0);
   const hasActiveReviewItems =
     review.verificationQueue.length > 0 ||
     review.overdueActionQueue.length > 0 ||
-    review.nextMoveQueue.length > 0;
+    review.nextMoveQueue.length > 0 ||
+    review.sustainmentQueue.length > 0;
   const headingId = `process-hub-review-${rollup.hub.id}`;
 
   return (
@@ -76,7 +97,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 id={headingId} className="text-lg font-semibold text-content">
-            {rollup.hub.name} Review
+            {rollup.hub.name} Cadence Review
           </h3>
           <p className="mt-1 text-xs text-content-secondary">
             {review.activeInvestigationCount} active investigation
@@ -132,6 +153,54 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
               })}
             </div>
           )}
+
+          <div className="mt-4">
+            <SectionHeader title="Active Work" icon={<Layers3 size={16} />} />
+            {hasActiveWork ? (
+              <div className="grid gap-2 sm:grid-cols-3">
+                {DEPTH_SECTIONS.map(({ depth, label }) => {
+                  const items = review.depthQueues[depth];
+
+                  return (
+                    <div key={depth} className="rounded-md border border-edge bg-surface p-3">
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-content-secondary">
+                          {label}
+                        </p>
+                        <span className="text-xs text-content-muted">{items.length}</span>
+                      </div>
+                      {items.length > 0 ? (
+                        <div className="space-y-2">
+                          {items.map(item => (
+                            <ReviewItemButton
+                              key={item.investigation.id}
+                              item={item}
+                              onOpenInvestigation={onOpenInvestigation}
+                            >
+                              <p className="text-sm font-medium text-content">
+                                {item.investigation.name}
+                              </p>
+                              <p className="mt-1 text-xs text-content-secondary">
+                                {formatStatus(item.investigation.metadata?.investigationStatus)}
+                              </p>
+                            </ReviewItemButton>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-content-muted">
+                          No active {label.toLowerCase()} work
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="rounded-md border border-dashed border-edge px-3 py-3 text-sm text-content-secondary">
+                No active investigations yet
+              </p>
+            )}
+          </div>
         </div>
 
         <div>
@@ -202,6 +271,31 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
                         <p className="text-sm font-medium text-content">
                           {item.investigation.name}
                         </p>
+                        {item.nextMove && (
+                          <p className="mt-1 text-xs text-content-secondary">{item.nextMove}</p>
+                        )}
+                      </ReviewItemButton>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {review.sustainmentQueue.length > 0 && (
+                <div>
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-content-secondary">
+                    Sustainment
+                  </p>
+                  <div className="space-y-2">
+                    {review.sustainmentQueue.map(item => (
+                      <ReviewItemButton
+                        key={item.investigation.id}
+                        item={item}
+                        onOpenInvestigation={onOpenInvestigation}
+                      >
+                        <div className="flex items-center gap-2 text-sm font-medium text-content">
+                          <ShieldCheck size={14} className="text-green-400" />
+                          <span>{item.investigation.name}</span>
+                        </div>
                         {item.nextMove && (
                           <p className="mt-1 text-xs text-content-secondary">{item.nextMove}</p>
                         )}

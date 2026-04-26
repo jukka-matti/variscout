@@ -283,6 +283,17 @@ EDA 2.0 is the investigation language inside Process Hub:
   is not only "is it stable?" but "what changed, where is variation
   concentrated, does it affect the target, and what should we do next?"
 
+Process Hub fits the unified methodology hierarchy:
+
+| Layer                 | Role in Process Hub                                           |
+| --------------------- | ------------------------------------------------------------- |
+| Process Hub           | Operating spine for cadence review and improvement load       |
+| Investigation journey | FRAME, SCOUT, INVESTIGATE, IMPROVE inside each investigation  |
+| Question-driven EDA   | Reasoning spine that sharpens each issue into next moves      |
+| Survey                | Readiness evaluator for act, verify, sustain, or collect more |
+| Signal Cards          | Trust records that make hub rollups safer to act on           |
+| Sustainment handoff   | Choice between VariScout review and operationalized control   |
+
 Implementation should land **EDA 2.0 Phase 1 before Process Hub product code**:
 
 1. Rename upfront "Problem Statement" surfaces to Issue / Concern.
@@ -299,6 +310,9 @@ project/finding-centered language and need rework.
 
 - Create this Process Hub spec.
 - Cross-link EDA 2.0 and Process Hub.
+- Align the unified methodology hierarchy so Process Hub, the investigation
+  journey, question-driven EDA, Survey, Signal Cards, and sustainment handoff
+  have distinct responsibilities.
 - Update top-level positioning and overview language.
 - Keep existing project portfolio docs truthful until implementation begins.
 
@@ -323,6 +337,8 @@ project/finding-centered language and need rework.
 - Add Mechanism Branch UI, Survey evaluator, Signal Cards, and process moments
   inside investigations.
 - Make Process Hub rollups richer as those investigation artifacts mature.
+- Keep Survey horizontal; it improves hub cadence and investigation readiness
+  without becoming a new top-level workspace.
 
 ### Phase 4 - Sustainment Reviews And Control Plan Lite
 

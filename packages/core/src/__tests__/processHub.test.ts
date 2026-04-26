@@ -192,6 +192,79 @@ describe('buildProcessHubReview', () => {
     expect(review.overdueActionQueue).toEqual([]);
     expect(review.nextMoveQueue).toEqual([]);
   });
+
+  it('groups active cadence work by depth and resolved work into sustainment review', () => {
+    const hubs: ProcessHub[] = [
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ];
+    const [rollup] = buildProcessHubRollups(hubs, [
+      {
+        id: 'quick-check',
+        name: 'Label jam after changeover',
+        modified: '2026-04-26T09:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationDepth: 'quick',
+          investigationStatus: 'scouting',
+        }),
+      },
+      {
+        id: 'focused-check',
+        name: 'Night shift overfill',
+        modified: '2026-04-26T08:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationDepth: 'focused',
+          investigationStatus: 'investigating',
+        }),
+      },
+      {
+        id: 'chartered-check',
+        name: 'Reduce scrap from 4.2%',
+        modified: '2026-04-26T07:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationDepth: 'chartered',
+          investigationStatus: 'ready-to-improve',
+        }),
+      },
+      {
+        id: 'resolved-check',
+        name: 'Nozzle replacement verified',
+        modified: '2026-04-26T06:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationDepth: 'focused',
+          investigationStatus: 'resolved',
+          nextMove: 'Review the result during next weekly hub cadence.',
+        }),
+      },
+      {
+        id: 'controlled-check',
+        name: 'Inspection checklist updated',
+        modified: '2026-04-26T05:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationDepth: 'quick',
+          investigationStatus: 'controlled',
+        }),
+      },
+    ]);
+
+    const review = buildProcessHubReview(rollup);
+
+    expect(review.depthQueues.quick.map(item => item.investigation.id)).toEqual(['quick-check']);
+    expect(review.depthQueues.focused.map(item => item.investigation.id)).toEqual([
+      'focused-check',
+    ]);
+    expect(review.depthQueues.chartered.map(item => item.investigation.id)).toEqual([
+      'chartered-check',
+    ]);
+    expect(review.sustainmentQueue.map(item => item.investigation.id)).toEqual([
+      'resolved-check',
+      'controlled-check',
+    ]);
+  });
 });
 
 describe('buildProcessHubRollups', () => {

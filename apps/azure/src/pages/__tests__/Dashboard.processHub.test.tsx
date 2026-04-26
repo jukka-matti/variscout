@@ -87,6 +87,29 @@ function makeVerificationProject(): CloudProject {
   };
 }
 
+function makeResolvedProject(): CloudProject {
+  return {
+    id: 'line-4-c',
+    name: 'Nozzle replacement verified',
+    modified: '2026-04-26T00:00:00.000Z',
+    location: 'personal',
+    metadata: {
+      phase: 'improve',
+      findingCounts: {},
+      questionCounts: {},
+      actionCounts: { total: 1, completed: 1, overdue: 0 },
+      assignedTaskCount: 0,
+      hasOverdueTasks: false,
+      lastViewedAt: {},
+      processHubId: 'line-4',
+      investigationDepth: 'chartered',
+      investigationStatus: 'resolved',
+      currentUnderstandingSummary: 'Nozzle replacement reduced variation.',
+      nextMove: 'Review sustainment during the weekly hub cadence.',
+    },
+  };
+}
+
 describe('Dashboard Process Hub home', () => {
   it('renders Process Hub cards before investigation cards and starts work in a hub', async () => {
     const onOpenProject = vi.fn();
@@ -123,9 +146,13 @@ describe('Dashboard Process Hub home', () => {
     expect(screen.getByText('2 change signals')).toBeInTheDocument();
   });
 
-  it('renders an inline Hub Review panel for the selected hub and opens review items', async () => {
+  it('renders an inline Hub Cadence Review panel for the selected hub and opens review items', async () => {
     const onOpenProject = vi.fn();
-    mockListProjects.mockResolvedValue([makeProject(), makeVerificationProject()]);
+    mockListProjects.mockResolvedValue([
+      makeProject(),
+      makeVerificationProject(),
+      makeResolvedProject(),
+    ]);
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
     ]);
@@ -135,8 +162,12 @@ describe('Dashboard Process Hub home', () => {
     await screen.findByText('Line 4');
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
-    const panel = await screen.findByRole('region', { name: 'Line 4 Review' });
+    const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
     expect(within(panel).getByText('Latest Signals')).toBeInTheDocument();
+    expect(within(panel).getByText('Active Work')).toBeInTheDocument();
+    expect(within(panel).getByText('Quick')).toBeInTheDocument();
+    expect(within(panel).getByText('Focused')).toBeInTheDocument();
+    expect(within(panel).getByText('Chartered')).toBeInTheDocument();
     expect(within(panel).getByText('Where to Focus')).toBeInTheDocument();
     expect(within(panel).getAllByText('Night shift overfill').length).toBeGreaterThan(0);
     expect(within(panel).getByText('Machine / B')).toBeInTheDocument();
@@ -148,6 +179,11 @@ describe('Dashboard Process Hub home', () => {
     expect(
       within(panel).getAllByText('Compare post-action Cpk after the next batch.').length
     ).toBeGreaterThan(0);
+    expect(within(panel).getByText('Sustainment')).toBeInTheDocument();
+    expect(within(panel).getAllByText('Nozzle replacement verified').length).toBeGreaterThan(0);
+    expect(
+      within(panel).getByText('Review sustainment during the weekly hub cadence.')
+    ).toBeInTheDocument();
 
     fireEvent.click(within(panel).getAllByLabelText('Open review item Night shift overfill')[0]);
     expect(onOpenProject).toHaveBeenCalledWith('line-4-a');
@@ -164,8 +200,9 @@ describe('Dashboard Process Hub home', () => {
     await screen.findByText('Line 4');
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
-    const panel = await screen.findByRole('region', { name: 'Line 4 Review' });
+    const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
     expect(within(panel).getByText('No latest signals yet')).toBeInTheDocument();
+    expect(within(panel).getByText('No active investigations yet')).toBeInTheDocument();
     expect(within(panel).getByText('No active review items yet')).toBeInTheDocument();
   });
 });

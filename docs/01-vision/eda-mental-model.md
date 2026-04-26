@@ -72,6 +72,27 @@ For full thesis excerpts and figure descriptions, see [Turtiainen (2019) Referen
 
 ---
 
+## 1.5 Product Methodology Layers
+
+VariScout applies the EDA Mental Model inside a broader product hierarchy:
+
+| Layer                                    | Meaning                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------ |
+| Process Hub                              | Operating context where process owners review improvement work     |
+| FRAME -> SCOUT -> INVESTIGATE -> IMPROVE | Investigation journey for one issue or concern                     |
+| Question-driven EDA                      | Reasoning loop that turns issue statements into problem statements |
+| Survey                                   | Readiness evaluator that asks what evidence can support next       |
+| Signal Cards                             | Signal-level trust records for measures, factors, and clues        |
+| Sustainment/control handoff              | Decision on periodic VariScout review vs. operational control      |
+
+This keeps the thesis model intact while making it usable for teams. The EDA
+loop explains how one investigation learns. The Process Hub explains where that
+learning lives over time. Survey provides the practical gate between moves:
+what can the current data, signals, branches, and verification evidence support,
+and what would the team miss if it acted now?
+
+---
+
 ## 2. Issue Statement to Problem Statement
 
 ### 2.1 Two Different Things

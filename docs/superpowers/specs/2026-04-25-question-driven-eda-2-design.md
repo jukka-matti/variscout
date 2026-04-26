@@ -762,13 +762,15 @@ Review against:
 
 ## Open Questions
 
-1. Should `SURVEY` remain a horizontal evaluator only, or graduate to a visible workspace after the branch model proves itself?
-2. Should Current Understanding live in `ProcessContext`, `investigationStore`, or a derived selector over both?
-3. How much of Signal Card trust/power should ship before any formal measurement-study planner?
-4. What minimum n should a process moment require before Cp/Cpk is shown rather than marked insufficient?
-5. How should ProcessMap CTQ specs be modeled when Cp/Cpk is needed per step, not only for the overall Y?
+1. Should Current Understanding live in `ProcessContext`, `investigationStore`, or a derived selector over both?
+2. How much of Signal Card trust/power should ship before any formal measurement-study planner?
+3. What minimum n should a process moment require before Cp/Cpk is shown rather than marked insufficient?
+4. How should ProcessMap CTQ specs be modeled when Cp/Cpk is needed per step, not only for the overall Y?
 
 ## Resolved Questions
 
 1. Mechanism Branch is a user-facing projection of existing `SuspectedCause`
    hubs. It is not a new domain store or separate top-level persisted entity.
+2. Survey remains a horizontal readiness evaluator. It is not a fifth journey
+   phase, not a top-level workspace, and not a fifth domain store in this
+   roadmap phase.

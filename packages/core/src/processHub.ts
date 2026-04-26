@@ -78,7 +78,8 @@ export type ProcessHubAttentionReason =
   | 'top-focus'
   | 'verification'
   | 'overdue-actions'
-  | 'next-move';
+  | 'next-move'
+  | 'sustainment';
 
 export interface ProcessHubReviewItem<
   TInvestigation extends ProcessHubInvestigation = ProcessHubInvestigation,
@@ -98,10 +99,12 @@ export interface ProcessHubReview<
   hub: ProcessHub;
   activeInvestigationCount: number;
   latestActivity: string | null;
+  depthQueues: Record<InvestigationDepth, ProcessHubReviewItem<TInvestigation>[]>;
   whereToFocus: ProcessHubReviewItem<TInvestigation>[];
   verificationQueue: ProcessHubReviewItem<TInvestigation>[];
   overdueActionQueue: ProcessHubReviewItem<TInvestigation>[];
   nextMoveQueue: ProcessHubReviewItem<TInvestigation>[];
+  sustainmentQueue: ProcessHubReviewItem<TInvestigation>[];
 }
 
 const ACTIVE_STATUSES = new Set<InvestigationStatus>([
@@ -113,6 +116,10 @@ const ACTIVE_STATUSES = new Set<InvestigationStatus>([
   'improving',
   'verifying',
 ]);
+
+const INVESTIGATION_DEPTHS: InvestigationDepth[] = ['quick', 'focused', 'chartered'];
+
+const SUSTAINMENT_STATUSES = new Set<InvestigationStatus>(['resolved', 'controlled']);
 
 export function normalizeProcessHubId(processHubId?: string | null): string {
   const trimmed = processHubId?.trim();
@@ -287,6 +294,24 @@ function focusReasons(signal: HubReviewSignal): ProcessHubAttentionReason[] {
 export function buildProcessHubReview<TInvestigation extends ProcessHubInvestigation>(
   rollup: ProcessHubRollup<TInvestigation>
 ): ProcessHubReview<TInvestigation> {
+  const depthQueues: Record<InvestigationDepth, ProcessHubReviewItem<TInvestigation>[]> = {
+    quick: [],
+    focused: [],
+    chartered: [],
+  };
+
+  for (const investigation of rollup.investigations) {
+    const status = investigation.metadata?.investigationStatus ?? 'scouting';
+    if (!ACTIVE_STATUSES.has(status)) continue;
+
+    const depth = investigation.metadata?.investigationDepth ?? 'quick';
+    depthQueues[depth].push(reviewItem(investigation, []));
+  }
+
+  for (const depth of INVESTIGATION_DEPTHS) {
+    depthQueues[depth].sort(compareNewest);
+  }
+
   const whereToFocus = rollup.investigations
     .filter(investigation => investigation.metadata?.reviewSignal)
     .map(investigation =>
@@ -313,13 +338,22 @@ export function buildProcessHubReview<TInvestigation extends ProcessHubInvestiga
     .map(investigation => reviewItem(investigation, ['next-move']))
     .sort(compareNewest);
 
+  const sustainmentQueue = rollup.investigations
+    .filter(investigation =>
+      SUSTAINMENT_STATUSES.has(investigation.metadata?.investigationStatus ?? 'scouting')
+    )
+    .map(investigation => reviewItem(investigation, ['sustainment']))
+    .sort(compareNewest);
+
   return {
     hub: rollup.hub,
     activeInvestigationCount: rollup.activeInvestigationCount,
     latestActivity: rollup.latestActivity,
+    depthQueues,
     whereToFocus,
     verificationQueue,
     overdueActionQueue,
     nextMoveQueue,
+    sustainmentQueue,
   };
 }

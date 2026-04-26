@@ -30,6 +30,26 @@ VariScout identifies **factors driving variation**, not root causes. EDA shows _
 
 ---
 
+## Methodology Hierarchy
+
+VariScout now uses a nested methodology model:
+
+| Layer                     | Job                                                                 |
+| ------------------------- | ------------------------------------------------------------------- |
+| **Process Hub**           | Operating spine for process-owner cadence and team improvement      |
+| **Investigation journey** | FRAME -> SCOUT -> INVESTIGATE -> IMPROVE for one issue              |
+| **Question-driven EDA**   | Reasoning spine that sharpens concern into Current Understanding    |
+| **Survey**                | Horizontal readiness check across phases and hub reviews            |
+| **Signal Cards**          | Signal-level trust records quoted by Survey, branches, and reports  |
+| **Process moments**       | Process-rational Cp/Cpk windows for verification and learning       |
+| **Sustainment handoff**   | Decision on what stays in VariScout or moves to operational systems |
+
+This is not a replacement for the original journey. Process Hub organizes the
+work; the investigation journey explains how the work is done; Survey asks
+whether the current evidence is ready for the next move.
+
+---
+
 ## Foundation: Watson's EDA
 
 VariScout's analytical approach is grounded in Watson's Exploratory Data Analysis methodology (Turtiainen, 2019). Watson's EDA uses four standard quality tools, each asking a different analytical question:
@@ -52,9 +72,9 @@ The thesis places the I-Chart first in the sequence for practical reasons — ti
 
 ---
 
-## VariScout's Three Contributions
+## VariScout's Four Contributions
 
-VariScout adds three original concepts on top of Watson's foundation:
+VariScout adds four original concepts on top of Watson's foundation:
 
 ### 1. Coordinated Views
 
@@ -129,6 +149,27 @@ After the diamond converges, the investigation is complete. What follows — ide
 | Expert     | Requires domain knowledge beyond the data      | Consult expert, record assessment, set status manually                      |
 
 For the full methodology behind this approach, see [EDA Mental Model](eda-mental-model.md).
+
+### 4. Survey Readiness Evaluation
+
+Survey is the cross-phase evaluator that asks:
+
+```text
+What can I do with this evidence, what would I miss, and what should I collect or check next?
+```
+
+Survey is not a fifth phase and not a standalone statistical mode. It is a
+readiness check that can run in FRAME, SCOUT, INVESTIGATE, IMPROVE, REPORT, and
+Process Hub cadence reviews.
+
+| Context     | Survey evaluates                                                                 |
+| ----------- | -------------------------------------------------------------------------------- |
+| FRAME       | Data affordance, missing columns, process-map gaps                               |
+| SCOUT       | Available instrument sets and practical next checks                              |
+| INVESTIGATE | Branch trust, power, counter-checks, and blind spots                             |
+| IMPROVE     | Verification data and before/after evidence readiness                            |
+| REPORT      | Whether claims are backed by signals and branches                                |
+| Process Hub | Which investigations are ready to act, verify, sustain, or collect more evidence |
 
 ---
 
