@@ -82,7 +82,7 @@ const lang = getLangFromUrl(Astro.url);
 			<div class="grid md:grid-cols-2 gap-12 items-start">
 				<div>
 					<p class="text-neutral-600 mb-6 leading-relaxed">
-						VaRiScout needs an App Registration in your Entra ID tenant to authenticate users and access OneDrive. This is required because Managed Applications cannot create registrations in the customer's tenant.
+						VaRiScout needs an App Registration in your Entra ID tenant to authenticate users. This is required because Managed Applications cannot create registrations in the customer's tenant.
 					</p>
 					<ol class="space-y-4">
 						<li class="flex items-start gap-3">
@@ -119,7 +119,7 @@ const lang = getLangFromUrl(Astro.url);
 							</li>
 							<li class="flex items-start gap-3">
 								<span class="text-brand-primary font-bold mt-0.5 shrink-0">2.</span>
-								<span>Add <strong>User.Read</strong> (sign-in and user profile) and <strong>Files.ReadWrite</strong> (OneDrive project sync)</span>
+								<span>Add <strong>User.Read</strong> for sign-in and user profile access</span>
 							</li>
 							<li class="flex items-start gap-3">
 								<span class="text-brand-primary font-bold mt-0.5 shrink-0">3.</span>
@@ -255,7 +255,7 @@ const lang = getLangFromUrl(Astro.url);
 						<div>
 							<h3 class="font-bold text-neutral-900 mb-1">Consent &amp; Go</h3>
 							<p class="text-neutral-600 text-sm">
-								On first login, users consent to User.Read and Files.ReadWrite permissions. After that, the session is platform-managed &mdash; no password to remember, no separate account to create.
+								On first login, users consent to User.Read. After that, the session is platform-managed &mdash; no password to remember, no separate account to create.
 							</p>
 						</div>
 					</div>
@@ -280,7 +280,7 @@ const lang = getLangFromUrl(Astro.url);
 						<h3 class="font-bold text-lg text-neutral-900">Custom Domain</h3>
 					</div>
 					<p class="text-neutral-600 text-sm leading-relaxed mb-3">
-						Add a custom domain (e.g., variscout.contoso.com) to your App Service for a branded URL. This also enables seamless Teams SSO &mdash; without a custom domain, users get a one-time login redirect on <code class="text-xs px-1 py-0.5 bg-neutral-100 rounded">*.azurewebsites.net</code>.
+						Add a custom domain (e.g., variscout.contoso.com) to your App Service for a branded URL. Without a custom domain, users get a one-time login redirect on <code class="text-xs px-1 py-0.5 bg-neutral-100 rounded">*.azurewebsites.net</code>.
 					</p>
 					<p class="text-neutral-500 text-xs">
 						Remember to add the new redirect URI to your App Registration.

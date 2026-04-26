@@ -9,7 +9,7 @@ related: [product-overview, modes, tiers, coscout, journey]
 
 # VariScout — What It Does In Practice
 
-VariScout is **structured investigation for process improvement**. A browser-based, offline-first tool for quality engineers, lean practitioners, and analysts to explore variation in process data, identify suspected causes, and drive improvement actions. Data stays in the customer's environment throughout.
+VariScout is **structured investigation for process improvement**. A browser-based, customer-owned data tool for quality engineers, lean practitioners, and analysts to explore variation in process data, identify suspected causes, and drive improvement actions. Azure tiers are local-cache capable; data stays in the customer's environment throughout.
 
 The near-term product direction is **Process Hub first**: every investigation belongs to a real process, production line, queue, cell, value stream, development flow, or business workflow. The Process Hub gives the process owner and improvement team one place to see what is being investigated, what is being changed, who owns the work, what is waiting for verification, and which learnings need to be sustained. A GB/BB, OpEx lead, or development-org engineer may work across multiple Process Hubs; a line owner may mostly live in one.
 
@@ -60,11 +60,13 @@ Mode resolution lives in `packages/core/src/analysisStrategy.ts`. CoScout's meth
 | Azure Standard | Azure Marketplace | €79/mo  | Full analysis + CoScout AI, local (IndexedDB) persistence, optional voice input. |
 | Azure Team     | Azure Marketplace | €199/mo | + Blob Storage sync, Knowledge Base, optional voice input.                       |
 
-Same analytical capability everywhere. Tier changes collaboration, persistence, and AI.
+Same analytical capability everywhere. Tier changes collaboration, persistence, and AI. A future Process tier may add governed Process Hub storage, snapshots, cadence records, and audit controls, but it is not implemented as a current SKU.
 
 ## CoScout — the AI assistant
 
 CoScout is an assistant, not an oracle. It coaches methodology, asks targeted questions, surfaces references, and proposes actions. The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override. CoScout is modular (tier1/2/3 prompt layering), mode-aware (methodology coaching varies by analysis mode), and tool-calling (27-tool registry gated by phase/mode/tier). On Azure tiers, CoScout can also accept **voice input** in a transcript-first way: the user speaks, the text lands in the normal draft box, the user reviews/edits, then sends. v1 replies remain text.
+
+Process Hub context is the durable process memory. CoScout can later read that customer-owned context, but it does not own a separate hidden memory layer.
 
 ## Customer-owned data
 

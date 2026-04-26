@@ -356,10 +356,28 @@ describe('buildProjectMetadata — Process Hub fields', () => {
   });
 
   it('copies investigation metadata and summaries from processContext', () => {
+    const processMap = {
+      version: 1 as const,
+      nodes: [
+        { id: 'rinse', name: 'Rinse', order: 0 },
+        { id: 'fill', name: 'Fill', order: 1, ctqColumn: 'Weight' },
+      ],
+      tributaries: [
+        { id: 'machine', stepId: 'fill', column: 'Machine' },
+        { id: 'shift', stepId: 'fill', column: 'Shift' },
+      ],
+      ctsColumn: 'Weight',
+      subgroupAxes: ['machine'],
+      hunches: [{ id: 'h1', text: 'Nozzle wear', tributaryId: 'machine' }],
+      createdAt: '2026-04-26T00:00:00.000Z',
+      updatedAt: '2026-04-26T00:00:00.000Z',
+    };
     const result = buildProjectMetadata([], [], true, 'local', undefined, {
       processHubId: 'line-4',
       investigationDepth: 'focused',
       investigationStatus: 'investigating',
+      description: 'Bottle filling from rinse through palletizing.',
+      measurement: 'Fill weight',
       processOwner: { displayName: 'Olivia Owner', upn: 'olivia@example.com' },
       investigationOwner: { displayName: 'Eeva Engineer', upn: 'eeva@example.com' },
       sponsor: { displayName: 'Sam Sponsor', upn: 'sam@example.com' },
@@ -367,11 +385,21 @@ describe('buildProjectMetadata — Process Hub fields', () => {
       currentUnderstanding: { summary: 'Variation concentrates on night shift.' },
       problemCondition: { summary: 'Cpk is below target on Heads 5-8.' },
       nextMove: 'Inspect nozzle wear during night shift.',
+      processMap,
     });
 
     expect(result.processHubId).toBe('line-4');
     expect(result.investigationDepth).toBe('focused');
     expect(result.investigationStatus).toBe('investigating');
+    expect(result.processDescription).toBe('Bottle filling from rinse through palletizing.');
+    expect(result.customerRequirementSummary).toBe('Weight');
+    expect(result.processMapSummary).toEqual({
+      stepCount: 2,
+      tributaryCount: 2,
+      ctsColumn: 'Weight',
+      subgroupAxisCount: 1,
+      hunchCount: 1,
+    });
     expect(result.processOwner?.displayName).toBe('Olivia Owner');
     expect(result.investigationOwner?.displayName).toBe('Eeva Engineer');
     expect(result.sponsor?.displayName).toBe('Sam Sponsor');

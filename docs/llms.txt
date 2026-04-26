@@ -1,6 +1,6 @@
 # VariScout
 
-> Structured investigation for process improvement. Browser-based, offline-first, customer-owned data. PWA (public, free) + Azure Marketplace tiers (Standard €79/mo, Team €199/mo).
+> Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable. PWA (public, free) + Azure Marketplace tiers (Standard €79/mo, Team €199/mo).
 
 Entry points for AI agents working in this repo. Humans should start at `docs/index.md`.
 

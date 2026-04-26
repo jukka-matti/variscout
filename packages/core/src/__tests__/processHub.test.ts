@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_PROCESS_HUB,
   DEFAULT_PROCESS_HUB_ID,
+  buildProcessHubContext,
   buildProcessHubReview,
   buildProcessHubRollups,
   normalizeProcessHubId,
@@ -265,6 +266,67 @@ describe('buildProcessHubReview', () => {
       'controlled-check',
     ]);
   });
+
+  it('surfaces readiness gaps separately from focus and action queues', () => {
+    const hubs: ProcessHub[] = [
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ];
+    const [rollup] = buildProcessHubRollups(hubs, [
+      {
+        id: 'legacy-context',
+        name: 'Legacy context setup',
+        modified: '2026-04-26T10:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationStatus: 'framing',
+          surveyReadiness: {
+            possibilityStatus: 'ask-for-next',
+            powerStatus: 'can-do-with-caution',
+            trustStatus: 'ask-for-next',
+            recommendationCount: 2,
+            topRecommendations: ['Map one customer-felt outcome.'],
+          },
+        }),
+      },
+      {
+        id: 'verify-gap',
+        name: 'Verification missing after action',
+        modified: '2026-04-26T09:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationStatus: 'verifying',
+          processDescription: 'Bottle filling line from rinse to palletizing.',
+          customerRequirementSummary: 'Fill weight must stay inside customer specs.',
+        }),
+      },
+      {
+        id: 'sustainment-candidate',
+        name: 'Nozzle change sustained',
+        modified: '2026-04-26T08:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationStatus: 'resolved',
+          processDescription: 'Bottle filling line from rinse to palletizing.',
+          customerRequirementSummary: 'Fill weight must stay inside customer specs.',
+        }),
+      },
+    ]);
+
+    const review = buildProcessHubReview(rollup);
+
+    expect(review.readinessQueue.map(item => item.investigation.id)).toEqual([
+      'legacy-context',
+      'verify-gap',
+      'sustainment-candidate',
+    ]);
+    expect(review.readinessQueue[0].readinessReasons).toEqual([
+      'missing-process-context',
+      'missing-customer-requirement',
+      'survey-gap',
+    ]);
+    expect(review.readinessQueue[1].readinessReasons).toEqual(['verification-gap']);
+    expect(review.readinessQueue[2].readinessReasons).toEqual(['sustainment-candidate']);
+  });
 });
 
 describe('buildProcessHubRollups', () => {
@@ -385,5 +447,118 @@ describe('buildProcessHubRollups', () => {
       value: 'B',
       variationPct: 48,
     });
+  });
+
+  it('builds a deterministic process context contract from hub investigations', () => {
+    const hubs: ProcessHub[] = [
+      {
+        id: 'line-4',
+        name: 'Line 4',
+        description: 'High-volume bottle filling process.',
+        createdAt: '2026-04-25T00:00:00.000Z',
+        processOwner: { displayName: 'Pat Process', upn: 'pat@example.com' },
+      },
+    ];
+    const [rollup] = buildProcessHubRollups(hubs, [
+      {
+        id: 'line-4-a',
+        name: 'Night shift overfill',
+        modified: '2026-04-26T08:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationDepth: 'focused',
+          investigationStatus: 'investigating',
+          processDescription: 'Bottle filling from rinse through palletizing.',
+          customerRequirementSummary: 'Fill weight must stay within 9-15 g.',
+          processMapSummary: {
+            stepCount: 4,
+            tributaryCount: 6,
+            ctsColumn: 'Weight',
+            subgroupAxisCount: 1,
+            hunchCount: 2,
+          },
+          findingCounts: { analyzed: 2, resolved: 1 },
+          questionCounts: { open: 1, answered: 2, 'ruled-out': 1 },
+          currentUnderstandingSummary: 'Variation is concentrated on night shift.',
+          problemConditionSummary: 'Cpk is below target on Heads 5-8.',
+          nextMove: 'Inspect nozzle wear during night shift.',
+          reviewSignal: {
+            rowCount: 125,
+            outcome: 'Weight',
+            computedAt: '2026-04-26T09:00:00.000Z',
+            topFocus: { factor: 'Machine', value: 'B', variationPct: 48 },
+            capability: { cpk: 0.82, cpkTarget: 1.33, outOfSpecPercentage: 4.8 },
+            changeSignals: {
+              total: 2,
+              outOfControlCount: 1,
+              nelsonRule2Count: 1,
+              nelsonRule3Count: 0,
+            },
+          },
+        }),
+      },
+      {
+        id: 'line-4-b',
+        name: 'Post-action shift check',
+        modified: '2026-04-25T08:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationDepth: 'quick',
+          investigationStatus: 'verifying',
+          actionCounts: { total: 2, completed: 1, overdue: 1 },
+          currentUnderstandingSummary: 'Post-action data is ready for comparison.',
+        }),
+      },
+    ]);
+
+    const context = buildProcessHubContext(rollup);
+
+    expect(context).toMatchObject({
+      schemaVersion: 1,
+      hub: {
+        id: 'line-4',
+        name: 'Line 4',
+        description: 'High-volume bottle filling process.',
+        processOwner: { displayName: 'Pat Process', upn: 'pat@example.com' },
+      },
+      process: {
+        description: 'Bottle filling from rinse through palletizing.',
+        customerRequirement: 'Fill weight must stay within 9-15 g.',
+        map: {
+          stepCount: 4,
+          tributaryCount: 6,
+          ctsColumn: 'Weight',
+          subgroupAxisCount: 1,
+          hunchCount: 2,
+        },
+      },
+      questions: { open: 1, answered: 2, ruledOut: 1, evidenceGaps: 1 },
+      findings: { total: 3, confirmed: 3 },
+      actions: { total: 2, completed: 1, overdue: 1 },
+      verification: { waiting: 1 },
+      sustainment: { candidates: 0 },
+    });
+    expect(context.investigations.map(investigation => investigation.id)).toEqual([
+      'line-4-a',
+      'line-4-b',
+    ]);
+    expect(context.metrics).toEqual([
+      {
+        name: 'Weight',
+        sourceInvestigationId: 'line-4-a',
+        rowCount: 125,
+        cpk: 0.82,
+        cpkTarget: 1.33,
+      },
+    ]);
+    expect(context.variationConcentrations).toEqual([
+      {
+        factor: 'Machine',
+        value: 'B',
+        variationPct: 48,
+        sourceInvestigationId: 'line-4-a',
+      },
+    ]);
+    expect(context.readinessReasons).toEqual(['verification-gap']);
   });
 });

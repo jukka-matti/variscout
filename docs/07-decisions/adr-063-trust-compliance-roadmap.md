@@ -11,7 +11,7 @@ status: accepted
 
 Accepted — 2026-04-03
 
-**Related:** ADR-021 (Security Evaluation), ADR-059 (Web-First Architecture), ADR-007 (Azure Marketplace Distribution)
+**Related:** ADR-059 (Web-First Architecture), ADR-072 (Process Hub Storage and CoScout Context), archived ADR-021 (Security Evaluation), ADR-007 (Azure Marketplace Distribution)
 
 ---
 
@@ -132,7 +132,8 @@ Phase triggers are reviewed quarterly:
 
 - [Security Whitepaper](../08-products/azure/security-whitepaper.md)
 - [ISO 9001:2026 Alignment Guide](../08-products/iso-9001-alignment.md)
-- [ADR-021: Security Evaluation](adr-021-security-evaluation.md)
+- [ADR-021: Security Evaluation](../archive/adrs/adr-021-security-evaluation.md) (archived historical context)
+- [ADR-072: Process Hub Storage and CoScout Context](adr-072-process-hub-storage-and-coscout-context.md)
 - [ADR-059: Web-First Deployment Architecture](adr-059-web-first-deployment-architecture.md)
 - [EU AI Act Mapping](../05-technical/architecture/eu-ai-act-mapping.md)
 - [AI Safety Report](../08-products/azure/ai-safety-report.md)

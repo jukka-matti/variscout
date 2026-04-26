@@ -216,4 +216,4 @@ Deep links can target the Dashboard directly via `?tab=overview`, or bypass it t
 
 **Component**: `ProjectCard` — `apps/azure/src/components/ProjectCard.tsx`
 
-See [ADR-043](../../07-decisions/adr-043-teams-entry-experience.md) for the full Portfolio and Teams entry experience design.
+See archived [ADR-043](../../archive/adrs/adr-043-teams-entry-experience.md) for the original Portfolio and Teams entry experience design. Current Process Hub storage/context direction is [ADR-072](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md).

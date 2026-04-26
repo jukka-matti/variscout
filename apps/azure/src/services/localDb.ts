@@ -1,17 +1,25 @@
 // src/services/localDb.ts
 // IndexedDB operations for project persistence (Dexie wrapper)
 
-import { DEFAULT_PROCESS_HUB, buildHubReviewSignal, buildProjectMetadata } from '@variscout/core';
+import {
+  DEFAULT_PROCESS_HUB,
+  buildHubReviewSignal,
+  buildProjectMetadata,
+  evaluateSurvey,
+} from '@variscout/core';
 import type {
   DataRow,
   Finding,
   ProcessContext,
   ProcessHub,
+  ProcessHubSurveyReadinessSummary,
   ProjectMetadata,
   Question,
   SpecLimits,
+  SurveyEvaluation,
 } from '@variscout/core';
 import { db } from '../db/schema';
+import type { ProjectRecord } from '../db/schema';
 import type { StorageLocation, CloudProject } from './cloudSync';
 
 // Project data is serialized to JSON for IndexedDB/OneDrive — kept as unknown
@@ -19,6 +27,18 @@ import type { StorageLocation, CloudProject } from './cloudSync';
 export type Project = unknown;
 
 // ── Metadata extraction ─────────────────────────────────────────────────
+
+function summarizeSurveyReadiness(evaluation: SurveyEvaluation): ProcessHubSurveyReadinessSummary {
+  return {
+    possibilityStatus: evaluation.possibility.overallStatus,
+    powerStatus: evaluation.power.overallStatus,
+    trustStatus: evaluation.trust.overallStatus,
+    recommendationCount: evaluation.recommendations.length,
+    topRecommendations: evaluation.recommendations
+      .slice(0, 3)
+      .map(recommendation => recommendation.title),
+  };
+}
 
 /**
  * Extract findings, questions, and data presence from an opaque project object.
@@ -35,7 +55,8 @@ export function extractMetadataInputs(
     if (!p || typeof p !== 'object') return null;
     const findings = (Array.isArray(p.findings) ? p.findings : []) as Finding[];
     const questions = (Array.isArray(p.questions) ? p.questions : []) as Question[];
-    const hasData = Array.isArray(p.rawData) && p.rawData.length > 0;
+    const rawData = Array.isArray(p.rawData) ? (p.rawData as DataRow[]) : [];
+    const hasData = rawData.length > 0;
     const processContext =
       p.processContext && typeof p.processContext === 'object'
         ? (p.processContext as ProcessContext)
@@ -49,7 +70,7 @@ export function extractMetadataInputs(
     const timeColumn = typeof p.timeColumn === 'string' ? p.timeColumn : null;
     const dataFilename = typeof p.dataFilename === 'string' ? p.dataFilename : null;
     const reviewSignal = buildHubReviewSignal({
-      rawData: hasData ? (p.rawData as DataRow[]) : [],
+      rawData,
       outcome,
       factors,
       specs,
@@ -57,6 +78,18 @@ export function extractMetadataInputs(
       timeColumn,
       dataFilename,
     });
+    const surveyReadiness = summarizeSurveyReadiness(
+      evaluateSurvey({
+        data: rawData,
+        outcomeColumn: outcome,
+        factorColumns: factors,
+        timeColumn,
+        specs,
+        processContext,
+        questions,
+        findings,
+      })
+    );
 
     return buildProjectMetadata(
       findings,
@@ -65,11 +98,44 @@ export function extractMetadataInputs(
       userId,
       existingLastViewedAt,
       processContext,
-      reviewSignal
+      reviewSignal,
+      surveyReadiness
     );
   } catch {
     return null;
   }
+}
+
+function metadataChanged(current: ProjectMetadata | undefined, next: ProjectMetadata): boolean {
+  return JSON.stringify(current ?? null) !== JSON.stringify(next);
+}
+
+async function backfillProjectMetadataRecords(
+  records: ProjectRecord[],
+  userId: string
+): Promise<{ records: ProjectRecord[]; updated: number }> {
+  let updated = 0;
+  const nextRecords: ProjectRecord[] = [];
+
+  for (const record of records) {
+    const nextMeta = extractMetadataInputs(record.data, userId, record.meta?.lastViewedAt);
+    if (!nextMeta || !metadataChanged(record.meta, nextMeta)) {
+      nextRecords.push(record);
+      continue;
+    }
+    const nextRecord = { ...record, meta: nextMeta };
+    nextRecords.push(nextRecord);
+    await db.projects.update(record.name, { meta: nextMeta });
+    updated++;
+  }
+
+  return { records: nextRecords, updated };
+}
+
+export async function backfillProjectMetadataInIndexedDB(userId = 'local'): Promise<number> {
+  const records = await db.projects.toArray();
+  const result = await backfillProjectMetadataRecords(records, userId);
+  return result.updated;
 }
 
 // ── IndexedDB operations ────────────────────────────────────────────────
@@ -95,9 +161,10 @@ export async function loadFromIndexedDB(name: string): Promise<Project | null> {
   return record?.data || null;
 }
 
-export async function listFromIndexedDB(): Promise<CloudProject[]> {
+export async function listFromIndexedDB(userId = 'local'): Promise<CloudProject[]> {
   const records = await db.projects.toArray();
-  return records.map(r => ({
+  const result = await backfillProjectMetadataRecords(records, userId);
+  return result.records.map(r => ({
     id: r.name,
     name: r.name,
     modified: r.modified?.toISOString() || new Date().toISOString(),

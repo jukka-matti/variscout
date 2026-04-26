@@ -112,8 +112,8 @@ The ARM template uses `WEBSITE_RUN_FROM_PACKAGE` to deploy the app as a static z
 | Deploy ARM template to fresh subscription | ⬜ Not done | End-to-end test in clean Azure environment         |
 | App loads after deployment                | ⬜ Not done | Verify `WEBSITE_RUN_FROM_PACKAGE` serves the app   |
 | EasyAuth redirects to Azure AD login      | ⬜ Not done | Verify unauthenticated → login flow                |
-| Post-login app is fully functional        | ⬜ Not done | Upload data, view charts, save to OneDrive         |
-| OneDrive sync works post-deployment       | ⬜ Not done | Save analysis, close, reopen, verify data persists |
+| Post-login app is fully functional        | ⬜ Not done | Upload data, view charts, save locally or to Blob  |
+| Blob sync works post-deployment           | ⬜ Not done | Save analysis, close, reopen, verify data persists |
 | createUiDefinition renders in portal      | ⬜ Not done | Test via sandbox blade                             |
 | Deployment completes in <10 minutes       | ⬜ Not done | Microsoft may flag slow deployments                |
 

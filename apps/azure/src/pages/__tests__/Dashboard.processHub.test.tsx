@@ -110,6 +110,34 @@ function makeResolvedProject(): CloudProject {
   };
 }
 
+function makeReadinessProject(): CloudProject {
+  return {
+    id: 'line-4-readiness',
+    name: 'Frame missing process context',
+    modified: '2026-04-26T01:00:00.000Z',
+    location: 'personal',
+    metadata: {
+      phase: 'frame',
+      findingCounts: {},
+      questionCounts: {},
+      actionCounts: { total: 0, completed: 0, overdue: 0 },
+      assignedTaskCount: 0,
+      hasOverdueTasks: false,
+      lastViewedAt: {},
+      processHubId: 'line-4',
+      investigationDepth: 'focused',
+      investigationStatus: 'framing',
+      surveyReadiness: {
+        possibilityStatus: 'ask-for-next',
+        powerStatus: 'can-do-with-caution',
+        trustStatus: 'ask-for-next',
+        recommendationCount: 2,
+        topRecommendations: ['Map one customer-felt outcome.'],
+      },
+    },
+  };
+}
+
 describe('Dashboard Process Hub home', () => {
   it('renders Process Hub cards before investigation cards and starts work in a hub', async () => {
     const onOpenProject = vi.fn();
@@ -187,6 +215,26 @@ describe('Dashboard Process Hub home', () => {
 
     fireEvent.click(within(panel).getAllByLabelText('Open review item Night shift overfill')[0]);
     expect(onOpenProject).toHaveBeenCalledWith('line-4-a');
+  });
+
+  it('shows readiness queue reasons in the cadence review panel', async () => {
+    mockListProjects.mockResolvedValue([makeReadinessProject()]);
+    mockListProcessHubs.mockResolvedValue([
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ]);
+
+    render(<Dashboard onOpenProject={vi.fn()} />);
+
+    await screen.findByText('Line 4');
+    fireEvent.click(screen.getByLabelText('Open Line 4'));
+
+    const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
+    expect(within(panel).getByText('Readiness')).toBeInTheDocument();
+    expect(within(panel).getAllByText('Frame missing process context').length).toBeGreaterThan(0);
+    expect(within(panel).getByText('Complete process context')).toBeInTheDocument();
+    expect(within(panel).getByText('Clarify customer requirement')).toBeInTheDocument();
+    expect(within(panel).getByText('Survey needs input')).toBeInTheDocument();
+    expect(within(panel).getByText('Map one customer-felt outcome.')).toBeInTheDocument();
   });
 
   it('shows empty review states for a selected hub without investigations', async () => {

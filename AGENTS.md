@@ -1,6 +1,6 @@
 # VariScout for Codex
 
-Structured investigation for process improvement. Browser-based, offline-first, customer-owned data.
+Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable.
 
 ## Invariants
 

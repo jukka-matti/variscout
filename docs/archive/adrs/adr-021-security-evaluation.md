@@ -4,11 +4,11 @@ title: 'ADR-021 Security Evaluation: Teams Integration'
 
 # ADR-021 Security Evaluation: Teams Integration
 
-**Status**: Accepted. **Pricing revised by [ADR-033](adr-033-pricing-simplification.md)** — simplified to 2 plans: Standard (€79/month) and Team (€199/month). Team AI tier removed; AI included in all plans, Knowledge Base moved to Team.
+**Status**: Superseded by [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md) and [ADR-072](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md). Historical Teams integration security evaluation only.
 
 **Date**: 2026-02-27
 
-**Related**: [ADR-016](../archive/adrs/adr-016-teams-integration.md) (Teams Integration), [ADR-007](adr-007-azure-marketplace-distribution.md) (Marketplace Distribution), [ADR-015](adr-015-investigation-board.md) (Investigation Board)
+**Related**: [ADR-016](adr-016-teams-integration.md) (Teams Integration), [ADR-007](../../07-decisions/adr-007-azure-marketplace-distribution.md) (Marketplace Distribution), [ADR-015](../../07-decisions/adr-015-investigation-board.md) (Investigation Board)
 
 **Scope**: Security evaluation of the proposed Teams integration design from three external perspectives: Microsoft certification, enterprise IT procurement, and a Finnish manufacturer buyer.
 
@@ -121,7 +121,7 @@ Azure Function for On-Behalf-Of (OBO) token exchange:
 
 ### 4.1 Marketplace Certification Impact
 
-ADR-016 does not change the Managed Application certification flow documented in [`certification-guide.md`](../08-products/azure/certification-guide.md). The Standard plan ships first (no new scopes, no Teams). The Team plan adds:
+ADR-016 does not change the Managed Application certification flow documented in [`certification-guide.md`](../../08-products/azure/certification-guide.md). The Standard plan ships first (no new scopes, no Teams). The Team plan adds:
 
 | Certification Layer            | Impact   | Assessment                                                  |
 | ------------------------------ | -------- | ----------------------------------------------------------- |
@@ -492,8 +492,8 @@ Canvas re-encode + stripExifFromBlob ──── EXIF/GPS stripped (two layers)
 
 ## See Also
 
-- [ADR-016: Teams Integration](../archive/adrs/adr-016-teams-integration.md) — the technical design being evaluated
-- [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md) — two-plan model (Standard / Team)
-- [Certification Guide](../08-products/azure/certification-guide.md) — marketplace certification mechanics
-- [Submission Checklist](../08-products/azure/submission-checklist.md) — submission readiness tracker
-- [Authentication](../08-products/azure/authentication.md) — EasyAuth setup details
+- [ADR-016: Teams Integration](adr-016-teams-integration.md) — the technical design being evaluated
+- [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md) — two-plan model (Standard / Team)
+- [Certification Guide](../../08-products/azure/certification-guide.md) — marketplace certification mechanics
+- [Submission Checklist](../../08-products/azure/submission-checklist.md) — submission readiness tracker
+- [Authentication](../../08-products/azure/authentication.md) — EasyAuth setup details

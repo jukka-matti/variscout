@@ -79,8 +79,8 @@ The deepest review layer. Covers ARM template, security, and functionality.
 | Check               | Details                                | VariScout                                 |
 | ------------------- | -------------------------------------- | ----------------------------------------- |
 | Malware scan        | Automated scan of deployment package   | Low risk — static SPA                     |
-| Network monitoring  | No unexpected outbound calls           | Only Graph API (OneDrive)                 |
-| Data exfiltration   | No data sent to unauthorized endpoints | Offline-first, data stays in browser      |
+| Network monitoring  | No unexpected outbound calls           | Customer-tenant Azure endpoints only      |
+| Data exfiltration   | No data sent to unauthorized endpoints | Browser processing; customer-owned data   |
 | npm vulnerabilities | Dependency audit                       | Verify with `npm audit` before submission |
 
 #### Functionality Test
@@ -112,9 +112,9 @@ Partner Center auto-injects the Customer Usage Attribution tracking ID into the 
 
 VariScout has a minimal attack surface for certification:
 
-- **Offline-first SPA** — all statistical processing runs in the browser
+- **Browser SPA** — all statistical processing runs in the browser
 - **No backend API** — no server-side code to exploit
-- **Only external call** — Microsoft Graph API for OneDrive sync (Team plan only; delegated permissions: `User.Read` + `Files.ReadWrite`). Standard plan has no external API calls.
+- **Customer-owned storage** — Team sync uses customer-tenant Blob Storage. Standard plan has no cloud sync.
 - **EasyAuth** — authentication handled entirely by Azure App Service platform
 - **HTTPS enforced** — `httpsOnly: true` in ARM template
 - **TLS 1.2 minimum** — `minTlsVersion: "1.2"` in site config

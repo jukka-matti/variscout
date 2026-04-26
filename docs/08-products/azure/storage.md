@@ -7,7 +7,7 @@ status: stable
 
 # Azure App Storage
 
-Offline-first persistence with optional OneDrive cloud sync (Team plan).
+Browser persistence with customer-tenant Blob Storage sync for the Team plan.
 
 ---
 
@@ -16,9 +16,9 @@ Offline-first persistence with optional OneDrive cloud sync (Team plan).
 Storage behavior depends on the plan:
 
 - **Standard plan (€79/month)**: Local-only storage via **IndexedDB** (Dexie.js). All projects are saved and loaded from the browser. No cloud sync.
-- **Team plan (€199/month)**: Two-tier storage — **IndexedDB** (local, instant) + **OneDrive** (cloud, async) via Microsoft Graph API. Every save writes to IndexedDB first, then syncs to OneDrive when online. Loads prefer the cloud version (fresher) and fall back to local when offline.
+- **Team plan (€199/month)**: Two-tier storage - **IndexedDB** (local cache/resilience) + **Azure Blob Storage** (customer-tenant shared sync path). Every save writes to IndexedDB first, then syncs to Blob Storage when online. Loads prefer the cloud version and fall back to local when offline.
 
-Both plans use IndexedDB as the primary persistence layer. The Team plan adds OneDrive sync on top.
+Both plans use IndexedDB in the browser. Team uses Blob Storage as the shared team source for projects, Process Hubs, and artifacts.
 
 ---
 
@@ -44,9 +44,9 @@ Source: `apps/azure/src/db/schema.ts`
 User clicks Save
        │
        ▼
-saveToIndexedDB()          ← instant, always succeeds (both plans)
+saveToIndexedDB()          ← instant local cache (both plans)
        │
-       ├── Online? ──Yes──▶ saveToCloud() via Graph API PUT  (Team plan only)
+       ├── Online? ──Yes──▶ saveToCloud() via Blob Storage  (Team plan only)
        │                           │
        │                    ├── Success → markAsSynced() → status: 'synced'
        │                    └── Failure → addToSyncQueue() → status: 'offline'
@@ -63,7 +63,7 @@ saveToIndexedDB()          ← instant, always succeeds (both plans)
 ```
 loadProject(name)
        │
-       ├── Online? ──Yes──▶ loadFromCloud() via Graph API GET  (Team plan only)
+       ├── Online? ──Yes──▶ loadFromCloud() via Blob Storage  (Team plan only)
        │                           │
        │                    ├── Found → cache to IndexedDB → return
        │                    └── Error → fall through to local
@@ -75,7 +75,7 @@ loadProject(name)
 
 ## Sync Triggers (Team Plan Only)
 
-Sync to OneDrive happens on:
+Sync to Blob Storage happens on:
 
 | Trigger        | Behavior                                                |
 | -------------- | ------------------------------------------------------- |
@@ -121,15 +121,17 @@ Source: `apps/azure/src/services/storage.ts`
 
 ---
 
-## OneDrive File Structure (Team Plan Only)
+## Blob Storage Structure (Team Plan Only)
 
 ```
-OneDrive/
-└── VariScout/
-    └── Projects/
-        ├── analysis-001.vrs    (JSON, AnalysisState)
-        ├── analysis-002.vrs
-        └── ...
+container/
+├── projects/
+│   ├── analysis-001.vrs    (JSON, AnalysisState)
+│   └── analysis-001.meta.json
+├── process-hubs/
+│   └── index.json
+└── artifacts/
+    └── ...
 ```
 
 Files are `.vrs` extension, containing JSON-serialized `AnalysisState` (see `docs/03-features/data/storage.md`).
@@ -158,26 +160,22 @@ Stale sync queue items (older than 30 days) are pruned on app mount via `pruneSy
 
 ---
 
-## File Picker Integration (ADR-030)
+## Process Hub Metadata
 
-The Team plan uses OneDrive File Picker v8 for SharePoint browsing:
+Process Hub cadence views use deterministic metadata built from saved investigations:
 
-| Use Case             | Component                         | Available On |
-| -------------------- | --------------------------------- | ------------ |
-| KB folder selection  | SettingsPanel → FileBrowseButton  | Team         |
-| Import .csv/.xlsx    | Editor → FileBrowseButton         | Team         |
-| Open .vrs project    | Dashboard → FileBrowseButton      | Team         |
-| Save As to SP folder | Project name menu → useFilePicker | Team         |
+- process description, process map summary, and customer requirement/CTS context
+- investigation depth/status, current understanding, problem condition, and next move
+- Survey readiness summary and review signals
+- finding, question, action, verification, and sustainment counts
 
-Standard plan users see only local file browsing.
-
-Implementation: `apps/azure/src/hooks/useFilePicker.ts`, `apps/azure/src/components/FileBrowseButton.tsx`
+Existing IndexedDB records are backfilled on project listing so older saved analyses can enter Process Hub readiness queues without manual migration.
 
 ---
 
 ## See Also
 
-- [OneDrive Sync](blob-storage-sync.md) — Graph API calls, conflict resolution
+- [Blob Storage Sync](blob-storage-sync.md) — container structure, conflict handling, shared storage
 - [Authentication (EasyAuth)](authentication.md) — Token acquisition
 - [Project Persistence](../../03-features/data/storage.md) — AnalysisState format
 - [PWA Session Model](../pwa/index.md#session-model) — PWA has no persistence (by design)

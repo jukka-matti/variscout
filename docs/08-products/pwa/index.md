@@ -73,32 +73,32 @@ All core analysis features:
 
 ## Restrictions (Free Tier)
 
-| Feature                 | PWA (Free)   | Azure App (Paid) |
-| ----------------------- | ------------ | ---------------- |
-| Paste data              | ✓            | ✓                |
-| File upload (CSV/Excel) | -            | ✓                |
-| .vrs import/export      | -            | ✓                |
-| Save/persistence        | Session only | OneDrive sync    |
-| Performance Mode        | -            | ✓                |
-| Branding on charts      | Always shown | Hidden           |
-| Authentication          | None         | Microsoft SSO    |
-| Team collaboration      | -            | Shared projects  |
+| Feature                 | PWA (Free)   | Azure App (Paid)      |
+| ----------------------- | ------------ | --------------------- |
+| Paste data              | ✓            | ✓                     |
+| File upload (CSV/Excel) | -            | ✓                     |
+| .vrs import/export      | -            | ✓                     |
+| Save/persistence        | Session only | IndexedDB / Blob sync |
+| Performance Mode        | -            | ✓                     |
+| Branding on charts      | Always shown | Hidden                |
+| Authentication          | None         | Microsoft SSO         |
+| Team collaboration      | -            | Shared projects       |
 
 ---
 
 ## Use Cases
 
-| Use Case                 | Appropriate | Notes                              |
-| ------------------------ | :---------: | ---------------------------------- |
-| SPC training courses     |      ✓      | Full Green Belt coverage           |
-| University education     |      ✓      | Free, no license needed            |
-| Try case study data      |      ✓      | Pre-loaded datasets                |
-| Analyze own data (paste) |      ✓      | Copy-paste from Excel              |
-| Demo to stakeholders     |      ✓      | No setup required                  |
-| **Production use**       |      ✗      | Use [Azure App](../azure/index.md) |
-| **Team collaboration**   |      ✗      | Use Azure App with OneDrive        |
-| **File upload**          |      ✗      | Use Azure App                      |
-| **Data persistence**     |      ✗      | Session only (no save)             |
+| Use Case                 | Appropriate | Notes                                  |
+| ------------------------ | :---------: | -------------------------------------- |
+| SPC training courses     |      ✓      | Full Green Belt coverage               |
+| University education     |      ✓      | Free, no license needed                |
+| Try case study data      |      ✓      | Pre-loaded datasets                    |
+| Analyze own data (paste) |      ✓      | Copy-paste from Excel                  |
+| Demo to stakeholders     |      ✓      | No setup required                      |
+| **Production use**       |      ✗      | Use [Azure App](../azure/index.md)     |
+| **Team collaboration**   |      ✗      | Use Azure App with shared Process Hubs |
+| **File upload**          |      ✗      | Use Azure App                          |
+| **Data persistence**     |      ✗      | Session only (no save)                 |
 
 ---
 
@@ -195,7 +195,7 @@ The PWA is a free training and education tool — data persistence is intentiona
 - Page refresh = data lost (by design)
 - No save/load functionality
 
-Persistence features (save, load, team sharing, OneDrive sync) are part of the [Azure App](../azure/) value proposition.
+Persistence features (save, load, team sharing, Blob sync) are part of the [Azure App](../azure/) value proposition.
 
 ---
 

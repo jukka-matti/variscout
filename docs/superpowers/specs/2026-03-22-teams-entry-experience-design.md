@@ -324,9 +324,9 @@ No new fields needed — `activeView: 'dashboard' | 'editor'` from ADR-042 alrea
 
 ### New documents
 
-| Document                                              | Purpose                                                                                                        |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `docs/07-decisions/adr-043-teams-entry-experience.md` | ADR: Portfolio, metadata sidecar, ID-based deep links, "what's new" timestamp diff, expanded deep link targets |
+| Document                                              | Purpose                                                                                                                   |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `docs/archive/adrs/adr-043-teams-entry-experience.md` | Historical ADR: Portfolio, metadata sidecar, ID-based deep links, "what's new" timestamp diff, expanded deep link targets |
 
 ### Updated documents
 

@@ -436,7 +436,9 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // ── List all projects (merge local and cloud) ─────────────────────
 
   const listProjects = useCallback(async (): Promise<CloudProject[]> => {
-    const localProjects = await listFromIndexedDB();
+    const user = await getEasyAuthUser().catch(() => null);
+    const userId = user?.userId || user?.email || 'local';
+    const localProjects = await listFromIndexedDB(userId);
 
     // Standard plan: local-only storage, no cloud merge
     if (!hasTeamFeatures()) {

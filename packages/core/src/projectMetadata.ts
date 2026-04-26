@@ -15,6 +15,8 @@ import {
   type InvestigationDepth,
   type InvestigationStatus,
   type ProcessParticipantRef,
+  type ProcessHubProcessMapSummary,
+  type ProcessHubSurveyReadinessSummary,
 } from './processHub';
 
 export interface ProjectMetadata {
@@ -41,6 +43,14 @@ export interface ProjectMetadata {
   investigationDepth?: InvestigationDepth;
   /** Investigation-level status for hub rollups. */
   investigationStatus?: InvestigationStatus;
+  /** Process description snapshot for deterministic hub context assembly. */
+  processDescription?: string;
+  /** Customer requirement / CTS snapshot for deterministic hub context assembly. */
+  customerRequirementSummary?: string;
+  /** Process map shape snapshot for deterministic hub context assembly. */
+  processMapSummary?: ProcessHubProcessMapSummary;
+  /** Latest Survey readiness summary for hub cadence queues. */
+  surveyReadiness?: ProcessHubSurveyReadinessSummary;
   /** Person accountable for the process/work-system health. */
   processOwner?: ProcessParticipantRef;
   /** Person driving the investigation day to day. */
@@ -76,6 +86,19 @@ function detectPhase(hasData: boolean, findings: Finding[]): JourneyPhase {
   return 'scout';
 }
 
+function summarizeProcessMap(
+  processMap: ProcessContext['processMap'] | undefined
+): ProcessHubProcessMapSummary | undefined {
+  if (!processMap) return undefined;
+  return {
+    stepCount: processMap.nodes.length,
+    tributaryCount: processMap.tributaries.length,
+    ctsColumn: processMap.ctsColumn,
+    subgroupAxisCount: processMap.subgroupAxes?.length ?? 0,
+    hunchCount: processMap.hunches?.length ?? 0,
+  };
+}
+
 /**
  * Build a ProjectMetadata snapshot from current project state.
  *
@@ -92,7 +115,8 @@ export function buildProjectMetadata(
   userId: string,
   existingLastViewedAt?: Record<string, number>,
   processContext?: ProcessContext | null,
-  reviewSignal?: HubReviewSignal | null
+  reviewSignal?: HubReviewSignal | null,
+  surveyReadiness?: ProcessHubSurveyReadinessSummary | null
 ): ProjectMetadata {
   const now = Date.now();
 
@@ -170,6 +194,11 @@ export function buildProjectMetadata(
     investigationDepth: processContext?.investigationDepth,
     investigationStatus:
       processContext?.investigationStatus ?? investigationStatusFromJourneyPhase(phase),
+    processDescription: processContext?.description,
+    customerRequirementSummary:
+      processContext?.processMap?.ctsColumn ?? processContext?.measurement ?? undefined,
+    processMapSummary: summarizeProcessMap(processContext?.processMap),
+    surveyReadiness: surveyReadiness ?? undefined,
     processOwner: processContext?.processOwner,
     investigationOwner: processContext?.investigationOwner,
     sponsor: processContext?.sponsor,

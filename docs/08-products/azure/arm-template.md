@@ -199,8 +199,8 @@ App Service Authentication configured for Azure AD, referencing the customer-pro
 
 Key configuration:
 
-- **Token store enabled**: tokens available at `/.auth/me` for Graph API calls
-- **Login parameters**: conditional by plan — Standard requests `User.Read` only; Team requests `User.Read` + `Files.ReadWrite` for OneDrive access
+- **Token store enabled**: tokens available at `/.auth/me` for app session needs
+- **Login parameters**: `User.Read` for sign-in/profile
 - **Redirect to login**: unauthenticated users are automatically redirected to Azure AD sign-in
 
 ### 4. AI Services (all plans)

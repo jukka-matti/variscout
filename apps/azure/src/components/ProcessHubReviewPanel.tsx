@@ -13,6 +13,7 @@ import type {
   InvestigationDepth,
   InvestigationStatus,
   ProcessHubInvestigation,
+  ProcessHubReadinessReason,
   ProcessHubReviewItem,
   ProcessHubRollup,
 } from '@variscout/core';
@@ -37,6 +38,16 @@ const DEPTH_SECTIONS: Array<{ depth: InvestigationDepth; label: string }> = [
   { depth: 'focused', label: 'Focused' },
   { depth: 'chartered', label: 'Chartered' },
 ];
+
+const READINESS_REASON_LABELS: Record<ProcessHubReadinessReason, string> = {
+  'missing-metadata': 'Refresh saved metadata',
+  'missing-process-hub': 'Assign process hub',
+  'missing-process-context': 'Complete process context',
+  'missing-customer-requirement': 'Clarify customer requirement',
+  'survey-gap': 'Survey needs input',
+  'verification-gap': 'Plan verification',
+  'sustainment-candidate': 'Review sustainment',
+};
 
 const formatStatus = (status?: InvestigationStatus): string =>
   (status ?? 'scouting').replace(/-/g, ' ');
@@ -83,6 +94,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   const review = buildProcessHubReview(rollup);
   const hasActiveWork = DEPTH_SECTIONS.some(({ depth }) => review.depthQueues[depth].length > 0);
   const hasActiveReviewItems =
+    review.readinessQueue.length > 0 ||
     review.verificationQueue.length > 0 ||
     review.overdueActionQueue.length > 0 ||
     review.nextMoveQueue.length > 0 ||
@@ -207,6 +219,44 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
           <SectionHeader title="Where to Focus" icon={<ClipboardCheck size={16} />} />
           {hasActiveReviewItems ? (
             <div className="space-y-3">
+              {review.readinessQueue.length > 0 && (
+                <div>
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-content-secondary">
+                    Readiness
+                  </p>
+                  <div className="space-y-2">
+                    {review.readinessQueue.map(item => (
+                      <ReviewItemButton
+                        key={item.investigation.id}
+                        item={item}
+                        onOpenInvestigation={onOpenInvestigation}
+                      >
+                        <p className="text-sm font-medium text-content">
+                          {item.investigation.name}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {item.readinessReasons.map(reason => (
+                            <span
+                              key={reason}
+                              className="rounded-sm border border-edge px-2 py-0.5 text-xs text-content-secondary"
+                            >
+                              {READINESS_REASON_LABELS[reason]}
+                            </span>
+                          ))}
+                        </div>
+                        {item.investigation.metadata?.surveyReadiness?.topRecommendations.map(
+                          recommendation => (
+                            <p key={recommendation} className="mt-1 text-xs text-content-secondary">
+                              {recommendation}
+                            </p>
+                          )
+                        )}
+                      </ReviewItemButton>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {review.verificationQueue.length > 0 && (
                 <div>
                   <p className="mb-1 text-xs font-medium uppercase tracking-wide text-content-secondary">

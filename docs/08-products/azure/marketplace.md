@@ -158,9 +158,9 @@ Analyze hundreds of measurement channels simultaneously:
 **No Backend Required**
 
 - Deploys entirely to your Azure tenant
-- Standard: Data stored locally in browser. Team: Syncs to your OneDrive
+- Standard: Data stored locally in browser. Team: Syncs to customer-tenant Blob Storage
 - Zero external API calls
-- Full offline support after initial load
+- Local-cache capable after initial load
 
 ### Who Is It For?
 
@@ -172,7 +172,7 @@ Analyze hundreds of measurement channels simultaneously:
 ### Pricing
 
 **Standard — €79/month** — Full analysis with AI-assisted CoScout, unlimited users in your tenant.
-**Team — €199/month** — Everything in Standard, plus Teams, OneDrive, SharePoint, Knowledge Base & Catalyst, mobile, and photo evidence.
+**Team — €199/month** — Everything in Standard, plus shared Process Hubs, Blob sync, Knowledge Base & Catalyst, and photo evidence.
 
 ### Integration
 
@@ -188,7 +188,7 @@ before upgrading to the full Azure App for professional team investigations.
 4. Boxplot Comparison - Category comparison
 5. Pareto Chart - Improvement prioritization
 6. Drill-Down Navigation - Filter breadcrumbs
-7. OneDrive Sync - Analysis saving (Team plan)
+7. Process Hub / Blob Sync - Analysis saving (Team plan)
 
 ### Videos (Optional but Recommended)
 
@@ -218,7 +218,7 @@ before upgrading to the full Azure App for professional team investigations.
 - [ ] createUiDefinition.json renders correctly in sandbox
 - [ ] App deploys without errors from marketplace flow
 - [ ] EasyAuth authentication works post-deployment
-- [ ] OneDrive sync works (save/load analyses) — Team plan only
+- [ ] Blob sync works (save/load analyses) — Team plan only
 - [ ] Privacy policy URL accessible
 - [ ] Terms of service URL accessible
 - [ ] Support contact information complete

@@ -212,7 +212,7 @@ The "Ask CoScout..." input collapses to a tap-to-expand bottom sheet. All naviga
 ## See Also
 
 - [ADR-042: Project Dashboard](../../07-decisions/adr-042-project-dashboard.md) — design decisions for the Dashboard ↔ Editor model
-- [ADR-043: Teams Entry Experience](../../07-decisions/adr-043-teams-entry-experience.md) — design decisions for Portfolio, ProjectCard, What's New, and deep links
+- [ADR-043: Teams Entry Experience](../../archive/adrs/adr-043-teams-entry-experience.md) — historical design decisions for Portfolio, ProjectCard, What's New, and deep links
 - [Journey Traceability — Flow 5](../traceability.md#flow-5-return-visitor) — high-level flow index
 - [Journey Traceability — Flow 7](../traceability.md#flow-7-azure-daily-use) — daily use (includes portfolio + dashboard entry)
 - [Journey Phase → Screen Mapping](../../05-technical/architecture/journey-phase-screen-mapping.md#project-dashboard-azure-only)

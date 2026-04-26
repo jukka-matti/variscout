@@ -46,7 +46,7 @@ Structured investigation for process improvement. Question-driven analysis that 
 | Interactive Analysis        | Drill-down, breadcrumbs, factor selection             | [progressive-filtering.md](navigation/progressive-filtering.md)                                       |
 | Statistics Panel            | Conformance/Capability modes, Cp/Cpk, η², histogram   | [stats-panel.md](analysis/stats-panel.md)                                                             |
 | Data Table                  | Inline editing, keyboard navigation, spec status      | [data-input.md](data/data-input.md)                                                                   |
-| Save & Load (.vrs)          | Azure App: project persistence + OneDrive sync        | [storage.md](data/storage.md)                                                                         |
+| Save & Load (.vrs)          | Azure App: IndexedDB persistence + Blob sync for Team | [storage.md](data/storage.md)                                                                         |
 | Chart Annotations           | Right-click highlights + text observations → Findings | [charts.md](../../.claude/skills/editing-charts/SKILL.md) §Chart Annotations                          |
 | Export                      | PNG (charts/dashboard), CSV, SVG                      | [Chart Export](../../.claude/skills/editing-charts/SKILL.md) §Chart Export                            |
 | Branding                    | Source bar with sample count; hidden for paid tiers   | —                                                                                                     |
@@ -60,13 +60,13 @@ Structured investigation for process improvement. Question-driven analysis that 
 
 ## What's NOT Included (PWA)
 
-| Feature                                   | Why excluded                         |
-| ----------------------------------------- | ------------------------------------ |
-| AI assistance                             | PWA is a training tool — no AI, ever |
-| Intent modes (Explore/Hypothesis/Monitor) | Adds complexity                      |
-| Playbooks / guided workflows              | AI-dependent                         |
-| Cloud sync                                | Offline-first design                 |
-| Multi-user / collaboration                | Single-user tool                     |
+| Feature                                   | Why excluded                                        |
+| ----------------------------------------- | --------------------------------------------------- |
+| AI assistance                             | PWA is a training tool — no AI, ever                |
+| Intent modes (Explore/Hypothesis/Monitor) | Adds complexity                                     |
+| Playbooks / guided workflows              | AI-dependent                                        |
+| Cloud sync                                | PWA is session-only; Azure Team handles shared sync |
+| Multi-user / collaboration                | Single-user tool                                    |
 
 **Philosophy:** PWA users are learning. They need visualization, not AI shortcuts.
 
@@ -74,13 +74,13 @@ Structured investigation for process improvement. Question-driven analysis that 
 
 The Azure App (Standard and Team plans) supports optional AI-assisted analysis via customer-deployed Azure AI Foundry. See [ADR-019](../07-decisions/adr-019-ai-integration.md).
 
-| Feature                   | Standard |   Team   | Description                                |
-| ------------------------- | :------: | :------: | ------------------------------------------ |
-| NarrativeBar              | Optional | Optional | Plain-language analysis summary            |
-| ChartInsightChip          | Optional | Optional | Per-chart contextual suggestions           |
-| CoScoutPanel              | Optional | Optional | Conversational AI assistant                |
-| Knowledge Base            |    -     | Optional | Cross-project findings + SharePoint docs   |
-| Process description field | Optional | Optional | Free-text process context for AI grounding |
+| Feature                   | Standard |   Team   | Description                                  |
+| ------------------------- | :------: | :------: | -------------------------------------------- |
+| NarrativeBar              | Optional | Optional | Plain-language analysis summary              |
+| ChartInsightChip          | Optional | Optional | Per-chart contextual suggestions             |
+| CoScoutPanel              | Optional | Optional | Conversational AI assistant                  |
+| Knowledge Base            |    -     | Optional | Cross-project findings + customer-owned docs |
+| Process description field | Optional | Optional | Free-text process context for AI grounding   |
 
 AI is always optional, dismissable, and controlled by a user-visible Settings toggle. No AI endpoint configured = no AI UI shown.
 
@@ -88,11 +88,11 @@ AI is always optional, dismissable, and controlled by a user-visible Settings to
 
 ## Products & Pricing
 
-| Product        | Distribution      | Pricing                                                            | Status      |
-| -------------- | ----------------- | ------------------------------------------------------------------ | ----------- |
-| Azure Standard | Azure Marketplace | €79/month (full analysis, local files)                             | **PRIMARY** |
-| Azure Team     | Azure Marketplace | €199/month (+ Teams, OneDrive, SharePoint, Knowledge Base, mobile) | **PRIMARY** |
-| PWA            | Public URL        | FREE (forever, training & education)                               | Production  |
+| Product        | Distribution      | Pricing                                                         | Status      |
+| -------------- | ----------------- | --------------------------------------------------------------- | ----------- |
+| Azure Standard | Azure Marketplace | €79/month (full analysis, local files)                          | **PRIMARY** |
+| Azure Team     | Azure Marketplace | €199/month (+ Blob Storage sync, Knowledge Base, collaboration) | **PRIMARY** |
+| PWA            | Public URL        | FREE (forever, training & education)                            | Production  |
 
 ### Free (PWA)
 
@@ -112,10 +112,10 @@ AI is always optional, dismissable, and controlled by a user-visible Settings to
 ### Team (Azure App — €199/month)
 
 - Everything in Standard, plus:
-- Teams integration (channel tabs, SSO)
-- OneDrive and SharePoint sync
+- Blob Storage sync in the customer's tenant
+- Shared Process Hub and investigation persistence
 - Knowledge Base (organizational document search)
-- Mobile access via Teams app
+- Browser-based team access
 - Photo evidence with EXIF stripping
 
 ---

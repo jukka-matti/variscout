@@ -7,16 +7,16 @@ status: stable
 
 # Pricing
 
-VariScout Azure App pricing structure — two plans differentiated by storage, collaboration, mobile, and knowledge capabilities. Per [ADR-033](../../07-decisions/adr-033-pricing-simplification.md), AI is included in all plans.
+VariScout Azure App pricing structure — two plans differentiated by storage, collaboration, and knowledge capabilities. Per [ADR-033](../../07-decisions/adr-033-pricing-simplification.md), AI is included in all plans. ADR-072 defines the current Process Hub and Blob Storage direction.
 
 ---
 
 ## Plan Overview
 
-| Plan         | Price      | Storage                                      | Auth Scopes                                      | Mobile               | Users     | Billing |
-| ------------ | ---------- | -------------------------------------------- | ------------------------------------------------ | -------------------- | --------- | ------- |
-| **Standard** | €79/month  | Local files (File System Access API)         | `User.Read` only                                 | Desktop browser only | Unlimited | Monthly |
-| **Team**     | €199/month | + OneDrive + SharePoint channels + AI Search | + `Files.ReadWrite.All`, `Channel.ReadBasic.All` | Teams mobile app     | Unlimited | Monthly |
+| Plan         | Price      | Storage                                    | Auth Scopes      | Mobile  | Users     | Billing |
+| ------------ | ---------- | ------------------------------------------ | ---------------- | ------- | --------- | ------- |
+| **Standard** | €79/month  | IndexedDB local persistence                | `User.Read` only | Browser | Unlimited | Monthly |
+| **Team**     | €199/month | + customer-tenant Blob Storage + Knowledge | `User.Read` only | Browser | Unlimited | Monthly |
 
 **Model**: Per-deployment (one subscription per Azure tenant). All users in the tenant have access. Plans differentiate by capability, not user count.
 
@@ -41,28 +41,28 @@ VariScout Azure App pricing structure — two plans differentiated by storage, c
 | Copy-paste from spreadsheets    |    ✓     |   ✓   |
 | Manual data entry               |    ✓     |   ✓   |
 | **Storage**                     |          |       |
-| Local file save/load (.vrs)     |    ✓     |   ✓   |
-| IndexedDB fallback              |    ✓     |   ✓   |
-| OneDrive personal sync          |    —     |   ✓   |
-| SharePoint channel storage      |    —     |   ✓   |
+| Local browser persistence       |    ✓     |   ✓   |
+| IndexedDB cache/resilience      |    ✓     |   ✓   |
+| Blob Storage sync               |    —     |   ✓   |
+| Shared Process Hubs             |    —     |   ✓   |
 | **Authentication**              |          |       |
 | EasyAuth SSO (Microsoft Entra)  |    ✓     |   ✓   |
-| Admin consent required          |    No    |  Yes  |
+| Admin consent required          |    No    |  No   |
 | **Investigation Workflow**      |          |       |
 | Findings log                    |    ✓     |   ✓   |
 | What-If simulation              |    ✓     |   ✓   |
 | Photo evidence in findings      |    —     |   ✓   |
 | **Collaboration**               |          |       |
-| Teams channel tabs              |    —     |   ✓   |
-| Teams SSO                       |    —     |   ✓   |
-| Adaptive Cards                  |    —     |   ✓   |
+| Shared Process Hub workspace    |    —     |   ✓   |
+| Shared investigations           |    —     |   ✓   |
+| Optional Teams static tab       |    —     |   ✓   |
 | **AI**                          |          |       |
 | NarrativeBar & ChartInsights    |    ✓     |   ✓   |
 | CoScout assistant               |    ✓     |   ✓   |
-| Knowledge Base (SP search)      |    —     |   ✓   |
+| Knowledge Base                  |    —     |   ✓   |
 | Knowledge Catalyst (org memory) |    —     |   ✓   |
 | **Mobile**                      |          |       |
-| Mobile gemba companion (Teams)  |    —     |   ✓   |
+| Browser access                  |    ✓     |   ✓   |
 | **Admin**                       |          |       |
 | Admin Hub                       |    ✓     |   ✓   |
 | **Support**                     |          |       |
@@ -75,17 +75,17 @@ VariScout Azure App pricing structure — two plans differentiated by storage, c
 
 ### Standard — Full Analysis with AI, Zero Admin
 
-Standard is the complete SPC analysis tool for individuals and small teams who work from a desktop browser. Local file storage via the File System Access API means projects live on the user's machine — no cloud permissions, no admin consent, no IT involvement. At €79/month for unlimited users, it undercuts per-seat competitors at any team size above one. AI features (NarrativeBar, ChartInsightChips, CoScout) are included when the customer deploys Azure AI Foundry resources.
+Standard is the complete SPC analysis tool for individuals and small teams who work from a browser. IndexedDB persistence means projects live in the customer's browser environment - no cloud permissions, no admin consent, no IT involvement beyond deployment. At €79/month for unlimited users, it undercuts per-seat competitors at any team size above one. AI features (NarrativeBar, ChartInsightChips, CoScout) are included when the customer deploys Azure AI Foundry resources.
 
 ### Team — Collaboration + Knowledge Base & Catalyst
 
-Team adds everything needed for shared quality workflows: OneDrive and SharePoint channel storage so projects live where the team works, Teams integration for embedding analysis in channels, mobile access through the Teams app for gemba investigations with photo evidence, the Knowledge Base for searching team documents on SharePoint via Azure AI Search, and the Knowledge Catalyst for organizational learning from resolved findings. The `Files.ReadWrite.All` and `Channel.ReadBasic.All` permissions require one-time admin consent, justified by the collaborative storage and Teams features they unlock.
+Team adds everything needed for shared quality workflows: customer-tenant Blob Storage, shared Process Hubs, shared investigations, photo evidence, Knowledge Base over customer-owned documents and artifacts, and the Knowledge Catalyst for organizational learning from resolved findings. Process Hub is the durable team context; CoScout can later read it without owning separate memory.
 
 ### Why Two Plans
 
 Per [ADR-033](../../07-decisions/adr-033-pricing-simplification.md), the original three-plan model was simplified to two plans. AI is included in all plans (removing the Team AI upsell friction), and the knowledge features (Knowledge Base + Knowledge Catalyst) moved to Team where they pair naturally with team collaboration features.
 
-- Standard at €79 removes the "do I really need OneDrive?" hesitation — now includes AI
+- Standard at €79 removes admin-consent friction and now includes AI
 - Team at €199 captures the collaboration + knowledge value that teams are willing to pay for
 - Standard requires no admin consent — faster purchase cycle
 

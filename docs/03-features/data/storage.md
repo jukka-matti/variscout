@@ -3,7 +3,7 @@ title: Project Persistence
 audience: [analyst, engineer]
 category: data
 status: stable
-related: [indexeddb, onedrive, offline-first, analysis-state]
+related: [indexeddb, blob-storage, browser-cache, analysis-state]
 ---
 
 # Project Persistence
@@ -14,12 +14,12 @@ How VariScout saves and restores analyst workflow state.
 
 ## Overview
 
-| Product   | Persistence Model                      | File Format |
-| --------- | -------------------------------------- | ----------- |
-| PWA       | Session-only (React state, no storage) | N/A         |
-| Azure App | IndexedDB + OneDrive sync (.vrs JSON)  | `.vrs`      |
+| Product   | Persistence Model                          | File Format |
+| --------- | ------------------------------------------ | ----------- |
+| PWA       | Session-only (React state, no storage)     | N/A         |
+| Azure App | IndexedDB + Blob sync for Team (.vrs JSON) | `.vrs`      |
 
-The PWA is a free training tool — data lives in memory and is lost on page refresh. The Azure App persists full project state to IndexedDB (instant) and syncs to OneDrive (background).
+The PWA is a free training tool — data lives in memory and is lost on page refresh. The Azure App persists full project state to IndexedDB (instant) and syncs Team work to Blob Storage (background).
 
 ---
 
@@ -168,13 +168,13 @@ What happens to persisted state when data changes mid-analysis:
 
 - **All data stays local** — never sent to VariScout servers
 - **No telemetry** — no usage tracking
-- **OneDrive sync** — data syncs to user's own OneDrive (Azure App only)
+- **Blob sync** — Team data syncs to customer-tenant Blob Storage (Azure App only)
 - **Clear = Gone** — clearing browser data deletes local projects
 
 ---
 
 ## See Also
 
-- [OneDrive Sync](../../08-products/azure/blob-storage-sync.md) — Azure-specific sync mechanism
-- [Offline-First Architecture](../../05-technical/architecture/offline-first.md) — Technical approach
+- [Blob Storage Sync](../../08-products/azure/blob-storage-sync.md) — Azure-specific sync mechanism
+- [ADR-072: Process Hub Storage and CoScout Context](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md) — Current storage/context stance
 - [PWA Session Model](../../08-products/pwa/index.md#session-model) — Why the PWA doesn't persist

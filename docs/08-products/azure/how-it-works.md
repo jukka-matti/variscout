@@ -41,8 +41,7 @@ CUSTOMER                   AZURE PORTAL                 ARM ENGINE
    │                            │                            │
    │  1. Create App Registration (Azure AD)                  │
    │     - Client ID + Client Secret                         │
-   │     - Permissions: User.Read (Standard) or              │
-   │       + Files.ReadWrite.All, Channel.ReadBasic.All (Team)│
+   │     - Permissions: User.Read                            │
    │                            │                            │
    │  2. Find VariScout ───────▶│                            │
    │     on Marketplace         │                            │
@@ -169,13 +168,13 @@ BROWSER                          USER'S COMPUTER
 - No internet required after initial deployment
 - Only `User.Read` permission needed
 
-### Team Plan — Local Files + Cloud Sync
+### Team Plan — Local Cache + Blob Sync
 
-Everything in Standard, plus OneDrive personal sync and SharePoint channel storage.
+Everything in Standard, plus customer-tenant Blob Storage for shared Process Hubs, investigations, and artifacts.
 
 ```
-BROWSER                          USER'S ONEDRIVE / CHANNEL SHAREPOINT
-(IndexedDB)                      (Graph API)
+BROWSER                          CUSTOMER AZURE BLOB STORAGE
+(IndexedDB cache)                (shared team store)
     │                                │
     │◀── Load on startup ────────────│
     │    (if online)                 │
@@ -190,91 +189,65 @@ BROWSER                          USER'S ONEDRIVE / CHANNEL SHAREPOINT
     │   Flush queued changes         │
 ```
 
-**Personal OneDrive** (personal tab or browser):
+**Blob container**:
 
 ```
-OneDrive/
-└── VariScout/
-    └── Projects/
-        ├── analysis-001.vrs
-        └── ...
-```
-
-**Channel SharePoint** (channel tab):
-
-```
-Channel Files/VariScout/
-├── Projects/
+container/
+├── projects/
 │   └── Feb-Fill-Line.vrs       ← shared analysis
-└── Photos/
-    └── {analysisId}/{findingId}/
-        └── photo-001.jpg       ← EXIF-stripped evidence
+├── process-hubs/
+│   └── index.json              ← shared hub catalog
+└── artifacts/
+    └── ...
 ```
 
-Storage location is automatic: channel tab → SharePoint, personal tab → OneDrive, browser → OneDrive.
+Storage remains in the customer's Azure tenant. IndexedDB is the browser cache/resilience layer.
 
 ### Offline Behavior
 
 | State     | Standard                 | Team                          |
 | --------- | ------------------------ | ----------------------------- |
-| Online    | Save to IndexedDB + file | + sync to OneDrive/SharePoint |
+| Online    | Save to IndexedDB + file | + sync to Blob Storage        |
 | Offline   | Full local functionality | Full local functionality      |
 | Reconnect | N/A                      | Flush queued changes to cloud |
 
 ---
 
-## Teams Integration (Team Plan)
+## Process Hub Collaboration (Team Plan)
 
-The Team plan adds Microsoft Teams as a collaboration layer. The same codebase detects its runtime context and adapts:
-
-```
-Teams SDK initialized?
-├── Yes → Channel tab? → shared channel SharePoint storage
-│       → Personal tab? → personal OneDrive
-│       → SSO via On-Behalf-Of token exchange
-└── No  → Browser mode → local files (File System Access API)
-```
-
-### Authentication: OBO Token Exchange
-
-Teams SSO provides a client-side token that isn't directly usable for Graph API calls. An Azure Function (`token-exchange`) performs the On-Behalf-Of exchange:
+The Team plan adds a shared Process Hub layer. The same browser app can be opened directly or as an optional Teams static tab, but storage and collaboration do not depend on the Teams SDK.
 
 ```
-Teams Client → SSO token → Azure Function (OBO) → Graph API token
-                                    ↓
-                           Fallback: EasyAuth redirect
+User opens VariScout
+├── Browser / optional Teams tab
+│   → EasyAuth session
+│   → IndexedDB browser cache
+│   → Blob Storage shared projects, hubs, artifacts
 ```
 
-The `graphToken.ts` module handles the chain: Teams SSO → OBO exchange → EasyAuth fallback. The Azure Function is deployed alongside the App Service via ARM template.
+### Shared Storage
 
-### Channel Storage
-
-When running as a channel tab, analyses and photos are stored in the channel's SharePoint document library:
-
-- `channelDrive.ts` resolves the drive via Graph API: `/teams/{teamId}/channels/{channelId}/filesFolder`
-- Drive info is cached in IndexedDB to avoid repeated Graph calls
-- `StorageLocation` type (`'personal' | 'team'`) routes to the correct storage
+Team investigations, Process Hub catalog entries, metadata sidecars, and artifacts are stored in the customer's Blob Storage container. `StorageLocation` still distinguishes personal/team intent in the app, but the shared source is Blob Storage rather than OneDrive or SharePoint.
 
 ### Photo Pipeline
 
 Photo evidence flows through a client-side pipeline:
 
-1. Camera capture — Teams SDK `media.selectMedia()` inside Teams (native camera, `devicePermissions: ["media"]` for IT audit trail), HTML5 file input fallback outside Teams
+1. Camera/file capture through browser inputs
 2. EXIF/GPS metadata stripped (`exifStrip.ts` — byte-level removal, 23 verification tests) — both capture paths feed into the same pipeline
-3. Upload to OneDrive or SharePoint (`photoUpload.ts`)
+3. Upload as a Blob artifact when Team sync is enabled
 4. Thumbnail embedded in `.vrs` file for cross-user preview
 
 ### Deep Links and Sharing
 
 - `deepLinks.ts` — builds and parses deep link URLs for specific charts or findings
-- `useTeamsShare.ts` — wraps Teams SDK `sharing.shareWebContent` and `pages.shareDeepLink`
 - `shareContent.ts` — builds share payloads for findings and charts
 
 ### User Identity
 
-`getCurrentUser.ts` extracts user identity from the Teams JWT (UPN claim) with EasyAuth fallback. Author names appear on findings and comments for audit trails.
+`getCurrentUser.ts` extracts user identity from EasyAuth. Author names appear on findings and comments for audit trails.
 
-See [ADR-016](../../archive/adrs/adr-016-teams-integration.md) for the full technical design.
+See [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md) and [ADR-072](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md) for the current technical direction.
 
 ---
 
@@ -292,7 +265,7 @@ CUSTOMER TENANT                          PUBLISHER (VariScout)
 │  Azure AD              │               │  No access to:     │
 │  (authenticates users) │               │  - Customer data   │
 │                        │               │  - App resources   │
-│  OneDrive/SharePoint   │               │  - User identities │
+│  Azure Blob Storage    │               │  - User identities │
 │  (Team plan sync)      │               │  - Usage telemetry │
 │                        │               │                    │
 └────────────────────────┘               └────────────────────┘
@@ -300,20 +273,16 @@ CUSTOMER TENANT                          PUBLISHER (VariScout)
 
 - **Publisher management is disabled** — we have zero access to the customer's deployment
 - **No telemetry** — the app makes no outbound calls to publisher systems
-- **Data survives cancellation** — analyses remain on the user's device (Standard) or in OneDrive/SharePoint (Team) even if the subscription ends
+- **Data survives cancellation** — analyses remain in the customer's browser storage (Standard) or Blob Storage (Team) even if the subscription ends
 - **Each deployment is tenant-isolated** — no cross-tenant data access
 
 ### Least-Privilege Permissions
 
-| Permission              | Type      | Plan      | Purpose                           |
-| ----------------------- | --------- | --------- | --------------------------------- |
-| `User.Read`             | Delegated | Both      | Display user name & email         |
-| `Files.ReadWrite.All`   | Delegated | Team only | OneDrive + SharePoint file sync   |
-| `Channel.ReadBasic.All` | Delegated | Team only | Resolve channel SharePoint drives |
+| Permission  | Type      | Plan | Purpose                   |
+| ----------- | --------- | ---- | ------------------------- |
+| `User.Read` | Delegated | Both | Display user name & email |
 
-**Standard plan**: Only `User.Read` — no admin consent required, users consent on first login.
-
-**Team plan**: Requires one-time tenant admin consent for `Files.ReadWrite.All` and `Channel.ReadBasic.All`. No mail access, no `Sites.ReadWrite.All`.
+**All plans**: only `User.Read` for user sign-in/profile. Team collaboration uses customer-tenant Blob Storage and Azure RBAC rather than Microsoft Graph file scopes.
 
 ### Secret Handling
 

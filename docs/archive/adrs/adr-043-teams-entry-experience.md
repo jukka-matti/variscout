@@ -1,12 +1,12 @@
 ---
 title: 'ADR-043: Teams Entry Experience'
-status: accepted
+status: superseded
 date: 2026-03-22
 ---
 
 # ADR-043: Teams Entry Experience
 
-**Status**: Accepted
+**Status**: Superseded by [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md) and [ADR-072](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md). Historical Teams-first entry direction only.
 
 **Date**: 2026-03-22
 
@@ -178,8 +178,8 @@ When the project list is empty (no saved projects), the Portfolio home screen sh
 
 ## See Also
 
-- [ADR-042: Project Dashboard](adr-042-project-dashboard.md) — Single-project Overview tab (Dashboard ↔ Editor)
-- [ADR-016: Teams Integration](../archive/adrs/adr-016-teams-integration.md) — Teams channel tabs and deep link infrastructure
+- [ADR-042: Project Dashboard](../../07-decisions/adr-042-project-dashboard.md) — Single-project Overview tab (Dashboard ↔ Editor)
+- [ADR-016: Teams Integration](adr-016-teams-integration.md) — Teams channel tabs and deep link infrastructure
 - [ADR-030: Unified File Picker](adr-030-unified-file-picker.md) — File System Access API and OneDrive file handling
-- [Project Dashboard](../../docs/03-features/workflows/project-dashboard.md) — Dashboard feature documentation
-- [Project Reopen Flow](../../docs/02-journeys/flows/project-reopen.md) — Updated flow with Portfolio entry
+- [Project Dashboard](../../03-features/workflows/project-dashboard.md) — Dashboard feature documentation
+- [Project Reopen Flow](../../02-journeys/flows/project-reopen.md) — Updated flow with Portfolio entry

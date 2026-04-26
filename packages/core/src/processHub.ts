@@ -1,5 +1,7 @@
 import type { JourneyPhase } from './ai/types';
+import type { FindingStatus, QuestionStatus } from './findings/types';
 import type { HubReviewSignal } from './processReviewSignal';
+import type { SurveyStatus } from './survey/types';
 
 export const DEFAULT_PROCESS_HUB_ID = 'general-unassigned';
 export const DEFAULT_PROCESS_HUB_NAME = 'General / Unassigned';
@@ -42,7 +44,13 @@ export interface ProcessHubInvestigationMetadata {
   processHubId?: string;
   investigationDepth?: InvestigationDepth;
   investigationStatus?: InvestigationStatus;
+  findingCounts?: Partial<Record<FindingStatus, number>>;
+  questionCounts?: Partial<Record<QuestionStatus, number>>;
   actionCounts?: { total: number; completed: number; overdue: number };
+  processDescription?: string;
+  customerRequirementSummary?: string;
+  processMapSummary?: ProcessHubProcessMapSummary;
+  surveyReadiness?: ProcessHubSurveyReadinessSummary;
   currentUnderstandingSummary?: string;
   problemConditionSummary?: string;
   nextMove?: string;
@@ -81,6 +89,31 @@ export type ProcessHubAttentionReason =
   | 'next-move'
   | 'sustainment';
 
+export type ProcessHubReadinessReason =
+  | 'missing-metadata'
+  | 'missing-process-hub'
+  | 'missing-process-context'
+  | 'missing-customer-requirement'
+  | 'survey-gap'
+  | 'verification-gap'
+  | 'sustainment-candidate';
+
+export interface ProcessHubProcessMapSummary {
+  stepCount: number;
+  tributaryCount: number;
+  ctsColumn?: string;
+  subgroupAxisCount: number;
+  hunchCount: number;
+}
+
+export interface ProcessHubSurveyReadinessSummary {
+  possibilityStatus: SurveyStatus;
+  powerStatus: SurveyStatus;
+  trustStatus: SurveyStatus;
+  recommendationCount: number;
+  topRecommendations: string[];
+}
+
 export interface ProcessHubReviewItem<
   TInvestigation extends ProcessHubInvestigation = ProcessHubInvestigation,
 > {
@@ -91,6 +124,7 @@ export interface ProcessHubReviewItem<
   topFocusVariationPct?: number;
   overdueActionCount: number;
   nextMove?: string;
+  readinessReasons: ProcessHubReadinessReason[];
 }
 
 export interface ProcessHubReview<
@@ -105,6 +139,69 @@ export interface ProcessHubReview<
   overdueActionQueue: ProcessHubReviewItem<TInvestigation>[];
   nextMoveQueue: ProcessHubReviewItem<TInvestigation>[];
   sustainmentQueue: ProcessHubReviewItem<TInvestigation>[];
+  readinessQueue: ProcessHubReviewItem<TInvestigation>[];
+}
+
+export interface ProcessHubContextInvestigation {
+  id: string;
+  name: string;
+  modified: string;
+  status: InvestigationStatus;
+  depth?: InvestigationDepth;
+  currentUnderstandingSummary?: string;
+  problemConditionSummary?: string;
+  nextMove?: string;
+}
+
+export interface ProcessHubMetricContext {
+  name: string;
+  sourceInvestigationId: string;
+  rowCount: number;
+  latestTimeValue?: string | number | boolean;
+  cpk?: number;
+  cpkTarget?: number;
+}
+
+export interface ProcessHubVariationConcentration {
+  factor: string;
+  value?: string | number | boolean;
+  variationPct: number;
+  sourceInvestigationId: string;
+}
+
+export interface ProcessHubContextContract {
+  schemaVersion: 1;
+  hub: Pick<ProcessHub, 'id' | 'name' | 'description' | 'processOwner'>;
+  process: {
+    description?: string;
+    customerRequirement?: string;
+    map?: ProcessHubProcessMapSummary;
+  };
+  investigations: ProcessHubContextInvestigation[];
+  metrics: ProcessHubMetricContext[];
+  variationConcentrations: ProcessHubVariationConcentration[];
+  questions: {
+    open: number;
+    answered: number;
+    ruledOut: number;
+    evidenceGaps: number;
+  };
+  findings: {
+    total: number;
+    confirmed: number;
+  };
+  actions: {
+    total: number;
+    completed: number;
+    overdue: number;
+  };
+  verification: {
+    waiting: number;
+  };
+  sustainment: {
+    candidates: number;
+  };
+  readinessReasons: ProcessHubReadinessReason[];
 }
 
 const ACTIVE_STATUSES = new Set<InvestigationStatus>([
@@ -240,7 +337,8 @@ function cpkGap(signal?: HubReviewSignal): number | undefined {
 
 function reviewItem<TInvestigation extends ProcessHubInvestigation>(
   investigation: TInvestigation,
-  reasons: ProcessHubAttentionReason[]
+  reasons: ProcessHubAttentionReason[],
+  readinessReasons: ProcessHubReadinessReason[] = []
 ): ProcessHubReviewItem<TInvestigation> {
   const signal = investigation.metadata?.reviewSignal;
 
@@ -252,6 +350,7 @@ function reviewItem<TInvestigation extends ProcessHubInvestigation>(
     topFocusVariationPct: signal?.topFocus?.variationPct,
     overdueActionCount: investigation.metadata?.actionCounts?.overdue ?? 0,
     nextMove: investigation.metadata?.nextMove,
+    readinessReasons,
   };
 }
 
@@ -289,6 +388,52 @@ function focusReasons(signal: HubReviewSignal): ProcessHubAttentionReason[] {
     reasons.push('top-focus');
   }
   return reasons;
+}
+
+function hasSurveyGap(summary?: ProcessHubSurveyReadinessSummary): boolean {
+  if (!summary) return false;
+  return (
+    summary.recommendationCount > 0 ||
+    summary.possibilityStatus !== 'can-do-now' ||
+    summary.powerStatus !== 'can-do-now' ||
+    summary.trustStatus !== 'can-do-now'
+  );
+}
+
+function readinessReasons<TInvestigation extends ProcessHubInvestigation>(
+  investigation: TInvestigation
+): ProcessHubReadinessReason[] {
+  const reasons: ProcessHubReadinessReason[] = [];
+  const metadata = investigation.metadata;
+  const status = metadata?.investigationStatus ?? 'scouting';
+
+  if (!metadata) reasons.push('missing-metadata');
+  if (normalizeProcessHubId(metadata?.processHubId) === DEFAULT_PROCESS_HUB_ID) {
+    reasons.push('missing-process-hub');
+  }
+  if (!metadata?.processDescription) reasons.push('missing-process-context');
+  if (!metadata?.customerRequirementSummary && !metadata?.processMapSummary?.ctsColumn) {
+    reasons.push('missing-customer-requirement');
+  }
+  if (hasSurveyGap(metadata?.surveyReadiness)) reasons.push('survey-gap');
+  if (status === 'verifying') reasons.push('verification-gap');
+  if (SUSTAINMENT_STATUSES.has(status)) reasons.push('sustainment-candidate');
+
+  return reasons;
+}
+
+const READINESS_REASON_ORDER: ProcessHubReadinessReason[] = [
+  'missing-metadata',
+  'missing-process-hub',
+  'missing-process-context',
+  'missing-customer-requirement',
+  'survey-gap',
+  'verification-gap',
+  'sustainment-candidate',
+];
+
+function uniqueReadinessReasons(reasons: ProcessHubReadinessReason[]): ProcessHubReadinessReason[] {
+  return READINESS_REASON_ORDER.filter(reason => reasons.includes(reason));
 }
 
 export function buildProcessHubReview<TInvestigation extends ProcessHubInvestigation>(
@@ -345,6 +490,15 @@ export function buildProcessHubReview<TInvestigation extends ProcessHubInvestiga
     .map(investigation => reviewItem(investigation, ['sustainment']))
     .sort(compareNewest);
 
+  const readinessQueue = rollup.investigations
+    .map(investigation => ({
+      investigation,
+      reasons: readinessReasons(investigation),
+    }))
+    .filter(item => item.reasons.length > 0)
+    .map(item => reviewItem(item.investigation, [], item.reasons))
+    .sort(compareNewest);
+
   return {
     hub: rollup.hub,
     activeInvestigationCount: rollup.activeInvestigationCount,
@@ -355,5 +509,143 @@ export function buildProcessHubReview<TInvestigation extends ProcessHubInvestiga
     overdueActionQueue,
     nextMoveQueue,
     sustainmentQueue,
+    readinessQueue,
+  };
+}
+
+function countValues(counts: Partial<Record<string, number>> | undefined): number {
+  let total = 0;
+  for (const count of Object.values(counts ?? {})) {
+    total += count ?? 0;
+  }
+  return total;
+}
+
+function firstDefined<T>(values: T[]): T | undefined {
+  return values.find(value => value !== undefined && value !== null);
+}
+
+export function buildProcessHubContext<TInvestigation extends ProcessHubInvestigation>(
+  rollup: ProcessHubRollup<TInvestigation>
+): ProcessHubContextContract {
+  const review = buildProcessHubReview(rollup);
+  const investigations = rollup.investigations;
+
+  const processDescription = firstDefined(
+    investigations.map(investigation => investigation.metadata?.processDescription)
+  );
+  const customerRequirement = firstDefined(
+    investigations.map(investigation => investigation.metadata?.customerRequirementSummary)
+  );
+  const processMap = firstDefined(
+    investigations.map(investigation => investigation.metadata?.processMapSummary)
+  );
+
+  let totalActions = 0;
+  let completedActions = 0;
+  let overdueActions = 0;
+  let openQuestions = 0;
+  let answeredQuestions = 0;
+  let ruledOutQuestions = 0;
+  let totalFindings = 0;
+  let confirmedFindings = 0;
+
+  const metrics: ProcessHubMetricContext[] = [];
+  const variationConcentrations: ProcessHubVariationConcentration[] = [];
+  const processDescriptionForContract = processDescription ?? rollup.hub.description;
+  const customerRequirementForContract = customerRequirement ?? processMap?.ctsColumn;
+
+  for (const investigation of investigations) {
+    const metadata = investigation.metadata;
+    totalActions += metadata?.actionCounts?.total ?? 0;
+    completedActions += metadata?.actionCounts?.completed ?? 0;
+    overdueActions += metadata?.actionCounts?.overdue ?? 0;
+
+    openQuestions += metadata?.questionCounts?.open ?? 0;
+    answeredQuestions += metadata?.questionCounts?.answered ?? 0;
+    ruledOutQuestions += metadata?.questionCounts?.['ruled-out'] ?? 0;
+
+    totalFindings += countValues(metadata?.findingCounts);
+    confirmedFindings +=
+      (metadata?.findingCounts?.analyzed ?? 0) +
+      (metadata?.findingCounts?.improving ?? 0) +
+      (metadata?.findingCounts?.resolved ?? 0);
+
+    const signal = metadata?.reviewSignal;
+    if (signal?.outcome) {
+      metrics.push({
+        name: signal.outcome,
+        sourceInvestigationId: investigation.id,
+        rowCount: signal.rowCount,
+        latestTimeValue: signal.latestTimeValue,
+        cpk: signal.capability?.cpk,
+        cpkTarget: signal.capability?.cpkTarget,
+      });
+    }
+
+    if (signal?.topFocus) {
+      variationConcentrations.push({
+        factor: signal.topFocus.factor,
+        value: signal.topFocus.value,
+        variationPct: signal.topFocus.variationPct,
+        sourceInvestigationId: investigation.id,
+      });
+    }
+  }
+
+  return {
+    schemaVersion: 1,
+    hub: {
+      id: rollup.hub.id,
+      name: rollup.hub.name,
+      description: rollup.hub.description,
+      processOwner: rollup.hub.processOwner,
+    },
+    process: {
+      description: processDescriptionForContract,
+      customerRequirement,
+      map: processMap,
+    },
+    investigations: investigations.map(investigation => ({
+      id: investigation.id,
+      name: investigation.name,
+      modified: investigation.modified,
+      status: investigation.metadata?.investigationStatus ?? 'scouting',
+      depth: investigation.metadata?.investigationDepth,
+      currentUnderstandingSummary: investigation.metadata?.currentUnderstandingSummary,
+      problemConditionSummary: investigation.metadata?.problemConditionSummary,
+      nextMove: investigation.metadata?.nextMove,
+    })),
+    metrics,
+    variationConcentrations,
+    questions: {
+      open: openQuestions,
+      answered: answeredQuestions,
+      ruledOut: ruledOutQuestions,
+      evidenceGaps: openQuestions,
+    },
+    findings: {
+      total: totalFindings,
+      confirmed: confirmedFindings,
+    },
+    actions: {
+      total: totalActions,
+      completed: completedActions,
+      overdue: overdueActions,
+    },
+    verification: {
+      waiting: review.verificationQueue.length,
+    },
+    sustainment: {
+      candidates: review.sustainmentQueue.length,
+    },
+    readinessReasons: uniqueReadinessReasons(
+      review.readinessQueue
+        .flatMap(item => item.readinessReasons)
+        .filter(reason => reason !== 'missing-process-context' || !processDescriptionForContract)
+        .filter(
+          reason => reason !== 'missing-customer-requirement' || !customerRequirementForContract
+        )
+    ),
   };
 }

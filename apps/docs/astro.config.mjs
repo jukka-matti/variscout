@@ -6,8 +6,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'VariScout Docs',
-      description:
-        'Lightweight, offline-first variation analysis for quality professionals',
+      description: 'Lightweight, offline-first variation analysis for quality professionals',
       defaultLocale: 'en',
       social: [
         {
@@ -703,9 +702,7 @@ export default defineConfig({
                 {
                   label: 'PWA',
                   collapsed: true,
-                  items: [
-                    { label: 'Overview', slug: '08-products/pwa' },
-                  ],
+                  items: [{ label: 'Overview', slug: '08-products/pwa' }],
                 },
                 {
                   label: 'Azure',
@@ -837,10 +834,6 @@ export default defineConfig({
               slug: '07-decisions/adr-020-investigation-workflow',
             },
             {
-              label: 'ADR-021 Security Evaluation',
-              slug: '07-decisions/adr-021-security-evaluation',
-            },
-            {
               label: 'ADR-023 Data Lifecycle',
               slug: '07-decisions/adr-023-data-lifecycle',
             },
@@ -855,10 +848,6 @@ export default defineConfig({
             {
               label: 'ADR-029 AI Action Tools',
               slug: '07-decisions/adr-029-ai-action-tools',
-            },
-            {
-              label: 'ADR-030 File Picker',
-              slug: '07-decisions/adr-030-unified-file-picker',
             },
             {
               label: 'ADR-031 Report Export',
@@ -909,10 +898,6 @@ export default defineConfig({
               slug: '07-decisions/adr-042-project-dashboard',
             },
             {
-              label: 'ADR-043 Teams Entry',
-              slug: '07-decisions/adr-043-teams-entry-experience',
-            },
-            {
               label: 'ADR-044 Architectural Review',
               slug: '07-decisions/adr-044-architectural-review',
             },
@@ -957,6 +942,14 @@ export default defineConfig({
               slug: '07-decisions/adr-054-mode-aware-question-strategy',
             },
             {
+              label: 'ADR-059 Web-First Architecture',
+              slug: '07-decisions/adr-059-web-first-deployment-architecture',
+            },
+            {
+              label: 'ADR-072 Process Hub Storage',
+              slug: '07-decisions/adr-072-process-hub-storage-and-coscout-context',
+            },
+            {
               label: 'Product Audit Feb 2026',
               slug: '07-decisions/audit-2026-02-state-of-product',
             },
@@ -966,9 +959,7 @@ export default defineConfig({
         // ── Tutorials ──
         {
           label: 'Tutorials',
-          items: [
-            { label: 'Overview', slug: '09-tutorials' },
-          ],
+          items: [{ label: 'Overview', slug: '09-tutorials' }],
         },
 
         // ── External Links ──

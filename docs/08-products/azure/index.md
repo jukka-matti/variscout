@@ -7,7 +7,7 @@ status: stable
 
 # Azure App (Primary Product)
 
-VariScout for Microsoft 365 enterprises - the only paid product, distributed via Azure Marketplace as a Managed Application.
+VariScout for Microsoft 365 enterprises - the paid product line, distributed via Azure Marketplace as a Managed Application.
 
 ---
 
@@ -15,12 +15,12 @@ VariScout for Microsoft 365 enterprises - the only paid product, distributed via
 
 The Azure App is the **only paid VariScout product**, available in two plans per [ADR-033](../../07-decisions/adr-033-pricing-simplification.md):
 
-- **Standard (€79/month)**: Full analysis features with CoScout AI, local file storage, EasyAuth SSO
-- **Team (€199/month)**: Everything in Standard + OneDrive/SharePoint sync, Teams integration, channel storage, photo capture, Knowledge Base (SharePoint search), Knowledge Catalyst (organizational learning)
+- **Standard (€79/month)**: Full analysis features with CoScout AI, IndexedDB persistence, EasyAuth SSO
+- **Team (€199/month)**: Everything in Standard + customer-tenant Blob Storage sync, shared Process Hubs, Knowledge Base, and organizational learning
 
 All plans include all chart types, Performance Mode, and customer-controlled data (stays in their Azure tenant).
 
-**No backend required** - deploys entirely to the customer's Azure tenant.
+VariScout processing runs in the browser and deploys entirely to the customer's Azure tenant.
 
 ---
 
@@ -28,34 +28,32 @@ All plans include all chart types, Performance Mode, and customer-controlled dat
 
 VariScout Azure App is available on **Azure Marketplace** as a Managed Application:
 
-| Aspect           | Value                                                                                         |
-| ---------------- | --------------------------------------------------------------------------------------------- |
-| Offer type       | Managed Application                                                                           |
-| Price            | €79/month (Standard), €199/month (Team)                                                       |
-| Plans            | Standard (full analysis + AI), Team (+ OneDrive/SharePoint, Teams, Knowledge Base & Catalyst) |
-| Billing          | Monthly (Microsoft, 3% fee)                                                                   |
-| Publisher access | Disabled (zero access to customer resources)                                                  |
-| Customer access  | Full control                                                                                  |
+| Aspect           | Value                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------- |
+| Offer type       | Managed Application                                                                               |
+| Price            | €79/month (Standard), €199/month (Team)                                                           |
+| Plans            | Standard (full analysis + AI), Team (+ Blob Storage sync, shared hubs, Knowledge Base & Catalyst) |
+| Billing          | Monthly (Microsoft, 3% fee)                                                                       |
+| Publisher access | Disabled (zero access to customer resources)                                                      |
+| Customer access  | Full control                                                                                      |
 
 All plans include:
 
 - All chart types and analysis features
 - Performance Mode (multi-channel Cpk analysis)
 - Microsoft Entra ID SSO (EasyAuth)
-- Offline support (cached)
+- Local-cache capable browser experience
 - Data stays in customer's Azure tenant
 
 Team plan adds:
 
-- Teams SDK integration (channel tabs, SSO)
-- OneDrive/SharePoint analysis sync
-- Channel storage for shared projects
-- Photo capture with EXIF stripping (Teams SDK native camera + HTML5 fallback)
-- Automatic Teams Adaptive Cards posted to the channel when findings reach 'analyzed' or 'resolved' status (with @mentions, Cpk deltas, and deep links)
-- Knowledge Base for SharePoint team file search (Azure AI Search)
+- Blob Storage analysis sync in the customer's tenant
+- Shared Process Hub and investigation persistence
+- Photo evidence with EXIF stripping
+- Knowledge Base over customer-owned documents and investigation artifacts
 - Knowledge Catalyst for organizational learning from resolved findings
 - AI-enhanced CoScout assistant with methodology grounding
-- Report publishing to SharePoint for organizational learning
+- Process Hub context that future CoScout retrieval can read without becoming a separate memory layer
 
 **Billing**: Handled by Microsoft (3% fee). Supports enterprise procurement with purchase orders and invoicing.
 
@@ -75,13 +73,13 @@ Team plan adds:
 │  │                                                           │  │
 │  │   ┌─────────────────────────────────────────────────────┐ │  │
 │  │   │              VARISCOUT AZURE APP                    │ │  │
-│  │   │   React SPA + EasyAuth + OneDrive (Team plan)      │ │  │
+│  │   │   React SPA + EasyAuth + Blob Storage (Team)       │ │  │
 │  │   └─────────────────────────────────────────────────────┘ │  │
 │  │                                                           │  │
 │  │   ┌─────────────────────────────────────────────────────┐ │  │
 │  │   │              EASYAUTH (authsettingsV2)              │ │  │
 │  │   │   Platform-level Azure AD authentication            │ │  │
-│  │   │   Token store for Graph API access                  │ │  │
+│  │   │   Platform-level session handling                  │ │  │
 │  │   └─────────────────────────────────────────────────────┘ │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                              │                                   │
@@ -93,8 +91,8 @@ Team plan adds:
 │                              │                                   │
 │                              ▼                                   │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │                  ONEDRIVE (Team plan only)                 │  │
-│  │              (Analysis sync via Graph API)                │  │
+│  │                  BLOB STORAGE (Team plan only)             │  │
+│  │          (Shared projects, hubs, and artifacts)           │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
@@ -126,7 +124,7 @@ Unlike traditional SaaS, VariScout Azure App:
 
 - Deploys entirely to customer's Azure tenant
 - Processes all data in-browser
-- Stores analyses locally (Standard) or in customer's OneDrive (Team)
+- Stores analyses locally (Standard) or in customer-tenant Blob Storage with local cache (Team)
 - Makes zero calls to external servers
 
 This architecture ensures:
@@ -160,23 +158,23 @@ const plan = import.meta.env.VARISCOUT_PLAN; // 'standard' or 'team'
 
 ## Features
 
-| Feature          | Plan | Description                                                      |
-| ---------------- | ---- | ---------------------------------------------------------------- |
-| SSO              | Both | Microsoft Entra ID via EasyAuth                                  |
-| Cloud Sync       | Team | Analyses saved to OneDrive                                       |
-| Sharing          | Team | Share analyses with team members via OneDrive/SharePoint         |
-| Offline          | Both | Cached locally; Team plan syncs when online                      |
-| All Chart Types  | Both | I-Chart, Boxplot, Pareto, Capability, etc.                       |
-| Performance Mode | Both | Multi-channel Cpk analysis                                       |
-| Presentation     | Both | Full-screen chart overview + focused single-chart navigation     |
-| Report View      | Both | Dynamic story-driven report with copy-as-slide and Teams sharing |
-| Drill-Down       | Both | Interactive filter navigation                                    |
+| Feature          | Plan | Description                                                          |
+| ---------------- | ---- | -------------------------------------------------------------------- |
+| SSO              | Both | Microsoft Entra ID via EasyAuth                                      |
+| Cloud Sync       | Team | Analyses, hubs, and artifacts synced to customer-tenant Blob Storage |
+| Sharing          | Team | Shared Process Hubs and investigations via Blob Storage              |
+| Local cache      | Both | IndexedDB persistence/cache; Team plan syncs when online             |
+| All Chart Types  | Both | I-Chart, Boxplot, Pareto, Capability, etc.                           |
+| Performance Mode | Both | Multi-channel Cpk analysis                                           |
+| Presentation     | Both | Full-screen chart overview + focused single-chart navigation         |
+| Report View      | Both | Dynamic story-driven report with copy-as-slide and Teams sharing     |
+| Drill-Down       | Both | Interactive filter navigation                                        |
 
 ---
 
-## Teams Integration
+## Process Hub Context
 
-The Team plan includes Microsoft Teams SDK integration, enabling VariScout to run as a Teams channel tab with silent SSO via the On-Behalf-Of (OBO) flow. Channel tabs store projects in the channel's SharePoint document library, and users can capture photos directly from the shop floor with automatic EXIF/GPS stripping. See [ADR-016: Teams Integration](../../archive/adrs/adr-016-teams-integration.md) for the full technical design.
+The Team plan uses Process Hub as the shared operating context for recurring process-owner cadence and team improvement. Hub context is deterministic and customer-owned: investigations, Survey readiness, findings, actions, verification, sustainment decisions, and Blob-backed artifacts form the durable process memory. CoScout can later read this context, but it does not own a separate hidden memory layer. See [ADR-072](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md).
 
 ---
 
@@ -218,13 +216,14 @@ See [Deployment Guide](../../05-technical/implementation/deployment.md) for pipe
 
 All data stays in the customer's tenant:
 
-| Data Type      | Standard                     | Team                                      |
-| -------------- | ---------------------------- | ----------------------------------------- |
-| App hosting    | Customer's Azure App Service | Customer's Azure App Service              |
-| Analyses       | Local files (browser)        | OneDrive (personal) or channel SharePoint |
-| Photos         | N/A                          | Channel SharePoint (`Photos/` folder)     |
-| Settings       | Browser localStorage         | Browser localStorage                      |
-| Authentication | Customer's Entra ID          | Customer's Entra ID (+ Teams SSO)         |
+| Data Type      | Standard                     | Team                           |
+| -------------- | ---------------------------- | ------------------------------ |
+| App hosting    | Customer's Azure App Service | Customer's Azure App Service   |
+| Analyses       | IndexedDB                    | Blob Storage + IndexedDB cache |
+| Process Hubs   | IndexedDB                    | Blob Storage + IndexedDB cache |
+| Photos         | N/A                          | Blob Storage artifacts         |
+| Settings       | Browser localStorage         | Browser localStorage           |
+| Authentication | Customer's Entra ID          | Customer's Entra ID            |
 
 **No data sent to VariScout servers.**
 
@@ -250,12 +249,12 @@ The Azure app includes a development-only tier switching component at `apps/azur
 - [Pricing](pricing-tiers.md)
 - [ARM Template](arm-template.md)
 - [Authentication (EasyAuth)](authentication.md)
-- [OneDrive Sync](blob-storage-sync.md)
+- [Blob Storage Sync](blob-storage-sync.md)
 - [Storage](storage.md) — IndexedDB schema, sync queue, persistence model
 - [Submission Checklist](submission-checklist.md) — Marketplace submission preparation
 - [Certification Guide](certification-guide.md) — Azure Marketplace certification preparation
 - [AI Safety Report](ai-safety-report.md) — CoScout AI safety compliance template
 - [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md)
-- [ADR-016: Teams Integration](../../archive/adrs/adr-016-teams-integration.md)
+- [ADR-059: Web-First Deployment Architecture](../../07-decisions/adr-059-web-first-deployment-architecture.md)
+- [ADR-072: Process Hub Storage and CoScout Context Boundary](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md)
 - [Marketplace Readiness Report](marketplace-readiness-report.md) — Marketplace submission readiness assessment
-- [ADR-021: Security Evaluation](../../07-decisions/adr-021-security-evaluation.md)
