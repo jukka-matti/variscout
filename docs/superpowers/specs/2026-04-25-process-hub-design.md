@@ -12,6 +12,7 @@ related:
     process-flow,
     improvement-workspace,
     portfolio,
+    agent-review-log,
   ]
 date: 2026-04-25
 ---
@@ -264,6 +265,29 @@ Control has two valid destinations:
 - **Control operationalized elsewhere** - live alerts, escalation, ticketing,
   MES/QMS/SCADA workflows, or Power BI/enterprise dashboards built from the
   learning and control plan knowledge captured in VariScout.
+
+## Agent-Assisted Process Steps
+
+External AI agents can be treated as steps inside a Process Hub when they
+support or gate real work. The agent itself stays in the customer's AI platform;
+VariScout imports review logs as process data and helps the process owner
+improve the agent-assisted workflow.
+
+The first profile is
+[Agent Review Log Profile](2026-04-26-agent-review-log-process-hub-design.md).
+It focuses on safe green throughput:
+
+- increase the share of green pass-through decisions
+- prove green correctness through sampled audits and downstream outcomes
+- reduce yellow/red review burden by improving inputs, policy clarity,
+  prompt/tool configuration, routing, or local work standards
+- keep false-green rate as a visible guardrail
+
+This should not create a separate AI-quality product, live monitoring surface,
+or global ownership hierarchy. In Process Hub terms, it is one investigation
+type within the same Issue / Concern -> Current Understanding -> Problem
+Condition -> Mechanism Branches -> Ideas / Actions -> Verification -> Control
+handoff flow.
 
 ## Relationship To EDA 2.0
 

@@ -16,6 +16,7 @@ related:
     rational-subgroups,
     measurement-trust,
     coscout,
+    agent-review-log,
   ]
 date: 2026-04-25
 ---
@@ -488,6 +489,41 @@ Example:
 2. Yamazumi explains Station 3's wait and waste composition.
 3. Capability checks whether the same branch affects quality Y.
 4. The Investigation Wall ties all of it into one Mechanism Branch.
+
+## Agent Review Logs As Process Data
+
+Agent-review logs are a different kind of process data, not a separate
+investigation workflow. The
+[Agent Review Log Profile](2026-04-26-agent-review-log-process-hub-design.md)
+should feed the same QDE 2.0 loop:
+
+```text
+Issue / Concern
+-> Current Understanding
+-> Problem Condition
+-> Mechanism Branches
+-> Next Move
+-> Verification
+```
+
+The agent may live in Azure AI Foundry or another external platform. VariScout
+does not host or monitor it. VariScout investigates why the agent-assisted
+process produces too few safe green pass-through decisions, too many yellow/red
+reviews, or unsafe greens.
+
+For this profile:
+
+- the Problem Condition can be low safe green throughput, high review burden,
+  or an unacceptable false-green rate
+- clues can come from sampled green audits, downstream outcomes, confidence
+  bands, input-completeness fields, case types, or agent/policy/tool versions
+- mechanism branches explain process conditions, not model internals alone
+- next moves can target input quality, policy clarity, prompt/tool
+  configuration, routing rules, local work standards, or audit design
+
+The first implementation should remain a data profile inside existing Standard
+analysis. Do not add an `agent-review` analysis mode unless the profile proves
+that existing instruments cannot answer the process-owner questions.
 
 ## Cp/Cpk By Process Moment
 
