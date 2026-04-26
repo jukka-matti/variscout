@@ -971,3 +971,45 @@ describe('buildProcessHubRollups', () => {
     expect(context.readinessReasons).toEqual(['verification-gap']);
   });
 });
+
+describe('buildProcessHubContext — sustainment', () => {
+  it('exposes due, overdue, and verdict counts (no PII)', () => {
+    const now = new Date('2026-04-26T00:00:00.000Z');
+    const hubs: ProcessHub[] = [
+      { id: 'hub-1', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ];
+    const investigations = [
+      {
+        id: 'inv-1',
+        name: 'A',
+        modified: '2026-04-26T00:00:00.000Z',
+        metadata: makeMetadata({ processHubId: 'hub-1', investigationStatus: 'resolved' }),
+      },
+    ];
+    const sustainmentRecords: SustainmentRecord[] = [
+      {
+        id: 'rec-1',
+        investigationId: 'inv-1',
+        hubId: 'hub-1',
+        cadence: 'monthly',
+        nextReviewDue: '2026-04-25T00:00:00.000Z',
+        latestVerdict: 'holding',
+        createdAt: '2026-03-25T00:00:00.000Z',
+        updatedAt: '2026-04-25T00:00:00.000Z',
+      },
+    ];
+
+    const [rollup] = buildProcessHubRollups(hubs, investigations, {
+      sustainmentRecords,
+      controlHandoffs: [],
+    });
+    const context = buildProcessHubContext(rollup, now);
+
+    expect(context.sustainment.due).toBe(1);
+    expect(context.sustainment.overdue).toBe(1);
+    expect(context.sustainment.verdicts).toEqual({ holding: 1 });
+    // PII boundary: no reviewer field, no observation field, no participant strings
+    expect(JSON.stringify(context)).not.toContain('reviewer');
+    expect(JSON.stringify(context)).not.toContain('observation');
+  });
+});

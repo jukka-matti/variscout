@@ -5,11 +5,14 @@ import { buildReviewItem } from './processHubReview';
 import type { HubReviewSignal } from './processReviewSignal';
 import type { SurveyStatus } from './survey/types';
 import {
+  isSustainmentDue,
+  isSustainmentOverdue,
   selectControlHandoffCandidates,
   selectSustainmentReviews,
   type ControlHandoff,
   type SustainmentMetadataProjection,
   type SustainmentRecord,
+  type SustainmentVerdict,
 } from './sustainment';
 
 export { buildReviewItem } from './processHubReview';
@@ -264,6 +267,9 @@ export interface ProcessHubContextContract {
   };
   sustainment: {
     candidates: number;
+    due: number;
+    overdue: number;
+    verdicts: Partial<Record<SustainmentVerdict, number>>;
   };
   readinessReasons: ProcessHubReadinessReason[];
 }
@@ -699,8 +705,26 @@ function firstDefined<T>(values: T[]): T | undefined {
   return values.find(value => value !== undefined && value !== null);
 }
 
+function buildSustainmentSummary(
+  records: SustainmentRecord[],
+  now: Date,
+  candidates: number
+): ProcessHubContextContract['sustainment'] {
+  const liveRecords = records.filter(record => !record.tombstoneAt);
+  const due = liveRecords.filter(record => isSustainmentDue(record, now)).length;
+  const overdue = liveRecords.filter(record => isSustainmentOverdue(record, now, 0)).length;
+  const verdicts: Partial<Record<SustainmentVerdict, number>> = {};
+  for (const record of liveRecords) {
+    if (record.latestVerdict) {
+      verdicts[record.latestVerdict] = (verdicts[record.latestVerdict] ?? 0) + 1;
+    }
+  }
+  return { candidates, due, overdue, verdicts };
+}
+
 export function buildProcessHubContext<TInvestigation extends ProcessHubInvestigation>(
-  rollup: ProcessHubRollup<TInvestigation>
+  rollup: ProcessHubRollup<TInvestigation>,
+  now: Date = new Date()
 ): ProcessHubContextContract {
   const review = buildProcessHubReview(rollup);
   const investigations = rollup.investigations;
@@ -812,9 +836,11 @@ export function buildProcessHubContext<TInvestigation extends ProcessHubInvestig
     verification: {
       waiting: review.verificationQueue.length,
     },
-    sustainment: {
-      candidates: review.sustainmentQueue.length,
-    },
+    sustainment: buildSustainmentSummary(
+      rollup.sustainmentRecords,
+      now,
+      review.sustainmentQueue.length
+    ),
     readinessReasons: uniqueReadinessReasons(
       review.readinessQueue
         .flatMap(item => item.readinessReasons)
