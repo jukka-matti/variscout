@@ -9,6 +9,7 @@ import {
   normalizeProcessHubId,
 } from '../processHub';
 import type { ProcessHub, ProjectMetadata } from '../index';
+import type { EvidenceSnapshot } from '../evidenceSources';
 
 function makeMetadata(overrides: Partial<ProjectMetadata> = {}): ProjectMetadata {
   return {
@@ -465,6 +466,136 @@ describe('buildProcessHubCadence', () => {
     expect(cadence.verification.items.map(item => item.investigation.id)).toEqual(['verify-1']);
     expect(cadence.actions.items.map(item => item.investigation.id)).toEqual(['actions-1']);
     expect(cadence.sustainment.items.map(item => item.investigation.id)).toEqual(['sustain-1']);
+  });
+
+  it('orders evidence signals by severity (red > amber > green > neutral) over capturedAt', () => {
+    const hubs: ProcessHub[] = [
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ];
+    const evidenceSnapshots: EvidenceSnapshot[] = [
+      {
+        id: 'snap-green',
+        hubId: 'line-4',
+        sourceId: 'src-1',
+        capturedAt: '2026-04-26T10:00:00.000Z',
+        rowCount: 100,
+        latestSignals: [
+          {
+            id: 'sig-green',
+            label: 'Green today',
+            value: 0,
+            severity: 'green',
+            capturedAt: '2026-04-26T10:00:00.000Z',
+          },
+        ],
+      },
+      {
+        id: 'snap-red',
+        hubId: 'line-4',
+        sourceId: 'src-1',
+        capturedAt: '2026-04-25T10:00:00.000Z',
+        rowCount: 100,
+        latestSignals: [
+          {
+            id: 'sig-red',
+            label: 'Red yesterday',
+            value: 12,
+            severity: 'red',
+            capturedAt: '2026-04-25T10:00:00.000Z',
+          },
+        ],
+      },
+      {
+        id: 'snap-amber',
+        hubId: 'line-4',
+        sourceId: 'src-1',
+        capturedAt: '2026-04-24T10:00:00.000Z',
+        rowCount: 100,
+        latestSignals: [
+          {
+            id: 'sig-amber',
+            label: 'Amber two days ago',
+            value: 6,
+            severity: 'amber',
+            capturedAt: '2026-04-24T10:00:00.000Z',
+          },
+        ],
+      },
+      {
+        id: 'snap-neutral',
+        hubId: 'line-4',
+        sourceId: 'src-1',
+        capturedAt: '2026-04-26T11:00:00.000Z',
+        rowCount: 100,
+        latestSignals: [
+          {
+            id: 'sig-neutral',
+            label: 'Neutral newest',
+            value: 0,
+            severity: 'neutral',
+            capturedAt: '2026-04-26T11:00:00.000Z',
+          },
+        ],
+      },
+    ];
+
+    const [rollup] = buildProcessHubRollups(hubs, [], { evidenceSnapshots });
+    const cadence = buildProcessHubCadence(rollup);
+
+    expect(cadence.latestEvidenceSignals.items.map(s => s.id)).toEqual([
+      'sig-red',
+      'sig-amber',
+      'sig-green',
+      'sig-neutral',
+    ]);
+  });
+
+  it('breaks severity ties with capturedAt newest first', () => {
+    const hubs: ProcessHub[] = [
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ];
+    const evidenceSnapshots: EvidenceSnapshot[] = [
+      {
+        id: 'snap-red-old',
+        hubId: 'line-4',
+        sourceId: 'src-1',
+        capturedAt: '2026-04-24T10:00:00.000Z',
+        rowCount: 100,
+        latestSignals: [
+          {
+            id: 'sig-red-old',
+            label: 'Red older',
+            value: 8,
+            severity: 'red',
+            capturedAt: '2026-04-24T10:00:00.000Z',
+          },
+        ],
+      },
+      {
+        id: 'snap-red-new',
+        hubId: 'line-4',
+        sourceId: 'src-1',
+        capturedAt: '2026-04-26T10:00:00.000Z',
+        rowCount: 100,
+        latestSignals: [
+          {
+            id: 'sig-red-new',
+            label: 'Red newer',
+            value: 12,
+            severity: 'red',
+            capturedAt: '2026-04-26T10:00:00.000Z',
+          },
+        ],
+      },
+    ];
+
+    const [rollup] = buildProcessHubRollups(hubs, [], { evidenceSnapshots });
+    const cadence = buildProcessHubCadence(rollup);
+
+    expect(cadence.latestEvidenceSignals.items.map(s => s.id)).toEqual([
+      'sig-red-new',
+      'sig-red-old',
+    ]);
   });
 });
 

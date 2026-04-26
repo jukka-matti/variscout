@@ -317,7 +317,9 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <SectionHeader title="Daily huddle" icon={<Radar size={16} />} />
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-content-muted">
+            Daily huddle
+          </p>
           <SectionHeader title="Latest Signals" icon={<Radar size={16} />} />
           {cadence.latestSignals.totalCount === 0 ? (
             <p className="rounded-md border border-dashed border-edge px-3 py-3 text-sm text-content-secondary">
@@ -431,7 +433,9 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
         </div>
 
         <div>
-          <SectionHeader title="Weekly process review" icon={<Layers3 size={16} />} />
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-content-muted">
+            Weekly process review
+          </p>
           <SectionHeader title="Active Work" icon={<Layers3 size={16} />} />
           {hasActiveWork ? (
             <div className="grid gap-2">

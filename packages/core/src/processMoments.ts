@@ -2,6 +2,7 @@ import * as d3 from 'd3-array';
 import type { DataRow, SpecLimits } from './types';
 import { toNumericValue } from './types';
 import { calculateMovingRangeSigma } from './stats/basic';
+import { safeDivide } from './stats/safeMath';
 
 export type ProcessMomentBoundary =
   | { type: 'column-value'; column: string; value: string | number | boolean }
@@ -148,12 +149,16 @@ export function computeProcessMoments(
     let cp: number | undefined;
     let cpk: number | undefined;
     if (usl !== undefined && lsl !== undefined) {
-      cp = (usl - lsl) / (6 * sigmaWithin);
-      cpk = Math.min((usl - mean) / (3 * sigmaWithin), (mean - lsl) / (3 * sigmaWithin));
+      cp = safeDivide(usl - lsl, 6 * sigmaWithin);
+      const cpkUpper = safeDivide(usl - mean, 3 * sigmaWithin);
+      const cpkLower = safeDivide(mean - lsl, 3 * sigmaWithin);
+      if (cpkUpper !== undefined && cpkLower !== undefined) {
+        cpk = Math.min(cpkUpper, cpkLower);
+      }
     } else if (usl !== undefined) {
-      cpk = (usl - mean) / (3 * sigmaWithin);
+      cpk = safeDivide(usl - mean, 3 * sigmaWithin);
     } else if (lsl !== undefined) {
-      cpk = (mean - lsl) / (3 * sigmaWithin);
+      cpk = safeDivide(mean - lsl, 3 * sigmaWithin);
     }
 
     if (cpk === undefined || !Number.isFinite(cpk)) {

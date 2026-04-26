@@ -332,4 +332,48 @@ describe('Dashboard Process Hub home', () => {
     expect(within(panel).getByText('No active review items yet')).toBeInTheDocument();
     expect(within(panel).getByText('No requirement signal yet')).toBeInTheDocument();
   });
+
+  it('defers evidence loading until a hub is selected', async () => {
+    mockListProjects.mockResolvedValue([]);
+    mockListProcessHubs.mockResolvedValue([
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-5', name: 'Line 5', createdAt: '2026-04-25T00:00:00.000Z' },
+      { id: 'line-6', name: 'Line 6', createdAt: '2026-04-25T00:00:00.000Z' },
+    ]);
+    mockListEvidenceSources.mockClear();
+    mockListEvidenceSnapshots.mockClear();
+
+    render(<Dashboard onOpenProject={vi.fn()} />);
+
+    await screen.findByText('Line 4');
+    expect(mockListEvidenceSources).not.toHaveBeenCalled();
+    expect(mockListEvidenceSnapshots).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByLabelText('Open Line 5'));
+
+    await waitFor(() => expect(mockListEvidenceSources).toHaveBeenCalled());
+    const calledHubIds = new Set(mockListEvidenceSources.mock.calls.map(call => call[0]));
+    expect(calledHubIds).toEqual(new Set(['line-5']));
+  });
+
+  it('renders cadence column labels as eyebrow text, not as duplicate section headings', async () => {
+    mockListProjects.mockResolvedValue([]);
+    mockListProcessHubs.mockResolvedValue([
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ]);
+
+    render(<Dashboard onOpenProject={vi.fn()} />);
+
+    await screen.findByText('Line 4');
+    fireEvent.click(screen.getByLabelText('Open Line 4'));
+
+    const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
+    const headings = within(panel)
+      .getAllByRole('heading')
+      .map(h => h.textContent?.trim());
+    expect(headings).not.toContain('Daily huddle');
+    expect(headings).not.toContain('Weekly process review');
+    expect(headings).toContain('Latest Signals');
+    expect(headings).toContain('Active Work');
+  });
 });

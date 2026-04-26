@@ -584,10 +584,21 @@ function cadenceQueue<TInvestigation extends ProcessHubInvestigation>(
   };
 }
 
+const EVIDENCE_SEVERITY_RANK: Record<EvidenceLatestSignal['severity'], number> = {
+  red: 0,
+  amber: 1,
+  green: 2,
+  neutral: 3,
+};
+
 function evidenceSignals(rollup: ProcessHubRollup): EvidenceLatestSignal[] {
   return rollup.evidenceSnapshots
     .flatMap(snapshot => snapshot.latestSignals ?? [])
-    .sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
+    .sort((a, b) => {
+      const severityDelta = EVIDENCE_SEVERITY_RANK[a.severity] - EVIDENCE_SEVERITY_RANK[b.severity];
+      if (severityDelta !== 0) return severityDelta;
+      return new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime();
+    });
 }
 
 function evidenceSignalQueue(signals: EvidenceLatestSignal[]) {

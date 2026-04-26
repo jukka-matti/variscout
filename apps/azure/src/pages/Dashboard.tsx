@@ -95,19 +95,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const [projectList, hubList] = await Promise.all([listProjects(), listProcessHubs()]);
       setProjects(projectList);
       setProcessHubs(hubList);
-      const sourceLists = await Promise.all(hubList.map(hub => listEvidenceSources(hub.id)));
-      const snapshotLists = await Promise.all(
-        sourceLists
-          .flat()
-          .map(source => listEvidenceSnapshots(source.hubId, source.id).catch(() => []))
-      );
-      setEvidenceSnapshots(snapshotLists.flat());
     } catch (error) {
       console.error('Failed to load projects:', error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const loadEvidenceForHub = useCallback(
+    async (hubId: string): Promise<void> => {
+      try {
+        const sources = await listEvidenceSources(hubId);
+        const snapshotLists = await Promise.all(
+          sources.map(source => listEvidenceSnapshots(hubId, source.id).catch(() => []))
+        );
+        setEvidenceSnapshots(snapshotLists.flat());
+      } catch (error) {
+        console.error('Failed to load evidence for hub:', error);
+        setEvidenceSnapshots([]);
+      }
+    },
+    [listEvidenceSources, listEvidenceSnapshots]
+  );
+
+  useEffect(() => {
+    if (!selectedHubId) {
+      setEvidenceSnapshots([]);
+      return;
+    }
+    loadEvidenceForHub(selectedHubId);
+  }, [selectedHubId, loadEvidenceForHub]);
 
   // Sort projects: overdue tasks first, then assigned tasks, then by modified date
   const sortedProjects = useMemo(() => {
@@ -373,7 +390,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               />
               <ProcessHubEvidencePanel
                 hubId={selectedHubRollup.hub.id}
-                onEvidenceChanged={loadProjects}
+                onEvidenceChanged={() => loadEvidenceForHub(selectedHubRollup.hub.id)}
               />
             </>
           )}
