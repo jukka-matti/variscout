@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_PROCESS_HUB,
   DEFAULT_PROCESS_HUB_ID,
+  buildProcessHubCadence,
   buildProcessHubContext,
   buildProcessHubReview,
   buildProcessHubRollups,
@@ -326,6 +327,144 @@ describe('buildProcessHubReview', () => {
     ]);
     expect(review.readinessQueue[1].readinessReasons).toEqual(['verification-gap']);
     expect(review.readinessQueue[2].readinessReasons).toEqual(['sustainment-candidate']);
+  });
+});
+
+describe('buildProcessHubCadence', () => {
+  it('builds snapshot counts and truncated cadence queues from a hub rollup', () => {
+    const hubs: ProcessHub[] = [
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ];
+    const investigations = [
+      {
+        id: 'signal-1',
+        name: 'Newest change signal',
+        modified: '2026-04-26T10:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationStatus: 'investigating',
+          processDescription: 'Bottle filling line.',
+          customerRequirementSummary: 'Fill weight inside spec.',
+          reviewSignal: {
+            rowCount: 90,
+            outcome: 'Weight',
+            computedAt: '2026-04-26T10:00:00.000Z',
+            topFocus: { factor: 'Head', value: '5', variationPct: 44 },
+            capability: { cpk: 0.9, cpkTarget: 1.33, outOfSpecPercentage: 2 },
+            changeSignals: {
+              total: 3,
+              outOfControlCount: 1,
+              nelsonRule2Count: 1,
+              nelsonRule3Count: 1,
+            },
+          },
+        }),
+      },
+      {
+        id: 'ready-1',
+        name: 'Missing process context 1',
+        modified: '2026-04-26T09:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationStatus: 'framing',
+        }),
+      },
+      {
+        id: 'ready-2',
+        name: 'Missing process context 2',
+        modified: '2026-04-26T08:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationStatus: 'framing',
+        }),
+      },
+      {
+        id: 'ready-3',
+        name: 'Missing process context 3',
+        modified: '2026-04-26T07:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationStatus: 'framing',
+        }),
+      },
+      {
+        id: 'ready-4',
+        name: 'Missing process context 4',
+        modified: '2026-04-26T06:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationStatus: 'framing',
+        }),
+      },
+      {
+        id: 'ready-5',
+        name: 'Missing process context 5',
+        modified: '2026-04-26T05:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationStatus: 'framing',
+        }),
+      },
+      {
+        id: 'verify-1',
+        name: 'Waiting verification',
+        modified: '2026-04-26T04:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationStatus: 'verifying',
+          processDescription: 'Bottle filling line.',
+          customerRequirementSummary: 'Fill weight inside spec.',
+        }),
+      },
+      {
+        id: 'actions-1',
+        name: 'Overdue action',
+        modified: '2026-04-26T03:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationStatus: 'improving',
+          processDescription: 'Bottle filling line.',
+          customerRequirementSummary: 'Fill weight inside spec.',
+          actionCounts: { total: 2, completed: 0, overdue: 2 },
+        }),
+      },
+      {
+        id: 'sustain-1',
+        name: 'Sustainment candidate',
+        modified: '2026-04-26T02:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          investigationStatus: 'resolved',
+          processDescription: 'Bottle filling line.',
+          customerRequirementSummary: 'Fill weight inside spec.',
+        }),
+      },
+    ];
+    const [rollup] = buildProcessHubRollups(hubs, investigations);
+
+    const cadence = buildProcessHubCadence(rollup);
+
+    expect(cadence.snapshot).toEqual({
+      active: 8,
+      readiness: 7,
+      verification: 1,
+      overdueActions: 2,
+      sustainment: 1,
+      latestSignals: 1,
+      nextMoves: 0,
+    });
+    expect(cadence.readiness.totalCount).toBe(7);
+    expect(cadence.readiness.hiddenCount).toBe(3);
+    expect(cadence.readiness.items.map(item => item.investigation.id)).toEqual([
+      'ready-1',
+      'ready-2',
+      'ready-3',
+      'ready-4',
+    ]);
+    expect(cadence.latestSignals.items.map(item => item.investigation.id)).toEqual(['signal-1']);
+    expect(cadence.verification.items.map(item => item.investigation.id)).toEqual(['verify-1']);
+    expect(cadence.actions.items.map(item => item.investigation.id)).toEqual(['actions-1']);
+    expect(cadence.sustainment.items.map(item => item.investigation.id)).toEqual(['sustain-1']);
   });
 });
 

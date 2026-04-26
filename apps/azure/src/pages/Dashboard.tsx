@@ -94,10 +94,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Sort projects: overdue tasks first, then assigned tasks, then by modified date
   const sortedProjects = useMemo(() => {
-    const filtered = projects.filter(project =>
-      project.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    return filtered.sort((a, b) => {
+    return [...projects].sort((a, b) => {
       // 1. Has overdue tasks first
       const aHasOverdue = a.metadata?.hasOverdueTasks ?? false;
       const bHasOverdue = b.metadata?.hasOverdueTasks ?? false;
@@ -111,7 +108,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       // 3. Recently modified
       return new Date(b.modified).getTime() - new Date(a.modified).getTime();
     });
-  }, [projects, searchQuery]);
+  }, [projects]);
 
   const hubRollups = useMemo(() => {
     return buildProcessHubRollups(
@@ -126,11 +123,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, [processHubs, sortedProjects]);
 
   const visibleProjects = useMemo(() => {
-    if (!selectedHubId) return sortedProjects;
-    return sortedProjects.filter(
-      project => normalizeProcessHubId(project.metadata?.processHubId) === selectedHubId
-    );
-  }, [selectedHubId, sortedProjects]);
+    const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+    return sortedProjects.filter(project => {
+      const matchesHub =
+        !selectedHubId || normalizeProcessHubId(project.metadata?.processHubId) === selectedHubId;
+      const matchesSearch =
+        normalizedSearchQuery.length === 0 ||
+        project.name.toLowerCase().includes(normalizedSearchQuery);
+      return matchesHub && matchesSearch;
+    });
+  }, [searchQuery, selectedHubId, sortedProjects]);
 
   const selectedHubRollup = hubRollups.find(rollup => rollup.hub.id === selectedHubId);
   const selectedHub = selectedHubRollup?.hub ?? processHubs.find(hub => hub.id === selectedHubId);

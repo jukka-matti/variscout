@@ -12,7 +12,7 @@ The Project Dashboard is a persistent overview screen shown when a user reopens 
 
 > Azure-only feature. PWA has no project persistence and no dashboard.
 
-> Future direction: Process Hub is planned as the higher-level home above individual project dashboards. The Project Dashboard remains the current shipped single-investigation overview; Process Hub will roll up multiple investigations, actions, verification gaps, and control handoffs for one process or work system. See [Process Hub](../../superpowers/specs/2026-04-25-process-hub-design.md).
+> Process Hub is the higher-level Azure home above individual project dashboards. Selecting a hub opens a cadence review board that rolls up multiple investigations, latest signals, readiness gaps, actions, verification, and sustainment candidates for one process or work system. This is improvement-cadence review, not 24/7 live monitoring. See [Process Hub](../../superpowers/specs/2026-04-25-process-hub-design.md).
 
 ---
 
@@ -204,7 +204,7 @@ Clicking a project card in `OtherProjectsList` navigates to that project's portf
 
 ## Portfolio Integration
 
-The Project Dashboard (Overview tab) is reached via the Portfolio home screen. The Portfolio renders `ProjectCard` components for each saved project, reading lightweight health data from `.meta.json` sidecars without loading full `.vrs` files. Each card shows:
+The Project Dashboard (Overview tab) is reached via the Azure Process Hub home. The home renders Process Hub cards first, then investigation `ProjectCard` components for saved projects, reading lightweight health data from `.meta.json` sidecars without loading full `.vrs` files. Selecting a Process Hub keeps the hub cadence board visible while filtering the investigation list below it. Each investigation card shows:
 
 - Journey phase indicator and finding counts by status
 - Assigned task count and overdue flag

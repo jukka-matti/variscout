@@ -42,6 +42,8 @@ function makeProject(): CloudProject {
       processHubId: 'line-4',
       investigationDepth: 'focused',
       investigationStatus: 'investigating',
+      processDescription: 'Line 4 filling process.',
+      customerRequirementSummary: 'Fill weight must stay inside customer specs.',
       currentUnderstandingSummary: 'Variation is concentrated on night shift.',
       problemConditionSummary: 'Cpk is below target on Heads 5-8.',
       nextMove: 'Inspect nozzle wear.',
@@ -81,6 +83,8 @@ function makeVerificationProject(): CloudProject {
       processHubId: 'line-4',
       investigationDepth: 'quick',
       investigationStatus: 'verifying',
+      processDescription: 'Line 4 filling process.',
+      customerRequirementSummary: 'Fill weight must stay inside customer specs.',
       currentUnderstandingSummary: 'Post-action data is ready for comparison.',
       nextMove: 'Compare post-action Cpk after the next batch.',
     },
@@ -104,17 +108,19 @@ function makeResolvedProject(): CloudProject {
       processHubId: 'line-4',
       investigationDepth: 'chartered',
       investigationStatus: 'resolved',
+      processDescription: 'Line 4 filling process.',
+      customerRequirementSummary: 'Fill weight must stay inside customer specs.',
       currentUnderstandingSummary: 'Nozzle replacement reduced variation.',
       nextMove: 'Review sustainment during the weekly hub cadence.',
     },
   };
 }
 
-function makeReadinessProject(): CloudProject {
+function makeReadinessProject(index = 1): CloudProject {
   return {
-    id: 'line-4-readiness',
-    name: 'Frame missing process context',
-    modified: '2026-04-26T01:00:00.000Z',
+    id: `line-4-readiness-${index}`,
+    name: `Frame missing process context ${index}`,
+    modified: `2026-04-26T0${index}:00:00.000Z`,
     location: 'personal',
     metadata: {
       phase: 'frame',
@@ -201,13 +207,13 @@ describe('Dashboard Process Hub home', () => {
     expect(within(panel).getByText('Machine / B')).toBeInTheDocument();
     expect(within(panel).getAllByText('2 change signals').length).toBeGreaterThan(0);
     expect(within(panel).getAllByText('Cpk 0.82 vs target 1.33').length).toBeGreaterThan(0);
-    expect(within(panel).getByText('Verification')).toBeInTheDocument();
+    expect(within(panel).getAllByText('Verification').length).toBeGreaterThan(0);
     expect(within(panel).getAllByText('Post-action shift check').length).toBeGreaterThan(0);
     expect(within(panel).getByText('1 overdue action')).toBeInTheDocument();
     expect(
       within(panel).getAllByText('Compare post-action Cpk after the next batch.').length
     ).toBeGreaterThan(0);
-    expect(within(panel).getByText('Sustainment')).toBeInTheDocument();
+    expect(within(panel).getAllByText('Sustainment').length).toBeGreaterThan(0);
     expect(within(panel).getAllByText('Nozzle replacement verified').length).toBeGreaterThan(0);
     expect(
       within(panel).getByText('Review sustainment during the weekly hub cadence.')
@@ -229,12 +235,65 @@ describe('Dashboard Process Hub home', () => {
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
     const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
-    expect(within(panel).getByText('Readiness')).toBeInTheDocument();
-    expect(within(panel).getAllByText('Frame missing process context').length).toBeGreaterThan(0);
+    expect(within(panel).getAllByText('Readiness').length).toBeGreaterThan(0);
+    expect(within(panel).getAllByText('Frame missing process context 1').length).toBeGreaterThan(0);
     expect(within(panel).getByText('Complete process context')).toBeInTheDocument();
     expect(within(panel).getByText('Clarify customer requirement')).toBeInTheDocument();
     expect(within(panel).getByText('Survey needs input')).toBeInTheDocument();
     expect(within(panel).getByText('Map one customer-felt outcome.')).toBeInTheDocument();
+  });
+
+  it('renders a cadence review board with snapshot metrics and truncated queues', async () => {
+    mockListProjects.mockResolvedValue([
+      makeProject(),
+      makeVerificationProject(),
+      makeResolvedProject(),
+      makeReadinessProject(1),
+      makeReadinessProject(2),
+      makeReadinessProject(3),
+      makeReadinessProject(4),
+      makeReadinessProject(5),
+    ]);
+    mockListProcessHubs.mockResolvedValue([
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ]);
+
+    render(<Dashboard onOpenProject={vi.fn()} />);
+
+    await screen.findByText('Line 4');
+    fireEvent.click(screen.getByLabelText('Open Line 4'));
+
+    const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
+    expect(within(panel).getByText('Cadence Review Board')).toBeInTheDocument();
+    expect(within(panel).getByText('Decision Queues')).toBeInTheDocument();
+    expect(within(panel).getByTestId('cadence-snapshot-active')).toHaveTextContent('7');
+    expect(within(panel).getByTestId('cadence-snapshot-readiness')).toHaveTextContent('7');
+    expect(within(panel).getByTestId('cadence-snapshot-verification')).toHaveTextContent('1');
+    expect(within(panel).getByTestId('cadence-snapshot-overdue-actions')).toHaveTextContent('1');
+    expect(within(panel).getByTestId('cadence-snapshot-sustainment')).toHaveTextContent('1');
+    expect(within(panel).getByText('+3 more')).toBeInTheDocument();
+  });
+
+  it('keeps process hubs visible when search filters the investigation list', async () => {
+    mockListProjects.mockResolvedValue([makeProject()]);
+    mockListProcessHubs.mockResolvedValue([
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ]);
+
+    render(<Dashboard onOpenProject={vi.fn()} />);
+
+    await screen.findByText('Line 4');
+    fireEvent.click(screen.getByLabelText('Open Line 4'));
+    await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
+
+    fireEvent.change(screen.getByPlaceholderText('Search investigations...'), {
+      target: { value: 'zzzz no matching project' },
+    });
+
+    expect(screen.getByLabelText('Open Line 4')).toBeInTheDocument();
+    const panel = screen.getByRole('region', { name: 'Line 4 Cadence Review' });
+    expect(within(panel).getByTestId('cadence-snapshot-active')).toHaveTextContent('1');
+    expect(screen.queryByTestId('project-card')).not.toBeInTheDocument();
   });
 
   it('shows empty review states for a selected hub without investigations', async () => {

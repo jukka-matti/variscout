@@ -142,6 +142,40 @@ export interface ProcessHubReview<
   readinessQueue: ProcessHubReviewItem<TInvestigation>[];
 }
 
+export interface ProcessHubCadenceSnapshot {
+  active: number;
+  readiness: number;
+  verification: number;
+  overdueActions: number;
+  sustainment: number;
+  latestSignals: number;
+  nextMoves: number;
+}
+
+export interface ProcessHubCadenceQueue<
+  TInvestigation extends ProcessHubInvestigation = ProcessHubInvestigation,
+> {
+  totalCount: number;
+  hiddenCount: number;
+  items: ProcessHubReviewItem<TInvestigation>[];
+}
+
+export interface ProcessHubCadenceSummary<
+  TInvestigation extends ProcessHubInvestigation = ProcessHubInvestigation,
+> {
+  hub: ProcessHub;
+  activeInvestigationCount: number;
+  latestActivity: string | null;
+  snapshot: ProcessHubCadenceSnapshot;
+  latestSignals: ProcessHubCadenceQueue<TInvestigation>;
+  readiness: ProcessHubCadenceQueue<TInvestigation>;
+  verification: ProcessHubCadenceQueue<TInvestigation>;
+  actions: ProcessHubCadenceQueue<TInvestigation>;
+  sustainment: ProcessHubCadenceQueue<TInvestigation>;
+  nextMoves: ProcessHubCadenceQueue<TInvestigation>;
+  activeWork: Record<InvestigationDepth, ProcessHubCadenceQueue<TInvestigation>>;
+}
+
 export interface ProcessHubContextInvestigation {
   id: string;
   name: string;
@@ -215,6 +249,8 @@ const ACTIVE_STATUSES = new Set<InvestigationStatus>([
 ]);
 
 const INVESTIGATION_DEPTHS: InvestigationDepth[] = ['quick', 'focused', 'chartered'];
+
+const CADENCE_QUEUE_LIMIT = 4;
 
 const SUSTAINMENT_STATUSES = new Set<InvestigationStatus>(['resolved', 'controlled']);
 
@@ -510,6 +546,48 @@ export function buildProcessHubReview<TInvestigation extends ProcessHubInvestiga
     nextMoveQueue,
     sustainmentQueue,
     readinessQueue,
+  };
+}
+
+function cadenceQueue<TInvestigation extends ProcessHubInvestigation>(
+  items: ProcessHubReviewItem<TInvestigation>[]
+): ProcessHubCadenceQueue<TInvestigation> {
+  return {
+    totalCount: items.length,
+    hiddenCount: Math.max(0, items.length - CADENCE_QUEUE_LIMIT),
+    items: items.slice(0, CADENCE_QUEUE_LIMIT),
+  };
+}
+
+export function buildProcessHubCadence<TInvestigation extends ProcessHubInvestigation>(
+  rollup: ProcessHubRollup<TInvestigation>
+): ProcessHubCadenceSummary<TInvestigation> {
+  const review = buildProcessHubReview(rollup);
+
+  return {
+    hub: rollup.hub,
+    activeInvestigationCount: rollup.activeInvestigationCount,
+    latestActivity: rollup.latestActivity,
+    snapshot: {
+      active: rollup.activeInvestigationCount,
+      readiness: review.readinessQueue.length,
+      verification: review.verificationQueue.length,
+      overdueActions: rollup.overdueActionCount,
+      sustainment: review.sustainmentQueue.length,
+      latestSignals: review.whereToFocus.length,
+      nextMoves: review.nextMoveQueue.length,
+    },
+    latestSignals: cadenceQueue(review.whereToFocus),
+    readiness: cadenceQueue(review.readinessQueue),
+    verification: cadenceQueue(review.verificationQueue),
+    actions: cadenceQueue(review.overdueActionQueue),
+    sustainment: cadenceQueue(review.sustainmentQueue),
+    nextMoves: cadenceQueue(review.nextMoveQueue),
+    activeWork: {
+      quick: cadenceQueue(review.depthQueues.quick),
+      focused: cadenceQueue(review.depthQueues.focused),
+      chartered: cadenceQueue(review.depthQueues.chartered),
+    },
   };
 }
 
