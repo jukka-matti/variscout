@@ -170,12 +170,12 @@ function makeHandoff(
     hubId: 'hub-1',
     surface,
     systemName: 'System',
-    operationalOwner: { id: 'u-1', displayName: 'Op' },
+    operationalOwner: { userId: 'u-1', displayName: 'Op' },
     handoffDate: '2026-04-26T00:00:00.000Z',
     description: '',
     retainSustainmentReview: retain,
     recordedAt: '2026-04-26T00:00:00.000Z',
-    recordedBy: { id: 'u-1', displayName: 'Op' },
+    recordedBy: { userId: 'u-1', displayName: 'Op' },
   };
 }
 

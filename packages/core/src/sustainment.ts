@@ -3,13 +3,8 @@ import {
   type ProcessHubAttentionReason,
   type ProcessHubInvestigation,
   type ProcessHubReviewItem,
+  type ProcessParticipantRef,
 } from './processHub';
-
-export interface ProcessParticipantRef {
-  id: string;
-  displayName: string;
-  email?: string;
-}
 
 export type SustainmentCadence =
   | 'weekly'
