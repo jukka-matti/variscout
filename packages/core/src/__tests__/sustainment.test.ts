@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { nextDueFromCadence } from '../sustainment';
+import {
+  isSustainmentDue,
+  isSustainmentOverdue,
+  nextDueFromCadence,
+  type SustainmentRecord,
+} from '../sustainment';
 
 describe('nextDueFromCadence', () => {
   it('adds 7 days for weekly cadence anchored to a known timestamp', () => {
@@ -40,5 +45,68 @@ describe('nextDueFromCadence', () => {
   it('handles semiannual cadence (6 months)', () => {
     const result = nextDueFromCadence('semiannual', new Date('2026-04-26T00:00:00.000Z'));
     expect(result).toBe('2026-10-26T00:00:00.000Z');
+  });
+});
+
+function makeRecord(nextReviewDue?: string): SustainmentRecord {
+  return {
+    id: 'rec-1',
+    investigationId: 'inv-1',
+    hubId: 'hub-1',
+    cadence: 'monthly',
+    nextReviewDue,
+    createdAt: '2026-04-01T00:00:00.000Z',
+    updatedAt: '2026-04-01T00:00:00.000Z',
+  };
+}
+
+describe('isSustainmentDue', () => {
+  it('returns false when nextReviewDue is undefined', () => {
+    expect(isSustainmentDue(makeRecord(), new Date('2026-04-26T00:00:00.000Z'))).toBe(false);
+  });
+
+  it('returns true when nextReviewDue is at or before now', () => {
+    expect(
+      isSustainmentDue(makeRecord('2026-04-26T00:00:00.000Z'), new Date('2026-04-26T00:00:00.000Z'))
+    ).toBe(true);
+    expect(
+      isSustainmentDue(makeRecord('2026-04-25T00:00:00.000Z'), new Date('2026-04-26T00:00:00.000Z'))
+    ).toBe(true);
+  });
+
+  it('returns false when nextReviewDue is in the future', () => {
+    expect(
+      isSustainmentDue(makeRecord('2026-04-27T00:00:00.000Z'), new Date('2026-04-26T00:00:00.000Z'))
+    ).toBe(false);
+  });
+
+  it('returns false for tombstoned records', () => {
+    const record = {
+      ...makeRecord('2026-04-01T00:00:00.000Z'),
+      tombstoneAt: '2026-04-20T00:00:00.000Z',
+    };
+    expect(isSustainmentDue(record, new Date('2026-04-26T00:00:00.000Z'))).toBe(false);
+  });
+});
+
+describe('isSustainmentOverdue', () => {
+  it('returns false within graceDays of nextReviewDue', () => {
+    const record = makeRecord('2026-04-26T00:00:00.000Z');
+    expect(isSustainmentOverdue(record, new Date('2026-04-26T00:00:00.000Z'), 0)).toBe(false);
+    expect(isSustainmentOverdue(record, new Date('2026-05-02T00:00:00.000Z'), 7)).toBe(false);
+  });
+
+  it('returns true past graceDays', () => {
+    const record = makeRecord('2026-04-26T00:00:00.000Z');
+    expect(isSustainmentOverdue(record, new Date('2026-04-27T00:00:00.000Z'), 0)).toBe(true);
+    expect(isSustainmentOverdue(record, new Date('2026-05-04T00:00:00.000Z'), 7)).toBe(true);
+  });
+
+  it('returns false for tombstoned records even when past due', () => {
+    const record = {
+      ...makeRecord('2026-04-01T00:00:00.000Z'),
+      tombstoneAt: '2026-04-20T00:00:00.000Z',
+    };
+    expect(isSustainmentOverdue(record, new Date('2026-04-26T00:00:00.000Z'), 0)).toBe(false);
   });
 });

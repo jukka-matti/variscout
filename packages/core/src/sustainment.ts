@@ -137,3 +137,31 @@ function addMonthsClamped(date: Date, months: number): void {
   ).getUTCDate();
   date.setUTCDate(Math.min(originalDay, lastDayOfNewMonth));
 }
+
+/**
+ * Returns true when a sustainment record's next review is at or before `now`.
+ * Tombstoned records (those whose investigation has left SUSTAINMENT_STATUSES)
+ * are never due.
+ */
+export function isSustainmentDue(record: SustainmentRecord, now: Date): boolean {
+  if (record.tombstoneAt) return false;
+  if (!record.nextReviewDue) return false;
+  return new Date(record.nextReviewDue).getTime() <= now.getTime();
+}
+
+/**
+ * Returns true when a sustainment record's next review is more than
+ * `graceDays` past due. Tombstoned records are never overdue. Default
+ * `graceDays = 0` for v1 — a strict due-cliff.
+ */
+export function isSustainmentOverdue(
+  record: SustainmentRecord,
+  now: Date,
+  graceDays: number = 0
+): boolean {
+  if (record.tombstoneAt) return false;
+  if (!record.nextReviewDue) return false;
+  const dueMs = new Date(record.nextReviewDue).getTime();
+  const cutoffMs = dueMs + graceDays * 24 * 60 * 60 * 1000;
+  return now.getTime() > cutoffMs;
+}
