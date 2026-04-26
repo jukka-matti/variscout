@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { ProcessHub, ProcessHubInvestigation, ProcessHubRollup } from './processHub';
-
 export interface ProcessParticipantRef {
   id: string;
   displayName: string;
@@ -83,20 +80,60 @@ export interface SustainmentMetadataProjection {
   handoffSurface?: ControlHandoffSurface;
 }
 
-const CADENCE_DAYS: Record<SustainmentCadence, number | null> = {
-  weekly: 7,
-  biweekly: 14,
-  monthly: 30,
-  quarterly: 91,
-  semiannual: 182,
-  annual: 365,
-  'on-demand': null,
-};
-
+/**
+ * Return the ISO-8601 timestamp of the next review due date, computed from
+ * a cadence and an anchor (typically the most recent review's `reviewedAt`,
+ * else the investigation's verification date).
+ *
+ * Calendar-aware for month-based cadences: e.g. monthly applied to
+ * Jan 31 lands on Feb 28 (or Feb 29 in a leap year), not Mar 2.
+ *
+ * Returns `undefined` for `'on-demand'` cadence — caller must surface a
+ * "no due date" state in the UI.
+ *
+ * The returned ISO string preserves the anchor's time-of-day in UTC.
+ * Callers that want start-of-day semantics should normalise the anchor
+ * before calling.
+ */
 export function nextDueFromCadence(cadence: SustainmentCadence, anchor: Date): string | undefined {
-  const days = CADENCE_DAYS[cadence];
-  if (days === null) return undefined;
+  if (cadence === 'on-demand') return undefined;
   const result = new Date(anchor.getTime());
-  result.setUTCDate(result.getUTCDate() + days);
+  switch (cadence) {
+    case 'weekly':
+      result.setUTCDate(result.getUTCDate() + 7);
+      break;
+    case 'biweekly':
+      result.setUTCDate(result.getUTCDate() + 14);
+      break;
+    case 'monthly':
+      addMonthsClamped(result, 1);
+      break;
+    case 'quarterly':
+      addMonthsClamped(result, 3);
+      break;
+    case 'semiannual':
+      addMonthsClamped(result, 6);
+      break;
+    case 'annual':
+      addMonthsClamped(result, 12);
+      break;
+  }
   return result.toISOString();
+}
+
+/**
+ * Add `months` to `date` in-place, clamping to the last day of the target
+ * month if the anchor day doesn't exist there (e.g. Jan 31 + 1 month → Feb 28
+ * in a non-leap year, not Mar 2/3 from JS's natural overflow).
+ */
+function addMonthsClamped(date: Date, months: number): void {
+  const originalDay = date.getUTCDate();
+  // Move to day 1 before adjusting the month so JS can't overflow into the next month.
+  date.setUTCDate(1);
+  date.setUTCMonth(date.getUTCMonth() + months);
+  // Clamp to the last day of the new month if the original day exceeds it.
+  const lastDayOfNewMonth = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0)
+  ).getUTCDate();
+  date.setUTCDate(Math.min(originalDay, lastDayOfNewMonth));
 }

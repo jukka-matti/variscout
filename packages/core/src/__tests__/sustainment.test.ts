@@ -21,4 +21,24 @@ describe('nextDueFromCadence', () => {
     const result = nextDueFromCadence('on-demand', new Date('2026-04-26T00:00:00.000Z'));
     expect(result).toBeUndefined();
   });
+
+  it('handles month-end overflow (Jan 31 + 1 month → Feb 28 in non-leap year)', () => {
+    const result = nextDueFromCadence('monthly', new Date('2027-01-31T00:00:00.000Z'));
+    expect(result).toBe('2027-02-28T00:00:00.000Z');
+  });
+
+  it('handles annual cadence with year rollover', () => {
+    const result = nextDueFromCadence('annual', new Date('2026-04-26T00:00:00.000Z'));
+    expect(result).toBe('2027-04-26T00:00:00.000Z');
+  });
+
+  it('handles quarterly cadence (3 months)', () => {
+    const result = nextDueFromCadence('quarterly', new Date('2026-04-26T00:00:00.000Z'));
+    expect(result).toBe('2026-07-26T00:00:00.000Z');
+  });
+
+  it('handles semiannual cadence (6 months)', () => {
+    const result = nextDueFromCadence('semiannual', new Date('2026-04-26T00:00:00.000Z'));
+    expect(result).toBe('2026-10-26T00:00:00.000Z');
+  });
 });
