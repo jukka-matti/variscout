@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, CircleAlert, Plus } from 'lucide-react';
-import type { ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
+import type { HubReviewSignal, ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
+import { formatStatistic } from '@variscout/core/i18n';
 
 interface ProcessHubCardProps {
   rollup: ProcessHubRollup<ProcessHubInvestigation>;
@@ -9,6 +10,19 @@ interface ProcessHubCardProps {
   onStartInvestigation: () => void;
 }
 
+const formatPercent = (value: number): string => `${Math.round(value)}%`;
+
+const formatMetric = (value: number): string => formatStatistic(value, 'en', 2);
+
+const formatTopFocus = (topFocus: NonNullable<HubReviewSignal['topFocus']>): string => {
+  const valueSuffix = topFocus.value === undefined ? '' : ` / ${String(topFocus.value)}`;
+
+  return `Top focus: ${topFocus.factor}${valueSuffix} (${formatPercent(topFocus.variationPct)})`;
+};
+
+const formatChangeSignals = (count: number): string =>
+  `${count} change signal${count === 1 ? '' : 's'}`;
+
 const ProcessHubCard: React.FC<ProcessHubCardProps> = ({
   rollup,
   isSelected = false,
@@ -16,6 +30,7 @@ const ProcessHubCard: React.FC<ProcessHubCardProps> = ({
   onStartInvestigation,
 }) => {
   const { hub } = rollup;
+  const { reviewSignal } = rollup;
 
   return (
     <div
@@ -67,6 +82,23 @@ const ProcessHubCard: React.FC<ProcessHubCardProps> = ({
           </span>
         )}
       </div>
+
+      {reviewSignal && (
+        <div className="mt-3 space-y-1 border-t border-edge pt-3 text-xs text-content-secondary">
+          <p className="font-medium text-content">Latest Signals</p>
+          {reviewSignal.topFocus && <p>{formatTopFocus(reviewSignal.topFocus)}</p>}
+          {reviewSignal.capability?.cpk !== undefined &&
+            reviewSignal.capability.cpkTarget !== undefined && (
+              <p>
+                Cpk {formatMetric(reviewSignal.capability.cpk)} vs target{' '}
+                {formatMetric(reviewSignal.capability.cpkTarget)}
+              </p>
+            )}
+          {reviewSignal.changeSignals.total > 0 && (
+            <p>{formatChangeSignals(reviewSignal.changeSignals.total)}</p>
+          )}
+        </div>
+      )}
 
       {(rollup.currentUnderstandingSummary ||
         rollup.problemConditionSummary ||

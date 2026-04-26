@@ -87,4 +87,66 @@ describe('buildProcessHubRollups', () => {
     expect(rollups[1].hub.id).toBe(DEFAULT_PROCESS_HUB_ID);
     expect(rollups[1].investigations.map(i => i.id)).toEqual(['legacy']);
   });
+
+  it('uses the newest available review signal for the hub rollup', () => {
+    const hubs: ProcessHub[] = [
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ];
+    const investigations = [
+      {
+        id: 'older',
+        name: 'Older signal',
+        modified: '2026-04-24T00:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          reviewSignal: {
+            rowCount: 10,
+            outcome: 'Weight',
+            computedAt: '2026-04-24T00:00:00.000Z',
+            topFocus: { factor: 'Shift', value: 'Night', variationPct: 22 },
+            changeSignals: {
+              total: 1,
+              outOfControlCount: 1,
+              nelsonRule2Count: 0,
+              nelsonRule3Count: 0,
+            },
+          },
+        }),
+      },
+      {
+        id: 'newer-no-signal',
+        name: 'Newer legacy project',
+        modified: '2026-04-26T00:00:00.000Z',
+        metadata: makeMetadata({ processHubId: 'line-4' }),
+      },
+      {
+        id: 'newer-signal',
+        name: 'Newer signal',
+        modified: '2026-04-25T00:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'line-4',
+          reviewSignal: {
+            rowCount: 12,
+            outcome: 'Weight',
+            computedAt: '2026-04-25T00:00:00.000Z',
+            topFocus: { factor: 'Machine', value: 'B', variationPct: 48 },
+            changeSignals: {
+              total: 2,
+              outOfControlCount: 1,
+              nelsonRule2Count: 1,
+              nelsonRule3Count: 0,
+            },
+          },
+        }),
+      },
+    ];
+
+    const [rollup] = buildProcessHubRollups(hubs, investigations);
+
+    expect(rollup.reviewSignal?.topFocus).toEqual({
+      factor: 'Machine',
+      value: 'B',
+      variationPct: 48,
+    });
+  });
 });

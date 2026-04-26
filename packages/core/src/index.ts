@@ -195,6 +195,16 @@ export {
   isTeamPlan,
 } from './tier';
 
+// Process Hub review signals
+export { buildHubReviewSignal } from './processReviewSignal';
+export type {
+  BuildHubReviewSignalInput,
+  HubReviewCapability,
+  HubReviewChangeSignals,
+  HubReviewSignal,
+  HubReviewTopFocus,
+} from './processReviewSignal';
+
 // Preview feature registry
 export type { PreviewFeature } from './preview';
 export { isPreviewEnabled, setPreviewEnabled } from './preview';

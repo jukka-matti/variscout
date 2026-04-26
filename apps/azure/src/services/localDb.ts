@@ -1,13 +1,15 @@
 // src/services/localDb.ts
 // IndexedDB operations for project persistence (Dexie wrapper)
 
-import { DEFAULT_PROCESS_HUB, buildProjectMetadata } from '@variscout/core';
+import { DEFAULT_PROCESS_HUB, buildHubReviewSignal, buildProjectMetadata } from '@variscout/core';
 import type {
+  DataRow,
+  Finding,
   ProcessContext,
   ProcessHub,
   ProjectMetadata,
-  Finding,
   Question,
+  SpecLimits,
 } from '@variscout/core';
 import { db } from '../db/schema';
 import type { StorageLocation, CloudProject } from './cloudSync';
@@ -38,13 +40,32 @@ export function extractMetadataInputs(
       p.processContext && typeof p.processContext === 'object'
         ? (p.processContext as ProcessContext)
         : undefined;
+    const outcome = typeof p.outcome === 'string' ? p.outcome : null;
+    const factors = Array.isArray(p.factors)
+      ? p.factors.filter((factor): factor is string => typeof factor === 'string')
+      : [];
+    const specs = p.specs && typeof p.specs === 'object' ? (p.specs as SpecLimits) : undefined;
+    const cpkTarget = typeof p.cpkTarget === 'number' ? p.cpkTarget : undefined;
+    const timeColumn = typeof p.timeColumn === 'string' ? p.timeColumn : null;
+    const dataFilename = typeof p.dataFilename === 'string' ? p.dataFilename : null;
+    const reviewSignal = buildHubReviewSignal({
+      rawData: hasData ? (p.rawData as DataRow[]) : [],
+      outcome,
+      factors,
+      specs,
+      cpkTarget,
+      timeColumn,
+      dataFilename,
+    });
+
     return buildProjectMetadata(
       findings,
       questions,
       hasData,
       userId,
       existingLastViewedAt,
-      processContext
+      processContext,
+      reviewSignal
     );
   } catch {
     return null;
