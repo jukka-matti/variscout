@@ -109,4 +109,20 @@ describe('isSustainmentOverdue', () => {
     };
     expect(isSustainmentOverdue(record, new Date('2026-04-26T00:00:00.000Z'), 0)).toBe(false);
   });
+
+  it('returns false at the exact graceDays cutoff (exclusive boundary)', () => {
+    const record = makeRecord('2026-04-26T00:00:00.000Z');
+    // 2026-04-26 + 7 days = 2026-05-03 — at the cutoff, NOT overdue
+    expect(isSustainmentOverdue(record, new Date('2026-05-03T00:00:00.000Z'), 7)).toBe(false);
+    // 1ms past the cutoff — overdue
+    expect(isSustainmentOverdue(record, new Date('2026-05-03T00:00:00.001Z'), 7)).toBe(true);
+  });
+
+  it('clamps negative graceDays to 0 (cannot be more strict than strict)', () => {
+    const record = makeRecord('2026-04-26T00:00:00.000Z');
+    // -7 graceDays would shrink the cliff inward; clamped to 0
+    expect(isSustainmentOverdue(record, new Date('2026-04-25T00:00:00.000Z'), -7)).toBe(false);
+    expect(isSustainmentOverdue(record, new Date('2026-04-26T00:00:00.000Z'), -7)).toBe(false);
+    expect(isSustainmentOverdue(record, new Date('2026-04-27T00:00:00.000Z'), -7)).toBe(true);
+  });
 });

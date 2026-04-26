@@ -150,9 +150,9 @@ export function isSustainmentDue(record: SustainmentRecord, now: Date): boolean 
 }
 
 /**
- * Returns true when a sustainment record's next review is more than
- * `graceDays` past due. Tombstoned records are never overdue. Default
- * `graceDays = 0` for v1 — a strict due-cliff.
+ * Returns true only when `now > nextReviewDue + graceDays * 24h`. The
+ * grace day itself (and the due day with default `graceDays = 0`) is NOT
+ * overdue — the cliff is exclusive. Tombstoned records are never overdue.
  */
 export function isSustainmentOverdue(
   record: SustainmentRecord,
@@ -161,7 +161,8 @@ export function isSustainmentOverdue(
 ): boolean {
   if (record.tombstoneAt) return false;
   if (!record.nextReviewDue) return false;
+  const safeGraceDays = Math.max(0, graceDays);
   const dueMs = new Date(record.nextReviewDue).getTime();
-  const cutoffMs = dueMs + graceDays * 24 * 60 * 60 * 1000;
+  const cutoffMs = dueMs + safeGraceDays * 24 * 60 * 60 * 1000;
   return now.getTime() > cutoffMs;
 }
