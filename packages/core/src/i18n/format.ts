@@ -170,6 +170,7 @@ export type PluralForms = Partial<Record<Intl.LDMLPluralRule, string>> & { other
  * @returns The form matching the locale's plural rule for `count`, or `forms.other` if the matched category is missing
  */
 export function formatPlural(count: number, forms: PluralForms, locale: Locale = 'en'): string {
+  if (!Number.isFinite(count)) return forms.other;
   const category = getPluralRules(locale).select(Math.abs(count));
   return forms[category] ?? forms.other;
 }

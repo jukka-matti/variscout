@@ -156,4 +156,10 @@ describe('formatPlural', () => {
   it('falls back to "other" when the matched form is missing', () => {
     expect(formatPlural(3, { other: 'items' }, 'pl')).toBe('items');
   });
+
+  it('returns the "other" form for non-finite counts (defensive)', () => {
+    expect(formatPlural(NaN, enForms, 'en')).toBe('investigations');
+    expect(formatPlural(Infinity, enForms, 'en')).toBe('investigations');
+    expect(formatPlural(-Infinity, enForms, 'en')).toBe('investigations');
+  });
 });
