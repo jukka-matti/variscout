@@ -118,7 +118,9 @@ export type ProcessHubAttentionReason =
   | 'verification'
   | 'overdue-actions'
   | 'next-move'
-  | 'sustainment';
+  | 'sustainment'
+  | 'sustainment-due'
+  | 'control-handoff-missing';
 
 export type ProcessHubReadinessReason =
   | 'missing-metadata'
@@ -429,7 +431,7 @@ function cpkGap(signal?: HubReviewSignal): number | undefined {
   return gap > 0 ? Math.round(gap * 100) / 100 : undefined;
 }
 
-function reviewItem<TInvestigation extends ProcessHubInvestigation>(
+export function buildReviewItem<TInvestigation extends ProcessHubInvestigation>(
   investigation: TInvestigation,
   reasons: ProcessHubAttentionReason[],
   readinessReasons: ProcessHubReadinessReason[] = []
@@ -544,7 +546,7 @@ export function buildProcessHubReview<TInvestigation extends ProcessHubInvestiga
     if (!ACTIVE_STATUSES.has(status)) continue;
 
     const depth = investigation.metadata?.investigationDepth ?? 'quick';
-    depthQueues[depth].push(reviewItem(investigation, []));
+    depthQueues[depth].push(buildReviewItem(investigation, []));
   }
 
   for (const depth of INVESTIGATION_DEPTHS) {
@@ -554,18 +556,18 @@ export function buildProcessHubReview<TInvestigation extends ProcessHubInvestiga
   const whereToFocus = rollup.investigations
     .filter(investigation => investigation.metadata?.reviewSignal)
     .map(investigation =>
-      reviewItem(investigation, focusReasons(investigation.metadata!.reviewSignal!))
+      buildReviewItem(investigation, focusReasons(investigation.metadata!.reviewSignal!))
     )
     .sort(compareFocusItems);
 
   const verificationQueue = rollup.investigations
     .filter(investigation => investigation.metadata?.investigationStatus === 'verifying')
-    .map(investigation => reviewItem(investigation, ['verification']))
+    .map(investigation => buildReviewItem(investigation, ['verification']))
     .sort(compareNewest);
 
   const overdueActionQueue = rollup.investigations
     .filter(investigation => (investigation.metadata?.actionCounts?.overdue ?? 0) > 0)
-    .map(investigation => reviewItem(investigation, ['overdue-actions']))
+    .map(investigation => buildReviewItem(investigation, ['overdue-actions']))
     .sort(compareOverdue);
 
   const nextMoveQueue = rollup.investigations
@@ -574,14 +576,14 @@ export function buildProcessHubReview<TInvestigation extends ProcessHubInvestiga
         ACTIVE_STATUSES.has(investigation.metadata?.investigationStatus ?? 'scouting') &&
         investigation.metadata?.nextMove
     )
-    .map(investigation => reviewItem(investigation, ['next-move']))
+    .map(investigation => buildReviewItem(investigation, ['next-move']))
     .sort(compareNewest);
 
   const sustainmentQueue = rollup.investigations
     .filter(investigation =>
       SUSTAINMENT_STATUSES.has(investigation.metadata?.investigationStatus ?? 'scouting')
     )
-    .map(investigation => reviewItem(investigation, ['sustainment']))
+    .map(investigation => buildReviewItem(investigation, ['sustainment']))
     .sort(compareNewest);
 
   const readinessQueue = rollup.investigations
@@ -590,7 +592,7 @@ export function buildProcessHubReview<TInvestigation extends ProcessHubInvestiga
       reasons: readinessReasons(investigation),
     }))
     .filter(item => item.reasons.length > 0)
-    .map(item => reviewItem(item.investigation, [], item.reasons))
+    .map(item => buildReviewItem(item.investigation, [], item.reasons))
     .sort(compareNewest);
 
   return {

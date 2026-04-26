@@ -1,4 +1,9 @@
-import type { ProcessHubInvestigation, ProcessHubReviewItem } from './processHub';
+import {
+  buildReviewItem,
+  type ProcessHubAttentionReason,
+  type ProcessHubInvestigation,
+  type ProcessHubReviewItem,
+} from './processHub';
 
 export interface ProcessParticipantRef {
   id: string;
@@ -170,6 +175,19 @@ export function isSustainmentOverdue(
 }
 
 /**
+ * Wrap the canonical `buildReviewItem` factory so both sustainment selectors
+ * project the same fields (`cpkGap`, `topFocusVariationPct`, etc.) that the
+ * rest of the cadence board surfaces. Keeps the call sites in this file
+ * narrow on the `<TInv>` generic.
+ */
+function buildSustainmentReviewItem<TInv extends ProcessHubInvestigation>(
+  investigation: TInv,
+  reasons: ProcessHubAttentionReason[]
+): ProcessHubReviewItem<TInv> {
+  return buildReviewItem(investigation, reasons);
+}
+
+/**
  * Returns the cadence-board sustainment queue: investigations whose effective
  * status is in SUSTAINMENT_STATUSES (`resolved` or `controlled`), whose record
  * is due (per `isSustainmentDue`), and which are not opted out via a
@@ -198,14 +216,7 @@ export function selectSustainmentReviews<TInv extends ProcessHubInvestigation>(
       }
       return true;
     })
-    .map(inv => ({
-      investigation: inv,
-      reasons: [],
-      changeSignalCount: inv.metadata?.reviewSignal?.changeSignals?.total ?? 0,
-      overdueActionCount: inv.metadata?.actionCounts?.overdue ?? 0,
-      nextMove: inv.metadata?.nextMove,
-      readinessReasons: [],
-    }));
+    .map(inv => buildSustainmentReviewItem(inv, ['sustainment-due']));
 }
 
 /**
@@ -216,9 +227,12 @@ export function selectSustainmentReviews<TInv extends ProcessHubInvestigation>(
 export function selectControlHandoffCandidates<TInv extends ProcessHubInvestigation>(
   investigations: TInv[],
   handoffs: ControlHandoff[]
-): TInv[] {
+): ProcessHubReviewItem<TInv>[] {
   const handoffByInvestigation = new Set(handoffs.map(h => h.investigationId));
-  return investigations.filter(
-    inv => inv.metadata?.investigationStatus === 'controlled' && !handoffByInvestigation.has(inv.id)
-  );
+  return investigations
+    .filter(
+      inv =>
+        inv.metadata?.investigationStatus === 'controlled' && !handoffByInvestigation.has(inv.id)
+    )
+    .map(inv => buildSustainmentReviewItem(inv, ['control-handoff-missing']));
 }

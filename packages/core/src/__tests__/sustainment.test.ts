@@ -302,7 +302,7 @@ describe('selectControlHandoffCandidates', () => {
 
     const result = selectControlHandoffCandidates(investigations, handoffs);
 
-    expect(result.map(i => i.id)).toEqual(['inv-1']);
+    expect(result.map(r => r.investigation.id)).toEqual(['inv-1']);
   });
 
   it('returns empty when all controlled investigations have handoffs', () => {
