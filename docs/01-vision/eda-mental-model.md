@@ -447,7 +447,13 @@ VariScout's four-phase journey maps to Lean Six Sigma's DMAIC methodology. The m
 | **INVESTIGATE** | Analyze (deeper)  | Validate suspected causes with evidence — data (ANOVA auto-validation), Gemba (physical inspection), expert input                                |
 | **IMPROVE**     | Improve           | PDCA cycle: plan improvement actions from suspected causes, implement changes, verify improvement with staged analysis (before/after comparison) |
 
-The Control phase of DMAIC is beyond VariScout's current scope. VariScout's role ends when the improvement is verified. Sustained control — monitoring, control plans, standard work documentation — belongs to the operational management system.
+Historically, VariScout's bounded analysis journey ended when the improvement
+was verified. The Process Hub direction extends this into sustained control at
+an improvement cadence: teams can review new data snapshots, detect meaningful
+change signals, verify whether actions continue to hold, and maintain
+sustainment/control items in VariScout. Full operational control still belongs
+to the operational management system when the need is live alerting,
+shift-critical escalation, or real-time response.
 
 ### 5.2 The Three EDA Levels Within DMAIC
 
@@ -455,7 +461,10 @@ The thesis defines three levels of EDA that map to progressive depth within the 
 
 **Level 1: Y-measure overview (Measure phase)**
 
-The analyst examines the Y-measure at a high level. The I-Chart shows time-based stability. The Boxplot shows variation by top-level factors. The Capability analysis shows the overall process state against specifications.
+The analyst examines the Y-measure at a high level. The I-Chart shows
+time-ordered change structure: shifts, trends, cycles, special-cause signals,
+and periods worth stratifying. The Boxplot shows variation by top-level factors.
+The Capability analysis shows the overall process state against specifications.
 
 The output of Level 1 is the **Issue Statement** — a first characterization of what is happening, refined from the initial vague concern with evidence from the data.
 

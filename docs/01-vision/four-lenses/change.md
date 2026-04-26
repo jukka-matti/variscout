@@ -15,13 +15,14 @@ The CHANGE lens asks what happens when you arrange your data along a time axis. 
 
 ## The Question
 
-_"Is the process stable, or is something degrading/shifting over time?"_
+_"What changed over time, what pattern is worth investigating, and does it
+affect the target?"_
 
 ---
 
 ## What the I-Chart Reveals
 
-- Time-based stability or instability
+- Time-based structure, stability, or instability
 - Trends, shifts, cycles
 - Points outside control limits (UCL/LCL)
 - Dynamic behavior: wear, degradation, seasonal effects
@@ -47,7 +48,8 @@ The wash cycle discovery (NEW → WORN → USED) showed how characteristics chan
 
 ## The Reality Check
 
-> "What variables are degrading or shifting over time?"
+> "What variables are degrading, shifting, cycling, or creating a meaningful
+> change signal over time?"
 
 Questions to ask:
 
@@ -59,9 +61,9 @@ Questions to ask:
 
 ## Chart-to-Lens Reference
 
-| Lens   | Chart   | Key Metric                    | Key Visual                  | User Action               |
-| ------ | ------- | ----------------------------- | --------------------------- | ------------------------- |
-| CHANGE | I-Chart | Stability (in/out of control) | Points vs UCL/LCL over time | Click point → see factors |
+| Lens   | Chart   | Key Metric                          | Key Visual                  | User Action                |
+| ------ | ------- | ----------------------------------- | --------------------------- | -------------------------- |
+| CHANGE | I-Chart | Change signals and control patterns | Points vs UCL/LCL over time | Click point -> see factors |
 
 ---
 

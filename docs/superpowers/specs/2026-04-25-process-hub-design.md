@@ -27,6 +27,11 @@ business workflow. It gives the process owner and improvement team one place to
 see what is being investigated, what is being changed, who owns the work, what
 is waiting for verification, and what learning needs to be sustained.
 
+The Process Hub promise is:
+
+> Monitor performance. Detect change. Focus investigation. Verify action.
+> Sustain control.
+
 The internal architecture concept can be `WorkSystem`, but the user-facing name
 is **Process Hub**.
 
@@ -40,7 +45,7 @@ Issue / Concern
 -> Mechanism Branches
 -> Ideas / Actions
 -> Verification
--> Control handoff
+-> Sustained control
 ```
 
 ## Why This Change
@@ -54,7 +59,10 @@ source question:
 - Which changes are planned this week?
 - Which improvements came from larger LSSGB projects versus local team work?
 - Which actions are waiting for verification data?
-- Which resolved improvements need to become standard work or control checks?
+- Which resolved improvements need sustained control in VariScout, standard
+  work, live monitoring, or another operational control?
+- What changed since the last review, where is variation concentrated, and
+  what should the team investigate next?
 
 The current project portfolio answers "which saved investigations exist?" A
 Process Hub answers "what is happening to this process, why, and did it work?"
@@ -65,7 +73,15 @@ why the hub summary recommends action, deeper checking, or waiting.
 This makes VariScout the structured improvement layer around existing management
 systems. ERP, MES, QMS, CRM, ACD, or workflow tools remain the source systems.
 VariScout turns their data and the team's observations into evidence-backed
-learning, action, verification, and sustainment handoff.
+learning, action, verification, and sustained control.
+
+Process Hub supports process performance monitoring at an improvement cadence.
+It is not a 24/7 operational monitoring platform. Live alarms, shift-critical
+escalation, SCADA/MES/QMS response workflows, and hard real-time reliability
+remain responsibilities of the customer's operational systems. VariScout should
+help teams review performance snapshots, detect meaningful change signals, find
+where to focus, and decide whether to investigate, act, verify, sustain in
+VariScout, or operationalize control elsewhere.
 
 ## User-Facing Model
 
@@ -156,7 +172,7 @@ Status should map to the EDA 2.0 journey:
 | **Improving**        | Actions are in progress                                                 |
 | **Verifying**        | Waiting for post-action evidence or staged comparison                   |
 | **Resolved**         | Outcome has been measured                                               |
-| **Controlled**       | A control or standard-work handoff exists                               |
+| **Controlled**       | A control exists in VariScout or has been operationalized elsewhere     |
 
 Status can be derived where possible from existing findings, questions, hubs,
 actions, and outcomes. It should only be stored directly when the derived state
@@ -177,8 +193,9 @@ OpEx lead, quality engineer, and sponsor. It should show:
 - Changes planned or active this week.
 - Verification waiting for new data or gemba confirmation.
 - Recently resolved outcomes and measured effect.
-- Control handoff queue for improvements that should update standard work,
-  inspection plans, checklists, or reaction plans.
+- Sustainment/control queue for improvements that should be periodically
+  reviewed in VariScout, update standard work, feed live monitoring, or update
+  inspection plans, checklists, and reaction plans.
 
 Example investigation card:
 
@@ -199,9 +216,54 @@ first version should remain compatible with the customer-owned data principle:
   later customer-controlled export drops.
 - ERP, MES, QMS, CRM, ACD, or workflow systems remain systems of record.
 - VariScout references data source context and evidence origin, but it does not
-  become a live MES, QMS, ticketing, or alarm system.
+  become a live MES, QMS, ticketing, SCADA, or alarm system.
+- Scheduled refresh is allowed, but the cadence is an improvement cadence:
+  manual, shiftly, daily, weekly, or hourly when the process needs it. The
+  product should not promise real-time alerting, millisecond/minute response, or
+  operational uptime semantics.
 - CoScout can use hub, investigation, document, and knowledge context, but the
   deterministic stats engine remains the authority for computed evidence.
+
+The preferred integration model is contract-first and customer-integrated:
+VariScout owns import contracts, validation, evidence snapshots, analysis,
+investigation state, actions, verification, and sustainment/control records.
+The customer data team or an external consultant owns extraction and
+transformation from company-specific source systems into those contracts.
+
+## Performance Review And Control Boundary
+
+Process Hub can be used to monitor process performance, but the monitoring is
+for improvement and control learning rather than live operations. The recurring
+review loop is:
+
+```text
+New data snapshot
+-> Review process performance
+-> Detect meaningful change signals
+-> Identify where variation is concentrated
+-> Start or update investigation
+-> Act and verify
+-> Sustain control in VariScout or operationalize it elsewhere
+```
+
+This boundary gives different users the right level of engagement:
+
+- Process owners and line/team leaders can use one hub for recurring
+  performance review, open actions, verification gaps, and sustained controls.
+- GB/BBs, quality engineers, analysts, and OpEx leads can scan many hubs, attach
+  quick analyses to the right process context, and accelerate root-cause
+  analysis by starting from detected change and variation concentration.
+- Data teams and consultants can make the organization's data fit VariScout's
+  contracts without requiring VariScout to build company-specific integrations.
+
+Control has two valid destinations:
+
+- **Control in VariScout** - periodic sustainment reviews, evidence snapshots,
+  actions, verification history, and control-plan checks that fit an
+  improvement cadence.
+- **Control operationalized elsewhere** - live alerts, escalation, ticketing,
+  MES/QMS/SCADA workflows, or Power BI/enterprise dashboards built from the
+  learning and control plan knowledge captured in VariScout.
 
 ## Relationship To EDA 2.0
 
@@ -217,6 +279,9 @@ EDA 2.0 is the investigation language inside Process Hub:
   the investigation-level Process Hub summary, but the summary remains
   separately editable.
 - Signal Cards and Survey later improve trust, power, and data readiness.
+- Sustainment Reviews connect Process Hub back to the CHANGE lens: the question
+  is not only "is it stable?" but "what changed, where is variation
+  concentrated, does it affect the target, and what should we do next?"
 
 Implementation should land **EDA 2.0 Phase 1 before Process Hub product code**:
 
@@ -259,16 +324,20 @@ project/finding-centered language and need rework.
   inside investigations.
 - Make Process Hub rollups richer as those investigation artifacts mature.
 
-### Phase 4 - Control Plan Lite Follow-Up
+### Phase 4 - Sustainment Reviews And Control Plan Lite
 
-- First Process Hub release should create control handoff items only.
+- First Process Hub release should create sustainment/control items only.
 - Full Control Plan Lite is a later design: process step, signal, control
   method, frequency, owner role, reaction plan, evidence source, and status.
+- Later releases can let selected controls stay in VariScout as periodic
+  sustainment reviews or be marked as operationalized in another system.
 
 ## Non-Goals
 
 - No live ERP, MES, QMS, CRM, or call-center platform integration in the first
   Process Hub phase.
+- No 24/7 operational monitoring, live alarms, shift-critical escalation, or
+  real-time control-loop responsibility.
 - No generic task board.
 - No in-product notification system beyond the existing events/webhook design
   direction.
@@ -286,8 +355,11 @@ project/finding-centered language and need rework.
    full EDA 2.0 journey.
 4. Production team creates a Quick investigation from a shift issue, records a
    clue, adds an action, and later verifies the result.
-5. Resolved investigation creates a control handoff item without requiring a
+5. Resolved investigation creates a sustainment/control item without requiring a
    full control-plan table.
+6. A team reviews a new data snapshot, sees what changed, identifies the factor
+   level where variation is concentrated, and starts a focused investigation
+   without expecting VariScout to behave as a live alarm system.
 
 ## Open Implementation Decisions
 
