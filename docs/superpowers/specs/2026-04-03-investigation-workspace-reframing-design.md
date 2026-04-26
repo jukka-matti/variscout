@@ -2,7 +2,7 @@
 title: 'Investigation Workspace Reframing — Problem Statement, Suspected Causes, and the EDA Spine'
 audience: [analyst, engineer]
 category: architecture
-status: draft
+status: in-progress
 related:
   [
     investigation,

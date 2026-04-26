@@ -2,7 +2,7 @@
 title: FRAME Workspace & Visual Process Map
 audience: [engineer, product]
 category: architecture
-status: draft
+status: delivered
 related:
   [
     frame-workspace,

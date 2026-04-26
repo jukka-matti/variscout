@@ -2,7 +2,7 @@
 title: Process Hub - Work-System Context for Team Improvement
 audience: [product, designer, engineer]
 category: design-spec
-status: draft
+status: in-progress
 related:
   [
     process-hub,
@@ -456,7 +456,15 @@ project/finding-centered language and need rework.
 
 ## Open Implementation Decisions
 
-- Which investigation status values are stored versus derived.
+### Decision: investigation status — stored override on top of derived natural status
+
+`InvestigationStatus` is a single nine-value enum (`issue-captured`, `framing`, `scouting`, `investigating`, `ready-to-improve`, `improving`, `verifying`, `resolved`, `controlled`). The natural status is **derived at read time** from the active journey phase via `investigationStatusFromJourneyPhase(phase)`, which maps `frame|scout|investigate|improve` to `framing|scouting|investigating|improving`. The persisted value `investigation.metadata.investigationStatus` is treated as an **optional user-set override**: when present it wins, otherwise the derived value is used. This lets users explicitly mark off-journey states the four-phase walk cannot express — `issue-captured`, `ready-to-improve`, `verifying`, `resolved`, `controlled` — while keeping in-journey investigations self-updating without manual bookkeeping. Downstream rollups (`ACTIVE_STATUSES`, `SUSTAINMENT_STATUSES`, readiness reasons, cadence queues) operate on the resolved effective status only.
+
+**Rationale:** Keeps the common case (an investigator working through FRAME/SCOUT/INVESTIGATE/IMPROVE) zero-effort and free of drift between phase and status, while preserving a single source of truth: one stored field, one derivation function, one resolution rule. Override-on-derived also matches the existing `projectMetadata.ts` pattern (line 195: `processContext?.investigationStatus ?? investigationStatusFromJourneyPhase(phase)`), so the contract documents what the code already does rather than imposing a refactor.
+
+**Code:** `packages/core/src/processHub.ts` — `investigationStatusFromJourneyPhase()` (line 271) derives the natural status; `metadata.investigationStatus` (declared line 47) stores the optional override; `ACTIVE_STATUSES` (line 250) and `SUSTAINMENT_STATUSES` (line 264) apply to the resolved effective status. `packages/core/src/projectMetadata.ts` (line 195-196) is the canonical write site that materialises the override-or-derive resolution. `apps/azure/src/pages/Editor.tsx` (line 194-196) is the user-facing override surface.
+
+**Follow-up:** Add a small helper `resolveInvestigationStatus({ override, phase })` exported from `@variscout/core/processHub` (or `projectMetadata`) that encapsulates the `override ?? investigationStatusFromJourneyPhase(phase)` rule. Audit existing read sites in `processHub.ts` (`buildProcessHubRollups`, `buildProcessHubReview`, `readinessReasons`, `buildProcessHubContext`) — most fall back to the literal `'scouting'` when metadata is missing, which silently masks the FRAME phase; those should call the resolver with the investigation's actual phase instead. No code changes in this task; tracked for a future implementation pass.
 
 ## Closed Implementation Decisions
 

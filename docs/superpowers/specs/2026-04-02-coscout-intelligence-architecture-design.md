@@ -1,7 +1,7 @@
 ---
 title: 'CoScout Intelligence Architecture'
 date: 2026-04-02
-status: draft
+status: in-progress
 audience: [developer, architect]
 category: architecture
 related:

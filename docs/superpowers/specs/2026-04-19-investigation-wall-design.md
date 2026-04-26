@@ -1,6 +1,6 @@
 ---
 title: 'Investigation Wall — River-Roots Design'
-status: draft
+status: delivered
 date: 2026-04-19
 audience: [developer, designer, analyst]
 category: architecture

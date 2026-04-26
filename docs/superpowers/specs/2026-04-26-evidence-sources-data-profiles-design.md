@@ -2,7 +2,7 @@
 title: Evidence Sources And Data Profiles - Process Hub Evidence Workflow
 audience: [product, designer, engineer]
 category: design-spec
-status: draft
+status: in-progress
 related:
   [process-hub, evidence-sources, data-profiles, snapshots, customer-owned-data, agent-review-log]
 date: 2026-04-26

@@ -2,7 +2,7 @@
 title: Process Hub Use Cases - Process-First Operating Context
 audience: [product, designer, engineer]
 category: design-spec
-status: draft
+status: in-progress
 related: [process-hub, evidence-sources, data-profiles, azure, portfolio, user-journeys]
 date: 2026-04-25
 ---
