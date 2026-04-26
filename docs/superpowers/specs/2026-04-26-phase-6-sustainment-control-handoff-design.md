@@ -12,6 +12,8 @@ date: 2026-04-26
 
 # Phase 6 - Sustainment & Control Handoff
 
+> **Implementation plan:** [`2026-04-26-phase-6-implementation-plan.md`](../plans/2026-04-26-phase-6-implementation-plan.md) — 20-task TDD breakdown derived from this spec.
+
 ## Summary
 
 Phase 6 closes the Unified Process Hub Methodology Roadmap. The first five
