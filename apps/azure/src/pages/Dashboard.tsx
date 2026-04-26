@@ -22,6 +22,7 @@ import {
 import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
 import ProjectCard from '../components/ProjectCard';
 import ProcessHubCard from '../components/ProcessHubCard';
+import ProcessHubReviewPanel from '../components/ProcessHubReviewPanel';
 import SampleDataPicker from '../components/SampleDataPicker';
 
 interface DashboardProps {
@@ -131,7 +132,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     );
   }, [selectedHubId, sortedProjects]);
 
-  const selectedHub = processHubs.find(hub => hub.id === selectedHubId);
+  const selectedHubRollup = hubRollups.find(rollup => rollup.hub.id === selectedHubId);
+  const selectedHub = selectedHubRollup?.hub ?? processHubs.find(hub => hub.id === selectedHubId);
 
   const handleSampleSelect = (sample: SampleDataset): void => {
     if (onLoadSample) {
@@ -341,6 +343,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
               ))}
             </div>
           </section>
+
+          {selectedHubRollup && (
+            <ProcessHubReviewPanel
+              rollup={selectedHubRollup}
+              onOpenInvestigation={id => onOpenProject(id)}
+              onStartInvestigation={() => onOpenProject(undefined, selectedHubRollup.hub.id)}
+            />
+          )}
 
           <section>
             <h3 className="mb-3 text-sm font-semibold text-content">

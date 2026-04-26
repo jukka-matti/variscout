@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Dashboard } from '../Dashboard';
 import type { CloudProject } from '../../services/storage';
 
@@ -64,6 +64,29 @@ function makeProject(): CloudProject {
   };
 }
 
+function makeVerificationProject(): CloudProject {
+  return {
+    id: 'line-4-b',
+    name: 'Post-action shift check',
+    modified: '2026-04-25T00:00:00.000Z',
+    location: 'personal',
+    metadata: {
+      phase: 'improve',
+      findingCounts: {},
+      questionCounts: {},
+      actionCounts: { total: 2, completed: 1, overdue: 1 },
+      assignedTaskCount: 0,
+      hasOverdueTasks: false,
+      lastViewedAt: {},
+      processHubId: 'line-4',
+      investigationDepth: 'quick',
+      investigationStatus: 'verifying',
+      currentUnderstandingSummary: 'Post-action data is ready for comparison.',
+      nextMove: 'Compare post-action Cpk after the next batch.',
+    },
+  };
+}
+
 describe('Dashboard Process Hub home', () => {
   it('renders Process Hub cards before investigation cards and starts work in a hub', async () => {
     const onOpenProject = vi.fn();
@@ -98,5 +121,51 @@ describe('Dashboard Process Hub home', () => {
     expect(screen.getByText('Top focus: Machine / B (48%)')).toBeInTheDocument();
     expect(screen.getByText('Cpk 0.82 vs target 1.33')).toBeInTheDocument();
     expect(screen.getByText('2 change signals')).toBeInTheDocument();
+  });
+
+  it('renders an inline Hub Review panel for the selected hub and opens review items', async () => {
+    const onOpenProject = vi.fn();
+    mockListProjects.mockResolvedValue([makeProject(), makeVerificationProject()]);
+    mockListProcessHubs.mockResolvedValue([
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ]);
+
+    render(<Dashboard onOpenProject={onOpenProject} />);
+
+    await screen.findByText('Line 4');
+    fireEvent.click(screen.getByLabelText('Open Line 4'));
+
+    const panel = await screen.findByRole('region', { name: 'Line 4 Review' });
+    expect(within(panel).getByText('Latest Signals')).toBeInTheDocument();
+    expect(within(panel).getByText('Where to Focus')).toBeInTheDocument();
+    expect(within(panel).getAllByText('Night shift overfill').length).toBeGreaterThan(0);
+    expect(within(panel).getByText('Machine / B')).toBeInTheDocument();
+    expect(within(panel).getAllByText('2 change signals').length).toBeGreaterThan(0);
+    expect(within(panel).getAllByText('Cpk 0.82 vs target 1.33').length).toBeGreaterThan(0);
+    expect(within(panel).getByText('Verification')).toBeInTheDocument();
+    expect(within(panel).getAllByText('Post-action shift check').length).toBeGreaterThan(0);
+    expect(within(panel).getByText('1 overdue action')).toBeInTheDocument();
+    expect(
+      within(panel).getAllByText('Compare post-action Cpk after the next batch.').length
+    ).toBeGreaterThan(0);
+
+    fireEvent.click(within(panel).getAllByLabelText('Open review item Night shift overfill')[0]);
+    expect(onOpenProject).toHaveBeenCalledWith('line-4-a');
+  });
+
+  it('shows empty review states for a selected hub without investigations', async () => {
+    mockListProjects.mockResolvedValue([]);
+    mockListProcessHubs.mockResolvedValue([
+      { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ]);
+
+    render(<Dashboard onOpenProject={vi.fn()} />);
+
+    await screen.findByText('Line 4');
+    fireEvent.click(screen.getByLabelText('Open Line 4'));
+
+    const panel = await screen.findByRole('region', { name: 'Line 4 Review' });
+    expect(within(panel).getByText('No latest signals yet')).toBeInTheDocument();
+    expect(within(panel).getByText('No active review items yet')).toBeInTheDocument();
   });
 });

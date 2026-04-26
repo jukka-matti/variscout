@@ -422,6 +422,7 @@ export {
   DEFAULT_PROCESS_HUB,
   DEFAULT_PROCESS_HUB_ID,
   DEFAULT_PROCESS_HUB_NAME,
+  buildProcessHubReview,
   buildProcessHubRollups,
   investigationStatusFromJourneyPhase,
   normalizeProcessHubId,
@@ -446,9 +447,12 @@ export type {
 export type {
   InvestigationDepth,
   InvestigationStatus,
+  ProcessHubAttentionReason,
   ProcessHub,
   ProcessHubInvestigation,
   ProcessHubInvestigationMetadata,
+  ProcessHubReview,
+  ProcessHubReviewItem,
   ProcessHubRollup,
   ProcessParticipantRef,
 } from './processHub';

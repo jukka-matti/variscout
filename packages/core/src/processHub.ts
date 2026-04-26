@@ -72,6 +72,38 @@ export interface ProcessHubRollup<
   reviewSignal?: HubReviewSignal;
 }
 
+export type ProcessHubAttentionReason =
+  | 'change-signals'
+  | 'capability-gap'
+  | 'top-focus'
+  | 'verification'
+  | 'overdue-actions'
+  | 'next-move';
+
+export interface ProcessHubReviewItem<
+  TInvestigation extends ProcessHubInvestigation = ProcessHubInvestigation,
+> {
+  investigation: TInvestigation;
+  reasons: ProcessHubAttentionReason[];
+  changeSignalCount: number;
+  cpkGap?: number;
+  topFocusVariationPct?: number;
+  overdueActionCount: number;
+  nextMove?: string;
+}
+
+export interface ProcessHubReview<
+  TInvestigation extends ProcessHubInvestigation = ProcessHubInvestigation,
+> {
+  hub: ProcessHub;
+  activeInvestigationCount: number;
+  latestActivity: string | null;
+  whereToFocus: ProcessHubReviewItem<TInvestigation>[];
+  verificationQueue: ProcessHubReviewItem<TInvestigation>[];
+  overdueActionQueue: ProcessHubReviewItem<TInvestigation>[];
+  nextMoveQueue: ProcessHubReviewItem<TInvestigation>[];
+}
+
 const ACTIVE_STATUSES = new Set<InvestigationStatus>([
   'issue-captured',
   'framing',
@@ -184,4 +216,110 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
       if (aTime !== bTime) return bTime - aTime;
       return a.hub.name.localeCompare(b.hub.name);
     });
+}
+
+function modifiedTime(investigation: ProcessHubInvestigation): number {
+  const time = new Date(investigation.modified).getTime();
+  return Number.isFinite(time) ? time : 0;
+}
+
+function cpkGap(signal?: HubReviewSignal): number | undefined {
+  const cpk = signal?.capability?.cpk;
+  const target = signal?.capability?.cpkTarget;
+  if (cpk === undefined || target === undefined) return undefined;
+  const gap = target - cpk;
+  return gap > 0 ? Math.round(gap * 100) / 100 : undefined;
+}
+
+function reviewItem<TInvestigation extends ProcessHubInvestigation>(
+  investigation: TInvestigation,
+  reasons: ProcessHubAttentionReason[]
+): ProcessHubReviewItem<TInvestigation> {
+  const signal = investigation.metadata?.reviewSignal;
+
+  return {
+    investigation,
+    reasons,
+    changeSignalCount: signal?.changeSignals.total ?? 0,
+    cpkGap: cpkGap(signal),
+    topFocusVariationPct: signal?.topFocus?.variationPct,
+    overdueActionCount: investigation.metadata?.actionCounts?.overdue ?? 0,
+    nextMove: investigation.metadata?.nextMove,
+  };
+}
+
+function compareFocusItems<TInvestigation extends ProcessHubInvestigation>(
+  a: ProcessHubReviewItem<TInvestigation>,
+  b: ProcessHubReviewItem<TInvestigation>
+): number {
+  return (
+    b.changeSignalCount - a.changeSignalCount ||
+    (b.cpkGap ?? 0) - (a.cpkGap ?? 0) ||
+    (b.topFocusVariationPct ?? 0) - (a.topFocusVariationPct ?? 0) ||
+    modifiedTime(b.investigation) - modifiedTime(a.investigation)
+  );
+}
+
+function compareNewest<TInvestigation extends ProcessHubInvestigation>(
+  a: ProcessHubReviewItem<TInvestigation>,
+  b: ProcessHubReviewItem<TInvestigation>
+): number {
+  return modifiedTime(b.investigation) - modifiedTime(a.investigation);
+}
+
+function compareOverdue<TInvestigation extends ProcessHubInvestigation>(
+  a: ProcessHubReviewItem<TInvestigation>,
+  b: ProcessHubReviewItem<TInvestigation>
+): number {
+  return b.overdueActionCount - a.overdueActionCount || compareNewest(a, b);
+}
+
+function focusReasons(signal: HubReviewSignal): ProcessHubAttentionReason[] {
+  const reasons: ProcessHubAttentionReason[] = [];
+  if (signal.changeSignals.total > 0) reasons.push('change-signals');
+  if (cpkGap(signal) !== undefined) reasons.push('capability-gap');
+  if (signal.topFocus?.variationPct !== undefined && signal.topFocus.variationPct > 0) {
+    reasons.push('top-focus');
+  }
+  return reasons;
+}
+
+export function buildProcessHubReview<TInvestigation extends ProcessHubInvestigation>(
+  rollup: ProcessHubRollup<TInvestigation>
+): ProcessHubReview<TInvestigation> {
+  const whereToFocus = rollup.investigations
+    .filter(investigation => investigation.metadata?.reviewSignal)
+    .map(investigation =>
+      reviewItem(investigation, focusReasons(investigation.metadata!.reviewSignal!))
+    )
+    .sort(compareFocusItems);
+
+  const verificationQueue = rollup.investigations
+    .filter(investigation => investigation.metadata?.investigationStatus === 'verifying')
+    .map(investigation => reviewItem(investigation, ['verification']))
+    .sort(compareNewest);
+
+  const overdueActionQueue = rollup.investigations
+    .filter(investigation => (investigation.metadata?.actionCounts?.overdue ?? 0) > 0)
+    .map(investigation => reviewItem(investigation, ['overdue-actions']))
+    .sort(compareOverdue);
+
+  const nextMoveQueue = rollup.investigations
+    .filter(
+      investigation =>
+        ACTIVE_STATUSES.has(investigation.metadata?.investigationStatus ?? 'scouting') &&
+        investigation.metadata?.nextMove
+    )
+    .map(investigation => reviewItem(investigation, ['next-move']))
+    .sort(compareNewest);
+
+  return {
+    hub: rollup.hub,
+    activeInvestigationCount: rollup.activeInvestigationCount,
+    latestActivity: rollup.latestActivity,
+    whereToFocus,
+    verificationQueue,
+    overdueActionQueue,
+    nextMoveQueue,
+  };
 }
