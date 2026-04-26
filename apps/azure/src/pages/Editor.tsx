@@ -33,6 +33,7 @@ import {
   VerificationPrompt,
   BrainstormModal,
   QuestionLinkPrompt,
+  SurveyNotebookBase,
   DEFAULT_PRESETS,
   type AnalysisBrief,
   type MatrixDimension,
@@ -51,6 +52,7 @@ import {
   hasTeamFeatures,
   downloadCSV,
   computeBestSubsets,
+  evaluateSurvey,
   getColumnNames,
 } from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
@@ -68,8 +70,9 @@ import type {
   ProcessContext,
   ProcessHub,
 } from '@variscout/core';
+import type { SurveyRecommendation } from '@variscout/core/survey';
 import type { BrainstormIdea } from '@variscout/core/findings';
-import { Check } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
 import { useAIOrchestration, useActionProposals, useInvestigationIndexing } from '../features/ai';
@@ -286,6 +289,7 @@ export const Editor: React.FC<EditorProps> = ({
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
+  const timeColumn = useProjectStore(s => s.timeColumn);
   const specs = useProjectStore(s => s.specs);
   const columnAliases = useProjectStore(s => s.columnAliases);
   const measureColumns = useProjectStore(s => s.measureColumns);
@@ -299,11 +303,14 @@ export const Editor: React.FC<EditorProps> = ({
   const currentProjectName = useProjectStore(s => s.projectName);
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
   const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const yamazumiMapping = useProjectStore(s => s.yamazumiMapping);
+  const defectMapping = useProjectStore(s => s.defectMapping);
   const processContext = useProjectStore(s => s.processContext) ?? undefined;
 
   // Investigation store (domain — findings/questions/categories)
   const persistedFindings = useInvestigationStore(s => s.findings);
   const persistedQuestions = useInvestigationStore(s => s.questions);
+  const suspectedCauses = useInvestigationStore(s => s.suspectedCauses);
   const categories = useInvestigationStore(s => s.categories);
   const linkFindingToQuestion = useInvestigationStore(s => s.linkFindingToQuestion);
 
@@ -397,6 +404,7 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Mobile tab bar state (phone only)
   const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('analysis');
+  const [isMobileSurveyOpen, setIsMobileSurveyOpen] = useState(false);
   const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
 
   // Reset mobile tab when data is cleared
@@ -530,6 +538,9 @@ export const Editor: React.FC<EditorProps> = ({
         case 'whatif':
           ps.setWhatIfOpen(true);
           break;
+        case 'survey':
+          setIsMobileSurveyOpen(true);
+          break;
         case 'datatable':
           ps.openDataTable();
           break;
@@ -551,6 +562,46 @@ export const Editor: React.FC<EditorProps> = ({
       }
     },
     [dataFlow, filteredData, outcome, specs]
+  );
+
+  const surveyEvaluation = useMemo(
+    () =>
+      evaluateSurvey({
+        data: rawData,
+        outcomeColumn: outcome,
+        factorColumns: factors,
+        timeColumn,
+        specs,
+        yamazumiMapping,
+        defectMapping,
+        processContext,
+        questions: persistedQuestions,
+        findings: persistedFindings,
+        branches: suspectedCauses,
+      }),
+    [
+      rawData,
+      outcome,
+      factors,
+      timeColumn,
+      specs,
+      yamazumiMapping,
+      defectMapping,
+      processContext,
+      persistedQuestions,
+      persistedFindings,
+      suspectedCauses,
+    ]
+  );
+
+  const handleAcceptSurveyRecommendation = useCallback(
+    (recommendation: SurveyRecommendation) => {
+      setProcessContext({
+        ...(processContext ?? {}),
+        nextMove: recommendation.actionText,
+      });
+    },
+    [processContext, setProcessContext]
   );
 
   // Ref to allow ingestion callbacks to reach dataFlow setters
@@ -1691,6 +1742,35 @@ export const Editor: React.FC<EditorProps> = ({
           onAction={handleMobileMore}
           onClose={() => setMobileActiveTab('analysis')}
         />
+      )}
+
+      {isMobileSurveyOpen && isPhone && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setIsMobileSurveyOpen(false)}
+          />
+          <div className="fixed bottom-[50px] left-0 right-0 z-50 max-h-[80vh] rounded-t-2xl border-t border-edge bg-surface-primary safe-area-bottom">
+            <div className="flex items-center justify-between border-b border-edge px-4 py-3">
+              <div className="text-sm font-semibold text-content">Survey</div>
+              <button
+                type="button"
+                aria-label="Close Survey"
+                onClick={() => setIsMobileSurveyOpen(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-md text-content-secondary hover:bg-surface-tertiary hover:text-content"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="max-h-[calc(80vh-52px)] overflow-auto">
+              <SurveyNotebookBase
+                compact={true}
+                evaluation={surveyEvaluation}
+                onAcceptRecommendation={handleAcceptSurveyRecommendation}
+              />
+            </div>
+          </div>
+        </>
       )}
 
       {/* Verification prompt: shown when data uploaded while findings are improving */}

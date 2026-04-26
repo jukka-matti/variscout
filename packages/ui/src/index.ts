@@ -203,6 +203,8 @@ export { VerificationCard, type VerificationCardProps } from './components/Verif
 
 export { FilterContextBar, type FilterContextBarProps } from './components/FilterContextBar';
 
+export { SurveyNotebookBase, type SurveyNotebookBaseProps } from './components/SurveyNotebookBase';
+
 export {
   BoxplotDisplayToggle,
   boxplotDisplayToggleDefaultColorScheme,

@@ -1,5 +1,14 @@
 import React from 'react';
-import { FileText, Beaker, Maximize2, Plus, Pencil, Download, Table2 } from 'lucide-react';
+import {
+  FileText,
+  Beaker,
+  Maximize2,
+  Plus,
+  Pencil,
+  Download,
+  Table2,
+  ClipboardList,
+} from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 
 interface EditorMobileSheetProps {
@@ -30,6 +39,13 @@ export const EditorMobileSheet: React.FC<EditorMobileSheetProps> = ({ onAction, 
           >
             <Beaker size={18} />
             {t('panel.whatIf') || 'What-If'}
+          </button>
+          <button
+            onClick={() => onAction('survey')}
+            className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-content hover:bg-surface-tertiary"
+          >
+            <ClipboardList size={18} />
+            Survey
           </button>
           <button
             onClick={() => onAction('presentation')}
