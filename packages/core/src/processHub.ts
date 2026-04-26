@@ -1,9 +1,12 @@
 import type { JourneyPhase } from './ai/types';
 import type { EvidenceLatestSignal, EvidenceSnapshot } from './evidenceSources';
 import type { FindingStatus, QuestionStatus } from './findings/types';
+import { buildReviewItem } from './processHubReview';
 import type { HubReviewSignal } from './processReviewSignal';
 import type { SurveyStatus } from './survey/types';
 import type { SustainmentMetadataProjection } from './sustainment';
+
+export { buildReviewItem } from './processHubReview';
 
 export const DEFAULT_PROCESS_HUB_ID = 'general-unassigned';
 export const DEFAULT_PROCESS_HUB_NAME = 'General / Unassigned';
@@ -408,25 +411,6 @@ function cpkGap(signal?: HubReviewSignal): number | undefined {
   if (cpk === undefined || target === undefined) return undefined;
   const gap = target - cpk;
   return gap > 0 ? Math.round(gap * 100) / 100 : undefined;
-}
-
-export function buildReviewItem<TInvestigation extends ProcessHubInvestigation>(
-  investigation: TInvestigation,
-  reasons: ProcessHubAttentionReason[],
-  readinessReasons: ProcessHubReadinessReason[] = []
-): ProcessHubReviewItem<TInvestigation> {
-  const signal = investigation.metadata?.reviewSignal;
-
-  return {
-    investigation,
-    reasons,
-    changeSignalCount: signal?.changeSignals.total ?? 0,
-    cpkGap: cpkGap(signal),
-    topFocusVariationPct: signal?.topFocus?.variationPct,
-    overdueActionCount: investigation.metadata?.actionCounts?.overdue ?? 0,
-    nextMove: investigation.metadata?.nextMove,
-    readinessReasons,
-  };
 }
 
 function compareFocusItems<TInvestigation extends ProcessHubInvestigation>(

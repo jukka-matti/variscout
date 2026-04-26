@@ -1,9 +1,9 @@
-import {
-  buildReviewItem,
-  type ProcessHubAttentionReason,
-  type ProcessHubInvestigation,
-  type ProcessHubReviewItem,
-  type ProcessParticipantRef,
+import { buildReviewItem } from './processHubReview';
+import type {
+  ProcessHubAttentionReason,
+  ProcessHubInvestigation,
+  ProcessHubReviewItem,
+  ProcessParticipantRef,
 } from './processHub';
 
 export type SustainmentCadence =
