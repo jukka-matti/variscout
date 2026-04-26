@@ -490,6 +490,24 @@ export {
   normalizeProcessHubId,
 } from './processHub';
 
+// Sustainment (Phase 6)
+export type {
+  SustainmentRecord,
+  SustainmentReview,
+  ControlHandoff,
+  SustainmentCadence,
+  SustainmentVerdict,
+  ControlHandoffSurface,
+  SustainmentMetadataProjection,
+} from './sustainment';
+export {
+  nextDueFromCadence,
+  isSustainmentDue,
+  isSustainmentOverdue,
+  selectSustainmentReviews,
+  selectControlHandoffCandidates,
+} from './sustainment';
+
 // Survey evaluator (QDE 2.0 foundation)
 export { evaluateSurvey, SURVEY_RECOMMENDATION_KIND_LABELS, SURVEY_STATUS_LABELS } from './survey';
 export type {

@@ -3,6 +3,7 @@ import type { EvidenceLatestSignal, EvidenceSnapshot } from './evidenceSources';
 import type { FindingStatus, QuestionStatus } from './findings/types';
 import type { HubReviewSignal } from './processReviewSignal';
 import type { SurveyStatus } from './survey/types';
+import type { SustainmentMetadataProjection } from './sustainment';
 
 export const DEFAULT_PROCESS_HUB_ID = 'general-unassigned';
 export const DEFAULT_PROCESS_HUB_NAME = 'General / Unassigned';
@@ -59,32 +60,10 @@ export interface ProcessHubInvestigationMetadata {
   /**
    * Lightweight projection of the active SustainmentRecord for this investigation,
    * surfaced on the hub for cadence rendering without re-querying the records list.
-   * Shape mirrors `SustainmentMetadataProjection` in `./sustainment` (kept inline
-   * here to avoid a circular dependency with sustainment.ts).
+   * The cycle between processHub.ts and sustainment.ts is broken by `import type`,
+   * which is erased at compile time and produces no runtime dependency.
    */
-  sustainment?: {
-    recordId: string;
-    cadence:
-      | 'weekly'
-      | 'biweekly'
-      | 'monthly'
-      | 'quarterly'
-      | 'semiannual'
-      | 'annual'
-      | 'on-demand';
-    nextReviewDue?: string;
-    latestVerdict?: 'holding' | 'drifting' | 'broken' | 'inconclusive';
-    handoffSurface?:
-      | 'mes-recipe'
-      | 'scada-alarm'
-      | 'qms-procedure'
-      | 'work-instruction'
-      | 'training-record'
-      | 'audit-program'
-      | 'dashboard-only'
-      | 'ticket-queue'
-      | 'other';
-  };
+  sustainment?: SustainmentMetadataProjection;
 }
 
 export interface ProcessHubInvestigation {
