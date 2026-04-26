@@ -492,10 +492,12 @@ Example:
 
 ## Agent Review Logs As Process Data
 
-Agent-review logs are a different kind of process data, not a separate
-investigation workflow. The
+Agent-review logs are recurring process evidence, not a separate investigation
+workflow. In Process Hub terms, the user-facing object is an Evidence Source;
+the
 [Agent Review Log Profile](2026-04-26-agent-review-log-process-hub-design.md)
-should feed the same QDE 2.0 loop:
+is the first concrete Data Profile behind that source. Each Snapshot should
+feed the same QDE 2.0 loop:
 
 ```text
 Issue / Concern

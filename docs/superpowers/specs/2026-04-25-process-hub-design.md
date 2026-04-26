@@ -12,6 +12,8 @@ related:
     process-flow,
     improvement-workspace,
     portfolio,
+    evidence-sources,
+    data-profiles,
     agent-review-log,
   ]
 date: 2026-04-25
@@ -84,6 +86,12 @@ help teams review performance snapshots, detect meaningful change signals, find
 where to focus, and decide whether to investigate, act, verify, sustain in
 VariScout, or operationalize control elsewhere.
 
+Process Hub evidence workflow starts from the hub cadence question, not from an
+import workflow: are we meeting the requirement, what changed, and where should
+we focus? User-facing **Evidence Sources** provide recurring hub evidence.
+Internal **Data Profiles** adapt recognizable source-data shapes into the
+deterministic analysis shape that existing VariScout instruments can use.
+
 ## User-Facing Model
 
 ### Process Hub
@@ -130,6 +138,19 @@ chartered work that:
 The MVP stores one primary `processHubId` per investigation. Cross-hub programs
 or formal project wrappers are deferred, but the model should not block future
 `relatedProcessHubIds` or `improvementProgramId` concepts.
+
+### Evidence Sources
+
+An Evidence Source is a recurring source of hub evidence, named in process-owner
+language: a weekly Line 4 fill-weight export, a claims queue extract, a supplier
+defect log, an agent review log, or a verification audit sample. Each Snapshot
+from a source can feed cadence signals, Survey readiness, investigations,
+verification, and sustainment reviews.
+
+When VariScout recognizes the source-data shape, a Data Profile provides the
+deterministic adapter behind the source. The user-facing workflow remains
+"configure evidence for this hub"; the implementation concept is the profile,
+mapping, and validation that make the evidence auditable.
 
 ### Multi-Hub Users
 
@@ -187,8 +208,11 @@ investigations inside them. It is for the process owner, team leader, GB/BB,
 OpEx lead, quality engineer, and sponsor. It should show:
 
 - Accessible Process Hubs before individual investigations.
+- Evidence Sources and latest Snapshots for the selected hub.
 - Active investigations, grouped by hub, depth, and status.
 - Current Understanding and Next Move for each active investigation.
+- Whether the process appears to meet the requirement, what changed since the
+  previous Snapshot, and where variation or burden is concentrated.
 - Owners, contributors, and due items.
 - Open actions across all investigations for the process.
 - Changes planned or active this week.
@@ -226,10 +250,16 @@ first version should remain compatible with the customer-owned data principle:
   deterministic stats engine remains the authority for computed evidence.
 
 The preferred integration model is contract-first and customer-integrated:
-VariScout owns import contracts, validation, evidence snapshots, analysis,
-investigation state, actions, verification, and sustainment/control records.
-The customer data team or an external consultant owns extraction and
-transformation from company-specific source systems into those contracts.
+VariScout owns Evidence Source setup, Data Profile contracts, validation,
+evidence snapshots, analysis, investigation state, actions, verification, and
+sustainment/control records. The customer data team or an external consultant
+owns extraction and transformation from company-specific source systems into
+those contracts.
+
+Future conceptual objects are documented in
+[Evidence Sources And Data Profiles](2026-04-26-evidence-sources-data-profiles-design.md):
+`EvidenceSource`, `DataProfileDefinition`, `EvidenceSnapshot`, and
+`ProfileApplication`. This Process Hub design does not implement them yet.
 
 ## Performance Review And Control Boundary
 
@@ -240,6 +270,7 @@ review loop is:
 ```text
 New data snapshot
 -> Review process performance
+-> Ask whether the process meets the requirement
 -> Detect meaningful change signals
 -> Identify where variation is concentrated
 -> Start or update investigation
@@ -275,7 +306,8 @@ improve the agent-assisted workflow.
 
 The first profile is
 [Agent Review Log Profile](2026-04-26-agent-review-log-process-hub-design.md).
-It focuses on safe green throughput:
+It is the first Data Profile behind an Evidence Source and focuses on safe green
+throughput:
 
 - increase the share of green pass-through decisions
 - prove green correctness through sampled audits and downstream outcomes
@@ -312,6 +344,8 @@ Process Hub fits the unified methodology hierarchy:
 | Layer                 | Role in Process Hub                                           |
 | --------------------- | ------------------------------------------------------------- |
 | Process Hub           | Operating spine for cadence review and improvement load       |
+| Evidence Sources      | Recurring hub evidence, Snapshots, and source provenance      |
+| Data Profiles         | Deterministic adapters for recognizable source-data shapes    |
 | Investigation journey | FRAME, SCOUT, INVESTIGATE, IMPROVE inside each investigation  |
 | Question-driven EDA   | Reasoning spine that sharpens each issue into next moves      |
 | Survey                | Readiness evaluator for act, verify, sustain, or collect more |
@@ -372,12 +406,30 @@ project/finding-centered language and need rework.
 - Later releases can let selected controls stay in VariScout as periodic
   sustainment reviews or be marked as operationalized in another system.
 
+### Phase 5 - Evidence Sources, Data Profiles, And Snapshot Contracts
+
+- Add the hub evidence workflow: Evidence Source setup, Data Profile selection,
+  mapping confirmation, Snapshot history, and validation.
+- Connect Snapshots to cadence board signals, Survey readiness, investigation
+  attachment, action verification, and sustainment handoff.
+- Use Snapshot history to distinguish daily huddle questions from weekly
+  process-review questions. Before Phase 5 lands, the cadence board may show
+  daily/weekly meeting lanes only as derived views over current project
+  metadata, not as persisted cadence records.
+- Keep extraction and transformation outside VariScout; customers or
+  consultants provide exports that match documented contracts.
+- Reserve future Blob direction without claiming current support:
+  `process-hubs/{hubId}/evidence-sources/{sourceId}/snapshots/{snapshotId}/...`.
+  Current Blob behavior remains project-based until this phase is implemented.
+
 ## Non-Goals
 
 - No live ERP, MES, QMS, CRM, or call-center platform integration in the first
   Process Hub phase.
 - No 24/7 operational monitoring, live alarms, shift-critical escalation, or
   real-time control-loop responsibility.
+- No custom integrations owned by VariScout for customer-specific source
+  systems.
 - No generic task board.
 - No in-product notification system beyond the existing events/webhook design
   direction.
@@ -397,9 +449,10 @@ project/finding-centered language and need rework.
    clue, adds an action, and later verifies the result.
 5. Resolved investigation creates a sustainment/control item without requiring a
    full control-plan table.
-6. A team reviews a new data snapshot, sees what changed, identifies the factor
-   level where variation is concentrated, and starts a focused investigation
-   without expecting VariScout to behave as a live alarm system.
+6. A team reviews a new Snapshot from an Evidence Source, sees whether the
+   process appears to meet the requirement, what changed, and where variation is
+   concentrated, then starts a focused investigation without expecting
+   VariScout to behave as a live alarm system.
 
 ## Open Implementation Decisions
 

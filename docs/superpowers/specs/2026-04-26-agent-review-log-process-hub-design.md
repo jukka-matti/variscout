@@ -6,6 +6,7 @@ status: draft
 related:
   [
     process-hub,
+    evidence-sources,
     question-driven-eda-2,
     data-profile,
     ai-quality,
@@ -22,7 +23,8 @@ date: 2026-04-26
 External AI agents are becoming steps inside real business and production
 processes. VariScout should not become an agent runtime, eval dashboard, or
 monitoring platform. It should let a Process Hub owner improve the
-agent-assisted process by importing the agent's review logs as process data.
+agent-assisted process by treating the agent review log as an **Evidence
+Source** and applying this Data Profile to each Snapshot.
 
 The target is **safe green throughput**:
 
@@ -79,10 +81,12 @@ VariScout should not reward green inflation. A higher green share is only an
 improvement when green correctness stays above the customer's threshold and
 false-green rate stays below tolerance.
 
-## Data Profile
+## Evidence Source And Data Profile
 
-This is a **data profile**, not a new analysis mode. The profile should normalize
-agent review logs into columns that existing Standard analysis, staged
+This is the first concrete **Data Profile** behind a Process Hub Evidence
+Source. It is not a new analysis mode. The user-facing source might be named
+"Agent review log" or "Claims triage agent review export." The profile should
+normalize each Snapshot into columns that existing Standard analysis, staged
 comparison, Factor Intelligence, Findings, QDE 2.0, and Process Hub can use.
 
 Typical source columns:
@@ -108,12 +112,17 @@ are fixed:
 - derive confidence bands from numeric confidence when useful
 - preserve source columns so the analyst can inspect and correct mappings
 
+Each Snapshot should retain its Profile Application: the profile version,
+confirmed mapping, derived columns, validation results, and any user correction
+needed to make the import auditable.
+
 ## Workflow Integration
 
 ### Setup
 
 The existing upload, paste, Excel, and manual-entry paths remain the entry
-points. Column Mapping detects likely agent-review fields and recommends:
+points until Process Hub Evidence Sources are implemented. Column Mapping
+detects likely agent-review fields and recommends:
 
 - green pass-through as the primary Y
 - false-green rate as a guardrail when audit or downstream evidence exists
@@ -123,6 +132,10 @@ points. Column Mapping detects likely agent-review fields and recommends:
 If no green audit or downstream outcome field exists, the product should not
 call green pass-through "safe." The next move should be to plan sampled green
 audits or connect a lagging outcome signal.
+
+In the Process Hub workflow, setup begins from the Evidence Source: what
+recurring review log will this hub use, what requirement or tolerance does it
+support, and which Snapshot should feed the next cadence review?
 
 ### FRAME
 
@@ -183,7 +196,7 @@ Current surfaces already map cleanly:
 - Report view documents the evidence chain.
 
 When implemented before Process Hub, the profile metadata should persist with
-the project so it can later migrate into a hub without remapping.
+the project so it can later migrate into an Evidence Source without remapping.
 
 ## Global And Local Ownership
 
@@ -227,6 +240,7 @@ State should follow the current architecture:
 - No live agent runtime integration in v1.
 - No automatic connection to Azure AI Foundry traces in v1.
 - No agent eval dashboard, model registry, or monitoring product.
+- No live monitoring surface for agent decisions.
 - No automatic threshold tuning.
 - No claim that green decisions are safe without audit or downstream evidence.
 - No global/local ownership hierarchy or cross-site rollup in v1.
@@ -234,7 +248,7 @@ State should follow the current architecture:
 ## Acceptance Scenarios
 
 1. A process owner imports an agent review log and VariScout detects the Agent
-   Review Log profile.
+   Review Log profile behind the hub's Evidence Source.
 2. Column Mapping recommends green pass-through share as the improvement Y and
    false-green rate as a guardrail when audit data exists.
 3. The team verifies green correctness from sampled green audits and sees that

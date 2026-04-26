@@ -9,6 +9,7 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 - [OVERVIEW.md](OVERVIEW.md): what VariScout does, the FRAME → SCOUT → INVESTIGATE → IMPROVE journey, six analysis modes, three distribution tiers.
 - [USER-JOURNEYS.md](USER-JOURNEYS.md): ten personas, unified journey spine, per-mode distinctive experience.
 - [DATA-FLOW.md](DATA-FLOW.md): parse → transform → stats → persist → sync → display → AI pipeline. Three numeric-safety boundaries.
+- [superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md](superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md): canonical Evidence Sources, Data Profiles, Snapshots, and Profile Applications design.
 - [01-vision/trainer-network.md](01-vision/trainer-network.md): lightweight trainer ecosystem model for VariScout growth, certification, and directory routing.
 
 ## Architecture

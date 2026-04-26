@@ -11,7 +11,7 @@ related: [product-overview, modes, tiers, coscout, journey]
 
 VariScout is **structured investigation for process improvement**. A browser-based, customer-owned data tool for quality engineers, lean practitioners, and analysts to explore variation in process data, identify suspected causes, and drive improvement actions. Azure tiers are local-cache capable; data stays in the customer's environment throughout.
 
-The near-term product direction is **Process Hub first**: every investigation belongs to a real process, production line, queue, cell, value stream, development flow, or business workflow. The Process Hub gives the process owner and improvement team one place to see what is being investigated, what is being changed, who owns the work, what is waiting for verification, and which learnings need to be sustained. A GB/BB, OpEx lead, or development-org engineer may work across multiple Process Hubs; a line owner may mostly live in one.
+The near-term product direction is **Process Hub first**: every investigation belongs to a real process, production line, queue, cell, value stream, development flow, or business workflow. The Process Hub gives the process owner and improvement team one place to see whether the process is meeting requirements, what changed, what is being investigated, what is being changed, who owns the work, what is waiting for verification, and which learnings need to be sustained. A GB/BB, OpEx lead, or development-org engineer may work across multiple Process Hubs; a line owner may mostly live in one.
 
 ## The journey model
 
@@ -35,6 +35,13 @@ Process Hub is the organizational context around the journey model. It does not 
 | **Chartered** | Formal LSSGB/DMAIC-style work with sponsor, target, and report |
 
 EDA 2.0 supplies the language inside each investigation: Issue / Concern, Current Understanding, Problem Condition, Mechanism Branches, Next Move, Verification, and Control handoff. See `docs/superpowers/specs/2026-04-25-process-hub-design.md`.
+
+Evidence Sources are the user-facing way a Process Hub receives recurring
+process evidence. Each Snapshot from an Evidence Source can feed cadence
+signals, Survey readiness, investigations, verification, and sustainment.
+Data Profiles are the deterministic adapters behind recognized source-data
+shapes; the first concrete example is the Agent Review Log profile for safe
+green throughput.
 
 Survey sits horizontally across that journey. It asks whether the current data,
 signals, branches, and verification evidence are good enough for the next
@@ -78,6 +85,7 @@ Processing happens in the browser. When data moves (Blob Storage sync, AI calls,
 - Data lifecycle (parse → stats → persist → sync): `DATA-FLOW.md`
 - Process Hub direction: `docs/superpowers/specs/2026-04-25-process-hub-design.md`
 - Process Hub use cases: `docs/superpowers/specs/2026-04-25-process-hub-use-cases.md`
+- Evidence Sources and Data Profiles: `docs/superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md`
 - Unified methodology roadmap: `docs/superpowers/specs/2026-04-26-unified-process-hub-methodology-roadmap.md`
 - EDA 2.0 direction: `docs/superpowers/specs/2026-04-25-question-driven-eda-2-design.md`
 - Mode-specific journeys: `USER-JOURNEYS-{YAMAZUMI,PERFORMANCE,DEFECT,CAPABILITY,PROCESS-FLOW}.md`

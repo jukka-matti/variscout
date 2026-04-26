@@ -70,10 +70,56 @@ const formatTopFocus = (item: ProcessHubReviewItem): string | null => {
   return topFocus.value === undefined ? topFocus.factor : `${topFocus.factor} / ${topFocus.value}`;
 };
 
+const formatHubTopFocus = (rollup: ProcessHubRollup<ProcessHubInvestigation>): string | null => {
+  const topFocus = rollup.reviewSignal?.topFocus;
+  if (!topFocus) return null;
+  return topFocus.value === undefined ? topFocus.factor : `${topFocus.factor} / ${topFocus.value}`;
+};
+
 const formatCapability = (item: ProcessHubReviewItem): string | null => {
   const capability = item.investigation.metadata?.reviewSignal?.capability;
   if (capability?.cpk === undefined || capability.cpkTarget === undefined) return null;
   return `Cpk ${formatMetric(capability.cpk)} vs target ${formatMetric(capability.cpkTarget)}`;
+};
+
+const formatHubCapability = (rollup: ProcessHubRollup<ProcessHubInvestigation>): string | null => {
+  const capability = rollup.reviewSignal?.capability;
+  if (capability?.cpk === undefined || capability.cpkTarget === undefined) return null;
+  return `Cpk ${formatMetric(capability.cpk)} vs target ${formatMetric(capability.cpkTarget)}`;
+};
+
+const firstDefined = <T,>(values: Array<T | undefined>): T | undefined =>
+  values.find(value => value !== undefined && value !== null);
+
+const requirementSummary = (rollup: ProcessHubRollup<ProcessHubInvestigation>): string | null =>
+  firstDefined(
+    rollup.investigations.map(
+      investigation =>
+        investigation.metadata?.customerRequirementSummary ??
+        investigation.metadata?.processMapSummary?.ctsColumn
+    )
+  ) ?? null;
+
+const processQuestionAnswers = (
+  rollup: ProcessHubRollup<ProcessHubInvestigation>
+): { requirement: string; change: string; focus: string } => {
+  const requirement = requirementSummary(rollup);
+  const capability = formatHubCapability(rollup);
+  const topFocus = formatHubTopFocus(rollup);
+  const latestChangeSignalCount = rollup.reviewSignal?.changeSignals.total ?? 0;
+
+  return {
+    requirement: requirement ?? capability ?? 'No requirement signal yet',
+    change:
+      latestChangeSignalCount > 0
+        ? `Latest evidence has ${formatChangeSignals(latestChangeSignalCount)}.`
+        : 'No change signal yet',
+    focus:
+      (topFocus && `Focus on ${topFocus}.`) ??
+      (rollup.problemConditionSummary && `Focus on ${rollup.problemConditionSummary}.`) ??
+      (rollup.nextMove && `Next move: ${rollup.nextMove}`) ??
+      'No focus signal yet',
+  };
 };
 
 const ReviewItemButton: React.FC<{
@@ -95,6 +141,15 @@ const SectionHeader: React.FC<{ title: string; icon: React.ReactNode }> = ({ tit
   <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-content">
     {icon}
     <h4>{title}</h4>
+  </div>
+);
+
+const QuestionBand: React.FC<{ question: string; answer: string }> = ({ question, answer }) => (
+  <div className="rounded-md border border-edge bg-surface px-3 py-3">
+    <p className="text-xs font-semibold uppercase tracking-wide text-content-secondary">
+      {question}
+    </p>
+    <p className="mt-2 text-sm font-medium text-content">{answer}</p>
   </div>
 );
 
@@ -148,6 +203,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   onStartInvestigation,
 }) => {
   const cadence = buildProcessHubCadence(rollup);
+  const questionAnswers = processQuestionAnswers(rollup);
   const hasActiveWork = DEPTH_SECTIONS.some(
     ({ depth }) => cadence.activeWork[depth].totalCount > 0
   );
@@ -157,6 +213,12 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
     cadence.actions.totalCount > 0 ||
     cadence.nextMoves.totalCount > 0 ||
     cadence.sustainment.totalCount > 0;
+  const hasDailyDecisionItems =
+    cadence.verification.totalCount > 0 ||
+    cadence.actions.totalCount > 0 ||
+    cadence.nextMoves.totalCount > 0;
+  const hasWeeklyDecisionItems =
+    cadence.readiness.totalCount > 0 || cadence.sustainment.totalCount > 0;
   const headingId = `process-hub-review-${rollup.hub.id}`;
 
   return (
@@ -217,8 +279,21 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
         />
       </div>
 
+      <div className="mt-4">
+        <SectionHeader title="Cadence Questions" icon={<ClipboardCheck size={16} />} />
+        <div className="grid gap-2 lg:grid-cols-3">
+          <QuestionBand
+            question="Are we meeting the requirement?"
+            answer={questionAnswers.requirement}
+          />
+          <QuestionBand question="What changed?" answer={questionAnswers.change} />
+          <QuestionBand question="Where should we focus?" answer={questionAnswers.focus} />
+        </div>
+      </div>
+
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
+          <SectionHeader title="Daily huddle" icon={<Radar size={16} />} />
           <SectionHeader title="Latest Signals" icon={<Radar size={16} />} />
           {cadence.latestSignals.totalCount === 0 ? (
             <p className="rounded-md border border-dashed border-edge px-3 py-3 text-sm text-content-secondary">
@@ -259,59 +334,119 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
           )}
 
           <div className="mt-4">
-            <SectionHeader title="Active Work" icon={<Layers3 size={16} />} />
-            {hasActiveWork ? (
-              <div className="grid gap-2 sm:grid-cols-3">
-                {DEPTH_SECTIONS.map(({ depth, label }) => {
-                  const queue = cadence.activeWork[depth];
-
-                  return (
-                    <div key={depth} className="rounded-md border border-edge bg-surface p-3">
-                      <div className="mb-2 flex items-center justify-between gap-2">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-content-secondary">
-                          {label}
-                        </p>
-                        <span className="text-xs text-content-muted">{queue.totalCount}</span>
-                      </div>
-                      {queue.totalCount > 0 ? (
-                        <div className="space-y-2">
-                          {queue.items.map(item => (
-                            <ReviewItemButton
-                              key={item.investigation.id}
-                              item={item}
-                              onOpenInvestigation={onOpenInvestigation}
-                            >
-                              <p className="text-sm font-medium text-content">
-                                {item.investigation.name}
-                              </p>
-                              <p className="mt-1 text-xs text-content-secondary">
-                                {formatStatus(item.investigation.metadata?.investigationStatus)}
-                              </p>
-                            </ReviewItemButton>
-                          ))}
-                          <MoreCount hiddenCount={queue.hiddenCount} />
-                        </div>
-                      ) : (
-                        <p className="text-xs text-content-muted">
-                          No active {label.toLowerCase()} work
-                        </p>
+            <SectionHeader title="Decision Queues" icon={<ClipboardCheck size={16} />} />
+            <p className="mb-2 text-xs text-content-secondary">Where to Focus</p>
+            {hasDailyDecisionItems ? (
+              <div className="space-y-3">
+                <QueueSection title="Verification" queue={cadence.verification}>
+                  {item => (
+                    <ReviewItemButton
+                      key={item.investigation.id}
+                      item={item}
+                      onOpenInvestigation={onOpenInvestigation}
+                    >
+                      <p className="text-sm font-medium text-content">{item.investigation.name}</p>
+                      {item.nextMove && (
+                        <p className="mt-1 text-xs text-content-secondary">{item.nextMove}</p>
                       )}
-                    </div>
-                  );
-                })}
+                    </ReviewItemButton>
+                  )}
+                </QueueSection>
+
+                <QueueSection title="Actions" queue={cadence.actions}>
+                  {item => (
+                    <ReviewItemButton
+                      key={item.investigation.id}
+                      item={item}
+                      onOpenInvestigation={onOpenInvestigation}
+                    >
+                      <div className="flex items-center gap-2 text-sm font-medium text-content">
+                        <CircleAlert size={14} className="text-amber-400" />
+                        <span>{item.investigation.name}</span>
+                      </div>
+                      <p className="mt-1 text-xs text-amber-400">
+                        {formatOverdueActions(item.overdueActionCount)}
+                      </p>
+                    </ReviewItemButton>
+                  )}
+                </QueueSection>
+
+                <QueueSection title="Next Moves" queue={cadence.nextMoves}>
+                  {item => (
+                    <ReviewItemButton
+                      key={item.investigation.id}
+                      item={item}
+                      onOpenInvestigation={onOpenInvestigation}
+                    >
+                      <p className="text-sm font-medium text-content">{item.investigation.name}</p>
+                      {item.nextMove && (
+                        <p className="mt-1 text-xs text-content-secondary">{item.nextMove}</p>
+                      )}
+                    </ReviewItemButton>
+                  )}
+                </QueueSection>
               </div>
             ) : (
               <p className="rounded-md border border-dashed border-edge px-3 py-3 text-sm text-content-secondary">
-                No active investigations yet
+                No active review items yet
               </p>
             )}
           </div>
         </div>
 
         <div>
-          <SectionHeader title="Decision Queues" icon={<ClipboardCheck size={16} />} />
-          <p className="mb-2 text-xs text-content-secondary">Where to Focus</p>
-          {hasActiveReviewItems ? (
+          <SectionHeader title="Weekly process review" icon={<Layers3 size={16} />} />
+          <SectionHeader title="Active Work" icon={<Layers3 size={16} />} />
+          {hasActiveWork ? (
+            <div className="grid gap-2">
+              {DEPTH_SECTIONS.map(({ depth, label }) => {
+                const queue = cadence.activeWork[depth];
+
+                return (
+                  <div key={depth} className="rounded-md border border-edge bg-surface p-3">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-content-secondary">
+                        {label}
+                      </p>
+                      <span className="text-xs text-content-muted">{queue.totalCount}</span>
+                    </div>
+                    {queue.totalCount > 0 ? (
+                      <div className="space-y-2">
+                        {queue.items.map(item => (
+                          <ReviewItemButton
+                            key={item.investigation.id}
+                            item={item}
+                            onOpenInvestigation={onOpenInvestigation}
+                          >
+                            <p className="text-sm font-medium text-content">
+                              {item.investigation.name}
+                            </p>
+                            <p className="mt-1 text-xs text-content-secondary">
+                              {formatStatus(item.investigation.metadata?.investigationStatus)}
+                            </p>
+                          </ReviewItemButton>
+                        ))}
+                        <MoreCount hiddenCount={queue.hiddenCount} />
+                      </div>
+                    ) : (
+                      <p className="text-xs text-content-muted">
+                        No active {label.toLowerCase()} work
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="rounded-md border border-dashed border-edge px-3 py-3 text-sm text-content-secondary">
+              No active investigations yet
+            </p>
+          )}
+
+          <div className="mt-4">
+            <SectionHeader title="Weekly queues" icon={<ClipboardCheck size={16} />} />
+          </div>
+          {hasWeeklyDecisionItems ? (
             <div className="space-y-3">
               <QueueSection title="Readiness" queue={cadence.readiness}>
                 {item => (
@@ -342,39 +477,6 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
                 )}
               </QueueSection>
 
-              <QueueSection title="Verification" queue={cadence.verification}>
-                {item => (
-                  <ReviewItemButton
-                    key={item.investigation.id}
-                    item={item}
-                    onOpenInvestigation={onOpenInvestigation}
-                  >
-                    <p className="text-sm font-medium text-content">{item.investigation.name}</p>
-                    {item.nextMove && (
-                      <p className="mt-1 text-xs text-content-secondary">{item.nextMove}</p>
-                    )}
-                  </ReviewItemButton>
-                )}
-              </QueueSection>
-
-              <QueueSection title="Actions" queue={cadence.actions}>
-                {item => (
-                  <ReviewItemButton
-                    key={item.investigation.id}
-                    item={item}
-                    onOpenInvestigation={onOpenInvestigation}
-                  >
-                    <div className="flex items-center gap-2 text-sm font-medium text-content">
-                      <CircleAlert size={14} className="text-amber-400" />
-                      <span>{item.investigation.name}</span>
-                    </div>
-                    <p className="mt-1 text-xs text-amber-400">
-                      {formatOverdueActions(item.overdueActionCount)}
-                    </p>
-                  </ReviewItemButton>
-                )}
-              </QueueSection>
-
               <QueueSection title="Sustainment" queue={cadence.sustainment}>
                 {item => (
                   <ReviewItemButton
@@ -392,25 +494,10 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
                   </ReviewItemButton>
                 )}
               </QueueSection>
-
-              <QueueSection title="Next Moves" queue={cadence.nextMoves}>
-                {item => (
-                  <ReviewItemButton
-                    key={item.investigation.id}
-                    item={item}
-                    onOpenInvestigation={onOpenInvestigation}
-                  >
-                    <p className="text-sm font-medium text-content">{item.investigation.name}</p>
-                    {item.nextMove && (
-                      <p className="mt-1 text-xs text-content-secondary">{item.nextMove}</p>
-                    )}
-                  </ReviewItemButton>
-                )}
-              </QueueSection>
             </div>
-          ) : (
+          ) : hasActiveReviewItems ? null : (
             <p className="rounded-md border border-dashed border-edge px-3 py-3 text-sm text-content-secondary">
-              No active review items yet
+              No weekly review items yet
             </p>
           )}
         </div>

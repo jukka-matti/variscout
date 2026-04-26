@@ -197,6 +197,17 @@ describe('Dashboard Process Hub home', () => {
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
     const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
+    expect(within(panel).getByText('Cadence Questions')).toBeInTheDocument();
+    expect(within(panel).getByText('Are we meeting the requirement?')).toBeInTheDocument();
+    expect(
+      within(panel).getByText('Fill weight must stay inside customer specs.')
+    ).toBeInTheDocument();
+    expect(within(panel).getByText('What changed?')).toBeInTheDocument();
+    expect(within(panel).getByText('Latest evidence has 2 change signals.')).toBeInTheDocument();
+    expect(within(panel).getByText('Where should we focus?')).toBeInTheDocument();
+    expect(within(panel).getByText('Focus on Machine / B.')).toBeInTheDocument();
+    expect(within(panel).getByText('Daily huddle')).toBeInTheDocument();
+    expect(within(panel).getByText('Weekly process review')).toBeInTheDocument();
     expect(within(panel).getByText('Latest Signals')).toBeInTheDocument();
     expect(within(panel).getByText('Active Work')).toBeInTheDocument();
     expect(within(panel).getByText('Quick')).toBeInTheDocument();
@@ -308,8 +319,11 @@ describe('Dashboard Process Hub home', () => {
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
     const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
+    expect(within(panel).getByText('Daily huddle')).toBeInTheDocument();
+    expect(within(panel).getByText('Weekly process review')).toBeInTheDocument();
     expect(within(panel).getByText('No latest signals yet')).toBeInTheDocument();
     expect(within(panel).getByText('No active investigations yet')).toBeInTheDocument();
     expect(within(panel).getByText('No active review items yet')).toBeInTheDocument();
+    expect(within(panel).getByText('No requirement signal yet')).toBeInTheDocument();
   });
 });

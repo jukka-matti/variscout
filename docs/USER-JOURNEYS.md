@@ -34,18 +34,23 @@ workflow. A quality engineer, GB/BB, OpEx lead, or development-org engineer may
 work across multiple hubs to compare leverage, blocked work, verification gaps,
 and charter candidates. The PWA remains investigation-first for training.
 
+Evidence Sources are the recurring hub inputs that let those users ask whether
+the process is meeting the requirement, what changed, and where to focus. Data
+Profiles sit behind recognized Evidence Sources as deterministic adapters, not
+as a separate user-facing journey.
+
 ## Usage levels
 
 VariScout serves one nested methodology at several levels of use:
 
-| Level                         | Typical user                     | Primary need                                                                  |
-| ----------------------------- | -------------------------------- | ----------------------------------------------------------------------------- |
-| PWA / training                | Tina, Sara, Carlos               | Learn the investigation method without organizational persistence             |
-| Quick analyst dataset         | Alex, Eeva, Gary                 | Analyze one dataset and attach the learning to process context                |
-| Process-owner cadence         | Olivia, process owner, team lead | Review signals, actions, verification, and sustainment in one hub             |
-| GB/BB multi-hub scan          | Gary, Olivia, sponsor            | Compare hubs for leverage, charter candidates, and blocked work               |
-| Data-team / consultant enable | Admin Aino, external consultant  | Fit source-system extracts to VariScout contracts without custom integrations |
-| Sustainment/control handoff   | Owner, quality, operations       | Decide what stays in VariScout and what moves to live monitoring              |
+| Level                       | Typical user                      | Primary need                                                             |
+| --------------------------- | --------------------------------- | ------------------------------------------------------------------------ |
+| PWA / training              | Tina, Sara, Carlos                | Learn the investigation method without organizational persistence        |
+| Quick analyst dataset       | Alex, Eeva, Gary                  | Analyze one dataset and attach the learning to process context           |
+| Process-owner cadence       | Olivia, process owner, team lead  | Review signals, actions, verification, and sustainment in one hub        |
+| GB/BB multi-hub scan        | Gary, Olivia, sponsor             | Compare hubs for leverage, charter candidates, and blocked work          |
+| Evidence-source enablement  | Admin Aino, data team, consultant | Fit recurring exports to VariScout contracts without custom integrations |
+| Sustainment/control handoff | Owner, quality, operations        | Decide what stays in VariScout and what moves to live monitoring         |
 
 The same investigation journey sits inside each level. Survey acts as the
 readiness evaluator: it asks what the current data, signals, branches, and

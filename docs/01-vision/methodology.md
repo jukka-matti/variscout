@@ -34,19 +34,22 @@ VariScout identifies **factors driving variation**, not root causes. EDA shows _
 
 VariScout now uses a nested methodology model:
 
-| Layer                     | Job                                                                 |
-| ------------------------- | ------------------------------------------------------------------- |
-| **Process Hub**           | Operating spine for process-owner cadence and team improvement      |
-| **Investigation journey** | FRAME -> SCOUT -> INVESTIGATE -> IMPROVE for one issue              |
-| **Question-driven EDA**   | Reasoning spine that sharpens concern into Current Understanding    |
-| **Survey**                | Horizontal readiness check across phases and hub reviews            |
-| **Signal Cards**          | Signal-level trust records quoted by Survey, branches, and reports  |
-| **Process moments**       | Process-rational Cp/Cpk windows for verification and learning       |
-| **Sustainment handoff**   | Decision on what stays in VariScout or moves to operational systems |
+| Layer                                | Job                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------- |
+| **Process Hub**                      | Operating spine for process-owner cadence and team improvement      |
+| **Evidence Sources / Data Profiles** | Recurring hub evidence workflow and deterministic source adapters   |
+| **Investigation journey**            | FRAME -> SCOUT -> INVESTIGATE -> IMPROVE for one issue              |
+| **Question-driven EDA**              | Reasoning spine that sharpens concern into Current Understanding    |
+| **Survey**                           | Horizontal readiness check across phases and hub reviews            |
+| **Signal Cards**                     | Signal-level trust records quoted by Survey, branches, and reports  |
+| **Process moments**                  | Process-rational Cp/Cpk windows for verification and learning       |
+| **Sustainment handoff**              | Decision on what stays in VariScout or moves to operational systems |
 
 This is not a replacement for the original journey. Process Hub organizes the
-work; the investigation journey explains how the work is done; Survey asks
-whether the current evidence is ready for the next move.
+work; Evidence Sources provide recurring Snapshots for hub cadence; Data
+Profiles adapt recognizable source-data shapes deterministically; the
+investigation journey explains how the work is done; Survey asks whether the
+current evidence is ready for the next move.
 
 ---
 
