@@ -26,7 +26,10 @@
     "./evidenceMap": "./src/evidenceMap/index.ts",
     "./defect": "./src/defect/index.ts",
     "./frame": "./src/frame/index.ts",
-    "./survey": "./src/survey/index.ts"
+    "./survey": "./src/survey/index.ts",
+    "./signalCards": "./src/signalCards.ts",
+    "./processMoments": "./src/processMoments.ts",
+    "./evidenceSources": "./src/evidenceSources.ts"
   },
   "scripts": {
     "test": "vitest",

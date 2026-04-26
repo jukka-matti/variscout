@@ -3,7 +3,12 @@
 // Wraps blobClient.ts operations for the storage.ts orchestrator.
 
 import { DEFAULT_PROCESS_HUB } from '@variscout/core';
-import type { ProcessHub, ProjectMetadata } from '@variscout/core';
+import type {
+  EvidenceSnapshot,
+  EvidenceSource,
+  ProcessHub,
+  ProjectMetadata,
+} from '@variscout/core';
 import { AuthError } from '../auth/easyAuth';
 import { db } from '../db/schema';
 import type { Project } from './localDb';
@@ -15,6 +20,12 @@ import {
   updateBlobIndex,
   listBlobProcessHubs,
   updateBlobProcessHubs,
+  listBlobEvidenceSources,
+  listBlobEvidenceSnapshots,
+  saveBlobEvidenceSnapshot,
+  saveBlobEvidenceSource,
+  updateBlobEvidenceSources,
+  updateBlobEvidenceSnapshots,
 } from './blobClient';
 import type { BlobProjectMetadata } from './blobClient';
 
@@ -197,6 +208,50 @@ export async function saveProcessHubToCloud(_token: string, hub: ProcessHub): Pr
     ? hubs.map(existing => (existing.id === hub.id ? hub : existing))
     : [...hubs, hub];
   await wrapBlobCall(() => updateBlobProcessHubs(next));
+}
+
+export async function listEvidenceSourcesFromCloud(
+  _token: string,
+  hubId: string
+): Promise<EvidenceSource[]> {
+  return wrapBlobCall(() => listBlobEvidenceSources(hubId));
+}
+
+export async function saveEvidenceSourceToCloud(
+  _token: string,
+  source: EvidenceSource
+): Promise<void> {
+  const existing = await listEvidenceSourcesFromCloud(_token, source.hubId);
+  const next = existing.some(item => item.id === source.id)
+    ? existing.map(item => (item.id === source.id ? source : item))
+    : [...existing, source];
+  await wrapBlobCall(async () => {
+    await saveBlobEvidenceSource(source);
+    await updateBlobEvidenceSources(source.hubId, next);
+  });
+}
+
+export async function listEvidenceSnapshotsFromCloud(
+  _token: string,
+  hubId: string,
+  sourceId: string
+): Promise<EvidenceSnapshot[]> {
+  return wrapBlobCall(() => listBlobEvidenceSnapshots(hubId, sourceId));
+}
+
+export async function saveEvidenceSnapshotToCloud(
+  _token: string,
+  snapshot: EvidenceSnapshot,
+  sourceCsv?: string
+): Promise<void> {
+  const existing = await listEvidenceSnapshotsFromCloud(_token, snapshot.hubId, snapshot.sourceId);
+  const next = existing.some(item => item.id === snapshot.id)
+    ? existing.map(item => (item.id === snapshot.id ? snapshot : item))
+    : [...existing, snapshot];
+  await wrapBlobCall(async () => {
+    await saveBlobEvidenceSnapshot(snapshot, sourceCsv);
+    await updateBlobEvidenceSnapshots(snapshot.hubId, snapshot.sourceId, next);
+  });
 }
 
 export async function loadFromCloud(

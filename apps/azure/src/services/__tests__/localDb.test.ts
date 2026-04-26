@@ -6,8 +6,12 @@ import {
   backfillProjectMetadataInIndexedDB,
   ensureDefaultProcessHubInIndexedDB,
   extractMetadataInputs,
+  listEvidenceSnapshotsFromIndexedDB,
+  listEvidenceSourcesFromIndexedDB,
   listProcessHubsFromIndexedDB,
   listFromIndexedDB,
+  saveEvidenceSnapshotToIndexedDB,
+  saveEvidenceSourceToIndexedDB,
   saveProcessHubToIndexedDB,
 } from '../localDb';
 
@@ -145,6 +149,29 @@ describe('localDb Process Hub support', () => {
 
     const hubs = await listProcessHubsFromIndexedDB();
     expect(hubs.map(h => h.name)).toContain('Line 4');
+  });
+
+  it('stores Evidence Sources and Snapshots locally in Dexie v5 tables', async () => {
+    await saveEvidenceSourceToIndexedDB({
+      id: 'source-1',
+      hubId: 'line-4',
+      name: 'Agent review log',
+      cadence: 'weekly',
+      profileId: 'agent-review-log',
+      createdAt: '2026-04-26T00:00:00.000Z',
+      updatedAt: '2026-04-26T00:00:00.000Z',
+    });
+
+    await saveEvidenceSnapshotToIndexedDB({
+      id: 'snapshot-1',
+      hubId: 'line-4',
+      sourceId: 'source-1',
+      capturedAt: '2026-04-26T12:00:00.000Z',
+      rowCount: 3,
+    });
+
+    await expect(listEvidenceSourcesFromIndexedDB('line-4')).resolves.toHaveLength(1);
+    await expect(listEvidenceSnapshotsFromIndexedDB('line-4', 'source-1')).resolves.toHaveLength(1);
   });
 
   it('backfills missing metadata for existing local analyses', async () => {

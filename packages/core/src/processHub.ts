@@ -1,4 +1,5 @@
 import type { JourneyPhase } from './ai/types';
+import type { EvidenceLatestSignal, EvidenceSnapshot } from './evidenceSources';
 import type { FindingStatus, QuestionStatus } from './findings/types';
 import type { HubReviewSignal } from './processReviewSignal';
 import type { SurveyStatus } from './survey/types';
@@ -78,6 +79,7 @@ export interface ProcessHubRollup<
   problemConditionSummary?: string;
   nextMove?: string;
   reviewSignal?: HubReviewSignal;
+  evidenceSnapshots: EvidenceSnapshot[];
 }
 
 export type ProcessHubAttentionReason =
@@ -149,6 +151,7 @@ export interface ProcessHubCadenceSnapshot {
   overdueActions: number;
   sustainment: number;
   latestSignals: number;
+  latestEvidenceSignals?: number;
   nextMoves: number;
 }
 
@@ -168,6 +171,11 @@ export interface ProcessHubCadenceSummary<
   latestActivity: string | null;
   snapshot: ProcessHubCadenceSnapshot;
   latestSignals: ProcessHubCadenceQueue<TInvestigation>;
+  latestEvidenceSignals: {
+    totalCount: number;
+    hiddenCount: number;
+    items: EvidenceLatestSignal[];
+  };
   readiness: ProcessHubCadenceQueue<TInvestigation>;
   verification: ProcessHubCadenceQueue<TInvestigation>;
   actions: ProcessHubCadenceQueue<TInvestigation>;
@@ -214,6 +222,7 @@ export interface ProcessHubContextContract {
   investigations: ProcessHubContextInvestigation[];
   metrics: ProcessHubMetricContext[];
   variationConcentrations: ProcessHubVariationConcentration[];
+  evidenceSignals: EvidenceLatestSignal[];
   questions: {
     open: number;
     answered: number;
@@ -282,7 +291,8 @@ function newestInvestigation<TInvestigation extends ProcessHubInvestigation>(
 
 export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestigation>(
   hubs: ProcessHub[],
-  investigations: TInvestigation[]
+  investigations: TInvestigation[],
+  options: { evidenceSnapshots?: EvidenceSnapshot[] } = {}
 ): ProcessHubRollup<TInvestigation>[] {
   const hubMap = new Map<string, ProcessHub>();
   hubMap.set(DEFAULT_PROCESS_HUB_ID, DEFAULT_PROCESS_HUB);
@@ -292,6 +302,12 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
 
   for (const investigation of investigations) {
     const hubId = normalizeProcessHubId(investigation.metadata?.processHubId);
+    if (!hubMap.has(hubId)) {
+      hubMap.set(hubId, { id: hubId, name: hubId, createdAt: '1970-01-01T00:00:00.000Z' });
+    }
+  }
+  for (const snapshot of options.evidenceSnapshots ?? []) {
+    const hubId = normalizeProcessHubId(snapshot.hubId);
     if (!hubMap.has(hubId)) {
       hubMap.set(hubId, { id: hubId, name: hubId, createdAt: '1970-01-01T00:00:00.000Z' });
     }
@@ -334,6 +350,9 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
       const reviewSignalSource = hubInvestigations.find(
         investigation => investigation.metadata?.reviewSignal
       );
+      const evidenceSnapshots = (options.evidenceSnapshots ?? [])
+        .filter(snapshot => normalizeProcessHubId(snapshot.hubId) === hub.id)
+        .sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
 
       return {
         hub,
@@ -347,9 +366,15 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
         problemConditionSummary: summarySource?.metadata?.problemConditionSummary,
         nextMove: summarySource?.metadata?.nextMove,
         reviewSignal: reviewSignalSource?.metadata?.reviewSignal,
+        evidenceSnapshots,
       };
     })
-    .filter(rollup => rollup.investigations.length > 0 || rollup.hub.id !== DEFAULT_PROCESS_HUB_ID)
+    .filter(
+      rollup =>
+        rollup.investigations.length > 0 ||
+        rollup.evidenceSnapshots.length > 0 ||
+        rollup.hub.id !== DEFAULT_PROCESS_HUB_ID
+    )
     .sort((a, b) => {
       const aTime = a.latestActivity ? new Date(a.latestActivity).getTime() : 0;
       const bTime = b.latestActivity ? new Date(b.latestActivity).getTime() : 0;
@@ -559,25 +584,46 @@ function cadenceQueue<TInvestigation extends ProcessHubInvestigation>(
   };
 }
 
+function evidenceSignals(rollup: ProcessHubRollup): EvidenceLatestSignal[] {
+  return rollup.evidenceSnapshots
+    .flatMap(snapshot => snapshot.latestSignals ?? [])
+    .sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
+}
+
+function evidenceSignalQueue(signals: EvidenceLatestSignal[]) {
+  return {
+    totalCount: signals.length,
+    hiddenCount: Math.max(0, signals.length - CADENCE_QUEUE_LIMIT),
+    items: signals.slice(0, CADENCE_QUEUE_LIMIT),
+  };
+}
+
 export function buildProcessHubCadence<TInvestigation extends ProcessHubInvestigation>(
   rollup: ProcessHubRollup<TInvestigation>
 ): ProcessHubCadenceSummary<TInvestigation> {
   const review = buildProcessHubReview(rollup);
+  const latestEvidenceSignals = evidenceSignals(rollup);
+
+  const snapshot: ProcessHubCadenceSnapshot = {
+    active: rollup.activeInvestigationCount,
+    readiness: review.readinessQueue.length,
+    verification: review.verificationQueue.length,
+    overdueActions: rollup.overdueActionCount,
+    sustainment: review.sustainmentQueue.length,
+    latestSignals: review.whereToFocus.length,
+    nextMoves: review.nextMoveQueue.length,
+  };
+  if (latestEvidenceSignals.length > 0) {
+    snapshot.latestEvidenceSignals = latestEvidenceSignals.length;
+  }
 
   return {
     hub: rollup.hub,
     activeInvestigationCount: rollup.activeInvestigationCount,
     latestActivity: rollup.latestActivity,
-    snapshot: {
-      active: rollup.activeInvestigationCount,
-      readiness: review.readinessQueue.length,
-      verification: review.verificationQueue.length,
-      overdueActions: rollup.overdueActionCount,
-      sustainment: review.sustainmentQueue.length,
-      latestSignals: review.whereToFocus.length,
-      nextMoves: review.nextMoveQueue.length,
-    },
+    snapshot,
     latestSignals: cadenceQueue(review.whereToFocus),
+    latestEvidenceSignals: evidenceSignalQueue(latestEvidenceSignals),
     readiness: cadenceQueue(review.readinessQueue),
     verification: cadenceQueue(review.verificationQueue),
     actions: cadenceQueue(review.overdueActionQueue),
@@ -630,6 +676,7 @@ export function buildProcessHubContext<TInvestigation extends ProcessHubInvestig
 
   const metrics: ProcessHubMetricContext[] = [];
   const variationConcentrations: ProcessHubVariationConcentration[] = [];
+  const latestEvidenceSignals = evidenceSignals(rollup);
   const processDescriptionForContract = processDescription ?? rollup.hub.description;
   const customerRequirementForContract = customerRequirement ?? processMap?.ctsColumn;
 
@@ -696,6 +743,7 @@ export function buildProcessHubContext<TInvestigation extends ProcessHubInvestig
     })),
     metrics,
     variationConcentrations,
+    evidenceSignals: latestEvidenceSignals,
     questions: {
       open: openQuestions,
       answered: answeredQuestions,

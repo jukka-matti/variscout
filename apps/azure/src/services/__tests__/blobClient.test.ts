@@ -3,6 +3,10 @@ import {
   getSasToken,
   _resetSasCache,
   blobUrl,
+  listBlobEvidenceSources,
+  listBlobEvidenceSnapshots,
+  saveBlobEvidenceSnapshot,
+  saveBlobEvidenceSource,
   listBlobProcessHubs,
   updateBlobProcessHubs,
 } from '../blobClient';
@@ -148,6 +152,107 @@ describe('blobClient', () => {
           ]),
         })
       );
+    });
+  });
+
+  // ── Process Hub evidence sources and snapshots ───────────────────────
+
+  describe('Evidence Source snapshots', () => {
+    it('writes Evidence Source metadata under the reserved Process Hub path', async () => {
+      fetchSpy
+        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
+        .mockResolvedValueOnce(new Response('', { status: 201 }));
+
+      await saveBlobEvidenceSource({
+        id: 'source-1',
+        hubId: 'hub-1',
+        name: 'Agent review log',
+        cadence: 'weekly',
+        profileId: 'agent-review-log',
+        createdAt: '2026-04-26T00:00:00.000Z',
+        updatedAt: '2026-04-26T00:00:00.000Z',
+      });
+
+      expect(fetchSpy).toHaveBeenLastCalledWith(
+        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/evidence-sources/source-1/source.json?sig=test',
+        expect.objectContaining({
+          method: 'PUT',
+          body: expect.stringContaining('"profileId":"agent-review-log"'),
+        })
+      );
+    });
+
+    it('writes Evidence Snapshot metadata and profile application under the snapshot path', async () => {
+      fetchSpy
+        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
+        .mockResolvedValueOnce(new Response('', { status: 201 }))
+        .mockResolvedValueOnce(new Response('', { status: 201 }));
+
+      await saveBlobEvidenceSnapshot(
+        {
+          id: 'snapshot-1',
+          hubId: 'hub-1',
+          sourceId: 'source-1',
+          capturedAt: '2026-04-26T12:00:00.000Z',
+          rowCount: 3,
+          profileApplication: {
+            profileId: 'agent-review-log',
+            profileVersion: 1,
+            mapping: { flagColor: 'flagColor' },
+            validation: { ok: true, errors: [], warnings: [] },
+            derivedColumns: ['GreenPassThrough'],
+            derivedRows: [],
+          },
+        },
+        'a,b\n1,2'
+      );
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        2,
+        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/evidence-sources/source-1/snapshots/snapshot-1/snapshot.json?sig=test',
+        expect.objectContaining({ method: 'PUT' })
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        3,
+        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/evidence-sources/source-1/snapshots/snapshot-1/source.csv?sig=test',
+        expect.objectContaining({ method: 'PUT', body: 'a,b\n1,2' })
+      );
+    });
+
+    it('lists Evidence Sources and Snapshot metadata from catalog blobs', async () => {
+      fetchSpy
+        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify([
+              {
+                id: 'source-1',
+                hubId: 'hub-1',
+                name: 'Agent review log',
+                cadence: 'weekly',
+                createdAt: '2026-04-26T00:00:00.000Z',
+              },
+            ]),
+            { status: 200 }
+          )
+        )
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify([
+              {
+                id: 'snapshot-1',
+                hubId: 'hub-1',
+                sourceId: 'source-1',
+                capturedAt: '2026-04-26T12:00:00.000Z',
+                rowCount: 3,
+              },
+            ]),
+            { status: 200 }
+          )
+        );
+
+      await expect(listBlobEvidenceSources('hub-1')).resolves.toHaveLength(1);
+      await expect(listBlobEvidenceSnapshots('hub-1', 'source-1')).resolves.toHaveLength(1);
     });
   });
 });

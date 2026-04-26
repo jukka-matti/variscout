@@ -225,6 +225,10 @@ vi.mock('../../services/storage', () => ({
       Promise.resolve([{ id: 'general-unassigned', name: 'General / Unassigned', createdAt: '' }])
     ),
     saveProcessHub: vi.fn(),
+    listEvidenceSources: vi.fn(() => Promise.resolve([])),
+    saveEvidenceSource: vi.fn(),
+    listEvidenceSnapshots: vi.fn(() => Promise.resolve([])),
+    saveEvidenceSnapshot: vi.fn(),
     syncStatus: { status: 'synced', message: 'Synced' },
   })),
   updateLastViewedAt: vi.fn(),
@@ -321,6 +325,10 @@ describe('Editor', () => {
         Promise.resolve([{ id: 'general-unassigned', name: 'General / Unassigned', createdAt: '' }])
       ),
       saveProcessHub: vi.fn(),
+      listEvidenceSources: vi.fn(() => Promise.resolve([])),
+      saveEvidenceSource: vi.fn(),
+      listEvidenceSnapshots: vi.fn(() => Promise.resolve([])),
+      saveEvidenceSnapshot: vi.fn(),
       syncStatus: { status: 'synced', message: 'Synced' },
     } as unknown as ReturnType<typeof StorageModule.useStorage>);
 

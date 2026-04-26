@@ -30,12 +30,16 @@ export interface SyncItem {
 }
 
 export type ProcessHubRecord = import('@variscout/core').ProcessHub;
+export type EvidenceSourceRecord = import('@variscout/core').EvidenceSource;
+export type EvidenceSnapshotRecord = import('@variscout/core').EvidenceSnapshot;
 
 class VariScoutDatabase extends Dexie {
   projects!: Dexie.Table<ProjectRecord, string>;
   syncQueue!: Dexie.Table<SyncItem, number>;
   syncState!: Dexie.Table<SyncStateRecord, string>;
   processHubs!: Dexie.Table<ProcessHubRecord, string>;
+  evidenceSources!: Dexie.Table<EvidenceSourceRecord, string>;
+  evidenceSnapshots!: Dexie.Table<EvidenceSnapshotRecord, string>;
 
   constructor() {
     super('VaRiScoutAzure');
@@ -72,6 +76,18 @@ class VariScoutDatabase extends Dexie {
       photoQueue: '++id, photoId, findingId, queuedAt',
       channelDriveCache: 'channelId',
       processHubs: 'id, name, updatedAt',
+    });
+
+    // Version 5: Process Hub Evidence Sources and Snapshot metadata
+    this.version(5).stores({
+      projects: 'name, location, modified, synced',
+      syncQueue: '++id, name, location, queuedAt',
+      syncState: 'name, cloudId, lastSynced, etag',
+      photoQueue: '++id, photoId, findingId, queuedAt',
+      channelDriveCache: 'channelId',
+      processHubs: 'id, name, updatedAt',
+      evidenceSources: 'id, hubId, name, profileId, updatedAt',
+      evidenceSnapshots: 'id, hubId, sourceId, capturedAt',
     });
   }
 }

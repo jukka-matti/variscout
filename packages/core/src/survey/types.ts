@@ -5,6 +5,12 @@ import type { Finding, Question, SuspectedCause } from '../findings';
 import type { DataRow, SpecLimits, WideFormatDetection } from '../types';
 import type { YamazumiColumnMapping, YamazumiDetection } from '../yamazumi';
 import type { Gap, InferredMode, ModeInferenceResult, ProcessMap } from '../frame';
+import type {
+  MeasurementStudyStatus,
+  SignalPowerStatus,
+  SignalSourceArchetype,
+  SignalTrustGrade,
+} from '../signalCards';
 
 export type SurveyStatus = 'can-do-now' | 'can-do-with-caution' | 'cannot-do-yet' | 'ask-for-next';
 
@@ -79,10 +85,14 @@ export interface SurveyTrustItem {
   id: string;
   signal: string;
   status: SurveyStatus;
-  archetype: string;
+  archetype: SignalSourceArchetype | string;
   trustLabel: string;
   weakLink: string;
   operationalDefinition: string;
+  signalCardId?: string;
+  trustGrade?: SignalTrustGrade;
+  powerStatus?: SignalPowerStatus;
+  studyStatus?: MeasurementStudyStatus;
 }
 
 export interface SurveySection<TItem> {
@@ -123,7 +133,10 @@ export interface SurveyEvaluationInput {
   yamazumiMapping?: YamazumiColumnMapping | null;
   defectMapping?: DefectMapping | null;
   processMap?: ProcessMap;
-  processContext?: Pick<ProcessContext, 'processMap' | 'description' | 'measurement'>;
+  processContext?: Pick<
+    ProcessContext,
+    'processMap' | 'description' | 'measurement' | 'signalCards'
+  >;
   questions?: Question[];
   findings?: Finding[];
   branches?: SuspectedCause[];

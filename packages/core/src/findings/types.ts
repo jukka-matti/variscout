@@ -677,6 +677,8 @@ export interface SuspectedCause {
   /** Explicit ProcessMap binding. Falls back to column-matching derivation via
    * findings' columns when absent. */
   tributaryIds?: string[];
+  /** Signal Cards that this branch relies on for measurement or factor evidence. */
+  signalCardIds?: string[];
   /** Timestamped hypothesis-level team discussion. Same shape as FindingComment. */
   comments?: FindingComment[];
   /** Created timestamp */

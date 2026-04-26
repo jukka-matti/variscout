@@ -6,7 +6,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { getEasyAuthUser, isLocalDev } from '../auth/easyAuth';
 import { errorService } from '@variscout/ui';
 import { hasTeamFeatures } from '@variscout/core';
-import type { ProcessHub } from '@variscout/core';
+import type { EvidenceSnapshot, EvidenceSource, ProcessHub } from '@variscout/core';
 import {
   addToSyncQueue,
   getPendingSyncItems,
@@ -48,6 +48,10 @@ import {
   saveSidecarToCloud,
   listProcessHubsFromCloud,
   saveProcessHubToCloud,
+  listEvidenceSourcesFromCloud,
+  listEvidenceSnapshotsFromCloud,
+  saveEvidenceSourceToCloud,
+  saveEvidenceSnapshotToCloud,
   RETRY_DELAYS,
   MAX_RETRY_DELAY,
   MAX_RETRIES,
@@ -62,6 +66,10 @@ import {
   listProcessHubsFromIndexedDB,
   saveProcessHubToIndexedDB,
   ensureDefaultProcessHubInIndexedDB,
+  listEvidenceSourcesFromIndexedDB,
+  listEvidenceSnapshotsFromIndexedDB,
+  saveEvidenceSourceToIndexedDB,
+  saveEvidenceSnapshotToIndexedDB,
 } from './localDb';
 
 // ── StorageProvider Context ─────────────────────────────────────────────
@@ -72,6 +80,10 @@ interface StorageContextValue {
   listProjects: () => Promise<CloudProject[]>;
   listProcessHubs: () => Promise<ProcessHub[]>;
   saveProcessHub: (hub: ProcessHub) => Promise<void>;
+  listEvidenceSources: (hubId: string) => Promise<EvidenceSource[]>;
+  saveEvidenceSource: (source: EvidenceSource) => Promise<void>;
+  listEvidenceSnapshots: (hubId: string, sourceId: string) => Promise<EvidenceSnapshot[]>;
+  saveEvidenceSnapshot: (snapshot: EvidenceSnapshot, sourceCsv?: string) => Promise<void>;
   syncStatus: SyncStatus;
   notifications: SyncNotification[];
   dismissNotification: (id: string) => void;
@@ -528,6 +540,102 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
+  const listEvidenceSources = useCallback(async (hubId: string): Promise<EvidenceSource[]> => {
+    const localSources = await listEvidenceSourcesFromIndexedDB(hubId);
+
+    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+      return localSources;
+    }
+
+    try {
+      const cloudSources = await listEvidenceSourcesFromCloud('blob-sas', hubId);
+      for (const source of cloudSources) {
+        await saveEvidenceSourceToIndexedDB(source);
+      }
+      return listEvidenceSourcesFromIndexedDB(hubId);
+    } catch (error) {
+      if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+        errorService.logWarning('Failed to list evidence sources from cloud', {
+          component: 'storage',
+          action: 'listEvidenceSources',
+          metadata: { error: error instanceof Error ? error.message : String(error) },
+        });
+      }
+      return localSources;
+    }
+  }, []);
+
+  const saveEvidenceSource = useCallback(async (source: EvidenceSource): Promise<void> => {
+    await saveEvidenceSourceToIndexedDB(source);
+
+    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+      return;
+    }
+
+    try {
+      await saveEvidenceSourceToCloud('blob-sas', source);
+    } catch (error) {
+      if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+        errorService.logWarning('Failed to save evidence source to cloud', {
+          component: 'storage',
+          action: 'saveEvidenceSource',
+          metadata: { error: error instanceof Error ? error.message : String(error) },
+        });
+      }
+    }
+  }, []);
+
+  const listEvidenceSnapshots = useCallback(
+    async (hubId: string, sourceId: string): Promise<EvidenceSnapshot[]> => {
+      const localSnapshots = await listEvidenceSnapshotsFromIndexedDB(hubId, sourceId);
+
+      if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+        return localSnapshots;
+      }
+
+      try {
+        const cloudSnapshots = await listEvidenceSnapshotsFromCloud('blob-sas', hubId, sourceId);
+        for (const snapshot of cloudSnapshots) {
+          await saveEvidenceSnapshotToIndexedDB(snapshot);
+        }
+        return listEvidenceSnapshotsFromIndexedDB(hubId, sourceId);
+      } catch (error) {
+        if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+          errorService.logWarning('Failed to list evidence snapshots from cloud', {
+            component: 'storage',
+            action: 'listEvidenceSnapshots',
+            metadata: { error: error instanceof Error ? error.message : String(error) },
+          });
+        }
+        return localSnapshots;
+      }
+    },
+    []
+  );
+
+  const saveEvidenceSnapshot = useCallback(
+    async (snapshot: EvidenceSnapshot, sourceCsv?: string): Promise<void> => {
+      await saveEvidenceSnapshotToIndexedDB(snapshot);
+
+      if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+        return;
+      }
+
+      try {
+        await saveEvidenceSnapshotToCloud('blob-sas', snapshot, sourceCsv);
+      } catch (error) {
+        if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+          errorService.logWarning('Failed to save evidence snapshot to cloud', {
+            component: 'storage',
+            action: 'saveEvidenceSnapshot',
+            metadata: { error: error instanceof Error ? error.message : String(error) },
+          });
+        }
+      }
+    },
+    []
+  );
+
   // ── Background sync when coming online ────────────────────────────
 
   useEffect(() => {
@@ -642,6 +750,10 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     listProjects,
     listProcessHubs,
     saveProcessHub,
+    listEvidenceSources,
+    saveEvidenceSource,
+    listEvidenceSnapshots,
+    saveEvidenceSnapshot,
     syncStatus,
     notifications,
     dismissNotification,

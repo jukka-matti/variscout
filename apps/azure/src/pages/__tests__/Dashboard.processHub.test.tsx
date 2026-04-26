@@ -7,12 +7,18 @@ import type { CloudProject } from '../../services/storage';
 const mockListProjects = vi.fn();
 const mockListProcessHubs = vi.fn();
 const mockSaveProcessHub = vi.fn();
+const mockListEvidenceSources = vi.fn(() => Promise.resolve([]));
+const mockListEvidenceSnapshots = vi.fn(() => Promise.resolve([]));
 
 vi.mock('../../services/storage', () => ({
   useStorage: () => ({
     listProjects: mockListProjects,
     listProcessHubs: mockListProcessHubs,
     saveProcessHub: mockSaveProcessHub,
+    listEvidenceSources: mockListEvidenceSources,
+    saveEvidenceSource: vi.fn(),
+    listEvidenceSnapshots: mockListEvidenceSnapshots,
+    saveEvidenceSnapshot: vi.fn(),
     syncStatus: { status: 'synced', message: 'Synced' },
   }),
 }));

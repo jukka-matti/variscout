@@ -6,6 +6,10 @@ import type {
   SuspectedCause,
 } from './types';
 import type { ProcessMap, ProcessMapTributary } from '../frame/types';
+import { buildBranchSignalWarnings } from '../signalCards';
+import type { BranchSignalWarning, SignalCard } from '../signalCards';
+
+export type { BranchSignalWarning } from '../signalCards';
 
 export interface MechanismBranchProcessContext {
   tributaries: Array<Pick<ProcessMapTributary, 'id' | 'column' | 'label'>>;
@@ -46,6 +50,7 @@ export interface MechanismBranchViewModel {
   openChecks: MechanismBranchQuestionView[];
   linkedQuestions: MechanismBranchQuestionView[];
   processContext?: MechanismBranchProcessContext;
+  signalWarnings?: BranchSignalWarning[];
 }
 
 export interface MechanismBranchProjectionOptions {
@@ -54,6 +59,7 @@ export interface MechanismBranchProjectionOptions {
   processContext?: {
     processMap?: ProcessMap;
   };
+  signalCards?: SignalCard[];
 }
 
 const READINESS_LABELS: Record<MechanismBranchReadiness, string> = {
@@ -196,6 +202,7 @@ export function projectMechanismBranch(
     openChecks,
     linkedQuestions: linkedQuestions.map(toQuestionView),
     processContext: projectProcessContext(hub, linkedQuestions, options.processContext?.processMap),
+    signalWarnings: buildBranchSignalWarnings(hub.signalCardIds, options.signalCards),
   };
 }
 

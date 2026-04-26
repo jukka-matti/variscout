@@ -39,6 +39,20 @@ const STATUS_CLASS: Record<SurveyStatus, string> = {
   'ask-for-next': 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30',
 };
 
+const TRUST_CHIP_CLASS: Record<string, string> = {
+  strong: 'border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+  usable: 'border-sky-500/30 bg-sky-500/15 text-sky-700 dark:text-sky-300',
+  weak: 'border-rose-500/30 bg-rose-500/15 text-rose-700 dark:text-rose-300',
+  unknown: 'border-edge bg-surface text-content-secondary',
+  adequate: 'border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+  limited: 'border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-300',
+  'not-studied': 'border-rose-500/30 bg-rose-500/15 text-rose-700 dark:text-rose-300',
+  passed: 'border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+  needed: 'border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-300',
+  failed: 'border-rose-500/30 bg-rose-500/15 text-rose-700 dark:text-rose-300',
+  'not-required': 'border-edge bg-surface text-content-secondary',
+};
+
 function StatusPill({ status }: { status: SurveyStatus }) {
   return (
     <span
@@ -46,6 +60,35 @@ function StatusPill({ status }: { status: SurveyStatus }) {
     >
       {SURVEY_STATUS_LABELS[status]}
     </span>
+  );
+}
+
+function label(value: string): string {
+  return value.replace(/-/g, ' ');
+}
+
+function TrustChip({ label: chipLabel, value }: { label: string; value?: string }) {
+  if (!value) return null;
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[0.68rem] font-medium capitalize ${
+        TRUST_CHIP_CLASS[value] ?? TRUST_CHIP_CLASS.unknown
+      }`}
+      data-testid={`survey-trust-chip-${chipLabel}`}
+    >
+      {chipLabel}: {label(value)}
+    </span>
+  );
+}
+
+function TrustChips({ item }: { item: SurveyTrustItem }) {
+  if (!item.trustGrade && !item.powerStatus && !item.studyStatus) return null;
+  return (
+    <div className="mt-1 flex flex-wrap gap-1">
+      <TrustChip label="grade" value={item.trustGrade} />
+      <TrustChip label="power" value={item.powerStatus} />
+      <TrustChip label="study" value={item.studyStatus} />
+    </div>
   );
 }
 
@@ -162,7 +205,10 @@ function TrustTable({ items }: { items: SurveyTrustItem[] }) {
                 <StatusPill status={item.status} />
               </td>
               <td className="py-2 pr-3 text-content-secondary">{item.archetype}</td>
-              <td className="py-2 pr-3 text-content-secondary">{item.trustLabel}</td>
+              <td className="py-2 pr-3 text-content-secondary">
+                <div>{item.trustLabel}</div>
+                <TrustChips item={item} />
+              </td>
               <td className="py-2 pr-3 text-content-secondary">{item.weakLink}</td>
               <td className="py-2 text-content-secondary">{item.operationalDefinition}</td>
             </tr>
@@ -208,6 +254,7 @@ function CompactList({
               <StatusPill status={item.status} />
             </div>
             <p className="mt-2 text-xs text-content-secondary">{item.weakLink}</p>
+            <TrustChips item={item} />
             <p className="mt-1 text-xs text-content-secondary">{item.operationalDefinition}</p>
           </div>
         ))}

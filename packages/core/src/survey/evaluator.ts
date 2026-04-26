@@ -4,6 +4,12 @@ import type { ColumnKind } from '../frame';
 import { projectMechanismBranches } from '../findings';
 import { detectColumns, detectWideFormat } from '../parser';
 import type { DetectedColumns } from '../parser';
+import {
+  matchSignalCard,
+  signalTrustLabel,
+  signalTrustStatus,
+  signalWeakLink,
+} from '../signalCards';
 import type { DataRow } from '../types';
 import { detectYamazumiFormat } from '../yamazumi';
 import type { DefectDetection } from '../defect';
@@ -384,18 +390,28 @@ function buildTrustItems(
   const outcome = diagnostics.selected.outcomeColumn;
   const factors = diagnostics.selected.factorColumns;
   const measurement = input.processContext?.measurement;
+  const signalCards = input.processContext?.signalCards;
+  const outcomeCard = matchSignalCard(signalCards, outcome, 'outcome');
+  const timeCard = matchSignalCard(signalCards, diagnostics.selected.timeColumn, 'time-batch');
 
   return [
     {
       id: 'outcome-signal',
       signal: outcome ?? 'Outcome signal',
-      status: outcome ? 'can-do-with-caution' : 'ask-for-next',
-      archetype: 'unknown',
-      trustLabel: 'Advisory',
-      weakLink: outcome ? 'No persisted Signal Card exists yet.' : 'No outcome is mapped.',
+      status: outcome ? signalTrustStatus(outcomeCard) : 'ask-for-next',
+      archetype: outcomeCard?.archetype ?? 'unknown',
+      trustLabel: signalTrustLabel(outcomeCard),
+      weakLink: outcome
+        ? signalWeakLink(outcomeCard, 'No persisted Signal Card exists yet.')
+        : 'No outcome is mapped.',
       operationalDefinition:
+        outcomeCard?.operationalDefinition ??
         measurement ??
         'Define what this signal measures, where it comes from, and when it is valid.',
+      signalCardId: outcomeCard?.id,
+      trustGrade: outcomeCard?.trustGrade,
+      powerStatus: outcomeCard?.powerStatus,
+      studyStatus: outcomeCard?.studyStatus,
     },
     {
       id: 'factor-signals',
@@ -413,14 +429,23 @@ function buildTrustItems(
     {
       id: 'time-batch-signal',
       signal: diagnostics.selected.timeColumn ?? 'Time/batch axis',
-      status: diagnostics.selected.timeColumn ? 'can-do-with-caution' : 'ask-for-next',
-      archetype: diagnostics.selected.timeColumn ? 'procedural' : 'unknown',
-      trustLabel: 'Advisory',
+      status: diagnostics.selected.timeColumn ? signalTrustStatus(timeCard) : 'ask-for-next',
+      archetype:
+        timeCard?.archetype ?? (diagnostics.selected.timeColumn ? 'procedural' : 'unknown'),
+      trustLabel: signalTrustLabel(timeCard),
       weakLink: diagnostics.selected.timeColumn
-        ? 'Ordering is available but not validated as a stable process clock.'
+        ? signalWeakLink(
+            timeCard,
+            'Ordering is available but not validated as a stable process clock.'
+          )
         : 'No chronology or batch axis is mapped.',
       operationalDefinition:
+        timeCard?.operationalDefinition ??
         'Define whether ordering means sample time, production time, lot sequence, or batch.',
+      signalCardId: timeCard?.id,
+      trustGrade: timeCard?.trustGrade,
+      powerStatus: timeCard?.powerStatus,
+      studyStatus: timeCard?.studyStatus,
     },
   ];
 }

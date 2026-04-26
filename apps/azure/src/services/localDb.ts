@@ -9,6 +9,8 @@ import {
 } from '@variscout/core';
 import type {
   DataRow,
+  EvidenceSnapshot,
+  EvidenceSource,
   Finding,
   ProcessContext,
   ProcessHub,
@@ -213,4 +215,33 @@ export async function listProcessHubsFromIndexedDB(): Promise<ProcessHub[]> {
     if (b.id === DEFAULT_PROCESS_HUB.id) return 1;
     return a.name.localeCompare(b.name);
   });
+}
+
+// ── Evidence Sources and Snapshots ─────────────────────────────────────
+
+export async function saveEvidenceSourceToIndexedDB(source: EvidenceSource): Promise<void> {
+  await db.evidenceSources.put(source);
+}
+
+export async function listEvidenceSourcesFromIndexedDB(hubId?: string): Promise<EvidenceSource[]> {
+  const sources = hubId
+    ? await db.evidenceSources.where('hubId').equals(hubId).toArray()
+    : await db.evidenceSources.toArray();
+  return sources.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function saveEvidenceSnapshotToIndexedDB(snapshot: EvidenceSnapshot): Promise<void> {
+  await db.evidenceSnapshots.put(snapshot);
+}
+
+export async function listEvidenceSnapshotsFromIndexedDB(
+  hubId: string,
+  sourceId?: string
+): Promise<EvidenceSnapshot[]> {
+  const snapshots = sourceId
+    ? await db.evidenceSnapshots.where('sourceId').equals(sourceId).toArray()
+    : await db.evidenceSnapshots.where('hubId').equals(hubId).toArray();
+  return snapshots
+    .filter(snapshot => snapshot.hubId === hubId && (!sourceId || snapshot.sourceId === sourceId))
+    .sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
 }

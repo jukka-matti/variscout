@@ -205,6 +205,66 @@ export type {
   HubReviewTopFocus,
 } from './processReviewSignal';
 
+// Signal Cards
+export {
+  buildBranchSignalWarnings,
+  buildSignalMeasurementNextMoves,
+  matchSignalCard,
+  signalTrustLabel,
+  signalTrustStatus,
+  signalWeakLink,
+} from './signalCards';
+export type {
+  BranchSignalWarning,
+  MeasurementStudyStatus,
+  SignalCard,
+  SignalMeasurementNextMove,
+  SignalPowerStatus,
+  SignalRole,
+  SignalSourceArchetype,
+  SignalTrustGrade,
+} from './signalCards';
+
+// Process Moments
+export {
+  buildProcessMomentFindingClue,
+  computeProcessMoments,
+  summarizeComparableProcessMoments,
+} from './processMoments';
+export type {
+  ComparableProcessMomentSummary,
+  ProcessMomentBoundary,
+  ProcessMomentDefinition,
+  ProcessMomentFindingClue,
+  ProcessMomentInsufficientReason,
+  ProcessMomentResult,
+  ProcessMomentStatus,
+} from './processMoments';
+
+// Evidence Sources / Data Profiles / Snapshots
+export {
+  AGENT_REVIEW_LOG_PROFILE,
+  DATA_PROFILE_REGISTRY,
+  detectDataProfiles,
+  processHubEvidenceBlobPath,
+  processHubEvidenceSnapshotsCatalogPath,
+  processHubEvidenceSourceBlobPath,
+  processHubEvidenceSourcesCatalogPath,
+  validateEvidenceSourceSnapshot,
+} from './evidenceSources';
+export type {
+  DataProfileConfidence,
+  DataProfileDefinition,
+  DataProfileDetection,
+  EvidenceCadence,
+  EvidenceLatestSignal,
+  EvidenceSignalSeverity,
+  EvidenceSnapshot,
+  EvidenceSource,
+  EvidenceValidationResult,
+  ProfileApplication,
+} from './evidenceSources';
+
 // Preview feature registry
 export type { PreviewFeature } from './preview';
 export { isPreviewEnabled, setPreviewEnabled } from './preview';

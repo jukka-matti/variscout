@@ -42,6 +42,7 @@ export type {
   MechanismBranchQuestionView,
   MechanismBranchReadinessView,
   MechanismBranchViewModel,
+  BranchSignalWarning,
 } from './mechanismBranch';
 export { projectMechanismBranch, projectMechanismBranches } from './mechanismBranch';
 // Note: DataRow is the canonical foundational type from `../types` — not re-exported

@@ -42,6 +42,9 @@ const evaluation: SurveyEvaluation = {
         trustLabel: 'Advisory',
         weakLink: 'No persisted Signal Card exists yet.',
         operationalDefinition: 'Define how Fill_Weight is measured.',
+        trustGrade: 'weak',
+        powerStatus: 'limited',
+        studyStatus: 'needed',
       },
     ],
   },
@@ -118,6 +121,9 @@ describe('SurveyNotebookBase', () => {
 
     fireEvent.click(screen.getByTestId('survey-tab-trust'));
     expect(screen.getByText('Fill_Weight')).toBeDefined();
+    expect(screen.getByText('grade: weak')).toBeDefined();
+    expect(screen.getByText('power: limited')).toBeDefined();
+    expect(screen.getByText('study: needed')).toBeDefined();
   });
 
   it('renders the same content in compact mode', () => {

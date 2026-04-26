@@ -7,6 +7,9 @@ import type { Locale } from '../i18n/types';
 import type { AnalysisMode } from '../types';
 import type { ProcessMap } from '../frame/types';
 import type { InvestigationDepth, InvestigationStatus, ProcessParticipantRef } from '../processHub';
+import type { EvidenceSource, EvidenceSnapshot } from '../evidenceSources';
+import type { ProcessMomentDefinition } from '../processMoments';
+import type { SignalCard } from '../signalCards';
 
 /** AI model tier — maps to ARM deployment names ('fast' or 'reasoning') */
 export type AITier = 'fast' | 'reasoning';
@@ -140,6 +143,14 @@ export interface ProcessContext {
    * and `frame/gapDetector.ts`). Null for mapless projects. ADR-070.
    */
   processMap?: ProcessMap;
+  /** Persisted Signal Cards scoped to this investigation/project; no separate domain store. */
+  signalCards?: SignalCard[];
+  /** Process Moment definitions scoped to this investigation/project. */
+  processMoments?: ProcessMomentDefinition[];
+  /** Evidence Source references associated with this investigation/project. */
+  evidenceSources?: EvidenceSource[];
+  /** Snapshot metadata references associated with this investigation/project. */
+  evidenceSnapshots?: EvidenceSnapshot[];
 }
 
 /** Structured AI context assembled from current analysis state */

@@ -6,6 +6,7 @@ import {
   normalizeProcessHubId,
 } from '@variscout/core';
 import type { ProcessHub } from '@variscout/core';
+import type { EvidenceSnapshot } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
 import { getEasyAuthUser } from '../auth/easyAuth';
@@ -22,6 +23,7 @@ import {
 import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
 import ProjectCard from '../components/ProjectCard';
 import ProcessHubCard from '../components/ProcessHubCard';
+import ProcessHubEvidencePanel from '../components/ProcessHubEvidencePanel';
 import ProcessHubReviewPanel from '../components/ProcessHubReviewPanel';
 import SampleDataPicker from '../components/SampleDataPicker';
 
@@ -38,11 +40,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onLoadProjectFile,
   onLoadSample,
 }) => {
-  const { listProjects, listProcessHubs, saveProcessHub, syncStatus } = useStorage();
+  const {
+    listProjects,
+    listProcessHubs,
+    saveProcessHub,
+    listEvidenceSources,
+    listEvidenceSnapshots,
+    syncStatus,
+  } = useStorage();
 
   const [userId, setUserId] = useState('local');
   const [projects, setProjects] = useState<CloudProject[]>([]);
   const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
+  const [evidenceSnapshots, setEvidenceSnapshots] = useState<EvidenceSnapshot[]>([]);
   const [selectedHubId, setSelectedHubId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -85,6 +95,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const [projectList, hubList] = await Promise.all([listProjects(), listProcessHubs()]);
       setProjects(projectList);
       setProcessHubs(hubList);
+      const sourceLists = await Promise.all(hubList.map(hub => listEvidenceSources(hub.id)));
+      const snapshotLists = await Promise.all(
+        sourceLists
+          .flat()
+          .map(source => listEvidenceSnapshots(source.hubId, source.id).catch(() => []))
+      );
+      setEvidenceSnapshots(snapshotLists.flat());
     } catch (error) {
       console.error('Failed to load projects:', error);
     } finally {
@@ -118,9 +135,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         name: project.name,
         modified: project.modified,
         metadata: project.metadata,
-      }))
+      })),
+      { evidenceSnapshots }
     );
-  }, [processHubs, sortedProjects]);
+  }, [evidenceSnapshots, processHubs, sortedProjects]);
 
   const visibleProjects = useMemo(() => {
     const normalizedSearchQuery = searchQuery.trim().toLowerCase();
@@ -347,11 +365,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </section>
 
           {selectedHubRollup && (
-            <ProcessHubReviewPanel
-              rollup={selectedHubRollup}
-              onOpenInvestigation={id => onOpenProject(id)}
-              onStartInvestigation={() => onOpenProject(undefined, selectedHubRollup.hub.id)}
-            />
+            <>
+              <ProcessHubReviewPanel
+                rollup={selectedHubRollup}
+                onOpenInvestigation={id => onOpenProject(id)}
+                onStartInvestigation={() => onOpenProject(undefined, selectedHubRollup.hub.id)}
+              />
+              <ProcessHubEvidencePanel
+                hubId={selectedHubRollup.hub.id}
+                onEvidenceChanged={loadProjects}
+              />
+            </>
           )}
 
           <section>

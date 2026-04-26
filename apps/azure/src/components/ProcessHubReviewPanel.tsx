@@ -13,6 +13,7 @@ import type {
   InvestigationDepth,
   InvestigationStatus,
   ProcessHubCadenceQueue,
+  EvidenceLatestSignal,
   ProcessHubInvestigation,
   ProcessHubReadinessReason,
   ProcessHubReviewItem,
@@ -177,6 +178,29 @@ const MoreCount: React.FC<{ hiddenCount: number }> = ({ hiddenCount }) =>
     <p className="pt-1 text-xs font-medium text-content-secondary">+{hiddenCount} more</p>
   ) : null;
 
+const EVIDENCE_SIGNAL_CLASS: Record<EvidenceLatestSignal['severity'], string> = {
+  green: 'border-emerald-500/30 text-emerald-400',
+  amber: 'border-amber-500/30 text-amber-400',
+  red: 'border-rose-500/30 text-rose-400',
+  neutral: 'border-edge text-content-secondary',
+};
+
+const EvidenceSignalCard: React.FC<{ signal: EvidenceLatestSignal }> = ({ signal }) => (
+  <div
+    className={`rounded-md border bg-surface px-3 py-2 ${EVIDENCE_SIGNAL_CLASS[signal.severity]}`}
+    data-testid="evidence-snapshot-signal"
+  >
+    <div className="flex items-start justify-between gap-3">
+      <p className="text-sm font-medium text-content">{signal.label}</p>
+      <span className="text-sm font-semibold">{formatMetric(signal.value)}</span>
+    </div>
+    <p className="mt-1 text-xs text-content-secondary">
+      Snapshot{' '}
+      {new Date(signal.capturedAt).toLocaleDateString('en', { month: 'short', day: 'numeric' })}
+    </p>
+  </div>
+);
+
 const QueueSection: React.FC<{
   title: string;
   queue: ProcessHubCadenceQueue;
@@ -330,6 +354,18 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
                 );
               })}
               <MoreCount hiddenCount={cadence.latestSignals.hiddenCount} />
+            </div>
+          )}
+
+          {cadence.latestEvidenceSignals.totalCount > 0 && (
+            <div className="mt-4">
+              <SectionHeader title="Evidence Snapshots" icon={<Radar size={16} />} />
+              <div className="space-y-2">
+                {cadence.latestEvidenceSignals.items.map(signal => (
+                  <EvidenceSignalCard key={signal.id} signal={signal} />
+                ))}
+                <MoreCount hiddenCount={cadence.latestEvidenceSignals.hiddenCount} />
+              </div>
             </div>
           )}
 

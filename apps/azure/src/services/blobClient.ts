@@ -2,8 +2,18 @@
 // Client-side Blob Storage operations using raw fetch with SAS URLs.
 // No Azure SDK on the client — all operations use REST API with SAS tokens.
 
-import type { ProjectMetadata } from '@variscout/core';
-import type { ProcessHub } from '@variscout/core';
+import {
+  processHubEvidenceBlobPath,
+  processHubEvidenceSnapshotsCatalogPath,
+  processHubEvidenceSourceBlobPath,
+  processHubEvidenceSourcesCatalogPath,
+} from '@variscout/core';
+import type {
+  EvidenceSnapshot,
+  EvidenceSource,
+  ProcessHub,
+  ProjectMetadata,
+} from '@variscout/core';
 import type { Project } from './localDb';
 
 // ── Helpers ───────────────────────────────────────────────────────────
@@ -258,6 +268,98 @@ export async function updateBlobProcessHubs(hubs: ProcessHub[]): Promise<void> {
   if (!res.ok) {
     throw new Error(`${res.status} Failed to update process hub catalog`);
   }
+}
+
+async function putJsonBlob(path: string, value: unknown): Promise<void> {
+  const sasUrl = await getSasToken();
+  const url = blobUrl(sasUrl, path);
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'x-ms-blob-type': 'BlockBlob',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(value),
+  });
+  if (!res.ok) {
+    throw new Error(`${res.status} Failed to write blob: ${sanitizeBlobUrl(url)}`);
+  }
+}
+
+async function getJsonBlob<T>(path: string): Promise<T | null> {
+  const sasUrl = await getSasToken();
+  const url = blobUrl(sasUrl, path);
+  const res = await fetch(url);
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`${res.status} Failed to read blob: ${sanitizeBlobUrl(url)}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+export async function listBlobEvidenceSources(hubId: string): Promise<EvidenceSource[]> {
+  return (await getJsonBlob<EvidenceSource[]>(processHubEvidenceSourcesCatalogPath(hubId))) ?? [];
+}
+
+export async function saveBlobEvidenceSource(source: EvidenceSource): Promise<void> {
+  await putJsonBlob(processHubEvidenceSourceBlobPath(source.hubId, source.id), source);
+}
+
+export async function updateBlobEvidenceSources(
+  hubId: string,
+  sources: EvidenceSource[]
+): Promise<void> {
+  await putJsonBlob(processHubEvidenceSourcesCatalogPath(hubId), sources);
+}
+
+export async function listBlobEvidenceSnapshots(
+  hubId: string,
+  sourceId: string
+): Promise<EvidenceSnapshot[]> {
+  return (
+    (await getJsonBlob<EvidenceSnapshot[]>(
+      processHubEvidenceSnapshotsCatalogPath(hubId, sourceId)
+    )) ?? []
+  );
+}
+
+export async function saveBlobEvidenceSnapshot(
+  snapshot: EvidenceSnapshot,
+  sourceCsv?: string
+): Promise<void> {
+  await putJsonBlob(
+    processHubEvidenceBlobPath(snapshot.hubId, snapshot.sourceId, snapshot.id, 'snapshot.json'),
+    snapshot
+  );
+  if (sourceCsv !== undefined) {
+    const sasUrl = await getSasToken();
+    const path = processHubEvidenceBlobPath(
+      snapshot.hubId,
+      snapshot.sourceId,
+      snapshot.id,
+      'source.csv'
+    );
+    const url = blobUrl(sasUrl, path);
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'x-ms-blob-type': 'BlockBlob',
+        'Content-Type': 'text/csv',
+      },
+      body: sourceCsv,
+    });
+    if (!res.ok) {
+      throw new Error(`${res.status} Failed to write evidence source CSV: ${sanitizeBlobUrl(url)}`);
+    }
+  }
+}
+
+export async function updateBlobEvidenceSnapshots(
+  hubId: string,
+  sourceId: string,
+  snapshots: EvidenceSnapshot[]
+): Promise<void> {
+  await putJsonBlob(processHubEvidenceSnapshotsCatalogPath(hubId, sourceId), snapshots);
 }
 
 /**
