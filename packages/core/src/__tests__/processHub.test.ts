@@ -10,6 +10,7 @@ import {
 } from '../processHub';
 import type { ProcessHub, ProjectMetadata } from '../index';
 import type { EvidenceSnapshot } from '../evidenceSources';
+import type { ControlHandoff, SustainmentRecord } from '../sustainment';
 
 function makeMetadata(overrides: Partial<ProjectMetadata> = {}): ProjectMetadata {
   return {
@@ -441,9 +442,24 @@ describe('buildProcessHubCadence', () => {
         }),
       },
     ];
-    const [rollup] = buildProcessHubRollups(hubs, investigations);
+    const sustainmentRecords: SustainmentRecord[] = [
+      {
+        id: 'rec-sustain-1',
+        investigationId: 'sustain-1',
+        hubId: 'line-4',
+        cadence: 'monthly',
+        nextReviewDue: '2026-04-25T00:00:00.000Z',
+        createdAt: '2026-03-25T00:00:00.000Z',
+        updatedAt: '2026-04-25T00:00:00.000Z',
+      },
+    ];
+    const now = new Date('2026-04-26T12:00:00.000Z');
+    const [rollup] = buildProcessHubRollups(hubs, investigations, {
+      sustainmentRecords,
+      controlHandoffs: [],
+    });
 
-    const cadence = buildProcessHubCadence(rollup);
+    const cadence = buildProcessHubCadence(rollup, now);
 
     expect(cadence.snapshot).toEqual({
       active: 8,
@@ -596,6 +612,93 @@ describe('buildProcessHubCadence', () => {
       'sig-red-new',
       'sig-red-old',
     ]);
+  });
+});
+
+describe('buildProcessHubCadence — sustainment lane', () => {
+  it('populates the sustainment queue from due records and excludes future-due ones', () => {
+    const hubs: ProcessHub[] = [
+      { id: 'hub-1', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ];
+    const now = new Date('2026-04-26T00:00:00.000Z');
+    const investigations = [
+      {
+        id: 'inv-due',
+        name: 'Due review',
+        modified: '2026-04-26T00:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'hub-1',
+          investigationStatus: 'resolved',
+        }),
+      },
+      {
+        id: 'inv-future',
+        name: 'Not yet due',
+        modified: '2026-04-26T00:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'hub-1',
+          investigationStatus: 'resolved',
+        }),
+      },
+    ];
+    const sustainmentRecords: SustainmentRecord[] = [
+      {
+        id: 'rec-due',
+        investigationId: 'inv-due',
+        hubId: 'hub-1',
+        cadence: 'monthly',
+        nextReviewDue: '2026-04-25T00:00:00.000Z',
+        createdAt: '2026-03-25T00:00:00.000Z',
+        updatedAt: '2026-04-25T00:00:00.000Z',
+      },
+      {
+        id: 'rec-future',
+        investigationId: 'inv-future',
+        hubId: 'hub-1',
+        cadence: 'monthly',
+        nextReviewDue: '2026-05-25T00:00:00.000Z',
+        createdAt: '2026-04-25T00:00:00.000Z',
+        updatedAt: '2026-04-25T00:00:00.000Z',
+      },
+    ];
+    const controlHandoffs: ControlHandoff[] = [];
+
+    const [rollup] = buildProcessHubRollups(hubs, investigations, {
+      sustainmentRecords,
+      controlHandoffs,
+    });
+    const cadence = buildProcessHubCadence(rollup, now);
+
+    expect(cadence.sustainment.totalCount).toBe(1);
+    expect(cadence.sustainment.items[0].investigation.id).toBe('inv-due');
+  });
+
+  it('includes controlled investigations missing a ControlHandoff in the sustainment lane', () => {
+    const hubs: ProcessHub[] = [
+      { id: 'hub-1', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ];
+    const now = new Date('2026-04-26T00:00:00.000Z');
+    const investigations = [
+      {
+        id: 'inv-controlled',
+        name: 'Needs handoff',
+        modified: '2026-04-26T00:00:00.000Z',
+        metadata: makeMetadata({
+          processHubId: 'hub-1',
+          investigationStatus: 'controlled',
+        }),
+      },
+    ];
+
+    const [rollup] = buildProcessHubRollups(hubs, investigations, {
+      sustainmentRecords: [],
+      controlHandoffs: [],
+    });
+    const cadence = buildProcessHubCadence(rollup, now);
+
+    expect(cadence.sustainment.totalCount).toBe(1);
+    expect(cadence.sustainment.items[0].investigation.id).toBe('inv-controlled');
+    expect(cadence.sustainment.items[0].reasons).toContain('control-handoff-missing');
   });
 });
 

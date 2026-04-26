@@ -4,7 +4,13 @@ import type { FindingStatus, QuestionStatus } from './findings/types';
 import { buildReviewItem } from './processHubReview';
 import type { HubReviewSignal } from './processReviewSignal';
 import type { SurveyStatus } from './survey/types';
-import type { SustainmentMetadataProjection } from './sustainment';
+import {
+  selectControlHandoffCandidates,
+  selectSustainmentReviews,
+  type ControlHandoff,
+  type SustainmentMetadataProjection,
+  type SustainmentRecord,
+} from './sustainment';
 
 export { buildReviewItem } from './processHubReview';
 
@@ -91,6 +97,8 @@ export interface ProcessHubRollup<
   nextMove?: string;
   reviewSignal?: HubReviewSignal;
   evidenceSnapshots: EvidenceSnapshot[];
+  sustainmentRecords: SustainmentRecord[];
+  controlHandoffs: ControlHandoff[];
 }
 
 export type ProcessHubAttentionReason =
@@ -309,7 +317,11 @@ function synthesizeOrphanHub(hubId: string): ProcessHub {
 export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestigation>(
   hubs: ProcessHub[],
   investigations: TInvestigation[],
-  options: { evidenceSnapshots?: EvidenceSnapshot[] } = {}
+  options: {
+    evidenceSnapshots?: EvidenceSnapshot[];
+    sustainmentRecords?: SustainmentRecord[];
+    controlHandoffs?: ControlHandoff[];
+  } = {}
 ): ProcessHubRollup<TInvestigation>[] {
   const hubMap = new Map<string, ProcessHub>();
   hubMap.set(DEFAULT_PROCESS_HUB_ID, DEFAULT_PROCESS_HUB);
@@ -334,6 +346,18 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
   for (const investigation of investigations) {
     const hubId = normalizeProcessHubId(investigation.metadata?.processHubId);
     grouped.set(hubId, [...(grouped.get(hubId) ?? []), investigation]);
+  }
+
+  const groupedSustainment = new Map<string, SustainmentRecord[]>();
+  for (const record of options.sustainmentRecords ?? []) {
+    const hubId = normalizeProcessHubId(record.hubId);
+    groupedSustainment.set(hubId, [...(groupedSustainment.get(hubId) ?? []), record]);
+  }
+
+  const groupedHandoffs = new Map<string, ControlHandoff[]>();
+  for (const handoff of options.controlHandoffs ?? []) {
+    const hubId = normalizeProcessHubId(handoff.hubId);
+    groupedHandoffs.set(hubId, [...(groupedHandoffs.get(hubId) ?? []), handoff]);
   }
 
   return Array.from(hubMap.values())
@@ -370,6 +394,8 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
       const evidenceSnapshots = (options.evidenceSnapshots ?? [])
         .filter(snapshot => normalizeProcessHubId(snapshot.hubId) === hub.id)
         .sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
+      const sustainmentRecords = groupedSustainment.get(hub.id) ?? [];
+      const controlHandoffs = groupedHandoffs.get(hub.id) ?? [];
 
       return {
         hub,
@@ -384,6 +410,8 @@ export function buildProcessHubRollups<TInvestigation extends ProcessHubInvestig
         nextMove: summarySource?.metadata?.nextMove,
         reviewSignal: reviewSignalSource?.metadata?.reviewSignal,
         evidenceSnapshots,
+        sustainmentRecords,
+        controlHandoffs,
       };
     })
     .filter(
@@ -608,17 +636,30 @@ function evidenceSignalQueue(signals: EvidenceLatestSignal[]) {
 }
 
 export function buildProcessHubCadence<TInvestigation extends ProcessHubInvestigation>(
-  rollup: ProcessHubRollup<TInvestigation>
+  rollup: ProcessHubRollup<TInvestigation>,
+  now: Date = new Date()
 ): ProcessHubCadenceSummary<TInvestigation> {
   const review = buildProcessHubReview(rollup);
   const latestEvidenceSignals = evidenceSignals(rollup);
+
+  const sustainmentReviews = selectSustainmentReviews(
+    rollup.investigations,
+    rollup.sustainmentRecords,
+    rollup.controlHandoffs,
+    now
+  );
+  const handoffCandidates = selectControlHandoffCandidates(
+    rollup.investigations,
+    rollup.controlHandoffs
+  );
+  const sustainmentItems = [...sustainmentReviews, ...handoffCandidates];
 
   const snapshot: ProcessHubCadenceSnapshot = {
     active: rollup.activeInvestigationCount,
     readiness: review.readinessQueue.length,
     verification: review.verificationQueue.length,
     overdueActions: rollup.overdueActionCount,
-    sustainment: review.sustainmentQueue.length,
+    sustainment: sustainmentItems.length,
     latestSignals: review.whereToFocus.length,
     nextMoves: review.nextMoveQueue.length,
   };
@@ -636,7 +677,7 @@ export function buildProcessHubCadence<TInvestigation extends ProcessHubInvestig
     readiness: cadenceQueue(review.readinessQueue),
     verification: cadenceQueue(review.verificationQueue),
     actions: cadenceQueue(review.overdueActionQueue),
-    sustainment: cadenceQueue(review.sustainmentQueue),
+    sustainment: cadenceQueue(sustainmentItems),
     nextMoves: cadenceQueue(review.nextMoveQueue),
     activeWork: {
       quick: cadenceQueue(review.depthQueues.quick),
