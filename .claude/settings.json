@@ -120,19 +120,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"ok\": true}'",
-            "timeout": 1000
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -n \"$NOTIFICATION_MESSAGE\" ] && npx ruflo@3.5.80 memory store --namespace notifications --key \"notify-$(date +%s)\" --value \"$NOTIFICATION_MESSAGE\" 2>>/tmp/ruflo-hooks.log || true",
-            "timeout": 3000,
+            "command": "[ -n \"$SESSION_ID\" ] && npx ruflo@3.5.80 hooks session-end --session-id \"$SESSION_ID\" 2>>/tmp/ruflo-hooks.log || true",
+            "timeout": 5000,
             "continueOnError": true
           }
         ]

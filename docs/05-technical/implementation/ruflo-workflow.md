@@ -27,9 +27,11 @@ Claude has extra local automation via `.claude/settings.json`. Codex shares the 
 
 Claude sessions start daemon and restore state via hooks.
 
-Codex sessions should run `pnpm codex:ruflo-check`. That command verifies the active Codex MCP registration, expected version, and CLI smoke probes. If Ruflo is missing, disabled, or stale, follow the remove/add repair commands printed by the check.
+Codex sessions should run `pnpm codex:ruflo-check`. That command verifies the active Codex MCP registration and expected version. If Ruflo is missing, disabled, or stale, follow the remove/add repair commands printed by the check.
 
 No additional setup is needed once the MCP server is available.
+
+Direct `npx ruflo@3.5.80 ...` CLI probes are best-effort diagnostics for Codex. They can be affected by sandbox, npm cache, or PATH permissions, so CLI warnings are non-blocking when MCP registration and MCP tools work.
 
 ### 2. Before Starting a Feature
 
@@ -76,14 +78,21 @@ If `analyze_diff` fails through MCP, use `git diff --stat`, targeted review of c
 
 ### 5. After Major Changes
 
-When you've completed a significant refactor or feature:
+When you've completed a significant refactor or feature, prefer the MCP tools — `npx` CLI memory writes have hung in practice while the MCP server holds a connection (see `feedback_ruflo_cli_lock.md`):
 
-```bash
-# Reindex codebase structure
-npx ruflo@3.5.80 hooks pretrain
+```
+# Reindex codebase structure (~200ms via MCP; fast)
+mcp__ruflo__hooks_pretrain({ path: "<repo-root>", depth: "medium" })
 
 # Update stale memory entries
-mcp__ruflo__memory_store(namespace: "architecture", key: "change-name", value: "description")
+mcp__ruflo__memory_store({ namespace: "architecture", key: "change-name", value: "...", upsert: true })
+```
+
+CLI fallback (only when MCP is not available — e.g. Codex without MCP, scripts, CI):
+
+```bash
+npx ruflo@3.5.80 hooks pretrain
+npx ruflo@3.5.80 memory store --namespace architecture --key "change-name" --value "..."
 ```
 
 ### 6. Periodic Maintenance (automated)
@@ -120,9 +129,9 @@ Ruflo memory is only as good as its last update. After significant work:
 
 1. Check if relevant entries are stale: `mcp__ruflo__memory_retrieve(key: "testing/counts")`
 2. Update with current data: `mcp__ruflo__memory_store(namespace: "testing", key: "counts", value: "...")`
-3. Reindex if structure changed: `npx ruflo@3.5.80 hooks pretrain`
+3. Reindex if structure changed: `mcp__ruflo__hooks_pretrain({ path: "<repo-root>", depth: "medium" })` (CLI fallback: `npx ruflo@3.5.80 hooks pretrain`)
 
-If memory appears empty, prefer a non-destructive reseed first: run `memory stats`, run `hooks pretrain`, import current-project Claude memories if available, and store a small set of curated project invariants. Do not run reset or `memory init --force` unless you explicitly intend to discard the existing local database.
+If memory appears empty, prefer a non-destructive reseed first: check MCP memory stats/search, run `hooks pretrain`, import current-project Claude memories if available, and store a small set of curated project invariants. Do not run reset or `memory init --force` unless you explicitly intend to discard the existing local database. For CLI-only diagnostics, run `RUFLO_DEEP_CLI_PROBES=1 pnpm codex:ruflo-check` so memory CLI probes remain bounded and explicit.
 
 Root-level `agentdb.rvf*` files are local AgentDB state. Keep them out of Git; if they appear in the repo root, copy a backup and move the live files under ignored `.ruflo/data/`.
 
