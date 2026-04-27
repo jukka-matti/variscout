@@ -113,6 +113,12 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
           (counts.analyzed ?? 0) + (counts.improving ?? 0) + (counts.resolved ?? 0);
       }
       if (totalRelevantCount === 0) return [];
+      // Placeholder objects carry only `id` — chip rendering only reads `.length`.
+      // The double cast is the documented pragmatic shortcut for this PR (see
+      // spec § Implementation Reality Notes). The follow-up EvidenceSheet PR
+      // will introduce a narrow `FindingCountPlaceholder = Pick<Finding, 'id'>`
+      // type at the panel's evidence-contract boundary so the cast goes away.
+      // TODO(evidence-sheet-pr): remove this cast once contracts narrow.
       return Array.from({ length: totalRelevantCount }, (_, idx) => ({
         id: `${item.id}-finding-placeholder-${idx}`,
       })) as unknown as readonly Finding[];
@@ -128,8 +134,12 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
         lens: item.lens,
         evidenceCount: findings.length,
       });
-      // Navigate to the most-recent linked investigation. Full sheet rendering
-      // deferred to a follow-up PR — when Dashboard loads findings hub-wide.
+      // Navigate to a linked investigation. Per-investigation items use
+      // item.investigationIds[0] (the order the projection builder produced —
+      // typically a single linked investigation, so most-recency is moot).
+      // Hub-aggregate items fall back to defaultInvestigationId, which is
+      // sorted by `modified` descending. Full sheet rendering deferred to a
+      // follow-up PR — when Dashboard loads findings hub-wide.
       const targetId = item.investigationIds?.[0] ?? defaultInvestigationId;
       if (targetId) onOpenInvestigation(targetId);
     },
