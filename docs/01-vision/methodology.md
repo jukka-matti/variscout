@@ -100,7 +100,7 @@ These levels generalize the older three-level EDA language:
 The FRAME workspace renders these levels as three visible bands — **Outcome**,
 **Process Flow**, and **Operations** — stacked vertically with the river-styled
 SIPOC inside the Process Flow band. The visual structure makes the methodology
-visible by default. See the Layered Process View design spec at [`../superpowers/specs/2026-04-27-layered-process-view-design.md`](../superpowers/specs/2026-04-27-layered-process-view-design.md).
+visible by default. See the [Layered Process View design spec](../superpowers/specs/2026-04-27-layered-process-view-design.md) for band semantics, surface variations, and phasing.
 
 ### Current Process State
 

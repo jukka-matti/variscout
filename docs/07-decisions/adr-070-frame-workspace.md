@@ -100,9 +100,9 @@ FRAME must work end-to-end without any AI call (Constitution P8 _Deterministic f
 
 The river-styled SIPOC `ProcessMapBase` is now wrapped by `LayeredProcessView` (`@variscout/ui`), which adds an Outcome band above and an Operations band below. ADR-070 stays canonical for the river/SIPOC design itself; the layered extension adds visual structure around it without changing the data model.
 
-See the Layered Process View design spec at [`../superpowers/specs/2026-04-27-layered-process-view-design.md`](../superpowers/specs/2026-04-27-layered-process-view-design.md) for band semantics, surface variations, and phasing.
+See the [Layered Process View design spec](../superpowers/specs/2026-04-27-layered-process-view-design.md) for band semantics, surface variations, and phasing.
 
-V1 (this update) is structural only: the bands wrap the existing component. V2+ phases add Operations band content (snapshot-backed actuals, capability sparklines), Process Hub current-state rendering, and multi-hub aggregation.
+V1 is structural only: the bands wrap the existing component. V2+ phases add Operations band content (snapshot-backed actuals, capability sparklines), Process Hub current-state rendering, and multi-hub aggregation.
 
 ## Implementation
 
