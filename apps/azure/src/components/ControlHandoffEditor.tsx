@@ -67,7 +67,10 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
       hubId,
       surface,
       systemName,
-      operationalOwner: { userId: currentUser.userId, displayName: operationalOwnerName },
+      // operationalOwner is the person operating the control, NOT the submitter.
+      // We have no people picker yet, so userId is omitted (optional on ProcessParticipantRef);
+      // recordedBy below carries the submitter's identity.
+      operationalOwner: { displayName: operationalOwnerName },
       handoffDate: new Date(handoffDate + 'T00:00:00.000Z').toISOString(),
       description,
       referenceUri: referenceUri || undefined,

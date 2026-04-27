@@ -466,4 +466,47 @@ describe('selectSustainmentBuckets', () => {
     expect(result.overdue).toHaveLength(0);
     expect(result.recentlyReviewed).toHaveLength(0);
   });
+
+  it('drops on-demand records with no latestReviewAt and no nextReviewDue from all buckets', () => {
+    // on-demand cadence has no nextReviewDue (per nextDueFromCadence). Until first review,
+    // there is nothing to bucket — the parent UI must surface these via a separate path.
+    const inv = makeInvestigation('inv-1', 'controlled', {
+      recordId: 'rec-inv-1',
+      cadence: 'on-demand',
+    });
+    const record = recordFor('inv-1', undefined, { cadence: 'on-demand' });
+    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    expect(result.dueNow).toHaveLength(0);
+    expect(result.overdue).toHaveLength(0);
+    expect(result.recentlyReviewed).toHaveLength(0);
+  });
+
+  it('partitions multi-record hubs across all three buckets without double-counting', () => {
+    const overdueInv = makeInvestigation('inv-overdue', 'controlled', {
+      recordId: 'rec-overdue',
+      cadence: 'monthly',
+    });
+    const dueInv = makeInvestigation('inv-due', 'controlled', {
+      recordId: 'rec-due',
+      cadence: 'monthly',
+    });
+    const reviewedInv = makeInvestigation('inv-reviewed', 'resolved', {
+      recordId: 'rec-reviewed',
+      cadence: 'monthly',
+    });
+    const records = [
+      recordFor('inv-overdue', '2026-04-19T00:00:00.000Z'), // 7 days past due, grace=0 → overdue
+      recordFor('inv-due', '2026-04-26T00:00:00.000Z'), // exactly due → dueNow
+      recordFor('inv-reviewed', '2026-05-26T00:00:00.000Z', {
+        latestReviewAt: '2026-04-22T00:00:00.000Z', // 4 days back → recentlyReviewed
+      }),
+    ];
+    const result = selectSustainmentBuckets([overdueInv, dueInv, reviewedInv], records, [], NOW);
+    expect(result.overdue.map(r => r.investigation.id)).toEqual(['inv-overdue']);
+    expect(result.dueNow.map(r => r.investigation.id)).toEqual(['inv-due']);
+    expect(result.recentlyReviewed.map(r => r.investigation.id)).toEqual(['inv-reviewed']);
+    const totalLength =
+      result.overdue.length + result.dueNow.length + result.recentlyReviewed.length;
+    expect(totalLength).toBe(3);
+  });
 });

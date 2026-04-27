@@ -247,7 +247,8 @@ describe('ControlHandoffEditor', () => {
     expect(saved.description).toBe('Procedure updated in QMS');
     expect(saved.recordedBy.displayName).toBe('Carol');
     expect(saved.recordedBy.userId).toBe(FIXTURE_USER.userId);
-    expect(saved.operationalOwner.userId).toBe(FIXTURE_USER.userId);
+    // operationalOwner is a separate person; no people picker yet, so userId is omitted.
+    expect(saved.operationalOwner.userId).toBeUndefined();
 
     expect(onSave).toHaveBeenCalledWith(saved);
   });
