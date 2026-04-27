@@ -223,12 +223,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   const handleResponsePathAction = useCallback(
-    (item: ProcessStateItem, action: ResponsePathAction) => {
+    (item: ProcessStateItem, action: ResponsePathAction, hubId: string) => {
       const href = actionToHref(action);
       if (!href) return; // unsupported
 
       safeTrackEvent('process_hub.response_path_click', {
-        hubId: item.investigationIds?.[0] ?? 'aggregate',
+        hubId,
         responsePath: item.responsePath,
         lens: item.lens,
         severity: item.severity,
@@ -242,7 +242,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         onOpenProject(action.investigationId);
       }
     },
-    [onOpenProject]
+    [onOpenProject, safeTrackEvent]
   );
 
   const handleSampleSelect = (sample: SampleDataset): void => {

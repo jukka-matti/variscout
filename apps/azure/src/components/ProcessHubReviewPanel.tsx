@@ -23,7 +23,7 @@ interface ProcessHubReviewPanelProps {
   onSetupSustainment: (investigationId: string) => void;
   onLogReview: (recordId: string) => void;
   onRecordHandoff: (investigationId: string) => void;
-  onResponsePathAction: (item: ProcessStateItem, action: ResponsePathAction) => void;
+  onResponsePathAction: (item: ProcessStateItem, action: ResponsePathAction, hubId: string) => void;
 }
 
 const SnapshotCard: React.FC<{
@@ -65,6 +65,9 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
     const sorted = [...rollup.investigations].sort((a, b) =>
       (b.modified ?? '').localeCompare(a.modified ?? '')
     );
+    // Empty fallback when the rollup has no investigations: deriveResponsePathAction
+    // will then return unsupported actions for hub-aggregate items, which actionToHref
+    // maps to null, producing a silent no-op (correct UX — nothing to navigate to).
     return sorted[0]?.id ?? '';
   }, [rollup.investigations]);
 
@@ -104,7 +107,10 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
 
       <ProcessHubCurrentStatePanel
         state={currentState}
-        actions={{ actionFor, onInvoke: onResponsePathAction }}
+        actions={{
+          actionFor,
+          onInvoke: (item, action) => onResponsePathAction(item, action, rollup.hub.id),
+        }}
         evidence={{ findingsFor: () => [], onChipClick: () => {} }}
       />
 
