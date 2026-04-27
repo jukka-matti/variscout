@@ -103,4 +103,16 @@ describe('deriveResponsePathAction', () => {
     );
     expect(action).toMatchObject({ kind: 'open-investigation', investigationId: DEFAULT_ID });
   });
+
+  it('exhaustive switch — adding a new ProcessStateResponsePath without a case is a compile error', () => {
+    // The @ts-expect-error below asserts that passing a plain string (not a valid
+    // ProcessStateResponsePath) to deriveResponsePathAction is a type error.
+    // If this directive becomes "unused" (i.e. tsc stops erroring here), it means
+    // the function's signature was widened unexpectedly — investigate before suppressing.
+    // At runtime the invalid value hits assertNever and throws — that is expected behaviour.
+    expect(() =>
+      // @ts-expect-error — 'not-a-real-response-path' is not assignable to ProcessStateResponsePath
+      deriveResponsePathAction(baseItem({ responsePath: 'not-a-real-response-path' }), DEFAULT_ID)
+    ).toThrow();
+  });
 });
