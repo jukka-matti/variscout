@@ -317,3 +317,24 @@ export async function recomputeSustainmentProjectionForRecord(
   const projection = buildSustainmentProjection(record, handoff);
   await updateProjectSustainmentProjectionInIndexedDB(record.investigationId, projection);
 }
+
+export async function tombstoneSustainmentRecordsForInvestigation(
+  investigationId: string,
+  tombstoneAt: string
+): Promise<number> {
+  const records = await db.sustainmentRecords
+    .where('investigationId')
+    .equals(investigationId)
+    .toArray();
+  if (records.length === 0) return 0;
+  let updated = 0;
+  for (const record of records) {
+    if (record.tombstoneAt) continue; // already archived; skip
+    await db.sustainmentRecords.update(record.id, {
+      tombstoneAt,
+      updatedAt: tombstoneAt,
+    });
+    updated += 1;
+  }
+  return updated;
+}

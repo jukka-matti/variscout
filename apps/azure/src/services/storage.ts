@@ -88,6 +88,7 @@ import {
   listControlHandoffsFromIndexedDB,
   saveControlHandoffToIndexedDB,
   recomputeSustainmentProjectionForRecord,
+  tombstoneSustainmentRecordsForInvestigation,
 } from './localDb';
 
 // ── StorageProvider Context ─────────────────────────────────────────────
@@ -260,6 +261,21 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const existingRecord = await db.projects.get(name).catch(() => null);
       const existingLastViewed = existingRecord?.meta?.lastViewedAt;
       const meta = extractMetadataInputs(project, userId, existingLastViewed) ?? undefined;
+
+      // Detect investigation-status transition out of SUSTAINMENT_STATUSES
+      const oldStatus = (
+        existingRecord?.data as { processContext?: { investigationStatus?: string } } | undefined
+      )?.processContext?.investigationStatus;
+      const newStatus = (
+        project as { processContext?: { investigationStatus?: string } } | undefined
+      )?.processContext?.investigationStatus;
+      const wasSustainment = oldStatus === 'resolved' || oldStatus === 'controlled';
+      const isSustainment = newStatus === 'resolved' || newStatus === 'controlled';
+      if (wasSustainment && !isSustainment) {
+        // Investigation reopened — tombstone its sustainment records.
+        // Use the project name as the investigationId, matching Task 18's keying.
+        await tombstoneSustainmentRecordsForInvestigation(name, new Date().toISOString());
+      }
 
       // Always save to IndexedDB first (instant feedback)
       try {

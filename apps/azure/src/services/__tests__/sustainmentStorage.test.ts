@@ -10,6 +10,7 @@ import {
   listControlHandoffsFromIndexedDB,
   buildSustainmentProjection,
   recomputeSustainmentProjectionForRecord,
+  tombstoneSustainmentRecordsForInvestigation,
 } from '../localDb';
 import type {
   SustainmentRecord,
@@ -173,5 +174,49 @@ describe('sustainment projection recompute', () => {
 
     const updated = await db.projects.get('inv-1');
     expect(updated?.meta?.sustainment?.handoffSurface).toBe('qms-procedure');
+  });
+});
+
+describe('tombstone on investigation reopen', () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+  afterEach(async () => {
+    await db.delete();
+  });
+
+  it('sets tombstoneAt on all matching records', async () => {
+    await saveSustainmentRecordToIndexedDB(makeRecord({ id: 'rec-1' }));
+    await saveSustainmentRecordToIndexedDB(makeRecord({ id: 'rec-2' }));
+    const tombstoneAt = '2026-04-27T00:00:00.000Z';
+    const updated = await tombstoneSustainmentRecordsForInvestigation('inv-1', tombstoneAt);
+    expect(updated).toBe(2);
+
+    const records = await listSustainmentRecordsFromIndexedDB('hub-1');
+    expect(records.every(r => r.tombstoneAt === tombstoneAt)).toBe(true);
+    expect(records.every(r => r.updatedAt === tombstoneAt)).toBe(true);
+  });
+
+  it('skips records that are already tombstoned', async () => {
+    const earlyTombstone = '2026-04-20T00:00:00.000Z';
+    await saveSustainmentRecordToIndexedDB(
+      makeRecord({ id: 'rec-1', tombstoneAt: earlyTombstone })
+    );
+    const updated = await tombstoneSustainmentRecordsForInvestigation(
+      'inv-1',
+      '2026-04-27T00:00:00.000Z'
+    );
+    expect(updated).toBe(0);
+    const [record] = await listSustainmentRecordsFromIndexedDB('hub-1');
+    expect(record.tombstoneAt).toBe(earlyTombstone); // not overwritten
+  });
+
+  it('returns 0 when no records exist for the investigation', async () => {
+    const updated = await tombstoneSustainmentRecordsForInvestigation(
+      'nonexistent',
+      '2026-04-27T00:00:00.000Z'
+    );
+    expect(updated).toBe(0);
   });
 });
