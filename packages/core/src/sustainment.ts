@@ -215,6 +215,72 @@ export function selectSustainmentReviews<TInv extends ProcessHubInvestigation>(
 }
 
 /**
+ * Three-bucket projection of the sustainment review queue: items whose record
+ * is due-but-not-overdue, overdue (past `graceDays`), and recently-reviewed
+ * (latestReviewAt within `recentReviewWindowDays`). Excludes tombstoned and
+ * handoff-opted-out records, mirroring `selectSustainmentReviews`.
+ */
+export interface SustainmentBuckets<TInv extends ProcessHubInvestigation> {
+  dueNow: ProcessHubReviewItem<TInv>[];
+  overdue: ProcessHubReviewItem<TInv>[];
+  recentlyReviewed: ProcessHubReviewItem<TInv>[];
+}
+
+export interface SustainmentBucketOptions {
+  /** Days past the cliff before counting as overdue. Default 0 (any time strictly after due is overdue). */
+  graceDays?: number;
+  /** Window before `now` to count a record as recently-reviewed. Default 14 days. */
+  recentReviewWindowDays?: number;
+}
+
+export function selectSustainmentBuckets<TInv extends ProcessHubInvestigation>(
+  investigations: TInv[],
+  records: SustainmentRecord[],
+  handoffs: ControlHandoff[],
+  now: Date,
+  options: SustainmentBucketOptions = {}
+): SustainmentBuckets<TInv> {
+  const graceDays = Math.max(0, options.graceDays ?? 0);
+  const recentReviewWindowDays = Math.max(0, options.recentReviewWindowDays ?? 14);
+  const recentCutoffMs = now.getTime() - recentReviewWindowDays * 24 * 60 * 60 * 1000;
+
+  const recordByInvestigation = new Map(records.map(r => [r.investigationId, r]));
+  const handoffByInvestigation = new Map(handoffs.map(h => [h.investigationId, h]));
+
+  const dueNow: ProcessHubReviewItem<TInv>[] = [];
+  const overdue: ProcessHubReviewItem<TInv>[] = [];
+  const recentlyReviewed: ProcessHubReviewItem<TInv>[] = [];
+
+  for (const inv of investigations) {
+    const status = inv.metadata?.investigationStatus;
+    if (status !== 'resolved' && status !== 'controlled') continue;
+    const record = recordByInvestigation.get(inv.id);
+    if (!record || record.tombstoneAt) continue;
+    if (status === 'controlled') {
+      const handoff = handoffByInvestigation.get(inv.id);
+      if (handoff && handoff.retainSustainmentReview === false) continue;
+    }
+
+    if (isSustainmentOverdue(record, now, graceDays)) {
+      overdue.push(buildSustainmentReviewItem(inv, ['sustainment-due']));
+      continue;
+    }
+    if (isSustainmentDue(record, now)) {
+      dueNow.push(buildSustainmentReviewItem(inv, ['sustainment-due']));
+      continue;
+    }
+    if (record.latestReviewAt) {
+      const reviewedMs = new Date(record.latestReviewAt).getTime();
+      if (Number.isFinite(reviewedMs) && reviewedMs >= recentCutoffMs) {
+        recentlyReviewed.push(buildSustainmentReviewItem(inv, ['sustainment']));
+      }
+    }
+  }
+
+  return { dueNow, overdue, recentlyReviewed };
+}
+
+/**
  * Returns investigations whose effective status is `controlled` but which lack
  * a ControlHandoff record. These should surface in the cadence board as a
  * prompt to either record the handoff or revert the status.

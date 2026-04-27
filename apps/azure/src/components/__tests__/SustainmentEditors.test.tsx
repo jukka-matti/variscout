@@ -20,6 +20,14 @@ import SustainmentRecordEditor from '../SustainmentRecordEditor';
 import SustainmentReviewLogger from '../SustainmentReviewLogger';
 import ControlHandoffEditor from '../ControlHandoffEditor';
 import type { SustainmentRecord } from '@variscout/core';
+import type { EasyAuthUser } from '../../auth/types';
+
+const FIXTURE_USER: EasyAuthUser = {
+  name: 'Alice Auditor',
+  email: 'alice@variscout.test',
+  userId: 'aad-alice-001',
+  roles: ['VariScout.Reviewer'],
+};
 
 beforeEach(() => {
   mockSaveSustainmentRecord.mockReset();
@@ -43,6 +51,7 @@ describe('SustainmentRecordEditor', () => {
       <SustainmentRecordEditor
         investigationId="inv-abc"
         hubId="hub-1"
+        currentUser={FIXTURE_USER}
         onSave={onSave}
         onCancel={onCancel}
       />
@@ -67,9 +76,23 @@ describe('SustainmentRecordEditor', () => {
     expect(saved.hubId).toBe('hub-1');
     expect(saved.id).toMatch(/^[0-9a-f-]{36}$/);
     expect(saved.owner?.displayName).toBe('Jane Doe');
+    expect(saved.owner?.userId).toBe(FIXTURE_USER.userId);
     expect(saved.nextReviewDue).toMatch(/^2026-05-27T/);
     expect(saved.openConcerns).toBe('Watch the variance trend');
     expect(onSave).toHaveBeenCalledWith(saved);
+  });
+
+  it('prefills the owner field with currentUser.name when no existing record', () => {
+    render(
+      <SustainmentRecordEditor
+        investigationId="inv-abc"
+        hubId="hub-1"
+        currentUser={FIXTURE_USER}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+    expect(screen.getByLabelText('Owner')).toHaveValue('Alice Auditor');
   });
 
   it('calls onCancel when Cancel button is clicked', () => {
@@ -80,6 +103,7 @@ describe('SustainmentRecordEditor', () => {
       <SustainmentRecordEditor
         investigationId="inv-abc"
         hubId="hub-1"
+        currentUser={FIXTURE_USER}
         onSave={onSave}
         onCancel={onCancel}
       />
@@ -113,6 +137,7 @@ describe('SustainmentReviewLogger', () => {
         recordId="rec-1"
         investigationId="inv-abc"
         hubId="hub-1"
+        currentUser={FIXTURE_USER}
         reviewerDisplayName="Alice"
         cadence="monthly"
         onSave={onSave}
@@ -139,6 +164,7 @@ describe('SustainmentReviewLogger', () => {
     expect(savedReview.hubId).toBe('hub-1');
     expect(savedReview.verdict).toBe('holding');
     expect(savedReview.reviewer.displayName).toBe('Alice');
+    expect(savedReview.reviewer.userId).toBe(FIXTURE_USER.userId);
     expect(savedReview.reviewedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
 
     // Record should be updated with latestVerdict and nextReviewDue
@@ -162,6 +188,7 @@ describe('SustainmentReviewLogger', () => {
         recordId="rec-1"
         investigationId="inv-abc"
         hubId="hub-1"
+        currentUser={FIXTURE_USER}
         reviewerDisplayName="Bob"
         cadence="on-demand"
         onSave={onSave}
@@ -188,6 +215,7 @@ describe('ControlHandoffEditor', () => {
       <ControlHandoffEditor
         investigationId="inv-abc"
         hubId="hub-1"
+        currentUser={FIXTURE_USER}
         recordedByDisplayName="Carol"
         onSave={onSave}
         onCancel={vi.fn()}
@@ -218,6 +246,9 @@ describe('ControlHandoffEditor', () => {
     expect(saved.handoffDate).toMatch(/^2026-04-27T/);
     expect(saved.description).toBe('Procedure updated in QMS');
     expect(saved.recordedBy.displayName).toBe('Carol');
+    expect(saved.recordedBy.userId).toBe(FIXTURE_USER.userId);
+    // operationalOwner is a separate person; no people picker yet, so userId is omitted.
+    expect(saved.operationalOwner.userId).toBeUndefined();
 
     expect(onSave).toHaveBeenCalledWith(saved);
   });
@@ -238,6 +269,7 @@ describe('ControlHandoffEditor', () => {
       <ControlHandoffEditor
         investigationId="inv-abc"
         hubId="hub-1"
+        currentUser={FIXTURE_USER}
         recordedByDisplayName="Carol"
         relatedRecord={relatedRecord}
         onSave={onSave}

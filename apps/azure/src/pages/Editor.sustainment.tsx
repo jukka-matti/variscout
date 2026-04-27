@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import type { SustainmentRecord } from '@variscout/core';
 import SustainmentRecordEditor from '../components/SustainmentRecordEditor';
+import { getEasyAuthUser } from '../auth/easyAuth';
+import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
 export interface SustainmentEntryRowProps {
@@ -16,6 +18,17 @@ export const SustainmentEntryRow: React.FC<SustainmentEntryRowProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [confirmation, setConfirmation] = useState<string | null>(null);
   const [existingRecord, setExistingRecord] = useState<SustainmentRecord | null>(null);
+  const [currentUser, setCurrentUser] = useState<EasyAuthUser | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getEasyAuthUser().then(user => {
+      if (!cancelled) setCurrentUser(user);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,12 +63,13 @@ export const SustainmentEntryRow: React.FC<SustainmentEntryRowProps> = ({
     );
   }
 
-  if (isEditing) {
+  if (isEditing && currentUser) {
     return (
       <div className="mt-3">
         <SustainmentRecordEditor
           investigationId={investigationId}
           hubId={hubId}
+          currentUser={currentUser}
           existingRecord={existingRecord ?? undefined}
           onSave={() => {
             setIsEditing(false);
@@ -70,13 +84,15 @@ export const SustainmentEntryRow: React.FC<SustainmentEntryRowProps> = ({
   }
 
   const buttonLabel = existingRecord ? 'Edit sustainment cadence' : 'Set up sustainment cadence';
+  const buttonDisabled = !currentUser;
 
   return (
     <div className="mt-3 flex items-center gap-3">
       <button
         type="button"
         onClick={() => setIsEditing(true)}
-        className="rounded-md border border-edge bg-surface px-3 py-1.5 text-sm font-medium text-content hover:bg-surface-secondary"
+        disabled={buttonDisabled}
+        className="rounded-md border border-edge bg-surface px-3 py-1.5 text-sm font-medium text-content hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-50"
       >
         {buttonLabel}
       </button>

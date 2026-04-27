@@ -1,4 +1,6 @@
 import type {
+  EvidenceLatestSignal,
+  EvidenceSnapshot,
   InvestigationStatus,
   ProcessHubInvestigation,
   ProcessHubReviewItem,
@@ -129,6 +131,31 @@ const HANDOFF_LABELS: Record<ControlHandoffSurface, string> = {
 
 export const formatHandoffSurface = (s: ControlHandoffSurface): string => HANDOFF_LABELS[s];
 
+const pickLatestSnapshotSignal = (
+  snapshots: EvidenceSnapshot[]
+): { signal: EvidenceLatestSignal; capturedAt: string } | null => {
+  if (snapshots.length === 0) return null;
+  const sorted = [...snapshots]
+    .filter(s => Number.isFinite(new Date(s.capturedAt).getTime()))
+    .sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
+  for (const snap of sorted) {
+    const signal = snap.latestSignals?.[0];
+    if (signal) return { signal, capturedAt: snap.capturedAt };
+  }
+  return null;
+};
+
+const formatSnapshotContext = (snapshots: EvidenceSnapshot[] | undefined): string | null => {
+  const found = pickLatestSnapshotSignal(snapshots ?? []);
+  if (!found) return null;
+  const { signal, capturedAt } = found;
+  const dateStr = new Date(capturedAt).toLocaleDateString('en', {
+    month: 'short',
+    day: 'numeric',
+  });
+  return `Latest signal: ${signal.severity} ${signal.label}=${formatMetric(signal.value)} (${dateStr}).`;
+};
+
 export const sustainmentBandAnswer = (
   rollup: ProcessHubRollup<ProcessHubInvestigation>,
   now: Date
@@ -144,11 +171,16 @@ export const sustainmentBandAnswer = (
     r => r.nextReviewDue && new Date(r.nextReviewDue) <= now && !r.tombstoneAt
   ).length;
   const holdingCount = records.filter(r => r.latestVerdict === 'holding' && !r.tombstoneAt).length;
+
+  let base: string;
   if (due === 0 && holdingCount > 0) {
-    return `${holdingCount} ${holdingCount === 1 ? 'investigation is' : 'investigations are'} holding; no review due.`;
+    base = `${holdingCount} ${holdingCount === 1 ? 'investigation is' : 'investigations are'} holding; no review due.`;
+  } else if (due > 0) {
+    base = `${due} sustainment ${due === 1 ? 'review' : 'reviews'} due now.`;
+  } else {
+    return 'Set up sustainment cadence to monitor this.';
   }
-  if (due > 0) {
-    return `${due} sustainment ${due === 1 ? 'review' : 'reviews'} due now.`;
-  }
-  return 'Set up sustainment cadence to monitor this.';
+
+  const snapshotContext = formatSnapshotContext(rollup.evidenceSnapshots);
+  return snapshotContext ? `${base} ${snapshotContext}` : base;
 };

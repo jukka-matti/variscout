@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import type { SustainmentCadence, SustainmentRecord } from '@variscout/core';
+import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
 export interface SustainmentRecordEditorProps {
   investigationId: string;
   hubId: string;
+  currentUser: EasyAuthUser;
   existingRecord?: SustainmentRecord;
   onSave: (record: SustainmentRecord) => void;
   onCancel: () => void;
@@ -23,6 +25,7 @@ const CADENCE_OPTIONS: { value: SustainmentCadence; label: string }[] = [
 const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
   investigationId,
   hubId,
+  currentUser,
   existingRecord,
   onSave,
   onCancel,
@@ -30,7 +33,7 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
   const storage = useStorage();
 
   const [cadence, setCadence] = useState<SustainmentCadence>(existingRecord?.cadence ?? 'monthly');
-  const [owner, setOwner] = useState(existingRecord?.owner?.displayName ?? '');
+  const [owner, setOwner] = useState(existingRecord?.owner?.displayName ?? currentUser.name ?? '');
   const [nextReviewDue, setNextReviewDue] = useState(
     existingRecord?.nextReviewDue ? existingRecord.nextReviewDue.slice(0, 10) : ''
   );
@@ -50,7 +53,7 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
         : undefined,
       owner: owner
         ? {
-            userId: existingRecord?.owner?.userId ?? crypto.randomUUID(),
+            userId: existingRecord?.owner?.userId ?? currentUser.userId,
             displayName: owner,
           }
         : undefined,

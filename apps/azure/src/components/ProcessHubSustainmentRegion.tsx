@@ -1,7 +1,8 @@
 import React from 'react';
-import { ShieldCheck, ArrowRight } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, ArrowRight, History } from 'lucide-react';
 import {
   selectControlHandoffCandidates,
+  selectSustainmentBuckets,
   type ProcessHubCadenceSummary,
   type ProcessHubInvestigation,
   type ProcessHubReviewItem,
@@ -18,113 +19,186 @@ export interface ProcessHubSustainmentRegionProps {
   onRecordHandoff: (investigationId: string) => void;
 }
 
+interface BucketSectionProps {
+  label: string;
+  count: number;
+  icon: React.ReactNode;
+  items: ProcessHubReviewItem<ProcessHubInvestigation>[];
+  onItemClick: (item: ProcessHubReviewItem<ProcessHubInvestigation>) => void;
+  itemAriaLabel: (item: ProcessHubReviewItem<ProcessHubInvestigation>) => string;
+  iconForItem: React.ReactNode;
+  renderSubline?: (item: ProcessHubReviewItem<ProcessHubInvestigation>) => string;
+  testId: string;
+}
+
+const BucketSection: React.FC<BucketSectionProps> = ({
+  label,
+  count,
+  icon,
+  items,
+  onItemClick,
+  itemAriaLabel,
+  iconForItem,
+  renderSubline,
+  testId,
+}) => (
+  <div data-testid={testId}>
+    <div className="mb-1 flex items-center justify-between gap-2">
+      <div className="flex items-center gap-1.5">
+        {icon}
+        <p className="text-xs font-medium uppercase tracking-wide text-content-secondary">
+          {label}
+        </p>
+      </div>
+      <span className="text-xs text-content-muted">{count}</span>
+    </div>
+    <div className="space-y-2">
+      {items.map(item => (
+        <button
+          key={item.investigation.id}
+          type="button"
+          onClick={() => onItemClick(item)}
+          className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
+          aria-label={itemAriaLabel(item)}
+        >
+          <div className="flex items-center gap-2 text-sm font-medium text-content">
+            {iconForItem}
+            <span>{item.investigation.name}</span>
+          </div>
+          {renderSubline && (
+            <p className="mt-1 text-xs text-content-secondary">{renderSubline(item)}</p>
+          )}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
 const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = ({
-  cadence,
+  cadence: _cadence,
   rollup,
   onOpenInvestigation,
   onSetupSustainment,
   onLogReview,
   onRecordHandoff,
 }) => {
+  const renderDate = new Date();
+
+  const buckets = selectSustainmentBuckets(
+    rollup.investigations,
+    rollup.sustainmentRecords,
+    rollup.controlHandoffs,
+    renderDate
+  );
+
   const handoffCandidates = selectControlHandoffCandidates(
     rollup.investigations,
     rollup.controlHandoffs
   );
 
-  const sustainmentDueIds = new Set(
-    cadence.sustainment.items.map((item: ProcessHubReviewItem) => item.investigation.id)
-  );
+  const dueAndOverdueIds = new Set([
+    ...buckets.dueNow.map(item => item.investigation.id),
+    ...buckets.overdue.map(item => item.investigation.id),
+  ]);
+  const reviewedIds = new Set(buckets.recentlyReviewed.map(item => item.investigation.id));
   const handoffIds = new Set(handoffCandidates.map(item => item.investigation.id));
 
   const setupCandidates = rollup.investigations.filter(inv => {
     const status = inv.metadata?.investigationStatus;
     if (status !== 'resolved' && status !== 'controlled') return false;
     if (inv.metadata?.sustainment) return false;
-    if (sustainmentDueIds.has(inv.id)) return false;
+    if (dueAndOverdueIds.has(inv.id)) return false;
+    if (reviewedIds.has(inv.id)) return false;
     if (handoffIds.has(inv.id)) return false;
     return true;
   });
 
-  const renderDate = new Date();
+  const reviewSubline = (item: ProcessHubReviewItem<ProcessHubInvestigation>): string => {
+    const verdict = item.investigation.metadata?.sustainment?.latestVerdict;
+    const nextReviewDue = item.investigation.metadata?.sustainment?.nextReviewDue;
+    return [
+      verdict ? formatSustainmentVerdict(verdict) : null,
+      formatSustainmentDue(nextReviewDue, renderDate),
+    ]
+      .filter(Boolean)
+      .join(' · ');
+  };
+
+  const handleReviewClick = (item: ProcessHubReviewItem<ProcessHubInvestigation>) => {
+    const recordId = item.investigation.metadata?.sustainment?.recordId;
+    if (recordId) {
+      onLogReview(recordId);
+    } else {
+      onOpenInvestigation(item.investigation.id);
+    }
+  };
+
+  const totalSustainmentItems =
+    buckets.dueNow.length +
+    buckets.overdue.length +
+    buckets.recentlyReviewed.length +
+    handoffCandidates.length;
 
   return (
     <section className="space-y-3" data-testid="sustainment-region" aria-label="Sustainment region">
-      {cadence.sustainment.totalCount > 0 && (
-        <div>
-          <div className="mb-1 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck size={14} className="text-green-400" />
-              <p className="text-xs font-medium uppercase tracking-wide text-content-secondary">
-                Sustainment due
-              </p>
-            </div>
-            <span className="text-xs text-content-muted">{cadence.sustainment.totalCount}</span>
-          </div>
-          <div className="space-y-2">
-            {cadence.sustainment.items.map((item: ProcessHubReviewItem) => {
-              const recordId = item.investigation.metadata?.sustainment?.recordId;
-              const verdict = item.investigation.metadata?.sustainment?.latestVerdict;
-              const nextReviewDue = item.investigation.metadata?.sustainment?.nextReviewDue;
-              return (
-                <button
-                  key={item.investigation.id}
-                  type="button"
-                  onClick={() =>
-                    recordId ? onLogReview(recordId) : onOpenInvestigation(item.investigation.id)
-                  }
-                  className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
-                  aria-label={`Log sustainment review for ${item.investigation.name}`}
-                >
-                  <div className="flex items-center gap-2 text-sm font-medium text-content">
-                    <ShieldCheck size={14} className="text-green-400" />
-                    <span>{item.investigation.name}</span>
-                  </div>
-                  <p className="mt-1 text-xs text-content-secondary">
-                    {verdict && `${formatSustainmentVerdict(verdict)} · `}
-                    {formatSustainmentDue(nextReviewDue, renderDate)}
-                  </p>
-                </button>
-              );
-            })}
-            {cadence.sustainment.hiddenCount > 0 && (
-              <p className="pt-1 text-xs font-medium text-content-secondary">
-                +{cadence.sustainment.hiddenCount} more
-              </p>
-            )}
-          </div>
-        </div>
+      {buckets.overdue.length > 0 && (
+        <BucketSection
+          label="Overdue"
+          count={buckets.overdue.length}
+          icon={<ShieldAlert size={14} className="text-red-400" />}
+          items={buckets.overdue}
+          onItemClick={handleReviewClick}
+          itemAriaLabel={item => `Log overdue sustainment review for ${item.investigation.name}`}
+          iconForItem={<ShieldAlert size={14} className="text-red-400" />}
+          renderSubline={reviewSubline}
+          testId="sustainment-overdue"
+        />
+      )}
+
+      {buckets.dueNow.length > 0 && (
+        <BucketSection
+          label="Sustainment due"
+          count={buckets.dueNow.length}
+          icon={<ShieldCheck size={14} className="text-amber-400" />}
+          items={buckets.dueNow}
+          onItemClick={handleReviewClick}
+          itemAriaLabel={item => `Log sustainment review for ${item.investigation.name}`}
+          iconForItem={<ShieldCheck size={14} className="text-amber-400" />}
+          renderSubline={reviewSubline}
+          testId="sustainment-due"
+        />
+      )}
+
+      {buckets.recentlyReviewed.length > 0 && (
+        <BucketSection
+          label="Recently reviewed"
+          count={buckets.recentlyReviewed.length}
+          icon={<History size={14} className="text-green-400" />}
+          items={buckets.recentlyReviewed}
+          onItemClick={handleReviewClick}
+          itemAriaLabel={item => `Open recently reviewed investigation ${item.investigation.name}`}
+          iconForItem={<ShieldCheck size={14} className="text-green-400" />}
+          renderSubline={reviewSubline}
+          testId="sustainment-recently-reviewed"
+        />
       )}
 
       {handoffCandidates.length > 0 && (
-        <div>
-          <div className="mb-1 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
-              <ArrowRight size={14} className="text-content-secondary" />
-              <p className="text-xs font-medium uppercase tracking-wide text-content-secondary">
-                Control handoff
-              </p>
-            </div>
-            <span className="text-xs text-content-muted">{handoffCandidates.length}</span>
-          </div>
-          <div className="space-y-2">
-            {handoffCandidates.map(item => (
-              <button
-                key={item.investigation.id}
-                type="button"
-                onClick={() => onRecordHandoff(item.investigation.id)}
-                className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
-                aria-label={`Record control handoff for ${item.investigation.name}`}
-              >
-                <p className="text-sm font-medium text-content">{item.investigation.name}</p>
-                <p className="mt-1 text-xs text-content-secondary">Needs control handoff</p>
-              </button>
-            ))}
-          </div>
-        </div>
+        <BucketSection
+          label="Control handoff"
+          count={handoffCandidates.length}
+          icon={<ArrowRight size={14} className="text-content-secondary" />}
+          items={handoffCandidates}
+          onItemClick={item => onRecordHandoff(item.investigation.id)}
+          itemAriaLabel={item => `Record control handoff for ${item.investigation.name}`}
+          iconForItem={<ArrowRight size={14} className="text-content-secondary" />}
+          renderSubline={() => 'Needs control handoff'}
+          testId="sustainment-handoff"
+        />
       )}
 
       {setupCandidates.length > 0 ? (
-        <div>
+        <div data-testid="sustainment-setup">
           <div className="mb-1 flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <ShieldCheck size={14} className="text-content-muted" />
@@ -150,8 +224,7 @@ const ProcessHubSustainmentRegion: React.FC<ProcessHubSustainmentRegionProps> = 
           </div>
         </div>
       ) : (
-        cadence.sustainment.totalCount === 0 &&
-        handoffCandidates.length === 0 && (
+        totalSustainmentItems === 0 && (
           <p className="text-sm text-content-secondary">
             No sustainment items yet — investigations move here once resolved or controlled.
           </p>

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import type { ControlHandoff, ControlHandoffSurface, SustainmentRecord } from '@variscout/core';
+import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
 export interface ControlHandoffEditorProps {
   investigationId: string;
   hubId: string;
+  currentUser: EasyAuthUser;
   existingHandoff?: ControlHandoff;
   recordedByDisplayName: string;
   relatedRecord?: SustainmentRecord;
@@ -29,6 +31,7 @@ const todayString = (): string => new Date().toISOString().slice(0, 10);
 const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
   investigationId,
   hubId,
+  currentUser,
   existingHandoff,
   recordedByDisplayName,
   relatedRecord,
@@ -64,14 +67,17 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
       hubId,
       surface,
       systemName,
-      operationalOwner: { userId: 'self', displayName: operationalOwnerName },
+      // operationalOwner is the person operating the control, NOT the submitter.
+      // We have no people picker yet, so userId is omitted (optional on ProcessParticipantRef);
+      // recordedBy below carries the submitter's identity.
+      operationalOwner: { displayName: operationalOwnerName },
       handoffDate: new Date(handoffDate + 'T00:00:00.000Z').toISOString(),
       description,
       referenceUri: referenceUri || undefined,
       retainSustainmentReview,
       recordedAt: existingHandoff?.recordedAt ?? now,
       recordedBy: existingHandoff?.recordedBy ?? {
-        userId: 'self',
+        userId: currentUser.userId,
         displayName: recordedByDisplayName,
       },
     };

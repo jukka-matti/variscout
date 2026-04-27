@@ -4,6 +4,7 @@ import {
   isSustainmentOverdue,
   nextDueFromCadence,
   selectControlHandoffCandidates,
+  selectSustainmentBuckets,
   selectSustainmentReviews,
   type ControlHandoff,
   type ControlHandoffSurface,
@@ -312,5 +313,200 @@ describe('selectControlHandoffCandidates', () => {
     const result = selectControlHandoffCandidates(investigations, handoffs);
 
     expect(result).toEqual([]);
+  });
+});
+
+describe('selectSustainmentBuckets', () => {
+  const NOW = new Date('2026-04-26T00:00:00.000Z');
+
+  function recordFor(
+    investigationId: string,
+    nextReviewDue?: string,
+    overrides: Partial<SustainmentRecord> = {}
+  ): SustainmentRecord {
+    return {
+      id: `rec-${investigationId}`,
+      investigationId,
+      hubId: 'hub-1',
+      cadence: 'monthly',
+      nextReviewDue,
+      createdAt: '2026-03-01T00:00:00.000Z',
+      updatedAt: '2026-04-01T00:00:00.000Z',
+      ...overrides,
+    };
+  }
+
+  it('places due-but-not-overdue records in dueNow', () => {
+    const inv = makeInvestigation('inv-1', 'controlled', {
+      recordId: 'rec-inv-1',
+      cadence: 'monthly',
+    });
+    const record = recordFor('inv-1', '2026-04-26T00:00:00.000Z'); // exactly due, grace=0 → due, not overdue
+    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    expect(result.dueNow).toHaveLength(1);
+    expect(result.dueNow[0]?.investigation.id).toBe('inv-1');
+    expect(result.overdue).toHaveLength(0);
+    expect(result.recentlyReviewed).toHaveLength(0);
+  });
+
+  it('places strictly-past-due records in overdue with default graceDays=0', () => {
+    const inv = makeInvestigation('inv-1', 'controlled', {
+      recordId: 'rec-inv-1',
+      cadence: 'monthly',
+    });
+    const record = recordFor('inv-1', '2026-04-25T00:00:00.000Z'); // 1 day past due, grace=0 → overdue
+    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    expect(result.overdue).toHaveLength(1);
+    expect(result.dueNow).toHaveLength(0);
+  });
+
+  it('honors graceDays — within grace counts as dueNow, past grace as overdue', () => {
+    const inv1 = makeInvestigation('inv-1', 'controlled', {
+      recordId: 'rec-inv-1',
+      cadence: 'weekly',
+    });
+    const inv2 = makeInvestigation('inv-2', 'controlled', {
+      recordId: 'rec-inv-2',
+      cadence: 'weekly',
+    });
+    // Both due 7 days ago. With graceDays=7, inv-1 is at exactly the grace cutoff (still dueNow);
+    // inv-2 due 8 days ago is past grace (overdue).
+    const records = [
+      recordFor('inv-1', '2026-04-19T00:00:00.000Z'),
+      recordFor('inv-2', '2026-04-18T00:00:00.000Z'),
+    ];
+    const result = selectSustainmentBuckets([inv1, inv2], records, [], NOW, { graceDays: 7 });
+    expect(result.dueNow.map(r => r.investigation.id)).toEqual(['inv-1']);
+    expect(result.overdue.map(r => r.investigation.id)).toEqual(['inv-2']);
+  });
+
+  it('places not-yet-due records with recent review in recentlyReviewed', () => {
+    const inv = makeInvestigation('inv-1', 'controlled', {
+      recordId: 'rec-inv-1',
+      cadence: 'monthly',
+    });
+    const record = recordFor('inv-1', '2026-05-15T00:00:00.000Z', {
+      latestReviewAt: '2026-04-20T00:00:00.000Z', // 6 days before NOW (within default 14-day window)
+      latestVerdict: 'holding',
+    });
+    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    expect(result.recentlyReviewed).toHaveLength(1);
+    expect(result.recentlyReviewed[0]?.investigation.id).toBe('inv-1');
+    expect(result.dueNow).toHaveLength(0);
+    expect(result.overdue).toHaveLength(0);
+  });
+
+  it('drops records reviewed before the recent window from all buckets', () => {
+    const inv = makeInvestigation('inv-1', 'controlled', {
+      recordId: 'rec-inv-1',
+      cadence: 'monthly',
+    });
+    const record = recordFor('inv-1', '2026-05-15T00:00:00.000Z', {
+      latestReviewAt: '2026-03-20T00:00:00.000Z', // 37 days back, default window = 14 → out
+    });
+    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    expect(result.recentlyReviewed).toHaveLength(0);
+    expect(result.dueNow).toHaveLength(0);
+    expect(result.overdue).toHaveLength(0);
+  });
+
+  it('respects custom recentReviewWindowDays', () => {
+    const inv = makeInvestigation('inv-1', 'controlled', {
+      recordId: 'rec-inv-1',
+      cadence: 'monthly',
+    });
+    const record = recordFor('inv-1', '2026-05-15T00:00:00.000Z', {
+      latestReviewAt: '2026-04-15T00:00:00.000Z', // 11 days back
+    });
+    expect(
+      selectSustainmentBuckets([inv], [record], [], NOW, { recentReviewWindowDays: 10 })
+        .recentlyReviewed
+    ).toHaveLength(0);
+    expect(
+      selectSustainmentBuckets([inv], [record], [], NOW, { recentReviewWindowDays: 30 })
+        .recentlyReviewed
+    ).toHaveLength(1);
+  });
+
+  it('excludes tombstoned records from all buckets', () => {
+    const inv = makeInvestigation('inv-1', 'controlled', {
+      recordId: 'rec-inv-1',
+      cadence: 'monthly',
+    });
+    const record = recordFor('inv-1', '2026-04-25T00:00:00.000Z', {
+      tombstoneAt: '2026-04-24T00:00:00.000Z',
+      latestReviewAt: '2026-04-20T00:00:00.000Z',
+    });
+    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    expect(result.dueNow).toHaveLength(0);
+    expect(result.overdue).toHaveLength(0);
+    expect(result.recentlyReviewed).toHaveLength(0);
+  });
+
+  it('excludes controlled investigations whose handoff opted out of sustainment review', () => {
+    const inv = makeInvestigation('inv-1', 'controlled', {
+      recordId: 'rec-inv-1',
+      cadence: 'monthly',
+    });
+    const record = recordFor('inv-1', '2026-04-25T00:00:00.000Z');
+    const handoffs = [makeHandoff('inv-1', false)];
+    const result = selectSustainmentBuckets([inv], [record], handoffs, NOW);
+    expect(result.dueNow).toHaveLength(0);
+    expect(result.overdue).toHaveLength(0);
+  });
+
+  it('skips investigations whose status is not resolved or controlled', () => {
+    const inv = makeInvestigation('inv-1', 'investigating', {
+      recordId: 'rec-inv-1',
+      cadence: 'monthly',
+    });
+    const record = recordFor('inv-1', '2026-04-25T00:00:00.000Z');
+    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    expect(result.dueNow).toHaveLength(0);
+    expect(result.overdue).toHaveLength(0);
+    expect(result.recentlyReviewed).toHaveLength(0);
+  });
+
+  it('drops on-demand records with no latestReviewAt and no nextReviewDue from all buckets', () => {
+    // on-demand cadence has no nextReviewDue (per nextDueFromCadence). Until first review,
+    // there is nothing to bucket — the parent UI must surface these via a separate path.
+    const inv = makeInvestigation('inv-1', 'controlled', {
+      recordId: 'rec-inv-1',
+      cadence: 'on-demand',
+    });
+    const record = recordFor('inv-1', undefined, { cadence: 'on-demand' });
+    const result = selectSustainmentBuckets([inv], [record], [], NOW);
+    expect(result.dueNow).toHaveLength(0);
+    expect(result.overdue).toHaveLength(0);
+    expect(result.recentlyReviewed).toHaveLength(0);
+  });
+
+  it('partitions multi-record hubs across all three buckets without double-counting', () => {
+    const overdueInv = makeInvestigation('inv-overdue', 'controlled', {
+      recordId: 'rec-overdue',
+      cadence: 'monthly',
+    });
+    const dueInv = makeInvestigation('inv-due', 'controlled', {
+      recordId: 'rec-due',
+      cadence: 'monthly',
+    });
+    const reviewedInv = makeInvestigation('inv-reviewed', 'resolved', {
+      recordId: 'rec-reviewed',
+      cadence: 'monthly',
+    });
+    const records = [
+      recordFor('inv-overdue', '2026-04-19T00:00:00.000Z'), // 7 days past due, grace=0 → overdue
+      recordFor('inv-due', '2026-04-26T00:00:00.000Z'), // exactly due → dueNow
+      recordFor('inv-reviewed', '2026-05-26T00:00:00.000Z', {
+        latestReviewAt: '2026-04-22T00:00:00.000Z', // 4 days back → recentlyReviewed
+      }),
+    ];
+    const result = selectSustainmentBuckets([overdueInv, dueInv, reviewedInv], records, [], NOW);
+    expect(result.overdue.map(r => r.investigation.id)).toEqual(['inv-overdue']);
+    expect(result.dueNow.map(r => r.investigation.id)).toEqual(['inv-due']);
+    expect(result.recentlyReviewed.map(r => r.investigation.id)).toEqual(['inv-reviewed']);
+    const totalLength =
+      result.overdue.length + result.dueNow.length + result.recentlyReviewed.length;
+    expect(totalLength).toBe(3);
   });
 });
