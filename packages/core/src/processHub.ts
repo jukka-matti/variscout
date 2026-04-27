@@ -8,6 +8,7 @@ import {
   isSustainmentDue,
   isSustainmentOverdue,
   selectControlHandoffCandidates,
+  selectSustainmentBuckets,
   selectSustainmentReviews,
   type ControlHandoff,
   type SustainmentMetadataProjection,
@@ -174,6 +175,8 @@ export interface ProcessHubCadenceSnapshot {
   verification: number;
   overdueActions: number;
   sustainment: number;
+  /** Count of records reviewed within the last `recentReviewWindowDays` (default 14). Undefined when 0. */
+  sustainmentReviewed?: number;
   latestSignals: number;
   latestEvidenceSignals?: number;
   nextMoves: number;
@@ -659,6 +662,12 @@ export function buildProcessHubCadence<TInvestigation extends ProcessHubInvestig
     rollup.controlHandoffs
   );
   const sustainmentItems = [...sustainmentReviews, ...handoffCandidates];
+  const sustainmentBuckets = selectSustainmentBuckets(
+    rollup.investigations,
+    rollup.sustainmentRecords,
+    rollup.controlHandoffs,
+    now
+  );
 
   const snapshot: ProcessHubCadenceSnapshot = {
     active: rollup.activeInvestigationCount,
@@ -671,6 +680,9 @@ export function buildProcessHubCadence<TInvestigation extends ProcessHubInvestig
   };
   if (latestEvidenceSignals.length > 0) {
     snapshot.latestEvidenceSignals = latestEvidenceSignals.length;
+  }
+  if (sustainmentBuckets.recentlyReviewed.length > 0) {
+    snapshot.sustainmentReviewed = sustainmentBuckets.recentlyReviewed.length;
   }
 
   return {

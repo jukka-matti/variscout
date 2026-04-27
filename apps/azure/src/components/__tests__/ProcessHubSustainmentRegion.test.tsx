@@ -6,6 +6,7 @@ import type {
   ProcessHubCadenceSummary,
   ProcessHubInvestigation,
   ProcessHubRollup,
+  SustainmentRecord,
 } from '@variscout/core';
 
 const HUB = {
@@ -73,6 +74,21 @@ function makeEmptyRollup(
   } as ProcessHubRollup<ProcessHubInvestigation>;
 }
 
+function makeRecord(
+  investigationId: string,
+  overrides: Partial<SustainmentRecord> = {}
+): SustainmentRecord {
+  return {
+    id: `rec-${investigationId}`,
+    investigationId,
+    hubId: 'hub-1',
+    cadence: 'monthly',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    ...overrides,
+  };
+}
+
 const noOp = vi.fn();
 
 describe('ProcessHubSustainmentRegion', () => {
@@ -135,7 +151,7 @@ describe('ProcessHubSustainmentRegion', () => {
     expect(onSetupSustainment).toHaveBeenCalledWith('inv-2');
   });
 
-  it('renders the sustainment-due queue and calls onLogReview when a recordId is present', () => {
+  it('renders the overdue bucket when a record is past due, calls onLogReview with the recordId', () => {
     const onLogReview = vi.fn();
     const inv = makeInvestigation({
       id: 'inv-3',
@@ -152,22 +168,14 @@ describe('ProcessHubSustainmentRegion', () => {
     });
 
     const cadence = makeEmptyCadence();
-    cadence.sustainment = {
-      totalCount: 1,
-      hiddenCount: 0,
-      items: [
-        {
-          investigation: inv,
-          reasons: ['sustainment-due'],
-          readinessReasons: [],
-          overdueActionCount: 0,
-          changeSignalCount: 0,
-          nextMove: undefined,
-        },
-      ],
-    } as unknown as typeof cadence.sustainment;
-
     const rollup = makeEmptyRollup([inv]);
+    rollup.sustainmentRecords = [
+      makeRecord('inv-3', {
+        id: 'rec-abc',
+        nextReviewDue: '2026-04-20T00:00:00.000Z',
+        latestVerdict: 'holding',
+      }),
+    ];
     rollup.controlHandoffs = [
       {
         id: 'ho-1',
@@ -197,11 +205,59 @@ describe('ProcessHubSustainmentRegion', () => {
 
     expect(screen.getByText('Coffee Moisture')).toBeInTheDocument();
     expect(screen.getByText(/Holding/)).toBeInTheDocument();
+    expect(screen.getByTestId('sustainment-overdue')).toBeInTheDocument();
 
     fireEvent.click(
-      screen.getByRole('button', { name: /Log sustainment review for Coffee Moisture/ })
+      screen.getByRole('button', {
+        name: /Log overdue sustainment review for Coffee Moisture/,
+      })
     );
     expect(onLogReview).toHaveBeenCalledWith('rec-abc');
+  });
+
+  it('renders the recently-reviewed bucket for a not-yet-due record with a recent review', () => {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const oneMonthFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const inv = makeInvestigation({
+      id: 'inv-recent',
+      name: 'Pasteurizer Temp',
+      metadata: {
+        investigationStatus: 'resolved',
+        sustainment: {
+          recordId: 'rec-recent',
+          cadence: 'monthly',
+          nextReviewDue: oneMonthFromNow,
+          latestVerdict: 'holding',
+        },
+      },
+    });
+
+    const cadence = makeEmptyCadence();
+    const rollup = makeEmptyRollup([inv]);
+    rollup.sustainmentRecords = [
+      makeRecord('inv-recent', {
+        id: 'rec-recent',
+        nextReviewDue: oneMonthFromNow,
+        latestReviewAt: sevenDaysAgo,
+        latestVerdict: 'holding',
+      }),
+    ];
+
+    render(
+      <ProcessHubSustainmentRegion
+        cadence={cadence}
+        rollup={rollup}
+        onOpenInvestigation={noOp}
+        onSetupSustainment={noOp}
+        onLogReview={noOp}
+        onRecordHandoff={noOp}
+      />
+    );
+
+    expect(screen.getByTestId('sustainment-recently-reviewed')).toBeInTheDocument();
+    expect(screen.getByText('Pasteurizer Temp')).toBeInTheDocument();
   });
 
   it('renders handoff candidates and calls onRecordHandoff on click', () => {
@@ -235,7 +291,7 @@ describe('ProcessHubSustainmentRegion', () => {
     expect(onRecordHandoff).toHaveBeenCalledWith('inv-4');
   });
 
-  it('hides sustainment-due section when a controlled investigation has retainSustainmentReview=false', () => {
+  it('hides all sustainment buckets when a controlled investigation has retainSustainmentReview=false', () => {
     const inv = makeInvestigation({
       id: 'inv-5',
       name: 'Pressure Drop',
@@ -249,10 +305,15 @@ describe('ProcessHubSustainmentRegion', () => {
       },
     });
 
-    // The sustainment-due queue is empty because selectSustainmentReviews filtered it out
     const cadence = makeEmptyCadence();
-
     const rollup = makeEmptyRollup([inv]);
+    rollup.sustainmentRecords = [
+      makeRecord('inv-5', {
+        id: 'rec-xyz',
+        cadence: 'quarterly',
+        nextReviewDue: '2026-04-01T00:00:00.000Z',
+      }),
+    ];
     rollup.controlHandoffs = [
       {
         id: 'ho-2',
@@ -280,13 +341,11 @@ describe('ProcessHubSustainmentRegion', () => {
       />
     );
 
-    // sustainment-due section should be absent (cadence.sustainment.totalCount === 0)
-    expect(screen.queryByText('Sustainment due')).not.toBeInTheDocument();
-    // handoff section absent (has a handoff record)
-    expect(screen.queryByText('Needs control handoff')).not.toBeInTheDocument();
-    // investigation has a sustainment projection, so no setup prompt either
+    expect(screen.queryByTestId('sustainment-overdue')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('sustainment-due')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('sustainment-recently-reviewed')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('sustainment-handoff')).not.toBeInTheDocument();
     expect(screen.queryByText('Set up sustainment cadence')).not.toBeInTheDocument();
-    // empty state should appear
     expect(
       screen.getByText(
         'No sustainment items yet — investigations move here once resolved or controlled.'

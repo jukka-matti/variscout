@@ -499,12 +499,15 @@ export type {
   SustainmentVerdict,
   ControlHandoffSurface,
   SustainmentMetadataProjection,
+  SustainmentBuckets,
+  SustainmentBucketOptions,
 } from './sustainment';
 export {
   nextDueFromCadence,
   isSustainmentDue,
   isSustainmentOverdue,
   selectSustainmentReviews,
+  selectSustainmentBuckets,
   selectControlHandoffCandidates,
   sustainmentRecordBlobPath,
   sustainmentReviewBlobPath,
