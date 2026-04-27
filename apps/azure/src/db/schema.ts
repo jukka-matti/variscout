@@ -33,7 +33,7 @@ export type ProcessHubRecord = import('@variscout/core').ProcessHub;
 export type EvidenceSourceRecord = import('@variscout/core').EvidenceSource;
 export type EvidenceSnapshotRecord = import('@variscout/core').EvidenceSnapshot;
 
-class VariScoutDatabase extends Dexie {
+export class VariScoutDatabase extends Dexie {
   projects!: Dexie.Table<ProjectRecord, string>;
   syncQueue!: Dexie.Table<SyncItem, number>;
   syncState!: Dexie.Table<SyncStateRecord, string>;
