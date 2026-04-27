@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { SustainmentCadence, SustainmentRecord } from '@variscout/core';
+import { nextDueFromCadence } from '@variscout/core';
 import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
@@ -22,6 +23,13 @@ const CADENCE_OPTIONS: { value: SustainmentCadence; label: string }[] = [
   { value: 'on-demand', label: 'On-demand' },
 ];
 
+const todayDateString = (): string => new Date().toISOString().slice(0, 10);
+
+const suggestDueDate = (cadence: SustainmentCadence): string => {
+  const iso = nextDueFromCadence(cadence, new Date());
+  return iso ? iso.slice(0, 10) : '';
+};
+
 const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
   investigationId,
   hubId,
@@ -32,15 +40,35 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
 }) => {
   const storage = useStorage();
 
-  const [cadence, setCadence] = useState<SustainmentCadence>(existingRecord?.cadence ?? 'monthly');
+  const initialCadence: SustainmentCadence = existingRecord?.cadence ?? 'monthly';
+  const [cadence, setCadence] = useState<SustainmentCadence>(initialCadence);
   const [owner, setOwner] = useState(existingRecord?.owner?.displayName ?? currentUser.name ?? '');
   const [nextReviewDue, setNextReviewDue] = useState(
-    existingRecord?.nextReviewDue ? existingRecord.nextReviewDue.slice(0, 10) : ''
+    existingRecord?.nextReviewDue
+      ? existingRecord.nextReviewDue.slice(0, 10)
+      : suggestDueDate(initialCadence)
   );
+  // Treat an existing record's prior date as user-set so cadence changes don't overwrite it.
+  const [userEditedDate, setUserEditedDate] = useState(!!existingRecord?.nextReviewDue);
   const [openConcerns, setOpenConcerns] = useState(existingRecord?.openConcerns ?? '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCadenceChange = (next: SustainmentCadence) => {
+    setCadence(next);
+    if (!userEditedDate) {
+      setNextReviewDue(suggestDueDate(next));
+    }
+  };
+
+  const handleDateChange = (value: string) => {
+    setNextReviewDue(value);
+    setUserEditedDate(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
     const now = new Date().toISOString();
     const record: SustainmentRecord = {
@@ -67,8 +95,12 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
       updatedAt: now,
     };
 
-    await storage.saveSustainmentRecord(record);
-    onSave(record);
+    try {
+      await storage.saveSustainmentRecord(record);
+      onSave(record);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -86,7 +118,7 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
           id="sre-cadence"
           aria-label="Cadence"
           value={cadence}
-          onChange={e => setCadence(e.target.value as SustainmentCadence)}
+          onChange={e => handleCadenceChange(e.target.value as SustainmentCadence)}
           className="w-full rounded-md border border-edge bg-surface-secondary px-2 py-1 text-sm text-content focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         >
@@ -125,7 +157,8 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
           aria-label="Next review due"
           type="date"
           value={nextReviewDue}
-          onChange={e => setNextReviewDue(e.target.value)}
+          min={todayDateString()}
+          onChange={e => handleDateChange(e.target.value)}
           className="w-full rounded-md border border-edge bg-surface-secondary px-2 py-1 text-sm text-content focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
@@ -151,15 +184,17 @@ const SustainmentRecordEditor: React.FC<SustainmentRecordEditorProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-md border border-edge px-3 py-1.5 text-sm font-medium text-content-secondary hover:bg-surface-secondary"
+          disabled={isSubmitting}
+          className="rounded-md border border-edge px-3 py-1.5 text-sm font-medium text-content-secondary hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-50"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+          disabled={isSubmitting}
+          className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Save
+          {isSubmitting ? 'Saving…' : 'Save'}
         </button>
       </div>
     </form>

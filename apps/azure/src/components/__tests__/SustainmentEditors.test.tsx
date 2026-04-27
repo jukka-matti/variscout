@@ -113,6 +113,127 @@ describe('SustainmentRecordEditor', () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(onSave).not.toHaveBeenCalled();
   });
+
+  it('auto-suggests next-review-due from cadence on initial mount (no existing record)', () => {
+    render(
+      <SustainmentRecordEditor
+        investigationId="inv-abc"
+        hubId="hub-1"
+        currentUser={FIXTURE_USER}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+    const dateInput = screen.getByLabelText('Next review due') as HTMLInputElement;
+    // Default cadence is monthly → suggested ~30 days out, never empty
+    expect(dateInput.value).not.toBe('');
+    expect(dateInput.value).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('updates next-review-due when cadence changes if user has not edited the date', () => {
+    render(
+      <SustainmentRecordEditor
+        investigationId="inv-abc"
+        hubId="hub-1"
+        currentUser={FIXTURE_USER}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+    const dateInput = screen.getByLabelText('Next review due') as HTMLInputElement;
+    const monthlyDate = dateInput.value;
+    fireEvent.change(screen.getByLabelText('Cadence'), { target: { value: 'annual' } });
+    expect(dateInput.value).not.toBe(monthlyDate);
+    expect(dateInput.value).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('preserves user-edited next-review-due when cadence changes after manual edit', () => {
+    render(
+      <SustainmentRecordEditor
+        investigationId="inv-abc"
+        hubId="hub-1"
+        currentUser={FIXTURE_USER}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+    const dateInput = screen.getByLabelText('Next review due') as HTMLInputElement;
+    fireEvent.change(dateInput, { target: { value: '2027-01-15' } });
+    fireEvent.change(screen.getByLabelText('Cadence'), { target: { value: 'annual' } });
+    expect(dateInput.value).toBe('2027-01-15');
+  });
+
+  it('preserves an existing record’s next-review-due when cadence changes (treated as user-set)', () => {
+    const existingRecord: SustainmentRecord = {
+      id: 'rec-existing',
+      investigationId: 'inv-abc',
+      hubId: 'hub-1',
+      cadence: 'monthly',
+      nextReviewDue: '2026-12-01T00:00:00.000Z',
+      createdAt: '2026-04-01T00:00:00.000Z',
+      updatedAt: '2026-04-01T00:00:00.000Z',
+    };
+    render(
+      <SustainmentRecordEditor
+        investigationId="inv-abc"
+        hubId="hub-1"
+        currentUser={FIXTURE_USER}
+        existingRecord={existingRecord}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+    const dateInput = screen.getByLabelText('Next review due') as HTMLInputElement;
+    expect(dateInput.value).toBe('2026-12-01');
+    fireEvent.change(screen.getByLabelText('Cadence'), { target: { value: 'quarterly' } });
+    expect(dateInput.value).toBe('2026-12-01');
+  });
+
+  it('sets a min attribute equal to today on the next-review-due input', () => {
+    render(
+      <SustainmentRecordEditor
+        investigationId="inv-abc"
+        hubId="hub-1"
+        currentUser={FIXTURE_USER}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+    const dateInput = screen.getByLabelText('Next review due') as HTMLInputElement;
+    const today = new Date().toISOString().slice(0, 10);
+    expect(dateInput.min).toBe(today);
+  });
+
+  it('disables Save during async submit and re-enables on completion', async () => {
+    let resolveSave: (() => void) | undefined;
+    mockSaveSustainmentRecord.mockImplementation(
+      () =>
+        new Promise<void>(resolve => {
+          resolveSave = resolve;
+        })
+    );
+
+    render(
+      <SustainmentRecordEditor
+        investigationId="inv-abc"
+        hubId="hub-1"
+        currentUser={FIXTURE_USER}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+
+    const saveBtn = screen.getByRole('button', { name: /save/i });
+    fireEvent.click(saveBtn);
+
+    // While the save promise is pending, the button should reflect the in-flight state
+    await waitFor(() => expect(saveBtn).toBeDisabled());
+    expect(saveBtn).toHaveTextContent(/saving/i);
+
+    resolveSave?.();
+    await waitFor(() => expect(saveBtn).not.toBeDisabled());
+    expect(saveBtn).toHaveTextContent(/^Save$/);
+  });
 });
 
 // ── SustainmentReviewLogger ───────────────────────────────────────────────
