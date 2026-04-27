@@ -6,7 +6,14 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { getEasyAuthUser, isLocalDev } from '../auth/easyAuth';
 import { errorService } from '@variscout/ui';
 import { hasTeamFeatures } from '@variscout/core';
-import type { EvidenceSnapshot, EvidenceSource, ProcessHub } from '@variscout/core';
+import type {
+  EvidenceSnapshot,
+  EvidenceSource,
+  ProcessHub,
+  SustainmentRecord,
+  SustainmentReview,
+  ControlHandoff,
+} from '@variscout/core';
 import {
   addToSyncQueue,
   getPendingSyncItems,
@@ -52,6 +59,10 @@ import {
   listEvidenceSnapshotsFromCloud,
   saveEvidenceSourceToCloud,
   saveEvidenceSnapshotToCloud,
+  listSustainmentRecordsFromCloud,
+  saveSustainmentRecordToCloud,
+  saveSustainmentReviewToCloud,
+  saveControlHandoffToCloud,
   RETRY_DELAYS,
   MAX_RETRY_DELAY,
   MAX_RETRIES,
@@ -70,6 +81,12 @@ import {
   listEvidenceSnapshotsFromIndexedDB,
   saveEvidenceSourceToIndexedDB,
   saveEvidenceSnapshotToIndexedDB,
+  listSustainmentRecordsFromIndexedDB,
+  saveSustainmentRecordToIndexedDB,
+  listSustainmentReviewsFromIndexedDB,
+  saveSustainmentReviewToIndexedDB,
+  listControlHandoffsFromIndexedDB,
+  saveControlHandoffToIndexedDB,
 } from './localDb';
 
 // ── StorageProvider Context ─────────────────────────────────────────────
@@ -84,6 +101,12 @@ interface StorageContextValue {
   saveEvidenceSource: (source: EvidenceSource) => Promise<void>;
   listEvidenceSnapshots: (hubId: string, sourceId: string) => Promise<EvidenceSnapshot[]>;
   saveEvidenceSnapshot: (snapshot: EvidenceSnapshot, sourceCsv?: string) => Promise<void>;
+  listSustainmentRecords: (hubId: string) => Promise<SustainmentRecord[]>;
+  saveSustainmentRecord: (record: SustainmentRecord) => Promise<void>;
+  listSustainmentReviews: (recordId: string) => Promise<SustainmentReview[]>;
+  saveSustainmentReview: (review: SustainmentReview) => Promise<void>;
+  listControlHandoffs: (hubId: string) => Promise<ControlHandoff[]>;
+  saveControlHandoff: (handoff: ControlHandoff) => Promise<void>;
   syncStatus: SyncStatus;
   notifications: SyncNotification[];
   dismissNotification: (id: string) => void;
@@ -636,6 +659,105 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     []
   );
 
+  const listSustainmentRecords = useCallback(
+    async (hubId: string): Promise<SustainmentRecord[]> => {
+      const localRecords = await listSustainmentRecordsFromIndexedDB(hubId);
+
+      if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+        return localRecords;
+      }
+
+      try {
+        const cloudRecords = await listSustainmentRecordsFromCloud('blob-sas', hubId);
+        for (const record of cloudRecords) {
+          await saveSustainmentRecordToIndexedDB(record);
+        }
+        return listSustainmentRecordsFromIndexedDB(hubId);
+      } catch (error) {
+        if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+          errorService.logWarning('Failed to list sustainment records from cloud', {
+            component: 'storage',
+            action: 'listSustainmentRecords',
+            metadata: { error: error instanceof Error ? error.message : String(error) },
+          });
+        }
+        return localRecords;
+      }
+    },
+    []
+  );
+
+  const saveSustainmentRecord = useCallback(async (record: SustainmentRecord): Promise<void> => {
+    await saveSustainmentRecordToIndexedDB(record);
+
+    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+      return;
+    }
+
+    try {
+      await saveSustainmentRecordToCloud('blob-sas', record);
+    } catch (error) {
+      if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+        errorService.logWarning('Failed to save sustainment record to cloud', {
+          component: 'storage',
+          action: 'saveSustainmentRecord',
+          metadata: { error: error instanceof Error ? error.message : String(error) },
+        });
+      }
+    }
+  }, []);
+
+  const listSustainmentReviews = useCallback(
+    (recordId: string): Promise<SustainmentReview[]> =>
+      listSustainmentReviewsFromIndexedDB(recordId),
+    []
+  );
+
+  const saveSustainmentReview = useCallback(async (review: SustainmentReview): Promise<void> => {
+    await saveSustainmentReviewToIndexedDB(review);
+
+    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+      return;
+    }
+
+    try {
+      await saveSustainmentReviewToCloud('blob-sas', review);
+    } catch (error) {
+      if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+        errorService.logWarning('Failed to save sustainment review to cloud', {
+          component: 'storage',
+          action: 'saveSustainmentReview',
+          metadata: { error: error instanceof Error ? error.message : String(error) },
+        });
+      }
+    }
+  }, []);
+
+  const listControlHandoffs = useCallback(
+    (hubId: string): Promise<ControlHandoff[]> => listControlHandoffsFromIndexedDB(hubId),
+    []
+  );
+
+  const saveControlHandoff = useCallback(async (handoff: ControlHandoff): Promise<void> => {
+    await saveControlHandoffToIndexedDB(handoff);
+
+    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
+      return;
+    }
+
+    try {
+      await saveControlHandoffToCloud('blob-sas', handoff);
+    } catch (error) {
+      if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+        errorService.logWarning('Failed to save control handoff to cloud', {
+          component: 'storage',
+          action: 'saveControlHandoff',
+          metadata: { error: error instanceof Error ? error.message : String(error) },
+        });
+      }
+    }
+  }, []);
+
   // ── Background sync when coming online ────────────────────────────
 
   useEffect(() => {
@@ -754,6 +876,12 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     saveEvidenceSource,
     listEvidenceSnapshots,
     saveEvidenceSnapshot,
+    listSustainmentRecords,
+    saveSustainmentRecord,
+    listSustainmentReviews,
+    saveSustainmentReview,
+    listControlHandoffs,
+    saveControlHandoff,
     syncStatus,
     notifications,
     dismissNotification,

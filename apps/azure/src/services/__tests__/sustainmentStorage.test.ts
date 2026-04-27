@@ -46,7 +46,7 @@ describe('sustainment storage round-trip', () => {
       investigationId: 'inv-1',
       hubId: 'hub-1',
       reviewedAt: '2026-04-20T00:00:00.000Z',
-      reviewer: { id: 'u-1', displayName: 'Alice' },
+      reviewer: { userId: 'u-1', displayName: 'Alice' },
       verdict: 'holding',
     };
     const r2: SustainmentReview = { ...r1, id: 'r-2', reviewedAt: '2026-04-26T00:00:00.000Z' };
@@ -65,12 +65,12 @@ describe('sustainment storage round-trip', () => {
       hubId: 'hub-1',
       surface: 'mes-recipe',
       systemName: 'MES',
-      operationalOwner: { id: 'u-1', displayName: 'Op' },
+      operationalOwner: { userId: 'u-1', displayName: 'Op' },
       handoffDate: '2026-04-26T00:00:00.000Z',
       description: 'Recipe lock',
       retainSustainmentReview: false,
       recordedAt: '2026-04-26T00:00:00.000Z',
-      recordedBy: { id: 'u-1', displayName: 'Op' },
+      recordedBy: { userId: 'u-1', displayName: 'Op' },
     };
     await saveControlHandoffToIndexedDB(handoff);
     const result = await listControlHandoffsFromIndexedDB('hub-1');
