@@ -506,6 +506,10 @@ export {
   isSustainmentOverdue,
   selectSustainmentReviews,
   selectControlHandoffCandidates,
+  sustainmentRecordBlobPath,
+  sustainmentReviewBlobPath,
+  controlHandoffBlobPath,
+  sustainmentCatalogPath,
 } from './sustainment';
 
 // Survey evaluator (QDE 2.0 foundation)

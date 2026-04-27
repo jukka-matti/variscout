@@ -9,6 +9,10 @@ import {
   saveBlobEvidenceSource,
   listBlobProcessHubs,
   updateBlobProcessHubs,
+  listBlobSustainmentRecords,
+  saveBlobSustainmentRecord,
+  saveBlobSustainmentReview,
+  saveBlobControlHandoff,
 } from '../blobClient';
 
 const mockSasResponse = {
@@ -253,6 +257,106 @@ describe('blobClient', () => {
 
       await expect(listBlobEvidenceSources('hub-1')).resolves.toHaveLength(1);
       await expect(listBlobEvidenceSnapshots('hub-1', 'source-1')).resolves.toHaveLength(1);
+    });
+  });
+
+  // ── Sustainment blobs ─────────────────────────────────────────────────
+
+  describe('Sustainment blobs', () => {
+    it('PUTs a SustainmentRecord to the correct path', async () => {
+      fetchSpy
+        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
+        .mockResolvedValueOnce(new Response('', { status: 201 }));
+
+      await saveBlobSustainmentRecord({
+        id: 'rec-1',
+        hubId: 'hub-1',
+        investigationId: 'inv-1',
+        cadence: 'monthly',
+        createdAt: '2026-04-27T00:00:00.000Z',
+        updatedAt: '2026-04-27T00:00:00.000Z',
+      });
+
+      expect(fetchSpy).toHaveBeenLastCalledWith(
+        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/sustainment/records/rec-1.json?sig=test',
+        expect.objectContaining({
+          method: 'PUT',
+          headers: expect.objectContaining({ 'x-ms-blob-type': 'BlockBlob' }),
+        })
+      );
+    });
+
+    it('GETs the catalog path and returns parsed records', async () => {
+      fetchSpy
+        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify([
+              {
+                id: 'rec-1',
+                hubId: 'hub-1',
+                investigationId: 'inv-1',
+                cadence: 'monthly',
+                createdAt: '2026-04-27T00:00:00.000Z',
+                updatedAt: '2026-04-27T00:00:00.000Z',
+              },
+            ]),
+            { status: 200 }
+          )
+        );
+
+      const result = await listBlobSustainmentRecords('hub-1');
+
+      expect(result).toHaveLength(1);
+      expect(fetchSpy).toHaveBeenLastCalledWith(
+        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/sustainment/_index.json?sig=test'
+      );
+    });
+
+    it('PUTs a SustainmentReview to the per-recordId/reviewId path', async () => {
+      fetchSpy
+        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
+        .mockResolvedValueOnce(new Response('', { status: 201 }));
+
+      await saveBlobSustainmentReview({
+        id: 'rev-1',
+        recordId: 'rec-1',
+        hubId: 'hub-1',
+        investigationId: 'inv-1',
+        reviewedAt: '2026-04-27T00:00:00.000Z',
+        reviewer: { userId: 'u1', displayName: 'Alice' },
+        verdict: 'holding',
+      });
+
+      expect(fetchSpy).toHaveBeenLastCalledWith(
+        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/sustainment/reviews/rec-1/rev-1.json?sig=test',
+        expect.objectContaining({ method: 'PUT' })
+      );
+    });
+
+    it('PUTs a ControlHandoff to the handoffs path', async () => {
+      fetchSpy
+        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
+        .mockResolvedValueOnce(new Response('', { status: 201 }));
+
+      await saveBlobControlHandoff({
+        id: 'hoff-1',
+        investigationId: 'inv-1',
+        hubId: 'hub-1',
+        surface: 'qms-procedure',
+        systemName: 'QMS-101',
+        operationalOwner: { userId: 'u2', displayName: 'Bob' },
+        handoffDate: '2026-04-27',
+        description: 'Procedure handoff',
+        retainSustainmentReview: true,
+        recordedAt: '2026-04-27T00:00:00.000Z',
+        recordedBy: { userId: 'u1', displayName: 'Alice' },
+      });
+
+      expect(fetchSpy).toHaveBeenLastCalledWith(
+        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/sustainment/handoffs/hoff-1.json?sig=test',
+        expect.objectContaining({ method: 'PUT' })
+      );
     });
   });
 });

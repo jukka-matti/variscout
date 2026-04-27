@@ -231,3 +231,48 @@ export function selectControlHandoffCandidates<TInv extends ProcessHubInvestigat
     )
     .map(inv => buildSustainmentReviewItem(inv, ['control-handoff-missing']));
 }
+
+// ── Blob path helpers ─────────────────────────────────────────────────────
+
+function safePathSegment(value: string): string {
+  return value.replace(/^\/+|\/+$/g, '').replace(/\.\./g, '');
+}
+
+export function sustainmentRecordBlobPath(hubId: string, recordId: string): string {
+  return [
+    'process-hubs',
+    safePathSegment(hubId),
+    'sustainment',
+    'records',
+    `${safePathSegment(recordId)}.json`,
+  ].join('/');
+}
+
+export function sustainmentReviewBlobPath(
+  hubId: string,
+  recordId: string,
+  reviewId: string
+): string {
+  return [
+    'process-hubs',
+    safePathSegment(hubId),
+    'sustainment',
+    'reviews',
+    safePathSegment(recordId),
+    `${safePathSegment(reviewId)}.json`,
+  ].join('/');
+}
+
+export function controlHandoffBlobPath(hubId: string, handoffId: string): string {
+  return [
+    'process-hubs',
+    safePathSegment(hubId),
+    'sustainment',
+    'handoffs',
+    `${safePathSegment(handoffId)}.json`,
+  ].join('/');
+}
+
+export function sustainmentCatalogPath(hubId: string): string {
+  return ['process-hubs', safePathSegment(hubId), 'sustainment', '_index.json'].join('/');
+}
