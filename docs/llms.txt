@@ -12,6 +12,7 @@ Entry points for AI agents working in this repo. Humans should start at `docs/in
 - [superpowers/specs/2026-04-27-product-method-roadmap-design.md](superpowers/specs/2026-04-27-product-method-roadmap-design.md): product-method maturity roadmap across Process Hub, Current Process State, Process Measurement System, process learning memory, and CoScout context.
 - [superpowers/specs/2026-04-27-process-learning-operating-model-design.md](superpowers/specs/2026-04-27-process-learning-operating-model-design.md): process learning operating model; Process Measurement System, Current Process State, response paths, and Makigami-style outcome/flow/local-mechanism levels.
 - [superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md](superpowers/specs/2026-04-26-evidence-sources-data-profiles-design.md): canonical Evidence Sources, Data Profiles, Snapshots, and Profile Applications design.
+- [superpowers/specs/2026-04-27-layered-process-view-design.md](superpowers/specs/2026-04-27-layered-process-view-design.md): three-band visual language (Outcome / Process Flow / Operations) for FRAME, Process Hub, and multi-hub.
 - [01-vision/trainer-network.md](01-vision/trainer-network.md): lightweight trainer ecosystem model for VariScout growth, certification, and directory routing.
 
 ## Architecture
