@@ -1,13 +1,13 @@
 /**
  * FrameView — PWA FRAME workspace (ADR-070).
  *
- * Renders the `ProcessMapBase` component wired to `projectStore.processContext.processMap`,
+ * Renders the `LayeredProcessView` component wired to `projectStore.processContext.processMap`,
  * with live gap detection from `@variscout/core/frame`. The user builds the process map
  * (SIPOC spine + tributaries + ocean/CTS + hunches). V2+ will add CoScout drafting,
  * template libraries, and data-seeded skeletons — V1 is deterministic-only.
  */
 import React from 'react';
-import { ProcessMapBase } from '@variscout/ui';
+import { LayeredProcessView } from '@variscout/ui';
 import { useProjectStore } from '@variscout/stores';
 import type { ProcessContext } from '@variscout/core';
 import { detectGaps, type ProcessMap } from '@variscout/core/frame';
@@ -69,7 +69,7 @@ const FrameView: React.FC = () => {
             least one rational-subgroup axis.
           </p>
         </header>
-        <ProcessMapBase
+        <LayeredProcessView
           map={map}
           availableColumns={availableColumns}
           onChange={handleChange}
