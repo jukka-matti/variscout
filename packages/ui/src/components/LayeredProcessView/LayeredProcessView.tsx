@@ -86,6 +86,26 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
       </section>
       <section data-testid="band-operations" className="px-4 py-3 bg-surface-secondary">
         <h3 className="text-sm font-semibold text-content">Operations</h3>
+        {map.tributaries.length > 0 ? (
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {map.tributaries.map(trib => {
+              const parentStep = map.nodes.find(n => n.id === trib.stepId);
+              const stepLabel = parentStep?.name ?? 'Unmapped';
+              return (
+                <li
+                  key={trib.id}
+                  data-testid={`factor-chip-${trib.id}`}
+                  className="rounded-md border border-edge bg-surface px-2 py-1 text-xs"
+                >
+                  <span className="font-medium text-content">{trib.column}</span>
+                  <span className="ml-1 text-content-secondary">at {stepLabel}</span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="mt-2 text-sm text-content-secondary italic">No factors mapped yet</p>
+        )}
       </section>
     </div>
   );

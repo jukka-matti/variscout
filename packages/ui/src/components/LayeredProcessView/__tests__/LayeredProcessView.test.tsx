@@ -78,4 +78,53 @@ describe('LayeredProcessView', () => {
     // ProcessMapBase renders the step name
     expect(processFlowBand).toHaveTextContent('Mix');
   });
+
+  it('renders one factor chip per tributary in Operations band', () => {
+    const mapWithFactors: ProcessMap = {
+      ...emptyMap,
+      nodes: [
+        { id: 'step-1', name: 'Mix', order: 0 },
+        { id: 'step-2', name: 'Coat', order: 1 },
+      ],
+      tributaries: [
+        { id: 't-1', stepId: 'step-1', column: 'Temperature' },
+        { id: 't-2', stepId: 'step-2', column: 'Speed' },
+      ],
+    };
+
+    render(
+      <LayeredProcessView
+        map={mapWithFactors}
+        availableColumns={['Temperature', 'Speed']}
+        onChange={() => {}}
+      />
+    );
+
+    const operationsBand = screen.getByTestId('band-operations');
+    const chips = operationsBand.querySelectorAll('[data-testid^="factor-chip-"]');
+    expect(chips).toHaveLength(2);
+    expect(operationsBand).toHaveTextContent('Temperature');
+    expect(operationsBand).toHaveTextContent('Speed');
+  });
+
+  it('labels each factor chip with its parent step name', () => {
+    const mapWithFactors: ProcessMap = {
+      ...emptyMap,
+      nodes: [{ id: 'step-1', name: 'Mix', order: 0 }],
+      tributaries: [{ id: 't-1', stepId: 'step-1', column: 'Temperature' }],
+    };
+
+    render(<LayeredProcessView map={mapWithFactors} availableColumns={[]} onChange={() => {}} />);
+
+    const chip = screen.getByTestId('factor-chip-t-1');
+    expect(chip).toHaveTextContent('Temperature');
+    expect(chip).toHaveTextContent('at Mix');
+  });
+
+  it('shows placeholder when no factors are mapped', () => {
+    render(<LayeredProcessView map={emptyMap} availableColumns={[]} onChange={() => {}} />);
+
+    const operationsBand = screen.getByTestId('band-operations');
+    expect(operationsBand).toHaveTextContent('No factors mapped yet');
+  });
 });
