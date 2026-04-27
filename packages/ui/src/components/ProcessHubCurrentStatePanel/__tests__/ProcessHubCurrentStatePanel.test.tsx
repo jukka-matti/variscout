@@ -294,4 +294,28 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
 
     expect(actions.onInvoke).toHaveBeenCalledWith(item, action);
   });
+
+  it('makes the supported card keyboard-activatable (Space key) per ARIA button conventions', () => {
+    const action: ResponsePathAction = {
+      kind: 'open-investigation',
+      investigationId: 'inv-z',
+      intent: 'quick',
+    };
+    const item = buildItem({ id: 'item-z', responsePath: 'quick-action' });
+    const actions = makeActions({ actionFor: () => action });
+
+    render(
+      <ProcessHubCurrentStatePanel
+        state={buildState({ items: [item] })}
+        actions={actions}
+        evidence={makeEvidence()}
+      />
+    );
+
+    const card = screen.getByTestId('current-state-item');
+    card.focus();
+    card.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+
+    expect(actions.onInvoke).toHaveBeenCalledWith(item, action);
+  });
 });

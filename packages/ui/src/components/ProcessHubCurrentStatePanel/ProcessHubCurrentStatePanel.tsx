@@ -171,6 +171,10 @@ const StateItemCard: React.FC<{
           : ''
       }`}
       data-testid="current-state-item"
+      // title attribute is unreachable on touch and unreliable for screen
+      // readers (WCAG 1.3.3 / 4.1.2). Visible 'Planned'/'Informational'
+      // pill text already conveys the state. Replace with a Tooltip /
+      // Popover primitive when the design system grows one.
       title={tooltipText}
       {...interactiveProps}
     >
