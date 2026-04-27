@@ -6,6 +6,7 @@ import {
   deriveResponsePathAction,
 } from '@variscout/core';
 import type {
+  Finding,
   ProcessHubInvestigation,
   ProcessHubRollup,
   ProcessStateItem,
@@ -15,6 +16,7 @@ import { ProcessHubCurrentStatePanel } from '@variscout/ui';
 import ProcessHubCadenceQuestions from './ProcessHubCadenceQuestions';
 import ProcessHubCadenceQueues from './ProcessHubCadenceQueues';
 import { formatLatestActivity } from './ProcessHubFormat';
+import { safeTrackEvent } from '../lib/appInsights';
 
 interface ProcessHubReviewPanelProps {
   rollup: ProcessHubRollup<ProcessHubInvestigation>;
@@ -75,6 +77,75 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
     (item: ProcessStateItem) => deriveResponsePathAction(item, defaultInvestigationId),
     [defaultInvestigationId]
   );
+
+  // Resolver: given a state item, return the investigation IDs whose findings
+  // should "back" it. Mirrors the spec's Investigation-ID resolver table.
+  //
+  // For per-investigation items (queue items), use item.investigationIds[0..N].
+  // For hub-aggregate items (capability-gap, change-signals, top-focus, etc.),
+  // fall back to all investigations in the hub.
+  const investigationIdResolver = React.useCallback(
+    (item: ProcessStateItem): readonly string[] => {
+      if (item.investigationIds && item.investigationIds.length > 0) {
+        return item.investigationIds;
+      }
+      return rollup.investigations.map(inv => inv.id);
+    },
+    [rollup.investigations]
+  );
+
+  // findingsFor: chip count is derived from
+  // ProcessHubInvestigationMetadata.findingCounts (already on the rollup —
+  // no extra data load needed). Returns an array of synthetic Finding-shaped
+  // placeholder objects with just enough surface (id) for the chip to count.
+  //
+  // Real Finding[] objects aren't loaded hub-wide on Dashboard today. The
+  // EvidenceSheet rendering (which would need the full objects) is deferred
+  // to a follow-up PR — see plan PR #5 future work.
+  const findingsFor = React.useCallback(
+    (item: ProcessStateItem): readonly Finding[] => {
+      const investigationIds = investigationIdResolver(item);
+      let totalRelevantCount = 0;
+      for (const invId of investigationIds) {
+        const inv = rollup.investigations.find(i => i.id === invId);
+        const counts = inv?.metadata?.findingCounts ?? {};
+        totalRelevantCount +=
+          (counts.analyzed ?? 0) + (counts.improving ?? 0) + (counts.resolved ?? 0);
+      }
+      if (totalRelevantCount === 0) return [];
+      // Placeholder objects carry only `id` — chip rendering only reads `.length`.
+      // The double cast is the documented pragmatic shortcut for this PR (see
+      // spec § Implementation Reality Notes). The follow-up EvidenceSheet PR
+      // will introduce a narrow `FindingCountPlaceholder = Pick<Finding, 'id'>`
+      // type at the panel's evidence-contract boundary so the cast goes away.
+      // TODO(evidence-sheet-pr): remove this cast once contracts narrow.
+      return Array.from({ length: totalRelevantCount }, (_, idx) => ({
+        id: `${item.id}-finding-placeholder-${idx}`,
+      })) as unknown as readonly Finding[];
+    },
+    [rollup.investigations, investigationIdResolver]
+  );
+
+  const handleChipClick = React.useCallback(
+    (item: ProcessStateItem, findings: readonly Finding[]) => {
+      safeTrackEvent('process_hub.evidence_chip_click', {
+        hubId: rollup.hub.id,
+        responsePath: item.responsePath,
+        lens: item.lens,
+        evidenceCount: findings.length,
+      });
+      // Navigate to a linked investigation. Per-investigation items use
+      // item.investigationIds[0] (the order the projection builder produced —
+      // typically a single linked investigation, so most-recency is moot).
+      // Hub-aggregate items fall back to defaultInvestigationId, which is
+      // sorted by `modified` descending. Full sheet rendering deferred to a
+      // follow-up PR — when Dashboard loads findings hub-wide.
+      const targetId = item.investigationIds?.[0] ?? defaultInvestigationId;
+      if (targetId) onOpenInvestigation(targetId);
+    },
+    [rollup.hub.id, defaultInvestigationId, onOpenInvestigation]
+  );
+
   const headingId = `process-hub-current-state-${rollup.hub.id}`;
 
   return (
@@ -111,7 +182,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
           actionFor,
           onInvoke: (item, action) => onResponsePathAction(item, action, rollup.hub.id),
         }}
-        evidence={{ findingsFor: () => [], onChipClick: () => {} }}
+        evidence={{ findingsFor, onChipClick: handleChipClick }}
       />
 
       <div className="mt-4 grid gap-2 sm:grid-cols-5">

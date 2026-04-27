@@ -502,6 +502,10 @@ export type {
   ProcessStateSeverity,
   ProcessStateSource,
 } from './processState';
+
+// Process Evidence — link findings to current-state items
+export { linkFindingsToStateItems, RELEVANT_FINDING_STATUSES } from './processEvidence';
+export type { LinkFindingsResult } from './processEvidence';
 export { deriveResponsePathAction } from './responsePathAction';
 export type { ResponsePathAction } from './responsePathAction';
 

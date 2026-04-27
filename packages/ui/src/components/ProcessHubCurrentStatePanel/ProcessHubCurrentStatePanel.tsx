@@ -117,11 +117,35 @@ const formatStateDetail = (item: ProcessStateItem): string | null => {
   return item.detail ?? null;
 };
 
+const EvidenceChip: React.FC<{
+  count: number;
+  onClick: () => void;
+}> = ({ count, onClick }) => {
+  if (count === 0) return null;
+  const label = formatPlural(count, { one: 'finding', other: 'findings' });
+  return (
+    <button
+      type="button"
+      onClick={event => {
+        event.stopPropagation();
+        onClick();
+      }}
+      data-testid="current-state-evidence-chip"
+      className="inline-flex items-center gap-1 rounded-sm border border-edge px-2 py-0.5 text-xs font-medium text-content-secondary hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <span aria-hidden>ⓘ</span>
+      {count} {label}
+    </button>
+  );
+};
+
 const StateItemCard: React.FC<{
   item: ProcessStateItem;
   action: ResponsePathAction;
   onInvoke: (item: ProcessStateItem, action: ResponsePathAction) => void;
-}> = ({ item, action, onInvoke }) => {
+  findings: readonly Finding[];
+  onChipClick: (item: ProcessStateItem, findings: readonly Finding[]) => void;
+}> = ({ item, action, onInvoke, findings, onChipClick }) => {
   const detail = formatStateDetail(item);
   const isSupported = action.kind !== 'unsupported';
 
@@ -190,10 +214,15 @@ const StateItemCard: React.FC<{
           {SEVERITY_LABELS[item.severity]}
         </span>
       </div>
-      <p className="mt-2 inline-flex rounded-sm border border-edge px-2 py-0.5 text-xs font-medium text-content-secondary">
-        <span>{RESPONSE_LABELS[item.responsePath]}</span>
-        {unsupportedReason !== null && <span> · {UNSUPPORTED_PILL_LABEL[unsupportedReason]}</span>}
-      </p>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="inline-flex rounded-sm border border-edge px-2 py-0.5 text-xs font-medium text-content-secondary">
+          <span>{RESPONSE_LABELS[item.responsePath]}</span>
+          {unsupportedReason !== null && (
+            <span> · {UNSUPPORTED_PILL_LABEL[unsupportedReason]}</span>
+          )}
+        </p>
+        <EvidenceChip count={findings.length} onClick={() => onChipClick(item, findings)} />
+      </div>
     </div>
   );
 };
@@ -201,7 +230,7 @@ const StateItemCard: React.FC<{
 export const ProcessHubCurrentStatePanel: React.FC<ProcessHubCurrentStatePanelProps> = ({
   state,
   actions,
-  evidence: _evidence, // unused in PR #4 — wired in PR #5
+  evidence,
 }) => {
   const visibleItems = state.items.slice(0, 6);
   const hiddenCount = Math.max(0, state.items.length - visibleItems.length);
@@ -234,6 +263,8 @@ export const ProcessHubCurrentStatePanel: React.FC<ProcessHubCurrentStatePanelPr
               item={item}
               action={actions.actionFor(item)}
               onInvoke={actions.onInvoke}
+              findings={evidence.findingsFor(item)}
+              onChipClick={evidence.onChipClick}
             />
           ))}
           {hiddenCount > 0 && (
