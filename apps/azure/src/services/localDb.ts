@@ -8,6 +8,7 @@ import {
   evaluateSurvey,
 } from '@variscout/core';
 import type {
+  ControlHandoff,
   DataRow,
   EvidenceSnapshot,
   EvidenceSource,
@@ -18,6 +19,8 @@ import type {
   ProjectMetadata,
   Question,
   SpecLimits,
+  SustainmentRecord,
+  SustainmentReview,
   SurveyEvaluation,
 } from '@variscout/core';
 import { db } from '../db/schema';
@@ -244,4 +247,35 @@ export async function listEvidenceSnapshotsFromIndexedDB(
   return snapshots
     .filter(snapshot => snapshot.hubId === hubId && (!sourceId || snapshot.sourceId === sourceId))
     .sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
+}
+
+// ── Sustainment records, reviews, and control handoffs ─────────────────
+
+export async function saveSustainmentRecordToIndexedDB(record: SustainmentRecord): Promise<void> {
+  await db.sustainmentRecords.put(record);
+}
+
+export async function listSustainmentRecordsFromIndexedDB(
+  hubId: string
+): Promise<SustainmentRecord[]> {
+  return db.sustainmentRecords.where('hubId').equals(hubId).toArray();
+}
+
+export async function saveSustainmentReviewToIndexedDB(review: SustainmentReview): Promise<void> {
+  await db.sustainmentReviews.put(review);
+}
+
+export async function listSustainmentReviewsFromIndexedDB(
+  recordId: string
+): Promise<SustainmentReview[]> {
+  const rows = await db.sustainmentReviews.where('recordId').equals(recordId).toArray();
+  return rows.sort((a, b) => b.reviewedAt.localeCompare(a.reviewedAt));
+}
+
+export async function saveControlHandoffToIndexedDB(handoff: ControlHandoff): Promise<void> {
+  await db.controlHandoffs.put(handoff);
+}
+
+export async function listControlHandoffsFromIndexedDB(hubId: string): Promise<ControlHandoff[]> {
+  return db.controlHandoffs.where('hubId').equals(hubId).toArray();
 }
