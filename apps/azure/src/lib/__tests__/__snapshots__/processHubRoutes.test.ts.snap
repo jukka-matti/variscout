@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`actionToHref > snapshot — URL shapes are stable 1`] = `
+{
+  "chartered": "/editor/X?intent=chartered",
+  "focused": "/editor/X?intent=focused",
+  "quick": "/editor/X?intent=quick",
+  "sustainmentHandoff": "/editor/X/sustainment?surface=handoff",
+  "sustainmentReview": "/editor/X/sustainment",
+  "unsupportedInfo": null,
+  "unsupportedPlanned": null,
+}
+`;
