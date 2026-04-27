@@ -93,6 +93,7 @@ import { buildChartSharePayload } from '../services/shareContent';
 import { isKnowledgeBaseAvailable } from '../services/searchService';
 import { buildSubPageId } from '../services/deepLinks';
 import { useToast } from '../context/ToastContext';
+import { SustainmentEntryRow } from './Editor.sustainment';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
@@ -142,12 +143,14 @@ function formatStatusLabel(value: string): string {
 }
 
 interface InvestigationMetadataPanelProps {
+  projectId: string | null;
   processContext: ProcessContext | undefined;
   processHubs: ProcessHub[];
   onChange: (context: ProcessContext) => void;
 }
 
 const InvestigationMetadataPanel: React.FC<InvestigationMetadataPanelProps> = ({
+  projectId,
   processContext,
   processHubs,
   onChange,
@@ -247,6 +250,13 @@ const InvestigationMetadataPanel: React.FC<InvestigationMetadataPanelProps> = ({
           className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
         />
       </label>
+      {(context.investigationStatus === 'resolved' ||
+        context.investigationStatus === 'controlled') && (
+        <SustainmentEntryRow
+          investigationId={projectId}
+          hubId={context.processHubId ?? DEFAULT_PROCESS_HUB_ID}
+        />
+      )}
     </div>
   );
 };
@@ -1401,6 +1411,7 @@ export const Editor: React.FC<EditorProps> = ({
       )}
 
       <InvestigationMetadataPanel
+        projectId={projectId}
         processContext={processContext}
         processHubs={processHubs}
         onChange={setProcessContext}
