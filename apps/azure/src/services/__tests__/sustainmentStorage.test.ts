@@ -95,11 +95,14 @@ const seedProject = async () => {
     synced: true,
     data: {},
     meta: {
-      userId: 'u-1',
-      findingCount: 0,
-      questionCount: 0,
-      hasData: false,
-    } as unknown as ProjectMetadata,
+      phase: 'frame',
+      findingCounts: {},
+      questionCounts: {},
+      actionCounts: { total: 0, completed: 0, overdue: 0 },
+      assignedTaskCount: 0,
+      hasOverdueTasks: false,
+      lastViewedAt: {},
+    } satisfies ProjectMetadata,
   });
 };
 
@@ -234,7 +237,7 @@ describe('tombstone on investigation reopen', () => {
     const after = await db.projects.get('inv-1');
     expect(after?.meta?.sustainment).toBeUndefined();
     // Other meta fields preserved.
-    expect(after?.meta?.userId).toBe('u-1');
+    expect(after?.meta?.phase).toBe('frame');
   });
 
   it('leaves project meta untouched when no records were tombstoned (idempotent)', async () => {
@@ -245,15 +248,18 @@ describe('tombstone on investigation reopen', () => {
     );
     await db.projects.update('inv-1', {
       meta: {
-        userId: 'u-1',
-        findingCount: 0,
-        questionCount: 0,
-        hasData: false,
+        phase: 'frame',
+        findingCounts: {},
+        questionCounts: {},
+        actionCounts: { total: 0, completed: 0, overdue: 0 },
+        assignedTaskCount: 0,
+        hasOverdueTasks: false,
+        lastViewedAt: {},
         sustainment: {
           recordId: 'rec-1',
           cadence: 'monthly',
         },
-      } as unknown as ProjectMetadata,
+      } satisfies ProjectMetadata,
     });
 
     await tombstoneSustainmentRecordsForInvestigation('inv-1', '2026-04-27T00:00:00.000Z');
