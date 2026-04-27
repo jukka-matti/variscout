@@ -85,9 +85,7 @@ describe('SustainmentEntryRow', () => {
     render(<SustainmentEntryRow investigationId={null} hubId="hub-1" />);
     const btn = screen.getByRole('button', { name: 'Set up sustainment cadence' });
     expect(btn).toBeDisabled();
-    expect(
-      screen.getByText('Save the investigation first to set up sustainment cadence.')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Save the investigation first.')).toBeInTheDocument();
   });
 
   it('shows "Edit" label and passes existingRecord when a live record matches the investigation', async () => {

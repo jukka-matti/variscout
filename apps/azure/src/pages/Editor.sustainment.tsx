@@ -56,9 +56,7 @@ export const SustainmentEntryRow: React.FC<SustainmentEntryRowProps> = ({
         >
           Set up sustainment cadence
         </button>
-        <span className="ml-3 text-xs text-content-secondary">
-          Save the investigation first to set up sustainment cadence.
-        </span>
+        <span className="ml-3 text-xs text-content-secondary">Save the investigation first.</span>
       </div>
     );
   }
