@@ -104,6 +104,8 @@ See the [Layered Process View design spec](../superpowers/specs/2026-04-27-layer
 
 V1 is structural only: the bands wrap the existing component. V2+ phases add Operations band content (snapshot-backed actuals, capability sparklines), Process Hub current-state rendering, and multi-hub aggregation.
 
+V1 places the process specs (target / USL / LSL) in the Outcome band as a pragmatic simplification — the design spec ultimately positions per-step specs alongside rate data in the Operations band (see V3 in the design spec). Reconciling this is a follow-up; treat the V1 placement as a transient.
+
 ## Implementation
 
 Staged across multiple PRs. See the design spec for full detail: [FRAME Workspace & Visual Process Map](../superpowers/specs/2026-04-18-frame-process-map-design.md).
