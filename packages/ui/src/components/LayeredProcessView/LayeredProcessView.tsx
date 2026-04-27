@@ -22,7 +22,9 @@ export interface LayeredProcessViewProps {
   onSpecsChange?: (next: { target?: number; usl?: number; lsl?: number }) => void;
 }
 
-export const LayeredProcessView: React.FC<LayeredProcessViewProps> = () => {
+export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({ target, usl, lsl }) => {
+  const hasOutcomeData = target !== undefined || usl !== undefined || lsl !== undefined;
+
   return (
     <div data-testid="layered-process-view" className="flex flex-col">
       <section
@@ -30,6 +32,30 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = () => {
         className="border-b border-edge px-4 py-3 bg-surface-secondary"
       >
         <h3 className="text-sm font-semibold text-content">Outcome</h3>
+        {hasOutcomeData ? (
+          <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-content-secondary">
+            {target !== undefined && (
+              <div className="flex gap-1">
+                <dt className="font-medium">Target: </dt>
+                <dd>{target}</dd>
+              </div>
+            )}
+            {usl !== undefined && (
+              <div className="flex gap-1">
+                <dt className="font-medium">USL: </dt>
+                <dd>{usl}</dd>
+              </div>
+            )}
+            {lsl !== undefined && (
+              <div className="flex gap-1">
+                <dt className="font-medium">LSL: </dt>
+                <dd>{lsl}</dd>
+              </div>
+            )}
+          </dl>
+        ) : (
+          <p className="mt-2 text-sm text-content-secondary italic">No outcome target set</p>
+        )}
       </section>
       <section data-testid="band-process-flow" className="border-b border-edge px-4 py-3">
         <h3 className="text-sm font-semibold text-content">Process Flow</h3>

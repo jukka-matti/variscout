@@ -24,4 +24,36 @@ describe('LayeredProcessView', () => {
     expect(screen.getByText('Process Flow')).toBeInTheDocument();
     expect(screen.getByText('Operations')).toBeInTheDocument();
   });
+
+  it('shows target Cpk in Outcome band when target is set', () => {
+    render(
+      <LayeredProcessView map={emptyMap} availableColumns={[]} onChange={() => {}} target={1.33} />
+    );
+
+    const outcomeBand = screen.getByTestId('band-outcome');
+    expect(outcomeBand).toHaveTextContent('Target: 1.33');
+  });
+
+  it('shows USL and LSL in Outcome band when set', () => {
+    render(
+      <LayeredProcessView
+        map={emptyMap}
+        availableColumns={[]}
+        onChange={() => {}}
+        usl={12.5}
+        lsl={8.5}
+      />
+    );
+
+    const outcomeBand = screen.getByTestId('band-outcome');
+    expect(outcomeBand).toHaveTextContent('USL: 12.5');
+    expect(outcomeBand).toHaveTextContent('LSL: 8.5');
+  });
+
+  it('shows placeholder when no outcome data', () => {
+    render(<LayeredProcessView map={emptyMap} availableColumns={[]} onChange={() => {}} />);
+
+    const outcomeBand = screen.getByTestId('band-outcome');
+    expect(outcomeBand).toHaveTextContent('No outcome target set');
+  });
 });
