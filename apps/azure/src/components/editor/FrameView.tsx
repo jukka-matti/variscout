@@ -1,8 +1,8 @@
 /**
  * FrameView (Azure) — FRAME workspace (ADR-070).
  *
- * Azure-app equivalent of the PWA FrameView. Renders `ProcessMapBase` wired
- * to `projectStore.processContext.processMap` with live gap detection from
+ * Azure-app equivalent of the PWA FrameView. Renders `LayeredProcessView`
+ * wired to `projectStore.processContext.processMap` with live gap detection from
  * `@variscout/core/frame`.
  *
  * V1 is deterministic-only: no CoScout, no templates. Pre-data hunches
@@ -10,7 +10,7 @@
  * investigationStore; the full integration lands in follow-up.
  */
 import React from 'react';
-import { ProcessMapBase } from '@variscout/ui';
+import { LayeredProcessView } from '@variscout/ui';
 import { useProjectStore } from '@variscout/stores';
 import type { ProcessContext } from '@variscout/core';
 import { detectGaps, type ProcessMap } from '@variscout/core/frame';
@@ -72,7 +72,7 @@ const FrameView: React.FC = () => {
             least one rational-subgroup axis.
           </p>
         </header>
-        <ProcessMapBase
+        <LayeredProcessView
           map={map}
           availableColumns={availableColumns}
           onChange={handleChange}
