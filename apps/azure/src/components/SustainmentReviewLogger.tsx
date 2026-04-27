@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import type { SustainmentCadence, SustainmentReview, SustainmentVerdict } from '@variscout/core';
 import { nextDueFromCadence } from '@variscout/core';
+import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
 export interface SustainmentReviewLoggerProps {
   recordId: string;
   investigationId: string;
   hubId: string;
+  currentUser: EasyAuthUser;
   reviewerDisplayName: string;
   latestSnapshotId?: string;
   cadence: SustainmentCadence;
@@ -25,6 +27,7 @@ const SustainmentReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
   recordId,
   investigationId,
   hubId,
+  currentUser,
   reviewerDisplayName,
   latestSnapshotId,
   cadence,
@@ -49,7 +52,7 @@ const SustainmentReviewLogger: React.FC<SustainmentReviewLoggerProps> = ({
       investigationId,
       hubId,
       reviewedAt,
-      reviewer: { userId: 'self', displayName: reviewerDisplayName },
+      reviewer: { userId: currentUser.userId, displayName: reviewerDisplayName },
       verdict,
       snapshotId: snapshotId || undefined,
       observation: observation || undefined,

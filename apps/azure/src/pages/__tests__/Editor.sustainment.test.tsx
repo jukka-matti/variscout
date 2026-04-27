@@ -2,12 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 const mockListSustainmentRecords = vi.fn();
+const mockGetEasyAuthUser = vi.fn();
 
 // vi.mock BEFORE component imports (testing.md invariant)
 vi.mock('../../services/storage', () => ({
   useStorage: () => ({
     listSustainmentRecords: mockListSustainmentRecords,
   }),
+}));
+
+vi.mock('../../auth/easyAuth', () => ({
+  getEasyAuthUser: (...args: unknown[]) => mockGetEasyAuthUser(...args),
 }));
 
 vi.mock('../../components/SustainmentRecordEditor', () => ({
@@ -39,6 +44,13 @@ import { SustainmentEntryRow } from '../Editor.sustainment';
 beforeEach(() => {
   mockListSustainmentRecords.mockReset();
   mockListSustainmentRecords.mockResolvedValue([]);
+  mockGetEasyAuthUser.mockReset();
+  mockGetEasyAuthUser.mockResolvedValue({
+    name: 'Test User',
+    email: 'test@variscout.test',
+    userId: 'aad-test-001',
+    roles: [],
+  });
 });
 
 describe('SustainmentEntryRow', () => {
