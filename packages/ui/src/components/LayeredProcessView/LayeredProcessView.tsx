@@ -36,19 +36,19 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({ target, 
           <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-content-secondary">
             {target !== undefined && (
               <div className="flex gap-1">
-                <dt className="font-medium">Target: </dt>
+                <dt className="font-medium">Target:</dt>
                 <dd>{target}</dd>
               </div>
             )}
             {usl !== undefined && (
               <div className="flex gap-1">
-                <dt className="font-medium">USL: </dt>
+                <dt className="font-medium">USL:</dt>
                 <dd>{usl}</dd>
               </div>
             )}
             {lsl !== undefined && (
               <div className="flex gap-1">
-                <dt className="font-medium">LSL: </dt>
+                <dt className="font-medium">LSL:</dt>
                 <dd>{lsl}</dd>
               </div>
             )}

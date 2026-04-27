@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { LayeredProcessView } from '../LayeredProcessView';
 import type { ProcessMap } from '@variscout/core/frame';
@@ -25,13 +25,14 @@ describe('LayeredProcessView', () => {
     expect(screen.getByText('Operations')).toBeInTheDocument();
   });
 
-  it('shows target Cpk in Outcome band when target is set', () => {
+  it('shows target value in Outcome band when target is set', () => {
     render(
       <LayeredProcessView map={emptyMap} availableColumns={[]} onChange={() => {}} target={1.33} />
     );
 
     const outcomeBand = screen.getByTestId('band-outcome');
-    expect(outcomeBand).toHaveTextContent('Target: 1.33');
+    expect(within(outcomeBand).getByText('Target:')).toBeInTheDocument();
+    expect(within(outcomeBand).getByText('1.33')).toBeInTheDocument();
   });
 
   it('shows USL and LSL in Outcome band when set', () => {
@@ -46,8 +47,10 @@ describe('LayeredProcessView', () => {
     );
 
     const outcomeBand = screen.getByTestId('band-outcome');
-    expect(outcomeBand).toHaveTextContent('USL: 12.5');
-    expect(outcomeBand).toHaveTextContent('LSL: 8.5');
+    expect(within(outcomeBand).getByText('USL:')).toBeInTheDocument();
+    expect(within(outcomeBand).getByText('12.5')).toBeInTheDocument();
+    expect(within(outcomeBand).getByText('LSL:')).toBeInTheDocument();
+    expect(within(outcomeBand).getByText('8.5')).toBeInTheDocument();
   });
 
   it('shows placeholder when no outcome data', () => {
