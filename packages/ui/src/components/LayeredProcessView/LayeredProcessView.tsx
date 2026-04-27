@@ -9,6 +9,7 @@
 
 import React from 'react';
 import type { ProcessMap, Gap } from '@variscout/core/frame';
+import { ProcessMapBase } from '../ProcessMap/ProcessMapBase';
 
 export interface LayeredProcessViewProps {
   map: ProcessMap;
@@ -22,7 +23,17 @@ export interface LayeredProcessViewProps {
   onSpecsChange?: (next: { target?: number; usl?: number; lsl?: number }) => void;
 }
 
-export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({ target, usl, lsl }) => {
+export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({
+  map,
+  availableColumns,
+  onChange,
+  gaps,
+  disabled,
+  target,
+  usl,
+  lsl,
+  onSpecsChange,
+}) => {
   const hasOutcomeData = target !== undefined || usl !== undefined || lsl !== undefined;
 
   return (
@@ -59,6 +70,19 @@ export const LayeredProcessView: React.FC<LayeredProcessViewProps> = ({ target, 
       </section>
       <section data-testid="band-process-flow" className="border-b border-edge px-4 py-3">
         <h3 className="text-sm font-semibold text-content">Process Flow</h3>
+        <div className="mt-2">
+          <ProcessMapBase
+            map={map}
+            availableColumns={availableColumns}
+            onChange={onChange}
+            gaps={gaps}
+            disabled={disabled}
+            target={target}
+            usl={usl}
+            lsl={lsl}
+            onSpecsChange={onSpecsChange}
+          />
+        </div>
       </section>
       <section data-testid="band-operations" className="px-4 py-3 bg-surface-secondary">
         <h3 className="text-sm font-semibold text-content">Operations</h3>

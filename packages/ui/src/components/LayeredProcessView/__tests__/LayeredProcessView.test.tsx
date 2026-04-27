@@ -59,4 +59,23 @@ describe('LayeredProcessView', () => {
     const outcomeBand = screen.getByTestId('band-outcome');
     expect(outcomeBand).toHaveTextContent('No outcome target set');
   });
+
+  it('renders ProcessMapBase inside Process Flow band', () => {
+    const mapWithStep: ProcessMap = {
+      ...emptyMap,
+      nodes: [{ id: 'step-1', name: 'Mix', order: 0 }],
+    };
+
+    render(
+      <LayeredProcessView
+        map={mapWithStep}
+        availableColumns={['Temperature', 'Speed']}
+        onChange={() => {}}
+      />
+    );
+
+    const processFlowBand = screen.getByTestId('band-process-flow');
+    // ProcessMapBase renders the step name
+    expect(processFlowBand).toHaveTextContent('Mix');
+  });
 });
