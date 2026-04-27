@@ -19,6 +19,7 @@ import type {
   ProjectMetadata,
   Question,
   SpecLimits,
+  SustainmentMetadataProjection,
   SustainmentRecord,
   SustainmentReview,
   SurveyEvaluation,
@@ -278,4 +279,41 @@ export async function saveControlHandoffToIndexedDB(handoff: ControlHandoff): Pr
 
 export async function listControlHandoffsFromIndexedDB(hubId: string): Promise<ControlHandoff[]> {
   return db.controlHandoffs.where('hubId').equals(hubId).toArray();
+}
+
+// ── Sustainment projection helpers ─────────────────────────────────────
+
+export function buildSustainmentProjection(
+  record: SustainmentRecord,
+  handoff?: ControlHandoff
+): SustainmentMetadataProjection {
+  return {
+    recordId: record.id,
+    cadence: record.cadence,
+    nextReviewDue: record.nextReviewDue,
+    latestVerdict: record.latestVerdict,
+    handoffSurface: handoff?.surface,
+  };
+}
+
+export async function updateProjectSustainmentProjectionInIndexedDB(
+  investigationId: string,
+  projection: SustainmentMetadataProjection | undefined
+): Promise<void> {
+  const project = await db.projects.get(investigationId);
+  if (!project) return;
+  const existingMeta = project.meta;
+  const updatedMeta = existingMeta ? { ...existingMeta, sustainment: projection } : undefined;
+  if (!updatedMeta) return;
+  await db.projects.update(investigationId, { meta: updatedMeta });
+}
+
+export async function recomputeSustainmentProjectionForRecord(
+  record: SustainmentRecord
+): Promise<void> {
+  const handoff = record.controlHandoffId
+    ? await db.controlHandoffs.get(record.controlHandoffId).catch(() => undefined)
+    : undefined;
+  const projection = buildSustainmentProjection(record, handoff);
+  await updateProjectSustainmentProjectionInIndexedDB(record.investigationId, projection);
 }

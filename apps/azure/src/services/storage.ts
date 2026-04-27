@@ -87,6 +87,7 @@ import {
   saveSustainmentReviewToIndexedDB,
   listControlHandoffsFromIndexedDB,
   saveControlHandoffToIndexedDB,
+  recomputeSustainmentProjectionForRecord,
 } from './localDb';
 
 // ── StorageProvider Context ─────────────────────────────────────────────
@@ -690,21 +691,21 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const saveSustainmentRecord = useCallback(async (record: SustainmentRecord): Promise<void> => {
     await saveSustainmentRecordToIndexedDB(record);
 
-    if (!hasTeamFeatures() || !navigator.onLine || isLocalDev()) {
-      return;
-    }
-
-    try {
-      await saveSustainmentRecordToCloud('blob-sas', record);
-    } catch (error) {
-      if (!(error instanceof CloudSyncUnavailableErrorClass)) {
-        errorService.logWarning('Failed to save sustainment record to cloud', {
-          component: 'storage',
-          action: 'saveSustainmentRecord',
-          metadata: { error: error instanceof Error ? error.message : String(error) },
-        });
+    if (hasTeamFeatures() && navigator.onLine && !isLocalDev()) {
+      try {
+        await saveSustainmentRecordToCloud('blob-sas', record);
+      } catch (error) {
+        if (!(error instanceof CloudSyncUnavailableErrorClass)) {
+          errorService.logWarning('Failed to save sustainment record to cloud', {
+            component: 'storage',
+            action: 'saveSustainmentRecord',
+            metadata: { error: error instanceof Error ? error.message : String(error) },
+          });
+        }
       }
     }
+
+    await recomputeSustainmentProjectionForRecord(record);
   }, []);
 
   const listSustainmentReviews = useCallback(

@@ -8,8 +8,15 @@ import {
   listSustainmentReviewsFromIndexedDB,
   saveControlHandoffToIndexedDB,
   listControlHandoffsFromIndexedDB,
+  buildSustainmentProjection,
+  recomputeSustainmentProjectionForRecord,
 } from '../localDb';
-import type { SustainmentRecord, SustainmentReview, ControlHandoff } from '@variscout/core';
+import type {
+  SustainmentRecord,
+  SustainmentReview,
+  ControlHandoff,
+  ProjectMetadata,
+} from '@variscout/core';
 
 const makeRecord = (overrides: Partial<SustainmentRecord> = {}): SustainmentRecord => ({
   id: 'rec-1',
@@ -76,5 +83,95 @@ describe('sustainment storage round-trip', () => {
     const result = await listControlHandoffsFromIndexedDB('hub-1');
     expect(result).toHaveLength(1);
     expect(result[0].surface).toBe('mes-recipe');
+  });
+});
+
+const seedProject = async () => {
+  await db.projects.put({
+    name: 'inv-1',
+    location: 'personal' as const,
+    modified: new Date('2026-04-26T00:00:00.000Z'),
+    synced: true,
+    data: {},
+    meta: {
+      userId: 'u-1',
+      findingCount: 0,
+      questionCount: 0,
+      hasData: false,
+    } as unknown as ProjectMetadata,
+  });
+};
+
+describe('sustainment projection recompute', () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  afterEach(async () => {
+    await db.delete();
+  });
+
+  it('updates project meta.sustainment when a record is recomputed', async () => {
+    await seedProject();
+
+    const record: SustainmentRecord = makeRecord();
+    await recomputeSustainmentProjectionForRecord(record);
+
+    const updated = await db.projects.get('inv-1');
+    expect(updated?.meta?.sustainment).toBeDefined();
+    expect(updated?.meta?.sustainment?.recordId).toBe('rec-1');
+    expect(updated?.meta?.sustainment?.cadence).toBe('monthly');
+  });
+
+  it('no-ops when no project matches the investigationId', async () => {
+    const record: SustainmentRecord = makeRecord({ investigationId: 'nonexistent' });
+    await expect(recomputeSustainmentProjectionForRecord(record)).resolves.toBeUndefined();
+  });
+
+  it('builds projection with handoff surface when controlHandoffId resolves', async () => {
+    const handoff: ControlHandoff = {
+      id: 'h-1',
+      investigationId: 'inv-1',
+      hubId: 'hub-1',
+      surface: 'mes-recipe',
+      systemName: 'MES',
+      operationalOwner: { userId: 'u-1', displayName: 'Op' },
+      handoffDate: '2026-04-26T00:00:00.000Z',
+      description: 'Recipe lock',
+      retainSustainmentReview: false,
+      recordedAt: '2026-04-26T00:00:00.000Z',
+      recordedBy: { userId: 'u-1', displayName: 'Op' },
+    };
+    await saveControlHandoffToIndexedDB(handoff);
+
+    const record: SustainmentRecord = makeRecord({ controlHandoffId: 'h-1' });
+    const projection = buildSustainmentProjection(record, handoff);
+    expect(projection.handoffSurface).toBe('mes-recipe');
+  });
+
+  it('updates project meta.sustainment including handoff surface', async () => {
+    await seedProject();
+
+    const handoff: ControlHandoff = {
+      id: 'h-2',
+      investigationId: 'inv-1',
+      hubId: 'hub-1',
+      surface: 'qms-procedure',
+      systemName: 'Doc Control',
+      operationalOwner: { userId: 'u-1', displayName: 'Op' },
+      handoffDate: '2026-04-26T00:00:00.000Z',
+      description: 'SOP lock',
+      retainSustainmentReview: true,
+      recordedAt: '2026-04-26T00:00:00.000Z',
+      recordedBy: { userId: 'u-1', displayName: 'Op' },
+    };
+    await saveControlHandoffToIndexedDB(handoff);
+
+    const record: SustainmentRecord = makeRecord({ controlHandoffId: 'h-2' });
+    await recomputeSustainmentProjectionForRecord(record);
+
+    const updated = await db.projects.get('inv-1');
+    expect(updated?.meta?.sustainment?.handoffSurface).toBe('qms-procedure');
   });
 });
