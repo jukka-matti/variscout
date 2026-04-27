@@ -2,9 +2,9 @@ import React from 'react';
 import { Plus } from 'lucide-react';
 import { buildCurrentProcessState, buildProcessHubCadence } from '@variscout/core';
 import type { ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
+import { ProcessHubCurrentStatePanel } from '@variscout/ui';
 import ProcessHubCadenceQuestions from './ProcessHubCadenceQuestions';
 import ProcessHubCadenceQueues from './ProcessHubCadenceQueues';
-import ProcessHubCurrentStatePanel from './ProcessHubCurrentStatePanel';
 import { formatLatestActivity } from './ProcessHubFormat';
 
 interface ProcessHubReviewPanelProps {
