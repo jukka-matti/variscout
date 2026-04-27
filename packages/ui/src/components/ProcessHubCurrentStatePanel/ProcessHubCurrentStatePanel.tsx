@@ -2,15 +2,30 @@ import React from 'react';
 import { Activity, Gauge, GitBranch, Layers3, ShieldCheck } from 'lucide-react';
 import type {
   CurrentProcessState,
+  Finding,
   ProcessStateItem,
   ProcessStateLens,
   ProcessStateResponsePath,
   ProcessStateSeverity,
+  ResponsePathAction,
 } from '@variscout/core';
+import { assertNever } from '@variscout/core';
 import { formatPlural, formatStatistic } from '@variscout/core/i18n';
+
+export interface ProcessHubActionsContract {
+  actionFor: (item: ProcessStateItem) => ResponsePathAction;
+  onInvoke: (item: ProcessStateItem, action: ResponsePathAction) => void;
+}
+
+export interface ProcessHubEvidenceContract {
+  findingsFor: (item: ProcessStateItem) => readonly Finding[];
+  onChipClick: (item: ProcessStateItem, findings: readonly Finding[]) => void;
+}
 
 export interface ProcessHubCurrentStatePanelProps {
   state: CurrentProcessState;
+  actions: ProcessHubActionsContract;
+  evidence: ProcessHubEvidenceContract;
 }
 
 const LENS_LABELS: Record<ProcessStateLens, string> = {
@@ -55,6 +70,16 @@ const LENS_ICONS: Record<ProcessStateLens, React.ReactNode> = {
 
 const LENSES: ProcessStateLens[] = ['outcome', 'flow', 'conversion', 'measurement', 'sustainment'];
 
+const UNSUPPORTED_PILL_LABEL: Record<'planned' | 'informational', string> = {
+  planned: 'Planned',
+  informational: 'Informational',
+};
+
+const UNSUPPORTED_TOOLTIP: Record<'planned' | 'informational', string> = {
+  planned: 'This response path is planned for a future horizon.',
+  informational: 'No action needed — this item is informational only.',
+};
+
 const formatMetric = (value: number): string => formatStatistic(value, 'en', 2);
 
 const formatChangeSignals = (count: number): string =>
@@ -92,13 +117,62 @@ const formatStateDetail = (item: ProcessStateItem): string | null => {
   return item.detail ?? null;
 };
 
-const StateItemCard: React.FC<{ item: ProcessStateItem }> = ({ item }) => {
+const StateItemCard: React.FC<{
+  item: ProcessStateItem;
+  action: ResponsePathAction;
+  onInvoke: (item: ProcessStateItem, action: ResponsePathAction) => void;
+}> = ({ item, action, onInvoke }) => {
   const detail = formatStateDetail(item);
+  const isSupported = action.kind !== 'unsupported';
+
+  const handleActivate = () => {
+    if (isSupported) onInvoke(item, action);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!isSupported) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onInvoke(item, action);
+    }
+  };
+
+  let unsupportedReason: 'planned' | 'informational' | null = null;
+  let tooltipText: string | undefined;
+  switch (action.kind) {
+    case 'unsupported':
+      unsupportedReason = action.reason;
+      tooltipText = UNSUPPORTED_TOOLTIP[action.reason];
+      break;
+    case 'open-investigation':
+    case 'open-sustainment':
+      tooltipText = undefined;
+      break;
+    default:
+      assertNever(action);
+      tooltipText = undefined;
+  }
+
+  const interactiveProps = isSupported
+    ? {
+        role: 'button' as const,
+        tabIndex: 0,
+        onClick: handleActivate,
+        onKeyDown: handleKeyDown,
+        'aria-label': `${item.label} — ${RESPONSE_LABELS[item.responsePath]}`,
+      }
+    : { 'aria-disabled': true as const };
 
   return (
     <div
-      className={`rounded-md border bg-surface px-3 py-2 ${SEVERITY_CLASS[item.severity]}`}
+      className={`rounded-md border bg-surface px-3 py-2 ${SEVERITY_CLASS[item.severity]} ${
+        isSupported
+          ? 'cursor-pointer transition-colors hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-blue-500'
+          : ''
+      }`}
       data-testid="current-state-item"
+      title={tooltipText}
+      {...interactiveProps}
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
@@ -113,7 +187,8 @@ const StateItemCard: React.FC<{ item: ProcessStateItem }> = ({ item }) => {
         </span>
       </div>
       <p className="mt-2 inline-flex rounded-sm border border-edge px-2 py-0.5 text-xs font-medium text-content-secondary">
-        {RESPONSE_LABELS[item.responsePath]}
+        <span>{RESPONSE_LABELS[item.responsePath]}</span>
+        {unsupportedReason !== null && <span> · {UNSUPPORTED_PILL_LABEL[unsupportedReason]}</span>}
       </p>
     </div>
   );
@@ -121,6 +196,8 @@ const StateItemCard: React.FC<{ item: ProcessStateItem }> = ({ item }) => {
 
 export const ProcessHubCurrentStatePanel: React.FC<ProcessHubCurrentStatePanelProps> = ({
   state,
+  actions,
+  evidence: _evidence, // unused in PR #4 — wired in PR #5
 }) => {
   const visibleItems = state.items.slice(0, 6);
   const hiddenCount = Math.max(0, state.items.length - visibleItems.length);
@@ -148,7 +225,12 @@ export const ProcessHubCurrentStatePanel: React.FC<ProcessHubCurrentStatePanelPr
       {visibleItems.length > 0 ? (
         <div className="mt-3 grid gap-2 lg:grid-cols-2">
           {visibleItems.map(item => (
-            <StateItemCard key={item.id} item={item} />
+            <StateItemCard
+              key={item.id}
+              item={item}
+              action={actions.actionFor(item)}
+              onInvoke={actions.onInvoke}
+            />
           ))}
           {hiddenCount > 0 && (
             <p className="rounded-md border border-dashed border-edge px-3 py-3 text-sm text-content-secondary">
