@@ -13,8 +13,11 @@ const baseItem = (overrides: Partial<ProcessStateItem> = {}): ProcessStateItem =
   ...overrides,
 });
 
+// Sequential ID counter for deterministic test fixtures (per packages/core/CLAUDE.md
+// hard rule: never Math.random in tests).
+let findingSeq = 0;
 const baseFinding = (overrides: Partial<Finding> = {}): Finding => ({
-  id: `finding-${Math.floor(Math.random() * 1e9)}`,
+  id: `finding-${++findingSeq}`,
   text: 'A finding',
   createdAt: 1714000000000,
   context: {} as Finding['context'],
