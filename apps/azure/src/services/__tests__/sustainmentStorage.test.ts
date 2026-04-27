@@ -219,4 +219,46 @@ describe('tombstone on investigation reopen', () => {
     );
     expect(updated).toBe(0);
   });
+
+  it('clears project meta.sustainment when records are tombstoned', async () => {
+    await seedProject();
+    await saveSustainmentRecordToIndexedDB(makeRecord({ id: 'rec-1' }));
+    await recomputeSustainmentProjectionForRecord(makeRecord({ id: 'rec-1' }));
+
+    // Sanity: projection is set before tombstone
+    const before = await db.projects.get('inv-1');
+    expect(before?.meta?.sustainment).toBeDefined();
+
+    await tombstoneSustainmentRecordsForInvestigation('inv-1', '2026-04-27T00:00:00.000Z');
+
+    const after = await db.projects.get('inv-1');
+    expect(after?.meta?.sustainment).toBeUndefined();
+    // Other meta fields preserved.
+    expect(after?.meta?.userId).toBe('u-1');
+  });
+
+  it('leaves project meta untouched when no records were tombstoned (idempotent)', async () => {
+    await seedProject();
+    // Pre-existing tombstoned record — should not trigger a clear.
+    await saveSustainmentRecordToIndexedDB(
+      makeRecord({ id: 'rec-1', tombstoneAt: '2026-04-20T00:00:00.000Z' })
+    );
+    await db.projects.update('inv-1', {
+      meta: {
+        userId: 'u-1',
+        findingCount: 0,
+        questionCount: 0,
+        hasData: false,
+        sustainment: {
+          recordId: 'rec-1',
+          cadence: 'monthly',
+        },
+      } as unknown as ProjectMetadata,
+    });
+
+    await tombstoneSustainmentRecordsForInvestigation('inv-1', '2026-04-27T00:00:00.000Z');
+
+    const after = await db.projects.get('inv-1');
+    expect(after?.meta?.sustainment).toBeDefined();
+  });
 });
