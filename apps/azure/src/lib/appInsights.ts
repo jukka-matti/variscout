@@ -111,6 +111,28 @@ export function trackException(error: Error, severityLevel?: number): void {
 }
 
 /**
+ * Safe wrapper around App Insights' trackEvent.
+ *
+ * Telemetry must NEVER block UX. If App Insights is unavailable (local dev,
+ * SDK not loaded, transient failure), this silently swallows the error.
+ *
+ * Per ADR-059, payload MUST NOT contain PII (no labels, names, descriptions,
+ * customer text, raw column names). Stick to enum values, hashed/opaque IDs,
+ * and integers.
+ */
+export function safeTrackEvent(
+  name: string,
+  properties: Record<string, string | number | boolean | undefined>
+): void {
+  if (!appInsights) return;
+  try {
+    appInsights.trackEvent({ name }, properties);
+  } catch {
+    // Telemetry failure is never load-bearing.
+  }
+}
+
+/**
  * Flush pending AI traces to Application Insights as custom events.
  * Reads from the in-memory trace buffer and sends only new traces
  * since the last flush.
