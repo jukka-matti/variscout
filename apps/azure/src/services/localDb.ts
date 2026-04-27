@@ -8,6 +8,7 @@ import {
   evaluateSurvey,
 } from '@variscout/core';
 import type {
+  ControlHandoff,
   DataRow,
   EvidenceSnapshot,
   EvidenceSource,
@@ -18,6 +19,9 @@ import type {
   ProjectMetadata,
   Question,
   SpecLimits,
+  SustainmentMetadataProjection,
+  SustainmentRecord,
+  SustainmentReview,
   SurveyEvaluation,
 } from '@variscout/core';
 import { db } from '../db/schema';
@@ -244,4 +248,107 @@ export async function listEvidenceSnapshotsFromIndexedDB(
   return snapshots
     .filter(snapshot => snapshot.hubId === hubId && (!sourceId || snapshot.sourceId === sourceId))
     .sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
+}
+
+// ── Sustainment records, reviews, and control handoffs ─────────────────
+
+export async function saveSustainmentRecordToIndexedDB(record: SustainmentRecord): Promise<void> {
+  await db.sustainmentRecords.put(record);
+}
+
+export async function listSustainmentRecordsFromIndexedDB(
+  hubId: string
+): Promise<SustainmentRecord[]> {
+  return db.sustainmentRecords.where('hubId').equals(hubId).toArray();
+}
+
+export async function saveSustainmentReviewToIndexedDB(review: SustainmentReview): Promise<void> {
+  await db.sustainmentReviews.put(review);
+}
+
+export async function listSustainmentReviewsFromIndexedDB(
+  recordId: string
+): Promise<SustainmentReview[]> {
+  const rows = await db.sustainmentReviews.where('recordId').equals(recordId).toArray();
+  return rows.sort((a, b) => b.reviewedAt.localeCompare(a.reviewedAt));
+}
+
+export async function saveControlHandoffToIndexedDB(handoff: ControlHandoff): Promise<void> {
+  await db.controlHandoffs.put(handoff);
+}
+
+export async function listControlHandoffsFromIndexedDB(hubId: string): Promise<ControlHandoff[]> {
+  return db.controlHandoffs.where('hubId').equals(hubId).toArray();
+}
+
+// ── Sustainment projection helpers ─────────────────────────────────────
+
+export function buildSustainmentProjection(
+  record: SustainmentRecord,
+  handoff?: ControlHandoff
+): SustainmentMetadataProjection {
+  return {
+    recordId: record.id,
+    cadence: record.cadence,
+    nextReviewDue: record.nextReviewDue,
+    latestVerdict: record.latestVerdict,
+    handoffSurface: handoff?.surface,
+  };
+}
+
+export async function updateProjectSustainmentProjectionInIndexedDB(
+  investigationId: string,
+  projection: SustainmentMetadataProjection | undefined
+): Promise<void> {
+  const project = await db.projects.get(investigationId);
+  if (!project) return;
+  const existingMeta = project.meta;
+  const updatedMeta = existingMeta ? { ...existingMeta, sustainment: projection } : undefined;
+  if (!updatedMeta) return;
+  await db.projects.update(investigationId, { meta: updatedMeta });
+}
+
+export async function recomputeSustainmentProjectionForRecord(
+  record: SustainmentRecord
+): Promise<void> {
+  const handoff = record.controlHandoffId
+    ? await db.controlHandoffs.get(record.controlHandoffId).catch(() => undefined)
+    : undefined;
+  const projection = buildSustainmentProjection(record, handoff);
+  await updateProjectSustainmentProjectionInIndexedDB(record.investigationId, projection);
+}
+
+export async function tombstoneSustainmentRecordsForInvestigation(
+  investigationId: string,
+  tombstoneAt: string
+): Promise<number> {
+  const records = await db.sustainmentRecords
+    .where('investigationId')
+    .equals(investigationId)
+    .toArray();
+  if (records.length === 0) return 0;
+  let updated = 0;
+  for (const record of records) {
+    if (record.tombstoneAt) continue; // already archived; skip
+    await db.sustainmentRecords.update(record.id, {
+      tombstoneAt,
+      updatedAt: tombstoneAt,
+    });
+    updated += 1;
+  }
+  if (updated > 0) {
+    // Clear the project's meta.sustainment projection — the live record is gone.
+    await clearProjectSustainmentProjectionInIndexedDB(investigationId);
+  }
+  return updated;
+}
+
+export async function clearProjectSustainmentProjectionInIndexedDB(
+  investigationId: string
+): Promise<void> {
+  const project = await db.projects.get(investigationId);
+  if (!project?.meta?.sustainment) return;
+  const { sustainment: _removed, ...restMeta } = project.meta;
+  void _removed;
+  await db.projects.update(investigationId, { meta: restMeta });
 }

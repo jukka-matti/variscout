@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, CircleAlert, ClipboardCheck, Layers3, Radar, ShieldCheck } from 'lucide-react';
+import { ArrowRight, CircleAlert, ClipboardCheck, Layers3, Radar } from 'lucide-react';
 import type {
   EvidenceLatestSignal,
   InvestigationDepth,
@@ -8,6 +8,7 @@ import type {
   ProcessHubInvestigation,
   ProcessHubReadinessReason,
   ProcessHubReviewItem,
+  ProcessHubRollup,
 } from '@variscout/core';
 import {
   formatCapability,
@@ -17,10 +18,15 @@ import {
   formatStatus,
   formatTopFocus,
 } from './ProcessHubFormat';
+import ProcessHubSustainmentRegion from './ProcessHubSustainmentRegion';
 
 interface ProcessHubCadenceQueuesProps {
   cadence: ProcessHubCadenceSummary<ProcessHubInvestigation>;
+  rollup: ProcessHubRollup<ProcessHubInvestigation>;
   onOpenInvestigation: (id: string) => void;
+  onSetupSustainment: (investigationId: string) => void;
+  onLogReview: (recordId: string) => void;
+  onRecordHandoff: (investigationId: string) => void;
 }
 
 const DEPTH_SECTIONS: Array<{ depth: InvestigationDepth; label: string }> = [
@@ -111,7 +117,11 @@ const EvidenceSignalCard: React.FC<{ signal: EvidenceLatestSignal }> = ({ signal
 
 const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
   cadence,
+  rollup,
   onOpenInvestigation,
+  onSetupSustainment,
+  onLogReview,
+  onRecordHandoff,
 }) => {
   const hasActiveWork = DEPTH_SECTIONS.some(
     ({ depth }) => cadence.activeWork[depth].totalCount > 0
@@ -330,23 +340,14 @@ const ProcessHubCadenceQueues: React.FC<ProcessHubCadenceQueuesProps> = ({
               )}
             </QueueSection>
 
-            <QueueSection title="Sustainment" queue={cadence.sustainment}>
-              {item => (
-                <ReviewItemButton
-                  key={item.investigation.id}
-                  item={item}
-                  onOpenInvestigation={onOpenInvestigation}
-                >
-                  <div className="flex items-center gap-2 text-sm font-medium text-content">
-                    <ShieldCheck size={14} className="text-green-400" />
-                    <span>{item.investigation.name}</span>
-                  </div>
-                  {item.nextMove && (
-                    <p className="mt-1 text-xs text-content-secondary">{item.nextMove}</p>
-                  )}
-                </ReviewItemButton>
-              )}
-            </QueueSection>
+            <ProcessHubSustainmentRegion
+              cadence={cadence}
+              rollup={rollup}
+              onOpenInvestigation={onOpenInvestigation}
+              onSetupSustainment={onSetupSustainment}
+              onLogReview={onLogReview}
+              onRecordHandoff={onRecordHandoff}
+            />
           </div>
         ) : hasActiveReviewItems ? null : (
           <p className="rounded-md border border-dashed border-edge px-3 py-3 text-sm text-content-secondary">

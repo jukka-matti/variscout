@@ -5,7 +5,7 @@ import {
   hasTeamFeatures,
   normalizeProcessHubId,
 } from '@variscout/core';
-import type { ProcessHub } from '@variscout/core';
+import type { ProcessHub, SustainmentRecord, ControlHandoff } from '@variscout/core';
 import type { EvidenceSnapshot } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
@@ -46,6 +46,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     saveProcessHub,
     listEvidenceSources,
     listEvidenceSnapshots,
+    listSustainmentRecords,
+    listControlHandoffs,
     syncStatus,
   } = useStorage();
 
@@ -53,6 +55,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [projects, setProjects] = useState<CloudProject[]>([]);
   const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
   const [evidenceSnapshots, setEvidenceSnapshots] = useState<EvidenceSnapshot[]>([]);
+  const [sustainmentRecords, setSustainmentRecords] = useState<SustainmentRecord[]>([]);
+  const [controlHandoffs, setControlHandoffs] = useState<ControlHandoff[]>([]);
   const [selectedHubId, setSelectedHubId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -118,13 +122,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [listEvidenceSources, listEvidenceSnapshots]
   );
 
+  const loadSustainmentForHub = useCallback(
+    async (hubId: string): Promise<void> => {
+      try {
+        const [records, handoffs] = await Promise.all([
+          listSustainmentRecords(hubId),
+          listControlHandoffs(hubId),
+        ]);
+        setSustainmentRecords(records);
+        setControlHandoffs(handoffs);
+      } catch (error) {
+        console.error('Failed to load sustainment for hub:', error);
+        setSustainmentRecords([]);
+        setControlHandoffs([]);
+      }
+    },
+    [listSustainmentRecords, listControlHandoffs]
+  );
+
   useEffect(() => {
     if (!selectedHubId) {
       setEvidenceSnapshots([]);
+      setSustainmentRecords([]);
+      setControlHandoffs([]);
       return;
     }
     loadEvidenceForHub(selectedHubId);
-  }, [selectedHubId, loadEvidenceForHub]);
+    loadSustainmentForHub(selectedHubId);
+  }, [selectedHubId, loadEvidenceForHub, loadSustainmentForHub]);
 
   // Sort projects: overdue tasks first, then assigned tasks, then by modified date
   const sortedProjects = useMemo(() => {
@@ -153,9 +178,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         modified: project.modified,
         metadata: project.metadata,
       })),
-      { evidenceSnapshots }
+      { evidenceSnapshots, sustainmentRecords, controlHandoffs }
     );
-  }, [evidenceSnapshots, processHubs, sortedProjects]);
+  }, [evidenceSnapshots, sustainmentRecords, controlHandoffs, processHubs, sortedProjects]);
 
   const visibleProjects = useMemo(() => {
     const normalizedSearchQuery = searchQuery.trim().toLowerCase();
@@ -171,6 +196,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const selectedHubRollup = hubRollups.find(rollup => rollup.hub.id === selectedHubId);
   const selectedHub = selectedHubRollup?.hub ?? processHubs.find(hub => hub.id === selectedHubId);
+
+  const handleSetupSustainment = useCallback(
+    (investigationId: string) => {
+      onOpenProject(investigationId);
+    },
+    [onOpenProject]
+  );
+
+  const handleLogReview = useCallback(
+    (recordId: string) => {
+      const record = sustainmentRecords.find(r => r.id === recordId);
+      if (record) onOpenProject(record.investigationId);
+    },
+    [sustainmentRecords, onOpenProject]
+  );
+
+  const handleRecordHandoff = useCallback(
+    (investigationId: string) => {
+      onOpenProject(investigationId);
+    },
+    [onOpenProject]
+  );
 
   const handleSampleSelect = (sample: SampleDataset): void => {
     if (onLoadSample) {
@@ -387,6 +434,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 rollup={selectedHubRollup}
                 onOpenInvestigation={id => onOpenProject(id)}
                 onStartInvestigation={() => onOpenProject(undefined, selectedHubRollup.hub.id)}
+                onSetupSustainment={handleSetupSustainment}
+                onLogReview={handleLogReview}
+                onRecordHandoff={handleRecordHandoff}
               />
               <ProcessHubEvidencePanel
                 hubId={selectedHubRollup.hub.id}

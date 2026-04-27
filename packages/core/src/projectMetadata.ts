@@ -18,6 +18,7 @@ import {
   type ProcessHubProcessMapSummary,
   type ProcessHubSurveyReadinessSummary,
 } from './processHub';
+import type { SustainmentMetadataProjection } from './sustainment';
 
 export interface ProjectMetadata {
   /** High-level analysis journey phase */
@@ -67,6 +68,8 @@ export interface ProjectMetadata {
   nextMove?: string;
   /** Latest lightweight review signal shown on Process Hub cards. */
   reviewSignal?: HubReviewSignal;
+  /** Lightweight projection of the active SustainmentRecord for this project. */
+  sustainment?: SustainmentMetadataProjection;
 }
 
 /**

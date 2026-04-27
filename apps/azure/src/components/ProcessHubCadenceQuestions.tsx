@@ -1,7 +1,7 @@
 import React from 'react';
 import { ClipboardCheck } from 'lucide-react';
 import type { ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
-import { processQuestionAnswers } from './ProcessHubFormat';
+import { processQuestionAnswers, sustainmentBandAnswer } from './ProcessHubFormat';
 
 interface ProcessHubCadenceQuestionsProps {
   rollup: ProcessHubRollup<ProcessHubInvestigation>;
@@ -18,6 +18,7 @@ const QuestionBand: React.FC<{ question: string; answer: string }> = ({ question
 
 const ProcessHubCadenceQuestions: React.FC<ProcessHubCadenceQuestionsProps> = ({ rollup }) => {
   const answers = processQuestionAnswers(rollup);
+  const sustainmentAnswer = sustainmentBandAnswer(rollup, new Date());
 
   return (
     <div className="mt-4">
@@ -25,10 +26,13 @@ const ProcessHubCadenceQuestions: React.FC<ProcessHubCadenceQuestionsProps> = ({
         <ClipboardCheck size={16} />
         <h4>Cadence Questions</h4>
       </div>
-      <div className="grid gap-2 lg:grid-cols-3">
+      <div className={`grid gap-2 ${sustainmentAnswer ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
         <QuestionBand question="Are we meeting the requirement?" answer={answers.requirement} />
         <QuestionBand question="What changed?" answer={answers.change} />
         <QuestionBand question="Where should we focus?" answer={answers.focus} />
+        {sustainmentAnswer && (
+          <QuestionBand question="Is this control still holding?" answer={sustainmentAnswer} />
+        )}
       </div>
     </div>
   );

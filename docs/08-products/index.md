@@ -154,3 +154,4 @@ Why features are gated where they are — the reasoning behind VariScout's produ
 - [ADR-007: Azure Marketplace Distribution](../07-decisions/adr-007-azure-marketplace-distribution.md)
 - [Azure Marketplace Guide](azure/marketplace.md)
 - [Tier Philosophy](tier-philosophy.md)
+- [Product Evaluation Narrative](presentations/variscout-product-evaluation-narrative-plan.md)

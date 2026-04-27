@@ -7,12 +7,19 @@ import {
   processHubEvidenceSnapshotsCatalogPath,
   processHubEvidenceSourceBlobPath,
   processHubEvidenceSourcesCatalogPath,
+  sustainmentRecordBlobPath,
+  sustainmentReviewBlobPath,
+  controlHandoffBlobPath,
+  sustainmentCatalogPath,
 } from '@variscout/core';
 import type {
+  ControlHandoff,
   EvidenceSnapshot,
   EvidenceSource,
   ProcessHub,
   ProjectMetadata,
+  SustainmentRecord,
+  SustainmentReview,
 } from '@variscout/core';
 import type { Project } from './localDb';
 
@@ -429,4 +436,40 @@ export async function getEtagForProject(projectId: string): Promise<string | nul
   }
 
   return res.headers.get('ETag');
+}
+
+// ── Sustainment blobs ─────────────────────────────────────────────────────
+
+export async function listBlobSustainmentRecords(hubId: string): Promise<SustainmentRecord[]> {
+  return (await getJsonBlob<SustainmentRecord[]>(sustainmentCatalogPath(hubId))) ?? [];
+}
+
+export async function saveBlobSustainmentRecord(record: SustainmentRecord): Promise<void> {
+  await putJsonBlob(sustainmentRecordBlobPath(record.hubId, record.id), record);
+}
+
+export async function updateBlobSustainmentCatalog(
+  hubId: string,
+  records: SustainmentRecord[]
+): Promise<void> {
+  await putJsonBlob(sustainmentCatalogPath(hubId), records);
+}
+
+export async function loadBlobSustainmentReview(
+  hubId: string,
+  recordId: string,
+  reviewId: string
+): Promise<SustainmentReview | null> {
+  return (
+    (await getJsonBlob<SustainmentReview>(sustainmentReviewBlobPath(hubId, recordId, reviewId))) ??
+    null
+  );
+}
+
+export async function saveBlobSustainmentReview(review: SustainmentReview): Promise<void> {
+  await putJsonBlob(sustainmentReviewBlobPath(review.hubId, review.recordId, review.id), review);
+}
+
+export async function saveBlobControlHandoff(handoff: ControlHandoff): Promise<void> {
+  await putJsonBlob(controlHandoffBlobPath(handoff.hubId, handoff.id), handoff);
 }

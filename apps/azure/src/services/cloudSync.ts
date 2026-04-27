@@ -4,10 +4,13 @@
 
 import { DEFAULT_PROCESS_HUB } from '@variscout/core';
 import type {
+  ControlHandoff,
   EvidenceSnapshot,
   EvidenceSource,
   ProcessHub,
   ProjectMetadata,
+  SustainmentRecord,
+  SustainmentReview,
 } from '@variscout/core';
 import { AuthError } from '../auth/easyAuth';
 import { db } from '../db/schema';
@@ -26,6 +29,11 @@ import {
   saveBlobEvidenceSource,
   updateBlobEvidenceSources,
   updateBlobEvidenceSnapshots,
+  listBlobSustainmentRecords,
+  saveBlobSustainmentRecord,
+  updateBlobSustainmentCatalog,
+  saveBlobSustainmentReview,
+  saveBlobControlHandoff,
 } from './blobClient';
 import type { BlobProjectMetadata } from './blobClient';
 
@@ -355,6 +363,43 @@ export async function updateLastViewedAt(
 
 export async function ensureFolderExists(_token: string, _apiBase: unknown): Promise<void> {
   // No-op: Blob Storage creates paths implicitly on PUT
+}
+
+// ── Sustainment cloud sync ────────────────────────────────────────────────
+
+export async function listSustainmentRecordsFromCloud(
+  _token: string,
+  hubId: string
+): Promise<SustainmentRecord[]> {
+  return wrapBlobCall(() => listBlobSustainmentRecords(hubId));
+}
+
+export async function saveSustainmentRecordToCloud(
+  _token: string,
+  record: SustainmentRecord
+): Promise<void> {
+  const existing = await listSustainmentRecordsFromCloud(_token, record.hubId);
+  const next = existing.some(item => item.id === record.id)
+    ? existing.map(item => (item.id === record.id ? record : item))
+    : [...existing, record];
+  await wrapBlobCall(async () => {
+    await saveBlobSustainmentRecord(record);
+    await updateBlobSustainmentCatalog(record.hubId, next);
+  });
+}
+
+export async function saveSustainmentReviewToCloud(
+  _token: string,
+  review: SustainmentReview
+): Promise<void> {
+  await wrapBlobCall(() => saveBlobSustainmentReview(review));
+}
+
+export async function saveControlHandoffToCloud(
+  _token: string,
+  handoff: ControlHandoff
+): Promise<void> {
+  await wrapBlobCall(() => saveBlobControlHandoff(handoff));
 }
 
 // ── Retry constants (used by storage.ts StorageProvider) ───────────────

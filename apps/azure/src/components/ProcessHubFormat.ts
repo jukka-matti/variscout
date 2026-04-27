@@ -3,6 +3,8 @@ import type {
   ProcessHubInvestigation,
   ProcessHubReviewItem,
   ProcessHubRollup,
+  SustainmentVerdict,
+  ControlHandoffSurface,
 } from '@variscout/core';
 import { formatStatistic, formatPlural } from '@variscout/core/i18n';
 
@@ -90,4 +92,63 @@ export const processQuestionAnswers = (
       (rollup.nextMove && `Next move: ${rollup.nextMove}`) ??
       'No focus signal yet',
   };
+};
+
+const VERDICT_LABELS: Record<SustainmentVerdict, string> = {
+  holding: 'Holding',
+  drifting: 'Drifting',
+  broken: 'Broken',
+  inconclusive: 'Inconclusive',
+};
+
+export const formatSustainmentVerdict = (v: SustainmentVerdict): string => VERDICT_LABELS[v];
+
+export const formatSustainmentDue = (nextReviewDue: string | undefined, now: Date): string => {
+  if (!nextReviewDue) return 'No cadence set';
+  const dueMs = new Date(nextReviewDue).getTime();
+  const days = Math.round((dueMs - now.getTime()) / (24 * 60 * 60 * 1000));
+  if (days < 0) {
+    const overdue = Math.abs(days);
+    return `${overdue} ${formatPlural(overdue, { one: 'day', other: 'days' })} overdue`;
+  }
+  if (days === 0) return 'Due today';
+  return `Due in ${days} ${formatPlural(days, { one: 'day', other: 'days' })}`;
+};
+
+const HANDOFF_LABELS: Record<ControlHandoffSurface, string> = {
+  'mes-recipe': 'MES recipe',
+  'scada-alarm': 'SCADA alarm',
+  'qms-procedure': 'QMS procedure',
+  'work-instruction': 'Work instruction',
+  'training-record': 'Training record',
+  'audit-program': 'Audit program',
+  'dashboard-only': 'Dashboard only',
+  'ticket-queue': 'Ticket queue',
+  other: 'Other',
+};
+
+export const formatHandoffSurface = (s: ControlHandoffSurface): string => HANDOFF_LABELS[s];
+
+export const sustainmentBandAnswer = (
+  rollup: ProcessHubRollup<ProcessHubInvestigation>,
+  now: Date
+): string | null => {
+  const records = rollup.sustainmentRecords ?? [];
+  const sustainmentEligible = rollup.investigations.some(
+    inv =>
+      inv.metadata?.investigationStatus === 'resolved' ||
+      inv.metadata?.investigationStatus === 'controlled'
+  );
+  if (!sustainmentEligible) return null;
+  const due = records.filter(
+    r => r.nextReviewDue && new Date(r.nextReviewDue) <= now && !r.tombstoneAt
+  ).length;
+  const holdingCount = records.filter(r => r.latestVerdict === 'holding' && !r.tombstoneAt).length;
+  if (due === 0 && holdingCount > 0) {
+    return `${holdingCount} ${holdingCount === 1 ? 'investigation is' : 'investigations are'} holding; no review due.`;
+  }
+  if (due > 0) {
+    return `${due} sustainment ${due === 1 ? 'review' : 'reviews'} due now.`;
+  }
+  return 'Set up sustainment cadence to monitor this.';
 };
