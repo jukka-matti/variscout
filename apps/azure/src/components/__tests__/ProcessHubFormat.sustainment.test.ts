@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
+import type { ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
 import {
   formatSustainmentVerdict,
   formatSustainmentDue,
   formatHandoffSurface,
+  sustainmentBandAnswer,
 } from '../ProcessHubFormat';
 
 describe('ProcessHubFormat sustainment helpers', () => {
@@ -54,6 +56,93 @@ describe('ProcessHubFormat sustainment helpers', () => {
     it('formats past date with singular day overdue', () => {
       const dueDate = new Date('2026-04-26T12:00:00Z');
       expect(formatSustainmentDue(dueDate.toISOString(), baseDate)).toBe('1 day overdue');
+    });
+  });
+
+  describe('sustainmentBandAnswer', () => {
+    const NOW = new Date('2026-04-26T00:00:00.000Z');
+
+    const makeRollup = (
+      investigationStatuses: Array<string | undefined>,
+      records: Array<{
+        latestVerdict?: string;
+        nextReviewDue?: string;
+        tombstoneAt?: string;
+      }>
+    ) =>
+      ({
+        investigations: investigationStatuses.map(s => ({
+          metadata: s ? { investigationStatus: s } : undefined,
+        })),
+        sustainmentRecords: records,
+      }) as unknown as ProcessHubRollup<ProcessHubInvestigation>;
+
+    it('returns null when no investigations are resolved or controlled', () => {
+      const rollup = makeRollup(['scouting'], []);
+      expect(sustainmentBandAnswer(rollup, NOW)).toBeNull();
+    });
+
+    it('returns setup message when eligible but no records', () => {
+      const rollup = makeRollup(['resolved'], []);
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe(
+        'Set up sustainment cadence to monitor this.'
+      );
+    });
+
+    it('returns singular holding message when 1 record is holding and none due', () => {
+      const rollup = makeRollup(
+        ['controlled'],
+        [{ latestVerdict: 'holding', nextReviewDue: '2026-05-01T00:00:00.000Z' }]
+      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe('1 investigation is holding; no review due.');
+    });
+
+    it('returns plural holding message when 2 records are holding and none due', () => {
+      const rollup = makeRollup(
+        ['resolved'],
+        [
+          { latestVerdict: 'holding', nextReviewDue: '2026-05-01T00:00:00.000Z' },
+          { latestVerdict: 'holding', nextReviewDue: '2026-05-02T00:00:00.000Z' },
+        ]
+      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe(
+        '2 investigations are holding; no review due.'
+      );
+    });
+
+    it('returns singular due message when 1 record is past due', () => {
+      const rollup = makeRollup(
+        ['resolved'],
+        [{ latestVerdict: 'holding', nextReviewDue: '2026-04-25T00:00:00.000Z' }]
+      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe('1 sustainment review due now.');
+    });
+
+    it('returns plural due message when 2 records are past due', () => {
+      const rollup = makeRollup(
+        ['resolved'],
+        [
+          { latestVerdict: 'holding', nextReviewDue: '2026-04-20T00:00:00.000Z' },
+          { latestVerdict: 'holding', nextReviewDue: '2026-04-25T00:00:00.000Z' },
+        ]
+      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe('2 sustainment reviews due now.');
+    });
+
+    it('ignores tombstoned records', () => {
+      const rollup = makeRollup(
+        ['resolved'],
+        [
+          {
+            latestVerdict: 'holding',
+            nextReviewDue: '2026-04-25T00:00:00.000Z',
+            tombstoneAt: '2026-04-24T00:00:00.000Z',
+          },
+        ]
+      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe(
+        'Set up sustainment cadence to monitor this.'
+      );
     });
   });
 

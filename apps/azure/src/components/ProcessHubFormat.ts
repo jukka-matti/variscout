@@ -128,3 +128,27 @@ const HANDOFF_LABELS: Record<ControlHandoffSurface, string> = {
 };
 
 export const formatHandoffSurface = (s: ControlHandoffSurface): string => HANDOFF_LABELS[s];
+
+export const sustainmentBandAnswer = (
+  rollup: ProcessHubRollup<ProcessHubInvestigation>,
+  now: Date
+): string | null => {
+  const records = rollup.sustainmentRecords ?? [];
+  const sustainmentEligible = rollup.investigations.some(
+    inv =>
+      inv.metadata?.investigationStatus === 'resolved' ||
+      inv.metadata?.investigationStatus === 'controlled'
+  );
+  if (!sustainmentEligible) return null;
+  const due = records.filter(
+    r => r.nextReviewDue && new Date(r.nextReviewDue) <= now && !r.tombstoneAt
+  ).length;
+  const holdingCount = records.filter(r => r.latestVerdict === 'holding' && !r.tombstoneAt).length;
+  if (due === 0 && holdingCount > 0) {
+    return `${holdingCount} ${holdingCount === 1 ? 'investigation is' : 'investigations are'} holding; no review due.`;
+  }
+  if (due > 0) {
+    return `${due} sustainment ${due === 1 ? 'review' : 'reviews'} due now.`;
+  }
+  return 'Set up sustainment cadence to monitor this.';
+};
