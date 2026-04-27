@@ -1,7 +1,12 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { vi } from 'vitest';
-import type { CurrentProcessState, ProcessStateItem, ProcessStateLens } from '@variscout/core';
+import type {
+  CurrentProcessState,
+  Finding,
+  ProcessStateItem,
+  ProcessStateLens,
+} from '@variscout/core';
 import type { ResponsePathAction } from '@variscout/core';
 import { ProcessHubCurrentStatePanel } from '../ProcessHubCurrentStatePanel';
 
@@ -317,5 +322,117 @@ describe('ProcessHubCurrentStatePanel — actions', () => {
     card.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
 
     expect(actions.onInvoke).toHaveBeenCalledWith(item, action);
+  });
+});
+
+describe('ProcessHubCurrentStatePanel — evidence chip', () => {
+  it('shows the chip with finding count when findingsFor returns non-empty', () => {
+    const item = buildItem({ id: 'item-e1', responsePath: 'focused-investigation' });
+    const findings = [
+      { id: 'f-1' } as unknown as Finding,
+      { id: 'f-2' } as unknown as Finding,
+      { id: 'f-3' } as unknown as Finding,
+    ];
+    const evidence = {
+      findingsFor: () => findings,
+      onChipClick: vi.fn(),
+    };
+
+    render(
+      <ProcessHubCurrentStatePanel
+        state={buildState({ items: [item] })}
+        actions={makeActions()}
+        evidence={evidence}
+      />
+    );
+
+    const chip = screen.getByTestId('current-state-evidence-chip');
+    expect(chip).toHaveTextContent('3 findings');
+  });
+
+  it('shows singular text for one finding', () => {
+    const item = buildItem({ id: 'item-e2' });
+    const evidence = {
+      findingsFor: () => [{ id: 'f-only' } as unknown as Finding],
+      onChipClick: vi.fn(),
+    };
+
+    render(
+      <ProcessHubCurrentStatePanel
+        state={buildState({ items: [item] })}
+        actions={makeActions()}
+        evidence={evidence}
+      />
+    );
+
+    expect(screen.getByTestId('current-state-evidence-chip')).toHaveTextContent('1 finding');
+  });
+
+  it('omits the chip when findingsFor returns empty', () => {
+    const item = buildItem({ id: 'item-e3' });
+    const evidence = {
+      findingsFor: () => [],
+      onChipClick: vi.fn(),
+    };
+
+    render(
+      <ProcessHubCurrentStatePanel
+        state={buildState({ items: [item] })}
+        actions={makeActions()}
+        evidence={evidence}
+      />
+    );
+
+    expect(screen.queryByTestId('current-state-evidence-chip')).not.toBeInTheDocument();
+  });
+
+  it('fires onChipClick with item + findings on chip click and stops card propagation', () => {
+    const item = buildItem({ id: 'item-e4', responsePath: 'focused-investigation' });
+    const findings = [{ id: 'f-1' } as unknown as Finding];
+    const onChipClick = vi.fn();
+    const onInvoke = vi.fn();
+
+    render(
+      <ProcessHubCurrentStatePanel
+        state={buildState({ items: [item] })}
+        actions={{
+          actionFor: () => ({
+            kind: 'open-investigation' as const,
+            investigationId: 'inv-x',
+            intent: 'focused' as const,
+          }),
+          onInvoke,
+        }}
+        evidence={{ findingsFor: () => findings, onChipClick }}
+      />
+    );
+
+    const chip = screen.getByTestId('current-state-evidence-chip');
+    chip.click();
+
+    expect(onChipClick).toHaveBeenCalledWith(item, findings);
+    // Card click should NOT have fired because chip stops propagation
+    expect(onInvoke).not.toHaveBeenCalled();
+  });
+
+  it('renders chip on Planned/unsupported cards too (chip independent of action support)', () => {
+    const item = buildItem({ id: 'item-e5', responsePath: 'measurement-system-work' });
+    const findings = [{ id: 'f-1' } as unknown as Finding];
+    const evidence = {
+      findingsFor: () => findings,
+      onChipClick: vi.fn(),
+    };
+
+    render(
+      <ProcessHubCurrentStatePanel
+        state={buildState({ items: [item] })}
+        actions={makeActions({
+          actionFor: () => ({ kind: 'unsupported' as const, reason: 'planned' as const }),
+        })}
+        evidence={evidence}
+      />
+    );
+
+    expect(screen.getByTestId('current-state-evidence-chip')).toHaveTextContent('1 finding');
   });
 });
