@@ -13,18 +13,7 @@ import React from 'react';
 import { LayeredProcessView } from '@variscout/ui';
 import { useProjectStore } from '@variscout/stores';
 import type { ProcessContext } from '@variscout/core';
-import { detectGaps, type ProcessMap } from '@variscout/core/frame';
-
-const createEmptyMap = (): ProcessMap => {
-  const now = new Date().toISOString();
-  return {
-    version: 1,
-    nodes: [],
-    tributaries: [],
-    createdAt: now,
-    updatedAt: now,
-  };
-};
+import { createEmptyMap, detectGaps, type ProcessMap } from '@variscout/core/frame';
 
 const FrameView: React.FC = () => {
   const rawData = useProjectStore(s => s.rawData);
