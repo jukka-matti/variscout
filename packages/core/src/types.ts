@@ -616,3 +616,12 @@ export interface ComplementInsight {
   suggestedLsl?: number;
   suggestedUsl?: number;
 }
+
+/**
+ * Exhaustive switch helper. The TypeScript compiler enforces that all cases
+ * are handled — if a new variant is added to a union, calls to assertNever
+ * become a compile error at the default case.
+ */
+export function assertNever(value: never): never {
+  throw new Error(`Unhandled variant: ${JSON.stringify(value)}`);
+}
