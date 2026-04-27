@@ -10,6 +10,9 @@ interface ProcessHubReviewPanelProps {
   rollup: ProcessHubRollup<ProcessHubInvestigation>;
   onOpenInvestigation: (id: string) => void;
   onStartInvestigation: () => void;
+  onSetupSustainment: (investigationId: string) => void;
+  onLogReview: (recordId: string) => void;
+  onRecordHandoff: (investigationId: string) => void;
 }
 
 const SnapshotCard: React.FC<{
@@ -35,6 +38,9 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   rollup,
   onOpenInvestigation,
   onStartInvestigation,
+  onSetupSustainment,
+  onLogReview,
+  onRecordHandoff,
 }) => {
   const cadence = buildProcessHubCadence(rollup);
   const headingId = `process-hub-review-${rollup.hub.id}`;
@@ -98,7 +104,14 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
       </div>
 
       <ProcessHubCadenceQuestions rollup={rollup} />
-      <ProcessHubCadenceQueues cadence={cadence} onOpenInvestigation={onOpenInvestigation} />
+      <ProcessHubCadenceQueues
+        cadence={cadence}
+        rollup={rollup}
+        onOpenInvestigation={onOpenInvestigation}
+        onSetupSustainment={onSetupSustainment}
+        onLogReview={onLogReview}
+        onRecordHandoff={onRecordHandoff}
+      />
     </section>
   );
 };

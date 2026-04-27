@@ -172,6 +172,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const selectedHubRollup = hubRollups.find(rollup => rollup.hub.id === selectedHubId);
   const selectedHub = selectedHubRollup?.hub ?? processHubs.find(hub => hub.id === selectedHubId);
 
+  const handleSetupSustainment = useCallback((_investigationId: string) => {
+    // TODO(Task 17): open SustainmentRecordEditor popover
+  }, []);
+
+  const handleLogReview = useCallback((_recordId: string) => {
+    // TODO(Task 17): open SustainmentReviewLogger popover
+  }, []);
+
+  const handleRecordHandoff = useCallback((_investigationId: string) => {
+    // TODO(Task 17): open ControlHandoffEditor popover
+  }, []);
+
   const handleSampleSelect = (sample: SampleDataset): void => {
     if (onLoadSample) {
       onLoadSample(sample);
@@ -387,6 +399,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 rollup={selectedHubRollup}
                 onOpenInvestigation={id => onOpenProject(id)}
                 onStartInvestigation={() => onOpenProject(undefined, selectedHubRollup.hub.id)}
+                onSetupSustainment={handleSetupSustainment}
+                onLogReview={handleLogReview}
+                onRecordHandoff={handleRecordHandoff}
               />
               <ProcessHubEvidencePanel
                 hubId={selectedHubRollup.hub.id}
