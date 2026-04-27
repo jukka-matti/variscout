@@ -489,6 +489,16 @@ export {
   investigationStatusFromJourneyPhase,
   normalizeProcessHubId,
 } from './processHub';
+export { buildCurrentProcessState } from './processState';
+export type {
+  CurrentProcessState,
+  ProcessStateItem,
+  ProcessStateLens,
+  ProcessStateMetric,
+  ProcessStateResponsePath,
+  ProcessStateSeverity,
+  ProcessStateSource,
+} from './processState';
 
 // Sustainment (Phase 6)
 export type {

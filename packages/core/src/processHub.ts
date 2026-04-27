@@ -2,6 +2,13 @@ import type { JourneyPhase } from './ai/types';
 import type { EvidenceLatestSignal, EvidenceSnapshot } from './evidenceSources';
 import type { FindingStatus, QuestionStatus } from './findings/types';
 import { buildReviewItem } from './processHubReview';
+import { buildCurrentProcessState } from './processState';
+import type {
+  ProcessStateItem,
+  ProcessStateLens,
+  ProcessStateResponsePath,
+  ProcessStateSeverity,
+} from './processState';
 import type { HubReviewSignal } from './processReviewSignal';
 import type { SurveyStatus } from './survey/types';
 import {
@@ -273,6 +280,18 @@ export interface ProcessHubContextContract {
     due: number;
     overdue: number;
     verdicts: Partial<Record<SustainmentVerdict, number>>;
+  };
+  currentState: {
+    overallSeverity: ProcessStateSeverity;
+    itemCount: number;
+    lensCounts: Record<ProcessStateLens, number>;
+    responsePathCounts: Partial<Record<ProcessStateResponsePath, number>>;
+    topItems: Array<
+      Pick<
+        ProcessStateItem,
+        'id' | 'lens' | 'severity' | 'responsePath' | 'source' | 'label' | 'count' | 'metric'
+      >
+    >;
   };
   readinessReasons: ProcessHubReadinessReason[];
 }
@@ -739,6 +758,8 @@ export function buildProcessHubContext<TInvestigation extends ProcessHubInvestig
   now: Date = new Date()
 ): ProcessHubContextContract {
   const review = buildProcessHubReview(rollup);
+  const cadence = buildProcessHubCadence(rollup, now);
+  const currentState = buildCurrentProcessState(rollup, cadence, now);
   const investigations = rollup.investigations;
 
   const processDescription = firstDefined(
@@ -853,6 +874,22 @@ export function buildProcessHubContext<TInvestigation extends ProcessHubInvestig
       now,
       review.sustainmentQueue.length
     ),
+    currentState: {
+      overallSeverity: currentState.overallSeverity,
+      itemCount: currentState.items.length,
+      lensCounts: currentState.lensCounts,
+      responsePathCounts: currentState.responsePathCounts,
+      topItems: currentState.items.slice(0, 5).map(item => ({
+        id: item.id,
+        lens: item.lens,
+        severity: item.severity,
+        responsePath: item.responsePath,
+        source: item.source,
+        label: item.label,
+        count: item.count,
+        metric: item.metric,
+      })),
+    },
     readinessReasons: uniqueReadinessReasons(
       review.readinessQueue
         .flatMap(item => item.readinessReasons)

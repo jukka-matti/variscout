@@ -21,12 +21,16 @@ Users paste text, upload CSV, or drag a file. `packages/core/src/parser/` detect
 
 **No value flagged as unparseable is silently zeroed.** Downstream code sees `undefined` or a valid number.
 
-Process Hub Evidence Sources are a future workflow layer above this parse
-boundary. An Evidence Source represents recurring hub evidence; a Snapshot is
-one dated evidence package from that source. When the source shape is known, a
-Data Profile can recommend mappings, derive deterministic columns, and record a
-Profile Application for that Snapshot. Current code still enters through the
-existing paste/upload/manual paths.
+Process Hub Evidence Sources are the workflow layer above this parse boundary.
+An Evidence Source represents recurring hub evidence; a Snapshot is one dated
+evidence package from that source. When the source shape is known, a Data
+Profile can recommend mappings, derive deterministic columns, and record a
+Profile Application for that Snapshot. Together, Evidence Sources, Snapshots,
+Signal Cards, Survey readiness, targets, subgroup logic, and cadence rules form
+the Process Measurement System that produces Current Process State for Process
+Hub review. Current ordinary analysis still enters through the existing
+paste/upload/manual paths, while Azure has the first profile-specific Evidence
+Source slice for Agent Review Log snapshots.
 
 ## 2. Mode transforms (pre-stats aggregation)
 
@@ -53,10 +57,12 @@ Two-pass best subsets with interaction screening (ADR-067) drives Evidence Map. 
 
 IndexedDB schema in `apps/azure/src/db/schema.ts` (Dexie). `services/localDb.ts` is the facade. sessionStore from `@variscout/stores` persists UI session state via middleware; document-level persistence goes through `useProjectActions` (domain stores).
 
-Future Evidence Source objects are design concepts only in the current docs
-update: `EvidenceSource`, `DataProfileDefinition`, `EvidenceSnapshot`, and
-`ProfileApplication`. They are not implemented in the current persistence
-schema.
+Evidence Source objects now exist in core as the first implementation slice:
+`EvidenceSource`, `DataProfileDefinition`, `EvidenceSnapshot`, and
+`ProfileApplication`. The current persisted Azure UI support is still narrow
+and profile-specific; ordinary process datasets do not yet have a general
+promotion path from one-off project to recurring Evidence Source or Current
+Process State review.
 
 ## 5. Sync (Azure Team only)
 
@@ -69,8 +75,9 @@ schema.
 
 SAS lifetime, container structure, and RBAC rules: `docs/08-products/azure/blob-storage-sync.md`.
 
-Current Blob behavior remains project-based. Phase 5 reserves a future Process
-Hub evidence namespace without claiming current support:
+Current Blob behavior remains primarily project-based, with Process Hub
+evidence storage emerging through the first Evidence Source implementation
+slice. The logical namespace remains:
 `process-hubs/{hubId}/evidence-sources/{sourceId}/snapshots/{snapshotId}/...`.
 
 ## 6. Display boundary (B3 — the third numeric gate)

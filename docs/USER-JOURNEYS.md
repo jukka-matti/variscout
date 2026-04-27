@@ -9,7 +9,7 @@ related: [personas, flows, journey, modes]
 
 # VariScout User Journeys — Personas & Flows
 
-Ten personas drive VariScout's design decisions. Each follows the same journey spine (FRAME → SCOUT → INVESTIGATE → IMPROVE); the tools they use inside each phase vary by analysis mode.
+Ten personas drive VariScout's design decisions. Each follows the same journey spine (FRAME → SCOUT → INVESTIGATE → IMPROVE); the tools they use inside each phase vary by process question and evidence shape.
 
 ## The ten personas
 
@@ -35,9 +35,11 @@ work across multiple hubs to compare leverage, blocked work, verification gaps,
 and charter candidates. The PWA remains investigation-first for training.
 
 Evidence Sources are the recurring hub inputs that let those users ask whether
-the process is meeting the requirement, what changed, and where to focus. Data
-Profiles sit behind recognized Evidence Sources as deterministic adapters, not
-as a separate user-facing journey.
+the process is meeting the requirement, what changed, and where to focus. The
+Process Measurement System combines those sources, stable measure definitions,
+targets, subgroup logic, trust checks, known x-control measures, and cadence
+rules into Current Process State. Data Profiles sit behind recognized Evidence
+Sources as deterministic adapters, not as a separate user-facing journey.
 
 ## Usage levels
 
@@ -47,7 +49,7 @@ VariScout serves one nested methodology at several levels of use:
 | --------------------------- | --------------------------------- | ------------------------------------------------------------------------ |
 | PWA / training              | Tina, Sara, Carlos                | Learn the investigation method without organizational persistence        |
 | Quick analyst dataset       | Alex, Eeva, Gary                  | Analyze one dataset and attach the learning to process context           |
-| Process-owner cadence       | Olivia, process owner, team lead  | Review signals, actions, verification, and sustainment in one hub        |
+| Process-owner cadence       | Olivia, process owner, team lead  | Review Current Process State and choose the right response path          |
 | GB/BB multi-hub scan        | Gary, Olivia, sponsor             | Compare hubs for leverage, charter candidates, and blocked work          |
 | Evidence-source enablement  | Admin Aino, data team, consultant | Fit recurring exports to VariScout contracts without custom integrations |
 | Sustainment/control handoff | Owner, quality, operations        | Decide what stays in VariScout and what moves to live monitoring         |
@@ -56,19 +58,77 @@ The same investigation journey sits inside each level. Survey acts as the
 readiness evaluator: it asks what the current data, signals, branches, and
 verification evidence can support next.
 
+## Current Process State and response paths
+
+Process-owner cadence centers on Current Process State: the latest read of
+outcome, flow, known x-control, capability structure, and trust measures. This
+state is produced by the Process Measurement System, not by a generic dashboard.
+
+Current Process State can trigger five response paths:
+
+| Response path                 | Typical use                                                        |
+| ----------------------------- | ------------------------------------------------------------------ |
+| Quick team action             | Cause is obvious enough, low-risk, reversible, and locally owned.  |
+| Focused investigation         | Pattern is real, but mechanism, subgroup, trust, or scope is open. |
+| Chartered improvement project | High impact, cross-functional, expensive, regulatory, or unclear.  |
+| Sustainment review            | Improvement is verified and should stay checked in VariScout.      |
+| Control handoff               | Live control belongs in another operational system.                |
+
+CoScout is grounded in the same shared process context. It can explain, draft,
+and guide investigation work, but deterministic statistics, Survey, Signal
+Cards, and user-confirmed evidence remain the authority.
+
+## Process learning levels
+
+The journey should be evaluated through three levels of process understanding,
+not only through analysis modes:
+
+| Level                      | Main user question                                                  | Common users                         |
+| -------------------------- | ------------------------------------------------------------------- | ------------------------------------ |
+| System / outcome           | Are we meeting the customer or business requirement?                | process owner, sponsor, OpEx, GB/BB  |
+| Flow / process model       | Where does time, rate, throughput, wait, or bottleneck loss live?   | engineer, lean practitioner, analyst |
+| Local mechanism / evidence | Which physics, recipe, condition, or measurement issue explains it? | local owner, expert, gemba observer  |
+
+The same dataset can start at any level. A customer complaint or Cpk gap starts
+at outcome level. Timestamped station data starts at flow level. A scoped
+Yamazumi study, maintenance record, or gemba check starts at local-mechanism
+level. VariScout's job is to connect those levels into durable process
+understanding.
+
+These levels generalize the existing investigation language: `Y` maps to
+system/outcome, `X` maps to flow/concentration, and local `x` maps to mechanism
+or evidence. Process Flow uses the same idea as line, station, and activity
+levels.
+
 ## The unified journey spine
 
-Every investigation — Standard, Yamazumi, Performance, Defect, Capability, or Process Flow — follows this spine:
+Every investigation - Standard, Yamazumi, Performance, Defect, Capability, or Process Flow - follows this spine:
 
-1. **FRAME.** User names the problem. Three entry points per P5 (amended constitution): upfront hypothesis, evidence-ranked from data (Factor Intelligence), or observation-triggered (from a Four Lenses finding). Problem Statement captures Watson's 3 Qs.
+1. **FRAME.** User names the concern and maps the evidence to the right
+   process-understanding level: outcome, flow, or local mechanism. Three entry
+   points per P5 (amended constitution): upfront hypothesis, evidence-ranked
+   from data (Factor Intelligence), or observation-triggered (from a Four Lenses
+   finding). Problem Statement captures Watson's 3 Qs.
 
-2. **SCOUT.** Data is parsed (wide-form, stack columns, defect events all supported). Characteristic types inferred. The Four Lenses surface variation patterns. First hypotheses emerge.
+2. **SCOUT.** Data is parsed (wide-form, stack columns, defect events all
+   supported). Characteristic types are inferred. Instrument sets surface
+   variation, capability, flow, defect, or work-content patterns. First clues
+   and questions emerge.
 
-3. **INVESTIGATE.** User picks one or more suspected causes — the SuspectedCause hub model (ADR-064) is the organizing entity. Each hub accumulates evidence: data (Evidence Map edges with R²adj from best-subsets regression), gemba (photos, notes), expert knowledge. The investigation spine has three threads (ADR-066): regression discovery, hub UX, EDA heartbeat.
+3. **INVESTIGATE.** User builds one or more Mechanism Branches or
+   SuspectedCause hubs. Each hub accumulates evidence: data (Evidence Map edges
+   with R2adj from best-subsets regression), gemba (photos, notes), and expert
+   knowledge. The investigation may discover a new x, check which known x
+   changed, validate a suspected mechanism, scope the problem, resolve a trust
+   gap, or verify an action. The investigation spine has three threads
+   (ADR-066): regression discovery, hub UX, and EDA heartbeat.
 
-4. **IMPROVE.** Hubs with strong evidence become HMW ("How Might We") brainstorming starters. Ideas prioritized by timeframe × cost × risk × impact (ADR-035). Selected ideas become action items; implementation captured, outcome compared to prediction via What-If Explorer.
+4. **IMPROVE.** Hubs with strong evidence become HMW ("How Might We")
+   brainstorming starters. Ideas are prioritized by timeframe, cost, risk, and
+   impact (ADR-035). Selected ideas become action items; implementation is
+   captured; outcome is compared to prediction via What-If Explorer.
 
-## Per-mode distinctive experience
+## Instrument-set experience
 
 ### Standard mode
 
