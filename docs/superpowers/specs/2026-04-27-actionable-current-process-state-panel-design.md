@@ -14,6 +14,8 @@ related:
 
 # Actionable Current Process State Panel
 
+> **Implementation plan:** [`2026-04-27-actionable-current-process-state-panel-plan.md`](../plans/2026-04-27-actionable-current-process-state-panel-plan.md) — TDD breakdown for PR #4 (response-path routing) and PR #5 (evidence chip).
+
 ## Context
 
 Phase 1 (V1) of the Layered Process View shipped the read-only `ProcessHubCurrentStatePanel` (PR #95, then promoted to `@variscout/ui` in PR #97 on commit `e9674997`). Phase 2 V2 was originally planned to add snapshot-mode rendering inside `LayeredProcessView` itself, with per-factor state badges painted onto the Operations band.
