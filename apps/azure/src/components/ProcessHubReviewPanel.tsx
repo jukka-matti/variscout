@@ -1,7 +1,16 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
-import { buildCurrentProcessState, buildProcessHubCadence } from '@variscout/core';
-import type { ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
+import {
+  buildCurrentProcessState,
+  buildProcessHubCadence,
+  deriveResponsePathAction,
+} from '@variscout/core';
+import type {
+  ProcessHubInvestigation,
+  ProcessHubRollup,
+  ProcessStateItem,
+  ResponsePathAction,
+} from '@variscout/core';
 import { ProcessHubCurrentStatePanel } from '@variscout/ui';
 import ProcessHubCadenceQuestions from './ProcessHubCadenceQuestions';
 import ProcessHubCadenceQueues from './ProcessHubCadenceQueues';
@@ -14,6 +23,7 @@ interface ProcessHubReviewPanelProps {
   onSetupSustainment: (investigationId: string) => void;
   onLogReview: (recordId: string) => void;
   onRecordHandoff: (investigationId: string) => void;
+  onResponsePathAction: (item: ProcessStateItem, action: ResponsePathAction) => void;
 }
 
 const SnapshotCard: React.FC<{
@@ -42,9 +52,26 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   onSetupSustainment,
   onLogReview,
   onRecordHandoff,
+  onResponsePathAction,
 }) => {
   const cadence = buildProcessHubCadence(rollup);
   const currentState = buildCurrentProcessState(rollup, cadence);
+
+  // Pick the most-recently-modified investigation in this hub as the
+  // default navigation target for hub-aggregate state items (capability-gap,
+  // change-signals, top-focus). For per-investigation items, the action
+  // uses item.investigationIds[0] instead.
+  const defaultInvestigationId = React.useMemo(() => {
+    const sorted = [...rollup.investigations].sort((a, b) =>
+      (b.modified ?? '').localeCompare(a.modified ?? '')
+    );
+    return sorted[0]?.id ?? '';
+  }, [rollup.investigations]);
+
+  const actionFor = React.useCallback(
+    (item: ProcessStateItem) => deriveResponsePathAction(item, defaultInvestigationId),
+    [defaultInvestigationId]
+  );
   const headingId = `process-hub-current-state-${rollup.hub.id}`;
 
   return (
@@ -75,7 +102,11 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
         </button>
       </div>
 
-      <ProcessHubCurrentStatePanel state={currentState} />
+      <ProcessHubCurrentStatePanel
+        state={currentState}
+        actions={{ actionFor, onInvoke: onResponsePathAction }}
+        evidence={{ findingsFor: () => [], onChipClick: () => {} }}
+      />
 
       <div className="mt-4 grid gap-2 sm:grid-cols-5">
         <SnapshotCard
