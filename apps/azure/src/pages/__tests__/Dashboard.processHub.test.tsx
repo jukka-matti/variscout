@@ -1,14 +1,17 @@
 import React from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Dashboard } from '../Dashboard';
 import type { CloudProject } from '../../services/storage';
+import type { EvidenceSource } from '@variscout/core';
 
 const mockListProjects = vi.fn();
 const mockListProcessHubs = vi.fn();
 const mockSaveProcessHub = vi.fn();
-const mockListEvidenceSources = vi.fn(() => Promise.resolve([]));
+const mockListEvidenceSources = vi.fn<(hubId: string) => Promise<EvidenceSource[]>>();
 const mockListEvidenceSnapshots = vi.fn(() => Promise.resolve([]));
+const mockListSustainmentRecords = vi.fn();
+const mockListControlHandoffs = vi.fn();
 
 vi.mock('../../services/storage', () => ({
   useStorage: () => ({
@@ -19,9 +22,18 @@ vi.mock('../../services/storage', () => ({
     saveEvidenceSource: vi.fn(),
     listEvidenceSnapshots: mockListEvidenceSnapshots,
     saveEvidenceSnapshot: vi.fn(),
+    listSustainmentRecords: mockListSustainmentRecords,
+    listControlHandoffs: mockListControlHandoffs,
     syncStatus: { status: 'synced', message: 'Synced' },
   }),
 }));
+
+beforeEach(() => {
+  mockListEvidenceSources.mockResolvedValue([]);
+  mockListEvidenceSnapshots.mockResolvedValue([]);
+  mockListSustainmentRecords.mockResolvedValue([]);
+  mockListControlHandoffs.mockResolvedValue([]);
+});
 
 vi.mock('../../auth/easyAuth', () => ({
   getEasyAuthUser: vi.fn(() => Promise.resolve({ userId: 'local' })),
@@ -233,7 +245,7 @@ describe('Dashboard Process Hub home', () => {
     expect(within(panel).getAllByText('Sustainment').length).toBeGreaterThan(0);
     expect(within(panel).getAllByText('Nozzle replacement verified').length).toBeGreaterThan(0);
     expect(
-      within(panel).getByText('Review sustainment during the weekly hub cadence.')
+      within(panel).getByLabelText('Set up sustainment cadence for Nozzle replacement verified')
     ).toBeInTheDocument();
 
     fireEvent.click(within(panel).getAllByLabelText('Open review item Night shift overfill')[0]);
@@ -273,6 +285,17 @@ describe('Dashboard Process Hub home', () => {
     ]);
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: '2026-04-25T00:00:00.000Z' },
+    ]);
+    mockListSustainmentRecords.mockResolvedValue([
+      {
+        id: 'rec-1',
+        investigationId: 'line-4-c',
+        hubId: 'line-4',
+        cadence: 'monthly',
+        nextReviewDue: '2026-04-25T00:00:00.000Z',
+        createdAt: '2026-04-01T00:00:00.000Z',
+        updatedAt: '2026-04-01T00:00:00.000Z',
+      },
     ]);
 
     render(<Dashboard onOpenProject={vi.fn()} />);
