@@ -127,4 +127,17 @@ describe('LayeredProcessView', () => {
     const operationsBand = screen.getByTestId('band-operations');
     expect(operationsBand).toHaveTextContent('No factors mapped yet');
   });
+
+  it('renders all three band frames even when the map is fully empty', () => {
+    render(<LayeredProcessView map={emptyMap} availableColumns={[]} onChange={() => {}} />);
+
+    // All three bands render with their headers regardless of content
+    expect(screen.getByText('Outcome')).toBeInTheDocument();
+    expect(screen.getByText('Process Flow')).toBeInTheDocument();
+    expect(screen.getByText('Operations')).toBeInTheDocument();
+
+    // Outcome and Operations show their placeholders
+    expect(screen.getByTestId('band-outcome')).toHaveTextContent('No outcome target set');
+    expect(screen.getByTestId('band-operations')).toHaveTextContent('No factors mapped yet');
+  });
 });
