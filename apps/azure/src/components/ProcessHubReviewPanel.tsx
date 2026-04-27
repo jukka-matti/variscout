@@ -1,9 +1,10 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
-import { buildProcessHubCadence } from '@variscout/core';
+import { buildCurrentProcessState, buildProcessHubCadence } from '@variscout/core';
 import type { ProcessHubInvestigation, ProcessHubRollup } from '@variscout/core';
 import ProcessHubCadenceQuestions from './ProcessHubCadenceQuestions';
 import ProcessHubCadenceQueues from './ProcessHubCadenceQueues';
+import ProcessHubCurrentStatePanel from './ProcessHubCurrentStatePanel';
 import { formatLatestActivity } from './ProcessHubFormat';
 
 interface ProcessHubReviewPanelProps {
@@ -43,7 +44,8 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   onRecordHandoff,
 }) => {
   const cadence = buildProcessHubCadence(rollup);
-  const headingId = `process-hub-review-${rollup.hub.id}`;
+  const currentState = buildCurrentProcessState(rollup, cadence);
+  const headingId = `process-hub-current-state-${rollup.hub.id}`;
 
   return (
     <section
@@ -53,9 +55,9 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 id={headingId} className="text-lg font-semibold text-content">
-            {rollup.hub.name} Cadence Review
+            {rollup.hub.name} Current Process State
           </h3>
-          <p className="mt-1 text-sm font-medium text-content-secondary">Cadence Review Board</p>
+          <p className="mt-1 text-sm font-medium text-content-secondary">Process state review</p>
           <p className="mt-1 text-xs text-content-secondary">
             {rollup.hub.processOwner?.displayName
               ? `Owner: ${rollup.hub.processOwner.displayName} · `
@@ -72,6 +74,8 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
           New Investigation
         </button>
       </div>
+
+      <ProcessHubCurrentStatePanel state={currentState} />
 
       <div className="mt-4 grid gap-2 sm:grid-cols-5">
         <SnapshotCard

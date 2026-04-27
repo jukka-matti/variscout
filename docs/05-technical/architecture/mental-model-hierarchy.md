@@ -100,6 +100,8 @@ The thread is not always linear — Routine Check entries may never reach INVEST
 
 FRAME contains significant deterministic engines: data parsing and validation, column type detection, factor role keyword inference (equipment/temporal/operator/material/location), investigation category auto-grouping, and characteristic type selection. Process context and analysis brief (Azure) become the AI's grounding context in subsequent phases.
 
+**Layered band structure:** FRAME renders as three vertically stacked bands — Outcome / Process Flow / Operations — wrapping the existing river-styled SIPOC inside the Process Flow band. The bands are a render-time projection; no data-model change. See `LayeredProcessView` in `@variscout/ui` and the [Layered Process View design spec](../../superpowers/specs/2026-04-27-layered-process-view-design.md).
+
 ### SCOUT
 
 | Aspect   | Detail                                                                                                                        |

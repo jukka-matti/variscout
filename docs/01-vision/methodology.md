@@ -37,8 +37,12 @@ VariScout now uses a nested methodology model:
 | Layer                                | Job                                                                 |
 | ------------------------------------ | ------------------------------------------------------------------- |
 | **Process Hub**                      | Operating spine for process-owner cadence and team improvement      |
+| **Process Measurement System**       | Designed measure, evidence, snapshot, trust, and cadence layer      |
+| **Current Process State**            | Latest review of outcome, flow, known x-control, and trust measures |
 | **Evidence Sources / Data Profiles** | Recurring hub evidence workflow and deterministic source adapters   |
-| **Investigation journey**            | FRAME -> SCOUT -> INVESTIGATE -> IMPROVE for one issue              |
+| **Process learning levels**          | Outcome, flow, and local-mechanism levels of process understanding  |
+| **Investigation journey**            | Reasoning loop from Current Process State to response               |
+| **Response paths**                   | Quick action, focused investigation, charter, sustainment, handoff  |
 | **Question-driven EDA**              | Reasoning spine that sharpens concern into Current Understanding    |
 | **Survey**                           | Horizontal readiness check across phases and hub reviews            |
 | **Signal Cards**                     | Signal-level trust records quoted by Survey, branches, and reports  |
@@ -46,10 +50,75 @@ VariScout now uses a nested methodology model:
 | **Sustainment handoff**              | Decision on what stays in VariScout or moves to operational systems |
 
 This is not a replacement for the original journey. Process Hub organizes the
-work; Evidence Sources provide recurring Snapshots for hub cadence; Data
-Profiles adapt recognizable source-data shapes deterministically; the
-investigation journey explains how the work is done; Survey asks whether the
-current evidence is ready for the next move.
+work; the Process Measurement System defines what the process reviews and
+trusts; Evidence Sources provide recurring Snapshots; Current Process State
+shows what the process looks like now; investigations explain that state well
+enough to choose a response path. Survey asks whether the current evidence is
+ready for the next move.
+
+The settled vocabulary is:
+
+```text
+VariScout = Process Learning System
+Process Hub = operating home for one process
+Process Measurement System = designed evidence/measure layer
+Current Process State = process-owner review surface
+Investigation = structured reasoning loop from state to response
+Response Path = quick action / focused investigation / charter / sustain / handoff
+CoScout = product assistant grounded in shared process context
+```
+
+Publicly, VariScout should promise a shared, evidence-backed process context
+for teams. CoScout uses that context to explain, draft, and guide investigation
+work. VariScout should not promise an open AI-agent platform or autonomous
+process control.
+
+### Process Learning Levels
+
+VariScout should not treat analysis modes as the primary mental model. The
+stronger frame is a Makigami-style set of process understanding levels:
+
+| Level                          | Question                                                         | Typical evidence                                             |
+| ------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------ |
+| **System / outcome**           | What result must the customer or business experience?            | CTS, Y, spec, target, Process Hub cadence, sustainment gaps  |
+| **Flow / process model**       | What flows through which steps, at what rate, and where is loss? | CTQ per step, rate, cycle time, wait, throughput, bottleneck |
+| **Local mechanism / evidence** | What physics, recipe, condition, or measurement issue explains?  | settings, material, equipment, subgroup, gemba, Signal Card  |
+
+The FRAME process map is one important flow-level lens. It is not the whole
+method. The full model links one-off datasets, investigations, recurring
+Evidence Sources, Process Hub cadence, and sustainment/control handoff. See
+[Process Learning Operating Model](../superpowers/specs/2026-04-27-process-learning-operating-model-design.md).
+
+These levels generalize the older three-level EDA language:
+
+| Investigation language | Process-learning language  |
+| ---------------------- | -------------------------- |
+| Y / problem condition  | System / outcome           |
+| X / concentration      | Flow / process model       |
+| x / local mechanism    | Local mechanism / evidence |
+
+The FRAME workspace renders these levels as three visible bands — **Outcome**,
+**Process Flow**, and **Operations** — stacked vertically with the river-styled
+SIPOC inside the Process Flow band. The visual structure makes the methodology
+visible by default. See the [Layered Process View design spec](../superpowers/specs/2026-04-27-layered-process-view-design.md) for band semantics, surface variations, and phasing.
+
+### Current Process State
+
+Current Process State is not a simple "stable or not stable" label. It is the
+latest structured read of the process across outcome, flow, known x-control,
+capability structure, and trust:
+
+- **Cpk vs target Cpk** shows whether current performance is good enough.
+- **Cp-Cpk gap** shows centering loss.
+- **Cp/Cpk over subgroups or snapshots** shows how capability itself is moving.
+- **flow and wait measures** show whether the process is moving as expected.
+- **known x-control measures** show whether confirmed drivers are still inside
+  expected windows.
+- **sample size, power, subgroup, and MSA signals** protect the team from
+  overclaiming.
+
+Current Process State can trigger quick team action, focused investigation,
+chartered improvement, sustainment review, or control handoff.
 
 ---
 
@@ -206,15 +275,20 @@ The lens metaphor is useful for marketing and teaching, but the methodology work
 
 ---
 
-### Analysis Modes
+### Analysis Modes As Instrument Sets
 
-Beyond the standard four-tool view, VariScout supports alternative analysis modes that reconfigure the dashboard for specific analytical questions:
+Beyond the standard four-tool view, VariScout supports alternative instrument
+sets that reconfigure the dashboard for specific process questions:
 
 - **Performance Mode** — Multi-channel Cpk comparison for wide-format data (fill heads, cavities, nozzles)
 - **Yamazumi Mode** — Lean time study with stacked activity bars and cycle time decomposition
 - **Capability Mode** — Per-subgroup Cp/Cpk stability analysis on the I-Chart, answering "Are we meeting our Cpk target?" Analysts switch freely between standard and capability views at any drill level. Time-based subgrouping uses extracted time columns from FRAME. See [Analysis Flow](../03-features/workflows/analysis-flow.md) for how these modes interleave through the full journey.
 
-Each mode reuses the same chart infrastructure with different data pipelines and interpretation context. See [Subgroup Capability Analysis](../03-features/analysis/subgroup-capability.md) for the capability mode details.
+The user-facing question should be "what level of process understanding are we
+working on?" before it becomes "which mode?" Each mode reuses the same chart
+infrastructure with different data pipelines and interpretation context. See
+[Subgroup Capability Analysis](../03-features/analysis/subgroup-capability.md)
+for the capability mode details.
 
 ---
 

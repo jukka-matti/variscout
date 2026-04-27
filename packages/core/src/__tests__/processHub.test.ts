@@ -946,6 +946,28 @@ describe('buildProcessHubRollups', () => {
       actions: { total: 2, completed: 1, overdue: 1 },
       verification: { waiting: 1 },
       sustainment: { candidates: 0 },
+      currentState: {
+        overallSeverity: 'red',
+        itemCount: expect.any(Number),
+        lensCounts: {
+          outcome: 1,
+          flow: 0,
+          conversion: expect.any(Number),
+          measurement: expect.any(Number),
+          sustainment: 0,
+        },
+        responsePathCounts: {
+          'focused-investigation': expect.any(Number),
+          'quick-action': expect.any(Number),
+        },
+        topItems: expect.arrayContaining([
+          expect.objectContaining({
+            id: 'capability-gap',
+            lens: 'outcome',
+            responsePath: 'focused-investigation',
+          }),
+        ]),
+      },
     });
     expect(context.investigations.map(investigation => investigation.id)).toEqual([
       'line-4-a',

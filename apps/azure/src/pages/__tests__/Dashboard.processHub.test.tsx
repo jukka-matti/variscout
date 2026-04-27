@@ -198,7 +198,7 @@ describe('Dashboard Process Hub home', () => {
     expect(screen.getByText('2 change signals')).toBeInTheDocument();
   });
 
-  it('renders an inline Hub Cadence Review panel for the selected hub and opens review items', async () => {
+  it('renders an inline Current Process State panel for the selected hub and opens review items', async () => {
     const onOpenProject = vi.fn();
     mockListProjects.mockResolvedValue([
       makeProject(),
@@ -214,8 +214,13 @@ describe('Dashboard Process Hub home', () => {
     await screen.findByText('Line 4');
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
-    const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
-    expect(within(panel).getByText('Cadence Questions')).toBeInTheDocument();
+    const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
+    expect(within(panel).getByText('Current Process State')).toBeInTheDocument();
+    expect(within(panel).getByText('Capability below target')).toBeInTheDocument();
+    expect(within(panel).getAllByText('Focused investigation').length).toBeGreaterThan(0);
+    expect(within(panel).getAllByText('Outcome').length).toBeGreaterThan(0);
+    expect(within(panel).getAllByText('Measurement').length).toBeGreaterThan(0);
+    expect(within(panel).getByText('Process State Questions')).toBeInTheDocument();
     expect(within(panel).getByText('Are we meeting the requirement?')).toBeInTheDocument();
     expect(
       within(panel).getByText('Fill weight must stay inside customer specs.')
@@ -263,7 +268,7 @@ describe('Dashboard Process Hub home', () => {
     await screen.findByText('Line 4');
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
-    const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
+    const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
     expect(within(panel).getAllByText('Readiness').length).toBeGreaterThan(0);
     expect(within(panel).getAllByText('Frame missing process context 1').length).toBeGreaterThan(0);
     expect(within(panel).getByText('Complete process context')).toBeInTheDocument();
@@ -272,7 +277,7 @@ describe('Dashboard Process Hub home', () => {
     expect(within(panel).getByText('Map one customer-felt outcome.')).toBeInTheDocument();
   });
 
-  it('renders a cadence review board with snapshot metrics and truncated queues', async () => {
+  it('renders a current process state board with snapshot metrics and truncated queues', async () => {
     mockListProjects.mockResolvedValue([
       makeProject(),
       makeVerificationProject(),
@@ -303,8 +308,8 @@ describe('Dashboard Process Hub home', () => {
     await screen.findByText('Line 4');
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
-    const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
-    expect(within(panel).getByText('Cadence Review Board')).toBeInTheDocument();
+    const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
+    expect(within(panel).getByText('Current Process State')).toBeInTheDocument();
     expect(within(panel).getByText('Decision Queues')).toBeInTheDocument();
     expect(within(panel).getByTestId('cadence-snapshot-active')).toHaveTextContent('7');
     expect(within(panel).getByTestId('cadence-snapshot-readiness')).toHaveTextContent('7');
@@ -324,14 +329,14 @@ describe('Dashboard Process Hub home', () => {
 
     await screen.findByText('Line 4');
     fireEvent.click(screen.getByLabelText('Open Line 4'));
-    await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
+    await screen.findByRole('region', { name: 'Line 4 Current Process State' });
 
     fireEvent.change(screen.getByPlaceholderText('Search investigations...'), {
       target: { value: 'zzzz no matching project' },
     });
 
     expect(screen.getByLabelText('Open Line 4')).toBeInTheDocument();
-    const panel = screen.getByRole('region', { name: 'Line 4 Cadence Review' });
+    const panel = screen.getByRole('region', { name: 'Line 4 Current Process State' });
     expect(within(panel).getByTestId('cadence-snapshot-active')).toHaveTextContent('1');
     expect(screen.queryByTestId('project-card')).not.toBeInTheDocument();
   });
@@ -347,7 +352,7 @@ describe('Dashboard Process Hub home', () => {
     await screen.findByText('Line 4');
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
-    const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
+    const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
     expect(within(panel).getByText('Daily huddle')).toBeInTheDocument();
     expect(within(panel).getByText('Weekly process review')).toBeInTheDocument();
     expect(within(panel).getByText('No latest signals yet')).toBeInTheDocument();
@@ -390,7 +395,7 @@ describe('Dashboard Process Hub home', () => {
     await screen.findByText('Line 4');
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
-    const panel = await screen.findByRole('region', { name: 'Line 4 Cadence Review' });
+    const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
     const headings = within(panel)
       .getAllByRole('heading')
       .map(h => h.textContent?.trim());

@@ -21,7 +21,10 @@ Are we meeting the requirement, what changed, and where should we focus?
 
 An **Evidence Source** is the user-facing hub-level source of recurring
 evidence. A **Data Profile** is the deterministic adapter behind that source
-when VariScout recognizes a repeatable source-data shape.
+when VariScout recognizes a repeatable source-data shape. Together with stable
+measure definitions, targets, subgroup logic, Signal Cards, Survey readiness,
+and cadence rules, these snapshots feed the Process Measurement System that
+produces Current Process State.
 
 This keeps Process Hub evidence workflow first:
 
@@ -42,14 +45,16 @@ This keeps Process Hub evidence workflow first:
 | **Snapshot**            | One dated or imported evidence package from an Evidence Source      |
 | **Profile Application** | Profile version plus confirmed mapping used for one Snapshot        |
 
-The future conceptual object names are:
+The conceptual object names are:
 
 - `EvidenceSource`
 - `DataProfileDefinition`
 - `EvidenceSnapshot`
 - `ProfileApplication`
 
-This design does not introduce code, APIs, or persisted types yet.
+These types now exist in core as the first implementation slice. The broader
+product workflow is still incomplete: ordinary process datasets do not yet have
+a general path to become recurring Process Hub Evidence Sources.
 
 ## Evidence Source
 
@@ -101,13 +106,16 @@ upload, append, customer-owned Blob sync, or a future customer-controlled export
 drop. Snapshot timing is an improvement cadence: manual, shiftly, daily,
 weekly, or hourly when that fits the process review need.
 
-Snapshots are what the hub cadence board should reason over:
+Snapshots are what Current Process State and the hub cadence board should
+reason over:
 
 - what changed since the last Snapshot
 - whether requirements are being met
 - where variation, defects, wait, burden, or unsafe outcomes concentrate
 - whether an action has enough post-change evidence for verification
 - whether a sustainment item still needs review in VariScout
+- whether the right response path is quick action, focused investigation,
+  chartered project, sustainment review, or control handoff
 
 The same cadence board should support both daily huddles and weekly process
 reviews. Daily huddles use the latest Snapshot and open investigation metadata
@@ -115,9 +123,8 @@ to ask what changed, what needs attention today, and what verification is
 waiting. Weekly process reviews compare Snapshot history to ask whether the
 process is meeting requirements, whether recurring focus areas are emerging,
 and which improvements should be sustained or escalated into focused/chartered
-work. Until Phase 5 is implemented, the Azure board may label these meeting
-uses but must derive them from existing project metadata rather than claiming
-true Snapshot history.
+work. The first Snapshot path exists for the Agent Review Log profile; broader
+daily/weekly comparison still needs generalized Evidence Source support.
 
 ## Profile Application
 
@@ -135,22 +142,21 @@ even when the Evidence Source represents the same process evidence.
 
 ## Storage Direction
 
-Current Blob behavior remains project-based until Phase 5 is implemented. This
-document reserves the future Process Hub evidence namespace without claiming
-current support:
+Current Blob behavior remains primarily project-based while Evidence Source
+support emerges through narrow profile-specific slices. The logical Process Hub
+evidence namespace is:
 
 ```text
 process-hubs/{hubId}/evidence-sources/{sourceId}/snapshots/{snapshotId}/...
 ```
 
-The future namespace should hold snapshot files, profile application metadata,
-validation reports, and related attachments when the implementation slice needs
-them.
+The namespace should hold snapshot files, profile application metadata,
+validation reports, and related attachments as generalized support expands.
 
 ## Non-Goals
 
-- No code, API, schema, or type changes in this documentation update.
-- No custom ERP, MES, QMS, CRM, ACD, AI-platform, or workflow integrations.
+- No deep or custom ERP, MES, QMS, CRM, ACD, AI-platform, or workflow
+  integrations.
 - No live alarms, runtime monitoring, shift-critical escalation, or operational
   uptime promise.
 - No separate AI-evaluation product for agent logs.

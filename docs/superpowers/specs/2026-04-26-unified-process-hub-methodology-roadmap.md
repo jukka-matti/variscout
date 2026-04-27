@@ -27,6 +27,11 @@ Process Hub is the operating spine for VariScout. It is where recurring
 process-improvement work lives over time for one line, queue, flow, cell, lab
 process, service workflow, or development value stream.
 
+For the horizon-level product-method roadmap that places Process Hub inside
+the broader progression from one dataset to Process Measurement System,
+process learning memory, and CoScout context layer, see
+[Product-Method Roadmap](2026-04-27-product-method-roadmap-design.md).
+
 Process Hub does not replace the investigation method. Each investigation still
 uses the VariScout journey:
 
@@ -39,8 +44,12 @@ The roadmap should treat the product as a nested methodology:
 | Layer                            | Role                                                               |
 | -------------------------------- | ------------------------------------------------------------------ |
 | Process Hub                      | Operating spine for process-owner cadence and team improvement     |
+| Process Measurement System       | Designed measure, evidence, snapshot, trust, and cadence layer     |
+| Current Process State            | Latest review of outcome, flow, known x-control, and trust signals |
 | Evidence Sources / Data Profiles | Recurring hub evidence workflow and deterministic source adapters  |
-| Investigation journey            | Method spine for one investigation from concern to verified action |
+| Process learning levels          | Outcome, flow, and local-mechanism levels of process understanding |
+| Investigation journey            | Reasoning loop from Current Process State to response              |
+| Response paths                   | Quick action, focused investigation, charter, sustainment, handoff |
 | Question-driven EDA              | Reasoning spine that sharpens issue into problem condition         |
 | Survey                           | Horizontal readiness evaluator across every phase and hub review   |
 | Signal Cards                     | Signal-level trust records that Survey and branches quote          |
@@ -50,6 +59,13 @@ The roadmap should treat the product as a nested methodology:
 This hierarchy keeps VariScout out of custom integrations and 24/7 operational
 monitoring while still supporting process performance review at an improvement
 cadence.
+
+Process Hub is the operating loop for how a team improves a process over time.
+The Process Measurement System turns recurring evidence into Current Process
+State. Current Process State triggers quick action, focused investigation,
+chartered improvement, sustainment review, or control handoff. The process
+learning levels explain what each loop is learning: outcome, flow, or local
+mechanism.
 
 ## Usage Levels
 
@@ -76,9 +92,21 @@ the team actually owns.
 At hub level, the recurring question is:
 
 ```text
-What changed, where should we focus, what is waiting for action or verification,
-and what should be sustained?
+What is the Current Process State, what changed, what needs attention, and
+which response path fits?
 ```
+
+### Process Measurement System And Current Process State
+
+The Process Measurement System is the designed layer behind Process Hub cadence:
+stable measure definitions, Evidence Sources, Snapshots, targets, subgroup
+logic, known x-control measures, Signal Cards, Survey readiness, and cadence
+rules.
+
+Current Process State is the review surface produced from that system. It
+should show outcome, flow, known x-control, capability structure, and trust
+measures. Capability state should distinguish Cpk vs target Cpk, Cp-Cpk gap,
+Cp/Cpk movement across process-rational windows, and sample/trust warnings.
 
 ### Evidence Sources And Data Profiles
 
@@ -96,7 +124,37 @@ Snapshot. See
 
 FRAME, SCOUT, INVESTIGATE, and IMPROVE remain the investigation spine. They
 describe how one issue moves from concern to evidence-backed action and
-verification.
+verification. In Process Hub use, investigations are the reasoning loop between
+Current Process State and response. They can discover a new x, check which
+known x changed, validate a suspected mechanism, scope the problem, resolve
+trust gaps, verify action effectiveness, or decide escalation.
+
+### Response Paths
+
+Process Hub cadence should route attention into five response paths:
+
+| Response path                 | Meaning                                                                 |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| Quick team action             | Low-risk local action that can be done and verified quickly             |
+| Focused investigation         | Bounded investigation when mechanism, subgroup, trust, or scope is open |
+| Chartered improvement project | Formal project when impact, risk, ownership, or resources require it    |
+| Sustainment review            | Periodic check that a verified improvement is still visible             |
+| Control handoff               | Acknowledgement that live control belongs in another system             |
+
+### Process Learning Levels
+
+Every investigation and cadence review should be readable through three levels:
+
+| Level                      | Question                                                         |
+| -------------------------- | ---------------------------------------------------------------- |
+| System / outcome           | What result must the customer or business experience?            |
+| Flow / process model       | What flows through which steps, at what rate, and where is loss? |
+| Local mechanism / evidence | What physics, recipe, condition, or measurement issue explains?  |
+
+FRAME's process map is a flow-level lens. Capability, Process Flow, Yamazumi,
+Defect, Performance, and Standard EDA are instrument sets that help the user
+move between levels. See
+[Process Learning Operating Model](2026-04-27-process-learning-operating-model-design.md).
 
 ### Question-Driven EDA
 
@@ -138,7 +196,7 @@ authority.
 ### Phase 2 - Process Owner Cadence UX
 
 - Evolve the selected Process Hub review surface into a cadence workspace.
-- Show latest signals, Quick / Focused / Chartered work, overdue actions,
+- Show Current Process State, response-path routing, overdue actions,
   verification queue, next moves, and sustainment candidates.
 - Keep the implementation Azure-only and reuse existing Process Hub metadata.
 
@@ -162,8 +220,9 @@ authority.
   confirmation, snapshot history, and validation.
 - Define customer-owned snapshot contracts for data teams and consultants.
 - Document Data Profile contracts, including `EvidenceSource`,
-  `DataProfileDefinition`, `EvidenceSnapshot`, and `ProfileApplication` as
-  future conceptual objects.
+  `DataProfileDefinition`, `EvidenceSnapshot`, and `ProfileApplication`. These
+  types now exist in core, but the general product workflow is still incomplete
+  beyond the first profile-specific slice.
 - Connect Snapshots to cadence review signals, Survey readiness, investigation
   attachment, action verification, and sustainment handoff.
 - Make daily huddle and weekly process review horizons explicit: v1 cadence
@@ -183,9 +242,10 @@ authority.
 
 ## Acceptance Criteria
 
-1. A reader can explain the difference between Process Hub, Evidence Sources,
-   Data Profiles, Snapshots, the investigation journey, question-driven EDA,
-   Survey, Signal Cards, and sustainment handoff.
+1. A reader can explain the difference between Process Hub, Process Measurement
+   System, Current Process State, Evidence Sources, Data Profiles, Snapshots,
+   response paths, the investigation journey, question-driven EDA, Survey,
+   Signal Cards, and sustainment handoff.
 2. User journeys describe quick analyst work, process-owner cadence, multi-hub
    GB/BB work, PWA training, evidence-source enablement, and
    sustainment/control.

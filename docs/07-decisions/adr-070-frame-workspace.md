@@ -96,6 +96,16 @@ FRAME must work end-to-end without any AI call (Constitution P8 _Deterministic f
 
 - Existing investigation workflow is unchanged: pre-data hunches created in FRAME flow into `investigationStore` as draft `SuspectedCause` hubs, reusing the hub model ([ADR-064](./adr-064-suspected-cause-hub-model.md)). Analysis, Investigation, Improvement, and Report workspaces are untouched.
 
+## Update — 2026-04-27 (Layered Process View V1)
+
+The river-styled SIPOC `ProcessMapBase` is now wrapped by `LayeredProcessView` (`@variscout/ui`), which adds an Outcome band above and an Operations band below. ADR-070 stays canonical for the river/SIPOC design itself; the layered extension adds visual structure around it without changing the data model.
+
+See the [Layered Process View design spec](../superpowers/specs/2026-04-27-layered-process-view-design.md) for band semantics, surface variations, and phasing.
+
+V1 is structural only: the bands wrap the existing component. V2+ phases add Operations band content (snapshot-backed actuals, capability sparklines), Process Hub current-state rendering, and multi-hub aggregation.
+
+V1 places the process specs (target / USL / LSL) in the Outcome band as a pragmatic simplification — the design spec ultimately positions per-step specs alongside rate data in the Operations band (see V3 in the design spec). Reconciling this is a follow-up; treat the V1 placement as a transient.
+
 ## Implementation
 
 Staged across multiple PRs. See the design spec for full detail: [FRAME Workspace & Visual Process Map](../superpowers/specs/2026-04-18-frame-process-map-design.md).

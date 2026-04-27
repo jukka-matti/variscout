@@ -24,7 +24,7 @@ const ProcessHubCadenceQuestions: React.FC<ProcessHubCadenceQuestionsProps> = ({
     <div className="mt-4">
       <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-content">
         <ClipboardCheck size={16} />
-        <h4>Cadence Questions</h4>
+        <h4>Process State Questions</h4>
       </div>
       <div className={`grid gap-2 ${sustainmentAnswer ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
         <QuestionBand question="Are we meeting the requirement?" answer={answers.requirement} />
