@@ -2,7 +2,7 @@
 title: 'Phase 6 - Sustainment & Control Handoff'
 audience: [product, designer, engineer]
 category: design-spec
-status: draft
+status: in-progress
 related:
   - 2026-04-26-unified-process-hub-methodology-roadmap.md
   - 2026-04-25-process-hub-design.md
