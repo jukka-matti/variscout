@@ -40,6 +40,9 @@ class VariScoutDatabase extends Dexie {
   processHubs!: Dexie.Table<ProcessHubRecord, string>;
   evidenceSources!: Dexie.Table<EvidenceSourceRecord, string>;
   evidenceSnapshots!: Dexie.Table<EvidenceSnapshotRecord, string>;
+  sustainmentRecords!: Dexie.Table<import('@variscout/core').SustainmentRecord, string>;
+  sustainmentReviews!: Dexie.Table<import('@variscout/core').SustainmentReview, string>;
+  controlHandoffs!: Dexie.Table<import('@variscout/core').ControlHandoff, string>;
 
   constructor() {
     super('VaRiScoutAzure');
@@ -89,10 +92,30 @@ class VariScoutDatabase extends Dexie {
       evidenceSources: 'id, hubId, name, profileId, updatedAt',
       evidenceSnapshots: 'id, hubId, sourceId, capturedAt',
     });
+
+    // Version 6: Phase 6 sustainment — review scheduling and control handoff tracking
+    this.version(6).stores({
+      projects: 'name, location, modified, synced',
+      syncQueue: '++id, name, location, queuedAt',
+      syncState: 'name, cloudId, lastSynced, etag',
+      photoQueue: '++id, photoId, findingId, queuedAt',
+      channelDriveCache: 'channelId',
+      processHubs: 'id, name, updatedAt',
+      evidenceSources: 'id, hubId, name, profileId, updatedAt',
+      evidenceSnapshots: 'id, hubId, sourceId, capturedAt',
+      sustainmentRecords: 'id, investigationId, hubId, nextReviewDue, updatedAt, tombstoneAt',
+      sustainmentReviews: 'id, recordId, investigationId, hubId, reviewedAt',
+      controlHandoffs: 'id, investigationId, hubId, handoffDate',
+    });
   }
 }
 
 export const db = new VariScoutDatabase();
+
+export async function openDb(): Promise<VariScoutDatabase> {
+  await db.open();
+  return db;
+}
 
 // Sync queue operations
 export async function addToSyncQueue(item: Omit<SyncItem, 'id' | 'queuedAt'>) {
