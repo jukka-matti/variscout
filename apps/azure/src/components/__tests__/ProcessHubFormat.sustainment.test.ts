@@ -68,6 +68,10 @@ describe('ProcessHubFormat sustainment helpers', () => {
         latestVerdict?: string;
         nextReviewDue?: string;
         tombstoneAt?: string;
+      }>,
+      evidenceSnapshots?: Array<{
+        capturedAt: string;
+        latestSignals?: Array<{ severity: string; label: string; value: number }>;
       }>
     ) =>
       ({
@@ -75,6 +79,7 @@ describe('ProcessHubFormat sustainment helpers', () => {
           metadata: s ? { investigationStatus: s } : undefined,
         })),
         sustainmentRecords: records,
+        evidenceSnapshots: evidenceSnapshots ?? [],
       }) as unknown as ProcessHubRollup<ProcessHubInvestigation>;
 
     it('returns null when no investigations are resolved or controlled', () => {
@@ -143,6 +148,83 @@ describe('ProcessHubFormat sustainment helpers', () => {
       expect(sustainmentBandAnswer(rollup, NOW)).toBe(
         'Set up sustainment cadence to monitor this.'
       );
+    });
+
+    it('appends latest snapshot signal to the holding answer when snapshot is present', () => {
+      const rollup = makeRollup(
+        ['controlled'],
+        [{ latestVerdict: 'holding', nextReviewDue: '2026-05-01T00:00:00.000Z' }],
+        [
+          {
+            capturedAt: '2026-04-26T08:00:00.000Z',
+            latestSignals: [{ severity: 'amber', label: 'Cpk', value: 1.21 }],
+          },
+        ]
+      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe(
+        '1 investigation is holding; no review due. Latest signal: amber Cpk=1.21 (Apr 26).'
+      );
+    });
+
+    it('appends latest snapshot signal to the due answer when snapshot is present', () => {
+      const rollup = makeRollup(
+        ['resolved'],
+        [{ latestVerdict: 'holding', nextReviewDue: '2026-04-25T00:00:00.000Z' }],
+        [
+          {
+            capturedAt: '2026-04-26T08:00:00.000Z',
+            latestSignals: [{ severity: 'red', label: 'Defect rate', value: 0.08 }],
+          },
+        ]
+      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe(
+        '1 sustainment review due now. Latest signal: red Defect rate=0.08 (Apr 26).'
+      );
+    });
+
+    it('selects the most recent snapshot when multiple are present', () => {
+      const rollup = makeRollup(
+        ['resolved'],
+        [{ latestVerdict: 'holding', nextReviewDue: '2026-04-25T00:00:00.000Z' }],
+        [
+          {
+            capturedAt: '2026-04-20T00:00:00.000Z',
+            latestSignals: [{ severity: 'green', label: 'Old', value: 1 }],
+          },
+          {
+            capturedAt: '2026-04-26T08:00:00.000Z',
+            latestSignals: [{ severity: 'amber', label: 'New', value: 2 }],
+          },
+        ]
+      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe(
+        '1 sustainment review due now. Latest signal: amber New=2.00 (Apr 26).'
+      );
+    });
+
+    it('does not append snapshot context to the setup message', () => {
+      const rollup = makeRollup(
+        ['resolved'],
+        [],
+        [
+          {
+            capturedAt: '2026-04-26T08:00:00.000Z',
+            latestSignals: [{ severity: 'red', label: 'Audit', value: 0.5 }],
+          },
+        ]
+      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe(
+        'Set up sustainment cadence to monitor this.'
+      );
+    });
+
+    it('omits snapshot context when latestSignals is empty', () => {
+      const rollup = makeRollup(
+        ['resolved'],
+        [{ latestVerdict: 'holding', nextReviewDue: '2026-04-25T00:00:00.000Z' }],
+        [{ capturedAt: '2026-04-26T08:00:00.000Z', latestSignals: [] }]
+      );
+      expect(sustainmentBandAnswer(rollup, NOW)).toBe('1 sustainment review due now.');
     });
   });
 
