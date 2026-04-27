@@ -7,9 +7,9 @@ import type {
   ProcessStateResponsePath,
   ProcessStateSeverity,
 } from '@variscout/core';
-import { formatChangeSignals, formatMetric } from './ProcessHubFormat';
+import { formatPlural, formatStatistic } from '@variscout/core/i18n';
 
-interface ProcessHubCurrentStatePanelProps {
+export interface ProcessHubCurrentStatePanelProps {
   state: CurrentProcessState;
 }
 
@@ -54,6 +54,11 @@ const LENS_ICONS: Record<ProcessStateLens, React.ReactNode> = {
 };
 
 const LENSES: ProcessStateLens[] = ['outcome', 'flow', 'conversion', 'measurement', 'sustainment'];
+
+const formatMetric = (value: number): string => formatStatistic(value, 'en', 2);
+
+const formatChangeSignals = (count: number): string =>
+  `${count} ${formatPlural(count, { one: 'change signal', other: 'change signals' })}`;
 
 const StateCountCard: React.FC<{ lens: ProcessStateLens; count: number }> = ({ lens, count }) => (
   <div className="rounded-md border border-edge bg-surface px-3 py-2">
@@ -114,7 +119,9 @@ const StateItemCard: React.FC<{ item: ProcessStateItem }> = ({ item }) => {
   );
 };
 
-const ProcessHubCurrentStatePanel: React.FC<ProcessHubCurrentStatePanelProps> = ({ state }) => {
+export const ProcessHubCurrentStatePanel: React.FC<ProcessHubCurrentStatePanelProps> = ({
+  state,
+}) => {
   const visibleItems = state.items.slice(0, 6);
   const hiddenCount = Math.max(0, state.items.length - visibleItems.length);
 
@@ -157,5 +164,3 @@ const ProcessHubCurrentStatePanel: React.FC<ProcessHubCurrentStatePanelProps> = 
     </div>
   );
 };
-
-export default ProcessHubCurrentStatePanel;
