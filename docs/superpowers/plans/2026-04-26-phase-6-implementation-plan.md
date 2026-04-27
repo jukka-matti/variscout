@@ -1,5 +1,42 @@
 # Phase 6 — Sustainment & Control Handoff Implementation Plan
 
+> ## Session Resumption Status (paused 2026-04-27)
+>
+> **Branch:** `feat/phase-6-sustainment` — pushed to `origin/feat/phase-6-sustainment`. Last commit: `57196a54`.
+>
+> **Phase A (Tasks 1–6, core layer): COMPLETE.** 11 commits on the branch:
+>
+> - `b943d8f4` Task 1 — sustainment types + `nextDueFromCadence` scaffold
+> - `7b0c0062` Task 1 fix — calendar-aware arithmetic via `addMonthsClamped` (caught a bug in the plan's `setUTCMonth(+1)` approach)
+> - `6313129c` Task 2 — `isSustainmentDue` + `isSustainmentOverdue`
+> - `299e9977` Task 2 polish — clamp negative graceDays, tighten exclusive-cutoff JSDoc
+> - `11d935b5` Task 3 — `selectSustainmentReviews` + `selectControlHandoffCandidates`
+> - `5e1edc9f` Task 3 fix — populate `reasons`, symmetric review-item shape, export `buildReviewItem`
+> - `f83dbdb1` Task 4 — `SustainmentMetadataProjection` on metadata + barrel exports
+> - `e8d95839` Task 4 fix — reconcile `ProcessParticipantRef` to canonical Azure shape
+> - `ba60d9db` Task 4.5 — extract `buildReviewItem` to `processHubReview.ts` leaf (broke a real runtime cycle)
+> - `02ac7bf1` Task 5 — wire sustainment lane into `buildProcessHubCadence`
+> - `57196a54` Task 6 — extend `ProcessHubContextContract` with sustainment summary
+>
+> **Tests:** 2783 core tests pass (added ~30 new). No regressions.
+>
+> **Architecture deltas vs original plan:**
+>
+> - Added `processHubReview.ts` leaf module (was not in the original plan; needed to break the runtime cycle that emerged in Task 5).
+> - Added `'sustainment-due'` and `'control-handoff-missing'` reasons to `ProcessHubAttentionReason`.
+> - `selectControlHandoffCandidates` returns `ProcessHubReviewItem[]` (originally planned to return `TInv[]` — symmetry change, simpler downstream).
+> - `addMonthsClamped` private helper in `sustainment.ts` handles month-end overflow correctly.
+>
+> **Next: Phase B (Tasks 7–10, storage layer).** Start with Task 7 (IndexedDB v6 schema + migration test). All subsequent tasks proceed from this state.
+>
+> **To resume:**
+>
+> 1. `git fetch && git checkout feat/phase-6-sustainment`
+> 2. Confirm at `57196a54` (or later if anyone else added commits).
+> 3. Read this plan from "Task 7" onwards. Tasks 0–6 are done; their checkbox state is not individually updated, but the commit chain above is the source of truth.
+> 4. Use `superpowers:subagent-driven-development` to dispatch each remaining task. Per-task: implementer → spec compliance review → code quality review → next.
+> 5. Plan checkpoints at: end of Task 10 (storage complete), end of Task 14 (UI plumbed), before Task 20 (final review + merge).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Implement Phase 6 of the Process Hub roadmap — sustainment records, sustainment review log, and control-handoff acknowledgements — extending the existing cadence board without a new top-level workspace.
