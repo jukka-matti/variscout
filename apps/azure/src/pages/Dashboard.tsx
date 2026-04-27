@@ -7,6 +7,9 @@ import {
 } from '@variscout/core';
 import type { ProcessHub, SustainmentRecord, ControlHandoff } from '@variscout/core';
 import type { EvidenceSnapshot } from '@variscout/core';
+import type { ProcessStateItem, ResponsePathAction } from '@variscout/core';
+import { actionToHref } from '../lib/processHubRoutes';
+import { safeTrackEvent } from '../lib/appInsights';
 import type { SampleDataset } from '@variscout/data';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
 import { getEasyAuthUser } from '../auth/easyAuth';
@@ -217,6 +220,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
       onOpenProject(investigationId);
     },
     [onOpenProject]
+  );
+
+  const handleResponsePathAction = useCallback(
+    (item: ProcessStateItem, action: ResponsePathAction, hubId: string) => {
+      const href = actionToHref(action);
+      if (!href) return; // unsupported
+
+      safeTrackEvent('process_hub.response_path_click', {
+        hubId,
+        responsePath: item.responsePath,
+        lens: item.lens,
+        severity: item.severity,
+      });
+
+      // Dashboard already exposes onOpenProject for investigation navigation.
+      // For now, route through that callback by extracting the investigation
+      // id from the action. Full URL routing (intent + sustainment surface
+      // query params) is a follow-up — see plan PR #4 Task 12 note.
+      if (action.kind === 'open-investigation' || action.kind === 'open-sustainment') {
+        onOpenProject(action.investigationId);
+      }
+    },
+    [onOpenProject, safeTrackEvent]
   );
 
   const handleSampleSelect = (sample: SampleDataset): void => {
@@ -437,6 +463,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onSetupSustainment={handleSetupSustainment}
                 onLogReview={handleLogReview}
                 onRecordHandoff={handleRecordHandoff}
+                onResponsePathAction={handleResponsePathAction}
               />
               <ProcessHubEvidencePanel
                 hubId={selectedHubRollup.hub.id}

@@ -7,6 +7,9 @@
 export type { DataCellValue, DataRow } from './types';
 export { isNumericValue, isStringValue, toNumericValue, inferCharacteristicType } from './types';
 
+// Utility helpers
+export { assertNever } from './types';
+
 // Types - Statistics and Analysis
 export type {
   StatsResult,
@@ -499,6 +502,8 @@ export type {
   ProcessStateSeverity,
   ProcessStateSource,
 } from './processState';
+export { deriveResponsePathAction } from './responsePathAction';
+export type { ResponsePathAction } from './responsePathAction';
 
 // Sustainment (Phase 6)
 export type {
