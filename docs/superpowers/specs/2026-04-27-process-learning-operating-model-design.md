@@ -31,8 +31,9 @@ Process Measurement System converts recurring evidence into Current Process
 State. Current Process State then triggers quick actions, investigations,
 charters, sustainment checks, or handoffs.
 
-The strongest methodology insight is the Makigami-style three-level view of
-process understanding:
+The strongest methodology insight is the three-level view of
+process understanding (faithful to VariScout's existing Y / X / x EDA spine
+documented in `docs/01-vision/eda-mental-model.md` Section 5.2):
 
 1. **System / outcome level** - what the customer or business must experience.
 2. **Flow / process model level** - what flows through which steps, at what
@@ -233,7 +234,7 @@ Product surfaces:
 - measurement-gap report
 
 The existing SIPOC-style map belongs here. It should become a flow lens that can
-be read as SIPOC, Y=f(x), or Makigami flow, depending on the user's task.
+be read as SIPOC, Y=f(x), or process flow, depending on the user's task.
 
 ### 3. Local Mechanism / Evidence Level
 
@@ -402,7 +403,7 @@ The current gaps:
   layer behind Process Hub cadence
 - response paths are present as actions, sustainment, and charter candidates,
   but not yet one explicit routing model
-- the process map can show a flow skeleton but not full Makigami levels
+- the process map can show a flow skeleton but not the full three-level capability view
 - process edges, rates, waits, recipe/settings, and local operating windows are
   not first-class process-model concepts
 - ordinary process datasets cannot yet be promoted cleanly into recurring

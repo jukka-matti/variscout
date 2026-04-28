@@ -91,3 +91,35 @@ Each SuspectedCause hub with `selectedForImprovement: true` drives one HMW brain
 - `packages/hooks/src/useProblemStatement.ts` — Watson Q1-Q3 lifecycle
 - `packages/ui/src/components/` — HubComposer, HubCard, SynthesisPrompt, EquationDisplay
 - Design spec: `docs/superpowers/specs/2026-04-03-investigation-workspace-reframing-design.md`
+
+## Amendment — 2026-04-28: Current Process State as a parallel central object
+
+The 2026-04-27 operating-model spec
+(`docs/superpowers/specs/2026-04-27-process-learning-operating-model-design.md`)
+introduces **Current Process State** (`packages/core/src/processState.ts`)
+as a parallel central object alongside SuspectedCause hubs. Both remain
+canonical:
+
+- **SuspectedCause hubs** stay the canonical investigation-level object —
+  they aggregate finding-level evidence, drive HMW brainstorming, and
+  carry the synthesis prompt + equation display.
+- **Current Process State** is the canonical Process-Hub-level object —
+  it surfaces measure families (outcome / capability / flow / known-x /
+  trust), drives response-path routing, and carries the cadence-review
+  surface. Phase 2 V2 closure (PR #96/#97/#98/#99) shipped the panel; PR
+  #100 added team notes; PR #102 added the GENERIC_TABULAR_PROFILE
+  evidence wiring.
+
+The two objects are complementary, not competing: SuspectedCause is "why
+did this happen?" inside one investigation; Current Process State is
+"what's the line doing right now?" across investigations. Both flow into
+the response paths (quick action / focused investigation / chartered
+project / sustainment review / control handoff) but at different scopes.
+
+The 2026-04-28 production-line-glance spec
+(`docs/superpowers/specs/2026-04-28-production-line-glance-design.md`)
+adds the `processNodeId` tag on investigations (B2 shape — investigation
+IS one step's deep-dive) and the `nodeMappings` table (B1 shape —
+investigation covers multiple steps). Neither replaces SuspectedCause;
+they augment the per-step capability surface that feeds Current Process
+State and the production-line-glance dashboard.

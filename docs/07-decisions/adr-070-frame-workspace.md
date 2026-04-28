@@ -116,3 +116,25 @@ Staged across multiple PRs. See the design spec for full detail: [FRAME Workspac
 - **PR · Capability-leg wiring + end-to-end verification**: `SubgroupConfigPopover` reads from `processMap.subgroupAxes`; Process Map thumbnail in Analysis; pre-data hunches flow into `investigationStore`; `claude --chrome` walk on every seeded sample; MBB-expert review gate.
 
 V2+ follow-on work is tracked in the spec's _V2+ deferred_ section.
+
+## Amendment — 2026-04-28: FRAME as one flow lens within a layered process view
+
+The 2026-04-27 operating-model spec
+(`docs/superpowers/specs/2026-04-27-process-learning-operating-model-design.md`)
+positions the FRAME process map as **one flow-level lens** within a
+three-level methodology (outcome / flow / local mechanism). FRAME's role
+in the journey is unchanged — it remains the design-time, writable surface
+for capturing process structure, seeding mode inference, and surfacing
+data gaps. What changes is its conceptual position: FRAME is the
+flow-level lens; the Layered Process View spec
+(`docs/superpowers/specs/2026-04-27-layered-process-view-design.md`) adds
+outcome-band and operations-band complements above and below.
+
+The 2026-04-28 production-line-glance spec
+(`docs/superpowers/specs/2026-04-28-production-line-glance-design.md`)
+extends `ProcessMapNode` with `capabilityScope.specRules`, adds
+`contextColumns` to `ProcessMapTributary`, and introduces a hub-level
+`canonicalProcessMap` concept that investigations inherit via
+`canonicalMapVersion`. These are additive: existing single-investigation
+FRAME flows are unaffected; canonical-map inheritance kicks in when a hub
+is configured. Engine layer shipped as PR #103.

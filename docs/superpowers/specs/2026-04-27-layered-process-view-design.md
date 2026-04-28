@@ -26,7 +26,7 @@ This is a **visual-language / design spec**, not a full implementation plan. It 
 
 ## Summary
 
-A three-band visual language for understanding a process across outcome, designed flow, and actual operations. The bands stack vertically; process steps align in vertical columns; the Makigami-style insight ("the gap between design and reality") becomes a vertical reading. The same shape appears in three surfaces with different scope and writability:
+A three-band visual language for understanding a process across outcome, designed flow, and actual operations. The bands stack vertically; process steps align in vertical columns; the gap-between-design-and-reality insight (Watson, in the spirit of Y / X / x EDA stratification) becomes a vertical reading. The same shape appears in three surfaces with different scope and writability:
 
 - **FRAME** — design-time, writable. Match process knowledge to data inventory; expose gaps.
 - **Process Hub current-state** — read-time, snapshot- and cadence-state-driven. Cadence review.

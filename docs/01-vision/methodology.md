@@ -76,7 +76,9 @@ process control.
 ### Process Learning Levels
 
 VariScout should not treat analysis modes as the primary mental model. The
-stronger frame is a Makigami-style set of process understanding levels:
+stronger frame is the Y / X / x three-level set of process understanding
+(faithful to VariScout's existing EDA spine; see
+`eda-mental-model.md` Section 5.2):
 
 | Level                          | Question                                                         | Typical evidence                                             |
 | ------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------ |

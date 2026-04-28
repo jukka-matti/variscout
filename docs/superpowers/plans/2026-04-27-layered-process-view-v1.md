@@ -116,7 +116,7 @@ Create `packages/ui/src/components/LayeredProcessView/LayeredProcessView.tsx`:
 
 ```tsx
 /**
- * LayeredProcessView — three-band Makigami-style process visual.
+ * LayeredProcessView — three-band process visual (outcome / flow / operations).
  *
  * Stacks Outcome / Process Flow / Operations bands vertically. The Process
  * Flow band wraps the existing `ProcessMapBase` river-SIPOC; the Outcome and

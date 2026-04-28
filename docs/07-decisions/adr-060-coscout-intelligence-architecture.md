@@ -103,3 +103,25 @@ Design spec: `docs/superpowers/specs/2026-04-02-coscout-intelligence-architectur
 - [ADR-049: CoScout Knowledge Catalyst](adr-049-coscout-context-and-memory.md) (extended)
 - [ADR-054: Mode-Aware Question Strategy](adr-054-mode-aware-question-strategy.md) (completed)
 - [ADR-059: Web-First Deployment Architecture](adr-059-web-first-deployment-architecture.md)
+
+## Amendment — 2026-04-28: Process Learning System operating model
+
+The 2026-04-27 operating-model spec
+(`docs/superpowers/specs/2026-04-27-process-learning-operating-model-design.md`)
+extends CoScout's grounding from finding/question/process-context to also
+include:
+
+- **Process Hub canonical map** (when present) — three-level outcome / flow /
+  local-mechanism methodology
+- **Evidence Sources, Data Profiles, Snapshots** as recurring evidence (the
+  Agent Review Log profile is the first concrete example; CSV/Excel via
+  GENERIC_TABULAR_PROFILE shipped in Phase 3 / PR #102)
+- **Current Process State** (`packages/core/src/processState.ts`) as a
+  parallel central object alongside SuspectedCause hubs, with response-path
+  routing (quick action / focused investigation / chartered project /
+  sustainment review / control handoff)
+
+CoScout's authority boundary is unchanged: the deterministic stats engine
+remains the source of truth for numbers; CoScout grounds context, asks
+targeted questions, and proposes actions. The grounding surface has grown;
+the principle has not.

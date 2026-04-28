@@ -9,9 +9,11 @@ related: [product-overview, modes, tiers, coscout, journey]
 
 # VariScout — What It Does In Practice
 
-VariScout is **structured investigation for process improvement**. A browser-based, customer-owned data tool for quality engineers, lean practitioners, and analysts to explore variation in process data, identify suspected causes, and drive improvement actions. Azure tiers are local-cache capable; data stays in the customer's environment throughout.
+VariScout is **structured investigation for process improvement**, evolving into a **Process Learning System** with the Process Hub as the operating spine. A browser-based, customer-owned data tool for quality engineers, lean practitioners, and analysts to explore variation in process data, identify suspected causes, drive improvement actions, and accumulate process learning over time. Azure tiers are local-cache capable; data stays in the customer's environment throughout.
 
 The near-term product direction is **Process Hub first**: every investigation belongs to a real process, production line, queue, cell, value stream, development flow, or business workflow. The Process Hub gives the process owner and improvement team one place to see whether the process is meeting requirements, what changed, what is being investigated, what is being changed, who owns the work, what is waiting for verification, and which learnings need to be sustained. A GB/BB, OpEx lead, or development-org engineer may work across multiple Process Hubs; a line owner may mostly live in one.
+
+The 2026-04-27 operating model adds a three-level lens (outcome / flow / local mechanism — faithful to VariScout's existing Y / X / x EDA spine) and five response paths (quick team action / focused investigation / chartered project / sustainment review / control handoff) layered onto the journey below. See `docs/superpowers/specs/2026-04-27-process-learning-operating-model-design.md` and the H0→H4 maturity horizons in `docs/superpowers/specs/2026-04-27-product-method-roadmap-design.md`.
 
 ## The journey model
 
