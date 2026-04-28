@@ -251,6 +251,7 @@ export type {
 // Evidence Sources / Data Profiles / Snapshots
 export {
   AGENT_REVIEW_LOG_PROFILE,
+  GENERIC_TABULAR_PROFILE,
   DATA_PROFILE_REGISTRY,
   detectDataProfiles,
   processHubEvidenceBlobPath,
