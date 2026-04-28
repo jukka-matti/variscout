@@ -209,3 +209,5 @@ export { sampleConfidenceFor, SAMPLE_CONFIDENCE_THRESHOLDS } from './sampleConfi
 export type { SampleConfidence } from './sampleConfidence';
 export { isLegacyInvestigation, suggestNodeMappings } from './nodeCapabilityMigration';
 export { distinctContextValues } from './contextValueOptions';
+export { rollupStepErrors } from './stepErrorAggregation';
+export type { StepErrorRollupInput, StepErrorRollupResult } from './stepErrorAggregation';
