@@ -19,6 +19,7 @@ import {
   type ProcessHubSurveyReadinessSummary,
 } from './processHub';
 import type { SustainmentMetadataProjection } from './sustainment';
+import type { ProcessStateNote } from './processStateNote';
 
 export interface ProjectMetadata {
   /** High-level analysis journey phase */
@@ -70,6 +71,11 @@ export interface ProjectMetadata {
   reviewSignal?: HubReviewSignal;
   /** Lightweight projection of the active SustainmentRecord for this project. */
   sustainment?: SustainmentMetadataProjection;
+  /**
+   * Team notes for current-state items, copied from processContext.stateNotes
+   * so the Dashboard rollup can surface them without loading the full project.
+   */
+  stateNotes?: ProcessStateNote[];
 }
 
 /**
@@ -212,5 +218,6 @@ export function buildProjectMetadata(
       processContext?.currentUnderstanding?.problemCondition?.summary,
     nextMove: processContext?.nextMove,
     reviewSignal: reviewSignal ?? undefined,
+    stateNotes: processContext?.stateNotes,
   };
 }

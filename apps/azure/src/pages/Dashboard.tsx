@@ -7,7 +7,12 @@ import {
 } from '@variscout/core';
 import type { ProcessHub, SustainmentRecord, ControlHandoff } from '@variscout/core';
 import type { EvidenceSnapshot } from '@variscout/core';
-import type { ProcessStateItem, ResponsePathAction } from '@variscout/core';
+import type {
+  ProcessStateItem,
+  ProcessStateNote,
+  ProcessStateNoteKind,
+  ResponsePathAction,
+} from '@variscout/core';
 import { actionToHref } from '../lib/processHubRoutes';
 import { safeTrackEvent } from '../lib/appInsights';
 import type { SampleDataset } from '@variscout/data';
@@ -29,6 +34,7 @@ import ProcessHubCard from '../components/ProcessHubCard';
 import ProcessHubEvidencePanel from '../components/ProcessHubEvidencePanel';
 import ProcessHubReviewPanel from '../components/ProcessHubReviewPanel';
 import SampleDataPicker from '../components/SampleDataPicker';
+import StateItemNotesDrawer from '../components/StateItemNotesDrawer';
 
 interface DashboardProps {
   onOpenProject: (id?: string, processHubId?: string) => void;
@@ -47,6 +53,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     listProjects,
     listProcessHubs,
     saveProcessHub,
+    loadProject,
+    saveProject,
     listEvidenceSources,
     listEvidenceSnapshots,
     listSustainmentRecords,
@@ -64,6 +72,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSamplePickerOpen, setIsSamplePickerOpen] = useState(false);
+  const [notesDrawerState, setNotesDrawerState] = useState<
+    | { mode: 'add'; item: ProcessStateItem; hubId: string }
+    | { mode: 'edit'; item: ProcessStateItem; note: ProcessStateNote; hubId: string }
+    | null
+  >(null);
 
   // Fetch current user ID for task ownership display
   useEffect(() => {
@@ -90,13 +103,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [onLoadProjectFile]
   );
 
-  // Load projects on mount
-  useEffect(() => {
-    loadProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loadProjects = async (): Promise<void> => {
+  const loadProjects = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     try {
       const [projectList, hubList] = await Promise.all([listProjects(), listProcessHubs()]);
@@ -107,7 +114,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [listProjects, listProcessHubs]);
+
+  // Load projects on mount
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
 
   const loadEvidenceForHub = useCallback(
     async (hubId: string): Promise<void> => {
@@ -243,6 +255,129 @@ export const Dashboard: React.FC<DashboardProps> = ({
       }
     },
     [onOpenProject, safeTrackEvent]
+  );
+
+  const handleRequestAddNote = useCallback((item: ProcessStateItem, hubId: string) => {
+    setNotesDrawerState({ mode: 'add', item, hubId });
+  }, []);
+
+  const handleRequestEditNote = useCallback(
+    (item: ProcessStateItem, note: ProcessStateNote, hubId: string) => {
+      setNotesDrawerState({ mode: 'edit', item, note, hubId });
+    },
+    []
+  );
+
+  const handleSaveNote = useCallback(
+    async (kind: ProcessStateNoteKind, text: string) => {
+      if (!notesDrawerState) return;
+      const { item, hubId } = notesDrawerState;
+      // Find a target investigation: prefer item's first linked, fall back to
+      // the most-recent investigation in the hub.
+      const hubProjects = projects.filter(p => p.metadata?.processHubId === hubId);
+      const targetInvestigationId =
+        item.investigationIds?.[0] ??
+        hubProjects.sort((a, b) => (b.modified ?? '').localeCompare(a.modified ?? ''))[0]?.id;
+      if (!targetInvestigationId) {
+        setNotesDrawerState(null);
+        return;
+      }
+      // Find the project for loadProject (it takes name + location)
+      const targetProjectMeta = hubProjects.find(p => p.id === targetInvestigationId);
+      if (!targetProjectMeta) {
+        setNotesDrawerState(null);
+        return;
+      }
+      const project = await loadProject(targetProjectMeta.name, targetProjectMeta.location);
+      if (!project) {
+        setNotesDrawerState(null);
+        return;
+      }
+      // Project is `unknown`; access processContext safely
+      const p = project as Record<string, unknown>;
+      const processContext =
+        p.processContext && typeof p.processContext === 'object'
+          ? (p.processContext as Record<string, unknown>)
+          : {};
+      const existingNotes = Array.isArray(processContext.stateNotes)
+        ? (processContext.stateNotes as ProcessStateNote[])
+        : [];
+      const nowIso = new Date().toISOString();
+
+      let nextNotes: ProcessStateNote[];
+      if (notesDrawerState.mode === 'add') {
+        const newNote: ProcessStateNote = {
+          id: `note-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+          itemId: item.id,
+          kind,
+          text,
+          author: userId,
+          createdAt: nowIso,
+        };
+        nextNotes = [...existingNotes, newNote];
+        safeTrackEvent('process_hub.state_note_added', {
+          hubId,
+          kind,
+          severity: item.severity,
+          lens: item.lens,
+        });
+      } else {
+        // mode === 'edit'
+        const noteId = notesDrawerState.note.id;
+        nextNotes = existingNotes.map(n =>
+          n.id === noteId ? { ...n, text, kind, updatedAt: nowIso } : n
+        );
+        safeTrackEvent('process_hub.state_note_edited', { hubId, kind });
+      }
+
+      const nextProject = {
+        ...p,
+        processContext: {
+          ...processContext,
+          stateNotes: nextNotes,
+        },
+      };
+      await saveProject(nextProject, targetProjectMeta.name, targetProjectMeta.location);
+      setNotesDrawerState(null);
+      await loadProjects();
+    },
+    [notesDrawerState, projects, loadProject, saveProject, userId, loadProjects]
+  );
+
+  const handleDeleteNote = useCallback(
+    async (item: ProcessStateItem, noteId: string, hubId: string) => {
+      const hubProjects = projects.filter(p => p.metadata?.processHubId === hubId);
+      const targetInvestigationId =
+        item.investigationIds?.[0] ??
+        hubProjects.sort((a, b) => (b.modified ?? '').localeCompare(a.modified ?? ''))[0]?.id;
+      if (!targetInvestigationId) return;
+      const targetProjectMeta = hubProjects.find(p => p.id === targetInvestigationId);
+      if (!targetProjectMeta) return;
+      const project = await loadProject(targetProjectMeta.name, targetProjectMeta.location);
+      if (!project) return;
+      const p = project as Record<string, unknown>;
+      const processContext =
+        p.processContext && typeof p.processContext === 'object'
+          ? (p.processContext as Record<string, unknown>)
+          : {};
+      const existingNotes = Array.isArray(processContext.stateNotes)
+        ? (processContext.stateNotes as ProcessStateNote[])
+        : [];
+      const note = existingNotes.find(n => n.id === noteId);
+      if (!note) return;
+      const nextNotes = existingNotes.filter(n => n.id !== noteId);
+      const nextProject = {
+        ...p,
+        processContext: {
+          ...processContext,
+          stateNotes: nextNotes,
+        },
+      };
+      await saveProject(nextProject, targetProjectMeta.name, targetProjectMeta.location);
+      safeTrackEvent('process_hub.state_note_deleted', { hubId, kind: note.kind });
+      await loadProjects();
+    },
+    [projects, loadProject, saveProject, loadProjects]
   );
 
   const handleSampleSelect = (sample: SampleDataset): void => {
@@ -464,6 +599,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onLogReview={handleLogReview}
                 onRecordHandoff={handleRecordHandoff}
                 onResponsePathAction={handleResponsePathAction}
+                onRequestAddNote={handleRequestAddNote}
+                onRequestEditNote={handleRequestEditNote}
+                onDeleteNote={handleDeleteNote}
+                currentUserId={userId}
               />
               <ProcessHubEvidencePanel
                 hubId={selectedHubRollup.hub.id}
@@ -496,6 +635,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
         onClose={() => setIsSamplePickerOpen(false)}
         onSelectSample={handleSampleSelect}
       />
+
+      {/* Team notes drawer — overlays the review panel */}
+      {notesDrawerState && (
+        <StateItemNotesDrawer
+          open={true}
+          initialKind={notesDrawerState.mode === 'edit' ? notesDrawerState.note.kind : 'question'}
+          initialText={notesDrawerState.mode === 'edit' ? notesDrawerState.note.text : ''}
+          onSave={handleSaveNote}
+          onCancel={() => setNotesDrawerState(null)}
+        />
+      )}
     </div>
   );
 };
