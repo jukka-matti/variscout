@@ -507,6 +507,13 @@ export type {
 export { useProductionLineGlanceFilter } from './useProductionLineGlanceFilter';
 export type { UseProductionLineGlanceFilterResult } from './useProductionLineGlanceFilter';
 
+// Production Line Glance Ops Toggle (URL ?ops spatial/full progressive reveal)
+export { useProductionLineGlanceOpsToggle } from './useProductionLineGlanceOpsToggle';
+export type {
+  ProductionLineGlanceOpsMode,
+  UseProductionLineGlanceOpsToggleResult,
+} from './useProductionLineGlanceOpsToggle';
+
 // B0 Investigations In Hub (enumerates unmapped + non-dismissed for migration banner)
 export { useB0InvestigationsInHub } from './useB0InvestigationsInHub';
 export type {
