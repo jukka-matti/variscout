@@ -10,6 +10,7 @@ import type { InvestigationDepth, InvestigationStatus, ProcessParticipantRef } f
 import type { EvidenceSource, EvidenceSnapshot } from '../evidenceSources';
 import type { ProcessMomentDefinition } from '../processMoments';
 import type { SignalCard } from '../signalCards';
+import type { ProcessStateNote } from '../processStateNote';
 
 /** AI model tier — maps to ARM deployment names ('fast' or 'reasoning') */
 export type AITier = 'fast' | 'reasoning';
@@ -151,6 +152,13 @@ export interface ProcessContext {
   evidenceSources?: EvidenceSource[];
   /** Snapshot metadata references associated with this investigation/project. */
   evidenceSnapshots?: EvidenceSnapshot[];
+  /**
+   * Team notes attached to current-state items for this investigation.
+   * Persisted directly on processContext so they round-trip through the
+   * existing Blob-Storage project JSON without a separate sidecar.
+   * Read by the Dashboard rollup via ProjectMetadata.stateNotes.
+   */
+  stateNotes?: ProcessStateNote[];
 }
 
 /** Structured AI context assembled from current analysis state */

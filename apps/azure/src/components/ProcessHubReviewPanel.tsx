@@ -10,6 +10,7 @@ import type {
   ProcessHubInvestigation,
   ProcessHubRollup,
   ProcessStateItem,
+  ProcessStateNote,
   ResponsePathAction,
 } from '@variscout/core';
 import { ProcessHubCurrentStatePanel } from '@variscout/ui';
@@ -26,6 +27,11 @@ interface ProcessHubReviewPanelProps {
   onLogReview: (recordId: string) => void;
   onRecordHandoff: (investigationId: string) => void;
   onResponsePathAction: (item: ProcessStateItem, action: ResponsePathAction, hubId: string) => void;
+  /** Notes wiring */
+  onRequestAddNote: (item: ProcessStateItem, hubId: string) => void;
+  onRequestEditNote: (item: ProcessStateItem, note: ProcessStateNote, hubId: string) => void;
+  onDeleteNote: (item: ProcessStateItem, noteId: string, hubId: string) => void;
+  currentUserId: string;
 }
 
 const SnapshotCard: React.FC<{
@@ -55,6 +61,10 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   onLogReview,
   onRecordHandoff,
   onResponsePathAction,
+  onRequestAddNote,
+  onRequestEditNote,
+  onDeleteNote,
+  currentUserId,
 }) => {
   const cadence = buildProcessHubCadence(rollup);
   const currentState = buildCurrentProcessState(rollup, cadence);
@@ -126,6 +136,29 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
     [rollup.investigations, investigationIdResolver]
   );
 
+  // Aggregate stateNotes from all linked investigations for an item.
+  // Per-investigation items use item.investigationIds; aggregate items pull
+  // from all hub investigations.
+  const notesFor = React.useCallback(
+    (item: ProcessStateItem): readonly ProcessStateNote[] => {
+      const investigationIds =
+        item.investigationIds && item.investigationIds.length > 0
+          ? item.investigationIds
+          : rollup.investigations.map(inv => inv.id);
+      const all: ProcessStateNote[] = [];
+      for (const invId of investigationIds) {
+        const inv = rollup.investigations.find(i => i.id === invId);
+        const notes = inv?.metadata?.stateNotes ?? [];
+        for (const note of notes) {
+          if (note.itemId === item.id) all.push(note);
+        }
+      }
+      // Sort by createdAt asc so older notes appear first
+      return all.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    },
+    [rollup.investigations]
+  );
+
   const handleChipClick = React.useCallback(
     (item: ProcessStateItem, findings: readonly Finding[]) => {
       safeTrackEvent('process_hub.evidence_chip_click', {
@@ -183,6 +216,13 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
           onInvoke: (item, action) => onResponsePathAction(item, action, rollup.hub.id),
         }}
         evidence={{ findingsFor, onChipClick: handleChipClick }}
+        notes={{
+          notesFor,
+          onRequestAddNote: item => onRequestAddNote(item, rollup.hub.id),
+          onRequestEditNote: (item, note) => onRequestEditNote(item, note, rollup.hub.id),
+          onDeleteNote: (item, noteId) => onDeleteNote(item, noteId, rollup.hub.id),
+          currentUserId,
+        }}
       />
 
       <div className="mt-4 grid gap-2 sm:grid-cols-5">

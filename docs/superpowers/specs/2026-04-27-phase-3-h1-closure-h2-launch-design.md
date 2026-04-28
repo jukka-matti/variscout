@@ -16,7 +16,7 @@ related:
 
 # Phase 3 — H1 Closure + H2 Launch
 
-> **Implementation plan (forthcoming):** `docs/superpowers/plans/2026-04-27-phase-3-h1-closure-h2-launch-plan.md` — TDD breakdown for PR #1 (team notes), PR #2 (full EvidenceSheet), PR #3 (general Evidence Source). Plain-text path used until the plan file is written by `superpowers:writing-plans`.
+> **Implementation plan:** [`2026-04-27-phase-3-h1-closure-h2-launch-plan.md`](../plans/2026-04-27-phase-3-h1-closure-h2-launch-plan.md) — TDD breakdown for PR #1 (team notes), PR #2 (full EvidenceSheet), PR #3 (general Evidence Source).
 
 ## Context
 
